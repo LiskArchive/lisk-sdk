@@ -24,7 +24,7 @@ const {
 const accountsFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
-const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../../../src/modules/chain/helpers/bignum');
 
 const exceptions = global.exceptions;
 
@@ -33,7 +33,7 @@ describe('duplicate_signatures', () => {
 	let addTransactionsAndForgePromise;
 	let transactionPool;
 
-	localCommon.beforeBlock('lisk_functional_duplicate_signatures', lib => {
+	localCommon.beforeBlock('duplicate_signatures', lib => {
 		library = lib;
 
 		addTransactionsAndForgePromise = Promise.promisify(

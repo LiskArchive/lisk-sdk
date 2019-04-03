@@ -14,7 +14,7 @@
 
 'use strict';
 
-require('../../../functional.js');
+require('../../../functional');
 const {
 	transfer,
 	registerSecondPassphrase,
@@ -24,6 +24,7 @@ const SwaggerEndpoint = require('../../../../common/swagger_spec');
 const randomUtil = require('../../../../common/utils/random');
 const waitFor = require('../../../../common/utils/wait_for');
 const apiHelpers = require('../../../../common/helpers/api');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 
 const { FEES } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
@@ -300,27 +301,35 @@ describe('GET /accounts', () => {
 				return accountsEndpoint.makeRequest({ sort: 'invalid' }, 400);
 			});
 
-			it('using no sort return accounts sorted by balance in asending order as default behavior', async () => {
-				return accountsEndpoint
-					.makeRequest({ sort: 'balance:asc' }, 200)
-					.then(res => {
-						const balances = _(res.body.data)
-							.map('balance')
-							.value();
-						expect(_.clone(balances).sort()).to.be.eql(balances);
-					});
+			it('using no sort return accounts sorted by both balance and address in asending order as default behavior', async () => {
+				return accountsEndpoint.makeRequest({}, 200).then(res => {
+					const balances = _.clone(res.body.data);
+					expect(
+						balances.sort((a, b) => {
+							const aBignumBalance = new Bignum(a.balance);
+							return (
+								aBignumBalance.minus(b.balance) ||
+								a.address.localeCompare(b.address)
+							);
+						})
+					).to.be.eql(res.body.data);
+				});
 			});
 
 			it('using sort = balance:asc should return accounts in ascending order by balance', async () => {
 				return accountsEndpoint
 					.makeRequest({ sort: 'balance:asc' }, 200)
 					.then(res => {
-						const balances = _.map(res.body.data, 'balance');
+						const balances = _.clone(res.body.data);
 						expect(
-							_(res.body.data)
-								.map('balance')
-								.sortNumbers()
-						).to.be.eql(balances);
+							balances.sort((a, b) => {
+								const aBignumBalance = new Bignum(a.balance);
+								return (
+									aBignumBalance.minus(b.balance) ||
+									a.address.localeCompare(b.address)
+								);
+							})
+						).to.be.eql(res.body.data);
 					});
 			});
 
@@ -328,12 +337,16 @@ describe('GET /accounts', () => {
 				return accountsEndpoint
 					.makeRequest({ sort: 'balance:desc' }, 200)
 					.then(res => {
-						const balances = _.map(res.body.data, 'balance');
+						const balances = _.clone(res.body.data);
 						expect(
-							_(res.body.data)
-								.map('balance')
-								.sortNumbers('desc')
-						).to.be.eql(balances);
+							balances.sort((a, b) => {
+								const bBignumBalance = new Bignum(b.balance);
+								return (
+									bBignumBalance.minus(a.balance) ||
+									a.address.localeCompare(b.address)
+								);
+							})
+						).to.be.eql(res.body.data);
 					});
 			});
 		});

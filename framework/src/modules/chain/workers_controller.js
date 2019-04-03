@@ -23,7 +23,6 @@ const async = require('async');
 const SCWorker = require('socketcluster/scworker');
 const SlaveWAMPServer = require('wamp-socket-cluster/SlaveWAMPServer');
 const Peer = require('./logic/peer');
-const { createSystemComponent } = require('../../components/system');
 const Handshake = require('./api/ws/workers/middlewares/handshake').middleware
 	.Handshake;
 const extractHeaders = require('./api/ws/workers/middlewares/handshake')
@@ -35,7 +34,7 @@ const failureCodes = require('./api/ws/rpc/failure_codes');
 const {
 	createLoggerComponent,
 } = require('../../../../framework/src/components/logger');
-const AppConfig = require('./helpers/config.js');
+const AppConfig = require('./helpers/config');
 const config = new AppConfig(require('../../../../package.json'), false);
 
 /**
@@ -102,17 +101,10 @@ SCWorker.create({
 					},
 				],
 
-				system: [
+				handshake: [
 					'config',
 					function(scope, cb) {
-						cb(null, createSystemComponent(scope.config, scope.logger));
-					},
-				],
-
-				handshake: [
-					'system',
-					function(scope, cb) {
-						return cb(null, new Handshake(scope.system, scope.config));
+						return cb(null, new Handshake(scope.config));
 					},
 				],
 			},

@@ -28,7 +28,7 @@ const slots = require('../../../src/modules/chain/helpers/slots');
 const application = require('../common/application');
 const randomUtil = require('../common/utils/random');
 const accountFixtures = require('../fixtures/accounts');
-const Bignum = require('../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../src/modules/chain/helpers/bignum');
 
 const { ACTIVE_DELEGATES } = global.constants;
 
@@ -264,7 +264,8 @@ function getTransactionFromModule(library, filter, cb) {
 }
 
 function getUnconfirmedTransactionFromModule(library, filter, cb) {
-	library.modules.transactions.shared.getUnconfirmedTransactions(
+	library.modules.transactions.shared.getTransactionsFromPool(
+		'unconfirmed',
 		filter,
 		(err, res) => {
 			cb(err, res);
@@ -273,7 +274,8 @@ function getUnconfirmedTransactionFromModule(library, filter, cb) {
 }
 
 function getMultisignatureTransactions(library, filter, cb) {
-	library.modules.transactions.shared.getMultisignatureTransactions(
+	library.modules.transactions.shared.getTransactionsFromPool(
+		'unsigned',
 		filter,
 		(err, res) => {
 			cb(err, res);
@@ -287,8 +289,11 @@ function beforeBlock(type, cb) {
 		'init sandboxed application, credit account and register dapp',
 		done => {
 			application.init(
-				{ sandbox: { name: `lisk_test_${type}` } },
+				{ sandbox: { name: `lisk_test_integration_${type}` } },
 				(err, library) => {
+					if (err) {
+						return done(err);
+					}
 					cb(library);
 					return done();
 				}

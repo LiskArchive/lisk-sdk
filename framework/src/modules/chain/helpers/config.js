@@ -19,11 +19,26 @@ const path = require('path');
 const program = require('commander');
 const _ = require('lodash');
 const randomstring = require('randomstring');
-const configSchema = require('../schema/config.js');
-const Z_schema = require('./z_schema.js');
-const deepFreeze = require('./deep_freeze_object.js');
+const configSchema = require('../schema/config');
+const { ZSchema } = require('../../../controller/helpers/validator');
 
-const rootPath = path.dirname(path.resolve(__filename, '..'));
+const validator = new ZSchema();
+const rootPath = path.dirname(path.resolve(__filename, '../../../../..'));
+
+const deepFreeze = function(o) {
+	Object.freeze(o);
+	Object.getOwnPropertyNames(o).forEach(prop => {
+		if (
+			o[prop] !== null &&
+			typeof o[prop] === 'object' &&
+			!Object.isFrozen(o[prop])
+		) {
+			deepFreeze(o[prop]);
+		}
+	});
+
+	return o;
+};
 
 /**
  * Description of the module.
@@ -72,20 +87,16 @@ function Config(packageJson, parseCommandLineOptions = true) {
 			? process.env.PROTOCOL_VERSION || packageJson.lisk.protocolVersion
 			: packageJson.lisk.protocolVersion;
 
-	const genesisBlock = loadJSONFile(
-		`../../../../config/${network}/genesis_block.json`
-	);
+	const genesisBlock = loadJSONFile(`config/${network}/genesis_block.json`);
 
-	const defaultConstants = require('../../../../../config/default/constants.js');
-	const networkConstants = require(`../../../../../config/${network}/constants.js`); // eslint-disable-line import/no-dynamic-require
+	const defaultConstants = require(`${rootPath}/config/default/constants`); // eslint-disable-line import/no-dynamic-require
+	const networkConstants = require(`${rootPath}/config/${network}/constants.js`); // eslint-disable-line import/no-dynamic-require
 
-	const defaultExceptions = require('../../../../../config/default/exceptions.js');
-	const networkExceptions = require(`../../../../../config/${network}/exceptions.js`); // eslint-disable-line import/no-dynamic-require
+	const defaultExceptions = require(`${rootPath}/config/default/exceptions`); // eslint-disable-line import/no-dynamic-require
+	const networkExceptions = require(`${rootPath}/config/${network}/exceptions.js`); // eslint-disable-line import/no-dynamic-require
 
-	const defaultConfig = loadJSONFile('../../../../config/default/config.json');
-	const networkConfig = loadJSONFile(
-		`../../../../config/${network}/config.json`
-	);
+	const defaultConfig = loadJSONFile('config/default/config.json');
+	const networkConfig = loadJSONFile(`config/${network}/config.json`);
 
 	let customConfig = {};
 	if (program.config || process.env.LISK_CONFIG_FILE) {
@@ -165,7 +176,6 @@ function Config(packageJson, parseCommandLineOptions = true) {
 		}
 	);
 
-	const validator = new Z_schema();
 	const valid = validator.validate(appConfig, configSchema.config);
 
 	if (!valid) {
@@ -204,7 +214,7 @@ const getenv = (variable, defaultValue = null, isBoolean = false) => {
 
 function loadJSONFile(filePath) {
 	try {
-		filePath = path.resolve(rootPath, filePath);
+		filePath = path.join(rootPath, filePath);
 		return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 	} catch (err) {
 		console.error(`Failed to load file: ${filePath}`);

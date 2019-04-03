@@ -26,7 +26,6 @@ const generateMatchedAndUnmatchedBroadhashes = require('../common/helpers/peers'
 	.generateMatchedAndUnmatchedBroadhashes;
 const modulesLoader = require('../../../../common/modules_loader');
 const random = require('../../../../common/utils/random');
-const swagerHelper = require('../../../../../../src/modules/chain/helpers/swagger');
 
 const { MAX_PEERS } = __testContext.config.constants;
 
@@ -34,13 +33,11 @@ describe('peers', () => {
 	let storageMock;
 	let peers;
 	let PeersRewired;
-	let bindings;
 	let __private;
 
 	let peersLogicMock;
-	let systemComponentMock;
-	let transportModuleMock;
 	let scope;
+	let channelMock;
 
 	const NONCE = randomstring.generate(16);
 
@@ -52,6 +49,8 @@ describe('peers', () => {
 				},
 			},
 		};
+
+		channelMock = {};
 
 		PeersRewired = rewire(
 			'../../../../../../src/modules/chain/submodules/peers'
@@ -66,40 +65,102 @@ describe('peers', () => {
 			upsert: sinonSandbox.stub(),
 			remove: sinonSandbox.stub(),
 		};
-		systemComponentMock = {
-			headers: {},
-		};
-		transportModuleMock = {};
-		bindings = {
-			modules: {
-				transport: transportModuleMock,
-			},
-
-			components: {
-				system: systemComponentMock,
-			},
-		};
-
-		swagerHelper.getResolvedSwaggerSpec().then(resolvedSpec => {
-			bindings.swagger = {
-				definitions: resolvedSpec.definitions,
-			};
-		});
 
 		scope = _.defaultsDeep(
 			{
 				nonce: NONCE,
 				logic: { peers: peersLogicMock },
 				components: { storage: storageMock },
+				channel: channelMock,
+				applicationState: {},
 			},
 			modulesLoader.scope
 		);
 
 		new PeersRewired((err, peersModule) => {
 			peers = peersModule;
-			peers.onBind(bindings);
 			done();
 		}, scope);
+	});
+
+	describe('versionCompatible', () => {
+		beforeEach(async () => {
+			Object.assign(scope.applicationState, {
+				broadhash: 'aBroadhash',
+				height: 'aHeight',
+				httpPort: 'anHttpHeight',
+				nonce: 'aNonce',
+				os: 'anOs',
+				version: '1.0.0',
+				minVersion: '1.0.0-beta.0',
+				protocolVersion: '1.0',
+			});
+		});
+		describe('when there is no version', () => {
+			it('should return false', async () =>
+				expect(__private.versionCompatible()).to.be.false);
+		});
+		describe('when version is null', () => {
+			it('should return false', async () =>
+				expect(__private.versionCompatible(null)).to.be.false);
+		});
+		describe('when version is undefined', () => {
+			it('should return false', async () =>
+				expect(__private.versionCompatible(undefined)).to.be.false);
+		});
+		describe('when version is empty string', () => {
+			it('should return false', async () =>
+				expect(__private.versionCompatible('')).to.be.false);
+		});
+		describe('when version is equal to application version', () => {
+			it('should return true', async () =>
+				expect(__private.versionCompatible('1.0.0-beta.0')).to.be.true);
+		});
+		describe('when version is greather than application version', () => {
+			it('should return true', async () =>
+				expect(__private.versionCompatible('1.0.0-rc.0')).to.be.true);
+		});
+		describe('when version is less than application version', () => {
+			it('should return false', async () =>
+				expect(__private.versionCompatible('1.0.0-alpha.10')).to.be.false);
+		});
+	});
+
+	describe('protocolVersionCompatible', () => {
+		beforeEach(async () => {
+			Object.assign(scope.applicationState, {
+				broadhash: 'aBroadhash',
+				height: 'aHeight',
+				httpPort: 'anHttpHeight',
+				nonce: 'aNonce',
+				os: 'anOs',
+				version: '1.0.0',
+				minVersion: '1.0.0-beta.0',
+				protocolVersion: '1.0',
+			});
+		});
+		describe('when protocol version is exactly equal to application protocol version', () => {
+			it('should return true', async () =>
+				expect(__private.protocolVersionCompatible('1.0')).to.be.true);
+		});
+		describe('when the hard part of protocol is not exactly equal than the one of the application protocol version', () => {
+			it("should return false if it's greater or lesser", async () =>
+				expect(__private.protocolVersionCompatible('2.0')).to.be.false);
+			it("should return false if it's lesser", async () =>
+				expect(__private.protocolVersionCompatible('0.0')).to.be.false);
+		});
+		describe('when the hard part of protocol is equal to  the one of the application protocol version', () => {
+			it('should return true', async () =>
+				expect(__private.protocolVersionCompatible('1.5')).to.be.true);
+		});
+		describe('when the hard part of the protocol version is already compatible', () => {
+			it('should return true if the soft part is lesser, equal or greater than the soft part of the application protocol version', async () =>
+				['1.0', '1.1', '1.2'].forEach(
+					protocolVersion =>
+						expect(__private.protocolVersionCompatible(protocolVersion)).to.be
+							.true
+				));
+		});
 	});
 
 	describe('list', () => {
@@ -128,7 +189,6 @@ describe('peers', () => {
 
 		describe('when logic.peers.list returns no records', () => {
 			before(done => {
-				systemComponentMock.getBroadhash = sinonSandbox.stub().returns();
 				peersLogicMock.list = sinonSandbox.stub().returns([]);
 				done();
 			});
@@ -515,27 +575,31 @@ describe('peers', () => {
 	});
 
 	describe('calculateConsensus', () => {
-		let validActive;
-		let validMatched;
 		let calculateConsensusResult;
 
 		before(done => {
-			validActive = null;
-			validMatched = null;
 			calculateConsensusResult = null;
 			peersLogicMock.list = sinonSandbox.stub().returns([]);
 			done();
 		});
-
-		beforeEach(async () => {
-			calculateConsensusResult = await peers.calculateConsensus(
-				validActive,
-				validMatched
-			);
-			return null;
+		beforeEach(done => {
+			Object.assign(scope.applicationState, {
+				broadhash: prefixedPeer.broadhash,
+				height: prefixedPeer.height,
+				httpPort: 'anHttpHeight',
+				nonce: 'aNonce',
+				os: 'anOs',
+				version: '1.0.0',
+				minVersion: '1.0.0-beta.0',
+				protocolVersion: '1.0',
+			});
+			calculateConsensusResult = peers.calculateConsensus();
+			done();
 		});
 
-		afterEach(() => peersLogicMock.list.resetHistory());
+		afterEach(async () => {
+			peersLogicMock.list.resetHistory();
+		});
 
 		it('should set self.consensus value', async () =>
 			expect(PeersRewired.__get__('self.consensus')).to.equal(
@@ -557,7 +621,6 @@ describe('peers', () => {
 					const connectedPeer = _.assign({}, prefixedPeer);
 					connectedPeer.state = Peer.STATE.CONNECTED;
 					peersLogicMock.list = sinonSandbox.stub().returns([connectedPeer]);
-					systemComponentMock.headers.broadhash = connectedPeer.broadhash;
 					done();
 				});
 
@@ -570,7 +633,6 @@ describe('peers', () => {
 					const bannedPeer = _.assign({}, prefixedPeer);
 					bannedPeer.state = Peer.STATE.BANNED;
 					peersLogicMock.list = sinonSandbox.stub().returns([bannedPeer]);
-					systemComponentMock.headers.broadhash = bannedPeer.broadhash;
 					done();
 				});
 
@@ -583,145 +645,21 @@ describe('peers', () => {
 					const disconnectedPeer = _.assign({}, prefixedPeer);
 					disconnectedPeer.state = Peer.STATE.DISCONNECTED;
 					peersLogicMock.list = sinonSandbox.stub().returns([disconnectedPeer]);
-					systemComponentMock.headers.broadhash = disconnectedPeer.broadhash;
+					Object.assign(scope.applicationState, {
+						broadhash: disconnectedPeer.broadhash,
+					});
 					done();
 				});
 
 				it('should return consensus = 0', async () =>
 					expect(calculateConsensusResult).to.equal(0));
-			});
-		});
-
-		describe('when matched peers not passed and there are 100 active peers', () => {
-			let oneHundredActivePeers;
-			let broadhashes;
-
-			before(done => {
-				oneHundredActivePeers = _.range(100).map(() =>
-					generateRandomActivePeer()
-				);
-				broadhashes = generateMatchedAndUnmatchedBroadhashes(100);
-				systemComponentMock.headers.broadhash = broadhashes.matchedBroadhash;
-				validActive = oneHundredActivePeers;
-				done();
-			});
-
-			afterEach(() => peersLogicMock.list.resetHistory());
-
-			after(done => {
-				validActive = null;
-				done();
-			});
-
-			describe('when non of active peers matches broadhash', () => {
-				before(() =>
-					oneHundredActivePeers.forEach((peer, index) => {
-						peer.broadhash = broadhashes.unmatchedBroadhashes[index];
-					})
-				);
-
-				it('should return consensus = 0', async () =>
-					expect(calculateConsensusResult).to.equal(0));
-			});
-
-			describe('when all of active peers matches broadhash', () => {
-				before(() =>
-					oneHundredActivePeers.forEach(peer => {
-						peer.broadhash = broadhashes.matchedBroadhash;
-					})
-				);
-
-				it('should return consensus = 100', async () =>
-					expect(calculateConsensusResult).equal(100));
-			});
-
-			describe('when half of active peers matches broadhash', () => {
-				before(() =>
-					oneHundredActivePeers.forEach((peer, i) => {
-						peer.broadhash =
-							i < 50
-								? broadhashes.matchedBroadhash
-								: broadhashes.unmatchedBroadhashes[i];
-					})
-				);
-
-				it('should return consensus = 50', async () =>
-					expect(calculateConsensusResult).equal(50));
-			});
-		});
-
-		describe('when called with active and matched arguments', () => {
-			describe('when there are 10 active and 10 matched peers', () => {
-				before(done => {
-					validActive = _.range(10).map(generateRandomActivePeer);
-					validMatched = _.range(10).map(generateRandomActivePeer);
-					done();
-				});
-
-				it('should return consensus = 100', async () =>
-					expect(calculateConsensusResult).equal(100));
-			});
-
-			describe('when there are [MAX_PEERS] active and [MAX_PEERS] matched peers', () => {
-				before(done => {
-					validActive = _.range(MAX_PEERS).map(generateRandomActivePeer);
-					validMatched = _.range(MAX_PEERS).map(generateRandomActivePeer);
-					done();
-				});
-
-				it('should return consensus = 100', async () =>
-					expect(calculateConsensusResult).equal(100));
-			});
-
-			describe('when there are [MAX_PEERS] x 10 active and [MAX_PEERS] matched peers', () => {
-				before(done => {
-					validActive = _.range(10 * MAX_PEERS).map(generateRandomActivePeer);
-					validMatched = _.range(MAX_PEERS).map(generateRandomActivePeer);
-					done();
-				});
-
-				it('should return consensus = 100', async () =>
-					expect(calculateConsensusResult).equal(100));
-			});
-
-			describe('when there are [MAX_PEERS] active and [MAX_PEERS] x 10 matched peers', () => {
-				before(done => {
-					validActive = _.range(MAX_PEERS).map(generateRandomActivePeer);
-					validMatched = _.range(10 * MAX_PEERS).map(generateRandomActivePeer);
-					done();
-				});
-
-				it('should return consensus = 100', async () =>
-					expect(calculateConsensusResult).equal(100));
-			});
-
-			describe('when there are 50 active and 100 matched peers', () => {
-				before(done => {
-					validActive = _.range(50).map(generateRandomActivePeer);
-					validMatched = _.range(100).map(generateRandomActivePeer);
-					done();
-				});
-
-				it('should return consensus = 100', async () =>
-					expect(calculateConsensusResult).equal(100));
-			});
-
-			describe('when there are 100 active and 50 matched peers', () => {
-				before(done => {
-					validActive = _.range(100).map(generateRandomActivePeer);
-					validMatched = _.range(50).map(generateRandomActivePeer);
-					done();
-				});
-
-				it('should return consensus = 50', async () =>
-					expect(calculateConsensusResult).equal(50));
 			});
 		});
 	});
 
 	describe('acceptable', () => {
 		before(done => {
-			systemComponentMock.headers.nonce = NONCE;
+			Object.assign(scope.applicationState, { nonce: NONCE });
 			process.env.NODE_ENV = 'DEV';
 			done();
 		});
@@ -929,8 +867,8 @@ describe('peers', () => {
 					string: 'aPeerString',
 				};
 
-				bindings.components.system.versionCompatible = sinonSandbox.stub();
-				bindings.components.system.protocolVersionCompatible = sinonSandbox.stub();
+				__private.versionCompatible = sinonSandbox.stub();
+				__private.protocolVersionCompatible = sinonSandbox.stub();
 				__private.updatePeerStatus(undefined, status, peer);
 				done();
 			});
@@ -941,24 +879,24 @@ describe('peers', () => {
 				it('should call versionCompatible() with status.version', async () => {
 					delete status.protocolVersion;
 					__private.updatePeerStatus(undefined, status, peer);
-					return expect(
-						bindings.components.system.versionCompatible
-					).to.be.calledWith(status.version);
+					return expect(__private.versionCompatible).to.be.calledWith(
+						status.version
+					);
 				});
 			});
 
 			describe('when protocol version is present', () => {
 				it('should call protocolVersionCompatible() with status.protocolVersion', async () => {
 					__private.updatePeerStatus(undefined, status, peer);
-					return expect(
-						bindings.components.system.protocolVersionCompatible
-					).to.be.calledWith(status.protocolVersion);
+					return expect(__private.protocolVersionCompatible).to.be.calledWith(
+						status.protocolVersion
+					);
 				});
 			});
 
 			describe('when the peer is compatible', () => {
 				beforeEach(() => {
-					bindings.components.system.protocolVersionCompatible = sinonSandbox
+					__private.protocolVersionCompatible = sinonSandbox
 						.stub()
 						.returns(true);
 					return __private.updatePeerStatus(undefined, status, peer);
@@ -999,13 +937,11 @@ describe('peers', () => {
 
 			it('should call library.logic.peers.upsert() with required args regardless if its compatible or not', done => {
 				// When it's compatible
-				bindings.components.system.protocolVersionCompatible = sinonSandbox
-					.stub()
-					.returns(true);
+				__private.protocolVersionCompatible = sinonSandbox.stub().returns(true);
 				__private.updatePeerStatus(undefined, status, peer);
 				expect(peersLogicMock.upsert).to.be.calledWithExactly(peer, false);
 				// When it's not compatible
-				bindings.components.system.protocolVersionCompatible = sinonSandbox
+				__private.protocolVersionCompatible = sinonSandbox
 					.stub()
 					.returns(false);
 				__private.updatePeerStatus(undefined, status, peer);

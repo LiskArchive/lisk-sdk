@@ -14,17 +14,17 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
+const Bignum = require('bignumber.js');
 const { transfer, createDapp } = require('@liskhq/lisk-transactions');
 const Promise = require('bluebird');
 const accountFixtures = require('../../../fixtures/accounts');
 const phases = require('../../../common/phases');
-const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
 const randomUtil = require('../../../common/utils/random');
 const waitFor = require('../../../common/utils/wait_for');
 const elements = require('../../../common/utils/elements');
 const apiHelpers = require('../../../common/helpers/api');
-const errorCodes = require('../../../../../src/modules/chain/helpers/api_codes');
+const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const common = require('./common');
 
 const { FEES, NORMALIZER } = global.constants;
@@ -114,7 +114,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid transaction body - Failed to validate outTransfer schema: Missing required property: dappId'
@@ -135,7 +135,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid transaction body - Failed to validate outTransfer schema: Expected type string but found type integer'
@@ -156,7 +156,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						"Invalid transaction body - Failed to validate outTransfer schema: Expected type string but found type number, Object didn't pass validation for format id: 1.2"
@@ -177,7 +177,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid transaction body - Failed to validate outTransfer schema: Expected type string but found type array'
@@ -198,7 +198,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						"Invalid transaction body - Failed to validate outTransfer schema: Expected type string but found type object, Object didn't pass validation for format id: {}"
@@ -218,7 +218,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid transaction body - Failed to validate outTransfer schema: String is too short (0 chars), minimum 1'
@@ -239,7 +239,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						`Invalid transaction body - Failed to validate outTransfer schema: Object didn't pass validation for format id: ${invalidDappId}`
@@ -262,7 +262,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid transaction body - Failed to validate outTransfer schema: Missing required property: transactionId'
@@ -283,7 +283,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid transaction body - Failed to validate outTransfer schema: Expected type string but found type integer'
@@ -304,7 +304,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						"Invalid transaction body - Failed to validate outTransfer schema: Expected type string but found type number, Object didn't pass validation for format id: 1.2"
@@ -325,7 +325,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid transaction body - Failed to validate outTransfer schema: Expected type string but found type array'
@@ -346,7 +346,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						"Invalid transaction body - Failed to validate outTransfer schema: Expected type string but found type object, Object didn't pass validation for format id: {}"
@@ -366,7 +366,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid transaction body - Failed to validate outTransfer schema: String is too short (0 chars), minimum 1'
@@ -387,7 +387,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						`Invalid transaction body - Failed to validate outTransfer schema: Object didn't pass validation for format id: ${invalidTransactionId}`
@@ -408,7 +408,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 				);
 				transaction.recipientId = 1;
 
-				return sendTransactionPromise(transaction, errorCodes.BAD_REQUEST).then(
+				return sendTransactionPromise(transaction, apiCodes.BAD_REQUEST).then(
 					async () => {
 						badTransactions.push(transaction);
 					}
@@ -425,7 +425,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 				);
 				transaction.recipientId = 1.2;
 
-				return sendTransactionPromise(transaction, errorCodes.BAD_REQUEST).then(
+				return sendTransactionPromise(transaction, apiCodes.BAD_REQUEST).then(
 					async () => {
 						badTransactions.push(transaction);
 					}
@@ -442,7 +442,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 				);
 				transaction.recipientId = [];
 
-				return sendTransactionPromise(transaction, errorCodes.BAD_REQUEST).then(
+				return sendTransactionPromise(transaction, apiCodes.BAD_REQUEST).then(
 					async () => {
 						badTransactions.push(transaction);
 					}
@@ -459,7 +459,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 				);
 				transaction.recipientId = {};
 
-				return sendTransactionPromise(transaction, errorCodes.BAD_REQUEST).then(
+				return sendTransactionPromise(transaction, apiCodes.BAD_REQUEST).then(
 					async () => {
 						badTransactions.push(transaction);
 					}
@@ -477,7 +477,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(() => {
 					badTransactions.push(transaction);
 				});
@@ -493,7 +493,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 					account.passphrase
 				);
 
-				return sendTransactionPromise(transaction, errorCodes.BAD_REQUEST).then(
+				return sendTransactionPromise(transaction, apiCodes.BAD_REQUEST).then(
 					async () => {
 						badTransactions.push(transaction);
 					}
@@ -513,7 +513,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid transaction body - Failed to validate transaction schema: Value -1 is less than minimum 0'
@@ -544,7 +544,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 						return sendTransactionPromise(
 							transaction,
-							errorCodes.PROCESSING_ERROR
+							apiCodes.PROCESSING_ERROR
 						);
 					})
 					.then(res => {
@@ -570,7 +570,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Application not found: ${unknownDappId}`
@@ -591,7 +591,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Application not found: ${inexistentId}`
@@ -611,7 +611,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Application not found: ${transactionsToWaitFor[0]}`
@@ -647,7 +647,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.match(
 						/^Account does not have enough LSK: /
@@ -703,7 +703,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Transaction type ${transaction.type} is frozen`

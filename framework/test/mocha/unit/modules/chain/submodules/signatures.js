@@ -15,8 +15,8 @@
 'use strict';
 
 const application = require('../../../../common/application');
-const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types');
-const ApiError = require('../../../../../../src/modules/chain/helpers/api_error');
+
+const { TRANSACTION_TYPES } = global.constants;
 
 /* eslint-disable mocha/no-pending-tests */
 describe('signatures', () => {
@@ -94,7 +94,7 @@ describe('signatures', () => {
 			before(done => {
 				signatureLogicSpy = sinonSandbox.spy(
 					library.rewiredModules.signatures.__get__('__private').assetTypes[
-						transactionTypes.SIGNATURE
+						TRANSACTION_TYPES.SIGNATURE
 					],
 					'bind'
 				);
@@ -136,50 +136,23 @@ describe('signatures', () => {
 			}));
 
 		describe('when modules.transport.shared.postSignature fails with result', () => {
-			it('should call callback with ApiError', done => {
+			it('should call callback with ApiError containing code = 400', done => {
+				// Force library.modules.transport.shared.postSignature to fail with custom message
 				// Arrange
-				postSignatureStub.yields(null, { success: false });
+				const expectedData = {
+					success: false,
+					message: 'Invalid signature body',
+				};
 
+				postSignatureStub.yields(null, expectedData);
 				// Act
-				library.modules.signatures.shared.postSignature(req.body, error => {
-					// Assert
-					expect(error).to.be.instanceof(ApiError);
-					done();
-				});
-			});
-
-			describe('when result.message = "Invalid signature body"', () => {
-				it('should call callback with ApiError containing code = 400', done => {
-					// Force library.modules.transport.shared.postSignature to fail with custom message
-					// Arrange
-					postSignatureStub.yields(null, {
-						success: false,
-						message: 'Invalid signature body',
-					});
-					// Act
-					library.modules.signatures.shared.postSignature(req.body, error => {
-						// Assert
-						expect(error.code).to.equal(400);
+				library.modules.signatures.shared.postSignature(
+					req.body,
+					(error, data) => {
+						expect(data).to.deep.equal(expectedData);
 						done();
-					});
-				});
-			});
-
-			describe('when result.message != "Invalid signature body"', () => {
-				it('should call callback with ApiError containing code = 500', done => {
-					// Force library.modules.transport.shared.postSignature to fail with custom message
-					// Arrange
-					postSignatureStub.yields(null, {
-						success: false,
-						message: 'A different message',
-					});
-					// Act
-					library.modules.signatures.shared.postSignature(req.body, error => {
-						// Assert
-						expect(error.code).to.equal(500);
-						done();
-					});
-				});
+					}
+				);
 			});
 		});
 
@@ -208,8 +181,11 @@ describe('signatures', () => {
 			it('should call callback with error = null', async () =>
 				expect(postSignatureError).to.be.null);
 
-			it('should call callback with result containing status = "Signature Accepted"', async () =>
-				expect(postSignatureResult.status).to.equal('Signature Accepted'));
+			it('should call callback with result success == true', async () => {
+				expect(postSignatureResult).to.deep.equal({
+					success: true,
+				});
+			});
 		});
 	});
 });

@@ -17,17 +17,17 @@
 const _ = require('lodash');
 const async = require('async');
 const ip = require('ip');
-const failureCodes = require('../api/ws/rpc/failure_codes.js');
-const jobsQueue = require('../helpers/jobs_queue.js');
-const Peer = require('../logic/peer.js');
+const semver = require('semver');
+const failureCodes = require('../api/ws/rpc/failure_codes');
+const jobsQueue = require('../helpers/jobs_queue');
+const Peer = require('../logic/peer');
+const definitions = require('../schema/definitions');
 
 // Private fields
-let components;
 let library;
 let self;
 const { MAX_PEERS } = global.constants;
 const __private = {};
-let definitions;
 
 const peerDiscoveryFrequency = 30000;
 
@@ -41,6 +41,7 @@ const peerDiscoveryFrequency = 30000;
  * @requires lodash
  * @requires ip
  * @requires pg-promise
+ * @requires semver
  * @requires api/ws/rpc/failure_codes
  * @requires helpers/jobs_queue
  * @requires logic/peer
@@ -65,6 +66,8 @@ class Peers {
 				peers: scope.config.peers,
 				version: scope.config.version,
 			},
+			applicationState: scope.applicationState,
+			channel: scope.channel,
 		};
 		self = this;
 		self.consensus = scope.config.forging.force ? 100 : 0;
@@ -274,7 +277,7 @@ __private.updatePeerStatus = function(err, status, peer) {
 		let compatible = false;
 		// Check needed for compatibility with older nodes
 		if (!status.protocolVersion) {
-			if (!components.system.versionCompatible(status.version)) {
+			if (!__private.versionCompatible(status.version)) {
 				library.logger.debug(
 					`Peers->updatePeerStatus Incompatible version, rejecting peer: ${
 						peer.string
@@ -283,9 +286,7 @@ __private.updatePeerStatus = function(err, status, peer) {
 			} else {
 				compatible = true;
 			}
-		} else if (
-			!components.system.protocolVersionCompatible(status.protocolVersion)
-		) {
+		} else if (!__private.protocolVersionCompatible(status.protocolVersion)) {
 			library.logger.debug(
 				`Peers->updatePeerStatus Incompatible protocol version, rejecting peer: ${
 					peer.string
@@ -467,6 +468,37 @@ __private.dbSave = function(cb) {
 };
 
 /**
+ * Checks version compatibility from input param against private values.
+ *
+ * @param {string} version
+ * @returns {boolean}
+ */
+__private.versionCompatible = function(version) {
+	if (!version) {
+		return false;
+	}
+	const { minVersion } = library.applicationState;
+	return semver.gte(version, minVersion);
+};
+
+/**
+ * Checks protocol version compatibility from input param against
+ * private values.
+ *
+ * @param protocolVersion
+ * @returns {boolean}
+ */
+__private.protocolVersionCompatible = function(protocolVersionCandidate) {
+	if (!protocolVersionCandidate) {
+		return false;
+	}
+	const peerHard = parseInt(protocolVersionCandidate[0]);
+	const { protocolVersion } = library.applicationState;
+	const myHard = parseInt(protocolVersion[0]);
+	return myHard === peerHard && peerHard >= 1;
+};
+
+/**
  * Returns consensus stored by Peers.prototype.calculateConsensus.
  *
  * @returns {number|undefined} Last calculated consensus or null if wasn't calculated yet
@@ -478,18 +510,14 @@ Peers.prototype.getLastConsensus = function() {
 /**
  * Calculates consensus for as a ratio active to matched peers.
  *
- * @param {Array<Peer>}[active=peers list] active - Active peers (with connected state)
- * @param {Array<Peer>}[matched=matching active peers] matched - Peers with same as system broadhash
  * @returns {number} Consensus or undefined if config.forging.force = true
  */
-Peers.prototype.calculateConsensus = function(active, matched) {
-	active =
-		active ||
-		library.logic.peers
-			.list(true)
-			.filter(peer => peer.state === Peer.STATE.CONNECTED);
-	const broadhash = components.system.headers.broadhash;
-	matched = matched || active.filter(peer => peer.broadhash === broadhash);
+Peers.prototype.calculateConsensus = function() {
+	const active = library.logic.peers
+		.list(true)
+		.filter(peer => peer.state === Peer.STATE.CONNECTED);
+	const { broadhash } = library.applicationState;
+	const matched = active.filter(peer => peer.broadhash === broadhash);
 	const activeCount = Math.min(active.length, MAX_PEERS);
 	const matchedCount = Math.min(matched.length, activeCount);
 	const consensus = +(matchedCount / activeCount * 100).toPrecision(2);
@@ -648,6 +676,7 @@ Peers.prototype.discover = function(cb) {
  * @todo Add description for the params
  */
 Peers.prototype.acceptable = function(peers) {
+	const { nonce } = library.applicationState;
 	return _(peers)
 		.uniqWith(
 			(a, b) =>
@@ -657,11 +686,9 @@ Peers.prototype.acceptable = function(peers) {
 		.filter(peer => {
 			// Removing peers with private address or nonce equal to itself
 			if ((process.env.NODE_ENV || '').toUpperCase() === 'TEST') {
-				return peer.nonce !== components.system.headers.nonce;
+				return peer.nonce !== nonce;
 			}
-			return (
-				!ip.isPrivate(peer.ip) && peer.nonce !== components.system.headers.nonce
-			);
+			return !ip.isPrivate(peer.ip) && peer.nonce !== nonce;
 		})
 		.value();
 };
@@ -682,7 +709,8 @@ Peers.prototype.acceptable = function(peers) {
  */
 Peers.prototype.list = function(options, cb) {
 	let limit = options.limit || MAX_PEERS;
-	const broadhash = options.broadhash || components.system.headers.broadhash;
+	const state = library.applicationState;
+	const broadhash = options.broadhash || state.broadhash;
 	const allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
 	const attempts =
 		options.attempt === 0 || options.attempt === 1 ? [options.attempt] : [1, 0];
@@ -785,20 +813,6 @@ Peers.prototype.networkHeight = function(options, cb) {
 };
 
 // Events
-/**
- * Assigns scope to components constant.
- *
- * @param {components} scope
- * @todo Add description for the params
- */
-Peers.prototype.onBind = function(scope) {
-	components = {
-		system: scope.components.system,
-	};
-
-	definitions = scope.swagger.definitions;
-};
-
 /**
  * Triggers onPeersReady after:
  * - Ping to every member of peers list.
@@ -931,15 +945,6 @@ Peers.prototype.onPeersReady = function() {
 Peers.prototype.cleanup = function(cb) {
 	// Save peers on exit
 	__private.dbSave(() => setImmediate(cb));
-};
-
-/**
- * Checks if `components` is loaded.
- *
- * @returns {boolean} True if `components` is loaded
- */
-Peers.prototype.isLoaded = function() {
-	return !!components;
 };
 
 /**

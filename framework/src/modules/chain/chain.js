@@ -1,15 +1,18 @@
+if (process.env.NEW_RELIC_LICENSE_KEY) {
+	require('./helpers/newrelic_lisk');
+}
+
 const { promisify } = require('util');
 const path = require('path');
 const fs = require('fs');
-const git = require('./helpers/git.js');
-const Sequence = require('./helpers/sequence.js');
-const ed = require('./helpers/ed.js');
+const git = require('./helpers/git');
+const Sequence = require('./helpers/sequence');
+const ed = require('./helpers/ed');
 // eslint-disable-next-line import/order
-const swaggerHelper = require('./helpers/swagger');
+const { ZSchema } = require('../../controller/helpers/validator');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
-const { createSystemComponent } = require('../../components/system');
 const {
 	lookupPeerIPs,
 	createBus,
@@ -18,7 +21,6 @@ const {
 	createSocketCluster,
 	initLogicStructure,
 	initModules,
-	attachSwagger,
 } = require('./init_steps');
 const defaults = require('./defaults');
 
@@ -58,6 +60,7 @@ module.exports = class Chain {
 		this.system = null;
 		this.scope = null;
 		this.blockReward = null;
+		this.slots = null;
 	}
 
 	async bootstrap() {
@@ -75,9 +78,8 @@ module.exports = class Chain {
 			'cache'
 		);
 
-		const systemConfig = await this.channel.invoke(
-			'lisk:getComponentConfig',
-			'system'
+		this.applicationState = await this.channel.invoke(
+			'lisk:getApplicationState'
 		);
 
 		this.logger = createLoggerComponent(loggerConfig);
@@ -107,6 +109,8 @@ module.exports = class Chain {
 
 		const BlockReward = require('./logic/block_reward');
 		this.blockReward = new BlockReward();
+		// Needs to be loaded here as its using constants that need to be initialized first
+		this.slots = require('./helpers/slots');
 
 		try {
 			// Cache
@@ -117,10 +121,7 @@ module.exports = class Chain {
 			this.logger.debug('Initiating storage...');
 			const storage = createStorageComponent(storageConfig, dbLogger);
 
-			// System
-			this.logger.debug('Initiating system...');
-			this.system = createSystemComponent(systemConfig, this.logger, storage);
-
+			// TODO: Use the channel application state for update node info
 			// Publish an event whenever the system headers are updated.
 			this.system.on('update', nodeInfo => {
 				this.channel.publish('chain:system:updateNodeInfo', nodeInfo);
@@ -137,7 +138,7 @@ module.exports = class Chain {
 				build: versionBuild,
 				config: self.options.config,
 				genesisBlock: { block: self.options.config.genesisBlock },
-				schema: swaggerHelper.getValidator(),
+				schema: new ZSchema(),
 				sequence: new Sequence({
 					onWarning(current) {
 						self.logger.warn('Main queue', current);
@@ -152,16 +153,10 @@ module.exports = class Chain {
 					storage,
 					cache,
 					logger: self.logger,
-					system: this.system,
 				},
 				channel: this.channel,
+				applicationState: this.applicationState,
 			};
-
-			// Lookup for peers ips from dns
-			scope.config.peers.list = await lookupPeerIPs(
-				scope.config.peers.list,
-				scope.config.peers.enabled
-			);
 
 			await bootstrapStorage(scope, global.constants.ACTIVE_DELEGATES);
 			await bootstrapCache(scope);
@@ -169,19 +164,33 @@ module.exports = class Chain {
 			scope.bus = await createBus();
 			scope.logic = await initLogicStructure(scope);
 			scope.modules = await initModules(scope);
-			scope.webSocket = await createSocketCluster(scope);
-			scope.swagger = await attachSwagger(scope);
 
-			// TODO: Identify why its used
-			scope.modules.swagger = scope.swagger;
+			if (scope.config.peers.enabled) {
+				// Lookup for peers ips from dns
+				scope.config.peers.list = await lookupPeerIPs(
+					scope.config.peers.list,
+					scope.config.peers.enabled
+				);
+
+				// Listen to websockets
+				scope.webSocket = await createSocketCluster(scope);
+				await scope.webSocket.listen();
+			} else {
+				this.logger.info(
+					'Skipping P2P server initialization due to the config settings - "peers.enabled" is set to false.'
+				);
+			}
+
 			// Ready to bind modules
 			scope.logic.peers.bindModules(scope.modules);
+
+			this.channel.subscribe('lisk:state:updated', event => {
+				Object.assign(scope.applicationState, event.data);
+			});
 
 			// Fire onBind event in every module
 			scope.bus.message('bind', scope);
 
-			// Listen to websockets
-			await scope.webSocket.listen();
 			self.logger.info('Modules ready and launched');
 
 			self.scope = scope;
@@ -197,81 +206,78 @@ module.exports = class Chain {
 	get actions() {
 		return {
 			getNodeInfo: () => this.system.headers,
-			calculateSupply: action => this.blockReward.calcSupply(action.params[0]),
+			calculateSupply: action =>
+				this.blockReward.calcSupply(action.params.height),
 			calculateMilestone: action =>
-				this.blockReward.calcMilestone(action.params[0]),
-			calculateReward: action => this.blockReward.calcReward(action.params[0]),
-			generateDelegateList: action =>
-				new Promise((resolve, reject) => {
-					this.scope.modules.delegates.generateDelegateList(
-						action.params[0],
-						action.params[1],
-						(err, data) => {
-							if (err) {
-								reject(err);
-							}
-
-							resolve(data);
-						},
-						action.params[2]
-					);
-				}),
-			getNetworkHeight: async action =>
-				promisify(this.scope.modules.peers.networkHeight)(action.params[0]),
-			getAllTransactionsCount: async () =>
-				promisify(
-					this.scope.modules.transactions.shared.getTransactionsCount
-				)(),
+				this.blockReward.calcMilestone(action.params.height),
+			calculateReward: action =>
+				this.blockReward.calcReward(action.params.height),
+			generateDelegateList: async action =>
+				promisify(this.scope.modules.delegates.generateDelegateList)(
+					action.params.round,
+					action.params.source
+				),
 			updateForgingStatus: async action =>
-				promisify(this.scope.modules.delegates.updateForgingStatus)(
-					action.params[0],
-					action.params[1],
-					action.params[2]
+				this.scope.modules.delegates.updateForgingStatus(
+					action.params.publicKey,
+					action.params.password,
+					action.params.forging
 				),
 			getPeers: async action =>
-				this.scope.modules.peers.shared.getPeers(
-					action.params[0],
-					action.params[1]
+				promisify(this.scope.modules.peers.shared.getPeers)(
+					action.params.parameters
 				),
 			getPeersCountByFilter: async action =>
-				this.scope.modules.peers.shared.getPeersCountByFilter(action.params[0]),
+				this.scope.modules.peers.shared.getPeersCountByFilter(
+					action.params.parameters
+				),
 			postSignature: async action =>
-				this.scope.modules.signatures.shared.postSignature(
-					action.params[0],
-					action.params[1]
+				promisify(this.scope.modules.signatures.shared.postSignature)(
+					action.params.signature
 				),
-			getLastConsensus: async () => this.scope.modules.peers.getLastConsensus(),
-			loaderLoaded: async () => this.scope.modules.loader.loaded(),
-			loaderSyncing: async () => this.scope.modules.loader.syncing(),
-			getForgersKeyPairs: async () =>
-				this.scope.modules.delegates.getForgersKeyPairs(),
-			getUnProcessedTransactions: async action =>
-				this.scope.modules.transactions.shared.getUnProcessedTransactions(
-					action.params[0],
-					action.params[1]
-				),
-			getUnconfirmedTransactions: async action =>
-				this.scope.modules.transactions.shared.getUnconfirmedTransactions(
-					action.params[0],
-					action.params[1]
-				),
-			getMultisignatureTransactions: async action =>
-				this.scope.modules.transactions.shared.getMultisignatureTransactions(
-					action.params[0],
-					action.params[1]
-				),
+			getForgersPublicKeys: async () => {
+				const keypairs = this.scope.modules.delegates.getForgersKeyPairs();
+				const publicKeys = {};
+				Object.keys(keypairs).forEach(key => {
+					publicKeys[key] = { publicKey: keypairs[key].publicKey };
+				});
+				return publicKeys;
+			},
+			getTransactionsFromPool: async action =>
+				promisify(
+					this.scope.modules.transactions.shared.getTransactionsFromPool
+				)(action.params.type, action.params.filters),
 			getLastCommit: async () => this.scope.lastCommit,
 			getBuild: async () => this.scope.build,
 			postTransaction: async action =>
-				this.scope.modules.transactions.shared.postTransaction(
-					action.params[0],
-					action.params[1]
+				promisify(this.scope.modules.transactions.shared.postTransaction)(
+					action.params.transaction
 				),
 			getDelegateBlocksRewards: async action =>
 				this.scope.components.storage.entities.Account.delegateBlocksRewards(
-					action.params[0],
-					action.params[1]
+					action.params.filters,
+					action.params.tx
 				),
+			getSlotNumber: async action =>
+				action.params
+					? this.slots.getSlotNumber(action.params.epochTime)
+					: this.slots.getSlotNumber(),
+			calcSlotRound: async action => this.slots.calcRound(action.params.height),
+			getNodeStatus: async () => ({
+				consensus: this.scope.modules.peers.getLastConsensus(),
+				loaded: this.scope.modules.loader.loaded(),
+				syncing: this.scope.modules.loader.syncing(),
+				transactions: await promisify(
+					this.scope.modules.transactions.shared.getTransactionsCount
+				)(),
+				secondsSinceEpoch: this.slots.getTime(),
+				networkHeight: await promisify(this.scope.modules.peers.networkHeight)({
+					options: {
+						normalized: false,
+					},
+				}),
+				lastBlock: this.scope.modules.blocks.lastBlock.get(),
+			}),
 		};
 	}
 
@@ -293,15 +299,19 @@ module.exports = class Chain {
 		}
 
 		if (components !== undefined) {
-			components.map(component => component.cleanup());
+			Object.keys(components).forEach(async key => {
+				if (components[key].cleanup) {
+					await components[key].cleanup();
+				}
+			});
 		}
 
 		// Run cleanup operation on each module before shutting down the node;
 		// this includes operations like snapshotting database tables.
 		await Promise.all(
-			modules.map(module => {
-				if (typeof module.cleanup === 'function') {
-					return promisify(module.cleanup)();
+			Object.keys(modules).map(key => {
+				if (typeof modules[key].cleanup === 'function') {
+					return promisify(modules[key].cleanup);
 				}
 				return true;
 			})

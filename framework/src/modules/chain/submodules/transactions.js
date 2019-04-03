@@ -19,12 +19,10 @@ const async = require('async');
 const {
 	CACHE_KEYS_TRANSACTION_COUNT,
 } = require('../../../../../framework/src/components/cache');
-const apiCodes = require('../helpers/api_codes.js');
-const ApiError = require('../helpers/api_error.js');
-const sortBy = require('../helpers/sort_by.js').sortBy;
-const TransactionPool = require('../logic/transaction_pool.js');
-const transactionTypes = require('../helpers/transaction_types.js');
-const Transfer = require('../logic/transfer.js');
+const TransactionPool = require('../logic/transaction_pool');
+const Transfer = require('../logic/transfer');
+
+const { TRANSACTION_TYPES } = global.constants;
 
 // Private fields
 const __private = {};
@@ -44,10 +42,6 @@ __private.assetTypes = {};
  * @see Parent: {@link modules}
  * @requires bluebird
  * @requires lodash
- * @requires helpers/api_codes
- * @requires helpers/api_error
- * @requires helpers/sort_by
- * @requires helpers/transaction_types
  * @requires logic/transaction_pool
  * @requires logic/transfer
  * @param {function} cb - Callback function
@@ -81,9 +75,9 @@ class Transactions {
 		);
 
 		__private.assetTypes[
-			transactionTypes.SEND
+			TRANSACTION_TYPES.SEND
 		] = library.logic.transaction.attachAssetType(
-			transactionTypes.SEND,
+			TRANSACTION_TYPES.SEND,
 			new Transfer({
 				components: {
 					logger: library.logger,
@@ -98,7 +92,7 @@ class Transactions {
 
 // Private methods
 /**
- * Counts totals and gets transaction list from `trs_list` view.
+ * Counts totals and gets transaction list from storage component.
  *
  * @private
  * @param {Object} params
@@ -205,7 +199,7 @@ __private.getPooledTransactions = function(method, filters, cb) {
 	}
 
 	// Sort the results
-	const sortAttribute = sortBy(filters.sort, { quoteField: false });
+	const sortAttribute = self.sortBy(filters.sort, { quoteField: false });
 
 	if (
 		sortAttribute.sortField === 'fee' ||
@@ -239,6 +233,127 @@ __private.getPooledTransactions = function(method, filters, cb) {
 		transactions: toSend,
 		count: transactions.length,
 	});
+};
+
+/**
+ * Validates sort options, methods and fields.
+ *
+ * @param {string|Object} sort
+ * @param {Object} [options]
+ * @param {string} options.fieldPrefix
+ * @param {string} options.sortField
+ * @param {string} options.sortMethod - asc / desc
+ * @param {Array} options.sortFields
+ * @returns {Object} {error} | {sortField, sortMethod}
+ * @todo Add description for the params
+ */
+Transactions.prototype.sortBy = function(sort, options) {
+	options = typeof options === 'object' ? options : {};
+	options.sortField = options.sortField || null;
+	options.sortMethod = options.sortMethod || null;
+	options.sortFields = Array.isArray(options.sortFields)
+		? options.sortFields
+		: [];
+
+	if (typeof options.quoteField === 'undefined') {
+		options.quoteField = true;
+	} else {
+		options.quoteField = Boolean(options.quoteField);
+	}
+
+	let sortField;
+	let sortMethod;
+
+	if (typeof sort === 'string') {
+		const [field, order] = sort.split(':');
+		sortField = field.replace(/[^\w\s]/gi, '');
+		sortMethod = order === 'desc' ? 'DESC' : 'ASC';
+	} else if (typeof sort === 'object') {
+		const keys = Object.keys(sort);
+
+		if (keys.length === 0) {
+			return self.sortBy('');
+		}
+		if (keys.length === 1) {
+			return self.sortBy(
+				`${keys[0]}:${sort[keys[0]] === -1 ? 'desc' : 'asc'}`,
+				options
+			);
+		}
+		const sortFields = [];
+		const sortMethods = [];
+		keys.forEach(key => {
+			const sortResult = self.sortBy(
+				`${key}:${sort[key] === -1 ? 'desc' : 'asc'}`,
+				options
+			);
+			sortFields.push(sortResult.sortField);
+			sortMethods.push(sortResult.sortMethod);
+		});
+		return { sortField: sortFields, sortMethod: sortMethods };
+	}
+	/**
+	 * Description of the function.
+	 *
+	 * @private
+	 * @todo Add param-tag and descriptions
+	 * @todo Add @returns tag
+	 * @todo Add description for the function
+	 */
+	function prefixField(prefixSortedField) {
+		if (!prefixSortedField) {
+			return prefixSortedField;
+		}
+		if (typeof options.fieldPrefix === 'string') {
+			return options.fieldPrefix + prefixSortedField;
+		}
+		if (typeof options.fieldPrefix === 'function') {
+			return options.fieldPrefix(prefixSortedField);
+		}
+		return prefixSortedField;
+	}
+
+	/**
+	 * Description of the function.
+	 *
+	 * @private
+	 * @todo Add param-tag and descriptions
+	 * @todo Add @returns tag
+	 * @todo Add description for the function
+	 */
+	function quoteField(quoteSortedField) {
+		if (quoteSortedField && options.quoteField) {
+			return `"${sortField}"`;
+		}
+		return quoteSortedField;
+	}
+
+	const emptyWhiteList = options.sortFields.length === 0;
+
+	const inWhiteList =
+		options.sortFields.length >= 1 &&
+		options.sortFields.indexOf(sortField) > -1;
+
+	if (sortField) {
+		if (emptyWhiteList || inWhiteList) {
+			sortField = prefixField(sortField);
+		} else {
+			return {
+				error: 'Invalid sort field',
+			};
+		}
+	} else {
+		sortField = prefixField(options.sortField);
+	}
+
+	if (!sortMethod) {
+		sortMethod = options.sortMethod;
+	}
+
+	return {
+		sortField: quoteField(sortField) || '',
+		sortMethod: sortField ? sortMethod : '',
+	};
 };
 
 // Public methods
@@ -608,30 +723,7 @@ Transactions.prototype.onBind = function(scope) {
 		scope.modules.loader
 	);
 
-	__private.assetTypes[transactionTypes.SEND].bind(scope.modules.accounts);
-};
-
-/**
- * Processes posted transaction result object.
- *
- * @param {Error} err - Error object
- * @param {Object} res - Result object
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, error, response
- */
-__private.processPostResult = function(err, res, cb) {
-	let error = null;
-	let response = null;
-
-	if (err) {
-		error = new ApiError(err, apiCodes.PROCESSING_ERROR);
-	} else if (res.success) {
-		response = 'Transaction(s) accepted';
-	} else {
-		error = new ApiError(res.message, apiCodes.PROCESSING_ERROR);
-	}
-
-	setImmediate(cb, error, response);
+	__private.assetTypes[TRANSACTION_TYPES.SEND].bind(scope.modules.accounts);
 };
 
 // Shared API
@@ -640,9 +732,7 @@ __private.processPostResult = function(err, res, cb) {
  *
  * @property {function} getTransactions - Search transactions based on the query parameter passed
  * @property {function} getTransactionsCount
- * @property {function} getUnProcessedTransactions
- * @property {function} getMultisignatureTransactions
- * @property {function} getUnconfirmedTransactions
+ * @property {function} getTransactionsFromPool
  * @property {function} postTransactions
  * @todo Add description for the functions
  */
@@ -735,48 +825,20 @@ Transactions.prototype.shared = {
 	},
 
 	/**
-	 * Description of getUnProcessedTransactions.
+	 * Retrieve specific type of transactions from transaction pool.
 	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
+	 * @param {string} type Type of transaction retrieved from transaction pool
+	 * @param {object} filters
+	 * @param {function} cb
 	 */
-	getUnProcessedTransactions(filters, cb) {
-		return __private.getPooledTransactions(
-			'getQueuedTransactionList',
-			filters,
-			cb
-		);
-	},
+	getTransactionsFromPool(type, filters, cb) {
+		const typeMap = {
+			unprocessed: 'getQueuedTransactionList',
+			unconfirmed: 'getUnconfirmedTransactionList',
+			unsigned: 'getMultisignatureTransactionList',
+		};
 
-	/**
-	 * Description of getMultisignatureTransactions.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
-	getMultisignatureTransactions(req, cb) {
-		return __private.getPooledTransactions(
-			'getMultisignatureTransactionList',
-			req,
-			cb
-		);
-	},
-
-	/**
-	 * Description of getUnconfirmedTransactions.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
-	getUnconfirmedTransactions(req, cb) {
-		return __private.getPooledTransactions(
-			'getUnconfirmedTransactionList',
-			req,
-			cb
-		);
+		return __private.getPooledTransactions(typeMap[type], filters, cb);
 	},
 
 	/**
@@ -789,9 +851,7 @@ Transactions.prototype.shared = {
 	postTransaction(transaction, cb) {
 		return modules.transport.shared.postTransaction(
 			{ transaction },
-			(err, res) => {
-				__private.processPostResult(err, res, cb);
-			}
+			(err, res) => setImmediate(cb, err, res)
 		);
 	},
 
@@ -805,9 +865,7 @@ Transactions.prototype.shared = {
 	postTransactions(transactions, cb) {
 		return modules.transport.shared.postTransactions(
 			{ transactions },
-			(err, res) => {
-				__private.processPostResult(err, res, cb);
-			}
+			(err, res) => setImmediate(cb, err, res)
 		);
 	},
 };

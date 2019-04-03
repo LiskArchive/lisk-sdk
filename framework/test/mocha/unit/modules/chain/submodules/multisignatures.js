@@ -17,12 +17,10 @@
 const rewire = require('rewire');
 const accountsFixtures = require('../../../../fixtures/index').accounts;
 const transactionsFixtures = require('../../../../fixtures/index').transactions;
-const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types.js');
-const ApiError = require('../../../../../../src/modules/chain/helpers/api_error');
-const errorCodes = require('../../../../../../src/modules/chain/helpers/api_codes');
 
+const { TRANSACTION_TYPES } = global.constants;
 const RewiredMultisignatures = rewire(
-	'../../../../../../src/modules/chain/submodules/multisignatures.js'
+	'../../../../../../src/modules/chain/submodules/multisignatures'
 );
 
 const validAccount = new accountsFixtures.Account();
@@ -163,9 +161,9 @@ describe('multisignatures', () => {
 				expect(library.logic.transaction.attachAssetType).to.have.been
 					.calledOnce);
 
-			it('should assign __private.assetTypes[transactionTypes.MULTI]', async () =>
+			it('should assign __private.assetTypes[TRANSACTION_TYPES.MULTI]', async () =>
 				expect(__private.assetTypes)
-					.to.have.property(transactionTypes.MULTI)
+					.to.have.property(TRANSACTION_TYPES.MULTI)
 					.which.is.equal(attachAssetTypeStubResponse));
 		});
 	});
@@ -179,7 +177,7 @@ describe('multisignatures', () => {
 		beforeEach(done => {
 			// Set some random data used for tests
 			data.transaction = new transactionsFixtures.Transaction({
-				type: transactionTypes.MULTI,
+				type: TRANSACTION_TYPES.MULTI,
 			});
 			data.signatures = [
 				{
@@ -659,7 +657,7 @@ describe('multisignatures', () => {
 		beforeEach(done => {
 			// Set some random data used for tests
 			data.transaction = new transactionsFixtures.Transaction({
-				type: transactionTypes.MULTI,
+				type: TRANSACTION_TYPES.MULTI,
 			});
 			data.transaction.asset.multisignature.keysgroup = [
 				'+publicKey1',
@@ -704,7 +702,7 @@ describe('multisignatures', () => {
 			data.sender.membersPublicKeys = ['publicKey1', 'publicKey2'];
 
 			data.transaction = new transactionsFixtures.Transaction({
-				type: transactionTypes.MULTI,
+				type: TRANSACTION_TYPES.MULTI,
 			});
 			data.signature = {
 				transactionId: data.transaction.id,
@@ -816,7 +814,7 @@ describe('multisignatures', () => {
 			// Set some random data used for tests
 
 			data.transaction = new transactionsFixtures.Transaction({
-				type: transactionTypes.MULTI,
+				type: TRANSACTION_TYPES.MULTI,
 			});
 			data.signature = {
 				transactionId: data.transaction.id,
@@ -924,7 +922,7 @@ describe('multisignatures', () => {
 
 		describe('when transaction have type other than MULTI', () => {
 			it('should call __private.processSignatureFromMultisignatureAccount with proper params', done => {
-				data.transaction.type = transactionTypes.SEND;
+				data.transaction.type = TRANSACTION_TYPES.SEND;
 				self.processSignature(data.signature, err => {
 					expect(
 						stubs.processSignatureFromMultisignatureAccount
@@ -1011,9 +1009,7 @@ describe('multisignatures', () => {
 					cb(null, null);
 				});
 			self.getGroup('', (err, scopeGroup) => {
-				expect(err).to.be.an.instanceof(ApiError);
 				expect(err.message).to.equal('Multisignature account not found');
-				expect(err.code).to.equal(errorCodes.NOT_FOUND);
 				expect(scopeGroup).to.not.exist;
 				done();
 			});

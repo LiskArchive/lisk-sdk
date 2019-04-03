@@ -21,10 +21,11 @@ const {
 } = require('@liskhq/lisk-transactions');
 const randomUtil = require('../../../common/utils/random');
 const Scenarios = require('../../../common/scenarios');
-const transactionTypes = require('../../../../../src/modules/chain/helpers/transaction_types.js');
 const localCommon = require('../../common');
 
-describe('system test (type 4) - checking registered multisignature transaction against other transaction types', () => {
+const { TRANSACTION_TYPES } = global.constants;
+
+describe('integration test (type 4) - checking registered multisignature transaction against other transaction types', () => {
 	let library;
 
 	const scenarios = {
@@ -49,7 +50,7 @@ describe('system test (type 4) - checking registered multisignature transaction 
 		return scenarios.regular.multiSigTransaction.signatures.push(signature);
 	});
 
-	localCommon.beforeBlock('system_4_X_multisig_validated', lib => {
+	localCommon.beforeBlock('4_X_multisig_validated', lib => {
 		library = lib;
 	});
 
@@ -119,7 +120,7 @@ describe('system test (type 4) - checking registered multisignature transaction 
 		});
 
 		describe('adding to pool other transaction types from the same account', () => {
-			Object.keys(transactionTypes).forEach((key, index) => {
+			Object.keys(TRANSACTION_TYPES).forEach((key, index) => {
 				if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
 					return true;
 				}

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -16,10 +16,10 @@
 
 const rewire = require('rewire');
 const Promise = require('bluebird');
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 const { TestStorageSandbox } = require('../../../../common/storage_sandbox');
 
-const Round = rewire('../../../../../../src/modules/chain/logic/round.js');
+const Round = rewire('../../../../../../src/modules/chain/logic/round');
 const genesisBlock = __testContext.config.genesisBlock;
 
 const { ACTIVE_DELEGATES } = global.constants;
@@ -587,6 +587,55 @@ describe('round', () => {
 				expect(response).to.equal('success');
 				expect(stub).to.have.been.calledWith(scope.round);
 			}));
+	});
+
+	describe('rewardsAtRound', () => {
+		const validLocalScope = _.cloneDeep(validScope);
+		const rewardsAt = 2;
+
+		beforeEach(done => {
+			validLocalScope.round = 1;
+			validLocalScope.roundFees = 500;
+			validLocalScope.roundRewards = [0, 0, 100, 10];
+			done();
+		});
+
+		it('should calculate round changes from valid scope', async () => {
+			round = new Round(validLocalScope, task);
+			const res = round.rewardsAtRound(rewardsAt);
+
+			expect(res.fees).equal(4);
+			expect(res.feesRemaining).equal(96);
+			expect(res.rewards).equal(validLocalScope.roundRewards[rewardsAt]); // 100
+			return expect(res.balance).equal(104);
+		});
+
+		it('should calculate round changes from Infinite fees', async () => {
+			validLocalScope.roundFees = Infinity;
+
+			round = new Round(validLocalScope, task);
+			const res = round.rewardsAtRound(rewardsAt);
+
+			expect(res.fees).equal(Infinity);
+			expect(res.feesRemaining).to.be.NaN;
+			expect(res.rewards).equal(validLocalScope.roundRewards[rewardsAt]); // 100
+			return expect(res.balance).equal(Infinity);
+		});
+
+		it('should calculate round changes from Number.MAX_VALUE fees', async () => {
+			validLocalScope.roundFees = Number.MAX_VALUE; // 1.7976931348623157e+308
+			round = new Round(validLocalScope, task);
+
+			const res = round.rewardsAtRound(rewardsAt);
+			const expectedFees = 1779894192932990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099; // 1.7976931348623157e+308 / 101 (delegates num)
+
+			expect(res.fees).equal(expectedFees);
+			expect(res.rewards).equal(validLocalScope.roundRewards[rewardsAt]); // 100
+			expect(res.feesRemaining).equal(1);
+
+			const expectedBalance = 1779894192932990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990199; // 1.7976931348623157e+308 / 101 (delegates num) + 100
+			return expect(res.balance).equal(expectedBalance);
+		});
 	});
 
 	describe('applyRound', () => {

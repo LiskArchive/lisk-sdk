@@ -1,6 +1,6 @@
 {
 	"name": "lisk",
-	"version": "1.5.0",
+	"version": "1.6.0-alpha.4",
 	"description": "Lisk blockchain application platform",
 	"author":
 		"Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
@@ -16,7 +16,7 @@
 		"url": "https://github.com/LiskHQ/lisk/issues"
 	},
 	"engines": {
-		"node": "10.14.1",
+		"node": "10.15.3",
 		"npm": "6.4.1"
 	},
 	"main": "src/index.js",
@@ -27,15 +27,29 @@
 		"lint:fix": "eslint --fix .",
 		"format":
 			"prettier --write \"./*.{js,json,md}\" \"{api,config,docs,helpers,logic,modules,schema,scripts,storage,tasks,test,framework}{,/**}/*.{js,json,md}\"",
-		"test": "grunt",
-		"grunt": "grunt",
+		"test": "node framework/test/mocha/common/lisk-mocha-runner",
 		"mocha": "mocha",
 		"jest:unit":
 			"jest --config=./framework/test/jest/config/unit/jest.config.js",
 		"jest:integration":
 			"jest --config=./framework/test/jest/config/integration/jest.config.js",
 		"jest:functional":
-			"jest --config=./framework/test/jest/config/functional/jest.config.js",
+			"jest --config=./framework/test/jest/config/functional/jest.config.js --passWithNoTests",
+		"mocha:unit": "node framework/test/mocha/common/lisk-mocha-runner unit",
+		"mocha:integration":
+			"node framework/test/mocha/common/lisk-mocha-runner integration",
+		"mocha:functional":
+			"node framework/test/mocha/common/lisk-mocha-runner functional",
+		"mocha:functional:ws":
+			"node framework/test/mocha/common/lisk-mocha-runner functional:ws",
+		"mocha:functional:get":
+			"node framework/test/mocha/common/lisk-mocha-runner functional:get",
+		"mocha:functional:post":
+			"node framework/test/mocha/common/lisk-mocha-runner functional:post",
+		"mocha:functional:put":
+			"node framework/test/mocha/common/lisk-mocha-runner functional:put",
+		"mocha:network":
+			"node framework/test/mocha/common/lisk-mocha-runner network",
 		"docs:build": "jsdoc -c docs/conf.json --verbose --pedantic",
 		"docs:serve": "http-server docs/jsdoc/",
 		"check:dependencies": "snyk protect",
@@ -45,6 +59,8 @@
 		"@liskhq/lisk-p2p": "0.1.0-alpha.1",
 		"ajv": "6.7.0",
 		"async": "2.6.1",
+		"pm2-axon": "3.3.0",
+		"pm2-axon-rpc": "0.5.1",
 		"bignumber.js": "8.0.2",
 		"bluebird": "3.5.3",
 		"body-parser": "1.18.3",
@@ -56,7 +72,7 @@
 		"cors": "2.8.5",
 		"debug": "4.1.1",
 		"deep-diff": "1.0.2",
-		"eventemitter2": "=5.0.1",
+		"eventemitter2": "5.0.1",
 		"express": "4.16.4",
 		"express-domain-middleware": "0.1.0",
 		"express-query-int": "3.0.0",
@@ -68,7 +84,7 @@
 		"lisk-commander": "2.0.0",
 		"@liskhq/lisk-transactions": "2.0.0",
 		"@liskhq/lisk-cryptography": "2.0.0",
-		"lisk-newrelic": "LiskHQ/lisk-newrelic#d1ca762",
+		"lisk-newrelic": "LiskHQ/lisk-newrelic#b3dadc5",
 		"lodash": "4.17.11",
 		"method-override": "3.0.0",
 		"newrelic": "5.0.0",
@@ -108,14 +124,11 @@
 		"eslint-plugin-mocha": "5.3.0",
 		"faker": "4.1.0",
 		"find": "0.2.9",
-		"grunt": "1.0.3",
-		"grunt-exec": "3.0.0",
 		"http-server": "0.11.1",
 		"husky": "1.3.1",
 		"istanbul": "1.1.0-alpha.1",
 		"istanbul-middleware": "0.2.2",
-		"jest": "24.1.0",
-		"jest-chain": "1.1.2",
+		"jest": "24.5.0",
 		"jest-extended": "0.11.1",
 		"jsdoc": "3.5.5",
 		"jsdox": "0.4.10",

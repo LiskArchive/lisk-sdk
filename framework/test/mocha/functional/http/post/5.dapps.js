@@ -14,7 +14,7 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 const Promise = require('bluebird');
 const randomstring = require('randomstring');
 const { transfer, createDapp } = require('@liskhq/lisk-transactions');
@@ -23,7 +23,7 @@ const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const waitFor = require('../../../common/utils/wait_for');
 const apiHelpers = require('../../../common/helpers/api');
-const errorCodes = require('../../../../../src/modules/chain/helpers/api_codes');
+const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const common = require('./common');
 
 const { FEES, NORMALIZER } = global.constants;
@@ -106,7 +106,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.match(
 						/Missing required property: category$/
@@ -124,7 +124,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid transaction body - Failed to validate dapp schema: Expected type integer but found type string'
@@ -142,7 +142,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.match(/Value -1 is less than minimum 0$/);
 					badTransactions.push(transaction);
@@ -158,7 +158,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.match(
 						/Value 9 is greater than maximum 8$/
@@ -205,7 +205,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid transaction body - Failed to validate dapp schema: Expected type string but found type integer'
@@ -241,7 +241,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.match(
 						/String is too long \(161 chars\), maximum 160$/
@@ -276,7 +276,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.equal(
 						'Application description has invalid character. Null character is not allowed.'
@@ -296,7 +296,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.equal(
 						'Application description has invalid character. Null character is not allowed.'
@@ -316,7 +316,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.equal(
 						'Application description has invalid character. Null character is not allowed.'
@@ -336,7 +336,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.equal(
 						'Application description has invalid character. Null character is not allowed.'
@@ -371,7 +371,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.equal(
 						'Invalid transaction body - Failed to validate dapp schema: Expected type string but found type integer'
@@ -391,7 +391,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.equal('Invalid application icon link');
 					badTransactions.push(transaction);
@@ -409,7 +409,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.equal(
 						'Invalid application icon file type'
@@ -431,7 +431,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.equal('Invalid application link');
 					badTransactions.push(transaction);
@@ -447,7 +447,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.equal(
 						'Invalid transaction body - Failed to validate dapp schema: Expected type string but found type integer'
@@ -467,7 +467,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.equal('Invalid application file type');
 					badTransactions.push(transaction);
@@ -485,7 +485,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.match(/Missing required property: name$/);
 					badTransactions.push(transaction);
@@ -501,7 +501,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.equal(
 						'Invalid transaction body - Failed to validate dapp schema: Expected type string but found type integer'
@@ -519,7 +519,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.match(
 						/String is too short \(0 chars\), minimum 1$/
@@ -540,7 +540,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.match(
 						/String is too long \(33 chars\), maximum 32$/
@@ -576,7 +576,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.equal(
 						'Application name has invalid character. Null character is not allowed.'
@@ -596,7 +596,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.equal(
 						'Application name has invalid character. Null character is not allowed.'
@@ -616,7 +616,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.equal(
 						'Application name has invalid character. Null character is not allowed.'
@@ -636,7 +636,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.equal(
 						'Application name has invalid character. Null character is not allowed.'
@@ -671,7 +671,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.equal(
 						'Invalid transaction body - Failed to validate dapp schema: Expected type string but found type integer'
@@ -707,7 +707,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.match(
 						/String is too long \(161 chars\), maximum 160$/
@@ -743,7 +743,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.equal(
 						`Encountered duplicate tag: ${tag} in application`
@@ -778,7 +778,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.equal(
 						'Application tags has invalid character. Null character is not allowed.'
@@ -798,7 +798,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.equal(
 						'Application tags has invalid character. Null character is not allowed.'
@@ -818,7 +818,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.equal(
 						'Application tags has invalid character. Null character is not allowed.'
@@ -838,7 +838,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.equal(
 						'Application tags has invalid character. Null character is not allowed.'
@@ -858,7 +858,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.match(/Missing required property: type$/);
 					badTransactions.push(transaction);
@@ -874,7 +874,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.match(/Value -1 is less than minimum 0$/);
 					badTransactions.push(transaction);
@@ -890,7 +890,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.match(/Value -1 is less than minimum 0$/);
 					badTransactions.push(transaction);
@@ -907,7 +907,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.equal('Invalid application type');
 					badTransactions.push(transaction);
@@ -927,7 +927,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.equal(
 					`Application name already exists: ${dapp.name}`
@@ -946,7 +946,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.equal(
 					`Application link already exists: ${dapp.link}`
@@ -963,7 +963,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.equal(
 					`Account does not have enough LSK: ${

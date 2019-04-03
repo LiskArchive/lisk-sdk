@@ -1,7 +1,10 @@
+if (process.env.NEW_RELIC_LICENSE_KEY) {
+	require('./helpers/newrelic_lisk');
+}
+
 const { createLoggerComponent } = require('../../components/logger');
 const { createCacheComponent } = require('../../components/cache');
 const { createStorageComponent } = require('../../components/storage');
-const { createSystemComponent } = require('../../components/system');
 const {
 	bootstrapStorage,
 	setupServers,
@@ -55,24 +58,26 @@ module.exports = class HttpApi {
 					);
 		const storage = createStorageComponent(storageConfig, dbLogger);
 
-		// System
-		this.logger.debug('Initiating system...');
-		const systemConfig = await this.channel.invoke(
-			'lisk:getComponentConfig',
-			'system'
+		const applicationState = await this.channel.invoke(
+			'lisk:getApplicationState'
 		);
-		const system = createSystemComponent(systemConfig, this.logger, storage);
+
 		// Setup scope
 		this.scope = {
 			components: {
 				cache,
 				logger: this.logger,
 				storage,
-				system,
 			},
 			channel: this.channel,
 			config: this.options.config,
+			applicationState,
 		};
+
+		this.channel.subscribe('lisk:state:updated', event => {
+			Object.assign(this.scope.applicationState, event.data);
+		});
+
 		// Bootstrap Cache component
 		await bootstrapCache(this.scope);
 		// Bootstrap Storage component
@@ -91,5 +96,31 @@ module.exports = class HttpApi {
 		await startListening(this.scope, { httpServer, httpsServer });
 		// Subsribe to channel events
 		subscribeToEvents(this.scope, { wsServer, wssServer });
+	}
+
+	async cleanup(code, error) {
+		const { components } = this.scope;
+		if (error) {
+			this.logger.fatal(error.toString());
+			if (code === undefined) {
+				code = 1;
+			}
+		} else if (code === undefined || code === null) {
+			code = 0;
+		}
+		this.logger.info('Cleaning HTTP API...');
+
+		try {
+			if (components !== undefined) {
+				Object.keys(components).forEach(async key => {
+					if (components[key].cleanup) {
+						await components[key].cleanup();
+					}
+				});
+			}
+		} catch (componentCleanupError) {
+			this.logger.error(componentCleanupError);
+		}
+		this.logger.info('Cleaned up successfully');
 	}
 };

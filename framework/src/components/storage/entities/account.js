@@ -276,6 +276,7 @@ class Account extends BaseEntity {
 
 		const defaultSort = { sort: 'balance:asc' };
 		this.extendDefaultOptions(defaultSort);
+		this.sortingFields.push('productivity');
 
 		this.SQLs = this.loadSQLFiles('account', sqlFiles);
 	}
@@ -396,6 +397,9 @@ class Account extends BaseEntity {
 	}
 
 	_getResults(filters, options, tx, expectedResultCount = undefined) {
+		this.validateFilters(filters);
+		this.validateOptions(options);
+
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const parsedOptions = _.defaults(
@@ -403,6 +407,17 @@ class Account extends BaseEntity {
 			_.pick(options, ['limit', 'offset', 'sort', 'extended']),
 			_.pick(this.defaultOptions, ['limit', 'offset', 'sort', 'extended'])
 		);
+
+		// To have deterministic pagination add extra sorting
+		if (parsedOptions.sort) {
+			parsedOptions.sort = _.flatten([
+				parsedOptions.sort,
+				'address:asc',
+			]).filter(Boolean);
+		} else {
+			parsedOptions.sort = ['address:asc'];
+		}
+
 		const parsedSort = this.parseSort(parsedOptions.sort);
 
 		const params = {

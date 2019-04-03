@@ -17,9 +17,9 @@
 const { transfer, registerDelegate } = require('@liskhq/lisk-transactions');
 const expect = require('chai').expect;
 const accountFixtures = require('../../../fixtures/accounts');
-const localCommon = require('../../common.js');
+const localCommon = require('../../common');
 const randomUtil = require('../../../common/utils/random');
-const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../../../src/modules/chain/helpers/bignum');
 
 const { NORMALIZER } = global.constants;
 
@@ -27,7 +27,7 @@ describe('delegate', () => {
 	let library;
 	let storage;
 
-	localCommon.beforeBlock('system_2_2_delegates_5', lib => {
+	localCommon.beforeBlock('2_2_delegates_5', lib => {
 		library = lib;
 		storage = lib.components.storage;
 	});

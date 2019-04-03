@@ -1,5 +1,25 @@
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const fs = require('fs');
+const path = require('path');
 const express = require('express');
+const http = require('http');
+const https = require('https');
+const socketIO = require('socket.io');
 
 module.exports = ({ components: { logger }, config }) => {
 	const expressApp = express();
@@ -10,7 +30,9 @@ module.exports = ({ components: { logger }, config }) => {
 		logger.debug(
 			'Hook loader for coverage - Do not use in production environment!'
 		);
-		im.hookLoader(__dirname);
+		/** @TODO hookLoader path must be updated
+		 * to be able to dynamically find the root folder */
+		im.hookLoader(path.join(__dirname, '../../../'));
 		expressApp.use('/coverage', im.createHandler());
 	}
 
@@ -18,8 +40,8 @@ module.exports = ({ components: { logger }, config }) => {
 		expressApp.enable('trust proxy');
 	}
 
-	const httpServer = require('http').createServer(expressApp);
-	const wsServer = require('socket.io')(httpServer);
+	const httpServer = http.createServer(expressApp);
+	const wsServer = socketIO(httpServer);
 	let wssServer;
 	let httpsServer;
 
@@ -30,7 +52,7 @@ module.exports = ({ components: { logger }, config }) => {
 		privateKey = fs.readFileSync(config.api.ssl.options.key);
 		certificate = fs.readFileSync(config.api.ssl.options.cert);
 
-		httpsServer = require('https').createServer(
+		httpsServer = https.createServer(
 			{
 				key: privateKey,
 				cert: certificate,
@@ -40,7 +62,7 @@ module.exports = ({ components: { logger }, config }) => {
 			expressApp
 		);
 
-		wssServer = require('socket.io')(httpsServer);
+		wssServer = socketIO(httpsServer);
 	}
 
 	return {

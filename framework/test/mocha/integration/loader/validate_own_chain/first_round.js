@@ -15,8 +15,8 @@
 'use strict';
 
 const Promise = require('bluebird');
-const blockVersion = require('../../../../../src/modules/chain/logic/block_version.js');
-const QueriesHelper = require('../../../common/integration/sql/queries_helper.js');
+const blockVersion = require('../../../../../src/modules/chain/logic/block_version');
+const QueriesHelper = require('../../../common/integration/sql/queries_helper');
 const localCommon = require('../../common');
 
 const exceptions = global.exceptions;
@@ -26,17 +26,14 @@ describe('validateOwnChain', () => {
 	let Queries;
 	let addTransactionsAndForgePromise;
 
-	localCommon.beforeBlock(
-		'lisk_functional_validate_own_chain_first_round',
-		lib => {
-			library = lib;
-			Queries = new QueriesHelper(lib, lib.components.storage);
+	localCommon.beforeBlock('validate_own_chain_first_round', lib => {
+		library = lib;
+		Queries = new QueriesHelper(lib, lib.components.storage);
 
-			addTransactionsAndForgePromise = Promise.promisify(
-				localCommon.addTransactionsAndForge
-			);
-		}
-	);
+		addTransactionsAndForgePromise = Promise.promisify(
+			localCommon.addTransactionsAndForge
+		);
+	});
 
 	describe('forge 101 blocks with version = 0', () => {
 		before(() => {

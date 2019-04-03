@@ -14,14 +14,14 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 const { transfer } = require('@liskhq/lisk-transactions');
 const SwaggerSpec = require('../../../common/swagger_spec');
 const randomUtil = require('../../../common/utils/random');
 const accountFixtures = require('../../../fixtures/accounts');
 const sendTransactionPromise = require('../../../common/helpers/api')
 	.sendTransactionPromise;
-const errorCodes = require('../../../../../src/modules/chain/helpers/api_codes');
+const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const phases = require('../../../common/phases');
 
 describe('POST /api/transactions (general)', () => {
@@ -68,7 +68,7 @@ describe('POST /api/transactions (general)', () => {
 		it('should fail when trying to send a transaction that is already confirmed', async () => {
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Transaction is already confirmed: ${transaction.id}`

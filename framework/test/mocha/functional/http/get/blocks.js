@@ -14,8 +14,9 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 
+const accountFixtures = require('../../../fixtures/accounts');
 const waitFor = require('../../../common/utils/wait_for');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const apiHelpers = require('../../../common/helpers/api');
@@ -87,7 +88,7 @@ describe('GET /blocks', () => {
 			});
 
 			it('using invalid height = -1 should fail with error', async () => {
-				return blocksEndpoint.makeRequest({ height: 0 }, 400).then(res => {
+				return blocksEndpoint.makeRequest({ height: -1 }, 400).then(res => {
 					expectSwaggerParamError(res, 'height');
 				});
 			});
@@ -405,6 +406,91 @@ describe('GET /blocks', () => {
 				return blocksEndpoint.makeRequest({ offset: 1 }, 200).then(res => {
 					expect(res.body.data[0].height).to.be.at.least(1);
 				});
+			});
+		});
+
+		describe('with wrong input', () => {
+			it('using invalid field name should fail', async () => {
+				return blocksEndpoint
+					.makeRequest(
+						{
+							blockId: '1',
+							whatever: accountFixtures.genesis.address,
+						},
+						400
+					)
+					.then(res => {
+						expectSwaggerParamError(res, 'whatever');
+					});
+			});
+
+			it('using invalid field name (x:z) should fail', async () => {
+				return blocksEndpoint
+					.makeRequest(
+						{
+							'and:senderId': accountFixtures.genesis.address,
+						},
+						400
+					)
+					.then(res => {
+						expectSwaggerParamError(res, 'and:senderId');
+					});
+			});
+
+			it('using empty parameter should fail', async () => {
+				return blocksEndpoint
+					.makeRequest(
+						{
+							sort: '',
+						},
+						400
+					)
+					.then(res => {
+						expectSwaggerParamError(res, 'sort');
+					});
+			});
+
+			it('using completely invalid fields should fail', async () => {
+				return blocksEndpoint
+					.makeRequest(
+						{
+							blockId: 'invalid',
+							limit: 'invalid',
+							offset: 'invalid',
+							sort: 'invalid',
+						},
+						400
+					)
+					.then(res => {
+						expectSwaggerParamError(res, 'blockId');
+						expectSwaggerParamError(res, 'limit');
+						expectSwaggerParamError(res, 'offset');
+						expectSwaggerParamError(res, 'sort');
+					});
+			});
+
+			it('using partially invalid fields should fail', async () => {
+				return blocksEndpoint
+					.makeRequest(
+						{
+							blockId: 'invalid',
+							limit: 'invalid',
+							offset: 'invalid',
+							sort: 'height:desc',
+						},
+						400
+					)
+					.then(res => {
+						expectSwaggerParamError(res, 'blockId');
+						expectSwaggerParamError(res, 'limit');
+						expectSwaggerParamError(res, 'offset');
+					});
+			});
+		});
+
+		it('using no params should be ok', async () => {
+			return blocksEndpoint.makeRequest({}, 200).then(res => {
+				expect(res.body.data).to.not.empty;
 			});
 		});
 	});

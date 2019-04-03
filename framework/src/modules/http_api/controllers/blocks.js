@@ -15,10 +15,11 @@
 'use strict';
 
 const _ = require('lodash');
-const crypto = require('crypto');
-const apiCodes = require('../helpers/api_codes.js');
-const ApiError = require('../helpers/api_error.js');
-const Bignum = require('../helpers/bignum.js');
+const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
+const Bignumber = require('bignumber.js');
+const ApiError = require('../api_error');
+const apiCodes = require('../api_codes');
+const swaggerHelper = require('../helpers/swagger');
 
 let library;
 let sortFields;
@@ -60,6 +61,12 @@ function BlocksController(scope) {
  * @todo Add description for the function and the params
  */
 BlocksController.getBlocks = function(context, next) {
+	const invalidParams = swaggerHelper.invalidParams(context.request);
+
+	if (invalidParams.length) {
+		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
+	}
+
 	const params = context.request.swagger.params;
 
 	let parsedParams = {
@@ -111,29 +118,6 @@ BlocksController.getBlocks = function(context, next) {
 };
 
 /**
- * Gets address by public.
- *
- * @private
- * @param {publicKey} publicKey Public key
- * @returns {address} address
- * @todo Replace by Lisk Elements once integrated.
- */
-function getAddressByPublicKey(publicKey) {
-	const publicKeyHash = crypto
-		.createHash('sha256')
-		.update(publicKey, 'hex')
-		.digest();
-	const temp = Buffer.alloc(8);
-
-	for (let i = 0; i < 8; i++) {
-		temp[i] = publicKeyHash[7 - i];
-	}
-
-	const address = `${Bignum.fromBuffer(temp).toString()}L`;
-	return address;
-}
-
-/**
  * Parse raw block data from database into expected API response type for blocks
  *
  * @param {Object} raw Raw block data from database
@@ -151,16 +135,16 @@ function parseBlockFromDatabase(raw) {
 		height: parseInt(raw.height),
 		previousBlock: raw.previousBlockId,
 		numberOfTransactions: parseInt(raw.numberOfTransactions),
-		totalAmount: new Bignum(raw.totalAmount).toString(),
-		totalFee: new Bignum(raw.totalFee).toString(),
-		reward: new Bignum(raw.reward).toString(),
+		totalAmount: new Bignumber(raw.totalAmount).toFixed(),
+		totalFee: new Bignumber(raw.totalFee).toFixed(),
+		reward: new Bignumber(raw.reward).toFixed(),
 		payloadLength: parseInt(raw.payloadLength),
 		payloadHash: raw.payloadHash,
 		generatorPublicKey: raw.generatorPublicKey,
-		generatorId: getAddressByPublicKey(raw.generatorPublicKey),
+		generatorId: getAddressFromPublicKey(raw.generatorPublicKey),
 		blockSignature: raw.blockSignature,
 		confirmations: parseInt(raw.confirmations),
-		totalForged: new Bignum(raw.totalFee).plus(raw.reward).toString(),
+		totalForged: new Bignumber(raw.totalFee).plus(raw.reward).toFixed(),
 	};
 
 	if (raw.transactions) {

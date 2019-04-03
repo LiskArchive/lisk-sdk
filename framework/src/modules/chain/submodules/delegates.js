@@ -17,21 +17,22 @@
 const crypto = require('crypto');
 const _ = require('lodash');
 const async = require('async');
+const { promisify } = require('util');
 const {
 	decryptPassphraseWithPassword,
 	parseEncryptedPassphrase,
 } = require('@liskhq/lisk-cryptography');
-const BlockReward = require('../logic/block_reward.js');
-const jobsQueue = require('../helpers/jobs_queue.js');
-const Delegate = require('../logic/delegate.js');
-const slots = require('../helpers/slots.js');
-const transactionTypes = require('../helpers/transaction_types.js');
+const BlockReward = require('../logic/block_reward');
+const jobsQueue = require('../helpers/jobs_queue');
+const Delegate = require('../logic/delegate');
+const slots = require('../helpers/slots');
 
 // Private fields
 let modules;
 let library;
 let self;
-const { ACTIVE_DELEGATES } = global.constants;
+
+const { ACTIVE_DELEGATES, TRANSACTION_TYPES } = global.constants;
 const exceptions = global.exceptions;
 const __private = {};
 
@@ -52,8 +53,6 @@ __private.delegatesListCache = {};
  * @requires async
  * @requires crypto
  * @requires lodash
- * @requires helpers/api_codes
- * @requires helpers/api_error
  * @requires helpers/jobs_queue
  * @requires helpers/slots
  * @requires logic/block_reward
@@ -90,9 +89,9 @@ class Delegates {
 		self = this;
 		__private.blockReward = new BlockReward();
 		__private.assetTypes[
-			transactionTypes.DELEGATE
+			TRANSACTION_TYPES.DELEGATE
 		] = library.logic.transaction.attachAssetType(
-			transactionTypes.DELEGATE,
+			TRANSACTION_TYPES.DELEGATE,
 			new Delegate({
 				schema: scope.schema,
 			})
@@ -638,11 +637,10 @@ __private.loadDelegates = function(cb) {
  * @returns {setImmediateCallback} cb
  * @todo Add description for the return value
  */
-Delegates.prototype.updateForgingStatus = function(
+Delegates.prototype.updateForgingStatus = async function(
 	publicKey,
 	password,
-	forging,
-	cb
+	forging
 ) {
 	const encryptedList = library.config.forging.delegates;
 	const encryptedItem = encryptedList.find(
@@ -659,7 +657,7 @@ Delegates.prototype.updateForgingStatus = function(
 				password
 			);
 		} catch (e) {
-			return setImmediate(cb, 'Invalid password and public key combination');
+			throw new Error('Invalid password and public key combination');
 		}
 
 		keypair = library.ed.makeKeypair(
@@ -669,39 +667,32 @@ Delegates.prototype.updateForgingStatus = function(
 				.digest()
 		);
 	} else {
-		return setImmediate(cb, `Delegate with publicKey: ${publicKey} not found`);
+		throw new Error(`Delegate with publicKey: ${publicKey} not found`);
 	}
 
 	if (keypair.publicKey.toString('hex') !== publicKey) {
-		return setImmediate(cb, 'Invalid password and public key combination');
+		throw new Error('Invalid password and public key combination');
 	}
 
-	return modules.accounts.getAccount(
-		{ publicKey: keypair.publicKey.toString('hex') },
-		(err, account) => {
-			if (err) {
-				return setImmediate(cb, err);
-			}
+	const account = await promisify(modules.accounts.getAccount)({
+		publicKey: keypair.publicKey.toString('hex'),
+	});
 
-			if (account && account.isDelegate) {
-				if (forging) {
-					__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
-					library.logger.info(`Forging enabled on account: ${account.address}`);
-				} else {
-					delete __private.keypairs[keypair.publicKey.toString('hex')];
-					library.logger.info(
-						`Forging disabled on account: ${account.address}`
-					);
-				}
-
-				return setImmediate(cb, null, {
-					publicKey,
-					forging,
-				});
-			}
-			return setImmediate(cb, 'Delegate not found');
+	if (account && account.isDelegate) {
+		if (forging) {
+			__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
+			library.logger.info(`Forging enabled on account: ${account.address}`);
+		} else {
+			delete __private.keypairs[keypair.publicKey.toString('hex')];
+			library.logger.info(`Forging disabled on account: ${account.address}`);
 		}
-	);
+
+		return {
+			publicKey,
+			forging,
+		};
+	}
+	throw new Error('Delegate not found');
 };
 
 /**
@@ -920,7 +911,7 @@ Delegates.prototype.onBind = function(scope) {
 		transport: scope.modules.transport,
 	};
 
-	__private.assetTypes[transactionTypes.DELEGATE].bind(scope.modules.accounts);
+	__private.assetTypes[TRANSACTION_TYPES.DELEGATE].bind(scope.modules.accounts);
 };
 
 /**

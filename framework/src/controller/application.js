@@ -26,7 +26,7 @@ const registerProcessHooks = app => {
 			message: err.message,
 			stack: err.stack,
 		});
-		app.shutdown(1);
+		app.shutdown(1, err.message);
 	});
 
 	process.on('unhandledRejection', err => {
@@ -35,7 +35,7 @@ const registerProcessHooks = app => {
 			message: err.message,
 			stack: err.stack,
 		});
-		app.shutdown(1);
+		app.shutdown(1, err.message);
 	});
 
 	process.once('SIGTERM', () => app.shutdown(1));
@@ -58,6 +58,7 @@ const registerProcessHooks = app => {
  * @requires helpers/validator
  * @requires schema/application
  * @requires components/logger
+ * @requires components/storage
  */
 class Application {
 	/**
@@ -74,6 +75,9 @@ class Application {
 	 * @param {Object} [config] - Main configuration object
 	 * @param {Object} [config.components] - Configurations for components
 	 * @param {Object} [config.components.logger] - Configuration for logger component
+	 * @param {Object} [config.components.cache] - Configuration for cache component
+	 * @param {Object} [config.components.storage] - Configuration for storage component
+	 * @param {Object} [config.initialState] - Configuration for applicationState
 	 * @param {Object} [config.modules] - Configurations for modules
 	 * @param {string} [config.version] - Version of the application
 	 * @param {string} [config.minVersion] - Minimum compatible version on the network
@@ -85,7 +89,10 @@ class Application {
 		label,
 		genesisBlock,
 		constants = {},
-		config = { components: { logger: null }, modules: { chain: {}, network: {} } }
+		config = {
+			components: { logger: null },
+			modules: { chain: {}, network: {} },
+		}
 	) {
 		if (typeof label === 'function') {
 			label = label.call();
@@ -93,7 +100,7 @@ class Application {
 
 		if (!config.components.logger) {
 			config.components.logger = {
-				filename: `~/.lisk/${label}/lisk.log`,
+				filename: `logs/${label}/lisk.log`,
 			};
 		}
 
@@ -120,12 +127,23 @@ class Application {
 		__private.modules.set(this, {});
 		__private.transactions.set(this, {});
 
+		// TODO: move this configuration to module especific config file
+		const childProcessModules = process.env.LISK_CHILD_PROCESS_MODULES
+			? process.env.LISK_CHILD_PROCESS_MODULES.split(',')
+			: ['httpApi'];
+
 		this.registerModule(ChainModule, {
 			genesisBlock: this.genesisBlock,
 			constants: this.constants,
+			loadAsChildProcess: childProcessModules.includes(ChainModule.alias),
 		});
-		this.registerModule(HttpAPIModule);
+
 		this.registerModule(NetworkModule, this.config.modules.network);
+
+		this.registerModule(HttpAPIModule, {
+			constants: this.constants,
+			loadAsChildProcess: childProcessModules.includes(HttpAPIModule.alias),
+		});
 	}
 
 	/**
@@ -251,11 +269,7 @@ class Application {
 
 		registerProcessHooks(this);
 
-		this.controller = new Controller(
-			this.label,
-			this.config.components,
-			this.logger
-		);
+		this.controller = new Controller(this.label, this.config, this.logger);
 		return this.controller.load(this.getModules());
 	}
 
@@ -268,9 +282,9 @@ class Application {
 	 */
 	async shutdown(errorCode = 0, message = '') {
 		if (this.controller) {
-			await this.controller.cleanup();
+			await this.controller.cleanup(errorCode, message);
 		}
-		this.logger.log(`Shutting down with error code ${errorCode} ${message}`);
+		this.logger.log(`Shutting down with error code ${errorCode}: ${message}`);
 		process.exit(errorCode);
 	}
 }

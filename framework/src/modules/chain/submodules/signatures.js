@@ -14,10 +14,9 @@
 
 'use strict';
 
-const apiCodes = require('../helpers/api_codes.js');
-const ApiError = require('../helpers/api_error.js');
-const Signature = require('../logic/signature.js');
-const transactionTypes = require('../helpers/transaction_types.js');
+const Signature = require('../logic/signature');
+
+const { TRANSACTION_TYPES } = global.constants;
 
 // Private fields
 let modules;
@@ -34,9 +33,6 @@ __private.assetTypes = {};
  * @class
  * @memberof modules
  * @see Parent: {@link modules}
- * @requires helpers/api_codes
- * @requires helpers/api_error
- * @requires helpers/transaction_types
  * @requires logic/signature
  * @param {function} cb - Callback function
  * @param {scope} scope - App instance
@@ -55,9 +51,9 @@ class Signatures {
 		self = this;
 
 		__private.assetTypes[
-			transactionTypes.SIGNATURE
+			TRANSACTION_TYPES.SIGNATURE
 		] = library.logic.transaction.attachAssetType(
-			transactionTypes.SIGNATURE,
+			TRANSACTION_TYPES.SIGNATURE,
 			new Signature({
 				components: {
 					logger: scope.components.logger,
@@ -93,30 +89,9 @@ Signatures.prototype.onBind = function(scope) {
 		transport: scope.modules.transport,
 	};
 
-	__private.assetTypes[transactionTypes.SIGNATURE].bind(scope.modules.accounts);
-};
-
-__private.processPostResult = function(err, res, cb) {
-	let error = null;
-	let response = null;
-
-	// TODO: Need to improve error handling so that we don't
-	// need to parse the error message to determine the error type.
-	const processingError = /^Error processing signature/;
-	const badRequestBodyError = /^Invalid signature body/;
-
-	if (err) {
-		error = new ApiError(err, apiCodes.PROCESSING_ERROR);
-	} else if (res.success) {
-		response = { status: 'Signature Accepted' };
-	} else if (processingError.test(res.message)) {
-		error = new ApiError(res.message, apiCodes.PROCESSING_ERROR);
-	} else if (badRequestBodyError.test(res.message)) {
-		error = new ApiError(res.message, apiCodes.BAD_REQUEST);
-	} else {
-		error = new ApiError(res.message, apiCodes.INTERNAL_SERVER_ERROR);
-	}
-	return setImmediate(cb, error, response);
+	__private.assetTypes[TRANSACTION_TYPES.SIGNATURE].bind(
+		scope.modules.accounts
+	);
 };
 
 // Shared API
@@ -135,9 +110,9 @@ Signatures.prototype.shared = {
 	 * @returns {setImmediateCallback} cb
 	 */
 	postSignature(signature, cb) {
-		return modules.transport.shared.postSignature({ signature }, (err, res) => {
-			__private.processPostResult(err, res, cb);
-		});
+		return modules.transport.shared.postSignature({ signature }, (err, res) =>
+			setImmediate(cb, err, res)
+		);
 	},
 
 	/**
@@ -148,11 +123,8 @@ Signatures.prototype.shared = {
 	 * @returns {setImmediateCallback} cb
 	 */
 	postSignatures(signatures, cb) {
-		return modules.transport.shared.postSignatures(
-			{ signatures },
-			(err, res) => {
-				__private.processPostResult(err, res, cb);
-			}
+		return modules.transport.shared.postSignatures({ signatures }, (err, res) =>
+			setImmediate(cb, err, res)
 		);
 	},
 };

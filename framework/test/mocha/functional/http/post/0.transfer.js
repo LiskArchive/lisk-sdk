@@ -14,20 +14,20 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 const crypto = require('crypto');
 const {
 	transfer,
 	utils: transactionUtils,
 } = require('@liskhq/lisk-transactions');
+const Bignum = require('bignumber.js');
 const accountFixtures = require('../../../fixtures/accounts');
 const typesRepresentatives = require('../../../fixtures/types_representatives');
 const phases = require('../../../common/phases');
 const sendTransactionPromise = require('../../../common/helpers/api')
 	.sendTransactionPromise;
 const randomUtil = require('../../../common/utils/random');
-const errorCodes = require('../../../../../src/modules/chain/helpers/api_codes');
-const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
+const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 
 const { NORMALIZER } = global.constants;
 
@@ -78,7 +78,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal('Failed to verify signature');
 				badTransactions.push(transaction);
@@ -91,7 +91,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal('Invalid transaction id');
 				badTransactions.push(transaction);
@@ -113,7 +113,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal('Invalid transaction amount');
 				badTransactions.push(transaction);
@@ -129,7 +129,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Account does not have enough LSK: ${account.address} balance: 0`
@@ -147,7 +147,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.match(
 					/^Account does not have enough LSK: [0-9]+L balance: /
@@ -174,7 +174,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 			return sendTransactionPromise(
 				signedTransactionFromGenesis,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					'Invalid sender. Can not send from genesis account'
@@ -193,7 +193,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		it('sending transaction with same id twice should fail', async () => {
 			return sendTransactionPromise(
 				goodTransaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Transaction is already processed: ${goodTransaction.id}`
@@ -206,7 +206,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 			return sendTransactionPromise(
 				cloneGoodTransaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Transaction is already processed: ${cloneGoodTransaction.id}`
@@ -219,7 +219,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 			return sendTransactionPromise(
 				cloneGoodTransaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Transaction is already processed: ${cloneGoodTransaction.id}`
@@ -252,7 +252,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid transaction timestamp. Timestamp is in the future'
@@ -280,7 +280,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 						return sendTransactionPromise(
 							transaction,
-							errorCodes.PROCESSING_ERROR
+							apiCodes.PROCESSING_ERROR
 						).then(res => {
 							expect(res.body.message).to.not.be.empty;
 							badTransactions.push(transaction);
@@ -363,7 +363,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 					return sendTransactionPromise(
 						transaction,
-						errorCodes.PROCESSING_ERROR
+						apiCodes.PROCESSING_ERROR
 					).then(res => {
 						expect(res.body.message).to.be.equal(
 							'Transfer data field has invalid character. Null character is not allowed.'
@@ -384,7 +384,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 					return sendTransactionPromise(
 						transaction,
-						errorCodes.PROCESSING_ERROR
+						apiCodes.PROCESSING_ERROR
 					).then(res => {
 						expect(res.body.message).to.be.equal(
 							'Transfer data field has invalid character. Null character is not allowed.'
@@ -405,7 +405,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 					return sendTransactionPromise(
 						transaction,
-						errorCodes.PROCESSING_ERROR
+						apiCodes.PROCESSING_ERROR
 					).then(res => {
 						expect(res.body.message).to.be.equal(
 							'Transfer data field has invalid character. Null character is not allowed.'
@@ -426,7 +426,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 					return sendTransactionPromise(
 						transaction,
-						errorCodes.PROCESSING_ERROR
+						apiCodes.PROCESSING_ERROR
 					).then(res => {
 						expect(res.body.message).to.be.equal(
 							'Transfer data field has invalid character. Null character is not allowed.'
@@ -446,7 +446,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		it('sending already confirmed transaction should fail', async () => {
 			return sendTransactionPromise(
 				goodTransaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Transaction is already confirmed: ${goodTransaction.id}`

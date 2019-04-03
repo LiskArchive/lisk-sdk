@@ -9,11 +9,10 @@ const BaseModule = require('../base_module');
  * @namespace Framework.Modules
  * @type {module.HttpAPIModule}
  */
-module.exports = class HttpAPIModule extends BaseModule {
+class HttpAPIModule extends BaseModule {
 	constructor(options) {
 		super(options);
-
-		this.chain = null;
+		this.httpApi;
 	}
 
 	static get alias() {
@@ -42,12 +41,15 @@ module.exports = class HttpAPIModule extends BaseModule {
 
 	async load(channel) {
 		this.httpApi = new HttpApi(channel, this.options);
-		channel.once('lisk:ready', () => {
-			this.httpApi.bootstrap();
+
+		channel.once('lisk:ready', async () => {
+			await this.httpApi.bootstrap();
 		});
 	}
 
 	async unload() {
-		// return this.chain.cleanup(0);
+		return this.httpApi ? this.httpApi.cleanup(0) : true;
 	}
-};
+}
+
+module.exports = HttpAPIModule;

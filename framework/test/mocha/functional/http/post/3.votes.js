@@ -14,7 +14,7 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 const Promise = require('bluebird');
 const {
 	transfer,
@@ -27,7 +27,7 @@ const randomUtil = require('../../../common/utils/random');
 const waitFor = require('../../../common/utils/wait_for');
 const elements = require('../../../common/utils/elements');
 const apiHelpers = require('../../../common/helpers/api');
-const errorCodes = require('../../../../../src/modules/chain/helpers/api_codes');
+const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const common = require('./common');
 
 const {
@@ -271,7 +271,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					'Invalid vote at index 0 - Invalid vote format'
@@ -295,7 +295,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					'Invalid vote at index 0 - Invalid vote format'
@@ -317,7 +317,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					'Invalid vote at index 0 - Invalid vote format'
@@ -339,7 +339,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					'Invalid vote at index 0 - Invalid vote format'
@@ -361,7 +361,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					'Invalid vote at index 0 - Invalid vote type'
@@ -379,7 +379,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Account does not have enough LSK: ${
@@ -398,7 +398,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.equal('Delegate not found');
 				badTransactions.push(transaction);
@@ -425,7 +425,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Failed to remove vote, delegate "${
@@ -487,7 +487,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					'Invalid transaction body - Failed to validate vote schema: Array is too long (34), maximum 33'
@@ -555,7 +555,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Failed to add vote, delegate "${
@@ -598,7 +598,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Maximum number of ${ACTIVE_DELEGATES} votes exceeded (1 too many)`
@@ -632,7 +632,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Invalid transaction body - Failed to validate vote schema: Array is too long (${MAX_VOTES_PER_TRANSACTION +

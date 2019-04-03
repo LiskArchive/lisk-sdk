@@ -16,13 +16,13 @@
 
 const _ = require('lodash');
 const async = require('async');
-const slots = require('../../helpers/slots.js');
+const slots = require('../../helpers/slots');
+const definitions = require('../../schema/definitions');
 
 const { MAX_TRANSACTIONS_PER_BLOCK, ACTIVE_DELEGATES } = global.constants;
 
 const __private = {};
 let modules;
-let definitions;
 let library;
 let self;
 
@@ -728,8 +728,6 @@ Process.prototype.onBind = function(scope) {
 		transactions: scope.modules.transactions,
 		transport: scope.modules.transport,
 	};
-
-	definitions = scope.swagger.definitions;
 
 	// Set module as loaded
 	__private.loaded = true;

@@ -36,6 +36,7 @@ describe('Account', () => {
 	let validAccountSQLs;
 	let validAccountFields;
 	let validOptions;
+	let invalidOptions;
 	let validFilters;
 	let validExtendedObjectFields;
 	let validSimpleObjectFields;
@@ -260,6 +261,10 @@ describe('Account', () => {
 		validOptions = {
 			limit: 100,
 			offset: 0,
+		};
+
+		invalidOptions = {
+			foo: true,
 		};
 	});
 
@@ -811,7 +816,14 @@ describe('Account', () => {
 			}).not.to.throw(NonSupportedFilterTypeError);
 		});
 
-		it('should throw error for invalid filters');
+		it('should throw error for invalid filters', async () => {
+			const account = new Account(adapter);
+			try {
+				account.get({ invalid_filter: true });
+			} catch (err) {
+				expect(err.message).to.equal('One or more filters are not supported.');
+			}
+		});
 
 		it('should accept only valid options', async () => {
 			// Act & Assert
@@ -820,7 +832,14 @@ describe('Account', () => {
 			}).not.to.throw(NonSupportedOptionError);
 		});
 
-		it('should throw error for invalid options');
+		it('should throw error for invalid options', async () => {
+			const account = new Account(adapter);
+			try {
+				account.get({}, invalidOptions);
+			} catch (err) {
+				expect(err.message).to.equal('One or more options are not supported.');
+			}
+		});
 
 		it('should accept "tx" as last parameter and pass to adapter.executeFile', async () => {
 			const executeSpy = sinonSandbox.spy(AccountEntity.adapter, 'executeFile');

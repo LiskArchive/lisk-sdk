@@ -17,8 +17,7 @@
 const rewire = require('rewire');
 const chai = require('chai');
 const randomstring = require('randomstring');
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
-const swaggerHelper = require('../../../../../../src/modules/chain/helpers/swagger');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 const WSServer = require('../../../../common/ws/server_master');
 const generateRandomActivePeer = require('../../../../fixtures/peers')
 	.generateRandomActivePeer;
@@ -26,7 +25,7 @@ const Block = require('../../../../fixtures/blocks').Block;
 const Rules = require('../../../../../../src/modules/chain/api/ws/workers/rules');
 
 const TransportModule = rewire(
-	'../../../../../../src/modules/chain/submodules/transport.js'
+	'../../../../../../src/modules/chain/submodules/transport'
 );
 
 const { MAX_PEERS, MAX_SHARED_TRANSACTIONS } = __testContext.config.constants;
@@ -47,12 +46,10 @@ describe('transport', () => {
 	let transportInstance;
 	let library;
 	let __private;
-	let components;
 	let modules;
 	let defaultScope;
 	let restoreRewiredTopDeps;
 	let peerMock;
-	let definitions;
 	let wsRPC;
 	let transaction;
 	let block;
@@ -62,6 +59,7 @@ describe('transport', () => {
 	let multisignatureTransactionsList;
 	let blockMock;
 	let error;
+	let definitions;
 
 	const SAMPLE_SIGNATURE_1 = {
 		transactionId: '222675625422353767',
@@ -83,7 +81,7 @@ describe('transport', () => {
 
 	const SAMPLE_AUTH_KEY = 'testkey123';
 
-	beforeEach(done => {
+	beforeEach(async () => {
 		// Recreate all the stubs and default structures before each test case to make
 		// sure that they are fresh every time; that way each test case can modify
 		// stubs without affecting other test cases.
@@ -198,6 +196,8 @@ describe('transport', () => {
 			},
 		});
 
+		definitions = TransportModule.__get__('definitions');
+
 		defaultScope = {
 			logic: {
 				block: blockStub,
@@ -207,11 +207,11 @@ describe('transport', () => {
 			components: {
 				storage: storageStub,
 				logger: loggerStub,
-				system: {},
 			},
 			bus: busStub,
 			schema: schemaStub,
 			channel: channelStub,
+			applicationState: {},
 			balancesSequence: balancesSequenceStub,
 			config: {
 				peers: {
@@ -233,14 +233,6 @@ describe('transport', () => {
 		peerMock = {
 			nonce: 'sYHEDBKcScaAAAYg',
 		};
-
-		swaggerHelper.getResolvedSwaggerSpec().then(resolvedSpec => {
-			definitions = resolvedSpec.definitions;
-			defaultScope.swagger = {
-				definitions,
-			};
-			done();
-		});
 	});
 
 	afterEach(done => {
@@ -336,6 +328,13 @@ describe('transport', () => {
 							objectNormalize: sinonSandbox.stub(),
 						},
 					},
+					channel: {
+						publish: sinonSandbox.stub().resolves(),
+					},
+					applicationState: {
+						broadhash:
+							'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
+					},
 				};
 
 				modules = {
@@ -347,18 +346,6 @@ describe('transport', () => {
 					},
 				};
 
-				components = {
-					system: {
-						update: sinonSandbox.stub().callsArg(0),
-						headers: {
-							broadhash:
-								'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
-						},
-					},
-				};
-
-				definitions = {};
-
 				wsRPC = {
 					getServerAuthKey: sinonSandbox.stub().returns(SAMPLE_AUTH_KEY),
 				};
@@ -366,7 +353,6 @@ describe('transport', () => {
 				restoreRewiredDeps = TransportModule.__set__({
 					library,
 					modules,
-					components,
 					definitions,
 					wsRPC,
 				});
@@ -1016,7 +1002,10 @@ describe('transport', () => {
 						},
 						httpPort: 8000,
 					},
-					channel: channelStub,
+					channel: {
+						invokeSync: sinonSandbox.stub(),
+						publish: sinonSandbox.stub(),
+					},
 					logic: {
 						peers: {
 							me: sinonSandbox.stub().returns(WSServer.generatePeerHeaders()),
@@ -1065,16 +1054,6 @@ describe('transport', () => {
 					},
 				};
 
-				components = {
-					system: {
-						update: sinonSandbox.stub().callsArg(0),
-						headers: {
-							broadhash:
-								'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
-						},
-					},
-				};
-
 				__private = {
 					broadcaster: {},
 					removePeer: sinonSandbox.stub(),
@@ -1084,7 +1063,6 @@ describe('transport', () => {
 				restoreRewiredTransportDeps = TransportModule.__set__({
 					library,
 					modules,
-					components,
 					__private,
 				});
 
@@ -1170,26 +1148,13 @@ describe('transport', () => {
 					done();
 				});
 
-				it('should assign blocks, dapps, loader, multisignatures, peers, system and transactions properties', async () => {
+				it('should assign blocks, dapps, loader, multisignatures, peers and transactions properties', async () => {
 					expect(modulesObject).to.have.property('blocks');
 					expect(modulesObject).to.have.property('dapps');
 					expect(modulesObject).to.have.property('loader');
 					expect(modulesObject).to.have.property('multisignatures');
 					expect(modulesObject).to.have.property('peers');
 					return expect(modulesObject).to.have.property('transactions');
-				});
-			});
-
-			describe('components', () => {
-				let componentsObject;
-
-				beforeEach(done => {
-					componentsObject = TransportModule.__get__('components');
-					done();
-				});
-
-				it('should assign blocks, dapps, loader, multisignatures, peers, system and transactions properties', async () => {
-					return expect(componentsObject).to.have.property('system');
 				});
 			});
 
@@ -1202,7 +1167,7 @@ describe('transport', () => {
 				});
 
 				it('should assign definitions object', async () =>
-					expect(definitionsObject).to.equal(defaultScope.swagger.definitions));
+					expect(definitionsObject).to.equal(definitions));
 			});
 		});
 
@@ -1285,6 +1250,12 @@ describe('transport', () => {
 							maxRelays: sinonSandbox.stub().returns(false),
 							enqueue: sinonSandbox.stub(),
 						};
+						library.channel.invokeSync
+							.withArgs('lisk:getApplicationState')
+							.returns({
+								broadhash:
+									'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
+							});
 						transportInstance.onUnconfirmedTransaction(transaction, true);
 						done();
 					});
@@ -1421,6 +1392,10 @@ describe('transport', () => {
 						maxRelays: sinonSandbox.stub().returns(false),
 						enqueue: sinonSandbox.stub(),
 						broadcast: sinonSandbox.stub(),
+					};
+					library.applicationState = {
+						broadhash:
+							'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
 					};
 					return transportInstance.onBroadcastBlock(block, true);
 				});
@@ -1869,7 +1844,9 @@ describe('transport', () => {
 				beforeEach(done => {
 					currentHeight = 12345;
 					req = {};
-					components.system.headers.height = currentHeight;
+					library.applicationState = {
+						height: currentHeight,
+					};
 					transportInstance.shared.height(req, (err, res) => {
 						error = err;
 						result = res;
@@ -1891,16 +1868,17 @@ describe('transport', () => {
 			});
 
 			describe('status', () => {
+				const state = {
+					height: 123,
+					broadhash:
+						'258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea',
+					nonce: 'sYHEDBKcScaAAAYg',
+					version: 'v0.8.0',
+					os: 'debian',
+					httpPort: 8000,
+				};
 				beforeEach(done => {
-					components.system.headers = {
-						height: 123,
-						broadhash:
-							'258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea',
-						nonce: 'sYHEDBKcScaAAAYg',
-						version: 'v0.8.0',
-						os: 'debian',
-						httpPort: 8000,
-					};
+					library.applicationState = state;
 					req = {};
 					transportInstance.shared.status(req, (err, res) => {
 						error = err;
@@ -1920,27 +1898,27 @@ describe('transport', () => {
 				it('should call callback with a result containing height = 123', async () =>
 					expect(result)
 						.to.have.property('height')
-						.which.equals(components.system.headers.height));
+						.which.equals(state.height));
 
 				it('should call callback with a result containing broadhash = "258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea"', async () =>
 					expect(result)
 						.to.have.property('broadhash')
-						.which.equals(components.system.headers.broadhash));
+						.which.equals(state.broadhash));
 
 				it('should call callback with a result containing httpPort = 8000', async () =>
 					expect(result)
 						.to.have.property('httpPort')
-						.which.equals(defaultScope.config.httpPort));
+						.which.equals(state.httpPort));
 
 				it('should call callback with a result containing version = "v0.8.0"', async () =>
 					expect(result)
 						.to.have.property('version')
-						.which.equals(components.system.headers.version));
+						.which.equals(state.version));
 
 				it('should call callback with a result containing os = "debian"', async () =>
 					expect(result)
 						.to.have.property('os')
-						.which.equals(components.system.headers.os));
+						.which.equals(state.os));
 			});
 
 			describe('postSignature', () => {

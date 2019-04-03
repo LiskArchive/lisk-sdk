@@ -16,76 +16,60 @@
 
 // eslint-disable-next-line import/order
 const newrelic = require('newrelic');
+const path = require('path');
 const newrelicLisk = require('lisk-newrelic')(newrelic, {
 	exitOnFailure: true,
-	rootPath: process.cwd(),
+	rootPath: path.join(path.dirname(__filename), '..'),
 });
 
-newrelicLisk.instrumentWeb();
-newrelicLisk.instrumentDatabase();
 newrelicLisk.instrumentBackgroundJobs();
 
 // TOFIX: fix callbackMethods converted to async in #2579
 // callBackMethods array only support one level of nesting
 const modulesToInstrument = {
-	'./componentes/cache/cache': {
-		identifier: 'components.cache',
-		callbackMethods: [
-			'getJsonForKey',
-			'setJsonForKey',
-			'deleteJsonForKey',
-			'removeByPattern',
-		],
-	},
-	'./componentes/system.js': {
-		identifier: 'componentes.system',
-		callbackMethods: ['update'],
-	},
 	'./helpers/sequence.js': {
 		identifier: 'helpers.sequence',
 		callbackMethods: ['add'],
 	},
-	'./submodules/blocks.js': {
-		identifier: 'modules.blocks',
+	'../submodules/blocks': {
+		identifier: 'modules.chain.submodules.blocks',
 		callbackMethods: ['shared.getBlocks'],
 	},
-	'./submodules/dapps.js': {
-		identifier: 'modules.dapps',
+	'../submodules/dapps': {
+		identifier: 'modules.chain.submodules.dapps',
 		callbackMethods: ['getDapps'],
 	},
-	'./submodules/delegates.js': {
-		identifier: 'modules.delegates',
+	'../submodules/delegates': {
+		identifier: 'modules.chain.submodules.delegates',
 		callbackMethods: ['getForgers', 'getDelegates'],
 	},
-	'./submodules/loader.js': {
-		identifier: 'modules.loader',
+	'../submodules/loader': {
+		identifier: 'modules.chain.submodules.loader',
 		callbackMethods: ['getNetwork'],
 	},
-	'./submodules/peers.js': {
-		identifier: 'modules.peers',
+	'../submodules/peers': {
+		identifier: 'modules.chain.submodules.peers',
 		callbackMethods: ['shared.getPeers'],
 	},
-	'./submodules/rounds.js': {
-		identifier: 'modules.rounds',
+	'../submodules/rounds': {
+		identifier: 'modules.chain.submodules.rounds',
 		callbackMethods: ['flush'],
 	},
-	'./submodules/signatures.js': {
-		identifier: 'modules.signatures',
+	'../submodules/signatures': {
+		identifier: 'modules.chain.submodules.signatures',
 		callbackMethods: ['shared.postSignature', 'shared.postSignatures'],
 	},
-	'./submodules/transactions.js': {
-		identifier: 'modules.transactions',
+	'../submodules/transactions': {
+		identifier: 'modules.chain.submodules.transactions',
 		callbackMethods: [
 			'shared.getTransactionsCount',
-			'shared.getUnProcessedTransactions',
-			'shared.getMultisignatureTransactions',
-			'shared.getUnconfirmedTransactions',
+			'shared.getTransactionsFromPool',
 			'shared.postTransaction',
 			'shared.postTransactions',
 		],
 	},
-	'./submodules/transport.js': {
-		identifier: 'modules.transport',
+	'../submodules/transport': {
+		identifier: 'modules.chain.submodules.transport',
 		callbackMethods: [
 			'broadcastHeaders',
 			'shared.blocksCommon',

@@ -17,20 +17,19 @@
 const _ = require('lodash');
 const rewire = require('rewire');
 const expect = require('chai').expect;
-const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types.js');
 // Load config file - global (one from test directory)
-const Sequence = require('../../../../../../src/modules/chain/helpers/sequence.js');
+const Sequence = require('../../../../../../src/modules/chain/helpers/sequence');
 
 // Instantiate test subject
 const TransactionPool = rewire(
-	'../../../../../../src/modules/chain/logic/transaction_pool.js'
+	'../../../../../../src/modules/chain/logic/transaction_pool'
 );
 
 // Create fresh instance of jobsQueue
 const jobsQueue = rewire(
-	'../../../../../../src/modules/chain/helpers/jobs_queue.js'
+	'../../../../../../src/modules/chain/helpers/jobs_queue'
 );
-const { UNCONFIRMED_TRANSACTION_TIMEOUT } = global.constants;
+const { TRANSACTION_TYPES, UNCONFIRMED_TRANSACTION_TIMEOUT } = global.constants;
 const config = __testContext.config;
 
 describe('transactionPool', () => {
@@ -514,7 +513,7 @@ describe('transactionPool', () => {
 		const unconfirmedTransaction = { id: '1123' };
 		const unconfirmedTransaction2 = {
 			id: '104568989234234L',
-			type: transactionTypes.MULTI,
+			type: TRANSACTION_TYPES.MULTI,
 		};
 		before(done => {
 			transactionPool.addUnconfirmedTransaction(unconfirmedTransaction);
@@ -535,7 +534,7 @@ describe('transactionPool', () => {
 	describe('removeUnconfirmedTransaction', () => {
 		const unconfirmedTransaction = {
 			id: '104568989234234L',
-			type: transactionTypes.MULTI,
+			type: TRANSACTION_TYPES.MULTI,
 		};
 		beforeEach(done => {
 			transactionPool.addUnconfirmedTransaction(unconfirmedTransaction);
@@ -629,7 +628,7 @@ describe('transactionPool', () => {
 		it('should add multi transaction', async () => {
 			const transaction = {
 				id: '103111423423423',
-				type: transactionTypes.MULTI,
+				type: TRANSACTION_TYPES.MULTI,
 			};
 			expect(transactionPool.multisignature.transactions)
 				.to.be.an('array')
@@ -645,7 +644,7 @@ describe('transactionPool', () => {
 		it('should not add existing multi transaction', async () => {
 			const transaction = {
 				id: '1043111423423423L',
-				type: transactionTypes.MULTI,
+				type: TRANSACTION_TYPES.MULTI,
 			};
 			transactionPool.addMultisignatureTransaction(transaction);
 			expect(transactionPool.multisignature.transactions)
@@ -664,7 +663,7 @@ describe('transactionPool', () => {
 		it('should remove multi transaction', async () => {
 			const transaction = {
 				id: '10431411423423423L',
-				type: transactionTypes.MULTI,
+				type: TRANSACTION_TYPES.MULTI,
 			};
 			transactionPool.addMultisignatureTransaction(transaction);
 			expect(transactionPool.multisignature.transactions)
@@ -720,7 +719,7 @@ describe('transactionPool', () => {
 				const transaction = {
 					id: '131992423L',
 					bundled: false,
-					type: transactionTypes.MULTI,
+					type: TRANSACTION_TYPES.MULTI,
 				};
 				transactionPool.countMultisignature = sinonSandbox.stub().returns(1001);
 				transactionPool.queueTransaction(transaction, null, res => {
@@ -735,7 +734,7 @@ describe('transactionPool', () => {
 				const transaction = {
 					id: '131992423L',
 					bundled: false,
-					type: transactionTypes.MULTI,
+					type: TRANSACTION_TYPES.MULTI,
 				};
 				transactionPool.countMultisignature = sinonSandbox.stub().returns(100);
 				transactionPool.queueTransaction(transaction, null, res => {
@@ -800,7 +799,7 @@ describe('transactionPool', () => {
 		it('should return error when transaction is already processed', done => {
 			const transaction = {
 				id: '1311188423423423L',
-				type: transactionTypes.MULTI,
+				type: TRANSACTION_TYPES.MULTI,
 			};
 			transactionPool.transactionInPool.returns(true);
 			transactionPool.processUnconfirmedTransaction(transaction, true, res => {
@@ -814,7 +813,7 @@ describe('transactionPool', () => {
 		it('should fail to add transaction to queue when bundled is enabled', done => {
 			const transaction = {
 				id: '1234L',
-				type: transactionTypes.MULTI,
+				type: TRANSACTION_TYPES.MULTI,
 				bundled: true,
 			};
 			sinonSandbox
@@ -829,7 +828,7 @@ describe('transactionPool', () => {
 		it('should add transaction to queue when bundled is enabled', done => {
 			const transaction = {
 				id: '1234L',
-				type: transactionTypes.MULTI,
+				type: TRANSACTION_TYPES.MULTI,
 				bundled: true,
 			};
 			transactionPool.queueTransaction.callsArgWith(2, transaction);
@@ -842,7 +841,7 @@ describe('transactionPool', () => {
 		it('should fail to process and verify transaction', done => {
 			const transaction = {
 				id: '1234L',
-				type: transactionTypes.MULTI,
+				type: TRANSACTION_TYPES.MULTI,
 				bundled: false,
 			};
 
@@ -863,7 +862,7 @@ describe('transactionPool', () => {
 		it('should process and verify transaction', done => {
 			const transaction = {
 				id: '1235674L',
-				type: transactionTypes.MULTI,
+				type: TRANSACTION_TYPES.MULTI,
 				bundled: false,
 			};
 
@@ -885,7 +884,7 @@ describe('transactionPool', () => {
 		it('should throw error when transaction in invalid', async () => {
 			const invalidTransaction = {
 				id: '10431411423423423L',
-				type: transactionTypes.MULTI,
+				type: TRANSACTION_TYPES.MULTI,
 			};
 			return expect(() => {
 				transactionPool.receiveTransactions(invalidTransaction, {});
@@ -894,7 +893,7 @@ describe('transactionPool', () => {
 
 		it('should receive transaction already processed error when the transaction is processed before', done => {
 			const transaction = [
-				{ id: '10431411423423423L', type: transactionTypes.MULTI },
+				{ id: '10431411423423423L', type: TRANSACTION_TYPES.MULTI },
 			];
 			transactionPool.processUnconfirmedTransaction = sinonSandbox
 				.stub()
@@ -915,7 +914,11 @@ describe('transactionPool', () => {
 
 		it('should add transaction to queue when bundle is enabled', done => {
 			const transaction = [
-				{ id: '109249333874723L', type: transactionTypes.MULTI, bundled: true },
+				{
+					id: '109249333874723L',
+					type: TRANSACTION_TYPES.MULTI,
+					bundled: true,
+				},
 			];
 			transactionPool.processUnconfirmedTransaction = sinonSandbox
 				.stub()
@@ -934,7 +937,7 @@ describe('transactionPool', () => {
 			transactionPool.addQueuedTransaction({ id: '126785L' });
 			transactionPool.addMultisignatureTransaction({
 				id: '123445L',
-				type: transactionTypes.MULTI,
+				type: TRANSACTION_TYPES.MULTI,
 			});
 			transactionPool.addUnconfirmedTransaction({ id: '129887L' });
 			done();
@@ -1282,7 +1285,7 @@ describe('transactionPool', () => {
 		it('should call applyUnconfirmed', done => {
 			const transaction = {
 				id: '103111423423423',
-				type: transactionTypes.MULTI,
+				type: TRANSACTION_TYPES.MULTI,
 			};
 			transactionPool.getMultisignatureTransactionList = sinonSandbox
 				.stub()
@@ -1607,7 +1610,7 @@ describe('transactionPool', () => {
 			it('should return timeout for MULTI transaction type', async () => {
 				const transaction = {
 					id: '103111423423423',
-					type: transactionTypes.MULTI,
+					type: TRANSACTION_TYPES.MULTI,
 					asset: {
 						multisignature: {
 							lifetime: 10,
@@ -1654,7 +1657,7 @@ describe('transactionPool', () => {
 				const transactions = [
 					{
 						id: '10313',
-						type: transactionTypes.MULTI,
+						type: TRANSACTION_TYPES.MULTI,
 						receivedAt: new Date(new Date() - 180 * 60000),
 					},
 				];

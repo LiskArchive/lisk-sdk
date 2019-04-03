@@ -17,13 +17,13 @@
 const Peer = require('../../../logic/peer');
 const failureCodes = require('../rpc/failure_codes');
 const PeerUpdateError = require('../rpc/failure_codes').PeerUpdateError;
-const swaggerHelper = require('../../../helpers/swagger');
+const { ZSchema } = require('../../../../../controller/helpers/validator');
+const definitions = require('../../../schema/definitions');
 const connectionsTable = require('./connections_table');
 const SlaveToMasterSender = require('./slave_to_master_sender');
 const Rules = require('./rules');
 
-const definitions = swaggerHelper.getSwaggerSpec().definitions;
-const z_schema = swaggerHelper.getValidator();
+const validator = new ZSchema();
 
 let self;
 
@@ -37,8 +37,6 @@ let self;
  * @requires api/ws/workers/connectionsTable
  * @requires api/ws/workers/rules
  * @requires api/ws/workers/slaveToMaster
- * @requires helpers/swagger
- * @requires helpers/z_schema
  * @requires logic/peer
  * @param {Object} slaveWAMPServer - Used to send verified update requests to master process
  */
@@ -191,7 +189,7 @@ PeersUpdateRules.prototype.external = {
 	 * @todo Add @returns tag
 	 */
 	update(request, cb) {
-		z_schema.validate(request, definitions.WSPeerUpdateRequest, err => {
+		validator.validate(request, definitions.WSPeerUpdateRequest, err => {
 			if (err) {
 				return setImmediate(cb, err[0].message);
 			}

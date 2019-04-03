@@ -14,10 +14,11 @@
 
 'use strict';
 
-const DApp = require('../logic/dapp.js');
-const InTransfer = require('../logic/in_transfer.js');
-const OutTransfer = require('../logic/out_transfer.js');
-const transactionTypes = require('../helpers/transaction_types.js');
+const DApp = require('../logic/dapp');
+const InTransfer = require('../logic/in_transfer');
+const OutTransfer = require('../logic/out_transfer');
+
+const { TRANSACTION_TYPES } = global.constants;
 
 // Private fields
 let modules;
@@ -41,11 +42,6 @@ __private.assetTypes = {};
  * @class
  * @memberof modules
  * @see Parent: {@link modules}
- * @requires helpers/api_codes
- * @requires helpers/api_error
- * @requires helpers/dapp_categories
- * @requires helpers/sort_by
- * @requires helpers/transaction_types
  * @requires logic/dapp
  * @requires helpers/in_transfer
  * @requires helpers/out_transfer
@@ -74,9 +70,9 @@ class DApps {
 		self = this;
 
 		__private.assetTypes[
-			transactionTypes.DAPP
+			TRANSACTION_TYPES.DAPP
 		] = library.logic.transaction.attachAssetType(
-			transactionTypes.DAPP,
+			TRANSACTION_TYPES.DAPP,
 			new DApp({
 				components: {
 					storage: scope.components.storage,
@@ -88,9 +84,9 @@ class DApps {
 		);
 
 		__private.assetTypes[
-			transactionTypes.IN_TRANSFER
+			TRANSACTION_TYPES.IN_TRANSFER
 		] = library.logic.transaction.attachAssetType(
-			transactionTypes.IN_TRANSFER,
+			TRANSACTION_TYPES.IN_TRANSFER,
 			new InTransfer({
 				components: {
 					storage: scope.components.storage,
@@ -100,9 +96,9 @@ class DApps {
 		);
 
 		__private.assetTypes[
-			transactionTypes.OUT_TRANSFER
+			TRANSACTION_TYPES.OUT_TRANSFER
 		] = library.logic.transaction.attachAssetType(
-			transactionTypes.OUT_TRANSFER,
+			TRANSACTION_TYPES.OUT_TRANSFER,
 
 			new OutTransfer({
 				components: {
@@ -139,13 +135,15 @@ DApps.prototype.onBind = function(scope) {
 		sql: scope.modules.sql,
 	};
 
-	__private.assetTypes[transactionTypes.IN_TRANSFER].bind(
+	__private.assetTypes[TRANSACTION_TYPES.IN_TRANSFER].bind(
 		scope.modules.accounts,
+		scope.modules.blocks,
 		shared
 	);
 
-	__private.assetTypes[transactionTypes.OUT_TRANSFER].bind(
+	__private.assetTypes[TRANSACTION_TYPES.OUT_TRANSFER].bind(
 		scope.modules.accounts,
+		scope.modules.blocks,
 		scope.modules.dapps
 	);
 };

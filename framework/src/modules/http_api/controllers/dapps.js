@@ -15,7 +15,9 @@
 'use strict';
 
 const _ = require('lodash');
-const transactionTypes = require('../helpers/transaction_types.js');
+const swaggerHelper = require('../helpers/swagger');
+
+const { TRANSACTION_TYPES } = global.constants;
 
 // Private Fields
 let storage;
@@ -41,6 +43,12 @@ function DappsController(scope) {
  * @todo Add description for the function and the params
  */
 DappsController.getDapps = async function(context, next) {
+	const invalidParams = swaggerHelper.invalidParams(context.request);
+
+	if (invalidParams.length) {
+		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
+	}
+
 	const params = context.request.swagger.params;
 
 	let options = {
@@ -61,19 +69,19 @@ DappsController.getDapps = async function(context, next) {
 	if (params.transactionId.value) {
 		filters.push({
 			id: params.transactionId.value,
-			type: transactionTypes.DAPP,
+			type: TRANSACTION_TYPES.DAPP,
 		});
 	}
 
 	if (params.name.value) {
 		filters.push({
 			dapp_name: params.name.value,
-			type: transactionTypes.DAPP,
+			type: TRANSACTION_TYPES.DAPP,
 		});
 	}
 
 	if (filters.length === 0) {
-		filters.push({ type: transactionTypes.DAPP });
+		filters.push({ type: TRANSACTION_TYPES.DAPP });
 	}
 
 	try {

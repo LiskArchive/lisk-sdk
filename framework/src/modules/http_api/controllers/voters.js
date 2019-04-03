@@ -15,7 +15,7 @@
 'use strict';
 
 const _ = require('lodash');
-const apiCodes = require('../helpers/api_codes');
+const apiCodes = require('../api_codes');
 const swaggerHelper = require('../helpers/swagger');
 
 const { MAX_VOTES_PER_ACCOUNT } = global.constants;
@@ -48,6 +48,12 @@ function VotersController(scope) {
  * @todo Add description for the function and the params
  */
 VotersController.getVoters = async function(context, next) {
+	const invalidParams = swaggerHelper.invalidParams(context.request);
+
+	if (invalidParams.length) {
+		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
+	}
+
 	const params = context.request.swagger.params;
 
 	let filters = {

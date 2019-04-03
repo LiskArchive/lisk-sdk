@@ -21,12 +21,11 @@ const {
 } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
-const transactionTypes = require('../../../../../src/modules/chain/helpers/transaction_types.js');
 const localCommon = require('../../common');
 
-const { NORMALIZER } = global.constants;
+const { NORMALIZER, TRANSACTION_TYPES } = global.constants;
 
-describe('system test (type 1) - checking validated second signature registrations against other transaction types', () => {
+describe('integration test (type 1) - checking validated second signature registrations against other transaction types', () => {
 	let library;
 
 	const account = randomUtil.account();
@@ -46,7 +45,7 @@ describe('system test (type 1) - checking validated second signature registratio
 	});
 	dapp.id = dappTransaction.id;
 
-	localCommon.beforeBlock('system_1_X_second_sign_validated', lib => {
+	localCommon.beforeBlock('1_X_second_sign_validated', lib => {
 		library = lib;
 	});
 
@@ -107,7 +106,7 @@ describe('system test (type 1) - checking validated second signature registratio
 		});
 
 		describe('adding to pool other transaction types from the same account', () => {
-			Object.keys(transactionTypes).forEach((key, index) => {
+			Object.keys(TRANSACTION_TYPES).forEach((key, index) => {
 				if (
 					key !== 'SIGNATURE' &&
 					key !== 'IN_TRANSFER' &&

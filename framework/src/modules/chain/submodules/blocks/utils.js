@@ -29,7 +29,6 @@ let self;
  * @memberof modules.blocks
  * @see Parent: {@link modules.blocks}
  * @requires lodash
- * @requires helpers/transaction_types
  * @param {Object} logger
  * @param {Account} account
  * @param {Block} block

@@ -1,0 +1,15 @@
+{
+	"httpPort": 9000,
+	"wsPort": 9001,
+	"logFileName": "logs/lisk_snapshot.log",
+	"fileLogLevel": "info",
+	"db": {
+		"database": "lisk_snapshot"
+	},
+	"peers": {
+		"list": []
+	},
+	"loading": {
+		"loadPerIteration": 101
+	}
+}

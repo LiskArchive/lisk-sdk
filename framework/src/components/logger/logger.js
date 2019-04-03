@@ -52,7 +52,7 @@ class Logger {
 			fatal: 'FTL',
 		};
 
-		this.logFileName = `${process.cwd()}/${config.logFileName || 'logs.log'}`;
+		this.logFileName = `${process.cwd()}/${config.filename || 'logs.log'}`;
 		this.fileLogLevel = config.fileLogLevel || 'log';
 		this.consoleLogLevel = config.consoleLogLevel;
 	}

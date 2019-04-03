@@ -14,7 +14,7 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 const Promise = require('bluebird');
 const Bignum = require('bignumber.js');
 const {
@@ -27,7 +27,7 @@ const accountFixtures = require('../../../fixtures/accounts');
 const apiHelpers = require('../../../common/helpers/api');
 const randomUtil = require('../../../common/utils/random');
 const waitFor = require('../../../common/utils/wait_for');
-const errorCodes = require('../../../../../src/modules/chain/helpers/api_codes');
+const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const common = require('./common');
 
 const { FEES, NORMALIZER } = global.constants;
@@ -109,7 +109,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Account does not have enough LSK: ${
@@ -150,7 +150,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal('Username is undefined');
 				badTransactions.push(transaction);
@@ -166,7 +166,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Invalid transaction body - Failed to validate delegate schema: Object didn't pass validation for format username: ${username}`
@@ -184,7 +184,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Invalid transaction body - Failed to validate delegate schema: Object didn't pass validation for format username: ${username}`
@@ -202,7 +202,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Invalid transaction body - Failed to validate delegate schema: Object didn't pass validation for format username: ${username}`
@@ -220,7 +220,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Invalid transaction body - Failed to validate delegate schema: Object didn't pass validation for format username: ${username}`
@@ -238,7 +238,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Invalid transaction body - Failed to validate delegate schema: Object didn't pass validation for format username: ${username}`
@@ -256,7 +256,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Invalid transaction body - Failed to validate delegate schema: Object didn't pass validation for format username: ${username}`
@@ -284,7 +284,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					'Username is too long. Maximum is 20 characters'
@@ -301,7 +301,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal('Username must be lowercase');
 				badTransactions.push(transaction);
@@ -334,7 +334,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal('Account is already a delegate');
 				badTransactionsEnforcement.push(transaction);
@@ -349,7 +349,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Username ${account.username} already exists`
@@ -366,7 +366,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal('Account is already a delegate');
 				badTransactionsEnforcement.push(transaction);

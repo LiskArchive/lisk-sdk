@@ -21,12 +21,11 @@ const {
 } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
-const transactionTypes = require('../../../../../src/modules/chain/helpers/transaction_types.js');
 const localCommon = require('../../common');
 
-const { NORMALIZER } = global.constants;
+const { NORMALIZER, TRANSACTION_TYPES } = global.constants;
 
-describe('system test (type 1) - sending transactions on top of unconfirmed second signature', () => {
+describe('integration test (type 1) - sending transactions on top of unconfirmed second signature', () => {
 	let library;
 
 	const account = randomUtil.account();
@@ -47,7 +46,7 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 		secondPassphrase: account.secondPassphrase,
 	});
 
-	localCommon.beforeBlock('system_1_X_second_sign_unconfirmed', lib => {
+	localCommon.beforeBlock('1_X_second_sign_unconfirmed', lib => {
 		library = lib;
 	});
 
@@ -76,7 +75,7 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 
 	describe('validating unconfirmed status while adding to pool other transaction types from same account', () => {
 		describe('with second signature', () => {
-			Object.keys(transactionTypes).forEach((key, index) => {
+			Object.keys(TRANSACTION_TYPES).forEach((key, index) => {
 				if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
 					return true;
 				}
@@ -131,7 +130,7 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 		});
 
 		describe('without second signature', () => {
-			Object.keys(transactionTypes).forEach((key, index) => {
+			Object.keys(TRANSACTION_TYPES).forEach((key, index) => {
 				if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
 					return true;
 				}

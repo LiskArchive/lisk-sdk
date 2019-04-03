@@ -65,7 +65,6 @@ describe('delegates', () => {
 			sinonSandbox
 				.stub(library.components.storage.entities.Account, 'insertFork')
 				.resolves();
-			sinonSandbox.stub(library.channel, 'publish').resolves();
 			library.modules.delegates.fork(dummyBlock, cause);
 		});
 
@@ -95,94 +94,89 @@ describe('delegates', () => {
 			__private = library.rewiredModules.delegates.__get__('__private');
 		});
 
-		it('should return error with invalid password', done => {
-			library.modules.delegates.updateForgingStatus(
-				testDelegate.publicKey,
-				'Invalid password',
-				true,
-				err => {
-					expect(err).to.equal('Invalid password and public key combination');
-					done();
-				}
-			);
+		it('should return error with invalid password', async () => {
+			try {
+				await library.modules.delegates.updateForgingStatus(
+					testDelegate.publicKey,
+					'Invalid password',
+					true
+				);
+			} catch (err) {
+				expect(err.message).to.equal(
+					'Invalid password and public key combination'
+				);
+			}
 		});
 
-		it('should return error with invalid publicKey', done => {
+		it('should return error with invalid publicKey', async () => {
 			const invalidPublicKey =
 				'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a';
 
-			library.modules.delegates.updateForgingStatus(
-				invalidPublicKey,
-				defaultPassword,
-				true,
-				err => {
-					expect(err).to.equal(
-						'Delegate with publicKey: 9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a not found'
-					);
-					done();
-				}
-			);
+			try {
+				await library.modules.delegates.updateForgingStatus(
+					invalidPublicKey,
+					defaultPassword,
+					true
+				);
+			} catch (err) {
+				expect(err.message).to.equal(
+					'Delegate with publicKey: 9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a not found'
+				);
+			}
 		});
 
-		it('should return error with non delegate account', done => {
-			library.modules.delegates.updateForgingStatus(
-				accountFixtures.genesis.publicKey,
-				accountFixtures.genesis.password,
-				true,
-				err => {
-					expect(err).to.equal(
-						'Delegate with publicKey: c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f not found'
-					);
-					done();
-				}
-			);
+		it('should return error with non delegate account', async () => {
+			try {
+				await library.modules.delegates.updateForgingStatus(
+					accountFixtures.genesis.publicKey,
+					accountFixtures.genesis.password,
+					true
+				);
+			} catch (err) {
+				expect(err.message).to.equal(
+					'Delegate with publicKey: c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f not found'
+				);
+			}
 		});
 
-		it('should update forging from enabled to disabled', done => {
+		it('should update forging from enabled to disabled', async () => {
 			library.modules.accounts.getAccount(
 				{ publicKey: testDelegate.publicKey },
-				(err, account) => {
+				async (err, account) => {
 					expect(err).to.be.null;
 					expect(__private.keypairs[testDelegate.publicKey]).to.not.be
 						.undefined;
 					expect(account.publicKey).to.equal(testDelegate.publicKey);
 
-					library.modules.delegates.updateForgingStatus(
+					const data = await library.modules.delegates.updateForgingStatus(
 						testDelegate.publicKey,
 						testDelegate.password,
-						false,
-						(error, data) => {
-							expect(error).to.be.null;
-							expect(__private.keypairs[testDelegate.publicKey]).to.be
-								.undefined;
-							expect(data.publicKey).to.equal(testDelegate.publicKey);
-							done();
-						}
+						false
 					);
+
+					expect(__private.keypairs[testDelegate.publicKey]).to.be.undefined;
+					expect(data.publicKey).to.equal(testDelegate.publicKey);
 				}
 			);
 		});
 
-		it('should update forging from disabled to enabled', done => {
+		it('should update forging from disabled to enabled', async () => {
 			library.modules.accounts.getAccount(
 				{ publicKey: testDelegate.publicKey },
-				(err, account) => {
+				async (err, account) => {
 					expect(err).to.be.null;
 					expect(__private.keypairs[testDelegate.publicKey]).to.be.undefined;
 					expect(account.publicKey).to.equal(testDelegate.publicKey);
 
-					library.modules.delegates.updateForgingStatus(
+					const data = await library.modules.delegates.updateForgingStatus(
 						testDelegate.publicKey,
 						testDelegate.password,
-						true,
-						(error, data) => {
-							expect(error).to.be.null;
-							expect(__private.keypairs[testDelegate.publicKey]).to.not.be
-								.undefined;
-							expect(data.publicKey).to.equal(testDelegate.publicKey);
-							done();
-						}
+						true
 					);
+
+					expect(__private.keypairs[testDelegate.publicKey]).to.not.be
+						.undefined;
+					expect(data.publicKey).to.equal(testDelegate.publicKey);
 				}
 			);
 		});

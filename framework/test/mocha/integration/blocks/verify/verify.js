@@ -20,16 +20,16 @@ const _ = require('lodash');
 const rewire = require('rewire');
 const async = require('async');
 const Promise = require('bluebird');
-const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../../../src/modules/chain/helpers/bignum');
 const application = require('../../../common/application');
 const { clearDatabaseTable } = require('../../../common/storage_sandbox');
 const modulesLoader = require('../../../common/modules_loader');
 const random = require('../../../common/utils/random');
-const slots = require('../../../../../src/modules/chain/helpers/slots.js');
+const slots = require('../../../../../src/modules/chain/helpers/slots');
 const accountFixtures = require('../../../fixtures/accounts');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
-const blockVersion = require('../../../../../src/modules/chain/logic/block_version.js');
+const blockVersion = require('../../../../../src/modules/chain/logic/block_version');
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW, NORMALIZER } = global.constants;
 const genesisBlock = __testContext.config.genesisBlock;
@@ -188,7 +188,7 @@ describe('blocks/verify', () => {
 		application.init(
 			{
 				sandbox: {
-					name: 'lisk_test_blocks_verify',
+					name: 'blocks_verify',
 				},
 			},
 			(err, scope) => {
@@ -233,7 +233,7 @@ describe('blocks/verify', () => {
 
 		before(done => {
 			RewiredVerify = rewire(
-				'../../../../../src/modules/chain/submodules/blocks/verify.js'
+				'../../../../../src/modules/chain/submodules/blocks/verify'
 			);
 			const verify = new RewiredVerify(
 				library.components.logger,

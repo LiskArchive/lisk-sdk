@@ -14,10 +14,12 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 const WSServer = require('../../../common/ws/server_master');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const apiHelpers = require('../../../common/helpers/api');
+
+const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /peers', () => {
 	const peersEndpoint = new SwaggerEndpoint('GET /peers');
@@ -219,6 +221,77 @@ describe('GET /peers', () => {
 					expect(res.body.data.length).to.be.at.most(limit);
 					expect(res.body.data[0]).to.not.equal(firstObject);
 				});
+		});
+	});
+
+	describe('with wrong input', () => {
+		it('using invalid field name should fail', async () => {
+			return peersEndpoint
+				.makeRequest(
+					{
+						whatever: validHeaders.broadhash,
+					},
+					400
+				)
+				.then(res => {
+					expectSwaggerParamError(res, 'whatever');
+				});
+		});
+
+		it('using empty valid parameter should return empty array', async () => {
+			return peersEndpoint
+				.makeRequest(
+					{
+						broadhash: '',
+					},
+					200
+				)
+				.then(res => {
+					expect(res.body.data).to.be.empty;
+				});
+		});
+
+		it('using completely invalid fields should fail', async () => {
+			return peersEndpoint
+				.makeRequest(
+					{
+						wsPort: 'invalid',
+						limit: 'invalid',
+						offset: 'invalid',
+						sort: 'invalid',
+					},
+					400
+				)
+				.then(res => {
+					expectSwaggerParamError(res, 'wsPort');
+					expectSwaggerParamError(res, 'limit');
+					expectSwaggerParamError(res, 'offset');
+					expectSwaggerParamError(res, 'sort');
+				});
+		});
+
+		it('using partially invalid fields should fail', async () => {
+			return peersEndpoint
+				.makeRequest(
+					{
+						wsPort: 5678,
+						limit: 'invalid',
+						offset: 'invalid',
+						sort: 'invalid',
+					},
+					400
+				)
+				.then(res => {
+					expectSwaggerParamError(res, 'limit');
+					expectSwaggerParamError(res, 'offset');
+					expectSwaggerParamError(res, 'sort');
+				});
+		});
+	});
+
+	it('using no params should be ok', async () => {
+		return peersEndpoint.makeRequest({}, 200).then(res => {
+			expect(res.body.data).to.not.empty;
 		});
 	});
 });

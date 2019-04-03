@@ -1,0 +1,19 @@
+{
+	"apps": [
+		{
+			"name": "lisk.snapshot",
+			"script": "src/index.js",
+			"cwd": ".",
+			"pid_file": "./pids/lisk.snapshot.pid",
+			"out_file": "./logs/lisk.snapshot.log",
+			"error_file": "./logs/lisk.snapshot.err",
+			"log_date_format": "YYYY-MM-DD HH:mm:ss SSS",
+			"autorestart": false,
+			"watch": false,
+			"kill_timeout": 10000,
+			"max_memory_restart": "2048M",
+			"node_args": "--max_old_space_size=2048",
+			"args": "-c etc/snapshot.json -s highest"
+		}
+	]
+}

@@ -268,6 +268,7 @@ describe('loader', () => {
 			};
 
 			const bindingsStub = {
+				applicationState: sinonSandbox.stub(),
 				components: {
 					cache: sinonSandbox.stub(),
 				},
@@ -278,12 +279,11 @@ describe('loader', () => {
 					rounds: sinonSandbox.stub(),
 					transport: sinonSandbox.stub(),
 					multisignatures: sinonSandbox.stub(),
-					system: sinonSandbox.stub(),
 				},
 				swagger: { definitions: null },
 			};
 			RewiredLoader = rewire(
-				'../../../../../../src/modules/chain/submodules/loader.js'
+				'../../../../../../src/modules/chain/submodules/loader'
 			);
 			__privateVar = RewiredLoader.__get__('__private');
 			RewiredLoader.__set__('__private.loadBlockChain', sinonSandbox.stub());

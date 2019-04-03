@@ -14,7 +14,7 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 const {
 	transfer,
 	registerSecondPassphrase,
@@ -25,7 +25,7 @@ const accountFixtures = require('../../../fixtures/accounts');
 const apiHelpers = require('../../../common/helpers/api');
 const randomUtil = require('../../../common/utils/random');
 const waitFor = require('../../../common/utils/wait_for');
-const errorCodes = require('../../../../../src/modules/chain/helpers/api_codes');
+const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const common = require('./common');
 
 const { FEES, NORMALIZER } = global.constants;
@@ -92,7 +92,7 @@ describe('POST /api/transactions (type 1) register second passphrase', () => {
 			});
 
 			return apiHelpers
-				.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR)
+				.sendTransactionPromise(transaction, apiCodes.PROCESSING_ERROR)
 				.then(res => {
 					expect(res.body.message).to.be.equal(
 						'Sender does not have a second signature'
@@ -108,7 +108,7 @@ describe('POST /api/transactions (type 1) register second passphrase', () => {
 			});
 
 			return apiHelpers
-				.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR)
+				.sendTransactionPromise(transaction, apiCodes.PROCESSING_ERROR)
 				.then(res => {
 					expect(res.body.message).to.be.equal(
 						`Account does not have enough LSK: ${

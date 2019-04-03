@@ -15,16 +15,17 @@
 'use strict';
 
 const async = require('async');
-const blockVersion = require('../../../../../src/modules/chain/logic/block_version.js');
+const blockVersion = require('../../../../../src/modules/chain/logic/block_version');
 const application = require('../../../common/application');
 const modulesLoader = require('../../../common/modules_loader');
 const clearDatabaseTable = require('../../../common/storage_sandbox')
 	.clearDatabaseTable;
 const loadTables = require('./process_tables_data.json');
+const definitions = require('../../../../../src/modules/chain/schema/definitions');
 
 const { REWARDS } = global.constants;
 
-describe('system test (blocks) - process', () => {
+describe('integration test (blocks) - process', () => {
 	let blocksProcess;
 	let blocks;
 	let storage;
@@ -40,7 +41,7 @@ describe('system test (blocks) - process', () => {
 		blockVersion.currentBlockVersion = 0;
 
 		application.init(
-			{ sandbox: { name: 'system_blocks_process' } },
+			{ sandbox: { name: 'blocks_process' } },
 			(err, scopeInit) => {
 				blocksProcess = scopeInit.modules.blocks.process;
 				blocks = scopeInit.modules.blocks;
@@ -144,7 +145,7 @@ describe('system test (blocks) - process', () => {
 			beforeEach(() => {
 				return scope.schema.validate(
 					validCommonBlock,
-					scope.swagger.definitions.CommonBlock,
+					definitions.CommonBlock,
 					err => {
 						commonBlockValidationError = err;
 					}

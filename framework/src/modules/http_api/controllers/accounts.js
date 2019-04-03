@@ -17,7 +17,7 @@
 const _ = require('lodash');
 const Promise = require('bluebird');
 const swaggerHelper = require('../helpers/swagger');
-const { calculateApproval } = require('../helpers/http_api');
+const { calculateApproval } = require('../helpers/utils');
 
 // Private Fields
 let storage;
@@ -84,6 +84,12 @@ function accountFormatter(totalSupply, account) {
  * @todo Add description for the function and the params
  */
 AccountsController.getAccounts = async function(context, next) {
+	const invalidParams = swaggerHelper.invalidParams(context.request);
+
+	if (invalidParams.length) {
+		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
+	}
+
 	const params = context.request.swagger.params;
 
 	let filters = {
@@ -113,7 +119,9 @@ AccountsController.getAccounts = async function(context, next) {
 			accountFormatter.bind(
 				null,
 				lastBlock.height
-					? await channel.invoke('chain:calculateSupply', [lastBlock.height])
+					? await channel.invoke('chain:calculateSupply', {
+							height: lastBlock.height,
+						})
 					: 0
 			)
 		);

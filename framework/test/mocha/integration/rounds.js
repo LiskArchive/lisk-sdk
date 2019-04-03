@@ -21,12 +21,12 @@ const {
 	registerDelegate,
 } = require('@liskhq/lisk-transactions');
 const Promise = require('bluebird');
-const ed = require('../../../src/modules/chain/helpers/ed.js');
+const ed = require('../../../src/modules/chain/helpers/ed');
 const slots = require('../../../src/modules/chain/helpers/slots');
-const Bignum = require('../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../src/modules/chain/helpers/bignum');
 const accountsFixtures = require('../fixtures/accounts');
 const randomUtil = require('../common/utils/random');
-const QueriesHelper = require('../common/integration/sql/queries_helper.js');
+const QueriesHelper = require('../common/integration/sql/queries_helper');
 const localCommon = require('./common');
 
 const { REWARDS, ACTIVE_DELEGATES } = global.constants;
@@ -41,7 +41,7 @@ describe('rounds', () => {
 	// Set rewards start at 150-th block
 	REWARDS.OFFSET = 150;
 
-	localCommon.beforeBlock('lisk_functional_rounds', lib => {
+	localCommon.beforeBlock('rounds', lib => {
 		library = lib;
 		Queries = new QueriesHelper(lib, lib.components.storage);
 

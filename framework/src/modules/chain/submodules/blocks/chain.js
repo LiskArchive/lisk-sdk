@@ -17,12 +17,13 @@
 const Promise = require('bluebird');
 const async = require('async');
 const _ = require('lodash');
-const transactionTypes = require('../../helpers/transaction_types.js');
-const Bignum = require('../../helpers/bignum.js');
+const Bignum = require('../../helpers/bignum');
 const {
 	CACHE_KEYS_DELEGATES,
 	CACHE_KEYS_TRANSACTION_COUNT,
 } = require('../../../../../../framework/src/components/cache');
+
+const { TRANSACTION_TYPES } = global.constants;
 
 let components;
 let modules;
@@ -38,7 +39,6 @@ const __private = {};
  * @see Parent: {@link modules.blocks}
  * @requires async
  * @requires bluebird
- * @requires helpers/transaction_types
  * @param {Object} logger
  * @param {Block} block
  * @param {Transaction} transaction
@@ -56,7 +56,8 @@ class Chain {
 		storage,
 		genesisBlock,
 		bus,
-		balancesSequence
+		balancesSequence,
+		channel
 	) {
 		library = {
 			logger,
@@ -68,6 +69,7 @@ class Chain {
 				block,
 				transaction,
 			},
+			channel,
 		};
 		self = this;
 
@@ -190,7 +192,7 @@ __private.afterSave = async function(block, cb) {
 		);
 		const delegateTransaction = block.transactions.find(
 			transaction =>
-				!!transaction && transaction.type === transactionTypes.DELEGATE
+				!!transaction && transaction.type === TRANSACTION_TYPES.DELEGATE
 		);
 		if (delegateTransaction) {
 			try {
@@ -277,7 +279,7 @@ Chain.prototype.deleteFromBlockId = async function(blockId, cb) {
 Chain.prototype.applyGenesisBlock = function(block, cb) {
 	// Sort transactions included in block
 	block.transactions = block.transactions.sort(a => {
-		if (a.type === transactionTypes.VOTE) {
+		if (a.type === TRANSACTION_TYPES.VOTE) {
 			return 1;
 		}
 		return 0;
@@ -624,7 +626,7 @@ Chain.prototype.broadcastReducedBlock = function(reducedBlock, broadcast) {
 __private.loadSecondLastBlockStep = function(secondLastBlockId, tx) {
 	return new Promise((resolve, reject) => {
 		// Load previous block from full_blocks_list table
-		// TODO: Can be inefficient, need performnce tests
+		// TODO: Can be inefficient, need performance tests
 		modules.blocks.utils.loadBlocksPart(
 			{ id: secondLastBlockId },
 			(err, blocks) => {
@@ -834,11 +836,26 @@ Chain.prototype.deleteLastBlock = function(cb) {
 					return seriesCb(err);
 				});
 			},
-			updateSystemHeaders(seriesCb) {
-				// Update our own headers: broadhash and height
-				return components.system
-					.update()
-					.then(() => seriesCb())
+			updateApplicationState(seriesCb) {
+				return library.storage.entities.Block.get(
+					{},
+					{
+						limit: 5,
+						sort: 'height:desc',
+					}
+				)
+					.then(blocks => {
+						// Listen for the update of step to move to next step
+						library.channel.once('lisk:state:updated', () => {
+							seriesCb();
+						});
+
+						// Update our application state: broadhash and height
+						return library.channel.invoke(
+							'lisk:updateApplicationState',
+							blocks
+						);
+					})
 					.catch(seriesCb);
 			},
 			broadcastHeaders(seriesCb) {
@@ -885,15 +902,14 @@ Chain.prototype.recoverChain = function(cb) {
 };
 
 /**
- * Handle modules & components initialization
+ * It assigns modules & components to private constants
  *
- * @param {modules} scope - Exposed modules
+ * @param {modules, components} scope - Exposed modules & components
  */
 Chain.prototype.onBind = function(scope) {
 	library.logger.trace('Blocks->Chain: Shared modules bind.');
 	components = {
 		cache: scope.components ? scope.components.cache : undefined,
-		system: scope.components.system,
 	};
 
 	modules = {

@@ -7,12 +7,12 @@
 <a href="https://david-dm.org/LiskHQ/lisk"><img src="https://david-dm.org/LiskHQ/lisk.svg" alt="Dependency Status"></a>
 <a href="https://david-dm.org/LiskHQ/lisk/?type=dev"><img src="https://david-dm.org/LiskHQ/lisk/dev-status.svg" alt="devDependency Status"></a>
 
-Lisk is a next generation crypto-currency and decentralized application platform, written entirely in JavaScript. The official documentation about the whole ecosystem can be found in https://lisk.io/documentation.
+Lisk is a next-generation crypto-currency and decentralized application platform, written entirely in JavaScript. The official documentation about the whole ecosystem can be found in https://lisk.io/documentation.
 
-[Lisk Core](https://lisk.io/documentation/lisk-core) is the program that implements the [Lisk Protocol](https://lisk.io/documentation/lisk-protocol). In other words, Lisk Core is what every machine needs to set-up in order to run a node that allows for participation in the network.
+[Lisk Core](https://lisk.io/documentation/lisk-core) is the program that implements the [Lisk Protocol](https://lisk.io/documentation/lisk-protocol). In other words, Lisk Core is what every machine needs to set-up to run a node that allows for participation in the network.
 
 This document details how to install Lisk Core from source, but there are two other ways to participate in the network: [binaries](https://lisk.io/documentation/lisk-core/setup/pre-install/binary) and [Docker images](https://lisk.io/documentation/lisk-core/setup/pre-install/docker).
-If you have satisfied the requirements from the Pre-Installation section, you can jumpt directly to the next section [Installation Steps](#installation).
+If you have satisfied the requirements from the Pre-Installation section, you can jump directly to the next section [Installation Steps](#installation).
 
 ## Index
 
@@ -34,6 +34,9 @@ If you have satisfied the requirements from the Pre-Installation section, you ca
   * [Running Tests](#running-tests)
     * [Running Mocha Tests](#running-mocha-tests)
     * [Running Jest Tests](#running-jest-tests)
+* [Utility Scripts](#utility-scripts)
+* [Performance Monitoring](#performance-monitoring)
+* [License](#license)
 
 ## Pre-Installation
 
@@ -62,7 +65,7 @@ sudo apt-get update
 sudo apt-get install -y python build-essential curl automake autoconf libtool ntp
 ```
 
-* MacOS 10.12-10.13 (Sierra/High Sierra):
+* MacOS 10.12-10.14 (Sierra/High Sierra/Mojave)::
 
 Make sure that you have both [XCode](https://developer.apple.com/xcode/) and [Homebrew](https://brew.sh/) installed on your machine.
 
@@ -84,7 +87,7 @@ Used for cloning and updating Lisk
 sudo apt-get install -y git
 ```
 
-* MacOS 10.12-10.13 (Sierra/High Sierra):
+* MacOS 10.12-10.14 (Sierra/High Sierra/Mojave)::
 
 ```
 brew install git
@@ -94,7 +97,7 @@ brew install git
 
 Node.js serves as the underlying engine for code execution.
 
-Install System wide via package manager:
+Install System-wide via package manager:
 
 * Ubuntu:
 
@@ -103,15 +106,15 @@ curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
-* MacOS 10.12-10.13 (Sierra/High Sierra):
+* MacOS 10.12-10.14 (Sierra/High Sierra/Mojave)::
 
 ```
-brew install node@10.14.1
+brew install node@10.15.3
 ```
 
 #### Check correct version
 
-Especially when installing on Ubuntu, check if you have a compatible node version runnging:
+Especially when installing on Ubuntu, check if you have a compatible node version running:
 
 ```
 node -v
@@ -133,10 +136,10 @@ su - lisk
 3. Install the correct version of Node.js using nvm:
 
 ```
-nvm install 10.14.1
+nvm install 10.15.3
 ```
 
-For the following steps, logout from the 'lisk' user again with `CTRL+D`, and continue with your user with sudo rights.
+For the following steps, log out from the 'lisk' user again with `CTRL+D`, and continue with your user with sudo rights.
 
 ### PostgreSQL:
 
@@ -153,7 +156,7 @@ sudo apt update
 sudo apt install postgresql-10
 ```
 
-After installation, you should see the postgres database cluster, by running
+After installation, you should see the Postgres database cluster, by running
 
 ```
   pg_lsclusters
@@ -172,7 +175,7 @@ Create a new database user called `lisk` and grant it rights to create databases
   sudo -u postgres createuser --createdb lisk
 ```
 
-Create the databases for Testnet and Mainnet:
+Create databases for Testnet and Mainnet:
 
 ```
   createdb -O lisk lisk_test
@@ -186,11 +189,11 @@ sudo -u postgres psql -d lisk_test -c "alter user lisk with password 'password';
 sudo -u postgres psql -d lisk_main -c "alter user lisk with password 'password';"
 ```
 
-* MacOS 10.12-10.13 (Sierra/High Sierra):
+* MacOS 10.12-10.14 (Sierra/High Sierra/Mojave)::
 
 ```
 brew install postgresql@10
-initdb /usr/local/var/postgres --encoding utf8 --locale=en_US.UTF-8
+initdb /usr/local/var/postgres@10 --encoding utf8 --locale=en_US.UTF-8
 brew services start postgresql@10
 createdb lisk_test
 createdb lisk_main
@@ -210,41 +213,41 @@ It is recommended to install Redis to improve the performance of API responses.
 sudo apt-get install redis-server
 ```
 
-Start redis:
+Start Redis:
 
 ```
 service redis start
 ```
 
-Stop redis:
+Stop Redis:
 
 ```
 service redis stop
 ```
 
-* MacOS 10.12-10.13 (Sierra/High Sierra):
+* MacOS 10.12-10.14 (Sierra/High Sierra/Mojave):
 
 ```
 brew install redis
 ```
 
-Start redis:
+Start Redis:
 
 ```
 brew services start redis
 ```
 
-Stop redis:
+Stop Redis:
 
 ```
 brew services stop redis
 ```
 
-**NOTE:** Lisk does not run on the Redis default port of 6379. Instead it is configured to run on port: 6380. Because of this, in order for Lisk to run, you have one of two options:
+**NOTE:** Lisk does not run on the Redis default port of 6379. Instead, it is configured to run on port: 6380. Because of this, for Lisk to run, you have one of two options:
 
 1. **Change the Redis launch configuration**
 
-Update the launch configuration file on your system. Note that there are a number of ways to do this.
+Update the launch configuration file on your system. Note that there are many ways to do this.
 
 The following is one example:
 
@@ -254,24 +257,25 @@ The following is one example:
    * MacOS: `/usr/local/etc/redis.conf`
 3. Start redis-server
 
-Now confirm that redis is running on `port 6380`:
+Now confirm that Redis is running on `port 6380`:
 
-```
+```bash
 redis-cli -p 6380
-ping
+> ping
 ```
 
 And you should get the result `PONG`.
+To exit the `redis-cli`, type `exit`.
 
 2. **Change the Lisk configuration**
 
-To update the redis port in the Lisk configuration, check the section [Configuring Lisk](#configuring-lisk)
+To update the Redis port in the Lisk configuration, check the section [Configuring Lisk](#configuring-lisk)
 
 ## Installation
 
 Clone the Lisk Core repository using Git and initialize the modules.
 
-```
+```bash
 git clone https://github.com/LiskHQ/lisk.git
 cd lisk
 git checkout master
@@ -280,17 +284,17 @@ npm ci
 
 ## Managing Lisk
 
-To test Lisk is built and configured correctly, issue the following command:
+To test Lisk is built and configured correctly, issue the following command at the root level of the project:
 
 ```
-node app.js
+npm start
 ```
 
-This will start the lisk instance with `devnet` configuration. Once the process is verified as running correctly, `CTRL+C` and start the process with `pm2`.
-This will fork the process into the background and automatically recover the process if it fails.
+This will start the lisk instance with `devnet` configuration. Once the process is verified as running correctly, use `CTRL+C` to quit the running application.
+Optionally, start the process with `pm2`. This will fork the process into the background and automatically recover the process if it fails.
 
 ```
-npx pm2 start --name lisk app.js
+npx pm2 start --name lisk src/index.js
 ```
 
 After the process is started, its runtime status and log location can be retrieved by issuing the following command:
@@ -308,10 +312,11 @@ npx pm2 stop lisk
 **NOTE:** The **port**, **address** and **config-path** can be overridden by providing the relevant command switch:
 
 ```
-npx pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path] -n [network]
+npx pm2 start --name lisk src/index.js -- -p [port] -a [address] -c [config-path] -n [network]
 ```
 
 You can pass any of `devnet`, `alphanet`, `betanet`, `testnet` or `mainnet` for the network option.
+More information about options can be found at [Command Line Options](#command-line-options).
 
 ## Configuring Lisk
 
@@ -319,14 +324,14 @@ You can pass any of `devnet`, `alphanet`, `betanet`, `testnet` or `mainnet` for 
 
 1. The Lisk configuration is managed under different folder structures.
 2. Root folder for all configuration is `./config/`.
-3. Default configuration file that used as base is `config/default/config.json`
+3. The default configuration file that used as a base is `config/default/config.json`
 4. You can find network specific configurations under `config/<network>/config.json`
-5. Don't override any value in above mentioned files if you need custom configuration.
+5. Don't override any value in files mentioned above if you need custom configuration.
 6. Create your own `json` file and pass it as command line options `-c` or `LISK_CONFIG_FILE`
-7. Configurations will be loaded in following order, lowest in the list have highest priority:
+7. Configurations will be loaded in the following order, lowest in the list has the highest priority:
    * Default configuration file
    * Network specific configuration file
-   * Custom configuration file (if specified by user)
+   * Custom configuration file (if specified by the user)
    * Command line configurations, specified as command `flags` or `env` variables
 8. Any config option of array type gets completely overridden. If you specify one peer at `peers.list` in your custom config file, it will replace every default peer for the network.
 9. For development use `devnet` as the network option.
@@ -336,15 +341,15 @@ You can pass any of `devnet`, `alphanet`, `betanet`, `testnet` or `mainnet` for 
 There are plenty of options available that you can use to override configuration on runtime while starting the lisk.
 
 ```
-node app.js [options]
+npm start -- [options]
 ```
 
-Each of that option can be appended on command line. There are also few `ENV` variables that can be utilized for this purpose.
+Each of that option can be appended to the command-line. There are also a few `ENV` variables that can be utilized for this purpose.
 
 | Option                               | ENV Variable           | Config Option            | Description                                                                                                                                                                       |
 | ------------------------------------ | ---------------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | <pre nowrap>--network<br>-n</pre>    | LISK_NETWORK           |                          | Which configurations set to use, associated to lisk networks. Any of this option can be used `devnet`, `alphanet`, `betanet`, `testnet` and `mainnet`. Default value is `devnet`. |
-| <pre nowrap>--config<br> -c</pre>    | LISK_CONFIG_FILE       |                          | Path the custom configuration file, which will override values of `config/default/config.json`                                                                                    |
+| <pre nowrap>--config<br> -c</pre>    | LISK_CONFIG_FILE       |                          | Path to the custom configuration file, which will override values of `config/default/config.json`. Should be relative path from root of project.                                  |
 | <pre nowrap>--port<br> -p</pre>      | LISK_WS_PORT           | wsPort                   | TCP port for P2P layer                                                                                                                                                            |
 | <pre nowrap>--http-port<br> -h</pre> | LISK_HTTP_PORT         | httpPort                 | TCP port for HTTP API                                                                                                                                                             |
 | <pre nowrap>--address<br> -a</pre>   | LISK_ADDRESS           | address                  | Listening host name or ip                                                                                                                                                         |
@@ -360,7 +365,7 @@ Each of that option can be appended on command line. There are also few `ENV` va
 |                                      | LISK_REDIS_PORT        | redis.port               | Redis port                                                                                                                                                                        |
 |                                      | LISK_REDIS_DB_NAME     | redis.db                 | Redis database name to connect to                                                                                                                                                 |
 |                                      | LISK_REDIS_DB_PASSWORD | redis.password           | Redis database password to connect to                                                                                                                                             |
-| <pre nowrap>--peers<br> -p</pre>     | LISK_PEERS             | peers.list               | Comma separated list of peers to connect to in the format `192.168.99.100:5000,172.169.99.77:5000`                                                                                |
+| <pre nowrap>--peers<br> -x</pre>     | LISK_PEERS             | peers.list               | Comma separated list of peers to connect to in the format `192.168.99.100:5000,172.169.99.77:5000`                                                                                |
 |                                      | LISK_API_PUBLIC        | api.access.public        | Enable or disable public access of http API. Must be set to true/false                                                                                                            |
 |                                      | LISK_API_WHITELIST     | api.access.whiteList     | Comma separated list of IPs to enable API access. Format `192.168.99.100,172.169.99.77`                                                                                           |
 |                                      | LISK_FORGING_DELEGATES | forging.delegates        | Comma separated list of delegates to load in the format _publicKey&#x7c;encryptedPassphrase,publicKey2&#x7c;encryptedPassphrase2_                                                 |
@@ -370,9 +375,9 @@ Each of that option can be appended on command line. There are also few `ENV` va
 #### Note
 
 * All `ENV` variables restricted with operating system constraint of `ENV` variable maximum length.
-* Comma separated lists will replace the original config values. e.g. If you specify `LISK_PEERS`, original `peers.list` specific to network will be replaced completely.
+* Comma-separated lists will replace the original config values. e.g. If you specify `LISK_PEERS`, original `peers.list`, which is specific to the network, will be replaced completely.
 
-For more detail understanding of configuration read this [online documentation](https://lisk.io/documentation/lisk-core/user-guide/configuration)
+For a more detailed understanding of configuration read this [online documentation](https://lisk.io/documentation/lisk-core/user-guide/configuration)
 
 ### Examples
 
@@ -384,7 +389,7 @@ Update the `redis.port` configuration attribute in `config/devnet/config.json` o
 
 ### Preparing Node
 
-1. Recreate the database in order to run the tests against a new blockchain:
+1. Recreate the database to run the tests against a new blockchain:
 
 ```
 dropdb lisk_dev
@@ -394,7 +399,7 @@ createdb lisk_dev
 2. Launch Lisk (runs on port 4000):
 
 ```
-NODE_ENV=test node app.js
+NODE_ENV=test npm start
 ```
 
 ### Running Tests
@@ -410,28 +415,57 @@ Starting from version `1.6.0`, Lisk Core will be using [Jest](https://jestjs.io)
 Tests are run using the following command:
 
 ```
-npm test -- mocha:<tag>:<suite>:[section]
+npm run mocha:<testType> -- [testPathPattern] [mochaCliOptions]
 ```
 
-* Where **tag** can be one of `default | unstable | slow | extensive` (required)
-* Where **suite** can be one of `unit | integration | functional | network` (required)
-* Where **section** depending of the chosen suite can be:
-  * when `functional` --> `get | post | ws` (optional)
+* Where **testType** can be one of `unit`, `integration`, `functional:ws`, `functional:get`, `functional:post`, `functional:put`, `functional`, `network` (required).
+* Where **testPathPattern** is a regexp pattern string that is matched against all tests paths before executing the test (optional).
+* Where **mochaCliOptions** can be any of mocha's [`command line options`](https://mochajs.org/#command-line-usage) (optional).
 
 Examples:
 
 ```
-npm test -- mocha:slow:unit
-npm test -- mocha:extensive:integration
-npm test -- mocha:default:functional
-npm test -- mocha:unstable:functional:get
-npm test -- mocha:untagged:network
+# Running network tests
+npm run mocha:network
+npm run mocha:network -- --grep @p2p
+npm run mocha:network -- --grep @propagation
+
+# Running unit tests
+npm run mocha:unit
+npm run mocha:unit -- --grep @slow
+npm run mocha:unit -- --grep @unstable
+### extensive
+npm run mocha:unit -- --grep="@unstable" --invert
+
+# Running Integration tests
+npm run mocha:integration -- --grep @slow
+npm run mocha:integration -- --grep @unstable
+# extensive
+npm run mocha:integration -- --grep="@unstable" --invert
+
+# Running functional tests
+npm run mocha:functional:ws
+npm run mocha:functional:get
+npm run mocha:functional:post
+npm run mocha:functional:put
 ```
 
-Individual test files can be run using the following command:
+Individual test files can be run using the following commands:
 
+```bash
+npm run mocha:unit -- <testPathPattern> [mochaCliOptions]
 ```
-npm run mocha -- path/to/test.js
+
+or
+
+```bash
+npm run mocha <filepath> [mochaCliOptions]
+```
+
+or
+
+```bash
+npx mocha <filepath> [mochaCliOptions]
 ```
 
 #### Running Jest Tests
@@ -445,16 +479,16 @@ npm run jest:<testType>
 ##### Executing the tests per file:
 
 ```
-npm run jest:<testType> -- [filepath] [jest-options]
+npm run jest:<testType> -- [testPathPattern] [jestCliOptions]
 ```
 
-## Utility scripts
+## Utility Scripts
 
-There are couple of command line scripts that facilitate users of lisk to perform handy operations. All scripts are located under `./scripts/` directory and can be executed directly by `node scripts/<file_name>`.
+There are a couple of command line scripts that facilitate users of lisk to perform handy operations. All scripts are located under `./framework/src/modules/chain/scripts/` directory and can be executed directly by `node framework/src/modules/chain/scripts/<file_name>`.
 
 #### Generate Config
 
-This script will help you to generate unified version of configuration file for any network. Here is the usage of the script:
+This script will help you to generate a unified version of the configuration file for any network. Here is the usage of the script:
 
 ```
 Usage: generate_config [options]
@@ -471,7 +505,7 @@ Argument `network` is required and can by `devnet`, `testnet`, `mainnet` or any 
 
 #### Update Config
 
-This script keep track of all changes introduced in Lisk over time in different versions. If you have one config file in any of specific version and you want to make it compatible with other version of the Lisk, this scripts will do it for you.
+This script keeps track of all changes introduced in Lisk over time in different versions. If you have one config file in any of specific version and you want to make it compatible with other versions of the Lisk, this scripts will do it for you.
 
 ```
 Usage: update_config [options] <input_file> <from_version> [to_version]
@@ -486,12 +520,12 @@ Options:
 
 As you can see from the usage guide, `input_file` and `from_version` are required. If you skip `to_version` argument changes in config.json will be applied up to the latest version of Lisk Core. If you do not specify `--output` path the final config.json will be printed to stdout. If you do not specify `--network` argument you will have to load it from `LISK_NETWORK` env variable.
 
-#### Console
+#### Console (Unmaintained)
 
-This script is really useful in development. It will initialize the components of Lisk and load these into Node.js REPL.
+This script is useful in development. It will initialize the components of Lisk and load these into Node.js REPL.
 
-```
-node scripts/console.js
+```bash
+node framework/src/modules/chain/scripts/console.js
 
 initApplication: Application initialization inside test environment started...
 initApplication: Target database - lisk_dev
@@ -507,11 +541,11 @@ Once you get the prompt, you can use `modules`, `helpers`, `logic`, `storage` an
 
 ## Performance Monitoring
 
-We used [newrelic](http://newrelic.com/) to monitor the activities inside application. It enables to have detail insight
-of the system and keep track of performance of each activity. e.g. An HTTP API call or a background job from queue.
+We used [newrelic](http://newrelic.com/) to monitor the activities inside the application. It enables to have detail insight
+into the system and keeps track of the performance of each activity. e.g. An HTTP API call or a background job from a queue.
 
 To enable the performance monitoring on your node make sure you have an environment variable `NEW_RELIC_LICENSE_KEY`
-available and set and then start the node normally. The monitoring data will be visible to your newrelic account with the
+available and set and then start the node normally. The monitoring data will be visible to your newRelic account with the
 name of the network you started. e.g. `lisk-mainnet`, `lisk-testnet`.
 
 ## Contributors

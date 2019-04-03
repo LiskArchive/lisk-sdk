@@ -15,12 +15,12 @@
 'use strict';
 
 const rewire = require('rewire');
-const ed = require('../../../../../../src/modules/chain/helpers/ed.js');
-const application = require('../../../../common/application.js');
+const ed = require('../../../../../../src/modules/chain/helpers/ed');
+const application = require('../../../../common/application');
 const modulesLoader = require('../../../../common/modules_loader');
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 
-const Account = rewire('../../../../../../src/modules/chain/logic/account.js');
+const Account = rewire('../../../../../../src/modules/chain/logic/account');
 
 const { ACTIVE_DELEGATES } = global.constants;
 
@@ -431,14 +431,15 @@ describe('account', () => {
 			});
 		});
 
-		it('should throw error if unrelated filters are provided', done => {
-			account.getAll(
-				{ publicKey: validAccount.publicKey, unrelatedfield: 'random value' },
-				err => {
-					expect(err).to.equal('Account#getAll error');
-					done();
-				}
-			);
+		it('should throw error if unrelated filters are provided', async () => {
+			try {
+				await account.getAll({
+					publicKey: validAccount.publicKey,
+					unrelatedfield: 'random value',
+				});
+			} catch (err) {
+				expect(err.message).to.equal('One or more filters are not supported.');
+			}
 		});
 
 		it('should fetch results with limit of 50', done => {

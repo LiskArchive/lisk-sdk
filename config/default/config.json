@@ -6,7 +6,6 @@
 	"logFileName": "logs/lisk.log",
 	"consoleLogLevel": "none",
 	"trustProxy": false,
-	"topAccounts": false,
 	"cacheEnabled": false,
 	"db": {
 		"host": "localhost",
@@ -26,6 +25,9 @@
 		"port": 6380,
 		"db": 0,
 		"password": null
+	},
+	"ipc": {
+		"enabled": false
 	},
 	"api": {
 		"enabled": true,
