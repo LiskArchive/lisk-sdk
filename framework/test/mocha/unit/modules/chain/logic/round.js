@@ -592,12 +592,18 @@ describe('round', () => {
 	describe('rewardsAtRound', () => {
 		const validLocalScope = _.cloneDeep(validScope);
 		const rewardsAt = 2;
+		const roundExceptionCopy = _.clone(
+			global.exceptions.rounds
+		);
 
-		beforeEach(done => {
+		beforeEach(async () => {
 			validLocalScope.round = 1;
 			validLocalScope.roundFees = 500;
 			validLocalScope.roundRewards = [0, 0, 100, 10];
-			done();
+		});
+
+		afterEach(async () => {
+			global.exceptions.rounds = roundExceptionCopy;
 		});
 
 		it('should calculate round changes from valid scope', async () => {
