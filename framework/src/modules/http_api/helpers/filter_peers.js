@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-const _ = require('lodash');
+const { shuffle } = require('lodash');
 
 /**
  * Sorts peers.
@@ -93,12 +93,12 @@ const getByFilter = (peers, filter) => {
 	const limit = filter.limit ? Math.abs(filter.limit) : null;
 	const offset = filter.offset ? Math.abs(filter.offset) : 0;
 
-	peers = peers.filter(peer => {
+	let filteredPeers = peers.filter(peer => {
 		let passed = true;
-		_.each(filter, (value, key) => {
+		Object.entries(filter).forEach((key, value) => {
 			// Every filter field need to be in allowed fields, exists and match value
 			if (
-				_.includes(allowedFields, key) &&
+				allowedFields.includes(key) &&
 				!(peer[key] !== undefined && peer[key] === value)
 			) {
 				passed = false;
@@ -112,27 +112,29 @@ const getByFilter = (peers, filter) => {
 	// Sorting
 	if (filter.sort) {
 		const sortArray = String(filter.sort).split(':');
-		const auxSortField = _.includes(allowedFields, sortArray[0])
+		const auxSortField = allowedFields.includes(sortArray[0])
 			? sortArray[0]
 			: null;
 		const sortField = sortArray[0] ? auxSortField : null;
 		const sortMethod = sortArray.length === 2 ? sortArray[1] !== 'desc' : true;
 		if (sortField) {
-			peers.sort(sortPeers(sortField, sortMethod));
+			filteredPeers.sort(sortPeers(sortField, sortMethod));
 		}
 	} else {
 		// Sort randomly by default
-		peers = _.shuffle(peers);
+		filteredPeers = shuffle(filteredPeers);
 	}
 
 	// Apply limit if supplied
 	if (limit) {
-		peers = peers.slice(offset, offset + limit);
-	} else if (offset) {
-		peers = peers.slice(offset);
+		return filteredPeers.slice(offset, offset + limit);
+	}
+	// Apply offset if supplied
+	if (offset) {
+		return filteredPeers.slice(offset);
 	}
 
-	return peers;
+	return filteredPeers;
 };
 
 /**
