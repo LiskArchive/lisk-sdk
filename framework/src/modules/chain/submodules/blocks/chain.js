@@ -492,7 +492,10 @@ __private.loadSecondLastBlockStep = function(secondLastBlockId, tx) {
 				if (err || !blocks.length) {
 					const error = Array.isArray(err) && err.length > 0 ? err[0] : err;
 					library.logger.error('Failed to get loadBlocksPart', error);
-					return setImmediate(reject, err || 'previousBlock is null');
+					return setImmediate(
+						reject,
+						err || new Error('previousBlock is null')
+					);
 				}
 				return setImmediate(resolve, blocks[0]);
 			},

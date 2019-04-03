@@ -33,13 +33,13 @@ const wrapAddTransactionResponseInCb = (
 		return cb(err);
 	}
 	if (addTransactionResponse.isFull) {
-		return cb('Transaction pool is full');
+		return cb(new Error('Transaction pool is full'));
 	}
 	if (addTransactionResponse.alreadyExists) {
 		if (addTransactionResponse.queueName === readyQueue) {
-			return cb('Transaction is already in unconfirmed state');
+			return cb(new Error('Transaction is already in unconfirmed state'));
 		}
-		return cb(`Transaction is already processed: ${transaction.id}`);
+		return cb(new Error(`Transaction is already processed: ${transaction.id}`));
 	}
 	return cb();
 };

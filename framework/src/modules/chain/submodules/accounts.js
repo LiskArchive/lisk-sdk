@@ -201,7 +201,7 @@ Accounts.prototype.setAccountAndGet = function(data, cb, tx) {
 
 	return taskPromise
 		.then(taskPromiseData => setImmediate(cb, null, taskPromiseData))
-		.catch(taskPromiseErr => setImmediate(cb, new Error(taskPromiseErr)));
+		.catch(taskPromiseErr => setImmediate(cb, taskPromiseErr));
 };
 
 /**
