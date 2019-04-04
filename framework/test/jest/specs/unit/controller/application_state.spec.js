@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+const { AssertionError } = require('assert');
 const ApplicationState = require('../../../../../src/controller/application_state');
 
 jest.mock('os', () => ({
@@ -95,18 +96,22 @@ describe('Application State', () => {
 				broadhash: 'xxx',
 				height: '10',
 			};
-			const errorMessage = 'Publish failure';
+			const errorMessage = new Error('Publish failure');
 
 			beforeEach(() => {
 				applicationState.channel = {
 					publish: jest
 						.fn()
-						.mockImplementation(() => Promise.reject(new Error(errorMessage))),
+						.mockImplementation(() => Promise.reject(errorMessage)),
 				};
 			});
 
-			it('should throw an error', () => {
-				expect(applicationState.update(newState)).rejects.toThrow(errorMessage);
+			it('should throw an error', async () => {
+				try {
+					await applicationState.update(newState);
+				} catch (error) {
+					expect(error).toEqual(errorMessage);
+				}
 			});
 
 			it('should log the error stack', async () => {
@@ -115,6 +120,98 @@ describe('Application State', () => {
 				} catch (error) {
 					expect(logger.error).toHaveBeenCalled();
 					expect(logger.error).toHaveBeenLastCalledWith(error.stack);
+				}
+			});
+		});
+
+		describe('when wrong parameters are passed', () => {
+			let newState;
+			const broadhashErrorMessage =
+				'broadhash is required to update application state.';
+			const heightErrorMessage =
+				'height is required to update application state.';
+
+			it('should throw AssertionError if broadhash undefined', async () => {
+				// Arrange
+				newState = {
+					broadhash: undefined,
+					height: '10',
+				};
+				const broadhashAssertionError = new AssertionError({
+					message: broadhashErrorMessage,
+					operator: '==',
+					expected: true,
+					actual: undefined,
+				});
+
+				// Assert
+				try {
+					await applicationState.update(newState);
+				} catch (error) {
+					expect(error).toEqual(broadhashAssertionError);
+				}
+			});
+
+			it('should throw AssertionError if broadhash is null', async () => {
+				// Arrange
+				newState = {
+					broadhash: null,
+					height: '10',
+				};
+				const broadhashAssertionError = new AssertionError({
+					message: broadhashErrorMessage,
+					operator: '==',
+					expected: true,
+					actual: null,
+				});
+
+				// Assert
+				try {
+					await applicationState.update(newState);
+				} catch (error) {
+					expect(error).toEqual(broadhashAssertionError);
+				}
+			});
+
+			it('should throw AssertionError if height undefined', async () => {
+				// Arrange
+				newState = {
+					broadhash: 'newBroadhash',
+					height: undefined,
+				};
+				const heightAssertionError = new AssertionError({
+					message: heightErrorMessage,
+					operator: '==',
+					expected: true,
+					actual: undefined,
+				});
+
+				// Assert
+				try {
+					await applicationState.update(newState);
+				} catch (error) {
+					expect(error).toEqual(heightAssertionError);
+				}
+			});
+
+			it('should throw AssertionError if height is null', async () => {
+				// Arrange
+				newState = {
+					broadhash: 'newBroadhash',
+					height: null,
+				};
+				const heightAssertionError = new AssertionError({
+					message: heightErrorMessage,
+					operator: '==',
+					expected: true,
+					actual: null,
+				});
+
+				// Assert
+				try {
+					await applicationState.update(newState);
+				} catch (error) {
+					expect(error).toEqual(heightAssertionError);
 				}
 			});
 		});

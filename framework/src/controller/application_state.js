@@ -16,6 +16,7 @@
 
 const os = require('os');
 const _ = require('lodash');
+const assert = require('assert');
 
 const __private = {
 	state: new WeakMap(),
@@ -82,8 +83,11 @@ class ApplicationState {
 	 * @param {broadhash, height} parameters - broadhash and height to update
 	 *
 	 * @returns {Promise.<boolean, Error>}
+	 * @throws assert.AssertionError
 	 */
 	async update({ broadhash, height }) {
+		assert(broadhash, 'broadhash is required to update application state.');
+		assert(height, 'height is required to update application state.');
 		try {
 			const newState = this.state;
 			newState.broadhash = broadhash;
