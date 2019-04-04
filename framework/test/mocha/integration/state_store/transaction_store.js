@@ -21,7 +21,8 @@ describe('system test - transaction store', () => {
 
 	beforeEach(async () => {
 		transactionStore = new TransactionStore(
-			library.components.storage.entities.Transaction
+			library.components.storage.entities.Transaction,
+			{}
 		);
 	});
 

@@ -176,8 +176,8 @@ describe('integration test (type 0) - address collision', () => {
 										`Transaction: ${
 											secondTransactionWithData.id
 										} failed at .senderPublicKey: Invalid sender publicKey, actual: ${
-											publicKeys[0]
-										}, expected: ${publicKeys[1]}`
+											publicKeys[1]
+										}, expected: ${publicKeys[0]}`
 									);
 									seriesCb();
 								}
