@@ -57,7 +57,6 @@ module.exports = class Chain {
 		this.channel = channel;
 		this.options = options;
 		this.logger = null;
-		this.system = null;
 		this.scope = null;
 		this.blockReward = null;
 		this.slots = null;
@@ -199,7 +198,6 @@ module.exports = class Chain {
 
 	get actions() {
 		return {
-			getApplicationState: () => this.system.headers,
 			calculateSupply: action =>
 				this.blockReward.calcSupply(action.params.height),
 			calculateMilestone: action =>
