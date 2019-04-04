@@ -16,6 +16,7 @@
 
 const async = require('async');
 const _ = require('lodash');
+const { convertErrorsToString } = require('../helpers/error_handlers');
 // eslint-disable-next-line prefer-const
 let Broadcaster = require('../logic/broadcaster');
 const failureCodes = require('../api/ws/rpc/failure_codes');
@@ -197,7 +198,7 @@ __private.receiveTransactions = function(
 		}
 		__private.receiveTransaction(transaction, nonce, extraLogMessage, err => {
 			if (err) {
-				library.logger.debug(err, transaction);
+				library.logger.debug(convertErrorsToString(err), transaction);
 			}
 		});
 	});
@@ -231,10 +232,9 @@ __private.receiveTransaction = function(
 			throw errors;
 		}
 	} catch (errors) {
-		const error = errors.length > 0 ? errors[0] : errors;
 		library.logger.debug('Transaction normalization failed', {
 			id,
-			err: error.toString(),
+			err: convertErrorsToString(errors),
 			module: 'transport',
 			transaction,
 		});
@@ -247,11 +247,11 @@ __private.receiveTransaction = function(
 			extraLogMessage
 		);
 
-		return setImmediate(cb, `${error.toString()}`);
+		return setImmediate(cb, errors);
 	}
 
 	if (transaction.requesterPublicKey) {
-		return setImmediate(cb, new Error('Multisig request is not allowed'));
+		return setImmediate(cb, [new Error('Multisig request is not allowed')]);
 	}
 
 	return library.balancesSequence.add(balancesSequenceCb => {
@@ -269,20 +269,13 @@ __private.receiveTransaction = function(
 		modules.transactions.processUnconfirmedTransaction(
 			transaction,
 			true,
-			processUnconfirmErr => {
-				if (processUnconfirmErr) {
-					library.logger.debug(
-						`Transaction ${id}`,
-						processUnconfirmErr.toString()
-					);
+			err => {
+				if (err) {
+					library.logger.debug(`Transaction ${id}`, convertErrorsToString(err));
 					if (transaction) {
 						library.logger.debug('Transaction', transaction);
 					}
-
-					return setImmediate(
-						balancesSequenceCb,
-						processUnconfirmErr.toString()
-					);
+					return setImmediate(balancesSequenceCb, err);
 				}
 				return setImmediate(balancesSequenceCb, null, transaction.id);
 			}
@@ -892,9 +885,11 @@ Transport.prototype.shared = {
 				if (err) {
 					return setImmediate(cb, null, {
 						success: false,
-						message: err,
+						message: 'Invalid transaction body',
+						error: err,
 					});
 				}
+
 				return setImmediate(cb, null, {
 					success: true,
 					transactionId: id,

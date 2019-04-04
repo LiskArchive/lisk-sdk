@@ -15,7 +15,7 @@
 'use strict';
 
 const pool = require('@liskhq/lisk-transaction-pool');
-const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const { Status: TransactionStatus, TransactionError } = require('@liskhq/lisk-transactions');
 
 const {
 	EXPIRY_INTERVAL,
@@ -338,7 +338,7 @@ class TransactionPool {
 		if (this.transactionInPool(transaction.id)) {
 			return setImmediate(
 				cb,
-				new Error(`Transaction is already processed: ${transaction.id}`)
+				[new TransactionError(`Transaction is already processed: ${transaction.id}`, transaction.id, '.id')]
 			);
 		}
 		return this.verifyTransactions([transaction]).then(
@@ -350,7 +350,7 @@ class TransactionPool {
 					return this.addMultisignatureTransaction(transaction, cb);
 				}
 
-				return cb(transactionsResponses[0].errors[0]);
+				return cb(transactionsResponses[0].errors);
 			}
 		);
 	}

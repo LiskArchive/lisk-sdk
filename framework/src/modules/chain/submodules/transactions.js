@@ -659,7 +659,7 @@ Transactions.prototype.shared = {
 			(err, result) => {
 				if (err) {
 					library.logger.error('Error in getTransactionsCount', err, result);
-					return setImmediate(cb, 'Failed to count transactions');
+					return setImmediate(cb, new Error('Failed to count transactions'));
 				}
 
 				result.total =

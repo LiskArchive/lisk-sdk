@@ -597,7 +597,10 @@ Peers.prototype.discover = function(cb) {
 						return randomPeer.rpc.list(waterCb);
 					});
 				}
-				return setImmediate(waterCb, err || 'No acceptable peers found');
+				return setImmediate(
+					waterCb,
+					err || new Error('No acceptable peers found')
+				);
 			}
 		);
 	}
