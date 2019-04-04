@@ -119,20 +119,14 @@ class Application {
 		__private.modules.set(this, {});
 		__private.transactions.set(this, {});
 
-		// TODO: move this configuration to module especific config file
-		const childProcessModules = process.env.LISK_CHILD_PROCESS_MODULES
-			? process.env.LISK_CHILD_PROCESS_MODULES.split(',')
-			: ['httpApi'];
-
 		this.registerModule(ChainModule, {
 			genesisBlock: this.genesisBlock,
 			constants: this.constants,
-			loadAsChildProcess: childProcessModules.includes(ChainModule.alias),
 		});
 
 		this.registerModule(HttpAPIModule, {
 			constants: this.constants,
-			loadAsChildProcess: childProcessModules.includes(HttpAPIModule.alias),
+			loadAsChildProcess: true,
 		});
 	}
 
