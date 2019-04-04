@@ -234,26 +234,21 @@ class Block {
 		});
 		const report = this.scope.schema.validate(block, Block.prototype.schema);
 		if (!report) {
-			throw `Failed to validate block schema: ${this.scope.schema
-				.getLastErrors()
-				.map(err => err.message)
-				.join(', ')}`;
-		}
-		try {
-			const {
-				transactionsResponses,
-			} = modules.processTransactions.validateTransactions(block.transactions);
-			const invalidTransactionResponse = transactionsResponses.find(
-				transactionResponse =>
-					transactionResponse.status !== TransactionStatus.OK
+			throw new Error(
+				`Failed to validate block schema: ${this.scope.schema
+					.getLastErrors()
+					.map(err => err.message)
+					.join(', ')}`
 			);
-			if (invalidTransactionResponse) {
-				throw invalidTransactionResponse.errors;
-			}
-		} catch (errors) {
-			const error =
-				Array.isArray(errors) && errors.length > 0 ? errors[0] : errors;
-			throw error;
+		}
+		const {
+			transactionsResponses,
+		} = modules.processTransactions.validateTransactions(block.transactions);
+		const invalidTransactionResponse = transactionsResponses.find(
+			transactionResponse => transactionResponse.status !== TransactionStatus.OK
+		);
+		if (invalidTransactionResponse) {
+			throw invalidTransactionResponse.errors;
 		}
 
 		return block;

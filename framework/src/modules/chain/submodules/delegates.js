@@ -609,7 +609,7 @@ Delegates.prototype.validateBlockSlotAgainstPreviousRound = function(
  */
 Delegates.prototype.getDelegates = function(query, cb) {
 	if (!_.isObject(query)) {
-		throw 'Invalid query argument, expected object';
+		throw new Error('Invalid query argument, expected object');
 	}
 	if (query.search) {
 		query.username_like = `%${query.search}%`;
