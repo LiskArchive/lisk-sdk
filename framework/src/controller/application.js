@@ -105,8 +105,8 @@ class Application {
 			appConfig = config;
 		}
 
-		if (!config.components.logger) {
-			config.components.logger = {
+		if (!appConfig.components.logger) {
+			appConfig.components.logger = {
 				logFileName: `${process.cwd()}/logs/${label}/lisk.log`,
 			};
 		}
