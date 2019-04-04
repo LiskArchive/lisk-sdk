@@ -94,8 +94,8 @@ describe('Integration tests for P2P library', () => {
 					seedPeers,
 					wsEngine: 'ws',
 					// A short connectTimeout and ackTimeout will make the node to give up on discovery quicker for our test.
-					connectTimeout: 100,
-					ackTimeout: 100,
+					connectTimeout: 1000,
+					ackTimeout: 1000,
 					// Set a different discoveryInterval for each node; that way they don't keep trying to discover each other at the same time.
 					discoveryInterval: DISCOVERY_INTERVAL + index * 11,
 					nodeInfo: {
