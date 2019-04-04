@@ -343,7 +343,7 @@ const DefaultConfig = {
 							type: 'array',
 							items: {
 								type: 'string',
-								format: 'ipOrFQDN',
+								format: 'ip',
 							},
 							default: [],
 						},
