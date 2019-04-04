@@ -47,7 +47,16 @@ let self;
  * @todo Add description for the params
  */
 class Process {
-	constructor(logger, block, peers, schema, storage, sequence, genesisBlock) {
+	constructor(
+		logger,
+		block,
+		peers,
+		schema,
+		storage,
+		sequence,
+		genesisBlock,
+		initTransaction
+	) {
 		library = {
 			logger,
 			schema,
@@ -57,6 +66,7 @@ class Process {
 			logic: {
 				block,
 				peers,
+				initTransaction,
 			},
 		};
 		self = this;
@@ -83,6 +93,10 @@ __private.receiveBlock = function(block, cb) {
 		)} reward: ${block.reward}`
 	);
 
+	block.transactions = block.transactions.map(aTransaction =>
+		library.logic.initTransaction.jsonRead(aTransaction)
+	);
+
 	// Update last receipt
 	modules.blocks.lastReceipt.update();
 	// Start block processing - broadcast: true, saveBlock: true
@@ -99,6 +113,9 @@ __private.receiveBlock = function(block, cb) {
  */
 __private.receiveForkOne = function(block, lastBlock, cb) {
 	let tmp_block = _.clone(block);
+	tmp_block.transactions = tmp_block.transactions.map(aTransaction =>
+		library.logic.initTransaction.jsonRead(aTransaction)
+	);
 
 	// Fork: Consecutive height but different previous block id
 	modules.delegates.fork(block, 1);
@@ -163,6 +180,9 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
  */
 __private.receiveForkFive = function(block, lastBlock, cb) {
 	let tmpBlock = _.clone(block);
+	tmpBlock.transactions = tmpBlock.transactions.map(aTransaction =>
+		library.logic.initTransaction.jsonRead(aTransaction)
+	);
 
 	// Fork: Same height and previous block id, but different block id
 	modules.delegates.fork(block, 5);

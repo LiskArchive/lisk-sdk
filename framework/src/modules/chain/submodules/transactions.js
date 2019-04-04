@@ -63,7 +63,8 @@ class Transactions {
 			scope.config.broadcasts.broadcastInterval,
 			scope.config.broadcasts.releaseLimit,
 			scope.components.logger,
-			scope.config
+			scope.config,
+			scope.bus
 		);
 
 		setImmediate(cb, null, self);
