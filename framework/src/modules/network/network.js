@@ -37,26 +37,23 @@ module.exports = class Network {
 
 		this.logger = createLoggerComponent(loggerConfig);
 
-		const initialNodeInfo = await this.channel.invoke('chain:getNodeInfo');
+		const applicationState = await this.channel.invoke(
+			'lisk:getApplicationState'
+		);
 
 		const p2pConfig = {
 			...this.options,
 			nodeInfo: {
-				...initialNodeInfo,
+				...applicationState,
 				wsPort: this.options.nodeInfo.wsPort,
 			},
 		};
 
 		this.p2p = new P2P(p2pConfig);
 
-		this._handleUpdateNodeInfo = event => {
+		this.channel.subscribe('lisk:state:updated', event => {
 			this.p2p.applyNodeInfo(event.data);
-		};
-
-		this.channel.subscribe(
-			'chain:system:updateNodeInfo',
-			this._handleUpdateNodeInfo
-		);
+		});
 
 		// ---- START: Bind event handlers ----
 
@@ -159,7 +156,7 @@ module.exports = class Network {
 	}
 
 	async cleanup() {
-		// TODO: Unsubscribe 'chain:system:updateNodeInfo' from channel.
+		// TODO: Unsubscribe 'lisk:state:updated' from channel.
 		return this.p2p.stop();
 	}
 };

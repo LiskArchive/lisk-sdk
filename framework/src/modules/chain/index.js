@@ -45,13 +45,11 @@ module.exports = class ChainModule extends BaseModule {
 			'delegates:fork',
 			'loader:sync',
 			'dapps:change',
-			'system:updateNodeInfo',
 		];
 	}
 
 	get actions() {
 		return {
-			getNodeInfo: () => this.chain.actions.getNodeInfo(),
 			calculateSupply: action => this.chain.actions.calculateSupply(action),
 			calculateMilestone: action =>
 				this.chain.actions.calculateMilestone(action),
