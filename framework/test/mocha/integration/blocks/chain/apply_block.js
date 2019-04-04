@@ -25,12 +25,12 @@ const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
 
-describe('system test (blocks) - chain/applyBlock', () => {
+describe('integration test (blocks) - chain/applyBlock', () => {
 	const transferAmount = (100000000 * 100).toString();
 	let library;
 	let storage;
 
-	localCommon.beforeBlock('system_blocks_chain_apply_block', lib => {
+	localCommon.beforeBlock('blocks_chain_apply_block', lib => {
 		library = lib;
 		storage = library.components.storage;
 	});

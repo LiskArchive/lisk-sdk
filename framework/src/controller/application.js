@@ -57,6 +57,7 @@ const registerProcessHooks = app => {
  * @requires helpers/validator
  * @requires schema/application
  * @requires components/logger
+ * @requires components/storage
  */
 class Application {
 	/**
@@ -73,6 +74,9 @@ class Application {
 	 * @param {Object} [config] - Main configuration object
 	 * @param {Object} [config.components] - Configurations for components
 	 * @param {Object} [config.components.logger] - Configuration for logger component
+	 * @param {Object} [config.components.cache] - Configuration for cache component
+	 * @param {Object} [config.components.storage] - Configuration for storage component
+	 * @param {Object} [config.initialState] - Configuration for applicationState
 	 * @param {Object} [config.modules] - Configurations for modules
 	 * @param {string} [config.version] - Version of the application
 	 * @param {string} [config.minVersion] - Minimum compatible version on the network
@@ -92,7 +96,7 @@ class Application {
 
 		if (!config.components.logger) {
 			config.components.logger = {
-				filename: `~/.lisk/${label}/lisk.log`,
+				filename: `logs/${label}/lisk.log`,
 			};
 		}
 
@@ -119,20 +123,14 @@ class Application {
 		__private.modules.set(this, {});
 		__private.transactions.set(this, {});
 
-		// TODO: move this configuration to module especific config file
-		const childProcessModules = process.env.LISK_CHILD_PROCESS_MODULES
-			? process.env.LISK_CHILD_PROCESS_MODULES.split(',')
-			: ['httpApi'];
-
 		this.registerModule(ChainModule, {
 			genesisBlock: this.genesisBlock,
 			constants: this.constants,
-			loadAsChildProcess: childProcessModules.includes(ChainModule.alias),
 		});
 
 		this.registerModule(HttpAPIModule, {
 			constants: this.constants,
-			loadAsChildProcess: childProcessModules.includes(HttpAPIModule.alias),
+			loadAsChildProcess: true,
 		});
 	}
 

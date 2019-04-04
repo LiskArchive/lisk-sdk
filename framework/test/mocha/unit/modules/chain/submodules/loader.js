@@ -268,6 +268,7 @@ describe('loader', () => {
 			};
 
 			const bindingsStub = {
+				applicationState: sinonSandbox.stub(),
 				components: {
 					cache: sinonSandbox.stub(),
 				},
@@ -278,7 +279,6 @@ describe('loader', () => {
 					rounds: sinonSandbox.stub(),
 					transport: sinonSandbox.stub(),
 					multisignatures: sinonSandbox.stub(),
-					system: sinonSandbox.stub(),
 				},
 				swagger: { definitions: null },
 			};

@@ -16,6 +16,8 @@
 
 const url = require('url');
 const _ = require('lodash');
+const semver = require('semver');
+
 const failureCodes = require('../../rpc/failure_codes');
 const { ZSchema } = require('../../../../../../controller/helpers/validator');
 const definitions = require('../../../../schema/definitions');
@@ -52,17 +54,45 @@ const middleware = {
 	 * @class Handshake
 	 * @memberof module:helpers/ws_api.middleware
 	 * @see Parent: {@link module:helpers/ws_api.middleware}
-	 * @param {Object} system
 	 * @param {Object} config
 	 * @todo Add description for the class and the params
 	 * @todo Add @returns tag
 	 */
 	// eslint-disable-next-line object-shorthand
-	Handshake: function(system, config) {
+	Handshake: function(config) {
+		function protocolVersionCompatible(protocolVersion) {
+			if (!protocolVersion) {
+				return false;
+			}
+			const peerHard = parseInt(protocolVersion[0]);
+			const myHard = parseInt(config.protocolVersion[0]);
+			return myHard === peerHard && peerHard >= 1;
+		}
+
+		function nonceCompatible(nonce) {
+			if (!nonce) {
+				return false;
+			}
+			return nonce && config.nonce !== nonce;
+		}
+
+		function networkCompatible(nethash) {
+			if (!nethash) {
+				return false;
+			}
+			return config.nethash === nethash;
+		}
+
+		function versionCompatible(version) {
+			if (!version) {
+				return false;
+			}
+			return semver.gte(version, config.minVersion);
+		}
+
 		/**
 		 * Description of the function.
 		 *
-		 * @param {Object} system
 		 * @param {Object} config
 		 * @todo Add description for the function and the params
 		 * @todo Add @returns tag
@@ -87,52 +117,50 @@ const middleware = {
 				headers.state = Peer.STATE.CONNECTED;
 				const peer = new Peer(headers);
 
-				if (!system.nonceCompatible(headers.nonce)) {
+				if (!nonceCompatible(headers.nonce)) {
 					return setImmediate(
 						cb,
 						{
 							code: failureCodes.INCOMPATIBLE_NONCE,
-							description: `Expected nonce to be not equal to: ${
-								system.headers.nonce
+							description: `Expected nonce to be not equal to: ${config.nonce}`,
+						},
+						peer
+					);
+				}
+
+				if (!networkCompatible(headers.nethash)) {
+					return setImmediate(
+						cb,
+						{
+							code: failureCodes.INCOMPATIBLE_NETWORK,
+							description: `Expected nethash: ${config.nethash} but received: ${
+								headers.nethash
 							}`,
 						},
 						peer
 					);
 				}
 
-				if (!system.networkCompatible(headers.nethash)) {
-					return setImmediate(
-						cb,
-						{
-							code: failureCodes.INCOMPATIBLE_NETWORK,
-							description: `Expected nethash: ${
-								system.headers.nethash
-							} but received: ${headers.nethash}`,
-						},
-						peer
-					);
-				}
-
 				if (!headers.protocolVersion) {
-					if (!system.versionCompatible(headers.version)) {
+					if (!versionCompatible(headers.version)) {
 						return setImmediate(
 							cb,
 							{
 								code: failureCodes.INCOMPATIBLE_VERSION,
 								description: `Expected version: ${
-									system.headers.minVersion
+									config.minVersion
 								} but received: ${headers.version}`,
 							},
 							peer
 						);
 					}
-				} else if (!system.protocolVersionCompatible(headers.protocolVersion)) {
+				} else if (!protocolVersionCompatible(headers.protocolVersion)) {
 					return setImmediate(
 						cb,
 						{
 							code: failureCodes.INCOMPATIBLE_PROTOCOL_VERSION,
 							description: `Expected protocol version: ${
-								system.headers.protocolVersion
+								config.protocolVersion
 							} but received: ${headers.protocolVersion}`,
 						},
 						peer

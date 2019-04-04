@@ -58,8 +58,10 @@ module.exports = class HttpApi {
 					);
 		const storage = createStorageComponent(storageConfig, dbLogger);
 
-		// System
-		this.logger.debug('Initiating system...');
+		const applicationState = await this.channel.invoke(
+			'lisk:getApplicationState'
+		);
+
 		// Setup scope
 		this.scope = {
 			components: {
@@ -69,7 +71,13 @@ module.exports = class HttpApi {
 			},
 			channel: this.channel,
 			config: this.options.config,
+			applicationState,
 		};
+
+		this.channel.subscribe('lisk:state:updated', event => {
+			Object.assign(this.scope.applicationState, event.data);
+		});
+
 		// Bootstrap Cache component
 		await bootstrapCache(this.scope);
 		// Bootstrap Storage component

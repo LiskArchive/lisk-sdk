@@ -205,6 +205,33 @@ module.exports = {
 					},
 				},
 			},
+			initialState: {
+				id: '#/app/initialState',
+				type: 'object',
+				properties: {
+					nethash: {
+						type: 'string',
+					},
+					version: {
+						type: 'string',
+					},
+					wsPort: {
+						type: 'integer',
+					},
+					httpPort: {
+						type: 'integer',
+					},
+					minVersion: {
+						type: 'string',
+					},
+					protocolVersion: {
+						type: 'string',
+					},
+					nonce: {
+						type: 'string',
+					},
+				},
+			},
 		},
 		additionalProperties: false,
 	},

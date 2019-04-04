@@ -7,6 +7,7 @@ const { InMemoryChannel } = require('./channels');
 const Bus = require('./bus');
 const { DuplicateAppInstanceError } = require('../errors');
 const { validateModuleSpec } = require('./helpers/validator');
+const ApplicationState = require('./application_state');
 
 const isPidRunning = async pid =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -65,6 +66,7 @@ class Controller {
 		this.logger.info('Loading controller');
 		await this._setupDirectories();
 		await this._validatePidFile();
+		await this._initState();
 		await this._setupBus();
 		await this._loadModules(modules);
 
@@ -107,6 +109,18 @@ class Controller {
 	}
 
 	/**
+	 * Initiate application state
+	 *
+	 * @async
+	 */
+	async _initState() {
+		this.applicationState = new ApplicationState({
+			initialState: this.config.initialState,
+			logger: this.logger,
+		});
+	}
+
+	/**
 	 * Initialize bus
 	 *
 	 * @async
@@ -126,14 +140,19 @@ class Controller {
 
 		this.channel = new InMemoryChannel(
 			'lisk',
-			['ready'],
+			['ready', 'state:updated'],
 			{
 				getComponentConfig: action => this.config.components[action.params],
+				getApplicationState: () => this.applicationState.state,
+				updateApplicationState: action =>
+					this.applicationState.update(action.params),
 			},
 			{ skipInternalEvents: true }
 		);
 
 		await this.channel.registerToBus(this.bus);
+
+		this.applicationState.channel = this.channel;
 
 		// If log level is greater than info
 		if (this.logger.level && this.logger.level() < 30) {
@@ -222,10 +241,7 @@ class Controller {
 
 		const program = path.resolve(__dirname, 'child_process_loader.js');
 
-		const parameters = [
-			modulePath,
-			JSON.stringify({ config: this.config, moduleOptions: options }),
-		];
+		const parameters = [modulePath];
 
 		// Avoid child processes and the main process sharing the same debugging ports causing a conflict
 		const forkedProcessOptions = {};
@@ -240,6 +256,13 @@ class Controller {
 			: [];
 
 		const child = child_process.fork(program, parameters, forkedProcessOptions);
+
+		// TODO: Check which config and options are actually required to avoid sending large data
+		child.send({
+			loadModule: true,
+			config: this.config,
+			moduleOptions: options,
+		});
 
 		this.childrenList.push(child);
 
