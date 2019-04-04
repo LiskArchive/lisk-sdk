@@ -51,7 +51,6 @@ module.exports = class ChainModule extends BaseModule {
 
 	get actions() {
 		return {
-			getNodeInfo: () => this.chain.actions.getNodeInfo(),
 			calculateSupply: action => this.chain.actions.calculateSupply(action),
 			calculateMilestone: action =>
 				this.chain.actions.calculateMilestone(action),

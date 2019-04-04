@@ -51,7 +51,7 @@ module.exports = class Network {
 		});
 
 		const initialNodeInfo = sanitizeNodeInfo(
-			await this.channel.invoke('chain:getNodeInfo')
+			await this.channel.invoke('lisk:getApplicationState')
 		);
 
 		const p2pConfig = {
@@ -61,14 +61,11 @@ module.exports = class Network {
 
 		this.p2p = new P2P(p2pConfig);
 
-		this._handleUpdateNodeInfo = event => {
-			const newNodeInfo = sanitizeNodeInfo(event.data);
-			this.p2p.applyNodeInfo(newNodeInfo);
-		};
-
 		this.channel.subscribe(
-			'chain:system:updateNodeInfo',
-			this._handleUpdateNodeInfo
+			'lisk:state:updated', event => {
+				const newNodeInfo = sanitizeNodeInfo(event.data);
+				this.p2p.applyNodeInfo(newNodeInfo);
+			}
 		);
 
 		// ---- START: Bind event handlers ----
