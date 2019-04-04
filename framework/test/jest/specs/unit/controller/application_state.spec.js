@@ -107,11 +107,10 @@ describe('Application State', () => {
 			});
 
 			it('should throw an error', async () => {
-				try {
-					await applicationState.update(newState);
-				} catch (error) {
-					expect(error).toEqual(errorMessage);
-				}
+				// Act && Assert
+				await expect(applicationState.update(newState)).rejects.toThrow(
+					errorMessage
+				);
 			});
 
 			it('should log the error stack', async () => {
@@ -144,12 +143,10 @@ describe('Application State', () => {
 					actual: undefined,
 				});
 
-				// Assert
-				try {
-					await applicationState.update(newState);
-				} catch (error) {
-					expect(error).toEqual(broadhashAssertionError);
-				}
+				// Act && Assert
+				await expect(applicationState.update(newState)).rejects.toThrow(
+					broadhashAssertionError
+				);
 			});
 
 			it('should throw AssertionError if broadhash is null', async () => {
@@ -165,12 +162,10 @@ describe('Application State', () => {
 					actual: null,
 				});
 
-				// Assert
-				try {
-					await applicationState.update(newState);
-				} catch (error) {
-					expect(error).toEqual(broadhashAssertionError);
-				}
+				// Act && Assert
+				await expect(applicationState.update(newState)).rejects.toThrow(
+					broadhashAssertionError
+				);
 			});
 
 			it('should throw AssertionError if height undefined', async () => {
@@ -186,12 +181,10 @@ describe('Application State', () => {
 					actual: undefined,
 				});
 
-				// Assert
-				try {
-					await applicationState.update(newState);
-				} catch (error) {
-					expect(error).toEqual(heightAssertionError);
-				}
+				// Act && Assert
+				await expect(applicationState.update(newState)).rejects.toThrow(
+					heightAssertionError
+				);
 			});
 
 			it('should throw AssertionError if height is null', async () => {
@@ -207,12 +200,10 @@ describe('Application State', () => {
 					actual: null,
 				});
 
-				// Assert
-				try {
-					await applicationState.update(newState);
-				} catch (error) {
-					expect(error).toEqual(heightAssertionError);
-				}
+				// Act && Assert
+				await expect(applicationState.update(newState)).rejects.toThrow(
+					heightAssertionError
+				);
 			});
 		});
 
