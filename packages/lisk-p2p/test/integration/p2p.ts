@@ -330,6 +330,7 @@ describe('Integration tests for P2P library', () => {
 				return new P2P({
 					blacklistedPeers: [],
 					connectTimeout: 5000,
+					ackTimeout: 5000,
 					seedPeers,
 					wsEngine: 'ws',
 					nodeInfo: {
@@ -682,7 +683,6 @@ describe('Integration tests for P2P library', () => {
 	});
 
 	describe('Connected network: User custom selection algorithm is passed to each node', () => {
-		const DISCOVERY_INTERVAL = 200;
 		// Custom selection function that finds peers having common values for modules field for example.
 		const peerSelectionForSendRequest: P2PPeerSelectionForSendRequest = (
 			peersList: ReadonlyArray<P2PDiscoveredPeerInfo>,
@@ -744,9 +744,9 @@ describe('Integration tests for P2P library', () => {
 				return new P2P({
 					blacklistedPeers: [],
 					connectTimeout: 5000,
+					ackTimeout: 5000,
 					peerSelectionForSendRequest,
 					peerSelectionForConnection,
-					discoveryInterval: DISCOVERY_INTERVAL,
 					seedPeers,
 					wsEngine: 'ws',
 					nodeInfo: {
@@ -903,8 +903,8 @@ describe('Integration tests for P2P library', () => {
 					seedPeers,
 					wsEngine: 'ws',
 					// A short connectTimeout and ackTimeout will make the node to give up on discovery quicker for our test.
-					connectTimeout: 100,
-					ackTimeout: 100,
+					connectTimeout: 1000,
+					ackTimeout: 1000,
 					// Set a different discoveryInterval for each node; that way they don't keep trying to discover each other at the same time.
 					discoveryInterval: DISCOVERY_INTERVAL + index * 11,
 					nodeInfo: {
