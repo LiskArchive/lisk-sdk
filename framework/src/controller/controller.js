@@ -241,10 +241,7 @@ class Controller {
 
 		const program = path.resolve(__dirname, 'child_process_loader.js');
 
-		const parameters = [
-			modulePath,
-			JSON.stringify({ config: this.config, moduleOptions: options }),
-		];
+		const parameters = [modulePath];
 
 		// Avoid child processes and the main process sharing the same debugging ports causing a conflict
 		const forkedProcessOptions = {};
@@ -259,6 +256,13 @@ class Controller {
 			: [];
 
 		const child = child_process.fork(program, parameters, forkedProcessOptions);
+
+		// TODO: Check which config and options are actually required to avoid sending large data
+		child.send({
+			loadModule: true,
+			config: this.config,
+			moduleOptions: options,
+		});
 
 		this.childrenList.push(child);
 
