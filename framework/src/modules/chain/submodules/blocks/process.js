@@ -19,6 +19,7 @@ const async = require('async');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const slots = require('../../helpers/slots');
 const definitions = require('../../schema/definitions');
+const InitTrs = require('../../logic/init_transaction');
 
 const { MAX_TRANSACTIONS_PER_BLOCK, ACTIVE_DELEGATES } = global.constants;
 
@@ -83,6 +84,11 @@ __private.receiveBlock = function(block, cb) {
 		)} reward: ${block.reward}`
 	);
 
+	const initTrs = new InitTrs();
+	block.transactions = block.transactions.map(aTransaction =>
+		initTrs.jsonRead(aTransaction)
+	);
+
 	// Update last receipt
 	modules.blocks.lastReceipt.update();
 	// Start block processing - broadcast: true, saveBlock: true
@@ -99,6 +105,10 @@ __private.receiveBlock = function(block, cb) {
  */
 __private.receiveForkOne = function(block, lastBlock, cb) {
 	let tmp_block = _.clone(block);
+	const initTrs = new InitTrs();
+	tmp_block.transactions = tmp_block.transactions.map(aTransaction =>
+		initTrs.jsonRead(aTransaction)
+	);
 
 	// Fork: Consecutive height but different previous block id
 	modules.delegates.fork(block, 1);
@@ -163,6 +173,10 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
  */
 __private.receiveForkFive = function(block, lastBlock, cb) {
 	let tmpBlock = _.clone(block);
+	const initTrs = new InitTrs();
+	tmpBlock.transactions = tmpBlock.transactions.map(aTransaction =>
+		initTrs.jsonRead(aTransaction)
+	);
 
 	// Fork: Same height and previous block id, but different block id
 	modules.delegates.fork(block, 5);
