@@ -87,7 +87,7 @@ describe('Controller Class', () => {
 			expect(spies._loadModules).toHaveBeenCalledWith(modules);
 		});
 
-		// #region TODO channel.publish('lisk:ready')
+		// #region TODO channel.publish('app:ready')
 		it.todo(
 			'should publish "lisk:ready" event.'
 			/**
@@ -115,7 +115,7 @@ describe('Controller Class', () => {
 				spies.channelPublish = jest.spyOn(controller.channel, 'publish');
 
 				// Assert
-				expect(spies.channelPublish).toHaveBeenCalledWith('lisk:ready');
+				expect(spies.channelPublish).toHaveBeenCalledWith('app:ready');
 			}
 		*/
 		);
@@ -178,7 +178,7 @@ describe('Controller Class', () => {
 			/**
 			 * @todo it is not possible to test the arguments at the moment.
 				expect(InMemoryChannel).toHaveBeenCalledWith(
-					'lisk',
+					'app',
 					['ready'],
 					{
 						getComponentConfig: () => {},

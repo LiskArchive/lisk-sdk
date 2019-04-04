@@ -77,11 +77,11 @@ describe('blocks/verify', () => {
 		channelMock = {
 			invoke: sinonSandbox
 				.stub()
-				.withArgs('lisk:updateApplicationState')
+				.withArgs('app:updateApplicationState')
 				.returns(true),
 			once: sinonSandbox
 				.stub()
-				.withArgs('lisk:state:updated')
+				.withArgs('app:state:updated')
 				.callsArg(1),
 		};
 

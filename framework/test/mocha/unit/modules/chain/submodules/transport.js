@@ -1251,7 +1251,7 @@ describe('transport', () => {
 							enqueue: sinonSandbox.stub(),
 						};
 						library.channel.invokeSync
-							.withArgs('lisk:getApplicationState')
+							.withArgs('app:getApplicationState')
 							.returns({
 								broadhash:
 									'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
