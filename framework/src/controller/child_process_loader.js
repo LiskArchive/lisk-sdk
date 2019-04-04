@@ -5,7 +5,7 @@ const { ChildProcessChannel } = require('./channels');
 // eslint-disable-next-line import/no-dynamic-require
 const Klass = require(modulePath);
 
-const loadModule = async (config, moduleOptions) => {
+const _loadModule = async (config, moduleOptions) => {
 	const module = new Klass(moduleOptions);
 	const moduleAlias = module.constructor.alias;
 
@@ -25,9 +25,9 @@ const loadModule = async (config, moduleOptions) => {
 	channel.publish(`${moduleAlias}:loading:finished`);
 };
 
-process.on('message', data => {
-	if (data.loadModule) {
-		loadModule(data.config, data.moduleOptions);
+process.on('message', ({ loadModule, config, moduleOptions }) => {
+	if (loadModule) {
+		_loadModule(config, moduleOptions);
 	}
 });
 
