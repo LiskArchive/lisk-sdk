@@ -128,6 +128,7 @@ describe('blocks/verify', () => {
 				broadcastReducedBlock: sinonSandbox.stub(),
 				applyBlock: sinonSandbox.stub(),
 			},
+			calculateNewBroadhash: sinonSandbox.stub(),
 		};
 
 		bindingsStub = {
@@ -2030,9 +2031,7 @@ describe('blocks/verify', () => {
 		});
 
 		describe('applicationState update', () => {
-			beforeEach(() =>
-				library.storage.entities.Block.get.resolves({ height: 1 })
-			);
+			beforeEach(() => modules.blocks.calculateNewBroadhash.resolves({ broadhash: 'xx', height: 1 }));
 
 			afterEach(() => channelMock.invoke.resetHistory());
 
@@ -2043,6 +2042,7 @@ describe('blocks/verify', () => {
 					saveBlock,
 					err => {
 						expect(err).to.be.null;
+						expect(channelMock.once.calledOnce).to.be.true;
 						expect(channelMock.invoke.calledOnce).to.be.true;
 						done();
 					}
@@ -2051,9 +2051,7 @@ describe('blocks/verify', () => {
 		});
 
 		describe('when broadcast = true', () => {
-			beforeEach(() =>
-				library.storage.entities.Block.get.resolves({ height: 1 })
-			);
+			beforeEach(() => modules.blocks.calculateNewBroadhash.resolves({ broadhash: 'xx', height: 1 }));
 
 			describe('when saveBlock = true', () => {
 				it('should call private functions with correct parameters', done => {
@@ -2093,9 +2091,7 @@ describe('blocks/verify', () => {
 		});
 
 		describe('when broadcast = false', () => {
-			beforeEach(() =>
-				library.storage.entities.Block.get.resolves({ height: 1 })
-			);
+			beforeEach(() => modules.blocks.calculateNewBroadhash.resolves({ broadhash: 'xx', height: 1 }));
 
 			describe('when saveBlock = true', () => {
 				it('should call private functions with correct parameters', done => {

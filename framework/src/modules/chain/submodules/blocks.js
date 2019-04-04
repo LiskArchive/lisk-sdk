@@ -14,6 +14,8 @@
 
 'use strict';
 
+const crypto = require('crypto');
+
 const { BLOCK_RECEIPT_TIMEOUT, EPOCH_TIME } = global.constants;
 const {
 	CACHE_KEYS_BLOCKS,
@@ -59,6 +61,8 @@ class Blocks {
 		library = {
 			channel: scope.channel,
 			logger: scope.components.logger,
+			storage: scope.components.storage,
+			applicationState: scope.applicationState,
 		};
 
 		// Initialize submodules with library content
@@ -106,7 +110,6 @@ class Blocks {
 		this.process = this.submodules.process;
 		this.utils = this.submodules.utils;
 		this.chain = this.submodules.chain;
-
 		self = this;
 
 		this.submodules.chain.saveGenesisBlock(err => setImmediate(cb, err, self));
@@ -303,6 +306,43 @@ Blocks.prototype.cleanup = function(cb) {
 Blocks.prototype.isLoaded = function() {
 	// Return 'true' if 'modules' are present
 	return __private.loaded;
+};
+
+/**
+ * Calculate broadhash getting the last 5 blocks from the database
+ *
+ * @returns {height, broadhash} broadhash and height
+ */
+Blocks.prototype.calculateNewBroadhash = async function() {
+	try {
+		const state = library.applicationState;
+		let broadhash;
+		let height;
+		const blocks = await library.storage.entities.Block.get(
+			{},
+			{
+				limit: 5,
+				sort: 'height:desc',
+			}
+		);
+
+		if (blocks.length <= 1) {
+			broadhash = state.nethash;
+			height = state.height;
+		} else {
+			const seed = blocks.map(row => row.id).join('');
+			broadhash = crypto
+				.createHash('sha256')
+				.update(seed, 'utf8')
+				.digest()
+				.toString('hex');
+			height = blocks[0].height;
+		}
+		return { broadhash, height };
+	} catch (err) {
+		library.logger.error(err.stack);
+		return err;
+	}
 };
 
 // Export
