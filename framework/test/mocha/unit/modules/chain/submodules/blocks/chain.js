@@ -1620,7 +1620,7 @@ describe('blocks/chain', () => {
 							true
 						);
 						library.storage.entities.Block.get.resolves({ height: 1 });
-						modules.blocks.calculateNewBroadhash.resolves();
+						modules.blocks.calculateNewBroadhash.resolves({ broadhash: 'xx', height: 1 });
 					});
 
 					it('should call a callback with no error', done => {
@@ -1650,7 +1650,7 @@ describe('blocks/chain', () => {
 							true
 						);
 						library.storage.entities.Block.get.resolves({ height: 1 });
-						modules.blocks.calculateNewBroadhash.resolves();
+						modules.blocks.calculateNewBroadhash.resolves({ broadhash: 'xx', height: 1 });
 					});
 
 					it('should call a callback with no error', done => {

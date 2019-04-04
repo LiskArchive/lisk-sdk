@@ -839,17 +839,17 @@ Chain.prototype.deleteLastBlock = function(cb) {
 			updateApplicationState(seriesCb) {
 				return modules.blocks
 					.calculateNewBroadhash()
-					.then(newState => {
+					.then(({ broadhash, height }) => {
 						// Listen for the update of step to move to next step
 						library.channel.once('lisk:state:updated', () => {
 							seriesCb();
 						});
 
 						// Update our application state: broadhash and height
-						return library.channel.invoke(
-							'lisk:updateApplicationState',
-							newState
-						);
+						return library.channel.invoke('lisk:updateApplicationState', {
+							broadhash,
+							height,
+						});
 					})
 					.catch(seriesCb);
 			},
