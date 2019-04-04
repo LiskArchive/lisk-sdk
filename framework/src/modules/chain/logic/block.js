@@ -241,19 +241,14 @@ class Block {
 					.join(', ')}`
 			);
 		}
-		try {
-			const {
-				transactionsResponses,
-			} = modules.processTransactions.validateTransactions(block.transactions);
-			const invalidTransactionResponse = transactionsResponses.find(
-				transactionResponse =>
-					transactionResponse.status !== TransactionStatus.OK
-			);
-			if (invalidTransactionResponse) {
-				throw invalidTransactionResponse.errors;
-			}
-		} catch (errors) {
-			throw errors;
+		const {
+			transactionsResponses,
+		} = modules.processTransactions.validateTransactions(block.transactions);
+		const invalidTransactionResponse = transactionsResponses.find(
+			transactionResponse => transactionResponse.status !== TransactionStatus.OK
+		);
+		if (invalidTransactionResponse) {
+			throw invalidTransactionResponse.errors;
 		}
 
 		return block;
