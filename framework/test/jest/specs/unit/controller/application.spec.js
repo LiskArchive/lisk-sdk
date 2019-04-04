@@ -2,7 +2,6 @@ const Application = require('../../../../../src/controller/application');
 const validator = require('../../../../../src/controller/helpers/validator');
 const applicationSchema = require('../../../../../src/controller/schema/application');
 const constantsSchema = require('../../../../../src/controller/schema/constants');
-const version = require('../../../../../src/version');
 
 jest.mock('../../../../../src/controller/helpers/validator');
 jest.mock('../../../../../src/components/logger');
@@ -34,7 +33,9 @@ describe('Application', () => {
 
 		it('should set filename for logger if logger component was not provided', () => {
 			// Arrange
-			const config = { components: {} };
+			const config = { components: {}, modules: {} };
+
+			validator.validate.mockReturnValue(config);
 
 			// Act
 			// eslint-disable-next-line no-unused-vars
@@ -48,20 +49,6 @@ describe('Application', () => {
 			expect(config.components.logger.logFileName).toBe(
 				`${process.cwd()}/logs/${params.label}/lisk.log`
 			);
-		});
-
-		// TODO: Investigate why this expectation is not working
-		it.skip('should set global.constants variable with given constants object', () => {
-			// Act
-			// eslint-disable-next-line no-unused-vars
-			const app = new Application(
-				params.label,
-				params.genesisBlock,
-				params.constants,
-				params.config
-			);
-
-			expect(global.constants).toBe(params.constants);
 		});
 
 		it('should load applicationSchema', () => {
@@ -137,9 +124,6 @@ describe('Application', () => {
 			// Investigate if these are implementation details
 			expect(app.genesisBlock).toBe(params.genesisBlock);
 			expect(app.label).toBe(params.label);
-			expect(app.banner).toBe(
-				`${params.label || 'LiskApp'} - Lisk Framework(${version})`
-			);
 			expect(app.config).toEqual(params.config);
 			expect(app.controller).toBeNull();
 		});

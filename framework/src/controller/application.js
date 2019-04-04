@@ -87,6 +87,7 @@ class Application {
 		constants = {},
 		config = { components: { logger: null }, modules: {} }
 	) {
+		const appLabel = typeof label === 'function' ? label.call() : label;
 		let appConfig;
 
 		// If user passes multiple config objects merge them in left-right order
@@ -107,27 +108,25 @@ class Application {
 
 		if (!appConfig.components.logger) {
 			appConfig.components.logger = {
-				logFileName: `${process.cwd()}/logs/${label}/lisk.log`,
+				logFileName: `${process.cwd()}/logs/${appLabel}/lisk.log`,
 			};
 		}
 
 		validator.loadSchema(applicationSchema);
 		validator.loadSchema(constantsSchema);
+		validator.validate(applicationSchema.appLabel, appLabel);
 		validator.validate(applicationSchema.config, appConfig);
 		constants = validator.validateWithDefaults(
 			constantsSchema.constants,
 			constants
 		);
 
-		// TODO: This should be removed after https://github.com/LiskHQ/lisk/pull/2980
-		global.constants = constants;
-
 		validator.validate(applicationSchema.genesisBlock, genesisBlock);
 
 		// TODO: Validate schema for genesis block, constants, exceptions
 		this.genesisBlock = genesisBlock;
 		this.constants = constants;
-		this.label = label;
+		this.label = appLabel;
 		this.config = appConfig;
 		this.controller = null;
 
