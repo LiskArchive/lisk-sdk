@@ -30,6 +30,7 @@ _.range(TOTAL_PEERS).map(index => {
 });
 
 // TODO: Unskip when we have the new config format.
+// eslint-disable-next-line mocha/no-skipped-tests
 describe.skip(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS ports 500[0-9] and HTTP ports 400[0-9] using separate databases`, () => {
 	const configurations = setup.config.generateLiskConfigs(TOTAL_PEERS);
 	const network = new Network(configurations);
