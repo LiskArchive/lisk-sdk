@@ -121,7 +121,8 @@ describe('blocks/process', () => {
 		sequenceStub = {
 			add: sinonSandbox.stub(),
 		};
-
+		const InitTransaction = require('../../../../../../../src/modules/chain/logic/init_transaction');
+		const initTrs = new InitTransaction();
 		blocksProcessModule = new BlocksProcess(
 			loggerStub,
 			blockStub,
@@ -129,7 +130,8 @@ describe('blocks/process', () => {
 			schemaStub,
 			storageStub,
 			sequenceStub,
-			genesisBlockStub
+			genesisBlockStub,
+			initTrs
 		);
 
 		library = BlocksProcess.__get__('library');
@@ -141,6 +143,7 @@ describe('blocks/process', () => {
 			height: 4,
 			timestamp: 41287231,
 			reward: new Bignum(100),
+			transactions: [],
 		};
 
 		const modulesAccountsStub = {
@@ -303,7 +306,7 @@ describe('blocks/process', () => {
 			});
 
 			it('should return when block.timestamp > lastBlock.timestamp', done => {
-				const block = { timestamp: 2 };
+				const block = { timestamp: 2, transactions: [] };
 				const lastBlock = { timestamp: 1 };
 				__private.receiveForkOne(block, lastBlock, err => {
 					expect(err).to.be.undefined;
@@ -312,7 +315,7 @@ describe('blocks/process', () => {
 			});
 
 			it('should return when timestamps are equal and block.id > lastBlock.id', done => {
-				const block = { timestamp: 1, id: 2 };
+				const block = { timestamp: 1, id: 2, transactions: [] };
 				const lastBlock = { timestamp: 1, id: 1 };
 				__private.receiveForkOne(block, lastBlock, err => {
 					expect(err).to.be.undefined;
@@ -344,8 +347,8 @@ describe('blocks/process', () => {
 					);
 
 					it('should call a callback with error', done => {
-						const block = { timestamp: 1, id: 2 };
-						const lastBlock = { timestamp: 2, id: 1 };
+						const block = { timestamp: 1, id: 2, transactions: [] };
+						const lastBlock = { timestamp: 2, id: 1, transactions: [] };
 						__private.receiveForkOne(block, lastBlock, err => {
 							expect(err.name).to.equal('objectNormalize-ERR');
 							expect(loggerStub.error.args[0][0]).to.equal(
@@ -375,8 +378,8 @@ describe('blocks/process', () => {
 							});
 
 							it('should call a callback with error', done => {
-								const block = { timestamp: 1, id: 2 };
-								const lastBlock = { timestamp: 2, id: 1 };
+								const block = { timestamp: 1, id: 2, transactions: [] };
+								const lastBlock = { timestamp: 2, id: 1, transactions: [] };
 								__private.receiveForkOne(block, lastBlock, err => {
 									expect(err).to.equal('validateBlockSlot-ERR');
 									expect(loggerStub.error.args[0][0]).to.equal(
@@ -406,8 +409,12 @@ describe('blocks/process', () => {
 									});
 
 									it('should call a callback with error', done => {
-										const block = { timestamp: 10, id: 2 };
-										const lastBlock = { timestamp: 20, id: 1 };
+										const block = { timestamp: 10, id: 2, transactions: [] };
+										const lastBlock = {
+											timestamp: 20,
+											id: 1,
+											transactions: [],
+										};
 										__private.receiveForkOne(block, lastBlock, err => {
 											expect(err).to.equal('verifyReceipt-ERR');
 											expect(loggerStub.error.args[0][0]).to.equal(
@@ -452,8 +459,16 @@ describe('blocks/process', () => {
 											});
 
 											it('should call a callback with error', done => {
-												const block = { timestamp: 10, id: 2 };
-												const lastBlock = { timestamp: 20, id: 1 };
+												const block = {
+													timestamp: 10,
+													id: 2,
+													transactions: [],
+												};
+												const lastBlock = {
+													timestamp: 20,
+													id: 1,
+													transactions: [],
+												};
 												__private.receiveForkOne(block, lastBlock, err => {
 													expect(err).to.equal('deleteLastBlock-ERR-call-1');
 													expect(loggerStub.error.args[0][0]).to.equal(
@@ -495,8 +510,16 @@ describe('blocks/process', () => {
 													});
 
 													it('should call a callback with error', done => {
-														const block = { timestamp: 10, id: 2 };
-														const lastBlock = { timestamp: 20, id: 1 };
+														const block = {
+															timestamp: 10,
+															id: 2,
+															transactions: [],
+														};
+														const lastBlock = {
+															timestamp: 20,
+															id: 1,
+															transactions: [],
+														};
 														__private.receiveForkOne(block, lastBlock, err => {
 															expect(err).to.equal(
 																'deleteLastBlock-ERR-call-2'
@@ -534,8 +557,16 @@ describe('blocks/process', () => {
 													});
 
 													it('should return no error', done => {
-														const block = { timestamp: 10, id: 2 };
-														const lastBlock = { timestamp: 20, id: 1 };
+														const block = {
+															timestamp: 10,
+															id: 2,
+															transactions: [],
+														};
+														const lastBlock = {
+															timestamp: 20,
+															id: 1,
+															transactions: [],
+														};
 														__private.receiveForkOne(block, lastBlock, err => {
 															expect(err).to.be.null;
 															done();
@@ -569,8 +600,8 @@ describe('blocks/process', () => {
 		describe('delegate forging on multiple nodes', () => {
 			it('should log warning when generatorPublicKey is the same for block and lastBlock', done => {
 				__private.receiveForkFive(
-					{ timestamp: 1, id: 2, generatorPublicKey: '1a' },
-					{ timestamp: 1, id: 1, generatorPublicKey: '1a' },
+					{ timestamp: 1, id: 2, generatorPublicKey: '1a', transactions: [] },
+					{ timestamp: 1, id: 1, generatorPublicKey: '1a', transactions: [] },
 					err => {
 						expect(err).to.be.undefined;
 						expect(loggerStub.warn.args[0][0]).to.equal(
@@ -584,8 +615,8 @@ describe('blocks/process', () => {
 
 			it('should not log warning when generatorPublicKey is different for block and lastBlock', done => {
 				__private.receiveForkFive(
-					{ timestamp: 1, id: 2, generatorPublicKey: '2a' },
-					{ timestamp: 1, id: 1, generatorPublicKey: '1a' },
+					{ timestamp: 1, id: 2, generatorPublicKey: '2a', transactions: [] },
+					{ timestamp: 1, id: 1, generatorPublicKey: '1a', transactions: [] },
 					err => {
 						expect(err).to.be.undefined;
 						expect(loggerStub.warn.args.length).to.equal(0);
@@ -604,8 +635,8 @@ describe('blocks/process', () => {
 			});
 
 			it('should call a callback with no error when block.timestamp > lastBlock.timestamp', done => {
-				const block = { timestamp: 2 };
-				const lastBlock = { timestamp: 1 };
+				const block = { timestamp: 2, transactions: [] };
+				const lastBlock = { timestamp: 1, transactions: [] };
 				__private.receiveForkFive(block, lastBlock, err => {
 					expect(err).to.be.undefined;
 					done();
@@ -613,8 +644,8 @@ describe('blocks/process', () => {
 			});
 
 			it('should call a callback with no error when timestamps are equal and block.id > lastBlock.id', done => {
-				const block = { timestamp: 1, id: 2 };
-				const lastBlock = { timestamp: 1, id: 1 };
+				const block = { timestamp: 1, id: 2, transactions: [] };
+				const lastBlock = { timestamp: 1, id: 1, transactions: [] };
 				__private.receiveForkFive(block, lastBlock, err => {
 					expect(err).to.be.undefined;
 					done();
@@ -646,8 +677,8 @@ describe('blocks/process', () => {
 					);
 
 					it('should call a callback with error', done => {
-						const block = { timestamp: 1, id: 2 };
-						const lastBlock = { timestamp: 2, id: 1 };
+						const block = { timestamp: 1, id: 2, transactions: [] };
+						const lastBlock = { timestamp: 2, id: 1, transactions: [] };
 						__private.receiveForkFive(block, lastBlock, err => {
 							expect(err.name).to.equal('objectNormalize-ERR');
 							expect(loggerStub.error.args[0][0]).to.equal(
@@ -680,8 +711,8 @@ describe('blocks/process', () => {
 							);
 
 							it('should call a callback with error', done => {
-								const block = { timestamp: 1, id: 2 };
-								const lastBlock = { timestamp: 2, id: 1 };
+								const block = { timestamp: 1, id: 2, transactions: [] };
+								const lastBlock = { timestamp: 2, id: 1, transactions: [] };
 								__private.receiveForkFive(block, lastBlock, err => {
 									expect(err).to.equal('validateBlockSlot-ERR');
 									expect(loggerStub.error.args[0][0]).to.equal(
@@ -710,8 +741,12 @@ describe('blocks/process', () => {
 									);
 
 									it('should call a callback with error', done => {
-										const block = { timestamp: 10, id: 2 };
-										const lastBlock = { timestamp: 20, id: 1 };
+										const block = { timestamp: 10, id: 2, transactions: [] };
+										const lastBlock = {
+											timestamp: 20,
+											id: 1,
+											transactions: [],
+										};
 										__private.receiveForkFive(block, lastBlock, err => {
 											expect(err).to.equal('verifyReceipt-ERR');
 											expect(loggerStub.error.args[0][0]).to.equal(
@@ -755,8 +790,16 @@ describe('blocks/process', () => {
 											);
 
 											it('should call a callback with error', done => {
-												const block = { timestamp: 10, id: 2 };
-												const lastBlock = { timestamp: 20, id: 1 };
+												const block = {
+													timestamp: 10,
+													id: 2,
+													transactions: [],
+												};
+												const lastBlock = {
+													timestamp: 20,
+													id: 1,
+													transactions: [],
+												};
 												__private.receiveForkFive(block, lastBlock, err => {
 													expect(err).to.equal('deleteLastBlock-ERR');
 													expect(loggerStub.error.args[0][0]).to.equal(
@@ -790,8 +833,16 @@ describe('blocks/process', () => {
 													);
 
 													it('should call a callback with error', done => {
-														const block = { timestamp: 10, id: 2 };
-														const lastBlock = { timestamp: 20, id: 1 };
+														const block = {
+															timestamp: 10,
+															id: 2,
+															transactions: [],
+														};
+														const lastBlock = {
+															timestamp: 20,
+															id: 1,
+															transactions: [],
+														};
 														__private.receiveForkFive(block, lastBlock, err => {
 															expect(err).to.equal('receiveBlock-ERR');
 															expect(loggerStub.error.args[0][0]).to.equal(
@@ -815,8 +866,16 @@ describe('blocks/process', () => {
 													);
 
 													it('should call a callback with no error', done => {
-														const block = { timestamp: 10, id: 2 };
-														const lastBlock = { timestamp: 20, id: 1 };
+														const block = {
+															timestamp: 10,
+															id: 2,
+															transactions: [],
+														};
+														const lastBlock = {
+															timestamp: 20,
+															id: 1,
+															transactions: [],
+														};
 														__private.receiveForkFive(block, lastBlock, err => {
 															expect(err).to.be.null;
 															done();
