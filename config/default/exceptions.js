@@ -57,5 +57,6 @@ module.exports = {
 	recipientLeadingZero: {},
 	recipientExceedingUint64: {},
 	duplicatedSignatures: {},
+	roundVotes: [],
 	ignoreDelegateListCacheForRounds: [],
 };

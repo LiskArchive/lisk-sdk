@@ -172,6 +172,10 @@ describe('rounds information', () => {
 	});
 
 	describe('updateSenderRoundInformationWithAmountForTransaction', () => {
+		afterEach(async () => {
+			global.exceptions.roundVotes = [];
+		});
+
 		it('should get transaction sender account from state store', async () => {
 			RoundInformation.apply(storageStubs, voteTransaction);
 			expect(storageStubs.account.get).to.be.calledWithExactly(
@@ -212,6 +216,16 @@ describe('rounds information', () => {
 				amount: '100000000',
 				delegatePublicKey: voteTransaction.asset.votes[0].slice(1),
 			});
+		});
+
+		it('should not add data to state store round for vote transaction if its an exception', async () => {
+			global.exceptions.roundVotes = ['3729501093004464059'];
+			storageStubs.account.get.returns({
+				votedDelegatesPublicKeys: [
+					'05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
+				],
+			});
+			expect(storageStubs.round.add).to.not.be.called;
 		});
 	});
 

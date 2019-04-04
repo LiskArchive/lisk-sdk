@@ -1,6 +1,7 @@
 const Bignumber = require('bignumber.js');
 
 const { TRANSACTION_TYPES } = global.constants;
+const exceptions = global.exceptions;
 
 const reverseVotes = function(diff) {
 	const copyDiff = diff.slice();
@@ -59,6 +60,16 @@ const updateSenderRoundInformationWithAmountForTransaction = function(
 		: amount.toString();
 	const account = stateStore.account.get(transaction.senderId);
 	let dependentPublicKeysToAdd = account.votedDelegatesPublicKeys || [];
+
+	console.log('exceptions');
+	console.log(exceptions);
+	console.log('transaction.id');
+	console.log(transaction.id);
+
+	// If the sender account shouldn't be updated because of a blockchain exception
+	if (exceptions.roundVotes.includes(transaction.id)) {
+		return;
+	}
 
 	if (transaction.type === TRANSACTION_TYPES.VOTE) {
 		const newVotes = forwardTick
