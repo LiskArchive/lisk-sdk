@@ -58,6 +58,6 @@ describe('scripts/update_config', () => {
 		const testedConfigJson = JSON.parse(testedConfig.toString());
 		const updatedConfigJson = JSON.parse(updatedConfig.toString());
 
-		expect(testedConfigJson).to.be.eql(updatedConfigJson);
+		expect(testedConfigJson).to.deep.eql(updatedConfigJson);
 	});
 });
