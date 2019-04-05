@@ -79,7 +79,8 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 				it('should fail with proper error', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
-						expect(err).to.eql('previousBlock is null');
+						expect(err).to.be.instanceOf(Error);
+						expect(err.message).to.eql('previousBlock is null');
 						done();
 					});
 				});

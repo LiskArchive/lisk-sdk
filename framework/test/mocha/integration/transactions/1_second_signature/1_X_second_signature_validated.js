@@ -100,7 +100,12 @@ describe('integration test (type 1) - checking validated second signature regist
 				secondPassphrase: account.secondPassphrase,
 			});
 			localCommon.addTransaction(library, auxTransaction, err => {
-				expect(err).to.equal('Sender already has second signature enabled');
+				// expect(err).to.equal('Sender already has second signature enabled');
+				expect(err).to.equal(
+					`Transaction: ${
+						auxTransaction.id
+					} failed at .signSignature: Missing signSignature`
+				);
 				done();
 			});
 		});
@@ -120,7 +125,12 @@ describe('integration test (type 1) - checking validated second signature regist
 							true,
 							loadedTransaction => {
 								localCommon.addTransaction(library, loadedTransaction, err => {
-									expect(err).to.equal('Missing sender second signature');
+									// expect(err).to.equal('Missing sender second signature');
+									expect(err).to.equal(
+										`Transaction: ${
+											loadedTransaction.id
+										} failed at .signSignature: Missing signSignature`
+									);
 									done();
 								});
 							}
