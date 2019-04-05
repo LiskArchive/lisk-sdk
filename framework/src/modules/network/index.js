@@ -40,6 +40,7 @@ module.exports = class NetworkModule extends BaseModule {
 		return {
 			request: async action => this.network.actions.request(action),
 			send: action => this.network.actions.send(action),
+			getNetworkStatus: () => this.network.actions.getNetworkStatus(),
 			getPeers: action => this.network.actions.getPeers(action),
 			getPeersCountByFilter: action =>
 				this.network.actions.getPeersCountByFilter(action),

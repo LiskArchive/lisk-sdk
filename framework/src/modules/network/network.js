@@ -14,6 +14,11 @@ const {
 } = require('@liskhq/lisk-p2p');
 const randomstring = require('randomstring');
 const { createLoggerComponent } = require('../../components/logger');
+const {
+	getByFilter,
+	getCountByFilter,
+	getConsolidatedPeersList,
+} = require('./helpers/filter_peers');
 
 const hasNamespaceReg = /:/;
 
@@ -183,31 +188,16 @@ module.exports = class Network {
 					event: action.params.event,
 					data: action.params.data,
 				}),
-			getNetworkStatus: () => {
-				const {
-					connectedPeers,
-					newPeers,
-					triedPeers,
-				} = this.p2p.getNetworkStatus();
+			getNetworkStatus: () => this.p2p.getNetworkStatus(),
+			getPeers: action => {
+				const peerList = getConsolidatedPeersList(this.p2p.getNetworkStatus());
 
-				const uniquerPeersList = [
-					...connectedPeers,
-					...newPeers,
-					...triedPeers,
-				].reduce((uniquePeers, peer) => {
-					const found = uniquePeers.find(
-						findPeer => findPeer.ip === peer.ipAddress
-					);
+				return getByFilter(peerList, action.params);
+			},
+			getPeersCountByFilter: action => {
+				const peerList = getConsolidatedPeersList(this.p2p.getNetworkStatus());
 
-					if (!found) {
-						const { ipAddress, ...peerWithoutIp } = peer;
-
-						return [...uniquePeers, { ip: ipAddress, ...peerWithoutIp }];
-					}
-					return uniquePeers;
-				}, []);
-
-				return uniquerPeersList;
+				return getCountByFilter(peerList, action.params);
 			},
 			applyPenalty: action => this.p2p.applyPenalty(action.params),
 		};
