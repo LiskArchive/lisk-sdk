@@ -94,7 +94,7 @@ describe('GET /peers', () => {
 			invalid: ['alpha'],
 		},
 	};
-/**
+	/**
 	 * Skipping this GET /api/peers tests as of now because we are using new p2p library and it needs a different apporach to setup the functional test
 	 */
 	/* eslint-disable mocha/no-skipped-tests */
@@ -129,7 +129,7 @@ describe('GET /peers', () => {
 			});
 		});
 	});
-	
+
 	describe.skip('pass data from a real peer', () => {
 		it(`using a valid httpPort = ${
 			validHeaders.httpPort
@@ -293,7 +293,7 @@ describe('GET /peers', () => {
 		});
 	});
 
-	it('using no params should be ok', async () => {
+	it.skip('using no params should be ok', async () => {
 		return peersEndpoint.makeRequest({}, 200).then(res => {
 			expect(res.body.data).to.not.empty;
 		});
