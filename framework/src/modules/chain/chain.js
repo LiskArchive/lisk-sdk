@@ -57,7 +57,6 @@ module.exports = class Chain {
 		this.channel = channel;
 		this.options = options;
 		this.logger = null;
-		this.system = null;
 		this.scope = null;
 		this.blockReward = null;
 		this.slots = null;
@@ -120,12 +119,6 @@ module.exports = class Chain {
 			// Storage
 			this.logger.debug('Initiating storage...');
 			const storage = createStorageComponent(storageConfig, dbLogger);
-
-			// TODO: Use the channel application state for update node info
-			// Publish an event whenever the system headers are updated.
-			this.system.on('update', nodeInfo => {
-				this.channel.publish('chain:system:updateNodeInfo', nodeInfo);
-			});
 
 			if (!this.options.config) {
 				throw Error('Failed to assign nethash from genesis block');
@@ -205,7 +198,6 @@ module.exports = class Chain {
 
 	get actions() {
 		return {
-			getNodeInfo: () => this.system.headers,
 			calculateSupply: action =>
 				this.blockReward.calcSupply(action.params.height),
 			calculateMilestone: action =>
