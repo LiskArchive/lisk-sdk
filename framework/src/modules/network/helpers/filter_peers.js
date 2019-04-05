@@ -151,7 +151,36 @@ const getCountByFilter = (peers, filter) => {
 	return peersWithoutLimitOffset.length;
 };
 
+/**
+ * Returns peers length by filter but without offset and limit.
+ * @param {Array} peers
+ * @param {Object} filter
+ * @returns {int} count
+ * @todo Add description for the params
+ */
+const getConsolidatedPeersList = networkStatus => {
+	const { connectedPeers, newPeers, triedPeers } = networkStatus;
+
+	const uniquerPeersList = [
+		...connectedPeers,
+		...newPeers,
+		...triedPeers,
+	].reduce((uniquePeers, peer) => {
+		const found = uniquePeers.find(findPeer => findPeer.ip === peer.ipAddress);
+
+		if (!found) {
+			const { ipAddress, ...peerWithoutIp } = peer;
+
+			return [...uniquePeers, { ip: ipAddress, ...peerWithoutIp }];
+		}
+		return uniquePeers;
+	}, []);
+
+	return uniquerPeersList;
+};
+
 module.exports = {
 	getByFilter,
 	getCountByFilter,
+	getConsolidatedPeersList,
 };
