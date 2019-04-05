@@ -21,8 +21,8 @@ const localCommon = require('../../common');
 const randomUtil = require('../../../common/utils/random');
 
 const { NORMALIZER } = global.constants;
-
-describe('delegate', () => {
+// eslint-disable-next-line
+describe.skip('[feature/improve_transactions_processing_efficiency] delegate', () => {
 	let library;
 	let storage;
 
