@@ -251,7 +251,7 @@ __private.receiveTransaction = function(
 	}
 
 	if (transaction.requesterPublicKey) {
-		return setImmediate(cb, 'Multisig request is not allowed');
+		return setImmediate(cb, new Error('Multisig request is not allowed'));
 	}
 
 	return library.balancesSequence.add(balancesSequenceCb => {

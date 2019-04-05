@@ -133,7 +133,7 @@ class Account {
 			.then(() => setImmediate(cb))
 			.catch(err => {
 				library.logger.error(err.stack);
-				return setImmediate(cb, 'Account#resetMemTables error');
+				return setImmediate(cb, new Error('Account#resetMemTables error'));
 			});
 	}
 
@@ -151,13 +151,15 @@ class Account {
 		);
 
 		if (!report) {
-			throw `Failed to validate account schema: ${this.scope.schema
-				.getLastErrors()
-				.map(err => {
-					const path = err.path.replace('#/', '').trim();
-					return [path, ': ', err.message, ' (', account[path], ')'].join('');
-				})
-				.join(', ')}`;
+			throw new Error(
+				`Failed to validate account schema: ${this.scope.schema
+					.getLastErrors()
+					.map(err => {
+						const path = err.path.replace('#/', '').trim();
+						return [path, ': ', err.message, ' (', account[path], ')'].join('');
+					})
+					.join(', ')}`
+			);
 		}
 
 		return account;
@@ -173,15 +175,15 @@ class Account {
 		if (publicKey !== undefined) {
 			// Check type
 			if (typeof publicKey !== 'string') {
-				throw 'Invalid public key, must be a string';
+				throw new Error('Invalid public key, must be a string');
 			}
 			// Check length
 			if (publicKey.length !== 64) {
-				throw 'Invalid public key, must be 64 characters long';
+				throw new Error('Invalid public key, must be 64 characters long');
 			}
 
 			if (!this.scope.schema.validate(publicKey, { format: 'hex' })) {
-				throw 'Invalid public key, must be a hex string';
+				throw new Error('Invalid public key, must be a hex string');
 			}
 		}
 	}
@@ -305,7 +307,7 @@ class Account {
 			})
 			.catch(err => {
 				library.logger.error(err.stack);
-				return setImmediate(cb, 'Account#getAll error');
+				return setImmediate(cb, new Error('Account#getAll error'));
 			});
 	}
 

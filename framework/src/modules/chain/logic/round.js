@@ -79,7 +79,7 @@ class Round {
 		// Iterate over requiredProperties, checking for undefined scope properties
 		requiredProperties.forEach(property => {
 			if (scope[property] === undefined) {
-				throw `Missing required scope property: ${property}`;
+				throw new Error(`Missing required scope property: ${property}`);
 			}
 		});
 	}

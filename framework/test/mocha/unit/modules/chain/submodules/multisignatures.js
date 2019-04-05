@@ -311,7 +311,6 @@ describe('multisignatures', () => {
 				expect(scopeGroup).to.have.property('publicKey');
 				expect(scopeGroup).to.have.property('secondPublicKey');
 				expect(scopeGroup).to.have.property('balance');
-				expect(scopeGroup).to.have.property('unconfirmedBalance');
 				expect(scopeGroup).to.have.property('min');
 				expect(scopeGroup).to.have.property('lifetime');
 				expect(scopeGroup).to.have.property('members');

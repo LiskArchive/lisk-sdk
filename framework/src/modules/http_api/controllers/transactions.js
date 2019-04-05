@@ -15,6 +15,7 @@
 'use strict';
 
 const _ = require('lodash');
+const { convertErrorsToString } = require('../helpers/error_handlers');
 const swaggerHelper = require('../helpers/swagger');
 const ApiError = require('../api_error');
 const apiCodes = require('../api_codes');
@@ -146,10 +147,11 @@ TransactionsController.postTransaction = async function(context, next) {
 				meta: { status: true },
 			});
 		}
-
-		error = new ApiError(data.message, apiCodes.PROCESSING_ERROR);
 	} catch (err) {
-		error = new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR);
+		error = new ApiError(
+			convertErrorsToString(err),
+			apiCodes.INTERNAL_SERVER_ERROR
+		);
 	}
 
 	context.statusCode = error.code;
