@@ -334,20 +334,6 @@ describe('loader', () => {
 			}
 		});
 
-		it('should throw an error when called with snapshotRound = integer as string', done => {
-			try {
-				libraryVar.config.loading.snapshotRound = '2';
-
-				__privateVar.createSnapshot(ACTIVE_DELEGATES);
-			} catch (err) {
-				expect(err).to.exist;
-				expect(err.message).to.eql(
-					'Unable to create snapshot, "--snapshot" parameter should be an integer equal to or greater than zero'
-				);
-				done();
-			}
-		});
-
 		it('should throw an error when called with snapshotRound = ""', done => {
 			try {
 				libraryVar.config.loading.snapshotRound = '';
