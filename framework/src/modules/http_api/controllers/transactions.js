@@ -147,6 +147,11 @@ TransactionsController.postTransaction = async function(context, next) {
 				meta: { status: true },
 			});
 		}
+
+		error = new ApiError(
+			convertErrorsToString(data.message),
+			apiCodes.PROCESSING_ERROR
+		);
 	} catch (err) {
 		error = new ApiError(
 			convertErrorsToString(err),
