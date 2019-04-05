@@ -323,7 +323,7 @@ const DefaultConfig = {
 						},
 					},
 					env: { variable: 'LISK_PEERS', formatter: 'stringToIpPortSet' },
-					arg: ['-x,--peers', 'stringToIpPortSet'], // TODO: Need to confirm parsing logic, old logic was using network WSPort to be default port for peers, we don't have it at the time of compilation
+					arg: { name: '-x,--peers', formatter: 'stringToIpPortSet' }, // TODO: Need to confirm parsing logic, old logic was using network WSPort to be default port for peers, we don't have it at the time of compilation
 					default: [
 						{
 							ip: 'testnet-seed-01.lisk.io',

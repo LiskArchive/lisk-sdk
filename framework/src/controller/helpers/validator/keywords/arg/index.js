@@ -1,4 +1,6 @@
 const debug = require('debug')('lisk:validator:arg');
+const yargs = require('yargs');
+const _ = require('lodash');
 const formatters = require('../formatters');
 const metaSchema = require('./meta_schema');
 
@@ -13,17 +15,17 @@ const compile = (schema, parentSchema) => {
 					formatter: null,
 				}
 			: {
-					names: schema[0].split(',') || [],
-					formatter: formatters[schema[1]] || null,
+					names: schema.name.split(',') || [],
+					formatter: formatters[schema.formatter] || null,
 				};
 
 	return function(data, dataPath, object, key) {
 		let argValue;
+		const commandLineArguments = yargs.argv;
 
-		const commandLineArguments = _reduceProcessArgvArray();
 		argVariable.names.forEach(argName => {
 			if (!argValue) {
-				argValue = commandLineArguments[argName] || undefined;
+				argValue = commandLineArguments[_.camelCase(argName)] || undefined;
 			}
 		});
 
@@ -34,23 +36,6 @@ const compile = (schema, parentSchema) => {
 		}
 	};
 };
-
-/**
- * First two argv elements are always the same and we can skip them:
- * 0 - Node interpreter path
- * 1 - application entry file
- * The following arguments match into aggregated map.
- * For instance array ["-n", "testnet", "-c", "config.json"]
- * is converted into {"-n": "testnet", "-c", "config.json"}
- * @private
- */
-const _reduceProcessArgvArray = () =>
-	process.argv.slice(2).reduce((argvAsMap, argvElement, index, argvArray) => {
-		if (index % 2 === 1) {
-			argvAsMap[argvArray[index - 1]] = argvElement;
-		}
-		return argvAsMap;
-	}, {});
 
 const envKeyword = {
 	compile,

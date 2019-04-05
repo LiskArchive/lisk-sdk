@@ -8,19 +8,19 @@ module.exports = {
 			pattern: '^([-][a-z]{1,1})(,[-]{2}[a-z][a-z0-9-]*)?$',
 		},
 		{
-			type: 'array',
-			items: [
-				{
+			type: 'object',
+			properties: {
+				name: {
 					type: 'string',
 					pattern: '^([-][a-z]{1,1})(,[-]{2}[a-z][a-z0-9-]*)?$',
 				},
-				{
+				formatter: {
 					type: 'string',
 					enum: Object.keys(formatters),
 				},
-			],
-			minItems: 2,
-			maxItems: 2,
+			},
+			required: ['name'],
+			additionalProperties: false,
 		},
 	],
 };
