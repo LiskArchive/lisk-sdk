@@ -57,7 +57,6 @@ module.exports = class Chain {
 		this.channel = channel;
 		this.options = options;
 		this.logger = null;
-		this.system = null;
 		this.scope = null;
 		this.blockReward = null;
 		this.slots = null;

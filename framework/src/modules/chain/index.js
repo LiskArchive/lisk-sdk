@@ -45,7 +45,6 @@ module.exports = class ChainModule extends BaseModule {
 			'delegates:fork',
 			'loader:sync',
 			'dapps:change',
-			'system:updateNodeInfo',
 		];
 	}
 
@@ -78,8 +77,7 @@ module.exports = class ChainModule extends BaseModule {
 			getSlotNumber: async action => this.chain.actions.getSlotNumber(action),
 			calcSlotRound: async action => this.chain.actions.calcSlotRound(action),
 			getNodeStatus: async () => this.chain.actions.getNodeStatus(),
-			blocks: async action =>
-				this.chain.actions.blocks(action),
+			blocks: async action => this.chain.actions.blocks(action),
 		};
 	}
 

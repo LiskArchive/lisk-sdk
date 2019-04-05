@@ -61,12 +61,10 @@ module.exports = class Network {
 
 		this.p2p = new P2P(p2pConfig);
 
-		this.channel.subscribe(
-			'lisk:state:updated', event => {
-				const newNodeInfo = sanitizeNodeInfo(event.data);
-				this.p2p.applyNodeInfo(newNodeInfo);
-			}
-		);
+		this.channel.subscribe('lisk:state:updated', event => {
+			const newNodeInfo = sanitizeNodeInfo(event.data);
+			this.p2p.applyNodeInfo(newNodeInfo);
+		});
 
 		// ---- START: Bind event handlers ----
 
@@ -191,7 +189,7 @@ module.exports = class Network {
 	}
 
 	async cleanup() {
-		// TODO: Unsubscribe 'chain:system:updateNodeInfo' from channel.
+		// TODO: Unsubscribe 'lisk:state:updated' from channel.
 		return this.p2p.stop();
 	}
 };
