@@ -83,7 +83,10 @@ const DefaultConfig = {
 				delegates: {
 					type: 'array',
 					default: [],
-					env: ['LISK_FORGING_DELEGATES', 'stringToDelegateList'],
+					env: {
+						variable: 'LISK_FORGING_DELEGATES',
+						formatter: 'stringToDelegateList',
+					},
 					items: {
 						properties: {
 							encryptedPassphrase: {
@@ -319,7 +322,7 @@ const DefaultConfig = {
 							},
 						},
 					},
-					env: ['LISK_PEERS', 'stringToIpPortSet'],
+					env: { variable: 'LISK_PEERS', formatter: 'stringToIpPortSet' },
 					arg: ['-x,--peers', 'stringToIpPortSet'], // TODO: Need to confirm parsing logic, old logic was using network WSPort to be default port for peers, we don't have it at the time of compilation
 					default: [
 						{

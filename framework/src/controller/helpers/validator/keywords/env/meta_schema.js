@@ -8,19 +8,19 @@ module.exports = {
 			pattern: '^[A-Z_0-9]{3,}$',
 		},
 		{
-			type: 'array',
-			items: [
-				{
+			type: 'object',
+			properties: {
+				variable: {
 					type: 'string',
 					pattern: '^[A-Z_0-9]{3,}$',
 				},
-				{
+				formatter: {
 					type: 'string',
 					enum: Object.keys(formatters),
 				},
-			],
-			minItems: 2,
-			maxItems: 2,
+			},
+			required: ['variable'],
+			additionalProperties: false,
 		},
 	],
 };

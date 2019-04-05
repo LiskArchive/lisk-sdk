@@ -35,7 +35,10 @@ const defaultConfig = {
 				whiteList: {
 					type: 'array',
 					default: ['127.0.0.1'],
-					env: ['LISK_API_WHITELIST', 'stringToIpPortSet'],
+					env: {
+						variable: 'LISK_API_WHITELIST',
+						formatter: 'stringToIpPortSet',
+					},
 				},
 			},
 			required: ['public', 'whiteList'],
@@ -184,7 +187,10 @@ const defaultConfig = {
 						whiteList: {
 							type: 'array',
 							default: ['127.0.0.1'],
-							env: ['LISK_FORGING_WHITELIST', 'stringToIpPortSet'],
+							env: {
+								variable: 'LISK_FORGING_WHITELIST',
+								formatter: 'stringToIpPortSet',
+							},
 						},
 					},
 					required: ['whiteList'],

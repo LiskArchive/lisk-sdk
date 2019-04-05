@@ -13,8 +13,8 @@ const compile = (schema, parentSchema) => {
 					formatter: null,
 				}
 			: {
-					name: schema[0],
-					formatter: formatters[schema[1]] || null,
+					name: schema.variable,
+					formatter: formatters[schema.formatter] || null,
 				};
 
 	return function(data, dataPath, object, key) {
