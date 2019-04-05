@@ -308,15 +308,14 @@ describe('GET /accounts', () => {
 						balances.sort((a, b) => {
 							const aBignumBalance = new Bignum(a.balance);
 
-							let bignumSort = 0;
 							if (aBignumBalance.gt(b.balance)) {
-								bignumSort = 1;
+								return 1;
 							}
 							if (aBignumBalance.lt(b.balance)) {
-								bignumSort = -1;
+								return -1;
 							}
 
-							return bignumSort || +a.address.localeCompare(b.address);
+							return a.address.localeCompare(b.address);
 						})
 					).to.be.eql(res.body.data);
 				});
@@ -331,15 +330,14 @@ describe('GET /accounts', () => {
 							balances.sort((a, b) => {
 								const aBignumBalance = new Bignum(a.balance);
 
-								let bignumSort = 0;
 								if (aBignumBalance.gt(b.balance)) {
-									bignumSort = 1;
+									return 1;
 								}
 								if (aBignumBalance.lt(b.balance)) {
-									bignumSort = -1;
+									return -1;
 								}
 
-								return bignumSort || +a.address.localeCompare(b.address);
+								return a.address.localeCompare(b.address);
 							})
 						).to.be.eql(res.body.data);
 					});
@@ -354,15 +352,14 @@ describe('GET /accounts', () => {
 							balances.sort((a, b) => {
 								const aBignumBalance = new Bignum(a.balance);
 
-								let bignumSort = 0;
 								if (aBignumBalance.gt(b.balance)) {
-									bignumSort = -1;
+									return -1;
 								}
 								if (aBignumBalance.lt(b.balance)) {
-									bignumSort = 1;
+									return 1;
 								}
 
-								return bignumSort || +a.address.localeCompare(b.address);
+								return a.address.localeCompare(b.address);
 							})
 						).to.be.eql(res.body.data);
 					});
