@@ -16,7 +16,6 @@
 
 const _ = require('lodash');
 const swaggerHelper = require('../helpers/swagger');
-const { getByFilter, getCountByFilter } = require('../helpers/filter_peers');
 // Private Fields
 let channel;
 
@@ -68,9 +67,11 @@ PeersController.getPeers = async function(context, next) {
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	try {
-		const peerList = await channel.invoke('network:getNetworkStatus');
-		const peersByFilters = getByFilter(peerList, filters);
-		const peersCount = getCountByFilter(peerList, filters);
+		const peersByFilters = await channel.invoke('network:getPeers', filters);
+		const peersCount = await channel.invoke(
+			'network:getPeersCountByFilter',
+			filters
+		);
 
 		return next(null, {
 			data: peersByFilters,
