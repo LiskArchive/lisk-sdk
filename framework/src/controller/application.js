@@ -87,7 +87,6 @@ class Application {
 		constants = {},
 		config = { components: { logger: null }, modules: {} }
 	) {
-		const appLabel = typeof label === 'function' ? label.call() : label;
 		let appConfig;
 
 		// If user passes multiple config objects merge them in left-right order
@@ -105,6 +104,9 @@ class Application {
 		} else {
 			appConfig = config;
 		}
+
+		const appLabel =
+			typeof label === 'function' ? label.call(null, appConfig) : label;
 
 		if (!appConfig.components.logger) {
 			appConfig.components.logger = {
