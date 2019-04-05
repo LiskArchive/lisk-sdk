@@ -1,5 +1,6 @@
 const Application = require('../../../../../src/controller/application');
 const validator = require('../../../../../src/controller/helpers/validator');
+const constants = require('../../../../../src/controller/defaults/constants');
 const applicationSchema = require('../../../../../src/controller/schema/application');
 const constantsSchema = require('../../../../../src/controller/schema/constants');
 const version = require('../../../../../src/version');
@@ -12,7 +13,7 @@ describe('Application', () => {
 	const params = {
 		label: 'jest-unit',
 		genesisBlock: {},
-		constants: {},
+		constants,
 		config: { components: { logger: null } },
 	};
 

@@ -210,8 +210,8 @@ class Application {
 	/**
 	 * Register a transaction
 	 *
-	 * @param {constructor} Transaction - Transaction class
-	 * @param {string} alias - Will use this alias or fallback to `Transaction.alias`
+	 * @param {number} transactionType - Unique integer that identifies the transaction type
+	 * @param {constructor} Transaction - Instance of @liskhq/lisk-transactions/base_transaction
 	 */
 	registerTransaction(transactionType, Transaction) {
 		// TODO: Validate the transaction is properly inherited from base class
