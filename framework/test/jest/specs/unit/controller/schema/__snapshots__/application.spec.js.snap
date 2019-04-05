@@ -19,6 +19,33 @@ Object {
         },
         "type": "object",
       },
+      "initialState": Object {
+        "id": "#/app/initialState",
+        "properties": Object {
+          "httpPort": Object {
+            "type": "integer",
+          },
+          "minVersion": Object {
+            "type": "string",
+          },
+          "nethash": Object {
+            "type": "string",
+          },
+          "nonce": Object {
+            "type": "string",
+          },
+          "protocolVersion": Object {
+            "type": "string",
+          },
+          "version": Object {
+            "type": "string",
+          },
+          "wsPort": Object {
+            "type": "integer",
+          },
+        },
+        "type": "object",
+      },
       "ipc": Object {
         "properties": Object {
           "enabled": Object {

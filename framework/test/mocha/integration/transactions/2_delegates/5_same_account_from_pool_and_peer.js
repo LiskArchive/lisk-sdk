@@ -27,7 +27,7 @@ describe('delegate', () => {
 	let library;
 	let storage;
 
-	localCommon.beforeBlock('system_2_2_delegates_5', lib => {
+	localCommon.beforeBlock('2_2_delegates_5', lib => {
 		library = lib;
 		storage = lib.components.storage;
 	});

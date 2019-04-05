@@ -141,7 +141,7 @@ class Bus extends EventEmitter2 {
 	 *
 	 * @throws {Error} If action is not registered to bus.
 	 */
-	invoke(actionData) {
+	async invoke(actionData) {
 		const action = Action.deserialize(actionData);
 
 		if (!this.actions[action.key()]) {
