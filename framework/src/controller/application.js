@@ -211,19 +211,19 @@ class Application {
 	 * Register a transaction
 	 *
 	 * @param {number} transactionType - Unique integer that identifies the transaction type
-	 * @param {constructor} Transaction - Instance of @liskhq/lisk-transactions/base_transaction
+	 * @param {constructor} Transaction - Implementation of @liskhq/lisk-transactions/base_transaction
 	 */
 	registerTransaction(transactionType, Transaction) {
 		// TODO: Validate the transaction is properly inherited from base class
-		assert(Transaction, 'Transaction is required');
 		assert(
 			Number.isInteger(transactionType),
-			'Transaction Type has to be integer'
+			'Transaction type is required as an integer'
 		);
 		assert(
-			!Object.keys(this.getTransactions()).includes(transactionType),
+			!Object.keys(this.getTransactions()).includes(transactionType.toString()),
 			`A transaction type "${transactionType}" is already registered.`
 		);
+		assert(Transaction, 'Transaction implementation is required');
 
 		const transactions = this.getTransactions();
 		transactions[transactionType] = Object.freeze(Transaction);
@@ -240,13 +240,13 @@ class Application {
 	}
 
 	/**
-	 * Get one transaction for provided alias
+	 * Get one transaction for provided type
 	 *
-	 * @param {string} alias - Alias for transaction used during registration
+	 * @param {number} transactionType - Unique integer that identifies the transaction type
 	 * @return {constructor|undefined}
 	 */
-	getTransaction(alias) {
-		return __private.transactions.get(this)[alias];
+	getTransaction(transactionType) {
+		return __private.transactions.get(this)[transactionType];
 	}
 
 	/**
