@@ -355,7 +355,7 @@ describe('transactionPool', () => {
 		it('should call the callback with error if the transaction already exists', done => {
 			sinonSandbox.stub(transactionPool, 'transactionInPool').returns(true);
 			transactionPool.processUnconfirmedTransaction(transaction, false, err => {
-				expect(err).to.equal(
+				expect(err.message).to.equal(
 					`Transaction is already processed: ${transaction.id}`
 				);
 				done();
