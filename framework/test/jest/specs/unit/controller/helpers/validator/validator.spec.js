@@ -6,8 +6,8 @@ const {
 	validate,
 	validateWithDefaults,
 	ZSchema,
-} = require('../../../../../../src/controller/helpers/validator');
-const { SchemaValidationError } = require('../../../../../../src/errors');
+} = require('../../../../../../../src/controller/helpers/validator');
+const { SchemaValidationError } = require('../../../../../../../src/errors');
 
 jest.mock('ajv');
 
