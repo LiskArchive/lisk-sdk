@@ -147,7 +147,7 @@ class Transaction {
 			signature: raw.t_signature,
 			signSignature: raw.t_signSignature,
 			signatures: raw.t_signatures ? raw.t_signatures.split(',') : [],
-			confirmations: parseInt(raw.confirmations),
+			confirmations: parseInt(raw.confirmations || 0),
 			asset: {},
 		};
 
