@@ -98,7 +98,9 @@ __private.checkTransactions = async (transactions, checkExists) => {
 
 		if (persistedTransactions.length > 0) {
 			modules.transactions.onConfirmedTransactions([persistedTransactions[0]]);
-			throw `Transaction is already confirmed: ${persistedTransactions[0].id}`;
+			throw new Error(
+				`Transaction is already confirmed: ${persistedTransactions[0].id}`
+			);
 		}
 	}
 

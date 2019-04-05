@@ -125,7 +125,7 @@ describe('round', () => {
 					try {
 						round = new Round(scope, task);
 					} catch (err) {
-						expect(err).to.equal(
+						expect(err.message).to.equal(
 							`Missing required scope property: ${property}`
 						);
 					}
@@ -140,7 +140,7 @@ describe('round', () => {
 					try {
 						round = new Round(scope, task);
 					} catch (err) {
-						expect(err).to.equal(
+						expect(err.message).to.equal(
 							`Missing required scope property: ${property}`
 						);
 					}
@@ -162,7 +162,7 @@ describe('round', () => {
 						try {
 							round = new Round(scope, task);
 						} catch (err) {
-							expect(err).to.equal(
+							expect(err.message).to.equal(
 								`Missing required scope property: ${property}`
 							);
 						}
@@ -177,7 +177,7 @@ describe('round', () => {
 						try {
 							round = new Round(scope, task);
 						} catch (err) {
-							expect(err).to.equal(
+							expect(err.message).to.equal(
 								`Missing required scope property: ${property}`
 							);
 						}
@@ -192,7 +192,7 @@ describe('round', () => {
 						try {
 							round = new Round(scope, task);
 						} catch (err) {
-							expect(err).to.equal(
+							expect(err.message).to.equal(
 								`Missing required scope property: ${property}`
 							);
 						}
@@ -207,7 +207,7 @@ describe('round', () => {
 						try {
 							round = new Round(scope, task);
 						} catch (err) {
-							expect(err).to.equal(
+							expect(err.message).to.equal(
 								`Missing required scope property: ${property}`
 							);
 						}

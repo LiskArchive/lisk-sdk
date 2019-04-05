@@ -151,7 +151,7 @@ describe('accounts', () => {
 			delete account.publicKey;
 
 			accounts.setAccountAndGet(account, (error, data) => {
-				expect(error).to.be.eql('Invalid public key');
+				expect(error.message).to.be.eql('Invalid public key');
 				expect(data).to.be.undefined;
 				done();
 			});

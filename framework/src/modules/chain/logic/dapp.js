@@ -496,10 +496,12 @@ DApp.prototype.objectNormalize = function(transaction) {
 	);
 
 	if (!report) {
-		throw `Failed to validate dapp schema: ${__scope.schema
-			.getLastErrors()
-			.map(err => err.message)
-			.join(', ')}`;
+		throw new Error(
+			`Failed to validate dapp schema: ${__scope.schema
+				.getLastErrors()
+				.map(err => err.message)
+				.join(', ')}`
+		);
 	}
 
 	return transaction;

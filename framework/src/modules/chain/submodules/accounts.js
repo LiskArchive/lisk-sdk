@@ -81,7 +81,7 @@ Accounts.prototype.generateAddressByPublicKey = function(publicKey) {
 	const address = `${Bignum.fromBuffer(temp).toString()}L`;
 
 	if (!address) {
-		throw `Invalid public key: ${publicKey}`;
+		throw new Error(`Invalid public key: ${publicKey}`);
 	}
 
 	return address;
@@ -132,12 +132,12 @@ Accounts.prototype.setAccountAndGet = function(data, cb, tx) {
 		if (data.publicKey) {
 			address = self.generateAddressByPublicKey(data.publicKey);
 		} else {
-			err = 'Missing address or public key';
+			err = new Error('Missing address or public key');
 		}
 	}
 
 	if (!address) {
-		err = 'Invalid public key';
+		err = new Error('Invalid public key');
 	}
 
 	if (err) {
@@ -221,12 +221,12 @@ Accounts.prototype.mergeAccountAndGet = function(data, cb, tx) {
 		if (data.publicKey) {
 			address = self.generateAddressByPublicKey(data.publicKey);
 		} else {
-			err = 'Missing address or public key';
+			err = new Error('Missing address or public key');
 		}
 	}
 
 	if (!address) {
-		err = 'Invalid public key';
+		err = new Error('Invalid public key');
 	}
 
 	if (err) {
