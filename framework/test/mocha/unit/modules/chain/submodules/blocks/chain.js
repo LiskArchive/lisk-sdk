@@ -163,6 +163,7 @@ describe('blocks/chain', () => {
 			isActive: {
 				set: sinonSandbox.stub(),
 			},
+			calculateNewBroadhash: sinonSandbox.stub(),
 		};
 
 		const modulesRoundsStub = {
@@ -1619,6 +1620,7 @@ describe('blocks/chain', () => {
 							true
 						);
 						library.storage.entities.Block.get.resolves({ height: 1 });
+						modules.blocks.calculateNewBroadhash.resolves({ broadhash: 'xx', height: 1 });
 					});
 
 					it('should call a callback with no error', done => {
@@ -1632,6 +1634,7 @@ describe('blocks/chain', () => {
 								'receiveTransactions-ERR'
 							);
 							expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
+							expect(channelMock.once.calledOnce).to.be.true;
 							expect(channelMock.invoke.calledOnce).to.be.true;
 							expect(modules.transport.broadcastHeaders.calledOnce).to.be.true;
 							done();
@@ -1647,6 +1650,7 @@ describe('blocks/chain', () => {
 							true
 						);
 						library.storage.entities.Block.get.resolves({ height: 1 });
+						modules.blocks.calculateNewBroadhash.resolves({ broadhash: 'xx', height: 1 });
 					});
 
 					it('should call a callback with no error', done => {
@@ -1654,6 +1658,7 @@ describe('blocks/chain', () => {
 							expect(err).to.be.null;
 							expect(newLastBlock).to.deep.equal(blockWithTransactions);
 							expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
+							expect(channelMock.once.calledOnce).to.be.true;
 							expect(channelMock.invoke.calledOnce).to.be.true;
 							expect(modules.transport.broadcastHeaders.calledOnce).to.be.true;
 							done();

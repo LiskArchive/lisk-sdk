@@ -755,10 +755,22 @@ __private.createSnapshot = height => {
 	}
 
 	const snapshotRound = library.config.loading.snapshotRound;
+	// Negative number not possible as `commander` does not recognize this as valid flag (throws error)
+	if (
+		Number.isNaN(parseInt(snapshotRound)) ||
+		parseInt(snapshotRound) < 0 ||
+		typeof snapshotRound !== 'number'
+	) {
+		throw new Error(
+			'Unable to create snapshot, "--snapshot" parameter should be an integer equal to or greater than zero'
+		);
+	}
+
 	const totalRounds = Math.floor(height / ACTIVE_DELEGATES);
-	const targetRound = Number.isNaN(parseInt(snapshotRound))
-		? totalRounds
-		: Math.min(totalRounds, snapshotRound);
+	const targetRound =
+		parseInt(snapshotRound) === 0
+			? totalRounds
+			: Math.min(totalRounds, snapshotRound);
 	const targetHeight = targetRound * ACTIVE_DELEGATES;
 
 	library.logger.info(
@@ -941,24 +953,19 @@ __private.sync = function(cb) {
 				return __private.loadBlocksFromNetwork(seriesCb);
 			},
 			updateApplicationState(seriesCb) {
-				return library.storage.entities.Block.get(
-					{},
-					{
-						limit: 5,
-						sort: 'height:desc',
-					}
-				)
-					.then(blocks => {
+				return modules.blocks
+					.calculateNewBroadhash()
+					.then(({ broadhash, height }) => {
 						// Listen for the update of step to move to next step
 						library.channel.once('lisk:state:updated', () => {
 							seriesCb();
 						});
 
 						// Update our application state: broadhash and height
-						return library.channel.invoke(
-							'lisk:updateApplicationState',
-							blocks
-						);
+						return library.channel.invoke('lisk:updateApplicationState', {
+							broadhash,
+							height,
+						});
 					})
 					.catch(seriesCb);
 			},
