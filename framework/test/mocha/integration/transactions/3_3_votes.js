@@ -197,7 +197,7 @@ describe('integration test (type 3) - voting with duplicate submissions', () => 
 						const transaction5 = castVotes({
 							passphrase: account.passphrase,
 							unvotes: [`${accountFixtures.existingDelegate.publicKey}`],
-							timeOffset: -10001,
+							timeOffset: -50000,
 						});
 						localCommon.addTransaction(library, transaction5, err => {
 							expect(err).to.equal(
