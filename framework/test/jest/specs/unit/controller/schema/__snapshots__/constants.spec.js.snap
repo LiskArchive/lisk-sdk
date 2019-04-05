@@ -6,49 +6,11 @@ Object {
     "additionalProperties": false,
     "id": "constants",
     "properties": Object {
-      "ACTIVE_DELEGATES": Object {
-        "default": 101,
-        "description": "The default number of delegates allowed to forge a block",
-        "format": "oddInteger",
+      "BLOCK_TIME": Object {
+        "default": 10,
+        "description": "Slote time interval in seconds",
         "min": 1,
         "type": "number",
-      },
-      "ADDITIONAL_DATA": Object {
-        "default": Object {
-          "MAX_LENGTH": 64,
-          "MIN_LENGTH": 1,
-        },
-        "properties": Object {
-          "MAX_LENGTH": Object {
-            "default": 64,
-            "description": "Additional data (Max length)",
-            "min": 1,
-            "type": "integer",
-          },
-          "MIN_LENGTH": Object {
-            "default": 1,
-            "description": "Additional data (Min length)",
-            "min": 1,
-            "type": "integer",
-          },
-        },
-        "required": Array [
-          "MIN_LENGTH",
-          "MAX_LENGTH",
-        ],
-        "type": "object",
-      },
-      "BLOCK_RECEIPT_TIMEOUT": Object {
-        "default": 20,
-        "description": "Seconds to check if the block is fresh or not",
-        "min": 1,
-        "type": "integer",
-      },
-      "BLOCK_SLOT_WINDOW": Object {
-        "default": 5,
-        "description": "The default number of previous blocks to keep in memory",
-        "min": 1,
-        "type": "integer",
       },
       "EPOCH_TIME": Object {
         "default": "2016-05-24T17:00:00.000Z",
@@ -56,104 +18,11 @@ Object {
         "format": "date-time",
         "type": "string",
       },
-      "EXPIRY_INTERVAL": Object {
-        "default": 30000,
-        "description": "Transaction pool expiry timer in milliseconds",
-        "min": 1,
-        "type": "integer",
-      },
-      "FEES": Object {
-        "$ref": "fees",
-        "default": Object {
-          "DAPP_DEPOSIT": "10000000",
-          "DAPP_REGISTRATION": "2500000000",
-          "DAPP_WITHDRAWAL": "10000000",
-          "DELEGATE": "2500000000",
-          "MULTISIGNATURE": "500000000",
-          "SECOND_SIGNATURE": "500000000",
-          "SEND": "10000000",
-          "VOTE": "100000000",
-        },
-      },
-      "MAX_PAYLOAD_LENGTH": Object {
-        "default": 1048576,
-        "description": "Maximum transaction bytes length for 25 transactions in a single block",
-        "min": 1,
-        "type": "integer",
-      },
-      "MAX_PEERS": Object {
-        "default": 100,
-        "description": "Maximum number of peers allowed to connect while broadcasting a block",
-        "min": 1,
-        "type": "integer",
-      },
-      "MAX_SHARED_TRANSACTIONS": Object {
-        "default": 100,
-        "description": "Maximum number of in-memory transactions/signatures shared across peers",
-        "min": 1,
-        "type": "integer",
-      },
       "MAX_TRANSACTIONS_PER_BLOCK": Object {
         "default": 25,
         "description": "Maximum number of transactions allowed per block",
         "min": 1,
         "type": "integer",
-      },
-      "MAX_VOTES_PER_ACCOUNT": Object {
-        "default": 101,
-        "description": "The maximum number of votes allowed in transaction type(3) votes",
-        "maximum": Object {
-          "$data": "/ACTIVE_DELEGATES",
-        },
-        "min": 1,
-        "type": "number",
-      },
-      "MAX_VOTES_PER_TRANSACTION": Object {
-        "default": 33,
-        "description": "Maximum number of transactions allowed per block",
-        "min": 1,
-        "type": "integer",
-      },
-      "MIN_BROADHASH_CONSENSUS": Object {
-        "default": 51,
-        "description": "Minimum broadhash consensus(%) among connected {MAX_PEERS} peers",
-        "min": 1,
-        "type": "integer",
-      },
-      "MULTISIG_CONSTRAINTS": Object {
-        "$ref": "multisig",
-        "default": Object {
-          "KEYSGROUP": Object {
-            "MAX_ITEMS": 15,
-            "MIN_ITEMS": 1,
-          },
-          "LIFETIME": Object {
-            "MAXIMUM": 72,
-            "MINIMUM": 1,
-          },
-          "MIN": Object {
-            "MAXIMUM": 15,
-            "MINIMUM": 1,
-          },
-        },
-      },
-      "NETHASHES": Object {
-        "default": Array [
-          "ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511",
-          "da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba",
-        ],
-        "description": "For mainnet and testnet",
-        "items": Object {
-          "format": "hex",
-          "type": "string",
-        },
-        "type": "array",
-      },
-      "NORMALIZER": Object {
-        "default": "100000000",
-        "description": "Use this to convert LISK amount to normal value",
-        "format": "amount",
-        "type": "string",
       },
       "REWARDS": Object {
         "$ref": "rewards",
@@ -169,206 +38,12 @@ Object {
           "OFFSET": 2160,
         },
       },
-      "TOTAL_AMOUNT": Object {
-        "default": "10000000000000000",
-        "description": "Total amount of LSK available in network before rewards milestone started",
-        "format": "amount",
-        "type": "string",
-      },
-      "TRANSACTION_TYPES": Object {
-        "$ref": "transactionTypes",
-        "default": Object {
-          "DAPP": 5,
-          "DELEGATE": 2,
-          "IN_TRANSFER": 6,
-          "MULTI": 4,
-          "OUT_TRANSFER": 7,
-          "SEND": 0,
-          "SIGNATURE": 1,
-          "VOTE": 3,
-        },
-      },
-      "UNCONFIRMED_TRANSACTION_TIMEOUT": Object {
-        "default": 10800,
-        "description": "Expiration time for unconfirmed transaction/signatures in transaction pool",
-        "min": 1,
-        "type": "integer",
-      },
     },
     "required": Array [
-      "ACTIVE_DELEGATES",
-      "BLOCK_SLOT_WINDOW",
-      "ADDITIONAL_DATA",
-      "BLOCK_RECEIPT_TIMEOUT",
       "EPOCH_TIME",
-      "FEES",
-      "MAX_PAYLOAD_LENGTH",
-      "MAX_PEERS",
-      "MAX_SHARED_TRANSACTIONS",
+      "BLOCK_TIME",
       "MAX_TRANSACTIONS_PER_BLOCK",
-      "MAX_VOTES_PER_TRANSACTION",
-      "MAX_VOTES_PER_ACCOUNT",
-      "MIN_BROADHASH_CONSENSUS",
-      "MULTISIG_CONSTRAINTS",
-      "NETHASHES",
-      "NORMALIZER",
       "REWARDS",
-      "TOTAL_AMOUNT",
-      "TRANSACTION_TYPES",
-      "UNCONFIRMED_TRANSACTION_TIMEOUT",
-      "EXPIRY_INTERVAL",
-    ],
-    "type": "object",
-  },
-  "fees": Object {
-    "additionalProperties": false,
-    "description": "Object representing amount of fees for different types of transactions",
-    "id": "fees",
-    "properties": Object {
-      "DAPP_DEPOSIT": Object {
-        "default": "10000000",
-        "format": "amount",
-        "type": "string",
-      },
-      "DAPP_REGISTRATION": Object {
-        "default": "2500000000",
-        "description": "Fee for registering as a dapp",
-        "format": "amount",
-        "type": "string",
-      },
-      "DAPP_WITHDRAWAL": Object {
-        "default": "10000000",
-        "format": "amount",
-        "type": "string",
-      },
-      "DELEGATE": Object {
-        "default": "2500000000",
-        "description": "Fee for registering as a delegate",
-        "format": "amount",
-        "type": "string",
-      },
-      "MULTISIGNATURE": Object {
-        "default": "500000000",
-        "description": "Fee for multisignature transaction",
-        "format": "amount",
-        "type": "string",
-      },
-      "SECOND_SIGNATURE": Object {
-        "default": "500000000",
-        "description": "Fee for creating a second signature",
-        "format": "amount",
-        "type": "string",
-      },
-      "SEND": Object {
-        "default": "10000000",
-        "description": "Fee for sending a transaction",
-        "format": "amount",
-        "type": "string",
-      },
-      "VOTE": Object {
-        "default": "100000000",
-        "description": "Fee for voting a delegate",
-        "format": "amount",
-        "type": "string",
-      },
-    },
-    "required": Array [
-      "SEND",
-      "VOTE",
-      "SECOND_SIGNATURE",
-      "DELEGATE",
-      "MULTISIGNATURE",
-      "DAPP_REGISTRATION",
-      "DAPP_WITHDRAWAL",
-      "DAPP_DEPOSIT",
-    ],
-    "type": "object",
-  },
-  "multisig": Object {
-    "additionalProperties": false,
-    "id": "multisig",
-    "properties": Object {
-      "KEYSGROUP": Object {
-        "additionalProperties": false,
-        "default": Object {
-          "MAX_ITEMS": 15,
-          "MIN_ITEMS": 1,
-        },
-        "properties": Object {
-          "MAX_ITEMS": Object {
-            "default": 15,
-            "description": "Maximum allowed number of keys inside a Multisignature pool",
-            "min": 1,
-            "type": "integer",
-          },
-          "MIN_ITEMS": Object {
-            "default": 1,
-            "description": "Minimum allowed number of keys inside a Multisignature pool",
-            "min": 1,
-            "type": "integer",
-          },
-        },
-        "required": Array [
-          "MIN_ITEMS",
-          "MAX_ITEMS",
-        ],
-        "type": "object",
-      },
-      "LIFETIME": Object {
-        "additionalProperties": false,
-        "default": Object {
-          "MAXIMUM": 72,
-          "MINIMUM": 1,
-        },
-        "properties": Object {
-          "MAXIMUM": Object {
-            "default": 72,
-            "description": "Maximum timeframe in which multisignature transaction will exist in memory before the transaction is confirmed",
-            "min": 1,
-            "type": "integer",
-          },
-          "MINIMUM": Object {
-            "default": 1,
-            "description": "Minimum timeframe in which a multisignature transaction will exist in memory before the transaction is confirmed",
-            "min": 1,
-            "type": "integer",
-          },
-        },
-        "required": Array [
-          "MINIMUM",
-          "MAXIMUM",
-        ],
-        "type": "object",
-      },
-      "MIN": Object {
-        "properties": Object {
-          "MAXIMUM": Object {
-            "default": 15,
-            "description": "Maximum allowed number of signatures required to process a multisignature transaction",
-            "maximum": Object {
-              "$data": "/MULTISIG_CONSTRAINTS/KEYSGROUP/MAX_ITEMS",
-            },
-            "min": 1,
-            "type": "number",
-          },
-          "MINIMUM": Object {
-            "default": 1,
-            "description": "Minimum allowed number of signatures required to process a multisignature transaction",
-            "min": 1,
-            "type": "integer",
-          },
-        },
-        "required": Array [
-          "MINIMUM",
-          "MAXIMUM",
-        ],
-        "type": "object",
-      },
-    },
-    "required": Array [
-      "MIN",
-      "LIFETIME",
-      "KEYSGROUP",
     ],
     "type": "object",
   },
@@ -409,71 +84,6 @@ Object {
       "MILESTONES",
       "OFFSET",
       "DISTANCE",
-    ],
-    "type": "object",
-  },
-  "transactionTypes": Object {
-    "additionalProperties": false,
-    "id": "transactionTypes",
-    "properties": Object {
-      "DAPP": Object {
-        "enum": Array [
-          5,
-        ],
-        "type": "integer",
-      },
-      "DELEGATE": Object {
-        "enum": Array [
-          2,
-        ],
-        "type": "integer",
-      },
-      "IN_TRANSFER": Object {
-        "enum": Array [
-          6,
-        ],
-        "type": "integer",
-      },
-      "MULTI": Object {
-        "enum": Array [
-          4,
-        ],
-        "type": "integer",
-      },
-      "OUT_TRANSFER": Object {
-        "enum": Array [
-          7,
-        ],
-        "type": "integer",
-      },
-      "SEND": Object {
-        "enum": Array [
-          0,
-        ],
-        "type": "integer",
-      },
-      "SIGNATURE": Object {
-        "enum": Array [
-          1,
-        ],
-        "type": "integer",
-      },
-      "VOTE": Object {
-        "enum": Array [
-          3,
-        ],
-        "type": "integer",
-      },
-    },
-    "required": Array [
-      "SEND",
-      "SIGNATURE",
-      "DELEGATE",
-      "VOTE",
-      "MULTI",
-      "DAPP",
-      "IN_TRANSFER",
-      "OUT_TRANSFER",
     ],
     "type": "object",
   },
