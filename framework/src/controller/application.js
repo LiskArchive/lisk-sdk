@@ -353,13 +353,13 @@ class Application {
 		};
 
 		this.config.initialState = {
-			nethash: this.config.nethash,
+			nethash: sharedConfiguration.nethash,
 			version: this.config.version,
 			wsPort: this.config.modules.chain.network.wsPort,
 			httpPort: this.config.modules.http_api.httpPort,
 			minVersion: this.config.minVersion,
 			protocolVersion: this.config.protocolVersion,
-			nonce: this.config.nonce,
+			nonce: sharedConfiguration.nonce,
 		};
 
 		this.logger.trace('Compiled configurations', this.config);
