@@ -76,6 +76,8 @@ if (typeof network === 'undefined') {
 	process.exit(1);
 }
 
+// TODO: Default config is not accessible this way right now
+// 	Will be fixed with https://github.com/LiskHQ/lisk/issues/3171
 const defaultConfig = loadJSONFile(
 	path.resolve(rootPath, 'config/default/config.json')
 );
