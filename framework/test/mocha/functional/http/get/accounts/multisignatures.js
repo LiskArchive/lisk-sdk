@@ -65,7 +65,7 @@ describe('GET /api/accounts', () => {
 				return waitFor.confirmations([scenario.multiSigTransaction.id]);
 			});
 	});
-	// eslint-disable-next-line
+
 	describe('/{address}/multisignature_groups', () => {
 		const multisigGroupsEndpoint = new SwaggerEndpoint(
 			'GET /accounts/{address}/multisignature_groups'
