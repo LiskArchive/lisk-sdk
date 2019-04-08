@@ -211,24 +211,46 @@ module.exports = {
 				properties: {
 					nethash: {
 						type: 'string',
+						maxLength: 64,
 					},
 					version: {
 						type: 'string',
+						example: 'v0.8.0',
+						format: 'version',
+						description: 'The version of Lisk Core that the peer node runs on.',
 					},
 					wsPort: {
 						type: 'integer',
+						example: 8001,
+						minimum: 1,
+						maximum: 65535,
+						description:
+							'The port the peer node uses for Websocket Connections, e.g. P2P broadcasts.',
 					},
 					httpPort: {
 						type: 'integer',
+						example: 8000,
+						minimum: 1,
+						maximum: 65535,
+						description:
+							'The port the peer node uses for HTTP requests, e.g. API calls.',
 					},
 					minVersion: {
 						type: 'string',
+						format: 'version',
 					},
 					protocolVersion: {
 						type: 'string',
+						example: 1,
+						format: 'protocolVersion',
+						description:
+							'The protocol version of Lisk Core that the peer node runs on.',
 					},
 					nonce: {
 						type: 'string',
+						example: 'sYHEDBKcScaAAAYg',
+						minLength: 1,
+						description: 'Unique Identifier for the peer.\nRandom string.\n',
 					},
 				},
 			},
