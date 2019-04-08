@@ -215,14 +215,6 @@ module.exports = class Chain {
 					action.params.password,
 					action.params.forging
 				),
-			getPeers: async action =>
-				promisify(this.scope.modules.peers.shared.getPeers)(
-					action.params.parameters
-				),
-			getPeersCountByFilter: async action =>
-				this.scope.modules.peers.shared.getPeersCountByFilter(
-					action.params.parameters
-				),
 			getTransactions: async () =>
 				this.scope.modules.transactions.getMergedTransactionList(
 					true,
