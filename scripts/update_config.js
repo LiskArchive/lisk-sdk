@@ -32,7 +32,6 @@ const {
 const tempy = require('tempy');
 const { observableDiff, applyChange } = require('deep-diff');
 const JSONHistory = require('./json_history');
-const AppConfig = require('../framework/src/modules/chain/helpers/config');
 const packageJSON = require('../package.json');
 
 const rootPath = path.resolve(path.dirname(__filename), '../../../../../');
@@ -77,6 +76,8 @@ if (typeof network === 'undefined') {
 	process.exit(1);
 }
 
+// TODO: Default config is not accessible this way right now
+// 	Will be fixed with https://github.com/LiskHQ/lisk/issues/3171
 const defaultConfig = loadJSONFile(
 	path.resolve(rootPath, 'config/default/config.json')
 );
@@ -393,7 +394,10 @@ history.migrate(
 		// Set the env variables to validate against correct network and config file
 		process.env.LISK_NETWORK = network;
 		process.env.LISK_CONFIG_FILE = tempFilePath;
-		new AppConfig(packageJSON, false);
+
+		// TODO: Add a replacement logic for config helper
+		// new AppConfig(packageJSON, false);
+
 		console.info('Validation finished successfully.');
 
 		if (program.output) {

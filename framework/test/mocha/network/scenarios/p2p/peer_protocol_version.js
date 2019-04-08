@@ -40,7 +40,7 @@ module.exports = function(
 	// PROTOCOL_VERSION is not supported as of now
 	// Will enable this test after fixing this issue
 	// eslint-disable-next-line mocha/no-skipped-tests
-	describe.skip('@p2p : peer Protocol Version', () => {
+	describe('@p2p : peer Protocol Version', () => {
 		const { protocolVersion: originalProtocolVersion } = __testContext.config;
 		let pm2NetworkConfig;
 
