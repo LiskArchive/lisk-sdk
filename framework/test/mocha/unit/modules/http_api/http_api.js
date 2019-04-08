@@ -119,19 +119,19 @@ describe('HttpApi', () => {
 		it('should be an async function', async () => {
 			expect(httpApi.bootstrap.constructor.name).to.be.equal('AsyncFunction');
 		});
-		it('should invoke lisk:getComponentConfig to get "logger" configuration', async () => {
+		it('should invoke app:getComponentConfig to get "logger" configuration', async () => {
 			expect(stubs.channel.invoke).to.be.calledWithExactly(
 				'app:getComponentConfig',
 				'logger'
 			);
 		});
-		it('should invoke lisk:getComponentConfig to get "storage" configuration', async () => {
+		it('should invoke app:getComponentConfig to get "storage" configuration', async () => {
 			expect(stubs.channel.invoke).to.be.calledWithExactly(
 				'app:getComponentConfig',
 				'storage'
 			);
 		});
-		it('should invoke lisk:getComponentConfig to get "cache" configuration', async () => {
+		it('should invoke app:getComponentConfig to get "cache" configuration', async () => {
 			expect(stubs.channel.invoke).to.be.calledWithExactly(
 				'app:getComponentConfig',
 				'cache'

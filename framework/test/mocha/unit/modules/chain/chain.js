@@ -16,9 +16,9 @@ describe('Chain', () => {
 
 	describe('bootstrap', () => {
 		it('should be an async function');
-		it('should invoke lisk:getComponentConfig to get "logger" configuration');
-		it('should invoke lisk:getComponentConfig to get "storage" configuration');
-		it('should invoke lisk:getComponentConfig to get "cache" configuration');
+		it('should invoke app:getComponentConfig to get "logger" configuration');
+		it('should invoke app:getComponentConfig to get "storage" configuration');
+		it('should invoke app:getComponentConfig to get "cache" configuration');
 		it('should create logger component and assign to object instance');
 		describe('dbLogger', () => {
 			it('should set to logger if main log file is same as storage log file');

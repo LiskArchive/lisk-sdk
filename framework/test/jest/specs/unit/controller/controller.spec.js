@@ -89,7 +89,7 @@ describe('Controller Class', () => {
 
 		// #region TODO channel.publish('app:ready')
 		it.todo(
-			'should publish "lisk:ready" event.'
+			'should publish "app:ready" event.'
 			/**
 			, async () => {
 				// Arrange

@@ -25,13 +25,13 @@ The following events and actions are available for all enabled modules and are a
 | _module_:unloading:started  | Triggered just before the controller calls the module’s `unload` method.                                                                                                                                                                       |
 | _module_:unloading:error    | Triggered if any error occurred during the call of module’s `unload` method.                                                                                                                                                                   |
 | _module_:unloading:finished | Triggered just after the module’s `unload` method has completed execution.                                                                                                                                                                     |
-| lisk:ready                  | Triggered when the controller has finished initializing the modules and each module has been successfully loaded.                                                                                                                              |
+| app:ready                   | Triggered when the controller has finished initializing the modules and each module has been successfully loaded.                                                                                                                              |
 
 #### Actions
 
-| Action                  | Description                                                                                |
-| ----------------------- | ------------------------------------------------------------------------------------------ |
-| lisk:getComponentConfig | A controller action to get the configuration of any component defined in controller space. |
+| Action                 | Description                                                                                |
+| ---------------------- | ------------------------------------------------------------------------------------------ |
+| app:getComponentConfig | A controller action to get the configuration of any component defined in controller space. |
 
 Most of the data flow will be handled through the propagation of such events.
 Each module can also define its own custom events or actions and will register that list with the controller at the time of initialization.
