@@ -56,7 +56,7 @@
 		"prepublishOnly": "npm run check:dependencies"
 	},
 	"dependencies": {
-		"@liskhq/lisk-p2p": "0.1.0-alpha.1",
+		"@liskhq/lisk-p2p": "alpha",
 		"ajv": "6.7.0",
 		"async": "2.6.1",
 		"pm2-axon": "3.3.0",
