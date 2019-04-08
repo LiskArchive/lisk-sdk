@@ -14,6 +14,11 @@ const {
 } = require('@liskhq/lisk-p2p');
 const randomstring = require('randomstring');
 const { createLoggerComponent } = require('../../components/logger');
+const {
+	getByFilter,
+	getCountByFilter,
+	getConsolidatedPeersList,
+} = require('./helpers/filter_peers');
 
 const hasNamespaceReg = /:/;
 
@@ -184,6 +189,16 @@ module.exports = class Network {
 					data: action.params.data,
 				}),
 			getNetworkStatus: () => this.p2p.getNetworkStatus(),
+			getPeers: action => {
+				const peerList = getConsolidatedPeersList(this.p2p.getNetworkStatus());
+
+				return getByFilter(peerList, action.params);
+			},
+			getPeersCountByFilter: action => {
+				const peerList = getConsolidatedPeersList(this.p2p.getNetworkStatus());
+
+				return getCountByFilter(peerList, action.params);
+			},
 			applyPenalty: action => this.p2p.applyPenalty(action.params),
 		};
 	}

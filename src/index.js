@@ -39,6 +39,7 @@ try {
 
 	app.overrideModuleOptions('chain', { exceptions: config.exceptions, config });
 	app.overrideModuleOptions('httpApi', { config });
+	app.overrideModuleOptions('network', { config });
 
 	app
 		.run()
