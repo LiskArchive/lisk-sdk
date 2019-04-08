@@ -211,7 +211,7 @@ module.exports = {
 				properties: {
 					nethash: {
 						type: 'string',
-						maxLength: 64,
+						format: 'hex',
 					},
 					version: {
 						type: 'string',
@@ -249,7 +249,8 @@ module.exports = {
 					nonce: {
 						type: 'string',
 						example: 'sYHEDBKcScaAAAYg',
-						minLength: 1,
+						minLength: 16,
+						maxLength: 16,
 						description: 'Unique Identifier for the peer.\nRandom string.\n',
 					},
 				},
