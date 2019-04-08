@@ -124,7 +124,7 @@ describe('block_version', () => {
 			const __private = library.rewiredModules.loader.__get__('__private');
 
 			library.rewiredModules.loader.__set__(
-				'library.config.loading.snapshotRound',
+				'library.config.loading.rebuildRound',
 				3
 			);
 
@@ -152,7 +152,7 @@ describe('block_version', () => {
 			const __private = library.rewiredModules.loader.__get__('__private');
 
 			library.rewiredModules.loader.__set__(
-				'library.config.loading.snapshotRound',
+				'library.config.loading.rebuildRound',
 				3
 			);
 

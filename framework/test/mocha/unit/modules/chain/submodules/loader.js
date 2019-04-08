@@ -334,7 +334,7 @@ describe('loader', () => {
 			}
 		});
 
-		it('should throw an error when called with snapshotRound = ""', done => {
+		it('should throw an error when called with rebuildRound = ""', done => {
 			try {
 				libraryVar.config.loading.rebuildRound = '';
 
@@ -512,8 +512,8 @@ describe('loader', () => {
 				__privateVar.createSnapshot(blocksAvailable);
 			});
 
-			it('and should not throw an error when called with snapshotRound = integer as string', done => {
-				libraryVar.config.loading.snapshotRound = '2';
+			it('and should not throw an error when called with rebuildRound = integer as string', done => {
+				libraryVar.config.loading.rebuildRound = '2';
 
 				__privateVar.snapshotFinished = err => {
 					expect(err).to.not.exist;
