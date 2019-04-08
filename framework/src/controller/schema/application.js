@@ -251,7 +251,7 @@ module.exports = {
 						example: 'sYHEDBKcScaAAAYg',
 						minLength: 16,
 						maxLength: 16,
-						description: 'Unique Identifier for the peer.\nRandom string.\n',
+						description: 'Unique Identifier for the peer.\nRandom string.',
 					},
 				},
 			},
