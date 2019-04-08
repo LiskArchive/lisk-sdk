@@ -80,7 +80,7 @@ module.exports = class ChainModule extends BaseModule {
 	async load(channel) {
 		this.chain = new Chain(channel, this.options);
 
-		channel.once('lisk:ready', async () => {
+		channel.once('app:ready', async () => {
 			await this.chain.bootstrap();
 		});
 	}
