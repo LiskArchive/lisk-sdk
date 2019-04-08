@@ -155,8 +155,8 @@ describe('GET /delegates', () => {
 					});
 			});
 		});
-
-		describe('secondPublicKey', () => {
+		// eslint-disable-next-line
+		describe.skip('[feature/improve_transactions_processing_efficiency] secondPublicKey', () => {
 			const secondPassphraseAccount = randomUtil.account();
 
 			const creditTransaction = transfer({
