@@ -30,7 +30,8 @@ const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const { NORMALIZER } = global.constants;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
-describe('POST /api/transactions (type 4) register multisignature', () => {
+// eslint-disable-next-line
+describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/transactions (type 4) register multisignature', () => {
 	const scenarios = {
 		incorrectly_offline_signed: new Scenarios.Multisig(),
 		offline_signed_empty_signatures: new Scenarios.Multisig(),
