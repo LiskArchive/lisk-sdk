@@ -10,7 +10,7 @@
 		"logFileName": "logs/devnet/lisk_db.log"
 	},
 	"ipc": {
-		"enabled": true
+		"enabled": false
 	},
 	"api": {
 		"access": {
