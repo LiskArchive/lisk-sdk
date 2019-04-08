@@ -61,6 +61,7 @@ const registerProcessHooks = app => {
  * @requires helpers/validator
  * @requires schema/application
  * @requires components/logger
+ * @requires components/storage
  */
 class Application {
 	/**
@@ -77,6 +78,9 @@ class Application {
 	 * @param {Object} [config] - Main configuration object
 	 * @param {Object} [config.components] - Configurations for components
 	 * @param {Object} [config.components.logger] - Configuration for logger component
+	 * @param {Object} [config.components.cache] - Configuration for cache component
+	 * @param {Object} [config.components.storage] - Configuration for storage component
+	 * @param {Object} [config.initialState] - Configuration for applicationState
 	 * @param {Object} [config.modules] - Configurations for modules
 	 * @param {string} [config.version] - Version of the application
 	 * @param {string} [config.minVersion] - Minimum compatible version on the network
@@ -131,6 +135,9 @@ class Application {
 
 		this.registerModule(ChainModule);
 		this.registerModule(HttpAPIModule);
+		this.overrideModuleOptions(HttpAPIModule.alias, {
+			loadAsChildProcess: true,
+		});
 	}
 
 	/**
@@ -264,7 +271,11 @@ class Application {
 
 		this.controller = new Controller(
 			this.label,
-			{ components: this.config.components, ipc: this.config.ipc },
+			{
+				components: this.config.components,
+				ipc: this.config.ipc,
+				initialState: this.config.initialState,
+			},
 			this.logger
 		);
 		return this.controller.load(this.getModules(), this.config.modules);
@@ -321,6 +332,16 @@ class Application {
 			...sharedConfiguration,
 			wsPort: this.config.modules.chain.network.wsPort,
 			httpPort: this.config.modules.http_api.httpPort,
+		};
+
+		this.config.initialState = {
+			nethash: this.config.nethash,
+			version: this.config.version,
+			wsPort: this.config.modules.chain.network.wsPort,
+			httpPort: this.config.modules.http_api.httpPort,
+			minVersion: this.config.minVersion,
+			protocolVersion: this.config.protocolVersion,
+			nonce: this.config.nonce,
 		};
 
 		this.logger.trace('Compiled configurations', this.config);

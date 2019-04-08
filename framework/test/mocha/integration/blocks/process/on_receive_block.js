@@ -28,13 +28,17 @@ const application = require('../../../common/application');
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
 
-describe('system test (blocks) - process onReceiveBlock()', () => {
+describe('integration test (blocks) - process onReceiveBlock()', () => {
 	let library;
 	let storage;
 
 	before(done => {
 		application.init(
-			{ sandbox: { name: 'system_blocks_process_on_receive_block' } },
+			{
+				sandbox: {
+					name: 'blocks_process_on_receive_block',
+				},
+			},
 			(err, scope) => {
 				library = scope;
 				storage = scope.components.storage;

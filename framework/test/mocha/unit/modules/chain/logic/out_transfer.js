@@ -35,6 +35,7 @@ describe('outTransfer', () => {
 	let outTransfer;
 	let storageStub;
 	let accountsStub;
+	let blocksStub;
 
 	let dummyBlock;
 	let transaction;
@@ -47,15 +48,18 @@ describe('outTransfer', () => {
 				Transaction: {
 					isPersisted: sinonSandbox.stub().resolves(),
 				},
-				Block: {
-					get: sinonSandbox.stub().resolves([dummyBlock]),
-				},
 			},
 		};
 
 		accountsStub = {
 			mergeAccountAndGet: sinonSandbox.stub().callsArg(1),
 			setAccountAndGet: sinonSandbox.stub().callsArg(1),
+		};
+
+		blocksStub = {
+			lastBlock: {
+				get: sinonSandbox.stub().returns(dummyBlock),
+			},
 		};
 
 		dummyBlock = {
@@ -77,7 +81,7 @@ describe('outTransfer', () => {
 			schema: modulesLoader.scope.schema,
 		});
 
-		return outTransfer.bind(accountsStub);
+		return outTransfer.bind(accountsStub, blocksStub);
 	});
 
 	describe('constructor', () => {
@@ -112,7 +116,7 @@ describe('outTransfer', () => {
 		let modules;
 
 		beforeEach(done => {
-			outTransfer.bind(accountsStub);
+			outTransfer.bind(accountsStub, blocksStub);
 			modules = OutTransfer.__get__('__scope.modules');
 			done();
 		});
@@ -122,6 +126,11 @@ describe('outTransfer', () => {
 				expect(modules)
 					.to.have.property('accounts')
 					.eql(accountsStub));
+
+			it('should assign blocks', async () =>
+				expect(modules)
+					.to.have.property('blocks')
+					.eql(blocksStub));
 		});
 	});
 
@@ -132,11 +141,12 @@ describe('outTransfer', () => {
 	});
 
 	describe('verify', () => {
-		beforeEach(() => outTransfer.bind(accountsStub));
+		beforeEach(() => outTransfer.bind(accountsStub, blocksStub));
 
-		it('should call __scope.components.storage.entities.Block.get once', async () => {
+		it('should call modules.blocks.lastBlock.get', done => {
 			outTransfer.verify(transaction, sender, () => {
-				expect(storageStub.entities.Block.get).to.be.calledOnce;
+				expect(blocksStub.lastBlock.get).to.be.calledOnce;
+				done();
 			});
 		});
 

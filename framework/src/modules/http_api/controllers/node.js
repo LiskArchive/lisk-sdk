@@ -45,6 +45,7 @@ function NodeController(scope) {
 		},
 		config: scope.config,
 		channel: scope.channel,
+		applicationState: scope.applicationState,
 	};
 }
 
@@ -63,12 +64,7 @@ NodeController.getConstants = async (context, next) => {
 	}
 
 	try {
-		const [lastBlock] = await library.components.storage.entities.Block.get(
-			{},
-			{ sort: 'height:desc', limit: 1 }
-		);
-		const { height } = lastBlock;
-
+		const { height } = library.applicationState;
 		const milestone = await library.channel.invoke('chain:calculateMilestone', {
 			height,
 		});
@@ -119,7 +115,6 @@ NodeController.getConstants = async (context, next) => {
 NodeController.getStatus = async (context, next) => {
 	try {
 		const {
-			broadhash,
 			consensus,
 			secondsSinceEpoch,
 			loaded,
@@ -130,7 +125,7 @@ NodeController.getStatus = async (context, next) => {
 		} = await library.channel.invoke('chain:getNodeStatus');
 
 		const data = {
-			broadhash,
+			broadhash: library.applicationState.broadhash,
 			consensus: consensus || 0,
 			currentTime: Date.now(),
 			secondsSinceEpoch,

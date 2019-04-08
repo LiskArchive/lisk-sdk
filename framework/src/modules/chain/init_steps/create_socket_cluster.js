@@ -38,7 +38,6 @@ module.exports = async ({
 		blackListedPeers: config.network.access.blackList,
 		components: {
 			logger: config.loggerConfig,
-			system: config.systemConfig,
 		},
 	};
 

@@ -31,7 +31,6 @@ const {
 	MAX_SHARED_TRANSACTIONS,
 } = global.constants;
 // Private fields
-let components;
 let modules;
 let library;
 let self;
@@ -84,6 +83,7 @@ class Transport {
 					active: scope.config.broadcasts.active,
 				},
 			},
+			applicationState: scope.applicationState,
 		};
 		self = this;
 
@@ -297,15 +297,11 @@ Transport.prototype.poorConsensus = function() {
 
 // Events
 /**
- * Bounds scope to private broadcaster amd initialize headers.
+ * Bounds scope to private broadcaster amd initialize modules.
  *
- * @param {modules, components} scope - Loaded modules and components
+ * @param {modules} scope - Exposed modules
  */
 Transport.prototype.onBind = function(scope) {
-	components = {
-		system: scope.components.system,
-	};
-
 	modules = {
 		blocks: scope.modules.blocks,
 		dapps: scope.modules.dapps,
@@ -449,10 +445,13 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 	if (block.reward) {
 		block.reward = block.reward.toNumber();
 	}
+
+	const { broadhash } = library.applicationState;
+
 	// Perform actual broadcast operation
 	__private.broadcaster.broadcast(
 		{
-			broadhash: components.system.headers.broadhash,
+			broadhash,
 		},
 		{ api: 'postBlock', data: { block }, immediate: true }
 	);
@@ -477,7 +476,7 @@ Transport.prototype.cleanup = function(cb) {
  * @todo Add description for the return value
  */
 Transport.prototype.isLoaded = function() {
-	return components && modules && __private.loaded;
+	return modules && __private.loaded;
 };
 
 // Internal API
@@ -675,9 +674,10 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	height(req, cb) {
+		const { height } = library.applicationState;
 		return setImmediate(cb, null, {
 			success: true,
-			height: components.system.headers.height,
+			height,
 		});
 	},
 
@@ -689,16 +689,24 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	status(req, cb) {
-		const headers = components.system.headers;
+		const {
+			height,
+			broadhash,
+			nonce,
+			httpPort,
+			version,
+			protocolVersion,
+			os,
+		} = library.applicationState;
 		return setImmediate(cb, null, {
 			success: true,
-			height: headers.height,
-			broadhash: headers.broadhash,
-			nonce: headers.nonce,
-			httpPort: headers.httpPort,
-			version: headers.version,
-			protocolVersion: headers.protocolVersion,
-			os: headers.os,
+			height,
+			broadhash,
+			nonce,
+			httpPort,
+			version,
+			protocolVersion,
+			os,
 		});
 	},
 

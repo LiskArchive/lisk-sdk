@@ -25,7 +25,7 @@ const definitions = require('../../../../../src/modules/chain/schema/definitions
 
 const { REWARDS } = global.constants;
 
-describe('system test (blocks) - process', () => {
+describe('integration test (blocks) - process', () => {
 	let blocksProcess;
 	let blocks;
 	let storage;
@@ -41,7 +41,7 @@ describe('system test (blocks) - process', () => {
 		blockVersion.currentBlockVersion = 0;
 
 		application.init(
-			{ sandbox: { name: 'system_blocks_process' } },
+			{ sandbox: { name: 'blocks_process' } },
 			(err, scopeInit) => {
 				blocksProcess = scopeInit.modules.blocks.process;
 				blocks = scopeInit.modules.blocks;

@@ -25,7 +25,7 @@ const localCommon = require('../../common');
 
 const { TRANSACTION_TYPES } = global.constants;
 
-describe('system test (type 4) - checking registered multisignature transaction against other transaction types', () => {
+describe('integration test (type 4) - checking registered multisignature transaction against other transaction types', () => {
 	let library;
 
 	const scenarios = {
@@ -50,7 +50,7 @@ describe('system test (type 4) - checking registered multisignature transaction 
 		return scenarios.regular.multiSigTransaction.signatures.push(signature);
 	});
 
-	localCommon.beforeBlock('system_4_X_multisig_validated', lib => {
+	localCommon.beforeBlock('4_X_multisig_validated', lib => {
 		library = lib;
 	});
 
