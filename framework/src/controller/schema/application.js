@@ -212,6 +212,8 @@ module.exports = {
 					nethash: {
 						type: 'string',
 						format: 'hex',
+						minLength: 64,
+						maxLength: 64,
 					},
 					version: {
 						type: 'string',
