@@ -303,14 +303,19 @@ describe('GET /accounts', () => {
 
 			it('using no sort return accounts sorted by both balance and address in asending order as default behavior', async () => {
 				return accountsEndpoint.makeRequest({}, 200).then(res => {
-					const balances = _.clone(res.body.data);
+					const balances = _.cloneDeep(res.body.data);
 					expect(
 						balances.sort((a, b) => {
 							const aBignumBalance = new Bignum(a.balance);
-							return (
-								aBignumBalance.minus(b.balance) ||
-								a.address.localeCompare(b.address)
-							);
+
+							if (aBignumBalance.gt(b.balance)) {
+								return 1;
+							}
+							if (aBignumBalance.lt(b.balance)) {
+								return -1;
+							}
+
+							return a.address.localeCompare(b.address);
 						})
 					).to.be.eql(res.body.data);
 				});
@@ -320,14 +325,19 @@ describe('GET /accounts', () => {
 				return accountsEndpoint
 					.makeRequest({ sort: 'balance:asc' }, 200)
 					.then(res => {
-						const balances = _.clone(res.body.data);
+						const balances = _.cloneDeep(res.body.data);
 						expect(
 							balances.sort((a, b) => {
 								const aBignumBalance = new Bignum(a.balance);
-								return (
-									aBignumBalance.minus(b.balance) ||
-									a.address.localeCompare(b.address)
-								);
+
+								if (aBignumBalance.gt(b.balance)) {
+									return 1;
+								}
+								if (aBignumBalance.lt(b.balance)) {
+									return -1;
+								}
+
+								return a.address.localeCompare(b.address);
 							})
 						).to.be.eql(res.body.data);
 					});
@@ -337,14 +347,19 @@ describe('GET /accounts', () => {
 				return accountsEndpoint
 					.makeRequest({ sort: 'balance:desc' }, 200)
 					.then(res => {
-						const balances = _.clone(res.body.data);
+						const balances = _.cloneDeep(res.body.data);
 						expect(
 							balances.sort((a, b) => {
-								const bBignumBalance = new Bignum(b.balance);
-								return (
-									bBignumBalance.minus(a.balance) ||
-									a.address.localeCompare(b.address)
-								);
+								const aBignumBalance = new Bignum(a.balance);
+
+								if (aBignumBalance.gt(b.balance)) {
+									return -1;
+								}
+								if (aBignumBalance.lt(b.balance)) {
+									return 1;
+								}
+
+								return a.address.localeCompare(b.address);
 							})
 						).to.be.eql(res.body.data);
 					});

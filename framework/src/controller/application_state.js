@@ -1,4 +1,3 @@
-/* eslint-disable class-methods-use-this */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -16,15 +15,15 @@
 'use strict';
 
 const os = require('os');
-const crypto = require('crypto');
 const _ = require('lodash');
+const assert = require('assert');
 
 const __private = {
 	state: new WeakMap(),
 };
 
 /**
- * Initial state of the entire application.
+ * Initial state of the entire application:
  * - os
  * - version
  * - wsPort
@@ -37,8 +36,8 @@ const __private = {
  * - nonce
  *
  * @class
- * @requires crypto
  * @requires os
+ * @requires lodash
  * @param {Object} initialState - Initial state of the application
  * @param {Object} logger
  */
@@ -81,33 +80,21 @@ class ApplicationState {
 	/**
 	 * Updates broadhash and height values.
 	 *
+	 * @param {broadhash, height} parameters - broadhash and height to update
+	 *
 	 * @returns {Promise.<boolean, Error>}
+	 * @throws assert.AssertionError
 	 */
-	async update(blocks) {
-		if (!blocks) {
-			throw new TypeError('Argument blocks should be an array.');
-		}
+	async update({ broadhash, height }) {
+		assert(broadhash, 'broadhash is required to update application state.');
+		assert(height, 'height is required to update application state.');
 		try {
 			const newState = this.state;
-			if (blocks.length <= 1) {
-				newState.broadhash = newState.nethash;
-				__private.state.set(this, newState);
-				this.logger.debug('Application state', this.state);
-				this.stateChannel.publish('app:state:updated', this.state);
-				return true;
-			}
-
-			newState.height = blocks[0].height;
-			const seed = blocks.map(row => row.id).join('');
-			const newBroadhash = crypto
-				.createHash('sha256')
-				.update(seed, 'utf8')
-				.digest()
-				.toString('hex');
-			newState.broadhash = newBroadhash;
+			newState.broadhash = broadhash;
+			newState.height = height;
 			__private.state.set(this, newState);
 			this.logger.debug('Application state', this.state);
-			this.stateChannel.publish('app:state:updated', this.state);
+			await this.stateChannel.publish('app:state:updated', this.state);
 			return true;
 		} catch (err) {
 			this.logger.error(err.stack);

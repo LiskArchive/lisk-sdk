@@ -1,6 +1,6 @@
 {
 	"name": "lisk",
-	"version": "1.6.0-alpha.4",
+	"version": "1.6.0-rc.1",
 	"description": "Lisk blockchain application platform",
 	"author":
 		"Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",

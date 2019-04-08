@@ -592,12 +592,16 @@ describe('round', () => {
 	describe('rewardsAtRound', () => {
 		const validLocalScope = _.cloneDeep(validScope);
 		const rewardsAt = 2;
+		const roundExceptionCopy = _.clone(global.exceptions.rounds);
 
-		beforeEach(done => {
+		beforeEach(async () => {
 			validLocalScope.round = 1;
 			validLocalScope.roundFees = 500;
 			validLocalScope.roundRewards = [0, 0, 100, 10];
-			done();
+		});
+
+		afterEach(async () => {
+			global.exceptions.rounds = roundExceptionCopy;
 		});
 
 		it('should calculate round changes from valid scope', async () => {
@@ -635,6 +639,19 @@ describe('round', () => {
 
 			const expectedBalance = 1779894192932990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990199; // 1.7976931348623157e+308 / 101 (delegates num) + 100
 			return expect(res.balance).equal(expectedBalance);
+		});
+
+		it('should not mutate roundRewards if round exception exists', () => {
+			const [rewards_factor, fees_factor, fees_bonus] = [2, 2, 10000000];
+			global.exceptions.rounds = {
+				[scope.round]: { rewards_factor, fees_factor, fees_bonus },
+			};
+			const roundRewards = _.clone(validLocalScope.roundRewards);
+
+			round = new Round(validLocalScope, task);
+			round.rewardsAtRound(rewardsAt);
+
+			return expect(roundRewards).to.deep.equal(validLocalScope.roundRewards);
 		});
 	});
 

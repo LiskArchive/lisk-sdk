@@ -1,3 +1,4 @@
+CP := gcp
 DATE := gdate
 GNUPG := gpg
 INSTALL := ginstall
