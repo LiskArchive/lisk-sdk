@@ -1,5 +1,6 @@
 const assert = require('assert');
 const randomstring = require('randomstring');
+const _ = require('lodash');
 const Controller = require('./controller');
 const version = require('../version');
 const validator = require('./helpers/validator');
@@ -71,7 +72,7 @@ class Application {
 	 * @param {string|function} label - Application label used in logs. Useful if you have multiple networks for same application.
 	 * @param {Object} genesisBlock - Genesis block object
 	 * @param {Object} [constants] - Override constants
-	 * @param {Object} [config] - Main configuration object
+	 * @param {Object|Array.<Object>} [config] - Main configuration object or the array of objects, array format will facilitate user to not deep merge the objects
 	 * @param {Object} [config.components] - Configurations for components
 	 * @param {Object} [config.components.logger] - Configuration for logger component
 	 * @param {Object} [config.components.cache] - Configuration for cache component
@@ -90,36 +91,49 @@ class Application {
 		constants = {},
 		config = { components: { logger: null }, modules: {} }
 	) {
-		if (typeof label === 'function') {
-			label = label.call();
+		let appConfig;
+
+		// If user passes multiple config objects merge them in left-right order
+		if (Array.isArray(config)) {
+			appConfig = _.mergeWith(
+				{ components: {}, modules: {} },
+				...config,
+				(objValue, srcValue) => {
+					if (_.isArray(objValue)) {
+						return srcValue;
+					}
+					return undefined;
+				}
+			);
+		} else {
+			appConfig = config;
 		}
 
-		if (!config.components.logger) {
-			config.components.logger = {
-				logFileName: `${process.cwd()}/logs/${label}/lisk.log`,
+		const appLabel =
+			typeof label === 'function' ? label.call(null, appConfig) : label;
+
+		if (!appConfig.components.logger) {
+			appConfig.components.logger = {
+				logFileName: `${process.cwd()}/logs/${appLabel}/lisk.log`,
 			};
 		}
 
 		validator.loadSchema(applicationSchema);
 		validator.loadSchema(constantsSchema);
-		validator.validate(applicationSchema.appLabel, label);
-		validator.validate(applicationSchema.config, config);
+		validator.validate(applicationSchema.appLabel, appLabel);
+		validator.validate(applicationSchema.config, appConfig);
 		constants = validator.validateWithDefaults(
 			constantsSchema.constants,
 			constants
 		);
-
-		// TODO: This should be removed after https://github.com/LiskHQ/lisk/pull/2980
-		global.constants = constants;
 
 		validator.validate(applicationSchema.genesisBlock, genesisBlock);
 
 		// TODO: Validate schema for genesis block, constants, exceptions
 		this.genesisBlock = genesisBlock;
 		this.constants = constants;
-		this.label = label;
-		this.banner = `${label || 'LiskApp'} - Lisk Framework(${version})`;
-		this.config = Object.assign({ components: {}, modules: {} }, config);
+		this.label = appLabel;
+		this.config = appConfig;
 		this.controller = null;
 
 		this.logger = createLoggerComponent(this.config.components.logger);
@@ -252,14 +266,24 @@ class Application {
 	 * @return {Promise.<void>}
 	 */
 	async run() {
-		this.logger.info(`Starting the app - ${this.banner}`);
+		this.logger.info(`Booting the application with Lisk Framework(${version})`);
+
 		// Freeze every module and configuration so it would not interrupt the app execution
 		this._compileAndValidateConfigurations();
+
+		// Check if label is a function, then call that function to get the label
+		// This is because user can pass a function generator function instead of string
+		if (typeof this.label === 'function') {
+			this.label = this.label.call(this, this.config);
+		}
+		validator.validate(applicationSchema.appLabel, this.label);
 
 		Object.freeze(this.genesisBlock);
 		Object.freeze(this.constants);
 		Object.freeze(this.label);
 		Object.freeze(this.config);
+
+		this.logger.info(`Starting the app - ${this.label || 'LiskApp'}`);
 
 		registerProcessHooks(this);
 
@@ -329,13 +353,13 @@ class Application {
 		};
 
 		this.config.initialState = {
-			nethash: this.config.nethash,
+			nethash: sharedConfiguration.nethash,
 			version: this.config.version,
 			wsPort: this.config.modules.chain.network.wsPort,
 			httpPort: this.config.modules.http_api.httpPort,
 			minVersion: this.config.minVersion,
 			protocolVersion: this.config.protocolVersion,
-			nonce: this.config.nonce,
+			nonce: sharedConfiguration.nonce,
 		};
 
 		this.logger.trace('Compiled configurations', this.config);
