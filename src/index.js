@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const packageJSON = require('../package');
+
 const { Application, helpers: { validator } } = require('../framework/src');
 
 const packageInfo = {

@@ -21,7 +21,7 @@ const {
 const Scenarios = require('../../../common/scenarios');
 const localCommon = require('../../common');
 
-describe('system test (type 4) - double multisignature registrations', () => {
+describe('integration test (type 4) - double multisignature registrations', () => {
 	let library;
 
 	const scenarios = {
@@ -54,7 +54,7 @@ describe('system test (type 4) - double multisignature registrations', () => {
 		return scenarios.regular.multiSigTransaction.signatures.push(signature);
 	});
 
-	localCommon.beforeBlock('system_4_4_multisig', lib => {
+	localCommon.beforeBlock('4_4_multisig', lib => {
 		library = lib;
 	});
 

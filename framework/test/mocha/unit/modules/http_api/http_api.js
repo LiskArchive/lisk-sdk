@@ -33,6 +33,7 @@ describe('HttpApi', () => {
 	beforeEach(async () => {
 		stubs.channel = {
 			invoke: sinonSandbox.stub(),
+			subscribe: sinonSandbox.stub(),
 		};
 		stubs.options = {
 			constants: {
@@ -71,9 +72,9 @@ describe('HttpApi', () => {
 		stubs.channel.invoke
 			.withArgs('lisk:getComponentConfig', 'cache')
 			.resolves(cacheConfig);
+		stubs.channel.invoke.withArgs('lisk:getApplicationState').resolves({});
 
 		HttpApi.__set__('createLoggerComponent', stubs.createLoggerComponent);
-		HttpApi.__set__('createSystemComponent', stubs.createSystemComponent);
 		HttpApi.__set__('createCacheComponent', stubs.createCacheComponent);
 		HttpApi.__set__('createStorageComponent', stubs.createStorageComponent);
 		HttpApi.__set__('bootstrapCache', stubs.bootstrapCache);
@@ -188,6 +189,7 @@ describe('HttpApi', () => {
 		});
 		it('should initialize scope object with valid structure and assign it to object instance', async () => {
 			expect(httpApi.scope).to.be.deep.equal({
+				applicationState: {},
 				components: {
 					cache: stubs.cache,
 					logger: stubs.logger,

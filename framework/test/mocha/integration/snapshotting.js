@@ -31,7 +31,7 @@ describe('snapshotting', () => {
 	// Set rewards start at 150-th block
 	REWARDS.OFFSET = 150;
 
-	localCommon.beforeBlock('lisk_functional_snapshotting', lib => {
+	localCommon.beforeBlock('snapshotting', lib => {
 		library = lib;
 		Queries = new QueriesHelper(lib, lib.components.storage);
 
