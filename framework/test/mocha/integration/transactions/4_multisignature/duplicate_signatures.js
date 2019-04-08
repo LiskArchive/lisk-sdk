@@ -528,6 +528,12 @@ describe('duplicate_signatures', () => {
 							},
 						]),
 						(err, results) => {
+							console.log(results);
+							console.log('^'.repeat(20));
+							console.log(results[1].error);
+							console.log('^'.repeat(20));
+							console.log(results[1].error.message);
+							console.log('^'.repeat(20));
 							// There should be an error from processing only for duplicated signature
 							expect(results[0].value).to.be.undefined;
 							expect(results[1].error.message).to.eql(
@@ -544,7 +550,7 @@ describe('duplicate_signatures', () => {
 
 							// There should be 2 signatures
 							expect(transaction.signatures).to.have.lengthOf(2);
-							done();
+							done(err);
 						}
 					);
 				});
