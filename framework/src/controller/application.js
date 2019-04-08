@@ -5,6 +5,10 @@ const version = require('../version');
 const validator = require('./helpers/validator');
 const applicationSchema = require('./schema/application');
 const constantsSchema = require('./schema/constants');
+
+/* As for now we don't support this constants to be configured
+by the user. This will change in the future */
+const nonConfigurableConstants = require('./constants');
 const { createLoggerComponent } = require('../components/logger');
 
 const ChainModule = require('../modules/chain');
@@ -44,68 +48,6 @@ const registerProcessHooks = app => {
 	process.once('cleanup', (error, code) => app.shutdown(code, error));
 
 	process.once('exit', (error, code) => app.shutdown(code, error));
-};
-
-/* As for now we don't support this constants to be configured
-by the user. This will change in the future */
-const nonConfigurableConstants = {
-	ACTIVE_DELEGATES: 101,
-	MAX_VOTES_PER_ACCOUNT: 101,
-	BLOCK_SLOT_WINDOW: 5,
-	ADDITIONAL_DATA: {
-		MIN_LENGTH: 1,
-		MAX_LENGTH: 64,
-	},
-	BLOCK_RECEIPT_TIMEOUT: 20,
-	FEES: {
-		SEND: '10000000',
-		VOTE: '100000000',
-		SECOND_SIGNATURE: '500000000',
-		DELEGATE: '2500000000',
-		MULTISIGNATURE: '500000000',
-		DAPP_REGISTRATION: '2500000000',
-		DAPP_WITHDRAWAL: '10000000',
-		DAPP_DEPOSIT: '10000000',
-	},
-	MAX_PAYLOAD_LENGTH: 1024 * 1024,
-	MAX_PEERS: 100,
-	MAX_SHARED_TRANSACTIONS: 100,
-	MAX_VOTES_PER_TRANSACTION: 33,
-	MIN_BROADHASH_CONSENSUS: 51,
-	MULTISIG_CONSTRAINTS: {
-		MIN: {
-			MINIMUM: 1,
-			MAXIMUM: 15,
-		},
-		LIFETIME: {
-			MINIMUM: 1,
-			MAXIMUM: 72,
-		},
-		KEYSGROUP: {
-			MIN_ITEMS: 1,
-			MAX_ITEMS: 15,
-		},
-	},
-	NETHASHES: [
-		// Mainnet
-		'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-		// Testnet
-		'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-	],
-	NORMALIZER: '100000000',
-	TOTAL_AMOUNT: '10000000000000000',
-	TRANSACTION_TYPES: {
-		SEND: 0,
-		SIGNATURE: 1,
-		DELEGATE: 2,
-		VOTE: 3,
-		MULTI: 4,
-		DAPP: 5,
-		IN_TRANSFER: 6,
-		OUT_TRANSFER: 7,
-	},
-	UNCONFIRMED_TRANSACTION_TIMEOUT: 10800,
-	EXPIRY_INTERVAL: 30000,
 };
 
 /**
