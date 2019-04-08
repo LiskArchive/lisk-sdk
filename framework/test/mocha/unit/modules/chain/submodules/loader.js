@@ -511,6 +511,17 @@ describe('loader', () => {
 
 				__privateVar.createSnapshot(blocksAvailable);
 			});
+
+			it('and should not throw an error when called with snapshotRound = integer as string', done => {
+				libraryVar.config.loading.snapshotRound = '2';
+
+				__privateVar.snapshotFinished = err => {
+					expect(err).to.not.exist;
+					done();
+				};
+
+				__privateVar.createSnapshot(ACTIVE_DELEGATES);
+			});
 		});
 	});
 
