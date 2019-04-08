@@ -66,6 +66,8 @@ module.exports = class ChainModule extends BaseModule {
 				this.chain.actions.getForgersPublicKeys(),
 			getTransactionsFromPool: async action =>
 				this.chain.actions.getTransactionsFromPool(action),
+			getTransactions: async () => this.chain.actions.getTransactions(),
+			getSignatures: async () => this.chain.actions.getSignatures(),
 			getLastCommit: async () => this.chain.actions.getLastCommit(),
 			getBuild: async () => this.chain.actions.getBuild(),
 			postTransaction: async action =>
@@ -75,6 +77,7 @@ module.exports = class ChainModule extends BaseModule {
 			getSlotNumber: async action => this.chain.actions.getSlotNumber(action),
 			calcSlotRound: async action => this.chain.actions.calcSlotRound(action),
 			getNodeStatus: async () => this.chain.actions.getNodeStatus(),
+			blocks: async action => this.chain.actions.blocks(action),
 		};
 	}
 

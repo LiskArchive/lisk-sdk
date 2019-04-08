@@ -21,7 +21,6 @@ const modulesLoader = require('../../../common/modules_loader');
 const clearDatabaseTable = require('../../../common/storage_sandbox')
 	.clearDatabaseTable;
 const loadTables = require('./process_tables_data.json');
-const definitions = require('../../../../../src/modules/chain/schema/definitions');
 
 const { REWARDS } = global.constants;
 
@@ -30,7 +29,6 @@ describe('integration test (blocks) - process', () => {
 	let blocks;
 	let storage;
 	let originalBlockRewardsOffset;
-	let scope;
 
 	before(done => {
 		// Force rewards start at 150-th block
@@ -46,7 +44,6 @@ describe('integration test (blocks) - process', () => {
 				blocksProcess = scopeInit.modules.blocks.process;
 				blocks = scopeInit.modules.blocks;
 				storage = scopeInit.components.storage;
-				scope = scopeInit;
 				done(err);
 			}
 		);
@@ -128,95 +125,6 @@ describe('integration test (blocks) - process', () => {
 				return done();
 			}
 		);
-	});
-
-	describe('getCommonBlock()', () => {
-		describe('validation with definitions.CommonBlock', () => {
-			let validCommonBlock;
-			const blockHeightTwo = {
-				id: '3082931137036442832',
-				previousBlock: '6524861224470851795',
-				timestamp: '52684260',
-				height: 2,
-			};
-
-			let commonBlockValidationError;
-
-			beforeEach(() => {
-				return scope.schema.validate(
-					validCommonBlock,
-					definitions.CommonBlock,
-					err => {
-						commonBlockValidationError = err;
-					}
-				);
-			});
-
-			describe('when rpc.commonBlock call returns valid result', () => {
-				before(done => {
-					validCommonBlock = Object.assign({}, blockHeightTwo);
-					done();
-				});
-
-				it('should return undefined error', async () => {
-					return expect(commonBlockValidationError).to.be.undefined;
-				});
-			});
-
-			describe('when rpc.commonBlock call returns invalid result', () => {
-				describe('when id = null', () => {
-					before(done => {
-						validCommonBlock = Object.assign({}, blockHeightTwo);
-						validCommonBlock.id = null;
-						done();
-					});
-
-					it('should return array of errors', async () => {
-						return expect(commonBlockValidationError)
-							.to.be.an('array')
-							.of.length(1);
-					});
-
-					it('should return error containing message', async () => {
-						return expect(commonBlockValidationError)
-							.to.have.nested.property('0.message')
-							.equal('Expected type string but found type null');
-					});
-
-					it('should return error containing path', async () => {
-						return expect(commonBlockValidationError)
-							.to.have.nested.property('0.path')
-							.equal('#/id');
-					});
-				});
-
-				describe('when previousBlock = null', () => {
-					before(done => {
-						validCommonBlock = Object.assign({}, blockHeightTwo);
-						validCommonBlock.previousBlock = null;
-						done();
-					});
-
-					it('should return array of errors', async () => {
-						return expect(commonBlockValidationError)
-							.to.be.an('array')
-							.of.length(1);
-					});
-
-					it('should return error containing message', async () => {
-						return expect(commonBlockValidationError)
-							.to.have.nested.property('0.message')
-							.equal('Expected type string but found type null');
-					});
-
-					it('should return error containing path', async () => {
-						return expect(commonBlockValidationError)
-							.to.have.nested.property('0.path')
-							.equal('#/previousBlock');
-					});
-				});
-			});
-		});
 	});
 
 	describe('loadBlocksOffset() - no errors', () => {
