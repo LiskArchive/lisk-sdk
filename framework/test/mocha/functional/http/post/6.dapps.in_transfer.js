@@ -31,7 +31,8 @@ const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 // FIXME: this function was used from transactions library, but it doesn't exist
 const createInTransfer = () => {};
 
-describe('POST /api/transactions (type 6) inTransfer dapp', () => {
+// eslint-disable-next-line
+describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/transactions (type 6) inTransfer dapp', () => {
 	let transaction;
 	const transactionsToWaitFor = [];
 	const badTransactions = [];
