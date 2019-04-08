@@ -510,19 +510,25 @@ Peers.prototype.getLastConsensus = function() {
 /**
  * Calculates consensus for as a ratio active to matched peers.
  *
- * @returns {number} Consensus or undefined if config.forging.force = true
+ * @returns {Promise.<number, Error>} Consensus or undefined if config.forging.force = true
  */
-Peers.prototype.calculateConsensus = function() {
-	const active = library.logic.peers
-		.list(true)
-		.filter(peer => peer.state === Peer.STATE.CONNECTED);
+Peers.prototype.calculateConsensus = async function() {
 	const { broadhash } = library.applicationState;
-	const matched = active.filter(peer => peer.broadhash === broadhash);
-	const activeCount = Math.min(active.length, MAX_PEERS);
-	const matchedCount = Math.min(matched.length, activeCount);
-	const consensus = +(matchedCount / activeCount * 100).toPrecision(2);
-	self.consensus = Number.isNaN(consensus) ? 0 : consensus;
-	return self.consensus;
+	try {
+		const activeCount = await library.channel.invoke(
+			'network:getPeersCountByFilter',
+			{ state: Peer.STATE.CONNECTED }
+		);
+		const matchedCount = await library.channel.invoke(
+			'network:getPeersCountByFilter',
+			{ broadhash }
+		);
+		const consensus = +(matchedCount / activeCount * 100).toPrecision(2);
+		self.consensus = Number.isNaN(consensus) ? 0 : consensus;
+		return self.consensus;
+	} catch (error) {
+		throw error;
+	}
 };
 
 // Public methods
