@@ -395,7 +395,7 @@ history.migrate(
 		process.env.LISK_NETWORK = network;
 		process.env.LISK_CONFIG_FILE = tempFilePath;
 
-		// TODO: Add a replacement lgoic for config helper
+		// TODO: Add a replacement logic for config helper
 		// new AppConfig(packageJSON, false);
 
 		console.info('Validation finished successfully.');
