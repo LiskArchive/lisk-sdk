@@ -219,7 +219,7 @@ const getenv = (variable, defaultValue = null, isBoolean = false) => {
 
 function loadJSONFile(filePath) {
 	try {
-		filePath = path.join(rootPath, filePath);
+		filePath = path.resolve(rootPath, filePath);
 		return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 	} catch (err) {
 		console.error(`Failed to load file: ${filePath}`);

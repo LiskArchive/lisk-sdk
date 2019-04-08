@@ -1,7 +1,6 @@
 const path = require('path');
 const { Application } = require('../framework/src');
 
-// TODO: Remove the use this config helper
 const packageJSON = require('../package');
 let config = require('../config/devnet/config');
 const constants = require('../config/devnet/constants');

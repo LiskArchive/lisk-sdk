@@ -268,6 +268,7 @@ describe('loader', () => {
 			};
 
 			const bindingsStub = {
+				applicationState: sinonSandbox.stub(),
 				components: {
 					cache: sinonSandbox.stub(),
 				},
@@ -278,7 +279,6 @@ describe('loader', () => {
 					rounds: sinonSandbox.stub(),
 					transport: sinonSandbox.stub(),
 					multisignatures: sinonSandbox.stub(),
-					system: sinonSandbox.stub(),
 				},
 				swagger: { definitions: null },
 			};
@@ -301,6 +301,76 @@ describe('loader', () => {
 				expect(err).to.exist;
 				expect(err.message).to.eql(
 					'Unable to create snapshot, blockchain should contain at least one round of blocks'
+				);
+				done();
+			}
+		});
+
+		it('should throw an error when called with snapshotRound = string', done => {
+			try {
+				libraryVar.config.loading.snapshotRound = 'type string = invalid';
+
+				__privateVar.createSnapshot(ACTIVE_DELEGATES);
+			} catch (err) {
+				expect(err).to.exist;
+				expect(err.message).to.eql(
+					'Unable to create snapshot, "--snapshot" parameter should be an integer equal to or greater than zero'
+				);
+				done();
+			}
+		});
+
+		it('should throw an error when called with snapshotRound = boolean', done => {
+			try {
+				libraryVar.config.loading.snapshotRound = true;
+
+				__privateVar.createSnapshot(ACTIVE_DELEGATES);
+			} catch (err) {
+				expect(err).to.exist;
+				expect(err.message).to.eql(
+					'Unable to create snapshot, "--snapshot" parameter should be an integer equal to or greater than zero'
+				);
+				done();
+			}
+		});
+
+		it('should throw an error when called with snapshotRound = integer as string', done => {
+			try {
+				libraryVar.config.loading.snapshotRound = '2';
+
+				__privateVar.createSnapshot(ACTIVE_DELEGATES);
+			} catch (err) {
+				expect(err).to.exist;
+				expect(err.message).to.eql(
+					'Unable to create snapshot, "--snapshot" parameter should be an integer equal to or greater than zero'
+				);
+				done();
+			}
+		});
+
+		it('should throw an error when called with snapshotRound = ""', done => {
+			try {
+				libraryVar.config.loading.snapshotRound = '';
+
+				__privateVar.createSnapshot(ACTIVE_DELEGATES);
+			} catch (err) {
+				expect(err).to.exist;
+				expect(err.message).to.eql(
+					'Unable to create snapshot, "--snapshot" parameter should be an integer equal to or greater than zero'
+				);
+				done();
+			}
+		});
+
+		it('should throw an error when called with snapshotRound = undefined', done => {
+			try {
+				libraryVar.config.loading.snapshotRound = undefined;
+
+				__privateVar.createSnapshot(ACTIVE_DELEGATES);
+			} catch (err) {
+				expect(err).to.exist;
+				expect(err.message).to.eql(
+					'Unable to create snapshot, "--snapshot" parameter should be an integer equal to or greater than zero'
 				);
 				done();
 			}
@@ -341,6 +411,8 @@ describe('loader', () => {
 			let blocksAvailable;
 			let deleteBlocksAfterHeight;
 			let snapshotRound;
+
+			afterEach(() => sinonSandbox.restore());
 
 			it('and snapshot to end of round 1 when snapshotRound = 1 and 101 blocks available', done => {
 				snapshotRound = 1;

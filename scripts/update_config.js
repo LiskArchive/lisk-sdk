@@ -32,8 +32,8 @@ const {
 const tempy = require('tempy');
 const { observableDiff, applyChange } = require('deep-diff');
 const JSONHistory = require('./json_history');
-const AppConfig = require('../helpers/config');
-const packageJSON = require('../../../../../package.json');
+const AppConfig = require('../framework/src/modules/chain/helpers/config');
+const packageJSON = require('../package.json');
 
 const rootPath = path.resolve(path.dirname(__filename), '../../../../../');
 const loadJSONFile = filePath => JSON.parse(fs.readFileSync(filePath), 'utf8');

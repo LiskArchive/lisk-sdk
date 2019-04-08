@@ -4,13 +4,14 @@ const applicationSchema = require('../../../../../src/controller/schema/applicat
 const constantsSchema = require('../../../../../src/controller/schema/constants');
 const version = require('../../../../../src/version');
 
+jest.mock('../../../../../src/components/logger');
 jest.mock('../../../../../src/controller/helpers/validator');
 jest.mock('../../../../../src/components/logger');
 
 describe('Application', () => {
 	// Arrange
 	const params = {
-		label: '#LABEL',
+		label: 'jest-unit',
 		genesisBlock: {},
 		constants: {},
 		config: { components: { logger: null }, modules: {} },
@@ -19,7 +20,7 @@ describe('Application', () => {
 	describe('#constructor', () => {
 		it('should accept function as label argument', () => {
 			// Arrange
-			const labelFn = () => '#LABEL';
+			const labelFn = () => 'jest-unit';
 
 			// Act
 			const app = new Application(

@@ -21,9 +21,9 @@ const localCommon = require('../../common');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test (type 2) - double delegate registrations', () => {
+describe('integration test (type 2) - double delegate registrations', () => {
 	let library;
-	localCommon.beforeBlock('system_2_2_delegates_3', lib => {
+	localCommon.beforeBlock('2_2_delegates_3', lib => {
 		library = lib;
 	});
 
