@@ -70,7 +70,7 @@ function Config(packageJson, parseCommandLineOptions = true) {
 		.option('-a, --address <ip>', 'listening host name or ip')
 		.option('-x, --peers [peers...]', 'peers list')
 		.option('-l, --log <level>', 'log level')
-		.option('-s, --snapshot <round>', 'verify snapshot')
+		.option('--rebuild <round>', 'rebuild chain from Genesis')
 		.option('--inspect-workers', 'inspect worker processes')
 		.option('--inspect-brokers', 'inspect broker processes');
 
@@ -146,7 +146,7 @@ function Config(packageJson, parseCommandLineOptions = true) {
 				whiteList: extractWhiteListIPs(process.env.LISK_FORGING_WHITELIST),
 			},
 		},
-		loading: { snapshotRound: program.snapshot },
+		loading: { rebuildRound: program.rebuild },
 		peers: {
 			list: extractPeersList(
 				program.peers || getenv(process.env.LISK_PEERS),
@@ -192,8 +192,8 @@ function Config(packageJson, parseCommandLineOptions = true) {
 
 		validateForce(appConfig);
 
-		// Adding API READONLY mode and disabling peers, broadcasts, syncing and ws workers when snapshotting mode required
-		if (program.snapshot) {
+		// Adding API READONLY mode and disabling peers, broadcasts, syncing and ws workers when rebuilding mode required
+		if (program.rebuild) {
 			appConfig.api.mode = 'READONLY';
 			appConfig.peers.enabled = false;
 			appConfig.peers.list = [];

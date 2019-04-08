@@ -73,7 +73,7 @@ class Loader {
 			config: {
 				loading: {
 					loadPerIteration: scope.config.loading.loadPerIteration,
-					snapshotRound: scope.config.loading.snapshotRound,
+					rebuildRound: scope.config.loading.rebuildRound,
 				},
 				syncing: {
 					active: scope.config.syncing.active,
@@ -355,7 +355,7 @@ __private.loadTransactions = function(cb) {
  * - count accounts from `mem_accounts` table by block id
  * - get rounds from `mem_round`
  * 2. Matches genesis block with database.
- * 3. Verifies snapshot mode.
+ * 3. Verifies snapshot (rebuild) mode.
  * 4. Recreates memory tables when neccesary:
  *  - Calls logic.account to resetMemTables
  *  - Calls block to load block. When blockchain ready emits a bus message.
@@ -503,7 +503,7 @@ __private.loadBlockChain = function() {
 
 			matchGenesisBlock(getGenesisBlock);
 
-			if (library.config.loading.snapshotRound) {
+			if (library.config.loading.rebuildRound) {
 				return __private.createSnapshot(blocksCount);
 			}
 
@@ -754,18 +754,18 @@ __private.createSnapshot = height => {
 		);
 	}
 
-	const snapshotRound = library.config.loading.snapshotRound;
-	if (Number.isNaN(parseInt(snapshotRound)) || parseInt(snapshotRound) < 0) {
+	const rebuildRound = library.config.loading.rebuildRound;
+	if (Number.isNaN(parseInt(rebuildRound)) || parseInt(rebuildRound) < 0) {
 		throw new Error(
-			'Unable to create snapshot, "--snapshot" parameter should be an integer equal to or greater than zero'
+			'Unable to create snapshot, "--rebuild" parameter should be an integer equal to or greater than zero'
 		);
 	}
 
 	const totalRounds = Math.floor(height / ACTIVE_DELEGATES);
 	const targetRound =
-		parseInt(snapshotRound) === 0
+		parseInt(rebuildRound) === 0
 			? totalRounds
-			: Math.min(totalRounds, parseInt(snapshotRound));
+			: Math.min(totalRounds, parseInt(rebuildRound));
 	const targetHeight = targetRound * ACTIVE_DELEGATES;
 
 	library.logger.info(

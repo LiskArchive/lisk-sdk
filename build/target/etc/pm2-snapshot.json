@@ -13,7 +13,7 @@
 			"kill_timeout": 10000,
 			"max_memory_restart": "2048M",
 			"node_args": "--max_old_space_size=2048",
-			"args": "-c etc/snapshot.json -s highest"
+			"args": "-c etc/snapshot.json --rebuild 0"
 		}
 	]
 }

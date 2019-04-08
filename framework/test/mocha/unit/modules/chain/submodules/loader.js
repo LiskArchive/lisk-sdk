@@ -259,7 +259,7 @@ describe('loader', () => {
 				config: {
 					loading: {
 						loadPerIteration: 1000,
-						snapshotRound: 1,
+						rebuildRound: 1,
 					},
 					syncing: {
 						active: true,
@@ -306,29 +306,29 @@ describe('loader', () => {
 			}
 		});
 
-		it('should throw an error when called with snapshotRound = string', done => {
+		it('should throw an error when called with rebuildRound = string', done => {
 			try {
-				libraryVar.config.loading.snapshotRound = 'type string = invalid';
+				libraryVar.config.loading.rebuildRound = 'type string = invalid';
 
 				__privateVar.createSnapshot(ACTIVE_DELEGATES);
 			} catch (err) {
 				expect(err).to.exist;
 				expect(err.message).to.eql(
-					'Unable to create snapshot, "--snapshot" parameter should be an integer equal to or greater than zero'
+					'Unable to create snapshot, "--rebuild" parameter should be an integer equal to or greater than zero'
 				);
 				done();
 			}
 		});
 
-		it('should throw an error when called with snapshotRound = boolean', done => {
+		it('should throw an error when called with rebuildRound = boolean', done => {
 			try {
-				libraryVar.config.loading.snapshotRound = true;
+				libraryVar.config.loading.rebuildRound = true;
 
 				__privateVar.createSnapshot(ACTIVE_DELEGATES);
 			} catch (err) {
 				expect(err).to.exist;
 				expect(err.message).to.eql(
-					'Unable to create snapshot, "--snapshot" parameter should be an integer equal to or greater than zero'
+					'Unable to create snapshot, "--rebuild" parameter should be an integer equal to or greater than zero'
 				);
 				done();
 			}
@@ -336,27 +336,27 @@ describe('loader', () => {
 
 		it('should throw an error when called with snapshotRound = ""', done => {
 			try {
-				libraryVar.config.loading.snapshotRound = '';
+				libraryVar.config.loading.rebuildRound = '';
 
 				__privateVar.createSnapshot(ACTIVE_DELEGATES);
 			} catch (err) {
 				expect(err).to.exist;
 				expect(err.message).to.eql(
-					'Unable to create snapshot, "--snapshot" parameter should be an integer equal to or greater than zero'
+					'Unable to create snapshot, "--rebuild" parameter should be an integer equal to or greater than zero'
 				);
 				done();
 			}
 		});
 
-		it('should throw an error when called with snapshotRound = undefined', done => {
+		it('should throw an error when called with rebuildRound = undefined', done => {
 			try {
-				libraryVar.config.loading.snapshotRound = undefined;
+				libraryVar.config.loading.rebuildRound = undefined;
 
 				__privateVar.createSnapshot(ACTIVE_DELEGATES);
 			} catch (err) {
 				expect(err).to.exist;
 				expect(err.message).to.eql(
-					'Unable to create snapshot, "--snapshot" parameter should be an integer equal to or greater than zero'
+					'Unable to create snapshot, "--rebuild" parameter should be an integer equal to or greater than zero'
 				);
 				done();
 			}
@@ -396,18 +396,18 @@ describe('loader', () => {
 		describe('should emit an event with no error', () => {
 			let blocksAvailable;
 			let deleteBlocksAfterHeight;
-			let snapshotRound;
+			let rebuildRound;
 
 			afterEach(() => sinonSandbox.restore());
 
-			it('and snapshot to end of round 1 when snapshotRound = 1 and 101 blocks available', done => {
-				snapshotRound = 1;
+			it('and snapshot to end of round 1 when rebuildRound = 1 and 101 blocks available', done => {
+				rebuildRound = 1;
 				blocksAvailable = ACTIVE_DELEGATES;
 				deleteBlocksAfterHeight = {
-					height_gt: ACTIVE_DELEGATES * snapshotRound,
+					height_gt: ACTIVE_DELEGATES * rebuildRound,
 				};
 
-				libraryVar.config.loading.snapshotRound = 1;
+				libraryVar.config.loading.rebuildRound = rebuildRound;
 				__privateVar.snapshotFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub).to.be.calledOnce;
@@ -419,14 +419,14 @@ describe('loader', () => {
 				__privateVar.createSnapshot(blocksAvailable);
 			});
 
-			it('and snapshot to end of round 1 when snapshotRound = 1 and 202 blocks available', done => {
-				snapshotRound = 1;
+			it('and snapshot to end of round 1 when rebuildRound = 1 and 202 blocks available', done => {
+				rebuildRound = 1;
 				blocksAvailable = ACTIVE_DELEGATES * 2;
 				deleteBlocksAfterHeight = {
-					height_gt: ACTIVE_DELEGATES * snapshotRound,
+					height_gt: ACTIVE_DELEGATES * rebuildRound,
 				};
 
-				libraryVar.config.loading.snapshotRound = snapshotRound;
+				libraryVar.config.loading.rebuildRound = rebuildRound;
 
 				__privateVar.snapshotFinished = err => {
 					expect(err).to.not.exist;
@@ -440,14 +440,14 @@ describe('loader', () => {
 				__privateVar.createSnapshot(blocksAvailable);
 			});
 
-			it('and snapshot to end of round 2 when snapshotRound = 2 and 202 blocks available', done => {
-				snapshotRound = 2;
+			it('and snapshot to end of round 2 when rebuildRound = 2 and 202 blocks available', done => {
+				rebuildRound = 2;
 				blocksAvailable = ACTIVE_DELEGATES * 2;
 				deleteBlocksAfterHeight = {
-					height_gt: ACTIVE_DELEGATES * snapshotRound,
+					height_gt: ACTIVE_DELEGATES * rebuildRound,
 				};
 
-				libraryVar.config.loading.snapshotRound = snapshotRound;
+				libraryVar.config.loading.rebuildRound = rebuildRound;
 				__privateVar.snapshotFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub).to.be.calledOnce;
@@ -467,14 +467,14 @@ describe('loader', () => {
 				__privateVar.createSnapshot(blocksAvailable);
 			});
 
-			it('and snapshot to end of round 2 when snapshotRound = 2 and 303 blocks available', done => {
-				snapshotRound = 2;
+			it('and snapshot to end of round 2 when rebuildRound = 2 and 303 blocks available', done => {
+				rebuildRound = 2;
 				blocksAvailable = ACTIVE_DELEGATES * 3;
 				deleteBlocksAfterHeight = {
-					height_gt: ACTIVE_DELEGATES * snapshotRound,
+					height_gt: ACTIVE_DELEGATES * rebuildRound,
 				};
 
-				libraryVar.config.loading.snapshotRound = snapshotRound;
+				libraryVar.config.loading.rebuildRound = rebuildRound;
 				__privateVar.snapshotFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub).to.be.calledOnce;
@@ -494,12 +494,12 @@ describe('loader', () => {
 				__privateVar.createSnapshot(blocksAvailable);
 			});
 
-			it('and snapshot to end of round 1 when snapshotRound = 2 and 101 blocks available', done => {
-				snapshotRound = 2;
+			it('and snapshot to end of round 1 when rebuildRound = 2 and 101 blocks available', done => {
+				rebuildRound = 2;
 				blocksAvailable = ACTIVE_DELEGATES;
 				deleteBlocksAfterHeight = { height_gt: ACTIVE_DELEGATES };
 
-				library.config.loading.snapshotRound = snapshotRound;
+				library.config.loading.rebuildRound = rebuildRound;
 				__privateVar.snapshotFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub).to.be.calledOnce;
