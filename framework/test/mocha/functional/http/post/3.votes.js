@@ -38,7 +38,8 @@ const {
 } = global.constants;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
-describe('POST /api/transactions (type 3) votes', () => {
+// eslint-disable-next-line
+describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/transactions (type 3) votes', () => {
 	let transaction;
 	let transactionsToWaitFor = [];
 	const badTransactions = [];

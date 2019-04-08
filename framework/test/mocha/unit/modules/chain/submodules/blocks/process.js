@@ -354,7 +354,7 @@ describe('blocks/process', () => {
 							expect(loggerStub.error.args[0][0]).to.equal(
 								'Fork recovery failed'
 							);
-							expect(loggerStub.error.args[0][1].name).to.equal(
+							expect(loggerStub.error.args[0][1]).to.equal(
 								'objectNormalize-ERR'
 							);
 							done();
@@ -684,7 +684,7 @@ describe('blocks/process', () => {
 							expect(loggerStub.error.args[0][0]).to.equal(
 								'Fork recovery failed'
 							);
-							expect(loggerStub.error.args[0][1].name).to.equal(
+							expect(loggerStub.error.args[0][1]).to.equal(
 								'objectNormalize-ERR'
 							);
 							done();

@@ -878,7 +878,7 @@ describe('blocks/chain', () => {
 
 				it('should call a callback with error "previousBlock is null"', done => {
 					__private.loadSecondLastBlockStep(blockReduced.id, tx).catch(err => {
-						expect(err).to.equal('previousBlock is null');
+						expect(err.message).to.equal('previousBlock is null');
 						done();
 					});
 				});

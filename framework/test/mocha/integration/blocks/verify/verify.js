@@ -1016,7 +1016,8 @@ describe('blocks/verify', () => {
 
 				blocksVerify.processBlock(block2, false, true, err => {
 					if (err) {
-						expect(err).equal(
+						expect(err).to.be.instanceOf(Error);
+						expect(err.message).equal(
 							'Failed to validate block schema: Missing required property: timestamp'
 						);
 						done();
@@ -1215,7 +1216,8 @@ describe('blocks/verify', () => {
 												false,
 												true,
 												processBlockErr => {
-													expect(processBlockErr).to.equal(
+													expect(processBlockErr).to.be.instanceOf(Error);
+													expect(processBlockErr.message).to.equal(
 														[
 															'Transaction is already confirmed:',
 															transaction.id,

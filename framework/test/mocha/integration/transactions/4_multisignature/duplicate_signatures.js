@@ -529,8 +529,14 @@ describe('duplicate_signatures', () => {
 						]),
 						(err, results) => {
 							// There should be an error from processing only for duplicated signature
-							expect(results[0].value).to.be.undefined;
-							expect(results[1].error.message).to.eql(
+							let errorIndex;
+							let valueIndex;
+							results.forEach((aRes, idx) => {
+								if (Object.hasOwnProperty.call(aRes, 'error')) errorIndex = idx;
+								if (Object.hasOwnProperty.call(aRes, 'value')) valueIndex = idx;
+							});
+							expect(results[valueIndex].value).to.be.undefined;
+							expect(results[errorIndex].error.message).to.eql(
 								`Error processing signature: Signature '${
 									signatures[0].signature
 								}' already present in transaction.`
@@ -544,7 +550,7 @@ describe('duplicate_signatures', () => {
 
 							// There should be 2 signatures
 							expect(transaction.signatures).to.have.lengthOf(2);
-							done();
+							done(err);
 						}
 					);
 				});

@@ -86,7 +86,7 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 							transactionSecondSignature,
 							err => {
 								expect(err).to.equal(
-									`Transaction is already processed: ${
+									`Error: Transaction is already processed: ${
 										transactionSecondSignature.id
 									}`
 								);
@@ -116,7 +116,9 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 							loadedTransaction => {
 								localCommon.addTransaction(library, loadedTransaction, err => {
 									expect(err).to.equal(
-										'Sender does not have a second signature'
+										`Transaction: ${
+											loadedTransaction.id
+										} failed at .signSignature: Sender does not have a secondPublicKey`
 									);
 									done();
 								});

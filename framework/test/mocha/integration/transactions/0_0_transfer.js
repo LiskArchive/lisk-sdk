@@ -85,9 +85,23 @@ describe('integration test (type 0) - double transfers', () => {
 					});
 				});
 
-				it('first transaction to arrive should not be included', done => {
+				it('first transaction to arrive should be included', done => {
 					const filter = {
 						id: transaction1.id,
+					};
+					localCommon.getTransactionFromModule(library, filter, (err, res) => {
+						expect(err).to.be.null;
+						expect(res)
+							.to.have.property('transactions')
+							.which.is.an('Array');
+						expect(res.transactions.length).to.equal(1);
+						done();
+					});
+				});
+
+				it('last transaction to arrive should not be included', done => {
+					const filter = {
+						id: transaction2.id,
 					};
 					localCommon.getTransactionFromModule(library, filter, (err, res) => {
 						expect(err).to.be.null;
@@ -99,24 +113,15 @@ describe('integration test (type 0) - double transfers', () => {
 					});
 				});
 
-				it('last transaction to arrive should be included', done => {
-					const filter = {
-						id: transaction2.id,
-					};
-					localCommon.getTransactionFromModule(library, filter, (err, res) => {
-						expect(err).to.be.null;
-						expect(res)
-							.to.have.property('transactions')
-							.which.is.an('Array');
-						expect(res.transactions.length).to.equal(1);
-						expect(res.transactions[0].id).to.equal(transaction2.id);
-						done();
-					});
-				});
-
 				it('adding to pool transfer for same account should fail', done => {
-					localCommon.addTransaction(library, transaction1, err => {
-						expect(err).to.match(/^Account does not have enough LSK: /);
+					localCommon.addTransaction(library, transaction2, err => {
+						expect(err).to.be.equal(
+							`Transaction: ${
+								transaction2.id
+							} failed at .balance: Account does not have enough LSK: ${
+								account.address
+							}, balance: 99.9`
+						);
 						done();
 					});
 				});
