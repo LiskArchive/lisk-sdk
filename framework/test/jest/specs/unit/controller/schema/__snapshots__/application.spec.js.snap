@@ -35,6 +35,8 @@ Object {
           },
           "nethash": Object {
             "format": "hex",
+            "maxLength": 64,
+            "minLength": 64,
             "type": "string",
           },
           "nonce": Object {
