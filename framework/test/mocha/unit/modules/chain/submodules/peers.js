@@ -466,6 +466,57 @@ describe('peers', () => {
 		});
 	});
 
+	describe('isPoorConsensus', () => {
+		let isPoorConsensusResult;
+
+		describe('when library.config.forging.force is true', () => {
+			beforeEach(async () => {
+				isPoorConsensusResult = await peers.isPoorConsensus();
+			});
+
+			it('should return false', async () =>
+				expect(isPoorConsensusResult).to.be.false);
+		});
+
+		describe('when library.config.forging.force is false', () => {
+			beforeEach(done => {
+				scope.config.forging.force = false;
+				new PeersRewired((err, peersModule) => {
+					peers = peersModule;
+					done();
+				}, scope);
+			});
+
+			afterEach(done => {
+				scope.config.forging.force = true;
+				new PeersRewired((err, peersModule) => {
+					peers = peersModule;
+					done();
+				}, scope);
+			});
+
+			describe('when consensus < MIN_BROADHASH_CONSENSUS', () => {
+				beforeEach(async () => {
+					peers.calculateConsensus = sinonSandbox.stub().returns(50);
+					isPoorConsensusResult = await peers.isPoorConsensus();
+				});
+
+				it('should return true', async () =>
+					expect(isPoorConsensusResult).to.be.true);
+			});
+
+			describe('when consensus >= MIN_BROADHASH_CONSENSUS', () => {
+				beforeEach(async () => {
+					peers.calculateConsensus = sinonSandbox.stub().returns(51);
+					isPoorConsensusResult = await peers.isPoorConsensus();
+				});
+
+				it('should return false', async () =>
+					expect(isPoorConsensusResult).to.be.false);
+			});
+		});
+	});
+
 	describe('update', () => {
 		let validPeer;
 		let updateResult;

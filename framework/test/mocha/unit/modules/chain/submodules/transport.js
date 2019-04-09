@@ -1075,47 +1075,6 @@ describe('transport', () => {
 			done();
 		});
 
-		describe('isPoorConsensus', () => {
-			let isPoorConsensusResult;
-
-			describe('when library.config.forging.force is true', () => {
-				beforeEach(async () => {
-					library.config.forging.force = true;
-					isPoorConsensusResult = await transportInstance.isPoorConsensus();
-				});
-
-				it('should return false', async () =>
-					expect(isPoorConsensusResult).to.be.false);
-			});
-
-			describe('when library.config.forging.force is false', () => {
-				beforeEach(done => {
-					library.config.forging.force = false;
-					done();
-				});
-
-				describe('when modules.peers.calculateConsensus() < MIN_BROADHASH_CONSENSUS', () => {
-					beforeEach(async () => {
-						modules.peers.calculateConsensus = sinonSandbox.stub().returns(50);
-						isPoorConsensusResult = await transportInstance.isPoorConsensus();
-					});
-
-					it('should return true', async () =>
-						expect(isPoorConsensusResult).to.be.true);
-				});
-
-				describe('when modules.peers.calculateConsensus() >= MIN_BROADHASH_CONSENSUS', () => {
-					beforeEach(async () => {
-						modules.peers.calculateConsensus = sinonSandbox.stub().returns(51);
-						isPoorConsensusResult = await transportInstance.isPoorConsensus();
-					});
-
-					it('should return false', async () =>
-						expect(isPoorConsensusResult).to.be.false);
-				});
-			});
-		});
-
 		describe('onBind', () => {
 			beforeEach(done => {
 				// Create a new TransportModule instance.

@@ -25,11 +25,7 @@ const definitions = require('../schema/definitions');
 // eslint-disable-next-line prefer-const
 let wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
 
-const {
-	MIN_BROADHASH_CONSENSUS,
-	MAX_PEERS,
-	MAX_SHARED_TRANSACTIONS,
-} = global.constants;
+const { MAX_PEERS, MAX_SHARED_TRANSACTIONS } = global.constants;
 // Private fields
 let modules;
 let library;
@@ -277,23 +273,6 @@ __private.receiveTransaction = function(
 			}
 		);
 	}, cb);
-};
-
-// Public methods
-
-/**
- * Returns true if application consensus is less than MIN_BROADHASH_CONSENSUS.
- * Returns false if library.config.forging.force is true.
- *
- * @returns {boolean}
- * @todo Add description for the return value
- */
-Transport.prototype.isPoorConsensus = async function() {
-	if (library.config.forging.force) {
-		return false;
-	}
-	const consensus = await modules.peers.calculateConsensus();
-	return consensus < MIN_BROADHASH_CONSENSUS;
 };
 
 // Events

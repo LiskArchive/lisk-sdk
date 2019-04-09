@@ -299,7 +299,7 @@ __private.forge = function(cb) {
 				});
 				return setImmediate(cb);
 			}
-			const isPoorConsensus = await modules.transport.isPoorConsensus();
+			const isPoorConsensus = await modules.peers.isPoorConsensus();
 			if (isPoorConsensus) {
 				const consensusErr = `Inadequate broadhash consensus before forging a block: ${modules.peers.getLastConsensus()} %`;
 				library.logger.error(

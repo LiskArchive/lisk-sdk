@@ -26,7 +26,7 @@ const definitions = require('../schema/definitions');
 // Private fields
 let library;
 let self;
-const { MAX_PEERS } = global.constants;
+const { MAX_PEERS, MIN_BROADHASH_CONSENSUS } = global.constants;
 const __private = {};
 
 const peerDiscoveryFrequency = 30000;
@@ -65,6 +65,9 @@ class Peers {
 			config: {
 				peers: scope.config.peers,
 				version: scope.config.version,
+				forging: {
+					force: scope.config.forging.force,
+				},
 			},
 			applicationState: scope.applicationState,
 			channel: scope.channel,
@@ -532,6 +535,21 @@ Peers.prototype.calculateConsensus = async function() {
 };
 
 // Public methods
+/**
+ * Returns true if application consensus is less than MIN_BROADHASH_CONSENSUS.
+ * Returns false if library.config.forging.force is true.
+ *
+ * @returns {boolean}
+ * @todo Add description for the return value
+ */
+Peers.prototype.isPoorConsensus = async function() {
+	if (library.config.forging.force) {
+		return false;
+	}
+	const consensus = await self.calculateConsensus();
+	return consensus < MIN_BROADHASH_CONSENSUS;
+};
+
 /**
  * Updates peer in peers list.
  *
