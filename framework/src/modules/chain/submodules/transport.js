@@ -288,11 +288,12 @@ __private.receiveTransaction = function(
  * @returns {boolean}
  * @todo Add description for the return value
  */
-Transport.prototype.poorConsensus = function() {
+Transport.prototype.poorConsensus = async function() {
 	if (library.config.forging.force) {
 		return false;
 	}
-	return modules.peers.calculateConsensus() < MIN_BROADHASH_CONSENSUS;
+	const consensus = await modules.peers.calculateConsensus();
+	return consensus < MIN_BROADHASH_CONSENSUS;
 };
 
 // Events
