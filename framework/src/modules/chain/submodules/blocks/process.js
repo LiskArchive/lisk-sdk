@@ -95,7 +95,7 @@ __private.receiveBlock = function(block, cb) {
 	);
 
 	block.transactions = block.transactions.map(aTransaction =>
-		library.logic.initTransaction.jsonRead(aTransaction)
+		library.logic.initTransaction.fromJson(aTransaction)
 	);
 
 	// Update last receipt
@@ -115,7 +115,7 @@ __private.receiveBlock = function(block, cb) {
 __private.receiveForkOne = function(block, lastBlock, cb) {
 	let tmp_block = _.clone(block);
 	tmp_block.transactions = tmp_block.transactions.map(aTransaction =>
-		library.logic.initTransaction.jsonRead(aTransaction)
+		library.logic.initTransaction.fromJson(aTransaction)
 	);
 
 	// Fork: Consecutive height but different previous block id
@@ -164,7 +164,10 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 		],
 		err => {
 			if (err) {
-				library.logger.error('Fork recovery failed', convertErrorsToString(err));
+				library.logger.error(
+					'Fork recovery failed',
+					convertErrorsToString(err)
+				);
 			}
 			return setImmediate(cb, err);
 		}
@@ -182,7 +185,7 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 __private.receiveForkFive = function(block, lastBlock, cb) {
 	let tmpBlock = _.clone(block);
 	tmpBlock.transactions = tmpBlock.transactions.map(aTransaction =>
-		library.logic.initTransaction.jsonRead(aTransaction)
+		library.logic.initTransaction.fromJson(aTransaction)
 	);
 
 	// Fork: Same height and previous block id, but different block id
@@ -244,7 +247,10 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
 		],
 		err => {
 			if (err) {
-				library.logger.error('Fork recovery failed', convertErrorsToString(err));
+				library.logger.error(
+					'Fork recovery failed',
+					convertErrorsToString(err)
+				);
 			}
 			return setImmediate(cb, err);
 		}

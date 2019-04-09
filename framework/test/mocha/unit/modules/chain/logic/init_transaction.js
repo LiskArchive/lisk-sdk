@@ -77,9 +77,9 @@ describe('init_transaction', () => {
 		});
 	});
 
-	describe('jsonRead', () => {
+	describe('fromJson', () => {
 		it('should throw an error if transaction type is not registered', async () => {
-			expect(() => initTransaction.jsonRead({ type: 9 })).to.throw(
+			expect(() => initTransaction.fromJson({ type: 9 })).to.throw(
 				'Transaction type not found.'
 			);
 		});
@@ -99,7 +99,7 @@ describe('init_transaction', () => {
 				id: '7507990258936015021',
 			};
 
-			expect(initTransaction.jsonRead(transfer)).to.be.instanceof(
+			expect(initTransaction.fromJson(transfer)).to.be.instanceof(
 				TransferTransaction
 			);
 		});
@@ -124,7 +124,7 @@ describe('init_transaction', () => {
 				id: '6998015087494860094',
 			};
 
-			expect(initTransaction.jsonRead(secondSignature)).to.be.instanceof(
+			expect(initTransaction.fromJson(secondSignature)).to.be.instanceof(
 				SecondSignatureTransaction
 			);
 		});
@@ -150,7 +150,7 @@ describe('init_transaction', () => {
 				id: '5337978774712629501',
 			};
 
-			expect(initTransaction.jsonRead(delegate)).to.be.instanceof(
+			expect(initTransaction.fromJson(delegate)).to.be.instanceof(
 				DelegateTransaction
 			);
 		});
@@ -178,7 +178,7 @@ describe('init_transaction', () => {
 				id: '9048233810524582722',
 			};
 
-			expect(initTransaction.jsonRead(vote)).to.be.instanceof(VoteTransaction);
+			expect(initTransaction.fromJson(vote)).to.be.instanceof(VoteTransaction);
 		});
 
 		it('should initialize a multisignature transaction', async () => {
@@ -208,7 +208,7 @@ describe('init_transaction', () => {
 				id: '15911083597203956215',
 			};
 
-			expect(initTransaction.jsonRead(multisignature)).to.be.instanceof(
+			expect(initTransaction.fromJson(multisignature)).to.be.instanceof(
 				MultisignatureTransaction
 			);
 		});
@@ -238,7 +238,7 @@ describe('init_transaction', () => {
 				id: '6368378298793859048',
 			};
 
-			expect(initTransaction.jsonRead(dapp)).to.be.instanceof(DappTransaction);
+			expect(initTransaction.fromJson(dapp)).to.be.instanceof(DappTransaction);
 		});
 
 		it('should initialize an intransfer transaction', async () => {
@@ -263,7 +263,7 @@ describe('init_transaction', () => {
 				},
 			};
 
-			expect(initTransaction.jsonRead(intransfer)).to.be.instanceof(
+			expect(initTransaction.fromJson(intransfer)).to.be.instanceof(
 				InTransferTransaction
 			);
 		});
@@ -292,7 +292,7 @@ describe('init_transaction', () => {
 				},
 			};
 
-			expect(initTransaction.jsonRead(outtransfer)).to.be.instanceof(
+			expect(initTransaction.fromJson(outtransfer)).to.be.instanceof(
 				OutTransferTransaction
 			);
 		});

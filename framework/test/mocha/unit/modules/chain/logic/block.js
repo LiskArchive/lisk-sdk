@@ -338,7 +338,7 @@ describe('block', () => {
 		data = _.cloneDeep(validDataForBlock);
 		transactions = _.values(transactionsByTypes);
 		transactions = transactions.map(transaction =>
-			initTransaction.jsonRead(transaction)
+			initTransaction.fromJson(transaction)
 		);
 		done();
 	});
@@ -402,7 +402,7 @@ describe('block', () => {
 				beforeEach(done => {
 					// Create 6 multisignature transactions
 					multipleMultisigTx = Array(...Array(5)).map(() =>
-						initTransaction.jsonRead(
+						initTransaction.fromJson(
 							transactionsByTypes[TRANSACTION_TYPES.MULTI]
 						)
 					);
@@ -427,7 +427,7 @@ describe('block', () => {
 
 				beforeEach(done => {
 					multipleMultisigTx = Array(...Array(5)).map(() =>
-						initTransaction.jsonRead(
+						initTransaction.fromJson(
 							transactionsByTypes[TRANSACTION_TYPES.MULTI]
 						)
 					);
@@ -454,7 +454,7 @@ describe('block', () => {
 
 				beforeEach(done => {
 					multipleMultisigTx = Array(...Array(5)).map(() =>
-						initTransaction.jsonRead(
+						initTransaction.fromJson(
 							transactionsByTypes[TRANSACTION_TYPES.MULTI]
 						)
 					);
@@ -480,7 +480,7 @@ describe('block', () => {
 				beforeEach(done => {
 					// Create 6 multisignature transactions
 					multipleMultisigTx = Array(...Array(5)).map(() =>
-						initTransaction.jsonRead(
+						initTransaction.fromJson(
 							transactionsByTypes[TRANSACTION_TYPES.MULTI]
 						)
 					);

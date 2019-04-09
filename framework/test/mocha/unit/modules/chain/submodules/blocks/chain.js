@@ -56,7 +56,7 @@ describe('blocks/chain', () => {
 		id: 3,
 		height: 3,
 		transactions: transactionsForBlock.map(transaction =>
-			initTransaction.jsonRead(transaction)
+			initTransaction.fromJson(transaction)
 		),
 	};
 
@@ -70,7 +70,7 @@ describe('blocks/chain', () => {
 		id: 1,
 		height: 1,
 		transactions: transactionsForGenesisBlock.map(transaction =>
-			initTransaction.jsonRead(transaction)
+			initTransaction.fromJson(transaction)
 		),
 	};
 	const blockReduced = { id: 3, height: 3 };
@@ -110,7 +110,7 @@ describe('blocks/chain', () => {
 		};
 
 		initTransactionStub = {
-			jsonRead: sinonSandbox.stub(),
+			fromJson: sinonSandbox.stub(),
 		};
 
 		balancesSequenceStub = {

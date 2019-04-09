@@ -249,7 +249,7 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 								'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05',
 							id: '1465651642158264048',
 						},
-					].map(transaction => initTransaction.jsonRead(transaction)),
+					].map(transaction => initTransaction.fromJson(transaction)),
 					version: 0,
 					id: '884740302254229983',
 				};

@@ -701,7 +701,7 @@ describe('transport', () => {
 				it('should call modules.transactions.processUnconfirmedTransaction with transaction and true as arguments', async () =>
 					expect(
 						modules.transactions.processUnconfirmedTransaction.calledWith(
-							initTransaction.jsonRead(transaction),
+							initTransaction.fromJson(transaction),
 							true
 						)
 					).to.be.true);
@@ -729,7 +729,7 @@ describe('transport', () => {
 
 				it('should call the call back with error message', async () => {
 					const expected = initTransaction
-						.jsonRead(invalidTransaction)
+						.fromJson(invalidTransaction)
 						.validate();
 					const expectedError = expected.errors[0].toString();
 					expect(errorResult).to.equal(expectedError);
@@ -827,7 +827,7 @@ describe('transport', () => {
 						expect(
 							library.logger.debug.calledWith(
 								'Transaction',
-								initTransaction.jsonRead(transaction)
+								initTransaction.fromJson(transaction)
 							)
 						).to.be.true);
 				});

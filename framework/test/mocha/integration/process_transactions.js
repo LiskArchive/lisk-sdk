@@ -89,7 +89,7 @@ describe('processTransactions', () => {
 						passphrase: account.passphrase,
 						options: random.application(),
 					}),
-				].map(transaction => initTransaction.jsonRead(transaction));
+				].map(transaction => initTransaction.fromJson(transaction));
 
 				// If we include second signature transaction, then the rest of the transactions in the set will be required to have second signature.
 				// Therefore removing it from the appliable transactions
@@ -103,7 +103,7 @@ describe('processTransactions', () => {
 						recipientId: accountFixtures.genesis.address,
 						passphrase: random.account().passphrase,
 					}),
-				].map(transaction => initTransaction.jsonRead(transaction));
+				].map(transaction => initTransaction.fromJson(transaction));
 
 				keysgroup = new Array(4).fill(0).map(() => random.account().publicKey);
 
@@ -114,7 +114,7 @@ describe('processTransactions', () => {
 						lifetime: 10,
 						minimum: 2,
 					}),
-				].map(transaction => initTransaction.jsonRead(transaction));
+				].map(transaction => initTransaction.fromJson(transaction));
 			});
 
 			describe('verifyTransactions', () => {
@@ -193,7 +193,7 @@ describe('processTransactions', () => {
 					const recipient = random.account();
 
 					const { transactionsResponses } = await undoTransactions([
-						initTransaction.jsonRead(
+						initTransaction.fromJson(
 							liskTransactions.transfer({
 								amount: (NORMALIZER * 1000).toString(),
 								recipientId: recipient.address,

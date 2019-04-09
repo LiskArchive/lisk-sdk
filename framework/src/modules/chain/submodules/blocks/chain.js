@@ -102,7 +102,7 @@ Chain.prototype.saveGenesisBlock = function(cb) {
 			const block = {
 				...library.genesisBlock.block,
 				transactions: library.genesisBlock.block.transactions.map(transaction =>
-					library.logic.initTransaction.jsonRead(transaction)
+					library.logic.initTransaction.fromJson(transaction)
 				),
 			};
 			return self.saveBlock(block, err => setImmediate(cb, err));
@@ -491,7 +491,10 @@ __private.loadSecondLastBlockStep = function(secondLastBlockId, tx) {
 			{ id: secondLastBlockId },
 			(err, blocks) => {
 				if (err || !blocks.length) {
-					library.logger.error('Failed to get loadBlocksPart', convertErrorsToString(err));
+					library.logger.error(
+						'Failed to get loadBlocksPart',
+						convertErrorsToString(err)
+					);
 					return setImmediate(
 						reject,
 						err || new Error('previousBlock is null')

@@ -225,7 +225,7 @@ __private.receiveTransaction = function(
 	const id = transactionJSON ? transactionJSON.id : 'null';
 	let transaction;
 	try {
-		transaction = library.logic.initTransaction.jsonRead(transactionJSON);
+		transaction = library.logic.initTransaction.fromJson(transactionJSON);
 		const { errors } = transaction.validate();
 		if (errors.length > 0) {
 			throw errors;

@@ -43,7 +43,7 @@ function getDelegateForSlot(library, slot, cb) {
 
 function createBlock(library, transactions, timestamp, keypair, previousBlock) {
 	transactions = transactions.map(transaction =>
-		library.logic.initTransaction.jsonRead(transaction)
+		library.logic.initTransaction.fromJson(transaction)
 	);
 	const block = library.logic.block.create({
 		keypair,
@@ -159,7 +159,7 @@ function addTransaction(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
 	__testContext.debug(`	Add transaction ID: ${transaction.id}`);
-	transaction = library.logic.initTransaction.jsonRead(transaction);
+	transaction = library.logic.initTransaction.fromJson(transaction);
 	library.balancesSequence.add(sequenceCb => {
 		library.modules.transactions.processUnconfirmedTransaction(
 			transaction,
@@ -177,7 +177,7 @@ function addTransaction(library, transaction, cb) {
 function addTransactionToUnconfirmedQueue(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
-	transaction = library.logic.initTransaction.jsonRead(transaction);
+	transaction = library.logic.initTransaction.fromJson(transaction);
 	library.modules.transactions.processUnconfirmedTransaction(
 		transaction,
 		true,

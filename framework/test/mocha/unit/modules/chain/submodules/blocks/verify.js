@@ -616,10 +616,10 @@ describe('blocks/verify', () => {
 		let verifyPayload;
 
 		const payloadHash = crypto.createHash('sha256');
-		const transactionOne = initTransaction.jsonRead(
+		const transactionOne = initTransaction.fromJson(
 			new Transaction({ type: 0 })
 		);
-		const transactionTwo = initTransaction.jsonRead(
+		const transactionTwo = initTransaction.fromJson(
 			new Transaction({ type: 0 })
 		);
 		const transactions = [transactionOne, transactionTwo];
