@@ -804,6 +804,17 @@ __private.loadBlocksFromNetwork = function(cb) {
 						modules.blocks.process.loadBlocksFromNetwork(
 							(loadBlocksFromNetworkErr, lastValidBlock) => {
 								if (loadBlocksFromNetworkErr) {
+									// If comparison failed and current consensus is low - perform chain recovery
+									if (modules.transport.poorConsensus()) {
+										library.logger.debug(
+											'Perform chain recovery due to poor consensus'
+										);
+										return modules.blocks.chain.recoverChain(recoveryError => {
+											waterCb(
+												`Failed chain recovery after failing to load blocks while network consensus was low. ${recoveryError}`
+											);
+										});
+									}
 									return waterCb(
 										`Failed to load blocks from the network. ${loadBlocksFromNetworkErr}`
 									);
