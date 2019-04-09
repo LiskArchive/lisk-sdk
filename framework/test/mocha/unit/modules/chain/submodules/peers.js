@@ -50,7 +50,9 @@ describe('peers', () => {
 			},
 		};
 
-		channelMock = {};
+		channelMock = {
+			invoke: sinonSandbox.stub(),
+		};
 
 		PeersRewired = rewire(
 			'../../../../../../src/modules/chain/submodules/peers'
@@ -577,12 +579,7 @@ describe('peers', () => {
 	describe('calculateConsensus', () => {
 		let calculateConsensusResult;
 
-		before(done => {
-			calculateConsensusResult = null;
-			peersLogicMock.list = sinonSandbox.stub().returns([]);
-			done();
-		});
-		beforeEach(done => {
+		beforeEach(async () => {
 			Object.assign(scope.applicationState, {
 				broadhash: prefixedPeer.broadhash,
 				height: prefixedPeer.height,
@@ -593,67 +590,78 @@ describe('peers', () => {
 				minVersion: '1.0.0-beta.0',
 				protocolVersion: '1.0',
 			});
-			calculateConsensusResult = peers.calculateConsensus();
-			done();
+			calculateConsensusResult = await peers.calculateConsensus();
 		});
 
 		afterEach(async () => {
-			peersLogicMock.list.resetHistory();
+			channelMock.invoke.resetHistory();
 		});
 
-		it('should set self.consensus value', async () =>
-			expect(PeersRewired.__get__('self.consensus')).to.equal(
-				calculateConsensusResult
-			));
+		after(async () => {
+			sinonSandbox.restore();
+		});
 
-		describe('when active peers not passed', () => {
-			it('should call logic.peers.list', async () =>
-				expect(peersLogicMock.list.called).to.be.true);
+		describe('when all CONNECTED peers match our broadhash', () => {
+			before(async () => {
+				channelMock.invoke
+					.withArgs('network:getPeersCountByFilter', {
+						state: Peer.STATE.CONNECTED,
+					})
+					.returns(2);
+				channelMock.invoke
+					.withArgs('network:getPeersCountByFilter', {
+						broadhash: prefixedPeer.broadhash,
+					})
+					.returns(2);
+			});
 
-			it('should call logic.peers.list with true', async () =>
-				expect(peersLogicMock.list.calledWith(true)).to.be.true);
+			it('should set self.consensus value', async () =>
+				expect(PeersRewired.__get__('self.consensus')).to.equal(
+					calculateConsensusResult
+				));
+
+			it('should call channel invoke twice', async () =>
+				expect(channelMock.invoke.calledTwice).to.be.true);
+
+			it('should call channel invoke with action network:getPeersCountByFilter and filter state', async () =>
+				expect(
+					channelMock.invoke.calledWithExactly(
+						'network:getPeersCountByFilter',
+						{ state: Peer.STATE.CONNECTED }
+					)
+				).to.be.true);
+
+			it('should call channel invoke with action network:getPeersCountByFilter and filter broadhash', async () =>
+				expect(
+					channelMock.invoke.calledWithExactly(
+						'network:getPeersCountByFilter',
+						{ broadhash: prefixedPeer.broadhash }
+					)
+				).to.be.true);
 
 			it('should return consensus as a number', async () =>
 				expect(calculateConsensusResult).to.be.a('number'));
 
-			describe('when CONNECTED peers exists with matching broadhash', () => {
-				before(done => {
-					const connectedPeer = _.assign({}, prefixedPeer);
-					connectedPeer.state = Peer.STATE.CONNECTED;
-					peersLogicMock.list = sinonSandbox.stub().returns([connectedPeer]);
-					done();
-				});
+			it('should return consensus = 100', async () =>
+				expect(calculateConsensusResult).to.equal(100));
+		});
 
-				it('should return consensus = 100', async () =>
-					expect(calculateConsensusResult).to.equal(100));
+		describe('when half of connected peers match our broadhash', () => {
+			before(async () => {
+				channelMock.invoke
+					.withArgs('network:getPeersCountByFilter', {
+						state: Peer.STATE.CONNECTED,
+					})
+					.returns(2);
+				channelMock.invoke
+					.withArgs('network:getPeersCountByFilter', {
+						broadhash: prefixedPeer.broadhash,
+					})
+					.returns(1);
 			});
 
-			describe('when BANNED peers exists with matching broadhash', () => {
-				before(done => {
-					const bannedPeer = _.assign({}, prefixedPeer);
-					bannedPeer.state = Peer.STATE.BANNED;
-					peersLogicMock.list = sinonSandbox.stub().returns([bannedPeer]);
-					done();
-				});
-
-				it('should return consensus = 0', async () =>
-					expect(calculateConsensusResult).to.equal(0));
-			});
-
-			describe('when DISCONNECTED peers exists with matching broadhash', () => {
-				before(done => {
-					const disconnectedPeer = _.assign({}, prefixedPeer);
-					disconnectedPeer.state = Peer.STATE.DISCONNECTED;
-					peersLogicMock.list = sinonSandbox.stub().returns([disconnectedPeer]);
-					Object.assign(scope.applicationState, {
-						broadhash: disconnectedPeer.broadhash,
-					});
-					done();
-				});
-
-				it('should return consensus = 0', async () =>
-					expect(calculateConsensusResult).to.equal(0));
-			});
+			it('should return consensus = 50', async () =>
+				expect(calculateConsensusResult).to.equal(50));
 		});
 	});
 
