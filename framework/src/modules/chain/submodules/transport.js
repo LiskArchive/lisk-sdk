@@ -580,7 +580,7 @@ Transport.prototype.shared = {
 			});
 		}
 
-		modules.blocks.utils.loadBlocksData(
+		modules.blocks.utils.loadBlocksDataWS(
 			{
 				limit: 34, // 1977100 bytes
 				lastId: query.lastBlockId,
