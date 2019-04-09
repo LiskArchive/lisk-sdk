@@ -102,7 +102,7 @@ const outTransferAsset = raw => {
 };
 
 class Transaction {
-	constructor(transactions) {
+	constructor(transactions = {}) {
 		this.transactionClassMap = new Map();
 
 		// TODO: remove after https://github.com/LiskHQ/lisk/issues/2424
