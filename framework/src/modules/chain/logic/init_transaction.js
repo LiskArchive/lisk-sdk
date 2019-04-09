@@ -102,7 +102,8 @@ const outTransferAsset = raw => {
 };
 
 class Transaction {
-	constructor(transactions = {}) {
+	constructor({ registeredTransactions = {}, applicationState = {} }) {
+		this.state = applicationState;
 		this.transactionClassMap = new Map();
 
 		// TODO: remove after https://github.com/LiskHQ/lisk/issues/2424
@@ -117,10 +118,10 @@ class Transaction {
 			[7, outTransferAsset],
 		]);
 
-		Object.keys(transactions).forEach(transactionType => {
+		Object.keys(registeredTransactions).forEach(transactionType => {
 			this.transactionClassMap.set(
 				Number(transactionType),
-				transactions[transactionType]
+				registeredTransactions[transactionType]
 			);
 		});
 	}
@@ -178,6 +179,15 @@ class Transaction {
 
 	jsonRead(rawTx) {
 		const TransactionClass = this.transactionClassMap.get(rawTx.type);
+
+		if (
+			TransactionClass.isAllowedAt &&
+			!TransactionClass.isAllowedAt(this.state)
+		) {
+			throw new Error(
+				`Transaction type ${rawTx.type} is currently not allowed.`
+			);
+		}
 
 		if (!TransactionClass) {
 			throw new Error('Transaction type not found.');

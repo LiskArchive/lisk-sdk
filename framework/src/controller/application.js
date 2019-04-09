@@ -213,7 +213,7 @@ class Application {
 	 * @param {number} transactionType - Unique integer that identifies the transaction type
 	 * @param {constructor} Transaction - Implementation of @liskhq/lisk-transactions/base_transaction
 	 */
-	registerTransaction(transactionType, Transaction) {
+	registerTransaction(transactionType, Transaction, options = {}) {
 		// TODO: Validate the transaction is properly inherited from base class
 		assert(
 			Number.isInteger(transactionType),
@@ -224,6 +224,10 @@ class Application {
 			`A transaction type "${transactionType}" is already registered.`
 		);
 		assert(Transaction, 'Transaction implementation is required');
+
+		if (options.isAllowedAt) {
+			Transaction.isAllowedAt = options.isAllowedAt;
+		}
 
 		const transactions = this.getTransactions();
 		transactions[transactionType] = Object.freeze(Transaction);

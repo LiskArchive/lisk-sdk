@@ -44,10 +44,21 @@ try {
 
 	const { TRANSACTION_TYPES } = config.constants;
 	app.registerTransaction(TRANSACTION_TYPES.DAPP, DappTransaction);
-	app.registerTransaction(TRANSACTION_TYPES.IN_TRANSFER, InTransferTransaction);
+	app.registerTransaction(
+		TRANSACTION_TYPES.IN_TRANSFER,
+		InTransferTransaction,
+		{
+			isAllowedAt: state =>
+				state.height < config.exceptions.precedent.disableDappTransfer,
+		}
+	);
 	app.registerTransaction(
 		TRANSACTION_TYPES.OUT_TRANSFER,
-		OutTransferTransaction
+		OutTransferTransaction,
+		{
+			isAllowedAt: state =>
+				state.height < config.exceptions.precedent.disableDappTransfer,
+		}
 	);
 
 	app.overrideModuleOptions('chain', { exceptions: config.exceptions, config });
