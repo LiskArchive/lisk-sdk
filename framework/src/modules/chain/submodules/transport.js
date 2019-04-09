@@ -282,13 +282,13 @@ __private.receiveTransaction = function(
 // Public methods
 
 /**
- * Returns true if broadcaster consensus is less than MIN_BROADHASH_CONSENSUS.
+ * Returns true if application consensus is less than MIN_BROADHASH_CONSENSUS.
  * Returns false if library.config.forging.force is true.
  *
  * @returns {boolean}
  * @todo Add description for the return value
  */
-Transport.prototype.poorConsensus = async function() {
+Transport.prototype.isPoorConsensus = async function() {
 	if (library.config.forging.force) {
 		return false;
 	}

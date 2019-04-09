@@ -204,7 +204,7 @@ describe('blocks/process', () => {
 		};
 
 		const modulesTransportStub = {
-			poorConsensus: sinonSandbox.stub(),
+			isPoorConsensus: sinonSandbox.stub(),
 		};
 
 		const modulesPeersStub = {

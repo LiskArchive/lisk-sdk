@@ -1075,13 +1075,13 @@ describe('transport', () => {
 			done();
 		});
 
-		describe('poorConsensus', () => {
+		describe('isPoorConsensus', () => {
 			let isPoorConsensusResult;
 
 			describe('when library.config.forging.force is true', () => {
 				beforeEach(async () => {
 					library.config.forging.force = true;
-					isPoorConsensusResult = await transportInstance.poorConsensus();
+					isPoorConsensusResult = await transportInstance.isPoorConsensus();
 				});
 
 				it('should return false', async () =>
@@ -1097,7 +1097,7 @@ describe('transport', () => {
 				describe('when modules.peers.calculateConsensus() < MIN_BROADHASH_CONSENSUS', () => {
 					beforeEach(async () => {
 						modules.peers.calculateConsensus = sinonSandbox.stub().returns(50);
-						isPoorConsensusResult = await transportInstance.poorConsensus();
+						isPoorConsensusResult = await transportInstance.isPoorConsensus();
 					});
 
 					it('should return true', async () =>
@@ -1107,7 +1107,7 @@ describe('transport', () => {
 				describe('when modules.peers.calculateConsensus() >= MIN_BROADHASH_CONSENSUS', () => {
 					beforeEach(async () => {
 						modules.peers.calculateConsensus = sinonSandbox.stub().returns(51);
-						isPoorConsensusResult = await transportInstance.poorConsensus();
+						isPoorConsensusResult = await transportInstance.isPoorConsensus();
 					});
 
 					it('should return false', async () =>
