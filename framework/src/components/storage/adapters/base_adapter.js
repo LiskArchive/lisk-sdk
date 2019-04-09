@@ -76,6 +76,10 @@ class BaseAdapter extends EventEmitter {
 		throw new ImplementationPendingError();
 	}
 
+	loadSQLFiles() {
+		throw new ImplementationPendingError();
+	}
+
 	parseQueryComponent() {
 		throw new ImplementationPendingError();
 	}
