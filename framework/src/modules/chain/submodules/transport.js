@@ -24,7 +24,6 @@ const Rules = require('../api/ws/workers/rules');
 const definitions = require('../schema/definitions');
 // eslint-disable-next-line prefer-const
 let wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
-const InitTransaction = require('../logic/init_transaction.js');
 
 const {
 	MIN_BROADHASH_CONSENSUS,
@@ -32,7 +31,6 @@ const {
 	MAX_SHARED_TRANSACTIONS,
 } = global.constants;
 
-const initTransaction = new InitTransaction();
 // Private fields
 let modules;
 let library;
@@ -227,7 +225,7 @@ __private.receiveTransaction = function(
 	const id = transactionJSON ? transactionJSON.id : 'null';
 	let transaction;
 	try {
-		transaction = initTransaction.jsonRead(transactionJSON);
+		transaction = library.logic.initTransaction.jsonRead(transactionJSON);
 		const { errors } = transaction.validate();
 		if (errors.length > 0) {
 			throw errors;

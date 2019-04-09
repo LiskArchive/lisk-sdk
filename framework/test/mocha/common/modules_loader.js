@@ -122,7 +122,8 @@ const modulesLoader = new function() {
 							);
 						},
 						function(account, waterCb) {
-							return new InitTransaction(waterCb);
+							const initTransaction = new InitTransaction();
+							return waterCb(null, initTransaction);
 						},
 					],
 					(err, transaction) => {

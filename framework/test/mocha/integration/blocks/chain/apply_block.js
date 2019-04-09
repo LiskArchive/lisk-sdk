@@ -17,13 +17,16 @@
 const async = require('async');
 const expect = require('chai').expect;
 const { transfer, registerDelegate } = require('@liskhq/lisk-transactions');
+const {
+	registeredTransactions,
+} = require('../../../common/registered_transactions');
 const InitTransaction = require('../../../../../src/modules/chain/logic/init_transaction.js');
 
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
 
-const initTransaction = new InitTransaction();
+const initTransaction = new InitTransaction(registeredTransactions);
 
 describe('integration test (blocks) - chain/applyBlock', () => {
 	const transferAmount = (100000000 * 100).toString();

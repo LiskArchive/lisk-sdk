@@ -131,6 +131,7 @@ module.exports = class Chain {
 				build: versionBuild,
 				config: self.options.config,
 				genesisBlock: { block: self.options.config.genesisBlock },
+				registeredTransactions: self.options.registeredTransactions,
 				schema: new ZSchema(),
 				sequence: new Sequence({
 					onWarning(current) {

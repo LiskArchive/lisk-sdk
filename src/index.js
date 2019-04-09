@@ -1,10 +1,16 @@
+const { Application } = require('../framework/src');
+
+const {
+	DappTransaction,
+	InTransferTransaction,
+	OutTransferTransaction,
+} = require('./transactions');
+
 // TODO: Remove the use this config helper
 const packageJSON = require('../package');
 const appConfig = require('../framework/src/modules/chain/helpers/config');
 
 const config = appConfig(packageJSON);
-
-const { Application } = require('../framework/src');
 
 const appName = () => `${config.network}-${config.httpPort}`;
 
@@ -35,6 +41,14 @@ try {
 			nonce: config.nonce,
 		},
 	});
+
+	const { TRANSACTION_TYPES } = config.constants;
+	app.registerTransaction(TRANSACTION_TYPES.DAPP, DappTransaction);
+	app.registerTransaction(TRANSACTION_TYPES.IN_TRANSFER, InTransferTransaction);
+	app.registerTransaction(
+		TRANSACTION_TYPES.OUT_TRANSFER,
+		OutTransferTransaction
+	);
 
 	app.overrideModuleOptions('chain', { exceptions: config.exceptions, config });
 	app.overrideModuleOptions('httpApi', { config });

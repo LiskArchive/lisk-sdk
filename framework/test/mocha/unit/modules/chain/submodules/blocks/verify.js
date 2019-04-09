@@ -18,10 +18,13 @@ const crypto = require('crypto');
 const rewire = require('rewire');
 const transactionStatus = require('@liskhq/lisk-transactions').Status;
 const Bignum = require('../../../../../../../src/modules/chain/helpers/bignum');
+const {
+	registeredTransactions,
+} = require('../../../../../common/registered_transactions');
 const InitTransaction = require('../../../../../../../src/modules/chain/logic/init_transaction');
 const { Transaction } = require('../../../../../fixtures/transactions');
 
-const initTransaction = new InitTransaction();
+const initTransaction = new InitTransaction(registeredTransactions);
 
 const BlocksVerify = rewire(
 	'../../../../../../../src/modules/chain/submodules/blocks/verify'
