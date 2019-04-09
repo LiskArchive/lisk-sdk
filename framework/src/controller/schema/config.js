@@ -57,13 +57,15 @@ module.exports = {
 				properties: {
 					enabled: {
 						type: 'boolean',
-						default: false,
 					},
 				},
 			},
 		},
 		required: ['modules', 'components'],
 		additionalProperties: false,
+		default: {
+			ipc: false,
+		},
 	},
 
 	moduleConfig: {
