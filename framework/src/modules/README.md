@@ -72,7 +72,7 @@ export default class MyModule extends BaseModule {
     *
     * Method which will be invoked by controller to load the module.
     * Make sure all loading logic get completed during the life cycle of load.
-    * Controller emit an event `lisk:ready` which you can use to perform
+    * Controller emit an event `app:ready` which you can use to perform
     * some activities which you want to perform when every other module is loaded.
     *
     * @param {Channel} channel - An instance of a communication channel.

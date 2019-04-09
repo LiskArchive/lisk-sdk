@@ -42,7 +42,7 @@ class HttpAPIModule extends BaseModule {
 	async load(channel) {
 		this.httpApi = new HttpApi(channel, this.options);
 
-		channel.once('lisk:ready', async () => {
+		channel.once('app:ready', async () => {
 			await this.httpApi.bootstrap();
 		});
 	}

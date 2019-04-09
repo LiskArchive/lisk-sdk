@@ -57,7 +57,7 @@ class Controller {
 
 	/**
 	 * Load the initial state and start listening for events or triggering actions.
-	 * Publishes 'lisk:ready' state on the bus.
+	 * Publishes 'app:ready' state on the bus.
 	 *
 	 * @param modules
 	 * @async
@@ -73,7 +73,7 @@ class Controller {
 		this.logger.info('Bus listening to events', this.bus.getEvents());
 		this.logger.info('Bus ready for actions', this.bus.getActions());
 
-		this.channel.publish('lisk:ready');
+		this.channel.publish('app:ready');
 	}
 
 	/**
@@ -139,7 +139,7 @@ class Controller {
 		await this.bus.setup();
 
 		this.channel = new InMemoryChannel(
-			'lisk',
+			'app',
 			['ready', 'state:updated'],
 			{
 				getComponentConfig: action => this.config.components[action.params],

@@ -257,7 +257,7 @@ describe('Application State', () => {
 				// Assert
 				expect(channel.publish).toHaveBeenCalled();
 				expect(channel.publish).toHaveBeenLastCalledWith(
-					'lisk:state:updated',
+					'app:state:updated',
 					updatedState
 				);
 			});
