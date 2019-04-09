@@ -1077,6 +1077,9 @@ describe('transport', () => {
 							loadBlocksData: sinonSandbox
 								.stub()
 								.callsArgWith(1, null, blocksList),
+							loadBlocksDataWS: sinonSandbox
+								.stub()
+								.callsArgWith(1, null, blocksList),
 						},
 						verify: {
 							addBlockProperties: sinonSandbox.stub().returns(blockMock),
@@ -1611,7 +1614,7 @@ describe('transport', () => {
 					beforeEach(done => {
 						query = undefined;
 
-						modules.blocks.utils.loadBlocksData = sinonSandbox
+						modules.blocks.utils.loadBlocksDataWS = sinonSandbox
 							.stub()
 							.callsArgWith(1, null, []);
 
@@ -1623,10 +1626,9 @@ describe('transport', () => {
 					});
 
 					it('should send back empty blocks', () => {
-						expect(error).to.equal(null);
 						return expect(result)
-							.to.have.property('blocks')
-							.which.is.an('array').that.is.empty;
+							.to.have.property('success')
+							.that.is.a('boolean').and.is.false;
 					});
 				});
 
@@ -1643,9 +1645,9 @@ describe('transport', () => {
 						});
 					});
 
-					it('should call modules.blocks.utils.loadBlocksData with { limit: 34, lastId: query.lastBlockId }', () => {
+					it('should call modules.blocks.utils.loadBlocksDataWS with { limit: 34, lastId: query.lastBlockId }', () => {
 						return expect(
-							modules.blocks.utils.loadBlocksData.calledWith({
+							modules.blocks.utils.loadBlocksDataWS.calledWith({
 								limit: 34,
 								lastId: query.lastBlockId,
 							})
@@ -1657,7 +1659,7 @@ describe('transport', () => {
 
 						beforeEach(done => {
 							loadBlockFailed = new Error('Failed to load blocks...');
-							modules.blocks.utils.loadBlocksData = sinonSandbox
+							modules.blocks.utils.loadBlocksDataWS = sinonSandbox
 								.stub()
 								.callsArgWith(1, loadBlockFailed);
 

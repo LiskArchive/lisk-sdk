@@ -160,7 +160,7 @@ describe('WS transport blocks', () => {
 			connectedPeer.rpc.blocks({}, (err, res) => {
 				expect(res)
 					.to.have.property('success')
-					.that.is.a('boolean').and.to.be.false;
+					.that.is.a('boolean').and.is.false;
 				done();
 			});
 		});

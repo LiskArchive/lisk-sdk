@@ -21,11 +21,13 @@ const prefixedPeer = require('../../../fixtures/peers').randomNormalizedPeer;
 const Rules = require('../../../../api/ws/workers/rules');
 const wsRPC = require('../../../../api/ws/rpc/ws_rpc').wsRPC;
 const WsTestClient = require('../../../common/ws/client');
+const waitFor = require('../../../common/utils/wait_for');
+const SwaggerEndpoint = require('../../../common/swagger_spec');
 
 describe('RPC', () => {
 	let connectedPeer;
 
-	before(done => {
+	before(() => {
 		// Setup stub for tested endpoints
 		const RPCEndpoints = {
 			updatePeer: () => {},
@@ -43,7 +45,7 @@ describe('RPC', () => {
 		const wsTestClient = new WsTestClient();
 		wsTestClient.start();
 		connectedPeer = wsTestClient.client;
-		done();
+		return waitFor.blocksPromise(1, null);
 	});
 
 	describe('internal', () => {
@@ -207,12 +209,22 @@ describe('RPC', () => {
 
 	describe('blocks', () => {
 		it('should return height and broadhash', done => {
-			connectedPeer.rpc.blocks((err, result) => {
-				expect(result)
-					.to.have.property('blocks')
-					.to.be.an('array');
-				done();
-			});
+			const blocksEndpoint = new SwaggerEndpoint('GET /blocks');
+
+			blocksEndpoint
+				.makeRequest({ height: 2 }, 200)
+				.then(blockRes => {
+					const blockId = blockRes.body.data[0].id;
+					connectedPeer.rpc.blocks({ lastBlockId: blockId }, (err, result) => {
+						expect(result)
+							.to.have.property('blocks')
+							.to.be.an('array');
+						done();
+					});
+				})
+				.catch(err => {
+					done(err);
+				});
 		});
 	});
 });
