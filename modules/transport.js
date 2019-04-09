@@ -598,10 +598,14 @@ Transport.prototype.shared = {
 					}
 				});
 				if (err) {
-					return setImmediate(cb, null, { blocks: [] });
+					return setImmediate(cb, null, {
+						blocks: [],
+						message: err,
+						sucess: false,
+					});
 				}
 
-				return setImmediate(cb, null, { blocks: data });
+				return setImmediate(cb, null, { blocks: data, success: true });
 			}
 		);
 	},
