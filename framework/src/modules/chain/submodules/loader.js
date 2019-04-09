@@ -504,7 +504,7 @@ __private.loadBlockChain = function() {
 			matchGenesisBlock(getGenesisBlock);
 
 			if (library.config.loading.rebuildRound) {
-				return __private.createSnapshot(blocksCount);
+				return __private.rebuildAccounts(blocksCount);
 			}
 
 			const unapplied = getMemRounds.filter(row => row.round !== round);
@@ -741,23 +741,23 @@ __private.validateOwnChain = cb => {
  * Snapshot creation - performs rebuild of accounts states from blockchain data
  *
  * @private
- * @emits snapshotFinished
+ * @emits rebuildFinished
  * @throws {Error} When blockchain is shorter than one round of blocks
  */
-__private.createSnapshot = height => {
+__private.rebuildAccounts = height => {
 	library.logger.info('Snapshot mode enabled');
 
 	// Single round contains amount of blocks equal to number of active delegates
 	if (height < ACTIVE_DELEGATES) {
 		throw new Error(
-			'Unable to create snapshot, blockchain should contain at least one round of blocks'
+			'Unable to rebuild, blockchain should contain at least one round of blocks'
 		);
 	}
 
 	const rebuildRound = library.config.loading.rebuildRound;
 	if (Number.isNaN(parseInt(rebuildRound)) || parseInt(rebuildRound) < 0) {
 		throw new Error(
-			'Unable to create snapshot, "--rebuild" parameter should be an integer equal to or greater than zero'
+			'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero'
 		);
 	}
 
@@ -805,7 +805,7 @@ __private.createSnapshot = height => {
 					.catch(err => setImmediate(seriesCb, err));
 			},
 		},
-		__private.snapshotFinished
+		__private.rebuildFinished
 	);
 };
 
@@ -816,7 +816,7 @@ __private.createSnapshot = height => {
  * @param {err} Error if any
  * @emits cleanup
  */
-__private.snapshotFinished = err => {
+__private.rebuildFinished = err => {
 	if (err) {
 		library.logger.error('Snapshot creation failed', err);
 	} else {

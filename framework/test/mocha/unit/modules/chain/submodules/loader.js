@@ -209,7 +209,7 @@ describe('loader', () => {
 		});
 	});
 
-	describe('__private.createSnapshot', () => {
+	describe('__private.rebuildAccounts', () => {
 		let __privateVar;
 		let libraryVar;
 		let validScope;
@@ -296,11 +296,11 @@ describe('loader', () => {
 
 		it('should throw an error when called with height below active delegates count', done => {
 			try {
-				__privateVar.createSnapshot(ACTIVE_DELEGATES - 1);
+				__privateVar.rebuildAccounts(ACTIVE_DELEGATES - 1);
 			} catch (err) {
 				expect(err).to.exist;
 				expect(err.message).to.eql(
-					'Unable to create snapshot, blockchain should contain at least one round of blocks'
+					'Unable to rebuild, blockchain should contain at least one round of blocks'
 				);
 				done();
 			}
@@ -310,11 +310,11 @@ describe('loader', () => {
 			try {
 				libraryVar.config.loading.rebuildRound = 'type string = invalid';
 
-				__privateVar.createSnapshot(ACTIVE_DELEGATES);
+				__privateVar.rebuildAccounts(ACTIVE_DELEGATES);
 			} catch (err) {
 				expect(err).to.exist;
 				expect(err.message).to.eql(
-					'Unable to create snapshot, "--rebuild" parameter should be an integer equal to or greater than zero'
+					'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero'
 				);
 				done();
 			}
@@ -324,11 +324,11 @@ describe('loader', () => {
 			try {
 				libraryVar.config.loading.rebuildRound = true;
 
-				__privateVar.createSnapshot(ACTIVE_DELEGATES);
+				__privateVar.rebuildAccounts(ACTIVE_DELEGATES);
 			} catch (err) {
 				expect(err).to.exist;
 				expect(err.message).to.eql(
-					'Unable to create snapshot, "--rebuild" parameter should be an integer equal to or greater than zero'
+					'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero'
 				);
 				done();
 			}
@@ -338,11 +338,11 @@ describe('loader', () => {
 			try {
 				libraryVar.config.loading.rebuildRound = '';
 
-				__privateVar.createSnapshot(ACTIVE_DELEGATES);
+				__privateVar.rebuildAccounts(ACTIVE_DELEGATES);
 			} catch (err) {
 				expect(err).to.exist;
 				expect(err.message).to.eql(
-					'Unable to create snapshot, "--rebuild" parameter should be an integer equal to or greater than zero'
+					'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero'
 				);
 				done();
 			}
@@ -352,11 +352,11 @@ describe('loader', () => {
 			try {
 				libraryVar.config.loading.rebuildRound = undefined;
 
-				__privateVar.createSnapshot(ACTIVE_DELEGATES);
+				__privateVar.rebuildAccounts(ACTIVE_DELEGATES);
 			} catch (err) {
 				expect(err).to.exist;
 				expect(err.message).to.eql(
-					'Unable to create snapshot, "--rebuild" parameter should be an integer equal to or greater than zero'
+					'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero'
 				);
 				done();
 			}
@@ -364,33 +364,33 @@ describe('loader', () => {
 
 		it('should emit an event with proper error when resetMemTables fails', done => {
 			resetMemTablesStub.callsArgWith(0, 'resetMemTables#ERR', true);
-			__privateVar.snapshotFinished = err => {
+			__privateVar.rebuildFinished = err => {
 				expect(err).to.eql('resetMemTables#ERR');
 				done();
 			};
 
-			__privateVar.createSnapshot(ACTIVE_DELEGATES);
+			__privateVar.rebuildAccounts(ACTIVE_DELEGATES);
 		});
 
 		it('should emit an event with proper error when loadBlocksOffset fails', done => {
 			loadBlocksOffsetStub.callsArgWith(2, 'loadBlocksOffsetStub#ERR', true);
-			__privateVar.snapshotFinished = err => {
+			__privateVar.rebuildFinished = err => {
 				expect(err).to.eql('loadBlocksOffsetStub#ERR');
 				done();
 			};
 
-			__privateVar.createSnapshot(ACTIVE_DELEGATES);
+			__privateVar.rebuildAccounts(ACTIVE_DELEGATES);
 		});
 
 		it('should emit an event with proper error when storage.entities.Block.delete fails', done => {
 			deleteStub.rejects('beginStub#ERR');
 
-			__privateVar.snapshotFinished = err => {
+			__privateVar.rebuildFinished = err => {
 				expect(err.name).to.eql('beginStub#ERR');
 				done();
 			};
 
-			__privateVar.createSnapshot(ACTIVE_DELEGATES);
+			__privateVar.rebuildAccounts(ACTIVE_DELEGATES);
 		});
 
 		describe('should emit an event with no error', () => {
@@ -400,7 +400,7 @@ describe('loader', () => {
 
 			afterEach(() => sinonSandbox.restore());
 
-			it('and snapshot to end of round 1 when rebuildRound = 1 and 101 blocks available', done => {
+			it('and rebuild to end of round 1 when rebuildRound = 1 and 101 blocks available', done => {
 				rebuildRound = 1;
 				blocksAvailable = ACTIVE_DELEGATES;
 				deleteBlocksAfterHeight = {
@@ -408,7 +408,7 @@ describe('loader', () => {
 				};
 
 				libraryVar.config.loading.rebuildRound = rebuildRound;
-				__privateVar.snapshotFinished = err => {
+				__privateVar.rebuildFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub).to.be.calledOnce;
 					expect(loadBlocksOffsetStub).to.be.calledWith(ACTIVE_DELEGATES, 1);
@@ -416,10 +416,10 @@ describe('loader', () => {
 					done();
 				};
 
-				__privateVar.createSnapshot(blocksAvailable);
+				__privateVar.rebuildAccounts(blocksAvailable);
 			});
 
-			it('and snapshot to end of round 1 when rebuildRound = 1 and 202 blocks available', done => {
+			it('and rebuild to end of round 1 when rebuildRound = 1 and 202 blocks available', done => {
 				rebuildRound = 1;
 				blocksAvailable = ACTIVE_DELEGATES * 2;
 				deleteBlocksAfterHeight = {
@@ -428,7 +428,7 @@ describe('loader', () => {
 
 				libraryVar.config.loading.rebuildRound = rebuildRound;
 
-				__privateVar.snapshotFinished = err => {
+				__privateVar.rebuildFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub).to.be.calledOnce;
 					expect(loadBlocksOffsetStub).to.be.calledOnce;
@@ -437,10 +437,10 @@ describe('loader', () => {
 					done();
 				};
 
-				__privateVar.createSnapshot(blocksAvailable);
+				__privateVar.rebuildAccounts(blocksAvailable);
 			});
 
-			it('and snapshot to end of round 2 when rebuildRound = 2 and 202 blocks available', done => {
+			it('and rebuild to end of round 2 when rebuildRound = 2 and 202 blocks available', done => {
 				rebuildRound = 2;
 				blocksAvailable = ACTIVE_DELEGATES * 2;
 				deleteBlocksAfterHeight = {
@@ -448,7 +448,7 @@ describe('loader', () => {
 				};
 
 				libraryVar.config.loading.rebuildRound = rebuildRound;
-				__privateVar.snapshotFinished = err => {
+				__privateVar.rebuildFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub).to.be.calledOnce;
 					expect(loadBlocksOffsetStub).to.be.calledTwice;
@@ -464,10 +464,10 @@ describe('loader', () => {
 					done();
 				};
 
-				__privateVar.createSnapshot(blocksAvailable);
+				__privateVar.rebuildAccounts(blocksAvailable);
 			});
 
-			it('and snapshot to end of round 2 when rebuildRound = 2 and 303 blocks available', done => {
+			it('and rebuild to end of round 2 when rebuildRound = 2 and 303 blocks available', done => {
 				rebuildRound = 2;
 				blocksAvailable = ACTIVE_DELEGATES * 3;
 				deleteBlocksAfterHeight = {
@@ -475,7 +475,7 @@ describe('loader', () => {
 				};
 
 				libraryVar.config.loading.rebuildRound = rebuildRound;
-				__privateVar.snapshotFinished = err => {
+				__privateVar.rebuildFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub).to.be.calledOnce;
 					expect(loadBlocksOffsetStub).to.be.calledTwice;
@@ -491,16 +491,16 @@ describe('loader', () => {
 					done();
 				};
 
-				__privateVar.createSnapshot(blocksAvailable);
+				__privateVar.rebuildAccounts(blocksAvailable);
 			});
 
-			it('and snapshot to end of round 1 when rebuildRound = 2 and 101 blocks available', done => {
+			it('and rebuild to end of round 1 when rebuildRound = 2 and 101 blocks available', done => {
 				rebuildRound = 2;
 				blocksAvailable = ACTIVE_DELEGATES;
 				deleteBlocksAfterHeight = { height_gt: ACTIVE_DELEGATES };
 
 				library.config.loading.rebuildRound = rebuildRound;
-				__privateVar.snapshotFinished = err => {
+				__privateVar.rebuildFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub).to.be.calledOnce;
 					expect(loadBlocksOffsetStub).to.be.calledOnce;
@@ -509,18 +509,18 @@ describe('loader', () => {
 					done();
 				};
 
-				__privateVar.createSnapshot(blocksAvailable);
+				__privateVar.rebuildAccounts(blocksAvailable);
 			});
 
 			it('and should not throw an error when called with rebuildRound = integer as string', done => {
 				libraryVar.config.loading.rebuildRound = '2';
 
-				__privateVar.snapshotFinished = err => {
+				__privateVar.rebuildFinished = err => {
 					expect(err).to.not.exist;
 					done();
 				};
 
-				__privateVar.createSnapshot(ACTIVE_DELEGATES);
+				__privateVar.rebuildAccounts(ACTIVE_DELEGATES);
 			});
 		});
 	});
