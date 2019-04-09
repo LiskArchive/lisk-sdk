@@ -26,9 +26,12 @@ const generateRandomActivePeer = require('../../../../fixtures/peers')
 	.generateRandomActivePeer;
 const Block = require('../../../../fixtures/blocks').Block;
 const Rules = require('../../../../../../src/modules/chain/api/ws/workers/rules');
+const {
+	registeredTransactions,
+} = require('../../../../common/registered_transactions');
 const InitTransaction = require('../../../../../../src/modules/chain/logic/init_transaction');
 
-const initTransaction = new InitTransaction();
+const initTransaction = new InitTransaction(registeredTransactions);
 
 const TransportModule = rewire(
 	'../../../../../../src/modules/chain/submodules/transport'
@@ -45,7 +48,6 @@ describe('transport', () => {
 	let schemaStub;
 	let channelStub;
 	let balancesSequenceStub;
-	let transactionStub;
 	let blockStub;
 	let peersStub;
 	let broadcasterStubRef;
@@ -178,7 +180,7 @@ describe('transport', () => {
 		defaultScope = {
 			logic: {
 				block: blockStub,
-				transaction: transactionStub,
+				initTransaction,
 				peers: peersStub,
 			},
 			components: {
@@ -298,9 +300,7 @@ describe('transport', () => {
 						debug: sinonSandbox.spy(),
 					},
 					logic: {
-						transaction: {
-							objectNormalize: sinonSandbox.stub(),
-						},
+						initTransaction,
 					},
 					channel: {
 						publish: sinonSandbox.stub().resolves(),
@@ -652,9 +652,7 @@ describe('transport', () => {
 				peerAddressString = '40.40.40.40:5000';
 
 				library.logic = {
-					transaction: {
-						objectNormalize: sinonSandbox.stub().returns(transaction),
-					},
+					initTransaction,
 					peers: {
 						peersManager: {
 							getAddress: sinonSandbox.stub().returns(peerAddressString),
@@ -679,6 +677,7 @@ describe('transport', () => {
 			describe('when transaction and peer are defined', () => {
 				beforeEach(done => {
 					library.logic = {
+						initTransaction,
 						peers: {
 							peersManager: {
 								getByNonce: sinonSandbox.stub().returns(peerMock),
@@ -760,6 +759,7 @@ describe('transport', () => {
 			describe('when nonce is defined', () => {
 				beforeEach(done => {
 					library.logic = {
+						initTransaction,
 						peers: {
 							peersManager: {
 								getByNonce: sinonSandbox.stub().returns(peerMock),
@@ -978,6 +978,7 @@ describe('transport', () => {
 							me: sinonSandbox.stub().returns(WSServer.generatePeerHeaders()),
 							listRandomConnected: sinonSandbox.stub().returns(peersList),
 						},
+						initTransaction,
 						block: {
 							objectNormalize: sinonSandbox.stub().returns(new Block()),
 						},
