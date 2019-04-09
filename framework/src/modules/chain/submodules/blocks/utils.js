@@ -131,9 +131,7 @@ Utils.prototype.readStorageRows = function(rows) {
 
 			// Normalize transaction
 			if (block.transactions) {
-				block.transactions = block.transactions.map(transaction =>
-					library.logic.initTransaction.storageRead(transaction)
-				);
+				block.transactions = library.logic.initTransaction.fromBlock(block);
 			}
 		}
 		return block;

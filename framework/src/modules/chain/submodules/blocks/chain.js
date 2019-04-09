@@ -101,8 +101,8 @@ Chain.prototype.saveGenesisBlock = function(cb) {
 			// FIXME: This will fail if we already have genesis block in database, but with different ID
 			const block = {
 				...library.genesisBlock.block,
-				transactions: library.genesisBlock.block.transactions.map(transaction =>
-					library.logic.initTransaction.fromJson(transaction)
+				transactions: library.logic.initTransaction.fromBlock(
+					library.genesisBlock.block
 				),
 			};
 			return self.saveBlock(block, err => setImmediate(cb, err));

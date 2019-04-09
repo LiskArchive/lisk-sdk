@@ -167,23 +167,22 @@ class Transaction {
 		return this.fromJson(_.omitBy(transactionJSON, _.isNull));
 	}
 
-	storageRead(raw) {
-		if (!raw.id) {
-			return null;
+	fromBlock(block) {
+		if (!block.transactions) {
+			return undefined;
 		}
 
-		const rawData = _.omitBy(raw, _.isNull);
+		const transactions = block.transactions.map(transaction =>
+			this.fromJson(transaction, { height: block.height })
+		);
 
-		return this.fromJson(rawData);
+		return transactions;
 	}
 
-	fromJson(rawTx) {
+	fromJson(rawTx, state = this.state) {
 		const TransactionClass = this.transactionClassMap.get(rawTx.type);
 
-		if (
-			TransactionClass.isAllowedAt &&
-			!TransactionClass.isAllowedAt(this.state)
-		) {
+		if (TransactionClass.isAllowedAt && !TransactionClass.isAllowedAt(state)) {
 			throw new Error(
 				`Transaction type ${rawTx.type} is currently not allowed.`
 			);

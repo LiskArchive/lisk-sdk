@@ -94,9 +94,7 @@ __private.receiveBlock = function(block, cb) {
 		)} reward: ${block.reward}`
 	);
 
-	block.transactions = block.transactions.map(aTransaction =>
-		library.logic.initTransaction.fromJson(aTransaction)
-	);
+	block.transactions = library.logic.initTransaction.fromBlock(block);
 
 	// Update last receipt
 	modules.blocks.lastReceipt.update();
@@ -114,9 +112,7 @@ __private.receiveBlock = function(block, cb) {
  */
 __private.receiveForkOne = function(block, lastBlock, cb) {
 	let tmp_block = _.clone(block);
-	tmp_block.transactions = tmp_block.transactions.map(aTransaction =>
-		library.logic.initTransaction.fromJson(aTransaction)
-	);
+	tmp_block.transactions = library.logic.initTransaction.fromBlock(tmp_block);
 
 	// Fork: Consecutive height but different previous block id
 	modules.delegates.fork(block, 1);
@@ -184,9 +180,7 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
  */
 __private.receiveForkFive = function(block, lastBlock, cb) {
 	let tmpBlock = _.clone(block);
-	tmpBlock.transactions = tmpBlock.transactions.map(aTransaction =>
-		library.logic.initTransaction.fromJson(aTransaction)
-	);
+	tmpBlock.transactions = library.logic.initTransaction.fromBlock(tmpBlock);
 
 	// Fork: Same height and previous block id, but different block id
 	modules.delegates.fork(block, 5);
