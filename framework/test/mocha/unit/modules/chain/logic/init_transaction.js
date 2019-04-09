@@ -41,7 +41,7 @@ describe('init_transaction', () => {
 	};
 
 	beforeEach(async () => {
-		initTransaction = new InitTransaction(registeredTransactions);
+		initTransaction = new InitTransaction({ registeredTransactions });
 	});
 
 	describe('constructor', () => {

@@ -24,7 +24,7 @@ const { Transaction } = require('../../../../../fixtures/transactions');
 const BlocksChain = rewire(
 	'../../../../../../../src/modules/chain/submodules/blocks/chain'
 );
-const initTransaction = new InitTransaction(registeredTransactions);
+const initTransaction = new InitTransaction({ registeredTransactions });
 
 describe('blocks/chain', () => {
 	let __private;

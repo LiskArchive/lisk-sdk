@@ -37,7 +37,7 @@ const blockVersion = require('../../../../../src/modules/chain/logic/block_versi
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW, NORMALIZER } = global.constants;
 const genesisBlock = __testContext.config.genesisBlock;
-const initTransaction = new InitTransaction(registeredTransactions);
+const initTransaction = new InitTransaction({ registeredTransactions });
 
 const previousBlock = {
 	blockSignature:

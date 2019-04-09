@@ -31,7 +31,7 @@ const {
 } = require('../../../../common/registered_transactions');
 const InitTransaction = require('../../../../../../src/modules/chain/logic/init_transaction');
 
-const initTransaction = new InitTransaction(registeredTransactions);
+const initTransaction = new InitTransaction({ registeredTransactions });
 
 const TransportModule = rewire(
 	'../../../../../../src/modules/chain/submodules/transport'

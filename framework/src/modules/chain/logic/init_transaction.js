@@ -182,14 +182,14 @@ class Transaction {
 	fromJson(rawTx, state = this.state) {
 		const TransactionClass = this.transactionClassMap.get(rawTx.type);
 
+		if (!TransactionClass) {
+			throw new Error('Transaction type not found.');
+		}
+
 		if (TransactionClass.isAllowedAt && !TransactionClass.isAllowedAt(state)) {
 			throw new Error(
 				`Transaction type ${rawTx.type} is currently not allowed.`
 			);
-		}
-
-		if (!TransactionClass) {
-			throw new Error('Transaction type not found.');
 		}
 
 		return new TransactionClass(rawTx);

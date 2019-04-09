@@ -122,7 +122,7 @@ describe('blocks/process', () => {
 			add: sinonSandbox.stub(),
 		};
 		const InitTransaction = require('../../../../../../../src/modules/chain/logic/init_transaction');
-		const initTrs = new InitTransaction();
+		const initTrs = new InitTransaction({});
 		blocksProcessModule = new BlocksProcess(
 			loggerStub,
 			blockStub,
