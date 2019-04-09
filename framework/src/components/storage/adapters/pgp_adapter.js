@@ -21,6 +21,10 @@ const pgpLib = require('pg-promise');
 const QueryFile = require('pg-promise').QueryFile;
 const BaseAdapter = require('./base_adapter');
 
+const _private = {
+	queryFiles: {},
+};
+
 class PgpAdapter extends BaseAdapter {
 	/**
 	 *
@@ -56,6 +60,7 @@ class PgpAdapter extends BaseAdapter {
 
 		this.pgp = pgpLib(this.pgpOptions);
 		this.db = undefined;
+		this.SQLs = {};
 	}
 
 	/**
@@ -166,6 +171,10 @@ class PgpAdapter extends BaseAdapter {
 	loadSQLFile(filePath, sqlDirectory = this.sqlDirectory) {
 		const fullPath = path.join(sqlDirectory, filePath); // Generating full path;
 
+		if (_private.queryFiles[fullPath]) {
+			return _private.queryFiles[fullPath];
+		}
+
 		const options = {
 			minify: true, // Minifies the SQL
 		};
@@ -177,7 +186,22 @@ class PgpAdapter extends BaseAdapter {
 			throw qf.error; // throw pg-promisse QueryFileError error
 		}
 
+		_private.queryFiles[fullPath] = qf;
+
 		return qf;
+	}
+
+	loadSQLFiles(entityLabel, sqlFiles, sqlDirectory) {
+		this.SQLs[entityLabel] = this.SQLs[entityLabel] || {};
+		Object.keys(sqlFiles).forEach(fileKey => {
+			if (!this.SQLs[entityLabel][fileKey]) {
+				this.SQLs[entityLabel][fileKey] = this.loadSQLFile(
+					sqlFiles[fileKey],
+					sqlDirectory
+				);
+			}
+		});
+		return this.SQLs[entityLabel];
 	}
 
 	parseQueryComponent(query, params) {
