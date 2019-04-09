@@ -36,7 +36,7 @@ const { config: defaultConfig } = require('./defaults');
 const validator = require('../../controller/helpers/validator');
 
 function createCacheComponent(options, logger) {
-	const optionsWithDefaults = validator.validateWithDefaults(
+	const optionsWithDefaults = validator.parseEnvArgAndValidate(
 		defaultConfig,
 		options
 	);

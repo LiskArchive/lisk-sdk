@@ -122,7 +122,7 @@ class Application {
 		validator.loadSchema(constantsSchema);
 		validator.validate(applicationSchema.appLabel, appLabel);
 		validator.validate(applicationSchema.config, appConfig);
-		constants = validator.validateWithDefaults(
+		constants = validator.parseEnvArgAndValidate(
 			constantsSchema.constants,
 			constants
 		);
@@ -332,7 +332,7 @@ class Application {
 
 		Object.keys(modules).forEach(alias => {
 			this.logger.info(`Validating module options with alias: ${alias}`);
-			this.config.modules[alias] = validator.validateWithDefaults(
+			this.config.modules[alias] = validator.parseEnvArgAndValidate(
 				modules[alias].defaults,
 				this.config.modules[alias]
 			);

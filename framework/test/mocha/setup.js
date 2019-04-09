@@ -53,7 +53,7 @@ const config = {
 	protocolVersion:
 		process.env.PROTOCOL_VERSION || packageJson.lisk.protocolVersion,
 };
-config.constants = validator.validateWithDefaults(
+config.constants = validator.parseEnvArgAndValidate(
 	constantsSchema.constants,
 	constants
 );
@@ -61,13 +61,13 @@ config.constants = validator.validateWithDefaults(
 // TODO: This should be removed after https://github.com/LiskHQ/lisk/pull/2980
 global.constants = config.constants;
 
-config.genesisBlock = validator.validateWithDefaults(
+config.genesisBlock = validator.parseEnvArgAndValidate(
 	applicationSchema.genesisBlock,
 	genesisBlock
 );
 config.nethash = config.genesisBlock.payloadHash;
 
-config.modules.chain = validator.validateWithDefaults(
+config.modules.chain = validator.parseEnvArgAndValidate(
 	chainModuleSchema,
 	Object.assign({}, config.modules.chain, { exceptions })
 );
@@ -80,7 +80,7 @@ config.modules.chain = {
 	protocolVersion: config.protocolVersion,
 };
 
-config.modules.http_api = validator.validateWithDefaults(
+config.modules.http_api = validator.parseEnvArgAndValidate(
 	apiModuleSchema,
 	config.modules.http_api
 );
@@ -92,11 +92,11 @@ config.modules.http_api = {
 	minVersion: config.minVersion,
 };
 
-config.components.storage = validator.validateWithDefaults(
+config.components.storage = validator.parseEnvArgAndValidate(
 	defaultStorageConfig,
 	config.components.storage || {}
 );
-config.components.cache = validator.validateWithDefaults(
+config.components.cache = validator.parseEnvArgAndValidate(
 	defaultCacheConfig,
 	config.components.cache || {}
 );

@@ -27,6 +27,9 @@ Object {
   },
   "config": Object {
     "additionalProperties": false,
+    "default": Object {
+      "ipc": false,
+    },
     "id": "config",
     "properties": Object {
       "components": Object {
@@ -67,7 +70,6 @@ Object {
         "additionalProperties": false,
         "properties": Object {
           "enabled": Object {
-            "default": false,
             "type": "boolean",
           },
         },

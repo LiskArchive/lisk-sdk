@@ -145,7 +145,9 @@ describe('helpers/validator.js', () => {
 				.mockImplementation(() => false);
 
 			// Act & Assert
-			expect(parseEnvArgAndValidate).toThrow(SchemaValidationError);
+			expect(() => {
+				parseEnvArgAndValidate({});
+			}).toThrow(SchemaValidationError);
 		});
 	});
 });
