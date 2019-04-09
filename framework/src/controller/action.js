@@ -56,11 +56,11 @@ class Action {
 	 * @return {module.Action}
 	 */
 	static deserialize(data) {
-		const object = typeof data === 'string' ? JSON.parse(data) : data;
+		const parsedAction = typeof data === 'string' ? JSON.parse(data) : data;
 		return new Action(
-			`${object.module}:${object.name}`,
-			object.params,
-			object.source
+			`${parsedAction.module}:${parsedAction.name}`,
+			parsedAction.params,
+			parsedAction.source
 		);
 	}
 

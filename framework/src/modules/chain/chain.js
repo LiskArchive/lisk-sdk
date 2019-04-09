@@ -1,25 +1,26 @@
-const util = require('util');
+if (process.env.NEW_RELIC_LICENSE_KEY) {
+	require('./helpers/newrelic_lisk');
+}
+
+const { promisify } = require('util');
 const path = require('path');
 const fs = require('fs');
-const git = require('./helpers/git.js');
-const Sequence = require('./helpers/sequence.js');
-const ed = require('./helpers/ed.js');
+const git = require('./helpers/git');
+const Sequence = require('./helpers/sequence');
+const ed = require('./helpers/ed');
 // eslint-disable-next-line import/order
-const swaggerHelper = require('./helpers/swagger');
+const { ZSchema } = require('../../controller/helpers/validator');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
-const { createSystemComponent } = require('../../components/system');
 const {
 	lookupPeerIPs,
-	createHttpServer,
 	createBus,
 	bootstrapStorage,
 	bootstrapCache,
 	createSocketCluster,
 	initLogicStructure,
 	initModules,
-	attachSwagger,
 } = require('./init_steps');
 const defaults = require('./defaults');
 
@@ -56,28 +57,28 @@ module.exports = class Chain {
 		this.channel = channel;
 		this.options = options;
 		this.logger = null;
-
 		this.scope = null;
+		this.blockReward = null;
+		this.slots = null;
 	}
 
 	async bootstrap() {
 		const loggerConfig = await this.channel.invoke(
-			'lisk:getComponentConfig',
+			'app:getComponentConfig',
 			'logger'
 		);
 		const storageConfig = await this.channel.invoke(
-			'lisk:getComponentConfig',
+			'app:getComponentConfig',
 			'storage'
 		);
 
 		const cacheConfig = await this.channel.invoke(
-			'lisk:getComponentConfig',
+			'app:getComponentConfig',
 			'cache'
 		);
 
-		const systemConfig = await this.channel.invoke(
-			'lisk:getComponentConfig',
-			'system'
+		this.applicationState = await this.channel.invoke(
+			'app:getApplicationState'
 		);
 
 		this.logger = createLoggerComponent(loggerConfig);
@@ -105,6 +106,11 @@ module.exports = class Chain {
 			this.options.exceptions
 		);
 
+		const BlockReward = require('./logic/block_reward');
+		this.blockReward = new BlockReward();
+		// Needs to be loaded here as its using constants that need to be initialized first
+		this.slots = require('./helpers/slots');
+
 		try {
 			// Cache
 			this.logger.debug('Initiating cache...');
@@ -113,10 +119,6 @@ module.exports = class Chain {
 			// Storage
 			this.logger.debug('Initiating storage...');
 			const storage = createStorageComponent(storageConfig, dbLogger);
-
-			// System
-			this.logger.debug('Initiating system...');
-			const system = createSystemComponent(systemConfig, this.logger, storage);
 
 			if (!this.options.config) {
 				throw Error('Failed to assign nethash from genesis block');
@@ -129,7 +131,7 @@ module.exports = class Chain {
 				build: versionBuild,
 				config: self.options.config,
 				genesisBlock: { block: self.options.config.genesisBlock },
-				schema: swaggerHelper.getValidator(),
+				schema: new ZSchema(),
 				sequence: new Sequence({
 					onWarning(current) {
 						self.logger.warn('Main queue', current);
@@ -144,38 +146,44 @@ module.exports = class Chain {
 					storage,
 					cache,
 					logger: self.logger,
-					system,
 				},
+				channel: this.channel,
+				applicationState: this.applicationState,
 			};
-
-			// Lookup for peers ips from dns
-			scope.config.peers.list = await lookupPeerIPs(
-				scope.config.peers.list,
-				scope.config.peers.enabled
-			);
 
 			await bootstrapStorage(scope, global.constants.ACTIVE_DELEGATES);
 			await bootstrapCache(scope);
 
 			scope.bus = await createBus();
-			scope.network = await createHttpServer(scope);
 			scope.logic = await initLogicStructure(scope);
 			scope.modules = await initModules(scope);
-			scope.webSocket = await createSocketCluster(scope);
-			scope.swagger = await attachSwagger(scope);
 
-			// TODO: Identify why its used
-			scope.modules.swagger = scope.swagger;
+			if (scope.config.peers.enabled) {
+				// Lookup for peers ips from dns
+				scope.config.peers.list = await lookupPeerIPs(
+					scope.config.peers.list,
+					scope.config.peers.enabled
+				);
+
+				// Listen to websockets
+				scope.webSocket = await createSocketCluster(scope);
+				await scope.webSocket.listen();
+			} else {
+				this.logger.info(
+					'Skipping P2P server initialization due to the config settings - "peers.enabled" is set to false.'
+				);
+			}
+
 			// Ready to bind modules
 			scope.logic.peers.bindModules(scope.modules);
+
+			this.channel.subscribe('app:state:updated', event => {
+				Object.assign(scope.applicationState, event.data);
+			});
 
 			// Fire onBind event in every module
 			scope.bus.message('bind', scope);
 
-			// Listen to websockets
-			await scope.webSocket.listen();
-			// Listen to http, https servers
-			await scope.network.listen();
 			self.logger.info('Modules ready and launched');
 
 			self.scope = scope;
@@ -186,6 +194,83 @@ module.exports = class Chain {
 			});
 			process.emit('cleanup', error);
 		}
+	}
+
+	get actions() {
+		return {
+			calculateSupply: action =>
+				this.blockReward.calcSupply(action.params.height),
+			calculateMilestone: action =>
+				this.blockReward.calcMilestone(action.params.height),
+			calculateReward: action =>
+				this.blockReward.calcReward(action.params.height),
+			generateDelegateList: async action =>
+				promisify(this.scope.modules.delegates.generateDelegateList)(
+					action.params.round,
+					action.params.source
+				),
+			updateForgingStatus: async action =>
+				this.scope.modules.delegates.updateForgingStatus(
+					action.params.publicKey,
+					action.params.password,
+					action.params.forging
+				),
+			getPeers: async action =>
+				promisify(this.scope.modules.peers.shared.getPeers)(
+					action.params.parameters
+				),
+			getPeersCountByFilter: async action =>
+				this.scope.modules.peers.shared.getPeersCountByFilter(
+					action.params.parameters
+				),
+			postSignature: async action =>
+				promisify(this.scope.modules.signatures.shared.postSignature)(
+					action.params.signature
+				),
+			getForgersPublicKeys: async () => {
+				const keypairs = this.scope.modules.delegates.getForgersKeyPairs();
+				const publicKeys = {};
+				Object.keys(keypairs).forEach(key => {
+					publicKeys[key] = { publicKey: keypairs[key].publicKey };
+				});
+				return publicKeys;
+			},
+			getTransactionsFromPool: async action =>
+				promisify(
+					this.scope.modules.transactions.shared.getTransactionsFromPool
+				)(action.params.type, action.params.filters),
+			getLastCommit: async () => this.scope.lastCommit,
+			getBuild: async () => this.scope.build,
+			postTransaction: async action =>
+				promisify(this.scope.modules.transactions.shared.postTransaction)(
+					action.params.transaction
+				),
+			getDelegateBlocksRewards: async action =>
+				this.scope.components.storage.entities.Account.delegateBlocksRewards(
+					action.params.filters,
+					action.params.tx
+				),
+			getSlotNumber: async action =>
+				action.params
+					? this.slots.getSlotNumber(action.params.epochTime)
+					: this.slots.getSlotNumber(),
+			calcSlotRound: async action => this.slots.calcRound(action.params.height),
+			getNodeStatus: async () => ({
+				consensus: this.scope.modules.peers.getLastConsensus(),
+				loaded: this.scope.modules.loader.loaded(),
+				syncing: this.scope.modules.loader.syncing(),
+				transactions: await promisify(
+					this.scope.modules.transactions.shared.getTransactionsCount
+				)(),
+				secondsSinceEpoch: this.slots.getTime(),
+				networkHeight: await promisify(this.scope.modules.peers.networkHeight)({
+					options: {
+						normalized: false,
+					},
+				}),
+				lastBlock: this.scope.modules.blocks.lastBlock.get(),
+			}),
+		};
 	}
 
 	async cleanup(code, error) {
@@ -206,15 +291,19 @@ module.exports = class Chain {
 		}
 
 		if (components !== undefined) {
-			components.map(component => component.cleanup());
+			Object.keys(components).forEach(async key => {
+				if (components[key].cleanup) {
+					await components[key].cleanup();
+				}
+			});
 		}
 
 		// Run cleanup operation on each module before shutting down the node;
 		// this includes operations like snapshotting database tables.
 		await Promise.all(
-			modules.map(module => {
-				if (typeof module.cleanup === 'function') {
-					return util.promisify(module.cleanup)();
+			Object.keys(modules).map(key => {
+				if (typeof modules[key].cleanup === 'function') {
+					return promisify(modules[key].cleanup);
 				}
 				return true;
 			})

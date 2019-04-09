@@ -16,10 +16,10 @@
 'use strict';
 
 const { EventEmitter } = require('events');
-const BaseAdapter = require('../../../../../../src/components/storage/adapters/base_adapter');
 const {
-	ImplementationPendingError,
-} = require('../../../../../../src/components/storage/errors');
+	adapters: { BaseAdapter },
+	errors: { ImplementationPendingError },
+} = require('../../../../../../src/components/storage');
 
 describe('BaseAdapter', () => {
 	it('should be a constructable function', async () => {

@@ -14,7 +14,7 @@
 
 'use strict';
 
-const Bignum = require('../helpers/bignum.js');
+const Bignum = require('../helpers/bignum');
 
 const { REWARDS, TOTAL_AMOUNT } = global.constants;
 

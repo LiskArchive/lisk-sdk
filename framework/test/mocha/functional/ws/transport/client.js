@@ -14,7 +14,7 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 const MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 const connect = require('../../../../../src/modules/chain/api/ws/rpc/connect');
 const wsRPC = require('../../../../../src/modules/chain/api/ws/rpc/ws_rpc')
@@ -181,7 +181,7 @@ describe('RPC Client', () => {
 					validClientRPCStub.status(() => {
 						expect(closeErrorCode).equal(4100);
 						expect(closeErrorReason).equal(
-							'wsPort: Expected type integer but found type not-a-number'
+							'#/wsPort: Expected type integer but found type not-a-number'
 						);
 						done();
 					});
@@ -226,7 +226,7 @@ describe('RPC Client', () => {
 					validClientRPCStub.status(() => {
 						expect(closeErrorCode).equal(4100);
 						expect(closeErrorReason).equal(
-							'nonce: String is too short (9 chars), minimum 16'
+							'#/nonce: String is too short (9 chars), minimum 16'
 						);
 						done();
 					});
@@ -255,7 +255,7 @@ describe('RPC Client', () => {
 					validClientRPCStub.status(() => {
 						expect(closeErrorCode).equal(4100);
 						expect(closeErrorReason).equal(
-							'nonce: String is too long (26 chars), maximum 16'
+							'#/nonce: String is too long (26 chars), maximum 16'
 						);
 						done();
 					});
@@ -283,7 +283,9 @@ describe('RPC Client', () => {
 				it('should close connection with code = 4100 and reason = "Missing required property: nonce"', done => {
 					validClientRPCStub.status(() => {
 						expect(closeErrorCode).equal(4100);
-						expect(closeErrorReason).equal('Missing required property: nonce');
+						expect(closeErrorReason).equal(
+							'#/: Missing required property: nonce'
+						);
 						done();
 					});
 				});
@@ -311,7 +313,7 @@ describe('RPC Client', () => {
 					validClientRPCStub.status(() => {
 						expect(closeErrorCode).equal(4100);
 						expect(closeErrorReason).equal(
-							'Missing required property: nethash'
+							'#/: Missing required property: nethash'
 						);
 						done();
 					});
@@ -356,7 +358,7 @@ describe('RPC Client', () => {
 					validClientRPCStub.status(() => {
 						expect(closeErrorCode).equal(4100);
 						expect(closeErrorReason).equal(
-							'Missing required property: version'
+							'#/: Missing required property: version'
 						);
 						done();
 					});

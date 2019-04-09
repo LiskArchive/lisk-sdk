@@ -22,7 +22,7 @@ const typesRepresentatives = require('../../../../fixtures/types_representatives
 const modulesLoader = require('../../../../common/modules_loader');
 
 const InTransfer = rewire(
-	'../../../../../../src/modules/chain/logic/in_transfer.js'
+	'../../../../../../src/modules/chain/logic/in_transfer'
 );
 const validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
@@ -102,6 +102,7 @@ describe('inTransfer', () => {
 	let inTransfer;
 	let sharedStub;
 	let accountsStub;
+	let blocksStub;
 	let storageStub;
 
 	let trs;
@@ -120,9 +121,6 @@ describe('inTransfer', () => {
 				Transaction: {
 					isPersisted: sinonSandbox.stub().resolves(),
 				},
-				Block: {
-					get: sinonSandbox.stub().resolves([dummyBlock]),
-				},
 			},
 		};
 
@@ -135,6 +133,11 @@ describe('inTransfer', () => {
 			mergeAccountAndGet: sinonSandbox.stub().callsArg(1),
 			getAccount: sinonSandbox.stub(),
 		};
+		blocksStub = {
+			lastBlock: {
+				get: sinonSandbox.stub().returns(dummyBlock),
+			},
+		};
 		inTransfer = new InTransfer({
 			components: {
 				storage: storageStub,
@@ -142,7 +145,7 @@ describe('inTransfer', () => {
 			schema: modulesLoader.scope.schema,
 		});
 
-		inTransfer.bind(accountsStub, sharedStub);
+		inTransfer.bind(accountsStub, blocksStub, sharedStub);
 
 		trs = _.cloneDeep(validTransaction);
 		rawTrs = _.cloneDeep(rawValidTransaction);
@@ -186,7 +189,7 @@ describe('inTransfer', () => {
 		let shared;
 
 		beforeEach(done => {
-			inTransfer.bind(accountsStub, sharedStub);
+			inTransfer.bind(accountsStub, blocksStub, sharedStub);
 			modules = InTransfer.__get__('__scope.modules');
 			shared = InTransfer.__get__('__scope.shared');
 			done();
@@ -197,6 +200,11 @@ describe('inTransfer', () => {
 				expect(modules)
 					.to.have.property('accounts')
 					.eql(accountsStub));
+
+			it('should assign blocks', async () =>
+				expect(modules)
+					.to.have.property('blocks')
+					.eql(blocksStub));
 		});
 
 		it('should assign shared', async () => expect(shared).to.eql(sharedStub));
@@ -208,7 +216,7 @@ describe('inTransfer', () => {
 	});
 
 	describe('verify', () => {
-		beforeEach(() => inTransfer.bind(accountsStub, sharedStub));
+		beforeEach(() => inTransfer.bind(accountsStub, blocksStub, sharedStub));
 
 		describe('when trs.recipientId exists', () => {
 			it('should call callback with error = "Transaction type 6 is frozen"', done => {
@@ -300,9 +308,9 @@ describe('inTransfer', () => {
 			});
 		});
 
-		it('should call entities.Block.get', done => {
-			inTransfer.verify(trs, sender, async () => {
-				expect(storageStub.entities.Block.get).to.be.calledOnce;
+		it('should call modules.blocks.lastBlock.get', done => {
+			inTransfer.verify(trs, sender, () => {
+				expect(blocksStub.lastBlock.get).to.be.calledOnce;
 				done();
 			});
 		});

@@ -5,16 +5,12 @@ This is the initial version of this chart, and it's still consided experimental.
 ## Requirements
 
 - Helm installed on the local computer
-- A kubernetes cluster with helm tilled deployed
+- A kubernetes cluster with helm tiller deployed
 - Support for persistent storage
 
 ## Installation
 
 Inside chart main directory - where `Chart.yaml` is located:
-
-### Install dependencies
-
-`helm dependency build`
 
 ### Install the chart
 
@@ -29,6 +25,8 @@ Create a yaml file with the variables you want to change - use `values.yaml` as 
 If you want to connect to mainnet for example:
 
 ```
+persistence:
+    storage: 20Gi
 lisk:
     network: mainnet
     wsPort: 8001

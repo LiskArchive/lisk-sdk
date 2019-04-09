@@ -17,14 +17,13 @@
 const crypto = require('crypto');
 const rewire = require('rewire');
 const randomstring = require('randomstring');
-const modulesLoader = require('../../../../common/modules_loader.js');
+const modulesLoader = require('../../../../common/modules_loader');
 const randomUtil = require('../../../../common/utils/random');
-const typeRepresentatives = require('../../../../fixtures/types_representatives.js');
-const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types');
-const testData = require('./test_data/dapp.js');
+const typeRepresentatives = require('../../../../fixtures/types_representatives');
+const testData = require('./test_data/dapp');
 
-const { FEES } = __testContext.config.constants;
-const Dapp = rewire('../../../../../../src/modules/chain/logic/dapp.js');
+const { FEES, TRANSACTION_TYPES } = __testContext.config.constants;
+const Dapp = rewire('../../../../../../src/modules/chain/logic/dapp');
 const validKeypair = testData.validKeypair;
 const validSender = testData.validSender;
 const validTransaction = testData.validTransaction;
@@ -33,6 +32,7 @@ const rawValidTransaction = testData.rawValidTransaction;
 describe('dapp', () => {
 	let dapp;
 	let storageStub;
+	let channelStub;
 
 	let transaction;
 	let rawTransaction;
@@ -47,15 +47,24 @@ describe('dapp', () => {
 				},
 			},
 		};
+
+		channelStub = {
+			publish: sinonSandbox.stub(),
+		};
+
 		dapp = new Dapp({
 			components: {
 				storage: storageStub,
 				logger: modulesLoader.scope.components.logger,
 			},
-			network: modulesLoader.scope.network,
+			channel: channelStub,
 			schema: modulesLoader.scope.schema,
 		});
 		done();
+	});
+
+	afterEach(async () => {
+		sinonSandbox.restore();
 	});
 
 	describe('with dummy data', () => {
@@ -76,7 +85,7 @@ describe('dapp', () => {
 							storage: storageStub,
 							logger: modulesLoader.scope.components.logger,
 						},
-						network: modulesLoader.scope.network,
+						channel: channelStub,
 						schema: modulesLoader.scope.schema,
 					});
 					__scope = Dapp.__get__('__scope');
@@ -94,8 +103,18 @@ describe('dapp', () => {
 						modulesLoader.scope.components.logger
 					));
 
-				it('should be loaded network from modulesLoader', async () =>
-					expect(__scope.network).to.eql(modulesLoader.scope.network));
+				it('should be loaded channel stub object', async () =>
+					expect(__scope.channel).to.eql(channelStub));
+			});
+		});
+
+		describe('afterSave', () => {
+			beforeEach(async () => {
+				dapp.afterSave(null, () => {});
+			});
+
+			it('should call __scope.channel.publish with "chain:dapps:change"', async () => {
+				expect(channelStub.publish).to.be.calledWith('chain:dapps:change');
 			});
 		});
 
@@ -321,12 +340,12 @@ describe('dapp', () => {
 							{
 								dapp_name: transaction.asset.dapp.name,
 								id_ne: transaction.id,
-								type: transactionTypes.DAPP,
+								type: TRANSACTION_TYPES.DAPP,
 							},
 							{
 								dapp_link: transaction.asset.dapp.link || null,
 								id_ne: transaction.id,
-								type: transactionTypes.DAPP,
+								type: TRANSACTION_TYPES.DAPP,
 							},
 						];
 						done();
@@ -405,12 +424,12 @@ describe('dapp', () => {
 						{
 							dapp_name: transaction.asset.dapp.name,
 							id_ne: transaction.id,
-							type: transactionTypes.DAPP,
+							type: TRANSACTION_TYPES.DAPP,
 						},
 						{
 							dapp_link: transaction.asset.dapp.link || null,
 							id_ne: transaction.id,
-							type: transactionTypes.DAPP,
+							type: TRANSACTION_TYPES.DAPP,
 						},
 					];
 

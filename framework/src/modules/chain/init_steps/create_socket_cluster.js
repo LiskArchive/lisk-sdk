@@ -8,17 +8,9 @@ const workersControllerPath = path.join(__dirname, '../workers_controller');
 
 module.exports = async ({
 	config,
-	network,
 	modules: { transport },
 	components: { logger },
 }) => {
-	if (!config.peers.enabled) {
-		logger.info(
-			'Skipping P2P server initialization due to the config settings - "peers.enabled" is set to false.'
-		);
-		return true;
-	}
-
 	const webSocketConfig = {
 		workers: 1,
 		port: config.wsPort,
@@ -47,9 +39,7 @@ module.exports = async ({
 	};
 
 	const socketCluster = new SocketCluster(webSocketConfig);
-	network.app.rpc = wsRPC.setServer(
-		new MasterWAMPServer(socketCluster, childProcessOptions)
-	);
+	wsRPC.setServer(new MasterWAMPServer(socketCluster, childProcessOptions));
 
 	// The 'fail' event aggregates errors from all SocketCluster processes.
 	socketCluster.on('fail', err => {

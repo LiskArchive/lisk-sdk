@@ -14,21 +14,23 @@
 
 'use strict';
 
-require('../../functional.js');
-const lisk = require('lisk-elements').default;
+require('../../functional');
+const Bignum = require('bignumber.js');
+const { transfer, createDapp } = require('@liskhq/lisk-transactions');
 const Promise = require('bluebird');
 const accountFixtures = require('../../../fixtures/accounts');
 const phases = require('../../../common/phases');
-const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
 const randomUtil = require('../../../common/utils/random');
 const waitFor = require('../../../common/utils/wait_for');
 const elements = require('../../../common/utils/elements');
 const apiHelpers = require('../../../common/helpers/api');
-const errorCodes = require('../../../../../src/modules/chain/helpers/api_codes');
+const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const common = require('./common');
 
 const { FEES, NORMALIZER } = global.constants;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
+// FIXME: this function was used from transactions library, but it doesn't exist
+const createOutTransfer = () => {};
 
 describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 	let transaction;
@@ -41,12 +43,12 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 	// Crediting accounts
 	before(() => {
-		const transaction1 = lisk.transaction.transfer({
-			amount: 1000 * NORMALIZER,
+		const transaction1 = transfer({
+			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});
-		const transaction2 = lisk.transaction.transfer({
+		const transaction2 = transfer({
 			amount: FEES.DAPP_REGISTRATION,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
@@ -66,7 +68,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 				return waitFor.confirmations(transactionsToWaitFor);
 			})
 			.then(() => {
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: account.passphrase,
 					options: randomUtil.guestbookDapp,
 				});
@@ -78,7 +80,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				randomUtil.guestbookDapp.id = transaction.id;
 				transactionsToWaitFor.push(randomUtil.guestbookDapp.id);
-				transaction = lisk.transaction.createDapp({
+				transaction = createDapp({
 					passphrase: accountMinimalFunds.passphrase,
 					options: randomUtil.blockDataDapp,
 				});
@@ -101,7 +103,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 		describe('dappId', () => {
 			it('without should fail', async () => {
-				transaction = lisk.transfer.createOutTransfer(
+				transaction = createOutTransfer(
 					randomUtil.guestbookDapp.id,
 					randomUtil.transaction().id,
 					accountFixtures.genesis.address,
@@ -112,7 +114,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid transaction body - Failed to validate outTransfer schema: Missing required property: dappId'
@@ -122,7 +124,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 			});
 
 			it('with integer should fail', async () => {
-				transaction = lisk.transfer.createOutTransfer(
+				transaction = createOutTransfer(
 					randomUtil.guestbookDapp.id,
 					randomUtil.transaction().id,
 					accountFixtures.genesis.address,
@@ -133,7 +135,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid transaction body - Failed to validate outTransfer schema: Expected type string but found type integer'
@@ -143,7 +145,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 			});
 
 			it('with number should fail', async () => {
-				transaction = lisk.transfer.createOutTransfer(
+				transaction = createOutTransfer(
 					randomUtil.guestbookDapp.id,
 					randomUtil.transaction().id,
 					accountFixtures.genesis.address,
@@ -154,7 +156,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						"Invalid transaction body - Failed to validate outTransfer schema: Expected type string but found type number, Object didn't pass validation for format id: 1.2"
@@ -164,7 +166,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 			});
 
 			it('with empty array should fail', async () => {
-				transaction = lisk.transfer.createOutTransfer(
+				transaction = createOutTransfer(
 					randomUtil.guestbookDapp.id,
 					randomUtil.transaction().id,
 					accountFixtures.genesis.address,
@@ -175,7 +177,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid transaction body - Failed to validate outTransfer schema: Expected type string but found type array'
@@ -185,7 +187,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 			});
 
 			it('with empty object should fail', async () => {
-				transaction = lisk.transfer.createOutTransfer(
+				transaction = createOutTransfer(
 					randomUtil.guestbookDapp.id,
 					randomUtil.transaction().id,
 					accountFixtures.genesis.address,
@@ -196,7 +198,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						"Invalid transaction body - Failed to validate outTransfer schema: Expected type string but found type object, Object didn't pass validation for format id: {}"
@@ -206,7 +208,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 			});
 
 			it('with empty string should fail', async () => {
-				transaction = lisk.transfer.createOutTransfer(
+				transaction = createOutTransfer(
 					'',
 					randomUtil.transaction().id,
 					accountFixtures.genesis.address,
@@ -216,7 +218,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid transaction body - Failed to validate outTransfer schema: String is too short (0 chars), minimum 1'
@@ -227,7 +229,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 			it('with invalid string should fail', async () => {
 				const invalidDappId = '1L';
-				transaction = lisk.transfer.createOutTransfer(
+				transaction = createOutTransfer(
 					invalidDappId,
 					randomUtil.transaction().id,
 					accountFixtures.genesis.address,
@@ -237,7 +239,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						`Invalid transaction body - Failed to validate outTransfer schema: Object didn't pass validation for format id: ${invalidDappId}`
@@ -249,7 +251,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 		describe('transactionId', () => {
 			it('without should fail', async () => {
-				transaction = lisk.transfer.createOutTransfer(
+				transaction = createOutTransfer(
 					randomUtil.guestbookDapp.id,
 					randomUtil.transaction().id,
 					accountFixtures.genesis.address,
@@ -260,7 +262,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid transaction body - Failed to validate outTransfer schema: Missing required property: transactionId'
@@ -270,7 +272,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 			});
 
 			it('with integer should fail', async () => {
-				transaction = lisk.transfer.createOutTransfer(
+				transaction = createOutTransfer(
 					randomUtil.guestbookDapp.id,
 					randomUtil.transaction().id,
 					accountFixtures.genesis.address,
@@ -281,7 +283,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid transaction body - Failed to validate outTransfer schema: Expected type string but found type integer'
@@ -291,7 +293,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 			});
 
 			it('with number should fail', async () => {
-				transaction = lisk.transfer.createOutTransfer(
+				transaction = createOutTransfer(
 					randomUtil.guestbookDapp.id,
 					randomUtil.transaction().id,
 					accountFixtures.genesis.address,
@@ -302,7 +304,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						"Invalid transaction body - Failed to validate outTransfer schema: Expected type string but found type number, Object didn't pass validation for format id: 1.2"
@@ -312,7 +314,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 			});
 
 			it('with empty array should fail', async () => {
-				transaction = lisk.transfer.createOutTransfer(
+				transaction = createOutTransfer(
 					randomUtil.guestbookDapp.id,
 					randomUtil.transaction().id,
 					accountFixtures.genesis.address,
@@ -323,7 +325,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid transaction body - Failed to validate outTransfer schema: Expected type string but found type array'
@@ -333,7 +335,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 			});
 
 			it('with empty object should fail', async () => {
-				transaction = lisk.transfer.createOutTransfer(
+				transaction = createOutTransfer(
 					randomUtil.guestbookDapp.id,
 					randomUtil.transaction().id,
 					accountFixtures.genesis.address,
@@ -344,7 +346,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						"Invalid transaction body - Failed to validate outTransfer schema: Expected type string but found type object, Object didn't pass validation for format id: {}"
@@ -354,7 +356,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 			});
 
 			it('empty string should fail', async () => {
-				transaction = lisk.transfer.createOutTransfer(
+				transaction = createOutTransfer(
 					randomUtil.guestbookDapp.id,
 					'',
 					accountFixtures.genesis.address,
@@ -364,7 +366,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid transaction body - Failed to validate outTransfer schema: String is too short (0 chars), minimum 1'
@@ -375,7 +377,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 			it('with invalid string should fail', async () => {
 				const invalidTransactionId = '1L';
-				transaction = lisk.transfer.createOutTransfer(
+				transaction = createOutTransfer(
 					randomUtil.guestbookDapp.id,
 					invalidTransactionId,
 					accountFixtures.genesis.address,
@@ -385,7 +387,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						`Invalid transaction body - Failed to validate outTransfer schema: Object didn't pass validation for format id: ${invalidTransactionId}`
@@ -397,7 +399,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 		describe('recipientId', () => {
 			it('with integer should fail', async () => {
-				transaction = lisk.transfer.createOutTransfer(
+				transaction = createOutTransfer(
 					randomUtil.guestbookDapp.id,
 					randomUtil.transaction().id,
 					accountFixtures.genesis.address,
@@ -406,7 +408,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 				);
 				transaction.recipientId = 1;
 
-				return sendTransactionPromise(transaction, errorCodes.BAD_REQUEST).then(
+				return sendTransactionPromise(transaction, apiCodes.BAD_REQUEST).then(
 					async () => {
 						badTransactions.push(transaction);
 					}
@@ -414,7 +416,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 			});
 
 			it('with number should fail', async () => {
-				transaction = lisk.transfer.createOutTransfer(
+				transaction = createOutTransfer(
 					randomUtil.guestbookDapp.id,
 					randomUtil.transaction().id,
 					accountFixtures.genesis.address,
@@ -423,7 +425,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 				);
 				transaction.recipientId = 1.2;
 
-				return sendTransactionPromise(transaction, errorCodes.BAD_REQUEST).then(
+				return sendTransactionPromise(transaction, apiCodes.BAD_REQUEST).then(
 					async () => {
 						badTransactions.push(transaction);
 					}
@@ -431,7 +433,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 			});
 
 			it('with empty array should fail', async () => {
-				transaction = lisk.transfer.createOutTransfer(
+				transaction = createOutTransfer(
 					randomUtil.guestbookDapp.id,
 					randomUtil.transaction().id,
 					accountFixtures.genesis.address,
@@ -440,7 +442,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 				);
 				transaction.recipientId = [];
 
-				return sendTransactionPromise(transaction, errorCodes.BAD_REQUEST).then(
+				return sendTransactionPromise(transaction, apiCodes.BAD_REQUEST).then(
 					async () => {
 						badTransactions.push(transaction);
 					}
@@ -448,7 +450,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 			});
 
 			it('with empty object should fail', async () => {
-				transaction = lisk.transfer.createOutTransfer(
+				transaction = createOutTransfer(
 					randomUtil.guestbookDapp.id,
 					randomUtil.transaction().id,
 					accountFixtures.genesis.address,
@@ -457,7 +459,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 				);
 				transaction.recipientId = {};
 
-				return sendTransactionPromise(transaction, errorCodes.BAD_REQUEST).then(
+				return sendTransactionPromise(transaction, apiCodes.BAD_REQUEST).then(
 					async () => {
 						badTransactions.push(transaction);
 					}
@@ -465,7 +467,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 			});
 
 			it('empty string should fail', async () => {
-				transaction = lisk.transfer.createOutTransfer(
+				transaction = createOutTransfer(
 					randomUtil.guestbookDapp.id,
 					randomUtil.transaction().id,
 					'',
@@ -475,7 +477,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(() => {
 					badTransactions.push(transaction);
 				});
@@ -483,7 +485,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 			it('with invalid string should fail', async () => {
 				const invalidRecipientId = '1X';
-				transaction = lisk.transfer.createOutTransfer(
+				transaction = createOutTransfer(
 					randomUtil.guestbookDapp.id,
 					randomUtil.transaction().id,
 					invalidRecipientId,
@@ -491,7 +493,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 					account.passphrase
 				);
 
-				return sendTransactionPromise(transaction, errorCodes.BAD_REQUEST).then(
+				return sendTransactionPromise(transaction, apiCodes.BAD_REQUEST).then(
 					async () => {
 						badTransactions.push(transaction);
 					}
@@ -501,7 +503,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 		describe('amount', () => {
 			it('using < 0 should fail', async () => {
-				transaction = lisk.transfer.createOutTransfer(
+				transaction = createOutTransfer(
 					randomUtil.guestbookDapp.id,
 					randomUtil.transaction().id,
 					accountFixtures.genesis.address,
@@ -511,7 +513,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						'Invalid transaction body - Failed to validate transaction schema: Value -1 is less than minimum 0'
@@ -532,7 +534,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 						const balance = res.body.data[0].balance;
 						const amount = new Bignum(balance).plus('1').toString();
-						transaction = lisk.transfer.createOutTransfer(
+						transaction = createOutTransfer(
 							randomUtil.guestbookDapp.id,
 							randomUtil.transaction().id,
 							accountFixtures.genesis.address,
@@ -542,7 +544,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 						return sendTransactionPromise(
 							transaction,
-							errorCodes.PROCESSING_ERROR
+							apiCodes.PROCESSING_ERROR
 						);
 					})
 					.then(res => {
@@ -558,7 +560,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 	describe.skip('transactions processing', () => {
 		it('using unknown dapp id should fail', async () => {
 			const unknownDappId = '1';
-			transaction = lisk.transfer.createOutTransfer(
+			transaction = createOutTransfer(
 				unknownDappId,
 				randomUtil.transaction().id,
 				accountFixtures.genesis.address,
@@ -568,7 +570,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Application not found: ${unknownDappId}`
@@ -579,7 +581,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 		it('using valid but inexistent transaction id as dapp id should fail', async () => {
 			const inexistentId = randomUtil.transaction().id;
-			transaction = lisk.transfer.createOutTransfer(
+			transaction = createOutTransfer(
 				inexistentId,
 				randomUtil.transaction().id,
 				accountFixtures.genesis.address,
@@ -589,7 +591,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Application not found: ${inexistentId}`
@@ -599,7 +601,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 		});
 
 		it('using unrelated existent transaction id as dapp id should fail', async () => {
-			transaction = lisk.transfer.createOutTransfer(
+			transaction = createOutTransfer(
 				transactionsToWaitFor[0],
 				randomUtil.transaction().id,
 				accountFixtures.genesis.address,
@@ -609,7 +611,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Application not found: ${transactionsToWaitFor[0]}`
@@ -619,7 +621,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 		});
 
 		it('with correct data should be ok', async () => {
-			transaction = lisk.transfer.createOutTransfer(
+			transaction = createOutTransfer(
 				randomUtil.guestbookDapp.id,
 				randomUtil.transaction().id,
 				accountFixtures.genesis.address,
@@ -635,7 +637,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 		describe('from the author itself', () => {
 			it('with minimal funds should fail', async () => {
-				transaction = lisk.transfer.createOutTransfer(
+				transaction = createOutTransfer(
 					randomUtil.blockDataDapp.id,
 					randomUtil.transaction().id,
 					accountFixtures.genesis.address,
@@ -645,7 +647,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					errorCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.match(
 						/^Account does not have enough LSK: /
@@ -655,7 +657,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 			});
 
 			it('with enough funds should be ok', async () => {
-				transaction = lisk.transfer.createOutTransfer(
+				transaction = createOutTransfer(
 					randomUtil.guestbookDapp.id,
 					randomUtil.transaction().id,
 					accountFixtures.genesis.address,
@@ -701,7 +703,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Transaction type ${transaction.type} is frozen`

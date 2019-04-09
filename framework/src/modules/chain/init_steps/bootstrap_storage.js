@@ -20,6 +20,7 @@ const {
 	Migration,
 	Peer,
 	Round,
+	Transaction,
 } = require('../components/storage/entities');
 
 module.exports = async ({ components: { storage, logger } }, accountLimit) => {
@@ -33,6 +34,9 @@ module.exports = async ({ components: { storage, logger } }, accountLimit) => {
 		storage.registerEntity('Migration', Migration);
 		storage.registerEntity('Peer', Peer);
 		storage.registerEntity('Round', Round);
+		storage.registerEntity('Transaction', Transaction, {
+			replaceExisting: true,
+		});
 		const status = await storage.bootstrap();
 		if (!status) {
 			throw new Error('Can not bootstrap the storage component');

@@ -51,7 +51,7 @@ spec:
               if [ -f /var/lib/postgresql/pgdata/PG_VERSION ] ; then
                 echo "Database already initialized, skipping download."
               else
-                wget https://downloads.lisk.io/lisk/test/blockchain.db.gz -O /docker-entrypoint-initdb.d/00-blockchain.sql.gz
+                wget https://downloads.lisk.io/lisk/{{ .Values.lisk.network }}/blockchain.db.gz -O /docker-entrypoint-initdb.d/00-blockchain.sql.gz
                 cat <<EOF > /docker-entrypoint-initdb.d/99-clean-up.sh
               rm /docker-entrypoint-initdb.d/00-blockchain.sql.gz
               EOF
@@ -83,8 +83,8 @@ spec:
             - "0"
             - "127.0.0.1:5432"
             - "--"
-            - "node"
-            - "/home/lisk/lisk/app.js"
+            - "npm"
+            - "start"
           ports:
             - name: lisk-core-http
               containerPort: {{ .Values.lisk.httpPort }}

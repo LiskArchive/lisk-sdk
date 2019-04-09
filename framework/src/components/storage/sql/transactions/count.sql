@@ -13,8 +13,8 @@
  */
 
 SELECT count(*)
-FROM
-	full_blocks_list
+FROM trs
+	LEFT JOIN blocks AS b ON trs."blockId" = b.id
+	LEFT JOIN mem_accounts AS m ON trs."recipientId" = m.address
 
-WHERE "t_rowId" IS NOT NULL  ${parsedFilters:raw}
-
+${parsedFilters:raw}

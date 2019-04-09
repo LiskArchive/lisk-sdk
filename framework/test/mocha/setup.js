@@ -25,7 +25,7 @@ const supertest = require('supertest');
 const _ = require('lodash');
 const AppConfig = require('../../src/modules/chain/helpers/config');
 const packageJson = require('../../../package.json');
-const Bignum = require('../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../src/modules/chain/helpers/bignum');
 
 coMocha(mocha);
 

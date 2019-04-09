@@ -1,0 +1,254 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`schema/application.js application schema must match to the snapshot. 1`] = `
+Object {
+  "appLabel": Object {
+    "id": "#appLabel",
+    "pattern": "^[a-zA-Z][0-9a-zA-Z\\\\_\\\\-]*$",
+    "type": "string",
+  },
+  "config": Object {
+    "additionalProperties": false,
+    "id": "#/app/config",
+    "properties": Object {
+      "components": Object {
+        "properties": Object {
+          "logger": Object {
+            "$ref": "#/app/logger",
+          },
+        },
+        "type": "object",
+      },
+      "initialState": Object {
+        "id": "#/app/initialState",
+        "properties": Object {
+          "httpPort": Object {
+            "type": "integer",
+          },
+          "minVersion": Object {
+            "type": "string",
+          },
+          "nethash": Object {
+            "type": "string",
+          },
+          "nonce": Object {
+            "type": "string",
+          },
+          "protocolVersion": Object {
+            "type": "string",
+          },
+          "version": Object {
+            "type": "string",
+          },
+          "wsPort": Object {
+            "type": "integer",
+          },
+        },
+        "type": "object",
+      },
+      "ipc": Object {
+        "properties": Object {
+          "enabled": Object {
+            "type": "boolean",
+          },
+        },
+        "type": "object",
+      },
+    },
+    "type": "object",
+  },
+  "genesisBlock": Object {
+    "$id": "#genesisBlock",
+    "additionalProperties": false,
+    "properties": Object {
+      "blockSignature": Object {
+        "format": "signature",
+        "type": "string",
+      },
+      "generatorPublicKey": Object {
+        "format": "publicKey",
+        "type": "string",
+      },
+      "height": Object {
+        "min": 1,
+        "type": "integer",
+      },
+      "id": Object {
+        "format": "id",
+        "maxLength": 20,
+        "minLength": 1,
+        "type": "string",
+      },
+      "numberOfTransactions": Object {
+        "min": 0,
+        "type": "integer",
+      },
+      "payloadHash": Object {
+        "format": "hex",
+        "type": "string",
+      },
+      "payloadLength": Object {
+        "min": 0,
+        "type": "integer",
+      },
+      "previousBlock": Object {
+        "format": "id",
+        "maxLength": 20,
+        "minLength": 1,
+        "type": Array [
+          "null",
+          "string",
+        ],
+      },
+      "reward": Object {
+        "format": "amount",
+        "type": "string",
+      },
+      "timestamp": Object {
+        "min": 0,
+        "type": "integer",
+      },
+      "totalAmount": Object {
+        "format": "amount",
+        "type": "string",
+      },
+      "totalFee": Object {
+        "format": "amount",
+        "type": "string",
+      },
+      "transactions": Object {
+        "items": Object {
+          "$ref": "transactions",
+        },
+        "type": "array",
+        "uniqueItems": true,
+      },
+      "version": Object {
+        "minimum": 0,
+        "type": "integer",
+      },
+    },
+    "required": Array [
+      "version",
+      "totalAmount",
+      "totalFee",
+      "reward",
+      "payloadHash",
+      "timestamp",
+      "numberOfTransactions",
+      "payloadLength",
+      "generatorPublicKey",
+      "transactions",
+      "blockSignature",
+    ],
+    "type": "object",
+  },
+  "logger": Object {
+    "$id": "#/app/logger",
+    "properties": Object {
+      "consoleLogLevel": Object {
+        "enum": Array [
+          "trace",
+          "debug",
+          "log",
+          "info",
+          "warn",
+          "error",
+          "fatal",
+          "none",
+        ],
+        "type": "string",
+      },
+      "echo": Object {
+        "type": "string",
+      },
+      "fileLogLevel": Object {
+        "enum": Array [
+          "trace",
+          "debug",
+          "log",
+          "info",
+          "warn",
+          "error",
+          "fatal",
+          "none",
+        ],
+        "type": "string",
+      },
+      "filename": Object {
+        "type": "string",
+      },
+    },
+    "required": Array [
+      "filename",
+    ],
+    "type": "object",
+  },
+  "transactions": Object {
+    "additionalProperties": false,
+    "id": "transactions",
+    "properties": Object {
+      "amount": Object {
+        "format": "amount",
+        "type": "string",
+      },
+      "asset": Object {
+        "description": "Send relevant data with transaction like delegate, vote, signature, ...",
+        "type": "object",
+      },
+      "fee": Object {
+        "format": "amount",
+        "type": "string",
+      },
+      "id": Object {
+        "format": "id",
+        "maxLength": 20,
+        "minLength": 1,
+        "type": "string",
+      },
+      "recipientId": Object {
+        "format": "address",
+        "maxLength": 22,
+        "minLength": 1,
+        "type": Array [
+          "string",
+          "null",
+        ],
+      },
+      "senderId": Object {
+        "format": "address",
+        "maxLength": 22,
+        "minLength": 1,
+        "type": "string",
+      },
+      "senderPublicKey": Object {
+        "format": "publicKey",
+        "type": "string",
+      },
+      "signature": Object {
+        "format": "signature",
+        "type": "string",
+      },
+      "timestamp": Object {
+        "min": 0,
+        "type": "integer",
+      },
+      "type": Object {
+        "enum": Array [
+          0,
+          2,
+          3,
+        ],
+        "type": "integer",
+      },
+    },
+    "required": Array [
+      "type",
+      "timestamp",
+      "senderPublicKey",
+      "signature",
+    ],
+    "type": "object",
+  },
+}
+`;

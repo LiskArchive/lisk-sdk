@@ -18,14 +18,12 @@ const crypto = require('crypto');
 const rewire = require('rewire');
 const accounts = require('../../../../fixtures/accounts');
 const ed = require('../../../../../../src/modules/chain/helpers/ed');
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 const modulesLoader = require('../../../../common/modules_loader');
 const random = require('../../../../common/utils/random');
-const SchemaDynamicTest = require('../common/schema_dynamic_test.js');
+const SchemaDynamicTest = require('../common/schema_dynamic_test');
 
-const Delegate = rewire(
-	'../../../../../../src/modules/chain/logic/delegate.js'
-);
+const Delegate = rewire('../../../../../../src/modules/chain/logic/delegate');
 
 const { FEES } = global.constants;
 const validPassphrase =

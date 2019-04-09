@@ -1,6 +1,7 @@
 ---
 replicaCount: 1
 
+# This is for database (postgresql) container and can be expanded
 persistence:
   enable: true
   storage: 10Gi
@@ -29,7 +30,7 @@ lisk:
     password: lisk
   image:
     repository: lisk/core
-    tag: 1.5.0
+    tag: 1.6.0-alpha.5
     pullPolicy: IfNotPresent
 
 postgresql:

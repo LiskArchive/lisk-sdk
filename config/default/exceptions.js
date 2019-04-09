@@ -43,6 +43,9 @@ module.exports = {
 	rounds: {},
 	senderPublicKey: [],
 	signatures: [],
+	// transfer transaction with null byte in the data field
+	// SELECT * FROM transfer WHERE position('\x00' in data) > 0;
+	transactionWithNullByte: [],
 	multisignatures: [],
 	votes: [],
 	inertTransactions: [],

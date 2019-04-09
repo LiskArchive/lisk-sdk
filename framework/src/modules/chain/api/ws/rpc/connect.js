@@ -26,10 +26,10 @@ const TIMEOUT = 2000;
 const wampClient = new WAMPClient(TIMEOUT); // Timeout failed requests after 1 second
 const socketConnections = {};
 
-const connect = (peer, logger, systemHeaders) => {
+const connect = (peer, logger, state) => {
 	const wsServer = wsRPC.getServer();
 
-	connectSteps.addConnectionOptions(peer, systemHeaders);
+	connectSteps.addConnectionOptions(peer, state);
 	connectSteps.addSocket(peer, logger);
 	connectSteps.upgradeSocketAsWAMPClient(peer);
 	connectSteps.upgradeSocketAsWAMPServer(peer, wsServer);
@@ -41,25 +41,25 @@ const connect = (peer, logger, systemHeaders) => {
 };
 
 const connectSteps = {
-	addConnectionOptions: (peer, systemHeaders) => {
+	addConnectionOptions: (peer, state) => {
 		const queryParams = {};
-		if (systemHeaders.version) {
-			queryParams.version = systemHeaders.version;
+		if (state.version) {
+			queryParams.version = state.version;
 		}
-		if (systemHeaders.protocolVersion) {
-			queryParams.protocolVersion = systemHeaders.protocolVersion;
+		if (state.protocolVersion) {
+			queryParams.protocolVersion = state.protocolVersion;
 		}
-		if (systemHeaders.wsPort) {
-			queryParams.wsPort = systemHeaders.wsPort;
+		if (state.wsPort) {
+			queryParams.wsPort = state.wsPort;
 		}
-		if (systemHeaders.httpPort) {
-			queryParams.httpPort = systemHeaders.httpPort;
+		if (state.httpPort) {
+			queryParams.httpPort = state.httpPort;
 		}
-		if (systemHeaders.nethash) {
-			queryParams.nethash = systemHeaders.nethash;
+		if (state.nethash) {
+			queryParams.nethash = state.nethash;
 		}
-		if (systemHeaders.nonce) {
-			queryParams.nonce = systemHeaders.nonce;
+		if (state.nonce) {
+			queryParams.nonce = state.nonce;
 		}
 		peer.connectionOptions = {
 			autoConnect: false, // Lazy connection establishment

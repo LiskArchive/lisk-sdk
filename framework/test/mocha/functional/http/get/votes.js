@@ -14,15 +14,19 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 const randomstring = require('randomstring');
-const lisk = require('lisk-elements').default;
+const {
+	transfer,
+	registerDelegate,
+	castVotes,
+} = require('@liskhq/lisk-transactions');
+const Bignum = require('bignumber.js');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const waitFor = require('../../../common/utils/wait_for');
 const apiHelpers = require('../../../common/helpers/api');
-const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
 
 const { FEES, MAX_VOTES_PER_ACCOUNT } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
@@ -117,6 +121,60 @@ describe('GET /api/votes', () => {
 							expectValidVoterDelegateResponse(res);
 						});
 				});
+			});
+		});
+
+		describe('with wrong input', () => {
+			it('using invalid field name should fail', async () => {
+				return votesEndpoint
+					.makeRequest(
+						{
+							whatever: accountFixtures.existingDelegate.address,
+						},
+						400
+					)
+					.then(res => {
+						expect(res.body.errors).to.have.length(4);
+						expectSwaggerParamError(res, 'username');
+						expectSwaggerParamError(res, 'address');
+						expectSwaggerParamError(res, 'publicKey');
+						expectSwaggerParamError(res, 'secondPublicKey');
+					});
+			});
+
+			it('using empty valid parameter should fail', async () => {
+				return votesEndpoint
+					.makeRequest(
+						{
+							publicKey: '',
+						},
+						400
+					)
+					.then(res => {
+						expect(res.body.errors).to.have.length(4);
+						expectSwaggerParamError(res, 'username');
+						expectSwaggerParamError(res, 'address');
+						expectSwaggerParamError(res, 'publicKey');
+						expectSwaggerParamError(res, 'secondPublicKey');
+					});
+			});
+
+			it('using partially invalid fields should fail', async () => {
+				return votesEndpoint
+					.makeRequest(
+						{
+							address: accountFixtures.existingDelegate.address,
+							limit: 'invalid',
+							offset: 'invalid',
+							sort: 'invalid',
+						},
+						400
+					)
+					.then(res => {
+						expectSwaggerParamError(res, 'limit');
+						expectSwaggerParamError(res, 'offset');
+						expectSwaggerParamError(res, 'sort');
+					});
 			});
 		});
 
@@ -373,12 +431,12 @@ describe('GET /api/votes', () => {
 		describe('increased votes numbers after posting vote transaction', () => {
 			it('should increase votes and votesUsed after posting a vote', done => {
 				const account = randomUtil.account();
-				const creditTransaction = lisk.transaction.transfer({
-					amount: new Bignum(FEES.DELEGATE).plus(FEES.VOTE),
+				const creditTransaction = transfer({
+					amount: new Bignum(FEES.DELEGATE).plus(FEES.VOTE).toString(),
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: account.address,
 				});
-				const delegateTransaction = lisk.transaction.registerDelegate({
+				const delegateTransaction = registerDelegate({
 					passphrase: account.passphrase,
 					username: randomstring.generate({
 						length: 10,
@@ -386,7 +444,7 @@ describe('GET /api/votes', () => {
 						capitalization: 'lowercase',
 					}),
 				});
-				const voteTransaction = lisk.transaction.castVotes({
+				const voteTransaction = castVotes({
 					passphrase: account.passphrase,
 					votes: [`${nonVoterDelegate.publicKey}`],
 				});

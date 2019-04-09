@@ -16,10 +16,9 @@
 
 const async = require('async');
 const ByteBuffer = require('bytebuffer');
-const ed = require('../helpers/ed.js');
-const Diff = require('../helpers/diff.js');
-const slots = require('../helpers/slots.js');
-const Bignum = require('../helpers/bignum.js');
+const ed = require('../helpers/ed');
+const slots = require('../helpers/slots');
+const Bignum = require('../helpers/bignum');
 
 const exceptions = global.exceptions;
 const { FEES, MULTISIG_CONSTRAINTS } = global.constants;
@@ -35,7 +34,6 @@ __scope.unconfirmedSignatures = {};
  * @see Parent: {@link logic}
  * @requires async
  * @requires bytebuffer
- * @requires helpers/diff
  * @requires helpers/slots
  * @param {Object} scope
  * @param {Object} scope.components
@@ -46,24 +44,24 @@ __scope.unconfirmedSignatures = {};
  * @param {Transaction} scope.logic.transaction
  * @param {Account} scope.logic.account
  * @param {ZSchema} scope.schema
- * @param {Object} scope.network
+ * @param {Object} scope.channel
  * @todo Add description for the params
  */
 class Multisignature {
 	constructor({
 		components: { logger },
-		logic: { transaction, account },
+		logic: { account, transaction },
 		schema,
-		network,
+		channel,
 	}) {
 		__scope.components = {
 			logger,
 		};
 		__scope.schema = schema;
-		__scope.network = network;
+		__scope.channel = channel;
 		__scope.logic = {
-			transaction,
 			account,
+			transaction,
 		};
 
 		// TODO: Add modules to constructor argument and assign accounts to __scope.modules.accounts
@@ -408,7 +406,9 @@ Multisignature.prototype.undoConfirmed = function(
 	cb,
 	tx
 ) {
-	const multiInvert = Diff.reverse(transaction.asset.multisignature.keysgroup);
+	const multiInvert = __scope.logic.transaction.reverse(
+		transaction.asset.multisignature.keysgroup
+	);
 
 	__scope.unconfirmedSignatures[sender.address] = true;
 
@@ -479,7 +479,9 @@ Multisignature.prototype.undoUnconfirmed = function(
 	cb,
 	tx
 ) {
-	const multiInvert = Diff.reverse(transaction.asset.multisignature.keysgroup);
+	const multiInvert = __scope.logic.transaction.reverse(
+		transaction.asset.multisignature.keysgroup
+	);
 
 	__scope.unconfirmedSignatures[sender.address] = false;
 
@@ -581,7 +583,7 @@ Multisignature.prototype.dbRead = function(raw) {
  * @todo Add description for the params
  */
 Multisignature.prototype.afterSave = function(transaction, cb) {
-	__scope.network.io.sockets.emit('multisignatures/change', transaction);
+	__scope.channel.publish('chain:multisignatures:change', transaction);
 	return setImmediate(cb);
 };
 

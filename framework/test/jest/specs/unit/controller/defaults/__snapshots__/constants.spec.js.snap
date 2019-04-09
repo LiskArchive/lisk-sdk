@@ -1,0 +1,74 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`controller/defaults/constants.js constants schema must match to the snapshot. 1`] = `
+Object {
+  "ACTIVE_DELEGATES": 101,
+  "ADDITIONAL_DATA": Object {
+    "MAX_LENGTH": 64,
+    "MIN_LENGTH": 1,
+  },
+  "BLOCK_RECEIPT_TIMEOUT": 20,
+  "BLOCK_SLOT_WINDOW": 5,
+  "EPOCH_TIME": "2016-05-24T17:00:00.000Z",
+  "EXPIRY_INTERVAL": 30000,
+  "FEES": Object {
+    "DAPP_DEPOSIT": "10000000",
+    "DAPP_REGISTRATION": "2500000000",
+    "DAPP_WITHDRAWAL": "10000000",
+    "DELEGATE": "2500000000",
+    "MULTISIGNATURE": "500000000",
+    "SECOND_SIGNATURE": "500000000",
+    "SEND": "10000000",
+    "VOTE": "100000000",
+  },
+  "MAX_PAYLOAD_LENGTH": 1048576,
+  "MAX_PEERS": 100,
+  "MAX_SHARED_TRANSACTIONS": 100,
+  "MAX_TRANSACTIONS_PER_BLOCK": 25,
+  "MAX_VOTES_PER_ACCOUNT": 101,
+  "MAX_VOTES_PER_TRANSACTION": 33,
+  "MIN_BROADHASH_CONSENSUS": 51,
+  "MULTISIG_CONSTRAINTS": Object {
+    "KEYSGROUP": Object {
+      "MAX_ITEMS": 15,
+      "MIN_ITEMS": 1,
+    },
+    "LIFETIME": Object {
+      "MAXIMUM": 72,
+      "MINIMUM": 1,
+    },
+    "MIN": Object {
+      "MAXIMUM": 15,
+      "MINIMUM": 1,
+    },
+  },
+  "NETHASHES": Array [
+    "ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511",
+    "da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba",
+  ],
+  "NORMALIZER": "100000000",
+  "REWARDS": Object {
+    "DISTANCE": 3000000,
+    "MILESTONES": Array [
+      "500000000",
+      "400000000",
+      "300000000",
+      "200000000",
+      "100000000",
+    ],
+    "OFFSET": 2160,
+  },
+  "TOTAL_AMOUNT": "10000000000000000",
+  "TRANSACTION_TYPES": Object {
+    "DAPP": 5,
+    "DELEGATE": 2,
+    "IN_TRANSFER": 6,
+    "MULTI": 4,
+    "OUT_TRANSFER": 7,
+    "SEND": 0,
+    "SIGNATURE": 1,
+    "VOTE": 3,
+  },
+  "UNCONFIRMED_TRANSACTION_TIMEOUT": 10800,
+}
+`;

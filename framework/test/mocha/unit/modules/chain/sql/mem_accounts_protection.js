@@ -15,7 +15,7 @@
 'use strict';
 
 const randomstring = require('randomstring');
-const sql = require('../common/sql/mem_accounts.js');
+const sql = require('../common/sql/mem_accounts');
 const storageSandbox = require('../../../../common/storage_sandbox');
 
 let storage;

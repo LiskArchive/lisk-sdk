@@ -14,7 +14,7 @@
 
 'use strict';
 
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 
 describe('BigNumber', () => {
 	let validBuf;

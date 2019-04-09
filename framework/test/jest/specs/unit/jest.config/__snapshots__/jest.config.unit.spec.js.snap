@@ -1,0 +1,25 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`config/unit/jest.config.js unit test config must match to the snapshot. 1`] = `
+Object {
+  "collectCoverage": true,
+  "collectCoverageFrom": Array [
+    "framework/src/controller/**",
+  ],
+  "coverageDirectory": ".coverage/unit",
+  "coverageReporters": Array [
+    "lcov",
+    "cobertura",
+  ],
+  "resetModules": true,
+  "restoreMocks": true,
+  "rootDir": "../../../../../",
+  "setupFilesAfterEnv": Array [
+    "<rootDir>/framework/test/jest/config/setup.js",
+  ],
+  "testMatch": Array [
+    "<rootDir>/framework/test/jest/specs/unit/**/*.(spec|test).js",
+  ],
+  "verbose": true,
+}
+`;

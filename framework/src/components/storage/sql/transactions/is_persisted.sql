@@ -13,5 +13,8 @@
  */
 
 SELECT EXISTS (
-	SELECT 1 FROM full_blocks_list ${parsedFilters:raw}
+	SELECT 1 FROM trs
+		LEFT JOIN blocks b ON trs."blockId"::text = b.id::text
+		LEFT JOIN mem_accounts m ON trs."recipientId"::text = m.address::text
+		${parsedFilters:raw}
 );

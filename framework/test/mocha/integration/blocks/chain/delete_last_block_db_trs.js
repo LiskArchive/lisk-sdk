@@ -15,18 +15,18 @@
 'use strict';
 
 const expect = require('chai').expect;
-const lisk = require('lisk-elements').default;
+const { transfer } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
-const Bignum = require('../../../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../../../src/modules/chain/helpers/bignum');
 
-describe('system test (blocks) - chain/popLastBlock', () => {
+describe('integration test (blocks) - chain/popLastBlock', () => {
 	const transferAmount = 100000000 * 100;
 	let library;
 	let storage;
 
-	localCommon.beforeBlock('system_blocks_chain_pop_last_block', lib => {
+	localCommon.beforeBlock('blocks_chain_pop_last_block', lib => {
 		library = lib;
 		storage = library.components.storage;
 	});
@@ -55,8 +55,8 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 
 	beforeEach('send funds to accounts', done => {
 		blockAccount1 = randomUtil.account();
-		fundTrsForAccount1 = lisk.transaction.transfer({
-			amount: transferAmount,
+		fundTrsForAccount1 = transfer({
+			amount: transferAmount.toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: blockAccount1.address,
 		});

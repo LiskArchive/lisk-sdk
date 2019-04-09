@@ -17,13 +17,12 @@
 const crypto = require('crypto');
 const rewire = require('rewire');
 const ed = require('../../../../../../src/modules/chain/helpers/ed');
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum.js');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 const modulesLoader = require('../../../../common/modules_loader');
-const transactionTypes = require('../../../../../../src/modules/chain/helpers/transaction_types.js');
 
-const { FEES } = __testContext.config.constants;
+const { FEES, TRANSACTION_TYPES } = __testContext.config.constants;
 
-const Block = rewire('../../../../../../src/modules/chain/logic/block.js');
+const Block = rewire('../../../../../../src/modules/chain/logic/block');
 
 const validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
@@ -70,7 +69,7 @@ const invalidBlock = {
 const blockData = validDataForBlock.previousBlock;
 
 const transactionsByTypes = {};
-transactionsByTypes[transactionTypes.MULTI] = {
+transactionsByTypes[TRANSACTION_TYPES.MULTI] = {
 	type: 4,
 	amount: new Bignum('0'),
 	senderPublicKey:
@@ -126,7 +125,7 @@ transactionsByTypes[transactionTypes.MULTI] = {
 	ready: true,
 };
 
-transactionsByTypes[transactionTypes.DAPP] = {
+transactionsByTypes[TRANSACTION_TYPES.DAPP] = {
 	type: 5,
 	amount: new Bignum('0'),
 	senderPublicKey:
@@ -154,7 +153,7 @@ transactionsByTypes[transactionTypes.DAPP] = {
 	receivedAt: '2017-09-21T15:34:31.801Z',
 };
 
-transactionsByTypes[transactionTypes.VOTE] = {
+transactionsByTypes[TRANSACTION_TYPES.VOTE] = {
 	type: 3,
 	amount: new Bignum('0'),
 	senderPublicKey:
@@ -175,7 +174,7 @@ transactionsByTypes[transactionTypes.VOTE] = {
 	receivedAt: '2017-09-21T15:34:31.780Z',
 };
 
-transactionsByTypes[transactionTypes.DELEGATE] = {
+transactionsByTypes[TRANSACTION_TYPES.DELEGATE] = {
 	type: 2,
 	amount: new Bignum('0'),
 	senderPublicKey:
@@ -197,7 +196,7 @@ transactionsByTypes[transactionTypes.DELEGATE] = {
 	receivedAt: '2017-09-21T15:34:31.752Z',
 };
 
-transactionsByTypes[transactionTypes.SIGNATURE] = {
+transactionsByTypes[TRANSACTION_TYPES.SIGNATURE] = {
 	type: 1,
 	amount: new Bignum('0'),
 	senderPublicKey:
@@ -218,7 +217,7 @@ transactionsByTypes[transactionTypes.SIGNATURE] = {
 	receivedAt: '2017-09-21T15:34:31.718Z',
 };
 
-transactionsByTypes[transactionTypes.SEND] = {
+transactionsByTypes[TRANSACTION_TYPES.SEND] = {
 	type: 0,
 	amount: new Bignum('1'),
 	senderPublicKey:
@@ -235,7 +234,7 @@ transactionsByTypes[transactionTypes.SEND] = {
 	receivedAt: '2017-09-21T15:34:31.689Z',
 };
 
-transactionsByTypes[transactionTypes.IN_TRANSFER] = {
+transactionsByTypes[TRANSACTION_TYPES.IN_TRANSFER] = {
 	id: '2273003018673898961',
 	type: 6,
 	timestamp: 40420761,
@@ -255,7 +254,7 @@ transactionsByTypes[transactionTypes.IN_TRANSFER] = {
 	},
 };
 
-transactionsByTypes[transactionTypes.OUT_TRANSFER] = {
+transactionsByTypes[TRANSACTION_TYPES.OUT_TRANSFER] = {
 	id: '12010334009048463571',
 	type: 7,
 	timestamp: 41287231,
@@ -282,7 +281,7 @@ function expectedOrderOfTransactions(sortedTransactions) {
 		// Transactions should always be in ascending order of types unless next transaction is MULTI
 		if (
 			sortedTransactions[i].type > sortedTransactions[i + 1].type &&
-			sortedTransactions[i + 1].type !== transactionTypes.MULTI
+			sortedTransactions[i + 1].type !== TRANSACTION_TYPES.MULTI
 		) {
 			sorted = false;
 			return sorted;
@@ -291,7 +290,7 @@ function expectedOrderOfTransactions(sortedTransactions) {
 		// MULTI transaction should always come after all transaction types
 		if (
 			sortedTransactions[i].type < sortedTransactions[i + 1].type &&
-			sortedTransactions[i].type === transactionTypes.MULTI
+			sortedTransactions[i].type === TRANSACTION_TYPES.MULTI
 		) {
 			sorted = false;
 			return sorted;
@@ -395,7 +394,7 @@ describe('block', () => {
 				beforeEach(done => {
 					// Create 6 multisignature transactions
 					multipleMultisigTx = Array(...Array(5)).map(
-						() => transactionsByTypes[transactionTypes.MULTI]
+						() => transactionsByTypes[TRANSACTION_TYPES.MULTI]
 					);
 					data.transactions = multipleMultisigTx.concat(transactions);
 					generatedBlock = block.create(data);
@@ -418,7 +417,7 @@ describe('block', () => {
 
 				beforeEach(done => {
 					multipleMultisigTx = Array(...Array(5)).map(
-						() => transactionsByTypes[transactionTypes.MULTI]
+						() => transactionsByTypes[TRANSACTION_TYPES.MULTI]
 					);
 					// Add multisig transactions after the 3rd transaction in array
 					transactions.splice(...[3, 0].concat(multipleMultisigTx));
@@ -443,7 +442,7 @@ describe('block', () => {
 
 				beforeEach(done => {
 					multipleMultisigTx = Array(...Array(5)).map(
-						() => transactionsByTypes[transactionTypes.MULTI]
+						() => transactionsByTypes[TRANSACTION_TYPES.MULTI]
 					);
 					data.transactions = transactions.concat(multipleMultisigTx);
 					generatedBlock = block.create(data);
@@ -467,7 +466,7 @@ describe('block', () => {
 				beforeEach(done => {
 					// Create 6 multisignature transactions
 					multipleMultisigTx = Array(...Array(5)).map(
-						() => transactionsByTypes[transactionTypes.MULTI]
+						() => transactionsByTypes[TRANSACTION_TYPES.MULTI]
 					);
 					data.transactions = _.shuffle(
 						transactions.concat(multipleMultisigTx)

@@ -14,13 +14,17 @@
 
 'use strict';
 
-require('../../../functional.js');
-const lisk = require('lisk-elements').default;
+require('../../../functional');
+const {
+	transfer,
+	registerSecondPassphrase,
+} = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../../fixtures/accounts');
 const SwaggerEndpoint = require('../../../../common/swagger_spec');
 const randomUtil = require('../../../../common/utils/random');
 const waitFor = require('../../../../common/utils/wait_for');
 const apiHelpers = require('../../../../common/helpers/api');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 
 const { FEES } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
@@ -28,6 +32,7 @@ const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 describe('GET /accounts', () => {
 	const account = randomUtil.account();
 	const accountsEndpoint = new SwaggerEndpoint('GET /accounts');
+	const constantsEndPoint = new SwaggerEndpoint('GET /node/constants 200');
 
 	describe('?', () => {
 		describe('address', () => {
@@ -179,12 +184,12 @@ describe('GET /accounts', () => {
 
 		describe('secondPublicKey', () => {
 			const secondPublicKeyAccount = randomUtil.account();
-			const creditTransaction = lisk.transaction.transfer({
+			const creditTransaction = transfer({
 				amount: FEES.SECOND_SIGNATURE,
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: secondPublicKeyAccount.address,
 			});
-			const signatureTransaction = lisk.transaction.registerSecondPassphrase({
+			const signatureTransaction = registerSecondPassphrase({
 				passphrase: secondPublicKeyAccount.passphrase,
 				secondPassphrase: secondPublicKeyAccount.secondPassphrase,
 			});
@@ -296,27 +301,45 @@ describe('GET /accounts', () => {
 				return accountsEndpoint.makeRequest({ sort: 'invalid' }, 400);
 			});
 
-			it('using no sort return accounts sorted by balance in asending order as default behavior', async () => {
-				return accountsEndpoint
-					.makeRequest({ sort: 'balance:asc' }, 200)
-					.then(res => {
-						const balances = _(res.body.data)
-							.map('balance')
-							.value();
-						expect(_.clone(balances).sort()).to.be.eql(balances);
-					});
+			it('using no sort return accounts sorted by both balance and address in asending order as default behavior', async () => {
+				return accountsEndpoint.makeRequest({}, 200).then(res => {
+					const balances = _.cloneDeep(res.body.data);
+					expect(
+						balances.sort((a, b) => {
+							const aBignumBalance = new Bignum(a.balance);
+
+							if (aBignumBalance.gt(b.balance)) {
+								return 1;
+							}
+							if (aBignumBalance.lt(b.balance)) {
+								return -1;
+							}
+
+							return a.address.localeCompare(b.address);
+						})
+					).to.be.eql(res.body.data);
+				});
 			});
 
 			it('using sort = balance:asc should return accounts in ascending order by balance', async () => {
 				return accountsEndpoint
 					.makeRequest({ sort: 'balance:asc' }, 200)
 					.then(res => {
-						const balances = _.map(res.body.data, 'balance');
+						const balances = _.cloneDeep(res.body.data);
 						expect(
-							_(res.body.data)
-								.map('balance')
-								.sortNumbers()
-						).to.be.eql(balances);
+							balances.sort((a, b) => {
+								const aBignumBalance = new Bignum(a.balance);
+
+								if (aBignumBalance.gt(b.balance)) {
+									return 1;
+								}
+								if (aBignumBalance.lt(b.balance)) {
+									return -1;
+								}
+
+								return a.address.localeCompare(b.address);
+							})
+						).to.be.eql(res.body.data);
 					});
 			});
 
@@ -324,12 +347,21 @@ describe('GET /accounts', () => {
 				return accountsEndpoint
 					.makeRequest({ sort: 'balance:desc' }, 200)
 					.then(res => {
-						const balances = _.map(res.body.data, 'balance');
+						const balances = _.cloneDeep(res.body.data);
 						expect(
-							_(res.body.data)
-								.map('balance')
-								.sortNumbers('desc')
-						).to.be.eql(balances);
+							balances.sort((a, b) => {
+								const aBignumBalance = new Bignum(a.balance);
+
+								if (aBignumBalance.gt(b.balance)) {
+									return -1;
+								}
+								if (aBignumBalance.lt(b.balance)) {
+									return 1;
+								}
+
+								return a.address.localeCompare(b.address);
+							})
+						).to.be.eql(res.body.data);
 					});
 			});
 		});
@@ -393,7 +425,28 @@ describe('GET /accounts', () => {
 				});
 		});
 
-		it('should return empty delegate property for a non delegate account', async () => {
+		it('should return correct delegate approval for a delegate account', async () => {
+			const promises = [
+				constantsEndPoint.makeRequest(),
+				accountsEndpoint.makeRequest(
+					{ address: accountFixtures.existingDelegate.address },
+					200
+				),
+			];
+
+			const [
+				{ body: { data: constansts } },
+				{ body: { data: [{ delegate }] } },
+			] = await Promise.all(promises);
+
+			const calculatedApproval = apiHelpers.calculateApproval(
+				delegate.vote,
+				constansts.supply
+			);
+			expect(delegate.approval).to.be.eql(calculatedApproval);
+		});
+
+		it('should return empty delegate property for a non delegate account', () => {
 			return accountsEndpoint
 				.makeRequest({ address: accountFixtures.genesis.address }, 200)
 				.then(res => {

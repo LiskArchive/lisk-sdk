@@ -16,9 +16,8 @@
 
 const _ = require('lodash');
 const async = require('async');
-const Diff = require('../helpers/diff.js');
-const slots = require('../helpers/slots.js');
-const Bignum = require('../helpers/bignum.js');
+const slots = require('../helpers/slots');
+const Bignum = require('../helpers/bignum');
 
 const exceptions = global.exceptions;
 const { FEES, MAX_VOTES_PER_TRANSACTION } = global.constants;
@@ -36,7 +35,6 @@ let self;
  * @see Parent: {@link logic}
  * @requires async
  * @requires lodash
- * @requires helpers/diff
  * @requires helpers/slots
  * @param {Object} scope
  * @param {Object} scope.components
@@ -49,20 +47,25 @@ let self;
  * @todo Add description for the params
  */
 class Vote {
-	constructor({ components: { logger }, logic: { account }, schema }) {
+	constructor({
+		components: { logger },
+		logic: { account, transaction },
+		schema,
+	}) {
 		self = this;
 		__scope.components = {
 			logger,
 		};
 		__scope.logic = {
 			account,
+			transaction,
 		};
 		__scope.schema = schema;
 		// TODO: Add modules to contructor argument and assign delegates module to __scope.modules.delegates
 	}
 
 	/**
-	 * Calls Diff.reverse to change asset.votes signs and merges account to
+	 * Calls transaction.reverse to change asset.votes signs and merges account to
 	 * sender address with inverted votes as delegates.
 	 *
 	 * @param {transaction} transaction
@@ -79,7 +82,9 @@ class Vote {
 			return setImmediate(cb);
 		}
 
-		const votesInvert = Diff.reverse(transaction.asset.votes);
+		const votesInvert = __scope.logic.transaction.reverse(
+			transaction.asset.votes
+		);
 
 		return __scope.logic.account.merge(
 			sender.address,
@@ -94,7 +99,7 @@ class Vote {
 	/* eslint-enable class-methods-use-this */
 
 	/**
-	 * Calls Diff.reverse to change asset.votes signs and merges account to
+	 * Calls transaction.reverse to change asset.votes signs and merges account to
 	 * sender address with inverted votes as unconfirmed delegates.
 	 *
 	 * @param {transaction} transaction
@@ -109,7 +114,9 @@ class Vote {
 			return setImmediate(cb);
 		}
 
-		const votesInvert = Diff.reverse(transaction.asset.votes);
+		const votesInvert = __scope.logic.transaction.reverse(
+			transaction.asset.votes
+		);
 
 		return __scope.logic.account.merge(
 			sender.address,

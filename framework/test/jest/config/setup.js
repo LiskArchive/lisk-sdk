@@ -15,6 +15,5 @@
  */
 
 require('jest-extended');
-require('jest-chain');
 
 process.env.NODE_ENV = 'test';

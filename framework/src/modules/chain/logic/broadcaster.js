@@ -16,7 +16,7 @@
 
 const async = require('async');
 const _ = require('lodash');
-const jobsQueue = require('../helpers/jobs_queue.js');
+const jobsQueue = require('../helpers/jobs_queue');
 
 const { MAX_PEERS } = global.constants;
 

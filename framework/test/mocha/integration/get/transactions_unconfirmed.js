@@ -15,29 +15,29 @@
 'use strict';
 
 const async = require('async');
-const lisk = require('lisk-elements').default;
+const { transfer } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../fixtures/accounts');
 const randomUtil = require('../../common/utils/random');
 const localCommon = require('./../common');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test - get unconfirmed transactions', () => {
+describe('integration test - get unconfirmed transactions', () => {
 	const account1 = randomUtil.account();
 	const account2 = randomUtil.account();
-	const transaction1 = lisk.transaction.transfer({
-		amount: 1100 * NORMALIZER,
+	const transaction1 = transfer({
+		amount: (1100 * NORMALIZER).toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account1.address,
 	});
-	const transaction2 = lisk.transaction.transfer({
-		amount: 1100 * NORMALIZER,
+	const transaction2 = transfer({
+		amount: (1100 * NORMALIZER).toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account2.address,
 	});
 
 	let library;
-	localCommon.beforeBlock('system_get_transactions_unconfirmed', lib => {
+	localCommon.beforeBlock('get_transactions_unconfirmed', lib => {
 		library = lib;
 	});
 

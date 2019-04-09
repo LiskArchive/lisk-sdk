@@ -14,11 +14,10 @@
 
 'use strict';
 
-const slots = require('../helpers/slots.js');
-const Bignum = require('../helpers/bignum.js');
-const transactionTypes = require('../helpers/transaction_types.js');
+const slots = require('../helpers/slots');
+const Bignum = require('../helpers/bignum');
 
-const { FEES } = global.constants;
+const { FEES, TRANSACTION_TYPES } = global.constants;
 const exceptions = global.exceptions;
 
 const __scope = {};
@@ -57,9 +56,10 @@ class OutTransfer {
  * @todo Add description for the params
  */
 // TODO: Remove this method as modules will be loaded prior to trs logic.
-OutTransfer.prototype.bind = function(accounts) {
+OutTransfer.prototype.bind = function(accounts, blocks) {
 	__scope.modules = {
 		accounts,
+		blocks,
 	};
 };
 
@@ -82,39 +82,34 @@ OutTransfer.prototype.calculateFee = function() {
  * @todo Add description for the params
  */
 OutTransfer.prototype.verify = function(transaction, sender, cb) {
-	return __scope.components.storage.entities.Block.get(
-		{},
-		{ sort: 'height:desc', limit: 1 }
-	).then(lastBlock => {
-		lastBlock = lastBlock[0];
+	const lastBlock = __scope.modules.blocks.lastBlock.get();
 
-		if (lastBlock.height >= exceptions.precedent.disableDappTransfer) {
-			return setImmediate(cb, `Transaction type ${transaction.type} is frozen`);
-		}
+	if (lastBlock.height >= exceptions.precedent.disableDappTransfer) {
+		return setImmediate(cb, `Transaction type ${transaction.type} is frozen`);
+	}
 
-		if (!transaction.recipientId) {
-			return setImmediate(cb, 'Invalid recipient');
-		}
+	if (!transaction.recipientId) {
+		return setImmediate(cb, 'Invalid recipient');
+	}
 
-		const amount = new Bignum(transaction.amount);
-		if (amount.isLessThanOrEqualTo(0)) {
-			return setImmediate(cb, 'Invalid transaction amount');
-		}
+	const amount = new Bignum(transaction.amount);
+	if (amount.isLessThanOrEqualTo(0)) {
+		return setImmediate(cb, 'Invalid transaction amount');
+	}
 
-		if (!transaction.asset || !transaction.asset.outTransfer) {
-			return setImmediate(cb, 'Invalid transaction asset');
-		}
+	if (!transaction.asset || !transaction.asset.outTransfer) {
+		return setImmediate(cb, 'Invalid transaction asset');
+	}
 
-		if (!/^[0-9]+$/.test(transaction.asset.outTransfer.dappId)) {
-			return setImmediate(cb, 'Invalid outTransfer dappId');
-		}
+	if (!/^[0-9]+$/.test(transaction.asset.outTransfer.dappId)) {
+		return setImmediate(cb, 'Invalid outTransfer dappId');
+	}
 
-		if (!/^[0-9]+$/.test(transaction.asset.outTransfer.transactionId)) {
-			return setImmediate(cb, 'Invalid outTransfer transactionId');
-		}
+	if (!/^[0-9]+$/.test(transaction.asset.outTransfer.transactionId)) {
+		return setImmediate(cb, 'Invalid outTransfer transactionId');
+	}
 
-		return setImmediate(cb, null, transaction);
-	});
+	return setImmediate(cb, null, transaction);
 };
 
 /**
@@ -131,7 +126,7 @@ OutTransfer.prototype.process = function(transaction, sender, cb) {
 	__scope.components.storage.entities.Transaction.isPersisted(
 		{
 			id: transaction.asset.outTransfer.dappId,
-			type: transactionTypes.DAPP,
+			type: TRANSACTION_TYPES.DAPP,
 		},
 		{}
 	)
@@ -158,7 +153,7 @@ OutTransfer.prototype.process = function(transaction, sender, cb) {
 
 			return __scope.components.storage.entities.Transaction.isPersisted({
 				id: transaction.asset.outTransfer.transactionId,
-				type: transactionTypes.OUT_TRANSFER,
+				type: TRANSACTION_TYPES.OUT_TRANSFER,
 			})
 				.then(isOutTransferPersisted => {
 					if (isOutTransferPersisted) {

@@ -14,11 +14,10 @@
 
 'use strict';
 
-const slots = require('../helpers/slots.js');
-const Bignum = require('../helpers/bignum.js');
-const transactionTypes = require('../helpers/transaction_types.js');
+const slots = require('../helpers/slots');
+const Bignum = require('../helpers/bignum');
 
-const { FEES } = global.constants;
+const { FEES, TRANSACTION_TYPES } = global.constants;
 const exceptions = global.exceptions;
 
 const __scope = {};
@@ -60,9 +59,10 @@ class InTransfer {
  * @todo Add description for the params
  */
 // TODO: Remove this method as modules will be loaded prior to trs logic.
-InTransfer.prototype.bind = function(accounts, sharedApi) {
+InTransfer.prototype.bind = function(accounts, blocks, sharedApi) {
 	__scope.modules = {
 		accounts,
+		blocks,
 	};
 	__scope.shared = sharedApi;
 };
@@ -88,48 +88,43 @@ InTransfer.prototype.calculateFee = function() {
  * @todo Add description for the params
  */
 InTransfer.prototype.verify = function(transaction, sender, cb, tx) {
-	__scope.components.storage.entities.Block.get(
+	const lastBlock = __scope.modules.blocks.lastBlock.get();
+
+	if (lastBlock.height >= exceptions.precedent.disableDappTransfer) {
+		return setImmediate(cb, `Transaction type ${transaction.type} is frozen`);
+	}
+
+	if (transaction.recipientId) {
+		return setImmediate(cb, 'Invalid recipient');
+	}
+
+	const amount = new Bignum(transaction.amount);
+	if (amount.isLessThanOrEqualTo(0)) {
+		return setImmediate(cb, 'Invalid transaction amount');
+	}
+
+	if (!transaction.asset || !transaction.asset.inTransfer) {
+		return setImmediate(cb, 'Invalid transaction asset');
+	}
+
+	return __scope.components.storage.entities.Transaction.isPersisted(
+		{
+			id: transaction.asset.inTransfer.dappId,
+			type: TRANSACTION_TYPES.DAPP,
+		},
 		{},
-		{ sort: 'height:desc', limit: 1 }
-	).then(lastBlock => {
-		lastBlock = lastBlock[0];
-
-		if (lastBlock.height >= exceptions.precedent.disableDappTransfer) {
-			return setImmediate(cb, `Transaction type ${transaction.type} is frozen`);
-		}
-
-		if (transaction.recipientId) {
-			return setImmediate(cb, 'Invalid recipient');
-		}
-
-		const amount = new Bignum(transaction.amount);
-		if (amount.isLessThanOrEqualTo(0)) {
-			return setImmediate(cb, 'Invalid transaction amount');
-		}
-
-		if (!transaction.asset || !transaction.asset.inTransfer) {
-			return setImmediate(cb, 'Invalid transaction asset');
-		}
-
-		return __scope.components.storage.entities.Transaction.isPersisted(
-			{
-				id: transaction.asset.inTransfer.dappId,
-				type: transactionTypes.DAPP,
-			},
-			{},
-			tx
-		)
-			.then(isPersisted => {
-				if (!isPersisted) {
-					return setImmediate(
-						cb,
-						`Application not found: ${transaction.asset.inTransfer.dappId}`
-					);
-				}
-				return setImmediate(cb);
-			})
-			.catch(err => setImmediate(cb, err));
-	});
+		tx
+	)
+		.then(isPersisted => {
+			if (!isPersisted) {
+				return setImmediate(
+					cb,
+					`Application not found: ${transaction.asset.inTransfer.dappId}`
+				);
+			}
+			return setImmediate(cb);
+		})
+		.catch(err => setImmediate(cb, err));
 };
 
 /**

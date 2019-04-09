@@ -14,7 +14,7 @@
 
 'use strict';
 
-require('../../functional.js');
+require('../../functional');
 const async = require('async');
 const WAMPServer = require('wamp-socket-cluster/WAMPServer');
 const prefixedPeer = require('../../../fixtures/peers').randomNormalizedPeer;

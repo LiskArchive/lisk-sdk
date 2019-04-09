@@ -1,0 +1,113 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`schema/config.js schema config must match to the snapshot. 1`] = `
+Object {
+  "components": Object {
+    "loggerConfig": Object {
+      "additionalProperties": false,
+      "id": "loggerConfig",
+      "properties": Object {
+        "consoleLogLevel": Object {
+          "type": "string",
+        },
+        "fileLogLevel": Object {
+          "type": "string",
+        },
+        "filename": Object {
+          "type": "string",
+        },
+      },
+      "required": Array [
+        "filename",
+        "fileLogLevel",
+        "consoleLogLevel",
+      ],
+      "type": "object",
+    },
+  },
+  "config": Object {
+    "additionalProperties": false,
+    "id": "config",
+    "properties": Object {
+      "components": Object {
+        "additionalProperties": false,
+        "properties": Object {
+          "logger": Object {
+            "$ref": "#/components/loggerConfig",
+            "type": "object",
+          },
+        },
+        "required": Array [
+          "logger",
+        ],
+        "type": "object",
+      },
+      "dirs": Object {
+        "additionalProperties": false,
+        "properties": Object {
+          "modules": Object {
+            "type": "string",
+          },
+          "pids": Object {
+            "type": "string",
+          },
+          "root": Object {
+            "type": "string",
+          },
+          "sockets": Object {
+            "type": "string",
+          },
+          "temp": Object {
+            "type": "string",
+          },
+        },
+        "type": "object",
+      },
+      "modules": Object {
+        "items": Object {
+          "$ref": "#/moduleConfig",
+          "type": "object",
+        },
+        "type": "array",
+        "uniqueItems": true,
+      },
+      "modulesDir": Object {
+        "description": "Path where to find the modules. Absolute or relative to executable file.",
+        "type": "string",
+      },
+      "pkg": Object {
+        "type": "object",
+      },
+    },
+    "required": Array [
+      "modules",
+      "components",
+    ],
+    "type": "object",
+  },
+  "moduleConfig": Object {
+    "additionalProperties": false,
+    "id": "moduleConfig",
+    "properties": Object {
+      "loadAs": Object {
+        "enum": Array [
+          "child_process",
+          "in_memory",
+        ],
+        "type": "string",
+      },
+      "npmPackage": Object {
+        "type": "string",
+      },
+      "options": Object {
+        "type": "object",
+      },
+    },
+    "required": Array [
+      "npmPackage",
+      "loadAs",
+    ],
+    "type": "object",
+  },
+}
+`;

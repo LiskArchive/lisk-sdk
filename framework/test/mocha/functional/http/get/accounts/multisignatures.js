@@ -14,7 +14,7 @@
 
 'use strict';
 
-require('../../../functional.js');
+require('../../../functional');
 
 const Scenarios = require('../../../../common/scenarios');
 const accountFixtures = require('../../../../fixtures/accounts');

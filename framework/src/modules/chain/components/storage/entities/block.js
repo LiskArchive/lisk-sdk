@@ -18,11 +18,9 @@ const path = require('path');
 const assert = require('assert');
 const _ = require('lodash');
 const {
-	NonSupportedOperationError,
-} = require('../../../../../components/storage/errors');
-const {
-	Block: BlockEntity,
-} = require('../../../../../components/storage/entities/');
+	entities: { Block: BlockEntity },
+	errors: { NonSupportedOperationError },
+} = require('../../../../../components/storage');
 
 const defaultCreateValues = {};
 const createFields = [

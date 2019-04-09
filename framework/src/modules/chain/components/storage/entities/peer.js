@@ -18,11 +18,10 @@ const path = require('path');
 const assert = require('assert');
 const _ = require('lodash');
 const { defaults, omit, pick } = require('lodash');
-const filterType = require('../../../../../components/storage/utils/filter_types');
 const {
-	stringToByte,
-} = require('../../../../../components/storage/utils/inputSerializers');
-const BaseEntity = require('../../../../../components/storage/entities/base_entity');
+	entities: { BaseEntity },
+	utils: { filterTypes: { NUMBER, TEXT }, inputSerializers: { stringToByte } },
+} = require('../../../../../components/storage');
 
 const defaultCreateValues = {};
 
@@ -122,20 +121,15 @@ class Peer extends BaseEntity {
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
 
-		this.addField('id', 'number', { filter: filterType.NUMBER });
-		this.addField('ip', 'string', { format: 'ip', filter: filterType.TEXT });
-		this.addField('wsPort', 'number', { filter: filterType.NUMBER });
-		this.addField('state', 'number', { filter: filterType.NUMBER });
-		this.addField('os', 'string', { filter: filterType.TEXT });
-		this.addField('version', 'string', { filter: filterType.TEXT });
-		this.addField('protocolVersion', 'string', { filter: filterType.TEXT });
-		this.addField(
-			'broadhash',
-			'string',
-			{ filter: filterType.TEXT },
-			stringToByte
-		);
-		this.addField('height', 'number', { filter: filterType.NUMBER });
+		this.addField('id', 'number', { filter: NUMBER });
+		this.addField('ip', 'string', { format: 'ip', filter: TEXT });
+		this.addField('wsPort', 'number', { filter: NUMBER });
+		this.addField('state', 'number', { filter: NUMBER });
+		this.addField('os', 'string', { filter: TEXT });
+		this.addField('version', 'string', { filter: TEXT });
+		this.addField('protocolVersion', 'string', { filter: TEXT });
+		this.addField('broadhash', 'string', { filter: TEXT }, stringToByte);
+		this.addField('height', 'number', { filter: NUMBER });
 
 		this.sqlDirectory = path.join(path.dirname(__filename), '../sql');
 

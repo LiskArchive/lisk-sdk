@@ -3,12 +3,13 @@ module.exports = async ({
 	ed,
 	schema,
 	genesisBlock,
-	components: { storage, logger, system },
+	components: { storage, logger },
+	applicationState,
 }) => {
-	const Transaction = require('../logic/transaction.js');
-	const Block = require('../logic/block.js');
-	const Account = require('../logic/account.js');
-	const Peers = require('../logic/peers.js');
+	const Transaction = require('../logic/transaction');
+	const Block = require('../logic/block');
+	const Account = require('../logic/account');
+	const Peers = require('../logic/peers');
 
 	const accountLogic = await new Promise((resolve, reject) => {
 		new Account(storage, schema, logger, (err, object) => {
@@ -37,7 +38,7 @@ module.exports = async ({
 	});
 
 	const peersLogic = await new Promise((resolve, reject) => {
-		new Peers(logger, config, system, (err, object) => {
+		new Peers(logger, config, applicationState, (err, object) => {
 			err ? reject(err) : resolve(object);
 		});
 	});

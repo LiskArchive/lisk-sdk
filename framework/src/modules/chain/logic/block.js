@@ -16,12 +16,11 @@
 
 const crypto = require('crypto');
 const ByteBuffer = require('bytebuffer');
-const Bignum = require('../helpers/bignum.js');
-const transactionTypes = require('../helpers/transaction_types.js');
-const blockVersion = require('./block_version.js');
-const BlockReward = require('./block_reward.js');
+const Bignum = require('../helpers/bignum');
+const blockVersion = require('./block_version');
+const BlockReward = require('./block_reward');
 
-const { MAX_PAYLOAD_LENGTH, FEES } = global.constants;
+const { MAX_PAYLOAD_LENGTH, FEES, TRANSACTION_TYPES } = global.constants;
 const __private = {};
 
 /**
@@ -33,7 +32,6 @@ const __private = {};
  * @requires bytebuffer
  * @requires crypto
  * @requires helpers/bignum
- * @requires helpers/transaction_types
  * @requires logic/block_reward
  * @param {Object} ed
  * @param {ZSchema} schema
@@ -68,15 +66,15 @@ class Block {
 		const transactions = data.transactions.sort((a, b) => {
 			// Place MULTI transaction after all other transaction types
 			if (
-				a.type === transactionTypes.MULTI &&
-				b.type !== transactionTypes.MULTI
+				a.type === TRANSACTION_TYPES.MULTI &&
+				b.type !== TRANSACTION_TYPES.MULTI
 			) {
 				return 1;
 			}
 			// Place all other transaction types before MULTI transaction
 			if (
-				a.type !== transactionTypes.MULTI &&
-				b.type === transactionTypes.MULTI
+				a.type !== TRANSACTION_TYPES.MULTI &&
+				b.type === TRANSACTION_TYPES.MULTI
 			) {
 				return -1;
 			}
@@ -517,11 +515,10 @@ Block.prototype.dbRead = function(raw) {
 };
 
 /**
- * Creates block object based on raw data.
+ * Creates block object based on raw database block data.
  *
- * @param {Object} raw
+ * @param {Object} raw Raw database data block object
  * @returns {null|block} Block object
- * @todo Add description for the params
  */
 Block.prototype.storageRead = function(raw) {
 	if (!raw.id) {

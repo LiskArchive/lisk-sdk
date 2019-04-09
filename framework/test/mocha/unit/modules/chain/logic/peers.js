@@ -18,8 +18,8 @@ const failureCodes = require('../../../../../../src/modules/chain/api/ws/rpc/fai
 const modulesLoader = require('../../../../common/modules_loader');
 const prefixedPeer = require('../../../../fixtures/peers').randomNormalizedPeer;
 const RandomPeer = require('../../../../fixtures/peers').Peer;
-const Peers = require('../../../../../../src/modules/chain/logic/peers.js');
-const Peer = require('../../../../../../src/modules/chain/logic/peer.js');
+const Peers = require('../../../../../../src/modules/chain/logic/peers');
+const Peer = require('../../../../../../src/modules/chain/logic/peer');
 const wsRPC = require('../../../../../../src/modules/chain/api/ws/rpc/ws_rpc')
 	.wsRPC;
 
