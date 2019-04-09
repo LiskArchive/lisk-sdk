@@ -20,7 +20,7 @@ module.exports = {
 				type: 'number',
 				min: 1,
 				default: 10,
-				description: 'Slote time interval in seconds',
+				description: 'Slot time interval in seconds',
 			},
 			MAX_TRANSACTIONS_PER_BLOCK: {
 				type: 'integer',
