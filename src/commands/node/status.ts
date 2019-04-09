@@ -46,7 +46,7 @@ export default class StatusCommand extends BaseCommand {
 			LISK_NETWORK: network,
 			version,
 			LISK_DB_PORT: dbPort,
-			LISK_REDIS_PORT: redisPort
+			LISK_REDIS_PORT: redisPort,
 		} = pm2_env as Pm2Env;
 
 		this.print({

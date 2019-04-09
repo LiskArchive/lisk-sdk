@@ -30,7 +30,13 @@ export default class ListCommand extends BaseCommand {
 		this.print(
 			apps.map(app => {
 				const { name, pm2_env, monit } = app;
-				const { status, LISK_NETWORK: network, version, LISK_DB_PORT: dbPort, LISK_REDIS_PORT: redisPort } = pm2_env as Pm2Env;
+				const {
+					status,
+					LISK_NETWORK: network,
+					version,
+					LISK_DB_PORT: dbPort,
+					LISK_REDIS_PORT: redisPort,
+				} = pm2_env as Pm2Env;
 
 				return {
 					name,
@@ -39,7 +45,7 @@ export default class ListCommand extends BaseCommand {
 					status,
 					dbPort,
 					redisPort,
-					...monit
+					...monit,
 				};
 			}),
 		);
