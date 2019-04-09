@@ -32,8 +32,7 @@ const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 // FIXME: this function was used from transactions library, but it doesn't exist
 const createOutTransfer = () => {};
 
-// eslint-disable-next-line
-describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/transactions (type 7) outTransfer dapp', () => {
+describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 	let transaction;
 	const transactionsToWaitFor = [];
 	const badTransactions = [];
@@ -707,7 +706,9 @@ describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/tr
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					`Transaction type ${transaction.type} is frozen`
+					`Error: Transaction type ${
+						transaction.type
+					} is currently not allowed.`
 				);
 			});
 		});
