@@ -15,7 +15,7 @@
 'use strict';
 
 /**
- * Helper module for parsing git commit information.
+ * Helper module for creating a jobs queue
  *
  * @module
  * @see Parent: {@link helpers}
@@ -51,7 +51,11 @@ const jobsQueue = {
 		// Check if job is function, name is string and time is integer
 		if (
 			!job ||
-			Object.prototype.toString.call(job) !== '[object Function]' ||
+			!(
+				Object.prototype.toString.call(job) === '[object Function]' ||
+				Object.prototype.toString.call(job) === '[object AsyncFunction]'
+			) ||
+			job.length > 1 ||
 			typeof name !== 'string' ||
 			!Number.isInteger(time)
 		) {
@@ -59,9 +63,17 @@ const jobsQueue = {
 		}
 
 		const nextJob = function() {
-			return job(() => {
+			const nextJobStep = () => {
 				jobsQueue.jobs[name] = setTimeout(nextJob, time);
-			});
+			};
+
+			// Job was called with a callback
+			if (Object.prototype.toString.call(job) === '[object Function]') {
+				return job(nextJobStep);
+			}
+
+			// Job don't have callback so it must return a Promise
+			return job().then(nextJobStep);
 		};
 
 		jobsQueue.jobs[name] = nextJob();

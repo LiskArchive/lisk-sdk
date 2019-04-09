@@ -924,22 +924,22 @@ Peers.prototype.onPeersReady = function() {
 		);
 	}
 
-	function calculateConsensus(cb) {
-		self.calculateConsensus();
-		library.logger.debug(`Broadhash consensus: ${self.getLastConsensus()} %`);
-		return setImmediate(cb);
-	}
-	// Loop in 30 sec intervals for less new insertion after removal
-	jobsQueue.register(
-		'peersDiscoveryAndUpdate',
-		peersDiscoveryAndUpdate,
-		peerDiscoveryFrequency
-	);
+	const calculateConsensus = async () => {
+		const consensus = await self.calculateConsensus();
+		return library.logger.debug(`Broadhash consensus: ${consensus} %`);
+	};
 
 	jobsQueue.register(
 		'calculateConsensus',
 		calculateConsensus,
 		self.broadhashConsensusCalculationInterval
+	);
+
+	// Loop in 30 sec intervals for less new insertion after removal
+	jobsQueue.register(
+		'peersDiscoveryAndUpdate',
+		peersDiscoveryAndUpdate,
+		peerDiscoveryFrequency
 	);
 };
 

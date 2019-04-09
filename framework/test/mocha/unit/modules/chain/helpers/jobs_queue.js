@@ -39,10 +39,18 @@ describe('helpers/jobsQueue', () => {
 				done();
 			});
 
-			it('should throw an error when trying to pass job that is not a function', async () =>
+			it('should throw an error when trying to pass job that is not a function or an AsyncFunction', async () =>
 				expect(() => {
 					jobsQueue.register('test_job', 'test', recallInterval);
 				}).to.throw('Syntax error - invalid parameters supplied'));
+
+			it('should throw an error when trying to pass job that is a function with more than 1 parameter', async () => {
+				const myFuncWithTwoParams = (x = 1, cb) => cb(x);
+
+				expect(() => {
+					jobsQueue.register(myFuncWithTwoParams, 'test', recallInterval);
+				}).to.throw('Syntax error - invalid parameters supplied');
+			});
 
 			it('should throw an error when trying to pass name that is not a string', async () =>
 				expect(() => {
