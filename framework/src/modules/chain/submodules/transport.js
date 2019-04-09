@@ -246,7 +246,6 @@ __private.receiveTransaction = function(
 			},
 			extraLogMessage
 		);
-
 		return setImmediate(cb, errors);
 	}
 
