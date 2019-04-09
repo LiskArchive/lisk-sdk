@@ -8,7 +8,7 @@ Object {
     "properties": Object {
       "BLOCK_TIME": Object {
         "default": 10,
-        "description": "Slote time interval in seconds",
+        "description": "Slot time interval in seconds",
         "min": 1,
         "type": "number",
       },
