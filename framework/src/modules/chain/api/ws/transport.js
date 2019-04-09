@@ -28,14 +28,10 @@ const slaveRPCStub = require('./rpc/ws_rpc').slaveRPCStub;
  */
 function TransportWSApi(transportModule) {
 	wsRPC.getServer().registerRPCEndpoints({
-		updatePeer: transportModule.internal.updatePeer,
 		blocksCommon: transportModule.shared.blocksCommon,
 		blocks: transportModule.shared.blocks,
-		list: transportModule.shared.list,
-		height: transportModule.shared.height,
 		getTransactions: transportModule.shared.getTransactions,
 		getSignatures: transportModule.shared.getSignatures,
-		status: transportModule.shared.status,
 	});
 
 	wsRPC.getServer().registerEventEndpoints({
