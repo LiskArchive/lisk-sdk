@@ -210,6 +210,8 @@ export class VoteTransaction extends BaseTransaction {
 		const errors: TransactionError[] = [];
 		const sender = store.account.get(this.senderId);
 
+		// Deduct amount from sender in case of exceptions
+		// See issue: https://github.com/LiskHQ/lisk-elements/issues/1215
 		const balanceError = verifyAmountBalance(
 			this.id,
 			sender,
@@ -303,6 +305,8 @@ export class VoteTransaction extends BaseTransaction {
 		const sender = store.account.get(this.senderId);
 		const updatedSenderBalance = new BigNum(sender.balance).add(this.amount);
 
+		// Deduct amount from sender in case of exceptions
+		// See issue: https://github.com/LiskHQ/lisk-elements/issues/1215
 		if (updatedSenderBalance.gt(MAX_TRANSACTION_AMOUNT)) {
 			errors.push(
 				new TransactionError(
