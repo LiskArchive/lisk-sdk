@@ -96,7 +96,7 @@ describe('Application', () => {
 				params.label
 			);
 
-			expect(validator.validateWithDefaults).toHaveBeenCalledWith(
+			expect(validator.parseEnvArgAndValidate).toHaveBeenCalledWith(
 				constantsSchema.constants,
 				params.constants
 			);

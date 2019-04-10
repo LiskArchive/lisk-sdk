@@ -22,7 +22,6 @@ const appSchema = {
 			type: 'string',
 			description:
 				'lisk network [devnet|betanet|mainnet|testnet]. Defaults to "devnet"',
-			default: 'devnet',
 			enum: ['devnet', 'alphanet', 'betanet', 'testnet', 'mainnet'],
 			env: 'LISK_NETWORK',
 			arg: '-n,--network',
@@ -35,10 +34,14 @@ const appSchema = {
 			arg: '-c,--config',
 		},
 	},
+	default: {
+		NETWORK: 'devnet',
+		CUSTOM_CONFIG_FILE: null,
+	},
 };
 
 try {
-	const { NETWORK, CUSTOM_CONFIG_FILE } = validator.validateWithDefaults(
+	const { NETWORK, CUSTOM_CONFIG_FILE } = validator.parseEnvArgAndValidate(
 		appSchema,
 		{}
 	);

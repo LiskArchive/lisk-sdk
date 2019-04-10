@@ -25,7 +25,7 @@ const supertest = require('supertest');
 const _ = require('lodash');
 const validator = require('../../src/controller/helpers/validator');
 const constantsSchema = require('../../src/controller/schema/constants');
-const nonConfigurableConstants = require('../../src/controller/constants');
+const nonConfigurableConstants = require('../../src/controller/non_configurable_constants');
 const applicationSchema = require('../../src/controller/schema/application');
 const chainModuleSchema = require('../../src/modules/chain/defaults/config');
 const apiModuleSchema = require('../../src/modules/http_api/defaults/config');
@@ -56,7 +56,7 @@ const config = {
 };
 
 const mergedConstants = {
-	...validator.validateWithDefaults(constantsSchema.constants, constants),
+	...validator.parseEnvArgAndValidate(constantsSchema.constants, constants),
 	...nonConfigurableConstants,
 };
 
@@ -65,13 +65,13 @@ config.constants = mergedConstants;
 // TODO: This should be removed after https://github.com/LiskHQ/lisk/pull/2980
 global.constants = config.constants;
 
-config.genesisBlock = validator.validateWithDefaults(
+config.genesisBlock = validator.parseEnvArgAndValidate(
 	applicationSchema.genesisBlock,
 	genesisBlock
 );
 config.nethash = config.genesisBlock.payloadHash;
 
-config.modules.chain = validator.validateWithDefaults(
+config.modules.chain = validator.parseEnvArgAndValidate(
 	chainModuleSchema,
 	Object.assign({}, config.modules.chain, { exceptions })
 );
@@ -84,7 +84,7 @@ config.modules.chain = {
 	protocolVersion: config.protocolVersion,
 };
 
-config.modules.http_api = validator.validateWithDefaults(
+config.modules.http_api = validator.parseEnvArgAndValidate(
 	apiModuleSchema,
 	config.modules.http_api
 );
@@ -96,11 +96,11 @@ config.modules.http_api = {
 	minVersion: config.minVersion,
 };
 
-config.components.storage = validator.validateWithDefaults(
+config.components.storage = validator.parseEnvArgAndValidate(
 	defaultStorageConfig,
 	config.components.storage || {}
 );
-config.components.cache = validator.validateWithDefaults(
+config.components.cache = validator.parseEnvArgAndValidate(
 	defaultCacheConfig,
 	config.components.cache || {}
 );
