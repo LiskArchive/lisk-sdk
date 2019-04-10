@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const _ = require('lodash');
 
 const transferAsset = raw => {
@@ -101,22 +117,22 @@ const outTransferAsset = raw => {
 	return { outTransfer };
 };
 
+// TODO: remove after https://github.com/LiskHQ/lisk/issues/2424
+const assetDbReadMap = new Map([
+	[0, transferAsset],
+	[1, signatureAsset],
+	[2, delegateAsset],
+	[3, voteAsset],
+	[4, multiAsset],
+	[5, dappAsset],
+	[6, inTransferAsset],
+	[7, outTransferAsset],
+]);
+
 class Transaction {
 	constructor({ registeredTransactions = {}, applicationState = {} }) {
 		this.state = applicationState;
 		this.transactionClassMap = new Map();
-
-		// TODO: remove after https://github.com/LiskHQ/lisk/issues/2424
-		this.assetDbReadMap = new Map([
-			[0, transferAsset],
-			[1, signatureAsset],
-			[2, delegateAsset],
-			[3, voteAsset],
-			[4, multiAsset],
-			[5, dappAsset],
-			[6, inTransferAsset],
-			[7, outTransferAsset],
-		]);
 
 		Object.keys(registeredTransactions).forEach(transactionType => {
 			this.transactionClassMap.set(
@@ -124,47 +140,6 @@ class Transaction {
 				registeredTransactions[transactionType]
 			);
 		});
-	}
-
-	// TODO: remove after https://github.com/LiskHQ/lisk/issues/2424
-	dbRead(raw) {
-		if (!raw.t_id) {
-			return null;
-		}
-
-		const transactionJSON = {
-			id: raw.t_id,
-			height: raw.b_height,
-			blockId: raw.b_id || raw.t_blockId,
-			type: parseInt(raw.t_type),
-			timestamp: parseInt(raw.t_timestamp),
-			senderPublicKey: raw.t_senderPublicKey,
-			requesterPublicKey: raw.t_requesterPublicKey,
-			senderId: raw.t_senderId,
-			recipientId: raw.t_recipientId,
-			recipientPublicKey: raw.m_recipientPublicKey || null,
-			amount: raw.t_amount,
-			fee: raw.t_fee,
-			signature: raw.t_signature,
-			signSignature: raw.t_signSignature,
-			signatures: raw.t_signatures ? raw.t_signatures.split(',') : [],
-			confirmations: parseInt(raw.confirmations || 0),
-			asset: {},
-		};
-
-		const assetDbRead = this.assetDbReadMap.get(transactionJSON.type);
-
-		if (!assetDbRead) {
-			throw new Error(`Unknown transaction type ${transactionJSON.type}`);
-		}
-
-		const asset = assetDbRead(raw);
-
-		if (asset) {
-			transactionJSON.asset = Object.assign(transactionJSON.asset, asset);
-		}
-
-		return this.fromJson(_.omitBy(transactionJSON, _.isNull));
 	}
 
 	fromBlock(block) {
@@ -193,6 +168,47 @@ class Transaction {
 		}
 
 		return new TransactionClass(rawTx);
+	}
+
+	// TODO: remove after https://github.com/LiskHQ/lisk/issues/2424
+	dbRead(raw) {
+		if (!raw.t_id) {
+			return null;
+		}
+
+		const transactionJSON = {
+			id: raw.t_id,
+			height: raw.b_height,
+			blockId: raw.b_id || raw.t_blockId,
+			type: parseInt(raw.t_type),
+			timestamp: parseInt(raw.t_timestamp),
+			senderPublicKey: raw.t_senderPublicKey,
+			requesterPublicKey: raw.t_requesterPublicKey,
+			senderId: raw.t_senderId,
+			recipientId: raw.t_recipientId,
+			recipientPublicKey: raw.m_recipientPublicKey || null,
+			amount: raw.t_amount,
+			fee: raw.t_fee,
+			signature: raw.t_signature,
+			signSignature: raw.t_signSignature,
+			signatures: raw.t_signatures ? raw.t_signatures.split(',') : [],
+			confirmations: parseInt(raw.confirmations || 0),
+			asset: {},
+		};
+
+		const assetDbRead = assetDbReadMap.get(transactionJSON.type);
+
+		if (!assetDbRead) {
+			throw new Error(`Unknown transaction type ${transactionJSON.type}`);
+		}
+
+		const asset = assetDbRead(raw);
+
+		if (asset) {
+			transactionJSON.asset = Object.assign(transactionJSON.asset, asset);
+		}
+
+		return this.fromJson(_.omitBy(transactionJSON, _.isNull));
 	}
 }
 
