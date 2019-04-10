@@ -158,7 +158,7 @@ class Application {
 
 		this.registerModule(HttpAPIModule, {
 			constants: this.constants,
-			loadAsChildProcess: childProcessModules.includes(HttpAPIModule.alias),
+			loadAsChildProcess: true,
 		});
 	}
 

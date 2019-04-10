@@ -15,6 +15,7 @@ else ifeq ($(UNAME_S),Darwin)
 include darwin.mk
 endif
 # defaults
+CP ?= cp
 DATE ?= date
 DOWNLOAD ?= wget --no-verbose
 GNUPG ?= gpg2
@@ -44,7 +45,7 @@ release/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64.tar.gz: src/lisk-$(LISK_VERSION)-
 
 src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64: src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_image/finished
 	rm -rf src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_temp
-	cp -rf src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_image src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_temp
+	$(CP) -rf src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_image src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_temp
 	rm -f src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_temp/finished
 	mv src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_temp $@
 
@@ -138,11 +139,11 @@ src/lisk-$(LISK_VERSION)-$(UNAME_S)-x86_64_image/var/db/blockchain.db.gz: | src/
 	touch $@
 
 ../npm-shrinkwrap.json: ../package-lock.json
-	cp ../package-lock.json $@
+	$(CP) ../package-lock.json $@
 
 src/jq: src/jq-$(JQ_ARCH) src/jq-$(JQ_ARCH).sha256sum
 	sha256sum -c src/jq-$(JQ_ARCH).sha256sum
-	cp -f src/jq-$(JQ_ARCH) $@
+	$(CP) -f src/jq-$(JQ_ARCH) $@
 
 src/jq-$(JQ_ARCH):
 	$(DOWNLOAD) https://github.com/stedolan/jq/releases/download/jq-$(JQ_VERSION)/jq-$(JQ_ARCH) --output-document=$@
@@ -171,7 +172,7 @@ src/node-v$(NODEJS_VERSION)_SHASUMS256.txt.sig:
 	cd ../ && PATH="${PWD}/src/node-v$(NODEJS_VERSION)-$(NODEJS_ARCH)/bin:${PATH}" npm pack
 
 src/lisk-$(LISK_VERSION).tgz: ../lisk-$(LISK_VERSION).tgz
-	cp -f ../lisk-$(LISK_VERSION).tgz $@
+	$(CP) -f ../lisk-$(LISK_VERSION).tgz $@
 
 src/redis-$(REDIS_VERSION)/src/redis-%: src/redis-$(REDIS_VERSION)
 	cd src/redis-$(REDIS_VERSION)/ && make && make check

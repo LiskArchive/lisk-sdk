@@ -491,7 +491,10 @@ __private.loadSecondLastBlockStep = function(secondLastBlockId, tx) {
 			{ id: secondLastBlockId },
 			(err, blocks) => {
 				if (err || !blocks.length) {
-					library.logger.error('Failed to get loadBlocksPart', convertErrorsToString(err));
+					library.logger.error(
+						'Failed to get loadBlocksPart',
+						convertErrorsToString(err)
+					);
 					return setImmediate(
 						reject,
 						err || new Error('previousBlock is null')
@@ -656,24 +659,19 @@ Chain.prototype.deleteLastBlock = function(cb) {
 				});
 			},
 			updateApplicationState(seriesCb) {
-				return library.storage.entities.Block.get(
-					{},
-					{
-						limit: 5,
-						sort: 'height:desc',
-					}
-				)
-					.then(blocks => {
+				return modules.blocks
+					.calculateNewBroadhash()
+					.then(({ broadhash, height }) => {
 						// Listen for the update of step to move to next step
-						library.channel.once('lisk:state:updated', () => {
+						library.channel.once('app:state:updated', () => {
 							seriesCb();
 						});
 
 						// Update our application state: broadhash and height
-						return library.channel.invoke(
-							'lisk:updateApplicationState',
-							blocks
-						);
+						return library.channel.invoke('app:updateApplicationState', {
+							broadhash,
+							height,
+						});
 					})
 					.catch(seriesCb);
 			},

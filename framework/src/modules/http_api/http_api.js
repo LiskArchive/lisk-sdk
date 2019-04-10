@@ -28,7 +28,7 @@ module.exports = class HttpApi {
 
 		// Logger
 		const loggerConfig = await this.channel.invoke(
-			'lisk:getComponentConfig',
+			'app:getComponentConfig',
 			'logger'
 		);
 		this.logger = createLoggerComponent(loggerConfig);
@@ -36,7 +36,7 @@ module.exports = class HttpApi {
 		// Cache
 		this.logger.debug('Initiating cache...');
 		const cacheConfig = await this.channel.invoke(
-			'lisk:getComponentConfig',
+			'app:getComponentConfig',
 			'cache'
 		);
 		const cache = createCacheComponent(cacheConfig, this.logger);
@@ -44,7 +44,7 @@ module.exports = class HttpApi {
 		// Storage
 		this.logger.debug('Initiating storage...');
 		const storageConfig = await this.channel.invoke(
-			'lisk:getComponentConfig',
+			'app:getComponentConfig',
 			'storage'
 		);
 		const dbLogger =
@@ -59,7 +59,7 @@ module.exports = class HttpApi {
 		const storage = createStorageComponent(storageConfig, dbLogger);
 
 		const applicationState = await this.channel.invoke(
-			'lisk:getApplicationState'
+			'app:getApplicationState'
 		);
 
 		// Setup scope
@@ -74,7 +74,7 @@ module.exports = class HttpApi {
 			applicationState,
 		};
 
-		this.channel.subscribe('lisk:state:updated', event => {
+		this.channel.subscribe('app:state:updated', event => {
 			Object.assign(this.scope.applicationState, event.data);
 		});
 
