@@ -234,13 +234,19 @@ describe('commons node utils', () => {
 
 		it('should throw if version is invalid', async () => {
 			const invalidVersion = 'rc.1.0.0';
-			return expect(validateVersion(NETWORK.MAINNET, invalidVersion)).to.rejectedWith(`Upgrade version: ${invalidVersion} has invalid format, Please refer version from release url: https://downloads.lisk.io/lisk/mainnet`);
+			return expect(
+				validateVersion(NETWORK.MAINNET, invalidVersion),
+			).to.rejectedWith(
+				`Upgrade version: ${invalidVersion} has invalid format, Please refer version from release url: https://downloads.lisk.io/lisk/mainnet`,
+			);
 		});
 
 		it('should throw if the requested version does not exists', async () => {
 			releaseStub.rejects();
 			const invalidVersion = '9.9.9';
-			return expect(validateVersion(NETWORK.MAINNET, invalidVersion)).to.rejectedWith();
+			return expect(
+				validateVersion(NETWORK.MAINNET, invalidVersion),
+			).to.rejectedWith();
 		});
 
 		it('should successed for valid version', async () => {
