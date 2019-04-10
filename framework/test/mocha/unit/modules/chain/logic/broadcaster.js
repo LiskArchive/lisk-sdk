@@ -22,12 +22,8 @@ describe('Broadcaster', () => {
 	let jobsQueue;
 	let library;
 	let nextRelease;
-	let releaseQueue;
-	let filterQueue;
-	let filterTransaction;
-	let squashQueue;
 
-	beforeEach(done => {
+	beforeEach(async () => {
 		broadcasts = {
 			active: true,
 			broadcastInterval: 10000,
@@ -90,23 +86,9 @@ describe('Broadcaster', () => {
 		);
 
 		library = Broadcaster.__get__('library');
-
-		nextRelease = Broadcaster.__get__('nextRelease');
-		releaseQueue = Broadcaster.__get__('__private.releaseQueue');
-		filterQueue = Broadcaster.__get__('__private.filterQueue');
-		filterTransaction = Broadcaster.__get__('__private.filterTransaction');
-		squashQueue = Broadcaster.__get__('__private.squashQueue');
-
-		done();
 	});
 
 	afterEach(() => {
-		Broadcaster.__set__('__private.releaseQueue', releaseQueue);
-		Broadcaster.__set__('nextRelease', nextRelease);
-		Broadcaster.__set__('__private.releaseQueue', releaseQueue);
-		Broadcaster.__set__('__private.filterQueue', filterQueue);
-		Broadcaster.__set__('__private.filterTransaction', filterTransaction);
-		Broadcaster.__set__('__private.squashQueue', squashQueue);
 		return sinonSandbox.restore();
 	});
 
@@ -140,18 +122,17 @@ describe('Broadcaster', () => {
 		});
 
 		it('should register jobsQueue', async () => {
-			const auxNextRelease = Broadcaster.__get__('nextRelease');
 			expect(jobsQueue.register.calledOnce).to.be.true;
 			return expect(jobsQueue.register).calledWith(
 				'broadcasterNextRelease',
-				auxNextRelease,
+				nextRelease,
 				broadcasts.broadcastInterval
 			);
 		});
 	});
 
 	describe('getPeers', () => {
-		it('should throw error for empty params', async () =>
+		it('should throw error for empty params', () =>
 			expect(() => {
 				broadcaster.getPeers(null);
 			}).to.throw());
@@ -180,7 +161,7 @@ describe('Broadcaster', () => {
 		it('should reach consensus', done => {
 			const peerParams = _.cloneDeep(params);
 			peerParams.limit = 100;
-			broadcaster.getPeers(peerParams, async () => {
+			broadcaster.getPeers(peerParams, () => {
 				expect(peersStub.listRandomConnected.calledOnce).to.be.true;
 				expect(peersStub.listRandomConnected.args[0][0]).to.deep.equal(
 					peerParams
@@ -289,8 +270,8 @@ describe('Broadcaster', () => {
 	describe('nextRelease', () => {
 		it('should be able to invoke next release', done => {
 			const releaseQueueSpy = sinonSandbox.stub().callsArgWith(0, null);
-			Broadcaster.__set__('__private.releaseQueue', releaseQueueSpy);
-			nextRelease(() => {
+			Broadcaster.__set__('this.releaseQueue', releaseQueueSpy);
+			broadcaster.nextRelease(() => {
 				expect(releaseQueueSpy.calledOnce).to.be.true;
 				done();
 			});
@@ -300,8 +281,8 @@ describe('Broadcaster', () => {
 			const releaseQueueSpy = sinonSandbox
 				.stub()
 				.callsArgWith(0, 'release error');
-			Broadcaster.__set__('__private.releaseQueue', releaseQueueSpy);
-			nextRelease(() => {
+			Broadcaster.__set__('this.releaseQueue', releaseQueueSpy);
+			broadcaster.nextRelease(() => {
 				expect(loggerStub.info.args[0][0]).to.eql('Broadcaster timer');
 				expect(loggerStub.info.args[0][1]).to.eql('release error');
 				expect(releaseQueueSpy.calledOnce).to.be.true;
@@ -313,7 +294,7 @@ describe('Broadcaster', () => {
 	describe('filterQueue', () => {
 		const validTransaction = { id: '321' };
 		const validSignature = { transactionId: '123' };
-		beforeEach('having empty broadcasts queue', done => {
+		beforeEach(done => {
 			broadcaster.queue = [];
 			done();
 		});
@@ -331,7 +312,7 @@ describe('Broadcaster', () => {
 			});
 
 			it('should set an empty broadcaster.queue and skip the broadcast', done => {
-				filterQueue(() => {
+				broadcaster.filterQueue(() => {
 					expect(broadcaster.queue)
 						.to.be.an('Array')
 						.to.eql([]);
@@ -351,7 +332,7 @@ describe('Broadcaster', () => {
 			});
 
 			it('should set an empty broadcaster.queue and skip the broadcast', done => {
-				filterQueue(() => {
+				broadcaster.filterQueue(() => {
 					expect(broadcaster.queue)
 						.to.be.an('Array')
 						.to.eql([]);
@@ -371,7 +352,7 @@ describe('Broadcaster', () => {
 			});
 
 			it('should call transaction pool with [signature.transactionId]', done => {
-				filterQueue(() => {
+				broadcaster.filterQueue(() => {
 					expect(modulesStub.transactions.transactionInPool).calledWithExactly(
 						validSignature.transactionId
 					);
@@ -403,7 +384,7 @@ describe('Broadcaster', () => {
 			});
 
 			it('should call transaction pool with [transaction.id]', done => {
-				filterQueue(() => {
+				broadcaster.filterQueue(() => {
 					expect(modulesStub.transactions.transactionInPool).calledWithExactly(
 						validTransaction.id
 					);
@@ -417,7 +398,7 @@ describe('Broadcaster', () => {
 					done();
 				});
 				it('should leave [broadcast] in broadcaster.queue', done => {
-					filterQueue(() => {
+					broadcaster.filterQueue(() => {
 						expect(broadcaster.queue)
 							.to.be.an('Array')
 							.to.eql([broadcast]);
@@ -437,7 +418,7 @@ describe('Broadcaster', () => {
 						done();
 					});
 					it('should set an empty broadcaster.queue and skip the broadcast', done => {
-						filterQueue(() => {
+						broadcaster.filterQueue(() => {
 							expect(broadcaster.queue)
 								.to.be.an('Array')
 								.to.eql([]);
@@ -451,7 +432,7 @@ describe('Broadcaster', () => {
 						done();
 					});
 					it('should leave [broadcast] in broadcaster.queue', done => {
-						filterQueue(() => {
+						broadcaster.filterQueue(() => {
 							expect(broadcaster.queue)
 								.to.be.an('Array')
 								.to.eql([broadcast]);
@@ -469,7 +450,7 @@ describe('Broadcaster', () => {
 						done();
 					});
 					it('should set an empty broadcaster.queue and skip the broadcast', done => {
-						filterQueue(() => {
+						broadcaster.filterQueue(() => {
 							expect(broadcaster.queue)
 								.to.be.an('Array')
 								.to.eql([]);
@@ -582,7 +563,7 @@ describe('Broadcaster', () => {
 					done();
 				});
 				it('should leave all of them in broadcaster.queue', done => {
-					filterQueue(() => {
+					broadcaster.filterQueue(() => {
 						expect(broadcaster.queue)
 							.to.be.an('Array')
 							.to.eql(auxBroadcasts);
@@ -595,8 +576,8 @@ describe('Broadcaster', () => {
 
 	describe('squashQueue', () => {
 		it('should return empty array for no params and empty object', async () => {
-			expect(squashQueue({})).to.eql([]);
-			return expect(squashQueue()).to.eql([]);
+			expect(broadcaster.squashQueue({})).to.eql([]);
+			return expect(broadcaster.squashQueue()).to.eql([]);
 		});
 
 		it('should be able to squash the queue', async () => {
@@ -605,7 +586,7 @@ describe('Broadcaster', () => {
 					options: { api: 'postTransactions', data: { peer: {}, block: {} } },
 				},
 			};
-			return expect(squashQueue(auxBroadcasts)).to.eql([
+			return expect(broadcaster.squashQueue(auxBroadcasts)).to.eql([
 				{
 					immediate: false,
 					options: {
@@ -632,7 +613,7 @@ describe('Broadcaster', () => {
 		});
 
 		it('should return immediately for an empty queue', done => {
-			releaseQueue(() => {
+			broadcaster.releaseQueue(() => {
 				expect(loggerStub.info.called).to.be.true;
 				expect(loggerStub.info.args[0][0]).to.be.eql(
 					'Releasing enqueued broadcasts'
@@ -646,9 +627,9 @@ describe('Broadcaster', () => {
 			const filterQueueStub = sinonSandbox
 				.stub()
 				.callsArgWith(0, 'failed to broadcast', null);
-			Broadcaster.__set__('__private.filterQueue', filterQueueStub);
+			Broadcaster.__set__('this.filterQueue', filterQueueStub);
 			broadcaster.enqueue(params, options);
-			releaseQueue(() => {
+			broadcaster.releaseQueue(() => {
 				expect(loggerStub.error.args[0][0]).to.eql(
 					'Failed to release broadcast queue'
 				);
