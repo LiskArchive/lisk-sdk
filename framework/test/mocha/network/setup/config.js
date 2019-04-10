@@ -62,10 +62,9 @@ const config = {
 					connectTimeout: 5000,
 					ackTimeout: 5000,
 					discoveryInterval: 30000,
-					seedPeers: [],
 					wsEngine: 'ws',
 					nodeInfo: {
-						wsPort: 6000 + index,
+						wsPort: 5500 + index,
 						height: 0,
 					},
 				},
@@ -82,6 +81,11 @@ const config = {
 					indices: _.range(10),
 				},
 				configuration.wsPort
+			);
+
+			configuration.modules.network.seedPeers = config.generateSeedPeers(
+				configurations,
+				configuration.modules.network.nodeInfo.wsPort
 			);
 		});
 
@@ -210,6 +214,20 @@ const config = {
 		}
 
 		return peersList;
+	},
+	generateSeedPeers(configurations, currentPeerPort) {
+		const seedPeersList = [];
+
+		configurations.forEach(configuration => {
+			if (!(seedPeersList.wsPort === currentPeerPort)) {
+				seedPeersList.push({
+					ipAddress: configuration.ip,
+					wsPort: configuration.modules.network.nodeInfo.wsPort,
+				});
+			}
+		});
+
+		return seedPeersList;
 	},
 	SYNC_MODES,
 };

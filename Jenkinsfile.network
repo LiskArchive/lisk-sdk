@@ -42,7 +42,7 @@ pipeline {
 			steps {
 				ansiColor('xterm') {
 					nvm(getNodejsVersion()) {
-						sh 'npm run mocha:network ${LISK_MOCHA_RUNNER_OPTIONS}'
+						sh 'TOTAL_PEERS=2 npm run mocha:network ${LISK_MOCHA_RUNNER_OPTIONS}'
 					}
 				}
 			}

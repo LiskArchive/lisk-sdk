@@ -203,10 +203,6 @@ describe('blocks/process', () => {
 			getUnconfirmedTransactionList: sinonSandbox.stub(),
 		};
 
-		const modulesTransportStub = {
-			poorConsensus: sinonSandbox.stub(),
-		};
-
 		const modulesPeersStub = {
 			remove: sinonSandbox.spy(),
 		};
@@ -220,7 +216,6 @@ describe('blocks/process', () => {
 				peers: modulesPeersStub,
 				rounds: modulesRoundsStub,
 				transactions: modulesTransactionsStub,
-				transport: modulesTransportStub,
 			},
 		};
 

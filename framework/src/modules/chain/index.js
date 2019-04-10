@@ -58,9 +58,6 @@ module.exports = class ChainModule extends BaseModule {
 				this.chain.actions.generateDelegateList(action),
 			updateForgingStatus: async action =>
 				this.chain.actions.updateForgingStatus(action),
-			getPeers: async action => this.chain.actions.getPeers(action),
-			getPeersCountByFilter: async action =>
-				this.chain.actions.getPeersCountByFilter(action),
 			postSignature: async action => this.chain.actions.postSignature(action),
 			getForgersPublicKeys: async () =>
 				this.chain.actions.getForgersPublicKeys(),

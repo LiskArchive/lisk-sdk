@@ -26,7 +26,7 @@ const definitions = require('../schema/definitions');
 // Private fields
 let library;
 let self;
-const { MAX_PEERS } = global.constants;
+const { MAX_PEERS, MIN_BROADHASH_CONSENSUS } = global.constants;
 const __private = {};
 
 const peerDiscoveryFrequency = 30000;
@@ -65,6 +65,9 @@ class Peers {
 			config: {
 				peers: scope.config.peers,
 				version: scope.config.version,
+				forging: {
+					force: scope.config.forging.force,
+				},
 			},
 			applicationState: scope.applicationState,
 			channel: scope.channel,
@@ -510,22 +513,43 @@ Peers.prototype.getLastConsensus = function() {
 /**
  * Calculates consensus for as a ratio active to matched peers.
  *
- * @returns {number} Consensus or undefined if config.forging.force = true
+ * @returns {Promise.<number, Error>} Consensus or undefined if config.forging.force = true
  */
-Peers.prototype.calculateConsensus = function() {
-	const active = library.logic.peers
-		.list(true)
-		.filter(peer => peer.state === Peer.STATE.CONNECTED);
+Peers.prototype.calculateConsensus = async function() {
 	const { broadhash } = library.applicationState;
-	const matched = active.filter(peer => peer.broadhash === broadhash);
-	const activeCount = Math.min(active.length, MAX_PEERS);
-	const matchedCount = Math.min(matched.length, activeCount);
-	const consensus = +(matchedCount / activeCount * 100).toPrecision(2);
-	self.consensus = Number.isNaN(consensus) ? 0 : consensus;
-	return self.consensus;
+	try {
+		const activeCount = await library.channel.invoke(
+			'network:getPeersCountByFilter',
+			{ state: Peer.STATE.CONNECTED }
+		);
+		const matchedCount = await library.channel.invoke(
+			'network:getPeersCountByFilter',
+			{ broadhash }
+		);
+		const consensus = +(matchedCount / activeCount * 100).toPrecision(2);
+		self.consensus = Number.isNaN(consensus) ? 0 : consensus;
+		return self.consensus;
+	} catch (error) {
+		throw error;
+	}
 };
 
 // Public methods
+/**
+ * Returns true if application consensus is less than MIN_BROADHASH_CONSENSUS.
+ * Returns false if library.config.forging.force is true.
+ *
+ * @returns {boolean}
+ * @todo Add description for the return value
+ */
+Peers.prototype.isPoorConsensus = async function() {
+	if (library.config.forging.force) {
+		return false;
+	}
+	const consensus = await self.calculateConsensus();
+	return consensus < MIN_BROADHASH_CONSENSUS;
+};
+
 /**
  * Updates peer in peers list.
  *
@@ -918,22 +942,22 @@ Peers.prototype.onPeersReady = function() {
 		);
 	}
 
-	function calculateConsensus(cb) {
-		self.calculateConsensus();
-		library.logger.debug(`Broadhash consensus: ${self.getLastConsensus()} %`);
-		return setImmediate(cb);
-	}
-	// Loop in 30 sec intervals for less new insertion after removal
-	jobsQueue.register(
-		'peersDiscoveryAndUpdate',
-		peersDiscoveryAndUpdate,
-		peerDiscoveryFrequency
-	);
+	const calculateConsensus = async () => {
+		const consensus = await self.calculateConsensus();
+		return library.logger.debug(`Broadhash consensus: ${consensus} %`);
+	};
 
 	jobsQueue.register(
 		'calculateConsensus',
 		calculateConsensus,
 		self.broadhashConsensusCalculationInterval
+	);
+
+	// Loop in 30 sec intervals for less new insertion after removal
+	jobsQueue.register(
+		'peersDiscoveryAndUpdate',
+		peersDiscoveryAndUpdate,
+		peerDiscoveryFrequency
 	);
 };
 
