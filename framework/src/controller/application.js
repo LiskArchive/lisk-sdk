@@ -141,7 +141,7 @@ class Application {
 
 		// TODO: Validate schema for genesis block, constantsToOverride, exceptions
 		this.genesisBlock = genesisBlock;
-		this.constants = constantsToOverride;
+		this.constants = global.constants;
 		this.label = appLabel;
 		this.config = appConfig;
 		this.controller = null;
