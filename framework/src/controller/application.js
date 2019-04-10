@@ -6,7 +6,6 @@ const version = require('../version');
 const validator = require('./helpers/validator');
 const applicationSchema = require('./schema/application');
 const constantsSchema = require('./schema/constants');
-const configSchema = require('./schema/config');
 
 const { createLoggerComponent } = require('../components/logger');
 
@@ -90,8 +89,7 @@ class Application {
 	constructor(
 		label,
 		genesisBlock,
-		constantsToOverride = {},
-		config = { components: { logger: null }, modules: {} }
+		config = { app: {}, components: { logger: null }, modules: {} }
 	) {
 		let appConfig;
 
@@ -120,7 +118,7 @@ class Application {
 			};
 		}
 
-		validator.loadSchema(applicationSchema);
+		validator.loadSchema();
 		validator.loadSchema(constantsSchema);
 		validator.validate(applicationSchema.appLabel, appLabel);
 		validator.validate(applicationSchema.config, appConfig);
@@ -129,13 +127,13 @@ class Application {
 			constantsSchema.constants
 		);
 
-		const overridenConstants = validator.parseEnvArgAndValidate(
-			configSchema.network,
-			constantsToOverride
+		appConfig = validator.parseEnvArgAndValidate(
+			applicationSchema.config.app,
+			appConfig.app
 		);
 
 		// TODO: This should be removed after https://github.com/LiskHQ/lisk/pull/2980
-		global.constants = { ...constants, ...overridenConstants };
+		global.constants = { ...constants, ...appConfig };
 
 		validator.validate(applicationSchema.genesisBlock, genesisBlock);
 

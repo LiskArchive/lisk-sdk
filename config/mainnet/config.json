@@ -1,4 +1,11 @@
 {
+	"app": {
+		"genesisConfig": {
+			"REWARDS": {
+				"OFFSET": 1451520
+			}
+		}
+	},
 	"components": {
 		"logger": {
 			"logFileName": "logs/mainnet/lisk.log"
