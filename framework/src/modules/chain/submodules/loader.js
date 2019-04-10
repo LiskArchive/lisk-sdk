@@ -882,10 +882,6 @@ __private.sync = function(cb) {
 					})
 					.catch(seriesCb);
 			},
-			broadcastHeaders(seriesCb) {
-				// Notify all remote peers about our new headers
-				modules.transport.broadcastHeaders(seriesCb);
-			},
 			async calculateConsensusAfter() {
 				const consensus = await modules.peers.calculateConsensus();
 				return library.logger.debug(
@@ -1009,7 +1005,6 @@ Loader.prototype.onBind = function(scope) {
 		blocks: scope.modules.blocks,
 		peers: scope.modules.peers,
 		rounds: scope.modules.rounds,
-		transport: scope.modules.transport,
 		multisignatures: scope.modules.multisignatures,
 	};
 
