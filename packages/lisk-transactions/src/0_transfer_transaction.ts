@@ -62,7 +62,7 @@ export class TransferTransaction extends BaseTransaction {
 	protected assetToBytes(): Buffer {
 		const { data } = this.asset;
 
-		return data ? Buffer.from(data, 'utf8') : Buffer.alloc(0);
+		return typeof data === 'string' ? Buffer.from(data, 'utf8') : Buffer.alloc(0);
 	}
 
 	public assetToJSON(): TransferAsset {

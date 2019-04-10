@@ -235,6 +235,10 @@ export abstract class BaseTransaction {
 	public validate(): TransactionResponse {
 		const errors = [...this._validateSchema(), ...this.validateAsset()];
 
+		if (errors.length > 0) {
+			return createResponse(this.id, errors);
+		}
+
 		const transactionBytes = this.getBasicBytes();
 
 		const {

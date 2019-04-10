@@ -89,9 +89,17 @@ export class MultisignatureTransaction extends BaseTransaction {
 		const {
 			multisignature: { min, lifetime, keysgroup },
 		} = this.asset;
-		const minBuffer = Buffer.alloc(1, min);
-		const lifetimeBuffer = Buffer.alloc(1, lifetime);
-		const keysgroupBuffer = Buffer.from(keysgroup.join(''), 'utf8');
+		const minBuffer =
+			typeof min === 'number' ? Buffer.alloc(1, min) : Buffer.alloc(0);
+		const lifetimeBuffer =
+			typeof lifetime === 'number'
+				? Buffer.alloc(1, lifetime)
+				: Buffer.alloc(0);
+		const keysgroupBuffer =
+			Array.isArray(keysgroup) &&
+			keysgroup.every(key => typeof key === 'string')
+				? Buffer.from(keysgroup.join(''), 'utf8')
+				: Buffer.alloc(0);
 
 		return Buffer.concat([minBuffer, lifetimeBuffer, keysgroupBuffer]);
 	}
