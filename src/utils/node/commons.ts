@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as fsExtra from 'fs-extra';
+import fsExtra from 'fs-extra';
 import * as os from 'os';
 import semver from 'semver';
 import { NETWORK, OS, RELEASE_URL } from '../constants';
@@ -149,8 +149,6 @@ export const validateVersion = async (
 	const url = `${RELEASE_URL}/${network}/${version}`;
 	try {
 		await getLatestVersion(url);
-
-		return;
 	} catch (error) {
 		if (error.message === 'Request failed with status code 404') {
 			throw new Error(

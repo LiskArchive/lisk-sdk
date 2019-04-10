@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import fs from 'fs';
 import { expect } from 'chai';
 import {
 	defaultInstallationPath,
@@ -111,16 +111,17 @@ describe('config node utils', () => {
 		});
 	});
 
-	describe.skip('#getConfig', () => {
+	describe('#getConfig', () => {
 		const appConfigObject = {
 			database: 'lisk',
 			version: 1,
 		};
 		const appConfigContents = '{\n\t"database": "lisk",\n\t"version": 1\n}';
+
 		beforeEach(() => {
-			sandbox.stub(JSON, 'parse').returns(appConfigObject);
 			sandbox.stub(fs, 'existsSync').returns(true);
 			sandbox.stub(fs, 'readFileSync').returns(appConfigContents);
+			sandbox.stub(JSON, 'parse').returns(appConfigObject);
 		});
 
 		it('should return network app config', () => {

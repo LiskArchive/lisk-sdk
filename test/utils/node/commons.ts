@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import * as fsExtra from 'fs-extra';
+import fsExtra from 'fs-extra';
 import * as os from 'os';
 import {
 	liskInstall,
@@ -104,7 +104,19 @@ describe('commons node utils', () => {
 	});
 
 	describe('#validateNotARootUser', () => {
-		it('should not throw error', () => {
+		it('should throw error if user is running as root', () => {
+			sandbox.stub(process, 'getuid').returns(0);
+			try {
+				validateNotARootUser();
+			} catch (error) {
+				expect(error.message).to.equal(
+					'Error: Lisk should not be run be as root. Exiting.',
+				);
+			}
+			return;
+		});
+
+		it('should not throw error when running user is not root', () => {
 			return expect(validateNotARootUser()).to.not.throw;
 		});
 	});
@@ -196,7 +208,7 @@ describe('commons node utils', () => {
 		});
 	});
 
-	describe.skip('#upgradeLisk', () => {
+	describe('#upgradeLisk', () => {
 		let execStub: any = null;
 		beforeEach(() => {
 			sandbox.stub(fsExtra, 'mkdirSync').returns(null);
@@ -242,11 +254,21 @@ describe('commons node utils', () => {
 		});
 
 		it('should throw if the requested version does not exists', async () => {
-			releaseStub.rejects();
+			releaseStub.rejects(new Error('Request failed with status code 404'));
 			const invalidVersion = '9.9.9';
 			return expect(
 				validateVersion(NETWORK.MAINNET, invalidVersion),
-			).to.rejectedWith();
+			).to.rejectedWith(
+				`Upgrade version: ${invalidVersion} doesn't exists in https://downloads.lisk.io/lisk/mainnet`,
+			);
+		});
+
+		it('should throw if failed to get version', async () => {
+			releaseStub.rejects(new Error('failed to get version'));
+			const invalidVersion = '9.9.9';
+			return expect(
+				validateVersion(NETWORK.MAINNET, invalidVersion),
+			).to.rejectedWith('failed to get version');
 		});
 
 		it('should successed for valid version', async () => {

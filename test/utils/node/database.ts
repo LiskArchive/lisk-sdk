@@ -11,7 +11,7 @@ import * as workerProcess from '../../../src/utils/worker-process';
 import { NETWORK } from '../../../dist/utils/constants';
 import * as nodeConfig from '../../../src/utils/node/config';
 
-describe.only('database node utils', () => {
+describe('database node utils', () => {
 	describe('#initDB', () => {
 		let workerProcessStub: any = null;
 		let existsSyncStub: any = null;
