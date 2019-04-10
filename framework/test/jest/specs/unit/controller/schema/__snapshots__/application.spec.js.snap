@@ -150,7 +150,7 @@ Object {
       },
       "transactions": Object {
         "items": Object {
-          "$ref": "transactions",
+          "$ref": "genesisTransactions",
         },
         "type": "array",
         "uniqueItems": true,
@@ -175,9 +175,9 @@ Object {
     ],
     "type": "object",
   },
-  "transactions": Object {
+  "genesisTransactions": Object {
     "additionalProperties": false,
-    "id": "transactions",
+    "id": "genesisTransactions",
     "properties": Object {
       "amount": Object {
         "format": "amount",
