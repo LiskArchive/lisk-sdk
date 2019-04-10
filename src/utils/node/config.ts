@@ -95,7 +95,8 @@ export const isCacheEnabled = (
 	const networkConfig = getNetworkConfig(installDir, network);
 
 	if (
-		(networkConfig.cacheEnabled !== null || networkConfig.cacheEnabled !== undefined) &&
+		(networkConfig.cacheEnabled !== null ||
+			networkConfig.cacheEnabled !== undefined) &&
 		typeof networkConfig.cacheEnabled === 'boolean'
 	) {
 		return networkConfig.cacheEnabled;

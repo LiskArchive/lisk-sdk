@@ -90,7 +90,7 @@ export const validURL = (url: string): void => {
 };
 
 export const getVersionToUpgrade = async (
-	network: string,
+	network: NETWORK,
 	version?: string,
 ) => {
 	if (!version) {
@@ -116,7 +116,7 @@ export const backupLisk = async (installDir: string): Promise<void> => {
 export const upgradeLisk = async (
 	installDir: string,
 	name: string,
-	network: string,
+	network: NETWORK,
 	currentVersion: string,
 ): Promise<void> => {
 	const LISK_BACKUP = `${defaultBackupPath}/${name}`;
