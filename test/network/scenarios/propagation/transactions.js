@@ -23,7 +23,9 @@ module.exports = function(configurations, network) {
 		before(() => {
 			return Promise.all(
 				network.sockets.map(socket => {
-					return socket.call('blocks');
+					return socket.call('blocks', {
+						lastBlockId: configurations[0].genesisBlock.id,
+					});
 				})
 			).then(results => {
 				nodesTransactions = results.map(res => {
