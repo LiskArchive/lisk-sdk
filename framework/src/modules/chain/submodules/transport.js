@@ -198,7 +198,7 @@ __private.receiveTransaction = function(
 			transaction,
 		});
 
-		// TODO: Add target module to procedure name. E.g. chain:getSignatures
+		// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 
 		return setImmediate(cb, `Invalid transaction body - ${e.toString()}`);
 	}
@@ -550,7 +550,7 @@ Transport.prototype.shared = {
 						block: query.block,
 					});
 
-					// TODO: Add target module to procedure name. E.g. chain:getSignatures
+					// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 				}
 				return library.bus.message('receiveBlock', block);
 			}
