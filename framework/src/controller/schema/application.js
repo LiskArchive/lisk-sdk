@@ -67,7 +67,7 @@ module.exports = {
 			transactions: {
 				type: 'array',
 				items: {
-					$ref: 'transactions',
+					$ref: 'genesisTransactions',
 				},
 				uniqueItems: true,
 			},
@@ -89,8 +89,8 @@ module.exports = {
 		additionalProperties: false,
 	},
 
-	transactions: {
-		id: 'transactions',
+	genesisTransactions: {
+		id: 'genesisTransactions',
 		type: 'object',
 		required: ['type', 'timestamp', 'senderPublicKey', 'signature'],
 		properties: {

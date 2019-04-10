@@ -34,7 +34,7 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 }
 
 function createStorageComponent(options, logger) {
-	options = validator.validateWithDefaults(defaultConfig, options);
+	options = validator.parseEnvArgAndValidate(defaultConfig, options);
 
 	const storage = new Storage(options, logger);
 

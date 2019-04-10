@@ -1,12 +1,17 @@
 const Ajv = require('ajv');
 const {
 	validator,
-	validatorWithDefaults,
+	parserAndValidator,
 	loadSchema,
 	validate,
-	validateWithDefaults,
+	parseEnvArgAndValidate,
 	ZSchema,
 } = require('../../../../../../../src/controller/helpers/validator');
+const formats = require('../../../../../../../src/controller/helpers/validator/formats');
+const {
+	env,
+	arg,
+} = require('../../../../../../../src/controller/helpers/validator/keywords');
 const { SchemaValidationError } = require('../../../../../../../src/errors');
 
 jest.mock('ajv');
@@ -35,26 +40,34 @@ describe('helpers/validator.js', () => {
 		});
 	});
 
-	describe('Ajv instance with defaults', () => {
+	describe('Ajv instance with keyword parser', () => {
 		it('should be created by given arguments.', () => {
 			// Assert
 			expect(Ajv).toHaveBeenCalledWith({
 				allErrors: true,
 				schemaId: 'auto',
-				useDefaults: true,
+				useDefaults: false,
 				$data: true,
 			});
-			expect(validatorWithDefaults).toBeInstanceOf(Ajv);
+			expect(parserAndValidator).toBeInstanceOf(Ajv);
 		});
 
 		it('should load lisk validation formats after initialized .', () => {
 			// Assert
-			Object.keys(ZSchema.formatsCache).forEach(zSchemaType => {
-				expect(validatorWithDefaults.addFormat).toHaveBeenCalledWith(
-					zSchemaType,
-					ZSchema.formatsCache[zSchemaType]
+			Object.keys(formats).forEach(formatType => {
+				expect(parserAndValidator.addFormat).toHaveBeenCalledWith(
+					formatType,
+					formats[formatType]
 				);
 			});
+		});
+
+		it('should load env keyword after initialized .', () => {
+			expect(parserAndValidator.addKeyword).toHaveBeenCalledWith('env', env);
+		});
+
+		it('should load arg keyword after initialized .', () => {
+			expect(parserAndValidator.addKeyword).toHaveBeenCalledWith('arg', arg);
 		});
 	});
 
@@ -111,30 +124,30 @@ describe('helpers/validator.js', () => {
 		});
 	});
 
-	describe('validateWithDefaults()', () => {
+	describe('parseEnvArgAndValidate()', () => {
 		it('should call validate method with given arguments', () => {
 			// Arrange
 			const schema = '#SCHEMA';
 			const data = { myData: '#DATA' };
-			jest
-				.spyOn(validatorWithDefaults, 'validate')
-				.mockImplementation(() => true);
+			jest.spyOn(parserAndValidator, 'validate').mockImplementation(() => true);
 
 			// Act
-			validateWithDefaults(schema, data);
+			parseEnvArgAndValidate(schema, data);
 
 			// Assert
-			expect(validatorWithDefaults.validate).toHaveBeenCalledWith(schema, data);
+			expect(parserAndValidator.validate).toHaveBeenCalledWith(schema, data);
 		});
 
 		it('should throw "SchemaValidationError" when validation fails', () => {
 			// Arrange
 			jest
-				.spyOn(validatorWithDefaults, 'validate')
+				.spyOn(parserAndValidator, 'validate')
 				.mockImplementation(() => false);
 
 			// Act & Assert
-			expect(validateWithDefaults).toThrow(SchemaValidationError);
+			expect(() => {
+				parseEnvArgAndValidate({});
+			}).toThrow(SchemaValidationError);
 		});
 	});
 });
