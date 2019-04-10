@@ -22,6 +22,7 @@
  * @requires child_process
  */
 
+const assert = require('assert');
 const util = require('util');
 
 /**
@@ -50,15 +51,13 @@ const jobsQueue = {
 			throw new Error(`Synchronous job ${name} already registered`);
 		}
 
-		// Check if job is function, it has no more than 1 argument, name is string and time is integer
-		if (
-			!job ||
-			!(job instanceof Function) ||
-			job.length > 1 ||
-			typeof name !== 'string' ||
-			!Number.isInteger(time)
-		) {
-			throw new Error('Syntax error - invalid parameters supplied');
+		assert(typeof name === 'string', 'Name argument must be a string');
+		assert(Number.isInteger(time), 'Time argument must be integer');
+		assert(job instanceof Function, 'Job must be an instance of Function');
+		if (!util.types.isAsyncFunction(job)) {
+			assert(job.length === 1, 'Job function should have callback argument');
+		} else {
+			assert(job.length === 0, 'Job async function should not have arguments');
 		}
 
 		const nextJob = function() {
