@@ -47,24 +47,10 @@ describe('init_transaction', () => {
 	describe('constructor', () => {
 		it('should create initTransaction with correct properties', async () => {
 			expect(initTransaction).to.have.property('transactionClassMap');
-			expect(initTransaction).to.have.property('assetDbReadMap');
 		});
 
 		it('should have transactionClassMap property with Lisk transaction types', async () => {
 			expect([...initTransaction.transactionClassMap.keys()]).to.be.eql([
-				0,
-				1,
-				2,
-				3,
-				4,
-				5,
-				6,
-				7,
-			]);
-		});
-
-		it('should have assetDbReadMap property with Lisk transaction types', async () => {
-			expect([...initTransaction.assetDbReadMap.keys()]).to.be.eql([
 				0,
 				1,
 				2,
