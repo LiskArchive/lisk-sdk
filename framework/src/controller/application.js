@@ -9,7 +9,7 @@ const constantsSchema = require('./schema/constants');
 
 /* As for now we don't support this constants to be configured
 by the user. This will change in the future */
-const nonConfigurableConstants = require('./constants');
+const nonConfigurableConstants = require('./non_configurable_constants');
 const { createLoggerComponent } = require('../components/logger');
 
 const ChainModule = require('../modules/chain');
