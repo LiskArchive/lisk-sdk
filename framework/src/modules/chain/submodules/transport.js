@@ -214,7 +214,7 @@ __private.receiveTransaction = function(
 			);
 		} else {
 			library.logger.debug(
-				`Received transaction ${transaction.id} from peer network`
+				`Received transaction ${transaction.id} from network`
 			);
 		}
 		modules.transactions.processUnconfirmedTransaction(

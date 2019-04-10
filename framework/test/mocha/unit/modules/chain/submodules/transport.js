@@ -49,7 +49,6 @@ describe('transport', () => {
 	let defaultScope;
 	let restoreRewiredTopDeps;
 	let peerMock;
-	let wsRPC;
 	let transaction;
 	let block;
 	let peersList;
@@ -77,8 +76,6 @@ describe('transport', () => {
 		signature:
 			'61383939393932343233383933613237653864363438643232383865666136316535363236346564663031613263323330373784192003750382840553137595',
 	};
-
-	const SAMPLE_AUTH_KEY = 'testkey123';
 
 	beforeEach(async () => {
 		// Recreate all the stubs and default structures before each test case to make
@@ -345,15 +342,10 @@ describe('transport', () => {
 					},
 				};
 
-				wsRPC = {
-					getServerAuthKey: sinonSandbox.stub().returns(SAMPLE_AUTH_KEY),
-				};
-
 				restoreRewiredDeps = TransportModule.__set__({
 					library,
 					modules,
 					definitions,
-					wsRPC,
 				});
 
 				done();
@@ -607,8 +599,6 @@ describe('transport', () => {
 		});
 
 		describe('receiveTransaction', () => {
-			let peerAddressString;
-
 			beforeEach(done => {
 				sinonSandbox
 					.stub(balancesSequenceStub, 'add')
@@ -616,17 +606,11 @@ describe('transport', () => {
 						callback(doneCallback);
 					});
 
-				peerAddressString = '40.40.40.40:5000';
-
 				library.logic = {
 					transaction: {
 						objectNormalize: sinonSandbox.stub().returns(transaction),
 					},
-					peers: {
-						peersManager: {
-							getAddress: sinonSandbox.stub().returns(peerAddressString),
-						},
-					},
+					peers: {},
 				};
 				library.schema = {
 					validate: sinonSandbox.stub().callsArg(2),
@@ -683,7 +667,6 @@ describe('transport', () => {
 					library.logic.transaction.objectNormalize = sinonSandbox
 						.stub()
 						.throws(objectNormalizeError);
-					__private.removePeer = sinonSandbox.spy();
 
 					__private.receiveTransaction(
 						transaction,
@@ -708,13 +691,6 @@ describe('transport', () => {
 							'Transaction normalization failed',
 							errorDetails
 						)
-					).to.be.true;
-				});
-
-				it('should call __private.removePeer with peer details object', async () => {
-					const peerDetails = { nonce: validNonce, code: 'ETRANSACTION' };
-					return expect(
-						__private.removePeer.calledWith(peerDetails, extraLogMessage)
 					).to.be.true;
 				});
 
@@ -756,18 +732,11 @@ describe('transport', () => {
 					);
 				});
 
-				it('should call library.logger.debug with "Received transaction " + transaction.id + " from peer ..."', async () =>
+				it('should call library.logger.debug with "Received transaction " + transaction.id + " from network"', async () =>
 					expect(
 						library.logger.debug.calledWith(
-							`Received transaction ${
-								transaction.id
-							} from peer ${peerAddressString}`
+							`Received transaction ${transaction.id} from network`
 						)
-					).to.be.true);
-
-				it('should call library.logic.peers.peersManager.getAddress with peer.nonce', async () =>
-					expect(
-						library.logic.peers.peersManager.getAddress.calledWith(validNonce)
 					).to.be.true);
 			});
 
@@ -928,7 +897,6 @@ describe('transport', () => {
 
 					__private = {
 						broadcaster: {},
-						removePeer: sinonSandbox.stub(),
 						checkInternalAccess: sinonSandbox.stub().callsArg(1),
 					};
 
@@ -1424,14 +1392,6 @@ describe('transport', () => {
 											block: blockMock,
 										}
 									)
-								).to.be.true);
-
-							it('should call __private.removePeer with {peer: query.peer, code: "EBLOCK"}', async () =>
-								expect(
-									__private.removePeer.calledWith({
-										nonce: validNonce,
-										code: 'EBLOCK',
-									})
 								).to.be.true);
 						});
 
