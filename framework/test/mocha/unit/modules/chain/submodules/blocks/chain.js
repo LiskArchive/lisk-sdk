@@ -1201,26 +1201,7 @@ describe('blocks/chain', () => {
 				return expect(modules.blocks.isActive.set.args[1][0]).to.be.false;
 			});
 
-			describe('when reason === Snapshot finished', () => {
-				beforeEach(done => {
-					storageStub.entities.Block.begin = (desc, tx) => tx(txTemp.rejects());
-					__private.saveBlockStep.rejects('Snapshot finished');
-					done();
-				});
-
-				it('should call a callback with error', done => {
-					blocksChainModule.applyBlock(blockWithTransactions, true, err => {
-						expect(err.name).to.equal('Snapshot finished');
-						expect(loggerStub.info.args[0][0].name).to.equal(
-							'Snapshot finished'
-						);
-						expect(process.emit).to.have.been.calledWith('SIGTERM');
-						done();
-					});
-				});
-			});
-
-			describe('when reason !== Snapshot finished', () => {
+			describe('when applyBlock catches error', () => {
 				beforeEach(done => {
 					storageStub.entities.Block.begin = (desc, tx) => tx(txTemp.rejects());
 					__private.saveBlockStep.rejects('Chain:applyBlock-ERR');
@@ -1620,7 +1601,10 @@ describe('blocks/chain', () => {
 							true
 						);
 						library.storage.entities.Block.get.resolves({ height: 1 });
-						modules.blocks.calculateNewBroadhash.resolves({ broadhash: 'xx', height: 1 });
+						modules.blocks.calculateNewBroadhash.resolves({
+							broadhash: 'xx',
+							height: 1,
+						});
 					});
 
 					it('should call a callback with no error', done => {
@@ -1650,7 +1634,10 @@ describe('blocks/chain', () => {
 							true
 						);
 						library.storage.entities.Block.get.resolves({ height: 1 });
-						modules.blocks.calculateNewBroadhash.resolves({ broadhash: 'xx', height: 1 });
+						modules.blocks.calculateNewBroadhash.resolves({
+							broadhash: 'xx',
+							height: 1,
+						});
 					});
 
 					it('should call a callback with no error', done => {
