@@ -601,7 +601,7 @@ Transport.prototype.shared = {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	getSignatures(req, cb) {
+	getSignatures(cb) {
 		const transactions = modules.transactions.getMultisignatureTransactionList(
 			true,
 			MAX_SHARED_TRANSACTIONS
@@ -630,7 +630,7 @@ Transport.prototype.shared = {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	getTransactions(query, cb) {
+	getTransactions(cb) {
 		const transactions = modules.transactions.getMergedTransactionList(
 			true,
 			MAX_SHARED_TRANSACTIONS
