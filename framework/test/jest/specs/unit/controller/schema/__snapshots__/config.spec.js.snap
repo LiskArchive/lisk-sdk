@@ -121,5 +121,80 @@ Object {
     ],
     "type": "object",
   },
+  "network": Object {
+    "additionalProperties": false,
+    "default": Object {
+      "BLOCK_TIME": 10,
+      "EPOCH_TIME": "2016-05-24T17:00:00.000Z",
+      "MAX_TRANSACTIONS_PER_BLOCK": 25,
+      "REWARDS": Object {
+        "DISTANCE": 3000000,
+        "MILESTONES": Array [
+          "500000000",
+          "400000000",
+          "300000000",
+          "200000000",
+          "100000000",
+        ],
+        "OFFSET": 2160,
+      },
+    },
+    "id": "network",
+    "properties": Object {
+      "BLOCK_TIME": Object {
+        "description": "Slot time interval in seconds",
+        "min": 1,
+        "type": "number",
+      },
+      "EPOCH_TIME": Object {
+        "description": "Timestamp indicating the start of Lisk Core (\`Date.toISOString()\`)",
+        "format": "date-time",
+        "type": "string",
+      },
+      "MAX_TRANSACTIONS_PER_BLOCK": Object {
+        "description": "Maximum number of transactions allowed per block",
+        "min": 1,
+        "type": "integer",
+      },
+      "REWARDS": Object {
+        "additionalProperties": false,
+        "description": "Object representing LSK rewards milestone",
+        "id": "rewards",
+        "properties": Object {
+          "DISTANCE": Object {
+            "description": "Distance between each milestone",
+            "min": 1,
+            "type": "integer",
+          },
+          "MILESTONES": Object {
+            "description": "Initial 5, and decreasing until 1",
+            "items": Object {
+              "format": "amount",
+              "type": "string",
+            },
+            "type": "array",
+          },
+          "OFFSET": Object {
+            "description": "Start rewards at block (n)",
+            "min": 1,
+            "type": "integer",
+          },
+        },
+        "required": Array [
+          "MILESTONES",
+          "OFFSET",
+          "DISTANCE",
+        ],
+        "type": "object",
+      },
+    },
+    "required": Array [
+      "EPOCH_TIME",
+      "BLOCK_TIME",
+      "MAX_TRANSACTIONS_PER_BLOCK",
+      "REWARDS",
+    ],
+    "type": "object",
+  },
 }
 `;
