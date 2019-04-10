@@ -189,6 +189,17 @@ describe('Block', () => {
 	});
 
 	describe('delete', () => {
+		let localAdapter;
+		const deleteSqlFile = 'delete SQL File';
+		beforeEach(async () => {
+			localAdapter = {
+				loadSQLFiles: sinonSandbox.stub().returns({
+					isPersisted: deleteSqlFile,
+				}),
+				executeFile: sinonSandbox.stub().resolves([validBlock]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+		});
 		it('should accept only valid filters', async () => {
 			const block = new Block(adapter);
 			expect(() => {
@@ -204,13 +215,6 @@ describe('Block', () => {
 		});
 
 		it('should call mergeFilters with proper params', async () => {
-			const localAdapter = {
-				loadSQLFiles: sinonSandbox.stub().returns({
-					delete: 'delete SQL file',
-				}),
-				executeFile: sinonSandbox.stub().resolves([validBlock]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const block = new Block(localAdapter);
 			block.mergeFilters = sinonSandbox.stub();
 			block.parseFilters = sinonSandbox.stub();
@@ -219,13 +223,6 @@ describe('Block', () => {
 		});
 
 		it('should call parseFilters with proper params', async () => {
-			const localAdapter = {
-				loadSQLFiles: sinonSandbox.stub().returns({
-					delete: 'delete SQL file',
-				}),
-				executeFile: sinonSandbox.stub().resolves([validBlock]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const block = new Block(localAdapter);
 			block.mergeFilters = sinonSandbox.stub().returns(validFilter);
 			block.parseFilters = sinonSandbox.stub();
