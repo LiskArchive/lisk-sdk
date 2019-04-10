@@ -148,21 +148,27 @@ class Transaction {
 			return undefined;
 		}
 
+		const { version, height, timestamp } = block;
+		const state = { version, height, timestamp };
+
 		const transactions = block.transactions.map(transaction =>
-			this.fromJson(transaction, { height: block.height })
+			this.fromJson(transaction, state)
 		);
 
 		return transactions;
 	}
 
-	fromJson(rawTx, state = getCurrentState()) {
+	fromJson(rawTx, state) {
 		const TransactionClass = this.transactionClassMap.get(rawTx.type);
 
 		if (!TransactionClass) {
 			throw new Error('Transaction type not found.');
 		}
 
-		if (TransactionClass.isAllowedAt && !TransactionClass.isAllowedAt(state)) {
+		if (
+			TransactionClass.isAllowedAt &&
+			!TransactionClass.isAllowedAt(state || getCurrentState())
+		) {
 			throw new Error(
 				`Transaction type ${rawTx.type} is currently not allowed.`
 			);
