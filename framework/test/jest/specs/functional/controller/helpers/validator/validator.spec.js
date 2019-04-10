@@ -1,8 +1,51 @@
 const {
+	validate,
 	parseEnvArgAndValidate,
 } = require('../../../../../../../src/controller/helpers/validator');
 
 describe('helpers/validator.js', () => {
+	describe('Ajv instance', () => {
+		describe('const', () => {
+			it('should not throw error if value for "const" defined attribute is same', () => {
+				const schema = {
+					type: 'object',
+					properties: {
+						prop1: { type: 'integer', const: 5 },
+					},
+				};
+
+				expect(() => validate(schema, { prop1: 5 })).not.toThrow();
+			});
+
+			it('should throw error if value for "const" defined attribute is different', () => {
+				let errorThrown;
+
+				const schema = {
+					type: 'object',
+					properties: {
+						prop1: { type: 'integer', const: 5 },
+					},
+				};
+
+				try {
+					validate(schema, { prop1: 2 });
+				} catch (error) {
+					errorThrown = error;
+				}
+
+				expect(errorThrown.message).toBe('Schema validation error');
+				expect(errorThrown.errors).toEqual([
+					{
+						dataPath: '.prop1',
+						keyword: 'const',
+						message: 'should be equal to constant',
+						params: { allowedValue: 5 },
+						schemaPath: '#/properties/prop1/const',
+					},
+				]);
+			});
+		});
+	});
 	describe('Ajv instance with keyword parser', () => {
 		describe('parseEnvArgAndValidate()', () => {
 			it('should populate default values if provided through schema', () => {

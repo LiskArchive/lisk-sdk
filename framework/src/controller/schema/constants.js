@@ -26,70 +26,49 @@ module.exports = {
 				description: 'Maximum number of transactions allowed per block',
 			},
 			REWARDS: {
-				$ref: 'rewards',
-				default: {
-					MILESTONES: [
-						'500000000', // Initial Reward
-						'400000000', // Milestone 1
-						'300000000', // Milestone 2
-						'200000000', // Milestone 3
-						'100000000', // Milestone 4
-					],
-					OFFSET: 2160,
-					DISTANCE: 3000000,
+				id: 'rewards',
+				type: 'object',
+				required: ['MILESTONES', 'OFFSET', 'DISTANCE'],
+				description: 'Object representing LSK rewards milestone',
+				properties: {
+					MILESTONES: {
+						type: 'array',
+						items: {
+							type: 'string',
+							format: 'amount',
+						},
+						description: 'Initial 5, and decreasing until 1',
+					},
+					OFFSET: {
+						type: 'integer',
+						min: 1,
+						description: 'Start rewards at block (n)',
+					},
+					DISTANCE: {
+						type: 'integer',
+						min: 1,
+						description: 'Distance between each milestone',
+					},
 				},
+				additionalProperties: false,
 			},
 		},
 		additionalProperties: false,
-	},
-	rewards: {
-		id: 'rewards',
-		type: 'object',
-		required: ['MILESTONES', 'OFFSET', 'DISTANCE'],
-		description: 'Object representing LSK rewards milestone',
-		properties: {
-			MILESTONES: {
-				type: 'array',
-				items: {
-					type: 'string',
-					format: 'amount',
-				},
-				default: [
+		default: {
+			EPOCH_TIME: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
+			BLOCK_TIME: 10,
+			MAX_TRANSACTIONS_PER_BLOCK: 25,
+			REWARDS: {
+				MILESTONES: [
 					'500000000', // Initial Reward
 					'400000000', // Milestone 1
 					'300000000', // Milestone 2
 					'200000000', // Milestone 3
 					'100000000', // Milestone 4
 				],
-				description: 'Initial 5, and decreasing until 1',
+				OFFSET: 2160, // Start rewards at first block of the second round
+				DISTANCE: 3000000, // Distance between each milestone
 			},
-			OFFSET: {
-				type: 'integer',
-				min: 1,
-				description: 'Start rewards at block (n)',
-			},
-			DISTANCE: {
-				type: 'integer',
-				min: 1,
-				description: 'Distance between each milestone',
-			},
-		},
-		additionalProperties: false,
-	},
-	default: {
-		EPOCH_TIME: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
-		BLOCK_TIME: 10,
-		MAX_TRANSACTIONS_PER_BLOCK: 25,
-		REWARDS: {
-			MILESTONES: [
-				'500000000', // Initial Reward
-				'400000000', // Milestone 1
-				'300000000', // Milestone 2
-				'200000000', // Milestone 3
-				'100000000', // Milestone 4
-			],
-			OFFSET: 2160, // Start rewards at first block of the second round
-			DISTANCE: 3000000, // Distance between each milestone
 		},
 	},
 };

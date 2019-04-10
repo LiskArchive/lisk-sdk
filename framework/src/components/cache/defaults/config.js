@@ -30,7 +30,7 @@ const defaultConfig = {
 	},
 	required: ['enabled', 'host', 'port', 'db', 'password'],
 	default: {
-		enabled: true,
+		enabled: false,
 		host: '127.0.0.1',
 		port: 6380,
 		db: 0,
