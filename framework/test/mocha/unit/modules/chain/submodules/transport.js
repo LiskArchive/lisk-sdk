@@ -17,7 +17,7 @@
 const rewire = require('rewire');
 const chai = require('chai');
 const randomstring = require('randomstring');
-const { transfer } = require('@liskhq/lisk-transactions');
+const { transfer, TransactionError } = require('@liskhq/lisk-transactions');
 
 const accountFixtures = require('../../../../fixtures/accounts');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
@@ -728,11 +728,11 @@ describe('transport', () => {
 				});
 
 				it('should call the call back with error message', async () => {
-					const expected = initTransaction
-						.jsonRead(invalidTransaction)
-						.validate();
-					const expectedError = expected.errors[0].toString();
-					expect(errorResult).to.equal(expectedError);
+					initTransaction.jsonRead(invalidTransaction).validate();
+					expect(errorResult).to.be.an('array');
+					errorResult.forEach(anError => {
+						expect(anError).to.be.instanceOf(TransactionError);
+					});
 				});
 			});
 
@@ -2170,7 +2170,7 @@ describe('transport', () => {
 				});
 
 				describe('when __private.receiveTransaction fails', () => {
-					const receiveTransactionError = 'Invalid transaction body ...';
+					const receiveTransactionError = 'Invalid transaction body';
 
 					beforeEach(done => {
 						__private.receiveTransaction = sinonSandbox

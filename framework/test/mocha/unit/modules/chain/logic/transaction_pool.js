@@ -355,9 +355,12 @@ describe('transactionPool', () => {
 		it('should call the callback with error if the transaction already exists', done => {
 			sinonSandbox.stub(transactionPool, 'transactionInPool').returns(true);
 			transactionPool.processUnconfirmedTransaction(transaction, false, err => {
-				expect(err.message).to.equal(
-					`Transaction is already processed: ${transaction.id}`
-				);
+				expect(err).to.be.an('array');
+				err.forEach(anErr => {
+					expect(anErr.message).to.equal(
+						`Transaction is already processed: ${transaction.id}`
+					);
+				});
 				done();
 			});
 		});
@@ -432,7 +435,8 @@ describe('transactionPool', () => {
 				transactionsResponses: transactionsResponses2,
 			});
 			transactionPool.processUnconfirmedTransaction(transaction, false, err => {
-				expect(err).to.eql(transactionsResponses2[0].errors[0]);
+				expect(err).to.be.an('array');
+				expect(err[0]).to.eql(transactionsResponses2[0].errors[0]);
 				done();
 			});
 		});
