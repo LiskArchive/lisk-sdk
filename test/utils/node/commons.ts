@@ -19,6 +19,7 @@ import {
 	getVersionToUpgrade,
 	backupLisk,
 	upgradeLisk,
+	validateVersion,
 } from '../../../src/utils/node/commons';
 import { NETWORK } from '../../../dist/utils/constants';
 import { defaultInstallationPath } from '../../../dist/utils/node/config';
@@ -222,6 +223,29 @@ describe('commons node utils', () => {
 			return expect(
 				upgradeLisk(defaultInstallationPath, 'test', NETWORK.MAINNET, '1.0.0'),
 			).to.not.throw;
+		});
+	});
+
+	describe('#validateVersion', () => {
+		let releaseStub: any = null;
+		beforeEach(() => {
+			releaseStub = sandbox.stub(release, 'getLatestVersion');
+		});
+
+		it('should throw if version is invalid', async () => {
+			const invalidVersion = 'rc.1.0.0';
+			return expect(validateVersion(NETWORK.MAINNET, invalidVersion)).to.rejectedWith(`Upgrade version: ${invalidVersion} has invalid format, Please refer version from release url: https://downloads.lisk.io/lisk/mainnet`);
+		});
+
+		it('should throw if the requested version does not exists', async () => {
+			releaseStub.rejects();
+			const invalidVersion = '9.9.9';
+			return expect(validateVersion(NETWORK.MAINNET, invalidVersion)).to.rejectedWith();
+		});
+
+		it('should successed for valid version', async () => {
+			releaseStub.resolves('1.0.0');
+			return expect(validateVersion(NETWORK.MAINNET, '1.0.0')).to.not.throw;
 		});
 	});
 });
