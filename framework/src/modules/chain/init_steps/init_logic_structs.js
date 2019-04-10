@@ -20,7 +20,6 @@ module.exports = async ({
 
 	const initTransactionLogic = new InitTransaction({
 		registeredTransactions,
-		applicationState,
 	});
 
 	const blockLogic = await new Promise((resolve, reject) => {

@@ -16,6 +16,8 @@
 
 const _ = require('lodash');
 
+let _modules;
+
 const transferAsset = raw => {
 	if (raw.tf_data) {
 		// This line will throw if there is an error
@@ -130,8 +132,7 @@ const assetDbReadMap = new Map([
 ]);
 
 class Transaction {
-	constructor({ registeredTransactions = {}, applicationState = {} }) {
-		this.state = applicationState;
+	constructor({ registeredTransactions = {} }) {
 		this.transactionClassMap = new Map();
 
 		Object.keys(registeredTransactions).forEach(transactionType => {
@@ -154,7 +155,7 @@ class Transaction {
 		return transactions;
 	}
 
-	fromJson(rawTx, state = this.state) {
+	fromJson(rawTx, state = getCurrentState()) {
 		const TransactionClass = this.transactionClassMap.get(rawTx.type);
 
 		if (!TransactionClass) {
@@ -211,5 +212,22 @@ class Transaction {
 		return this.fromJson(_.omitBy(transactionJSON, _.isNull));
 	}
 }
+
+/**
+ * Get current state from lastBlock
+ */
+const getCurrentState = () => {
+	const { version, height, timestamp } = _modules.blocks.lastBlock.get();
+	return { version, height, timestamp };
+};
+
+/**
+ * Binds scope.modules to private variable modules.
+ */
+Transaction.prototype.bindModules = function(modules) {
+	_modules = {
+		blocks: modules.blocks,
+	};
+};
 
 module.exports = Transaction;
