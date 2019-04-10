@@ -22,6 +22,8 @@
  * @requires child_process
  */
 
+const util = require('util');
+
 /**
  * Description of the namespace.
  *
@@ -48,13 +50,10 @@ const jobsQueue = {
 			throw new Error(`Synchronous job ${name} already registered`);
 		}
 
-		// Check if job is function, name is string and time is integer
+		// Check if job is function, it has no more than 1 argument, name is string and time is integer
 		if (
 			!job ||
-			!(
-				Object.prototype.toString.call(job) === '[object Function]' ||
-				Object.prototype.toString.call(job) === '[object AsyncFunction]'
-			) ||
+			!(job instanceof Function) ||
 			job.length > 1 ||
 			typeof name !== 'string' ||
 			!Number.isInteger(time)
@@ -67,13 +66,11 @@ const jobsQueue = {
 				jobsQueue.jobs[name] = setTimeout(nextJob, time);
 			};
 
-			// Job was called with a callback
-			if (Object.prototype.toString.call(job) === '[object Function]') {
-				return job(nextJobStep);
+			if (util.types.isAsyncFunction(job)) {
+				return job().then(nextJobStep);
 			}
 
-			// Job don't have callback so it must return a Promise
-			return job().then(nextJobStep);
+			return job(nextJobStep);
 		};
 
 		jobsQueue.jobs[name] = nextJob();
