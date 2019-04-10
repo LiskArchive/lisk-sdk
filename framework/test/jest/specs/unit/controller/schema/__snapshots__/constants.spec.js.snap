@@ -339,51 +339,35 @@ Object {
         "additionalProperties": false,
         "properties": Object {
           "DAPP": Object {
-            "enum": Array [
-              5,
-            ],
+            "const": 5,
             "type": "integer",
           },
           "DELEGATE": Object {
-            "enum": Array [
-              2,
-            ],
+            "const": 2,
             "type": "integer",
           },
           "IN_TRANSFER": Object {
-            "enum": Array [
-              6,
-            ],
+            "const": 6,
             "type": "integer",
           },
           "MULTI": Object {
-            "enum": Array [
-              4,
-            ],
+            "const": 4,
             "type": "integer",
           },
           "OUT_TRANSFER": Object {
-            "enum": Array [
-              7,
-            ],
+            "const": 7,
             "type": "integer",
           },
           "SEND": Object {
-            "enum": Array [
-              0,
-            ],
+            "const": 0,
             "type": "integer",
           },
           "SIGNATURE": Object {
-            "enum": Array [
-              1,
-            ],
+            "const": 1,
             "type": "integer",
           },
           "VOTE": Object {
-            "enum": Array [
-              3,
-            ],
+            "const": 3,
             "type": "integer",
           },
         },
