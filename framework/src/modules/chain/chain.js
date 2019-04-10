@@ -64,21 +64,21 @@ module.exports = class Chain {
 
 	async bootstrap() {
 		const loggerConfig = await this.channel.invoke(
-			'lisk:getComponentConfig',
+			'app:getComponentConfig',
 			'logger'
 		);
 		const storageConfig = await this.channel.invoke(
-			'lisk:getComponentConfig',
+			'app:getComponentConfig',
 			'storage'
 		);
 
 		const cacheConfig = await this.channel.invoke(
-			'lisk:getComponentConfig',
+			'app:getComponentConfig',
 			'cache'
 		);
 
 		this.applicationState = await this.channel.invoke(
-			'lisk:getApplicationState'
+			'app:getApplicationState'
 		);
 
 		this.logger = createLoggerComponent(loggerConfig);
@@ -177,7 +177,7 @@ module.exports = class Chain {
 			// Ready to bind modules
 			scope.logic.peers.bindModules(scope.modules);
 
-			this.channel.subscribe('lisk:state:updated', event => {
+			this.channel.subscribe('app:state:updated', event => {
 				Object.assign(scope.applicationState, event.data);
 			});
 

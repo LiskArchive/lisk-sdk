@@ -77,11 +77,11 @@ describe('blocks/verify', () => {
 		channelMock = {
 			invoke: sinonSandbox
 				.stub()
-				.withArgs('lisk:updateApplicationState')
+				.withArgs('app:updateApplicationState')
 				.returns(true),
 			once: sinonSandbox
 				.stub()
-				.withArgs('lisk:state:updated')
+				.withArgs('app:state:updated')
 				.callsArg(1),
 		};
 
@@ -2031,7 +2031,12 @@ describe('blocks/verify', () => {
 		});
 
 		describe('applicationState update', () => {
-			beforeEach(() => modules.blocks.calculateNewBroadhash.resolves({ broadhash: 'xx', height: 1 }));
+			beforeEach(() =>
+				modules.blocks.calculateNewBroadhash.resolves({
+					broadhash: 'xx',
+					height: 1,
+				})
+			);
 
 			afterEach(() => channelMock.invoke.resetHistory());
 
@@ -2051,7 +2056,12 @@ describe('blocks/verify', () => {
 		});
 
 		describe('when broadcast = true', () => {
-			beforeEach(() => modules.blocks.calculateNewBroadhash.resolves({ broadhash: 'xx', height: 1 }));
+			beforeEach(() =>
+				modules.blocks.calculateNewBroadhash.resolves({
+					broadhash: 'xx',
+					height: 1,
+				})
+			);
 
 			describe('when saveBlock = true', () => {
 				it('should call private functions with correct parameters', done => {
@@ -2091,7 +2101,12 @@ describe('blocks/verify', () => {
 		});
 
 		describe('when broadcast = false', () => {
-			beforeEach(() => modules.blocks.calculateNewBroadhash.resolves({ broadhash: 'xx', height: 1 }));
+			beforeEach(() =>
+				modules.blocks.calculateNewBroadhash.resolves({
+					broadhash: 'xx',
+					height: 1,
+				})
+			);
 
 			describe('when saveBlock = true', () => {
 				it('should call private functions with correct parameters', done => {
