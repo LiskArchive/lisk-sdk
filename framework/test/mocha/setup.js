@@ -25,7 +25,7 @@ const supertest = require('supertest');
 const _ = require('lodash');
 const validator = require('../../src/controller/helpers/validator');
 const constantsSchema = require('../../src/controller/schema/constants');
-const nonConfigurableConstants = require('../../src/controller/non_configurable_constants');
+const configSchema = require('../../src/controller/schema/config');
 const applicationSchema = require('../../src/controller/schema/application');
 const chainModuleSchema = require('../../src/modules/chain/defaults/config');
 const apiModuleSchema = require('../../src/modules/http_api/defaults/config');
@@ -55,12 +55,10 @@ const config = {
 		process.env.PROTOCOL_VERSION || packageJson.lisk.protocolVersion,
 };
 
-const mergedConstants = {
+config.constants = {
 	...validator.parseEnvArgAndValidate(constantsSchema.constants, constants),
-	...nonConfigurableConstants,
+	...validator.parseEnvArgAndValidate(configSchema.network),
 };
-
-config.constants = mergedConstants;
 
 // TODO: This should be removed after https://github.com/LiskHQ/lisk/pull/2980
 global.constants = config.constants;

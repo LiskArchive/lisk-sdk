@@ -2,6 +2,7 @@ const Application = require('../../../../../src/controller/application');
 const validator = require('../../../../../src/controller/helpers/validator');
 const applicationSchema = require('../../../../../src/controller/schema/application');
 const constantsSchema = require('../../../../../src/controller/schema/constants');
+const configSchema = require('../../../../../src/controller/schema/config');
 
 jest.mock('../../../../../src/components/logger');
 jest.mock('../../../../../src/controller/helpers/validator');
@@ -97,7 +98,11 @@ describe('Application', () => {
 			);
 
 			expect(validator.parseEnvArgAndValidate).toHaveBeenCalledWith(
-				constantsSchema.constants,
+				constantsSchema.constants
+			);
+
+			expect(validator.parseEnvArgAndValidate).toHaveBeenCalledWith(
+				configSchema.network,
 				params.constants
 			);
 

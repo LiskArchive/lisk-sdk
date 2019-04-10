@@ -6,10 +6,8 @@ const version = require('../version');
 const validator = require('./helpers/validator');
 const applicationSchema = require('./schema/application');
 const constantsSchema = require('./schema/constants');
+const configSchema = require('./schema/config');
 
-/* As for now we don't support this constants to be configured
-by the user. This will change in the future */
-const nonConfigurableConstants = require('./non_configurable_constants');
 const { createLoggerComponent } = require('../components/logger');
 
 const ChainModule = require('../modules/chain');
@@ -75,7 +73,7 @@ class Application {
 	 *
 	 * @param {string|function} label - Application label used in logs. Useful if you have multiple networks for same application.
 	 * @param {Object} genesisBlock - Genesis block object
-	 * @param {Object} [constants] - Override constants
+	 * @param {Object} [constantsToOverride] - Override constantsToOverride
 	 * @param {Object|Array.<Object>} [config] - Main configuration object or the array of objects, array format will facilitate user to not deep merge the objects
 	 * @param {Object} [config.components] - Configurations for components
 	 * @param {Object} [config.components.logger] - Configuration for logger component
@@ -92,7 +90,7 @@ class Application {
 	constructor(
 		label,
 		genesisBlock,
-		constants = {},
+		constantsToOverride = {},
 		config = { components: { logger: null }, modules: {} }
 	) {
 		let appConfig;
@@ -126,21 +124,24 @@ class Application {
 		validator.loadSchema(constantsSchema);
 		validator.validate(applicationSchema.appLabel, appLabel);
 		validator.validate(applicationSchema.config, appConfig);
-		constants = validator.parseEnvArgAndValidate(
-			constantsSchema.constants,
-			constants
+
+		const constants = validator.parseEnvArgAndValidate(
+			constantsSchema.constants
 		);
 
-		constants = { ...constants, ...nonConfigurableConstants };
+		const overridenConstants = validator.parseEnvArgAndValidate(
+			configSchema.network,
+			constantsToOverride
+		);
 
 		// TODO: This should be removed after https://github.com/LiskHQ/lisk/pull/2980
-		global.constants = constants;
+		global.constants = { ...constants, ...overridenConstants };
 
 		validator.validate(applicationSchema.genesisBlock, genesisBlock);
 
-		// TODO: Validate schema for genesis block, constants, exceptions
+		// TODO: Validate schema for genesis block, constantsToOverride, exceptions
 		this.genesisBlock = genesisBlock;
-		this.constants = constants;
+		this.constants = constantsToOverride;
 		this.label = appLabel;
 		this.config = appConfig;
 		this.controller = null;
