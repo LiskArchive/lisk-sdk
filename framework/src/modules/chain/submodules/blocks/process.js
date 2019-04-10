@@ -343,7 +343,7 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 };
 
 /**
- * Loads full blocks from database, used when rebuilding blockchain, snapshotting,
+ * Loads full blocks from database, used in the rebuild verification process,
  * see: loader.loadBlockChain (private).
  *
  * @param {number} blocksAmount - Amount of blocks

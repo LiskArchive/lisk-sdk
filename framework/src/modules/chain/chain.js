@@ -299,7 +299,7 @@ module.exports = class Chain {
 		}
 
 		// Run cleanup operation on each module before shutting down the node;
-		// this includes operations like snapshotting database tables.
+		// this includes operations like rebuild verification process.
 		await Promise.all(
 			Object.keys(modules).map(key => {
 				if (typeof modules[key].cleanup === 'function') {
