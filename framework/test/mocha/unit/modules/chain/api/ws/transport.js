@@ -38,11 +38,8 @@ describe('TransportWSApi', () => {
 			shared: {
 				blocksCommon: sinonSandbox.stub(),
 				blocks: sinonSandbox.stub(),
-				list: sinonSandbox.stub(),
-				height: sinonSandbox.stub(),
 				getTransactions: sinonSandbox.stub(),
 				getSignatures: sinonSandbox.stub(),
-				status: sinonSandbox.stub(),
 				postBlock: sinonSandbox.stub(),
 				postSignatures: sinonSandbox.stub(),
 				postTransactions: sinonSandbox.stub(),
@@ -73,14 +70,10 @@ describe('TransportWSApi', () => {
 
 	it('should call registerRPCEndpoints() on wsServer with object that has available RPC functions', async () =>
 		expect(registerRPCEndpointsStub).to.be.calledWith({
-			updatePeer: transportModuleMock.internal.updatePeer,
 			blocksCommon: transportModuleMock.shared.blocksCommon,
 			blocks: transportModuleMock.shared.blocks,
-			list: transportModuleMock.shared.list,
-			height: transportModuleMock.shared.height,
 			getTransactions: transportModuleMock.shared.getTransactions,
 			getSignatures: transportModuleMock.shared.getSignatures,
-			status: transportModuleMock.shared.status,
 		}));
 
 	it('should call registerEventEndpoints() on wsServer', async () =>
