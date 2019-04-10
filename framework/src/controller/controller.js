@@ -57,7 +57,7 @@ class Controller {
 
 	/**
 	 * Load the initial state and start listening for events or triggering actions.
-	 * Publishes 'lisk:ready' state on the bus.
+	 * Publishes 'app:ready' state on the bus.
 	 *
 	 * @param modules
 	 * @async
@@ -73,7 +73,7 @@ class Controller {
 		this.logger.info('Bus listening to events', this.bus.getEvents());
 		this.logger.info('Bus ready for actions', this.bus.getActions());
 
-		this.channel.publish('lisk:ready');
+		this.channel.publish('app:ready');
 	}
 
 	/**
@@ -139,7 +139,7 @@ class Controller {
 		await this.bus.setup();
 
 		this.channel = new InMemoryChannel(
-			'lisk',
+			'app',
 			['ready', 'state:updated'],
 			{
 				getComponentConfig: action => this.config.components[action.params],
@@ -241,10 +241,7 @@ class Controller {
 
 		const program = path.resolve(__dirname, 'child_process_loader.js');
 
-		const parameters = [
-			modulePath,
-			JSON.stringify({ config: this.config, moduleOptions: options }),
-		];
+		const parameters = [modulePath];
 
 		// Avoid child processes and the main process sharing the same debugging ports causing a conflict
 		const forkedProcessOptions = {};
@@ -259,6 +256,13 @@ class Controller {
 			: [];
 
 		const child = child_process.fork(program, parameters, forkedProcessOptions);
+
+		// TODO: Check which config and options are actually required to avoid sending large data
+		child.send({
+			loadModule: true,
+			config: this.config,
+			moduleOptions: options,
+		});
 
 		this.childrenList.push(child);
 

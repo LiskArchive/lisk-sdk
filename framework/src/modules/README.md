@@ -72,7 +72,7 @@ export default class MyModule extends BaseModule {
     *
     * Method which will be invoked by controller to load the module.
     * Make sure all loading logic get completed during the life cycle of load.
-    * Controller emit an event `lisk:ready` which you can use to perform
+    * Controller emit an event `app:ready` which you can use to perform
     * some activities which you want to perform when every other module is loaded.
     *
     * @param {Channel} channel - An instance of a communication channel.
@@ -135,7 +135,9 @@ By default, modules will load in the same process as the controller.
 
 Communicates with modules which do not reside in the same process as the Controller.
 
-To load a module in a child process, make sure you have `ipc` enabled in the config file and set the environment variable `LISK_CHILD_PROCESS_MODULES` with the module alias. Multiple modules can be defined by using commas like `LISK_CHILD_PROCESS_MODULES=httpApi,chain`.
+To load a module as a child process, make sure you have `ipc` enabled in the config file and set the option `loadAsChildProcess: true` when registering the module using the Application method `registerModule`.
+
+Currently, the only Lisk native module supported is HTTP API module which will be loaded as child process if you have `ipc` enabled.
 
 ## Module Life Cycle
 
