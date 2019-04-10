@@ -262,7 +262,9 @@ describe('Migration', () => {
 
 		it('should call mergeFilters with proper params', async () => {
 			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				loadSQLFiles: sinonSandbox.stub().returns({
+					isPersisted: 'isPersisted SQL file',
+				}),
 				executeFile: sinonSandbox.stub().resolves([validMigration]),
 				parseQueryComponent: sinonSandbox.stub(),
 			};
@@ -275,7 +277,9 @@ describe('Migration', () => {
 
 		it('should call parseFilters with proper params', async () => {
 			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				loadSQLFiles: sinonSandbox.stub().returns({
+					isPersisted: 'isPersisted SQL file',
+				}),
 				executeFile: sinonSandbox.stub().resolves([validMigration]),
 				parseQueryComponent: sinonSandbox.stub(),
 			};
@@ -288,7 +292,9 @@ describe('Migration', () => {
 
 		it('should call adapter.executeFile with proper params', async () => {
 			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				loadSQLFiles: sinonSandbox.stub().returns({
+					isPersisted: 'isPersisted SQL file',
+				}),
 				executeFile: sinonSandbox.stub().resolves([validMigration]),
 				parseQueryComponent: sinonSandbox.stub(),
 			};
@@ -299,7 +305,7 @@ describe('Migration', () => {
 			migration.isPersisted(validFilter);
 			expect(
 				localAdapter.executeFile.calledWith(
-					'loadSQLFile',
+					'isPersisted SQL file',
 					{
 						parsedFilters: undefined,
 					},

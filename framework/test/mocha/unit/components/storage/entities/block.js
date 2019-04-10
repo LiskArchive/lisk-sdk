@@ -488,7 +488,7 @@ describe('Block', () => {
 
 		it('should call mergeFilters with proper params', async () => {
 			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				loadSQLFiles: sinonSandbox.stub().returns('loadSQLFiles'),
 				executeFile: sinonSandbox.stub().resolves([validBlock]),
 				parseQueryComponent: sinonSandbox.stub(),
 			};
@@ -501,7 +501,7 @@ describe('Block', () => {
 
 		it('should call parseFilters with proper params', async () => {
 			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				loadSQLFiles: sinonSandbox.stub().returns('loadSQLFiles'),
 				executeFile: sinonSandbox.stub().resolves([validBlock]),
 				parseQueryComponent: sinonSandbox.stub(),
 			};
@@ -514,7 +514,9 @@ describe('Block', () => {
 
 		it('should call adapter.executeFile with proper params', async () => {
 			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile response'),
+				loadSQLFiles: sinonSandbox.stub().returns({
+					isPersisted: 'loadSQLFile response',
+				}),
 				executeFile: sinonSandbox.stub().resolves([validBlock]),
 				parseQueryComponent: sinonSandbox.stub(),
 			};

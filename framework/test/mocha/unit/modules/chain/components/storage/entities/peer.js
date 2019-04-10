@@ -291,7 +291,9 @@ describe('Peer', () => {
 	describe('create()', () => {
 		it('should call getValuesSet with proper params', async () => {
 			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				loadSQLFiles: sinonSandbox.stub().returns({
+					create: 'create SQL file',
+				}),
 				executeFile: sinonSandbox.stub().resolves([validPeer]),
 				parseQueryComponent: sinonSandbox.stub(),
 			};
@@ -333,6 +335,18 @@ describe('Peer', () => {
 	});
 
 	describe('update()', () => {
+		let localAdapter;
+		const updateSqlFile = 'update SQL file';
+		beforeEach(async () => {
+			localAdapter = {
+				loadSQLFiles: sinonSandbox.stub().returns({
+					update: updateSqlFile,
+				}),
+				executeFile: sinonSandbox.stub().resolves([validPeer]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+		});
+
 		it('should accept only valid filters', async () => {
 			const peer = new Peer(adapter);
 			expect(() => {
@@ -348,11 +362,6 @@ describe('Peer', () => {
 		});
 
 		it('should call mergeFilters with proper params', async () => {
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([validPeer]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const peer = new Peer(localAdapter);
 			peer.mergeFilters = sinonSandbox.stub();
 			peer.parseFilters = sinonSandbox.stub();
@@ -361,11 +370,6 @@ describe('Peer', () => {
 		});
 
 		it('should call parseFilters with proper params', async () => {
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([validPeer]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const peer = new Peer(localAdapter);
 			peer.mergeFilters = sinonSandbox.stub().returns(validFilter);
 			peer.parseFilters = sinonSandbox.stub();
@@ -374,11 +378,6 @@ describe('Peer', () => {
 		});
 
 		it('should call getUpdateSet with proper params', async () => {
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([validPeer]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const peer = new Peer(localAdapter);
 			peer.mergeFilters = sinonSandbox.stub().returns(validFilter);
 			peer.parseFilters = sinonSandbox.stub();
@@ -388,11 +387,6 @@ describe('Peer', () => {
 		});
 
 		it('should call adapter.executeFile with proper params', async () => {
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([validPeer]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const peer = new Peer(localAdapter);
 			peer.mergeFilters = sinonSandbox.stub().returns(validFilter);
 			peer.parseFilters = sinonSandbox.stub();
@@ -401,7 +395,7 @@ describe('Peer', () => {
 
 			expect(
 				localAdapter.executeFile.calledWith(
-					'loadSQLFile',
+					updateSqlFile,
 					{
 						...validPeer,
 						parsedFilters: undefined,
@@ -437,6 +431,18 @@ describe('Peer', () => {
 	});
 
 	describe('updateOne()', () => {
+		let localAdapter;
+		const updateOneSqlFile = 'update SQL file';
+		beforeEach(async () => {
+			localAdapter = {
+				loadSQLFiles: sinonSandbox.stub().returns({
+					updateOne: updateOneSqlFile,
+				}),
+				executeFile: sinonSandbox.stub().resolves([validPeer]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+		});
+
 		afterEach(async () => {
 			await storageSandbox.clearDatabaseTable(storage, storage.logger, 'peers');
 		});
@@ -456,11 +462,6 @@ describe('Peer', () => {
 		});
 
 		it('should call mergeFilters with proper params', async () => {
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([validPeer]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const peer = new Peer(localAdapter);
 			peer.mergeFilters = sinonSandbox.stub();
 			peer.parseFilters = sinonSandbox.stub();
@@ -469,11 +470,6 @@ describe('Peer', () => {
 		});
 
 		it('should call parseFilters with proper params', async () => {
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([validPeer]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const peer = new Peer(localAdapter);
 			peer.mergeFilters = sinonSandbox.stub().returns(validFilter);
 			peer.parseFilters = sinonSandbox.stub();
@@ -482,11 +478,6 @@ describe('Peer', () => {
 		});
 
 		it('should call getUpdateSet with proper params', async () => {
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([validPeer]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const peer = new Peer(localAdapter);
 			peer.mergeFilters = sinonSandbox.stub().returns(validFilter);
 			peer.parseFilters = sinonSandbox.stub();
@@ -496,11 +487,6 @@ describe('Peer', () => {
 		});
 
 		it('should call adapter.executeFile with proper params', async () => {
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([validPeer]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const peer = new Peer(localAdapter);
 			peer.mergeFilters = sinonSandbox.stub().returns(validFilter);
 			peer.parseFilters = sinonSandbox.stub();
@@ -509,7 +495,7 @@ describe('Peer', () => {
 
 			expect(
 				localAdapter.executeFile.calledWith(
-					'loadSQLFile',
+					updateOneSqlFile,
 					{
 						...validPeer,
 						parsedFilters: undefined,
@@ -548,9 +534,22 @@ describe('Peer', () => {
 	});
 
 	describe('isPersisted()', () => {
+		let localAdapter;
+		const isPersistedSqlFile = 'isPersisted SQL file';
+		beforeEach(async () => {
+			localAdapter = {
+				loadSQLFiles: sinonSandbox.stub().returns({
+					isPersisted: isPersistedSqlFile,
+				}),
+				executeFile: sinonSandbox.stub().resolves([validPeer]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+		});
+
 		afterEach(async () => {
 			await storageSandbox.clearDatabaseTable(storage, storage.logger, 'peers');
 		});
+
 		it('should accept only valid filters', async () => {
 			const peer = new Peer(adapter);
 			expect(() => {
@@ -566,11 +565,6 @@ describe('Peer', () => {
 		});
 
 		it('should call mergeFilters with proper params', async () => {
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([validPeer]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const peer = new Peer(localAdapter);
 			peer.mergeFilters = sinonSandbox.stub();
 			peer.parseFilters = sinonSandbox.stub();
@@ -579,11 +573,6 @@ describe('Peer', () => {
 		});
 
 		it('should call parseFilters with proper params', async () => {
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([validPeer]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const peer = new Peer(localAdapter);
 			peer.mergeFilters = sinonSandbox.stub().returns(validFilter);
 			peer.parseFilters = sinonSandbox.stub();
@@ -592,11 +581,6 @@ describe('Peer', () => {
 		});
 
 		it('should call adapter.executeFile with proper params', async () => {
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([validPeer]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const peer = new Peer(localAdapter);
 			peer.mergeFilters = sinonSandbox.stub().returns(validFilter);
 			peer.parseFilters = sinonSandbox.stub();
@@ -604,7 +588,7 @@ describe('Peer', () => {
 			peer.isPersisted(validFilter);
 			expect(
 				localAdapter.executeFile.calledWith(
-					'loadSQLFile',
+					isPersistedSqlFile,
 					{
 						parsedFilters: undefined,
 					},
@@ -654,6 +638,17 @@ describe('Peer', () => {
 	});
 
 	describe('delete', () => {
+		let localAdapter;
+		beforeEach(async () => {
+			localAdapter = {
+				loadSQLFiles: sinonSandbox.stub().returns({
+					delete: 'delete SQL file',
+				}),
+				executeFile: sinonSandbox.stub().resolves([validPeer]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+		});
+
 		it('should accept only valid filters', async () => {
 			const peer = new Peer(adapter);
 			expect(() => {
@@ -669,11 +664,6 @@ describe('Peer', () => {
 		});
 
 		it('should call mergeFilters with proper params', async () => {
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([validPeer]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const peer = new Peer(localAdapter);
 			peer.mergeFilters = sinonSandbox.stub();
 			peer.parseFilters = sinonSandbox.stub();
@@ -682,11 +672,6 @@ describe('Peer', () => {
 		});
 
 		it('should call parseFilters with proper params', async () => {
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([validPeer]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const peer = new Peer(localAdapter);
 			peer.mergeFilters = sinonSandbox.stub().returns(validFilter);
 			peer.parseFilters = sinonSandbox.stub();
