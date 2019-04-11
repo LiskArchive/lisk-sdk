@@ -155,8 +155,8 @@ describe('GET /delegates', () => {
 					});
 			});
 		});
-		// eslint-disable-next-line
-		describe.skip('[feature/improve_transactions_processing_efficiency] secondPublicKey', () => {
+
+		describe('secondPublicKey', () => {
 			const secondPassphraseAccount = randomUtil.account();
 
 			const creditTransaction = transfer({
@@ -175,27 +175,22 @@ describe('GET /delegates', () => {
 				username: secondPassphraseAccount.username,
 			});
 
-			before(() => {
-				return apiHelpers
-					.sendTransactionPromise(creditTransaction)
-					.then(res => {
-						expect(res.statusCode).to.be.eql(200);
-						return waitFor.confirmations([creditTransaction.id]);
-					})
-					.then(() => {
-						return apiHelpers.sendTransactionsPromise([
-							signatureTransaction,
-							delegateTransaction,
-						]);
-					})
-					.then(res => {
-						expect(res[0].statusCode).to.be.eql(200);
-						expect(res[1].statusCode).to.be.eql(200);
-						return waitFor.confirmations([
-							signatureTransaction.id,
-							delegateTransaction.id,
-						]);
-					});
+			before(async () => {
+				const creditRes = await apiHelpers.sendTransactionPromise(
+					creditTransaction
+				);
+				expect(creditRes.statusCode).to.be.eql(200);
+				await waitFor.confirmations([creditTransaction.id]);
+				const delegateTransactionRes = await apiHelpers.sendTransactionsPromise(
+					[delegateTransaction]
+				);
+				expect(delegateTransactionRes[0].statusCode).to.be.eql(200);
+				await waitFor.confirmations([delegateTransaction.id]);
+				const signatureTransactionRes = await apiHelpers.sendTransactionsPromise(
+					[signatureTransaction]
+				);
+				expect(signatureTransactionRes[0].statusCode).to.be.eql(200);
+				await waitFor.confirmations([signatureTransaction.id]);
 			});
 
 			it('using no secondPublicKey should return an empty array', async () => {
