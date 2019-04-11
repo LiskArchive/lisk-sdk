@@ -44,14 +44,15 @@ const genesisBlock = require('../../../config/devnet/genesis_block');
 validator.loadSchema(constantsSchema);
 validator.loadSchema(applicationSchema);
 
-const config = {
-	...netConfig,
-	version: packageJson.version,
-	minVersion: packageJson.lisk.minVersion,
-	// Support for PROTOCOL_VERSION only for tests
-	protocolVersion:
-		process.env.PROTOCOL_VERSION || packageJson.lisk.protocolVersion,
-};
+const config = _.merge(netConfig, {
+	app: {
+		version: packageJson.version,
+		minVersion: packageJson.lisk.minVersion,
+		// Support for PROTOCOL_VERSION only for tests
+		protocolVersion:
+			process.env.PROTOCOL_VERSION || packageJson.lisk.protocolVersion,
+	},
+});
 
 const appConfig = validator.parseEnvArgAndValidate(
 	applicationSchema.config,
