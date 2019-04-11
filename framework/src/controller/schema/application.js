@@ -284,7 +284,9 @@ module.exports = {
 		additionalProperties: false,
 		default: {
 			app: {
-				ipc: false,
+				ipc: {
+					enabled: false,
+				},
 				genesisConfig: {
 					EPOCH_TIME: new Date(
 						Date.UTC(2016, 4, 24, 17, 0, 0, 0)

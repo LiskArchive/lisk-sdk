@@ -27,7 +27,9 @@ Object {
             "OFFSET": 2160,
           },
         },
-        "ipc": false,
+        "ipc": Object {
+          "enabled": false,
+        },
       },
       "components": Object {
         "cache": Object {},
