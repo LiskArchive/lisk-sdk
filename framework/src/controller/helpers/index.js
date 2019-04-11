@@ -4,7 +4,9 @@
  */
 
 const validator = require('./validator');
+const systemDirs = require('./validator');
 
 module.exports = {
 	validator,
+	systemDirs,
 };
