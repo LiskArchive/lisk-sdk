@@ -53,9 +53,20 @@ const config = {
 		process.env.PROTOCOL_VERSION || packageJson.lisk.protocolVersion,
 };
 
-config.constants = {
-	...validator.parseEnvArgAndValidate(constantsSchema.constants, {}),
-};
+const appConfig = validator.parseEnvArgAndValidate(
+	applicationSchema.config,
+	netConfig
+);
+
+// These constants are readonly we are loading up their default values
+// In additional validating those values so any wrongly changed value
+// by us can be catch on application startup
+const constants = validator.parseEnvArgAndValidate(
+	constantsSchema.constants,
+	{}
+);
+
+config.constants = { ...constants, ...appConfig.app.genesisConfig };
 
 // TODO: This should be removed after https://github.com/LiskHQ/lisk/pull/2980
 global.constants = config.constants;

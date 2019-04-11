@@ -142,5 +142,24 @@ describe('Application', () => {
 			expect(app.config).toEqual(_.defaultsDeep(...params.config));
 			expect(app.controller).toBeNull();
 		});
+
+		it('should throw validation error if constants are overriden by the user', () => {
+			const customConfig = [
+				...[
+					{
+						app: {
+							genesisConfig: {
+								CONSTANT: 'aConstant',
+							},
+						},
+					},
+				],
+				...params.config,
+			];
+
+			expect(() => {
+				new Application(params.label, params.genesisBlock, customConfig);
+			}).toThrow('Schema validation error');
+		});
 	});
 });
