@@ -233,13 +233,19 @@ export abstract class BaseTransaction {
 	}
 
 	public validate(): TransactionResponse {
-		const errors = [...this._validateSchema(), ...this.validateAsset()];
+		const validateAssetErrors = this.validateAsset();
+		if (validateAssetErrors.length > 0) {
+			return createResponse(this.id, validateAssetErrors);
+		}
 
-		if (errors.length > 0) {
-			return createResponse(this.id, errors);
+		const validateSchemaErrors = this._validateSchema();
+		if (validateSchemaErrors.length > 0) {
+			return createResponse(this.id, validateSchemaErrors);
 		}
 
 		const transactionBytes = this.getBasicBytes();
+
+		const errors: TransactionError[] = [];
 
 		const {
 			valid: signatureValid,

@@ -98,13 +98,14 @@ export class DappTransaction extends BaseTransaction {
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
-
 		this.asset = (tx.asset || { dapp: {} }) as DappAsset;
-		// If Optional field contains null, converts to undefined
-		this.asset.dapp.description = this.asset.dapp.description || undefined;
-		this.asset.dapp.icon = this.asset.dapp.icon || undefined;
-		this.asset.dapp.tags = this.asset.dapp.tags || undefined;
 		this.containsUniqueData = true;
+		if (this.asset && this.asset.dapp && typeof this.asset.dapp === 'object') {
+			// If Optional field contains null, converts to undefined
+			this.asset.dapp.description = this.asset.dapp.description || undefined;
+			this.asset.dapp.icon = this.asset.dapp.icon || undefined;
+			this.asset.dapp.tags = this.asset.dapp.tags || undefined;
+		}
 	}
 
 	protected assetToBytes(): Buffer {
@@ -260,6 +261,11 @@ export class DappTransaction extends BaseTransaction {
 			);
 		}
 		const validLinkSuffix = ['.zip'];
+
+		if (errors.length > 0) {
+			return errors;
+		}
+
 		if (
 			this.asset.dapp.link &&
 			!stringEndsWith(this.asset.dapp.link, validLinkSuffix)

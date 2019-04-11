@@ -164,6 +164,11 @@ export class MultisignatureTransaction extends BaseTransaction {
 				),
 			);
 		}
+
+		if (errors.length > 0) {
+			return errors;
+		}
+
 		const expectedFee = new BigNum(MULTISIGNATURE_FEE).mul(
 			this.asset.multisignature.keysgroup.length + 1,
 		);
