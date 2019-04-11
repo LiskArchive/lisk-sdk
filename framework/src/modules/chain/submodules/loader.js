@@ -805,7 +805,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 							(loadBlocksFromNetworkErr, lastValidBlock) => {
 								if (loadBlocksFromNetworkErr) {
 									// If comparison failed and current consensus is low - perform chain recovery
-									if (modules.transport.poorConsensus()) {
+									if (modules.peers.isPoorConsensus()) {
 										library.logger.debug(
 											'Perform chain recovery due to poor consensus'
 										);
