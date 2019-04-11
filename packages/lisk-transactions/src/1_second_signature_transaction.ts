@@ -64,7 +64,7 @@ export class SecondSignatureTransaction extends BaseTransaction {
 			signature: { publicKey },
 		} = this.asset;
 
-		return typeof publicKey === 'string' ? hexToBuffer(publicKey) : Buffer.alloc(0);
+		return hexToBuffer(publicKey);
 	}
 
 	public assetToJSON(): object {

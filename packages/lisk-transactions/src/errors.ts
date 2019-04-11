@@ -87,9 +87,9 @@ export const convertToTransactionError = (
 	return errors.map(
 		error =>
 			new TransactionError(
-				`'${error.dataPath}' ${error.message}`,
+				`'${error.dataPath || '.asset'}' ${error.message}`,
 				id,
-				error.dataPath,
+				error.dataPath || '.asset',
 			),
 	);
 };

@@ -67,7 +67,7 @@ export class DelegateTransaction extends BaseTransaction {
 			delegate: { username },
 		} = this.asset;
 
-		return typeof username === 'string' ? Buffer.from(username, 'utf8') : Buffer.alloc(0);
+		return Buffer.from(username, 'utf8');
 	}
 
 	public assetToJSON(): DelegateAsset {

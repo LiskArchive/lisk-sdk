@@ -74,10 +74,7 @@ export class VoteTransaction extends BaseTransaction {
 	}
 
 	protected assetToBytes(): Buffer {
-		return Array.isArray(this.asset.votes) &&
-			this.asset.votes.every(vote => typeof vote === 'string')
-			? Buffer.from(this.asset.votes.join(''), 'utf8')
-			: Buffer.alloc(0);
+		return Buffer.from(this.asset.votes.join(''), 'utf8');
 	}
 
 	public assetToJSON(): object {
