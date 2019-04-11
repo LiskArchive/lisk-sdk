@@ -34,7 +34,7 @@ export default class CacheCommand extends BaseCommand {
 
 	static description = 'Start the cache server.';
 
-	static examples = ['node:start:cache mainnet_1.6'];
+	static examples = ['node:start:cache mainnet-latest'];
 
 	async run(): Promise<void> {
 		const { args } = this.parse(CacheCommand);

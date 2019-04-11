@@ -34,7 +34,7 @@ export default class StartCommand extends BaseCommand {
 
 	static description = 'Start Lisk Core instance.';
 
-	static examples = ['node:start mainnet_1.6'];
+	static examples = ['node:start mainnet-latest'];
 
 	async run(): Promise<void> {
 		const { args } = this.parse(StartCommand);

@@ -34,7 +34,7 @@ export default class StopCommand extends BaseCommand {
 
 	static description = 'Stop Lisk Core instance.';
 
-	static examples = ['node:stop mainnet_1.6'];
+	static examples = ['node:stop mainnet-latest'];
 
 	async run(): Promise<void> {
 		const { args } = this.parse(StopCommand);

@@ -31,7 +31,7 @@ export default class StatusCommand extends BaseCommand {
 
 	static description = 'Show the status of a Lisk Core instance.';
 
-	static examples = ['node:status testnet-1.6'];
+	static examples = ['node:status mainnet-latest'];
 
 	async run(): Promise<void> {
 		const { args } = this.parse(StatusCommand);

@@ -39,7 +39,7 @@ export default class UnInstallCommand extends BaseCommand {
 
 	static description = 'Uninstall an instance of Lisk Core.';
 
-	static examples = ['node:uninstall mainnet_1.6'];
+	static examples = ['node:uninstall mainnet-latest'];
 
 	async run(): Promise<void> {
 		const { args } = this.parse(UnInstallCommand);

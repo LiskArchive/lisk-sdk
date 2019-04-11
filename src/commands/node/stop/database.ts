@@ -33,7 +33,7 @@ export default class DatabaseCommand extends BaseCommand {
 
 	static description = 'Stop the database server.';
 
-	static examples = ['node:stop:database mainnet_1.6'];
+	static examples = ['node:stop:database mainnet-latest'];
 
 	async run(): Promise<void> {
 		const { args } = this.parse(DatabaseCommand);
