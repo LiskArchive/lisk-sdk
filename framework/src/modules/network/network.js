@@ -39,7 +39,7 @@ module.exports = class Network {
 		this.channel = channel;
 
 		const loggerConfig = await this.channel.invoke(
-			'lisk:getComponentConfig',
+			'app:getComponentConfig',
 			'logger'
 		);
 
@@ -56,7 +56,7 @@ module.exports = class Network {
 		});
 
 		const initialNodeInfo = sanitizeNodeInfo(
-			await this.channel.invoke('lisk:getApplicationState')
+			await this.channel.invoke('app:getApplicationState')
 		);
 
 		const p2pConfig = {
@@ -66,7 +66,7 @@ module.exports = class Network {
 
 		this.p2p = new P2P(p2pConfig);
 
-		this.channel.subscribe('lisk:state:updated', event => {
+		this.channel.subscribe('app:state:updated', event => {
 			const newNodeInfo = sanitizeNodeInfo(event.data);
 			this.p2p.applyNodeInfo(newNodeInfo);
 		});
@@ -204,7 +204,7 @@ module.exports = class Network {
 	}
 
 	async cleanup() {
-		// TODO: Unsubscribe 'lisk:state:updated' from channel.
+		// TODO: Unsubscribe 'app:state:updated' from channel.
 		return this.p2p.stop();
 	}
 };
