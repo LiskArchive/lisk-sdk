@@ -61,16 +61,6 @@ const updateSenderRoundInformationWithAmountForTransaction = function(
 	const account = stateStore.account.get(transaction.senderId);
 	let dependentPublicKeysToAdd = account.votedDelegatesPublicKeys || [];
 
-	console.log('exceptions');
-	console.log(exceptions);
-	console.log('transaction.id');
-	console.log(transaction.id);
-
-	// If the sender account shouldn't be updated because of a blockchain exception
-	if (exceptions.roundVotes.includes(transaction.id)) {
-		return;
-	}
-
 	if (transaction.type === TRANSACTION_TYPES.VOTE) {
 		const newVotes = forwardTick
 			? transaction.asset.votes
@@ -82,12 +72,15 @@ const updateSenderRoundInformationWithAmountForTransaction = function(
 			.filter(vote => vote[0] === '+')
 			.map(vote => vote.slice(1));
 
-		const dependentPublicKeysWithoutUpvotes = dependentPublicKeysToAdd.filter(
-			vote => !upvotes.find(v => v === vote)
-		);
-		dependentPublicKeysToAdd = dependentPublicKeysWithoutUpvotes.concat(
-			downvotes
-		);
+		// Votes inside the transaction should not be incase it's an exception, but the existing votes should be updated
+		if (!exceptions.roundVotes.includes(transaction.id)) {
+			const dependentPublicKeysWithoutUpvotes = dependentPublicKeysToAdd.filter(
+				vote => !upvotes.find(v => v === vote)
+			);
+			dependentPublicKeysToAdd = dependentPublicKeysWithoutUpvotes.concat(
+				downvotes
+			);
+		}
 	}
 
 	if (dependentPublicKeysToAdd.length > 0) {
@@ -115,7 +108,8 @@ const updateRecipientRoundInformationWithAmountForTransaction = function(
 	}
 	if (
 		transaction.type === TRANSACTION_TYPES.SEND ||
-		transaction.type === TRANSACTION_TYPES.OUT_TRANSFER
+		transaction.type === TRANSACTION_TYPES.OUT_TRANSFER ||
+		transaction.type === TRANSACTION_TYPES.VOTE
 	) {
 		address = transaction.recipientId;
 	}
