@@ -75,11 +75,16 @@ describe('Application', () => {
 			// Arrange
 			const configWithoutLogger = _.cloneDeep(params.config);
 			delete configWithoutLogger[0].components.logger;
+			delete configWithoutLogger[1].components.logger;
 
 			// Act
-			new Application(params.label, params.genesisBlock, configWithoutLogger);
+			const app = new Application(
+				params.label,
+				params.genesisBlock,
+				configWithoutLogger
+			);
 
-			expect(configWithoutLogger[0].components.logger.logFileName).toBe(
+			expect(app.config.components.logger.logFileName).toBe(
 				`${process.cwd()}/logs/${params.label}/lisk.log`
 			);
 		});
