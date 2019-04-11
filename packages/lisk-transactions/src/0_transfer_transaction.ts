@@ -20,7 +20,7 @@ import {
 	StateStorePrepare,
 } from './base_transaction';
 import { MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from './constants';
-import { TransactionError } from './errors';
+import { convertToAssetError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
 import {
 	validateAddress,
@@ -91,16 +91,10 @@ export class TransferTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		validator.validate(transferAssetFormatSchema, this.asset);
-		const errors = validator.errors
-			? validator.errors.map(
-					error =>
-						new TransactionError(
-							`'${error.dataPath}' ${error.message}`,
-							this.id,
-							error.dataPath,
-						),
-			  )
-			: [];
+		const errors = convertToAssetError(
+			this.id,
+			validator.errors,
+		) as TransactionError[];
 
 		if (this.type !== TRANSACTION_TRANSFER_TYPE) {
 			errors.push(

@@ -22,7 +22,7 @@ import {
 import { MULTISIGNATURE_FEE } from './constants';
 import { SignatureObject } from './create_signature_object';
 import {
-	convertToTransactionError,
+	convertToAssetError,
 	TransactionError,
 	TransactionPendingError,
 } from './errors';
@@ -136,7 +136,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		validator.validate(multisignatureAssetFormatSchema, this.asset);
-		const errors = convertToTransactionError(
+		const errors = convertToAssetError(
 			this.id,
 			validator.errors,
 		) as TransactionError[];

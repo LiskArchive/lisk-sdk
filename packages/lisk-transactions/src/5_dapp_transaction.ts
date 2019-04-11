@@ -18,7 +18,7 @@ import {
 	StateStorePrepare,
 } from './base_transaction';
 import { DAPP_FEE } from './constants';
-import { convertToTransactionError, TransactionError } from './errors';
+import { convertToAssetError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
 import { stringEndsWith, validator } from './utils/validation';
 
@@ -209,7 +209,7 @@ export class DappTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		validator.validate(dappAssetFormatSchema, this.asset);
-		const errors = convertToTransactionError(
+		const errors = convertToAssetError(
 			this.id,
 			validator.errors,
 		) as TransactionError[];

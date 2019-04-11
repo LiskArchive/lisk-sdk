@@ -19,7 +19,7 @@ import {
 	StateStorePrepare,
 } from './base_transaction';
 import { IN_TRANSFER_FEE } from './constants';
-import { convertToTransactionError, TransactionError } from './errors';
+import { convertToAssetError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
 import { convertBeddowsToLSK, verifyAmountBalance } from './utils';
 import { validator } from './utils/validation';
@@ -104,7 +104,7 @@ export class InTransferTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		validator.validate(inTransferAssetFormatSchema, this.asset);
-		const errors = convertToTransactionError(
+		const errors = convertToAssetError(
 			this.id,
 			validator.errors,
 		) as TransactionError[];
