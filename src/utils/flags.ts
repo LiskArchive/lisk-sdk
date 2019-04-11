@@ -66,13 +66,13 @@ const unvotesDescription = `Specifies the public keys for the delegate candidate
 const noSignatureDescription =
 	'Creates the transaction without a signature. Your passphrase will therefore not be required.';
 
-const networkDescription = 'Name of the network to install.';
-const installationPathDescription = 'Path of Lisk to install.';
-const releaseUrlDescription = 'URL of the repository to download the Lisk.';
-const snapshotUrlDescription = 'URL of the Lisk blockchain snapshot.';
-const noSnapshotDescription = 'Install Lisk without blockchain snapshot';
-const liskVersionDescription =
-	'Upgrade locally installed Lisk instance to specified version';
+const networkDescription = 'Lisk Core network name.';
+const installationPathDescription = 'Lisk Core installation path.';
+const releaseUrlDescription = 'Lisk Core download URL.';
+const snapshotUrlDescription = 'Lisk Core blockchain snapshot URL.';
+const noSnapshotDescription =
+	'Install Lisk Core without a blockchain snapshot.';
+const liskVersionDescription = 'Lisk Core version.';
 
 export type AlphabetLowercase =
 	| 'a'
