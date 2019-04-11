@@ -23,7 +23,7 @@ describe('pm2 node utils', () => {
 			expect(pm2.connect).to.be.calledOnce;
 			expect(pm2.start).to.be.calledOnce;
 			return expect(pm2.stop).to.be.calledOnce;
-		})
+		});
 	});
 
 	describe('#unRegisterApplication', () => {
@@ -36,7 +36,7 @@ describe('pm2 node utils', () => {
 			await unRegisterApplication('test');
 			expect(pm2.delete).to.be.calledOnce;
 			return expect(pm2.connect).to.be.calledOnce;
-		})
+		});
 	});
 
 	describe('#restartApplication', () => {
@@ -49,7 +49,7 @@ describe('pm2 node utils', () => {
 			await restartApplication('test');
 			expect(pm2.restart).to.be.calledOnce;
 			return expect(pm2.connect).to.be.calledOnce;
-		})
+		});
 	});
 
 	describe('#stopApplication', () => {
@@ -62,7 +62,7 @@ describe('pm2 node utils', () => {
 			await stopApplication('test');
 			expect(pm2.stop).to.be.calledOnce;
 			return expect(pm2.connect).to.be.calledOnce;
-		})
+		});
 	});
 
 	describe('#listApplication', () => {
@@ -75,19 +75,19 @@ describe('pm2 node utils', () => {
 			await listApplication();
 			expect(pm2.connect).to.be.calledOnce;
 			return expect(pm2.list).to.be.calledOnce;
-		})
+		});
 	});
 
 	describe('#describeApplication', () => {
 		beforeEach(() => {
 			sandbox.stub(pm2, 'connect').yields(null, 'connected');
-			sandbox.stub(pm2, 'describe').yields(null, [{ 'name': 'test' }]);
+			sandbox.stub(pm2, 'describe').yields(null, [{ name: 'test' }]);
 		});
 
 		it('should describe application', async () => {
 			await describeApplication('test');
 			expect(pm2.connect).to.be.calledOnce;
 			return expect(pm2.describe).to.be.calledOnce;
-		})
+		});
 	});
 });
