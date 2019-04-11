@@ -106,14 +106,10 @@ describe('commons node utils', () => {
 	describe('#validateNotARootUser', () => {
 		it('should throw error if user is running as root', () => {
 			sandbox.stub(process, 'getuid').returns(0);
-			try {
-				validateNotARootUser();
-			} catch (error) {
-				expect(error.message).to.equal(
-					'Error: Lisk should not be run be as root. Exiting.',
-				);
-			}
-			return;
+
+			return expect(() => validateNotARootUser()).to.throw(
+				'Error: Lisk should not be run be as root. Exiting.',
+			);
 		});
 
 		it('should not throw error when running user is not root', () => {
@@ -157,13 +153,9 @@ describe('commons node utils', () => {
 
 	describe('#validURL', () => {
 		it('should throw error if url is invalid', () => {
-			try {
-				return validURL('dummy://download.lisk.io');
-			} catch (error) {
-				return expect(error.message).to.equal(
-					'Invalid URL: dummy://download.lisk.io',
-				);
-			}
+			return expect(() => validURL('dummy://download.lisk.io')).to.throw(
+				'Invalid URL: dummy://download.lisk.io',
+			);
 		});
 
 		it('should not throw error if url is valid', () => {
@@ -218,16 +210,10 @@ describe('commons node utils', () => {
 
 		it('should throw error if failed to upgrade', async () => {
 			execStub.resolves({ stdout: '', stderr: 'failed to copy' });
-			try {
-				return await upgradeLisk(
-					defaultInstallationPath,
-					'test',
-					NETWORK.MAINNET,
-					'1.0.0',
-				);
-			} catch (error) {
-				return expect(error.message).to.equal('failed to copy');
-			}
+
+			return expect(
+				upgradeLisk(defaultInstallationPath, 'test', NETWORK.MAINNET, '1.0.0'),
+			).to.rejectedWith('failed to copy');
 		});
 
 		it('should throw error of failed to backup', async () => {

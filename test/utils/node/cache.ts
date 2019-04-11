@@ -8,7 +8,7 @@ import { NETWORK } from '../../../src/utils/constants';
 import * as workerProcess from '../../../src/utils/worker-process';
 import * as nodeConfig from '../../../src/utils/node/config';
 
-describe.only('cache node utils', () => {
+describe('cache node utils', () => {
 	describe('#isCacheRunning', () => {
 		let workerProcessStub: any = null;
 		beforeEach(() => {
@@ -17,7 +17,10 @@ describe.only('cache node utils', () => {
 
 		describe('when installation does not exists', () => {
 			it('should return false', async () => {
-				workerProcessStub.resolves({ stdout: 'redis not installed', stderr: 'redis not installed' });
+				workerProcessStub.resolves({
+					stdout: 'redis not installed',
+					stderr: 'redis not installed',
+				});
 
 				const status = await isCacheRunning('/tmp/dummypath', NETWORK.MAINNET);
 				return expect(status).to.be.false;
@@ -37,7 +40,9 @@ describe.only('cache node utils', () => {
 	describe('#startCache', () => {
 		describe('when installation does not exists', () => {
 			it('should throw error', async () => {
-				return expect(startCache('/tmp/dummypath', NETWORK.MAINNET)).to.rejectedWith('Command failed');
+				return expect(
+					startCache('/tmp/dummypath', NETWORK.MAINNET),
+				).to.rejectedWith('Command failed');
 			});
 		});
 
@@ -62,7 +67,9 @@ describe.only('cache node utils', () => {
 					stderr: 'Failed to start redis',
 				});
 
-				return expect(startCache('/tmp/dummypath', NETWORK.MAINNET)).to.rejectedWith('[-] Failed to start Redis-Server');
+				return expect(
+					startCache('/tmp/dummypath', NETWORK.MAINNET),
+				).to.rejectedWith('[-] Failed to start Redis-Server');
 			});
 		});
 	});
@@ -70,7 +77,9 @@ describe.only('cache node utils', () => {
 	describe('#stopCache', () => {
 		describe('when installation does not exists', () => {
 			it('should throw error', async () => {
-				return expect(stopCache('/tmp/dummypath', NETWORK.MAINNET)).to.rejectedWith('Config file not exists in path');
+				return expect(
+					stopCache('/tmp/dummypath', NETWORK.MAINNET),
+				).to.rejectedWith('Config file not exists in path');
 			});
 		});
 
@@ -109,7 +118,9 @@ describe.only('cache node utils', () => {
 					stderr: 'Failed to stop redis',
 				});
 
-				return expect(stopCache('/tmp/dummypath', NETWORK.MAINNET)).to.rejectedWith('[-] Failed to stop Redis-Server');
+				return expect(
+					stopCache('/tmp/dummypath', NETWORK.MAINNET),
+				).to.rejectedWith('[-] Failed to stop Redis-Server');
 			});
 		});
 	});
