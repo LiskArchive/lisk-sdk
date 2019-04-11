@@ -95,7 +95,9 @@ class Application {
 
 		// If user passes multiple config objects merge them in left-right order
 		if (Array.isArray(config)) {
-			appConfig = _.defaultsDeep(...config);
+			// We don't have a mergeDeep method, so we are using defaultsDeep
+			// in the reverse order to have same behaviour
+			appConfig = _.defaultsDeep(...config.reverse());
 		} else {
 			appConfig = config;
 		}
