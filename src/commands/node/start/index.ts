@@ -27,12 +27,12 @@ export default class StartCommand extends BaseCommand {
 	static args = [
 		{
 			name: 'name',
-			description: 'Lisk installation directory name.',
+			description: 'Lisk Core installation directory name.',
 			required: true,
 		},
 	];
 
-	static description = 'Start Lisk';
+	static description = 'Start Lisk Core instance.';
 
 	static examples = ['node:start mainnet_1.6'];
 
@@ -45,7 +45,7 @@ export default class StartCommand extends BaseCommand {
 
 		const tasks = new Listr([
 			{
-				title: 'Start Lisk Instance',
+				title: 'Start Lisk Core instance',
 				task: async () => {
 					await restartApplication(name);
 				},

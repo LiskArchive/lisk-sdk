@@ -27,12 +27,12 @@ export default class StopCommand extends BaseCommand {
 	static args = [
 		{
 			name: 'name',
-			description: 'Lisk installation directory name.',
+			description: 'Lisk Core installation directory name.',
 			required: true,
 		},
 	];
 
-	static description = 'Stop Lisk';
+	static description = 'Stop Lisk Core instance.';
 
 	static examples = ['node:stop mainnet_1.6'];
 
@@ -45,7 +45,7 @@ export default class StopCommand extends BaseCommand {
 
 		const tasks = new Listr([
 			{
-				title: 'Stop Lisk Instance',
+				title: 'Stop Lisk Core instance',
 				task: async () => {
 					await stopApplication(name);
 				},

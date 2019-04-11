@@ -24,12 +24,12 @@ export default class StatusCommand extends BaseCommand {
 	static args = [
 		{
 			name: 'name',
-			description: 'Lisk installation directory name.',
+			description: 'Lisk Core installation directory name.',
 			required: true,
 		},
 	];
 
-	static description = 'Show status of a Lisk instance';
+	static description = 'Show the status of a Lisk Core instance.';
 
 	static examples = ['node:status testnet-1.6'];
 
