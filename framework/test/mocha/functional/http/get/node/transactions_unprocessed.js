@@ -28,7 +28,7 @@ const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 describe('GET /api/node', () => {
 	describe('/transactions', () => {
 		// eslint-disable-next-line
-		describe.skip('[feature/improve_transactions_processing_efficiency] /unprocessed', () => {
+		describe('/unprocessed', () => {
 			const UnProcessedEndpoint = new SwaggerEndpoint(
 				'GET /node/transactions/{state}'
 			).addParameters({ state: 'unprocessed' });

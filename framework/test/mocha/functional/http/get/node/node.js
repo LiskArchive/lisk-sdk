@@ -110,7 +110,7 @@ describe('GET /node', () => {
 	describe('/status', () => {
 		const ndoeStatusEndpoint = new SwaggerEndpoint('GET /node/status 200');
 		// eslint-disable-next-line
-		it.skip('[feature/improve_transactions_processing_efficiency] should return node status', async () => {
+		it('should return node status', async () => {
 			return ndoeStatusEndpoint.makeRequest();
 		});
 
