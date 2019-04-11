@@ -67,7 +67,58 @@ module.exports = {
 			transactions: {
 				type: 'array',
 				items: {
-					$ref: 'genesisTransactions',
+					type: 'object',
+					required: ['type', 'timestamp', 'senderPublicKey', 'signature'],
+					properties: {
+						type: {
+							type: 'integer',
+							enum: [0, 2, 3],
+						},
+						amount: {
+							type: 'string',
+							format: 'amount',
+						},
+						fee: {
+							type: 'string',
+							format: 'amount',
+						},
+						timestamp: {
+							type: 'integer',
+							min: 0,
+						},
+						recipientId: {
+							type: ['string', 'null'],
+							format: 'address',
+							minLength: 1,
+							maxLength: 22,
+						},
+						senderId: {
+							type: 'string',
+							format: 'address',
+							minLength: 1,
+							maxLength: 22,
+						},
+						senderPublicKey: {
+							type: 'string',
+							format: 'publicKey',
+						},
+						asset: {
+							type: 'object',
+							description:
+								'Send relevant data with transaction like delegate, vote, signature, ...',
+						},
+						signature: {
+							type: 'string',
+							format: 'signature',
+						},
+						id: {
+							type: 'string',
+							format: 'id',
+							minLength: 1,
+							maxLength: 20,
+						},
+					},
+					additionalProperties: false,
 				},
 				uniqueItems: true,
 			},
@@ -76,62 +127,6 @@ module.exports = {
 				min: 1,
 			},
 			blockSignature: {
-				type: 'string',
-				format: 'signature',
-			},
-			id: {
-				type: 'string',
-				format: 'id',
-				minLength: 1,
-				maxLength: 20,
-			},
-		},
-		additionalProperties: false,
-	},
-
-	genesisTransactions: {
-		id: 'genesisTransactions',
-		type: 'object',
-		required: ['type', 'timestamp', 'senderPublicKey', 'signature'],
-		properties: {
-			type: {
-				type: 'integer',
-				enum: [0, 2, 3],
-			},
-			amount: {
-				type: 'string',
-				format: 'amount',
-			},
-			fee: {
-				type: 'string',
-				format: 'amount',
-			},
-			timestamp: {
-				type: 'integer',
-				min: 0,
-			},
-			recipientId: {
-				type: ['string', 'null'],
-				format: 'address',
-				minLength: 1,
-				maxLength: 22,
-			},
-			senderId: {
-				type: 'string',
-				format: 'address',
-				minLength: 1,
-				maxLength: 22,
-			},
-			senderPublicKey: {
-				type: 'string',
-				format: 'publicKey',
-			},
-			asset: {
-				type: 'object',
-				description:
-					'Send relevant data with transaction like delegate, vote, signature, ...',
-			},
-			signature: {
 				type: 'string',
 				format: 'signature',
 			},
