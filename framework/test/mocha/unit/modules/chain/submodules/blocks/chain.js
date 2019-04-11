@@ -119,11 +119,11 @@ describe('blocks/chain', () => {
 		channelMock = {
 			invoke: sinonSandbox
 				.stub()
-				.withArgs('lisk:updateApplicationState')
+				.withArgs('app:updateApplicationState')
 				.returns(true),
 			once: sinonSandbox
 				.stub()
-				.withArgs('lisk:state:updated')
+				.withArgs('app:state:updated')
 				.callsArg(1),
 		};
 
@@ -1595,7 +1595,10 @@ describe('blocks/chain', () => {
 							true
 						);
 						library.storage.entities.Block.get.resolves({ height: 1 });
-						modules.blocks.calculateNewBroadhash.resolves({ broadhash: 'xx', height: 1 });
+						modules.blocks.calculateNewBroadhash.resolves({
+							broadhash: 'xx',
+							height: 1,
+						});
 					});
 
 					it('should call a callback with no error', done => {
@@ -1625,7 +1628,10 @@ describe('blocks/chain', () => {
 							true
 						);
 						library.storage.entities.Block.get.resolves({ height: 1 });
-						modules.blocks.calculateNewBroadhash.resolves({ broadhash: 'xx', height: 1 });
+						modules.blocks.calculateNewBroadhash.resolves({
+							broadhash: 'xx',
+							height: 1,
+						});
 					});
 
 					it('should call a callback with no error', done => {

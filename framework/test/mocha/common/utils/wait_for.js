@@ -36,6 +36,11 @@ function blockchainReady(retries, timeout, baseUrl, doNotLogRetries, cb) {
 		timeout = 1000;
 	}
 
+	process.on('SIGINT', () => {
+		console.info('SIGINT received, pid: ', process.pid);
+		process.exit(1);
+	});
+
 	const totalRetries = retries;
 
 	baseUrl =

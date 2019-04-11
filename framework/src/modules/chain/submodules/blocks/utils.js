@@ -373,6 +373,94 @@ Utils.prototype.loadBlocksData = function(filter, cb, tx) {
 };
 
 /**
+ * Generates a list of full blocks for another node upon sync request from that node, see: modules.transport.internal.blocks.
+ * NOTE: changing the original method loadBlocksData() could potentially change behaviour (popLastBlock() uses it for instance)
+ * so that's why this new method was added
+ * @param {Object} filter - Filter options
+ * @param {Object} filter.limit - Limit blocks to amount
+ * @param {Object} filter.lastId - ID of block to begin with
+ * @param {function} cb - Callback function
+ * @param {Object} tx - database transaction
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ * @returns {Object} cb.rows - List of blocks
+ */
+Utils.prototype.loadBlocksDataWS = function(filter, cb, tx) {
+	const params = { limit: filter.limit || 1 };
+
+	// FIXME: filter.id is not used
+	if (filter.id && filter.lastId) {
+		return setImmediate(cb, 'Invalid filter: Received both id and lastId');
+	}
+	if (filter.id) {
+		params.id = filter.id;
+	} else if (filter.lastId) {
+		params.lastId = filter.lastId;
+	}
+
+	// Get height of block with supplied ID
+	return library.storage.entities.Block.get(
+		{ id: filter.lastId || null },
+		{ limit: params.limit },
+		tx
+	)
+		.then(rows => {
+			if (!rows.length) {
+				library.logger.warn(
+					`Invalid lastBlockId: ${filter.lastId} requested via RPC`
+				);
+				return setImmediate(cb, 'Invalid lastBlockId requested');
+			}
+
+			const height = rows.length ? rows[0].height : 0;
+			// Calculate max block height for database query
+			const realLimit = height + (parseInt(filter.limit) || 1);
+
+			params.limit = realLimit;
+			params.height = height;
+
+			const mergedParams = Object.assign({}, filter, params);
+			const queryFilters = {};
+
+			if (!mergedParams.id && !mergedParams.lastId) {
+				queryFilters.height_lt = mergedParams.limit;
+			}
+
+			if (mergedParams.id) {
+				queryFilters.id = mergedParams.id;
+			}
+
+			if (mergedParams.lastId) {
+				queryFilters.height_gt = mergedParams.height;
+				queryFilters.height_lt = mergedParams.limit;
+			}
+
+			// Retrieve blocks from database
+			return library.storage.entities.Block.get(
+				queryFilters,
+				{
+					extended: true,
+					limit: null,
+					sort: ['height'],
+				},
+				tx
+			).then(blockRows => {
+				let parsedBlocks = [];
+				blockRows.forEach(block => {
+					parsedBlocks = parsedBlocks.concat(
+						self._parseStorageObjToLegacyObj(block)
+					);
+				});
+				setImmediate(cb, null, parsedBlocks);
+			});
+		})
+		.catch(err => {
+			library.logger.error(err.stack);
+			return setImmediate(cb, 'Blocks#loadBlockData error');
+		});
+};
+
+/**
  * Generates a list of full blocks structured as full_blocks_list DB view
  * db.blocks.loadBlocksData used to return the raw full_blocks_list fields and peers expect to receive this schema
  * After replacing db.blocks for storage.entities.Block, this parser was required to transfor storage object to the expected format.

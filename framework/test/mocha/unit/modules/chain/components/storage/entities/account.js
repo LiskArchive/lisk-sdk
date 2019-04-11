@@ -285,6 +285,18 @@ describe('ChainAccount', () => {
 	});
 
 	describe('update()', () => {
+		let localAdapter;
+		const updateSqlFile = 'update Sql File';
+		beforeEach(async () => {
+			localAdapter = {
+				loadSQLFiles: sinonSandbox.stub().returns({
+					update: updateSqlFile,
+				}),
+				executeFile: sinonSandbox.stub().resolves(),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+		});
+
 		it('should accept only valid filters', async () => {
 			// Arrange
 			const invalidFilter = {
@@ -330,11 +342,6 @@ describe('ChainAccount', () => {
 		it('should call mergeFilters with proper params', async () => {
 			// Arrange
 			const randAccount = new accountFixtures.Account();
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns(),
-				executeFile: sinonSandbox.stub().resolves(),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const validFilter = {
 				address: randAccount.address,
 			};
@@ -352,11 +359,8 @@ describe('ChainAccount', () => {
 		it('should call parseFilters with proper params', async () => {
 			// Arrange
 			const randAccount = new accountFixtures.Account();
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([randAccount]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
+			localAdapter.executeFile = sinonSandbox.stub().resolves([randAccount]);
+
 			const validFilter = {
 				address: randAccount.address,
 			};
@@ -373,12 +377,6 @@ describe('ChainAccount', () => {
 
 		it('should call getUpdateSet with proper params', async () => {
 			// Arrange
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves(),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
-
 			const validFilter = {
 				address: 'test1234',
 			};
@@ -618,6 +616,18 @@ describe('ChainAccount', () => {
 	});
 
 	describe('updateOne()', () => {
+		let localAdapter;
+		const updateOneSqlFile = 'updateOne Sql File';
+		beforeEach(async () => {
+			localAdapter = {
+				loadSQLFiles: sinonSandbox.stub().returns({
+					updateOne: updateOneSqlFile,
+				}),
+				executeFile: sinonSandbox.stub().resolves(),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+		});
+
 		it('should throw error for in-valid filters', async () => {
 			// Arrange
 			const invalidFilter = {
@@ -633,11 +643,6 @@ describe('ChainAccount', () => {
 
 		it('should call mergeFilters with proper params', async () => {
 			// Arrange
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns(),
-				executeFile: sinonSandbox.stub().resolves(),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const validFilter = {
 				address: 'test1234',
 			};
@@ -653,11 +658,7 @@ describe('ChainAccount', () => {
 		it('should call parseFilters with proper params', async () => {
 			// Arrange
 			const randAccount = new accountFixtures.Account();
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([randAccount]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
+			localAdapter.executeFile = sinonSandbox.stub().resolves([randAccount]);
 			const validFilter = {
 				address: randAccount.address,
 			};
@@ -672,12 +673,6 @@ describe('ChainAccount', () => {
 
 		it('should call getUpdateSet with proper params', async () => {
 			// Arrange
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves(),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
-
 			const validFilter = {
 				address: 'test1234',
 			};
