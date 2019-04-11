@@ -71,10 +71,12 @@ interface Options {
 
 const validatePrerequisite = (installPath: string): void => {
 	if (!isSupportedOS()) {
-		throw new Error(`Lisk installation is not supported on ${os.type()}`);
+		throw new Error(`Lisk Core installation is not supported on ${os.type()}.`);
 	}
 	if (fsExtra.pathExistsSync(installPath)) {
-		throw new Error(`Installation already exists in path ${installPath}`);
+		throw new Error(
+			`Lisk Core installation already exists in path ${installPath}.`,
+		);
 	}
 };
 
@@ -109,12 +111,12 @@ export default class InstallCommand extends BaseCommand {
 	static args = [
 		{
 			name: 'name',
-			description: 'Lisk installation directory name.',
+			description: 'Lisk Core installation directory name.',
 			required: true,
 		},
 	];
 
-	static description = 'Install Lisk';
+	static description = 'Install an instance of Lisk Core.';
 
 	static examples = [
 		'node:install mainnet-latest',
@@ -166,7 +168,7 @@ export default class InstallCommand extends BaseCommand {
 
 		const tasks = new Listr([
 			{
-				title: `Install Lisk ${network} as ${name}`,
+				title: `Install Lisk Core ${network} as ${name}`,
 				task: () =>
 					new Listr([
 						{
@@ -192,7 +194,7 @@ export default class InstallCommand extends BaseCommand {
 							},
 						},
 						{
-							title: 'Download Lisk Release',
+							title: 'Download Lisk Core Release',
 							task: async ctx => {
 								const { version }: Options = ctx.options;
 								const releaseUrl = `${RELEASE_URL}/${network}/${version}`;
@@ -201,7 +203,7 @@ export default class InstallCommand extends BaseCommand {
 							},
 						},
 						{
-							title: 'Download Blockchain Snapshot',
+							title: 'Download Lisk Blockchain Snapshot',
 							skip: () => noSnapshot,
 							task: async () => {
 								const snapshotPath = `${cacheDir}/${liskDbSnapshot(
@@ -213,7 +215,7 @@ export default class InstallCommand extends BaseCommand {
 							},
 						},
 						{
-							title: 'Extract Lisk',
+							title: 'Extract Lisk Core',
 							task: async ctx => {
 								const { installDir, version }: Options = ctx.options;
 								createDirectory(installDir);
@@ -233,7 +235,7 @@ export default class InstallCommand extends BaseCommand {
 							},
 						},
 						{
-							title: 'Register Lisk',
+							title: 'Register Lisk Core',
 							task: async ctx => {
 								const { installDir }: Options = ctx.options;
 								await registerApplication(installDir, network, name);
