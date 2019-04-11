@@ -160,9 +160,6 @@ const modulesLoader = new function() {
 					}
 				);
 				break;
-			case 'Peers':
-				new Logic(scope.components.logger, scope.config, scope.channel, cb);
-				break;
 			default:
 				console.info('no Logic case initLogic');
 		}
@@ -281,7 +278,6 @@ const modulesLoader = new function() {
 				},
 				{ account: require('../../../src/modules/chain/logic/account') },
 				{ block: require('../../../src/modules/chain/logic/block') },
-				{ peers: require('../../../src/modules/chain/logic/peers') },
 			],
 			scope || {},
 			cb

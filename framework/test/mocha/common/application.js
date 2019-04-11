@@ -172,17 +172,9 @@ async function __init(sandbox, initScope) {
 		await startStorage();
 		await cache.bootstrap();
 
-		scope.config.peers.list = await initSteps.lookupPeerIPs(
-			scope.config.peers.list,
-			scope.config.peers.enabled
-		);
 		scope.bus = await initSteps.createBus();
-		scope.webSocket = await initStepsForTest.createSocketCluster(scope);
 		scope.logic = await initSteps.initLogicStructure(scope);
 		scope.modules = await initStepsForTest.initModules(scope);
-
-		// Ready to bind modules
-		scope.logic.peers.bindModules(scope.modules);
 
 		// Fire onBind event in every module
 		scope.bus.message('bind', scope);
@@ -283,24 +275,6 @@ function cleanup(done) {
 }
 
 const initStepsForTest = {
-	createSocketCluster: async () => {
-		const MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
-		const wsRPC = require('../../../src/modules/chain/api/ws/rpc/ws_rpc').wsRPC;
-		const transport = require('../../../src/modules/chain/api/ws/transport');
-
-		wsRPC.clientsConnectionsMap = {};
-
-		const socketClusterMock = {
-			on: sinonSandbox.spy(),
-		};
-
-		wsRPC.setServer(new MasterWAMPServer(socketClusterMock));
-
-		// Register RPC
-		const transportModuleMock = { internal: {}, shared: {} };
-		transport(transportModuleMock);
-		return wsRPC;
-	},
 	initModules: async scope => {
 		const tasks = {};
 		scope.rewiredModules = {};

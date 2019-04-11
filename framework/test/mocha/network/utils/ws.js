@@ -16,11 +16,12 @@
 
 const scClient = require('socketcluster-client');
 const WAMPClient = require('wamp-socket-cluster/WAMPClient');
-const WSServerMaster = require('../../common/ws/server_master');
+const { generatePeerHeader } = require('../../common/generatePeerHeader');
 
 module.exports = {
 	establishWSConnectionsToNodes(configurations, cb) {
-		const firstConfiguration = configurations[0];
+		const { wsPort, httpPort } = configurations[0];
+		const { nodeInfo } = generatePeerHeader({ wsPort, httpPort });
 
 		const wampClient = new WAMPClient();
 		const sockets = [];
@@ -36,10 +37,7 @@ module.exports = {
 			// Since we are running a multiple nodes on a single machine, we
 			// need to give nodes a lot of time to respond.
 			ackTimeout: 2000,
-			query: WSServerMaster.generatePeerHeaders({
-				wsPort: firstConfiguration.wsPort,
-				httpPort: firstConfiguration.httpPort,
-			}),
+			query: nodeInfo,
 		};
 
 		let connectedTo = 0;

@@ -18,9 +18,6 @@ const rewire = require('rewire');
 const chai = require('chai');
 const randomstring = require('randomstring');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
-const WSServer = require('../../../../common/ws/server_master');
-const generateRandomActivePeer = require('../../../../fixtures/peers')
-	.generateRandomActivePeer;
 const Block = require('../../../../fixtures/blocks').Block;
 
 const TransportModule = rewire(
@@ -40,7 +37,6 @@ describe('transport', () => {
 	let balancesSequenceStub;
 	let transactionStub;
 	let blockStub;
-	let peersStub;
 	let broadcasterStubRef;
 	let transportInstance;
 	let library;
@@ -51,7 +47,6 @@ describe('transport', () => {
 	let peerMock;
 	let transaction;
 	let block;
-	let peersList;
 	let blocksList;
 	let transactionsList;
 	let multisignatureTransactionsList;
@@ -182,7 +177,6 @@ describe('transport', () => {
 		};
 
 		blockStub = {};
-		peersStub = {};
 
 		restoreRewiredTopDeps = TransportModule.__set__({
 			// eslint-disable-next-line object-shorthand
@@ -198,7 +192,6 @@ describe('transport', () => {
 			logic: {
 				block: blockStub,
 				transaction: transactionStub,
-				peers: peersStub,
 			},
 			components: {
 				storage: storageStub,
@@ -278,9 +271,6 @@ describe('transport', () => {
 					.to.have.nested.property('logic.transaction')
 					.which.is.equal(transactionStub);
 				expect(library)
-					.to.have.nested.property('logic.peers')
-					.which.is.equal(peersStub);
-				expect(library)
 					.to.have.nested.property('config.peers.options.timeout')
 					.which.is.equal(1234);
 
@@ -334,9 +324,6 @@ describe('transport', () => {
 				};
 
 				modules = {
-					peers: {
-						remove: sinonSandbox.stub().returns(true),
-					},
 					transactions: {
 						processUnconfirmedTransaction: sinonSandbox.stub().callsArg(2),
 					},
@@ -520,9 +507,6 @@ describe('transport', () => {
 				};
 				library.logger = {
 					debug: sinonSandbox.spy(),
-				};
-				modules.peers = {
-					remove: sinonSandbox.stub().returns(true),
 				};
 
 				__private.receiveTransaction = sinonSandbox.stub().callsArg(3);
@@ -808,15 +792,6 @@ describe('transport', () => {
 			let restoreRewiredTransportDeps;
 
 			beforeEach(done => {
-				peersList = [];
-				for (let i = 0; i < 10; i++) {
-					const peer = generateRandomActivePeer();
-					peer.rpc = {
-						updateMyself: sinonSandbox.stub().callsArg(1),
-					};
-					peersList.push(peer);
-				}
-
 				blocksList = [];
 				for (let j = 0; j < 10; j++) {
 					const auxBlock = new Block();
@@ -845,10 +820,6 @@ describe('transport', () => {
 							publish: sinonSandbox.stub(),
 						},
 						logic: {
-							peers: {
-								me: sinonSandbox.stub().returns(WSServer.generatePeerHeaders()),
-								listRandomConnected: sinonSandbox.stub().returns(peersList),
-							},
 							block: {
 								objectNormalize: sinonSandbox.stub().returns(new Block()),
 							},
@@ -865,9 +836,6 @@ describe('transport', () => {
 					modules = {
 						peers: {
 							calculateConsensus: sinonSandbox.stub().returns(100),
-							list: sinonSandbox.stub().callsArgWith(1, null, peersList),
-							update: sinonSandbox.stub().returns(true),
-							remove: sinonSandbox.stub().returns(true),
 						},
 						loader: {
 							syncing: sinonSandbox.stub().returns(false),
