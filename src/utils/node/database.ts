@@ -39,12 +39,16 @@ const isDbRunning = async (
 	installDir: string,
 	network: NETWORK,
 ): Promise<boolean> => {
-	const dbPort = POSTGRES_PORTS[network];
-	const { stdout }: ExecResult = await exec(
-		`cd ${installDir}; pg_ctl -D ${DB_DATA} -o '-F -p ${dbPort}' status`,
-	);
+	try {
+		const dbPort = POSTGRES_PORTS[network];
+		const { stdout }: ExecResult = await exec(
+			`cd ${installDir}; pg_ctl -D ${DB_DATA} -o '-F -p ${dbPort}' status`,
+		);
 
-	return stdout.search('server is running') >= 0;
+		return stdout.search('server is running') >= 0;
+	} catch (error) {
+		return false;
+	}
 };
 
 export const initDB = async (installDir: string): Promise<string> => {
