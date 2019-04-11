@@ -604,7 +604,6 @@ describe('transport', () => {
 				};
 				library.balancesSequence = balancesSequenceStub;
 
-				modules.peers.remove = sinonSandbox.stub().returns(true);
 				modules.transactions.processUnconfirmedTransaction = sinonSandbox
 					.stub()
 					.callsArg(2);
@@ -1247,9 +1246,10 @@ describe('transport', () => {
 
 						it('should send back empty blocks', async () => {
 							expect(error).to.equal(null);
-							return expect(result)
-								.to.have.property('blocks')
-								.which.is.an('array').that.is.empty;
+							return expect(result).to.eql({
+								success: false,
+								message: 'Invalid lastBlockId requested',
+							});
 						});
 					});
 
@@ -1267,19 +1267,17 @@ describe('transport', () => {
 						});
 
 						it('should call modules.blocks.utils.loadBlocksData with { limit: 34, lastId: query.lastBlockId }', async () =>
-							expect(
-								modules.blocks.utils.loadBlocksData.calledWith({
-									limit: 34,
-									lastId: query.lastBlockId,
-								})
-							).to.be.true);
+							expect(modules.blocks.utils.loadBlocksDataWS).to.be.calledWith({
+								limit: 34,
+								lastId: query.lastBlockId,
+							}));
 
 						describe('when modules.blocks.utils.loadBlocksData fails', () => {
 							let loadBlockFailed;
 
 							beforeEach(done => {
 								loadBlockFailed = new Error('Failed to load blocks...');
-								modules.blocks.utils.loadBlocksData = sinonSandbox
+								modules.blocks.utils.loadBlocksDataWS = sinonSandbox
 									.stub()
 									.callsArgWith(1, loadBlockFailed);
 
@@ -1512,21 +1510,15 @@ describe('transport', () => {
 				});
 
 				describe('getSignatures', () => {
-					let getSignaturesReq;
-
 					beforeEach(done => {
-						getSignaturesReq = {};
 						modules.transactions.getMultisignatureTransactionList = sinonSandbox
 							.stub()
 							.returns(multisignatureTransactionsList);
-						transportInstance.shared.getSignatures(
-							getSignaturesReq,
-							(err, res) => {
-								error = err;
-								result = res;
-								done();
-							}
-						);
+						transportInstance.shared.getSignatures((err, res) => {
+							error = err;
+							result = res;
+							done();
+						});
 					});
 
 					it('should call modules.transactions.getMultisignatureTransactionList with true and MAX_SHARED_TRANSACTIONS', async () =>
@@ -1555,7 +1547,6 @@ describe('transport', () => {
 
 					describe('when some transactions returned by modules.transactions.getMultisignatureTransactionList are multisignature registration transactions', () => {
 						beforeEach(done => {
-							getSignaturesReq = {};
 							// Make it so that the first transaction in the list is a multisignature registration transaction.
 							multisignatureTransactionsList[0] = {
 								id: '222675625422353767',
@@ -1574,14 +1565,11 @@ describe('transport', () => {
 							modules.transactions.getMultisignatureTransactionList = sinonSandbox
 								.stub()
 								.returns(multisignatureTransactionsList);
-							transportInstance.shared.getSignatures(
-								getSignaturesReq,
-								(err, res) => {
-									error = err;
-									result = res;
-									done();
-								}
-							);
+							transportInstance.shared.getSignatures((err, res) => {
+								error = err;
+								result = res;
+								done();
+							});
 						});
 
 						it('should call callback with error = null', async () =>
@@ -1602,8 +1590,7 @@ describe('transport', () => {
 
 				describe('getTransactions', () => {
 					beforeEach(done => {
-						query = {};
-						transportInstance.shared.getTransactions(query, (err, res) => {
+						transportInstance.shared.getTransactions((err, res) => {
 							error = err;
 							result = res;
 							done();

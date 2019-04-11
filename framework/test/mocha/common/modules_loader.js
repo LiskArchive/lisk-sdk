@@ -74,6 +74,7 @@ const modulesLoader = new function() {
 		}),
 		channel: {
 			invoke: sinonSandbox.stub(),
+			once: sinonSandbox.stub(),
 			publish: sinonSandbox.stub(),
 			suscribe: sinonSandbox.stub(),
 		},

@@ -24,7 +24,6 @@ describe('peers', () => {
 	let peers;
 	let PeersRewired;
 
-	let peersLogicMock;
 	let scope;
 	let channelMock;
 
@@ -41,25 +40,16 @@ describe('peers', () => {
 
 		channelMock = {
 			invoke: sinonSandbox.stub(),
+			once: sinonSandbox.stub(),
 		};
 
 		PeersRewired = rewire(
 			'../../../../../../src/modules/chain/submodules/peers'
 		);
 
-		peersLogicMock = {
-			create: sinonSandbox.spy(),
-			exists: sinonSandbox.stub(),
-			get: sinonSandbox.stub(),
-			list: sinonSandbox.stub(),
-			upsert: sinonSandbox.stub(),
-			remove: sinonSandbox.stub(),
-		};
-
 		scope = _.defaultsDeep(
 			{
 				nonce: NONCE,
-				logic: { peers: peersLogicMock },
 				components: { storage: storageMock },
 				channel: channelMock,
 				applicationState: {},

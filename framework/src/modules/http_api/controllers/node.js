@@ -312,7 +312,9 @@ async function _getForgingStatus(publicKey) {
  * @private
  */
 async function _getNetworkHeight() {
-	const peers = await library.channel.invoke('network:getPeers', {});
+	const peers = await library.channel.invoke('network:getPeers', {
+		limit: 100,
+	});
 	if (!peers || !peers.length) {
 		return 0;
 	}
@@ -322,6 +324,7 @@ async function _getNetworkHeight() {
 		return previous;
 	}, {});
 	const heightCountPairs = Object.entries(networkHeightCount);
+	const [defaultHeight, defaultCount] = heightCountPairs[0];
 	const { height: networkHeight } = heightCountPairs.reduce(
 		(prev, [height, count]) => {
 			if (count > prev.count) {
@@ -332,12 +335,13 @@ async function _getNetworkHeight() {
 			}
 			return prev;
 		},
-		heightCountPairs[0]
+		{
+			height: defaultHeight,
+			count: defaultCount,
+		}
 	);
 
-	library.logger.debug(`Network height is: ${networkHeight}`);
-
-	return networkHeight;
+	return parseInt(networkHeight);
 }
 
 module.exports = NodeController;
