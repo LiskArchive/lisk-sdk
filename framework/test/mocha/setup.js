@@ -25,7 +25,6 @@ const supertest = require('supertest');
 const _ = require('lodash');
 const validator = require('../../src/controller/helpers/validator');
 const constantsSchema = require('../../src/controller/schema/constants');
-const configSchema = require('../../src/controller/schema/config');
 const applicationSchema = require('../../src/controller/schema/application');
 const chainModuleSchema = require('../../src/modules/chain/defaults/config');
 const apiModuleSchema = require('../../src/modules/http_api/defaults/config');
@@ -39,7 +38,6 @@ const {
 
 const packageJson = require('../../../package.json');
 const netConfig = require('../../../config/devnet/config');
-const constants = require('../../../config/devnet/constants');
 const exceptions = require('../../../config/devnet/exceptions');
 const genesisBlock = require('../../../config/devnet/genesis_block');
 
@@ -56,8 +54,7 @@ const config = {
 };
 
 config.constants = {
-	...validator.parseEnvArgAndValidate(constantsSchema.constants, constants),
-	...validator.parseEnvArgAndValidate(configSchema.network),
+	...validator.parseEnvArgAndValidate(constantsSchema.constants, {}),
 };
 
 // TODO: This should be removed after https://github.com/LiskHQ/lisk/pull/2980
