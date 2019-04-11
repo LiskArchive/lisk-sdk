@@ -87,6 +87,11 @@ class Loader {
 		__private.lastBlock = library.genesisBlock;
 		__private.genesisBlock = library.genesisBlock;
 
+		// On App Ready
+		library.channel.once('network:ready', () => {
+			self.onAppReady();
+		});
+
 		setImmediate(cb, null, self);
 	}
 }
@@ -938,7 +943,7 @@ Loader.prototype.loaded = function() {
  *
  * @returns {function} Calling __private.syncTimer()
  */
-Loader.prototype.onPeersReady = function() {
+Loader.prototype.onAppReady = function() {
 	library.logger.trace('Peers ready', { module: 'loader' });
 	// Enforce sync early
 	if (library.config.syncing.active) {

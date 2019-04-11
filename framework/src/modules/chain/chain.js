@@ -14,11 +14,9 @@ const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
 const {
-	lookupPeerIPs,
 	createBus,
 	bootstrapStorage,
 	bootstrapCache,
-	createSocketCluster,
 	initLogicStructure,
 	initModules,
 } = require('./init_steps');
@@ -157,25 +155,6 @@ module.exports = class Chain {
 			scope.bus = await createBus();
 			scope.logic = await initLogicStructure(scope);
 			scope.modules = await initModules(scope);
-
-			if (scope.config.peers.enabled) {
-				// Lookup for peers ips from dns
-				scope.config.peers.list = await lookupPeerIPs(
-					scope.config.peers.list,
-					scope.config.peers.enabled
-				);
-
-				// Listen to websockets
-				scope.webSocket = await createSocketCluster(scope);
-				await scope.webSocket.listen();
-			} else {
-				this.logger.info(
-					'Skipping P2P server initialization due to the config settings - "peers.enabled" is set to false.'
-				);
-			}
-
-			// Ready to bind modules
-			scope.logic.peers.bindModules(scope.modules);
 
 			this.channel.subscribe('app:state:updated', event => {
 				Object.assign(scope.applicationState, event.data);

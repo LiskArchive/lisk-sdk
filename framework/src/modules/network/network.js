@@ -18,7 +18,7 @@ const {
 	getByFilter,
 	getCountByFilter,
 	getConsolidatedPeersList,
-} = require('./helpers/filter_peers');
+} = require('./filter_peers');
 
 const hasNamespaceReg = /:/;
 

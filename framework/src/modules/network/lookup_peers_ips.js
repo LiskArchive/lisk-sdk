@@ -19,7 +19,10 @@ module.exports = async (peersList, enabled) => {
 
 			try {
 				const { address } = await lookupPromise(peer.ip, { family: 4 });
-				return Object.assign({}, peer, { ip: address });
+				return {
+					...peer,
+					ip: address,
+				};
 			} catch (err) {
 				console.error(
 					`Failed to resolve peer domain name ${peer.ip} to an IP address`
