@@ -14,7 +14,7 @@
  *
  */
 import * as axios from 'axios';
-import * as fs from 'fs';
+import fs from 'fs';
 import { liskTar, liskTarSHA256 } from './node/commons';
 import { exec, ExecResult } from './worker-process';
 
