@@ -269,8 +269,17 @@ describe('Round', () => {
 	});
 
 	describe('isPersisted()', () => {
+		let localAdapter;
+		const isPersistedSqlFile = 'isPersisted Sql File';
 		beforeEach(async () => {
 			await RoundEntity.create(validRound);
+			localAdapter = {
+				loadSQLFiles: sinonSandbox.stub().returns({
+					isPersisted: isPersistedSqlFile,
+				}),
+				executeFile: sinonSandbox.stub().resolves([validRound]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
 		});
 
 		afterEach(async () => {
@@ -290,11 +299,6 @@ describe('Round', () => {
 		});
 
 		it('should call mergeFilters with proper params', async () => {
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([validRound]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const round = new Round(localAdapter);
 			round.mergeFilters = sinonSandbox.stub();
 			round.parseFilters = sinonSandbox.stub();
@@ -303,11 +307,6 @@ describe('Round', () => {
 		});
 
 		it('should call parseFilters with proper params', async () => {
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([validRound]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const round = new Round(localAdapter);
 			round.mergeFilters = sinonSandbox.stub().returns(validFilter);
 			round.parseFilters = sinonSandbox.stub();
@@ -316,11 +315,6 @@ describe('Round', () => {
 		});
 
 		it('should call adapter.executeFile with proper params', async () => {
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([validRound]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const round = new Round(localAdapter);
 			round.mergeFilters = sinonSandbox.stub().returns(validFilter);
 			round.parseFilters = sinonSandbox.stub();
@@ -328,7 +322,7 @@ describe('Round', () => {
 			round.isPersisted(validFilter);
 			expect(
 				localAdapter.executeFile.calledWith(
-					'loadSQLFile',
+					isPersistedSqlFile,
 					{
 						parsedFilters: undefined,
 					},
@@ -381,6 +375,16 @@ describe('Round', () => {
 	});
 
 	describe('delete', () => {
+		let localAdapter;
+		const deleteSqlFile = 'deleteSqlFile Sql File';
+		beforeEach(async () => {
+			localAdapter = {
+				loadSQLFiles: sinonSandbox.stub().returns({
+					delete: deleteSqlFile,
+				}),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+		});
 		it('should accept only valid filters', async () => {
 			const randRound = new roundsFixtures.Round();
 			expect(() => {
@@ -397,11 +401,8 @@ describe('Round', () => {
 
 		it('should call mergeFilters with proper params', async () => {
 			const randRound = new roundsFixtures.Round();
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([randRound]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
+			localAdapter.executeFile = sinonSandbox.stub().resolves([randRound]);
+
 			const round = new Round(localAdapter);
 			round.mergeFilters = sinonSandbox.stub();
 			round.parseFilters = sinonSandbox.stub();
@@ -411,11 +412,8 @@ describe('Round', () => {
 
 		it('should call parseFilters with proper params', async () => {
 			const randRound = new roundsFixtures.Round();
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([randRound]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
+			localAdapter.executeFile = sinonSandbox.stub().resolves([randRound]);
+
 			const round = new Round(localAdapter);
 			round.mergeFilters = sinonSandbox.stub().returns(validFilter);
 			round.parseFilters = sinonSandbox.stub();

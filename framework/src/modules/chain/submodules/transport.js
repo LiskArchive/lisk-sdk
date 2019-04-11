@@ -613,13 +613,20 @@ Transport.prototype.shared = {
 	 * @todo Add @param tags
 	 * @todo Add description of the function
 	 */
+	// eslint-disable-next-line consistent-return
 	blocks(query, cb) {
 		// Get 34 blocks with all data (joins) from provided block id
 		// According to maxium payload of 58150 bytes per block with every transaction being a vote
 		// Discounting maxium compression setting used in middleware
 		// Maximum transport payload = 2000000 bytes
-		query = query || {};
-		modules.blocks.utils.loadBlocksData(
+		if (!query || !query.lastBlockId) {
+			return setImmediate(cb, null, {
+				success: false,
+				message: 'Invalid lastBlockId requested',
+			});
+		}
+
+		modules.blocks.utils.loadBlocksDataWS(
 			{
 				limit: 34, // 1977100 bytes
 				lastId: query.lastBlockId,
@@ -643,12 +650,12 @@ Transport.prototype.shared = {
 				if (err) {
 					return setImmediate(cb, null, {
 						blocks: [],
+						message: err,
+						sucess: false,
 					});
 				}
 
-				return setImmediate(cb, null, {
-					blocks: data,
-				});
+				return setImmediate(cb, null, { blocks: data, success: true });
 			}
 		);
 	},

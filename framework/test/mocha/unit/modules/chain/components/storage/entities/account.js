@@ -266,6 +266,18 @@ describe('ChainAccount', () => {
 	});
 
 	describe('update()', () => {
+		let localAdapter;
+		const updateSqlFile = 'update Sql File';
+		beforeEach(async () => {
+			localAdapter = {
+				loadSQLFiles: sinonSandbox.stub().returns({
+					update: updateSqlFile,
+				}),
+				executeFile: sinonSandbox.stub().resolves(),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+		});
+
 		it('should accept only valid filters', async () => {
 			// Arrange
 			const invalidFilter = {
@@ -306,11 +318,6 @@ describe('ChainAccount', () => {
 		it('should call mergeFilters with proper params', async () => {
 			// Arrange
 			const randAccount = new accountFixtures.Account();
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns(),
-				executeFile: sinonSandbox.stub().resolves(),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const validFilter = {
 				address: randAccount.address,
 			};
@@ -328,11 +335,8 @@ describe('ChainAccount', () => {
 		it('should call parseFilters with proper params', async () => {
 			// Arrange
 			const randAccount = new accountFixtures.Account();
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([randAccount]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
+			localAdapter.executeFile = sinonSandbox.stub().resolves([randAccount]);
+
 			const validFilter = {
 				address: randAccount.address,
 			};
@@ -349,12 +353,6 @@ describe('ChainAccount', () => {
 
 		it('should call getUpdateSet with proper params', async () => {
 			// Arrange
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves(),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
-
 			const validFilter = {
 				address: 'test1234',
 			};
@@ -621,6 +619,18 @@ describe('ChainAccount', () => {
 	});
 
 	describe('updateOne()', () => {
+		let localAdapter;
+		const updateOneSqlFile = 'updateOne Sql File';
+		beforeEach(async () => {
+			localAdapter = {
+				loadSQLFiles: sinonSandbox.stub().returns({
+					updateOne: updateOneSqlFile,
+				}),
+				executeFile: sinonSandbox.stub().resolves(),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+		});
+
 		it('should throw error for in-valid filters', async () => {
 			// Arrange
 			const invalidFilter = {
@@ -636,11 +646,6 @@ describe('ChainAccount', () => {
 
 		it('should call mergeFilters with proper params', async () => {
 			// Arrange
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns(),
-				executeFile: sinonSandbox.stub().resolves(),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const validFilter = {
 				address: 'test1234',
 			};
@@ -656,11 +661,7 @@ describe('ChainAccount', () => {
 		it('should call parseFilters with proper params', async () => {
 			// Arrange
 			const randAccount = new accountFixtures.Account();
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([randAccount]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
+			localAdapter.executeFile = sinonSandbox.stub().resolves([randAccount]);
 			const validFilter = {
 				address: randAccount.address,
 			};
@@ -675,12 +676,6 @@ describe('ChainAccount', () => {
 
 		it('should call getUpdateSet with proper params', async () => {
 			// Arrange
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves(),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
-
 			const validFilter = {
 				address: 'test1234',
 			};
@@ -1129,65 +1124,64 @@ describe('ChainAccount', () => {
 			).to.throw('Invalid dependency name "unknown" provided.');
 		});
 
-		[
-			'votedDelegatesPublicKeys',
-			'membersPublicKeys',
-		].forEach(dependentTable => {
-			describe(`${dependentTable}`, () => {
-				it(`should use executeFile with correct parameters for ${dependentTable}`, async () => {
-					const accounts = await AccountEntity.get(
-						{},
-						{
-							limit: 2,
-						}
-					);
+		['votedDelegatesPublicKeys', 'membersPublicKeys'].forEach(
+			dependentTable => {
+				describe(`${dependentTable}`, () => {
+					it(`should use executeFile with correct parameters for ${dependentTable}`, async () => {
+						const accounts = await AccountEntity.get(
+							{},
+							{
+								limit: 2,
+							}
+						);
 
-					sinonSandbox.spy(adapter, 'executeFile');
-					await AccountEntity.createDependentRecord(
-						dependentTable,
-						accounts[0].address,
-						accounts[1].publicKey
-					);
+						sinonSandbox.spy(adapter, 'executeFile');
+						await AccountEntity.createDependentRecord(
+							dependentTable,
+							accounts[0].address,
+							accounts[1].publicKey
+						);
 
-					return expect(adapter.executeFile).to.be.calledWith(
-						SQLs.createDependentRecord,
-						{
-							tableName: dependentFieldsTableMap[dependentTable],
-							accountId: accounts[0].address,
-							dependentId: accounts[1].publicKey,
-						},
-						{
-							expectedResultCount: 0,
-						}
-					);
+						return expect(adapter.executeFile).to.be.calledWith(
+							SQLs.createDependentRecord,
+							{
+								tableName: dependentFieldsTableMap[dependentTable],
+								accountId: accounts[0].address,
+								dependentId: accounts[1].publicKey,
+							},
+							{
+								expectedResultCount: 0,
+							}
+						);
+					});
+
+					it(`should insert dependent account from ${dependentTable}`, async () => {
+						const accounts = await AccountEntity.get(
+							{},
+							{
+								limit: 2,
+							}
+						);
+
+						const before = await adapter.execute(
+							`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
+						);
+
+						await AccountEntity.createDependentRecord(
+							dependentTable,
+							accounts[0].address,
+							accounts[1].publicKey
+						);
+						const after = await adapter.execute(
+							`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
+						);
+
+						expect(before[0].count).to.eql('0');
+						expect(after[0].count).to.eql('1');
+					});
 				});
-
-				it(`should insert dependent account from ${dependentTable}`, async () => {
-					const accounts = await AccountEntity.get(
-						{},
-						{
-							limit: 2,
-						}
-					);
-
-					const before = await adapter.execute(
-						`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
-					);
-
-					await AccountEntity.createDependentRecord(
-						dependentTable,
-						accounts[0].address,
-						accounts[1].publicKey
-					);
-					const after = await adapter.execute(
-						`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
-					);
-
-					expect(before[0].count).to.eql('0');
-					expect(after[0].count).to.eql('1');
-				});
-			});
-		});
+			}
+		);
 	});
 
 	describe('deleteDependentRecord()', () => {
@@ -1197,43 +1191,42 @@ describe('ChainAccount', () => {
 			).to.throw('Invalid dependency name "unknown" provided.');
 		});
 
-		[
-			'votedDelegatesPublicKeys',
-			'membersPublicKeys',
-		].forEach(dependentTable => {
-			it(`should remove dependent account from ${dependentTable}`, async () => {
-				const accounts = await AccountEntity.get(
-					{},
-					{
-						limit: 2,
-					}
-				);
+		['votedDelegatesPublicKeys', 'membersPublicKeys'].forEach(
+			dependentTable => {
+				it(`should remove dependent account from ${dependentTable}`, async () => {
+					const accounts = await AccountEntity.get(
+						{},
+						{
+							limit: 2,
+						}
+					);
 
-				await adapter.execute(
-					`INSERT INTO ${
-						dependentFieldsTableMap[dependentTable]
-					} ("accountId", "dependentId") VALUES('${accounts[0].address}', '${
+					await adapter.execute(
+						`INSERT INTO ${
+							dependentFieldsTableMap[dependentTable]
+						} ("accountId", "dependentId") VALUES('${accounts[0].address}', '${
+							accounts[1].publicKey
+						}')`
+					);
+
+					const before = await adapter.execute(
+						`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
+					);
+
+					await AccountEntity.deleteDependentRecord(
+						dependentTable,
+						accounts[0].address,
 						accounts[1].publicKey
-					}')`
-				);
+					);
+					const after = await adapter.execute(
+						`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
+					);
 
-				const before = await adapter.execute(
-					`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
-				);
-
-				await AccountEntity.deleteDependentRecord(
-					dependentTable,
-					accounts[0].address,
-					accounts[1].publicKey
-				);
-				const after = await adapter.execute(
-					`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
-				);
-
-				expect(before[0].count).to.eql('1');
-				expect(after[0].count).to.eql('0');
-			});
-		});
+					expect(before[0].count).to.eql('1');
+					expect(after[0].count).to.eql('0');
+				});
+			}
+		);
 	});
 
 	describe('syncDelegatesRanks', () => {
