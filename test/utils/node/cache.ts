@@ -8,23 +8,26 @@ import { NETWORK } from '../../../src/utils/constants';
 import * as workerProcess from '../../../src/utils/worker-process';
 import * as nodeConfig from '../../../src/utils/node/config';
 
-describe('cache node utils', () => {
+describe.only('cache node utils', () => {
 	describe('#isCacheRunning', () => {
+		let workerProcessStub: any = null;
+		beforeEach(() => {
+			workerProcessStub = sandbox.stub(workerProcess, 'exec');
+		});
+
 		describe('when installation does not exists', () => {
 			it('should return false', async () => {
+				workerProcessStub.resolves({ stdout: 'redis not installed', stderr: 'redis not installed' });
+
 				const status = await isCacheRunning('/tmp/dummypath', NETWORK.MAINNET);
 				return expect(status).to.be.false;
 			});
 		});
 
 		describe('when installation exists', () => {
-			beforeEach(() => {
-				sandbox
-					.stub(workerProcess, 'exec')
-					.resolves({ stdout: 'PONG', stderr: null });
-			});
-
 			it('should return true', async () => {
+				workerProcessStub.resolves({ stdout: 'PONG', stderr: null });
+
 				const status = await isCacheRunning('/tmp/dummypath', NETWORK.MAINNET);
 				return expect(status).to.be.true;
 			});
@@ -34,12 +37,7 @@ describe('cache node utils', () => {
 	describe('#startCache', () => {
 		describe('when installation does not exists', () => {
 			it('should throw error', async () => {
-				try {
-					return await startCache('/tmp/dummypath', NETWORK.MAINNET);
-				} catch (error) {
-					return expect(error.message.search('No such file or directory') >= 0)
-						.to.be.true;
-				}
+				return expect(startCache('/tmp/dummypath', NETWORK.MAINNET)).to.rejectedWith('Command failed');
 			});
 		});
 
@@ -64,14 +62,7 @@ describe('cache node utils', () => {
 					stderr: 'Failed to start redis',
 				});
 
-				try {
-					return await startCache('/tmp/dummypath', NETWORK.MAINNET);
-				} catch (error) {
-					console.log(error);
-					return expect(
-						error.message.search('Failed to start Redis-Server.') >= 0,
-					).to.be.true;
-				}
+				return expect(startCache('/tmp/dummypath', NETWORK.MAINNET)).to.rejectedWith('[-] Failed to start Redis-Server');
 			});
 		});
 	});
@@ -79,14 +70,7 @@ describe('cache node utils', () => {
 	describe('#stopCache', () => {
 		describe('when installation does not exists', () => {
 			it('should throw error', async () => {
-				try {
-					return await stopCache('/tmp/dummypath', NETWORK.MAINNET);
-				} catch (error) {
-					expect(error).to.be.not.null;
-					return expect(
-						error.message.search('Config file not exists in path') >= 0,
-					).to.be.true;
-				}
+				return expect(stopCache('/tmp/dummypath', NETWORK.MAINNET)).to.rejectedWith('Config file not exists in path');
 			});
 		});
 
@@ -125,14 +109,7 @@ describe('cache node utils', () => {
 					stderr: 'Failed to stop redis',
 				});
 
-				try {
-					return await stopCache('/tmp/dummypath', NETWORK.MAINNET);
-				} catch (error) {
-					console.log(error);
-					return expect(
-						error.message.search('Failed to stop Redis-Server.') >= 0,
-					).to.be.true;
-				}
+				return expect(stopCache('/tmp/dummypath', NETWORK.MAINNET)).to.rejectedWith('[-] Failed to stop Redis-Server');
 			});
 		});
 	});
