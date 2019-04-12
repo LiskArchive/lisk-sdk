@@ -36,7 +36,6 @@ describe('outTransfer transaction class', () => {
 	let validTestTransaction: OutTransferTransaction;
 	let storeTransactionCacheStub: sinon.SinonStub;
 	let storeTransactionGetStub: sinon.SinonStub;
-	let storeTransactionFindStub: sinon.SinonStub;
 	let storeAccountCacheStub: sinon.SinonStub;
 	let storeAccountGetStub: sinon.SinonStub;
 	let storeAccountSetStub: sinon.SinonStub;
@@ -47,7 +46,6 @@ describe('outTransfer transaction class', () => {
 		storeTransactionGetStub = sandbox
 			.stub(store.transaction, 'get')
 			.returns(dappRegistrationTx);
-		storeTransactionFindStub = sandbox.stub(store.transaction, 'find');
 		storeAccountCacheStub = sandbox.stub(store.account, 'cache');
 		storeAccountGetStub = sandbox
 			.stub(store.account, 'get')
@@ -252,7 +250,6 @@ describe('outTransfer transaction class', () => {
 			expect(storeTransactionGetStub).to.be.calledWithExactly(
 				validTestTransaction.asset.outTransfer.dappId,
 			);
-			expect(storeTransactionFindStub).to.be.calledOnce;
 			expect(
 				storeAccountGetStub
 					.getCall(0)
@@ -283,16 +280,6 @@ describe('outTransfer transaction class', () => {
 			const errors = (invalidTestTransaction as any).applyAsset(store);
 			expect(errors[0].message).to.equal(
 				`Out transaction must be sent from owner of the Dapp.`,
-			);
-		});
-
-		it('should return error if out transfer exists', async () => {
-			storeTransactionFindStub.returns(defaultTransaction);
-			const errors = (validTestTransaction as any).applyAsset(store);
-			expect(errors[0].message).to.equal(
-				`Transaction ${
-					validTestTransaction.asset.outTransfer.transactionId
-				} is already processed.`,
 			);
 		});
 
