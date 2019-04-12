@@ -209,7 +209,7 @@ export class OutTransferTransaction extends BaseTransaction {
 		const updatedSender = { ...sender, balance: updatedBalance.toString() };
 		store.account.set(updatedSender.address, updatedSender);
 
-		const recipient = store.account.get(this.recipientId);
+		const recipient = store.account.getOrDefault(this.recipientId);
 
 		const updatedRecipientBalance = new BigNum(recipient.balance).add(
 			this.amount,
@@ -248,7 +248,7 @@ export class OutTransferTransaction extends BaseTransaction {
 		const updatedSender = { ...sender, balance: updatedBalance.toString() };
 		store.account.set(updatedSender.address, updatedSender);
 
-		const recipient = store.account.get(this.recipientId);
+		const recipient = store.account.getOrDefault(this.recipientId);
 
 		const updatedRecipientBalance = new BigNum(recipient.balance).sub(
 			this.amount,
