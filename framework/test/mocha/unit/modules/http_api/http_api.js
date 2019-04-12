@@ -36,7 +36,6 @@ describe('HttpApi', () => {
 			subscribe: sinonSandbox.stub(),
 		};
 		stubs.options = {
-			config: sinonSandbox.stub(),
 			constants: {
 				ACTIVE_DELEGATES: 101,
 			},
@@ -197,7 +196,7 @@ describe('HttpApi', () => {
 					storage: stubs.storage,
 				},
 				channel: stubs.channel,
-				config: stubs.options.config,
+				config: stubs.options,
 			});
 		});
 
@@ -221,10 +220,9 @@ describe('HttpApi', () => {
 			});
 		});
 		it('should call subscribeToEvents() with proper arguments', async () => {
-			const { wsServer, wssServer } = stubs.servers;
+			const { wsServer } = stubs.servers;
 			expect(stubs.subscribeToEvents).to.be.calledWithExactly(httpApi.scope, {
 				wsServer,
-				wssServer,
 			});
 		});
 	});

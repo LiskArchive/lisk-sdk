@@ -20,7 +20,6 @@ const {
 	initLogicStructure,
 	initModules,
 } = require('./init_steps');
-const defaults = require('./defaults');
 
 // Begin reading from stdin
 process.stdin.resume();
@@ -98,16 +97,19 @@ module.exports = class Chain {
 		}
 
 		global.constants = this.options.constants;
-		global.exceptions = Object.assign(
-			{},
-			defaults.exceptions,
-			this.options.exceptions
-		);
+		global.exceptions = this.options.exceptions;
 
 		const BlockReward = require('./logic/block_reward');
 		this.blockReward = new BlockReward();
 		// Needs to be loaded here as its using constants that need to be initialized first
 		this.slots = require('./helpers/slots');
+
+		if (this.options.loading.snapshotRound) {
+			this.options.network.enabled = false;
+			this.options.network.list = [];
+			this.options.broadcasts.active = false;
+			this.options.syncing.active = false;
+		}
 
 		try {
 			// Cache
@@ -118,17 +120,20 @@ module.exports = class Chain {
 			this.logger.debug('Initiating storage...');
 			const storage = createStorageComponent(storageConfig, dbLogger);
 
-			if (!this.options.config) {
+			if (!this.options.genesisBlock) {
 				throw Error('Failed to assign nethash from genesis block');
 			}
+
+			// TODO: For socket cluster child process, should be removed with refactoring of network module
+			this.options.loggerConfig = loggerConfig;
 
 			const self = this;
 			const scope = {
 				lastCommit,
 				ed,
 				build: versionBuild,
-				config: self.options.config,
-				genesisBlock: { block: self.options.config.genesisBlock },
+				config: self.options,
+				genesisBlock: { block: self.options.genesisBlock },
 				schema: new ZSchema(),
 				sequence: new Sequence({
 					onWarning(current) {
@@ -202,6 +207,13 @@ module.exports = class Chain {
 				promisify(this.scope.modules.signatures.shared.postSignature)(
 					action.params.signature
 				),
+			getLastConsensus: async () => this.scope.modules.peers.getLastConsensus(),
+			loaderLoaded: async () => this.scope.modules.loader.loaded(),
+			loaderSyncing: async () => this.scope.modules.loader.syncing(),
+			getForgersKeyPairs: async () =>
+				this.scope.modules.delegates.getForgersKeyPairs(),
+			getForgingStatusForAllDelegates: async () =>
+				this.scope.modules.delegates.getForgingStatusForAllDelegates(),
 			getForgersPublicKeys: async () => {
 				const keypairs = this.scope.modules.delegates.getForgersKeyPairs();
 				const publicKeys = {};

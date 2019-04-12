@@ -353,6 +353,12 @@ Process.prototype.loadBlocksFromNetwork = function(cb) {
 		if (!data) {
 			throw new Error('Received an invalid blocks response from the network');
 		}
+		// Check for strict equality for backwards compatibility reasons.
+		if (data.success === false) {
+			throw new Error(
+				`Peer did not have a matching lastBlockId. ${data.message}`
+			);
+		}
 
 		return data.blocks;
 	}

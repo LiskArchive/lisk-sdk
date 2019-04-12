@@ -47,7 +47,7 @@ class Peers {
 			logger: scope.components.logger,
 			storage: scope.components.storage,
 			config: {
-				peers: scope.config.peers,
+				network: scope.config.network,
 				version: scope.config.version,
 				forging: {
 					force: scope.config.forging.force,
@@ -59,7 +59,7 @@ class Peers {
 		self = this;
 		self.consensus = scope.config.forging.force ? 100 : 0;
 		self.broadhashConsensusCalculationInterval =
-			scope.config.peers.options.broadhashConsensusCalculationInterval;
+			scope.config.network.options.broadhashConsensusCalculationInterval;
 
 		library.channel.once('network:ready', () => {
 			self.onAppReady();

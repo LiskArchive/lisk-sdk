@@ -43,9 +43,7 @@ function blockchainReady(retries, timeout, baseUrl, doNotLogRetries, cb) {
 
 	const totalRetries = retries;
 
-	baseUrl =
-		baseUrl ||
-		`http://${__testContext.config.address}:${__testContext.config.httpPort}`;
+	baseUrl = baseUrl || __testContext.baseUrl;
 
 	(function fetchBlockchainStatus() {
 		popsicle

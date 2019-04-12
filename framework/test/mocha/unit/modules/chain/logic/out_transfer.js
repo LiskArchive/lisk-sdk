@@ -22,7 +22,7 @@ const slots = require('../../../../../../src/modules/chain/helpers/slots');
 const testData = require('./test_data/out_transfer');
 
 const { FEES } = __testContext.config.constants;
-const exceptions = __testContext.config.exceptions;
+const exceptions = __testContext.config.modules.chain.exceptions;
 const OutTransfer = rewire(
 	'../../../../../../src/modules/chain/logic/out_transfer'
 );

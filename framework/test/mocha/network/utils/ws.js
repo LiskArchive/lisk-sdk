@@ -43,7 +43,7 @@ module.exports = {
 		let connectedTo = 0;
 
 		configurations.forEach(configuration => {
-			monitorWSClient.port = configuration.wsPort;
+			monitorWSClient.port = configuration.modules.chain.network.wsPort;
 			const socket = scClient.connect(monitorWSClient);
 			wampClient.upgradeToWAMP(socket);
 			sockets.push(socket);

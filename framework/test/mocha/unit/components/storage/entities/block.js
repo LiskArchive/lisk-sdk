@@ -44,7 +44,7 @@ describe('Block', () => {
 
 	before(async () => {
 		storage = new storageSandbox.StorageSandbox(
-			__testContext.config.db,
+			__testContext.config.components.storage,
 			'lisk_test_blocks'
 		);
 		await storage.bootstrap();
