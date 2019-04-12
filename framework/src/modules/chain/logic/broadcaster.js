@@ -40,7 +40,7 @@ let library;
  * @todo Add description for the params
  */
 class Broadcaster {
-	constructor(broadcasts, force, peers, transaction, logger) {
+	constructor(broadcasts, force, peers, transaction, logger, channel) {
 		library = {
 			logger,
 			logic: {
@@ -72,6 +72,8 @@ class Broadcaster {
 				object: 'signature',
 			},
 		];
+
+		this.channel = channel;
 
 		if (broadcasts.active) {
 			jobsQueue.register(
@@ -117,6 +119,13 @@ class Broadcaster {
 			} else {
 				peers = params.peers.slice(0, params.limit);
 			}
+
+			// Broadcast using Elements P2P library via network module
+			await this.channel.invoke('network:send', {
+				event: options.api,
+				data: options.data,
+			});
+
 			library.logger.debug('Begin broadcast', options);
 			peers.forEach(peer => peer.rpc[options.api](options.data));
 			library.logger.debug('End broadcast');

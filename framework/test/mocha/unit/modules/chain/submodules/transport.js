@@ -1378,7 +1378,6 @@ describe('transport', () => {
 								data: {
 									block,
 								},
-								immediate: true,
 							}
 						)
 					).to.be.true;

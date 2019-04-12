@@ -37,6 +37,7 @@ describe('Broadcaster', () => {
 	let peerList;
 	let jobsQueue;
 	let library;
+	let channelStub;
 
 	beforeEach(async () => {
 		broadcasts = {
@@ -82,6 +83,10 @@ describe('Broadcaster', () => {
 			},
 		};
 
+		channelStub = {
+			invoke: sinonSandbox.stub().returns(),
+		};
+
 		jobsQueue = Broadcaster.__get__('jobsQueue');
 
 		jobsQueue.register = sinonSandbox.stub();
@@ -91,7 +96,8 @@ describe('Broadcaster', () => {
 			force,
 			peersStub,
 			transactionStub,
-			loggerStub
+			loggerStub,
+			channelStub
 		);
 
 		broadcaster.bind(
@@ -227,6 +233,15 @@ describe('Broadcaster', () => {
 			expect(options.data.block).to.be.instanceOf(Object);
 			expect(peerList[0].rpc.blocks.called).to.be.true;
 			expect(peerList[0].rpc.blocks.args[0][0].block).to.be.instanceOf(Object);
+		});
+
+		it('should invoke "network:send" event', async () => {
+			await broadcaster.broadcast(params, options);
+			expect(channelStub.invoke).to.be.calledOnce;
+			expect(channelStub.invoke).to.be.calledWithExactly('network:send', {
+				event: options.api,
+				data: options.data,
+			});
 		});
 	});
 

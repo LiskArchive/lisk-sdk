@@ -88,7 +88,8 @@ class Transport {
 			scope.config.forging.force,
 			scope.logic.peers,
 			scope.logic.transaction,
-			scope.components.logger
+			scope.components.logger,
+			scope.channel
 		);
 
 		setImmediate(cb, null, self);
