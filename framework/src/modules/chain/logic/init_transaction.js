@@ -220,7 +220,7 @@ class Transaction {
 }
 
 /**
- * Get current state from lastBlock
+ * Get current state from modules.blocks.lastBlock
  */
 const getCurrentState = () => {
 	const { version, height, timestamp } = _modules.blocks.lastBlock.get();

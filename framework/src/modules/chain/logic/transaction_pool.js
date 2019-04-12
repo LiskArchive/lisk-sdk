@@ -51,28 +51,41 @@ const pendingQueue = 'pending';
 const verifiedQueue = 'verified';
 const readyQueue = 'ready';
 
-const composeProcessTransactionSteps = (step1, step2) => async transactions => {
-	const step1Response = await step1(transactions);
-	const step1FailedTransactionsResponses = step1Response.transactionsResponses.filter(
-		transactionResponse => transactionResponse.status !== TransactionStatus.OK
+const composeProcessTransactionSteps = (...steps) => async transactions => {
+	let failedResponses = [];
+	const { transactionsResponses: successfulResponses } = await steps.reduce(
+		async (previousValue, fn, index) => {
+			if (index === 0) {
+				// previousValue === transactions argument in the first iteration
+				// First iteration includes raw transaction objects instead of formatted responses.
+				return fn(previousValue);
+			}
+
+			previousValue = await previousValue;
+
+			// Keep track of transactions that failed in the current step
+			failedResponses = [
+				...failedResponses,
+				...previousValue.transactionsResponses.filter(
+					response => response.status === TransactionStatus.FAIL
+				),
+			];
+
+			// Return only transactions that succeeded to the next step
+			return fn(
+				transactions.filter(transaction =>
+					previousValue.transactionsResponses
+						.filter(response => response.status === TransactionStatus.OK)
+						.map(transactionResponse => transactionResponse.id)
+						.includes(transaction.id)
+				)
+			);
+		},
+		transactions
 	);
 
-	const step1PassedTransactionIds = step1Response.transactionsResponses
-		.filter(
-			transactionResponse => transactionResponse.status === TransactionStatus.OK
-		)
-		.map(transactionResponse => transactionResponse.id);
-	const step1PassedTransactions = transactions.filter(transaction =>
-		step1PassedTransactionIds.includes(transaction.id)
-	);
-
-	const step2Response = await step2(step1PassedTransactions);
 	return {
-		...step2Response,
-		transactionsResponses: [
-			...step2Response.transactionsResponses,
-			...step1FailedTransactionsResponses,
-		],
+		transactionsResponses: [...failedResponses, ...successfulResponses],
 	};
 };
 
