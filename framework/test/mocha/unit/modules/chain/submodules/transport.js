@@ -270,9 +270,6 @@ describe('transport', () => {
 				expect(library)
 					.to.have.nested.property('logic.transaction')
 					.which.is.equal(transactionStub);
-				expect(library)
-					.to.have.nested.property('config.peers.options.timeout')
-					.which.is.equal(1234);
 
 				expect(__private)
 					.to.have.property('broadcaster')

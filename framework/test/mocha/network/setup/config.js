@@ -64,7 +64,7 @@ const config = {
 			delete devConfigCopy.modules.http_api.genesisBlock;
 			delete devConfigCopy.modules.http_api.constants;
 
-			devConfigCopy.modules.chain.network.wsPort = 5000 + index;
+			devConfigCopy.modules.network.wsPort = 5000 + index;
 			devConfigCopy.modules.http_api.httpPort = 4000 + index;
 			devConfigCopy.components.logger.logFileName = `../logs/lisk_node_${index}.log`;
 			return devConfigCopy;
@@ -78,7 +78,7 @@ const config = {
 				{
 					indices: _.range(10),
 				},
-				configuration.modules.chain.network.wsPort
+				configuration.modules.network.wsPort
 			);
 
 			configuration.modules.network.seedPeers = config.generateSeedPeers(
@@ -177,10 +177,10 @@ const config = {
 				}
 				configurations.forEach(configuration => {
 					if (isPickedWithProbability(syncModeArgs.probability)) {
-						if (!(configuration.modules.chain.network.wsPort === currentPeer)) {
+						if (!(configuration.modules.network.wsPort === currentPeer)) {
 							peersList.push({
 								ip: DEFAULT_PEER_IP,
-								wsPort: configuration.modules.chain.network.wsPort,
+								wsPort: configuration.modules.network.wsPort,
 							});
 						}
 					}
@@ -194,7 +194,7 @@ const config = {
 				peersList = [
 					{
 						ip: DEFAULT_PEER_IP,
-						wsPort: configurations[0].modules.chain.network.wsPort,
+						wsPort: configurations[0].modules.network.wsPort,
 					},
 				];
 				break;
@@ -207,7 +207,7 @@ const config = {
 					if (syncModeArgs.indices.indexOf(index) !== -1) {
 						peersList.push({
 							ip: DEFAULT_PEER_IP,
-							wsPort: configuration.modules.chain.network.wsPort,
+							wsPort: configuration.modules.network.wsPort,
 						});
 					}
 				});
