@@ -20,7 +20,7 @@ import {
 	StateStorePrepare,
 } from './base_transaction';
 import { MAX_TRANSACTION_AMOUNT, VOTE_FEE } from './constants';
-import { convertToTransactionError, TransactionError } from './errors';
+import { convertToAssetError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
 import { CreateBaseTransactionInput, verifyAmountBalance } from './utils';
 import { validateAddress, validator } from './utils/validation';
@@ -49,13 +49,13 @@ export const voteAssetFormatSchema = {
 	properties: {
 		votes: {
 			type: 'array',
-			uniqueSignedPublicKeys: true,
 			minItems: MIN_VOTE_PER_TX,
 			maxItems: MAX_VOTE_PER_TX,
 			items: {
 				type: 'string',
 				format: 'signedPublicKey',
 			},
+			uniqueSignedPublicKeys: true,
 		},
 	},
 };
@@ -78,9 +78,7 @@ export class VoteTransaction extends BaseTransaction {
 	}
 
 	public assetToJSON(): object {
-		return {
-			votes: this.asset.votes,
-		};
+		return this.asset;
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {
@@ -137,10 +135,11 @@ export class VoteTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		validator.validate(voteAssetFormatSchema, this.asset);
-		const errors = convertToTransactionError(
+		const errors = convertToAssetError(
 			this.id,
 			validator.errors,
 		) as TransactionError[];
+
 		if (!this.amount.eq(0)) {
 			errors.push(
 				new TransactionError(

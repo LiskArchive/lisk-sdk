@@ -22,7 +22,7 @@ import {
 import { MULTISIGNATURE_FEE } from './constants';
 import { SignatureObject } from './create_signature_object';
 import {
-	convertToTransactionError,
+	convertToAssetError,
 	TransactionError,
 	TransactionPendingError,
 } from './errors';
@@ -97,13 +97,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 	}
 
 	public assetToJSON(): MultiSignatureAsset {
-		return {
-			multisignature: {
-				min: this.asset.multisignature.min,
-				lifetime: this.asset.multisignature.lifetime,
-				keysgroup: [...this.asset.multisignature.keysgroup],
-			},
-		};
+		return this.asset;
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {
@@ -136,7 +130,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		validator.validate(multisignatureAssetFormatSchema, this.asset);
-		const errors = convertToTransactionError(
+		const errors = convertToAssetError(
 			this.id,
 			validator.errors,
 		) as TransactionError[];
@@ -164,6 +158,11 @@ export class MultisignatureTransaction extends BaseTransaction {
 				),
 			);
 		}
+
+		if (errors.length > 0) {
+			return errors;
+		}
+
 		const expectedFee = new BigNum(MULTISIGNATURE_FEE).mul(
 			this.asset.multisignature.keysgroup.length + 1,
 		);

@@ -254,6 +254,18 @@ describe('Vote transaction class', () => {
 			expect(errors).not.to.be.empty;
 		});
 
+		it('should return error when asset includes null', async () => {
+			const invalidTransaction = {
+				...validVoteTransactions[2],
+				asset: {
+					votes: [null],
+				},
+			};
+			const transaction = new VoteTransaction(invalidTransaction);
+			const errors = (transaction as any).validateAsset();
+			expect(errors).not.to.be.empty;
+		});
+
 		it('should return error when asset is an empty array', async () => {
 			const invalidTransaction = {
 				...validVoteTransactions[2],

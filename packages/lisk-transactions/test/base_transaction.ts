@@ -415,26 +415,6 @@ describe('Base transaction class', () => {
 			).to.have.been.calledWithExactly(validTestTransaction.senderPublicKey);
 		});
 
-		it('should call getBytes', async () => {
-			sandbox
-				.stub(validTestTransaction, 'getBytes')
-				.returns(
-					Buffer.from(
-						'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b02000000',
-						'hex',
-					),
-				);
-			(validTestTransaction as any)._validateSchema();
-			expect(validTestTransaction.getBytes).to.be.calledOnce;
-		});
-
-		it('should call validateTransactionId', async () => {
-			sandbox.stub(utils, 'validateTransactionId');
-			(validTestTransaction as any)._validateSchema();
-
-			expect(utils.validateTransactionId).to.be.calledOnce;
-		});
-
 		it('should return a successful transaction response with a valid transaction', async () => {
 			const errors = (validTestTransaction as any)._validateSchema();
 			expect(errors).to.be.empty;
@@ -470,20 +450,6 @@ describe('Base transaction class', () => {
 				invalidSenderIdTransaction as any,
 			);
 			const errors = (invalidSenderIdTestTransaction as any)._validateSchema();
-
-			expect(errors).to.not.be.empty;
-		});
-
-		it('should return a failed transaction response with an invalid id', async () => {
-			const invalidIdTransaction = {
-				...defaultTransaction,
-				id: defaultTransaction.id.replace('1', '0'),
-			};
-
-			const invalidIdTestTransaction = new TestTransaction(
-				invalidIdTransaction as any,
-			);
-			const errors = (invalidIdTestTransaction as any)._validateSchema();
 
 			expect(errors).to.not.be.empty;
 		});
