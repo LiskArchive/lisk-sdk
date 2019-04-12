@@ -21,7 +21,6 @@ const { MAX_PEERS } = global.constants;
 
 let modules;
 let library;
-let self;
 
 /**
  * Main Broadcaster logic.
@@ -74,12 +73,10 @@ class Broadcaster {
 			},
 		];
 
-		self = this;
-
 		if (broadcasts.active) {
 			jobsQueue.register(
 				'broadcasterReleaseQueue',
-				this.releaseQueue,
+				async () => this.releaseQueue(),
 				this.config.broadcastInterval
 			);
 		} else {
@@ -96,7 +93,7 @@ class Broadcaster {
 	 * @returns {SetImmediate} error, peers
 	 * @todo Add description for the params
 	 */
-	async getPeers(params) {
+	getPeers(params) {
 		params.limit = params.limit || this.config.peerLimit;
 		const peers = library.logic.peers.listRandomConnected(params);
 		return peers;
@@ -116,7 +113,7 @@ class Broadcaster {
 		params.limit = params.limit || this.config.broadcastLimit;
 		try {
 			if (!params.peers) {
-				peers = await this.getPeers(params);
+				peers = this.getPeers(params);
 			} else {
 				peers = params.peers.slice(0, params.limit);
 			}
@@ -169,7 +166,7 @@ class Broadcaster {
 	 * @returns {Promise} null, boolean|undefined
 	 * @todo Add description for the params
 	 */
-	async filterQueue() {
+	filterQueue() {
 		library.logger.debug(`Broadcasts before filtering: ${this.queue.length}`);
 
 		this.queue = this.queue.filter(broadcast => {
@@ -259,19 +256,19 @@ class Broadcaster {
 	async releaseQueue() {
 		library.logger.info('Releasing enqueued broadcasts');
 
-		if (!self.queue.length) {
+		if (!this.queue.length) {
 			library.logger.info('Queue empty');
 			return null;
 		}
 		try {
-			await self.filterQueue();
-			const broadcasts = self.queue.splice(0, self.config.releaseLimit);
-			const squashedBroadcasts = self.squashQueue(broadcasts);
-			const peers = await self.getPeers({});
+			await this.filterQueue();
+			const broadcasts = this.queue.splice(0, this.config.releaseLimit);
+			const squashedBroadcasts = this.squashQueue(broadcasts);
+			const peers = this.getPeers({});
 
 			// eslint-disable-next-line no-restricted-syntax
 			for await (const squashedBroadcast of squashedBroadcasts) {
-				return self.broadcast(
+				return this.broadcast(
 					Object.assign({ peers }, squashedBroadcast.params),
 					squashedBroadcast.options
 				);

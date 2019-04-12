@@ -138,9 +138,9 @@ describe('Broadcaster', () => {
 
 		it('should register jobsQueue', async () => {
 			expect(jobsQueue.register.calledOnce).to.be.true;
-			expect(jobsQueue.register).to.be.calledWithExactly(
-				'broadcasterReleaseQueue',
-				broadcaster.releaseQueue,
+			expect(jobsQueue.register.args[0][0]).to.equal('broadcasterReleaseQueue');
+			// expect(jobsQueue.register.args[0][1]).to.equal(async () => broadcaster.releaseQueue());
+			expect(jobsQueue.register.args[0][2]).to.equal(
 				broadcasts.broadcastInterval
 			);
 		});
@@ -148,8 +148,8 @@ describe('Broadcaster', () => {
 
 	describe('getPeers', () => {
 		it('should throw error for empty params', async () => {
-			expect(broadcaster.getPeers(null)).to.be.rejectedWith(TypeError);
-			expect(broadcaster.getPeers(null)).to.be.rejectedWith(
+			expect(() => broadcaster.getPeers(null)).to.throw(TypeError);
+			expect(() => broadcaster.getPeers(null)).to.throw(
 				"Cannot read property 'limit' of null"
 			);
 		});
@@ -183,12 +183,12 @@ describe('Broadcaster', () => {
 
 	describe('broadcast', () => {
 		beforeEach(async () => {
-			broadcaster.getPeers = sinonSandbox.stub().resolves(peerList);
+			broadcaster.getPeers = sinonSandbox.stub().returns(peerList);
 		});
 
 		it('should throw error for empty peers', async () => {
 			const peerErr = new Error('empty peer list');
-			broadcaster.getPeers.rejects(peerErr);
+			broadcaster.getPeers.throws(peerErr);
 			expect(broadcaster.broadcast(params, options)).to.be.rejectedWith(
 				peerErr
 			);
