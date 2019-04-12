@@ -147,11 +147,7 @@ TransactionsController.postTransaction = async function(context, next) {
 			});
 		}
 
-		error = new ApiError(
-			data.message,
-			apiCodes.PROCESSING_ERROR,
-			data.error || []
-		);
+		error = new ApiError(data.message, apiCodes.PROCESSING_ERROR, data.error);
 	} catch (err) {
 		error = new ApiError(
 			'Internal server error',

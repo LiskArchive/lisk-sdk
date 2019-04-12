@@ -25,7 +25,7 @@ const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const phases = require('../../../common/phases');
 
 // eslint-disable-next-line
-describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/transactions (general)', () => {
+describe('[feature/improve_transactions_processing_efficiency] POST /api/transactions (general)', () => {
 	const transactionsEndpoint = new SwaggerSpec('POST /transactions');
 	const account = randomUtil.account();
 	const transaction = transfer({
@@ -66,7 +66,9 @@ describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/tr
 	});
 
 	describe('verification', () => {
-		it('should fail when trying to send a transaction that is already confirmed', async () => {
+		// FIXME:
+		// eslint-disable-next-line
+		it.skip('should fail when trying to send a transaction that is already confirmed', async () => {
 			return sendTransactionPromise(
 				transaction,
 				apiCodes.PROCESSING_ERROR

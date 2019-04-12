@@ -236,7 +236,6 @@ __private.receiveTransaction = function(
 			id,
 			err: convertErrorsToString(errors),
 			module: 'transport',
-			transaction,
 		});
 
 		__private.removePeer(
@@ -247,10 +246,6 @@ __private.receiveTransaction = function(
 			extraLogMessage
 		);
 		return setImmediate(cb, errors);
-	}
-
-	if (transaction.requesterPublicKey) {
-		return setImmediate(cb, [new Error('Multisig request is not allowed')]);
 	}
 
 	return library.balancesSequence.add(balancesSequenceCb => {
@@ -265,6 +260,7 @@ __private.receiveTransaction = function(
 				} from peer ${library.logic.peers.peersManager.getAddress(nonce)}`
 			);
 		}
+
 		modules.transactions.processUnconfirmedTransaction(
 			transaction,
 			true,
