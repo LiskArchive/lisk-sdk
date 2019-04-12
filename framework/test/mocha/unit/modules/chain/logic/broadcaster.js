@@ -37,7 +37,6 @@ describe('Broadcaster', () => {
 	let peerList;
 	let jobsQueue;
 	let library;
-	let nextRelease;
 
 	beforeEach(async () => {
 		broadcasts = {
@@ -139,11 +138,36 @@ describe('Broadcaster', () => {
 
 		it('should register jobsQueue', async () => {
 			expect(jobsQueue.register.calledOnce).to.be.true;
-			return expect(jobsQueue.register).calledWith(
-				'broadcasterNextRelease',
-				nextRelease,
+			const boundNextRelease = broadcaster.nextRelease.bind(broadcaster);
+			expect(jobsQueue.register.args[0][0]).to.eql('broadcasterNextRelease');
+			expect(jobsQueue.register.args[0][1].name).to.eql(boundNextRelease.name);
+			expect(jobsQueue.register.args[0][2]).to.eql(
 				broadcasts.broadcastInterval
 			);
+		});
+	});
+
+	describe('nextRelease', () => {
+		it('should be able to invoke next release', done => {
+			const releaseQueueSpy = sinonSandbox.stub().callsArgWith(0, null);
+			broadcaster.releaseQueue = releaseQueueSpy;
+			broadcaster.nextRelease(() => {
+				expect(releaseQueueSpy.calledOnce).to.be.true;
+				done();
+			});
+		});
+
+		it('should log err when failed to release', done => {
+			const releaseQueueSpy = sinonSandbox
+				.stub()
+				.callsArgWith(0, 'release error');
+			broadcaster.releaseQueue = releaseQueueSpy;
+			broadcaster.nextRelease(() => {
+				expect(loggerStub.info.args[0][0]).to.eql('Broadcaster timer');
+				expect(loggerStub.info.args[0][1]).to.eql('release error');
+				expect(releaseQueueSpy.calledOnce).to.be.true;
+				done();
+			});
 		});
 	});
 
@@ -281,30 +305,6 @@ describe('Broadcaster', () => {
 
 		it('should return false if max relay is less than relay limit', async () =>
 			expect(broadcaster.maxRelays({ relays: 9 })).to.be.false);
-	});
-
-	describe('nextRelease', () => {
-		it('should be able to invoke next release', done => {
-			const releaseQueueSpy = sinonSandbox.stub().callsArgWith(0, null);
-			Broadcaster.__set__('this.releaseQueue', releaseQueueSpy);
-			broadcaster.nextRelease(() => {
-				expect(releaseQueueSpy.calledOnce).to.be.true;
-				done();
-			});
-		});
-
-		it('should log err when failed to release', done => {
-			const releaseQueueSpy = sinonSandbox
-				.stub()
-				.callsArgWith(0, 'release error');
-			Broadcaster.__set__('this.releaseQueue', releaseQueueSpy);
-			broadcaster.nextRelease(() => {
-				expect(loggerStub.info.args[0][0]).to.eql('Broadcaster timer');
-				expect(loggerStub.info.args[0][1]).to.eql('release error');
-				expect(releaseQueueSpy.calledOnce).to.be.true;
-				done();
-			});
-		});
 	});
 
 	describe('filterQueue', () => {
@@ -643,7 +643,7 @@ describe('Broadcaster', () => {
 			const filterQueueStub = sinonSandbox
 				.stub()
 				.callsArgWith(0, 'failed to broadcast', null);
-			Broadcaster.__set__('this.filterQueue', filterQueueStub);
+			broadcaster.filterQueue = filterQueueStub;
 			broadcaster.enqueue(params, options);
 			broadcaster.releaseQueue(() => {
 				expect(loggerStub.error.args[0][0]).to.eql(
