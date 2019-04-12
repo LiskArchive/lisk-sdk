@@ -47,7 +47,6 @@ class Broadcaster {
 		library = {
 			logger,
 			logic: {
-				peers,
 				transaction,
 			},
 			config: {
@@ -101,8 +100,7 @@ class Broadcaster {
 	 */
 	getPeers(params, cb) {
 		params.limit = params.limit || this.config.peerLimit;
-		const peers = library.logic.peers.listRandomConnected(params);
-		return setImmediate(cb, null, peers);
+		return setImmediate(cb, null, []);
 	}
 
 	/**

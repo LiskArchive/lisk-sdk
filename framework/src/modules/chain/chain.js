@@ -259,11 +259,11 @@ module.exports = class Chain {
 			}),
 			blocks: async action =>
 				promisify(this.scope.modules.transport.shared.blocks)(
-					action.params[0] || {}
+					action.params || {}
 				),
 			blocksCommon: async action =>
 				promisify(this.scope.modules.transport.shared.blocksCommon)(
-					action.params[0] || {}
+					action.params || {}
 				),
 		};
 	}

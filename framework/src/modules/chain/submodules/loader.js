@@ -820,6 +820,10 @@ __private.loadBlocksFromNetwork = function(cb) {
 											);
 										});
 									}
+									library.logger.error(
+										'Failed to process block from network',
+										loadBlocksFromNetworkErr
+									);
 									return waterCb(
 										`Failed to load blocks from the network. ${loadBlocksFromNetworkErr}`
 									);

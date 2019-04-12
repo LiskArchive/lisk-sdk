@@ -13,6 +13,7 @@ const {
 	EVENT_MESSAGE_RECEIVED,
 } = require('@liskhq/lisk-p2p');
 const randomstring = require('randomstring');
+const lookupPeersIPs = require('./lookup_peers_ips');
 const { createLoggerComponent } = require('../../components/logger');
 const {
 	getByFilter,
@@ -59,11 +60,13 @@ module.exports = class Network {
 			await this.channel.invoke('app:getApplicationState')
 		);
 
+		const seedPeers = await lookupPeersIPs(this.options.list, true);
+
 		const p2pConfig = {
 			nodeInfo: initialNodeInfo,
 			hostAddress: this.options.address,
 			blacklistedPeers: this.options.access.blackList || [],
-			seedPeers: this.options.list.map(peer => ({
+			seedPeers: seedPeers.map(peer => ({
 				ipAddress: peer.ip,
 				wsPort: peer.wsPort,
 			})),
