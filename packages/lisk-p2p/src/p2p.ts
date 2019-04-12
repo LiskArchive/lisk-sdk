@@ -50,13 +50,13 @@ import {
 	P2PNetworkStatus,
 	P2PNodeInfo,
 	P2PPeerInfo,
+	P2PPeerSelectionForRequest,
+	P2PPeerSelectionForSend,
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
 	ProtocolPeerInfo,
 	ProtocolPeerInfoList,
-	P2PPeerSelectionForSend,
-	P2PPeerSelectionForRequest,
 } from './p2p_types';
 
 import { P2PRequest } from './p2p_request';
@@ -236,10 +236,10 @@ export class P2P extends EventEmitter {
 			ackTimeout: config.ackTimeout,
 			peerSelectionForSend: config.peerSelectionForSend
 				? config.peerSelectionForSend
-				: selectPeers as P2PPeerSelectionForSend,
+				: (selectPeers as P2PPeerSelectionForSend),
 			peerSelectionForRequest: config.peerSelectionForRequest
 				? config.peerSelectionForRequest
-				: selectPeers as P2PPeerSelectionForRequest,
+				: (selectPeers as P2PPeerSelectionForRequest),
 			peerSelectionForConnection: config.peerSelectionForConnection
 				? config.peerSelectionForConnection
 				: selectForConnection,
