@@ -250,11 +250,6 @@ module.exports = class Chain {
 					this.scope.modules.transactions.shared.getTransactionsCount
 				)(),
 				secondsSinceEpoch: this.slots.getTime(),
-				networkHeight: await promisify(this.scope.modules.peers.networkHeight)({
-					options: {
-						normalized: false,
-					},
-				}),
 				lastBlock: this.scope.modules.blocks.lastBlock.get(),
 			}),
 			blocks: async action =>

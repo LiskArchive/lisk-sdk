@@ -26,7 +26,7 @@ describe('GET /peers', () => {
 	const peersEndpoint = new SwaggerEndpoint('GET /peers');
 	let p2p1;
 	let p2p2;
-	let validHeaders;
+	let validHeaders = {};
 
 	before(async () => {
 		p2p1 = new P2P(generatePeerHeader());
