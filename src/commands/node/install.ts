@@ -46,7 +46,11 @@ import {
 	startDatabase,
 	stopDatabase,
 } from '../../utils/node/database';
-import { registerApplication } from '../../utils/node/pm2';
+import {
+	describeApplication,
+	Pm2Env,
+	registerApplication,
+} from '../../utils/node/pm2';
 import { getReleaseInfo } from '../../utils/node/release';
 
 interface Flags {
@@ -103,6 +107,17 @@ const installOptions = async (
 		liskTarUrl,
 		liskTarSHA256Url,
 	};
+};
+
+const applicationExists = async (name: string): Promise<Pm2Env | Error> => {
+	try {
+		const { pm2_env } = await describeApplication(name);
+		const appConfig = pm2_env as Pm2Env;
+
+		return appConfig;
+	} catch (error) {
+		return error;
+	}
 };
 
 export default class InstallCommand extends BaseCommand {
@@ -243,13 +258,28 @@ export default class InstallCommand extends BaseCommand {
 			},
 		]);
 
-		tasks.run().catch(output => {
-			const { installDir }: Options = output.context.options;
+		const appStatus = await applicationExists(name);
+		if (!(appStatus instanceof Error)) {
+			this.log(
+				`Lisk Core instance already exists at path: ${appStatus.pm_cwd}`,
+			);
+			this.print({
+				status: appStatus.status,
+				network: appStatus.LISK_NETWORK,
+			});
+
+			return;
+		}
+
+		try {
+			await tasks.run();
+		} catch (error) {
+			const { installDir }: Options = error.context.options;
 			const dirPath = installDir.substr(0, installDir.length - 1);
 
 			fsExtra.emptyDirSync(installDir);
 			fsExtra.rmdirSync(dirPath);
-			throw output[0];
-		});
+			throw error[0];
+		}
 	}
 }
