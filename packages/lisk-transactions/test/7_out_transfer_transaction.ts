@@ -32,6 +32,12 @@ describe('outTransfer transaction class', () => {
 		publicKey:
 			'305b4897abc230c1cc9d0aa3bf0c75747bfa42f32f83f5a92348edea528850ad',
 	};
+	const defaultValidRecipient = {
+		address: '13155556493249255133L',
+		balance: '4700483466477',
+		publicKey:
+			'305b4897abc230c1cc9d0aa3bf0c75747bfa42f32f83f5a92348edea528850ad',
+	};
 	const dappRegistrationTx = validDappTransactions[3];
 
 	let validTestTransaction: OutTransferTransaction;
@@ -39,6 +45,7 @@ describe('outTransfer transaction class', () => {
 	let storeTransactionGetStub: sinon.SinonStub;
 	let storeAccountCacheStub: sinon.SinonStub;
 	let storeAccountGetStub: sinon.SinonStub;
+	let storeAccountGetOrDefaultStub: sinon.SinonStub;
 	let storeAccountSetStub: sinon.SinonStub;
 
 	beforeEach(async () => {
@@ -51,6 +58,9 @@ describe('outTransfer transaction class', () => {
 		storeAccountGetStub = sandbox
 			.stub(store.account, 'get')
 			.returns(defaultValidSender);
+		storeAccountGetOrDefaultStub = sandbox
+			.stub(store.account, 'getOrDefault')
+			.returns(defaultValidRecipient);
 		storeAccountSetStub = sandbox.stub(store.account, 'set');
 	});
 
@@ -267,8 +277,8 @@ describe('outTransfer transaction class', () => {
 					}),
 			);
 			expect(
-				storeAccountGetStub
-					.getCall(1)
+				storeAccountGetOrDefaultStub
+					.getCall(0)
 					.calledWithExactly(validTestTransaction.recipientId),
 			);
 		});
@@ -315,8 +325,8 @@ describe('outTransfer transaction class', () => {
 					.calledWithExactly(validTestTransaction.senderId),
 			);
 			expect(
-				storeAccountGetStub
-					.getCall(1)
+				storeAccountGetOrDefaultStub
+					.getCall(0)
 					.calledWithExactly(validTestTransaction.recipientId),
 			);
 		});
