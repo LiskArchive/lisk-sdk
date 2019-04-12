@@ -46,7 +46,7 @@ describe('Migration', () => {
 
 	before(async () => {
 		storage = new storageSandbox.StorageSandbox(
-			__testContext.config.db,
+			__testContext.config.components.storage,
 			'lisk_test_storage_custom_migration_chain_module'
 		);
 		await storage.bootstrap();
