@@ -243,7 +243,7 @@ export default class InstallCommand extends BaseCommand {
 			},
 		]);
 
-		await tasks.run().catch(output => {
+		tasks.run().catch(output => {
 			const { installDir }: Options = output.context.options;
 			const dirPath = installDir.substr(0, installDir.length - 1);
 

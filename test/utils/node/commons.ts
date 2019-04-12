@@ -113,7 +113,7 @@ describe('commons node utils', () => {
 		});
 
 		it('should not throw error when running user is not root', () => {
-			return expect(validateNotARootUser()).to.not.throw;
+			return expect(validateNotARootUser()).not.to.throw;
 		});
 	});
 
@@ -125,9 +125,9 @@ describe('commons node utils', () => {
 
 	describe('#validateNetwork', () => {
 		it('should not throw error for valid network', () => {
-			expect(validateNetwork(NETWORK.MAINNET)).to.not.throw;
-			expect(validateNetwork(NETWORK.TESTNET)).to.not.throw;
-			return expect(validateNetwork(NETWORK.BETANET)).to.not.throw;
+			expect(validateNetwork(NETWORK.MAINNET)).not.to.throw;
+			expect(validateNetwork(NETWORK.TESTNET)).not.to.throw;
+			return expect(validateNetwork(NETWORK.BETANET)).not.to.throw;
 		});
 	});
 
@@ -141,13 +141,13 @@ describe('commons node utils', () => {
 
 		it('should return if the directory exists', () => {
 			pathExistsSyncStub.returns(true);
-			return expect(createDirectory(defaultInstallationPath)).to.not.throw;
+			return expect(createDirectory(defaultInstallationPath)).not.to.throw;
 		});
 
 		it('should create directory if it does not exists', () => {
 			pathExistsSyncStub.returns(false);
 			ensureDirSync.returns();
-			return expect(createDirectory(defaultInstallationPath)).to.not.throw;
+			return expect(createDirectory(defaultInstallationPath)).not.to.throw;
 		});
 	});
 
@@ -159,7 +159,7 @@ describe('commons node utils', () => {
 		});
 
 		it('should not throw error if url is valid', () => {
-			return expect(validURL(`https://downloads.lisk.io/lisk/`)).to.not.throw;
+			return expect(validURL(`https://downloads.lisk.io/lisk/`)).not.to.throw;
 		});
 	});
 
@@ -189,7 +189,7 @@ describe('commons node utils', () => {
 
 		it('should backup the lisk installation', async () => {
 			execStub.resolves({ stdout: '', stderr: null });
-			return expect(backupLisk(defaultInstallationPath)).to.not.throw;
+			return expect(backupLisk(defaultInstallationPath)).not.to.throw;
 		});
 
 		it('should throw error of failed to backup', async () => {
@@ -220,7 +220,7 @@ describe('commons node utils', () => {
 			execStub.resolves({ stdout: '', stderr: null });
 			return expect(
 				upgradeLisk(defaultInstallationPath, 'test', NETWORK.MAINNET, '1.0.0'),
-			).to.not.throw;
+			).not.to.throw;
 		});
 	});
 
@@ -259,7 +259,7 @@ describe('commons node utils', () => {
 
 		it('should successed for valid version', async () => {
 			releaseStub.resolves('1.0.0');
-			return expect(validateVersion(NETWORK.MAINNET, '1.0.0')).to.not.throw;
+			return expect(validateVersion(NETWORK.MAINNET, '1.0.0')).not.to.throw;
 		});
 	});
 });

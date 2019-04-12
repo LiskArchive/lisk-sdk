@@ -15,7 +15,7 @@ describe('cache node utils', () => {
 			workerProcessStub = sandbox.stub(workerProcess, 'exec');
 		});
 
-		describe('when installation does not exists', () => {
+		describe('when redis server is not installed', () => {
 			it('should return false', async () => {
 				workerProcessStub.resolves({
 					stdout: 'redis not installed',
@@ -27,7 +27,7 @@ describe('cache node utils', () => {
 			});
 		});
 
-		describe('when installation exists', () => {
+		describe('when redis server is installed', () => {
 			it('should return true', async () => {
 				workerProcessStub.resolves({ stdout: 'PONG', stderr: null });
 

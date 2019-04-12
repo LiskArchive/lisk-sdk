@@ -19,7 +19,7 @@ describe('download utils', () => {
 			sandbox.stub(fs, 'createWriteStream').returns(Buffer.alloc(1));
 		});
 
-		it('should return if download already exists', () => {
+		it('should return true if downloaded file already exists', () => {
 			existsSyncStub.returns(true);
 
 			return expect(downloadUtil.download('url', 'file/path')).returned;
@@ -37,7 +37,7 @@ describe('download utils', () => {
 	});
 
 	describe('#validateChecksum', () => {
-		it('should throw error when failed to validate checksum', async () => {
+		it('should throw an error when it fails to validate checksum', async () => {
 			execStub.resolves({ stdout: 'error', stderr: 'invalid checksum' });
 			return expect(
 				downloadUtil.validateChecksum('file/path', 'test.gz'),
@@ -54,14 +54,14 @@ describe('download utils', () => {
 	});
 
 	describe('#extract', () => {
-		it('should throw error when failed to extract', async () => {
+		it('should throw an error when it fails to extract', async () => {
 			execStub.resolves({ stderr: 'invalid filepath' });
 			return expect(
 				downloadUtil.extract('file/path', 'test.gz', 'output/dir'),
 			).to.rejectedWith('Extraction failed with error: invalid filepath');
 		});
 
-		it('should successfully extract file', async () => {
+		it('should successfully extract the file', async () => {
 			execStub.resolves({ stdout: 'OK' });
 
 			const result = await downloadUtil.extract(
@@ -79,7 +79,7 @@ describe('download utils', () => {
 			sandbox.stub(downloadUtil, 'validateChecksum');
 		});
 
-		it('should be able to download and validate release', async () => {
+		it('should download lisk and validate release', async () => {
 			await downloadUtil.downloadLiskAndValidate(
 				'output/dir',
 				'release/url',
