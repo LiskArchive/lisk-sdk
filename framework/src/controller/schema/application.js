@@ -179,7 +179,7 @@ module.exports = {
 							},
 							version: {
 								type: 'string',
-								example: 'v0.8.0',
+								example: '1.6.0-rc.3',
 								format: 'version',
 								description:
 									'The version of Lisk Core that the peer node runs on.',
