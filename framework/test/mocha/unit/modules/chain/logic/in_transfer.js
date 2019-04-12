@@ -34,7 +34,7 @@ const validKeypair = ed.makeKeypair(
 );
 
 const { FEES } = __testContext.config.constants;
-const exceptions = __testContext.config.exceptions;
+const exceptions = __testContext.config.modules.chain.exceptions;
 
 const validSender = {
 	balance: '0',

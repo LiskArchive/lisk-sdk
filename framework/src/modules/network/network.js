@@ -52,7 +52,7 @@ module.exports = class Network {
 			...nodeInfo,
 			state: 2, // TODO: Delete state property
 			nonce: moduleNonce,
-			wsPort: this.options.nodeInfo.wsPort,
+			wsPort: this.options.wsPort,
 		});
 
 		const initialNodeInfo = sanitizeNodeInfo(
@@ -60,8 +60,13 @@ module.exports = class Network {
 		);
 
 		const p2pConfig = {
-			...this.options,
 			nodeInfo: initialNodeInfo,
+			hostAddress: this.options.address,
+			blacklistedPeers: this.options.access.blackList || [],
+			seedPeers: this.options.list.map(peer => ({
+				ipAddress: peer.ip,
+				wsPort: peer.wsPort,
+			})),
 		};
 
 		this.p2p = new P2P(p2pConfig);

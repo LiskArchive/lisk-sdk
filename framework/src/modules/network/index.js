@@ -1,4 +1,4 @@
-const defaults = require('./defaults');
+const { config } = require('./defaults');
 const Network = require('./network');
 const BaseModule = require('../base_module');
 
@@ -28,8 +28,8 @@ module.exports = class NetworkModule extends BaseModule {
 		};
 	}
 
-	get defaults() {
-		return defaults;
+	static get defaults() {
+		return config;
 	}
 
 	get events() {
@@ -49,7 +49,7 @@ module.exports = class NetworkModule extends BaseModule {
 
 	async load(channel) {
 		const options = {
-			...defaults,
+			...config,
 			...this.options,
 		};
 		this.network = new Network(options);
