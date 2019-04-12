@@ -59,14 +59,8 @@ class Transport {
 			logic: {
 				block: scope.logic.block,
 				transaction: scope.logic.transaction,
-				peers: scope.logic.peers,
 			},
 			config: {
-				peers: {
-					options: {
-						timeout: scope.config.network.options.timeout,
-					},
-				},
 				forging: {
 					force: scope.config.forging.force,
 				},

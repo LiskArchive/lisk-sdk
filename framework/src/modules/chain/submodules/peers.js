@@ -58,8 +58,7 @@ class Peers {
 		};
 		self = this;
 		self.consensus = scope.config.forging.force ? 100 : 0;
-		self.broadhashConsensusCalculationInterval =
-			scope.config.network.options.broadhashConsensusCalculationInterval;
+		self.broadhashConsensusCalculationInterval = 5000;
 
 		library.channel.once('network:ready', () => {
 			self.onAppReady();
