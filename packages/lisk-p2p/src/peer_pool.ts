@@ -32,8 +32,8 @@ import {
 	P2PNodeInfo,
 	P2PPeerInfo,
 	P2PPeerSelectionForConnection,
-	P2PPeerSelectionForSend,
 	P2PPeerSelectionForRequest,
+	P2PPeerSelectionForSend,
 	P2PRequestPacket,
 	P2PResponsePacket,
 } from './p2p_types';
