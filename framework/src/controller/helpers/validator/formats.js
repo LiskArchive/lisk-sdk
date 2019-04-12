@@ -1,17 +1,13 @@
-const assert = require('assert');
-const Ajv = require('ajv');
 const ip = require('ip');
 const _ = require('lodash');
-const ZSchema = require('z-schema');
-const BigNumber = require('bignumber.js');
-const FormatValidators = require('z-schema/src/FormatValidators');
-const { SchemaValidationError } = require('../../errors');
+const Bignum = require('bignumber.js');
 
-BigNumber.config({ EXPONENTIAL_AT: 1e9 });
-// new BigNumber(2).pow(64).minus(1)
-const UINT64_MAX = new BigNumber('18446744073709551615');
+const HOSTNAME = /^[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?(\.[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?)*$/;
+
+const UINT64_MAX = new Bignum('18446744073709551615');
 
 /**
+ *
  * Uses JSON Schema validator z_schema to register custom formats.
  * Since an IP is not considered to be a hostname while used with SSL.
  * So have to apply additional validation for IP and FQDN with **ipOrFQDN**.
@@ -32,14 +28,9 @@ const UINT64_MAX = new BigNumber('18446744073709551615');
  * - os
  * - version
  *
- * @module
- * @see {@link https://github.com/zaggino/z-schema}
- * @requires ip
- * @requires lodash
- * @requires z-schema
- * @returns {boolean} True if the format is valid
  */
-const liskFormats = {
+
+const validationFormats = {
 	/**
 	 * Description of the function.
 	 *
@@ -91,7 +82,7 @@ const liskFormats = {
 		}
 
 		// Address can not exceed the max limit
-		if (new BigNumber(str.slice(0, -1)).isGreaterThan(UINT64_MAX)) {
+		if (new Bignum(str.slice(0, -1)).isGreaterThan(UINT64_MAX)) {
 			return false;
 		}
 
@@ -294,7 +285,7 @@ const liskFormats = {
 			return false;
 		}
 
-		return ip.isV4Format(str) || FormatValidators.hostname(str);
+		return ip.isV4Format(str) || HOSTNAME.test(str);
 	},
 	/**
 	 * Transaction amount/fee.
@@ -304,22 +295,24 @@ const liskFormats = {
 	 * @returns {boolean}
 	 */
 	amount(value) {
+		if (typeof value === 'string' && /^[0-9]*$/.test(value)) {
+			const bigNumber = new Bignum(value);
+			return (
+				bigNumber.isGreaterThanOrEqualTo(0) &&
+				bigNumber.isLessThanOrEqualTo(UINT64_MAX)
+			);
+		}
+
 		/**
 		 * This deconstruction has to take place here because
 		 * global.constants will be defined in test/setup.js.
 		 */
-		const { TOTAL_AMOUNT } = global.constants;
-		if (value instanceof BigNumber) {
+		if (value instanceof Bignum) {
+			const { TOTAL_AMOUNT } = global.constants;
+
 			return (
 				value.isGreaterThanOrEqualTo(0) &&
 				value.isLessThanOrEqualTo(TOTAL_AMOUNT)
-			);
-		}
-
-		if (typeof value === 'string' && /^[0-9]+$/.test(value)) {
-			const num = new BigNumber(value);
-			return (
-				num.isGreaterThanOrEqualTo(0) && num.isLessThanOrEqualTo(TOTAL_AMOUNT)
 			);
 		}
 
@@ -345,102 +338,22 @@ const liskFormats = {
 		validate: value => Number.isInteger(value) && /^\d*[13579]$/.test(value),
 	},
 	/**
-	 * Returns true if `MULTISIG_CONSTRAINTS.MIN.MAXIMUM` is lower than or equal to `MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS`.
+	 * Returns true if value is lower than or equal to `TOTAL_AMOUNT`.
 	 *
 	 * @param {Object} value
 	 * @returns {boolean}
 	 */
-	keysgroupLimit: {
+	numAmount: {
 		type: 'number',
 		validate: value => {
-			const { MULTISIG_CONSTRAINTS } = global.constants;
-			return (
-				Number.isInteger(value) &&
-				MULTISIG_CONSTRAINTS.MIN.MAXIMUM <=
-					MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS
-			);
-		},
-	},
-	/**
-	 * Returns true if `MAX_VOTES_PER_ACCOUNT` is lower than or equal to `ACTIVE_DELEGATES`.
-	 *
-	 * @param {Object} value
-	 * @returns {boolean}
-	 */
-	maxVotesAccount: {
-		type: 'number',
-		validate: value => {
-			const { ACTIVE_DELEGATES, MAX_VOTES_PER_ACCOUNT } = global.constants;
-			return (
-				Number.isInteger(value) && MAX_VOTES_PER_ACCOUNT <= ACTIVE_DELEGATES
-			);
+			const { TOTAL_AMOUNT } = global.constants;
+			if (new Bignum(value).isPositive()) {
+				return new Bignum(value).isLessThanOrEqualTo(TOTAL_AMOUNT);
+			}
+
+			return false;
 		},
 	},
 };
 
-// Register the formats
-Object.keys(liskFormats).forEach(formatName => {
-	ZSchema.registerFormat(formatName, liskFormats[formatName]);
-});
-ZSchema.formatsCache = liskFormats;
-
-const validator = new Ajv({ allErrors: true, schemaId: 'auto' });
-Object.keys(ZSchema.formatsCache).forEach(zSchemaType => {
-	validator.addFormat(zSchemaType, ZSchema.formatsCache[zSchemaType]);
-});
-
-/**
- * Load schema objects to cache and able to resolve the $ref
- *
- * @param {Object} schema - All schema objects that you want to cache before validating actual data
- */
-const loadSchema = schema => {
-	Object.keys(schema).forEach(key => {
-		validator.addSchema(schema[key], schema[key].id);
-	});
-};
-
-/**
- * Validate data against provided schema.
- *
- * @param {Object} schema - JSON Schema object
- * @param {Object} data - Data object you want to validate
- * @return {boolean}
- * @throws Framework.errors.SchemaValidationError
- */
-const validate = (schema, data) => {
-	if (!validator.validate(schema, data)) {
-		throw new SchemaValidationError(validator.errors);
-	}
-
-	return true;
-};
-
-/**
- * Validate modules spec.
- *
- * @param {Object} moduleSpec - Module Class
- * @return {boolean}
- * @throws assert.AssertionError
- */
-const validateModuleSpec = moduleSpec => {
-	assert(moduleSpec.constructor.alias, 'Module alias is required.');
-	assert(moduleSpec.constructor.info.name, 'Module name is required.');
-	assert(moduleSpec.constructor.info.author, 'Module author is required.');
-	assert(moduleSpec.constructor.info.version, 'Module version is required.');
-	assert(moduleSpec.defaults, 'Module default options are required.');
-	assert(moduleSpec.events, 'Module events are required.');
-	assert(moduleSpec.actions, 'Module actions are required.');
-	assert(moduleSpec.load, 'Module load action is required.');
-	assert(moduleSpec.unload, 'Module unload actions is required.');
-
-	return true;
-};
-
-module.exports = {
-	validator,
-	loadSchema,
-	validate,
-	validateModuleSpec,
-	ZSchema,
-};
+module.exports = validationFormats;

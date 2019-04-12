@@ -1,4 +1,5 @@
 const assert = require('assert');
+
 const { eventWithModuleNameReg } = require('./channels/base/constants');
 
 /**

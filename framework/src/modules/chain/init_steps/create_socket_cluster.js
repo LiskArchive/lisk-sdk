@@ -13,9 +13,9 @@ module.exports = async ({
 }) => {
 	const webSocketConfig = {
 		workers: 1,
-		port: config.wsPort,
+		port: config.network.wsPort,
 		host: '0.0.0.0',
-		wsEngine: config.peers.options.wsEngine,
+		wsEngine: config.network.options.wsEngine,
 		workerController: workersControllerPath,
 		perMessageDeflate: false,
 		secretKey: 'liskSecretKey',
@@ -33,9 +33,12 @@ module.exports = async ({
 		minVersion: config.minVersion,
 		protocolVersion: config.protocolVersion,
 		nethash: config.nethash,
-		port: config.wsPort,
+		port: config.network.wsPort,
 		nonce: config.nonce,
-		blackListedPeers: config.peers.access.blackList,
+		blackListedPeers: config.network.access.blackList,
+		components: {
+			logger: config.loggerConfig,
+		},
 	};
 
 	const socketCluster = new SocketCluster(webSocketConfig);
@@ -64,7 +67,7 @@ module.exports = async ({
 			logger.info('Socket Cluster ready for incoming connections');
 
 			socketCluster.listen = () => {
-				if (config.peers.enabled) {
+				if (config.network.enabled) {
 					new WsTransport(transport);
 				}
 			};

@@ -73,7 +73,7 @@ class Transport {
 			config: {
 				peers: {
 					options: {
-						timeout: scope.config.peers.options.timeout,
+						timeout: scope.config.network.options.timeout,
 					},
 				},
 				forging: {

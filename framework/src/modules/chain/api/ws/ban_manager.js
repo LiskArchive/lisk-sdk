@@ -42,7 +42,7 @@ function BanManager(logger, config) {
  */
 BanManager.prototype.banTemporarily = function(peer, onBanFinished) {
 	// Peer hardcoded in config.json by a user should stays always banned.
-	if (this.config.peers.access.blackList.includes(peer.ip)) {
+	if (this.config.network.access.blackList.includes(peer.ip)) {
 		return;
 	}
 

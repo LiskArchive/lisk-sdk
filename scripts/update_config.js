@@ -32,10 +32,9 @@ const {
 const tempy = require('tempy');
 const { observableDiff, applyChange } = require('deep-diff');
 const JSONHistory = require('./json_history');
-const AppConfig = require('../framework/src/modules/chain/helpers/config');
 const packageJSON = require('../package.json');
 
-const rootPath = path.resolve(path.dirname(__filename), '../');
+const rootPath = path.resolve(path.dirname(__filename), '../../../../../');
 const loadJSONFile = filePath => JSON.parse(fs.readFileSync(filePath), 'utf8');
 const loadJSONFileIfExists = filePath => {
 	if (fs.existsSync(filePath)) {
@@ -77,6 +76,8 @@ if (typeof network === 'undefined') {
 	process.exit(1);
 }
 
+// TODO: Default config is not accessible this way right now
+// 	Will be fixed with https://github.com/LiskHQ/lisk/issues/3171
 const defaultConfig = loadJSONFile(
 	path.resolve(rootPath, 'config/default/config.json')
 );
@@ -90,6 +91,24 @@ const unifiedNewConfig = _.merge({}, defaultConfig, networkConfig);
 const userConfig = loadJSONFileIfExists(configFilePath);
 
 const history = new JSONHistory('lisk config file', console);
+
+const moveElement = (config, pathFrom, pathTo) => {
+	config = _.set(config, pathTo, _.get(config, pathFrom));
+	config = _.omit(config, pathFrom);
+	return config;
+};
+
+const moveChildElements = (config, pathFrom, pathTo) => {
+	config = _.set(config, pathTo, _.get(config, pathFrom));
+	config = _.omit(config, pathFrom);
+	return config;
+};
+
+const moveKeys = (config, keys, pathTo) => {
+	config = _.set(config, pathTo, _.pick(config, keys));
+	config = _.omit(config, keys);
+	return config;
+};
 
 history.version('0.9.x');
 history.version('1.0.0-rc.1', version => {
@@ -232,6 +251,64 @@ history.version('1.2.0-rc.x', version => {
 	});
 });
 
+history.version('1.6.0-rc.0', version => {
+	version.change('add structure for logger component', config =>
+		moveKeys(
+			config,
+			['fileLogLevel', 'logFileName', 'consoleLogLevel'],
+			'components.logger'
+		)
+	);
+
+	version.change('add structure for storage component', config =>
+		moveChildElements(config, 'db', 'components.storage')
+	);
+
+	version.change('add structure for cache component', config => {
+		config = moveChildElements(config, 'redis', 'components.cache');
+		config = _.set(config, 'components.cache.enabled', config.cacheEnabled);
+		delete config.cacheEnabled;
+		return _.omit(config, 'redis');
+	});
+
+	version.change('add structure for http_api module', config => {
+		config = moveChildElements(config, 'api', 'modules.http_api');
+		config = moveElement(config, 'trustProxy', 'modules.http_api.trustProxy');
+		config = moveElement(config, 'httpPort', 'modules.http_api.httpPort');
+		// Remove address in last step
+		config = _.set(config, 'modules.http_api.address', config.address);
+		return config;
+	});
+
+	version.change('add structure for chain module', config => {
+		config = moveElement(config, 'broadcasts', 'modules.chain.broadcasts');
+		config = moveElement(config, 'transactions', 'modules.chain.transactions');
+		config = moveElement(config, 'forging', 'modules.chain.forging');
+		config = moveElement(config, 'syncing', 'modules.chain.syncing');
+		config = moveElement(config, 'loading', 'modules.chain.loading');
+
+		// Future network module
+		config = moveElement(config, 'peers', 'modules.chain.network');
+		config = moveElement(config, 'wsPort', 'modules.chain.network.wsPort');
+		config = moveElement(config, 'address', 'modules.chain.network.address');
+		return config;
+	});
+
+	version.change('remove topAccounts', config => {
+		delete config.topAccounts;
+		return config;
+	});
+
+	version.change('move forging.access to http_api', config => {
+		config = moveElement(
+			config,
+			'modules.chain.forging.access',
+			'modules.http_api.forging'
+		);
+		return config;
+	});
+});
+
 const askPassword = (message, cb) => {
 	if (program.password && program.password.trim().length !== 0) {
 		return setImmediate(cb, null, program.password);
@@ -317,7 +394,10 @@ history.migrate(
 		// Set the env variables to validate against correct network and config file
 		process.env.LISK_NETWORK = network;
 		process.env.LISK_CONFIG_FILE = tempFilePath;
-		new AppConfig(packageJSON, false);
+
+		// TODO: Add a replacement logic for config helper
+		// new AppConfig(packageJSON, false);
+
 		console.info('Validation finished successfully.');
 
 		if (program.output) {
