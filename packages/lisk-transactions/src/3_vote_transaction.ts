@@ -49,13 +49,13 @@ export const voteAssetFormatSchema = {
 	properties: {
 		votes: {
 			type: 'array',
-			uniqueSignedPublicKeys: true,
 			minItems: MIN_VOTE_PER_TX,
 			maxItems: MAX_VOTE_PER_TX,
 			items: {
 				type: 'string',
 				format: 'signedPublicKey',
 			},
+			uniqueSignedPublicKeys: true,
 		},
 	},
 };

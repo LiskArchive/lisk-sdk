@@ -237,14 +237,11 @@ export abstract class BaseTransaction {
 		if (validateAssetErrors.length > 0) {
 			return createResponse(this.id, validateAssetErrors);
 		}
-
 		const validateSchemaErrors = this._validateSchema();
 		if (validateSchemaErrors.length > 0) {
 			return createResponse(this.id, validateSchemaErrors);
 		}
-
 		const transactionBytes = this.getBasicBytes();
-
 		const errors: TransactionError[] = [];
 
 		const {
