@@ -1,10 +1,12 @@
 const assert = require('assert');
+const randomstring = require('randomstring');
+const _ = require('lodash');
 const Controller = require('./controller');
-const defaults = require('./defaults');
 const version = require('../version');
 const validator = require('./helpers/validator');
 const applicationSchema = require('./schema/application');
 const constantsSchema = require('./schema/constants');
+
 const { createLoggerComponent } = require('../components/logger');
 
 const ChainModule = require('../modules/chain');
@@ -70,8 +72,8 @@ class Application {
 	 *
 	 * @param {string|function} label - Application label used in logs. Useful if you have multiple networks for same application.
 	 * @param {Object} genesisBlock - Genesis block object
-	 * @param {Object} [constants] - Override constants
-	 * @param {Object} [config] - Main configuration object
+	 * @param {Object} [constantsToOverride] - Override constantsToOverride
+	 * @param {Object|Array.<Object>} [config] - Main configuration object or the array of objects, array format will facilitate user to not deep merge the objects
 	 * @param {Object} [config.components] - Configurations for components
 	 * @param {Object} [config.components.logger] - Configuration for logger component
 	 * @param {Object} [config.components.cache] - Configuration for cache component
@@ -87,49 +89,67 @@ class Application {
 	constructor(
 		label,
 		genesisBlock,
-		constants = {},
-		config = { components: { logger: null } }
+		config = { app: {}, components: { logger: null }, modules: {} }
 	) {
-		if (typeof label === 'function') {
-			label = label.call();
+		let appConfig;
+
+		// If user passes multiple config objects merge them in left-right order
+		if (Array.isArray(config)) {
+			// We don't have a mergeDeep method, so we are using defaultsDeep
+			// in the reverse order to have same behaviour
+			appConfig = _.defaultsDeep(...config.reverse());
+		} else {
+			appConfig = config;
 		}
 
-		if (!config.components.logger) {
-			config.components.logger = {
-				filename: `logs/${label}/lisk.log`,
+		if (!appConfig.components.logger) {
+			appConfig.components.logger = {
+				logFileName: `${process.cwd()}/logs/${label}/lisk.log`,
 			};
 		}
 
-		// Provide global constants for controller used by z_schema
-		global.constants = constants;
-
-		validator.loadSchema(applicationSchema);
 		validator.loadSchema(constantsSchema);
-		validator.validate(applicationSchema.appLabel, label);
-		validator.validate(constantsSchema.constants, constants);
-		validator.validate(applicationSchema.config, config);
+		validator.loadSchema(applicationSchema);
+
+		// If app label is a function it will be dependent on compiled configuration
+		// so we assign and validate it later stage
+		if (typeof label === 'string') {
+			validator.validate(applicationSchema.appLabel, label);
+		}
 		validator.validate(applicationSchema.genesisBlock, genesisBlock);
 
-		// TODO: Validate schema for genesis block, constants, exceptions
+		appConfig = validator.parseEnvArgAndValidate(
+			applicationSchema.config,
+			appConfig
+		);
+
+		// These constants are readonly we are loading up their default values
+		// In additional validating those values so any wrongly changed value
+		// by us can be catch on application startup
+		const constants = validator.parseEnvArgAndValidate(
+			constantsSchema.constants,
+			{}
+		);
+
+		// app.genesisConfig are actually old constants
+		// we are merging these here to refactor the underlying code in other iteration
+		this.constants = { ...constants, ...appConfig.app.genesisConfig };
 		this.genesisBlock = genesisBlock;
-		this.constants = Object.assign({}, defaults.constants, constants);
 		this.label = label;
-		this.banner = `${label || 'LiskApp'} - Lisk Framework(${version})`;
-		this.config = config;
+		this.config = appConfig;
 		this.controller = null;
+
+		// TODO: This should be removed after https://github.com/LiskHQ/lisk/pull/2980
+		global.constants = this.constants;
 
 		this.logger = createLoggerComponent(this.config.components.logger);
 
 		__private.modules.set(this, {});
 		__private.transactions.set(this, {});
 
-		this.registerModule(ChainModule, {
-			genesisBlock: this.genesisBlock,
-			constants: this.constants,
-		});
-
-		this.registerModule(HttpAPIModule, {
-			constants: this.constants,
+		this.registerModule(ChainModule);
+		this.registerModule(HttpAPIModule);
+		this.overrideModuleOptions(HttpAPIModule.alias, {
 			loadAsChildProcess: true,
 		});
 	}
@@ -156,10 +176,11 @@ class Application {
 		);
 
 		const modules = this.getModules();
-		modules[moduleAlias] = {
-			klass: moduleKlass,
-			options: options || {},
-		};
+		modules[moduleAlias] = moduleKlass;
+		this.config.modules[moduleAlias] = Object.assign(
+			this.config.modules[moduleAlias] || {},
+			options
+		);
 		__private.modules.set(this, modules);
 	}
 
@@ -175,8 +196,11 @@ class Application {
 			Object.keys(modules).includes(alias),
 			`No module ${alias} is registered`
 		);
-		modules[alias].options = Object.assign({}, modules[alias].options, options);
-		__private.modules.set(this, modules);
+		this.config.modules[alias] = Object.assign(
+			{},
+			this.config.modules[alias],
+			options
+		);
 	}
 
 	/**
@@ -248,17 +272,37 @@ class Application {
 	 * @return {Promise.<void>}
 	 */
 	async run() {
-		this.logger.info(`Starting the app - ${this.banner}`);
+		this.logger.info(`Booting the application with Lisk Framework(${version})`);
+
 		// Freeze every module and configuration so it would not interrupt the app execution
+		this._compileAndValidateConfigurations();
+
+		// Check if label is a function, then call that function to get the label
+		// This is because user can pass a function generator function instead of string
+		if (typeof this.label === 'function') {
+			this.label = this.label.call(this, this.config);
+		}
+		validator.validate(applicationSchema.appLabel, this.label);
+
 		Object.freeze(this.genesisBlock);
 		Object.freeze(this.constants);
 		Object.freeze(this.label);
 		Object.freeze(this.config);
 
+		this.logger.info(`Starting the app - ${this.label || 'LiskApp'}`);
+
 		registerProcessHooks(this);
 
-		this.controller = new Controller(this.label, this.config, this.logger);
-		return this.controller.load(this.getModules());
+		this.controller = new Controller(
+			this.label,
+			{
+				components: this.config.components,
+				ipc: this.config.app.ipc,
+				initialState: this.config.initialState,
+			},
+			this.logger
+		);
+		return this.controller.load(this.getModules(), this.config.modules);
 	}
 
 	/**
@@ -274,6 +318,60 @@ class Application {
 		}
 		this.logger.log(`Shutting down with error code ${errorCode}: ${message}`);
 		process.exit(errorCode);
+	}
+
+	_compileAndValidateConfigurations() {
+		const modules = this.getModules();
+
+		this.config.app.nonce = randomstring.generate(16);
+		this.config.app.nethash = this.genesisBlock.payloadHash;
+
+		const appConfigToShareWithModules = {
+			version: this.config.app.version,
+			minVersion: this.config.app.minVersion,
+			protocolVersion: this.config.app.protocolVersion,
+			nethash: this.config.app.nethash,
+			nonce: this.config.app.nonce,
+			genesisBlock: this.genesisBlock,
+			constants: this.constants,
+		};
+
+		// TODO: move this configuration to module especific config file
+		const childProcessModules = process.env.LISK_CHILD_PROCESS_MODULES
+			? process.env.LISK_CHILD_PROCESS_MODULES.split(',')
+			: ['httpApi'];
+
+		Object.keys(modules).forEach(alias => {
+			this.logger.info(`Validating module options with alias: ${alias}`);
+			this.config.modules[alias] = validator.parseEnvArgAndValidate(
+				modules[alias].defaults,
+				this.config.modules[alias]
+			);
+
+			this.overrideModuleOptions(alias, appConfigToShareWithModules);
+			this.overrideModuleOptions(alias, {
+				loadAsChildProcess: childProcessModules.includes(alias),
+			});
+		});
+
+		// TODO: Improve the hardcoded system component values
+		this.config.components.system = {
+			...appConfigToShareWithModules,
+			wsPort: this.config.modules.chain.network.wsPort,
+			httpPort: this.config.modules.http_api.httpPort,
+		};
+
+		this.config.initialState = {
+			version: this.config.app.version,
+			minVersion: this.config.app.minVersion,
+			protocolVersion: this.config.app.protocolVersion,
+			nonce: this.config.app.nonce,
+			nethash: this.config.app.nethash,
+			wsPort: this.config.modules.chain.network.wsPort,
+			httpPort: this.config.modules.http_api.httpPort,
+		};
+
+		this.logger.trace('Compiled configurations', this.config);
 	}
 }
 

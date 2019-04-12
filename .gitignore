@@ -44,3 +44,6 @@ framework/test/mocha/network/networkTestsLogger.logs
 
 # Local config file useful for development
 config.local.json
+
+# Helm charts dependencies
+helm/**/charts/*tgz

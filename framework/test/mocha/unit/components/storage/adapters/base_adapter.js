@@ -84,6 +84,11 @@ describe('BaseAdapter', () => {
 				expect(adapter.connect).to.throw(ImplementationPendingError));
 		});
 
+		describe('loadSQLFiles', () => {
+			it('should throw error', async () =>
+				expect(adapter.connect).to.throw(ImplementationPendingError));
+		});
+
 		describe('parseQueryComponent', () => {
 			it('should throw error', async () =>
 				expect(adapter.connect).to.throw(ImplementationPendingError));

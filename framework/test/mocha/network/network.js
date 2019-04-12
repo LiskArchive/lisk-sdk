@@ -244,7 +244,9 @@ class Network {
 			waitFor.blockchainReady(
 				retries,
 				timeout,
-				`http://${configuration.ip}:${configuration.httpPort}`,
+				`http://${configuration.modules.http_api.address}:${
+					configuration.modules.http_api.httpPort
+				}`,
 				!logRetries,
 				err => {
 					if (err) {
@@ -293,7 +295,9 @@ class Network {
 		return new Promise((resolve, reject) => {
 			waitFor.blocks(
 				blocksToWait,
-				`http://${configuration.ip}:${configuration.httpPort}`,
+				`http://${configuration.modules.http_api.address}:${
+					configuration.modules.http_api.httpPort
+				}`,
 				err => {
 					if (err) {
 						return reject(
@@ -331,12 +335,12 @@ class Network {
 
 		const enableForgingPromises = [];
 		this.configurations.forEach(configuration => {
-			configuration.forging.delegates
-				.filter(() => !configuration.forging.force)
+			configuration.modules.chain.forging.delegates
+				.filter(() => !configuration.modules.chain.forging.force)
 				.map(keys => {
 					const enableForgingPromise = utils.http.enableForging(
 						keys,
-						configuration.httpPort
+						configuration.modules.http_api.httpPort
 					);
 					return enableForgingPromises.push(enableForgingPromise);
 				});

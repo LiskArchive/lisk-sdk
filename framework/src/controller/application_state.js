@@ -94,7 +94,7 @@ class ApplicationState {
 			newState.height = height;
 			__private.state.set(this, newState);
 			this.logger.debug('Application state', this.state);
-			await this.stateChannel.publish('lisk:state:updated', this.state);
+			await this.stateChannel.publish('app:state:updated', this.state);
 			return true;
 		} catch (err) {
 			this.logger.error(err.stack);

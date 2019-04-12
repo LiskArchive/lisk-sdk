@@ -51,7 +51,10 @@ describe('round', () => {
 		},
 	};
 
-	const storage = new TestStorageSandbox(__testContext.config.db, storageStubs);
+	const storage = new TestStorageSandbox(
+		__testContext.config.components.storage,
+		storageStubs
+	);
 
 	const modules = {
 		accounts: {
@@ -592,9 +595,7 @@ describe('round', () => {
 	describe('rewardsAtRound', () => {
 		const validLocalScope = _.cloneDeep(validScope);
 		const rewardsAt = 2;
-		const roundExceptionCopy = _.clone(
-			global.exceptions.rounds
-		);
+		const roundExceptionCopy = _.clone(global.exceptions.rounds);
 
 		beforeEach(async () => {
 			validLocalScope.round = 1;
