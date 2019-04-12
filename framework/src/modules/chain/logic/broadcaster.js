@@ -76,8 +76,8 @@ class Broadcaster {
 
 		if (broadcasts.active) {
 			jobsQueue.register(
-				'broadcasterNextRelease',
-				this.nextRelease.bind(this),
+				'broadcasterReleaseQueue',
+				this.releaseQueue.bind(this),
 				this.config.broadcastInterval
 			);
 		} else {
@@ -85,16 +85,6 @@ class Broadcaster {
 				'Broadcasting data disabled by user through config.json'
 			);
 		}
-	}
-
-	// Broadcaster timer
-	nextRelease(cb) {
-		this.releaseQueue(err => {
-			if (err) {
-				library.logger.info('Broadcaster timer', err);
-			}
-			return setImmediate(cb);
-		});
 	}
 
 	/**
