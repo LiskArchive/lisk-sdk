@@ -66,9 +66,7 @@ export class TransferTransaction extends BaseTransaction {
 	}
 
 	public assetToJSON(): TransferAsset {
-		return {
-			...this.asset,
-		};
+		return this.asset;
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {

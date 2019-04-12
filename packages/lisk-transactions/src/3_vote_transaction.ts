@@ -78,9 +78,7 @@ export class VoteTransaction extends BaseTransaction {
 	}
 
 	public assetToJSON(): object {
-		return {
-			votes: this.asset.votes,
-		};
+		return this.asset;
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {

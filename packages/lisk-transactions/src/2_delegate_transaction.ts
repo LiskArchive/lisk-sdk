@@ -71,9 +71,7 @@ export class DelegateTransaction extends BaseTransaction {
 	}
 
 	public assetToJSON(): DelegateAsset {
-		return {
-			...this.asset,
-		};
+		return this.asset;
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {

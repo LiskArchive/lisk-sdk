@@ -97,13 +97,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 	}
 
 	public assetToJSON(): MultiSignatureAsset {
-		return {
-			multisignature: {
-				min: this.asset.multisignature.min,
-				lifetime: this.asset.multisignature.lifetime,
-				keysgroup: [...this.asset.multisignature.keysgroup],
-			},
-		};
+		return this.asset;
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {

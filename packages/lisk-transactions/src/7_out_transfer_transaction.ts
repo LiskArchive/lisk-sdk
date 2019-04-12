@@ -93,9 +93,7 @@ export class OutTransferTransaction extends BaseTransaction {
 	}
 
 	public assetToJSON(): object {
-		return {
-			...this.asset,
-		};
+		return this.asset;
 	}
 
 	protected verifyAgainstTransactions(

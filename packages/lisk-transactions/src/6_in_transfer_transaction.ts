@@ -90,9 +90,7 @@ export class InTransferTransaction extends BaseTransaction {
 	}
 
 	public assetToJSON(): object {
-		return {
-			...this.asset,
-		};
+		return this.asset;
 	}
 
 	// tslint:disable-next-line prefer-function-over-method
