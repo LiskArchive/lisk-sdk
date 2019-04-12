@@ -1,4 +1,4 @@
-const systemDirs = require('../../../../../../src/controller/config/dirs');
+const systemDirs = require('../../../../../../src/controller/helpers/sysmtem_dirs');
 
 describe('systemDirs', () => {
 	it('Should return directories configuration with given app label.', () => {

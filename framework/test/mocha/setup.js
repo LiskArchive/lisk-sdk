@@ -38,25 +38,36 @@ const {
 
 const packageJson = require('../../../package.json');
 const netConfig = require('../../../config/devnet/config');
-const constants = require('../../../config/devnet/constants');
 const exceptions = require('../../../config/devnet/exceptions');
 const genesisBlock = require('../../../config/devnet/genesis_block');
 
 validator.loadSchema(constantsSchema);
 validator.loadSchema(applicationSchema);
 
-const config = {
-	...netConfig,
-	version: packageJson.version,
-	minVersion: packageJson.lisk.minVersion,
-	// Support for PROTOCOL_VERSION only for tests
-	protocolVersion:
-		process.env.PROTOCOL_VERSION || packageJson.lisk.protocolVersion,
-};
-config.constants = validator.parseEnvArgAndValidate(
-	constantsSchema.constants,
-	constants
+const config = _.merge(netConfig, {
+	app: {
+		version: packageJson.version,
+		minVersion: packageJson.lisk.minVersion,
+		// Support for PROTOCOL_VERSION only for tests
+		protocolVersion:
+			process.env.PROTOCOL_VERSION || packageJson.lisk.protocolVersion,
+	},
+});
+
+const appConfig = validator.parseEnvArgAndValidate(
+	applicationSchema.config,
+	netConfig
 );
+
+// These constants are readonly we are loading up their default values
+// In additional validating those values so any wrongly changed value
+// by us can be catch on application startup
+const constants = validator.parseEnvArgAndValidate(
+	constantsSchema.constants,
+	{}
+);
+
+config.constants = { ...constants, ...appConfig.app.genesisConfig };
 
 // TODO: This should be removed after https://github.com/LiskHQ/lisk/pull/2980
 global.constants = config.constants;

@@ -4,15 +4,17 @@ const packageJSON = require('../package');
 
 const { Application, helpers: { validator } } = require('../framework/src');
 
-const packageInfo = {
-	version: packageJSON.version,
-	minVersion: packageJSON.lisk.minVersion,
-	protocolVersion: packageJSON.lisk.protocolVersion,
+const appConfig = {
+	app: {
+		version: packageJSON.version,
+		minVersion: packageJSON.lisk.minVersion,
+		protocolVersion: packageJSON.lisk.protocolVersion,
+	},
 };
 
 // Support for PROTOCOL_VERSION only for tests
 if (process.env.NODE_ENV === 'test' && process.env.PROTOCOL_VERSION) {
-	packageInfo.protocolVersion = process.env.PROTOCOL_VERSION;
+	appConfig.app.protocolVersion = process.env.PROTOCOL_VERSION;
 }
 
 const appSchema = {
@@ -48,8 +50,9 @@ try {
 
 	/* eslint-disable import/no-dynamic-require */
 	let customConfig = {};
+	// TODO: I would convert config.json to .JS
 	const networkConfig = require(`../config/${NETWORK}/config`);
-	const constants = require(`../config/${NETWORK}/constants`);
+	// TODO: Merge constants and exceptions with the above config.
 	const exceptions = require(`../config/${NETWORK}/exceptions`);
 	const genesisBlock = require(`../config/${NETWORK}/genesis_block`);
 
@@ -63,10 +66,14 @@ try {
 	const appName = config =>
 		`lisk-${NETWORK}-${config.modules.http_api.httpPort}`;
 
-	const app = new Application(appName, genesisBlock, constants, [
+	/*
+	TODO: Merge 3rd and 4th argument into one single object that would come from config/NETWORK/config.json
+	Exceptions and constants.js will be removed.
+	 */
+	const app = new Application(appName, genesisBlock, [
 		networkConfig,
 		customConfig,
-		packageInfo,
+		appConfig,
 	]);
 
 	app.overrideModuleOptions('chain', { exceptions });
@@ -84,6 +91,6 @@ try {
 			process.exit();
 		});
 } catch (e) {
-	console.error('Application start error.', e);
+	console.error('Application start error.', e.errors);
 	process.exit();
 }

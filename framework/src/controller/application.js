@@ -6,6 +6,7 @@ const version = require('../version');
 const validator = require('./helpers/validator');
 const applicationSchema = require('./schema/application');
 const constantsSchema = require('./schema/constants');
+
 const { createLoggerComponent } = require('../components/logger');
 
 const ChainModule = require('../modules/chain');
@@ -71,7 +72,7 @@ class Application {
 	 *
 	 * @param {string|function} label - Application label used in logs. Useful if you have multiple networks for same application.
 	 * @param {Object} genesisBlock - Genesis block object
-	 * @param {Object} [constants] - Override constants
+	 * @param {Object} [constantsToOverride] - Override constantsToOverride
 	 * @param {Object|Array.<Object>} [config] - Main configuration object or the array of objects, array format will facilitate user to not deep merge the objects
 	 * @param {Object} [config.components] - Configurations for components
 	 * @param {Object} [config.components.logger] - Configuration for logger component
@@ -88,53 +89,58 @@ class Application {
 	constructor(
 		label,
 		genesisBlock,
-		constants = {},
-		config = { components: { logger: null }, modules: {} }
+		config = { app: {}, components: { logger: null }, modules: {} }
 	) {
 		let appConfig;
 
 		// If user passes multiple config objects merge them in left-right order
 		if (Array.isArray(config)) {
-			appConfig = _.mergeWith(
-				{ components: {}, modules: {} },
-				...config,
-				(objValue, srcValue) => {
-					if (_.isArray(objValue)) {
-						return srcValue;
-					}
-					return undefined;
-				}
-			);
+			// We don't have a mergeDeep method, so we are using defaultsDeep
+			// in the reverse order to have same behaviour
+			appConfig = _.defaultsDeep(...config.reverse());
 		} else {
 			appConfig = config;
 		}
 
-		const appLabel =
-			typeof label === 'function' ? label.call(null, appConfig) : label;
-
 		if (!appConfig.components.logger) {
 			appConfig.components.logger = {
-				logFileName: `${process.cwd()}/logs/${appLabel}/lisk.log`,
+				logFileName: `${process.cwd()}/logs/${label}/lisk.log`,
 			};
 		}
 
-		validator.loadSchema(applicationSchema);
 		validator.loadSchema(constantsSchema);
-		validator.validate(applicationSchema.appLabel, appLabel);
-		validator.validate(applicationSchema.config, appConfig);
-		constants = validator.parseEnvArgAndValidate(
-			constantsSchema.constants,
-			constants
-		);
+		validator.loadSchema(applicationSchema);
 
+		// If app label is a function it will be dependent on compiled configuration
+		// so we assign and validate it later stage
+		if (typeof label === 'string') {
+			validator.validate(applicationSchema.appLabel, label);
+		}
 		validator.validate(applicationSchema.genesisBlock, genesisBlock);
 
-		// TODO: Validate schema for genesis block, constants, exceptions
+		appConfig = validator.parseEnvArgAndValidate(
+			applicationSchema.config,
+			appConfig
+		);
+
+		// These constants are readonly we are loading up their default values
+		// In additional validating those values so any wrongly changed value
+		// by us can be catch on application startup
+		const constants = validator.parseEnvArgAndValidate(
+			constantsSchema.constants,
+			{}
+		);
+
+		// app.genesisConfig are actually old constants
+		// we are merging these here to refactor the underlying code in other iteration
+		this.constants = { ...constants, ...appConfig.app.genesisConfig };
 		this.genesisBlock = genesisBlock;
-		this.constants = constants;
-		this.label = appLabel;
+		this.label = label;
 		this.config = appConfig;
 		this.controller = null;
+
+		// TODO: This should be removed after https://github.com/LiskHQ/lisk/pull/2980
+		global.constants = this.constants;
 
 		this.logger = createLoggerComponent(this.config.components.logger);
 
@@ -291,7 +297,7 @@ class Application {
 			this.label,
 			{
 				components: this.config.components,
-				ipc: this.config.ipc,
+				ipc: this.config.app.ipc,
 				initialState: this.config.initialState,
 			},
 			this.logger
@@ -317,12 +323,17 @@ class Application {
 	_compileAndValidateConfigurations() {
 		const modules = this.getModules();
 
-		const sharedConfiguration = {
-			version: this.config.version,
-			minVersion: this.config.minVersion,
-			protocolVersion: this.config.protocolVersion,
-			nonce: randomstring.generate(16),
-			nethash: this.genesisBlock.payloadHash,
+		this.config.app.nonce = randomstring.generate(16);
+		this.config.app.nethash = this.genesisBlock.payloadHash;
+
+		const appConfigToShareWithModules = {
+			version: this.config.app.version,
+			minVersion: this.config.app.minVersion,
+			protocolVersion: this.config.app.protocolVersion,
+			nethash: this.config.app.nethash,
+			nonce: this.config.app.nonce,
+			genesisBlock: this.genesisBlock,
+			constants: this.constants,
 		};
 
 		// TODO: move this configuration to module especific config file
@@ -337,29 +348,27 @@ class Application {
 				this.config.modules[alias]
 			);
 
-			this.overrideModuleOptions(alias, sharedConfiguration);
+			this.overrideModuleOptions(alias, appConfigToShareWithModules);
 			this.overrideModuleOptions(alias, {
-				genesisBlock: this.genesisBlock,
-				constants: this.constants,
 				loadAsChildProcess: childProcessModules.includes(alias),
 			});
 		});
 
 		// TODO: Improve the hardcoded system component values
 		this.config.components.system = {
-			...sharedConfiguration,
+			...appConfigToShareWithModules,
 			wsPort: this.config.modules.chain.network.wsPort,
 			httpPort: this.config.modules.http_api.httpPort,
 		};
 
 		this.config.initialState = {
-			nethash: sharedConfiguration.nethash,
-			version: this.config.version,
+			version: this.config.app.version,
+			minVersion: this.config.app.minVersion,
+			protocolVersion: this.config.app.protocolVersion,
+			nonce: this.config.app.nonce,
+			nethash: this.config.app.nethash,
 			wsPort: this.config.modules.chain.network.wsPort,
 			httpPort: this.config.modules.http_api.httpPort,
-			minVersion: this.config.minVersion,
-			protocolVersion: this.config.protocolVersion,
-			nonce: sharedConfiguration.nonce,
 		};
 
 		this.logger.trace('Compiled configurations', this.config);

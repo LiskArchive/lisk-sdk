@@ -1,4 +1,9 @@
 {
+	"app": {
+		"ipc": {
+			"enabled": true
+		}
+	},
 	"components": {
 		"logger": {
 			"fileLogLevel": "debug",
@@ -643,8 +648,5 @@
 				]
 			}
 		}
-	},
-	"ipc": {
-		"enabled": true
 	}
 }
