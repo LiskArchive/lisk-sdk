@@ -25,6 +25,7 @@ import { verifyAmountBalance } from './utils';
 import { validator } from './utils/validation';
 
 const TRANSACTION_OUTTRANSFER_TYPE = 7;
+const TRANSACTION_DAPP_REGISTERATION_TYPE = 5;
 
 export interface OutTransferAsset {
 	readonly outTransfer: {
@@ -183,11 +184,15 @@ export class OutTransferTransaction extends BaseTransaction {
 			this.asset.outTransfer.dappId,
 		);
 
-		if (dappRegistrationTransaction.senderId !== this.senderId) {
+		if (
+			!dappRegistrationTransaction ||
+			dappRegistrationTransaction.type !== TRANSACTION_DAPP_REGISTERATION_TYPE
+		) {
 			errors.push(
 				new TransactionError(
-					`Out transaction must be sent from owner of the Dapp.`,
+					`Application not found: ${this.asset.outTransfer.dappId}`,
 					this.id,
+					'.asset.outTransfer.dappId',
 				),
 			);
 		}

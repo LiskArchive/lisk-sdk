@@ -18,6 +18,7 @@ import { MockStateStore as store } from './helpers';
 import { OutTransferTransaction } from '../src/7_out_transfer_transaction';
 import {
 	validOutTransferTransactions,
+	validTransaction,
 	validDappTransactions,
 } from '../fixtures';
 import { TransactionJSON } from '../src/transaction_types';
@@ -282,14 +283,22 @@ describe('outTransfer transaction class', () => {
 			);
 		});
 
-		it('should return error when not sent from owner of dapp', async () => {
+		it('should return error when transaction is not a dapp', async () => {
 			const invalidTestTransaction = new OutTransferTransaction({
 				...defaultTransaction,
-				senderId: '123L',
+				asset: {
+					outTransfer: {
+						dappId: '123',
+					},
+				},
 			});
+			storeTransactionGetStub.returns(validTransaction);
+
 			const errors = (invalidTestTransaction as any).applyAsset(store);
 			expect(errors[0].message).to.equal(
-				`Out transaction must be sent from owner of the Dapp.`,
+				`Application not found: ${
+					invalidTestTransaction.asset.outTransfer.dappId
+				}`,
 			);
 		});
 
