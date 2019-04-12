@@ -85,7 +85,9 @@ export class InTransferTransaction extends BaseTransaction {
 				: undefined;
 
 		if (dappTransaction) {
-			await store.account.cache([{ id: dappTransaction.senderId as string }]);
+			await store.account.cache([
+				{ address: dappTransaction.senderId as string },
+			]);
 		}
 	}
 
