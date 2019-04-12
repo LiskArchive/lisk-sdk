@@ -73,7 +73,7 @@ class Loader {
 			config: {
 				loading: {
 					loadPerIteration: scope.config.loading.loadPerIteration,
-					rebuildRound: scope.config.loading.rebuildRound,
+					rebuildUpToRound: scope.config.loading.rebuildUpToRound,
 				},
 				syncing: {
 					active: scope.config.syncing.active,
@@ -503,7 +503,7 @@ __private.loadBlockChain = function() {
 
 			matchGenesisBlock(getGenesisBlock);
 
-			if (library.config.loading.rebuildRound) {
+			if (library.config.loading.rebuildUpToRound) {
 				return __private.rebuildAccounts(blocksCount);
 			}
 
@@ -754,8 +754,11 @@ __private.rebuildAccounts = height => {
 		);
 	}
 
-	const rebuildRound = library.config.loading.rebuildRound;
-	if (Number.isNaN(parseInt(rebuildRound)) || parseInt(rebuildRound) < 0) {
+	const rebuildUpToRound = library.config.loading.rebuildUpToRound;
+	if (
+		Number.isNaN(parseInt(rebuildUpToRound)) ||
+		parseInt(rebuildUpToRound) < 0
+	) {
 		throw new Error(
 			'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero'
 		);
@@ -763,9 +766,9 @@ __private.rebuildAccounts = height => {
 
 	const totalRounds = Math.floor(height / ACTIVE_DELEGATES);
 	const targetRound =
-		parseInt(rebuildRound) === 0
+		parseInt(rebuildUpToRound) === 0
 			? totalRounds
-			: Math.min(totalRounds, parseInt(rebuildRound));
+			: Math.min(totalRounds, parseInt(rebuildUpToRound));
 	const targetHeight = targetRound * ACTIVE_DELEGATES;
 
 	library.logger.info(
@@ -952,12 +955,12 @@ __private.sync = function(cb) {
 					.calculateNewBroadhash()
 					.then(({ broadhash, height }) => {
 						// Listen for the update of step to move to next step
-						library.channel.once('lisk:state:updated', () => {
+						library.channel.once('app:state:updated', () => {
 							seriesCb();
 						});
 
 						// Update our application state: broadhash and height
-						return library.channel.invoke('lisk:updateApplicationState', {
+						return library.channel.invoke('app:updateApplicationState', {
 							broadhash,
 							height,
 						});

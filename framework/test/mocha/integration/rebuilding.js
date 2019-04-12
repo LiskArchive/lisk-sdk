@@ -98,7 +98,7 @@ describe('rebuilding', () => {
 			const __private = library.rewiredModules.loader.__get__('__private');
 
 			library.rewiredModules.loader.__set__(
-				'library.config.loading.rebuildRound',
+				'library.config.loading.rebuildUpToRound',
 				2
 			);
 

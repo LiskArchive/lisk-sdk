@@ -137,13 +137,13 @@ describe('transactionPool', () => {
 
 		// Init test subject
 		transactionPool = new TransactionPool(
-			config.broadcasts.broadcastInterval,
-			config.broadcasts.releaseLimit,
+			config.modules.chain.broadcasts.broadcastInterval,
+			config.modules.chain.broadcasts.releaseLimit,
 			transactionStub, // transaction
 			busSpy, // bus
 			logger, // logger
 			balancesSequence,
-			config
+			config.modules.chain
 		);
 
 		// Bind fake modules

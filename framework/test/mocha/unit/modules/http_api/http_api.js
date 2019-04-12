@@ -36,7 +36,6 @@ describe('HttpApi', () => {
 			subscribe: sinonSandbox.stub(),
 		};
 		stubs.options = {
-			config: sinonSandbox.stub(),
 			constants: {
 				ACTIVE_DELEGATES: 101,
 			},
@@ -65,15 +64,15 @@ describe('HttpApi', () => {
 		stubs.subscribeToEvents = sinonSandbox.stub();
 
 		stubs.channel.invoke
-			.withArgs('lisk:getComponentConfig', 'logger')
+			.withArgs('app:getComponentConfig', 'logger')
 			.resolves(loggerConfig);
 		stubs.channel.invoke
-			.withArgs('lisk:getComponentConfig', 'storage')
+			.withArgs('app:getComponentConfig', 'storage')
 			.resolves(storageConfig);
 		stubs.channel.invoke
-			.withArgs('lisk:getComponentConfig', 'cache')
+			.withArgs('app:getComponentConfig', 'cache')
 			.resolves(cacheConfig);
-		stubs.channel.invoke.withArgs('lisk:getApplicationState').resolves({});
+		stubs.channel.invoke.withArgs('app:getApplicationState').resolves({});
 
 		HttpApi.__set__('createLoggerComponent', stubs.createLoggerComponent);
 		HttpApi.__set__('createCacheComponent', stubs.createCacheComponent);
@@ -119,21 +118,21 @@ describe('HttpApi', () => {
 		it('should be an async function', async () => {
 			expect(httpApi.bootstrap.constructor.name).to.be.equal('AsyncFunction');
 		});
-		it('should invoke lisk:getComponentConfig to get "logger" configuration', async () => {
+		it('should invoke app:getComponentConfig to get "logger" configuration', async () => {
 			expect(stubs.channel.invoke).to.be.calledWithExactly(
-				'lisk:getComponentConfig',
+				'app:getComponentConfig',
 				'logger'
 			);
 		});
-		it('should invoke lisk:getComponentConfig to get "storage" configuration', async () => {
+		it('should invoke app:getComponentConfig to get "storage" configuration', async () => {
 			expect(stubs.channel.invoke).to.be.calledWithExactly(
-				'lisk:getComponentConfig',
+				'app:getComponentConfig',
 				'storage'
 			);
 		});
-		it('should invoke lisk:getComponentConfig to get "cache" configuration', async () => {
+		it('should invoke app:getComponentConfig to get "cache" configuration', async () => {
 			expect(stubs.channel.invoke).to.be.calledWithExactly(
-				'lisk:getComponentConfig',
+				'app:getComponentConfig',
 				'cache'
 			);
 		});
@@ -197,7 +196,7 @@ describe('HttpApi', () => {
 					storage: stubs.storage,
 				},
 				channel: stubs.channel,
-				config: stubs.options.config,
+				config: stubs.options,
 			});
 		});
 
@@ -221,10 +220,9 @@ describe('HttpApi', () => {
 			});
 		});
 		it('should call subscribeToEvents() with proper arguments', async () => {
-			const { wsServer, wssServer } = stubs.servers;
+			const { wsServer } = stubs.servers;
 			expect(stubs.subscribeToEvents).to.be.calledWithExactly(httpApi.scope, {
 				wsServer,
-				wssServer,
 			});
 		});
 	});

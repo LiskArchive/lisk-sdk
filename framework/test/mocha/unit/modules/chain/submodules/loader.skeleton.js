@@ -43,7 +43,7 @@ describe('loader', () => {
 			});
 
 			describe('config', () => {
-				it('should assign config.loading.rebuildRound');
+				it('should assign config.loading.rebuildUpToRound');
 			});
 		});
 

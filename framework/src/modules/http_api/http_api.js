@@ -16,7 +16,7 @@ const {
 
 module.exports = class HttpApi {
 	constructor(channel, options) {
-		options.config.root = __dirname; // TODO: See wy root comes defined for the chain module.
+		options.root = __dirname; // TODO: See wy root comes defined for the chain module.
 		this.channel = channel;
 		this.options = options;
 		this.logger = null;
@@ -28,7 +28,7 @@ module.exports = class HttpApi {
 
 		// Logger
 		const loggerConfig = await this.channel.invoke(
-			'lisk:getComponentConfig',
+			'app:getComponentConfig',
 			'logger'
 		);
 		this.logger = createLoggerComponent(loggerConfig);
@@ -36,7 +36,7 @@ module.exports = class HttpApi {
 		// Cache
 		this.logger.debug('Initiating cache...');
 		const cacheConfig = await this.channel.invoke(
-			'lisk:getComponentConfig',
+			'app:getComponentConfig',
 			'cache'
 		);
 		const cache = createCacheComponent(cacheConfig, this.logger);
@@ -44,7 +44,7 @@ module.exports = class HttpApi {
 		// Storage
 		this.logger.debug('Initiating storage...');
 		const storageConfig = await this.channel.invoke(
-			'lisk:getComponentConfig',
+			'app:getComponentConfig',
 			'storage'
 		);
 		const dbLogger =
@@ -59,7 +59,7 @@ module.exports = class HttpApi {
 		const storage = createStorageComponent(storageConfig, dbLogger);
 
 		const applicationState = await this.channel.invoke(
-			'lisk:getApplicationState'
+			'app:getApplicationState'
 		);
 
 		// Setup scope
@@ -70,11 +70,11 @@ module.exports = class HttpApi {
 				storage,
 			},
 			channel: this.channel,
-			config: this.options.config,
+			config: this.options,
 			applicationState,
 		};
 
-		this.channel.subscribe('lisk:state:updated', event => {
+		this.channel.subscribe('app:state:updated', event => {
 			Object.assign(this.scope.applicationState, event.data);
 		});
 
@@ -88,14 +88,13 @@ module.exports = class HttpApi {
 			httpServer,
 			httpsServer,
 			wsServer,
-			wssServer,
 		} = await setupServers(this.scope);
 		// Bootstrap Swagger and attaches it to Express app
 		await bootstrapSwagger(this.scope, expressApp);
 		// Start listening for HTTP(s) requests
 		await startListening(this.scope, { httpServer, httpsServer });
-		// Subsribe to channel events
-		subscribeToEvents(this.scope, { wsServer, wssServer });
+		// Subscribe to channel events
+		subscribeToEvents(this.scope, { wsServer });
 	}
 
 	async cleanup(code, error) {

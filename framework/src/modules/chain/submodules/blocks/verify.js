@@ -59,7 +59,7 @@ class Verify {
 			},
 			config: {
 				loading: {
-					rebuildRound: config.loading.rebuildRound,
+					rebuildUpToRound: config.loading.rebuildUpToRound,
 				},
 			},
 			channel,
@@ -834,17 +834,17 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 			// 'true' if block comes from generation or receiving process
 			// 'false' if block comes from chain synchronization process
 			updateApplicationState(seriesCb) {
-				if (!library.config.loading.rebuildRound) {
+				if (!library.config.loading.rebuildUpToRound) {
 					return modules.blocks
 						.calculateNewBroadhash()
 						.then(({ broadhash, height }) => {
 							// Listen for the update of step to move to next step
-							library.channel.once('lisk:state:updated', () => {
+							library.channel.once('app:state:updated', () => {
 								seriesCb();
 							});
 
 							// Update our application state: broadhash and height
-							return library.channel.invoke('lisk:updateApplicationState', {
+							return library.channel.invoke('app:updateApplicationState', {
 								broadhash,
 								height,
 							});

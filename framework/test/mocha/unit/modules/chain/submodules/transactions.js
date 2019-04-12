@@ -172,7 +172,7 @@ describe('transactions', () => {
 				},
 				cacheComponent(cb) {
 					cache = createCacheComponent(
-						__testContext.config.redis,
+						__testContext.config.components.cache,
 						modulesLoader.logger
 					);
 					return cache.bootstrap().then(err => {

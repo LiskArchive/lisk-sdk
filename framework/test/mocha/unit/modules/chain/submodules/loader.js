@@ -259,7 +259,7 @@ describe('loader', () => {
 				config: {
 					loading: {
 						loadPerIteration: 1000,
-						rebuildRound: 1,
+						rebuildUpToRound: 1,
 					},
 					syncing: {
 						active: true,
@@ -306,9 +306,9 @@ describe('loader', () => {
 			}
 		});
 
-		it('should throw an error when called with rebuildRound = string', done => {
+		it('should throw an error when called with rebuildUpToRound = string', done => {
 			try {
-				libraryVar.config.loading.rebuildRound = 'type string = invalid';
+				libraryVar.config.loading.rebuildUpToRound = 'type string = invalid';
 
 				__privateVar.rebuildAccounts(ACTIVE_DELEGATES);
 			} catch (err) {
@@ -320,9 +320,9 @@ describe('loader', () => {
 			}
 		});
 
-		it('should throw an error when called with rebuildRound = boolean', done => {
+		it('should throw an error when called with rebuildUpToRound = boolean', done => {
 			try {
-				libraryVar.config.loading.rebuildRound = true;
+				libraryVar.config.loading.rebuildUpToRound = true;
 
 				__privateVar.rebuildAccounts(ACTIVE_DELEGATES);
 			} catch (err) {
@@ -334,9 +334,9 @@ describe('loader', () => {
 			}
 		});
 
-		it('should throw an error when called with rebuildRound = ""', done => {
+		it('should throw an error when called with rebuildUpToRound = ""', done => {
 			try {
-				libraryVar.config.loading.rebuildRound = '';
+				libraryVar.config.loading.rebuildUpToRound = '';
 
 				__privateVar.rebuildAccounts(ACTIVE_DELEGATES);
 			} catch (err) {
@@ -348,9 +348,9 @@ describe('loader', () => {
 			}
 		});
 
-		it('should throw an error when called with rebuildRound = undefined', done => {
+		it('should throw an error when called with rebuildUpToRound = undefined', done => {
 			try {
-				libraryVar.config.loading.rebuildRound = undefined;
+				libraryVar.config.loading.rebuildUpToRound = undefined;
 
 				__privateVar.rebuildAccounts(ACTIVE_DELEGATES);
 			} catch (err) {
@@ -396,18 +396,18 @@ describe('loader', () => {
 		describe('should emit an event with no error', () => {
 			let blocksAvailable;
 			let deleteBlocksAfterHeight;
-			let rebuildRound;
+			let rebuildUpToRound;
 
 			afterEach(() => sinonSandbox.restore());
 
-			it('and rebuild to end of round 1 when rebuildRound = 1 and 101 blocks available', done => {
-				rebuildRound = 1;
+			it('and rebuild to end of round 1 when rebuildUpToRound = 1 and 101 blocks available', done => {
+				rebuildUpToRound = 1;
 				blocksAvailable = ACTIVE_DELEGATES;
 				deleteBlocksAfterHeight = {
-					height_gt: ACTIVE_DELEGATES * rebuildRound,
+					height_gt: ACTIVE_DELEGATES * rebuildUpToRound,
 				};
 
-				libraryVar.config.loading.rebuildRound = rebuildRound;
+				libraryVar.config.loading.rebuildUpToRound = rebuildUpToRound;
 				__privateVar.rebuildFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub).to.be.calledOnce;
@@ -419,14 +419,14 @@ describe('loader', () => {
 				__privateVar.rebuildAccounts(blocksAvailable);
 			});
 
-			it('and rebuild to end of round 1 when rebuildRound = 1 and 202 blocks available', done => {
-				rebuildRound = 1;
+			it('and rebuild to end of round 1 when rebuildUpToRound = 1 and 202 blocks available', done => {
+				rebuildUpToRound = 1;
 				blocksAvailable = ACTIVE_DELEGATES * 2;
 				deleteBlocksAfterHeight = {
-					height_gt: ACTIVE_DELEGATES * rebuildRound,
+					height_gt: ACTIVE_DELEGATES * rebuildUpToRound,
 				};
 
-				libraryVar.config.loading.rebuildRound = rebuildRound;
+				libraryVar.config.loading.rebuildUpToRound = rebuildUpToRound;
 
 				__privateVar.rebuildFinished = err => {
 					expect(err).to.not.exist;
@@ -440,14 +440,14 @@ describe('loader', () => {
 				__privateVar.rebuildAccounts(blocksAvailable);
 			});
 
-			it('and rebuild to end of round 2 when rebuildRound = 2 and 202 blocks available', done => {
-				rebuildRound = 2;
+			it('and rebuild to end of round 2 when rebuildUpToRound = 2 and 202 blocks available', done => {
+				rebuildUpToRound = 2;
 				blocksAvailable = ACTIVE_DELEGATES * 2;
 				deleteBlocksAfterHeight = {
-					height_gt: ACTIVE_DELEGATES * rebuildRound,
+					height_gt: ACTIVE_DELEGATES * rebuildUpToRound,
 				};
 
-				libraryVar.config.loading.rebuildRound = rebuildRound;
+				libraryVar.config.loading.rebuildUpToRound = rebuildUpToRound;
 				__privateVar.rebuildFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub).to.be.calledOnce;
@@ -467,14 +467,14 @@ describe('loader', () => {
 				__privateVar.rebuildAccounts(blocksAvailable);
 			});
 
-			it('and rebuild to end of round 2 when rebuildRound = 2 and 303 blocks available', done => {
-				rebuildRound = 2;
+			it('and rebuild to end of round 2 when rebuildUpToRound = 2 and 303 blocks available', done => {
+				rebuildUpToRound = 2;
 				blocksAvailable = ACTIVE_DELEGATES * 3;
 				deleteBlocksAfterHeight = {
-					height_gt: ACTIVE_DELEGATES * rebuildRound,
+					height_gt: ACTIVE_DELEGATES * rebuildUpToRound,
 				};
 
-				libraryVar.config.loading.rebuildRound = rebuildRound;
+				libraryVar.config.loading.rebuildUpToRound = rebuildUpToRound;
 				__privateVar.rebuildFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub).to.be.calledOnce;
@@ -494,12 +494,12 @@ describe('loader', () => {
 				__privateVar.rebuildAccounts(blocksAvailable);
 			});
 
-			it('and rebuild to end of round 1 when rebuildRound = 2 and 101 blocks available', done => {
-				rebuildRound = 2;
+			it('and rebuild to end of round 1 when rebuildUpToRound = 2 and 101 blocks available', done => {
+				rebuildUpToRound = 2;
 				blocksAvailable = ACTIVE_DELEGATES;
 				deleteBlocksAfterHeight = { height_gt: ACTIVE_DELEGATES };
 
-				library.config.loading.rebuildRound = rebuildRound;
+				library.config.loading.rebuildUpToRound = rebuildUpToRound;
 				__privateVar.rebuildFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub).to.be.calledOnce;
@@ -512,8 +512,8 @@ describe('loader', () => {
 				__privateVar.rebuildAccounts(blocksAvailable);
 			});
 
-			it('and should not throw an error when called with rebuildRound = integer as string', done => {
-				libraryVar.config.loading.rebuildRound = '2';
+			it('and should not throw an error when called with rebuildUpToRound = integer as string', done => {
+				libraryVar.config.loading.rebuildUpToRound = '2';
 
 				__privateVar.rebuildFinished = err => {
 					expect(err).to.not.exist;
