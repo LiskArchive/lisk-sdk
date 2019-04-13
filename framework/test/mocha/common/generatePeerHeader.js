@@ -35,9 +35,9 @@ const generatePeerHeader = function(headers = {}) {
 		httpPort,
 		nonce: randomstring.generate(16),
 		os: operatingSystems[random.number(0, operatingSystems.length)],
-		version: testConfig.version,
-		minVersion: testConfig.minVersion,
-		protocolVersion: testConfig.protocolVersion,
+		version: testConfig.app.version,
+		minVersion: testConfig.app.minVersion,
+		protocolVersion: testConfig.app.protocolVersion,
 	};
 
 	const nodeInfo = {
@@ -46,8 +46,11 @@ const generatePeerHeader = function(headers = {}) {
 	};
 
 	return {
-		blackListedPeers: [],
-		seedPeers: [],
+		blacklistedPeers: [],
+		seedPeers: testConfig.modules.network.list.map(v => ({
+			ipAddress: v.ip,
+			wsPort: v.wsPort,
+		})),
 		nodeInfo,
 	};
 };

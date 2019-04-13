@@ -94,11 +94,9 @@ describe('GET /peers', () => {
 	/**
 	 * Skipping this GET /api/peers tests as of now because we are using new p2p library and it needs a different apporach to setup the functional test
 	 */
-	/* eslint-disable mocha/no-skipped-tests */
-
 	Object.keys(paramSet).forEach(param => {
 		// Describe each param
-		describe.skip(param, () => {
+		describe(param, () => {
 			paramSet[param].invalid.forEach(val => {
 				// Test case for each invalid param
 				it(`using invalid value ${param}=${val}`, async () => {
@@ -295,5 +293,4 @@ describe('GET /peers', () => {
 			expect(res.body.data).to.not.empty;
 		});
 	});
-	/* eslint-enable mocha/no-skipped-tests */
 });
