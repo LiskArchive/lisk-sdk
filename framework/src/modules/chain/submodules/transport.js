@@ -75,7 +75,6 @@ class Transport {
 		__private.broadcaster = new Broadcaster(
 			scope.config.broadcasts,
 			scope.config.forging.force,
-			scope.logic.peers,
 			scope.logic.transaction,
 			scope.components.logger,
 			scope.channel
@@ -253,7 +252,6 @@ Transport.prototype.onBind = function(scope) {
 	};
 
 	__private.broadcaster.bind(
-		scope.modules.peers,
 		scope.modules.transport,
 		scope.modules.transactions
 	);

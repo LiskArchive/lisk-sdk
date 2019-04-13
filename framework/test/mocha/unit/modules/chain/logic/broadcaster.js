@@ -94,17 +94,12 @@ describe('Broadcaster', () => {
 		broadcaster = new Broadcaster(
 			broadcasts,
 			force,
-			peersStub,
 			transactionStub,
 			loggerStub,
 			channelStub
 		);
 
-		broadcaster.bind(
-			modulesStub.peers,
-			modulesStub.transport,
-			modulesStub.transactions
-		);
+		broadcaster.bind(modulesStub.transport, modulesStub.transactions);
 
 		library = Broadcaster.__get__('library');
 	});
