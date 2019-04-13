@@ -38,11 +38,11 @@ describe('RPC', () => {
 			const blocksEndpoint = new SwaggerEndpoint('GET /blocks');
 			const blockRes = await blocksEndpoint.makeRequest({ height: 2 }, 200);
 			const blockId = blockRes.body.data[0].id;
-			const result = await p2p.request({
+			const { data } = await p2p.request({
 				procedure: 'blocks',
 				data: { lastBlockId: blockId },
 			});
-			expect(result)
+			expect(data)
 				.to.have.property('blocks')
 				.to.be.an('array');
 		});

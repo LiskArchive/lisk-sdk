@@ -170,6 +170,20 @@ module.exports = class Chain {
 
 			self.logger.info('Modules ready and launched');
 
+			this.channel.once('network:ready', () => {
+				this.channel.subscribe('network:chain:postTransactions', ({ data }) => {
+					this.scope.modules.transport.shared.postTransactions(data);
+				});
+
+				this.channel.subscribe('network:chain:postSignatures', ({ data }) => {
+					this.scope.modules.transport.shared.postSignatures(data);
+				});
+
+				this.channel.subscribe('network:chain:postBlock', ({ data }) => {
+					this.scope.modules.transport.shared.postBlock(data);
+				});
+			});
+
 			self.scope = scope;
 		} catch (error) {
 			this.logger.fatal('Chain initialization', {

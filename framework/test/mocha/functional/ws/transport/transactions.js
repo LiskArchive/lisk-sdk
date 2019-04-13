@@ -29,9 +29,10 @@ describe('Posting transaction (type 0)', () => {
 	let p2p;
 
 	function postTransaction(transactionToPost) {
-		p2p.request({
-			procedure: 'postTransactions',
+		p2p.send({
+			event: 'postTransactions',
 			data: {
+				nonce: 'sYHEDBKcScaAAAYg',
 				transactions: [transactionToPost],
 			},
 		});

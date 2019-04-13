@@ -37,7 +37,7 @@ let library;
  * @todo Add description for the params
  */
 class Broadcaster {
-	constructor(broadcasts, force, transaction, logger, channel) {
+	constructor(nonce, broadcasts, force, transaction, logger, channel) {
 		library = {
 			logger,
 			logic: {
@@ -50,6 +50,8 @@ class Broadcaster {
 				},
 			},
 		};
+
+		this.nonce = nonce;
 
 		this.queue = [];
 		this.config = library.config.broadcasts;
@@ -94,9 +96,13 @@ class Broadcaster {
 	 */
 	async broadcast(params, { api: event, data }) {
 		// Broadcast using Elements P2P library via network module
+		const wrappedData = {
+			...data,
+			nonce: this.nonce,
+		};
 		await this.channel.invoke('network:send', {
 			event,
-			data,
+			data: wrappedData,
 		});
 	}
 

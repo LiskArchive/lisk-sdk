@@ -73,6 +73,7 @@ class Transport {
 		self = this;
 
 		__private.broadcaster = new Broadcaster(
+			scope.config.nonce,
 			scope.config.broadcasts,
 			scope.config.forging.force,
 			scope.logic.transaction,

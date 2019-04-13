@@ -64,14 +64,14 @@ describe('WS transport blocks', () => {
 
 			const blockRes = await blocksEndpoint.makeRequest({ height: 2 }, 200);
 			const blockId = blockRes.body.data[0].id;
-			const res = await p2p.request({
+			const { data } = await p2p.request({
 				procedure: 'blocks',
 				data: { lastBlockId: blockId },
 			});
-			expect(res)
+			expect(data)
 				.to.have.property('blocks')
 				.that.is.an('array');
-			res.blocks.forEach(block => {
+			data.blocks.forEach(block => {
 				expect(block)
 					.to.have.property('b_id')
 					.that.is.a('string');
@@ -141,17 +141,15 @@ describe('WS transport blocks', () => {
 		});
 
 		it('using empty headers should not be ok', async () => {
-			const res = await p2p.request({ procedure: 'blocks', data: {} });
-			expect(res)
+			const { data } = await p2p.request({ procedure: 'blocks', data: {} });
+			expect(data)
 				.to.have.property('success')
 				.that.is.a('boolean').and.is.false;
 		});
 
 		it('using invalid headers should not be ok', async () => {
-			const res = await p2p.request({ procedure: 'blocks', data: {} });
-			expect(res)
-				.to.have.property('blocks')
-				.that.is.an.empty('array');
+			const { data } = await p2p.request({ procedure: 'blocks', data: {} });
+			expect(data).to.have.property('success', false);
 		});
 	});
 
@@ -159,7 +157,8 @@ describe('WS transport blocks', () => {
 		it('using no params should fail', async () => {
 			let res;
 			try {
-				res = await p2p.request({ procedure: 'blocksCommon' });
+				const { data } = await p2p.request({ procedure: 'blocksCommon' });
+				res = data;
 			} catch (err) {
 				__testContext.debug(
 					'> Error / Response:'.grey,
@@ -240,36 +239,36 @@ describe('WS transport blocks', () => {
 		});
 
 		it('using ids == "1","2","3" should be ok and return null common block', async () => {
-			const res = await p2p.request({
+			const { data } = await p2p.request({
 				procedure: 'blocksCommon',
 				data: { ids: '"1","2","3"' },
 			});
-			__testContext.debug('> Error / Response:'.grey, JSON.stringify(res));
-			expect(res).to.have.property('common').to.be.null;
+			__testContext.debug('> Error / Response:'.grey, JSON.stringify(data));
+			expect(data).to.have.property('common').to.be.null;
 		});
 
 		it("using ids == '1','2','3' should be ok and return null common block", async () => {
-			const res = await p2p.request({
+			const { data } = await p2p.request({
 				procedure: 'blocksCommon',
 				data: { ids: "'1','2','3'" },
 			});
-			__testContext.debug('> Error / Response:'.grey, JSON.stringify(res));
+			__testContext.debug('> Error / Response:'.grey, JSON.stringify(data));
 
-			expect(res).to.have.property('common').to.be.null;
+			expect(data).to.have.property('common').to.be.null;
 		});
 
 		it('using ids == 1,2,3 should be ok and return null common block', async () => {
-			const res = await p2p.request({
+			const { data } = await p2p.request({
 				procedure: 'blocksCommon',
 				data: { ids: '1,2,3' },
 			});
-			__testContext.debug('> Error / Response:'.grey, JSON.stringify(res));
+			__testContext.debug('> Error / Response:'.grey, JSON.stringify(data));
 
-			expect(res).to.have.property('common').to.be.null;
+			expect(data).to.have.property('common').to.be.null;
 		});
 
 		it('using ids which include genesisBlock.id should be ok', async () => {
-			const res = await p2p.request({
+			const { data } = await p2p.request({
 				procedure: 'blocksCommon',
 				data: {
 					ids: [
@@ -279,19 +278,19 @@ describe('WS transport blocks', () => {
 					].join(),
 				},
 			});
-			__testContext.debug('> Error / Response:'.grey, JSON.stringify(res));
+			__testContext.debug('> Error / Response:'.grey, JSON.stringify(data));
 
-			expect(res)
+			expect(data)
 				.to.have.property('common')
 				.to.be.an('object');
-			expect(res.common)
+			expect(data.common)
 				.to.have.property('height')
 				.that.is.a('number');
-			expect(res.common)
+			expect(data.common)
 				.to.have.property('id')
 				.that.is.a('string');
-			expect(res.common).to.have.property('previousBlock').that.is.null;
-			expect(res.common)
+			expect(data.common).to.have.property('previousBlock').that.is.null;
+			expect(data.common)
 				.to.have.property('timestamp')
 				.that.is.equal(0);
 		});
@@ -304,7 +303,7 @@ describe('WS transport blocks', () => {
 					transaction.asset.delegate.publicKey = transaction.senderPublicKey;
 				}
 			});
-			await p2p.request({ procedure: 'postBlock', data: { block: testBlock } });
+			await p2p.send({ event: 'postBlock', data: { block: testBlock } });
 		});
 	});
 });
