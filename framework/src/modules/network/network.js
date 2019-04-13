@@ -164,7 +164,7 @@ module.exports = class Network {
 				this.logger.error(
 					`Could not respond to peer request ${
 						request.procedure
-					} because of error: ${error.message || error.message}`
+					} because of error: ${error.message || error}`
 				);
 				request.error(error); // Send an error back to the peer.
 			}
