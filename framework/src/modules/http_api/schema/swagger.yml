@@ -2190,6 +2190,11 @@ definitions:
         example: v0.8.0
         format: version
         description: The version of Lisk Core that the peer node runs on.
+      minVersion:
+        type: string
+        example: v0.8.0
+        format: version
+        description: The version of Lisk Core that the peer accepts.
       protocolVersion:
         type: string
         example: 1.0
@@ -2217,6 +2222,13 @@ definitions:
         description: |
           Broadhash on the peer node.
           Broadhash is established as an aggregated rolling hash of the past five blocks present in the database.
+      nethash:
+        type: string
+        example: 258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea
+        format: hex
+        description: |
+          Nethash on the peer node.
+          Nethash is an identifier of the network.
       nonce:
         type: string
         example: sYHEDBKcScaAAAYg
