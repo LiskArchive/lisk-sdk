@@ -21,7 +21,7 @@ let library;
 let self;
 const { MIN_BROADHASH_CONSENSUS } = global.constants;
 
-const PEER_STATE_CONNECTED = 1;
+const PEER_STATE_CONNECTED = 2;
 
 /**
  * Main peers methods. Initializes library with scope content.
@@ -83,21 +83,17 @@ Peers.prototype.getLastConsensus = function() {
  */
 Peers.prototype.calculateConsensus = async function() {
 	const { broadhash } = library.applicationState;
-	try {
-		const activeCount = await library.channel.invoke(
-			'network:getPeersCountByFilter',
-			{ state: PEER_STATE_CONNECTED }
-		);
-		const matchedCount = await library.channel.invoke(
-			'network:getPeersCountByFilter',
-			{ broadhash }
-		);
-		const consensus = +(matchedCount / activeCount * 100).toPrecision(2);
-		self.consensus = Number.isNaN(consensus) ? 0 : consensus;
-		return self.consensus;
-	} catch (error) {
-		throw error;
-	}
+	const activeCount = await library.channel.invoke(
+		'network:getPeersCountByFilter',
+		{ state: PEER_STATE_CONNECTED }
+	);
+	const matchedCount = await library.channel.invoke(
+		'network:getPeersCountByFilter',
+		{ broadhash }
+	);
+	const consensus = +(matchedCount / activeCount * 100).toPrecision(2);
+	self.consensus = Number.isNaN(consensus) ? 0 : consensus;
+	return self.consensus;
 };
 
 // Public methods
