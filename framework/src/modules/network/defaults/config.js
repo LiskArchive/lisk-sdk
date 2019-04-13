@@ -42,8 +42,18 @@ const defaultConfig = {
 				blackList: {
 					type: 'array',
 					items: {
-						type: 'string',
-						format: 'ip',
+						type: 'object',
+						properties: {
+							ip: {
+								type: 'string',
+								format: 'ipOrFQDN',
+							},
+							wsPort: {
+								type: 'integer',
+								minimum: 1,
+								maximum: 65535,
+							},
+						},
 					},
 				},
 			},

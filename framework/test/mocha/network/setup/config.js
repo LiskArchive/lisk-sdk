@@ -64,7 +64,12 @@ const config = {
 			delete devConfigCopy.modules.http_api.genesisBlock;
 			delete devConfigCopy.modules.http_api.constants;
 
-			devConfigCopy.modules.network.wsPort = 5000 + index;
+			const wsPort = 5000 + index;
+			// TODO: Remove when p2p library automatically removes itself
+			devConfigCopy.modules.network.wsPort = wsPort;
+			devConfigCopy.modules.network.access = {
+				blackList: [{ ip: '127.0.0.1', wsPort }],
+			};
 			devConfigCopy.modules.http_api.httpPort = 4000 + index;
 			devConfigCopy.components.logger.logFileName = `../logs/lisk_node_${index}.log`;
 			return devConfigCopy;
@@ -78,11 +83,6 @@ const config = {
 				{
 					indices: _.range(10),
 				},
-				configuration.modules.network.wsPort
-			);
-
-			configuration.modules.network.seedPeers = config.generateSeedPeers(
-				configurations,
 				configuration.modules.network.wsPort
 			);
 		});
@@ -215,20 +215,6 @@ const config = {
 		}
 
 		return peersList;
-	},
-	generateSeedPeers(configurations, currentPeerPort) {
-		const seedPeersList = [];
-
-		configurations.forEach(configuration => {
-			if (!(seedPeersList.wsPort === currentPeerPort)) {
-				seedPeersList.push({
-					ipAddress: configuration.ip,
-					wsPort: configuration.modules.network.wsPort,
-				});
-			}
-		});
-
-		return seedPeersList;
 	},
 	SYNC_MODES,
 };
