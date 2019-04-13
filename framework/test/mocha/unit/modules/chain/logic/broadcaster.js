@@ -31,10 +31,8 @@ describe('Broadcaster', () => {
 	let broadcaster;
 	let broadcasts;
 	let transactionStub;
-	let peersStub;
 	let loggerStub;
 	let modulesStub;
-	let peerList;
 	let jobsQueue;
 	let library;
 	let channelStub;
@@ -49,19 +47,6 @@ describe('Broadcaster', () => {
 			broadcastLimit: 10,
 		};
 
-		peerList = [
-			{
-				rpc: {
-					blocks: sinonSandbox.stub(),
-				},
-			},
-		];
-
-		peersStub = {
-			me: sinonSandbox.stub().returns(['192.168.10.10']),
-			listRandomConnected: sinonSandbox.stub().returns(peerList),
-		};
-
 		transactionStub = {
 			checkConfirmed: sinonSandbox.stub().callsArgWith(1, false),
 		};
@@ -73,10 +58,6 @@ describe('Broadcaster', () => {
 		};
 
 		modulesStub = {
-			peers: {
-				list: sinonSandbox.stub().callsArgWith(1, null, peerList),
-				getLastConsensus: sinonSandbox.stub().returns(101),
-			},
 			transport: {},
 			transactions: {
 				transactionInPool: sinonSandbox.stub().returns(false),
@@ -116,7 +97,6 @@ describe('Broadcaster', () => {
 
 		it('should load libraries', async () => {
 			expect(library.logger).to.deep.equal(loggerStub);
-			expect(library.logic.peers).to.deep.equal(peersStub);
 			expect(library.config).to.deep.equal({
 				broadcasts,
 				forging: { force: true },
@@ -147,89 +127,7 @@ describe('Broadcaster', () => {
 		});
 	});
 
-	describe('getPeers', () => {
-		it('should throw error for empty params', async () => {
-			expect(() => broadcaster.getPeers(null)).to.throw(TypeError);
-			expect(() => broadcaster.getPeers(null)).to.throw(
-				"Cannot read property 'limit' of null"
-			);
-		});
-
-		it('should return peers for default params', async () => {
-			const peers = await broadcaster.getPeers({});
-			expect(peers).to.be.an('Array').that.is.not.empty;
-			expect(peers).to.deep.equal(peerList);
-			expect(peersStub.listRandomConnected.called).to.be.true;
-			expect(peersStub.listRandomConnected.args[0][0]).to.not.equal(params);
-		});
-
-		it('should return peer list for a given params', async () => {
-			const peers = await broadcaster.getPeers(params);
-			expect(peers).to.be.an('Array').that.is.not.empty;
-			expect(peers).to.deep.equal(peerList);
-			expect(peersStub.listRandomConnected.calledOnce).to.be.true;
-		});
-
-		it('should reach consensus', async () => {
-			const peerParams = _.cloneDeep(params);
-			peerParams.limit = 100;
-			await broadcaster.getPeers(peerParams);
-			expect(peersStub.listRandomConnected.calledOnce).to.be.true;
-			expect(peersStub.listRandomConnected.args[0][0]).to.deep.equal(
-				peerParams
-			);
-			expect(peersStub.listRandomConnected.args[0][1]).to.not.be.a('function');
-		});
-	});
-
 	describe('broadcast', () => {
-		beforeEach(async () => {
-			broadcaster.getPeers = sinonSandbox.stub().returns(peerList);
-		});
-
-		it('should throw error for empty peers', async () => {
-			const peerErr = new Error('empty peer list');
-			broadcaster.getPeers.throws(peerErr);
-			expect(broadcaster.broadcast(params, options)).to.be.rejectedWith(
-				peerErr
-			);
-		});
-
-		it('should return empty peers', async () => {
-			const peerParams = _.cloneDeep(params);
-			peerParams.peers = [];
-			const res = await broadcaster.broadcast(peerParams, options);
-			expect(res).to.be.an('array').that.is.empty;
-		});
-
-		it('should be able to get peers for broadcast', async () => {
-			const res = await broadcaster.broadcast(params, options);
-			expect(res).to.be.an('array').that.is.not.empty;
-			expect(res).to.deep.equal(peerList);
-			expect(options.data.block).to.be.instanceOf(Object);
-		});
-
-		it(`should only send to ${params.limit} peers`, async () => {
-			const limitedPeers = _.cloneDeep(params);
-			limitedPeers.limit = 10;
-			limitedPeers.peers = _.range(100).map(() => peerList[0]);
-			const res = await broadcaster.broadcast(limitedPeers, options);
-			expect(res).to.be.an('array').that.is.not.empty;
-			expect(res.length).to.eql(broadcasts.broadcastLimit);
-		});
-
-		it('should be able to broadcast block to peers', async () => {
-			params.peers = peerList;
-			options.data.block = {};
-			expect(options.data.block).to.be.an('object');
-			const res = await broadcaster.broadcast(params, options);
-			expect(res).to.be.an('array').that.is.not.empty;
-			expect(res).to.deep.equal(peerList);
-			expect(options.data.block).to.be.instanceOf(Object);
-			expect(peerList[0].rpc.blocks.called).to.be.true;
-			expect(peerList[0].rpc.blocks.args[0][0].block).to.be.instanceOf(Object);
-		});
-
 		it('should invoke "network:send" event', async () => {
 			await broadcaster.broadcast(params, options);
 			expect(channelStub.invoke).to.be.calledOnce;
@@ -547,8 +445,6 @@ describe('Broadcaster', () => {
 
 	describe('releaseQueue', () => {
 		beforeEach(async () => {
-			broadcaster.getPeers = sinonSandbox.stub().resolves(peerList);
-			broadcaster.broadcast = sinonSandbox.stub().resolves(peerList);
 			loggerStub.info = sinonSandbox.stub();
 		});
 

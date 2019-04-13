@@ -1071,21 +1071,18 @@ describe('transport', () => {
 
 					it('should call __private.broadcaster.broadcast', async () => {
 						expect(__private.broadcaster.broadcast.calledOnce).to.be.true;
-						return expect(
-							__private.broadcaster.broadcast.calledWith(
-								{
-									broadhash:
-										'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
+						expect(__private.broadcaster.broadcast).to.be.calledWith(
+							{
+								broadhash:
+									'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
+							},
+							{
+								api: 'postBlock',
+								data: {
+									block,
 								},
-								{
-									api: 'postBlock',
-									data: {
-										block,
-									},
-									immediate: true,
-								}
-							)
-						).to.be.true;
+							}
+						);
 					});
 
 					describe('when __private.broadcaster.maxRelays returns true', () => {
