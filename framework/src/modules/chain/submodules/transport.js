@@ -77,7 +77,8 @@ class Transport {
 			scope.config.forging.force,
 			scope.logic.peers,
 			scope.logic.transaction,
-			scope.components.logger
+			scope.components.logger,
+			scope.channel
 		);
 
 		setImmediate(cb, null, self);
@@ -313,20 +314,20 @@ Transport.prototype.onUnconfirmedTransaction = function(
  */
 Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 	// Exit immediately when 'broadcast' flag is not set
-	if (!broadcast) return;
+	if (!broadcast) return null;
 
 	// Check if we are free to broadcast
 	if (__private.broadcaster.maxRelays(block)) {
 		library.logger.debug(
 			'Transport->onBroadcastBlock: Aborted - max block relays exhausted'
 		);
-		return;
+		return null;
 	}
 	if (modules.loader.syncing()) {
 		library.logger.debug(
 			'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress'
 		);
-		return;
+		return null;
 	}
 
 	if (block.totalAmount) {
@@ -344,11 +345,11 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 	const { broadhash } = library.applicationState;
 
 	// Perform actual broadcast operation
-	__private.broadcaster.broadcast(
+	return __private.broadcaster.broadcast(
 		{
 			broadhash,
 		},
-		{ api: 'postBlock', data: { block }, immediate: true }
+		{ api: 'postBlock', data: { block } }
 	);
 };
 
