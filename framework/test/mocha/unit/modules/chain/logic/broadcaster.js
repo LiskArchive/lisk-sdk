@@ -21,6 +21,7 @@ const Broadcaster = rewire(
 );
 
 describe('Broadcaster', () => {
+	const nonce = 'sYHEDBKcScaAAAYg';
 	const force = true;
 	const params = { limit: 10, broadhash: '123' };
 	const options = {
@@ -73,6 +74,7 @@ describe('Broadcaster', () => {
 		jobsQueue.register = sinonSandbox.stub();
 
 		broadcaster = new Broadcaster(
+			nonce,
 			broadcasts,
 			force,
 			transactionStub,
@@ -130,10 +132,14 @@ describe('Broadcaster', () => {
 	describe('broadcast', () => {
 		it('should invoke "network:send" event', async () => {
 			await broadcaster.broadcast(params, options);
+			const wrappedData = {
+				...options.data,
+				nonce,
+			};
 			expect(channelStub.invoke).to.be.calledOnce;
 			expect(channelStub.invoke).to.be.calledWithExactly('network:send', {
 				event: options.api,
-				data: options.data,
+				data: wrappedData,
 			});
 		});
 	});
