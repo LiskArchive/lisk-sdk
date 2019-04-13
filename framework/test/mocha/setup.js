@@ -86,9 +86,9 @@ config.modules.chain = {
 	...config.modules.chain,
 	constants: config.constants,
 	genesisBlock: config.genesisBlock,
-	version: config.version,
-	minVersion: config.minVersion,
-	protocolVersion: config.protocolVersion,
+	version: config.app.version,
+	minVersion: config.app.minVersion,
+	protocolVersion: config.app.protocolVersion,
 };
 
 config.modules.http_api = validator.parseEnvArgAndValidate(

@@ -72,7 +72,7 @@ const config = {
 
 		// Generate peers for each node
 		configurations.forEach(configuration => {
-			configuration.modules.chain.network.list = config.generatePeers(
+			configuration.modules.network.list = config.generatePeers(
 				configurations,
 				config.SYNC_MODES.ALL_TO_GROUP,
 				{
@@ -83,7 +83,7 @@ const config = {
 
 			configuration.modules.network.seedPeers = config.generateSeedPeers(
 				configurations,
-				configuration.modules.network.nodeInfo.wsPort
+				configuration.modules.network.wsPort
 			);
 		});
 
@@ -223,7 +223,7 @@ const config = {
 			if (!(seedPeersList.wsPort === currentPeerPort)) {
 				seedPeersList.push({
 					ipAddress: configuration.ip,
-					wsPort: configuration.modules.network.nodeInfo.wsPort,
+					wsPort: configuration.modules.network.wsPort,
 				});
 			}
 		});
