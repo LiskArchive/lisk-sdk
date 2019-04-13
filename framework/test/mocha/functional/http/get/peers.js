@@ -24,14 +24,14 @@ const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /peers', () => {
 	const peersEndpoint = new SwaggerEndpoint('GET /peers');
+	const peerSetting = generatePeerHeader();
+	const validHeaders = peerSetting.nodeInfo;
 	let p2p1;
 	let p2p2;
-	let validHeaders = {};
 
 	before(async () => {
-		p2p1 = new P2P(generatePeerHeader());
+		p2p1 = new P2P(peerSetting);
 		p2p2 = new P2P(generatePeerHeader());
-		validHeaders = p2p1.nodeInfo;
 
 		await p2p1.start();
 		await p2p2.start();

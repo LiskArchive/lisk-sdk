@@ -1,5 +1,6 @@
 const {
 	P2P,
+	EVENT_NEW_INBOUND_PEER,
 	EVENT_CLOSE_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_DISCOVERED_PEER,
@@ -100,6 +101,14 @@ module.exports = class Network {
 		this.p2p.on(EVENT_DISCOVERED_PEER, peerInfo => {
 			this.logger.info(
 				`Discovered peer ${peerInfo.ipAddress}:${peerInfo.wsPort}`
+			);
+		});
+
+		this.p2p.on(EVENT_NEW_INBOUND_PEER, peerInfo => {
+			this.logger.debug(
+				`Connected from peer ${peerInfo.ipAddress}:${
+					peerInfo.wsPort
+				} ${JSON.stringify(peerInfo)}`
 			);
 		});
 

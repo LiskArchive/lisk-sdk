@@ -90,24 +90,32 @@ const getByFilter = (peers, filter) => {
 		'height',
 		'nonce',
 	];
-	const limit = filter.limit ? Math.abs(filter.limit) : null;
-	const offset = filter.offset ? Math.abs(filter.offset) : 0;
+	const {
+		limit: filterLimit,
+		offset: filterOffset,
+		sort,
+		...otherFilters
+	} = filter;
+	const limit = filterLimit ? Math.abs(filterLimit) : null;
+	const offset = filterOffset ? Math.abs(filterOffset) : 0;
 
-	let filteredPeers = peers.filter(peer => {
-		let passed = true;
-		Object.entries(filter).forEach((key, value) => {
-			// Every filter field need to be in allowed fields, exists and match value
-			if (
-				allowedFields.includes(key) &&
-				!(peer[key] !== undefined && peer[key] === value)
-			) {
-				passed = false;
-				return false;
-			}
-			return true;
-		});
-		return passed;
-	});
+	let filteredPeers = peers.reduce((prev, peer) => {
+		const matchFilters =
+			typeof otherFilters === 'object' && otherFilters !== null
+				? otherFilters
+				: {};
+		const applicableFilters = Object.keys(matchFilters).filter(key =>
+			allowedFields.includes(key)
+		);
+		if (
+			applicableFilters.every(
+				key => peer[key] !== undefined && peer[key] === matchFilters[key]
+			)
+		) {
+			prev.push(peer);
+		}
+		return prev;
+	}, []);
 
 	// Sorting
 	if (filter.sort) {
@@ -166,10 +174,19 @@ const getConsolidatedPeersList = networkStatus => {
 		...newPeers,
 		...triedPeers,
 	].reduce((uniquePeers, peer) => {
-		const found = uniquePeers.find(findPeer => findPeer.ip === peer.ipAddress);
+		const found = uniquePeers.find(
+			findPeer =>
+				findPeer.ip === peer.ipAddress && findPeer.wsPort === peer.wsPort
+		);
 
 		if (!found) {
-			const { ipAddress, ...peerWithoutIp } = peer;
+			const {
+				ipAddress,
+				options,
+				minVersion,
+				nethash,
+				...peerWithoutIp
+			} = peer;
 
 			return [...uniquePeers, { ip: ipAddress, ...peerWithoutIp }];
 		}
