@@ -230,7 +230,7 @@ describe('commons node utils', () => {
 			releaseStub = sandbox.stub(release, 'getLatestVersion');
 		});
 
-		it('should throw if version is invalid', async () => {
+		it('should throw if version is invalid', () => {
 			const invalidVersion = 'rc.1.0.0';
 			return expect(
 				validateVersion(NETWORK.MAINNET, invalidVersion),
