@@ -20,14 +20,15 @@ const prefixedPeer = require('../../../../fixtures/peers').randomNormalizedPeer;
 const modulesLoader = require('../../../../common/modules_loader');
 
 describe('peers', () => {
+	const PEER_STATE_CONNECTED = 2;
+	const NONCE = randomstring.generate(16);
+
 	let storageMock;
 	let peers;
 	let PeersRewired;
 
 	let scope;
 	let channelMock;
-
-	const NONCE = randomstring.generate(16);
 
 	before(done => {
 		storageMock = {
@@ -150,7 +151,7 @@ describe('peers', () => {
 			before(async () => {
 				channelMock.invoke
 					.withArgs('network:getPeersCountByFilter', {
-						state: 1,
+						state: PEER_STATE_CONNECTED,
 					})
 					.returns(2);
 				channelMock.invoke
@@ -172,7 +173,7 @@ describe('peers', () => {
 				expect(
 					channelMock.invoke.calledWithExactly(
 						'network:getPeersCountByFilter',
-						{ state: 1 }
+						{ state: PEER_STATE_CONNECTED }
 					)
 				).to.be.true);
 
@@ -195,7 +196,7 @@ describe('peers', () => {
 			before(async () => {
 				channelMock.invoke
 					.withArgs('network:getPeersCountByFilter', {
-						state: 1,
+						state: PEER_STATE_CONNECTED,
 					})
 					.returns(2);
 				channelMock.invoke
