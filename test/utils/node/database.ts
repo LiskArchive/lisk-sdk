@@ -28,7 +28,7 @@ describe('database node utils', () => {
 			return expect(status).to.equal('Postgres database initialized');
 		});
 
-		it('should throw error when failed to initialized  database ', async () => {
+		it('should throw error when failed to initialized  database ', () => {
 			existsSyncStub.returns(false);
 			workerProcessStub.resolves({
 				stdout: 'failed to initialized database',
@@ -65,7 +65,7 @@ describe('database node utils', () => {
 			return expect(status).to.equal('[+] Postgresql started successfully.');
 		});
 
-		it('should throw error when failed to start database ', async () => {
+		it('should throw error when failed to start database ', () => {
 			workerProcessStub.resolves({
 				stdout: 'failed to start database',
 				stderr: 'failed to start',
@@ -100,7 +100,7 @@ describe('database node utils', () => {
 			return expect(status).to.equal('[+] Postgresql is not running.');
 		});
 
-		it('should throw error when failed to stop  database ', async () => {
+		it('should throw error when failed to stop  database ', () => {
 			workerProcessStub.resolves({
 				stdout: 'server is running',
 				stderr: 'failed to stop',
@@ -129,7 +129,7 @@ describe('database node utils', () => {
 				.returns({ user: 'lisk', password: 'lisk' });
 		});
 
-		it('should throw error when failed to create user', async () => {
+		it('should throw error when failed to create user', () => {
 			workerProcessStub.resolves({
 				stdout: 'failed to create user',
 				stderr: 'failed to create user',
@@ -160,7 +160,7 @@ describe('database node utils', () => {
 				.returns({ user: 'lisk', password: 'lisk' });
 		});
 
-		it('should throw error when failed to create database', async () => {
+		it('should throw error when failed to create database', () => {
 			workerProcessStub.resolves({
 				stdout: 'failed to create database',
 				stderr: 'failed to create database',

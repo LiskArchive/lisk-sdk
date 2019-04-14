@@ -39,7 +39,7 @@ describe('cache node utils', () => {
 
 	describe('#startCache', () => {
 		describe('when installation does not exists', () => {
-			it('should throw error', async () => {
+			it('should throw error', () => {
 				return expect(
 					startCache('/tmp/dummypath', NETWORK.MAINNET),
 				).to.rejectedWith('Command failed');
@@ -61,7 +61,7 @@ describe('cache node utils', () => {
 				);
 			});
 
-			it('should throw error when failed to stop', async () => {
+			it('should throw error when failed to stop', () => {
 				workerProcessStub.resolves({
 					stdout: 'Failed to start redis',
 					stderr: 'Failed to start redis',
@@ -76,7 +76,7 @@ describe('cache node utils', () => {
 
 	describe('#stopCache', () => {
 		describe('when installation does not exists', () => {
-			it('should throw error', async () => {
+			it('should throw error', () => {
 				return expect(
 					stopCache('/tmp/dummypath', NETWORK.MAINNET),
 				).to.rejectedWith('Config file not exists in path');
@@ -111,7 +111,7 @@ describe('cache node utils', () => {
 				);
 			});
 
-			it('should throw error when failed to stop', async () => {
+			it('should throw error when failed to stop', () => {
 				configStub.returns({ password: 'lisk' });
 				workerProcessStub.resolves({
 					stdout: 'Failed to stop redis',

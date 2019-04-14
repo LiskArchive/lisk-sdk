@@ -37,7 +37,7 @@ describe('download utils', () => {
 	});
 
 	describe('#validateChecksum', () => {
-		it('should throw an error when it fails to validate checksum', async () => {
+		it('should throw an error when it fails to validate checksum', () => {
 			execStub.resolves({ stdout: 'error', stderr: 'invalid checksum' });
 			return expect(
 				downloadUtil.validateChecksum('file/path', 'test.gz'),
@@ -46,7 +46,7 @@ describe('download utils', () => {
 			);
 		});
 
-		it('should successfully validate checksum', async () => {
+		it('should successfully validate checksum', () => {
 			execStub.resolves({ stdout: 'OK' });
 			return expect(downloadUtil.validateChecksum('file/path', 'test.gz')).to
 				.not.throw;
@@ -54,7 +54,7 @@ describe('download utils', () => {
 	});
 
 	describe('#extract', () => {
-		it('should throw an error when it fails to extract', async () => {
+		it('should throw an error when it fails to extract', () => {
 			execStub.resolves({ stderr: 'invalid filepath' });
 			return expect(
 				downloadUtil.extract('file/path', 'test.gz', 'output/dir'),
