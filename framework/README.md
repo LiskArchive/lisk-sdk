@@ -21,28 +21,28 @@ Lisk Framework modules define the consistent and intuitive interface, which allo
 Architecture design of the Lisk Framework is followed by the research. All details of the Lisk Framework architecture is documented in the [LIP0005](https://github.com/LiskHQ/lips/blob/master/proposals/lip-0005.md). The diagram below provides a high-level overview of the architecture:
 
 ```
-+---------------------------------------------------------------------+
-|                              LISK CORE                              |
-|+-------------------------------------------------------------------+|
-||                              MODULES                              ||
-||                                                                   ||
-||+-------------------------------+ +-------------------------------+||
-|||                               | |                               |||
-|||        CORE MODULES           | |     PLUGGABLE MODULES         |||
-|||                               | |                               |||
-||+-------------------------------+ +-------------------------------+||
-|+-------------------------------------------------------------------+|
-|                                 /|\                                 |
-|                                / | \                                |
-|                                  |   CHANNELS                       |
-|                                \ | /                                |
-|                                 \|/                                 |
-|+-------------------------------------------------------------------+|
-||                            COMPONENTS                             ||
-|+-------------------------------------------------------------------+|
-||                            CONTROLLER                             ||
-|+-------------------------------------------------------------------+|
-+---------------------------------------------------------------------+
+				+---------------------------------------------------------------------+
+				|                            LISK  FRAMEWORK                          |
+				|+-------------------------------------------------------------------+|
+				||                              MODULES                              ||
+				||                                                                   ||
+				||+-------------------------------+ +-------------------------------+||
+				|||                               | |                               |||
+				|||        CORE MODULES           | |     PLUGGABLE MODULES         |||
+				|||                               | |                               |||
+				||+-------------------------------+ +-------------------------------+||
+				|+-------------------------------------------------------------------+|
+				|                                 /|\                                 |
+				|                                / | \                                |
+				|                                  |   CHANNELS                       |
+				|                                \ | /                                |
+				|                                 \|/                                 |
+				|+-------------------------------------------------------------------+|
+				||                            COMPONENTS                             ||
+				|+-------------------------------------------------------------------+|
+				||                            CONTROLLER                             ||
+				|+-------------------------------------------------------------------+|
+				+---------------------------------------------------------------------+
 ```
 
 ## Installation and usage
@@ -70,9 +70,9 @@ NODE_ENV=test npm start
 
 Starting from version `1.6.0`, Lisk Core will be using [Jest](https://jestjs.io) as its main test runner and gradually deprecate [mocha](https://mochajs.org). Since rewriting all existing mocha tests is not feasible at the moment, we are going to have two test runners in our code base:
 
-* Modules (all source code under `framework/src/modules` folder) will be tested using `mocha` and test files should be located under `framework/test/mocha`.
-* Framework (all of the source files but `framework/src/modules`) will be tested using `jest` and test files should be located under `framework/test/jest`.
-* Functional and Network tests suites will be using `mocha` and test files should be located under `framework/test/mocha`.
+- Modules (all source code under `framework/src/modules` folder) will be tested using `mocha` and test files should be located under `framework/test/mocha`.
+- Framework (all of the source files but `framework/src/modules`) will be tested using `jest` and test files should be located under `framework/test/jest`.
+- Functional and Network tests suites will be using `mocha` and test files should be located under `framework/test/mocha`.
 
 #### Running Mocha Tests
 
@@ -82,9 +82,9 @@ Tests are run using the following command:
 npm run mocha:<testType> -- [testPathPattern] [mochaCliOptions]
 ```
 
-* Where **testType** can be one of `unit`, `integration`, `functional:ws`, `functional:get`, `functional:post`, `functional:put`, `functional`, `network` (required).
-* Where **testPathPattern** is a regexp pattern string that is matched against all tests paths before executing the test (optional).
-* Where **mochaCliOptions** can be any of mocha's [`command line options`](https://mochajs.org/#command-line-usage) (optional).
+- Where **testType** can be one of `unit`, `integration`, `functional:ws`, `functional:get`, `functional:post`, `functional:put`, `functional`, `network` (required).
+- Where **testPathPattern** is a regexp pattern string that is matched against all tests paths before executing the test (optional).
+- Where **mochaCliOptions** can be any of mocha's [`command line options`](https://mochajs.org/#command-line-usage) (optional).
 
 Examples:
 
