@@ -65,7 +65,7 @@ The Lisk SDK operates on the NodeJS runtime and consists primarily of an applica
 
 ### Dependencies
 
-Following dependencies need to be installed to run applications created with Lisk SDK:
+The following dependencies need to be installed in order to run applications created with the Lisk SDK:
 
 | Dependencies     | Version |
 | ---------------- | ------- |
@@ -73,11 +73,11 @@ Following dependencies need to be installed to run applications created with Lis
 | PostgreSQL       | 10+     |
 | Redis (optional) | 5+      |
 
-You can find further details on installing these dependencies on our [documentation guide](https://lisk.io/documentation/lisk-core/setup/source#pre-install).
+You can find further details on installing these dependencies in our [pre-installation setup guide](https://lisk.io/documentation/lisk-core/setup/source#pre-install).
 
 ### Installation of Lisk Framework
 
-To start with Lisk SDK you need to install one npm package `lisk-framework`:
+To start using the Lisk SDK you need to install one npm package - `lisk-framework`:
 
 ```
 npm install lisk-framework
