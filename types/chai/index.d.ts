@@ -1,4 +1,4 @@
-/* tslint:disable:callable-types no-any no-method-signature readonly-keyword */
+/* tslint:disable:callable-types no-any no-method-signature readonly-keyword no-mixed-interface */
 declare module 'chai' {
 	global {
 		export namespace Chai {
@@ -14,10 +14,10 @@ declare module 'chai' {
 				(expression: any, message?: string, messageNegative?: string): void;
 			}
 			export interface TypeComparison {
-				customError: (obj?: Error | typeof Error | string) => Assertion;
-				matchAny: Assertion;
 				hexString: Assertion;
 				integer: Assertion;
+				customError: (obj?: Error | typeof Error | string) => Assertion;
+				matchAny: Assertion;
 			}
 		}
 	}

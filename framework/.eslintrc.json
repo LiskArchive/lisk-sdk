@@ -1,6 +1,5 @@
 {
-	"extends": ["lisk-base"],
-	"plugins": ["chai-expect"],
+	"extends": ["../.eslintrc.json"],
 	"rules": {
 		"camelcase": "off",
 		"chai-expect/missing-assertion": "error",
@@ -40,7 +39,6 @@
 			}
 		],
 		"strict": "off",
-		// To keep
 		"import/no-extraneous-dependencies": [
 			"error",
 			{

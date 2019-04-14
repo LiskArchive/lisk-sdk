@@ -1,22 +1,10 @@
 {
+	"extends": "../tsconfig.json",
 	"compilerOptions": {
 		"composite": true,
 		"declaration": true,
 		"esModuleInterop": true,
 		"importHelpers": true,
-		"forceConsistentCasingInFileNames": true,
-		"target": "es2017",
-		"module": "commonjs",
-		"newLine": "lf",
-		"noFallthroughCasesInSwitch": true,
-		"noImplicitReturns": true,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
-		"pretty": true,
-		"removeComments": true,
-		"resolveJsonModule": true,
-		"sourceMap": true,
-		"strict": true,
 		"rootDir": "src",
 		"outDir": "dist"
 	},
