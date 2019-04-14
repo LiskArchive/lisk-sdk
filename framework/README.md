@@ -10,11 +10,15 @@
 
 ## What is Lisk Framework
 
-Lisk Framework is the collection of different modules and components built with help of collection of libraries that implements the [Lisk Protocol](https://lisk.io/documentation/lisk-protocol). Its been evolved over time by a proven and stable network implementation of Lisk protocol that is [Lisk Main Net](https://explorer.lisk.io). The earlier implementation of the protocol allowed us to test the idea and develop real time feasibility for market adoption. At later stage we extracted tested code components from network and developed some new in a way that those become reusable as well maintain data and security measures that we evolved in real network.
+Lisk Framework is the collection of modules and components which by using libraries of Lisk Elements, implement the [Lisk Protocol](https://lisk.io/documentation/lisk-protocol). Its shape has been evolved over time by a proven and stable implementation of [Lisk Mainnet](https://explorer.lisk.io).
+
+Modules and components are tested and will be published individually, so they can be reused by any blockchain application. The open-source contributions providing the new modules are more than welcome so that Lisk Ecosystem can be enriched with the new behaviours.
+
+Lisk Framework modules define the consistent and intuitive interface, which allows setting interactions between the blockchain components. For now, Lisk Framework implements the relations between `chain`, `api` and `network` modules.
 
 ### Architecture Overview
 
-Architecture design of the Lisk Framework was a very thought full process and we followed proper research patterns to evolve and get it approved from the community. All details of the framework architecture is documented in the [LIP0005](https://github.com/LiskHQ/lips/blob/master/proposals/lip-0005.md), here we are putting a diagram to representation of the framework.
+Architecture design of the Lisk Framework is followed by the research. All details of the Lisk Framework architecture is documented in the [LIP0005](https://github.com/LiskHQ/lips/blob/master/proposals/lip-0005.md). The diagram below provides a high-level overview of the architecture:
 
 ```
 +---------------------------------------------------------------------+
@@ -41,67 +45,9 @@ Architecture design of the Lisk Framework was a very thought full process and we
 +---------------------------------------------------------------------+
 ```
 
-## Pre-installation
+## Installation and usage
 
-Following dependencies are required to be installed before you start with the
-Lisk SDK.
-
-| Dependencies     | Version |
-| ---------------- | ------- |
-| NodeJS           | 10.14.3 |
-| PostgreSQL       | 10+     |
-| Redis (optional) | 5+      |
-
-You can find further details on installing these dependencies on our [documentation guide](https://lisk.io/documentation/lisk-core/setup/source#pre-install).
-
-## Installation
-
-Lisk Framework is distributed as a standard npm package. So its usage by just installing its package in your node project.
-
-```
-npm install --save lisk-framework
-```
-
-## Usage
-
-The development flow is standard as you do with any NodeJS backend application. Here are few steps to get started.
-
-```bash
-mkdir my_app
-cd my_app
-npm init 
-npm install --save lisk-framework
-```
-
-At this point you will have an entry file in the directory called `index.js`. You can copy past following code in that file to start with.
-
-```js
-const { Application, SampleGenesisBlock } = require('lisk-framework');
-
-const errorHandler = error => {
-	console.error('Faced error in application', error);
-	process.exit(1);
-};
-
-try {
-	const app = new Application('my-app', SampleGenesisBlock);
-
-	app
-		.run()
-		.then(() => app.logger.info(' App started...'))
-		.catch(errorHandler);
-} catch (error) {
-	errorHandler(error);
-}
-```
-
-After that you can start the application by:
-
-```
-node index.js
-```
-
-For more details on application and other configurations along with more samples please visit Lisk official [documentation portal](http://docs.lisk.io).
+To install and use Lisk Framework follow the steps described in the [Lisk SDK installation](https://github.com/LiskHQ/lisk-sdk#installation) and [usage](https://github.com/LiskHQ/lisk-sdk#usage) sections.
 
 ## Tests
 
