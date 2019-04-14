@@ -75,9 +75,9 @@ Following dependencies need to be installed to run applications created with Lis
 
 You can find further details on installing these dependencies on our [documentation guide](https://lisk.io/documentation/lisk-core/setup/source#pre-install).
 
-### Installation of Lisk SDK
+### Installation of Lisk Framework
 
-To start with Lisk SDK you need to install one npm package - `lisk-framework`:
+To start with Lisk SDK you need to install one npm package `lisk-framework`:
 
 ```
 npm install lisk-framework
@@ -111,7 +111,7 @@ After that you can start the application by:
 node index.js
 ```
 
-The role model of big-scale application created using Lisk SDK is the client of Lisk network - [Lisk Core](https://github.com/liskhq/lisk-core).
+The role model of big-scale application created using Lisk SDK is the client of Lisk network - [Lisk Core](https://github.com/liskhq/lisk-sdk/lisk).
 
 More details on the usage and other configurations along with more samples will become available on Lisk official [documentation portal](http://docs.lisk.io).
 
