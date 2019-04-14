@@ -23,7 +23,7 @@ All the tools, IDEs that you are experienced to built backend applications will 
 
 ### Architecture Overview
 
-Lisk SDK is collection of framework, libraries and command line tools to facilitate every aspect for developing a blockchain application. It will hide the complexity of the technology and expose an elegant and easy to use and accessible interfaces for developers. The conceptual stack for our SDK is shown below.
+Lisk SDK is collection of framework, libraries and command line tools to facilitate every aspect for developing a blockchain application. It will hide the complexity of the technology and expose an elegant, easy to use and accessible interfaces for developers. The conceptual stack for the Lisk SDK is shown below:
 
 ```
                                   Lisk SDK Ecosystem
@@ -57,9 +57,9 @@ Lisk SDK is collection of framework, libraries and command line tools to facilit
 
 | Directory                  | Description                                                                                                          |
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| [Framework](./framework)   | Lisk Framework which is responsible to glue up all pieces together an first point of interaction for any developer.  |
-| [Elements](./elements)   | Lisk Elements which is collection of libraries performing and dedicated to one particular domain in Lisk eco-system. |
-| [Commander](./commander) | Its a command line utility to facilitate day to day Lisk management and development activities.                      |
+| [Framework](./framework)   | Responsible for establishing the interactions between blockchain modules (using the Lisk Elemenents libraries) which together with the network configuration are exposed for SDK developers.  |
+| [Elements](./elements)     | A collection of libraries, each of them is implementing a single domain of a blockchain element like transactions, cryptography etc. |
+| [Commander](./commander)   | A command line tool which helps to manage a node as well as interacting with a network. |
 
 ## Installation
 
