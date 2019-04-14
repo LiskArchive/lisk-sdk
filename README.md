@@ -15,7 +15,11 @@ Have fun with our alpha release to build blockchain applications but don't expec
 
 ## What is Lisk SDK
 
-Lisk SDK provides an easy, secure and scalable way to create blockchain applications in JavaScript. It facilitate developers to create their blockchain ledgers which is fully compatible with [Lisk Protocol](https://lisk.io/documentation/lisk-protocol). All the tools, IDEs that you are experienced to built backend applications will still applies developing with Lisk SDK.
+Lisk SDK provides an easy, secure and scalable way to create blockchain applications in JavaScript. 
+
+It facilitate developers to create their blockchain ledgers which follow [Lisk Protocol](https://lisk.io/documentation/lisk-protocol). 
+
+All the tools, IDEs that you are experienced to built backend applications will still applies developing with Lisk SDK.
 
 ### Architecture Overview
 
@@ -59,8 +63,9 @@ Lisk SDK is collection of framework, libraries and command line tools to facilit
 
 ## Installation
 
-Following dependencies are required to be installed before you start with the
-Lisk SDK.
+### Dependencies
+
+Following dependencies need to be installed to run applications created with Lisk SDK:
 
 | Dependencies     | Version |
 | ---------------- | ------- |
@@ -70,7 +75,9 @@ Lisk SDK.
 
 You can find further details on installing these dependencies on our [documentation guide](https://lisk.io/documentation/lisk-core/setup/source#pre-install).
 
-To start with Lisk SDK you need to install one npm package.
+### Installation of Lisk SDK
+
+To start with Lisk SDK you need to install one npm package - `lisk-framework`:
 
 ```
 npm install lisk-framework
