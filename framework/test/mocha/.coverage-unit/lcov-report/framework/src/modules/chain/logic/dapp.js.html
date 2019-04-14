@@ -1,0 +1,1769 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for framework/src/modules/chain/logic/dapp.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../../../../prettify.css" />
+    <link rel="stylesheet" href="../../../../../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../../../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../../../../../index.html">All files</a> / <a href="index.html">framework/src/modules/chain/logic</a> dapp.js
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">19.58% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>28/143</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>0/96</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">5.26% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>1/19</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">19.72% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>28/142</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line low'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317
+318
+319
+320
+321
+322
+323
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333
+334
+335
+336
+337
+338
+339
+340
+341
+342
+343
+344
+345
+346
+347
+348
+349
+350
+351
+352
+353
+354
+355
+356
+357
+358
+359
+360
+361
+362
+363
+364
+365
+366
+367
+368
+369
+370
+371
+372
+373
+374
+375
+376
+377
+378
+379
+380
+381
+382
+383
+384
+385
+386
+387
+388
+389
+390
+391
+392
+393
+394
+395
+396
+397
+398
+399
+400
+401
+402
+403
+404
+405
+406
+407
+408
+409
+410
+411
+412
+413
+414
+415
+416
+417
+418
+419
+420
+421
+422
+423
+424
+425
+426
+427
+428
+429
+430
+431
+432
+433
+434
+435
+436
+437
+438
+439
+440
+441
+442
+443
+444
+445
+446
+447
+448
+449
+450
+451
+452
+453
+454
+455
+456
+457
+458
+459
+460
+461
+462
+463
+464
+465
+466
+467
+468
+469
+470
+471
+472
+473
+474
+475
+476
+477
+478
+479
+480
+481
+482
+483
+484
+485
+486
+487
+488
+489
+490
+491
+492
+493
+494
+495
+496
+497
+498
+499
+500
+501
+502
+503
+504
+505
+506
+507
+508
+509
+510
+511
+512
+513
+514
+515
+516
+517
+518
+519
+520
+521
+522
+523
+524
+525
+526
+527
+528
+529
+530
+531
+532
+533
+534
+535
+536
+537
+538
+539
+540
+541
+542
+543
+544
+545
+546
+547
+548
+549
+550
+551
+552
+553
+554
+555
+556
+557
+558
+559
+560
+561
+562
+563
+564
+565
+566
+567
+568
+569</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+&nbsp;
+'use strict';
+&nbsp;
+const valid_url = require('valid-url');
+const ByteBuffer = require('bytebuffer');
+const Bignum = require('../helpers/bignum');
+const regexpTester = require('../helpers/regexp_tester');
+&nbsp;
+const { FEES, TRANSACTION_TYPES } = global.constants;
+&nbsp;
+const __scope = {};
+__scope.unconfirmedNames = {};
+__scope.unconfirmedLinks = {};
+__scope.unconfirmedAscii = {};
+&nbsp;
+const dappCategories = {
+	Education: 0,
+	Entertainment: 1,
+	Finance: 2,
+	Games: 3,
+	Miscellaneous: 4,
+	Networking: 5,
+	Science: 6,
+	Social: 7,
+	Utilities: 8,
+};
+&nbsp;
+/**
+ * Main dapp logic. Initializes library.
+ *
+ * @class
+ * @memberof logic
+ * @see Parent: {@link logic}
+ * @requires bytebuffer
+ * @requires valid
+ * @param {Object} scope
+ * @param {Object} scope.components
+ * @param {Storage} scope.components.storage
+ * @param {logger} scope.components.logger
+ * @param {ZSchema} scope.schema
+ * @param {Object} scope.channel
+ * @todo Add description for the params
+ */
+class DApp {
+	constructor({ components: { storage, logger }, schema, channel }) {
+		__scope.components = {
+			storage,
+			logger,
+		};
+		__scope.schema = schema;
+		__scope.channel = channel;
+	}
+}
+&nbsp;
+// TODO: The below functions should be converted into static functions,
+// however, this will lead to incompatibility with modules and tests implementation.
+/**
+ * Binds scope.modules to private variable modules.
+ */
+// TODO: Remove this method as modules will be loaded prior to trs logic.
+DApp.prototype.bind = <span class="fstat-no" title="function not covered" >fu</span>nction() {};
+&nbsp;
+/**
+ * Returns dapp fee from constants.
+ *
+ * @returns {Bignumber} Transaction fee
+ */
+DApp.prototype.calculateFee = <span class="fstat-no" title="function not covered" >fu</span>nction() {
+<span class="cstat-no" title="statement not covered" >	return new Bignum(FEES.DAPP_REGISTRATION);</span>
+};
+&nbsp;
+/**
+ * Verifies transaction and dapp fields. Checks dapp name and link in
+ * `dapps` table.
+ *
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb
+ * @returns {SetImmediate} error, transaction
+ * @todo Add description for the params
+ */
+DApp.prototype.verify = <span class="fstat-no" title="function not covered" >fu</span>nction(transaction, sender, cb, tx) {
+<span class="cstat-no" title="statement not covered" >	if (transaction.recipientId) {</span>
+<span class="cstat-no" title="statement not covered" >		return setImmediate(cb, 'Invalid recipient');</span>
+	}
+&nbsp;
+	const amount = <span class="cstat-no" title="statement not covered" >new Bignum(transaction.amount);</span>
+<span class="cstat-no" title="statement not covered" >	if (amount.isGreaterThan(0)) {</span>
+<span class="cstat-no" title="statement not covered" >		return setImmediate(cb, 'Invalid transaction amount');</span>
+	}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	if (!transaction.asset || !transaction.asset.dapp) {</span>
+<span class="cstat-no" title="statement not covered" >		return setImmediate(cb, 'Invalid transaction asset');</span>
+	}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	if (</span>
+		transaction.asset.dapp.category !== 0 &amp;&amp;
+		!transaction.asset.dapp.category
+	) {
+<span class="cstat-no" title="statement not covered" >		return setImmediate(cb, 'Invalid application category');</span>
+	}
+&nbsp;
+	const foundCategory = <span class="cstat-no" title="statement not covered" >Object.values(dappCategories).includes(</span>
+		transaction.asset.dapp.category
+	);
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	if (!foundCategory) {</span>
+<span class="cstat-no" title="statement not covered" >		return setImmediate(cb, 'Application category not found');</span>
+	}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	if (transaction.asset.dapp.icon) {</span>
+<span class="cstat-no" title="statement not covered" >		if (!valid_url.isUri(transaction.asset.dapp.icon)) {</span>
+<span class="cstat-no" title="statement not covered" >			return setImmediate(cb, 'Invalid application icon link');</span>
+		}
+&nbsp;
+		const length = <span class="cstat-no" title="statement not covered" >transaction.asset.dapp.icon.length;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		if (</span>
+			transaction.asset.dapp.icon.indexOf('.png') !== length - 4 &amp;&amp;
+			transaction.asset.dapp.icon.indexOf('.jpg') !== length - 4 &amp;&amp;
+			transaction.asset.dapp.icon.indexOf('.jpeg') !== length - 5
+		) {
+<span class="cstat-no" title="statement not covered" >			return setImmediate(cb, 'Invalid application icon file type');</span>
+		}
+	}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	if (transaction.asset.dapp.type &gt; 1 || transaction.asset.dapp.type &lt; 0) {</span>
+<span class="cstat-no" title="statement not covered" >		return setImmediate(cb, 'Invalid application type');</span>
+	}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	if (!valid_url.isUri(transaction.asset.dapp.link)) {</span>
+<span class="cstat-no" title="statement not covered" >		return setImmediate(cb, 'Invalid application link');</span>
+	}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	if (</span>
+		transaction.asset.dapp.link.indexOf('.zip') !==
+		transaction.asset.dapp.link.length - 4
+	) {
+<span class="cstat-no" title="statement not covered" >		return setImmediate(cb, 'Invalid application file type');</span>
+	}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	if (</span>
+		!transaction.asset.dapp.name ||
+		transaction.asset.dapp.name.trim().length === 0 ||
+		transaction.asset.dapp.name.trim() !== transaction.asset.dapp.name
+	) {
+<span class="cstat-no" title="statement not covered" >		return setImmediate(cb, 'Application name must not be blank');</span>
+	}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	if (transaction.asset.dapp.name.length &gt; 32) {</span>
+<span class="cstat-no" title="statement not covered" >		return setImmediate(</span>
+			cb,
+			'Application name is too long. Maximum is 32 characters'
+		);
+	}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	if (regexpTester.isNullByteIncluded(transaction.asset.dapp.name)) {</span>
+<span class="cstat-no" title="statement not covered" >		return setImmediate(</span>
+			cb,
+			'Application name has invalid character. Null character is not allowed.'
+		);
+	}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	if (</span>
+		transaction.asset.dapp.description &amp;&amp;
+		transaction.asset.dapp.description.length &gt; 160
+	) {
+<span class="cstat-no" title="statement not covered" >		return setImmediate(</span>
+			cb,
+			'Application description is too long. Maximum is 160 characters'
+		);
+	}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	if (transaction.asset.dapp.tags &amp;&amp; transaction.asset.dapp.tags.length &gt; 160) {</span>
+<span class="cstat-no" title="statement not covered" >		return setImmediate(</span>
+			cb,
+			'Application tags is too long. Maximum is 160 characters'
+		);
+	}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	if (</span>
+		transaction.asset.dapp.description &amp;&amp;
+		regexpTester.isNullByteIncluded(transaction.asset.dapp.description)
+	) {
+<span class="cstat-no" title="statement not covered" >		return setImmediate(</span>
+			cb,
+			'Application description has invalid character. Null character is not allowed.'
+		);
+	}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	if (transaction.asset.dapp.tags) {</span>
+		let tags = <span class="cstat-no" title="statement not covered" >transaction.asset.dapp.tags.split(',');</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		tags = tags.map(<span class="fstat-no" title="function not covered" >ta</span>g =&gt; <span class="cstat-no" title="statement not covered" >tag.trim())</span>.sort();</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		for (let i = 0; i &lt; tags.length - 1; i++) {</span>
+<span class="cstat-no" title="statement not covered" >			if (regexpTester.isNullByteIncluded(tags[i])) {</span>
+<span class="cstat-no" title="statement not covered" >				return setImmediate(</span>
+					cb,
+					'Application tags has invalid character. Null character is not allowed.'
+				);
+			}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >			if (tags[i + 1] === tags[i]) {</span>
+<span class="cstat-no" title="statement not covered" >				return setImmediate(</span>
+					cb,
+					`Encountered duplicate tag: ${tags[i]} in application`
+				);
+			}
+		}
+	}
+&nbsp;
+	const filter = <span class="cstat-no" title="statement not covered" >[</span>
+		{
+			dapp_name: transaction.asset.dapp.name,
+			id_ne: transaction.id,
+			type: TRANSACTION_TYPES.DAPP,
+		},
+		{
+			dapp_link: transaction.asset.dapp.link || null,
+			id_ne: transaction.id,
+			type: TRANSACTION_TYPES.DAPP,
+		},
+	];
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	return __scope.components.storage.entities.Transaction.get(</span>
+		filter,
+		{ extended: true },
+		tx
+	)
+		.then(<span class="fstat-no" title="function not covered" >ro</span>ws =&gt; {
+			const dapp = <span class="cstat-no" title="statement not covered" >rows[0];</span>
+<span class="cstat-no" title="statement not covered" >			if (dapp) {</span>
+				const existingDapp = <span class="cstat-no" title="statement not covered" >dapp.asset.dapp;</span>
+<span class="cstat-no" title="statement not covered" >				if (existingDapp.name === transaction.asset.dapp.name) {</span>
+<span class="cstat-no" title="statement not covered" >					return setImmediate(</span>
+						cb,
+						`Application name already exists: ${existingDapp.name}`
+					);
+				}
+<span class="cstat-no" title="statement not covered" >				if (existingDapp.link === transaction.asset.dapp.link) {</span>
+<span class="cstat-no" title="statement not covered" >					return setImmediate(</span>
+						cb,
+						`Application link already exists: ${existingDapp.link}`
+					);
+				}
+<span class="cstat-no" title="statement not covered" >				return setImmediate(cb, 'Application already exists');</span>
+			}
+<span class="cstat-no" title="statement not covered" >			return setImmediate(cb, null, transaction);</span>
+		})
+		.catch(<span class="fstat-no" title="function not covered" >er</span>r =&gt; {
+<span class="cstat-no" title="statement not covered" >			__scope.components.logger.error(err.stack);</span>
+<span class="cstat-no" title="statement not covered" >			return setImmediate(cb, 'DApp#verify error');</span>
+		});
+};
+&nbsp;
+/**
+ * Description of the function.
+ *
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb
+ * @returns {SetImmediate} null, transaction
+ * @todo Add description for the function and the params
+ */
+DApp.prototype.process = <span class="fstat-no" title="function not covered" >fu</span>nction(transaction, sender, cb) {
+<span class="cstat-no" title="statement not covered" >	return setImmediate(cb, null, transaction);</span>
+};
+&nbsp;
+/**
+ * Creates a buffer with dapp information:
+ * - name
+ * - description
+ * - tags
+ * - link
+ * - icon
+ * - type
+ * - category
+ *
+ * @param {transaction} transaction
+ * @throws {Error}
+ * @returns {Array} Buffer
+ * @todo Add description for the params
+ * @todo Check type and description of the return value
+ */
+DApp.prototype.getBytes = <span class="fstat-no" title="function not covered" >fu</span>nction(transaction) {
+	let buf;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	try {</span>
+<span class="cstat-no" title="statement not covered" >		buf = Buffer.from([]);</span>
+		const nameBuf = <span class="cstat-no" title="statement not covered" >Buffer.from(transaction.asset.dapp.name, 'utf8');</span>
+<span class="cstat-no" title="statement not covered" >		buf = Buffer.concat([buf, nameBuf]);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		if (transaction.asset.dapp.description) {</span>
+			const descriptionBuf = <span class="cstat-no" title="statement not covered" >Buffer.from(</span>
+				transaction.asset.dapp.description,
+				'utf8'
+			);
+<span class="cstat-no" title="statement not covered" >			buf = Buffer.concat([buf, descriptionBuf]);</span>
+		}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		if (transaction.asset.dapp.tags) {</span>
+			const tagsBuf = <span class="cstat-no" title="statement not covered" >Buffer.from(transaction.asset.dapp.tags, 'utf8');</span>
+<span class="cstat-no" title="statement not covered" >			buf = Buffer.concat([buf, tagsBuf]);</span>
+		}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		if (transaction.asset.dapp.link) {</span>
+<span class="cstat-no" title="statement not covered" >			buf = Buffer.concat([</span>
+				buf,
+				Buffer.from(transaction.asset.dapp.link, 'utf8'),
+			]);
+		}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		if (transaction.asset.dapp.icon) {</span>
+<span class="cstat-no" title="statement not covered" >			buf = Buffer.concat([</span>
+				buf,
+				Buffer.from(transaction.asset.dapp.icon, 'utf8'),
+			]);
+		}
+&nbsp;
+		const byteBuffer = <span class="cstat-no" title="statement not covered" >new ByteBuffer(4 + 4, true);</span>
+<span class="cstat-no" title="statement not covered" >		byteBuffer.writeInt(transaction.asset.dapp.type);</span>
+<span class="cstat-no" title="statement not covered" >		byteBuffer.writeInt(transaction.asset.dapp.category);</span>
+<span class="cstat-no" title="statement not covered" >		byteBuffer.flip();</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		buf = Buffer.concat([buf, byteBuffer.toBuffer()]);</span>
+	} catch (e) {
+<span class="cstat-no" title="statement not covered" >		throw e;</span>
+	}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	return buf;</span>
+};
+&nbsp;
+/**
+ * Description of the function.
+ *
+ * @param {transaction} transaction
+ * @param {block} block
+ * @param {account} sender
+ * @param {function} cb
+ * @returns {SetImmediate}
+ * @todo Add description for the function and the params
+ */
+DApp.prototype.applyConfirmed = <span class="fstat-no" title="function not covered" >fu</span>nction(transaction, block, sender, cb) {
+<span class="cstat-no" title="statement not covered" >	delete __scope.unconfirmedNames[transaction.asset.dapp.name];</span>
+<span class="cstat-no" title="statement not covered" >	delete __scope.unconfirmedLinks[transaction.asset.dapp.link];</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	return setImmediate(cb);</span>
+};
+&nbsp;
+/**
+ * Description of the function.
+ *
+ * @param {transaction} transaction
+ * @param {block} block
+ * @param {account} sender
+ * @param {function} cb
+ * @returns {SetImmediate}
+ * @todo Add description for the function and the params
+ */
+DApp.prototype.undoConfirmed = <span class="fstat-no" title="function not covered" >fu</span>nction(transaction, block, sender, cb) {
+<span class="cstat-no" title="statement not covered" >	return setImmediate(cb);</span>
+};
+&nbsp;
+/**
+ * Checks if dapp name and link exists, if not adds them to private
+ * unconfirmed variables.
+ *
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb
+ * @returns {SetImmediate} error
+ * @todo Add description for the params
+ */
+DApp.prototype.applyUnconfirmed = <span class="fstat-no" title="function not covered" >fu</span>nction(transaction, sender, cb) {
+<span class="cstat-no" title="statement not covered" >	if (__scope.unconfirmedNames[transaction.asset.dapp.name]) {</span>
+<span class="cstat-no" title="statement not covered" >		return setImmediate(cb, 'Application name already exists');</span>
+	}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	if (</span>
+		transaction.asset.dapp.link &amp;&amp;
+		__scope.unconfirmedLinks[transaction.asset.dapp.link]
+	) {
+<span class="cstat-no" title="statement not covered" >		return setImmediate(cb, 'Application link already exists');</span>
+	}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	__scope.unconfirmedNames[transaction.asset.dapp.name] = true;</span>
+<span class="cstat-no" title="statement not covered" >	__scope.unconfirmedLinks[transaction.asset.dapp.link] = true;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	return setImmediate(cb);</span>
+};
+&nbsp;
+/**
+ * Deletes dapp name and link from private unconfirmed variables.
+ *
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb
+ * @returns {SetImmediate}
+ * @todo Add description for the params
+ */
+DApp.prototype.undoUnconfirmed = <span class="fstat-no" title="function not covered" >fu</span>nction(transaction, sender, cb) {
+<span class="cstat-no" title="statement not covered" >	delete __scope.unconfirmedNames[transaction.asset.dapp.name];</span>
+<span class="cstat-no" title="statement not covered" >	delete __scope.unconfirmedLinks[transaction.asset.dapp.link];</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	return setImmediate(cb);</span>
+};
+&nbsp;
+/**
+ * @typedef {Object} dapp
+ * @property {dappCategory} category - Number between 0 and 8
+ * @property {string} name - Between 1 and 32 chars
+ * @property {string} description - Between 0 and 160 chars
+ * @property {string} tags - Between 0 and 160 chars
+ * @property {dappType} type - Number, minimum 0
+ * @property {string} link - Between 0 and 2000 chars
+ * @property {string} icon - Between 0 and 2000 chars
+ * @property {string} transactionId - Transaction id
+ */
+DApp.prototype.schema = {
+	id: 'DApp',
+	type: 'object',
+	properties: {
+		category: {
+			type: 'integer',
+			minimum: 0,
+			maximum: 8,
+		},
+		name: {
+			type: 'string',
+			minLength: 1,
+			maxLength: 32,
+		},
+		description: {
+			type: 'string',
+			minLength: 0,
+			maxLength: 160,
+		},
+		tags: {
+			type: 'string',
+			minLength: 0,
+			maxLength: 160,
+		},
+		type: {
+			type: 'integer',
+			minimum: 0,
+		},
+		link: {
+			type: 'string',
+			minLength: 0,
+			maxLength: 2000,
+		},
+		icon: {
+			type: 'string',
+			minLength: 0,
+			maxLength: 2000,
+		},
+	},
+	required: ['type', 'name', 'category'],
+};
+&nbsp;
+/**
+ * Deletes null or undefined dapp from transaction and validate dapp schema.
+ *
+ * @param {transaction} transaction
+ * @throws {string} If dapp schema is invalid
+ * @returns {transaction}
+ * @todo Add description for the params
+ */
+DApp.prototype.objectNormalize = <span class="fstat-no" title="function not covered" >fu</span>nction(transaction) {
+<span class="cstat-no" title="statement not covered" >	Object.keys(transaction.asset.dapp).forEach(<span class="fstat-no" title="function not covered" >ke</span>y =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >		if (</span>
+			transaction.asset.dapp[key] === null ||
+			typeof transaction.asset.dapp[key] === 'undefined'
+		) {
+<span class="cstat-no" title="statement not covered" >			delete transaction.asset.dapp[key];</span>
+		}
+	});
+&nbsp;
+	const report = <span class="cstat-no" title="statement not covered" >__scope.schema.validate(</span>
+		transaction.asset.dapp,
+		DApp.prototype.schema
+	);
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	if (!report) {</span>
+<span class="cstat-no" title="statement not covered" >		throw `Failed to validate dapp schema: ${__scope.schema</span>
+			.getLastErrors()
+			.map(<span class="fstat-no" title="function not covered" >er</span>r =&gt; <span class="cstat-no" title="statement not covered" >err.message)</span>
+			.join(', ')}`;
+	}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	return transaction;</span>
+};
+&nbsp;
+/**
+ * Creates dapp object based on raw data.
+ *
+ * @param {Object} raw
+ * @returns {null|Object} Dapp object
+ * @todo Add description for the params
+ */
+DApp.prototype.dbRead = <span class="fstat-no" title="function not covered" >fu</span>nction(raw) {
+<span class="cstat-no" title="statement not covered" >	if (!raw.dapp_name) {</span>
+<span class="cstat-no" title="statement not covered" >		return null;</span>
+	}
+	const dapp = <span class="cstat-no" title="statement not covered" >{</span>
+		name: raw.dapp_name,
+		description: raw.dapp_description,
+		tags: raw.dapp_tags,
+		type: raw.dapp_type,
+		link: raw.dapp_link,
+		category: raw.dapp_category,
+		icon: raw.dapp_icon,
+	};
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	return { dapp };</span>
+};
+&nbsp;
+/**
+ * Emits 'dapps/change' signal.
+ *
+ * @param {transaction} transaction
+ * @param {function} cb
+ * @returns {SetImmediate}
+ * @todo Add description for the params
+ */
+DApp.prototype.afterSave = <span class="fstat-no" title="function not covered" >fu</span>nction(transaction, cb) {
+<span class="cstat-no" title="statement not covered" >	if (__scope.channel) {</span>
+<span class="cstat-no" title="statement not covered" >		__scope.channel.publish('chain:dapps:change', {});</span>
+	}
+<span class="cstat-no" title="statement not covered" >	return setImmediate(cb);</span>
+};
+&nbsp;
+/**
+ * Checks if transaction has enough signatures to be confirmed.
+ *
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @returns {boolean} true - If transaction signatures greather than sender multimin, or there are no sender multisignatures
+ * @todo Add description for the params
+ */
+DApp.prototype.ready = <span class="fstat-no" title="function not covered" >fu</span>nction(transaction, sender) {
+<span class="cstat-no" title="statement not covered" >	if (</span>
+		Array.isArray(sender.membersPublicKeys) &amp;&amp;
+		sender.membersPublicKeys.length
+	) {
+<span class="cstat-no" title="statement not covered" >		if (!Array.isArray(transaction.signatures)) {</span>
+<span class="cstat-no" title="statement not covered" >			return false;</span>
+		}
+<span class="cstat-no" title="statement not covered" >		return transaction.signatures.length &gt;= sender.multiMin;</span>
+	}
+<span class="cstat-no" title="statement not covered" >	return true;</span>
+};
+&nbsp;
+module.exports = DApp;
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="https://istanbul.js.org/" target="_blank">istanbul</a> at Fri Apr 12 2019 12:19:50 GMT+0200 (Central European Summer Time)
+</div>
+</div>
+<script src="../../../../../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../../../../../sorter.js"></script>
+</body>
+</html>

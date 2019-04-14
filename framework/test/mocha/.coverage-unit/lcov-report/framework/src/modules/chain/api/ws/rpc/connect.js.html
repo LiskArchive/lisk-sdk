@@ -1,0 +1,857 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for framework/src/modules/chain/api/ws/rpc/connect.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../../../../../../prettify.css" />
+    <link rel="stylesheet" href="../../../../../../../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../../../../../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../../../../../../../index.html">All files</a> / <a href="index.html">framework/src/modules/chain/api/ws/rpc</a> connect.js
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">12% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>12/100</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>0/40</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>0/20</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">12% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>12/100</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line low'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+&nbsp;
+'use strict';
+&nbsp;
+const _ = require('lodash');
+const scClient = require('socketcluster-client');
+const WAMPClient = require('wamp-socket-cluster/WAMPClient');
+const failureCodes = require('../../../api/ws/rpc/failure_codes');
+const wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
+const Peer = require('../../../logic/peer');
+&nbsp;
+const TIMEOUT = 2000;
+&nbsp;
+const wampClient = new WAMPClient(TIMEOUT); // Timeout failed requests after 1 second
+const socketConnections = {};
+&nbsp;
+const connect = <span class="fstat-no" title="function not covered" >(p</span>eer, logger, state) =&gt; {
+	const wsServer = <span class="cstat-no" title="statement not covered" >wsRPC.getServer();</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	connectSteps.addConnectionOptions(peer, state);</span>
+<span class="cstat-no" title="statement not covered" >	connectSteps.addSocket(peer, logger);</span>
+<span class="cstat-no" title="statement not covered" >	connectSteps.upgradeSocketAsWAMPClient(peer);</span>
+<span class="cstat-no" title="statement not covered" >	connectSteps.upgradeSocketAsWAMPServer(peer, wsServer);</span>
+<span class="cstat-no" title="statement not covered" >	connectSteps.registerRPC(peer, logger, wsServer);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	connectSteps.registerSocketListeners(peer, logger);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >	return peer;</span>
+};
+&nbsp;
+const connectSteps = {
+	addConnectionOptions: <span class="fstat-no" title="function not covered" >(p</span>eer, state) =&gt; {
+		const queryParams = <span class="cstat-no" title="statement not covered" >{};</span>
+<span class="cstat-no" title="statement not covered" >		if (state.version) {</span>
+<span class="cstat-no" title="statement not covered" >			queryParams.version = state.version;</span>
+		}
+<span class="cstat-no" title="statement not covered" >		if (state.protocolVersion) {</span>
+<span class="cstat-no" title="statement not covered" >			queryParams.protocolVersion = state.protocolVersion;</span>
+		}
+<span class="cstat-no" title="statement not covered" >		if (state.wsPort) {</span>
+<span class="cstat-no" title="statement not covered" >			queryParams.wsPort = state.wsPort;</span>
+		}
+<span class="cstat-no" title="statement not covered" >		if (state.httpPort) {</span>
+<span class="cstat-no" title="statement not covered" >			queryParams.httpPort = state.httpPort;</span>
+		}
+<span class="cstat-no" title="statement not covered" >		if (state.nethash) {</span>
+<span class="cstat-no" title="statement not covered" >			queryParams.nethash = state.nethash;</span>
+		}
+<span class="cstat-no" title="statement not covered" >		if (state.nonce) {</span>
+<span class="cstat-no" title="statement not covered" >			queryParams.nonce = state.nonce;</span>
+		}
+<span class="cstat-no" title="statement not covered" >		peer.connectionOptions = {</span>
+			autoConnect: false, // Lazy connection establishment
+			autoReconnect: false,
+			connectTimeout: TIMEOUT,
+			ackTimeout: TIMEOUT,
+			pingTimeoutDisabled: true,
+			port: peer.wsPort,
+			hostname: peer.ip,
+			query: queryParams,
+			multiplex: false,
+		};
+<span class="cstat-no" title="statement not covered" >		return peer;</span>
+	},
+&nbsp;
+	addSocket: <span class="fstat-no" title="function not covered" >(p</span>eer, logger) =&gt; {
+<span class="cstat-no" title="statement not covered" >		peer.socket = scClient.connect(peer.connectionOptions);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		if (peer.socket &amp;&amp; Object.keys(socketConnections).length &lt; 1000) {</span>
+			const hostname = <span class="cstat-no" title="statement not covered" >peer.socket.options.hostname;</span>
+<span class="cstat-no" title="statement not covered" >			if (!socketConnections[hostname]) {</span>
+<span class="cstat-no" title="statement not covered" >				socketConnections[hostname] = { closed: 0, open: 0, disconnect: 0 };</span>
+			}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >			if (peer.socket.state === 'closed') {</span>
+<span class="cstat-no" title="statement not covered" >				socketConnections[hostname].closed += 1;</span>
+			} else <span class="cstat-no" title="statement not covered" >if (peer.socket.state === 'open') {</span>
+<span class="cstat-no" title="statement not covered" >				socketConnections[hostname].open += 1;</span>
+			} else <span class="cstat-no" title="statement not covered" >if (peer.socket.state === 'disconnect') {</span>
+<span class="cstat-no" title="statement not covered" >				socketConnections[hostname].disconnect += 1;</span>
+			}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >			logger.trace(</span>
+				`${socketConnections[hostname].closed}:closed, ${
+					socketConnections[hostname].open
+				}:open and ${
+					socketConnections[hostname].disconnect
+				}:disconnect websocket connection to peer ${
+					peer.socket.options.hostname
+				}.`
+			);
+		}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		return peer;</span>
+	},
+&nbsp;
+	upgradeSocketAsWAMPClient: <span class="fstat-no" title="function not covered" >pe</span>er =&gt; {
+<span class="cstat-no" title="statement not covered" >		wampClient.upgradeToWAMP(peer.socket);</span>
+<span class="cstat-no" title="statement not covered" >		return peer;</span>
+	},
+&nbsp;
+	upgradeSocketAsWAMPServer: <span class="fstat-no" title="function not covered" >(p</span>eer, wsServer) =&gt; {
+<span class="cstat-no" title="statement not covered" >		wsServer.upgradeToWAMP(peer.socket);</span>
+<span class="cstat-no" title="statement not covered" >		return peer;</span>
+	},
+&nbsp;
+	registerRPC: <span class="fstat-no" title="function not covered" >(p</span>eer, logger, wsServer) =&gt; {
+		// Assemble empty RPC entry
+<span class="cstat-no" title="statement not covered" >		peer.rpc = {};</span>
+		// Register RPC methods on peer
+<span class="cstat-no" title="statement not covered" >		peer = _.reduce(</span>
+			wsServer.endpoints.rpc,
+<span class="fstat-no" title="function not covered" >			(p</span>eerExtendedWithRPC, localHandler, rpcProcedureName) =&gt; {
+<span class="cstat-no" title="statement not covered" >				peerExtendedWithRPC.rpc[rpcProcedureName] = <span class="fstat-no" title="function not covered" >(d</span>ata, rpcCallback) =&gt; {</span>
+					// Provide default parameters if called with non standard parameter, callback
+<span class="cstat-no" title="statement not covered" >					if (typeof rpcCallback !== 'function') {</span>
+<span class="cstat-no" title="statement not covered" >						rpcCallback = <span class="fstat-no" title="function not covered" >()</span> =&gt; {};</span>
+					}
+<span class="cstat-no" title="statement not covered" >					if (typeof data === 'function') {</span>
+<span class="cstat-no" title="statement not covered" >						rpcCallback = data;</span>
+<span class="cstat-no" title="statement not covered" >						data = {};</span>
+					}
+<span class="cstat-no" title="statement not covered" >					if (!data) {</span>
+<span class="cstat-no" title="statement not covered" >						data = {};</span>
+					}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >					logger.trace(</span>
+						`[Outbound socket :: call] Peer RPC procedure '${rpcProcedureName}' called with data`,
+						data
+					);
+&nbsp;
+<span class="cstat-no" title="statement not covered" >					if (peer.socket) {</span>
+<span class="cstat-no" title="statement not covered" >						peer.socket</span>
+							.call(rpcProcedureName, data)
+							.then(<span class="fstat-no" title="function not covered" >re</span>s =&gt; {
+<span class="cstat-no" title="statement not covered" >								setImmediate(rpcCallback, null, res);</span>
+							})
+							.catch(<span class="fstat-no" title="function not covered" >er</span>r =&gt; {
+<span class="cstat-no" title="statement not covered" >								setImmediate(rpcCallback, err);</span>
+							});
+					} else {
+						const rpcNotExistError =
+<span class="cstat-no" title="statement not covered" >							'Tried to call RPC function on outbound peer socket which no longer exists';</span>
+<span class="cstat-no" title="statement not covered" >						logger.debug(rpcNotExistError);</span>
+<span class="cstat-no" title="statement not covered" >						setImmediate(rpcCallback, rpcNotExistError);</span>
+					}
+				};
+<span class="cstat-no" title="statement not covered" >				return peerExtendedWithRPC;</span>
+			},
+			peer
+		);
+&nbsp;
+		// Register Publish methods on peer
+<span class="cstat-no" title="statement not covered" >		return _.reduce(</span>
+			wsServer.endpoints.event,
+<span class="fstat-no" title="function not covered" >			(p</span>eerExtendedWithPublish, localHandler, eventProcedureName) =&gt; {
+<span class="cstat-no" title="statement not covered" >				peerExtendedWithPublish.rpc[eventProcedureName] = <span class="fstat-no" title="function not covered" >da</span>ta =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >					logger.trace(</span>
+						`[Outbound socket :: emit] Peer event '${eventProcedureName}' called with data`,
+						data
+					);
+<span class="cstat-no" title="statement not covered" >					if (peer.socket) {</span>
+<span class="cstat-no" title="statement not covered" >						peer.socket.emit(eventProcedureName, data);</span>
+					} else {
+						const eventNotExistError = <span class="cstat-no" title="statement not covered" >`Tried to emit event on outbound peer socket '${</span>
+							peerExtendedWithPublish.string
+						}' which no longer exists`;
+<span class="cstat-no" title="statement not covered" >						logger.debug(eventNotExistError);</span>
+<span class="cstat-no" title="statement not covered" >						logger.trace(</span>
+							'Peer does not have a socket',
+							peerExtendedWithPublish.object()
+						);
+					}
+				};
+<span class="cstat-no" title="statement not covered" >				return peerExtendedWithPublish;</span>
+			},
+			peer
+		);
+	},
+&nbsp;
+	registerSocketListeners: <span class="fstat-no" title="function not covered" >(p</span>eer, logger) =&gt; {
+		const socket = <span class="cstat-no" title="statement not covered" >peer.socket;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		socket.on('connect', <span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >			logger.trace(</span>
+				`[Outbound socket :: connect] Peer connection to ${
+					peer.string
+				} established`
+			);
+		});
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		socket.on('disconnect', <span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >			logger.trace(</span>
+				`[Outbound socket :: disconnect] Peer connection to ${
+					peer.string
+				} disconnected`
+			);
+		});
+&nbsp;
+		// When handshake process will fail - disconnect
+		// ToDo: Use parameters code and description returned while handshake fails
+<span class="cstat-no" title="statement not covered" >		socket.on('connectAbort', <span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >			socket.disconnect(</span>
+				failureCodes.HANDSHAKE_ERROR,
+				failureCodes.errorMessages[failureCodes.HANDSHAKE_ERROR]
+			);
+		});
+&nbsp;
+		// When error on transport layer occurs - disconnect
+<span class="cstat-no" title="statement not covered" >		socket.on('error', <span class="fstat-no" title="function not covered" >er</span>r =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >			logger.debug(</span>
+				`[Outbound socket :: error] Peer error from ${peer.string} - ${
+					err.message
+				}`
+			);
+<span class="cstat-no" title="statement not covered" >			socket.disconnect(</span>
+				1000,
+				'Intentionally disconnected from peer because of error'
+			);
+		});
+&nbsp;
+		// When WS connection ends - remove peer
+<span class="cstat-no" title="statement not covered" >		socket.on('close', <span class="fstat-no" title="function not covered" >(c</span>ode, reason) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >			logger.debug(</span>
+				`[Outbound socket :: close] Peer connection to ${
+					peer.string
+				} closed with code ${code} and reason - ${reason}`
+			);
+&nbsp;
+<span class="cstat-no" title="statement not covered" >			if (peer.socket &amp;&amp; peer.socket.state === peer.socket.CLOSED) {</span>
+<span class="cstat-no" title="statement not covered" >				peer.state = Peer.STATE.DISCONNECTED;</span>
+			}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >			socket.destroy();</span>
+<span class="cstat-no" title="statement not covered" >			if (socket === peer.socket) {</span>
+<span class="cstat-no" title="statement not covered" >				delete peer.socket;</span>
+			}
+		});
+&nbsp;
+		// The 'message' event can be used to log all low-level WebSocket messages.
+<span class="cstat-no" title="statement not covered" >		socket.on('message', <span class="fstat-no" title="function not covered" >me</span>ssage =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >			logger.trace(</span>
+				`[Outbound socket :: message] Peer message from ${
+					peer.string
+				} received - ${message}`
+			);
+		});
+<span class="cstat-no" title="statement not covered" >		return peer;</span>
+	},
+};
+&nbsp;
+module.exports = connect;
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="https://istanbul.js.org/" target="_blank">istanbul</a> at Thu Apr 11 2019 09:06:16 GMT+0200 (Central European Summer Time)
+</div>
+</div>
+<script src="../../../../../../../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../../../../../../../sorter.js"></script>
+</body>
+</html>

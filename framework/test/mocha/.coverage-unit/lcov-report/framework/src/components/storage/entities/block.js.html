@@ -1,0 +1,1217 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for framework/src/components/storage/entities/block.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../../../../prettify.css" />
+    <link rel="stylesheet" href="../../../../../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../../../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../../../../../index.html">All files</a> / <a href="index.html">framework/src/components/storage/entities</a> block.js
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">12.12% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>8/66</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>0/14</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>0/15</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">12.31% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>8/65</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line low'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317
+318
+319
+320
+321
+322
+323
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333
+334
+335
+336
+337
+338
+339
+340
+341
+342
+343
+344
+345
+346
+347
+348
+349
+350
+351
+352
+353
+354
+355
+356
+357
+358
+359
+360
+361
+362
+363
+364
+365
+366
+367
+368
+369
+370
+371
+372
+373
+374
+375
+376
+377
+378
+379
+380
+381
+382
+383
+384
+385</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+&nbsp;
+'use strict';
+&nbsp;
+const _ = require('lodash');
+const { stringToByte } = require('../utils/input_serializers');
+const { NonSupportedOperationError } = require('../errors');
+const filterType = require('../utils/filter_types');
+const BaseEntity = require('./base_entity');
+const Transaction = require('./transaction');
+&nbsp;
+const sqlFiles = {
+	select: 'blocks/get.sql',
+	count: 'blocks/count.sql',
+	isPersisted: 'blocks/is_persisted.sql',
+};
+&nbsp;
+/**
+ * Basic Block
+ * @typedef {Object} BasicBlock
+ * @property {string} id
+ * @property {string} payloadHash
+ * @property {string} generatorPublicKey
+ * @property {string} blockSignature
+ * @property {number} height
+ * @property {string} totalFee
+ * @property {string} reward
+ * @property {number} payloadLength
+ * @property {string} previousBlockId
+ * @property {number} numberOfTransactions
+ * @property {string} totalAmount
+ * @property {number} timestamp
+ * @property {string} version
+ */
+&nbsp;
+/**
+ * Extended Block
+ * @typedef {BasicBlock} ExtendedBlock
+ * @property {Array.&lt;Transaction&gt;} transactions - All transactions included in the Block
+ */
+&nbsp;
+/**
+ * Block Filters
+ * @typedef {Object} filters.Block
+ * @property {string} [id]
+ * @property {string} [id_eql]
+ * @property {string} [id_ne]
+ * @property {string} [id_in]
+ * @property {string} [id_like]
+ * @property {string} [height]
+ * @property {string} [height_eql]
+ * @property {string} [height_ne]
+ * @property {string} [height_gt]
+ * @property {string} [height_gte]
+ * @property {string} [height_lt]
+ * @property {string} [height_lte]
+ * @property {string} [height_in]
+ * @property {string} [blockSignature]
+ * @property {string} [blockSignature_eql]
+ * @property {string} [blockSignature_ne]
+ * @property {string} [blockSignature_in]
+ * @property {string} [blockSignature_like]
+ * @property {string} [generatorPublicKey]
+ * @property {string} [generatorPublicKey_eql]
+ * @property {string} [generatorPublicKey_ne]
+ * @property {string} [generatorPublicKey_in]
+ * @property {string} [generatorPublicKey_like]
+ * @property {string} [payloadHash]
+ * @property {string} [payloadHash_eql]
+ * @property {string} [payloadHash_ne]
+ * @property {string} [payloadHash_in]
+ * @property {string} [payloadHash_like]
+ * @property {string} [payloadLength]
+ * @property {string} [payloadLength_eql]
+ * @property {string} [payloadLength_ne]
+ * @property {string} [payloadLength_gt]
+ * @property {string} [payloadLength_gte]
+ * @property {string} [payloadLength_lt]
+ * @property {string} [payloadLength_lte]
+ * @property {string} [payloadLength_in]
+ * @property {string} [numberOfTransactions]
+ * @property {string} [numberOfTransactions_eql]
+ * @property {string} [numberOfTransactions_ne]
+ * @property {string} [numberOfTransactions_gt]
+ * @property {string} [numberOfTransactions_gte]
+ * @property {string} [numberOfTransactions_lt]
+ * @property {string} [numberOfTransactions_lte]
+ * @property {string} [numberOfTransactions_in]
+ * @property {string} [previousBlockId]
+ * @property {string} [previousBlockId_eql]
+ * @property {string} [previousBlockId_ne]
+ * @property {string} [previousBlockId_in]
+ * @property {string} [previousBlockId_like]
+ * @property {string} [timestamp]
+ * @property {string} [timestamp_eql]
+ * @property {string} [timestamp_ne]
+ * @property {string} [timestamp_gt]
+ * @property {string} [timestamp_gte]
+ * @property {string} [timestamp_lt]
+ * @property {string} [timestamp_lte]
+ * @property {string} [timestamp_in]
+ * @property {string} [totalAmount]
+ * @property {string} [totalAmount_eql]
+ * @property {string} [totalAmount_ne]
+ * @property {string} [totalAmount_gt]
+ * @property {string} [totalAmount_gte]
+ * @property {string} [totalAmount_lt]
+ * @property {string} [totalAmount_lte]
+ * @property {string} [totalAmount_in]
+ * @property {string} [totalFee]
+ * @property {string} [totalFee_eql]
+ * @property {string} [totalFee_ne]
+ * @property {string} [totalFee_gt]
+ * @property {string} [totalFee_gte]
+ * @property {string} [totalFee_lt]
+ * @property {string} [totalFee_lte]
+ * @property {string} [totalFee_in]
+ * @property {string} [reward]
+ * @property {string} [reward_eql]
+ * @property {string} [reward_ne]
+ * @property {string} [reward_gt]
+ * @property {string} [reward_gte]
+ * @property {string} [reward_lt]
+ * @property {string} [reward_lte]
+ * @property {string} [reward_in]
+ * @property {string} [version]
+ * @property {string} [version_eql]
+ * @property {string} [version_ne]
+ * @property {string} [version_gt]
+ * @property {string} [version_gte]
+ * @property {string} [version_lt]
+ * @property {string} [version_lte]
+ * @property {string} [version_in]
+ * @property {string} [confirmations]
+ * @property {string} [confirmations_eql]
+ * @property {string} [confirmations_ne]
+ * @property {string} [confirmations_gt]
+ * @property {string} [confirmations_gte]
+ * @property {string} [confirmations_lt]
+ * @property {string} [confirmations_lte]
+ * @property {string} [confirmations_in]
+ */
+&nbsp;
+class Block extends BaseEntity {
+	/**
+	 * Constructor
+	 * @param {BaseAdapter} adapter - Adapter to retrieve the data from
+	 * @param {filters.Block} defaultFilters - Set of default filters applied on every query
+	 */
+<span class="fstat-no" title="function not covered" >	co</span>nstructor(adapter, defaultFilters = <span class="branch-0 cbranch-no" title="branch not covered" >{})</span> {
+<span class="cstat-no" title="statement not covered" >		super(adapter, defaultFilters);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		this.transactionEntity = new Transaction(adapter);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		this.addField('rowId', 'number');</span>
+<span class="cstat-no" title="statement not covered" >		this.addField('id', 'string', { filter: filterType.TEXT });</span>
+<span class="cstat-no" title="statement not covered" >		this.addField('height', 'number', { filter: filterType.NUMBER });</span>
+<span class="cstat-no" title="statement not covered" >		this.addField(</span>
+			'blockSignature',
+			'string',
+			{ filter: filterType.TEXT },
+			stringToByte
+		);
+<span class="cstat-no" title="statement not covered" >		this.addField(</span>
+			'generatorPublicKey',
+			'string',
+			{
+				filter: filterType.TEXT,
+			},
+			stringToByte
+		);
+<span class="cstat-no" title="statement not covered" >		this.addField(</span>
+			'payloadHash',
+			'string',
+			{ filter: filterType.TEXT },
+			stringToByte
+		);
+<span class="cstat-no" title="statement not covered" >		this.addField('payloadLength', 'number', { filter: filterType.NUMBER });</span>
+<span class="cstat-no" title="statement not covered" >		this.addField('numberOfTransactions', 'number', {</span>
+			filter: filterType.NUMBER,
+		});
+<span class="cstat-no" title="statement not covered" >		this.addField('previousBlockId', 'string', {</span>
+			filter: filterType.TEXT,
+			fieldName: 'previousBlock',
+		});
+<span class="cstat-no" title="statement not covered" >		this.addField('timestamp', 'number', { filter: filterType.NUMBER });</span>
+<span class="cstat-no" title="statement not covered" >		this.addField('totalAmount', 'string', { filter: filterType.NUMBER });</span>
+<span class="cstat-no" title="statement not covered" >		this.addField('totalFee', 'string', { filter: filterType.NUMBER });</span>
+<span class="cstat-no" title="statement not covered" >		this.addField('reward', 'string', { filter: filterType.NUMBER });</span>
+<span class="cstat-no" title="statement not covered" >		this.addField('version', 'number', { filter: filterType.NUMBER });</span>
+<span class="cstat-no" title="statement not covered" >		this.addField('confirmations', 'number', { filter: filterType.NUMBER });</span>
+&nbsp;
+		const defaultSort = <span class="cstat-no" title="statement not covered" >{ sort: 'height:desc' };</span>
+<span class="cstat-no" title="statement not covered" >		this.extendDefaultOptions(defaultSort);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		this.SQLs = this.loadSQLFiles('block', sqlFiles);</span>
+	}
+&nbsp;
+	/**
+	 * Create object record
+	 *
+	 * @override
+	 * @throws {NonSupportedOperationError}}
+	 */
+	// eslint-disable-next-line class-methods-use-this
+<span class="fstat-no" title="function not covered" >	cr</span>eate() {
+<span class="cstat-no" title="statement not covered" >		throw new NonSupportedOperationError();</span>
+	}
+&nbsp;
+	/**
+	 * Update operation is not supported for Blocks
+	 *
+	 * @override
+	 * @throws {NonSupportedOperationError}
+	 */
+	// eslint-disable-next-line class-methods-use-this
+<span class="fstat-no" title="function not covered" >	up</span>date() {
+<span class="cstat-no" title="statement not covered" >		throw new NonSupportedOperationError();</span>
+	}
+&nbsp;
+	/**
+	 * Update operation is not supported for Blocks
+	 *
+	 * @override
+	 * @throws {NonSupportedOperationError}
+	 */
+	// eslint-disable-next-line class-methods-use-this
+<span class="fstat-no" title="function not covered" >	up</span>dateOne() {
+<span class="cstat-no" title="statement not covered" >		throw new NonSupportedOperationError();</span>
+	}
+&nbsp;
+	/**
+	 * Delete object record
+	 *
+	 * @override
+	 * @throws {NonSupportedOperationError}
+	 */
+	// eslint-disable-next-line class-methods-use-this
+<span class="fstat-no" title="function not covered" >	de</span>lete() {
+<span class="cstat-no" title="statement not covered" >		throw new NonSupportedOperationError();</span>
+	}
+&nbsp;
+	/**
+	 * Get list of blocks
+	 *
+	 * @param {filters.Block|filters.Block[]} [filters = {}]
+	 * @param {Object} [options = {}] - Options to filter data
+	 * @param {Number} [options.limit=10] - Number of records to fetch
+	 * @param {Number} [options.offset=0] - Offset to start the records
+	 * @param {Boolean} [options.extended=false] - Get extended fields for entity
+	 * @param {Object} tx - Database transaction object
+	 * @return {Promise.&lt;BasicBlock[]|ExtendedBlock[], NonSupportedFilterTypeError|NonSupportedOptionError&gt;}
+	 */
+<span class="fstat-no" title="function not covered" >	ge</span>t(filters = <span class="branch-0 cbranch-no" title="branch not covered" >{},</span> options = <span class="branch-0 cbranch-no" title="branch not covered" >{},</span> tx) {
+<span class="cstat-no" title="statement not covered" >		return this._getResults(filters, options, tx);</span>
+	}
+&nbsp;
+	/**
+	 * Get one block
+	 *
+	 * @param {filters.Block|filters.Block[]} [filters = {}]
+	 * @param {Object} [options = {}] - Options to filter data
+	 * @param {Number} [options.limit=10] - Number of records to fetch
+	 * @param {Number} [options.offset=0] - Offset to start the records
+	 * @param {Boolean} [options.extended=false] - Get extended fields for entity
+	 * @param {Object} tx - Database transaction object
+	 * @return {Promise.&lt;BasicBlock|ExtendedBlock, NonSupportedFilterTypeError|NonSupportedOptionError&gt;}
+	 */
+<span class="fstat-no" title="function not covered" >	ge</span>tOne(filters, options = <span class="branch-0 cbranch-no" title="branch not covered" >{},</span> tx) {
+		const expectedResultCount = <span class="cstat-no" title="statement not covered" >1;</span>
+<span class="cstat-no" title="statement not covered" >		return this._getResults(filters, options, tx, expectedResultCount);</span>
+	}
+&nbsp;
+	/**
+	 * Count total entries based on filters
+	 *
+	 * @param {filters.Block|filters.Block[]} [filters = {}]
+	 * @return {Promise.&lt;Integer, NonSupportedFilterTypeError&gt;}
+	 */
+<span class="fstat-no" title="function not covered" >	co</span>unt(filters = <span class="branch-0 cbranch-no" title="branch not covered" >{},</span> _options, tx) {
+<span class="cstat-no" title="statement not covered" >		this.validateFilters(filters);</span>
+&nbsp;
+		const mergedFilters = <span class="cstat-no" title="statement not covered" >this.mergeFilters(filters);</span>
+		const parsedFilters = <span class="cstat-no" title="statement not covered" >this.parseFilters(mergedFilters);</span>
+		const expectedResultCount = <span class="cstat-no" title="statement not covered" >1;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		return this.adapter</span>
+			.executeFile(
+				this.SQLs.count,
+				{ parsedFilters },
+				{ expectedResultCount },
+				tx
+			)
+			.then(<span class="fstat-no" title="function not covered" >re</span>sult =&gt; <span class="cstat-no" title="statement not covered" >+result.count)</span>;
+	}
+&nbsp;
+	/**
+	 * Check if the record exists with following conditions
+	 *
+	 * @param {filters.Block} filters
+	 * @param {Object} [_options]
+	 * @param {Object} [tx]
+	 * @returns {Promise.&lt;boolean, Error&gt;}
+	 */
+<span class="fstat-no" title="function not covered" >	is</span>Persisted(filters, _options, tx) {
+		const atLeastOneRequired = <span class="cstat-no" title="statement not covered" >true;</span>
+<span class="cstat-no" title="statement not covered" >		this.validateFilters(filters, atLeastOneRequired);</span>
+&nbsp;
+		const mergedFilters = <span class="cstat-no" title="statement not covered" >this.mergeFilters(filters);</span>
+		const parsedFilters = <span class="cstat-no" title="statement not covered" >this.parseFilters(mergedFilters);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		return this.adapter</span>
+			.executeFile(
+				this.SQLs.isPersisted,
+				{ parsedFilters },
+				{ expectedResultCount: 1 },
+				tx
+			)
+			.then(<span class="fstat-no" title="function not covered" >re</span>sult =&gt; <span class="cstat-no" title="statement not covered" >result.exists)</span>;
+	}
+&nbsp;
+<span class="fstat-no" title="function not covered" >	as</span>ync _getResults(filters, options, tx, expectedResultCount = <span class="branch-0 cbranch-no" title="branch not covered" >undefined)</span> {
+<span class="cstat-no" title="statement not covered" >		this.validateFilters(filters);</span>
+<span class="cstat-no" title="statement not covered" >		this.validateOptions(options);</span>
+&nbsp;
+		const mergedFilters = <span class="cstat-no" title="statement not covered" >this.mergeFilters(filters);</span>
+		const parsedFilters = <span class="cstat-no" title="statement not covered" >this.parseFilters(mergedFilters);</span>
+		const parsedOptions = <span class="cstat-no" title="statement not covered" >_.defaults(</span>
+			{},
+			_.pick(options, ['limit', 'offset', 'sort', 'extended']),
+			_.pick(this.defaultOptions, ['limit', 'offset', 'sort', 'extended'])
+		);
+		const parsedSort = <span class="cstat-no" title="statement not covered" >this.parseSort(parsedOptions.sort);</span>
+&nbsp;
+		const params = <span class="cstat-no" title="statement not covered" >{</span>
+			limit: parsedOptions.limit,
+			offset: parsedOptions.offset,
+			parsedSort,
+			parsedFilters,
+		};
+&nbsp;
+		let result = <span class="cstat-no" title="statement not covered" >await this.adapter.executeFile(</span>
+			this.SQLs.select,
+			params,
+			{ expectedResultCount },
+			tx
+		);
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		result = Array.isArray(result) ? result : [result];</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		if (parsedOptions.extended &amp;&amp; result.length &gt; 0) {</span>
+			const blockIds = <span class="cstat-no" title="statement not covered" >result.map(<span class="fstat-no" title="function not covered" >({</span> id }) =&gt; <span class="cstat-no" title="statement not covered" >id)</span>;</span>
+			const trxFilters = <span class="cstat-no" title="statement not covered" >{ blockId_in: blockIds };</span>
+			const trxOptions = <span class="cstat-no" title="statement not covered" >{ limit: null, extended: true };</span>
+			const transactions = <span class="cstat-no" title="statement not covered" >await this.transactionEntity.get(</span>
+				trxFilters,
+				trxOptions,
+				tx
+			);
+&nbsp;
+<span class="cstat-no" title="statement not covered" >			result.forEach(<span class="fstat-no" title="function not covered" >bl</span>ock =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >				block.transactions = transactions.filter(</span>
+<span class="fstat-no" title="function not covered" >					({</span> blockId }) =&gt; <span class="cstat-no" title="statement not covered" >blockId === block.id</span>
+				);
+			});
+		}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		return expectedResultCount === 1 ? result[0] : result;</span>
+	}
+}
+&nbsp;
+module.exports = Block;
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="https://istanbul.js.org/" target="_blank">istanbul</a> at Fri Apr 12 2019 12:20:19 GMT+0200 (Central European Summer Time)
+</div>
+</div>
+<script src="../../../../../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../../../../../sorter.js"></script>
+</body>
+</html>

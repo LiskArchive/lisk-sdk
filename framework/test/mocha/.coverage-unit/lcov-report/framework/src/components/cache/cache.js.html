@@ -1,0 +1,776 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for framework/src/components/cache/cache.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../../../prettify.css" />
+    <link rel="stylesheet" href="../../../../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../../../../index.html">All files</a> / <a href="index.html">framework/src/components/cache</a> cache.js
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">5.8% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>4/69</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>0/21</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>0/20</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">5.88% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>4/68</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line low'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+&nbsp;
+'use strict';
+&nbsp;
+const redis = require('redis');
+const { promisify } = require('util');
+&nbsp;
+const errorCacheDisabled = 'Cache Disabled';
+&nbsp;
+/**
+ * Cache component.
+ *
+ * @class
+ * @memberof components
+ * @see Parent: {@link components}
+ * @requires redis
+ * @requires util
+ * @param {Object} options - Cache options
+ * @param {Object} logger
+ */
+class Cache {
+<span class="fstat-no" title="function not covered" >	co</span>nstructor(options, logger) {
+<span class="cstat-no" title="statement not covered" >		this.options = options;</span>
+<span class="cstat-no" title="statement not covered" >		this.logger = logger;</span>
+<span class="cstat-no" title="statement not covered" >		this.cacheReady = false;</span>
+	}
+&nbsp;
+<span class="fstat-no" title="function not covered" >	as</span>ync bootstrap() {
+		// TODO: implement retry_strategy
+		// TOFIX: app crashes with FTL error when launchin app with CACHE_ENABLE=true
+		// but cache server is not available.
+<span class="cstat-no" title="statement not covered" >		return new Promise(<span class="fstat-no" title="function not covered" >re</span>solve =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >			this.client = redis.createClient(this.options);</span>
+<span class="cstat-no" title="statement not covered" >			this.client.once('error', <span class="fstat-no" title="function not covered" >er</span>r =&gt; {</span>
+				// Called if the "error" event occured before "ready" event
+<span class="cstat-no" title="statement not covered" >				this.logger.warn('App was unable to connect to Cache server', err);</span>
+				// Error handler needs to exist to ignore the error
+<span class="cstat-no" title="statement not covered" >				this.client.on('error', <span class="fstat-no" title="function not covered" >()</span> =&gt; {});</span>
+<span class="cstat-no" title="statement not covered" >				resolve();</span>
+			});
+<span class="cstat-no" title="statement not covered" >			this.client.once('ready', <span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >				this._onReady();</span>
+<span class="cstat-no" title="statement not covered" >				resolve();</span>
+			});
+		});
+	}
+&nbsp;
+<span class="fstat-no" title="function not covered" >	_o</span>nReady() {
+		// Called after "ready" Cache event
+<span class="cstat-no" title="statement not covered" >		this.logger.info('App connected to Cache server');</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		this.getAsync = promisify(this.client.get).bind(this.client);</span>
+<span class="cstat-no" title="statement not covered" >		this.setAsync = promisify(this.client.set).bind(this.client);</span>
+<span class="cstat-no" title="statement not covered" >		this.delAsync = promisify(this.client.del).bind(this.client);</span>
+<span class="cstat-no" title="statement not covered" >		this.scanAsync = promisify(this.client.scan).bind(this.client);</span>
+<span class="cstat-no" title="statement not covered" >		this.flushdbAsync = promisify(this.client.flushdb).bind(this.client);</span>
+<span class="cstat-no" title="statement not covered" >		this.quitAsync = promisify(this.client.quit).bind(this.client);</span>
+<span class="cstat-no" title="statement not covered" >		this.enable();</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		this.client.on('error', <span class="fstat-no" title="function not covered" >er</span>r =&gt; {</span>
+			// Log Cache errors before and after server was connected
+<span class="cstat-no" title="statement not covered" >			this.logger.info('Cache:', err);</span>
+		});
+	}
+&nbsp;
+	/**
+	 * Gets redis connection status.
+	 *
+	 * @return {boolean}
+	 */
+<span class="fstat-no" title="function not covered" >	is</span>Ready() {
+		// Use client.ready because this constant is updated on client connection
+<span class="cstat-no" title="statement not covered" >		return this.client &amp;&amp; this.client.ready &amp;&amp; this.cacheReady;</span>
+	}
+&nbsp;
+	/**
+	 * Enables cache client
+	 */
+<span class="fstat-no" title="function not covered" >	en</span>able() {
+<span class="cstat-no" title="statement not covered" >		this.cacheReady = true;</span>
+	}
+&nbsp;
+	/**
+	 * Disables cache client
+	 */
+<span class="fstat-no" title="function not covered" >	di</span>sable() {
+<span class="cstat-no" title="statement not covered" >		this.cacheReady = false;</span>
+	}
+&nbsp;
+	/**
+	 * Gets json value for a key from redis.
+	 *
+	 * @param {string} key
+	 * @return {Promise.&lt;value, Error&gt;}
+	 */
+<span class="fstat-no" title="function not covered" >	as</span>ync getJsonForKey(key) {
+<span class="cstat-no" title="statement not covered" >		this.logger.debug(</span>
+			['Cache - Get value for key:', key, '| Status:', this.isReady()].join(' ')
+		);
+<span class="cstat-no" title="statement not covered" >		if (!this.isReady()) {</span>
+<span class="cstat-no" title="statement not covered" >			throw new Error(errorCacheDisabled);</span>
+		}
+&nbsp;
+		const value = <span class="cstat-no" title="statement not covered" >await this.getAsync(key);</span>
+<span class="cstat-no" title="statement not covered" >		return JSON.parse(value);</span>
+	}
+&nbsp;
+	/**
+	 * Sets json value for a key in redis.
+	 *
+	 * @param {string} key
+	 * @param {Object} value
+	 * @return {Promise.&lt;null, Error&gt;}
+	 */
+<span class="fstat-no" title="function not covered" >	as</span>ync setJsonForKey(key, value) {
+<span class="cstat-no" title="statement not covered" >		this.logger.debug(</span>
+			['Cache - Set value for key:', key, '| Status:', this.isReady()].join(' ')
+		);
+<span class="cstat-no" title="statement not covered" >		if (!this.isReady()) {</span>
+<span class="cstat-no" title="statement not covered" >			throw new Error(errorCacheDisabled);</span>
+		}
+&nbsp;
+		// Cache server calls toString on objects, which converts it to object [object] so calling stringify before saving
+<span class="cstat-no" title="statement not covered" >		return this.setAsync(key, JSON.stringify(value));</span>
+	}
+&nbsp;
+	/**
+	 * Deletes json value for a key in redis.
+	 *
+	 * @param {string} key
+	 * @return {Promise.&lt;Integer, Error&gt;} 0 if key doesn't exist or 1 if key was found and successfully deleted.
+	 */
+<span class="fstat-no" title="function not covered" >	as</span>ync deleteJsonForKey(key) {
+<span class="cstat-no" title="statement not covered" >		this.logger.debug(</span>
+			['Cache - Delete value for key:', key, '| Status:', this.isReady()].join(
+				' '
+			)
+		);
+<span class="cstat-no" title="statement not covered" >		if (!this.isReady()) {</span>
+<span class="cstat-no" title="statement not covered" >			throw new Error(errorCacheDisabled);</span>
+		}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		return this.delAsync(key);</span>
+	}
+&nbsp;
+	/**
+	 * Scans keys with provided pattern in redis db and deletes the entries matching the given pattern.
+	 *
+	 * @param {string} pattern
+	 * @return {Promise.&lt;null, Error&gt;}
+	 */
+<span class="fstat-no" title="function not covered" >	as</span>ync removeByPattern(pattern) {
+<span class="cstat-no" title="statement not covered" >		this.logger.debug(</span>
+			['Cache - removeByPattern', pattern, '| Status:', this.isReady()].join(
+				' '
+			)
+		);
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		if (!this.isReady()) {</span>
+<span class="cstat-no" title="statement not covered" >			throw new Error(errorCacheDisabled);</span>
+		}
+		let keys;
+		let cursor = <span class="cstat-no" title="statement not covered" >0;</span>
+&nbsp;
+		const scan = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt;</span>
+<span class="cstat-no" title="statement not covered" >			this.scanAsync(cursor, 'MATCH', pattern).then(<span class="fstat-no" title="function not covered" >(r</span>es, err) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >				if (err) <span class="cstat-no" title="statement not covered" >throw err;</span></span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >				cursor = res[0];</span>
+<span class="cstat-no" title="statement not covered" >				keys = res[1];</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >				if (keys.length &gt; 0) {</span>
+<span class="cstat-no" title="statement not covered" >					this.delAsync(keys);</span>
+<span class="cstat-no" title="statement not covered" >					return scan();</span>
+				}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >				if (cursor === '0') {</span>
+<span class="cstat-no" title="statement not covered" >					return null;</span>
+				}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >				return scan();</span>
+			});
+&nbsp;
+<span class="cstat-no" title="statement not covered" >		return scan();</span>
+	}
+&nbsp;
+	/**
+	 * Removes all entries from redis db.
+	 *
+	 * @return {Promise.&lt;null, Error&gt;}
+	 */
+<span class="fstat-no" title="function not covered" >	as</span>ync flushDb() {
+<span class="cstat-no" title="statement not covered" >		this.logger.debug('Cache - Flush database');</span>
+<span class="cstat-no" title="statement not covered" >		if (!this.isReady()) {</span>
+<span class="cstat-no" title="statement not covered" >			throw new Error(errorCacheDisabled);</span>
+		}
+<span class="cstat-no" title="statement not covered" >		return this.flushdbAsync();</span>
+	}
+&nbsp;
+	/**
+	 * Quits established redis connection upon process exit.
+	 *
+	 * @return {Promise.&lt;null, Error&gt;}
+	 */
+<span class="fstat-no" title="function not covered" >	as</span>ync cleanup() {
+<span class="cstat-no" title="statement not covered" >		this.logger.debug('Cache - Clean up database');</span>
+<span class="cstat-no" title="statement not covered" >		return this.quit();</span>
+	}
+&nbsp;
+	/**
+	 * Quits established redis connection.
+	 *
+	 * @return {Promise.&lt;null, Error&gt;}
+	 */
+<span class="fstat-no" title="function not covered" >	as</span>ync quit() {
+<span class="cstat-no" title="statement not covered" >		this.logger.debug('Cache - Quit database');</span>
+<span class="cstat-no" title="statement not covered" >		if (!this.isReady()) {</span>
+			// Because connection is not established in the first place
+<span class="cstat-no" title="statement not covered" >			return null;</span>
+		}
+<span class="cstat-no" title="statement not covered" >		return this.quitAsync();</span>
+	}
+}
+&nbsp;
+module.exports = Cache;
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="https://istanbul.js.org/" target="_blank">istanbul</a> at Fri Apr 12 2019 12:20:19 GMT+0200 (Central European Summer Time)
+</div>
+</div>
+<script src="../../../../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../../../../sorter.js"></script>
+</body>
+</html>
