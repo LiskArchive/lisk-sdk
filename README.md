@@ -23,34 +23,34 @@ The Lisk SDK aims to provide an easy and reliable software development kit for b
 
 ### Architecture Overview
 
-The Lisk SDK operates on the NodeJS runtime and consists primarily of an application framework (Lisk Framework), a collection of modules providing key application functionalities (Lisk Elements), and a powerful command-line tool which facilitates all aspects of blockchain application development (Lisk Commander). The Lisk SDK has been explicitly designed to shield the complexity of blockchain technology, while exposing an elegant and easy to use interface for developers to build their applications with. An architectural overview of the Lisk SDK is shown below:
+The Lisk SDK operates on the NodeJS runtime and consists primarily of an application framework (Lisk Framework), a collection of libraries providing blockchain application functionalities (Lisk Elements), and a powerful command-line tool (Lisk Commander) allowing developers to manage a Lisk node instance and interact with a Lisk compatible network. The diagram below provides a high-level overview of the architecture:
 
 ```
-                               Lisk SDK Ecosystem
+                             Lisk SDK Ecosystem
 
-                            +----------------------+
-                            |                      |
-                            |    Lisk Commander    |
-                            |                      |
-                            +----------------------+
+                          +----------------------+
+                          |                      |
+                          |    Lisk Commander    |
+                          |                      |
+                          +----------------------+
 
-                            +----------------------+
-                            |                      |
-                            |   Your Application   |
-                            |                      |
-                 |----------+----------------------+----------|
-                 |                                            |
-                 |               Lisk Framework               |
-                 |                                            |
-      -----------|----------|----------|-----------|----------|-----------
-      |          |          |          |           |          |          |
-      |          |          |    Lisk Elements     |          |          |
-      |          |          |          |           |          |          |
- +----------------------------------------------------------------------------+
- |                                                                            |
- |                               NodeJS Runtime                               |
- |                                                                            |
- +----------------------------------------------------------------------------+
+                          +----------------------+
+                          |                      |
+                          |   Your Application   |
+                          |                      |
+               |----------+----------------------+----------|
+               |                                            |
+               |               Lisk Framework               |
+               |                                            |
+    -----------|----------|----------|-----------|----------|-----------
+    |          |          |          |           |          |          |
+    |          |          |    Lisk Elements     |          |          |
+    |          |          |          |           |          |          |
++----------------------------------------------------------------------------+
+|                                                                            |
+|                               NodeJS Runtime                               |
+|                                                                            |
++----------------------------------------------------------------------------+
 ```
 
 ## Package Directories
