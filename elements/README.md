@@ -6,7 +6,7 @@
 
 ## What is Lisk Elements
 
-Lisk Elements is collection of JavaScript libraries for [Lisk SDK](https://github.com/LiskHQ/lisk-sdk), the blockchain application development kit. Each library is developed with the proven and tested knowledge over time from Lisk Protocol implementation which was formally called [Lisk Core](https://github.com/LiskHQ/lisk).
+Lisk Elements is collection of JavaScript libraries for [Lisk Protocol](https://lisk.io/documentation/lisk-protocol). Each library is developed with the proven and tested knowledge over time from Lisk Mainnet implementation.
 
 ## Packages
 

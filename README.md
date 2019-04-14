@@ -17,7 +17,7 @@ Have fun with our alpha release to build blockchain applications but don't expec
 
 Lisk SDK provides an easy, secure and scalable way to create blockchain applications in JavaScript.
 
-It facilitate developers to create their blockchain ledgers which follow [Lisk Protocol](https://lisk.io/documentation/lisk-protocol).
+It facilitate developers to create their blockchain application which follow [Lisk Protocol](https://lisk.io/documentation/lisk-protocol).
 
 All the tools, IDEs that you are experienced to built backend applications will still applies developing with Lisk SDK.
 
