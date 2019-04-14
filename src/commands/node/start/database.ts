@@ -26,14 +26,14 @@ export default class DatabaseCommand extends BaseCommand {
 	static args = [
 		{
 			name: 'name',
-			description: 'Lisk installation directory name.',
+			description: 'Lisk Core installation directory name.',
 			required: true,
 		},
 	];
 
-	static description = 'Start Lisk Database';
+	static description = 'Start the database server.';
 
-	static examples = ['node:start:database mainnet_1.6'];
+	static examples = ['node:start:database mainnet-latest'];
 
 	async run(): Promise<void> {
 		const { args } = this.parse(DatabaseCommand);
@@ -43,7 +43,7 @@ export default class DatabaseCommand extends BaseCommand {
 
 		const tasks = new Listr([
 			{
-				title: 'Start Lisk Database',
+				title: 'Start the database server',
 				task: async () => startDatabase(installDir, network),
 			},
 		]);

@@ -24,14 +24,14 @@ export default class StatusCommand extends BaseCommand {
 	static args = [
 		{
 			name: 'name',
-			description: 'Lisk installation directory name.',
+			description: 'Lisk Core installation directory name.',
 			required: true,
 		},
 	];
 
-	static description = 'Show status of a Lisk instance';
+	static description = 'Show the status of a Lisk Core instance.';
 
-	static examples = ['node:status testnet-1.6'];
+	static examples = ['node:status mainnet-latest'];
 
 	async run(): Promise<void> {
 		const { args } = this.parse(StatusCommand);
@@ -46,7 +46,7 @@ export default class StatusCommand extends BaseCommand {
 			LISK_NETWORK: network,
 			version,
 			LISK_DB_PORT: dbPort,
-			LISK_REDIS_PORT: redisPort
+			LISK_REDIS_PORT: redisPort,
 		} = pm2_env as Pm2Env;
 
 		this.print({

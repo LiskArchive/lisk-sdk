@@ -32,14 +32,14 @@ export default class UnInstallCommand extends BaseCommand {
 	static args = [
 		{
 			name: 'name',
-			description: 'Lisk installation directory name.',
+			description: 'Lisk Core installation directory name.',
 			required: true,
 		},
 	];
 
-	static description = 'UnInstall Lisk';
+	static description = 'Uninstall an instance of Lisk Core.';
 
-	static examples = ['node:uninstall mainnet_1.6'];
+	static examples = ['node:uninstall mainnet-latest'];
 
 	async run(): Promise<void> {
 		const { args } = this.parse(UnInstallCommand);
@@ -49,11 +49,11 @@ export default class UnInstallCommand extends BaseCommand {
 
 		const tasks = new Listr([
 			{
-				title: `UnInstall Lisk ${network} Installed as ${name}`,
+				title: `Uninstall Lisk Core ${network} Installed as ${name}`,
 				task: () =>
 					new Listr([
 						{
-							title: `Stop and UnRegister Lisk from PM2`,
+							title: `Stop and Unregister Lisk Core from PM2`,
 							task: async () => {
 								const isRunning = await isCacheRunning(installDir, network);
 								if (isRunning) {
@@ -64,7 +64,7 @@ export default class UnInstallCommand extends BaseCommand {
 							},
 						},
 						{
-							title: `Remove Lisk ${network}`,
+							title: `Remove Lisk Core ${network}`,
 							task: () => {
 								fsExtra.removeSync(installDir);
 							},
