@@ -8,13 +8,13 @@
 		"lisk",
 		"blockchain"
 	],
-	"homepage": "https://github.com/LiskHQ/lisk-elements/tree/master/packages/lisk-transaction-pool#readme",
+	"homepage": "https://github.com/LiskHQ/lisk-sdk/tree/master/elements/lisk-transaction-pool#readme",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/LiskHQ/lisk-elements.git"
+		"url": "git+https://github.com/LiskHQ/lisk-sdk.git"
 	},
 	"bugs": {
-		"url": "https://github.com/LiskHQ/lisk-elements/issues"
+		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
 	},
 	"engines": {
 		"node": ">=8.10 <=10",

@@ -1,10 +1,12 @@
 {
 	"extends": "../tslint.json",
 	"rules": {
-		"file-name-casing": false,
 		"member-access": false,
 		"no-default-export": false,
-		"no-reference": false
+		"no-reference": false,
+		// TODO: Remove below
+		"no-inferred-empty-object-type": false,
+		"no-unnecessary-type-assertion": false
 	},
 	"linterOptions": {
 		"exclude": ["**/*.json"]

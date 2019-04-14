@@ -9,13 +9,13 @@
 		"blockchain",
 		"p2p"
 	],
-	"homepage": "https://github.com/LiskHQ/lisk-elements/tree/master/packages/lisk-p2p#readme",
+	"homepage": "https://github.com/LiskHQ/lisk-sdk/tree/master/elements/lisk-p2p#readme",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/LiskHQ/lisk-elements.git"
+		"url": "git+https://github.com/LiskHQ/lisk-sdk.git"
 	},
 	"bugs": {
-		"url": "https://github.com/LiskHQ/lisk-elements/issues"
+		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
 	},
 	"engines": {
 		"node": ">=8.10 <=10",
