@@ -85,44 +85,36 @@ npm install lisk-framework
 
 ## Usage
 
-The development flow is standard as you do with any NodeJS backend application. Here are few steps to get started.
+Start from creating a project structure of your blockchain application. No special requirements here, you can create the basic Node.js project folder structure with `npm init`. 
 
-```bash
-mkdir my_app
-cd my_app
-npm init
-npm install --save lisk-framework
-```
+Essentially to create a blockchain application, you need to provide an entry file of your application (like `app.js`) and set-up your network by using the modules of Lisk SDK. 
 
-At this point you will have an entry file in the directory called `index.js`. You can copy past following code in that file to start with.
+It's easy - to have a working blockchain application, mirroring the configuration of Lisk network,  it's enough to copy the following three lines of code to your `app.js`:
+
 
 ```js
 const { Application, SampleGenesisBlock } = require('lisk-framework');
 
-const errorHandler = error => {
-	console.error('Faced error in application', error);
-	process.exit(1);
-};
+const app = new Application('my-app', SampleGenesisBlock);
 
-try {
-	const app = new Application('my-app', SampleGenesisBlock);
-
-	app
-		.run()
-		.then(() => app.logger.info(' App started...'))
-		.catch(errorHandler);
-} catch (error) {
-	errorHandler(error);
-}
+app
+	.run()
+	.then(() => app.logger.info('App started...'))
+	.catch(error => {
+			console.error('Faced error in application', error);
+			process.exit(1);
+		   });
 ```
 
 After that you can start the application by:
 
 ```
-node index.js
+node app.js
 ```
 
 For more details on application and other configurations along with more samples please visit Lisk official [documentation portal](http://docs.lisk.io).
+
+The role model of big-scale application created using Lisk SDK is the client of Lisk network - Lisk Core.  
 
 ## Get Involved
 
