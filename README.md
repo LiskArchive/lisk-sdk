@@ -23,7 +23,7 @@ All the tools, IDEs that you are experienced to built backend applications will 
 
 ### Architecture Overview
 
-Lisk SDK is collection of framework, libraries and command line tools to facilitate every aspect for developing a blockchain application. It will hide the complexity of the technology and expose an elegant, easy to use and accessible interfaces for developers. The conceptual stack for the Lisk SDK is shown below:
+Lisk SDK is consists of a framework, libraries and command line tools to facilitate all the aspects of developing a blockchain application. It hides the complexity of the technology and exposes an elegant, easy to use and accessible interfaces for developers. The conceptual stack for the Lisk SDK is shown below:
 
 ```
                                   Lisk SDK Ecosystem
@@ -87,9 +87,9 @@ npm install lisk-framework
 
 Start from creating a project structure of your blockchain application. No special requirements here, you can create the basic Node.js project folder structure with `npm init`. 
 
-Essentially to create a blockchain application, you need to provide an entry file of your application (like `app.js`) and set-up your network by using the modules of Lisk SDK. 
+Essentially to create a blockchain application, you need to provide an entry point of your application (like `index.js`) and set-up your network by using the modules of Lisk SDK. 
 
-It's easy - to have a working blockchain application, mirroring the configuration of Lisk network,  it's enough to copy the following three lines of code to your `app.js`:
+It's easy - to have a working blockchain application, mirroring the configuration of Lisk network,  it's enough to copy the following three lines of code to your `index.js`:
 
 
 ```js
@@ -109,12 +109,12 @@ app
 After that you can start the application by:
 
 ```
-node app.js
+node index.js
 ```
 
-For more details on application and other configurations along with more samples please visit Lisk official [documentation portal](http://docs.lisk.io).
+The role model of big-scale application created using Lisk SDK is the client of Lisk network - [Lisk Core](https://github.com/liskhq/lisk-core).  
 
-The role model of big-scale application created using Lisk SDK is the client of Lisk network - Lisk Core.  
+More details on the usage and other configurations along with more samples will become available on Lisk official [documentation portal](http://docs.lisk.io).
 
 ## Get Involved
 
@@ -125,6 +125,9 @@ The role model of big-scale application created using Lisk SDK is the client of 
 | Have ideas to share       | [Come to Lisk.chat](http://lisk.chat)                                                                                            |
 | Want to involve community | [Join community gitter](https://gitter.im/LiskHQ/lisk?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) |
 | Found a security issue    | [See our bounty program](https://blog.lisk.io/announcing-lisk-bug-bounty-program-5895bdd46ed4)                                   |
+## Contributors
+
+https://github.com/LiskHQ/lisk-sdk/graphs/contributors
 
 ## License
 
