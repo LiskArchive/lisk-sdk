@@ -27,14 +27,14 @@ export default class CacheCommand extends BaseCommand {
 	static args = [
 		{
 			name: 'name',
-			description: 'Lisk installation directory name.',
+			description: 'Lisk Core installation directory name.',
 			required: true,
 		},
 	];
 
-	static description = 'Stop Lisk Cache';
+	static description = 'Stop the cache server.';
 
-	static examples = ['node:stop:cache mainnet_1.6'];
+	static examples = ['node:stop:cache mainnet-latest'];
 
 	async run(): Promise<void> {
 		const { args } = this.parse(CacheCommand);
@@ -44,7 +44,7 @@ export default class CacheCommand extends BaseCommand {
 
 		const tasks = new Listr([
 			{
-				title: 'Stop Lisk Cache',
+				title: 'Stop the cache server',
 				skip: () => !isCacheEnabled(installDir, network),
 				task: async () => {
 					const isRunning = await isCacheRunning(installDir, network);

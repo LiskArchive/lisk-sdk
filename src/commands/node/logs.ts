@@ -26,14 +26,14 @@ export default class LogsCommand extends BaseCommand {
 	static args = [
 		{
 			name: 'name',
-			description: 'Lisk installation directory name.',
+			description: 'Lisk Core installation directory name.',
 			required: true,
 		},
 	];
 
-	static description = 'Show log of a Lisk Core instance';
+	static description = 'Stream logs of a Lisk Core instance.';
 
-	static examples = ['node:logs testnet-1.6'];
+	static examples = ['node:logs mainnet-latest'];
 
 	async run(): Promise<void> {
 		const { args } = this.parse(LogsCommand);
