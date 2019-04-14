@@ -7,11 +7,15 @@
 
 ## Disclaimer - Mostly Harmless
 
-Please read our disclaimer carefully. We have just opened access to our alpha version of the Lisk SDK and hope to receive detailed feedback. Using our alpha release might still be tedious due to the evolving nature of our work-in-progress code.
+Please read our disclaimer carefully. With this repository we have opened access to the alpha release of the Lisk SDK. We have released the Lisk SDK in its current form in order for us to improve the development experience through community feedback and contributions.
 
-We strictly encourage everyone to not use our alpha release for any production blockchain applications. There will be significant changes in the protocol and public interfaces in upcoming releases.
+We strictly discourage anyone from using the alpha release of the Lisk SDK for any production-based blockchain applications, i.e. a blockchain operating on a real mainnet. Over the course of the alpha phase there will be significant changes in the Lisk protocol and implementation, which will eventually bring the accessibility and reliability to a level which is feasible for production-based blockchain applications. At this time we only recommend the Lisk SDK for proof-of-concept blockchain applications, i.e. a blockchain operating on a fake testnet.
 
-Have fun with our alpha release to build blockchain applications but don't expect to persist your data with future releases of our Lisk SDK. Blockchains created with this release may not be compatible anymore with future releases.
+The only application built using the Lisk SDK currently feasible for production usage is [Lisk Core](https://github.com/liskhq/lisk-core), the client of the Lisk network itself.
+
+Please be advised we cannot guarantee blockchains created with the alpha release of the Lisk SDK will remain compatible with our planned (beta/rc) releases.
+
+We hope you enjoy building your proof-of-concept blockchain applications using the Lisk SDK, and shall look forward to receiving your feedback and contributions during the alpha phase.
 
 ## What is Lisk SDK
 
