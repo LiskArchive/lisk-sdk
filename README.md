@@ -23,7 +23,7 @@ All the tools, IDEs that you are experienced to built backend applications will 
 
 ### Architecture Overview
 
-Lisk SDK is collection of framework, libraries and command line tools to facilitate every aspect for developing a blockchain application. It will hide the complexity of the technology and expose an elegant, easy to use and accessible interfaces for developers. The conceptual stack for the Lisk SDK is shown below:
+Lisk SDK is consists of a framework, libraries and command line tools to facilitate all the aspects of developing a blockchain application. It hides the complexity of the technology and exposes an elegant, easy to use and accessible interfaces for developers. The conceptual stack for the Lisk SDK is shown below:
 
 ```
                                   Lisk SDK Ecosystem
@@ -114,7 +114,7 @@ node app.js
 
 For more details on application and other configurations along with more samples please visit Lisk official [documentation portal](http://docs.lisk.io).
 
-The role model of big-scale application created using Lisk SDK is the client of Lisk network - Lisk Core.  
+The role model of big-scale application created using Lisk SDK is the client of Lisk network - [Lisk Core](https://github.com/liskhq/lisk-core).  
 
 ## Get Involved
 
