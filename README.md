@@ -111,9 +111,7 @@ After that you can start the application by:
 node index.js
 ```
 
-The role model of big-scale application created using Lisk SDK is the client of Lisk network - [Lisk Core](https://github.com/liskhq/lisk-sdk/lisk).
-
-More details on the usage and other configurations along with more samples will become available on Lisk official [documentation portal](http://docs.lisk.io).
+More usage examples and configuration samples will be made available during the alpha phase on the official Lisk [documentation portal](http://docs.lisk.io).
 
 ## Get Involved
 
