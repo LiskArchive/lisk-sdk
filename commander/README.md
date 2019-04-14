@@ -2,7 +2,7 @@
 
 # Lisk Commander
 
-Lisk Commander allows you to communicate with a remote or local node and carry out Lisk-related functionality.
+Lisk Commander is a command line tool which allows you to manage a Lisk node instance and interact with a Lisk compatible network.
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
 
