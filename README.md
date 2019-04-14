@@ -125,6 +125,9 @@ The role model of big-scale application created using Lisk SDK is the client of 
 | Have ideas to share       | [Come to Lisk.chat](http://lisk.chat)                                                                                            |
 | Want to involve community | [Join community gitter](https://gitter.im/LiskHQ/lisk?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) |
 | Found a security issue    | [See our bounty program](https://blog.lisk.io/announcing-lisk-bug-bounty-program-5895bdd46ed4)                                   |
+## Contributors
+
+https://github.com/LiskHQ/lisk-sdk/graphs/contributors
 
 ## License
 
