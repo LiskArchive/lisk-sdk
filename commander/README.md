@@ -4,14 +4,7 @@
 
 Lisk Commander allows you to communicate with a remote or local node and carry out Lisk-related functionality.
 
-[![Build Status](https://jenkins.lisk.io/buildStatus/icon?job=lisk-commander/development)](https://jenkins.lisk.io/job/lisk-commander/job/development/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
-<a href="https://david-dm.org/LiskHQ/lisk-commander"><img src="https://david-dm.org/LiskHQ/lisk-commander.svg" alt="Dependency Status"></a>
-<a href="https://david-dm.org/LiskHQ/lisk-commander/?type=dev"><img src="https://david-dm.org/LiskHQ/lisk-commander/dev-status.svg" alt="devDependency Status"></a>
-
-## Prerequisites
-
-Lisk Commander requires [Node.js](https://nodejs.org/) as the underlying engine for code execution. Node.js is supported on most operating systems. Follow the instructions for your operating system on the [Node.js downloads page](https://nodejs.org/en/download/). We currently require Node.js versions 8.3 and above. NPM is automatically installed along with Node.js.
 
 ## Installation
 
@@ -98,45 +91,7 @@ COMMANDS
   warranty     Displays warranty notice.
 ```
 
-<!-- usagestop -->
-
-## Commands
-
-<!-- commands -->
-
-* [`lisk account`](docs/account.md) - Commands relating to Lisk accounts.
-* [`lisk block`](docs/block.md) - Commands relating to Lisk blocks.
-* [`lisk config`](docs/config.md) - Manages Lisk Commander configuration.
-* [`lisk copyright`](docs/copyright.md) - Displays copyright notice.
-* [`lisk delegate`](docs/delegate.md) - Commands relating to Lisk delegates.
-* [`lisk help`](docs/help.md) - Displays help.
-* [`lisk message`](docs/message.md) - Commands relating to user messages.
-* [`lisk node`](docs/node.md) - Commands relating to Lisk node.
-* [`lisk passphrase`](docs/passphrase.md) - Commands relating to Lisk passphrases.
-* [`lisk signature`](docs/signature.md) - Commands relating to signatures for Lisk transactions from multisignature accounts.
-* [`lisk transaction`](docs/transaction.md) - Commands relating to Lisk transactions.
-* [`lisk warranty`](docs/warranty.md) - Displays warranty notice.
-
-<!-- commandsstop -->
-
-## Documentation
-
-Further information can be found on our documentation site:
-
-* [Introduction](https://lisk.io/documentation/lisk-commander)
-* [Setup](https://lisk.io/documentation/lisk-commander/setup)
-* [Upgrade](https://lisk.io/documentation/lisk-commander/upgrade)
-* [User Guide](https://lisk.io/documentation/lisk-commander/user-guide)
-  * [Sensitive Inputs](https://lisk.io/documentation/lisk-commander/user-guide/sensitive-inputs)
-  * [Commands](https://lisk.io/documentation/lisk-commander/user-guide/commands)
-
-## Get Involved
-
-Lisk Commander is an open-source project and all contributions are welcome.
-
-If you find a bug or want to make feature request, please create an [issue](https://github.com/LiskHQ/lisk-commander/issues) with as much detail as you can.
-
-## Run Tests
+### Running Tests
 
 Lisk Commander has an extensive set of unit tests. To run the tests, please install Lisk Commander from source, and then run the command:
 
@@ -144,18 +99,15 @@ Lisk Commander has an extensive set of unit tests. To run the tests, please inst
 $ npm test
 ```
 
-## FAQ
+## Get Involved
 
-### Something else went wrong. What should I do?
-
-1. Make sure you’re on the network you intend to be on.
-1. Remove the configuration file (`config.json`) located in your Lisk Commander configuration directory (`~/.lisk` by default). When you restart Lisk Commander the default configuration will be recreated.
-1. Get in contact on [Lisk Chat][] or [Gitter][].
-1. If it seems like a bug, open an issue on [GitHub][bugs]. See the [Contribution Guidelines].
-
-## Contributors
-
-https://github.com/LiskHQ/lisk-commander/graphs/contributors
+|                           |                                                                                                                                  |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Found a bug               | [Create new issue](https://github.com/LiskHQ/lisk/issues/new)                                                                    |
+| Want to develop with us   | [Create a fork](https://github.com/LiskHQ/lisk/fork)                                                                             |
+| Have ideas to share       | [Come to Lisk.chat](http://lisk.chat)                                                                                            |
+| Want to involve community | [Join community gitter](https://gitter.im/LiskHQ/lisk?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) |
+| Found a security issue    | [See our bounty program](https://blog.lisk.io/announcing-lisk-bug-bounty-program-5895bdd46ed4)                                   |
 
 ## License
 

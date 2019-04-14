@@ -1,8 +1,7 @@
+![Logo](../docs/assets/banner_elements.png)
+
 # Lisk Elements
 
-[![Build Status](https://jenkins.lisk.io/buildStatus/icon?job=lisk-elements/development)](https://jenkins.lisk.io/job/lisk-elements/job/development/)
-<a href="https://david-dm.org/LiskHQ/lisk-elements"><img src="https://david-dm.org/LiskHQ/lisk-elements.svg" alt="Dependency Status"></a>
-<a href="https://david-dm.org/LiskHQ/lisk-elements/?type=dev"><img src="https://david-dm.org/LiskHQ/lisk-elements/dev-status.svg" alt="devDependency Status"></a>
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
 
 ## What is Lisk Elements
@@ -62,7 +61,7 @@ client.transactions
 
 Full documentation can be found on the [Lisk documentation site][].
 
-## Tests
+### Running Tests
 
 To run tests for all packages in lisk-elements, run the following command in the root folder:
 
