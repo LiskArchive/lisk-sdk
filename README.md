@@ -15,9 +15,9 @@ Have fun with our alpha release to build blockchain applications but don't expec
 
 ## What is Lisk SDK
 
-Lisk SDK provides an easy, secure and scalable way to create blockchain applications in JavaScript. 
+Lisk SDK provides an easy, secure and scalable way to create blockchain applications in JavaScript.
 
-It facilitate developers to create their blockchain ledgers which follow [Lisk Protocol](https://lisk.io/documentation/lisk-protocol). 
+It facilitate developers to create their blockchain ledgers which follow [Lisk Protocol](https://lisk.io/documentation/lisk-protocol).
 
 All the tools, IDEs that you are experienced to built backend applications will still applies developing with Lisk SDK.
 
@@ -26,40 +26,40 @@ All the tools, IDEs that you are experienced to built backend applications will 
 Lisk SDK is consists of a framework, libraries and command line tools to facilitate all the aspects of developing a blockchain application. It hides the complexity of the technology and exposes an elegant, easy to use and accessible interfaces for developers. The conceptual stack for the Lisk SDK is shown below:
 
 ```
-                                  Lisk SDK Ecosystem
+                                            Lisk SDK Ecosystem
 
-                                +----------------------+
-                                |                      |
-                                |    Lisk Commander    |
-                                |                      |
-                                +----------------------+
+                                         +----------------------+
+                                         |                      |
+                                         |    Lisk Commander    |
+                                         |                      |
+                                         +----------------------+
 
-                                +----------------------+
-                                |                      |
-                                |   Your Application   |
-                                |                      |
-                     |----------+----------------------+----------|
-                     |                                            |
-                     |               Lisk Framework               |
-                     |                                            |
-          -----------|----------|----------|-----------|----------|-----------
-          |          |          |          |           |          |          |
-          |          |          |    Lisk Elements     |          |          |
-          |          |          |          |           |          |          |
-     +----------------------------------------------------------------------------+
-     |                                                                            |
-     |                               NodeJS Runtime                               |
-     |                                                                            |
-     +----------------------------------------------------------------------------+
+                                         +----------------------+
+                                         |                      |
+                                         |   Your Application   |
+                                         |                      |
+                              |----------+----------------------+----------|
+                              |                                            |
+                              |               Lisk Framework               |
+                              |                                            |
+                   -----------|----------|----------|-----------|----------|-----------
+                   |          |          |          |           |          |          |
+                   |          |          |    Lisk Elements     |          |          |
+                   |          |          |          |           |          |          |
+              +----------------------------------------------------------------------------+
+              |                                                                            |
+              |                               NodeJS Runtime                               |
+              |                                                                            |
+              +----------------------------------------------------------------------------+
 ```
 
 ## Package Directories
 
-| Directory                  | Description                                                                                                          |
-| -------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| [Framework](./framework)   | Responsible for establishing the interactions between blockchain modules (using the Lisk Elemenents libraries) which together with the network configuration are exposed for SDK developers.  |
-| [Elements](./elements)     | A collection of libraries, each of them is implementing a single domain of a blockchain element like transactions, cryptography etc. |
-| [Commander](./commander)   | A command line tool which helps to manage a node as well as interacting with a network. |
+| Directory                | Description                                                                                                                                                                                  |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Framework](./framework) | Responsible for establishing the interactions between blockchain modules (using the Lisk Elemenents libraries) which together with the network configuration are exposed for SDK developers. |
+| [Elements](./elements)   | A collection of libraries, each of them is implementing a single domain of a blockchain element like transactions, cryptography etc.                                                         |
+| [Commander](./commander) | A command line tool which helps to manage a node as well as interacting with a network.                                                                                                      |
 
 ## Installation
 
@@ -85,12 +85,11 @@ npm install lisk-framework
 
 ## Usage
 
-Start from creating a project structure of your blockchain application. No special requirements here, you can create the basic Node.js project folder structure with `npm init`. 
+Start from creating a project structure of your blockchain application. No special requirements here, you can create the basic Node.js project folder structure with `npm init`.
 
-Essentially to create a blockchain application, you need to provide an entry point of your application (like `index.js`) and set-up your network by using the modules of Lisk SDK. 
+Essentially to create a blockchain application, you need to provide an entry point of your application (like `index.js`) and set-up your network by using the modules of Lisk SDK.
 
-It's easy - to have a working blockchain application, mirroring the configuration of Lisk network,  it's enough to copy the following three lines of code to your `index.js`:
-
+It's easy - to have a working blockchain application, mirroring the configuration of Lisk network, it's enough to copy the following three lines of code to your `index.js`:
 
 ```js
 const { Application, SampleGenesisBlock } = require('lisk-framework');
@@ -101,9 +100,9 @@ app
 	.run()
 	.then(() => app.logger.info('App started...'))
 	.catch(error => {
-			console.error('Faced error in application', error);
-			process.exit(1);
-		   });
+		console.error('Faced error in application', error);
+		process.exit(1);
+	});
 ```
 
 After that you can start the application by:
@@ -112,7 +111,7 @@ After that you can start the application by:
 node index.js
 ```
 
-The role model of big-scale application created using Lisk SDK is the client of Lisk network - [Lisk Core](https://github.com/liskhq/lisk-core).  
+The role model of big-scale application created using Lisk SDK is the client of Lisk network - [Lisk Core](https://github.com/liskhq/lisk-core).
 
 More details on the usage and other configurations along with more samples will become available on Lisk official [documentation portal](http://docs.lisk.io).
 
@@ -125,6 +124,7 @@ More details on the usage and other configurations along with more samples will 
 | Have ideas to share       | [Come to Lisk.chat](http://lisk.chat)                                                                                            |
 | Want to involve community | [Join community gitter](https://gitter.im/LiskHQ/lisk?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) |
 | Found a security issue    | [See our bounty program](https://blog.lisk.io/announcing-lisk-bug-bounty-program-5895bdd46ed4)                                   |
+
 ## Contributors
 
 https://github.com/LiskHQ/lisk-sdk/graphs/contributors
