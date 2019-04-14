@@ -14,7 +14,7 @@
 
 'use strict';
 
-const JSONHistory = require('../../../../../scripts/json_history');
+const JSONHistory = require('../../../scripts/json_history');
 
 const historyTitle = 'config history';
 let history;

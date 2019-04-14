@@ -19,7 +19,7 @@ const fs = require('fs');
 const { spawnSync } = require('child_process');
 
 const dirPath = __dirname;
-const rootPath = path.dirname(path.resolve(__filename, '../../../../../'));
+const rootPath = path.dirname(path.resolve(__filename, '../../../'));
 
 // TODO: Enable again after the issue https://github.com/LiskHQ/lisk/issues/3171
 // eslint-disable-next-line mocha/no-skipped-tests
