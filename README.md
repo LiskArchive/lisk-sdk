@@ -7,11 +7,11 @@
 
 ## Disclaimer - Mostly Harmless
 
-You must read the disclaimer below carefully. We have opened access to the alpha version of the Lisk SDK and expect a detailed feedback from you. Using alpha release might be tedious due to the evolving nature fo the code and work-in-progress.
+Please read our disclaimer carefully. We have just opened access to our alpha version of the Lisk SDK and hope to receive detailed feedback. Using our alpha release might still be tedious due to the evolving nature of our work-in-progress code.
 
-We strictly encourage to not use alpha release for any production blockchain applications. You may expect changes in the protocol and public interfaces in up coming release.
+We strictly encourage everyone to not use our alpha release for any production blockchain applications. There will be significant changes in the protocol and public interfaces in upcoming releases.
 
-Have fun with our alpha release to build blockchain applications but don't expect to persist that data until final release of Lisk SDK came out. Ledger created from this release may not be compatible with final release.
+Have fun with our alpha release to build blockchain applications but don't expect to persist your data with future releases of our Lisk SDK. Blockchains created with this release may not be compatible anymore with future releases.
 
 ## What is Lisk SDK
 
