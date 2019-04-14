@@ -16,8 +16,6 @@ Upon successful completion, NPM will add the `lisk-commander` executable `lisk` 
 
 ## Usage
 
-<!-- usage -->
-
 ```sh-session
 $ lisk COMMAND
 running command...
