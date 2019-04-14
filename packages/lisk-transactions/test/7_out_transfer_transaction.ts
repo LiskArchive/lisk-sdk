@@ -18,6 +18,7 @@ import { MockStateStore as store } from './helpers';
 import { OutTransferTransaction } from '../src/7_out_transfer_transaction';
 import {
 	validOutTransferTransactions,
+	validTransaction,
 	validDappTransactions,
 } from '../fixtures';
 import { TransactionJSON } from '../src/transaction_types';
@@ -31,14 +32,20 @@ describe('outTransfer transaction class', () => {
 		publicKey:
 			'305b4897abc230c1cc9d0aa3bf0c75747bfa42f32f83f5a92348edea528850ad',
 	};
+	const defaultValidRecipient = {
+		address: '13155556493249255133L',
+		balance: '4700483466477',
+		publicKey:
+			'305b4897abc230c1cc9d0aa3bf0c75747bfa42f32f83f5a92348edea528850ad',
+	};
 	const dappRegistrationTx = validDappTransactions[3];
 
 	let validTestTransaction: OutTransferTransaction;
 	let storeTransactionCacheStub: sinon.SinonStub;
 	let storeTransactionGetStub: sinon.SinonStub;
-	let storeTransactionFindStub: sinon.SinonStub;
 	let storeAccountCacheStub: sinon.SinonStub;
 	let storeAccountGetStub: sinon.SinonStub;
+	let storeAccountGetOrDefaultStub: sinon.SinonStub;
 	let storeAccountSetStub: sinon.SinonStub;
 
 	beforeEach(async () => {
@@ -47,11 +54,13 @@ describe('outTransfer transaction class', () => {
 		storeTransactionGetStub = sandbox
 			.stub(store.transaction, 'get')
 			.returns(dappRegistrationTx);
-		storeTransactionFindStub = sandbox.stub(store.transaction, 'find');
 		storeAccountCacheStub = sandbox.stub(store.account, 'cache');
 		storeAccountGetStub = sandbox
 			.stub(store.account, 'get')
 			.returns(defaultValidSender);
+		storeAccountGetOrDefaultStub = sandbox
+			.stub(store.account, 'getOrDefault')
+			.returns(defaultValidRecipient);
 		storeAccountSetStub = sandbox.stub(store.account, 'set');
 	});
 
@@ -252,7 +261,6 @@ describe('outTransfer transaction class', () => {
 			expect(storeTransactionGetStub).to.be.calledWithExactly(
 				validTestTransaction.asset.outTransfer.dappId,
 			);
-			expect(storeTransactionFindStub).to.be.calledOnce;
 			expect(
 				storeAccountGetStub
 					.getCall(0)
@@ -269,30 +277,28 @@ describe('outTransfer transaction class', () => {
 					}),
 			);
 			expect(
-				storeAccountGetStub
-					.getCall(1)
+				storeAccountGetOrDefaultStub
+					.getCall(0)
 					.calledWithExactly(validTestTransaction.recipientId),
 			);
 		});
 
-		it('should return error when not sent from owner of dapp', async () => {
+		it('should return error when transaction is not a dapp', async () => {
 			const invalidTestTransaction = new OutTransferTransaction({
 				...defaultTransaction,
-				senderId: '123L',
+				asset: {
+					outTransfer: {
+						dappId: '123',
+					},
+				},
 			});
+			storeTransactionGetStub.returns(validTransaction);
+
 			const errors = (invalidTestTransaction as any).applyAsset(store);
 			expect(errors[0].message).to.equal(
-				`Out transaction must be sent from owner of the Dapp.`,
-			);
-		});
-
-		it('should return error if out transfer exists', async () => {
-			storeTransactionFindStub.returns(defaultTransaction);
-			const errors = (validTestTransaction as any).applyAsset(store);
-			expect(errors[0].message).to.equal(
-				`Transaction ${
-					validTestTransaction.asset.outTransfer.transactionId
-				} is already processed.`,
+				`Application not found: ${
+					invalidTestTransaction.asset.outTransfer.dappId
+				}`,
 			);
 		});
 
@@ -319,8 +325,8 @@ describe('outTransfer transaction class', () => {
 					.calledWithExactly(validTestTransaction.senderId),
 			);
 			expect(
-				storeAccountGetStub
-					.getCall(1)
+				storeAccountGetOrDefaultStub
+					.getCall(0)
 					.calledWithExactly(validTestTransaction.recipientId),
 			);
 		});

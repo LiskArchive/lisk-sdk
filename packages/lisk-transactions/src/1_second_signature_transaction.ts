@@ -19,7 +19,7 @@ import {
 	StateStorePrepare,
 } from './base_transaction';
 import { SIGNATURE_FEE } from './constants';
-import { convertToTransactionError, TransactionError } from './errors';
+import { convertToAssetError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
 import { getId, validator } from './utils';
 
@@ -68,9 +68,7 @@ export class SecondSignatureTransaction extends BaseTransaction {
 	}
 
 	public assetToJSON(): object {
-		return {
-			...this.asset,
-		};
+		return this.asset;
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {
@@ -101,7 +99,7 @@ export class SecondSignatureTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		validator.validate(secondSignatureAssetFormatSchema, this.asset);
-		const errors = convertToTransactionError(
+		const errors = convertToAssetError(
 			this.id,
 			validator.errors,
 		) as TransactionError[];

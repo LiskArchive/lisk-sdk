@@ -50,6 +50,8 @@ import {
 	P2PNetworkStatus,
 	P2PNodeInfo,
 	P2PPeerInfo,
+	P2PPeerSelectionForRequest,
+	P2PPeerSelectionForSend,
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
@@ -230,11 +232,14 @@ export class P2P extends EventEmitter {
 		};
 
 		this._peerPool = new PeerPool({
-			connectTimeout: this._config.connectTimeout,
-			ackTimeout: this._config.ackTimeout,
-			peerSelectionForSendRequest: config.peerSelectionForSendRequest
-				? config.peerSelectionForSendRequest
-				: selectPeers,
+			connectTimeout: config.connectTimeout,
+			ackTimeout: config.ackTimeout,
+			peerSelectionForSend: config.peerSelectionForSend
+				? config.peerSelectionForSend
+				: (selectPeers as P2PPeerSelectionForSend),
+			peerSelectionForRequest: config.peerSelectionForRequest
+				? config.peerSelectionForRequest
+				: (selectPeers as P2PPeerSelectionForRequest),
 			peerSelectionForConnection: config.peerSelectionForConnection
 				? config.peerSelectionForConnection
 				: selectForConnection,

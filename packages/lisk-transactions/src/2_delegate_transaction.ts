@@ -18,7 +18,7 @@ import {
 	StateStorePrepare,
 } from './base_transaction';
 import { DELEGATE_FEE } from './constants';
-import { convertToTransactionError, TransactionError } from './errors';
+import { convertToAssetError, TransactionError } from './errors';
 import { Account, TransactionJSON } from './transaction_types';
 import { validator } from './utils';
 
@@ -71,9 +71,7 @@ export class DelegateTransaction extends BaseTransaction {
 	}
 
 	public assetToJSON(): DelegateAsset {
-		return {
-			...this.asset,
-		};
+		return this.asset;
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {
@@ -107,7 +105,7 @@ export class DelegateTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		validator.validate(delegateAssetFormatSchema, this.asset);
-		const errors = convertToTransactionError(
+		const errors = convertToAssetError(
 			this.id,
 			validator.errors,
 		) as TransactionError[];

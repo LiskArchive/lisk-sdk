@@ -93,3 +93,21 @@ export const convertToTransactionError = (
 			),
 	);
 };
+
+export const convertToAssetError = (
+	id: string,
+	errors: ReadonlyArray<ErrorObject> | null | undefined,
+): ReadonlyArray<TransactionError> => {
+	if (!errors) {
+		return [];
+	}
+
+	return errors.map(
+		error =>
+			new TransactionError(
+				`'${error.dataPath || '.asset'}' ${error.message}`,
+				id,
+				error.dataPath || '.asset',
+			),
+	);
+};

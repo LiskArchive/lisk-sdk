@@ -19,12 +19,13 @@ import {
 	StateStorePrepare,
 } from './base_transaction';
 import { MAX_TRANSACTION_AMOUNT, OUT_TRANSFER_FEE } from './constants';
-import { convertToTransactionError, TransactionError } from './errors';
+import { convertToAssetError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
 import { verifyAmountBalance } from './utils';
 import { validator } from './utils/validation';
 
 const TRANSACTION_OUTTRANSFER_TYPE = 7;
+const TRANSACTION_DAPP_REGISTERATION_TYPE = 5;
 
 export interface OutTransferAsset {
 	readonly outTransfer: {
@@ -93,9 +94,7 @@ export class OutTransferTransaction extends BaseTransaction {
 	}
 
 	public assetToJSON(): object {
-		return {
-			...this.asset,
-		};
+		return this.asset;
 	}
 
 	protected verifyAgainstTransactions(
@@ -122,7 +121,7 @@ export class OutTransferTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		validator.validate(outTransferAssetFormatSchema, this.asset);
-		const errors = convertToTransactionError(
+		const errors = convertToAssetError(
 			this.id,
 			validator.errors,
 		) as TransactionError[];
@@ -183,27 +182,15 @@ export class OutTransferTransaction extends BaseTransaction {
 			this.asset.outTransfer.dappId,
 		);
 
-		if (dappRegistrationTransaction.senderId !== this.senderId) {
+		if (
+			!dappRegistrationTransaction ||
+			dappRegistrationTransaction.type !== TRANSACTION_DAPP_REGISTERATION_TYPE
+		) {
 			errors.push(
 				new TransactionError(
-					`Out transaction must be sent from owner of the Dapp.`,
+					`Application not found: ${this.asset.outTransfer.dappId}`,
 					this.id,
-				),
-			);
-		}
-
-		const transactionExists = store.transaction.find(
-			(transaction: TransactionJSON) =>
-				transaction.id === this.asset.outTransfer.transactionId,
-		);
-
-		if (transactionExists) {
-			errors.push(
-				new TransactionError(
-					`Transaction ${
-						this.asset.outTransfer.transactionId
-					} is already processed.`,
-					this.id,
+					'.asset.outTransfer.dappId',
 				),
 			);
 		}
@@ -225,7 +212,7 @@ export class OutTransferTransaction extends BaseTransaction {
 		const updatedSender = { ...sender, balance: updatedBalance.toString() };
 		store.account.set(updatedSender.address, updatedSender);
 
-		const recipient = store.account.get(this.recipientId);
+		const recipient = store.account.getOrDefault(this.recipientId);
 
 		const updatedRecipientBalance = new BigNum(recipient.balance).add(
 			this.amount,
@@ -264,7 +251,7 @@ export class OutTransferTransaction extends BaseTransaction {
 		const updatedSender = { ...sender, balance: updatedBalance.toString() };
 		store.account.set(updatedSender.address, updatedSender);
 
-		const recipient = store.account.get(this.recipientId);
+		const recipient = store.account.getOrDefault(this.recipientId);
 
 		const updatedRecipientBalance = new BigNum(recipient.balance).sub(
 			this.amount,

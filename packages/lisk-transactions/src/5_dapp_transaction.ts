@@ -18,7 +18,7 @@ import {
 	StateStorePrepare,
 } from './base_transaction';
 import { DAPP_FEE } from './constants';
-import { convertToTransactionError, TransactionError } from './errors';
+import { convertToAssetError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
 import { stringEndsWith, validator } from './utils/validation';
 
@@ -98,13 +98,14 @@ export class DappTransaction extends BaseTransaction {
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
-
 		this.asset = (tx.asset || { dapp: {} }) as DappAsset;
-		// If Optional field contains null, converts to undefined
-		this.asset.dapp.description = this.asset.dapp.description || undefined;
-		this.asset.dapp.icon = this.asset.dapp.icon || undefined;
-		this.asset.dapp.tags = this.asset.dapp.tags || undefined;
 		this.containsUniqueData = true;
+		if (this.asset && this.asset.dapp && typeof this.asset.dapp === 'object') {
+			// If Optional field contains null, converts to undefined
+			this.asset.dapp.description = this.asset.dapp.description || undefined;
+			this.asset.dapp.icon = this.asset.dapp.icon || undefined;
+			this.asset.dapp.tags = this.asset.dapp.tags || undefined;
+		}
 	}
 
 	protected assetToBytes(): Buffer {
@@ -144,9 +145,7 @@ export class DappTransaction extends BaseTransaction {
 	}
 
 	public assetToJSON(): object {
-		return {
-			...this.asset,
-		};
+		return this.asset;
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {
@@ -209,7 +208,7 @@ export class DappTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		validator.validate(dappAssetFormatSchema, this.asset);
-		const errors = convertToTransactionError(
+		const errors = convertToAssetError(
 			this.id,
 			validator.errors,
 		) as TransactionError[];
@@ -260,6 +259,11 @@ export class DappTransaction extends BaseTransaction {
 			);
 		}
 		const validLinkSuffix = ['.zip'];
+
+		if (errors.length > 0) {
+			return errors;
+		}
+
 		if (
 			this.asset.dapp.link &&
 			!stringEndsWith(this.asset.dapp.link, validLinkSuffix)

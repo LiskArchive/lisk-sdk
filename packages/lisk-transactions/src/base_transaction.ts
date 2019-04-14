@@ -234,7 +234,9 @@ export abstract class BaseTransaction {
 
 	public validate(): TransactionResponse {
 		const errors = [...this._validateSchema(), ...this.validateAsset()];
-
+		if (errors.length > 0) {
+			return createResponse(this.id, errors);
+		}
 		const transactionBytes = this.getBasicBytes();
 
 		const {
@@ -249,6 +251,12 @@ export abstract class BaseTransaction {
 
 		if (!signatureValid && verificationError) {
 			errors.push(verificationError);
+		}
+
+		const idError = validateTransactionId(this.id, this.getBytes());
+
+		if (idError) {
+			errors.push(idError);
 		}
 
 		return createResponse(this.id, errors);
@@ -517,10 +525,6 @@ export abstract class BaseTransaction {
 			if (senderIdError) {
 				errors.push(senderIdError);
 			}
-		}
-		const idError = validateTransactionId(this.id, this.getBytes());
-		if (idError) {
-			errors.push(idError);
 		}
 
 		return errors;

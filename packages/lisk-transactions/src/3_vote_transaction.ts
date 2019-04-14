@@ -12,16 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as BigNum from '@liskhq/bignum';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import {
 	BaseTransaction,
 	StateStore,
 	StateStorePrepare,
 } from './base_transaction';
-import { VOTE_FEE } from './constants';
-import { convertToTransactionError, TransactionError } from './errors';
+import { MAX_TRANSACTION_AMOUNT, VOTE_FEE } from './constants';
+import { convertToAssetError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
-import { CreateBaseTransactionInput } from './utils';
+import { CreateBaseTransactionInput, verifyAmountBalance } from './utils';
 import { validateAddress, validator } from './utils/validation';
 
 const PREFIX_UPVOTE = '+';
@@ -48,13 +49,13 @@ export const voteAssetFormatSchema = {
 	properties: {
 		votes: {
 			type: 'array',
-			uniqueSignedPublicKeys: true,
 			minItems: MIN_VOTE_PER_TX,
 			maxItems: MAX_VOTE_PER_TX,
 			items: {
 				type: 'string',
 				format: 'signedPublicKey',
 			},
+			uniqueSignedPublicKeys: true,
 		},
 	},
 };
@@ -77,9 +78,7 @@ export class VoteTransaction extends BaseTransaction {
 	}
 
 	public assetToJSON(): object {
-		return {
-			votes: this.asset.votes,
-		};
+		return this.asset;
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {
@@ -136,10 +135,11 @@ export class VoteTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		validator.validate(voteAssetFormatSchema, this.asset);
-		const errors = convertToTransactionError(
+		const errors = convertToAssetError(
 			this.id,
 			validator.errors,
 		) as TransactionError[];
+
 		if (!this.amount.eq(0)) {
 			errors.push(
 				new TransactionError(
@@ -208,6 +208,20 @@ export class VoteTransaction extends BaseTransaction {
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
 		const sender = store.account.get(this.senderId);
+
+		// Deduct amount from sender in case of exceptions
+		// See issue: https://github.com/LiskHQ/lisk-elements/issues/1215
+		const balanceError = verifyAmountBalance(
+			this.id,
+			sender,
+			this.amount,
+			this.fee,
+		);
+		if (balanceError) {
+			errors.push(balanceError);
+		}
+		const updatedSenderBalance = new BigNum(sender.balance).sub(this.amount);
+
 		this.asset.votes.forEach(actionVotes => {
 			const vote = actionVotes.substring(1);
 			const voteAccount = store.account.find(
@@ -277,6 +291,7 @@ export class VoteTransaction extends BaseTransaction {
 		}
 		const updatedSender = {
 			...sender,
+			balance: updatedSenderBalance.toString(),
 			votedDelegatesPublicKeys,
 		};
 		store.account.set(updatedSender.address, updatedSender);
@@ -287,6 +302,21 @@ export class VoteTransaction extends BaseTransaction {
 	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors = [];
 		const sender = store.account.get(this.senderId);
+		const updatedSenderBalance = new BigNum(sender.balance).add(this.amount);
+
+		// Deduct amount from sender in case of exceptions
+		// See issue: https://github.com/LiskHQ/lisk-elements/issues/1215
+		if (updatedSenderBalance.gt(MAX_TRANSACTION_AMOUNT)) {
+			errors.push(
+				new TransactionError(
+					'Invalid amount',
+					this.id,
+					'.amount',
+					this.amount.toString(),
+				),
+			);
+		}
+
 		const upvotes = this.asset.votes
 			.filter(vote => vote.charAt(0) === PREFIX_UPVOTE)
 			.map(vote => vote.substring(1));
@@ -313,6 +343,7 @@ export class VoteTransaction extends BaseTransaction {
 		}
 		const updatedSender = {
 			...sender,
+			balance: updatedSenderBalance.toString(),
 			votedDelegatesPublicKeys,
 		};
 		store.account.set(updatedSender.address, updatedSender);

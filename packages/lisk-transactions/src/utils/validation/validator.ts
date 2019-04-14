@@ -120,7 +120,11 @@ validator.addFormat('noNullByte', data => !isNullByteIncluded(data));
 validator.addKeyword('uniqueSignedPublicKeys', {
 	type: 'array',
 	compile: () => (data: ReadonlyArray<string>) =>
-		new Set(data.map((key: string) => key.slice(1))).size === data.length,
+		new Set(
+			data
+				.filter(datum => typeof datum === 'string')
+				.map((key: string) => key.slice(1)),
+		).size === data.length,
 });
 
 validator.addSchema(schemas.baseTransaction);
