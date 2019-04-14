@@ -14,16 +14,20 @@
  */
 /* tslint:disable:no-empty-interface*/
 
-export interface P2PRequestPacket {
+export interface P2PPacket {
+	readonly data?: unknown;
+}
+
+export interface P2PRequestPacket extends P2PPacket {
 	readonly data?: unknown;
 	readonly procedure: string;
 }
 
-export interface P2PResponsePacket {
+export interface P2PResponsePacket extends P2PPacket {
 	readonly data: unknown;
 }
 
-export interface P2PMessagePacket {
+export interface P2PMessagePacket extends P2PPacket {
 	readonly data?: unknown;
 	readonly event: string;
 }
@@ -76,7 +80,8 @@ export interface P2PConfig {
 	readonly nodeInfo: P2PNodeInfo;
 	readonly wsEngine?: string;
 	readonly discoveryInterval?: number;
-	readonly peerSelectionForSendRequest?: P2PPeerSelectionForSendRequest;
+	readonly peerSelectionForSend?: P2PPeerSelectionForSend;
+	readonly peerSelectionForRequest?: P2PPeerSelectionForRequest;
 	readonly peerSelectionForConnection?: P2PPeerSelectionForConnection;
 	readonly peerHandshakeCheck?: P2PCheckPeerCompatibility;
 }
@@ -107,6 +112,20 @@ export type P2PPeerSelectionForSendRequest = (
 	peers: ReadonlyArray<P2PDiscoveredPeerInfo>,
 	nodeInfo?: P2PNodeInfo,
 	numOfPeers?: number,
+) => ReadonlyArray<P2PDiscoveredPeerInfo>;
+
+export type P2PPeerSelectionForSend = (
+	peers: ReadonlyArray<P2PDiscoveredPeerInfo>,
+	nodeInfo?: P2PNodeInfo,
+	numOfPeers?: number,
+	messagePacket?: P2PMessagePacket
+) => ReadonlyArray<P2PDiscoveredPeerInfo>;
+
+export type P2PPeerSelectionForRequest = (
+	peers: ReadonlyArray<P2PDiscoveredPeerInfo>,
+	nodeInfo?: P2PNodeInfo,
+	numOfPeers?: number,
+	requestPacket?: P2PRequestPacket
 ) => ReadonlyArray<P2PDiscoveredPeerInfo>;
 
 export type P2PPeerSelectionForConnection = (

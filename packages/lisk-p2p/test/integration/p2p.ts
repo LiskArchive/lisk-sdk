@@ -4,6 +4,8 @@ import { wait } from '../utils/helpers';
 import { platform } from 'os';
 import {
 	P2PPeerSelectionForSendRequest,
+	P2PPeerSelectionForSend,
+	P2PPeerSelectionForRequest,
 	P2PNodeInfo,
 	P2PDiscoveredPeerInfo,
 	P2PPeerSelectionForConnection,
@@ -745,7 +747,8 @@ describe('Integration tests for P2P library', () => {
 					blacklistedPeers: [],
 					connectTimeout: 5000,
 					ackTimeout: 5000,
-					peerSelectionForSendRequest,
+					peerSelectionForSend: peerSelectionForSendRequest as P2PPeerSelectionForSend,
+					peerSelectionForRequest: peerSelectionForSendRequest as P2PPeerSelectionForRequest,
 					peerSelectionForConnection,
 					seedPeers,
 					wsEngine: 'ws',
