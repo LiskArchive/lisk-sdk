@@ -245,6 +245,15 @@ export default class InstallCommand extends BaseCommand {
 			},
 		]);
 
-		await tasks.run();
+		try {
+			await tasks.run();
+		} catch (error) {
+			const { installDir }: Options = error.context.options;
+			const dirPath = installDir.substr(0, installDir.length - 1);
+
+			fsExtra.emptyDirSync(installDir);
+			fsExtra.rmdirSync(dirPath);
+			throw error[0];
+		}
 	}
 }

@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as fs from 'fs';
+import fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
@@ -41,7 +41,7 @@ export interface NodeConfig {
 export const defaultInstallationPath = path.join(os.homedir(), '.lisk/network');
 export const defaultBackupPath = `${defaultInstallationPath}/backup`;
 
-export const configPath = (network: string = 'default'): string =>
+const configPath = (network: string = 'default'): string =>
 	`config/${network}/config.json`;
 
 export const getConfig = (filePath: string): object => {
@@ -95,7 +95,8 @@ export const isCacheEnabled = (
 	const networkConfig = getNetworkConfig(installDir, network);
 
 	if (
-		networkConfig.cacheEnabled &&
+		(networkConfig.cacheEnabled !== null ||
+			networkConfig.cacheEnabled !== undefined) &&
 		typeof networkConfig.cacheEnabled === 'boolean'
 	) {
 		return networkConfig.cacheEnabled;

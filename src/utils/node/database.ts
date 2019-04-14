@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as fs from 'fs';
+import fs from 'fs';
 import { NETWORK, POSTGRES_PORTS } from '../constants';
 import { exec, ExecResult } from '../worker-process';
 import { DbConfig, getDbConfig } from './config';
@@ -77,11 +77,11 @@ export const startDatabase = async (
 	}
 
 	const dbPort: number = POSTGRES_PORTS[network];
-	const { stdout, stderr }: ExecResult = await exec(
+	const { stderr }: ExecResult = await exec(
 		`cd ${installDir}; pg_ctl -w -D ${DB_DATA} -l ${DB_LOG_FILE} -o "-F -p ${dbPort}" start >> ${SH_LOG_FILE}`,
 	);
 
-	if (stdout.trim() === '' && !stderr) {
+	if (!stderr) {
 		return DATABASE_START_SUCCESS;
 	}
 
@@ -140,11 +140,11 @@ export const stopDatabase = async (
 		return DATABASE_STATUS;
 	}
 
-	const { stdout, stderr }: ExecResult = await exec(
+	const { stderr }: ExecResult = await exec(
 		`cd ${installDir}; pg_ctl -D ${DB_DATA} -l ${DB_LOG_FILE} stop >> ${SH_LOG_FILE}`,
 	);
 
-	if (stdout.trim() === '' && !stderr) {
+	if (!stderr) {
 		return DATABASE_STOP_SUCCESS;
 	}
 

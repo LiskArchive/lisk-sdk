@@ -13,8 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import Axios from 'axios';
-import * as fsExtra from 'fs-extra';
+import fsExtra from 'fs-extra';
 import * as os from 'os';
 import semver from 'semver';
 import { NETWORK, OS, RELEASE_URL } from '../constants';
@@ -90,7 +89,7 @@ export const validURL = (url: string): void => {
 };
 
 export const getVersionToUpgrade = async (
-	network: string,
+	network: NETWORK,
 	version?: string,
 ) => {
 	if (!version) {
@@ -116,7 +115,7 @@ export const backupLisk = async (installDir: string): Promise<void> => {
 export const upgradeLisk = async (
 	installDir: string,
 	name: string,
-	network: string,
+	network: NETWORK,
 	currentVersion: string,
 ): Promise<void> => {
 	const LISK_BACKUP = `${defaultBackupPath}/${name}`;
@@ -149,7 +148,7 @@ export const validateVersion = async (
 
 	const url = `${RELEASE_URL}/${network}/${version}`;
 	try {
-		await Axios.get(url);
+		await getLatestVersion(url);
 	} catch (error) {
 		if (error.message === 'Request failed with status code 404') {
 			throw new Error(

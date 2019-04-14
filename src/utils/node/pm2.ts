@@ -55,7 +55,7 @@ const startPM2 = async (
 		start(
 			{
 				name,
-				script: 'app.js',
+				script: 'src/index.js',
 				cwd: installPath,
 				env: {
 					LISK_NETWORK: network,
