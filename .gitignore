@@ -20,6 +20,7 @@ lib-cov
 coverage
 .coverage
 test/.coverage-unit
+**/test/mocha/.coverage-unit/**
 
 # nyc test coverage
 .nyc_output
@@ -70,3 +71,7 @@ browsertest/test
 
 # Unsupported lock files
 yarn.lock
+
+# Framework specific
+**/network/configs/
+pm2.network.json
