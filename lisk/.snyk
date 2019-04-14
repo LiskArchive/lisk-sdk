@@ -1,0 +1,68 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.11.0
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
+ignore:
+  'npm:deep-extend:20180409':
+    - sway > json-schema-faker > deref > deep-extend:
+        reason: None given
+        expires: '2018-06-06T14:18:01.514Z'
+    - swagger-node-runner > sway > json-schema-faker > deref > deep-extend:
+        reason: None given
+        expires: '2018-06-06T14:18:01.514Z'
+  'npm:hoek:20180212':
+    - socketcluster > sc-auth > sc-jsonwebtoken > joi > hoek:
+        reason: None given
+        expires: '2018-06-06T14:18:01.514Z'
+      joi > hoek:
+        reason: None given
+        expires: '2018-06-06T14:24:54.002Z'
+    - socketcluster > sc-auth > sc-jsonwebtoken > joi > topo > hoek:
+        reason: None given
+        expires: '2018-06-06T14:18:01.514Z'
+      joi > topo > hoek:
+        reason: None given
+        expires: '2018-06-06T14:24:54.002Z'
+    - sc-auth > sc-jsonwebtoken > joi > hoek:
+        reason: None given
+        expires: '2018-06-06T14:24:54.002Z'
+    - sc-auth > sc-jsonwebtoken > joi > topo > hoek:
+        reason: None given
+        expires: '2018-06-06T14:24:54.002Z'
+  'npm:lodash:20180130':
+    - swagger-node-runner > lodash:
+        reason: None given
+        expires: '2018-06-06T14:18:01.514Z'
+    - swagger-node-runner > bagpipes > lodash:
+        reason: None given
+        expires: '2018-06-06T14:18:01.514Z'
+    - swagger-node-runner > bagpipes > machinepack-http > lodash:
+        reason: None given
+        expires: '2018-06-06T14:18:01.514Z'
+    - swagger-node-runner > bagpipes > machinepack-http > machine > lodash:
+        reason: None given
+        expires: '2018-06-06T14:18:01.514Z'
+    - swagger-node-runner > bagpipes > machinepack-http > machine > rttc > lodash:
+        reason: None given
+        expires: '2018-06-06T14:18:01.514Z'
+    - swagger-node-runner > bagpipes > machinepack-http > machine > switchback > lodash:
+        reason: None given
+        expires: '2018-06-06T14:18:01.514Z'
+    - swagger-node-runner > bagpipes > machinepack-http > machinepack-urls > lodash:
+        reason: None given
+        expires: '2018-06-06T14:18:01.514Z'
+    - swagger-node-runner > bagpipes > machinepack-http > machinepack-urls > machine > lodash:
+        reason: None given
+        expires: '2018-06-06T14:18:01.514Z'
+    - swagger-node-runner > bagpipes > machinepack-http > machinepack-urls > machine > rttc > lodash:
+        reason: None given
+        expires: '2018-06-06T14:18:01.515Z'
+    - swagger-node-runner > bagpipes > machinepack-http > machinepack-urls > machine > switchback > lodash:
+        reason: None given
+        expires: '2018-06-06T14:18:01.515Z'
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  'npm:moment:20170905':
+    - sc-auth > sc-jsonwebtoken > joi > moment:
+        patched: '2018-05-07T14:24:08.423Z'
+    - joi > moment:
+        patched: '2018-05-07T14:24:08.423Z'
