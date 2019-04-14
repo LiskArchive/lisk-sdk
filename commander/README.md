@@ -8,55 +8,11 @@ Lisk Commander allows you to communicate with a remote or local node and carry o
 
 ## Installation
 
-### From NPM
-
 ```sh
 $ npm install --global --production lisk-commander
 ```
 
 Upon successful completion, NPM will add the `lisk-commander` executable `lisk` to your PATH.
-
-### From Source
-
-Clone the Lisk Commander repository using Git and install the dependencies:
-
-```sh
-$ git clone https://github.com/LiskHQ/lisk-commander.git
-$ cd lisk-commander
-$ npm install
-```
-
-Before running the executable you will need to build Lisk Commander:
-
-```sh
-npm run build
-```
-
-#### Adding the Lisk Commander executable to your PATH
-
-WARNING: If you have installed Lisk Commander globally via NPM (see [Install Lisk Commander via NPM](https://lisk.io/documentation/lisk-commander/setup)), following the instructions in this section is not recommended as they will introduce conflicts.
-
-If you would like to add the `lisk` executable to your PATH you have two options: option 1 will install the current state of the code you are installing globally, while option 2 will only link to the code and therefore automatically reflect changes you make going forward.
-
-##### 1. Install globally
-
-Running this command from within the repository will add Lisk Commander to your global NPM packages, and add the `lisk` executable to your PATH. Be aware that any previous globally installed Lisk Commander version will get overridden with this local version.
-
-```sh
-$ npm install --global --production
-```
-
-Note that you will have to repeat this process for each subsequent build of Lisk Commander.
-
-##### 2. Create a symlink
-
-The other option is to ask NPM to create a symlink in the global folder that links to the package.
-
-```sh
-$ npm link
-```
-
-This will also add `lisk` to your PATH, but you won't have to repeat the process if you pull or create a new build. Be aware that any previous globally installed Lisk Commander version will get overridden with this local version.
 
 ## Usage
 
