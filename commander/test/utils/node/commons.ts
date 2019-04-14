@@ -21,8 +21,8 @@ import {
 	upgradeLisk,
 	validateVersion,
 } from '../../../src/utils/node/commons';
-import { NETWORK } from '../../../dist/utils/constants';
-import { defaultInstallationPath } from '../../../dist/utils/node/config';
+import { NETWORK } from '../../../src/utils/constants';
+import { defaultInstallationPath } from '../../../src/utils/node/config';
 import * as release from '../../../src/utils/node/release';
 import * as workerProcess from '../../../src/utils/worker-process';
 

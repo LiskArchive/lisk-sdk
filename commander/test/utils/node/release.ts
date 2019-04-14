@@ -4,7 +4,7 @@ import {
 	getLatestVersion,
 	getReleaseInfo,
 } from '../../../src/utils/node/release';
-import { NETWORK } from '../../../dist/utils/constants';
+import { NETWORK } from '../../../src/utils/constants';
 
 describe('release node utils', () => {
 	const data = '2.0.0';

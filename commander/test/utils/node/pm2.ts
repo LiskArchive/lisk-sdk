@@ -7,7 +7,7 @@ import {
 	listApplication,
 	describeApplication,
 } from '../../../src/utils/node/pm2';
-import { NETWORK } from '../../../dist/utils/constants';
+import { NETWORK } from '../../../src/utils/constants';
 import pm2 from 'pm2';
 
 const applicationList = [

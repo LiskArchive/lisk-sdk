@@ -26,30 +26,30 @@
 		"lint": "eslint .",
 		"lint:fix": "eslint --fix .",
 		"format":
-			"prettier --write \"./*.{js,json,md}\" \"{api,config,docs,helpers,logic,modules,schema,scripts,storage,tasks,test,framework}{,/**}/*.{js,json,md}\"",
-		"test": "node framework/test/mocha/common/lisk-mocha-runner",
+			"prettier --write \"./*.{js,json,md}\" \"{api,config,docs,helpers,logic,modules,schema,scripts,storage,tasks,test}{,/**}/*.{js,json,md}\"",
+		"test": "npm run jest:unit",
 		"mocha": "mocha",
 		"jest:unit":
-			"jest --config=./framework/test/jest/config/unit/jest.config.js",
+			"jest --config=./test/jest/config/unit/jest.config.js",
 		"jest:integration":
-			"jest --config=./framework/test/jest/config/integration/jest.config.js",
+			"jest --config=./test/jest/config/integration/jest.config.js",
 		"jest:functional":
-			"jest --config=./framework/test/jest/config/functional/jest.config.js --passWithNoTests",
-		"mocha:unit": "node framework/test/mocha/common/lisk-mocha-runner unit",
+			"jest --config=./test/jest/config/functional/jest.config.js --passWithNoTests",
+		"mocha:unit": "node test/mocha/common/lisk-mocha-runner unit",
 		"mocha:integration":
-			"node framework/test/mocha/common/lisk-mocha-runner integration",
+			"node test/mocha/common/lisk-mocha-runner integration",
 		"mocha:functional":
-			"node framework/test/mocha/common/lisk-mocha-runner functional",
+			"node test/mocha/common/lisk-mocha-runner functional",
 		"mocha:functional:ws":
-			"node framework/test/mocha/common/lisk-mocha-runner functional:ws",
+			"node test/mocha/common/lisk-mocha-runner functional:ws",
 		"mocha:functional:get":
-			"node framework/test/mocha/common/lisk-mocha-runner functional:get",
+			"node test/mocha/common/lisk-mocha-runner functional:get",
 		"mocha:functional:post":
-			"node framework/test/mocha/common/lisk-mocha-runner functional:post",
+			"node test/mocha/common/lisk-mocha-runner functional:post",
 		"mocha:functional:put":
-			"node framework/test/mocha/common/lisk-mocha-runner functional:put",
+			"node test/mocha/common/lisk-mocha-runner functional:put",
 		"mocha:network":
-			"node framework/test/mocha/common/lisk-mocha-runner network",
+			"node test/mocha/common/lisk-mocha-runner network",
 		"docs:build": "jsdoc -c docs/conf.json --verbose --pedantic",
 		"docs:serve": "http-server docs/jsdoc/",
 		"check:dependencies": "snyk protect",

@@ -8,7 +8,7 @@ import {
 	createDatabase,
 } from '../../../src/utils/node/database';
 import * as workerProcess from '../../../src/utils/worker-process';
-import { NETWORK } from '../../../dist/utils/constants';
+import { NETWORK } from '../../../src/utils/constants';
 import * as nodeConfig from '../../../src/utils/node/config';
 
 describe('database node utils', () => {
