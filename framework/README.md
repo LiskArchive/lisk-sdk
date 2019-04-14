@@ -66,7 +66,7 @@ NODE_ENV=test npm start
 
 ### Running Tests
 
-Starting from version `1.6.0`, Lisk Core will be using [Jest](https://jestjs.io) as its main test runner and gradually deprecate [mocha](https://mochajs.org). Since rewriting all existing mocha tests is not feasible at the moment, we are going to have two test runners in our code base:
+Starting from version `1.6.0`, Lisk Framework will be using [Jest](https://jestjs.io) as its main test runner with gradual deprecation of [mocha](https://mochajs.org). Since rewriting all existing mocha tests is not feasible at the moment, we have two test runners in our code base:
 
 - Modules (all source code under `framework/src/modules` folder) will be tested using `mocha` and test files should be located under `framework/test/mocha`.
 - Framework (all of the source files but `framework/src/modules`) will be tested using `jest` and test files should be located under `framework/test/jest`.
@@ -99,7 +99,7 @@ npm run mocha:unit -- --grep @unstable
 ### extensive
 npm run mocha:unit -- --grep="@unstable" --invert
 
-# Running Integration tests
+# Running integration tests
 npm run mocha:integration -- --grep @slow
 npm run mocha:integration -- --grep @unstable
 # extensive
