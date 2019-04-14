@@ -1,3 +1,5 @@
+![Logo](../docs/assets/banner_commander.png)
+
 # Lisk Commander
 
 Lisk Commander allows you to communicate with a remote or local node and carry out Lisk-related functionality.
