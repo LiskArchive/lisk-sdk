@@ -1,0 +1,3 @@
+afterEach(() => {
+	return sandbox.restore();
+});

@@ -16,6 +16,8 @@ declare module 'chai' {
 			export interface TypeComparison {
 				customError: (obj?: Error | typeof Error | string) => Assertion;
 				matchAny: Assertion;
+				hexString: Assertion;
+				integer: Assertion;
 			}
 		}
 	}

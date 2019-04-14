@@ -1,0 +1,9 @@
+{
+	"extends": "../../tslint.json",
+	"rules": {
+		"no-delete": false,
+		"readonly-array": false,
+		"readonly-keyword": false,
+		"variable-name": false
+	}
+}
