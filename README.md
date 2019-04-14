@@ -55,11 +55,11 @@ The Lisk SDK operates on the NodeJS runtime and consists primarily of an applica
 
 ## Package Directories
 
-| Directory                | Description                                                                                                                                                                                |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [Framework](./framework) | An application framework responsible for establishing the interactions between blockchain modules (using Lisk Elements) which together with the network configuration are exposed for SDK developers. |
-| [Elements](./elements)   | A collection of modules, each of them implementing an application functionality such as p2p, transactions, cryptography etc.                                                       |
-| [Commander](./commander) | A command line tool which helps to manage a node as well as interacting with a network.                                                                                                    |
+| Directory                | Description                                                                                                                                          |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Framework](./framework) | An application framework responsible for establishing and maintaining the interactions between the modules of a Lisk blockchain application.         |
+| [Elements](./elements)   | A collection of libraries, each of them implementing some form of blockchain application functionality such as cryptography, transactions, p2p, etc. |
+| [Commander](./commander) | A command line tool allowing developers to manage a Lisk node instance and interact with a Lisk compatible network.                                  |
 
 ## Installation
 
