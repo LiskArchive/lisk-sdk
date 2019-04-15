@@ -33,6 +33,9 @@ describe('processTransactions', () => {
 	let library;
 	let account;
 	let verifiableTransactions;
+	let allowableTransactions;
+	let nonallowableTransactions;
+	let transactionsWithNoIsAllowedAtImpl;
 	let appliableTransactions;
 	let pendingTransactions;
 	let keysgroup;
@@ -67,6 +70,32 @@ describe('processTransactions', () => {
 
 		describe('process transactions', () => {
 			beforeEach(async () => {
+				const allowedTransactionTransfer = liskTransactions.transfer({
+					amount: (NORMALIZER * 1000).toString(),
+					recipientId: account.address,
+					passphrase: account.passphrase,
+				});
+				allowedTransactionTransfer.isAllowedAt = () => true;
+
+				const nonallowedTransactionTransfer = liskTransactions.transfer({
+					amount: (NORMALIZER * 1000).toString(),
+					recipientId: account.address,
+					passphrase: account.passphrase,
+				});
+				nonallowedTransactionTransfer.isAllowedAt = () => false;
+
+				allowableTransactions = [allowedTransactionTransfer];
+
+				nonallowableTransactions = [nonallowedTransactionTransfer];
+
+				transactionsWithNoIsAllowedAtImpl = [
+					liskTransactions.transfer({
+						amount: (NORMALIZER * 1000).toString(),
+						recipientId: account.address,
+						passphrase: account.passphrase,
+					}),
+				];
+
 				verifiableTransactions = [
 					liskTransactions.transfer({
 						amount: (NORMALIZER * 1000).toString(),
@@ -115,6 +144,47 @@ describe('processTransactions', () => {
 						minimum: 2,
 					}),
 				].map(transaction => initTransaction.fromJson(transaction));
+			});
+
+			describe('checkAllowedTransactions', () => {
+				let checkAllowedTransactions;
+
+				beforeEach(async () => {
+					checkAllowedTransactions =
+						library.modules.processTransactions.checkAllowedTransactions;
+				});
+
+				it('should return transactionsResponses with status OK for allowed transactions', async () => {
+					const { transactionsResponses } = await checkAllowedTransactions(
+						allowableTransactions
+					);
+
+					transactionsResponses.forEach(transactionsResponse => {
+						expect(transactionsResponse.status).to.equal(transactionStatus.OK);
+					});
+				});
+
+				it("should return transactionsResponses with status OK for transactions that don't implement isAllowedAt", async () => {
+					const { transactionsResponses } = await checkAllowedTransactions(
+						transactionsWithNoIsAllowedAtImpl
+					);
+
+					transactionsResponses.forEach(transactionsResponse => {
+						expect(transactionsResponse.status).to.equal(transactionStatus.OK);
+					});
+				});
+
+				it('should return transactionsResponses with status FAIL for not allowed transactions', async () => {
+					const { transactionsResponses } = await checkAllowedTransactions(
+						nonallowableTransactions
+					);
+
+					transactionsResponses.forEach(transactionsResponse => {
+						expect(transactionsResponse.status).to.equal(
+							transactionStatus.FAIL
+						);
+					});
+				});
 			});
 
 			describe('verifyTransactions', () => {
