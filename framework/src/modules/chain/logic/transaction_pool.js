@@ -16,6 +16,7 @@
 
 const pool = require('@liskhq/lisk-transaction-pool');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const ProcessTransactions = require('../submodules/process_transactions');
 
 const {
 	EXPIRY_INTERVAL,
@@ -52,50 +53,6 @@ const verifiedQueue = 'verified';
 const readyQueue = 'ready';
 
 /**
- * Executes each step from left to right and pipes the transactions that succeed to the next
- * step. Finally collects all responses and formats them accordingly.
- * @param steps
- * @returns {function(*=): {transactionsResponses: *[]}}
- */
-const composeProcessTransactionSteps = (...steps) => async transactions => {
-	let failedResponses = [];
-	const { transactionsResponses: successfulResponses } = await steps.reduce(
-		async (previousValue, fn, index) => {
-			if (index === 0) {
-				// previousValue === transactions argument in the first iteration
-				// First iteration includes raw transaction objects instead of formatted responses.
-				return fn(previousValue);
-			}
-
-			previousValue = await previousValue;
-
-			// Keep track of transactions that failed in the current step
-			failedResponses = [
-				...failedResponses,
-				...previousValue.transactionsResponses.filter(
-					response => response.status === TransactionStatus.FAIL
-				),
-			];
-
-			// Return only transactions that succeeded to the next step
-			return fn(
-				transactions.filter(transaction =>
-					previousValue.transactionsResponses
-						.filter(response => response.status === TransactionStatus.OK)
-						.map(transactionResponse => transactionResponse.id)
-						.includes(transaction.id)
-				)
-			);
-		},
-		transactions
-	);
-
-	return {
-		transactionsResponses: [...failedResponses, ...successfulResponses],
-	};
-};
-
-/**
  * Transaction pool logic. Initializes variables,
  *
  * @class
@@ -125,12 +82,12 @@ class TransactionPool {
 	 */
 	bind(processTransactions) {
 		this.validateTransactions = processTransactions.validateTransactions;
-		this.verifyTransactions = composeProcessTransactionSteps(
+		this.verifyTransactions = ProcessTransactions.composeProcessTransactionSteps(
 			processTransactions.checkAllowedTransactions,
 			processTransactions.checkPersistedTransactions,
 			processTransactions.verifyTransactions
 		);
-		this.processTransactions = composeProcessTransactionSteps(
+		this.processTransactions = ProcessTransactions.composeProcessTransactionSteps(
 			processTransactions.checkPersistedTransactions,
 			processTransactions.applyTransactions
 		);
