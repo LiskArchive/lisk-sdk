@@ -2,11 +2,16 @@
 	"name": "lisk-core",
 	"version": "2.0.0-alpha.0",
 	"description": "Lisk blockchain application platform",
-	"author":
-		"Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
+	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
 	"private": true,
-	"keywords": ["cryptocurrency", "blockchain", "lisk", "nodejs", "javascript"],
+	"keywords": [
+		"cryptocurrency",
+		"blockchain",
+		"lisk",
+		"nodejs",
+		"javascript"
+	],
 	"homepage": "https://github.com/LiskHQ/lisk-sdk#readme",
 	"repository": {
 		"type": "git",
@@ -25,18 +30,20 @@
 		"console": "node scripts/console.js",
 		"lint": "eslint .",
 		"lint:fix": "eslint --fix .",
-		"format":
-			"prettier --write \"./*.{js,json,md}\" \"{api,config,docs,helpers,logic,modules,schema,scripts,storage,tasks,test}{,/**}/*.{js,json,md}\"",
+		"format": "prettier --write \"./*.{js,json,md}\" \"{api,config,docs,helpers,logic,modules,schema,scripts,storage,tasks,test}{,/**}/*.{js,json,md}\"",
 		"test": "mocha test"
 	},
 	"dependencies": {
-		"lisk-framework": "0.1.0",
+		"@liskhq/lisk-cryptography": "2.1.0-alpha.0",
+		"async": "2.6.1",
 		"bluebird": "3.5.3",
-		"lodash": "4.17.11",
 		"commander": "2.19.0",
-		"semver": "5.6.0",
+		"deep-diff": "1.0.2",
+		"lisk-framework": "0.1.0",
+		"lodash": "4.17.11",
 		"moment": "2.23.0",
-		"async": "2.6.1"
+		"semver": "5.6.0",
+		"tempy": "0.2.1"
 	},
 	"devDependencies": {
 		"chai": "4.2.0",
