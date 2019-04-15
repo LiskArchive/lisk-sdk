@@ -51,6 +51,12 @@ const pendingQueue = 'pending';
 const verifiedQueue = 'verified';
 const readyQueue = 'ready';
 
+/**
+ * Executes each step from left to right and pipes the transactions that succeed to the next
+ * step. Finally collects all responses and formats them accordingly.
+ * @param steps
+ * @returns {function(*=): {transactionsResponses: *[]}}
+ */
 const composeProcessTransactionSteps = (...steps) => async transactions => {
 	let failedResponses = [];
 	const { transactionsResponses: successfulResponses } = await steps.reduce(
@@ -120,6 +126,7 @@ class TransactionPool {
 	bind(processTransactions) {
 		this.validateTransactions = processTransactions.validateTransactions;
 		this.verifyTransactions = composeProcessTransactionSteps(
+			processTransactions.checkAllowedTransactions,
 			processTransactions.checkPersistedTransactions,
 			processTransactions.verifyTransactions
 		);
