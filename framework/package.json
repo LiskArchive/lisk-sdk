@@ -1,19 +1,19 @@
 {
 	"name": "lisk-framework",
-	"version": "0.1.0",
+	"version": "0.1.0-alpha.0",
 	"description": "Lisk blockchain application platform",
 	"author":
 		"Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
 	"private": true,
 	"keywords": ["cryptocurrency", "blockchain", "lisk", "nodejs", "javascript"],
-	"homepage": "https://github.com/LiskHQ/lisk#readme",
+	"homepage": "https://github.com/LiskHQ/lisk-sdk#readme",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/LiskHQ/lisk.git"
+		"url": "git+https://github.com/LiskHQ/lisk-sdk.git"
 	},
 	"bugs": {
-		"url": "https://github.com/LiskHQ/lisk/issues"
+		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
 	},
 	"engines": {
 		"node": "10.15.3",
