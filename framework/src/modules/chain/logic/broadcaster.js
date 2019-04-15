@@ -17,8 +17,6 @@
 const _ = require('lodash');
 const jobsQueue = require('../helpers/jobs_queue');
 
-const { MAX_PEERS } = global.constants;
-
 let modules;
 let library;
 
@@ -34,17 +32,15 @@ let library;
  * @requires helpers/jobs_queue
  * @param {Object} broadcasts
  * @param {boolean} force
- * @param {Peers} peers - Peers instance
  * @param {Transaction} transaction - Transaction instance
  * @param {Object} logger
  * @todo Add description for the params
  */
 class Broadcaster {
-	constructor(broadcasts, force, peers, transaction, logger, channel) {
+	constructor(nonce, broadcasts, force, transaction, logger, channel) {
 		library = {
 			logger,
 			logic: {
-				peers,
 				transaction,
 			},
 			config: {
@@ -55,9 +51,10 @@ class Broadcaster {
 			},
 		};
 
+		this.nonce = nonce;
+
 		this.queue = [];
 		this.config = library.config.broadcasts;
-		this.config.peerLimit = MAX_PEERS;
 
 		// Broadcast routes
 		this.routes = [
@@ -89,20 +86,7 @@ class Broadcaster {
 	}
 
 	/**
-	 * Calls peers.list function to get peers.
-	 *
-	 * @param {Object} params
-	 * @returns {SetImmediate} error, peers
-	 * @todo Add description for the params
-	 */
-	getPeers(params) {
-		params.limit = params.limit || this.config.peerLimit;
-		const peers = library.logic.peers.listRandomConnected(params);
-		return peers;
-	}
-
-	/**
-	 * Gets peers and for each peer create it and broadcast.
+	 * broadcast to network.
 	 *
 	 * @param {Object} params
 	 * @param {Object} options
@@ -110,29 +94,16 @@ class Broadcaster {
 	 * @throws {Error}
 	 * @todo Add description for the params
 	 */
-	async broadcast(params, options) {
-		let peers;
-		params.limit = params.limit || this.config.broadcastLimit;
-		try {
-			if (!params.peers) {
-				peers = this.getPeers(params);
-			} else {
-				peers = params.peers.slice(0, params.limit);
-			}
-
-			// Broadcast using Elements P2P library via network module
-			await this.channel.invoke('network:send', {
-				event: options.api,
-				data: options.data,
-			});
-
-			library.logger.debug('Begin broadcast', options);
-			peers.forEach(peer => peer.rpc[options.api](options.data));
-			library.logger.debug('End broadcast');
-			return peers;
-		} catch (err) {
-			throw err;
-		}
+	async broadcast(params, { api: event, data }) {
+		// Broadcast using Elements P2P library via network module
+		const wrappedData = {
+			...data,
+			nonce: this.nonce,
+		};
+		await this.channel.invoke('network:send', {
+			event,
+			data: wrappedData,
+		});
 	}
 
 	/**
@@ -273,12 +244,11 @@ class Broadcaster {
 			await this.filterQueue();
 			const broadcasts = this.queue.splice(0, this.config.releaseLimit);
 			const squashedBroadcasts = this.squashQueue(broadcasts);
-			const peers = this.getPeers({});
 
 			// eslint-disable-next-line no-restricted-syntax
 			for await (const squashedBroadcast of squashedBroadcasts) {
 				return this.broadcast(
-					Object.assign({ peers }, squashedBroadcast.params),
+					squashedBroadcast.params,
 					squashedBroadcast.options
 				);
 			}
@@ -295,15 +265,13 @@ class Broadcaster {
 	/**
 	 * Binds input parameters to private variables modules.
 	 *
-	 * @param {Peers} peers
 	 * @param {Transport} transport
 	 * @param {Transactions} transactions
 	 * @todo Add description for the params
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	bind(peers, transport, transactions) {
+	bind(transport, transactions) {
 		modules = {
-			peers,
 			transport,
 			transactions,
 		};

@@ -118,11 +118,12 @@ NodeController.getStatus = async (context, next) => {
 			consensus,
 			secondsSinceEpoch,
 			loaded,
-			networkHeight,
 			syncing,
 			transactions,
 			lastBlock,
 		} = await library.channel.invoke('chain:getNodeStatus');
+
+		const networkHeight = await _getNetworkHeight();
 
 		const data = {
 			broadhash: library.applicationState.broadhash,
@@ -131,7 +132,7 @@ NodeController.getStatus = async (context, next) => {
 			secondsSinceEpoch,
 			height: lastBlock.height || 0,
 			loaded,
-			networkHeight: networkHeight || 0,
+			networkHeight,
 			syncing,
 			transactions,
 		};
@@ -283,6 +284,45 @@ async function _getForgingStatus(publicKey) {
 	}
 
 	return fullList;
+}
+
+/**
+ * Get the network height
+ *
+ * @returns Number
+ * @private
+ */
+async function _getNetworkHeight() {
+	const peers = await library.channel.invoke('network:getPeers', {
+		limit: 100,
+	});
+	if (!peers || !peers.length) {
+		return 0;
+	}
+	const networkHeightCount = peers.reduce((previous, { height }) => {
+		const heightCount = previous[height] || 0;
+		previous[height] = heightCount + 1;
+		return previous;
+	}, {});
+	const heightCountPairs = Object.entries(networkHeightCount);
+	const [defaultHeight, defaultCount] = heightCountPairs[0];
+	const { height: networkHeight } = heightCountPairs.reduce(
+		(prev, [height, count]) => {
+			if (count > prev.count) {
+				return {
+					height,
+					count,
+				};
+			}
+			return prev;
+		},
+		{
+			height: defaultHeight,
+			count: defaultCount,
+		}
+	);
+
+	return parseInt(networkHeight);
 }
 
 module.exports = NodeController;

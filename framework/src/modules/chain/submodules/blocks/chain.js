@@ -853,10 +853,6 @@ Chain.prototype.deleteLastBlock = function(cb) {
 					})
 					.catch(seriesCb);
 			},
-			broadcastHeaders(seriesCb) {
-				// Notify all remote peers about our new headers
-				modules.transport.broadcastHeaders(seriesCb);
-			},
 			receiveTransactions(seriesCb) {
 				// Put transactions back into transaction pool
 				modules.transactions.receiveTransactions(
@@ -912,7 +908,6 @@ Chain.prototype.onBind = function(scope) {
 		blocks: scope.modules.blocks,
 		rounds: scope.modules.rounds,
 		transactions: scope.modules.transactions,
-		transport: scope.modules.transport,
 	};
 
 	// Set module as loaded

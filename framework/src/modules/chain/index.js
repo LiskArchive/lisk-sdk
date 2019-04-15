@@ -81,6 +81,7 @@ module.exports = class ChainModule extends BaseModule {
 			calcSlotRound: async action => this.chain.actions.calcSlotRound(action),
 			getNodeStatus: async () => this.chain.actions.getNodeStatus(),
 			blocks: async action => this.chain.actions.blocks(action),
+			blocksCommon: async action => this.chain.actions.blocksCommon(action),
 		};
 	}
 

@@ -55,6 +55,7 @@ describe('loader', () => {
 			};
 			channelStub = {
 				publish: sinonSandbox.stub(),
+				once: sinonSandbox.stub(),
 			};
 			restoreLogger = library.rewiredModules.loader.__set__(
 				'library.logger',
@@ -169,6 +170,7 @@ describe('loader', () => {
 				},
 				channel: {
 					publish: sinonSandbox.stub(),
+					once: sinonSandbox.stub(),
 				},
 				schema: sinonSandbox.stub(),
 				sequence: sinonSandbox.stub(),

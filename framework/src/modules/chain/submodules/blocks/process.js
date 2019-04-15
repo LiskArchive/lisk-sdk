@@ -343,12 +343,19 @@ Process.prototype.loadBlocksFromNetwork = function(cb) {
 	async function getBlocksFromNetwork() {
 		// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 		// TODO: Rename procedure to include target module name. E.g. chain:blocks
-		const { data } = await library.channel.invoke('network:request', {
-			procedure: 'blocks',
-			data: {
-				lastBlockId: lastValidBlock.id,
-			},
-		});
+		let data;
+		try {
+			const response = await library.channel.invoke('network:request', {
+				procedure: 'blocks',
+				data: {
+					lastBlockId: lastValidBlock.id,
+				},
+			});
+			data = response.data;
+		} catch (p2pError) {
+			library.logger.error('Failed to load block from network', p2pError);
+			return [];
+		}
 
 		if (!data) {
 			throw new Error('Received an invalid blocks response from the network');

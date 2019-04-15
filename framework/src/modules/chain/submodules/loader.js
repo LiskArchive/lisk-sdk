@@ -87,6 +87,11 @@ class Loader {
 		__private.lastBlock = library.genesisBlock;
 		__private.genesisBlock = library.genesisBlock;
 
+		// On App Ready
+		library.channel.once('network:ready', () => {
+			self.onAppReady();
+		});
+
 		setImmediate(cb, null, self);
 	}
 }
@@ -815,6 +820,10 @@ __private.loadBlocksFromNetwork = function(cb) {
 											);
 										});
 									}
+									library.logger.error(
+										'Failed to process block from network',
+										loadBlocksFromNetworkErr
+									);
 									return waterCb(
 										`Failed to load blocks from the network. ${loadBlocksFromNetworkErr}`
 									);
@@ -893,10 +902,6 @@ __private.sync = function(cb) {
 					})
 					.catch(seriesCb);
 			},
-			broadcastHeaders(seriesCb) {
-				// Notify all remote peers about our new headers
-				modules.transport.broadcastHeaders(seriesCb);
-			},
 			async calculateConsensusAfter() {
 				const consensus = await modules.peers.calculateConsensus();
 				return library.logger.debug(
@@ -953,7 +958,7 @@ Loader.prototype.loaded = function() {
  *
  * @returns {function} Calling __private.syncTimer()
  */
-Loader.prototype.onPeersReady = function() {
+Loader.prototype.onAppReady = function() {
 	library.logger.trace('Peers ready', { module: 'loader' });
 	// Enforce sync early
 	if (library.config.syncing.active) {
@@ -1020,7 +1025,6 @@ Loader.prototype.onBind = function(scope) {
 		blocks: scope.modules.blocks,
 		peers: scope.modules.peers,
 		rounds: scope.modules.rounds,
-		transport: scope.modules.transport,
 		multisignatures: scope.modules.multisignatures,
 	};
 

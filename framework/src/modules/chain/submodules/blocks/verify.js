@@ -853,10 +853,6 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 				}
 				return seriesCb();
 			},
-			broadcastHeaders(seriesCb) {
-				// Notify all remote peers about our new headers
-				broadcast ? modules.transport.broadcastHeaders(seriesCb) : seriesCb();
-			},
 		},
 		err => setImmediate(cb, err)
 	);
@@ -875,7 +871,6 @@ Verify.prototype.onBind = function(scope) {
 		blocks: scope.modules.blocks,
 		delegates: scope.modules.delegates,
 		transactions: scope.modules.transactions,
-		transport: scope.modules.transport,
 	};
 
 	// Set module as loaded

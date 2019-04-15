@@ -74,6 +74,7 @@ const modulesLoader = new function() {
 		}),
 		channel: {
 			invoke: sinonSandbox.stub(),
+			once: sinonSandbox.stub(),
 			publish: sinonSandbox.stub(),
 			suscribe: sinonSandbox.stub(),
 		},
@@ -159,9 +160,6 @@ const modulesLoader = new function() {
 						new Logic(scope.ed, scope.schema, transaction, cb);
 					}
 				);
-				break;
-			case 'Peers':
-				new Logic(scope.components.logger, scope.config, scope.channel, cb);
 				break;
 			default:
 				console.info('no Logic case initLogic');
@@ -281,7 +279,6 @@ const modulesLoader = new function() {
 				},
 				{ account: require('../../../src/modules/chain/logic/account') },
 				{ block: require('../../../src/modules/chain/logic/block') },
-				{ peers: require('../../../src/modules/chain/logic/peers') },
 			],
 			scope || {},
 			cb

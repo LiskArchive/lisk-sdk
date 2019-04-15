@@ -359,7 +359,7 @@ class Application {
 		// TODO: Improve the hardcoded system component values
 		this.config.components.system = {
 			...appConfigToShareWithModules,
-			wsPort: this.config.modules.chain.network.wsPort,
+			wsPort: this.config.modules.network.wsPort,
 			httpPort: this.config.modules.http_api.httpPort,
 		};
 
@@ -369,7 +369,7 @@ class Application {
 			protocolVersion: this.config.app.protocolVersion,
 			nonce: this.config.app.nonce,
 			nethash: this.config.app.nethash,
-			wsPort: this.config.modules.chain.network.wsPort,
+			wsPort: this.config.modules.network.wsPort,
 			httpPort: this.config.modules.http_api.httpPort,
 		};
 

@@ -1,5 +1,6 @@
 const {
 	P2P,
+	EVENT_NEW_INBOUND_PEER,
 	EVENT_CLOSE_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_DISCOVERED_PEER,
@@ -13,12 +14,13 @@ const {
 	EVENT_MESSAGE_RECEIVED,
 } = require('@liskhq/lisk-p2p');
 const randomstring = require('randomstring');
+const lookupPeersIPs = require('./lookup_peers_ips');
 const { createLoggerComponent } = require('../../components/logger');
 const {
 	getByFilter,
 	getCountByFilter,
 	getConsolidatedPeersList,
-} = require('./helpers/filter_peers');
+} = require('./filter_peers');
 
 const hasNamespaceReg = /:/;
 
@@ -59,11 +61,18 @@ module.exports = class Network {
 			await this.channel.invoke('app:getApplicationState')
 		);
 
+		const seedPeers = await lookupPeersIPs(this.options.list, true);
+		const blacklistedPeers = this.options.access.blackList
+			? this.options.access.blackList.map(peer => ({
+					ipAddress: peer.ip,
+					wsPort: peer.wsPort,
+				}))
+			: [];
 		const p2pConfig = {
 			nodeInfo: initialNodeInfo,
 			hostAddress: this.options.address,
-			blacklistedPeers: this.options.access.blackList || [],
-			seedPeers: this.options.list.map(peer => ({
+			blacklistedPeers,
+			seedPeers: seedPeers.map(peer => ({
 				ipAddress: peer.ip,
 				wsPort: peer.wsPort,
 			})),
@@ -97,6 +106,14 @@ module.exports = class Network {
 		this.p2p.on(EVENT_DISCOVERED_PEER, peerInfo => {
 			this.logger.info(
 				`Discovered peer ${peerInfo.ipAddress}:${peerInfo.wsPort}`
+			);
+		});
+
+		this.p2p.on(EVENT_NEW_INBOUND_PEER, peerInfo => {
+			this.logger.debug(
+				`Connected from peer ${peerInfo.ipAddress}:${
+					peerInfo.wsPort
+				} ${JSON.stringify(peerInfo)}`
 			);
 		});
 
@@ -152,7 +169,7 @@ module.exports = class Network {
 				this.logger.error(
 					`Could not respond to peer request ${
 						request.procedure
-					} because of error: ${error.message || error.message}`
+					} because of error: ${error.message || error}`
 				);
 				request.error(error); // Send an error back to the peer.
 			}

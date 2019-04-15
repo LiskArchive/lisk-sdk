@@ -638,18 +638,10 @@
 					}
 				],
 				"defaultPassword": "elephant tree paris dragon chair galaxy"
-			},
-			"network": {
-				"list": [
-					{
-						"ip": "127.0.0.1",
-						"wsPort": 5000
-					}
-				]
 			}
 		},
 		"network": {
-			"wsPort": 5001,
+			"wsPort": 5000,
 			"list": [
 				{
 					"ip": "127.0.0.1",
