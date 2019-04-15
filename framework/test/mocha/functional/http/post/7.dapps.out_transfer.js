@@ -33,7 +33,7 @@ const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 const createOutTransfer = () => {};
 
 // eslint-disable-next-line
-describe('[feature/improve_transactions_processing_efficiency] POST /api/transactions (type 7) outTransfer dapp', () => {
+describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/transactions (type 7) outTransfer dapp', () => {
 	let transaction;
 	const transactionsToWaitFor = [];
 	const badTransactions = [];

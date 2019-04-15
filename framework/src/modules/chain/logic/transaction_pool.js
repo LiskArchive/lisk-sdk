@@ -19,6 +19,7 @@ const {
 	Status: TransactionStatus,
 	TransactionError,
 } = require('@liskhq/lisk-transactions');
+const slots = require('../helpers/slots');
 
 const {
 	EXPIRY_INTERVAL,
@@ -347,6 +348,17 @@ class TransactionPool {
 				),
 			]);
 		}
+
+		if (slots.getSlotNumber(transaction.timestamp) > slots.getSlotNumber()) {
+			return setImmediate(cb, [
+				new TransactionError(
+					'Invalid transaction timestamp. Timestamp is in the future',
+					transaction.id,
+					'.timestamp'
+				),
+			]);
+		}
+
 		return this.verifyTransactions([transaction]).then(
 			({ transactionsResponses }) => {
 				if (transactionsResponses[0].status === TransactionStatus.OK) {

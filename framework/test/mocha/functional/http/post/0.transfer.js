@@ -264,9 +264,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				});
 			});
 
-			// FIXME: See issue: https://github.com/LiskHQ/lisk/issues/3297
-			// eslint-disable-next-line
-			it.skip('using future timestamp should fail', async () => {
+			it('using future timestamp should fail', async () => {
 				transaction = transfer({
 					amount: '1',
 					passphrase: accountFixtures.genesis.passphrase,
@@ -278,10 +276,10 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.data.message).to.be.equal(
-						'Invalid transaction timestamp. Timestamp is in the future'
-					);
-					badTransactions.push(transaction);
+					expect(res.body.message).to.be.equal('Invalid transaction body');
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+					'Invalid transaction timestamp. Timestamp is in the future');
 				});
 			});
 		});
