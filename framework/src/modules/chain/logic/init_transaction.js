@@ -214,7 +214,7 @@ class Transaction {
 		if (asset) {
 			transactionJSON.asset = Object.assign(transactionJSON.asset, asset);
 		}
-		// TODO: pass block metadata always
+
 		return this.fromJson(_.omitBy(transactionJSON, _.isNull));
 	}
 }
