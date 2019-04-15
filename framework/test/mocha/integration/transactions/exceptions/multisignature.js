@@ -1,4 +1,20 @@
-const expect = require('chai').expect;
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
+const { expect } = require('chai');
 const Bignum = require('bignumber.js');
 const { transfer } = require('@liskhq/lisk-transactions');
 const localCommon = require('../../common');
@@ -6,7 +22,7 @@ const accountFixtures = require('../../../fixtures/accounts');
 
 const exceptions = global.exceptions;
 
-describe('exceptions for multisingature transactions', () => {
+describe('exceptions for multisignature transactions', () => {
 	let library;
 	let slotOffset = 10;
 	// Using transactions and account which caused in exceptions on testnet
