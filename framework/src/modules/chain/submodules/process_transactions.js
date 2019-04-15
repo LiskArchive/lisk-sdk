@@ -19,6 +19,14 @@ const roundInformation = require('../logic/rounds_information');
 
 let library;
 
+/**
+ * Get current state from modules.blocks.lastBlock
+ */
+const getCurrentState = () => {
+	const { version, height, timestamp } = library.modules.blocks.lastBlock.get();
+	return { version, height, timestamp };
+};
+
 class ProcessTransactions {
 	constructor(cb, scope) {
 		library = {
@@ -100,6 +108,30 @@ class ProcessTransactions {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
+	async checkAllowedTransactions(transactions, state = getCurrentState()) {
+		return {
+			transactionsResponses: transactions.map(transaction => {
+				const allowed =
+					!transaction.isAllowedAt || transaction.isAllowedAt(state);
+
+				return {
+					id: transaction.id,
+					status: allowed ? TransactionStatus.OK : TransactionStatus.FAIL,
+					errors: allowed
+						? []
+						: [
+								new Error(
+									`Transaction type ${
+										transaction.type
+									} is currently not allowed.`
+								),
+							],
+				};
+			}),
+		};
+	}
+
+	// eslint-disable-next-line class-methods-use-this
 	async undoTransactions(transactions, tx = undefined) {
 		// Get data required for verifying transactions
 		const stateStore = library.logic.stateManager.createStore({
@@ -151,6 +183,13 @@ class ProcessTransactions {
 		await transaction.prepare(stateStore);
 		// Add multisignature to transaction and process
 		return transaction.addMultisignature(stateStore, signature);
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	onBind(scope) {
+		library.modules = {
+			blocks: scope.modules.blocks,
+		};
 	}
 }
 
