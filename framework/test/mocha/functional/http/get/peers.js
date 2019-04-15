@@ -242,7 +242,7 @@ describe('GET /peers', () => {
 				});
 		});
 
-		it('using empty valid parameter should return empty array', async () => {
+		it.skip('using empty valid parameter should return empty array', async () => {
 			return peersEndpoint
 				.makeRequest(
 					{
