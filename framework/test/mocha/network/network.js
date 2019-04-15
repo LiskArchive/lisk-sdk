@@ -405,7 +405,7 @@ class Network {
 			// log files manually. Currently pm2 flush clears the logs for all nodes.
 			const sanitizedNodeName = nodeName.replace(/_/g, '-');
 			childProcess.exec(
-				`rm -rf framework/test/mocha/network/logs/lisk-test-${sanitizedNodeName}.*`,
+				`rm -rf test/mocha/network/logs/lisk-test-${sanitizedNodeName}.*`,
 				err => {
 					if (err) {
 						return reject(
@@ -476,7 +476,7 @@ class Network {
 
 		await new Promise((resolve, reject) => {
 			childProcess.exec(
-				`node_modules/.bin/pm2 reload framework/test/mocha/network/pm2.network.json --only ${nodeName}${update}`,
+				`node_modules/.bin/pm2 reload test/mocha/network/pm2.network.json --only ${nodeName}${update}`,
 				err => {
 					if (err) {
 						return reject(

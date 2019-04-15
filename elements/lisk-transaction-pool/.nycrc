@@ -1,0 +1,4 @@
+{
+	"exclude": ["test/**", "**/*.d.ts"],
+	"extension": [".ts"]
+}
