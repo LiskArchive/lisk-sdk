@@ -31,14 +31,14 @@ const appSchema = {
 				'lisk network [devnet|betanet|mainnet|testnet]. Defaults to "devnet"',
 			enum: ['devnet', 'alphanet', 'betanet', 'testnet', 'mainnet'],
 			env: 'LISK_NETWORK',
-			arg: '-n,--network',
+			arg: '--network,-n',
 		},
 		CUSTOM_CONFIG_FILE: {
 			type: ['string', 'null'],
 			description: 'Custom configuration file path',
 			default: null,
 			env: 'LISK_CONFIG_FILE',
-			arg: '-c,--config',
+			arg: '--config,-c',
 		},
 	},
 	default: {

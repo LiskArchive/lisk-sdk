@@ -5,7 +5,7 @@ const defaultConfig = {
 			type: 'string',
 			enum: ['trace', 'debug', 'log', 'info', 'warn', 'error', 'fatal', 'none'],
 			env: 'LISK_FILE_LOG_LEVEL',
-			arg: '-l,--log',
+			arg: '--log,-l',
 		},
 		logFileName: {
 			type: 'string',
