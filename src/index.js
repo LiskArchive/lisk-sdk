@@ -1,5 +1,11 @@
 const { Application } = require('../framework/src');
 
+const {
+	DappTransaction,
+	InTransferTransaction,
+	OutTransferTransaction,
+} = require('./transactions');
+
 // TODO: Remove the use this config helper
 const packageJSON = require('../package');
 const appConfig = require('../framework/src/modules/chain/helpers/config');
@@ -24,17 +30,25 @@ try {
 				enabled: config.cacheEnabled,
 			},
 			storage: config.db,
-			system: {
-				nethash: config.nethash,
-				version: config.version,
-				wsPort: config.wsPort,
-				httpPort: config.httpPort,
-				minVersion: config.minVersion,
-				protocolVersion: config.protocolVersion,
-				nonce: config.nonce,
-			},
+		},
+		initialState: {
+			nethash: config.nethash,
+			version: config.version,
+			wsPort: config.wsPort,
+			httpPort: config.httpPort,
+			minVersion: config.minVersion,
+			protocolVersion: config.protocolVersion,
+			nonce: config.nonce,
 		},
 	});
+
+	const { TRANSACTION_TYPES } = config.constants;
+	app.registerTransaction(TRANSACTION_TYPES.DAPP, DappTransaction);
+	app.registerTransaction(TRANSACTION_TYPES.IN_TRANSFER, InTransferTransaction);
+	app.registerTransaction(
+		TRANSACTION_TYPES.OUT_TRANSFER,
+		OutTransferTransaction
+	);
 
 	app.overrideModuleOptions('chain', { exceptions: config.exceptions, config });
 	app.overrideModuleOptions('httpApi', { config });

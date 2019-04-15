@@ -19,9 +19,12 @@ const rewire = require('rewire');
 const ed = require('../../../../../../src/modules/chain/helpers/ed');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 const modulesLoader = require('../../../../common/modules_loader');
+const {
+	registeredTransactions,
+} = require('../../../../common/registered_transactions');
 const InitTransaction = require('../../../../../../src/modules/chain/logic/init_transaction');
 
-const initTransaction = new InitTransaction();
+const initTransaction = new InitTransaction(registeredTransactions);
 
 const { FEES, TRANSACTION_TYPES } = __testContext.config.constants;
 

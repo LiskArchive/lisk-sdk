@@ -1,4 +1,11 @@
 const assert = require('assert');
+const {
+	TransferTransaction,
+	SecondSignatureTransaction,
+	DelegateTransaction,
+	VoteTransaction,
+	MultisignatureTransaction,
+} = require('@liskhq/lisk-transactions');
 const Controller = require('./controller');
 const defaults = require('./defaults');
 const version = require('../version');
@@ -57,6 +64,7 @@ const registerProcessHooks = app => {
  * @requires helpers/validator
  * @requires schema/application
  * @requires components/logger
+ * @requires components/storage
  */
 class Application {
 	/**
@@ -73,6 +81,9 @@ class Application {
 	 * @param {Object} [config] - Main configuration object
 	 * @param {Object} [config.components] - Configurations for components
 	 * @param {Object} [config.components.logger] - Configuration for logger component
+	 * @param {Object} [config.components.cache] - Configuration for cache component
+	 * @param {Object} [config.components.storage] - Configuration for storage component
+	 * @param {Object} [config.initialState] - Configuration for applicationState
 	 * @param {Object} [config.modules] - Configurations for modules
 	 * @param {string} [config.version] - Version of the application
 	 * @param {string} [config.minVersion] - Minimum compatible version on the network
@@ -92,7 +103,7 @@ class Application {
 
 		if (!config.components.logger) {
 			config.components.logger = {
-				filename: `~/.lisk/${label}/lisk.log`,
+				filename: `logs/${label}/lisk.log`,
 			};
 		}
 
@@ -119,6 +130,20 @@ class Application {
 		__private.modules.set(this, {});
 		__private.transactions.set(this, {});
 
+		const { TRANSACTION_TYPES } = constants;
+
+		this.registerTransaction(TRANSACTION_TYPES.SEND, TransferTransaction);
+		this.registerTransaction(
+			TRANSACTION_TYPES.SIGNATURE,
+			SecondSignatureTransaction
+		);
+		this.registerTransaction(TRANSACTION_TYPES.DELEGATE, DelegateTransaction);
+		this.registerTransaction(TRANSACTION_TYPES.VOTE, VoteTransaction);
+		this.registerTransaction(
+			TRANSACTION_TYPES.MULTI,
+			MultisignatureTransaction
+		);
+
 		// TODO: move this configuration to module especific config file
 		const childProcessModules = process.env.LISK_CHILD_PROCESS_MODULES
 			? process.env.LISK_CHILD_PROCESS_MODULES.split(',')
@@ -127,12 +152,13 @@ class Application {
 		this.registerModule(ChainModule, {
 			genesisBlock: this.genesisBlock,
 			constants: this.constants,
+			registeredTransactions: this.getTransactions(),
 			loadAsChildProcess: childProcessModules.includes(ChainModule.alias),
 		});
 
 		this.registerModule(HttpAPIModule, {
 			constants: this.constants,
-			loadAsChildProcess: childProcessModules.includes(HttpAPIModule.alias),
+			loadAsChildProcess: true,
 		});
 	}
 
@@ -184,24 +210,23 @@ class Application {
 	/**
 	 * Register a transaction
 	 *
-	 * @param {constructor} Transaction - Transaction class
-	 * @param {string} alias - Will use this alias or fallback to `Transaction.alias`
+	 * @param {number} transactionType - Unique integer that identifies the transaction type
+	 * @param {constructor} Transaction - Implementation of @liskhq/lisk-transactions/base_transaction
 	 */
-	registerTransaction(Transaction, alias) {
-		assert(Transaction, 'Transaction is required');
-		assert(alias, 'Transaction is required');
-		assert(
-			typeof Transaction === 'function',
-			'Transaction should be constructor'
-		);
+	registerTransaction(transactionType, Transaction) {
 		// TODO: Validate the transaction is properly inherited from base class
 		assert(
-			!Object.keys(this.getTransactions()).includes(alias),
-			`A transaction with alias "${alias}" already registered.`
+			Number.isInteger(transactionType),
+			'Transaction type is required as an integer'
 		);
+		assert(
+			!Object.keys(this.getTransactions()).includes(transactionType.toString()),
+			`A transaction type "${transactionType}" is already registered.`
+		);
+		assert(Transaction, 'Transaction implementation is required');
 
 		const transactions = this.getTransactions();
-		transactions[alias] = Object.freeze(Transaction);
+		transactions[transactionType] = Object.freeze(Transaction);
 		__private.transactions.set(this, transactions);
 	}
 
@@ -215,13 +240,13 @@ class Application {
 	}
 
 	/**
-	 * Get one transaction for provided alias
+	 * Get one transaction for provided type
 	 *
-	 * @param {string} alias - Alias for transaction used during registration
+	 * @param {number} transactionType - Unique integer that identifies the transaction type
 	 * @return {constructor|undefined}
 	 */
-	getTransaction(alias) {
-		return __private.transactions.get(this)[alias];
+	getTransaction(transactionType) {
+		return __private.transactions.get(this)[transactionType];
 	}
 
 	/**

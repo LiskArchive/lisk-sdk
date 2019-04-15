@@ -21,9 +21,10 @@ const accountFixtures = require('../fixtures/accounts');
 const application = require('../common/application');
 const random = require('../common/utils/random');
 const localCommon = require('./common');
+const { registeredTransactions } = require('../common/registered_transactions');
 const InitTransaction = require('../../../src/modules/chain/logic/init_transaction.js');
 
-const initTransaction = new InitTransaction();
+const initTransaction = new InitTransaction(registeredTransactions);
 const genesisBlock = __testContext.config.genesisBlock;
 const { NORMALIZER } = global.constants;
 const transactionStatus = liskTransactions.Status;

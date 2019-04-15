@@ -693,7 +693,9 @@ describe('Transaction', () => {
 				blockId: block.id,
 			});
 			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns(),
+				loadSQLFiles: sinonSandbox.stub().returns({
+					isPersisted: 'isPersisted SQL file',
+				}),
 				executeFile: sinonSandbox.stub().resolves([randTransaction]),
 				parseQueryComponent: sinonSandbox.stub(),
 			};
@@ -716,7 +718,9 @@ describe('Transaction', () => {
 				blockId: block.id,
 			});
 			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns(),
+				loadSQLFiles: sinonSandbox.stub().returns({
+					isPersisted: 'isPersisted SQL file',
+				}),
 				executeFile: sinonSandbox.stub().resolves([randTransaction]),
 				parseQueryComponent: sinonSandbox.stub(),
 			};

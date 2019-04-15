@@ -16,6 +16,7 @@
 
 /* eslint-disable no-console */
 
+// eslint-disable-next-line import/no-extraneous-dependencies
 const moment = require('moment');
 const fs = require('fs');
 

@@ -3,7 +3,7 @@ const { Server: RPCServer, Client: RPCClient } = require('pm2-axon-rpc');
 const { EventEmitter2 } = require('eventemitter2');
 const Action = require('./action');
 
-const CONTROLLER_IDENTIFIER = 'lisk';
+const CONTROLLER_IDENTIFIER = 'app';
 const SOCKET_TIMEOUT_TIME = 2000;
 
 /**
@@ -141,7 +141,7 @@ class Bus extends EventEmitter2 {
 	 *
 	 * @throws {Error} If action is not registered to bus.
 	 */
-	invoke(actionData) {
+	async invoke(actionData) {
 		const action = Action.deserialize(actionData);
 
 		if (!this.actions[action.key()]) {

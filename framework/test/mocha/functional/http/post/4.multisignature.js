@@ -32,8 +32,8 @@ const {
 
 const { FEES, MULTISIG_CONSTRAINTS } = global.constants;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
-
-describe('POST /api/transactions (type 4) register multisignature', () => {
+// eslint-disable-next-line
+describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/transactions (type 4) register multisignature', () => {
 	const scenarios = {
 		no_funds: new Scenarios.Multisig({
 			amount: 0,

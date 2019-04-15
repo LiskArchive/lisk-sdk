@@ -25,7 +25,7 @@ const localCommon = require('../../common');
 
 const { NORMALIZER, TRANSACTION_TYPES } = global.constants;
 
-describe('system test (type 1) - checking validated second signature registrations against other transaction types', () => {
+describe('integration test (type 1) - checking validated second signature registrations against other transaction types', () => {
 	let library;
 
 	const account = randomUtil.account();
@@ -45,7 +45,7 @@ describe('system test (type 1) - checking validated second signature registratio
 	});
 	dapp.id = dappTransaction.id;
 
-	localCommon.beforeBlock('system_1_X_second_sign_validated', lib => {
+	localCommon.beforeBlock('1_X_second_sign_validated', lib => {
 		library = lib;
 	});
 
@@ -100,7 +100,11 @@ describe('system test (type 1) - checking validated second signature registratio
 				secondPassphrase: account.secondPassphrase,
 			});
 			localCommon.addTransaction(library, auxTransaction, err => {
-				expect(err).to.equal('Sender already has second signature enabled');
+				expect(err).to.equal(
+					`Transaction: ${
+						auxTransaction.id
+					} failed at .signSignature: Missing signSignature`
+				);
 				done();
 			});
 		});
@@ -120,7 +124,11 @@ describe('system test (type 1) - checking validated second signature registratio
 							true,
 							loadedTransaction => {
 								localCommon.addTransaction(library, loadedTransaction, err => {
-									expect(err).to.equal('Missing sender second signature');
+									expect(err).to.equal(
+										`Transaction: ${
+											loadedTransaction.id
+										} failed at .signSignature: Missing signSignature`
+									);
 									done();
 								});
 							}

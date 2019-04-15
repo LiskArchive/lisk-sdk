@@ -26,6 +26,9 @@ const { clearDatabaseTable } = require('../../../common/storage_sandbox');
 const modulesLoader = require('../../../common/modules_loader');
 const random = require('../../../common/utils/random');
 const slots = require('../../../../../src/modules/chain/helpers/slots');
+const {
+	registeredTransactions,
+} = require('../../../common/registered_transactions');
 const InitTransaction = require('../../../../../src/modules/chain/logic/init_transaction');
 const accountFixtures = require('../../../fixtures/accounts');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
@@ -34,7 +37,7 @@ const blockVersion = require('../../../../../src/modules/chain/logic/block_versi
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW, NORMALIZER } = global.constants;
 const genesisBlock = __testContext.config.genesisBlock;
-const initTransaction = new InitTransaction();
+const initTransaction = new InitTransaction(registeredTransactions);
 
 const previousBlock = {
 	blockSignature:
@@ -192,7 +195,7 @@ describe('blocks/verify', () => {
 		application.init(
 			{
 				sandbox: {
-					name: 'lisk_test_blocks_verify',
+					name: 'blocks_verify',
 				},
 			},
 			(err, scope) => {
@@ -1016,7 +1019,8 @@ describe('blocks/verify', () => {
 
 				blocksVerify.processBlock(block2, false, true, err => {
 					if (err) {
-						expect(err).equal(
+						expect(err).to.be.instanceOf(Error);
+						expect(err.message).equal(
 							'Failed to validate block schema: Missing required property: timestamp'
 						);
 						done();
@@ -1215,7 +1219,8 @@ describe('blocks/verify', () => {
 												false,
 												true,
 												processBlockErr => {
-													expect(processBlockErr).to.equal(
+													expect(processBlockErr).to.be.instanceOf(Error);
+													expect(processBlockErr.message).to.equal(
 														[
 															'Transaction is already confirmed:',
 															transaction.id,

@@ -25,9 +25,9 @@ const localCommon = require('../common');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test (type 0) - address collision', () => {
+describe('integration test (type 0) - address collision', () => {
 	let library;
-	localCommon.beforeBlock('system_0_0_address_collision', lib => {
+	localCommon.beforeBlock('0_0_address_collision', lib => {
 		library = lib;
 	});
 
@@ -176,8 +176,8 @@ describe('system test (type 0) - address collision', () => {
 										`Transaction: ${
 											secondTransactionWithData.id
 										} failed at .senderPublicKey: Invalid sender publicKey, actual: ${
-											publicKeys[0]
-										}, expected: ${publicKeys[1]}`
+											publicKeys[1]
+										}, expected: ${publicKeys[0]}`
 									);
 									seriesCb();
 								}

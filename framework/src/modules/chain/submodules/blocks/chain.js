@@ -20,6 +20,7 @@ const _ = require('lodash');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const slots = require('../../helpers/slots.js');
 const checkTransactionExceptions = require('../../logic/check_transaction_against_exceptions.js');
+const { convertErrorsToString } = require('../../helpers/error_handlers');
 const {
 	CACHE_KEYS_DELEGATES,
 	CACHE_KEYS_TRANSACTION_COUNT,
@@ -57,7 +58,8 @@ class Chain {
 		storage,
 		genesisBlock,
 		bus,
-		balancesSequence
+		balancesSequence,
+		channel
 	) {
 		library = {
 			logger,
@@ -69,6 +71,7 @@ class Chain {
 				block,
 				initTransaction,
 			},
+			channel,
 		};
 		self = this;
 
@@ -485,13 +488,19 @@ Chain.prototype.broadcastReducedBlock = function(reducedBlock, broadcast) {
 __private.loadSecondLastBlockStep = function(secondLastBlockId, tx) {
 	return new Promise((resolve, reject) => {
 		// Load previous block from full_blocks_list table
-		// TODO: Can be inefficient, need performnce tests
+		// TODO: Can be inefficient, need performance tests
 		modules.blocks.utils.loadBlocksPart(
 			{ id: secondLastBlockId },
 			(err, blocks) => {
 				if (err || !blocks.length) {
-					library.logger.error('Failed to get loadBlocksPart', err);
-					return setImmediate(reject, err || 'previousBlock is null');
+					library.logger.error(
+						'Failed to get loadBlocksPart',
+						convertErrorsToString(err)
+					);
+					return setImmediate(
+						reject,
+						err || new Error('previousBlock is null')
+					);
 				}
 				return setImmediate(resolve, blocks[0]);
 			},
@@ -651,11 +660,21 @@ Chain.prototype.deleteLastBlock = function(cb) {
 					return seriesCb(err);
 				});
 			},
-			updateSystemHeaders(seriesCb) {
-				// Update our own headers: broadhash and height
-				return components.system
-					.update()
-					.then(() => seriesCb())
+			updateApplicationState(seriesCb) {
+				return modules.blocks
+					.calculateNewBroadhash()
+					.then(({ broadhash, height }) => {
+						// Listen for the update of step to move to next step
+						library.channel.once('app:state:updated', () => {
+							seriesCb();
+						});
+
+						// Update our application state: broadhash and height
+						return library.channel.invoke('app:updateApplicationState', {
+							broadhash,
+							height,
+						});
+					})
 					.catch(seriesCb);
 			},
 			broadcastHeaders(seriesCb) {
@@ -693,15 +712,14 @@ Chain.prototype.recoverChain = function(cb) {
 };
 
 /**
- * Handle modules & components initialization
+ * It assigns modules & components to private constants
  *
- * @param {modules} scope - Exposed modules
+ * @param {modules, components} scope - Exposed modules & components
  */
 Chain.prototype.onBind = function(scope) {
 	library.logger.trace('Blocks->Chain: Shared modules bind.');
 	components = {
 		cache: scope.components ? scope.components.cache : undefined,
-		system: scope.components.system,
 	};
 
 	modules = {

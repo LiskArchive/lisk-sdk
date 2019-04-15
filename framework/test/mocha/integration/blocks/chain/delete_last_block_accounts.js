@@ -32,9 +32,9 @@ const localCommon = require('../../common');
 const transferIntoDapp = () => {};
 const transferOutOfDapp = () => {};
 
-describe('system test (blocks) - chain/deleteLastBlock', () => {
+describe('integration test (blocks) - chain/deleteLastBlock', () => {
 	let library;
-	localCommon.beforeBlock('system_blocks_chain', lib => {
+	localCommon.beforeBlock('blocks_chain', lib => {
 		library = lib;
 	});
 

@@ -79,7 +79,7 @@ class Round {
 		// Iterate over requiredProperties, checking for undefined scope properties
 		requiredProperties.forEach(property => {
 			if (scope[property] === undefined) {
-				throw `Missing required scope property: ${property}`;
+				throw new Error(`Missing required scope property: ${property}`);
 			}
 		});
 	}
@@ -303,7 +303,7 @@ class Round {
 	 */
 	rewardsAtRound(index) {
 		let roundFees = Math.floor(this.scope.roundFees) || 0;
-		const roundRewards = this.scope.roundRewards || [];
+		const roundRewards = [...this.scope.roundRewards] || [];
 
 		// Apply exception for round if required
 		if (exceptions.rounds[this.scope.round]) {

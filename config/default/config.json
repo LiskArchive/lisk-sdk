@@ -6,7 +6,6 @@
 	"logFileName": "logs/lisk.log",
 	"consoleLogLevel": "none",
 	"trustProxy": false,
-	"topAccounts": false,
 	"cacheEnabled": false,
 	"db": {
 		"host": "localhost",

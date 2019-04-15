@@ -179,7 +179,7 @@ function Config(packageJson, parseCommandLineOptions = true) {
 	const valid = validator.validate(appConfig, configSchema.config);
 
 	if (!valid) {
-		console.error('Failed to validate config data', ZSchema.getLastErrors());
+		console.error('Failed to validate config data', validator.getLastErrors());
 		process.exit(1);
 	} else {
 		appConfig.genesisBlock = genesisBlock;
@@ -214,7 +214,7 @@ const getenv = (variable, defaultValue = null, isBoolean = false) => {
 
 function loadJSONFile(filePath) {
 	try {
-		filePath = path.join(rootPath, filePath);
+		filePath = path.resolve(rootPath, filePath);
 		return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 	} catch (err) {
 		console.error(`Failed to load file: ${filePath}`);

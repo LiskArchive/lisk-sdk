@@ -28,9 +28,6 @@ const slots = require('../../../src/modules/chain/helpers/slots');
 const application = require('../common/application');
 const randomUtil = require('../common/utils/random');
 const accountFixtures = require('../fixtures/accounts');
-const InitTransaction = require('../../../src/modules/chain/logic/init_transaction');
-
-const initTransaction = new InitTransaction();
 
 const { ACTIVE_DELEGATES } = global.constants;
 
@@ -46,7 +43,7 @@ function getDelegateForSlot(library, slot, cb) {
 
 function createBlock(library, transactions, timestamp, keypair, previousBlock) {
 	transactions = transactions.map(transaction =>
-		initTransaction.jsonRead(transaction)
+		library.logic.initTransaction.jsonRead(transaction)
 	);
 	const block = library.logic.block.create({
 		keypair,
@@ -178,7 +175,7 @@ function addTransaction(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
 	__testContext.debug(`	Add transaction ID: ${transaction.id}`);
-	transaction = initTransaction.jsonRead(transaction);
+	transaction = library.logic.initTransaction.jsonRead(transaction);
 	library.balancesSequence.add(sequenceCb => {
 		library.modules.transactions.processUnconfirmedTransaction(
 			transaction,
@@ -196,7 +193,7 @@ function addTransaction(library, transaction, cb) {
 function addTransactionToUnconfirmedQueue(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
-	transaction = initTransaction.jsonRead(transaction);
+	transaction = library.logic.initTransaction.jsonRead(transaction);
 	library.modules.transactions.processUnconfirmedTransaction(
 		transaction,
 		true,
@@ -294,8 +291,11 @@ function beforeBlock(type, cb) {
 		'init sandboxed application, credit account and register dapp',
 		done => {
 			application.init(
-				{ sandbox: { name: `lisk_test_${type}` } },
+				{ sandbox: { name: `lisk_test_integration_${type}` } },
 				(err, library) => {
+					if (err) {
+						return done(err);
+					}
 					cb(library);
 					return done();
 				}

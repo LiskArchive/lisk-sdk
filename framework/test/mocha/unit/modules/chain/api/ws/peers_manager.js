@@ -28,12 +28,11 @@ const validRPCProcedureName = 'rpcProcedureA';
 const validEventProcedureName = 'eventProcedureB';
 
 describe('PeersManager', () => {
-	let systemComponentMock;
+	let applicationState;
 
 	beforeEach(done => {
-		systemComponentMock = {
-			headers: {},
-		};
+		applicationState = {};
+
 		peersManagerInstance = new PeersManager(
 			{
 				error: sinonSandbox.stub(),
@@ -42,7 +41,7 @@ describe('PeersManager', () => {
 				debug: sinonSandbox.stub(),
 				trace: sinonSandbox.stub(),
 			},
-			systemComponentMock
+			applicationState
 		);
 		masterWAMPServerMock = {
 			upgradeToWAMP: sinonSandbox.stub(),
@@ -360,14 +359,14 @@ describe('PeersManager', () => {
 						debug: sinonSandbox.stub(),
 						trace: sinonSandbox.stub(),
 					},
-					systemComponentMock
+					applicationState
 				);
 				peersManagerInstanceB = new PeersManager(
 					{
 						debug: sinonSandbox.stub(),
 						trace: sinonSandbox.stub(),
 					},
-					systemComponentMock
+					applicationState
 				);
 				done();
 			});

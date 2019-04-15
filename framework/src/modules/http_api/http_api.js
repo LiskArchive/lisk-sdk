@@ -1,7 +1,10 @@
+if (process.env.NEW_RELIC_LICENSE_KEY) {
+	require('./helpers/newrelic_lisk');
+}
+
 const { createLoggerComponent } = require('../../components/logger');
 const { createCacheComponent } = require('../../components/cache');
 const { createStorageComponent } = require('../../components/storage');
-const { createSystemComponent } = require('../../components/system');
 const {
 	bootstrapStorage,
 	setupServers,
@@ -25,7 +28,7 @@ module.exports = class HttpApi {
 
 		// Logger
 		const loggerConfig = await this.channel.invoke(
-			'lisk:getComponentConfig',
+			'app:getComponentConfig',
 			'logger'
 		);
 		this.logger = createLoggerComponent(loggerConfig);
@@ -33,7 +36,7 @@ module.exports = class HttpApi {
 		// Cache
 		this.logger.debug('Initiating cache...');
 		const cacheConfig = await this.channel.invoke(
-			'lisk:getComponentConfig',
+			'app:getComponentConfig',
 			'cache'
 		);
 		const cache = createCacheComponent(cacheConfig, this.logger);
@@ -41,7 +44,7 @@ module.exports = class HttpApi {
 		// Storage
 		this.logger.debug('Initiating storage...');
 		const storageConfig = await this.channel.invoke(
-			'lisk:getComponentConfig',
+			'app:getComponentConfig',
 			'storage'
 		);
 		const dbLogger =
@@ -55,24 +58,26 @@ module.exports = class HttpApi {
 					);
 		const storage = createStorageComponent(storageConfig, dbLogger);
 
-		// System
-		this.logger.debug('Initiating system...');
-		const systemConfig = await this.channel.invoke(
-			'lisk:getComponentConfig',
-			'system'
+		const applicationState = await this.channel.invoke(
+			'app:getApplicationState'
 		);
-		const system = createSystemComponent(systemConfig, this.logger, storage);
+
 		// Setup scope
 		this.scope = {
 			components: {
 				cache,
 				logger: this.logger,
 				storage,
-				system,
 			},
 			channel: this.channel,
 			config: this.options.config,
+			applicationState,
 		};
+
+		this.channel.subscribe('app:state:updated', event => {
+			Object.assign(this.scope.applicationState, event.data);
+		});
+
 		// Bootstrap Cache component
 		await bootstrapCache(this.scope);
 		// Bootstrap Storage component

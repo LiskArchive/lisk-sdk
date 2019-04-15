@@ -65,7 +65,6 @@ describe('delegates', () => {
 			sinonSandbox
 				.stub(library.components.storage.entities.Account, 'insertFork')
 				.resolves();
-			sinonSandbox.stub(library.channel, 'publish').resolves();
 			library.modules.delegates.fork(dummyBlock, cause);
 		});
 

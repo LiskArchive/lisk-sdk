@@ -26,7 +26,6 @@ describe('HttpApi', () => {
 		logFileName: 'logs.log',
 	};
 	const cacheConfig = 'aCacheConfig';
-	const systemConfig = 'aSystemConfig';
 	const storageConfig = {
 		logFileName: 'logs.log',
 	};
@@ -34,6 +33,7 @@ describe('HttpApi', () => {
 	beforeEach(async () => {
 		stubs.channel = {
 			invoke: sinonSandbox.stub(),
+			subscribe: sinonSandbox.stub(),
 		};
 		stubs.options = {
 			config: sinonSandbox.stub(),
@@ -44,7 +44,6 @@ describe('HttpApi', () => {
 		stubs.logger = {
 			debug: sinonSandbox.stub(),
 		};
-		stubs.system = sinonSandbox.stub();
 		stubs.storage = sinonSandbox.stub();
 		stubs.cache = sinonSandbox.stub();
 		stubs.servers = {
@@ -56,7 +55,6 @@ describe('HttpApi', () => {
 		};
 
 		stubs.createLoggerComponent = sinonSandbox.stub().returns(stubs.logger);
-		stubs.createSystemComponent = sinonSandbox.stub().returns(stubs.system);
 		stubs.createCacheComponent = sinonSandbox.stub().returns(stubs.cache);
 		stubs.createStorageComponent = sinonSandbox.stub().returns(stubs.storage);
 		stubs.bootstrapCache = sinonSandbox.stub();
@@ -67,20 +65,17 @@ describe('HttpApi', () => {
 		stubs.subscribeToEvents = sinonSandbox.stub();
 
 		stubs.channel.invoke
-			.withArgs('lisk:getComponentConfig', 'logger')
+			.withArgs('app:getComponentConfig', 'logger')
 			.resolves(loggerConfig);
 		stubs.channel.invoke
-			.withArgs('lisk:getComponentConfig', 'storage')
+			.withArgs('app:getComponentConfig', 'storage')
 			.resolves(storageConfig);
 		stubs.channel.invoke
-			.withArgs('lisk:getComponentConfig', 'cache')
+			.withArgs('app:getComponentConfig', 'cache')
 			.resolves(cacheConfig);
-		stubs.channel.invoke
-			.withArgs('lisk:getComponentConfig', 'system')
-			.resolves(systemConfig);
+		stubs.channel.invoke.withArgs('app:getApplicationState').resolves({});
 
 		HttpApi.__set__('createLoggerComponent', stubs.createLoggerComponent);
-		HttpApi.__set__('createSystemComponent', stubs.createSystemComponent);
 		HttpApi.__set__('createCacheComponent', stubs.createCacheComponent);
 		HttpApi.__set__('createStorageComponent', stubs.createStorageComponent);
 		HttpApi.__set__('bootstrapCache', stubs.bootstrapCache);
@@ -124,28 +119,22 @@ describe('HttpApi', () => {
 		it('should be an async function', async () => {
 			expect(httpApi.bootstrap.constructor.name).to.be.equal('AsyncFunction');
 		});
-		it('should invoke lisk:getComponentConfig to get "logger" configuration', async () => {
+		it('should invoke app:getComponentConfig to get "logger" configuration', async () => {
 			expect(stubs.channel.invoke).to.be.calledWithExactly(
-				'lisk:getComponentConfig',
+				'app:getComponentConfig',
 				'logger'
 			);
 		});
-		it('should invoke lisk:getComponentConfig to get "storage" configuration', async () => {
+		it('should invoke app:getComponentConfig to get "storage" configuration', async () => {
 			expect(stubs.channel.invoke).to.be.calledWithExactly(
-				'lisk:getComponentConfig',
+				'app:getComponentConfig',
 				'storage'
 			);
 		});
-		it('should invoke lisk:getComponentConfig to get "cache" configuration', async () => {
+		it('should invoke app:getComponentConfig to get "cache" configuration', async () => {
 			expect(stubs.channel.invoke).to.be.calledWithExactly(
-				'lisk:getComponentConfig',
+				'app:getComponentConfig',
 				'cache'
-			);
-		});
-		it('should invoke lisk:getComponentConfig to get "system" configuration', async () => {
-			expect(stubs.channel.invoke).to.be.calledWithExactly(
-				'lisk:getComponentConfig',
-				'system'
 			);
 		});
 		it('should create logger component with loggerConfig and assign to object instance', async () => {
@@ -201,11 +190,11 @@ describe('HttpApi', () => {
 		});
 		it('should initialize scope object with valid structure and assign it to object instance', async () => {
 			expect(httpApi.scope).to.be.deep.equal({
+				applicationState: {},
 				components: {
 					cache: stubs.cache,
 					logger: stubs.logger,
 					storage: stubs.storage,
-					system: stubs.system,
 				},
 				channel: stubs.channel,
 				config: stubs.options.config,

@@ -25,7 +25,7 @@ const localCommon = require('../../common');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test (type 4) - effect of multisignature registration on memory tables', () => {
+describe('integration test (type 4) - effect of multisignature registration on memory tables', () => {
 	let library;
 
 	const multisigAccount = randomUtil.account();
@@ -38,7 +38,7 @@ describe('system test (type 4) - effect of multisignature registration on memory
 	const signer1 = randomUtil.account();
 	const signer2 = randomUtil.account();
 
-	localCommon.beforeBlock('system_4_multisig_account', lib => {
+	localCommon.beforeBlock('4_multisig_account', lib => {
 		library = lib;
 	});
 

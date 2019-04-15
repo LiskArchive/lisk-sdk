@@ -1,14 +1,4 @@
 const _ = require('lodash');
-const {
-	TransferTransaction,
-	SecondSignatureTransaction,
-	DelegateTransaction,
-	VoteTransaction,
-	MultisignatureTransaction,
-	DappTransaction,
-	InTransferTransaction,
-	OutTransferTransaction,
-} = require('@liskhq/lisk-transactions');
 
 const transferAsset = raw => {
 	if (raw.tf_data) {
@@ -112,17 +102,10 @@ const outTransferAsset = raw => {
 };
 
 class Transaction {
-	constructor(cb) {
-		this.transactionClassMap = new Map([
-			[0, TransferTransaction],
-			[1, SecondSignatureTransaction],
-			[2, DelegateTransaction],
-			[3, VoteTransaction],
-			[4, MultisignatureTransaction],
-			[5, DappTransaction],
-			[6, InTransferTransaction],
-			[7, OutTransferTransaction],
-		]);
+	constructor(transactions = {}) {
+		this.transactionClassMap = new Map();
+
+		// TODO: remove after https://github.com/LiskHQ/lisk/issues/2424
 		this.assetDbReadMap = new Map([
 			[0, transferAsset],
 			[1, signatureAsset],
@@ -134,11 +117,15 @@ class Transaction {
 			[7, outTransferAsset],
 		]);
 
-		if (cb) {
-			return setImmediate(cb, null, this);
-		}
+		Object.keys(transactions).forEach(transactionType => {
+			this.transactionClassMap.set(
+				Number(transactionType),
+				transactions[transactionType]
+			);
+		});
 	}
 
+	// TODO: remove after https://github.com/LiskHQ/lisk/issues/2424
 	dbRead(raw) {
 		if (!raw.t_id) {
 			return null;
@@ -160,14 +147,14 @@ class Transaction {
 			signature: raw.t_signature,
 			signSignature: raw.t_signSignature,
 			signatures: raw.t_signatures ? raw.t_signatures.split(',') : [],
-			confirmations: parseInt(raw.confirmations),
+			confirmations: parseInt(raw.confirmations || 0),
 			asset: {},
 		};
 
 		const assetDbRead = this.assetDbReadMap.get(transactionJSON.type);
 
 		if (!assetDbRead) {
-			throw `Unknown transaction type ${transactionJSON.type}`;
+			throw new Error(`Unknown transaction type ${transactionJSON.type}`);
 		}
 
 		const asset = assetDbRead(raw);

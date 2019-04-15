@@ -24,12 +24,12 @@ const localCommon = require('../../common');
 const randomUtil = require('../../../common/utils/random');
 
 const { NORMALIZER } = global.constants;
-
-describe('system test (type 1) - second signature transactions from pool and peer', () => {
+// eslint-disable-next-line
+describe.skip('[feature/improve_transactions_processing_efficiency] integration test (type 1) - second signature transactions from pool and peer', () => {
 	let library;
 	let storage;
 
-	localCommon.beforeBlock('system_1_1_second_sign_from_pool_and_peer', lib => {
+	localCommon.beforeBlock('1_1_second_sign_from_pool_and_peer', lib => {
 		library = lib;
 		storage = lib.components.storage;
 	});

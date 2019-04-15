@@ -15,6 +15,7 @@
 'use strict';
 
 const rewire = require('rewire');
+const crypto = require('crypto');
 
 const { EPOCH_TIME } = global.constants;
 
@@ -39,6 +40,7 @@ describe('blocks', () => {
 	let busStub;
 	let balancesSequenceStub;
 	let channelStub;
+	let applicationStateStub;
 	let scope;
 
 	beforeEach(done => {
@@ -59,6 +61,7 @@ describe('blocks', () => {
 			entities: {
 				Block: {
 					isPersisted: sinonSandbox.stub().resolves(true),
+					get: sinonSandbox.stub(),
 				},
 			},
 		};
@@ -73,6 +76,20 @@ describe('blocks', () => {
 		channelStub = {
 			publish: sinonSandbox.stub(),
 		};
+
+		applicationStateStub = {
+			height: 1,
+			nethash: 'test broadhash',
+			version: '1.0.0-beta.3',
+			wsPort: '3001',
+			httpPort: '3000',
+			minVersion: '1.0.0-beta.0',
+			protocolVersion: '1.0',
+			nonce: 'test nonce',
+		};
+
+		applicationStateStub.broadhash = applicationStateStub.nethash;
+
 		scope = {
 			components: { logger: loggerStub, storage: storageStub },
 			logic: {
@@ -91,6 +108,7 @@ describe('blocks', () => {
 			config: {
 				loading: {},
 			},
+			applicationState: applicationStateStub,
 		};
 
 		blocksInstance = new Blocks((err, cbSelf) => {
@@ -412,6 +430,79 @@ describe('blocks', () => {
 			const isLoadedScope = {};
 			blocksInstance.onBind(isLoadedScope);
 			return expect(__private.loaded).to.be.true;
+		});
+	});
+
+	describe('calculateNewBroadhash()', () => {
+		describe('when there is a problem getting blocks from the db', () => {
+			beforeEach(async () => {
+				storageStub.entities.Block.get.rejects(new Error('error'));
+			});
+
+			it('should throw an error', async () => {
+				const error = await blocksInstance.calculateNewBroadhash();
+				expect(error).to.be.an('error');
+				expect(error.message).to.equal('error');
+			});
+
+			it('should print a log with the error message', async () => {
+				const error = await blocksInstance.calculateNewBroadhash();
+				expect(loggerStub.error).to.be.calledOnce;
+				expect(loggerStub.error).to.be.calledWith(error.stack);
+			});
+		});
+		describe('when there is just a single block', () => {
+			const blocks = [
+				{
+					id: '00000002',
+					height: 2,
+				},
+			];
+
+			beforeEach(async () => {
+				storageStub.entities.Block.get.resolves(blocks);
+			});
+
+			it('should return broadhash equal to nethash and same height', async () => {
+				const {
+					broadhash,
+					height,
+				} = await blocksInstance.calculateNewBroadhash();
+				expect(broadhash).to.equal(applicationStateStub.nethash);
+				expect(height).to.equal(applicationStateStub.height);
+			});
+		});
+
+		describe('when there are more than one block', () => {
+			const blocks = [
+				{
+					id: '00000002',
+					height: 2,
+				},
+				{
+					id: '00000001',
+					height: 1,
+				},
+			];
+
+			beforeEach(async () => {
+				storageStub.entities.Block.get.resolves(blocks);
+			});
+
+			it('should return just calculated broadhash and best height', async () => {
+				const {
+					broadhash,
+					height,
+				} = await blocksInstance.calculateNewBroadhash();
+				const seed = blocks.map(row => row.id).join('');
+				const newBroadhash = crypto
+					.createHash('sha256')
+					.update(seed, 'utf8')
+					.digest()
+					.toString('hex');
+				expect(broadhash).to.equal(newBroadhash);
+				expect(height).to.equal(blocks[0].height);
+			});
 		});
 	});
 });

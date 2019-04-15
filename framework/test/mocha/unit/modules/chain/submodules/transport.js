@@ -26,9 +26,12 @@ const generateRandomActivePeer = require('../../../../fixtures/peers')
 	.generateRandomActivePeer;
 const Block = require('../../../../fixtures/blocks').Block;
 const Rules = require('../../../../../../src/modules/chain/api/ws/workers/rules');
+const {
+	registeredTransactions,
+} = require('../../../../common/registered_transactions');
 const InitTransaction = require('../../../../../../src/modules/chain/logic/init_transaction');
 
-const initTransaction = new InitTransaction();
+const initTransaction = new InitTransaction(registeredTransactions);
 
 const TransportModule = rewire(
 	'../../../../../../src/modules/chain/submodules/transport'
@@ -45,14 +48,12 @@ describe('transport', () => {
 	let schemaStub;
 	let channelStub;
 	let balancesSequenceStub;
-	let transactionStub;
 	let blockStub;
 	let peersStub;
 	let broadcasterStubRef;
 	let transportInstance;
 	let library;
 	let __private;
-	let components;
 	let modules;
 	let defaultScope;
 	let restoreRewiredTopDeps;
@@ -179,17 +180,17 @@ describe('transport', () => {
 		defaultScope = {
 			logic: {
 				block: blockStub,
-				transaction: transactionStub,
+				initTransaction,
 				peers: peersStub,
 			},
 			components: {
 				storage: storageStub,
 				logger: loggerStub,
-				system: {},
 			},
 			bus: busStub,
 			schema: schemaStub,
 			channel: channelStub,
+			applicationState: {},
 			balancesSequence: balancesSequenceStub,
 			config: {
 				peers: {
@@ -299,9 +300,14 @@ describe('transport', () => {
 						debug: sinonSandbox.spy(),
 					},
 					logic: {
-						transaction: {
-							objectNormalize: sinonSandbox.stub(),
-						},
+						initTransaction,
+					},
+					channel: {
+						publish: sinonSandbox.stub().resolves(),
+					},
+					applicationState: {
+						broadhash:
+							'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
 					},
 				};
 
@@ -314,16 +320,6 @@ describe('transport', () => {
 					},
 				};
 
-				components = {
-					system: {
-						update: sinonSandbox.stub().callsArg(0),
-						headers: {
-							broadhash:
-								'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
-						},
-					},
-				};
-
 				wsRPC = {
 					getServerAuthKey: sinonSandbox.stub().returns(SAMPLE_AUTH_KEY),
 				};
@@ -331,7 +327,6 @@ describe('transport', () => {
 				restoreRewiredDeps = TransportModule.__set__({
 					library,
 					modules,
-					components,
 					definitions,
 					wsRPC,
 				});
@@ -657,9 +652,7 @@ describe('transport', () => {
 				peerAddressString = '40.40.40.40:5000';
 
 				library.logic = {
-					transaction: {
-						objectNormalize: sinonSandbox.stub().returns(transaction),
-					},
+					initTransaction,
 					peers: {
 						peersManager: {
 							getAddress: sinonSandbox.stub().returns(peerAddressString),
@@ -684,6 +677,7 @@ describe('transport', () => {
 			describe('when transaction and peer are defined', () => {
 				beforeEach(done => {
 					library.logic = {
+						initTransaction,
 						peers: {
 							peersManager: {
 								getByNonce: sinonSandbox.stub().returns(peerMock),
@@ -765,6 +759,7 @@ describe('transport', () => {
 			describe('when nonce is defined', () => {
 				beforeEach(done => {
 					library.logic = {
+						initTransaction,
 						peers: {
 							peersManager: {
 								getByNonce: sinonSandbox.stub().returns(peerMock),
@@ -974,12 +969,16 @@ describe('transport', () => {
 						},
 						httpPort: 8000,
 					},
-					channel: channelStub,
+					channel: {
+						invokeSync: sinonSandbox.stub(),
+						publish: sinonSandbox.stub(),
+					},
 					logic: {
 						peers: {
 							me: sinonSandbox.stub().returns(WSServer.generatePeerHeaders()),
 							listRandomConnected: sinonSandbox.stub().returns(peersList),
 						},
+						initTransaction,
 						block: {
 							objectNormalize: sinonSandbox.stub().returns(new Block()),
 						},
@@ -1008,6 +1007,9 @@ describe('transport', () => {
 							loadBlocksData: sinonSandbox
 								.stub()
 								.callsArgWith(1, null, blocksList),
+							loadBlocksDataWS: sinonSandbox
+								.stub()
+								.callsArgWith(1, null, blocksList),
 						},
 						verify: {
 							addBlockProperties: sinonSandbox.stub().returns(blockMock),
@@ -1023,16 +1025,6 @@ describe('transport', () => {
 					},
 				};
 
-				components = {
-					system: {
-						update: sinonSandbox.stub().callsArg(0),
-						headers: {
-							broadhash:
-								'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
-						},
-					},
-				};
-
 				__private = {
 					broadcaster: {},
 					removePeer: sinonSandbox.stub(),
@@ -1042,7 +1034,6 @@ describe('transport', () => {
 				restoreRewiredTransportDeps = TransportModule.__set__({
 					library,
 					modules,
-					components,
 					__private,
 				});
 
@@ -1128,26 +1119,13 @@ describe('transport', () => {
 					done();
 				});
 
-				it('should assign blocks, dapps, loader, multisignatures, peers, system and transactions properties', async () => {
+				it('should assign blocks, dapps, loader, multisignatures, peers and transactions properties', async () => {
 					expect(modulesObject).to.have.property('blocks');
 					expect(modulesObject).to.have.property('dapps');
 					expect(modulesObject).to.have.property('loader');
 					expect(modulesObject).to.have.property('multisignatures');
 					expect(modulesObject).to.have.property('peers');
 					return expect(modulesObject).to.have.property('transactions');
-				});
-			});
-
-			describe('components', () => {
-				let componentsObject;
-
-				beforeEach(done => {
-					componentsObject = TransportModule.__get__('components');
-					done();
-				});
-
-				it('should assign blocks, dapps, loader, multisignatures, peers, system and transactions properties', async () => {
-					return expect(componentsObject).to.have.property('system');
 				});
 			});
 
@@ -1243,6 +1221,12 @@ describe('transport', () => {
 							maxRelays: sinonSandbox.stub().returns(false),
 							enqueue: sinonSandbox.stub(),
 						};
+						library.channel.invokeSync
+							.withArgs('app:getApplicationState')
+							.returns({
+								broadhash:
+									'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
+							});
 						transportInstance.onUnconfirmedTransaction(transaction, true);
 						done();
 					});
@@ -1379,6 +1363,10 @@ describe('transport', () => {
 						maxRelays: sinonSandbox.stub().returns(false),
 						enqueue: sinonSandbox.stub(),
 						broadcast: sinonSandbox.stub(),
+					};
+					library.applicationState = {
+						broadhash:
+							'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
 					};
 					return transportInstance.onBroadcastBlock(block, true);
 				});
@@ -1549,7 +1537,7 @@ describe('transport', () => {
 					beforeEach(done => {
 						query = undefined;
 
-						modules.blocks.utils.loadBlocksData = sinonSandbox
+						modules.blocks.utils.loadBlocksDataWS = sinonSandbox
 							.stub()
 							.callsArgWith(1, null, []);
 
@@ -1560,11 +1548,10 @@ describe('transport', () => {
 						});
 					});
 
-					it('should send back empty blocks', async () => {
-						expect(error).to.equal(null);
+					it('should send back empty blocks', () => {
 						return expect(result)
-							.to.have.property('blocks')
-							.which.is.an('array').that.is.empty;
+							.to.have.property('success')
+							.that.is.a('boolean').and.is.false;
 					});
 				});
 
@@ -1581,20 +1568,21 @@ describe('transport', () => {
 						});
 					});
 
-					it('should call modules.blocks.utils.loadBlocksData with { limit: 34, lastId: query.lastBlockId }', async () =>
+					it('should call modules.blocks.utils.loadBlocksDataWS with { limit: 34, lastId: query.lastBlockId }', async () => {
 						expect(
-							modules.blocks.utils.loadBlocksData.calledWith({
+							modules.blocks.utils.loadBlocksDataWS.calledWith({
 								limit: 34,
 								lastId: query.lastBlockId,
 							})
-						).to.be.true);
+						).to.be.true;
+					});
 
 					describe('when modules.blocks.utils.loadBlocksData fails', () => {
 						let loadBlockFailed;
 
 						beforeEach(done => {
 							loadBlockFailed = new Error('Failed to load blocks...');
-							modules.blocks.utils.loadBlocksData = sinonSandbox
+							modules.blocks.utils.loadBlocksDataWS = sinonSandbox
 								.stub()
 								.callsArgWith(1, loadBlockFailed);
 
@@ -1827,7 +1815,9 @@ describe('transport', () => {
 				beforeEach(done => {
 					currentHeight = 12345;
 					req = {};
-					components.system.headers.height = currentHeight;
+					library.applicationState = {
+						height: currentHeight,
+					};
 					transportInstance.shared.height(req, (err, res) => {
 						error = err;
 						result = res;
@@ -1849,16 +1839,17 @@ describe('transport', () => {
 			});
 
 			describe('status', () => {
+				const state = {
+					height: 123,
+					broadhash:
+						'258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea',
+					nonce: 'sYHEDBKcScaAAAYg',
+					version: 'v0.8.0',
+					os: 'debian',
+					httpPort: 8000,
+				};
 				beforeEach(done => {
-					components.system.headers = {
-						height: 123,
-						broadhash:
-							'258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea',
-						nonce: 'sYHEDBKcScaAAAYg',
-						version: 'v0.8.0',
-						os: 'debian',
-						httpPort: 8000,
-					};
+					library.applicationState = state;
 					req = {};
 					transportInstance.shared.status(req, (err, res) => {
 						error = err;
@@ -1878,27 +1869,27 @@ describe('transport', () => {
 				it('should call callback with a result containing height = 123', async () =>
 					expect(result)
 						.to.have.property('height')
-						.which.equals(components.system.headers.height));
+						.which.equals(state.height));
 
 				it('should call callback with a result containing broadhash = "258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea"', async () =>
 					expect(result)
 						.to.have.property('broadhash')
-						.which.equals(components.system.headers.broadhash));
+						.which.equals(state.broadhash));
 
 				it('should call callback with a result containing httpPort = 8000', async () =>
 					expect(result)
 						.to.have.property('httpPort')
-						.which.equals(defaultScope.config.httpPort));
+						.which.equals(state.httpPort));
 
 				it('should call callback with a result containing version = "v0.8.0"', async () =>
 					expect(result)
 						.to.have.property('version')
-						.which.equals(components.system.headers.version));
+						.which.equals(state.version));
 
 				it('should call callback with a result containing os = "debian"', async () =>
 					expect(result)
 						.to.have.property('os')
-						.which.equals(components.system.headers.os));
+						.which.equals(state.os));
 			});
 
 			describe('postSignature', () => {

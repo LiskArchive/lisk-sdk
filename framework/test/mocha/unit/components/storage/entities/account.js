@@ -805,7 +805,9 @@ describe('Account', () => {
 			// Arrange
 			const randAccount = new accountFixtures.Account();
 			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns(),
+				loadSQLFiles: sinonSandbox.stub().returns({
+					isPersisted: 'isPersisted SQL file',
+				}),
 				executeFile: sinonSandbox.stub().resolves([randAccount]),
 				parseQueryComponent: sinonSandbox.stub(),
 			};
@@ -825,7 +827,9 @@ describe('Account', () => {
 			// Arrange
 			const randAccount = new accountFixtures.Account();
 			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				loadSQLFiles: sinonSandbox.stub().returns({
+					isPersisted: 'isPersisted SQL file',
+				}),
 				executeFile: sinonSandbox.stub().resolves([randAccount]),
 				parseQueryComponent: sinonSandbox.stub(),
 			};

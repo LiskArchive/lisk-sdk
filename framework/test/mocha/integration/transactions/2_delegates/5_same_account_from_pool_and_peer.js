@@ -21,12 +21,12 @@ const localCommon = require('../../common');
 const randomUtil = require('../../../common/utils/random');
 
 const { NORMALIZER } = global.constants;
-
-describe('delegate', () => {
+// eslint-disable-next-line
+describe.skip('[feature/improve_transactions_processing_efficiency] delegate', () => {
 	let library;
 	let storage;
 
-	localCommon.beforeBlock('system_2_2_delegates_5', lib => {
+	localCommon.beforeBlock('2_2_delegates_5', lib => {
 		library = lib;
 		storage = lib.components.storage;
 	});

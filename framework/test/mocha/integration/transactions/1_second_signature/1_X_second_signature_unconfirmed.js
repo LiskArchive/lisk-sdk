@@ -25,7 +25,7 @@ const localCommon = require('../../common');
 
 const { NORMALIZER, TRANSACTION_TYPES } = global.constants;
 
-describe('system test (type 1) - sending transactions on top of unconfirmed second signature', () => {
+describe('integration test (type 1) - sending transactions on top of unconfirmed second signature', () => {
 	let library;
 
 	const account = randomUtil.account();
@@ -46,7 +46,7 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 		secondPassphrase: account.secondPassphrase,
 	});
 
-	localCommon.beforeBlock('system_1_X_second_sign_unconfirmed', lib => {
+	localCommon.beforeBlock('1_X_second_sign_unconfirmed', lib => {
 		library = lib;
 	});
 
@@ -86,7 +86,7 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 							transactionSecondSignature,
 							err => {
 								expect(err).to.equal(
-									`Transaction is already processed: ${
+									`Error: Transaction is already processed: ${
 										transactionSecondSignature.id
 									}`
 								);
@@ -116,7 +116,9 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 							loadedTransaction => {
 								localCommon.addTransaction(library, loadedTransaction, err => {
 									expect(err).to.equal(
-										'Sender does not have a second signature'
+										`Transaction: ${
+											loadedTransaction.id
+										} failed at .signSignature: Sender does not have a secondPublicKey`
 									);
 									done();
 								});

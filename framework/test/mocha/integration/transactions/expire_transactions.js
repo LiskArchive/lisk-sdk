@@ -99,7 +99,7 @@ describe('expire transactions', () => {
 		);
 	};
 
-	localCommon.beforeBlock('lisk_functional_expire_transactions', lib => {
+	localCommon.beforeBlock('expire_transactions', lib => {
 		library = lib;
 		transactionPool = library.rewiredModules.transactions.__get__(
 			'__private.transactionPool'

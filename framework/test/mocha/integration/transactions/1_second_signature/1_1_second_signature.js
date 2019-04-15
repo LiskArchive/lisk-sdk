@@ -24,7 +24,7 @@ const localCommon = require('../../common');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test (type 1) - double second signature registrations', () => {
+describe('integration test (type 1) - double second signature registrations', () => {
 	let library;
 
 	const account = randomUtil.account();
@@ -36,7 +36,7 @@ describe('system test (type 1) - double second signature registrations', () => {
 	let transaction1;
 	let transaction2;
 
-	localCommon.beforeBlock('system_1_1_second_sign', lib => {
+	localCommon.beforeBlock('1_1_second_sign', lib => {
 		library = lib;
 	});
 

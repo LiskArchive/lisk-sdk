@@ -37,7 +37,8 @@ const nullChar2 = '\x00';
 const nullChar3 = '\u0000';
 const nullChar4 = '\\U00000000';
 
-describe('POST /api/transactions (type 0) transfer funds', () => {
+// eslint-disable-next-line
+describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/transactions (type 0) transfer funds', () => {
 	let transaction;
 	const goodTransaction = randomUtil.transaction();
 	const badTransactions = [];

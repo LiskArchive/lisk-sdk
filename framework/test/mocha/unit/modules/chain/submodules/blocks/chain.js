@@ -15,19 +15,21 @@
 'use strict';
 
 const rewire = require('rewire');
+const {
+	registeredTransactions,
+} = require('../../../../../common/registered_transactions');
 const InitTransaction = require('../../../../../../../src/modules/chain/logic/init_transaction');
 const { Transaction } = require('../../../../../fixtures/transactions');
 
 const BlocksChain = rewire(
 	'../../../../../../../src/modules/chain/submodules/blocks/chain'
 );
-const initTransaction = new InitTransaction();
+const initTransaction = new InitTransaction(registeredTransactions);
 
 describe('blocks/chain', () => {
 	let __private;
 	let library;
 	let modules;
-	let components;
 	let blocksChainModule;
 	let storageStub;
 	let loggerStub;
@@ -53,9 +55,10 @@ describe('blocks/chain', () => {
 	const blockWithTransactions = {
 		id: 3,
 		height: 3,
-		transactions: transactionsForBlock.map(transaction => initTransaction.jsonRead(transaction)),
+		transactions: transactionsForBlock.map(transaction =>
+			initTransaction.jsonRead(transaction)
+		),
 	};
-
 
 	const transactionsForGenesisBlock = [
 		new Transaction({ type: 3 }),
@@ -66,15 +69,19 @@ describe('blocks/chain', () => {
 	const genesisBlockWithTransactions = {
 		id: 1,
 		height: 1,
-		transactions: transactionsForGenesisBlock.map(transaction => initTransaction.jsonRead(transaction)),
+		transactions: transactionsForGenesisBlock.map(transaction =>
+			initTransaction.jsonRead(transaction)
+		),
 	};
 	const blockReduced = { id: 3, height: 3 };
+	let channelMock;
 
 	beforeEach(done => {
 		// Logic
 		storageStub = {
 			entities: {
 				Block: {
+					get: sinonSandbox.stub(),
 					begin: sinonSandbox.stub(),
 					getOne: sinonSandbox.stub(),
 					isPersisted: sinonSandbox.stub(),
@@ -119,6 +126,17 @@ describe('blocks/chain', () => {
 			},
 		};
 
+		channelMock = {
+			invoke: sinonSandbox
+				.stub()
+				.withArgs('app:updateApplicationState')
+				.returns(true),
+			once: sinonSandbox
+				.stub()
+				.withArgs('app:state:updated')
+				.callsArg(1),
+		};
+
 		blocksChainModule = new BlocksChain(
 			loggerStub,
 			blockStub,
@@ -126,7 +144,8 @@ describe('blocks/chain', () => {
 			storageStub,
 			genesisBlockStub,
 			busStub,
-			balancesSequenceStub
+			balancesSequenceStub,
+			channelMock
 		);
 
 		library = BlocksChain.__get__('library');
@@ -154,6 +173,7 @@ describe('blocks/chain', () => {
 			isActive: {
 				set: sinonSandbox.stub(),
 			},
+			calculateNewBroadhash: sinonSandbox.stub(),
 		};
 
 		const modulesRoundsStub = {
@@ -177,15 +197,7 @@ describe('blocks/chain', () => {
 			onDeletedTransactions: sinonSandbox.stub(),
 		};
 
-		const componentsSystemStub = {
-			update: sinonSandbox.stub(),
-		};
-
 		bindingsStub = {
-			components: {
-				system: componentsSystemStub,
-			},
-
 			modules: {
 				accounts: modulesAccountsStub,
 				blocks: modulesBlocksStub,
@@ -193,18 +205,17 @@ describe('blocks/chain', () => {
 				transactions: modulesTransactionsStub,
 				transport: modulesTransportStub,
 				processTransactions: {
-					applyTransactions: sinonSandbox.stub().resolves(
-						{
-							stateStore: {
-								account: {
-									finalize: sinonSandbox.stub().resolves(),
-								},
-								round: {
-									setRoundForData: sinonSandbox.stub().resolves(),
-									finalize: sinonSandbox.stub().resolves(),
-								},
+					applyTransactions: sinonSandbox.stub().resolves({
+						stateStore: {
+							account: {
+								finalize: sinonSandbox.stub().resolves(),
 							},
-						}),
+							round: {
+								setRoundForData: sinonSandbox.stub().resolves(),
+								finalize: sinonSandbox.stub().resolves(),
+							},
+						},
+					}),
 				},
 			},
 		};
@@ -212,7 +223,6 @@ describe('blocks/chain', () => {
 		process.exit = sinonSandbox.stub().returns(0);
 
 		blocksChainModule.onBind(bindingsStub);
-		components = BlocksChain.__get__('components');
 		modules = BlocksChain.__get__('modules');
 		done();
 	});
@@ -572,7 +582,6 @@ describe('blocks/chain', () => {
 		});
 	});
 
-
 	describe('__private.applyConfirmedStep', () => {
 		/* eslint-disable mocha/no-pending-tests */
 		it('should return when block.transactions includes no transactions');
@@ -873,7 +882,7 @@ describe('blocks/chain', () => {
 
 				it('should call a callback with error "previousBlock is null"', done => {
 					__private.loadSecondLastBlockStep(blockReduced.id, tx).catch(err => {
-						expect(err).to.equal('previousBlock is null');
+						expect(err.message).to.equal('previousBlock is null');
 						done();
 					});
 				});
@@ -1016,7 +1025,6 @@ describe('blocks/chain', () => {
 		beforeEach(done => {
 			popLastBlockTemp = __private.popLastBlock;
 			__private.popLastBlock = sinonSandbox.stub();
-			components.system.update.resolves();
 			modules.transport.broadcastHeaders.callsArgWith(0, null, true);
 			done();
 		});
@@ -1133,11 +1141,10 @@ describe('blocks/chain', () => {
 	});
 
 	describe('onBind', () => {
-		beforeEach(done => {
+		beforeEach(async () => {
 			loggerStub.trace.resetHistory();
 			__private.loaded = false;
 			blocksChainModule.onBind(bindingsStub);
-			done();
 		});
 
 		it('should call library.logger.trace with "Blocks->Chain: Shared modules bind."', async () =>
@@ -1149,7 +1156,6 @@ describe('blocks/chain', () => {
 			expect(modules.accounts).to.equal(bindingsStub.modules.accounts);
 			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
 			expect(modules.rounds).to.equal(bindingsStub.modules.rounds);
-			expect(components.system).to.equal(bindingsStub.components.system);
 			expect(modules.transport).to.equal(bindingsStub.modules.transport);
 			return expect(modules.transactions).to.equal(
 				bindingsStub.modules.transactions

@@ -16,6 +16,7 @@
 
 const async = require('async');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const { convertErrorsToString } = require('../helpers/error_handlers');
 const jobsQueue = require('../helpers/jobs_queue');
 const slots = require('../helpers/slots');
 const definitions = require('../schema/definitions');
@@ -333,7 +334,7 @@ __private.loadTransactions = function(cb) {
 							err => {
 								if (err) {
 									// TODO: Validate if error propagation required
-									library.logger.debug(err);
+									library.logger.debug(convertErrorsToString(err));
 								}
 								return setImmediate(eachSeriesCb);
 							}
@@ -484,7 +485,7 @@ __private.loadBlockChain = function() {
 			if (matched) {
 				library.logger.info('Genesis block matched with database');
 			} else {
-				throw 'Failed to match genesis block with database';
+				throw new Error('Failed to match genesis block with database');
 			}
 		}
 	}
@@ -754,10 +755,22 @@ __private.createSnapshot = height => {
 	}
 
 	const snapshotRound = library.config.loading.snapshotRound;
+	// Negative number not possible as `commander` does not recognize this as valid flag (throws error)
+	if (
+		Number.isNaN(parseInt(snapshotRound)) ||
+		parseInt(snapshotRound) < 0 ||
+		typeof snapshotRound !== 'number'
+	) {
+		throw new Error(
+			'Unable to create snapshot, "--snapshot" parameter should be an integer equal to or greater than zero'
+		);
+	}
+
 	const totalRounds = Math.floor(height / ACTIVE_DELEGATES);
-	const targetRound = Number.isNaN(parseInt(snapshotRound))
-		? totalRounds
-		: Math.min(totalRounds, snapshotRound);
+	const targetRound =
+		parseInt(snapshotRound) === 0
+			? totalRounds
+			: Math.min(totalRounds, snapshotRound);
 	const targetHeight = targetRound * ACTIVE_DELEGATES;
 
 	library.logger.info(
@@ -894,7 +907,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 				waterErr => {
 					if (waterErr) {
 						failedAttemptsToLoad += 1;
-						library.logger.error(waterErr);
+						library.logger.error(convertErrorsToString(waterErr));
 					}
 					whilstCb();
 				}
@@ -939,11 +952,21 @@ __private.sync = function(cb) {
 			loadBlocksFromNetwork(seriesCb) {
 				return __private.loadBlocksFromNetwork(seriesCb);
 			},
-			updateSystemHeaders(seriesCb) {
-				// Update our own headers: broadhash and height
-				return components.system
-					.update()
-					.then(() => seriesCb())
+			updateApplicationState(seriesCb) {
+				return modules.blocks
+					.calculateNewBroadhash()
+					.then(({ broadhash, height }) => {
+						// Listen for the update of step to move to next step
+						library.channel.once('app:state:updated', () => {
+							seriesCb();
+						});
+
+						// Update our application state: broadhash and height
+						return library.channel.invoke('app:updateApplicationState', {
+							broadhash,
+							height,
+						});
+					})
 					.catch(seriesCb);
 			},
 			broadcastHeaders(seriesCb) {
@@ -1140,16 +1163,15 @@ Loader.prototype.onPeersReady = function() {
 };
 
 /**
- * Assigns needed modules and components from scope to private constants.
+ * It assigns components & modules from scope to private constants.
  *
- * @param {modules} scope
+ * @param {components, modules} scope modules & components
  * @returns {function} Calling __private.loadBlockChain
  * @todo Add description for the params
  */
 Loader.prototype.onBind = function(scope) {
 	components = {
 		cache: scope.components ? scope.components.cache : undefined,
-		system: scope.components.system,
 	};
 
 	modules = {

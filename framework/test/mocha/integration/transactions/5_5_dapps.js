@@ -22,7 +22,7 @@ const localCommon = require('../common');
 
 const { NORMALIZER } = global.constants;
 
-describe('system test (type 5) - dapp registrations with repeated values', () => {
+describe('integration test (type 5) - dapp registrations with repeated values', () => {
 	let library;
 
 	const account = randomUtil.account();
@@ -54,7 +54,7 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 	const dappDuplicateLinkFail = randomUtil.application();
 	dappDuplicateLinkSuccess.link = dappDuplicateLinkFail.link;
 
-	localCommon.beforeBlock('system_5_5_dapps', lib => {
+	localCommon.beforeBlock('5_5_dapps', lib => {
 		library = lib;
 	});
 
@@ -207,9 +207,9 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 			});
 			localCommon.addTransaction(library, transaction2, err => {
 				expect(err).to.equal(
-					`Transaction: ${
-						transaction2.id
-					} failed at : Application name already exists: ${dappDuplicate.name}`
+					`Transaction: ${transaction2.id} failed at ${
+						dappDuplicate.name
+					}: Application name already exists: ${dappDuplicate.name}`
 				);
 				done();
 			});
@@ -222,11 +222,9 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 			});
 			localCommon.addTransaction(library, transaction4, err => {
 				expect(err).to.equal(
-					`Transaction: ${
-						transaction4.id
-					} failed at : Application name already exists: ${
+					`Transaction: ${transaction4.id} failed at ${
 						dappDuplicateNameFail.name
-					}`
+					}: Application name already exists: ${dappDuplicateNameFail.name}`
 				);
 				done();
 			});
@@ -239,11 +237,9 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 			});
 			localCommon.addTransaction(library, transaction6, err => {
 				expect(err).to.equal(
-					`Transaction: ${
-						transaction6.id
-					} failed at : Application link already exists: ${
+					`Transaction: ${transaction6.id} failed at ${
 						dappDuplicateLinkFail.link
-					}`
+					}: Application link already exists: ${dappDuplicateLinkFail.link}`
 				);
 				done();
 			});

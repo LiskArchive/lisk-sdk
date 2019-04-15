@@ -211,9 +211,9 @@ describe('loader', () => {
 			it('should assign transport');
 
 			it('should assign multisignatures');
-
-			it('should assign system');
 		});
+
+		it('should assign applicationState');
 
 		it('should call __private.loadBlockChain');
 	});

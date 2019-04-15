@@ -18,10 +18,13 @@ const crypto = require('crypto');
 const rewire = require('rewire');
 const transactionStatus = require('@liskhq/lisk-transactions').Status;
 const Bignum = require('../../../../../../../src/modules/chain/helpers/bignum');
+const {
+	registeredTransactions,
+} = require('../../../../../common/registered_transactions');
 const InitTransaction = require('../../../../../../../src/modules/chain/logic/init_transaction');
 const { Transaction } = require('../../../../../fixtures/transactions');
 
-const initTransaction = new InitTransaction();
+const initTransaction = new InitTransaction(registeredTransactions);
 
 const BlocksVerify = rewire(
 	'../../../../../../../src/modules/chain/submodules/blocks/verify'
@@ -39,7 +42,7 @@ describe('blocks/verify', () => {
 	let blocksVerifyModule;
 	let bindingsStub;
 	let modules;
-	let components;
+	let channelMock;
 
 	beforeEach(done => {
 		// Logic
@@ -75,11 +78,23 @@ describe('blocks/verify', () => {
 			},
 		};
 
+		channelMock = {
+			invoke: sinonSandbox
+				.stub()
+				.withArgs('app:updateApplicationState')
+				.returns(true),
+			once: sinonSandbox
+				.stub()
+				.withArgs('app:state:updated')
+				.callsArg(1),
+		};
+
 		blocksVerifyModule = new BlocksVerify(
 			loggerStub,
 			logicBlockStub,
 			storageStub,
-			configMock
+			configMock,
+			channelMock
 		);
 
 		library = BlocksVerify.__get__('library');
@@ -116,14 +131,11 @@ describe('blocks/verify', () => {
 				broadcastReducedBlock: sinonSandbox.stub(),
 				applyBlock: sinonSandbox.stub(),
 			},
+			calculateNewBroadhash: sinonSandbox.stub(),
 		};
 
 		const modulesProcessTransactionsStub = {
 			verifyTransactions: sinonSandbox.stub(),
-		};
-
-		const componentsSystemStub = {
-			update: sinonSandbox.stub(),
 		};
 
 		bindingsStub = {
@@ -135,15 +147,10 @@ describe('blocks/verify', () => {
 				transport: modulesTransportStub,
 				processTransactions: modulesProcessTransactionsStub,
 			},
-
-			components: {
-				system: componentsSystemStub,
-			},
 		};
 
 		blocksVerifyModule.onBind(bindingsStub);
 		modules = BlocksVerify.__get__('modules');
-		components = BlocksVerify.__get__('components');
 		done();
 	});
 
@@ -1862,7 +1869,6 @@ describe('blocks/verify', () => {
 			__private.broadcastBlock = sinonSandbox
 				.stub()
 				.callsArgWith(2, null, true);
-			components.system.update.resolves();
 			modules.transport.broadcastHeaders.callsArgWith(0, null, true);
 			done();
 		});
@@ -1891,7 +1897,16 @@ describe('blocks/verify', () => {
 			done();
 		});
 
-		describe('system update', () => {
+		describe('applicationState update', () => {
+			beforeEach(() =>
+				modules.blocks.calculateNewBroadhash.resolves({
+					broadhash: 'xx',
+					height: 1,
+				})
+			);
+
+			afterEach(() => channelMock.invoke.resetHistory());
+
 			it('should be called if snapshotting was not activated', done => {
 				blocksVerifyModule.processBlock(
 					dummyBlock,
@@ -1899,29 +1914,8 @@ describe('blocks/verify', () => {
 					saveBlock,
 					err => {
 						expect(err).to.be.null;
-						expect(components.system.update.calledOnce).to.be.true;
-						done();
-					}
-				);
-			});
-
-			it('should not be called if snapshotting was activated', done => {
-				const blocksVerifyAuxModule = new BlocksVerify(
-					loggerStub,
-					logicBlockStub,
-					storageStub,
-					{
-						loading: { snapshotRound: 123 },
-					}
-				);
-
-				blocksVerifyAuxModule.processBlock(
-					dummyBlock,
-					broadcast,
-					saveBlock,
-					err => {
-						expect(err).to.be.null;
-						expect(components.system.update.calledOnce).to.be.false;
+						expect(channelMock.once.calledOnce).to.be.true;
+						expect(channelMock.invoke.calledOnce).to.be.true;
 						done();
 					}
 				);
@@ -1929,6 +1923,13 @@ describe('blocks/verify', () => {
 		});
 
 		describe('when broadcast = true', () => {
+			beforeEach(() =>
+				modules.blocks.calculateNewBroadhash.resolves({
+					broadhash: 'xx',
+					height: 1,
+				})
+			);
+
 			describe('when saveBlock = true', () => {
 				it('should call private functions with correct parameters', done => {
 					broadcast = true;
@@ -1967,6 +1968,13 @@ describe('blocks/verify', () => {
 		});
 
 		describe('when broadcast = false', () => {
+			beforeEach(() =>
+				modules.blocks.calculateNewBroadhash.resolves({
+					broadhash: 'xx',
+					height: 1,
+				})
+			);
+
 			describe('when saveBlock = true', () => {
 				it('should call private functions with correct parameters', done => {
 					broadcast = false;
@@ -2023,8 +2031,9 @@ describe('blocks/verify', () => {
 								__private.validateBlockSlot,
 								__private.checkTransactions,
 								modules.blocks.chain.applyBlock,
-								components.system.update,
-								modules.transport.broadcastHeaders
+
+								modules.transport.broadcastHeaders, // Because of the mocked event handler this method is called immediately
+								channelMock.invoke
 							);
 
 							done();
@@ -2053,7 +2062,6 @@ describe('blocks/verify', () => {
 			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
 			expect(modules.delegates).to.equal(bindingsStub.modules.delegates);
 			expect(modules.transactions).to.equal(bindingsStub.modules.transactions);
-			expect(components.system).to.equal(bindingsStub.components.system);
 			expect(modules.transport).to.equal(bindingsStub.modules.transport);
 			done();
 		});

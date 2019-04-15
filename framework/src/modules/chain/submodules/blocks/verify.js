@@ -23,7 +23,6 @@ const blockVersion = require('../../logic/block_version');
 const checkTransactionExceptions = require('../../logic/check_transaction_against_exceptions.js');
 const Bignum = require('../../helpers/bignum');
 
-let components;
 let modules;
 let library;
 let self;
@@ -52,7 +51,7 @@ __private.lastNBlockIds = [];
  * @todo Add description for the class
  */
 class Verify {
-	constructor(logger, block, storage, config) {
+	constructor(logger, block, storage, config, channel) {
 		library = {
 			logger,
 			storage,
@@ -64,6 +63,7 @@ class Verify {
 					snapshotRound: config.loading.snapshotRound,
 				},
 			},
+			channel,
 		};
 		self = this;
 		__private.blockReward = new BlockReward();
@@ -99,7 +99,9 @@ __private.checkTransactions = async (transactions, checkExists) => {
 
 		if (persistedTransactions.length > 0) {
 			modules.transactions.onConfirmedTransactions([persistedTransactions[0]]);
-			throw `Transaction is already confirmed: ${persistedTransactions[0].id}`;
+			throw new Error(
+				`Transaction is already confirmed: ${persistedTransactions[0].id}`
+			);
 		}
 	}
 
@@ -797,13 +799,23 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 			},
 			// Perform next two steps only when 'broadcast' flag is set, it can be:
 			// 'true' if block comes from generation or receiving process
-			// 'false' if block comes from chain synchronisation process
-			updateSystemHeaders(seriesCb) {
-				// Update our own headers: broadhash and height
+			// 'false' if block comes from chain synchronization process
+			updateApplicationState(seriesCb) {
 				if (!library.config.loading.snapshotRound) {
-					return components.system
-						.update()
-						.then(() => seriesCb())
+					return modules.blocks
+						.calculateNewBroadhash()
+						.then(({ broadhash, height }) => {
+							// Listen for the update of step to move to next step
+							library.channel.once('app:state:updated', () => {
+								seriesCb();
+							});
+
+							// Update our application state: broadhash and height
+							return library.channel.invoke('app:updateApplicationState', {
+								broadhash,
+								height,
+							});
+						})
 						.catch(seriesCb);
 				}
 				return seriesCb();
@@ -818,15 +830,12 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 };
 
 /**
- * Handle modules initialization & components
+ * It assigns modules to private constants.
  *
- * @param {Object} scope - Exposed modules
+ * @param {modules} scope - Exposed modules
  */
 Verify.prototype.onBind = function(scope) {
 	library.logger.trace('Blocks->Verify: Shared modules bind.');
-	components = {
-		system: scope.components.system,
-	};
 
 	modules = {
 		accounts: scope.modules.accounts,

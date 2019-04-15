@@ -246,6 +246,18 @@ describe('Migration', () => {
 	});
 
 	describe('isPersisted()', () => {
+		let localAdapter;
+		const isPersistedSqlFile = 'isPersisted SQL File';
+		beforeEach(async () => {
+			localAdapter = {
+				loadSQLFiles: sinonSandbox.stub().returns({
+					isPersisted: isPersistedSqlFile,
+				}),
+				executeFile: sinonSandbox.stub().resolves([validMigration]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+		});
+
 		it('should accept only valid filters', async () => {
 			const migration = new Migration(adapter);
 			expect(() => {
@@ -261,11 +273,6 @@ describe('Migration', () => {
 		});
 
 		it('should call mergeFilters with proper params', async () => {
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([validMigration]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const migration = new Migration(localAdapter);
 			migration.mergeFilters = sinonSandbox.stub();
 			migration.parseFilters = sinonSandbox.stub();
@@ -274,11 +281,6 @@ describe('Migration', () => {
 		});
 
 		it('should call parseFilters with proper params', async () => {
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([validMigration]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const migration = new Migration(localAdapter);
 			migration.mergeFilters = sinonSandbox.stub().returns(validFilter);
 			migration.parseFilters = sinonSandbox.stub();
@@ -287,11 +289,6 @@ describe('Migration', () => {
 		});
 
 		it('should call adapter.executeFile with proper params', async () => {
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([validMigration]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const migration = new Migration(localAdapter);
 			migration.mergeFilters = sinonSandbox.stub().returns(validFilter);
 			migration.parseFilters = sinonSandbox.stub();
@@ -299,7 +296,7 @@ describe('Migration', () => {
 			migration.isPersisted(validFilter);
 			expect(
 				localAdapter.executeFile.calledWith(
-					'loadSQLFile',
+					isPersistedSqlFile,
 					{
 						parsedFilters: undefined,
 					},

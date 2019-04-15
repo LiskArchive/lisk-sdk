@@ -14,12 +14,14 @@
 
 'use strict';
 
-const System = require('./system');
-
-function createSystemComponent(config, logger, storage) {
-	return new System(config, logger, storage);
-}
+const {
+	DappTransaction,
+	InTransferTransaction,
+	OutTransferTransaction,
+} = require('@liskhq/lisk-transactions');
 
 module.exports = {
-	createSystemComponent,
+	DappTransaction,
+	InTransferTransaction,
+	OutTransferTransaction,
 };
