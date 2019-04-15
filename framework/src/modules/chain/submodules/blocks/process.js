@@ -20,6 +20,7 @@ const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const { convertErrorsToString } = require('../../helpers/error_handlers');
 const slots = require('../../helpers/slots');
 const definitions = require('../../schema/definitions');
+const blockVersion = require('../../logic/block_version');
 
 const { MAX_TRANSACTIONS_PER_BLOCK, ACTIVE_DELEGATES } = global.constants;
 
@@ -556,8 +557,25 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 			MAX_TRANSACTIONS_PER_BLOCK
 		) || [];
 
+	const state = {
+		timestamp,
+		height: modules.blocks.lastBlock.get() + 1,
+		version: blockVersion.currentBlockVersion,
+	};
+
+	const allowedTransactionsIds = modules.processTransactions
+		.checkAllowedTransactions(transactions, state)
+		.transactionsResponses.filter(
+			transactionResponse => transactionResponse.status === TransactionStatus.OK
+		)
+		.map(transactionReponse => transactionReponse.id);
+
+	const allowedTransactions = transactions.filter(transaction =>
+		allowedTransactionsIds.includes(transaction.id)
+	);
+
 	modules.processTransactions
-		.verifyTransactions(transactions)
+		.verifyTransactions(allowedTransactions)
 		.then(({ transactionsResponses: responses }) => {
 			const readyTransactions = transactions.filter(transaction =>
 				responses
