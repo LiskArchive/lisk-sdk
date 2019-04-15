@@ -130,12 +130,12 @@ const config = {
 				exec_mode: 'fork',
 				script: 'src/index.js',
 				name: `node_${index}`,
-				args: ` -c framework/test/mocha/network/configs/config.node-${index}.json`,
+				args: ` -c test/mocha/network/configs/config.node-${index}.json`,
 				env: {
 					NODE_ENV: 'test',
 				},
-				error_file: `framework/test/mocha/network/logs/lisk-test-node-${index}.err.log`,
-				out_file: `framework/test/mocha/network/logs/lisk-test-node-${index}.out.log`,
+				error_file: `test/mocha/network/logs/lisk-test-node-${index}.err.log`,
+				out_file: `test/mocha/network/logs/lisk-test-node-${index}.out.log`,
 				configuration,
 			});
 			return pm2Config;

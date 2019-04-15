@@ -7,32 +7,30 @@ const constantsSchema = require('../../../../../src/controller/schema/constants'
 jest.mock('../../../../../src/components/logger');
 jest.mock('../../../../../src/components/logger');
 
-const appSchema = {
-	type: 'object',
-	properties: {
-		NETWORK: {
-			type: 'string',
-			description:
-				'lisk network [devnet|betanet|mainnet|testnet]. Defaults to "devnet"',
-			enum: ['devnet', 'alphanet', 'betanet', 'testnet', 'mainnet'],
-			env: 'LISK_NETWORK',
-			arg: '-n,--network',
-		},
-		CUSTOM_CONFIG_FILE: {
-			type: ['string', 'null'],
-			description: 'Custom configuration file path',
-			default: null,
-			env: 'LISK_CONFIG_FILE',
-			arg: '-c,--config',
-		},
-	},
-	default: {
-		NETWORK: 'devnet',
-		CUSTOM_CONFIG_FILE: null,
-	},
-};
-
-const { NETWORK } = validator.parseEnvArgAndValidate(appSchema, {});
+// const appSchema = {
+// 	type: 'object',
+// 	properties: {
+// 		NETWORK: {
+// 			type: 'string',
+// 			description:
+// 				'lisk network [devnet|betanet|mainnet|testnet]. Defaults to "devnet"',
+// 			enum: ['devnet', 'alphanet', 'betanet', 'testnet', 'mainnet'],
+// 			env: 'LISK_NETWORK',
+// 			arg: '-n,--network',
+// 		},
+// 		CUSTOM_CONFIG_FILE: {
+// 			type: ['string', 'null'],
+// 			description: 'Custom configuration file path',
+// 			default: null,
+// 			env: 'LISK_CONFIG_FILE',
+// 			arg: '-c,--config',
+// 		},
+// 	},
+// 	default: {
+// 		NETWORK: 'devnet',
+// 		CUSTOM_CONFIG_FILE: null,
+// 	},
+// };
 
 const appConfig = {
 	app: {
@@ -42,10 +40,8 @@ const appConfig = {
 	},
 };
 
-// eslint-disable-next-line import/no-dynamic-require
-const networkConfig = require(`../../../../../../config/${NETWORK}/config`);
-// eslint-disable-next-line import/no-dynamic-require
-const genesisBlock = require(`../../../../../../config/${NETWORK}/genesis_block`);
+const networkConfig = require('../../../../fixtures/config/devnet/config');
+const genesisBlock = require('../../../../fixtures/config/devnet/genesis_block');
 
 // TODO: Unskip this when we have the new config format.
 // eslint-disable-next-line jest/no-disabled-tests

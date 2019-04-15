@@ -1,0 +1,13 @@
+{
+	"extends": "../tsconfig.json",
+	"compilerOptions": {
+		"composite": true,
+		"declaration": true,
+		"esModuleInterop": true,
+		"importHelpers": true,
+		"rootDir": "src",
+		"outDir": "dist"
+	},
+	"include": ["src/**/*", "types/**/*", "../types/**/*"],
+	"files": ["src/default_config.json"]
+}

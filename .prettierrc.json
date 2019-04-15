@@ -1,5 +1,1 @@
-{
-	"singleQuote": true,
-	"trailingComma": "es5",
-	"useTabs": true
-}
+templates/.prettierrc.json.tmpl

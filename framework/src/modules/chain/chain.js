@@ -3,8 +3,6 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 }
 
 const { promisify } = require('util');
-const path = require('path');
-const fs = require('fs');
 const git = require('./helpers/git');
 const Sequence = require('./helpers/sequence');
 const ed = require('./helpers/ed');
@@ -25,10 +23,12 @@ const {
 process.stdin.resume();
 
 // Read build version from file
-const versionBuild = fs
-	.readFileSync(path.join(__dirname, '../../../../', '.build'), 'utf8')
-	.toString()
-	.trim();
+// TODO: Remove from framework
+const versionBuild = 'version-0.1.0';
+// const versionBuild = fs
+// 	.readFileSync(path.join(__dirname, '../../../../', '.build'), 'utf8')
+// 	.toString()
+// 	.trim();
 
 /**
  * Hash of the last git commit.
@@ -87,7 +87,7 @@ module.exports = class Chain {
 						Object.assign({}, loggerConfig, {
 							logFileName: storageConfig.logFileName,
 						})
-					);
+				  );
 
 		// Try to get the last git commit
 		try {
