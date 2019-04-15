@@ -31,7 +31,7 @@ describe('system test (type 3) - voting with duplicate submissions', () => {
 	let t = 0;
 
 	/* eslint-disable no-loop-func */
-	while (i < 30) {
+	while (i < 1) {
 		describe('executing 30 times', () => {
 			let transaction1;
 			let transaction2;
