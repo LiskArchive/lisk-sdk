@@ -31,11 +31,12 @@ const emitMiddleware = require('./api/ws/workers/middlewares/emit');
 const PeersUpdateRules = require('./api/ws/workers/peers_update_rules');
 const Rules = require('./api/ws/workers/rules');
 const failureCodes = require('./api/ws/rpc/failure_codes');
-const {
-	createLoggerComponent,
-} = require('../../../../framework/src/components/logger');
-const AppConfig = require('./helpers/config');
-const config = new AppConfig(require('../../../../package.json'), false);
+const { createLoggerComponent } = require('../../../src/components/logger');
+
+const validator = require('../../controller/helpers/validator');
+const schema = require('./defaults/config');
+
+const config = validator.parseEnvArgAndValidate(schema, {});
 
 /**
  * Instantiate the SocketCluster SCWorker instance with custom logic
@@ -46,8 +47,8 @@ SCWorker.create({
 	// Pass the custom configuration to P2P HTTP Server to mitigate the security vulnerabilities fixed by Node v8.14.0 - "Slowloris (cve-2018-12122)"
 	createHTTPServer() {
 		const httpServer = http.createServer();
-		httpServer.headersTimeout = config.api.options.limits.headersTimeout;
-		httpServer.setTimeout(config.api.options.limits.serverSetTimeout);
+		httpServer.headersTimeout = config.network.options.httpHeadersTimeout;
+		httpServer.setTimeout(config.network.options.httpServerSetTimeout);
 		httpServer.on('timeout', socket => {
 			socket.destroy();
 		});
@@ -59,28 +60,20 @@ SCWorker.create({
 
 		async.auto(
 			{
-				logger(cb) {
-					cb(
-						null,
-						createLoggerComponent({
-							echo: config.consoleLogLevel,
-							errorLevel: config.fileLogLevel,
-							filename: config.logFileName,
-						})
-					);
+				slaveWAMPServer(cb) {
+					new SlaveWAMPServer(self, 20e3, cb);
 				},
-
-				slaveWAMPServer: [
-					'logger',
-					function(scope, cb) {
-						new SlaveWAMPServer(self, 20e3, cb);
-					},
-				],
-
 				config: [
 					'slaveWAMPServer',
 					function(scope, cb) {
 						cb(null, scope.slaveWAMPServer.config);
+					},
+				],
+
+				logger: [
+					'config',
+					function(scope, cb) {
+						cb(null, createLoggerComponent(scope.config.components.logger));
 					},
 				],
 

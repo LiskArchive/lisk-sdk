@@ -1,0 +1,13 @@
+{
+	"address": "9999142599245349337L",
+	"publicKey": "500660b67a2ade1e2528b7f648feef8f3b46e2f4f90ca7f5439101b5119f309d",
+	"secondPublicKey": "",
+	"balance": "94378900000",
+	"multiMin": 2,
+	"multiLifetime": 1,
+	"membersPublicKeys": [
+		"40af643265a718844f3dac56ce17ae1d7d47d0a24a35a277a0a6cb0baaa1939f",
+		"d042ad3f1a5b042ddc5aa80c4267b5bfd3b4dda3a682da0a3ef7269409347adb",
+		"542fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33cf"
+	]
+}

@@ -1,0 +1,9 @@
+{
+	"globals": {
+		"expect": true
+	},
+	"rules": {
+		"arrow-body-style": "off",
+		"no-unused-expressions": "off"
+	}
+}

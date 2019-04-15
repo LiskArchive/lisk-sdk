@@ -23,8 +23,8 @@ module.exports = {
 			configurations,
 			(configuration, index, eachCb) => {
 				child_process.exec(
-					`dropdb ${configuration.db.database}; createdb ${
-						configuration.db.database
+					`dropdb ${configuration.components.storage.database}; createdb ${
+						configuration.components.storage.database
 					}`,
 					eachCb
 				);
@@ -35,7 +35,7 @@ module.exports = {
 
 	launchTestNodes(cb) {
 		child_process.exec(
-			'node_modules/.bin/pm2 start framework/test/mocha/network/pm2.network.json',
+			'node_modules/.bin/pm2 start test/mocha/network/pm2.network.json',
 			err => {
 				return cb(err);
 			}
@@ -43,7 +43,7 @@ module.exports = {
 	},
 
 	clearLogs(cb) {
-		child_process.exec('rm -rf framework/test/mocha/network/logs/*', err => {
+		child_process.exec('rm -rf test/mocha/network/logs/*', err => {
 			return cb(err);
 		});
 	},

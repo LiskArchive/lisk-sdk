@@ -36,8 +36,14 @@ module.exports = function(
 	// One of the bi-directional monitoring connections should be down so
 	// we need to subtract 2.
 
+	// TODO: WIll be resolved with issue https://github.com/LiskHQ/lisk/issues/2976
+	// PROTOCOL_VERSION is not supported as of now
+	// Will enable this test after fixing this issue
+	// eslint-disable-next-line mocha/no-skipped-tests
 	describe('@p2p : peer Protocol Version', () => {
-		const { protocolVersion: originalProtocolVersion } = __testContext.config;
+		const {
+			protocolVersion: originalProtocolVersion,
+		} = __testContext.config.app;
 		let pm2NetworkConfig;
 
 		describe('when a node with protocol = 0.0 (invalid) tries to join the network', () => {

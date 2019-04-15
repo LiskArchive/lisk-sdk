@@ -1,4 +1,6 @@
 {
+	"extends": ["../../../.eslintrc.test.json"],
+	"plugins": ["chai-expect"],
 	"env": {
 		"mocha": true
 	},
@@ -10,7 +12,6 @@
 		"sinonSandbox": true
 	},
 	"rules": {
-		// To Keep
 		"arrow-body-style": "off"
 	}
 }

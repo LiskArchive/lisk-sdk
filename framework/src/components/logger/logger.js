@@ -31,6 +31,7 @@ class Logger {
 	 * @param {string} config.consoleLogLevel
 	 */
 	constructor(config) {
+		// Not exposed via defaultConfig
 		this.levels = config.levels || {
 			none: 99,
 			trace: 0,
@@ -42,6 +43,7 @@ class Logger {
 			fatal: 6,
 		};
 
+		// Not exposed via defaultConfig
 		this.level_abbr = config.level_abbr || {
 			trace: 'trc',
 			debug: 'dbg',
@@ -52,7 +54,7 @@ class Logger {
 			fatal: 'FTL',
 		};
 
-		this.logFileName = `${process.cwd()}/${config.filename || 'logs.log'}`;
+		this.logFileName = `${process.cwd()}/${config.logFileName || 'logs.log'}`;
 		this.fileLogLevel = config.fileLogLevel || 'log';
 		this.consoleLogLevel = config.consoleLogLevel;
 	}

@@ -1,5 +1,6 @@
 const HttpApi = require('./http_api');
 const BaseModule = require('../base_module');
+const { config: defaultConfig } = require('./defaults');
 
 /* eslint-disable class-methods-use-this */
 
@@ -16,7 +17,7 @@ class HttpAPIModule extends BaseModule {
 	}
 
 	static get alias() {
-		return 'httpApi';
+		return 'http_api';
 	}
 
 	static get info() {
@@ -27,8 +28,8 @@ class HttpAPIModule extends BaseModule {
 		};
 	}
 
-	get defaults() {
-		return {};
+	static get defaults() {
+		return defaultConfig;
 	}
 
 	get events() {
