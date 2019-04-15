@@ -171,8 +171,8 @@ async function _getDelegates(filters, options) {
 
 	const supply = lastBlock.height
 		? await channel.invoke('chain:calculateSupply', {
-				height: lastBlock.height,
-		  })
+			height: lastBlock.height,
+		})
 		: 0;
 
 	return delegates.map(delegate => delegateFormatter(supply, delegate));
