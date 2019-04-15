@@ -54,7 +54,7 @@ You can find further details on installing these dependencies in our [pre-instal
 To start using the Lisk SDK you need to install one npm package - `lisk-framework`:
 
 ```
-npm install lisk-framework
+npm install lisk-framework@alpha
 ```
 
 ## Usage
