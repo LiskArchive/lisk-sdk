@@ -16,9 +16,7 @@
 
 const _ = require('lodash');
 const async = require('async');
-const {
-	CACHE_KEYS_TRANSACTION_COUNT,
-} = require('../../../../../framework/src/components/cache');
+const { CACHE_KEYS_TRANSACTION_COUNT } = require('../../../components/cache');
 const TransactionPool = require('../logic/transaction_pool');
 const Transfer = require('../logic/transfer');
 
