@@ -88,7 +88,7 @@ module.exports = class Chain {
 						Object.assign({}, loggerConfig, {
 							logFileName: storageConfig.logFileName,
 						})
-				  );
+					);
 
 		// Try to get the last git commit
 		try {
@@ -129,7 +129,7 @@ module.exports = class Chain {
 			this.options.loggerConfig = loggerConfig;
 
 			const self = this;
-			const scope = {
+			this.scope = {
 				lastCommit,
 				ed,
 				build: versionBuild,
@@ -156,21 +156,21 @@ module.exports = class Chain {
 				applicationState: this.applicationState,
 			};
 
-			await bootstrapStorage(scope, global.constants.ACTIVE_DELEGATES);
-			await bootstrapCache(scope);
+			await bootstrapStorage(this.scope, global.constants.ACTIVE_DELEGATES);
+			await bootstrapCache(this.scope);
 
-			scope.bus = await createBus();
-			scope.logic = await initLogicStructure(scope);
-			scope.modules = await initModules(scope);
+			this.scope.bus = await createBus();
+			this.scope.logic = await initLogicStructure(this.scope);
+			this.scope.modules = await initModules(this.scope);
 
-			scope.logic.block.bindModules(scope.modules);
+			this.scope.logic.block.bindModules(this.scope.modules);
 
 			this.channel.subscribe('app:state:updated', event => {
-				Object.assign(scope.applicationState, event.data);
+				Object.assign(this.scope.applicationState, event.data);
 			});
 
 			// Fire onBind event in every module
-			scope.bus.message('bind', scope);
+			this.scope.bus.message('bind', this.scope);
 
 			self.logger.info('Modules ready and launched');
 
@@ -192,8 +192,6 @@ module.exports = class Chain {
 					}
 				}
 			);
-
-			self.scope = scope;
 		} catch (error) {
 			this.logger.fatal('Chain initialization', {
 				message: error.message,
@@ -303,7 +301,7 @@ module.exports = class Chain {
 		await Promise.all(
 			Object.keys(modules).map(key => {
 				if (typeof modules[key].cleanup === 'function') {
-					return promisify(modules[key].cleanup);
+					return modules[key].cleanup();
 				}
 				return true;
 			})
