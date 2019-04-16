@@ -132,7 +132,7 @@ properties([
 ])
 
 pipeline {
-	agent { node { label 'lisk-core' } }
+	agent { node { label 'lisk-framework' } }
 
 	environment {
 		MAX_TASK_LIMIT = '20'
@@ -158,7 +158,7 @@ pipeline {
 		stage('Parallel: jest') {
 			parallel {
 				stage('Jest Functional tests') {
-					agent { node { label 'lisk-core' }}
+					agent { node { label 'lisk-framework' }}
 					steps {
 						setup()
 						run_jest('functional')
@@ -170,7 +170,7 @@ pipeline {
 					}
 				}
 				stage('Jest Unit tests') {
-					agent { node { label 'lisk-core' }}
+					agent { node { label 'lisk-framework' }}
 					steps {
 						setup()
 						run_jest('unit')
@@ -182,7 +182,7 @@ pipeline {
 					}
 				}
 				stage('Jest Integration tests') {
-					agent { node { label 'lisk-core' }}
+					agent { node { label 'lisk-framework' }}
 					steps {
 						setup()
 						run_jest('integration')
@@ -198,7 +198,7 @@ pipeline {
 		stage('Parallel: mocha') {
 			parallel {
 				stage('Functional HTTP GET tests') {
-					agent { node { label 'lisk-core' }}
+					agent { node { label 'lisk-framework' }}
 					steps {
 						setup()
 						run_mocha('functional:get')
@@ -210,7 +210,7 @@ pipeline {
 					}
 				}
 				stage('Functional HTTP POST tests') {
-					agent { node { label 'lisk-core' }}
+					agent { node { label 'lisk-framework' }}
 					steps {
 						setup()
 						run_mocha('functional:post')
@@ -222,7 +222,7 @@ pipeline {
 					}
 				}
 				stage('Functional HTTP PUT tests') {
-					agent { node { label 'lisk-core' }}
+					agent { node { label 'lisk-framework' }}
 					steps {
 						setup()
 						run_mocha('functional:put')
@@ -234,7 +234,7 @@ pipeline {
 					}
 				}
 				stage ('Functional WS tests') {
-					agent { node { label 'lisk-core' }}
+					agent { node { label 'lisk-framework' }}
 					steps {
 						setup()
 						run_mocha('functional:ws')
@@ -246,7 +246,7 @@ pipeline {
 					}
 				}
 				stage('Unit tests') {
-					agent { node { label 'lisk-core' }}
+					agent { node { label 'lisk-framework' }}
 					steps {
 						setup()
 						run_mocha('unit')
@@ -258,7 +258,7 @@ pipeline {
 					}
 				}
 				stage('Integation tests') {
-					agent { node { label 'lisk-core' }}
+					agent { node { label 'lisk-framework' }}
 					steps {
 						setup()
 						timeout(10) {

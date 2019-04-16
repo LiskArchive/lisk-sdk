@@ -1,7 +1,7 @@
 @Library('lisk-jenkins') _
 
 pipeline {
-	agent { node { label 'lisk-commander' } }
+	agent { node { label 'lisk-sdk' } }
 	stages {
 		stage('Install') {
 			steps {
