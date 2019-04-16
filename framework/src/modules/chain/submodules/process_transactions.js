@@ -198,7 +198,7 @@ class ProcessTransactions {
 	 * @param steps
 	 * @returns {function(*=): {transactionsResponses: *[]}}
 	 */
-	static async composeProcessTransactionSteps(...steps) {
+	static composeProcessTransactionSteps(...steps) {
 		return async transactions => {
 			let failedResponses = [];
 			const { transactionsResponses: successfulResponses } = await steps.reduce(
