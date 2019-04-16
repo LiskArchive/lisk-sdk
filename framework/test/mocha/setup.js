@@ -36,10 +36,10 @@ const {
 	config: defaultCacheConfig,
 } = require('../../src/components/cache/defaults');
 
-const packageJson = require('../../../package.json');
-const netConfig = require('../../../config/devnet/config');
-const exceptions = require('../../../config/devnet/exceptions');
-const genesisBlock = require('../../../config/devnet/genesis_block');
+const packageJson = require('../../package.json');
+const netConfig = require('../fixtures/config/devnet/config');
+const exceptions = require('../fixtures/config/devnet/exceptions');
+const genesisBlock = require('../fixtures/config/devnet/genesis_block');
 
 validator.loadSchema(constantsSchema);
 validator.loadSchema(applicationSchema);

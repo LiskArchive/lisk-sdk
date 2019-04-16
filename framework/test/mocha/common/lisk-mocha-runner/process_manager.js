@@ -45,7 +45,7 @@ const getIstanbulOptions = (testFile, mochaCliOptions) => {
 	return [
 		'cover',
 		'--dir',
-		'framework/test/mocha/.coverage-unit',
+		'test/mocha/.coverage-unit',
 		'--include-pid',
 		'--print',
 		'none',
@@ -59,7 +59,7 @@ const spawn = (testFile, mochaCliOptions) => {
 	const istanbulOptions = getIstanbulOptions(testFile, mochaCliOptions);
 
 	const child = child_process.spawn(ISTANBUL_PATH, istanbulOptions, {
-		cwd: `${__dirname}/../../../../..`,
+		cwd: `${__dirname}/../../../..`,
 		detached: true,
 		stdio: 'inherit',
 	});

@@ -1,0 +1,17 @@
+{
+	"extends": ["../../.eslintrc.test.json"],
+	"plugins": ["chai-expect"],
+	"env": {
+		"mocha": true
+	},
+	"globals": {
+		"_": true,
+		"__testContext": true,
+		"expect": true,
+		"gc": true,
+		"sinonSandbox": true
+	},
+	"rules": {
+		"arrow-body-style": "off"
+	}
+}

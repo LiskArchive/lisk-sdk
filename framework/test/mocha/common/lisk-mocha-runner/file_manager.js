@@ -17,14 +17,14 @@
 const find = require('find');
 
 const testTypesMap = {
-	unit: 'framework/test/mocha/unit/',
-	integration: 'framework/test/mocha/integration/',
-	'functional:ws': 'framework/test/mocha/functional/ws/',
-	'functional:get': 'framework/test/mocha/functional/http/get/',
-	'functional:post': 'framework/test/mocha/functional/http/post/',
-	'functional:put': 'framework/test/mocha/functional/http/put/',
-	functional: 'framework/test/mocha/functional/',
-	network: 'framework/test/mocha/network/',
+	unit: 'test/mocha/unit/',
+	integration: 'test/mocha/integration/',
+	'functional:ws': 'test/mocha/functional/ws/',
+	'functional:get': 'test/mocha/functional/http/get/',
+	'functional:post': 'test/mocha/functional/http/post/',
+	'functional:put': 'test/mocha/functional/http/put/',
+	functional: 'test/mocha/functional/',
+	network: 'test/mocha/network/',
 };
 
 const scanFiles = testType => {
