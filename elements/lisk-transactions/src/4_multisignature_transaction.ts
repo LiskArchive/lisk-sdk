@@ -70,11 +70,14 @@ const setMemberAccounts = (
 	store: StateStore,
 	membersPublicKeys: ReadonlyArray<string>,
 ) => {
-	membersPublicKeys.map(memberPublicKey => {
+	membersPublicKeys.forEach(memberPublicKey => {
 		const address = getAddressFromPublicKey(memberPublicKey);
-		const memberAccount = { ...store.account.getOrDefault(address) };
-		memberAccount.publicKey = memberAccount.publicKey || memberPublicKey;
-		store.account.set(memberAccount.address, memberAccount);
+		const memberAccount = store.account.getOrDefault(address);
+		const memberAccountWithPublicKey = {
+			...memberAccount,
+			publicKey: memberAccount.publicKey || memberPublicKey,
+		};
+		store.account.set(memberAccount.address, memberAccountWithPublicKey);
 	});
 };
 
