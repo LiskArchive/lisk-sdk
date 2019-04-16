@@ -8,7 +8,7 @@ pipeline {
 				nvm(getNodejsVersion()) {
 					sh '''
 					npm ci
-					npm run bootstrap --ci
+					npm run bootstrap -- --ci
 					npm run lint
 					npm run build
 					'''
