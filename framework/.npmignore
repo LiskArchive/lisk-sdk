@@ -1,13 +1,4 @@
-.eslintignore
-.eslintrc.json
-.gitignore
-.lintstagedrc.json
-.nycrc
-.prettierrc.json
-.prettierignore
-cypress.json
-index.html
-Jenkinsfile*
+*
 
-test/
-logs/
+!src/**/*
+!README.md
