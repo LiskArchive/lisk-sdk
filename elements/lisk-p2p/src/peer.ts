@@ -264,7 +264,11 @@ export class Peer extends EventEmitter {
 	}
 
 	public set outboundSocket(scClientSocket: SCClientSocket) {
+		if (this._outboundSocket) {
+			this._unbindHandlersFromOutboundSocket(this._outboundSocket);
+		}
 		this._outboundSocket = scClientSocket;
+		this._bindHandlersToOutboundSocket(this._outboundSocket);
 	}
 
 	public updatePeerInfo(newPeerInfo: P2PDiscoveredPeerInfo): void {
@@ -453,7 +457,7 @@ export class Peer extends EventEmitter {
 		const legacyNodeInfo = this._nodeInfo
 			? convertNodeInfoToLegacyFormat(this._nodeInfo)
 			: undefined;
-		
+
 		const connectTimeout = this._peerConfig.connectTimeout
 			? this._peerConfig.connectTimeout
 			: DEFAULT_CONNECT_TIMEOUT;
@@ -633,6 +637,9 @@ export const connectAndRequest = async (
 			};
 
 			const outboundSocket = socketClusterClient.create(clientOptions);
+			// Bind an error handler immediately after creating the socket; otherwise errors may crash the process
+			outboundSocket.on('error', () => {});
+
 			// Attaching handlers for various events that could be used future for logging or any other application
 			outboundSocket.emit(
 				REMOTE_EVENT_RPC_REQUEST,
