@@ -37,8 +37,8 @@
 		"build:browsertest": "lerna run build:browsertest",
 		"cover": "lerna run cover",
 		"init": "./scripts/init.sh",
-		"precommit": "lint-staged && npm run lint",
-		"prepush": "npm run lint"
+		"postinstall": "npm run bootstrap",
+		"precommit": "lint-staged"
 	},
 	"devDependencies": {
 		"@types/node": "10.12.21",
