@@ -19,14 +19,6 @@ const roundInformation = require('../logic/rounds_information');
 
 let library;
 
-/**
- * Get current state from modules.blocks.lastBlock
- */
-const getCurrentState = () => {
-	const { version, height, timestamp } = library.modules.blocks.lastBlock.get();
-	return { version, height, timestamp };
-};
-
 class ProcessTransactions {
 	constructor(cb, scope) {
 		library = {
@@ -108,7 +100,7 @@ class ProcessTransactions {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	checkAllowedTransactions(transactions, state = getCurrentState()) {
+	checkAllowedTransactions(transactions, state = this._getCurrentState()) {
 		return {
 			transactionsResponses: transactions.map(transaction => {
 				const allowed =
@@ -236,6 +228,19 @@ class ProcessTransactions {
 				transactionsResponses: [...failedResponses, ...successfulResponses],
 			};
 		};
+	}
+
+	/**
+	 * Get current state from modules.blocks.lastBlock
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	_getCurrentState() {
+		const {
+			version,
+			height,
+			timestamp,
+		} = library.modules.blocks.lastBlock.get();
+		return { version, height, timestamp };
 	}
 }
 
