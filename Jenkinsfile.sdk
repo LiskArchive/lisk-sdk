@@ -1,13 +1,14 @@
 @Library('lisk-jenkins') _
 
 pipeline {
-	agent { node { label 'lisk-core' } }
+	agent { node { label 'lisk-commander' } }
 	stages {
 		stage('Install') {
 			steps {
 				nvm(getNodejsVersion()) {
 					sh '''
 					npm ci
+					npm run bootstrap --ci
 					npm run lint
 					npm run build
 					'''
@@ -17,31 +18,22 @@ pipeline {
 		stage('Test') {
 			steps {
 				nvm(getNodejsVersion()) {
+					sh 'npx lerna run test --ignore lisk-{framework,commander}'
 					dir('commander') {
-						sh 'npm ci'
+						sh '''
+						# TODO: This should not be necessary
+						npm ci
+						LISK_COMMANDER_CONFIG_DIR=$WORKSPACE/.lisk npm test
+						'''
 					}
-					sh '''
-					LISK_COMMANDER_CONFIG_DIR=$WORKSPACE/.lisk-commander npm run test
-					npm run cover
-					'''
+					dir('framework') {
+						sh 'npm test'
+					}
 				}
 			}
 			post {
 				cleanup {
-					sh 'rm -f $WORKSPACE/.lisk-commander/config.lock'
-				}
-			}
-		}
-		stage('elements: tests') {
-			steps {
-				nvm(getNodejsVersion()) {
-					dir('elements') {
-						sh '''
-						npm run test:node
-						npm run build:browsertes
-						npm run test:browser
-						'''
-					}
+					sh 'rm -f $WORKSPACE/.lisk/config.lock'
 				}
 			}
 		}
