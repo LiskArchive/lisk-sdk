@@ -37,7 +37,6 @@
 		"build:browsertest": "lerna run build:browsertest",
 		"cover": "lerna run cover",
 		"init": "./scripts/init.sh",
-		"postinstall": "npm run bootstrap",
 		"precommit": "lint-staged && npm run lint",
 		"prepush": "npm run lint"
 	},
