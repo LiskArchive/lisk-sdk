@@ -40,7 +40,6 @@ const nullChar2 = '\x00';
 const nullChar3 = '\u0000';
 const nullChar4 = '\\U00000000';
 
-// eslint-disable-next-line
 describe('POST /api/transactions (type 2) register delegate', () => {
 	let transaction;
 	const transactionsToWaitFor = [];

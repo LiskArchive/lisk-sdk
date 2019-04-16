@@ -30,7 +30,6 @@ const common = require('./common');
 
 const { FEES, NORMALIZER } = global.constants;
 
-// eslint-disable-next-line
 describe('POST /api/transactions (type 1) register second passphrase', () => {
 	let transaction;
 	const transactionsToWaitFor = [];

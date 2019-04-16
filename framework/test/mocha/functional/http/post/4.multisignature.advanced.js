@@ -30,7 +30,6 @@ const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const { NORMALIZER } = global.constants;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
-// eslint-disable-next-line
 describe('POST /api/transactions (type 4) register multisignature', () => {
 	const scenarios = {
 		incorrectly_offline_signed: new Scenarios.Multisig(),

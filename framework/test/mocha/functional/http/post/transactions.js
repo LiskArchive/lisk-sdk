@@ -24,7 +24,6 @@ const sendTransactionPromise = require('../../../common/helpers/api')
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const phases = require('../../../common/phases');
 
-// eslint-disable-next-line
 describe('POST /api/transactions (general)', () => {
 	const transactionsEndpoint = new SwaggerSpec('POST /transactions');
 	const account = randomUtil.account();

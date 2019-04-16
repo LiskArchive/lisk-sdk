@@ -38,7 +38,6 @@ const {
 } = global.constants;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
-// eslint-disable-next-line
 describe('POST /api/transactions (type 3) votes', () => {
 	let transaction;
 	let transactionsToWaitFor = [];
@@ -403,8 +402,6 @@ describe('POST /api/transactions (type 3) votes', () => {
 			});
 		});
 
-		// FIXME:
-		// eslint-disable-next-line
 		it('upvoting non delegate should be fail', async () => {
 			transaction = castVotes({
 				passphrase: accountMinimalFunds.passphrase,
