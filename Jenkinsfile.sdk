@@ -1,0 +1,55 @@
+@Library('lisk-jenkins') _
+
+pipeline {
+	agent { node { label 'lisk-core' } }
+	stages {
+		stage('Install') {
+			steps {
+				nvm(getNodejsVersion()) {
+					sh '''
+					npm ci
+					npm run lint
+					npm run build
+					'''
+				}
+			}
+		}
+		stage('Test') {
+			steps {
+				nvm(getNodejsVersion()) {
+					dir('commander') {
+						sh 'npm ci'
+					}
+					sh '''
+					LISK_COMMANDER_CONFIG_DIR=$WORKSPACE/.lisk-commander npm run test
+					npm run cover
+					'''
+				}
+			}
+			post {
+				cleanup {
+					sh 'rm -f $WORKSPACE/.lisk-commander/config.lock'
+				}
+			}
+		}
+		stage('elements: tests') {
+			steps {
+				nvm(getNodejsVersion()) {
+					dir('elements') {
+						sh '''
+						npm run test:node
+						npm run build:browsertes
+						npm run test:browser
+						'''
+					}
+				}
+			}
+		}
+	}
+	post {
+		always {
+			sh 'rm -rf */node_modules'
+		}
+	}
+}
+// vim: filetype=groovy
