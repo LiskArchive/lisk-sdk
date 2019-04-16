@@ -72,8 +72,7 @@ describe('GET /api/accounts', () => {
 		);
 
 		describe('address', () => {
-			// eslint-disable-next-line
-			it.skip('[feature/improve_transactions_processing_efficiency] using known address should respond with its multisignature_group', async () => {
+			it('using known address should respond with its multisignature_group', async () => {
 				return multisigGroupsEndpoint
 					.makeRequest({ address: account.address }, 200)
 					.then(res => {
@@ -140,8 +139,7 @@ describe('GET /api/accounts', () => {
 						expect(res.body.data).to.have.length(0);
 					});
 			});
-			// eslint-disable-next-line
-			it.skip('[feature/improve_transactions_processing_efficiency] using known member address should respond with its multisignature memberships', async () => {
+			it('using known member address should respond with its multisignature memberships', async () => {
 				return multisigMembersEndpoint
 					.makeRequest({ address: scenario.members[0].address }, 200)
 					.then(res => {
@@ -155,8 +153,7 @@ describe('GET /api/accounts', () => {
 						);
 					});
 			});
-			// eslint-disable-next-line
-			it.skip('[feature/improve_transactions_processing_efficiency] using known other member address should respond with its multisignature memberships', async () => {
+			it('using known other member address should respond with its multisignature memberships', async () => {
 				return multisigMembersEndpoint
 					.makeRequest({ address: scenario.members[1].address }, 200)
 					.then(res => {
