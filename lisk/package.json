@@ -39,7 +39,7 @@
 		"bluebird": "3.5.3",
 		"commander": "2.19.0",
 		"deep-diff": "1.0.2",
-		"lisk-framework": "0.1.0",
+		"lisk-framework": "0.1.0-alpha.0",
 		"lodash": "4.17.11",
 		"moment": "2.23.0",
 		"semver": "5.6.0",
