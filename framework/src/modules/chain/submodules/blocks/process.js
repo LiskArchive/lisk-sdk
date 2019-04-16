@@ -559,7 +559,7 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 
 	const state = {
 		timestamp,
-		height: modules.blocks.lastBlock.get() + 1,
+		height: modules.blocks.lastBlock.get().height + 1,
 		version: blockVersion.currentBlockVersion,
 	};
 
