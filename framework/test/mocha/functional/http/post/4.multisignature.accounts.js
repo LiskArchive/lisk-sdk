@@ -258,7 +258,5 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			);
 			expect(aMembersData.balance).to.be.equal(amount);
 		});
-		// Balance from existing member one shouldn't have changed, i.e. the account was not overwritten!
-		// expect(memberOneAfterRegistration.balance).to.be.equal(memberOneBeforeRegistration.balance);
 	});
 });
