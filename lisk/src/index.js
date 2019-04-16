@@ -3,7 +3,7 @@ const path = require('path');
 
 const {
 	Application,
-	helpers: { validator },
+	helpers: { configurator },
 	/* eslint-disable import/no-unresolved */
 } = require('lisk-framework');
 
@@ -47,24 +47,19 @@ const appSchema = {
 	},
 };
 
+configurator.registerSchema(appSchema);
+
 try {
-	const { NETWORK, CUSTOM_CONFIG_FILE } = validator.parseEnvArgAndValidate(
-		appSchema,
-		{}
-	);
+	const { NETWORK, CUSTOM_CONFIG_FILE } = configurator.getConfig();
+
+	configurator.loadConfigFile(path.resolve(__dirname, `../config/${NETWORK}/config`));
+	configurator.loadConfigFile(path.resolve(__dirname, `../config/${NETWORK}/exceptions`), 'modules.chain.exceptions');
 
 	/* eslint-disable import/no-dynamic-require */
-	let customConfig = {};
-	// TODO: I would convert config.json to .JS
-	const networkConfig = require(`../config/${NETWORK}/config`);
-	// TODO: Merge constants and exceptions with the above config.
-	const exceptions = require(`../config/${NETWORK}/exceptions`);
 	const genesisBlock = require(`../config/${NETWORK}/genesis_block`);
 
 	if (CUSTOM_CONFIG_FILE) {
-		customConfig = JSON.parse(
-			fs.readFileSync(path.resolve(CUSTOM_CONFIG_FILE), 'utf8')
-		);
+		configurator.loadConfigFile(path.resolve(CUSTOM_CONFIG_FILE));
 	}
 
 	// To run multiple applications for same network for integration tests
@@ -75,13 +70,7 @@ try {
 	TODO: Merge 3rd and 4th argument into one single object that would come from config/NETWORK/config.json
 	Exceptions and constants.js will be removed.
 	 */
-	const app = new Application(appName, genesisBlock, [
-		networkConfig,
-		customConfig,
-		appConfig,
-	]);
-
-	app.overrideModuleOptions('chain', { exceptions });
+	const app = new Application(appName, genesisBlock, configurator);
 
 	app
 		.run()

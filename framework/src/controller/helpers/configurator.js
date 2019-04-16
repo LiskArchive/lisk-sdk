@@ -29,6 +29,8 @@ class Configurator {
 		this.configSchema = appConfig;
 		this.metaInfo = {};
 
+		this.customData = [];
+
 		this.registerSchema(loggerConfig, 'components.logger');
 		this.registerSchema(storageConfig, 'components.storage');
 		this.registerSchema(cacheConfig, 'components.cache');
@@ -42,25 +44,24 @@ class Configurator {
 	 * Parse env variables and command line options and merge them together with defaults
 	 * to generate one final unified configuration
 	 *
-	 * @param {Object | Array.<Object>} data - Array of
+	 * @param {Object | Array.<Object>} defaultDataObjects - Array of
 	 */
-	parseMergeAndValidate(data) {
+	getConfig(defaultDataObjects = {}) {
 		return parseEnvArgAndValidate(
 			this.configSchema,
-			_.defaultsDeep(..._.flatten([data]).reverse())
+			_.defaultsDeep(...[...this.customData, defaultDataObjects])
 		);
 	}
 
-	/**
-	 * Parse env variables and command line options and merge them together with defaults
-	 * to generate one final unified configuration
-	 *
-	 * @param {Object | Array.<Object>} data - Array of
-	 */
-	validate(data) {
-		return parseEnvArgAndValidate(
-			this.configSchema,
-			..._.defaultsDeep(_.flatten([data]).reverse())
+	loadConfigFile(configFilePath, destinationPath) {
+		// To allow loading up JS exports and JSON files
+		// we used the dynamic require instead of fs
+		this.loadConfig(require(configFilePath), destinationPath);
+	}
+
+	loadConfig(data, destinationPath) {
+		this.customData.push(
+			destinationPath ? _.set({}, destinationPath, data) : data
 		);
 	}
 
@@ -71,12 +72,15 @@ class Configurator {
 			if (key === 'env' || key === 'arg') {
 				const parentHumanPath = sanitizeSchemaKeys(parentPath);
 				this.metaInfo[parentHumanPath] = this.metaInfo[parentHumanPath] || {};
-				this.metaInfo[parentHumanPath].description = _.get(this.configSchema, parentPath).description || '';
+				this.metaInfo[parentHumanPath].description =
+					_.get(this.configSchema, parentPath).description || '';
 
 				if (key === 'env') {
-					this.metaInfo[parentHumanPath].env = (typeof value === 'object') ? value.variable : value;
+					this.metaInfo[parentHumanPath].env =
+						typeof value === 'object' ? value.variable : value;
 				} else {
-					this.metaInfo[parentHumanPath].arg = (typeof value === 'object') ? value.name : value;
+					this.metaInfo[parentHumanPath].arg =
+						typeof value === 'object' ? value.name : value;
 				}
 			}
 		});
@@ -84,12 +88,20 @@ class Configurator {
 
 	helpBanner() {
 		const message = [];
-		message.push('Your can customize the configuration runtime with following env variables and command line options:');
+		message.push(
+			'Your can customize the configuration runtime with following env variables and command line options:'
+		);
 		Object.keys(this.metaInfo).forEach(key => {
-			message.push(`${[this.metaInfo[key].arg, this.metaInfo[key].env].filter(Boolean).join()}				${key}`);
+			message.push(
+				`${[this.metaInfo[key].arg, this.metaInfo[key].env]
+					.filter(Boolean)
+					.join()}				${key}`
+			);
 		});
 
-		message.push('For rest of configuration, please modify those directly to your custom config file.');
+		message.push(
+			'For rest of configuration, please modify those directly to your custom config file.'
+		);
 		return message.join('\n');
 	}
 

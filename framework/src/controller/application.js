@@ -91,15 +91,11 @@ class Application {
 		genesisBlock,
 		config = { app: {}, components: { logger: null }, modules: {} }
 	) {
-		let appConfig;
+		let appConfig = config;
 
-		// If user passes multiple config objects merge them in left-right order
-		if (Array.isArray(config)) {
-			// We don't have a mergeDeep method, so we are using defaultsDeep
-			// in the reverse order to have same behaviour
-			appConfig = _.defaultsDeep(...config.reverse());
-		} else {
-			appConfig = config;
+		// Config is an object of Configurator
+		if (config.constructor.name === 'Configurator') {
+			appConfig = config.getConfig();
 		}
 
 		if (!appConfig.components.logger) {
@@ -117,11 +113,6 @@ class Application {
 			validator.validate(applicationSchema.appLabel, label);
 		}
 		validator.validate(applicationSchema.genesisBlock, genesisBlock);
-
-		appConfig = validator.parseEnvArgAndValidate(
-			applicationSchema.config,
-			appConfig
-		);
 
 		// These constants are readonly we are loading up their default values
 		// In additional validating those values so any wrongly changed value
@@ -342,24 +333,11 @@ class Application {
 			: ['httpApi'];
 
 		Object.keys(modules).forEach(alias => {
-			this.logger.info(`Validating module options with alias: ${alias}`);
-			this.config.modules[alias] = validator.parseEnvArgAndValidate(
-				modules[alias].defaults,
-				this.config.modules[alias]
-			);
-
-			this.overrideModuleOptions(alias, appConfigToShareWithModules);
 			this.overrideModuleOptions(alias, {
 				loadAsChildProcess: childProcessModules.includes(alias),
 			});
+			this.overrideModuleOptions(alias, appConfigToShareWithModules);
 		});
-
-		// TODO: Improve the hardcoded system component values
-		this.config.components.system = {
-			...appConfigToShareWithModules,
-			wsPort: this.config.modules.chain.network.wsPort,
-			httpPort: this.config.modules.http_api.httpPort,
-		};
 
 		this.config.initialState = {
 			version: this.config.app.version,
