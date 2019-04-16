@@ -66,9 +66,9 @@ To create a blockchain application, you need to provide an entry point of your a
 It is quite simple to have a working blockchain application, mirroring the configuration of the existing Lisk network. This can be done by copying the following three lines of code to your `index.js`:
 
 ```js
-const { Application, SampleGenesisBlock } = require('lisk-framework');
+const { Application, GenesisBlockDevnet } = require('lisk-framework');
 
-const app = new Application('my-app', SampleGenesisBlock);
+const app = new Application('my-app', GenesisBlockDevnet);
 
 app
 	.run()
