@@ -86,7 +86,11 @@ class Verify {
  */
 __private.checkTransactions = async (block, checkExists) => {
 	const { version, height, timestamp } = block;
-	const state = { version, height, timestamp };
+	const context = {
+		blockVersion: version,
+		blockHeight: height,
+		blockTimestamp: timestamp,
+	};
 	const transactions = block.transactions;
 
 	if (transactions.length === 0) {
@@ -113,7 +117,7 @@ __private.checkTransactions = async (block, checkExists) => {
 	);
 
 	const nonAllowedTxResponses = modules.processTransactions
-		.checkAllowedTransactions(nonInertTransactions, state)
+		.checkAllowedTransactions(nonInertTransactions, context)
 		.transactionsResponses.find(
 			transactionResponse => transactionResponse.status !== TransactionStatus.OK
 		);
