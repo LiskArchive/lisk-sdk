@@ -6,12 +6,12 @@ def setup() {
 	nvm(getNodejsVersion()) {
 		dir('framework') {
 			sh '''
-			# teardown_mocha() should have killed all node processes but we want to be sure
+			# teardown_*() should have killed all node processes but we want to be sure
 			# this shouldn't hurt assuming the 'lisk-core' jenkins nodes have 1 executor
 			killall --verbose --wait node || true
 			dropdb --if-exists lisk_dev
 			createdb lisk_dev
-			NODE_ENV=test LISK_CONSOLE_LOG_LEVEL=debug npm start >.app.log 2>&1 &
+			NODE_ENV=test LISK_CONSOLE_LOG_LEVEL=debug NEWRELIC_LICENSE_KEY= node test/test_app >.app.log 2>&1 &
 			'''
 		}
 	}
@@ -61,7 +61,7 @@ def teardown_mocha(test_name) {
 				cp framework/test/mocha/.coverage-unit/lcov.info coverage_mocha_${test_name}/ || true
 				npx istanbul report cobertura --root framework/test/mocha/.coverage-unit/ --dir framework/test/mocha/.coverage-unit/
 				cp framework/test/mocha/.coverage-unit/cobertura-coverage.xml coverage_mocha_${test_name}/ || true
-				curl --silent http://localhost:4000/coverage/download --output functional-coverage.zip
+				curl http://localhost:4000/coverage/download --output functional-coverage.zip
 				unzip functional-coverage.zip lcov.info -d coverage_mocha_${test_name}/functional/
 				"""
 			}
@@ -89,12 +89,12 @@ def teardown_mocha(test_name) {
 def teardown_jest(test_name) {
 	// teardown_mocha() gets called in post actions and so we don't want it to fail
 	try {
-		nvm(getNodejsVersion()) {
-			dir('framework') {
+		dir('framework') {
+			nvm(getNodejsVersion()) {
 				sh """
 				rm -rf coverage_jest_${test_name}; mkdir -p coverage_jest_${test_name}
-				cp .coverage/${test_name}/lcov.info coverage_jest_${test_name}/ || true
-				cp .coverage/${test_name}/cobertura-coverage.xml coverage_jest_${test_name}/ || true
+				cp .coverage/${test_name}/lcov.info coverage_jest_${test_name}/ || echo "Jest lcov coverage not found"
+				cp .coverage/${test_name}/cobertura-coverage.xml coverage_jest_${test_name}/ || echo "Jest cobertura coverage not found"
 				"""
 			}
 		}
@@ -102,7 +102,7 @@ def teardown_jest(test_name) {
 		println "Could gather coverage statistics from jest:\n${err}"
 	}
 	dir('framework') {
-		stash name: "coverage_jest_${test_name}", includes: "coverage_jest_${test_name}/"
+		stash name: "coverage_jest_${test_name}", includes: "coverage_jest_${test_name}/", allowEmpty: true
 	}
 	timeout(1) {
 		sh 'killall --verbose --wait node || true'
@@ -155,7 +155,47 @@ pipeline {
 			}
 		}
 		// dummy stage to have consistent ouput in both blue ocean and the classic webui
-		stage('Parallel: tests wrapper') {
+		stage('Parallel: jest') {
+			parallel {
+				stage('Jest Functional tests') {
+					agent { node { label 'lisk-core' }}
+					steps {
+						setup()
+						run_jest('functional')
+					}
+					post {
+						cleanup {
+							teardown_jest('functional')
+						}
+					}
+				}
+				stage('Jest Unit tests') {
+					agent { node { label 'lisk-core' }}
+					steps {
+						setup()
+						run_jest('unit')
+					}
+					post {
+						cleanup {
+							teardown_jest('unit')
+						}
+					}
+				}
+				stage('Jest Integration tests') {
+					agent { node { label 'lisk-core' }}
+					steps {
+						setup()
+						run_jest('integration')
+					}
+					post {
+						cleanup {
+							teardown_jest('integration')
+						}
+					}
+				}
+			}
+		}
+		stage('Parallel: mocha') {
 			parallel {
 				stage('Functional HTTP GET tests') {
 					agent { node { label 'lisk-core' }}
@@ -231,48 +271,13 @@ pipeline {
 						}
 					}
 				}
-				stage('Jest Functional tests') {
-					agent { node { label 'lisk-core' }}
-					steps {
-						setup()
-						run_jest('functional')
-					}
-					post {
-						cleanup {
-							teardown_jest('functional')
-						}
-					}
-				}
-				stage('Jest Unit tests') {
-					agent { node { label 'lisk-core' }}
-					steps {
-						setup()
-						run_jest('unit')
-					}
-					post {
-						cleanup {
-							teardown_jest('unit')
-						}
-					}
-				}
-				stage('Jest Integration tests') {
-					agent { node { label 'lisk-core' }}
-					steps {
-						setup()
-						run_jest('integration')
-					}
-					post {
-						cleanup {
-							teardown_jest('integration')
-						}
-					}
-				}
 			}
 		}
+
 	}
 	post {
 		always {
-			// teardown_mocha() should have run cleanWs()
+			// teardown_*() should have run cleanWs()
 			// but it can't hurt to make sure no old coverage files remain
 			sh 'rm -rf coverage; mkdir -p coverage'
 			script {
@@ -285,7 +290,6 @@ pipeline {
 							println "Could not unstash mocha_${it}. Continuing."
 						}
 					}
-
 					['functional', 'unit', 'integration'].each {
 						// some test stages might have failed and have no coverage data
 						try {
@@ -313,12 +317,6 @@ pipeline {
 				} finally {
 					sh 'rm -f .coveralls.yml'
 				}
-			}
-		}
-		failure {
-			script {
-				build_info = getBuildInfo()
-				liskSlackSend('danger', "Build ${build_info} failed (<${env.BUILD_URL}/console|console>, <${env.BUILD_URL}/changes|changes>)")
 			}
 		}
 		cleanup {
