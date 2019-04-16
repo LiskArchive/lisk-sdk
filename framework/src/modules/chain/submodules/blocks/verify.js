@@ -84,7 +84,11 @@ class Verify {
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  */
-__private.checkTransactions = async (transactions, checkExists) => {
+__private.checkTransactions = async (block, checkExists) => {
+	const { version, height, timestamp } = block;
+	const state = { version, height, timestamp };
+	const transactions = block.transactions;
+
 	if (transactions.length === 0) {
 		return;
 	}
@@ -107,6 +111,16 @@ __private.checkTransactions = async (transactions, checkExists) => {
 	const nonInertTransactions = transactions.filter(
 		transaction => !global.exceptions.inertTransactions.includes(transaction.id)
 	);
+
+	const nonAllowedTxResponses = modules.processTransactions
+		.checkAllowedTransactions(nonInertTransactions, state)
+		.transactionsResponses.find(
+			transactionResponse => transactionResponse.status !== TransactionStatus.OK
+		);
+
+	if (nonAllowedTxResponses) {
+		throw nonAllowedTxResponses.errors;
+	}
 
 	const {
 		transactionsResponses,
@@ -783,7 +797,7 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 				// checkTransactions should check for transactions to exists in database
 				// only if the block needed to be saved to database
 				__private
-					.checkTransactions(block.transactions, saveBlock)
+					.checkTransactions(block, saveBlock)
 					.then(seriesCb)
 					.catch(seriesCb);
 			},

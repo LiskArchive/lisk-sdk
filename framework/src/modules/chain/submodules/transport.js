@@ -228,12 +228,14 @@ __private.receiveTransaction = async function(
 	try {
 		transaction = library.logic.initTransaction.fromJson(transactionJSON);
 
-		const verifyTransactions = ProcessTransactions.composeProcessTransactionSteps(
+		const composedTransactionsCheck = ProcessTransactions.composeProcessTransactionSteps(
 			modules.processTransactions.checkAllowedTransactions,
 			modules.processTransactions.validateTransactions
 		);
 
-		const { transactionsResponses } = await verifyTransactions([transaction]);
+		const { transactionsResponses } = await composedTransactionsCheck([
+			transaction,
+		]);
 
 		if (transactionsResponses[0].errors.length > 0) {
 			throw transactionsResponses[0].errors;
