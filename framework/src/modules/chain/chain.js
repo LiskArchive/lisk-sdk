@@ -178,7 +178,6 @@ module.exports = class Chain {
 			// Ready to bind modules
 			scope.logic.peers.bindModules(scope.modules);
 			scope.logic.block.bindModules(scope.modules);
-			scope.logic.initTransaction.bindModules(scope.modules);
 
 			this.channel.subscribe('app:state:updated', event => {
 				Object.assign(scope.applicationState, event.data);
