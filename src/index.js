@@ -48,16 +48,16 @@ try {
 		TRANSACTION_TYPES.IN_TRANSFER,
 		InTransferTransaction,
 		{
-			isAllowedAt: state =>
-				state.height < config.exceptions.precedent.disableDappTransfer,
+			isAllowedAt: context =>
+				context.blockHeight < config.exceptions.precedent.disableDappTransfer,
 		}
 	);
 	app.registerTransaction(
 		TRANSACTION_TYPES.OUT_TRANSFER,
 		OutTransferTransaction,
 		{
-			isAllowedAt: state =>
-				state.height < config.exceptions.precedent.disableDappTransfer,
+			isAllowedAt: context =>
+				context.blockHeight < config.exceptions.precedent.disableDappTransfer,
 		}
 	);
 
