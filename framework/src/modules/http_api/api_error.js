@@ -37,7 +37,6 @@ ApiError.prototype = new Error();
  *
  * @todo Add @returns tag
  */
-// FIXME:
 ApiError.prototype.toJson = function() {
 	return {
 		message: this.message,

@@ -25,7 +25,7 @@ const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const phases = require('../../../common/phases');
 
 // eslint-disable-next-line
-describe('[feature/improve_transactions_processing_efficiency] POST /api/transactions (general)', () => {
+describe('POST /api/transactions (general)', () => {
 	const transactionsEndpoint = new SwaggerSpec('POST /transactions');
 	const account = randomUtil.account();
 	const transaction = transfer({

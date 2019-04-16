@@ -30,7 +30,7 @@ const { FEES, NORMALIZER } = global.constants;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 // eslint-disable-next-line
-describe('[feature/improve_transactions_processing_efficiency] POST /api/transactions (type 5) register dapp', () => {
+describe('POST /api/transactions (type 5) register dapp', () => {
 	let transaction;
 	const transactionsToWaitFor = [];
 	const badTransactions = [];

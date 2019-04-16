@@ -39,7 +39,7 @@ const {
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 // eslint-disable-next-line
-describe('[feature/improve_transactions_processing_efficiency] POST /api/transactions (type 3) votes', () => {
+describe('POST /api/transactions (type 3) votes', () => {
 	let transaction;
 	let transactionsToWaitFor = [];
 	const badTransactions = [];
@@ -49,7 +49,7 @@ describe('[feature/improve_transactions_processing_efficiency] POST /api/transac
 
 	const delegateAccount = randomUtil.account();
 	let accountNoFunds = randomUtil.account();
-	const accountMinimalFunds = randomUtil.account();
+	const accountMinimalFunds = randomUtil.account(true);
 
 	/*
 	Creating two scenarios with two isolated set of accounts
@@ -405,7 +405,7 @@ describe('[feature/improve_transactions_processing_efficiency] POST /api/transac
 
 		// FIXME:
 		// eslint-disable-next-line
-		it.skip('upvoting non delegate should be fail', async () => {
+		it('upvoting non delegate should be fail', async () => {
 			transaction = castVotes({
 				passphrase: accountMinimalFunds.passphrase,
 				votes: [`${accountMinimalFunds.publicKey}`],
@@ -417,7 +417,9 @@ describe('[feature/improve_transactions_processing_efficiency] POST /api/transac
 			).then(res => {
 				expect(res.body.message).to.be.equal('Invalid transaction body');
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
-				expect(res.body.errors[0].message).to.be.equal('Delegate not found');
+				expect(res.body.errors[0].message).to.be.equal(
+					`${accountMinimalFunds.publicKey} is not a delegate.`
+				);
 				badTransactions.push(transaction);
 			});
 		});

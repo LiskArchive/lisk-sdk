@@ -474,8 +474,6 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		phases.confirmation(goodTransactions, badTransactions);
 	});
 
-	// FIXME: Dounble confirmation tests failing
-	// eslint-disable-next-line
 	describe('validation', () => {
 		it('sending already confirmed transaction should fail', async () => {
 			return sendTransactionPromise(

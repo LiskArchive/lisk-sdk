@@ -31,7 +31,7 @@ const common = require('./common');
 const { FEES, NORMALIZER } = global.constants;
 
 // eslint-disable-next-line
-describe('[feature/improve_transactions_processing_efficiency] POST /api/transactions (type 1) register second passphrase', () => {
+describe('POST /api/transactions (type 1) register second passphrase', () => {
 	let transaction;
 	const transactionsToWaitFor = [];
 	const badTransactions = [];
