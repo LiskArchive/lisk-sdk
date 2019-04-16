@@ -55,20 +55,31 @@ SignaturesController.postSignature = async function(context, next) {
 			});
 		}
 
-		// TODO: Need to improve error handling so that we don't
-		// need to parse the error message to determine the error type.
-		const processingError = /^Error processing signature/;
-		const badRequestBodyError = /^Invalid signature body/;
-
-		if (processingError.test(data.message)) {
-			error = new ApiError(data.message, apiCodes.PROCESSING_ERROR);
-		} else if (badRequestBodyError.test(data.message)) {
-			error = new ApiError(data.message, apiCodes.BAD_REQUEST);
+		if (data.code === apiCodes.PROCESSING_ERROR) {
+			error = new ApiError(
+				'Error processing signature',
+				apiCodes.PROCESSING_ERROR,
+				data.error
+			);
+		} else if (data.code === apiCodes.BAD_REQUEST) {
+			error = new ApiError(
+				'Invalid signature body',
+				apiCodes.BAD_REQUEST,
+				data.error
+			);
 		} else {
-			error = new ApiError(data.message, apiCodes.INTERNAL_SERVER_ERROR);
+			error = new ApiError(
+				'Internal server error',
+				apiCodes.INTERNAL_SERVER_ERROR,
+				[]
+			);
 		}
 	} catch (err) {
-		error = new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR);
+		error = new ApiError(
+			'Internal server error',
+			apiCodes.INTERNAL_SERVER_ERROR,
+			[err]
+		);
 	}
 
 	context.statusCode = error.code;

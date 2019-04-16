@@ -16,10 +16,7 @@
 
 const crypto = require('crypto');
 const async = require('async');
-const {
-	Status: TransactionStatus,
-	TransactionError,
-} = require('@liskhq/lisk-transactions');
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const BlockReward = require('../../logic/block_reward');
 const slots = require('../../helpers/slots');
 const blockVersion = require('../../logic/block_version');
@@ -101,13 +98,9 @@ __private.checkTransactions = async (transactions, checkExists) => {
 
 		if (persistedTransactions.length > 0) {
 			modules.transactions.onConfirmedTransactions([persistedTransactions[0]]);
-			throw [
-				new TransactionError(
-					`Transaction is already confirmed: ${persistedTransactions[0].id}`,
-					persistedTransactions[0].id,
-					'.id'
-				),
-			];
+			throw new Error(
+				`Transaction is already confirmed: ${persistedTransactions[0].id}`
+			);
 		}
 	}
 

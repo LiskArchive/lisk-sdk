@@ -159,17 +159,14 @@ __private.receiveSignatures = function(signatures = []) {
 __private.receiveSignature = function(signature, cb) {
 	library.schema.validate(signature, definitions.Signature, err => {
 		if (err) {
-			return setImmediate(cb, `Invalid signature body ${err[0].message}`);
+			return setImmediate(cb, [new Error(err[0].message)], 400);
 		}
 
 		return modules.multisignatures.getTransactionAndProcessSignature(
 			signature,
-			processSignatureErr => {
-				if (processSignatureErr) {
-					return setImmediate(
-						cb,
-						`Error processing signature: ${processSignatureErr.message}`
-					);
+			errors => {
+				if (errors) {
+					return setImmediate(cb, errors, 409);
 				}
 				return setImmediate(cb);
 			}
@@ -779,11 +776,12 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	postSignature(query, cb) {
-		__private.receiveSignature(query.signature, err => {
+		__private.receiveSignature(query.signature, (err, code) => {
 			if (err) {
 				return setImmediate(cb, null, {
 					success: false,
-					message: err,
+					code,
+					error: err,
 				});
 			}
 			return setImmediate(cb, null, {

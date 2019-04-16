@@ -14,7 +14,10 @@
 
 'use strict';
 
-const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const {
+	Status: TransactionStatus,
+	TransactionError,
+} = require('@liskhq/lisk-transactions');
 const async = require('async');
 
 // Private fields
@@ -95,11 +98,11 @@ Multisignatures.prototype.getTransactionAndProcessSignature = (
 				transactionResponse.status === TransactionStatus.FAIL &&
 				transactionResponse.errors.length > 0
 			) {
-				const message = `Error processing signature: ${
-					transactionResponse.errors[0].message
-				}`;
+				const message = transactionResponse.errors[0].message;
 				library.logger.error(message, { signature });
-				return setImmediate(cb, new Error(message));
+				return setImmediate(cb, [
+					new TransactionError(message, transactionResponse.id, '.signature'),
+				]);
 			}
 			// Emit events
 			library.channel.publish(

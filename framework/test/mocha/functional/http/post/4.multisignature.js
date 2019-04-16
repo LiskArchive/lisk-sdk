@@ -725,10 +725,10 @@ describe('[feature/improve_transactions_processing_efficiency] POST /api/transac
 						);
 					})
 					.then(res => {
-						expect(res.body.message).to.be.equal('Invalid transaction body');
+						expect(res.body.message).to.be.equal('Error processing signature');
 						expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 						expect(res.body.errors[0].message).to.be.equal(
-							'Error processing signature: Error processing signature: Encountered duplicate signature in transaction'
+							'Encountered duplicate signature in transaction'
 						);
 					});
 			});
@@ -743,12 +743,10 @@ describe('[feature/improve_transactions_processing_efficiency] POST /api/transac
 				return signatureEndpoint
 					.makeRequest({ signature }, apiCodes.PROCESSING_ERROR)
 					.then(res => {
-						expect(res.body.message).to.be.equal('Invalid transaction body');
+						expect(res.body.message).to.be.equal('Error processing signature');
 						expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 						expect(res.body.errors[0].message).to.be.equal(
-							`Error processing signature: Error processing signature: Public Key ${
-								account.publicKey
-							} is not a member.`
+							`Public Key '${signature.publicKey}' is not a member.`
 						);
 					});
 			});
