@@ -18,30 +18,7 @@ Lisk Framework aims to provide a consistent and intuitive interface between each
 
 The architecture of Lisk Framework follows the research documented in [LIP0005](https://github.com/LiskHQ/lips/blob/master/proposals/lip-0005.md). The diagram below provides a high-level overview of the architecture:
 
-```
-+---------------------------------------------------------------------+
-|                           LISK FRAMEWORK                            |
-|+-------------------------------------------------------------------+|
-||                              MODULES                              ||
-||                                                                   ||
-||+-------------------------------+ +-------------------------------+||
-|||                               | |                               |||
-|||        CORE MODULES           | |     PLUGGABLE MODULES         |||
-|||                               | |                               |||
-||+-------------------------------+ +-------------------------------+||
-|+-------------------------------------------------------------------+|
-|                                 /|\                                 |
-|                                / | \                                |
-|                                  |   CHANNELS                       |
-|                                \ | /                                |
-|                                 \|/                                 |
-|+-------------------------------------------------------------------+|
-||                            COMPONENTS                             ||
-|+-------------------------------------------------------------------+|
-||                            CONTROLLER                             ||
-|+-------------------------------------------------------------------+|
-+---------------------------------------------------------------------+
-```
+![Logo](./docs/assets/diagram_framework.png)
 
 ## Installation and usage
 
