@@ -1,6 +1,5 @@
 const assert = require('assert');
 const randomstring = require('randomstring');
-const _ = require('lodash');
 const Controller = require('./controller');
 const version = require('../version');
 const validator = require('./helpers/validator');

@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const yargs = require('yargs');
 const { config: loggerConfig } = require('../../components/logger/defaults');
 const { config: storageConfig } = require('../../components/storage/defaults');
 const { config: cacheConfig } = require('../../components/cache/defaults');
@@ -28,6 +29,7 @@ class Configurator {
 	constructor() {
 		this.configSchema = appConfig;
 		this.metaInfo = {};
+		this.listOfArgs = new Set();
 
 		this.customData = [];
 
@@ -44,18 +46,38 @@ class Configurator {
 	 * Parse env variables and command line options and merge them together with defaults
 	 * to generate one final unified configuration
 	 *
-	 * @param {Object | Array.<Object>} defaultDataObjects - Array of
+	 * @param {Object} overrideValues - Object to override the values
+	 * @param {Object} options - Options
+	 * @param {boolean} options.failOnInvalidArg - Check all arguments against schema and fail if invalid argument passed to script
 	 */
-	getConfig(defaultDataObjects = {}) {
+	getConfig(overrideValues = {}, options = { failOnInvalidArg: true }) {
+		if (options.failOnInvalidArg) {
+			const diff = _.difference(
+				Object.keys(yargs.argv),
+				[...this.listOfArgs],
+				['_', '$0']
+			);
+
+			if (diff.length) {
+				console.error(
+					'Invalid command line arguments specified: ',
+					diff.join()
+				);
+				console.info(this.helpBanner());
+				process.exit(1);
+			}
+		}
+
 		return parseEnvArgAndValidate(
 			this.configSchema,
-			_.defaultsDeep(...[...this.customData, defaultDataObjects])
+			_.defaultsDeep(...[...this.customData, overrideValues])
 		);
 	}
 
 	loadConfigFile(configFilePath, destinationPath) {
 		// To allow loading up JS exports and JSON files
 		// we used the dynamic require instead of fs
+		// eslint-disable-next-line import/no-dynamic-require
 		this.loadConfig(require(configFilePath), destinationPath);
 	}
 
@@ -81,6 +103,10 @@ class Configurator {
 				} else {
 					this.metaInfo[parentHumanPath].arg =
 						typeof value === 'object' ? value.name : value;
+
+					this.metaInfo[parentHumanPath].arg.split(',').forEach(arg => {
+						this.listOfArgs.add(_.camelCase(arg));
+					});
 				}
 			}
 		});
@@ -89,18 +115,18 @@ class Configurator {
 	helpBanner() {
 		const message = [];
 		message.push(
-			'Your can customize the configuration runtime with following env variables and command line options:'
+			'Your can customize the configuration runtime with following env variables and command line options:\n'
 		);
 		Object.keys(this.metaInfo).forEach(key => {
 			message.push(
-				`${[this.metaInfo[key].arg, this.metaInfo[key].env]
-					.filter(Boolean)
-					.join()}				${key}`
+				`${(this.metaInfo[key].arg || '').padEnd(15)} ${(
+					this.metaInfo[key].env || ''
+				).padEnd(25)} ${key}`
 			);
 		});
 
 		message.push(
-			'For rest of configuration, please modify those directly to your custom config file.'
+			'\nFor rest of configuration, please modify those directly to your custom config file.\n\n'
 		);
 		return message.join('\n');
 	}
@@ -125,5 +151,15 @@ const configurator = new Configurator();
 
 configurator.registerModule(chainModule);
 configurator.registerModule(APIModule);
+
+yargs.command(
+	'usage',
+	'Show list of supported command line arguments and environment variables.',
+	() => {
+		console.info(configurator.helpBanner());
+		process.exit();
+	}
+);
+yargs.help('help', 'Run the "usage" command to see full list of options');
 
 module.exports = configurator;

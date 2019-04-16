@@ -85,6 +85,6 @@ try {
 			process.exit();
 		});
 } catch (e) {
-	console.error('Application start error.', e.errors);
+	console.error('Application start error.', e);
 	process.exit();
 }
