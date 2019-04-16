@@ -19,7 +19,7 @@ describe('ProcessTransactions', () => {
 		modules: {
 			blocks: {
 				lastBlock: {
-					get: () => dummyState,
+					get: sinonSandbox.stub().returns(dummyState),
 				},
 			},
 		},
@@ -207,6 +207,27 @@ describe('ProcessTransactions', () => {
 			expect(response.transactionsResponses[1].errors[0].message).to.equal(
 				`Transaction type ${transactions[1].type} is currently not allowed.`
 			);
+		});
+	});
+
+	describe('_getCurrentState', () => {
+		let result;
+
+		beforeEach(async () => {
+			// Act
+			result = processTransactions._getCurrentState();
+		});
+
+		it('should call lastBlock.get', async () => {
+			// Assert
+			expect(scope.modules.blocks.lastBlock.get).to.have.been.called;
+		});
+
+		it('should return version, height and timestamp wrapped in an object', async () => {
+			// Assert
+			expect(result).to.have.property('version', dummyState.version);
+			expect(result).to.have.property('height', dummyState.height);
+			expect(result).to.have.property('timestamp', dummyState.timestamp);
 		});
 	});
 });
