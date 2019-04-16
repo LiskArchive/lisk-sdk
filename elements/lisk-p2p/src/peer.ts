@@ -638,6 +638,7 @@ export const connectAndRequest = async (
 
 			const outboundSocket = socketClusterClient.create(clientOptions);
 			// Bind an error handler immediately after creating the socket; otherwise errors may crash the process
+			// tslint:disable-next-line no-empty
 			outboundSocket.on('error', () => {});
 
 			// Attaching handlers for various events that could be used future for logging or any other application
