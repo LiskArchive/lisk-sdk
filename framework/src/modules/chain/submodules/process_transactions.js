@@ -14,7 +14,10 @@
 
 'use strict';
 
-const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const {
+	Status: TransactionStatus,
+	TransactionError,
+} = require('@liskhq/lisk-transactions');
 const roundInformation = require('../logic/rounds_information');
 
 let library;
@@ -66,7 +69,11 @@ class ProcessTransactions {
 				id: transaction.id,
 				status: TransactionStatus.FAIL,
 				errors: [
-					new Error(`Transaction is already confirmed: ${transaction.id}`),
+					new TransactionError(
+						`Transaction is already confirmed: ${transaction.id}`,
+						transaction.id,
+						'.id'
+					),
 				],
 			})),
 		];

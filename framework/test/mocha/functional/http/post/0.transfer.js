@@ -279,7 +279,8 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 					expect(res.body.message).to.be.equal('Invalid transaction body');
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-					'Invalid transaction timestamp. Timestamp is in the future');
+						'Invalid transaction timestamp. Timestamp is in the future'
+					);
 				});
 			});
 		});
@@ -475,7 +476,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 	// FIXME: Dounble confirmation tests failing
 	// eslint-disable-next-line
-	describe.skip('validation', () => {
+	describe('validation', () => {
 		it('sending already confirmed transaction should fail', async () => {
 			return sendTransactionPromise(
 				goodTransaction,
@@ -483,7 +484,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 			).then(res => {
 				expect(res.body.message).to.be.eql('Invalid transaction body');
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
-				expect(res.body.errors[0]).to.be.equal(
+				expect(res.body.errors[0].message).to.be.equal(
 					`Transaction is already confirmed: ${goodTransaction.id}`
 				);
 			});

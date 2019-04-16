@@ -560,9 +560,8 @@ describe('[feature/improve_transactions_processing_efficiency] POST /api/transac
 			});
 		});
 	});
-	// FIXME:
-	// eslint-disable-next-line
-	describe.skip('confirmation', () => {
+
+	describe('confirmation', () => {
 		phases.confirmation(goodTransactions, badTransactions);
 	});
 

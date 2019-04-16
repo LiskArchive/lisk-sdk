@@ -66,14 +66,14 @@ describe('[feature/improve_transactions_processing_efficiency] POST /api/transac
 	});
 
 	describe('verification', () => {
-		// FIXME:
-		// eslint-disable-next-line
-		it.skip('should fail when trying to send a transaction that is already confirmed', async () => {
+		it('should fail when trying to send a transaction that is already confirmed', async () => {
 			return sendTransactionPromise(
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal(
+				expect(res.body.message).to.be.eql('Invalid transaction body');
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
 					`Transaction is already confirmed: ${transaction.id}`
 				);
 			});
