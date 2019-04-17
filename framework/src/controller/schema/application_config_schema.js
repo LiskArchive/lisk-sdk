@@ -1,16 +1,19 @@
 module.exports = {
 	id: '#/app/config',
 	type: 'object',
-	required: ['app'],
+	required: ['app', 'components', 'modules'],
 	properties: {
 		app: {
 			type: 'object',
-			required: ['label'],
+			required: [
+				'version',
+				'minVersion',
+				'protocolVersion',
+				'ipc',
+				'genesisConfig',
+			],
 			properties: {
-				label: {
-					type: 'string',
-					pattern: '^[a-zA-Z][0-9a-zA-Z\\_\\-]*$',
-				},
+				label: { type: 'string', pattern: '^[a-zA-Z][0-9a-zA-Z\\_\\-]*$' },
 				version: {
 					type: 'string',
 					format: 'version',
@@ -118,10 +121,8 @@ module.exports = {
 		},
 		components: {
 			type: 'object',
+			required: ['logger', 'cache', 'storage'],
 			properties: {
-				system: {
-					type: 'object',
-				},
 				logger: {
 					type: 'object',
 				},
@@ -135,6 +136,7 @@ module.exports = {
 		},
 		modules: {
 			type: 'object',
+			required: ['chain', 'http_api'],
 			properties: {
 				chain: {
 					type: 'object',
@@ -148,7 +150,6 @@ module.exports = {
 	additionalProperties: false,
 	default: {
 		app: {
-			label: 'lisk',
 			ipc: {
 				enabled: false,
 			},

@@ -5,7 +5,7 @@ const { config: storageConfig } = require('../../components/storage/defaults');
 const { config: cacheConfig } = require('../../components/cache/defaults');
 const chainModule = require('../../modules/chain');
 const APIModule = require('../../modules/http_api');
-const { config: appConfig } = require('../schema/application');
+const { applicationConfigSchema } = require('../schema');
 
 const { parseEnvArgAndValidate } = require('./validator');
 
@@ -27,7 +27,7 @@ const traverseObject = (o, func, parent = undefined) => {
 
 class Configurator {
 	constructor() {
-		this.configSchema = appConfig;
+		this.configSchema = applicationConfigSchema;
 		this.metaInfo = {};
 		this.listOfArgs = new Set();
 
@@ -70,7 +70,7 @@ class Configurator {
 
 		return parseEnvArgAndValidate(
 			this.configSchema,
-			_.defaultsDeep(...[...this.customData, overrideValues])
+			_.defaultsDeep(...[{}, ...this.customData, overrideValues])
 		);
 	}
 
