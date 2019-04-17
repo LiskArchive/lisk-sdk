@@ -29,11 +29,11 @@
 		"test": "npm run jest:unit",
 		"mocha": "mocha",
 		"jest:unit":
-			"jest --config=./test/jest/config/unit/jest.config.js",
+			"jest --config=./test/jest/unit/jest.config.js",
 		"jest:integration":
-			"jest --config=./test/jest/config/integration/jest.config.js",
+			"jest --config=./test/jest/integration/jest.config.js",
 		"jest:functional":
-			"jest --config=./test/jest/config/functional/jest.config.js --passWithNoTests",
+			"jest --config=./test/jest/functional/jest.config.js --passWithNoTests",
 		"mocha:unit": "node test/mocha/common/lisk-mocha-runner unit",
 		"mocha:integration":
 			"node test/mocha/common/lisk-mocha-runner integration",
