@@ -3,7 +3,7 @@ set -euo pipefail
 IFS=$'\n\t'
 #
 # LiskHQ/lisk-scripts/lisk_snaphot.sh
-# Copyright (C) 2017 Lisk Foundation
+# Copyright (C) 2019 Lisk Foundation
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,10 +19,20 @@ IFS=$'\n\t'
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #######################################################################
 
-# It is you responsibility to ensure that this script does not get
+# lisk_snapshot.sh creates a blockchain snapshot by stopping the application,
+# making a copy of its database, cleaning and dumping/gzip'ing it.
+#
+# The output directory can be changed by setting the OUTPUT_DIRECTORY
+# environement variable, for example:
+# ~> OUTPUT_DIRECTORY=/srv/backups ./lisk_snapshot.sh
+#
+# It is your responsibility to ensure that this script does not get
 # started more that once at a time; this can be achieved with e.g.:
 # ~> flock --exclusive --nonblock lisk_snapshot.lock ./lisk_snapshot.sh
-# TODO: delete old snapshots?
+#
+# Periodically deleting old snapshot files is highly recommended;
+# this can be achieved with a command like the following:
+# ~> find backups/ -type f -ctime 14 -delete
 
 cd "$( cd -P -- "$(dirname -- "$0")" && pwd -P )" || exit 2
 # shellcheck source=env.sh
@@ -30,7 +40,7 @@ source "$( pwd )/env.sh"
 # shellcheck source=shared.sh
 source "$( pwd )/shared.sh"
 
-OUTPUT_DIRECTORY="$PWD/backups"
+OUTPUT_DIRECTORY="${OUTPUT_DIRECTORY:-$PWD/backups}"
 SOURCE_DATABASE=$( get_config '.db.database' )
 
 mkdir -p "$OUTPUT_DIRECTORY"
