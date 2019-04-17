@@ -22,20 +22,26 @@ if (process.env.NODE_ENV === 'test' && process.env.PROTOCOL_VERSION) {
 
 try {
 	// TODO: I would convert config.json to .JS
-	configurator.loadConfigFile(path.resolve(__dirname, '../fixtures/config/devnet/config'));
-	configurator.loadConfigFile(path.resolve(__dirname, '../fixtures/config/devnet/exceptions'), 'modules.chain.exceptions');
+	configurator.loadConfig(appConfig);
+	configurator.loadConfigFile(
+		path.resolve(__dirname, '../fixtures/config/devnet/config')
+	);
+	configurator.loadConfigFile(
+		path.resolve(__dirname, '../fixtures/config/devnet/exceptions'),
+		'modules.chain.exceptions'
+	);
 	const genesisBlock = require('../fixtures/config/devnet/genesis_block');
 
 	const config = configurator.getConfig();
 
 	// To run multiple applications for same network for integration tests
-	const appName = `lisk-devnet-${config.modules.http_api.httpPort}`;
+	config.app.label = `lisk-devnet-${config.modules.http_api.httpPort}`;
 
 	/*
 	TODO: Merge 3rd and 4th argument into one single object that would come from config/NETWORK/config.json
 	Exceptions and constants.js will be removed.
 	 */
-	const app = new Application(appName, genesisBlock, config);
+	const app = new Application(genesisBlock, config);
 
 	app
 		.run()
