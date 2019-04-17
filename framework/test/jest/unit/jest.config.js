@@ -1,10 +1,9 @@
-const base = require('../jest.config.base');
+const base = require('../config/jest.config.base');
 
 module.exports = {
 	...base,
-	testMatch: [
-		'<rootDir>/framework/test/jest/specs/integration/**/*.(spec|test).js',
-	],
+	testMatch: ['<rootDir>/framework/test/jest/unit/specs/**/*.(spec|test).js'],
+
 	/**
 	 * restoreMocks [boolean]
 	 *
@@ -28,6 +27,6 @@ module.exports = {
 	 * This can be done programmatically using jest.resetModules().
 	 */
 	resetModules: true,
-	coverageDirectory: '.coverage/integration',
+	coverageDirectory: '.coverage/unit',
 	collectCoverageFrom: ['framework/src/controller/**'],
 };
