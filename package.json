@@ -36,8 +36,7 @@
 		"build": "lerna run build",
 		"build:browsertest": "lerna run build:browsertest",
 		"cover": "lerna run cover",
-		"init": "./scripts/init.sh",
-		"postinstall": "npm run bootstrap"
+		"init": "./scripts/init.sh"
 	},
 	"husky": {
 		"hooks": {
