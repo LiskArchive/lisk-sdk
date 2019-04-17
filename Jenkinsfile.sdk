@@ -9,8 +9,8 @@ pipeline {
 					sh '''
 					npm ci
 					npm run bootstrap -- --ci
-					npm run lint
 					npm run build
+					npm run lint
 					'''
 				}
 			}
