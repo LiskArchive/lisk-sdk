@@ -1,19 +1,18 @@
 {
 	"name": "lisk-framework",
-	"version": "0.1.0",
+	"version": "0.1.0-alpha.0",
 	"description": "Lisk blockchain application platform",
 	"author":
 		"Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
-	"private": true,
 	"keywords": ["cryptocurrency", "blockchain", "lisk", "nodejs", "javascript"],
-	"homepage": "https://github.com/LiskHQ/lisk#readme",
+	"homepage": "https://github.com/LiskHQ/lisk-sdk#readme",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/LiskHQ/lisk.git"
+		"url": "git+https://github.com/LiskHQ/lisk-sdk.git"
 	},
 	"bugs": {
-		"url": "https://github.com/LiskHQ/lisk/issues"
+		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
 	},
 	"engines": {
 		"node": "10.15.3",
@@ -51,9 +50,7 @@
 		"mocha:network":
 			"node test/mocha/common/lisk-mocha-runner network",
 		"docs:build": "jsdoc -c docs/conf.json --verbose --pedantic",
-		"docs:serve": "http-server docs/jsdoc/",
-		"check:dependencies": "snyk protect",
-		"prepublishOnly": "npm run check:dependencies"
+		"docs:serve": "http-server docs/jsdoc/"
 	},
 	"dependencies": {
 		"@liskhq/lisk-cryptography": "2.1.0-alpha.0",
@@ -141,19 +138,11 @@
 		"rx": "4.1.0",
 		"sinon": "7.2.2",
 		"sinon-chai": "3.3.0",
-		"snyk": "^1.122.0",
 		"stampit": "4.2.0",
 		"supertest": "3.3.0"
 	},
-	"snyk": true,
 	"lisk": {
 		"minVersion": "1.1.0-rc.0",
 		"protocolVersion": "1.0"
-	},
-	"husky": {
-		"hooks": {
-			"pre-commit": "lint-staged",
-			"pre-push": "eslint $(git ls-files '*.js') && npm run check:dependencies"
-		}
 	}
 }

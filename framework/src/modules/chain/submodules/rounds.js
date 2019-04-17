@@ -17,9 +17,7 @@
 const Bignumber = require('bignumber.js');
 const async = require('async');
 // eslint-disable-next-line prefer-const
-const {
-	CACHE_KEYS_DELEGATES,
-} = require('../../../../../framework/src/components/cache');
+const { CACHE_KEYS_DELEGATES } = require('../../../components/cache');
 const Round = require('../logic/round');
 const slots = require('../helpers/slots');
 
