@@ -21,13 +21,8 @@ pipeline {
 					sh 'npx lerna run test --ignore lisk-{framework,commander}'
 					dir('commander') {
 						sh '''
-						# TODO: This should not be necessary
-						npm ci
 						LISK_COMMANDER_CONFIG_DIR=$WORKSPACE/.lisk npm test
 						'''
-					}
-					dir('framework') {
-						sh 'npm test'
 					}
 				}
 			}
