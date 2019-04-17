@@ -148,7 +148,7 @@ pipeline {
 					npm run bootstrap -- --ci
 					npm run build
 					# needed by one of the "Functional HTTP GET tests"
-					git rev-parse HEAD >REVISION
+					git rev-parse HEAD > framework/REVISION
 					'''
 				}
 				stash name: 'build'
