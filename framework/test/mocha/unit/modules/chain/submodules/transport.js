@@ -18,6 +18,7 @@ const rewire = require('rewire');
 const chai = require('chai');
 const randomstring = require('randomstring');
 const { transfer } = require('@liskhq/lisk-transactions');
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 
 const accountFixtures = require('../../../../fixtures/accounts');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
@@ -30,6 +31,7 @@ const {
 	registeredTransactions,
 } = require('../../../../common/registered_transactions');
 const InitTransaction = require('../../../../../../src/modules/chain/logic/init_transaction');
+const ProcessTransactions = require('../../../../../../src/modules/chain/submodules/process_transactions');
 
 const initTransaction = new InitTransaction({ registeredTransactions });
 
@@ -216,6 +218,7 @@ describe('transport', () => {
 
 	afterEach(done => {
 		restoreRewiredTopDeps();
+		sinonSandbox.restore();
 		done();
 	});
 
@@ -318,6 +321,7 @@ describe('transport', () => {
 					transactions: {
 						processUnconfirmedTransaction: sinonSandbox.stub().callsArg(2),
 					},
+					processTransactions: new ProcessTransactions(() => {}, defaultScope),
 				};
 
 				wsRPC = {
@@ -649,6 +653,8 @@ describe('transport', () => {
 						callback(doneCallback);
 					});
 
+				// sinonSandbox.stub(ProcessTransactions, 'composeProcessTransactionSteps');
+
 				peerAddressString = '40.40.40.40:5000';
 
 				library.logic = {
@@ -672,6 +678,72 @@ describe('transport', () => {
 					.stub()
 					.callsArg(2);
 				done();
+			});
+
+			it('should composeProcessTransactionsSteps with checkAllowedTransactions and validateTransactions', done => {
+				sinonSandbox.spy(ProcessTransactions, 'composeProcessTransactionSteps');
+
+				__private.receiveTransaction(
+					transaction,
+					validNonce,
+					'This is a log message',
+					async () => {
+						expect(
+							ProcessTransactions.composeProcessTransactionSteps
+						).to.have.been.calledWith(
+							modules.processTransactions.checkAllowedTransactions,
+							modules.processTransactions.validateTransactions
+						);
+						done();
+					}
+				);
+			});
+
+			it('should call composedTransactionsCheck an array of transactions', done => {
+				const composedTransactionsCheck = sinonSandbox.stub().returns({
+					transactionsResponses: [
+						{
+							id: transaction.id,
+							status: TransactionStatus.OK,
+							errors: [],
+						},
+					],
+				});
+
+				const tranasactionInstance = library.logic.initTransaction.fromJson(
+					transaction
+				);
+
+				sinonSandbox
+					.stub(ProcessTransactions, 'composeProcessTransactionSteps')
+					.returns(composedTransactionsCheck);
+
+				__private.receiveTransaction(
+					transaction,
+					validNonce,
+					'This is a log message',
+					() => {
+						expect(composedTransactionsCheck).to.have.been.calledWith([
+							tranasactionInstance,
+						]);
+						done();
+					}
+				);
+			});
+
+			it('should call callback with error if transactions are not valid or disaallowed', done => {
+				const errorMessage = 'transactionIsNotAllowed';
+
+				__private.receiveTransaction(
+					transaction,
+					validNonce,
+					'This is a log message',
+					err => {
+						expect(err).to.be.instanceOf(Error);
+						expect(err.message).to.equal(errorMessage);
+						done();
+					}
+				);
 			});
 
 			describe('when transaction and peer are defined', () => {
@@ -727,7 +799,7 @@ describe('transport', () => {
 					);
 				});
 
-				it('should call the call back with error message', async () => {
+				it('should call the callback with error message', async () => {
 					const expected = initTransaction
 						.fromJson(invalidTransaction)
 						.validate();

@@ -14,9 +14,11 @@
 
 'use strict';
 
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const rewire = require('rewire');
 const Promise = require('bluebird');
 const Bignum = require('../../../../../../../src/modules/chain/helpers/bignum');
+const blockVersion = require('../../../../../../../src/modules/chain/logic/block_version');
 
 const BlocksProcess = rewire(
 	'../../../../../../../src/modules/chain/submodules/blocks/process'
@@ -183,6 +185,7 @@ describe('blocks/process', () => {
 
 		const modulesProcessTransactionsStub = {
 			verifyTransactions: sinonSandbox.stub(),
+			checkAllowedTransactions: sinonSandbox.stub(),
 		};
 
 		const modulesDelegatesStub = {
@@ -1710,11 +1713,22 @@ describe('blocks/process', () => {
 	});
 
 	describe('generateBlock', () => {
+		const timestamp = 41287231;
+
+		afterEach(async () => {
+			sinonSandbox.restore();
+		});
+
 		describe('modules.transactions.getUnconfirmedTransactionList', () => {
 			describe('when query returns empty array', () => {
 				beforeEach(async () => {
 					modules.transactions.getUnconfirmedTransactionList.returns([]);
-					modules.processTransactions.verifyTransactions.resolves([]);
+					modules.processTransactions.verifyTransactions.resolves({
+						transactionsResponses: [],
+					});
+					modules.processTransactions.checkAllowedTransactions.returns({
+						transactionsResponses: [],
+					});
 					modules.blocks.verify.processBlock.callsArgWith(
 						3,
 						null,
@@ -1741,9 +1755,12 @@ describe('blocks/process', () => {
 			describe('when query returns undefined', () => {
 				beforeEach(async () => {
 					modules.transactions.getUnconfirmedTransactionList.returns(undefined);
-					modules.processTransactions.verifyTransactions.returns(
-						Promise.resolve([])
-					);
+					modules.processTransactions.checkAllowedTransactions.returns({
+						transactionsResponses: [],
+					});
+					modules.processTransactions.verifyTransactions.resolves({
+						transactionsResponses: [],
+					});
 					modules.blocks.verify.processBlock.callsArgWith(
 						3,
 						null,
@@ -1754,7 +1771,7 @@ describe('blocks/process', () => {
 				it('should generate block without transactions', done => {
 					blocksProcessModule.generateBlock(
 						{ publicKey: '123abc', privateKey: 'aaa' },
-						41287231,
+						timestamp,
 						err => {
 							expect(err).to.be.null;
 							expect(
@@ -1770,9 +1787,23 @@ describe('blocks/process', () => {
 			describe('when query returns transactions', () => {
 				beforeEach(async () => {
 					modules.transactions.getUnconfirmedTransactionList.returns([
-						{ id: 1, type: 0 },
-						{ id: 2, type: 1 },
+						{ id: 1, type: 0, isAllowedAt: () => true },
+						{ id: 2, type: 1, isAllowedAt: () => true },
 					]);
+					modules.processTransactions.checkAllowedTransactions.returns({
+						transactionsResponses: [
+							{
+								id: 1,
+								status: TransactionStatus.OK,
+								errors: [],
+							},
+							{
+								id: 2,
+								status: TransactionStatus.OK,
+								errors: [],
+							},
+						],
+					});
 					modules.blocks.verify.processBlock.callsArgWith(
 						3,
 						null,
@@ -1951,6 +1982,56 @@ describe('blocks/process', () => {
 					});
 				});
 			});
+		});
+		it('should call checkAllowedTransactions with proper arguments', done => {
+			const sampleTransactons = [
+				{
+					id: 'aTransactionId',
+					isAllowedAt: () => true,
+					type: 0,
+				},
+			];
+			const lastBlock = {
+				height: 3,
+			};
+			const state = {
+				blockTimestamp: timestamp,
+				blockHeight: lastBlock.height + 1,
+				blockVersion: blockVersion.currentBlockVersion,
+			};
+
+			modules.transactions.getUnconfirmedTransactionList.returns(
+				sampleTransactons
+			);
+			modules.blocks.lastBlock.get.returns(lastBlock);
+			modules.processTransactions.checkAllowedTransactions.returns({
+				transactionsResponses: [
+					{
+						id: sampleTransactons[0],
+						status: TransactionStatus.OK,
+					},
+				],
+			});
+			modules.processTransactions.verifyTransactions.resolves({
+				transactionsResponses: [
+					{
+						id: sampleTransactons[0],
+						status: TransactionStatus.OK,
+					},
+				],
+			});
+			modules.blocks.verify.processBlock.callsArgWith(3, null);
+
+			blocksProcessModule.generateBlock(
+				{ publicKey: '123abc', privateKey: 'aaa' },
+				timestamp,
+				() => {
+					expect(
+						modules.processTransactions.checkAllowedTransactions
+					).to.have.been.calledWith(sampleTransactons, state);
+					done();
+				}
+			);
 		});
 	});
 

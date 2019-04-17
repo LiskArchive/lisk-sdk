@@ -17,6 +17,7 @@
 const pool = require('@liskhq/lisk-transaction-pool');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const expect = require('chai').expect;
+const ProcessTransactions = require('../../../../../../src/modules/chain/submodules/process_transactions');
 const TransactionPool = require('../../../../../../src/modules/chain/logic/transaction_pool');
 
 const config = __testContext.config;
@@ -60,6 +61,10 @@ describe('transactionPool', () => {
 		transactionPool.bind(processTransactionsStub);
 	});
 
+	afterEach(async () => {
+		sinonSandbox.restore();
+	});
+
 	describe('constructor', () => {
 		it('should set the instance variables', async () => {
 			const tp = new TransactionPool(
@@ -79,15 +84,39 @@ describe('transactionPool', () => {
 	});
 
 	describe('bind', () => {
-		it('should create pool instance', async () => {
-			const tp = new TransactionPool(
+		let txPool;
+		beforeEach(async () => {
+			sinonSandbox.spy(ProcessTransactions, 'composeProcessTransactionSteps');
+			txPool = new TransactionPool(
 				config.broadcasts.broadcastInterval,
 				config.broadcasts.releaseLimit,
 				logger, // logger
 				config
 			);
-			tp.bind(processTransactionsStub);
-			expect(tp.pool).to.be.an.instanceOf(pool.TransactionPool);
+			txPool.bind(processTransactionsStub);
+		});
+
+		it('should create pool instance', async () => {
+			expect(txPool.pool).to.be.an.instanceOf(pool.TransactionPool);
+		});
+
+		it('should call composeProcessTransactionSteps to compose verifyTransactions', async () => {
+			expect(
+				ProcessTransactions.composeProcessTransactionSteps
+			).to.have.been.calledWith(
+				processTransactionsStub.checkAllowedTransactions,
+				processTransactionsStub.checkPersistedTransactions,
+				processTransactionsStub.verifyTransactions
+			);
+		});
+
+		it('should call composeProcessTransactionsteps to compose processTransactions', async () => {
+			expect(
+				ProcessTransactions.composeProcessTransactionSteps.getCall(1)
+			).to.have.been.calledWith(
+				processTransactionsStub.checkPersistedTransactions,
+				processTransactionsStub.applyTransactions
+			);
 		});
 	});
 

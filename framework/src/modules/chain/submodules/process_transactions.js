@@ -19,18 +19,6 @@ const roundInformation = require('../logic/rounds_information');
 
 let library;
 
-/**
- * Get current state from modules.blocks.lastBlock
- */
-const getCurrentContext = () => {
-	const { version, height, timestamp } = library.modules.blocks.lastBlock.get();
-	return {
-		blockVersion: version,
-		blockHeight: height,
-		blockTimestamp: timestamp,
-	};
-};
-
 class ProcessTransactions {
 	constructor(cb, scope) {
 		library = {
@@ -117,7 +105,7 @@ class ProcessTransactions {
 			transactionsResponses: transactions.map(transaction => {
 				const allowed =
 					!transaction.isAllowedAt ||
-					transaction.isAllowedAt(context || getCurrentContext());
+					transaction.isAllowedAt(context || this._getCurrentContext());
 
 				return {
 					id: transaction.id,
@@ -240,6 +228,23 @@ class ProcessTransactions {
 			return {
 				transactionsResponses: [...failedResponses, ...successfulResponses],
 			};
+		};
+	}
+
+	/**
+	 * Get current state from modules.blocks.lastBlock
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	_getCurrentContext() {
+		const {
+			version,
+			height,
+			timestamp,
+		} = library.modules.blocks.lastBlock.get();
+		return {
+			blockVersion: version,
+			blockHeight: height,
+			blockTimestamp: timestamp,
 		};
 	}
 }

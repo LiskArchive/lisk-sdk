@@ -136,6 +136,9 @@ describe('blocks/verify', () => {
 
 		const modulesProcessTransactionsStub = {
 			verifyTransactions: sinonSandbox.stub(),
+			checkAllowedTransactions: sinonSandbox.stub().returns({
+				transactionsResponses: [],
+			}),
 		};
 
 		bindingsStub = {
@@ -1767,6 +1770,17 @@ describe('blocks/verify', () => {
 		let validTransactionsResponse;
 		let invalidTransactionsResponse;
 
+		beforeEach(async () => {
+			dummyBlock = {
+				id: 1,
+				transactions: [
+					{
+						id: '123',
+					},
+				],
+			};
+		});
+
 		describe('when block.transactions is empty', () => {
 			it('should not throw', async () => {
 				dummyBlock = { id: 1, transactions: [] };
@@ -1776,17 +1790,6 @@ describe('blocks/verify', () => {
 		});
 
 		describe('when block.transactions is not empty', () => {
-			beforeEach(async () => {
-				dummyBlock = {
-					id: 1,
-					transactions: [
-						{
-							id: '123',
-						},
-					],
-				};
-			});
-
 			describe('when checkExists is set to true', () => {
 				describe('when Transaction.get returns confirmed transactions', () => {
 					beforeEach(async () => {
@@ -1796,8 +1799,8 @@ describe('blocks/verify', () => {
 					});
 
 					it('should throw error when transaction is already confirmed', async () => {
-						expect(__private.checkTransactions(dummyBlock.transactions, true))
-							.to.eventually.rejected;
+						expect(__private.checkTransactions(dummyBlock, true)).to.eventually
+							.rejected;
 					});
 				});
 
@@ -1841,6 +1844,28 @@ describe('blocks/verify', () => {
 							.to.eventually.throw;
 					});
 				});
+			});
+
+			it('should call modules.processTransactions.checkAllowedTransactions', async () => {
+				__private.checkTransactions(dummyBlock, false);
+
+				expect(modules.processTransactions.checkAllowedTransactions).to.have
+					.been.called;
+			});
+
+			it('should throw an array of errors if transactions are not allowed', async () => {
+				modules.processTransactions.checkAllowedTransactions.returns({
+					transactionsResponses: [
+						{
+							id: 1,
+							status: transactionStatus.FAIL,
+							errors: [new Error('anError')],
+						},
+					],
+				});
+
+				expect(__private.checkTransactions(dummyBlock, false)).to.eventually.be
+					.rejected;
 			});
 		});
 	});
