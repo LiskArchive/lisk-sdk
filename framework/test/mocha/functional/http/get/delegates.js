@@ -640,6 +640,15 @@ describe('GET /delegates', () => {
 			});
 		});
 
+		it('using limit=101 should sort forgers ascending using nextSlot', async () => {
+			return forgersEndpoint.makeRequest({ limit: 101 }, 200).then(res => {
+				const nextSlots = _(res.body.data)
+					.map('nextSlot')
+					.value();
+				expect(_.clone(nextSlots).sort()).to.be.eql(nextSlots);
+			});
+		});
+
 		it('using offset=100 should be ok', async () => {
 			return forgersEndpoint.makeRequest({ offset: 100 }, 200).then(res => {
 				expect(res.body.data).to.have.length(1);

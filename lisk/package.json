@@ -1,6 +1,6 @@
 {
 	"name": "lisk-core",
-	"version": "2.0.0-alpha.0",
+	"version": "1.6.0-rc.4",
 	"description": "Lisk blockchain application platform",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
@@ -41,7 +41,7 @@
 		"bluebird": "3.5.3",
 		"commander": "2.19.0",
 		"deep-diff": "1.0.2",
-		"lisk-framework": "0.1.0",
+		"lisk-framework": "0.1.0-alpha.0",
 		"lodash": "4.17.11",
 		"moment": "2.23.0",
 		"semver": "5.6.0",
@@ -76,18 +76,11 @@
 		"rewire": "4.0.1",
 		"sinon": "7.2.2",
 		"sinon-chai": "3.3.0",
-		"snyk": "^1.122.0",
 		"stampit": "4.2.0",
 		"supertest": "3.3.0"
 	},
 	"lisk": {
 		"minVersion": "1.1.0-rc.0",
 		"protocolVersion": "1.0"
-	},
-	"husky": {
-		"hooks": {
-			"pre-commit": "lint-staged",
-			"pre-push": "eslint $(git ls-files '*.js') && npm run check:dependencies"
-		}
 	}
 }

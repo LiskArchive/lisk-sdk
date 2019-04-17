@@ -1,5 +1,8 @@
 # Lisk Build
 
+## Prerequisistes
+Run `npm ci` and `npm run build` at the top-level.
+
 ## Linux
 
 Any sufficiently modern Linux distribution should be able to run the build;
@@ -27,7 +30,7 @@ instructions can be found at
 the following packages must be installed:
 
 ```
-brew install coreutils gpg2 jq moreutils
+brew install coreutils gpg2 jq moreutils wget
 ```
 
 ### Usage
