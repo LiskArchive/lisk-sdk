@@ -93,10 +93,13 @@ class Controller {
 		const pidPath = `${this.config.dirs.pids}/controller.pid`;
 		const pidExists = await fs.pathExists(pidPath);
 		if (pidExists) {
-			const pidRunning = await isPidRunning(
-				parseInt(await fs.readFile(pidPath))
-			);
-			if (pidRunning) {
+			const pid = parseInt(await fs.readFile(pidPath));
+			const pidRunning = await isPidRunning(pid);
+
+			this.logger.info(`Old PID: ${pid}`);
+			this.logger.info(`Current PID: ${process.pid}`);
+
+			if (pidRunning && pid !== process.pid) {
 				this.logger.error(
 					`An instance of application "${
 						this.appLabel
@@ -253,7 +256,7 @@ class Controller {
 					`--inspect=${Math.floor(
 						Math.random() * (maxPort - minPort) + minPort
 					)}`,
-				])
+			  ])
 			: [];
 
 		const child = child_process.fork(program, parameters, forkedProcessOptions);
