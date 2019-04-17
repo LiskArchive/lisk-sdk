@@ -172,7 +172,7 @@ async function _getDelegates(filters, options) {
 	const supply = lastBlock.height
 		? await channel.invoke('chain:calculateSupply', {
 				height: lastBlock.height,
-			})
+		  })
 		: 0;
 
 	return delegates.map(delegate => delegateFormatter(supply, delegate));
@@ -226,7 +226,7 @@ async function _getForgers(filters) {
 			publicKey,
 			nextSlot: forgerKeys.indexOf(publicKey) + currentSlot + 1,
 		}))
-		.sort((prev, next) => prev.nextSlot > next.nextSlot);
+		.sort((prev, next) => (prev.nextSlot > next.nextSlot ? 1 : -1));
 
 	return {
 		data: forgers,
