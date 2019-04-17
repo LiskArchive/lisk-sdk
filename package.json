@@ -37,8 +37,12 @@
 		"build:browsertest": "lerna run build:browsertest",
 		"cover": "lerna run cover",
 		"init": "./scripts/init.sh",
-		"postinstall": "npm run bootstrap",
-		"precommit": "lint-staged"
+		"postinstall": "npm run bootstrap"
+	},
+	"husky": {
+		"hooks": {
+			"pre-commit": "lint-staged"
+		}
 	},
 	"devDependencies": {
 		"@types/node": "10.12.21",
