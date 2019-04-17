@@ -15,7 +15,11 @@
 
 import { EventEmitter } from 'events';
 import * as querystring from 'querystring';
-import { FetchPeerStatusError, RPCResponseError } from './errors';
+import {
+	FetchPeerStatusError,
+	PeerOutboundConnectionError,
+	RPCResponseError,
+} from './errors';
 
 import {
 	P2PDiscoveredPeerInfo,
@@ -641,6 +645,17 @@ export const connectAndRequest = async (
 			// tslint:disable-next-line no-empty
 			outboundSocket.on('error', () => {});
 
+			// tslint:disable-next-line no-let
+			let disconnectStatusCode: number;
+			// tslint:disable-next-line no-let
+			let disconnectReason: string;
+			const closeHandler = (statusCode: number, reason: string) => {
+				disconnectStatusCode = statusCode;
+				disconnectReason = reason;
+			};
+			outboundSocket.once('close', closeHandler);
+
+
 			// Attaching handlers for various events that could be used future for logging or any other application
 			outboundSocket.emit(
 				REMOTE_EVENT_RPC_REQUEST,
@@ -649,8 +664,17 @@ export const connectAndRequest = async (
 					procedure: requestPacket.procedure,
 				},
 				(err: Error | undefined, responseData: unknown) => {
+					outboundSocket.off('close', closeHandler);
 					if (err) {
-						reject(err);
+						const isFailedConnection = disconnectReason && (
+								err.name === 'TimeoutError' ||
+								err.name === 'BadConnectionError'
+							);
+						const connectionError = new PeerOutboundConnectionError(
+							isFailedConnection ? disconnectReason : err.message,
+							disconnectStatusCode,
+						);
+						reject(connectionError);
 
 						return;
 					}
