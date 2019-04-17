@@ -655,7 +655,6 @@ export const connectAndRequest = async (
 			};
 			outboundSocket.once('close', closeHandler);
 
-
 			// Attaching handlers for various events that could be used future for logging or any other application
 			outboundSocket.emit(
 				REMOTE_EVENT_RPC_REQUEST,
