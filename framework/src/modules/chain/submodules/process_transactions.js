@@ -100,11 +100,12 @@ class ProcessTransactions {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	checkAllowedTransactions(transactions, state = this._getCurrentState()) {
+	checkAllowedTransactions(transactions, context) {
 		return {
 			transactionsResponses: transactions.map(transaction => {
 				const allowed =
-					!transaction.isAllowedAt || transaction.isAllowedAt(state);
+					!transaction.isAllowedAt ||
+					transaction.isAllowedAt(context || this._getCurrentContext());
 
 				return {
 					id: transaction.id,
@@ -234,13 +235,17 @@ class ProcessTransactions {
 	 * Get current state from modules.blocks.lastBlock
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	_getCurrentState() {
+	_getCurrentContext() {
 		const {
 			version,
 			height,
 			timestamp,
 		} = library.modules.blocks.lastBlock.get();
-		return { version, height, timestamp };
+		return {
+			blockVersion: version,
+			blockHeight: height,
+			blockTimestamp: timestamp,
+		};
 	}
 }
 

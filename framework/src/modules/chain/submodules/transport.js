@@ -22,6 +22,7 @@ const failureCodes = require('../api/ws/rpc/failure_codes');
 const PeerUpdateError = require('../api/ws/rpc/failure_codes').PeerUpdateError;
 const Rules = require('../api/ws/workers/rules');
 const definitions = require('../schema/definitions');
+const ProcessTransactions = require('./process_transactions');
 // eslint-disable-next-line prefer-const
 let wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
 
@@ -216,7 +217,7 @@ __private.receiveTransactions = function(
  * @returns {setImmediateCallback} cb, err
  * @todo Add description for the params
  */
-__private.receiveTransaction = function(
+__private.receiveTransaction = async function(
 	transactionJSON,
 	nonce,
 	extraLogMessage,
@@ -226,9 +227,18 @@ __private.receiveTransaction = function(
 	let transaction;
 	try {
 		transaction = library.logic.initTransaction.fromJson(transactionJSON);
-		const { errors } = transaction.validate();
-		if (errors.length > 0) {
-			throw errors;
+
+		const composedTransactionsCheck = ProcessTransactions.composeProcessTransactionSteps(
+			modules.processTransactions.checkAllowedTransactions,
+			modules.processTransactions.validateTransactions
+		);
+
+		const { transactionsResponses } = await composedTransactionsCheck([
+			transaction,
+		]);
+
+		if (transactionsResponses[0].errors.length > 0) {
+			throw transactionsResponses[0].errors;
 		}
 	} catch (errors) {
 		const error = errors.length > 0 ? errors[0] : errors;
@@ -320,6 +330,7 @@ Transport.prototype.onBind = function(scope) {
 		multisignatures: scope.modules.multisignatures,
 		peers: scope.modules.peers,
 		transactions: scope.modules.transactions,
+		processTransactions: scope.modules.processTransactions,
 	};
 
 	__private.broadcaster.bind(

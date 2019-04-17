@@ -1723,7 +1723,12 @@ describe('blocks/process', () => {
 			describe('when query returns empty array', () => {
 				beforeEach(async () => {
 					modules.transactions.getUnconfirmedTransactionList.returns([]);
-					modules.processTransactions.verifyTransactions.resolves([]);
+					modules.processTransactions.verifyTransactions.resolves({
+						transactionsResponses: [],
+					});
+					modules.processTransactions.checkAllowedTransactions.returns({
+						transactionsResponses: [],
+					});
 					modules.blocks.verify.processBlock.callsArgWith(
 						3,
 						null,
@@ -1750,9 +1755,12 @@ describe('blocks/process', () => {
 			describe('when query returns undefined', () => {
 				beforeEach(async () => {
 					modules.transactions.getUnconfirmedTransactionList.returns(undefined);
-					modules.processTransactions.verifyTransactions.returns(
-						Promise.resolve([])
-					);
+					modules.processTransactions.checkAllowedTransactions.returns({
+						transactionsResponses: [],
+					});
+					modules.processTransactions.verifyTransactions.resolves({
+						transactionsResponses: [],
+					});
 					modules.blocks.verify.processBlock.callsArgWith(
 						3,
 						null,
@@ -1779,9 +1787,23 @@ describe('blocks/process', () => {
 			describe('when query returns transactions', () => {
 				beforeEach(async () => {
 					modules.transactions.getUnconfirmedTransactionList.returns([
-						{ id: 1, type: 0 },
-						{ id: 2, type: 1 },
+						{ id: 1, type: 0, isAllowedAt: () => true },
+						{ id: 2, type: 1, isAllowedAt: () => true },
 					]);
+					modules.processTransactions.checkAllowedTransactions.returns({
+						transactionsResponses: [
+							{
+								id: 1,
+								status: TransactionStatus.OK,
+								errors: [],
+							},
+							{
+								id: 2,
+								status: TransactionStatus.OK,
+								errors: [],
+							},
+						],
+					});
 					modules.blocks.verify.processBlock.callsArgWith(
 						3,
 						null,
@@ -1973,9 +1995,9 @@ describe('blocks/process', () => {
 				height: 3,
 			};
 			const state = {
-				timestamp,
-				height: lastBlock.height + 1,
-				version: blockVersion.currentBlockVersion,
+				blockTimestamp: timestamp,
+				blockHeight: lastBlock.height + 1,
+				blockVersion: blockVersion.currentBlockVersion,
 			};
 
 			modules.transactions.getUnconfirmedTransactionList.returns(

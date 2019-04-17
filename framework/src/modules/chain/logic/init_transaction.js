@@ -16,8 +16,6 @@
 
 const _ = require('lodash');
 
-let _modules;
-
 const transferAsset = raw => {
 	if (raw.tf_data) {
 		// This line will throw if there is an error
@@ -148,33 +146,23 @@ class Transaction {
 			return undefined;
 		}
 
-		const { version, height, timestamp } = block;
-		const state = { version, height, timestamp };
-
 		const transactions = block.transactions.map(transaction =>
-			this.fromJson(transaction, state)
+			this.fromJson(transaction)
 		);
 
 		return transactions;
 	}
 
-	fromJson(rawTx, state) {
+	fromJson(rawTx) {
 		const TransactionClass = this.transactionClassMap.get(rawTx.type);
 
 		if (!TransactionClass) {
 			throw new Error('Transaction type not found.');
 		}
 
-		if (
-			TransactionClass.isAllowedAt &&
-			!TransactionClass.isAllowedAt(state || getCurrentState())
-		) {
-			throw new Error(
-				`Transaction type ${rawTx.type} is currently not allowed.`
-			);
-		}
-
-		return new TransactionClass(rawTx);
+		const transaction = new TransactionClass(rawTx);
+		transaction.isAllowedAt = TransactionClass.isAllowedAt;
+		return transaction;
 	}
 
 	// TODO: remove after https://github.com/LiskHQ/lisk/issues/2424
@@ -214,26 +202,9 @@ class Transaction {
 		if (asset) {
 			transactionJSON.asset = Object.assign(transactionJSON.asset, asset);
 		}
-		// TODO: pass block metadata always
+
 		return this.fromJson(_.omitBy(transactionJSON, _.isNull));
 	}
 }
-
-/**
- * Get current state from modules.blocks.lastBlock
- */
-const getCurrentState = () => {
-	const { version, height, timestamp } = _modules.blocks.lastBlock.get();
-	return { version, height, timestamp };
-};
-
-/**
- * Binds scope.modules to private variable modules.
- */
-Transaction.prototype.bindModules = function(modules) {
-	_modules = {
-		blocks: modules.blocks,
-	};
-};
 
 module.exports = Transaction;

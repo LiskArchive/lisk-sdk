@@ -557,14 +557,14 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 			MAX_TRANSACTIONS_PER_BLOCK
 		) || [];
 
-	const state = {
-		timestamp,
-		height: modules.blocks.lastBlock.get().height + 1,
-		version: blockVersion.currentBlockVersion,
+	const context = {
+		blockTimestamp: timestamp,
+		blockHeight: modules.blocks.lastBlock.get().height + 1,
+		blockVersion: blockVersion.currentBlockVersion,
 	};
 
 	const allowedTransactionsIds = modules.processTransactions
-		.checkAllowedTransactions(transactions, state)
+		.checkAllowedTransactions(transactions, context)
 		.transactionsResponses.filter(
 			transactionResponse => transactionResponse.status === TransactionStatus.OK
 		)
