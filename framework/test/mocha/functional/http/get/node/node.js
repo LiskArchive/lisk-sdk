@@ -47,7 +47,7 @@ describe('GET /node', () => {
 		it('should return a result containing reward that is a number <= 500000000', async () => {
 			return expect(parseInt(constantsResponse.reward)).to.at.most(500000000);
 		});
-		// FIXME:
+
 		it('should return a result containing supply that is a number = 10000000000000000', async () => {
 			return expect(constantsResponse.supply).to.be.equal('10000000000000000');
 		});
