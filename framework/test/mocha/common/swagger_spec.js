@@ -234,6 +234,8 @@ SwaggerTestSpec.prototype.makeRequest = function(parameters, responseCode) {
 				console.log('^'.repeat(50));
 				console.log(callPath);
 				console.log('^'.repeat(50));
+				console.log(parameters);
+				console.log('^'.repeat(50));
 				console.log(JSON.stringify(res.body, null, 2));
 				console.log('^'.repeat(50));
 			}
