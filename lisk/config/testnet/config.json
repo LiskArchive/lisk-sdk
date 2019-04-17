@@ -1,0 +1,44 @@
+{
+	"components": {
+		"logger": {
+			"logFileName": "logs/testnet/lisk.log"
+		},
+		"storage": {
+			"database": "lisk_test",
+			"logFileName": "logs/testnet/lisk_db.log"
+		},
+		"cache": {}
+	},
+	"modules": {
+		"http_api": {
+			"httpPort": 7000
+		},
+		"chain": {
+			"network": {
+				"wsPort": 7001,
+				"list": [
+					{
+						"ip": "testnet-seed-01.lisk.io",
+						"wsPort": 7001
+					},
+					{
+						"ip": "testnet-seed-02.lisk-nodes.net",
+						"wsPort": 7001
+					},
+					{
+						"ip": "testnet-seed-03.lisk.io",
+						"wsPort": 7001
+					},
+					{
+						"ip": "testnet-seed-04.lisk-nodes.net",
+						"wsPort": 7001
+					},
+					{
+						"ip": "testnet-seed-05.lisk.io",
+						"wsPort": 7001
+					}
+				]
+			}
+		}
+	}
+}

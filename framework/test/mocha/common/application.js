@@ -65,14 +65,14 @@ async function __init(sandbox, initScope) {
 
 	jobsQueue.jobs = {};
 
-	__testContext.config.syncing.active = false;
-	__testContext.config.broadcasts.active = false;
+	__testContext.config.modules.chain.syncing.active = false;
+	__testContext.config.modules.chain.broadcasts.active = false;
 	__testContext.config = Object.assign(
 		__testContext.config,
 		initScope.config || {}
 	);
 
-	const config = __testContext.config;
+	const config = __testContext.config.modules.chain;
 	let storage;
 	if (!initScope.components) {
 		initScope.components = {};
@@ -80,10 +80,14 @@ async function __init(sandbox, initScope) {
 
 	try {
 		if (sandbox && !initScope.components.storage) {
-			storage = new StorageSandbox(sandbox.config || config.db, sandbox.name);
+			storage = new StorageSandbox(
+				sandbox.config || __testContext.config.components.storage,
+				sandbox.name
+			);
 		} else {
-			config.db.user = config.db.user || process.env.USER;
-			storage = new StorageSandbox(config.db);
+			__testContext.config.components.storage.user =
+				__testContext.config.components.storage.user || process.env.USER;
+			storage = new StorageSandbox(__testContext.config.components.storage);
 		}
 
 		__testContext.debug(
@@ -131,7 +135,7 @@ async function __init(sandbox, initScope) {
 				lastCommit: '',
 				ed,
 				build: '',
-				config: __testContext.config,
+				config,
 				genesisBlock: { block: __testContext.config.genesisBlock },
 				registeredTransactions,
 				schema: new ZSchema(),
@@ -175,9 +179,9 @@ async function __init(sandbox, initScope) {
 		await startStorage();
 		await cache.bootstrap();
 
-		scope.config.peers.list = await initSteps.lookupPeerIPs(
-			scope.config.peers.list,
-			scope.config.peers.enabled
+		scope.config.network.list = await initSteps.lookupPeerIPs(
+			scope.config.network.list,
+			scope.config.network.enabled
 		);
 		scope.bus = await initSteps.createBus();
 		scope.webSocket = await initStepsForTest.createSocketCluster(scope);
@@ -234,7 +238,7 @@ async function __init(sandbox, initScope) {
 
 					const delegatesCount = Object.keys(keypairs).length;
 					expect(delegatesCount).to.equal(
-						__testContext.config.forging.delegates.length
+						scope.config.forging.delegates.length
 					);
 
 					__testContext.debug(

@@ -1,0 +1,20 @@
+{
+	"amount": "0",
+	"recipientId": "",
+	"senderPublicKey": "8e01392645649dcea5cc7317bfeae3e011c4e9dbf1489de3795ea6f2b929e893",
+	"timestamp": 88355975,
+	"type": 4,
+	"fee": "1500000000",
+	"asset": {
+		"multisignature": {
+			"min": 2,
+			"lifetime": 2,
+			"keysgroup": [
+				"+142d1f24e17d3c90b0f2abdf49c2b14b02782e49b2ecfe85462ed12f654d60df",
+				"+bb7ef62be03d5c195a132efe82796420abae04638cd3f6321532a5d33031b30c"
+			]
+		}
+	},
+	"signature": "f26a5bd51a937db37d2832a60cedd17758b7a89aaea31d610e60f096839a1de9d450a2f147e2cdcef28ecea98319250d00a89826f9630cb623215ab513334004",
+	"id": "14644504552633286790"
+}
