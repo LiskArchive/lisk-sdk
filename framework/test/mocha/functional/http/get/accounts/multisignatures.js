@@ -72,7 +72,7 @@ describe('GET /api/accounts', () => {
 		);
 
 		describe('address', () => {
-			it('using known address should respond with its multisignature_group', async () => {
+			it('it should respond with its multisignature group when using known address', async () => {
 				return multisigGroupsEndpoint
 					.makeRequest({ address: account.address }, 200)
 					.then(res => {
