@@ -229,6 +229,14 @@ SwaggerTestSpec.prototype.makeRequest = function(parameters, responseCode) {
 
 			expect(res.statusCode).to.be.eql(expectedResponseCode);
 			expect(res.headers['content-type']).to.match(/json/);
+
+			if (callPath === '/api/accounts' || callPath === '/api/node/constants') {
+				console.log('^'.repeat(50));
+				console.log(callPath);
+				console.log('^'.repeat(50));
+				console.log(JSON.stringify(res.body, null, 2));
+				console.log('^'.repeat(50));
+			}
 			expect(res.body).to.be.validResponse(
 				self.getResponseSpecPath(expectedResponseCode)
 			);
