@@ -17,6 +17,7 @@
 const Promise = require('bluebird');
 
 module.exports = function(configurations, network) {
+	const genesisBlockId = __testContext.config.genesisBlock.id;
 	describe('@propagation : transactions', () => {
 		let nodesTransactions = [];
 
@@ -24,7 +25,7 @@ module.exports = function(configurations, network) {
 			return Promise.all(
 				network.sockets.map(socket => {
 					return socket.call('blocks', {
-						lastBlockId: configurations[0].genesisBlock.id,
+						lastBlockId: genesisBlockId,
 					});
 				})
 			).then(results => {
