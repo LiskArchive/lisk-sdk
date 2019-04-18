@@ -14,6 +14,9 @@
 
 'use strict';
 
+const {
+	TransactionError
+} = require('@liskhq/lisk-transactions');
 const async = require('async');
 const _ = require('lodash');
 const { convertErrorsToString } = require('../helpers/error_handlers');
@@ -159,7 +162,7 @@ __private.receiveSignatures = function(signatures = []) {
 __private.receiveSignature = function(signature, cb) {
 	library.schema.validate(signature, definitions.Signature, err => {
 		if (err) {
-			return setImmediate(cb, [new Error(err[0].message)], 400);
+			return setImmediate(cb, [new TransactionError(err[0].message)], 400);
 		}
 
 		return modules.multisignatures.getTransactionAndProcessSignature(
@@ -242,6 +245,7 @@ __private.receiveTransaction = function(
 			},
 			extraLogMessage
 		);
+
 		return setImmediate(cb, errors);
 	}
 
@@ -269,6 +273,7 @@ __private.receiveTransaction = function(
 					}
 					return setImmediate(balancesSequenceCb, err);
 				}
+
 				return setImmediate(balancesSequenceCb, null, transaction.id);
 			}
 		);

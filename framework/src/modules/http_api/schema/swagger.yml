@@ -2489,7 +2489,7 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/TransactionError'
-  
+
   NotFoundError:
     type: object
     required:

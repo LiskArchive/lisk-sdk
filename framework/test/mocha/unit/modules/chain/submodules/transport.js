@@ -513,10 +513,10 @@ describe('transport', () => {
 					let processSignatureError;
 
 					beforeEach(done => {
-						processSignatureError = new Error('Transaction not found');
+						processSignatureError = new TransactionError('Transaction not found');
 						modules.multisignatures.getTransactionAndProcessSignature = sinonSandbox
 							.stub()
-							.callsArgWith(1, processSignatureError);
+							.callsArgWith(1, [processSignatureError]);
 
 						__private.receiveSignature(SAMPLE_SIGNATURE_1, err => {
 							error = err;
@@ -525,8 +525,8 @@ describe('transport', () => {
 					});
 
 					it('should call callback with error', async () =>
-						expect(error).to.equal(
-							`Error processing signature: ${processSignatureError.message}`
+						expect(error[0].message).to.equal(
+							`${processSignatureError.message}`
 						));
 				});
 			});
@@ -548,8 +548,8 @@ describe('transport', () => {
 				});
 
 				it('should call callback with error = "Invalid signature body"', async () =>
-					expect(error).to.equal(
-						`Invalid signature body ${validateErr.message}`
+					expect(error[0].message).to.equal(
+						`${validateErr.message}`
 					));
 			});
 		});
@@ -1919,7 +1919,7 @@ describe('transport', () => {
 				});
 
 				describe('when __private.receiveSignature fails', () => {
-					const receiveSignatureError = 'Invalid signature body ...';
+					const receiveSignatureError = new TransactionError('Invalid signature body');
 
 					beforeEach(done => {
 						query = {
@@ -1935,13 +1935,13 @@ describe('transport', () => {
 						});
 					});
 
-					it('should invoke callback with object { success: false, message: err }', async () => {
+					it('should invoke callback with error array', async () => {
 						expect(error).to.equal(null);
 						expect(result)
 							.to.have.property('success')
 							.which.is.equal(false);
 						return expect(result)
-							.to.have.property('message')
+							.to.have.property('error')
 							.which.is.equal(receiveSignatureError);
 					});
 				});

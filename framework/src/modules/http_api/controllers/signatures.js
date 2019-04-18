@@ -77,8 +77,7 @@ SignaturesController.postSignature = async function(context, next) {
 	} catch (err) {
 		error = new ApiError(
 			'Internal server error',
-			apiCodes.INTERNAL_SERVER_ERROR,
-			[err]
+			apiCodes.INTERNAL_SERVER_ERROR
 		);
 	}
 

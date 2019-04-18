@@ -77,7 +77,7 @@ Multisignatures.prototype.getTransactionAndProcessSignature = (
 	if (!signature) {
 		const message = 'Unable to process signature, signature not provided';
 		library.logger.error(message);
-		return setImmediate(cb, new Error(message));
+		return setImmediate(cb, [new TransactionError(message, '', '.signature')]);
 	}
 	// Grab transaction with corresponding ID from transaction pool
 	const transaction = modules.transactions.getMultisignatureTransaction(
@@ -88,7 +88,7 @@ Multisignatures.prototype.getTransactionAndProcessSignature = (
 		const message =
 			'Unable to process signature, corresponding transaction not found';
 		library.logger.error(message, { signature });
-		return setImmediate(cb, new Error(message));
+		return setImmediate(cb, [new TransactionError(message, '', '.signature')]);
 	}
 
 	return modules.processTransactions
@@ -100,9 +100,7 @@ Multisignatures.prototype.getTransactionAndProcessSignature = (
 			) {
 				const message = transactionResponse.errors[0].message;
 				library.logger.error(message, { signature });
-				return setImmediate(cb, [
-					new TransactionError(message, transactionResponse.id, '.signature'),
-				]);
+				return setImmediate(cb, transactionResponse.errors);
 			}
 			// Emit events
 			library.channel.publish(
@@ -113,7 +111,7 @@ Multisignatures.prototype.getTransactionAndProcessSignature = (
 
 			return setImmediate(cb);
 		})
-		.catch(err => setImmediate(cb, err));
+		.catch(err => setImmediate(cb, [err]));
 };
 
 /**
