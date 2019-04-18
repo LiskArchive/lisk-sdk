@@ -7,6 +7,8 @@ const {
 
 const packageJSON = require('../../package');
 
+process.env.NODE_ENV = 'test';
+
 let app;
 
 const appConfig = {
