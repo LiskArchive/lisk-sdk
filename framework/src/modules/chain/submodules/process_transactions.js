@@ -19,6 +19,7 @@ const {
 	TransactionError,
 } = require('@liskhq/lisk-transactions');
 const roundInformation = require('../logic/rounds_information');
+const slots = require('../helpers/slots');
 
 let library;
 
@@ -140,6 +141,14 @@ class ProcessTransactions {
 		const transactionsResponses = transactions.map(transaction => {
 			library.logic.stateManager.createSnapshot();
 			const transactionResponse = transaction.apply(stateStore);
+			if (slots.getSlotNumber(transaction.timestamp) > slots.getSlotNumber()) {
+				transactionResponse.status = 0;
+				transactionResponse.errors.push(new TransactionError(
+					'Invalid transaction timestamp. Timestamp is in the future',
+					transaction.id,
+					'.timestamp'
+				));
+			}
 			library.logic.stateManager.restoreSnapshot();
 			return transactionResponse;
 		});

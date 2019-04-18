@@ -59,13 +59,13 @@ SignaturesController.postSignature = async function(context, next) {
 			error = new ApiError(
 				'Error processing signature',
 				apiCodes.PROCESSING_ERROR,
-				data.error
+				data.errors
 			);
 		} else if (data.code === apiCodes.BAD_REQUEST) {
 			error = new ApiError(
 				'Invalid signature body',
 				apiCodes.BAD_REQUEST,
-				data.error
+				data.errors
 			);
 		} else {
 			error = new ApiError(

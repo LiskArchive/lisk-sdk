@@ -354,7 +354,10 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 			if (comparisonFailed && modules.transport.poorConsensus()) {
 				return modules.blocks.chain.recoverChain(cb);
 			}
-			if (err) err = new Error(err);
+			if (err) {
+				err = new Error(err);
+			}
+
 			return setImmediate(cb, err, res);
 		}
 	);

@@ -1941,7 +1941,7 @@ describe('transport', () => {
 							.to.have.property('success')
 							.which.is.equal(false);
 						return expect(result)
-							.to.have.property('error')
+							.to.have.property('errors')
 							.which.is.equal(receiveSignatureError);
 					});
 				});

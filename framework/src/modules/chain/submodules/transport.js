@@ -786,7 +786,7 @@ Transport.prototype.shared = {
 				return setImmediate(cb, null, {
 					success: false,
 					code,
-					error: err,
+					errors: err,
 				});
 			}
 			return setImmediate(cb, null, {
@@ -884,7 +884,7 @@ Transport.prototype.shared = {
 					return setImmediate(cb, null, {
 						success: false,
 						message: 'Invalid transaction body',
-						error: err,
+						errors: err,
 					});
 				}
 
