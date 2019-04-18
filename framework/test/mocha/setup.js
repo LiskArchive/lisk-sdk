@@ -23,99 +23,10 @@ const sinonChai = require('sinon-chai');
 const chaiAsPromised = require('chai-as-promised');
 const supertest = require('supertest');
 const _ = require('lodash');
-const validator = require('../../src/controller/helpers/validator');
-const constantsSchema = require('../../src/controller/schema/constants');
-const applicationSchema = require('../../src/controller/schema/application');
-const chainModuleSchema = require('../../src/modules/chain/defaults/config');
-const apiModuleSchema = require('../../src/modules/http_api/defaults/config');
-
-const {
-	config: defaultStorageConfig,
-} = require('../../src/components/storage/defaults');
-const {
-	config: defaultCacheConfig,
-} = require('../../src/components/cache/defaults');
-
-const packageJson = require('../../package.json');
-const netConfig = require('../fixtures/config/devnet/config');
-const exceptions = require('../fixtures/config/devnet/exceptions');
-const genesisBlock = require('../fixtures/config/devnet/genesis_block');
-
-validator.loadSchema(constantsSchema);
-validator.loadSchema(applicationSchema);
-
-const config = _.merge(netConfig, {
-	app: {
-		version: packageJson.version,
-		minVersion: packageJson.lisk.minVersion,
-		// Support for PROTOCOL_VERSION only for tests
-		protocolVersion:
-			process.env.PROTOCOL_VERSION || packageJson.lisk.protocolVersion,
-	},
-});
-
-const appConfig = validator.parseEnvArgAndValidate(
-	applicationSchema.config,
-	netConfig
-);
-
-// These constants are readonly we are loading up their default values
-// In additional validating those values so any wrongly changed value
-// by us can be catch on application startup
-const constants = validator.parseEnvArgAndValidate(
-	constantsSchema.constants,
-	{}
-);
-
-config.constants = { ...constants, ...appConfig.app.genesisConfig };
-
-// TODO: This should be removed after https://github.com/LiskHQ/lisk/pull/2980
-global.constants = config.constants;
-
-config.genesisBlock = validator.parseEnvArgAndValidate(
-	applicationSchema.genesisBlock,
-	genesisBlock
-);
-config.nethash = config.genesisBlock.payloadHash;
-
-config.modules.chain = validator.parseEnvArgAndValidate(
-	chainModuleSchema,
-	Object.assign({}, config.modules.chain, { exceptions })
-);
-config.modules.chain = {
-	...config.modules.chain,
-	constants: config.constants,
-	genesisBlock: config.genesisBlock,
-	version: config.version,
-	minVersion: config.minVersion,
-	protocolVersion: config.protocolVersion,
-};
-
-config.modules.http_api = validator.parseEnvArgAndValidate(
-	apiModuleSchema,
-	config.modules.http_api
-);
-config.modules.http_api = {
-	...config.modules.http_api,
-	constants: config.constants,
-	genesisBlock: config.genesisBlock,
-	version: config.version,
-	minVersion: config.minVersion,
-};
-
-config.components.storage = validator.parseEnvArgAndValidate(
-	defaultStorageConfig,
-	config.components.storage || {}
-);
-config.components.cache = validator.parseEnvArgAndValidate(
-	defaultCacheConfig,
-	config.components.cache || {}
-);
-
-coMocha(mocha);
+const app = require('../test_app/app');
 
 process.env.NODE_ENV = 'test';
-
+coMocha(mocha);
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
@@ -126,6 +37,8 @@ if (process.env.SILENT === 'true') {
 } else {
 	testContext.debug = console.info;
 }
+
+const config = _.cloneDeep(app.config);
 
 if (process.env.LOG_DB_EVENTS === 'true') {
 	config.components.storage.logEvents = [
@@ -141,11 +54,12 @@ if (process.env.LOG_DB_EVENTS === 'true') {
 }
 
 testContext.config = config;
+testContext.config.constants = _.cloneDeep(app.constants);
 testContext.consoleLogLevel =
-	process.env.LOG_LEVEL || testContext.config.components.logger.consoleLogLevel;
+	process.env.LOG_LEVEL || config.components.logger.consoleLogLevel;
 
-testContext.baseUrl = `http://${testContext.config.modules.http_api.address}:${
-	testContext.config.modules.http_api.httpPort
+testContext.baseUrl = `http://${config.modules.http_api.address}:${
+	config.modules.http_api.httpPort
 }`;
 testContext.api = supertest(testContext.baseUrl);
 
@@ -223,10 +137,9 @@ _.mixin(
 );
 
 // Cloning the constants object to remove immutability
-testContext.config.constants = _.cloneDeep(testContext.config.constants);
 global.expect = chai.expect;
 global.sinonSandbox = sinon.createSandbox();
 global.__testContext = testContext;
-global.constants = testContext.config.constants;
-global.exceptions = testContext.config.modules.chain.exceptions;
+global.constants = _.cloneDeep(app.constants);
+global.exceptions = _.cloneDeep(config.modules.chain.exceptions);
 global._ = _;

@@ -79,7 +79,9 @@ describe('Application', () => {
 			new Application(genesisBlock, config);
 
 			expect(configurator.getConfig).toHaveBeenCalledTimes(1);
-			expect(configurator.getConfig).toHaveBeenCalledWith(config);
+			expect(configurator.getConfig).toHaveBeenCalledWith(config, {
+				failOnInvalidArg: false,
+			});
 		});
 
 		it('should validate the constants', () => {
@@ -110,10 +112,7 @@ describe('Application', () => {
 
 		it('should set internal variables', () => {
 			// Act
-			const app = new Application(
-				genesisBlock,
-				config
-			);
+			const app = new Application(genesisBlock, config);
 
 			const appConfig = _.cloneDeep(app.config);
 

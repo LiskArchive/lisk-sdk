@@ -5,10 +5,7 @@ const Controller = require('./controller');
 const version = require('../version');
 const validator = require('./helpers/validator');
 const configurator = require('./helpers/configurator');
-const {
-	genesisBlockSchema,
-	constantsSchema,
-} = require('./schema');
+const { genesisBlockSchema, constantsSchema } = require('./schema');
 
 const { createLoggerComponent } = require('../components/logger');
 
@@ -106,7 +103,9 @@ class Application {
 			);
 		}
 
-		appConfig = configurator.getConfig(appConfig);
+		appConfig = configurator.getConfig(appConfig, {
+			failOnInvalidArg: process.env.NODE_ENV !== 'test',
+		});
 
 		// These constants are readonly we are loading up their default values
 		// In additional validating those values so any wrongly changed value
