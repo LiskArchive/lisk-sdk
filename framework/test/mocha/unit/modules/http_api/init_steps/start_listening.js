@@ -37,19 +37,17 @@ describe('init_steps/start_listening', () => {
 				config: {
 					httpPort: 8000,
 					address: '1085993630748340485L',
-					api: {
-						options: {
-							limits: {
-								headersTimeout: 1000,
-								serverSetTimeout: 2000,
-							},
+					options: {
+						limits: {
+							headersTimeout: 1000,
+							serverSetTimeout: 2000,
 						},
-						ssl: {
-							enabled: true,
-							options: {
-								port: 4000,
-								address: '13308611084197332487L',
-							},
+					},
+					ssl: {
+						enabled: true,
+						options: {
+							port: 4000,
+							address: '13308611084197332487L',
 						},
 					},
 				},
@@ -106,13 +104,13 @@ describe('init_steps/start_listening', () => {
 	describe('when SSL is enabled', () => {
 		it('should set timeout value from config to https server', async () =>
 			expect(stub.arg2.httpsServer.setTimeout).calledWithExactly(
-				stub.arg1.config.api.options.limits.serverSetTimeout
+				stub.arg1.config.options.limits.serverSetTimeout
 			));
 
 		it('should start listening https server with proper data', async () => {
 			expect(stub.arg2.httpsServer.listen.getCall(0).args[0]).to.deep.equal({
-				host: stub.arg1.config.api.ssl.options.address,
-				port: stub.arg1.config.api.ssl.options.port,
+				host: stub.arg1.config.ssl.options.address,
+				port: stub.arg1.config.ssl.options.port,
 			});
 		});
 
@@ -129,8 +127,8 @@ describe('init_steps/start_listening', () => {
 
 		it('should call logger.info with proper data if http server started listening correctly', async () =>
 			expect(stub.arg1.components.logger.info).to.be.calledWithExactly(
-				`Lisk https started: ${stub.arg1.config.api.ssl.options.address}:${
-					stub.arg1.config.api.ssl.options.port
+				`Lisk https started: ${stub.arg1.config.ssl.options.address}:${
+					stub.arg1.config.ssl.options.port
 				}`
 			));
 	});

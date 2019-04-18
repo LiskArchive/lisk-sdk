@@ -48,10 +48,10 @@ describe('transactionPool', () => {
 	beforeEach(async () => {
 		// Init test subject
 		transactionPool = new TransactionPool(
-			config.broadcasts.broadcastInterval,
-			config.broadcasts.releaseLimit,
+			config.modules.chain.broadcasts.broadcastInterval,
+			config.modules.chain.broadcasts.releaseLimit,
 			logger, // logger
-			config
+			config.modules.chain
 		);
 
 		dummyTransactions = [{ id: 1 }, { id: 2 }, { id: 3 }];

@@ -74,7 +74,7 @@ class Transport {
 			config: {
 				peers: {
 					options: {
-						timeout: scope.config.peers.options.timeout,
+						timeout: scope.config.network.options.timeout,
 					},
 				},
 				forging: {
@@ -987,7 +987,7 @@ Transport.prototype.internal = {
 					: new PeerUpdateError(
 							updateResult,
 							failureCodes.errorMessages[updateResult]
-						)
+					  )
 			);
 		});
 	},

@@ -24,7 +24,7 @@ const { convertErrorsToString } = require('../../helpers/error_handlers');
 const {
 	CACHE_KEYS_DELEGATES,
 	CACHE_KEYS_TRANSACTION_COUNT,
-} = require('../../../../../../framework/src/components/cache');
+} = require('../../../../components/cache');
 
 const { TRANSACTION_TYPES } = global.constants;
 

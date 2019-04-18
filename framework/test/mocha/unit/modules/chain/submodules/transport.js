@@ -193,7 +193,7 @@ describe('transport', () => {
 			applicationState: {},
 			balancesSequence: balancesSequenceStub,
 			config: {
-				peers: {
+				network: {
 					options: {
 						timeout: 1234,
 					},

@@ -2,7 +2,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const child_process = require('child_process');
 const psList = require('ps-list');
-const systemDirs = require('./config/dirs');
+const systemDirs = require('./helpers/sysmtem_dirs');
 const { InMemoryChannel } = require('./channels');
 const Bus = require('./bus');
 const { DuplicateAppInstanceError } = require('../errors');
@@ -62,13 +62,13 @@ class Controller {
 	 * @param modules
 	 * @async
 	 */
-	async load(modules) {
+	async load(modules, moduleOptions) {
 		this.logger.info('Loading controller');
 		await this._setupDirectories();
 		await this._validatePidFile();
 		await this._initState();
 		await this._setupBus();
-		await this._loadModules(modules);
+		await this._loadModules(modules, moduleOptions);
 
 		this.logger.info('Bus listening to events', this.bus.getEvents());
 		this.logger.info('Bus ready for actions', this.bus.getActions());
@@ -93,10 +93,13 @@ class Controller {
 		const pidPath = `${this.config.dirs.pids}/controller.pid`;
 		const pidExists = await fs.pathExists(pidPath);
 		if (pidExists) {
-			const pidRunning = await isPidRunning(
-				parseInt(await fs.readFile(pidPath))
-			);
-			if (pidRunning) {
+			const pid = parseInt(await fs.readFile(pidPath));
+			const pidRunning = await isPidRunning(pid);
+
+			this.logger.info(`Old PID: ${pid}`);
+			this.logger.info(`Current PID: ${process.pid}`);
+
+			if (pidRunning && pid !== process.pid) {
 				this.logger.error(
 					`An instance of application "${
 						this.appLabel
@@ -165,11 +168,12 @@ class Controller {
 		}
 	}
 
-	async _loadModules(modules) {
+	async _loadModules(modules, moduleOptions) {
 		// To perform operations in sequence and not using bluebird
 		// eslint-disable-next-line no-restricted-syntax
 		for (const alias of Object.keys(modules)) {
-			const { klass, options } = modules[alias];
+			const klass = modules[alias];
+			const options = moduleOptions[alias];
 
 			if (options.loadAsChildProcess) {
 				if (this.config.ipc.enabled) {
@@ -190,11 +194,11 @@ class Controller {
 	}
 
 	async _loadInMemoryModule(alias, Klass, options) {
+		const moduleAlias = alias || Klass.alias;
+		const { name, version } = Klass.info;
+
 		const module = new Klass(options);
 		validateModuleSpec(module);
-
-		const moduleAlias = alias || module.constructor.alias;
-		const { name, version } = module.constructor.info;
 
 		this.logger.info(
 			`Loading module ${name}:${version} with alias "${moduleAlias}"`
@@ -252,7 +256,7 @@ class Controller {
 					`--inspect=${Math.floor(
 						Math.random() * (maxPort - minPort) + minPort
 					)}`,
-				])
+			  ])
 			: [];
 
 		const child = child_process.fork(program, parameters, forkedProcessOptions);

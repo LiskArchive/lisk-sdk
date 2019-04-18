@@ -1,0 +1,18 @@
+{
+	"compilerOptions": {
+		"forceConsistentCasingInFileNames": true,
+		"target": "es2017",
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"newLine": "lf",
+		"noFallthroughCasesInSwitch": true,
+		"noImplicitReturns": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"pretty": true,
+		"removeComments": true,
+		"resolveJsonModule": true,
+		"sourceMap": true,
+		"strict": true
+	}
+}

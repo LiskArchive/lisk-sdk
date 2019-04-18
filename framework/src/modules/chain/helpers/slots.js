@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { EPOCH_TIME, ACTIVE_DELEGATES } = global.constants;
+const { EPOCH_TIME, ACTIVE_DELEGATES, BLOCK_TIME } = global.constants;
 
 /**
  * Description of the module.
@@ -42,7 +42,7 @@ function getEpochTime(time) {
 }
 
 module.exports = {
-	interval: 10,
+	interval: BLOCK_TIME,
 
 	/**
 	 * Description of the function.

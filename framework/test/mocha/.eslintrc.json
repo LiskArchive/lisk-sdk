@@ -1,4 +1,5 @@
 {
+	"plugins": ["chai-expect"],
 	"env": {
 		"mocha": true
 	},
@@ -10,7 +11,14 @@
 		"sinonSandbox": true
 	},
 	"rules": {
-		// To Keep
-		"arrow-body-style": "off"
+		"arrow-body-style": "off",
+		"chai-expect/missing-assertion": "error",
+		"chai-expect/no-inner-compare": "error",
+		"import/no-extraneous-dependencies": [
+			"error",
+			{
+				"devDependencies": ["./**"]
+			}
+		]
 	}
 }
