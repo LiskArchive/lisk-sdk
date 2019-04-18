@@ -1,165 +1,144 @@
 const _ = require('lodash');
 const Application = require('../../../../../src/controller/application');
 const validator = require('../../../../../src/controller/helpers/validator');
-const applicationSchema = require('../../../../../src/controller/schema/application');
-const constantsSchema = require('../../../../../src/controller/schema/constants');
+const configurator = require('../../../../../src/controller/helpers/configurator');
+const {
+	genesisBlockSchema,
+	constantsSchema,
+} = require('../../../../../src/controller/schema');
 
 jest.mock('../../../../../src/components/logger');
-jest.mock('../../../../../src/components/logger');
+jest.mock('../../../../../src/controller/helpers/configurator');
 
-// const appSchema = {
-// 	type: 'object',
-// 	properties: {
-// 		NETWORK: {
-// 			type: 'string',
-// 			description:
-// 				'lisk network [devnet|betanet|mainnet|testnet]. Defaults to "devnet"',
-// 			enum: ['devnet', 'alphanet', 'betanet', 'testnet', 'mainnet'],
-// 			env: 'LISK_NETWORK',
-// 			arg: '-n,--network',
-// 		},
-// 		CUSTOM_CONFIG_FILE: {
-// 			type: ['string', 'null'],
-// 			description: 'Custom configuration file path',
-// 			default: null,
-// 			env: 'LISK_CONFIG_FILE',
-// 			arg: '-c,--config',
-// 		},
-// 	},
-// 	default: {
-// 		NETWORK: 'devnet',
-// 		CUSTOM_CONFIG_FILE: null,
-// 	},
-// };
+const networkConfig = require('../../../../fixtures/config/devnet/config');
+const genesisBlock = require('../../../../fixtures/config/devnet/genesis_block');
 
-const appConfig = {
+const config = {
+	...networkConfig,
 	app: {
+		label: 'jest-unit',
 		version: '1.6.0',
 		minVersion: '1.0.0',
 		protocolVersion: '1.0',
 	},
 };
 
-const networkConfig = require('../../../../fixtures/config/devnet/config');
-const genesisBlock = require('../../../../fixtures/config/devnet/genesis_block');
-
 describe('Application', () => {
-	// Arrange
-	const params = {
-		label: 'jest-unit',
-		genesisBlock,
-		config: [networkConfig, appConfig],
-	};
-
 	describe('#constructor', () => {
-		afterEach(() => {
-			// So we can start a fresh schema each time Application is instantiated
-			validator.validator.removeSchema();
-			validator.parserAndValidator.removeSchema();
+		beforeEach(() => {
+			// Mock the method and return what ever came as parameter
+			configurator.getConfig.mockImplementation(c => _.cloneDeep(c));
 		});
 
-		it('should accept function as label argument', () => {
-			// Arrange
-			const labelFn = () => 'jest-unit';
+		afterEach(() => {
+			configurator.getConfig.mockReset();
+		});
 
+		it('should validate genesisBlock', () => {
 			// Act
-			const app = new Application(labelFn, params.genesisBlock, params.config);
-			expect(app.label).toBe(labelFn);
+			const validateSpy = jest.spyOn(validator, 'validate');
+			new Application(genesisBlock, config);
+
+			// Assert
+			expect(validateSpy).toHaveBeenCalledTimes(1);
+			expect(validateSpy).toHaveBeenCalledWith(
+				genesisBlockSchema,
+				genesisBlock
+			);
+		});
+
+		it('should set app label with the genesis block payload hash if label not provided', () => {
+			const configWithoutLabel = _.cloneDeep(config);
+			delete configWithoutLabel.app.label;
+
+			const app = new Application(genesisBlock, configWithoutLabel);
+
+			expect(app.config.app.label).toBe(genesisBlock.payloadHash);
+		});
+
+		it('should use the same app label if provided', () => {
+			const app = new Application(genesisBlock, config);
+
+			expect(app.config.app.label).toBe(config.app.label);
 		});
 
 		it('should set filename for logger if logger component was not provided', () => {
 			// Arrange
-			const configWithoutLogger = _.cloneDeep(params.config);
-			delete configWithoutLogger[0].components.logger;
-			delete configWithoutLogger[1].components.logger;
+			const configWithoutLogger = _.cloneDeep(config);
+			delete configWithoutLogger.components.logger;
 
 			// Act
-			const app = new Application(
-				params.label,
-				params.genesisBlock,
-				configWithoutLogger
-			);
+			const app = new Application(genesisBlock, configWithoutLogger);
 
 			expect(app.config.components.logger.logFileName).toBe(
-				`${process.cwd()}/logs/${params.label}/lisk.log`
+				`${process.cwd()}/logs/${config.app.label}/lisk.log`
 			);
 		});
 
-		it('should load applicationSchema and constantsSchema', () => {
-			const loadSchemaSpy = jest.spyOn(validator, 'loadSchema');
+		it('should call the configurator.getConfig once', () => {
+			new Application(genesisBlock, config);
 
-			// Act
-			new Application(params.label, params.genesisBlock, params.config);
-
-			// Assert
-			expect(loadSchemaSpy).toHaveBeenCalledWith(applicationSchema);
-			expect(loadSchemaSpy).toHaveBeenCalledWith(constantsSchema);
+			expect(configurator.getConfig).toHaveBeenCalledTimes(1);
+			expect(configurator.getConfig).toHaveBeenCalledWith(config);
 		});
 
-		it('should validate constructor arguments', () => {
-			// Act
-			const validateSpy = jest.spyOn(validator, 'validate');
+		it('should validate the constants', () => {
 			const parseEnvArgAndValidateSpy = jest.spyOn(
 				validator,
 				'parseEnvArgAndValidate'
 			);
-			new Application(params.label, params.genesisBlock, params.config);
+			new Application(genesisBlock, config);
 
-			// Assert
-			expect(validateSpy).toHaveBeenNthCalledWith(
-				1,
-				applicationSchema.appLabel,
-				params.label
-			);
-			expect(validateSpy).toHaveBeenNthCalledWith(
-				2,
-				applicationSchema.genesisBlock,
-				params.genesisBlock
-			);
-			expect(parseEnvArgAndValidateSpy).toHaveBeenNthCalledWith(
-				1,
-				applicationSchema.config,
-				_.defaultsDeep(...params.config)
-			);
-			expect(parseEnvArgAndValidateSpy).toHaveBeenNthCalledWith(
-				2,
-				constantsSchema.constants,
+			expect(parseEnvArgAndValidateSpy).toHaveBeenCalledTimes(1);
+			expect(parseEnvArgAndValidateSpy).toHaveBeenCalledWith(
+				constantsSchema,
 				expect.any(Object)
 			);
+		});
+
+		it('should merge the constants with genesisConfig and assign it to app constants', () => {
+			const customConfig = _.cloneDeep(config);
+
+			customConfig.app.genesisConfig = {
+				MAX_TRANSACTIONS_PER_BLOCK: 11,
+			};
+
+			const app = new Application(genesisBlock, customConfig);
+
+			expect(app.constants.MAX_TRANSACTIONS_PER_BLOCK).toBe(11);
 		});
 
 		it('should set internal variables', () => {
 			// Act
 			const app = new Application(
-				params.label,
-				params.genesisBlock,
-				params.config
+				genesisBlock,
+				config
 			);
+
+			const appConfig = _.cloneDeep(app.config);
+
+			// This key was added only for development environment
+			delete appConfig.modules.http_api.loadAsChildProcess;
 
 			// Assert
 			// Investigate if these are implementation details
-			expect(app.genesisBlock).toBe(params.genesisBlock);
-			expect(app.label).toBe(params.label);
-			expect(app.config).toEqual(_.defaultsDeep(...params.config));
+			expect(app.genesisBlock).toBe(genesisBlock);
 			expect(app.controller).toBeNull();
+			expect(appConfig).toEqual(config);
 		});
 
-		it('should throw validation error if constants are overriden by the user', () => {
-			const customConfig = [
-				...[
-					{
-						app: {
-							genesisConfig: {
-								CONSTANT: 'aConstant',
-							},
-						},
-					},
-				],
-				...params.config,
-			];
+		it('should throw validation error if constants are overridden by the user', () => {
+			configurator.getConfig.mockImplementation(() => {
+				throw new Error('Schema validation error');
+			});
+			const customConfig = _.cloneDeep(config);
+
+			customConfig.app.genesisConfig = {
+				CONSTANT: 'aConstant',
+			};
 
 			expect(() => {
-				new Application(params.label, params.genesisBlock, customConfig);
+				new Application(genesisBlock, customConfig);
 			}).toThrow('Schema validation error');
 		});
 	});

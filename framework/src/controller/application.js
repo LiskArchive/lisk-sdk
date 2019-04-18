@@ -3,10 +3,9 @@ const _ = require('lodash');
 const randomstring = require('randomstring');
 const Controller = require('./controller');
 const version = require('../version');
-const { validate, parseEnvArgAndValidate } = require('./helpers/validator');
+const validator = require('./helpers/validator');
 const configurator = require('./helpers/configurator');
 const {
-	applicationConfigSchema,
 	genesisBlockSchema,
 	constantsSchema,
 } = require('./schema');
@@ -90,9 +89,10 @@ class Application {
 	 * @throws Framework.errors.SchemaValidationError
 	 */
 	constructor(genesisBlock, config = {}) {
-		validate(genesisBlockSchema, genesisBlock);
+		validator.validate(genesisBlockSchema, genesisBlock);
 
-		let appConfig = config;
+		// Don't change the object parameters provided
+		let appConfig = _.cloneDeep(config);
 
 		if (!_.has(appConfig, 'app.label')) {
 			_.set(appConfig, 'app.label', genesisBlock.payloadHash);
@@ -100,6 +100,7 @@ class Application {
 
 		if (!_.has(appConfig, 'components.logger.logFileName')) {
 			_.set(
+				appConfig,
 				'components.logger.logFileName',
 				`${process.cwd()}/logs/${appConfig.app.label}/lisk.log`
 			);
@@ -110,7 +111,7 @@ class Application {
 		// These constants are readonly we are loading up their default values
 		// In additional validating those values so any wrongly changed value
 		// by us can be catch on application startup
-		const constants = parseEnvArgAndValidate(constantsSchema.constants, {});
+		const constants = validator.parseEnvArgAndValidate(constantsSchema, {});
 
 		// app.genesisConfig are actually old constants
 		// we are merging these here to refactor the underlying code in other iteration

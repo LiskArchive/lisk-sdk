@@ -1,7 +1,10 @@
 const { Application } = require('lisk-framework');
-const config = require('./helpers/config');
 
 try {
+	// We have to keep it in try/catch block as it can throw
+	// exception while validating the configuration
+	const config = require('./helpers/config');
+
 	const { NETWORK } = config;
 	/* eslint-disable import/no-dynamic-require */
 	const genesisBlock = require(`../config/${NETWORK}/genesis_block`);
