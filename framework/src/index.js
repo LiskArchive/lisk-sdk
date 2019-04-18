@@ -1,5 +1,5 @@
 const Application = require('./controller/application');
-const GenesisBlockDevnet = require('../samples/genesis_block_devnet');
+const samples = require('../samples');
 const version = require('./version');
 const validator = require('./controller/helpers/validator');
 
@@ -9,8 +9,8 @@ const validator = require('./controller/helpers/validator');
  */
 module.exports = {
 	Application,
-	GenesisBlockDevnet,
 	version,
+	...samples,
 	helpers: {
 		validator,
 	},
