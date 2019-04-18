@@ -21,7 +21,7 @@ const { StorageSandbox } = require('../common/storage_sandbox');
 describe('Dependency versions', () => {
 	describe('node version', () => {
 		it('should be the same as the one inside .nvmrc file', async () => {
-			const nvmrc = fs.readFileSync('.nvmrc', 'utf8').trim();
+			const nvmrc = fs.readFileSync('../.nvmrc', 'utf8').trim();
 			return expect(process.version).to.contain(nvmrc);
 		});
 	});
