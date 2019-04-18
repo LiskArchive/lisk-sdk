@@ -1,5 +1,5 @@
 const Application = require('./controller/application');
-const GenesisBlockDevnet = require('./modules/chain/defaults/genesis_block_devnet');
+const GenesisBlockDevnet = require('../samples/genesis_block_devnet');
 const version = require('./version');
 const validator = require('./controller/helpers/validator');
 
