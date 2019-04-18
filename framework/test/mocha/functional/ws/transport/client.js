@@ -439,7 +439,7 @@ describe('RPC Client', () => {
 				expect(closeErrorCode).equal(4110);
 				expect(closeErrorReason).equal(
 					`Expected protocol version: ${
-						__testContext.config.protocolVersion
+						__testContext.config.app.protocolVersion
 					} but received: ${validHeaders.protocolVersion}`
 				);
 				done();
@@ -464,7 +464,7 @@ describe('RPC Client', () => {
 				expect(closeErrorCode).equal(4103);
 				expect(closeErrorReason).equal(
 					`Expected version: ${
-						__testContext.config.minVersion
+						__testContext.config.app.minVersion
 					} but received: 0.0.0-beta.1`
 				);
 				done();

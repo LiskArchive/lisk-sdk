@@ -3,8 +3,6 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 }
 
 const { promisify } = require('util');
-const path = require('path');
-const fs = require('fs');
 const git = require('./helpers/git');
 const Sequence = require('./helpers/sequence');
 const ed = require('./helpers/ed');
@@ -22,16 +20,17 @@ const {
 	initLogicStructure,
 	initModules,
 } = require('./init_steps');
-const defaults = require('./defaults');
 
 // Begin reading from stdin
 process.stdin.resume();
 
 // Read build version from file
-const versionBuild = fs
-	.readFileSync(path.join(__dirname, '../../../../', '.build'), 'utf8')
-	.toString()
-	.trim();
+// TODO: Remove from framework
+const versionBuild = 'version-0.1.0';
+// const versionBuild = fs
+// 	.readFileSync(path.join(__dirname, '../../../../', '.build'), 'utf8')
+// 	.toString()
+// 	.trim();
 
 /**
  * Hash of the last git commit.
@@ -90,7 +89,7 @@ module.exports = class Chain {
 						Object.assign({}, loggerConfig, {
 							logFileName: storageConfig.logFileName,
 						})
-					);
+				  );
 
 		// Try to get the last git commit
 		try {
@@ -100,16 +99,19 @@ module.exports = class Chain {
 		}
 
 		global.constants = this.options.constants;
-		global.exceptions = Object.assign(
-			{},
-			defaults.exceptions,
-			this.options.exceptions
-		);
+		global.exceptions = this.options.exceptions;
 
 		const BlockReward = require('./logic/block_reward');
 		this.blockReward = new BlockReward();
 		// Needs to be loaded here as its using constants that need to be initialized first
 		this.slots = require('./helpers/slots');
+
+		if (this.options.loading.snapshotRound) {
+			this.options.network.enabled = false;
+			this.options.network.list = [];
+			this.options.broadcasts.active = false;
+			this.options.syncing.active = false;
+		}
 
 		try {
 			// Cache
@@ -120,17 +122,20 @@ module.exports = class Chain {
 			this.logger.debug('Initiating storage...');
 			const storage = createStorageComponent(storageConfig, dbLogger);
 
-			if (!this.options.config) {
+			if (!this.options.genesisBlock) {
 				throw Error('Failed to assign nethash from genesis block');
 			}
+
+			// TODO: For socket cluster child process, should be removed with refactoring of network module
+			this.options.loggerConfig = loggerConfig;
 
 			const self = this;
 			const scope = {
 				lastCommit,
 				ed,
 				build: versionBuild,
-				config: self.options.config,
-				genesisBlock: { block: self.options.config.genesisBlock },
+				config: self.options,
+				genesisBlock: { block: self.options.genesisBlock },
 				schema: new ZSchema(),
 				sequence: new Sequence({
 					onWarning(current) {
@@ -158,11 +163,11 @@ module.exports = class Chain {
 			scope.logic = await initLogicStructure(scope);
 			scope.modules = await initModules(scope);
 
-			if (scope.config.peers.enabled) {
+			if (scope.config.network.enabled) {
 				// Lookup for peers ips from dns
-				scope.config.peers.list = await lookupPeerIPs(
-					scope.config.peers.list,
-					scope.config.peers.enabled
+				scope.config.network.list = await lookupPeerIPs(
+					scope.config.network.list,
+					scope.config.network.enabled
 				);
 
 				// Listen to websockets
@@ -227,6 +232,13 @@ module.exports = class Chain {
 				promisify(this.scope.modules.signatures.shared.postSignature)(
 					action.params.signature
 				),
+			getLastConsensus: async () => this.scope.modules.peers.getLastConsensus(),
+			loaderLoaded: async () => this.scope.modules.loader.loaded(),
+			loaderSyncing: async () => this.scope.modules.loader.syncing(),
+			getForgersKeyPairs: async () =>
+				this.scope.modules.delegates.getForgersKeyPairs(),
+			getForgingStatusForAllDelegates: async () =>
+				this.scope.modules.delegates.getForgingStatusForAllDelegates(),
 			getForgersPublicKeys: async () => {
 				const keypairs = this.scope.modules.delegates.getForgersKeyPairs();
 				const publicKeys = {};

@@ -42,7 +42,9 @@ module.exports = function(
 		describe('when a node blacklists an ip', () => {
 			before(() => {
 				// Blacklisting ip on the node number 9 which is not producing any blocks
-				configurations[9].peers.access.blackList.push('127.0.0.1');
+				configurations[9].modules.chain.network.access.blackList.push(
+					'127.0.0.1'
+				);
 				return fs_writeFile(
 					`${__dirname}/../../configs/config.node-9.json`,
 					JSON.stringify(configurations[9], null, 4)
@@ -106,7 +108,7 @@ module.exports = function(
 
 		describe('when the node remove the just blacklisted ip', () => {
 			before(() => {
-				configurations[9].peers.access.blackList = [];
+				configurations[9].modules.chain.network.access.blackList = [];
 				return fs_writeFile(
 					`${__dirname}/../../configs/config.node-9.json`,
 					JSON.stringify(configurations[9], null, 4)

@@ -37,15 +37,15 @@ module.exports = {
 			// need to give nodes a lot of time to respond.
 			ackTimeout: 2000,
 			query: WSServerMaster.generatePeerHeaders({
-				wsPort: firstConfiguration.wsPort,
-				httpPort: firstConfiguration.httpPort,
+				wsPort: firstConfiguration.modules.chain.network.wsPort,
+				httpPort: firstConfiguration.modules.http_api.httpPort,
 			}),
 		};
 
 		let connectedTo = 0;
 
 		configurations.forEach(configuration => {
-			monitorWSClient.port = configuration.wsPort;
+			monitorWSClient.port = configuration.modules.chain.network.wsPort;
 			const socket = scClient.connect(monitorWSClient);
 			wampClient.upgradeToWAMP(socket);
 			sockets.push(socket);

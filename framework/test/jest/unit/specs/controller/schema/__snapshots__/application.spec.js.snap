@@ -1,0 +1,338 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`schema/application.js application schema must match to the snapshot. 1`] = `
+Object {
+  "appLabel": Object {
+    "id": "#appLabel",
+    "pattern": "^[a-zA-Z][0-9a-zA-Z\\\\_\\\\-]*$",
+    "type": "string",
+  },
+  "config": Object {
+    "additionalProperties": false,
+    "default": Object {
+      "app": Object {
+        "genesisConfig": Object {
+          "BLOCK_TIME": 10,
+          "EPOCH_TIME": "2016-05-24T17:00:00.000Z",
+          "MAX_TRANSACTIONS_PER_BLOCK": 25,
+          "REWARDS": Object {
+            "DISTANCE": 3000000,
+            "MILESTONES": Array [
+              "500000000",
+              "400000000",
+              "300000000",
+              "200000000",
+              "100000000",
+            ],
+            "OFFSET": 2160,
+          },
+        },
+        "ipc": Object {
+          "enabled": false,
+        },
+      },
+      "components": Object {
+        "cache": Object {},
+        "logger": Object {},
+        "storage": Object {},
+        "system": Object {},
+      },
+      "modules": Object {
+        "chain": Object {},
+        "http_api": Object {},
+      },
+    },
+    "id": "#/app/config",
+    "properties": Object {
+      "app": Object {
+        "properties": Object {
+          "genesisConfig": Object {
+            "additionalProperties": false,
+            "id": "#/app/genesisConfig",
+            "properties": Object {
+              "BLOCK_TIME": Object {
+                "description": "Slot time interval in seconds",
+                "min": 1,
+                "type": "number",
+              },
+              "EPOCH_TIME": Object {
+                "description": "Timestamp indicating the start of Lisk Core (\`Date.toISOString()\`)",
+                "format": "date-time",
+                "type": "string",
+              },
+              "MAX_TRANSACTIONS_PER_BLOCK": Object {
+                "description": "Maximum number of transactions allowed per block",
+                "min": 1,
+                "type": "integer",
+              },
+              "REWARDS": Object {
+                "additionalProperties": false,
+                "description": "Object representing LSK rewards milestone",
+                "id": "rewards",
+                "properties": Object {
+                  "DISTANCE": Object {
+                    "description": "Distance between each milestone",
+                    "min": 1,
+                    "type": "integer",
+                  },
+                  "MILESTONES": Object {
+                    "description": "Initial 5, and decreasing until 1",
+                    "items": Object {
+                      "format": "amount",
+                      "type": "string",
+                    },
+                    "type": "array",
+                  },
+                  "OFFSET": Object {
+                    "description": "Start rewards at block (n)",
+                    "min": 1,
+                    "type": "integer",
+                  },
+                },
+                "required": Array [
+                  "MILESTONES",
+                  "OFFSET",
+                  "DISTANCE",
+                ],
+                "type": "object",
+              },
+            },
+            "required": Array [
+              "EPOCH_TIME",
+              "BLOCK_TIME",
+              "MAX_TRANSACTIONS_PER_BLOCK",
+              "REWARDS",
+            ],
+            "type": "object",
+          },
+          "initialState": Object {
+            "id": "#/app/initialState",
+            "properties": Object {
+              "httpPort": Object {
+                "type": "integer",
+              },
+              "minVersion": Object {
+                "type": "string",
+              },
+              "nethash": Object {
+                "type": "string",
+              },
+              "nonce": Object {
+                "type": "string",
+              },
+              "protocolVersion": Object {
+                "type": "string",
+              },
+              "version": Object {
+                "type": "string",
+              },
+              "wsPort": Object {
+                "type": "integer",
+              },
+            },
+            "type": "object",
+          },
+          "ipc": Object {
+            "properties": Object {
+              "enabled": Object {
+                "type": "boolean",
+              },
+            },
+            "type": "object",
+          },
+          "minVersion": Object {
+            "format": "version",
+            "type": "string",
+          },
+          "protocolVersion": Object {
+            "format": "protocolVersion",
+            "type": "string",
+          },
+          "version": Object {
+            "format": "version",
+            "type": "string",
+          },
+        },
+        "type": "object",
+      },
+      "components": Object {
+        "properties": Object {
+          "cache": Object {
+            "type": "object",
+          },
+          "logger": Object {
+            "type": "object",
+          },
+          "storage": Object {
+            "type": "object",
+          },
+          "system": Object {
+            "type": "object",
+          },
+        },
+        "type": "object",
+      },
+      "modules": Object {
+        "properties": Object {
+          "chain": Object {
+            "type": "object",
+          },
+          "http_api": Object {
+            "type": "object",
+          },
+        },
+        "type": "object",
+      },
+    },
+    "type": "object",
+  },
+  "genesisBlock": Object {
+    "$id": "#genesisBlock",
+    "additionalProperties": false,
+    "properties": Object {
+      "blockSignature": Object {
+        "format": "signature",
+        "type": "string",
+      },
+      "generatorPublicKey": Object {
+        "format": "publicKey",
+        "type": "string",
+      },
+      "height": Object {
+        "min": 1,
+        "type": "integer",
+      },
+      "id": Object {
+        "format": "id",
+        "maxLength": 20,
+        "minLength": 1,
+        "type": "string",
+      },
+      "numberOfTransactions": Object {
+        "min": 0,
+        "type": "integer",
+      },
+      "payloadHash": Object {
+        "format": "hex",
+        "type": "string",
+      },
+      "payloadLength": Object {
+        "min": 0,
+        "type": "integer",
+      },
+      "previousBlock": Object {
+        "format": "id",
+        "maxLength": 20,
+        "minLength": 1,
+        "type": Array [
+          "null",
+          "string",
+        ],
+      },
+      "reward": Object {
+        "format": "amount",
+        "type": "string",
+      },
+      "timestamp": Object {
+        "min": 0,
+        "type": "integer",
+      },
+      "totalAmount": Object {
+        "format": "amount",
+        "type": "string",
+      },
+      "totalFee": Object {
+        "format": "amount",
+        "type": "string",
+      },
+      "transactions": Object {
+        "items": Object {
+          "additionalProperties": false,
+          "properties": Object {
+            "amount": Object {
+              "format": "amount",
+              "type": "string",
+            },
+            "asset": Object {
+              "description": "Send relevant data with transaction like delegate, vote, signature, ...",
+              "type": "object",
+            },
+            "fee": Object {
+              "format": "amount",
+              "type": "string",
+            },
+            "id": Object {
+              "format": "id",
+              "maxLength": 20,
+              "minLength": 1,
+              "type": "string",
+            },
+            "recipientId": Object {
+              "format": "address",
+              "maxLength": 22,
+              "minLength": 1,
+              "type": Array [
+                "string",
+                "null",
+              ],
+            },
+            "senderId": Object {
+              "format": "address",
+              "maxLength": 22,
+              "minLength": 1,
+              "type": "string",
+            },
+            "senderPublicKey": Object {
+              "format": "publicKey",
+              "type": "string",
+            },
+            "signature": Object {
+              "format": "signature",
+              "type": "string",
+            },
+            "timestamp": Object {
+              "min": 0,
+              "type": "integer",
+            },
+            "type": Object {
+              "enum": Array [
+                0,
+                2,
+                3,
+              ],
+              "type": "integer",
+            },
+          },
+          "required": Array [
+            "type",
+            "timestamp",
+            "senderPublicKey",
+            "signature",
+          ],
+          "type": "object",
+        },
+        "type": "array",
+        "uniqueItems": true,
+      },
+      "version": Object {
+        "minimum": 0,
+        "type": "integer",
+      },
+    },
+    "required": Array [
+      "version",
+      "totalAmount",
+      "totalFee",
+      "reward",
+      "payloadHash",
+      "timestamp",
+      "numberOfTransactions",
+      "payloadLength",
+      "generatorPublicKey",
+      "transactions",
+      "blockSignature",
+    ],
+    "type": "object",
+  },
+}
+`;

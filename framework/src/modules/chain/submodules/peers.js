@@ -63,7 +63,7 @@ class Peers {
 				peers: scope.logic.peers,
 			},
 			config: {
-				peers: scope.config.peers,
+				network: scope.config.network,
 				version: scope.config.version,
 			},
 			applicationState: scope.applicationState,
@@ -72,8 +72,8 @@ class Peers {
 		self = this;
 		self.consensus = scope.config.forging.force ? 100 : 0;
 		self.broadhashConsensusCalculationInterval =
-			scope.config.peers.options.broadhashConsensusCalculationInterval;
-		self.blackListedPeers = scope.config.peers.access.blackList;
+			scope.config.network.options.broadhashConsensusCalculationInterval;
+		self.blackListedPeers = scope.config.network.access.blackList;
 
 		setImmediate(cb, null, self);
 	}
@@ -332,7 +332,7 @@ __private.insertSeeds = function(cb) {
 	let updated = 0;
 	library.logger.trace('Peers->insertSeeds');
 	async.each(
-		library.config.peers.list,
+		library.config.network.list,
 		(peer, eachCb) => {
 			// Ban peer if it is presented in the array of black listed peers
 			if (__private.isBlacklisted(peer.ip)) {
@@ -362,7 +362,7 @@ __private.insertSeeds = function(cb) {
 		() => {
 			library.logger.trace('Peers->insertSeeds - Peers discovered', {
 				updated,
-				total: library.config.peers.list.length,
+				total: library.config.network.list.length,
 			});
 			return setImmediate(cb);
 		}
@@ -547,7 +547,7 @@ Peers.prototype.update = function(peer) {
  */
 Peers.prototype.remove = function(peer) {
 	const frozenPeer = _.find(
-		library.config.peers.list,
+		library.config.network.list,
 		__peer => peer.ip === __peer.ip && peer.wsPort === __peer.wsPort
 	);
 	if (frozenPeer) {
