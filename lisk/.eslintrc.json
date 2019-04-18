@@ -2,8 +2,6 @@
 	"extends": ["../.eslintrc.json"],
 	"rules": {
 		"camelcase": "off",
-		"chai-expect/missing-assertion": "error",
-		"chai-expect/no-inner-compare": "error",
 		"comma-dangle": [
 			"error",
 			{
