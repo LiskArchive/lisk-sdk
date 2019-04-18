@@ -32,7 +32,7 @@ const checkSenderPublicKeyException = transactionResponse => {
 	return true;
 };
 
-const checkSignatures = (transactionResponse, transaction) => {
+const checkSignature = (transactionResponse, transaction) => {
 	if (!exceptions.signatures.includes(transaction.id)) {
 		return false;
 	}
@@ -42,6 +42,22 @@ const checkSignatures = (transactionResponse, transaction) => {
 	}
 
 	if (transactionResponse.errors[0].dataPath !== '.signature') {
+		return false;
+	}
+
+	return true;
+};
+
+const checkSignSignature = (transactionResponse, transaction) => {
+	if (!exceptions.signSignature.includes(transaction.id)) {
+		return false;
+	}
+
+	if (!transactionResponse.errors.length > 1) {
+		return false;
+	}
+
+	if (transactionResponse.errors[0].dataPath !== '.signSignature') {
 		return false;
 	}
 
@@ -177,7 +193,8 @@ const checkIfTransactionIsException = (transactionResponse, transaction) =>
 	[
 		checkSenderPublicKeyException,
 		checkDuplicateSignatures,
-		checkSignatures,
+		checkSignature,
+		checkSignSignature,
 		checkVotes,
 		checkRecipientLeadingZero,
 		checkRecipientExceedingUint64,

@@ -43,6 +43,9 @@ module.exports = {
 	rounds: {},
 	senderPublicKey: [],
 	signatures: [],
+	// For cases where block contains second signature transaction as well as other transactions
+	// from the same account without including signSignature for other transactions.
+	signSignature: [],
 	// transfer transaction with null byte in the data field
 	// SELECT * FROM transfer WHERE position('\x00' in data) > 0;
 	transactionWithNullByte: [],
