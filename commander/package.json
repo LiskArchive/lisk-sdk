@@ -44,9 +44,7 @@
 		"build": "tsc",
 		"postpack": "rm -f oclif.manifest.json",
 		"prepack": "oclif-dev manifest && npm shrinkwrap",
-		"precommit": "lint-staged && npm run lint",
-		"prepush": "npm run lint && npm test",
-		"prepublishOnly": "rm -r ./node_modules && npm install && npm run prepush && npm run build"
+		"prepublishOnly": "rm -r ./node_modules && npm install && npm run lint && npm run build"
 	},
 	"oclif": {
 		"commands": "./dist/commands",
@@ -144,8 +142,6 @@
 		"chai": "4.1.2",
 		"chai-as-promised": "7.1.1",
 		"coveralls": "3.0.2",
-		"husky": "0.14.3",
-		"lint-staged": "5.0.0",
 		"mocha": "4.0.1",
 		"nyc": "11.3.0",
 		"prettier": "1.9.2",
