@@ -172,12 +172,12 @@ describe('outTransfer', () => {
 			});
 			describe('when type 7 is not frozen', () => {
 				it('should call callback with error = "Invalid transaction amount"', done => {
-					const originalLimit = exceptions.precedent.disableDappTransfer;
-					exceptions.precedent.disableDappTransfer = 5;
+					const originalLimit = global.exceptions.precedent.disableDappTransfer;
+					global.exceptions.precedent.disableDappTransfer = 5;
 					transaction.amount = 0;
 					outTransfer.verify(transaction, sender, err => {
 						expect(err).to.equal('Invalid transaction amount');
-						exceptions.precedent.disableDappTransfer = originalLimit;
+						global.exceptions.precedent.disableDappTransfer = originalLimit;
 						done();
 					});
 				});
@@ -196,12 +196,12 @@ describe('outTransfer', () => {
 			});
 			describe('when type 7 is not frozen', () => {
 				it('should call callback with error = "Invalid transaction amount"', done => {
-					const originalLimit = exceptions.precedent.disableDappTransfer;
-					exceptions.precedent.disableDappTransfer = 5;
+					const originalLimit = global.exceptions.precedent.disableDappTransfer;
+					global.exceptions.precedent.disableDappTransfer = 5;
 					transaction.amount = -1;
 					outTransfer.verify(transaction, sender, err => {
 						expect(err).to.equal('Invalid transaction amount');
-						exceptions.precedent.disableDappTransfer = originalLimit;
+						global.exceptions.precedent.disableDappTransfer = originalLimit;
 						done();
 					});
 				});

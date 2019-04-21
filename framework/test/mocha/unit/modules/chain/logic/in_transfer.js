@@ -241,12 +241,12 @@ describe('inTransfer', () => {
 
 			describe('when type 6 is not frozen', () => {
 				it('should call callback with error = "Invalid transaction amount"', done => {
-					const originalLimit = exceptions.precedent.disableDappTransfer;
-					exceptions.precedent.disableDappTransfer = 5;
+					const originalLimit = global.exceptions.precedent.disableDappTransfer;
+					global.exceptions.precedent.disableDappTransfer = 5;
 					trs.amount = 0;
 					inTransfer.verify(trs, sender, err => {
 						expect(err).to.equal('Invalid transaction amount');
-						exceptions.precedent.disableDappTransfer = originalLimit;
+						global.exceptions.precedent.disableDappTransfer = originalLimit;
 						done();
 					});
 				});
@@ -266,12 +266,12 @@ describe('inTransfer', () => {
 
 			describe('when type 6 is not frozen', () => {
 				it('should call callback with error = "Invalid transaction amount"', done => {
-					const originalLimit = exceptions.precedent.disableDappTransfer;
-					exceptions.precedent.disableDappTransfer = 5;
+					const originalLimit = global.exceptions.precedent.disableDappTransfer;
+					global.exceptions.precedent.disableDappTransfer = 5;
 					trs.amount = -1;
 					inTransfer.verify(trs, sender, err => {
 						expect(err).to.equal('Invalid transaction amount');
-						exceptions.precedent.disableDappTransfer = originalLimit;
+						global.exceptions.precedent.disableDappTransfer = originalLimit;
 						done();
 					});
 				});

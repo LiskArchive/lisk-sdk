@@ -27,11 +27,7 @@ const Account = require('../../../src/modules/chain/logic/account');
 
 const modulesLoader = new function() {
 	this.storage = null;
-	this.logger = createLoggerComponent({
-		echo: null,
-		errorLevel: __testContext.config.fileLogLevel,
-		filename: __testContext.config.logFileName,
-	});
+	this.logger = createLoggerComponent(__testContext.config.components.logger);
 
 	this.scope = {
 		lastCommit: '',

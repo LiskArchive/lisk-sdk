@@ -25,6 +25,8 @@ const supertest = require('supertest');
 const _ = require('lodash');
 const app = require('../test_app/app');
 
+app._compileAndValidateConfigurations();
+
 process.env.NODE_ENV = 'test';
 coMocha(mocha);
 chai.use(sinonChai);
@@ -55,6 +57,7 @@ if (process.env.LOG_DB_EVENTS === 'true') {
 
 testContext.config = config;
 testContext.config.constants = _.cloneDeep(app.constants);
+testContext.config.genesisBlock = _.cloneDeep(app.genesisBlock);
 testContext.consoleLogLevel =
 	process.env.LOG_LEVEL || config.components.logger.consoleLogLevel;
 
