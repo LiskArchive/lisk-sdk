@@ -208,7 +208,15 @@ describe('transport', () => {
 				},
 				httpPort: 8000,
 			},
-			modules: {},
+			modules: {
+				blocks: {
+					lastBlock: {
+						get: sinonSandbox
+							.stub()
+							.returns({ height: 1, version: 1, timestamp: 1 }),
+					},
+				},
+			},
 		};
 
 		peerMock = {
@@ -323,6 +331,7 @@ describe('transport', () => {
 					},
 					processTransactions: new ProcessTransactions(() => {}, defaultScope),
 				};
+				modules.processTransactions.onBind(defaultScope);
 
 				wsRPC = {
 					getServerAuthKey: sinonSandbox.stub().returns(SAMPLE_AUTH_KEY),
@@ -680,6 +689,8 @@ describe('transport', () => {
 				done();
 			});
 
+			afterEach(() => sinonSandbox.restore());
+
 			it('should composeProcessTransactionsSteps with checkAllowedTransactions and validateTransactions', done => {
 				sinonSandbox.spy(ProcessTransactions, 'composeProcessTransactionSteps');
 
@@ -731,16 +742,29 @@ describe('transport', () => {
 				);
 			});
 
-			it('should call callback with error if transactions are not valid or disaallowed', done => {
-				const errorMessage = 'transactionIsNotAllowed';
+			it('should call callback with error if transaction is not allowed', done => {
+				const errorMessage = 'Transaction type 0 is currently not allowed.';
+
+				sinonSandbox
+					.stub(initTransaction, 'fromJson')
+					.returns({ ...transaction, matcher: () => false });
+				library.logic = {
+					initTransaction,
+					peers: {
+						peersManager: {
+							getByNonce: sinonSandbox.stub().returns(peerMock),
+							getAddress: sinonSandbox.stub(),
+						},
+					},
+				};
 
 				__private.receiveTransaction(
 					transaction,
 					validNonce,
 					'This is a log message',
 					err => {
-						expect(err).to.be.instanceOf(Error);
-						expect(err.message).to.equal(errorMessage);
+						expect(err[0]).to.be.instanceOf(Error);
+						expect(err[0].message).to.equal(errorMessage);
 						done();
 					}
 				);

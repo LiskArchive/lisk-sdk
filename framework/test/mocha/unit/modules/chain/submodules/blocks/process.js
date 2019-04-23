@@ -1791,8 +1791,8 @@ describe('blocks/process', () => {
 			describe('when query returns transactions', () => {
 				beforeEach(async () => {
 					modules.transactions.getUnconfirmedTransactionList.returns([
-						{ id: 1, type: 0, isAllowedAt: () => true },
-						{ id: 2, type: 1, isAllowedAt: () => true },
+						{ id: 1, type: 0, matcher: () => true },
+						{ id: 2, type: 1, matcher: () => true },
 					]);
 					modules.processTransactions.checkAllowedTransactions.returns({
 						transactionsResponses: [
@@ -1991,7 +1991,7 @@ describe('blocks/process', () => {
 			const sampleTransactons = [
 				{
 					id: 'aTransactionId',
-					isAllowedAt: () => true,
+					matcher: () => true,
 					type: 0,
 				},
 			];

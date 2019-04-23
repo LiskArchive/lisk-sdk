@@ -44,6 +44,7 @@ describe('transactionPool', () => {
 		validateTransactions: sinonSandbox.stub().resolves(),
 		verifyTransactions: sinonSandbox.stub().resolves(),
 		applyTransactions: sinonSandbox.stub().resolves(),
+		checkAllowedTransactions: sinonSandbox.stub().resolves(),
 	};
 
 	beforeEach(async () => {
@@ -415,6 +416,9 @@ describe('transactionPool', () => {
 			processTransactionsStub.verifyTransactions.resolves({
 				transactionsResponses,
 			});
+			processTransactionsStub.checkAllowedTransactions.resolves({
+				transactionsResponses,
+			});
 			transactionPool.processUnconfirmedTransaction(transaction, false, () => {
 				expect(addVerifiedTransactionStub).to.be.calledWith(transaction);
 				done();
@@ -443,6 +447,9 @@ describe('transactionPool', () => {
 			processTransactionsStub.verifyTransactions.resolves({
 				transactionsResponses: transactionsResponses2,
 			});
+			processTransactionsStub.checkAllowedTransactions.resolves({
+				transactionsResponses: transactionsResponses2,
+			});
 			transactionPool.processUnconfirmedTransaction(transaction, false, () => {
 				expect(addMultisignatureTransactionStub).to.be.calledWith(transaction);
 				done();
@@ -466,6 +473,9 @@ describe('transactionPool', () => {
 				transactionsResponses: transactionsResponses1,
 			});
 			processTransactionsStub.verifyTransactions.resolves({
+				transactionsResponses: transactionsResponses2,
+			});
+			processTransactionsStub.checkAllowedTransactions.resolves({
 				transactionsResponses: transactionsResponses2,
 			});
 			transactionPool.processUnconfirmedTransaction(transaction, false, err => {

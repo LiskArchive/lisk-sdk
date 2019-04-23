@@ -6,7 +6,7 @@ describe('ProcessTransactions', () => {
 	const dummyTransactions = [
 		{
 			id: 'aTransactionId',
-			isAllowedAt: () => true,
+			matcher: () => true,
 			type: 0,
 		},
 	];
@@ -80,7 +80,7 @@ describe('ProcessTransactions', () => {
 			// Arrange
 			const disallowedTransaction = {
 				...dummyTransactions[0],
-				isAllowedAt: () => false,
+				matcher: () => false,
 			};
 
 			// Act
@@ -110,16 +110,16 @@ describe('ProcessTransactions', () => {
 			);
 		});
 
-		it('should report a transaction as allowed if it does not implement isAllowedAt', async () => {
+		it('should report a transaction as allowed if it does not implement matcher', async () => {
 			// Arrange
 			const {
-				isAllowedAt,
-				...transactionWithoutIsAllowedAtImpl
+				matcher,
+				...transactionWithoutMatcherImpl
 			} = dummyTransactions[0];
 
 			// Act
 			const response = processTransactions.checkAllowedTransactions(
-				[transactionWithoutIsAllowedAtImpl],
+				[transactionWithoutMatcherImpl],
 				dummyState
 			);
 
@@ -127,7 +127,7 @@ describe('ProcessTransactions', () => {
 			expect(response.transactionsResponses.length).to.equal(1);
 			expect(response.transactionsResponses[0]).to.have.property(
 				'id',
-				transactionWithoutIsAllowedAtImpl.id
+				transactionWithoutMatcherImpl.id
 			);
 			expect(response.transactionsResponses[0]).to.have.property(
 				'status',
@@ -140,7 +140,7 @@ describe('ProcessTransactions', () => {
 			// Arrange
 			const allowedTransaction = {
 				...dummyTransactions[0],
-				isAllowedAt: () => true,
+				matcher: () => true,
 			};
 
 			// Act
@@ -168,7 +168,7 @@ describe('ProcessTransactions', () => {
 				dummyTransactions[0], // Allowed
 				{
 					...dummyTransactions[0],
-					isAllowedAt: () => false, // Disallowed
+					matcher: () => false, // Disallowed
 				},
 			];
 
@@ -210,12 +210,12 @@ describe('ProcessTransactions', () => {
 		});
 	});
 
-	describe('#_getCurrentState', () => {
+	describe('#_getCurrentContext', () => {
 		let result;
 
 		beforeEach(async () => {
 			// Act
-			result = processTransactions._getCurrentState();
+			result = ProcessTransactions._getCurrentContext();
 		});
 
 		it('should call lastBlock.get', async () => {
@@ -225,9 +225,9 @@ describe('ProcessTransactions', () => {
 
 		it('should return version, height and timestamp wrapped in an object', async () => {
 			// Assert
-			expect(result).to.have.property('version', dummyState.version);
-			expect(result).to.have.property('height', dummyState.height);
-			expect(result).to.have.property('timestamp', dummyState.timestamp);
+			expect(result).to.have.property('blockVersion', dummyState.version);
+			expect(result).to.have.property('blockHeight', dummyState.height);
+			expect(result).to.have.property('blockTimestamp', dummyState.timestamp);
 		});
 	});
 
@@ -235,12 +235,12 @@ describe('ProcessTransactions', () => {
 		const transactions = [
 			{
 				id: 'anId',
-				isAllowedAt: () => true,
+				matcher: () => true,
 				type: 0,
 			},
 			{
 				id: 'anotherId',
-				isAllowedAt: () => false,
+				matcher: () => false,
 				type: 1,
 			},
 		];

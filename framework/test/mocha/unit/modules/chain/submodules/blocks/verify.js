@@ -1831,7 +1831,7 @@ describe('blocks/verify', () => {
 						modules.processTransactions.verifyTransactions.resolves(
 							validTransactionsResponse
 						);
-						await __private.checkTransactions(dummyBlock.transactions, true);
+						await __private.checkTransactions(dummyBlock, true);
 						expect(modules.processTransactions.verifyTransactions).to.be
 							.calledOnce;
 					});
@@ -1840,8 +1840,8 @@ describe('blocks/verify', () => {
 						modules.processTransactions.verifyTransactions.resolves(
 							invalidTransactionsResponse
 						);
-						expect(__private.checkTransactions(dummyBlock.transactions, true))
-							.to.eventually.throw;
+						expect(__private.checkTransactions(dummyBlock, true)).to.eventually
+							.throw;
 					});
 				});
 			});
@@ -1911,9 +1911,7 @@ describe('blocks/verify', () => {
 				broadcast
 			);
 			expect(__private.validateBlockSlot).to.have.been.calledWith(dummyBlock);
-			expect(__private.checkTransactions).to.have.been.calledWith(
-				dummyBlock.transactions
-			);
+			expect(__private.checkTransactions).to.have.been.calledWith(dummyBlock);
 			expect(modules.blocks.chain.applyBlock).to.have.been.calledWith(
 				dummyBlock,
 				saveBlock
