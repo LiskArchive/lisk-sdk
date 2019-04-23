@@ -41,7 +41,7 @@ export const transferAssetFormatSchema = {
 	properties: {
 		data: {
 			type: 'string',
-			format: 'noNullByte',
+			format: 'transferData',
 			maxLength: 64,
 		},
 	},
@@ -93,7 +93,6 @@ export class TransferTransaction extends BaseTransaction {
 			this.id,
 			validator.errors,
 		) as TransactionError[];
-
 		if (this.type !== TRANSACTION_TRANSFER_TYPE) {
 			errors.push(
 				new TransactionError(

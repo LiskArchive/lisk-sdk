@@ -20,6 +20,7 @@ export {
 	validateAddress,
 	validateNonTransferAmount,
 	validateTransferAmount,
+	validateTransferData,
 	validateUsername,
 	validateFee,
 	isValidInteger,

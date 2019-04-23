@@ -27,6 +27,7 @@ import {
 	validatePublicKey,
 	validateSignature,
 	validateTransferAmount,
+	validateTransferData,
 	validateUsername,
 } from './validation';
 
@@ -56,6 +57,8 @@ validator.addFormat('amount', isNumberString);
 validator.addFormat('transferAmount', validateTransferAmount);
 
 validator.addFormat('nonTransferAmount', validateNonTransferAmount);
+
+validator.addFormat('transferData', data => !isNullByteIncluded(data) && validateTransferData(data));
 
 validator.addFormat('fee', validateFee);
 
