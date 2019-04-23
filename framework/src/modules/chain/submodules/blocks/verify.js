@@ -830,11 +830,11 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 				// Also that function set new block as our last block
 				modules.blocks.chain.applyBlock(block, saveBlock, seriesCb);
 			},
-			// Perform next two steps only when 'broadcast' flag is set, it can be:
+			// Perform the next step only when 'broadcast' flag is set, it can be:
 			// 'true' if block comes from generation or receiving process
 			// 'false' if block comes from chain synchronization process
 			updateApplicationState(seriesCb) {
-				if (!library.config.loading.snapshotRound) {
+				if (!library.config.loading.snapshotRound && broadcast) {
 					return modules.blocks
 						.calculateNewBroadhash()
 						.then(({ broadhash, height }) => {
