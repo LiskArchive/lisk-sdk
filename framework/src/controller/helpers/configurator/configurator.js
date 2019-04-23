@@ -1,13 +1,11 @@
 const _ = require('lodash');
 const yargs = require('yargs');
-const { config: loggerConfig } = require('../../components/logger/defaults');
-const { config: storageConfig } = require('../../components/storage/defaults');
-const { config: cacheConfig } = require('../../components/cache/defaults');
-const chainModule = require('../../modules/chain');
-const APIModule = require('../../modules/http_api');
-const { applicationConfigSchema } = require('../schema');
+const { config: loggerConfig } = require('../../../components/logger/defaults');
+const { config: storageConfig } = require('../../../components/storage/defaults');
+const { config: cacheConfig } = require('../../../components/cache/defaults');
+const { applicationConfigSchema } = require('../../schema');
 
-const { parseEnvArgAndValidate } = require('./validator');
+const { parseEnvArgAndValidate } = require('./../validator');
 
 const sanitizeSchemaKeys = (keyString, extraKeyToRemove) =>
 	keyString.replace(new RegExp(`properties.|(${extraKeyToRemove})`, 'g'), '');
@@ -147,19 +145,4 @@ class Configurator {
 	}
 }
 
-const configurator = new Configurator();
-
-configurator.registerModule(chainModule);
-configurator.registerModule(APIModule);
-
-yargs.command(
-	'usage',
-	'Show list of supported command line arguments and environment variables.',
-	() => {
-		console.info(configurator.helpBanner());
-		process.exit();
-	}
-);
-yargs.help('help', 'Run the "usage" command to see full list of options');
-
-module.exports = configurator;
+module.exports = Configurator;
