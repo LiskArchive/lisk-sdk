@@ -64,15 +64,15 @@ NodeController.getConstants = async (context, next) => {
 	}
 
 	try {
-		const { height } = library.applicationState;
+		const { lastBlock } = await library.channel.invoke('chain:getNodeStatus');
 		const milestone = await library.channel.invoke('chain:calculateMilestone', {
-			height,
+			height: lastBlock.height,
 		});
 		const reward = await library.channel.invoke('chain:calculateReward', {
-			height,
+			height: lastBlock.height,
 		});
 		const supply = await library.channel.invoke('chain:calculateSupply', {
-			height,
+			height: lastBlock.height,
 		});
 
 		const build = await library.channel.invoke('chain:getBuild');
