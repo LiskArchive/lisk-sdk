@@ -2034,15 +2034,16 @@ describe('blocks/verify', () => {
 
 			afterEach(() => channelMock.invoke.resetHistory());
 
-			it('should be called if snapshotting was not activated', done => {
+			it('should be called if snapshotting was not activated and broadcast is true', done => {
+				broadcast = true;
 				blocksVerifyModule.processBlock(
 					dummyBlock,
 					broadcast,
 					saveBlock,
 					err => {
 						expect(err).to.be.null;
-						expect(channelMock.once.calledOnce).to.be.true;
-						expect(channelMock.invoke.calledOnce).to.be.true;
+						expect(channelMock.once).to.be.calledOnce;
+						expect(channelMock.invoke).to.be.calledOnce;
 						done();
 					}
 				);

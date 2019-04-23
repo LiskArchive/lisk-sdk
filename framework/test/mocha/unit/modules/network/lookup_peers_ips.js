@@ -18,7 +18,7 @@ describe('init_steps/lookup_peers_ips', () => {
 		let spyConsoleError = null;
 
 		before(done => {
-			spyConsoleError = sinonSandbox.spy(console, 'error');
+			spyConsoleError = sinonSandbox.stub(console, 'error');
 			done();
 		});
 

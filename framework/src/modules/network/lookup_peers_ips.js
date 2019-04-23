@@ -26,7 +26,7 @@ module.exports = async (peersList, enabled) => {
 			}
 
 			try {
-				const { address } = await lookupPromise(peer.ip, { family: 4 });
+				const address = await lookupPromise(peer.ip, { family: 4 });
 				return {
 					...peer,
 					ip: address,
