@@ -14,7 +14,7 @@
 
 'use strict';
 
-// require('../../functional');
+require('../../functional');
 const { P2P } = require('@liskhq/lisk-p2p');
 const { generatePeerHeader } = require('../../../common/generatePeerHeader');
 const waitFor = require('../../../common/utils/wait_for');
