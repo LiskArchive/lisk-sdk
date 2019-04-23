@@ -234,14 +234,6 @@ module.exports = class Chain {
 				),
 			getForgingStatusForAllDelegates: async () =>
 				this.scope.modules.delegates.getForgingStatusForAllDelegates(),
-			getForgersPublicKeys: async () => {
-				const keypairs = this.scope.modules.delegates.getForgersKeyPairs();
-				const publicKeys = {};
-				Object.keys(keypairs).forEach(key => {
-					publicKeys[key] = { publicKey: keypairs[key].publicKey };
-				});
-				return publicKeys;
-			},
 			getTransactionsFromPool: async action =>
 				promisify(
 					this.scope.modules.transactions.shared.getTransactionsFromPool
