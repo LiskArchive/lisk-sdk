@@ -104,8 +104,8 @@ class ProcessTransactions {
 		return {
 			transactionsResponses: transactions.map(transaction => {
 				const allowed =
-					!transaction.isAllowedAt ||
-					transaction.isAllowedAt(
+					!transaction.matcher ||
+					transaction.matcher(
 						context || ProcessTransactions._getCurrentContext()
 					);
 

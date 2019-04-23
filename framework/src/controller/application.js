@@ -244,8 +244,8 @@ class Application {
 		);
 		assert(Transaction, 'Transaction implementation is required');
 
-		if (options.isAllowedAt) {
-			Transaction.isAllowedAt = options.isAllowedAt;
+		if (options.matcher) {
+			Transaction.matcher = options.matcher;
 		}
 
 		const transactions = this.getTransactions();

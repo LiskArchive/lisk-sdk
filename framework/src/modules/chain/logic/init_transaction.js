@@ -161,7 +161,7 @@ class Transaction {
 		}
 
 		const transaction = new TransactionClass(rawTx);
-		transaction.isAllowedAt = TransactionClass.isAllowedAt;
+		transaction.matcher = TransactionClass.matcher;
 		return transaction;
 	}
 
