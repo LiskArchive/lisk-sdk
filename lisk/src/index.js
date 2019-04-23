@@ -89,6 +89,8 @@ try {
 		appConfig,
 	]);
 
+	app.overrideModuleOptions('chain', { exceptions });
+
 	const constants = validator.parseEnvArgAndValidate(
 		constantsSchema.constants,
 		{}
@@ -102,7 +104,8 @@ try {
 		InTransferTransaction,
 		{
 			isAllowedAt: context =>
-				context.blockHeight < config.exceptions.precedent.disableDappTransfer,
+				context.blockHeight <
+				app.config.modules.chain.exceptions.precedent.disableDappTransfer,
 		}
 	);
 	app.registerTransaction(
@@ -110,11 +113,10 @@ try {
 		OutTransferTransaction,
 		{
 			isAllowedAt: context =>
-				context.blockHeight < config.exceptions.precedent.disableDappTransfer,
+				context.blockHeight <
+				app.config.modules.chain.exceptions.precedent.disableDappTransfer,
 		}
 	);
-
-	app.overrideModuleOptions('chain', { exceptions });
 
 	app
 		.run()
