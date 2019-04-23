@@ -16,7 +16,6 @@
 
 const fs = require('fs');
 const utils = require('../utils');
-
 /**
  * SYNC_MODES allow us to choose the network topology to use when
  * executing network tests.
@@ -128,7 +127,7 @@ const config = {
 
 			pm2Config.apps.push({
 				exec_mode: 'fork',
-				script: 'src/index.js',
+				script: '../lisk/src/index.js',
 				name: `node_${index}`,
 				args: ` -c test/mocha/network/configs/config.node-${index}.json`,
 				env: {

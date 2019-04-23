@@ -33,16 +33,22 @@ pipeline {
 				ansiColor('xterm') {
 					sh 'sudo service postgresql restart'
 					nvm(getNodejsVersion()) {
-						sh 'npm ci'
+						sh '''
+						npm ci
+						npm run bootstrap -- --ci
+						npm run build
+						'''
 					}
 				}
 			}
 		}
 		stage('Run network tests') {
 			steps {
-				ansiColor('xterm') {
-					nvm(getNodejsVersion()) {
-						sh 'TOTAL_PEERS=2 npm run mocha:network ${LISK_MOCHA_RUNNER_OPTIONS}'
+				dir('framework') {
+					ansiColor('xterm') {
+						nvm(getNodejsVersion()) {
+							sh 'npm run mocha:network ${LISK_MOCHA_RUNNER_OPTIONS}'
+						}
 					}
 				}
 			}
@@ -51,18 +57,6 @@ pipeline {
 	post {
 		always {
 			archiveArtifacts artifacts: 'framework/test/mocha/network/logs/*.log', allowEmptyArchive: true
-		}
-		failure {
-			script {
-				build_info = getBuildInfo()
-				liskSlackSend('danger', "Job ${build_info} failed (<${env.BUILD_URL}/console|console>, <${env.BUILD_URL}/changes|changes>)\n", 'lisk-ci-core')
-			}
-		}
-		success {
-			script {
-				build_info = getBuildInfo()
-				liskSlackSend('good', "Job ${build_info} was successful.", 'lisk-ci-core')
-			}
 		}
 		cleanup {
 			nvm(getNodejsVersion()) {

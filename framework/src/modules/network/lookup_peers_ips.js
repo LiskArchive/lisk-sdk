@@ -1,8 +1,16 @@
 const net = require('net');
 const dns = require('dns');
-const util = require('util');
 
-const lookupPromise = util.promisify(dns.lookup);
+const lookupPromise = (hostname, options) =>
+	new Promise((resolve, reject) => {
+		dns.lookup(hostname, options, (err, address) => {
+			if (err) {
+				return reject(err);
+			}
+
+			return resolve(address);
+		});
+	});
 
 module.exports = async (peersList, enabled) => {
 	// If peers layer is not enabled there is no need to create the peer's list
