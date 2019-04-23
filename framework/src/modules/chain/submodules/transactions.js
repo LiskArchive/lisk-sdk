@@ -648,16 +648,18 @@ Transactions.prototype.shared = {
 				function getAllCount(confirmedTransactionCount, waterCb) {
 					setImmediate(waterCb, null, {
 						confirmed: confirmedTransactionCount,
-						unconfirmed: __private.transactionPool.getCountByQueue('ready'),
-						unprocessed: __private.transactionPool.getCountByQueue('verified'),
-						unsigned: __private.transactionPool.getCountByQueue('pending'),
+						unconfirmed:
+							__private.transactionPool.getCountByQueue('ready') || 0,
+						unprocessed:
+							__private.transactionPool.getCountByQueue('verified') || 0,
+						unsigned: __private.transactionPool.getCountByQueue('pending') || 0,
 					});
 				},
 			],
 			(err, result) => {
 				if (err) {
 					library.logger.error('Error in getTransactionsCount', err, result);
-					return setImmediate(cb, 'Failed to count transactions');
+					return setImmediate(cb, new Error('Failed to count transactions'));
 				}
 
 				result.total =

@@ -14,8 +14,12 @@
 
 'use strict';
 
-const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const {
+	Status: TransactionStatus,
+	TransactionError,
+} = require('@liskhq/lisk-transactions');
 const roundInformation = require('../logic/rounds_information');
+const slots = require('../helpers/slots');
 const checkTransactionExceptions = require('../logic/check_transaction_against_exceptions.js');
 
 let library;
@@ -105,7 +109,11 @@ class ProcessTransactions {
 				id: transaction.id,
 				status: TransactionStatus.FAIL,
 				errors: [
-					new Error(`Transaction is already confirmed: ${transaction.id}`),
+					new TransactionError(
+						`Transaction is already confirmed: ${transaction.id}`,
+						transaction.id,
+						'.id'
+					),
 				],
 			})),
 		];
@@ -217,6 +225,16 @@ class ProcessTransactions {
 		const transactionsResponses = transactions.map(transaction => {
 			library.logic.stateManager.createSnapshot();
 			const transactionResponse = transaction.apply(stateStore);
+			if (slots.getSlotNumber(transaction.timestamp) > slots.getSlotNumber()) {
+				transactionResponse.status = 0;
+				transactionResponse.errors.push(
+					new TransactionError(
+						'Invalid transaction timestamp. Timestamp is in the future',
+						transaction.id,
+						'.timestamp'
+					)
+				);
+			}
 			library.logic.stateManager.restoreSnapshot();
 			return transactionResponse;
 		});

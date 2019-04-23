@@ -349,6 +349,10 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 			if (comparisonFailed && modules.transport.poorConsensus()) {
 				return modules.blocks.chain.recoverChain(cb);
 			}
+			if (err) {
+				err = new Error(err);
+			}
+
 			return setImmediate(cb, err, res);
 		}
 	);
@@ -435,7 +439,10 @@ Process.prototype.loadBlocksOffset = function(
 		})
 		.catch(err => {
 			library.logger.error(err);
-			return setImmediate(cb, `Blocks#loadBlocksOffset error: ${err}`);
+			return setImmediate(
+				cb,
+				new Error(`Blocks#loadBlocksOffset error: ${err}`)
+			);
 		});
 };
 
@@ -472,7 +479,7 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 		const report = library.schema.validate(blocks, definitions.WSBlocksList);
 
 		if (!report) {
-			return setImmediate(seriesCb, 'Received invalid blocks data');
+			return setImmediate(seriesCb, new Error('Received invalid blocks data'));
 		}
 		return setImmediate(seriesCb, null, blocks);
 	}

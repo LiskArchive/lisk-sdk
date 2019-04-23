@@ -47,12 +47,13 @@ describe('transactionPool', () => {
 	};
 
 	beforeEach(async () => {
+		config.transactions = config.modules.chain.transactions;
 		// Init test subject
 		transactionPool = new TransactionPool(
 			config.modules.chain.broadcasts.broadcastInterval,
 			config.modules.chain.broadcasts.releaseLimit,
 			logger, // logger
-			config.modules.chain
+			config
 		);
 
 		dummyTransactions = [{ id: 1 }, { id: 2 }, { id: 3 }];
@@ -68,8 +69,8 @@ describe('transactionPool', () => {
 	describe('constructor', () => {
 		it('should set the instance variables', async () => {
 			const tp = new TransactionPool(
-				config.broadcasts.broadcastInterval,
-				config.broadcasts.releaseLimit,
+				config.modules.chain.broadcasts.broadcastInterval,
+				config.modules.chain.broadcasts.releaseLimit,
 				logger, // logger
 				config
 			);
@@ -77,8 +78,12 @@ describe('transactionPool', () => {
 			expect(tp.maxTransactionsPerQueue).to.equal(
 				config.transactions.maxTransactionsPerQueue
 			);
-			expect(tp.bundledInterval).to.equal(config.broadcasts.broadcastInterval);
-			expect(tp.bundleLimit).to.equal(config.broadcasts.releaseLimit);
+			expect(tp.bundledInterval).to.equal(
+				config.modules.chain.broadcasts.broadcastInterval
+			);
+			expect(tp.bundleLimit).to.equal(
+				config.modules.chain.broadcasts.releaseLimit
+			);
 			expect(tp.logger).to.equal(logger);
 		});
 	});
@@ -88,8 +93,8 @@ describe('transactionPool', () => {
 		beforeEach(async () => {
 			sinonSandbox.spy(ProcessTransactions, 'composeProcessTransactionSteps');
 			txPool = new TransactionPool(
-				config.broadcasts.broadcastInterval,
-				config.broadcasts.releaseLimit,
+				config.modules.chain.broadcasts.broadcastInterval,
+				config.modules.chain.broadcasts.releaseLimit,
 				logger, // logger
 				config
 			);
@@ -384,9 +389,12 @@ describe('transactionPool', () => {
 		it('should call the callback with error if the transaction already exists', done => {
 			sinonSandbox.stub(transactionPool, 'transactionInPool').returns(true);
 			transactionPool.processUnconfirmedTransaction(transaction, false, err => {
-				expect(err.message).to.equal(
-					`Transaction is already processed: ${transaction.id}`
-				);
+				expect(err).to.be.an('array');
+				err.forEach(anErr => {
+					expect(anErr.message).to.equal(
+						`Transaction is already processed: ${transaction.id}`
+					);
+				});
 				done();
 			});
 		});
@@ -461,7 +469,8 @@ describe('transactionPool', () => {
 				transactionsResponses: transactionsResponses2,
 			});
 			transactionPool.processUnconfirmedTransaction(transaction, false, err => {
-				expect(err).to.eql(transactionsResponses2[0].errors[0]);
+				expect(err).to.be.an('array');
+				expect(err[0]).to.eql(transactionsResponses2[0].errors[0]);
 				done();
 			});
 		});

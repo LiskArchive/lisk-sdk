@@ -96,8 +96,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 			});
 	});
 
-	/* eslint-disable mocha/no-skipped-tests */
-
+	// eslint-disable-next-line
 	describe.skip('schema validations', () => {
 		common.invalidAssets('inTransfer', badTransactions);
 
@@ -280,7 +279,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 			});
 		});
 	});
-
+	// eslint-disable-next-line
 	describe.skip('transactions processing', () => {
 		it('using unknown dapp id should fail', async () => {
 			const unknownDappId = '1';
@@ -380,7 +379,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 			});
 		});
 	});
-
+	// eslint-disable-next-line
 	describe.skip('confirmation', () => {
 		phases.confirmation(goodTransactions, badTransactions);
 	});

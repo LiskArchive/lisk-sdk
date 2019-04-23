@@ -86,7 +86,9 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 							transactionSecondSignature,
 							err => {
 								expect(err).to.equal(
-									`Error: Transaction is already processed: ${
+									`Transaction: ${
+										transactionSecondSignature.id
+									} failed at .id: Transaction is already processed: ${
 										transactionSecondSignature.id
 									}`
 								);
@@ -105,6 +107,32 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 							expect(res).to.equal(transactionWith.id);
 							done();
 						});
+					});
+				} else if (key === 'MULTI') {
+					it(`type ${index}: ${key} should fail`, done => {
+						localCommon.loadTransactionType(
+							key,
+							account,
+							dapp,
+							null,
+							loadedTransaction => {
+								localCommon.addTransaction(library, loadedTransaction, err => {
+									const expectedErrors = [
+										`Transaction: ${
+											loadedTransaction.id
+										} failed at .signSignature: Sender does not have a secondPublicKey`,
+										`Transaction: ${
+											loadedTransaction.id
+										} failed at .signatures: Missing signatures `,
+									];
+									expect(err).to.equal(
+										expectedErrors.join(',')
+										// `Transaction: ${loadedTransaction.id} failed at .signSignature: Sender does not have a secondPublicKey`
+									);
+									done();
+								});
+							}
+						);
 					});
 				} else {
 					it(`type ${index}: ${key} should fail`, done => {

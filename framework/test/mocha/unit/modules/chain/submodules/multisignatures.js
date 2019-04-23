@@ -14,6 +14,7 @@
 
 'use strict';
 
+const { TransactionError } = require('@liskhq/lisk-transactions');
 const rewire = require('rewire');
 const accountsFixtures = require('../../../../fixtures/index').accounts;
 const transactionsFixtures = require('../../../../fixtures/index').transactions;
@@ -167,14 +168,11 @@ describe('multisignatures', () => {
 		});
 
 		describe('when signature is not present', () => {
-			it('should call a callback with Error instance', done => {
+			it('should call a callback with TransactionError instance', done => {
 				const signature = undefined;
-				self.getTransactionAndProcessSignature(signature, err => {
-					expect(err).to.be.an.instanceof(Error);
-					expect(err.message).to.eql(
-						'Unable to process signature, signature not provided'
-					);
-					expect(library.logger.error).to.have.been.calledWith(
+				self.getTransactionAndProcessSignature(signature, errors => {
+					expect(errors[0]).to.be.an.instanceof(TransactionError);
+					expect(errors[0].message).to.eql(
 						'Unable to process signature, signature not provided'
 					);
 					done();
@@ -185,14 +183,10 @@ describe('multisignatures', () => {
 		describe('when modules.transactions.getMultisignatureTransaction returns no transaction', () => {
 			it('should call a callback with Error instance', done => {
 				stubs.getMultisignatureTransaction.returns(undefined);
-				self.getTransactionAndProcessSignature(data.signature, err => {
-					expect(err).to.be.an.instanceof(Error);
-					expect(err.message).to.eql(
+				self.getTransactionAndProcessSignature(data.signature, errors => {
+					expect(errors[0]).to.be.an.instanceof(TransactionError);
+					expect(errors[0].message).to.eql(
 						'Unable to process signature, corresponding transaction not found'
-					);
-					expect(library.logger.error).to.have.been.calledWith(
-						'Unable to process signature, corresponding transaction not found',
-						{ signature: data.signature }
 					);
 					done();
 				});
@@ -204,22 +198,20 @@ describe('multisignatures', () => {
 				stubs.processSignature.resolves({
 					...transactionResponse,
 					status: 0,
-					errors: [new Error('Signature already present in transaction.')],
+					errors: [
+						new TransactionError('Signature already present in transaction.'),
+					],
 				});
 				data.transaction.signatures = ['signature1'];
-				self.getTransactionAndProcessSignature(data.signature, err => {
+				self.getTransactionAndProcessSignature(data.signature, errors => {
 					expect(stubs.getMultisignatureTransaction).to.have.been.calledWith(
 						data.signature.transactionId
 					);
 					expect(stubs.getMultisignatureTransaction).to.have.been.calledOnce;
 					expect(stubs.processSignature).to.have.been.calledOnce;
-					expect(err).to.be.an.instanceof(Error);
-					expect(err.message).to.eql(
-						'Error processing signature: Signature already present in transaction.'
-					);
-					expect(library.logger.error).to.have.been.calledWith(
-						'Error processing signature: Signature already present in transaction.',
-						{ signature: data.signature }
+					expect(errors[0]).to.be.an.instanceof(TransactionError);
+					expect(errors[0].message).to.eql(
+						'Signature already present in transaction.'
 					);
 					done();
 				});

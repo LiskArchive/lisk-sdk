@@ -17,8 +17,8 @@
 const rewire = require('rewire');
 const chai = require('chai');
 const randomstring = require('randomstring');
-const { transfer } = require('@liskhq/lisk-transactions');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const { transfer, TransactionError } = require('@liskhq/lisk-transactions');
 
 const accountFixtures = require('../../../../fixtures/accounts');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
@@ -517,10 +517,12 @@ describe('transport', () => {
 					let processSignatureError;
 
 					beforeEach(done => {
-						processSignatureError = new Error('Transaction not found');
+						processSignatureError = new TransactionError(
+							'Transaction not found'
+						);
 						modules.multisignatures.getTransactionAndProcessSignature = sinonSandbox
 							.stub()
-							.callsArgWith(1, processSignatureError);
+							.callsArgWith(1, [processSignatureError]);
 
 						__private.receiveSignature(SAMPLE_SIGNATURE_1, err => {
 							error = err;
@@ -529,8 +531,8 @@ describe('transport', () => {
 					});
 
 					it('should call callback with error', async () =>
-						expect(error).to.equal(
-							`Error processing signature: ${processSignatureError.message}`
+						expect(error[0].message).to.equal(
+							`${processSignatureError.message}`
 						));
 				});
 			});
@@ -552,9 +554,7 @@ describe('transport', () => {
 				});
 
 				it('should call callback with error = "Invalid signature body"', async () =>
-					expect(error).to.equal(
-						`Invalid signature body ${validateErr.message}`
-					));
+					expect(error[0].message).to.equal(`${validateErr.message}`));
 			});
 		});
 
@@ -799,12 +799,12 @@ describe('transport', () => {
 					);
 				});
 
-				it('should call the callback with error message', async () => {
-					const expected = initTransaction
-						.fromJson(invalidTransaction)
-						.validate();
-					const expectedError = expected.errors[0].toString();
-					expect(errorResult).to.equal(expectedError);
+				it('should call the call back with error message', async () => {
+					initTransaction.fromJson(invalidTransaction).validate();
+					expect(errorResult).to.be.an('array');
+					errorResult.forEach(anError => {
+						expect(anError).to.be.instanceOf(TransactionError);
+					});
 				});
 			});
 
@@ -1991,7 +1991,9 @@ describe('transport', () => {
 				});
 
 				describe('when __private.receiveSignature fails', () => {
-					const receiveSignatureError = 'Invalid signature body ...';
+					const receiveSignatureError = new TransactionError(
+						'Invalid signature body'
+					);
 
 					beforeEach(done => {
 						query = {
@@ -2007,13 +2009,13 @@ describe('transport', () => {
 						});
 					});
 
-					it('should invoke callback with object { success: false, message: err }', async () => {
+					it('should invoke callback with error array', async () => {
 						expect(error).to.equal(null);
 						expect(result)
 							.to.have.property('success')
 							.which.is.equal(false);
 						return expect(result)
-							.to.have.property('message')
+							.to.have.property('errors')
 							.which.is.equal(receiveSignatureError);
 					});
 				});
@@ -2242,7 +2244,7 @@ describe('transport', () => {
 				});
 
 				describe('when __private.receiveTransaction fails', () => {
-					const receiveTransactionError = 'Invalid transaction body ...';
+					const receiveTransactionError = 'Invalid transaction body';
 
 					beforeEach(done => {
 						__private.receiveTransaction = sinonSandbox

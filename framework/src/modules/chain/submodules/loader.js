@@ -225,7 +225,7 @@ __private.loadSignatures = function(cb) {
 							async.eachSeries(
 								signature.signatures,
 								(s, secondEachSeriesCb) => {
-									modules.multisignatures.processSignature(
+									modules.multisignatures.getTransactionAndProcessSignature(
 										{
 											signature: s,
 											transactionId: signature.transactionId,
@@ -421,7 +421,7 @@ __private.loadBlockChain = function() {
 			},
 			err => {
 				if (err) {
-					library.logger.error(err);
+					library.logger.error(convertErrorsToString(err));
 					if (err.block) {
 						library.logger.error(`Blockchain failed at: ${err.block.height}`);
 						modules.blocks.chain.deleteFromBlockId(err.block.id, () => {

@@ -206,11 +206,15 @@ describe('integration test (type 5) - dapp registrations with repeated values', 
 				options: dappDuplicate,
 			});
 			localCommon.addTransaction(library, transaction2, err => {
-				expect(err).to.equal(
+				const expectedErrors = [
 					`Transaction: ${transaction2.id} failed at ${
 						dappDuplicate.name
-					}: Application name already exists: ${dappDuplicate.name}`
-				);
+					}: Application name already exists: ${dappDuplicate.name}`,
+					`Transaction: ${transaction2.id} failed at ${
+						dappDuplicate.link
+					}: Application link already exists: ${dappDuplicate.link}`,
+				];
+				expect(err).to.equal(expectedErrors.join(','));
 				done();
 			});
 		});

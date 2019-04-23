@@ -14,30 +14,32 @@
 
 'use strict';
 
+const { TransactionError } = require('@liskhq/lisk-transactions');
+
 /**
  * Converts array of errors into string
  *
  * @class
  * @memberof helpers
- * @param {array | object} errors
+ * @param {array | object} e
  * @see Parent: {@link helpers}
  * @todo Add description for the params
  */
 // TODO: Move this functionality to logger component
-function convertErrorsToString(errors) {
-	if (Array.isArray(errors) && errors.length > 0) {
-		return errors
-			.filter(e => e instanceof Error)
+function convertErrorsToString(e) {
+	if (Array.isArray(e) && e.length > 0) {
+		return e
+			.filter(err => err instanceof Error || err instanceof TransactionError)
 			.map(error => error.toString())
 			.join(', ');
 	}
 
-	if (errors instanceof Error) {
-		return errors.toString();
+	if (e instanceof Error) {
+		return e.toString();
 	}
 
-	if (typeof errors === 'string') {
-		return errors;
+	if (typeof e === 'string') {
+		return e;
 	}
 
 	return '';

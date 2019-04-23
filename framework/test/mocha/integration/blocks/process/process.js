@@ -289,7 +289,8 @@ describe('integration test (blocks) - process', () => {
 
 			blocksProcess.loadBlocksOffset(1, 7, (err, loadedBlock) => {
 				if (err) {
-					expect(err).equal(
+					expect(err).to.be.instanceOf(Error);
+					expect(err.message).equal(
 						'Blocks#loadBlocksOffset error: Error: Transaction type not found.'
 					);
 					return done();

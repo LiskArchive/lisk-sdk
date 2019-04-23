@@ -37,8 +37,7 @@ const nullChar2 = '\x00';
 const nullChar3 = '\u0000';
 const nullChar4 = '\\U00000000';
 
-// eslint-disable-next-line
-describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/transactions (type 0) transfer funds', () => {
+describe('POST /api/transactions (type 0) transfer funds', () => {
 	let transaction;
 	const goodTransaction = randomUtil.transaction();
 	const badTransactions = [];
@@ -81,7 +80,11 @@ describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/tr
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Failed to verify signature');
+				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
+					`Failed to validate signature ${transaction.signature}`
+				);
 				badTransactions.push(transaction);
 			});
 		});
@@ -94,7 +97,9 @@ describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/tr
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction id');
+				expect(res.body.message).to.eql('Invalid transaction body');
+				expect(res.body.code).to.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors).to.not.be.empty;
 				badTransactions.push(transaction);
 			});
 		});
@@ -116,7 +121,11 @@ describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/tr
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction amount');
+				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
+					'Amount must be a valid number in string format.'
+				);
 				badTransactions.push(transaction);
 			});
 		});
@@ -132,8 +141,10 @@ describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/tr
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal(
-					`Account does not have enough LSK: ${account.address} balance: 0`
+				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
+					`Account does not have enough LSK: ${account.address}, balance: 0`
 				);
 				badTransactions.push(transaction);
 			});
@@ -150,8 +161,10 @@ describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/tr
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.match(
-					/^Account does not have enough LSK: [0-9]+L balance: /
+				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.include(
+					'Account does not have enough LSK: 16313739661670634666L, balance: '
 				);
 				badTransactions.push(transaction);
 			});
@@ -177,8 +190,10 @@ describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/tr
 				signedTransactionFromGenesis,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal(
-					'Invalid sender. Can not send from genesis account'
+				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.include(
+					'Account does not have enough LSK: 1085993630748340485L, balance: -'
 				);
 				badTransactions.push(signedTransactionFromGenesis);
 			});
@@ -196,7 +211,9 @@ describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/tr
 				goodTransaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal(
+				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
 					`Transaction is already processed: ${goodTransaction.id}`
 				);
 			});
@@ -209,8 +226,10 @@ describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/tr
 				cloneGoodTransaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal(
-					`Transaction is already processed: ${cloneGoodTransaction.id}`
+				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[1].message).to.be.equal(
+					'Invalid transaction id'
 				);
 			});
 		});
@@ -222,7 +241,9 @@ describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/tr
 				cloneGoodTransaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal(
+				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
 					`Transaction is already processed: ${cloneGoodTransaction.id}`
 				);
 			});
@@ -255,10 +276,11 @@ describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/tr
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.equal(
+					expect(res.body.message).to.be.equal('Invalid transaction body');
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
 						'Invalid transaction timestamp. Timestamp is in the future'
 					);
-					badTransactions.push(transaction);
 				});
 			});
 		});
@@ -278,12 +300,13 @@ describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/tr
 							recipientId: accountAdditionalData.address,
 						});
 						transaction.asset.data = test.input;
-
 						return sendTransactionPromise(
 							transaction,
 							apiCodes.PROCESSING_ERROR
 						).then(res => {
-							expect(res.body.message).to.not.be.empty;
+							expect(res.body.message).to.be.equal('Invalid transaction body');
+							expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+							expect(res.body.errors[0].message).to.not.be.empty;
 							badTransactions.push(transaction);
 						});
 					});
@@ -366,29 +389,33 @@ describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/tr
 						transaction,
 						apiCodes.PROCESSING_ERROR
 					).then(res => {
-						expect(res.body.message).to.be.equal(
-							'Transfer data field has invalid character. Null character is not allowed.'
+						expect(res.body.message).to.be.eql('Invalid transaction body');
+						expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+						expect(res.body.errors[0].message).to.be.equal(
+							'\'.data\' should match format "noNullByte"'
 						);
 						badTransactions.push(transaction);
 					});
 				});
 
 				it('using nullChar2 should fail', () => {
-					const additioinalData = `${nullChar2} hey :)`;
+					const additionalData = `${nullChar2} hey :)`;
 					const accountAdditionalData = randomUtil.account();
 					transaction = transfer({
 						amount: '1',
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: accountAdditionalData.address,
-						data: additioinalData,
+						data: additionalData,
 					});
 
 					return sendTransactionPromise(
 						transaction,
 						apiCodes.PROCESSING_ERROR
 					).then(res => {
-						expect(res.body.message).to.be.equal(
-							'Transfer data field has invalid character. Null character is not allowed.'
+						expect(res.body.message).to.be.eql('Invalid transaction body');
+						expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+						expect(res.body.errors[0].message).to.be.equal(
+							'\'.data\' should match format "noNullByte"'
 						);
 						badTransactions.push(transaction);
 					});
@@ -408,8 +435,10 @@ describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/tr
 						transaction,
 						apiCodes.PROCESSING_ERROR
 					).then(res => {
-						expect(res.body.message).to.be.equal(
-							'Transfer data field has invalid character. Null character is not allowed.'
+						expect(res.body.message).to.be.eql('Invalid transaction body');
+						expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+						expect(res.body.errors[0].message).to.be.equal(
+							'\'.data\' should match format "noNullByte"'
 						);
 						badTransactions.push(transaction);
 					});
@@ -429,8 +458,10 @@ describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/tr
 						transaction,
 						apiCodes.PROCESSING_ERROR
 					).then(res => {
-						expect(res.body.message).to.be.equal(
-							'Transfer data field has invalid character. Null character is not allowed.'
+						expect(res.body.message).to.be.eql('Invalid transaction body');
+						expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+						expect(res.body.errors[0].message).to.be.equal(
+							'\'.data\' should match format "noNullByte"'
 						);
 						badTransactions.push(transaction);
 					});
@@ -449,7 +480,9 @@ describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/tr
 				goodTransaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal(
+				expect(res.body.message).to.be.eql('Invalid transaction body');
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
 					`Transaction is already confirmed: ${goodTransaction.id}`
 				);
 			});
