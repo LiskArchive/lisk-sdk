@@ -41,6 +41,9 @@ module.exports = {
 		'5384302058030309746', // 869890
 		'9352922026980330230', // 925165
 	],
+	// For cases where block contains second signature transaction as well as other transactions
+	// from the same account without including signSignature for other transactions.
+	signSignature: ['7708475706877354541', '8340539534878295232'],
 	// transfer transaction with null byte in the data field
 	// SELECT * FROM transfer WHERE position('\x00' in data) > 0;
 	transactionWithNullByte: ['11815860355204320743'], // 7292474

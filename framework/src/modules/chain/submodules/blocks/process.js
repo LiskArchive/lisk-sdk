@@ -164,7 +164,10 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 		],
 		err => {
 			if (err) {
-				library.logger.error('Fork recovery failed', convertErrorsToString(err));
+				library.logger.error(
+					'Fork recovery failed',
+					convertErrorsToString(err)
+				);
 			}
 			return setImmediate(cb, err);
 		}
@@ -244,7 +247,10 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
 		],
 		err => {
 			if (err) {
-				library.logger.error('Fork recovery failed', convertErrorsToString(err));
+				library.logger.error(
+					'Fork recovery failed',
+					convertErrorsToString(err)
+				);
 			}
 			return setImmediate(cb, err);
 		}

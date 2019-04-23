@@ -1,6 +1,7 @@
 const Bignumber = require('bignumber.js');
 
 const { TRANSACTION_TYPES } = global.constants;
+const exceptions = global.exceptions;
 
 const reverseVotes = function(diff) {
 	const copyDiff = diff.slice();
@@ -71,12 +72,15 @@ const updateSenderRoundInformationWithAmountForTransaction = function(
 			.filter(vote => vote[0] === '+')
 			.map(vote => vote.slice(1));
 
-		const dependentPublicKeysWithoutUpvotes = dependentPublicKeysToAdd.filter(
-			vote => !upvotes.find(v => v === vote)
-		);
-		dependentPublicKeysToAdd = dependentPublicKeysWithoutUpvotes.concat(
-			downvotes
-		);
+		// Votes inside the transaction should not be incase it's an exception, but the existing votes should be updated
+		if (!exceptions.roundVotes.includes(transaction.id)) {
+			const dependentPublicKeysWithoutUpvotes = dependentPublicKeysToAdd.filter(
+				vote => !upvotes.find(v => v === vote)
+			);
+			dependentPublicKeysToAdd = dependentPublicKeysWithoutUpvotes.concat(
+				downvotes
+			);
+		}
 	}
 
 	if (dependentPublicKeysToAdd.length > 0) {
@@ -104,7 +108,8 @@ const updateRecipientRoundInformationWithAmountForTransaction = function(
 	}
 	if (
 		transaction.type === TRANSACTION_TYPES.SEND ||
-		transaction.type === TRANSACTION_TYPES.OUT_TRANSFER
+		transaction.type === TRANSACTION_TYPES.OUT_TRANSFER ||
+		transaction.type === TRANSACTION_TYPES.VOTE
 	) {
 		address = transaction.recipientId;
 	}
