@@ -100,9 +100,9 @@ const defaultConfig = {
 					minimum: 1,
 					maximum: 5000,
 				},
-				snapshotRound: {
-					type: 'integer',
-					arg: '-s,--snapshot',
+				rebuildUpToRound: {
+					type: ['integer', 'null'],
+					arg: '-b,--rebuild',
 				},
 			},
 			required: ['loadPerIteration'],
@@ -322,7 +322,7 @@ const defaultConfig = {
 		},
 		loading: {
 			loadPerIteration: 5000,
-			snapshotRound: 0,
+			rebuildUpToRound: null,
 		},
 		exceptions: {
 			blockRewards: [],

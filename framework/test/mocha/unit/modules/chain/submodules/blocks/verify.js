@@ -70,7 +70,7 @@ describe('blocks/verify', () => {
 
 		configMock = {
 			loading: {
-				snapshotRound: null,
+				rebuildUpToRound: null,
 			},
 		};
 
@@ -2040,7 +2040,7 @@ describe('blocks/verify', () => {
 
 			afterEach(() => channelMock.invoke.resetHistory());
 
-			it('should be called if snapshotting was not activated', done => {
+			it('should be called if rebuilding was not activated', done => {
 				blocksVerifyModule.processBlock(
 					dummyBlock,
 					broadcast,

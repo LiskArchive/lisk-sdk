@@ -1,10 +1,10 @@
 {
 	"httpPort": 9000,
 	"wsPort": 9001,
-	"logFileName": "logs/lisk_snapshot.log",
+	"logFileName": "logs/lisk_rebuild.log",
 	"fileLogLevel": "info",
 	"db": {
-		"database": "lisk_snapshot"
+		"database": "lisk_rebuild"
 	},
 	"peers": {
 		"list": []

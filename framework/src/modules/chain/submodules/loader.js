@@ -73,7 +73,7 @@ class Loader {
 			config: {
 				loading: {
 					loadPerIteration: scope.config.loading.loadPerIteration,
-					snapshotRound: scope.config.loading.snapshotRound,
+					rebuildUpToRound: scope.config.loading.rebuildUpToRound,
 				},
 				syncing: {
 					active: scope.config.syncing.active,
@@ -355,7 +355,7 @@ __private.loadTransactions = function(cb) {
  * - count accounts from `mem_accounts` table by block id
  * - get rounds from `mem_round`
  * 2. Matches genesis block with database.
- * 3. Verifies snapshot mode.
+ * 3. Verifies rebuild mode.
  * 4. Recreates memory tables when neccesary:
  *  - Calls logic.account to resetMemTables
  *  - Calls block to load block. When blockchain ready emits a bus message.
@@ -503,8 +503,10 @@ __private.loadBlockChain = function() {
 
 			matchGenesisBlock(getGenesisBlock);
 
-			if (library.config.loading.snapshotRound) {
-				return __private.createSnapshot(blocksCount);
+			console.log(library.config.loading.rebuildUpToRound);
+			if (library.config.loading.rebuildUpToRound !== null) {
+				console.log('\n\n\n\n\n\ninside');
+				return __private.rebuildAccounts(blocksCount);
 			}
 
 			const unapplied = getMemRounds.filter(row => row.round !== round);
@@ -672,7 +674,7 @@ __private.validateOwnChain = cb => {
 						return setImmediate(
 							validateStartBlockCb,
 							new Error(
-								'Your block chain is invalid. Please rebuild from snapshot.'
+								'Your block chain is invalid. Please rebuild using rebuilding mode.'
 							)
 						);
 					}
@@ -705,7 +707,7 @@ __private.validateOwnChain = cb => {
 					return setImmediate(
 						deleteInvalidBlocksCb,
 						new Error(
-							"Your block chain can't be recovered. Please rebuild from snapshot."
+							"Your block chain can't be recovered. Please rebuild using rebuilding mode."
 						)
 					);
 				}
@@ -738,43 +740,42 @@ __private.validateOwnChain = cb => {
 };
 
 /**
- * Snapshot creation - performs rebuild of accounts states from blockchain data
+ * Rebuilding mode - performs rebuild of accounts states from blockchain data
  *
  * @private
- * @emits snapshotFinished
+ * @emits rebuildFinished
  * @throws {Error} When blockchain is shorter than one round of blocks
  */
-__private.createSnapshot = height => {
-	library.logger.info('Snapshot mode enabled');
+__private.rebuildAccounts = height => {
+	library.logger.info('Rebuild mode enabled');
 
 	// Single round contains amount of blocks equal to number of active delegates
 	if (height < ACTIVE_DELEGATES) {
 		throw new Error(
-			'Unable to create snapshot, blockchain should contain at least one round of blocks'
+			'Unable to rebuild, blockchain should contain at least one round of blocks'
 		);
 	}
 
-	const snapshotRound = library.config.loading.snapshotRound;
+	const rebuildUpToRound = library.config.loading.rebuildUpToRound;
 	// Negative number not possible as `commander` does not recognize this as valid flag (throws error)
 	if (
-		Number.isNaN(parseInt(snapshotRound)) ||
-		parseInt(snapshotRound) < 0 ||
-		typeof snapshotRound !== 'number'
+		Number.isNaN(parseInt(rebuildUpToRound)) ||
+		parseInt(rebuildUpToRound) < 0
 	) {
 		throw new Error(
-			'Unable to create snapshot, "--snapshot" parameter should be an integer equal to or greater than zero'
+			'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero'
 		);
 	}
 
 	const totalRounds = Math.floor(height / ACTIVE_DELEGATES);
 	const targetRound =
-		parseInt(snapshotRound) === 0
+		parseInt(rebuildUpToRound) === 0
 			? totalRounds
-			: Math.min(totalRounds, snapshotRound);
+			: Math.min(totalRounds, parseInt(rebuildUpToRound));
 	const targetHeight = targetRound * ACTIVE_DELEGATES;
 
 	library.logger.info(
-		`Snapshotting to end of round: ${targetRound}, height: ${targetHeight}`
+		`Rebuilding to end of round: ${targetRound}, height: ${targetHeight}`
 	);
 
 	let currentHeight = 1;
@@ -810,22 +811,22 @@ __private.createSnapshot = height => {
 					.catch(err => setImmediate(seriesCb, err));
 			},
 		},
-		__private.snapshotFinished
+		__private.rebuildFinished
 	);
 };
 
 /**
- * Executed when snapshot creation is complete.
+ * Executed when rebuild process is complete.
  *
  * @private
  * @param {err} Error if any
  * @emits cleanup
  */
-__private.snapshotFinished = err => {
+__private.rebuildFinished = err => {
 	if (err) {
-		library.logger.error('Snapshot creation failed', err);
+		library.logger.error('Rebuilding failed', err);
 	} else {
-		library.logger.info('Snapshot creation finished');
+		library.logger.info('Rebuilding finished');
 	}
 	process.emit('cleanup', err);
 };

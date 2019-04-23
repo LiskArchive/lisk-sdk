@@ -82,6 +82,7 @@ config.modules.chain = validator.parseEnvArgAndValidate(
 	chainModuleSchema,
 	Object.assign({}, config.modules.chain, { exceptions })
 );
+console.log(config.modules.chain);
 config.modules.chain = {
 	...config.modules.chain,
 	constants: config.constants,
