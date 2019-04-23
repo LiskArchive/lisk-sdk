@@ -36,6 +36,10 @@ try {
 	);
 	const genesisBlock = require('../fixtures/config/devnet/genesis_block');
 
+	if (process.env.CUSTOM_CONFIG_FILE) {
+		configurator.loadConfigFile(path.resolve(process.env.CUSTOM_CONFIG_FILE));
+	}
+
 	const config = configurator.getConfig({}, { failOnInvalidArg: false });
 
 	// To run multiple applications for same network for integration tests
