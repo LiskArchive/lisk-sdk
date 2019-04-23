@@ -57,7 +57,7 @@ describe('exceptions for senderPublicKey transactions', () => {
 		'12710869213547423905': '000123L',
 	};
 
-	localCommon.beforeBlock('system_exceptions_recipientId', lib => {
+	localCommon.beforeBlock('system_exceptions_recipientId_leading_zero', lib => {
 		library = lib;
 	});
 

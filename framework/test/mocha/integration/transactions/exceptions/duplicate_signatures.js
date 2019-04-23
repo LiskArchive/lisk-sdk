@@ -101,7 +101,7 @@ describe('exceptions for duplicatedSignatures transactions', () => {
 		],
 	};
 
-	localCommon.beforeBlock('system_inert_transactions', lib => {
+	localCommon.beforeBlock('system_duplicate_signatures', lib => {
 		library = lib;
 	});
 

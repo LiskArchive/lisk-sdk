@@ -52,7 +52,7 @@ describe('exceptions for null byte transaction', () => {
 
 	exceptions.transactionWithNullByte = ['10589655532517440995'];
 
-	localCommon.beforeBlock('system_exceptions_recipientId', lib => {
+	localCommon.beforeBlock('system_exceptions_null_byte', lib => {
 		library = lib;
 	});
 

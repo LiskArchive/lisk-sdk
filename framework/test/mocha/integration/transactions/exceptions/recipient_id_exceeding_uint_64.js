@@ -57,7 +57,7 @@ describe('exceptions for recipient transactions exceeding uint64', () => {
 		'393955899193580559': '19961131544040416558L',
 	};
 
-	localCommon.beforeBlock('system_exceptions_recipientId', lib => {
+	localCommon.beforeBlock('system_exceptions_recipientId_uint_64', lib => {
 		library = lib;
 	});
 
@@ -80,7 +80,7 @@ describe('exceptions for recipient transactions exceeding uint64', () => {
 			);
 		});
 
-		describe('when forging block with transaction with leading zero recipientId', () => {
+		describe('when forging block with transaction with exceeding uint_64 recipientId', () => {
 			before(done => {
 				localCommon.createValidBlockWithSlotOffset(
 					library,

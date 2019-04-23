@@ -75,7 +75,7 @@ describe('exceptions for senderPublicKey transactions', () => {
 
 	exceptions.senderPublicKey = ['5252526207733553499'];
 
-	localCommon.beforeBlock('system_inert_transactions', lib => {
+	localCommon.beforeBlock('system_exceptions_sender_public_key', lib => {
 		library = lib;
 	});
 
