@@ -342,7 +342,7 @@ const defaultConfig = {
 			blockRewards: [],
 			senderPublicKey: [],
 			signatures: [],
-			signsignature: [],
+			signSignature: [],
 			multisignatures: [],
 			votes: [],
 			inertTransactions: [],
