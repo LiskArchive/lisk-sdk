@@ -13,11 +13,11 @@ const compile = (schema, parentSchema) => {
 			? {
 					names: schema.split(',') || [],
 					formatter: null,
-				}
+			  }
 			: {
 					names: schema.name.split(',') || [],
 					formatter: formatters[schema.formatter] || null,
-				};
+			  };
 
 	return function(data, dataPath, object, key) {
 		let argValue;
@@ -26,11 +26,11 @@ const compile = (schema, parentSchema) => {
 		argVariable.names.forEach(argName => {
 			if (!argValue) {
 				// Remove "-" or "--" from command line argument names
-				argValue = commandLineArguments[_.camelCase(argName)] || undefined;
+				argValue = commandLineArguments[_.camelCase(argName)];
 			}
 		});
 
-		if (argValue) {
+		if (argValue !== undefined) {
 			object[key] = argVariable.formatter
 				? argVariable.formatter(argValue)
 				: argValue;

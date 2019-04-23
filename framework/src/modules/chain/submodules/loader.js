@@ -503,9 +503,7 @@ __private.loadBlockChain = function() {
 
 			matchGenesisBlock(getGenesisBlock);
 
-			console.log(library.config.loading.rebuildUpToRound);
 			if (library.config.loading.rebuildUpToRound !== null) {
-				console.log('\n\n\n\n\n\ninside');
 				return __private.rebuildAccounts(blocksCount);
 			}
 
