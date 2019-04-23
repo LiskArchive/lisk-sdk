@@ -105,7 +105,9 @@ class ProcessTransactions {
 			transactionsResponses: transactions.map(transaction => {
 				const allowed =
 					!transaction.isAllowedAt ||
-					transaction.isAllowedAt(context || this._getCurrentContext());
+					transaction.isAllowedAt(
+						context || ProcessTransactions._getCurrentContext()
+					);
 
 				return {
 					id: transaction.id,
@@ -118,7 +120,7 @@ class ProcessTransactions {
 										transaction.type
 									} is currently not allowed.`
 								),
-							],
+						  ],
 				};
 			}),
 		};
@@ -234,8 +236,7 @@ class ProcessTransactions {
 	/**
 	 * Get current state from modules.blocks.lastBlock
 	 */
-	// eslint-disable-next-line class-methods-use-this
-	_getCurrentContext() {
+	static _getCurrentContext() {
 		const {
 			version,
 			height,
