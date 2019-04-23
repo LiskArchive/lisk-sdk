@@ -334,18 +334,14 @@ describe('loader', () => {
 			}
 		});
 
-		it('should throw an error when called with rebuildUpToRound = integer as string', done => {
-			try {
-				libraryVar.config.loading.rebuildUpToRound = '2';
-
-				__privateVar.rebuildAccounts(ACTIVE_DELEGATES);
-			} catch (err) {
-				expect(err).to.exist;
-				expect(err.message).to.eql(
-					'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero'
-				);
+		it('should not throw an error when called with rebuildUpToRound = integer as string', done => {
+			libraryVar.config.loading.rebuildUpToRound = '2';
+			__privateVar.rebuildFinished = err => {
+				expect(err).to.not.exist;
 				done();
-			}
+			};
+
+			__privateVar.rebuildAccounts(ACTIVE_DELEGATES);
 		});
 
 		it('should throw an error when called with rebuildUpToRound = ""', done => {
