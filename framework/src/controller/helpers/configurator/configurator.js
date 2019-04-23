@@ -1,8 +1,5 @@
 const _ = require('lodash');
 const yargs = require('yargs');
-const { config: loggerConfig } = require('../../../components/logger/defaults');
-const { config: storageConfig } = require('../../../components/storage/defaults');
-const { config: cacheConfig } = require('../../../components/cache/defaults');
 const { applicationConfigSchema } = require('../../schema');
 
 const { parseEnvArgAndValidate } = require('./../validator');
@@ -25,15 +22,11 @@ const traverseObject = (o, func, parent = undefined) => {
 
 class Configurator {
 	constructor() {
-		this.configSchema = applicationConfigSchema;
+		this.configSchema = _.cloneDeep(applicationConfigSchema);
 		this.metaInfo = {};
 		this.listOfArgs = new Set();
 
 		this.customData = [];
-
-		this.registerSchema(loggerConfig, 'components.logger');
-		this.registerSchema(storageConfig, 'components.storage');
-		this.registerSchema(cacheConfig, 'components.cache');
 	}
 
 	registerModule(moduleKlass) {
@@ -130,16 +123,18 @@ class Configurator {
 	}
 
 	registerSchema(schema, key) {
+		const clonedSchema = _.cloneDeep(schema);
+
 		if (key) {
 			_.set(
 				this.configSchema,
 				`properties.${key.split('.').join('.properties.')}`,
-				schema
+				clonedSchema
 			);
-			_.set(this.configSchema, `default.${key}`, schema.default);
-			delete schema.default;
+			_.set(this.configSchema, `default.${key}`, clonedSchema.default);
+			delete clonedSchema.default;
 		} else {
-			_.defaultsDeep(this.configSchema, schema);
+			_.defaultsDeep(this.configSchema, clonedSchema);
 		}
 		this.extractMetaInformation();
 	}
