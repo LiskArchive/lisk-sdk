@@ -61,7 +61,7 @@ class Configurator {
 
 		return parseEnvArgAndValidate(
 			this.configSchema,
-			_.defaultsDeep(...[{}, ...this.customData, overrideValues])
+			_.defaultsDeep(...[{}, ...this.customData, overrideValues].reverse())
 		);
 	}
 
