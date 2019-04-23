@@ -13,12 +13,12 @@ Object {
   ],
   "resetModules": true,
   "restoreMocks": true,
-  "rootDir": "../../../../../",
+  "rootDir": "../../../../",
   "setupFilesAfterEnv": Array [
     "<rootDir>/framework/test/jest/config/setup.js",
   ],
   "testMatch": Array [
-    "<rootDir>/framework/test/jest/specs/unit/**/*.(spec|test).js",
+    "<rootDir>/framework/test/jest/unit/specs/**/*.(spec|test).js",
   ],
   "verbose": true,
 }
