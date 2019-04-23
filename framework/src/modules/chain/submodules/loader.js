@@ -225,7 +225,7 @@ __private.loadSignatures = function(cb) {
 							async.eachSeries(
 								signature.signatures,
 								(s, secondEachSeriesCb) => {
-									modules.multisignatures.processSignature(
+									modules.multisignatures.getTransactionAndProcessSignature(
 										{
 											signature: s,
 											transactionId: signature.transactionId,
