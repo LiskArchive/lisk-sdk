@@ -910,7 +910,7 @@ describe('blocks/process', () => {
 						{ ip: 1, wsPort: 2 },
 						10,
 						(err, block) => {
-							expect(err).to.equal('getIdSequence-ERR');
+							expect(err.message).to.equal('getIdSequence-ERR');
 							expect(block).to.be.undefined;
 							done();
 						}
@@ -932,7 +932,7 @@ describe('blocks/process', () => {
 								{ ip: 1, wsPort: 2 },
 								10,
 								(err, block) => {
-									expect(err).to.equal('rpc.blocksCommon-ERR');
+									expect(err.message).to.equal('rpc.blocksCommon-ERR');
 									expect(block).to.be.undefined;
 									done();
 								}
@@ -993,7 +993,7 @@ describe('blocks/process', () => {
 									(err, block) => {
 										expect(library.logic.peers.applyHeaders.calledOnce).to.be
 											.false;
-										expect(err).to.equal(
+										expect(err.message).to.equal(
 											'Comparison failed - received genesis as common block'
 										);
 										expect(block).to.be.undefined;
@@ -1048,7 +1048,7 @@ describe('blocks/process', () => {
 									(err, block) => {
 										expect(library.logic.peers.applyHeaders.calledOnce).to.be
 											.false;
-										expect(err).to.equal(
+										expect(err.message).to.equal(
 											'Chain comparison failed with peer: ip:wsPort using ids: rpc.blocksCommon-Empty'
 										);
 										expect(block).to.be.undefined;
@@ -1083,7 +1083,7 @@ describe('blocks/process', () => {
 										{ ip: 1, wsPort: 2 },
 										10,
 										(err, block) => {
-											expect(err).to.equal('schema.validate-ERR');
+											expect(err.message).to.equal('schema.validate-ERR');
 											expect(block).to.be.undefined;
 											done();
 										}
@@ -1112,7 +1112,9 @@ describe('blocks/process', () => {
 												{ ip: 1, wsPort: 2 },
 												10,
 												(err, block) => {
-													expect(err).to.equal('Blocks#getCommonBlock error');
+													expect(err.message).to.equal(
+														'Blocks#getCommonBlock error'
+													);
 													expect(block).to.be.undefined;
 													expect(loggerStub.error.args[0][0]).to.contains(
 														'Error: blocks.getCommonBlock-REJECTS'
@@ -1165,7 +1167,7 @@ describe('blocks/process', () => {
 													{ ip: 1, wsPort: 2 },
 													10,
 													(err, block) => {
-														expect(err).to.equal(
+														expect(err.message).to.equal(
 															`Chain comparison failed with peer: ip:wsPort using block: ${JSON.stringify(
 																dummyCommonBlock
 															)}`
@@ -1219,7 +1221,7 @@ describe('blocks/process', () => {
 
 				it('should call a callback with error', done => {
 					blocksProcessModule.loadBlocksOffset(100, 0, (err, lastBlock) => {
-						expect(err).to.equal(
+						expect(err.message).to.equal(
 							'Blocks#loadBlocksOffset error: blocks.loadBlocksOffset-REJECTS'
 						);
 						expect(lastBlock).to.be.undefined;
@@ -1319,7 +1321,7 @@ describe('blocks/process', () => {
 										beforeEach(() =>
 											modules.blocks.chain.applyGenesisBlock.callsArgWith(
 												1,
-												'chain.applyGenesisBlock-ERR',
+												new Error('chain.applyGenesisBlock-ERR'),
 												null
 											)
 										);
@@ -1329,7 +1331,9 @@ describe('blocks/process', () => {
 												100,
 												0,
 												(err, lastBlock) => {
-													expect(err).to.equal('chain.applyGenesisBlock-ERR');
+													expect(err.message).to.equal(
+														'chain.applyGenesisBlock-ERR'
+													);
 													expect(lastBlock).to.deep.equal({
 														id: '2',
 														height: 2,

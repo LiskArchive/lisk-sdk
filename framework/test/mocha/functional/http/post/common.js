@@ -89,7 +89,6 @@ function invalidAssets(option, badTransactions) {
 			typesRepresentatives.allTypes.forEach(test => {
 				it(`using ${test.description} should fail`, async () => {
 					transaction.asset = test.input;
-
 					const expectedResponse =
 						test.expectation === 'object' && test.description !== 'date'
 							? apiCodes.PROCESSING_ERROR

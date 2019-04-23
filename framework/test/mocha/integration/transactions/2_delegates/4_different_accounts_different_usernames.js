@@ -140,11 +140,15 @@ describe('integration test (type 2) - double delegate registrations', () => {
 							timeOffset: -10000,
 						});
 						localCommon.addTransaction(library, transaction3, err => {
-							expect(err).to.equal(
+							const expectedErrors = [
 								`Transaction: ${
 									transaction3.id
-								} failed at .asset.delegate.username: Username is not unique.`
-							);
+								} failed at .asset.delegate.username: Username is not unique.`,
+								`Transaction: ${
+									transaction3.id
+								} failed at .asset.delegate.username: Account is already a delegate`,
+							];
+							expect(err).to.equal(expectedErrors.join(','));
 							done();
 						});
 					});

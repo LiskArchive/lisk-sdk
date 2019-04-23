@@ -30,8 +30,7 @@ const common = require('./common');
 
 const { FEES, NORMALIZER } = global.constants;
 
-// eslint-disable-next-line
-describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/transactions (type 1) register second passphrase', () => {
+describe('POST /api/transactions (type 1) register second passphrase', () => {
 	let transaction;
 	const transactionsToWaitFor = [];
 	const badTransactions = [];
@@ -95,8 +94,8 @@ describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/tr
 			return apiHelpers
 				.sendTransactionPromise(transaction, apiCodes.PROCESSING_ERROR)
 				.then(res => {
-					expect(res.body.message).to.be.equal(
-						'Sender does not have a second signature'
+					expect(res.body.errors[0].message).to.be.equal(
+						'Sender does not have a secondPublicKey'
 					);
 					badTransactions.push(transaction);
 				});
@@ -111,10 +110,10 @@ describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/tr
 			return apiHelpers
 				.sendTransactionPromise(transaction, apiCodes.PROCESSING_ERROR)
 				.then(res => {
-					expect(res.body.message).to.be.equal(
+					expect(res.body.errors[0].message).to.be.equal(
 						`Account does not have enough LSK: ${
 							accountNoFunds.address
-						} balance: 0`
+						}, balance: 0`
 					);
 					badTransactions.push(transaction);
 				});

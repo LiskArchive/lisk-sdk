@@ -178,11 +178,9 @@ class Transaction {
 
 	jsonRead(rawTx) {
 		const TransactionClass = this.transactionClassMap.get(rawTx.type);
-
 		if (!TransactionClass) {
 			throw new Error('Transaction type not found.');
 		}
-
 		return new TransactionClass(rawTx);
 	}
 }

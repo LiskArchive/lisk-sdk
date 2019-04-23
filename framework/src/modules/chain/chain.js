@@ -3,6 +3,7 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 }
 
 const { promisify } = require('util');
+const { convertErrorsToString } = require('./helpers/error_handlers');
 const git = require('./helpers/git');
 const Sequence = require('./helpers/sequence');
 const ed = require('./helpers/ed');
@@ -322,7 +323,7 @@ module.exports = class Chain {
 				return true;
 			})
 		).catch(moduleCleanupError => {
-			this.logger.error(moduleCleanupError);
+			this.logger.error(convertErrorsToString(moduleCleanupError));
 		});
 
 		this.logger.info('Cleaned up successfully');

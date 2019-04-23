@@ -14,8 +14,12 @@
 
 'use strict';
 
+const {
+	TransactionError
+} = require('@liskhq/lisk-transactions');
 const async = require('async');
 const _ = require('lodash');
+const { convertErrorsToString } = require('../helpers/error_handlers');
 // eslint-disable-next-line prefer-const
 let Broadcaster = require('../logic/broadcaster');
 const failureCodes = require('../api/ws/rpc/failure_codes');
@@ -158,17 +162,14 @@ __private.receiveSignatures = function(signatures = []) {
 __private.receiveSignature = function(signature, cb) {
 	library.schema.validate(signature, definitions.Signature, err => {
 		if (err) {
-			return setImmediate(cb, `Invalid signature body ${err[0].message}`);
+			return setImmediate(cb, [new TransactionError(err[0].message)], 400);
 		}
 
 		return modules.multisignatures.getTransactionAndProcessSignature(
 			signature,
-			processSignatureErr => {
-				if (processSignatureErr) {
-					return setImmediate(
-						cb,
-						`Error processing signature: ${processSignatureErr.message}`
-					);
+			errors => {
+				if (errors) {
+					return setImmediate(cb, errors, 409);
 				}
 				return setImmediate(cb);
 			}
@@ -197,7 +198,7 @@ __private.receiveTransactions = function(
 		}
 		__private.receiveTransaction(transaction, nonce, extraLogMessage, err => {
 			if (err) {
-				library.logger.debug(err, transaction);
+				library.logger.debug(convertErrorsToString(err), transaction);
 			}
 		});
 	});
@@ -231,12 +232,10 @@ __private.receiveTransaction = function(
 			throw errors;
 		}
 	} catch (errors) {
-		const error = errors.length > 0 ? errors[0] : errors;
 		library.logger.debug('Transaction normalization failed', {
 			id,
-			err: error.toString(),
+			err: convertErrorsToString(errors),
 			module: 'transport',
-			transaction,
 		});
 
 		__private.removePeer(
@@ -247,11 +246,7 @@ __private.receiveTransaction = function(
 			extraLogMessage
 		);
 
-		return setImmediate(cb, `${error.toString()}`);
-	}
-
-	if (transaction.requesterPublicKey) {
-		return setImmediate(cb, new Error('Multisig request is not allowed'));
+		return setImmediate(cb, errors);
 	}
 
 	return library.balancesSequence.add(balancesSequenceCb => {
@@ -266,24 +261,19 @@ __private.receiveTransaction = function(
 				} from peer ${library.logic.peers.peersManager.getAddress(nonce)}`
 			);
 		}
+
 		modules.transactions.processUnconfirmedTransaction(
 			transaction,
 			true,
-			processUnconfirmErr => {
-				if (processUnconfirmErr) {
-					library.logger.debug(
-						`Transaction ${id}`,
-						processUnconfirmErr.toString()
-					);
+			err => {
+				if (err) {
+					library.logger.debug(`Transaction ${id}`, convertErrorsToString(err));
 					if (transaction) {
 						library.logger.debug('Transaction', transaction);
 					}
-
-					return setImmediate(
-						balancesSequenceCb,
-						processUnconfirmErr.toString()
-					);
+					return setImmediate(balancesSequenceCb, err);
 				}
+
 				return setImmediate(balancesSequenceCb, null, transaction.id);
 			}
 		);
@@ -791,11 +781,12 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	postSignature(query, cb) {
-		__private.receiveSignature(query.signature, err => {
+		__private.receiveSignature(query.signature, (err, code) => {
 			if (err) {
 				return setImmediate(cb, null, {
 					success: false,
-					message: err,
+					code,
+					errors: err,
 				});
 			}
 			return setImmediate(cb, null, {
@@ -892,9 +883,11 @@ Transport.prototype.shared = {
 				if (err) {
 					return setImmediate(cb, null, {
 						success: false,
-						message: err,
+						message: 'Invalid transaction body',
+						errors: err,
 					});
 				}
+
 				return setImmediate(cb, null, {
 					success: true,
 					transactionId: id,

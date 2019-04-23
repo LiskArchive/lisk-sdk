@@ -15,7 +15,11 @@
 'use strict';
 
 const pool = require('@liskhq/lisk-transaction-pool');
-const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const {
+	Status: TransactionStatus,
+	TransactionError,
+} = require('@liskhq/lisk-transactions');
+const slots = require('../helpers/slots');
 
 const {
 	EXPIRY_INTERVAL,
@@ -336,11 +340,25 @@ class TransactionPool {
 
 	processUnconfirmedTransaction(transaction, broadcast, cb) {
 		if (this.transactionInPool(transaction.id)) {
-			return setImmediate(
-				cb,
-				new Error(`Transaction is already processed: ${transaction.id}`)
-			);
+			return setImmediate(cb, [
+				new TransactionError(
+					`Transaction is already processed: ${transaction.id}`,
+					transaction.id,
+					'.id'
+				),
+			]);
 		}
+
+		if (slots.getSlotNumber(transaction.timestamp) > slots.getSlotNumber()) {
+			return setImmediate(cb, [
+				new TransactionError(
+					'Invalid transaction timestamp. Timestamp is in the future',
+					transaction.id,
+					'.timestamp'
+				),
+			]);
+		}
+
 		return this.verifyTransactions([transaction]).then(
 			({ transactionsResponses }) => {
 				if (transactionsResponses[0].status === TransactionStatus.OK) {
@@ -349,8 +367,7 @@ class TransactionPool {
 				if (transactionsResponses[0].status === TransactionStatus.PENDING) {
 					return this.addMultisignatureTransaction(transaction, cb);
 				}
-
-				return cb(transactionsResponses[0].errors[0]);
+				return cb(transactionsResponses[0].errors);
 			}
 		);
 	}
