@@ -42,6 +42,11 @@ try {
 
 	const config = configurator.getConfig({}, { failOnInvalidArg: false });
 
+	// Support for PROTOCOL_VERSION only for tests
+	if (process.env.NODE_ENV === 'test' && process.env.PROTOCOL_VERSION) {
+		config.app.protocolVersion = process.env.PROTOCOL_VERSION;
+	}
+
 	// To run multiple applications for same network for integration tests
 	config.app.label = `lisk-devnet-${config.modules.http_api.httpPort}`;
 
