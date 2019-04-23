@@ -20,6 +20,7 @@ const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const BlockReward = require('../../logic/block_reward');
 const slots = require('../../helpers/slots');
 const blockVersion = require('../../logic/block_version');
+const checkTransactionExceptions = require('../../logic/check_transaction_against_exceptions.js');
 const Bignum = require('../../helpers/bignum');
 
 let modules;
@@ -105,7 +106,8 @@ __private.checkTransactions = async (transactions, checkExists) => {
 	}
 
 	const nonInertTransactions = transactions.filter(
-		transaction => !global.exceptions.inertTransactions.includes(transaction.id)
+		transaction =>
+			!checkTransactionExceptions.checkIfTransactionIsInert(transaction)
 	);
 
 	const {
