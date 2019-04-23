@@ -152,6 +152,13 @@ const defaultConfig = {
 						format: 'id',
 					},
 				},
+				roundVotes: {
+					type: 'array',
+					items: {
+						type: 'string',
+						format: 'id',
+					},
+				},
 				rounds: {
 					type: 'object',
 					description:
