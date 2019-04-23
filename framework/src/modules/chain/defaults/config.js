@@ -131,6 +131,13 @@ const defaultConfig = {
 						format: 'id',
 					},
 				},
+				signSignature: {
+					type: 'array',
+					items: {
+						type: 'string',
+						format: 'id',
+					},
+				},
 				multisignatures: {
 					type: 'array',
 					items: {
@@ -335,6 +342,7 @@ const defaultConfig = {
 			blockRewards: [],
 			senderPublicKey: [],
 			signatures: [],
+			signsignature: [],
 			multisignatures: [],
 			votes: [],
 			inertTransactions: [],
@@ -342,6 +350,7 @@ const defaultConfig = {
 			precedent: { disableDappTransfer: 0 },
 			ignoreDelegateListCacheForRounds: [],
 			blockVersions: {},
+			roundVotes: [],
 			recipientLeadingZero: {},
 			recipientExceedingUint64: {},
 			duplicatedSignatures: {},
