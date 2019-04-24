@@ -14,9 +14,7 @@
 
 'use strict';
 
-const {
-	TransactionError
-} = require('@liskhq/lisk-transactions');
+const { TransactionError } = require('@liskhq/lisk-transactions');
 const async = require('async');
 const _ = require('lodash');
 const { convertErrorsToString } = require('../helpers/error_handlers');
