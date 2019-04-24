@@ -17,7 +17,7 @@ import { Command, flags as flagParser } from '@oclif/command';
 import os from 'os';
 import { ConfigOptions, getConfig } from './utils/config';
 import { handleEPIPE } from './utils/helpers';
-import { print } from './utils/print';
+import { print, StringMap } from './utils/print';
 
 export const defaultConfigFolder = '.lisk';
 
@@ -85,6 +85,6 @@ export default abstract class BaseCommand extends Command {
 			json: this.userConfig.json,
 			pretty: this.userConfig.pretty,
 			...this.printFlags,
-		}).call(this, result);
+		}).call(this, result as StringMap);
 	}
 }
