@@ -1,4 +1,3 @@
-
 const path = require('path');
 const {
 	helpers: { configurator },
@@ -50,8 +49,16 @@ configurator.loadConfig(appConfig);
 
 const { NETWORK, CUSTOM_CONFIG_FILE } = configurator.getConfig();
 
-configurator.loadConfigFile(path.resolve(__dirname, `../../config/${NETWORK}/config`));
-configurator.loadConfigFile(path.resolve(__dirname, `../../config/${NETWORK}/exceptions`), 'modules.chain.exceptions');
+// Variable is used to identify different networks on NewRelic
+process.env.LISK_NETWORK = NETWORK;
+
+configurator.loadConfigFile(
+	path.resolve(__dirname, `../../config/${NETWORK}/config`)
+);
+configurator.loadConfigFile(
+	path.resolve(__dirname, `../../config/${NETWORK}/exceptions`),
+	'modules.chain.exceptions'
+);
 
 if (CUSTOM_CONFIG_FILE) {
 	configurator.loadConfigFile(path.resolve(CUSTOM_CONFIG_FILE));
