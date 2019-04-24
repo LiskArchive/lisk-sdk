@@ -16,9 +16,9 @@ import * as BigNum from '@liskhq/bignum';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import {
 	BaseTransaction,
+	ENTITY_ACCOUNT,
 	MultisignatureStatus,
 	StateStore,
-	StateStorePrepare,
 } from './base_transaction';
 import { MULTISIGNATURE_FEE } from './constants';
 import { SignatureObject } from './create_signature_object';
@@ -28,7 +28,7 @@ import {
 	TransactionPendingError,
 } from './errors';
 import { createResponse, Status, TransactionResponse } from './response';
-import { TransactionJSON } from './transaction_types';
+import { Account, TransactionJSON } from './transaction_types';
 import { validateMultisignatures, validateSignature, validator } from './utils';
 
 const TRANSACTION_MULTISIGNATURE_TYPE = 4;
@@ -66,19 +66,24 @@ export const multisignatureAssetFormatSchema = {
 	},
 };
 
-const setMemberAccounts = (
+const setMemberAccounts = async (
 	store: StateStore,
 	membersPublicKeys: ReadonlyArray<string>,
 ) => {
-	membersPublicKeys.forEach(memberPublicKey => {
+	// tslint:disable-next-line no-loop-statement
+	for (const memberPublicKey of membersPublicKeys) {
 		const address = getAddressFromPublicKey(memberPublicKey);
-		const memberAccount = store.account.getOrDefault(address);
+		const memberAccount = await store.getOrDefault(ENTITY_ACCOUNT, address);
 		const memberAccountWithPublicKey = {
 			...memberAccount,
 			publicKey: memberAccount.publicKey || memberPublicKey,
 		};
-		store.account.set(memberAccount.address, memberAccountWithPublicKey);
-	});
+		await store.set(
+			ENTITY_ACCOUNT,
+			memberAccount.address,
+			memberAccountWithPublicKey,
+		);
+	}
 };
 
 const extractPublicKeysFromAsset = (assetPublicKeys: ReadonlyArray<string>) =>
@@ -117,19 +122,6 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 	public assetToJSON(): MultiSignatureAsset {
 		return this.asset;
-	}
-
-	public async prepare(store: StateStorePrepare): Promise<void> {
-		const membersAddresses = extractPublicKeysFromAsset(
-			this.asset.multisignature.keysgroup,
-		).map(publicKey => ({ address: getAddressFromPublicKey(publicKey) }));
-
-		await store.account.cache([
-			{
-				address: this.senderId,
-			},
-			...membersAddresses,
-		]);
 	}
 
 	protected verifyAgainstTransactions(
@@ -240,7 +232,9 @@ export class MultisignatureTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	public processMultisignatures(_: StateStore): TransactionResponse {
+	public async processMultisignatures(
+		_: StateStore,
+	): Promise<TransactionResponse> {
 		const transactionBytes = this.getBasicBytes();
 
 		const { valid, errors } = validateMultisignatures(
@@ -277,9 +271,11 @@ export class MultisignatureTransaction extends BaseTransaction {
 		return createResponse(this.id, errors);
 	}
 
-	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
+	protected async applyAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
-		const sender = store.account.get(this.senderId);
+		const sender = await store.get<Account>(ENTITY_ACCOUNT, this.senderId);
 
 		// Check if multisignatures already exists on account
 		if (sender.membersPublicKeys && sender.membersPublicKeys.length > 0) {
@@ -311,15 +307,17 @@ export class MultisignatureTransaction extends BaseTransaction {
 			multiMin: this.asset.multisignature.min,
 			multiLifetime: this.asset.multisignature.lifetime,
 		};
-		store.account.set(updatedSender.address, updatedSender);
+		await store.set(ENTITY_ACCOUNT, updatedSender.address, updatedSender);
 
-		setMemberAccounts(store, updatedSender.membersPublicKeys);
+		await setMemberAccounts(store, updatedSender.membersPublicKeys);
 
 		return errors;
 	}
 
-	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
-		const sender = store.account.get(this.senderId);
+	protected async undoAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
+		const sender = await store.get<Account>(ENTITY_ACCOUNT, this.senderId);
 
 		const resetSender = {
 			...sender,
@@ -328,15 +326,15 @@ export class MultisignatureTransaction extends BaseTransaction {
 			multiLifetime: 0,
 		};
 
-		store.account.set(resetSender.address, resetSender);
+		await store.set(ENTITY_ACCOUNT, resetSender.address, resetSender);
 
 		return [];
 	}
 
-	public addMultisignature(
+	public async addMultisignature(
 		store: StateStore,
 		signatureObject: SignatureObject,
-	): TransactionResponse {
+	): Promise<TransactionResponse> {
 		// Validate signature key belongs to pending multisig registration transaction
 		const keysgroup = this.asset.multisignature.keysgroup.map((aKey: string) =>
 			aKey.slice(1),

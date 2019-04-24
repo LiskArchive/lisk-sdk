@@ -1,0 +1,80 @@
+{
+	"name": "@liskhq/lisk-db",
+	"version": "0.1.0",
+	"description": "database implementation for lisk",
+	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
+	"license": "GPL-3.0",
+	"keywords": [
+		"lisk",
+		"blockchain"
+	],
+	"homepage": "https://github.com/LiskHQ/lisk-elements/tree/master/packages/lisk-elements#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/LiskHQ/lisk-elements.git"
+	},
+	"bugs": {
+		"url": "https://github.com/LiskHQ/lisk-elements/issues"
+	},
+	"engines": {
+		"node": ">=8.10 <=10",
+		"npm": ">=5"
+	},
+	"main": "dist-node/index.js",
+	"scripts": {
+		"prestart": "./scripts/prestart.sh",
+		"start": "./scripts/start.sh",
+		"transpile": "tsc",
+		"clean": "./scripts/clean.sh",
+		"format": "prettier --write \"*.{ts,js,json}\" \"{src,test}/**/*.{ts,js,json}\"",
+		"lint": "tslint --format verbose --project .",
+		"lint:fix": "npm run lint -- --fix",
+		"test": "TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/{,/**/}/*.ts",
+		"test:integration": "USE_REAL_TIMERS=true TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/integration/*.ts",
+		"test:watch": "npm test -- --watch",
+		"test:watch:min": "npm run test:watch -- --reporter=min",
+		"test:node": "npm run build:check",
+		"cover": "if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
+		"cover:base": "nyc report",
+		"cover:local": "npm run cover:base -- --reporter=html --reporter=text",
+		"cover:ci": "npm run cover:base -- --reporter=text",
+		"prebuild:node": "rm -r dist-node/* || mkdir dist-node || true",
+		"build:node": "npm run transpile",
+		"prebuild": "npm run prebuild:node",
+		"build": "npm run build:node",
+		"build:check": "node -e \"require('./dist-node')\"",
+		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
+	},
+	"dependencies": {
+		"@types/abstract-leveldown": "5.0.1",
+		"@types/debug": "4.1.2",
+		"@types/encoding-down": "5.0.0",
+		"@types/levelup": "3.1.0",
+		"@types/node": "10.12.21",
+		"@types/rocksdb": "3.0.0",
+		"abstract-leveldown": "6.0.1",
+		"debug": "4.1.1",
+		"encoding-down": "6.0.1",
+		"levelup": "4.0.0",
+		"rocksdb": "3.0.3"
+	},
+	"devDependencies": {
+		"@types/chai": "4.1.7",
+		"@types/expect": "1.20.3",
+		"@types/jquery": "3.3.29",
+		"@types/mocha": "5.2.5",
+		"chai": "4.2.0",
+		"mocha": "5.2.0",
+		"nyc": "13.2.0",
+		"prettier": "1.16.4",
+		"source-map-support": "0.5.10",
+		"ts-node": "8.0.2",
+		"tsconfig-paths": "3.8.0",
+		"tslint": "5.12.1",
+		"tslint-config-prettier": "1.18.0",
+		"tslint-immutable": "5.1.2",
+		"typescript": "3.3.1",
+		"uglify-es": "3.3.9",
+		"wait-on": "3.2.0"
+	}
+}

@@ -15,12 +15,13 @@
 import * as BigNum from '@liskhq/bignum';
 import {
 	BaseTransaction,
+	ENTITY_ACCOUNT,
+	ENTITY_TRANSACTION,
 	StateStore,
-	StateStorePrepare,
 } from './base_transaction';
 import { MAX_TRANSACTION_AMOUNT, OUT_TRANSFER_FEE } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
-import { TransactionJSON } from './transaction_types';
+import { Account, TransactionJSON } from './transaction_types';
 import { verifyAmountBalance } from './utils';
 import { validator } from './utils/validation';
 
@@ -67,22 +68,6 @@ export class OutTransferTransaction extends BaseTransaction {
 
 		this.asset = (tx.asset || { outTransfer: {} }) as OutTransferAsset;
 		this.containsUniqueData = true;
-	}
-
-	public async prepare(store: StateStorePrepare): Promise<void> {
-		await store.account.cache([
-			{
-				address: this.senderId,
-			},
-			{ address: this.recipientId },
-		]);
-
-		await store.transaction.cache([
-			{
-				id: this.asset.outTransfer.dappId,
-			},
-			{ id: this.asset.outTransfer.transactionId },
-		]);
 	}
 
 	protected assetToBytes(): Buffer {
@@ -176,16 +161,29 @@ export class OutTransferTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
+	protected async applyAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
-		const dappRegistrationTransaction = store.transaction.get(
+		const dappRegistrationTransaction = await store.get<TransactionJSON>(
+			ENTITY_TRANSACTION,
 			this.asset.outTransfer.dappId,
 		);
 
-		if (
-			!dappRegistrationTransaction ||
-			dappRegistrationTransaction.type !== TRANSACTION_DAPP_REGISTERATION_TYPE
-		) {
+		if (dappRegistrationTransaction.senderId !== this.senderId) {
+			errors.push(
+				new TransactionError(
+					`Out transaction must be sent from owner of the Dapp.`,
+					this.id,
+				),
+			);
+		}
+
+		const transactionExists = await store.exists(
+			ENTITY_TRANSACTION,
+			this.asset.outTransfer.transactionId,
+		);
+		if (transactionExists) {
 			errors.push(
 				new TransactionError(
 					`Application not found: ${this.asset.outTransfer.dappId}`,
@@ -195,7 +193,7 @@ export class OutTransferTransaction extends BaseTransaction {
 			);
 		}
 
-		const sender = store.account.get(this.senderId);
+		const sender = await store.get<Account>(ENTITY_ACCOUNT, this.senderId);
 
 		const balanceError = verifyAmountBalance(
 			this.id,
@@ -210,9 +208,12 @@ export class OutTransferTransaction extends BaseTransaction {
 		const updatedBalance = new BigNum(sender.balance).sub(this.amount);
 
 		const updatedSender = { ...sender, balance: updatedBalance.toString() };
-		store.account.set(updatedSender.address, updatedSender);
+		await store.set(ENTITY_ACCOUNT, updatedSender.address, updatedSender);
 
-		const recipient = store.account.getOrDefault(this.recipientId);
+		const recipient = await store.get<Account>(
+			ENTITY_ACCOUNT,
+			this.recipientId,
+		);
 
 		const updatedRecipientBalance = new BigNum(recipient.balance).add(
 			this.amount,
@@ -227,14 +228,16 @@ export class OutTransferTransaction extends BaseTransaction {
 			balance: updatedRecipientBalance.toString(),
 		};
 
-		store.account.set(updatedRecipient.address, updatedRecipient);
+		await store.set(ENTITY_ACCOUNT, updatedRecipient.address, updatedRecipient);
 
 		return errors;
 	}
 
-	public undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
+	public async undoAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
-		const sender = store.account.get(this.senderId);
+		const sender = await store.get<Account>(ENTITY_ACCOUNT, this.senderId);
 		const updatedBalance = new BigNum(sender.balance).add(this.amount);
 
 		if (updatedBalance.gt(MAX_TRANSACTION_AMOUNT)) {
@@ -249,9 +252,12 @@ export class OutTransferTransaction extends BaseTransaction {
 		}
 
 		const updatedSender = { ...sender, balance: updatedBalance.toString() };
-		store.account.set(updatedSender.address, updatedSender);
+		await store.set(ENTITY_ACCOUNT, updatedSender.address, updatedSender);
 
-		const recipient = store.account.getOrDefault(this.recipientId);
+		const recipient = await store.get<Account>(
+			ENTITY_ACCOUNT,
+			this.recipientId,
+		);
 
 		const updatedRecipientBalance = new BigNum(recipient.balance).sub(
 			this.amount,
@@ -274,7 +280,7 @@ export class OutTransferTransaction extends BaseTransaction {
 			balance: updatedRecipientBalance.toString(),
 		};
 
-		store.account.set(updatedRecipient.address, updatedRecipient);
+		await store.set(ENTITY_ACCOUNT, updatedRecipient.address, updatedRecipient);
 
 		return errors;
 	}

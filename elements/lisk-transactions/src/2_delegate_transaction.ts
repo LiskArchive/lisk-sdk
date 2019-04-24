@@ -14,8 +14,8 @@
  */
 import {
 	BaseTransaction,
+	ENTITY_ACCOUNT,
 	StateStore,
-	StateStorePrepare,
 } from './base_transaction';
 import { DELEGATE_FEE } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
@@ -23,6 +23,7 @@ import { Account, TransactionJSON } from './transaction_types';
 import { validator } from './utils';
 
 const TRANSACTION_DELEGATE_TYPE = 2;
+const ENTITY_ACCOUNT_USERNAME = 'username:accountId';
 
 export interface DelegateAsset {
 	readonly delegate: {
@@ -72,17 +73,6 @@ export class DelegateTransaction extends BaseTransaction {
 
 	public assetToJSON(): DelegateAsset {
 		return this.asset;
-	}
-
-	public async prepare(store: StateStorePrepare): Promise<void> {
-		await store.account.cache([
-			{
-				address: this.senderId,
-			},
-			{
-				username: this.asset.delegate.username,
-			},
-		]);
 	}
 
 	protected verifyAgainstTransactions(
@@ -170,11 +160,14 @@ export class DelegateTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
+	protected async applyAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
-		const sender = store.account.get(this.senderId);
-		const usernameExists = store.account.find(
-			(account: Account) => account.username === this.asset.delegate.username,
+		const sender = await store.get<Account>(ENTITY_ACCOUNT, this.senderId);
+		const usernameExists = await store.exists(
+			ENTITY_ACCOUNT_USERNAME,
+			this.asset.delegate.username,
 		);
 
 		if (usernameExists) {
@@ -201,14 +194,20 @@ export class DelegateTransaction extends BaseTransaction {
 			vote: 0,
 			isDelegate: 1,
 		};
-		store.account.set(updatedSender.address, updatedSender);
+		await store.set(ENTITY_ACCOUNT, updatedSender.address, updatedSender);
+		await store.set(
+			ENTITY_ACCOUNT_USERNAME,
+			this.asset.delegate.username,
+			updatedSender.address,
+		);
 
 		return errors;
 	}
 
-	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
-		const sender = store.account.get(this.senderId);
-		const { username, ...strippedSender } = sender;
+	protected async undoAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
+		const sender = await store.get<Account>(ENTITY_ACCOUNT, this.senderId);
 		const resetSender = {
 			...sender,
 			// tslint:disable-next-line no-null-keyword - Exception for compatibility with Core 1.4
@@ -216,7 +215,8 @@ export class DelegateTransaction extends BaseTransaction {
 			vote: 0,
 			isDelegate: 0,
 		};
-		store.account.set(strippedSender.address, resetSender);
+		await store.set(ENTITY_ACCOUNT, resetSender.address, resetSender);
+		await store.unset(ENTITY_ACCOUNT_USERNAME, this.asset.delegate.username);
 
 		return [];
 	}

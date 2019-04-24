@@ -1,0 +1,33 @@
+{
+	"wsPort": 7001,
+	"httpPort": 7000,
+	"logFileName": "logs/testnet/lisk.log",
+	"db": {
+		"database": "lisk_test",
+		"logFileName": "logs/testnet/lisk_db.log"
+	},
+	"peers": {
+		"list": [
+			{
+				"ip": "testnet-seed-01.lisk.io",
+				"wsPort": 7001
+			},
+			{
+				"ip": "testnet-seed-02.lisk-nodes.net",
+				"wsPort": 7001
+			},
+			{
+				"ip": "testnet-seed-03.lisk.io",
+				"wsPort": 7001
+			},
+			{
+				"ip": "testnet-seed-04.lisk-nodes.net",
+				"wsPort": 7001
+			},
+			{
+				"ip": "testnet-seed-05.lisk.io",
+				"wsPort": 7001
+			}
+		]
+	}
+}

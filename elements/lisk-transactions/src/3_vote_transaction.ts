@@ -16,12 +16,12 @@ import * as BigNum from '@liskhq/bignum';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import {
 	BaseTransaction,
+	ENTITY_ACCOUNT,
 	StateStore,
-	StateStorePrepare,
 } from './base_transaction';
 import { MAX_TRANSACTION_AMOUNT, VOTE_FEE } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
-import { TransactionJSON } from './transaction_types';
+import { Account, TransactionJSON } from './transaction_types';
 import { CreateBaseTransactionInput, verifyAmountBalance } from './utils';
 import { validateAddress, validator } from './utils/validation';
 
@@ -79,25 +79,6 @@ export class VoteTransaction extends BaseTransaction {
 
 	public assetToJSON(): object {
 		return this.asset;
-	}
-
-	public async prepare(store: StateStorePrepare): Promise<void> {
-		const publicKeyObjectArray = this.asset.votes.map(pkWithAction => {
-			const publicKey = pkWithAction.slice(1);
-
-			return {
-				publicKey,
-			};
-		});
-
-		const filterArray = [
-			{
-				address: this.senderId,
-			},
-			...publicKeyObjectArray,
-		];
-
-		await store.account.cache(filterArray);
 	}
 
 	protected verifyAgainstTransactions(
@@ -205,9 +186,11 @@ export class VoteTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
+	protected async applyAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
-		const sender = store.account.get(this.senderId);
+		const sender = await store.get<Account>(ENTITY_ACCOUNT, this.senderId);
 		// Deduct amount from sender in case of exceptions
 		// See issue: https://github.com/LiskHQ/lisk-elements/issues/1215
 		const balanceError = verifyAmountBalance(
@@ -221,11 +204,10 @@ export class VoteTransaction extends BaseTransaction {
 		}
 		const updatedSenderBalance = new BigNum(sender.balance).sub(this.amount);
 
-		this.asset.votes.forEach(actionVotes => {
+		this.asset.votes.forEach(async actionVotes => {
 			const vote = actionVotes.substring(1);
-			const voteAccount = store.account.find(
-				account => account.publicKey === vote,
-			);
+			const voteAddress = getAddressFromPublicKey(vote);
+			const voteAccount = await store.get<Account>(ENTITY_ACCOUNT, voteAddress);
 			if (
 				!voteAccount ||
 				(voteAccount &&
@@ -295,14 +277,16 @@ export class VoteTransaction extends BaseTransaction {
 			balance: updatedSenderBalance.toString(),
 			votedDelegatesPublicKeys,
 		};
-		store.account.set(updatedSender.address, updatedSender);
+		await store.set(ENTITY_ACCOUNT, updatedSender.address, updatedSender);
 
 		return errors;
 	}
 
-	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
+	protected async undoAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
 		const errors = [];
-		const sender = store.account.get(this.senderId);
+		const sender = await store.get<Account>(ENTITY_ACCOUNT, this.senderId);
 		const updatedSenderBalance = new BigNum(sender.balance).add(this.amount);
 
 		// Deduct amount from sender in case of exceptions
@@ -347,7 +331,7 @@ export class VoteTransaction extends BaseTransaction {
 			balance: updatedSenderBalance.toString(),
 			votedDelegatesPublicKeys,
 		};
-		store.account.set(updatedSender.address, updatedSender);
+		await store.set(ENTITY_ACCOUNT, updatedSender.address, updatedSender);
 
 		return errors;
 	}
