@@ -45,5 +45,5 @@ RUN if [ x"$( sha256sum /home/lisk/wait-for-it.sh |awk '{print $1}' )" = x"${WFI
 USER lisk
 WORKDIR /home/lisk/lisk
 
-ENTRYPOINT ["node", "/home/lisk/lisk/app.js"]
+ENTRYPOINT ["node", "/home/lisk/lisk/src/index.js"]
 CMD ["-n", "mainnet"]

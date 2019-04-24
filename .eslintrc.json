@@ -1,6 +1,6 @@
 {
 	"extends": ["lisk-base"],
-	"plugins": ["mocha", "chai-expect"],
+	"plugins": ["chai-expect"],
 	"rules": {
 		"camelcase": "off",
 		"chai-expect/missing-assertion": "error",
@@ -45,11 +45,10 @@
 			"error",
 			{
 				"devDependencies": [
+					"framework/test/**",
 					"test/**",
-					"tasks/**",
-					"scripts/**",
-					"webpack.config.js",
-					"Gruntfile.js"
+					"framework/src/modules/chain/tasks/**",
+					"framework/src/modules/chain/scripts/**"
 				]
 			}
 		],

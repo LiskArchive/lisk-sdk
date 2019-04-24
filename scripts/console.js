@@ -18,8 +18,8 @@ const path = require('path');
 const repl = require('repl');
 const fs = require('fs');
 const Promise = require('bluebird');
-require('../test/setup');
-const application = require('../test/common/application.js');
+require('../framework/test/mocha/setup');
+const application = require('../framework/test/mocha/common/application');
 
 // Created this before in global scope as its dependency of test/node.js
 if (typeof before !== 'function') {

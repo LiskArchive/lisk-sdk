@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`base/constants.js INTERNAL_EVENTS must match to the snapshot. 1`] = `
+Array [
+  "registeredToBus",
+  "loading:started",
+  "loading:finished",
+]
+`;

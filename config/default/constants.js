@@ -25,7 +25,7 @@
  * @property {number} ADDITIONAL_DATA.MAX_LENGTH - Additional data (Max length)
  * @property {number} BLOCK_SLOT_WINDOW - The default number of previous blocks to keep in memory.
  * @property {number} BLOCK_RECEIPT_TIMEOUT - Seconds to check if the block is fresh or not.
- * @property {Date} EPOCH_TIME - Timestamp indicating the start of Lisk Core.
+ * @property {string} EPOCH_TIME - Timestamp indicating the start of Lisk Core (`Date.toISOString()`).
  * @property {Object} FEES - Object representing amount of fees for different types of transactions.
  * @property {number} FEES.SEND - Fee for sending a transaction.
  * @property {number} FEES.VOTE - Fee for voting a delegate.
@@ -57,6 +57,7 @@
  * @property {number} REWARDS.OFFSET - Start rewards at block (n).
  * @property {number} REWARDS.DISTANCE - Distance between each milestone.
  * @property {number} TOTAL_AMOUNT - Total amount of LSK available in network before rewards milestone started.
+ * @property {number} TRANSACTION_TYPES - Integers assigned to the different transaction types
  * @property {number} UNCONFIRMED_TRANSACTION_TIMEOUT - Expiration time for unconfirmed transaction/signatures in transaction pool.
  * @property {number} EXPIRY_INTERVAL - Transaction pool expiry timer in milliseconds
  * @todo Add description for the namespace and the properties.
@@ -69,7 +70,7 @@ module.exports = {
 		MAX_LENGTH: 64,
 	},
 	BLOCK_RECEIPT_TIMEOUT: 20, // 2 blocks
-	EPOCH_TIME: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)),
+	EPOCH_TIME: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 	FEES: {
 		SEND: '10000000',
 		VOTE: '100000000',
@@ -121,6 +122,16 @@ module.exports = {
 	},
 	// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
 	TOTAL_AMOUNT: '10000000000000000',
+	TRANSACTION_TYPES: {
+		SEND: 0,
+		SIGNATURE: 1,
+		DELEGATE: 2,
+		VOTE: 3,
+		MULTI: 4,
+		DAPP: 5,
+		IN_TRANSFER: 6,
+		OUT_TRANSFER: 7,
+	},
 	UNCONFIRMED_TRANSACTION_TIMEOUT: 10800, // 1080 blocks
 	EXPIRY_INTERVAL: 30000,
 };
