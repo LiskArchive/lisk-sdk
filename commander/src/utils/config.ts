@@ -77,7 +77,7 @@ const checkLockfile = (filePath: string): void => {
 };
 
 const attemptToReadJSONFile = <T>(filePath: string): T => {
-	const fn = readJSONSync.bind(undefined, filePath);
+	const fn = readJSONSync.bind(undefined, filePath) as () => T;
 	const errorMessage = `Config file cannot be read or is not valid JSON. Please check ${filePath} or delete the file so we can create a new one from defaults.`;
 
 	return attemptCallWithError<T>(fn, errorMessage);
