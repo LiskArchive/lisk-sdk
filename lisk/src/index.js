@@ -103,7 +103,7 @@ try {
 		TRANSACTION_TYPES.IN_TRANSFER,
 		InTransferTransaction,
 		{
-			isAllowedAt: context =>
+			matcher: context =>
 				context.blockHeight <
 				app.config.modules.chain.exceptions.precedent.disableDappTransfer,
 		}
@@ -112,7 +112,7 @@ try {
 		TRANSACTION_TYPES.OUT_TRANSFER,
 		OutTransferTransaction,
 		{
-			isAllowedAt: context =>
+			matcher: context =>
 				context.blockHeight <
 				app.config.modules.chain.exceptions.precedent.disableDappTransfer,
 		}
