@@ -31,10 +31,10 @@ describe('Handshake', () => {
 	const validNodeNonce = randomstring.generate(16);
 	const validConfig = {
 		config: {
-			version: config.version,
+			version: config.app.version,
 			minVersion,
 			protocolVersion,
-			nethash: config.nethash,
+			nethash: config.app.nethash,
 			nonce: validNodeNonce,
 			blackListedPeers: ['9.9.9.9'],
 		},
@@ -88,7 +88,7 @@ describe('Handshake', () => {
 				expect(err)
 					.to.have.property('description')
 					.contain(
-						`Expected nethash: ${config.nethash} but received: ${
+						`Expected nethash: ${config.app.nethash} but received: ${
 							validHeaders.nethash
 						}`
 					);

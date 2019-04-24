@@ -73,7 +73,7 @@ export const query = async (
 ): Promise<unknown> =>
 	isArray(parameters)
 		? Promise.all(
-				parameters.map((param: QueryParameter) =>
+				parameters.map(async (param: QueryParameter) =>
 					client[endpoint]
 						.get(param.query)
 						.then((res: APIResponse) =>

@@ -34,17 +34,17 @@ describe('validator keyword "arg"', () => {
 		};
 
 		expect(() => validator.validate(schema, {})).toThrow(
-			'keyword schema is invalid: data should match pattern "^([-][a-z]{1,1})(,[-]{2}[a-z][a-z0-9-]*)?$", data should be object, data should match some schema in anyOf'
+			'keyword schema is invalid: data should match pattern "^([-]{2}[a-z][a-z0-9-]*)(,[-][a-z]{1,1})?$", data should be object, data should match some schema in anyOf'
 		);
 	});
 
-	it('should accept arg if specified as string in short format', () => {
+	it('should accept arg if specified as string as single format', () => {
 		const envSchemaWithOutFormatter = {
 			type: 'object',
 			properties: {
 				prop1: {
 					type: 'string',
-					arg: '-p',
+					arg: '--port',
 				},
 			},
 		};
@@ -53,16 +53,16 @@ describe('validator keyword "arg"', () => {
 
 		validator.validate(envSchemaWithOutFormatter, data);
 
-		expect(data.prop1).toBe('changedShortValue');
+		expect(data.prop1).toBe('changedLongValue');
 	});
 
-	it('should accept arg if specified as string in long format', () => {
+	it('should accept arg if specified as string with alias format', () => {
 		const envSchemaWithOutFormatter = {
 			type: 'object',
 			properties: {
 				prop1: {
 					type: 'string',
-					arg: '-n,--port',
+					arg: '--port,-n',
 				},
 			},
 		};
@@ -81,7 +81,7 @@ describe('validator keyword "arg"', () => {
 				prop1: {
 					type: 'string',
 					arg: {
-						name: '-p',
+						name: '--port',
 						formatter: 'stringToDelegateList',
 					},
 				},
@@ -95,7 +95,7 @@ describe('validator keyword "arg"', () => {
 		validator.validate(envSchemaWithFormatter, data);
 
 		expect(formatters.stringToDelegateList).toHaveBeenCalledWith(
-			'changedShortValue'
+			'changedLongValue'
 		);
 		expect(data.prop1).toBe('formattedValue');
 	});
@@ -125,7 +125,7 @@ describe('validator keyword "arg"', () => {
 				prop1: {
 					type: 'string',
 					arg: {
-						name: '-p',
+						name: '--port',
 						formatter: 'stringToDelegateList',
 						extraKey: 'myKey',
 					},
