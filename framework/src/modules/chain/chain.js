@@ -232,21 +232,8 @@ module.exports = class Chain {
 				promisify(this.scope.modules.signatures.shared.postSignature)(
 					action.params.signature
 				),
-			getLastConsensus: async () => this.scope.modules.peers.getLastConsensus(),
-			loaderLoaded: async () => this.scope.modules.loader.loaded(),
-			loaderSyncing: async () => this.scope.modules.loader.syncing(),
-			getForgersKeyPairs: async () =>
-				this.scope.modules.delegates.getForgersKeyPairs(),
 			getForgingStatusForAllDelegates: async () =>
 				this.scope.modules.delegates.getForgingStatusForAllDelegates(),
-			getForgersPublicKeys: async () => {
-				const keypairs = this.scope.modules.delegates.getForgersKeyPairs();
-				const publicKeys = {};
-				Object.keys(keypairs).forEach(key => {
-					publicKeys[key] = { publicKey: keypairs[key].publicKey };
-				});
-				return publicKeys;
-			},
 			getTransactionsFromPool: async action =>
 				promisify(
 					this.scope.modules.transactions.shared.getTransactionsFromPool
