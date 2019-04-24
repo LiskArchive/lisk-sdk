@@ -21,13 +21,13 @@ import {
 	isGreaterThanMaxTransactionId,
 	isNullByteIncluded,
 	isNumberString,
+	isValidTransferData,
 	validateAddress,
 	validateFee,
 	validateNonTransferAmount,
 	validatePublicKey,
 	validateSignature,
 	validateTransferAmount,
-	validateTransferData,
 	validateUsername,
 } from './validation';
 
@@ -58,7 +58,10 @@ validator.addFormat('transferAmount', validateTransferAmount);
 
 validator.addFormat('nonTransferAmount', validateNonTransferAmount);
 
-validator.addFormat('transferData', data => !isNullByteIncluded(data) && validateTransferData(data));
+validator.addFormat(
+	'transferData',
+	data => !isNullByteIncluded(data) && isValidTransferData(data),
+);
 
 validator.addFormat('fee', validateFee);
 

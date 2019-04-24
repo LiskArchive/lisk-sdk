@@ -20,7 +20,6 @@ export {
 	validateAddress,
 	validateNonTransferAmount,
 	validateTransferAmount,
-	validateTransferData,
 	validateUsername,
 	validateFee,
 	isValidInteger,
@@ -30,6 +29,7 @@ export {
 	stringEndsWith,
 	isUnique,
 	isValidNumber,
+	isValidTransferData,
 } from './validation';
 export { validateTransaction } from './validate_transaction';
 export { validator } from './validator';
