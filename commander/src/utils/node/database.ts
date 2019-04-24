@@ -27,6 +27,8 @@ const DATABASE_USER_FAILURE = '[-] Failed to create Postgresql user.';
 const DATABASE_CREATE_SUCCESS = '[+] Postgresql database created successfully.';
 const DATABASE_CREATE_FAILURE = '[-] Failed to create Postgresql database.';
 const DATABASE_STATUS = '[+] Postgresql is not running.';
+const RESTORE_SNAPSHOT_SUCCESS = '[+] Blockchain restored successfully.';
+const RESTORE_SNAPSHOT_FAILURE = '[-] Failed to restore blockchain.';
 
 const DB_DATA = 'pgsql/data';
 const DB_LOG_FILE = 'logs/pgsql.log';
@@ -149,4 +151,23 @@ export const stopDatabase = async (
 	}
 
 	throw new Error(`${DATABASE_STOP_FAILURE}: \n\n ${stderr}`);
+};
+
+export const restoreSnapshot = async (
+	installDir: string,
+	network: NETWORK,
+	snapshotFilePath: string,
+): Promise<string> => {
+	const { database, user }: DbConfig = getDbConfig(installDir, network);
+	const dbPort: number = POSTGRES_PORTS[network];
+
+	const { stdout, stderr }: ExecResult = await exec(
+		`cd ${installDir}; gunzip -fcq ${snapshotFilePath} | psql -q -U ${user} -d ${database} -p ${dbPort} >> ${SH_LOG_FILE};`,
+	);
+
+	if (stdout.trim() === '') {
+		return RESTORE_SNAPSHOT_SUCCESS;
+	}
+
+	throw new Error(`${RESTORE_SNAPSHOT_FAILURE}: \n\n ${stderr}`);
 };

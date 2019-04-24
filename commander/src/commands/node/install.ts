@@ -43,6 +43,7 @@ import {
 	createDatabase,
 	createUser,
 	initDB,
+	restoreSnapshot,
 	startDatabase,
 	stopDatabase,
 } from '../../utils/node/database';
@@ -203,18 +204,6 @@ export default class InstallCommand extends BaseCommand {
 							},
 						},
 						{
-							title: 'Download Lisk Blockchain Snapshot',
-							skip: () => noSnapshot,
-							task: async () => {
-								const snapshotPath = `${cacheDir}/${liskDbSnapshot(
-									name,
-									network,
-								)}`;
-								const snapshotURL = liskSnapshotUrl(snapshotUrl, network);
-								await download(snapshotURL, snapshotPath);
-							},
-						},
-						{
 							title: 'Extract Lisk Core',
 							task: async ctx => {
 								const { installDir, version }: Options = ctx.options;
@@ -231,7 +220,25 @@ export default class InstallCommand extends BaseCommand {
 								await startDatabase(installDir, network);
 								await createUser(installDir, network);
 								await createDatabase(installDir, network);
-								await stopDatabase(installDir, network);
+							},
+						},
+						{
+							title: 'Download and restore Lisk Blockchain Snapshot',
+							skip: () => noSnapshot,
+							task: async ctx => {
+								const { installDir }: Options = ctx.options;
+								const snapshotPath = `${cacheDir}/${liskDbSnapshot(
+									name,
+									network,
+								)}`;
+								const snapshotURL = liskSnapshotUrl(snapshotUrl, network);
+								await download(snapshotURL, snapshotPath);
+
+								try {
+									await restoreSnapshot(installDir, network, snapshotPath);
+								} catch (error) {
+									throw error;
+								}
 							},
 						},
 						{
@@ -239,6 +246,7 @@ export default class InstallCommand extends BaseCommand {
 							task: async ctx => {
 								const { installDir }: Options = ctx.options;
 								await registerApplication(installDir, network, name);
+								await stopDatabase(installDir, network);
 							},
 						},
 					]),
