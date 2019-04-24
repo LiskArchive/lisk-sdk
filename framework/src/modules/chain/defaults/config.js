@@ -102,7 +102,7 @@ const defaultConfig = {
 				},
 				snapshotRound: {
 					type: 'integer',
-					arg: '-s,--snapshot',
+					arg: '--snapshot,-s',
 				},
 			},
 			required: ['loadPerIteration'],

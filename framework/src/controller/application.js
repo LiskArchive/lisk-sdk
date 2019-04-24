@@ -1,11 +1,11 @@
 const assert = require('assert');
-const randomstring = require('randomstring');
 const _ = require('lodash');
+const randomstring = require('randomstring');
 const Controller = require('./controller');
 const version = require('../version');
 const validator = require('./helpers/validator');
-const applicationSchema = require('./schema/application');
-const constantsSchema = require('./schema/constants');
+const configurator = require('./helpers/configurator');
+const { genesisBlockSchema, constantsSchema } = require('./schema');
 
 const { createLoggerComponent } = require('../components/logger');
 
@@ -67,76 +67,56 @@ class Application {
 	 * Create the application object
 	 *
 	 * @example
-	 *    const app = new Application('my-app-devnet', myGenesisBlock)
+	 *    const app = new Application(myGenesisBlock)
 	 * @example
-	 *    const app = new Application('my-app-devnet', myGenesisBlock, myConstants)
+	 *    const app = new Application(myGenesisBlock, {app: {label: 'myApp'}})
 	 *
-	 * @param {string|function} label - Application label used in logs. Useful if you have multiple networks for same application.
 	 * @param {Object} genesisBlock - Genesis block object
-	 * @param {Object} [constantsToOverride] - Override constantsToOverride
-	 * @param {Object|Array.<Object>} [config] - Main configuration object or the array of objects, array format will facilitate user to not deep merge the objects
+	 * @param {Object} [config] - Main configuration object
+	 * @param {string} [config.app.label] - Label of the application
+	 * @param {Object} [config.app.genesisConfig] - Configuration for applicationState
+	 * @param {string} [config.app.version] - Version of the application
+	 * @param {string} [config.app.minVersion] - Minimum compatible version on the network
+	 * @param {string} [config.app.protocolVersion] - Compatible protocol version application is using
 	 * @param {Object} [config.components] - Configurations for components
 	 * @param {Object} [config.components.logger] - Configuration for logger component
 	 * @param {Object} [config.components.cache] - Configuration for cache component
 	 * @param {Object} [config.components.storage] - Configuration for storage component
-	 * @param {Object} [config.initialState] - Configuration for applicationState
 	 * @param {Object} [config.modules] - Configurations for modules
-	 * @param {string} [config.version] - Version of the application
-	 * @param {string} [config.minVersion] - Minimum compatible version on the network
-	 * @param {string} [config.protocolVersion] - Compatible protocol version application is using
 	 *
 	 * @throws Framework.errors.SchemaValidationError
 	 */
-	constructor(
-		label,
-		genesisBlock,
-		config = { app: {}, components: { logger: null }, modules: {} }
-	) {
-		let appConfig;
+	constructor(genesisBlock, config = {}) {
+		validator.validate(genesisBlockSchema, genesisBlock);
 
-		// If user passes multiple config objects merge them in left-right order
-		if (Array.isArray(config)) {
-			// We don't have a mergeDeep method, so we are using defaultsDeep
-			// in the reverse order to have same behaviour
-			appConfig = _.defaultsDeep(...config.reverse());
-		} else {
-			appConfig = config;
+		// Don't change the object parameters provided
+		let appConfig = _.cloneDeep(config);
+
+		if (!_.has(appConfig, 'app.label')) {
+			_.set(appConfig, 'app.label', genesisBlock.payloadHash);
 		}
 
-		if (!appConfig.components.logger) {
-			appConfig.components.logger = {
-				logFileName: `${process.cwd()}/logs/${label}/lisk.log`,
-			};
+		if (!_.has(appConfig, 'components.logger.logFileName')) {
+			_.set(
+				appConfig,
+				'components.logger.logFileName',
+				`${process.cwd()}/logs/${appConfig.app.label}/lisk.log`
+			);
 		}
 
-		validator.loadSchema(constantsSchema);
-		validator.loadSchema(applicationSchema);
-
-		// If app label is a function it will be dependent on compiled configuration
-		// so we assign and validate it later stage
-		if (typeof label === 'string') {
-			validator.validate(applicationSchema.appLabel, label);
-		}
-		validator.validate(applicationSchema.genesisBlock, genesisBlock);
-
-		appConfig = validator.parseEnvArgAndValidate(
-			applicationSchema.config,
-			appConfig
-		);
+		appConfig = configurator.getConfig(appConfig, {
+			failOnInvalidArg: process.env.NODE_ENV !== 'test',
+		});
 
 		// These constants are readonly we are loading up their default values
 		// In additional validating those values so any wrongly changed value
 		// by us can be catch on application startup
-		const constants = validator.parseEnvArgAndValidate(
-			constantsSchema.constants,
-			{}
-		);
+		const constants = validator.parseEnvArgAndValidate(constantsSchema, {});
 
 		// app.genesisConfig are actually old constants
 		// we are merging these here to refactor the underlying code in other iteration
 		this.constants = { ...constants, ...appConfig.app.genesisConfig };
 		this.genesisBlock = genesisBlock;
-		this.label = label;
 		this.config = appConfig;
 		this.controller = null;
 
@@ -279,24 +259,16 @@ class Application {
 		// Freeze every module and configuration so it would not interrupt the app execution
 		this._compileAndValidateConfigurations();
 
-		// Check if label is a function, then call that function to get the label
-		// This is because user can pass a function generator function instead of string
-		if (typeof this.label === 'function') {
-			this.label = this.label.call(this, this.config);
-		}
-		validator.validate(applicationSchema.appLabel, this.label);
-
 		Object.freeze(this.genesisBlock);
 		Object.freeze(this.constants);
-		Object.freeze(this.label);
 		Object.freeze(this.config);
 
-		this.logger.info(`Starting the app - ${this.label || 'LiskApp'}`);
+		this.logger.info(`Starting the app - ${this.config.app.label}`);
 
 		registerProcessHooks(this);
 
 		this.controller = new Controller(
-			this.label,
+			this.config.app.label,
 			{
 				components: this.config.components,
 				ipc: this.config.app.ipc,
@@ -344,24 +316,11 @@ class Application {
 			: ['httpApi'];
 
 		Object.keys(modules).forEach(alias => {
-			this.logger.info(`Validating module options with alias: ${alias}`);
-			this.config.modules[alias] = validator.parseEnvArgAndValidate(
-				modules[alias].defaults,
-				this.config.modules[alias]
-			);
-
-			this.overrideModuleOptions(alias, appConfigToShareWithModules);
 			this.overrideModuleOptions(alias, {
 				loadAsChildProcess: childProcessModules.includes(alias),
 			});
+			this.overrideModuleOptions(alias, appConfigToShareWithModules);
 		});
-
-		// TODO: Improve the hardcoded system component values
-		this.config.components.system = {
-			...appConfigToShareWithModules,
-			wsPort: this.config.modules.network.wsPort,
-			httpPort: this.config.modules.http_api.httpPort,
-		};
 
 		this.config.initialState = {
 			version: this.config.app.version,

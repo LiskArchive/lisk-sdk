@@ -74,7 +74,7 @@ describe('GET /peers', () => {
 			checkResponse: true,
 		},
 		broadhash: {
-			valid: [__testContext.config.nethash],
+			valid: [__testContext.config.app.nethash],
 			invalid: ['invalid'],
 			checkResponse: true,
 		},

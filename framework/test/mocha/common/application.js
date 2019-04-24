@@ -152,20 +152,15 @@ async function __init(sandbox, initScope) {
 					suscribe: sinonSandbox.stub(),
 					once: sinonSandbox.stub().callsArg(1),
 				},
-				applicationState: {
-					nethash: __testContext.nethash,
-					version: __testContext.version,
-					wsPort: __testContext.wsPort,
-					httpPort: __testContext.httpPort,
-					minVersion: __testContext.minVersion,
-					protocolVersion: __testContext.protocolVersion,
-					nonce: __testContext.nonce,
-				},
+				applicationState: __testContext.config.initialState,
 			},
 			initScope
 		);
 
-		const cache = createCacheComponent(scope.config.redis, logger);
+		const cache = createCacheComponent(
+			__testContext.config.components.cache,
+			logger
+		);
 
 		scope.components = {
 			logger,
