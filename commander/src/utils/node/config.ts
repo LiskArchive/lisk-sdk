@@ -38,7 +38,10 @@ export interface NodeConfig {
 	readonly redis: CacheConfig;
 }
 
-export const defaultInstallationPath = path.join(os.homedir(), '.lisk/network');
+export const defaultInstallationPath = path.join(
+	os.homedir(),
+	'.lisk/instances',
+);
 export const defaultBackupPath = `${defaultInstallationPath}/backup`;
 
 const configPath = (network: string = 'default'): string =>
