@@ -4,9 +4,11 @@
  */
 
 const validator = require('./validator');
-const systemDirs = require('./validator');
+const systemDirs = require('./sysmtem_dirs');
+const configurator = require('./configurator');
 
 module.exports = {
 	validator,
 	systemDirs,
+	configurator,
 };
