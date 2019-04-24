@@ -32,7 +32,7 @@ const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 const createInTransfer = () => {};
 
 // eslint-disable-next-line
-describe.skip('[feature/improve_transactions_processing_efficiency] POST /api/transactions (type 6) inTransfer dapp', () => {
+describe.skip('[feature/improve_transactions_processing_efficiency] [dapps_in transactions are disabled] POST /api/transactions (type 6) inTransfer dapp', () => {
 	let transaction;
 	const transactionsToWaitFor = [];
 	const badTransactions = [];

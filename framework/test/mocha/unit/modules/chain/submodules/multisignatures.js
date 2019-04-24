@@ -14,9 +14,7 @@
 
 'use strict';
 
-const {
-	TransactionError,
-} = require('@liskhq/lisk-transactions');
+const { TransactionError } = require('@liskhq/lisk-transactions');
 const rewire = require('rewire');
 const accountsFixtures = require('../../../../fixtures/index').accounts;
 const transactionsFixtures = require('../../../../fixtures/index').transactions;
@@ -173,7 +171,7 @@ describe('multisignatures', () => {
 			it('should call a callback with TransactionError instance', done => {
 				const signature = undefined;
 				self.getTransactionAndProcessSignature(signature, errors => {
-					expect(errors[0]).to.be.an.instanceof(TransactionError);	
+					expect(errors[0]).to.be.an.instanceof(TransactionError);
 					expect(errors[0].message).to.eql(
 						'Unable to process signature, signature not provided'
 					);
@@ -200,7 +198,9 @@ describe('multisignatures', () => {
 				stubs.processSignature.resolves({
 					...transactionResponse,
 					status: 0,
-					errors: [new TransactionError('Signature already present in transaction.')],
+					errors: [
+						new TransactionError('Signature already present in transaction.'),
+					],
 				});
 				data.transaction.signatures = ['signature1'];
 				self.getTransactionAndProcessSignature(data.signature, errors => {

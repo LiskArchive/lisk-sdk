@@ -29,7 +29,8 @@ const common = require('./common');
 const { FEES, NORMALIZER } = global.constants;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
-describe('POST /api/transactions (type 5) register dapp', () => {
+// eslint-disable-next-line
+describe.skip('[feature/improve_transactions_processing_efficiency] [dapps_in transactions are disabled] POST /api/transactions (type 5) register dapp', () => {
 	let transaction;
 	const transactionsToWaitFor = [];
 	const badTransactions = [];
