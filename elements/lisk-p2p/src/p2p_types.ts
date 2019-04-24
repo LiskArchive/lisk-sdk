@@ -77,6 +77,7 @@ export interface P2PConfig {
 	readonly ackTimeout?: number;
 	readonly hostAddress?: string;
 	readonly seedPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly triedPeers?: ReadonlyArray<P2PDiscoveredPeerInfo>;
 	readonly nodeInfo: P2PNodeInfo;
 	readonly wsEngine?: string;
 	readonly discoveryInterval?: number;
@@ -118,14 +119,14 @@ export type P2PPeerSelectionForSend = (
 	peers: ReadonlyArray<P2PDiscoveredPeerInfo>,
 	nodeInfo?: P2PNodeInfo,
 	numOfPeers?: number,
-	messagePacket?: P2PMessagePacket
+	messagePacket?: P2PMessagePacket,
 ) => ReadonlyArray<P2PDiscoveredPeerInfo>;
 
 export type P2PPeerSelectionForRequest = (
 	peers: ReadonlyArray<P2PDiscoveredPeerInfo>,
 	nodeInfo?: P2PNodeInfo,
 	numOfPeers?: number,
-	requestPacket?: P2PRequestPacket
+	requestPacket?: P2PRequestPacket,
 ) => ReadonlyArray<P2PDiscoveredPeerInfo>;
 
 export type P2PPeerSelectionForConnection = (

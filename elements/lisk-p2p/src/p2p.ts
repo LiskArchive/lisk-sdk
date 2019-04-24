@@ -248,6 +248,15 @@ export class P2P extends EventEmitter {
 		});
 
 		this._bindHandlersToPeerPool(this._peerPool);
+		// Add peers to tried peers if want to re-use previously tried peers
+		if (config.triedPeers) {
+			config.triedPeers.forEach(peerInfo => {
+				const peerId = constructPeerIdFromPeerInfo(peerInfo);
+				if (!this._triedPeers.has(peerId)) {
+					this._triedPeers.set(peerId, peerInfo);
+				}
+			});
+		}
 
 		this._nodeInfo = config.nodeInfo;
 		this.applyNodeInfo(this._nodeInfo);
