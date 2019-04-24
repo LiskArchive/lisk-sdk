@@ -92,7 +92,7 @@ class Application {
 		let appConfig = _.cloneDeep(config);
 
 		if (!_.has(appConfig, 'app.label')) {
-			_.set(appConfig, 'app.label', genesisBlock.payloadHash);
+			_.set(appConfig, 'app.label', `lisk-${genesisBlock.payloadHash}`);
 		}
 
 		if (!_.has(appConfig, 'components.logger.logFileName')) {
