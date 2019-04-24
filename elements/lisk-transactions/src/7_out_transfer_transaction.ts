@@ -26,7 +26,6 @@ import { verifyAmountBalance } from './utils';
 import { validator } from './utils/validation';
 
 const TRANSACTION_OUTTRANSFER_TYPE = 7;
-const TRANSACTION_DAPP_REGISTERATION_TYPE = 5;
 
 export interface OutTransferAsset {
 	readonly outTransfer: {

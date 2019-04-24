@@ -35,19 +35,17 @@ export class App {
 			ackTimeout: 15000,
 			seedPeers: [
 				{
-					ipAddress: '83.136.254.92',
-					wsPort: 8001,
-				},
-				{
-					ipAddress: '83.136.249.76',
+					ipAddress: '94.237.41.189',
 					wsPort: 8001,
 				},
 			],
-			wsEngine: 'ws',
 			nodeInfo: {
 				wsPort: 8001,
+				state: 2,
 				nethash: genesis.payloadHash,
 				version: '1.4.1',
+				minVersion: '1.0.0',
+				protocolVersion: '1.0',
 				os: os.platform(),
 				height: 1,
 				httpPort: 8000,
