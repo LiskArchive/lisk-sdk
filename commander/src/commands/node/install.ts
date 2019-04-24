@@ -262,7 +262,7 @@ export default class InstallCommand extends BaseCommand {
 
 			fsExtra.emptyDirSync(installDir);
 			fsExtra.rmdirSync(dirPath);
-			throw error[0];
+			this.error(`Failed to install Lisk Core with error :\n ${error.stderr}`);
 		}
 	}
 }

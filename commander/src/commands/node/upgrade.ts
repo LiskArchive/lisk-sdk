@@ -34,9 +34,8 @@ import { startDatabase, stopDatabase } from '../../utils/node/database';
 import {
 	describeApplication,
 	Pm2Env,
-	registerApplication,
 	restartApplication,
-	unRegisterApplication,
+	stopApplication,
 } from '../../utils/node/pm2';
 
 interface Flags {
@@ -104,28 +103,23 @@ export default class UpgradeCommand extends BaseCommand {
 				},
 			},
 			{
-				title: 'Stop and Unregister Lisk Core',
-				task: async () => {
-					const isRunning = await isCacheRunning(installDir, network);
-					if (isRunning) {
-						await stopCache(installDir, network);
-					}
-					await stopDatabase(installDir, network);
-					await unRegisterApplication(name);
-				},
+				title: `Download Lisk Core: ${upgradeVersion} for upgrade`,
+				task: async () =>
+					downloadLiskAndValidate(cacheDir, releaseUrl, upgradeVersion),
 			},
 			{
-				title: 'Download, Backup and Install Lisk Core',
+				title: 'Stop, Backup and Install Lisk Core',
 				task: () =>
 					new Listr([
 						{
-							title: `Download Lisk Core: ${upgradeVersion} Release`,
+							title: `Stop Lisk Core`,
 							task: async () => {
-								await downloadLiskAndValidate(
-									cacheDir,
-									releaseUrl,
-									upgradeVersion,
-								);
+								const isRunning = await isCacheRunning(installDir, network);
+								if (isRunning) {
+									await stopCache(installDir, network);
+								}
+								await stopDatabase(installDir, network);
+								await stopApplication(name);
 							},
 						},
 						{
@@ -152,7 +146,6 @@ export default class UpgradeCommand extends BaseCommand {
 			{
 				title: `Start Lisk Core: ${upgradeVersion}`,
 				task: async () => {
-					await registerApplication(installDir, network, name);
 					const isRunning = await isCacheRunning(installDir, network);
 					if (!isRunning) {
 						await startCache(installDir, network);
