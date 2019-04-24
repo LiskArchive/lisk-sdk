@@ -6,13 +6,13 @@ const defaultConfig = {
 			minimum: 1,
 			maximum: 65535,
 			env: 'LISK_HTTP_PORT',
-			arg: '-h,--http-port',
+			arg: '--http-port,-h',
 		},
 		address: {
 			type: 'string',
 			format: 'ip',
 			env: 'LISK_ADDRESS',
-			arg: '-a,--address',
+			arg: '--address,-a',
 		},
 		trustProxy: {
 			type: 'boolean',
