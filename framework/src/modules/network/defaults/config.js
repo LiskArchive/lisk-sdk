@@ -6,13 +6,13 @@ const defaultConfig = {
 			minimum: 1,
 			maximum: 65535,
 			env: 'LISK_WS_PORT',
-			arg: '-p,--port',
+			arg: '--port,-p',
 		},
 		address: {
 			type: 'string',
 			format: 'ip',
 			env: 'LISK_ADDRESS',
-			arg: '-a,--address',
+			arg: '--address,-a',
 		},
 		enabled: {
 			type: 'boolean',
@@ -34,7 +34,7 @@ const defaultConfig = {
 				},
 			},
 			env: { variable: 'LISK_PEERS', formatter: 'stringToIpPortSet' },
-			arg: { name: '-x,--peers', formatter: 'stringToIpPortSet' }, // TODO: Need to confirm parsing logic, old logic was using network WSPort to be default port for peers, we don't have it at the time of compilation
+			arg: { name: '--peers,-x', formatter: 'stringToIpPortSet' }, // TODO: Need to confirm parsing logic, old logic was using network WSPort to be default port for peers, we don't have it at the time of compilation
 		},
 		access: {
 			type: 'object',
@@ -42,18 +42,8 @@ const defaultConfig = {
 				blackList: {
 					type: 'array',
 					items: {
-						type: 'object',
-						properties: {
-							ip: {
-								type: 'string',
-								format: 'ipOrFQDN',
-							},
-							wsPort: {
-								type: 'integer',
-								minimum: 1,
-								maximum: 65535,
-							},
-						},
+						type: 'string',
+						format: 'ip',
 					},
 				},
 			},

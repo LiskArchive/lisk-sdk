@@ -1,6 +1,5 @@
 {
 	"extends": ["lisk-base"],
-	"plugins": ["chai-expect"],
 	"rules": {
 		"implicit-arrow-linebreak": "off",
 		"no-mixed-spaces-and-tabs": "off",

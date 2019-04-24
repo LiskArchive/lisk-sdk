@@ -1,10 +1,6 @@
 {
 	"defaultSeverity": "error",
-	"extends": [
-		"tslint:all",
-		"tslint-immutable/all",
-		"tslint-config-prettier"
-	],
+	"extends": ["tslint:all", "tslint-immutable/all", "tslint-config-prettier"],
 	"rules": {
 		"completed-docs": false,
 		"file-name-casing": false,
