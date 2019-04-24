@@ -20,6 +20,7 @@ const MOCHA_PATH = process.env.MOCHA_PATH || 'node_modules/.bin/_mocha';
 const ISTANBUL_PATH = process.env.MOCHA_PATH || 'node_modules/.bin/istanbul';
 
 const children = {};
+const currentTests = {};
 
 const promisifyChildExit = child => {
 	let error = null;
@@ -32,6 +33,10 @@ const promisifyChildExit = child => {
 		child.once('exit', code => {
 			// We need to delete the child process from the queue once it exists.
 			delete children[child.pid];
+			console.info(`TEST '${currentTests[child.pid]}' FINISHED.`);
+			delete currentTests[child.pid];
+			console.info('PENDING TESTS:');
+			console.info(currentTests);
 			if (code === 0) {
 				return resolve();
 			}
@@ -65,6 +70,7 @@ const spawn = (testFile, mochaCliOptions) => {
 	});
 
 	children[child.pid] = child;
+	currentTests[child.pid] = `${istanbulOptions[7]}`;
 	const istanbulOptionsStr = istanbulOptions.map(v => `"${v}"`).join(' ');
 	console.info(`(${child.pid}) ${ISTANBUL_PATH} ${istanbulOptionsStr}`);
 
