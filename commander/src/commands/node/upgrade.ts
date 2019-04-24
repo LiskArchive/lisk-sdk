@@ -60,11 +60,12 @@ export default class UpgradeCommand extends BaseCommand {
 		},
 	];
 
-	static description = 'Upgrade an instance of Lisk Core to a specified or latest version.';
+	static description =
+		'Upgrade an instance of Lisk Core to a specified or latest version.';
 
 	static examples = [
-		'node:upgrade mainnet-latest',
-		'node:upgrade --lisk-version=2.0.0 mainnet-latest',
+		'node:upgrade lisk-mainnet',
+		'node:upgrade --lisk-version=2.0.0 lisk-mainnet',
 	];
 
 	static flags = {
