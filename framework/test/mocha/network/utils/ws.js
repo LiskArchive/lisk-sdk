@@ -20,27 +20,32 @@ const { generatePeerHeader } = require('../../common/generatePeerHeader');
 
 module.exports = {
 	establishWSConnectionsToNodes(configurations, cb) {
+		const firstConfig = configurations[0];
+		const httpPort = firstConfig.modules.http_api.httpPort;
+		const wsPort = firstConfig.modules.network.wsPort;
+		const { nodeInfo } = generatePeerHeader({ wsPort, httpPort });
+
 		const wampClient = new WAMPClient();
 		const sockets = [];
+		const monitorWSClient = {
+			hostname: '127.0.0.1',
+			port: null,
+			autoReconnect: true,
+			autoReconnectOptions: {
+				initialDelay: 1000,
+				randomness: 0,
+				maxDelay: 10000,
+			},
+			// Since we are running a multiple nodes on a single machine, we
+			// need to give nodes a lot of time to respond.
+			ackTimeout: 2000,
+			query: nodeInfo,
+		};
 
 		let connectedTo = 0;
 
 		configurations.forEach(configuration => {
-			const { nodeInfo } = generatePeerHeader();
-			const monitorWSClient = {
-				hostname: '127.0.0.1',
-				port: configuration.modules.network.wsPort,
-				autoReconnect: true,
-				autoReconnectOptions: {
-					initialDelay: 1000,
-					randomness: 0,
-					maxDelay: 10000,
-				},
-				// Since we are running a multiple nodes on a single machine, we
-				// need to give nodes a lot of time to respond.
-				ackTimeout: 2000,
-				query: nodeInfo,
-			};
+			monitorWSClient.port = configuration.modules.network.wsPort;
 			const socket = scClient.connect(monitorWSClient);
 			wampClient.upgradeToWAMP(socket);
 			sockets.push(socket);
@@ -52,7 +57,7 @@ module.exports = {
 				}
 				return undefined;
 			});
-			socket.on('error', () => {});
+			socket.on('error', async () => {});
 			socket.on('connectAbort', (errorCode, reason) => {
 				// When a node is restarted manually during
 				// peer disconnect, do not call the callback
