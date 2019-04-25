@@ -15,23 +15,21 @@
 'use strict';
 
 const Promise = require('bluebird');
+const utils = require('../../utils');
 
-module.exports = function(configurations, network) {
-	const genesisBlockId = __testContext.config.genesisBlock.id;
+module.exports = function(configurations) {
 	describe('@propagation : transactions', () => {
 		let nodesTransactions = [];
 
 		before(() => {
 			return Promise.all(
-				network.sockets.map(socket => {
-					return socket.call('blocks', {
-						lastBlockId: genesisBlockId,
-					});
+				configurations.map(configuration => {
+					return utils.http.getTransactions(
+						configuration.modules.http_api.httpPort
+					);
 				})
 			).then(results => {
-				nodesTransactions = results.map(res => {
-					return res.blocks;
-				});
+				nodesTransactions = results;
 				return expect(nodesTransactions).to.have.lengthOf(
 					configurations.length
 				);

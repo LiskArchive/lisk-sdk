@@ -119,6 +119,23 @@ module.exports = {
 			});
 	},
 
+	getTransactions(port, ip) {
+		return popsicle
+			.get({
+				url: `${endpoints.versions[currentVersion].getTransactions(
+					ip || '127.0.0.1',
+					port || 4000
+				)}`,
+				headers,
+			})
+			.then(res => {
+				if (currentVersion === '1.0.0') {
+					return JSON.parse(res.body).data;
+				}
+				return JSON.parse(res.body).transactions;
+			});
+	},
+
 	getTransaction(transactionId, port, ip) {
 		return popsicle
 			.get({
