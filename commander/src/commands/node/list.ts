@@ -32,10 +32,12 @@ export default class ListCommand extends BaseCommand {
 				const { name, pm2_env, monit } = app;
 				const {
 					status,
-					LISK_NETWORK: network,
 					version,
+					LISK_NETWORK: network,
 					LISK_DB_PORT: dbPort,
 					LISK_REDIS_PORT: redisPort,
+					LISK_HTTP_PORT: httpPort,
+					LISK_WS_PORT: wsPort,
 				} = pm2_env as Pm2Env;
 
 				return {
@@ -43,6 +45,8 @@ export default class ListCommand extends BaseCommand {
 					network,
 					version,
 					status,
+					httpPort,
+					wsPort,
 					dbPort,
 					redisPort,
 					...monit,

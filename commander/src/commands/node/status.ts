@@ -43,16 +43,20 @@ export default class StatusCommand extends BaseCommand {
 			pm_uptime,
 			unstable_restarts,
 			pm_cwd: installationPath,
-			LISK_NETWORK: network,
 			version,
+			LISK_NETWORK: network,
 			LISK_DB_PORT: dbPort,
 			LISK_REDIS_PORT: redisPort,
+			LISK_HTTP_PORT: httpPort,
+			LISK_WS_PORT: wsPort,
 		} = pm2_env as Pm2Env;
 
 		this.print({
 			status,
 			network,
 			version,
+			httpPort,
+			wsPort,
 			dbPort,
 			redisPort,
 			installationPath,
