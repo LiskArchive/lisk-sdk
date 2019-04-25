@@ -14,7 +14,7 @@ const defaultConfig = {
 		database: {
 			type: 'string',
 			env: 'LISK_DB_NAME',
-			arg: '-d,--database',
+			arg: '--database,-d',
 		},
 		user: {
 			type: 'string',

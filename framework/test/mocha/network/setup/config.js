@@ -62,9 +62,11 @@ const config = {
 			delete devConfigCopy.modules.chain.constants;
 			delete devConfigCopy.modules.http_api.genesisBlock;
 			delete devConfigCopy.modules.http_api.constants;
+			delete devConfigCopy.initialState;
 
 			devConfigCopy.modules.chain.network.wsPort = 5000 + index;
 			devConfigCopy.modules.http_api.httpPort = 4000 + index;
+			devConfigCopy.app.label = `lisk-devnet-${4000 + index}`;
 			devConfigCopy.components.logger.logFileName = `../logs/lisk_node_${index}.log`;
 			return devConfigCopy;
 		});
@@ -122,11 +124,12 @@ const config = {
 
 			pm2Config.apps.push({
 				exec_mode: 'fork',
-				script: '../lisk/src/index.js',
+				script: 'test/test_app/index.js',
 				name: `node_${index}`,
 				args: ` -c test/mocha/network/configs/config.node-${index}.json`,
 				env: {
 					NODE_ENV: 'test',
+					CUSTOM_CONFIG_FILE: `test/mocha/network/configs/config.node-${index}.json`,
 				},
 				error_file: `test/mocha/network/logs/lisk-test-node-${index}.err.log`,
 				out_file: `test/mocha/network/logs/lisk-test-node-${index}.out.log`,
