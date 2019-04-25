@@ -25,6 +25,12 @@ const currentTests = {};
 const promisifyChildExit = child => {
 	let error = null;
 	child.once('error', err => {
+		console.info(
+			`Child process '${currentTests[child.pid]}(pid: ${
+				child.pid
+			})' exit by error`
+		);
+		console.info(err);
 		error = err;
 		return child.kill('SIGTERM');
 	});
