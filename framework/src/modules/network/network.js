@@ -79,7 +79,7 @@ module.exports = class Network {
 		// Load peers from the database that were tried or connected the last time node was running
 		let triedPeers;
 		try {
-			triedPeers = await this.storage.entities.Peer.get();
+			triedPeers = await this.storage.entities.Peer.get({}, { limit: null });
 		} catch (err) {
 			throw err;
 		}
