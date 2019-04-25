@@ -13,9 +13,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { NETWORK, REDIS_PORTS } from '../constants';
+import { NETWORK } from '../constants';
 import { exec, ExecResult } from '../worker-process';
 import { CacheConfig, getCacheConfig } from './config';
+import { describeApplication, Pm2Env } from './pm2';
 
 const CACHE_START_SUCCESS = '[+] Redis-Server started successfully.';
 const CACHE_START_FAILURE = '[-] Failed to start Redis-Server.';
@@ -26,14 +27,22 @@ const REDIS_CONFIG = 'etc/redis.conf';
 const REDIS_BIN = 'bin/redis-server';
 const REDIS_CLI = 'bin/redis-cli';
 
+const getRedisPort = async (name: string): Promise<string> => {
+	const { pm2_env } = await describeApplication(name);
+	const { LISK_REDIS_PORT } = pm2_env as Pm2Env;
+
+	return LISK_REDIS_PORT;
+};
+
 export const isCacheRunning = async (
 	installDir: string,
-	network: NETWORK,
+	name: string,
 ): Promise<boolean> => {
 	try {
-		const redisPort: number = REDIS_PORTS[network];
+		const LISK_REDIS_PORT = await getRedisPort(name);
+
 		const { stdout }: ExecResult = await exec(
-			`cd ${installDir}; ${REDIS_CLI} -p ${redisPort} ping`,
+			`cd ${installDir}; ${REDIS_CLI} -p ${LISK_REDIS_PORT} ping`,
 		);
 
 		return stdout.search('PONG') >= 0;
@@ -44,11 +53,12 @@ export const isCacheRunning = async (
 
 export const startCache = async (
 	installDir: string,
-	network: NETWORK,
+	name: string,
 ): Promise<string> => {
-	const redisPort: number = REDIS_PORTS[network];
+	const LISK_REDIS_PORT = await getRedisPort(name);
+
 	const { stdout, stderr }: ExecResult = await exec(
-		`cd ${installDir}; ${REDIS_BIN} ${REDIS_CONFIG} --port ${redisPort}`,
+		`cd ${installDir}; ${REDIS_BIN} ${REDIS_CONFIG} --port ${LISK_REDIS_PORT}`,
 	);
 
 	if (stdout.trim() === '') {
@@ -58,24 +68,27 @@ export const startCache = async (
 	throw new Error(`${CACHE_START_FAILURE}: \n\n ${stderr}`);
 };
 
-const stopCommand = (installDir: string, network: NETWORK): string => {
+const stopCommand = async (
+	installDir: string,
+	network: NETWORK,
+): Promise<string> => {
 	const { password }: CacheConfig = getCacheConfig(installDir, network);
-	const redisPort: number = REDIS_PORTS[network];
+	const LISK_REDIS_PORT = await getRedisPort(name);
 
 	if (password) {
-		return `${REDIS_CLI} -p ${redisPort} -a ${password} shutdown`;
+		return `${REDIS_CLI} -p ${LISK_REDIS_PORT} -a ${password} shutdown`;
 	}
 
-	return `${REDIS_CLI} -p ${redisPort} shutdown`;
+	return `${REDIS_CLI} -p ${LISK_REDIS_PORT} shutdown`;
 };
 
 export const stopCache = async (
 	installDir: string,
 	network: NETWORK,
 ): Promise<string> => {
-	const { stdout, stderr }: ExecResult = await exec(
-		`cd ${installDir}; ${stopCommand(installDir, network)}`,
-	);
+	const cmd = await stopCommand(installDir, network);
+
+	const { stdout, stderr }: ExecResult = await exec(`cd ${installDir}; ${cmd}`);
 
 	if (stdout.trim() === '') {
 		return CACHE_STOP_SUCCESS;

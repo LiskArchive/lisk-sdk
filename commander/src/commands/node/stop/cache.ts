@@ -47,7 +47,7 @@ export default class CacheCommand extends BaseCommand {
 				title: 'Stop the cache server',
 				skip: () => !isCacheEnabled(installDir, network),
 				task: async () => {
-					const isRunning = await isCacheRunning(installDir, network);
+					const isRunning = await isCacheRunning(installDir, name);
 					if (isRunning) {
 						await stopCache(installDir, network);
 					}
