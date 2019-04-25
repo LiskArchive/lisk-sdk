@@ -17,8 +17,17 @@ import { flags as flagParser } from '@oclif/command';
 import * as fsExtra from 'fs-extra';
 import Listr from 'listr';
 import * as os from 'os';
+import { ProcessDescription } from 'pm2';
 import BaseCommand from '../../base';
-import { NETWORK, RELEASE_URL, SNAPSHOT_URL } from '../../utils/constants';
+import {
+	HTTP_PORTS,
+	NETWORK,
+	POSTGRES_PORT,
+	REDIS_PORT,
+	RELEASE_URL,
+	SNAPSHOT_URL,
+	WS_PORTS,
+} from '../../utils/constants';
 import {
 	download,
 	downloadLiskAndValidate,
@@ -27,10 +36,10 @@ import {
 import { flags as commonFlags } from '../../utils/flags';
 import {
 	createDirectory,
+	getVersionToInstall,
 	isSupportedOS,
 	liskDbSnapshot,
 	liskInstall,
-	liskLatestUrl,
 	liskSnapshotUrl,
 	liskTar,
 	validateNetwork,
@@ -47,7 +56,11 @@ import {
 	startDatabase,
 	stopDatabase,
 } from '../../utils/node/database';
-import { registerApplication } from '../../utils/node/pm2';
+import {
+	listApplication,
+	Pm2Env,
+	registerApplication,
+} from '../../utils/node/pm2';
 import { getReleaseInfo } from '../../utils/node/release';
 
 interface Flags {
@@ -88,16 +101,20 @@ const validateFlags = ({ network, releaseUrl, snapshotUrl }: Flags): void => {
 };
 
 const installOptions = async (
-	{ installationPath, network, releaseUrl }: Flags,
+	{ installationPath, network, releaseUrl, 'lisk-version': liskVersion }: Flags,
 	name: string,
 ): Promise<Options> => {
 	const installPath = liskInstall(installationPath);
 	const installDir = `${installPath}/${name}/`;
-	const latestURL = liskLatestUrl(releaseUrl, network);
+	const installVersion: string = await getVersionToInstall(
+		network,
+		liskVersion,
+	);
+
 	const { version, liskTarUrl, liskTarSHA256Url } = await getReleaseInfo(
-		latestURL,
 		releaseUrl,
 		network,
+		installVersion,
 	);
 
 	return {
@@ -106,6 +123,31 @@ const installOptions = async (
 		liskTarUrl,
 		liskTarSHA256Url,
 	};
+};
+
+const getMaxValueByKey = (
+	instances: ReadonlyArray<ProcessDescription>,
+	key: string,
+	defaultValue: number,
+): number => {
+	const apps = instances.map((app: ProcessDescription) => {
+		const { pm2_env } = app;
+		const {
+			LISK_DB_PORT,
+			LISK_REDIS_PORT,
+			LISK_HTTP_PORT,
+			LISK_WS_PORT,
+		} = pm2_env as Pm2Env;
+
+		return { LISK_DB_PORT, LISK_REDIS_PORT, LISK_HTTP_PORT, LISK_WS_PORT };
+	});
+
+	const maxValue = apps
+		.map(app => ((app as unknown) as { readonly [key: string]: number })[key])
+		.filter(i => i)
+		.reduce((acc, curr) => Math.max(acc, curr), defaultValue);
+
+	return maxValue + 1;
 };
 
 export default class InstallCommand extends BaseCommand {
@@ -132,7 +174,13 @@ export default class InstallCommand extends BaseCommand {
 		network: flagParser.string({
 			...commonFlags.network,
 			default: NETWORK.MAINNET,
-			options: [NETWORK.MAINNET, NETWORK.TESTNET, NETWORK.BETANET],
+			options: [
+				NETWORK.MAINNET,
+				NETWORK.TESTNET,
+				NETWORK.BETANET,
+				NETWORK.ALPHANET,
+				NETWORK.DEVNET,
+			],
 		}),
 		'lisk-version': flagParser.string({
 			...commonFlags.liskVersion,
@@ -167,6 +215,8 @@ export default class InstallCommand extends BaseCommand {
 		const { name }: Args = args;
 
 		const cacheDir = this.config.cacheDir;
+		const snapshotPath = `${cacheDir}/${liskDbSnapshot(name, network)}`;
+		const snapshotURL = liskSnapshotUrl(snapshotUrl, network);
 
 		const tasks = new Listr([
 			{
@@ -196,12 +246,33 @@ export default class InstallCommand extends BaseCommand {
 							},
 						},
 						{
-							title: 'Download Lisk Core Release',
+							title: 'Download Lisk Core Release and Blockchain Snapshot',
 							task: async ctx => {
-								const { version }: Options = ctx.options;
-								const releaseUrl = `${RELEASE_URL}/${network}/${version}`;
+								const {
+									version,
+									liskTarUrl,
+									liskTarSHA256Url,
+								}: Options = ctx.options;
 
-								await downloadLiskAndValidate(cacheDir, releaseUrl, version);
+								if (!noSnapshot) {
+									await downloadLiskAndValidate(
+										cacheDir,
+										liskTarUrl,
+										liskTarSHA256Url,
+										version,
+									);
+
+									return;
+								}
+								await Promise.all([
+									downloadLiskAndValidate(
+										cacheDir,
+										liskTarUrl,
+										liskTarSHA256Url,
+										version,
+									),
+									download(snapshotURL, snapshotPath),
+								]);
 							},
 						},
 						{
@@ -213,41 +284,63 @@ export default class InstallCommand extends BaseCommand {
 							},
 						},
 						{
-							title: 'Create Database',
-							task: async ctx => {
-								const { installDir }: Options = ctx.options;
-
-								await initDB(installDir);
-								await startDatabase(installDir, network);
-								await createUser(installDir, network);
-								await createDatabase(installDir, network);
-							},
-						},
-						{
-							title: 'Download and restore Lisk Blockchain Snapshot',
-							skip: () => noSnapshot,
-							task: async ctx => {
-								const { installDir }: Options = ctx.options;
-								const snapshotPath = `${cacheDir}/${liskDbSnapshot(
-									name,
-									network,
-								)}`;
-								const snapshotURL = liskSnapshotUrl(snapshotUrl, network);
-								await download(snapshotURL, snapshotPath);
-
-								try {
-									await restoreSnapshot(installDir, network, snapshotPath);
-								} catch (error) {
-									throw error;
-								}
-							},
-						},
-						{
 							title: 'Register Lisk Core',
 							task: async ctx => {
 								const { installDir }: Options = ctx.options;
-								await registerApplication(installDir, network, name);
-								await stopDatabase(installDir, network);
+								const instances = await listApplication();
+
+								const LISK_DB_PORT = getMaxValueByKey(
+									instances,
+									'LISK_DB_PORT',
+									POSTGRES_PORT,
+								);
+								const LISK_REDIS_PORT = getMaxValueByKey(
+									instances,
+									'LISK_REDIS_PORT',
+									REDIS_PORT,
+								);
+								const LISK_HTTP_PORT = getMaxValueByKey(
+									instances,
+									'LISK_HTTP_PORT',
+									HTTP_PORTS[network],
+								);
+								const LISK_WS_PORT = getMaxValueByKey(
+									instances,
+									'LISK_WS_PORT',
+									WS_PORTS[network],
+								);
+								const envConfig = {
+									LISK_DB_PORT,
+									LISK_REDIS_PORT,
+									LISK_HTTP_PORT,
+									LISK_WS_PORT,
+								};
+
+								await registerApplication(installDir, network, name, envConfig);
+							},
+						},
+						{
+							title: 'Create Database and restore Lisk Blockchain Snapshot',
+							task: async ctx => {
+								const { installDir }: Options = ctx.options;
+
+								try {
+									await initDB(installDir);
+									await startDatabase(installDir, name);
+									await createUser(installDir, network, name);
+									await createDatabase(installDir, network, name);
+									if (!noSnapshot) {
+										await restoreSnapshot(
+											installDir,
+											network,
+											snapshotPath,
+											name,
+										);
+									}
+									await stopDatabase(installDir, name);
+								} catch (error) {
+									throw error;
+								}
 							},
 						},
 					]),
