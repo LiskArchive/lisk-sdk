@@ -39,8 +39,13 @@ export const liskTarSHA256 = (version: string): string =>
 export const liskLatestUrl = (url: string, network: NETWORK) =>
 	`${url}/${network}/latest.txt`;
 
-export const liskSnapshotUrl = (url: string, network: NETWORK) =>
-	`${url}/${network}/blockchain.db.gz`;
+export const liskSnapshotUrl = (url: string, network: NETWORK): string => {
+	if (url.search('db.gz') >= 0) {
+		return url;
+	}
+
+	return `${url}/${network}/blockchain.db.gz`;
+};
 
 export const liskDbSnapshot = (networkName: string, network: NETWORK) =>
 	`${networkName}-${network}-blockchain.db.gz`;
@@ -88,7 +93,7 @@ export const validURL = (url: string): void => {
 	throw new Error(`Invalid URL: ${url}`);
 };
 
-export const getVersionToUpgrade = async (
+export const getVersionToInstall = async (
 	network: NETWORK,
 	version?: string,
 ) => {
@@ -157,4 +162,13 @@ export const validateVersion = async (
 		}
 		throw new Error(error.message);
 	}
+};
+
+export const getSemver = (str: string): string => {
+	const exp = new RegExp(
+		/(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:[1-9]\d*|[\da-z-]*[a-z-][\da-z-]*)(?:\.(?:[1-9]\d*|[\da-z-]*[a-z-][\da-z-]*))*)?\.?(?:0|[1-9]\d*)?/,
+	);
+	const result = exp.exec(str) as ReadonlyArray<string>;
+
+	return result[0];
 };

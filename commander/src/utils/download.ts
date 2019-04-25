@@ -74,14 +74,13 @@ export const extract = async (
 export const downloadLiskAndValidate = async (
 	destPath: string,
 	releaseUrl: string,
+	releaseSHA256Url: string,
 	version: string,
 ) => {
 	const LISK_RELEASE_PATH = `${destPath}/${liskTar(version)}`;
 	const LISK_RELEASE_SHA256_PATH = `${destPath}/${liskTarSHA256(version)}`;
-	const liskTarUrl = `${releaseUrl}/${liskTar(version)}`;
-	const liskTarSHA256Url = `${releaseUrl}/${liskTarSHA256(version)}`;
 
-	await download(liskTarUrl, LISK_RELEASE_PATH);
-	await download(liskTarSHA256Url, LISK_RELEASE_SHA256_PATH);
+	await download(releaseUrl, LISK_RELEASE_PATH);
+	await download(releaseSHA256Url, LISK_RELEASE_SHA256_PATH);
 	await validateChecksum(destPath, liskTarSHA256(version));
 };

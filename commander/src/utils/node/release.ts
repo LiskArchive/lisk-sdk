@@ -15,7 +15,7 @@
  */
 import * as axios from 'axios';
 import { NETWORK } from '../constants';
-import { liskTar, liskTarSHA256 } from './commons';
+import { getSemver, liskTar, liskTarSHA256 } from './commons';
 
 export const getLatestVersion = async (url: string): Promise<string> => {
 	const version = await axios.default.get(url);
@@ -30,19 +30,21 @@ export interface ReleaseInfo {
 }
 
 export const getReleaseInfo = async (
-	latestUrl: string,
 	releaseUrl: string,
 	network: NETWORK,
+	version: string,
 ): Promise<ReleaseInfo> => {
-	const version: string = await getLatestVersion(latestUrl);
-	const liskTarUrl = `${releaseUrl}/${network}/${version}/${liskTar(version)}`;
-	const liskTarSHA256Url = `${releaseUrl}/${network}/${version}/${liskTarSHA256(
-		version,
-	)}`;
+	if (releaseUrl.search('.tar.gz') >= 0) {
+		return {
+			version: getSemver(releaseUrl),
+			liskTarUrl: releaseUrl,
+			liskTarSHA256Url: `${releaseUrl}.SHA256`,
+		};
+	}
 
-	return {
-		version,
-		liskTarUrl,
-		liskTarSHA256Url,
-	};
+	const urlPath = `${releaseUrl}/${network}/${version}`;
+	const liskTarUrl = `${urlPath}/${liskTar(version)}`;
+	const liskTarSHA256Url = `${urlPath}/${liskTarSHA256(version)}`;
+
+	return { version, liskTarUrl, liskTarSHA256Url };
 };
