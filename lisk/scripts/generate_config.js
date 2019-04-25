@@ -19,36 +19,8 @@
  * 		A user manual can be found on documentation site under /documentation/lisk-core/upgrade/upgrade-configurations
  */
 
-const fs = require('fs');
-const program = require('commander');
-const merge = require('lodash/merge');
-
-const loadJSONFile = filePath => JSON.parse(fs.readFileSync(filePath), 'utf8');
-const loadJSONFileIfExists = filePath => {
-	if (fs.existsSync(filePath)) {
-		return JSON.parse(fs.readFileSync(filePath), 'utf8');
-	}
-	return {};
-};
-
-program
-	.version('0.1.1')
-	.option('-c, --config [config]', 'Custom config file')
-	.option('-n, --network [network]', 'Specify the network or use LISK_NETWORK')
-	.parse(process.argv);
-
-const networkName = program.network || process.env.LISK_NETWORK;
-
-if (!networkName) {
-	console.error('error: no network name is provided');
-	process.exit(1);
-}
-
-const config = merge(
-	{},
-	loadJSONFile('config/default/config.json'),
-	loadJSONFile(`./config/${networkName}/config.json`),
-	loadJSONFileIfExists(program.config)
-);
+const config = require('../src/helpers/config');
 
 console.info(JSON.stringify(config, null, '\t'));
+
+process.exit(0);

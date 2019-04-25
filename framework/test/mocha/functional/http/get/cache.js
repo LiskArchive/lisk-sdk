@@ -34,11 +34,7 @@ describe('cached endpoints', () => {
 
 	before(async () => {
 		__testContext.config.components.cache.enabled = true;
-		this.logger = createLoggerComponent({
-			echo: null,
-			errorLevel: __testContext.config.components.logger.fileLogLevel,
-			filename: __testContext.config.components.logger.logFileName,
-		});
+		this.logger = createLoggerComponent(__testContext.config.components.logger);
 
 		cache = createCacheComponent(
 			__testContext.config.components.cache,

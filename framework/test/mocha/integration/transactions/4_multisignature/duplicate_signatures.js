@@ -411,8 +411,8 @@ describe('duplicate_signatures', () => {
 						(err, results) => {
 							// There should be an error from processing only for duplicated signature
 							expect(results[0].value).to.be.undefined;
-							expect(results[1].error.message).to.eql(
-								'Error processing signature: Encountered duplicate signature in transaction'
+							expect(results[1].error[0].message).to.eql(
+								'Encountered duplicate signature in transaction'
 							);
 							expect(results[2].value).to.be.undefined;
 
@@ -536,8 +536,8 @@ describe('duplicate_signatures', () => {
 								if (Object.hasOwnProperty.call(aRes, 'value')) valueIndex = idx;
 							});
 							expect(results[valueIndex].value).to.be.undefined;
-							expect(results[errorIndex].error.message).to.eql(
-								`Error processing signature: Signature '${
+							expect(results[errorIndex].error[0].message).to.eql(
+								`Signature '${
 									signatures[0].signature
 								}' already present in transaction.`
 							);
