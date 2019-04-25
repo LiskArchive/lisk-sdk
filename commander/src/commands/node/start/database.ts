@@ -39,12 +39,12 @@ export default class DatabaseCommand extends BaseCommand {
 		const { args } = this.parse(DatabaseCommand);
 		const { name } = args as Args;
 		const { pm2_env } = await describeApplication(name);
-		const { pm_cwd: installDir, LISK_NETWORK: network } = pm2_env as Pm2Env;
+		const { pm_cwd: installDir } = pm2_env as Pm2Env;
 
 		const tasks = new Listr([
 			{
 				title: 'Start the database server',
-				task: async () => startDatabase(installDir, network),
+				task: async () => startDatabase(installDir, name),
 			},
 		]);
 

@@ -14,9 +14,10 @@
  *
  */
 import fs from 'fs';
-import { NETWORK, POSTGRES_PORTS } from '../constants';
+import { NETWORK } from '../constants';
 import { exec, ExecResult } from '../worker-process';
 import { DbConfig, getDbConfig } from './config';
+import { describeApplication, Pm2Env } from './pm2';
 
 const DATABASE_START_SUCCESS = '[+] Postgresql started successfully.';
 const DATABASE_START_FAILURE = '[-] Failed to start Postgresql.';
@@ -39,18 +40,24 @@ const isDbInitialized = (installDir: string): boolean =>
 
 const isDbRunning = async (
 	installDir: string,
-	network: NETWORK,
+	port: string,
 ): Promise<boolean> => {
 	try {
-		const dbPort = POSTGRES_PORTS[network];
 		const { stdout }: ExecResult = await exec(
-			`cd ${installDir}; pg_ctl -D ${DB_DATA} -o '-F -p ${dbPort}' status`,
+			`cd ${installDir}; pg_ctl -D ${DB_DATA} -o '-F -p ${port}' status`,
 		);
 
 		return stdout.search('server is running') >= 0;
 	} catch (error) {
 		return false;
 	}
+};
+
+const getDatabasePort = async (name: string): Promise<string> => {
+	const { pm2_env } = await describeApplication(name);
+	const { LISK_DB_PORT } = pm2_env as Pm2Env;
+
+	return LISK_DB_PORT;
 };
 
 export const initDB = async (installDir: string): Promise<string> => {
@@ -71,16 +78,16 @@ export const initDB = async (installDir: string): Promise<string> => {
 
 export const startDatabase = async (
 	installDir: string,
-	network: NETWORK,
+	name: string,
 ): Promise<string> => {
-	const isRunning = await isDbRunning(installDir, network);
+	const LISK_DB_PORT = await getDatabasePort(name);
+	const isRunning = await isDbRunning(installDir, LISK_DB_PORT);
 	if (isRunning) {
 		return DATABASE_START_SUCCESS;
 	}
 
-	const dbPort: number = POSTGRES_PORTS[network];
 	const { stderr }: ExecResult = await exec(
-		`cd ${installDir}; pg_ctl -w -D ${DB_DATA} -l ${DB_LOG_FILE} -o "-F -p ${dbPort}" start >> ${SH_LOG_FILE}`,
+		`cd ${installDir}; pg_ctl -w -D ${DB_DATA} -l ${DB_LOG_FILE} -o "-F -p ${LISK_DB_PORT}" start >> ${SH_LOG_FILE}`,
 	);
 
 	if (!stderr) {
@@ -93,15 +100,16 @@ export const startDatabase = async (
 export const createUser = async (
 	installDir: string,
 	network: NETWORK,
+	name: string,
 ): Promise<string> => {
 	const { user, password }: DbConfig = getDbConfig(installDir, network);
-	const dbPort: number = POSTGRES_PORTS[network];
+	const LISK_DB_PORT = await getDatabasePort(name);
 
 	const { stdout, stderr }: ExecResult = await exec(
 		`cd ${installDir};
-    dropuser --if-exists ${user} -p ${dbPort} >> ${SH_LOG_FILE};
-    createuser --createdb ${user} -p ${dbPort} >> ${SH_LOG_FILE};
-    psql -qd postgres -p ${dbPort} -c "ALTER USER ${user} WITH PASSWORD '${password}';" >> ${SH_LOG_FILE};
+    dropuser --if-exists ${user} -p ${LISK_DB_PORT} >> ${SH_LOG_FILE};
+    createuser --createdb ${user} -p ${LISK_DB_PORT} >> ${SH_LOG_FILE};
+    psql -qd postgres -p ${LISK_DB_PORT} -c "ALTER USER ${user} WITH PASSWORD '${password}';" >> ${SH_LOG_FILE};
     `,
 	);
 
@@ -115,14 +123,15 @@ export const createUser = async (
 export const createDatabase = async (
 	installDir: string,
 	network: NETWORK,
+	name: string,
 ): Promise<string> => {
 	const { database }: DbConfig = getDbConfig(installDir, network);
-	const dbPort: number = POSTGRES_PORTS[network];
+	const LISK_DB_PORT = await getDatabasePort(name);
 
 	const { stdout, stderr }: ExecResult = await exec(
 		`cd ${installDir};
-    dropdb --if-exists ${database} -p ${dbPort} >> ${SH_LOG_FILE};
-    createdb ${database} -p ${dbPort} >> ${SH_LOG_FILE};
+    dropdb --if-exists ${database} -p ${LISK_DB_PORT} >> ${SH_LOG_FILE};
+    createdb ${database} -p ${LISK_DB_PORT} >> ${SH_LOG_FILE};
     `,
 	);
 
@@ -135,9 +144,10 @@ export const createDatabase = async (
 
 export const stopDatabase = async (
 	installDir: string,
-	network: NETWORK,
+	name: string,
 ): Promise<string> => {
-	const isRunning = await isDbRunning(installDir, network);
+	const LISK_DB_PORT = await getDatabasePort(name);
+	const isRunning = await isDbRunning(installDir, LISK_DB_PORT);
 	if (!isRunning) {
 		return DATABASE_STATUS;
 	}
@@ -157,12 +167,13 @@ export const restoreSnapshot = async (
 	installDir: string,
 	network: NETWORK,
 	snapshotFilePath: string,
+	name: string,
 ): Promise<string> => {
 	const { database, user }: DbConfig = getDbConfig(installDir, network);
-	const dbPort: number = POSTGRES_PORTS[network];
+	const LISK_DB_PORT = await getDatabasePort(name);
 
 	const { stdout, stderr }: ExecResult = await exec(
-		`cd ${installDir}; gunzip -fcq ${snapshotFilePath} | psql -q -U ${user} -d ${database} -p ${dbPort} >> ${SH_LOG_FILE};`,
+		`cd ${installDir}; gunzip -fcq ${snapshotFilePath} | psql -q -U ${user} -d ${database} -p ${LISK_DB_PORT} >> ${SH_LOG_FILE};`,
 	);
 
 	if (stdout.trim() === '') {
