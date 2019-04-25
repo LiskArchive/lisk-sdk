@@ -51,10 +51,7 @@ function getValidator() {
 	// Register lisk formats with swagger
 	Object.keys(formats).forEach(formatName => {
 		// Extend swagger validator with our formats
-		validator.constructor.registerFormat(
-			formatName,
-			formats[formatName]
-		);
+		validator.constructor.registerFormat(formatName, formats[formatName]);
 	});
 
 	return validator;

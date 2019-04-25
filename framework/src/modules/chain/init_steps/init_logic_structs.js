@@ -2,14 +2,15 @@ module.exports = async ({
 	config,
 	ed,
 	schema,
-	genesisBlock,
 	components: { storage, logger },
 	applicationState,
+	registeredTransactions,
 }) => {
-	const Transaction = require('../logic/transaction');
-	const Block = require('../logic/block');
-	const Account = require('../logic/account');
-	const Peers = require('../logic/peers');
+	const InitTransaction = require('../logic/init_transaction.js');
+	const Block = require('../logic/block.js');
+	const Account = require('../logic/account.js');
+	const Peers = require('../logic/peers.js');
+	const StateManager = require('../logic/state_store/index.js');
 
 	const accountLogic = await new Promise((resolve, reject) => {
 		new Account(storage, schema, logger, (err, object) => {
@@ -17,22 +18,10 @@ module.exports = async ({
 		});
 	});
 
-	const transactionLogic = await new Promise((resolve, reject) => {
-		new Transaction(
-			storage,
-			ed,
-			schema,
-			genesisBlock,
-			accountLogic,
-			logger,
-			(err, object) => {
-				err ? reject(err) : resolve(object);
-			}
-		);
-	});
+	const initTransactionLogic = new InitTransaction(registeredTransactions);
 
 	const blockLogic = await new Promise((resolve, reject) => {
-		new Block(ed, schema, transactionLogic, (err, object) => {
+		new Block(ed, schema, initTransactionLogic, (err, object) => {
 			err ? reject(err) : resolve(object);
 		});
 	});
@@ -43,10 +32,17 @@ module.exports = async ({
 		});
 	});
 
+	const stateManager = await new Promise((resolve, reject) => {
+		new StateManager(storage, (err, object) => {
+			err ? reject(err) : resolve(object);
+		});
+	});
+
 	return {
 		account: accountLogic,
-		transaction: transactionLogic,
+		initTransaction: initTransactionLogic,
 		block: blockLogic,
 		peers: peersLogic,
+		stateManager,
 	};
 };

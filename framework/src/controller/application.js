@@ -1,6 +1,13 @@
 const assert = require('assert');
-const _ = require('lodash');
+const {
+	TransferTransaction,
+	SecondSignatureTransaction,
+	DelegateTransaction,
+	VoteTransaction,
+	MultisignatureTransaction,
+} = require('@liskhq/lisk-transactions');
 const randomstring = require('randomstring');
+const _ = require('lodash');
 const Controller = require('./controller');
 const version = require('../version');
 const validator = require('./helpers/validator');
@@ -127,7 +134,23 @@ class Application {
 		__private.modules.set(this, {});
 		__private.transactions.set(this, {});
 
-		this.registerModule(ChainModule);
+		const { TRANSACTION_TYPES } = constants;
+
+		this.registerTransaction(TRANSACTION_TYPES.SEND, TransferTransaction);
+		this.registerTransaction(
+			TRANSACTION_TYPES.SIGNATURE,
+			SecondSignatureTransaction
+		);
+		this.registerTransaction(TRANSACTION_TYPES.DELEGATE, DelegateTransaction);
+		this.registerTransaction(TRANSACTION_TYPES.VOTE, VoteTransaction);
+		this.registerTransaction(
+			TRANSACTION_TYPES.MULTI,
+			MultisignatureTransaction
+		);
+
+		this.registerModule(ChainModule, {
+			registeredTransactions: this.getTransactions(),
+		});
 		this.registerModule(HttpAPIModule);
 		this.overrideModuleOptions(HttpAPIModule.alias, {
 			loadAsChildProcess: true,
@@ -186,24 +209,23 @@ class Application {
 	/**
 	 * Register a transaction
 	 *
-	 * @param {constructor} Transaction - Transaction class
-	 * @param {string} alias - Will use this alias or fallback to `Transaction.alias`
+	 * @param {number} transactionType - Unique integer that identifies the transaction type
+	 * @param {constructor} Transaction - Implementation of @liskhq/lisk-transactions/base_transaction
 	 */
-	registerTransaction(Transaction, alias) {
-		assert(Transaction, 'Transaction is required');
-		assert(alias, 'Transaction is required');
-		assert(
-			typeof Transaction === 'function',
-			'Transaction should be constructor'
-		);
+	registerTransaction(transactionType, Transaction) {
 		// TODO: Validate the transaction is properly inherited from base class
 		assert(
-			!Object.keys(this.getTransactions()).includes(alias),
-			`A transaction with alias "${alias}" already registered.`
+			Number.isInteger(transactionType),
+			'Transaction type is required as an integer'
 		);
+		assert(
+			!Object.keys(this.getTransactions()).includes(transactionType.toString()),
+			`A transaction type "${transactionType}" is already registered.`
+		);
+		assert(Transaction, 'Transaction implementation is required');
 
 		const transactions = this.getTransactions();
-		transactions[alias] = Object.freeze(Transaction);
+		transactions[transactionType] = Object.freeze(Transaction);
 		__private.transactions.set(this, transactions);
 	}
 
@@ -217,13 +239,13 @@ class Application {
 	}
 
 	/**
-	 * Get one transaction for provided alias
+	 * Get one transaction for provided type
 	 *
-	 * @param {string} alias - Alias for transaction used during registration
+	 * @param {number} transactionType - Unique integer that identifies the transaction type
 	 * @return {constructor|undefined}
 	 */
-	getTransaction(alias) {
-		return __private.transactions.get(this)[alias];
+	getTransaction(transactionType) {
+		return __private.transactions.get(this)[transactionType];
 	}
 
 	/**

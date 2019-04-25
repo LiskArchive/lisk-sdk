@@ -79,7 +79,7 @@ class Round {
 		// Iterate over requiredProperties, checking for undefined scope properties
 		requiredProperties.forEach(property => {
 			if (scope[property] === undefined) {
-				throw `Missing required scope property: ${property}`;
+				throw new Error(`Missing required scope property: ${property}`);
 			}
 		});
 	}
@@ -376,7 +376,6 @@ class Round {
 			const accountData = {
 				publicKey: delegate,
 				balance: self.scope.backwards ? -changes.balance : changes.balance,
-				u_balance: self.scope.backwards ? -changes.balance : changes.balance,
 				round: self.scope.round,
 				fees: self.scope.backwards ? -changes.fees : changes.fees,
 				rewards: self.scope.backwards ? -changes.rewards : changes.rewards,
@@ -434,7 +433,6 @@ class Round {
 					{
 						publicKey: remainderDelegate,
 						balance: feesRemaining,
-						u_balance: feesRemaining,
 						round: self.scope.round,
 						fees: feesRemaining,
 					},

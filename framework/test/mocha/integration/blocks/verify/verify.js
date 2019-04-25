@@ -26,6 +26,10 @@ const { clearDatabaseTable } = require('../../../common/storage_sandbox');
 const modulesLoader = require('../../../common/modules_loader');
 const random = require('../../../common/utils/random');
 const slots = require('../../../../../src/modules/chain/helpers/slots');
+const {
+	registeredTransactions,
+} = require('../../../common/registered_transactions');
+const InitTransaction = require('../../../../../src/modules/chain/logic/init_transaction');
 const accountFixtures = require('../../../fixtures/accounts');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
@@ -33,6 +37,7 @@ const blockVersion = require('../../../../../src/modules/chain/logic/block_versi
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW, NORMALIZER } = global.constants;
 const genesisBlock = __testContext.config.genesisBlock;
+const initTransaction = new InitTransaction(registeredTransactions);
 
 const previousBlock = {
 	blockSignature:
@@ -73,7 +78,7 @@ const validBlock = {
 	transactions: [
 		{
 			type: 0,
-			amount: 10000000000000000,
+			amount: '10000000000000000',
 			fee: 0,
 			timestamp: 0,
 			recipientId: '16313739661670634666L',
@@ -86,7 +91,7 @@ const validBlock = {
 		},
 		{
 			type: 3,
-			amount: 0,
+			amount: '0',
 			fee: 0,
 			timestamp: 0,
 			recipientId: '16313739661670634666L',
@@ -105,7 +110,7 @@ const validBlock = {
 				'9f9446b527e93f81d3fb8840b02fcd1454e2b6276d3c19bd724033a01d3121dd2edb0aff61d48fad29091e222249754e8ec541132032aefaeebc312796f69e08',
 			id: '9314232245035524467',
 		},
-	],
+	].map(transaction => initTransaction.jsonRead(transaction)),
 	version: 0,
 	id: '884740302254229983',
 };
@@ -135,12 +140,14 @@ function createBlock(
 	transactions,
 	previousBlockArgs
 ) {
-	random.convertToBignum(transactions);
 	const keypair = blockLogic.scope.ed.makeKeypair(
 		crypto
 			.createHash('sha256')
 			.update(passphrase, 'utf8')
 			.digest()
+	);
+	transactions = transactions.map(transaction =>
+		initTransaction.jsonRead(transaction)
 	);
 	blocksModule.lastBlock.set(previousBlockArgs);
 	const newBlock = blockLogic.create({
@@ -238,7 +245,6 @@ describe('blocks/verify', () => {
 			const verify = new RewiredVerify(
 				library.components.logger,
 				library.logic.block,
-				library.logic.transaction,
 				library.components.storage,
 				library.config
 			);
@@ -478,13 +484,7 @@ describe('blocks/verify', () => {
 
 				const result = privateFunctions.verifyPayload(validBlock, results);
 
-				expect(result.errors)
-					.to.be.an('array')
-					.with.lengthOf(2);
-				expect(result.errors[0]).to.equal(
-					`Unknown transaction type ${validBlock.transactions[0].type}`
-				);
-				expect(result.errors[1]).to.equal('Invalid payload hash');
+				expect(result.errors[0]).to.equal('Invalid payload hash');
 
 				validBlock.transactions[0].type = transactionType;
 				done();
@@ -530,9 +530,6 @@ describe('blocks/verify', () => {
 
 				const result = privateFunctions.verifyPayload(validBlock, results);
 
-				expect(result.errors)
-					.to.be.an('array')
-					.with.lengthOf(1);
 				expect(result.errors[0]).to.equal('Invalid total amount');
 
 				validBlock.totalAmount = totalAmount;
@@ -998,12 +995,19 @@ describe('blocks/verify', () => {
 
 		describe('normalizeBlock validations', () => {
 			beforeEach(done => {
+				const account = random.account();
+				const transaction = transfer({
+					amount: new Bignum(NORMALIZER).multipliedBy(1000).toString(),
+					recipientId: accountFixtures.genesis.address,
+					passphrase: account.passphrase,
+				});
+
 				block2 = createBlock(
 					blocks,
 					blockLogic,
 					random.password(),
 					33772882,
-					[genesisBlock.transactions[0]],
+					[transaction],
 					genesisBlock
 				);
 				done();
@@ -1015,7 +1019,8 @@ describe('blocks/verify', () => {
 
 				blocksVerify.processBlock(block2, false, true, err => {
 					if (err) {
-						expect(err).equal(
+						expect(err).to.be.instanceOf(Error);
+						expect(err.message).equal(
 							'Failed to validate block schema: Missing required property: timestamp'
 						);
 						done();
@@ -1028,25 +1033,27 @@ describe('blocks/verify', () => {
 
 				blocksVerify.processBlock(block2, false, true, err => {
 					if (err) {
-						expect(err).equal('Invalid total amount');
+						expect(err).equal('Invalid total fee');
 						done();
 					}
 				});
 			});
-
-			it('should fail when transaction type property is missing', done => {
+			// eslint-disable-next-line
+			it.skip('[UNCONFIRMED STATE REMOVAL] [ERROR MESSAGE] should fail when transaction type property is missing', done => {
 				const transactionType = block2.transactions[0].type;
 				delete block2.transactions[0].type;
 				blocksVerify.processBlock(block2, false, true, err => {
 					if (err) {
-						expect(err).equal('Unknown transaction type undefined');
+						expect(err.message).equal(
+							"'' should have required property 'type'"
+						);
 						block2.transactions[0].type = transactionType;
 						done();
 					}
 				});
 			});
-
-			it('should fail when transaction timestamp property is missing', done => {
+			// eslint-disable-next-line
+			it.skip('[UNCONFIRMED STATE REMOVAL] [ERROR MESSAGE] should fail when transaction timestamp property is missing', done => {
 				const transactionTimestamp = block2.transactions[0].timestamp;
 				delete block2.transactions[0].timestamp;
 				blocksVerify.processBlock(block2, false, true, err => {
@@ -1076,6 +1083,13 @@ describe('blocks/verify', () => {
 					const slot = slots.getSlotNumber();
 					const time = slots.getSlotTime(slots.getSlotNumber());
 
+					const account = random.account();
+					const transferTransaction = transfer({
+						amount: new Bignum(NORMALIZER).multipliedBy(1000).toString(),
+						recipientId: accountFixtures.genesis.address,
+						passphrase: account.passphrase,
+					});
+
 					getValidKeypairForSlot(library, slot)
 						.then(passphrase => {
 							auxBlock = createBlock(
@@ -1083,7 +1097,7 @@ describe('blocks/verify', () => {
 								blockLogic,
 								passphrase,
 								time,
-								[genesisBlock.transactions[0]],
+								[transferTransaction],
 								genesisBlock
 							);
 
@@ -1091,19 +1105,67 @@ describe('blocks/verify', () => {
 							expect(auxBlock.timestamp).to.equal(time);
 							expect(auxBlock.numberOfTransactions).to.equal(1);
 							expect(auxBlock.reward.isEqualTo('0')).to.be.true;
-							expect(auxBlock.totalFee.isEqualTo('0')).to.be.true;
-							expect(auxBlock.totalAmount.isEqualTo('10000000000000000')).to.be
-								.true;
+							expect(auxBlock.totalFee.isEqualTo('10000000')).to.be.true;
+							expect(auxBlock.totalAmount.isEqualTo('100000000000')).to.be.true;
 							expect(auxBlock.payloadLength).to.equal(117);
-							expect(auxBlock.transactions).to.deep.equal([
-								genesisBlock.transactions[0],
-							]);
+							expect(
+								auxBlock.transactions.map(transaction => transaction.id)
+							).to.deep.equal(
+								[transferTransaction].map(transaction => transaction.id)
+							);
 							expect(auxBlock.previousBlock).to.equal(genesisBlock.id);
 							done();
 						})
 						.catch(err => {
 							done(err);
 						});
+				});
+
+				it('should fail when transaction is invalid', done => {
+					const account = random.account();
+					const transaction = transfer({
+						amount: new Bignum(NORMALIZER).multipliedBy(1000).toString(),
+						recipientId: accountFixtures.genesis.address,
+						passphrase: account.passphrase,
+					});
+					transaction.senderId = account.address;
+
+					const createBlockPayload = (
+						passPhrase,
+						transactions,
+						previousBlockArgs
+					) => {
+						const time = slots.getSlotTime(slots.getSlotNumber());
+						const firstBlock = createBlock(
+							blocks,
+							blockLogic,
+							passPhrase,
+							time,
+							transactions,
+							previousBlockArgs
+						);
+
+						return blocksVerify.deleteBlockProperties(firstBlock);
+					};
+
+					getValidKeypairForSlot(library, slots.getSlotNumber()).then(
+						passPhrase => {
+							const transactions = [transaction];
+							const firstBlock = createBlockPayload(
+								passPhrase,
+								transactions,
+								genesisBlock
+							);
+							blocksVerify.processBlock(firstBlock, false, true, err => {
+								expect(err[0].message).to.equal(
+									`Account does not have enough LSK: ${
+										account.address
+									}, balance: 0`
+								);
+								done();
+							});
+						}
+					);
 				});
 
 				it('should fail when transaction is already confirmed (fork:2)', done => {
@@ -1157,7 +1219,8 @@ describe('blocks/verify', () => {
 												false,
 												true,
 												processBlockErr => {
-													expect(processBlockErr).to.equal(
+													expect(processBlockErr).to.be.instanceOf(Error);
+													expect(processBlockErr.message).to.equal(
 														[
 															'Transaction is already confirmed:',
 															transaction.id,

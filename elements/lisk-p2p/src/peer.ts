@@ -110,7 +110,7 @@ const convertNodeInfoToLegacyFormat = (
 		...nodeInfo,
 		broadhash: broadhash ? (broadhash as string) : '',
 		nonce: nonce ? (nonce as string) : '',
-		httpPort: httpPort ? (httpPort as number) : 0
+		httpPort: httpPort ? (httpPort as number) : 0,
 	};
 };
 
@@ -453,7 +453,7 @@ export class Peer extends EventEmitter {
 		const legacyNodeInfo = this._nodeInfo
 			? convertNodeInfoToLegacyFormat(this._nodeInfo)
 			: undefined;
-		
+
 		const connectTimeout = this._peerConfig.connectTimeout
 			? this._peerConfig.connectTimeout
 			: DEFAULT_CONNECT_TIMEOUT;
