@@ -16,10 +16,6 @@
 
 require('../../functional');
 
-const {
-	transfer,
-	utils: transactionUtils,
-} = require('@liskhq/lisk-transactions');
 const phases = require('../../../common/phases');
 const Scenarios = require('../../../common/scenarios');
 const waitFor = require('../../../common/utils/wait_for');
@@ -27,7 +23,6 @@ const randomUtil = require('../../../common/utils/random');
 const apiHelpers = require('../../../common/helpers/api');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 
-const { NORMALIZER } = global.constants;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('POST /api/transactions (type 4) register multisignature', () => {
@@ -386,7 +381,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 		// Deprecated: requesterPublicKeyProperty no longer in use
 		// eslint-disable-next-line
-		describe.skip('requesterPublicKey property', () => {
+		describe('requesterPublicKey property', () => {
 			it('sending multisig transaction offline signed should be ok and confirmed', async () => {
 				const scenario = scenarios.requesterPublicKey;
 
@@ -413,26 +408,6 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 						return waitFor.confirmations(transactionsToWaitFor);
 					}
 				);
-			});
-
-			it('requesting multisig group transaction from non author account', async () => {
-				const scenario = scenarios.requesterPublicKey;
-
-				const transaction = transfer({
-					amount: (1 * NORMALIZER).toString(),
-					passphrase: scenario.members[0].passphrase,
-					recipientId: randomUtil.account().address,
-				});
-				transaction.requesterPublicKey = scenario.account.publicKey;
-				transaction.id = transactionUtils.getTransactionId(transaction);
-
-				return sendTransactionPromise(
-					transaction,
-					apiCodes.PROCESSING_ERROR
-				).then(res => {
-					expect(res.body.message).to.equal('Multisig request is not allowed');
-					badTransactions.push(transaction);
-				});
 			});
 		});
 	});

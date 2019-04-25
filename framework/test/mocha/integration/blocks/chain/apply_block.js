@@ -150,17 +150,18 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 						}
 					);
 				});
-				// eslint-disable-next-line
-				it.skip('[UNCONFIRMED STATE REMOVAL] should have pooled transactions in queued state', done => {
+
+				it('should have pooled transactions in queued state', done => {
 					async.forEach(
 						[poolAccount3, poolAccount4],
 						(account, eachCb) => {
 							localCommon
 								.getAccountFromDb(library, account.address)
 								.then(accountRow => {
-									expect(0).to.equal(accountRow.mem_accounts.u_secondSignature);
+									expect(0).to.equal(accountRow.mem_accounts.secondSignature);
 									eachCb();
-								});
+								})
+								.catch(err => eachCb(err));
 						},
 						done
 					);
@@ -304,17 +305,17 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 					);
 				});
 
-				// eslint-disable-next-line
-				it.skip('UNCONFIRMED STATE REMOVAL] should have pooled transactions in queued state', done => {
+				it('should have pooled transactions in queued state', done => {
 					async.forEach(
 						[poolAccount3, poolAccount4],
 						(account, eachCb) => {
 							localCommon
 								.getAccountFromDb(library, account.address)
 								.then(accountRow => {
-									expect(0).to.equal(accountRow.mem_accounts.u_secondSignature);
+									expect(0).to.equal(accountRow.mem_accounts.secondSignature);
 									eachCb();
-								});
+								})
+								.catch(err => eachCb(err));
 						},
 						done
 					);

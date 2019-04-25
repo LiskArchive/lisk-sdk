@@ -220,7 +220,7 @@ describe('blocks/chain', () => {
 			},
 		};
 
-		process.exit = sinonSandbox.stub().returns(0);
+		// process.exit = sinonSandbox.stub().returns(0);
 
 		blocksChainModule.onBind(bindingsStub);
 		modules = BlocksChain.__get__('modules');
