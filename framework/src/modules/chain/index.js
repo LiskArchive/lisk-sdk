@@ -61,14 +61,8 @@ module.exports = class ChainModule extends BaseModule {
 			getPeersCountByFilter: async action =>
 				this.chain.actions.getPeersCountByFilter(action),
 			postSignature: async action => this.chain.actions.postSignature(action),
-			getLastConsensus: async () => this.chain.actions.getLastConsensus(),
-			loaderLoaded: async () => this.chain.actions.loaderLoaded(),
-			loaderSyncing: async () => this.chain.actions.loaderSyncing(),
-			getForgersKeyPairs: async () => this.chain.actions.getForgersKeyPairs(),
 			getForgingStatusForAllDelegates: async () =>
 				this.chain.actions.getForgingStatusForAllDelegates(),
-			getForgersPublicKeys: async () =>
-				this.chain.actions.getForgersPublicKeys(),
 			getTransactionsFromPool: async action =>
 				this.chain.actions.getTransactionsFromPool(action),
 			getLastCommit: async () => this.chain.actions.getLastCommit(),
