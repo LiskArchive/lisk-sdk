@@ -24,7 +24,7 @@ import { flags as commonFlags } from '../../utils/flags';
 import { isCacheRunning, startCache, stopCache } from '../../utils/node/cache';
 import {
 	backupLisk,
-	getVersionToUpgrade,
+	getVersionToInstall,
 	liskTar,
 	upgradeLisk,
 	validateVersion,
@@ -37,9 +37,11 @@ import {
 	restartApplication,
 	stopApplication,
 } from '../../utils/node/pm2';
+import { getReleaseInfo } from '../../utils/node/release';
 
 interface Flags {
 	readonly 'lisk-version': string;
+	readonly releaseUrl: string;
 }
 
 interface Args {
@@ -72,22 +74,25 @@ export default class UpgradeCommand extends BaseCommand {
 		'lisk-version': flagParser.string({
 			...commonFlags.liskVersion,
 		}),
+		releaseUrl: flagParser.string({
+			...commonFlags.releaseUrl,
+			default: RELEASE_URL,
+		}),
 	};
 
 	async run(): Promise<void> {
 		const { args, flags } = this.parse(UpgradeCommand);
 		const { name }: Args = args;
-		const { 'lisk-version': liskVersion } = flags as Flags;
+		const { 'lisk-version': liskVersion, releaseUrl } = flags as Flags;
 		const { pm2_env } = await describeApplication(name);
 		const { pm_cwd: installDir, LISK_NETWORK: network } = pm2_env as Pm2Env;
 		const { version: currentVersion } = getConfig(
 			`${installDir}/package.json`,
 		) as PackageJson;
-		const upgradeVersion: string = await getVersionToUpgrade(
+		const upgradeVersion: string = await getVersionToInstall(
 			network,
 			liskVersion,
 		);
-		const releaseUrl = `${RELEASE_URL}/${network}/${upgradeVersion}`;
 		const { cacheDir } = this.config;
 
 		const tasks = new Listr([
@@ -104,8 +109,19 @@ export default class UpgradeCommand extends BaseCommand {
 			},
 			{
 				title: `Download Lisk Core: ${upgradeVersion} for upgrade`,
-				task: async () =>
-					downloadLiskAndValidate(cacheDir, releaseUrl, upgradeVersion),
+				task: async () => {
+					const {
+						version,
+						liskTarUrl,
+						liskTarSHA256Url,
+					} = await getReleaseInfo(releaseUrl, network, upgradeVersion);
+					await downloadLiskAndValidate(
+						cacheDir,
+						liskTarUrl,
+						liskTarSHA256Url,
+						version,
+					);
+				},
 			},
 			{
 				title: 'Stop, Backup and Install Lisk Core',
