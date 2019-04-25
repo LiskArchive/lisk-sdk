@@ -24,9 +24,10 @@
  * @see Parent: {@link helpers}
  * @todo Add description for the params
  */
-function ApiError(message, code) {
+function ApiError(message, code, errors = []) {
 	this.message = message;
 	this.code = code;
+	this.errors = errors;
 }
 
 ApiError.prototype = new Error();

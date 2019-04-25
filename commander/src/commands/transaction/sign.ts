@@ -89,7 +89,7 @@ export default class SignCommand extends BaseCommand {
 				: {
 						source: secondPassphraseSource,
 						repeatPrompt: true,
-					},
+				  },
 		});
 
 		const result = transactions.utils.prepareTransaction(

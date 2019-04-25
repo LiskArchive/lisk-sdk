@@ -68,8 +68,8 @@ Notice also the use of ES6 arrow functions in specification files.
 
 If your tests need any kind of set-up, it should have its own dedicated set-up function passed to the `beforeEach` hook of the outer `describe` block. Examples of things to include in such a function:
 
-* Stubbing dependencies (but not necessarily specifying what those stubs return).
-* Storing environmental variables so they can be reset after the tests.
+- Stubbing dependencies (but not necessarily specifying what those stubs return).
+- Storing environmental variables so they can be reset after the tests.
 
 ## Step definitions
 

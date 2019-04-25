@@ -90,6 +90,13 @@ describe('Broadcaster', () => {
 		);
 
 		library = Broadcaster.__get__('library');
+		library.storage = {
+			entities: {
+				Transaction: {
+					isPersisted: sinonSandbox.stub().resolves(),
+				},
+			},
+		};
 
 		nextRelease = Broadcaster.__get__('nextRelease');
 		releaseQueue = Broadcaster.__get__('__private.releaseQueue');
@@ -123,7 +130,6 @@ describe('Broadcaster', () => {
 				broadcasts,
 				forging: { force: true },
 			});
-			return expect(library.logic.transaction).to.deep.equal(transactionStub);
 		});
 
 		it('should return Broadcaster instance', async () => {
@@ -434,6 +440,7 @@ describe('Broadcaster', () => {
 				describe('when [validTransaction] is confirmed', () => {
 					beforeEach(done => {
 						transactionStub.checkConfirmed.callsArgWith(1, null, true);
+						library.storage.entities.Transaction.isPersisted.resolves(true);
 						done();
 					});
 					it('should set an empty broadcaster.queue and skip the broadcast', done => {
@@ -448,6 +455,7 @@ describe('Broadcaster', () => {
 				describe('when [validTransaction] is not confirmed', () => {
 					beforeEach(done => {
 						transactionStub.checkConfirmed.callsArgWith(1, null, false);
+						library.storage.entities.Transaction.isPersisted.resolves(false);
 						done();
 					});
 					it('should leave [broadcast] in broadcaster.queue', done => {
@@ -466,6 +474,7 @@ describe('Broadcaster', () => {
 							'Checking if transction is confirmed error',
 							false
 						);
+						library.storage.entities.Transaction.isPersisted.rejects([]);
 						done();
 					});
 					it('should set an empty broadcaster.queue and skip the broadcast', done => {

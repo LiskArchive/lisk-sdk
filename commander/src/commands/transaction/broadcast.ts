@@ -56,7 +56,9 @@ export default class BroadcastCommand extends BaseCommand {
 	};
 
 	async run(): Promise<void> {
-		const { args: { transaction } } = this.parse(BroadcastCommand);
+		const {
+			args: { transaction },
+		} = this.parse(BroadcastCommand);
 		const transactionInput = transaction || (await getTransactionInput());
 		const transactionObject = parseTransactionString(transactionInput);
 		const client = getAPIClient(this.userConfig.api);

@@ -15,6 +15,8 @@
 'use strict';
 
 const async = require('async');
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const { convertErrorsToString } = require('../helpers/error_handlers');
 const jobsQueue = require('../helpers/jobs_queue');
 const slots = require('../helpers/slots');
 const definitions = require('../schema/definitions');
@@ -66,7 +68,6 @@ class Loader {
 			genesisBlock: scope.genesisBlock,
 			balancesSequence: scope.balancesSequence,
 			logic: {
-				transaction: scope.logic.transaction,
 				account: scope.logic.account,
 				peers: scope.logic.peers,
 			},
@@ -224,7 +225,7 @@ __private.loadSignatures = function(cb) {
 							async.eachSeries(
 								signature.signatures,
 								(s, secondEachSeriesCb) => {
-									modules.multisignatures.processSignature(
+									modules.multisignatures.getTransactionAndProcessSignature(
 										{
 											signature: s,
 											transactionId: signature.transactionId,
@@ -286,36 +287,36 @@ __private.loadTransactions = function(cb) {
 				});
 			},
 			function(peer, transactions, waterCb) {
-				async.eachSeries(
-					transactions,
-					(transaction, eachSeriesCb) => {
-						const id = transaction ? transactions.id : 'null';
+				try {
+					const {
+						transactionsResponses,
+					} = modules.processTransactions.validateTransactions(transactions);
+					const invalidTransactionResponse = transactionsResponses.find(
+						transactionResponse =>
+							transactionResponse.status !== TransactionStatus.OK
+					);
+					if (invalidTransactionResponse) {
+						throw invalidTransactionResponse.errors;
+					}
+				} catch (errors) {
+					const error =
+						Array.isArray(errors) && errors.length > 0 ? errors[0] : errors;
+					library.logger.debug('Transaction normalization failed', {
+						id: error.id,
+						err: error.toString(),
+						module: 'loader',
+					});
 
-						try {
-							transaction = library.logic.transaction.objectNormalize(
-								transaction
-							);
-						} catch (e) {
-							library.logger.debug('Transaction normalization failed', {
-								id,
-								err: e.toString(),
-								module: 'loader',
-								transaction,
-							});
+					library.logger.warn(
+						`Transaction ${error.id} is not valid, peer removed`,
+						peer.string
+					);
+					modules.peers.remove(peer);
 
-							library.logger.warn(
-								`Transaction ${id} is not valid, peer removed`,
-								peer.string
-							);
-							modules.peers.remove(peer);
+					return setImmediate(waterCb, error);
+				}
 
-							return setImmediate(eachSeriesCb, e);
-						}
-
-						return setImmediate(eachSeriesCb);
-					},
-					err => setImmediate(waterCb, err, transactions)
-				);
+				return setImmediate(waterCb, null, transactions);
 			},
 			function(transactions, waterCb) {
 				async.eachSeries(
@@ -333,7 +334,7 @@ __private.loadTransactions = function(cb) {
 							err => {
 								if (err) {
 									// TODO: Validate if error propagation required
-									library.logger.debug(err);
+									library.logger.debug(convertErrorsToString(err));
 								}
 								return setImmediate(eachSeriesCb);
 							}
@@ -420,7 +421,7 @@ __private.loadBlockChain = function() {
 			},
 			err => {
 				if (err) {
-					library.logger.error(err);
+					library.logger.error(convertErrorsToString(err));
 					if (err.block) {
 						library.logger.error(`Blockchain failed at: ${err.block.height}`);
 						modules.blocks.chain.deleteFromBlockId(err.block.id, () => {
@@ -484,7 +485,7 @@ __private.loadBlockChain = function() {
 			if (matched) {
 				library.logger.info('Genesis block matched with database');
 			} else {
-				throw 'Failed to match genesis block with database';
+				throw new Error('Failed to match genesis block with database');
 			}
 		}
 	}
@@ -519,7 +520,6 @@ __private.loadBlockChain = function() {
 				return reload(blocksCount, 'Detected unapplied rounds in mem_round');
 			}
 
-			await library.storage.entities.Account.resetUnconfirmedState();
 			const delegatesPublicKeys = await library.storage.entities.Account.get(
 				{ isDelegate: true },
 				{ limit: null }
@@ -907,7 +907,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 				waterErr => {
 					if (waterErr) {
 						failedAttemptsToLoad += 1;
-						library.logger.error(waterErr);
+						library.logger.error(convertErrorsToString(waterErr));
 					}
 					whilstCb();
 				}

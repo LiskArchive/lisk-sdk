@@ -55,7 +55,7 @@ module.exports = class HttpApi {
 						Object.assign({}, loggerConfig, {
 							logFileName: storageConfig.logFileName,
 						})
-					);
+				  );
 		const storage = createStorageComponent(storageConfig, dbLogger);
 
 		const applicationState = await this.channel.invoke(

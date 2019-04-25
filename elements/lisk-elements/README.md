@@ -1,6 +1,6 @@
 # Lisk Elements
 
-Lisk Elements is a JavaScript library for [Lisk][Lisk Core GitHub], the blockchain application platform.
+Lisk Elements is a JavaScript library for [Lisk][lisk core github], the blockchain application platform.
 
 [![Build Status](https://jenkins.lisk.io/buildStatus/icon?job=lisk-elements/development)](https://jenkins.lisk.io/job/lisk-elements/job/development/)
 <a href="https://david-dm.org/LiskHQ/lisk-elements"><img src="https://david-dm.org/LiskHQ/lisk-elements.svg" alt="Dependency Status"></a>
@@ -63,12 +63,14 @@ Access functionality via the relevant namespace. For example, the following will
 const transaction = lisk.transaction.transfer({
 	amount: '123000000',
 	recipientId: '12668885769632475474L',
-	passphrase: 'robust swift grocery peasant forget share enable convince deputy road keep cheap',
+	passphrase:
+		'robust swift grocery peasant forget share enable convince deputy road keep cheap',
 });
 
 const client = lisk.APIClient.createTestnetAPIClient();
 
-client.transactions.broadcast(transaction)
+client.transactions
+	.broadcast(transaction)
 	.then(console.info)
 	.catch(console.error);
 ```
@@ -77,17 +79,17 @@ Full documentation can be found on the [Lisk documentation site][].
 
 ## Packages
 
-| Package                                                 |                                                      Version                                                      | Description                                                        |
-| ------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------: | ------------------------------------------------------------------ |
-| [lisk-elements](/packages/lisk-elements)                 |       [![](https://img.shields.io/badge/npm-v2.0.0-green.svg)](https://www.npmjs.com/package/lisk-elements)       | Package contains everything                                        |
-| [@liskhq/lisk-client](/packages/lisk-client)             |    [![](https://img.shields.io/badge/npm-v2.0.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-client)    | A default set of Elements for use by clients of the Lisk network   |
-| [@liskhq/lisk-api-client](/packages/lisk-api-client)     |  [![](https://img.shields.io/badge/npm-v2.0.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-api-client)  | An API client for the Lisk network                                 |
-| [@liskhq/lisk-constants](/packages/lisk-constants)       |  [![](https://img.shields.io/badge/npm-v1.2.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-constants)   | General constants for use with Lisk-related software               |
-| [@liskhq/lisk-cryptography](/packages/lisk-cryptography) | [![](https://img.shields.io/badge/npm-v2.1.0_alpha.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-cryptography) | General cryptographic functions for use with Lisk-related software |
-| [@liskhq/lisk-passphrase](/packages/lisk-passphrase)     |  [![](https://img.shields.io/badge/npm-v2.0.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-passphrase)  | Mnemonic passphrase helpers for use with Lisk-related software     |
-| [@liskhq/lisk-transactions](/packages/lisk-transactions) | [![](https://img.shields.io/badge/npm-v2.1.0_alpha.4-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-transactions) | Everything related to transactions according to the Lisk protocol  |
-| [@liskhq/lisk-transaction-pool](/packages/lisk-transaction-pool) | [![](https://img.shields.io/badge/npm-v0.1.0_alpha.1-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-transaction-pool) | Transaction pool implementation for the Lisk network  |
-| [@liskhq/lisk-p2p](/packages/lisk-p2p) | [![](https://img.shields.io/badge/npm-v0.1.0_alpha.4-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-p2p) | _unstructured_ P2P library for the Lisk protocol  |
+| Package                                                          |                                                            Version                                                            | Description                                                        |
+| ---------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------: | ------------------------------------------------------------------ |
+| [lisk-elements](/packages/lisk-elements)                         |             [![](https://img.shields.io/badge/npm-v2.0.0-green.svg)](https://www.npmjs.com/package/lisk-elements)             | Package contains everything                                        |
+| [@liskhq/lisk-client](/packages/lisk-client)                     |          [![](https://img.shields.io/badge/npm-v2.0.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-client)          | A default set of Elements for use by clients of the Lisk network   |
+| [@liskhq/lisk-api-client](/packages/lisk-api-client)             |        [![](https://img.shields.io/badge/npm-v2.0.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-api-client)        | An API client for the Lisk network                                 |
+| [@liskhq/lisk-constants](/packages/lisk-constants)               |        [![](https://img.shields.io/badge/npm-v1.2.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-constants)         | General constants for use with Lisk-related software               |
+| [@liskhq/lisk-cryptography](/packages/lisk-cryptography)         |   [![](https://img.shields.io/badge/npm-v2.1.0_alpha.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-cryptography)   | General cryptographic functions for use with Lisk-related software |
+| [@liskhq/lisk-passphrase](/packages/lisk-passphrase)             |        [![](https://img.shields.io/badge/npm-v2.0.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-passphrase)        | Mnemonic passphrase helpers for use with Lisk-related software     |
+| [@liskhq/lisk-transactions](/packages/lisk-transactions)         |   [![](https://img.shields.io/badge/npm-v2.1.0_alpha.4-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-transactions)   | Everything related to transactions according to the Lisk protocol  |
+| [@liskhq/lisk-transaction-pool](/packages/lisk-transaction-pool) | [![](https://img.shields.io/badge/npm-v0.1.0_alpha.1-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-transaction-pool) | Transaction pool implementation for the Lisk network               |
+| [@liskhq/lisk-p2p](/packages/lisk-p2p)                           |       [![](https://img.shields.io/badge/npm-v0.1.0_alpha.4-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-p2p)        | _unstructured_ P2P library for the Lisk protocol                   |
 
 ## Tests
 
@@ -140,9 +142,9 @@ This program is free software: you can redistribute it and/or modify it under th
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
-You should have received a copy of the [GNU General Public License](https://github.com/LiskHQ/lisk-elements/tree/master/LICENSE) along with this program.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the [GNU General Public License](https://github.com/LiskHQ/lisk-elements/tree/master/LICENSE) along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-***
+---
 
 This program also incorporates work previously released with lisk-js `v0.5.2` (and earlier) versions under the [MIT License](https://opensource.org/licenses/MIT). To comply with the requirements of that license, the following permission notice, applicable to those parts of the code only, is included below:
 
@@ -156,5 +158,5 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-[Lisk Core GitHub]: https://github.com/LiskHQ/lisk
-[Lisk documentation site]: https://lisk.io/documentation/lisk-elements
+[lisk core github]: https://github.com/LiskHQ/lisk
+[lisk documentation site]: https://lisk.io/documentation/lisk-elements

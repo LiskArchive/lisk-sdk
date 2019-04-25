@@ -27,21 +27,14 @@ const { ACTIVE_DELEGATES } = global.constants;
 const validAccount = {
 	username: 'genesis_100',
 	isDelegate: 1,
-	u_isDelegate: 0,
 	secondSignature: 0,
-	u_secondSignature: 0,
-	u_username: null,
 	address: '10881167371402274308L',
 	publicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 	secondPublicKey: null,
 	balance: new Bignum('0'),
-	u_balance: new Bignum('0'),
 	multiMin: 0,
-	u_multiMin: 0,
 	multiLifetime: 1,
-	u_multiLifetime: 1,
 	nameExist: 0,
-	u_nameExist: 0,
 	fees: new Bignum('0'),
 	rank: '70',
 	rewards: new Bignum('0'),
@@ -51,9 +44,7 @@ const validAccount = {
 	approval: 100,
 	productivity: 0,
 	membersPublicKeys: null,
-	u_membersPublicKeys: null,
 	votedDelegatesPublicKeys: null,
-	u_votedDelegatesPublicKeys: null,
 };
 
 describe('account', () => {
@@ -644,32 +635,10 @@ describe('account', () => {
 		});
 
 		describe('check database constraints', () => {
-			it('should throw error when address does not exist for u_delegates', done => {
-				account.merge(
-					'1L',
-					{ u_votedDelegatesPublicKeys: [validAccount.publicKey] },
-					err => {
-						expect(err).to.equal('Account#merge error');
-						done();
-					}
-				);
-			});
-
 			it('should throw error when address does not exist for delegates', done => {
 				account.merge(
 					'1L',
 					{ votedDelegatesPublicKeys: [validAccount.publicKey] },
-					err => {
-						expect(err).to.equal('Account#merge error');
-						done();
-					}
-				);
-			});
-
-			it('should throw error when address does not exist for u_multisignatures', done => {
-				account.merge(
-					'1L',
-					{ u_membersPublicKeys: [validAccount.publicKey] },
 					err => {
 						expect(err).to.equal('Account#merge error');
 						done();
