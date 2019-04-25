@@ -3,7 +3,12 @@
 	"compilerOptions": {
 		"baseUrl": ".",
 		"noEmit": true,
-		"typeRoots": ["../../types", "../types", "../node_modules/@types", "../../node_modules/@types"]
+		"typeRoots": [
+			"../../types",
+			"../types",
+			"../node_modules/@types",
+			"../../node_modules/@types"
+		]
 	},
 	"references": [{ "path": ".." }],
 	"include": ["./**/*", "../../types/**/*", "../types/**/*", "../src/**/*"]
