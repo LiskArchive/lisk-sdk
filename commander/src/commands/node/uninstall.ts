@@ -55,11 +55,11 @@ export default class UnInstallCommand extends BaseCommand {
 						{
 							title: `Stop and Unregister Lisk Core from PM2`,
 							task: async () => {
-								const isRunning = await isCacheRunning(installDir, network);
+								const isRunning = await isCacheRunning(installDir, name);
 								if (isRunning) {
 									await stopCache(installDir, network);
 								}
-								await stopDatabase(installDir, network);
+								await stopDatabase(installDir, name);
 								await unRegisterApplication(name);
 							},
 						},
