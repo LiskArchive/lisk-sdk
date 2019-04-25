@@ -29,7 +29,9 @@ const {
 const confirmTransactionsOnAllNodes = require('../../../../utils/transactions')
 	.confirmTransactionsOnAllNodes;
 
-const { MAX_TRANSACTIONS_PER_BLOCK } = __testContext.config.constants;
+const {
+	config: { app, constants },
+} = __testContext;
 
 module.exports = function(configurations, network) {
 	describe('@propagation : multisig transactions', () => {
@@ -40,10 +42,12 @@ module.exports = function(configurations, network) {
 		const numbers = _.range(numberOfTransactions);
 		// Adding two extra blocks as a safety timeframe
 		const blocksToWait =
-			Math.ceil(numberOfTransactions / MAX_TRANSACTIONS_PER_BLOCK) + 2;
+			Math.ceil(numberOfTransactions / constants.MAX_TRANSACTIONS_PER_BLOCK) +
+			2;
 
 		const postSignatures = signature => {
 			const signaturesToPost = {
+				nonce: app.nonce,
 				signatures: [signature],
 			};
 			return Promise.all(
