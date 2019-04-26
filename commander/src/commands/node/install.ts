@@ -141,13 +141,14 @@ const getMaxValueByKey = (
 
 		return { LISK_DB_PORT, LISK_REDIS_PORT, LISK_HTTP_PORT, LISK_WS_PORT };
 	});
+	const INCREMENT = 2;
 
 	const maxValue = apps
 		.map(app => ((app as unknown) as { readonly [key: string]: number })[key])
 		.filter(i => i)
 		.reduce((acc, curr) => Math.max(acc, curr), defaultValue);
 
-	return maxValue + 1;
+	return maxValue + INCREMENT;
 };
 
 export default class InstallCommand extends BaseCommand {

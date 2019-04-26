@@ -27,31 +27,29 @@ export default class ListCommand extends BaseCommand {
 
 	async run(): Promise<void> {
 		const apps = await listApplication();
-		this.print(
-			apps.map(app => {
-				const { name, pm2_env, monit } = app;
-				const {
-					status,
-					version,
-					LISK_NETWORK: network,
-					LISK_DB_PORT: dbPort,
-					LISK_REDIS_PORT: redisPort,
-					LISK_HTTP_PORT: httpPort,
-					LISK_WS_PORT: wsPort,
-				} = pm2_env as Pm2Env;
+		const aa = apps.map(app => {
+			const { name, pm2_env, monit } = app;
+			const {
+				status,
+				version,
+				unstable_restarts: restart,
+				pm_uptime: uptime,
+				LISK_NETWORK: network,
+			} = pm2_env as Pm2Env;
 
-				return {
-					name,
-					network,
-					version,
-					status,
-					httpPort,
-					wsPort,
-					dbPort,
-					redisPort,
-					...monit,
-				};
-			}),
-		);
+			return {
+				name,
+				status,
+				restart,
+				uptime,
+				network,
+				version,
+				...monit,
+			};
+		});
+		this.log('Lisk Core instances: ');
+
+		// tslint:disable-next-line:no-console
+		console.table(aa.filter(a => a.network));
 	}
 }

@@ -51,7 +51,8 @@ export default class StatusCommand extends BaseCommand {
 			LISK_WS_PORT: wsPort,
 		} = pm2_env as Pm2Env;
 
-		this.print({
+		// tslint:disable-next-line:no-console
+		console.table({
 			status,
 			network,
 			version,
