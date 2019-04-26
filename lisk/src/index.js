@@ -1,4 +1,11 @@
 const { Application } = require('lisk-framework');
+const {
+	DappTransaction,
+	InTransferTransaction,
+	OutTransferTransaction,
+} = require('./transactions');
+
+const constantsSchema = require('../../framework/src/controller/schema/constants_schema');
 
 try {
 	// We have to keep it in try/catch block as it can throw
@@ -9,7 +16,20 @@ try {
 	/* eslint-disable import/no-dynamic-require */
 	const genesisBlock = require(`../config/${NETWORK}/genesis_block`);
 
+	const constants = {
+		TRANSACTION_TYPES: constantsSchema.default.TRANSACTION_TYPES,
+	};
+
 	const app = new Application(genesisBlock, config);
+
+	const { TRANSACTION_TYPES } = constants;
+
+	app.registerTransaction(TRANSACTION_TYPES.DAPP, DappTransaction);
+	app.registerTransaction(TRANSACTION_TYPES.IN_TRANSFER, InTransferTransaction);
+	app.registerTransaction(
+		TRANSACTION_TYPES.OUT_TRANSFER,
+		OutTransferTransaction
+	);
 
 	app
 		.run()

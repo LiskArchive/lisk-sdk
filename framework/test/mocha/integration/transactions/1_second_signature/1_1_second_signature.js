@@ -76,9 +76,24 @@ describe('integration test (type 1) - double second signature registrations', ()
 			});
 		});
 
-		it('first transaction to arrive should not be included', done => {
+		it('first transaction to arrive should be included', done => {
 			const filter = {
 				id: transaction1.id,
+			};
+			localCommon.getTransactionFromModule(library, filter, (err, res) => {
+				expect(err).to.be.null;
+				expect(res)
+					.to.have.property('transactions')
+					.which.is.an('Array');
+				expect(res.transactions.length).to.equal(1);
+				expect(res.transactions[0].id).to.equal(transaction1.id);
+				done();
+			});
+		});
+
+		it('last transaction to arrive should not be included', done => {
+			const filter = {
+				id: transaction2.id,
 			};
 			localCommon.getTransactionFromModule(library, filter, (err, res) => {
 				expect(err).to.be.null;
@@ -90,24 +105,17 @@ describe('integration test (type 1) - double second signature registrations', ()
 			});
 		});
 
-		it('last transaction to arrive should be included', done => {
-			const filter = {
-				id: transaction2.id,
-			};
-			localCommon.getTransactionFromModule(library, filter, (err, res) => {
-				expect(err).to.be.null;
-				expect(res)
-					.to.have.property('transactions')
-					.which.is.an('Array');
-				expect(res.transactions.length).to.equal(1);
-				expect(res.transactions[0].id).to.equal(transaction2.id);
-				done();
-			});
-		});
-
 		it('adding to pool second signature registration for same account should fail', done => {
-			localCommon.addTransaction(library, transaction1, err => {
-				expect(err).to.equal('Sender already has second signature enabled');
+			localCommon.addTransaction(library, transaction2, err => {
+				const expectedErrors = [
+					`Transaction: ${
+						transaction2.id
+					} failed at .signSignature: Missing signSignature`,
+					`Transaction: ${
+						transaction2.id
+					} failed at .secondPublicKey: Register second signature only allowed once per account.`,
+				];
+				expect(err).to.equal(expectedErrors.join(','));
 				done();
 			});
 		});

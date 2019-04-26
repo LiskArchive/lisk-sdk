@@ -15,7 +15,7 @@
 const getter = {
 	get: () => {},
 	find: () => [],
-	cache: () => {}
+	cache: () => {},
 };
 
 const setter = {
@@ -25,7 +25,7 @@ const setter = {
 		return;
 	},
 	find: () => [],
-	cache: () => {}
+	cache: () => {},
 };
 
 export const MockStateStore: any = {

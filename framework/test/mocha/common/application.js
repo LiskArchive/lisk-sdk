@@ -18,6 +18,7 @@
 const util = require('util');
 const rewire = require('rewire');
 const async = require('async');
+const { registeredTransactions } = require('./registered_transactions');
 const ed = require('../../../src/modules/chain/helpers/ed');
 const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
 const Sequence = require('../../../src/modules/chain/helpers/sequence');
@@ -41,6 +42,8 @@ const modulesInit = {
 	signatures: '../../../src/modules/chain/submodules/signatures',
 	transactions: '../../../src/modules/chain/submodules/transactions',
 	transport: '../../../src/modules/chain/submodules/transport',
+	processTransactions:
+		'../../../src/modules/chain/submodules/process_transactions.js',
 };
 
 function init(options, cb) {
@@ -114,7 +117,6 @@ async function __init(sandbox, initScope) {
 				.then(async status => {
 					if (status) {
 						await storage.entities.Migration.applyAll();
-						await storage.entities.Migration.applyRunTime();
 					}
 				});
 
@@ -135,6 +137,7 @@ async function __init(sandbox, initScope) {
 				build: '',
 				config,
 				genesisBlock: { block: __testContext.config.genesisBlock },
+				registeredTransactions,
 				schema: new ZSchema(),
 				sequence: new Sequence({
 					onWarning(current) {
@@ -174,6 +177,9 @@ async function __init(sandbox, initScope) {
 		scope.bus = await initSteps.createBus();
 		scope.logic = await initSteps.initLogicStructure(scope);
 		scope.modules = await initStepsForTest.initModules(scope);
+
+		// Ready to bind modules
+		scope.logic.block.bindModules(scope.modules);
 
 		// Fire onBind event in every module
 		scope.bus.message('bind', scope);

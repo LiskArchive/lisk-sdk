@@ -91,7 +91,7 @@ export default class DelegateCommand extends BaseCommand {
 				: {
 						source: secondPassphraseSource,
 						repeatPrompt: true,
-					},
+				  },
 		});
 		const result = processFunction(inputs);
 		this.print(result);

@@ -71,7 +71,7 @@ export const getInputsFromSources = async ({
 		typeof stdIn.passphrase !== 'string' && passphraseInput
 			? await getPassphrase(passphraseInput.source, {
 					shouldRepeat: passphraseInput.repeatPrompt,
-				})
+			  })
 			: stdIn.passphrase || undefined;
 
 	const secondPassphrase =
@@ -79,7 +79,7 @@ export const getInputsFromSources = async ({
 			? await getPassphrase(secondPassphraseInput.source, {
 					displayName: 'your second secret passphrase',
 					shouldRepeat: secondPassphraseInput.repeatPrompt,
-				})
+			  })
 			: stdIn.secondPassphrase || undefined;
 
 	const passphraseErrors = [passphrase, secondPassphrase]
@@ -111,7 +111,7 @@ export const getInputsFromSources = async ({
 			? await getPassphrase(passwordInput.source, {
 					displayName: 'your password',
 					shouldRepeat: passwordInput.repeatPrompt,
-				})
+			  })
 			: stdIn.password || undefined;
 
 	const data =
