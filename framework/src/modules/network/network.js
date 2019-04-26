@@ -58,31 +58,23 @@ module.exports = class Network {
 			storageConfig.logFileName &&
 			storageConfig.logFileName === loggerConfig.logFileName
 				? this.logger
-				: createLoggerComponent(
-						Object.assign({}, loggerConfig, {
-							logFileName: storageConfig.logFileName,
-						})
-				  );
+				: createLoggerComponent({
+						...loggerConfig,
+						logFileName: storageConfig.logFileName,
+				  });
 
 		this.storage = createStorageComponent(storageConfig, dbLogger);
 		this.storage.registerEntity('Peer', Peer);
 
-		try {
-			const status = await this.storage.bootstrap();
-			if (!status) {
-				throw new Error('Cannot bootstrap the storage component');
-			}
-		} catch (err) {
-			throw err;
+		const status = await this.storage.bootstrap();
+		if (!status) {
+			throw new Error('Cannot bootstrap the storage component');
 		}
-
 		// Load peers from the database that were tried or connected the last time node was running
-		let triedPeers;
-		try {
-			triedPeers = await this.storage.entities.Peer.get({}, { limit: null });
-		} catch (err) {
-			throw err;
-		}
+		const triedPeers = await this.storage.entities.Peer.get(
+			{},
+			{ limit: null }
+		);
 		// TODO: Nonce overwrite should be removed once the Network module has been fully integreated into core and the old peer system has been fully removed.
 		// We need this because the old peer system which runs in parallel will conflict with the new one if they share the same nonce.
 		const moduleNonce = randomstring.generate(16);
@@ -272,7 +264,7 @@ module.exports = class Network {
 	async cleanup() {
 		// TODO: Unsubscribe 'app:state:updated' from channel.
 		// TODO: In phase 2, only triedPeers will be saved to database
-		const peersToSave = this.p2p.getNetworkStatus().connectedPeers.map(peer => {
+		const peersToSave = this.p2p.getNetworkStatus().triedPeers.map(peer => {
 			const { ipAddress, ...peerWithoutIp } = peer;
 
 			return {
@@ -280,8 +272,13 @@ module.exports = class Network {
 				...peerWithoutIp,
 			};
 		});
-
-		await this.storage.entities.Peer.create(peersToSave);
+		// Add new peers that have been tried
+		if (peersToSave.length !== 0) {
+			// First delete all the previously saved peers
+			await this.storage.entities.Peer.delete();
+			await this.storage.entities.Peer.create(peersToSave);
+			this.logger.info('Saved all the peers to DB that have been tried');
+		}
 
 		return this.p2p.stop();
 	}
