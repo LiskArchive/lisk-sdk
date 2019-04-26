@@ -14,7 +14,7 @@
 
 'use strict';
 
-const Logger = require('./logger');
+const { createLogger } = require('./logger');
 const { config: defaultConfig } = require('./defaults');
 const validator = require('../../controller/helpers/validator');
 
@@ -24,7 +24,7 @@ function createLoggerComponent(options = {}) {
 		options
 	);
 
-	return new Logger(optionsWithDefaults).bootstrap();
+	return createLogger(optionsWithDefaults);
 }
 
 module.exports = {
