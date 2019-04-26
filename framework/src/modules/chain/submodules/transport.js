@@ -78,8 +78,6 @@ class Transport {
 			scope.config.nonce,
 			scope.config.broadcasts,
 			scope.config.forging.force,
-			scope.logic.transaction,
-			scope.components.logger,
 			scope.logic.initTransaction,
 			scope.components.logger,
 			scope.channel,
