@@ -49,6 +49,8 @@ The following dependencies need to be installed in order to run applications cre
 
 You can find further details on installing these dependencies in our [pre-installation setup guide](https://lisk.io/documentation/lisk-core/setup/source#pre-install).
 
+Mind, that you need to create a database before. The default database name is `lisk_dev`, so for the development purposes, a command `createdb lisk_dev` will set you up.
+
 ### Installation of Lisk Framework
 
 To start using the Lisk SDK you need to install one npm package - `lisk-framework`:

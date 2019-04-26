@@ -61,7 +61,7 @@ const defaultConfig = {
 	default: {
 		host: 'localhost',
 		port: 5432,
-		database: '',
+		database: 'lisk_dev',
 		user: 'lisk',
 		password: 'password',
 		min: 10,
