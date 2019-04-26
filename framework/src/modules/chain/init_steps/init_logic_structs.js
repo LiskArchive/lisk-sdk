@@ -7,6 +7,7 @@ module.exports = async ({
 	registeredTransactions,
 }) => {
 	const InitTransaction = require('../logic/init_transaction.js');
+	const processTransactionLogic = require('../logic/process_transaction.js');
 	const Block = require('../logic/block.js');
 	const Account = require('../logic/account.js');
 	const Peers = require('../logic/peers.js');
@@ -43,6 +44,7 @@ module.exports = async ({
 	return {
 		account: accountLogic,
 		initTransaction: initTransactionLogic,
+		processTransaction: processTransactionLogic,
 		block: blockLogic,
 		peers: peersLogic,
 		stateManager,

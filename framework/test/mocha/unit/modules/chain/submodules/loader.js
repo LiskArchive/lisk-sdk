@@ -252,7 +252,6 @@ describe('loader', () => {
 				genesisBlock: sinonSandbox.stub(),
 				balancesSequence: sinonSandbox.stub(),
 				logic: {
-					transaction: sinonSandbox.stub(),
 					account: { resetMemTables: resetMemTablesStub },
 					peers: sinonSandbox.stub(),
 				},

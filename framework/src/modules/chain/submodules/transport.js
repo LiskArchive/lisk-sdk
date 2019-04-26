@@ -24,7 +24,7 @@ const failureCodes = require('../api/ws/rpc/failure_codes');
 const PeerUpdateError = require('../api/ws/rpc/failure_codes').PeerUpdateError;
 const Rules = require('../api/ws/workers/rules');
 const definitions = require('../schema/definitions');
-const ProcessTransactions = require('./process_transactions');
+const processTransactionLogic = require('../logic/process_transaction');
 // eslint-disable-next-line prefer-const
 let wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
 
@@ -227,7 +227,7 @@ __private.receiveTransaction = async function(
 	try {
 		transaction = library.logic.initTransaction.fromJson(transactionJSON);
 
-		const composedTransactionsCheck = ProcessTransactions.composeProcessTransactionSteps(
+		const composedTransactionsCheck = processTransactionLogic.composeProcessTransactionSteps(
 			modules.processTransactions.checkAllowedTransactions,
 			modules.processTransactions.validateTransactions
 		);

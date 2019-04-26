@@ -19,7 +19,7 @@ const {
 	Status: TransactionStatus,
 	TransactionError,
 } = require('@liskhq/lisk-transactions');
-const ProcessTransactions = require('../submodules/process_transactions');
+const processTransactionLogic = require('../logic/process_transaction');
 const slots = require('../helpers/slots');
 
 const {
@@ -86,12 +86,12 @@ class TransactionPool {
 	 */
 	bind(processTransactions) {
 		this.validateTransactions = processTransactions.validateTransactions;
-		this.verifyTransactions = ProcessTransactions.composeProcessTransactionSteps(
+		this.verifyTransactions = processTransactionLogic.composeProcessTransactionSteps(
 			processTransactions.checkAllowedTransactions,
 			processTransactions.checkPersistedTransactions,
 			processTransactions.verifyTransactions
 		);
-		this.processTransactions = ProcessTransactions.composeProcessTransactionSteps(
+		this.processTransactions = processTransactionLogic.composeProcessTransactionSteps(
 			processTransactions.checkPersistedTransactions,
 			processTransactions.applyTransactions
 		);

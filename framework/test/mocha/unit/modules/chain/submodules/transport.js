@@ -32,6 +32,7 @@ const {
 } = require('../../../../common/registered_transactions');
 const InitTransaction = require('../../../../../../src/modules/chain/logic/init_transaction');
 const ProcessTransactions = require('../../../../../../src/modules/chain/submodules/process_transactions');
+const processTransactionLogic = require('../../../../../../src/modules/chain/logic/process_transaction');
 
 const initTransaction = new InitTransaction({ registeredTransactions });
 
@@ -662,8 +663,6 @@ describe('transport', () => {
 						callback(doneCallback);
 					});
 
-				// sinonSandbox.stub(ProcessTransactions, 'composeProcessTransactionSteps');
-
 				peerAddressString = '40.40.40.40:5000';
 
 				library.logic = {
@@ -692,7 +691,10 @@ describe('transport', () => {
 			afterEach(() => sinonSandbox.restore());
 
 			it('should composeProcessTransactionsSteps with checkAllowedTransactions and validateTransactions', done => {
-				sinonSandbox.spy(ProcessTransactions, 'composeProcessTransactionSteps');
+				sinonSandbox.spy(
+					processTransactionLogic,
+					'composeProcessTransactionSteps'
+				);
 
 				__private.receiveTransaction(
 					transaction,
@@ -700,7 +702,7 @@ describe('transport', () => {
 					'This is a log message',
 					async () => {
 						expect(
-							ProcessTransactions.composeProcessTransactionSteps
+							processTransactionLogic.composeProcessTransactionSteps
 						).to.have.been.calledWith(
 							modules.processTransactions.checkAllowedTransactions,
 							modules.processTransactions.validateTransactions
@@ -726,7 +728,7 @@ describe('transport', () => {
 				);
 
 				sinonSandbox
-					.stub(ProcessTransactions, 'composeProcessTransactionSteps')
+					.stub(processTransactionLogic, 'composeProcessTransactionSteps')
 					.returns(composedTransactionsCheck);
 
 				__private.receiveTransaction(

@@ -1,5 +1,8 @@
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const ProcessTransactions = require('../../../../../../src/modules/chain/submodules/process_transactions');
+const {
+	composeProcessTransactionSteps,
+} = require('../../../../../../src/modules/chain/logic/process_transaction');
 
 describe('ProcessTransactions', () => {
 	let processTransactions;
@@ -265,10 +268,7 @@ describe('ProcessTransactions', () => {
 
 		const step1 = sinonSandbox.stub().returns(step1Response);
 		const step2 = sinonSandbox.stub().returns(step2Response);
-		const composedFunction = ProcessTransactions.composeProcessTransactionSteps(
-			step1,
-			step2
-		);
+		const composedFunction = composeProcessTransactionSteps(step1, step2);
 		let result;
 
 		beforeEach(async () => {
