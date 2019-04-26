@@ -14,11 +14,28 @@
  *
  */
 import * as childProcess from 'child_process';
-import * as util from 'util';
+import fsExtra from 'fs-extra';
+import { defaultInstallationPath } from './node/config';
 
 export interface ExecResult {
 	readonly stderr: string;
 	readonly stdout: string;
 }
 
-export const exec = util.promisify(childProcess.exec);
+export const exec = (
+	command: string,
+	options: childProcess.ExecOptions = {},
+): Promise<ExecResult> =>
+	new Promise(resolve => {
+		childProcess.exec(command, options, (error, stdout, stderr) => {
+			if (error || stderr) {
+				fsExtra.writeJSONSync(`${defaultInstallationPath}/error.log`, {
+					error,
+					stderr,
+				});
+			}
+
+			// To resolve the error gracefully, only resolving and not rejecting
+			return resolve({ stdout, stderr: (error as unknown) as string });
+		});
+	});

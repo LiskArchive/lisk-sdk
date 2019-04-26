@@ -324,23 +324,19 @@ export default class InstallCommand extends BaseCommand {
 							task: async ctx => {
 								const { installDir }: Options = ctx.options;
 
-								try {
-									await initDB(installDir);
-									await startDatabase(installDir, name);
-									await createUser(installDir, network, name);
-									await createDatabase(installDir, network, name);
-									if (!noSnapshot) {
-										await restoreSnapshot(
-											installDir,
-											network,
-											snapshotPath,
-											name,
-										);
-									}
-									await stopDatabase(installDir, name);
-								} catch (error) {
-									throw error;
+								await initDB(installDir);
+								await startDatabase(installDir, name);
+								await createUser(installDir, network, name);
+								await createDatabase(installDir, network, name);
+								if (!noSnapshot) {
+									await restoreSnapshot(
+										installDir,
+										network,
+										snapshotPath,
+										name,
+									);
 								}
+								await stopDatabase(installDir, name);
 							},
 						},
 					]),

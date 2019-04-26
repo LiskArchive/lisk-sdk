@@ -55,8 +55,15 @@ describe('cache node utils', () => {
 	});
 
 	describe('#startCache', () => {
+		let workerProcessStub: any = null;
+		beforeEach(() => {
+			workerProcessStub = sandbox.stub(workerProcess, 'exec');
+		});
+
 		describe('when installation does not exists', () => {
 			it('should throw error', () => {
+				workerProcessStub.resolves({ stderr: 'Command failed' });
+
 				return expect(startCache('/tmp/dummypath', 'test')).to.rejectedWith(
 					'Command failed',
 				);
@@ -64,11 +71,6 @@ describe('cache node utils', () => {
 		});
 
 		describe('when installation exists', () => {
-			let workerProcessStub: any = null;
-			beforeEach(() => {
-				workerProcessStub = sandbox.stub(workerProcess, 'exec');
-			});
-
 			it('should start successfully', async () => {
 				workerProcessStub.resolves({ stdout: '', stderr: null });
 

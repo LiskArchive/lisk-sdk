@@ -41,7 +41,6 @@ export default class StatusCommand extends BaseCommand {
 		const {
 			status,
 			pm_uptime,
-			unstable_restarts,
 			pm_cwd: installationPath,
 			version,
 			LISK_NETWORK: network,
@@ -62,7 +61,6 @@ export default class StatusCommand extends BaseCommand {
 			redisPort,
 			installationPath,
 			uptime: new Date(pm_uptime).toLocaleString(),
-			restart_count: unstable_restarts,
 			...monit,
 		});
 	}

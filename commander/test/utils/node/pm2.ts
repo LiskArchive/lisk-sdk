@@ -25,7 +25,7 @@ describe('pm2 node utils', () => {
 		});
 
 		it('should register an application', async () => {
-			await registerApplication('dummy/path', NETWORK.MAINNET, 'test');
+			await registerApplication('dummy/path', NETWORK.MAINNET, 'test', {});
 
 			expect(pm2.connect).to.be.calledOnce;
 			expect(pm2.start).to.be.calledOnce;

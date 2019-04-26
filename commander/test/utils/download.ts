@@ -14,25 +14,14 @@ describe('download utils', () => {
 		let existsSyncStub: any = null;
 
 		beforeEach(() => {
-			sandbox.stub(axios);
+			sandbox.stub(axios, 'default');
 			existsSyncStub = sandbox.stub(fs, 'existsSync');
-			sandbox.stub(fs, 'createWriteStream').returns(Buffer.alloc(1));
 		});
 
 		it('should return true if downloaded file already exists', () => {
 			existsSyncStub.returns(true);
 
 			return expect(downloadUtil.download('url', 'file/path')).returned;
-		});
-
-		it.skip('should get latest version', async () => {
-			existsSyncStub.returns(false);
-
-			await downloadUtil.download(
-				'http://download/lisk/version.txt',
-				'file/path',
-			);
-			return expect(axios.default).to.be.calledOnce;
 		});
 	});
 
@@ -83,6 +72,7 @@ describe('download utils', () => {
 			await downloadUtil.downloadLiskAndValidate(
 				'output/dir',
 				'release/url',
+				'release/url/sha256',
 				'2.0.0',
 			);
 			expect(downloadUtil.download).to.be.calledTwice;

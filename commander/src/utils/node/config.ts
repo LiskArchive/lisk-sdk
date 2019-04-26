@@ -26,7 +26,7 @@ export interface CacheConfig {
 export interface DbConfig {
 	readonly database: string;
 	readonly host: string;
-	readonly password: boolean;
+	readonly password: string;
 	readonly port: number;
 	readonly user: string;
 }

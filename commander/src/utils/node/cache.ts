@@ -24,8 +24,8 @@ const CACHE_STOP_SUCCESS = '[+] Redis-Server stopped successfully.';
 const CACHE_STOP_FAILURE = '[-] Failed to stop Redis-Server.';
 
 const REDIS_CONFIG = 'etc/redis.conf';
-const REDIS_BIN = 'bin/redis-server';
-const REDIS_CLI = 'bin/redis-cli';
+const REDIS_BIN = './bin/redis-server';
+const REDIS_CLI = './bin/redis-cli';
 
 const getRedisPort = async (name: string): Promise<string> => {
 	const { pm2_env } = await describeApplication(name);
@@ -38,17 +38,14 @@ export const isCacheRunning = async (
 	installDir: string,
 	name: string,
 ): Promise<boolean> => {
-	try {
-		const LISK_REDIS_PORT = await getRedisPort(name);
+	const LISK_REDIS_PORT = await getRedisPort(name);
 
-		const { stdout }: ExecResult = await exec(
-			`cd ${installDir}; ${REDIS_CLI} -p ${LISK_REDIS_PORT} ping`,
-		);
+	const { stderr }: ExecResult = await exec(
+		`${REDIS_CLI} -p ${LISK_REDIS_PORT} ping`,
+		{ cwd: installDir },
+	);
 
-		return stdout.search('PONG') >= 0;
-	} catch (error) {
-		return false;
-	}
+	return !stderr;
 };
 
 export const startCache = async (
@@ -57,11 +54,12 @@ export const startCache = async (
 ): Promise<string> => {
 	const LISK_REDIS_PORT = await getRedisPort(name);
 
-	const { stdout, stderr }: ExecResult = await exec(
-		`cd ${installDir}; ${REDIS_BIN} ${REDIS_CONFIG} --port ${LISK_REDIS_PORT}`,
+	const { stderr }: ExecResult = await exec(
+		`${REDIS_BIN} ${REDIS_CONFIG} --port ${LISK_REDIS_PORT}`,
+		{ cwd: installDir },
 	);
 
-	if (stdout.trim() === '') {
+	if (!stderr) {
 		return CACHE_START_SUCCESS;
 	}
 
@@ -90,9 +88,9 @@ export const stopCache = async (
 ): Promise<string> => {
 	const cmd = await stopCommand(installDir, network, name);
 
-	const { stdout, stderr }: ExecResult = await exec(`cd ${installDir}; ${cmd}`);
+	const { stderr }: ExecResult = await exec(cmd, { cwd: installDir });
 
-	if (stdout.trim() === '') {
+	if (!stderr) {
 		return CACHE_STOP_SUCCESS;
 	}
 

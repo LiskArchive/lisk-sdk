@@ -33,7 +33,6 @@ const RESTORE_SNAPSHOT_FAILURE = '[-] Failed to restore blockchain.';
 
 const DB_DATA = 'pgsql/data';
 const DB_LOG_FILE = 'logs/pgsql.log';
-const SH_LOG_FILE = 'logs/lisk.log';
 
 const isDbInitialized = (installDir: string): boolean =>
 	fs.existsSync(`${installDir}/${DB_DATA}`);
@@ -43,11 +42,12 @@ const isDbRunning = async (
 	port: string,
 ): Promise<boolean> => {
 	try {
-		const { stdout }: ExecResult = await exec(
-			`cd ${installDir}; pg_ctl -D ${DB_DATA} -o '-F -p ${port}' status`,
+		const { stderr }: ExecResult = await exec(
+			`./pgsql/bin/pg_ctl -D ${DB_DATA} -o '-F -p ${port}' status`,
+			{ cwd: installDir },
 		);
 
-		return stdout.search('server is running') >= 0;
+		return !stderr;
 	} catch (error) {
 		return false;
 	}
@@ -65,11 +65,12 @@ export const initDB = async (installDir: string): Promise<string> => {
 		return 'Postgres database initialized';
 	}
 
-	const { stdout, stderr }: ExecResult = await exec(
-		`cd ${installDir}; pg_ctl initdb -D ${DB_DATA} >> ${SH_LOG_FILE}`,
+	const { stderr }: ExecResult = await exec(
+		`./pgsql/bin/pg_ctl initdb -D ${DB_DATA}`,
+		{ cwd: installDir },
 	);
 
-	if (stdout.trim() === '') {
+	if (!stderr) {
 		return DATABASE_START_SUCCESS;
 	}
 
@@ -87,7 +88,8 @@ export const startDatabase = async (
 	}
 
 	const { stderr }: ExecResult = await exec(
-		`cd ${installDir}; pg_ctl -w -D ${DB_DATA} -l ${DB_LOG_FILE} -o "-F -p ${LISK_DB_PORT}" start >> ${SH_LOG_FILE}`,
+		`./pgsql/bin/pg_ctl -w -D ${DB_DATA} -l ${DB_LOG_FILE} -o "-F -p ${LISK_DB_PORT}" start`,
+		{ cwd: installDir },
 	);
 
 	if (!stderr) {
@@ -105,15 +107,14 @@ export const createUser = async (
 	const { user, password }: DbConfig = getDbConfig(installDir, network);
 	const LISK_DB_PORT = await getDatabasePort(name);
 
-	const { stdout, stderr }: ExecResult = await exec(
-		`cd ${installDir};
-    dropuser --if-exists ${user} -p ${LISK_DB_PORT} >> ${SH_LOG_FILE};
-    createuser --createdb ${user} -p ${LISK_DB_PORT} >> ${SH_LOG_FILE};
-    psql -qd postgres -p ${LISK_DB_PORT} -c "ALTER USER ${user} WITH PASSWORD '${password}';" >> ${SH_LOG_FILE};
-    `,
+	const { stderr }: ExecResult = await exec(
+		`./pgsql/bin/dropuser --if-exists ${user} -p ${LISK_DB_PORT};
+    ./pgsql/bin/createuser --createdb ${user} -p ${LISK_DB_PORT};
+    ./pgsql/bin/psql -qd postgres -p ${LISK_DB_PORT} -c "ALTER USER ${user} WITH PASSWORD '${password}';";`,
+		{ cwd: installDir },
 	);
 
-	if (stdout.trim() === '') {
+	if (!stderr) {
 		return DATABASE_USER_SUCCESS;
 	}
 
@@ -128,14 +129,14 @@ export const createDatabase = async (
 	const { database }: DbConfig = getDbConfig(installDir, network);
 	const LISK_DB_PORT = await getDatabasePort(name);
 
-	const { stdout, stderr }: ExecResult = await exec(
-		`cd ${installDir};
-    dropdb --if-exists ${database} -p ${LISK_DB_PORT} >> ${SH_LOG_FILE};
-    createdb ${database} -p ${LISK_DB_PORT} >> ${SH_LOG_FILE};
-    `,
+	const { stderr }: ExecResult = await exec(
+		`./pgsql/bin/dropdb --if-exists ${database} -p ${LISK_DB_PORT};
+    ./pgsql/bin/createdb ${database} -p ${LISK_DB_PORT};
+		`,
+		{ cwd: installDir },
 	);
 
-	if (stdout.trim() === '') {
+	if (!stderr) {
 		return DATABASE_CREATE_SUCCESS;
 	}
 
@@ -153,7 +154,8 @@ export const stopDatabase = async (
 	}
 
 	const { stderr }: ExecResult = await exec(
-		`cd ${installDir}; pg_ctl -D ${DB_DATA} -l ${DB_LOG_FILE} stop >> ${SH_LOG_FILE}`,
+		`./pgsql/bin/pg_ctl -D ${DB_DATA} -l ${DB_LOG_FILE} stop`,
+		{ cwd: installDir },
 	);
 
 	if (!stderr) {
@@ -172,11 +174,12 @@ export const restoreSnapshot = async (
 	const { database, user }: DbConfig = getDbConfig(installDir, network);
 	const LISK_DB_PORT = await getDatabasePort(name);
 
-	const { stdout, stderr }: ExecResult = await exec(
-		`cd ${installDir}; gunzip -fcq ${snapshotFilePath} | psql -q -U ${user} -d ${database} -p ${LISK_DB_PORT} >> ${SH_LOG_FILE};`,
+	const { stderr }: ExecResult = await exec(
+		`gunzip -fcq ${snapshotFilePath} | psql -U ${user} -d ${database} -p ${LISK_DB_PORT};`,
+		{ cwd: installDir },
 	);
 
-	if (stdout.trim() === '') {
+	if (!stderr) {
 		return RESTORE_SNAPSHOT_SUCCESS;
 	}
 
