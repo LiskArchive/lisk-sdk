@@ -16,7 +16,8 @@ import {
 	validateNetwork,
 	createDirectory,
 	validURL,
-	getVersionToUpgrade,
+	getVersionToInstall,
+	getSemver,
 	backupLisk,
 	upgradeLisk,
 	validateVersion,
@@ -26,7 +27,7 @@ import { defaultInstallationPath } from '../../../src/utils/node/config';
 import * as release from '../../../src/utils/node/release';
 import * as workerProcess from '../../../src/utils/worker-process';
 
-describe('commons node utils', () => {
+describe.only('commons node utils', () => {
 	describe('#liskInstall', () => {
 		it('should return resolved home directory', () => {
 			return expect(liskInstall('~/.lisk')).to.equal(`${os.homedir}/.lisk`);
@@ -78,11 +79,17 @@ describe('commons node utils', () => {
 	});
 
 	describe('#liskSnapshotUrl', () => {
-		it('should return lisk latest url', () => {
+		it('should construct snapshot url', () => {
 			const url: string = 'https://downloads.lisk.io/lisk/';
 			return expect(liskSnapshotUrl(url, NETWORK.MAINNET)).to.equal(
 				`${url}/${NETWORK.MAINNET}/blockchain.db.gz`,
 			);
+		});
+
+		it('should return same url if it is a valid url', () => {
+			const url: string =
+				'http://snapshots.lisk.io.s3-eu-west-1.amazonaws.com/lisk/mainnet/blockchain.db.gz';
+			return expect(liskSnapshotUrl(url, NETWORK.MAINNET)).to.equal(url);
 		});
 	});
 
@@ -124,6 +131,16 @@ describe('commons node utils', () => {
 	});
 
 	describe('#validateNetwork', () => {
+		it('should throw error for invalid network', () => {
+			try {
+				validateNetwork('asdf' as NETWORK);
+			} catch (error) {
+				expect(error.message).to.equal(
+					'Network "asdf" is not supported, please try options mainnet,testnet,betanet,alphanet,devnet',
+				);
+			}
+		});
+
 		it('should not throw error for valid network', () => {
 			expect(validateNetwork(NETWORK.MAINNET)).not.to.throw;
 			expect(validateNetwork(NETWORK.TESTNET)).not.to.throw;
@@ -163,19 +180,19 @@ describe('commons node utils', () => {
 		});
 	});
 
-	describe('#getVersionToUpgrade', () => {
+	describe('#getVersionToInstall', () => {
 		const version = '2.0.0';
 		beforeEach(() => {
 			sandbox.stub(release, 'getLatestVersion').resolves(version);
 		});
 
 		it('should return version if specified', async () => {
-			const result = await getVersionToUpgrade(NETWORK.MAINNET, version);
+			const result = await getVersionToInstall(NETWORK.MAINNET, version);
 			return expect(result).to.equal(version);
 		});
 
 		it('should return latest version if version is not specified', async () => {
-			const result = await getVersionToUpgrade(NETWORK.MAINNET, version);
+			const result = await getVersionToInstall(NETWORK.MAINNET);
 			return expect(result).to.equal(version);
 		});
 	});
@@ -260,6 +277,14 @@ describe('commons node utils', () => {
 		it('should successed for valid version', () => {
 			releaseStub.resolves('1.0.0');
 			return expect(validateVersion(NETWORK.MAINNET, '1.0.0')).not.to.throw;
+		});
+	});
+
+	describe('#getSemver', () => {
+		it('should extract version from url', () => {
+			const url =
+				'https://downloads.lisk.io/lisk/testnet/1.6.0-rc.4/lisk-1.6.0-rc.4-Darwin-x86_64.tar.gz';
+			return expect(getSemver(url)).to.equal('1.6.0-rc.4');
 		});
 	});
 });
