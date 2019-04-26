@@ -35,22 +35,28 @@ const createDirIfNotExist = filePath => {
  */
 const createLogger = ({ fileLogLevel, consoleLogLevel, logFileName }) => {
 	const consoleSrc = consoleLogLevel === 'debug' || consoleLogLevel === 'trace';
-	const consoleStream = consoleLogLevel !== 'none' ? [{
-		level: consoleLogLevel,
-		stream: process.stdout,
-	}] : [];
+	const consoleStream =
+		consoleLogLevel !== 'none'
+			? [
+					{
+						level: consoleLogLevel,
+						stream: process.stdout,
+					},
+			  ]
+			: [];
 	const filePath = path.join(process.cwd(), logFileName);
 	createDirIfNotExist(filePath);
 	const fileSrc = fileLogLevel === 'debug' || fileLogLevel === 'trace';
-	const fileStream = fileLogLevel !== 'none' ? [{
-		type: 'rotating-file',
-		level: fileLogLevel,
-		path: filePath,
-	}] : [];
-	const streams = [
-		...consoleStream,
-		...fileStream,
-	];
+	const fileStream =
+		fileLogLevel !== 'none'
+			? [
+					{
+						level: fileLogLevel,
+						path: filePath,
+					},
+			  ]
+			: [];
+	const streams = [...consoleStream, ...fileStream];
 	return bunyan.createLogger({
 		name: 'lisk-framework',
 		streams,
