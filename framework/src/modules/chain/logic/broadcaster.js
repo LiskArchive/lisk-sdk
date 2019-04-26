@@ -147,12 +147,13 @@ class Broadcaster {
 	 * @returns {Promise} null, boolean|undefined
 	 * @todo Add description for the params
 	 */
-	filterQueue() {
+	async filterQueue() {
 		library.logger.debug(`Broadcasts before filtering: ${this.queue.length}`);
 
-		this.queue = this.queue.filter(broadcast => {
+		this.queue = await this.queue.reduce(async (prev, broadcast) => {
+			const filteredBroadcast = await prev;
 			if (broadcast.options.immediate) {
-				return false;
+				return filteredBroadcast;
 			}
 
 			if (broadcast.options.data) {
@@ -165,31 +166,33 @@ class Broadcaster {
 					transactionId = broadcast.options.data.signature.transactionId;
 				}
 				if (!transactionId) {
-					return false;
+					return filteredBroadcast;
 				}
 				// Broadcast if transaction is in transaction pool
 				if (modules.transactions.transactionInPool(transactionId)) {
-					return true;
+					filteredBroadcast.push(broadcast);
+					return filteredBroadcast;
 				}
 				// Don't broadcast if transaction is already confirmed
-				return library.storage.entities.Transaction.isPersisted({
-					id: transactionId,
-				})
-					.then(
-						isPersisted =>
-							// In case of SQL error:
-							// err = true, isConfirmed = false => return false
-							// In case transaction exists in "trs" table:
-							// err = null, isConfirmed = true => return false
-							// In case transaction doesn't exists in "trs" table:
-							// err = nul,l, isConfirmed = false => return true
-							!isPersisted
-					)
-					.catch(err => !err);
+				try {
+					const isPersisted = await library.storage.entities.Transaction.isPersisted(
+						{
+							id: transactionId,
+						}
+					);
+					if (!isPersisted) {
+						filteredBroadcast.push(broadcast);
+					}
+					return filteredBroadcast;
+				} catch (err) {
+					return filteredBroadcast;
+				}
 			}
 
-			return true;
-		});
+			filteredBroadcast.push(broadcast);
+
+			return filteredBroadcast;
+		}, []);
 
 		library.logger.debug(`Broadcasts after filtering: ${this.queue.length}`);
 

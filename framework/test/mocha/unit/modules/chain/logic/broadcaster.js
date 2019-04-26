@@ -88,6 +88,8 @@ describe('Broadcaster', () => {
 		);
 
 		broadcaster.bind(modulesStub.transport, modulesStub.transactions);
+
+		library = Broadcaster.__get__('library');
 	});
 
 	afterEach(() => {
