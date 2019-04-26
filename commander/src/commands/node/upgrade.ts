@@ -131,7 +131,7 @@ export default class UpgradeCommand extends BaseCommand {
 						{
 							title: `Stop Lisk Core`,
 							task: async () => {
-								const isRunning = await isCacheRunning(installDir, network);
+								const isRunning = await isCacheRunning(installDir, name);
 								if (isRunning) {
 									await stopCache(installDir, network, name);
 								}
