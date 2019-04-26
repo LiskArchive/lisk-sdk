@@ -18,9 +18,6 @@ const _ = require('lodash');
 const async = require('async');
 const { CACHE_KEYS_TRANSACTION_COUNT } = require('../../../components/cache');
 const TransactionPool = require('../logic/transaction_pool');
-const Transfer = require('../logic/transfer');
-
-const { TRANSACTION_TYPES } = global.constants;
 
 // Private fields
 const __private = {};
@@ -33,7 +30,6 @@ __private.assetTypes = {};
 
 /**
  * Main transactions methods. Initializes library with scope content and generates a Transfer instance
- * and a TransactionPool instance. Calls logic.transaction.attachAssetType().
  *
  * @class
  * @memberof modules
@@ -41,7 +37,6 @@ __private.assetTypes = {};
  * @requires bluebird
  * @requires lodash
  * @requires logic/transaction_pool
- * @requires logic/transfer
  * @param {function} cb - Callback function
  * @param {scope} scope - App instance
  * @returns {setImmediateCallback} cb, null, self
@@ -55,7 +50,7 @@ class Transactions {
 			ed: scope.ed,
 			balancesSequence: scope.balancesSequence,
 			logic: {
-				transaction: scope.logic.transaction,
+				initTransaction: scope.logic.initTransaction,
 			},
 			genesisBlock: scope.genesisBlock,
 		};
@@ -65,23 +60,9 @@ class Transactions {
 		__private.transactionPool = new TransactionPool(
 			scope.config.broadcasts.broadcastInterval,
 			scope.config.broadcasts.releaseLimit,
-			scope.logic.transaction,
-			scope.bus,
 			scope.components.logger,
-			scope.balancesSequence,
-			scope.config
-		);
-
-		__private.assetTypes[
-			TRANSACTION_TYPES.SEND
-		] = library.logic.transaction.attachAssetType(
-			TRANSACTION_TYPES.SEND,
-			new Transfer({
-				components: {
-					logger: library.logger,
-				},
-				schema: library.schema,
-			})
+			scope.config,
+			scope.bus
 		);
 
 		setImmediate(cb, null, self);
@@ -367,6 +348,17 @@ Transactions.prototype.transactionInPool = function(id) {
 };
 
 /**
+ * Fills pool.
+ *
+ * @param {function} cb - Callback function
+ * @returns {function} Calls transactionPool.fillPool
+ * @todo Add description for the params
+ */
+Transactions.prototype.fillPool = function(cb) {
+	return __private.transactionPool.fillPool(cb);
+};
+
+/**
  * Gets unconfirmed transaction from pool.
  *
  * @param {string} id - Transaction id
@@ -488,7 +480,7 @@ Transactions.prototype.getMergedTransactionList = function(reverse, limit) {
 Transactions.prototype.getTransactions = function(filters, cb) {
 	__private.list(filters, (err, data) => {
 		if (err) {
-			return setImmediate(cb, `Failed to get transactions: ${err}`);
+			return setImmediate(cb, new Error(`Failed to get transactions: ${err}`));
 		}
 		return setImmediate(cb, null, {
 			transactions: data.transactions,
@@ -498,14 +490,19 @@ Transactions.prototype.getTransactions = function(filters, cb) {
 };
 
 /**
- * Removes transaction from unconfirmed, queued and multisignature queues.
- *
- * @param {string} id - Transaction id
- * @returns {function} Calls transactionPool.removeUnconfirmedTransaction
- * @todo Add description for the params
+ * Adds the transactions in the transaction pool which were part of the blockchain but the block got deleted
+ * @param {transactions} transactions
  */
-Transactions.prototype.removeUnconfirmedTransaction = function(id) {
-	return __private.transactionPool.removeUnconfirmedTransaction(id);
+Transactions.prototype.onDeletedTransactions = function(transactions) {
+	__private.transactionPool.onDeletedTransactions(transactions);
+};
+
+/**
+ * Removes the transactions from the transaction pool which were included in block
+ * @param {transactions} transactions
+ */
+Transactions.prototype.onConfirmedTransactions = function(transactions) {
+	__private.transactionPool.onConfirmedTransactions(transactions);
 };
 
 /**
@@ -530,135 +527,6 @@ Transactions.prototype.processUnconfirmedTransaction = function(
 };
 
 /**
- * Undoes unconfirmed list from queue.
- *
- * @param {function} cb - Callback function
- * @returns {function} Calls transactionPool.undoUnconfirmedList
- */
-Transactions.prototype.undoUnconfirmedList = function(cb, tx) {
-	return __private.transactionPool.undoUnconfirmedList(cb, tx);
-};
-
-/**
- * Applies confirmed transaction.
- *
- * @param {transaction} transaction
- * @param {block} block
- * @param {account} sender
- * @param {function} cb - Callback function
- * @todo Add description for the params
- */
-Transactions.prototype.applyConfirmed = function(
-	transaction,
-	block,
-	sender,
-	cb,
-	tx
-) {
-	library.logger.debug('Applying confirmed transaction', transaction.id);
-	library.logic.transaction.applyConfirmed(transaction, block, sender, cb, tx);
-};
-
-/**
- * Undoes confirmed transaction.
- *
- * @param {transaction} transaction
- * @param {block} block
- * @param {account} sender
- * @param {function} cb - Callback function
- * @todo Add description for the params
- */
-Transactions.prototype.undoConfirmed = function(
-	transaction,
-	block,
-	sender,
-	cb,
-	tx
-) {
-	library.logger.debug('Undoing confirmed transaction', transaction.id);
-	library.logic.transaction.undoConfirmed(transaction, block, sender, cb, tx);
-};
-
-/**
- * Gets requester if requesterPublicKey and calls applyUnconfirmed.
- *
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb
- * @todo Add description for the params and the return value
- */
-Transactions.prototype.applyUnconfirmed = function(
-	transaction,
-	sender,
-	cb,
-	tx
-) {
-	library.logger.debug('Applying unconfirmed transaction', transaction.id);
-
-	if (!sender && transaction.blockId !== library.genesisBlock.block.id) {
-		return setImmediate(cb, 'Invalid block id');
-	}
-	if (transaction.requesterPublicKey) {
-		return modules.accounts.getAccount(
-			{ publicKey: transaction.requesterPublicKey },
-			(err, requester) => {
-				if (err) {
-					return setImmediate(cb, err);
-				}
-
-				if (!requester) {
-					return setImmediate(cb, 'Requester not found');
-				}
-
-				return library.logic.transaction.applyUnconfirmed(
-					transaction,
-					sender,
-					requester,
-					cb,
-					tx
-				);
-			},
-			tx
-		);
-	}
-	return library.logic.transaction.applyUnconfirmed(
-		transaction,
-		sender,
-		cb,
-		tx
-	);
-};
-
-/**
- * Validates account and undoes unconfirmed transaction.
- *
- * @param {transaction} transaction
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb
- * @todo Add description for the params and the return value
- */
-Transactions.prototype.undoUnconfirmed = function(transaction, cb, tx) {
-	library.logger.debug('Undoing unconfirmed transaction', transaction.id);
-
-	modules.accounts.getAccount(
-		{ publicKey: transaction.senderPublicKey },
-		(err, sender) => {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-			return library.logic.transaction.undoUnconfirmed(
-				transaction,
-				sender,
-				cb,
-				tx
-			);
-		},
-		tx
-	);
-};
-
-/**
  * Receives transactions.
  *
  * @param {transaction[]} transactions - Array of transactions
@@ -677,17 +545,6 @@ Transactions.prototype.receiveTransactions = function(
 		broadcast,
 		cb
 	);
-};
-
-/**
- * Fills pool.
- *
- * @param {function} cb - Callback function
- * @returns {function} Calls transactionPool.fillPool
- * @todo Add description for the params
- */
-Transactions.prototype.fillPool = function(cb) {
-	return __private.transactionPool.fillPool(cb);
 };
 
 /**
@@ -716,12 +573,9 @@ Transactions.prototype.onBind = function(scope) {
 	};
 
 	__private.transactionPool.bind(
-		scope.modules.accounts,
-		scope.modules.transactions,
+		scope.modules.processTransactions,
 		scope.modules.loader
 	);
-
-	__private.assetTypes[TRANSACTION_TYPES.SEND].bind(scope.modules.accounts);
 };
 
 // Shared API
@@ -794,21 +648,18 @@ Transactions.prototype.shared = {
 				function getAllCount(confirmedTransactionCount, waterCb) {
 					setImmediate(waterCb, null, {
 						confirmed: confirmedTransactionCount,
-						unconfirmed: Object.keys(
-							__private.transactionPool.unconfirmed.index
-						).length,
-						unprocessed: Object.keys(__private.transactionPool.queued.index)
-							.length,
-						unsigned: Object.keys(
-							__private.transactionPool.multisignature.index
-						).length,
+						unconfirmed:
+							__private.transactionPool.getCountByQueue('ready') || 0,
+						unprocessed:
+							__private.transactionPool.getCountByQueue('verified') || 0,
+						unsigned: __private.transactionPool.getCountByQueue('pending') || 0,
 					});
 				},
 			],
 			(err, result) => {
 				if (err) {
 					library.logger.error('Error in getTransactionsCount', err, result);
-					return setImmediate(cb, 'Failed to count transactions');
+					return setImmediate(cb, new Error('Failed to count transactions'));
 				}
 
 				result.total =

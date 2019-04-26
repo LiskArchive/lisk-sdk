@@ -48,7 +48,9 @@ export default class ShowCommand extends BaseCommand {
 	};
 
 	async run(): Promise<void> {
-		const { flags: { passphrase: passphraseSource } } = this.parse(ShowCommand);
+		const {
+			flags: { passphrase: passphraseSource },
+		} = this.parse(ShowCommand);
 		const input = await getInputsFromSources({
 			passphrase: {
 				source: passphraseSource,

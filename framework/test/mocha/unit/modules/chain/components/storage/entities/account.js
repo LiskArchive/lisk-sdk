@@ -31,13 +31,9 @@ const defaultCreateValues = {
 	publicKey: null,
 	secondPublicKey: null,
 	secondSignature: 0,
-	u_secondSignature: 0,
 	username: null,
-	u_username: null,
 	isDelegate: false,
-	u_isDelegate: false,
 	balance: '0',
-	u_balance: '0',
 	missedBlocks: 0,
 	producedBlocks: 0,
 	rank: null,
@@ -45,18 +41,13 @@ const defaultCreateValues = {
 	rewards: '0',
 	vote: '0',
 	nameExist: false,
-	u_nameExist: false,
 	multiMin: 0,
-	u_multiMin: 0,
 	multiLifetime: 0,
-	u_multiLifetime: 0,
 };
 
 const dependentFieldsTableMap = {
 	membersPublicKeys: 'mem_accounts2multisignatures',
-	u_membersPublicKeys: 'mem_accounts2u_multisignatures',
 	votedDelegatesPublicKeys: 'mem_accounts2delegates',
-	u_votedDelegatesPublicKeys: 'mem_accounts2u_delegates',
 };
 
 describe('ChainAccount', () => {
@@ -84,7 +75,6 @@ describe('ChainAccount', () => {
 			'update',
 			'updateOne',
 			'delete',
-			'resetUnconfirmedState',
 			'resetMemTables',
 			'increaseFieldBy',
 			'decreaseFieldBy',
@@ -267,18 +257,9 @@ describe('ChainAccount', () => {
 				fees: '0',
 				rewards: '0',
 				vote: '0',
-				u_username: null,
-				u_isDelegate: false,
-				u_secondSignature: false,
-				u_nameExist: false,
-				u_multiMin: 0,
-				u_multiLifetime: 0,
-				u_balance: '0',
 				productivity: 0,
 				votedDelegatesPublicKeys: null,
-				u_votedDelegatesPublicKeys: null,
 				membersPublicKeys: null,
-				u_membersPublicKeys: null,
 			};
 			expect(accountFromDB).to.be.eql(expectedObject);
 		});
@@ -303,22 +284,17 @@ describe('ChainAccount', () => {
 				foo: 'bar',
 			};
 			// Act & Assert
-			expect(() => {
-				AccountEntity.update(invalidFilter, {});
-			}).to.throw(NonSupportedFilterTypeError);
+			expect(AccountEntity.update(invalidFilter, {})).to.be.rejectedWith(
+				NonSupportedFilterTypeError
+			);
 		});
 
 		it('should throw error for in-valid filters', async () => {
 			const account = new accountFixtures.Account();
 
-			expect(() => {
-				AccountEntity.update(
-					{
-						myAddress: '123',
-					},
-					account
-				);
-			}).to.throw(
+			expect(
+				AccountEntity.update({ myAddress: '123' }, account)
+			).to.be.rejectedWith(
 				NonSupportedFilterTypeError,
 				'One or more filters are not supported.'
 			);
@@ -524,6 +500,34 @@ describe('ChainAccount', () => {
 				});
 			}).not.to.throw();
 		});
+
+		it('should not create mem_accounts2delegates records if property membersPublicKeys is null', async () => {
+			// Arrange
+			const account = new accountFixtures.Account();
+			const address = account.address;
+			await AccountEntity.create(account);
+			// Act
+			await AccountEntity.update({ address }, { balance: 100 });
+			// Assert
+			const relelatedRecords = await AccountEntity.adapter.execute(
+				`SELECT * FROM mem_accounts2multisignatures WHERE "accountId"='${address}'`
+			);
+			expect(relelatedRecords).to.be.eql([]);
+		});
+
+		it('should not create mem_accounts2delegates records if property votedDelegatesPublicKeys is null', async () => {
+			// Arrange
+			const account = new accountFixtures.Account();
+			const address = account.address;
+			await AccountEntity.create(account);
+			// Act
+			await AccountEntity.update({ address }, { balance: 100 });
+			// Assert
+			const relelatedRecords = await AccountEntity.adapter.execute(
+				`SELECT * FROM mem_accounts2delegates WHERE "accountId"='${address}'`
+			);
+			expect(relelatedRecords).to.be.eql([]);
+		});
 	});
 
 	describe('upsert', () => {
@@ -567,7 +571,6 @@ describe('ChainAccount', () => {
 
 			// Since DB trigger protects from updating username only if it was null before
 			delete account1.username;
-			delete account1.u_username;
 
 			await AccountEntity.create(account1);
 			await AccountEntity.upsert(filters, {
@@ -911,129 +914,6 @@ describe('ChainAccount', () => {
 		);
 	});
 
-	describe('resetUnconfirmedState()', () => {
-		it('should use the correct SQL to fetch the count', async () => {
-			sinonSandbox.spy(adapter, 'executeFile');
-			await AccountEntity.resetUnconfirmedState();
-
-			return expect(adapter.executeFile.firstCall.args[0]).to.eql(
-				SQLs.resetUnconfirmedState
-			);
-		});
-
-		it('should pass no params to the SQL file', async () => {
-			sinonSandbox.spy(adapter, 'executeFile');
-			await AccountEntity.resetUnconfirmedState();
-
-			return expect(adapter.executeFile.args[1]).to.eql(undefined);
-		});
-
-		it('should execute only one query', async () => {
-			sinonSandbox.spy(adapter, 'executeFile');
-			await AccountEntity.resetUnconfirmedState();
-
-			expect(adapter.executeFile.calledOnce).to.be.true;
-		});
-
-		it('should throw error if something wrong in the SQL execution', async () => {
-			sinonSandbox.stub(adapter, 'executeFile').rejects();
-
-			expect(AccountEntity.resetUnconfirmedState()).to.be.rejected;
-		});
-
-		it('should update all accounts which have different unconfirmed state for u_isDelegate', async () => {
-			await adapter.execute(
-				'UPDATE mem_accounts SET "isDelegate" = 1, "u_isDelegate" = 0'
-			);
-			await AccountEntity.resetUnconfirmedState();
-			const result = await adapter.execute(
-				'SELECT count(*) FROM mem_accounts WHERE "isDelegate" <> "u_isDelegate"'
-			);
-			expect(result[0].count).to.be.equal('0');
-		});
-
-		it('should update all accounts which have different unconfirmed state for u_secondSignature', async () => {
-			await adapter.execute(
-				'UPDATE mem_accounts SET "secondSignature" = 1, "u_secondSignature" = 0'
-			);
-			await AccountEntity.resetUnconfirmedState();
-			const result = await adapter.execute(
-				'SELECT count(*) FROM mem_accounts WHERE "secondSignature" <> "u_secondSignature"'
-			);
-
-			expect(result[0].count).to.be.equal('0');
-		});
-
-		it('should update all accounts which have different unconfirmed state for u_username', async () => {
-			await AccountEntity.resetUnconfirmedState();
-			const result = await adapter.execute(
-				'SELECT count(*) FROM mem_accounts WHERE "username" <> "u_username"'
-			);
-
-			return expect(result[0].count).to.be.equal('0');
-		});
-
-		it('should update all accounts which have different unconfirmed state for u_balance', async () => {
-			await adapter.execute(
-				'UPDATE mem_accounts SET "balance" = 123, "u_balance" = 124'
-			);
-			await AccountEntity.resetUnconfirmedState();
-			const result = await adapter.execute(
-				'SELECT count(*) FROM mem_accounts WHERE "balance" <> "u_balance"'
-			);
-
-			expect(result[0].count).to.be.equal('0');
-		});
-
-		it('should update all accounts which have different unconfirmed state for u_delegates', async () => {
-			await adapter.execute(
-				'UPDATE mem_accounts SET "delegates" = \'Alpha\', "u_delegates" = \'Beta\' '
-			);
-			await AccountEntity.resetUnconfirmedState();
-			const result = await adapter.execute(
-				'SELECT count(*) FROM mem_accounts WHERE "delegates" <> "u_delegates"'
-			);
-
-			expect(result[0].count).to.be.equal('0');
-		});
-
-		it('should update all accounts which have different unconfirmed state for u_multisignatures', async () => {
-			await adapter.execute(
-				'UPDATE mem_accounts SET "multisignatures" = \'Alpha\', "u_multisignatures" = \'Beta\' '
-			);
-			await AccountEntity.resetUnconfirmedState();
-			const result = await adapter.execute(
-				'SELECT count(*) FROM mem_accounts WHERE "multisignatures" <> "u_multisignatures"'
-			);
-
-			expect(result[0].count).to.be.equal('0');
-		});
-
-		it('should update all accounts which have different unconfirmed state for u_multimin', async () => {
-			await adapter.execute(
-				'UPDATE mem_accounts SET "multimin" = 1, "u_multimin" = 0'
-			);
-			await AccountEntity.resetUnconfirmedState();
-			const result = await adapter.execute(
-				'SELECT count(*) FROM mem_accounts WHERE "multimin" <> "u_multimin"'
-			);
-
-			expect(result[0].count).to.be.equal('0');
-		});
-
-		it('should update all db.accounts which have different unconfirmed state for u_multilifetime', async () => {
-			await adapter.execute(
-				'UPDATE mem_accounts SET "multilifetime" = 1, "u_multilifetime" = 0'
-			);
-			await AccountEntity.resetUnconfirmedState();
-			const result = await adapter.execute(
-				'SELECT count(*) FROM mem_accounts WHERE "multilifetime" <> "u_multilifetime"'
-			);
-
-			expect(result[0].count).to.be.equal('0');
-		});
-	});
-
 	describe('resetMemTables()', () => {
 		it('should use the correct SQL', async () => {
 			sinonSandbox.spy(adapter, 'executeFile');
@@ -1070,26 +950,10 @@ describe('ChainAccount', () => {
 			expect(result[0].count).to.equal(0);
 		});
 
-		it('should empty the table "mem_accounts2u_delegates"', async () => {
-			await AccountEntity.resetMemTables();
-			const result = await adapter.execute(
-				'SELECT COUNT(*)::int AS count FROM mem_accounts2u_delegates'
-			);
-			expect(result[0].count).to.equal(0);
-		});
-
 		it('should empty the table "mem_accounts2multisignatures"', async () => {
 			await AccountEntity.resetMemTables();
 			const result = await adapter.execute(
 				'SELECT COUNT(*)::int AS count FROM mem_accounts2multisignatures'
-			);
-			expect(result[0].count).to.equal(0);
-		});
-
-		it('should empty the table "mem_accounts2u_multisignatures"', async () => {
-			await AccountEntity.resetMemTables();
-			const result = await adapter.execute(
-				'SELECT COUNT(*)::int AS count FROM mem_accounts2u_multisignatures'
 			);
 			expect(result[0].count).to.equal(0);
 		});
@@ -1260,67 +1124,64 @@ describe('ChainAccount', () => {
 			).to.throw('Invalid dependency name "unknown" provided.');
 		});
 
-		[
-			'votedDelegatesPublicKeys',
-			'u_votedDelegatesPublicKeys',
-			'membersPublicKeys',
-			'u_membersPublicKeys',
-		].forEach(dependentTable => {
-			describe(`${dependentTable}`, () => {
-				it(`should use executeFile with correct parameters for ${dependentTable}`, async () => {
-					const accounts = await AccountEntity.get(
-						{},
-						{
-							limit: 2,
-						}
-					);
+		['votedDelegatesPublicKeys', 'membersPublicKeys'].forEach(
+			dependentTable => {
+				describe(`${dependentTable}`, () => {
+					it(`should use executeFile with correct parameters for ${dependentTable}`, async () => {
+						const accounts = await AccountEntity.get(
+							{},
+							{
+								limit: 2,
+							}
+						);
 
-					sinonSandbox.spy(adapter, 'executeFile');
-					await AccountEntity.createDependentRecord(
-						dependentTable,
-						accounts[0].address,
-						accounts[1].publicKey
-					);
+						sinonSandbox.spy(adapter, 'executeFile');
+						await AccountEntity.createDependentRecord(
+							dependentTable,
+							accounts[0].address,
+							accounts[1].publicKey
+						);
 
-					return expect(adapter.executeFile).to.be.calledWith(
-						SQLs.createDependentRecord,
-						{
-							tableName: dependentFieldsTableMap[dependentTable],
-							accountId: accounts[0].address,
-							dependentId: accounts[1].publicKey,
-						},
-						{
-							expectedResultCount: 0,
-						}
-					);
+						return expect(adapter.executeFile).to.be.calledWith(
+							SQLs.createDependentRecord,
+							{
+								tableName: dependentFieldsTableMap[dependentTable],
+								accountId: accounts[0].address,
+								dependentId: accounts[1].publicKey,
+							},
+							{
+								expectedResultCount: 0,
+							}
+						);
+					});
+
+					it(`should insert dependent account from ${dependentTable}`, async () => {
+						const accounts = await AccountEntity.get(
+							{},
+							{
+								limit: 2,
+							}
+						);
+
+						const before = await adapter.execute(
+							`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
+						);
+
+						await AccountEntity.createDependentRecord(
+							dependentTable,
+							accounts[0].address,
+							accounts[1].publicKey
+						);
+						const after = await adapter.execute(
+							`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
+						);
+
+						expect(before[0].count).to.eql('0');
+						expect(after[0].count).to.eql('1');
+					});
 				});
-
-				it(`should insert dependent account from ${dependentTable}`, async () => {
-					const accounts = await AccountEntity.get(
-						{},
-						{
-							limit: 2,
-						}
-					);
-
-					const before = await adapter.execute(
-						`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
-					);
-
-					await AccountEntity.createDependentRecord(
-						dependentTable,
-						accounts[0].address,
-						accounts[1].publicKey
-					);
-					const after = await adapter.execute(
-						`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
-					);
-
-					expect(before[0].count).to.eql('0');
-					expect(after[0].count).to.eql('1');
-				});
-			});
-		});
+			}
+		);
 	});
 
 	describe('deleteDependentRecord()', () => {
@@ -1330,45 +1191,42 @@ describe('ChainAccount', () => {
 			).to.throw('Invalid dependency name "unknown" provided.');
 		});
 
-		[
-			'votedDelegatesPublicKeys',
-			'u_votedDelegatesPublicKeys',
-			'membersPublicKeys',
-			'u_membersPublicKeys',
-		].forEach(dependentTable => {
-			it(`should remove dependent account from ${dependentTable}`, async () => {
-				const accounts = await AccountEntity.get(
-					{},
-					{
-						limit: 2,
-					}
-				);
+		['votedDelegatesPublicKeys', 'membersPublicKeys'].forEach(
+			dependentTable => {
+				it(`should remove dependent account from ${dependentTable}`, async () => {
+					const accounts = await AccountEntity.get(
+						{},
+						{
+							limit: 2,
+						}
+					);
 
-				await adapter.execute(
-					`INSERT INTO ${
-						dependentFieldsTableMap[dependentTable]
-					} ("accountId", "dependentId") VALUES('${accounts[0].address}', '${
+					await adapter.execute(
+						`INSERT INTO ${
+							dependentFieldsTableMap[dependentTable]
+						} ("accountId", "dependentId") VALUES('${accounts[0].address}', '${
+							accounts[1].publicKey
+						}')`
+					);
+
+					const before = await adapter.execute(
+						`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
+					);
+
+					await AccountEntity.deleteDependentRecord(
+						dependentTable,
+						accounts[0].address,
 						accounts[1].publicKey
-					}')`
-				);
+					);
+					const after = await adapter.execute(
+						`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
+					);
 
-				const before = await adapter.execute(
-					`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
-				);
-
-				await AccountEntity.deleteDependentRecord(
-					dependentTable,
-					accounts[0].address,
-					accounts[1].publicKey
-				);
-				const after = await adapter.execute(
-					`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
-				);
-
-				expect(before[0].count).to.eql('1');
-				expect(after[0].count).to.eql('0');
-			});
-		});
+					expect(before[0].count).to.eql('1');
+					expect(after[0].count).to.eql('0');
+				});
+			}
+		);
 	});
 
 	describe('syncDelegatesRanks', () => {
@@ -1443,6 +1301,213 @@ describe('ChainAccount', () => {
 				expect(AccountEntity.insertFork(params)).to.be.eventually.rejectedWith(
 					`Property '${attr}' doesn't exist.`
 				));
+		});
+	});
+
+	describe('updateDependentRecords', () => {
+		it('should update mem_accounts2multisignatures if membersPublicKeys present', async () => {
+			// Arrange
+			const account = new accountFixtures.Account();
+			await AccountEntity.create(account);
+			const savedAccount = await AccountEntity.getOne({
+				address: account.address,
+			});
+			savedAccount.membersPublicKeys = ['1234L', '9876L'];
+			const expectedRelatedRecords = [
+				{ accountId: account.address, dependentId: '1234L' },
+				{ accountId: account.address, dependentId: '9876L' },
+			];
+			// Act
+			await AccountEntity.update(
+				{ address: savedAccount.address },
+				savedAccount
+			);
+			// Assert
+			const mulitsigDependentRecords = await AccountEntity.adapter.execute(
+				`SELECT * FROM mem_accounts2multisignatures WHERE "accountId"='${
+					savedAccount.address
+				}'`
+			);
+			expect(expectedRelatedRecords).to.be.eql(mulitsigDependentRecords);
+		});
+
+		it('should update mem_accounts2multisignatures with new keys if membersPublicKeys present', async () => {
+			// Arrange
+			const account = new accountFixtures.Account();
+			await AccountEntity.create(account);
+			const savedAccount = await AccountEntity.getOne({
+				address: account.address,
+			});
+			savedAccount.membersPublicKeys = ['1234L', '9876L'];
+			const expectedRelatedRecords = [
+				{ accountId: account.address, dependentId: '1234L' },
+				{ accountId: account.address, dependentId: '9876L' },
+			];
+			await AccountEntity.update(
+				{ address: savedAccount.address },
+				savedAccount
+			);
+			const mulitsigDependentRecords = await AccountEntity.adapter.execute(
+				`SELECT * FROM mem_accounts2multisignatures WHERE "accountId"='${
+					savedAccount.address
+				}'`
+			);
+			expect(expectedRelatedRecords).to.be.eql(mulitsigDependentRecords);
+
+			savedAccount.membersPublicKeys = ['999L', '888L'];
+			const newExpectedRelatedRecords = [
+				{ accountId: account.address, dependentId: '999L' },
+				{ accountId: account.address, dependentId: '888L' },
+			];
+
+			// Act
+			await AccountEntity.update(
+				{ address: savedAccount.address },
+				savedAccount
+			);
+			const newMulitsigDependentRecords = await AccountEntity.adapter.execute(
+				`SELECT * FROM mem_accounts2multisignatures WHERE "accountId"='${
+					savedAccount.address
+				}'`
+			);
+			// Assert
+			expect(newExpectedRelatedRecords).to.be.eql(newMulitsigDependentRecords);
+		});
+
+		it('should update mem_accounts2delegates if votedDelegatesPublicKeys present', async () => {
+			// Arrange
+			const account = new accountFixtures.Account();
+			await AccountEntity.create(account);
+			const savedAccount = await AccountEntity.getOne({
+				address: account.address,
+			});
+			savedAccount.votedDelegatesPublicKeys = ['1234L', '9876L'];
+			const expectedRelatedRecords = [
+				{ accountId: account.address, dependentId: '1234L' },
+				{ accountId: account.address, dependentId: '9876L' },
+			];
+			// Act
+			await AccountEntity.update(
+				{ address: savedAccount.address },
+				savedAccount
+			);
+			// Assert
+			const votedDelegatesPublicKeysDependentRecords = await AccountEntity.adapter.execute(
+				`SELECT * FROM mem_accounts2delegates WHERE "accountId"='${
+					savedAccount.address
+				}'`
+			);
+			expect(expectedRelatedRecords).to.be.eql(
+				votedDelegatesPublicKeysDependentRecords
+			);
+		});
+
+		it('should update mem_accounts2delegates with new votes if votedDelegatesPublicKeys present', async () => {
+			// Arrange
+			const account = new accountFixtures.Account();
+			await AccountEntity.create(account);
+			const savedAccount = await AccountEntity.getOne({
+				address: account.address,
+			});
+			savedAccount.votedDelegatesPublicKeys = ['1234L', '9876L'];
+			const expectedRelatedRecords = [
+				{ accountId: account.address, dependentId: '1234L' },
+				{ accountId: account.address, dependentId: '9876L' },
+			];
+			// Act
+			await AccountEntity.update(
+				{ address: savedAccount.address },
+				savedAccount
+			);
+			// Assert
+			const votedDelegatesPublicKeysDependentRecords = await AccountEntity.adapter.execute(
+				`SELECT * FROM mem_accounts2delegates WHERE "accountId"='${
+					savedAccount.address
+				}'`
+			);
+			expect(expectedRelatedRecords).to.be.eql(
+				votedDelegatesPublicKeysDependentRecords
+			);
+
+			savedAccount.votedDelegatesPublicKeys = ['42L', '43L', '63L'];
+			const newExpectedRelatedRecords = [
+				{ accountId: account.address, dependentId: '42L' },
+				{ accountId: account.address, dependentId: '43L' },
+				{ accountId: account.address, dependentId: '63L' },
+			];
+			// Act
+			await AccountEntity.update(
+				{ address: savedAccount.address },
+				savedAccount
+			);
+			// Assert
+			const newVotedDelegatesPublicKeysDependentRecords = await AccountEntity.adapter.execute(
+				`SELECT * FROM mem_accounts2delegates WHERE "accountId"='${
+					savedAccount.address
+				}'`
+			);
+			expect(newExpectedRelatedRecords).to.be.eql(
+				newVotedDelegatesPublicKeysDependentRecords
+			);
+		});
+
+		it('should handle empty dependent data correctly for votedDelegatesPublicKeys', async () => {
+			// Arrange
+			const account = new accountFixtures.Account();
+			await AccountEntity.create(account);
+			const savedAccount = await AccountEntity.getOne({
+				address: account.address,
+			});
+			savedAccount.votedDelegatesPublicKeys = [];
+			// Act & Assert
+			expect(() =>
+				AccountEntity.update({ address: savedAccount.address }, savedAccount)
+			).not.to.throw();
+		});
+
+		it('should clear votes when votedDelegatesPublicKeys is an empty array', async () => {
+			// Arrange
+			const account = new accountFixtures.Account();
+			await AccountEntity.create(account);
+			const savedAccount = await AccountEntity.getOne({
+				address: account.address,
+			});
+			savedAccount.votedDelegatesPublicKeys = ['1234L', '9876L'];
+			const expectedRelatedRecords = [
+				{ accountId: account.address, dependentId: '1234L' },
+				{ accountId: account.address, dependentId: '9876L' },
+			];
+			// Act
+			await AccountEntity.update(
+				{ address: savedAccount.address },
+				savedAccount
+			);
+			// Assert
+			const votedDelegatesPublicKeysDependentRecords = await AccountEntity.adapter.execute(
+				`SELECT * FROM mem_accounts2delegates WHERE "accountId"='${
+					savedAccount.address
+				}'`
+			);
+			expect(expectedRelatedRecords).to.be.eql(
+				votedDelegatesPublicKeysDependentRecords
+			);
+
+			savedAccount.votedDelegatesPublicKeys = [];
+			const newExpectedRelatedRecords = [];
+			// Act
+			await AccountEntity.update(
+				{ address: savedAccount.address },
+				savedAccount
+			);
+			// Assert
+			const newVotedDelegatesPublicKeysDependentRecords = await AccountEntity.adapter.execute(
+				`SELECT * FROM mem_accounts2delegates WHERE "accountId"='${
+					savedAccount.address
+				}'`
+			);
+			expect(newExpectedRelatedRecords).to.be.eql(
+				newVotedDelegatesPublicKeysDependentRecords
+			);
 		});
 	});
 });

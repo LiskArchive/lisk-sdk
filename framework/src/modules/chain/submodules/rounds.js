@@ -121,12 +121,11 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done, tx) {
 			.then(() => (scope.finishRound ? newRound.backwardLand() : newRound));
 	}
 
+	// Start round ticking
+	__private.ticking = true;
 	async.series(
 		[
 			function(cb) {
-				// Start round ticking
-				__private.ticking = true;
-
 				// Sum round if finishing round
 				if (scope.finishRound) {
 					return __private.sumRound(scope, cb, tx);
@@ -245,12 +244,11 @@ Rounds.prototype.tick = function(block, done, tx) {
 			});
 	}
 
+	// Start round ticking
+	__private.ticking = true;
 	async.series(
 		[
 			function(cb) {
-				// Start round ticking
-				__private.ticking = true;
-
 				// Sum round if finishing round
 				if (scope.finishRound) {
 					return __private.sumRound(scope, cb, tx);

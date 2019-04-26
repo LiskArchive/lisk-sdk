@@ -49,6 +49,9 @@ configurator.loadConfig(appConfig);
 
 const { NETWORK, CUSTOM_CONFIG_FILE } = configurator.getConfig();
 
+// Variable is used to identify different networks on NewRelic
+process.env.LISK_NETWORK = NETWORK;
+
 configurator.loadConfigFile(
 	path.resolve(__dirname, `../../config/${NETWORK}/config`)
 );

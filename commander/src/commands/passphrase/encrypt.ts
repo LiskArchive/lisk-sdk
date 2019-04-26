@@ -50,7 +50,7 @@ const processInputs = (outputPublicKey: boolean) => ({
 		? {
 				encryptedPassphrase,
 				publicKey: getKeys(passphrase).publicKey,
-			}
+		  }
 		: { encryptedPassphrase };
 };
 

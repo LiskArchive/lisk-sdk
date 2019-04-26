@@ -16,6 +16,7 @@
 
 // Init tests dependencies
 const rewire = require('rewire');
+
 // Instantiate test subject
 const Rounds = rewire('../../../../../../src/modules/chain/submodules/rounds');
 const Round = rewire('../../../../../../src/modules/chain/logic/round'); // eslint-disable-line no-unused-vars
@@ -59,6 +60,9 @@ describe('rounds', () => {
 			performRoundSnapshot: sinon.stub(),
 			clearVotesSnapshot: sinon.stub(),
 			performVotesSnapshot: sinon.stub(),
+		},
+		Transaction: {
+			getOne: sinon.stub(),
 		},
 	};
 
@@ -846,6 +850,7 @@ describe('rounds', () => {
 		const backwardLand_stub = sinon.stub().resolves();
 		const sumRound_stub = sinon.stub().callsArg(1);
 		const getOutsiders_stub = sinon.stub().callsArg(1);
+		const updateRoundInformationForTransactionsStub = sinon.stub().callsArg(4);
 
 		beforeEach(async () => {
 			// Init fake round logic
@@ -859,6 +864,10 @@ describe('rounds', () => {
 			// Set more stubs
 			set('__private.sumRound', sumRound_stub);
 			set('__private.getOutsiders', getOutsiders_stub);
+			set(
+				'__private.updateRoundInformationForTransactions',
+				updateRoundInformationForTransactionsStub
+			);
 		});
 
 		afterEach(async () => {

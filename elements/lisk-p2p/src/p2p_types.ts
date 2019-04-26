@@ -118,14 +118,14 @@ export type P2PPeerSelectionForSend = (
 	peers: ReadonlyArray<P2PDiscoveredPeerInfo>,
 	nodeInfo?: P2PNodeInfo,
 	numOfPeers?: number,
-	messagePacket?: P2PMessagePacket
+	messagePacket?: P2PMessagePacket,
 ) => ReadonlyArray<P2PDiscoveredPeerInfo>;
 
 export type P2PPeerSelectionForRequest = (
 	peers: ReadonlyArray<P2PDiscoveredPeerInfo>,
 	nodeInfo?: P2PNodeInfo,
 	numOfPeers?: number,
-	requestPacket?: P2PRequestPacket
+	requestPacket?: P2PRequestPacket,
 ) => ReadonlyArray<P2PDiscoveredPeerInfo>;
 
 export type P2PPeerSelectionForConnection = (
