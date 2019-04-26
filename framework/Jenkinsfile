@@ -1,26 +1,28 @@
 @Library('lisk-jenkins') _
 
-def setup() {
+def setup(start_application=false) {
 	cleanWs()
 	unstash 'build'
-	nvm(getNodejsVersion()) {
-		dir('framework') {
-			sh '''
-			# teardown_*() should have killed all node processes but we want to be sure
-			# this shouldn't hurt assuming the 'lisk-core' jenkins nodes have 1 executor
-			killall --verbose --wait node || true
-			dropdb --if-exists lisk_dev
-			createdb lisk_dev
-			NODE_ENV=test LISK_CONSOLE_LOG_LEVEL=debug NEWRELIC_LICENSE_KEY= node test/test_app >.app.log 2>&1 &
-			'''
+	if(start_application) {
+		nvm(getNodejsVersion()) {
+			dir('framework') {
+				sh '''
+				# teardown_*() should have killed all node processes but we want to be sure
+				# this shouldn't hurt assuming the 'lisk-core' jenkins nodes have 1 executor
+				killall --verbose --wait node || true
+				dropdb --if-exists lisk_dev
+				createdb lisk_dev
+				NODE_ENV=test LISK_CONSOLE_LOG_LEVEL=debug NEWRELIC_LICENSE_KEY= node test/test_app >.app.log 2>&1 &
+				'''
+			}
 		}
-	}
-	// wait for the Core API to be reachable
-	timeout(1) {
-		waitUntil {
-			script {
-				def api_available = sh script: 'curl http://localhost:4000/api/node/constants >/dev/null', returnStatus: true
-				return (api_available == 0)
+		// wait for the Core API to be reachable
+		timeout(1) {
+			waitUntil {
+				script {
+					def api_available = sh script: 'curl http://localhost:4000/api/node/constants >/dev/null', returnStatus: true
+					return (api_available == 0)
+				}
 			}
 		}
 	}
@@ -160,7 +162,7 @@ pipeline {
 				stage('Jest Functional tests') {
 					agent { node { label 'lisk-framework' }}
 					steps {
-						setup()
+						setup(true)
 						run_jest('functional')
 					}
 					post {
@@ -200,7 +202,7 @@ pipeline {
 				stage('Functional HTTP GET tests') {
 					agent { node { label 'lisk-framework' }}
 					steps {
-						setup()
+						setup(true)
 						run_mocha('functional:get')
 					}
 					post {
@@ -212,7 +214,7 @@ pipeline {
 				stage('Functional HTTP POST tests') {
 					agent { node { label 'lisk-framework' }}
 					steps {
-						setup()
+						setup(true)
 						run_mocha('functional:post')
 					}
 					post {
@@ -224,7 +226,7 @@ pipeline {
 				stage('Functional HTTP PUT tests') {
 					agent { node { label 'lisk-framework' }}
 					steps {
-						setup()
+						setup(true)
 						run_mocha('functional:put')
 					}
 					post {
@@ -236,7 +238,7 @@ pipeline {
 				stage ('Functional WS tests') {
 					agent { node { label 'lisk-framework' }}
 					steps {
-						setup()
+						setup(true)
 						run_mocha('functional:ws')
 					}
 					post {
