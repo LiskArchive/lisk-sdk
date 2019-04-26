@@ -25,7 +25,7 @@ const randomUtil = require('../../../common/utils/random');
 
 const { NORMALIZER } = global.constants;
 // eslint-disable-next-line
-describe.skip('[feature/improve_transactions_processing_efficiency] integration test (type 1) - second signature transactions from pool and peer', () => {
+describe('integration test (type 1) - second signature transactions from pool and peer', () => {
 	let library;
 	let storage;
 
