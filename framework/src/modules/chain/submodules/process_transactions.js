@@ -84,6 +84,12 @@ class ProcessTransactions {
 
 	// eslint-disable-next-line class-methods-use-this
 	async checkPersistedTransactions(transactions) {
+		const responseObject = {
+			transactionsResponses: [],
+		};
+
+		if (transactions.length < 1) return responseObject;
+
 		const confirmedTransactions = await library.storage.entities.Transaction.get(
 			{
 				id_in: transactions.map(transaction => transaction.id),
@@ -119,6 +125,7 @@ class ProcessTransactions {
 		];
 
 		return {
+			...responseObject,
 			transactionsResponses,
 		};
 	}
