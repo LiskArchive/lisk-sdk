@@ -422,6 +422,9 @@ signatures: [
 	'5384302058030309746', // 869890
 	'9352922026980330230', // 925165
 ],
+// For cases where block contains second signature transaction as well as other transactions
+// from the same account without including signSignature for other transactions.
+signSignature: ['7708475706877354541', '8340539534878295232'],
 // transfer transaction with null byte in the data field
 // SELECT * FROM transfer WHERE position('\x00' in data) > 0;
 transactionWithNullByte: ['11815860355204320743'], // 7292474
@@ -576,6 +579,8 @@ precedent: {
 blockVersions: {
 	0: { start: 1, end: 5932033 },
 },
+// For round vote exceptions, we do not update the votes for the delegates included in the transaction
+roundVotes: ['17197328760149985951'],
 duplicatedSignatures: {
 	'15181013796707110990': [
 		'2ec5bbc4ff552f991262867cd8f1c30a417e4596e8343d882b7c4fc86288b9e53592031f3de75ffe8cf4d431a7291b76c758999bb52f46a4da62a27c8901b60a',

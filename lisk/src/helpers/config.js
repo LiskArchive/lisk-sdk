@@ -55,10 +55,6 @@ process.env.LISK_NETWORK = NETWORK;
 configurator.loadConfigFile(
 	path.resolve(__dirname, `../../config/${NETWORK}/config`)
 );
-configurator.loadConfigFile(
-	path.resolve(__dirname, `../../config/${NETWORK}/exceptions`),
-	'modules.chain.exceptions'
-);
 
 if (CUSTOM_CONFIG_FILE) {
 	configurator.loadConfigFile(path.resolve(CUSTOM_CONFIG_FILE));
