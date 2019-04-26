@@ -262,18 +262,17 @@ export default class InstallCommand extends BaseCommand {
 										liskTarSHA256Url,
 										version,
 									);
-
-									return;
+								} else {
+									await Promise.all([
+										downloadLiskAndValidate(
+											cacheDir,
+											liskTarUrl,
+											liskTarSHA256Url,
+											version,
+										),
+										download(snapshotURL, snapshotPath),
+									]);
 								}
-								await Promise.all([
-									downloadLiskAndValidate(
-										cacheDir,
-										liskTarUrl,
-										liskTarSHA256Url,
-										version,
-									),
-									download(snapshotURL, snapshotPath),
-								]);
 							},
 						},
 						{

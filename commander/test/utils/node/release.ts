@@ -20,11 +20,11 @@ describe('release node utils', () => {
 	});
 
 	describe('#getReleaseInfo', () => {
-		it('should get latest version', async () => {
+		it('should get release information for default url', async () => {
 			const releaseInfo = await getReleaseInfo(
-				'latestUrl',
-				'releaseUrl',
+				'https://downloads.lisk.io/lisk',
 				NETWORK.MAINNET,
+				'2.0.0',
 			);
 			expect(releaseInfo).to.have.keys([
 				'version',
@@ -32,6 +32,18 @@ describe('release node utils', () => {
 				'liskTarSHA256Url',
 			]);
 			return expect(releaseInfo.version).to.equal(data);
+		});
+
+		it('should get release information from custom url', async () => {
+			const releaseInfo = await getReleaseInfo(
+				'https://downloads.lisk.io/lisk/testnet/1.6.0-rc.4/lisk-1.6.0-rc.4-Darwin-x86_64.tar.gz',
+			);
+			expect(releaseInfo).to.have.keys([
+				'version',
+				'liskTarUrl',
+				'liskTarSHA256Url',
+			]);
+			return expect(releaseInfo.version).to.equal('1.6.0-rc.4');
 		});
 	});
 });

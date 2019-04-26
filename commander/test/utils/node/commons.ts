@@ -27,7 +27,7 @@ import { defaultInstallationPath } from '../../../src/utils/node/config';
 import * as release from '../../../src/utils/node/release';
 import * as workerProcess from '../../../src/utils/worker-process';
 
-describe.only('commons node utils', () => {
+describe('commons node utils', () => {
 	describe('#liskInstall', () => {
 		it('should return resolved home directory', () => {
 			return expect(liskInstall('~/.lisk')).to.equal(`${os.homedir}/.lisk`);

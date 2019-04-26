@@ -49,11 +49,12 @@ export default class ListCommand extends BaseCommand {
 			.filter(app => app.network);
 
 		if (!instances.length) {
-			return this.log(
+			this.log(
 				'Lisk Core instances not available, use lisk node:install --help',
 			);
+		} else {
+			// tslint:disable-next-line:no-console
+			console.table(instances);
 		}
-		// tslint:disable-next-line:no-console
-		console.table(instances);
 	}
 }

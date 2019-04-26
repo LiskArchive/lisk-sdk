@@ -31,8 +31,8 @@ export interface ReleaseInfo {
 
 export const getReleaseInfo = async (
 	releaseUrl: string,
-	network: NETWORK,
-	version: string,
+	network?: NETWORK,
+	installVersion?: string,
 ): Promise<ReleaseInfo> => {
 	if (releaseUrl.search('.tar.gz') >= 0) {
 		return {
@@ -42,9 +42,12 @@ export const getReleaseInfo = async (
 		};
 	}
 
-	const urlPath = `${releaseUrl}/${network}/${version}`;
-	const liskTarUrl = `${urlPath}/${liskTar(version)}`;
-	const liskTarSHA256Url = `${urlPath}/${liskTarSHA256(version)}`;
+	const version = (installVersion as unknown) as string;
+	const urlPath = `${releaseUrl}/${network}/${(version as unknown) as string}`;
+	const liskTarUrl = `${urlPath}/${liskTar((version as unknown) as string)}`;
+	const liskTarSHA256Url = `${urlPath}/${liskTarSHA256(
+		(version as unknown) as string,
+	)}`;
 
 	return { version, liskTarUrl, liskTarSHA256Url };
 };
