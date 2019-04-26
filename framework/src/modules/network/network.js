@@ -82,23 +82,23 @@ module.exports = class Network {
 			...nodeInfo,
 			state: 2, // TODO: Delete state property
 			nonce: moduleNonce,
-			wsPort: this.options.default.wsPort,
+			wsPort: this.options.wsPort,
 		});
 
 		const initialNodeInfo = sanitizeNodeInfo(
 			await this.channel.invoke('app:getApplicationState')
 		);
 
-		const seedPeers = await lookupPeersIPs(this.options.default.list, true);
-		const blacklistedPeers = this.options.default.access.blackList
-			? this.options.default.access.blackList.map(peer => ({
+		const seedPeers = await lookupPeersIPs(this.options.list, true);
+		const blacklistedPeers = this.options.access.blackList
+			? this.options.access.blackList.map(peer => ({
 					ipAddress: peer.ip,
 					wsPort: peer.wsPort,
 			  }))
 			: [];
 		const p2pConfig = {
 			nodeInfo: initialNodeInfo,
-			hostAddress: this.options.default.address,
+			hostAddress: this.options.address,
 			blacklistedPeers,
 			seedPeers: seedPeers.map(peer => ({
 				ipAddress: peer.ip,
