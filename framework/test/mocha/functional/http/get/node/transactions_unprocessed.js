@@ -27,6 +27,7 @@ const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('GET /api/node', () => {
 	describe('/transactions', () => {
+		// eslint-disable-next-line
 		describe('/unprocessed', () => {
 			const UnProcessedEndpoint = new SwaggerEndpoint(
 				'GET /node/transactions/{state}'

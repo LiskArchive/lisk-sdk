@@ -80,7 +80,7 @@ export default class SignCommand extends BaseCommand {
 				? undefined
 				: {
 						source: messageSource,
-					},
+				  },
 		});
 		const result = processInputs(message)(inputs);
 		this.print(result);

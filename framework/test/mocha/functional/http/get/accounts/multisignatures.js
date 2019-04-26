@@ -72,7 +72,7 @@ describe('GET /api/accounts', () => {
 		);
 
 		describe('address', () => {
-			it('using known address should respond with its multisignature_group', async () => {
+			it('it should respond with its multisignature group when using known address', async () => {
 				return multisigGroupsEndpoint
 					.makeRequest({ address: account.address }, 200)
 					.then(res => {
@@ -139,7 +139,6 @@ describe('GET /api/accounts', () => {
 						expect(res.body.data).to.have.length(0);
 					});
 			});
-
 			it('using known member address should respond with its multisignature memberships', async () => {
 				return multisigMembersEndpoint
 					.makeRequest({ address: scenario.members[0].address }, 200)
@@ -154,7 +153,6 @@ describe('GET /api/accounts', () => {
 						);
 					});
 			});
-
 			it('using known other member address should respond with its multisignature memberships', async () => {
 				return multisigMembersEndpoint
 					.makeRequest({ address: scenario.members[1].address }, 200)

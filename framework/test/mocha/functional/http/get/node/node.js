@@ -109,7 +109,7 @@ describe('GET /node', () => {
 
 	describe('/status', () => {
 		const ndoeStatusEndpoint = new SwaggerEndpoint('GET /node/status 200');
-
+		// eslint-disable-next-line
 		it('should return node status', async () => {
 			return ndoeStatusEndpoint.makeRequest();
 		});

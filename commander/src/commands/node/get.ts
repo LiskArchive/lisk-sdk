@@ -30,9 +30,9 @@ export default class GetCommand extends BaseCommand {
 	};
 
 	async run(): Promise<void> {
-		const { flags: { 'forging-status': showForgingStatus } } = this.parse(
-			GetCommand,
-		);
+		const {
+			flags: { 'forging-status': showForgingStatus },
+		} = this.parse(GetCommand);
 		const client = getAPIClient(this.userConfig.api);
 		const baseInfo = await Promise.all([
 			client.node.getConstants(),

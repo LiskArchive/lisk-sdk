@@ -17,8 +17,17 @@
 const rewire = require('rewire');
 const chai = require('chai');
 const randomstring = require('randomstring');
+const { transfer, TransactionError } = require('@liskhq/lisk-transactions');
+
+const accountFixtures = require('../../../../fixtures/accounts');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 const Block = require('../../../../fixtures/blocks').Block;
+const {
+	registeredTransactions,
+} = require('../../../../common/registered_transactions');
+const InitTransaction = require('../../../../../../src/modules/chain/logic/init_transaction');
+
+const initTransaction = new InitTransaction(registeredTransactions);
 
 const TransportModule = rewire(
 	'../../../../../../src/modules/chain/submodules/transport'
@@ -35,7 +44,6 @@ describe('transport', () => {
 	let schemaStub;
 	let channelStub;
 	let balancesSequenceStub;
-	let transactionStub;
 	let blockStub;
 	let broadcasterStubRef;
 	let transportInstance;
@@ -44,7 +52,6 @@ describe('transport', () => {
 	let modules;
 	let defaultScope;
 	let restoreRewiredTopDeps;
-	let peerMock;
 	let transaction;
 	let block;
 	let blocksList;
@@ -72,55 +79,32 @@ describe('transport', () => {
 			'61383939393932343233383933613237653864363438643232383865666136316535363236346564663031613263323330373784192003750382840553137595',
 	};
 
+	const nonce = 'sYHEDBKcScaAAAYg';
+
 	beforeEach(async () => {
 		// Recreate all the stubs and default structures before each test case to make
 		// sure that they are fresh every time; that way each test case can modify
 		// stubs without affecting other test cases.
 
-		transaction = {
-			id: '222675625422353767',
-			type: 0,
+		transaction = transfer({
 			amount: '100',
-			fee: '10',
-			senderPublicKey:
-				'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
 			recipientId: '12668885769632475474L',
-			timestamp: 28227090,
-			asset: {},
-			signature:
-				'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
-		};
+			passphrase: accountFixtures.genesis.passphrase,
+		});
+		const transactionOne = transfer({
+			amount: '100',
+			recipientId: '12668885769632475474L',
+			passphrase: accountFixtures.genesis.passphrase,
+		});
+		const transactionTwo = transfer({
+			amount: '100',
+			recipientId: '12668885769632475474L',
+			passphrase: accountFixtures.genesis.passphrase,
+		});
 
 		blockMock = new Block();
 
-		transactionsList = [
-			{
-				id: '222675625422353767',
-				type: 0,
-				amount: '100',
-				fee: '10',
-				senderPublicKey:
-					'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
-				recipientId: '12668885769632475474L',
-				timestamp: 28227090,
-				asset: {},
-				signature:
-					'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
-			},
-			{
-				id: '332675625422353892',
-				type: 0,
-				amount: '1000',
-				fee: '10',
-				senderPublicKey:
-					'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
-				recipientId: '12668885769632475474L',
-				timestamp: 28227090,
-				asset: {},
-				signature:
-					'1231d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c567',
-			},
-		];
+		transactionsList = [transactionOne, transactionTwo];
 
 		multisignatureTransactionsList = [
 			{
@@ -172,10 +156,6 @@ describe('transport', () => {
 			add: async () => {},
 		};
 
-		transactionStub = {
-			attachAssetType: sinonSandbox.stub(),
-		};
-
 		blockStub = {};
 
 		restoreRewiredTopDeps = TransportModule.__set__({
@@ -191,7 +171,7 @@ describe('transport', () => {
 		defaultScope = {
 			logic: {
 				block: blockStub,
-				transaction: transactionStub,
+				initTransaction,
 			},
 			components: {
 				storage: storageStub,
@@ -217,10 +197,6 @@ describe('transport', () => {
 				httpPort: 8000,
 			},
 			modules: {},
-		};
-
-		peerMock = {
-			nonce: 'sYHEDBKcScaAAAYg',
 		};
 	});
 
@@ -267,9 +243,6 @@ describe('transport', () => {
 				expect(library)
 					.to.have.nested.property('logic.block')
 					.which.is.equal(blockStub);
-				expect(library)
-					.to.have.nested.property('logic.transaction')
-					.which.is.equal(transactionStub);
 
 				expect(__private)
 					.to.have.property('broadcaster')
@@ -307,9 +280,7 @@ describe('transport', () => {
 						debug: sinonSandbox.spy(),
 					},
 					logic: {
-						transaction: {
-							objectNormalize: sinonSandbox.stub(),
-						},
+						initTransaction,
 					},
 					channel: {
 						publish: sinonSandbox.stub().resolves(),
@@ -412,7 +383,7 @@ describe('transport', () => {
 				};
 
 				modules.multisignatures = {
-					processSignature: sinonSandbox.stub().callsArg(1),
+					getTransactionAndProcessSignature: sinonSandbox.stub().callsArg(1),
 				};
 
 				done();
@@ -421,7 +392,7 @@ describe('transport', () => {
 			describe('when library.schema.validate succeeds', () => {
 				describe('when modules.multisignatures.processSignature succeeds', () => {
 					beforeEach(done => {
-						modules.multisignatures.processSignature = sinonSandbox
+						modules.multisignatures.getTransactionAndProcessSignature = sinonSandbox
 							.stub()
 							.callsArg(1);
 
@@ -442,7 +413,7 @@ describe('transport', () => {
 					it('should call modules.multisignatures.processSignature with signature', async () => {
 						expect(error).to.equal(undefined);
 						return expect(
-							modules.multisignatures.processSignature.calledWith(
+							modules.multisignatures.getTransactionAndProcessSignature.calledWith(
 								SAMPLE_SIGNATURE_1
 							)
 						).to.be.true;
@@ -456,10 +427,12 @@ describe('transport', () => {
 					let processSignatureError;
 
 					beforeEach(done => {
-						processSignatureError = new Error('Transaction not found');
-						modules.multisignatures.processSignature = sinonSandbox
+						processSignatureError = new TransactionError(
+							'Transaction not found'
+						);
+						modules.multisignatures.getTransactionAndProcessSignature = sinonSandbox
 							.stub()
-							.callsArgWith(1, processSignatureError);
+							.callsArgWith(1, [processSignatureError]);
 
 						__private.receiveSignature(SAMPLE_SIGNATURE_1, err => {
 							error = err;
@@ -468,8 +441,8 @@ describe('transport', () => {
 					});
 
 					it('should call callback with error', async () =>
-						expect(error).to.equal(
-							`Error processing signature: ${processSignatureError.message}`
+						expect(error[0].message).to.equal(
+							`${processSignatureError.message}`
 						));
 				});
 			});
@@ -491,9 +464,7 @@ describe('transport', () => {
 				});
 
 				it('should call callback with error = "Invalid signature body"', async () =>
-					expect(error).to.equal(
-						`Invalid signature body ${validateErr.message}`
-					));
+					expect(error[0].message).to.equal(`${validateErr.message}`));
 			});
 		});
 
@@ -513,7 +484,7 @@ describe('transport', () => {
 
 			describe('when transactions argument is undefined', () => {
 				beforeEach(done => {
-					__private.receiveTransactions(undefined, peerMock, '');
+					__private.receiveTransactions(undefined, nonce, '');
 					done();
 				});
 
@@ -529,7 +500,7 @@ describe('transport', () => {
 						beforeEach(done => {
 							__private.receiveTransactions(
 								transactionsList,
-								peerMock,
+								nonce,
 								'This is a log message'
 							);
 							done();
@@ -544,7 +515,7 @@ describe('transport', () => {
 							expect(
 								__private.receiveTransaction.calledWith(
 									transactionsList[0],
-									peerMock,
+									nonce,
 									'This is a log message'
 								)
 							).to.be.true);
@@ -561,7 +532,7 @@ describe('transport', () => {
 
 							__private.receiveTransactions(
 								transactionsList,
-								peerMock,
+								nonce,
 								'This is a log message'
 							);
 							done();
@@ -588,10 +559,7 @@ describe('transport', () => {
 					});
 
 				library.logic = {
-					transaction: {
-						objectNormalize: sinonSandbox.stub().returns(transaction),
-					},
-					peers: {},
+					initTransaction,
 				};
 				library.schema = {
 					validate: sinonSandbox.stub().callsArg(2),
@@ -609,6 +577,9 @@ describe('transport', () => {
 
 			describe('when transaction and peer are defined', () => {
 				beforeEach(done => {
+					library.logic = {
+						initTransaction,
+					};
 					__private.receiveTransaction(
 						transaction,
 						validNonce,
@@ -619,65 +590,45 @@ describe('transport', () => {
 					);
 				});
 
-				it('should call library.logic.transaction.objectNormalize with transaction', async () =>
-					expect(
-						library.logic.transaction.objectNormalize.calledWith(transaction)
-					).to.be.true);
-
 				it('should call library.balancesSequence.add', async () =>
 					expect(library.balancesSequence.add.called).to.be.true);
 
 				it('should call modules.transactions.processUnconfirmedTransaction with transaction and true as arguments', async () =>
 					expect(
 						modules.transactions.processUnconfirmedTransaction.calledWith(
-							transaction,
+							initTransaction.jsonRead(transaction),
 							true
 						)
 					).to.be.true);
 			});
 
-			describe('when library.logic.transaction.objectNormalize throws', () => {
-				let extraLogMessage;
-				let objectNormalizeError;
+			describe('when transaction is invalid', () => {
+				let invalidTransaction;
+				let errorResult;
 
 				beforeEach(done => {
-					extraLogMessage = 'This is a log message';
-					objectNormalizeError = 'Unknown transaction type 0';
-
-					library.logic.transaction.objectNormalize = sinonSandbox
-						.stub()
-						.throws(objectNormalizeError);
-
+					invalidTransaction = {
+						...transaction,
+						amount: '0',
+					};
 					__private.receiveTransaction(
-						transaction,
-						validNonce,
-						extraLogMessage,
+						invalidTransaction,
+						undefined,
+						'This is a log message',
 						err => {
-							error = err;
+							errorResult = err;
 							done();
 						}
 					);
 				});
 
-				it('should call library.logger.debug with "Transaction normalization failed" error message and error details object', async () => {
-					const errorDetails = {
-						id: transaction.id,
-						err: 'Unknown transaction type 0',
-						module: 'transport',
-						transaction,
-					};
-					return expect(
-						library.logger.debug.calledWith(
-							'Transaction normalization failed',
-							errorDetails
-						)
-					).to.be.true;
+				it('should call the call back with error message', async () => {
+					initTransaction.jsonRead(invalidTransaction).validate();
+					expect(errorResult).to.be.an('array');
+					errorResult.forEach(anError => {
+						expect(anError).to.be.instanceOf(TransactionError);
+					});
 				});
-
-				it('should call callback with error = "Invalid transaction body"', async () =>
-					expect(error).to.equal(
-						`Invalid transaction body - ${objectNormalizeError}`
-					));
 			});
 
 			describe('when nonce is undefined', () => {
@@ -702,6 +653,9 @@ describe('transport', () => {
 
 			describe('when nonce is defined', () => {
 				beforeEach(done => {
+					library.logic = {
+						initTransaction,
+					};
 					__private.receiveTransaction(
 						transaction,
 						validNonce,
@@ -733,7 +687,7 @@ describe('transport', () => {
 
 					__private.receiveTransaction(
 						transaction,
-						peerMock,
+						nonce,
 						'This is a log message',
 						err => {
 							error = err;
@@ -752,8 +706,12 @@ describe('transport', () => {
 
 				describe('when transaction is defined', () => {
 					it('should call library.logger.debug with "Transaction" and transaction as arguments', async () =>
-						expect(library.logger.debug.calledWith('Transaction', transaction))
-							.to.be.true);
+						expect(
+							library.logger.debug.calledWith(
+								'Transaction',
+								initTransaction.jsonRead(transaction)
+							)
+						).to.be.true);
 				});
 
 				it('should call callback with err.toString()', async () =>
@@ -766,7 +724,7 @@ describe('transport', () => {
 				beforeEach(done => {
 					__private.receiveTransaction(
 						transaction,
-						peerMock,
+						nonce,
 						'This is a log message',
 						(err, res) => {
 							error = err;
@@ -814,6 +772,10 @@ describe('transport', () => {
 						channel: {
 							invokeSync: sinonSandbox.stub(),
 							publish: sinonSandbox.stub(),
+						},
+						initTransaction,
+						block: {
+							objectNormalize: sinonSandbox.stub().returns(new Block()),
 						},
 						logic: {
 							block: {
@@ -1198,7 +1160,7 @@ describe('transport', () => {
 							describe('when escapedIds.length = 0', () => {
 								beforeEach(done => {
 									// All ids will be filtered out because they are non-numeric.
-									query = { ids: '"abc","def","ghi"', peer: peerMock };
+									query = { ids: '"abc","def","ghi"' };
 									transportInstance.shared.blocksCommon(query, err => {
 										error = err;
 										done();
@@ -1435,7 +1397,7 @@ describe('transport', () => {
 								.to.have.property('success')
 								.which.is.equal(false);
 							return expect(result)
-								.to.have.property('message')
+								.to.have.property('errors')
 								.which.is.equal(receiveSignatureError);
 						});
 					});
@@ -1672,7 +1634,7 @@ describe('transport', () => {
 								.to.have.property('success')
 								.which.is.equal(false);
 							return expect(result)
-								.to.have.property('message')
+								.to.have.property('errors')
 								.which.is.equal(receiveTransactionError);
 						});
 					});
@@ -1710,7 +1672,7 @@ describe('transport', () => {
 							done();
 						});
 
-						it('should call __private.receiveTransactions with query.transaction, query.peer and query.extraLogMessage as arguments', async () =>
+						it('should call __private.receiveTransactions with query.transaction, valid nonce and query.extraLogMessage as arguments', async () =>
 							expect(
 								__private.receiveTransactions.calledWith(
 									query.transactions,

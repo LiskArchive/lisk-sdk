@@ -22,7 +22,7 @@ const { createLoggerComponent } = require('../../../src/components/logger');
 const { ZSchema } = require('../../../src/controller/helpers/validator');
 const ed = require('../../../src/modules/chain/helpers/ed');
 const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
-const Transaction = require('../../../src/modules/chain/logic/transaction');
+const InitTransaction = require('../../../src/modules/chain/logic/init_transaction');
 const Account = require('../../../src/modules/chain/logic/account');
 
 const modulesLoader = new function() {
@@ -104,30 +104,8 @@ const modulesLoader = new function() {
 					cb
 				);
 				break;
-			case 'Transaction':
-				async.series(
-					{
-						account(accountCb) {
-							new Account(
-								scope.components.storage,
-								scope.schema,
-								scope.components.logger,
-								accountCb
-							);
-						},
-					},
-					(err, result) => {
-						new Logic(
-							scope.components.storage,
-							scope.ed,
-							scope.schema,
-							scope.genesisBlock,
-							result.account,
-							scope.components.logger,
-							cb
-						);
-					}
-				);
+			case 'InitTransaction':
+				new Logic(cb);
 				break;
 			case 'Block':
 				async.waterfall(
@@ -141,15 +119,8 @@ const modulesLoader = new function() {
 							);
 						},
 						function(account, waterCb) {
-							return new Transaction(
-								scope.components.storage,
-								scope.ed,
-								scope.schema,
-								scope.genesisBlock,
-								account,
-								scope.components.logger,
-								waterCb
-							);
+							const initTransaction = new InitTransaction();
+							return waterCb(null, initTransaction);
 						},
 					],
 					(err, transaction) => {
@@ -271,7 +242,7 @@ const modulesLoader = new function() {
 			],
 			[
 				{
-					transaction: require('../../../src/modules/chain/logic/transaction'),
+					initTransaction: require('../../../src/modules/chain/logic/init_transaction'),
 				},
 				{ account: require('../../../src/modules/chain/logic/account') },
 				{ block: require('../../../src/modules/chain/logic/block') },

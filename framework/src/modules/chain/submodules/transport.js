@@ -14,8 +14,10 @@
 
 'use strict';
 
+const { TransactionError } = require('@liskhq/lisk-transactions');
 const async = require('async');
 const _ = require('lodash');
+const { convertErrorsToString } = require('../helpers/error_handlers');
 // eslint-disable-next-line prefer-const
 let Broadcaster = require('../logic/broadcaster');
 const definitions = require('../schema/definitions');
@@ -58,7 +60,7 @@ class Transport {
 			balancesSequence: scope.balancesSequence,
 			logic: {
 				block: scope.logic.block,
-				transaction: scope.logic.transaction,
+				initTransaction: scope.logic.initTransaction,
 			},
 			config: {
 				forging: {
@@ -78,7 +80,10 @@ class Transport {
 			scope.config.forging.force,
 			scope.logic.transaction,
 			scope.components.logger,
-			scope.channel
+			scope.logic.initTransaction,
+			scope.components.logger,
+			scope.channel,
+			scope.components.storage
 		);
 
 		setImmediate(cb, null, self);
@@ -103,7 +108,7 @@ __private.receiveSignatures = function(signatures = []) {
 };
 
 /**
- * Validates signature with schema and calls processSignature.
+ * Validates signature with schema and calls getTransactionAndProcessSignature.
  *
  * @private
  * @param {Object} query
@@ -112,20 +117,17 @@ __private.receiveSignatures = function(signatures = []) {
  * @returns {setImmediateCallback} cb, err
  * @todo Add description for the params
  */
-__private.receiveSignature = function(query, cb) {
-	library.schema.validate(query, definitions.Signature, err => {
+__private.receiveSignature = function(signature, cb) {
+	library.schema.validate(signature, definitions.Signature, err => {
 		if (err) {
-			return setImmediate(cb, `Invalid signature body ${err[0].message}`);
+			return setImmediate(cb, [new TransactionError(err[0].message)], 400);
 		}
 
-		return modules.multisignatures.processSignature(
-			query,
-			processSignatureErr => {
-				if (processSignatureErr) {
-					return setImmediate(
-						cb,
-						`Error processing signature: ${processSignatureErr.message}`
-					);
+		return modules.multisignatures.getTransactionAndProcessSignature(
+			signature,
+			errors => {
+				if (errors) {
+					return setImmediate(cb, errors, 409);
 				}
 				return setImmediate(cb);
 			}
@@ -154,7 +156,7 @@ __private.receiveTransactions = function(
 		}
 		__private.receiveTransaction(transaction, nonce, extraLogMessage, err => {
 			if (err) {
-				library.logger.debug(err, transaction);
+				library.logger.debug(convertErrorsToString(err), transaction);
 			}
 		});
 	});
@@ -174,32 +176,30 @@ __private.receiveTransactions = function(
  * @todo Add description for the params
  */
 __private.receiveTransaction = function(
-	transaction,
+	transactionJSON,
 	nonce,
 	extraLogMessage,
 	cb
 ) {
-	const id = transaction ? transaction.id : 'null';
-
+	const id = transactionJSON ? transactionJSON.id : 'null';
+	let transaction;
 	try {
-		// This sanitizes the transaction object and then validates it.
-		// Throws an error if validation fails.
-		transaction = library.logic.transaction.objectNormalize(transaction);
-	} catch (e) {
+		transaction = library.logic.initTransaction.jsonRead(transactionJSON);
+		const { errors } = transaction.validate();
+		if (errors.length > 0) {
+			throw errors;
+		}
+	} catch (errors) {
+		const errString = convertErrorsToString(errors);
 		library.logger.debug('Transaction normalization failed', {
 			id,
-			err: e.toString(),
+			err: errString,
 			module: 'transport',
-			transaction,
 		});
 
 		// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 
-		return setImmediate(cb, `Invalid transaction body - ${e.toString()}`);
-	}
-
-	if (transaction.requesterPublicKey) {
-		return setImmediate(cb, 'Multisig request is not allowed');
+		return setImmediate(cb, errors);
 	}
 
 	return library.balancesSequence.add(balancesSequenceCb => {
@@ -212,24 +212,19 @@ __private.receiveTransaction = function(
 				`Received transaction ${transaction.id} from network`
 			);
 		}
+
 		modules.transactions.processUnconfirmedTransaction(
 			transaction,
 			true,
-			processUnconfirmErr => {
-				if (processUnconfirmErr) {
-					library.logger.debug(
-						`Transaction ${id}`,
-						processUnconfirmErr.toString()
-					);
+			err => {
+				if (err) {
+					library.logger.debug(`Transaction ${id}`, convertErrorsToString(err));
 					if (transaction) {
 						library.logger.debug('Transaction', transaction);
 					}
-
-					return setImmediate(
-						balancesSequenceCb,
-						processUnconfirmErr.toString()
-					);
+					return setImmediate(balancesSequenceCb, err);
 				}
+
 				return setImmediate(balancesSequenceCb, null, transaction.id);
 			}
 		);
@@ -277,7 +272,12 @@ Transport.prototype.onSignature = function(signature, broadcast) {
 	if (broadcast && !__private.broadcaster.maxRelays(signature)) {
 		__private.broadcaster.enqueue(
 			{},
-			{ api: 'postSignatures', data: { signature } }
+			{
+				api: 'postSignatures',
+				data: {
+					signature,
+				},
+			}
 		);
 		library.channel.publish('chain:signature:change', signature);
 	}
@@ -298,7 +298,12 @@ Transport.prototype.onUnconfirmedTransaction = function(
 	if (broadcast && !__private.broadcaster.maxRelays(transaction)) {
 		__private.broadcaster.enqueue(
 			{},
-			{ api: 'postTransactions', data: { transaction } }
+			{
+				api: 'postTransactions',
+				data: {
+					transaction,
+				},
+			}
 		);
 		library.channel.publish('chain:transactions:change', transaction);
 	}
@@ -430,10 +435,15 @@ Transport.prototype.shared = {
 					return setImmediate(cb, 'Invalid block id sequence');
 				}
 
-				return library.storage.entities.Block.get({ id: escapedIds[0] })
+				return library.storage.entities.Block.get({
+					id: escapedIds[0],
+				})
 					.then(row => {
 						if (!row.length > 0) {
-							return setImmediate(cb, null, { success: true, common: null });
+							return setImmediate(cb, null, {
+								success: true,
+								common: null,
+							});
 						}
 
 						const {
@@ -443,9 +453,17 @@ Transport.prototype.shared = {
 							timestamp,
 						} = row[0];
 
-						const parsedRow = { id, height, previousBlock, timestamp };
+						const parsedRow = {
+							id,
+							height,
+							previousBlock,
+							timestamp,
+						};
 
-						return setImmediate(cb, null, { success: true, common: parsedRow });
+						return setImmediate(cb, null, {
+							success: true,
+							common: parsedRow,
+						});
 					})
 					.catch(getOneError => {
 						library.logger.error(getOneError.stack);
@@ -487,7 +505,10 @@ Transport.prototype.shared = {
 						} catch (e) {
 							library.logger.error(
 								'Transport->blocks: Failed to convert data field to UTF-8',
-								{ block, error: e }
+								{
+									block,
+									error: e,
+								}
 							);
 						}
 					}
@@ -559,11 +580,17 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	postSignature(query, cb) {
-		__private.receiveSignature(query.signature, err => {
+		__private.receiveSignature(query.signature, (err, code) => {
 			if (err) {
-				return setImmediate(cb, null, { success: false, message: err });
+				return setImmediate(cb, null, {
+					success: false,
+					code,
+					errors: err,
+				});
 			}
-			return setImmediate(cb, null, { success: true });
+			return setImmediate(cb, null, {
+				success: true,
+			});
 		});
 	},
 
@@ -613,7 +640,11 @@ Transport.prototype.shared = {
 				}
 				return setImmediate(__cb);
 			},
-			() => setImmediate(cb, null, { success: true, signatures })
+			() =>
+				setImmediate(cb, null, {
+					success: true,
+					signatures,
+				})
 		);
 	},
 
@@ -649,8 +680,13 @@ Transport.prototype.shared = {
 			query.extraLogMessage,
 			(err, id) => {
 				if (err) {
-					return setImmediate(cb, null, { success: false, message: err });
+					return setImmediate(cb, null, {
+						success: false,
+						message: 'Invalid transaction body',
+						errors: err,
+					});
 				}
+
 				return setImmediate(cb, null, {
 					success: true,
 					transactionId: id,

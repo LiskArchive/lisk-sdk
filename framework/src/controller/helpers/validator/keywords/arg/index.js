@@ -13,11 +13,11 @@ const compile = (schema, parentSchema) => {
 			? {
 					names: schema.split(',') || [],
 					formatter: null,
-				}
+			  }
 			: {
 					names: schema.name.split(',') || [],
 					formatter: formatters[schema.formatter] || null,
-				};
+			  };
 
 	return function(data, dataPath, object, key) {
 		let argValue;

@@ -14,6 +14,7 @@
 
 'use strict';
 
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const crypto = require('crypto');
 const ByteBuffer = require('bytebuffer');
 const Bignum = require('../helpers/bignum');
@@ -22,6 +23,7 @@ const BlockReward = require('./block_reward');
 
 const { MAX_PAYLOAD_LENGTH, FEES, TRANSACTION_TYPES } = global.constants;
 const __private = {};
+let modules;
 
 /**
  * Main Block logic.
@@ -86,10 +88,10 @@ class Block {
 				return 1;
 			}
 			// Place depending on amount (lower first)
-			if (a.amount.isLessThan(b.amount)) {
+			if (a.amount.lt(b.amount)) {
 				return -1;
 			}
-			if (a.amount.isGreaterThan(b.amount)) {
+			if (a.amount.gt(b.amount)) {
 				return 1;
 			}
 			return 0;
@@ -107,7 +109,7 @@ class Block {
 
 		for (let i = 0; i < transactions.length; i++) {
 			const transaction = transactions[i];
-			const bytes = this.scope.transaction.getBytes(transaction);
+			const bytes = transaction.getBytes(transaction);
 
 			if (size + bytes.length > MAX_PAYLOAD_LENGTH) {
 				break;
@@ -230,24 +232,23 @@ class Block {
 				delete block[key];
 			}
 		});
-
 		const report = this.scope.schema.validate(block, Block.prototype.schema);
-
 		if (!report) {
-			throw `Failed to validate block schema: ${this.scope.schema
-				.getLastErrors()
-				.map(err => err.message)
-				.join(', ')}`;
+			throw new Error(
+				`Failed to validate block schema: ${this.scope.schema
+					.getLastErrors()
+					.map(err => err.message)
+					.join(', ')}`
+			);
 		}
-
-		try {
-			for (let i = 0; i < block.transactions.length; i++) {
-				block.transactions[i] = this.scope.transaction.objectNormalize(
-					block.transactions[i]
-				);
-			}
-		} catch (e) {
-			throw e;
+		const {
+			transactionsResponses,
+		} = modules.processTransactions.validateTransactions(block.transactions);
+		const invalidTransactionResponse = transactionsResponses.find(
+			transactionResponse => transactionResponse.status !== TransactionStatus.OK
+		);
+		if (invalidTransactionResponse) {
+			throw invalidTransactionResponse.errors;
 		}
 
 		return block;
@@ -279,6 +280,14 @@ __private.getAddressByPublicKey = function(publicKey) {
 
 // TODO: The below functions should be converted into static functions,
 // however, this will lead to incompatibility with modules and tests implementation.
+/**
+ * Binds scope.modules to private variable modules.
+ */
+Block.prototype.bindModules = function(__modules) {
+	modules = {
+		processTransactions: __modules.processTransactions,
+	};
+};
 /**
  * @typedef {Object} block
  * @property {string} id - Between 1 and 20 chars

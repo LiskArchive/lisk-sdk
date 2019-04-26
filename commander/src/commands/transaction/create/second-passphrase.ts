@@ -69,7 +69,7 @@ export default class SecondPassphraseCommand extends BaseCommand {
 						source: secondPassphraseSource,
 						repeatPrompt: true,
 					},
-				})
+			  })
 			: await getInputsFromSources({
 					passphrase: {
 						source: passphraseSource,
@@ -79,7 +79,7 @@ export default class SecondPassphraseCommand extends BaseCommand {
 						source: secondPassphraseSource,
 						repeatPrompt: true,
 					},
-				});
+			  });
 		const result = processFunction(inputs);
 		this.print(result);
 	}

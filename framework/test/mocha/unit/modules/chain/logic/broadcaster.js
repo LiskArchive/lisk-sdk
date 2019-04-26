@@ -48,10 +48,6 @@ describe('Broadcaster', () => {
 			broadcastLimit: 10,
 		};
 
-		transactionStub = {
-			checkConfirmed: sinonSandbox.stub().callsArgWith(1, false),
-		};
-
 		loggerStub = {
 			info: sinonSandbox.stub(),
 			error: sinonSandbox.stub(),
@@ -73,18 +69,25 @@ describe('Broadcaster', () => {
 
 		jobsQueue.register = sinonSandbox.stub();
 
+		const storageStub = {
+			entities: {
+				Transaction: {
+					isPersisted: sinonSandbox.stub().resolves(),
+				},
+			},
+		};
+
 		broadcaster = new Broadcaster(
 			nonce,
 			broadcasts,
 			force,
 			transactionStub,
 			loggerStub,
-			channelStub
+			channelStub,
+			storageStub
 		);
 
 		broadcaster.bind(modulesStub.transport, modulesStub.transactions);
-
-		library = Broadcaster.__get__('library');
 	});
 
 	afterEach(() => {
@@ -103,7 +106,6 @@ describe('Broadcaster', () => {
 				broadcasts,
 				forging: { force: true },
 			});
-			return expect(library.logic.transaction).to.deep.equal(transactionStub);
 		});
 
 		it('should return Broadcaster instance', async () => {
@@ -275,7 +277,7 @@ describe('Broadcaster', () => {
 				});
 				describe('when [validTransaction] is confirmed', () => {
 					beforeEach(async () => {
-						transactionStub.checkConfirmed.callsArgWith(1, null, true);
+						library.storage.entities.Transaction.isPersisted.resolves(true);
 					});
 					it('should set an empty broadcaster.queue and skip the broadcast', async () => {
 						await broadcaster.filterQueue();
@@ -286,7 +288,7 @@ describe('Broadcaster', () => {
 				});
 				describe('when [validTransaction] is not confirmed', () => {
 					beforeEach(async () => {
-						transactionStub.checkConfirmed.callsArgWith(1, null, false);
+						library.storage.entities.Transaction.isPersisted.resolves(false);
 					});
 					it('should leave [broadcast] in broadcaster.queue', async () => {
 						broadcaster.filterQueue(() => {
@@ -298,11 +300,7 @@ describe('Broadcaster', () => {
 				});
 				describe('when error occurs while checking if [validTransaction] is confirmed', () => {
 					beforeEach(async () => {
-						transactionStub.checkConfirmed.callsArgWith(
-							1,
-							'Checking if transction is confirmed error',
-							false
-						);
+						library.storage.entities.Transaction.isPersisted.rejects([]);
 					});
 					it('should set an empty broadcaster.queue and skip the broadcast', async () => {
 						await broadcaster.filterQueue();

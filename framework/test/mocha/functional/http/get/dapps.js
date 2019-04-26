@@ -25,8 +25,8 @@ const apiHelpers = require('../../../common/helpers/api');
 
 const { NORMALIZER } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
-
-describe('GET /dapps', () => {
+// eslint-disable-next-line
+describe.skip('GET /dapps', () => {
 	const dappsEndpoint = new SwaggerEndpoint('GET /dapps');
 
 	let transactionsToWaitFor = [];

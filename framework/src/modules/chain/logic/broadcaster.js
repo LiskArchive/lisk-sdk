@@ -37,7 +37,7 @@ let library;
  * @todo Add description for the params
  */
 class Broadcaster {
-	constructor(nonce, broadcasts, force, transaction, logger, channel) {
+	constructor(nonce, broadcasts, force, transaction, logger, channel, storage) {
 		library = {
 			logger,
 			logic: {
@@ -49,6 +49,7 @@ class Broadcaster {
 					force,
 				},
 			},
+			storage,
 		};
 
 		this.nonce = nonce;
@@ -171,16 +172,20 @@ class Broadcaster {
 					return true;
 				}
 				// Don't broadcast if transaction is already confirmed
-				return library.logic.transaction.checkConfirmed(
-					{ id: transactionId },
-					// In case of SQL error:
-					// err = true, isConfirmed = false => return false
-					// In case transaction exists in "trs" table:
-					// err = null, isConfirmed = true => return false
-					// In case transaction doesn't exists in "trs" table:
-					// err = null, isConfirmed = false => return true
-					(err, isConfirmed) => !err && !isConfirmed
-				);
+				return library.storage.entities.Transaction.isPersisted({
+					id: transactionId,
+				})
+					.then(
+						isPersisted =>
+							// In case of SQL error:
+							// err = true, isConfirmed = false => return false
+							// In case transaction exists in "trs" table:
+							// err = null, isConfirmed = true => return false
+							// In case transaction doesn't exists in "trs" table:
+							// err = nul,l, isConfirmed = false => return true
+							!isPersisted
+					)
+					.catch(err => !err);
 			}
 
 			return true;
