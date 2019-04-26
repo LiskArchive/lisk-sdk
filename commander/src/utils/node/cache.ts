@@ -71,6 +71,7 @@ export const startCache = async (
 const stopCommand = async (
 	installDir: string,
 	network: NETWORK,
+	name: string,
 ): Promise<string> => {
 	const { password }: CacheConfig = getCacheConfig(installDir, network);
 	const LISK_REDIS_PORT = await getRedisPort(name);
@@ -85,8 +86,9 @@ const stopCommand = async (
 export const stopCache = async (
 	installDir: string,
 	network: NETWORK,
+	name: string,
 ): Promise<string> => {
-	const cmd = await stopCommand(installDir, network);
+	const cmd = await stopCommand(installDir, network, name);
 
 	const { stdout, stderr }: ExecResult = await exec(`cd ${installDir}; ${cmd}`);
 

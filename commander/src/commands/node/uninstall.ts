@@ -49,7 +49,7 @@ export default class UnInstallCommand extends BaseCommand {
 
 		const tasks = new Listr([
 			{
-				title: `Uninstall Lisk Core ${network} Installed as ${name}`,
+				title: `Uninstall Lisk Core ${network} instance Installed as ${name}`,
 				task: () =>
 					new Listr([
 						{
@@ -57,7 +57,7 @@ export default class UnInstallCommand extends BaseCommand {
 							task: async () => {
 								const isRunning = await isCacheRunning(installDir, name);
 								if (isRunning) {
-									await stopCache(installDir, network);
+									await stopCache(installDir, network, name);
 								}
 								await stopDatabase(installDir, name);
 								await unRegisterApplication(name);

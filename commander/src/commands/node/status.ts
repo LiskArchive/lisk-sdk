@@ -61,7 +61,7 @@ export default class StatusCommand extends BaseCommand {
 			dbPort,
 			redisPort,
 			installationPath,
-			uptime: new Date(pm_uptime).toISOString(),
+			uptime: new Date(pm_uptime).toLocaleString(),
 			restart_count: unstable_restarts,
 			...monit,
 		});

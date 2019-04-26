@@ -221,7 +221,7 @@ export default class InstallCommand extends BaseCommand {
 
 		const tasks = new Listr([
 			{
-				title: `Install Lisk Core ${network} as ${name}`,
+				title: `Install Lisk Core ${network} instance as ${name}`,
 				task: () =>
 					new Listr([
 						{

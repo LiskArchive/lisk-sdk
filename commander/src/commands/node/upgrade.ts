@@ -133,9 +133,9 @@ export default class UpgradeCommand extends BaseCommand {
 							task: async () => {
 								const isRunning = await isCacheRunning(installDir, network);
 								if (isRunning) {
-									await stopCache(installDir, network);
+									await stopCache(installDir, network, name);
 								}
-								await stopDatabase(installDir, network);
+								await stopDatabase(installDir, name);
 								await stopApplication(name);
 							},
 						},
@@ -155,7 +155,7 @@ export default class UpgradeCommand extends BaseCommand {
 					]),
 			},
 			{
-				title: `Upgrade Lisk Core from: ${currentVersion} to: ${upgradeVersion}`,
+				title: `Upgrade Lisk Core ${name} instance from: ${currentVersion} to: ${upgradeVersion}`,
 				task: async () => {
 					await upgradeLisk(installDir, name, network, currentVersion);
 				},
@@ -163,11 +163,11 @@ export default class UpgradeCommand extends BaseCommand {
 			{
 				title: `Start Lisk Core: ${upgradeVersion}`,
 				task: async () => {
-					const isRunning = await isCacheRunning(installDir, network);
+					const isRunning = await isCacheRunning(installDir, name);
 					if (!isRunning) {
-						await startCache(installDir, network);
+						await startCache(installDir, name);
 					}
-					await startDatabase(installDir, network);
+					await startDatabase(installDir, name);
 					await restartApplication(name);
 				},
 			},
