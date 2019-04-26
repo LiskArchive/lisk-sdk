@@ -2434,6 +2434,43 @@ definitions:
             type: integer
             example: 15
             description: Number of total Transactions known to the node.
+            
+  TransactionError:
+    type: object
+    required:
+      - message
+      - id
+      - dataPath
+    properties:
+      message: 
+        description: Error message
+        type: string
+      name: 
+        description: Type of Error
+        type: string
+      id:
+        description: Transaction ID
+        type: string
+        minLength: 1
+      dataPath:
+        description: Transaction field with error
+        type: string
+      expected: 
+        description: Expected value
+        type: 
+            - string
+            - number
+      actual: 
+        description: Actual value
+        type: 
+            - string
+            - number
+      jse_shortmsg:
+        description: Short message
+        type: string
+      jse_info: 
+        description: Info field
+        type: object
 
   ProcessingError:
     type: object
@@ -2447,6 +2484,11 @@ definitions:
       code:
         description: Error code containing details on status
         type: integer
+      errors:
+        description: Array containing TransactionError objects
+        type: array
+        items:
+          $ref: '#/definitions/TransactionError'
 
   NotFoundError:
     type: object
@@ -2588,7 +2630,6 @@ definitions:
       - address
       - publicKey
       - balance
-      - unconfirmedBalance
     properties:
       address:
         type: string
@@ -2608,12 +2649,6 @@ definitions:
         type: string
         example: 1081560729258
         description: The current balance of the account in Beddows.
-      unconfirmedBalance:
-        type: string
-        example: 1081560729258
-        description: |
-          The current unconfirmed balance of the account in Beddows.
-          Includes unconfirmed transactions.
       secondPublicKey:
         type: string
         format: publicKey
@@ -2628,7 +2663,6 @@ definitions:
       - address
       - publicKey
       - balance
-      - unconfirmedBalance
       - min
       - lifetime
       - members
@@ -2651,12 +2685,6 @@ definitions:
         type: string
         example: 1081560729258
         description: The current balance of the account in Beddows.
-      unconfirmedBalance:
-        type: string
-        example: 1081560729258
-        description: |
-          The current unconfirmed balance of the account in Beddows.
-          Includes unconfirmed transactions.
       secondPublicKey:
         type: string
         format: publicKey

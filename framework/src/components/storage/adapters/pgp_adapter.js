@@ -88,7 +88,7 @@ class PgpAdapter extends BaseAdapter {
 
 		monitor.attach(this.pgpOptions, this.options.logEvents);
 		monitor.setLog((msg, info) => {
-			this.logger.log(info.event, info.text);
+			this.logger.debug(info.event, info.text);
 			info.display = false;
 		});
 		monitor.setTheme('matrix');

@@ -16,6 +16,8 @@
 
 const async = require('async');
 const { promisify } = require('util');
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const { convertErrorsToString } = require('../helpers/error_handlers');
 const jobsQueue = require('../helpers/jobs_queue');
 const slots = require('../helpers/slots');
 const definitions = require('../schema/definitions');
@@ -67,7 +69,6 @@ class Loader {
 			genesisBlock: scope.genesisBlock,
 			balancesSequence: scope.balancesSequence,
 			logic: {
-				transaction: scope.logic.transaction,
 				account: scope.logic.account,
 				peers: scope.logic.peers,
 			},
@@ -220,7 +221,9 @@ __private.getSignaturesFromNetwork = async function() {
 				const signature = signaturePacket.signatures[j];
 
 				const processSignature = promisify(
-					modules.multisignatures.processSignature.bind(modules.multisignatures)
+					modules.multisignatures.getTransactionAndProcessSignature.bind(
+						modules.multisignatures
+					)
 				);
 				// eslint-disable-next-line no-await-in-loop
 				await processSignature({
@@ -256,27 +259,26 @@ __private.getTransactionsFromNetwork = async function() {
 	await validate(result, definitions.WSTransactionsResponse);
 
 	const transactions = result.transactions;
-
-	transactions.forEach(transaction => {
-		const transactionId = transaction ? transaction.id : 'null';
-
-		try {
-			library.logic.transaction.objectNormalize(transaction);
-		} catch (error) {
-			library.logger.debug('Transaction normalization failed', {
-				id: transactionId,
-				err: error.toString(),
-				module: 'loader',
-				transaction,
-			});
-
-			library.logger.error(`Transaction ${transactionId} is not valid`);
-
-			// TODO: Invoke applyPenalty action on the Network module once it is implemented.
-
-			throw error;
+	try {
+		const {
+			transactionsResponses,
+		} = modules.processTransactions.validateTransactions(transactions);
+		const invalidTransactionResponse = transactionsResponses.find(
+			transactionResponse => transactionResponse.status !== TransactionStatus.OK
+		);
+		if (invalidTransactionResponse) {
+			throw invalidTransactionResponse.errors;
 		}
-	});
+	} catch (errors) {
+		const error =
+			Array.isArray(errors) && errors.length > 0 ? errors[0] : errors;
+		library.logger.debug('Transaction normalization failed', {
+			id: error.id,
+			err: error.toString(),
+			module: 'loader',
+		});
+		throw error;
+	}
 
 	const transactionCount = transactions.length;
 	for (let i = 0; i < transactionCount; i++) {
@@ -375,7 +377,7 @@ __private.loadBlockChain = function() {
 			},
 			err => {
 				if (err) {
-					library.logger.error(err);
+					library.logger.error(convertErrorsToString(err));
 					if (err.block) {
 						library.logger.error(`Blockchain failed at: ${err.block.height}`);
 						modules.blocks.chain.deleteFromBlockId(err.block.id, () => {
@@ -439,7 +441,7 @@ __private.loadBlockChain = function() {
 			if (matched) {
 				library.logger.info('Genesis block matched with database');
 			} else {
-				throw 'Failed to match genesis block with database';
+				throw new Error('Failed to match genesis block with database');
 			}
 		}
 	}
@@ -474,7 +476,6 @@ __private.loadBlockChain = function() {
 				return reload(blocksCount, 'Detected unapplied rounds in mem_round');
 			}
 
-			await library.storage.entities.Account.resetUnconfirmedState();
 			const delegatesPublicKeys = await library.storage.entities.Account.get(
 				{ isDelegate: true },
 				{ limit: null }
@@ -840,7 +841,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 				waterErr => {
 					if (waterErr) {
 						failedAttemptsToLoad += 1;
-						library.logger.error(waterErr);
+						library.logger.error(convertErrorsToString(waterErr));
 					}
 					whilstCb();
 				}

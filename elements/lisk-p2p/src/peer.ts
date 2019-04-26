@@ -114,7 +114,7 @@ const convertNodeInfoToLegacyFormat = (
 		...nodeInfo,
 		broadhash: broadhash ? (broadhash as string) : '',
 		nonce: nonce ? (nonce as string) : '',
-		httpPort: httpPort ? (httpPort as number) : 0
+		httpPort: httpPort ? (httpPort as number) : 0,
 	};
 };
 
@@ -665,10 +665,10 @@ export const connectAndRequest = async (
 				(err: Error | undefined, responseData: unknown) => {
 					outboundSocket.off('close', closeHandler);
 					if (err) {
-						const isFailedConnection = disconnectReason && (
-								err.name === 'TimeoutError' ||
-								err.name === 'BadConnectionError'
-							);
+						const isFailedConnection =
+							disconnectReason &&
+							(err.name === 'TimeoutError' ||
+								err.name === 'BadConnectionError');
 						const connectionError = new PeerOutboundConnectionError(
 							isFailedConnection ? disconnectReason : err.message,
 							disconnectStatusCode,

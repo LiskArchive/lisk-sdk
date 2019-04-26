@@ -12,6 +12,7 @@ const modulesList = {
 	signatures: '../submodules/signatures',
 	transactions: '../submodules/transactions',
 	transport: '../submodules/transport',
+	processTransactions: '../submodules/process_transactions',
 };
 
 module.exports = async scope => {

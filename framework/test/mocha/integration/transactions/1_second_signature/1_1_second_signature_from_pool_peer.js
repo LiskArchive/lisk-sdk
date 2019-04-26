@@ -22,11 +22,10 @@ const expect = require('chai').expect;
 const accountFixtures = require('../../../fixtures/accounts');
 const localCommon = require('../../common');
 const randomUtil = require('../../../common/utils/random');
-const Bignum = require('../../../../../src/modules/chain/helpers/bignum');
 
 const { NORMALIZER } = global.constants;
-
-describe('integration test (type 1) - second signature transactions from pool and peer', () => {
+// eslint-disable-next-line
+describe.skip('[feature/improve_transactions_processing_efficiency] integration test (type 1) - second signature transactions from pool and peer', () => {
 	let library;
 	let storage;
 
@@ -57,8 +56,6 @@ describe('integration test (type 1) - second signature transactions from pool an
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: signatureAccount.address,
 			});
-			sendTransaction.amount = new Bignum(sendTransaction.amount);
-			sendTransaction.fee = new Bignum(sendTransaction.fee);
 			localCommon.addTransactionsAndForge(library, [sendTransaction], done);
 		});
 
@@ -70,8 +67,6 @@ describe('integration test (type 1) - second signature transactions from pool an
 					passphrase: signatureAccount.passphrase,
 					secondPassphrase: signatureAccount.secondPassphrase,
 				});
-				signatureTransaction.amount = new Bignum(signatureTransaction.amount);
-				signatureTransaction.fee = new Bignum(signatureTransaction.fee);
 				localCommon.addTransactionToUnconfirmedQueue(
 					library,
 					signatureTransaction,
@@ -91,21 +86,6 @@ describe('integration test (type 1) - second signature transactions from pool an
 							done();
 						}
 					);
-				});
-
-				describe('unconfirmed state', () => {
-					it('should update unconfirmed columns related to signature', done => {
-						library.sequence.add(seqCb => {
-							localCommon
-								.getAccountFromDb(library, signatureAccount.address)
-								.then(account => {
-									expect(account).to.exist;
-									expect(account.mem_accounts.u_secondSignature).to.equal(1);
-									seqCb();
-									done();
-								});
-						});
-					});
 				});
 
 				describe('confirmed state', () => {
@@ -135,11 +115,6 @@ describe('integration test (type 1) - second signature transactions from pool an
 						passphrase: signatureAccount.passphrase,
 						secondPassphrase: randomUtil.password(),
 					});
-					signatureTransaction2.senderId = signatureAccount.address;
-					signatureTransaction2.amount = new Bignum(
-						signatureTransaction2.amount
-					);
-					signatureTransaction2.fee = new Bignum(signatureTransaction2.fee);
 					localCommon.createValidBlock(
 						library,
 						[signatureTransaction2],
@@ -149,21 +124,6 @@ describe('integration test (type 1) - second signature transactions from pool an
 							done();
 						}
 					);
-				});
-
-				describe('unconfirmed state', () => {
-					it('should update unconfirmed columns related to signature', done => {
-						library.sequence.add(seqCb => {
-							localCommon
-								.getAccountFromDb(library, signatureAccount.address)
-								.then(account => {
-									expect(account).to.exist;
-									expect(account.mem_accounts.u_secondSignature).to.equal(1);
-									seqCb();
-									done();
-								});
-						});
-					});
 				});
 
 				describe('confirmed state', () => {
@@ -183,80 +143,60 @@ describe('integration test (type 1) - second signature transactions from pool an
 						});
 					});
 				});
+			});
 
-				/* eslint-disable mocha/no-skipped-tests */
-				// TODO: This tests will be unskipped as part of #1652
-				describe.skip('when receiving block with multiple signature transaction with different id for same account', () => {
-					let signatureTransaction3;
-					let signatureTransaction4;
-					let blockId;
+			describe('when receiving block with multiple signature transaction with different id for same account', () => {
+				let signatureTransaction3;
+				let signatureTransaction4;
+				let blockId;
 
-					beforeEach(done => {
-						signatureTransaction3 = registerSecondPassphrase({
-							passphrase: signatureAccount.passphrase,
-							secondPassphrase: randomUtil.password(),
-						});
-						signatureTransaction3.senderId = signatureAccount.address;
-
-						signatureTransaction4 = registerSecondPassphrase({
-							passphrase: signatureAccount.passphrase,
-							secondPassphrase: randomUtil.password(),
-						});
-						signatureTransaction4.senderId = signatureAccount.address;
-						localCommon.createValidBlock(
-							library,
-							[signatureTransaction3, signatureTransaction4],
-							(err, block) => {
-								blockId = block.id;
-								expect(err).to.not.exist;
-								library.modules.blocks.process.onReceiveBlock(block);
-								done();
-							}
-						);
+				beforeEach(done => {
+					signatureTransaction3 = registerSecondPassphrase({
+						passphrase: signatureAccount.passphrase,
+						secondPassphrase: randomUtil.password(),
 					});
 
-					describe('should reject block', () => {
-						it('should not save block to the database', done => {
-							localCommon.getBlocks(library, (err, ids) => {
-								expect(ids).to.not.include(blockId);
-								expect(ids).to.have.length(2);
-								done();
-							});
-						});
+					signatureTransaction4 = registerSecondPassphrase({
+						passphrase: signatureAccount.passphrase,
+						secondPassphrase: randomUtil.password(),
 					});
+					localCommon.createValidBlock(
+						library,
+						[signatureTransaction3, signatureTransaction4],
+						(err, block) => {
+							blockId = block.id;
+							expect(err).to.not.exist;
+							library.modules.blocks.process.onReceiveBlock(block);
+							done();
+						}
+					);
+				});
 
-					describe('unconfirmed state', () => {
-						it('should not update unconfirmed columns related to signature', done => {
-							library.sequence.add(seqCb => {
-								localCommon
-									.getAccountFromDb(library, signatureAccount.address)
-									.then(account => {
-										expect(account).to.exist;
-										expect(account.mem_accounts.u_secondSignature).to.equal(0);
-										seqCb();
-										done();
-									});
-							});
-						});
-					});
-
-					describe('confirmed state', () => {
-						it('should not update confirmed columns related to signature', done => {
-							library.sequence.add(seqCb => {
-								localCommon
-									.getAccountFromDb(library, signatureAccount.address)
-									.then(account => {
-										expect(account).to.exist;
-										expect(account.mem_accounts.secondSignature).to.equal(0);
-										expect(account.mem_accounts.secondPublicKey).to.equal(null);
-										seqCb();
-										done();
-									});
-							});
+				describe('should reject block', () => {
+					it('should not save block to the database', done => {
+						localCommon.getBlocks(library, (err, ids) => {
+							expect(ids).to.not.include(blockId);
+							expect(ids).to.have.length(2);
+							done();
 						});
 					});
 				});
-				/* eslint-enable mocha/no-skipped-tests */
+
+				describe('confirmed state', () => {
+					it('should not update confirmed columns related to signature', done => {
+						library.sequence.add(seqCb => {
+							localCommon
+								.getAccountFromDb(library, signatureAccount.address)
+								.then(account => {
+									expect(account).to.exist;
+									expect(account.mem_accounts.secondSignature).to.equal(0);
+									expect(account.mem_accounts.secondPublicKey).to.equal(null);
+									seqCb();
+									done();
+								});
+						});
+					});
+				});
 			});
 		});
 	});
