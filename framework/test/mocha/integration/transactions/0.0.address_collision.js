@@ -75,7 +75,7 @@ describe('integration test (type 0) - address collision', () => {
 			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: collision.address,
-			data: 'addtional data from 2',
+			data: 'credit',
 		});
 
 		localCommon.addTransactionsAndForge(
@@ -103,15 +103,10 @@ describe('integration test (type 0) - address collision', () => {
 			});
 		});
 
-		it('adding to pool transfer fail for passphrase two', done => {
+		it('adding to pool transfer should be ok for passphrase two', done => {
 			localCommon.addTransaction(library, secondTransaction, (err, res) => {
-				expect(res).to.be.undefined;
-				expect(err).to.be.not.null;
-				expect(err).to.equal(
-					`Invalid sender public key: ${publicKeys[1]} expected: ${
-						publicKeys[0]
-					}`
-				);
+				expect(err).to.be.null;
+				expect(res).to.equal(secondTransaction.id);
 				done();
 			});
 		});
@@ -178,9 +173,11 @@ describe('integration test (type 0) - address collision', () => {
 									expect(res).to.be.undefined;
 									expect(err).to.be.not.null;
 									expect(err).to.equal(
-										`Invalid sender public key: ${publicKeys[1]} expected: ${
-											publicKeys[0]
-										}`
+										`Transaction: ${
+											secondTransactionWithData.id
+										} failed at .senderPublicKey: Invalid sender publicKey, actual: ${
+											publicKeys[1]
+										}, expected: ${publicKeys[0]}`
 									);
 									seriesCb();
 								}

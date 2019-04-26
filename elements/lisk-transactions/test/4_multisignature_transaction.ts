@@ -13,6 +13,7 @@
  *
  */
 import { expect } from 'chai';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { MULTISIGNATURE_FEE } from '../src/constants';
 import { SignatureObject } from '../src/create_signature_object';
 import { MultisignatureTransaction } from '../src/4_multisignature_transaction';
@@ -174,10 +175,15 @@ describe('Multisignature transaction class', () => {
 	});
 
 	describe('#prepare', async () => {
-		it('should call state store', async () => {
+		it('should call state store with correct params', async () => {
 			await validTestTransaction.prepare(store);
+			// Derive addresses from public keys
+			const membersAddresses = validTestTransaction.asset.multisignature.keysgroup
+				.map(key => key.substring(1))
+				.map(aKey => ({ address: getAddressFromPublicKey(aKey) }));
 			expect(storeAccountCacheStub).to.have.been.calledWithExactly([
 				{ address: validTestTransaction.senderId },
+				...membersAddresses,
 			]);
 		});
 	});

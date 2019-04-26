@@ -11,11 +11,11 @@ const compile = (schema, parentSchema) => {
 			? {
 					name: schema,
 					formatter: null,
-				}
+			  }
 			: {
 					name: schema.variable,
 					formatter: formatters[schema.formatter] || null,
-				};
+			  };
 
 	return function(data, dataPath, object, key) {
 		const variableValue = process.env[envVariable.name];

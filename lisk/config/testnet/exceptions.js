@@ -76,6 +76,10 @@ module.exports = {
 	blockVersions: {
 		0: { start: 1, end: 5932033 },
 	},
+	roundVotes: [
+		// For round vote exceptions, we do not update the votes for the delegates included in the transaction
+		'17197328760149985951',
+	],
 	duplicatedSignatures: {
 		'15181013796707110990': [
 			'2ec5bbc4ff552f991262867cd8f1c30a417e4596e8343d882b7c4fc86288b9e53592031f3de75ffe8cf4d431a7291b76c758999bb52f46a4da62a27c8901b60a',

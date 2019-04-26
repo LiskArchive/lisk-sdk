@@ -208,7 +208,6 @@ export class VoteTransaction extends BaseTransaction {
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
 		const sender = store.account.get(this.senderId);
-
 		// Deduct amount from sender in case of exceptions
 		// See issue: https://github.com/LiskHQ/lisk-elements/issues/1215
 		const balanceError = verifyAmountBalance(
@@ -230,7 +229,9 @@ export class VoteTransaction extends BaseTransaction {
 			if (
 				!voteAccount ||
 				(voteAccount &&
-					(voteAccount.username === undefined || voteAccount.username === ''))
+					(voteAccount.username === undefined ||
+						voteAccount.username === '' ||
+						voteAccount.username === null))
 			) {
 				errors.push(
 					new TransactionError(

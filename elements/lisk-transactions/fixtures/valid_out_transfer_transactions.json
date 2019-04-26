@@ -50,13 +50,13 @@
 		"signature": "d097cb3a2b4b235214d8ae7d99059a62899fd4f974c1963f8fe700f69785228b5264062740809a7c5a356018c41cfd4128e1a66396a7bae47c47f507e39c580d",
 		"signatures": [],
 		"asset": {
-		  "outTransfer": {
-			"dappId": "13227044664082109069",
-			"transactionId": "13227044664082109072"
-		  }
+			"outTransfer": {
+				"dappId": "13227044664082109069",
+				"transactionId": "13227044664082109072"
+			}
 		}
-	  },
-	  {
+	},
+	{
 		"id": "7297225435992500205",
 		"type": 7,
 		"timestamp": 59722128,
@@ -69,10 +69,10 @@
 		"signature": "a85f18853aa209da756f82799b072530b0028db48619141025df0ede96fd0e172b1625650a12fb872a1f13070ce5bf4494fdca3c7cb2ad36a779fc0dacdcdb09",
 		"signatures": [],
 		"asset": {
-		  "outTransfer": {
-			"dappId": "13227044664082109069",
-			"transactionId": "13227044664082109069"
-		  }
+			"outTransfer": {
+				"dappId": "13227044664082109069",
+				"transactionId": "13227044664082109069"
+			}
 		}
-	  }
+	}
 ]

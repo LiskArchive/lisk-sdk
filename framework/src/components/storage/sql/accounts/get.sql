@@ -29,13 +29,6 @@ SELECT
 	"fees",
 	"rewards",
 	"vote",
-	"u_username",
-	"u_isDelegate"::int::boolean,
-	"u_secondSignature"::int::boolean,
-	"u_nameexist"::int::boolean as "u_nameExist",
-	"u_multimin" as "u_multiMin",
-	"u_multilifetime" as "u_multiLifetime",
-	"u_balance",
 	case
 	when
 		"producedBlocks" + "missedBlocks" = 0 then 0
