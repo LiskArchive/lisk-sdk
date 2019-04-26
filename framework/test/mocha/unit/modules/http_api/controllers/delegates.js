@@ -135,9 +135,15 @@ describe('delegates/api', () => {
 		const options = {
 			anOption: 'anOption',
 		};
+		const lastBlock = {
+			height: 1,
+		};
 
 		beforeEach(async () => {
-			channelStub.invoke.resolves('supply');
+			channelStub.invoke.withArgs('chain:calculateSupply').resolves('supply');
+			channelStub.invoke.withArgs('chain:getNodeStatus').resolves({
+				lastBlock,
+			});
 			await __private.getDelegates(filters, options);
 		});
 
@@ -153,13 +159,6 @@ describe('delegates/api', () => {
 			);
 		});
 
-		it('should call storage.entities.Block.get()', async () => {
-			expect(storageStub.entities.Block.get).to.be.calledWithExactly(
-				{},
-				{ sort: 'height:desc', limit: 1 }
-			);
-		});
-
 		it('should call channel.invoke with chain:calculateSupply action if lastBlock.height is not 0', async () => {
 			expect(channelStub.invoke).to.be.calledWithExactly(
 				'chain:calculateSupply',
@@ -168,7 +167,11 @@ describe('delegates/api', () => {
 		});
 
 		it('should assign 0 to supply if lastBlock.height is 0', async () => {
-			storageStub.entities.Block.get.resolves([{ height: 0 }]);
+			channelStub.invoke.withArgs('chain:getNodeStatus').resolves({
+				lastBlock: {
+					height: 0,
+				},
+			});
 			await __private.getDelegates();
 			expect(delegateFormatterStub).to.be.calledWith(0);
 		});
@@ -330,21 +333,28 @@ describe('delegates/api', () => {
 		const filters = {
 			aFilter: 'aFilter',
 		};
+		const lastBlock = {
+			height: 1,
+		};
 
 		beforeEach(() => {
 			channelStub.invoke.resolves(dummyDelegates);
+			channelStub.invoke.withArgs('chain:getNodeStatus').resolves({
+				lastBlock,
+			});
 			return __private.getForgers(filters);
 		});
 
-		it('should call storage.entities.Block.get() with exact arguments', async () => {
-			expect(storageStub.entities.Block.get).to.be.calledWithExactly(
-				{},
-				{ sort: 'height:desc', limit: 1 }
+		it('should call channel.invoke with chain:getNodeStatus action', async () => {
+			expect(channelStub.invoke.getCall(0)).to.be.calledWith(
+				'chain:getNodeStatus'
 			);
 		});
 
 		it('should call channel.invoke with chain:generateDelegateList action', async () => {
-			expect(channelStub.invoke).to.be.calledWith('chain:generateDelegateList');
+			expect(channelStub.invoke.getCall(4)).to.be.calledWith(
+				'chain:generateDelegateList'
+			);
 		});
 
 		// TODO: Complete tests when generateDelegatesList doesn't use callbacks

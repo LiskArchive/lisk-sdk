@@ -48,7 +48,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 	const delegateAccount = randomUtil.account();
 	let accountNoFunds = randomUtil.account();
-	const accountMinimalFunds = randomUtil.account();
+	const accountMinimalFunds = randomUtil.account(true);
 
 	/*
 	Creating two scenarios with two isolated set of accounts
@@ -273,8 +273,10 @@ describe('POST /api/transactions (type 3) votes', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal(
-					'Invalid vote at index 0 - Invalid vote format'
+				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
+					'\'.votes[0]\' should match format "signedPublicKey"'
 				);
 				badTransactions.push(transaction);
 			});
@@ -297,8 +299,10 @@ describe('POST /api/transactions (type 3) votes', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal(
-					'Invalid vote at index 0 - Invalid vote format'
+				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
+					'\'.votes[0]\' should match format "signedPublicKey"'
 				);
 				badTransactions.push(transaction);
 			});
@@ -319,8 +323,10 @@ describe('POST /api/transactions (type 3) votes', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal(
-					'Invalid vote at index 0 - Invalid vote format'
+				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
+					'\'.votes[0]\' should match format "signedPublicKey"'
 				);
 				badTransactions.push(transaction);
 			});
@@ -341,8 +347,10 @@ describe('POST /api/transactions (type 3) votes', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal(
-					'Invalid vote at index 0 - Invalid vote format'
+				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
+					'\'.votes[0]\' should match format "signedPublicKey"'
 				);
 				badTransactions.push(transaction);
 			});
@@ -363,8 +371,10 @@ describe('POST /api/transactions (type 3) votes', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal(
-					'Invalid vote at index 0 - Invalid vote type'
+				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
+					"'.votes[0]' should be string"
 				);
 				badTransactions.push(transaction);
 			});
@@ -381,10 +391,12 @@ describe('POST /api/transactions (type 3) votes', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal(
+				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
 					`Account does not have enough LSK: ${
 						accountNoFunds.address
-					} balance: 0`
+					}, balance: 0`
 				);
 				badTransactions.push(transaction);
 			});
@@ -400,7 +412,11 @@ describe('POST /api/transactions (type 3) votes', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.equal('Delegate not found');
+				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
+					`${accountMinimalFunds.publicKey} is not a delegate.`
+				);
 				badTransactions.push(transaction);
 			});
 		});
@@ -427,10 +443,10 @@ describe('POST /api/transactions (type 3) votes', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal(
-					`Failed to remove vote, delegate "${
-						accountFixtures.existingDelegate.delegateName
-					}" was not voted for`
+				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
+					`${accountFixtures.existingDelegate.publicKey} is not voted.`
 				);
 				badTransactions.push(transaction);
 			});
@@ -489,8 +505,10 @@ describe('POST /api/transactions (type 3) votes', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal(
-					'Invalid transaction body - Failed to validate vote schema: Array is too long (34), maximum 33'
+				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
+					"'.votes' should NOT have more than 33 items"
 				);
 				badTransactions.push(transaction);
 			});
@@ -557,10 +575,10 @@ describe('POST /api/transactions (type 3) votes', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal(
-					`Failed to add vote, delegate "${
-						accountFixtures.existingDelegate.delegateName
-					}" already voted for`
+				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
+					`${accountFixtures.existingDelegate.publicKey} is already voted.`
 				);
 				badTransactionsEnforcement.push(transaction);
 			});
@@ -600,8 +618,10 @@ describe('POST /api/transactions (type 3) votes', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal(
-					`Maximum number of ${ACTIVE_DELEGATES} votes exceeded (1 too many)`
+				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
+					'Vote cannot exceed 101 but has 102.'
 				);
 				badTransactionsEnforcement.push(transaction);
 			});
@@ -634,9 +654,10 @@ describe('POST /api/transactions (type 3) votes', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal(
-					`Invalid transaction body - Failed to validate vote schema: Array is too long (${MAX_VOTES_PER_TRANSACTION +
-						1}), maximum ${MAX_VOTES_PER_TRANSACTION}`
+				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
+					"'.votes' should NOT have more than 33 items"
 				);
 				badTransactionsEnforcement.push(transaction);
 			});

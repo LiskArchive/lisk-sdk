@@ -34,6 +34,8 @@
 		"test": "mocha test"
 	},
 	"dependencies": {
+		"@liskhq/lisk-transaction-pool": "0.1.0-alpha.1",
+		"@liskhq/lisk-transactions": "2.1.0-alpha.4",
 		"@liskhq/lisk-cryptography": "2.1.0-alpha.0",
 		"async": "2.6.1",
 		"bluebird": "3.5.3",

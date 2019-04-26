@@ -47,9 +47,10 @@
 		"docs:serve": "http-server docs/jsdoc/"
 	},
 	"dependencies": {
-		"@liskhq/lisk-cryptography": "2.0.0",
+		"@liskhq/lisk-cryptography": "2.1.0-alpha.0",
 		"@liskhq/lisk-p2p": "0.1.0-alpha.4",
-		"@liskhq/lisk-transactions": "2.0.0",
+		"@liskhq/lisk-transactions": "2.1.0-alpha.4",
+		"@liskhq/lisk-transaction-pool": "0.1.0-alpha.1",
 		"ajv": "6.7.0",
 		"async": "2.6.1",
 		"bignumber.js": "8.0.2",

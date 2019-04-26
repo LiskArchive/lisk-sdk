@@ -131,7 +131,7 @@ export default class VoteCommand extends BaseCommand {
 				: {
 						source: secondPassphraseSource,
 						repeatPrompt: true,
-					},
+				  },
 		});
 
 		const result = processFunction(inputs);

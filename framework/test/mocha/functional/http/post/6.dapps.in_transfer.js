@@ -31,7 +31,8 @@ const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 // FIXME: this function was used from transactions library, but it doesn't exist
 const createInTransfer = () => {};
 
-describe('POST /api/transactions (type 6) inTransfer dapp', () => {
+// eslint-disable-next-line
+describe.skip('[feature/improve_transactions_processing_efficiency] [dapps_in transactions are disabled] POST /api/transactions (type 6) inTransfer dapp', () => {
 	let transaction;
 	const transactionsToWaitFor = [];
 	const badTransactions = [];
@@ -96,8 +97,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 			});
 	});
 
-	/* eslint-disable mocha/no-skipped-tests */
-
+	// eslint-disable-next-line
 	describe.skip('schema validations', () => {
 		common.invalidAssets('inTransfer', badTransactions);
 
@@ -280,7 +280,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 			});
 		});
 	});
-
+	// eslint-disable-next-line
 	describe.skip('transactions processing', () => {
 		it('using unknown dapp id should fail', async () => {
 			const unknownDappId = '1';
@@ -380,7 +380,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 			});
 		});
 	});
-
+	// eslint-disable-next-line
 	describe.skip('confirmation', () => {
 		phases.confirmation(goodTransactions, badTransactions);
 	});

@@ -84,9 +84,28 @@ describe('integration test (type 2) - double delegate registrations', () => {
 						});
 					});
 
-					it('first delegate registration to arrive should not be included', done => {
+					it('first delegate registration to arrive should be included', done => {
 						const filter = {
 							id: transaction1.id,
+						};
+						localCommon.getTransactionFromModule(
+							library,
+							filter,
+							(err, res) => {
+								expect(err).to.be.null;
+								expect(res)
+									.to.have.property('transactions')
+									.which.is.an('Array');
+								expect(res.transactions.length).to.equal(1);
+								expect(res.transactions[0].id).to.equal(transaction1.id);
+								done();
+							}
+						);
+					});
+
+					it('last delegate registration to arrive should not be included', done => {
+						const filter = {
+							id: transaction2.id,
 						};
 						localCommon.getTransactionFromModule(
 							library,
@@ -102,32 +121,17 @@ describe('integration test (type 2) - double delegate registrations', () => {
 						);
 					});
 
-					it('last delegate registration to arrive should be included', done => {
-						const filter = {
-							id: transaction2.id,
-						};
-						localCommon.getTransactionFromModule(
-							library,
-							filter,
-							(err, res) => {
-								expect(err).to.be.null;
-								expect(res)
-									.to.have.property('transactions')
-									.which.is.an('Array');
-								expect(res.transactions.length).to.equal(1);
-								expect(res.transactions[0].id).to.equal(transaction2.id);
-								done();
-							}
-						);
-					});
-
 					it('adding to pool delegate registration from same account should fail', done => {
 						transaction2 = registerDelegate({
 							passphrase: account.passphrase,
 							username: randomUtil.delegateName(),
 						});
 						localCommon.addTransaction(library, transaction2, err => {
-							expect(err).to.equal('Account is already a delegate');
+							expect(err).to.equal(
+								`Transaction: ${
+									transaction2.id
+								} failed at .asset.delegate.username: Account is already a delegate`
+							);
 							done();
 						});
 					});

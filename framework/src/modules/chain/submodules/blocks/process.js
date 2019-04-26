@@ -16,6 +16,8 @@
 
 const _ = require('lodash');
 const async = require('async');
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const { convertErrorsToString } = require('../../helpers/error_handlers');
 const slots = require('../../helpers/slots');
 const definitions = require('../../schema/definitions');
 
@@ -39,7 +41,6 @@ let self;
  * @param {Object} logger
  * @param {Block} block
  * @param {Peers} peers
- * @param {Transaction} transaction
  * @param {ZSchema} schema
  * @param {Storage} storage
  * @param {Sequence} sequence
@@ -51,12 +52,12 @@ class Process {
 		logger,
 		block,
 		peers,
-		transaction,
 		schema,
 		storage,
 		sequence,
 		genesisBlock,
-		channel
+		channel,
+		initTransaction
 	) {
 		library = {
 			channel,
@@ -68,7 +69,7 @@ class Process {
 			logic: {
 				block,
 				peers,
-				transaction,
+				initTransaction,
 			},
 		};
 		self = this;
@@ -95,6 +96,10 @@ __private.receiveBlock = function(block, cb) {
 		)} reward: ${block.reward}`
 	);
 
+	block.transactions = block.transactions.map(aTransaction =>
+		library.logic.initTransaction.jsonRead(aTransaction)
+	);
+
 	// Update last receipt
 	modules.blocks.lastReceipt.update();
 	// Start block processing - broadcast: true, saveBlock: true
@@ -111,6 +116,9 @@ __private.receiveBlock = function(block, cb) {
  */
 __private.receiveForkOne = function(block, lastBlock, cb) {
 	let tmp_block = _.clone(block);
+	tmp_block.transactions = tmp_block.transactions.map(aTransaction =>
+		library.logic.initTransaction.jsonRead(aTransaction)
+	);
 
 	// Fork: Consecutive height but different previous block id
 	modules.delegates.fork(block, 1);
@@ -158,7 +166,10 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 		],
 		err => {
 			if (err) {
-				library.logger.error('Fork recovery failed', err);
+				library.logger.error(
+					'Fork recovery failed',
+					convertErrorsToString(err)
+				);
 			}
 			return setImmediate(cb, err);
 		}
@@ -175,6 +186,9 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
  */
 __private.receiveForkFive = function(block, lastBlock, cb) {
 	let tmpBlock = _.clone(block);
+	tmpBlock.transactions = tmpBlock.transactions.map(aTransaction =>
+		library.logic.initTransaction.jsonRead(aTransaction)
+	);
 
 	// Fork: Same height and previous block id, but different block id
 	modules.delegates.fork(block, 5);
@@ -235,7 +249,10 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
 		],
 		err => {
 			if (err) {
-				library.logger.error('Fork recovery failed', err);
+				library.logger.error(
+					'Fork recovery failed',
+					convertErrorsToString(err)
+				);
 			}
 			return setImmediate(cb, err);
 		}
@@ -323,7 +340,10 @@ Process.prototype.loadBlocksOffset = function(
 		})
 		.catch(err => {
 			library.logger.error(err);
-			return setImmediate(cb, `Blocks#loadBlocksOffset error: ${err}`);
+			return setImmediate(
+				cb,
+				new Error(`Blocks#loadBlocksOffset error: ${err}`)
+			);
 		});
 };
 
@@ -374,7 +394,7 @@ Process.prototype.loadBlocksFromNetwork = function(cb) {
 		const report = library.schema.validate(blocks, definitions.WSBlocksList);
 
 		if (!report) {
-			return setImmediate(seriesCb, 'Received invalid blocks data');
+			return setImmediate(seriesCb, new Error('Received invalid blocks data'));
 		}
 		return setImmediate(seriesCb, null, blocks);
 	}
@@ -450,66 +470,36 @@ Process.prototype.loadBlocksFromNetwork = function(cb) {
  */
 Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 	// Get transactions that will be included in block
-	const transactions = modules.transactions.getUnconfirmedTransactionList(
-		false,
-		MAX_TRANSACTIONS_PER_BLOCK
-	);
-	const ready = [];
+	const transactions =
+		modules.transactions.getUnconfirmedTransactionList(
+			false,
+			MAX_TRANSACTIONS_PER_BLOCK
+		) || [];
 
-	async.eachSeries(
-		transactions,
-		(transaction, eachSeriesCb) => {
-			modules.accounts.getAccount(
-				{ publicKey: transaction.senderPublicKey },
-				(err, sender) => {
-					if (err || !sender) {
-						return setImmediate(eachSeriesCb, 'Sender not found');
-					}
-
-					// Check transaction depends on type
-					if (library.logic.transaction.ready(transaction, sender)) {
-						// Verify transaction
-						return library.logic.transaction.verify(
-							transaction,
-							sender,
-							null,
-							true,
-							verifyErr => {
-								if (!verifyErr) {
-									ready.push(transaction);
-								}
-								return setImmediate(eachSeriesCb);
-							},
-							null
-						);
-					}
-					return setImmediate(eachSeriesCb);
-				}
+	modules.processTransactions
+		.verifyTransactions(transactions)
+		.then(({ transactionsResponses: responses }) => {
+			const readyTransactions = transactions.filter(transaction =>
+				responses
+					.filter(response => response.status === TransactionStatus.OK)
+					.map(response => response.id)
+					.includes(transaction.id)
 			);
-		},
-		err => {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-			let block;
 
-			try {
-				// Create a block
-				block = library.logic.block.create({
-					keypair,
-					timestamp,
-					previousBlock: modules.blocks.lastBlock.get(),
-					transactions: ready,
-				});
-			} catch (e) {
-				library.logger.error(e.stack);
-				return setImmediate(cb, e);
-			}
-
+			// Create a block
+			const block = library.logic.block.create({
+				keypair,
+				timestamp,
+				previousBlock: modules.blocks.lastBlock.get(),
+				transactions: readyTransactions,
+			});
 			// Start block processing - broadcast: true, saveBlock: true
 			return modules.blocks.verify.processBlock(block, true, true, cb);
-		}
-	);
+		})
+		.catch(e => {
+			library.logger.error(e.stack);
+			return setImmediate(cb, e);
+		});
 };
 
 /**
@@ -638,6 +628,7 @@ Process.prototype.onBind = function(scope) {
 		rounds: scope.modules.rounds,
 		transactions: scope.modules.transactions,
 		transport: scope.modules.transport,
+		processTransactions: scope.modules.processTransactions,
 	};
 
 	// Set module as loaded

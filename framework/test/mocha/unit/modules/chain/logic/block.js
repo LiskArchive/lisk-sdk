@@ -19,6 +19,12 @@ const rewire = require('rewire');
 const ed = require('../../../../../../src/modules/chain/helpers/ed');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 const modulesLoader = require('../../../../common/modules_loader');
+const {
+	registeredTransactions,
+} = require('../../../../common/registered_transactions');
+const InitTransaction = require('../../../../../../src/modules/chain/logic/init_transaction');
+
+const initTransaction = new InitTransaction(registeredTransactions);
 
 const { FEES, TRANSACTION_TYPES } = __testContext.config.constants;
 
@@ -318,7 +324,6 @@ describe('block', () => {
 	before(done => {
 		transactionStub = {
 			getBytes: sinonSandbox.stub(),
-			objectNormalize: sinonSandbox.stub(),
 		};
 
 		block = new Block(
@@ -332,6 +337,9 @@ describe('block', () => {
 	beforeEach(done => {
 		data = _.cloneDeep(validDataForBlock);
 		transactions = _.values(transactionsByTypes);
+		transactions = transactions.map(transaction =>
+			initTransaction.jsonRead(transaction)
+		);
 		done();
 	});
 
@@ -343,14 +351,14 @@ describe('block', () => {
 				.stub(block, 'objectNormalize')
 				.returnsArg(0);
 
-			transactionStub.getBytes.returns(Buffer.from('dummy transaction bytes'));
-			return transactionStub.objectNormalize.returnsArg(0);
+			return transactionStub.getBytes.returns(
+				Buffer.from('dummy transaction bytes')
+			);
 		});
 
 		after(() => {
 			blockNormalizeStub.resetHistory();
-			transactionStub.getBytes.resetHistory();
-			return transactionStub.objectNormalize.resetHistory();
+			return transactionStub.getBytes.resetHistory();
 		});
 
 		describe('when each of all supported', () => {
@@ -393,8 +401,10 @@ describe('block', () => {
 
 				beforeEach(done => {
 					// Create 6 multisignature transactions
-					multipleMultisigTx = Array(...Array(5)).map(
-						() => transactionsByTypes[TRANSACTION_TYPES.MULTI]
+					multipleMultisigTx = Array(...Array(5)).map(() =>
+						initTransaction.jsonRead(
+							transactionsByTypes[TRANSACTION_TYPES.MULTI]
+						)
 					);
 					data.transactions = multipleMultisigTx.concat(transactions);
 					generatedBlock = block.create(data);
@@ -416,8 +426,10 @@ describe('block', () => {
 				let transactionsOrder;
 
 				beforeEach(done => {
-					multipleMultisigTx = Array(...Array(5)).map(
-						() => transactionsByTypes[TRANSACTION_TYPES.MULTI]
+					multipleMultisigTx = Array(...Array(5)).map(() =>
+						initTransaction.jsonRead(
+							transactionsByTypes[TRANSACTION_TYPES.MULTI]
+						)
 					);
 					// Add multisig transactions after the 3rd transaction in array
 					transactions.splice(...[3, 0].concat(multipleMultisigTx));
@@ -441,8 +453,10 @@ describe('block', () => {
 				let transactionsOrder;
 
 				beforeEach(done => {
-					multipleMultisigTx = Array(...Array(5)).map(
-						() => transactionsByTypes[TRANSACTION_TYPES.MULTI]
+					multipleMultisigTx = Array(...Array(5)).map(() =>
+						initTransaction.jsonRead(
+							transactionsByTypes[TRANSACTION_TYPES.MULTI]
+						)
 					);
 					data.transactions = transactions.concat(multipleMultisigTx);
 					generatedBlock = block.create(data);
@@ -465,8 +479,10 @@ describe('block', () => {
 
 				beforeEach(done => {
 					// Create 6 multisignature transactions
-					multipleMultisigTx = Array(...Array(5)).map(
-						() => transactionsByTypes[TRANSACTION_TYPES.MULTI]
+					multipleMultisigTx = Array(...Array(5)).map(() =>
+						initTransaction.jsonRead(
+							transactionsByTypes[TRANSACTION_TYPES.MULTI]
+						)
 					);
 					data.transactions = _.shuffle(
 						transactions.concat(multipleMultisigTx)

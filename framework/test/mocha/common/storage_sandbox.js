@@ -63,6 +63,7 @@ class StorageSandbox extends Storage {
 
 		dbNames.push(dbName);
 		dbConfig.database = dbName;
+		dbConfig.max = process.env.LISK_TEST_DB_MAX_CONNECTIONS || 2;
 
 		const dropCreatedDatabases = function() {
 			dbNames.forEach(aDbName => {
@@ -121,7 +122,6 @@ class StorageSandbox extends Storage {
 	async _createSchema() {
 		try {
 			await this.entities.Migration.applyAll();
-			await this.entities.Migration.applyRunTime();
 		} catch (err) {
 			Promise.reject(err);
 		}
@@ -142,6 +142,7 @@ class TestAdapter extends PgpAdapter {
 		};
 
 		this.pgp = pgpLib(this.pgpOptions);
+		options.max = process.env.LISK_TEST_DB_MAX_CONNECTIONS || 2;
 		this.db = this.pgp(options);
 	}
 }
