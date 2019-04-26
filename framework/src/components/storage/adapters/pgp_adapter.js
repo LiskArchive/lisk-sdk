@@ -22,6 +22,7 @@ const QueryFile = require('pg-promise').QueryFile;
 const BaseAdapter = require('./base_adapter');
 
 const _private = {
+	pgp: undefined,
 	queryFiles: {},
 };
 
@@ -58,7 +59,9 @@ class PgpAdapter extends BaseAdapter {
 			},
 		};
 
-		this.pgp = pgpLib(this.pgpOptions);
+		_private.pgp = _private.pgp ? _private.pgp : pgpLib(this.pgpOptions);
+		this.pgp = _private.pgp;
+
 		this.db = undefined;
 		this.SQLs = {};
 	}
