@@ -47,6 +47,7 @@ const sqlFiles = {
  * @property {string} rewards
  * @property {string} vote
  * @property {number} productivity
+ * @property {json} asset
  */
 
 /**
@@ -219,6 +220,7 @@ class Account extends BaseEntity {
 		this.addField('missedBlocks', 'string', { filter: ft.NUMBER });
 		this.addField('rank', 'string', { filter: ft.NUMBER });
 		this.addField('vote', 'string', { filter: ft.NUMBER });
+		this.addField('asset', 'string');
 
 		this.addFilter('votedDelegatesPublicKeys_in', ft.CUSTOM, {
 			condition:
@@ -381,12 +383,27 @@ class Account extends BaseEntity {
 			parsedFilters,
 		};
 
-		return this.adapter.executeFile(
-			parsedOptions.extended ? this.SQLs.selectFull : this.SQLs.selectSimple,
-			params,
-			{ expectedResultCount },
-			tx
-		);
+		return this.adapter
+			.executeFile(
+				parsedOptions.extended ? this.SQLs.selectFull : this.SQLs.selectSimple,
+				params,
+				{ expectedResultCount },
+				tx
+			)
+			.then(resp => {
+				const parseResponse = account => {
+					if (parsedOptions.extended) {
+						account.asset = account.asset ? account.asset : {};
+					}
+					return account;
+				};
+
+				if (expectedResultCount === 1) {
+					return parseResponse(resp);
+				}
+
+				return resp.map(parseResponse);
+			});
 	}
 }
 
