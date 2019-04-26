@@ -7,8 +7,20 @@ import {
 import { NETWORK } from '../../../src/utils/constants';
 import * as workerProcess from '../../../src/utils/worker-process';
 import * as nodeConfig from '../../../src/utils/node/config';
+import * as pm2 from '../../../src/utils/node/pm2';
 
 describe('cache node utils', () => {
+	let pm2Stub: any = null;
+
+	beforeEach(() => {
+		pm2Stub = sandbox.stub(pm2, 'describeApplication');
+		pm2Stub.resolves({
+			pm2_env: {
+				LISK_REDIS_PORT: 6380,
+			},
+		});
+	});
+
 	describe('#isCacheRunning', () => {
 		let workerProcessStub: any = null;
 		beforeEach(() => {
@@ -22,7 +34,7 @@ describe('cache node utils', () => {
 					stderr: 'redis not installed',
 				});
 
-				const status = await isCacheRunning('/tmp/dummypath', NETWORK.MAINNET);
+				const status = await isCacheRunning('/tmp/dummypath', 'test');
 				return expect(status).to.be.false;
 			});
 		});
@@ -30,8 +42,13 @@ describe('cache node utils', () => {
 		describe('when redis server is installed', () => {
 			it('should return true', async () => {
 				workerProcessStub.resolves({ stdout: 'PONG', stderr: null });
+				pm2Stub.resolves({
+					pm2_env: {
+						LISK_REDIS_PORT: 6380,
+					},
+				});
 
-				const status = await isCacheRunning('/tmp/dummypath', NETWORK.MAINNET);
+				const status = await isCacheRunning('/tmp/dummypath', 'test');
 				return expect(status).to.be.true;
 			});
 		});
@@ -40,9 +57,9 @@ describe('cache node utils', () => {
 	describe('#startCache', () => {
 		describe('when installation does not exists', () => {
 			it('should throw error', () => {
-				return expect(
-					startCache('/tmp/dummypath', NETWORK.MAINNET),
-				).to.rejectedWith('Command failed');
+				return expect(startCache('/tmp/dummypath', 'test')).to.rejectedWith(
+					'Command failed',
+				);
 			});
 		});
 
@@ -55,7 +72,7 @@ describe('cache node utils', () => {
 			it('should start successfully', async () => {
 				workerProcessStub.resolves({ stdout: '', stderr: null });
 
-				const status = await startCache('/tmp/dummypath', NETWORK.MAINNET);
+				const status = await startCache('/tmp/dummypath', 'test');
 				return expect(status).to.equal(
 					'[+] Redis-Server started successfully.',
 				);
@@ -67,9 +84,9 @@ describe('cache node utils', () => {
 					stderr: 'Failed to start redis',
 				});
 
-				return expect(
-					startCache('/tmp/dummypath', NETWORK.MAINNET),
-				).to.rejectedWith('[-] Failed to start Redis-Server');
+				return expect(startCache('/tmp/dummypath', 'test')).to.rejectedWith(
+					'[-] Failed to start Redis-Server',
+				);
 			});
 		});
 	});
@@ -78,7 +95,7 @@ describe('cache node utils', () => {
 		describe('when installation does not exists', () => {
 			it('should throw error', () => {
 				return expect(
-					stopCache('/tmp/dummypath', NETWORK.MAINNET),
+					stopCache('/tmp/dummypath', NETWORK.MAINNET, 'test'),
 				).to.rejectedWith('Config file not exists in path');
 			});
 		});
@@ -95,7 +112,11 @@ describe('cache node utils', () => {
 				configStub.returns({ password: null });
 				workerProcessStub.resolves({ stdout: '', stderr: null });
 
-				const status = await stopCache('/tmp/dummypath', NETWORK.MAINNET);
+				const status = await stopCache(
+					'/tmp/dummypath',
+					NETWORK.MAINNET,
+					'test',
+				);
 				return expect(status).to.equal(
 					'[+] Redis-Server stopped successfully.',
 				);
@@ -105,7 +126,11 @@ describe('cache node utils', () => {
 				configStub.returns({ password: 'lisk' });
 				workerProcessStub.resolves({ stdout: '', stderr: null });
 
-				const status = await stopCache('/tmp/dummypath', NETWORK.MAINNET);
+				const status = await stopCache(
+					'/tmp/dummypath',
+					NETWORK.MAINNET,
+					'test',
+				);
 				return expect(status).to.equal(
 					'[+] Redis-Server stopped successfully.',
 				);
@@ -119,7 +144,7 @@ describe('cache node utils', () => {
 				});
 
 				return expect(
-					stopCache('/tmp/dummypath', NETWORK.MAINNET),
+					stopCache('/tmp/dummypath', NETWORK.MAINNET, 'test'),
 				).to.rejectedWith('[-] Failed to stop Redis-Server');
 			});
 		});
