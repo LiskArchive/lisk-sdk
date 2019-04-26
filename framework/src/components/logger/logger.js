@@ -23,7 +23,7 @@ const createDirIfNotExist = filePath => {
 	if (fs.existsSync(dir)) {
 		return;
 	}
-	fs.mkdirSync(dir);
+	fs.mkdirSync(dir, { recursive: true });
 };
 
 /**
