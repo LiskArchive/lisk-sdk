@@ -3,7 +3,7 @@ const defaultConfig = {
 	properties: {
 		fileLogLevel: {
 			type: 'string',
-			enum: ['trace', 'debug', 'log', 'info', 'warn', 'error', 'fatal', 'none'],
+			enum: ['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'none'],
 			env: 'LISK_FILE_LOG_LEVEL',
 			arg: '--log,-l',
 		},
@@ -13,7 +13,7 @@ const defaultConfig = {
 		},
 		consoleLogLevel: {
 			type: 'string',
-			enum: ['trace', 'debug', 'log', 'info', 'warn', 'error', 'fatal', 'none'],
+			enum: ['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'none'],
 			env: 'LISK_CONSOLE_LOG_LEVEL',
 		},
 	},
