@@ -1,6 +1,5 @@
 const Application = require('./controller/application');
 const version = require('./version');
-const validator = require('./controller/validator');
 const configurator = require('./controller/configurator');
 const systemDirs = require('./controller/system_dirs');
 
@@ -13,7 +12,4 @@ module.exports = {
 	version,
 	systemDirs,
 	configurator,
-	utils: {
-		validator,
-	},
 };
