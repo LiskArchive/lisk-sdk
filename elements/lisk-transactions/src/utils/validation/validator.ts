@@ -21,6 +21,7 @@ import {
 	isGreaterThanMaxTransactionId,
 	isNullByteIncluded,
 	isNumberString,
+	isValidTransferData,
 	validateAddress,
 	validateFee,
 	validateNonTransferAmount,
@@ -56,6 +57,11 @@ validator.addFormat('amount', isNumberString);
 validator.addFormat('transferAmount', validateTransferAmount);
 
 validator.addFormat('nonTransferAmount', validateNonTransferAmount);
+
+validator.addFormat(
+	'transferData',
+	data => !isNullByteIncluded(data) && isValidTransferData(data),
+);
 
 validator.addFormat('fee', validateFee);
 
