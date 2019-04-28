@@ -164,6 +164,19 @@ describe('Transfer transaction class', () => {
 
 			expect(errors[0]).to.be.instanceof(TransactionError);
 		});
+
+		it('should return error with asset data containing overflowed string', async () => {
+			const transferTransactionWithInvalidAsset = new TransferTransaction({
+				...validTransferTransaction,
+				asset: {
+					data:
+						'o2ljg313lzzopdcilxcuy840qzdnmj21hfehd8u63k9jkifpsgxptegi56t8xos现',
+				},
+			});
+			const errors = (transferTransactionWithInvalidAsset as any).validateAsset();
+
+			expect(errors[0]).to.be.instanceof(TransactionError);
+		});
 	});
 
 	describe('#applyAsset', () => {
