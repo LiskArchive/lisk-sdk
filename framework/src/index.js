@@ -1,6 +1,8 @@
 const Application = require('./controller/application');
 const version = require('./version');
-const helpers = require('./controller/helpers');
+const validator = require('./controller/validator');
+const configurator = require('./controller/configurator');
+const systemDirs = require('./controller/system_dirs');
 
 /**
  * @namespace framework
@@ -9,5 +11,9 @@ const helpers = require('./controller/helpers');
 module.exports = {
 	Application,
 	version,
-	helpers,
+	systemDirs,
+	configurator,
+	utils: {
+		validator,
+	},
 };
