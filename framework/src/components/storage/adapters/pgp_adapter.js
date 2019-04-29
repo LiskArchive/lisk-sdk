@@ -22,6 +22,7 @@ const QueryFile = require('pg-promise').QueryFile;
 const BaseAdapter = require('./base_adapter');
 
 const _private = {
+	pgp: undefined,
 	queryFiles: {},
 };
 
@@ -58,7 +59,9 @@ class PgpAdapter extends BaseAdapter {
 			},
 		};
 
-		this.pgp = pgpLib(this.pgpOptions);
+		_private.pgp = _private.pgp ? _private.pgp : pgpLib(this.pgpOptions);
+		this.pgp = _private.pgp;
+
 		this.db = undefined;
 		this.SQLs = {};
 	}
@@ -88,7 +91,7 @@ class PgpAdapter extends BaseAdapter {
 
 		monitor.attach(this.pgpOptions, this.options.logEvents);
 		monitor.setLog((msg, info) => {
-			this.logger.log(info.event, info.text);
+			this.logger.debug(info.event, info.text);
 			info.display = false;
 		});
 		monitor.setTheme('matrix');

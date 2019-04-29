@@ -310,7 +310,7 @@ class Application {
 		if (this.controller) {
 			await this.controller.cleanup(errorCode, message);
 		}
-		this.logger.log(`Shutting down with error code ${errorCode}: ${message}`);
+		this.logger.info(`Shutting down with error code ${errorCode}: ${message}`);
 		process.exit(errorCode);
 	}
 
