@@ -37,6 +37,7 @@ describe('blocks/process', () => {
 	let peersStub;
 	let schemaStub;
 	let sequenceStub;
+	let channelStub;
 	let genesisBlockStub;
 	let bindingsStub;
 
@@ -123,8 +124,14 @@ describe('blocks/process', () => {
 		sequenceStub = {
 			add: sinonSandbox.stub(),
 		};
+
+		channelStub = {
+			invoke: sinonSandbox.stub(),
+		};
+
 		const InitTransaction = require('../../../../../../../src/modules/chain/logic/init_transaction');
 		const initTrs = new InitTransaction({});
+
 		blocksProcessModule = new BlocksProcess(
 			loggerStub,
 			blockStub,
@@ -133,6 +140,7 @@ describe('blocks/process', () => {
 			storageStub,
 			sequenceStub,
 			genesisBlockStub,
+			channelStub,
 			initTrs
 		);
 
