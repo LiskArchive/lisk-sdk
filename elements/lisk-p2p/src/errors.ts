@@ -33,6 +33,16 @@ export class PeerInboundHandshakeError extends Error {
 	}
 }
 
+export class PeerOutboundConnectionError extends Error {
+	public statusCode?: number;
+
+	public constructor(message: string, statusCode?: number) {
+		super(message);
+		this.name = 'PeerOutboundConnectError';
+		this.statusCode = statusCode;
+	}
+}
+
 export class NotEnoughPeersError extends Error {
 	public constructor(message: string) {
 		super(message);
