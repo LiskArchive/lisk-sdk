@@ -59,6 +59,7 @@ const startPM2 = async (
 				cwd: installPath,
 				env: {
 					LISK_NETWORK: network,
+					NODE_PATH: `${installPath}/bin/node`,
 					...envConfig,
 				},
 				pid: path.join(installPath, '/pids/lisk.app.pid'),
@@ -88,7 +89,7 @@ const restartPM2 = async (process: string | number): Promise<void> =>
 	new Promise<void>((resolve, reject) => {
 		restart(process, err => {
 			if (err && err.message !== 'process name not found') {
-				reject();
+				reject(err.message);
 
 				return;
 			}

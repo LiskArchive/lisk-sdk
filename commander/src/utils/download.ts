@@ -45,14 +45,14 @@ export const validateChecksum = async (
 	fileName: string,
 ): Promise<void> => {
 	const { stderr }: ExecResult = await exec(`shasum -c ${fileName}`, {
-		pwd: filePath,
+		cwd: filePath,
 	});
 
 	if (!stderr) {
 		return;
 	}
 
-	throw new Error(`Checksum validation failed ${stdout} with error: ${stderr}`);
+	throw new Error(`Checksum validation failed with error: ${stderr}`);
 };
 
 export const extract = async (
@@ -62,7 +62,7 @@ export const extract = async (
 ): Promise<string> => {
 	const { stdout, stderr }: ExecResult = await exec(
 		`tar xf ${fileName} -C ${outDir} --strip-component=1;`,
-		{ pwd: filePath },
+		{ cwd: filePath },
 	);
 
 	if (stderr) {
