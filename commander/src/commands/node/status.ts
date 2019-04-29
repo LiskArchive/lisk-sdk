@@ -14,7 +14,11 @@
  *
  */
 import BaseCommand from '../../base';
-import { describeApplication, Pm2Env } from '../../utils/node/pm2';
+import {
+	describeApplication,
+	listApplication,
+	Pm2Env,
+} from '../../utils/node/pm2';
 
 interface Args {
 	readonly name: string;
@@ -25,43 +29,76 @@ export default class StatusCommand extends BaseCommand {
 		{
 			name: 'name',
 			description: 'Lisk Core installation directory name.',
-			required: true,
+			required: false,
 		},
 	];
 
-	static description = 'Show the status of a Lisk Core instance.';
+	static description = 'Show the status of a Lisk Core instances.';
 
-	static examples = ['node:status mainnet-latest'];
+	static examples = ['node:status', 'node:status mainnet-latest'];
 
 	async run(): Promise<void> {
 		const { args } = this.parse(StatusCommand);
 		const { name } = args as Args;
 
-		const { pm2_env, monit } = await describeApplication(name);
-		const {
-			status,
-			pm_uptime,
-			pm_cwd: installationPath,
-			version,
-			LISK_NETWORK: network,
-			LISK_DB_PORT: dbPort,
-			LISK_REDIS_PORT: redisPort,
-			LISK_HTTP_PORT: httpPort,
-			LISK_WS_PORT: wsPort,
-		} = pm2_env as Pm2Env;
+		if (name) {
+			const { pm2_env, monit } = await describeApplication(name);
+			const {
+				status,
+				pm_uptime,
+				pm_cwd: installationPath,
+				version,
+				LISK_NETWORK: network,
+				LISK_DB_PORT: dbPort,
+				LISK_REDIS_PORT: redisPort,
+				LISK_HTTP_PORT: httpPort,
+				LISK_WS_PORT: wsPort,
+			} = pm2_env as Pm2Env;
 
-		// tslint:disable-next-line:no-console
-		console.table({
-			status,
-			network,
-			version,
-			httpPort,
-			wsPort,
-			dbPort,
-			redisPort,
-			installationPath,
-			uptime: new Date(pm_uptime).toLocaleString(),
-			...monit,
-		});
+			// tslint:disable-next-line:no-console
+			console.table({
+				status,
+				network,
+				version,
+				httpPort,
+				wsPort,
+				dbPort,
+				redisPort,
+				installationPath,
+				uptime: new Date(pm_uptime).toLocaleString(),
+				...monit,
+			});
+		} else {
+			const apps = await listApplication();
+			const instances = apps
+				.map(app => {
+					const { name: instanceName, pm2_env, monit } = app;
+					const {
+						status,
+						version,
+						pm_uptime,
+						LISK_NETWORK: network,
+					} = pm2_env as Pm2Env;
+
+					return {
+						name: instanceName,
+						status,
+						uptime: new Date(pm_uptime).toLocaleString(),
+						network,
+						version,
+						...monit,
+					};
+				})
+				.filter(app => app.network);
+
+			if (!instances.length) {
+				this.log(
+					'Lisk Core instances not available, use lisk node:install --help',
+				);
+			} else {
+				// tslint:disable-next-line:no-console
+				console.table(instances);
+			}
+		}
 	}
 }
