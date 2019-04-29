@@ -365,7 +365,7 @@ Process.prototype.loadBlocksFromNetwork = function(cb) {
 		// TODO: Rename procedure to include target module name. E.g. chain:blocks
 		let data;
 		try {
-			const response = await library.channel.invoke('network:request', {
+			const response = await library.channel.invoke('network:invoke', {
 				procedure: 'blocks',
 				data: {
 					lastBlockId: lastValidBlock.id,

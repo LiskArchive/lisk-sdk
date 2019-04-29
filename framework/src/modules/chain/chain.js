@@ -175,7 +175,7 @@ module.exports = class Chain {
 			self.logger.info('Modules ready and launched');
 
 			this.channel.subscribe(
-				'network:remoteEvent',
+				'network:subscribe',
 				({ data: { event, data } }) => {
 					if (event === 'postTransactions') {
 						this.scope.modules.transport.shared.postTransactions(data);

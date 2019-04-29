@@ -177,7 +177,7 @@ module.exports = class Network {
 
 		this.p2p.on(EVENT_MESSAGE_RECEIVED, async packet => {
 			this.logger.info(`Received inbound message for event ${packet.event}`);
-			this.channel.publish('network:remoteEvent', packet);
+			this.channel.publish('network:subscribe', packet);
 		});
 
 		// ---- END: Bind event handlers ----
@@ -195,12 +195,12 @@ module.exports = class Network {
 
 	get actions() {
 		return {
-			request: async action =>
+			invoke: async action =>
 				this.p2p.request({
 					procedure: action.params.procedure,
 					data: action.params.data,
 				}),
-			send: action =>
+			publish: action =>
 				this.p2p.send({
 					event: action.params.event,
 					data: action.params.data,
