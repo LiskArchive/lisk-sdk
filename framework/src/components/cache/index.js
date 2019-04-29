@@ -33,7 +33,7 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 const constants = require('./constants');
 const Cache = require('./cache');
 const { config: defaultConfig } = require('./defaults');
-const validator = require('../../controller/helpers/validator');
+const validator = require('../../controller/validator');
 
 function createCacheComponent(options, logger) {
 	const optionsWithDefaults = validator.parseEnvArgAndValidate(

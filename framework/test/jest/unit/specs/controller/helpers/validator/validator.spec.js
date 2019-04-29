@@ -6,17 +6,17 @@ const {
 	validate,
 	parseEnvArgAndValidate,
 	ZSchema,
-} = require('../../../../../../../src/controller/helpers/validator');
-const formats = require('../../../../../../../src/controller/helpers/validator/formats');
+} = require('../../../../../../../src/controller/validator');
+const formats = require('../../../../../../../src/controller/validator/formats');
 const {
 	env,
 	arg,
-} = require('../../../../../../../src/controller/helpers/validator/keywords');
+} = require('../../../../../../../src/controller/validator/keywords');
 const { SchemaValidationError } = require('../../../../../../../src/errors');
 
 jest.mock('ajv');
 
-describe('helpers/validator.js', () => {
+describe('validator.js', () => {
 	describe('Ajv instance', () => {
 		it('should be created by given arguments.', () => {
 			// Assert

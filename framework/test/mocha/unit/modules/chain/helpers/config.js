@@ -18,9 +18,7 @@
 
 // This file is not used any more will be replaced completely with https://github.com/LiskHQ/lisk/issues/2976
 // const config = require('../../../../../../src/modules/chain/helpers/config');
-const {
-	ZSchema,
-} = require('../../../../../../src/controller/helpers/validator');
+const { ZSchema } = require('../../../../../../src/controller/validator');
 
 // This file is not used any more
 // eslint-disable-next-line
