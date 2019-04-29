@@ -24,6 +24,7 @@ const path = require('path');
 const readline = require('readline');
 const _ = require('lodash');
 const program = require('commander');
+const { configurator } = require('lisk-framework');
 const {
 	stringifyEncryptedPassphrase,
 	getPrivateAndPublicKeyFromPassphrase,
@@ -35,7 +36,6 @@ const JSONHistory = require('./json_history');
 const packageJSON = require('../package.json');
 
 const rootPath = path.resolve(path.dirname(__filename), '../../../../../');
-const loadJSONFile = filePath => JSON.parse(fs.readFileSync(filePath), 'utf8');
 const loadJSONFileIfExists = filePath => {
 	if (fs.existsSync(filePath)) {
 		return JSON.parse(fs.readFileSync(filePath), 'utf8');
@@ -78,9 +78,15 @@ if (typeof network === 'undefined') {
 
 // TODO: Default config is not accessible this way right now
 // 	Will be fixed with https://github.com/LiskHQ/lisk/issues/3171
-const defaultConfig = loadJSONFile(
-	path.resolve(rootPath, 'config/default/config.json')
-);
+const appConfig = {
+	app: {
+		version: packageJSON.version,
+		minVersion: packageJSON.lisk.minVersion,
+		protocolVersion: packageJSON.lisk.protocolVersion,
+	},
+};
+configurator.loadConfig(appConfig);
+const defaultConfig = configurator.getConfig();
 
 const networkConfig = loadJSONFileIfExists(
 	path.resolve(rootPath, `config/${network}/config.json`)
@@ -251,7 +257,7 @@ history.version('1.2.0-rc.x', version => {
 	});
 });
 
-history.version('1.6.0-rc.0', version => {
+history.version('2.0.0-rc.0', version => {
 	version.change('add structure for logger component', config =>
 		moveKeys(
 			config,
