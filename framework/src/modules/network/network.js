@@ -212,13 +212,8 @@ module.exports = class Network {
 		});
 
 		this.p2p.on(EVENT_MESSAGE_RECEIVED, async packet => {
-			const hasSourceModule = hasNamespaceReg.test(packet.event);
-			// If the request has no source module, default to chain (to support legacy protocol).
-			const sanitizedEvent = hasSourceModule
-				? packet.event
-				: `chain:${packet.event}`;
 			this.logger.info(`Received inbound message for event ${packet.event}`);
-			this.channel.publish(`network:${sanitizedEvent}`, packet.data);
+			this.channel.publish('network:remoteEvent', packet);
 		});
 
 		// ---- END: Bind event handlers ----

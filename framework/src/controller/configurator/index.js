@@ -12,22 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+const Configurator = require('./configurator');
 
-const { createLogger } = require('./logger');
-const { config: defaultConfig } = require('./defaults');
-const validator = require('../../controller/validator');
-
-function createLoggerComponent(options = {}) {
-	const optionsWithDefaults = validator.parseEnvArgAndValidate(
-		defaultConfig,
-		options
-	);
-
-	return createLogger(optionsWithDefaults);
-}
-
-module.exports = {
-	defaults: defaultConfig,
-	createLoggerComponent,
-};
+module.exports = Configurator;

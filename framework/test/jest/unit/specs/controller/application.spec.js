@@ -2,7 +2,7 @@ const { DappTransaction } = require('@liskhq/lisk-transactions');
 
 const _ = require('lodash');
 const Application = require('../../../../../src/controller/application');
-const validator = require('../../../../../src/controller/helpers/validator');
+const validator = require('../../../../../src/controller/validator');
 const {
 	genesisBlockSchema,
 	constantsSchema,

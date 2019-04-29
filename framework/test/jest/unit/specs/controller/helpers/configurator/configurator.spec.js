@@ -1,7 +1,7 @@
 const {
 	applicationConfigSchema,
 } = require('../../../../../../../src/controller/schema');
-const Configurator = require('../../../../../../../src/controller/helpers/configurator/configurator');
+const Configurator = require('../../../../../../../src/controller/configurator/configurator');
 
 describe('Configurator', () => {
 	describe('constructor()', () => {

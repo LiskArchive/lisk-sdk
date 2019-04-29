@@ -8,7 +8,7 @@ const git = require('./helpers/git');
 const Sequence = require('./helpers/sequence');
 const ed = require('./helpers/ed');
 // eslint-disable-next-line import/order
-const { ZSchema } = require('../../controller/helpers/validator');
+const { ZSchema } = require('../../controller/validator');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
@@ -174,18 +174,25 @@ module.exports = class Chain {
 
 			self.logger.info('Modules ready and launched');
 
-			this.channel.once('network:ready', () => {
-				this.channel.subscribe('network:chain:postTransactions', ({ data }) => {
-					this.scope.modules.transport.shared.postTransactions(data);
-				});
-
-				this.channel.subscribe('network:chain:postSignatures', ({ data }) => {
-					this.scope.modules.transport.shared.postSignatures(data);
-				});
-
-				this.channel.subscribe('network:chain:postBlock', ({ data }) => {
-					this.scope.modules.transport.shared.postBlock(data);
-				});
+			this.channel.once('network:bootstrap', () => {
+				this.channel.subscribe(
+					'network:remoteEvent',
+					({ data: { event, data } }) => {
+						if (event === 'postTransactions') {
+							this.scope.modules.transport.shared.postTransactions(data);
+							return;
+						}
+						if (event === 'postTransactions') {
+							this.scope.modules.transport.shared.postSignatures(data);
+							return;
+						}
+						if (event === 'postBlock') {
+							this.scope.modules.transport.shared.postBlock(data);
+							// eslint-disable-next-line no-useless-return
+							return;
+						}
+					}
+				);
 			});
 
 			self.scope = scope;
