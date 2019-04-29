@@ -11,11 +11,6 @@ const BaseModule = require('../base_module');
  * @type {module.NetworkModule}
  */
 module.exports = class NetworkModule extends BaseModule {
-	/* eslint-disable-next-line no-useless-constructor */
-	constructor(options) {
-		super(options);
-	}
-
 	static get alias() {
 		return 'network';
 	}
@@ -48,11 +43,7 @@ module.exports = class NetworkModule extends BaseModule {
 	}
 
 	async load(channel) {
-		const options = {
-			...config,
-			...this.options,
-		};
-		this.network = new Network(options);
+		this.network = new Network(this.options);
 
 		channel.once('chain:ready', async () => {
 			await this.network.bootstrap(channel);
