@@ -10,8 +10,8 @@ const randomstring = require('randomstring');
 const _ = require('lodash');
 const Controller = require('./controller');
 const version = require('../version');
-const validator = require('./helpers/validator');
-const configurator = require('./helpers/configurator');
+const validator = require('./validator');
+const configurator = require('./default_configurator');
 const { genesisBlockSchema, constantsSchema } = require('./schema');
 
 const { createLoggerComponent } = require('../components/logger');
@@ -63,7 +63,7 @@ const registerProcessHooks = app => {
  * @requires assert
  * @requires Controller
  * @requires module.defaults
- * @requires helpers/validator
+ * @requires validator
  * @requires schema/application
  * @requires components/logger
  * @requires components/storage

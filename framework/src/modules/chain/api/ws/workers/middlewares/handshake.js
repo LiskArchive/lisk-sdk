@@ -19,7 +19,7 @@ const _ = require('lodash');
 const semver = require('semver');
 
 const failureCodes = require('../../rpc/failure_codes');
-const { ZSchema } = require('../../../../../../controller/helpers/validator');
+const { ZSchema } = require('../../../../../../controller/validator');
 const definitions = require('../../../../schema/definitions');
 const Peer = require('../../../../logic/peer');
 

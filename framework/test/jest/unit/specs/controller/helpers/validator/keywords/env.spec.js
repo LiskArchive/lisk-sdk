@@ -1,12 +1,12 @@
 const Ajv = require('ajv');
 const {
 	env,
-} = require('./../../../../../../../../src/controller/helpers/validator/keywords');
+} = require('./../../../../../../../../src/controller/validator/keywords');
 
-const formatters = require('../../../../../../../../src/controller/helpers/validator/keywords/formatters');
+const formatters = require('../../../../../../../../src/controller/validator/keywords/formatters');
 
 jest.mock(
-	'../../../../../../../../src/controller/helpers/validator/keywords/formatters'
+	'../../../../../../../../src/controller/validator/keywords/formatters'
 );
 
 let validator;
