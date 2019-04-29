@@ -3,6 +3,7 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 }
 
 const { promisify } = require('util');
+const { convertErrorsToString } = require('./helpers/error_handlers');
 const git = require('./helpers/git');
 const Sequence = require('./helpers/sequence');
 const ed = require('./helpers/ed');
@@ -136,6 +137,7 @@ module.exports = class Chain {
 				build: versionBuild,
 				config: self.options,
 				genesisBlock: { block: self.options.genesisBlock },
+				registeredTransactions: self.options.registeredTransactions,
 				schema: new ZSchema(),
 				sequence: new Sequence({
 					onWarning(current) {
@@ -181,6 +183,7 @@ module.exports = class Chain {
 
 			// Ready to bind modules
 			scope.logic.peers.bindModules(scope.modules);
+			scope.logic.block.bindModules(scope.modules);
 
 			this.channel.subscribe('app:state:updated', event => {
 				Object.assign(scope.applicationState, event.data);
@@ -232,21 +235,8 @@ module.exports = class Chain {
 				promisify(this.scope.modules.signatures.shared.postSignature)(
 					action.params.signature
 				),
-			getLastConsensus: async () => this.scope.modules.peers.getLastConsensus(),
-			loaderLoaded: async () => this.scope.modules.loader.loaded(),
-			loaderSyncing: async () => this.scope.modules.loader.syncing(),
-			getForgersKeyPairs: async () =>
-				this.scope.modules.delegates.getForgersKeyPairs(),
 			getForgingStatusForAllDelegates: async () =>
 				this.scope.modules.delegates.getForgingStatusForAllDelegates(),
-			getForgersPublicKeys: async () => {
-				const keypairs = this.scope.modules.delegates.getForgersKeyPairs();
-				const publicKeys = {};
-				Object.keys(keypairs).forEach(key => {
-					publicKeys[key] = { publicKey: keypairs[key].publicKey };
-				});
-				return publicKeys;
-			},
 			getTransactionsFromPool: async action =>
 				promisify(
 					this.scope.modules.transactions.shared.getTransactionsFromPool
@@ -320,7 +310,7 @@ module.exports = class Chain {
 				return true;
 			})
 		).catch(moduleCleanupError => {
-			this.logger.error(moduleCleanupError);
+			this.logger.error(convertErrorsToString(moduleCleanupError));
 		});
 
 		this.logger.info('Cleaned up successfully');

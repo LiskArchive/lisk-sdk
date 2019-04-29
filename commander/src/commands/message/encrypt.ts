@@ -95,7 +95,7 @@ export default class EncryptCommand extends BaseCommand {
 				? undefined
 				: {
 						source: messageSource,
-					},
+				  },
 		});
 		const result = processInputs(recipientPublicKey, message)(inputs);
 		this.print(result);

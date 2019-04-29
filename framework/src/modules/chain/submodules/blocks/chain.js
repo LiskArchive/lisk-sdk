@@ -17,7 +17,10 @@
 const Promise = require('bluebird');
 const async = require('async');
 const _ = require('lodash');
-const Bignum = require('../../helpers/bignum');
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const slots = require('../../helpers/slots.js');
+const checkTransactionExceptions = require('../../logic/check_transaction_against_exceptions.js');
+const { convertErrorsToString } = require('../../helpers/error_handlers');
 const {
 	CACHE_KEYS_DELEGATES,
 	CACHE_KEYS_TRANSACTION_COUNT,
@@ -41,7 +44,6 @@ const __private = {};
  * @requires bluebird
  * @param {Object} logger
  * @param {Block} block
- * @param {Transaction} transaction
  * @param {Storage} storage
  * @param {Object} genesisBlock
  * @param {bus} bus
@@ -52,7 +54,7 @@ class Chain {
 	constructor(
 		logger,
 		block,
-		transaction,
+		initTransaction,
 		storage,
 		genesisBlock,
 		bus,
@@ -67,7 +69,7 @@ class Chain {
 			balancesSequence,
 			logic: {
 				block,
-				transaction,
+				initTransaction,
 			},
 			channel,
 		};
@@ -98,9 +100,13 @@ Chain.prototype.saveGenesisBlock = function(cb) {
 			// If there is no block with genesis ID - save to database
 			// WARNING: DB_WRITE
 			// FIXME: This will fail if we already have genesis block in database, but with different ID
-			return self.saveBlock(library.genesisBlock.block, err =>
-				setImmediate(cb, err)
-			);
+			const block = {
+				...library.genesisBlock.block,
+				transactions: library.genesisBlock.block.transactions.map(transaction =>
+					library.logic.initTransaction.jsonRead(transaction)
+				),
+			};
+			return self.saveBlock(block, err => setImmediate(cb, err));
 		})
 		.catch(err => {
 			library.logger.error(err.stack);
@@ -144,7 +150,7 @@ Chain.prototype.saveBlock = function(block, cb, tx) {
 		if (parsedBlock.transactions.length) {
 			promises.push(
 				library.storage.entities.Transaction.create(
-					parsedBlock.transactions,
+					parsedBlock.transactions.map(transaction => transaction.toJSON()),
 					{},
 					saveBlockBatchTx
 				)
@@ -218,12 +224,8 @@ __private.afterSave = async function(block, cb) {
 		}
 	}
 
-	async.eachSeries(
-		block.transactions,
-		(transaction, eachSeriesCb) =>
-			library.logic.transaction.afterSave(transaction, eachSeriesCb),
-		err => setImmediate(cb, err)
-	);
+	// TODO: create functions for afterSave for each transaction type
+	cb();
 };
 
 /**
@@ -284,164 +286,46 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 		}
 		return 0;
 	});
-	// Initialize block progress tracker
-	const tracker = modules.blocks.utils.getBlockProgressLogger(
-		block.transactions.length,
-		block.transactions.length / 100,
-		'Genesis block loading'
-	);
-	async.eachSeries(
-		block.transactions,
-		(transaction, eachSeriesCb) => {
-			// Apply transactions through setAccountAndGet, bypassing unconfirmed/confirmed states
-			// FIXME: Poor performance - every transaction cause SQL query to be executed
-			// WARNING: DB_WRITE
 
-			transaction.amount = new Bignum(transaction.amount);
-			transaction.fee = new Bignum(transaction.fee);
-
-			modules.accounts.setAccountAndGet(
-				{ publicKey: transaction.senderPublicKey },
-				(err, sender) => {
-					if (err) {
-						return setImmediate(eachSeriesCb, {
-							message: err,
-							transaction,
-							block,
-						});
-					}
-					// Apply transaction to confirmed & unconfirmed balances
-					// WARNING: DB_WRITE
-					__private.applyTransaction(block, transaction, sender, eachSeriesCb);
-					// Update block progress tracker
-					return tracker.applyNext();
-				}
-			);
-		},
-		err => {
-			if (err) {
-				// If genesis block is invalid, kill the node...
-				process.emit('cleanup', err.message);
-				return setImmediate(cb, err);
-			}
-			// Set genesis block as last block
-			modules.blocks.lastBlock.set(block);
-			// Tick round
-			// WARNING: DB_WRITE
-			return modules.rounds.tick(block, cb);
+	__private.applyTransactions(block.transactions, err => {
+		if (err) {
+			// If genesis block is invalid, kill the node...
+			process.emit('cleanup', err.message);
+			return setImmediate(cb, err);
 		}
-	);
+		// Set genesis block as last block
+		modules.blocks.lastBlock.set(block);
+		// Tick round
+		// WARNING: DB_WRITE
+		return modules.rounds.tick(block, cb);
+	});
 };
 
 /**
- * Apply transaction to unconfirmed and confirmed.
+ * Applies transactions to the confirmed state.
  *
  * @private
  * @param {Object} block - Block object
- * @param {Object} transaction - Transaction object
+ * @param {Object} transactions - Transaction object
  * @param {Object} sender - Sender account
  * @param {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  */
-__private.applyTransaction = function(block, transaction, sender, cb) {
-	// FIXME: Not sure about flow here, when nodes have different transactions - 'applyUnconfirmed' can fail but 'applyConfirmed' can be ok
-	modules.transactions.applyUnconfirmed(transaction, sender, err => {
-		if (err) {
-			return setImmediate(cb, {
-				message: err,
-				transaction,
-				block,
-			});
-		}
-
-		return modules.transactions.applyConfirmed(
-			transaction,
-			block,
-			sender,
-			applyConfirmedErr => {
-				if (applyConfirmedErr) {
-					return setImmediate(cb, {
-						message: `Failed to apply transaction: ${
-							transaction.id
-						} to confirmed state of account:`,
-						transaction,
-						block,
-					});
-				}
-				return setImmediate(cb);
-			}
-		);
-	});
-};
-
-/**
- * Calls undoUnconfirmedList from modules transactions
- *
- * @private
- * @param  {function} cb - Callback function
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object}   cb.err - Error if occurred
- */
-__private.undoUnconfirmedListStep = function(cb) {
-	return modules.transactions.undoUnconfirmedList(err => {
-		if (err) {
-			// Fatal error, memory tables will be inconsistent
-			library.logger.error('Failed to undo unconfirmed list', err);
-			return setImmediate(cb, 'Failed to undo unconfirmed list');
-		}
-		return setImmediate(cb);
-	});
-};
-
-/**
- * Calls applyUnconfirmed from modules.transactions for each transaction in block
- *
- * @private
- * @param {Object} block - Block object
- * @param {function} tx - Postgres transaction
- * @returns {Promise<reject|resolve>} new Promise. Resolve if ok, reject if error ocurred
- * @todo check descriptions
- */
-__private.applyUnconfirmedStep = function(block, tx) {
-	return Promise.mapSeries(
-		block.transactions,
-		transaction =>
-			new Promise((resolve, reject) => {
-				modules.accounts.setAccountAndGet(
-					{ publicKey: transaction.senderPublicKey },
-					(accountErr, sender) => {
-						if (accountErr) {
-							const err = `Failed to get account to apply unconfirmed transaction: ${
-								transaction.id
-							} - ${accountErr}`;
-							library.logger.error(err);
-							library.logger.error('Transaction', transaction);
-							return setImmediate(reject, new Error(err));
-						}
-						// DATABASE: write
-						return modules.transactions.applyUnconfirmed(
-							transaction,
-							sender,
-							err => {
-								if (err) {
-									err = `Failed to apply transaction: ${
-										transaction.id
-									} to unconfirmed state of account - ${err}`;
-									library.logger.error(err);
-									library.logger.error('Transaction', transaction);
-									return setImmediate(reject, new Error(err));
-								}
-
-								return setImmediate(resolve);
-							},
-							tx
-						);
-					},
-					tx
-				);
-			})
-	);
+__private.applyTransactions = function(transactions, cb) {
+	modules.processTransactions
+		.applyTransactions(transactions)
+		.then(({ stateStore }) => {
+			// TODO: Need to add logic for handling exceptions for genesis block transactions
+			stateStore.account.finalize();
+			return stateStore;
+		})
+		.then(stateStore => {
+			stateStore.round.setRoundForData(slots.calcRound(1));
+			return stateStore.round.finalize();
+		})
+		.then(() => cb())
+		.catch(cb);
 };
 
 /**
@@ -452,47 +336,34 @@ __private.applyUnconfirmedStep = function(block, tx) {
  * @param {function} tx - Database transaction
  * @returns {Promise<reject|resolve>}
  */
-__private.applyConfirmedStep = function(block, tx) {
-	return Promise.mapSeries(
-		block.transactions,
+__private.applyConfirmedStep = async function(block, tx) {
+	if (block.transactions.length <= 0) {
+		return;
+	}
+	const nonInertTransactions = block.transactions.filter(
 		transaction =>
-			new Promise((resolve, reject) => {
-				modules.accounts.getAccount(
-					{ publicKey: transaction.senderPublicKey },
-					(accountErr, sender) => {
-						if (accountErr) {
-							const err = `Failed to get account for applying transaction to confirmed state: ${
-								transaction.id
-							} - ${accountErr}`;
-							library.logger.error(err);
-							library.logger.error('Transaction', transaction);
-							return setImmediate(reject, new Error(err));
-						}
-						// DATABASE: write
-						return modules.transactions.applyConfirmed(
-							transaction,
-							block,
-							sender,
-							err => {
-								if (err) {
-									// Fatal error, memory tables will be inconsistent
-									err = `Failed to apply transaction: ${
-										transaction.id
-									} to confirmed state of account - ${err}`;
-									library.logger.error(err);
-									library.logger.error('Transaction', transaction);
-
-									return setImmediate(reject, new Error(err));
-								}
-								return setImmediate(resolve);
-							},
-							tx
-						);
-					},
-					tx
-				);
-			})
+			!checkTransactionExceptions.checkIfTransactionIsInert(transaction)
 	);
+
+	const {
+		stateStore,
+		transactionsResponses,
+	} = await modules.processTransactions.applyTransactions(
+		nonInertTransactions,
+		tx
+	);
+
+	const unappliableTransactionsResponse = transactionsResponses.filter(
+		transactionResponse => transactionResponse.status !== TransactionStatus.OK
+	);
+
+	if (unappliableTransactionsResponse.length > 0) {
+		throw unappliableTransactionsResponse[0].errors;
+	}
+
+	await stateStore.account.finalize();
+	stateStore.round.setRoundForData(slots.calcRound(block.height));
+	await stateStore.round.finalize();
 };
 
 /**
@@ -570,42 +441,33 @@ __private.saveBlockStep = function(block, saveBlock, tx) {
  * @todo Add description for the function
  */
 Chain.prototype.applyBlock = function(block, saveBlock, cb) {
-	__private.undoUnconfirmedListStep(err => {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-		return library.storage.entities.Block.begin('Chain:applyBlock', tx => {
-			modules.blocks.isActive.set(true);
+	return library.storage.entities.Block.begin('Chain:applyBlock', tx => {
+		modules.blocks.isActive.set(true);
 
-			return __private
-				.applyUnconfirmedStep(block, tx)
-				.then(() => __private.applyConfirmedStep(block, tx))
-				.then(() => __private.saveBlockStep(block, saveBlock, tx));
+		return __private
+			.applyConfirmedStep(block, tx)
+			.then(() => __private.saveBlockStep(block, saveBlock, tx));
+	})
+		.then(() => {
+			modules.transactions.onConfirmedTransactions(block.transactions);
+			modules.blocks.isActive.set(false);
+			block = null;
+
+			return setImmediate(cb, null);
 		})
-			.then(() => {
-				// Remove block transactions from transaction pool
-				block.transactions.forEach(transaction => {
-					modules.transactions.removeUnconfirmedTransaction(transaction.id);
-				});
-				modules.blocks.isActive.set(false);
-				block = null;
+		.catch(reason => {
+			modules.blocks.isActive.set(false);
+			block = null;
 
-				return setImmediate(cb, null);
-			})
-			.catch(reason => {
-				modules.blocks.isActive.set(false);
-				block = null;
+			// Finish here if snapshotting.
+			// FIXME: Not the best place to do that
+			if (reason.name === 'Snapshot finished') {
+				library.logger.info(reason);
+				process.emit('SIGTERM');
+			}
 
-				// Finish here if snapshotting.
-				// FIXME: Not the best place to do that
-				if (reason.name === 'Snapshot finished') {
-					library.logger.info(reason);
-					process.emit('SIGTERM');
-				}
-
-				return setImmediate(cb, reason);
-			});
-	});
+			return setImmediate(cb, reason);
+		});
 };
 
 /**
@@ -631,8 +493,14 @@ __private.loadSecondLastBlockStep = function(secondLastBlockId, tx) {
 			{ id: secondLastBlockId },
 			(err, blocks) => {
 				if (err || !blocks.length) {
-					library.logger.error('Failed to get loadBlocksPart', err);
-					return setImmediate(reject, err || 'previousBlock is null');
+					library.logger.error(
+						'Failed to get loadBlocksPart',
+						convertErrorsToString(err)
+					);
+					return setImmediate(
+						reject,
+						err || new Error('previousBlock is null')
+					);
 				}
 				return setImmediate(resolve, blocks[0]);
 			},
@@ -642,76 +510,38 @@ __private.loadSecondLastBlockStep = function(secondLastBlockId, tx) {
 };
 
 /**
- * Reverts changes on confirmed columns of mem_account for one transaction
- * @param {Object} transaction - transaction to undo
- * @param {Object} oldLastBlock - secondLastBlock
+ * Reverts confirmed transactions due to block deletion
+ * @param {Object} block - secondLastBlock
  * @param {Object} tx - database transaction
  */
-__private.undoConfirmedStep = function(transaction, oldLastBlock, tx) {
-	return new Promise((resolve, reject) => {
-		// Retrieve sender by public key
-		modules.accounts.getAccount(
-			{ publicKey: transaction.senderPublicKey },
-			(accountErr, sender) => {
-				if (accountErr) {
-					// Fatal error, memory tables will be inconsistent
-					library.logger.error(
-						'Failed to get account for undoing transaction to confirmed state',
-						accountErr
-					);
-					return setImmediate(reject, accountErr);
-				}
-				// Undoing confirmed transaction - refresh confirmed balance (see: logic.transaction.undo, logic.transfer.undo)
-				// WARNING: DB_WRITE
-				return modules.transactions.undoConfirmed(
-					transaction,
-					oldLastBlock,
-					sender,
-					undoConfirmedErr => {
-						if (undoConfirmedErr) {
-							// Fatal error, memory tables will be inconsistent
-							library.logger.error(
-								'Failed to undo transaction to confirmed state of account',
-								undoConfirmedErr
-							);
-							return setImmediate(reject, undoConfirmedErr);
-						}
-						return setImmediate(resolve);
-					},
-					tx
-				);
-			},
-			tx
-		);
-	});
-};
+__private.undoConfirmedStep = async function(block, tx) {
+	if (block.transactions.length === 0) {
+		return;
+	}
 
-/**
- * Reverts changes on unconfirmed columns of mem_account for one transaction
- * @param {Object} transaction - transaction to undo
- * @param {Object} oldLastBlock - secondLastBlock
- * @param {Object} tx - database transaction
- */
-__private.undoUnconfirmStep = function(transaction, tx) {
-	return new Promise((resolve, reject) => {
-		// Undoing unconfirmed transaction - refresh unconfirmed balance (see: logic.transaction.undoUnconfirmed)
-		// WARNING: DB_WRITE
-		modules.transactions.undoUnconfirmed(
-			transaction,
-			undoUnconfirmedErr => {
-				if (undoUnconfirmedErr) {
-					// Fatal error, memory tables will be inconsistent
-					library.logger.error(
-						'Failed to undo transaction to unconfirmed state of account',
-						undoUnconfirmedErr
-					);
-					return setImmediate(reject, undoUnconfirmedErr);
-				}
-				return setImmediate(resolve);
-			},
-			tx
-		);
-	});
+	const nonInertTransactions = block.transactions.filter(
+		transaction => !global.exceptions.inertTransactions.includes(transaction.id)
+	);
+
+	const {
+		stateStore,
+		transactionsResponses,
+	} = await modules.processTransactions.undoTransactions(
+		nonInertTransactions,
+		tx
+	);
+
+	const unappliedTransactionResponse = transactionsResponses.find(
+		transactionResponse => transactionResponse.status !== TransactionStatus.OK
+	);
+
+	if (unappliedTransactionResponse) {
+		throw unappliedTransactionResponse.errors;
+	}
+
+	await stateStore.account.finalize();
+	stateStore.round.setRoundForData(slots.calcRound(block.height));
+	await stateStore.round.finalize();
 };
 
 /**
@@ -783,13 +613,7 @@ __private.popLastBlock = function(oldLastBlock, cb) {
 			.loadSecondLastBlockStep(oldLastBlock.previousBlock, tx)
 			.then(res => {
 				secondLastBlock = res;
-				return Promise.mapSeries(
-					oldLastBlock.transactions.reverse(),
-					transaction =>
-						__private
-							.undoConfirmedStep(transaction, oldLastBlock, tx)
-							.then(() => __private.undoUnconfirmStep(transaction, tx))
-				);
+				return __private.undoConfirmedStep(oldLastBlock, tx);
 			})
 			.then(() => __private.backwardTickStep(oldLastBlock, secondLastBlock, tx))
 			.then(() => __private.deleteBlockStep(oldLastBlock, tx))
@@ -857,19 +681,10 @@ Chain.prototype.deleteLastBlock = function(cb) {
 				// Notify all remote peers about our new headers
 				modules.transport.broadcastHeaders(seriesCb);
 			},
-			receiveTransactions(seriesCb) {
+			addDeletedTransactions(seriesCb) {
 				// Put transactions back into transaction pool
-				modules.transactions.receiveTransactions(
-					deletedBlockTransactions,
-					false,
-					err => {
-						if (err) {
-							library.logger.error('Error adding transactions', err);
-						}
-						deletedBlockTransactions = null;
-						return seriesCb();
-					}
-				);
+				modules.transactions.onDeletedTransactions(deletedBlockTransactions);
+				seriesCb();
 			},
 		},
 		err => setImmediate(cb, err, lastBlock)
@@ -913,6 +728,7 @@ Chain.prototype.onBind = function(scope) {
 		rounds: scope.modules.rounds,
 		transactions: scope.modules.transactions,
 		transport: scope.modules.transport,
+		processTransactions: scope.modules.processTransactions,
 	};
 
 	// Set module as loaded

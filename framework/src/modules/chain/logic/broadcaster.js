@@ -43,12 +43,11 @@ const __private = {};
  * @todo Add description for the params
  */
 class Broadcaster {
-	constructor(broadcasts, force, peers, transaction, logger) {
+	constructor(broadcasts, force, peers, transaction, logger, storage) {
 		library = {
 			logger,
 			logic: {
 				peers,
-				transaction,
 			},
 			config: {
 				broadcasts,
@@ -56,6 +55,7 @@ class Broadcaster {
 					force,
 				},
 			},
+			storage,
 		};
 
 		self = this;
@@ -241,16 +241,19 @@ __private.filterQueue = function(cb) {
 					return setImmediate(filterCb, null, true);
 				}
 				// Don't broadcast if transaction is already confirmed
-				return library.logic.transaction.checkConfirmed(
-					{ id: transactionId },
-					// In case of SQL error:
-					// err = true, isConfirmed = false => return false
-					// In case transaction exists in "trs" table:
-					// err = null, isConfirmed = true => return false
-					// In case transaction doesn't exists in "trs" table:
-					// err = null, isConfirmed = false => return true
-					(err, isConfirmed) => filterCb(null, !err && !isConfirmed)
-				);
+				return library.storage.entities.Transaction.isPersisted({
+					id: transactionId,
+				})
+					.then(isPersisted =>
+						// In case of SQL error:
+						// err = true, isConfirmed = false => return false
+						// In case transaction exists in "trs" table:
+						// err = null, isConfirmed = true => return false
+						// In case transaction doesn't exists in "trs" table:
+						// err = null, isConfirmed = false => return true
+						filterCb(null, !isPersisted)
+					)
+					.catch(err => filterCb(null, !err));
 			}
 			return setImmediate(filterCb, null, true);
 		},

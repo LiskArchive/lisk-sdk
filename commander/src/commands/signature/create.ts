@@ -62,9 +62,10 @@ export default class CreateCommand extends BaseCommand {
 	};
 
 	async run(): Promise<void> {
-		const { args, flags: { passphrase: passphraseSource } } = this.parse(
-			CreateCommand,
-		);
+		const {
+			args,
+			flags: { passphrase: passphraseSource },
+		} = this.parse(CreateCommand);
 
 		const { transaction }: Args = args;
 		const transactionInput = transaction || (await getTransactionInput());

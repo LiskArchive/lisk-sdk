@@ -27,27 +27,18 @@ const MemAccounts = {
 		'INSERT INTO mem_accounts (' +
 		'"username",' +
 		'"isDelegate",' +
-		'"u_isDelegate",' +
 		'"secondSignature",' +
-		'"u_secondSignature",' +
-		'"u_username",' +
 		'"address",' +
 		'"publicKey",' +
 		'"secondPublicKey",' +
 		'"balance",' +
-		'"u_balance",' +
 		'"vote",' +
 		'"rank",' +
 		'"delegates",' +
-		'"u_delegates",' +
 		'"multisignatures",' +
-		'"u_multisignatures",' +
 		'"multimin",' +
-		'"u_multimin",' +
 		'"multilifetime",' +
-		'"u_multilifetime",' +
 		'"nameexist",' +
-		'"u_nameexist",' +
 		'"producedBlocks",' +
 		'"missedBlocks",' +
 		'"fees",' +
@@ -55,27 +46,18 @@ const MemAccounts = {
 		') VALUES (' +
 		'${username}, ' +
 		'${isDelegate}, ' +
-		'${u_isDelegate}, ' +
 		'${secondSignature}, ' +
-		'${u_secondSignature}, ' +
-		'${u_username}, ' +
 		'${address}, ' +
 		'${publicKey}, ' +
 		'${secondPublicKey}, ' +
 		'${balance}, ' +
-		'${u_balance}, ' +
 		'${vote}, ' +
 		'${rank}, ' +
 		'${delegates}, ' +
-		'${u_delegates}, ' +
 		'${multisignatures}, ' +
-		'${u_multisignatures}, ' +
 		'${multimin}, ' +
-		'${u_multimin}, ' +
 		'${multilifetime}, ' +
-		'${u_multilifetime}, ' +
 		'${nameexist}, ' +
-		'${u_nameexist}, ' +
 		'${producedBlocks}, ' +
 		'${missedBlocks}, ' +
 		'${fees}, ' +

@@ -19,15 +19,25 @@ const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 
 const { REWARDS, TOTAL_AMOUNT } = __testContext.config.constants;
 
-REWARDS.DISTANCE = 3000000;
-REWARDS.OFFSET = 1451520;
-
 describe('BlockReward @slow', () => {
+	let oldDistance;
+	let oldOffset;
 	let blockReward;
 
 	before(done => {
+		oldDistance = global.constants.REWARDS.DISTANCE;
+		oldOffset = global.constants.REWARDS.OFFSET;
+
+		global.constants.REWARDS.DISTANCE = 3000000;
+		global.constants.REWARDS.OFFSET = 1451520;
+
 		blockReward = new BlockReward();
 		done();
+	});
+
+	after(async () => {
+		global.constants.REWARDS.DISTANCE = oldDistance;
+		global.constants.REWARDS.OFFSET = oldOffset;
 	});
 
 	describe('calcMilestone', () => {

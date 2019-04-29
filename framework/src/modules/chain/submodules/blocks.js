@@ -70,7 +70,6 @@ class Blocks {
 			verify: new BlocksVerify(
 				scope.components.logger,
 				scope.logic.block,
-				scope.logic.transaction,
 				scope.components.storage,
 				scope.config,
 				scope.channel
@@ -79,24 +78,24 @@ class Blocks {
 				scope.components.logger,
 				scope.logic.block,
 				scope.logic.peers,
-				scope.logic.transaction,
 				scope.schema,
 				scope.components.storage,
 				scope.sequence,
-				scope.genesisBlock
+				scope.genesisBlock,
+				scope.logic.initTransaction
 			),
 			utils: new BlocksUtils(
 				scope.components.logger,
 				scope.logic.account,
 				scope.logic.block,
-				scope.logic.transaction,
+				scope.logic.initTransaction,
 				scope.components.storage,
 				scope.genesisBlock
 			),
 			chain: new BlocksChain(
 				scope.components.logger,
 				scope.logic.block,
-				scope.logic.transaction,
+				scope.logic.initTransaction,
 				scope.components.storage,
 				scope.genesisBlock,
 				scope.bus,
@@ -235,7 +234,6 @@ Blocks.prototype.onBind = function(scope) {
 	components = {
 		cache: scope.components ? scope.components.cache : undefined,
 	};
-
 	// Set module as loaded
 	__private.loaded = true;
 };

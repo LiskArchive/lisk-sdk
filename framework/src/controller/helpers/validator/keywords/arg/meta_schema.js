@@ -5,14 +5,14 @@ module.exports = {
 	anyOf: [
 		{
 			type: 'string',
-			pattern: '^([-][a-z]{1,1})(,[-]{2}[a-z][a-z0-9-]*)?$',
+			pattern: '^([-]{2}[a-z][a-z0-9-]*)(,[-][a-z]{1,1})?$',
 		},
 		{
 			type: 'object',
 			properties: {
 				name: {
 					type: 'string',
-					pattern: '^([-][a-z]{1,1})(,[-]{2}[a-z][a-z0-9-]*)?$',
+					pattern: '^([-]{2}[a-z][a-z0-9-]*)(,[-][a-z]{1,1})?$',
 				},
 				formatter: {
 					type: 'string',

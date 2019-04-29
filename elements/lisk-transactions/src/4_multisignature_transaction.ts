@@ -13,6 +13,7 @@
  *
  */
 import * as BigNum from '@liskhq/bignum';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import {
 	BaseTransaction,
 	MultisignatureStatus,
@@ -65,6 +66,24 @@ export const multisignatureAssetFormatSchema = {
 	},
 };
 
+const setMemberAccounts = (
+	store: StateStore,
+	membersPublicKeys: ReadonlyArray<string>,
+) => {
+	membersPublicKeys.forEach(memberPublicKey => {
+		const address = getAddressFromPublicKey(memberPublicKey);
+		const memberAccount = store.account.getOrDefault(address);
+		const memberAccountWithPublicKey = {
+			...memberAccount,
+			publicKey: memberAccount.publicKey || memberPublicKey,
+		};
+		store.account.set(memberAccount.address, memberAccountWithPublicKey);
+	});
+};
+
+const extractPublicKeysFromAsset = (assetPublicKeys: ReadonlyArray<string>) =>
+	assetPublicKeys.map(key => key.substring(1));
+
 export interface MultiSignatureAsset {
 	readonly multisignature: {
 		readonly keysgroup: ReadonlyArray<string>;
@@ -101,10 +120,15 @@ export class MultisignatureTransaction extends BaseTransaction {
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {
+		const membersAddresses = extractPublicKeysFromAsset(
+			this.asset.multisignature.keysgroup,
+		).map(publicKey => ({ address: getAddressFromPublicKey(publicKey) }));
+
 		await store.account.cache([
 			{
 				address: this.senderId,
 			},
+			...membersAddresses,
 		]);
 	}
 
@@ -281,13 +305,15 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 		const updatedSender = {
 			...sender,
-			membersPublicKeys: this.asset.multisignature.keysgroup.map(key =>
-				key.substring(1),
+			membersPublicKeys: extractPublicKeysFromAsset(
+				this.asset.multisignature.keysgroup,
 			),
 			multiMin: this.asset.multisignature.min,
 			multiLifetime: this.asset.multisignature.lifetime,
 		};
 		store.account.set(updatedSender.address, updatedSender);
+
+		setMemberAccounts(store, updatedSender.membersPublicKeys);
 
 		return errors;
 	}

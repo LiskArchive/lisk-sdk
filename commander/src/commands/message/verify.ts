@@ -77,9 +77,10 @@ export default class VerifyCommand extends BaseCommand {
 	};
 
 	async run(): Promise<void> {
-		const { args, flags: { message: messageSource } } = this.parse(
-			VerifyCommand,
-		);
+		const {
+			args,
+			flags: { message: messageSource },
+		} = this.parse(VerifyCommand);
 
 		const { publicKey, signature, message }: Args = args;
 

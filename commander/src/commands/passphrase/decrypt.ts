@@ -107,7 +107,7 @@ export default class DecryptCommand extends BaseCommand {
 				? undefined
 				: {
 						source: passphraseSource,
-					},
+				  },
 		});
 		const result = processInputs(encryptedPassphrase)(inputs);
 		this.print(result);

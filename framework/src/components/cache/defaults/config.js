@@ -9,7 +9,7 @@ const defaultConfig = {
 			type: 'string',
 			format: 'ipOrFQDN',
 			env: 'LISK_REDIS_HOST',
-			arg: '-r,--redis',
+			arg: '--redis,-r',
 		},
 		port: {
 			type: 'integer',
