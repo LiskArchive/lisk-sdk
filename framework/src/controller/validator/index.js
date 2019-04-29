@@ -21,7 +21,7 @@ const _ = require('lodash');
  * Custom Lisk Framework Validator implemented on top of Ajv (https://github.com/epoberezkin/ajv)
  */
 const Ajv = require('ajv');
-const { SchemaValidationError } = require('../../../errors');
+const { SchemaValidationError } = require('../../errors');
 const formats = require('./formats');
 const ZSchema = require('./z_schema');
 const { env: envKeyword, arg: argKeyword } = require('./keywords');
