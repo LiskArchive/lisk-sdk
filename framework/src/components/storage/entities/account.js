@@ -47,7 +47,6 @@ const sqlFiles = {
  * @property {string} rewards
  * @property {string} vote
  * @property {number} productivity
- * @property {json} asset
  */
 
 /**
@@ -55,6 +54,7 @@ const sqlFiles = {
  * @typedef {BasicAccount} ExtendedAccount
  * @property {Array.<string>} membersPublicKeys - Public keys of all members if its a multi-signature account
  * @property {Array.<string>} votedDelegatesPublicKeys - Public keys of all delegates for which this account voted for
+ * @property {json} asset
  */
 
 /**
@@ -398,11 +398,15 @@ class Account extends BaseEntity {
 					return account;
 				};
 
-				if (expectedResultCount === 1) {
-					return parseResponse(resp);
+				if (parsedOptions.extended) {
+					if (expectedResultCount === 1) {
+						return parseResponse(resp);
+					}
+
+					return resp.map(parseResponse);
 				}
 
-				return resp.map(parseResponse);
+				return resp;
 			});
 	}
 }

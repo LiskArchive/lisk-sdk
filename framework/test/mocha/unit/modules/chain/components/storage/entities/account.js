@@ -160,9 +160,7 @@ describe('ChainAccount', () => {
 			await AccountEntity.create(account);
 
 			const mergedObject = Object.assign({}, defaultCreateValues, account);
-			mergedObject.asset = mergedObject.asset
-				? JSON.stringify(mergedObject.asset)
-				: null;
+			mergedObject.asset = mergedObject.asset ? mergedObject.asset : null;
 
 			expect(AccountEntity.getValuesSet.firstCall.args[0]).to.be.eql([
 				mergedObject,
