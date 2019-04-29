@@ -11,6 +11,7 @@ import {
 	stop,
 } from 'pm2';
 import { NETWORK } from '../constants';
+import { defaultLiskPath } from './config';
 
 export type ProcessStatus =
 	| 'online'
@@ -32,6 +33,8 @@ export interface Pm2Env {
 	readonly unstable_restarts: number;
 	readonly version: string;
 }
+
+process.env.PM2_HOME = `${defaultLiskPath}/pm2/`;
 
 const connectPM2 = async (): Promise<void> =>
 	new Promise<void>((resolve, reject) => {
