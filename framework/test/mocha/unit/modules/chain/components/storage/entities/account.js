@@ -281,7 +281,7 @@ describe('ChainAccount', () => {
 				productivity: 0,
 				votedDelegatesPublicKeys: null,
 				membersPublicKeys: null,
-				asset: {},
+				asset: null,
 			};
 			expect(accountFromDB).to.be.eql(expectedObject);
 		});
