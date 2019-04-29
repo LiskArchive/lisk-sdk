@@ -56,10 +56,10 @@ const startPM2 = async (
 			{
 				name,
 				script: 'src/index.js',
+				interpreter: `${installPath}/bin/node`,
 				cwd: installPath,
 				env: {
 					LISK_NETWORK: network,
-					NODE_PATH: `${installPath}/bin/node`,
 					...envConfig,
 				},
 				pid: path.join(installPath, '/pids/lisk.app.pid'),
