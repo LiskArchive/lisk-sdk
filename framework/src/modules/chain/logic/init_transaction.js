@@ -142,15 +142,13 @@ class Transaction {
 	}
 
 	fromBlock(block) {
-		if (!block.transactions) {
-			return undefined;
-		}
+		const transactions = block.transactions || [];
 
-		const transactions = block.transactions.map(transaction =>
+		const response = transactions.map(transaction =>
 			this.fromJson(transaction)
 		);
 
-		return transactions;
+		return response;
 	}
 
 	fromJson(rawTx) {
