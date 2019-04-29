@@ -105,7 +105,6 @@ describe('node/api', () => {
 				height: 1187,
 			},
 			loaded: true,
-			networkHeight: 456,
 			syncing: false,
 			transactions: {
 				confirmed: 10,
@@ -137,6 +136,21 @@ describe('node/api', () => {
 			currentTime: now,
 		};
 
+		const defaultPeers = [
+			{
+				height: 456,
+			},
+			{
+				height: 457,
+			},
+			{
+				height: 456,
+			},
+			{
+				height: 453,
+			},
+		];
+
 		beforeEach(async () => {
 			sinonSandbox.stub(Date, 'now').returns(now);
 		});
@@ -144,6 +158,7 @@ describe('node/api', () => {
 		describe('when chain:getNodeStatus answers with all parameters', () => {
 			beforeEach(async () => {
 				channelStub.invoke.withArgs('chain:getNodeStatus').returns(status);
+				channelStub.invoke.withArgs('network:getPeers').returns(defaultPeers);
 			});
 
 			it('should return an object status with all properties', async () =>
@@ -165,10 +180,10 @@ describe('node/api', () => {
 				expectedStatusWithoutSomeParameters = _.cloneDeep(expectedStatus);
 				expectedStatusWithoutSomeParameters.consensus = 0;
 				expectedStatusWithoutSomeParameters.height = 0;
-				expectedStatusWithoutSomeParameters.networkHeight = 0;
 				channelStub.invoke
 					.withArgs('chain:getNodeStatus')
 					.returns(statusWithoutSomeParameters);
+				channelStub.invoke.withArgs('network:getPeers').returns(defaultPeers);
 			});
 
 			it('should return an object status with some properties to 0', async () =>

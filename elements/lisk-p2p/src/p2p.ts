@@ -35,6 +35,8 @@ import {
 	INCOMPATIBLE_PEER_UNKNOWN_REASON,
 	INVALID_CONNECTION_QUERY_CODE,
 	INVALID_CONNECTION_QUERY_REASON,
+	INVALID_CONNECTION_SELF_CODE,
+	INVALID_CONNECTION_SELF_REASON,
 	INVALID_CONNECTION_URL_CODE,
 	INVALID_CONNECTION_URL_REASON,
 } from './disconnect_status_codes';
@@ -248,7 +250,7 @@ export class P2P extends EventEmitter {
 		this._bindHandlersToPeerPool(this._peerPool);
 
 		this._nodeInfo = config.nodeInfo;
-		this._peerPool.applyNodeInfo(this._nodeInfo);
+		this.applyNodeInfo(this._nodeInfo);
 
 		this._discoveryInterval = config.discoveryInterval
 			? config.discoveryInterval
@@ -275,7 +277,6 @@ export class P2P extends EventEmitter {
 		this._nodeInfo = {
 			...nodeInfo,
 		};
-
 		this._peerPool.applyNodeInfo(this._nodeInfo);
 	}
 
@@ -337,6 +338,16 @@ export class P2P extends EventEmitter {
 					return;
 				}
 				const queryObject = url.parse(socket.request.url, true).query;
+
+				if (queryObject.nonce === this._nodeInfo.nonce) {
+					this._disconnectSocketDueToFailedHandshake(
+						socket,
+						INVALID_CONNECTION_SELF_CODE,
+						INVALID_CONNECTION_SELF_REASON,
+					);
+
+					return;
+				}
 
 				if (
 					typeof queryObject.wsPort !== 'string' ||
