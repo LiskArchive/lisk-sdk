@@ -267,7 +267,7 @@ __private.forge = function(cb) {
 	return __private.getDelegateKeypairForCurrentSlot(
 		currentSlot,
 		round,
-		(getDelegateKeypairForCurrentSlotError, delegateKeypair) => {
+		async (getDelegateKeypairForCurrentSlotError, delegateKeypair) => {
 			if (getDelegateKeypairForCurrentSlotError) {
 				library.logger.error(
 					'Skipping delegate slot',
@@ -282,8 +282,8 @@ __private.forge = function(cb) {
 				});
 				return setImmediate(cb);
 			}
-
-			if (modules.transport.poorConsensus()) {
+			const isPoorConsensus = await modules.peers.isPoorConsensus();
+			if (isPoorConsensus) {
 				const consensusErr = `Inadequate broadhash consensus before forging a block: ${modules.peers.getLastConsensus()} %`;
 				library.logger.error(
 					'Failed to generate block within delegate slot',
