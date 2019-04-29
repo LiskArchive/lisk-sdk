@@ -15,7 +15,7 @@
 'use strict';
 
 const randomstring = require('randomstring');
-const { ZSchema } = require('../../../../../src/controller/helpers/validator');
+const { ZSchema } = require('../../../../../src/controller/validator');
 
 const validator = new ZSchema();
 
