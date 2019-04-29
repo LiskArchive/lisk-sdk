@@ -89,7 +89,7 @@ const middleware = {
 	 */
 	logClientConnections(logger, req, res, next) {
 		// Log client connections
-		logger.log(`${req.method} ${req.url} from ${req.ip}`);
+		logger.debug(`${req.method} ${req.url} from ${req.ip}`);
 
 		return next();
 	},

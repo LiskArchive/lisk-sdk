@@ -178,6 +178,7 @@ export const transferTransaction = {
 					properties: {
 						data: {
 							type: 'string',
+							format: 'transferData',
 							maxLength: 64,
 						},
 					},
