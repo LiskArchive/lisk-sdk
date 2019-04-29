@@ -33,6 +33,8 @@ const RESTORE_SNAPSHOT_FAILURE = '[-] Failed to restore blockchain.';
 
 const DB_DATA = 'pgsql/data';
 const DB_LOG_FILE = 'logs/pgsql.log';
+const PG_BIN = './pgsql/bin';
+const PG_CTL = `${PG_BIN}/pg_ctl`;
 
 const isDbInitialized = (installDir: string): boolean =>
 	fs.existsSync(`${installDir}/${DB_DATA}`);
@@ -43,7 +45,7 @@ const isDbRunning = async (
 ): Promise<boolean> => {
 	try {
 		const { stderr }: ExecResult = await exec(
-			`./pgsql/bin/pg_ctl -D ${DB_DATA} -o '-F -p ${port}' status`,
+			`${PG_CTL} --pgdata ${DB_DATA} --options '-F -p ${port}' status`,
 			{ cwd: installDir },
 		);
 
@@ -66,7 +68,7 @@ export const initDB = async (installDir: string): Promise<string> => {
 	}
 
 	const { stderr }: ExecResult = await exec(
-		`./pgsql/bin/pg_ctl initdb -D ${DB_DATA}`,
+		`${PG_CTL} initdb --pgdata ${DB_DATA}`,
 		{ cwd: installDir },
 	);
 
@@ -88,7 +90,7 @@ export const startDatabase = async (
 	}
 
 	const { stderr }: ExecResult = await exec(
-		`./pgsql/bin/pg_ctl -w -D ${DB_DATA} -l ${DB_LOG_FILE} -o "-F -p ${LISK_DB_PORT}" start`,
+		`${PG_CTL} --wait --pgdata ${DB_DATA} --log ${DB_LOG_FILE} --options "-F -p ${LISK_DB_PORT}" start`,
 		{ cwd: installDir },
 	);
 
@@ -108,9 +110,9 @@ export const createUser = async (
 	const LISK_DB_PORT = await getDatabasePort(name);
 
 	const { stderr }: ExecResult = await exec(
-		`./pgsql/bin/dropuser --if-exists ${user} -p ${LISK_DB_PORT};
-    ./pgsql/bin/createuser --createdb ${user} -p ${LISK_DB_PORT};
-    ./pgsql/bin/psql -qd postgres -p ${LISK_DB_PORT} -c "ALTER USER ${user} WITH PASSWORD '${password}';";`,
+		`${PG_BIN}/dropuser --if-exists ${user} --port ${LISK_DB_PORT};
+    ${PG_BIN}/createuser --createdb ${user} --port ${LISK_DB_PORT};
+    ${PG_BIN}/psql --quiet --dbname postgres --port ${LISK_DB_PORT} --command "ALTER USER ${user} WITH PASSWORD '${password}';";`,
 		{ cwd: installDir },
 	);
 
@@ -130,8 +132,8 @@ export const createDatabase = async (
 	const LISK_DB_PORT = await getDatabasePort(name);
 
 	const { stderr }: ExecResult = await exec(
-		`./pgsql/bin/dropdb --if-exists ${database} -p ${LISK_DB_PORT};
-    ./pgsql/bin/createdb ${database} -p ${LISK_DB_PORT};
+		`${PG_BIN}/dropdb --if-exists ${database} --port ${LISK_DB_PORT};
+    ${PG_BIN}/createdb ${database} --port ${LISK_DB_PORT};
 		`,
 		{ cwd: installDir },
 	);
@@ -154,7 +156,7 @@ export const stopDatabase = async (
 	}
 
 	const { stderr }: ExecResult = await exec(
-		`./pgsql/bin/pg_ctl -D ${DB_DATA} -l ${DB_LOG_FILE} stop`,
+		`${PG_CTL} --pgdata ${DB_DATA} --log ${DB_LOG_FILE} stop`,
 		{ cwd: installDir },
 	);
 
@@ -175,7 +177,7 @@ export const restoreSnapshot = async (
 	const LISK_DB_PORT = await getDatabasePort(name);
 
 	const { stderr }: ExecResult = await exec(
-		`gunzip -fcq ${snapshotFilePath} | psql -U ${user} -d ${database} -p ${LISK_DB_PORT};`,
+		`gunzip --force --stdout --quiet ${snapshotFilePath} | ${PG_BIN}/psql --username ${user} --dbname ${database} --port ${LISK_DB_PORT};`,
 		{ cwd: installDir },
 	);
 
