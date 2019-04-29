@@ -383,31 +383,12 @@ class Account extends BaseEntity {
 			parsedFilters,
 		};
 
-		return this.adapter
-			.executeFile(
-				parsedOptions.extended ? this.SQLs.selectFull : this.SQLs.selectSimple,
-				params,
-				{ expectedResultCount },
-				tx
-			)
-			.then(resp => {
-				const parseResponse = account => {
-					if (parsedOptions.extended) {
-						account.asset = account.asset ? account.asset : {};
-					}
-					return account;
-				};
-
-				if (parsedOptions.extended) {
-					if (expectedResultCount === 1) {
-						return parseResponse(resp);
-					}
-
-					return resp.map(parseResponse);
-				}
-
-				return resp;
-			});
+		return this.adapter.executeFile(
+			parsedOptions.extended ? this.SQLs.selectFull : this.SQLs.selectSimple,
+			params,
+			{ expectedResultCount },
+			tx
+		);
 	}
 }
 
