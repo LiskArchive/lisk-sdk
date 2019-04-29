@@ -31,7 +31,7 @@ describe('download utils', () => {
 			return expect(
 				downloadUtil.validateChecksum('file/path', 'test.gz'),
 			).to.rejectedWith(
-				'Checksum validation failed error with error: invalid checksum',
+				'Checksum validation failed with error: invalid checksum',
 			);
 		});
 

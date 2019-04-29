@@ -220,8 +220,9 @@ describe('commons node utils', () => {
 	describe('#upgradeLisk', () => {
 		let execStub: any = null;
 		beforeEach(() => {
-			sandbox.stub(fsExtra, 'mkdirSync').returns(null);
-			sandbox.stub(fsExtra, 'emptyDirSync').returns(null);
+			sandbox.stub(fsExtra, 'mkdirSync').returns();
+			sandbox.stub(fsExtra, 'emptyDirSync').returns();
+			sandbox.stub(fsExtra, 'copySync').returns();
 			execStub = sandbox.stub(workerProcess, 'exec');
 		});
 
