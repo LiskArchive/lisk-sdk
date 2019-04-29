@@ -20,7 +20,7 @@ const jsonRefs = require('json-refs');
 const _ = require('lodash');
 const YAML = require('js-yaml');
 const SwayHelpers = require('sway/lib/helpers');
-const { formats } = require('../../../controller/helpers/validator');
+const { formats } = require('../../../controller/validator');
 
 // Used as private member to cache the spec resolution process
 let resolvedSwaggerSpec = null;
