@@ -56,11 +56,7 @@ import {
 	startDatabase,
 	stopDatabase,
 } from '../../utils/node/database';
-import {
-	listApplication,
-	Pm2Env,
-	registerApplication,
-} from '../../utils/node/pm2';
+import { listApplication, registerApplication } from '../../utils/node/pm2';
 import { getReleaseInfo } from '../../utils/node/release';
 
 interface Flags {
@@ -125,22 +121,12 @@ const installOptions = async (
 	};
 };
 
-const getMaxValueByKey = (
+const getEnvByKey = (
 	instances: ReadonlyArray<ProcessDescription>,
 	key: string,
 	defaultValue: number,
 ): number => {
-	const apps = instances.map((app: ProcessDescription) => {
-		const { pm2_env } = app;
-		const {
-			LISK_DB_PORT,
-			LISK_REDIS_PORT,
-			LISK_HTTP_PORT,
-			LISK_WS_PORT,
-		} = pm2_env as Pm2Env;
-
-		return { LISK_DB_PORT, LISK_REDIS_PORT, LISK_HTTP_PORT, LISK_WS_PORT };
-	});
+	const apps = instances.map(({ pm2_env }: ProcessDescription) => pm2_env);
 	const INCREMENT = 2;
 
 	const maxValue = apps
@@ -149,6 +135,30 @@ const getMaxValueByKey = (
 		.reduce((acc, curr) => Math.max(acc, curr), defaultValue);
 
 	return maxValue + INCREMENT;
+};
+
+const generateEnvConfig = async (network: NETWORK) => {
+	const instances = await listApplication();
+
+	const LISK_DB_PORT = getEnvByKey(instances, 'LISK_DB_PORT', POSTGRES_PORT);
+	const LISK_REDIS_PORT = getEnvByKey(instances, 'LISK_REDIS_PORT', REDIS_PORT);
+	const LISK_HTTP_PORT = getEnvByKey(
+		instances,
+		'LISK_HTTP_PORT',
+		HTTP_PORTS[network],
+	);
+	const LISK_WS_PORT = getEnvByKey(
+		instances,
+		'LISK_WS_PORT',
+		WS_PORTS[network],
+	);
+
+	return {
+		LISK_DB_PORT,
+		LISK_REDIS_PORT,
+		LISK_HTTP_PORT,
+		LISK_WS_PORT,
+	};
 };
 
 export default class InstallCommand extends BaseCommand {
@@ -216,7 +226,7 @@ export default class InstallCommand extends BaseCommand {
 		const { name }: Args = args;
 
 		const cacheDir = this.config.cacheDir;
-		const snapshotPath = `${cacheDir}/${liskDbSnapshot(name, network)}`;
+		const snapshotPath = `${cacheDir}/${liskDbSnapshot(network)}`;
 		const snapshotURL = liskSnapshotUrl(snapshotUrl, network);
 
 		const tasks = new Listr([
@@ -256,23 +266,14 @@ export default class InstallCommand extends BaseCommand {
 								}: Options = ctx.options;
 
 								if (!noSnapshot) {
-									await downloadLiskAndValidate(
-										cacheDir,
-										liskTarUrl,
-										liskTarSHA256Url,
-										version,
-									);
-								} else {
-									await Promise.all([
-										downloadLiskAndValidate(
-											cacheDir,
-											liskTarUrl,
-											liskTarSHA256Url,
-											version,
-										),
-										download(snapshotURL, snapshotPath),
-									]);
+									await download(snapshotURL, snapshotPath);
 								}
+								await downloadLiskAndValidate(
+									cacheDir,
+									liskTarUrl,
+									liskTarSHA256Url,
+									version,
+								);
 							},
 						},
 						{
@@ -287,34 +288,7 @@ export default class InstallCommand extends BaseCommand {
 							title: 'Register Lisk Core',
 							task: async ctx => {
 								const { installDir }: Options = ctx.options;
-								const instances = await listApplication();
-
-								const LISK_DB_PORT = getMaxValueByKey(
-									instances,
-									'LISK_DB_PORT',
-									POSTGRES_PORT,
-								);
-								const LISK_REDIS_PORT = getMaxValueByKey(
-									instances,
-									'LISK_REDIS_PORT',
-									REDIS_PORT,
-								);
-								const LISK_HTTP_PORT = getMaxValueByKey(
-									instances,
-									'LISK_HTTP_PORT',
-									HTTP_PORTS[network],
-								);
-								const LISK_WS_PORT = getMaxValueByKey(
-									instances,
-									'LISK_WS_PORT',
-									WS_PORTS[network],
-								);
-								const envConfig = {
-									LISK_DB_PORT,
-									LISK_REDIS_PORT,
-									LISK_HTTP_PORT,
-									LISK_WS_PORT,
-								};
+								const envConfig = await generateEnvConfig(network);
 
 								await registerApplication(installDir, network, name, envConfig);
 							},
