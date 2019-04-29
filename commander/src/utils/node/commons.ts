@@ -47,8 +47,8 @@ export const liskSnapshotUrl = (url: string, network: NETWORK): string => {
 	return `${url}/${network}/blockchain.db.gz`;
 };
 
-export const liskDbSnapshot = (networkName: string, network: NETWORK) =>
-	`${networkName}-${network}-blockchain.db.gz`;
+export const liskDbSnapshot = (network: NETWORK) =>
+	`${network}-blockchain.db.gz`;
 
 export const logsDir = (installPath: string) =>
 	`${liskInstall(installPath)}/logs`;
@@ -172,4 +172,16 @@ export const getSemver = (str: string): string => {
 	const result = exp.exec(str) as ReadonlyArray<string>;
 
 	return result[0];
+};
+
+export const dateDiff = (date1: Date, date2: Date): number => {
+	const MINUTES_OR_SECONDS = 60;
+	const HOURS = 24;
+	const INT_RANGE = 1000;
+
+	return (
+		(((new Date(date1) as unknown) as number) -
+			((new Date(date2) as unknown) as number)) /
+		(HOURS * MINUTES_OR_SECONDS * MINUTES_OR_SECONDS * INT_RANGE)
+	);
 };

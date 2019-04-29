@@ -14,17 +14,26 @@
  *
  */
 import * as axios from 'axios';
-import fs from 'fs';
-import { liskTar, liskTarSHA256 } from './node/commons';
+import fs from 'fs-extra';
+import { dateDiff, liskTar, liskTarSHA256 } from './node/commons';
 import { exec, ExecResult } from './worker-process';
 
 export const download = async (
 	url: string,
 	filePath: string,
 ): Promise<void> => {
+	const CACHE_EXPIRY_IN_DAYS = 2;
+
 	if (fs.existsSync(filePath)) {
-		return;
+		if (
+			dateDiff(fs.statSync(filePath).birthtime, new Date()) <=
+			CACHE_EXPIRY_IN_DAYS
+		) {
+			return;
+		}
+		fs.unlinkSync(filePath);
 	}
+
 	const writeStream = fs.createWriteStream(filePath);
 	const response = await axios.default({
 		url,
