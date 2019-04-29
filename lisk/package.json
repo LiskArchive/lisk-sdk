@@ -24,13 +24,15 @@
 		"node": "10.15.3",
 		"npm": "6.4.1"
 	},
-	"main": "src/index.js",
+	"main": "dist/src/index.js",
 	"scripts": {
-		"start": "node src/index.js",
+		"start": "node dist/src/index.js",
 		"console": "node scripts/console.js",
-		"lint": "eslint .",
-		"lint:fix": "eslint --fix .",
+		"lint": "tslint --format verbose --project .",
+		"lint:fix": "tslint --fix --project .",
 		"format": "prettier --write \"./*.{js,json,md}\" \"{api,config,docs,helpers,logic,modules,schema,scripts,storage,tasks,test}{,/**}/*.{js,json,md}\"",
+		"prebuild": "if test -d dist; then rm -r dist; fi",
+		"build": "tsc",
 		"test": "mocha test"
 	},
 	"dependencies": {
