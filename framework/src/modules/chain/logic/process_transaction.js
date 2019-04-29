@@ -22,7 +22,7 @@ const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
  * @param steps
  * @returns {function(*=): {transactionsResponses: *[]}}
  */
-const composeProcessTransactionSteps = (...steps) => async transactions => {
+const composeTransactionSteps = (...steps) => async transactions => {
 	let failedResponses = [];
 	const { transactionsResponses: successfulResponses } = await steps.reduce(
 		async (previousValue, fn, index) => {
@@ -61,5 +61,5 @@ const composeProcessTransactionSteps = (...steps) => async transactions => {
 };
 
 module.exports = {
-	composeProcessTransactionSteps,
+	composeTransactionSteps,
 };

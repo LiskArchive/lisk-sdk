@@ -691,10 +691,7 @@ describe('transport', () => {
 			afterEach(() => sinonSandbox.restore());
 
 			it('should composeProcessTransactionsSteps with checkAllowedTransactions and validateTransactions', done => {
-				sinonSandbox.spy(
-					processTransactionLogic,
-					'composeProcessTransactionSteps'
-				);
+				sinonSandbox.spy(processTransactionLogic, 'composeTransactionSteps');
 
 				__private.receiveTransaction(
 					transaction,
@@ -702,7 +699,7 @@ describe('transport', () => {
 					'This is a log message',
 					async () => {
 						expect(
-							processTransactionLogic.composeProcessTransactionSteps
+							processTransactionLogic.composeTransactionSteps
 						).to.have.been.calledWith(
 							modules.processTransactions.checkAllowedTransactions,
 							modules.processTransactions.validateTransactions
@@ -728,7 +725,7 @@ describe('transport', () => {
 				);
 
 				sinonSandbox
-					.stub(processTransactionLogic, 'composeProcessTransactionSteps')
+					.stub(processTransactionLogic, 'composeTransactionSteps')
 					.returns(composedTransactionsCheck);
 
 				__private.receiveTransaction(

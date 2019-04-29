@@ -92,10 +92,7 @@ describe('transactionPool', () => {
 	describe('bind', () => {
 		let txPool;
 		beforeEach(async () => {
-			sinonSandbox.spy(
-				processTransactionLogic,
-				'composeProcessTransactionSteps'
-			);
+			sinonSandbox.spy(processTransactionLogic, 'composeTransactionSteps');
 			txPool = new TransactionPool(
 				config.modules.chain.broadcasts.broadcastInterval,
 				config.modules.chain.broadcasts.releaseLimit,
@@ -109,9 +106,9 @@ describe('transactionPool', () => {
 			expect(txPool.pool).to.be.an.instanceOf(pool.TransactionPool);
 		});
 
-		it('should call composeProcessTransactionSteps to compose verifyTransactions', async () => {
+		it('should call composeTransactionSteps to compose verifyTransactions', async () => {
 			expect(
-				processTransactionLogic.composeProcessTransactionSteps
+				processTransactionLogic.composeTransactionSteps
 			).to.have.been.calledWith(
 				processTransactionsStub.checkAllowedTransactions,
 				processTransactionsStub.checkPersistedTransactions,
@@ -119,9 +116,9 @@ describe('transactionPool', () => {
 			);
 		});
 
-		it('should call composeProcessTransactionsteps to compose processTransactions', async () => {
+		it('should call composeTransactionSteps to compose processTransactions', async () => {
 			expect(
-				processTransactionLogic.composeProcessTransactionSteps.getCall(1)
+				processTransactionLogic.composeTransactionSteps.getCall(1)
 			).to.have.been.calledWith(
 				processTransactionsStub.checkPersistedTransactions,
 				processTransactionsStub.applyTransactions

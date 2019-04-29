@@ -86,12 +86,12 @@ class TransactionPool {
 	 */
 	bind(processTransactions) {
 		this.validateTransactions = processTransactions.validateTransactions;
-		this.verifyTransactions = processTransactionLogic.composeProcessTransactionSteps(
+		this.verifyTransactions = processTransactionLogic.composeTransactionSteps(
 			processTransactions.checkAllowedTransactions,
 			processTransactions.checkPersistedTransactions,
 			processTransactions.verifyTransactions
 		);
-		this.processTransactions = processTransactionLogic.composeProcessTransactionSteps(
+		this.processTransactions = processTransactionLogic.composeTransactionSteps(
 			processTransactions.checkPersistedTransactions,
 			processTransactions.applyTransactions
 		);
