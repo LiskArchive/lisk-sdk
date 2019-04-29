@@ -28,13 +28,13 @@ module.exports = class NetworkModule extends BaseModule {
 	}
 
 	get events() {
-		return ['bootstrap', 'remoteEvent'];
+		return ['bootstrap', 'subscribe'];
 	}
 
 	get actions() {
 		return {
-			request: async action => this.network.actions.request(action),
-			send: action => this.network.actions.send(action),
+			invoke: async action => this.network.actions.invoke(action),
+			publish: action => this.network.actions.publish(action),
 			getNetworkStatus: () => this.network.actions.getNetworkStatus(),
 			getPeers: action => this.network.actions.getPeers(action),
 			getPeersCountByFilter: action =>
