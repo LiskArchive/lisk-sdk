@@ -1,7 +1,5 @@
 const path = require('path');
-const {
-	helpers: { configurator },
-} = require('lisk-framework');
+const { configurator } = require('lisk-framework');
 
 const appSchema = {
 	type: 'object',

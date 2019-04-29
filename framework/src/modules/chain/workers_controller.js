@@ -33,7 +33,7 @@ const Rules = require('./api/ws/workers/rules');
 const failureCodes = require('./api/ws/rpc/failure_codes');
 const { createLoggerComponent } = require('../../../src/components/logger');
 
-const validator = require('../../controller/helpers/validator');
+const validator = require('../../controller/validator');
 const schema = require('./defaults/config');
 
 const config = validator.parseEnvArgAndValidate(schema, {});

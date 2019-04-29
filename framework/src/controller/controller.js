@@ -2,11 +2,11 @@ const fs = require('fs-extra');
 const path = require('path');
 const child_process = require('child_process');
 const psList = require('ps-list');
-const systemDirs = require('./helpers/sysmtem_dirs');
+const systemDirs = require('./system_dirs');
 const { InMemoryChannel } = require('./channels');
 const Bus = require('./bus');
 const { DuplicateAppInstanceError } = require('../errors');
-const { validateModuleSpec } = require('./helpers/validator');
+const { validateModuleSpec } = require('./validator');
 const ApplicationState = require('./application_state');
 
 const isPidRunning = async pid =>
@@ -20,7 +20,7 @@ const isPidRunning = async pid =>
  * @requires assert
  * @requires bluebird
  * @requires fs-extra
- * @requires helpers/config
+ * @requires config
  * @requires channels/event_emitter
  * @requires module.Bus
  */
