@@ -16,7 +16,9 @@ try {
 
 	const app = new Application(genesisBlock, config);
 
-	const { TRANSACTION_TYPES } = app.constants;
+	const {
+		constants: { TRANSACTION_TYPES },
+	} = app;
 
 	app.registerTransaction(TRANSACTION_TYPES.DAPP, DappTransaction);
 	app.registerTransaction(

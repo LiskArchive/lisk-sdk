@@ -112,8 +112,8 @@ __private.receiveBlock = function(block, cb) {
  * @param {function} cb - Callback function
  */
 __private.receiveForkOne = function(block, lastBlock, cb) {
-	let tmp_block = _.clone(block);
-	tmp_block.transactions = library.logic.initTransaction.fromBlock(tmp_block);
+	let tmpBlock = _.clone(block);
+	tmpBlock.transactions = library.logic.initTransaction.fromBlock(tmpBlock);
 
 	// Fork: Consecutive height but different previous block id
 	modules.delegates.fork(block, 1);
@@ -130,7 +130,7 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 		[
 			function(seriesCb) {
 				try {
-					tmp_block = library.logic.block.objectNormalize(tmp_block);
+					tmpBlock = library.logic.block.objectNormalize(tmpBlock);
 				} catch (err) {
 					return setImmediate(seriesCb, err);
 				}
@@ -138,15 +138,15 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 			},
 			// Check valid slot
 			function(seriesCb) {
-				__private.validateBlockSlot(tmp_block, lastBlock, seriesCb);
+				__private.validateBlockSlot(tmpBlock, lastBlock, seriesCb);
 			},
 			// Check received block before any deletion
 			function(seriesCb) {
-				const check = modules.blocks.verify.verifyReceipt(tmp_block);
+				const check = modules.blocks.verify.verifyReceipt(tmpBlock);
 
 				if (!check.verified) {
 					library.logger.error(
-						`Block ${tmp_block.id} verification failed`,
+						`Block ${tmpBlock.id} verification failed`,
 						check.errors.join(', ')
 					);
 					// Return first error from checks

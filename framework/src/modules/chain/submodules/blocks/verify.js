@@ -86,13 +86,12 @@ class Verify {
  * @returns {Object} cb.err - Error if occurred
  */
 __private.checkTransactions = async (block, checkExists) => {
-	const { version, height, timestamp } = block;
+	const { version, height, timestamp, transactions } = block;
 	const context = {
 		blockVersion: version,
 		blockHeight: height,
 		blockTimestamp: timestamp,
 	};
-	const transactions = block.transactions;
 
 	if (transactions.length === 0) {
 		return;

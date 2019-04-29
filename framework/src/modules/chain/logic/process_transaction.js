@@ -32,12 +32,12 @@ const composeProcessTransactionSteps = (...steps) => async transactions => {
 				return fn(previousValue);
 			}
 
-			previousValue = await previousValue;
+			const previousValueResponse = await previousValue;
 
 			// Keep track of transactions that failed in the current step
 			failedResponses = [
 				...failedResponses,
-				...previousValue.transactionsResponses.filter(
+				...previousValueResponse.transactionsResponses.filter(
 					response => response.status === TransactionStatus.FAIL
 				),
 			];
@@ -45,7 +45,7 @@ const composeProcessTransactionSteps = (...steps) => async transactions => {
 			// Return only transactions that succeeded to the next step
 			return fn(
 				transactions.filter(transaction =>
-					previousValue.transactionsResponses
+					previousValueResponse.transactionsResponses
 						.filter(response => response.status === TransactionStatus.OK)
 						.map(transactionResponse => transactionResponse.id)
 						.includes(transaction.id)
