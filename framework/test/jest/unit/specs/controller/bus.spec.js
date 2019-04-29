@@ -97,10 +97,6 @@ describe('Bus', () => {
 	});
 
 	describe('#publish', () => {
-		it('should throw Error when unregistered event name was provided.', () => {
-			expect(() => bus.publish('unregisteredEvent')).toThrow();
-		});
-
 		it("should call eventemitter2 library's emit method", async () => {
 			// Arrange
 			const moduleAlias = 'alias';

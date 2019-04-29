@@ -116,10 +116,6 @@ describe('blocks/verify', () => {
 			removeUnconfirmedTransaction: sinonSandbox.stub(),
 		};
 
-		const modulesTransportStub = {
-			broadcastHeaders: sinonSandbox.stub(),
-		};
-
 		const modulesBlocksStub = {
 			lastBlock: {
 				get: sinonSandbox.stub(),
@@ -147,7 +143,6 @@ describe('blocks/verify', () => {
 				blocks: modulesBlocksStub,
 				delegates: modulesDelegatesStub,
 				transactions: modulesTransactionsStub,
-				transport: modulesTransportStub,
 				processTransactions: modulesProcessTransactionsStub,
 			},
 		};
@@ -1894,7 +1889,6 @@ describe('blocks/verify', () => {
 			__private.broadcastBlock = sinonSandbox
 				.stub()
 				.callsArgWith(2, null, true);
-			modules.transport.broadcastHeaders.callsArgWith(0, null, true);
 			done();
 		});
 
@@ -1930,15 +1924,16 @@ describe('blocks/verify', () => {
 
 			afterEach(() => channelMock.invoke.resetHistory());
 
-			it('should be called if snapshotting was not activated', done => {
+			it('should be called if snapshotting was not activated and broadcast is true', done => {
+				broadcast = true;
 				blocksVerifyModule.processBlock(
 					dummyBlock,
 					broadcast,
 					saveBlock,
 					err => {
 						expect(err).to.be.null;
-						expect(channelMock.once.calledOnce).to.be.true;
-						expect(channelMock.invoke.calledOnce).to.be.true;
+						expect(channelMock.once).to.be.calledOnce;
+						expect(channelMock.invoke).to.be.calledOnce;
 						done();
 					}
 				);
@@ -1963,7 +1958,6 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
-							expect(modules.transport.broadcastHeaders.calledOnce).to.be.true;
 							expect(__private.checkExists).to.have.been.calledWith(dummyBlock);
 							done();
 						}
@@ -1981,7 +1975,6 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
-							expect(modules.transport.broadcastHeaders.calledOnce).to.be.true;
 							expect(__private.checkExists).to.not.called;
 							done();
 						}
@@ -2008,7 +2001,6 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
-							expect(modules.transport.broadcastHeaders.calledOnce).to.be.false;
 							expect(__private.checkExists).to.have.been.calledWith(dummyBlock);
 							done();
 						}
@@ -2026,7 +2018,6 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
-							expect(modules.transport.broadcastHeaders.calledOnce).to.be.false;
 							expect(__private.checkExists).to.not.called;
 							done();
 						}
@@ -2055,7 +2046,6 @@ describe('blocks/verify', () => {
 								__private.checkTransactions,
 								modules.blocks.chain.applyBlock,
 
-								modules.transport.broadcastHeaders, // Because of the mocked event handler this method is called immediately
 								channelMock.invoke
 							);
 
@@ -2085,7 +2075,6 @@ describe('blocks/verify', () => {
 			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
 			expect(modules.delegates).to.equal(bindingsStub.modules.delegates);
 			expect(modules.transactions).to.equal(bindingsStub.modules.transactions);
-			expect(modules.transport).to.equal(bindingsStub.modules.transport);
 			done();
 		});
 

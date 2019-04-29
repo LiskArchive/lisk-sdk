@@ -1,9 +1,9 @@
 const {
 	validate,
 	parseEnvArgAndValidate,
-} = require('../../../../../../../src/controller/helpers/validator');
+} = require('../../../../../../../src/controller/validator');
 
-describe('helpers/validator.js', () => {
+describe('validator.js', () => {
 	describe('Ajv instance', () => {
 		describe('const', () => {
 			it('should not throw error if value for "const" defined attribute is same', () => {

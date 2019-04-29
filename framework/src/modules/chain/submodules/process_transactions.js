@@ -19,6 +19,7 @@ const {
 	TransactionError,
 } = require('@liskhq/lisk-transactions');
 const roundInformation = require('../logic/rounds_information');
+const StateStore = require('../logic/state_store');
 const slots = require('../helpers/slots');
 const checkTransactionExceptions = require('../logic/check_transaction_against_exceptions.js');
 
@@ -55,10 +56,8 @@ const updateTransactionResponseForExceptionTransactions = (
 class ProcessTransactions {
 	constructor(cb, scope) {
 		library = {
+			logger: scope.components.logger,
 			storage: scope.components.storage,
-			logic: {
-				stateManager: scope.logic.stateManager,
-			},
 		};
 		setImmediate(cb, null, this);
 	}
@@ -126,7 +125,11 @@ class ProcessTransactions {
 	// eslint-disable-next-line class-methods-use-this
 	async applyTransactions(transactions, tx = undefined) {
 		// Get data required for verifying transactions
-		const stateStore = library.logic.stateManager.createStore({
+		library.logger.info(
+			{ meta: { action: 'applyTransactionsStart' } },
+			'Applying transaction started'
+		);
+		const stateStore = new StateStore(library.storage, {
 			mutate: true,
 			tx,
 		});
@@ -147,6 +150,10 @@ class ProcessTransactions {
 		updateTransactionResponseForExceptionTransactions(
 			unappliableTransactionsResponse,
 			transactions
+		);
+		library.logger.info(
+			{ meta: { action: 'applyTransactionsEnd' } },
+			'Applying transaction ended'
 		);
 
 		return {
@@ -186,7 +193,7 @@ class ProcessTransactions {
 	// eslint-disable-next-line class-methods-use-this
 	async undoTransactions(transactions, tx = undefined) {
 		// Get data required for verifying transactions
-		const stateStore = library.logic.stateManager.createStore({
+		const stateStore = new StateStore(library.storage, {
 			mutate: true,
 			tx,
 		});
@@ -217,14 +224,18 @@ class ProcessTransactions {
 	// eslint-disable-next-line class-methods-use-this
 	async verifyTransactions(transactions) {
 		// Get data required for verifying transactions
-		const stateStore = library.logic.stateManager.createStore({
+		library.logger.info(
+			{ meta: { action: 'verifyTransactionsStarted' } },
+			'Verify transaction started'
+		);
+		const stateStore = new StateStore(library.storage, {
 			mutate: false,
 		});
 
 		await Promise.all(transactions.map(t => t.prepare(stateStore)));
 
 		const transactionsResponses = transactions.map(transaction => {
-			library.logic.stateManager.createSnapshot();
+			stateStore.createSnapshot();
 			const transactionResponse = transaction.apply(stateStore);
 			if (slots.getSlotNumber(transaction.timestamp) > slots.getSlotNumber()) {
 				transactionResponse.status = 0;
@@ -236,7 +247,7 @@ class ProcessTransactions {
 					)
 				);
 			}
-			library.logic.stateManager.restoreSnapshot();
+			stateStore.restoreSnapshot();
 			return transactionResponse;
 		});
 
@@ -248,6 +259,10 @@ class ProcessTransactions {
 			unverifiableTransactionsResponse,
 			transactions
 		);
+		library.logger.info(
+			{ meta: { action: 'verifyTransactionsEnd' } },
+			'Verify transaction End'
+		);
 
 		return {
 			transactionsResponses,
@@ -257,7 +272,11 @@ class ProcessTransactions {
 	// eslint-disable-next-line class-methods-use-this
 	async processSignature(transaction, signature) {
 		// Get data required for processing signature
-		const stateStore = library.logic.stateManager.createStore({
+		library.logger.info(
+			{ meta: { action: 'process signature Transactions', transaction } },
+			'process signature transaction start'
+		);
+		const stateStore = new StateStore(library.storage, {
 			mutate: false,
 		});
 		await transaction.prepare(stateStore);

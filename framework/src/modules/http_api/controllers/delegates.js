@@ -164,10 +164,7 @@ async function _getDelegates(filters, options) {
 		options
 	);
 
-	const [lastBlock] = await storage.entities.Block.get(
-		{},
-		{ sort: 'height:desc', limit: 1 }
-	);
+	const { lastBlock } = await channel.invoke('chain:getNodeStatus');
 
 	const supply = lastBlock.height
 		? await channel.invoke('chain:calculateSupply', {
@@ -188,10 +185,8 @@ async function _getDelegates(filters, options) {
  * @private
  */
 async function _getForgers(filters) {
-	const [lastBlock] = await storage.entities.Block.get(
-		{},
-		{ sort: 'height:desc', limit: 1 }
-	);
+	const { lastBlock } = await channel.invoke('chain:getNodeStatus');
+
 	const lastBlockSlot = await channel.invoke('chain:getSlotNumber', {
 		epochTime: lastBlock.timestamp,
 	});
