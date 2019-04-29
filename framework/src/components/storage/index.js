@@ -15,7 +15,7 @@
 'use strict';
 
 const { config: defaultConfig } = require('./defaults');
-const validator = require('../../controller/helpers/validator');
+const validator = require('../../controller/validator');
 const Storage = require('./storage');
 const adapters = require('./adapters');
 const entities = require('./entities');

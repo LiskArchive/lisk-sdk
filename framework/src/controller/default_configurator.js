@@ -1,12 +1,10 @@
 const yargs = require('yargs');
-const chainModule = require('../../../modules/chain');
-const APIModule = require('../../../modules/http_api');
-const NetworkModule = require('../../../modules/network');
-const { config: loggerConfig } = require('../../../components/logger/defaults');
-const {
-	config: storageConfig,
-} = require('../../../components/storage/defaults');
-const { config: cacheConfig } = require('../../../components/cache/defaults');
+const chainModule = require('../modules/chain');
+const APIModule = require('../modules/http_api');
+const NetworkModule = require('../modules/network');
+const { config: loggerConfig } = require('../components/logger/defaults');
+const { config: storageConfig } = require('../components/storage/defaults');
+const { config: cacheConfig } = require('../components/cache/defaults');
 const Configurator = require('./configurator');
 
 const configurator = new Configurator();

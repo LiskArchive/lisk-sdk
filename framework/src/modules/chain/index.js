@@ -35,8 +35,8 @@ module.exports = class ChainModule extends BaseModule {
 
 	get events() {
 		return [
+			'bootstrap',
 			'blocks:change',
-			'ready',
 			'signature:change',
 			'transactions:change',
 			'rounds:change',
@@ -82,9 +82,9 @@ module.exports = class ChainModule extends BaseModule {
 	async load(channel) {
 		this.chain = new Chain(channel, this.options);
 
-		channel.once('app:ready', async () => {
+		channel.once('network:bootstrap', async () => {
 			await this.chain.bootstrap();
-			channel.publish('chain:ready');
+			channel.publish('chain:bootstrap');
 		});
 	}
 
