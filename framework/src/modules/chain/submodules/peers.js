@@ -60,7 +60,7 @@ class Peers {
 		self.consensus = scope.config.forging.force ? 100 : 0;
 		self.broadhashConsensusCalculationInterval = 5000;
 
-		library.channel.once('network:ready', () => {
+		library.channel.once('chain:bootstrap', () => {
 			self.onAppReady();
 		});
 		setImmediate(cb, null, self);
@@ -91,7 +91,7 @@ Peers.prototype.calculateConsensus = async function() {
 		'network:getPeersCountByFilter',
 		{ broadhash }
 	);
-	const consensus = +(matchedCount / activeCount * 100).toPrecision(2);
+	const consensus = +((matchedCount / activeCount) * 100).toPrecision(2);
 	self.consensus = Number.isNaN(consensus) ? 0 : consensus;
 	return self.consensus;
 };

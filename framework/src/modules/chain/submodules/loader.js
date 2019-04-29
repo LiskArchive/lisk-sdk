@@ -89,7 +89,7 @@ class Loader {
 		__private.genesisBlock = library.genesisBlock;
 
 		// On App Ready
-		library.channel.once('network:ready', () => {
+		library.channel.once('chain:bootstrap', () => {
 			self.onAppReady();
 		});
 

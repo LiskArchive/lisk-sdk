@@ -28,7 +28,7 @@ module.exports = class NetworkModule extends BaseModule {
 	}
 
 	get events() {
-		return ['ready'];
+		return ['bootstrap', 'remoteEvent'];
 	}
 
 	get actions() {
@@ -44,11 +44,8 @@ module.exports = class NetworkModule extends BaseModule {
 
 	async load(channel) {
 		this.network = new Network(this.options);
-
-		channel.once('chain:ready', async () => {
-			await this.network.bootstrap(channel);
-			channel.publish('network:ready');
-		});
+		await this.network.bootstrap(channel);
+		channel.publish('network:bootstrap');
 	}
 
 	async unload() {
