@@ -80,8 +80,8 @@ describe('integration test (type 1) - second signature transactions from pool an
 						library,
 						[signatureTransaction],
 						(err, block) => {
+							block = localCommon.blockToJSON(block);
 							expect(err).to.not.exist;
-
 							library.modules.blocks.process.onReceiveBlock(block);
 							done();
 						}
@@ -119,6 +119,7 @@ describe('integration test (type 1) - second signature transactions from pool an
 						library,
 						[signatureTransaction2],
 						(err, block) => {
+							block = localCommon.blockToJSON(block);
 							expect(err).to.not.exist;
 							library.modules.blocks.process.onReceiveBlock(block);
 							done();

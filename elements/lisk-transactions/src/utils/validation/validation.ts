@@ -181,9 +181,5 @@ export const isValidNumber = (num: unknown): boolean => {
 		return isNumberString(num);
 	}
 
-	try {
-		return isNumberString((num as object).toString());
-	} catch (e) {
-		return false;
-	}
+	return false;
 };

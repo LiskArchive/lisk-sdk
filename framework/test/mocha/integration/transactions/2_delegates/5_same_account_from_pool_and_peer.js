@@ -88,6 +88,7 @@ describe('delegate', () => {
 						library,
 						[delegateTransaction],
 						(err, block) => {
+							block = localCommon.blockToJSON(block);
 							expect(err).to.not.exist;
 							library.modules.blocks.process.onReceiveBlock(block);
 							done();
@@ -126,6 +127,7 @@ describe('delegate', () => {
 						library,
 						[delegateTransaction2],
 						(err, block) => {
+							block = localCommon.blockToJSON(block);
 							expect(err).to.not.exist;
 							library.modules.blocks.process.onReceiveBlock(block);
 							done();
