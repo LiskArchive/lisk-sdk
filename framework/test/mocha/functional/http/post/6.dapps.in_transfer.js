@@ -32,7 +32,7 @@ const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 const createInTransfer = () => {};
 
 // eslint-disable-next-line
-describe.skip('[feature/improve_transactions_processing_efficiency] [dapps_in transactions are disabled] POST /api/transactions (type 6) inTransfer dapp', () => {
+describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 	let transaction;
 	const transactionsToWaitFor = [];
 	const badTransactions = [];
@@ -407,10 +407,10 @@ describe.skip('[feature/improve_transactions_processing_efficiency] [dapps_in tr
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal(
-					`Error: Transaction type ${
-						transaction.type
-					} is currently not allowed.`
+				expect(res.body.message).to.eql('Invalid transaction body');
+				expect(res.body.code).to.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
+					'Transaction type 6 is currently not allowed.'
 				);
 			});
 		});

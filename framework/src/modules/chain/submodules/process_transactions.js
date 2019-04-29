@@ -171,10 +171,11 @@ class ProcessTransactions {
 					errors: allowed
 						? []
 						: [
-								new Error(
+								new TransactionError(
 									`Transaction type ${
 										transaction.type
-									} is currently not allowed.`
+									} is currently not allowed.`,
+									transaction.id
 								),
 						  ],
 				};
