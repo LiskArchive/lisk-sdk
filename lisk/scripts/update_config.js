@@ -286,11 +286,29 @@ history.version('1.6.0-rc.0', version => {
 		config = moveElement(config, 'forging', 'modules.chain.forging');
 		config = moveElement(config, 'syncing', 'modules.chain.syncing');
 		config = moveElement(config, 'loading', 'modules.chain.loading');
+		return config;
+	});
 
-		// Future network module
-		config = moveElement(config, 'peers', 'modules.chain.network');
-		config = moveElement(config, 'wsPort', 'modules.chain.network.wsPort');
-		config = moveElement(config, 'address', 'modules.chain.network.address');
+	version.change('add structure for network module', config => {
+		config = moveElement(config, 'peers.list', 'modules.network.seedPeers');
+		config = moveElement(
+			config,
+			'peers.access.blackList',
+			'modules.network.blacklistedPeers'
+		);
+		config = moveElement(
+			config,
+			'peers.options.timeout',
+			'modules.network.connectTimeout'
+		);
+		config = moveElement(
+			config,
+			'peers.options.wsEngine',
+			'modules.network.wsEngine'
+		);
+		config = moveElement(config, 'wsPort', 'modules.network.wsPort');
+		config = moveElement(config, 'address', 'modules.network.hostAddress');
+		delete config.peers;
 		return config;
 	});
 

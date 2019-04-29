@@ -21,7 +21,7 @@
 			"httpPort": 8000
 		},
 		"network": {
-			"list": [
+			"seedPeers": [
 				{
 					"ip": "mainnet-seed-01.lisk.io",
 					"wsPort": 8001
