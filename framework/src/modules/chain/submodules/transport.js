@@ -20,19 +20,9 @@ const _ = require('lodash');
 const { convertErrorsToString } = require('../helpers/error_handlers');
 // eslint-disable-next-line prefer-const
 let Broadcaster = require('../logic/broadcaster');
-const failureCodes = require('../api/ws/rpc/failure_codes');
-const PeerUpdateError = require('../api/ws/rpc/failure_codes').PeerUpdateError;
-const Rules = require('../api/ws/workers/rules');
 const definitions = require('../schema/definitions');
-// eslint-disable-next-line prefer-const
-let wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
 
-const {
-	MIN_BROADHASH_CONSENSUS,
-	MAX_PEERS,
-	MAX_SHARED_TRANSACTIONS,
-} = global.constants;
-
+const { MAX_SHARED_TRANSACTIONS } = global.constants;
 // Private fields
 let modules;
 let library;
@@ -71,14 +61,8 @@ class Transport {
 			logic: {
 				block: scope.logic.block,
 				initTransaction: scope.logic.initTransaction,
-				peers: scope.logic.peers,
 			},
 			config: {
-				peers: {
-					options: {
-						timeout: scope.config.network.options.timeout,
-					},
-				},
 				forging: {
 					force: scope.config.forging.force,
 				},
@@ -91,44 +75,18 @@ class Transport {
 		self = this;
 
 		__private.broadcaster = new Broadcaster(
+			scope.config.nonce,
 			scope.config.broadcasts,
 			scope.config.forging.force,
-			scope.logic.peers,
 			scope.logic.initTransaction,
 			scope.components.logger,
+			scope.channel,
 			scope.components.storage
 		);
 
 		setImmediate(cb, null, self);
 	}
 }
-
-/**
- * Removes a peer based on ip and port.
- *
- * @private
- * @param {Object} options - Contains code and peer's nonce
- * @param {number} options.code
- * @param {string} options.nonce
- * @param {string} extraMessage - Extra message
- * @todo Add description for the params
- * @todo Add @returns tag
- */
-__private.removePeer = function(options, extraMessage) {
-	if (!options.nonce) {
-		library.logger.debug('Cannot remove peer without nonce');
-		return false;
-	}
-	const peer = library.logic.peers.peersManager.getByNonce(options.nonce);
-	if (!peer) {
-		library.logger.debug('Cannot match a peer to provided nonce');
-		return false;
-	}
-	library.logger.debug(
-		`${options.code} Removing peer ${peer.ip}:${peer.wsPort} ${extraMessage}`
-	);
-	return modules.peers.remove(peer);
-};
 
 /**
  * Validates signatures body and for each signature calls receiveSignature.
@@ -203,7 +161,7 @@ __private.receiveTransactions = function(
 };
 
 /**
- * Normalizes transaction and remove peer if it fails.
+ * Normalizes transaction
  * Calls balancesSequence.add to receive transaction and
  * processUnconfirmedTransaction to confirm it.
  *
@@ -230,19 +188,14 @@ __private.receiveTransaction = function(
 			throw errors;
 		}
 	} catch (errors) {
+		const errString = convertErrorsToString(errors);
 		library.logger.debug('Transaction normalization failed', {
 			id,
-			err: convertErrorsToString(errors),
+			err: errString,
 			module: 'transport',
 		});
 
-		__private.removePeer(
-			{
-				nonce,
-				code: 'ETRANSACTION',
-			},
-			extraLogMessage
-		);
+		// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 
 		return setImmediate(cb, errors);
 	}
@@ -254,9 +207,7 @@ __private.receiveTransaction = function(
 			);
 		} else {
 			library.logger.debug(
-				`Received transaction ${
-					transaction.id
-				} from peer ${library.logic.peers.peersManager.getAddress(nonce)}`
+				`Received transaction ${transaction.id} from network`
 			);
 		}
 
@@ -278,22 +229,6 @@ __private.receiveTransaction = function(
 	}, cb);
 };
 
-// Public methods
-
-/**
- * Returns true if broadcaster consensus is less than MIN_BROADHASH_CONSENSUS.
- * Returns false if library.config.forging.force is true.
- *
- * @returns {boolean}
- * @todo Add description for the return value
- */
-Transport.prototype.poorConsensus = function() {
-	if (library.config.forging.force) {
-		return false;
-	}
-	return modules.peers.calculateConsensus() < MIN_BROADHASH_CONSENSUS;
-};
-
 // Events
 /**
  * Bounds scope to private broadcaster amd initialize modules.
@@ -311,7 +246,6 @@ Transport.prototype.onBind = function(scope) {
 	};
 
 	__private.broadcaster.bind(
-		scope.modules.peers,
 		scope.modules.transport,
 		scope.modules.transactions
 	);
@@ -374,58 +308,6 @@ Transport.prototype.onUnconfirmedTransaction = function(
 };
 
 /**
- * Update all remote peers with our headers
- *
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb
- */
-Transport.prototype.broadcastHeaders = cb => {
-	// Grab a random list of connected peers.
-	const peers = library.logic.peers.listRandomConnected({
-		limit: MAX_PEERS,
-	});
-
-	if (peers.length === 0) {
-		library.logger.debug('Transport->broadcastHeaders: No peers found');
-		return setImmediate(cb);
-	}
-
-	library.logger.debug(
-		'Transport->broadcastHeaders: Broadcasting headers to remote peers',
-		{
-			count: peers.length,
-		}
-	);
-
-	// Execute remote procedure updateMyself for every peer
-	return async.each(
-		peers,
-		(peer, eachCb) => {
-			peer.rpc.updateMyself(library.logic.peers.me(), err => {
-				if (err) {
-					library.logger.debug(
-						'Transport->broadcastHeaders: Failed to notify peer about self',
-						{
-							peer: peer.string,
-							err,
-						}
-					);
-				} else {
-					library.logger.debug(
-						'Transport->broadcastHeaders: Successfully notified peer about self',
-						{
-							peer: peer.string,
-						}
-					);
-				}
-				return eachCb();
-			});
-		},
-		() => setImmediate(cb)
-	);
-};
-
-/**
  * Calls broadcast blocks and emits a 'blocks/change' socket message.
  *
  * @param {Object} block - Reduced block object
@@ -434,20 +316,20 @@ Transport.prototype.broadcastHeaders = cb => {
  */
 Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 	// Exit immediately when 'broadcast' flag is not set
-	if (!broadcast) return;
+	if (!broadcast) return null;
 
 	// Check if we are free to broadcast
 	if (__private.broadcaster.maxRelays(block)) {
 		library.logger.debug(
 			'Transport->onBroadcastBlock: Aborted - max block relays exhausted'
 		);
-		return;
+		return null;
 	}
 	if (modules.loader.syncing()) {
 		library.logger.debug(
 			'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress'
 		);
-		return;
+		return null;
 	}
 
 	if (block.totalAmount) {
@@ -465,17 +347,11 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 	const { broadhash } = library.applicationState;
 
 	// Perform actual broadcast operation
-	__private.broadcaster.broadcast(
+	return __private.broadcaster.broadcast(
 		{
 			broadhash,
 		},
-		{
-			api: 'postBlock',
-			data: {
-				block,
-			},
-			immediate: true,
-		}
+		{ api: 'postBlock', data: { block } }
 	);
 };
 
@@ -687,88 +563,11 @@ Transport.prototype.shared = {
 						block: query.block,
 					});
 
-					__private.removePeer({
-						nonce: query.nonce,
-						code: 'EBLOCK',
-					});
+					// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 				}
 				return library.bus.message('receiveBlock', block);
 			}
 		);
-	},
-
-	/**
-	 * Description of list.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
-	list(req, cb) {
-		req = req || {};
-		const peersFinder = !req.query
-			? modules.peers.list
-			: modules.peers.shared.getPeers;
-		peersFinder(
-			Object.assign(
-				{},
-				{
-					limit: MAX_PEERS,
-				},
-				req.query
-			),
-			(err, peers) => {
-				peers = !err ? peers : [];
-				return setImmediate(cb, null, {
-					success: !err,
-					peers,
-				});
-			}
-		);
-	},
-
-	/**
-	 * Description of height.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
-	height(req, cb) {
-		const { height } = library.applicationState;
-		return setImmediate(cb, null, {
-			success: true,
-			height,
-		});
-	},
-
-	/**
-	 * Description of status.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
-	status(req, cb) {
-		const {
-			height,
-			broadhash,
-			nonce,
-			httpPort,
-			version,
-			protocolVersion,
-			os,
-		} = library.applicationState;
-		return setImmediate(cb, null, {
-			success: true,
-			height,
-			broadhash,
-			nonce,
-			httpPort,
-			version,
-			protocolVersion,
-			os,
-		});
 	},
 
 	/**
@@ -821,7 +620,7 @@ Transport.prototype.shared = {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	getSignatures(req, cb) {
+	getSignatures(cb) {
 		const transactions = modules.transactions.getMultisignatureTransactionList(
 			true,
 			MAX_SHARED_TRANSACTIONS
@@ -854,7 +653,7 @@ Transport.prototype.shared = {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	getTransactions(query, cb) {
+	getTransactions(cb) {
 		const transactions = modules.transactions.getMergedTransactionList(
 			true,
 			MAX_SHARED_TRANSACTIONS
@@ -921,66 +720,6 @@ Transport.prototype.shared = {
 				);
 			}
 		);
-	},
-};
-
-/**
- * Validation of all internal requests.
- *
- * @param {Object} query
- * @param {string} query.authKey - Key shared between master and slave processes. Not shared with the rest of network
- * @param {Object} query.peer - Peer to update
- * @param {number} query.updateType - 0 (insert) or 1 (remove)
- * @param {function} cb
- * @todo Add description for the params
- * @todo Add @returns tag
- */
-__private.checkInternalAccess = function(query, cb) {
-	library.schema.validate(query, definitions.WSAccessObject, err => {
-		if (err) {
-			return setImmediate(cb, err[0].message);
-		}
-		if (query.authKey !== wsRPC.getServerAuthKey()) {
-			return setImmediate(
-				cb,
-				'Unable to access internal function - Incorrect authKey'
-			);
-		}
-		return setImmediate(cb, null);
-	});
-};
-
-Transport.prototype.internal = {
-	/**
-	 * Inserts or updates a peer on peers list.
-	 *
-	 * @param {Object} query
-	 * @param {Object} query.peer
-	 * @param {string} query.authKey - Signed peer data with in hex format
-	 * @param {number} query.updateType - 0 (insert) or 1 (remove)
-	 * @param {function} cb
-	 * @todo Add description for the params
-	 * @todo Add @returns tag
-	 */
-	updatePeer(query, cb) {
-		__private.checkInternalAccess(query, err => {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-			const updates = {};
-			updates[Rules.UPDATES.INSERT] = modules.peers.update;
-			updates[Rules.UPDATES.REMOVE] = modules.peers.remove;
-			const updateResult = updates[query.updateType](query.peer);
-			return setImmediate(
-				cb,
-				updateResult === true
-					? null
-					: new PeerUpdateError(
-							updateResult,
-							failureCodes.errorMessages[updateResult]
-					  )
-			);
-		});
 	},
 };
 

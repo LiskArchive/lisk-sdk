@@ -1,7 +1,7 @@
-const lookupPeersIps = require('../../../../../../src/modules/chain/init_steps/lookup_peers_ips');
+const lookupPeersIps = require('../../../../../src/modules/network/lookup_peers_ips');
 const {
 	peers: { list },
-} = require('../../../../data/app_config.json');
+} = require('../../../data/app_config.json');
 
 const ipv4Regex = new RegExp(
 	/^(?:(?:^|\.)(?:2(?:5[0-5]|[0-4]\d)|1?\d?\d)){4}$/
@@ -18,7 +18,7 @@ describe('init_steps/lookup_peers_ips', () => {
 		let spyConsoleError = null;
 
 		before(done => {
-			spyConsoleError = sinonSandbox.spy(console, 'error');
+			spyConsoleError = sinonSandbox.stub(console, 'error');
 			done();
 		});
 
