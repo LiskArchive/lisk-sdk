@@ -102,7 +102,7 @@ const defaultConfig = {
 				},
 				rebuildUpToRound: {
 					type: ['integer', 'null'],
-					arg: '-b,--rebuild',
+					arg: '--rebuild,-b',
 				},
 			},
 			required: ['loadPerIteration'],
