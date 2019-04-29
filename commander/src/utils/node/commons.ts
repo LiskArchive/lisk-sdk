@@ -125,15 +125,15 @@ export const upgradeLisk = async (
 ): Promise<void> => {
 	const LISK_BACKUP = `${defaultBackupPath}/${name}`;
 	const LISK_OLD_PG = `${LISK_BACKUP}/pgsql/data`;
-	const LISK_PG = `${installDir}/pgsql/data/`;
+	const LISK_PG = `${installDir}/pgsql/data`;
 	const MODE = 0o700;
 
 	fsExtra.mkdirSync(LISK_PG, MODE);
+	fsExtra.copySync(LISK_OLD_PG, LISK_PG);
 
 	// TODO: Use latest 2.0.0 config utils to get config insted of scripts/update_config.js
 	const { stderr }: ExecResult = await exec(
-		`cp -rf ${LISK_OLD_PG}/ ${LISK_PG}/;
-    ${installDir}/bin/node ${installDir}/scripts/update_config.js --network ${network} --output ${installDir}/config.json ${LISK_BACKUP}/config.json ${currentVersion}`,
+		`${installDir}/bin/node ${installDir}/scripts/update_config.js --network ${network} --output ${installDir}/config.json ${LISK_BACKUP}/config.json ${currentVersion}`,
 	);
 	if (stderr) {
 		throw new Error(stderr);
