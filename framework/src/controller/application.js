@@ -11,7 +11,7 @@ const _ = require('lodash');
 const Controller = require('./controller');
 const version = require('../version');
 const validator = require('./validator');
-const configurator = require('./configurator');
+const configurator = require('./default_configurator');
 const { genesisBlockSchema, constantsSchema } = require('./schema');
 
 const { createLoggerComponent } = require('../components/logger');

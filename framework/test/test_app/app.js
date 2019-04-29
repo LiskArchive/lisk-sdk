@@ -1,7 +1,7 @@
 const path = require('path');
 const {
 	Application,
-	helpers: { configurator },
+	configurator,
 	/* eslint-disable import/no-unresolved */
 } = require('../../src');
 

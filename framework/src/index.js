@@ -1,6 +1,6 @@
 const Application = require('./controller/application');
 const version = require('./version');
-const configurator = require('./controller/configurator');
+const defaultConfigurator = require('./controller/default_configurator');
 const systemDirs = require('./controller/system_dirs');
 
 /**
@@ -11,5 +11,5 @@ module.exports = {
 	Application,
 	version,
 	systemDirs,
-	configurator,
+	configurator: defaultConfigurator,
 };
