@@ -193,6 +193,26 @@ describe('ChainAccount', () => {
 			expect(mergedObject).to.be.eql(accountResult);
 		});
 
+		it('should create an account object with asset field successfully', async () => {
+			const account = new accountFixtures.Account();
+			account.asset = { lisk: 'test-asset' };
+
+			await expect(AccountEntity.create(account)).to.be.fulfilled;
+
+			const accountResult = await AccountEntity.getOne(
+				{
+					address: account.address,
+				},
+				{
+					extended: true,
+				}
+			);
+			const mergedObject = Object.assign({}, defaultCreateValues, account);
+
+			expect(mergedObject).to.be.eql(accountResult);
+			expect(accountResult.asset).to.be.eql(account.asset);
+		});
+
 		it('should create multiple account objects successfully', async () => {
 			const accounts = [
 				new accountFixtures.Account(),
