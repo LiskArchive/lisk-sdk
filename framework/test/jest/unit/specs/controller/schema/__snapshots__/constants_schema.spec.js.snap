@@ -19,7 +19,6 @@ Object {
       "VOTE": "100000000",
     },
     "MAX_PAYLOAD_LENGTH": 1048576,
-    "MAX_PEERS": 100,
     "MAX_SHARED_TRANSACTIONS": 100,
     "MAX_VOTES_PER_ACCOUNT": 101,
     "MIN_BROADHASH_CONSENSUS": 51,
@@ -132,12 +131,6 @@ Object {
       "min": 1,
       "type": "integer",
     },
-    "MAX_PEERS": Object {
-      "const": 100,
-      "description": "Maximum number of peers allowed to connect while broadcasting a block",
-      "min": 1,
-      "type": "integer",
-    },
     "MAX_SHARED_TRANSACTIONS": Object {
       "const": 100,
       "description": "Maximum number of in-memory transactions/signatures shared across peers",
@@ -226,7 +219,6 @@ Object {
     "BLOCK_RECEIPT_TIMEOUT",
     "FEES",
     "MAX_PAYLOAD_LENGTH",
-    "MAX_PEERS",
     "MAX_SHARED_TRANSACTIONS",
     "MAX_VOTES_PER_ACCOUNT",
     "MIN_BROADHASH_CONSENSUS",

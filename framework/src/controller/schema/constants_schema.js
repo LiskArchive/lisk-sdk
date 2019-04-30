@@ -7,7 +7,6 @@ module.exports = {
 		'BLOCK_RECEIPT_TIMEOUT',
 		'FEES',
 		'MAX_PAYLOAD_LENGTH',
-		'MAX_PEERS',
 		'MAX_SHARED_TRANSACTIONS',
 		'MAX_VOTES_PER_ACCOUNT',
 		'MIN_BROADHASH_CONSENSUS',
@@ -106,13 +105,6 @@ module.exports = {
 			const: 1024 * 1024,
 			description:
 				'Maximum transaction bytes length for 25 transactions in a single block',
-		},
-		MAX_PEERS: {
-			type: 'integer',
-			min: 1,
-			const: 100,
-			description:
-				'Maximum number of peers allowed to connect while broadcasting a block',
 		},
 		MAX_SHARED_TRANSACTIONS: {
 			type: 'integer',
@@ -223,7 +215,6 @@ module.exports = {
 			DAPP_DEPOSIT: '10000000',
 		},
 		MAX_PAYLOAD_LENGTH: 1024 * 1024,
-		MAX_PEERS: 100,
 		MAX_SHARED_TRANSACTIONS: 100,
 		MAX_VOTES_PER_ACCOUNT: 101,
 		MIN_BROADHASH_CONSENSUS: 51,
