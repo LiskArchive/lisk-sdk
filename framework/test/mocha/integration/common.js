@@ -41,6 +41,11 @@ function getDelegateForSlot(library, slot, cb) {
 	});
 }
 
+function blockToJSON(block) {
+	block.transactions = block.transactions.map(tx => tx.toJSON());
+	return block;
+}
+
 function createBlock(library, transactions, timestamp, keypair, previousBlock) {
 	transactions = transactions.map(transaction =>
 		library.logic.initTransaction.fromJson(transaction)
@@ -376,6 +381,7 @@ function transactionInPool(library, transactionId) {
 }
 
 module.exports = {
+	blockToJSON,
 	getNextForger,
 	forge,
 	deleteLastBlock,
