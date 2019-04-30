@@ -22,7 +22,7 @@ const {
 	getCountByFilter,
 	getConsolidatedPeersList,
 } = require('./filter_peers');
-const { Migration, Peer } = require('./components/storage/entities');
+const { Peer } = require('./components/storage/entities');
 
 const hasNamespaceReg = /:/;
 
@@ -64,14 +64,12 @@ module.exports = class Network {
 				  });
 
 		this.storage = createStorageComponent(storageConfig, dbLogger);
-		this.storage.registerEntity('Migration', Migration);
 		this.storage.registerEntity('Peer', Peer);
 
 		const status = await this.storage.bootstrap();
 		if (!status) {
 			throw new Error('Cannot bootstrap the storage component');
 		}
-		await this.storage.entities.Migration.applyAll();
 
 		// Load peers from the database that were tried or connected the last time node was running
 		const triedPeers = await this.storage.entities.Peer.get(

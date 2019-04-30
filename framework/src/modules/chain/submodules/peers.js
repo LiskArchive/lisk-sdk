@@ -60,8 +60,8 @@ class Peers {
 		self.consensus = scope.config.forging.force ? 100 : 0;
 		self.broadhashConsensusCalculationInterval = 5000;
 
-		library.channel.once('chain:bootstrap', () => {
-			self.onAppReady();
+		library.channel.once('network:bootstrap', () => {
+			self.onNetworkReady();
 		});
 		setImmediate(cb, null, self);
 	}
@@ -115,7 +115,7 @@ Peers.prototype.isPoorConsensus = async function() {
 /**
  * Periodically calculate consensus
  */
-Peers.prototype.onAppReady = function() {
+Peers.prototype.onNetworkReady = function() {
 	library.logger.trace('Peers ready');
 	const calculateConsensus = async () => {
 		const consensus = await self.calculateConsensus();

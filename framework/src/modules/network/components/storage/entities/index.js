@@ -16,5 +16,4 @@
 
 module.exports = {
 	Peer: require('./peer'),
-	Migration: require('./migration'),
 };
