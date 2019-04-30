@@ -70,7 +70,7 @@ module.exports = class Network {
 			: [];
 		const p2pConfig = {
 			nodeInfo: initialNodeInfo,
-			hostAddress: this.options.hostAddress,
+			hostAddress: this.options.address,
 			blacklistedPeers,
 			seedPeers: seedPeers.map(peer => ({
 				ipAddress: peer.ip,
