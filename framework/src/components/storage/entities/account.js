@@ -54,6 +54,7 @@ const sqlFiles = {
  * @typedef {BasicAccount} ExtendedAccount
  * @property {Array.<string>} membersPublicKeys - Public keys of all members if its a multi-signature account
  * @property {Array.<string>} votedDelegatesPublicKeys - Public keys of all delegates for which this account voted for
+ * @property {json} asset
  */
 
 /**
@@ -219,6 +220,7 @@ class Account extends BaseEntity {
 		this.addField('missedBlocks', 'string', { filter: ft.NUMBER });
 		this.addField('rank', 'string', { filter: ft.NUMBER });
 		this.addField('vote', 'string', { filter: ft.NUMBER });
+		this.addField('asset', 'string');
 
 		this.addFilter('votedDelegatesPublicKeys_in', ft.CUSTOM, {
 			condition:
