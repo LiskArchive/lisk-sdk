@@ -313,7 +313,7 @@ history.version('2.0.0-rc.0', version => {
 			'modules.network.wsEngine'
 		);
 		config = moveElement(config, 'wsPort', 'modules.network.wsPort');
-		config = moveElement(config, 'address', 'modules.network.hostAddress');
+		config = moveElement(config, 'address', 'modules.network.address');
 		delete config.peers;
 		return config;
 	});

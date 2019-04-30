@@ -8,7 +8,7 @@ const defaultConfig = {
 			env: 'LISK_WS_PORT',
 			arg: '--port,-p',
 		},
-		hostAddress: {
+		address: {
 			type: 'string',
 			format: 'ip',
 			env: 'LISK_ADDRESS',
@@ -56,7 +56,7 @@ const defaultConfig = {
 	required: ['wsPort', 'seedPeers'],
 	default: {
 		wsPort: 5000,
-		hostAddress: '0.0.0.0',
+		address: '0.0.0.0',
 		discoveryInterval: 30000,
 		seedPeers: [],
 		blacklistedPeers: [],
