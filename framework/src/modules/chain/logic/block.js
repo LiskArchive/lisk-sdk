@@ -15,6 +15,7 @@
 'use strict';
 
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const _ = require('lodash');
 const crypto = require('crypto');
 const ByteBuffer = require('bytebuffer');
 const Bignum = require('../helpers/bignum');
@@ -553,7 +554,9 @@ Block.prototype.storageRead = function(raw) {
 	};
 
 	if (raw.transactions) {
-		block.transactions = raw.transactions;
+		block.transactions = raw.transactions
+			.filter(tx => !!tx.id)
+			.map(tx => _.omitBy(tx, _.isNull));
 	}
 
 	block.totalForged = block.totalFee.plus(block.reward).toString();
