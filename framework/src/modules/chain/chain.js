@@ -122,9 +122,8 @@ module.exports = class Chain {
 		// Needs to be loaded here as its using constants that need to be initialized first
 		this.slots = require('./helpers/slots');
 
-		if (this.options.loading.snapshotRound) {
-			this.options.network.enabled = false;
-			this.options.network.list = [];
+		// Deactivate broadcast and syncing during snapshotting process
+		if (this.options.loading.rebuildUpToRound) {
 			this.options.broadcasts.active = false;
 			this.options.syncing.active = false;
 		}
@@ -309,7 +308,7 @@ module.exports = class Chain {
 		}
 
 		// Run cleanup operation on each module before shutting down the node;
-		// this includes operations like snapshotting database tables.
+		// this includes operations like the rebuild verification process.
 		await Promise.all(
 			Object.keys(modules).map(key => {
 				if (typeof modules[key].cleanup === 'function') {
