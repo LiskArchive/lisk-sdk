@@ -47,7 +47,7 @@ import {
 	validateVersion,
 	validURL,
 } from '../../utils/node/commons';
-import { defaultInstallationPath } from '../../utils/node/config';
+import { defaultLiskInstancePath } from '../../utils/node/config';
 import {
 	createDatabase,
 	createUser,
@@ -198,7 +198,7 @@ export default class InstallCommand extends BaseCommand {
 		}),
 		installationPath: flagParser.string({
 			...commonFlags.installationPath,
-			default: defaultInstallationPath,
+			default: defaultLiskInstancePath,
 		}),
 		releaseUrl: flagParser.string({
 			...commonFlags.releaseUrl,

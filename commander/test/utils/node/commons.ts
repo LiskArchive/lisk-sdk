@@ -23,7 +23,7 @@ import {
 	validateVersion,
 } from '../../../src/utils/node/commons';
 import { NETWORK } from '../../../src/utils/constants';
-import { defaultInstallationPath } from '../../../src/utils/node/config';
+import { defaultLiskInstancePath } from '../../../src/utils/node/config';
 import * as release from '../../../src/utils/node/release';
 import * as workerProcess from '../../../src/utils/worker-process';
 
@@ -95,17 +95,16 @@ describe('commons node utils', () => {
 
 	describe('#liskDbSnapshot', () => {
 		it('should return lisk latest url', () => {
-			const name: string = 'dummy';
-			return expect(liskDbSnapshot(name, NETWORK.MAINNET)).to.equal(
-				`${name}-${NETWORK.MAINNET}-blockchain.db.gz`,
+			return expect(liskDbSnapshot(NETWORK.MAINNET)).to.equal(
+				`${NETWORK.MAINNET}-blockchain.db.gz`,
 			);
 		});
 	});
 
 	describe('#logsDir', () => {
 		it('should return lisk latest url', () => {
-			return expect(logsDir(defaultInstallationPath)).to.equal(
-				`${liskInstall(defaultInstallationPath)}/logs`,
+			return expect(logsDir(defaultLiskInstancePath)).to.equal(
+				`${liskInstall(defaultLiskInstancePath)}/logs`,
 			);
 		});
 	});
@@ -158,13 +157,13 @@ describe('commons node utils', () => {
 
 		it('should return if the directory exists', () => {
 			pathExistsSyncStub.returns(true);
-			return expect(createDirectory(defaultInstallationPath)).not.to.throw;
+			return expect(createDirectory(defaultLiskInstancePath)).not.to.throw;
 		});
 
 		it('should create directory if it does not exists', () => {
 			pathExistsSyncStub.returns(false);
 			ensureDirSync.returns();
-			return expect(createDirectory(defaultInstallationPath)).not.to.throw;
+			return expect(createDirectory(defaultLiskInstancePath)).not.to.throw;
 		});
 	});
 
@@ -200,18 +199,18 @@ describe('commons node utils', () => {
 	describe('#backupLisk', () => {
 		let execStub: any = null;
 		beforeEach(() => {
-			sandbox.stub(fsExtra, 'emptyDirSync').returns(null);
+			sandbox.stub(fsExtra, 'emptyDirSync').returns();
 			execStub = sandbox.stub(workerProcess, 'exec');
 		});
 
 		it('should backup the lisk installation', () => {
 			execStub.resolves({ stdout: '', stderr: null });
-			return expect(backupLisk(defaultInstallationPath)).not.to.throw;
+			return expect(backupLisk(defaultLiskInstancePath)).not.to.throw;
 		});
 
 		it('should throw error of failed to backup', () => {
 			execStub.resolves({ stdout: null, stderr: 'failed to move' });
-			return expect(backupLisk(defaultInstallationPath)).rejectedWith(
+			return expect(backupLisk(defaultLiskInstancePath)).rejectedWith(
 				'failed to move',
 			);
 		});
@@ -230,14 +229,14 @@ describe('commons node utils', () => {
 			execStub.resolves({ stdout: '', stderr: 'failed to copy' });
 
 			return expect(
-				upgradeLisk(defaultInstallationPath, 'test', NETWORK.MAINNET, '1.0.0'),
+				upgradeLisk(defaultLiskInstancePath, 'test', NETWORK.MAINNET, '1.0.0'),
 			).to.rejectedWith('failed to copy');
 		});
 
 		it('should throw error of failed to backup', () => {
 			execStub.resolves({ stdout: '', stderr: null });
 			return expect(
-				upgradeLisk(defaultInstallationPath, 'test', NETWORK.MAINNET, '1.0.0'),
+				upgradeLisk(defaultLiskInstancePath, 'test', NETWORK.MAINNET, '1.0.0'),
 			).not.to.throw;
 		});
 	});

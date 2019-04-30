@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import fs from 'fs';
+import fs from 'fs-extra';
 import * as axios from 'axios';
 import * as downloadUtil from '../../src/utils/download';
 import * as workerProcess from '../../src/utils/worker-process';
@@ -12,14 +12,18 @@ describe('download utils', () => {
 
 	describe('#download', () => {
 		let existsSyncStub: any = null;
+		let statSyncStub: any = null;
 
 		beforeEach(() => {
 			sandbox.stub(axios, 'default');
 			existsSyncStub = sandbox.stub(fs, 'existsSync');
+			statSyncStub = sandbox.stub(fs, 'statSync');
+			sandbox.stub(fs, 'unlinkSync').returns();
 		});
 
-		it('should return true if downloaded file already exists', () => {
+		it('should return true if downloaded file is less than equal to two days', () => {
 			existsSyncStub.returns(true);
+			statSyncStub.returns({ birthtime: new Date() });
 
 			return expect(downloadUtil.download('url', 'file/path')).returned;
 		});

@@ -17,7 +17,11 @@ import { Command, flags as flagParser } from '@oclif/command';
 import os from 'os';
 import { ConfigOptions, getConfig } from './utils/config';
 import { handleEPIPE } from './utils/helpers';
+import { defaultLiskPm2Path } from './utils/node/config';
 import { print, StringMap } from './utils/print';
+
+// Set PM2_HOME to ensure PM2 is isolated from system wide installation
+process.env.PM2_HOME = defaultLiskPm2Path;
 
 export const defaultConfigFolder = '.lisk';
 
