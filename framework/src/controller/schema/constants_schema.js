@@ -9,7 +9,6 @@ module.exports = {
 		'MAX_PAYLOAD_LENGTH',
 		'MAX_PEERS',
 		'MAX_SHARED_TRANSACTIONS',
-		'MAX_VOTES_PER_TRANSACTION',
 		'MAX_VOTES_PER_ACCOUNT',
 		'MIN_BROADHASH_CONSENSUS',
 		'MULTISIG_CONSTRAINTS',
@@ -122,12 +121,6 @@ module.exports = {
 			const: 100,
 			description:
 				'Maximum number of in-memory transactions/signatures shared across peers',
-		},
-		MAX_VOTES_PER_TRANSACTION: {
-			type: 'integer',
-			min: 1,
-			const: 33,
-			description: 'Maximum number of transactions allowed per block',
 		},
 		MAX_VOTES_PER_ACCOUNT: {
 			type: 'number',
@@ -305,7 +298,6 @@ module.exports = {
 		MAX_PAYLOAD_LENGTH: 1024 * 1024,
 		MAX_PEERS: 100,
 		MAX_SHARED_TRANSACTIONS: 100,
-		MAX_VOTES_PER_TRANSACTION: 33,
 		MAX_VOTES_PER_ACCOUNT: 101,
 		MIN_BROADHASH_CONSENSUS: 51,
 		MULTISIG_CONSTRAINTS: {

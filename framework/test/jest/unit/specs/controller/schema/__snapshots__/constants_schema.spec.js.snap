@@ -22,7 +22,6 @@ Object {
     "MAX_PEERS": 100,
     "MAX_SHARED_TRANSACTIONS": 100,
     "MAX_VOTES_PER_ACCOUNT": 101,
-    "MAX_VOTES_PER_TRANSACTION": 33,
     "MIN_BROADHASH_CONSENSUS": 51,
     "MULTISIG_CONSTRAINTS": Object {
       "KEYSGROUP": Object {
@@ -167,12 +166,6 @@ Object {
       },
       "min": 1,
       "type": "number",
-    },
-    "MAX_VOTES_PER_TRANSACTION": Object {
-      "const": 33,
-      "description": "Maximum number of transactions allowed per block",
-      "min": 1,
-      "type": "integer",
     },
     "MIN_BROADHASH_CONSENSUS": Object {
       "const": 51,
@@ -328,7 +321,6 @@ Object {
     "MAX_PAYLOAD_LENGTH",
     "MAX_PEERS",
     "MAX_SHARED_TRANSACTIONS",
-    "MAX_VOTES_PER_TRANSACTION",
     "MAX_VOTES_PER_ACCOUNT",
     "MIN_BROADHASH_CONSENSUS",
     "MULTISIG_CONSTRAINTS",

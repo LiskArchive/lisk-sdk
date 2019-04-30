@@ -62,6 +62,7 @@ testContext.config.ADDITIONAL_DATA = {
 	MIN_LENGTH: 1,
 	MAX_LENGTH: 64,
 };
+testContext.config.MAX_VOTES_PER_TRANSACTION = 33;
 testContext.config.genesisBlock = _.cloneDeep(app.genesisBlock);
 testContext.consoleLogLevel =
 	process.env.LOG_LEVEL || config.components.logger.consoleLogLevel;
