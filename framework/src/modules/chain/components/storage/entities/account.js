@@ -79,13 +79,13 @@ class ChainAccount extends AccountEntity {
 	}
 
 	/*
-	* Create account object
-	*
-	* @param {Object|Array.<Object>} data
-	* @param {Object} [_options]
-	* @param {Object} [tx] - Transaction object
-	* @return {*}
-	*/
+	 * Create account object
+	 *
+	 * @param {Object|Array.<Object>} data
+	 * @param {Object} [_options]
+	 * @param {Object} [tx] - Transaction object
+	 * @return {*}
+	 */
 	create(data, _options, tx) {
 		assert(data, 'Must provide data to create account');
 		assert(

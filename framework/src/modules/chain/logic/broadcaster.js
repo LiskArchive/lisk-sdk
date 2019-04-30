@@ -14,16 +14,11 @@
 
 'use strict';
 
-const async = require('async');
 const _ = require('lodash');
 const jobsQueue = require('../helpers/jobs_queue');
 
-const { MAX_PEERS } = global.constants;
-
 let modules;
 let library;
-let self;
-const __private = {};
 
 /**
  * Main Broadcaster logic.
@@ -37,17 +32,16 @@ const __private = {};
  * @requires helpers/jobs_queue
  * @param {Object} broadcasts
  * @param {boolean} force
- * @param {Peers} peers - Peers instance
  * @param {Transaction} transaction - Transaction instance
  * @param {Object} logger
  * @todo Add description for the params
  */
 class Broadcaster {
-	constructor(broadcasts, force, peers, transaction, logger, storage) {
+	constructor(nonce, broadcasts, force, transaction, logger, channel, storage) {
 		library = {
 			logger,
 			logic: {
-				peers,
+				transaction,
 			},
 			config: {
 				broadcasts,
@@ -58,14 +52,13 @@ class Broadcaster {
 			storage,
 		};
 
-		self = this;
+		this.nonce = nonce;
 
-		self.queue = [];
-		self.config = library.config.broadcasts;
-		self.config.peerLimit = MAX_PEERS;
+		this.queue = [];
+		this.config = library.config.broadcasts;
 
 		// Broadcast routes
-		self.routes = [
+		this.routes = [
 			{
 				path: 'postTransactions',
 				collection: 'transactions',
@@ -78,11 +71,13 @@ class Broadcaster {
 			},
 		];
 
+		this.channel = channel;
+
 		if (broadcasts.active) {
 			jobsQueue.register(
-				'broadcasterNextRelease',
-				nextRelease,
-				self.config.broadcastInterval
+				'broadcasterReleaseQueue',
+				async () => this.releaseQueue(),
+				this.config.broadcastInterval
 			);
 		} else {
 			library.logger.info(
@@ -92,138 +87,75 @@ class Broadcaster {
 	}
 
 	/**
-	 * Calls peers.list function to get peers.
-	 *
-	 * @param {Object} params
-	 * @param {function} cb
-	 * @returns {SetImmediate} error, peers
-	 * @todo Add description for the params
-	 */
-	getPeers(params, cb) {
-		params.limit = params.limit || this.config.peerLimit;
-		const peers = library.logic.peers.listRandomConnected(params);
-		return setImmediate(cb, null, peers);
-	}
-
-	/**
-	 * Gets peers and for each peer create it and broadcast.
+	 * broadcast to network.
 	 *
 	 * @param {Object} params
 	 * @param {Object} options
-	 * @param {function} cb
-	 * @returns {SetImmediate} error, peers
+	 * @returns {Promise}
+	 * @throws {Error}
 	 * @todo Add description for the params
 	 */
-	broadcast(params, options, cb) {
-		params.limit = params.limit || this.config.broadcastLimit;
-
-		async.waterfall(
-			[
-				function getPeers(waterCb) {
-					if (!params.peers) {
-						return self.getPeers(params, waterCb);
-					}
-					return setImmediate(
-						waterCb,
-						null,
-						params.peers.slice(0, params.limit)
-					);
-				},
-				function sendToPeer(peers, waterCb) {
-					library.logger.debug('Begin broadcast', options);
-					peers.forEach(peer => peer.rpc[options.api](options.data));
-					library.logger.debug('End broadcast');
-					return setImmediate(waterCb, null, peers);
-				},
-			],
-			(err, peers) => {
-				if (cb) {
-					return setImmediate(cb, err, { peers });
-				}
-				return true;
-			}
-		);
-	}
-}
-
-// TODO: The below functions should be converted into static functions,
-// however, this will lead to incompatibility with modules and tests implementation.
-/**
- * Adds new object {params, options} to queue array.
- *
- * @param {Object} params
- * @param {Object} options
- * @returns {Object[]} Queue private variable with new data
- * @todo Add description for the params
- */
-Broadcaster.prototype.enqueue = function(params, options) {
-	options.immediate = false;
-	return self.queue.push({ params, options });
-};
-
-/**
- * Counts relays and valid limit.
- *
- * @param {Object} object
- * @returns {boolean} true - If broadcast relays exhausted
- * @todo Add description for the params
- */
-Broadcaster.prototype.maxRelays = function(object) {
-	if (!Number.isInteger(object.relays)) {
-		object.relays = 0; // First broadcast
+	async broadcast(params, { api: event, data }) {
+		// Broadcast using Elements P2P library via network module
+		const wrappedData = {
+			...data,
+			nonce: this.nonce,
+		};
+		await this.channel.invoke('network:publish', {
+			event,
+			data: wrappedData,
+		});
 	}
 
-	if (Math.abs(object.relays) >= self.config.relayLimit) {
-		library.logger.debug('Broadcast relays exhausted', object);
-		return true;
+	/**
+	 * Adds new object {params, options} to queue array.
+	 *
+	 * @param {Object} params
+	 * @param {Object} options
+	 * @returns {Object[]} Queue private variable with new data
+	 * @todo Add description for the params
+	 */
+	enqueue(params, options) {
+		options.immediate = false;
+		return this.queue.push({ params, options });
 	}
-	object.relays++; // Next broadcast
-	return false;
-};
 
-/**
- * Binds input parameters to private variables modules.
- *
- * @param {Peers} peers
- * @param {Transport} transport
- * @param {Transactions} transactions
- * @todo Add description for the params
- */
-Broadcaster.prototype.bind = function(peers, transport, transactions) {
-	modules = {
-		peers,
-		transport,
-		transactions,
-	};
-};
-
-// Broadcaster timer
-function nextRelease(cb) {
-	__private.releaseQueue(err => {
-		if (err) {
-			library.logger.info('Broadcaster timer', err);
+	/**
+	 * Counts relays and valid limit.
+	 *
+	 * @param {Object} object
+	 * @returns {boolean} true - If broadcast relays exhausted
+	 * @todo Add description for the params
+	 */
+	maxRelays(object) {
+		if (!Number.isInteger(object.relays)) {
+			object.relays = 0; // First broadcast
 		}
-		return setImmediate(cb);
-	});
-}
 
-/**
- * Filters private queue based on broadcasts.
- *
- * @private
- * @param {function} cb
- * @returns {SetImmediate} null, boolean|undefined
- * @todo Add description for the params
- */
-__private.filterQueue = function(cb) {
-	library.logger.debug(`Broadcasts before filtering: ${self.queue.length}`);
+		if (Math.abs(object.relays) >= this.config.relayLimit) {
+			library.logger.debug('Broadcast relays exhausted', object);
+			return true;
+		}
+		object.relays++; // Next broadcast
+		return false;
+	}
 
-	async.filter(
-		self.queue,
-		(broadcast, filterCb) => {
+	/**
+	 * Filters private queue based on broadcasts.
+	 *
+	 * @private
+	 * @returns {Promise} null, boolean|undefined
+	 * @todo Add description for the params
+	 */
+	async filterQueue() {
+		library.logger.debug(`Broadcasts before filtering: ${this.queue.length}`);
+
+		this.queue = await this.queue.reduce(async (prev, broadcast) => {
+			const filteredBroadcast = await prev;
 			if (broadcast.options.immediate) {
-				return setImmediate(filterCb, null, false);
+				return filteredBroadcast;
 			}
+
 			if (broadcast.options.data) {
 				let transactionId;
 				if (broadcast.options.data.transaction) {
@@ -234,124 +166,124 @@ __private.filterQueue = function(cb) {
 					transactionId = broadcast.options.data.signature.transactionId;
 				}
 				if (!transactionId) {
-					return setImmediate(filterCb, null, false);
+					return filteredBroadcast;
 				}
 				// Broadcast if transaction is in transaction pool
 				if (modules.transactions.transactionInPool(transactionId)) {
-					return setImmediate(filterCb, null, true);
+					filteredBroadcast.push(broadcast);
+					return filteredBroadcast;
 				}
 				// Don't broadcast if transaction is already confirmed
-				return library.storage.entities.Transaction.isPersisted({
-					id: transactionId,
-				})
-					.then(isPersisted =>
-						// In case of SQL error:
-						// err = true, isConfirmed = false => return false
-						// In case transaction exists in "trs" table:
-						// err = null, isConfirmed = true => return false
-						// In case transaction doesn't exists in "trs" table:
-						// err = null, isConfirmed = false => return true
-						filterCb(null, !isPersisted)
-					)
-					.catch(err => filterCb(null, !err));
+				try {
+					const isPersisted = await library.storage.entities.Transaction.isPersisted(
+						{
+							id: transactionId,
+						}
+					);
+					if (!isPersisted) {
+						filteredBroadcast.push(broadcast);
+					}
+					return filteredBroadcast;
+				} catch (err) {
+					return filteredBroadcast;
+				}
 			}
-			return setImmediate(filterCb, null, true);
-		},
-		(err, broadcasts) => {
-			self.queue = broadcasts;
 
-			library.logger.debug(`Broadcasts after filtering: ${self.queue.length}`);
-			return setImmediate(cb);
-		}
-	);
-};
+			filteredBroadcast.push(broadcast);
 
-/**
- * Groups broadcasts by api.
- *
- * @private
- * @param {Object} broadcasts
- * @returns {Object[]} Squashed routes
- * @todo Add description for the params
- */
-__private.squashQueue = function(broadcasts) {
-	const grouped = _.groupBy(broadcasts, broadcast => broadcast.options.api);
-	const squashed = [];
+			return filteredBroadcast;
+		}, []);
 
-	self.routes.forEach(route => {
-		if (Array.isArray(grouped[route.path])) {
-			const data = {};
+		library.logger.debug(`Broadcasts after filtering: ${this.queue.length}`);
 
-			data[route.collection] = grouped[route.path]
-				.map(broadcast => broadcast.options.data[route.object])
-				.filter(Boolean);
-
-			squashed.push({
-				options: { api: route.path, data },
-				immediate: false,
-			});
-		}
-	});
-
-	return squashed;
-};
-
-/**
- * Releases enqueued broadcasts:
- * - filterQueue
- * - squashQueue
- * - broadcast
- *
- * @private
- * @param {function} cb
- * @returns {SetImmediate}
- * @todo Add description for the params
- */
-__private.releaseQueue = function(cb) {
-	library.logger.info('Releasing enqueued broadcasts');
-
-	if (!self.queue.length) {
-		library.logger.info('Queue empty');
-		return setImmediate(cb);
+		return null;
 	}
 
-	return async.waterfall(
-		[
-			function filterQueue(waterCb) {
-				return __private.filterQueue(waterCb);
-			},
-			function squashQueue(waterCb) {
-				const broadcasts = self.queue.splice(0, self.config.releaseLimit);
-				return setImmediate(waterCb, null, __private.squashQueue(broadcasts));
-			},
-			function getPeers(broadcasts, waterCb) {
-				self.getPeers({}, (err, peers) =>
-					setImmediate(waterCb, err, broadcasts, peers)
-				);
-			},
-			function broadcasting(broadcasts, peers, waterCb) {
-				async.eachSeries(
-					broadcasts,
-					(broadcast, eachSeriesCb) => {
-						self.broadcast(
-							Object.assign({ peers }, broadcast.params),
-							broadcast.options,
-							eachSeriesCb
-						);
-					},
-					err => setImmediate(waterCb, err, broadcasts)
-				);
-			},
-		],
-		(err, broadcasts) => {
-			if (err) {
-				library.logger.error('Failed to release broadcast queue', err);
-			} else {
-				library.logger.info(`Broadcasts released: ${broadcasts.length}`);
+	/**
+	 * Groups broadcasts by api.
+	 *
+	 * @private
+	 * @param {Object} broadcasts
+	 * @returns {Object[]} Squashed routes
+	 * @todo Add description for the params
+	 */
+	squashQueue(broadcasts) {
+		const grouped = _.groupBy(broadcasts, broadcast => broadcast.options.api);
+		const squashed = [];
+
+		this.routes.forEach(route => {
+			if (Array.isArray(grouped[route.path])) {
+				const data = {};
+
+				data[route.collection] = grouped[route.path]
+					.map(broadcast => broadcast.options.data[route.object])
+					.filter(Boolean);
+
+				squashed.push({
+					options: { api: route.path, data },
+					immediate: false,
+				});
 			}
-			return setImmediate(cb);
+		});
+
+		return squashed;
+	}
+
+	/**
+	 * Releases enqueued broadcasts:
+	 * - filterQueue
+	 * - squashQueue
+	 * - broadcast
+	 *
+	 * @private
+	 * @returns {Promise}
+	 * @throws {Error}
+	 * @todo Add description for the params
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	async releaseQueue() {
+		library.logger.info('Releasing enqueued broadcasts');
+
+		if (!this.queue.length) {
+			library.logger.info('Queue empty');
+			return null;
 		}
-	);
-};
+		try {
+			await this.filterQueue();
+			const broadcasts = this.queue.splice(0, this.config.releaseLimit);
+			const squashedBroadcasts = this.squashQueue(broadcasts);
+
+			// eslint-disable-next-line no-restricted-syntax
+			for await (const squashedBroadcast of squashedBroadcasts) {
+				return this.broadcast(
+					squashedBroadcast.params,
+					squashedBroadcast.options
+				);
+			}
+
+			return library.logger.info(
+				`Broadcasts released: ${squashedBroadcasts.length}`
+			);
+		} catch (err) {
+			library.logger.error('Failed to release broadcast queue', err);
+			throw err;
+		}
+	}
+
+	/**
+	 * Binds input parameters to private variables modules.
+	 *
+	 * @param {Transport} transport
+	 * @param {Transactions} transactions
+	 * @todo Add description for the params
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	bind(transport, transactions) {
+		modules = {
+			transport,
+			transactions,
+		};
+	}
+}
 
 module.exports = Broadcaster;
