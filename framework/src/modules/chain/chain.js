@@ -85,10 +85,11 @@ module.exports = class Chain {
 			storageConfig.logFileName === loggerConfig.logFileName
 				? this.logger
 				: createLoggerComponent(
-						Object.assign({}, loggerConfig, {
+						Object.assign({
+							...loggerConfig,
 							logFileName: storageConfig.logFileName,
 						})
-					);
+				  );
 
 		// Try to get the last git commit
 		try {
@@ -113,6 +114,10 @@ module.exports = class Chain {
 		}
 
 		try {
+			if (!this.options.genesisBlock) {
+				throw Error('Failed to assign nethash from genesis block');
+			}
+
 			// Cache
 			this.logger.debug('Initiating cache...');
 			const cache = createCacheComponent(cacheConfig, this.logger);
@@ -120,10 +125,6 @@ module.exports = class Chain {
 			// Storage
 			this.logger.debug('Initiating storage...');
 			const storage = createStorageComponent(storageConfig, dbLogger);
-
-			if (!this.options.genesisBlock) {
-				throw Error('Failed to assign nethash from genesis block');
-			}
 
 			// TODO: For socket cluster child process, should be removed with refactoring of network module
 			this.options.loggerConfig = loggerConfig;
@@ -272,7 +273,7 @@ module.exports = class Chain {
 	}
 
 	async cleanup(code, error) {
-		const { webSocket, modules, components } = this.scope;
+		const { modules, components } = this.scope;
 		if (error) {
 			this.logger.fatal(error.toString());
 			if (code === undefined) {
@@ -282,11 +283,6 @@ module.exports = class Chain {
 			code = 0;
 		}
 		this.logger.info('Cleaning chain...');
-
-		if (webSocket) {
-			webSocket.removeAllListeners('fail');
-			webSocket.destroy();
-		}
 
 		if (components !== undefined) {
 			Object.keys(components).forEach(async key => {

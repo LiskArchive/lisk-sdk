@@ -55,7 +55,7 @@ describe('Chain', () => {
 		};
 
 		stubs.logic = {
-			peers: {
+			block: {
 				bindModules: sinonSandbox.stub(),
 			},
 		};
@@ -312,43 +312,9 @@ describe('Chain', () => {
 			return expect(chain.scope.modules).to.be.equal(stubs.modules);
 		});
 
-		describe('when options.network.enabled is truthy', () => {
-			beforeEach(async () => {
-				// Arrange
-				chain = new Chain(stubs.channel, {
-					...chainOptions,
-					network: {
-						enabled: true,
-						list: peerList,
-					},
-				});
-				// Act
-				await chain.bootstrap();
-			});
-
-			it('should lookup for peer ips', () => {
-				expect(stubs.initSteps.lookupPeerIPs).to.have.been.calledWith(
-					chain.options.network.list,
-					chain.options.network.enabled
-				);
-				return expect(chain.options.network.list).to.be.equal(peerList);
-			});
-
-			it('should create socket cluster object and assign to scope.webSocket', () => {
-				expect(stubs.initSteps.createSocketCluster).to.have.been.calledWith(
-					chain.scope
-				);
-				return expect(chain.scope.webSocket).to.be.equal(stubs.webSocket);
-			});
-
-			it('should start listening on socket cluster', () => {
-				return expect(chain.scope.webSocket.listen).to.have.been.called;
-			});
-		});
-
-		it('should bind modules with scope.logic.peers', () => {
+		it('should bind modules with scope.logic.block', () => {
 			return expect(
-				chain.scope.logic.peers.bindModules
+				chain.scope.logic.block.bindModules
 			).to.have.been.calledWith(stubs.modules);
 		});
 
@@ -365,12 +331,18 @@ describe('Chain', () => {
 			);
 		});
 
+		it('should subscribe to "network:subscribe" event', () => {
+			return expect(chain.channel.subscribe).to.have.been.calledWith(
+				'network:subscribe'
+			);
+		});
+
 		describe('if any error thrown', () => {
 			let processEmitStub;
 			const error = new Error('err');
 			beforeEach(async () => {
 				// Arrange
-				stubs.logic.peers.bindModules.throws(error);
+				stubs.logic.block.bindModules.throws(error);
 				chain = new Chain(stubs.channel, {
 					...chainOptions,
 					genesisBlock: null,
@@ -410,26 +382,6 @@ describe('Chain', () => {
 			return expect(chain.cleanup.constructor.name).to.be.equal(
 				'AsyncFunction'
 			);
-		});
-
-		it('should cleanup the websocket', async () => {
-			// Arrange
-			chain = new Chain(stubs.channel, {
-				...chainOptions,
-				network: {
-					enabled: true,
-				},
-			});
-			await chain.bootstrap();
-
-			// Act
-			await chain.cleanup();
-
-			// Assert
-			expect(stubs.webSocket.removeAllListeners).to.have.been.calledWith(
-				'fail'
-			);
-			return expect(stubs.webSocket.destroy).to.have.been.called;
 		});
 
 		it('should call cleanup on all components', async () => {
