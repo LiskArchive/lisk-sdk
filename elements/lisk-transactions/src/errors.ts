@@ -13,9 +13,8 @@
  *
  */
 // tslint:disable max-classes-per-file
-import { VError } from 'verror';
-
-export class TransactionError extends VError {
+export class TransactionError extends Error {
+	public message: string;
 	public id: string;
 	public dataPath: string;
 	public actual?: string | number;
@@ -27,7 +26,8 @@ export class TransactionError extends VError {
 		actual?: string | number,
 		expected?: string | number,
 	) {
-		super(message);
+		super();
+		this.message = message;
 		this.name = 'TransactionError';
 		this.id = id;
 		this.dataPath = dataPath;
