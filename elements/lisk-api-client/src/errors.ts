@@ -1,5 +1,3 @@
-import { VError } from 'verror';
-
 const defaultErrorNo = 500;
 
 export interface APIErrorData {
@@ -7,7 +5,7 @@ export interface APIErrorData {
 	readonly message?: string;
 }
 
-export class APIError extends VError {
+export class APIError extends Error {
 	public errno: number;
 	public errors?: ReadonlyArray<APIErrorData>;
 

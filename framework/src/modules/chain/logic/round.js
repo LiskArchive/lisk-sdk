@@ -306,18 +306,22 @@ class Round {
 		const roundRewards = [...this.scope.roundRewards] || [];
 
 		// Apply exception for round if required
-		if (exceptions.rounds[this.scope.round]) {
+		if (exceptions.rounds[this.scope.round.toString()]) {
 			// Apply rewards factor
 			roundRewards.forEach((reward, subIndex) => {
 				roundRewards[subIndex] = new Bignum(reward.toPrecision(15))
-					.multipliedBy(exceptions.rounds[this.scope.round].rewards_factor)
+					.multipliedBy(
+						exceptions.rounds[this.scope.round.toString()].rewards_factor
+					)
 					.integerValue(Bignum.ROUND_FLOOR);
 			});
 
 			// Apply fees factor and bonus
 			roundFees = new Bignum(roundFees.toPrecision(15))
-				.multipliedBy(exceptions.rounds[this.scope.round].fees_factor)
-				.plus(exceptions.rounds[this.scope.round].fees_bonus)
+				.multipliedBy(
+					exceptions.rounds[this.scope.round.toString()].fees_factor
+				)
+				.plus(exceptions.rounds[this.scope.round.toString()].fees_bonus)
 				.integerValue(Bignum.ROUND_FLOOR);
 		}
 
