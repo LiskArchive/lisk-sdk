@@ -12,9 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-module.exports = {
-	Peer: require('./peer'),
-	Migration: require('./migration'),
-};
+/*
+  DESCRIPTION: Add constraints to improve upserts.
+
+  PARAMETERS: None
+*/
+
+ALTER TABLE "peers"
+  ADD CONSTRAINT "address_unique" UNIQUE
+  USING INDEX "peers_unique";

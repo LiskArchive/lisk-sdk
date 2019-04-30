@@ -12,9 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-module.exports = {
-	Peer: require('./peer'),
-	Migration: require('./migration'),
-};
+/*
+  DESCRIPTION: Add protocolVersion Column to Peers.
+
+  PARAMETERS: None
+*/
+
+ALTER TABLE "peers" ADD COLUMN IF NOT EXISTS "protocolVersion" VARCHAR(20);

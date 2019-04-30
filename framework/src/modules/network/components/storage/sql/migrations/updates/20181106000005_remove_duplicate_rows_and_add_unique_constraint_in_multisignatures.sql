@@ -12,9 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+DELETE FROM "multisignatures" "m0"
+	USING "multisignatures" "m1"
+WHERE "m0"."ctid" < "m1"."ctid"
+	AND "m0"."transactionId" = "m1"."transactionId";
+	
+-- Drop existing index on multisignatures table --
+DROP INDEX "multisignatures_trs_id";
 
-module.exports = {
-	Peer: require('./peer'),
-	Migration: require('./migration'),
-};
+-- Add unique constraint on multisignatures table --
+ALTER TABLE "multisignatures"
+	ADD UNIQUE ("transactionId");

@@ -12,9 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-module.exports = {
-	Peer: require('./peer'),
-	Migration: require('./migration'),
-};
+/*
+  DESCRIPTION: Change the producedblocks case to producedBlocks
+
+  PARAMETERS: None
+*/
+
+ALTER TABLE mem_accounts RENAME COLUMN producedblocks TO "producedBlocks";
+ALTER TABLE mem_accounts RENAME COLUMN missedblocks TO "missedBlocks";

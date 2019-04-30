@@ -12,9 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+DELETE FROM "intransfer" "it0"
+	USING "intransfer" "it1"
+WHERE "it0"."ctid" < "it1"."ctid"
+	AND "it0"."transactionId" = "it1"."transactionId";
 
-module.exports = {
-	Peer: require('./peer'),
-	Migration: require('./migration'),
-};
+-- Add unique constraint on intransfer table --
+ALTER TABLE "intransfer"
+	ADD UNIQUE ("transactionId");

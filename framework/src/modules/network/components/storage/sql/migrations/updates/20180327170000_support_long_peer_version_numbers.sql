@@ -12,9 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-module.exports = {
-	Peer: require('./peer'),
-	Migration: require('./migration'),
-};
+/*
+  DESCRIPTION: Change the version column in the peers table so that it can accept longer version strings like x.x.x-alpha.x
+  PARAMETERS: None
+*/
+
+ALTER TABLE "peers"
+  ALTER COLUMN "version" TYPE VARCHAR(64);

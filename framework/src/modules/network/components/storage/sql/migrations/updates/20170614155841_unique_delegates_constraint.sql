@@ -12,9 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-module.exports = {
-	Peer: require('./peer'),
-	Migration: require('./migration'),
-};
+/*
+  DESCRIPTION: Setting unique constraints on delegates table.
+
+  PARAMETERS: None
+*/
+
+ALTER TABLE delegates ADD CONSTRAINT delegates_unique UNIQUE ("username", "transactionId");

@@ -12,9 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+DELETE FROM "dapps" "d0"
+	USING "dapps" "d1"
+WHERE "d0"."ctid" < "d1"."ctid"
+	AND "d0"."transactionId" = "d1"."transactionId";
 
-module.exports = {
-	Peer: require('./peer'),
-	Migration: require('./migration'),
-};
+-- Drop existing index on dapps table --
+DROP INDEX "dapps_trs_id";
+
+-- Add unique constraint on dapps table --
+ALTER TABLE "dapps"
+	ADD UNIQUE ("transactionId");

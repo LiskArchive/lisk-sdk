@@ -12,9 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-module.exports = {
-	Peer: require('./peer'),
-	Migration: require('./migration'),
-};
+/*
+  DESCRIPTION: Change to uppercase all recipient ids existing on table trs
+  PARAMETERS: None
+*/
+
+UPDATE
+  trs
+SET
+  "recipientId" = UPPER("recipientId")
+WHERE
+  "recipientId" = LOWER("recipientId");

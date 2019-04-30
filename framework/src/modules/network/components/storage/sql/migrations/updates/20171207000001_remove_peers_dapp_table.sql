@@ -12,9 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-module.exports = {
-	Peer: require('./peer'),
-	Migration: require('./migration'),
-};
+/*
+  DESCRIPTION: Remove peers_dapp table and its indexes.
+
+  PARAMETERS: None
+*/
+
+DROP TABLE IF EXISTS "peers_dapp";
+
+DROP INDEX IF EXISTS "peers_dapp_unique";

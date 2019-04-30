@@ -12,9 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+DELETE FROM "votes" "v0"
+	USING "votes" "v1"
+WHERE "v0"."ctid" < "v1"."ctid"
+	AND "v0"."transactionId" = "v1"."transactionId";
 
-module.exports = {
-	Peer: require('./peer'),
-	Migration: require('./migration'),
-};
+-- Drop existing index on votes table --
+DROP INDEX "votes_trs_id";
+
+-- Add unique constraint on votes table --
+ALTER TABLE "votes"
+	ADD UNIQUE ("transactionId");
+	

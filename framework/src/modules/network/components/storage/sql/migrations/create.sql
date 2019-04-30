@@ -12,9 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-module.exports = {
-	Peer: require('./peer'),
-	Migration: require('./migration'),
-};
+INSERT INTO migrations (
+	${attributes:raw}
+) VALUES
+	${createSet:raw}
+;

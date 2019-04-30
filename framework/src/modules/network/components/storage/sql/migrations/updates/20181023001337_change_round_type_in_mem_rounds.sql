@@ -12,9 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-module.exports = {
-	Peer: require('./peer'),
-	Migration: require('./migration'),
-};
+/*
+  DESCRIPTION: Alter 'mem_round' table - change data type of 'round' from BIGINT to INT.
+
+  PARAMETERS: None
+*/
+
+ALTER TABLE mem_round ALTER COLUMN round TYPE INT;

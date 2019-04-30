@@ -12,9 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-module.exports = {
-	Peer: require('./peer'),
-	Migration: require('./migration'),
-};
+/*
+  DESCRIPTION: Rename port to wsPort in peers table.
+
+  PARAMETERS: None
+*/
+
+ALTER TABLE "peers" RENAME COLUMN "port" to "wsPort";

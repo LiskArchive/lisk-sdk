@@ -12,9 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-module.exports = {
-	Peer: require('./peer'),
-	Migration: require('./migration'),
-};
+/*
+  DESCRIPTION: Add Broadhash Column to Peers.
+
+  PARAMETERS: None
+*/
+
+ALTER TABLE "peers" ADD COLUMN "broadhash" bytea;
+
+CREATE INDEX IF NOT EXISTS "peers_broadhash" ON "peers"("broadhash");

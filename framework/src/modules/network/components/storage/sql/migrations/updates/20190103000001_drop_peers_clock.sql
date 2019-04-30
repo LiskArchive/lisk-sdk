@@ -12,9 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-module.exports = {
-	Peer: require('./peer'),
-	Migration: require('./migration'),
-};
+/*
+  DESCRIPTION: clock column not in use should be removed
+
+  PARAMETERS: None
+*/
+
+ALTER TABLE peers DROP COLUMN clock;

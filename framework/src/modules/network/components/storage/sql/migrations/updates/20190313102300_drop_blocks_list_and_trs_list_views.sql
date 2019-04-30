@@ -12,9 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-module.exports = {
-	Peer: require('./peer'),
-	Migration: require('./migration'),
-};
+/*
+  DESCRIPTION: Drop `blocks_list` and `trs_list` views as they are not used after Storage implementation in v1.5
+
+  PARAMETERS: None
+*/
+
+DROP VIEW IF EXISTS blocks_list;
+DROP VIEW IF EXISTS trs_list;
