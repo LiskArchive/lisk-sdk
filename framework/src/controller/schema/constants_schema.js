@@ -14,8 +14,6 @@ module.exports = {
 		'MAX_VOTES_PER_ACCOUNT',
 		'MIN_BROADHASH_CONSENSUS',
 		'MULTISIG_CONSTRAINTS',
-		'NETHASHES',
-		'NORMALIZER',
 		'TOTAL_AMOUNT',
 		'TRANSACTION_TYPES',
 		'UNCONFIRMED_TRANSACTION_TIMEOUT',
@@ -239,26 +237,6 @@ module.exports = {
 			},
 			additionalProperties: false,
 		},
-		NETHASHES: {
-			type: 'array',
-			items: {
-				type: 'string',
-				format: 'hex',
-			},
-			const: [
-				// Mainnet
-				'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-				// Testnet
-				'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-			],
-			description: 'For mainnet and testnet',
-		},
-		NORMALIZER: {
-			type: 'string',
-			format: 'amount',
-			const: '100000000',
-			description: 'Use this to convert LISK amount to normal value',
-		},
 		TOTAL_AMOUNT: {
 			type: 'string',
 			format: 'amount',
@@ -367,13 +345,6 @@ module.exports = {
 				MAX_ITEMS: 15,
 			},
 		},
-		NETHASHES: [
-			// Mainnet
-			'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-			// Testnet
-			'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-		],
-		NORMALIZER: '100000000',
 		// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
 		TOTAL_AMOUNT: '10000000000000000',
 		TRANSACTION_TYPES: {

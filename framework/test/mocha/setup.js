@@ -57,6 +57,7 @@ if (process.env.LOG_DB_EVENTS === 'true') {
 
 testContext.config = config;
 testContext.config.constants = _.cloneDeep(app.constants);
+testContext.config.NORMALIZER = '100000000';
 testContext.config.genesisBlock = _.cloneDeep(app.genesisBlock);
 testContext.consoleLogLevel =
 	process.env.LOG_LEVEL || config.components.logger.consoleLogLevel;
