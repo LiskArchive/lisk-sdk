@@ -18,7 +18,6 @@ import * as fsExtra from 'fs-extra';
 import Listr from 'listr';
 import semver from 'semver';
 import BaseCommand from '../../base';
-import { RELEASE_URL } from '../../utils/constants';
 import { downloadLiskAndValidate, extract } from '../../utils/download';
 import { flags as commonFlags } from '../../utils/flags';
 import { isCacheRunning, startCache, stopCache } from '../../utils/node/cache';
@@ -76,7 +75,6 @@ export default class UpgradeCommand extends BaseCommand {
 		}),
 		releaseUrl: flagParser.string({
 			...commonFlags.releaseUrl,
-			default: RELEASE_URL,
 		}),
 	};
 
@@ -93,7 +91,9 @@ export default class UpgradeCommand extends BaseCommand {
 			liskVersion,
 		);
 		const { cacheDir } = this.config;
-
+		// TODO: Commander not creating cache directory
+		// This is a patch to handle the scenario
+		fsExtra.ensureDirSync(cacheDir);
 		const tasks = new Listr([
 			{
 				title: 'Validate Version Input',

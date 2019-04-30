@@ -146,18 +146,14 @@ const getEnvByKey = (
 const generateEnvConfig = async (network: NETWORK) => {
 	const instances = await listApplication();
 
-	const LISK_DB_PORT = getEnvByKey(instances, 'LISK_DB_PORT', POSTGRES_PORT);
-	const LISK_REDIS_PORT = getEnvByKey(instances, 'LISK_REDIS_PORT', REDIS_PORT);
+	const LISK_DB_PORT = getEnvByKey(instances, 'dbPort', POSTGRES_PORT);
+	const LISK_REDIS_PORT = getEnvByKey(instances, 'redisPort', REDIS_PORT);
 	const LISK_HTTP_PORT = getEnvByKey(
 		instances,
-		'LISK_HTTP_PORT',
+		'httpPort',
 		HTTP_PORTS[network],
 	);
-	const LISK_WS_PORT = getEnvByKey(
-		instances,
-		'LISK_WS_PORT',
-		WS_PORTS[network],
-	);
+	const LISK_WS_PORT = getEnvByKey(instances, 'wsPort', WS_PORTS[network]);
 
 	return {
 		LISK_DB_PORT,
@@ -238,6 +234,9 @@ export default class InstallCommand extends BaseCommand {
 		const { name }: Args = args;
 
 		const { cacheDir } = this.config;
+		// TODO: Commander not creating cache directory
+		// This is a patch to handle the scenario
+		fsExtra.ensureDirSync(cacheDir);
 		const snapshotPath = `${cacheDir}/${liskDbSnapshot(network)}`;
 		const snapshotURL = liskSnapshotUrl(snapshotUrl, network);
 
