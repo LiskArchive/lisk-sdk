@@ -128,7 +128,7 @@
 		"mocha": "5.2.0",
 		"moment": "2.23.0",
 		"node-mocks-http": "^1.7.3",
-		"prettier": "1.10.2",
+		"prettier": "1.16.4",
 		"rewire": "4.0.1",
 		"rx": "4.1.0",
 		"sinon": "7.2.2",

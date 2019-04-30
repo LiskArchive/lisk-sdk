@@ -55,7 +55,7 @@
 		"co-mocha": "1.2.2",
 		"coveralls": "3.0.2",
 		"mocha": "5.2.0",
-		"prettier": "1.10.2",
+		"prettier": "1.16.4",
 		"sinon": "7.2.2",
 		"sinon-chai": "3.3.0",
 		"tslint": "5.12.1",
