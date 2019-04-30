@@ -26,18 +26,18 @@ export const exec = async (
 	command: string,
 	options: childProcess.ExecOptions = {},
 ): Promise<ExecResult> =>
-	new Promise((resolve, reject) => {
+	new Promise(resolve => {
 		childProcess.exec(command, options, (error, stdout, stderr) => {
 			if (error || stderr) {
 				fsExtra.writeJSONSync(`${defaultLiskInstancePath}/error.log`, {
 					error,
 					stderr,
 				});
-
-				reject({ stdout, stderr: (error as unknown) as string });
 			}
 
 			// To resolve the error gracefully, only resolving and not rejecting
+			// While using exec make sure you handle the error
+			// As it will never reject, rather return {stdout, stderr}
 			resolve({ stdout, stderr: (error as unknown) as string });
 		});
 	});

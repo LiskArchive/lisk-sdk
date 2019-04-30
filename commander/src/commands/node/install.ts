@@ -58,12 +58,14 @@ import {
 } from '../../utils/node/database';
 import { listApplication, registerApplication } from '../../utils/node/pm2';
 import { getReleaseInfo } from '../../utils/node/release';
+import StartCommand from './start';
 
 interface Flags {
 	readonly installationPath: string;
 	readonly 'lisk-version': string;
 	readonly network: NETWORK;
 	readonly 'no-snapshot': boolean;
+	readonly 'no-start': boolean;
 	readonly releaseUrl: string;
 	readonly snapshotUrl: string;
 }
@@ -174,6 +176,7 @@ export default class InstallCommand extends BaseCommand {
 
 	static examples = [
 		'node:install lisk-mainnet',
+		'node:install --no-start lisk-mainnet',
 		'node:install --no-snapshot lisk-mainnet',
 		'node:install --lisk-version=2.0.0 lisk-mainnet',
 		'node:install --network=testnet --lisk-version=1.6.0-rc.4 lisk-testnet',
@@ -182,6 +185,23 @@ export default class InstallCommand extends BaseCommand {
 
 	static flags = {
 		...BaseCommand.flags,
+		installationPath: flagParser.string({
+			...commonFlags.installationPath,
+			default: defaultLiskInstancePath,
+		}),
+		'lisk-version': flagParser.string({
+			...commonFlags.liskVersion,
+		}),
+		'no-snapshot': flagParser.boolean({
+			...commonFlags.noSnapshot,
+			default: false,
+			allowNo: false,
+		}),
+		'no-start': flagParser.boolean({
+			...commonFlags.noSnapshot,
+			default: false,
+			allowNo: false,
+		}),
 		network: flagParser.string({
 			...commonFlags.network,
 			default: NETWORK.MAINNET,
@@ -193,13 +213,6 @@ export default class InstallCommand extends BaseCommand {
 				NETWORK.DEVNET,
 			],
 		}),
-		'lisk-version': flagParser.string({
-			...commonFlags.liskVersion,
-		}),
-		installationPath: flagParser.string({
-			...commonFlags.installationPath,
-			default: defaultLiskInstancePath,
-		}),
 		releaseUrl: flagParser.string({
 			...commonFlags.releaseUrl,
 			default: RELEASE_URL,
@@ -208,20 +221,16 @@ export default class InstallCommand extends BaseCommand {
 			...commonFlags.snapshotUrl,
 			default: SNAPSHOT_URL,
 		}),
-		'no-snapshot': flagParser.boolean({
-			...commonFlags.noSnapshot,
-			default: false,
-			allowNo: false,
-		}),
 	};
 
 	async run(): Promise<void> {
 		const { args, flags } = this.parse(InstallCommand);
 		const {
+			'lisk-version': liskVersion,
+			'no-snapshot': noSnapshot,
+			'no-start': noStart,
 			network,
 			snapshotUrl,
-			'no-snapshot': noSnapshot,
-			'lisk-version': liskVersion,
 		} = flags as Flags;
 		const { name }: Args = args;
 
@@ -319,13 +328,16 @@ export default class InstallCommand extends BaseCommand {
 
 		try {
 			await tasks.run();
+			if (!noStart) {
+				return StartCommand.run([name]);
+			}
 		} catch (error) {
 			const { installDir }: Options = error.context.options;
 			const dirPath = installDir.substr(0, installDir.length - 1);
 
 			fsExtra.emptyDirSync(installDir);
 			fsExtra.rmdirSync(dirPath);
-			this.error(error);
+			this.error(JSON.stringify(error));
 		}
 	}
 }
