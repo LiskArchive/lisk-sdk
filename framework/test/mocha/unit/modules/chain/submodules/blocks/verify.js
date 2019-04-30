@@ -74,7 +74,7 @@ describe('blocks/verify', () => {
 
 		configMock = {
 			loading: {
-				snapshotRound: null,
+				rebuildUpToRound: null,
 			},
 		};
 

@@ -87,6 +87,10 @@ describe('GET /api/transactions', () => {
 		recipientId: transactionType4.multiSigTransaction.senderId,
 		data: 'fund acc for multisig',
 	});
+	const transactionSecondPassphrase = registerSecondPassphrase({
+		passphrase: accountSecondPass.passphrase,
+		secondPassphrase: accountSecondPass.secondPassphrase,
+	});
 	const transactionType5 = {
 		amount: '0',
 		recipientId: '',
@@ -167,6 +171,7 @@ describe('GET /api/transactions', () => {
 					Promise.all([
 						apiHelpers.sendTransactionPromise(transaction3),
 						apiHelpers.sendTransactionPromise(transactionType3),
+						apiHelpers.sendTransactionPromise(transactionSecondPassphrase),
 						apiHelpers.sendTransactionPromise(
 							transactionType4.multiSigTransaction
 						),
@@ -175,7 +180,12 @@ describe('GET /api/transactions', () => {
 				.then(() => {
 					transactionList.push(transaction3);
 					transactionList.push(transactionType3);
-					return waitFor.confirmations([transaction3.id, transactionType3.id]);
+					transactionList.push(transactionSecondPassphrase);
+					return waitFor.confirmations([
+						transaction3.id,
+						transactionType3.id,
+						transactionSecondPassphrase.id,
+					]);
 				});
 		});
 	});
@@ -1182,15 +1192,6 @@ describe('GET /api/transactions', () => {
 
 		describe('signature', () => {
 			it('should not show signSignature when empty upon registering second passphrase', async () => {
-				// Prepare
-				const transaction = registerSecondPassphrase({
-					passphrase: accountSecondPass.passphrase,
-					secondPassphrase: accountSecondPass.secondPassphrase,
-				});
-
-				await apiHelpers.sendTransactionPromise(transaction, 200);
-				await waitFor.confirmations([transaction.id]);
-
 				// Act
 				const {
 					body: { data: transactions },
