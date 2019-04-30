@@ -23,20 +23,6 @@ Object {
     "MAX_SHARED_TRANSACTIONS": 100,
     "MAX_VOTES_PER_ACCOUNT": 101,
     "MIN_BROADHASH_CONSENSUS": 51,
-    "MULTISIG_CONSTRAINTS": Object {
-      "KEYSGROUP": Object {
-        "MAX_ITEMS": 15,
-        "MIN_ITEMS": 1,
-      },
-      "LIFETIME": Object {
-        "MAXIMUM": 72,
-        "MINIMUM": 1,
-      },
-      "MIN": Object {
-        "MAXIMUM": 15,
-        "MINIMUM": 1,
-      },
-    },
     "TOTAL_AMOUNT": "10000000000000000",
     "TRANSACTION_TYPES": Object {
       "DAPP": 5,
@@ -173,85 +159,6 @@ Object {
       "min": 1,
       "type": "integer",
     },
-    "MULTISIG_CONSTRAINTS": Object {
-      "additionalProperties": false,
-      "properties": Object {
-        "KEYSGROUP": Object {
-          "additionalProperties": false,
-          "properties": Object {
-            "MAX_ITEMS": Object {
-              "const": 15,
-              "description": "Maximum allowed number of keys inside a Multisignature pool",
-              "min": 1,
-              "type": "integer",
-            },
-            "MIN_ITEMS": Object {
-              "const": 1,
-              "description": "Minimum allowed number of keys inside a Multisignature pool",
-              "min": 1,
-              "type": "integer",
-            },
-          },
-          "required": Array [
-            "MIN_ITEMS",
-            "MAX_ITEMS",
-          ],
-          "type": "object",
-        },
-        "LIFETIME": Object {
-          "additionalProperties": false,
-          "properties": Object {
-            "MAXIMUM": Object {
-              "const": 72,
-              "description": "Maximum timeframe in which multisignature transaction will exist in memory before the transaction is confirmed",
-              "min": 1,
-              "type": "integer",
-            },
-            "MINIMUM": Object {
-              "const": 1,
-              "description": "Minimum timeframe in which a multisignature transaction will exist in memory before the transaction is confirmed",
-              "min": 1,
-              "type": "integer",
-            },
-          },
-          "required": Array [
-            "MINIMUM",
-            "MAXIMUM",
-          ],
-          "type": "object",
-        },
-        "MIN": Object {
-          "properties": Object {
-            "MAXIMUM": Object {
-              "const": 15,
-              "description": "Maximum allowed number of signatures required to process a multisignature transaction",
-              "maximum": Object {
-                "$data": "/MULTISIG_CONSTRAINTS/KEYSGROUP/MAX_ITEMS",
-              },
-              "min": 1,
-              "type": "number",
-            },
-            "MINIMUM": Object {
-              "const": 1,
-              "description": "Minimum allowed number of signatures required to process a multisignature transaction",
-              "min": 1,
-              "type": "integer",
-            },
-          },
-          "required": Array [
-            "MINIMUM",
-            "MAXIMUM",
-          ],
-          "type": "object",
-        },
-      },
-      "required": Array [
-        "MIN",
-        "LIFETIME",
-        "KEYSGROUP",
-      ],
-      "type": "object",
-    },
     "TOTAL_AMOUNT": Object {
       "const": "10000000000000000",
       "description": "Total amount of LSK available in network before rewards milestone started",
@@ -323,7 +230,6 @@ Object {
     "MAX_SHARED_TRANSACTIONS",
     "MAX_VOTES_PER_ACCOUNT",
     "MIN_BROADHASH_CONSENSUS",
-    "MULTISIG_CONSTRAINTS",
     "TOTAL_AMOUNT",
     "TRANSACTION_TYPES",
     "UNCONFIRMED_TRANSACTION_TIMEOUT",

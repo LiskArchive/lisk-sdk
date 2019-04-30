@@ -11,7 +11,6 @@ module.exports = {
 		'MAX_SHARED_TRANSACTIONS',
 		'MAX_VOTES_PER_ACCOUNT',
 		'MIN_BROADHASH_CONSENSUS',
-		'MULTISIG_CONSTRAINTS',
 		'TOTAL_AMOUNT',
 		'TRANSACTION_TYPES',
 		'UNCONFIRMED_TRANSACTION_TIMEOUT',
@@ -139,78 +138,6 @@ module.exports = {
 			description:
 				'Minimum broadhash consensus(%) among connected {MAX_PEERS} peers',
 		},
-		MULTISIG_CONSTRAINTS: {
-			type: 'object',
-			required: ['MIN', 'LIFETIME', 'KEYSGROUP'],
-			properties: {
-				KEYSGROUP: {
-					type: 'object',
-					required: ['MIN_ITEMS', 'MAX_ITEMS'],
-					properties: {
-						MIN_ITEMS: {
-							type: 'integer',
-							min: 1,
-							const: 1,
-							description:
-								'Minimum allowed number of keys inside a Multisignature pool',
-						},
-						MAX_ITEMS: {
-							type: 'integer',
-							min: 1,
-							const: 15,
-							description:
-								'Maximum allowed number of keys inside a Multisignature pool',
-						},
-					},
-					additionalProperties: false,
-				},
-				MIN: {
-					type: 'object',
-					required: ['MINIMUM', 'MAXIMUM'],
-					properties: {
-						MINIMUM: {
-							type: 'integer',
-							min: 1,
-							const: 1,
-							description:
-								'Minimum allowed number of signatures required to process a multisignature transaction',
-						},
-						MAXIMUM: {
-							type: 'number',
-							min: 1,
-							maximum: {
-								$data: '/MULTISIG_CONSTRAINTS/KEYSGROUP/MAX_ITEMS',
-							},
-							const: 15,
-							description:
-								'Maximum allowed number of signatures required to process a multisignature transaction',
-						},
-					},
-				},
-				LIFETIME: {
-					type: 'object',
-					required: ['MINIMUM', 'MAXIMUM'],
-					properties: {
-						MINIMUM: {
-							type: 'integer',
-							min: 1,
-							const: 1,
-							description:
-								'Minimum timeframe in which a multisignature transaction will exist in memory before the transaction is confirmed',
-						},
-						MAXIMUM: {
-							type: 'integer',
-							min: 1,
-							const: 72,
-							description:
-								'Maximum timeframe in which multisignature transaction will exist in memory before the transaction is confirmed',
-						},
-					},
-					additionalProperties: false,
-				},
-			},
-			additionalProperties: false,
-		},
 		TOTAL_AMOUNT: {
 			type: 'string',
 			format: 'amount',
@@ -300,20 +227,6 @@ module.exports = {
 		MAX_SHARED_TRANSACTIONS: 100,
 		MAX_VOTES_PER_ACCOUNT: 101,
 		MIN_BROADHASH_CONSENSUS: 51,
-		MULTISIG_CONSTRAINTS: {
-			MIN: {
-				MINIMUM: 1,
-				MAXIMUM: 15,
-			},
-			LIFETIME: {
-				MINIMUM: 1,
-				MAXIMUM: 72,
-			},
-			KEYSGROUP: {
-				MIN_ITEMS: 1,
-				MAX_ITEMS: 15,
-			},
-		},
 		// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
 		TOTAL_AMOUNT: '10000000000000000',
 		TRANSACTION_TYPES: {

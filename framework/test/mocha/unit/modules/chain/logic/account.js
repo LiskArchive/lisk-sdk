@@ -103,11 +103,6 @@ describe('account', () => {
 			expect(library.logger).to.eql(modulesLoader.scope.components.logger));
 	});
 
-	describe('objectNormalize', () => {
-		it('should validate account schema', async () =>
-			expect(account.objectNormalize(validAccount)).to.be.an('object'));
-	});
-
 	describe('verifyPublicKey', () => {
 		it('should be okay for empty params', async () =>
 			expect(account.verifyPublicKey()).to.be.undefined);
