@@ -17,7 +17,7 @@ import fs from 'fs';
 import { NETWORK } from '../constants';
 import { exec, ExecResult } from '../worker-process';
 import { DbConfig, getDbConfig } from './config';
-import { describeApplication, Pm2Env } from './pm2';
+import { describeApplication } from './pm2';
 
 const DATABASE_START_SUCCESS = '[+] Postgresql started successfully.';
 const DATABASE_START_FAILURE = '[-] Failed to start Postgresql.';
@@ -55,13 +55,6 @@ const isDbRunning = async (
 	}
 };
 
-const getDatabasePort = async (name: string): Promise<string> => {
-	const { pm2_env } = await describeApplication(name);
-	const { LISK_DB_PORT } = pm2_env as Pm2Env;
-
-	return LISK_DB_PORT;
-};
-
 export const initDB = async (installDir: string): Promise<string> => {
 	if (isDbInitialized(installDir)) {
 		return 'Postgres database initialized';
@@ -83,14 +76,14 @@ export const startDatabase = async (
 	installDir: string,
 	name: string,
 ): Promise<string> => {
-	const LISK_DB_PORT = await getDatabasePort(name);
-	const isRunning = await isDbRunning(installDir, LISK_DB_PORT);
+	const { dbPort } = await describeApplication(name);
+	const isRunning = await isDbRunning(installDir, dbPort);
 	if (isRunning) {
 		return DATABASE_START_SUCCESS;
 	}
 
 	const { stderr }: ExecResult = await exec(
-		`${PG_CTL} --wait --pgdata ${DB_DATA} --log ${DB_LOG_FILE} --options "-F -p ${LISK_DB_PORT}" start`,
+		`${PG_CTL} --wait --pgdata ${DB_DATA} --log ${DB_LOG_FILE} --options "-F -p ${dbPort}" start`,
 		{ cwd: installDir },
 	);
 
@@ -107,12 +100,12 @@ export const createUser = async (
 	name: string,
 ): Promise<string> => {
 	const { user, password }: DbConfig = getDbConfig(installDir, network);
-	const LISK_DB_PORT = await getDatabasePort(name);
+	const { dbPort } = await describeApplication(name);
 
 	const { stderr }: ExecResult = await exec(
-		`${PG_BIN}/dropuser --if-exists ${user} --port ${LISK_DB_PORT};
-    ${PG_BIN}/createuser --createdb ${user} --port ${LISK_DB_PORT};
-    ${PG_BIN}/psql --quiet --dbname postgres --port ${LISK_DB_PORT} --command "ALTER USER ${user} WITH PASSWORD '${password}';";`,
+		`${PG_BIN}/dropuser --if-exists ${user} --port ${dbPort};
+    ${PG_BIN}/createuser --createdb ${user} --port ${dbPort};
+    ${PG_BIN}/psql --quiet --dbname postgres --port ${dbPort} --command "ALTER USER ${user} WITH PASSWORD '${password}';";`,
 		{ cwd: installDir },
 	);
 
@@ -129,11 +122,11 @@ export const createDatabase = async (
 	name: string,
 ): Promise<string> => {
 	const { database }: DbConfig = getDbConfig(installDir, network);
-	const LISK_DB_PORT = await getDatabasePort(name);
+	const { dbPort } = await describeApplication(name);
 
 	const { stderr }: ExecResult = await exec(
-		`${PG_BIN}/dropdb --if-exists ${database} --port ${LISK_DB_PORT};
-    ${PG_BIN}/createdb ${database} --port ${LISK_DB_PORT};
+		`${PG_BIN}/dropdb --if-exists ${database} --port ${dbPort};
+    ${PG_BIN}/createdb ${database} --port ${dbPort};
 		`,
 		{ cwd: installDir },
 	);
@@ -149,8 +142,8 @@ export const stopDatabase = async (
 	installDir: string,
 	name: string,
 ): Promise<string> => {
-	const LISK_DB_PORT = await getDatabasePort(name);
-	const isRunning = await isDbRunning(installDir, LISK_DB_PORT);
+	const { dbPort } = await describeApplication(name);
+	const isRunning = await isDbRunning(installDir, dbPort);
 	if (!isRunning) {
 		return DATABASE_STATUS;
 	}
@@ -174,10 +167,10 @@ export const restoreSnapshot = async (
 	name: string,
 ): Promise<string> => {
 	const { database, user }: DbConfig = getDbConfig(installDir, network);
-	const LISK_DB_PORT = await getDatabasePort(name);
+	const { dbPort } = await describeApplication(name);
 
 	const { stderr }: ExecResult = await exec(
-		`gunzip --force --stdout --quiet ${snapshotFilePath} | ${PG_BIN}/psql --username ${user} --dbname ${database} --port ${LISK_DB_PORT};`,
+		`gunzip --force --stdout --quiet ${snapshotFilePath} | ${PG_BIN}/psql --username ${user} --dbname ${database} --port ${dbPort};`,
 		{ cwd: installDir },
 	);
 

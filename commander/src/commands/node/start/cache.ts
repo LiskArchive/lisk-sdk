@@ -17,7 +17,7 @@ import Listr from 'listr';
 import BaseCommand from '../../../base';
 import { isCacheRunning, startCache } from '../../../utils/node/cache';
 import { isCacheEnabled } from '../../../utils/node/config';
-import { describeApplication, Pm2Env } from '../../../utils/node/pm2';
+import { describeApplication } from '../../../utils/node/pm2';
 
 interface Args {
 	readonly name: string;
@@ -39,17 +39,16 @@ export default class CacheCommand extends BaseCommand {
 	async run(): Promise<void> {
 		const { args } = this.parse(CacheCommand);
 		const { name } = args as Args;
-		const { pm2_env } = await describeApplication(name);
-		const { pm_cwd: installDir, LISK_NETWORK: network } = pm2_env as Pm2Env;
+		const { installationPath, network } = await describeApplication(name);
 
 		const tasks = new Listr([
 			{
 				title: 'Start the cache server',
-				skip: () => !isCacheEnabled(installDir, network),
+				skip: () => !isCacheEnabled(installationPath, network),
 				task: async () => {
-					const isRunning = await isCacheRunning(installDir, name);
+					const isRunning = await isCacheRunning(installationPath, name);
 					if (!isRunning) {
-						await startCache(installDir, name);
+						await startCache(installationPath, name);
 					}
 				},
 			},

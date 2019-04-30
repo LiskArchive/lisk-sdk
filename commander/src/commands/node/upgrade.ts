@@ -33,7 +33,6 @@ import { getConfig } from '../../utils/node/config';
 import { startDatabase, stopDatabase } from '../../utils/node/database';
 import {
 	describeApplication,
-	Pm2Env,
 	restartApplication,
 	stopApplication,
 } from '../../utils/node/pm2';
@@ -85,10 +84,9 @@ export default class UpgradeCommand extends BaseCommand {
 		const { args, flags } = this.parse(UpgradeCommand);
 		const { name }: Args = args;
 		const { 'lisk-version': liskVersion, releaseUrl } = flags as Flags;
-		const { pm2_env } = await describeApplication(name);
-		const { pm_cwd: installDir, LISK_NETWORK: network } = pm2_env as Pm2Env;
+		const { installationPath, network } = await describeApplication(name);
 		const { version: currentVersion } = getConfig(
-			`${installDir}/package.json`,
+			`${installationPath}/package.json`,
 		) as PackageJson;
 		const upgradeVersion: string = await getVersionToInstall(
 			network,
@@ -131,25 +129,29 @@ export default class UpgradeCommand extends BaseCommand {
 						{
 							title: `Stop Lisk Core`,
 							task: async () => {
-								const isRunning = await isCacheRunning(installDir, name);
+								const isRunning = await isCacheRunning(installationPath, name);
 								if (isRunning) {
-									await stopCache(installDir, network, name);
+									await stopCache(installationPath, network, name);
 								}
-								await stopDatabase(installDir, name);
+								await stopDatabase(installationPath, name);
 								await stopApplication(name);
 							},
 						},
 						{
 							title: `Backup Lisk Core: ${currentVersion} installed as ${name}`,
 							task: async () => {
-								await backupLisk(installDir);
+								await backupLisk(installationPath);
 							},
 						},
 						{
 							title: `Install Lisk Core: ${upgradeVersion}`,
 							task: async () => {
-								fsExtra.ensureDirSync(installDir);
-								await extract(cacheDir, liskTar(upgradeVersion), installDir);
+								fsExtra.ensureDirSync(installationPath);
+								await extract(
+									cacheDir,
+									liskTar(upgradeVersion),
+									installationPath,
+								);
 							},
 						},
 					]),
@@ -157,17 +159,17 @@ export default class UpgradeCommand extends BaseCommand {
 			{
 				title: `Upgrade Lisk Core ${name} instance from: ${currentVersion} to: ${upgradeVersion}`,
 				task: async () => {
-					await upgradeLisk(installDir, name, network, currentVersion);
+					await upgradeLisk(installationPath, name, network, currentVersion);
 				},
 			},
 			{
 				title: `Start Lisk Core: ${upgradeVersion}`,
 				task: async () => {
-					const isRunning = await isCacheRunning(installDir, name);
+					const isRunning = await isCacheRunning(installationPath, name);
 					if (!isRunning) {
-						await startCache(installDir, name);
+						await startCache(installationPath, name);
 					}
-					await startDatabase(installDir, name);
+					await startDatabase(installationPath, name);
 					await restartApplication(name);
 				},
 			},

@@ -16,7 +16,7 @@
 import * as childProcess from 'child_process';
 import BaseCommand from '../../base';
 import { getNetworkConfig } from '../../utils/node/config';
-import { describeApplication, Pm2Env } from '../../utils/node/pm2';
+import { describeApplication } from '../../utils/node/pm2';
 
 interface Args {
 	readonly name: string;
@@ -39,10 +39,9 @@ export default class LogsCommand extends BaseCommand {
 		const { args } = this.parse(LogsCommand);
 		const { name } = args as Args;
 
-		const { pm2_env } = await describeApplication(name);
-		const { pm_cwd: installDir, LISK_NETWORK: network } = pm2_env as Pm2Env;
-		const { logFileName } = getNetworkConfig(installDir, network);
-		const fileName = `${installDir}/${logFileName}`;
+		const { installationPath, network } = await describeApplication(name);
+		const { logFileName } = getNetworkConfig(installationPath, network);
+		const fileName = `${installationPath}/${logFileName}`;
 
 		const tail = childProcess.spawn('tail', ['-f', fileName]);
 		const { stderr, stdout } = tail;

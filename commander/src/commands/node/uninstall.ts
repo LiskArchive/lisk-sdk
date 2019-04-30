@@ -20,7 +20,6 @@ import { isCacheRunning, stopCache } from '../../utils/node/cache';
 import { stopDatabase } from '../../utils/node/database';
 import {
 	describeApplication,
-	Pm2Env,
 	unRegisterApplication,
 } from '../../utils/node/pm2';
 
@@ -44,8 +43,7 @@ export default class UnInstallCommand extends BaseCommand {
 	async run(): Promise<void> {
 		const { args } = this.parse(UnInstallCommand);
 		const { name } = args as Args;
-		const { pm2_env } = await describeApplication(name);
-		const { pm_cwd: installDir, LISK_NETWORK: network } = pm2_env as Pm2Env;
+		const { installationPath, network } = await describeApplication(name);
 
 		const tasks = new Listr([
 			{
@@ -55,18 +53,18 @@ export default class UnInstallCommand extends BaseCommand {
 						{
 							title: `Stop and Unregister Lisk Core from PM2`,
 							task: async () => {
-								const isRunning = await isCacheRunning(installDir, name);
+								const isRunning = await isCacheRunning(installationPath, name);
 								if (isRunning) {
-									await stopCache(installDir, network, name);
+									await stopCache(installationPath, network, name);
 								}
-								await stopDatabase(installDir, name);
+								await stopDatabase(installationPath, name);
 								await unRegisterApplication(name);
 							},
 						},
 						{
 							title: `Remove Lisk Core ${network}`,
 							task: () => {
-								fsExtra.removeSync(installDir);
+								fsExtra.removeSync(installationPath);
 							},
 						},
 					]),

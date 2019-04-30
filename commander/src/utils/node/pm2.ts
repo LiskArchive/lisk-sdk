@@ -33,6 +33,22 @@ export interface Pm2Env {
 	readonly version: string;
 }
 
+export interface Instance {
+	readonly cpu?: number;
+	readonly memory?: number;
+	readonly dbPort: string;
+	readonly redisPort: string;
+	readonly wsPort: string;
+	readonly httpPort: string;
+	readonly installationPath: string;
+	readonly uptime: string;
+	readonly status: ProcessStatus;
+	readonly pid: number | undefined;
+	readonly version: string;
+	readonly name: string | undefined;
+	readonly network: NETWORK;
+}
+
 const connectPM2 = async (): Promise<void> =>
 	new Promise<void>((resolve, reject) => {
 		connect(err => {
@@ -185,22 +201,48 @@ export const stopApplication = async (name: string): Promise<void> => {
 	disconnect();
 };
 
-export const listApplication = async (): Promise<
-	ReadonlyArray<ProcessDescription>
-> => {
-	await connectPM2();
-	const applications = await listPM2();
-	disconnect();
+const extractProcessDetails = (appDesc: ProcessDescription): Instance => {
+	const { pm2_env, monit, name, pid } = appDesc;
+	const {
+		status,
+		pm_uptime,
+		pm_cwd: installationPath,
+		version,
+		LISK_NETWORK: network,
+		LISK_DB_PORT: dbPort,
+		LISK_REDIS_PORT: redisPort,
+		LISK_HTTP_PORT: httpPort,
+		LISK_WS_PORT: wsPort,
+	} = pm2_env as Pm2Env;
 
-	return applications;
+	return {
+		...monit,
+		status,
+		uptime: new Date(pm_uptime).toLocaleString(),
+		installationPath,
+		version,
+		name,
+		network,
+		dbPort,
+		redisPort,
+		httpPort,
+		wsPort,
+		pid,
+	};
 };
 
-export const describeApplication = async (
-	name: string,
-): Promise<ProcessDescription> => {
+export const listApplication = async (): Promise<ReadonlyArray<Instance>> => {
 	await connectPM2();
-	const application = await describePM2(name);
+	const applications = (await listPM2()) as ReadonlyArray<Instance>;
 	disconnect();
 
-	return application;
+	return applications.map(extractProcessDetails);
+};
+
+export const describeApplication = async (name: string): Promise<Instance> => {
+	await connectPM2();
+	const application = (await describePM2(name)) as Instance;
+	disconnect();
+
+	return extractProcessDetails(application);
 };

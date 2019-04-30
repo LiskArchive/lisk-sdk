@@ -16,7 +16,7 @@
 import Listr from 'listr';
 import BaseCommand from '../../../base';
 import { startDatabase } from '../../../utils/node/database';
-import { describeApplication, Pm2Env } from '../../../utils/node/pm2';
+import { describeApplication } from '../../../utils/node/pm2';
 
 interface Args {
 	readonly name: string;
@@ -38,13 +38,12 @@ export default class DatabaseCommand extends BaseCommand {
 	async run(): Promise<void> {
 		const { args } = this.parse(DatabaseCommand);
 		const { name } = args as Args;
-		const { pm2_env } = await describeApplication(name);
-		const { pm_cwd: installDir } = pm2_env as Pm2Env;
+		const { installationPath } = await describeApplication(name);
 
 		const tasks = new Listr([
 			{
 				title: 'Start the database server',
-				task: async () => startDatabase(installDir, name),
+				task: async () => startDatabase(installationPath, name),
 			},
 		]);
 

@@ -16,7 +16,7 @@
 import { NETWORK } from '../constants';
 import { exec, ExecResult } from '../worker-process';
 import { CacheConfig, getCacheConfig } from './config';
-import { describeApplication, Pm2Env } from './pm2';
+import { describeApplication } from './pm2';
 
 const CACHE_START_SUCCESS = '[+] Redis-Server started successfully.';
 const CACHE_START_FAILURE = '[-] Failed to start Redis-Server.';
@@ -27,21 +27,14 @@ const REDIS_CONFIG = 'etc/redis.conf';
 const REDIS_BIN = './bin/redis-server';
 const REDIS_CLI = './bin/redis-cli';
 
-const getRedisPort = async (name: string): Promise<string> => {
-	const { pm2_env } = await describeApplication(name);
-	const { LISK_REDIS_PORT } = pm2_env as Pm2Env;
-
-	return LISK_REDIS_PORT;
-};
-
 export const isCacheRunning = async (
 	installDir: string,
 	name: string,
 ): Promise<boolean> => {
-	const LISK_REDIS_PORT = await getRedisPort(name);
+	const { redisPort } = await describeApplication(name);
 
 	const { stderr }: ExecResult = await exec(
-		`${REDIS_CLI} -p ${LISK_REDIS_PORT} ping`,
+		`${REDIS_CLI} -p ${redisPort} ping`,
 		{ cwd: installDir },
 	);
 
@@ -52,10 +45,10 @@ export const startCache = async (
 	installDir: string,
 	name: string,
 ): Promise<string> => {
-	const LISK_REDIS_PORT = await getRedisPort(name);
+	const { redisPort } = await describeApplication(name);
 
 	const { stderr }: ExecResult = await exec(
-		`${REDIS_BIN} ${REDIS_CONFIG} --port ${LISK_REDIS_PORT}`,
+		`${REDIS_BIN} ${REDIS_CONFIG} --port ${redisPort}`,
 		{ cwd: installDir },
 	);
 
@@ -72,13 +65,13 @@ const stopCommand = async (
 	name: string,
 ): Promise<string> => {
 	const { password }: CacheConfig = getCacheConfig(installDir, network);
-	const LISK_REDIS_PORT = await getRedisPort(name);
+	const { redisPort } = await describeApplication(name);
 
 	if (password) {
-		return `${REDIS_CLI} -p ${LISK_REDIS_PORT} -a ${password} shutdown`;
+		return `${REDIS_CLI} -p ${redisPort} -a ${password} shutdown`;
 	}
 
-	return `${REDIS_CLI} -p ${LISK_REDIS_PORT} shutdown`;
+	return `${REDIS_CLI} -p ${redisPort} shutdown`;
 };
 
 export const stopCache = async (

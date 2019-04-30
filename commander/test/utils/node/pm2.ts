@@ -10,10 +10,30 @@ import {
 import { NETWORK } from '../../../src/utils/constants';
 import pm2 from 'pm2';
 
+const monit = {
+	cpu: 10,
+	memory: 10,
+};
+
+const pm2_env = {
+	LISK_DB_PORT: '5432',
+	LISK_REDIS_PORT: '6380',
+	LISK_WS_PORT: '5000',
+	LISK_HTTP_PORT: '4000',
+	pm_cwd: '.lisk/instances',
+	pm_uptime: new Date(),
+	status: 'online',
+	version: '2.0.0',
+	LISK_NETWORK: 'testnet',
+};
+
 const applicationList = [
-	{ name: 'testnet', status: 'online' },
-	{ name: 'mainnet', status: 'online' },
-	{ name: 'betanet', status: 'online' },
+	{
+		name: 'testnet',
+		pid: 123,
+		monit,
+		pm2_env,
+	},
 ];
 
 describe('pm2 node utils', () => {
@@ -86,7 +106,7 @@ describe('pm2 node utils', () => {
 
 			expect(pm2.connect).to.be.calledOnce;
 			expect(pm2.list).to.be.calledOnce;
-			return expect(appList).to.deep.equal(applicationList);
+			return appList.map(app => expect(app.name).to.equal('testnet'));
 		});
 	});
 
@@ -101,10 +121,7 @@ describe('pm2 node utils', () => {
 
 			expect(pm2.connect).to.be.calledOnce;
 			expect(pm2.describe).to.be.calledOnce;
-			return expect(appDesc).to.deep.equal({
-				name: 'testnet',
-				status: 'online',
-			});
+			return expect(appDesc.name).to.deep.equal('testnet');
 		});
 	});
 });

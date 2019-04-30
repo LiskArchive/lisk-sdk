@@ -17,7 +17,6 @@ import { flags as flagParser } from '@oclif/command';
 import * as fsExtra from 'fs-extra';
 import Listr from 'listr';
 import * as os from 'os';
-import { ProcessDescription } from 'pm2';
 import BaseCommand from '../../base';
 import {
 	HTTP_PORTS,
@@ -56,7 +55,11 @@ import {
 	startDatabase,
 	stopDatabase,
 } from '../../utils/node/database';
-import { listApplication, registerApplication } from '../../utils/node/pm2';
+import {
+	Instance,
+	listApplication,
+	registerApplication,
+} from '../../utils/node/pm2';
 import { getReleaseInfo } from '../../utils/node/release';
 import StartCommand from './start';
 
@@ -124,14 +127,13 @@ const installOptions = async (
 };
 
 const getEnvByKey = (
-	instances: ReadonlyArray<ProcessDescription>,
+	instances: ReadonlyArray<Instance>,
 	key: string,
 	defaultValue: number,
 ): number => {
-	const apps = instances.map(({ pm2_env }: ProcessDescription) => pm2_env);
 	const INCREMENT = 2;
 
-	const maxValue = apps
+	const maxValue = instances
 		.map(app => ((app as unknown) as { readonly [key: string]: number })[key])
 		.filter(i => i)
 		.reduce((acc, curr) => Math.max(acc, curr), defaultValue);
@@ -234,7 +236,7 @@ export default class InstallCommand extends BaseCommand {
 		} = flags as Flags;
 		const { name }: Args = args;
 
-		const cacheDir = this.config.cacheDir;
+		const { cacheDir } = this.config;
 		const snapshotPath = `${cacheDir}/${liskDbSnapshot(network)}`;
 		const snapshotURL = liskSnapshotUrl(snapshotUrl, network);
 
