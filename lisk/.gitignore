@@ -19,11 +19,7 @@ docs/jsdoc/
 
 # Logs
 logs/*
-src/logs/
-src/logs.log
-logs.log
-npm-debug.log
-tmux-client-*.log
+*.log
 framework/test/mocha/network/logs/
 stacktrace*
 
