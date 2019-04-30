@@ -691,7 +691,7 @@ describe('round', () => {
 		it('should not mutate roundRewards if round exception exists', () => {
 			const [rewards_factor, fees_factor, fees_bonus] = [2, 2, 10000000];
 			global.exceptions.rounds = {
-				[scope.round]: { rewards_factor, fees_factor, fees_bonus },
+				[scope.round.toString()]: { rewards_factor, fees_factor, fees_bonus },
 			};
 			const roundRewards = _.clone(validLocalScope.roundRewards);
 
