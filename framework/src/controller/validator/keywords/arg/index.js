@@ -24,7 +24,7 @@ const compile = (schema, parentSchema) => {
 		const commandLineArguments = yargs.argv;
 
 		argVariable.names.forEach(argName => {
-			if (!argValue) {
+			if (argValue === undefined) {
 				// Remove "-" or "--" from command line argument names
 				argValue = commandLineArguments[_.camelCase(argName)];
 			}

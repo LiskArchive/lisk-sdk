@@ -15,6 +15,7 @@
 'use strict';
 
 const async = require('async');
+const { promisify } = require('util');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const { convertErrorsToString } = require('../helpers/error_handlers');
 const jobsQueue = require('../helpers/jobs_queue');
@@ -27,7 +28,7 @@ let components;
 let modules;
 let library;
 let self;
-const { ACTIVE_DELEGATES, MAX_PEERS } = global.constants;
+const { ACTIVE_DELEGATES } = global.constants;
 const __private = {};
 
 __private.loaded = false;
@@ -86,6 +87,11 @@ class Loader {
 		__private.initialize();
 		__private.lastBlock = library.genesisBlock;
 		__private.genesisBlock = library.genesisBlock;
+
+		// On App Ready
+		library.channel.once('chain:bootstrap', () => {
+			self.onAppReady();
+		});
 
 		setImmediate(cb, null, self);
 	}
@@ -184,70 +190,55 @@ __private.syncTimer = function() {
 };
 
 /**
- * Gets a random peer and loads signatures from network.
- * Processes each signature from peer.
+ * Loads signatures from network.
+ * Processes each signature from the network.
  *
  * @private
  * @param {function} cb
  * @returns {setImmediateCallback} cb, err
  * @todo Add description for the params
  */
-__private.loadSignatures = function(cb) {
-	async.waterfall(
-		[
-			function(waterCb) {
-				self.getRandomPeerFromNetwork((getRandomPeerFromNetworkErr, peer) => {
-					if (getRandomPeerFromNetworkErr) {
-						return setImmediate(waterCb, getRandomPeerFromNetworkErr);
-					}
-					return setImmediate(waterCb, null, peer);
+__private.getSignaturesFromNetwork = async function() {
+	library.logger.info('Loading signatures from the network');
+
+	// TODO: Add target module to procedure name. E.g. chain:getSignatures
+	const result = await library.channel.invoke('network:invoke', {
+		procedure: 'getSignatures',
+	});
+
+	const validate = promisify(library.schema.validate.bind(library.schema));
+	await validate(result, definitions.WSSignaturesResponse);
+
+	const { signatures } = result;
+	const sequenceAdd = promisify(library.sequence.add.bind(library.sequence));
+
+	await sequenceAdd(async addSequenceCb => {
+		const signatureCount = signatures.length;
+		for (let i = 0; i < signatureCount; i++) {
+			const signaturePacket = signatures[i];
+			const subSignatureCount = signaturePacket.signatures.length;
+			for (let j = 0; j < subSignatureCount; j++) {
+				const signature = signaturePacket.signatures[j];
+
+				const processSignature = promisify(
+					modules.multisignatures.getTransactionAndProcessSignature.bind(
+						modules.multisignatures
+					)
+				);
+				// eslint-disable-next-line no-await-in-loop
+				await processSignature({
+					signature,
+					transactionId: signature.transactionId,
 				});
-			},
-			function(peer, waterCb) {
-				library.logger.info(`Loading signatures from: ${peer.string}`);
-				peer.rpc.getSignatures((err, res) => {
-					if (err) {
-						modules.peers.remove(peer);
-						return setImmediate(waterCb, err);
-					}
-					return library.schema.validate(
-						res,
-						definitions.WSSignaturesResponse,
-						validateErr => setImmediate(waterCb, validateErr, res.signatures)
-					);
-				});
-			},
-			function(signatures, waterCb) {
-				library.sequence.add(addSequenceCb => {
-					async.eachSeries(
-						signatures,
-						(signature, eachSeriesCb) => {
-							async.eachSeries(
-								signature.signatures,
-								(s, secondEachSeriesCb) => {
-									modules.multisignatures.getTransactionAndProcessSignature(
-										{
-											signature: s,
-											transactionId: signature.transactionId,
-										},
-										err => setImmediate(secondEachSeriesCb, err)
-									);
-								},
-								eachSeriesCb
-							);
-						},
-						addSequenceCb
-					);
-				}, waterCb);
-			},
-		],
-		err => setImmediate(cb, err)
-	);
+			}
+		}
+		addSequenceCb();
+	});
 };
 
 /**
- * Gets a random peer and loads transactions from network:
- * - Validates each transaction from peer and remove peer if invalid.
+ * Loads transactions from the network:
+ * - Validates each transaction from the network and applies a penalty if invalid.
  * - Calls processUnconfirmedTransaction for each transaction.
  *
  * @private
@@ -256,96 +247,61 @@ __private.loadSignatures = function(cb) {
  * @todo Add description for the params
  * @todo Missing error propagation when calling balancesSequence.add
  */
-__private.loadTransactions = function(cb) {
-	async.waterfall(
-		[
-			function(waterCb) {
-				self.getRandomPeerFromNetwork((getRandomPeerFromNetworkErr, peer) => {
-					if (getRandomPeerFromNetworkErr) {
-						return setImmediate(waterCb, getRandomPeerFromNetworkErr);
-					}
-					return setImmediate(waterCb, null, peer);
-				});
-			},
-			function(peer, waterCb) {
-				library.logger.info(`Loading transactions from: ${peer.string}`);
-				peer.rpc.getTransactions((err, res) => {
-					if (err) {
-						modules.peers.remove(peer);
-						return setImmediate(waterCb, err);
-					}
-					return library.schema.validate(
-						res,
-						definitions.WSTransactionsResponse,
-						validateErr => {
-							if (validateErr) {
-								return setImmediate(waterCb, validateErr[0].message);
-							}
-							return setImmediate(waterCb, null, peer, res.transactions);
-						}
-					);
-				});
-			},
-			function(peer, transactions, waterCb) {
-				try {
-					const {
-						transactionsResponses,
-					} = modules.processTransactions.validateTransactions(transactions);
-					const invalidTransactionResponse = transactionsResponses.find(
-						transactionResponse =>
-							transactionResponse.status !== TransactionStatus.OK
-					);
-					if (invalidTransactionResponse) {
-						throw invalidTransactionResponse.errors;
-					}
-				} catch (errors) {
-					const error =
-						Array.isArray(errors) && errors.length > 0 ? errors[0] : errors;
-					library.logger.debug('Transaction normalization failed', {
-						id: error.id,
-						err: error.toString(),
-						module: 'loader',
-					});
+__private.getTransactionsFromNetwork = async function() {
+	library.logger.info('Loading transactions from the network');
 
-					library.logger.warn(
-						`Transaction ${error.id} is not valid, peer removed`,
-						peer.string
-					);
-					modules.peers.remove(peer);
+	// TODO: Add target module to procedure name. E.g. chain:getTransactions
+	const result = await library.channel.invoke('network:invoke', {
+		procedure: 'getTransactions',
+	});
 
-					return setImmediate(waterCb, error);
-				}
+	const validate = promisify(library.schema.validate.bind(library.schema));
+	await validate(result, definitions.WSTransactionsResponse);
 
-				return setImmediate(waterCb, null, transactions);
-			},
-			function(transactions, waterCb) {
-				async.eachSeries(
-					transactions,
-					(transaction, eachSeriesCb) => {
-						library.balancesSequence.add(
-							addSequenceCb => {
-								transaction.bundled = true;
-								modules.transactions.processUnconfirmedTransaction(
-									transaction,
-									false,
-									addSequenceCb
-								);
-							},
-							err => {
-								if (err) {
-									// TODO: Validate if error propagation required
-									library.logger.debug(convertErrorsToString(err));
-								}
-								return setImmediate(eachSeriesCb);
-							}
-						);
-					},
-					waterCb
+	const transactions = result.transactions;
+	try {
+		const {
+			transactionsResponses,
+		} = modules.processTransactions.validateTransactions(transactions);
+		const invalidTransactionResponse = transactionsResponses.find(
+			transactionResponse => transactionResponse.status !== TransactionStatus.OK
+		);
+		if (invalidTransactionResponse) {
+			throw invalidTransactionResponse.errors;
+		}
+	} catch (errors) {
+		const error =
+			Array.isArray(errors) && errors.length > 0 ? errors[0] : errors;
+		library.logger.debug('Transaction normalization failed', {
+			id: error.id,
+			err: error.toString(),
+			module: 'loader',
+		});
+		throw error;
+	}
+
+	const transactionCount = transactions.length;
+	for (let i = 0; i < transactionCount; i++) {
+		const transaction = transactions[i];
+
+		const balancesSequenceAdd = promisify(
+			library.balancesSequence.add.bind(library.balancesSequence)
+		);
+		try {
+			/* eslint-disable-next-line */
+			await balancesSequenceAdd(addSequenceCb => {
+				transaction.bundled = true;
+				modules.transactions.processUnconfirmedTransaction(
+					transaction,
+					false,
+					addSequenceCb
 				);
-			},
-		],
-		err => setImmediate(cb, err)
-	);
+			});
+		} catch (error) {
+			library.logger.error(error);
+			throw error;
+		}
+	}
 };
 
 /**
@@ -838,9 +794,9 @@ __private.rebuildFinished = err => {
  * @todo Add description for the params
  */
 __private.loadBlocksFromNetwork = function(cb) {
-	// Number of failed attempts to load from peers.
+	// Number of failed attempts to load from the network.
 	let failedAttemptsToLoad = 0;
-	// If True, own node's db contains same number of blocks than the asked peer.
+	// If True, own node's db contains all the blocks from the last block request.
 	let loaded = false;
 
 	async.whilst(
@@ -848,55 +804,33 @@ __private.loadBlocksFromNetwork = function(cb) {
 		whilstCb => {
 			async.waterfall(
 				[
-					function getRandomPeerFromNetwork(waterCb) {
-						self.getRandomPeerFromNetwork(
-							(getRandomPeerFromNetworkErr, peer) => {
-								if (getRandomPeerFromNetworkErr) {
-									return waterCb('Failed to get random peer from network');
-								}
-								__private.blocksToSync = peer.height;
-								const lastBlock = modules.blocks.lastBlock.get();
-								return waterCb(null, peer, lastBlock);
-							}
-						);
-					},
-					function getCommonBlock(peer, lastBlock, waterCb) {
-						// No need to call getCommonBlock if height is Genesis block
-						if (lastBlock.height === 1) {
-							return waterCb(null, peer, lastBlock);
-						}
-
-						library.logger.info(
-							`Looking for common block with: ${peer.string}`
-						);
-						return modules.blocks.process.getCommonBlock(
-							peer,
-							lastBlock.height,
-							(getCommonBlockErr, commonBlock) => {
-								if (getCommonBlockErr) {
-									return waterCb(getCommonBlockErr.toString());
-								}
-								if (!commonBlock) {
+					function loadBlocksFromNetwork(waterCb) {
+						const lastBlock = modules.blocks.lastBlock.get();
+						modules.blocks.process.loadBlocksFromNetwork(
+							(loadBlocksFromNetworkErr, lastValidBlock) => {
+								if (loadBlocksFromNetworkErr) {
+									// If comparison failed and current consensus is low - perform chain recovery
+									if (modules.peers.isPoorConsensus()) {
+										library.logger.debug(
+											'Perform chain recovery due to poor consensus'
+										);
+										return modules.blocks.chain.recoverChain(recoveryError => {
+											waterCb(
+												`Failed chain recovery after failing to load blocks while network consensus was low. ${recoveryError}`
+											);
+										});
+									}
+									library.logger.error(
+										'Failed to process block from network',
+										loadBlocksFromNetworkErr
+									);
 									return waterCb(
-										`Failed to find common block with: ${peer.string}`
+										`Failed to load blocks from the network. ${loadBlocksFromNetworkErr}`
 									);
 								}
-								library.logger.info(
-									`Found common block: ${commonBlock.id} with: ${peer.string}`
-								);
-								return waterCb(null, peer, lastBlock);
-							}
-						);
-					},
-					function loadBlocksFromPeer(peer, lastBlock, waterCb) {
-						modules.blocks.process.loadBlocksFromPeer(
-							peer,
-							(loadBlocksFromPeerErr, lastValidBlock) => {
-								if (loadBlocksFromPeerErr) {
-									return waterCb(`Failed to load blocks from: ${peer.string}`);
-								}
+								__private.blocksToSync = lastValidBlock.height;
 								loaded = lastValidBlock.id === lastBlock.id;
-								// Reset counter after a batch of blocks was successfully loaded from a peer
+								// Reset counter after a batch of blocks was successfully loaded from the network
 								failedAttemptsToLoad = 0;
 								return waterCb();
 							}
@@ -942,11 +876,11 @@ __private.sync = function(cb) {
 
 	async.series(
 		{
-			calculateConsensusBefore(seriesCb) {
-				library.logger.debug(
-					`Establishing broadhash consensus before sync: ${modules.peers.calculateConsensus()} %`
+			async calculateConsensusBefore() {
+				const consensus = await modules.peers.calculateConsensus();
+				return library.logger.debug(
+					`Establishing broadhash consensus before sync: ${consensus} %`
 				);
-				return seriesCb();
 			},
 			loadBlocksFromNetwork(seriesCb) {
 				return __private.loadBlocksFromNetwork(seriesCb);
@@ -968,15 +902,11 @@ __private.sync = function(cb) {
 					})
 					.catch(seriesCb);
 			},
-			broadcastHeaders(seriesCb) {
-				// Notify all remote peers about our new headers
-				modules.transport.broadcastHeaders(seriesCb);
-			},
-			calculateConsensusAfter(seriesCb) {
-				library.logger.debug(
-					`Establishing broadhash consensus after sync: ${modules.peers.calculateConsensus()} %`
+			async calculateConsensusAfter() {
+				const consensus = await modules.peers.calculateConsensus();
+				return library.logger.debug(
+					`Establishing broadhash consensus after sync: ${consensus} %`
 				);
-				return seriesCb();
 			},
 		},
 		err => {
@@ -993,90 +923,7 @@ __private.sync = function(cb) {
 	);
 };
 
-/**
- * Establishes a list of "good" peers.
- *
- * @private
- * @param {array<Peer>} peers
- * @returns {Object} height number, peers array
- * @todo Add description for the params
- */
-Loader.prototype.findGoodPeers = function(peers) {
-	const lastBlockHeight = modules.blocks.lastBlock.get().height;
-	library.logger.trace('Good peers - received', { count: peers.length });
-
-	peers = peers.filter(
-		item =>
-			// Remove unreachable peers or heights below last block height
-			item && item.height >= lastBlockHeight
-	);
-
-	library.logger.trace('Good peers - filtered', { count: peers.length });
-
-	// No peers found
-	if (peers.length === 0) {
-		return { height: 0, peers: [] };
-	}
-	// Order peers by descending height
-	peers = peers.sort((a, b) => b.height - a.height);
-
-	const histogram = {};
-	let max = 0;
-	let height;
-
-	// Aggregate height by 2. TODO: To be changed if node latency increases?
-	const aggregation = 2;
-
-	// Perform histogram calculation, together with histogram maximum
-	Object.keys(peers).forEach(key => {
-		const val = parseInt(peers[key].height / aggregation) * aggregation;
-		histogram[val] = (histogram[val] ? histogram[val] : 0) + 1;
-
-		if (histogram[val] > max) {
-			max = histogram[val];
-			height = val;
-		}
-	});
-
-	// Perform histogram cut of peers too far from histogram maximum
-	peers = peers
-		.filter(item => item && Math.abs(height - item.height) < aggregation + 1)
-		.map(item => library.logic.peers.create(item));
-
-	library.logger.trace('Good peers - accepted', { count: peers.length });
-	library.logger.debug(
-		'Good peers',
-		peers.map(peer => `${peer.ip}.${peer.wsPort}`)
-	);
-
-	return { height, peers };
-};
-
 // Public methods
-/**
- * Gets a "good" randomPeer from network.
- *
- * @param {function} cb
- * @returns {setImmediateCallback} cb, err, good randomPeer
- * @todo Add description for the params
- */
-Loader.prototype.getRandomPeerFromNetwork = function(cb) {
-	const peers = library.logic.peers.listRandomConnected({
-		limit: MAX_PEERS,
-	});
-	__private.network = self.findGoodPeers(peers);
-
-	if (!__private.network.peers.length) {
-		return setImmediate(cb, 'Failed to find enough good peers');
-	}
-
-	const randomPeer =
-		__private.network.peers[
-			Math.floor(Math.random() * __private.network.peers.length)
-		];
-
-	return setImmediate(cb, null, randomPeer);
-};
 
 /**
  * Checks if private constant syncIntervalId has value.
@@ -1111,7 +958,7 @@ Loader.prototype.loaded = function() {
  *
  * @returns {function} Calling __private.syncTimer()
  */
-Loader.prototype.onPeersReady = function() {
+Loader.prototype.onAppReady = function() {
 	library.logger.trace('Peers ready', { module: 'loader' });
 	// Enforce sync early
 	if (library.config.syncing.active) {
@@ -1125,7 +972,7 @@ Loader.prototype.onPeersReady = function() {
 					if (__private.loaded) {
 						return async.retry(
 							__private.retries,
-							__private.loadTransactions,
+							__private.getTransactionsFromNetwork,
 							err => {
 								if (err) {
 									library.logger.error('Unconfirmed transactions loader', err);
@@ -1141,7 +988,7 @@ Loader.prototype.onPeersReady = function() {
 					if (__private.loaded) {
 						return async.retry(
 							__private.retries,
-							__private.loadSignatures,
+							__private.getSignaturesFromNetwork,
 							err => {
 								if (err) {
 									library.logger.error('Signatures loader', err);
@@ -1178,7 +1025,6 @@ Loader.prototype.onBind = function(scope) {
 		blocks: scope.modules.blocks,
 		peers: scope.modules.peers,
 		rounds: scope.modules.rounds,
-		transport: scope.modules.transport,
 		multisignatures: scope.modules.multisignatures,
 	};
 
