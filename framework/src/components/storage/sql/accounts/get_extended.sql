@@ -20,6 +20,7 @@ SELECT
 	"isDelegate"::int::boolean,
 	"secondSignature"::int::boolean,
 	"balance",
+	"asset",
 	"multimin" as "multiMin",
 	"multilifetime" as "multiLifetime",
 	"nameexist"::int::boolean as "nameExist",

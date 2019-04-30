@@ -24,7 +24,7 @@ const localCommon = require('./common');
 const { registeredTransactions } = require('../common/registered_transactions');
 const InitTransaction = require('../../../src/modules/chain/logic/init_transaction.js');
 
-const initTransaction = new InitTransaction(registeredTransactions);
+const initTransaction = new InitTransaction({ registeredTransactions });
 const genesisBlock = __testContext.config.genesisBlock;
 const { NORMALIZER } = global.constants;
 const transactionStatus = liskTransactions.Status;
@@ -33,6 +33,9 @@ describe('processTransactions', () => {
 	let library;
 	let account;
 	let verifiableTransactions;
+	let allowAbleTransactions;
+	let nonAllowableTransactions;
+	let transactionsWithNoMatcherImpl;
 	let appliableTransactions;
 	let pendingTransactions;
 	let keysgroup;
@@ -67,6 +70,32 @@ describe('processTransactions', () => {
 
 		describe('process transactions', () => {
 			beforeEach(async () => {
+				const allowedTransactionTransfer = liskTransactions.transfer({
+					amount: (NORMALIZER * 1000).toString(),
+					recipientId: account.address,
+					passphrase: account.passphrase,
+				});
+				allowedTransactionTransfer.matcher = () => true;
+
+				const nonAllowedTransactionTransfer = liskTransactions.transfer({
+					amount: (NORMALIZER * 1000).toString(),
+					recipientId: account.address,
+					passphrase: account.passphrase,
+				});
+				nonAllowedTransactionTransfer.matcher = () => false;
+
+				allowAbleTransactions = [allowedTransactionTransfer];
+
+				nonAllowableTransactions = [nonAllowedTransactionTransfer];
+
+				transactionsWithNoMatcherImpl = [
+					liskTransactions.transfer({
+						amount: (NORMALIZER * 1000).toString(),
+						recipientId: account.address,
+						passphrase: account.passphrase,
+					}),
+				];
+
 				verifiableTransactions = [
 					liskTransactions.transfer({
 						amount: (NORMALIZER * 1000).toString(),
@@ -89,7 +118,7 @@ describe('processTransactions', () => {
 						passphrase: account.passphrase,
 						options: random.application(),
 					}),
-				].map(transaction => initTransaction.jsonRead(transaction));
+				].map(transaction => initTransaction.fromJson(transaction));
 
 				// If we include second signature transaction, then the rest of the transactions in the set will be required to have second signature.
 				// Therefore removing it from the appliable transactions
@@ -103,7 +132,7 @@ describe('processTransactions', () => {
 						recipientId: accountFixtures.genesis.address,
 						passphrase: random.account().passphrase,
 					}),
-				].map(transaction => initTransaction.jsonRead(transaction));
+				].map(transaction => initTransaction.fromJson(transaction));
 
 				keysgroup = new Array(4).fill(0).map(() => random.account().publicKey);
 
@@ -114,7 +143,48 @@ describe('processTransactions', () => {
 						lifetime: 10,
 						minimum: 2,
 					}),
-				].map(transaction => initTransaction.jsonRead(transaction));
+				].map(transaction => initTransaction.fromJson(transaction));
+			});
+
+			describe('checkAllowedTransactions', () => {
+				let checkAllowedTransactions;
+
+				beforeEach(async () => {
+					checkAllowedTransactions =
+						library.modules.processTransactions.checkAllowedTransactions;
+				});
+
+				it('should return transactionsResponses with status OK for allowed transactions', async () => {
+					const { transactionsResponses } = await checkAllowedTransactions(
+						allowAbleTransactions
+					);
+
+					transactionsResponses.forEach(transactionsResponse => {
+						expect(transactionsResponse.status).to.equal(transactionStatus.OK);
+					});
+				});
+
+				it("should return transactionsResponses with status OK for transactions that don't implement matcher", async () => {
+					const { transactionsResponses } = await checkAllowedTransactions(
+						transactionsWithNoMatcherImpl
+					);
+
+					transactionsResponses.forEach(transactionsResponse => {
+						expect(transactionsResponse.status).to.equal(transactionStatus.OK);
+					});
+				});
+
+				it('should return transactionsResponses with status FAIL for not allowed transactions', async () => {
+					const { transactionsResponses } = await checkAllowedTransactions(
+						nonAllowableTransactions
+					);
+
+					transactionsResponses.forEach(transactionsResponse => {
+						expect(transactionsResponse.status).to.equal(
+							transactionStatus.FAIL
+						);
+					});
+				});
 			});
 
 			describe('verifyTransactions', () => {
@@ -193,7 +263,7 @@ describe('processTransactions', () => {
 					const recipient = random.account();
 
 					const { transactionsResponses } = await undoTransactions([
-						initTransaction.jsonRead(
+						initTransaction.fromJson(
 							liskTransactions.transfer({
 								amount: (NORMALIZER * 1000).toString(),
 								recipientId: recipient.address,

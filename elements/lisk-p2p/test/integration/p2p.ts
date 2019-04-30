@@ -144,8 +144,9 @@ describe('Integration tests for P2P library', () => {
 					const peerPorts = connectedPeers
 						.map(peerInfo => peerInfo.wsPort)
 						.sort();
-					const expectedPeerPorts = ALL_NODE_PORTS
-						.filter(peerPort => peerPort !== p2p.nodeInfo.wsPort);
+					const expectedPeerPorts = ALL_NODE_PORTS.filter(
+						peerPort => peerPort !== p2p.nodeInfo.wsPort,
+					);
 
 					expect(peerPorts).to.be.eql(expectedPeerPorts);
 				});
@@ -759,7 +760,7 @@ describe('Integration tests for P2P library', () => {
 						broadhash:
 							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
 						nonce: `O2wTkjqplHII${nodePort}`,
-						
+
 						modules: index % 2 === 0 ? ['fileTransfer'] : ['socialSite'],
 					},
 				});

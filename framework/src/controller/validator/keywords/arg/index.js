@@ -40,13 +40,13 @@ const compile = (schema, parentSchema) => {
 		const commandLineArguments = yargs.argv;
 
 		argVariable.names.forEach(argName => {
-			if (!argValue) {
+			if (argValue === undefined) {
 				// Remove "-" or "--" from command line argument names
-				argValue = commandLineArguments[_.camelCase(argName)] || undefined;
+				argValue = commandLineArguments[_.camelCase(argName)];
 			}
 		});
 
-		if (argValue) {
+		if (argValue !== undefined) {
 			object[key] = argVariable.formatter
 				? argVariable.formatter(argValue)
 				: argValue;

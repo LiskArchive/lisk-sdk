@@ -58,9 +58,7 @@
 	},
 	"dependencies": {
 		"@types/node": "10.12.21",
-		"@types/verror": "1.10.3",
-		"axios": "0.18.0",
-		"verror": "1.10.0"
+		"axios": "0.18.0"
 	},
 	"devDependencies": {
 		"@types/chai": "4.1.7",
