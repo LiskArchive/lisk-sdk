@@ -13,9 +13,8 @@
  *
  */
 /* tslint:disable: max-classes-per-file */
-import * as VError from 'verror';
 
-export class PeerInboundHandshakeError extends VError {
+export class PeerInboundHandshakeError extends Error {
 	public statusCode: number;
 	public remoteAddress: string;
 	public handshakeURL?: string;
@@ -34,7 +33,7 @@ export class PeerInboundHandshakeError extends VError {
 	}
 }
 
-export class PeerOutboundConnectionError extends VError {
+export class PeerOutboundConnectionError extends Error {
 	public statusCode?: number;
 
 	public constructor(message: string, statusCode?: number) {
@@ -44,73 +43,68 @@ export class PeerOutboundConnectionError extends VError {
 	}
 }
 
-export class NotEnoughPeersError extends VError {
+export class NotEnoughPeersError extends Error {
 	public constructor(message: string) {
 		super(message);
 		this.name = 'NotEnoughPeersError';
 	}
 }
 
-export class RPCResponseError extends VError {
+export class RPCResponseError extends Error {
 	public peerIp: string;
 	public peerPort: number;
 
-	public constructor(
-		message: string,
-		cause: Error,
-		peerIp: string,
-		peerPort: number,
-	) {
-		super(cause, message);
+	public constructor(message: string, peerIp: string, peerPort: number) {
+		super(message);
 		this.name = 'RPCResponseError';
 		this.peerIp = peerIp;
 		this.peerPort = peerPort;
 	}
 }
 
-export class FetchPeerStatusError extends VError {
-	public constructor(message: string, cause: Error) {
-		super(cause, message);
+export class FetchPeerStatusError extends Error {
+	public constructor(message: string) {
+		super(message);
 		this.name = 'FetchPeerStatusError';
 	}
 }
 
-export class InvalidRPCResponseError extends VError {
+export class InvalidRPCResponseError extends Error {
 	public constructor(message: string) {
 		super(message);
 		this.name = 'InvalidRPCResponseError';
 	}
 }
 
-export class RPCResponseAlreadySentError extends VError {
+export class RPCResponseAlreadySentError extends Error {
 	public constructor(message: string) {
 		super(message);
 		this.name = 'ResponseAlreadySentError';
 	}
 }
 
-export class InvalidPeerError extends VError {
+export class InvalidPeerError extends Error {
 	public constructor(message: string) {
 		super(message);
 		this.name = 'InvalidPeerError';
 	}
 }
 
-export class RequestFailError extends VError {
+export class RequestFailError extends Error {
 	public constructor(message: string) {
 		super(message);
 		this.name = 'RequestFailError';
 	}
 }
 
-export class InvalidRPCRequestError extends VError {
+export class InvalidRPCRequestError extends Error {
 	public constructor(message: string) {
 		super(message);
 		this.name = 'InvalidRPCRequestError';
 	}
 }
 
-export class InvalidProtocolMessageError extends VError {
+export class InvalidProtocolMessageError extends Error {
 	public constructor(message: string) {
 		super(message);
 		this.name = 'InvalidProtocolMessageError';

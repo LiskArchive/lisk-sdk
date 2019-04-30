@@ -2465,12 +2465,6 @@ definitions:
         type: 
             - string
             - number
-      jse_shortmsg:
-        description: Short message
-        type: string
-      jse_info: 
-        description: Info field
-        type: object
 
   ProcessingError:
     type: object
