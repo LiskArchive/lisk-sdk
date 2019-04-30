@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 module.exports = {
 	id: '#/app/config',
 	type: 'object',
@@ -40,24 +56,50 @@ module.exports = {
 					properties: {
 						nethash: {
 							type: 'string',
+							format: 'hex',
+							minLength: 64,
+							maxLength: 64,
 						},
 						version: {
 							type: 'string',
+							example: '1.6.0-rc.3',
+							format: 'version',
+							description:
+								'The version of Lisk Core that the peer node runs on.',
 						},
 						wsPort: {
 							type: 'integer',
+							example: 8001,
+							minimum: 1,
+							maximum: 65535,
+							description:
+								'The port the peer node uses for Websocket Connections, e.g. P2P broadcasts.',
 						},
 						httpPort: {
 							type: 'integer',
+							example: 8000,
+							minimum: 1,
+							maximum: 65535,
+							description:
+								'The port the peer node uses for HTTP requests, e.g. API calls.',
 						},
 						minVersion: {
 							type: 'string',
+							format: 'version',
 						},
 						protocolVersion: {
 							type: 'string',
+							example: 1,
+							format: 'protocolVersion',
+							description:
+								'The protocol version of Lisk Core that the peer node runs on.',
 						},
 						nonce: {
 							type: 'string',
+							example: 'sYHEDBKcScaAAAYg',
+							minLength: 16,
+							maxLength: 16,
+							description: 'Unique Identifier for the peer.\nRandom string.',
 						},
 					},
 				},
