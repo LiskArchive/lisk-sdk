@@ -31,8 +31,9 @@ const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 // FIXME: this function was used from transactions library, but it doesn't exist
 const createInTransfer = () => {};
 
-// eslint-disable-next-line
-describe('POST /api/transactions (type 6) inTransfer dapp', () => {
+// Dapp InTransfer Transaction is not part of framework and can't be tested using test_app
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('POST /api/transactions (type 6) inTransfer dapp', () => {
 	let transaction;
 	const transactionsToWaitFor = [];
 	const badTransactions = [];
