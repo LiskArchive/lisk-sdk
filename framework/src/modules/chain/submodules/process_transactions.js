@@ -163,6 +163,34 @@ class ProcessTransactions {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
+	checkAllowedTransactions(transactions, context) {
+		return {
+			transactionsResponses: transactions.map(transaction => {
+				const allowed =
+					!transaction.matcher ||
+					transaction.matcher(
+						context || ProcessTransactions._getCurrentContext()
+					);
+
+				return {
+					id: transaction.id,
+					status: allowed ? TransactionStatus.OK : TransactionStatus.FAIL,
+					errors: allowed
+						? []
+						: [
+								new TransactionError(
+									`Transaction type ${
+										transaction.type
+									} is currently not allowed.`,
+									transaction.id
+								),
+						  ],
+				};
+			}),
+		};
+	}
+
+	// eslint-disable-next-line class-methods-use-this
 	async undoTransactions(transactions, tx = undefined) {
 		// Get data required for verifying transactions
 		const stateStore = new StateStore(library.storage, {
@@ -254,6 +282,29 @@ class ProcessTransactions {
 		await transaction.prepare(stateStore);
 		// Add multisignature to transaction and process
 		return transaction.addMultisignature(stateStore, signature);
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	onBind(scope) {
+		library.modules = {
+			blocks: scope.modules.blocks,
+		};
+	}
+
+	/**
+	 * Get current state from modules.blocks.lastBlock
+	 */
+	static _getCurrentContext() {
+		const {
+			version,
+			height,
+			timestamp,
+		} = library.modules.blocks.lastBlock.get();
+		return {
+			blockVersion: version,
+			blockHeight: height,
+			blockTimestamp: timestamp,
+		};
 	}
 }
 

@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const _ = require('lodash');
 
 const transferAsset = raw => {
@@ -101,28 +117,48 @@ const outTransferAsset = raw => {
 	return { outTransfer };
 };
 
+// TODO: remove after https://github.com/LiskHQ/lisk/issues/2424
+const assetDbReadMap = new Map([
+	[0, transferAsset],
+	[1, signatureAsset],
+	[2, delegateAsset],
+	[3, voteAsset],
+	[4, multiAsset],
+	[5, dappAsset],
+	[6, inTransferAsset],
+	[7, outTransferAsset],
+]);
+
 class Transaction {
-	constructor(transactions = {}) {
+	constructor({ registeredTransactions = {} }) {
 		this.transactionClassMap = new Map();
 
-		// TODO: remove after https://github.com/LiskHQ/lisk/issues/2424
-		this.assetDbReadMap = new Map([
-			[0, transferAsset],
-			[1, signatureAsset],
-			[2, delegateAsset],
-			[3, voteAsset],
-			[4, multiAsset],
-			[5, dappAsset],
-			[6, inTransferAsset],
-			[7, outTransferAsset],
-		]);
-
-		Object.keys(transactions).forEach(transactionType => {
+		Object.keys(registeredTransactions).forEach(transactionType => {
 			this.transactionClassMap.set(
 				Number(transactionType),
-				transactions[transactionType]
+				registeredTransactions[transactionType]
 			);
 		});
+	}
+
+	fromBlock(block) {
+		const transactions = block.transactions || [];
+
+		const response = transactions.map(transaction =>
+			this.fromJson(transaction)
+		);
+
+		return response;
+	}
+
+	fromJson(rawTx) {
+		const TransactionClass = this.transactionClassMap.get(rawTx.type);
+
+		if (!TransactionClass) {
+			throw new Error('Transaction type not found.');
+		}
+
+		return new TransactionClass(rawTx);
 	}
 
 	// TODO: remove after https://github.com/LiskHQ/lisk/issues/2424
@@ -151,7 +187,7 @@ class Transaction {
 			asset: {},
 		};
 
-		const assetDbRead = this.assetDbReadMap.get(transactionJSON.type);
+		const assetDbRead = assetDbReadMap.get(transactionJSON.type);
 
 		if (!assetDbRead) {
 			throw new Error(`Unknown transaction type ${transactionJSON.type}`);
@@ -163,25 +199,7 @@ class Transaction {
 			transactionJSON.asset = Object.assign(transactionJSON.asset, asset);
 		}
 
-		return this.jsonRead(_.omitBy(transactionJSON, _.isNull));
-	}
-
-	storageRead(raw) {
-		if (!raw.id) {
-			return null;
-		}
-
-		const rawData = _.omitBy(raw, _.isNull);
-
-		return this.jsonRead(rawData);
-	}
-
-	jsonRead(rawTx) {
-		const TransactionClass = this.transactionClassMap.get(rawTx.type);
-		if (!TransactionClass) {
-			throw new Error('Transaction type not found.');
-		}
-		return new TransactionClass(rawTx);
+		return this.fromJson(_.omitBy(transactionJSON, _.isNull));
 	}
 }
 

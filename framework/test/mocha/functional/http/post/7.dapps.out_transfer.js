@@ -32,8 +32,9 @@ const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 // FIXME: this function was used from transactions library, but it doesn't exist
 const createOutTransfer = () => {};
 
-// eslint-disable-next-line
-describe.skip('[feature/improve_transactions_processing_efficiency] [dapps_in transactions are disabled] POST /api/transactions (type 7) outTransfer dapp', () => {
+// Dapp OutTransfer Transaction is not part of framework and can't be tested using test_app
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('POST /api/transactions (type 7) outTransfer dapp', () => {
 	let transaction;
 	const transactionsToWaitFor = [];
 	const badTransactions = [];
@@ -706,8 +707,10 @@ describe.skip('[feature/improve_transactions_processing_efficiency] [dapps_in tr
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal(
-					`Transaction type ${transaction.type} is frozen`
+				expect(res.body.message).to.eql('Invalid transaction body');
+				expect(res.body.code).to.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
+					'Transaction type 7 is currently not allowed.'
 				);
 			});
 		});

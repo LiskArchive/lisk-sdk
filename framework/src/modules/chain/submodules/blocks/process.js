@@ -20,6 +20,7 @@ const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const { convertErrorsToString } = require('../../helpers/error_handlers');
 const slots = require('../../helpers/slots');
 const definitions = require('../../schema/definitions');
+const blockVersion = require('../../logic/block_version');
 
 const { MAX_TRANSACTIONS_PER_BLOCK, ACTIVE_DELEGATES } = global.constants;
 
@@ -96,9 +97,7 @@ __private.receiveBlock = function(block, cb) {
 		)} reward: ${block.reward}`
 	);
 
-	block.transactions = block.transactions.map(aTransaction =>
-		library.logic.initTransaction.jsonRead(aTransaction)
-	);
+	block.transactions = library.logic.initTransaction.fromBlock(block);
 
 	// Update last receipt
 	modules.blocks.lastReceipt.update();
@@ -115,10 +114,8 @@ __private.receiveBlock = function(block, cb) {
  * @param {function} cb - Callback function
  */
 __private.receiveForkOne = function(block, lastBlock, cb) {
-	let tmp_block = _.clone(block);
-	tmp_block.transactions = tmp_block.transactions.map(aTransaction =>
-		library.logic.initTransaction.jsonRead(aTransaction)
-	);
+	let tmpBlock = _.clone(block);
+	tmpBlock.transactions = library.logic.initTransaction.fromBlock(tmpBlock);
 
 	// Fork: Consecutive height but different previous block id
 	modules.delegates.fork(block, 1);
@@ -135,7 +132,7 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 		[
 			function(seriesCb) {
 				try {
-					tmp_block = library.logic.block.objectNormalize(tmp_block);
+					tmpBlock = library.logic.block.objectNormalize(tmpBlock);
 				} catch (err) {
 					return setImmediate(seriesCb, err);
 				}
@@ -143,15 +140,15 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 			},
 			// Check valid slot
 			function(seriesCb) {
-				__private.validateBlockSlot(tmp_block, lastBlock, seriesCb);
+				__private.validateBlockSlot(tmpBlock, lastBlock, seriesCb);
 			},
 			// Check received block before any deletion
 			function(seriesCb) {
-				const check = modules.blocks.verify.verifyReceipt(tmp_block);
+				const check = modules.blocks.verify.verifyReceipt(tmpBlock);
 
 				if (!check.verified) {
 					library.logger.error(
-						`Block ${tmp_block.id} verification failed`,
+						`Block ${tmpBlock.id} verification failed`,
 						check.errors.join(', ')
 					);
 					// Return first error from checks
@@ -186,9 +183,7 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
  */
 __private.receiveForkFive = function(block, lastBlock, cb) {
 	let tmpBlock = _.clone(block);
-	tmpBlock.transactions = tmpBlock.transactions.map(aTransaction =>
-		library.logic.initTransaction.jsonRead(aTransaction)
-	);
+	tmpBlock.transactions = library.logic.initTransaction.fromBlock(tmpBlock);
 
 	// Fork: Same height and previous block id, but different block id
 	modules.delegates.fork(block, 5);
@@ -476,8 +471,25 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 			MAX_TRANSACTIONS_PER_BLOCK
 		) || [];
 
+	const context = {
+		blockTimestamp: timestamp,
+		blockHeight: modules.blocks.lastBlock.get().height + 1,
+		blockVersion: blockVersion.currentBlockVersion,
+	};
+
+	const allowedTransactionsIds = modules.processTransactions
+		.checkAllowedTransactions(transactions, context)
+		.transactionsResponses.filter(
+			transactionResponse => transactionResponse.status === TransactionStatus.OK
+		)
+		.map(transactionReponse => transactionReponse.id);
+
+	const allowedTransactions = transactions.filter(transaction =>
+		allowedTransactionsIds.includes(transaction.id)
+	);
+
 	modules.processTransactions
-		.verifyTransactions(transactions)
+		.verifyTransactions(allowedTransactions)
 		.then(({ transactionsResponses: responses }) => {
 			const readyTransactions = transactions.filter(transaction =>
 				responses

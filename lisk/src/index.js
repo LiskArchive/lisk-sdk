@@ -5,8 +5,6 @@ const {
 	OutTransferTransaction,
 } = require('./transactions');
 
-const constantsSchema = require('../../framework/src/controller/schema/constants_schema');
-
 try {
 	// We have to keep it in try/catch block as it can throw
 	// exception while validating the configuration
@@ -16,19 +14,30 @@ try {
 	/* eslint-disable import/no-dynamic-require */
 	const genesisBlock = require(`../config/${NETWORK}/genesis_block`);
 
-	const constants = {
-		TRANSACTION_TYPES: constantsSchema.default.TRANSACTION_TYPES,
-	};
-
 	const app = new Application(genesisBlock, config);
 
-	const { TRANSACTION_TYPES } = constants;
+	const {
+		constants: { TRANSACTION_TYPES },
+	} = app;
 
 	app.registerTransaction(TRANSACTION_TYPES.DAPP, DappTransaction);
-	app.registerTransaction(TRANSACTION_TYPES.IN_TRANSFER, InTransferTransaction);
+	app.registerTransaction(
+		TRANSACTION_TYPES.IN_TRANSFER,
+		InTransferTransaction,
+		{
+			matcher: context =>
+				context.blockHeight <
+				app.config.modules.chain.exceptions.precedent.disableDappTransfer,
+		}
+	);
 	app.registerTransaction(
 		TRANSACTION_TYPES.OUT_TRANSFER,
-		OutTransferTransaction
+		OutTransferTransaction,
+		{
+			matcher: context =>
+				context.blockHeight <
+				app.config.modules.chain.exceptions.precedent.disableDappTransfer,
+		}
 	);
 
 	app
