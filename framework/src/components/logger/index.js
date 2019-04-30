@@ -16,7 +16,7 @@
 
 const { createLogger } = require('./logger');
 const { config: defaultConfig } = require('./defaults');
-const validator = require('../../controller/helpers/validator');
+const validator = require('../../controller/validator');
 
 function createLoggerComponent(options = {}) {
 	const optionsWithDefaults = validator.parseEnvArgAndValidate(

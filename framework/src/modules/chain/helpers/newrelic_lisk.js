@@ -71,17 +71,12 @@ const modulesToInstrument = {
 	'../submodules/transport': {
 		identifier: 'modules.chain.submodules.transport',
 		callbackMethods: [
-			'broadcastHeaders',
 			'shared.blocksCommon',
 			'shared.blocks',
-			'shared.list',
-			'shared.height',
-			'shared.status',
 			'shared.postSignature',
 			'shared.getSignatures',
 			'shared.getTransactions',
 			'shared.postTransaction',
-			'internal.updatePeer',
 		],
 	},
 };
