@@ -24,7 +24,7 @@ const { Transaction } = require('../../../../../fixtures/transactions');
 const BlocksChain = rewire(
 	'../../../../../../../src/modules/chain/submodules/blocks/chain'
 );
-const initTransaction = new InitTransaction(registeredTransactions);
+const initTransaction = new InitTransaction({ registeredTransactions });
 
 describe('blocks/chain', () => {
 	let __private;
@@ -56,7 +56,7 @@ describe('blocks/chain', () => {
 		id: 3,
 		height: 3,
 		transactions: transactionsForBlock.map(transaction =>
-			initTransaction.jsonRead(transaction)
+			initTransaction.fromJson(transaction)
 		),
 	};
 
@@ -70,7 +70,7 @@ describe('blocks/chain', () => {
 		id: 1,
 		height: 1,
 		transactions: transactionsForGenesisBlock.map(transaction =>
-			initTransaction.jsonRead(transaction)
+			initTransaction.fromJson(transaction)
 		),
 	};
 	const blockReduced = { id: 3, height: 3 };
@@ -110,7 +110,7 @@ describe('blocks/chain', () => {
 		};
 
 		initTransactionStub = {
-			jsonRead: sinonSandbox.stub(),
+			fromJson: sinonSandbox.stub(),
 		};
 
 		balancesSequenceStub = {

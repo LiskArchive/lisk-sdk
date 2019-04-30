@@ -17,6 +17,7 @@
 const pool = require('@liskhq/lisk-transaction-pool');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const expect = require('chai').expect;
+const processTransactionLogic = require('../../../../../../src/modules/chain/logic/process_transaction');
 const TransactionPool = require('../../../../../../src/modules/chain/logic/transaction_pool');
 
 const config = __testContext.config;
@@ -43,6 +44,7 @@ describe('transactionPool', () => {
 		validateTransactions: sinonSandbox.stub().resolves(),
 		verifyTransactions: sinonSandbox.stub().resolves(),
 		applyTransactions: sinonSandbox.stub().resolves(),
+		checkAllowedTransactions: sinonSandbox.stub().resolves(),
 	};
 
 	beforeEach(async () => {
@@ -59,6 +61,10 @@ describe('transactionPool', () => {
 
 		// Bind stub modules
 		transactionPool.bind(processTransactionsStub);
+	});
+
+	afterEach(async () => {
+		sinonSandbox.restore();
 	});
 
 	describe('constructor', () => {
@@ -84,15 +90,39 @@ describe('transactionPool', () => {
 	});
 
 	describe('bind', () => {
-		it('should create pool instance', async () => {
-			const tp = new TransactionPool(
+		let txPool;
+		beforeEach(async () => {
+			sinonSandbox.spy(processTransactionLogic, 'composeTransactionSteps');
+			txPool = new TransactionPool(
 				config.modules.chain.broadcasts.broadcastInterval,
 				config.modules.chain.broadcasts.releaseLimit,
 				logger, // logger
 				config
 			);
-			tp.bind(processTransactionsStub);
-			expect(tp.pool).to.be.an.instanceOf(pool.TransactionPool);
+			txPool.bind(processTransactionsStub);
+		});
+
+		it('should create pool instance', async () => {
+			expect(txPool.pool).to.be.an.instanceOf(pool.TransactionPool);
+		});
+
+		it('should call composeTransactionSteps to compose verifyTransactions', async () => {
+			expect(
+				processTransactionLogic.composeTransactionSteps
+			).to.have.been.calledWith(
+				processTransactionsStub.checkAllowedTransactions,
+				processTransactionsStub.checkPersistedTransactions,
+				processTransactionsStub.verifyTransactions
+			);
+		});
+
+		it('should call composeTransactionSteps to compose processTransactions', async () => {
+			expect(
+				processTransactionLogic.composeTransactionSteps.getCall(1)
+			).to.have.been.calledWith(
+				processTransactionsStub.checkPersistedTransactions,
+				processTransactionsStub.applyTransactions
+			);
 		});
 	});
 
@@ -386,6 +416,9 @@ describe('transactionPool', () => {
 			processTransactionsStub.verifyTransactions.resolves({
 				transactionsResponses,
 			});
+			processTransactionsStub.checkAllowedTransactions.resolves({
+				transactionsResponses,
+			});
 			transactionPool.processUnconfirmedTransaction(transaction, false, () => {
 				expect(addVerifiedTransactionStub).to.be.calledWith(transaction);
 				done();
@@ -414,6 +447,9 @@ describe('transactionPool', () => {
 			processTransactionsStub.verifyTransactions.resolves({
 				transactionsResponses: transactionsResponses2,
 			});
+			processTransactionsStub.checkAllowedTransactions.resolves({
+				transactionsResponses: transactionsResponses2,
+			});
 			transactionPool.processUnconfirmedTransaction(transaction, false, () => {
 				expect(addMultisignatureTransactionStub).to.be.calledWith(transaction);
 				done();
@@ -437,6 +473,9 @@ describe('transactionPool', () => {
 				transactionsResponses: transactionsResponses1,
 			});
 			processTransactionsStub.verifyTransactions.resolves({
+				transactionsResponses: transactionsResponses2,
+			});
+			processTransactionsStub.checkAllowedTransactions.resolves({
 				transactionsResponses: transactionsResponses2,
 			});
 			transactionPool.processUnconfirmedTransaction(transaction, false, err => {
