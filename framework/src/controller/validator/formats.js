@@ -6,6 +6,11 @@ const HOSTNAME = /^[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?(\.[a-zA-Z](([-0-9a-zA-
 
 const UINT64_MAX = new Bignum('18446744073709551615');
 
+const ADDITIONAL_DATA = {
+	MIN_LENGTH: 1,
+	MAX_LENGTH: 64,
+};
+
 /**
  *
  * Uses JSON Schema validator z_schema to register custom formats.
@@ -53,7 +58,6 @@ const validationFormats = {
 		 * This deconstruction has to take place here because
 		 * global.constants will be defined in test/setup.js.
 		 */
-		const { ADDITIONAL_DATA } = global.constants;
 		if (typeof str !== 'string') {
 			return false;
 		}

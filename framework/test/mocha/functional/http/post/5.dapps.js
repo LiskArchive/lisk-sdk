@@ -26,7 +26,8 @@ const apiHelpers = require('../../../common/helpers/api');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const common = require('./common');
 
-const { FEES, NORMALIZER } = global.constants;
+const { FEES } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 // eslint-disable-next-line

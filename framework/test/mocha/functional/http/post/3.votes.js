@@ -30,12 +30,8 @@ const apiHelpers = require('../../../common/helpers/api');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const common = require('./common');
 
-const {
-	FEES,
-	NORMALIZER,
-	ACTIVE_DELEGATES,
-	MAX_VOTES_PER_TRANSACTION,
-} = global.constants;
+const { FEES, ACTIVE_DELEGATES, MAX_VOTES_PER_TRANSACTION } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('POST /api/transactions (type 3) votes', () => {

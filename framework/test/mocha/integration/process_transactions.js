@@ -26,7 +26,7 @@ const InitTransaction = require('../../../src/modules/chain/logic/init_transacti
 
 const initTransaction = new InitTransaction(registeredTransactions);
 const genesisBlock = __testContext.config.genesisBlock;
-const { NORMALIZER } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 const transactionStatus = liskTransactions.Status;
 
 describe('processTransactions', () => {

@@ -4,7 +4,6 @@ module.exports = {
 	required: [
 		'ACTIVE_DELEGATES',
 		'BLOCK_SLOT_WINDOW',
-		'ADDITIONAL_DATA',
 		'BLOCK_RECEIPT_TIMEOUT',
 		'FEES',
 		'MAX_PAYLOAD_LENGTH',
@@ -32,24 +31,6 @@ module.exports = {
 			min: 1,
 			const: 5,
 			description: 'The default number of previous blocks to keep in memory',
-		},
-		ADDITIONAL_DATA: {
-			type: 'object',
-			required: ['MIN_LENGTH', 'MAX_LENGTH'],
-			properties: {
-				MIN_LENGTH: {
-					type: 'integer',
-					min: 1,
-					const: 1,
-					description: 'Additional data (Min length)',
-				},
-				MAX_LENGTH: {
-					type: 'integer',
-					min: 1,
-					const: 64,
-					description: 'Additional data (Max length)',
-				},
-			},
 		},
 		BLOCK_RECEIPT_TIMEOUT: {
 			type: 'integer',
@@ -310,10 +291,6 @@ module.exports = {
 	default: {
 		ACTIVE_DELEGATES: 101,
 		BLOCK_SLOT_WINDOW: 5,
-		ADDITIONAL_DATA: {
-			MIN_LENGTH: 1,
-			MAX_LENGTH: 64,
-		},
 		BLOCK_RECEIPT_TIMEOUT: 20, // 2 blocks
 		FEES: {
 			SEND: '10000000',

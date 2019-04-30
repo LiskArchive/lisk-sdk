@@ -35,7 +35,8 @@ const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
 const blockVersion = require('../../../../../src/modules/chain/logic/block_version');
 
-const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW, NORMALIZER } = global.constants;
+const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 const genesisBlock = __testContext.config.genesisBlock;
 const initTransaction = new InitTransaction(registeredTransactions);
 
