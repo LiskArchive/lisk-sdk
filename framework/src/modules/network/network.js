@@ -79,7 +79,7 @@ module.exports = class Network {
 
 		const seedPeers = await lookupPeersIPs(this.options.seedPeers, true);
 		const blacklistedPeers = this.options.blacklistedPeers
-			? this.options.access.blackList.map(peer => ({
+			? this.options.blacklistedPeers.map(peer => ({
 					ipAddress: peer.ip,
 					wsPort: peer.wsPort,
 			  }))
