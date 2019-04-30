@@ -18,6 +18,7 @@ const { createLoggerComponent } = require('../components/logger');
 
 const ChainModule = require('../modules/chain');
 const HttpAPIModule = require('../modules/http_api');
+const NetworkModule = require('../modules/network');
 
 // Private __private used because private keyword is restricted
 const __private = {
@@ -152,6 +153,7 @@ class Application {
 			registeredTransactions: this.getTransactions(),
 		});
 		this.registerModule(HttpAPIModule);
+		this.registerModule(NetworkModule);
 		this.overrideModuleOptions(HttpAPIModule.alias, {
 			loadAsChildProcess: true,
 		});
@@ -348,7 +350,7 @@ class Application {
 			protocolVersion: this.config.app.protocolVersion,
 			nonce: this.config.app.nonce,
 			nethash: this.config.app.nethash,
-			wsPort: this.config.modules.chain.network.wsPort,
+			wsPort: this.config.modules.network.wsPort,
 			httpPort: this.config.modules.http_api.httpPort,
 		};
 

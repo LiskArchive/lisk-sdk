@@ -155,7 +155,6 @@ export const isNumberString = (str: string) => {
 
 export const validateNonTransferAmount = (data: string) =>
 	isNumberString(data) && data === '0';
-
 export const validateTransferAmount = (data: string) =>
 	isNumberString(data) &&
 	isGreaterThanZero(new BigNum(data)) &&

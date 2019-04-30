@@ -182,7 +182,6 @@ class Bus extends EventEmitter2 {
 		if (!this.getEvents().includes(eventName)) {
 			throw new Error(`Event ${eventName} is not registered to bus.`);
 		}
-
 		// Communicate through event emitter
 		this.emit(eventName, eventValue);
 

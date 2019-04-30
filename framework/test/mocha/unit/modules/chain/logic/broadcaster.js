@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const rewire = require('rewire');
 
 const Broadcaster = rewire(
@@ -5,6 +21,7 @@ const Broadcaster = rewire(
 );
 
 describe('Broadcaster', () => {
+	const nonce = 'sYHEDBKcScaAAAYg';
 	const force = true;
 	const params = { limit: 10, broadhash: '123' };
 	const options = {
@@ -15,19 +32,13 @@ describe('Broadcaster', () => {
 	let broadcaster;
 	let broadcasts;
 	let transactionStub;
-	let peersStub;
 	let loggerStub;
 	let modulesStub;
-	let peerList;
 	let jobsQueue;
 	let library;
-	let nextRelease;
-	let releaseQueue;
-	let filterQueue;
-	let filterTransaction;
-	let squashQueue;
+	let channelStub;
 
-	beforeEach(done => {
+	beforeEach(async () => {
 		broadcasts = {
 			active: true,
 			broadcastInterval: 10000,
@@ -37,23 +48,6 @@ describe('Broadcaster', () => {
 			broadcastLimit: 10,
 		};
 
-		peerList = [
-			{
-				rpc: {
-					blocks: sinonSandbox.stub(),
-				},
-			},
-		];
-
-		peersStub = {
-			me: sinonSandbox.stub().returns(['192.168.10.10']),
-			listRandomConnected: sinonSandbox.stub().returns(peerList),
-		};
-
-		transactionStub = {
-			checkConfirmed: sinonSandbox.stub().callsArgWith(1, false),
-		};
-
 		loggerStub = {
 			info: sinonSandbox.stub(),
 			error: sinonSandbox.stub(),
@@ -61,36 +55,21 @@ describe('Broadcaster', () => {
 		};
 
 		modulesStub = {
-			peers: {
-				list: sinonSandbox.stub().callsArgWith(1, null, peerList),
-				getLastConsensus: sinonSandbox.stub().returns(101),
-			},
 			transport: {},
 			transactions: {
 				transactionInPool: sinonSandbox.stub().returns(false),
 			},
 		};
 
+		channelStub = {
+			invoke: sinonSandbox.stub().returns(),
+		};
+
 		jobsQueue = Broadcaster.__get__('jobsQueue');
 
 		jobsQueue.register = sinonSandbox.stub();
 
-		broadcaster = new Broadcaster(
-			broadcasts,
-			force,
-			peersStub,
-			transactionStub,
-			loggerStub
-		);
-
-		broadcaster.bind(
-			modulesStub.peers,
-			modulesStub.transport,
-			modulesStub.transactions
-		);
-
-		library = Broadcaster.__get__('library');
-		library.storage = {
+		const storageStub = {
 			entities: {
 				Transaction: {
 					isPersisted: sinonSandbox.stub().resolves(),
@@ -98,22 +77,22 @@ describe('Broadcaster', () => {
 			},
 		};
 
-		nextRelease = Broadcaster.__get__('nextRelease');
-		releaseQueue = Broadcaster.__get__('__private.releaseQueue');
-		filterQueue = Broadcaster.__get__('__private.filterQueue');
-		filterTransaction = Broadcaster.__get__('__private.filterTransaction');
-		squashQueue = Broadcaster.__get__('__private.squashQueue');
+		broadcaster = new Broadcaster(
+			nonce,
+			broadcasts,
+			force,
+			transactionStub,
+			loggerStub,
+			channelStub,
+			storageStub
+		);
 
-		done();
+		broadcaster.bind(modulesStub.transport, modulesStub.transactions);
+
+		library = Broadcaster.__get__('library');
 	});
 
 	afterEach(() => {
-		Broadcaster.__set__('__private.releaseQueue', releaseQueue);
-		Broadcaster.__set__('nextRelease', nextRelease);
-		Broadcaster.__set__('__private.releaseQueue', releaseQueue);
-		Broadcaster.__set__('__private.filterQueue', filterQueue);
-		Broadcaster.__set__('__private.filterTransaction', filterTransaction);
-		Broadcaster.__set__('__private.squashQueue', squashQueue);
 		return sinonSandbox.restore();
 	});
 
@@ -125,7 +104,6 @@ describe('Broadcaster', () => {
 
 		it('should load libraries', async () => {
 			expect(library.logger).to.deep.equal(loggerStub);
-			expect(library.logic.peers).to.deep.equal(peersStub);
 			expect(library.config).to.deep.equal({
 				broadcasts,
 				forging: { force: true },
@@ -146,124 +124,26 @@ describe('Broadcaster', () => {
 		});
 
 		it('should register jobsQueue', async () => {
-			const auxNextRelease = Broadcaster.__get__('nextRelease');
 			expect(jobsQueue.register.calledOnce).to.be.true;
-			return expect(jobsQueue.register).calledWith(
-				'broadcasterNextRelease',
-				auxNextRelease,
+			expect(jobsQueue.register.args[0][0]).to.equal('broadcasterReleaseQueue');
+			// expect(jobsQueue.register.args[0][1]).to.equal(async () => broadcaster.releaseQueue());
+			expect(jobsQueue.register.args[0][2]).to.equal(
 				broadcasts.broadcastInterval
 			);
 		});
 	});
 
-	describe('getPeers', () => {
-		it('should throw error for empty params', async () =>
-			expect(() => {
-				broadcaster.getPeers(null);
-			}).to.throw());
-
-		it('should return peers for default params', done => {
-			broadcaster.getPeers({}, (err, peers) => {
-				expect(err).to.be.null;
-				expect(peers).to.be.an('Array').that.is.not.empty;
-				expect(peers).to.deep.equal(peerList);
-				expect(peersStub.listRandomConnected.called).to.be.true;
-				expect(peersStub.listRandomConnected.args[0][0]).to.not.equal(params);
-				done();
-			});
-		});
-
-		it('should return peer list for a given params', done => {
-			broadcaster.getPeers(params, (err, peers) => {
-				expect(err).to.be.null;
-				expect(peers).to.be.an('Array').that.is.not.empty;
-				expect(peers).to.deep.equal(peerList);
-				expect(peersStub.listRandomConnected.calledOnce).to.be.true;
-				done();
-			});
-		});
-
-		it('should reach consensus', done => {
-			const peerParams = _.cloneDeep(params);
-			peerParams.limit = 100;
-			broadcaster.getPeers(peerParams, async () => {
-				expect(peersStub.listRandomConnected.calledOnce).to.be.true;
-				expect(peersStub.listRandomConnected.args[0][0]).to.deep.equal(
-					peerParams
-				);
-				expect(peersStub.listRandomConnected.args[0][1]).to.not.be.a(
-					'function'
-				);
-				done();
-			});
-		});
-	});
-
 	describe('broadcast', () => {
-		beforeEach(done => {
-			broadcaster.getPeers = sinonSandbox
-				.stub()
-				.callsArgWith(1, null, peerList);
-			done();
-		});
-
-		it('should throw error for empty peers', done => {
-			const peerErr = new Error('empty peer list');
-			broadcaster.getPeers.callsArgWith(1, peerErr, []);
-			broadcaster.broadcast(params, options, (err, res) => {
-				expect(err).to.be.eql(peerErr);
-				expect(res).to.be.an('object').that.is.not.empty;
-				done();
-			});
-		});
-
-		it('should return empty peers', done => {
-			const peerParams = _.cloneDeep(params);
-			peerParams.peers = [];
-			broadcaster.broadcast(peerParams, options, (err, res) => {
-				expect(err).to.be.null;
-				expect(res).to.be.an('object').that.is.not.empty;
-				expect(res).to.deep.equal({ peers: [] });
-				done();
-			});
-		});
-
-		it('should be able to get peers for broadcast', done => {
-			broadcaster.broadcast(params, options, (err, res) => {
-				expect(err).to.be.null;
-				expect(res).to.be.an('object').that.is.not.empty;
-				expect(res).to.deep.equal({ peers: peerList });
-				expect(options.data.block).to.be.instanceOf(Object);
-				done();
-			});
-		});
-
-		it(`should only send to ${params.limit} peers`, done => {
-			const limitedPeers = _.cloneDeep(params);
-			limitedPeers.limit = 10;
-			limitedPeers.peers = _.range(100).map(() => peerList[0]);
-			broadcaster.broadcast(limitedPeers, options, (err, res) => {
-				expect(err).to.be.null;
-				expect(res).to.be.an('object').that.is.not.empty;
-				expect(res.peers.length).to.eql(broadcasts.broadcastLimit);
-				done();
-			});
-		});
-
-		it('should be able to broadcast block to peers', done => {
-			params.peers = peerList;
-			options.data.block = {};
-			expect(options.data.block).to.be.an('object');
-			broadcaster.broadcast(params, options, (err, res) => {
-				expect(err).to.be.null;
-				expect(res).to.be.an('object').that.is.not.empty;
-				expect(res).to.deep.equal({ peers: peerList });
-				expect(options.data.block).to.be.instanceOf(Object);
-				expect(peerList[0].rpc.blocks.called).to.be.true;
-				expect(peerList[0].rpc.blocks.args[0][0].block).to.be.instanceOf(
-					Object
-				);
-				done();
+		it('should invoke "network:publish" event', async () => {
+			await broadcaster.broadcast(params, options);
+			const wrappedData = {
+				...options.data,
+				nonce,
+			};
+			expect(channelStub.invoke).to.be.calledOnce;
+			expect(channelStub.invoke).to.be.calledWithExactly('network:publish', {
+				event: options.api,
+				data: wrappedData,
 			});
 		});
 	});
@@ -292,40 +172,16 @@ describe('Broadcaster', () => {
 			expect(broadcaster.maxRelays({ relays: 9 })).to.be.false);
 	});
 
-	describe('nextRelease', () => {
-		it('should be able to invoke next release', done => {
-			const releaseQueueSpy = sinonSandbox.stub().callsArgWith(0, null);
-			Broadcaster.__set__('__private.releaseQueue', releaseQueueSpy);
-			nextRelease(() => {
-				expect(releaseQueueSpy.calledOnce).to.be.true;
-				done();
-			});
-		});
-
-		it('should log err when failed to release', done => {
-			const releaseQueueSpy = sinonSandbox
-				.stub()
-				.callsArgWith(0, 'release error');
-			Broadcaster.__set__('__private.releaseQueue', releaseQueueSpy);
-			nextRelease(() => {
-				expect(loggerStub.info.args[0][0]).to.eql('Broadcaster timer');
-				expect(loggerStub.info.args[0][1]).to.eql('release error');
-				expect(releaseQueueSpy.calledOnce).to.be.true;
-				done();
-			});
-		});
-	});
-
 	describe('filterQueue', () => {
 		const validTransaction = { id: '321' };
 		const validSignature = { transactionId: '123' };
-		beforeEach('having empty broadcasts queue', done => {
+		beforeEach(done => {
 			broadcaster.queue = [];
 			done();
 		});
 
 		describe('having one transaction broadcast in queue with immediate = true', () => {
-			beforeEach(done => {
+			beforeEach(async () => {
 				broadcaster.enqueue(params, {
 					api: 'postTransactions',
 					data: { transaction: validTransaction },
@@ -333,62 +189,53 @@ describe('Broadcaster', () => {
 				});
 				// ToDo: Why is enqueue overwriting immediate parameter with false?
 				broadcaster.queue[0].options.immediate = true;
-				done();
 			});
 
-			it('should set an empty broadcaster.queue and skip the broadcast', done => {
-				filterQueue(() => {
-					expect(broadcaster.queue)
-						.to.be.an('Array')
-						.to.eql([]);
-					done();
-				});
+			it('should set an empty broadcaster.queue and skip the broadcast', async () => {
+				await broadcaster.filterQueue();
+				expect(broadcaster.queue)
+					.to.be.an('Array')
+					.to.eql([]);
 			});
 		});
 
 		describe('having one transaction broadcast in queue of transaction = undefined', () => {
-			beforeEach(done => {
+			beforeEach(async () => {
 				broadcaster.enqueue(params, {
 					api: 'postTransactions',
 					data: { transaction: undefined },
 					immediate: true,
 				});
-				done();
 			});
 
-			it('should set an empty broadcaster.queue and skip the broadcast', done => {
-				filterQueue(() => {
-					expect(broadcaster.queue)
-						.to.be.an('Array')
-						.to.eql([]);
-					done();
-				});
+			it('should set an empty broadcaster.queue and skip the broadcast', async () => {
+				await broadcaster.filterQueue();
+				expect(broadcaster.queue)
+					.to.be.an('Array')
+					.to.eql([]);
 			});
 		});
 
 		describe('having one signature broadcast in queue', () => {
-			beforeEach(done => {
+			beforeEach(async () => {
 				broadcaster.enqueue(params, {
 					api: 'postSignatures',
 					data: { signature: validSignature },
 					immediate: false,
 				});
-				done();
 			});
 
-			it('should call transaction pool with [signature.transactionId]', done => {
-				filterQueue(() => {
-					expect(modulesStub.transactions.transactionInPool).calledWithExactly(
-						validSignature.transactionId
-					);
-					done();
-				});
+			it('should call transaction pool with [signature.transactionId]', async () => {
+				await broadcaster.filterQueue();
+				expect(modulesStub.transactions.transactionInPool).calledWithExactly(
+					validSignature.transactionId
+				);
 			});
 		});
 
 		describe('having one transaction broadcast in queue', () => {
 			let broadcast;
-			beforeEach(done => {
+			beforeEach(async () => {
 				broadcaster.enqueue(params, {
 					api: 'postTransactions',
 					data: { transaction: validTransaction },
@@ -405,85 +252,63 @@ describe('Broadcaster', () => {
 						},
 					}
 				);
-				done();
 			});
 
-			it('should call transaction pool with [transaction.id]', done => {
-				filterQueue(() => {
-					expect(modulesStub.transactions.transactionInPool).calledWithExactly(
-						validTransaction.id
-					);
-					done();
-				});
+			it('should call transaction pool with [transaction.id]', async () => {
+				await broadcaster.filterQueue();
+				expect(modulesStub.transactions.transactionInPool).calledWithExactly(
+					validTransaction.id
+				);
 			});
 
 			describe('when [validTransaction] exists in transaction pool', () => {
-				beforeEach(done => {
+				beforeEach(async () => {
 					modulesStub.transactions.transactionInPool.returns(true);
-					done();
 				});
-				it('should leave [broadcast] in broadcaster.queue', done => {
-					filterQueue(() => {
-						expect(broadcaster.queue)
-							.to.be.an('Array')
-							.to.eql([broadcast]);
-						done();
-					});
+				it('should leave [broadcast] in broadcaster.queue', async () => {
+					await broadcaster.filterQueue();
+					expect(broadcaster.queue)
+						.to.be.an('Array')
+						.to.eql([broadcast]);
 				});
 			});
 
 			describe('when [validTransaction] does not exist in transaction pool', () => {
-				beforeEach(done => {
+				beforeEach(async () => {
 					modulesStub.transactions.transactionInPool.returns(false);
-					done();
 				});
 				describe('when [validTransaction] is confirmed', () => {
-					beforeEach(done => {
-						transactionStub.checkConfirmed.callsArgWith(1, null, true);
+					beforeEach(async () => {
 						library.storage.entities.Transaction.isPersisted.resolves(true);
-						done();
 					});
-					it('should set an empty broadcaster.queue and skip the broadcast', done => {
-						filterQueue(() => {
-							expect(broadcaster.queue)
-								.to.be.an('Array')
-								.to.eql([]);
-							done();
-						});
+					it('should set an empty broadcaster.queue and skip the broadcast', async () => {
+						await broadcaster.filterQueue();
+						expect(broadcaster.queue)
+							.to.be.an('Array')
+							.to.eql([]);
 					});
 				});
 				describe('when [validTransaction] is not confirmed', () => {
-					beforeEach(done => {
-						transactionStub.checkConfirmed.callsArgWith(1, null, false);
+					beforeEach(async () => {
 						library.storage.entities.Transaction.isPersisted.resolves(false);
-						done();
 					});
-					it('should leave [broadcast] in broadcaster.queue', done => {
-						filterQueue(() => {
+					it('should leave [broadcast] in broadcaster.queue', async () => {
+						broadcaster.filterQueue(() => {
 							expect(broadcaster.queue)
 								.to.be.an('Array')
 								.to.eql([broadcast]);
-							done();
 						});
 					});
 				});
 				describe('when error occurs while checking if [validTransaction] is confirmed', () => {
-					beforeEach(done => {
-						transactionStub.checkConfirmed.callsArgWith(
-							1,
-							'Checking if transction is confirmed error',
-							false
-						);
+					beforeEach(async () => {
 						library.storage.entities.Transaction.isPersisted.rejects([]);
-						done();
 					});
-					it('should set an empty broadcaster.queue and skip the broadcast', done => {
-						filterQueue(() => {
-							expect(broadcaster.queue)
-								.to.be.an('Array')
-								.to.eql([]);
-							done();
-						});
+					it('should set an empty broadcaster.queue and skip the broadcast', async () => {
+						await broadcaster.filterQueue();
+						expect(broadcaster.queue)
+							.to.be.an('Array')
+							.to.eql([]);
 					});
 				});
 			});
@@ -491,7 +316,7 @@ describe('Broadcaster', () => {
 
 		describe('having many transaction and signatures broadcasts in queue', () => {
 			const auxBroadcasts = [];
-			beforeEach(done => {
+			beforeEach(async () => {
 				broadcaster.enqueue(params, {
 					api: 'postTransactions',
 					data: { transaction: { id: 1 } },
@@ -582,21 +407,17 @@ describe('Broadcaster', () => {
 						}
 					)
 				);
-				done();
 			});
 
 			describe('when all of them exist in transaction pool', () => {
-				beforeEach(done => {
+				beforeEach(async () => {
 					modulesStub.transactions.transactionInPool.returns(true);
-					done();
 				});
-				it('should leave all of them in broadcaster.queue', done => {
-					filterQueue(() => {
-						expect(broadcaster.queue)
-							.to.be.an('Array')
-							.to.eql(auxBroadcasts);
-						done();
-					});
+				it('should leave all of them in broadcaster.queue', async () => {
+					await broadcaster.filterQueue();
+					expect(broadcaster.queue)
+						.to.be.an('Array')
+						.to.eql(auxBroadcasts);
 				});
 			});
 		});
@@ -604,8 +425,8 @@ describe('Broadcaster', () => {
 
 	describe('squashQueue', () => {
 		it('should return empty array for no params and empty object', async () => {
-			expect(squashQueue({})).to.eql([]);
-			return expect(squashQueue()).to.eql([]);
+			expect(broadcaster.squashQueue({})).to.eql([]);
+			return expect(broadcaster.squashQueue()).to.eql([]);
 		});
 
 		it('should be able to squash the queue', async () => {
@@ -614,7 +435,7 @@ describe('Broadcaster', () => {
 					options: { api: 'postTransactions', data: { peer: {}, block: {} } },
 				},
 			};
-			return expect(squashQueue(auxBroadcasts)).to.eql([
+			return expect(broadcaster.squashQueue(auxBroadcasts)).to.eql([
 				{
 					immediate: false,
 					options: {
@@ -629,41 +450,26 @@ describe('Broadcaster', () => {
 	});
 
 	describe('releaseQueue', () => {
-		beforeEach(done => {
-			broadcaster.getPeers = sinonSandbox
-				.stub()
-				.callsArgWith(1, null, peerList);
-			broadcaster.broadcast = sinonSandbox
-				.stub()
-				.callsArgWith(1, null, { peers: peerList });
+		beforeEach(async () => {
 			loggerStub.info = sinonSandbox.stub();
-			done();
 		});
 
-		it('should return immediately for an empty queue', done => {
-			releaseQueue(() => {
-				expect(loggerStub.info.called).to.be.true;
-				expect(loggerStub.info.args[0][0]).to.be.eql(
-					'Releasing enqueued broadcasts'
-				);
-				expect(loggerStub.info.args[1][0]).to.be.eql('Queue empty');
-				done();
-			});
+		it('should return immediately for an empty queue', async () => {
+			await broadcaster.releaseQueue();
+			expect(loggerStub.info.called).to.be.true;
+			expect(loggerStub.info.args[0][0]).to.be.eql(
+				'Releasing enqueued broadcasts'
+			);
+			expect(loggerStub.info.args[1][0]).to.be.eql('Queue empty');
 		});
 
-		it('should return error when failed to broadcast to queue', done => {
+		it('should return error when failed to broadcast to queue', async () => {
 			const filterQueueStub = sinonSandbox
 				.stub()
-				.callsArgWith(0, 'failed to broadcast', null);
-			Broadcaster.__set__('__private.filterQueue', filterQueueStub);
+				.rejects(new Error('failed to broadcast'));
+			broadcaster.filterQueue = filterQueueStub;
 			broadcaster.enqueue(params, options);
-			releaseQueue(() => {
-				expect(loggerStub.error.args[0][0]).to.eql(
-					'Failed to release broadcast queue'
-				);
-				expect(loggerStub.error.args[0][1]).to.eql('failed to broadcast');
-				done();
-			});
+			expect(broadcaster.releaseQueue()).rejectedWith('failed to broadcast');
 		});
 	});
 });
