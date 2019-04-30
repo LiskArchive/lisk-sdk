@@ -27,9 +27,7 @@ describe('api errors module', () => {
 
 	describe('#constructor', () => {
 		it('should create a new instance of APIError', () => {
-			return expect(apiError)
-				.to.be.an('object')
-				.and.be.instanceof(APIError);
+			return expect(apiError).to.be.instanceof(APIError);
 		});
 
 		it('should set error name to `APIError`', () => {
