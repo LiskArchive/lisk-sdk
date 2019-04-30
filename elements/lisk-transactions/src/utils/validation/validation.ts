@@ -19,6 +19,7 @@ import {
 	MAX_PUBLIC_KEY_LENGTH,
 	MAX_TRANSACTION_AMOUNT,
 	MAX_TRANSACTION_ID,
+	MAX_TRANSFER_ASSET_DATA_LENGTH,
 	MULTISIGNATURE_MAX_KEYSGROUP,
 	MULTISIGNATURE_MIN_KEYSGROUP,
 } from '../../constants';
@@ -154,11 +155,13 @@ export const isNumberString = (str: string) => {
 
 export const validateNonTransferAmount = (data: string) =>
 	isNumberString(data) && data === '0';
-
 export const validateTransferAmount = (data: string) =>
 	isNumberString(data) &&
 	isGreaterThanZero(new BigNum(data)) &&
 	!isGreaterThanMaxTransactionAmount(new BigNum(data));
+
+export const isValidTransferData = (data: string): boolean =>
+	Buffer.byteLength(data, 'utf8') <= MAX_TRANSFER_ASSET_DATA_LENGTH;
 
 export const validateFee = (data: string) =>
 	isNumberString(data) &&

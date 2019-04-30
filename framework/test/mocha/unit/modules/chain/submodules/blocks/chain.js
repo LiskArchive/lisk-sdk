@@ -181,10 +181,6 @@ describe('blocks/chain', () => {
 			tick: sinonSandbox.stub(),
 		};
 
-		const modulesTransportStub = {
-			broadcastHeaders: sinonSandbox.stub(),
-		};
-
 		const modulesTransactionsStub = {
 			applyUnconfirmed: sinonSandbox.stub(),
 			applyConfirmed: sinonSandbox.stub(),
@@ -203,7 +199,6 @@ describe('blocks/chain', () => {
 				blocks: modulesBlocksStub,
 				rounds: modulesRoundsStub,
 				transactions: modulesTransactionsStub,
-				transport: modulesTransportStub,
 				processTransactions: {
 					applyTransactions: sinonSandbox.stub().resolves({
 						stateStore: {
@@ -1025,7 +1020,6 @@ describe('blocks/chain', () => {
 		beforeEach(done => {
 			popLastBlockTemp = __private.popLastBlock;
 			__private.popLastBlock = sinonSandbox.stub();
-			modules.transport.broadcastHeaders.callsArgWith(0, null, true);
 			done();
 		});
 
@@ -1156,7 +1150,6 @@ describe('blocks/chain', () => {
 			expect(modules.accounts).to.equal(bindingsStub.modules.accounts);
 			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
 			expect(modules.rounds).to.equal(bindingsStub.modules.rounds);
-			expect(modules.transport).to.equal(bindingsStub.modules.transport);
 			return expect(modules.transactions).to.equal(
 				bindingsStub.modules.transactions
 			);

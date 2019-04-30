@@ -6,6 +6,9 @@ export const INVALID_CONNECTION_QUERY_CODE = 4502;
 export const INVALID_CONNECTION_QUERY_REASON =
 	'Peer did not provide valid query parameters as part of the WebSocket connection';
 
+export const INVALID_CONNECTION_SELF_CODE = 4101;
+export const INVALID_CONNECTION_SELF_REASON = 'Peer cannot connect to itself';
+
 export const INCOMPATIBLE_NETWORK_CODE = 4102;
 export const INCOMPATIBLE_NETWORK_REASON = 'Peer nethash did not match our own';
 

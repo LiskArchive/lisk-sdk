@@ -24,7 +24,7 @@ const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
 const Sequence = require('../../../src/modules/chain/helpers/sequence');
 const { createCacheComponent } = require('../../../src/components/cache');
 const { StorageSandbox } = require('./storage_sandbox');
-const { ZSchema } = require('../../../src/controller/helpers/validator');
+const { ZSchema } = require('../../../src/controller/validator');
 const initSteps = require('../../../src/modules/chain/init_steps');
 
 const promisifyParallel = util.promisify(async.parallel);
@@ -174,17 +174,11 @@ async function __init(sandbox, initScope) {
 		await startStorage();
 		await cache.bootstrap();
 
-		scope.config.network.list = await initSteps.lookupPeerIPs(
-			scope.config.network.list,
-			scope.config.network.enabled
-		);
 		scope.bus = await initSteps.createBus();
-		scope.webSocket = await initStepsForTest.createSocketCluster(scope);
 		scope.logic = await initSteps.initLogicStructure(scope);
 		scope.modules = await initStepsForTest.initModules(scope);
 
 		// Ready to bind modules
-		scope.logic.peers.bindModules(scope.modules);
 		scope.logic.block.bindModules(scope.modules);
 
 		// Fire onBind event in every module
@@ -286,24 +280,6 @@ function cleanup(done) {
 }
 
 const initStepsForTest = {
-	createSocketCluster: async () => {
-		const MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
-		const wsRPC = require('../../../src/modules/chain/api/ws/rpc/ws_rpc').wsRPC;
-		const transport = require('../../../src/modules/chain/api/ws/transport');
-
-		wsRPC.clientsConnectionsMap = {};
-
-		const socketClusterMock = {
-			on: sinonSandbox.spy(),
-		};
-
-		wsRPC.setServer(new MasterWAMPServer(socketClusterMock));
-
-		// Register RPC
-		const transportModuleMock = { internal: {}, shared: {} };
-		transport(transportModuleMock);
-		return wsRPC;
-	},
 	initModules: async scope => {
 		const tasks = {};
 		scope.rewiredModules = {};
