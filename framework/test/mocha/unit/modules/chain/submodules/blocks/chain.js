@@ -24,7 +24,7 @@ const { Transaction } = require('../../../../../fixtures/transactions');
 const BlocksChain = rewire(
 	'../../../../../../../src/modules/chain/submodules/blocks/chain'
 );
-const initTransaction = new InitTransaction(registeredTransactions);
+const initTransaction = new InitTransaction({ registeredTransactions });
 
 describe('blocks/chain', () => {
 	let __private;
@@ -56,7 +56,7 @@ describe('blocks/chain', () => {
 		id: 3,
 		height: 3,
 		transactions: transactionsForBlock.map(transaction =>
-			initTransaction.jsonRead(transaction)
+			initTransaction.fromJson(transaction)
 		),
 	};
 
@@ -70,7 +70,7 @@ describe('blocks/chain', () => {
 		id: 1,
 		height: 1,
 		transactions: transactionsForGenesisBlock.map(transaction =>
-			initTransaction.jsonRead(transaction)
+			initTransaction.fromJson(transaction)
 		),
 	};
 	const blockReduced = { id: 3, height: 3 };
@@ -110,7 +110,7 @@ describe('blocks/chain', () => {
 		};
 
 		initTransactionStub = {
-			jsonRead: sinonSandbox.stub(),
+			fromJson: sinonSandbox.stub(),
 		};
 
 		balancesSequenceStub = {
@@ -786,25 +786,6 @@ describe('blocks/chain', () => {
 			afterEach(() => {
 				expect(modules.blocks.isActive.set.args[0][0]).to.be.true;
 				return expect(modules.blocks.isActive.set.args[1][0]).to.be.false;
-			});
-
-			describe('when reason === Snapshot finished', () => {
-				beforeEach(done => {
-					storageStub.entities.Block.begin = (desc, tx) => tx(txTemp.rejects());
-					__private.saveBlockStep.rejects('Snapshot finished');
-					done();
-				});
-
-				it('should call a callback with error', done => {
-					blocksChainModule.applyBlock(blockWithTransactions, true, err => {
-						expect(err.name).to.equal('Snapshot finished');
-						expect(loggerStub.info.args[0][0].name).to.equal(
-							'Snapshot finished'
-						);
-						expect(process.emit).to.have.been.calledWith('SIGTERM');
-						done();
-					});
-				});
 			});
 
 			describe('when reason !== Snapshot finished', () => {

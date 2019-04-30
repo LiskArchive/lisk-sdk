@@ -47,7 +47,6 @@ class Peers {
 			logger: scope.components.logger,
 			storage: scope.components.storage,
 			config: {
-				network: scope.config.network,
 				version: scope.config.version,
 				forging: {
 					force: scope.config.forging.force,

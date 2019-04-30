@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 if (process.env.NEW_RELIC_LICENSE_KEY) {
 	require('./helpers/newrelic_lisk');
 }
@@ -105,9 +121,8 @@ module.exports = class Chain {
 		// Needs to be loaded here as its using constants that need to be initialized first
 		this.slots = require('./helpers/slots');
 
-		if (this.options.loading.snapshotRound) {
-			this.options.network.enabled = false;
-			this.options.network.list = [];
+		// Deactivate broadcast and syncing during snapshotting process
+		if (this.options.loading.rebuildUpToRound) {
 			this.options.broadcasts.active = false;
 			this.options.syncing.active = false;
 		}
@@ -299,7 +314,7 @@ module.exports = class Chain {
 		}
 
 		// Run cleanup operation on each module before shutting down the node;
-		// this includes operations like snapshotting database tables.
+		// this includes operations like the rebuild verification process.
 		await Promise.all(
 			Object.keys(modules).map(key => {
 				if (typeof modules[key].cleanup === 'function') {
