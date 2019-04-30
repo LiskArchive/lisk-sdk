@@ -21,6 +21,5 @@
 		"strict-type-predicates": false,
 		// We need private class properties to start with an underscore.
 		"variable-name": [true, "allow-leading-underscore"]
-	},
-	"linterOptions": { "exclude": ["framework"] }
+	}
 }
