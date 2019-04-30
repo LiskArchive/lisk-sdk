@@ -497,7 +497,7 @@ Object {
       },
       "loading": Object {
         "loadPerIteration": 5000,
-        "snapshotRound": 0,
+        "rebuildUpToRound": 0,
       },
       "network": Object {
         "access": Object {
