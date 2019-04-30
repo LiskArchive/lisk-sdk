@@ -40,7 +40,7 @@ describe('Integration tests for P2P library', () => {
 						height: 0,
 						broadhash:
 							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
-						nonce: 'O2wTkjqplHII5wPv',
+						nonce: `O2wTkjqplHII${nodePort}`,
 					},
 				});
 			});
@@ -91,6 +91,8 @@ describe('Integration tests for P2P library', () => {
 					},
 				];
 
+				const nodePort = NETWORK_START_PORT + index;
+
 				return new P2P({
 					blacklistedPeers: [],
 					seedPeers,
@@ -101,7 +103,7 @@ describe('Integration tests for P2P library', () => {
 					// Set a different discoveryInterval for each node; that way they don't keep trying to discover each other at the same time.
 					discoveryInterval: DISCOVERY_INTERVAL + index * 11,
 					nodeInfo: {
-						wsPort: NETWORK_START_PORT + index,
+						wsPort: nodePort,
 						nethash:
 							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 						minVersion: '1.0.1',
@@ -111,7 +113,7 @@ describe('Integration tests for P2P library', () => {
 						height: 0,
 						broadhash:
 							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
-						nonce: 'O2wTkjqplHII5wPv',
+						nonce: `O2wTkjqplHII${nodePort}`,
 					},
 				});
 			});
@@ -142,7 +144,8 @@ describe('Integration tests for P2P library', () => {
 					const peerPorts = connectedPeers
 						.map(peerInfo => peerInfo.wsPort)
 						.sort();
-					const expectedPeerPorts = ALL_NODE_PORTS;
+					const expectedPeerPorts = ALL_NODE_PORTS
+						.filter(peerPort => peerPort !== p2p.nodeInfo.wsPort);
 
 					expect(peerPorts).to.be.eql(expectedPeerPorts);
 				});
@@ -329,6 +332,8 @@ describe('Integration tests for P2P library', () => {
 								},
 						  ];
 
+				const nodePort = NETWORK_START_PORT + index;
+
 				return new P2P({
 					blacklistedPeers: [],
 					connectTimeout: 5000,
@@ -336,7 +341,7 @@ describe('Integration tests for P2P library', () => {
 					seedPeers,
 					wsEngine: 'ws',
 					nodeInfo: {
-						wsPort: NETWORK_START_PORT + index,
+						wsPort: nodePort,
 						nethash:
 							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 						version: '1.0.1',
@@ -346,7 +351,7 @@ describe('Integration tests for P2P library', () => {
 						height: 0,
 						broadhash:
 							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
-						nonce: 'O2wTkjqplHII5wPv',
+						nonce: `O2wTkjqplHII${nodePort}`,
 					},
 				});
 			});
@@ -377,18 +382,12 @@ describe('Integration tests for P2P library', () => {
 						.map(peerInfo => peerInfo.wsPort)
 						.sort();
 
-					// Right now we do not care whether the node includes itself in its own peer list.
-					// TODO later: Formalize the correct approach and assert it here.
-					const peerPortsExcludingSelf = peerPorts.filter(
-						wsPort => wsPort !== p2p.nodeInfo.wsPort,
-					);
-
 					// The current node should not be in its own peer list.
 					const expectedPeerPorts = ALL_NODE_PORTS.filter(port => {
 						return port !== p2p.nodeInfo.wsPort;
 					});
 
-					expect(peerPortsExcludingSelf).to.be.eql(expectedPeerPorts);
+					expect(peerPorts).to.be.eql(expectedPeerPorts);
 				});
 			});
 
@@ -408,18 +407,13 @@ describe('Integration tests for P2P library', () => {
 					const { triedPeers } = p2p.getNetworkStatus();
 
 					const peerPorts = triedPeers.map(peerInfo => peerInfo.wsPort).sort();
-					// Right now we do not care whether the node includes itself in its own peer list.
-					// TODO later: Formalize the correct approach and assert it here.
-					const peerPortsExcludingSelf = peerPorts.filter(
-						wsPort => wsPort !== p2p.nodeInfo.wsPort,
-					);
 
 					// The current node should not be in its own peer list.
 					const expectedPeerPorts = ALL_NODE_PORTS.filter(port => {
 						return port !== p2p.nodeInfo.wsPort;
 					});
 
-					expect(peerPortsExcludingSelf).to.be.eql(expectedPeerPorts);
+					expect(peerPorts).to.be.eql(expectedPeerPorts);
 				});
 			});
 		});
@@ -743,6 +737,8 @@ describe('Integration tests for P2P library', () => {
 								},
 						  ];
 
+				const nodePort = NETWORK_START_PORT + index;
+
 				return new P2P({
 					blacklistedPeers: [],
 					connectTimeout: 5000,
@@ -753,7 +749,7 @@ describe('Integration tests for P2P library', () => {
 					seedPeers,
 					wsEngine: 'ws',
 					nodeInfo: {
-						wsPort: NETWORK_START_PORT + index,
+						wsPort: nodePort,
 						nethash:
 							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 						version: '1.0.1',
@@ -762,7 +758,8 @@ describe('Integration tests for P2P library', () => {
 						height: 1000 + index,
 						broadhash:
 							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
-						nonce: 'O2wTkjqplHII5wPv',
+						nonce: `O2wTkjqplHII${nodePort}`,
+						
 						modules: index % 2 === 0 ? ['fileTransfer'] : ['socialSite'],
 					},
 				});
@@ -901,6 +898,8 @@ describe('Integration tests for P2P library', () => {
 					},
 				];
 
+				const nodePort = NETWORK_START_PORT + index;
+
 				return new P2P({
 					blacklistedPeers: [],
 					seedPeers,
@@ -911,7 +910,7 @@ describe('Integration tests for P2P library', () => {
 					// Set a different discoveryInterval for each node; that way they don't keep trying to discover each other at the same time.
 					discoveryInterval: DISCOVERY_INTERVAL + index * 11,
 					nodeInfo: {
-						wsPort: NETWORK_START_PORT + index,
+						wsPort: nodePort,
 						nethash:
 							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 						version: '1.0.1',
@@ -921,7 +920,7 @@ describe('Integration tests for P2P library', () => {
 						height: 0,
 						broadhash:
 							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
-						nonce: 'O2wTkjqplHII5wPv',
+						nonce: `O2wTkjqplHII${nodePort}`,
 						modules: {
 							names: ['test', 'crypto'],
 							active: true,
