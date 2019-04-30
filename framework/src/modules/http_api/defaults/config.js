@@ -6,7 +6,7 @@ const defaultConfig = {
 			minimum: 1,
 			maximum: 65535,
 			env: 'LISK_HTTP_PORT',
-			arg: '--httpPort,-h',
+			arg: '--http-port,-h',
 		},
 		address: {
 			type: 'string',
