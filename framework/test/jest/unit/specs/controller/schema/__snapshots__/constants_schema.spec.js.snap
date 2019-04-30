@@ -42,11 +42,6 @@ Object {
         "MINIMUM": 1,
       },
     },
-    "NETHASHES": Array [
-      "ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511",
-      "da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba",
-    ],
-    "NORMALIZER": "100000000",
     "TOTAL_AMOUNT": "10000000000000000",
     "TRANSACTION_TYPES": Object {
       "DAPP": 5,
@@ -289,24 +284,6 @@ Object {
       ],
       "type": "object",
     },
-    "NETHASHES": Object {
-      "const": Array [
-        "ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511",
-        "da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba",
-      ],
-      "description": "For mainnet and testnet",
-      "items": Object {
-        "format": "hex",
-        "type": "string",
-      },
-      "type": "array",
-    },
-    "NORMALIZER": Object {
-      "const": "100000000",
-      "description": "Use this to convert LISK amount to normal value",
-      "format": "amount",
-      "type": "string",
-    },
     "TOTAL_AMOUNT": Object {
       "const": "10000000000000000",
       "description": "Total amount of LSK available in network before rewards milestone started",
@@ -381,8 +358,6 @@ Object {
     "MAX_VOTES_PER_ACCOUNT",
     "MIN_BROADHASH_CONSENSUS",
     "MULTISIG_CONSTRAINTS",
-    "NETHASHES",
-    "NORMALIZER",
     "TOTAL_AMOUNT",
     "TRANSACTION_TYPES",
     "UNCONFIRMED_TRANSACTION_TIMEOUT",
