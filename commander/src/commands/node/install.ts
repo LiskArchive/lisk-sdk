@@ -23,7 +23,6 @@ import {
 	NETWORK,
 	POSTGRES_PORT,
 	REDIS_PORT,
-	RELEASE_URL,
 	SNAPSHOT_URL,
 	WS_PORTS,
 } from '../../utils/constants';
@@ -46,7 +45,6 @@ import {
 	validateVersion,
 	validURL,
 } from '../../utils/node/commons';
-import { defaultLiskInstancePath } from '../../utils/node/config';
 import {
 	createDatabase,
 	createUser,
@@ -97,8 +95,12 @@ const validatePrerequisite = (installPath: string): void => {
 
 const validateFlags = ({ network, releaseUrl, snapshotUrl }: Flags): void => {
 	validateNetwork(network);
-	validURL(releaseUrl);
-	validURL(snapshotUrl);
+	if (releaseUrl) {
+		validURL(releaseUrl);
+	}
+	if (snapshotUrl) {
+		validURL(snapshotUrl);
+	}
 };
 
 const installOptions = async (
@@ -181,15 +183,15 @@ export default class InstallCommand extends BaseCommand {
 		'node:install --no-start lisk-mainnet',
 		'node:install --no-snapshot lisk-mainnet',
 		'node:install --lisk-version=2.0.0 lisk-mainnet',
-		'node:install --network=testnet --lisk-version=1.6.0-rc.4 lisk-testnet',
-		'node:install --network=betanet --no-snapshot betanet-2.0',
+		'node:install --network=testnet --releaseUrl=https://downloads.lisk.io/lisk/mainnet/1.6.0/lisk-1.6.0-Linux-x86_64.tar.gz lisk-mainnet',
+		'node:install --network=mainnet --snapshotUrl=https://testnet-snapshot.lisknode.io/blockchain.db.gz custom-mainnet',
 	];
 
 	static flags = {
 		...BaseCommand.flags,
 		installationPath: flagParser.string({
 			...commonFlags.installationPath,
-			default: defaultLiskInstancePath,
+			default: '~/.lisk/instances',
 		}),
 		'lisk-version': flagParser.string({
 			...commonFlags.liskVersion,
@@ -200,7 +202,7 @@ export default class InstallCommand extends BaseCommand {
 			allowNo: false,
 		}),
 		'no-start': flagParser.boolean({
-			...commonFlags.noSnapshot,
+			...commonFlags.noStart,
 			default: false,
 			allowNo: false,
 		}),
@@ -217,7 +219,6 @@ export default class InstallCommand extends BaseCommand {
 		}),
 		releaseUrl: flagParser.string({
 			...commonFlags.releaseUrl,
-			default: RELEASE_URL,
 		}),
 		snapshotUrl: flagParser.string({
 			...commonFlags.snapshotUrl,

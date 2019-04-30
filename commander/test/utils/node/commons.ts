@@ -22,7 +22,7 @@ import {
 	upgradeLisk,
 	validateVersion,
 } from '../../../src/utils/node/commons';
-import { NETWORK } from '../../../src/utils/constants';
+import { NETWORK, RELEASE_URL } from '../../../src/utils/constants';
 import { defaultLiskInstancePath } from '../../../src/utils/node/config';
 import * as release from '../../../src/utils/node/release';
 import * as workerProcess from '../../../src/utils/worker-process';
@@ -82,7 +82,7 @@ describe('commons node utils', () => {
 		it('should construct snapshot url', () => {
 			const url: string = 'https://downloads.lisk.io/lisk/';
 			return expect(liskSnapshotUrl(url, NETWORK.MAINNET)).to.equal(
-				`${url}/${NETWORK.MAINNET}/blockchain.db.gz`,
+				`${RELEASE_URL}/${NETWORK.MAINNET}/blockchain.db.gz`,
 			);
 		});
 

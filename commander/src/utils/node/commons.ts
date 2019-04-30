@@ -40,11 +40,11 @@ export const liskLatestUrl = (url: string, network: NETWORK) =>
 	`${url}/${network}/latest.txt`;
 
 export const liskSnapshotUrl = (url: string, network: NETWORK): string => {
-	if (url.search('db.gz') >= 0) {
+	if (url && url.search('db.gz') >= 0) {
 		return url;
 	}
 
-	return `${url}/${network}/blockchain.db.gz`;
+	return `${RELEASE_URL}/${network}/blockchain.db.gz`;
 };
 
 export const liskDbSnapshot = (network: NETWORK) =>

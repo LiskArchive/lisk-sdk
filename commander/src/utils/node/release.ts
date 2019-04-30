@@ -14,7 +14,7 @@
  *
  */
 import * as axios from 'axios';
-import { NETWORK } from '../constants';
+import { NETWORK, RELEASE_URL } from '../constants';
 import { getSemver, liskTar, liskTarSHA256 } from './commons';
 
 export const getLatestVersion = async (url: string): Promise<string> => {
@@ -34,7 +34,7 @@ export const getReleaseInfo = async (
 	network?: NETWORK,
 	installVersion?: string,
 ): Promise<ReleaseInfo> => {
-	if (releaseUrl.search('.tar.gz') >= 0) {
+	if (releaseUrl && releaseUrl.search('.tar.gz') >= 0) {
 		return {
 			version: getSemver(releaseUrl),
 			liskTarUrl: releaseUrl,
@@ -43,7 +43,7 @@ export const getReleaseInfo = async (
 	}
 
 	const version = (installVersion as unknown) as string;
-	const urlPath = `${releaseUrl}/${network}/${(version as unknown) as string}`;
+	const urlPath = `${RELEASE_URL}/${network}/${(version as unknown) as string}`;
 	const liskTarUrl = `${urlPath}/${liskTar((version as unknown) as string)}`;
 	const liskTarSHA256Url = `${urlPath}/${liskTarSHA256(
 		(version as unknown) as string,
