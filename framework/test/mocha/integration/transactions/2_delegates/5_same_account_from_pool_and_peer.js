@@ -22,7 +22,7 @@ const randomUtil = require('../../../common/utils/random');
 
 const { NORMALIZER } = global.constants;
 // eslint-disable-next-line
-describe.skip('[feature/improve_transactions_processing_efficiency] delegate', () => {
+describe('delegate', () => {
 	let library;
 	let storage;
 
@@ -37,7 +37,7 @@ describe.skip('[feature/improve_transactions_processing_efficiency] delegate', (
 				storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
 				storage.adapter.db.none('DELETE FROM forks_stat;'),
 			]);
-		}).then(() => {
+		}).then(async () => {
 			library.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
 			done();
 		});
@@ -53,7 +53,13 @@ describe.skip('[feature/improve_transactions_processing_efficiency] delegate', (
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: delegateAccount.address,
 			});
-			localCommon.addTransactionsAndForge(library, [sendTransaction], done);
+			localCommon.addTransactionsAndForge(
+				library,
+				[sendTransaction],
+				async () => {
+					library.logic.account.get({ address: delegateAccount.address }, done);
+				}
+			);
 		});
 
 		describe('with delegate transaction in unconfirmed state', () => {
@@ -70,7 +76,9 @@ describe.skip('[feature/improve_transactions_processing_efficiency] delegate', (
 				localCommon.addTransactionToUnconfirmedQueue(
 					library,
 					delegateTransaction,
-					done
+					async () => {
+						done();
+					}
 				);
 			});
 
@@ -80,6 +88,7 @@ describe.skip('[feature/improve_transactions_processing_efficiency] delegate', (
 						library,
 						[delegateTransaction],
 						(err, block) => {
+							block = localCommon.blockToJSON(block);
 							expect(err).to.not.exist;
 							library.modules.blocks.process.onReceiveBlock(block);
 							done();
@@ -89,7 +98,7 @@ describe.skip('[feature/improve_transactions_processing_efficiency] delegate', (
 
 				describe('confirmed state', () => {
 					it('should update confirmed columns related to delegate', done => {
-						library.sequence.add(seqCb => {
+						library.sequence.add(async seqCb => {
 							localCommon
 								.getAccountFromDb(library, delegateAccount.address)
 								.then(account => {
@@ -118,6 +127,7 @@ describe.skip('[feature/improve_transactions_processing_efficiency] delegate', (
 						library,
 						[delegateTransaction2],
 						(err, block) => {
+							block = localCommon.blockToJSON(block);
 							expect(err).to.not.exist;
 							library.modules.blocks.process.onReceiveBlock(block);
 							done();
