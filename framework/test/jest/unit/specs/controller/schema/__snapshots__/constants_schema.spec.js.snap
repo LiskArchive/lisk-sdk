@@ -5,10 +5,6 @@ Object {
   "additionalProperties": false,
   "default": Object {
     "ACTIVE_DELEGATES": 101,
-    "ADDITIONAL_DATA": Object {
-      "MAX_LENGTH": 64,
-      "MIN_LENGTH": 1,
-    },
     "BLOCK_RECEIPT_TIMEOUT": 20,
     "BLOCK_SLOT_WINDOW": 5,
     "EXPIRY_INTERVAL": 30000,
@@ -63,27 +59,6 @@ Object {
       "format": "oddInteger",
       "min": 1,
       "type": "number",
-    },
-    "ADDITIONAL_DATA": Object {
-      "properties": Object {
-        "MAX_LENGTH": Object {
-          "const": 64,
-          "description": "Additional data (Max length)",
-          "min": 1,
-          "type": "integer",
-        },
-        "MIN_LENGTH": Object {
-          "const": 1,
-          "description": "Additional data (Min length)",
-          "min": 1,
-          "type": "integer",
-        },
-      },
-      "required": Array [
-        "MIN_LENGTH",
-        "MAX_LENGTH",
-      ],
-      "type": "object",
     },
     "BLOCK_RECEIPT_TIMEOUT": Object {
       "const": 20,
@@ -348,7 +323,6 @@ Object {
   "required": Array [
     "ACTIVE_DELEGATES",
     "BLOCK_SLOT_WINDOW",
-    "ADDITIONAL_DATA",
     "BLOCK_RECEIPT_TIMEOUT",
     "FEES",
     "MAX_PAYLOAD_LENGTH",
