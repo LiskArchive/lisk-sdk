@@ -37,10 +37,7 @@ export class PeerInboundHandshakeError extends VError {
 export class PeerOutboundConnectionError extends VError {
 	public statusCode?: number;
 
-	public constructor(
-		message: string,
-		statusCode?: number,
-	) {
+	public constructor(message: string, statusCode?: number) {
 		super(message);
 		this.name = 'PeerOutboundConnectError';
 		this.statusCode = statusCode;

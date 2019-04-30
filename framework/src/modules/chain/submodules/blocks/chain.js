@@ -459,13 +459,6 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 			modules.blocks.isActive.set(false);
 			block = null;
 
-			// Finish here if snapshotting.
-			// FIXME: Not the best place to do that
-			if (reason.name === 'Snapshot finished') {
-				library.logger.info(reason);
-				process.emit('SIGTERM');
-			}
-
 			return setImmediate(cb, reason);
 		});
 };
