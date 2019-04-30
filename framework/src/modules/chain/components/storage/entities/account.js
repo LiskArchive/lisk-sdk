@@ -93,20 +93,12 @@ class ChainAccount extends AccountEntity {
 			'Data must be an object or array of objects'
 		);
 
-		let values;
-
-		if (Array.isArray(data)) {
-			values = data.map(item => ({ ...item }));
-		} else if (typeof data === 'object') {
-			values = [{ ...data }];
-		}
-
-		values = values.map(v => _.defaults(v, defaultCreateValues));
+		const accounts = ChainAccount._sanitizeCreateData(data);
 
 		// We assume that all accounts have same attributes
 		// and pick defined fields as template
 		const attributes = Object.keys(this.fields);
-		const createSet = this.getValuesSet(values, attributes);
+		const createSet = this.getValuesSet(accounts, attributes);
 		const fields = attributes
 			.map(k => `"${this.fields[k].fieldName}"`)
 			.join(',');
@@ -148,6 +140,35 @@ class ChainAccount extends AccountEntity {
 		return accountCreatePromise.then(() =>
 			Promise.all(dependentRecordsPromsies)
 		);
+	}
+
+	/**
+	 * Parse account data and parse in default values
+	 * @param {Array[Object}] | Object} data raw database account data
+	 * @return {Array[Object]} Parsed accounts
+	 */
+	static _sanitizeCreateData(data) {
+		let accounts;
+		if (Array.isArray(data)) {
+			accounts = data.map(item => ({
+				...item,
+			}));
+		} else if (typeof data === 'object') {
+			accounts = [
+				{
+					...data,
+				},
+			];
+		}
+
+		accounts = accounts.map(account => {
+			const parsedAccount = _.defaults(account, defaultCreateValues);
+			parsedAccount.asset = parsedAccount.asset ? parsedAccount.asset : null;
+
+			return parsedAccount;
+		});
+
+		return accounts;
 	}
 
 	/**

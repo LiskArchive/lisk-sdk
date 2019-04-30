@@ -45,6 +45,7 @@ const validAccount = {
 	productivity: 0,
 	membersPublicKeys: null,
 	votedDelegatesPublicKeys: null,
+	asset: null,
 };
 
 describe('account', () => {

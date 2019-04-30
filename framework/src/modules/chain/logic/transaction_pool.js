@@ -19,6 +19,7 @@ const {
 	Status: TransactionStatus,
 	TransactionError,
 } = require('@liskhq/lisk-transactions');
+const processTransactionLogic = require('../logic/process_transaction');
 const slots = require('../helpers/slots');
 
 const {
@@ -55,31 +56,6 @@ const pendingQueue = 'pending';
 const verifiedQueue = 'verified';
 const readyQueue = 'ready';
 
-const composeProcessTransactionSteps = (step1, step2) => async transactions => {
-	const step1Response = await step1(transactions);
-	const step1FailedTransactionsResponses = step1Response.transactionsResponses.filter(
-		transactionResponse => transactionResponse.status !== TransactionStatus.OK
-	);
-
-	const step1PassedTransactionIds = step1Response.transactionsResponses
-		.filter(
-			transactionResponse => transactionResponse.status === TransactionStatus.OK
-		)
-		.map(transactionResponse => transactionResponse.id);
-	const step1PassedTransactions = transactions.filter(transaction =>
-		step1PassedTransactionIds.includes(transaction.id)
-	);
-
-	const step2Response = await step2(step1PassedTransactions);
-	return {
-		...step2Response,
-		transactionsResponses: [
-			...step2Response.transactionsResponses,
-			...step1FailedTransactionsResponses,
-		],
-	};
-};
-
 /**
  * Transaction pool logic. Initializes variables,
  *
@@ -110,11 +86,12 @@ class TransactionPool {
 	 */
 	bind(processTransactions) {
 		this.validateTransactions = processTransactions.validateTransactions;
-		this.verifyTransactions = composeProcessTransactionSteps(
+		this.verifyTransactions = processTransactionLogic.composeTransactionSteps(
+			processTransactions.checkAllowedTransactions,
 			processTransactions.checkPersistedTransactions,
 			processTransactions.verifyTransactions
 		);
-		this.processTransactions = composeProcessTransactionSteps(
+		this.processTransactions = processTransactionLogic.composeTransactionSteps(
 			processTransactions.checkPersistedTransactions,
 			processTransactions.applyTransactions
 		);

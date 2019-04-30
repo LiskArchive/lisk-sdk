@@ -88,7 +88,7 @@ describe('validateOwnChain', () => {
 					"There are more than 202 invalid blocks. Can't delete those to recover the chain."
 				);
 				return expect(validateOwnChainError.message).to.be.eql(
-					'Your block chain is invalid. Please rebuild from snapshot.'
+					'Your block chain is invalid. Please rebuild using rebuilding mode.'
 				);
 			});
 		});
