@@ -227,7 +227,9 @@ class Application {
 		assert(Transaction, 'Transaction implementation is required');
 
 		if (options.matcher) {
-			Transaction.matcher = options.matcher;
+			Object.defineProperty(Transaction.prototype, 'matcher', {
+				get: () => options.matcher,
+			});
 		}
 
 		const transactions = this.getTransactions();

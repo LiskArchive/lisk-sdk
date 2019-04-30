@@ -158,9 +158,7 @@ class Transaction {
 			throw new Error('Transaction type not found.');
 		}
 
-		const transaction = new TransactionClass(rawTx);
-		transaction.matcher = TransactionClass.matcher;
-		return transaction;
+		return new TransactionClass(rawTx);
 	}
 
 	// TODO: remove after https://github.com/LiskHQ/lisk/issues/2424
