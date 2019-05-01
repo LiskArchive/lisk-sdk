@@ -198,7 +198,7 @@ module.exports = class Chain {
 							this.scope.modules.transport.shared.postTransactions(data);
 							return;
 						}
-						if (event === 'postTransactions') {
+						if (event === 'postSignatures') {
 							this.scope.modules.transport.shared.postSignatures(data);
 							return;
 						}
