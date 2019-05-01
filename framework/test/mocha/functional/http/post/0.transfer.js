@@ -29,7 +29,7 @@ const sendTransactionPromise = require('../../../common/helpers/api')
 const randomUtil = require('../../../common/utils/random');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 
-const { NORMALIZER } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 
 const specialChar = '❤';
 const nullChar1 = '\0';

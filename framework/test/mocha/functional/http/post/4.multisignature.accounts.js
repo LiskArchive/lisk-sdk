@@ -26,7 +26,7 @@ const accountFixtures = require('../../../fixtures/accounts');
 const signatureEndpoint = new SwaggerEndpoint('POST /signatures');
 const accountsEndpoint = new SwaggerEndpoint('GET /accounts');
 
-const { NORMALIZER } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 const amount = `${10 * NORMALIZER}`;
 
 describe('POST /api/transactions (type 4) register multisignature', () => {

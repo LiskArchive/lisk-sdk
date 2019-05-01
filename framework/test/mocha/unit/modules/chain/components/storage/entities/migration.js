@@ -488,15 +488,5 @@ describe('Migration', () => {
 				});
 			});
 		});
-
-		/* eslint-disable mocha/no-skipped-tests */
-		describe('applyRuntime()', () => {
-			it.skip('should use the correct SQL while in transaction context');
-			it.skip('should start a transaction context if no transaction exists');
-			it.skip('should copy mem_accounts2delegates to mem_accounts2u_delegates');
-			it.skip(
-				'should copy mem_accounts2multisignatures to mem_accounts2u_multisignatures'
-			);
-		});
 	});
 });
