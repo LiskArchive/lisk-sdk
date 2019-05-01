@@ -318,6 +318,7 @@ export class DappTransaction extends BaseTransaction {
 		const nameExists = store.transaction.find(
 			(transaction: TransactionJSON) =>
 				transaction.type === TRANSACTION_DAPP_TYPE &&
+				transaction.id !== this.id &&
 				(transaction.asset as DappAsset).dapp &&
 				(transaction.asset as DappAsset).dapp.name === this.asset.dapp.name,
 		);
@@ -335,6 +336,7 @@ export class DappTransaction extends BaseTransaction {
 		const linkExists = store.transaction.find(
 			(transaction: TransactionJSON) =>
 				transaction.type === TRANSACTION_DAPP_TYPE &&
+				transaction.id !== this.id &&
 				(transaction.asset as DappAsset).dapp &&
 				(transaction.asset as DappAsset).dapp.link === this.asset.dapp.link,
 		);
