@@ -1,12 +1,28 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const Ajv = require('ajv');
 const {
 	env,
-} = require('./../../../../../../../../src/controller/helpers/validator/keywords');
+} = require('./../../../../../../../../src/controller/validator/keywords');
 
-const formatters = require('../../../../../../../../src/controller/helpers/validator/keywords/formatters');
+const formatters = require('../../../../../../../../src/controller/validator/keywords/formatters');
 
 jest.mock(
-	'../../../../../../../../src/controller/helpers/validator/keywords/formatters'
+	'../../../../../../../../src/controller/validator/keywords/formatters'
 );
 
 let validator;

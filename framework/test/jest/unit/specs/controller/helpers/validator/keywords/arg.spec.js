@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const Ajv = require('ajv');
 
 // To make sure to parse the command line args need to chn
@@ -6,12 +22,12 @@ process.argv.push('--port', 'changedLongValue');
 
 const {
 	arg,
-} = require('./../../../../../../../../src/controller/helpers/validator/keywords');
+} = require('./../../../../../../../../src/controller/validator/keywords');
 
-const formatters = require('../../../../../../../../src/controller/helpers/validator/keywords/formatters');
+const formatters = require('../../../../../../../../src/controller/validator/keywords/formatters');
 
 jest.mock(
-	'../../../../../../../../src/controller/helpers/validator/keywords/formatters'
+	'../../../../../../../../src/controller/validator/keywords/formatters'
 );
 
 let validator;
@@ -34,17 +50,17 @@ describe('validator keyword "arg"', () => {
 		};
 
 		expect(() => validator.validate(schema, {})).toThrow(
-			'keyword schema is invalid: data should match pattern "^([-][a-z]{1,1})(,[-]{2}[a-z][a-z0-9-]*)?$", data should be object, data should match some schema in anyOf'
+			'keyword schema is invalid: data should match pattern "^([-]{2}[a-z][a-z0-9-]*)(,[-][a-z]{1,1})?$", data should be object, data should match some schema in anyOf'
 		);
 	});
 
-	it('should accept arg if specified as string in short format', () => {
+	it('should accept arg if specified as string as single format', () => {
 		const envSchemaWithOutFormatter = {
 			type: 'object',
 			properties: {
 				prop1: {
 					type: 'string',
-					arg: '-p',
+					arg: '--port',
 				},
 			},
 		};
@@ -53,16 +69,16 @@ describe('validator keyword "arg"', () => {
 
 		validator.validate(envSchemaWithOutFormatter, data);
 
-		expect(data.prop1).toBe('changedShortValue');
+		expect(data.prop1).toBe('changedLongValue');
 	});
 
-	it('should accept arg if specified as string in long format', () => {
+	it('should accept arg if specified as string with alias format', () => {
 		const envSchemaWithOutFormatter = {
 			type: 'object',
 			properties: {
 				prop1: {
 					type: 'string',
-					arg: '-n,--port',
+					arg: '--port,-n',
 				},
 			},
 		};
@@ -81,7 +97,7 @@ describe('validator keyword "arg"', () => {
 				prop1: {
 					type: 'string',
 					arg: {
-						name: '-p',
+						name: '--port',
 						formatter: 'stringToDelegateList',
 					},
 				},
@@ -95,7 +111,7 @@ describe('validator keyword "arg"', () => {
 		validator.validate(envSchemaWithFormatter, data);
 
 		expect(formatters.stringToDelegateList).toHaveBeenCalledWith(
-			'changedShortValue'
+			'changedLongValue'
 		);
 		expect(data.prop1).toBe('formattedValue');
 	});
@@ -125,7 +141,7 @@ describe('validator keyword "arg"', () => {
 				prop1: {
 					type: 'string',
 					arg: {
-						name: '-p',
+						name: '--port',
 						formatter: 'stringToDelegateList',
 						extraKey: 'myKey',
 					},

@@ -28,16 +28,8 @@ const slots = require('../../../src/modules/chain/helpers/slots');
 const application = require('../common/application');
 const randomUtil = require('../common/utils/random');
 const accountFixtures = require('../fixtures/accounts');
-const Bignum = require('../../../src/modules/chain/helpers/bignum');
 
 const { ACTIVE_DELEGATES } = global.constants;
-
-const convertToBigNum = transactions => {
-	return transactions.forEach(transaction => {
-		transaction.amount = new Bignum(transaction.amount);
-		transaction.fee = new Bignum(transaction.fee);
-	});
-};
 
 function getDelegateForSlot(library, slot, cb) {
 	const lastBlock = library.modules.blocks.lastBlock.get();
@@ -49,8 +41,15 @@ function getDelegateForSlot(library, slot, cb) {
 	});
 }
 
+function blockToJSON(block) {
+	block.transactions = block.transactions.map(tx => tx.toJSON());
+	return block;
+}
+
 function createBlock(library, transactions, timestamp, keypair, previousBlock) {
-	convertToBigNum(transactions);
+	transactions = transactions.map(transaction =>
+		library.logic.initTransaction.fromJson(transaction)
+	);
 	const block = library.logic.block.create({
 		keypair,
 		timestamp,
@@ -63,11 +62,26 @@ function createBlock(library, transactions, timestamp, keypair, previousBlock) {
 	return block;
 }
 
+function createValidBlockWithSlotOffset(library, transactions, slotOffset, cb) {
+	const lastBlock = library.modules.blocks.lastBlock.get();
+	const slot = slots.getSlotNumber() - slotOffset;
+	const keypairs = library.modules.delegates.getForgersKeyPairs();
+	getDelegateForSlot(library, slot, (err, delegateKey) => {
+		const block = createBlock(
+			library,
+			transactions,
+			slots.getSlotTime(slot),
+			keypairs[delegateKey],
+			lastBlock
+		);
+		cb(err, block);
+	});
+}
+
 function createValidBlock(library, transactions, cb) {
 	const lastBlock = library.modules.blocks.lastBlock.get();
 	const slot = slots.getSlotNumber();
 	const keypairs = library.modules.delegates.getForgersKeyPairs();
-	convertToBigNum(transactions);
 	getDelegateForSlot(library, slot, (err, delegateKey) => {
 		const block = createBlock(
 			library,
@@ -166,9 +180,7 @@ function addTransaction(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
 	__testContext.debug(`	Add transaction ID: ${transaction.id}`);
-	convertToBigNum([transaction]);
-
-	transaction = library.logic.transaction.objectNormalize(transaction);
+	transaction = library.logic.initTransaction.fromJson(transaction);
 	library.balancesSequence.add(sequenceCb => {
 		library.modules.transactions.processUnconfirmedTransaction(
 			transaction,
@@ -186,7 +198,7 @@ function addTransaction(library, transaction, cb) {
 function addTransactionToUnconfirmedQueue(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
-	convertToBigNum([transaction]);
+	transaction = library.logic.initTransaction.fromJson(transaction);
 	library.modules.transactions.processUnconfirmedTransaction(
 		transaction,
 		true,
@@ -207,7 +219,6 @@ function addTransactionsAndForge(library, transactions, forgeDelay, cb) {
 		cb = forgeDelay;
 		forgeDelay = 800;
 	}
-	convertToBigNum(transactions);
 
 	async.waterfall(
 		[
@@ -244,15 +255,11 @@ function getAccountFromDb(library, address) {
 		library.components.storage.adapter.execute(
 			`SELECT * FROM mem_accounts2multisignatures where "accountId" = '${address}'`
 		),
-		library.components.storage.adapter.db.query(
-			`SELECT * FROM mem_accounts2u_multisignatures where "accountId" = '${address}'`
-		),
 	]).then(res => {
 		return {
 			// Get the first row if resultant array is not empty
 			mem_accounts: res[0].length > 0 ? res[0][0] : res[0],
 			mem_accounts2multisignatures: res[1],
-			mem_accounts2u_multisignatures: res[2],
 		};
 	});
 }
@@ -374,6 +381,7 @@ function transactionInPool(library, transactionId) {
 }
 
 module.exports = {
+	blockToJSON,
 	getNextForger,
 	forge,
 	deleteLastBlock,
@@ -381,6 +389,7 @@ module.exports = {
 	addTransaction,
 	addTransactionToUnconfirmedQueue,
 	createValidBlock,
+	createValidBlockWithSlotOffset,
 	addTransactionsAndForge,
 	getBlocks,
 	getAccountFromDb,

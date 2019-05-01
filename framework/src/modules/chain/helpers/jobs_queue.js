@@ -15,12 +15,15 @@
 'use strict';
 
 /**
- * Helper module for parsing git commit information.
+ * Helper module for creating a jobs queue
  *
  * @module
  * @see Parent: {@link helpers}
  * @requires child_process
  */
+
+const assert = require('assert');
+const util = require('util');
 
 /**
  * Description of the namespace.
@@ -48,20 +51,25 @@ const jobsQueue = {
 			throw new Error(`Synchronous job ${name} already registered`);
 		}
 
-		// Check if job is function, name is string and time is integer
-		if (
-			!job ||
-			Object.prototype.toString.call(job) !== '[object Function]' ||
-			typeof name !== 'string' ||
-			!Number.isInteger(time)
-		) {
-			throw new Error('Syntax error - invalid parameters supplied');
+		assert(typeof name === 'string', 'Name argument must be a string');
+		assert(Number.isInteger(time), 'Time argument must be integer');
+		assert(job instanceof Function, 'Job must be an instance of Function');
+		if (!util.types.isAsyncFunction(job)) {
+			assert(job.length === 1, 'Job function should have callback argument');
+		} else {
+			assert(job.length === 0, 'Job async function should not have arguments');
 		}
 
 		const nextJob = function() {
-			return job(() => {
+			const nextJobStep = () => {
 				jobsQueue.jobs[name] = setTimeout(nextJob, time);
-			});
+			};
+
+			if (util.types.isAsyncFunction(job)) {
+				return job().then(nextJobStep);
+			}
+
+			return job(nextJobStep);
 		};
 
 		jobsQueue.jobs[name] = nextJob();

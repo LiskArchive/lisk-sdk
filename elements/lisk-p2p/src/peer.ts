@@ -15,7 +15,11 @@
 
 import { EventEmitter } from 'events';
 import * as querystring from 'querystring';
-import { FetchPeerStatusError, RPCResponseError } from './errors';
+import {
+	FetchPeerStatusError,
+	PeerOutboundConnectionError,
+	RPCResponseError,
+} from './errors';
 
 import {
 	P2PDiscoveredPeerInfo,
@@ -110,7 +114,7 @@ const convertNodeInfoToLegacyFormat = (
 		...nodeInfo,
 		broadhash: broadhash ? (broadhash as string) : '',
 		nonce: nonce ? (nonce as string) : '',
-		httpPort: httpPort ? (httpPort as number) : 0
+		httpPort: httpPort ? (httpPort as number) : 0,
 	};
 };
 
@@ -264,7 +268,11 @@ export class Peer extends EventEmitter {
 	}
 
 	public set outboundSocket(scClientSocket: SCClientSocket) {
+		if (this._outboundSocket) {
+			this._unbindHandlersFromOutboundSocket(this._outboundSocket);
+		}
 		this._outboundSocket = scClientSocket;
+		this._bindHandlersToOutboundSocket(this._outboundSocket);
 	}
 
 	public updatePeerInfo(newPeerInfo: P2PDiscoveredPeerInfo): void {
@@ -397,7 +405,6 @@ export class Peer extends EventEmitter {
 						reject(
 							new RPCResponseError(
 								`Failed to handle response for procedure ${packet.procedure}`,
-								new Error('RPC response format was invalid'),
 								this.ipAddress,
 								this.wsPort,
 							),
@@ -418,7 +425,6 @@ export class Peer extends EventEmitter {
 		} catch (error) {
 			throw new RPCResponseError(
 				'Failed to fetch peer list of peer',
-				error,
 				this.ipAddress,
 				this.wsPort,
 			);
@@ -437,7 +443,6 @@ export class Peer extends EventEmitter {
 
 			throw new RPCResponseError(
 				'Failed to fetch peer info of peer',
-				error,
 				this.ipAddress,
 				this.wsPort,
 			);
@@ -453,7 +458,7 @@ export class Peer extends EventEmitter {
 		const legacyNodeInfo = this._nodeInfo
 			? convertNodeInfoToLegacyFormat(this._nodeInfo)
 			: undefined;
-		
+
 		const connectTimeout = this._peerConfig.connectTimeout
 			? this._peerConfig.connectTimeout
 			: DEFAULT_CONNECT_TIMEOUT;
@@ -633,6 +638,20 @@ export const connectAndRequest = async (
 			};
 
 			const outboundSocket = socketClusterClient.create(clientOptions);
+			// Bind an error handler immediately after creating the socket; otherwise errors may crash the process
+			// tslint:disable-next-line no-empty
+			outboundSocket.on('error', () => {});
+
+			// tslint:disable-next-line no-let
+			let disconnectStatusCode: number;
+			// tslint:disable-next-line no-let
+			let disconnectReason: string;
+			const closeHandler = (statusCode: number, reason: string) => {
+				disconnectStatusCode = statusCode;
+				disconnectReason = reason;
+			};
+			outboundSocket.once('close', closeHandler);
+
 			// Attaching handlers for various events that could be used future for logging or any other application
 			outboundSocket.emit(
 				REMOTE_EVENT_RPC_REQUEST,
@@ -641,8 +660,17 @@ export const connectAndRequest = async (
 					procedure: requestPacket.procedure,
 				},
 				(err: Error | undefined, responseData: unknown) => {
+					outboundSocket.off('close', closeHandler);
 					if (err) {
-						reject(err);
+						const isFailedConnection =
+							disconnectReason &&
+							(err.name === 'TimeoutError' ||
+								err.name === 'BadConnectionError');
+						const connectionError = new PeerOutboundConnectionError(
+							isFailedConnection ? disconnectReason : err.message,
+							disconnectStatusCode,
+						);
+						reject(connectionError);
 
 						return;
 					}
@@ -661,7 +689,6 @@ export const connectAndRequest = async (
 							`Failed to handle response for procedure ${
 								requestPacket.procedure
 							}`,
-							new Error('RPC response format was invalid'),
 							basicPeerInfo.ipAddress,
 							basicPeerInfo.wsPort,
 						),
@@ -698,7 +725,6 @@ export const connectAndFetchPeerInfo = async (
 			`Error occurred while fetching information from ${
 				basicPeerInfo.ipAddress
 			}:${basicPeerInfo.wsPort}`,
-			error,
 		);
 	}
 };

@@ -1,6 +1,7 @@
 # Lisk Build
 
 ## Prerequisistes
+
 Run `npm ci` and `npm run build` at the top-level.
 
 ## Linux

@@ -98,7 +98,7 @@ export default class DecryptCommand extends BaseCommand {
 				? undefined
 				: {
 						source: messageSource,
-					},
+				  },
 		});
 		const result = processInputs(nonce, senderPublicKey, message)(inputs);
 		this.print({ message: result });

@@ -70,7 +70,7 @@ describe('integration test (delegates) - synchronous tasks', () => {
 					const originalLoaderSyncTimerJob = jobsQueue.jobs.loaderSyncTimer;
 					clearTimeout(originalLoaderSyncTimerJob); // Terminate original job
 					delete jobsQueue.jobs.loaderSyncTimer; // Remove original job
-					library.modules.loader.onPeersReady(); // Execute the mocked blockchain synchronization process
+					library.modules.loader.onAppReady(); // Execute the mocked blockchain synchronization process
 					done();
 				});
 

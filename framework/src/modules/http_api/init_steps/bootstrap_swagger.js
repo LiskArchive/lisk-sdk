@@ -23,6 +23,7 @@ const queryParser = require('express-query-int');
 const methodOverride = require('method-override');
 const SwaggerRunner = require('swagger-node-runner');
 const swaggerHelper = require('../helpers/swagger');
+const { convertErrorsToString } = require('../helpers/error_handlers.js');
 const checkIpInList = require('../helpers/check_ip_in_list');
 const apiCodes = require('../api_codes');
 
@@ -63,16 +64,17 @@ const middleware = {
 						code: 'INVALID_REQUEST_PAYLOAD',
 						name: 'payload',
 						in: 'query',
-						message: err.message,
+						message: convertErrorsToString(err),
 					},
 				],
 			});
 		}
-		logger.error(`API error ${req.url}`, err.message);
+		logger.error(`API error ${req.url}`, convertErrorsToString(err));
 		logger.trace(err);
-		return res
-			.status(500)
-			.send({ success: false, error: `API error: ${err.message}` });
+		return res.status(500).send({
+			success: false,
+			error: `API error: ${convertErrorsToString(err)}`,
+		});
 	},
 
 	/**
@@ -87,7 +89,7 @@ const middleware = {
 	 */
 	logClientConnections(logger, req, res, next) {
 		// Log client connections
-		logger.log(`${req.method} ${req.url} from ${req.ip}`);
+		logger.debug(`${req.method} ${req.url} from ${req.ip}`);
 
 		return next();
 	},

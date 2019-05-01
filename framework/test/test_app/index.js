@@ -1,52 +1,30 @@
-const {
-	Application,
-	/* eslint-disable import/no-unresolved */
-} = require('../../src');
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 
-const packageJSON = require('../../package');
+'use strict';
 
-const appConfig = {
-	app: {
-		version: packageJSON.version,
-		minVersion: packageJSON.lisk.minVersion,
-		protocolVersion: packageJSON.lisk.protocolVersion,
-	},
-};
+const app = require('./app');
 
-try {
-	// TODO: I would convert config.json to .JS
-	const networkConfig = require('../fixtures/config/devnet/config');
-	// TODO: Merge constants and exceptions with the above config.
-	const exceptions = require('../fixtures/config/devnet/exceptions');
-	const genesisBlock = require('../fixtures/config/devnet/genesis_block');
-
-	// To run multiple applications for same network for integration tests
-	const appName = config => `lisk-devnet-${config.modules.http_api.httpPort}`;
-
-	/*
-	TODO: Merge 3rd and 4th argument into one single object that would come from config/NETWORK/config.json
-	Exceptions and constants.js will be removed.
-	 */
-	const app = new Application(appName, genesisBlock, [
-		networkConfig,
-		appConfig,
-	]);
-
-	app.overrideModuleOptions('chain', { exceptions });
-
-	app
-		.run()
-		.then(() => app.logger.log('App started...'))
-		.catch(error => {
-			if (error instanceof Error) {
-				app.logger.error('App stopped with error', error.message);
-				app.logger.debug(error.stack);
-			} else {
-				app.logger.error('App stopped with error', error);
-			}
-			process.exit();
-		});
-} catch (e) {
-	console.error('Application start error.', e);
-	process.exit();
-}
+app
+	.run()
+	.then(() => app.logger.info('App started...'))
+	.catch(error => {
+		if (error instanceof Error) {
+			app.logger.error('App stopped with error', error.message);
+			app.logger.debug(error.stack);
+		} else {
+			app.logger.error('App stopped with error', error);
+		}
+		process.exit();
+	});

@@ -77,9 +77,10 @@ export default class ForgingCommand extends BaseCommand {
 	};
 
 	async run(): Promise<void> {
-		const { args, flags: { password: passwordSource } } = this.parse(
-			ForgingCommand,
-		);
+		const {
+			args,
+			flags: { password: passwordSource },
+		} = this.parse(ForgingCommand);
 
 		const { status, publicKey }: Args = args;
 		transactions.utils.validatePublicKey(publicKey);

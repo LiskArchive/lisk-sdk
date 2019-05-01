@@ -55,7 +55,9 @@ export default class CreateCommand extends BaseCommand {
 	};
 
 	async run(): Promise<void> {
-		const { flags: { number: numberStr } } = this.parse(CreateCommand);
+		const {
+			flags: { number: numberStr },
+		} = this.parse(CreateCommand);
 		const numberOfAccounts = parseInt(numberStr as string, 10);
 		if (
 			numberStr !== numberOfAccounts.toString() ||

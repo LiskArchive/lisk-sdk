@@ -62,22 +62,29 @@ const config = {
 			delete devConfigCopy.modules.chain.constants;
 			delete devConfigCopy.modules.http_api.genesisBlock;
 			delete devConfigCopy.modules.http_api.constants;
+			delete devConfigCopy.initialState;
 
-			devConfigCopy.modules.chain.network.wsPort = 5000 + index;
+			const wsPort = 5000 + index;
+			// TODO: Remove when p2p library automatically removes itself
+			devConfigCopy.modules.network.wsPort = wsPort;
+			devConfigCopy.modules.network.access = {
+				blackList: [{ ip: '127.0.0.1', wsPort }],
+			};
 			devConfigCopy.modules.http_api.httpPort = 4000 + index;
+			devConfigCopy.app.label = `lisk-devnet-${4000 + index}`;
 			devConfigCopy.components.logger.logFileName = `../logs/lisk_node_${index}.log`;
 			return devConfigCopy;
 		});
 
 		// Generate peers for each node
 		configurations.forEach(configuration => {
-			configuration.modules.chain.network.list = config.generatePeers(
+			configuration.modules.network.list = config.generatePeers(
 				configurations,
 				config.SYNC_MODES.ALL_TO_GROUP,
 				{
 					indices: _.range(10),
 				},
-				configuration.modules.chain.network.wsPort
+				configuration.modules.network.wsPort
 			);
 		});
 
@@ -122,11 +129,12 @@ const config = {
 
 			pm2Config.apps.push({
 				exec_mode: 'fork',
-				script: '../lisk/src/index.js',
+				script: 'test/test_app/index.js',
 				name: `node_${index}`,
 				args: ` -c test/mocha/network/configs/config.node-${index}.json`,
 				env: {
 					NODE_ENV: 'test',
+					CUSTOM_CONFIG_FILE: `test/mocha/network/configs/config.node-${index}.json`,
 				},
 				error_file: `test/mocha/network/logs/lisk-test-node-${index}.err.log`,
 				out_file: `test/mocha/network/logs/lisk-test-node-${index}.out.log`,
@@ -171,10 +179,10 @@ const config = {
 				}
 				configurations.forEach(configuration => {
 					if (isPickedWithProbability(syncModeArgs.probability)) {
-						if (!(configuration.modules.chain.network.wsPort === currentPeer)) {
+						if (!(configuration.modules.network.wsPort === currentPeer)) {
 							peersList.push({
 								ip: DEFAULT_PEER_IP,
-								wsPort: configuration.modules.chain.network.wsPort,
+								wsPort: configuration.modules.network.wsPort,
 							});
 						}
 					}
@@ -188,7 +196,7 @@ const config = {
 				peersList = [
 					{
 						ip: DEFAULT_PEER_IP,
-						wsPort: configurations[0].modules.chain.network.wsPort,
+						wsPort: configurations[0].modules.network.wsPort,
 					},
 				];
 				break;
@@ -201,7 +209,7 @@ const config = {
 					if (syncModeArgs.indices.indexOf(index) !== -1) {
 						peersList.push({
 							ip: DEFAULT_PEER_IP,
-							wsPort: configuration.modules.chain.network.wsPort,
+							wsPort: configuration.modules.network.wsPort,
 						});
 					}
 				});

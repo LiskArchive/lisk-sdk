@@ -23,7 +23,8 @@ const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
 
-const { NORMALIZER, TRANSACTION_TYPES } = global.constants;
+const { TRANSACTION_TYPES } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 
 describe('integration test (type 1) - checking validated second signature registrations against other transaction types', () => {
 	let library;
@@ -100,7 +101,15 @@ describe('integration test (type 1) - checking validated second signature regist
 				secondPassphrase: account.secondPassphrase,
 			});
 			localCommon.addTransaction(library, auxTransaction, err => {
-				expect(err).to.equal('Sender already has second signature enabled');
+				const expectedErrors = [
+					`Transaction: ${
+						auxTransaction.id
+					} failed at .signSignature: Missing signSignature`,
+					`Transaction: ${
+						auxTransaction.id
+					} failed at .secondPublicKey: Register second signature only allowed once per account.`,
+				];
+				expect(err).to.equal(expectedErrors.join(','));
 				done();
 			});
 		});
@@ -120,7 +129,23 @@ describe('integration test (type 1) - checking validated second signature regist
 							true,
 							loadedTransaction => {
 								localCommon.addTransaction(library, loadedTransaction, err => {
-									expect(err).to.equal('Missing sender second signature');
+									if (key !== 'MULTI') {
+										expect(err).to.equal(
+											`Transaction: ${
+												loadedTransaction.id
+											} failed at .signSignature: Missing signSignature`
+										);
+									} else {
+										const expectedErrors = [
+											`Transaction: ${
+												loadedTransaction.id
+											} failed at .signSignature: Missing signSignature`,
+											`Transaction: ${
+												loadedTransaction.id
+											} failed at .signatures: Missing signatures `,
+										];
+										expect(err).to.equal(expectedErrors.join(','));
+									}
 									done();
 								});
 							}

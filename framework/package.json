@@ -26,6 +26,7 @@
 	"main": "src/index.js",
 	"scripts": {
 		"start": "node src/index.js",
+		"start:test:app": "node test/test_app",
 		"console": "node scripts/console.js",
 		"lint": "eslint .",
 		"lint:fix": "eslint --fix .",
@@ -47,13 +48,16 @@
 		"docs:serve": "http-server docs/jsdoc/"
 	},
 	"dependencies": {
-		"@liskhq/lisk-cryptography": "2.0.0",
-		"@liskhq/lisk-transactions": "2.0.0",
+		"@liskhq/lisk-cryptography": "2.1.0-alpha.0",
+		"@liskhq/lisk-p2p": "0.1.0-alpha.4",
+		"@liskhq/lisk-transaction-pool": "0.1.0-alpha.1",
+		"@liskhq/lisk-transactions": "2.1.0-alpha.4",
 		"ajv": "6.7.0",
 		"async": "2.6.1",
 		"bignumber.js": "8.0.2",
 		"bluebird": "3.5.3",
 		"body-parser": "1.18.3",
+		"bunyan": "1.8.12",
 		"bytebuffer": "5.0.1",
 		"change-case": "3.1.0",
 		"colors": "1.3.3",
