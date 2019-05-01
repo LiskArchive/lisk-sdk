@@ -77,9 +77,9 @@ module.exports = class Network {
 			await this.channel.invoke('app:getApplicationState')
 		);
 
-		const seedPeers = await lookupPeersIPs(this.options.list, true);
-		const blacklistedPeers = this.options.access.blackList
-			? this.options.access.blackList.map(peer => ({
+		const seedPeers = await lookupPeersIPs(this.options.seedPeers, true);
+		const blacklistedPeers = this.options.blacklistedPeers
+			? this.options.blacklistedPeers.map(peer => ({
 					ipAddress: peer.ip,
 					wsPort: peer.wsPort,
 			  }))

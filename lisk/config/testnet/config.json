@@ -96,7 +96,7 @@
 		},
 		"network": {
 			"wsPort": 7001,
-			"list": [
+			"seedPeers": [
 				{
 					"ip": "testnet-seed-01.lisk.io",
 					"wsPort": 7001
