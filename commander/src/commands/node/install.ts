@@ -26,20 +26,16 @@ import {
 	SNAPSHOT_URL,
 	WS_PORTS,
 } from '../../utils/constants';
-import {
-	download,
-	downloadLiskAndValidate,
-	extract,
-} from '../../utils/download';
+import { download, downloadAndValidate, extract } from '../../utils/download';
 import { flags as commonFlags } from '../../utils/flags';
 import {
 	createDirectory,
+	getDownloadedFileInfo,
 	getVersionToInstall,
 	isSupportedOS,
 	liskDbSnapshot,
 	liskInstall,
 	liskSnapshotUrl,
-	liskTar,
 	validateNetwork,
 	validateNotARootUser,
 	validateVersion,
@@ -270,29 +266,25 @@ export default class InstallCommand extends BaseCommand {
 						{
 							title: 'Download Lisk Core Release and Blockchain Snapshot',
 							task: async ctx => {
-								const {
-									version,
-									liskTarUrl,
-									liskTarSHA256Url,
-								}: Options = ctx.options;
+								const { liskTarUrl }: Options = ctx.options;
 
 								if (!noSnapshot) {
-									await download(snapshotURL, snapshotPath);
+									await download(snapshotURL, cacheDir);
 								}
-								await downloadLiskAndValidate(
-									cacheDir,
-									liskTarUrl,
-									liskTarSHA256Url,
-									version,
-								);
+								await downloadAndValidate(liskTarUrl, cacheDir);
 							},
 						},
 						{
 							title: 'Extract Lisk Core',
 							task: async ctx => {
-								const { installDir, version }: Options = ctx.options;
+								const { installDir, liskTarUrl }: Options = ctx.options;
+								const { fileName, fileDir } = getDownloadedFileInfo(
+									liskTarUrl,
+									cacheDir,
+								);
+
 								createDirectory(installDir);
-								await extract(cacheDir, liskTar(version), installDir);
+								await extract(fileDir, fileName, installDir);
 							},
 						},
 						{

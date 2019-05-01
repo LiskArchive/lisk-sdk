@@ -18,13 +18,13 @@ import * as fsExtra from 'fs-extra';
 import Listr from 'listr';
 import semver from 'semver';
 import BaseCommand from '../../base';
-import { downloadLiskAndValidate, extract } from '../../utils/download';
+import { downloadAndValidate, extract } from '../../utils/download';
 import { flags as commonFlags } from '../../utils/flags';
 import { isCacheRunning, startCache, stopCache } from '../../utils/node/cache';
 import {
 	backupLisk,
+	getDownloadedFileInfo,
 	getVersionToInstall,
-	liskTar,
 	upgradeLisk,
 	validateVersion,
 } from '../../utils/node/commons';
@@ -109,17 +109,12 @@ export default class UpgradeCommand extends BaseCommand {
 			{
 				title: `Download Lisk Core: ${upgradeVersion} for upgrade`,
 				task: async () => {
-					const {
-						version,
-						liskTarUrl,
-						liskTarSHA256Url,
-					} = await getReleaseInfo(releaseUrl, network, upgradeVersion);
-					await downloadLiskAndValidate(
-						cacheDir,
-						liskTarUrl,
-						liskTarSHA256Url,
-						version,
+					const { liskTarUrl } = await getReleaseInfo(
+						releaseUrl,
+						network,
+						upgradeVersion,
 					);
+					await downloadAndValidate(liskTarUrl, cacheDir);
 				},
 			},
 			{
@@ -147,11 +142,17 @@ export default class UpgradeCommand extends BaseCommand {
 							title: `Install Lisk Core: ${upgradeVersion}`,
 							task: async () => {
 								fsExtra.ensureDirSync(installationPath);
-								await extract(
-									cacheDir,
-									liskTar(upgradeVersion),
-									installationPath,
+								const { liskTarUrl } = await getReleaseInfo(
+									releaseUrl,
+									network,
+									upgradeVersion,
 								);
+								const { fileDir, fileName } = getDownloadedFileInfo(
+									liskTarUrl,
+									cacheDir,
+								);
+
+								await extract(fileDir, fileName, installationPath);
 							},
 						},
 					]),

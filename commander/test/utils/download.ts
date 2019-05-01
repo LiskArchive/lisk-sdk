@@ -4,6 +4,10 @@ import * as axios from 'axios';
 import * as downloadUtil from '../../src/utils/download';
 import * as workerProcess from '../../src/utils/worker-process';
 
+const url =
+	'https://downloads.lisk.io/lisk/mainnet/1.6.0/lisk-1.6.0-Darwin-x86_64.tar.gz.SHA256';
+const outDir = '~/.cache/lisk-commander';
+
 describe('download utils', () => {
 	let execStub: any = null;
 	beforeEach(() => {
@@ -25,24 +29,21 @@ describe('download utils', () => {
 			existsSyncStub.returns(true);
 			statSyncStub.returns({ birthtime: new Date() });
 
-			return expect(downloadUtil.download('url', 'file/path')).returned;
+			return expect(downloadUtil.download(url, outDir)).returned;
 		});
 	});
 
 	describe('#validateChecksum', () => {
 		it('should throw an error when it fails to validate checksum', () => {
 			execStub.resolves({ stdout: 'error', stderr: 'invalid checksum' });
-			return expect(
-				downloadUtil.validateChecksum('file/path', 'test.gz'),
-			).to.rejectedWith(
+			return expect(downloadUtil.validateChecksum(url, outDir)).to.rejectedWith(
 				'Checksum validation failed with error: invalid checksum',
 			);
 		});
 
 		it('should successfully validate checksum', () => {
 			execStub.resolves({ stdout: 'OK' });
-			return expect(downloadUtil.validateChecksum('file/path', 'test.gz')).to
-				.not.throw;
+			return expect(downloadUtil.validateChecksum(url, outDir)).to.not.throw;
 		});
 	});
 
@@ -73,12 +74,7 @@ describe('download utils', () => {
 		});
 
 		it('should download lisk and validate release', async () => {
-			await downloadUtil.downloadLiskAndValidate(
-				'output/dir',
-				'release/url',
-				'release/url/sha256',
-				'2.0.0',
-			);
+			await downloadUtil.downloadAndValidate(url, outDir);
 			expect(downloadUtil.download).to.be.calledTwice;
 			return expect(downloadUtil.validateChecksum).to.be.calledOnce;
 		});

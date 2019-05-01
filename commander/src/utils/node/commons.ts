@@ -185,3 +185,25 @@ export const dateDiff = (date1: Date, date2: Date): number => {
 		(HOURS * MINUTES_OR_SECONDS * MINUTES_OR_SECONDS * INT_RANGE)
 	);
 };
+
+interface FileInfo {
+	readonly fileName: string;
+	readonly fileDir: string;
+	readonly filePath: string;
+}
+
+export const getDownloadedFileInfo = (
+	url: string,
+	cacheDir: string,
+): FileInfo => {
+	const pathWithoutProtocol = url.replace(/(^\w+:|^)\/\//, '').split('/');
+	const fileName = pathWithoutProtocol.pop() as string;
+	const fileDir = `${cacheDir}/${pathWithoutProtocol.join('/')}`;
+	const filePath = `${fileDir}/${fileName}`;
+
+	return {
+		fileName,
+		fileDir,
+		filePath,
+	};
+};
