@@ -23,6 +23,7 @@ import { flags as commonFlags } from '../../utils/flags';
 import { isCacheRunning, startCache, stopCache } from '../../utils/node/cache';
 import {
 	backupLisk,
+	generateEnvConfig,
 	getDownloadedFileInfo,
 	getVersionToInstall,
 	upgradeLisk,
@@ -32,8 +33,10 @@ import { getConfig } from '../../utils/node/config';
 import { startDatabase, stopDatabase } from '../../utils/node/database';
 import {
 	describeApplication,
+	registerApplication,
 	restartApplication,
 	stopApplication,
+	unRegisterApplication,
 } from '../../utils/node/pm2';
 import { getReleaseInfo } from '../../utils/node/release';
 
@@ -161,6 +164,15 @@ export default class UpgradeCommand extends BaseCommand {
 				title: `Upgrade Lisk Core ${name} instance from: ${currentVersion} to: ${upgradeVersion}`,
 				task: async () => {
 					await upgradeLisk(installationPath, name, network, currentVersion);
+				},
+			},
+			{
+				title: 'Unregister and register Lisk Core',
+				task: async () => {
+					const envConfig = await generateEnvConfig(network);
+
+					await unRegisterApplication(name);
+					await registerApplication(installationPath, network, name, envConfig);
 				},
 			},
 			{

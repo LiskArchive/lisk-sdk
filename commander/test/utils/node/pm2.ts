@@ -1,4 +1,6 @@
 import { expect } from 'chai';
+import pm2 from 'pm2';
+import fsExtra from 'fs-extra';
 import {
 	registerApplication,
 	unRegisterApplication,
@@ -8,7 +10,6 @@ import {
 	describeApplication,
 } from '../../../src/utils/node/pm2';
 import { NETWORK } from '../../../src/utils/constants';
-import pm2 from 'pm2';
 
 const monit = {
 	cpu: 10,
@@ -42,6 +43,9 @@ describe('pm2 node utils', () => {
 			sandbox.stub(pm2, 'connect').yields(null, 'connected');
 			sandbox.stub(pm2, 'start').yields(null, 'started');
 			sandbox.stub(pm2, 'stop').yields(null, 'stopped');
+			sandbox
+				.stub(fsExtra, 'readJson')
+				.resolves({ apps: [{ script: 'src/index.js' }] });
 		});
 
 		it('should register an application', async () => {

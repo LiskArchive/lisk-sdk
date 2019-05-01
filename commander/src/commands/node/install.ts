@@ -18,18 +18,12 @@ import * as fsExtra from 'fs-extra';
 import Listr from 'listr';
 import * as os from 'os';
 import BaseCommand from '../../base';
-import {
-	HTTP_PORTS,
-	NETWORK,
-	POSTGRES_PORT,
-	REDIS_PORT,
-	SNAPSHOT_URL,
-	WS_PORTS,
-} from '../../utils/constants';
+import { NETWORK, SNAPSHOT_URL } from '../../utils/constants';
 import { download, downloadAndValidate, extract } from '../../utils/download';
 import { flags as commonFlags } from '../../utils/flags';
 import {
 	createDirectory,
+	generateEnvConfig,
 	getDownloadedFileInfo,
 	getVersionToInstall,
 	isSupportedOS,
@@ -49,11 +43,7 @@ import {
 	startDatabase,
 	stopDatabase,
 } from '../../utils/node/database';
-import {
-	Instance,
-	listApplication,
-	registerApplication,
-} from '../../utils/node/pm2';
+import { registerApplication } from '../../utils/node/pm2';
 import { getReleaseInfo } from '../../utils/node/release';
 import StartCommand from './start';
 
@@ -121,41 +111,6 @@ const installOptions = async (
 		version,
 		liskTarUrl,
 		liskTarSHA256Url,
-	};
-};
-
-const getEnvByKey = (
-	instances: ReadonlyArray<Instance>,
-	key: string,
-	defaultValue: number,
-): number => {
-	const INCREMENT = 2;
-
-	const maxValue = instances
-		.map(app => ((app as unknown) as { readonly [key: string]: number })[key])
-		.filter(i => i)
-		.reduce((acc, curr) => Math.max(acc, curr), defaultValue);
-
-	return maxValue + INCREMENT;
-};
-
-const generateEnvConfig = async (network: NETWORK) => {
-	const instances = await listApplication();
-
-	const LISK_DB_PORT = getEnvByKey(instances, 'dbPort', POSTGRES_PORT);
-	const LISK_REDIS_PORT = getEnvByKey(instances, 'redisPort', REDIS_PORT);
-	const LISK_HTTP_PORT = getEnvByKey(
-		instances,
-		'httpPort',
-		HTTP_PORTS[network],
-	);
-	const LISK_WS_PORT = getEnvByKey(instances, 'wsPort', WS_PORTS[network]);
-
-	return {
-		LISK_DB_PORT,
-		LISK_REDIS_PORT,
-		LISK_HTTP_PORT,
-		LISK_WS_PORT,
 	};
 };
 

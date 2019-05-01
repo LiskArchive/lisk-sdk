@@ -16,9 +16,18 @@
 import fsExtra from 'fs-extra';
 import * as os from 'os';
 import semver from 'semver';
-import { NETWORK, OS, RELEASE_URL } from '../constants';
+import {
+	HTTP_PORTS,
+	NETWORK,
+	OS,
+	POSTGRES_PORT,
+	REDIS_PORT,
+	RELEASE_URL,
+	WS_PORTS,
+} from '../constants';
 import { exec, ExecResult } from '../worker-process';
 import { defaultBackupPath } from './config';
+import { Instance, listApplication } from './pm2';
 import { getLatestVersion } from './release';
 
 export const liskInstall = (installPath: string): string =>
@@ -205,5 +214,40 @@ export const getDownloadedFileInfo = (
 		fileName,
 		fileDir,
 		filePath,
+	};
+};
+
+const getEnvByKey = (
+	instances: ReadonlyArray<Instance>,
+	key: string,
+	defaultValue: number,
+): number => {
+	const INCREMENT = 2;
+
+	const maxValue = instances
+		.map(app => ((app as unknown) as { readonly [key: string]: number })[key])
+		.filter(i => i)
+		.reduce((acc, curr) => Math.max(acc, curr), defaultValue);
+
+	return maxValue + INCREMENT;
+};
+
+export const generateEnvConfig = async (network: NETWORK) => {
+	const instances = await listApplication();
+
+	const LISK_DB_PORT = getEnvByKey(instances, 'dbPort', POSTGRES_PORT);
+	const LISK_REDIS_PORT = getEnvByKey(instances, 'redisPort', REDIS_PORT);
+	const LISK_HTTP_PORT = getEnvByKey(
+		instances,
+		'httpPort',
+		HTTP_PORTS[network],
+	);
+	const LISK_WS_PORT = getEnvByKey(instances, 'wsPort', WS_PORTS[network]);
+
+	return {
+		LISK_DB_PORT,
+		LISK_REDIS_PORT,
+		LISK_HTTP_PORT,
+		LISK_WS_PORT,
 	};
 };

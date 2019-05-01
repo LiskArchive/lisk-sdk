@@ -1,3 +1,4 @@
+import fsExtra from 'fs-extra';
 import * as path from 'path';
 import {
 	connect,
@@ -66,12 +67,14 @@ const startPM2 = async (
 	network: NETWORK,
 	name: string,
 	envConfig: object,
-): Promise<void> =>
-	new Promise<void>((resolve, reject) => {
+): Promise<void> => {
+	const { apps } = await fsExtra.readJson(`${installPath}/etc/pm2-lisk.json`);
+
+	return new Promise<void>((resolve, reject) => {
 		start(
 			{
 				name,
-				script: 'src/index.js',
+				script: apps[0].script,
 				interpreter: `${installPath}/bin/node`,
 				cwd: installPath,
 				env: {
@@ -100,6 +103,7 @@ const startPM2 = async (
 			},
 		);
 	});
+};
 
 const restartPM2 = async (process: string | number): Promise<void> =>
 	new Promise<void>((resolve, reject) => {
