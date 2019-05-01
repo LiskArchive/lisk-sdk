@@ -191,7 +191,7 @@ module.exports = class Chain {
 			self.logger.info('Modules ready and launched');
 
 			// Avoid receiving blocks/transactions from the network during snapshotting process
-			if (!this.options.loading.snapshotRound) {
+			if (!this.options.loading.rebuildUpToRound) {
 				this.channel.subscribe(
 					'network:subscribe',
 					({ data: { event, data } }) => {

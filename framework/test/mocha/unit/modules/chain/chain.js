@@ -26,7 +26,6 @@ const {
 	storageConfig,
 	chainOptions,
 	gitLastCommitId,
-	peerList,
 } = require('./chain.fixtures');
 
 describe('Chain', () => {
@@ -100,11 +99,9 @@ describe('Chain', () => {
 		};
 
 		stubs.initSteps = {
-			lookupPeerIPs: sinonSandbox.stub().returns(peerList),
 			createBus: sinonSandbox.stub().resolves(stubs.bus),
 			bootstrapStorage: sinonSandbox.stub(),
 			bootstrapCache: sinonSandbox.stub(),
-			createSocketCluster: sinonSandbox.stub().resolves(stubs.webSocket),
 			initLogicStructure: sinonSandbox.stub().resolves(stubs.logic),
 			initModules: sinonSandbox.stub().resolves(stubs.modules),
 		};
@@ -114,11 +111,9 @@ describe('Chain', () => {
 		Chain.__set__('createLoggerComponent', stubs.createLoggerComponent);
 		Chain.__set__('createCacheComponent', stubs.createCacheComponent);
 		Chain.__set__('createStorageComponent', stubs.createStorageComponent);
-		Chain.__set__('lookupPeerIPs', stubs.initSteps.lookupPeerIPs);
 		Chain.__set__('createBus', stubs.initSteps.createBus);
 		Chain.__set__('bootstrapStorage', stubs.initSteps.bootstrapStorage);
 		Chain.__set__('bootstrapCache', stubs.initSteps.bootstrapCache);
-		Chain.__set__('createSocketCluster', stubs.initSteps.createSocketCluster);
 		Chain.__set__('initLogicStructure', stubs.initSteps.initLogicStructure);
 		Chain.__set__('initModules', stubs.initSteps.initModules);
 		Chain.__set__('git', stubs.git);
@@ -210,13 +205,13 @@ describe('Chain', () => {
 			return expect(chain.slots).to.be.equal(slots);
 		});
 
-		describe('when options.loading.snapshotRound is truthy', () => {
+		describe('when options.loading.rebuildUpToRound is truthy', () => {
 			beforeEach(async () => {
 				// Arrange
 				chain = new Chain(stubs.channel, {
 					...chainOptions,
 					loading: {
-						snapshotRound: true,
+						rebuildUpToRound: true,
 					},
 					broadcasts: {},
 					syncing: {},
@@ -224,15 +219,11 @@ describe('Chain', () => {
 				// Act
 				await chain.bootstrap();
 			});
-			it('should set options.network.enabled=true', () => {
-				return expect(chain.options.network.enabled).to.be.equal(false);
-			});
-			it('should initialize options.network.list as an empty array', () => {
-				return expect(chain.options.network.list).to.be.deep.equal([]);
-			});
+
 			it('should set options.broadcasts.active=false', () => {
 				return expect(chain.options.broadcasts.active).to.be.equal(false);
 			});
+
 			it('should set options.syncing.active=false', () => {
 				return expect(chain.options.syncing.active).to.be.equal(false);
 			});
