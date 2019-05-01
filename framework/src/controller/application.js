@@ -168,8 +168,8 @@ class Application {
 		this.registerModule(ChainModule, {
 			registeredTransactions: this.getTransactions(),
 		});
-		this.registerModule(HttpAPIModule);
 		this.registerModule(NetworkModule);
+		this.registerModule(HttpAPIModule);
 		this.overrideModuleOptions(HttpAPIModule.alias, {
 			loadAsChildProcess: true,
 		});
