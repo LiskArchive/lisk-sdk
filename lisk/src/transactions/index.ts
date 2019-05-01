@@ -14,14 +14,10 @@
 
 'use strict';
 
-const {
+import {
 	DappTransaction,
 	InTransferTransaction,
 	OutTransferTransaction,
-} = require('@liskhq/lisk-transactions');
+} from '@liskhq/lisk-transactions';
 
-module.exports = {
-	DappTransaction,
-	InTransferTransaction,
-	OutTransferTransaction,
-};
+export { DappTransaction, InTransferTransaction, OutTransferTransaction };

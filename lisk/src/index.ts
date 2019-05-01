@@ -1,24 +1,30 @@
-const { Application } = require('lisk-framework');
-const {
+import { Application } from 'lisk-framework';
+import {
 	DappTransaction,
 	InTransferTransaction,
 	OutTransferTransaction,
-} = require('./transactions');
+} from './transactions';
 
 try {
-	// We have to keep it in try/catch block as it can throw
-	// exception while validating the configuration
-	const config = require('./helpers/config');
+	/**
+	 * We have to keep it in try/catch block as it can throw
+	 * exception while validating the configuration
+	 */
+
+	// tslint:disable-next-line no-require-imports no-var-requires
+	const { config } = require('./helpers/config');
 
 	const { NETWORK } = config;
-	/* eslint-disable import/no-dynamic-require */
-	const genesisBlock = require(`../config/${NETWORK}/genesis_block`);
+	// tslint:disable-next-line no-var-requires
+	const genesisBlock = require(`../config/${NETWORK}/genesis_block.json`);
+
+	const TRANSACTION_TYPES = {
+		DAPP: 5,
+		IN_TRANSFER: 6,
+		OUT_TRANSFER: 7,
+	};
 
 	const app = new Application(genesisBlock, config);
-
-	const {
-		constants: { TRANSACTION_TYPES },
-	} = app;
 
 	app.registerTransaction(TRANSACTION_TYPES.DAPP, DappTransaction);
 	app.registerTransaction(
@@ -53,6 +59,7 @@ try {
 			process.exit();
 		});
 } catch (e) {
+	// tslint:disable-next-line no-console
 	console.error('Application start error.', e);
 	process.exit();
 }
