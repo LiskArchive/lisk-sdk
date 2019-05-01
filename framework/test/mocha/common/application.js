@@ -33,7 +33,6 @@ let currentAppScope;
 const modulesInit = {
 	accounts: '../../../src/modules/chain/submodules/accounts',
 	blocks: '../../../src/modules/chain/submodules/blocks',
-	dapps: '../../../src/modules/chain/submodules/dapps',
 	delegates: '../../../src/modules/chain/submodules/delegates',
 	loader: '../../../src/modules/chain/submodules/loader',
 	multisignatures: '../../../src/modules/chain/submodules/multisignatures',

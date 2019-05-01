@@ -19,7 +19,6 @@ const domain = require('domain');
 const modulesList = {
 	accounts: '../submodules/accounts',
 	blocks: '../submodules/blocks',
-	dapps: '../submodules/dapps',
 	delegates: '../submodules/delegates',
 	rounds: '../submodules/rounds',
 	loader: '../submodules/loader',

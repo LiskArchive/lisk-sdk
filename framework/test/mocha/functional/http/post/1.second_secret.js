@@ -28,7 +28,8 @@ const waitFor = require('../../../common/utils/wait_for');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const common = require('./common');
 
-const { FEES, NORMALIZER } = global.constants;
+const { FEES } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 
 describe('POST /api/transactions (type 1) register second passphrase', () => {
 	let transaction;
