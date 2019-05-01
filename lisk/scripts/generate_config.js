@@ -19,7 +19,7 @@
  * 		A user manual can be found on documentation site under /documentation/lisk-core/upgrade/upgrade-configurations
  */
 
-const config = require('../src/helpers/config');
+const config = require('../dist/helpers/config');
 
 console.info(JSON.stringify(config, null, '\t'));
 
