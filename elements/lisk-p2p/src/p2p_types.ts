@@ -77,6 +77,7 @@ export interface P2PConfig {
 	readonly ackTimeout?: number;
 	readonly hostAddress?: string;
 	readonly seedPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly triedPeers?: ReadonlyArray<P2PDiscoveredPeerInfo>;
 	readonly nodeInfo: P2PNodeInfo;
 	readonly wsEngine?: string;
 	readonly discoveryInterval?: number;
