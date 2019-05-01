@@ -168,8 +168,8 @@ class Application {
 		this.registerModule(ChainModule, {
 			registeredTransactions: this.getTransactions(),
 		});
-		this.registerModule(HttpAPIModule);
 		this.registerModule(NetworkModule);
+		this.registerModule(HttpAPIModule);
 		this.overrideModuleOptions(HttpAPIModule.alias, {
 			loadAsChildProcess: true,
 		});
@@ -357,7 +357,7 @@ class Application {
 		// TODO: move this configuration to module especific config file
 		const childProcessModules = process.env.LISK_CHILD_PROCESS_MODULES
 			? process.env.LISK_CHILD_PROCESS_MODULES.split(',')
-			: ['httpApi'];
+			: [];
 
 		Object.keys(modules).forEach(alias => {
 			this.overrideModuleOptions(alias, {

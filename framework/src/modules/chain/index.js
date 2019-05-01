@@ -41,7 +41,7 @@ module.exports = class ChainModule extends BaseModule {
 		return {
 			author: 'LiskHQ',
 			version: '0.1.0',
-			name: 'lisk-core-chain',
+			name: 'lisk-framework-chain',
 		};
 	}
 
