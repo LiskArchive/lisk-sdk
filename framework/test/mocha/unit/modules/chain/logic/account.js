@@ -45,6 +45,7 @@ const validAccount = {
 	productivity: 0,
 	membersPublicKeys: null,
 	votedDelegatesPublicKeys: null,
+	asset: null,
 };
 
 describe('account', () => {
@@ -101,11 +102,6 @@ describe('account', () => {
 
 		it('should attach logger to library variable', async () =>
 			expect(library.logger).to.eql(modulesLoader.scope.components.logger));
-	});
-
-	describe('objectNormalize', () => {
-		it('should validate account schema', async () =>
-			expect(account.objectNormalize(validAccount)).to.be.an('object'));
 	});
 
 	describe('verifyPublicKey', () => {

@@ -32,11 +32,13 @@ const {
 const randomstring = require('randomstring');
 const lookupPeersIPs = require('./lookup_peers_ips');
 const { createLoggerComponent } = require('../../components/logger');
+const { createStorageComponent } = require('../../components/storage');
 const {
 	getByFilter,
 	getCountByFilter,
 	getConsolidatedPeersList,
 } = require('./filter_peers');
+const { Peer } = require('./components/storage/entities');
 
 const hasNamespaceReg = /:/;
 
@@ -51,6 +53,7 @@ module.exports = class Network {
 		this.options = options;
 		this.channel = null;
 		this.logger = null;
+		this.storage = null;
 	}
 
 	async bootstrap(channel) {
@@ -63,6 +66,32 @@ module.exports = class Network {
 
 		this.logger = createLoggerComponent(loggerConfig);
 
+		const storageConfig = await this.channel.invoke(
+			'app:getComponentConfig',
+			'storage'
+		);
+		const dbLogger =
+			storageConfig.logFileName &&
+			storageConfig.logFileName === loggerConfig.logFileName
+				? this.logger
+				: createLoggerComponent({
+						...loggerConfig,
+						logFileName: storageConfig.logFileName,
+				  });
+
+		this.storage = createStorageComponent(storageConfig, dbLogger);
+		this.storage.registerEntity('Peer', Peer);
+
+		const status = await this.storage.bootstrap();
+		if (!status) {
+			throw new Error('Cannot bootstrap the storage component');
+		}
+
+		// Load peers from the database that were tried or connected the last time node was running
+		const triedPeers = await this.storage.entities.Peer.get(
+			{},
+			{ limit: null }
+		);
 		// TODO: Nonce overwrite should be removed once the Network module has been fully integreated into core and the old peer system has been fully removed.
 		// We need this because the old peer system which runs in parallel will conflict with the new one if they share the same nonce.
 		const moduleNonce = randomstring.generate(16);
@@ -77,9 +106,9 @@ module.exports = class Network {
 			await this.channel.invoke('app:getApplicationState')
 		);
 
-		const seedPeers = await lookupPeersIPs(this.options.list, true);
-		const blacklistedPeers = this.options.access.blackList
-			? this.options.access.blackList.map(peer => ({
+		const seedPeers = await lookupPeersIPs(this.options.seedPeers, true);
+		const blacklistedPeers = this.options.blacklistedPeers
+			? this.options.blacklistedPeers.map(peer => ({
 					ipAddress: peer.ip,
 					wsPort: peer.wsPort,
 			  }))
@@ -92,6 +121,14 @@ module.exports = class Network {
 				ipAddress: peer.ip,
 				wsPort: peer.wsPort,
 			})),
+			triedPeers: triedPeers.map(peer => {
+				const { ip, ...peerWithoutIp } = peer;
+
+				return {
+					ipAddress: ip,
+					...peerWithoutIp,
+				};
+			}),
 		};
 
 		this.p2p = new P2P(p2pConfig);
@@ -238,6 +275,23 @@ module.exports = class Network {
 
 	async cleanup() {
 		// TODO: Unsubscribe 'app:state:updated' from channel.
+		// TODO: In phase 2, only triedPeers will be saved to database
+		const peersToSave = this.p2p.getNetworkStatus().triedPeers.map(peer => {
+			const { ipAddress, ...peerWithoutIp } = peer;
+
+			return {
+				ip: ipAddress,
+				...peerWithoutIp,
+			};
+		});
+		// Add new peers that have been tried
+		if (peersToSave.length !== 0) {
+			// First delete all the previously saved peers
+			await this.storage.entities.Peer.delete();
+			await this.storage.entities.Peer.create(peersToSave);
+			this.logger.info('Saved all the peers to DB that have been tried');
+		}
+
 		return this.p2p.stop();
 	}
 };

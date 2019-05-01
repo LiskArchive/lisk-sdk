@@ -189,24 +189,27 @@ module.exports = class Chain {
 
 			self.logger.info('Modules ready and launched');
 
-			this.channel.subscribe(
-				'network:subscribe',
-				({ data: { event, data } }) => {
-					if (event === 'postTransactions') {
-						this.scope.modules.transport.shared.postTransactions(data);
-						return;
+			// Avoid receiving blocks/transactions from the network during snapshotting process
+			if (!this.options.loading.snapshotRound) {
+				this.channel.subscribe(
+					'network:subscribe',
+					({ data: { event, data } }) => {
+						if (event === 'postTransactions') {
+							this.scope.modules.transport.shared.postTransactions(data);
+							return;
+						}
+						if (event === 'postSignatures') {
+							this.scope.modules.transport.shared.postSignatures(data);
+							return;
+						}
+						if (event === 'postBlock') {
+							this.scope.modules.transport.shared.postBlock(data);
+							// eslint-disable-next-line no-useless-return
+							return;
+						}
 					}
-					if (event === 'postTransactions') {
-						this.scope.modules.transport.shared.postSignatures(data);
-						return;
-					}
-					if (event === 'postBlock') {
-						this.scope.modules.transport.shared.postBlock(data);
-						// eslint-disable-next-line no-useless-return
-						return;
-					}
-				}
-			);
+				);
+			}
 
 			self.scope = scope;
 		} catch (error) {

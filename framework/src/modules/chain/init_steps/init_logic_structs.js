@@ -21,6 +21,7 @@ module.exports = async ({
 	registeredTransactions,
 }) => {
 	const InitTransaction = require('../logic/init_transaction.js');
+	const processTransactionLogic = require('../logic/process_transaction.js');
 	const Block = require('../logic/block.js');
 	const Account = require('../logic/account.js');
 
@@ -30,7 +31,9 @@ module.exports = async ({
 		});
 	});
 
-	const initTransactionLogic = new InitTransaction(registeredTransactions);
+	const initTransactionLogic = new InitTransaction({
+		registeredTransactions,
+	});
 
 	const blockLogic = await new Promise((resolve, reject) => {
 		new Block(ed, schema, initTransactionLogic, (err, object) => {
@@ -41,6 +44,7 @@ module.exports = async ({
 	return {
 		account: accountLogic,
 		initTransaction: initTransactionLogic,
+		processTransaction: processTransactionLogic,
 		block: blockLogic,
 	};
 };

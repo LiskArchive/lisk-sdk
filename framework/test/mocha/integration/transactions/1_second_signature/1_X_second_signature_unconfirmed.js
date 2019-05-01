@@ -23,7 +23,8 @@ const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
 
-const { NORMALIZER, TRANSACTION_TYPES } = global.constants;
+const { TRANSACTION_TYPES } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 
 describe('integration test (type 1) - sending transactions on top of unconfirmed second signature', () => {
 	let library;

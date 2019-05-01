@@ -41,8 +41,9 @@ describe('expire transactions', () => {
 	const {
 		EXPIRY_INTERVAL,
 		UNCONFIRMED_TRANSACTION_TIME_OUT,
-		NORMALIZER,
 	} = global.constants;
+
+	const { NORMALIZER } = global.__testContext.config;
 
 	// Override transaction expire interval to every 1 second
 	global.constants.EXPIRY_INTERVAL = 1000;

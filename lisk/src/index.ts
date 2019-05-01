@@ -18,23 +18,32 @@ try {
 	// tslint:disable-next-line no-var-requires
 	const genesisBlock = require(`../config/${NETWORK}/genesis_block.json`);
 
-	const constants = {
-		TRANSACTION_TYPES: {
-			DAPP: 5,
-			IN_TRANSFER: 6,
-			OUT_TRANSFER: 7,
-		},
+	const TRANSACTION_TYPES = {
+		DAPP: 5,
+		IN_TRANSFER: 6,
+		OUT_TRANSFER: 7,
 	};
 
 	const app = new Application(genesisBlock, config);
 
-	const { TRANSACTION_TYPES } = constants;
-
 	app.registerTransaction(TRANSACTION_TYPES.DAPP, DappTransaction);
-	app.registerTransaction(TRANSACTION_TYPES.IN_TRANSFER, InTransferTransaction);
+	app.registerTransaction(
+		TRANSACTION_TYPES.IN_TRANSFER,
+		InTransferTransaction,
+		{
+			matcher: context =>
+				context.blockHeight <
+				app.config.modules.chain.exceptions.precedent.disableDappTransfer,
+		}
+	);
 	app.registerTransaction(
 		TRANSACTION_TYPES.OUT_TRANSFER,
-		OutTransferTransaction
+		OutTransferTransaction,
+		{
+			matcher: context =>
+				context.blockHeight <
+				app.config.modules.chain.exceptions.precedent.disableDappTransfer,
+		}
 	);
 
 	app

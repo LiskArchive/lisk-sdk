@@ -21,8 +21,10 @@ const { convertErrorsToString } = require('../helpers/error_handlers');
 // eslint-disable-next-line prefer-const
 let Broadcaster = require('../logic/broadcaster');
 const definitions = require('../schema/definitions');
+const processTransactionLogic = require('../logic/process_transaction');
 
 const { MAX_SHARED_TRANSACTIONS } = global.constants;
+
 // Private fields
 let modules;
 let library;
@@ -173,7 +175,7 @@ __private.receiveTransactions = function(
  * @returns {setImmediateCallback} cb, err
  * @todo Add description for the params
  */
-__private.receiveTransaction = function(
+__private.receiveTransaction = async function(
 	transactionJSON,
 	nonce,
 	extraLogMessage,
@@ -182,10 +184,19 @@ __private.receiveTransaction = function(
 	const id = transactionJSON ? transactionJSON.id : 'null';
 	let transaction;
 	try {
-		transaction = library.logic.initTransaction.jsonRead(transactionJSON);
-		const { errors } = transaction.validate();
-		if (errors.length > 0) {
-			throw errors;
+		transaction = library.logic.initTransaction.fromJson(transactionJSON);
+
+		const composedTransactionsCheck = processTransactionLogic.composeTransactionSteps(
+			modules.processTransactions.checkAllowedTransactions,
+			modules.processTransactions.validateTransactions
+		);
+
+		const { transactionsResponses } = await composedTransactionsCheck([
+			transaction,
+		]);
+
+		if (transactionsResponses[0].errors.length > 0) {
+			throw transactionsResponses[0].errors;
 		}
 	} catch (errors) {
 		const errString = convertErrorsToString(errors);
@@ -243,6 +254,7 @@ Transport.prototype.onBind = function(scope) {
 		multisignatures: scope.modules.multisignatures,
 		peers: scope.modules.peers,
 		transactions: scope.modules.transactions,
+		processTransactions: scope.modules.processTransactions,
 	};
 
 	__private.broadcaster.bind(

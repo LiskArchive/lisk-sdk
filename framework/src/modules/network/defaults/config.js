@@ -30,10 +30,7 @@ const defaultConfig = {
 			env: 'LISK_ADDRESS',
 			arg: '--address,-a',
 		},
-		enabled: {
-			type: 'boolean',
-		},
-		list: {
+		seedPeers: {
 			type: 'array',
 			items: {
 				type: 'object',
@@ -52,56 +49,36 @@ const defaultConfig = {
 			env: { variable: 'LISK_PEERS', formatter: 'stringToIpPortSet' },
 			arg: { name: '--peers,-x', formatter: 'stringToIpPortSet' }, // TODO: Need to confirm parsing logic, old logic was using network WSPort to be default port for peers, we don't have it at the time of compilation
 		},
-		access: {
-			type: 'object',
-			properties: {
-				blackList: {
-					type: 'array',
-					items: {
-						type: 'string',
-						format: 'ip',
-					},
-				},
-			},
-			required: ['blackList'],
+		discoveryInterval: {
+			type: 'integer',
 		},
-		options: {
-			properties: {
-				timeout: {
-					type: 'integer',
-				},
-				broadhashConsensusCalculationInterval: {
-					type: 'integer',
-				},
-				wsEngine: {
-					type: 'string',
-				},
-				httpHeadersTimeout: {
-					type: 'integer',
-				},
-				httpServerSetTimeout: {
-					type: 'integer',
-				},
+		blacklistedPeers: {
+			type: 'array',
+			items: {
+				type: 'string',
+				format: 'ip',
 			},
-			required: ['timeout'],
+		},
+		wsEngine: {
+			type: 'string',
+		},
+		connectTimeout: {
+			type: 'integer',
+		},
+		ackTimeout: {
+			type: 'integer',
 		},
 	},
-	required: ['enabled', 'list', 'access', 'options', 'wsPort', 'address'],
+	required: ['wsPort', 'seedPeers'],
 	default: {
-		enabled: true,
 		wsPort: 5000,
 		address: '0.0.0.0',
-		list: [],
-		access: {
-			blackList: [],
-		},
-		options: {
-			timeout: 5000,
-			broadhashConsensusCalculationInterval: 5000,
-			wsEngine: 'ws',
-			httpHeadersTimeout: 5000,
-			httpServerSetTimeout: 20000,
-		},
+		discoveryInterval: 30000,
+		seedPeers: [],
+		blacklistedPeers: [],
+		ackTimeout: 20000,
+		connectTimeout: 5000,
+		wsEngine: 'ws',
 	},
 };
 
