@@ -21,7 +21,7 @@ const {
 } = require('../../../../../../../../src/components/storage');
 const {
 	Peer,
-} = require('../../../../../../../../src/modules/chain/components/storage/entities');
+} = require('../../../../../../../../src/modules/network/components/storage/entities');
 const storageSandbox = require('../../../../../../common/storage_sandbox');
 const peersFixtures = require('../../../../../../fixtures/peers');
 
@@ -43,7 +43,7 @@ describe('Peer', () => {
 	before(async () => {
 		storage = new storageSandbox.StorageSandbox(
 			__testContext.config.components.storage,
-			'lisk_test_storage_custom_peer_chain_module'
+			'lisk_test_storage_custom_peer_network_module'
 		);
 		await storage.bootstrap();
 
