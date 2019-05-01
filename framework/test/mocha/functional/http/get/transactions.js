@@ -29,7 +29,8 @@ const SwaggerEndpoint = require('../../../common/swagger_spec');
 const slots = require('../../../../../src/modules/chain/helpers/slots');
 const Scenarios = require('../../../common/scenarios');
 
-const { NORMALIZER, TRANSACTION_TYPES, FEES } = global.constants;
+const { TRANSACTION_TYPES, FEES } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 

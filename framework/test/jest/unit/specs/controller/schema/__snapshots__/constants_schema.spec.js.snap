@@ -5,10 +5,6 @@ Object {
   "additionalProperties": false,
   "default": Object {
     "ACTIVE_DELEGATES": 101,
-    "ADDITIONAL_DATA": Object {
-      "MAX_LENGTH": 64,
-      "MIN_LENGTH": 1,
-    },
     "BLOCK_RECEIPT_TIMEOUT": 20,
     "BLOCK_SLOT_WINDOW": 5,
     "EXPIRY_INTERVAL": 30000,
@@ -23,30 +19,9 @@ Object {
       "VOTE": "100000000",
     },
     "MAX_PAYLOAD_LENGTH": 1048576,
-    "MAX_PEERS": 100,
     "MAX_SHARED_TRANSACTIONS": 100,
     "MAX_VOTES_PER_ACCOUNT": 101,
-    "MAX_VOTES_PER_TRANSACTION": 33,
     "MIN_BROADHASH_CONSENSUS": 51,
-    "MULTISIG_CONSTRAINTS": Object {
-      "KEYSGROUP": Object {
-        "MAX_ITEMS": 15,
-        "MIN_ITEMS": 1,
-      },
-      "LIFETIME": Object {
-        "MAXIMUM": 72,
-        "MINIMUM": 1,
-      },
-      "MIN": Object {
-        "MAXIMUM": 15,
-        "MINIMUM": 1,
-      },
-    },
-    "NETHASHES": Array [
-      "ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511",
-      "da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba",
-    ],
-    "NORMALIZER": "100000000",
     "TOTAL_AMOUNT": "10000000000000000",
     "TRANSACTION_TYPES": Object {
       "DAPP": 5,
@@ -68,27 +43,6 @@ Object {
       "format": "oddInteger",
       "min": 1,
       "type": "number",
-    },
-    "ADDITIONAL_DATA": Object {
-      "properties": Object {
-        "MAX_LENGTH": Object {
-          "const": 64,
-          "description": "Additional data (Max length)",
-          "min": 1,
-          "type": "integer",
-        },
-        "MIN_LENGTH": Object {
-          "const": 1,
-          "description": "Additional data (Min length)",
-          "min": 1,
-          "type": "integer",
-        },
-      },
-      "required": Array [
-        "MIN_LENGTH",
-        "MAX_LENGTH",
-      ],
-      "type": "object",
     },
     "BLOCK_RECEIPT_TIMEOUT": Object {
       "const": 20,
@@ -177,12 +131,6 @@ Object {
       "min": 1,
       "type": "integer",
     },
-    "MAX_PEERS": Object {
-      "const": 100,
-      "description": "Maximum number of peers allowed to connect while broadcasting a block",
-      "min": 1,
-      "type": "integer",
-    },
     "MAX_SHARED_TRANSACTIONS": Object {
       "const": 100,
       "description": "Maximum number of in-memory transactions/signatures shared across peers",
@@ -198,114 +146,11 @@ Object {
       "min": 1,
       "type": "number",
     },
-    "MAX_VOTES_PER_TRANSACTION": Object {
-      "const": 33,
-      "description": "Maximum number of transactions allowed per block",
-      "min": 1,
-      "type": "integer",
-    },
     "MIN_BROADHASH_CONSENSUS": Object {
       "const": 51,
       "description": "Minimum broadhash consensus(%) among connected {MAX_PEERS} peers",
       "min": 1,
       "type": "integer",
-    },
-    "MULTISIG_CONSTRAINTS": Object {
-      "additionalProperties": false,
-      "properties": Object {
-        "KEYSGROUP": Object {
-          "additionalProperties": false,
-          "properties": Object {
-            "MAX_ITEMS": Object {
-              "const": 15,
-              "description": "Maximum allowed number of keys inside a Multisignature pool",
-              "min": 1,
-              "type": "integer",
-            },
-            "MIN_ITEMS": Object {
-              "const": 1,
-              "description": "Minimum allowed number of keys inside a Multisignature pool",
-              "min": 1,
-              "type": "integer",
-            },
-          },
-          "required": Array [
-            "MIN_ITEMS",
-            "MAX_ITEMS",
-          ],
-          "type": "object",
-        },
-        "LIFETIME": Object {
-          "additionalProperties": false,
-          "properties": Object {
-            "MAXIMUM": Object {
-              "const": 72,
-              "description": "Maximum timeframe in which multisignature transaction will exist in memory before the transaction is confirmed",
-              "min": 1,
-              "type": "integer",
-            },
-            "MINIMUM": Object {
-              "const": 1,
-              "description": "Minimum timeframe in which a multisignature transaction will exist in memory before the transaction is confirmed",
-              "min": 1,
-              "type": "integer",
-            },
-          },
-          "required": Array [
-            "MINIMUM",
-            "MAXIMUM",
-          ],
-          "type": "object",
-        },
-        "MIN": Object {
-          "properties": Object {
-            "MAXIMUM": Object {
-              "const": 15,
-              "description": "Maximum allowed number of signatures required to process a multisignature transaction",
-              "maximum": Object {
-                "$data": "/MULTISIG_CONSTRAINTS/KEYSGROUP/MAX_ITEMS",
-              },
-              "min": 1,
-              "type": "number",
-            },
-            "MINIMUM": Object {
-              "const": 1,
-              "description": "Minimum allowed number of signatures required to process a multisignature transaction",
-              "min": 1,
-              "type": "integer",
-            },
-          },
-          "required": Array [
-            "MINIMUM",
-            "MAXIMUM",
-          ],
-          "type": "object",
-        },
-      },
-      "required": Array [
-        "MIN",
-        "LIFETIME",
-        "KEYSGROUP",
-      ],
-      "type": "object",
-    },
-    "NETHASHES": Object {
-      "const": Array [
-        "ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511",
-        "da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba",
-      ],
-      "description": "For mainnet and testnet",
-      "items": Object {
-        "format": "hex",
-        "type": "string",
-      },
-      "type": "array",
-    },
-    "NORMALIZER": Object {
-      "const": "100000000",
-      "description": "Use this to convert LISK amount to normal value",
-      "format": "amount",
-      "type": "string",
     },
     "TOTAL_AMOUNT": Object {
       "const": "10000000000000000",
@@ -371,18 +216,12 @@ Object {
   "required": Array [
     "ACTIVE_DELEGATES",
     "BLOCK_SLOT_WINDOW",
-    "ADDITIONAL_DATA",
     "BLOCK_RECEIPT_TIMEOUT",
     "FEES",
     "MAX_PAYLOAD_LENGTH",
-    "MAX_PEERS",
     "MAX_SHARED_TRANSACTIONS",
-    "MAX_VOTES_PER_TRANSACTION",
     "MAX_VOTES_PER_ACCOUNT",
     "MIN_BROADHASH_CONSENSUS",
-    "MULTISIG_CONSTRAINTS",
-    "NETHASHES",
-    "NORMALIZER",
     "TOTAL_AMOUNT",
     "TRANSACTION_TYPES",
     "UNCONFIRMED_TRANSACTION_TIMEOUT",
