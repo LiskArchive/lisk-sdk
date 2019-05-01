@@ -405,7 +405,6 @@ export class Peer extends EventEmitter {
 						reject(
 							new RPCResponseError(
 								`Failed to handle response for procedure ${packet.procedure}`,
-								new Error('RPC response format was invalid'),
 								this.ipAddress,
 								this.wsPort,
 							),
@@ -426,7 +425,6 @@ export class Peer extends EventEmitter {
 		} catch (error) {
 			throw new RPCResponseError(
 				'Failed to fetch peer list of peer',
-				error,
 				this.ipAddress,
 				this.wsPort,
 			);
@@ -445,7 +443,6 @@ export class Peer extends EventEmitter {
 
 			throw new RPCResponseError(
 				'Failed to fetch peer info of peer',
-				error,
 				this.ipAddress,
 				this.wsPort,
 			);
@@ -692,7 +689,6 @@ export const connectAndRequest = async (
 							`Failed to handle response for procedure ${
 								requestPacket.procedure
 							}`,
-							new Error('RPC response format was invalid'),
 							basicPeerInfo.ipAddress,
 							basicPeerInfo.wsPort,
 						),
@@ -729,7 +725,6 @@ export const connectAndFetchPeerInfo = async (
 			`Error occurred while fetching information from ${
 				basicPeerInfo.ipAddress
 			}:${basicPeerInfo.wsPort}`,
-			error,
 		);
 	}
 };

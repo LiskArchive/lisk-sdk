@@ -23,7 +23,7 @@ const localCommon = require('./common');
 
 const { REWARDS } = global.constants;
 
-describe('snapshotting', () => {
+describe('rebuilding', () => {
 	let library;
 	let Queries;
 	let addTransactionsAndForgePromise;
@@ -31,7 +31,7 @@ describe('snapshotting', () => {
 	// Set rewards start at 150-th block
 	REWARDS.OFFSET = 150;
 
-	localCommon.beforeBlock('snapshotting', lib => {
+	localCommon.beforeBlock('rebuilding', lib => {
 		library = lib;
 		Queries = new QueriesHelper(lib, lib.components.storage);
 
@@ -50,8 +50,8 @@ describe('snapshotting', () => {
 		});
 	}
 
-	describe('snapshotting to end of round 2 when blockchain contains 303 blocks', () => {
-		let memAccountsBeforeSnapshot;
+	describe('rebuilding to end of round 2 when blockchain contains 303 blocks', () => {
+		let memAccountsBeforeRebuild;
 
 		before(() => {
 			const data = 'Lindsay 💖';
@@ -80,9 +80,9 @@ describe('snapshotting', () => {
 					.then(() => {
 						return getMemAccounts().then(_accounts => {
 							// Save copy of mem_accounts table
-							memAccountsBeforeSnapshot = _.cloneDeep(_accounts);
+							memAccountsBeforeRebuild = _.cloneDeep(_accounts);
 							// Forge one more round of blocks to reach height 303
-							// blocks from that round should be deleted during snapshotting process)
+							// blocks from that round should be deleted during rebuilding process)
 							return Promise.mapSeries([...Array(101)], async () => {
 								return addTransactionsAndForgePromise(library, [], 0);
 							});
@@ -91,22 +91,22 @@ describe('snapshotting', () => {
 			);
 		});
 
-		it('mem_accounts states after snapshotting should match copy taken after round 2', done => {
+		it('mem_accounts states after rebuilding should match copy taken after round 2', done => {
 			const lastBlock = library.modules.blocks.lastBlock.get();
 			expect(lastBlock.height).to.eql(303);
 
 			const __private = library.rewiredModules.loader.__get__('__private');
 
 			library.rewiredModules.loader.__set__(
-				'library.config.loading.snapshotRound',
+				'library.config.loading.rebuildUpToRound',
 				2
 			);
 
-			__private.snapshotFinished = function(err) {
+			__private.rebuildFinished = function(err) {
 				expect(err).to.not.exist;
 				getMemAccounts()
 					.then(_accounts => {
-						expect(_accounts).to.deep.equal(memAccountsBeforeSnapshot);
+						expect(_accounts).to.deep.equal(memAccountsBeforeRebuild);
 						done();
 					})
 					.catch(getMemAccountsErr => {

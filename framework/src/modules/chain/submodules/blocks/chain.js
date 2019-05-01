@@ -102,8 +102,8 @@ Chain.prototype.saveGenesisBlock = function(cb) {
 			// FIXME: This will fail if we already have genesis block in database, but with different ID
 			const block = {
 				...library.genesisBlock.block,
-				transactions: library.genesisBlock.block.transactions.map(transaction =>
-					library.logic.initTransaction.jsonRead(transaction)
+				transactions: library.logic.initTransaction.fromBlock(
+					library.genesisBlock.block
 				),
 			};
 			return self.saveBlock(block, err => setImmediate(cb, err));
@@ -458,13 +458,6 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 		.catch(reason => {
 			modules.blocks.isActive.set(false);
 			block = null;
-
-			// Finish here if snapshotting.
-			// FIXME: Not the best place to do that
-			if (reason.name === 'Snapshot finished') {
-				library.logger.info(reason);
-				process.emit('SIGTERM');
-			}
 
 			return setImmediate(cb, reason);
 		});

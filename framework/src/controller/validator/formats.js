@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const ip = require('ip');
 const _ = require('lodash');
 const Bignum = require('bignumber.js');
@@ -5,6 +21,11 @@ const Bignum = require('bignumber.js');
 const HOSTNAME = /^[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?(\.[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?)*$/;
 
 const UINT64_MAX = new Bignum('18446744073709551615');
+
+const ADDITIONAL_DATA = {
+	MIN_LENGTH: 1,
+	MAX_LENGTH: 64,
+};
 
 /**
  *
@@ -53,7 +74,6 @@ const validationFormats = {
 		 * This deconstruction has to take place here because
 		 * global.constants will be defined in test/setup.js.
 		 */
-		const { ADDITIONAL_DATA } = global.constants;
 		if (typeof str !== 'string') {
 			return false;
 		}

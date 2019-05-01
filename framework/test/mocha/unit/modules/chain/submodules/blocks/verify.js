@@ -24,7 +24,7 @@ const {
 const InitTransaction = require('../../../../../../../src/modules/chain/logic/init_transaction');
 const { Transaction } = require('../../../../../fixtures/transactions');
 
-const initTransaction = new InitTransaction(registeredTransactions);
+const initTransaction = new InitTransaction({ registeredTransactions });
 
 const BlocksVerify = rewire(
 	'../../../../../../../src/modules/chain/submodules/blocks/verify'
@@ -74,7 +74,7 @@ describe('blocks/verify', () => {
 
 		configMock = {
 			loading: {
-				snapshotRound: null,
+				rebuildUpToRound: null,
 			},
 		};
 
@@ -132,6 +132,9 @@ describe('blocks/verify', () => {
 
 		const modulesProcessTransactionsStub = {
 			verifyTransactions: sinonSandbox.stub(),
+			checkAllowedTransactions: sinonSandbox.stub().returns({
+				transactionsResponses: [],
+			}),
 		};
 
 		bindingsStub = {
@@ -612,10 +615,10 @@ describe('blocks/verify', () => {
 		let verifyPayload;
 
 		const payloadHash = crypto.createHash('sha256');
-		const transactionOne = initTransaction.jsonRead(
+		const transactionOne = initTransaction.fromJson(
 			new Transaction({ type: 0 })
 		);
-		const transactionTwo = initTransaction.jsonRead(
+		const transactionTwo = initTransaction.fromJson(
 			new Transaction({ type: 0 })
 		);
 		const transactions = [transactionOne, transactionTwo];
@@ -1762,6 +1765,17 @@ describe('blocks/verify', () => {
 		let validTransactionsResponse;
 		let invalidTransactionsResponse;
 
+		beforeEach(async () => {
+			dummyBlock = {
+				id: 1,
+				transactions: [
+					{
+						id: '123',
+					},
+				],
+			};
+		});
+
 		describe('when block.transactions is empty', () => {
 			it('should not throw', async () => {
 				dummyBlock = { id: 1, transactions: [] };
@@ -1771,17 +1785,6 @@ describe('blocks/verify', () => {
 		});
 
 		describe('when block.transactions is not empty', () => {
-			beforeEach(async () => {
-				dummyBlock = {
-					id: 1,
-					transactions: [
-						{
-							id: '123',
-						},
-					],
-				};
-			});
-
 			describe('when checkExists is set to true', () => {
 				describe('when Transaction.get returns confirmed transactions', () => {
 					beforeEach(async () => {
@@ -1791,8 +1794,8 @@ describe('blocks/verify', () => {
 					});
 
 					it('should throw error when transaction is already confirmed', async () => {
-						expect(__private.checkTransactions(dummyBlock.transactions, true))
-							.to.eventually.rejected;
+						expect(__private.checkTransactions(dummyBlock, true)).to.eventually
+							.rejected;
 					});
 				});
 
@@ -1823,7 +1826,7 @@ describe('blocks/verify', () => {
 						modules.processTransactions.verifyTransactions.resolves(
 							validTransactionsResponse
 						);
-						await __private.checkTransactions(dummyBlock.transactions, true);
+						await __private.checkTransactions(dummyBlock, true);
 						expect(modules.processTransactions.verifyTransactions).to.be
 							.calledOnce;
 					});
@@ -1832,10 +1835,32 @@ describe('blocks/verify', () => {
 						modules.processTransactions.verifyTransactions.resolves(
 							invalidTransactionsResponse
 						);
-						expect(__private.checkTransactions(dummyBlock.transactions, true))
-							.to.eventually.throw;
+						expect(__private.checkTransactions(dummyBlock, true)).to.eventually
+							.throw;
 					});
 				});
+			});
+
+			it('should call modules.processTransactions.checkAllowedTransactions', async () => {
+				__private.checkTransactions(dummyBlock, false);
+
+				expect(modules.processTransactions.checkAllowedTransactions).to.have
+					.been.called;
+			});
+
+			it('should throw an array of errors if transactions are not allowed', async () => {
+				modules.processTransactions.checkAllowedTransactions.returns({
+					transactionsResponses: [
+						{
+							id: 1,
+							status: transactionStatus.FAIL,
+							errors: [new Error('anError')],
+						},
+					],
+				});
+
+				expect(__private.checkTransactions(dummyBlock, false)).to.eventually.be
+					.rejected;
 			});
 		});
 	});
@@ -1880,9 +1905,7 @@ describe('blocks/verify', () => {
 				broadcast
 			);
 			expect(__private.validateBlockSlot).to.have.been.calledWith(dummyBlock);
-			expect(__private.checkTransactions).to.have.been.calledWith(
-				dummyBlock.transactions
-			);
+			expect(__private.checkTransactions).to.have.been.calledWith(dummyBlock);
 			expect(modules.blocks.chain.applyBlock).to.have.been.calledWith(
 				dummyBlock,
 				saveBlock

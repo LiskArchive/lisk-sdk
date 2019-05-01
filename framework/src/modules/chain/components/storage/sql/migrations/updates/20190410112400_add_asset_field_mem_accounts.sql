@@ -12,6 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-module.exports = {};
+/*
+   DESCRIPTION: Add asset field for mem_accounts column
+   PARAMETERS: None
+*/
+
+ -- Add asset column to trs table as jsonb
+ALTER TABLE "mem_accounts" ADD COLUMN IF NOT EXISTS "asset" jsonb;
+
+-- Create index for asset field. Using `gin` index as it's more efficient for keys or key/value search.
+CREATE INDEX IF NOT EXISTS "mem_accounts_asset" ON "mem_accounts" USING gin ("asset");

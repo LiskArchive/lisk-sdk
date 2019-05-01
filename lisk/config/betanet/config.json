@@ -16,7 +16,7 @@
 			"httpPort": 5000
 		},
 		"network": {
-			"list": [
+			"seedPeers": [
 				{
 					"ip": "betanet-seed-01.lisk.io",
 					"wsPort": 5001

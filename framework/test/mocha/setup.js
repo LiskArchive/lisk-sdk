@@ -57,6 +57,27 @@ if (process.env.LOG_DB_EVENTS === 'true') {
 
 testContext.config = config;
 testContext.config.constants = _.cloneDeep(app.constants);
+testContext.config.NORMALIZER = '100000000';
+testContext.config.ADDITIONAL_DATA = {
+	MIN_LENGTH: 1,
+	MAX_LENGTH: 64,
+};
+testContext.config.MAX_VOTES_PER_TRANSACTION = 33;
+testContext.config.MULTISIG_CONSTRAINTS = {
+	MIN: {
+		MINIMUM: 1,
+		MAXIMUM: 15,
+	},
+	LIFETIME: {
+		MINIMUM: 1,
+		MAXIMUM: 72,
+	},
+	KEYSGROUP: {
+		MIN_ITEMS: 1,
+		MAX_ITEMS: 15,
+	},
+};
+
 testContext.config.genesisBlock = _.cloneDeep(app.genesisBlock);
 testContext.consoleLogLevel =
 	process.env.LOG_LEVEL || config.components.logger.consoleLogLevel;
