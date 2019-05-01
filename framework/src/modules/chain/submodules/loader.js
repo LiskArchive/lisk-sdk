@@ -89,8 +89,8 @@ class Loader {
 		__private.genesisBlock = library.genesisBlock;
 
 		// On App Ready
-		library.channel.once('chain:bootstrap', () => {
-			self.onAppReady();
+		library.channel.once('network:bootstrap', () => {
+			self.onNetworkReady();
 		});
 
 		setImmediate(cb, null, self);
@@ -958,7 +958,7 @@ Loader.prototype.loaded = function() {
  *
  * @returns {function} Calling __private.syncTimer()
  */
-Loader.prototype.onAppReady = function() {
+Loader.prototype.onNetworkReady = function() {
 	library.logger.trace('Peers ready', { module: 'loader' });
 	// Enforce sync early
 	if (library.config.syncing.active) {
