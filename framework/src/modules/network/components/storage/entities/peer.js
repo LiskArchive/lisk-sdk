@@ -20,7 +20,10 @@ const _ = require('lodash');
 const { defaults, omit, pick } = require('lodash');
 const {
 	entities: { BaseEntity },
-	utils: { filterTypes: { NUMBER, TEXT }, inputSerializers: { stringToByte } },
+	utils: {
+		filterTypes: { NUMBER, TEXT },
+		inputSerializers: { stringToByte },
+	},
 } = require('../../../../../components/storage');
 
 const defaultCreateValues = {};
