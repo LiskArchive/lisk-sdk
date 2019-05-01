@@ -439,12 +439,13 @@
 			}
 		},
 		"network": {
-			"list": [
+			"seedPeers": [
 				{
 					"ip": "127.0.0.1",
 					"wsPort": 5000
 				}
-			]
+			],
+			"wsPort": 5000
 		}
 	}
 }
