@@ -357,7 +357,7 @@ class Application {
 		// TODO: move this configuration to module especific config file
 		const childProcessModules = process.env.LISK_CHILD_PROCESS_MODULES
 			? process.env.LISK_CHILD_PROCESS_MODULES.split(',')
-			: ['http_api'];
+			: [];
 
 		Object.keys(modules).forEach(alias => {
 			this.overrideModuleOptions(alias, {
