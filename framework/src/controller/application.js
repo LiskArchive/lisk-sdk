@@ -168,8 +168,8 @@ class Application {
 		this.registerModule(ChainModule, {
 			registeredTransactions: this.getTransactions(),
 		});
-		this.registerModule(HttpAPIModule);
 		this.registerModule(NetworkModule);
+		this.registerModule(HttpAPIModule);
 		this.overrideModuleOptions(HttpAPIModule.alias, {
 			loadAsChildProcess: true,
 		});
@@ -230,7 +230,7 @@ class Application {
 	 * @param {number} transactionType - Unique integer that identifies the transaction type
 	 * @param {constructor} Transaction - Implementation of @liskhq/lisk-transactions/base_transaction
 	 */
-	registerTransaction(transactionType, Transaction) {
+	registerTransaction(transactionType, Transaction, options = {}) {
 		// TODO: Validate the transaction is properly inherited from base class
 		assert(
 			Number.isInteger(transactionType),
@@ -241,6 +241,12 @@ class Application {
 			`A transaction type "${transactionType}" is already registered.`
 		);
 		assert(Transaction, 'Transaction implementation is required');
+
+		if (options.matcher) {
+			Object.defineProperty(Transaction.prototype, 'matcher', {
+				get: () => options.matcher,
+			});
+		}
 
 		const transactions = this.getTransactions();
 		transactions[transactionType] = Object.freeze(Transaction);
@@ -351,7 +357,7 @@ class Application {
 		// TODO: move this configuration to module especific config file
 		const childProcessModules = process.env.LISK_CHILD_PROCESS_MODULES
 			? process.env.LISK_CHILD_PROCESS_MODULES.split(',')
-			: ['httpApi'];
+			: [];
 
 		Object.keys(modules).forEach(alias => {
 			this.overrideModuleOptions(alias, {

@@ -13,7 +13,6 @@
  *
  */
 import { expect } from 'chai';
-import { VError } from 'verror';
 import { TransactionError } from '../src/errors';
 
 describe('errors', () => {
@@ -30,10 +29,7 @@ describe('errors', () => {
 			});
 
 			it('should create a new instance of TransactionError', () => {
-				return expect(TxError)
-					.to.be.an('object')
-					.and.be.instanceof(TransactionError)
-					.and.be.instanceof(VError);
+				return expect(TxError).to.be.instanceof(TransactionError);
 			});
 
 			it('should have a `message` string', () => {

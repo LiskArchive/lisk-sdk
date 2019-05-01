@@ -24,7 +24,7 @@ const {
 } = require('../../../../common/registered_transactions');
 const InitTransaction = require('../../../../../../src/modules/chain/logic/init_transaction');
 
-const initTransaction = new InitTransaction(registeredTransactions);
+const initTransaction = new InitTransaction({ registeredTransactions });
 
 const { FEES, TRANSACTION_TYPES } = __testContext.config.constants;
 
@@ -338,7 +338,7 @@ describe('block', () => {
 		data = _.cloneDeep(validDataForBlock);
 		transactions = _.values(transactionsByTypes);
 		transactions = transactions.map(transaction =>
-			initTransaction.jsonRead(transaction)
+			initTransaction.fromJson(transaction)
 		);
 		done();
 	});
@@ -402,7 +402,7 @@ describe('block', () => {
 				beforeEach(done => {
 					// Create 6 multisignature transactions
 					multipleMultisigTx = Array(...Array(5)).map(() =>
-						initTransaction.jsonRead(
+						initTransaction.fromJson(
 							transactionsByTypes[TRANSACTION_TYPES.MULTI]
 						)
 					);
@@ -427,7 +427,7 @@ describe('block', () => {
 
 				beforeEach(done => {
 					multipleMultisigTx = Array(...Array(5)).map(() =>
-						initTransaction.jsonRead(
+						initTransaction.fromJson(
 							transactionsByTypes[TRANSACTION_TYPES.MULTI]
 						)
 					);
@@ -454,7 +454,7 @@ describe('block', () => {
 
 				beforeEach(done => {
 					multipleMultisigTx = Array(...Array(5)).map(() =>
-						initTransaction.jsonRead(
+						initTransaction.fromJson(
 							transactionsByTypes[TRANSACTION_TYPES.MULTI]
 						)
 					);
@@ -480,7 +480,7 @@ describe('block', () => {
 				beforeEach(done => {
 					// Create 6 multisignature transactions
 					multipleMultisigTx = Array(...Array(5)).map(() =>
-						initTransaction.jsonRead(
+						initTransaction.fromJson(
 							transactionsByTypes[TRANSACTION_TYPES.MULTI]
 						)
 					);

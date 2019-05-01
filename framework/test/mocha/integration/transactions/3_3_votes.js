@@ -19,7 +19,7 @@ const accountFixtures = require('../../fixtures/accounts');
 const randomUtil = require('../../common/utils/random');
 const localCommon = require('../common');
 
-const { NORMALIZER } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 
 describe('integration test (type 3) - voting with duplicate submissions', () => {
 	let library;

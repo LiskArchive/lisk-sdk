@@ -41,7 +41,7 @@ module.exports = class ChainModule extends BaseModule {
 		return {
 			author: 'LiskHQ',
 			version: '0.1.0',
-			name: 'lisk-core-chain',
+			name: 'lisk-framework-chain',
 		};
 	}
 
@@ -97,11 +97,8 @@ module.exports = class ChainModule extends BaseModule {
 
 	async load(channel) {
 		this.chain = new Chain(channel, this.options);
-
-		channel.once('network:bootstrap', async () => {
-			await this.chain.bootstrap();
-			channel.publish('chain:bootstrap');
-		});
+		await this.chain.bootstrap();
+		channel.publish('chain:bootstrap');
 	}
 
 	async unload() {

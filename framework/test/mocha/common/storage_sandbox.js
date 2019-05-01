@@ -26,10 +26,13 @@ const {
 	Account,
 	Block,
 	Migration,
-	Peer,
 	Round,
 	Transaction,
 } = require('../../../src/modules/chain/components/storage/entities');
+
+const {
+	Peer,
+} = require('../../../src/modules/network/components/storage/entities');
 
 const dbNames = [];
 

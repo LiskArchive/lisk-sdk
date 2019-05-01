@@ -36,9 +36,7 @@ describe('errors', () => {
 		});
 
 		it('should create a new instance of NotEnoughPeersError', async () => {
-			expect(notEnoughPeersError)
-				.to.be.an('object')
-				.and.be.instanceof(NotEnoughPeersError);
+			expect(notEnoughPeersError).to.be.instanceof(NotEnoughPeersError);
 		});
 
 		it('should set error name to `NotEnoughPeersError`', async () => {
@@ -65,9 +63,7 @@ describe('errors', () => {
 		});
 
 		it('should create a new instance of PeerInboundHandshakeError', async () => {
-			expect(peerTransportError)
-				.to.be.an('object')
-				.and.be.instanceof(PeerInboundHandshakeError);
+			expect(peerTransportError).to.be.instanceof(PeerInboundHandshakeError);
 		});
 
 		it('should set error name to `PeerInboundHandshakeError`', async () => {
@@ -83,22 +79,18 @@ describe('errors', () => {
 		const peerIp = '127.0.0.1:5001';
 		const peerPort = 5001;
 		const defaultMessage = `Error when fetching peerlist of peer with peer ip ${peerIp} and port ${peerPort}`;
-		const defaultError = new Error('Peer not available');
 		let rpcGetPeersFailed: RPCResponseError;
 
 		beforeEach(async () => {
 			rpcGetPeersFailed = new RPCResponseError(
 				defaultMessage,
-				defaultError,
 				peerIp,
 				peerPort,
 			);
 		});
 
 		it('should create a new instance of RPCResponseError', async () => {
-			expect(rpcGetPeersFailed)
-				.to.be.an('object')
-				.and.be.instanceof(RPCResponseError);
+			expect(rpcGetPeersFailed).to.be.instanceof(RPCResponseError);
 		});
 
 		it('should set error name to `RPCResponseError`', async () => {
@@ -116,17 +108,6 @@ describe('errors', () => {
 				.and.to.have.property('peerPort')
 				.which.is.eql(peerPort);
 		});
-
-		it('should set error property cause when passed as an argument', async () => {
-			expect(rpcGetPeersFailed)
-				.and.to.have.property('cause')
-				.and.to.be.a('function');
-
-			expect(rpcGetPeersFailed.cause())
-				.is.instanceOf(Error)
-				.has.property('message')
-				.and.eql('Peer not available');
-		});
 	});
 
 	describe('#InvalidPeer', () => {
@@ -138,9 +119,7 @@ describe('errors', () => {
 		});
 
 		it('should create a new instance of InvalidPeerError', async () => {
-			expect(invalidPeer)
-				.to.be.an('object')
-				.and.be.instanceof(InvalidPeerError);
+			expect(invalidPeer).to.be.instanceof(InvalidPeerError);
 		});
 
 		it('should set error name to `InvalidPeer`', async () => {
@@ -161,9 +140,7 @@ describe('errors', () => {
 		});
 
 		it('should create a new instance of InvalidRPCResponse', async () => {
-			expect(invalidRPCResponse)
-				.to.be.an('object')
-				.and.be.instanceof(InvalidRPCResponseError);
+			expect(invalidRPCResponse).to.be.instanceof(InvalidRPCResponseError);
 		});
 
 		it('should set error name to `InvalidRPCResponseError`', async () => {
@@ -186,9 +163,9 @@ describe('errors', () => {
 		});
 
 		it('should create a new instance of InvalidProtocolMessageError', async () => {
-			expect(invalidProtocolMessageError)
-				.to.be.an('object')
-				.and.be.instanceof(InvalidProtocolMessageError);
+			expect(invalidProtocolMessageError).to.be.instanceof(
+				InvalidProtocolMessageError,
+			);
 		});
 
 		it('should set error name to `InvalidProtocolMessageError`', async () => {
@@ -211,9 +188,7 @@ describe('errors', () => {
 		});
 
 		it('should create a new instance of InvalidRPCRequestError', async () => {
-			expect(invalidRPCRequestError)
-				.to.be.an('object')
-				.and.be.instanceof(InvalidRPCRequestError);
+			expect(invalidRPCRequestError).to.be.instanceof(InvalidRPCRequestError);
 		});
 
 		it('should set error name to `InvalidRPCRequestError`', async () => {
@@ -236,9 +211,9 @@ describe('errors', () => {
 		});
 
 		it('should create a new instance of RPCResponseAlreadySentError', async () => {
-			expect(rpcResponseAlreadySentError)
-				.to.be.an('object')
-				.and.be.instanceof(RPCResponseAlreadySentError);
+			expect(rpcResponseAlreadySentError).to.be.instanceof(
+				RPCResponseAlreadySentError,
+			);
 		});
 
 		it('should set error name to `RPCResponseAlreadySentError`', async () => {
@@ -262,9 +237,7 @@ describe('errors', () => {
 		});
 
 		it('should create a new instance of RequestFailError', async () => {
-			expect(requestFailError)
-				.to.be.an('object')
-				.and.be.instanceof(RequestFailError);
+			expect(requestFailError).to.be.instanceof(RequestFailError);
 		});
 
 		it('should set error name to `RequestFailError`', async () => {

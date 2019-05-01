@@ -35,7 +35,7 @@ module.exports = class NetworkModule extends BaseModule {
 		return {
 			author: 'LiskHQ',
 			version: '0.1.0',
-			name: 'lisk-core-network',
+			name: 'lisk-framework-network',
 		};
 	}
 

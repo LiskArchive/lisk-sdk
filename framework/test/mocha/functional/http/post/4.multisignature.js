@@ -30,7 +30,8 @@ const {
 	createInvalidRegisterMultisignatureTransaction,
 } = require('../../../common/utils/elements');
 
-const { FEES, MULTISIG_CONSTRAINTS } = global.constants;
+const { FEES } = global.constants;
+const { MULTISIG_CONSTRAINTS } = __testContext.config;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 describe('POST /api/transactions (type 4) register multisignature', () => {
 	const scenarios = {

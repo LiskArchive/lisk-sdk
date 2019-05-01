@@ -382,6 +382,16 @@ describe('Dapp transaction class', () => {
 			const errors = (validTestTransaction as any).applyAsset(store);
 			expect(errors).not.to.be.empty;
 		});
+
+		it('should not return error when store includes the same transaction', async () => {
+			const invalidDappTransaction = {
+				...defaultValidDappTransaction.asset,
+			};
+			store.transaction.find = () => invalidDappTransaction;
+
+			const errors = (validTestTransaction as any).applyAsset(store);
+			expect(errors).not.to.be.empty;
+		});
 	});
 
 	describe('#undoAsset', () => {
