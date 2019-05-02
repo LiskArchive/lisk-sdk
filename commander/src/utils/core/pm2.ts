@@ -35,6 +35,12 @@ export interface Pm2Env {
 }
 
 export interface Instance {
+	readonly name: string | undefined;
+	readonly pid: number | undefined;
+	readonly status: ProcessStatus;
+	readonly version: string;
+	readonly network: NETWORK;
+	readonly started_at: string;
 	readonly cpu?: number;
 	readonly memory?: number;
 	readonly dbPort: string;
@@ -42,12 +48,6 @@ export interface Instance {
 	readonly wsPort: string;
 	readonly httpPort: string;
 	readonly installationPath: string;
-	readonly started_at: string;
-	readonly status: ProcessStatus;
-	readonly pid: number | undefined;
-	readonly version: string;
-	readonly name: string | undefined;
-	readonly network: NETWORK;
 }
 
 const connectPM2 = async (): Promise<void> =>
@@ -220,18 +220,18 @@ const extractProcessDetails = (appDesc: ProcessDescription): Instance => {
 	} = pm2_env as Pm2Env;
 
 	return {
-		...monit,
-		status,
-		started_at: new Date(pm_uptime).toLocaleString(),
-		installationPath,
-		version,
 		name,
+		pid,
+		status,
+		version,
 		network,
 		dbPort,
 		redisPort,
 		httpPort,
 		wsPort,
-		pid,
+		installationPath,
+		started_at: new Date(pm_uptime).toLocaleString(),
+		...monit,
 	};
 };
 

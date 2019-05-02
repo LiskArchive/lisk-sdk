@@ -40,8 +40,7 @@ export default class StatusCommand extends BaseCommand {
 		if (name) {
 			const instance = await describeApplication(name);
 
-			// tslint:disable-next-line:no-console
-			console.table(instance);
+			this.print(instance);
 		} else {
 			const instances = await listApplication();
 
@@ -50,17 +49,7 @@ export default class StatusCommand extends BaseCommand {
 					'Lisk Core instances not available, use lisk node:install --help',
 				);
 			} else {
-				const toDisplay = [
-					'name',
-					'status',
-					'network',
-					'version',
-					'started_at',
-					'cpu',
-					'memory',
-				];
-				// tslint:disable-next-line:no-console
-				console.table(instances, toDisplay);
+				this.print(instances);
 			}
 		}
 	}
