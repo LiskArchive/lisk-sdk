@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { flags as flagParser } from '@oclif/command';
 import * as childProcess from 'child_process';
 import BaseCommand from '../../base';
 import { getNetworkConfig } from '../../utils/core/config';
@@ -30,6 +31,17 @@ export default class LogsCommand extends BaseCommand {
 			required: true,
 		},
 	];
+
+	static flags = {
+		json: flagParser.boolean({
+			...BaseCommand.flags.json,
+			hidden: true,
+		}),
+		pretty: flagParser.boolean({
+			...BaseCommand.flags.pretty,
+			hidden: true,
+		}),
+	};
 
 	static description = 'Stream logs of a Lisk Core instance.';
 

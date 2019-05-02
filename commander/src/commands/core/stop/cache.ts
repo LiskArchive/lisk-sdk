@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { flags as flagParser } from '@oclif/command';
 import Listr from 'listr';
 import BaseCommand from '../../../base';
 import { isCacheRunning, stopCache } from '../../../utils/core/cache';
@@ -31,6 +32,17 @@ export default class CacheCommand extends BaseCommand {
 			required: true,
 		},
 	];
+
+	static flags = {
+		json: flagParser.boolean({
+			...BaseCommand.flags.json,
+			hidden: true,
+		}),
+		pretty: flagParser.boolean({
+			...BaseCommand.flags.pretty,
+			hidden: true,
+		}),
+	};
 
 	static description = 'Stop the cache server.';
 

@@ -72,7 +72,14 @@ export default class UpgradeCommand extends BaseCommand {
 	];
 
 	static flags = {
-		...BaseCommand.flags,
+		json: flagParser.boolean({
+			...BaseCommand.flags.json,
+			hidden: true,
+		}),
+		pretty: flagParser.boolean({
+			...BaseCommand.flags.pretty,
+			hidden: true,
+		}),
 		'lisk-version': flagParser.string({
 			...commonFlags.liskVersion,
 		}),

@@ -134,7 +134,14 @@ export default class InstallCommand extends BaseCommand {
 	];
 
 	static flags = {
-		...BaseCommand.flags,
+		json: flagParser.boolean({
+			...BaseCommand.flags.json,
+			hidden: true,
+		}),
+		pretty: flagParser.boolean({
+			...BaseCommand.flags.pretty,
+			hidden: true,
+		}),
 		installationPath: flagParser.string({
 			...commonFlags.installationPath,
 			default: '~/.lisk/instances',
