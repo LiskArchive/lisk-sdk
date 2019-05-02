@@ -22,7 +22,7 @@ const compile = (schema, parentSchema) => {
 
 		// Formatting logic to automatically format the CLI value to the expected type
 		// Only format if the variable exist
-		if (process.env[envVariable.name] !== undefined) {
+		if (variableValue !== undefined) {
 			// eslint-disable-next-line default-case
 			switch (parentSchema.type) {
 				case 'array':
@@ -32,7 +32,7 @@ const compile = (schema, parentSchema) => {
 					variableValue = parseInt(variableValue, 10);
 					break;
 				case 'boolean':
-					variableValue = JSON.parse(variableValue);
+					variableValue = variableValue.toLowerCase() === 'true';
 			}
 		}
 
