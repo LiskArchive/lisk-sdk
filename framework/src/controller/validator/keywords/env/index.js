@@ -26,13 +26,13 @@ const compile = (schema, parentSchema) => {
 			// eslint-disable-next-line default-case
 			switch (parentSchema.type) {
 				case 'array':
-					variableValue = process.env[envVariable.name].split(',');
+					variableValue = variableValue.split(',');
 					break;
 				case 'integer':
-					variableValue = parseInt(process.env[envVariable.name]);
+					variableValue = parseInt(variableValue, 10);
 					break;
 				case 'boolean':
-					variableValue = JSON.parse(process.env[envVariable.name]);
+					variableValue = JSON.parse(variableValue);
 			}
 		}
 

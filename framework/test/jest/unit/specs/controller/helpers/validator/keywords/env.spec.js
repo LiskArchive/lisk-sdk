@@ -36,6 +36,63 @@ describe('validator keyword "env"', () => {
 		expect(data.prop1).toBe('changedValue');
 	});
 
+	it('should accept env variable if specified as integer and format accordingly', () => {
+		const envSchemaWithOutFormatter = {
+			type: 'object',
+			properties: {
+				prop2: {
+					type: 'integer',
+					env: 'PROP2',
+				},
+			},
+		};
+
+		const data = { prop2: '999' };
+		process.env.PROP2 = '999';
+
+		validator.validate(envSchemaWithOutFormatter, data);
+
+		expect(data.prop2).toBe(999);
+	});
+
+	it('should accept env variable if specified as boolean and format accordingly', () => {
+		const envSchemaWithOutFormatter = {
+			type: 'object',
+			properties: {
+				prop3: {
+					type: 'boolean',
+					env: 'PROP3',
+				},
+			},
+		};
+
+		const data = { prop3: 'true' };
+		process.env.PROP3 = 'true';
+
+		validator.validate(envSchemaWithOutFormatter, data);
+
+		expect(data.prop3).toBe(true);
+	});
+
+	it('should accept env variable if specified as array and format accordingly', () => {
+		const envSchemaWithOutFormatter = {
+			type: 'object',
+			properties: {
+				prop4: {
+					type: 'array',
+					env: 'PROP4',
+				},
+			},
+		};
+
+		const data = { prop4: '12,13,14' };
+		process.env.PROP4 = '12,13,14';
+
+		validator.validate(envSchemaWithOutFormatter, data);
+
+		expect(data.prop4).toEqual(['12', '13', '14']);
+	});
+
 	it('should format the value of env variable if specified as an object', () => {
 		const envSchemaWithFormatter = {
 			type: 'object',
