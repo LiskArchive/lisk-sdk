@@ -20,6 +20,8 @@ const compile = (schema, parentSchema) => {
 	return function(data, dataPath, object, key) {
 		let variableValue = process.env[envVariable.name];
 
+		// Formatting logic to automatically format the CLI value to the expected type
+		// Only format if the variable exist
 		if (process.env[envVariable.name] !== undefined) {
 			// eslint-disable-next-line default-case
 			switch (parentSchema.type) {
