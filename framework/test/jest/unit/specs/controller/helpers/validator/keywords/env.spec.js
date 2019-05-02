@@ -74,25 +74,6 @@ describe('validator keyword "env"', () => {
 		expect(data.prop3).toBe(true);
 	});
 
-	it('should accept env variable if specified as array and format accordingly', () => {
-		const envSchemaWithOutFormatter = {
-			type: 'object',
-			properties: {
-				prop4: {
-					type: 'array',
-					env: 'PROP4',
-				},
-			},
-		};
-
-		const data = { prop4: '12,13,14' };
-		process.env.PROP4 = '12,13,14';
-
-		validator.validate(envSchemaWithOutFormatter, data);
-
-		expect(data.prop4).toEqual(['12', '13', '14']);
-	});
-
 	it('should format the value of env variable if specified as an object', () => {
 		const envSchemaWithFormatter = {
 			type: 'object',

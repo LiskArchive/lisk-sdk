@@ -25,9 +25,6 @@ const compile = (schema, parentSchema) => {
 		if (variableValue !== undefined) {
 			// eslint-disable-next-line default-case
 			switch (parentSchema.type) {
-				case 'array':
-					variableValue = variableValue.split(',');
-					break;
 				case 'integer':
 					variableValue = parseInt(variableValue, 10);
 					break;
