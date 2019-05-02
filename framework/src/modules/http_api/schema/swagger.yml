@@ -69,26 +69,26 @@ basePath: /api
 
 # Tags for organizing operations
 tags:
-- name: Accounts
-  description: Account related API calls
-- name: Blocks
-  description: Block related API calls
-- name: Dapps
-  description: Dapps related API calls
-- name: Delegates
-  description: Delegates related API calls
-- name: Node
-  description: Node related API calls
-- name: Peers
-  description: Peers related API Calls
-- name: Signatures
-  description: Signatures related API calls
-- name: Transactions
-  description: Transactions related API calls
-- name: Voters
-  description: Votes related API calls
-- name: Votes
-  description: Votes related API calls
+  - name: Accounts
+    description: Account related API calls
+  - name: Blocks
+    description: Block related API calls
+  - name: Dapps
+    description: Dapps related API calls
+  - name: Delegates
+    description: Delegates related API calls
+  - name: Node
+    description: Node related API calls
+  - name: Peers
+    description: Peers related API Calls
+  - name: Signatures
+    description: Signatures related API calls
+  - name: Transactions
+    description: Transactions related API calls
+  - name: Voters
+    description: Votes related API calls
+  - name: Votes
+    description: Votes related API calls
 
 schemes:
   - http
@@ -99,12 +99,12 @@ paths:
     x-swagger-router-controller: accounts
     get:
       tags:
-      - Accounts
+        - Accounts
       summary: Requests account data
       operationId: getAccounts
       description: Search for matching accounts in the system.
       produces:
-      - application/json
+        - application/json
       parameters:
         - $ref: '#/parameters/address'
         - $ref: '#/parameters/publicKey'
@@ -143,7 +143,7 @@ paths:
     x-swagger-router-controller: accounts
     get:
       tags:
-      - Accounts
+        - Accounts
       summary: Requests multisignature groups data
       operationId: getMultisignatureGroups
       description: Searches for the specified account in the system and responds with a list of the multisignature groups that this account is member of.
@@ -184,7 +184,7 @@ paths:
     x-swagger-router-controller: accounts
     get:
       tags:
-      - Accounts
+        - Accounts
       summary: Requests multisignature membership data
       operationId: getMultisignatureMemberships
       description: Searches for the specified multisignature group and responds with a list of all members of this particular multisignature group.
@@ -221,12 +221,12 @@ paths:
     x-swagger-router-controller: dapps
     get:
       tags:
-      - Dapps
+        - Dapps
       summary: Requests dapps data
       operationId: getDapps
       description: Search for a specified dapp in the system.
       produces:
-      - application/json
+        - application/json
       parameters:
         - name: transactionId
           in: query
@@ -269,13 +269,13 @@ paths:
         500:
           description: Unexpected error
           schema:
-           $ref: '#/definitions/UnexpectedError'
+            $ref: '#/definitions/UnexpectedError'
 
   /peers:
     x-swagger-router-controller: peers
     get:
       tags:
-      - Peers
+        - Peers
       summary: Requests peers data
       operationId: getPeers
       description: Search for specified peers.
@@ -326,12 +326,12 @@ paths:
     x-swagger-router-controller: node
     get:
       tags:
-      - Node
+        - Node
       summary: Requests constants data
       operationId: getConstants
       description: Returns all current constants data on the system, e.g. Lisk epoch time and version.
       produces:
-      - application/json
+        - application/json
       responses:
         200:
           description: Node constants response
@@ -350,12 +350,12 @@ paths:
     x-swagger-router-controller: node
     get:
       tags:
-      - Node
+        - Node
       summary: Requests status data
       operationId: getStatus
       description: Returns all current status data of the node, e.g. height and broadhash.
       produces:
-      - application/json
+        - application/json
       responses:
         200:
           description: Node status response
@@ -412,10 +412,10 @@ paths:
       summary: Toggles the forging status of a delegate
       operationId: updateForgingStatus
       description: |
-       *Attention! This is a **private endpoint only authorized to whitelisted IPs.**
-       To edit the whitelist, please edit the `forging.access.whitelist` section in `config.json`*<br>
-       Upon passing the correct password and publicKey, forging will be enabled or disabled for the delegate of this particular node.
-       The password can be generated locally by encrypting your passphrase, either by using Lisk Commander or with Lisk Elements.
+        *Attention! This is a **private endpoint only authorized to whitelisted IPs.**
+        To edit the whitelist, please edit the `forging.access.whitelist` section in `config.json`*<br>
+        Upon passing the correct password and publicKey, forging will be enabled or disabled for the delegate of this particular node.
+        The password can be generated locally by encrypting your passphrase, either by using Lisk Commander or with Lisk Elements.
       produces:
         - application/json
       consumes:
@@ -438,12 +438,12 @@ paths:
                 description: Forging status of the delegate
               password:
                 type: string
-                example: "happy tree friends"
+                example: 'happy tree friends'
                 minLength: 5
                 description: Password for decrypting passphrase of delegate.
               publicKey:
                 type: string
-                example: "968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b"
+                example: '968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b'
                 format: publicKey
                 description: Public key of the delegate.
       responses:
@@ -541,13 +541,13 @@ paths:
     x-swagger-router-controller: delegates
     get:
       tags:
-      - Delegates
+        - Delegates
       summary: Requests delegates data
       operationId: getDelegates
       x-lisk-cache-enabled: true
       description: Search for a specified delegate in the system.
       produces:
-      - application/json
+        - application/json
       parameters:
         - $ref: '#/parameters/address'
         - $ref: '#/parameters/publicKey'
@@ -653,7 +653,7 @@ paths:
     x-swagger-router-controller: delegates
     get:
       tags:
-      - Delegates
+        - Delegates
       summary: Requests forging stats by delegate
       operationId: getForgingStatistics
       x-lisk-cache-enabled: true
@@ -661,7 +661,7 @@ paths:
         By passing an existing delegate address and the desired unix timestamps, you can get its forging statistics within the specified timespan.
         If no timestamps are provided, it will use the timestamps from Lisk epoch to current date.
       produces:
-      - application/json
+        - application/json
       parameters:
         - in: path
           name: address
@@ -951,7 +951,7 @@ paths:
           type: string
           format: additionalData
           minLength: 1
-          maxLength: 64  # Its an additional check, actual check is 64 bytes
+          maxLength: 64 # Its an additional check, actual check is 64 bytes
       responses:
         200:
           description: Transactions list
@@ -1253,7 +1253,7 @@ definitions:
       id:
         type: string
         format: id
-        example: "222675625422353767"
+        example: '222675625422353767'
         minLength: 1
         maxLength: 20
         description: |
@@ -1370,20 +1370,20 @@ definitions:
         items:
           $ref: '#/definitions/Peer'
       meta:
-       type: object
-       required:
-         - offset
-         - limit
-         - count
-       properties:
-         offset:
-           $ref: '#/definitions/Offset'
-         limit:
-           $ref: '#/definitions/Limit'
-         count:
-           description: Number of peers in the response
-           type: integer
-           example: 100
+        type: object
+        required:
+          - offset
+          - limit
+          - count
+        properties:
+          offset:
+            $ref: '#/definitions/Offset'
+          limit:
+            $ref: '#/definitions/Limit'
+          count:
+            description: Number of peers in the response
+            type: integer
+            example: 100
       links:
         type: object
 
@@ -1537,19 +1537,19 @@ definitions:
       data:
         $ref: '#/definitions/ForgingStats'
       meta:
-       type: object
-       required:
-         - fromTimestamp
-         - toTimestamp
-       properties:
-         fromTimestamp:
-           description: Starting unix timestamp
-           type: integer
-           example: 0
-         toTimestamp:
-           description: Ending unix timestamp
-           type: integer
-           example: 1525861914
+        type: object
+        required:
+          - fromTimestamp
+          - toTimestamp
+        properties:
+          fromTimestamp:
+            description: Starting unix timestamp
+            type: integer
+            example: 0
+          toTimestamp:
+            description: Ending unix timestamp
+            type: integer
+            example: 1525861914
       links:
         type: object
 
@@ -1587,14 +1587,14 @@ definitions:
             type: string
             minLength: 1
       meta:
-       type: object
-       required:
-         - status
-       properties:
-         status:
-           description: Acceptance status for the signature
-           type: boolean
-           example: true
+        type: object
+        required:
+          - status
+        properties:
+          status:
+            description: Acceptance status for the signature
+            type: boolean
+            example: true
       links:
         type: object
 
@@ -1644,14 +1644,14 @@ definitions:
             type: string
             minLength: 1
       meta:
-       type: object
-       required:
-         - status
-       properties:
-         status:
-           description: Acceptance status for transactions
-           type: boolean
-           example: true
+        type: object
+        required:
+          - status
+        properties:
+          status:
+            description: Acceptance status for transactions
+            type: boolean
+            example: true
       links:
         type: object
 
@@ -1671,7 +1671,7 @@ definitions:
       id:
         type: string
         format: id
-        example: "222675625422353767"
+        example: '222675625422353767'
         minLength: 1
         maxLength: 20
         description: |
@@ -1703,7 +1703,7 @@ definitions:
         format: id
         minLength: 1
         maxLength: 20
-        example: "6258354802676165798"
+        example: '6258354802676165798'
         description: |
           The Id of the block, this transaction is included in.
       timestamp:
@@ -1793,7 +1793,7 @@ definitions:
       transactionId:
         type: string
         format: id
-        example: "222675625422353767"
+        example: '222675625422353767'
         minLength: 1
         maxLength: 20
         description: Unique identifier of the multisignature transaction to sign.
@@ -1827,7 +1827,7 @@ definitions:
         format: id
         minLength: 1
         maxLength: 20
-        example: "6258354802676165798"
+        example: '6258354802676165798'
         description: |
           Unique identifier of the block.
           Derived from the block signature.
@@ -1887,7 +1887,7 @@ definitions:
       previousBlockId:
         type: string
         format: id
-        example: "15918760246746894806"
+        example: '15918760246746894806'
         description: The id of the previous block of the chain.
       numberOfTransactions:
         type: integer
@@ -1895,19 +1895,19 @@ definitions:
         description: The number of transactions processed in the block.
       totalAmount:
         type: string
-        example: "150000000"
+        example: '150000000'
         description: The total amount of Lisk transferred.
       totalFee:
         type: string
-        example: "15000000"
+        example: '15000000'
         description: The total amount of fees associated with the block.
       reward:
         type: string
-        example: "50000000"
+        example: '50000000'
         description: The Lisk reward for the delegate.
       totalForged:
         type: string
-        example: "65000000"
+        example: '65000000'
         description: |
           Total amount of LSK that have been forged in this Block.
           Consists of fees and the reward.
@@ -1925,7 +1925,7 @@ definitions:
         format: id
         minLength: 1
         maxLength: 20
-        example: "6258354802676165798"
+        example: '6258354802676165798'
       version:
         type: integer
         example: 0
@@ -1964,7 +1964,7 @@ definitions:
       previousBlockId:
         type: string
         format: id
-        example: "15918760246746894806"
+        example: '15918760246746894806'
 
   CommonBlock:
     x-private: true
@@ -1979,7 +1979,7 @@ definitions:
         format: id
         minLength: 1
         maxLength: 20
-        example: "6258354802676165798"
+        example: '6258354802676165798'
       height:
         type: integer
         example: 123
@@ -1987,7 +1987,7 @@ definitions:
       previousBlock:
         type: string
         format: id
-        example: "15918760246746894806"
+        example: '15918760246746894806'
 
   ForgingStatus:
     type: object
@@ -2081,9 +2081,9 @@ definitions:
         type: number
         example: 4368793
         description: |
-         Returns the slot number in which the forger will be able to forge the next block.
-         Each slot has a timespan of 10 seconds.
-         The first slot began directly after the Lisk Epoch Time.
+          Returns the slot number in which the forger will be able to forge the next block.
+          Each slot has a timespan of 10 seconds.
+          The first slot began directly after the Lisk Epoch Time.
 
   ForgingStats:
     type: object
@@ -2095,19 +2095,19 @@ definitions:
     properties:
       fees:
         type: string
-        example: "15000000"
+        example: '15000000'
         description: Amount of fees, the delegate earned during the timespan.
       rewards:
         type: string
-        example: "50000000"
+        example: '50000000'
         description: Amount of rewards, the delegate earned during the timespan.
       forged:
         type: string
-        example: "65000000"
+        example: '65000000'
         description: Amount of Lisk, that have been transferred inside the forged blocks of a delegate, during the timespan.
       count:
         type: string
-        example: "100"
+        example: '100'
         description: Amount of blocks, that the delegate has forged during the timespan.
 
   Dapp:
@@ -2434,7 +2434,7 @@ definitions:
             type: integer
             example: 15
             description: Number of total Transactions known to the node.
-            
+
   TransactionError:
     type: object
     required:
@@ -2442,10 +2442,10 @@ definitions:
       - id
       - dataPath
     properties:
-      message: 
+      message:
         description: Error message
         type: string
-      name: 
+      name:
         description: Type of Error
         type: string
       id:
@@ -2455,14 +2455,14 @@ definitions:
       dataPath:
         description: Transaction field with error
         type: string
-      expected: 
+      expected:
         description: Expected value
-        type: 
-            - string
-            - number
-      actual: 
+        type:
+          - string
+          - number
+      actual:
         description: Actual value
-        type: 
+        type:
             - string
             - number
 
