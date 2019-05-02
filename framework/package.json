@@ -135,9 +135,5 @@
 		"sinon-chai": "3.3.0",
 		"stampit": "4.2.0",
 		"supertest": "3.3.0"
-	},
-	"lisk": {
-		"minVersion": "1.1.0-rc.0",
-		"protocolVersion": "1.0"
 	}
 }
