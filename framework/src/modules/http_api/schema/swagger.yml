@@ -2463,8 +2463,8 @@ definitions:
       actual:
         description: Actual value
         type:
-            - string
-            - number
+          - string
+          - number
 
   ProcessingError:
     type: object
