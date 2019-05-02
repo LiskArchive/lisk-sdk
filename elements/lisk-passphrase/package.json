@@ -31,7 +31,7 @@
 		"uglify": "uglifyjs -nm -o ./dist-browser/index.min.js ./dist-browser/index.js",
 		"uglify:browsertest": "uglifyjs -o ./browsertest.build/browsertest.min.js ./browsertest.build/browsertest.js",
 		"clean": "./scripts/clean.sh",
-		"format": "prettier --write \"*.{ts,js,json}\" \"{src,test}/**/*.{ts,js,json}\"",
+		"format": "prettier --write '**/*'",
 		"lint": "tslint --format verbose --project .",
 		"lint:fix": "npm run lint -- --fix",
 		"test": "TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/**/*.ts",

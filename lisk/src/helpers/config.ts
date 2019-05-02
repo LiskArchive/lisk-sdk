@@ -1,5 +1,8 @@
-const path = require('path');
-const { configurator } = require('lisk-framework');
+import { configurator } from 'lisk-framework';
+import path from 'path';
+
+// tslint:disable-next-line no-var-requires no-require-imports
+const packageJSON = require('../../package.json');
 
 const appSchema = {
 	type: 'object',
@@ -28,8 +31,6 @@ const appSchema = {
 
 configurator.registerSchema(appSchema);
 
-const packageJSON = require('../../package');
-
 const appConfig = {
 	app: {
 		version: packageJSON.version,
@@ -53,10 +54,6 @@ process.env.LISK_NETWORK = NETWORK;
 configurator.loadConfigFile(
 	path.resolve(__dirname, `../../config/${NETWORK}/config`)
 );
-configurator.loadConfigFile(
-	path.resolve(__dirname, `../../config/${NETWORK}/exceptions`),
-	'modules.chain.exceptions'
-);
 
 if (CUSTOM_CONFIG_FILE) {
 	configurator.loadConfigFile(path.resolve(CUSTOM_CONFIG_FILE));
@@ -67,4 +64,4 @@ const config = configurator.getConfig();
 // To run multiple applications for same network for integration tests
 config.app.label = `lisk-${NETWORK}-${config.modules.http_api.httpPort}`;
 
-module.exports = config;
+export { config };

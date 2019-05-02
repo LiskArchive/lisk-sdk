@@ -17,6 +17,7 @@
 const rewire = require('rewire');
 const chai = require('chai');
 const randomstring = require('randomstring');
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const { transfer, TransactionError } = require('@liskhq/lisk-transactions');
 
 const accountFixtures = require('../../../../fixtures/accounts');
@@ -26,8 +27,10 @@ const {
 	registeredTransactions,
 } = require('../../../../common/registered_transactions');
 const InitTransaction = require('../../../../../../src/modules/chain/logic/init_transaction');
+const ProcessTransactions = require('../../../../../../src/modules/chain/submodules/process_transactions');
+const processTransactionLogic = require('../../../../../../src/modules/chain/logic/process_transaction');
 
-const initTransaction = new InitTransaction(registeredTransactions);
+const initTransaction = new InitTransaction({ registeredTransactions });
 
 const TransportModule = rewire(
 	'../../../../../../src/modules/chain/submodules/transport'
@@ -196,12 +199,21 @@ describe('transport', () => {
 				},
 				httpPort: 8000,
 			},
-			modules: {},
+			modules: {
+				blocks: {
+					lastBlock: {
+						get: sinonSandbox
+							.stub()
+							.returns({ height: 1, version: 1, timestamp: 1 }),
+					},
+				},
+			},
 		};
 	});
 
 	afterEach(done => {
 		restoreRewiredTopDeps();
+		sinonSandbox.restore();
 		done();
 	});
 
@@ -295,7 +307,9 @@ describe('transport', () => {
 					transactions: {
 						processUnconfirmedTransaction: sinonSandbox.stub().callsArg(2),
 					},
+					processTransactions: new ProcessTransactions(() => {}, defaultScope),
 				};
+				modules.processTransactions.onBind(defaultScope);
 
 				restoreRewiredDeps = TransportModule.__set__({
 					library,
@@ -575,6 +589,81 @@ describe('transport', () => {
 				done();
 			});
 
+			afterEach(() => sinonSandbox.restore());
+
+			it('should composeProcessTransactionsSteps with checkAllowedTransactions and validateTransactions', done => {
+				sinonSandbox.spy(processTransactionLogic, 'composeTransactionSteps');
+
+				__private.receiveTransaction(
+					transaction,
+					validNonce,
+					'This is a log message',
+					async () => {
+						expect(
+							processTransactionLogic.composeTransactionSteps
+						).to.have.been.calledWith(
+							modules.processTransactions.checkAllowedTransactions,
+							modules.processTransactions.validateTransactions
+						);
+						done();
+					}
+				);
+			});
+
+			it('should call composedTransactionsCheck an array of transactions', done => {
+				const composedTransactionsCheck = sinonSandbox.stub().returns({
+					transactionsResponses: [
+						{
+							id: transaction.id,
+							status: TransactionStatus.OK,
+							errors: [],
+						},
+					],
+				});
+
+				const tranasactionInstance = library.logic.initTransaction.fromJson(
+					transaction
+				);
+
+				sinonSandbox
+					.stub(processTransactionLogic, 'composeTransactionSteps')
+					.returns(composedTransactionsCheck);
+
+				__private.receiveTransaction(
+					transaction,
+					validNonce,
+					'This is a log message',
+					() => {
+						expect(composedTransactionsCheck).to.have.been.calledWith([
+							tranasactionInstance,
+						]);
+						done();
+					}
+				);
+			});
+
+			it('should call callback with error if transaction is not allowed', done => {
+				const errorMessage = 'Transaction type 0 is currently not allowed.';
+
+				sinonSandbox
+					.stub(initTransaction, 'fromJson')
+					.returns({ ...transaction, matcher: () => false });
+				library.logic = {
+					initTransaction,
+				};
+
+				__private.receiveTransaction(
+					transaction,
+					validNonce,
+					'This is a log message',
+					err => {
+						expect(err[0]).to.be.instanceOf(Error);
+						expect(err[0].message).to.equal(errorMessage);
+						done();
+					}
+				);
+			});
+
 			describe('when transaction and peer are defined', () => {
 				beforeEach(done => {
 					library.logic = {
@@ -596,7 +685,7 @@ describe('transport', () => {
 				it('should call modules.transactions.processUnconfirmedTransaction with transaction and true as arguments', async () =>
 					expect(
 						modules.transactions.processUnconfirmedTransaction.calledWith(
-							initTransaction.jsonRead(transaction),
+							initTransaction.fromJson(transaction),
 							true
 						)
 					).to.be.true);
@@ -623,7 +712,7 @@ describe('transport', () => {
 				});
 
 				it('should call the call back with error message', async () => {
-					initTransaction.jsonRead(invalidTransaction).validate();
+					initTransaction.fromJson(invalidTransaction).validate();
 					expect(errorResult).to.be.an('array');
 					errorResult.forEach(anError => {
 						expect(anError).to.be.instanceOf(TransactionError);
@@ -709,7 +798,7 @@ describe('transport', () => {
 						expect(
 							library.logger.debug.calledWith(
 								'Transaction',
-								initTransaction.jsonRead(transaction)
+								initTransaction.fromJson(transaction)
 							)
 						).to.be.true);
 				});

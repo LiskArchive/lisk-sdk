@@ -14,4 +14,6 @@
 
 'use strict';
 
-module.exports = {};
+module.exports = {
+	Peer: require('./peer'),
+};

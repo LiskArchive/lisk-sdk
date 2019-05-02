@@ -35,10 +35,6 @@ const modulesToInstrument = {
 		identifier: 'modules.chain.submodules.blocks',
 		callbackMethods: ['shared.getBlocks'],
 	},
-	'../submodules/dapps': {
-		identifier: 'modules.chain.submodules.dapps',
-		callbackMethods: ['getDapps'],
-	},
 	'../submodules/delegates': {
 		identifier: 'modules.chain.submodules.delegates',
 		callbackMethods: ['getForgers', 'getDelegates'],

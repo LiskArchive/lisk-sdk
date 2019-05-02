@@ -17,7 +17,7 @@
 const faker = require('faker');
 const difference = require('lodash').difference;
 
-const { ADDITIONAL_DATA } = __testContext.config.constants;
+const { ADDITIONAL_DATA } = global.__testContext.config;
 
 const arrays = [
 	{

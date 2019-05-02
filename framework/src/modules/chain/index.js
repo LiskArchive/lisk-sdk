@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const { config: DefaultConfig } = require('./defaults');
 const Chain = require('./chain');
 const BaseModule = require('../base_module');
@@ -25,7 +41,7 @@ module.exports = class ChainModule extends BaseModule {
 		return {
 			author: 'LiskHQ',
 			version: '0.1.0',
-			name: 'lisk-core-chain',
+			name: 'lisk-framework-chain',
 		};
 	}
 
@@ -81,11 +97,8 @@ module.exports = class ChainModule extends BaseModule {
 
 	async load(channel) {
 		this.chain = new Chain(channel, this.options);
-
-		channel.once('network:bootstrap', async () => {
-			await this.chain.bootstrap();
-			channel.publish('chain:bootstrap');
-		});
+		await this.chain.bootstrap();
+		channel.publish('chain:bootstrap');
 	}
 
 	async unload() {

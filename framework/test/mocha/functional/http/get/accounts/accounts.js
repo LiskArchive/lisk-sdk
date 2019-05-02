@@ -435,8 +435,14 @@ describe('GET /accounts', () => {
 			];
 
 			const [
-				{ body: { data: constansts } },
-				{ body: { data: [{ delegate }] } },
+				{
+					body: { data: constansts },
+				},
+				{
+					body: {
+						data: [{ delegate }],
+					},
+				},
 			] = await Promise.all(promises);
 
 			const calculatedApproval = apiHelpers.calculateApproval(

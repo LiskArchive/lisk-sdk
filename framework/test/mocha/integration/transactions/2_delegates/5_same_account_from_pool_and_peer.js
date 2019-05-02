@@ -20,7 +20,7 @@ const accountFixtures = require('../../../fixtures/accounts');
 const localCommon = require('../../common');
 const randomUtil = require('../../../common/utils/random');
 
-const { NORMALIZER } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 // eslint-disable-next-line
 describe('delegate', () => {
 	let library;

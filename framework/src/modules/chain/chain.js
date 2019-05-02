@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 if (process.env.NEW_RELIC_LICENSE_KEY) {
 	require('./helpers/newrelic_lisk');
 }
@@ -85,7 +101,8 @@ module.exports = class Chain {
 			storageConfig.logFileName === loggerConfig.logFileName
 				? this.logger
 				: createLoggerComponent(
-						Object.assign({}, loggerConfig, {
+						Object.assign({
+							...loggerConfig,
 							logFileName: storageConfig.logFileName,
 						})
 				  );
@@ -105,14 +122,17 @@ module.exports = class Chain {
 		// Needs to be loaded here as its using constants that need to be initialized first
 		this.slots = require('./helpers/slots');
 
-		if (this.options.loading.snapshotRound) {
-			this.options.network.enabled = false;
-			this.options.network.list = [];
+		// Deactivate broadcast and syncing during snapshotting process
+		if (this.options.loading.rebuildUpToRound) {
 			this.options.broadcasts.active = false;
 			this.options.syncing.active = false;
 		}
 
 		try {
+			if (!this.options.genesisBlock) {
+				throw Error('Failed to assign nethash from genesis block');
+			}
+
 			// Cache
 			this.logger.debug('Initiating cache...');
 			const cache = createCacheComponent(cacheConfig, this.logger);
@@ -121,15 +141,11 @@ module.exports = class Chain {
 			this.logger.debug('Initiating storage...');
 			const storage = createStorageComponent(storageConfig, dbLogger);
 
-			if (!this.options.genesisBlock) {
-				throw Error('Failed to assign nethash from genesis block');
-			}
-
 			// TODO: For socket cluster child process, should be removed with refactoring of network module
 			this.options.loggerConfig = loggerConfig;
 
 			const self = this;
-			const scope = {
+			this.scope = {
 				lastCommit,
 				ed,
 				build: versionBuild,
@@ -156,44 +172,45 @@ module.exports = class Chain {
 				applicationState: this.applicationState,
 			};
 
-			await bootstrapStorage(scope, global.constants.ACTIVE_DELEGATES);
-			await bootstrapCache(scope);
+			await bootstrapStorage(this.scope, global.constants.ACTIVE_DELEGATES);
+			await bootstrapCache(this.scope);
 
-			scope.bus = await createBus();
-			scope.logic = await initLogicStructure(scope);
-			scope.modules = await initModules(scope);
+			this.scope.bus = await createBus();
+			this.scope.logic = await initLogicStructure(this.scope);
+			this.scope.modules = await initModules(this.scope);
 
-			scope.logic.block.bindModules(scope.modules);
+			this.scope.logic.block.bindModules(this.scope.modules);
 
 			this.channel.subscribe('app:state:updated', event => {
-				Object.assign(scope.applicationState, event.data);
+				Object.assign(this.scope.applicationState, event.data);
 			});
 
 			// Fire onBind event in every module
-			scope.bus.message('bind', scope);
+			this.scope.bus.message('bind', this.scope);
 
 			self.logger.info('Modules ready and launched');
 
-			this.channel.subscribe(
-				'network:subscribe',
-				({ data: { event, data } }) => {
-					if (event === 'postTransactions') {
-						this.scope.modules.transport.shared.postTransactions(data);
-						return;
+			// Avoid receiving blocks/transactions from the network during snapshotting process
+			if (!this.options.loading.rebuildUpToRound) {
+				this.channel.subscribe(
+					'network:subscribe',
+					({ data: { event, data } }) => {
+						if (event === 'postTransactions') {
+							this.scope.modules.transport.shared.postTransactions(data);
+							return;
+						}
+						if (event === 'postSignatures') {
+							this.scope.modules.transport.shared.postSignatures(data);
+							return;
+						}
+						if (event === 'postBlock') {
+							this.scope.modules.transport.shared.postBlock(data);
+							// eslint-disable-next-line no-useless-return
+							return;
+						}
 					}
-					if (event === 'postTransactions') {
-						this.scope.modules.transport.shared.postSignatures(data);
-						return;
-					}
-					if (event === 'postBlock') {
-						this.scope.modules.transport.shared.postBlock(data);
-						// eslint-disable-next-line no-useless-return
-						return;
-					}
-				}
-			);
-
-			self.scope = scope;
+				);
+			}
 		} catch (error) {
 			this.logger.fatal('Chain initialization', {
 				message: error.message,
@@ -274,7 +291,7 @@ module.exports = class Chain {
 	}
 
 	async cleanup(code, error) {
-		const { webSocket, modules, components } = this.scope;
+		const { modules, components } = this.scope;
 		if (error) {
 			this.logger.fatal(error.toString());
 			if (code === undefined) {
@@ -285,11 +302,6 @@ module.exports = class Chain {
 		}
 		this.logger.info('Cleaning chain...');
 
-		if (webSocket) {
-			webSocket.removeAllListeners('fail');
-			webSocket.destroy();
-		}
-
 		if (components !== undefined) {
 			Object.keys(components).forEach(async key => {
 				if (components[key].cleanup) {
@@ -299,11 +311,11 @@ module.exports = class Chain {
 		}
 
 		// Run cleanup operation on each module before shutting down the node;
-		// this includes operations like snapshotting database tables.
+		// this includes operations like the rebuild verification process.
 		await Promise.all(
 			Object.keys(modules).map(key => {
 				if (typeof modules[key].cleanup === 'function') {
-					return promisify(modules[key].cleanup);
+					return modules[key].cleanup();
 				}
 				return true;
 			})
