@@ -1,1 +1,24 @@
-test/.coverage-unit
+# Files
+Jenkinsfile*
+Makefile
+Dockerfile
+
+.gitkeep
+mocha.opts
+
+# rc files
+.*rc
+## ignore files
+.*ignore
+
+# Ignore extensions
+*.png
+*.sql
+## jest snapshot
+*.snap
+
+# project specific paths
+test/.coverage-unit/
+helm
+build/
+docker/.env*

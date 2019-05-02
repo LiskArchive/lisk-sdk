@@ -19,7 +19,9 @@ const assert = require('assert');
 const { defaults, omit, pick } = require('lodash');
 const {
 	entities: { BaseEntity },
-	utils: { filterTypes: { NUMBER, TEXT } },
+	utils: {
+		filterTypes: { NUMBER, TEXT },
+	},
 } = require('../../../../../components/storage');
 
 const defaultCreateValues = {};

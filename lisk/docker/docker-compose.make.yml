@@ -1,8 +1,7 @@
 # This file is used by the Makefile.
 # You should never need to modify it.
-version: "3"
+version: '3'
 services:
-
   db-task:
     image: postgres:10-alpine
     networks:
