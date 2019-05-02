@@ -49,7 +49,30 @@ export default class StatusCommand extends BaseCommand {
 					'Lisk Core instances not available, use lisk node:install --help',
 				);
 			} else {
-				this.print(instances);
+				const toDisplay = [
+					'name',
+					'status',
+					'network',
+					'version',
+					'started_at',
+					'cpu',
+					'memory',
+				];
+				const filtered = instances.map(instance =>
+					Object.keys(instance).reduce(
+						(newObj, key) =>
+							toDisplay.includes(key)
+								? {
+										...newObj,
+										[key]: ((instance as unknown) as {
+											readonly [key: string]: string;
+										})[key],
+								  }
+								: newObj,
+						{},
+					),
+				);
+				this.print(filtered);
 			}
 		}
 	}
