@@ -21,7 +21,7 @@ const {
 	/* eslint-disable import/no-unresolved */
 } = require('../../src');
 
-const packageJSON = require('../../package');
+const packageJSON = require('../../../lisk/package.json');
 
 process.env.NODE_ENV = 'test';
 
