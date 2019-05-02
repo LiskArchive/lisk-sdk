@@ -139,6 +139,25 @@ describe('validator keyword "env"', () => {
 		);
 	});
 
+	it('should throw error if env variable for type boolean is incorrect', () => {
+		const invalidSchema = {
+			type: 'object',
+			properties: {
+				prop1: {
+					type: 'boolean',
+					env: 'PROP1',
+				},
+			},
+		};
+
+		const data = { prop1: 'true-wrong' };
+		process.env.PROP1 = 'true-wrong';
+
+		expect(() => validator.validate(invalidSchema, data)).toThrow(
+			'Failed to apply value for option PROP1, use "true" or "false"'
+		);
+	});
+
 	it('should throw error if env variable specified as object with additional attributes', () => {
 		const invalidSchema = {
 			type: 'object',
