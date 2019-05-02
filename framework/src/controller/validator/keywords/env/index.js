@@ -34,7 +34,20 @@ const compile = (schema, parentSchema) => {
 			  };
 
 	return function(data, dataPath, object, key) {
-		const variableValue = process.env[envVariable.name];
+		let variableValue = process.env[envVariable.name];
+
+		// Formatting logic to automatically format the CLI value to the expected type
+		// Only format if the variable exist
+		if (variableValue !== undefined) {
+			// eslint-disable-next-line default-case
+			switch (parentSchema.type) {
+				case 'integer':
+					variableValue = parseInt(variableValue, 10);
+					break;
+				case 'boolean':
+					variableValue = variableValue.toLowerCase() === 'true';
+			}
+		}
 
 		if (variableValue) {
 			object[key] = envVariable.formatter

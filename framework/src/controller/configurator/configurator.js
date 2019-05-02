@@ -110,7 +110,11 @@ class Configurator {
 						typeof value === 'object' ? value.name : value;
 
 					this.metaInfo[parentHumanPath].arg.split(',').forEach(arg => {
+						// Yarg is keeping two arguments in case passed in long format
+						// Example --http-port, will parse as "httpPort" and "http-port"
+						// So we also have to keep both values to check any invalid command line argument
 						this.listOfArgs.add(_.camelCase(arg));
+						this.listOfArgs.add(arg.replace(/(^--)(.*)/, '$2'));
 					});
 				}
 			}
