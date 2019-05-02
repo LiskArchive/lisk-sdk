@@ -1,16 +1,40 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const assert = require('assert');
-const _ = require('lodash');
+const {
+	TransferTransaction,
+	SecondSignatureTransaction,
+	DelegateTransaction,
+	VoteTransaction,
+	MultisignatureTransaction,
+} = require('@liskhq/lisk-transactions');
 const randomstring = require('randomstring');
+const _ = require('lodash');
 const Controller = require('./controller');
 const version = require('../version');
-const validator = require('./helpers/validator');
-const configurator = require('./helpers/configurator');
+const validator = require('./validator');
+const configurator = require('./default_configurator');
 const { genesisBlockSchema, constantsSchema } = require('./schema');
 
 const { createLoggerComponent } = require('../components/logger');
 
 const ChainModule = require('../modules/chain');
 const HttpAPIModule = require('../modules/http_api');
+const NetworkModule = require('../modules/network');
 
 // Private __private used because private keyword is restricted
 const __private = {
@@ -56,7 +80,7 @@ const registerProcessHooks = app => {
  * @requires assert
  * @requires Controller
  * @requires module.defaults
- * @requires helpers/validator
+ * @requires validator
  * @requires schema/application
  * @requires components/logger
  * @requires components/storage
@@ -92,7 +116,7 @@ class Application {
 		let appConfig = _.cloneDeep(config);
 
 		if (!_.has(appConfig, 'app.label')) {
-			_.set(appConfig, 'app.label', genesisBlock.payloadHash);
+			_.set(appConfig, 'app.label', `lisk-${genesisBlock.payloadHash}`);
 		}
 
 		if (!_.has(appConfig, 'components.logger.logFileName')) {
@@ -127,7 +151,24 @@ class Application {
 		__private.modules.set(this, {});
 		__private.transactions.set(this, {});
 
-		this.registerModule(ChainModule);
+		const { TRANSACTION_TYPES } = constants;
+
+		this.registerTransaction(TRANSACTION_TYPES.SEND, TransferTransaction);
+		this.registerTransaction(
+			TRANSACTION_TYPES.SIGNATURE,
+			SecondSignatureTransaction
+		);
+		this.registerTransaction(TRANSACTION_TYPES.DELEGATE, DelegateTransaction);
+		this.registerTransaction(TRANSACTION_TYPES.VOTE, VoteTransaction);
+		this.registerTransaction(
+			TRANSACTION_TYPES.MULTI,
+			MultisignatureTransaction
+		);
+
+		this.registerModule(ChainModule, {
+			registeredTransactions: this.getTransactions(),
+		});
+		this.registerModule(NetworkModule);
 		this.registerModule(HttpAPIModule);
 		this.overrideModuleOptions(HttpAPIModule.alias, {
 			loadAsChildProcess: true,
@@ -186,24 +227,29 @@ class Application {
 	/**
 	 * Register a transaction
 	 *
-	 * @param {constructor} Transaction - Transaction class
-	 * @param {string} alias - Will use this alias or fallback to `Transaction.alias`
+	 * @param {number} transactionType - Unique integer that identifies the transaction type
+	 * @param {constructor} Transaction - Implementation of @liskhq/lisk-transactions/base_transaction
 	 */
-	registerTransaction(Transaction, alias) {
-		assert(Transaction, 'Transaction is required');
-		assert(alias, 'Transaction is required');
-		assert(
-			typeof Transaction === 'function',
-			'Transaction should be constructor'
-		);
+	registerTransaction(transactionType, Transaction, options = {}) {
 		// TODO: Validate the transaction is properly inherited from base class
 		assert(
-			!Object.keys(this.getTransactions()).includes(alias),
-			`A transaction with alias "${alias}" already registered.`
+			Number.isInteger(transactionType),
+			'Transaction type is required as an integer'
 		);
+		assert(
+			!Object.keys(this.getTransactions()).includes(transactionType.toString()),
+			`A transaction type "${transactionType}" is already registered.`
+		);
+		assert(Transaction, 'Transaction implementation is required');
+
+		if (options.matcher) {
+			Object.defineProperty(Transaction.prototype, 'matcher', {
+				get: () => options.matcher,
+			});
+		}
 
 		const transactions = this.getTransactions();
-		transactions[alias] = Object.freeze(Transaction);
+		transactions[transactionType] = Object.freeze(Transaction);
 		__private.transactions.set(this, transactions);
 	}
 
@@ -217,13 +263,13 @@ class Application {
 	}
 
 	/**
-	 * Get one transaction for provided alias
+	 * Get one transaction for provided type
 	 *
-	 * @param {string} alias - Alias for transaction used during registration
+	 * @param {number} transactionType - Unique integer that identifies the transaction type
 	 * @return {constructor|undefined}
 	 */
-	getTransaction(alias) {
-		return __private.transactions.get(this)[alias];
+	getTransaction(transactionType) {
+		return __private.transactions.get(this)[transactionType];
 	}
 
 	/**
@@ -288,7 +334,7 @@ class Application {
 		if (this.controller) {
 			await this.controller.cleanup(errorCode, message);
 		}
-		this.logger.log(`Shutting down with error code ${errorCode}: ${message}`);
+		this.logger.info(`Shutting down with error code ${errorCode}: ${message}`);
 		process.exit(errorCode);
 	}
 
@@ -311,7 +357,7 @@ class Application {
 		// TODO: move this configuration to module especific config file
 		const childProcessModules = process.env.LISK_CHILD_PROCESS_MODULES
 			? process.env.LISK_CHILD_PROCESS_MODULES.split(',')
-			: ['httpApi'];
+			: [];
 
 		Object.keys(modules).forEach(alias => {
 			this.overrideModuleOptions(alias, {
@@ -326,7 +372,7 @@ class Application {
 			protocolVersion: this.config.app.protocolVersion,
 			nonce: this.config.app.nonce,
 			nethash: this.config.app.nethash,
-			wsPort: this.config.modules.chain.network.wsPort,
+			wsPort: this.config.modules.network.wsPort,
 			httpPort: this.config.modules.http_api.httpPort,
 		};
 

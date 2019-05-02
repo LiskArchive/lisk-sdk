@@ -22,7 +22,7 @@ const {
 const localCommon = require('../common');
 const accountFixtures = require('../../fixtures/accounts');
 
-const { NORMALIZER } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 
 describe('integration test (type 0) - votes collision', () => {
 	let library;

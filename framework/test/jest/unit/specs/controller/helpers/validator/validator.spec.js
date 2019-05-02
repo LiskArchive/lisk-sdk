@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const Ajv = require('ajv');
 const {
 	validator,
@@ -6,17 +22,17 @@ const {
 	validate,
 	parseEnvArgAndValidate,
 	ZSchema,
-} = require('../../../../../../../src/controller/helpers/validator');
-const formats = require('../../../../../../../src/controller/helpers/validator/formats');
+} = require('../../../../../../../src/controller/validator');
+const formats = require('../../../../../../../src/controller/validator/formats');
 const {
 	env,
 	arg,
-} = require('../../../../../../../src/controller/helpers/validator/keywords');
+} = require('../../../../../../../src/controller/validator/keywords');
 const { SchemaValidationError } = require('../../../../../../../src/errors');
 
 jest.mock('ajv');
 
-describe('helpers/validator.js', () => {
+describe('validator.js', () => {
 	describe('Ajv instance', () => {
 		it('should be created by given arguments.', () => {
 			// Assert

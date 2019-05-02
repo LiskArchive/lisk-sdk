@@ -16,10 +16,6 @@
 
 require('../../functional');
 
-const {
-	transfer,
-	utils: transactionUtils,
-} = require('@liskhq/lisk-transactions');
 const phases = require('../../../common/phases');
 const Scenarios = require('../../../common/scenarios');
 const waitFor = require('../../../common/utils/wait_for');
@@ -27,7 +23,6 @@ const randomUtil = require('../../../common/utils/random');
 const apiHelpers = require('../../../common/helpers/api');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 
-const { NORMALIZER } = global.constants;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('POST /api/transactions (type 4) register multisignature', () => {
@@ -191,8 +186,10 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 						scenario.multiSigTransaction,
 						apiCodes.PROCESSING_ERROR
 					).then(res => {
-						expect(res.body.message).to.be.equal(
-							'Failed to verify multisignature: '
+						expect(res.body.message).to.eql('Invalid transaction body');
+						expect(res.body.code).to.eql(apiCodes.PROCESSING_ERROR);
+						expect(res.body.errors[0].message).to.be.equal(
+							'\'.signatures[0]\' should match format "signature"'
 						);
 						badTransactions.push(scenario.multiSigTransaction);
 					});
@@ -249,10 +246,10 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 						scenario.multiSigTransaction,
 						apiCodes.PROCESSING_ERROR
 					).then(res => {
-						expect(res.body.message).to.equal(
-							`Failed to verify multisignature: ${
-								signatureFromunknown.signature
-							}`
+						expect(res.body.message).to.be.equal('Invalid transaction body');
+						expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+						expect(res.body.errors[0].message).to.be.equal(
+							`Failed to validate signature ${signatureFromunknown.signature}`
 						);
 						badTransactions.push(scenario.multiSigTransaction);
 					});
@@ -275,8 +272,10 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 						scenario.multiSigTransaction,
 						apiCodes.PROCESSING_ERROR
 					).then(res => {
-						expect(res.body.message).to.match(
-							/^Invalid transaction body - Failed to validate transaction schema: Array items are not unique \(indexes/
+						expect(res.body.message).to.be.equal('Invalid transaction body');
+						expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+						expect(res.body.errors[0].message).to.eql(
+							"'.signatures' should NOT have duplicate items (items ## 1 and 0 are identical)"
 						);
 						badTransactions.push(scenario.multiSigTransaction);
 					});
@@ -306,8 +305,10 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 						scenario.multiSigTransaction,
 						apiCodes.PROCESSING_ERROR
 					).then(res => {
-						expect(res.body.message).to.match(
-							/^Invalid transaction body - Failed to validate transaction schema: Array items are not unique \(indexes/
+						expect(res.body.message).to.be.equal('Invalid transaction body');
+						expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+						expect(res.body.errors[0].message).to.eql(
+							"'.signatures' should NOT have duplicate items (items ## 2 and 0 are identical)"
 						);
 						badTransactions.push(scenario.multiSigTransaction);
 					});
@@ -378,6 +379,8 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			});
 		});
 
+		// Deprecated: requesterPublicKeyProperty no longer in use
+		// eslint-disable-next-line
 		describe('requesterPublicKey property', () => {
 			it('sending multisig transaction offline signed should be ok and confirmed', async () => {
 				const scenario = scenarios.requesterPublicKey;
@@ -405,26 +408,6 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 						return waitFor.confirmations(transactionsToWaitFor);
 					}
 				);
-			});
-
-			it('requesting multisig group transaction from non author account', async () => {
-				const scenario = scenarios.requesterPublicKey;
-
-				const transaction = transfer({
-					amount: (1 * NORMALIZER).toString(),
-					passphrase: scenario.members[0].passphrase,
-					recipientId: randomUtil.account().address,
-				});
-				transaction.requesterPublicKey = scenario.account.publicKey;
-				transaction.id = transactionUtils.getTransactionId(transaction);
-
-				return sendTransactionPromise(
-					transaction,
-					apiCodes.PROCESSING_ERROR
-				).then(res => {
-					expect(res.body.message).to.equal('Multisig request is not allowed');
-					badTransactions.push(transaction);
-				});
 			});
 		});
 	});

@@ -120,15 +120,15 @@ describe('block_version', () => {
 	});
 
 	describe('when there are no exceptions for blocks versions', () => {
-		it('snapshotting should fail', done => {
+		it('rebuilding should fail', done => {
 			const __private = library.rewiredModules.loader.__get__('__private');
 
 			library.rewiredModules.loader.__set__(
-				'library.config.loading.snapshotRound',
+				'library.config.loading.rebuildUpToRound',
 				3
 			);
 
-			__private.snapshotFinished = function(err) {
+			__private.rebuildFinished = function(err) {
 				expect(err).to.equal('Invalid block version');
 				done();
 			};
@@ -138,7 +138,7 @@ describe('block_version', () => {
 	});
 
 	describe('when there are proper exceptions for blocks versions', () => {
-		it('snapshotting should succeed', done => {
+		it('rebuilding should succeed', done => {
 			// Set current block version to 3
 			blockVersion.currentBlockVersion = 3;
 
@@ -152,11 +152,11 @@ describe('block_version', () => {
 			const __private = library.rewiredModules.loader.__get__('__private');
 
 			library.rewiredModules.loader.__set__(
-				'library.config.loading.snapshotRound',
+				'library.config.loading.rebuildUpToRound',
 				3
 			);
 
-			__private.snapshotFinished = function(err) {
+			__private.rebuildFinished = function(err) {
 				expect(err).to.not.exist;
 				done();
 			};

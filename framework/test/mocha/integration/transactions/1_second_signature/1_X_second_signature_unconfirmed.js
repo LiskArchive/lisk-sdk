@@ -23,7 +23,8 @@ const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
 
-const { NORMALIZER, TRANSACTION_TYPES } = global.constants;
+const { TRANSACTION_TYPES } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 
 describe('integration test (type 1) - sending transactions on top of unconfirmed second signature', () => {
 	let library;
@@ -86,7 +87,9 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 							transactionSecondSignature,
 							err => {
 								expect(err).to.equal(
-									`Transaction is already processed: ${
+									`Transaction: ${
+										transactionSecondSignature.id
+									} failed at .id: Transaction is already processed: ${
 										transactionSecondSignature.id
 									}`
 								);
@@ -106,6 +109,32 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 							done();
 						});
 					});
+				} else if (key === 'MULTI') {
+					it(`type ${index}: ${key} should fail`, done => {
+						localCommon.loadTransactionType(
+							key,
+							account,
+							dapp,
+							null,
+							loadedTransaction => {
+								localCommon.addTransaction(library, loadedTransaction, err => {
+									const expectedErrors = [
+										`Transaction: ${
+											loadedTransaction.id
+										} failed at .signSignature: Sender does not have a secondPublicKey`,
+										`Transaction: ${
+											loadedTransaction.id
+										} failed at .signatures: Missing signatures `,
+									];
+									expect(err).to.equal(
+										expectedErrors.join(',')
+										// `Transaction: ${loadedTransaction.id} failed at .signSignature: Sender does not have a secondPublicKey`
+									);
+									done();
+								});
+							}
+						);
+					});
 				} else {
 					it(`type ${index}: ${key} should fail`, done => {
 						localCommon.loadTransactionType(
@@ -116,7 +145,9 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 							loadedTransaction => {
 								localCommon.addTransaction(library, loadedTransaction, err => {
 									expect(err).to.equal(
-										'Sender does not have a second signature'
+										`Transaction: ${
+											loadedTransaction.id
+										} failed at .signSignature: Sender does not have a secondPublicKey`
 									);
 									done();
 								});

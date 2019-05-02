@@ -20,7 +20,7 @@ const accountFixtures = require('../../fixtures/accounts');
 const randomUtil = require('../../common/utils/random');
 const localCommon = require('./../common');
 
-const { NORMALIZER } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 
 describe('integration test - get unconfirmed transactions', () => {
 	const account1 = randomUtil.account();

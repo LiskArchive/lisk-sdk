@@ -1,12 +1,28 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const fs = require('fs-extra');
 const path = require('path');
 const child_process = require('child_process');
 const psList = require('ps-list');
-const systemDirs = require('./helpers/sysmtem_dirs');
+const systemDirs = require('./system_dirs');
 const { InMemoryChannel } = require('./channels');
 const Bus = require('./bus');
 const { DuplicateAppInstanceError } = require('../errors');
-const { validateModuleSpec } = require('./helpers/validator');
+const { validateModuleSpec } = require('./validator');
 const ApplicationState = require('./application_state');
 
 const isPidRunning = async pid =>
@@ -20,7 +36,7 @@ const isPidRunning = async pid =>
  * @requires assert
  * @requires bluebird
  * @requires fs-extra
- * @requires helpers/config
+ * @requires config
  * @requires channels/event_emitter
  * @requires module.Bus
  */

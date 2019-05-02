@@ -18,7 +18,9 @@
 const pgpLib = require('pg-promise');
 const {
 	entities: { BaseEntity },
-	utils: { filterTypes: { NUMBER } },
+	utils: {
+		filterTypes: { NUMBER },
+	},
 } = require('../../../../../../src/components/storage');
 
 describe('BaseEntity', () => {

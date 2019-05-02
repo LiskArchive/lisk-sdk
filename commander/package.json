@@ -29,7 +29,7 @@
 	},
 	"scripts": {
 		"start": "ts-node src/index.js",
-		"format": "prettier --write \"*.{ts,js,json,md}\" \"{docs,src,test}/**/*.{ts,js,json,md}\"",
+		"format": "prettier --write '**/*'",
 		"lint": "tslint --config tslint.json --format codeFrame --project .",
 		"lint:fix": "npm run lint -- --fix",
 		"test": "TS_NODE_TRANSPILE_ONLY=true TS_NODE_FILES=true TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/{,/**/,/**/**/,/**/**/**/}/*.ts",

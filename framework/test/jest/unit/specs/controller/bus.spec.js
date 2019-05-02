@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const { EventEmitter2 } = require('eventemitter2');
 
 const Bus = require('../../../../../src/controller/bus');
@@ -97,10 +113,6 @@ describe('Bus', () => {
 	});
 
 	describe('#publish', () => {
-		it('should throw Error when unregistered event name was provided.', () => {
-			expect(() => bus.publish('unregisteredEvent')).toThrow();
-		});
-
 		it("should call eventemitter2 library's emit method", async () => {
 			// Arrange
 			const moduleAlias = 'alias';

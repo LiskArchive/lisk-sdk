@@ -1,15 +1,29 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 module.exports = async ({
-	config,
 	ed,
 	schema,
-	genesisBlock,
 	components: { storage, logger },
-	applicationState,
+	registeredTransactions,
 }) => {
-	const Transaction = require('../logic/transaction');
-	const Block = require('../logic/block');
-	const Account = require('../logic/account');
-	const Peers = require('../logic/peers');
+	const InitTransaction = require('../logic/init_transaction.js');
+	const processTransactionLogic = require('../logic/process_transaction.js');
+	const Block = require('../logic/block.js');
+	const Account = require('../logic/account.js');
 
 	const accountLogic = await new Promise((resolve, reject) => {
 		new Account(storage, schema, logger, (err, object) => {
@@ -17,36 +31,20 @@ module.exports = async ({
 		});
 	});
 
-	const transactionLogic = await new Promise((resolve, reject) => {
-		new Transaction(
-			storage,
-			ed,
-			schema,
-			genesisBlock,
-			accountLogic,
-			logger,
-			(err, object) => {
-				err ? reject(err) : resolve(object);
-			}
-		);
+	const initTransactionLogic = new InitTransaction({
+		registeredTransactions,
 	});
 
 	const blockLogic = await new Promise((resolve, reject) => {
-		new Block(ed, schema, transactionLogic, (err, object) => {
-			err ? reject(err) : resolve(object);
-		});
-	});
-
-	const peersLogic = await new Promise((resolve, reject) => {
-		new Peers(logger, config, applicationState, (err, object) => {
+		new Block(ed, schema, initTransactionLogic, (err, object) => {
 			err ? reject(err) : resolve(object);
 		});
 	});
 
 	return {
 		account: accountLogic,
-		transaction: transactionLogic,
+		initTransaction: initTransactionLogic,
+		processTransaction: processTransactionLogic,
 		block: blockLogic,
-		peers: peersLogic,
 	};
 };
