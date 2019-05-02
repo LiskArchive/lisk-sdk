@@ -1,9 +1,8 @@
 # Base file, do not modifiy.
 # Make changes in docker-compose.override.yml instead.
 # See https://docs.docker.com/compose/extends/#example-use-case
-version: "3"
+version: '3'
 services:
-
   lisk:
     image: lisk/core:${ENV_LISK_VERSION}
     volumes:
