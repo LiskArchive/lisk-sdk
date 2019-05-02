@@ -1,1 +1,15 @@
 test/.coverage-unit
+Jenkinsfile*
+mocha.opts
+
+.gitkeep
+.eslintignore
+.npmrc
+.npmignore
+.prettierignore
+
+# Ignore extensions
+*.png
+*.sql
+## jest snapshot
+*.snap

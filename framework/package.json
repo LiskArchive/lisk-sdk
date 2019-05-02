@@ -30,7 +30,7 @@
 		"console": "node scripts/console.js",
 		"lint": "eslint .",
 		"lint:fix": "eslint --fix .",
-		"format": "prettier --write \"./*.{js,json,md}\" \"{api,config,docs,helpers,logic,modules,schema,scripts,storage,tasks,test}{,/**}/*.{js,json,md}\"",
+		"format": "prettier --write '**/*'",
 		"test": "npm run jest:unit",
 		"mocha": "mocha",
 		"jest:unit": "jest --config=./test/jest/unit/jest.config.js",
