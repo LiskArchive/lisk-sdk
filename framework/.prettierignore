@@ -1,7 +1,5 @@
 # Files
 Jenkinsfile*
-
-
 .gitkeep
 mocha.opts
 
