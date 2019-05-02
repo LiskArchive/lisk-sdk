@@ -1,15 +1,20 @@
-test/.coverage-unit
+# Files
 Jenkinsfile*
-mocha.opts
+
 
 .gitkeep
-.eslintignore
-.npmrc
-.npmignore
-.prettierignore
+mocha.opts
+
+# rc files
+.*rc
+## ignore files
+.*ignore
 
 # Ignore extensions
 *.png
 *.sql
 ## jest snapshot
 *.snap
+
+# project specific paths
+test/.coverage-unit/
