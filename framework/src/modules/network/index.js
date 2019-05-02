@@ -44,7 +44,7 @@ module.exports = class NetworkModule extends BaseModule {
 	}
 
 	get events() {
-		return ['bootstrap', 'subscribe'];
+		return ['bootstrap', 'event'];
 	}
 
 	get actions() {
