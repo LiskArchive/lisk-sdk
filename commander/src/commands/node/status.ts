@@ -55,7 +55,7 @@ export default class StatusCommand extends BaseCommand {
 					'status',
 					'network',
 					'version',
-					'uptime',
+					'started_at',
 					'cpu',
 					'memory',
 				];

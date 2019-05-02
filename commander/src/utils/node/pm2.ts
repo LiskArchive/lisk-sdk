@@ -42,7 +42,7 @@ export interface Instance {
 	readonly wsPort: string;
 	readonly httpPort: string;
 	readonly installationPath: string;
-	readonly uptime: string;
+	readonly started_at: string;
 	readonly status: ProcessStatus;
 	readonly pid: number | undefined;
 	readonly version: string;
@@ -222,7 +222,7 @@ const extractProcessDetails = (appDesc: ProcessDescription): Instance => {
 	return {
 		...monit,
 		status,
-		uptime: new Date(pm_uptime).toLocaleString(),
+		started_at: new Date(pm_uptime).toLocaleString(),
 		installationPath,
 		version,
 		name,

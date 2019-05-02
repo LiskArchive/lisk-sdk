@@ -49,15 +49,12 @@ export const liskLatestUrl = (url: string, network: NETWORK) =>
 	`${url}/${network}/latest.txt`;
 
 export const liskSnapshotUrl = (url: string, network: NETWORK): string => {
-	if (url && url.search('db.gz') >= 0) {
-		return url;
+	if (url && url.search(RELEASE_URL) >= 0 && url.search('db.gz') >= 0) {
+		return `${RELEASE_URL}/${network}/blockchain.db.gz`;
 	}
 
-	return `${RELEASE_URL}/${network}/blockchain.db.gz`;
+	return url;
 };
-
-export const liskDbSnapshot = (network: NETWORK) =>
-	`${network}-blockchain.db.gz`;
 
 export const logsDir = (installPath: string) =>
 	`${liskInstall(installPath)}/logs`;
@@ -221,28 +218,40 @@ const getEnvByKey = (
 	instances: ReadonlyArray<Instance>,
 	key: string,
 	defaultValue: number,
+	network: NETWORK,
 ): number => {
 	const INCREMENT = 2;
 
 	const maxValue = instances
+		.filter(i => i.network === network)
 		.map(app => ((app as unknown) as { readonly [key: string]: number })[key])
-		.filter(i => i)
 		.reduce((acc, curr) => Math.max(acc, curr), defaultValue);
 
-	return maxValue + INCREMENT;
+	return maxValue + INCREMENT || defaultValue;
 };
 
-export const generateEnvConfig = async (network: NETWORK) => {
+export const generateEnvConfig = async (network: NETWORK): Promise<object> => {
 	const instances = await listApplication();
 
-	const LISK_DB_PORT = getEnvByKey(instances, 'dbPort', POSTGRES_PORT);
-	const LISK_REDIS_PORT = getEnvByKey(instances, 'redisPort', REDIS_PORT);
+	const LISK_DB_PORT = getEnvByKey(instances, 'dbPort', POSTGRES_PORT, network);
+	const LISK_REDIS_PORT = getEnvByKey(
+		instances,
+		'redisPort',
+		REDIS_PORT,
+		network,
+	);
 	const LISK_HTTP_PORT = getEnvByKey(
 		instances,
 		'httpPort',
 		HTTP_PORTS[network],
+		network,
 	);
-	const LISK_WS_PORT = getEnvByKey(instances, 'wsPort', WS_PORTS[network]);
+	const LISK_WS_PORT = getEnvByKey(
+		instances,
+		'wsPort',
+		WS_PORTS[network],
+		network,
+	);
 
 	return {
 		LISK_DB_PORT,

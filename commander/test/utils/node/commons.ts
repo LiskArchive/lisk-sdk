@@ -80,7 +80,8 @@ describe('commons node utils', () => {
 
 	describe('#liskSnapshotUrl', () => {
 		it('should construct snapshot url', () => {
-			const url: string = 'https://downloads.lisk.io/lisk/';
+			const url: string =
+				'https://downloads.lisk.io/lisk/mainnet/blockchain.db.gz';
 			return expect(liskSnapshotUrl(url, NETWORK.MAINNET)).to.equal(
 				`${RELEASE_URL}/${NETWORK.MAINNET}/blockchain.db.gz`,
 			);
@@ -90,14 +91,6 @@ describe('commons node utils', () => {
 			const url: string =
 				'http://snapshots.lisk.io.s3-eu-west-1.amazonaws.com/lisk/mainnet/blockchain.db.gz';
 			return expect(liskSnapshotUrl(url, NETWORK.MAINNET)).to.equal(url);
-		});
-	});
-
-	describe('#liskDbSnapshot', () => {
-		it('should return lisk latest url', () => {
-			return expect(liskDbSnapshot(NETWORK.MAINNET)).to.equal(
-				`${NETWORK.MAINNET}-blockchain.db.gz`,
-			);
 		});
 	});
 

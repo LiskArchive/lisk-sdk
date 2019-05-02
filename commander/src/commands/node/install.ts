@@ -27,7 +27,6 @@ import {
 	getDownloadedFileInfo,
 	getVersionToInstall,
 	isSupportedOS,
-	liskDbSnapshot,
 	liskInstall,
 	liskSnapshotUrl,
 	validateNetwork,
@@ -188,7 +187,6 @@ export default class InstallCommand extends BaseCommand {
 		// TODO: Commander not creating cache directory
 		// This is a patch to handle the scenario
 		fsExtra.ensureDirSync(cacheDir);
-		const snapshotPath = `${cacheDir}/${liskDbSnapshot(network)}`;
 		const snapshotURL = liskSnapshotUrl(snapshotUrl, network);
 
 		const tasks = new Listr([
@@ -261,12 +259,12 @@ export default class InstallCommand extends BaseCommand {
 								await createUser(installDir, network, name);
 								await createDatabase(installDir, network, name);
 								if (!noSnapshot) {
-									await restoreSnapshot(
-										installDir,
-										network,
-										snapshotPath,
-										name,
+									const { filePath } = getDownloadedFileInfo(
+										snapshotURL,
+										cacheDir,
 									);
+
+									await restoreSnapshot(installDir, network, filePath, name);
 								}
 								await stopDatabase(installDir, name);
 							},
