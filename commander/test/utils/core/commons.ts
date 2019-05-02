@@ -9,7 +9,6 @@ import {
 	liskTarSHA256,
 	liskLatestUrl,
 	liskSnapshotUrl,
-	liskDbSnapshot,
 	logsDir,
 	validateNotARootUser,
 	isSupportedOS,
@@ -21,13 +20,13 @@ import {
 	backupLisk,
 	upgradeLisk,
 	validateVersion,
-} from '../../../src/utils/node/commons';
+} from '../../../src/utils/core/commons';
 import { NETWORK, RELEASE_URL } from '../../../src/utils/constants';
-import { defaultLiskInstancePath } from '../../../src/utils/node/config';
-import * as release from '../../../src/utils/node/release';
+import { defaultLiskInstancePath } from '../../../src/utils/core/config';
+import * as release from '../../../src/utils/core/release';
 import * as workerProcess from '../../../src/utils/worker-process';
 
-describe('commons node utils', () => {
+describe('commons core utils', () => {
 	describe('#liskInstall', () => {
 		it('should return resolved home directory', () => {
 			return expect(liskInstall('~/.lisk')).to.equal(`${os.homedir}/.lisk`);

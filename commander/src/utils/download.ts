@@ -15,8 +15,7 @@
  */
 import * as axios from 'axios';
 import fs from 'fs-extra';
-import { dateDiff, getDownloadedFileInfo } from './node/commons';
-import { defaultLiskInstancePath } from './node/config';
+import { dateDiff, getDownloadedFileInfo } from './core/commons';
 import { exec, ExecResult } from './worker-process';
 
 export const download = async (
@@ -25,11 +24,6 @@ export const download = async (
 ): Promise<void> => {
 	const CACHE_EXPIRY_IN_DAYS = 2;
 	const { filePath, fileDir } = getDownloadedFileInfo(url, cacheDir);
-	fs.writeJSONSync(`${defaultLiskInstancePath}/error.log`, {
-		url,
-		filePath,
-		fileDir,
-	});
 
 	if (fs.existsSync(filePath)) {
 		if (

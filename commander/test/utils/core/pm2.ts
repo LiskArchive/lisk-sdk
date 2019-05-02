@@ -8,7 +8,7 @@ import {
 	stopApplication,
 	listApplication,
 	describeApplication,
-} from '../../../src/utils/node/pm2';
+} from '../../../src/utils/core/pm2';
 import { NETWORK } from '../../../src/utils/constants';
 
 const monit = {

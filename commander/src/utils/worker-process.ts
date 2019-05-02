@@ -15,7 +15,7 @@
  */
 import * as childProcess from 'child_process';
 import fsExtra from 'fs-extra';
-import { defaultLiskInstancePath } from './node/config';
+import { defaultLiskInstancePath } from './core/config';
 
 export interface ExecResult {
 	readonly stderr: string;

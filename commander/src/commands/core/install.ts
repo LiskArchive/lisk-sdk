@@ -19,8 +19,6 @@ import Listr from 'listr';
 import * as os from 'os';
 import BaseCommand from '../../base';
 import { NETWORK, SNAPSHOT_URL } from '../../utils/constants';
-import { download, downloadAndValidate, extract } from '../../utils/download';
-import { flags as commonFlags } from '../../utils/flags';
 import {
 	createDirectory,
 	generateEnvConfig,
@@ -33,7 +31,7 @@ import {
 	validateNotARootUser,
 	validateVersion,
 	validURL,
-} from '../../utils/node/commons';
+} from '../../utils/core/commons';
 import {
 	createDatabase,
 	createUser,
@@ -41,9 +39,11 @@ import {
 	restoreSnapshot,
 	startDatabase,
 	stopDatabase,
-} from '../../utils/node/database';
-import { registerApplication } from '../../utils/node/pm2';
-import { getReleaseInfo } from '../../utils/node/release';
+} from '../../utils/core/database';
+import { registerApplication } from '../../utils/core/pm2';
+import { getReleaseInfo } from '../../utils/core/release';
+import { download, downloadAndValidate, extract } from '../../utils/download';
+import { flags as commonFlags } from '../../utils/flags';
 import StartCommand from './start';
 
 interface Flags {

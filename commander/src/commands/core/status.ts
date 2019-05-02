@@ -14,7 +14,7 @@
  *
  */
 import BaseCommand from '../../base';
-import { describeApplication, listApplication } from '../../utils/node/pm2';
+import { describeApplication, listApplication } from '../../utils/core/pm2';
 
 interface Args {
 	readonly name: string;

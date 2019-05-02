@@ -15,14 +15,15 @@
  */
 import Listr from 'listr';
 import BaseCommand from '../../../base';
-import { stopDatabase } from '../../../utils/node/database';
-import { describeApplication } from '../../../utils/node/pm2';
+import { restartApplication } from '../../../utils/core/pm2';
+import CacheCommand from './cache';
+import DatabaseCommand from './database';
 
 interface Args {
 	readonly name: string;
 }
 
-export default class DatabaseCommand extends BaseCommand {
+export default class StartCommand extends BaseCommand {
 	static args = [
 		{
 			name: 'name',
@@ -31,22 +32,27 @@ export default class DatabaseCommand extends BaseCommand {
 		},
 	];
 
-	static description = 'Stop the database server.';
+	static description = 'Start Lisk Core instance.';
 
-	static examples = ['node:stop:database mainnet-latest'];
+	static examples = ['node:start mainnet-latest'];
 
 	async run(): Promise<void> {
-		const { args } = this.parse(DatabaseCommand);
+		const { args } = this.parse(StartCommand);
 		const { name } = args as Args;
-		const { installationPath } = await describeApplication(name);
+
+		// tslint:disable-next-line await-promise
+		await CacheCommand.run([name]);
+		// tslint:disable-next-line await-promise
+		await DatabaseCommand.run([name]);
 
 		const tasks = new Listr([
 			{
-				title: 'Stop the database server',
-				task: async () => stopDatabase(installationPath, name),
+				title: 'Start Lisk Core instance',
+				task: async () => {
+					await restartApplication(name);
+				},
 			},
 		]);
-
 		await tasks.run();
 	}
 }

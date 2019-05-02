@@ -16,12 +16,12 @@
 import * as fsExtra from 'fs-extra';
 import Listr from 'listr';
 import BaseCommand from '../../base';
-import { isCacheRunning, stopCache } from '../../utils/node/cache';
-import { stopDatabase } from '../../utils/node/database';
+import { isCacheRunning, stopCache } from '../../utils/core/cache';
+import { stopDatabase } from '../../utils/core/database';
 import {
 	describeApplication,
 	unRegisterApplication,
-} from '../../utils/node/pm2';
+} from '../../utils/core/pm2';
 
 interface Args {
 	readonly name: string;

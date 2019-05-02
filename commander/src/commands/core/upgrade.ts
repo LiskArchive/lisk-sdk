@@ -18,9 +18,7 @@ import * as fsExtra from 'fs-extra';
 import Listr from 'listr';
 import semver from 'semver';
 import BaseCommand from '../../base';
-import { downloadAndValidate, extract } from '../../utils/download';
-import { flags as commonFlags } from '../../utils/flags';
-import { isCacheRunning, startCache, stopCache } from '../../utils/node/cache';
+import { isCacheRunning, startCache, stopCache } from '../../utils/core/cache';
 import {
 	backupLisk,
 	generateEnvConfig,
@@ -28,17 +26,19 @@ import {
 	getVersionToInstall,
 	upgradeLisk,
 	validateVersion,
-} from '../../utils/node/commons';
-import { getConfig } from '../../utils/node/config';
-import { startDatabase, stopDatabase } from '../../utils/node/database';
+} from '../../utils/core/commons';
+import { getConfig } from '../../utils/core/config';
+import { startDatabase, stopDatabase } from '../../utils/core/database';
 import {
 	describeApplication,
 	registerApplication,
 	restartApplication,
 	stopApplication,
 	unRegisterApplication,
-} from '../../utils/node/pm2';
-import { getReleaseInfo } from '../../utils/node/release';
+} from '../../utils/core/pm2';
+import { getReleaseInfo } from '../../utils/core/release';
+import { downloadAndValidate, extract } from '../../utils/download';
+import { flags as commonFlags } from '../../utils/flags';
 
 interface Flags {
 	readonly 'lisk-version': string;

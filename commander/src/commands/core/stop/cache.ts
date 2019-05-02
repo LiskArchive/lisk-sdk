@@ -15,9 +15,9 @@
  */
 import Listr from 'listr';
 import BaseCommand from '../../../base';
-import { isCacheRunning, stopCache } from '../../../utils/node/cache';
-import { isCacheEnabled } from '../../../utils/node/config';
-import { describeApplication } from '../../../utils/node/pm2';
+import { isCacheRunning, stopCache } from '../../../utils/core/cache';
+import { isCacheEnabled } from '../../../utils/core/config';
+import { describeApplication } from '../../../utils/core/pm2';
 
 interface Args {
 	readonly name: string;

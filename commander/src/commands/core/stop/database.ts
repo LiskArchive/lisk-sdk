@@ -15,8 +15,8 @@
  */
 import Listr from 'listr';
 import BaseCommand from '../../../base';
-import { startDatabase } from '../../../utils/node/database';
-import { describeApplication } from '../../../utils/node/pm2';
+import { stopDatabase } from '../../../utils/core/database';
+import { describeApplication } from '../../../utils/core/pm2';
 
 interface Args {
 	readonly name: string;
@@ -31,9 +31,9 @@ export default class DatabaseCommand extends BaseCommand {
 		},
 	];
 
-	static description = 'Start the database server.';
+	static description = 'Stop the database server.';
 
-	static examples = ['node:start:database mainnet-latest'];
+	static examples = ['node:stop:database mainnet-latest'];
 
 	async run(): Promise<void> {
 		const { args } = this.parse(DatabaseCommand);
@@ -42,8 +42,8 @@ export default class DatabaseCommand extends BaseCommand {
 
 		const tasks = new Listr([
 			{
-				title: 'Start the database server',
-				task: async () => startDatabase(installationPath, name),
+				title: 'Stop the database server',
+				task: async () => stopDatabase(installationPath, name),
 			},
 		]);
 

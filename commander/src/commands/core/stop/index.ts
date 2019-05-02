@@ -15,7 +15,7 @@
  */
 import Listr from 'listr';
 import BaseCommand from '../../../base';
-import { restartApplication } from '../../../utils/node/pm2';
+import { stopApplication } from '../../../utils/core/pm2';
 import CacheCommand from './cache';
 import DatabaseCommand from './database';
 
@@ -23,7 +23,7 @@ interface Args {
 	readonly name: string;
 }
 
-export default class StartCommand extends BaseCommand {
+export default class StopCommand extends BaseCommand {
 	static args = [
 		{
 			name: 'name',
@@ -32,12 +32,12 @@ export default class StartCommand extends BaseCommand {
 		},
 	];
 
-	static description = 'Start Lisk Core instance.';
+	static description = 'Stop Lisk Core instance.';
 
-	static examples = ['node:start mainnet-latest'];
+	static examples = ['node:stop mainnet-latest'];
 
 	async run(): Promise<void> {
-		const { args } = this.parse(StartCommand);
+		const { args } = this.parse(StopCommand);
 		const { name } = args as Args;
 
 		// tslint:disable-next-line await-promise
@@ -47,12 +47,13 @@ export default class StartCommand extends BaseCommand {
 
 		const tasks = new Listr([
 			{
-				title: 'Start Lisk Core instance',
+				title: 'Stop Lisk Core instance',
 				task: async () => {
-					await restartApplication(name);
+					await stopApplication(name);
 				},
 			},
 		]);
+
 		await tasks.run();
 	}
 }

@@ -15,8 +15,8 @@
  */
 import * as childProcess from 'child_process';
 import BaseCommand from '../../base';
-import { getNetworkConfig } from '../../utils/node/config';
-import { describeApplication } from '../../utils/node/pm2';
+import { getNetworkConfig } from '../../utils/core/config';
+import { describeApplication } from '../../utils/core/pm2';
 
 interface Args {
 	readonly name: string;

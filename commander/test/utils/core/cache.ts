@@ -3,11 +3,11 @@ import {
 	isCacheRunning,
 	startCache,
 	stopCache,
-} from '../../../src/utils/node/cache';
+} from '../../../src/utils/core/cache';
 import { NETWORK } from '../../../src/utils/constants';
 import * as workerProcess from '../../../src/utils/worker-process';
-import * as nodeConfig from '../../../src/utils/node/config';
-import * as pm2 from '../../../src/utils/node/pm2';
+import * as nodeConfig from '../../../src/utils/core/config';
+import * as pm2 from '../../../src/utils/core/pm2';
 
 describe('cache node utils', () => {
 	let pm2Stub: any = null;

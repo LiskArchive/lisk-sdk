@@ -7,11 +7,11 @@ import {
 	createUser,
 	createDatabase,
 	restoreSnapshot,
-} from '../../../src/utils/node/database';
+} from '../../../src/utils/core/database';
 import * as workerProcess from '../../../src/utils/worker-process';
 import { NETWORK } from '../../../src/utils/constants';
-import * as nodeConfig from '../../../src/utils/node/config';
-import * as pm2 from '../../../src/utils/node/pm2';
+import * as coreConfig from '../../../src/utils/core/config';
+import * as pm2 from '../../../src/utils/core/pm2';
 
 const dbConfig = {
 	user: 'lisk',
@@ -20,7 +20,7 @@ const dbConfig = {
 	port: 5432,
 	database: 'lisk_test',
 };
-describe('database node utils', () => {
+describe('database core utils', () => {
 	let pm2Stub: any = null;
 
 	beforeEach(() => {
@@ -132,7 +132,7 @@ describe('database node utils', () => {
 
 		beforeEach(() => {
 			workerProcessStub = sandbox.stub(workerProcess, 'exec');
-			sandbox.stub(nodeConfig, 'getDbConfig').returns(dbConfig);
+			sandbox.stub(coreConfig, 'getDbConfig').returns(dbConfig);
 		});
 
 		it('should throw error when failed to create user', () => {
@@ -163,7 +163,7 @@ describe('database node utils', () => {
 
 		beforeEach(() => {
 			workerProcessStub = sandbox.stub(workerProcess, 'exec');
-			sandbox.stub(nodeConfig, 'getDbConfig').returns(dbConfig);
+			sandbox.stub(coreConfig, 'getDbConfig').returns(dbConfig);
 		});
 
 		it('should throw error when failed to create database', () => {
@@ -198,7 +198,7 @@ describe('database node utils', () => {
 
 		beforeEach(() => {
 			workerProcessStub = sandbox.stub(workerProcess, 'exec');
-			sandbox.stub(nodeConfig, 'getDbConfig').returns(dbConfig);
+			sandbox.stub(coreConfig, 'getDbConfig').returns(dbConfig);
 		});
 
 		it('should create user successfully ', async () => {

@@ -8,17 +8,17 @@ import {
 	getDefaultConfig,
 	getNetworkConfig,
 	getConfig,
-} from '../../../src/utils/node/config';
+} from '../../../src/utils/core/config';
 import { NETWORK } from '../../../src/utils/constants';
-import * as nodeConfig from '../../../src/utils/node/config';
+import * as coreConfig from '../../../src/utils/core/config';
 
-describe('config node utils', () => {
+describe('config core utils', () => {
 	describe('#isCacheEnabled', () => {
 		let getNetworkConfigStub: any = null;
 		let getDefaultConfigStub: any = null;
 		beforeEach(() => {
-			getNetworkConfigStub = sandbox.stub(nodeConfig, 'getNetworkConfig');
-			getDefaultConfigStub = sandbox.stub(nodeConfig, 'getDefaultConfig');
+			getNetworkConfigStub = sandbox.stub(coreConfig, 'getNetworkConfig');
+			getDefaultConfigStub = sandbox.stub(coreConfig, 'getDefaultConfig');
 		});
 
 		it('should return network cache config', () => {
@@ -48,8 +48,8 @@ describe('config node utils', () => {
 		let getNetworkConfigStub: any = null;
 		let getDefaultConfigStub: any = null;
 		beforeEach(() => {
-			getNetworkConfigStub = sandbox.stub(nodeConfig, 'getNetworkConfig');
-			getDefaultConfigStub = sandbox.stub(nodeConfig, 'getDefaultConfig');
+			getNetworkConfigStub = sandbox.stub(coreConfig, 'getNetworkConfig');
+			getDefaultConfigStub = sandbox.stub(coreConfig, 'getDefaultConfig');
 		});
 
 		it('should return cache config', () => {
@@ -70,8 +70,8 @@ describe('config node utils', () => {
 		let getNetworkConfigStub: any = null;
 		let getDefaultConfigStub: any = null;
 		beforeEach(() => {
-			getNetworkConfigStub = sandbox.stub(nodeConfig, 'getNetworkConfig');
-			getDefaultConfigStub = sandbox.stub(nodeConfig, 'getDefaultConfig');
+			getNetworkConfigStub = sandbox.stub(coreConfig, 'getNetworkConfig');
+			getDefaultConfigStub = sandbox.stub(coreConfig, 'getDefaultConfig');
 		});
 
 		it('should return database config', () => {
@@ -88,7 +88,7 @@ describe('config node utils', () => {
 	describe('#getDefaultConfig', () => {
 		const appConfig = { db: { database: 'lisk' } };
 		beforeEach(() => {
-			sandbox.stub(nodeConfig, 'getConfig').returns(appConfig);
+			sandbox.stub(coreConfig, 'getConfig').returns(appConfig);
 		});
 
 		it('should return default app config', () => {
@@ -101,7 +101,7 @@ describe('config node utils', () => {
 	describe('#getNetworkConfig', () => {
 		const appConfig = { db: { database: 'lisk' } };
 		beforeEach(() => {
-			sandbox.stub(nodeConfig, 'getConfig').returns(appConfig);
+			sandbox.stub(coreConfig, 'getConfig').returns(appConfig);
 		});
 
 		it('should return network app config', () => {

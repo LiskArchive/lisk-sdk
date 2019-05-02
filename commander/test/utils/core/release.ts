@@ -3,10 +3,10 @@ import { expect } from 'chai';
 import {
 	getLatestVersion,
 	getReleaseInfo,
-} from '../../../src/utils/node/release';
+} from '../../../src/utils/core/release';
 import { NETWORK } from '../../../src/utils/constants';
 
-describe('release node utils', () => {
+describe('release core utils', () => {
 	const data = '2.0.0';
 	beforeEach(() => {
 		sandbox.stub(axios.default, 'get').resolves({ data });
