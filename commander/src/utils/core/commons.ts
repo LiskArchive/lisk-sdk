@@ -218,45 +218,36 @@ const getEnvByKey = (
 	instances: ReadonlyArray<Instance>,
 	key: string,
 	defaultValue: number,
-	network: NETWORK,
 ): number => {
-	const INCREMENT = 2;
-
 	const maxValue = instances
-		.filter(i => i.network === network)
 		.map(app => ((app as unknown) as { readonly [key: string]: number })[key])
-		.reduce((acc, curr) => Math.max(acc, curr), defaultValue);
+		.reduce((acc, curr) => {
+			if (curr) {
+				return Math.max(acc, curr);
+			} else {
+				return acc;
+			}
+		}, defaultValue);
 
-	return maxValue + INCREMENT || defaultValue;
+	return maxValue || defaultValue;
 };
 
 export const generateEnvConfig = async (network: NETWORK): Promise<object> => {
+	const INCREMENT = 1;
 	const instances = await listApplication();
-
-	const LISK_DB_PORT = getEnvByKey(instances, 'dbPort', POSTGRES_PORT, network);
-	const LISK_REDIS_PORT = getEnvByKey(
-		instances,
-		'redisPort',
-		REDIS_PORT,
-		network,
-	);
-	const LISK_HTTP_PORT = getEnvByKey(
-		instances,
-		'httpPort',
-		HTTP_PORTS[network],
-		network,
-	);
-	const LISK_WS_PORT = getEnvByKey(
-		instances,
-		'wsPort',
-		WS_PORTS[network],
-		network,
-	);
+	const filteredByNetwork = instances.filter(i => i.network === network);
 
 	return {
-		LISK_DB_PORT,
-		LISK_REDIS_PORT,
-		LISK_HTTP_PORT,
-		LISK_WS_PORT,
+		LISK_DB_PORT: getEnvByKey(instances, 'dbPort', POSTGRES_PORT) + INCREMENT,
+		LISK_REDIS_PORT:
+			getEnvByKey(instances, 'redisPort', REDIS_PORT) + INCREMENT,
+		LISK_HTTP_PORT:
+			getEnvByKey(filteredByNetwork, 'httpPort', HTTP_PORTS[network]) +
+			INCREMENT +
+			1,
+		LISK_WS_PORT:
+			getEnvByKey(filteredByNetwork, 'wsPort', WS_PORTS[network]) +
+			INCREMENT +
+			1,
 	};
 };
