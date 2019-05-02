@@ -19,6 +19,7 @@ const Ajv = require('ajv');
 // To make sure to parse the command line args need to chn
 process.argv.push('-p', 'changedShortValue');
 process.argv.push('--port', 'changedLongValue');
+process.argv.push('--this-hyphen', 'changedLongHyphenValue');
 
 const {
 	arg,
@@ -70,6 +71,24 @@ describe('validator keyword "arg"', () => {
 		validator.validate(envSchemaWithOutFormatter, data);
 
 		expect(data.prop1).toBe('changedLongValue');
+	});
+
+	it('should accept arg with extra hyphen if specified as string as single format', () => {
+		const envSchemaWithOutFormatter = {
+			type: 'object',
+			properties: {
+				prop1: {
+					type: 'string',
+					arg: '--this-hyphen',
+				},
+			},
+		};
+
+		const data = { prop1: 'originalValue' };
+
+		validator.validate(envSchemaWithOutFormatter, data);
+
+		expect(data.prop1).toBe('changedLongHyphenValue');
 	});
 
 	it('should accept arg if specified as string with alias format', () => {
