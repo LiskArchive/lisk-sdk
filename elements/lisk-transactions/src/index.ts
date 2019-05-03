@@ -25,8 +25,6 @@ import { MultisignatureTransaction } from './4_multisignature_transaction';
 import { registerMultisignature } from './4_register_multisignature_account';
 import { createDapp } from './5_create_dapp';
 import { DappTransaction } from './5_dapp_transaction';
-import { InTransferTransaction } from './6_in_transfer_transaction';
-import { OutTransferTransaction } from './7_out_transfer_transaction';
 import {
 	BaseTransaction,
 	StateStore,
@@ -108,8 +106,6 @@ export {
 	registerMultisignature,
 	DappTransaction,
 	createDapp,
-	InTransferTransaction,
-	OutTransferTransaction,
 	createSignatureObject,
 	Status,
 	TransactionResponse,
