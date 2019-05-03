@@ -2,13 +2,14 @@
 
 ### Table of contents
 
-- [Description](#description)
-  - [Core Modules](#core-modules)
-  - [Custom Modules](#custom-modules)
-- [Module Communication](#module-communication)
-  - [InMemory Channel](#inmemory-channel)
-  - [ChildProcess Channel](#childprocess-channel)
-- [Module Lifecycle](#module-life-cycle)
+* [Description](#description)
+  * [Core Modules](#core-modules)
+  * [Custom Modules](#custom-modules)
+* [Module Configuration](#module-configuration)
+* [Module Communication](#module-communication)
+  * [InMemory Channel](#inmemory-channel)
+  * [ChildProcess Channel](#childprocess-channel)
+* [Module Lifecycle](#module-life-cycle)
 
 ## Description
 
@@ -20,8 +21,8 @@ Core Modules are shipped along with the Lisk Core distribution itself. These mod
 
 #### List of Core Modules
 
-- **Chain Module:** handles all events and actions, that are related to the blockchain system.
-- **HTTP API Module:** provides API endpoints, that enable users and other programs to communicate with the Lisk blockchain through the API.
+* **Chain Module:** handles all events and actions, that are related to the blockchain system.
+* **HTTP API Module:** provides API endpoints, that enable users and other programs to communicate with the Lisk blockchain through the API.
 
 ### Custom Modules
 
@@ -120,6 +121,18 @@ export default class MyModule extends BaseModule {
 };
 ```
 
+## Module Configuration
+
+Configuration options for each module are located in `framework/src/modules/<module-name>/defaults/config.js`.
+
+Each `config.js` file consists of 2 parts:
+
+1. A general schema description of all available config options.
+2. Default values for the available config options for this specific module.
+
+To customize the predefined defaults values, please don't change the default values in these files directly, as they will be overwritten on software updates.
+Instead, define the custom configuration options inisde your blockchain application, and let it overwrite the default config options.
+
 ## Module Communication
 
 Modules communicate with each other through event-based channels.
@@ -146,11 +159,11 @@ A modules' life cycle consists of following events in the right order:
 
 **Loading**
 
-- _module_:registeredToBus
-- _module_:loading:started
-- _module_:loading:finished
+* _module_:registeredToBus
+* _module_:loading:started
+* _module_:loading:finished
 
 **Unloading**
 
-- _module_:unloading:started
-- _module_:unloading:finished
+* _module_:unloading:started
+* _module_:unloading:finished
