@@ -1042,12 +1042,12 @@ Loader.prototype.onBlockchainReady = function() {
  * Sets private constant loaded to false.
  *
  * @param {function} cb
- * @returns {setImmediateCallback} cb
+ * @returns {function} cb
  * @todo Add description for the params
  */
 Loader.prototype.cleanup = function(cb) {
 	__private.loaded = false;
-	return setImmediate(cb);
+	return cb();
 };
 
 // Export
