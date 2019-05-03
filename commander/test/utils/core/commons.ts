@@ -20,13 +20,35 @@ import {
 	backupLisk,
 	upgradeLisk,
 	validateVersion,
+	generateEnvConfig,
+	getDownloadedFileInfo,
+	dateDiff,
 } from '../../../src/utils/core/commons';
 import { NETWORK, RELEASE_URL } from '../../../src/utils/constants';
 import { defaultLiskInstancePath } from '../../../src/utils/core/config';
 import * as release from '../../../src/utils/core/release';
 import * as workerProcess from '../../../src/utils/worker-process';
+import * as pm2 from '../../../src/utils/core/pm2';
+
+const envConfig = {
+	LISK_REDIS_PORT: 6380,
+	LISK_DB_PORT: 5432,
+	LISK_HTTP_PORT: 4000,
+	LISK_WS_PORT: 4000,
+};
+const url =
+	'https://downloads.lisk.io/lisk/testnet/1.6.0-rc.4/lisk-1.6.0-rc.4-Darwin-x86_64.tar.gz';
 
 describe('commons core utils', () => {
+	let pm2Stub: any = null;
+
+	beforeEach(() => {
+		pm2Stub = sandbox.stub(pm2, 'listApplication');
+		pm2Stub.resolves([{
+			pm2_env: envConfig,
+		}]);
+	});
+
 	describe('#liskInstall', () => {
 		it('should return resolved home directory', () => {
 			return expect(liskInstall('~/.lisk')).to.equal(`${os.homedir}/.lisk`);
@@ -274,9 +296,39 @@ describe('commons core utils', () => {
 
 	describe('#getSemver', () => {
 		it('should extract version from url', () => {
-			const url =
-				'https://downloads.lisk.io/lisk/testnet/1.6.0-rc.4/lisk-1.6.0-rc.4-Darwin-x86_64.tar.gz';
 			return expect(getSemver(url)).to.equal('1.6.0-rc.4');
+		});
+	});
+
+	describe('#generateEnvConfig', () => {
+		it('should generate config for redis, database, http and ws ports', async () => {
+			const config = await generateEnvConfig(NETWORK.DEVNET);
+
+			return expect(config).to.deep.equal({
+				LISK_REDIS_PORT: 6381,
+				LISK_DB_PORT: 5433,
+				LISK_HTTP_PORT: 4002,
+				LISK_WS_PORT: 4003
+			});
+		});
+	});
+
+	describe('#getDownloadedFileInfo', () => {
+		it('should get fileName, fileDir, filePath from url', async () => {
+			return expect(getDownloadedFileInfo(url, '~/.cache')).to.deep.equal({
+				fileDir: "~/.cache/downloads.lisk.io/lisk/testnet/1.6.0-rc.4",
+				fileName: "lisk-1.6.0-rc.4-Darwin-x86_64.tar.gz",
+				filePath: "~/.cache/downloads.lisk.io/lisk/testnet/1.6.0-rc.4/lisk-1.6.0-rc.4-Darwin-x86_64.tar.gz",
+			});
+		});
+	});
+
+	describe('#dateDiff', () => {
+		it('should get fileName, fileDir, filePath from url', async () => {
+			const date1 = new Date('25-Apr-2019 13:43');
+			const date2 = new Date('24-Apr-2019 13:43');
+
+			return expect(dateDiff(date1, date2)).to.deep.equal(1);
 		});
 	});
 });

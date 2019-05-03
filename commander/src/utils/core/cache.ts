@@ -94,7 +94,7 @@ export const stopCache = async (
 	throw new Error(`${CACHE_STOP_FAILURE}: \n\n ${stderr}`);
 };
 
-export const isCacheEnabled = async (installDir: string, network: NETWORK) => {
+export const isCacheEnabled = async (installDir: string, network: NETWORK): Promise<boolean> => {
 	const {
 		config: {
 			components: {

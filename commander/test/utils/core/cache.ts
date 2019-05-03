@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import {
+	isCacheEnabled,
 	isCacheRunning,
 	startCache,
 	stopCache,
@@ -23,6 +24,13 @@ describe('cache node utils', () => {
 		});
 		configStub = sandbox.stub(coreConfig, 'getLiskConfig');
 		configStub.resolves(liskConfig.config);
+	});
+
+	describe('#isCacheEnabled', async () => {
+		configStub.resolves(liskConfig.config);
+
+		const enabled = await isCacheEnabled('~/.lisk/instance', NETWORK.DEVNET);
+		return expect(enabled).to.be.true;
 	});
 
 	describe('#isCacheRunning', () => {
