@@ -21,7 +21,7 @@ const {
 	hash,
 	decryptPassphraseWithPassword,
 	parseEncryptedPassphrase,
-	getPrivateAndPublicKeyFromPassphrase,
+	getPrivateAndPublicKeyBytesFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
 const BlockReward = require('../logic/block_reward.js');
 const jobsQueue = require('../helpers/jobs_queue.js');
@@ -388,7 +388,14 @@ __private.loadDelegates = function(cb) {
 				);
 			}
 
-			const keypair = getPrivateAndPublicKeyFromPassphrase(passphrase);
+			const {
+				publicKeyBytes,
+				privateKeyBytes,
+			} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
+			const keypair = {
+				publicKey: publicKeyBytes,
+				privateKey: privateKeyBytes,
+			};
 
 			if (keypair.publicKey.toString('hex') !== encryptedItem.publicKey) {
 				return setImmediate(
@@ -471,7 +478,14 @@ Delegates.prototype.updateForgingStatus = async function(
 			throw new Error('Invalid password and public key combination');
 		}
 
-		keypair = getPrivateAndPublicKeyFromPassphrase(passphrase);
+		const {
+			publicKeyBytes,
+			privateKeyBytes,
+		} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
+		keypair = {
+			publicKey: publicKeyBytes,
+			privateKey: privateKeyBytes,
+		};
 	} else {
 		throw new Error(`Delegate with publicKey: ${publicKey} not found`);
 	}

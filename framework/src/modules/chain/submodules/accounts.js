@@ -66,7 +66,7 @@ class Accounts {
  * @returns {address} Generated address
  */
 Accounts.prototype.generateAddressByPublicKey = function(publicKey) {
-	const publicKeyHash = hash(publicKey);
+	const publicKeyHash = hash(publicKey, 'hex');
 	const temp = Buffer.alloc(8);
 
 	for (let i = 0; i < 8; i++) {

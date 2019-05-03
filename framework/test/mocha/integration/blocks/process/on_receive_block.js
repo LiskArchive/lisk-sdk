@@ -16,7 +16,7 @@
 
 const expect = require('chai').expect;
 const {
-	getPrivateAndPublicKeyFromPassphrase,
+	getPrivateAndPublicKeyBytesFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
 const async = require('async');
 const _ = require('lodash');
@@ -172,7 +172,14 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 	}
 
 	function getKeypair(passphrase) {
-		return getPrivateAndPublicKeyFromPassphrase(passphrase);
+		const {
+			publicKeyBytes,
+			privateKeyBytes,
+		} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
+		return {
+			publicKey: publicKeyBytes,
+			privateKey: privateKeyBytes,
+		};
 	}
 
 	function getValidKeypairForSlot(slot) {

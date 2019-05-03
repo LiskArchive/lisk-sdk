@@ -134,7 +134,7 @@ class Block {
 			totalAmount,
 			totalFee,
 			reward,
-			payloadHash: payloadHash.digest().toString('hex'),
+			payloadHash: payloadHash.toString('hex'),
 			timestamp: data.timestamp,
 			numberOfTransactions: blockTransactions.length,
 			payloadLength: size,
@@ -252,7 +252,7 @@ class Block {
  * @todo Add description for the params
  */
 __private.getAddressByPublicKey = function(publicKey) {
-	const publicKeyHash = hash(publicKey);
+	const publicKeyHash = hash(publicKey, 'hex');
 	const temp = Buffer.alloc(8);
 
 	for (let i = 0; i < 8; i++) {

@@ -18,7 +18,7 @@ const async = require('async');
 const { transfer } = require('@liskhq/lisk-transactions');
 const {
 	getAddressFromPublicKey,
-	getPrivateAndPublicKeyFromPassphrase,
+	getPrivateAndPublicKeyBytesFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
 const accountFixtures = require('../../fixtures/accounts');
 const localCommon = require('../common');
@@ -40,8 +40,10 @@ describe('integration test (type 0) - address collision', () => {
 	};
 
 	const publicKeys = [
-		getPrivateAndPublicKeyFromPassphrase(collision.passphrases[0]).publicKey,
-		getPrivateAndPublicKeyFromPassphrase(collision.passphrases[1]).publicKey,
+		getPrivateAndPublicKeyBytesFromPassphrase(collision.passphrases[0])
+			.publicKeyBytes,
+		getPrivateAndPublicKeyBytesFromPassphrase(collision.passphrases[1])
+			.publicKeyBytes,
 	];
 
 	const firstTransaction = transfer({

@@ -15,12 +15,19 @@
 'use strict';
 
 const {
-	getPrivateAndPublicKeyFromPassphrase,
+	getPrivateAndPublicKeyBytesFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
 
 const validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
-const validKeypair = getPrivateAndPublicKeyFromPassphrase(validPassphrase);
+const {
+	publicKeyBytes,
+	privateKeyBytes,
+} = getPrivateAndPublicKeyBytesFromPassphrase(validPassphrase);
+const validKeypair = {
+	publicKey: publicKeyBytes,
+	privateKey: privateKeyBytes,
+};
 
 const validSender = {
 	passphrase: 'yjyhgnu32jmwuii442t9',
@@ -32,9 +39,14 @@ const validSender = {
 		'ebfb1157f9f9ad223b1c7468b0d643663ec5a34ac7a6d557243834ae604d72b7',
 };
 
-const senderKeypair = getPrivateAndPublicKeyFromPassphrase(
-	validSender.passphrase
-);
+const {
+	publicKeyBytes: senderPublicKeyBytes,
+	privateKeyBytes: senderPrivateKeyBytes,
+} = getPrivateAndPublicKeyBytesFromPassphrase(validSender.passphrase);
+const senderKeypair = {
+	publicKey: senderPublicKeyBytes,
+	privateKey: senderPrivateKeyBytes,
+};
 
 const validTransaction = {
 	id: '1907088915785679339',

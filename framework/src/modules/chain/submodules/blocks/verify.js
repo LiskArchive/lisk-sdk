@@ -315,7 +315,9 @@ __private.verifyPayload = function(block, result) {
 
 	let totalAmount = new Bignum(0);
 	let totalFee = new Bignum(0);
-	const payloadHash = deepHashBuffer(block.transactions || []);
+	const payloadHash = deepHashBuffer(
+		block.transactions.map(transaction => transaction.getBytes())
+	);
 	const appliedTransactions = {};
 
 	block.transactions.forEach(transaction => {

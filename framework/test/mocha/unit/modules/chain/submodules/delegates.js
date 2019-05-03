@@ -15,7 +15,7 @@
 'use strict';
 
 const {
-	getPrivateAndPublicKeyFromPassphrase,
+	getPrivateAndPublicKeyBytesFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
 const genesisDelegates = require('../../../../data/genesis_delegates.json');
 const delegatesRoundsList = require('../../../../data/delegates_rounds_list.json');
@@ -761,15 +761,30 @@ describe('delegates', () => {
 				delegates = library.rewiredModules.delegates.__get__('self');
 				__private = library.rewiredModules.delegates.__get__('__private');
 
-				genesis1Keypair = getPrivateAndPublicKeyFromPassphrase(
-					genesis1.passphrase
-				);
-				genesis2Keypair = getPrivateAndPublicKeyFromPassphrase(
-					genesis2.passphrase
-				);
-				genesis3Keypair = getPrivateAndPublicKeyFromPassphrase(
-					genesis3.passphrase
-				);
+				const {
+					publicKeyBytes: genesis1PublicKey,
+					privateKeyBytes: genesis1PrivateKey,
+				} = getPrivateAndPublicKeyBytesFromPassphrase(genesis1.passphrase);
+				genesis1Keypair = {
+					publicKey: genesis1PublicKey,
+					privateKey: genesis1PrivateKey,
+				};
+				const {
+					publicKeyBytes: genesis2PublicKey,
+					privateKeyBytes: genesis2PrivateKey,
+				} = getPrivateAndPublicKeyBytesFromPassphrase(genesis2.passphrase);
+				genesis2Keypair = {
+					publicKey: genesis2PublicKey,
+					privateKey: genesis2PrivateKey,
+				};
+				const {
+					publicKeyBytes: genesis3PublicKey,
+					privateKeyBytes: genesis3PrivateKey,
+				} = getPrivateAndPublicKeyBytesFromPassphrase(genesis3.passphrase);
+				genesis3Keypair = {
+					publicKey: genesis3PublicKey,
+					privateKey: genesis3PrivateKey,
+				};
 
 				__private.keypairs = {};
 				__private.keypairs[genesis1.publicKey] = genesis1Keypair;

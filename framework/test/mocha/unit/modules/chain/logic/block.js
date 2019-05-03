@@ -16,7 +16,7 @@
 
 const rewire = require('rewire');
 const {
-	getPrivateAndPublicKeyFromPassphrase,
+	getPrivateAndPublicKeyBytesFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 const modulesLoader = require('../../../../common/modules_loader');
@@ -33,7 +33,14 @@ const Block = rewire('../../../../../../src/modules/chain/logic/block');
 
 const validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
-const validKeypair = getPrivateAndPublicKeyFromPassphrase(validPassphrase);
+const {
+	publicKeyBytes,
+	privateKeyBytes,
+} = getPrivateAndPublicKeyBytesFromPassphrase(validPassphrase);
+const validKeypair = {
+	publicKey: publicKeyBytes,
+	privateKey: privateKeyBytes,
+};
 
 const validDataForBlock = {
 	keypair: validKeypair,

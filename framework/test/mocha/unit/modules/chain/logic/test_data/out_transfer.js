@@ -15,12 +15,19 @@
 'use strict';
 
 const {
-	getPrivateAndPublicKeyFromPassphrase,
+	getPrivateAndPublicKeyBytesFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
 
 const validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
-const validKeypair = getPrivateAndPublicKeyFromPassphrase(validPassphrase);
+const {
+	publicKeyBytes,
+	privateKeyBytes,
+} = getPrivateAndPublicKeyBytesFromPassphrase(validPassphrase);
+const validKeypair = {
+	publicKey: publicKeyBytes,
+	privateKey: privateKeyBytes,
+};
 
 const validSender = {
 	passphrase: '1vi3igdedurk9ctbj4i',
@@ -84,9 +91,14 @@ const validGetGensisResult = {
 	authorId: 'validAuthorId',
 };
 
-const senderKeypair = getPrivateAndPublicKeyFromPassphrase(
-	validSender.passphrase
-);
+const {
+	publicKeyBytes: senderPublicKeyBytes,
+	privateKeyBytes: senderPrivateKeyBytes,
+} = getPrivateAndPublicKeyBytesFromPassphrase(validSender.passphrase);
+const senderKeypair = {
+	publicKey: senderPublicKeyBytes,
+	privateKey: senderPrivateKeyBytes,
+};
 
 module.exports = {
 	validSender,

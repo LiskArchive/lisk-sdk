@@ -15,12 +15,19 @@
 'use strict';
 
 const {
-	getPrivateAndPublicKeyFromPassphrase,
+	getPrivateAndPublicKeyBytesFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
 
 const validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
-const validKeypair = getPrivateAndPublicKeyFromPassphrase(validPassphrase);
+const {
+	publicKeyBytes,
+	privateKeyBytes,
+} = getPrivateAndPublicKeyBytesFromPassphrase(validPassphrase);
+const validKeypair = {
+	publicKey: publicKeyBytes,
+	privateKey: privateKeyBytes,
+};
 
 const validSender = {
 	address: '16313739661670634666L',
@@ -30,9 +37,14 @@ const validSender = {
 	balance: '10000000000000000',
 };
 
-const senderKeypair = getPrivateAndPublicKeyFromPassphrase(
-	validSender.passphrase
-);
+const {
+	publicKeyBytes: senderPublicKeyBytes,
+	privateKeyBytes: senderPrivateKeyBytes,
+} = getPrivateAndPublicKeyBytesFromPassphrase(validSender.passphrase);
+const senderKeypair = {
+	publicKey: senderPublicKeyBytes,
+	privateKey: senderPrivateKeyBytes,
+};
 
 const multiSigAccount1 = {
 	balance: '0',

@@ -16,7 +16,7 @@
 
 const { transfer } = require('@liskhq/lisk-transactions');
 const {
-	getPrivateAndPublicKeyFromPassphrase,
+	getPrivateAndPublicKeyBytesFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
 const _ = require('lodash');
 const rewire = require('rewire');
@@ -143,7 +143,14 @@ function createBlock(
 	transactions,
 	previousBlockArgs
 ) {
-	const keypair = getPrivateAndPublicKeyFromPassphrase(passphrase);
+	const {
+		publicKeyBytes,
+		privateKeyBytes,
+	} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
+	const keypair = {
+		publicKey: publicKeyBytes,
+		privateKey: privateKeyBytes,
+	};
 	transactions = transactions.map(transaction =>
 		initTransaction.fromJson(transaction)
 	);
