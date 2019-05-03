@@ -276,12 +276,18 @@ module.exports = class Network {
 	async cleanup() {
 		// TODO: Unsubscribe 'app:state:updated' from channel.
 		// TODO: In phase 2, only triedPeers will be saved to database
-		const peersToSave = this.p2p.getNetworkStatus().triedPeers.map(peer => {
+		this.logger.info('Cleaning network...');
+
+		const peersToSave = this.p2p.getNetworkStatus().connectedPeers.map(peer => {
 			const { ipAddress, ...peerWithoutIp } = peer;
 
 			return {
 				ip: ipAddress,
 				...peerWithoutIp,
+				state: peerWithoutIp.state ? peerWithoutIp.state : 2,
+				protocolVersion: peerWithoutIp.protocolVersion
+					? peerWithoutIp.protocolVersion
+					: '',
 			};
 		});
 		// Add new peers that have been tried
