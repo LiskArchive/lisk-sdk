@@ -14,9 +14,10 @@
 
 'use strict';
 
-const crypto = require('crypto');
 const rewire = require('rewire');
-const ed = require('../../../../../../src/modules/chain/helpers/ed');
+const {
+	getPrivateAndPublicKeyFromPassphrase,
+} = require('@liskhq/lisk-cryptography');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 const modulesLoader = require('../../../../common/modules_loader');
 const {
@@ -32,12 +33,7 @@ const Block = rewire('../../../../../../src/modules/chain/logic/block');
 
 const validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
-const validKeypair = ed.makeKeypair(
-	crypto
-		.createHash('sha256')
-		.update(validPassphrase, 'utf8')
-		.digest()
-);
+const validKeypair = getPrivateAndPublicKeyFromPassphrase(validPassphrase);
 
 const validDataForBlock = {
 	keypair: validKeypair,
@@ -326,11 +322,7 @@ describe('block', () => {
 			getBytes: sinonSandbox.stub(),
 		};
 
-		block = new Block(
-			modulesLoader.scope.ed,
-			modulesLoader.scope.schema,
-			transactionStub
-		);
+		block = new Block(modulesLoader.scope.schema, transactionStub);
 		done();
 	});
 

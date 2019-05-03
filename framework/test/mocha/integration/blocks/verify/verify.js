@@ -14,8 +14,10 @@
 
 'use strict';
 
-const crypto = require('crypto');
 const { transfer } = require('@liskhq/lisk-transactions');
+const {
+	getPrivateAndPublicKeyFromPassphrase,
+} = require('@liskhq/lisk-cryptography');
 const _ = require('lodash');
 const rewire = require('rewire');
 const async = require('async');
@@ -141,12 +143,7 @@ function createBlock(
 	transactions,
 	previousBlockArgs
 ) {
-	const keypair = blockLogic.scope.ed.makeKeypair(
-		crypto
-			.createHash('sha256')
-			.update(passphrase, 'utf8')
-			.digest()
-	);
+	const keypair = getPrivateAndPublicKeyFromPassphrase(passphrase);
 	transactions = transactions.map(transaction =>
 		initTransaction.fromJson(transaction)
 	);

@@ -14,17 +14,13 @@
 
 'use strict';
 
-const crypto = require('crypto');
-const ed = require('../../../../../../../src/modules/chain/helpers/ed');
+const {
+	getPrivateAndPublicKeyFromPassphrase,
+} = require('@liskhq/lisk-cryptography');
 
 const validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
-const validKeypair = ed.makeKeypair(
-	crypto
-		.createHash('sha256')
-		.update(validPassphrase, 'utf8')
-		.digest()
-);
+const validKeypair = getPrivateAndPublicKeyFromPassphrase(validPassphrase);
 
 const validSender = {
 	passphrase: 'yjyhgnu32jmwuii442t9',
@@ -36,11 +32,9 @@ const validSender = {
 		'ebfb1157f9f9ad223b1c7468b0d643663ec5a34ac7a6d557243834ae604d72b7',
 };
 
-const senderHash = crypto
-	.createHash('sha256')
-	.update(validSender.passphrase, 'utf8')
-	.digest();
-const senderKeypair = ed.makeKeypair(senderHash);
+const senderKeypair = getPrivateAndPublicKeyFromPassphrase(
+	validSender.passphrase
+);
 
 const validTransaction = {
 	id: '1907088915785679339',
@@ -103,7 +97,6 @@ module.exports = {
 	validSender,
 	validPassphrase,
 	validKeypair,
-	senderHash,
 	senderKeypair,
 	rawValidTransaction,
 	validTransaction,

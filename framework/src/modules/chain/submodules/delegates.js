@@ -21,6 +21,7 @@ const { promisify } = require('util');
 const {
 	decryptPassphraseWithPassword,
 	parseEncryptedPassphrase,
+	getPrivateAndPublicKeyFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
 const BlockReward = require('../logic/block_reward.js');
 const jobsQueue = require('../helpers/jobs_queue.js');
@@ -64,7 +65,6 @@ class Delegates {
 			channel: scope.channel,
 			logger: scope.components.logger,
 			sequence: scope.sequence,
-			ed: scope.ed,
 			storage: scope.components.storage,
 			network: scope.network,
 			schema: scope.schema,
@@ -389,12 +389,7 @@ __private.loadDelegates = function(cb) {
 				);
 			}
 
-			const keypair = library.ed.makeKeypair(
-				crypto
-					.createHash('sha256')
-					.update(passphrase, 'utf8')
-					.digest()
-			);
+			const keypair = getPrivateAndPublicKeyFromPassphrase(passphrase);
 
 			if (keypair.publicKey.toString('hex') !== encryptedItem.publicKey) {
 				return setImmediate(
@@ -477,12 +472,7 @@ Delegates.prototype.updateForgingStatus = async function(
 			throw new Error('Invalid password and public key combination');
 		}
 
-		keypair = library.ed.makeKeypair(
-			crypto
-				.createHash('sha256')
-				.update(passphrase, 'utf8')
-				.digest()
-		);
+		keypair = getPrivateAndPublicKeyFromPassphrase(passphrase);
 	} else {
 		throw new Error(`Delegate with publicKey: ${publicKey} not found`);
 	}

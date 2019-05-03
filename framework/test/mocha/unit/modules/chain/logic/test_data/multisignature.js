@@ -14,17 +14,13 @@
 
 'use strict';
 
-const crypto = require('crypto');
-const ed = require('../../../../../../../src/modules/chain/helpers/ed');
+const {
+	getPrivateAndPublicKeyFromPassphrase,
+} = require('@liskhq/lisk-cryptography');
 
 const validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
-const validKeypair = ed.makeKeypair(
-	crypto
-		.createHash('sha256')
-		.update(validPassphrase, 'utf8')
-		.digest()
-);
+const validKeypair = getPrivateAndPublicKeyFromPassphrase(validPassphrase);
 
 const validSender = {
 	address: '16313739661670634666L',
@@ -34,11 +30,9 @@ const validSender = {
 	balance: '10000000000000000',
 };
 
-const senderHash = crypto
-	.createHash('sha256')
-	.update(validSender.passphrase, 'utf8')
-	.digest();
-const senderKeypair = ed.makeKeypair(senderHash);
+const senderKeypair = getPrivateAndPublicKeyFromPassphrase(
+	validSender.passphrase
+);
 
 const multiSigAccount1 = {
 	balance: '0',
@@ -210,7 +204,6 @@ module.exports = {
 	validSender,
 	validPassphrase,
 	validKeypair,
-	senderHash,
 	senderKeypair,
 	rawValidTransaction,
 	validTransaction,

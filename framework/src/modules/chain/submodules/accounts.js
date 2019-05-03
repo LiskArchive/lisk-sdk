@@ -44,7 +44,6 @@ __private.assetTypes = {};
 class Accounts {
 	constructor(cb, scope) {
 		library = {
-			ed: scope.ed,
 			storage: scope.components.storage,
 			logger: scope.components.logger,
 			schema: scope.schema,

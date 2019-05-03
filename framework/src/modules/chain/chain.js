@@ -22,7 +22,6 @@ const { promisify } = require('util');
 const { convertErrorsToString } = require('./helpers/error_handlers');
 const git = require('./helpers/git');
 const Sequence = require('./helpers/sequence');
-const ed = require('./helpers/ed');
 // eslint-disable-next-line import/order
 const { ZSchema } = require('../../controller/validator');
 const { createStorageComponent } = require('../../components/storage');
@@ -147,7 +146,6 @@ module.exports = class Chain {
 			const self = this;
 			this.scope = {
 				lastCommit,
-				ed,
 				build: versionBuild,
 				config: self.options,
 				genesisBlock: { block: self.options.genesisBlock },

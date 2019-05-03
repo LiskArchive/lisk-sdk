@@ -19,7 +19,6 @@ const util = require('util');
 const rewire = require('rewire');
 const async = require('async');
 const { registeredTransactions } = require('./registered_transactions');
-const ed = require('../../../src/modules/chain/helpers/ed');
 const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
 const Sequence = require('../../../src/modules/chain/helpers/sequence');
 const { createCacheComponent } = require('../../../src/components/cache');
@@ -132,7 +131,6 @@ async function __init(sandbox, initScope) {
 			{},
 			{
 				lastCommit: '',
-				ed,
 				build: '',
 				config,
 				genesisBlock: { block: __testContext.config.genesisBlock },

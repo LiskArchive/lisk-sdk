@@ -14,8 +14,8 @@
 
 'use strict';
 
+const { hexToBuffer } = require('@liskhq/lisk-cryptography');
 const _ = require('lodash');
-const ed = require('../helpers/ed');
 const Bignum = require('../helpers/bignum');
 const BlockReward = require('./block_reward');
 
@@ -169,7 +169,7 @@ class Account {
 	toDB(raw) {
 		this.binary.forEach(field => {
 			if (raw[field]) {
-				raw[field] = ed.hexToBuffer(raw[field]);
+				raw[field] = hexToBuffer(raw[field]);
 			}
 		});
 

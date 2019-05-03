@@ -14,6 +14,11 @@
 
 'use strict';
 
+const {
+	hexToBuffer,
+	signDataWithPrivateKey,
+	verifyData,
+} = require('@liskhq/lisk-cryptography');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const _ = require('lodash');
 const crypto = require('crypto');
@@ -36,7 +41,6 @@ let modules;
  * @requires crypto
  * @requires helpers/bignum
  * @requires logic/block_reward
- * @param {Object} ed
  * @param {ZSchema} schema
  * @param {Transaction} transaction
  * @param {function} cb - Callback function
@@ -44,9 +48,8 @@ let modules;
  * @todo Add description for the params
  */
 class Block {
-	constructor(ed, schema, transaction, cb) {
+	constructor(schema, transaction, cb) {
 		this.scope = {
-			ed,
 			schema,
 			transaction,
 		};
@@ -161,7 +164,7 @@ class Block {
 	sign(block, keypair) {
 		const hash = this.getHash(block);
 
-		return this.scope.ed.sign(hash, keypair.privateKey).toString('hex');
+		return signDataWithPrivateKey(hash, keypair.privateKey);
 	}
 
 	/**
@@ -188,35 +191,20 @@ class Block {
 	 */
 	verifySignature(block) {
 		const signatureLength = 64;
-		let res;
 
-		try {
-			const data = this.getBytes(block);
-			const dataWithoutSignature = Buffer.alloc(data.length - signatureLength);
+		const data = this.getBytes(block);
+		const dataWithoutSignature = Buffer.alloc(data.length - signatureLength);
 
-			for (let i = 0; i < dataWithoutSignature.length; i++) {
-				dataWithoutSignature[i] = data[i];
-			}
-			const hash = crypto
-				.createHash('sha256')
-				.update(dataWithoutSignature)
-				.digest();
-			const blockSignatureBuffer = this.scope.ed.hexToBuffer(
-				block.blockSignature
-			);
-			const generatorPublicKeyBuffer = this.scope.ed.hexToBuffer(
-				block.generatorPublicKey
-			);
-			res = this.scope.ed.verify(
-				hash,
-				blockSignatureBuffer || ' ',
-				generatorPublicKeyBuffer || ' '
-			);
-		} catch (e) {
-			throw e;
+		for (let i = 0; i < dataWithoutSignature.length; i++) {
+			dataWithoutSignature[i] = data[i];
 		}
+		// TODO: check why it's hashing
+		const hash = crypto
+			.createHash('sha256')
+			.update(dataWithoutSignature)
+			.digest();
 
-		return res;
+		return verifyData(hash, block.blockSignature, block.generatorPublicKey);
 	}
 
 	/**
@@ -430,22 +418,18 @@ Block.prototype.getBytes = function(block) {
 
 		byteBuffer.writeInt(block.payloadLength);
 
-		const payloadHashBuffer = this.scope.ed.hexToBuffer(block.payloadHash);
+		const payloadHashBuffer = hexToBuffer(block.payloadHash);
 		for (let i = 0; i < payloadHashBuffer.length; i++) {
 			byteBuffer.writeByte(payloadHashBuffer[i]);
 		}
 
-		const generatorPublicKeyBuffer = this.scope.ed.hexToBuffer(
-			block.generatorPublicKey
-		);
+		const generatorPublicKeyBuffer = hexToBuffer(block.generatorPublicKey);
 		for (let i = 0; i < generatorPublicKeyBuffer.length; i++) {
 			byteBuffer.writeByte(generatorPublicKeyBuffer[i]);
 		}
 
 		if (block.blockSignature) {
-			const blockSignatureBuffer = this.scope.ed.hexToBuffer(
-				block.blockSignature
-			);
+			const blockSignatureBuffer = hexToBuffer(block.blockSignature);
 			for (let i = 0; i < blockSignatureBuffer.length; i++) {
 				byteBuffer.writeByte(blockSignatureBuffer[i]);
 			}

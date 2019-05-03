@@ -47,7 +47,6 @@ class Transactions {
 			logger: scope.components.logger,
 			storage: scope.components.storage,
 			schema: scope.schema,
-			ed: scope.ed,
 			balancesSequence: scope.balancesSequence,
 			logic: {
 				initTransaction: scope.logic.initTransaction,

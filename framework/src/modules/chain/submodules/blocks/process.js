@@ -457,7 +457,7 @@ Process.prototype.loadBlocksFromNetwork = function(cb) {
 /**
  * Generate new block, see: loader.loadBlockChain (private).
  *
- * @param {Object} keypair - Pair of private and public keys, see: helpers.ed.makeKeypair
+ * @param {Object} keypair - Pair of private and public keys
  * @param {number} timestamp - Slot time, see: helpers.slots.getSlotTime
  * @param {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)

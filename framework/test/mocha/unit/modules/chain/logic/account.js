@@ -15,7 +15,7 @@
 'use strict';
 
 const rewire = require('rewire');
-const ed = require('../../../../../../src/modules/chain/helpers/ed');
+const { hexToBuffer } = require('@liskhq/lisk-cryptography');
 const application = require('../../../../common/application');
 const modulesLoader = require('../../../../common/modules_loader');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
@@ -146,9 +146,9 @@ describe('account', () => {
 
 			account.toDB(toDBRes);
 			expect(toDBRes.address).to.equal(raw.address.toUpperCase());
-			expect(toDBRes.publicKey).to.deep.equal(ed.hexToBuffer(raw.publicKey));
+			expect(toDBRes.publicKey).to.deep.equal(hexToBuffer(raw.publicKey));
 			expect(toDBRes.secondPublicKey).to.deep.equal(
-				ed.hexToBuffer(raw.secondPublicKey)
+				hexToBuffer(raw.secondPublicKey)
 			);
 			done();
 		});

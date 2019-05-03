@@ -14,8 +14,10 @@
 
 'use strict';
 
-const crypto = require('crypto');
 const expect = require('chai').expect;
+const {
+	getPrivateAndPublicKeyFromPassphrase,
+} = require('@liskhq/lisk-cryptography');
 const async = require('async');
 const _ = require('lodash');
 const Promise = require('bluebird');
@@ -170,12 +172,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 	}
 
 	function getKeypair(passphrase) {
-		return library.ed.makeKeypair(
-			crypto
-				.createHash('sha256')
-				.update(passphrase, 'utf8')
-				.digest()
-		);
+		return getPrivateAndPublicKeyFromPassphrase(passphrase);
 	}
 
 	function getValidKeypairForSlot(slot) {

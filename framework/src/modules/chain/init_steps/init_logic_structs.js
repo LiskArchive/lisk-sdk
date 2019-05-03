@@ -15,7 +15,6 @@
 'use strict';
 
 module.exports = async ({
-	ed,
 	schema,
 	components: { storage, logger },
 	registeredTransactions,
@@ -36,7 +35,7 @@ module.exports = async ({
 	});
 
 	const blockLogic = await new Promise((resolve, reject) => {
-		new Block(ed, schema, initTransactionLogic, (err, object) => {
+		new Block(schema, initTransactionLogic, (err, object) => {
 			err ? reject(err) : resolve(object);
 		});
 	});
