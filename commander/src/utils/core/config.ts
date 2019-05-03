@@ -62,6 +62,7 @@ export const getLiskConfig = async (
 	const kb = 1024;
 	const size = 400;
 	const maxBuffer = kb * size;
+
 	const { stdout, stderr } = await exec(cmd, { cwd: installDir, maxBuffer });
 	if (stderr) {
 		throw new Error(stderr);

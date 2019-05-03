@@ -99,27 +99,31 @@ export const createUser = async (
 	network: NETWORK,
 	name: string,
 ): Promise<string> => {
-	const {
-		config: {
-			components: {
-				storage: { user, password },
+	try {
+		const {
+			config: {
+				components: {
+					storage: { user, password },
+				},
 			},
-		},
-	}: LiskConfig = await getLiskConfig(installDir, network);
-	const { dbPort } = await describeApplication(name);
+		}: LiskConfig = await getLiskConfig(installDir, network);
+		const { dbPort } = await describeApplication(name);
 
-	const { stderr }: ExecResult = await exec(
-		`${PG_BIN}/dropuser --if-exists ${user} --port ${dbPort};
-    ${PG_BIN}/createuser --createdb ${user} --port ${dbPort};
-    ${PG_BIN}/psql --quiet --dbname postgres --port ${dbPort} --command "ALTER USER ${user} WITH PASSWORD '${password}';";`,
-		{ cwd: installDir },
-	);
+		const { stderr }: ExecResult = await exec(
+			`${PG_BIN}/dropuser --if-exists ${user} --port ${dbPort};
+			${PG_BIN}/createuser --createdb ${user} --port ${dbPort};
+			${PG_BIN}/psql --quiet --dbname postgres --port ${dbPort} --command "ALTER USER ${user} WITH PASSWORD '${password}';";`,
+			{ cwd: installDir },
+		);
 
-	if (!stderr) {
-		return DATABASE_USER_SUCCESS;
+		if (!stderr) {
+			return DATABASE_USER_SUCCESS;
+		}
+
+		throw new Error(`${DATABASE_USER_FAILURE}: \n\n ${stderr}`);
+	} catch (error) {
+		throw new Error(error);
 	}
-
-	throw new Error(`${DATABASE_USER_FAILURE}: \n\n ${stderr}`);
 };
 
 export const createDatabase = async (
@@ -127,27 +131,31 @@ export const createDatabase = async (
 	network: NETWORK,
 	name: string,
 ): Promise<string> => {
-	const {
-		config: {
-			components: {
-				storage: { database },
+	try {
+		const {
+			config: {
+				components: {
+					storage: { database },
+				},
 			},
-		},
-	}: LiskConfig = await getLiskConfig(installDir, network);
-	const { dbPort } = await describeApplication(name);
+		}: LiskConfig = await getLiskConfig(installDir, network);
+		const { dbPort } = await describeApplication(name);
 
-	const { stderr }: ExecResult = await exec(
-		`${PG_BIN}/dropdb --if-exists ${database} --port ${dbPort};
-    ${PG_BIN}/createdb ${database} --port ${dbPort};
-		`,
-		{ cwd: installDir },
-	);
+		const { stderr }: ExecResult = await exec(
+			`${PG_BIN}/dropdb --if-exists ${database} --port ${dbPort};
+			${PG_BIN}/createdb ${database} --port ${dbPort};
+			`,
+			{ cwd: installDir },
+		);
 
-	if (!stderr) {
-		return DATABASE_CREATE_SUCCESS;
+		if (!stderr) {
+			return DATABASE_CREATE_SUCCESS;
+		}
+
+		throw new Error(`${DATABASE_CREATE_FAILURE}: \n\n ${stderr}`);
+	} catch (error) {
+		throw new Error(error);
 	}
-
-	throw new Error(`${DATABASE_CREATE_FAILURE}: \n\n ${stderr}`);
 };
 
 export const stopDatabase = async (
@@ -178,23 +186,27 @@ export const restoreSnapshot = async (
 	snapshotFilePath: string,
 	name: string,
 ): Promise<string> => {
-	const {
-		config: {
-			components: {
-				storage: { database, user },
+	try {
+		const {
+			config: {
+				components: {
+					storage: { database, user },
+				},
 			},
-		},
-	}: LiskConfig = await getLiskConfig(installDir, network);
-	const { dbPort } = await describeApplication(name);
+		}: LiskConfig = await getLiskConfig(installDir, network);
+		const { dbPort } = await describeApplication(name);
 
-	const { stderr }: ExecResult = await exec(
-		`gunzip --force --stdout --quiet ${snapshotFilePath} | ${PG_BIN}/psql --username ${user} --dbname ${database} --port ${dbPort};`,
-		{ cwd: installDir },
-	);
+		const { stderr }: ExecResult = await exec(
+			`gunzip --force --stdout --quiet ${snapshotFilePath} | ${PG_BIN}/psql --username ${user} --dbname ${database} --port ${dbPort};`,
+			{ cwd: installDir },
+		);
 
-	if (!stderr) {
-		return RESTORE_SNAPSHOT_SUCCESS;
+		if (!stderr) {
+			return RESTORE_SNAPSHOT_SUCCESS;
+		}
+
+		throw new Error(`${RESTORE_SNAPSHOT_FAILURE}: \n\n ${stderr}`);
+	} catch (error) {
+		throw new Error(error);
 	}
-
-	throw new Error(`${RESTORE_SNAPSHOT_FAILURE}: \n\n ${stderr}`);
 };

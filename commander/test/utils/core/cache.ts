@@ -27,8 +27,6 @@ describe('cache node utils', () => {
 	});
 
 	describe('#isCacheEnabled', async () => {
-		configStub.resolves(liskConfig.config);
-
 		const enabled = await isCacheEnabled('~/.lisk/instance', NETWORK.DEVNET);
 		return expect(enabled).to.be.true;
 	});

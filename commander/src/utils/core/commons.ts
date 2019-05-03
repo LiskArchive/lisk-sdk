@@ -227,7 +227,6 @@ const convertToNumber = (val: ReadableInstanceType): number => {
 		return val;
 	}
 
-
 	return parseInt(val, 10);
 };
 

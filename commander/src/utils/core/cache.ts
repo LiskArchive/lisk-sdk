@@ -64,18 +64,22 @@ const stopCommand = async (
 	network: NETWORK,
 	name: string,
 ): Promise<string> => {
-	const {
-		config: {
-			components: { cache: password },
-		},
-	}: LiskConfig = await getLiskConfig(installDir, network);
-	const { redisPort } = await describeApplication(name);
+	try {
+		const {
+			config: {
+				components: { cache: password },
+			},
+		}: LiskConfig = await getLiskConfig(installDir, network);
+		const { redisPort } = await describeApplication(name);
 
-	if (password) {
-		return `${REDIS_CLI} -p ${redisPort} -a ${password} shutdown`;
+		if (password) {
+			return `${REDIS_CLI} -p ${redisPort} -a ${password} shutdown`;
+		}
+
+		return `${REDIS_CLI} -p ${redisPort} shutdown`;
+	} catch (error) {
+		throw new Error(error);
 	}
-
-	return `${REDIS_CLI} -p ${redisPort} shutdown`;
 };
 
 export const stopCache = async (
@@ -83,25 +87,36 @@ export const stopCache = async (
 	network: NETWORK,
 	name: string,
 ): Promise<string> => {
-	const cmd = await stopCommand(installDir, network, name);
+	try {
+		const cmd = await stopCommand(installDir, network, name);
 
-	const { stderr }: ExecResult = await exec(cmd, { cwd: installDir });
+		const { stderr }: ExecResult = await exec(cmd, { cwd: installDir });
 
-	if (!stderr) {
-		return CACHE_STOP_SUCCESS;
+		if (!stderr) {
+			return CACHE_STOP_SUCCESS;
+		}
+
+		throw new Error(`${CACHE_STOP_FAILURE}: \n\n ${stderr}`);
+	} catch (error) {
+		throw new Error(error);
 	}
-
-	throw new Error(`${CACHE_STOP_FAILURE}: \n\n ${stderr}`);
 };
 
-export const isCacheEnabled = async (installDir: string, network: NETWORK): Promise<boolean> => {
-	const {
-		config: {
-			components: {
-				cache: { enabled },
+export const isCacheEnabled = async (
+	installDir: string,
+	network: NETWORK,
+): Promise<boolean> => {
+	try {
+		const {
+			config: {
+				components: {
+					cache: { enabled },
+				},
 			},
-		},
-	}: LiskConfig = await getLiskConfig(installDir, network);
+		}: LiskConfig = await getLiskConfig(installDir, network);
 
-	return enabled;
+		return enabled;
+	} catch (error) {
+		throw new Error(error);
+	}
 };

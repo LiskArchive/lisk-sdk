@@ -44,9 +44,11 @@ describe('commons core utils', () => {
 
 	beforeEach(() => {
 		pm2Stub = sandbox.stub(pm2, 'listApplication');
-		pm2Stub.resolves([{
-			pm2_env: envConfig,
-		}]);
+		pm2Stub.resolves([
+			{
+				pm2_env: envConfig,
+			},
+		]);
 	});
 
 	describe('#liskInstall', () => {
@@ -308,7 +310,7 @@ describe('commons core utils', () => {
 				LISK_REDIS_PORT: 6381,
 				LISK_DB_PORT: 5433,
 				LISK_HTTP_PORT: 4002,
-				LISK_WS_PORT: 4003
+				LISK_WS_PORT: 4003,
 			});
 		});
 	});
@@ -316,9 +318,10 @@ describe('commons core utils', () => {
 	describe('#getDownloadedFileInfo', () => {
 		it('should get fileName, fileDir, filePath from url', async () => {
 			return expect(getDownloadedFileInfo(url, '~/.cache')).to.deep.equal({
-				fileDir: "~/.cache/downloads.lisk.io/lisk/testnet/1.6.0-rc.4",
-				fileName: "lisk-1.6.0-rc.4-Darwin-x86_64.tar.gz",
-				filePath: "~/.cache/downloads.lisk.io/lisk/testnet/1.6.0-rc.4/lisk-1.6.0-rc.4-Darwin-x86_64.tar.gz",
+				fileDir: '~/.cache/downloads.lisk.io/lisk/testnet/1.6.0-rc.4',
+				fileName: 'lisk-1.6.0-rc.4-Darwin-x86_64.tar.gz',
+				filePath:
+					'~/.cache/downloads.lisk.io/lisk/testnet/1.6.0-rc.4/lisk-1.6.0-rc.4-Darwin-x86_64.tar.gz',
 			});
 		});
 	});
