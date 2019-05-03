@@ -106,6 +106,14 @@ class BaseChannel {
 		throw new TypeError('This method must be implemented in child classes. ');
 	}
 
+	// Call action of any moduleAlias through controller
+	// Specified as moduleName:actionName
+	// Specified action must be defined as publicly callable
+	// eslint-disable-next-line no-unused-vars, class-methods-use-this
+	async invokePublic(actionName, params) {
+		throw new TypeError('This method must be implemented in child classes. ');
+	}
+
 	isValidEventName(name, throwError = true) {
 		const result = eventWithModuleNameReg.test(name);
 		if (throwError && !result) {

@@ -66,32 +66,90 @@ module.exports = class ChainModule extends BaseModule {
 
 	get actions() {
 		return {
-			calculateSupply: action => this.chain.actions.calculateSupply(action),
-			calculateMilestone: action =>
-				this.chain.actions.calculateMilestone(action),
-			calculateReward: action => this.chain.actions.calculateReward(action),
-			generateDelegateList: action =>
+			calculateSupply: {
+				handler: action => this.chain.actions.calculateSupply(action),
+				public: true,
+			},
+			calculateMilestone: {
+				handler: action =>
+					this.chain.actions.calculateMilestone(action),
+				public: true,
+			},
+			calculateReward: {
+				handler: action =>
+					action => this.chain.actions.calculateReward(action),
+				public: true,
+			},
+			generateDelegateList: {
+				handler: action =>
 				this.chain.actions.generateDelegateList(action),
-			updateForgingStatus: async action =>
+				public: true,
+			},
+			updateForgingStatus: {
+				handler: async action =>
 				this.chain.actions.updateForgingStatus(action),
-			postSignature: async action => this.chain.actions.postSignature(action),
-			getForgingStatusForAllDelegates: async () =>
+				public: true,
+			},
+			postSignature: {
+				handler: async action => this.chain.actions.postSignature(action),
+				public: true,
+			},
+			getForgingStatusForAllDelegates: {
+				handler: async () =>
 				this.chain.actions.getForgingStatusForAllDelegates(),
-			getTransactionsFromPool: async action =>
+				public: true,
+			},
+			getTransactionsFromPool: {
+				handler: async action =>
 				this.chain.actions.getTransactionsFromPool(action),
-			getTransactions: async () => this.chain.actions.getTransactions(),
-			getSignatures: async () => this.chain.actions.getSignatures(),
-			getLastCommit: async () => this.chain.actions.getLastCommit(),
-			getBuild: async () => this.chain.actions.getBuild(),
-			postTransaction: async action =>
+				public: true,
+			},
+			getTransactions: {
+				handler: async () => this.chain.actions.getTransactions(),
+				public: true,
+			},
+			getSignatures: {
+				handler: async () => this.chain.actions.getSignatures(),
+				public: true,
+			},
+			getLastCommit: {
+				handler: async () => this.chain.actions.getLastCommit(),
+				public: true,
+			},
+			getBuild: {
+				handler: async () => this.chain.actions.getBuild(),
+				public: true,
+			},
+			postTransaction: {
+				handler: async action =>
 				this.chain.actions.postTransaction(action),
-			getDelegateBlocksRewards: async action =>
+				public: true,
+			},
+			getDelegateBlocksRewards: {
+				handler: async action =>
 				this.chain.actions.getDelegateBlocksRewards(action),
-			getSlotNumber: async action => this.chain.actions.getSlotNumber(action),
-			calcSlotRound: async action => this.chain.actions.calcSlotRound(action),
-			getNodeStatus: async () => this.chain.actions.getNodeStatus(),
-			blocks: async action => this.chain.actions.blocks(action),
-			blocksCommon: async action => this.chain.actions.blocksCommon(action),
+				public: true,
+			},
+			getSlotNumber: {
+				handler: async action => this.chain.actions.getSlotNumber(action),
+				public: true,
+			},
+			calcSlotRound: {
+				handler: async action => this.chain.actions.calcSlotRound(action),
+				public: true,
+			},
+			getNodeStatus: {
+				handler: async () => this.chain.actions.getNodeStatus(),
+				public: true,
+			},
+			blocks: {
+				handler: async action => this.chain.actions.blocks(action),
+				public: true,
+			},
+			blocksCommon: {
+				handler: async action => this.chain.actions.blocksCommon(action),
+				public: true,
+			},
 		};
 	}
 

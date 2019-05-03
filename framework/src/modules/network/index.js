@@ -49,7 +49,7 @@ module.exports = class NetworkModule extends BaseModule {
 
 	get actions() {
 		return {
-			invoke: async action => this.network.actions.invoke(action),
+			invokePublic: async action => this.network.actions.invokePublic(action),
 			publish: action => this.network.actions.publish(action),
 			getNetworkStatus: () => this.network.actions.getNetworkStatus(),
 			getPeers: action => this.network.actions.getPeers(action),

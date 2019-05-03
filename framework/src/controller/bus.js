@@ -113,6 +113,9 @@ class Bus extends EventEmitter2 {
 		actions,
 		options = { type: 'inMemory' }
 	) {
+		console.log(actions); // [ 'invoke', publish getnetworkstatus getpeers ]
+		console.log(events); // [ 'bootstrap' 'subscribe' registeredtoBus loading:started ]
+
 		events.forEach(eventName => {
 			const eventFullName = `${moduleAlias}:${eventName}`;
 			if (this.events[eventFullName]) {
@@ -162,6 +165,47 @@ class Bus extends EventEmitter2 {
 
 		if (!this.actions[action.key()]) {
 			throw new Error(`Action ${action.key()} is not registered to bus.`);
+		}
+
+		if (action.module === CONTROLLER_IDENTIFIER) {
+			return this.channels[CONTROLLER_IDENTIFIER].channel.invoke(action);
+		}
+
+		if (this.channels[action.module].type === 'inMemory') {
+			return this.channels[action.module].channel.invoke(action);
+		}
+
+		return new Promise((resolve, reject) => {
+			this.channels[action.module].channel.call(
+				'invoke',
+				action.serialize(),
+				(err, data) => {
+					if (err) {
+						return reject(err);
+					}
+					return resolve(data);
+				}
+			);
+		});
+	}
+
+	/**
+	 * Invoke only public defined action on bus.
+	 *
+	 * @param {Object|string} actionData - Object or stringified object containing action data like name, module, souce, and params.
+	 *
+	 * @throws {Error} If action is not registered to bus.
+	 */
+	async invokePublic(actionData) {
+		const action = Action.deserialize(actionData);
+
+		if (!this.actions[action.key()]) {
+			throw new Error(`Action ${action.key()} is not registered to bus.`);
+		}
+
+		console.log(this.channels[action.module].channel.actions[action.key()].public);
+		if (!this.channels[action.module].channel.actions[action.key()].public) {
+			throw new Error(`Action ${action.key()} is not public.`);
 		}
 
 		if (action.module === CONTROLLER_IDENTIFIER) {
