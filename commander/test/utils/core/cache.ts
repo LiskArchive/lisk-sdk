@@ -6,11 +6,13 @@ import {
 } from '../../../src/utils/core/cache';
 import { NETWORK } from '../../../src/utils/constants';
 import * as workerProcess from '../../../src/utils/worker-process';
-import * as nodeConfig from '../../../src/utils/core/config';
+import * as coreConfig from '../../../src/utils/core/config';
 import * as pm2 from '../../../src/utils/core/pm2';
+import * as liskConfig from './fixtures';
 
 describe('cache node utils', () => {
 	let pm2Stub: any = null;
+	let configStub: any = null;
 
 	beforeEach(() => {
 		pm2Stub = sandbox.stub(pm2, 'describeApplication');
@@ -19,6 +21,8 @@ describe('cache node utils', () => {
 				LISK_REDIS_PORT: 6380,
 			},
 		});
+		configStub = sandbox.stub(coreConfig, 'getLiskConfig');
+		configStub.resolves(liskConfig.config);
 	});
 
 	describe('#isCacheRunning', () => {
@@ -98,20 +102,19 @@ describe('cache node utils', () => {
 			it('should throw error', () => {
 				return expect(
 					stopCache('/tmp/dummypath', NETWORK.MAINNET, 'test'),
-				).to.rejectedWith('Config file not exists in path');
+				).to.rejectedWith(
+					'[-] Failed to stop Redis-Server.: \n\n Error: spawn /bin/sh ENOENT',
+				);
 			});
 		});
 
 		describe('when installation exists', () => {
-			let configStub: any = null;
 			let workerProcessStub: any = null;
 			beforeEach(() => {
-				configStub = sandbox.stub(nodeConfig, 'getCacheConfig');
 				workerProcessStub = sandbox.stub(workerProcess, 'exec');
 			});
 
 			it('should stop successfully when password is empty', async () => {
-				configStub.returns({ password: null });
 				workerProcessStub.resolves({ stdout: '', stderr: null });
 
 				const status = await stopCache(
@@ -125,7 +128,6 @@ describe('cache node utils', () => {
 			});
 
 			it('should stop successfully when password is present', async () => {
-				configStub.returns({ password: 'lisk' });
 				workerProcessStub.resolves({ stdout: '', stderr: null });
 
 				const status = await stopCache(
@@ -139,7 +141,6 @@ describe('cache node utils', () => {
 			});
 
 			it('should throw error when failed to stop', () => {
-				configStub.returns({ password: 'lisk' });
 				workerProcessStub.resolves({
 					stdout: 'Failed to stop redis',
 					stderr: 'Failed to stop redis',

@@ -27,7 +27,6 @@ import {
 	upgradeLisk,
 	validateVersion,
 } from '../../utils/core/commons';
-import { getConfig } from '../../utils/core/config';
 import { startDatabase, stopDatabase } from '../../utils/core/database';
 import {
 	describeApplication,
@@ -47,10 +46,6 @@ interface Flags {
 
 interface Args {
 	readonly name: string;
-}
-
-interface PackageJson {
-	readonly version: string;
 }
 
 export default class UpgradeCommand extends BaseCommand {
@@ -92,10 +87,11 @@ export default class UpgradeCommand extends BaseCommand {
 		const { args, flags } = this.parse(UpgradeCommand);
 		const { name }: Args = args;
 		const { 'lisk-version': liskVersion, releaseUrl } = flags as Flags;
-		const { installationPath, network } = await describeApplication(name);
-		const { version: currentVersion } = getConfig(
-			`${installationPath}/package.json`,
-		) as PackageJson;
+		const {
+			installationPath,
+			network,
+			version: currentVersion,
+		} = await describeApplication(name);
 		const upgradeVersion: string = await getVersionToInstall(
 			network,
 			liskVersion,

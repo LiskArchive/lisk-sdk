@@ -1,135 +1,66 @@
-import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import { expect } from 'chai';
 import {
-	defaultInstallationPath,
-	isCacheEnabled,
-	getCacheConfig,
-	getDbConfig,
-	getDefaultConfig,
-	getNetworkConfig,
-	getConfig,
+	defaultBackupPath,
+	defaultLiskInstancePath,
+	defaultLiskPath,
+	defaultLiskPm2Path,
+	getLiskConfig,
 } from '../../../src/utils/core/config';
+import * as workerProcess from '../../../src/utils/worker-process';
 import { NETWORK } from '../../../src/utils/constants';
-import * as coreConfig from '../../../src/utils/core/config';
+import * as liskConfig from './fixtures';
 
 describe('config core utils', () => {
-	describe('#isCacheEnabled', () => {
-		let getNetworkConfigStub: any = null;
-		let getDefaultConfigStub: any = null;
-		beforeEach(() => {
-			getNetworkConfigStub = sandbox.stub(coreConfig, 'getNetworkConfig');
-			getDefaultConfigStub = sandbox.stub(coreConfig, 'getDefaultConfig');
-		});
-
-		it('should return network cache config', () => {
-			getNetworkConfigStub.returns({ cacheEnabled: true });
-			getDefaultConfigStub.returns({ cacheEnabled: true });
-
-			const isEnabled = isCacheEnabled(
-				defaultInstallationPath,
-				NETWORK.MAINNET,
-			);
-			return expect(isEnabled).to.be.true;
-		});
-
-		it('should return default cache config when network config is undefined', () => {
-			getNetworkConfigStub.returns({ cacheEnabled: null });
-			getDefaultConfigStub.returns({ cacheEnabled: true });
-
-			const isEnabled = isCacheEnabled(
-				defaultInstallationPath,
-				NETWORK.MAINNET,
-			);
-			return expect(isEnabled).to.be.true;
-		});
+	it('should return defaultLiskPath constant', () => {
+		return expect(defaultLiskPath).to.equal(path.join(os.homedir(), '.lisk'));
 	});
 
-	describe('#getCacheConfig', () => {
-		let getNetworkConfigStub: any = null;
-		let getDefaultConfigStub: any = null;
+	it('should return defaultLiskPm2Path constant', () => {
+		return expect(defaultLiskPm2Path).to.equal(
+			path.join(`${defaultLiskPath}/pm2`),
+		);
+	});
+
+	it('should return defaultLiskInstancePath constant', () => {
+		return expect(defaultLiskInstancePath).to.equal(
+			path.join(`${defaultLiskPath}/instances`),
+		);
+	});
+
+	it('should return defaultBackupPath constant', () => {
+		return expect(defaultBackupPath).to.equal(
+			path.join(`${defaultLiskInstancePath}/backup`),
+		);
+	});
+
+	describe('#getLiskConfig', () => {
+		let workerProcessStub: any = null;
 		beforeEach(() => {
-			getNetworkConfigStub = sandbox.stub(coreConfig, 'getNetworkConfig');
-			getDefaultConfigStub = sandbox.stub(coreConfig, 'getDefaultConfig');
+			workerProcessStub = sandbox.stub(workerProcess, 'exec');
 		});
 
-		it('should return cache config', () => {
-			const networkConfig = { redis: { cacheEnabled: true } };
-			const defaultConfig = {};
-			getNetworkConfigStub.returns(networkConfig);
-			getDefaultConfigStub.returns(defaultConfig);
+		it('should return lisk config', async () => {
+			workerProcessStub.resolves({
+				stdout: JSON.stringify(liskConfig.config),
+			});
 
-			const cacheConfig = getCacheConfig(
-				defaultInstallationPath,
-				NETWORK.MAINNET,
+			const config = await getLiskConfig(
+				defaultLiskInstancePath,
+				NETWORK.DEVNET,
 			);
-			return expect(cacheConfig).to.deep.equal(networkConfig.redis);
-		});
-	});
-
-	describe('#getDbConfig', () => {
-		let getNetworkConfigStub: any = null;
-		let getDefaultConfigStub: any = null;
-		beforeEach(() => {
-			getNetworkConfigStub = sandbox.stub(coreConfig, 'getNetworkConfig');
-			getDefaultConfigStub = sandbox.stub(coreConfig, 'getDefaultConfig');
+			return expect(config).to.deep.equal(liskConfig.config);
 		});
 
-		it('should return database config', () => {
-			const networkConfig = { db: { database: 'lisk' } };
-			const defaultConfig = {};
-			getNetworkConfigStub.returns(networkConfig);
-			getDefaultConfigStub.returns(defaultConfig);
+		it('should throw error if failed to generate config', () => {
+			workerProcessStub.resolves({
+				stderr: 'Invalid config schema',
+			});
 
-			const dbConfig = getDbConfig(defaultInstallationPath, NETWORK.MAINNET);
-			return expect(dbConfig).to.deep.equal(networkConfig.db);
-		});
-	});
-
-	describe('#getDefaultConfig', () => {
-		const appConfig = { db: { database: 'lisk' } };
-		beforeEach(() => {
-			sandbox.stub(coreConfig, 'getConfig').returns(appConfig);
-		});
-
-		it('should return default app config', () => {
-			return expect(getDefaultConfig(defaultInstallationPath)).to.deep.equal(
-				appConfig,
-			);
-		});
-	});
-
-	describe('#getNetworkConfig', () => {
-		const appConfig = { db: { database: 'lisk' } };
-		beforeEach(() => {
-			sandbox.stub(coreConfig, 'getConfig').returns(appConfig);
-		});
-
-		it('should return network app config', () => {
 			return expect(
-				getNetworkConfig(defaultInstallationPath, NETWORK.MAINNET),
-			).to.deep.equal(appConfig);
-		});
-	});
-
-	describe('#getConfig', () => {
-		const appConfigObject = {
-			database: 'lisk',
-			version: 1,
-		};
-		const appConfigContents = '{\n\t"database": "lisk",\n\t"version": 1\n}';
-
-		beforeEach(() => {
-			sandbox.stub(fs, 'existsSync').returns(true);
-			sandbox.stub(fs, 'readFileSync').returns(appConfigContents);
-			sandbox.stub(JSON, 'parse').returns(appConfigObject);
-		});
-
-		it('should return network app config', () => {
-			expect(getConfig(defaultInstallationPath)).to.deep.equal(appConfigObject);
-			return expect(fs.readFileSync).to.be.calledWithExactly(
-				defaultInstallationPath,
-				'utf8',
-			);
+				getLiskConfig(defaultLiskInstancePath, NETWORK.DEVNET),
+			).to.be.rejectedWith('Invalid config schema');
 		});
 	});
 });

@@ -27,7 +27,11 @@ import {
 } from '../constants';
 import { exec, ExecResult } from '../worker-process';
 import { defaultBackupPath } from './config';
-import { Instance, listApplication } from './pm2';
+import {
+	listApplication,
+	PM2ProcessInstance,
+	ReadableInstanceType,
+} from './pm2';
 import { getLatestVersion } from './release';
 
 export const liskInstall = (installPath: string): string =>
@@ -214,40 +218,47 @@ export const getDownloadedFileInfo = (
 	};
 };
 
+const convertToNumber = (val: ReadableInstanceType): number => {
+	if (!val) {
+		return 0;
+	}
+
+	if (typeof val === 'number') {
+		return val;
+	}
+
+	return parseInt(val, 10);
+};
+
 const getEnvByKey = (
-	instances: ReadonlyArray<Instance>,
+	instances: ReadonlyArray<PM2ProcessInstance>,
 	key: string,
 	defaultValue: number,
 ): number => {
 	const maxValue = instances
-		.map(app => ((app as unknown) as { readonly [key: string]: number })[key])
+		.map(app => app[key])
 		.reduce((acc, curr) => {
-			if (curr) {
-				return Math.max(acc, curr);
-			} else {
-				return acc;
-			}
+			const ac = convertToNumber(acc);
+			const cu = convertToNumber(curr);
+
+			return Math.max(ac, cu);
 		}, defaultValue);
 
-	return maxValue || defaultValue;
+	return convertToNumber(maxValue) || defaultValue;
 };
 
 export const generateEnvConfig = async (network: NETWORK): Promise<object> => {
-	const INCREMENT = 1;
+	const INCREMENT = 2;
 	const instances = await listApplication();
 	const filteredByNetwork = instances.filter(i => i.network === network);
 
 	return {
-		LISK_DB_PORT: getEnvByKey(instances, 'dbPort', POSTGRES_PORT) + INCREMENT,
-		LISK_REDIS_PORT:
-			getEnvByKey(instances, 'redisPort', REDIS_PORT) + INCREMENT,
+		LISK_DB_PORT: getEnvByKey(instances, 'dbPort', POSTGRES_PORT) + 1,
+		LISK_REDIS_PORT: getEnvByKey(instances, 'redisPort', REDIS_PORT) + 1,
 		LISK_HTTP_PORT:
 			getEnvByKey(filteredByNetwork, 'httpPort', HTTP_PORTS[network]) +
-			INCREMENT +
-			1,
+			INCREMENT,
 		LISK_WS_PORT:
-			getEnvByKey(filteredByNetwork, 'wsPort', WS_PORTS[network]) +
-			INCREMENT +
-			1,
+			getEnvByKey(filteredByNetwork, 'wsPort', WS_PORTS[network]) + INCREMENT,
 	};
 };

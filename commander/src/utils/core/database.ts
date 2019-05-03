@@ -16,7 +16,7 @@
 import fs from 'fs';
 import { NETWORK } from '../constants';
 import { exec, ExecResult } from '../worker-process';
-import { DbConfig, getDbConfig } from './config';
+import { getLiskConfig, LiskConfig } from './config';
 import { describeApplication } from './pm2';
 
 const DATABASE_START_SUCCESS = '[+] Postgresql started successfully.';
@@ -99,7 +99,13 @@ export const createUser = async (
 	network: NETWORK,
 	name: string,
 ): Promise<string> => {
-	const { user, password }: DbConfig = getDbConfig(installDir, network);
+	const {
+		config: {
+			components: {
+				storage: { user, password },
+			},
+		},
+	}: LiskConfig = await getLiskConfig(installDir, network);
 	const { dbPort } = await describeApplication(name);
 
 	const { stderr }: ExecResult = await exec(
@@ -121,7 +127,13 @@ export const createDatabase = async (
 	network: NETWORK,
 	name: string,
 ): Promise<string> => {
-	const { database }: DbConfig = getDbConfig(installDir, network);
+	const {
+		config: {
+			components: {
+				storage: { database },
+			},
+		},
+	}: LiskConfig = await getLiskConfig(installDir, network);
 	const { dbPort } = await describeApplication(name);
 
 	const { stderr }: ExecResult = await exec(
@@ -166,7 +178,13 @@ export const restoreSnapshot = async (
 	snapshotFilePath: string,
 	name: string,
 ): Promise<string> => {
-	const { database, user }: DbConfig = getDbConfig(installDir, network);
+	const {
+		config: {
+			components: {
+				storage: { database, user },
+			},
+		},
+	}: LiskConfig = await getLiskConfig(installDir, network);
 	const { dbPort } = await describeApplication(name);
 
 	const { stderr }: ExecResult = await exec(

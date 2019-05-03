@@ -64,9 +64,7 @@ export default class StatusCommand extends BaseCommand {
 							toDisplay.includes(key)
 								? {
 										...newObj,
-										[key]: ((instance as unknown) as {
-											readonly [key: string]: string;
-										})[key],
+										[key]: instance[key],
 								  }
 								: newObj,
 						{},

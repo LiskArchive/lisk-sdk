@@ -16,7 +16,6 @@
 import { flags as flagParser } from '@oclif/command';
 import * as childProcess from 'child_process';
 import BaseCommand from '../../base';
-import { getNetworkConfig } from '../../utils/core/config';
 import { describeApplication } from '../../utils/core/pm2';
 
 interface Args {
@@ -52,8 +51,7 @@ export default class LogsCommand extends BaseCommand {
 		const { name } = args as Args;
 
 		const { installationPath, network } = await describeApplication(name);
-		const { logFileName } = getNetworkConfig(installationPath, network);
-		const fileName = `${installationPath}/${logFileName}`;
+		const fileName = `${installationPath}/logs/${network}/lisk.log`;
 
 		const tail = childProcess.spawn('tail', ['-f', fileName]);
 		const { stderr, stdout } = tail;

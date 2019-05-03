@@ -15,7 +15,7 @@
  */
 import { NETWORK } from '../constants';
 import { exec, ExecResult } from '../worker-process';
-import { CacheConfig, getCacheConfig } from './config';
+import { getLiskConfig, LiskConfig } from './config';
 import { describeApplication } from './pm2';
 
 const CACHE_START_SUCCESS = '[+] Redis-Server started successfully.';
@@ -64,7 +64,11 @@ const stopCommand = async (
 	network: NETWORK,
 	name: string,
 ): Promise<string> => {
-	const { password }: CacheConfig = getCacheConfig(installDir, network);
+	const {
+		config: {
+			components: { cache: password },
+		},
+	}: LiskConfig = await getLiskConfig(installDir, network);
 	const { redisPort } = await describeApplication(name);
 
 	if (password) {
@@ -88,4 +92,16 @@ export const stopCache = async (
 	}
 
 	throw new Error(`${CACHE_STOP_FAILURE}: \n\n ${stderr}`);
+};
+
+export const isCacheEnabled = async (installDir: string, network: NETWORK) => {
+	const {
+		config: {
+			components: {
+				cache: { enabled },
+			},
+		},
+	}: LiskConfig = await getLiskConfig(installDir, network);
+
+	return enabled;
 };

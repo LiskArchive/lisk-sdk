@@ -16,8 +16,11 @@
 import { flags as flagParser } from '@oclif/command';
 import Listr from 'listr';
 import BaseCommand from '../../../base';
-import { isCacheRunning, stopCache } from '../../../utils/core/cache';
-import { isCacheEnabled } from '../../../utils/core/config';
+import {
+	isCacheEnabled,
+	isCacheRunning,
+	stopCache,
+} from '../../../utils/core/cache';
 import { describeApplication } from '../../../utils/core/pm2';
 
 interface Args {
@@ -56,7 +59,7 @@ export default class CacheCommand extends BaseCommand {
 		const tasks = new Listr([
 			{
 				title: 'Stop the cache server',
-				skip: () => !isCacheEnabled(installationPath, network),
+				skip: async () => !(await isCacheEnabled(installationPath, network)),
 				task: async () => {
 					const isRunning = await isCacheRunning(installationPath, name);
 					if (isRunning) {

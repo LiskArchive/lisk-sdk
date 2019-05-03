@@ -13,96 +13,59 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { NETWORK } from '../constants';
+import { exec } from '../worker-process';
 
-export interface CacheConfig {
-	readonly host: string;
-	readonly password: string | null;
-	readonly port: number;
+interface AppConfig {
+	readonly version: string;
+	readonly minVersion: string;
+	readonly protocolVersion: string;
 }
 
-export interface DbConfig {
+interface StorageConfig {
 	readonly database: string;
-	readonly host: string;
-	readonly password: string;
-	readonly port: number;
 	readonly user: string;
+	readonly password: string;
 }
 
-export interface NodeConfig {
-	readonly cacheEnabled: boolean;
-	readonly db: DbConfig;
-	readonly logFileName: CacheConfig;
-	readonly redis: CacheConfig;
+interface CacheConfig {
+	readonly password: string;
+	readonly enabled: boolean;
+}
+
+interface ComponentsConfig {
+	readonly storage: StorageConfig;
+	readonly cache: CacheConfig;
+}
+
+interface Config {
+	readonly app: AppConfig;
+	readonly components: ComponentsConfig;
+}
+export interface LiskConfig {
+	readonly config: Config;
 }
 
 export const defaultLiskPath = path.join(os.homedir(), '.lisk');
 export const defaultLiskPm2Path = `${defaultLiskPath}/pm2`;
 export const defaultLiskInstancePath = `${defaultLiskPath}/instances`;
 export const defaultBackupPath = `${defaultLiskInstancePath}/backup`;
+const NODE_BIN = './bin/node';
 
-const configPath = (network: string = 'default'): string =>
-	`config/${network}/config.json`;
-
-export const getConfig = (filePath: string): object => {
-	if (!fs.existsSync(filePath)) {
-		throw new Error(`Config file not exists in path: ${filePath}`);
-	}
-	const config = fs.readFileSync(filePath, 'utf8');
-
-	return JSON.parse(config);
-};
-
-export const getDefaultConfig = (installDir: string): NodeConfig => {
-	const defaultConfigPath = `${installDir}/${configPath()}`;
-	const defaultConfig = getConfig(defaultConfigPath) as NodeConfig;
-
-	return defaultConfig;
-};
-
-export const getNetworkConfig = (
+export const getLiskConfig = async (
 	installDir: string,
-	network: string,
-): NodeConfig => {
-	const networkConfigPath = `${installDir}/${configPath(network)}`;
-	const networkConfig = getConfig(networkConfigPath) as NodeConfig;
-
-	return networkConfig;
-};
-
-export const getDbConfig = (installDir: string, network: string): DbConfig => {
-	const defaultConfig: NodeConfig = getDefaultConfig(installDir);
-	const networkConfig = getNetworkConfig(installDir, network);
-
-	return { ...defaultConfig.db, ...networkConfig.db };
-};
-
-export const getCacheConfig = (
-	installDir: string,
-	network: string,
-): CacheConfig => {
-	const defaultConfig: NodeConfig = getDefaultConfig(installDir);
-	const networkConfig = getNetworkConfig(installDir, network);
-
-	return { ...defaultConfig.redis, ...networkConfig.redis };
-};
-
-export const isCacheEnabled = (
-	installDir: string,
-	network: string,
-): boolean => {
-	const defaultConfig: NodeConfig = getDefaultConfig(installDir);
-	const networkConfig = getNetworkConfig(installDir, network);
-
-	if (
-		(networkConfig.cacheEnabled !== null ||
-			networkConfig.cacheEnabled !== undefined) &&
-		typeof networkConfig.cacheEnabled === 'boolean'
-	) {
-		return networkConfig.cacheEnabled;
+	network: NETWORK,
+): Promise<LiskConfig> => {
+	const cmd = `${NODE_BIN} scripts/generate_config.js -n ${network} | head -n 10000`;
+	const kb = 1024;
+	const size = 400;
+	const maxBuffer = kb * size;
+	const { stdout, stderr } = await exec(cmd, { cwd: installDir, maxBuffer });
+	if (stderr) {
+		throw new Error(stderr);
 	}
 
-	return defaultConfig.cacheEnabled;
+	return JSON.parse(stdout) as LiskConfig;
 };

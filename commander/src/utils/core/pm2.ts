@@ -34,7 +34,13 @@ export interface Pm2Env {
 	readonly version: string;
 }
 
-export interface Instance {
+export type ReadableInstanceType = string | undefined | number;
+
+interface InstanceIndex {
+	readonly [key: string]: ReadableInstanceType;
+}
+
+interface Instance {
 	readonly name: string | undefined;
 	readonly pid: number | undefined;
 	readonly status: ProcessStatus;
@@ -49,6 +55,8 @@ export interface Instance {
 	readonly httpPort: string;
 	readonly installationPath: string;
 }
+
+export type PM2ProcessInstance = Instance & InstanceIndex;
 
 const connectPM2 = async (): Promise<void> =>
 	new Promise<void>((resolve, reject) => {
@@ -75,6 +83,7 @@ const startPM2 = async (
 			{
 				name,
 				script: apps[0].script,
+				args: apps[0].args,
 				interpreter: `${installPath}/bin/node`,
 				cwd: installPath,
 				env: {
@@ -205,7 +214,9 @@ export const stopApplication = async (name: string): Promise<void> => {
 	disconnect();
 };
 
-const extractProcessDetails = (appDesc: ProcessDescription): Instance => {
+const extractProcessDetails = (
+	appDesc: ProcessDescription,
+): PM2ProcessInstance => {
 	const { pm2_env, monit, name, pid } = appDesc;
 	const {
 		status,
@@ -235,17 +246,21 @@ const extractProcessDetails = (appDesc: ProcessDescription): Instance => {
 	};
 };
 
-export const listApplication = async (): Promise<ReadonlyArray<Instance>> => {
+export const listApplication = async (): Promise<
+	ReadonlyArray<PM2ProcessInstance>
+> => {
 	await connectPM2();
-	const applications = (await listPM2()) as ReadonlyArray<Instance>;
+	const applications = (await listPM2()) as ReadonlyArray<PM2ProcessInstance>;
 	disconnect();
 
 	return applications.map(extractProcessDetails);
 };
 
-export const describeApplication = async (name: string): Promise<Instance> => {
+export const describeApplication = async (
+	name: string,
+): Promise<PM2ProcessInstance> => {
 	await connectPM2();
-	const application = (await describePM2(name)) as Instance;
+	const application = (await describePM2(name)) as PM2ProcessInstance;
 	disconnect();
 
 	return extractProcessDetails(application);

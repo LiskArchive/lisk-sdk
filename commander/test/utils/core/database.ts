@@ -12,14 +12,8 @@ import * as workerProcess from '../../../src/utils/worker-process';
 import { NETWORK } from '../../../src/utils/constants';
 import * as coreConfig from '../../../src/utils/core/config';
 import * as pm2 from '../../../src/utils/core/pm2';
+import * as liskConfig from './fixtures';
 
-const dbConfig = {
-	user: 'lisk',
-	password: 'lisk',
-	host: '0.0.0.0',
-	port: 5432,
-	database: 'lisk_test',
-};
 describe('database core utils', () => {
 	let pm2Stub: any = null;
 
@@ -30,6 +24,8 @@ describe('database core utils', () => {
 				LISK_REDIS_PORT: 6380,
 			},
 		});
+		const configStub = sandbox.stub(coreConfig, 'getLiskConfig');
+		configStub.resolves(liskConfig.config);
 	});
 
 	describe('#initDB', () => {
@@ -132,7 +128,6 @@ describe('database core utils', () => {
 
 		beforeEach(() => {
 			workerProcessStub = sandbox.stub(workerProcess, 'exec');
-			sandbox.stub(coreConfig, 'getDbConfig').returns(dbConfig);
 		});
 
 		it('should throw error when failed to create user', () => {
@@ -163,7 +158,6 @@ describe('database core utils', () => {
 
 		beforeEach(() => {
 			workerProcessStub = sandbox.stub(workerProcess, 'exec');
-			sandbox.stub(coreConfig, 'getDbConfig').returns(dbConfig);
 		});
 
 		it('should throw error when failed to create database', () => {
@@ -198,7 +192,6 @@ describe('database core utils', () => {
 
 		beforeEach(() => {
 			workerProcessStub = sandbox.stub(workerProcess, 'exec');
-			sandbox.stub(coreConfig, 'getDbConfig').returns(dbConfig);
 		});
 
 		it('should create user successfully ', async () => {
