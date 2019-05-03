@@ -33,6 +33,10 @@ describe('validator keyword "env"', () => {
 		validator.addKeyword('env', env);
 	});
 
+	afterEach(() => {
+		delete process.env.PROP1;
+	});
+
 	it('should accept env variable if specified as string', () => {
 		const envSchemaWithOutFormatter = {
 			type: 'object',
@@ -50,6 +54,44 @@ describe('validator keyword "env"', () => {
 		validator.validate(envSchemaWithOutFormatter, data);
 
 		expect(data.prop1).toBe('changedValue');
+	});
+
+	it('should accept env variable if specified as integer and format accordingly', () => {
+		const envSchemaWithOutFormatter = {
+			type: 'object',
+			properties: {
+				prop1: {
+					type: 'integer',
+					env: 'PROP1',
+				},
+			},
+		};
+
+		const data = { prop1: '999' };
+		process.env.PROP1 = '999';
+
+		validator.validate(envSchemaWithOutFormatter, data);
+
+		expect(data.prop1).toBe(999);
+	});
+
+	it('should accept env variable if specified as boolean and format accordingly', () => {
+		const envSchemaWithOutFormatter = {
+			type: 'object',
+			properties: {
+				prop1: {
+					type: 'boolean',
+					env: 'PROP1',
+				},
+			},
+		};
+
+		const data = { prop1: 'true' };
+		process.env.PROP1 = 'true';
+
+		validator.validate(envSchemaWithOutFormatter, data);
+
+		expect(data.prop1).toBe(true);
 	});
 
 	it('should format the value of env variable if specified as an object', () => {
@@ -94,6 +136,25 @@ describe('validator keyword "env"', () => {
 
 		expect(() => validator.validate(invalidSchema, data)).toThrow(
 			"keyword schema is invalid: data should be string, data should have required property 'variable', data should match some schema in anyOf"
+		);
+	});
+
+	it('should throw error if env variable for type boolean is incorrect', () => {
+		const invalidSchema = {
+			type: 'object',
+			properties: {
+				prop1: {
+					type: 'boolean',
+					env: 'PROP1',
+				},
+			},
+		};
+
+		const data = { prop1: 'true-wrong' };
+		process.env.PROP1 = 'true-wrong';
+
+		expect(() => validator.validate(invalidSchema, data)).toThrow(
+			'Failed to apply value for option PROP1, use "true" or "false"'
 		);
 	});
 
