@@ -82,6 +82,335 @@ class Delegates {
 
 		setImmediate(cb, null, self);
 	}
+
+	// Public methods
+	/**
+	 * Updates the forging status of an account, valid actions are enable and disable.
+	 *
+	 * @param {publicKey} publicKey - Public key of delegate
+	 * @param {string} password - Password used to decrypt encrypted passphrase
+	 * @param {boolean} forging - Forging status of a delegate to update
+	 * @param {function} cb - Callback function
+	 * @returns {setImmediateCallback} cb
+	 * @todo Add description for the return value
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	async updateForgingStatus(publicKey, password, forging) {
+		const encryptedList = library.config.forging.delegates;
+		const encryptedItem = encryptedList.find(
+			item => item.publicKey === publicKey
+		);
+
+		let keypair;
+		let passphrase;
+
+		if (encryptedItem) {
+			try {
+				passphrase = __private.decryptPassphrase(
+					encryptedItem.encryptedPassphrase,
+					password
+				);
+			} catch (e) {
+				throw new Error('Invalid password and public key combination');
+			}
+
+			keypair = library.ed.makeKeypair(
+				crypto
+					.createHash('sha256')
+					.update(passphrase, 'utf8')
+					.digest()
+			);
+		} else {
+			throw new Error(`Delegate with publicKey: ${publicKey} not found`);
+		}
+
+		if (keypair.publicKey.toString('hex') !== publicKey) {
+			throw new Error('Invalid password and public key combination');
+		}
+
+		const account = await promisify(modules.accounts.getAccount)({
+			publicKey: keypair.publicKey.toString('hex'),
+		});
+
+		if (account && account.isDelegate) {
+			if (forging) {
+				__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
+				library.logger.info(`Forging enabled on account: ${account.address}`);
+			} else {
+				delete __private.keypairs[keypair.publicKey.toString('hex')];
+				library.logger.info(`Forging disabled on account: ${account.address}`);
+			}
+
+			return {
+				publicKey,
+				forging,
+			};
+		}
+		throw new Error('Delegate not found');
+	}
+
+	/**
+	 * Gets delegate list based on input function by vote and changes order.
+	 *
+	 * @param {number} round
+	 * @param {function} source - Source function for get delegates
+	 * @param {function} cb - Callback function
+	 * @param {Object} tx - Database transaction/task object
+	 * @returns {setImmediateCallback} cb, err, truncated delegate list
+	 * @todo Add description for the params
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	generateDelegateList(round, source, cb, tx) {
+		// Set default function for getting delegates
+		source = source || __private.getKeysSortByVote;
+
+		if (__private.delegatesListCache[round]) {
+			library.logger.debug(
+				'Using delegate list from the cache for round',
+				round
+			);
+			return setImmediate(cb, null, __private.delegatesListCache[round]);
+		}
+
+		return source((err, truncDelegateList) => {
+			if (err) {
+				return setImmediate(cb, err);
+			}
+
+			const seedSource = round.toString();
+			let currentSeed = crypto
+				.createHash('sha256')
+				.update(seedSource, 'utf8')
+				.digest();
+
+			for (let i = 0, delCount = truncDelegateList.length; i < delCount; i++) {
+				for (let x = 0; x < 4 && i < delCount; i++, x++) {
+					const newIndex = currentSeed[x] % delCount;
+					const b = truncDelegateList[newIndex];
+					truncDelegateList[newIndex] = truncDelegateList[i];
+					truncDelegateList[i] = b;
+				}
+				currentSeed = crypto
+					.createHash('sha256')
+					.update(currentSeed)
+					.digest();
+			}
+
+			// If the round is not an exception, cache the round.
+			if (!exceptions.ignoreDelegateListCacheForRounds.includes(round)) {
+				__private.updateDelegateListCache(round, truncDelegateList);
+			}
+			return setImmediate(cb, null, truncDelegateList);
+		}, tx);
+	}
+
+	/**
+	 * Generates delegate list and checks if block generator public key matches delegate id.
+	 *
+	 * @param {block} block
+	 * @param {function} cb - Callback function
+	 * @returns {setImmediateCallback} cb, err
+	 * @todo Add description for the params
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	validateBlockSlot(block, cb) {
+		__private.validateBlockSlot(block, __private.getKeysSortByVote, cb);
+	}
+
+	/**
+	 * Generates delegate list and checks if block generator public key matches delegate id - against previous round.
+	 *
+	 * @param {block} block
+	 * @param {function} cb - Callback function
+	 * @returns {setImmediateCallback} cb, err
+	 * @todo Add description for the params
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	validateBlockSlotAgainstPreviousRound(block, cb) {
+		__private.validateBlockSlot(
+			block,
+			__private.getDelegatesFromPreviousRound,
+			cb
+		);
+	}
+
+	/**
+	 * Gets a list of delegates:
+	 * - Calculating individual rank, approval, productivity.
+	 * - Sorting based on query parameter.
+	 *
+	 * @param {Object} query
+	 * @param {function} cb - Callback function
+	 * @returns {setImmediateCallback} cb, err, object with ordered delegates, offset, count, limit
+	 * @todo Sort does not affect data? What is the impact?
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	getDelegates(query, cb) {
+		if (!_.isObject(query)) {
+			throw new Error('Invalid query argument, expected object');
+		}
+		if (query.search) {
+			query.username_like = `%${query.search}%`;
+			delete query.search;
+		}
+		query.isDelegate = true;
+		modules.accounts.getAccounts(
+			query,
+			[
+				'username',
+				'address',
+				'publicKey',
+				'vote',
+				'rewards',
+				'producedBlocks',
+				'missedBlocks',
+				'secondPublicKey',
+				'rank',
+				'approval',
+				'productivity',
+			],
+			(err, delegates) => setImmediate(cb, err, delegates)
+		);
+	}
+
+	/**
+	 * Inserts a fork into 'forks_stat' table and emits a 'delegates/fork' socket signal with fork data: cause + block.
+	 *
+	 * @param {block} block
+	 * @param {string} cause
+	 * @todo Add description for the params
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	fork(block, cause) {
+		library.logger.info('Fork', {
+			delegate: block.generatorPublicKey,
+			block: {
+				id: block.id,
+				timestamp: block.timestamp,
+				height: block.height,
+				previousBlock: block.previousBlock,
+			},
+			cause,
+		});
+
+		const fork = {
+			delegatePublicKey: block.generatorPublicKey,
+			blockTimestamp: block.timestamp,
+			blockId: block.id,
+			blockHeight: block.height,
+			previousBlockId: block.previousBlock,
+			cause,
+		};
+
+		library.storage.entities.Account.insertFork(fork).then(() => {
+			library.channel.publish('chain:delegates:fork', fork);
+		});
+	}
+
+	/**
+	 * Get an object of key pairs for delegates enabled for forging.
+	 *
+	 * @returns {object} Of delegate key pairs
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	getForgersKeyPairs() {
+		return __private.keypairs;
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	getForgingStatusForAllDelegates() {
+		const keyPairs = __private.keypairs;
+		const forgingDelegates = library.config.forging.delegates;
+		const forgersPublicKeys = {};
+
+		Object.keys(keyPairs).forEach(key => {
+			forgersPublicKeys[keyPairs[key].publicKey.toString('hex')] = true;
+		});
+
+		const fullList = forgingDelegates.map(forger => ({
+			forging: !!forgersPublicKeys[forger.publicKey],
+			publicKey: forger.publicKey,
+		}));
+
+		return fullList;
+	}
+
+	// Events
+	/**
+	 * Calls Delegate.bind() with scope.
+	 *
+	 * @param {modules} scope - Loaded modules
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	onBind(scope) {
+		modules = {
+			accounts: scope.modules.accounts,
+			blocks: scope.modules.blocks,
+			delegates: scope.modules.delegates,
+			loader: scope.modules.loader,
+			peers: scope.modules.peers,
+			rounds: scope.modules.rounds,
+			transactions: scope.modules.transactions,
+			transport: scope.modules.transport,
+		};
+	}
+
+	/**
+	 * Invalidates the cached delegate list.
+	 *
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	clearDelegateListCache() {
+		library.logger.debug('Clearing delegate list cache.');
+		// We want to clear the cache.
+		__private.delegatesListCache = {};
+	}
+
+	/**
+	 * Loads delegates.
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	onBlockchainReady() {
+		__private.loaded = true;
+
+		__private.loadDelegates(err => {
+			if (err) {
+				library.logger.error('Failed to load delegates', err);
+			}
+
+			jobsQueue.register(
+				'delegatesNextForge',
+				cb => {
+					library.sequence.add(sequenceCb => {
+						__private.nextForge(sequenceCb);
+					}, cb);
+				},
+				__private.forgeInterval
+			);
+		});
+	}
+
+	/**
+	 * Sets loaded to false.
+	 *
+	 * @param {function} cb - Callback function
+	 * @returns {setImmediateCallback} cb
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	cleanup(cb) {
+		__private.loaded = false;
+		return setImmediate(cb);
+	}
+
+	/**
+	 * Checks if `modules` is loaded.
+	 *
+	 * @returns {boolean} True if `modules` is loaded
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	isLoaded() {
+		return !!modules;
+	}
 }
 
 /**
@@ -104,16 +433,6 @@ __private.updateDelegateListCache = function(round, delegatesList) {
 			acc[current] = __private.delegatesListCache[current];
 			return acc;
 		}, {});
-};
-
-/**
- * Invalidates the cached delegate list.
- *
- */
-Delegates.prototype.clearDelegateListCache = function() {
-	library.logger.debug('Clearing delegate list cache.');
-	// We want to clear the cache.
-	__private.delegatesListCache = {};
 };
 
 /**
@@ -443,273 +762,6 @@ __private.loadDelegates = function(cb) {
 	);
 };
 
-// Public methods
-/**
- * Updates the forging status of an account, valid actions are enable and disable.
- *
- * @param {publicKey} publicKey - Public key of delegate
- * @param {string} password - Password used to decrypt encrypted passphrase
- * @param {boolean} forging - Forging status of a delegate to update
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb
- * @todo Add description for the return value
- */
-Delegates.prototype.updateForgingStatus = async function(
-	publicKey,
-	password,
-	forging
-) {
-	const encryptedList = library.config.forging.delegates;
-	const encryptedItem = encryptedList.find(
-		item => item.publicKey === publicKey
-	);
-
-	let keypair;
-	let passphrase;
-
-	if (encryptedItem) {
-		try {
-			passphrase = __private.decryptPassphrase(
-				encryptedItem.encryptedPassphrase,
-				password
-			);
-		} catch (e) {
-			throw new Error('Invalid password and public key combination');
-		}
-
-		keypair = library.ed.makeKeypair(
-			crypto
-				.createHash('sha256')
-				.update(passphrase, 'utf8')
-				.digest()
-		);
-	} else {
-		throw new Error(`Delegate with publicKey: ${publicKey} not found`);
-	}
-
-	if (keypair.publicKey.toString('hex') !== publicKey) {
-		throw new Error('Invalid password and public key combination');
-	}
-
-	const account = await promisify(modules.accounts.getAccount)({
-		publicKey: keypair.publicKey.toString('hex'),
-	});
-
-	if (account && account.isDelegate) {
-		if (forging) {
-			__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
-			library.logger.info(`Forging enabled on account: ${account.address}`);
-		} else {
-			delete __private.keypairs[keypair.publicKey.toString('hex')];
-			library.logger.info(`Forging disabled on account: ${account.address}`);
-		}
-
-		return {
-			publicKey,
-			forging,
-		};
-	}
-	throw new Error('Delegate not found');
-};
-
-/**
- * Gets delegate list based on input function by vote and changes order.
- *
- * @param {number} round
- * @param {function} source - Source function for get delegates
- * @param {function} cb - Callback function
- * @param {Object} tx - Database transaction/task object
- * @returns {setImmediateCallback} cb, err, truncated delegate list
- * @todo Add description for the params
- */
-Delegates.prototype.generateDelegateList = function(round, source, cb, tx) {
-	// Set default function for getting delegates
-	source = source || __private.getKeysSortByVote;
-
-	if (__private.delegatesListCache[round]) {
-		library.logger.debug('Using delegate list from the cache for round', round);
-		return setImmediate(cb, null, __private.delegatesListCache[round]);
-	}
-
-	return source((err, truncDelegateList) => {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-
-		const seedSource = round.toString();
-		let currentSeed = crypto
-			.createHash('sha256')
-			.update(seedSource, 'utf8')
-			.digest();
-
-		for (let i = 0, delCount = truncDelegateList.length; i < delCount; i++) {
-			for (let x = 0; x < 4 && i < delCount; i++, x++) {
-				const newIndex = currentSeed[x] % delCount;
-				const b = truncDelegateList[newIndex];
-				truncDelegateList[newIndex] = truncDelegateList[i];
-				truncDelegateList[i] = b;
-			}
-			currentSeed = crypto
-				.createHash('sha256')
-				.update(currentSeed)
-				.digest();
-		}
-
-		// If the round is not an exception, cache the round.
-		if (!exceptions.ignoreDelegateListCacheForRounds.includes(round)) {
-			__private.updateDelegateListCache(round, truncDelegateList);
-		}
-		return setImmediate(cb, null, truncDelegateList);
-	}, tx);
-};
-
-/**
- * Generates delegate list and checks if block generator public key matches delegate id.
- *
- * @param {block} block
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, err
- * @todo Add description for the params
- */
-Delegates.prototype.validateBlockSlot = function(block, cb) {
-	__private.validateBlockSlot(block, __private.getKeysSortByVote, cb);
-};
-
-/**
- * Generates delegate list and checks if block generator public key matches delegate id - against previous round.
- *
- * @param {block} block
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, err
- * @todo Add description for the params
- */
-Delegates.prototype.validateBlockSlotAgainstPreviousRound = function(
-	block,
-	cb
-) {
-	__private.validateBlockSlot(
-		block,
-		__private.getDelegatesFromPreviousRound,
-		cb
-	);
-};
-
-/**
- * Gets a list of delegates:
- * - Calculating individual rank, approval, productivity.
- * - Sorting based on query parameter.
- *
- * @param {Object} query
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, err, object with ordered delegates, offset, count, limit
- * @todo Sort does not affect data? What is the impact?
- */
-Delegates.prototype.getDelegates = function(query, cb) {
-	if (!_.isObject(query)) {
-		throw new Error('Invalid query argument, expected object');
-	}
-	if (query.search) {
-		query.username_like = `%${query.search}%`;
-		delete query.search;
-	}
-	query.isDelegate = true;
-	modules.accounts.getAccounts(
-		query,
-		[
-			'username',
-			'address',
-			'publicKey',
-			'vote',
-			'rewards',
-			'producedBlocks',
-			'missedBlocks',
-			'secondPublicKey',
-			'rank',
-			'approval',
-			'productivity',
-		],
-		(err, delegates) => setImmediate(cb, err, delegates)
-	);
-};
-
-/**
- * Inserts a fork into 'forks_stat' table and emits a 'delegates/fork' socket signal with fork data: cause + block.
- *
- * @param {block} block
- * @param {string} cause
- * @todo Add description for the params
- */
-Delegates.prototype.fork = function(block, cause) {
-	library.logger.info('Fork', {
-		delegate: block.generatorPublicKey,
-		block: {
-			id: block.id,
-			timestamp: block.timestamp,
-			height: block.height,
-			previousBlock: block.previousBlock,
-		},
-		cause,
-	});
-
-	const fork = {
-		delegatePublicKey: block.generatorPublicKey,
-		blockTimestamp: block.timestamp,
-		blockId: block.id,
-		blockHeight: block.height,
-		previousBlockId: block.previousBlock,
-		cause,
-	};
-
-	library.storage.entities.Account.insertFork(fork).then(() => {
-		library.channel.publish('chain:delegates:fork', fork);
-	});
-};
-
-/**
- * Get an object of key pairs for delegates enabled for forging.
- *
- * @returns {object} Of delegate key pairs
- */
-Delegates.prototype.getForgersKeyPairs = function() {
-	return __private.keypairs;
-};
-
-Delegates.prototype.getForgingStatusForAllDelegates = function() {
-	const keyPairs = __private.keypairs;
-	const forgingDelegates = library.config.forging.delegates;
-	const forgersPublicKeys = {};
-
-	Object.keys(keyPairs).forEach(key => {
-		forgersPublicKeys[keyPairs[key].publicKey.toString('hex')] = true;
-	});
-
-	const fullList = forgingDelegates.map(forger => ({
-		forging: !!forgersPublicKeys[forger.publicKey],
-		publicKey: forger.publicKey,
-	}));
-
-	return fullList;
-};
-
-// Events
-/**
- * Calls Delegate.bind() with scope.
- *
- * @param {modules} scope - Loaded modules
- */
-Delegates.prototype.onBind = function(scope) {
-	modules = {
-		accounts: scope.modules.accounts,
-		blocks: scope.modules.blocks,
-		delegates: scope.modules.delegates,
-		loader: scope.modules.loader,
-		peers: scope.modules.peers,
-		rounds: scope.modules.rounds,
-		transactions: scope.modules.transactions,
-		transport: scope.modules.transport,
-	};
-};
-
 /**
  * Forge the next block and then fill the transaction pool.
  * Registered by jobs queue every __private.forgeInterval.
@@ -719,49 +771,6 @@ Delegates.prototype.onBind = function(scope) {
  */
 __private.nextForge = function(cb) {
 	async.series([modules.transactions.fillPool, __private.forge], cb);
-};
-
-/**
- * Loads delegates.
- */
-Delegates.prototype.onBlockchainReady = function() {
-	__private.loaded = true;
-
-	__private.loadDelegates(err => {
-		if (err) {
-			library.logger.error('Failed to load delegates', err);
-		}
-
-		jobsQueue.register(
-			'delegatesNextForge',
-			cb => {
-				library.sequence.add(sequenceCb => {
-					__private.nextForge(sequenceCb);
-				}, cb);
-			},
-			__private.forgeInterval
-		);
-	});
-};
-
-/**
- * Sets loaded to false.
- *
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb
- */
-Delegates.prototype.cleanup = function(cb) {
-	__private.loaded = false;
-	return setImmediate(cb);
-};
-
-/**
- * Checks if `modules` is loaded.
- *
- * @returns {boolean} True if `modules` is loaded
- */
-Delegates.prototype.isLoaded = function() {
-	return !!modules;
 };
 
 // Export
