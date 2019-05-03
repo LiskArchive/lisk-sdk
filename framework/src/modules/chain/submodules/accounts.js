@@ -14,7 +14,7 @@
 
 'use strict';
 
-const crypto = require('crypto');
+const { hash } = require('@liskhq/lisk-cryptography');
 const async = require('async');
 const Bignum = require('../helpers/bignum.js');
 const BlockReward = require('../logic/block_reward.js');
@@ -33,7 +33,6 @@ __private.assetTypes = {};
  * @class
  * @memberof modules
  * @see Parent: {@link modules}
- * @requires crypto
  * @requires helpers/bignum
  * @requires logic/block_reward
  * @param {scope} scope - App instance
@@ -67,10 +66,7 @@ class Accounts {
  * @returns {address} Generated address
  */
 Accounts.prototype.generateAddressByPublicKey = function(publicKey) {
-	const publicKeyHash = crypto
-		.createHash('sha256')
-		.update(publicKey, 'hex')
-		.digest();
+	const publicKeyHash = hash(publicKey);
 	const temp = Buffer.alloc(8);
 
 	for (let i = 0; i < 8; i++) {

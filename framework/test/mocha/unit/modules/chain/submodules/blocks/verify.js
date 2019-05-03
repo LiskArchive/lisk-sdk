@@ -14,8 +14,8 @@
 
 'use strict';
 
-const crypto = require('crypto');
 const rewire = require('rewire');
+const { deepHashBuffer } = require('@liskhq/lisk-cryptography');
 const transactionStatus = require('@liskhq/lisk-transactions').Status;
 const Bignum = require('../../../../../../../src/modules/chain/helpers/bignum');
 const {
@@ -614,7 +614,6 @@ describe('blocks/verify', () => {
 	describe('__private.verifyPayload', () => {
 		let verifyPayload;
 
-		const payloadHash = crypto.createHash('sha256');
 		const transactionOne = initTransaction.fromJson(
 			new Transaction({ type: 0 })
 		);
@@ -622,23 +621,23 @@ describe('blocks/verify', () => {
 			new Transaction({ type: 0 })
 		);
 		const transactions = [transactionOne, transactionTwo];
+		const payloadHash = deepHashBuffer(
+			transactions.map(transaction => transaction.getBytes())
+		).toString('hex');
 		let totalAmount = new Bignum(0);
 		let totalFee = new Bignum(0);
 
 		for (let i = 0; i < transactions.length; i++) {
 			const transaction = transactions[i];
-			const bytes = transaction.getBytes(transaction);
 
 			totalFee = totalFee.plus(transaction.fee);
 			totalAmount = totalAmount.plus(transaction.amount);
-
-			payloadHash.update(bytes);
 		}
 
 		const dummyBlock = {
 			totalAmount,
 			totalFee,
-			payloadHash: payloadHash.digest().toString('hex'),
+			payloadHash,
 			numberOfTransactions: transactions.length,
 			transactions,
 		};

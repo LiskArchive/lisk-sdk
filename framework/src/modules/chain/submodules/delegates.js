@@ -14,11 +14,11 @@
 
 'use strict';
 
-const crypto = require('crypto');
 const _ = require('lodash');
 const async = require('async');
 const { promisify } = require('util');
 const {
+	hash,
 	decryptPassphraseWithPassword,
 	parseEncryptedPassphrase,
 	getPrivateAndPublicKeyFromPassphrase,
@@ -49,7 +49,6 @@ __private.delegatesListCache = {};
  * @memberof modules
  * @see Parent: {@link modules}
  * @requires async
- * @requires crypto
  * @requires lodash
  * @requires helpers/jobs_queue
  * @requires helpers/slots
@@ -527,10 +526,7 @@ Delegates.prototype.generateDelegateList = function(round, source, cb, tx) {
 		}
 
 		const seedSource = round.toString();
-		let currentSeed = crypto
-			.createHash('sha256')
-			.update(seedSource, 'utf8')
-			.digest();
+		let currentSeed = hash(seedSource, 'utf8');
 
 		for (let i = 0, delCount = truncDelegateList.length; i < delCount; i++) {
 			for (let x = 0; x < 4 && i < delCount; i++, x++) {
@@ -539,10 +535,7 @@ Delegates.prototype.generateDelegateList = function(round, source, cb, tx) {
 				truncDelegateList[newIndex] = truncDelegateList[i];
 				truncDelegateList[i] = b;
 			}
-			currentSeed = crypto
-				.createHash('sha256')
-				.update(currentSeed)
-				.digest();
+			currentSeed = hash(currentSeed);
 		}
 
 		// If the round is not an exception, cache the round.

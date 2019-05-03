@@ -14,7 +14,7 @@
 
 'use strict';
 
-const crypto = require('crypto');
+const { hash } = require('@liskhq/lisk-cryptography');
 
 const { BLOCK_RECEIPT_TIMEOUT, EPOCH_TIME } = global.constants;
 const {
@@ -330,11 +330,7 @@ Blocks.prototype.calculateNewBroadhash = async function() {
 			height = state.height;
 		} else {
 			const seed = blocks.map(row => row.id).join('');
-			broadhash = crypto
-				.createHash('sha256')
-				.update(seed, 'utf8')
-				.digest()
-				.toString('hex');
+			broadhash = hash(seed, 'utf8').toString('hex');
 			height = blocks[0].height;
 		}
 		return { broadhash, height };

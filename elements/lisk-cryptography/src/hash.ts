@@ -43,3 +43,14 @@ export const hash = (data: Buffer | string, format?: string): Buffer => {
 		'Unsupported data format. Currently only Buffers or `hex` and `utf8` strings are supported.',
 	);
 };
+
+export const deepHashBuffer = (data: ReadonlyArray<Buffer>): Buffer => {
+	const dataHash = crypto.createHash('sha256');
+	const updatedHash = data.reduce((prev, current) => {
+		prev.update(current);
+
+		return prev;
+	}, dataHash);
+
+	return updatedHash.digest();
+};

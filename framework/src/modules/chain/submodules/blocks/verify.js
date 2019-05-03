@@ -14,8 +14,8 @@
 
 'use strict';
 
-const crypto = require('crypto');
 const async = require('async');
+const { deepHashBuffer } = require('@liskhq/lisk-cryptography');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const BlockReward = require('../../logic/block_reward');
 const slots = require('../../helpers/slots');
@@ -43,7 +43,6 @@ __private.lastNBlockIds = [];
  * @memberof modules.blocks
  * @see Parent: {@link modules.blocks}
  * @requires async
- * @requires crypto
  * @requires lodash
  * @requires helpers/slots
  * @requires logic/block_reward
@@ -316,18 +315,10 @@ __private.verifyPayload = function(block, result) {
 
 	let totalAmount = new Bignum(0);
 	let totalFee = new Bignum(0);
-	const payloadHash = crypto.createHash('sha256');
+	const payloadHash = deepHashBuffer(block.transactions || []);
 	const appliedTransactions = {};
 
 	block.transactions.forEach(transaction => {
-		let bytes;
-
-		try {
-			bytes = transaction.getBytes();
-		} catch (e) {
-			result.errors.push(e.toString());
-		}
-
 		if (appliedTransactions[transaction.id]) {
 			result.errors.push(
 				`Encountered duplicate transaction: ${transaction.id}`
@@ -335,14 +326,11 @@ __private.verifyPayload = function(block, result) {
 		}
 
 		appliedTransactions[transaction.id] = transaction;
-		if (bytes) {
-			payloadHash.update(bytes);
-		}
 		totalAmount = totalAmount.plus(transaction.amount);
 		totalFee = totalFee.plus(transaction.fee);
 	});
 
-	if (payloadHash.digest().toString('hex') !== block.payloadHash) {
+	if (payloadHash.toString('hex') !== block.payloadHash) {
 		result.errors.push('Invalid payload hash');
 	}
 

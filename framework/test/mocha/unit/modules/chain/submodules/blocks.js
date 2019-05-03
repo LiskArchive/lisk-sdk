@@ -15,7 +15,7 @@
 'use strict';
 
 const rewire = require('rewire');
-const crypto = require('crypto');
+const { hash } = require('@liskhq/lisk-cryptography');
 
 const { EPOCH_TIME } = global.constants;
 
@@ -495,11 +495,7 @@ describe('blocks', () => {
 					height,
 				} = await blocksInstance.calculateNewBroadhash();
 				const seed = blocks.map(row => row.id).join('');
-				const newBroadhash = crypto
-					.createHash('sha256')
-					.update(seed, 'utf8')
-					.digest()
-					.toString('hex');
+				const newBroadhash = hash(seed, 'utf8').toString('hex');
 				expect(broadhash).to.equal(newBroadhash);
 				expect(height).to.equal(blocks[0].height);
 			});

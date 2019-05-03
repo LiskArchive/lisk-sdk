@@ -15,13 +15,14 @@
 'use strict';
 
 const {
+	deepHashBuffer,
+	hash,
 	hexToBuffer,
 	signDataWithPrivateKey,
 	verifyData,
 } = require('@liskhq/lisk-cryptography');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const _ = require('lodash');
-const crypto = require('crypto');
 const ByteBuffer = require('bytebuffer');
 const Bignum = require('../helpers/bignum');
 const blockVersion = require('./block_version');
@@ -38,7 +39,6 @@ let modules;
  * @memberof logic
  * @see Parent: {@link logic}
  * @requires bytebuffer
- * @requires crypto
  * @requires helpers/bignum
  * @requires logic/block_reward
  * @param {ZSchema} schema
@@ -109,11 +109,13 @@ class Block {
 		let size = 0;
 
 		const blockTransactions = [];
-		const payloadHash = crypto.createHash('sha256');
+		const payloadHash = deepHashBuffer(
+			transactions.map(transaction => transaction.getBytes())
+		);
 
 		for (let i = 0; i < transactions.length; i++) {
 			const transaction = transactions[i];
-			const bytes = transaction.getBytes(transaction);
+			const bytes = transaction.getBytes();
 
 			if (size + bytes.length > MAX_PAYLOAD_LENGTH) {
 				break;
@@ -125,7 +127,6 @@ class Block {
 			totalAmount = totalAmount.plus(transaction.amount);
 
 			blockTransactions.push(transaction);
-			payloadHash.update(bytes);
 		}
 
 		let block = {
@@ -162,9 +163,9 @@ class Block {
 	 * @todo Add description for the params
 	 */
 	sign(block, keypair) {
-		const hash = this.getHash(block);
+		const hashedBlock = this.getHash(block);
 
-		return signDataWithPrivateKey(hash, keypair.privateKey);
+		return signDataWithPrivateKey(hashedBlock, keypair.privateKey);
 	}
 
 	/**
@@ -175,10 +176,7 @@ class Block {
 	 * @todo Add description for the params
 	 */
 	getHash(block) {
-		return crypto
-			.createHash('sha256')
-			.update(this.getBytes(block))
-			.digest();
+		return hash(this.getBytes(block));
 	}
 
 	/**
@@ -199,12 +197,13 @@ class Block {
 			dataWithoutSignature[i] = data[i];
 		}
 		// TODO: check why it's hashing
-		const hash = crypto
-			.createHash('sha256')
-			.update(dataWithoutSignature)
-			.digest();
+		const hashedData = hash(dataWithoutSignature);
 
-		return verifyData(hash, block.blockSignature, block.generatorPublicKey);
+		return verifyData(
+			hashedData,
+			block.blockSignature,
+			block.generatorPublicKey
+		);
 	}
 
 	/**
@@ -253,10 +252,7 @@ class Block {
  * @todo Add description for the params
  */
 __private.getAddressByPublicKey = function(publicKey) {
-	const publicKeyHash = crypto
-		.createHash('sha256')
-		.update(publicKey, 'hex')
-		.digest();
+	const publicKeyHash = hash(publicKey);
 	const temp = Buffer.alloc(8);
 
 	for (let i = 0; i < 8; i++) {
@@ -452,13 +448,10 @@ Block.prototype.getBytes = function(block) {
  * @todo Add description for the params
  */
 Block.prototype.getId = function(block) {
-	const hash = crypto
-		.createHash('sha256')
-		.update(this.getBytes(block))
-		.digest();
+	const hashedBlock = hash(this.getBytes(block));
 	const temp = Buffer.alloc(8);
 	for (let i = 0; i < 8; i++) {
-		temp[i] = hash[7 - i];
+		temp[i] = hashedBlock[7 - i];
 	}
 
 	// eslint-disable-next-line new-cap
