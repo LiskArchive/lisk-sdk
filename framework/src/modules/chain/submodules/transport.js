@@ -371,12 +371,10 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
  * Sets loaded to false.
  *
  * @param {function} cb - Callback function
- * @returns {function} cb
  * @todo Add description for the params
  */
-Transport.prototype.cleanup = function(cb) {
+Transport.prototype.cleanup = function() {
 	__private.loaded = false;
-	return cb();
 };
 
 /**

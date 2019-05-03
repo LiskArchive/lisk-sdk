@@ -277,24 +277,28 @@ Blocks.prototype.onNewBlock = async function(block) {
  *
  * @listens module:app~event:cleanup
  * @param {function} cb - Callback function
- * @returns {function} cb
+ * @returns {Promise} - Promise<void>
  */
-Blocks.prototype.cleanup = function(cb) {
+Blocks.prototype.cleanup = async function() {
 	__private.loaded = false;
 	__private.cleanup = true;
 
 	if (!__private.isActive) {
 		// Module ready for shutdown
-		return cb();
+		return;
 	}
+
 	// Module is not ready, repeat
-	return setImmediate(function nextWatch() {
+	const nextWatch = () => {
 		if (__private.isActive) {
 			library.logger.info('Waiting for block processing to finish...');
-			return setTimeout(nextWatch, 10000); // 10 sec
+			return setTimeout(nextWatch, 10000);
 		}
-		return cb();
-	});
+
+		return null;
+	};
+
+	await nextWatch();
 };
 
 /**

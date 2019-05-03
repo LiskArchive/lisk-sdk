@@ -420,12 +420,10 @@ Rounds.prototype.onFinishRound = async function(round) {
  * Sets private constant `loaded` to false.
  *
  * @param {function} cb
- * @returns {function} cb
  * @todo Add description for the params
  */
-Rounds.prototype.cleanup = function(cb) {
+Rounds.prototype.cleanup = function() {
 	__private.loaded = false;
-	return cb();
 };
 
 // Private methods
