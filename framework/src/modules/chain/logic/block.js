@@ -196,7 +196,6 @@ class Block {
 		for (let i = 0; i < dataWithoutSignature.length; i++) {
 			dataWithoutSignature[i] = data[i];
 		}
-		// TODO: check why it's hashing
 		const hashedData = hash(dataWithoutSignature);
 
 		return verifyData(
