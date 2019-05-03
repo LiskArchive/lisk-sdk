@@ -70,6 +70,299 @@ class Verify {
 		library.logger.trace('Blocks->Verify: Submodule initialized.');
 		return self;
 	}
+
+	/**
+	 * Verify block before fork detection and return all possible errors related to block.
+	 *
+	 * @param {Object} block - Full block
+	 * @returns {Object} result - Verification results
+	 * @returns {boolean} result.verified - Indicator that verification passed
+	 * @returns {Array} result.errors - Array of validation errors
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	verifyReceipt(block) {
+		const lastBlock = modules.blocks.lastBlock.get();
+
+		block = __private.setHeight(block, lastBlock);
+
+		let result = { verified: false, errors: [] };
+
+		result = __private.verifySignature(block, result);
+		result = __private.verifyPreviousBlock(block, result);
+		result = __private.verifyAgainstLastNBlockIds(block, result);
+		result = __private.verifyBlockSlotWindow(block, result);
+		result = __private.verifyVersion(block, result);
+		result = __private.verifyReward(block, result);
+		result = __private.verifyId(block, result);
+		result = __private.verifyPayload(block, result);
+
+		result.verified = result.errors.length === 0;
+		result.errors.reverse();
+
+		return result;
+	}
+
+	/**
+	 * Loads last {BLOCK_SLOT_WINDOW} blocks from the database into memory. Called when application triggeres blockchainReady event.
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	onBlockchainReady() {
+		return library.storage.entities.Block.get(
+			{},
+			{ limit: BLOCK_SLOT_WINDOW, sort: 'height:desc' }
+		)
+			.then(rows => {
+				__private.lastNBlockIds = rows.map(row => row.id);
+			})
+			.catch(err => {
+				library.logger.error(
+					`Unable to load last ${BLOCK_SLOT_WINDOW} block ids`
+				);
+				library.logger.error(err);
+			});
+	}
+
+	/**
+	 * Maintains __private.lastNBlock constant - a queue of fixed length (BLOCK_SLOT_WINDOW). Called when application triggers newBlock event.
+	 *
+	 * @func onNewBlock
+	 * @param {block} block
+	 * @todo Add description for the params
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	onNewBlock(block) {
+		__private.lastNBlockIds.push(block.id);
+		if (__private.lastNBlockIds.length > BLOCK_SLOT_WINDOW) {
+			__private.lastNBlockIds.shift();
+		}
+	}
+
+	/**
+	 * Verify block before processing and return all possible errors related to block.
+	 *
+	 * @param {Object} block - Full block
+	 * @returns {Object} result - Verification results
+	 * @returns {boolean} result.verified - Indicator that verification passed
+	 * @returns {Array} result.errors - Array of validation errors
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	verifyBlock(block) {
+		const lastBlock = modules.blocks.lastBlock.get();
+
+		block = __private.setHeight(block, lastBlock);
+
+		let result = { verified: false, errors: [] };
+
+		result = __private.verifySignature(block, result);
+		result = __private.verifyPreviousBlock(block, result);
+		result = __private.verifyVersion(block, result);
+		result = __private.verifyReward(block, result);
+		result = __private.verifyId(block, result);
+		result = __private.verifyPayload(block, result);
+
+		result = __private.verifyForkOne(block, lastBlock, result);
+		result = __private.verifyBlockSlot(block, lastBlock, result);
+
+		result.verified = result.errors.length === 0;
+		result.errors.reverse();
+		if (result.verified) {
+			library.logger.info(
+				`Verify->verifyBlock succeeded for block ${block.id} at height ${
+					block.height
+				}.`
+			);
+		} else {
+			library.logger.error(
+				`Verify->verifyBlock failed for block ${block.id} at height ${
+					block.height
+				}.`,
+				result.errors
+			);
+		}
+
+		return result;
+	}
+
+	/**
+	 * Adds default properties to block.
+	 *
+	 * @param {Object} block - Block object reduced
+	 * @returns {Object} Block object completed
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	addBlockProperties(block) {
+		block.totalAmount = new Bignum(block.totalAmount || 0);
+		block.totalFee = new Bignum(block.totalFee || 0);
+		block.reward = new Bignum(block.reward || 0);
+
+		if (block.version === undefined) {
+			block.version = 0;
+		}
+		if (block.numberOfTransactions === undefined) {
+			if (block.transactions === undefined) {
+				block.numberOfTransactions = 0;
+			} else {
+				block.numberOfTransactions = block.transactions.length;
+			}
+		}
+		if (block.payloadLength === undefined) {
+			block.payloadLength = 0;
+		}
+		if (block.transactions === undefined) {
+			block.transactions = [];
+		}
+		return block;
+	}
+
+	/**
+	 * Deletes default properties from block.
+	 *
+	 * @param {Object} block - Block object completed
+	 * @returns {Object} Block object reduced
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	deleteBlockProperties(block) {
+		const reducedBlock = Object.assign({}, block);
+		if (reducedBlock.version === 0) {
+			delete reducedBlock.version;
+		}
+		// verifyBlock ensures numberOfTransactions is transactions.length
+		if (typeof reducedBlock.numberOfTransactions === 'number') {
+			delete reducedBlock.numberOfTransactions;
+		}
+		if (reducedBlock.totalAmount.isEqualTo(0)) {
+			delete reducedBlock.totalAmount;
+		}
+		if (reducedBlock.totalFee.isEqualTo(0)) {
+			delete reducedBlock.totalFee;
+		}
+		if (reducedBlock.payloadLength === 0) {
+			delete reducedBlock.payloadLength;
+		}
+		if (reducedBlock.reward.isEqualTo(0)) {
+			delete reducedBlock.reward;
+		}
+		if (reducedBlock.transactions && reducedBlock.transactions.length === 0) {
+			delete reducedBlock.transactions;
+		}
+		return reducedBlock;
+	}
+
+	/**
+	 * Main function to process a block:
+	 * - Verify the block looks ok
+	 * - Verify the block is compatible with database state (DATABASE readonly)
+	 * - Broadcast the block to remote peers
+	 * - Apply the block to database if both verifications are ok
+	 * - Update headers: broadhash and height
+	 * - Notify remote peers about our new headers
+	 *
+	 * @param {Object} block - Full block
+	 * @param {boolean} broadcast - Indicator that block needs to be broadcasted
+	 * @param {function} cb - Callback function
+	 * @param {boolean} saveBlock - Indicator that block needs to be saved to database
+	 * @returns {function} cb - Callback function from params (through setImmediate)
+	 * @returns {Object} cb.err - Error if occurred
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	processBlock(block, broadcast, saveBlock, cb) {
+		if (modules.blocks.isCleaning.get()) {
+			// Break processing if node shutdown reqested
+			return setImmediate(cb, 'Cleaning up');
+		}
+		if (!__private.loaded) {
+			// Break processing if blockchain is not loaded
+			return setImmediate(cb, 'Blockchain is loading');
+		}
+
+		return async.series(
+			{
+				addBlockProperties(seriesCb) {
+					__private.addBlockProperties(block, broadcast, seriesCb);
+				},
+				normalizeBlock(seriesCb) {
+					__private.normalizeBlock(block, seriesCb);
+				},
+				verifyBlock(seriesCb) {
+					__private.verifyBlock(block, seriesCb);
+				},
+				broadcastBlock(seriesCb) {
+					__private.broadcastBlock(block, broadcast, seriesCb);
+				},
+				checkExists(seriesCb) {
+					// Skip checking for existing block id if we don't need to save that block
+					if (!saveBlock) {
+						return setImmediate(seriesCb);
+					}
+					return __private.checkExists(block, seriesCb);
+				},
+				validateBlockSlot(seriesCb) {
+					__private.validateBlockSlot(block, seriesCb);
+				},
+				checkTransactions(seriesCb) {
+					// checkTransactions should check for transactions to exists in database
+					// only if the block needed to be saved to database
+					__private
+						.checkTransactions(block, saveBlock)
+						.then(seriesCb)
+						.catch(seriesCb);
+				},
+				applyBlock(seriesCb) {
+					// The block and the transactions are OK i.e:
+					// * Block and transactions have valid values (signatures, block slots, etc...)
+					// * The check against database state passed (for instance sender has enough LSK, votes are under 101, etc...)
+					// We thus update the database with the transactions values, save the block and tick it.
+					// Also that function set new block as our last block
+					modules.blocks.chain.applyBlock(block, saveBlock, seriesCb);
+				},
+				// Perform the next step only when 'broadcast' flag is set, it can be:
+				// 'true' if block comes from generation or receiving process
+				// 'false' if block comes from chain synchronization process
+				updateApplicationState(seriesCb) {
+					if (!library.config.loading.rebuildUpToRound && broadcast) {
+						return modules.blocks
+							.calculateNewBroadhash()
+							.then(({ broadhash, height }) => {
+								// Listen for the update of step to move to next step
+								library.channel.once('app:state:updated', () => {
+									seriesCb();
+								});
+
+								// Update our application state: broadhash and height
+								return library.channel.invoke('app:updateApplicationState', {
+									broadhash,
+									height,
+								});
+							})
+							.catch(seriesCb);
+					}
+					return seriesCb();
+				},
+			},
+			err => setImmediate(cb, err)
+		);
+	}
+
+	/**
+	 * It assigns modules to private constants.
+	 *
+	 * @param {modules} scope - Exposed modules
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	onBind(scope) {
+		library.logger.trace('Blocks->Verify: Shared modules bind.');
+
+		modules = {
+			accounts: scope.modules.accounts,
+			blocks: scope.modules.blocks,
+			delegates: scope.modules.delegates,
+			transactions: scope.modules.transactions,
+			processTransactions: scope.modules.processTransactions,
+		};
+
+		// Set module as loaded
+		__private.loaded = true;
+	}
 }
 
 /**
@@ -434,177 +727,6 @@ __private.verifyBlockSlotWindow = function(block, result) {
 };
 
 /**
- * Verify block before fork detection and return all possible errors related to block.
- *
- * @param {Object} block - Full block
- * @returns {Object} result - Verification results
- * @returns {boolean} result.verified - Indicator that verification passed
- * @returns {Array} result.errors - Array of validation errors
- */
-Verify.prototype.verifyReceipt = function(block) {
-	const lastBlock = modules.blocks.lastBlock.get();
-
-	block = __private.setHeight(block, lastBlock);
-
-	let result = { verified: false, errors: [] };
-
-	result = __private.verifySignature(block, result);
-	result = __private.verifyPreviousBlock(block, result);
-	result = __private.verifyAgainstLastNBlockIds(block, result);
-	result = __private.verifyBlockSlotWindow(block, result);
-	result = __private.verifyVersion(block, result);
-	result = __private.verifyReward(block, result);
-	result = __private.verifyId(block, result);
-	result = __private.verifyPayload(block, result);
-
-	result.verified = result.errors.length === 0;
-	result.errors.reverse();
-
-	return result;
-};
-
-/**
- * Loads last {BLOCK_SLOT_WINDOW} blocks from the database into memory. Called when application triggeres blockchainReady event.
- */
-Verify.prototype.onBlockchainReady = function() {
-	return library.storage.entities.Block.get(
-		{},
-		{ limit: BLOCK_SLOT_WINDOW, sort: 'height:desc' }
-	)
-		.then(rows => {
-			__private.lastNBlockIds = rows.map(row => row.id);
-		})
-		.catch(err => {
-			library.logger.error(
-				`Unable to load last ${BLOCK_SLOT_WINDOW} block ids`
-			);
-			library.logger.error(err);
-		});
-};
-
-/**
- * Maintains __private.lastNBlock constant - a queue of fixed length (BLOCK_SLOT_WINDOW). Called when application triggers newBlock event.
- *
- * @func onNewBlock
- * @param {block} block
- * @todo Add description for the params
- */
-Verify.prototype.onNewBlock = function(block) {
-	__private.lastNBlockIds.push(block.id);
-	if (__private.lastNBlockIds.length > BLOCK_SLOT_WINDOW) {
-		__private.lastNBlockIds.shift();
-	}
-};
-
-/**
- * Verify block before processing and return all possible errors related to block.
- *
- * @param {Object} block - Full block
- * @returns {Object} result - Verification results
- * @returns {boolean} result.verified - Indicator that verification passed
- * @returns {Array} result.errors - Array of validation errors
- */
-Verify.prototype.verifyBlock = function(block) {
-	const lastBlock = modules.blocks.lastBlock.get();
-
-	block = __private.setHeight(block, lastBlock);
-
-	let result = { verified: false, errors: [] };
-
-	result = __private.verifySignature(block, result);
-	result = __private.verifyPreviousBlock(block, result);
-	result = __private.verifyVersion(block, result);
-	result = __private.verifyReward(block, result);
-	result = __private.verifyId(block, result);
-	result = __private.verifyPayload(block, result);
-
-	result = __private.verifyForkOne(block, lastBlock, result);
-	result = __private.verifyBlockSlot(block, lastBlock, result);
-
-	result.verified = result.errors.length === 0;
-	result.errors.reverse();
-	if (result.verified) {
-		library.logger.info(
-			`Verify->verifyBlock succeeded for block ${block.id} at height ${
-				block.height
-			}.`
-		);
-	} else {
-		library.logger.error(
-			`Verify->verifyBlock failed for block ${block.id} at height ${
-				block.height
-			}.`,
-			result.errors
-		);
-	}
-
-	return result;
-};
-
-/**
- * Adds default properties to block.
- *
- * @param {Object} block - Block object reduced
- * @returns {Object} Block object completed
- */
-Verify.prototype.addBlockProperties = function(block) {
-	block.totalAmount = new Bignum(block.totalAmount || 0);
-	block.totalFee = new Bignum(block.totalFee || 0);
-	block.reward = new Bignum(block.reward || 0);
-
-	if (block.version === undefined) {
-		block.version = 0;
-	}
-	if (block.numberOfTransactions === undefined) {
-		if (block.transactions === undefined) {
-			block.numberOfTransactions = 0;
-		} else {
-			block.numberOfTransactions = block.transactions.length;
-		}
-	}
-	if (block.payloadLength === undefined) {
-		block.payloadLength = 0;
-	}
-	if (block.transactions === undefined) {
-		block.transactions = [];
-	}
-	return block;
-};
-
-/**
- * Deletes default properties from block.
- *
- * @param {Object} block - Block object completed
- * @returns {Object} Block object reduced
- */
-Verify.prototype.deleteBlockProperties = function(block) {
-	const reducedBlock = Object.assign({}, block);
-	if (reducedBlock.version === 0) {
-		delete reducedBlock.version;
-	}
-	// verifyBlock ensures numberOfTransactions is transactions.length
-	if (typeof reducedBlock.numberOfTransactions === 'number') {
-		delete reducedBlock.numberOfTransactions;
-	}
-	if (reducedBlock.totalAmount.isEqualTo(0)) {
-		delete reducedBlock.totalAmount;
-	}
-	if (reducedBlock.totalFee.isEqualTo(0)) {
-		delete reducedBlock.totalFee;
-	}
-	if (reducedBlock.payloadLength === 0) {
-		delete reducedBlock.payloadLength;
-	}
-	if (reducedBlock.reward.isEqualTo(0)) {
-		delete reducedBlock.reward;
-	}
-	if (reducedBlock.transactions && reducedBlock.transactions.length === 0) {
-		delete reducedBlock.transactions;
-	}
-	return reducedBlock;
-};
-
-/**
  * Adds block properties.
  *
  * @private
@@ -746,120 +868,6 @@ __private.validateBlockSlot = function(block, cb) {
 		}
 		return setImmediate(cb);
 	});
-};
-
-/**
- * Main function to process a block:
- * - Verify the block looks ok
- * - Verify the block is compatible with database state (DATABASE readonly)
- * - Broadcast the block to remote peers
- * - Apply the block to database if both verifications are ok
- * - Update headers: broadhash and height
- * - Notify remote peers about our new headers
- *
- * @param {Object} block - Full block
- * @param {boolean} broadcast - Indicator that block needs to be broadcasted
- * @param {function} cb - Callback function
- * @param {boolean} saveBlock - Indicator that block needs to be saved to database
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object} cb.err - Error if occurred
- */
-Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
-	if (modules.blocks.isCleaning.get()) {
-		// Break processing if node shutdown reqested
-		return setImmediate(cb, 'Cleaning up');
-	}
-	if (!__private.loaded) {
-		// Break processing if blockchain is not loaded
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return async.series(
-		{
-			addBlockProperties(seriesCb) {
-				__private.addBlockProperties(block, broadcast, seriesCb);
-			},
-			normalizeBlock(seriesCb) {
-				__private.normalizeBlock(block, seriesCb);
-			},
-			verifyBlock(seriesCb) {
-				__private.verifyBlock(block, seriesCb);
-			},
-			broadcastBlock(seriesCb) {
-				__private.broadcastBlock(block, broadcast, seriesCb);
-			},
-			checkExists(seriesCb) {
-				// Skip checking for existing block id if we don't need to save that block
-				if (!saveBlock) {
-					return setImmediate(seriesCb);
-				}
-				return __private.checkExists(block, seriesCb);
-			},
-			validateBlockSlot(seriesCb) {
-				__private.validateBlockSlot(block, seriesCb);
-			},
-			checkTransactions(seriesCb) {
-				// checkTransactions should check for transactions to exists in database
-				// only if the block needed to be saved to database
-				__private
-					.checkTransactions(block, saveBlock)
-					.then(seriesCb)
-					.catch(seriesCb);
-			},
-			applyBlock(seriesCb) {
-				// The block and the transactions are OK i.e:
-				// * Block and transactions have valid values (signatures, block slots, etc...)
-				// * The check against database state passed (for instance sender has enough LSK, votes are under 101, etc...)
-				// We thus update the database with the transactions values, save the block and tick it.
-				// Also that function set new block as our last block
-				modules.blocks.chain.applyBlock(block, saveBlock, seriesCb);
-			},
-			// Perform the next step only when 'broadcast' flag is set, it can be:
-			// 'true' if block comes from generation or receiving process
-			// 'false' if block comes from chain synchronization process
-			updateApplicationState(seriesCb) {
-				if (!library.config.loading.rebuildUpToRound && broadcast) {
-					return modules.blocks
-						.calculateNewBroadhash()
-						.then(({ broadhash, height }) => {
-							// Listen for the update of step to move to next step
-							library.channel.once('app:state:updated', () => {
-								seriesCb();
-							});
-
-							// Update our application state: broadhash and height
-							return library.channel.invoke('app:updateApplicationState', {
-								broadhash,
-								height,
-							});
-						})
-						.catch(seriesCb);
-				}
-				return seriesCb();
-			},
-		},
-		err => setImmediate(cb, err)
-	);
-};
-
-/**
- * It assigns modules to private constants.
- *
- * @param {modules} scope - Exposed modules
- */
-Verify.prototype.onBind = function(scope) {
-	library.logger.trace('Blocks->Verify: Shared modules bind.');
-
-	modules = {
-		accounts: scope.modules.accounts,
-		blocks: scope.modules.blocks,
-		delegates: scope.modules.delegates,
-		transactions: scope.modules.transactions,
-		processTransactions: scope.modules.processTransactions,
-	};
-
-	// Set module as loaded
-	__private.loaded = true;
 };
 
 module.exports = Verify;
