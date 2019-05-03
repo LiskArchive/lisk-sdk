@@ -27,3 +27,15 @@ Find more details about the storage component in the dedicated [LIP](https://git
 The system component provides per-module system information. Each module is responsible for keeping the information up-to-date.
 
 It holds the variables and constants critical for the whole application, possibly affecting other modules. For now, those are: "os", "version", "wsPort", "httpPort", "minVersion", "protocolVersion", "height", "nethash", "broadhash" and "nonce".
+
+## Configuration
+
+Configuration options for each component are located in `framework/src/component/<component-name>/defaults/config.js`.
+
+Each `config.js` file consists of 2 parts:
+
+1. A general schema description of all available config options.
+2. Default values for the available config options for this specific compoment.
+
+To customize the predefined defaults values, please don't change the default values in these files directly, as they will be overwritten on software updates.
+Instead, define the custom configuration options inisde your blockchain application, and let it overwrite the default config options.
