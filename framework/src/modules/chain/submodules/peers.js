@@ -64,69 +64,73 @@ class Peers {
 		});
 		setImmediate(cb, null, self);
 	}
-}
 
-/**
- * Returns consensus stored by Peers.prototype.calculateConsensus.
- *
- * @returns {number|undefined} Last calculated consensus or null if wasn't calculated yet
- */
-Peers.prototype.getLastConsensus = function() {
-	return self.consensus;
-};
-
-/**
- * Calculates consensus for as a ratio active to matched peers.
- *
- * @returns {Promise.<number, Error>} Consensus or undefined if config.forging.force = true
- */
-Peers.prototype.calculateConsensus = async function() {
-	const { broadhash } = library.applicationState;
-	const activeCount = await library.channel.invoke(
-		'network:getPeersCountByFilter',
-		{ state: PEER_STATE_CONNECTED }
-	);
-	const matchedCount = await library.channel.invoke(
-		'network:getPeersCountByFilter',
-		{ broadhash }
-	);
-	const consensus = +((matchedCount / activeCount) * 100).toPrecision(2);
-	self.consensus = Number.isNaN(consensus) ? 0 : consensus;
-	return self.consensus;
-};
-
-// Public methods
-/**
- * Returns true if application consensus is less than MIN_BROADHASH_CONSENSUS.
- * Returns false if library.config.forging.force is true.
- *
- * @returns {boolean}
- * @todo Add description for the return value
- */
-Peers.prototype.isPoorConsensus = async function() {
-	if (library.config.forging.force) {
-		return false;
+	/**
+	 * Returns consensus stored by calculateConsensus.
+	 *
+	 * @returns {number|undefined} Last calculated consensus or null if wasn't calculated yet
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	getLastConsensus() {
+		return self.consensus;
 	}
-	const consensus = await self.calculateConsensus();
-	return consensus < MIN_BROADHASH_CONSENSUS;
-};
 
-/**
- * Periodically calculate consensus
- */
-Peers.prototype.onNetworkReady = function() {
-	library.logger.trace('Peers ready');
-	const calculateConsensus = async () => {
+	/**
+	 * Calculates consensus for as a ratio active to matched peers.
+	 *
+	 * @returns {Promise.<number, Error>} Consensus or undefined if config.forging.force = true
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	async calculateConsensus() {
+		const { broadhash } = library.applicationState;
+		const activeCount = await library.channel.invoke(
+			'network:getPeersCountByFilter',
+			{ state: PEER_STATE_CONNECTED }
+		);
+		const matchedCount = await library.channel.invoke(
+			'network:getPeersCountByFilter',
+			{ broadhash }
+		);
+		const consensus = +((matchedCount / activeCount) * 100).toPrecision(2);
+		self.consensus = Number.isNaN(consensus) ? 0 : consensus;
+		return self.consensus;
+	}
+
+	// Public methods
+	/**
+	 * Returns true if application consensus is less than MIN_BROADHASH_CONSENSUS.
+	 * Returns false if library.config.forging.force is true.
+	 *
+	 * @returns {boolean}
+	 * @todo Add description for the return value
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	async isPoorConsensus() {
+		if (library.config.forging.force) {
+			return false;
+		}
 		const consensus = await self.calculateConsensus();
-		return library.logger.debug(`Broadhash consensus: ${consensus} %`);
-	};
+		return consensus < MIN_BROADHASH_CONSENSUS;
+	}
 
-	jobsQueue.register(
-		'calculateConsensus',
-		calculateConsensus,
-		self.broadhashConsensusCalculationInterval
-	);
-};
+	/**
+	 * Periodically calculate consensus
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	onNetworkReady() {
+		library.logger.trace('Peers ready');
+		const calculateConsensus = async () => {
+			const consensus = await self.calculateConsensus();
+			return library.logger.debug(`Broadhash consensus: ${consensus} %`);
+		};
+
+		jobsQueue.register(
+			'calculateConsensus',
+			calculateConsensus,
+			self.broadhashConsensusCalculationInterval
+		);
+	}
+}
 
 // Export
 module.exports = Peers;
