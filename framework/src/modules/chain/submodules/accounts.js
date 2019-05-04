@@ -14,9 +14,8 @@
 
 'use strict';
 
-const { hash } = require('@liskhq/lisk-cryptography');
+const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const async = require('async');
-const Bignum = require('../helpers/bignum.js');
 const BlockReward = require('../logic/block_reward.js');
 
 // Private fields
@@ -58,31 +57,6 @@ class Accounts {
 	}
 
 	/**
-	 * Generates address based on public key.
-	 *
-	 * @param {publicKey} publicKey - Public key
-	 * @throws {string} If address is invalid throws `Invalid public key`
-	 * @returns {address} Generated address
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	generateAddressByPublicKey(publicKey) {
-		const publicKeyHash = hash(publicKey, 'hex');
-		const temp = Buffer.alloc(8);
-
-		for (let i = 0; i < 8; i++) {
-			temp[i] = publicKeyHash[7 - i];
-		}
-
-		const address = `${Bignum.fromBuffer(temp).toString()}L`;
-
-		if (!address) {
-			throw new Error(`Invalid public key: ${publicKey}`);
-		}
-
-		return address;
-	}
-
-	/**
 	 * Gets account information, calls logic.account.get().
 	 *
 	 * @param {Object} filter - Contains public key
@@ -92,7 +66,7 @@ class Accounts {
 	// eslint-disable-next-line class-methods-use-this
 	getAccount(filter, fields, cb, tx) {
 		if (filter.publicKey) {
-			filter.address = self.generateAddressByPublicKey(filter.publicKey);
+			filter.address = getAddressFromPublicKey(filter.publicKey);
 			delete filter.publicKey;
 		}
 
@@ -128,7 +102,7 @@ class Accounts {
 
 		if (address === null) {
 			if (data.publicKey) {
-				address = self.generateAddressByPublicKey(data.publicKey);
+				address = getAddressFromPublicKey(data.publicKey);
 			} else {
 				err = new Error('Missing address or public key');
 			}
@@ -221,7 +195,7 @@ class Accounts {
 
 		if (address === null) {
 			if (data.publicKey) {
-				address = self.generateAddressByPublicKey(data.publicKey);
+				address = getAddressFromPublicKey(data.publicKey);
 			} else {
 				err = new Error('Missing address or public key');
 			}

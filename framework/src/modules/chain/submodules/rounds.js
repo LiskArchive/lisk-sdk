@@ -14,6 +14,7 @@
 
 'use strict';
 
+const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const Bignumber = require('bignumber.js');
 const async = require('async');
 // eslint-disable-next-line prefer-const
@@ -461,9 +462,7 @@ __private.getOutsiders = function(scope, cb, tx) {
 				roundDelegates,
 				(delegate, eachCb) => {
 					if (scope.roundDelegates.indexOf(delegate) === -1) {
-						scope.roundOutsiders.push(
-							modules.accounts.generateAddressByPublicKey(delegate)
-						);
+						scope.roundOutsiders.push(getAddressFromPublicKey(delegate));
 					}
 					return setImmediate(eachCb);
 				},

@@ -14,6 +14,7 @@
 
 'use strict';
 
+const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const Promise = require('bluebird');
 const Bignum = require('../helpers/bignum');
 
@@ -170,9 +171,7 @@ class Round {
 			const queries = votes.map(vote =>
 				self.scope.library.storage.entities.Account.increaseFieldBy(
 					{
-						address: self.scope.modules.accounts.generateAddressByPublicKey(
-							vote.delegate
-						),
+						address: getAddressFromPublicKey(vote.delegate),
 					},
 					'vote',
 					// Have to revert the logic to not use bignumber. it was causing change

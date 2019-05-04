@@ -16,7 +16,10 @@
 
 const async = require('async');
 const _ = require('lodash');
-const { hexToBuffer } = require('@liskhq/lisk-cryptography');
+const {
+	hexToBuffer,
+	getAddressFromPublicKey,
+} = require('@liskhq/lisk-cryptography');
 const {
 	transfer,
 	castVotes,
@@ -102,9 +105,7 @@ describe('rounds', () => {
 			// SENDER: Get address from senderId or if not available - get from senderPublicKey
 			let address =
 				transaction.senderId ||
-				library.modules.accounts.generateAddressByPublicKey(
-					transaction.senderPublicKey
-				);
+				getAddressFromPublicKey(transaction.senderPublicKey);
 
 			// If account with address exists - set expected values
 			if (accounts[address]) {

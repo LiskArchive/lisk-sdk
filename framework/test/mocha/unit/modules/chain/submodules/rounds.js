@@ -83,9 +83,6 @@ describe('rounds', () => {
 				generateDelegateList: sinon.stub(),
 				clearDelegateListCache: sinon.stub(),
 			},
-			accounts: {
-				generateAddressByPublicKey: sinon.stub(),
-			},
 		},
 	};
 
@@ -113,7 +110,6 @@ describe('rounds', () => {
 			'delegate2',
 			'delegate3',
 		]);
-		bindings.modules.accounts.generateAddressByPublicKey.returnsArg(0);
 
 		new Rounds((err, __instance) => {
 			rounds = __instance;

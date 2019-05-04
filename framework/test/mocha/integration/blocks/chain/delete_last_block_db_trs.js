@@ -15,6 +15,7 @@
 'use strict';
 
 const expect = require('chai').expect;
+const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const { transfer } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
@@ -200,9 +201,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 						localCommon
 							.getAccountFromDb(
 								library,
-								library.modules.accounts.generateAddressByPublicKey(
-									block.generatorPublicKey
-								)
+								getAddressFromPublicKey(block.generatorPublicKey)
 							)
 							.then(account => {
 								expect(account.mem_accounts.producedBlocks).to.equal(1);
@@ -265,9 +264,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 					localCommon
 						.getAccountFromDb(
 							library,
-							library.modules.accounts.generateAddressByPublicKey(
-								block.generatorPublicKey
-							)
+							getAddressFromPublicKey(block.generatorPublicKey)
 						)
 						.then(account => {
 							expect(account.mem_accounts.producedBlocks).to.equal(0);

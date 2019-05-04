@@ -14,6 +14,7 @@
 
 'use strict';
 
+const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const {
 	transfer,
 	registerMultisignature,
@@ -54,9 +55,7 @@ describe('expire transactions', () => {
 
 	const getSenderAddress = transaction =>
 		transaction.senderId ||
-		library.modules.accounts.generateAddressByPublicKey(
-			transaction.senderPublicKey
-		);
+		getAddressFromPublicKey(transaction.senderPublicKey);
 
 	const createTransaction = (amount, recipientId) => {
 		return transfer({
