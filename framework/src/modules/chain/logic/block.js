@@ -20,6 +20,7 @@ const {
 	hexToBuffer,
 	signDataWithPrivateKey,
 	verifyData,
+	getAddressByPublicKey,
 } = require('@liskhq/lisk-cryptography');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const _ = require('lodash');
@@ -241,26 +242,6 @@ class Block {
 		return block;
 	}
 }
-
-/**
- * Gets address by public.
- *
- * @private
- * @param {publicKey} publicKey
- * @returns {address} address
- * @todo Add description for the params
- */
-__private.getAddressByPublicKey = function(publicKey) {
-	const publicKeyHash = hash(publicKey, 'hex');
-	const temp = Buffer.alloc(8);
-
-	for (let i = 0; i < 8; i++) {
-		temp[i] = publicKeyHash[7 - i];
-	}
-
-	const address = `${Bignum.fromBuffer(temp).toString()}L`;
-	return address;
-};
 
 // TODO: The below functions should be converted into static functions,
 // however, this will lead to incompatibility with modules and tests implementation.
@@ -492,7 +473,7 @@ Block.prototype.dbRead = function(raw) {
 		payloadLength: parseInt(raw.b_payloadLength),
 		payloadHash: raw.b_payloadHash,
 		generatorPublicKey: raw.b_generatorPublicKey,
-		generatorId: __private.getAddressByPublicKey(raw.b_generatorPublicKey),
+		generatorId: getAddressByPublicKey(raw.b_generatorPublicKey),
 		blockSignature: raw.b_blockSignature,
 		confirmations: parseInt(raw.b_confirmations),
 	};
@@ -524,7 +505,7 @@ Block.prototype.storageRead = function(raw) {
 		payloadLength: parseInt(raw.payloadLength),
 		payloadHash: raw.payloadHash,
 		generatorPublicKey: raw.generatorPublicKey,
-		generatorId: __private.getAddressByPublicKey(raw.generatorPublicKey),
+		generatorId: getAddressByPublicKey(raw.generatorPublicKey),
 		blockSignature: raw.blockSignature,
 		confirmations: parseInt(raw.confirmations),
 	};
