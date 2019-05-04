@@ -32,68 +32,74 @@ let self;
 class Signatures {
 	constructor(cb) {
 		self = this;
+		this.shared = this.attachSharedMethods();
 		setImmediate(cb, null, self);
 	}
+
+	/**
+	 * Checks if `modules` is loaded.
+	 *
+	 * @returns {boolean} True if `modules` is loaded
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	isLoaded() {
+		return !!modules;
+	}
+
+	/**
+	 * Calls Signature.bind() with modules params.
+	 *
+	 * @param {modules} scope - Loaded modules
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	onBind(scope) {
+		modules = {
+			accounts: scope.modules.accounts,
+			transactions: scope.modules.transactions,
+			transport: scope.modules.transport,
+		};
+	}
+
+	// Attach Shared API
+	/**
+	 * Public methods, accessible via API.
+	 *
+	 * @property {function} postSignature - Post signature for transaction
+	 * @property {function} postSignatures - Post signatures for transactions
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	attachSharedMethods() {
+		return {
+			/**
+			 * Post signature for a transaction.
+			 *
+			 * @param {Object.<{transactionId: string, publicKey: string, signature: string}>} - Signature
+			 * @param {function} cb - Callback function
+			 * @returns {setImmediateCallback} cb
+			 */
+			postSignature(signature, cb) {
+				return modules.transport.shared.postSignature(
+					{ signature },
+					(err, res) => setImmediate(cb, err, res)
+				);
+			},
+
+			/**
+			 * Post signatures for transactions.
+			 *
+			 * @param {Array.<{transactionId: string, publicKey: string, signature: string}>} signatures - Array of signatures
+			 * @param {function} cb - Callback function
+			 * @returns {setImmediateCallback} cb
+			 */
+			postSignatures(signatures, cb) {
+				return modules.transport.shared.postSignatures(
+					{ signatures },
+					(err, res) => setImmediate(cb, err, res)
+				);
+			},
+		};
+	}
 }
-
-// Public methods
-/**
- * Checks if `modules` is loaded.
- *
- * @returns {boolean} True if `modules` is loaded
- */
-Signatures.prototype.isLoaded = function() {
-	return !!modules;
-};
-
-// Events
-/**
- * Calls Signature.bind() with modules params.
- *
- * @param {modules} scope - Loaded modules
- */
-Signatures.prototype.onBind = function(scope) {
-	modules = {
-		accounts: scope.modules.accounts,
-		transactions: scope.modules.transactions,
-		transport: scope.modules.transport,
-	};
-};
-
-// Shared API
-/**
- * Public methods, accessible via API.
- *
- * @property {function} postSignature - Post signature for transaction
- * @property {function} postSignatures - Post signatures for transactions
- */
-Signatures.prototype.shared = {
-	/**
-	 * Post signature for a transaction.
-	 *
-	 * @param {Object.<{transactionId: string, publicKey: string, signature: string}>} - Signature
-	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallback} cb
-	 */
-	postSignature(signature, cb) {
-		return modules.transport.shared.postSignature({ signature }, (err, res) =>
-			setImmediate(cb, err, res)
-		);
-	},
-
-	/**
-	 * Post signatures for transactions.
-	 *
-	 * @param {Array.<{transactionId: string, publicKey: string, signature: string}>} signatures - Array of signatures
-	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallback} cb
-	 */
-	postSignatures(signatures, cb) {
-		return modules.transport.shared.postSignatures({ signatures }, (err, res) =>
-			setImmediate(cb, err, res)
-		);
-	},
-};
 
 // Export
 module.exports = Signatures;

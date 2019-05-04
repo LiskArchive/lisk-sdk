@@ -95,6 +95,141 @@ class Loader {
 
 		setImmediate(cb, null, self);
 	}
+
+	/**
+	 * Checks if private constant syncIntervalId has value.
+	 *
+	 * @returns {boolean} True if syncIntervalId has value
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	syncing() {
+		return !!__private.syncIntervalId;
+	}
+
+	/**
+	 * Checks if `modules` is loaded.
+	 *
+	 * @returns {boolean} True if `modules` is loaded
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	isLoaded() {
+		return !!modules;
+	}
+
+	/**
+	 * Checks private constant loaded.
+	 *
+	 * @returns {boolean} False if not loaded
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	loaded() {
+		return !!__private.loaded;
+	}
+
+	// Events
+	/**
+	 * Pulls Transactions and signatures.
+	 *
+	 * @returns {function} Calling __private.syncTimer()
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	onNetworkReady() {
+		library.logger.trace('Peers ready', { module: 'loader' });
+		// Enforce sync early
+		if (library.config.syncing.active) {
+			__private.syncTimer();
+		}
+
+		setImmediate(() => {
+			async.series(
+				{
+					loadTransactions(seriesCb) {
+						if (__private.loaded) {
+							return async.retry(
+								__private.retries,
+								__private.getTransactionsFromNetwork,
+								err => {
+									if (err) {
+										library.logger.error(
+											'Unconfirmed transactions loader',
+											err
+										);
+									}
+
+									return setImmediate(seriesCb);
+								}
+							);
+						}
+						return setImmediate(seriesCb);
+					},
+					loadSignatures(seriesCb) {
+						if (__private.loaded) {
+							return async.retry(
+								__private.retries,
+								__private.getSignaturesFromNetwork,
+								err => {
+									if (err) {
+										library.logger.error('Signatures loader', err);
+									}
+
+									return setImmediate(seriesCb);
+								}
+							);
+						}
+						return setImmediate(seriesCb);
+					},
+				},
+				err => {
+					library.logger.trace('Transactions and signatures pulled', err);
+				}
+			);
+		});
+	}
+
+	/**
+	 * It assigns components & modules from scope to private constants.
+	 *
+	 * @param {components, modules} scope modules & components
+	 * @returns {function} Calling __private.loadBlockChain
+	 * @todo Add description for the params
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	onBind(scope) {
+		components = {
+			cache: scope.components ? scope.components.cache : undefined,
+		};
+
+		modules = {
+			transactions: scope.modules.transactions,
+			blocks: scope.modules.blocks,
+			peers: scope.modules.peers,
+			rounds: scope.modules.rounds,
+			multisignatures: scope.modules.multisignatures,
+		};
+
+		__private.loadBlockChain();
+	}
+
+	/**
+	 * Sets private constant loaded to true.
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	onBlockchainReady() {
+		__private.loaded = true;
+	}
+
+	/**
+	 * Sets private constant loaded to false.
+	 *
+	 * @param {function} cb
+	 * @returns {setImmediateCallback} cb
+	 * @todo Add description for the params
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	cleanup(cb) {
+		__private.loaded = false;
+		return setImmediate(cb);
+	}
 }
 
 // Private methods
@@ -921,133 +1056,6 @@ __private.sync = function(cb) {
 			return setImmediate(cb, err);
 		}
 	);
-};
-
-// Public methods
-
-/**
- * Checks if private constant syncIntervalId has value.
- *
- * @returns {boolean} True if syncIntervalId has value
- */
-Loader.prototype.syncing = function() {
-	return !!__private.syncIntervalId;
-};
-
-/**
- * Checks if `modules` is loaded.
- *
- * @returns {boolean} True if `modules` is loaded
- */
-Loader.prototype.isLoaded = function() {
-	return !!modules;
-};
-
-/**
- * Checks private constant loaded.
- *
- * @returns {boolean} False if not loaded
- */
-Loader.prototype.loaded = function() {
-	return !!__private.loaded;
-};
-
-// Events
-/**
- * Pulls Transactions and signatures.
- *
- * @returns {function} Calling __private.syncTimer()
- */
-Loader.prototype.onNetworkReady = function() {
-	library.logger.trace('Peers ready', { module: 'loader' });
-	// Enforce sync early
-	if (library.config.syncing.active) {
-		__private.syncTimer();
-	}
-
-	setImmediate(() => {
-		async.series(
-			{
-				loadTransactions(seriesCb) {
-					if (__private.loaded) {
-						return async.retry(
-							__private.retries,
-							__private.getTransactionsFromNetwork,
-							err => {
-								if (err) {
-									library.logger.error('Unconfirmed transactions loader', err);
-								}
-
-								return setImmediate(seriesCb);
-							}
-						);
-					}
-					return setImmediate(seriesCb);
-				},
-				loadSignatures(seriesCb) {
-					if (__private.loaded) {
-						return async.retry(
-							__private.retries,
-							__private.getSignaturesFromNetwork,
-							err => {
-								if (err) {
-									library.logger.error('Signatures loader', err);
-								}
-
-								return setImmediate(seriesCb);
-							}
-						);
-					}
-					return setImmediate(seriesCb);
-				},
-			},
-			err => {
-				library.logger.trace('Transactions and signatures pulled', err);
-			}
-		);
-	});
-};
-
-/**
- * It assigns components & modules from scope to private constants.
- *
- * @param {components, modules} scope modules & components
- * @returns {function} Calling __private.loadBlockChain
- * @todo Add description for the params
- */
-Loader.prototype.onBind = function(scope) {
-	components = {
-		cache: scope.components ? scope.components.cache : undefined,
-	};
-
-	modules = {
-		transactions: scope.modules.transactions,
-		blocks: scope.modules.blocks,
-		peers: scope.modules.peers,
-		rounds: scope.modules.rounds,
-		multisignatures: scope.modules.multisignatures,
-	};
-
-	__private.loadBlockChain();
-};
-
-/**
- * Sets private constant loaded to true.
- */
-Loader.prototype.onBlockchainReady = function() {
-	__private.loaded = true;
-};
-
-/**
- * Sets private constant loaded to false.
- *
- * @param {function} cb
- * @returns {setImmediateCallback} cb
- * @todo Add description for the params
- */
-Loader.prototype.cleanup = function(cb) {
-	__private.loaded = false;
-	return setImmediate(cb);
 };
 
 // Export

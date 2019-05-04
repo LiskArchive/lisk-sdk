@@ -86,7 +86,513 @@ class Transport {
 			scope.components.storage
 		);
 
+		this.shared = this.attachSharedMethods();
+
 		setImmediate(cb, null, self);
+	}
+
+	/**
+	 * Bounds scope to private broadcaster amd initialize modules.
+	 *
+	 * @param {modules} scope - Exposed modules
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	onBind(scope) {
+		modules = {
+			blocks: scope.modules.blocks,
+			dapps: scope.modules.dapps,
+			loader: scope.modules.loader,
+			multisignatures: scope.modules.multisignatures,
+			peers: scope.modules.peers,
+			transactions: scope.modules.transactions,
+			processTransactions: scope.modules.processTransactions,
+		};
+
+		__private.broadcaster.bind(
+			scope.modules.transport,
+			scope.modules.transactions
+		);
+	}
+
+	/**
+	 * Sets private variable loaded to true.
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	onBlockchainReady() {
+		__private.loaded = true;
+	}
+
+	/**
+	 * Calls enqueue signatures and emits a 'signature/change' socket message.
+	 *
+	 * @param {signature} signature
+	 * @param {Object} broadcast
+	 * @emits signature/change
+	 * @todo Add description for the params
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	onSignature(signature, broadcast) {
+		if (broadcast && !__private.broadcaster.maxRelays(signature)) {
+			__private.broadcaster.enqueue(
+				{},
+				{
+					api: 'postSignatures',
+					data: {
+						signature,
+					},
+				}
+			);
+			library.channel.publish('chain:signature:change', signature);
+		}
+	}
+
+	/**
+	 * Calls enqueue transactions and emits a 'transactions/change' socket message.
+	 *
+	 * @param {transaction} transaction
+	 * @param {Object} broadcast
+	 * @emits transactions/change
+	 * @todo Add description for the params
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	onUnconfirmedTransaction(transaction, broadcast) {
+		if (broadcast && !__private.broadcaster.maxRelays(transaction)) {
+			__private.broadcaster.enqueue(
+				{},
+				{
+					api: 'postTransactions',
+					data: {
+						transaction,
+					},
+				}
+			);
+			library.channel.publish('chain:transactions:change', transaction);
+		}
+	}
+
+	/**
+	 * Calls broadcast blocks and emits a 'blocks/change' socket message.
+	 *
+	 * @param {Object} block - Reduced block object
+	 * @param {boolean} broadcast - Signal flag for broadcast
+	 * @emits blocks/change
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	onBroadcastBlock(block, broadcast) {
+		// Exit immediately when 'broadcast' flag is not set
+		if (!broadcast) return null;
+
+		// Check if we are free to broadcast
+		if (__private.broadcaster.maxRelays(block)) {
+			library.logger.debug(
+				'Transport->onBroadcastBlock: Aborted - max block relays exhausted'
+			);
+			return null;
+		}
+		if (modules.loader.syncing()) {
+			library.logger.debug(
+				'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress'
+			);
+			return null;
+		}
+
+		if (block.totalAmount) {
+			block.totalAmount = block.totalAmount.toNumber();
+		}
+
+		if (block.totalFee) {
+			block.totalFee = block.totalFee.toNumber();
+		}
+
+		if (block.reward) {
+			block.reward = block.reward.toNumber();
+		}
+
+		const { broadhash } = library.applicationState;
+
+		// Perform actual broadcast operation
+		return __private.broadcaster.broadcast(
+			{
+				broadhash,
+			},
+			{ api: 'postBlock', data: { block } }
+		);
+	}
+
+	/**
+	 * Sets loaded to false.
+	 *
+	 * @param {function} cb - Callback function
+	 * @returns {setImmediateCallback} cb
+	 * @todo Add description for the params
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	cleanup(cb) {
+		__private.loaded = false;
+		return setImmediate(cb);
+	}
+
+	/**
+	 * Returns true if modules are loaded and private variable loaded is true.
+	 *
+	 * @returns {boolean}
+	 * @todo Add description for the return value
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	isLoaded() {
+		return modules && __private.loaded;
+	}
+
+	/**
+	 * @property {function} blocksCommon
+	 * @property {function} blocks
+	 * @property {function} postBlock
+	 * @property {function} list
+	 * @property {function} height
+	 * @property {function} status
+	 * @property {function} postSignatures
+	 * @property {function} getSignatures
+	 * @property {function} getTransactions
+	 * @property {function} postTransactions
+	 * @todo Add description for the functions
+	 * @todo Implement API comments with apidoc.
+	 * @see {@link http://apidocjs.com/}
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	attachSharedMethods() {
+		return {
+			/**
+			 * Description of blocksCommon.
+			 *
+			 * @todo Add @param tags
+			 * @todo Add @returns tag
+			 * @todo Add description of the function
+			 */
+			blocksCommon(query, cb) {
+				query = query || {};
+				return library.schema.validate(
+					query,
+					definitions.WSBlocksCommonRequest,
+					err => {
+						if (err) {
+							err = `${err[0].message}: ${err[0].path}`;
+							library.logger.debug('Common block request validation failed', {
+								err: err.toString(),
+								req: query,
+							});
+							return setImmediate(cb, err);
+						}
+
+						const escapedIds = query.ids
+							// Remove quotes
+							.replace(/['"]+/g, '')
+							// Separate by comma into an array
+							.split(',')
+							// Reject any non-numeric values
+							.filter(id => /^[0-9]+$/.test(id));
+
+						if (!escapedIds.length) {
+							library.logger.debug('Common block request validation failed', {
+								err: 'ESCAPE',
+								req: query.ids,
+							});
+
+							return setImmediate(cb, 'Invalid block id sequence');
+						}
+
+						return library.storage.entities.Block.get({
+							id: escapedIds[0],
+						})
+							.then(row => {
+								if (!row.length > 0) {
+									return setImmediate(cb, null, {
+										success: true,
+										common: null,
+									});
+								}
+
+								const {
+									height,
+									id,
+									previousBlockId: previousBlock,
+									timestamp,
+								} = row[0];
+
+								const parsedRow = {
+									id,
+									height,
+									previousBlock,
+									timestamp,
+								};
+
+								return setImmediate(cb, null, {
+									success: true,
+									common: parsedRow,
+								});
+							})
+							.catch(getOneError => {
+								library.logger.error(getOneError.stack);
+								return setImmediate(cb, 'Failed to get common block');
+							});
+					}
+				);
+			},
+
+			/**
+			 * Description of blocks.
+			 *
+			 * @todo Add @param tags
+			 * @todo Add description of the function
+			 */
+			// eslint-disable-next-line consistent-return
+			blocks(query, cb) {
+				// Get 34 blocks with all data (joins) from provided block id
+				// According to maxium payload of 58150 bytes per block with every transaction being a vote
+				// Discounting maxium compression setting used in middleware
+				// Maximum transport payload = 2000000 bytes
+				if (!query || !query.lastBlockId) {
+					return setImmediate(cb, null, {
+						success: false,
+						message: 'Invalid lastBlockId requested',
+					});
+				}
+
+				modules.blocks.utils.loadBlocksDataWS(
+					{
+						limit: 34, // 1977100 bytes
+						lastId: query.lastBlockId,
+					},
+					(err, data) => {
+						_.each(data, block => {
+							if (block.tf_data) {
+								try {
+									block.tf_data = block.tf_data.toString('utf8');
+								} catch (e) {
+									library.logger.error(
+										'Transport->blocks: Failed to convert data field to UTF-8',
+										{
+											block,
+											error: e,
+										}
+									);
+								}
+							}
+						});
+						if (err) {
+							return setImmediate(cb, null, {
+								blocks: [],
+								message: err,
+								sucess: false,
+							});
+						}
+
+						return setImmediate(cb, null, { blocks: data, success: true });
+					}
+				);
+			},
+
+			/**
+			 * Description of postBlock.
+			 *
+			 * @todo Add @param tags
+			 * @todo Add @returns tag
+			 * @todo Add description of the function
+			 */
+			postBlock(query) {
+				if (!library.config.broadcasts.active) {
+					return library.logger.debug(
+						'Receiving blocks disabled by user through config.json'
+					);
+				}
+				query = query || {};
+				return library.schema.validate(
+					query,
+					definitions.WSBlocksBroadcast,
+					err => {
+						if (err) {
+							return library.logger.debug(
+								'Received post block broadcast request in unexpected format',
+								{
+									err,
+									module: 'transport',
+									query,
+								}
+							);
+						}
+						let block;
+						try {
+							block = modules.blocks.verify.addBlockProperties(query.block);
+							block = library.logic.block.objectNormalize(block);
+						} catch (e) {
+							library.logger.debug('Block normalization failed', {
+								err: e.toString(),
+								module: 'transport',
+								block: query.block,
+							});
+
+							// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
+						}
+						return library.bus.message('receiveBlock', block);
+					}
+				);
+			},
+
+			/**
+			 * Description of postSignature.
+			 *
+			 * @todo Add @param tags
+			 * @todo Add @returns tag
+			 * @todo Add description of the function
+			 */
+			postSignature(query, cb) {
+				__private.receiveSignature(query.signature, (err, code) => {
+					if (err) {
+						return setImmediate(cb, null, {
+							success: false,
+							code,
+							errors: err,
+						});
+					}
+					return setImmediate(cb, null, {
+						success: true,
+					});
+				});
+			},
+
+			/**
+			 * Description of postSignatures.
+			 *
+			 * @todo Add @param tags
+			 * @todo Add @returns tag
+			 * @todo Add description of the function
+			 */
+			postSignatures(query) {
+				if (!library.config.broadcasts.active) {
+					return library.logger.debug(
+						'Receiving signatures disabled by user through config.json'
+					);
+				}
+				return library.schema.validate(
+					query,
+					definitions.WSSignaturesList,
+					err => {
+						if (err) {
+							return library.logger.debug('Invalid signatures body', err);
+						}
+						return __private.receiveSignatures(query.signatures);
+					}
+				);
+			},
+
+			/**
+			 * Description of getSignatures.
+			 *
+			 * @todo Add @param tags
+			 * @todo Add @returns tag
+			 * @todo Add description of the function
+			 */
+			getSignatures(cb) {
+				const transactions = modules.transactions.getMultisignatureTransactionList(
+					true,
+					MAX_SHARED_TRANSACTIONS
+				);
+				const signatures = [];
+
+				async.eachSeries(
+					transactions,
+					(transaction, __cb) => {
+						if (transaction.signatures && transaction.signatures.length) {
+							signatures.push({
+								transaction: transaction.id,
+								signatures: transaction.signatures,
+							});
+						}
+						return setImmediate(__cb);
+					},
+					() =>
+						setImmediate(cb, null, {
+							success: true,
+							signatures,
+						})
+				);
+			},
+
+			/**
+			 * Description of getTransactions.
+			 *
+			 * @todo Add @param tags
+			 * @todo Add @returns tag
+			 * @todo Add description of the function
+			 */
+			getTransactions(cb) {
+				const transactions = modules.transactions.getMergedTransactionList(
+					true,
+					MAX_SHARED_TRANSACTIONS
+				);
+				return setImmediate(cb, null, {
+					success: true,
+					transactions,
+				});
+			},
+
+			/**
+			 * Description of postTransaction.
+			 *
+			 * @todo Add @param tags
+			 * @todo Add @returns tag
+			 * @todo Add description of the function
+			 */
+			postTransaction(query, cb) {
+				__private.receiveTransaction(
+					query.transaction,
+					query.nonce,
+					query.extraLogMessage,
+					(err, id) => {
+						if (err) {
+							return setImmediate(cb, null, {
+								success: false,
+								message: 'Invalid transaction body',
+								errors: err,
+							});
+						}
+
+						return setImmediate(cb, null, {
+							success: true,
+							transactionId: id,
+						});
+					}
+				);
+			},
+
+			/**
+			 * Description of postTransactions.
+			 *
+			 * @todo Add @param tags
+			 * @todo Add @returns tag
+			 * @todo Add description of the function
+			 */
+			postTransactions(query) {
+				if (!library.config.broadcasts.active) {
+					return library.logger.debug(
+						'Receiving transactions disabled by user through config.json'
+					);
+				}
+				return library.schema.validate(
+					query,
+					definitions.WSTransactionsRequest,
+					err => {
+						if (err) {
+							return library.logger.debug('Invalid transactions body', err);
+						}
+						return __private.receiveTransactions(
+							query.transactions,
+							query.nonce,
+							query.extraLogMessage
+						);
+					}
+				);
+			},
+		};
 	}
 }
 
@@ -238,501 +744,6 @@ __private.receiveTransaction = async function(
 			}
 		);
 	}, cb);
-};
-
-// Events
-/**
- * Bounds scope to private broadcaster amd initialize modules.
- *
- * @param {modules} scope - Exposed modules
- */
-Transport.prototype.onBind = function(scope) {
-	modules = {
-		blocks: scope.modules.blocks,
-		dapps: scope.modules.dapps,
-		loader: scope.modules.loader,
-		multisignatures: scope.modules.multisignatures,
-		peers: scope.modules.peers,
-		transactions: scope.modules.transactions,
-		processTransactions: scope.modules.processTransactions,
-	};
-
-	__private.broadcaster.bind(
-		scope.modules.transport,
-		scope.modules.transactions
-	);
-};
-
-/**
- * Sets private variable loaded to true.
- */
-Transport.prototype.onBlockchainReady = function() {
-	__private.loaded = true;
-};
-
-/**
- * Calls enqueue signatures and emits a 'signature/change' socket message.
- *
- * @param {signature} signature
- * @param {Object} broadcast
- * @emits signature/change
- * @todo Add description for the params
- */
-Transport.prototype.onSignature = function(signature, broadcast) {
-	if (broadcast && !__private.broadcaster.maxRelays(signature)) {
-		__private.broadcaster.enqueue(
-			{},
-			{
-				api: 'postSignatures',
-				data: {
-					signature,
-				},
-			}
-		);
-		library.channel.publish('chain:signature:change', signature);
-	}
-};
-
-/**
- * Calls enqueue transactions and emits a 'transactions/change' socket message.
- *
- * @param {transaction} transaction
- * @param {Object} broadcast
- * @emits transactions/change
- * @todo Add description for the params
- */
-Transport.prototype.onUnconfirmedTransaction = function(
-	transaction,
-	broadcast
-) {
-	if (broadcast && !__private.broadcaster.maxRelays(transaction)) {
-		__private.broadcaster.enqueue(
-			{},
-			{
-				api: 'postTransactions',
-				data: {
-					transaction,
-				},
-			}
-		);
-		library.channel.publish('chain:transactions:change', transaction);
-	}
-};
-
-/**
- * Calls broadcast blocks and emits a 'blocks/change' socket message.
- *
- * @param {Object} block - Reduced block object
- * @param {boolean} broadcast - Signal flag for broadcast
- * @emits blocks/change
- */
-Transport.prototype.onBroadcastBlock = function(block, broadcast) {
-	// Exit immediately when 'broadcast' flag is not set
-	if (!broadcast) return null;
-
-	// Check if we are free to broadcast
-	if (__private.broadcaster.maxRelays(block)) {
-		library.logger.debug(
-			'Transport->onBroadcastBlock: Aborted - max block relays exhausted'
-		);
-		return null;
-	}
-	if (modules.loader.syncing()) {
-		library.logger.debug(
-			'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress'
-		);
-		return null;
-	}
-
-	if (block.totalAmount) {
-		block.totalAmount = block.totalAmount.toNumber();
-	}
-
-	if (block.totalFee) {
-		block.totalFee = block.totalFee.toNumber();
-	}
-
-	if (block.reward) {
-		block.reward = block.reward.toNumber();
-	}
-
-	const { broadhash } = library.applicationState;
-
-	// Perform actual broadcast operation
-	return __private.broadcaster.broadcast(
-		{
-			broadhash,
-		},
-		{ api: 'postBlock', data: { block } }
-	);
-};
-
-/**
- * Sets loaded to false.
- *
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb
- * @todo Add description for the params
- */
-Transport.prototype.cleanup = function(cb) {
-	__private.loaded = false;
-	return setImmediate(cb);
-};
-
-/**
- * Returns true if modules are loaded and private variable loaded is true.
- *
- * @returns {boolean}
- * @todo Add description for the return value
- */
-Transport.prototype.isLoaded = function() {
-	return modules && __private.loaded;
-};
-
-// Internal API
-/**
- * @property {function} blocksCommon
- * @property {function} blocks
- * @property {function} postBlock
- * @property {function} list
- * @property {function} height
- * @property {function} status
- * @property {function} postSignatures
- * @property {function} getSignatures
- * @property {function} getTransactions
- * @property {function} postTransactions
- * @todo Add description for the functions
- * @todo Implement API comments with apidoc.
- * @see {@link http://apidocjs.com/}
- */
-Transport.prototype.shared = {
-	/**
-	 * Description of blocksCommon.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
-	blocksCommon(query, cb) {
-		query = query || {};
-		return library.schema.validate(
-			query,
-			definitions.WSBlocksCommonRequest,
-			err => {
-				if (err) {
-					err = `${err[0].message}: ${err[0].path}`;
-					library.logger.debug('Common block request validation failed', {
-						err: err.toString(),
-						req: query,
-					});
-					return setImmediate(cb, err);
-				}
-
-				const escapedIds = query.ids
-					// Remove quotes
-					.replace(/['"]+/g, '')
-					// Separate by comma into an array
-					.split(',')
-					// Reject any non-numeric values
-					.filter(id => /^[0-9]+$/.test(id));
-
-				if (!escapedIds.length) {
-					library.logger.debug('Common block request validation failed', {
-						err: 'ESCAPE',
-						req: query.ids,
-					});
-
-					return setImmediate(cb, 'Invalid block id sequence');
-				}
-
-				return library.storage.entities.Block.get({
-					id: escapedIds[0],
-				})
-					.then(row => {
-						if (!row.length > 0) {
-							return setImmediate(cb, null, {
-								success: true,
-								common: null,
-							});
-						}
-
-						const {
-							height,
-							id,
-							previousBlockId: previousBlock,
-							timestamp,
-						} = row[0];
-
-						const parsedRow = {
-							id,
-							height,
-							previousBlock,
-							timestamp,
-						};
-
-						return setImmediate(cb, null, {
-							success: true,
-							common: parsedRow,
-						});
-					})
-					.catch(getOneError => {
-						library.logger.error(getOneError.stack);
-						return setImmediate(cb, 'Failed to get common block');
-					});
-			}
-		);
-	},
-
-	/**
-	 * Description of blocks.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add description of the function
-	 */
-	// eslint-disable-next-line consistent-return
-	blocks(query, cb) {
-		// Get 34 blocks with all data (joins) from provided block id
-		// According to maxium payload of 58150 bytes per block with every transaction being a vote
-		// Discounting maxium compression setting used in middleware
-		// Maximum transport payload = 2000000 bytes
-		if (!query || !query.lastBlockId) {
-			return setImmediate(cb, null, {
-				success: false,
-				message: 'Invalid lastBlockId requested',
-			});
-		}
-
-		modules.blocks.utils.loadBlocksDataWS(
-			{
-				limit: 34, // 1977100 bytes
-				lastId: query.lastBlockId,
-			},
-			(err, data) => {
-				_.each(data, block => {
-					if (block.tf_data) {
-						try {
-							block.tf_data = block.tf_data.toString('utf8');
-						} catch (e) {
-							library.logger.error(
-								'Transport->blocks: Failed to convert data field to UTF-8',
-								{
-									block,
-									error: e,
-								}
-							);
-						}
-					}
-				});
-				if (err) {
-					return setImmediate(cb, null, {
-						blocks: [],
-						message: err,
-						sucess: false,
-					});
-				}
-
-				return setImmediate(cb, null, { blocks: data, success: true });
-			}
-		);
-	},
-
-	/**
-	 * Description of postBlock.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
-	postBlock(query) {
-		if (!library.config.broadcasts.active) {
-			return library.logger.debug(
-				'Receiving blocks disabled by user through config.json'
-			);
-		}
-		query = query || {};
-		return library.schema.validate(
-			query,
-			definitions.WSBlocksBroadcast,
-			err => {
-				if (err) {
-					return library.logger.debug(
-						'Received post block broadcast request in unexpected format',
-						{
-							err,
-							module: 'transport',
-							query,
-						}
-					);
-				}
-				let block;
-				try {
-					block = modules.blocks.verify.addBlockProperties(query.block);
-					block = library.logic.block.objectNormalize(block);
-				} catch (e) {
-					library.logger.debug('Block normalization failed', {
-						err: e.toString(),
-						module: 'transport',
-						block: query.block,
-					});
-
-					// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
-				}
-				return library.bus.message('receiveBlock', block);
-			}
-		);
-	},
-
-	/**
-	 * Description of postSignature.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
-	postSignature(query, cb) {
-		__private.receiveSignature(query.signature, (err, code) => {
-			if (err) {
-				return setImmediate(cb, null, {
-					success: false,
-					code,
-					errors: err,
-				});
-			}
-			return setImmediate(cb, null, {
-				success: true,
-			});
-		});
-	},
-
-	/**
-	 * Description of postSignatures.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
-	postSignatures(query) {
-		if (!library.config.broadcasts.active) {
-			return library.logger.debug(
-				'Receiving signatures disabled by user through config.json'
-			);
-		}
-		return library.schema.validate(query, definitions.WSSignaturesList, err => {
-			if (err) {
-				return library.logger.debug('Invalid signatures body', err);
-			}
-			return __private.receiveSignatures(query.signatures);
-		});
-	},
-
-	/**
-	 * Description of getSignatures.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
-	getSignatures(cb) {
-		const transactions = modules.transactions.getMultisignatureTransactionList(
-			true,
-			MAX_SHARED_TRANSACTIONS
-		);
-		const signatures = [];
-
-		async.eachSeries(
-			transactions,
-			(transaction, __cb) => {
-				if (transaction.signatures && transaction.signatures.length) {
-					signatures.push({
-						transaction: transaction.id,
-						signatures: transaction.signatures,
-					});
-				}
-				return setImmediate(__cb);
-			},
-			() =>
-				setImmediate(cb, null, {
-					success: true,
-					signatures,
-				})
-		);
-	},
-
-	/**
-	 * Description of getTransactions.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
-	getTransactions(cb) {
-		const transactions = modules.transactions.getMergedTransactionList(
-			true,
-			MAX_SHARED_TRANSACTIONS
-		);
-		return setImmediate(cb, null, {
-			success: true,
-			transactions,
-		});
-	},
-
-	/**
-	 * Description of postTransaction.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
-	postTransaction(query, cb) {
-		__private.receiveTransaction(
-			query.transaction,
-			query.nonce,
-			query.extraLogMessage,
-			(err, id) => {
-				if (err) {
-					return setImmediate(cb, null, {
-						success: false,
-						message: 'Invalid transaction body',
-						errors: err,
-					});
-				}
-
-				return setImmediate(cb, null, {
-					success: true,
-					transactionId: id,
-				});
-			}
-		);
-	},
-
-	/**
-	 * Description of postTransactions.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
-	postTransactions(query) {
-		if (!library.config.broadcasts.active) {
-			return library.logger.debug(
-				'Receiving transactions disabled by user through config.json'
-			);
-		}
-		return library.schema.validate(
-			query,
-			definitions.WSTransactionsRequest,
-			err => {
-				if (err) {
-					return library.logger.debug('Invalid transactions body', err);
-				}
-				return __private.receiveTransactions(
-					query.transactions,
-					query.nonce,
-					query.extraLogMessage
-				);
-			}
-		);
-	},
 };
 
 // Export
