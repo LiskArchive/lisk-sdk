@@ -20,7 +20,7 @@ const {
 	hexToBuffer,
 	signDataWithPrivateKey,
 	verifyData,
-	getAddressByPublicKey,
+	getAddressFromPublicKey,
 } = require('@liskhq/lisk-cryptography');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const _ = require('lodash');
@@ -386,7 +386,7 @@ class Block {
 			payloadLength: parseInt(raw.b_payloadLength),
 			payloadHash: raw.b_payloadHash,
 			generatorPublicKey: raw.b_generatorPublicKey,
-			generatorId: getAddressByPublicKey(raw.b_generatorPublicKey),
+			generatorId: getAddressFromPublicKey(raw.b_generatorPublicKey),
 			blockSignature: raw.b_blockSignature,
 			confirmations: parseInt(raw.b_confirmations),
 		};
@@ -419,7 +419,7 @@ class Block {
 			payloadLength: parseInt(raw.payloadLength),
 			payloadHash: raw.payloadHash,
 			generatorPublicKey: raw.generatorPublicKey,
-			generatorId: getAddressByPublicKey(raw.generatorPublicKey),
+			generatorId: getAddressFromPublicKey(raw.generatorPublicKey),
 			blockSignature: raw.blockSignature,
 			confirmations: parseInt(raw.confirmations),
 		};
