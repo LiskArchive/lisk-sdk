@@ -16,7 +16,6 @@
 
 const rewire = require('rewire');
 const Promise = require('bluebird');
-const cryptography = require('@liskhq/lisk-cryptography');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 const { TestStorageSandbox } = require('../../../../common/storage_sandbox');
 
@@ -345,7 +344,6 @@ describe('round', () => {
 	describe('updateVotes', () => {
 		let getVotes_stub;
 		let updateVotes_stub;
-		let getAddressFromPublicKeyStub;
 		let res;
 		let delegate;
 
@@ -360,10 +358,6 @@ describe('round', () => {
 						'6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a',
 					address: '16010222169256538112L',
 				};
-
-				getAddressFromPublicKeyStub = sinonSandbox
-					.stub(cryptography, 'getAddressFromPublicKey')
-					.returns(delegate.address);
 
 				getVotes_stub
 					.withArgs({ round: scope.round })
@@ -384,7 +378,6 @@ describe('round', () => {
 			});
 
 			afterEach(async () => {
-				getAddressFromPublicKeyStub.reset();
 				getVotes_stub.reset();
 				updateVotes_stub.reset();
 			});
@@ -421,10 +414,6 @@ describe('round', () => {
 					address: '16010222169256538112L',
 				};
 
-				getAddressFromPublicKeyStub = sinonSandbox
-					.stub(cryptography, 'getAddressFromPublicKey')
-					.returns(delegate.address);
-
 				getVotes_stub.withArgs({ round: scope.round }).resolves([]);
 				updateVotes_stub.resetHistory();
 				updateVotes_stub
@@ -436,7 +425,6 @@ describe('round', () => {
 			});
 
 			afterEach(async () => {
-				getAddressFromPublicKeyStub.reset();
 				getVotes_stub.reset();
 				updateVotes_stub.reset();
 			});
@@ -1796,7 +1784,6 @@ describe('round', () => {
 	describe('land', () => {
 		let increaseFieldBy_stub;
 		let decreaseFieldBy_stub;
-		let getAddressFromPublicKeyStub;
 		let getVotes_stub;
 		let syncDelegatesRanks_stub;
 		let flush_stub;
@@ -1819,10 +1806,6 @@ describe('round', () => {
 					'6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a',
 				address: '16010222169256538112L',
 			};
-
-			getAddressFromPublicKeyStub = sinonSandbox
-				.stub(cryptography, 'getAddressFromPublicKey')
-				.returns(delegate.address);
 
 			increaseFieldBy_stub = storageStubs.Account.increaseFieldBy.resolves(
 				'increaseFieldBy'
@@ -1848,7 +1831,6 @@ describe('round', () => {
 		});
 
 		afterEach(async () => {
-			getAddressFromPublicKeyStub.reset();
 			flush_stub.reset();
 			increaseFieldBy_stub.reset();
 			decreaseFieldBy_stub.reset();
@@ -1884,7 +1866,6 @@ describe('round', () => {
 	});
 
 	describe('backwardLand', () => {
-		let getAddressFromPublicKeyStub;
 		let increaseFieldBy_stub;
 		let decreaseFieldBy_stub;
 		let getVotes_stub;
@@ -1906,10 +1887,6 @@ describe('round', () => {
 			];
 			scope.roundRewards = [1, 2, 3];
 			scope.roundFees = 1000; // 9 LSK fee per delegate, 91 remaining fees
-
-			getAddressFromPublicKeyStub = sinonSandbox
-				.stub(cryptography, 'getAddressFromPublicKey')
-				.returns(delegate.address);
 
 			const delegate = {
 				amount: 10000,
@@ -1942,7 +1919,6 @@ describe('round', () => {
 		});
 
 		afterEach(async () => {
-			getAddressFromPublicKeyStub.reset();
 			increaseFieldBy_stub.reset();
 			decreaseFieldBy_stub.reset();
 			getVotes_stub.reset();
