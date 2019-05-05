@@ -328,11 +328,13 @@ describe('commons core utils', () => {
 	});
 
 	describe('#dateDiff', () => {
-		it('should get fileName, fileDir, filePath from url', async () => {
-			const date1 = new Date('25-Apr-2019 13:43');
-			const date2 = new Date('24-Apr-2019 13:43');
-
-			return expect(dateDiff(date1, date2)).to.deep.equal(1);
+		it('should return number of days difference', async () => {
+			expect(
+				dateDiff(new Date('25-Apr-2019 13:43'), new Date('24-Apr-2019 13:43')),
+			).to.deep.equal(1);
+			return expect(
+				dateDiff(new Date('5-May-2019 13:43'), new Date('25-Apr-2019 13:43')),
+			).to.deep.equal(10);
 		});
 	});
 });

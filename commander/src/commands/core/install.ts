@@ -40,7 +40,7 @@ import {
 	startDatabase,
 	stopDatabase,
 } from '../../utils/core/database';
-import { registerApplication } from '../../utils/core/pm2';
+import { describeApplication, registerApplication } from '../../utils/core/pm2';
 import { getReleaseInfo } from '../../utils/core/release';
 import { download, downloadAndValidate, extract } from '../../utils/download';
 import { flags as commonFlags } from '../../utils/flags';
@@ -291,9 +291,16 @@ export default class InstallCommand extends BaseCommand {
 		]);
 
 		try {
-			await tasks.run();
-			if (!noStart) {
-				return StartCommand.run([name]);
+			const instance = await describeApplication(name);
+
+			if (!instance) {
+				await tasks.run();
+				if (!noStart) {
+					return StartCommand.run([name]);
+				}
+			} else {
+				this.log(`\n Lisk Core instance ${name} already installed: `);
+				this.print(instance);
 			}
 		} catch (error) {
 			const { installDir }: Options = error.context.options;

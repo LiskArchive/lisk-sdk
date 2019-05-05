@@ -190,8 +190,7 @@ export const dateDiff = (date1: Date, date2: Date): number => {
 	const INT_RANGE = 1000;
 
 	return (
-		(((new Date(date1) as unknown) as number) -
-			((new Date(date2) as unknown) as number)) /
+		(new Date(date1).valueOf() - new Date(date2).valueOf()) /
 		(HOURS * MINUTES_OR_SECONDS * MINUTES_OR_SECONDS * INT_RANGE)
 	);
 };

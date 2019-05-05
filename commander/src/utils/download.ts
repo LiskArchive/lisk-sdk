@@ -27,7 +27,7 @@ export const download = async (
 
 	if (fs.existsSync(filePath)) {
 		if (
-			dateDiff(fs.statSync(filePath).birthtime, new Date()) <=
+			dateDiff(new Date(), fs.statSync(filePath).birthtime) <=
 			CACHE_EXPIRY_IN_DAYS
 		) {
 			return;

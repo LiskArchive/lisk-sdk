@@ -17,12 +17,8 @@ import { flags as flagParser } from '@oclif/command';
 import * as fsExtra from 'fs-extra';
 import Listr from 'listr';
 import BaseCommand from '../../base';
-import { isCacheRunning, stopCache } from '../../utils/core/cache';
-import { stopDatabase } from '../../utils/core/database';
-import {
-	describeApplication,
-	unRegisterApplication,
-} from '../../utils/core/pm2';
+import { describeApplication } from '../../utils/core/pm2';
+import StopCommand from './stop';
 
 interface Args {
 	readonly name: string;
@@ -57,32 +53,22 @@ export default class UnInstallCommand extends BaseCommand {
 		const { name } = args as Args;
 		const { installationPath, network } = await describeApplication(name);
 
-		const tasks = new Listr([
-			{
-				title: `Uninstall Lisk Core ${network} instance Installed as ${name}`,
-				task: () =>
-					new Listr([
-						{
-							title: `Stop and Unregister Lisk Core from PM2`,
-							task: async () => {
-								const isRunning = await isCacheRunning(installationPath, name);
-								if (isRunning) {
-									await stopCache(installationPath, network, name);
-								}
-								await stopDatabase(installationPath, name);
-								await unRegisterApplication(name);
-							},
-						},
-						{
-							title: `Remove Lisk Core ${network}`,
-							task: () => {
-								fsExtra.removeSync(installationPath);
-							},
-						},
-					]),
-			},
-		]);
+		try {
+			// tslint:disable-next-line await-promise
+			await StopCommand.run([name]);
 
-		await tasks.run();
+			const tasks = new Listr([
+				{
+					title: `Uninstall Lisk Core ${network} instance Installed as ${name}`,
+					task: async () => {
+						fsExtra.removeSync(installationPath);
+					},
+				},
+			]);
+
+			await tasks.run();
+		} catch (error) {
+			this.error(error);
+		}
 	}
 }
