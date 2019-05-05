@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import fsExtra from 'fs-extra';
 import {
 	isCacheEnabled,
 	isCacheRunning,
@@ -16,6 +17,7 @@ describe('cache node utils', () => {
 	let configStub: any = null;
 
 	beforeEach(() => {
+		sandbox.stub(fsExtra, 'writeJSONSync').returns();
 		pm2Stub = sandbox.stub(pm2, 'describeApplication');
 		pm2Stub.resolves({
 			pm2_env: {
@@ -26,9 +28,30 @@ describe('cache node utils', () => {
 		configStub.resolves(liskConfig.config);
 	});
 
-	describe('#isCacheEnabled', async () => {
-		const enabled = await isCacheEnabled('~/.lisk/instance', NETWORK.DEVNET);
-		return expect(enabled).to.be.true;
+	describe('#isCacheEnabled', () => {
+		let workerProcessStub: any = null;
+		beforeEach(() => {
+			workerProcessStub = sandbox.stub(workerProcess, 'exec');
+		});
+
+		it('should return true when cache is enabled', async () => {
+			workerProcessStub.resolves({
+				stdout: liskConfig.config,
+			});
+
+			const enabled = await isCacheEnabled('~/.lisk/instance', NETWORK.DEVNET);
+			return expect(enabled).to.be.true;
+		});
+
+		it('should throw error when failed get cache config', () => {
+			configStub.resolves({});
+
+			return expect(
+				isCacheEnabled('~/.lisk/instance', NETWORK.DEVNET),
+			).to.rejectedWith(
+				"TypeError: Cannot destructure property `components` of 'undefined' or 'null'.",
+			);
+		});
 	});
 
 	describe('#isCacheRunning', () => {
@@ -121,7 +144,18 @@ describe('cache node utils', () => {
 			});
 
 			it('should stop successfully when password is empty', async () => {
-				workerProcessStub.resolves({ stdout: '', stderr: null });
+				workerProcessStub.resolves({
+					stdout: {
+						config: {
+							components: { cache: { password: null } },
+						},
+					},
+				});
+				configStub.resolves({
+					config: {
+						components: { cache: { password: null } },
+					},
+				});
 
 				const status = await stopCache(
 					'/tmp/dummypath',
@@ -134,7 +168,7 @@ describe('cache node utils', () => {
 			});
 
 			it('should stop successfully when password is present', async () => {
-				workerProcessStub.resolves({ stdout: '', stderr: null });
+				workerProcessStub.resolves({ stdout: liskConfig.config, stderr: null });
 
 				const status = await stopCache(
 					'/tmp/dummypath',
@@ -155,6 +189,14 @@ describe('cache node utils', () => {
 				return expect(
 					stopCache('/tmp/dummypath', NETWORK.MAINNET, 'test'),
 				).to.rejectedWith('[-] Failed to stop Redis-Server');
+			});
+
+			it('should throw error when failed get cache config', () => {
+				configStub.resolves({});
+
+				return expect(
+					stopCache('/tmp/dummypath', NETWORK.MAINNET, 'test'),
+				).to.rejectedWith('Error: TypeError: Cannot destructure property');
 			});
 		});
 	});

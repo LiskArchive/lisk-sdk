@@ -67,11 +67,12 @@ const stopCommand = async (
 	try {
 		const {
 			config: {
-				components: { cache: password },
+				components: {
+					cache: { password },
+				},
 			},
 		}: LiskConfig = await getLiskConfig(installDir, network);
 		const { redisPort } = await describeApplication(name);
-
 		if (password) {
 			return `${REDIS_CLI} -p ${redisPort} -a ${password} shutdown`;
 		}

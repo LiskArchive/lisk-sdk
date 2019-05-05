@@ -43,16 +43,12 @@ const isDbRunning = async (
 	installDir: string,
 	port: string,
 ): Promise<boolean> => {
-	try {
-		const { stderr }: ExecResult = await exec(
-			`${PG_CTL} --pgdata ${DB_DATA} --options '-F -p ${port}' status`,
-			{ cwd: installDir },
-		);
+	const { stderr }: ExecResult = await exec(
+		`${PG_CTL} --pgdata ${DB_DATA} --options '-F -p ${port}' status`,
+		{ cwd: installDir },
+	);
 
-		return !stderr;
-	} catch (error) {
-		return false;
-	}
+	return !stderr;
 };
 
 export const initDB = async (installDir: string): Promise<string> => {

@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import fs from 'fs';
+import fsExtra from 'fs-extra';
 import {
 	initDB,
 	startDatabase,
@@ -18,6 +19,7 @@ describe('database core utils', () => {
 	let pm2Stub: any = null;
 
 	beforeEach(() => {
+		sandbox.stub(fsExtra, 'writeJSONSync').returns();
 		pm2Stub = sandbox.stub(pm2, 'describeApplication');
 		pm2Stub.resolves({
 			pm2_env: {
@@ -94,7 +96,8 @@ describe('database core utils', () => {
 		});
 
 		it('should start database successfully ', async () => {
-			workerProcessStub.resolves({ stdout: '' });
+			workerProcessStub.onCall(0).resolves({ stderr: 'not running' });
+			workerProcessStub.onCall(1).resolves({ stderr: null });
 
 			const result = await startDatabase('dummy/path', 'test');
 			return expect(result).to.equal('[+] Postgresql started successfully.');
@@ -120,6 +123,15 @@ describe('database core utils', () => {
 
 			const result = await stopDatabase('dummy/path', NETWORK.MAINNET);
 			return expect(result).to.equal('[+] Postgresql stopped successfully.');
+		});
+
+		it('should return failed to stop database', () => {
+			workerProcessStub.onCall(0).resolves({ stderr: null });
+			workerProcessStub.onCall(1).resolves({ stderr: 'pg_ctl failed to stop' });
+
+			return expect(
+				stopDatabase('dummy/path', NETWORK.MAINNET),
+			).to.rejectedWith('[-] Postgresql failed to stop.');
 		});
 	});
 

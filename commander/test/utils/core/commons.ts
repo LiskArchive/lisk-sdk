@@ -43,6 +43,7 @@ describe('commons core utils', () => {
 	let pm2Stub: any = null;
 
 	beforeEach(() => {
+		sandbox.stub(fsExtra, 'writeJSONSync').returns();
 		pm2Stub = sandbox.stub(pm2, 'listApplication');
 		pm2Stub.resolves([
 			{

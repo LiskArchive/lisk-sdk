@@ -1,6 +1,7 @@
 import os from 'os';
 import path from 'path';
 import { expect } from 'chai';
+import fsExtra from 'fs-extra';
 import {
 	defaultBackupPath,
 	defaultLiskInstancePath,
@@ -38,6 +39,7 @@ describe('config core utils', () => {
 	describe('#getLiskConfig', () => {
 		let workerProcessStub: any = null;
 		beforeEach(() => {
+			sandbox.stub(fsExtra, 'writeJSONSync').returns();
 			workerProcessStub = sandbox.stub(workerProcess, 'exec');
 		});
 
