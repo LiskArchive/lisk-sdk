@@ -12,6 +12,7 @@ import {
 import * as workerProcess from '../../../src/utils/worker-process';
 import { NETWORK } from '../../../src/utils/constants';
 import * as liskConfig from './fixtures';
+import { SinonStub } from 'sinon';
 
 describe('config core utils', () => {
 	it('should return defaultLiskPath constant', () => {
@@ -37,7 +38,7 @@ describe('config core utils', () => {
 	});
 
 	describe('#getLiskConfig', () => {
-		let workerProcessStub: any = null;
+		let workerProcessStub: SinonStub;
 		beforeEach(() => {
 			sandbox.stub(fsExtra, 'writeJSONSync').returns();
 			workerProcessStub = sandbox.stub(workerProcess, 'exec');

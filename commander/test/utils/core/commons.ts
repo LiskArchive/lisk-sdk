@@ -29,6 +29,7 @@ import { defaultLiskInstancePath } from '../../../src/utils/core/config';
 import * as release from '../../../src/utils/core/release';
 import * as workerProcess from '../../../src/utils/worker-process';
 import * as pm2 from '../../../src/utils/core/pm2';
+import { SinonStub } from 'sinon';
 
 const envConfig = {
 	LISK_REDIS_PORT: 6380,
@@ -40,7 +41,7 @@ const url =
 	'https://downloads.lisk.io/lisk/testnet/1.6.0-rc.4/lisk-1.6.0-rc.4-Darwin-x86_64.tar.gz';
 
 describe('commons core utils', () => {
-	let pm2Stub: any = null;
+	let pm2Stub: SinonStub;
 
 	beforeEach(() => {
 		sandbox.stub(fsExtra, 'writeJSONSync').returns();
@@ -165,8 +166,8 @@ describe('commons core utils', () => {
 	});
 
 	describe('#createDirectory', () => {
-		let pathExistsSyncStub: any = null;
-		let ensureDirSync: any = null;
+		let pathExistsSyncStub: SinonStub;
+		let ensureDirSync: SinonStub;
 		beforeEach(() => {
 			pathExistsSyncStub = sandbox.stub(fsExtra, 'pathExistsSync');
 			ensureDirSync = sandbox.stub(fsExtra, 'ensureDirSync');
@@ -214,7 +215,7 @@ describe('commons core utils', () => {
 	});
 
 	describe('#backupLisk', () => {
-		let execStub: any = null;
+		let execStub: SinonStub;
 		beforeEach(() => {
 			sandbox.stub(fsExtra, 'emptyDirSync').returns();
 			execStub = sandbox.stub(workerProcess, 'exec');
@@ -234,7 +235,7 @@ describe('commons core utils', () => {
 	});
 
 	describe('#upgradeLisk', () => {
-		let execStub: any = null;
+		let execStub: SinonStub;
 		beforeEach(() => {
 			sandbox.stub(fsExtra, 'mkdirSync').returns();
 			sandbox.stub(fsExtra, 'emptyDirSync').returns();
@@ -259,7 +260,7 @@ describe('commons core utils', () => {
 	});
 
 	describe('#validateVersion', () => {
-		let releaseStub: any = null;
+		let releaseStub: SinonStub;
 		beforeEach(() => {
 			releaseStub = sandbox.stub(release, 'getLatestVersion');
 		});

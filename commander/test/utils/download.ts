@@ -3,20 +3,21 @@ import fs from 'fs-extra';
 import * as axios from 'axios';
 import * as downloadUtil from '../../src/utils/download';
 import * as workerProcess from '../../src/utils/worker-process';
-
-const url =
-	'https://downloads.lisk.io/lisk/mainnet/1.6.0/lisk-1.6.0-Darwin-x86_64.tar.gz.SHA256';
-const outDir = '~/.cache/lisk-commander';
+import { SinonStub } from 'sinon';
 
 describe('download utils', () => {
-	let execStub: any = null;
+	const url =
+		'https://downloads.lisk.io/lisk/mainnet/1.6.0/lisk-1.6.0-Darwin-x86_64.tar.gz.SHA256';
+	const outDir = '~/.cache/lisk-commander';
+
+	let execStub: SinonStub;
 	beforeEach(() => {
 		execStub = sandbox.stub(workerProcess, 'exec');
 	});
 
 	describe('#download', () => {
-		let existsSyncStub: any = null;
-		let statSyncStub: any = null;
+		let existsSyncStub: SinonStub;
+		let statSyncStub: SinonStub;
 
 		beforeEach(() => {
 			sandbox.stub(axios, 'default');

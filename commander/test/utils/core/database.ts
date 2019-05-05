@@ -14,9 +14,10 @@ import { NETWORK } from '../../../src/utils/constants';
 import * as coreConfig from '../../../src/utils/core/config';
 import * as pm2 from '../../../src/utils/core/pm2';
 import * as liskConfig from './fixtures';
+import { SinonStub } from 'sinon';
 
 describe('database core utils', () => {
-	let pm2Stub: any = null;
+	let pm2Stub: SinonStub;
 
 	beforeEach(() => {
 		sandbox.stub(fsExtra, 'writeJSONSync').returns();
@@ -31,8 +32,8 @@ describe('database core utils', () => {
 	});
 
 	describe('#initDB', () => {
-		let workerProcessStub: any = null;
-		let existsSyncStub: any = null;
+		let workerProcessStub: SinonStub;
+		let existsSyncStub: SinonStub;
 
 		beforeEach(() => {
 			existsSyncStub = sandbox.stub(fs, 'existsSync');
@@ -70,7 +71,7 @@ describe('database core utils', () => {
 	});
 
 	describe('#startDatabase', () => {
-		let workerProcessStub: any = null;
+		let workerProcessStub: SinonStub;
 
 		beforeEach(() => {
 			workerProcessStub = sandbox.stub(workerProcess, 'exec');
@@ -105,7 +106,7 @@ describe('database core utils', () => {
 	});
 
 	describe('#stopDatabase', () => {
-		let workerProcessStub: any = null;
+		let workerProcessStub: SinonStub;
 
 		beforeEach(() => {
 			workerProcessStub = sandbox.stub(workerProcess, 'exec');
@@ -136,7 +137,7 @@ describe('database core utils', () => {
 	});
 
 	describe('#createUser', () => {
-		let workerProcessStub: any = null;
+		let workerProcessStub: SinonStub;
 
 		beforeEach(() => {
 			workerProcessStub = sandbox.stub(workerProcess, 'exec');
@@ -166,7 +167,7 @@ describe('database core utils', () => {
 	});
 
 	describe('#createDatabase', () => {
-		let workerProcessStub: any = null;
+		let workerProcessStub: SinonStub;
 
 		beforeEach(() => {
 			workerProcessStub = sandbox.stub(workerProcess, 'exec');
@@ -200,7 +201,7 @@ describe('database core utils', () => {
 	});
 
 	describe('#restoreSnapshot', () => {
-		let workerProcessStub: any = null;
+		let workerProcessStub: SinonStub;
 
 		beforeEach(() => {
 			workerProcessStub = sandbox.stub(workerProcess, 'exec');

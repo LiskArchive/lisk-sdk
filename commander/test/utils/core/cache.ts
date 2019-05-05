@@ -11,10 +11,11 @@ import * as workerProcess from '../../../src/utils/worker-process';
 import * as coreConfig from '../../../src/utils/core/config';
 import * as pm2 from '../../../src/utils/core/pm2';
 import * as liskConfig from './fixtures';
+import { SinonStub } from 'sinon';
 
 describe('cache node utils', () => {
-	let pm2Stub: any = null;
-	let configStub: any = null;
+	let pm2Stub: SinonStub;
+	let configStub: SinonStub;
 
 	beforeEach(() => {
 		sandbox.stub(fsExtra, 'writeJSONSync').returns();
@@ -29,7 +30,7 @@ describe('cache node utils', () => {
 	});
 
 	describe('#isCacheEnabled', () => {
-		let workerProcessStub: any = null;
+		let workerProcessStub: SinonStub;
 		beforeEach(() => {
 			workerProcessStub = sandbox.stub(workerProcess, 'exec');
 		});
@@ -55,7 +56,7 @@ describe('cache node utils', () => {
 	});
 
 	describe('#isCacheRunning', () => {
-		let workerProcessStub: any = null;
+		let workerProcessStub: SinonStub;
 		beforeEach(() => {
 			workerProcessStub = sandbox.stub(workerProcess, 'exec');
 		});
@@ -88,7 +89,7 @@ describe('cache node utils', () => {
 	});
 
 	describe('#startCache', () => {
-		let workerProcessStub: any = null;
+		let workerProcessStub: SinonStub;
 		beforeEach(() => {
 			workerProcessStub = sandbox.stub(workerProcess, 'exec');
 		});
@@ -138,7 +139,7 @@ describe('cache node utils', () => {
 		});
 
 		describe('when installation exists', () => {
-			let workerProcessStub: any = null;
+			let workerProcessStub: SinonStub;
 			beforeEach(() => {
 				workerProcessStub = sandbox.stub(workerProcess, 'exec');
 			});

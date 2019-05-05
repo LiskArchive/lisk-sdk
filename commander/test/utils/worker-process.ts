@@ -3,10 +3,11 @@ import fsExtra from 'fs-extra';
 import childProcess from 'child_process';
 import { exec } from '../../src/utils/worker-process';
 import { liskInstall } from '../../dist/utils/core/commons';
+import { SinonStub } from 'sinon';
 
 describe('worker process', () => {
-	let childProcessStub: any = null;
-	let fsExtraStub: any = null;
+	let childProcessStub: SinonStub;
+	let fsExtraStub: SinonStub;
 
 	beforeEach(() => {
 		childProcessStub = sandbox.stub(childProcess, 'exec');
