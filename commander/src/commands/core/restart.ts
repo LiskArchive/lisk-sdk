@@ -51,8 +51,10 @@ export default class RestartCommand extends BaseCommand {
 		const { name } = args as Args;
 
 		try {
-			StopCommand.run([name]);
-			StartCommand.run([name]);
+			// tslint:disable-next-line await-promise
+			await StopCommand.run([name]);
+			// tslint:disable-next-line await-promise
+			await StartCommand.run([name]);
 		} catch (error) {
 			this.error(error);
 		}
