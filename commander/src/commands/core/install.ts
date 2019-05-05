@@ -292,23 +292,22 @@ export default class InstallCommand extends BaseCommand {
 
 		try {
 			const instance = await describeApplication(name);
-
-			if (!instance) {
+			this.log(`\n Lisk Core instance ${name} already installed: `);
+			this.print(instance);
+		} catch (error) {
+			try {
 				await tasks.run();
 				if (!noStart) {
 					return StartCommand.run([name]);
 				}
-			} else {
-				this.log(`\n Lisk Core instance ${name} already installed: `);
-				this.print(instance);
-			}
-		} catch (error) {
-			const { installDir }: Options = error.context.options;
-			const dirPath = installDir.substr(0, installDir.length - 1);
+			} catch (error) {
+				const { installDir }: Options = error.context.options;
+				const dirPath = installDir.substr(0, installDir.length - 1);
 
-			fsExtra.emptyDirSync(installDir);
-			fsExtra.rmdirSync(dirPath);
-			this.error(JSON.stringify(error));
+				fsExtra.emptyDirSync(installDir);
+				fsExtra.rmdirSync(dirPath);
+				this.error(JSON.stringify(error));
+			}
 		}
 	}
 }
