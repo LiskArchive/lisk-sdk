@@ -41,7 +41,7 @@ import { flags as commonFlags } from '../../utils/flags';
 
 interface Flags {
 	readonly 'lisk-version': string;
-	readonly releaseUrl: string;
+	readonly 'release-url': string;
 }
 
 interface Args {
@@ -62,8 +62,8 @@ export default class UpgradeCommand extends BaseCommand {
 
 	static examples = [
 		'core:upgrade lisk-mainnet',
-		'core:upgrade --releaseUrl=https://lisk-releases.ams3.digitaloceanspaces.com/lisk-core/lisk-1.6.0-rc.4-Linux-x86_64.tar.gz lisk-mainnet',
 		'core:upgrade --lisk-version=2.0.0 lisk-mainnet',
+		'core:upgrade --release-url=https://lisk-releases.ams3.digitaloceanspaces.com/lisk-core/lisk-1.6.0-rc.4-Linux-x86_64.tar.gz lisk-mainnet',
 	];
 
 	static flags = {
@@ -78,7 +78,7 @@ export default class UpgradeCommand extends BaseCommand {
 		'lisk-version': flagParser.string({
 			...commonFlags.liskVersion,
 		}),
-		releaseUrl: flagParser.string({
+		'release-url': flagParser.string({
 			...commonFlags.releaseUrl,
 		}),
 	};
@@ -86,7 +86,10 @@ export default class UpgradeCommand extends BaseCommand {
 	async run(): Promise<void> {
 		const { args, flags } = this.parse(UpgradeCommand);
 		const { name }: Args = args;
-		const { 'lisk-version': liskVersion, releaseUrl } = flags as Flags;
+		const {
+			'lisk-version': liskVersion,
+			'release-url': releaseUrl,
+		} = flags as Flags;
 		const {
 			installationPath,
 			network,

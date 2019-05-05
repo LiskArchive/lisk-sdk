@@ -47,13 +47,13 @@ import { flags as commonFlags } from '../../utils/flags';
 import StartCommand from './start';
 
 interface Flags {
-	readonly installationPath: string;
+	readonly 'installation-path': string;
 	readonly 'lisk-version': string;
 	readonly network: NETWORK;
 	readonly 'no-snapshot': boolean;
 	readonly 'no-start': boolean;
-	readonly releaseUrl: string;
-	readonly snapshotUrl: string;
+	readonly 'release-url': string;
+	readonly 'snapshot-url': string;
 }
 
 interface Args {
@@ -78,7 +78,11 @@ const validatePrerequisite = (installPath: string): void => {
 	}
 };
 
-const validateFlags = ({ network, releaseUrl, snapshotUrl }: Flags): void => {
+const validateFlags = ({
+	network,
+	'release-url': releaseUrl,
+	'snapshot-url': snapshotUrl,
+}: Flags): void => {
 	validateNetwork(network);
 	if (releaseUrl) {
 		validURL(releaseUrl);
@@ -89,7 +93,12 @@ const validateFlags = ({ network, releaseUrl, snapshotUrl }: Flags): void => {
 };
 
 const installOptions = async (
-	{ installationPath, network, releaseUrl, 'lisk-version': liskVersion }: Flags,
+	{
+		'installation-path': installationPath,
+		network,
+		'release-url': releaseUrl,
+		'lisk-version': liskVersion,
+	}: Flags,
 	name: string,
 ): Promise<Options> => {
 	const installPath = liskInstall(installationPath);
@@ -129,8 +138,8 @@ export default class InstallCommand extends BaseCommand {
 		'core:install --no-start lisk-mainnet',
 		'core:install --no-snapshot lisk-mainnet',
 		'core:install --lisk-version=2.0.0 lisk-mainnet',
-		'core:install --network=testnet --releaseUrl=https://downloads.lisk.io/lisk/mainnet/1.6.0/lisk-1.6.0-Linux-x86_64.tar.gz lisk-mainnet',
-		'core:install --network=mainnet --snapshotUrl=https://testnet-snapshot.lisknode.io/blockchain.db.gz custom-mainnet',
+		'core:install --network=testnet --release-url=https://downloads.lisk.io/lisk/mainnet/1.6.0/lisk-1.6.0-Linux-x86_64.tar.gz lisk-mainnet',
+		'core:install --network=mainnet --snapshot-url=https://downloads.lisk.io/lisk/mainnet/blockchain.db.gz custom-mainnet',
 	];
 
 	static flags = {
@@ -142,9 +151,10 @@ export default class InstallCommand extends BaseCommand {
 			...BaseCommand.flags.pretty,
 			hidden: true,
 		}),
-		installationPath: flagParser.string({
+		'installation-path': flagParser.string({
 			...commonFlags.installationPath,
 			default: '~/.lisk/instances',
+			hidden: true,
 		}),
 		'lisk-version': flagParser.string({
 			...commonFlags.liskVersion,
@@ -170,10 +180,10 @@ export default class InstallCommand extends BaseCommand {
 				NETWORK.DEVNET,
 			],
 		}),
-		releaseUrl: flagParser.string({
+		'release-url': flagParser.string({
 			...commonFlags.releaseUrl,
 		}),
-		snapshotUrl: flagParser.string({
+		'snapshot-url': flagParser.string({
 			...commonFlags.snapshotUrl,
 			default: SNAPSHOT_URL,
 		}),
@@ -186,7 +196,7 @@ export default class InstallCommand extends BaseCommand {
 			'no-snapshot': noSnapshot,
 			'no-start': noStart,
 			network,
-			snapshotUrl,
+			'snapshot-url': snapshotUrl,
 		} = flags as Flags;
 		const { name }: Args = args;
 

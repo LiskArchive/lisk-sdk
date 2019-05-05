@@ -51,8 +51,8 @@ export default class RestartCommand extends BaseCommand {
 		const { name } = args as Args;
 
 		try {
-			await StopCommand.run([name]);
-			await StartCommand.run([name]);
+			StopCommand.run([name]);
+			StartCommand.run([name]);
 		} catch (error) {
 			this.error(error);
 		}
