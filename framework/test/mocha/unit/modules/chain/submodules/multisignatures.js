@@ -221,8 +221,6 @@ describe('multisignatures', () => {
 	});
 
 	describe('getGroup', () => {
-		let getAddressFromPublicKeyStub;
-
 		beforeEach(done => {
 			stubs.logic.account.getMultiSignature = sinonSandbox
 				.stub()
@@ -236,13 +234,10 @@ describe('multisignatures', () => {
 				.stub()
 				.callsFake((param1, param2, cb) => cb(null, []));
 
-			getAddressFromPublicKeyStub = sinonSandbox.stub(
-				cryptography,
-				'getAddressFromPublicKey'
-			);
+			sinonSandbox.stub(cryptography, 'getAddressFromPublicKey');
 
-			getAddressFromPublicKeyStub.withArgs('key1').returns('address1');
-			getAddressFromPublicKeyStub.withArgs('key2').returns('address2');
+			cryptography.getAddressFromPublicKey.withArgs('key1').returns('address1');
+			cryptography.getAddressFromPublicKey.withArgs('key2').returns('address2');
 
 			library.logic.account.getMultiSignature =
 				stubs.logic.account.getMultiSignature;
@@ -253,6 +248,8 @@ describe('multisignatures', () => {
 				stubs.bindings.modules.accounts.getAccounts;
 			done();
 		});
+
+		afterEach(() => cryptography.getAddressFromPublicKey.restore());
 
 		it('should call getMultiSignature with given address', done => {
 			self.getGroup(validAccount.address, async () => {

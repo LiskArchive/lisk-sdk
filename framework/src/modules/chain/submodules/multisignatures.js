@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
+const cryptography = require('@liskhq/lisk-cryptography');
 const {
 	Status: TransactionStatus,
 	TransactionError,
@@ -166,7 +166,7 @@ class Multisignatures {
 						const addresses = [];
 
 						memberAccountKeys.forEach(key => {
-							addresses.push(getAddressFromPublicKey(key));
+							addresses.push(cryptography.getAddressFromPublicKey(key));
 						});
 
 						modules.accounts.getAccounts(
