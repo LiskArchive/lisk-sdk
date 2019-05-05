@@ -14,8 +14,8 @@
 
 'use strict';
 
+const BigNum = require('@liskhq/bignum');
 const Promise = require('bluebird');
-const Bignum = require('../../../src/modules/chain/helpers/bignum');
 const application = require('../common/application');
 const QueriesHelper = require('../common/integration/sql/queries_helper');
 const accountsFixtures = require('../fixtures/accounts');
@@ -163,12 +163,12 @@ describe('app', () => {
 										library.genesisBlock.block.transactions,
 										(reduceBalance, acc) => {
 											if (acc.recipientId === voter.senderId) {
-												return new Bignum(reduceBalance)
+												return new BigNum(reduceBalance)
 													.add(acc.amount)
 													.toString();
 											}
 											if (acc.senderId === voter.senderId) {
-												return new Bignum(reduceBalance)
+												return new BigNum(reduceBalance)
 													.sub(acc.amount)
 													.toString();
 											}
@@ -176,7 +176,7 @@ describe('app', () => {
 										},
 										'0'
 									);
-									voters_balance = new Bignum(voters_balance)
+									voters_balance = new BigNum(voters_balance)
 										.add(balance)
 										.toString();
 								});
@@ -265,7 +265,7 @@ describe('app', () => {
 									library.genesisBlock.block.transactions,
 									(reduceBalance, acc) => {
 										if (acc.senderId === genesisAccount.address) {
-											return new Bignum(reduceBalance)
+											return new BigNum(reduceBalance)
 												.sub(acc.amount)
 												.toString();
 										}

@@ -15,12 +15,12 @@
 'use strict';
 
 const crypto = require('crypto');
+const BigNum = require('@liskhq/bignum');
 const { transfer } = require('@liskhq/lisk-transactions');
 const _ = require('lodash');
 const rewire = require('rewire');
 const async = require('async');
 const Promise = require('bluebird');
-const Bignum = require('../../../../../src/modules/chain/helpers/bignum');
 const application = require('../../../common/application');
 const { clearDatabaseTable } = require('../../../common/storage_sandbox');
 const modulesLoader = require('../../../common/modules_loader');
@@ -998,7 +998,7 @@ describe('blocks/verify', () => {
 			beforeEach(done => {
 				const account = random.account();
 				const transaction = transfer({
-					amount: new Bignum(NORMALIZER).mul(1000).toString(),
+					amount: new BigNum(NORMALIZER).mul(1000).toString(),
 					recipientId: accountFixtures.genesis.address,
 					passphrase: account.passphrase,
 				});
@@ -1085,7 +1085,7 @@ describe('blocks/verify', () => {
 
 					const account = random.account();
 					const transferTransaction = transfer({
-						amount: new Bignum(NORMALIZER).mul(1000).toString(),
+						amount: new BigNum(NORMALIZER).mul(1000).toString(),
 						recipientId: accountFixtures.genesis.address,
 						passphrase: account.passphrase,
 					});
@@ -1124,7 +1124,7 @@ describe('blocks/verify', () => {
 				it('should fail when transaction is invalid', done => {
 					const account = random.account();
 					const transaction = transfer({
-						amount: new Bignum(NORMALIZER).mul(1000).toString(),
+						amount: new BigNum(NORMALIZER).mul(1000).toString(),
 						recipientId: accountFixtures.genesis.address,
 						passphrase: account.passphrase,
 					});
@@ -1171,7 +1171,7 @@ describe('blocks/verify', () => {
 				it('should fail when transaction is already confirmed (fork:2)', done => {
 					const account = random.account();
 					const transaction = transfer({
-						amount: new Bignum(NORMALIZER).mul(1000).toString(),
+						amount: new BigNum(NORMALIZER).mul(1000).toString(),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: account.address,
 					});

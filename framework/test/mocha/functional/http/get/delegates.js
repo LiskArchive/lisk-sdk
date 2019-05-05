@@ -160,9 +160,7 @@ describe('GET /delegates', () => {
 			const secondPassphraseAccount = randomUtil.account();
 
 			const creditTransaction = transfer({
-				amount: new BigNum(FEES.SECOND_SIGNATURE)
-					.add(FEES.DELEGATE)
-					.toString(),
+				amount: new BigNum(FEES.SECOND_SIGNATURE).add(FEES.DELEGATE).toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: secondPassphraseAccount.address,
 			});

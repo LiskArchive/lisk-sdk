@@ -14,10 +14,10 @@
 
 'use strict';
 
+const BigNum = require('@liskhq/bignum');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const rewire = require('rewire');
 const Promise = require('bluebird');
-const Bignum = require('../../../../../../../src/modules/chain/helpers/bignum');
 const blockVersion = require('../../../../../../../src/modules/chain/logic/block_version');
 
 const BlocksProcess = rewire(
@@ -152,7 +152,7 @@ describe('blocks/process', () => {
 			id: '4',
 			height: 4,
 			timestamp: 41287231,
-			reward: new Bignum(100),
+			reward: new BigNum(100),
 			transactions: [],
 		};
 

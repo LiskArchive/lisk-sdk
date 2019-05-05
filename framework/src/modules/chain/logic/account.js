@@ -34,7 +34,7 @@ const __private = {};
  * @memberof logic
  * @see Parent: {@link logic}
  * @requires lodash
- * @requires helpers/bignum
+ * @requires bignum
  * @requires logic/block_reward
  * @param {Storage} storage
  * @param {ZSchema} schema

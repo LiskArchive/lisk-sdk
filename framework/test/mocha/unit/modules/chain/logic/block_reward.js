@@ -110,19 +110,19 @@ describe('BlockReward @slow', () => {
 			expect(blockReward.calcMilestone(13451521)).to.equal(4));
 
 		it('when height == (milestoneFour * 2) should return 4', async () =>
-			expect(
-				blockReward.calcMilestone(new BigNum(13451520).mul(2))
-			).to.equal(4));
+			expect(blockReward.calcMilestone(new BigNum(13451520).mul(2))).to.equal(
+				4
+			));
 
 		it('when height == (milestoneFour * 10) should return 4', async () =>
-			expect(
-				blockReward.calcMilestone(new BigNum(13451520).mul(10))
-			).to.equal(4));
+			expect(blockReward.calcMilestone(new BigNum(13451520).mul(10))).to.equal(
+				4
+			));
 
 		it('when height == (milestoneFour * 100) should return 4', async () =>
-			expect(
-				blockReward.calcMilestone(new BigNum(13451520).mul(100))
-			).to.equal(4));
+			expect(blockReward.calcMilestone(new BigNum(13451520).mul(100))).to.equal(
+				4
+			));
 
 		it('when height == (milestoneFour * 1000) should return 4', async () =>
 			expect(

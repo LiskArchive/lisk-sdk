@@ -317,10 +317,7 @@ const validationFormats = {
 	amount(value) {
 		if (typeof value === 'string' && /^[0-9]*$/.test(value)) {
 			const bigNumber = new BigNum(value);
-			return (
-				bigNumber.gte(0) &&
-				bigNumber.lte(UINT64_MAX)
-			);
+			return bigNumber.gte(0) && bigNumber.lte(UINT64_MAX);
 		}
 
 		/**
@@ -330,10 +327,7 @@ const validationFormats = {
 		if (value instanceof BigNum) {
 			const { TOTAL_AMOUNT } = global.constants;
 
-			return (
-				value.gte(0) &&
-				value.lte(TOTAL_AMOUNT)
-			);
+			return value.gte(0) && value.lte(TOTAL_AMOUNT);
 		}
 
 		return false;

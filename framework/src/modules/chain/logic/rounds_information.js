@@ -48,9 +48,7 @@ const updateRoundInformationWithDelegatesForTransaction = function(
 			const balanceFactor = mode === '-' ? -1 : 1;
 			const account = stateStore.account.get(transaction.senderId);
 
-			const balance = new BigNum(account.balance)
-				.mul(balanceFactor)
-				.toString();
+			const balance = new BigNum(account.balance).mul(balanceFactor).toString();
 
 			const roundData = {
 				address: transaction.senderId,

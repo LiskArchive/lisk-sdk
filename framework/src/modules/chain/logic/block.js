@@ -34,7 +34,7 @@ let modules;
  * @see Parent: {@link logic}
  * @requires bytebuffer
  * @requires crypto
- * @requires helpers/bignum
+ * @requires bignum
  * @requires logic/block_reward
  * @param {Object} ed
  * @param {ZSchema} schema

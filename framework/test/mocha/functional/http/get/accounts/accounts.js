@@ -15,6 +15,7 @@
 'use strict';
 
 require('../../../functional');
+const BigNum = require('@liskhq/bignum');
 const {
 	transfer,
 	registerSecondPassphrase,
@@ -24,7 +25,6 @@ const SwaggerEndpoint = require('../../../../common/swagger_spec');
 const randomUtil = require('../../../../common/utils/random');
 const waitFor = require('../../../../common/utils/wait_for');
 const apiHelpers = require('../../../../common/helpers/api');
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 
 const { FEES } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
@@ -306,7 +306,7 @@ describe('GET /accounts', () => {
 					const balances = _.cloneDeep(res.body.data);
 					expect(
 						balances.sort((a, b) => {
-							const aBignumBalance = new Bignum(a.balance);
+							const aBignumBalance = new BigNum(a.balance);
 
 							if (aBignumBalance.gt(b.balance)) {
 								return 1;
@@ -328,7 +328,7 @@ describe('GET /accounts', () => {
 						const balances = _.cloneDeep(res.body.data);
 						expect(
 							balances.sort((a, b) => {
-								const aBignumBalance = new Bignum(a.balance);
+								const aBignumBalance = new BigNum(a.balance);
 
 								if (aBignumBalance.gt(b.balance)) {
 									return 1;
@@ -350,7 +350,7 @@ describe('GET /accounts', () => {
 						const balances = _.cloneDeep(res.body.data);
 						expect(
 							balances.sort((a, b) => {
-								const aBignumBalance = new Bignum(a.balance);
+								const aBignumBalance = new BigNum(a.balance);
 
 								if (aBignumBalance.gt(b.balance)) {
 									return -1;

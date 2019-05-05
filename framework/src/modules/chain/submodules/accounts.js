@@ -14,9 +14,9 @@
 
 'use strict';
 
+const BigNum = require('@liskhq/bignum');
 const crypto = require('crypto');
 const async = require('async');
-const Bignum = require('../helpers/bignum.js');
 const BlockReward = require('../logic/block_reward.js');
 
 // Private fields
@@ -34,7 +34,7 @@ __private.assetTypes = {};
  * @memberof modules
  * @see Parent: {@link modules}
  * @requires crypto
- * @requires helpers/bignum
+ * @requires bignum
  * @requires logic/block_reward
  * @param {scope} scope - App instance
  * @param {function} cb - Callback function
@@ -78,7 +78,7 @@ class Accounts {
 			temp[i] = publicKeyHash[7 - i];
 		}
 
-		const address = `${Bignum.fromBuffer(temp).toString()}L`;
+		const address = `${BigNum.fromBuffer(temp).toString()}L`;
 
 		if (!address) {
 			throw new Error(`Invalid public key: ${publicKey}`);
