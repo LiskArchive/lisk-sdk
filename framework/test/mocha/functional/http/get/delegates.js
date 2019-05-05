@@ -15,13 +15,13 @@
 'use strict';
 
 require('../../functional');
+const BigNum = require('@liskhq/bignum');
 const Promise = require('bluebird');
 const {
 	transfer,
 	registerSecondPassphrase,
 	registerDelegate,
 } = require('@liskhq/lisk-transactions');
-const Bignum = require('bignumber.js');
 const genesisDelegates = require('../../../data/genesis_delegates.json');
 const accountFixtures = require('../../../fixtures/accounts');
 const slots = require('../../../../../src/modules/chain/helpers/slots');
@@ -160,8 +160,8 @@ describe('GET /delegates', () => {
 			const secondPassphraseAccount = randomUtil.account();
 
 			const creditTransaction = transfer({
-				amount: new Bignum(FEES.SECOND_SIGNATURE)
-					.plus(FEES.DELEGATE)
+				amount: new BigNum(FEES.SECOND_SIGNATURE)
+					.add(FEES.DELEGATE)
 					.toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: secondPassphraseAccount.address,

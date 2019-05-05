@@ -16,12 +16,12 @@
 
 const crypto = require('crypto');
 const async = require('async');
+const BigNum = require('@liskhq/bignum');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const BlockReward = require('../../logic/block_reward');
 const slots = require('../../helpers/slots');
 const blockVersion = require('../../logic/block_version');
 const checkTransactionExceptions = require('../../logic/check_transaction_against_exceptions.js');
-const Bignum = require('../../helpers/bignum');
 
 let modules;
 let library;
@@ -191,9 +191,9 @@ class Verify {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	addBlockProperties(block) {
-		block.totalAmount = new Bignum(block.totalAmount || 0);
-		block.totalFee = new Bignum(block.totalFee || 0);
-		block.reward = new Bignum(block.reward || 0);
+		block.totalAmount = new BigNum(block.totalAmount || 0);
+		block.totalFee = new BigNum(block.totalFee || 0);
+		block.reward = new BigNum(block.reward || 0);
 
 		if (block.version === undefined) {
 			block.version = 0;
@@ -607,8 +607,8 @@ __private.verifyPayload = function(block, result) {
 		result.errors.push('Number of transactions exceeds maximum per block');
 	}
 
-	let totalAmount = new Bignum(0);
-	let totalFee = new Bignum(0);
+	let totalAmount = new BigNum(0);
+	let totalFee = new BigNum(0);
 	const payloadHash = crypto.createHash('sha256');
 	const appliedTransactions = {};
 
@@ -631,8 +631,8 @@ __private.verifyPayload = function(block, result) {
 		if (bytes) {
 			payloadHash.update(bytes);
 		}
-		totalAmount = totalAmount.plus(transaction.amount);
-		totalFee = totalFee.plus(transaction.fee);
+		totalAmount = totalAmount.add(transaction.amount);
+		totalFee = totalFee.add(transaction.fee);
 	});
 
 	if (payloadHash.digest().toString('hex') !== block.payloadHash) {

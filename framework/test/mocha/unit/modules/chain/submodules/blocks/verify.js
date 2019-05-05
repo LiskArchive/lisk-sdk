@@ -16,8 +16,8 @@
 
 const crypto = require('crypto');
 const rewire = require('rewire');
+const BigNum = require('@liskhq/bignum');
 const transactionStatus = require('@liskhq/lisk-transactions').Status;
-const Bignum = require('../../../../../../../src/modules/chain/helpers/bignum');
 const {
 	registeredTransactions,
 } = require('../../../../../common/registered_transactions');
@@ -494,7 +494,7 @@ describe('blocks/verify', () => {
 		});
 
 		describe('when __private.blockReward.calcReward succeeds', () => {
-			beforeEach(() => __private.blockReward.calcReward.returns(new Bignum(5)));
+			beforeEach(() => __private.blockReward.calcReward.returns(new BigNum(5)));
 
 			describe('if block.height != 1 && expectedReward != block.reward && exceptions.blockRewards.indexOf(block.id) = -1', () => {
 				it('should return error', async () => {
@@ -622,15 +622,15 @@ describe('blocks/verify', () => {
 			new Transaction({ type: 0 })
 		);
 		const transactions = [transactionOne, transactionTwo];
-		let totalAmount = new Bignum(0);
-		let totalFee = new Bignum(0);
+		let totalAmount = new BigNum(0);
+		let totalFee = new BigNum(0);
 
 		for (let i = 0; i < transactions.length; i++) {
 			const transaction = transactions[i];
 			const bytes = transaction.getBytes(transaction);
 
-			totalFee = totalFee.plus(transaction.fee);
-			totalAmount = totalAmount.plus(transaction.amount);
+			totalFee = totalFee.add(transaction.fee);
+			totalAmount = totalAmount.add(transaction.amount);
 
 			payloadHash.update(bytes);
 		}
@@ -1172,10 +1172,10 @@ describe('blocks/verify', () => {
 			version: 0,
 			numberOfTransactions: 0,
 			transactions: [],
-			totalAmount: new Bignum(0),
-			totalFee: new Bignum(0),
+			totalAmount: new BigNum(0),
+			totalFee: new BigNum(0),
 			payloadLength: 0,
-			reward: new Bignum(0),
+			reward: new BigNum(0),
 		};
 
 		afterEach(() => expect(dummyBlockReturned).to.deep.equal(dummyBlock));
@@ -1279,10 +1279,10 @@ describe('blocks/verify', () => {
 			version: 1,
 			numberOfTransactions: 1,
 			transactions: [{ id: 1 }],
-			totalAmount: new Bignum(1),
-			totalFee: new Bignum(1),
+			totalAmount: new BigNum(1),
+			totalFee: new BigNum(1),
 			payloadLength: 1,
-			reward: new Bignum(1),
+			reward: new BigNum(1),
 		};
 
 		describe('when block.version = 0', () => {
@@ -1339,7 +1339,7 @@ describe('blocks/verify', () => {
 
 			it('should delete totalAmount property', async () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
-				dummyBlockCompleted.totalAmount = new Bignum(0);
+				dummyBlockCompleted.totalAmount = new BigNum(0);
 				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
 					dummyBlockCompleted
 				);
@@ -1360,7 +1360,7 @@ describe('blocks/verify', () => {
 
 			it('should delete totalFee property', async () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
-				dummyBlockCompleted.totalFee = new Bignum(0);
+				dummyBlockCompleted.totalFee = new BigNum(0);
 				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
 					dummyBlockCompleted
 				);
@@ -1402,7 +1402,7 @@ describe('blocks/verify', () => {
 
 			it('should delete totalFee property', async () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
-				dummyBlockCompleted.reward = new Bignum(0);
+				dummyBlockCompleted.reward = new BigNum(0);
 				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
 					dummyBlockCompleted
 				);

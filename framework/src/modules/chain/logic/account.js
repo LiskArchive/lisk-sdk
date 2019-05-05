@@ -14,9 +14,9 @@
 
 'use strict';
 
+const BigNum = require('@liskhq/bignum');
 const _ = require('lodash');
 const ed = require('../helpers/ed');
-const Bignum = require('../helpers/bignum');
 const BlockReward = require('./block_reward');
 
 const { ACTIVE_DELEGATES } = global.constants;
@@ -296,14 +296,15 @@ class Account {
 	calculateApproval(votersBalance, totalSupply) {
 		// votersBalance and totalSupply are sent as strings,
 		// we convert them into bignum and send the response as number as well
-		const votersBalanceBignum = new Bignum(votersBalance || 0);
-		const totalSupplyBignum = new Bignum(totalSupply);
-		const approvalBignum = votersBalanceBignum
-			.dividedBy(totalSupplyBignum)
-			.multipliedBy(100)
-			.decimalPlaces(2);
+		const votersBalanceBignum = new BigNum(votersBalance || 0);
+		const totalSupplyBignum = new BigNum(totalSupply);
+		const approvalStr = votersBalanceBignum
+			.div(totalSupplyBignum)
+			.mul(100)
+			.toString();
+		const approval = parseFloat(approvalStr);
 
-		return !approvalBignum.isNaN() ? approvalBignum.toNumber() : 0;
+		return !approval.isNaN() ? approval : 0;
 	}
 
 	/**
@@ -373,7 +374,7 @@ class Account {
 				// Get field data type
 				const fieldType = self.conv[updatedField];
 				const updatedValue = diff[updatedField];
-				const value = new Bignum(updatedValue);
+				const value = new BigNum(updatedValue);
 
 				// Make execution selection based on field type
 				switch (fieldType) {

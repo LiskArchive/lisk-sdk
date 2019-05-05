@@ -14,7 +14,7 @@
 
 'use strict';
 
-const Bignumber = require('bignumber.js');
+const BigNum = require('@liskhq/bignum');
 const async = require('async');
 // eslint-disable-next-line prefer-const
 const { CACHE_KEYS_DELEGATES } = require('../../../components/cache');
@@ -335,8 +335,8 @@ class Rounds {
 		const balanceFactor = mode === '-' ? -1 : 1;
 		return library.storage.entities.Account.getOne({ address }, {}, tx).then(
 			account => {
-				const balance = new Bignumber(account.balance)
-					.multipliedBy(balanceFactor)
+				const balance = new BigNum(account.balance)
+					.mul(balanceFactor)
 					.toString();
 
 				const roundData = {

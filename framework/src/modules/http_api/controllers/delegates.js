@@ -14,8 +14,8 @@
 
 'use strict';
 
+const BigNum = require('@liskhq/bignum');
 const _ = require('lodash');
-const Bignumber = require('bignumber.js');
 const swaggerHelper = require('../helpers/swagger');
 const apiCodes = require('../api_codes');
 const ApiError = require('../api_error');
@@ -274,15 +274,15 @@ async function _getForgingStatistics(filters) {
 		return {
 			rewards: account.rewards,
 			fees: account.fees,
-			count: new Bignumber(account.producedBlocks).toFixed(),
-			forged: new Bignumber(account.rewards)
-				.plus(new Bignumber(account.fees))
+			count: new BigNum(account.producedBlocks).toFixed(),
+			forged: new BigNum(account.rewards)
+				.add(new BigNum(account.fees))
 				.toFixed(),
 		};
 	}
 	const reward = await _aggregateBlocksReward(filters);
-	reward.forged = new Bignumber(reward.fees)
-		.plus(new Bignumber(reward.rewards))
+	reward.forged = new BigNum(reward.fees)
+		.add(new BigNum(reward.rewards))
 		.toFixed();
 
 	return reward;

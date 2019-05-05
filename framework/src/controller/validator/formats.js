@@ -14,13 +14,13 @@
 
 'use strict';
 
+const BigNum = require('@liskhq/bignum');
 const ip = require('ip');
 const _ = require('lodash');
-const Bignum = require('bignumber.js');
 
 const HOSTNAME = /^[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?(\.[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?)*$/;
 
-const UINT64_MAX = new Bignum('18446744073709551615');
+const UINT64_MAX = new BigNum('18446744073709551615');
 
 const ADDITIONAL_DATA = {
 	MIN_LENGTH: 1,
@@ -102,7 +102,7 @@ const validationFormats = {
 		}
 
 		// Address can not exceed the max limit
-		if (new Bignum(str.slice(0, -1)).isGreaterThan(UINT64_MAX)) {
+		if (new BigNum(str.slice(0, -1)).gt(UINT64_MAX)) {
 			return false;
 		}
 
@@ -316,10 +316,10 @@ const validationFormats = {
 	 */
 	amount(value) {
 		if (typeof value === 'string' && /^[0-9]*$/.test(value)) {
-			const bigNumber = new Bignum(value);
+			const bigNumber = new BigNum(value);
 			return (
-				bigNumber.isGreaterThanOrEqualTo(0) &&
-				bigNumber.isLessThanOrEqualTo(UINT64_MAX)
+				bigNumber.gte(0) &&
+				bigNumber.lte(UINT64_MAX)
 			);
 		}
 
@@ -327,12 +327,12 @@ const validationFormats = {
 		 * This deconstruction has to take place here because
 		 * global.constants will be defined in test/setup.js.
 		 */
-		if (value instanceof Bignum) {
+		if (value instanceof BigNum) {
 			const { TOTAL_AMOUNT } = global.constants;
 
 			return (
-				value.isGreaterThanOrEqualTo(0) &&
-				value.isLessThanOrEqualTo(TOTAL_AMOUNT)
+				value.gte(0) &&
+				value.lte(TOTAL_AMOUNT)
 			);
 		}
 
@@ -367,8 +367,8 @@ const validationFormats = {
 		type: 'number',
 		validate: value => {
 			const { TOTAL_AMOUNT } = global.constants;
-			if (new Bignum(value).isPositive()) {
-				return new Bignum(value).isLessThanOrEqualTo(TOTAL_AMOUNT);
+			if (new BigNum(value).gte(0)) {
+				return new BigNum(value).lte(TOTAL_AMOUNT);
 			}
 
 			return false;

@@ -164,12 +164,12 @@ describe('app', () => {
 										(reduceBalance, acc) => {
 											if (acc.recipientId === voter.senderId) {
 												return new Bignum(reduceBalance)
-													.plus(acc.amount)
+													.add(acc.amount)
 													.toString();
 											}
 											if (acc.senderId === voter.senderId) {
 												return new Bignum(reduceBalance)
-													.minus(acc.amount)
+													.sub(acc.amount)
 													.toString();
 											}
 											return reduceBalance;
@@ -177,7 +177,7 @@ describe('app', () => {
 										'0'
 									);
 									voters_balance = new Bignum(voters_balance)
-										.plus(balance)
+										.add(balance)
 										.toString();
 								});
 
@@ -266,7 +266,7 @@ describe('app', () => {
 									(reduceBalance, acc) => {
 										if (acc.senderId === genesisAccount.address) {
 											return new Bignum(reduceBalance)
-												.minus(acc.amount)
+												.sub(acc.amount)
 												.toString();
 										}
 										return reduceBalance;

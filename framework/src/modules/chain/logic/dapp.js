@@ -14,9 +14,9 @@
 
 'use strict';
 
+const BigNum = require('@liskhq/bignum');
 const valid_url = require('valid-url');
 const ByteBuffer = require('bytebuffer');
-const Bignum = require('../helpers/bignum');
 const regexpTester = require('../helpers/regexp_tester');
 
 const { FEES, TRANSACTION_TYPES } = global.constants;
@@ -81,7 +81,7 @@ class DApp {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	calculateFee() {
-		return new Bignum(FEES.DAPP_REGISTRATION);
+		return new BigNum(FEES.DAPP_REGISTRATION);
 	}
 
 	/**
@@ -100,7 +100,7 @@ class DApp {
 			return setImmediate(cb, 'Invalid recipient');
 		}
 
-		const amount = new Bignum(transaction.amount);
+		const amount = new BigNum(transaction.amount);
 		if (amount.isGreaterThan(0)) {
 			return setImmediate(cb, 'Invalid transaction amount');
 		}

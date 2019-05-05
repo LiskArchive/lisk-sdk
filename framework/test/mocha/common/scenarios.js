@@ -14,12 +14,12 @@
 
 'use strict';
 
+const BigNum = require('@liskhq/bignum');
 const {
 	transfer,
 	registerSecondPassphrase,
 	utils: transactionUtils,
 } = require('@liskhq/lisk-transactions');
-const BigNumber = require('bignumber.js');
 const accountFixtures = require('../fixtures/accounts');
 const randomUtil = require('./utils/random');
 
@@ -54,8 +54,8 @@ function Multisig(options) {
 		transaction: {
 			type: 4,
 			amount: '0',
-			fee: new BigNumber(FEES.MULTISIGNATURE)
-				.times(this.keysgroup.length + 1)
+			fee: new BigNum(FEES.MULTISIGNATURE)
+				.mul(this.keysgroup.length + 1)
 				.toString(),
 			asset: {
 				multisignature: {
@@ -74,8 +74,8 @@ function Multisig(options) {
 			transaction: {
 				type: 4,
 				amount: '0',
-				fee: new BigNumber(FEES.MULTISIGNATURE)
-					.times(this.keysgroup.length + 1)
+				fee: new BigNum(FEES.MULTISIGNATURE)
+					.mul(this.keysgroup.length + 1)
 					.toString(),
 				asset: {
 					multisignature: {

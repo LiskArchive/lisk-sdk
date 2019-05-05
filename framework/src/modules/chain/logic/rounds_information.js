@@ -14,7 +14,7 @@
 
 'use strict';
 
-const Bignumber = require('bignumber.js');
+const BigNum = require('@liskhq/bignum');
 
 const { TRANSACTION_TYPES } = global.constants;
 const exceptions = global.exceptions;
@@ -48,10 +48,8 @@ const updateRoundInformationWithDelegatesForTransaction = function(
 			const balanceFactor = mode === '-' ? -1 : 1;
 			const account = stateStore.account.get(transaction.senderId);
 
-			// TODO: Core uses bignumber.js library and lisk-elements uses browserify-bignum. Their interface for multiplication are different
-			// therefore we should pick one library and use it in both of the projects.
-			const balance = new Bignumber(account.balance)
-				.multipliedBy(balanceFactor)
+			const balance = new BigNum(account.balance)
+				.mul(balanceFactor)
 				.toString();
 
 			const roundData = {
@@ -70,7 +68,7 @@ const updateSenderRoundInformationWithAmountForTransaction = function(
 	transaction,
 	forwardTick
 ) {
-	const amount = transaction.fee.plus(transaction.amount);
+	const amount = transaction.fee.add(transaction.amount);
 	const amountToUpdate = forwardTick
 		? amount.mul(-1).toString()
 		: amount.toString();

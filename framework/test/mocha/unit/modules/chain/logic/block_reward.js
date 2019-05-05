@@ -15,7 +15,7 @@
 'use strict';
 
 const BlockReward = require('../../../../../../src/modules/chain/logic/block_reward');
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
+const BigNum = require('@liskhq/bignum');
 
 const { REWARDS, TOTAL_AMOUNT } = __testContext.config.constants;
 
@@ -111,32 +111,32 @@ describe('BlockReward @slow', () => {
 
 		it('when height == (milestoneFour * 2) should return 4', async () =>
 			expect(
-				blockReward.calcMilestone(new Bignum(13451520).multipliedBy(2))
+				blockReward.calcMilestone(new BigNum(13451520).mul(2))
 			).to.equal(4));
 
 		it('when height == (milestoneFour * 10) should return 4', async () =>
 			expect(
-				blockReward.calcMilestone(new Bignum(13451520).multipliedBy(10))
+				blockReward.calcMilestone(new BigNum(13451520).mul(10))
 			).to.equal(4));
 
 		it('when height == (milestoneFour * 100) should return 4', async () =>
 			expect(
-				blockReward.calcMilestone(new Bignum(13451520).multipliedBy(100))
+				blockReward.calcMilestone(new BigNum(13451520).mul(100))
 			).to.equal(4));
 
 		it('when height == (milestoneFour * 1000) should return 4', async () =>
 			expect(
-				blockReward.calcMilestone(new Bignum(13451520).multipliedBy(1000))
+				blockReward.calcMilestone(new BigNum(13451520).mul(1000))
 			).to.equal(4));
 
 		it('when height == (milestoneFour * 10000) should return 4', async () =>
 			expect(
-				blockReward.calcMilestone(new Bignum(13451520).multipliedBy(10000))
+				blockReward.calcMilestone(new BigNum(13451520).mul(10000))
 			).to.equal(4));
 
 		it('when height == (milestoneFour * 100000) should return 4', async () =>
 			expect(
-				blockReward.calcMilestone(new Bignum(13451520).multipliedBy(100000))
+				blockReward.calcMilestone(new BigNum(13451520).mul(100000))
 			).to.equal(4));
 	});
 
@@ -230,42 +230,42 @@ describe('BlockReward @slow', () => {
 		it('when height == (milestoneFour * 2) should return 100000000', async () =>
 			expect(
 				blockReward
-					.calcReward(new Bignum(13451520).multipliedBy(2))
+					.calcReward(new BigNum(13451520).mul(2))
 					.isEqualTo('100000000')
 			).to.be.true);
 
 		it('when height == (milestoneFour * 10) should return 100000000', async () =>
 			expect(
 				blockReward
-					.calcReward(new Bignum(13451520).multipliedBy(10))
+					.calcReward(new BigNum(13451520).mul(10))
 					.isEqualTo('100000000')
 			).to.be.true);
 
 		it('when height == (milestoneFour * 100) should return 100000000', async () =>
 			expect(
 				blockReward
-					.calcReward(new Bignum(13451520).multipliedBy(100))
+					.calcReward(new BigNum(13451520).mul(100))
 					.isEqualTo('100000000')
 			).to.be.true);
 
 		it('when height == (milestoneFour * 1000) should return 100000000', async () =>
 			expect(
 				blockReward
-					.calcReward(new Bignum(13451520).multipliedBy(1000))
+					.calcReward(new BigNum(13451520).mul(1000))
 					.isEqualTo('100000000')
 			).to.be.true);
 
 		it('when height == (milestoneFour * 10000) should return 100000000', async () =>
 			expect(
 				blockReward
-					.calcReward(new Bignum(13451520).multipliedBy(10000))
+					.calcReward(new BigNum(13451520).mul(10000))
 					.isEqualTo('100000000')
 			).to.be.true);
 
 		it('when height == (milestoneFour * 100000) should return 100000000', async () =>
 			expect(
 				blockReward
-					.calcReward(new Bignum(13451520).multipliedBy(100000))
+					.calcReward(new BigNum(13451520).mul(100000))
 					.isEqualTo('100000000')
 			).to.be.true);
 	});
@@ -363,42 +363,42 @@ describe('BlockReward @slow', () => {
 		it('when height == (milestoneFour * 2) should return 15545152100000000', async () =>
 			expect(
 				blockReward
-					.calcSupply(new Bignum(13451520).multipliedBy(2))
+					.calcSupply(new BigNum(13451520).mul(2))
 					.isEqualTo('15545152100000000')
 			).to.be.true);
 
 		it('when height == (milestoneFour * 10) should return 26306368100000000', async () =>
 			expect(
 				blockReward
-					.calcSupply(new Bignum(13451520).multipliedBy(10))
+					.calcSupply(new BigNum(13451520).mul(10))
 					.isEqualTo('26306368100000000')
 			).to.be.true);
 
 		it('when height == (milestoneFour * 100) should return 147370048100000000', async () =>
 			expect(
 				blockReward
-					.calcSupply(new Bignum(13451520).multipliedBy(100))
+					.calcSupply(new BigNum(13451520).mul(100))
 					.isEqualTo('147370048100000000')
 			).to.be.true);
 
 		it('when height == (milestoneFour * 1000) should return 1358006848100000000', async () =>
 			expect(
 				blockReward
-					.calcSupply(new Bignum(13451520).multipliedBy(1000))
+					.calcSupply(new BigNum(13451520).mul(1000))
 					.isEqualTo('1358006848100000000')
 			).to.be.true);
 
 		it('when height == (milestoneFour * 10000) should return 13464374848100000000', async () =>
 			expect(
 				blockReward
-					.calcSupply(new Bignum(13451520).multipliedBy(10000))
+					.calcSupply(new BigNum(13451520).mul(10000))
 					.isEqualTo('13464374848100000000')
 			).to.be.true);
 
 		it('when height == (milestoneFour * 100000) should return 134528054848100000000', async () =>
 			expect(
 				blockReward
-					.calcSupply(new Bignum(13451520).multipliedBy(100000))
+					.calcSupply(new BigNum(13451520).mul(100000))
 					.isEqualTo('134528054848100000000')
 			).to.be.true);
 
@@ -422,7 +422,7 @@ describe('BlockReward @slow', () => {
 
 					for (let i = 1451520; i < 4451520; i++) {
 						supply = blockReward.calcSupply(i);
-						expect(supply.isEqualTo(prev.plus(REWARDS.MILESTONES[0]))).to.be
+						expect(supply.isEqualTo(prev.add(REWARDS.MILESTONES[0]))).to.be
 							.true;
 						prev = supply;
 					}
@@ -437,7 +437,7 @@ describe('BlockReward @slow', () => {
 
 					for (let i = 4451520; i < 7451520; i++) {
 						supply = blockReward.calcSupply(i);
-						expect(supply.isEqualTo(prev.plus(REWARDS.MILESTONES[1]))).to.be
+						expect(supply.isEqualTo(prev.add(REWARDS.MILESTONES[1]))).to.be
 							.true;
 						prev = supply;
 					}
@@ -452,7 +452,7 @@ describe('BlockReward @slow', () => {
 
 					for (let i = 7451520; i < 10451520; i++) {
 						supply = blockReward.calcSupply(i);
-						expect(supply.isEqualTo(prev.plus(REWARDS.MILESTONES[2]))).to.be
+						expect(supply.isEqualTo(prev.add(REWARDS.MILESTONES[2]))).to.be
 							.true;
 						prev = supply;
 					}
@@ -467,7 +467,7 @@ describe('BlockReward @slow', () => {
 
 					for (let i = 10451520; i < 13451520; i++) {
 						supply = blockReward.calcSupply(i);
-						expect(supply.isEqualTo(prev.plus(REWARDS.MILESTONES[3]))).to.be
+						expect(supply.isEqualTo(prev.add(REWARDS.MILESTONES[3]))).to.be
 							.true;
 						prev = supply;
 					}
@@ -482,7 +482,7 @@ describe('BlockReward @slow', () => {
 
 					for (let i = 13451520; i < 13451520 + 100; i++) {
 						supply = blockReward.calcSupply(i);
-						expect(supply.isEqualTo(prev.plus(REWARDS.MILESTONES[4]))).to.be
+						expect(supply.isEqualTo(prev.add(REWARDS.MILESTONES[4]))).to.be
 							.true;
 						prev = supply;
 					}

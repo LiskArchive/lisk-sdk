@@ -719,9 +719,9 @@ __private.getPooledTransactions = function(method, filters, cb) {
 			sortAttribute.sortMethod.toLowerCase() === 'desc' ? -1 : 1;
 		toSend = toSend.sort((a, b) => {
 			if (sortAttribute.sortField === 'fee') {
-				return a.fee.minus(b.fee) * sortOrder;
+				return a.fee.sub(b.fee) * sortOrder;
 			}
-			return a.amount.minus(b.amount) * sortOrder;
+			return a.amount.sub(b.amount) * sortOrder;
 		});
 	} else {
 		toSend = _.orderBy(

@@ -14,11 +14,11 @@
 
 'use strict';
 
+const BigNum = require('@liskhq/bignum');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const _ = require('lodash');
 const crypto = require('crypto');
 const ByteBuffer = require('bytebuffer');
-const Bignum = require('../helpers/bignum');
 const blockVersion = require('./block_version');
 const BlockReward = require('./block_reward');
 
@@ -104,8 +104,8 @@ class Block {
 		const nextHeight = data.previousBlock ? data.previousBlock.height + 1 : 1;
 
 		const reward = __private.blockReward.calcReward(nextHeight);
-		let totalFee = new Bignum(0);
-		let totalAmount = new Bignum(0);
+		let totalFee = new BigNum(0);
+		let totalAmount = new BigNum(0);
 		let size = 0;
 
 		const blockTransactions = [];
@@ -121,8 +121,8 @@ class Block {
 
 			size += bytes.length;
 
-			totalFee = totalFee.plus(transaction.fee);
-			totalAmount = totalAmount.plus(transaction.amount);
+			totalFee = totalFee.add(transaction.fee);
+			totalAmount = totalAmount.add(transaction.amount);
 
 			blockTransactions.push(transaction);
 			payloadHash.update(bytes);
@@ -299,7 +299,7 @@ class Block {
 			byteBuffer.writeInt(block.timestamp);
 
 			if (block.previousBlock) {
-				const pb = new Bignum(block.previousBlock).toBuffer({ size: '8' });
+				const pb = new BigNum(block.previousBlock).toBuffer({ size: '8' });
 
 				for (let i = 0; i < 8; i++) {
 					byteBuffer.writeByte(pb[i]);
@@ -366,7 +366,7 @@ class Block {
 		}
 
 		// eslint-disable-next-line new-cap
-		const id = new Bignum.fromBuffer(temp).toString();
+		const id = new BigNum.fromBuffer(temp).toString();
 		return id;
 	}
 
@@ -378,7 +378,7 @@ class Block {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	calculateFee() {
-		return new Bignum(FEES.SEND);
+		return new BigNum(FEES.SEND);
 	}
 
 	/**
@@ -400,9 +400,9 @@ class Block {
 			height: parseInt(raw.b_height),
 			previousBlock: raw.b_previousBlock,
 			numberOfTransactions: parseInt(raw.b_numberOfTransactions),
-			totalAmount: new Bignum(raw.b_totalAmount),
-			totalFee: new Bignum(raw.b_totalFee),
-			reward: new Bignum(raw.b_reward),
+			totalAmount: new BigNum(raw.b_totalAmount),
+			totalFee: new BigNum(raw.b_totalFee),
+			reward: new BigNum(raw.b_reward),
 			payloadLength: parseInt(raw.b_payloadLength),
 			payloadHash: raw.b_payloadHash,
 			generatorPublicKey: raw.b_generatorPublicKey,
@@ -410,7 +410,7 @@ class Block {
 			blockSignature: raw.b_blockSignature,
 			confirmations: parseInt(raw.b_confirmations),
 		};
-		block.totalForged = block.totalFee.plus(block.reward).toString();
+		block.totalForged = block.totalFee.add(block.reward).toString();
 		return block;
 	}
 
@@ -433,9 +433,9 @@ class Block {
 			height: parseInt(raw.height),
 			previousBlock: raw.previousBlockId,
 			numberOfTransactions: parseInt(raw.numberOfTransactions),
-			totalAmount: new Bignum(raw.totalAmount),
-			totalFee: new Bignum(raw.totalFee),
-			reward: new Bignum(raw.reward),
+			totalAmount: new BigNum(raw.totalAmount),
+			totalFee: new BigNum(raw.totalFee),
+			reward: new BigNum(raw.reward),
 			payloadLength: parseInt(raw.payloadLength),
 			payloadHash: raw.payloadHash,
 			generatorPublicKey: raw.generatorPublicKey,
@@ -450,7 +450,7 @@ class Block {
 				.map(tx => _.omitBy(tx, _.isNull));
 		}
 
-		block.totalForged = block.totalFee.plus(block.reward).toString();
+		block.totalForged = block.totalFee.add(block.reward).toString();
 
 		return block;
 	}
@@ -570,7 +570,7 @@ __private.getAddressByPublicKey = function(publicKey) {
 		temp[i] = publicKeyHash[7 - i];
 	}
 
-	const address = `${Bignum.fromBuffer(temp).toString()}L`;
+	const address = `${BigNum.fromBuffer(temp).toString()}L`;
 	return address;
 };
 

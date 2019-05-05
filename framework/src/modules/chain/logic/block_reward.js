@@ -14,7 +14,7 @@
 
 'use strict';
 
-const Bignum = require('../helpers/bignum');
+const BigNum = require('@liskhq/bignum');
 
 const { REWARDS, TOTAL_AMOUNT } = global.constants;
 
@@ -68,9 +68,9 @@ class BlockReward {
 		height = __private.parseHeight(height);
 
 		if (height < this.rewardOffset) {
-			return new Bignum(0);
+			return new BigNum(0);
 		}
-		return new Bignum(REWARDS.MILESTONES[this.calcMilestone(height)]);
+		return new BigNum(REWARDS.MILESTONES[this.calcMilestone(height)]);
 	}
 
 	/**
@@ -82,7 +82,7 @@ class BlockReward {
 	 */
 	calcSupply(height) {
 		height = __private.parseHeight(height);
-		let supply = new Bignum(TOTAL_AMOUNT);
+		let supply = new BigNum(TOTAL_AMOUNT);
 
 		if (height < this.rewardOffset) {
 			// Rewards not started yet
@@ -123,7 +123,7 @@ class BlockReward {
 
 		for (let i = 0; i < rewards.length; i++) {
 			const reward = rewards[i];
-			supply = supply.plus(new Bignum(reward[0]).multipliedBy(reward[1]));
+			supply = supply.add(new BigNum(reward[0]).mul(reward[1]));
 		}
 
 		return supply;
