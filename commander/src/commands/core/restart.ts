@@ -44,7 +44,7 @@ export default class RestartCommand extends BaseCommand {
 
 	static description = 'Restart Lisk Core instance.';
 
-	static examples = ['node:restart mainnet-latest'];
+	static examples = ['core:restart mainnet-latest'];
 
 	async run(): Promise<void> {
 		const { args } = this.parse(RestartCommand);

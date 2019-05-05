@@ -61,9 +61,9 @@ export default class UpgradeCommand extends BaseCommand {
 		'Upgrade an instance of Lisk Core to a specified or latest version.';
 
 	static examples = [
-		'node:upgrade lisk-mainnet',
-		'node:upgrade --releaseUrl=https://lisk-releases.ams3.digitaloceanspaces.com/lisk-core/lisk-1.6.0-rc.4-Linux-x86_64.tar.gz lisk-mainnet',
-		'node:upgrade --lisk-version=2.0.0 lisk-mainnet',
+		'core:upgrade lisk-mainnet',
+		'core:upgrade --releaseUrl=https://lisk-releases.ams3.digitaloceanspaces.com/lisk-core/lisk-1.6.0-rc.4-Linux-x86_64.tar.gz lisk-mainnet',
+		'core:upgrade --lisk-version=2.0.0 lisk-mainnet',
 	];
 
 	static flags = {

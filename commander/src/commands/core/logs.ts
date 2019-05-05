@@ -44,7 +44,7 @@ export default class LogsCommand extends BaseCommand {
 
 	static description = 'Stream logs of a Lisk Core instance.';
 
-	static examples = ['node:logs mainnet-latest'];
+	static examples = ['core:logs mainnet-latest'];
 
 	async run(): Promise<void> {
 		const { args } = this.parse(LogsCommand);

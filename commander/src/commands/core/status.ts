@@ -31,7 +31,7 @@ export default class StatusCommand extends BaseCommand {
 
 	static description = 'Show the status of a Lisk Core instances.';
 
-	static examples = ['node:status', 'node:status mainnet-latest'];
+	static examples = ['core:status', 'core:status mainnet-latest'];
 
 	async run(): Promise<void> {
 		const { args } = this.parse(StatusCommand);
@@ -46,7 +46,7 @@ export default class StatusCommand extends BaseCommand {
 
 			if (!instances.length) {
 				this.log(
-					'Lisk Core instances not available, use lisk node:install --help',
+					'Lisk Core instances not available, use lisk core:install --help',
 				);
 			} else {
 				const toDisplay = [

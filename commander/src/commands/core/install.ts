@@ -125,12 +125,12 @@ export default class InstallCommand extends BaseCommand {
 	static description = 'Install an instance of Lisk Core.';
 
 	static examples = [
-		'node:install lisk-mainnet',
-		'node:install --no-start lisk-mainnet',
-		'node:install --no-snapshot lisk-mainnet',
-		'node:install --lisk-version=2.0.0 lisk-mainnet',
-		'node:install --network=testnet --releaseUrl=https://downloads.lisk.io/lisk/mainnet/1.6.0/lisk-1.6.0-Linux-x86_64.tar.gz lisk-mainnet',
-		'node:install --network=mainnet --snapshotUrl=https://testnet-snapshot.lisknode.io/blockchain.db.gz custom-mainnet',
+		'core:install lisk-mainnet',
+		'core:install --no-start lisk-mainnet',
+		'core:install --no-snapshot lisk-mainnet',
+		'core:install --lisk-version=2.0.0 lisk-mainnet',
+		'core:install --network=testnet --releaseUrl=https://downloads.lisk.io/lisk/mainnet/1.6.0/lisk-1.6.0-Linux-x86_64.tar.gz lisk-mainnet',
+		'core:install --network=mainnet --snapshotUrl=https://testnet-snapshot.lisknode.io/blockchain.db.gz custom-mainnet',
 	];
 
 	static flags = {
