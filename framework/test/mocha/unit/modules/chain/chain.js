@@ -26,6 +26,7 @@ const {
 	storageConfig,
 	chainOptions,
 	gitLastCommitId,
+	buildVersion,
 } = require('./chain.fixtures');
 
 describe('Chain', () => {
@@ -94,10 +95,6 @@ describe('Chain', () => {
 		stubs.createCacheComponent = sinonSandbox.stub().returns(stubs.cache);
 		stubs.createStorageComponent = sinonSandbox.stub().returns(stubs.storage);
 
-		stubs.git = {
-			getLastCommit: sinonSandbox.stub().returns(gitLastCommitId),
-		};
-
 		stubs.initSteps = {
 			createBus: sinonSandbox.stub().resolves(stubs.bus),
 			bootstrapStorage: sinonSandbox.stub(),
@@ -116,7 +113,6 @@ describe('Chain', () => {
 		Chain.__set__('bootstrapCache', stubs.initSteps.bootstrapCache);
 		Chain.__set__('initLogicStructure', stubs.initSteps.initLogicStructure);
 		Chain.__set__('initModules', stubs.initSteps.initModules);
-		Chain.__set__('git', stubs.git);
 
 		// Act
 		chain = new Chain(stubs.channel, chainOptions);
@@ -187,6 +183,10 @@ describe('Chain', () => {
 
 		it('should get last commit from git', () => {
 			return expect(chain.scope.lastCommit).to.be.equal(gitLastCommitId);
+		});
+
+		it('should get build version from config.buildVersion', () => {
+			return expect(chain.scope.build).to.be.equal(buildVersion);
 		});
 
 		it('should set global.constants from the constants passed by options', () => {

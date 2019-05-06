@@ -6,12 +6,18 @@ const storageConfig = {
 	logFileName: 'logs.log',
 };
 
+const gitLastCommitId = '#gitLastCommitId';
+const buildVersion = '#buildVersion';
+const peerList = ['peerList'];
+
 const chainOptions = {
 	genesisBlock: {},
 	loading: {},
 	network: {
 		enabled: false,
 	},
+	lastCommitId: gitLastCommitId,
+	buildVersion,
 	exceptions: {},
 	constants: {
 		ACTIVE_DELEGATES: 101,
@@ -86,14 +92,12 @@ const chainOptions = {
 	},
 };
 
-const gitLastCommitId = '#gitLastCommitId';
-const peerList = ['peerList'];
-
 module.exports = {
 	loggerConfig,
 	cacheConfig,
 	storageConfig,
 	chainOptions,
 	gitLastCommitId,
+	buildVersion,
 	peerList,
 };
