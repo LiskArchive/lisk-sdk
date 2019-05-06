@@ -363,7 +363,6 @@ class Rounds {
 		};
 
 		modules = {
-			blocks: scope.modules.blocks,
 			accounts: scope.modules.accounts,
 			delegates: scope.modules.delegates,
 		};

@@ -936,7 +936,6 @@ describe('transport', () => {
 					// We want to check that internal variables are being set correctly so we don't
 					// want any stubs to interfere here (e.g. from the top-level beforeEach block).
 					new TransportModule((err, transportSelf) => {
-						__private.broadcaster.bind = sinonSandbox.spy();
 						transportSelf.onBind(defaultScope);
 						done();
 					}, defaultScope);

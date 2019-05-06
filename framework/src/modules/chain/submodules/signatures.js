@@ -54,8 +54,6 @@ class Signatures {
 	// eslint-disable-next-line class-methods-use-this
 	onBind(scope) {
 		modules = {
-			accounts: scope.modules.accounts,
-			transactions: scope.modules.transactions,
 			transport: scope.modules.transport,
 		};
 	}

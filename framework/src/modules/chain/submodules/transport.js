@@ -80,7 +80,7 @@ class Transport {
 			scope.config.nonce,
 			scope.config.broadcasts,
 			scope.config.forging.force,
-			scope.logic.initTransaction,
+			scope.logic.transactionPool,
 			scope.components.logger,
 			scope.channel,
 			scope.components.storage
@@ -100,18 +100,10 @@ class Transport {
 	onBind(scope) {
 		modules = {
 			blocks: scope.modules.blocks,
-			dapps: scope.modules.dapps,
 			loader: scope.modules.loader,
 			multisignatures: scope.modules.multisignatures,
-			peers: scope.modules.peers,
 			transactions: scope.modules.transactions,
-			processTransactions: scope.modules.processTransactions,
 		};
-
-		__private.broadcaster.bind(
-			scope.modules.transport,
-			scope.modules.transactions
-		);
 	}
 
 	/**

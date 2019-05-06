@@ -408,7 +408,6 @@ class Chain {
 		};
 
 		modules = {
-			accounts: scope.modules.accounts,
 			blocks: scope.modules.blocks,
 			rounds: scope.modules.rounds,
 			transactions: scope.modules.transactions,
@@ -498,7 +497,7 @@ __private.applyTransactions = function(transactions, cb) {
 };
 
 /**
- * Calls applyConfirmed from modules.transactions for each transaction in block after get serder with modules.accounts.getAccount
+ * Calls applyConfirmed from modules.transactions for each transaction in block
  *
  * @private
  * @param {Object} block - Block object
@@ -536,7 +535,7 @@ __private.applyConfirmedStep = async function(block, tx) {
 };
 
 /**
- * Calls applyConfirmed from modules.transactions for each transaction in block after get serder with modules.accounts.getAccount
+ * Calls saveBlock for the block and performs round tick
  *
  * @private
  * @param {Object} block - Block object

@@ -254,13 +254,7 @@ class Accounts {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	onBind(scope) {
-		modules = {
-			transactions: scope.modules.transactions,
-			blocks: scope.modules.blocks,
-			rounds: scope.modules.rounds,
-		};
-
-		library.logic.account.bind(modules);
+		library.logic.account.bind(scope.modules);
 	}
 
 	/**

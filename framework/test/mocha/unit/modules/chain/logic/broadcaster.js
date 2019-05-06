@@ -31,7 +31,7 @@ describe('Broadcaster', () => {
 	};
 	let broadcaster;
 	let broadcasts;
-	let transactionStub;
+	let transactionPoolStub;
 	let loggerStub;
 	let modulesStub;
 	let jobsQueue;
@@ -54,13 +54,6 @@ describe('Broadcaster', () => {
 			debug: sinonSandbox.stub(),
 		};
 
-		modulesStub = {
-			transport: {},
-			transactions: {
-				transactionInPool: sinonSandbox.stub().returns(false),
-			},
-		};
-
 		channelStub = {
 			invoke: sinonSandbox.stub().returns(),
 		};
@@ -81,13 +74,11 @@ describe('Broadcaster', () => {
 			nonce,
 			broadcasts,
 			force,
-			transactionStub,
+			transactionPoolStub,
 			loggerStub,
 			channelStub,
 			storageStub
 		);
-
-		broadcaster.bind(modulesStub.transport, modulesStub.transactions);
 
 		library = Broadcaster.__get__('library');
 	});
