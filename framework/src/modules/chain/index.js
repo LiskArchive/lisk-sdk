@@ -71,23 +71,19 @@ module.exports = class ChainModule extends BaseModule {
 				public: true,
 			},
 			calculateMilestone: {
-				handler: action =>
-					this.chain.actions.calculateMilestone(action),
+				handler: action => this.chain.actions.calculateMilestone(action),
 				public: true,
 			},
 			calculateReward: {
-				handler: action =>
-					action => this.chain.actions.calculateReward(action),
+				handler: action => this.chain.actions.calculateReward(action),
 				public: true,
 			},
 			generateDelegateList: {
-				handler: action =>
-				this.chain.actions.generateDelegateList(action),
+				handler: action => this.chain.actions.generateDelegateList(action),
 				public: true,
 			},
 			updateForgingStatus: {
-				handler: async action =>
-				this.chain.actions.updateForgingStatus(action),
+				handler: async action => this.chain.actions.updateForgingStatus(action),
 				public: true,
 			},
 			postSignature: {
@@ -96,12 +92,12 @@ module.exports = class ChainModule extends BaseModule {
 			},
 			getForgingStatusForAllDelegates: {
 				handler: async () =>
-				this.chain.actions.getForgingStatusForAllDelegates(),
-				public: true,
+					this.chain.actions.getForgingStatusForAllDelegates(),
+				public: true, // Don't want this to be public
 			},
 			getTransactionsFromPool: {
 				handler: async action =>
-				this.chain.actions.getTransactionsFromPool(action),
+					this.chain.actions.getTransactionsFromPool(action),
 				public: true,
 			},
 			getTransactions: {
@@ -121,13 +117,12 @@ module.exports = class ChainModule extends BaseModule {
 				public: true,
 			},
 			postTransaction: {
-				handler: async action =>
-				this.chain.actions.postTransaction(action),
+				handler: async action => this.chain.actions.postTransaction(action),
 				public: true,
 			},
 			getDelegateBlocksRewards: {
 				handler: async action =>
-				this.chain.actions.getDelegateBlocksRewards(action),
+					this.chain.actions.getDelegateBlocksRewards(action),
 				public: true,
 			},
 			getSlotNumber: {

@@ -49,12 +49,30 @@ module.exports = class NetworkModule extends BaseModule {
 
 	get actions() {
 		return {
-			invokePublic: async action => this.network.actions.invokePublic(action),
-			publish: action => this.network.actions.publish(action),
-			getNetworkStatus: () => this.network.actions.getNetworkStatus(),
-			getPeers: action => this.network.actions.getPeers(action),
-			getPeersCountByFilter: action =>
-				this.network.actions.getPeersCountByFilter(action),
+			invoke: {
+				handler: async action => this.network.actions.invoke(action),
+				public: true,
+			},
+			invokePublic: {
+				handler: async action => this.network.actions.invokePublic(action),
+				public: true,
+			},
+			publish: {
+				handler: action => this.network.actions.publish(action),
+				public: true,
+			},
+			getNetworkStatus: {
+				handler: () => this.network.actions.getNetworkStatus(),
+				public: true,
+			},
+			getPeers: {
+				handler: action => this.network.actions.getPeers(action),
+				public: true,
+			},
+			getPeersCountByFilter: {
+				handler: action => this.network.actions.getPeersCountByFilter(action),
+				public: true,
+			},
 		};
 	}
 

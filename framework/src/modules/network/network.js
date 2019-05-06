@@ -212,7 +212,7 @@ module.exports = class Network {
 				? request.procedure
 				: `chain:${request.procedure}`;
 			try {
-				const result = await this.channel.invoke(
+				const result = await this.channel.invokePublic(
 					sanitizedProcedure,
 					request.data
 				);
@@ -248,8 +248,13 @@ module.exports = class Network {
 
 	get actions() {
 		return {
+			invoke: async action => {
+				this.p2p.request({
+					procedure: action.params.procedure,
+					data: action.params.data,
+				});
+			},
 			invokePublic: async action => {
-				console.log(action);
 				this.p2p.request({
 					procedure: action.params.procedure,
 					data: action.params.data,

@@ -36,7 +36,7 @@ const defaultConfig = {
 	required: ['fileLogLevel', 'logFileName', 'consoleLogLevel'],
 	default: {
 		fileLogLevel: 'info',
-		consoleLogLevel: 'none',
+		consoleLogLevel: 'info',
 		logFileName: 'logs/lisk.log',
 	},
 };

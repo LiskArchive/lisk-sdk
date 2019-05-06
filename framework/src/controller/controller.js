@@ -161,10 +161,18 @@ class Controller {
 			'app',
 			['ready', 'state:updated'],
 			{
-				getComponentConfig: action => this.config.components[action.params],
-				getApplicationState: () => this.applicationState.state,
-				updateApplicationState: action =>
-					this.applicationState.update(action.params),
+				getComponentConfig: {
+					handler: action => this.config.components[action.params],
+					public: true,
+				},
+				getApplicationState: {
+					handler: () => this.applicationState.state,
+					public: true,
+				},
+				updateApplicationState: {
+					handler: action => this.applicationState.update(action.params),
+					public: true,
+				},
 			},
 			{ skipInternalEvents: true }
 		);

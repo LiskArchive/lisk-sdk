@@ -137,9 +137,9 @@ class ChildProcessChannel extends BaseChannel {
 
 		if (
 			action.module === this.moduleAlias &&
-			typeof this.actions[action.name] === 'function'
+			typeof this.actions[action.name].handler === 'function'
 		) {
-			return this.actions[action.name](action);
+			return this.actions[action.name].handler(action);
 		}
 
 		return new Promise((resolve, reject) => {
