@@ -22,6 +22,7 @@ const { createLoggerComponent } = require('../../components/logger');
 const {
 	createCacheComponent,
 	CACHE_KEYS_BLOCKS,
+	CACHE_KEYS_DELEGATES,
 	CACHE_KEYS_TRANSACTIONS,
 } = require('../../components/cache');
 const { createStorageComponent } = require('../../components/storage');
@@ -98,27 +99,18 @@ module.exports = class HttpApi {
 			Object.assign(this.scope.applicationState, event.data);
 		});
 
-		this.channel.subscribe('chain:blocks:change', async () => {
-			if (
-				this.scope.components &&
-				this.scope.components.cache &&
-				this.scope.components.cache.isReady()
-			) {
-				const cacheKeysToClear = [CACHE_KEYS_BLOCKS, CACHE_KEYS_TRANSACTIONS];
-				const tasks = cacheKeysToClear.map(key =>
-					this.scope.components.cache.removeByPattern(key)
-				);
-				try {
-					this.logger.info(
-						`Cache - Keys with patterns: '${cacheKeysToClear}' cleared from cache on new Block`
-					);
-					await Promise.all(tasks);
-				} catch (error) {
-					this.logger.error(
-						`Cache - Error clearing keys on new Block: ${error}`
-					);
-				}
-			}
+		this.channel.subscribe('chain:blocks:change', async event => {
+			await this.cleanCache(
+				[CACHE_KEYS_BLOCKS, CACHE_KEYS_TRANSACTIONS],
+				`${event.module}:${event.name}`
+			);
+		});
+
+		this.channel.subscribe('chain:rounds:change', async event => {
+			await this.cleanCache(
+				[CACHE_KEYS_DELEGATES],
+				`${event.module}:${event.name}`
+			);
 		});
 
 		// Bootstrap Cache component
@@ -164,5 +156,25 @@ module.exports = class HttpApi {
 			this.logger.error(componentCleanupError);
 		}
 		this.logger.info('Cleaned up successfully');
+	}
+
+	async cleanCache(cacheKeysToClear, eventInfo) {
+		if (
+			this.scope.components &&
+			this.scope.components.cache &&
+			this.scope.components.cache.isReady()
+		) {
+			const tasks = cacheKeysToClear.map(key =>
+				this.scope.components.cache.removeByPattern(key)
+			);
+			try {
+				this.logger.info(
+					`Cache - Keys with patterns: '${cacheKeysToClear}' cleared from cache on '${eventInfo}'`
+				);
+				await Promise.all(tasks);
+			} catch (error) {
+				this.logger.error(`Cache - Error clearing keys on new Block: ${error}`);
+			}
+		}
 	}
 };
