@@ -13,10 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { flags as flagParser } from '@oclif/command';
 import Listr from 'listr';
 import BaseCommand from '../../../base';
-import { stopDatabase } from '../../../utils/node/database';
-import { describeApplication, Pm2Env } from '../../../utils/node/pm2';
+import { startDatabase } from '../../../utils/core/database';
+import { describeApplication } from '../../../utils/core/pm2';
 
 interface Args {
 	readonly name: string;
@@ -31,20 +32,30 @@ export default class DatabaseCommand extends BaseCommand {
 		},
 	];
 
-	static description = 'Stop the database server.';
+	static flags = {
+		json: flagParser.boolean({
+			...BaseCommand.flags.json,
+			hidden: true,
+		}),
+		pretty: flagParser.boolean({
+			...BaseCommand.flags.pretty,
+			hidden: true,
+		}),
+	};
 
-	static examples = ['node:stop:database mainnet-latest'];
+	static description = 'Start the database server.';
+
+	static examples = ['core:start:database mainnet-latest'];
 
 	async run(): Promise<void> {
 		const { args } = this.parse(DatabaseCommand);
 		const { name } = args as Args;
-		const { pm2_env } = await describeApplication(name);
-		const { pm_cwd: installDir, LISK_NETWORK: network } = pm2_env as Pm2Env;
+		const { installationPath } = await describeApplication(name);
 
 		const tasks = new Listr([
 			{
-				title: 'Stop the database server',
-				task: async () => stopDatabase(installDir, network),
+				title: 'Start the database server',
+				task: async () => startDatabase(installationPath, name),
 			},
 		]);
 

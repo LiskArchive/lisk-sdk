@@ -1,3 +1,4 @@
+import fsExtra from 'fs-extra';
 import * as path from 'path';
 import {
 	connect,
@@ -10,7 +11,7 @@ import {
 	start,
 	stop,
 } from 'pm2';
-import { NETWORK, POSTGRES_PORTS, REDIS_PORTS } from '../constants';
+import { NETWORK } from '../constants';
 
 export type ProcessStatus =
 	| 'online'
@@ -21,15 +22,41 @@ export type ProcessStatus =
 	| 'one-launch-status';
 
 export interface Pm2Env {
-	readonly LISK_DB_PORT: string;
 	readonly LISK_NETWORK: NETWORK;
+	readonly LISK_DB_PORT: string;
 	readonly LISK_REDIS_PORT: string;
+	readonly LISK_WS_PORT: string;
+	readonly LISK_HTTP_PORT: string;
 	readonly pm_cwd: string;
 	readonly pm_uptime: number;
 	readonly status: ProcessStatus;
 	readonly unstable_restarts: number;
 	readonly version: string;
 }
+
+export type ReadableInstanceType = string | undefined | number;
+
+interface InstanceIndex {
+	readonly [key: string]: ReadableInstanceType;
+}
+
+interface Instance {
+	readonly name: string | undefined;
+	readonly pid: number | undefined;
+	readonly status: ProcessStatus;
+	readonly version: string;
+	readonly network: NETWORK;
+	readonly started_at: string;
+	readonly cpu?: number;
+	readonly memory?: number;
+	readonly dbPort: string;
+	readonly redisPort: string;
+	readonly wsPort: string;
+	readonly httpPort: string;
+	readonly installationPath: string;
+}
+
+export type PM2ProcessInstance = Instance & InstanceIndex;
 
 const connectPM2 = async (): Promise<void> =>
 	new Promise<void>((resolve, reject) => {
@@ -47,20 +74,21 @@ const startPM2 = async (
 	installPath: string,
 	network: NETWORK,
 	name: string,
+	envConfig: object,
 ): Promise<void> => {
-	const dbPort = POSTGRES_PORTS[network].toString();
-	const redisPort = REDIS_PORTS[network].toString();
+	const { apps } = await fsExtra.readJson(`${installPath}/etc/pm2-lisk.json`);
 
 	return new Promise<void>((resolve, reject) => {
 		start(
 			{
 				name,
-				script: 'src/index.js',
+				script: apps[0].script,
+				args: apps[0].args,
+				interpreter: `${installPath}/bin/node`,
 				cwd: installPath,
 				env: {
 					LISK_NETWORK: network,
-					LISK_DB_PORT: dbPort,
-					LISK_REDIS_PORT: redisPort,
+					...envConfig,
 				},
 				pid: path.join(installPath, '/pids/lisk.app.pid'),
 				output: path.join(installPath, '/logs/lisk.app.log'),
@@ -90,7 +118,7 @@ const restartPM2 = async (process: string | number): Promise<void> =>
 	new Promise<void>((resolve, reject) => {
 		restart(process, err => {
 			if (err && err.message !== 'process name not found') {
-				reject();
+				reject(err.message);
 
 				return;
 			}
@@ -160,9 +188,10 @@ export const registerApplication = async (
 	installPath: string,
 	network: NETWORK,
 	name: string,
+	envConfig: object,
 ): Promise<void> => {
 	await connectPM2();
-	await startPM2(installPath, network, name);
+	await startPM2(installPath, network, name, envConfig);
 	await stopPM2(name);
 	disconnect();
 };
@@ -185,22 +214,54 @@ export const stopApplication = async (name: string): Promise<void> => {
 	disconnect();
 };
 
+const extractProcessDetails = (
+	appDesc: ProcessDescription,
+): PM2ProcessInstance => {
+	const { pm2_env, monit, name, pid } = appDesc;
+	const {
+		status,
+		pm_uptime,
+		pm_cwd: installationPath,
+		version,
+		LISK_NETWORK: network,
+		LISK_DB_PORT: dbPort,
+		LISK_REDIS_PORT: redisPort,
+		LISK_HTTP_PORT: httpPort,
+		LISK_WS_PORT: wsPort,
+	} = pm2_env as Pm2Env;
+
+	return {
+		name,
+		pid,
+		status,
+		version,
+		network,
+		dbPort,
+		redisPort,
+		httpPort,
+		wsPort,
+		installationPath,
+		started_at: new Date(pm_uptime).toLocaleString(),
+		...monit,
+	};
+};
+
 export const listApplication = async (): Promise<
-	ReadonlyArray<ProcessDescription>
+	ReadonlyArray<PM2ProcessInstance>
 > => {
 	await connectPM2();
-	const applications = await listPM2();
+	const applications = (await listPM2()) as ReadonlyArray<PM2ProcessInstance>;
 	disconnect();
 
-	return applications;
+	return applications.map(extractProcessDetails);
 };
 
 export const describeApplication = async (
 	name: string,
-): Promise<ProcessDescription> => {
+): Promise<PM2ProcessInstance> => {
 	await connectPM2();
-	const application = await describePM2(name);
+	const application = (await describePM2(name)) as PM2ProcessInstance;
 	disconnect();
 
-	return application;
+	return extractProcessDetails(application);
 };

@@ -13,16 +13,18 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { flags as flagParser } from '@oclif/command';
 import Listr from 'listr';
 import BaseCommand from '../../../base';
-import { startDatabase } from '../../../utils/node/database';
-import { describeApplication, Pm2Env } from '../../../utils/node/pm2';
+import { stopApplication } from '../../../utils/core/pm2';
+import CacheCommand from './cache';
+import DatabaseCommand from './database';
 
 interface Args {
 	readonly name: string;
 }
 
-export default class DatabaseCommand extends BaseCommand {
+export default class StopCommand extends BaseCommand {
 	static args = [
 		{
 			name: 'name',
@@ -31,20 +33,36 @@ export default class DatabaseCommand extends BaseCommand {
 		},
 	];
 
-	static description = 'Start the database server.';
+	static flags = {
+		json: flagParser.boolean({
+			...BaseCommand.flags.json,
+			hidden: true,
+		}),
+		pretty: flagParser.boolean({
+			...BaseCommand.flags.pretty,
+			hidden: true,
+		}),
+	};
 
-	static examples = ['node:start:database mainnet-latest'];
+	static description = 'Stop Lisk Core instance.';
+
+	static examples = ['core:stop mainnet-latest'];
 
 	async run(): Promise<void> {
-		const { args } = this.parse(DatabaseCommand);
+		const { args } = this.parse(StopCommand);
 		const { name } = args as Args;
-		const { pm2_env } = await describeApplication(name);
-		const { pm_cwd: installDir, LISK_NETWORK: network } = pm2_env as Pm2Env;
+
+		// tslint:disable-next-line await-promise
+		await CacheCommand.run([name]);
+		// tslint:disable-next-line await-promise
+		await DatabaseCommand.run([name]);
 
 		const tasks = new Listr([
 			{
-				title: 'Start the database server',
-				task: async () => startDatabase(installDir, network),
+				title: 'Stop Lisk Core instance',
+				task: async () => {
+					await stopApplication(name);
+				},
 			},
 		]);
 

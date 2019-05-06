@@ -21,17 +21,15 @@ const {
 	/* eslint-disable import/no-unresolved */
 } = require('../../src');
 
-const packageJSON = require('../../package');
-
 process.env.NODE_ENV = 'test';
 
 let app;
 
 const appConfig = {
 	app: {
-		version: packageJSON.version,
-		minVersion: packageJSON.lisk.minVersion,
-		protocolVersion: packageJSON.lisk.protocolVersion,
+		version: '2.0.0',
+		minVersion: '1.0.0',
+		protocolVersion: '1.1',
 	},
 };
 

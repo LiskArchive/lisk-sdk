@@ -16,9 +16,22 @@
 import fsExtra from 'fs-extra';
 import * as os from 'os';
 import semver from 'semver';
-import { NETWORK, OS, RELEASE_URL } from '../constants';
+import {
+	HTTP_PORTS,
+	NETWORK,
+	OS,
+	POSTGRES_PORT,
+	REDIS_PORT,
+	RELEASE_URL,
+	WS_PORTS,
+} from '../constants';
 import { exec, ExecResult } from '../worker-process';
 import { defaultBackupPath } from './config';
+import {
+	listApplication,
+	PM2ProcessInstance,
+	ReadableInstanceType,
+} from './pm2';
 import { getLatestVersion } from './release';
 
 export const liskInstall = (installPath: string): string =>
@@ -39,11 +52,13 @@ export const liskTarSHA256 = (version: string): string =>
 export const liskLatestUrl = (url: string, network: NETWORK) =>
 	`${url}/${network}/latest.txt`;
 
-export const liskSnapshotUrl = (url: string, network: NETWORK) =>
-	`${url}/${network}/blockchain.db.gz`;
+export const liskSnapshotUrl = (url: string, network: NETWORK): string => {
+	if (url && url.search(RELEASE_URL) >= 0 && url.search('db.gz') >= 0) {
+		return `${RELEASE_URL}/${network}/blockchain.db.gz`;
+	}
 
-export const liskDbSnapshot = (networkName: string, network: NETWORK) =>
-	`${networkName}-${network}-blockchain.db.gz`;
+	return url;
+};
 
 export const logsDir = (installPath: string) =>
 	`${liskInstall(installPath)}/logs`;
@@ -88,7 +103,7 @@ export const validURL = (url: string): void => {
 	throw new Error(`Invalid URL: ${url}`);
 };
 
-export const getVersionToUpgrade = async (
+export const getVersionToInstall = async (
 	network: NETWORK,
 	version?: string,
 ) => {
@@ -120,14 +135,15 @@ export const upgradeLisk = async (
 ): Promise<void> => {
 	const LISK_BACKUP = `${defaultBackupPath}/${name}`;
 	const LISK_OLD_PG = `${LISK_BACKUP}/pgsql/data`;
-	const LISK_PG = `${installDir}/pgsql/data/`;
+	const LISK_PG = `${installDir}/pgsql/data`;
 	const MODE = 0o700;
 
 	fsExtra.mkdirSync(LISK_PG, MODE);
+	fsExtra.copySync(LISK_OLD_PG, LISK_PG);
 
+	// TODO: Use latest 2.0.0 config utils to get config insted of scripts/update_config.js
 	const { stderr }: ExecResult = await exec(
-		`cp -rf ${LISK_OLD_PG}/ ${LISK_PG}/;
-    ${installDir}/bin/node ${installDir}/scripts/update_config.js --network ${network} --output ${installDir}/config.json ${LISK_BACKUP}/config.json ${currentVersion}`,
+		`${installDir}/bin/node ${installDir}/scripts/update_config.js --network ${network} --output ${installDir}/config.json ${LISK_BACKUP}/config.json ${currentVersion}`,
 	);
 	if (stderr) {
 		throw new Error(stderr);
@@ -157,4 +173,91 @@ export const validateVersion = async (
 		}
 		throw new Error(error.message);
 	}
+};
+
+export const getSemver = (str: string): string => {
+	const exp = new RegExp(
+		/(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:[1-9]\d*|[\da-z-]*[a-z-][\da-z-]*)(?:\.(?:[1-9]\d*|[\da-z-]*[a-z-][\da-z-]*))*)?\.?(?:0|[1-9]\d*)?/,
+	);
+	const result = exp.exec(str) as ReadonlyArray<string>;
+
+	return result[0];
+};
+
+export const dateDiff = (date1: Date, date2: Date): number => {
+	const MINUTES_OR_SECONDS = 60;
+	const HOURS = 24;
+	const INT_RANGE = 1000;
+
+	return (
+		(new Date(date1).valueOf() - new Date(date2).valueOf()) /
+		(HOURS * MINUTES_OR_SECONDS * MINUTES_OR_SECONDS * INT_RANGE)
+	);
+};
+
+interface FileInfo {
+	readonly fileName: string;
+	readonly fileDir: string;
+	readonly filePath: string;
+}
+
+export const getDownloadedFileInfo = (
+	url: string,
+	cacheDir: string,
+): FileInfo => {
+	const pathWithoutProtocol = url.replace(/(^\w+:|^)\/\//, '').split('/');
+	const fileName = pathWithoutProtocol.pop() as string;
+	const fileDir = `${cacheDir}/${pathWithoutProtocol.join('/')}`;
+	const filePath = `${fileDir}/${fileName}`;
+
+	return {
+		fileName,
+		fileDir,
+		filePath,
+	};
+};
+
+const convertToNumber = (val: ReadableInstanceType): number => {
+	if (!val) {
+		return 0;
+	}
+
+	if (typeof val === 'number') {
+		return val;
+	}
+
+	return parseInt(val, 10);
+};
+
+const getEnvByKey = (
+	instances: ReadonlyArray<PM2ProcessInstance>,
+	key: string,
+	defaultValue: number,
+): number => {
+	const maxValue = instances
+		.map(app => app[key])
+		.reduce((acc, curr) => {
+			const ac = convertToNumber(acc);
+			const cu = convertToNumber(curr);
+
+			return Math.max(ac, cu);
+		}, defaultValue);
+
+	return convertToNumber(maxValue) || defaultValue;
+};
+
+export const generateEnvConfig = async (network: NETWORK): Promise<object> => {
+	const INCREMENT = 2;
+	const instances = await listApplication();
+	const filteredByNetwork = instances.filter(i => i.network === network);
+
+	return {
+		LISK_DB_PORT: getEnvByKey(instances, 'dbPort', POSTGRES_PORT) + 1,
+		LISK_REDIS_PORT: getEnvByKey(instances, 'redisPort', REDIS_PORT) + 1,
+		LISK_HTTP_PORT:
+			getEnvByKey(filteredByNetwork, 'httpPort', HTTP_PORTS[network]) +
+			INCREMENT,
+		LISK_WS_PORT:
+			getEnvByKey(filteredByNetwork, 'wsPort', WS_PORTS[network]) + INCREMENT,
+	};
 };
