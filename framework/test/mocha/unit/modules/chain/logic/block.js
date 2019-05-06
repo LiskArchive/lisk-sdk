@@ -661,7 +661,7 @@ describe('block', () => {
 
 	describe('calculateFee', () => {
 		it('should return the constant fee', async () =>
-			expect(block.calculateFee(blockData).isEqualTo(FEES.SEND)).to.be.true);
+			expect(block.calculateFee(blockData).eq(FEES.SEND)).to.be.true);
 	});
 
 	describe('dbRead', () => {

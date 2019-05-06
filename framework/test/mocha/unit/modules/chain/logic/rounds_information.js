@@ -110,6 +110,7 @@ describe('rounds information', () => {
 			},
 			account: {
 				get: sinonSandbox.stub().returns({
+					balance: '0',
 					votedDelegatesPublicKeys: ['12345'],
 				}),
 			},
@@ -185,6 +186,7 @@ describe('rounds information', () => {
 
 		it('should add correct data to state store round for vote transaction for apply', async () => {
 			storageStubs.account.get.returns({
+				balance: '0',
 				votedDelegatesPublicKeys: [
 					'05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
 				],
@@ -206,6 +208,7 @@ describe('rounds information', () => {
 
 		it('should add correct data to state store round for vote transaction for undo', async () => {
 			storageStubs.account.get.returns({
+				balance: '0',
 				votedDelegatesPublicKeys: [
 					'05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
 				],

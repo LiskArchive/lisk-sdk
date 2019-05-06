@@ -225,8 +225,7 @@ describe('expire transactions', () => {
 				.then(multiSigAccount => {
 					// Multi-signature transaction was expired, however
 					// the account still exists with the balance
-					expect(new BigNum(multiSigAccount[0].balance).isEqualTo(amount)).to.be
-						.true;
+					expect(new BigNum(multiSigAccount[0].balance).eq(amount)).to.be.true;
 					done();
 				})
 				.catch(done);

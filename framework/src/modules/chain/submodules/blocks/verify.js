@@ -230,16 +230,16 @@ class Verify {
 		if (typeof reducedBlock.numberOfTransactions === 'number') {
 			delete reducedBlock.numberOfTransactions;
 		}
-		if (reducedBlock.totalAmount.isEqualTo(0)) {
+		if (reducedBlock.totalAmount.eq(0)) {
 			delete reducedBlock.totalAmount;
 		}
-		if (reducedBlock.totalFee.isEqualTo(0)) {
+		if (reducedBlock.totalFee.eq(0)) {
 			delete reducedBlock.totalFee;
 		}
 		if (reducedBlock.payloadLength === 0) {
 			delete reducedBlock.payloadLength;
 		}
-		if (reducedBlock.reward.isEqualTo(0)) {
+		if (reducedBlock.reward.eq(0)) {
 			delete reducedBlock.reward;
 		}
 		if (reducedBlock.transactions && reducedBlock.transactions.length === 0) {
@@ -547,7 +547,7 @@ __private.verifyReward = function(block, result) {
 	const expectedReward = __private.blockReward.calcReward(block.height);
 	if (
 		block.height !== 1 &&
-		!expectedReward.isEqualTo(block.reward) &&
+		!expectedReward.eq(block.reward) &&
 		!exceptions.blockRewards.includes(block.id)
 	) {
 		result.errors.push(
@@ -639,11 +639,11 @@ __private.verifyPayload = function(block, result) {
 		result.errors.push('Invalid payload hash');
 	}
 
-	if (!totalAmount.isEqualTo(block.totalAmount)) {
+	if (!totalAmount.eq(block.totalAmount)) {
 		result.errors.push('Invalid total amount');
 	}
 
-	if (!totalFee.isEqualTo(block.totalFee)) {
+	if (!totalFee.eq(block.totalFee)) {
 		result.errors.push('Invalid total fee');
 	}
 

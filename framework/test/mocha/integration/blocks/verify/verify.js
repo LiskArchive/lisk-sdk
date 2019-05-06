@@ -929,9 +929,9 @@ describe('blocks/verify', () => {
 					expect(block1.version).to.equal(0);
 					expect(block1.timestamp).to.equal(time);
 					expect(block1.numberOfTransactions).to.equal(0);
-					expect(block1.reward.isEqualTo('0')).to.be.true;
-					expect(block1.totalFee.isEqualTo('0')).to.be.true;
-					expect(block1.totalAmount.isEqualTo('0')).to.be.true;
+					expect(block1.reward.eq('0')).to.be.true;
+					expect(block1.totalFee.eq('0')).to.be.true;
+					expect(block1.totalAmount.eq('0')).to.be.true;
 					expect(block1.payloadLength).to.equal(0);
 					expect(block1.transactions).to.deep.equal([]);
 					expect(block1.previousBlock).to.equal(genesisBlock.id);
@@ -985,9 +985,9 @@ describe('blocks/verify', () => {
 			expect(invalidBlock2.version).to.equal(0);
 			expect(invalidBlock2.timestamp).to.equal(33772882);
 			expect(invalidBlock2.numberOfTransactions).to.equal(0);
-			expect(invalidBlock2.reward.isEqualTo('0')).to.be.true;
-			expect(invalidBlock2.totalFee.isEqualTo('0')).to.be.true;
-			expect(invalidBlock2.totalAmount.isEqualTo('0')).to.be.true;
+			expect(invalidBlock2.reward.eq('0')).to.be.true;
+			expect(invalidBlock2.totalFee.eq('0')).to.be.true;
+			expect(invalidBlock2.totalAmount.eq('0')).to.be.true;
 			expect(invalidBlock2.payloadLength).to.equal(0);
 			expect(invalidBlock2.transactions).to.deep.equal([]);
 			expect(invalidBlock2.previousBlock).to.equal(genesisBlock.id);
@@ -1104,9 +1104,9 @@ describe('blocks/verify', () => {
 							expect(auxBlock.version).to.equal(0);
 							expect(auxBlock.timestamp).to.equal(time);
 							expect(auxBlock.numberOfTransactions).to.equal(1);
-							expect(auxBlock.reward.isEqualTo('0')).to.be.true;
-							expect(auxBlock.totalFee.isEqualTo('10000000')).to.be.true;
-							expect(auxBlock.totalAmount.isEqualTo('100000000000')).to.be.true;
+							expect(auxBlock.reward.eq('0')).to.be.true;
+							expect(auxBlock.totalFee.eq('10000000')).to.be.true;
+							expect(auxBlock.totalAmount.eq('100000000000')).to.be.true;
 							expect(auxBlock.payloadLength).to.equal(117);
 							expect(
 								auxBlock.transactions.map(transaction => transaction.id)
@@ -1262,9 +1262,9 @@ describe('blocks/verify', () => {
 					expect(block2.version).to.equal(0);
 					expect(block2.timestamp).to.equal(time);
 					expect(block2.numberOfTransactions).to.equal(0);
-					expect(block2.reward.isEqualTo('0')).to.be.true;
-					expect(block2.totalFee.isEqualTo('0')).to.be.true;
-					expect(block2.totalAmount.isEqualTo('0')).to.be.true;
+					expect(block2.reward.eq('0')).to.be.true;
+					expect(block2.totalFee.eq('0')).to.be.true;
+					expect(block2.totalAmount.eq('0')).to.be.true;
 					expect(block2.payloadLength).to.equal(0);
 					expect(block2.transactions).to.deep.equal([]);
 					expect(block2.previousBlock).to.equal(genesisBlock.id);
