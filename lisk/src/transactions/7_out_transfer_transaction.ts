@@ -12,18 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from '@liskhq/bignum';
+import BigNum from '@liskhq/bignum';
 import {
 	BaseTransaction,
+	convertToAssetError,
 	StateStore,
 	StateStorePrepare,
-} from './base_transaction';
+	TransactionError,
+	TransactionJSON,
+	utils,
+} from '@liskhq/lisk-transactions';
 import { MAX_TRANSACTION_AMOUNT, OUT_TRANSFER_FEE } from './constants';
-import { convertToAssetError, TransactionError } from './errors';
-import { TransactionJSON } from './transaction_types';
-import { verifyAmountBalance } from './utils';
-import { validator } from './utils/validation';
 
+const { verifyAmountBalance, validator } = utils;
 const TRANSACTION_OUTTRANSFER_TYPE = 7;
 const TRANSACTION_DAPP_REGISTERATION_TYPE = 5;
 
@@ -98,14 +99,14 @@ export class OutTransferTransaction extends BaseTransaction {
 	}
 
 	protected verifyAgainstTransactions(
-		transactions: ReadonlyArray<TransactionJSON>,
+		transactions: ReadonlyArray<TransactionJSON>
 	): ReadonlyArray<TransactionError> {
 		const sameTypeTransactions = transactions.filter(
 			tx =>
 				tx.type === this.type &&
 				'outTransfer' in tx.asset &&
 				this.asset.outTransfer.transactionId ===
-					(tx.asset as OutTransferAsset).outTransfer.transactionId,
+					(tx.asset as OutTransferAsset).outTransfer.transactionId
 		);
 
 		return sameTypeTransactions.length > 0
@@ -113,7 +114,7 @@ export class OutTransferTransaction extends BaseTransaction {
 					new TransactionError(
 						'Out Transfer cannot refer to the same transactionId',
 						this.id,
-						'.asset.outTransfer.transactionId',
+						'.asset.outTransfer.transactionId'
 					),
 			  ]
 			: [];
@@ -123,7 +124,7 @@ export class OutTransferTransaction extends BaseTransaction {
 		validator.validate(outTransferAssetFormatSchema, this.asset);
 		const errors = convertToAssetError(
 			this.id,
-			validator.errors,
+			validator.errors
 		) as TransactionError[];
 
 		if (this.type !== TRANSACTION_OUTTRANSFER_TYPE) {
@@ -133,8 +134,8 @@ export class OutTransferTransaction extends BaseTransaction {
 					this.id,
 					'.type',
 					this.type,
-					TRANSACTION_OUTTRANSFER_TYPE,
-				),
+					TRANSACTION_OUTTRANSFER_TYPE
+				)
 			);
 		}
 
@@ -145,8 +146,8 @@ export class OutTransferTransaction extends BaseTransaction {
 					'Amount must be greater than zero for outTransfer transaction',
 					this.id,
 					'.amount',
-					this.amount.toString(),
-				),
+					this.amount.toString()
+				)
 			);
 		}
 
@@ -157,8 +158,8 @@ export class OutTransferTransaction extends BaseTransaction {
 					this.id,
 					'.fee',
 					this.fee.toString(),
-					OUT_TRANSFER_FEE,
-				),
+					OUT_TRANSFER_FEE
+				)
 			);
 		}
 
@@ -168,8 +169,8 @@ export class OutTransferTransaction extends BaseTransaction {
 					'RecipientId must be set for outTransfer transaction',
 					this.id,
 					'.recipientId',
-					this.recipientId,
-				),
+					this.recipientId
+				)
 			);
 		}
 
@@ -179,7 +180,7 @@ export class OutTransferTransaction extends BaseTransaction {
 	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
 		const errors: TransactionError[] = [];
 		const dappRegistrationTransaction = store.transaction.get(
-			this.asset.outTransfer.dappId,
+			this.asset.outTransfer.dappId
 		);
 
 		if (
@@ -190,8 +191,8 @@ export class OutTransferTransaction extends BaseTransaction {
 				new TransactionError(
 					`Application not found: ${this.asset.outTransfer.dappId}`,
 					this.id,
-					'.asset.outTransfer.dappId',
-				),
+					'.asset.outTransfer.dappId'
+				)
 			);
 		}
 
@@ -201,7 +202,7 @@ export class OutTransferTransaction extends BaseTransaction {
 			this.id,
 			sender,
 			this.amount,
-			this.fee,
+			this.fee
 		);
 		if (balanceError) {
 			errors.push(balanceError);
@@ -215,7 +216,7 @@ export class OutTransferTransaction extends BaseTransaction {
 		const recipient = store.account.getOrDefault(this.recipientId);
 
 		const updatedRecipientBalance = new BigNum(recipient.balance).add(
-			this.amount,
+			this.amount
 		);
 
 		if (updatedRecipientBalance.gt(MAX_TRANSACTION_AMOUNT)) {
@@ -243,8 +244,8 @@ export class OutTransferTransaction extends BaseTransaction {
 					'Invalid amount',
 					this.id,
 					'.amount',
-					this.amount.toString(),
-				),
+					this.amount.toString()
+				)
 			);
 		}
 
@@ -254,7 +255,7 @@ export class OutTransferTransaction extends BaseTransaction {
 		const recipient = store.account.getOrDefault(this.recipientId);
 
 		const updatedRecipientBalance = new BigNum(recipient.balance).sub(
-			this.amount,
+			this.amount
 		);
 
 		if (updatedRecipientBalance.lt(0)) {
@@ -264,8 +265,8 @@ export class OutTransferTransaction extends BaseTransaction {
 						recipient.balance
 					}`,
 					this.id,
-					updatedRecipientBalance.toString(),
-				),
+					updatedRecipientBalance.toString()
+				)
 			);
 		}
 
