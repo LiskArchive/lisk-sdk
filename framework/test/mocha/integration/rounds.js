@@ -16,6 +16,7 @@
 
 const async = require('async');
 const _ = require('lodash');
+const BigNum = require('@liskhq/bignum');
 const {
 	transfer,
 	castVotes,
@@ -24,7 +25,6 @@ const {
 const Promise = require('bluebird');
 const ed = require('../../../src/modules/chain/helpers/ed');
 const slots = require('../../../src/modules/chain/helpers/slots');
-const Bignum = require('../../../src/modules/chain/helpers/bignum');
 const accountsFixtures = require('../fixtures/accounts');
 const randomUtil = require('../common/utils/random');
 const QueriesHelper = require('../common/integration/sql/queries_helper');
@@ -109,10 +109,8 @@ describe('rounds', () => {
 			// If account with address exists - set expected values
 			if (accounts[address]) {
 				// Update sender
-				accounts[address].balance = new Bignum(accounts[address].balance)
-					.minus(
-						new Bignum(transaction.fee).plus(new Bignum(transaction.amount))
-					)
+				accounts[address].balance = new BigNum(accounts[address].balance)
+					.sub(new BigNum(transaction.fee).add(new BigNum(transaction.amount)))
 					.toString();
 
 				// Set public key if not present
@@ -137,14 +135,14 @@ describe('rounds', () => {
 				// If account with address exists - set expected values
 				if (accounts[address]) {
 					// Update recipient
-					accounts[address].balance = new Bignum(accounts[address].balance)
-						.plus(new Bignum(transaction.amount))
+					accounts[address].balance = new BigNum(accounts[address].balance)
+						.add(new BigNum(transaction.amount))
 						.toString();
 				} else {
 					// Funds sent to new account - create account with default values
 					accounts[address] = accountsFixtures.dbAccount({
 						address,
-						balance: new Bignum(transaction.amount).toString(),
+						balance: new BigNum(transaction.amount).toString(),
 					});
 				}
 			}
@@ -160,15 +158,15 @@ describe('rounds', () => {
 				publicKey: ed.hexToBuffer(reward.publicKey),
 			});
 			if (found) {
-				found.fees = new Bignum(found.fees)
-					.plus(new Bignum(reward.fees))
+				found.fees = new BigNum(found.fees)
+					.add(new BigNum(reward.fees))
 					.toString();
-				found.rewards = new Bignum(found.rewards)
-					.plus(new Bignum(reward.rewards))
+				found.rewards = new BigNum(found.rewards)
+					.add(new BigNum(reward.rewards))
 					.toString();
-				found.balance = new Bignum(found.balance)
-					.plus(new Bignum(reward.fees))
-					.plus(new Bignum(reward.rewards))
+				found.balance = new BigNum(found.balance)
+					.add(new BigNum(reward.fees))
+					.add(new BigNum(reward.rewards))
 					.toString();
 			}
 		});
@@ -195,8 +193,8 @@ describe('rounds', () => {
 				const foundAccount = _.find(accounts, {
 					address: voter,
 				});
-				votes = new Bignum(votes)
-					.plus(new Bignum(foundAccount.balance))
+				votes = new BigNum(votes)
+					.add(new BigNum(foundAccount.balance))
 					.toString();
 			});
 			found.vote = votes;
@@ -211,8 +209,8 @@ describe('rounds', () => {
 		// Sort accounts - vote DESC, publicKey ASC
 		accounts = Object.keys(accounts)
 			.sort((a, b) => {
-				const aVote = new Bignum(accounts[a].vote);
-				const bVote = new Bignum(accounts[b].vote);
+				const aVote = new BigNum(accounts[a].vote);
+				const bVote = new BigNum(accounts[b].vote);
 				const aPK = accounts[a].publicKey;
 				const bPK = accounts[b].publicKey;
 				// Compare vote weights first:
@@ -289,7 +287,7 @@ describe('rounds', () => {
 		const feesTotal = _.reduce(
 			blocks,
 			(fees, block) => {
-				return new Bignum(fees).plus(block.totalFee);
+				return new BigNum(fees).add(block.totalFee);
 			},
 			0
 		);
@@ -297,16 +295,16 @@ describe('rounds', () => {
 		const rewardsTotal = _.reduce(
 			blocks,
 			(reward, block) => {
-				return new Bignum(reward).plus(block.reward);
+				return new BigNum(reward).add(block.reward);
 			},
 			0
 		);
 
-		const feesPerDelegate = new Bignum(feesTotal.toPrecision(15))
-			.dividedBy(ACTIVE_DELEGATES)
-			.integerValue(Bignum.ROUND_FLOOR);
-		const feesRemaining = new Bignum(feesTotal.toPrecision(15)).minus(
-			feesPerDelegate.multipliedBy(ACTIVE_DELEGATES)
+		const feesPerDelegate = new BigNum(feesTotal.toPrecision(15))
+			.div(ACTIVE_DELEGATES)
+			.floor();
+		const feesRemaining = new BigNum(feesTotal.toPrecision(15)).sub(
+			feesPerDelegate.mul(ACTIVE_DELEGATES)
 		);
 
 		__testContext.debug(
@@ -316,21 +314,21 @@ describe('rounds', () => {
 		_.each(blocks, (block, index) => {
 			const publicKey = block.generatorPublicKey.toString('hex');
 			if (rewards[publicKey]) {
-				rewards[publicKey].fees = rewards[publicKey].fees.plus(feesPerDelegate);
-				rewards[publicKey].rewards = rewards[publicKey].rewards.plus(
+				rewards[publicKey].fees = rewards[publicKey].fees.add(feesPerDelegate);
+				rewards[publicKey].rewards = rewards[publicKey].rewards.add(
 					block.reward
 				);
 			} else {
 				rewards[publicKey] = {
 					publicKey,
-					fees: new Bignum(feesPerDelegate),
-					rewards: new Bignum(block.reward),
+					fees: new BigNum(feesPerDelegate),
+					rewards: new BigNum(block.reward),
 				};
 			}
 
 			if (index === blocks.length - 1) {
 				// Apply remaining fees to last delegate
-				rewards[publicKey].fees = rewards[publicKey].fees.plus(feesRemaining);
+				rewards[publicKey].fees = rewards[publicKey].fees.add(feesRemaining);
 			}
 		});
 
@@ -503,8 +501,8 @@ describe('rounds', () => {
 									if (!_.isEqual(actualAccount.vote, expectedAccount.vote)) {
 										// When comparison fails - calculate absolute difference of 'vote' values
 										const absoluteDiff = Math.abs(
-											new Bignum(actualAccount.vote)
-												.minus(new Bignum(expectedAccount.vote))
+											new BigNum(actualAccount.vote)
+												.sub(new BigNum(expectedAccount.vote))
 												.toNumber()
 										);
 										// If absolute value is 1 beddows - pass the test, as reason is related to issue #716

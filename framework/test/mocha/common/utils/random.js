@@ -15,6 +15,7 @@
 'use strict';
 
 const randomstring = require('randomstring');
+const BigNum = require('@liskhq/bignum');
 const {
 	transfer,
 	createDapp,
@@ -24,7 +25,6 @@ const {
 	getKeys,
 	getAddressFromPublicKey,
 } = require('@liskhq/lisk-cryptography');
-const Bignum = require('../../../../src/modules/chain/helpers/bignum');
 const accountFixtures = require('../../fixtures/accounts');
 
 const random = {};
@@ -193,8 +193,8 @@ random.multisigDappRegistrationMaxiumData = function(
 
 const convertToBignum = transactions =>
 	transactions.forEach(transaction => {
-		transaction.amount = new Bignum(transaction.amount);
-		transaction.fee = new Bignum(transaction.fee);
+		transaction.amount = new BigNum(transaction.amount);
+		transaction.fee = new BigNum(transaction.fee);
 	});
 
 random.convertToBignum = convertToBignum;

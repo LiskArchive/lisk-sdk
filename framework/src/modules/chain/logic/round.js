@@ -14,8 +14,8 @@
 
 'use strict';
 
+const BigNum = require('@liskhq/bignum');
 const Promise = require('bluebird');
-const Bignum = require('../helpers/bignum');
 
 const exceptions = global.exceptions;
 const { ACTIVE_DELEGATES } = global.constants;
@@ -177,7 +177,7 @@ class Round {
 					'vote',
 					// Have to revert the logic to not use bignumber. it was causing change
 					// in vote amount. More details can be found on the issue.
-					// 		new Bignum(vote.amount).integerValue(Bignum.ROUND_FLOOR)
+					// 		new Bignum(vote.amount).floor()
 					// TODO: https://github.com/LiskHQ/lisk/issues/2423
 					Math.floor(vote.amount),
 					this.t
@@ -304,43 +304,38 @@ class Round {
 	rewardsAtRound(index) {
 		let roundFees = Math.floor(this.scope.roundFees) || 0;
 		const roundRewards = [...this.scope.roundRewards] || [];
+		BigNum.config({ ROUNDING_MODE: BigNum.ROUND_FLOOR });
 
 		// Apply exception for round if required
 		if (exceptions.rounds[this.scope.round.toString()]) {
 			// Apply rewards factor
 			roundRewards.forEach((reward, subIndex) => {
-				roundRewards[subIndex] = new Bignum(reward.toPrecision(15))
-					.multipliedBy(
-						exceptions.rounds[this.scope.round.toString()].rewards_factor
-					)
-					.integerValue(Bignum.ROUND_FLOOR);
+				roundRewards[subIndex] = new BigNum(reward.toPrecision(15))
+					.mul(exceptions.rounds[this.scope.round.toString()].rewards_factor)
+					.floor();
 			});
 
 			// Apply fees factor and bonus
-			roundFees = new Bignum(roundFees.toPrecision(15))
-				.multipliedBy(
-					exceptions.rounds[this.scope.round.toString()].fees_factor
-				)
-				.plus(exceptions.rounds[this.scope.round.toString()].fees_bonus)
-				.integerValue(Bignum.ROUND_FLOOR);
+			roundFees = new BigNum(roundFees.toPrecision(15))
+				.mul(exceptions.rounds[this.scope.round.toString()].fees_factor)
+				.add(exceptions.rounds[this.scope.round.toString()].fees_bonus)
+				.floor();
 		}
 
-		const fees = new Bignum(roundFees.toPrecision(15))
-			.dividedBy(ACTIVE_DELEGATES)
-			.integerValue(Bignum.ROUND_FLOOR);
-		const feesRemaining = new Bignum(roundFees.toPrecision(15)).minus(
-			fees.multipliedBy(ACTIVE_DELEGATES)
+		const fees = new BigNum(roundFees.toPrecision(15))
+			.div(ACTIVE_DELEGATES)
+			.floor();
+		const feesRemaining = new BigNum(roundFees.toPrecision(15)).sub(
+			fees.mul(ACTIVE_DELEGATES)
 		);
 		const rewards =
-			new Bignum(roundRewards[index].toPrecision(15)).integerValue(
-				Bignum.ROUND_FLOOR
-			) || 0;
+			new BigNum(roundRewards[index].toPrecision(15)).floor() || new BigNum(0);
 
 		return {
 			fees: Number(fees.toFixed()),
 			feesRemaining: Number(feesRemaining.toFixed()),
 			rewards: Number(rewards.toFixed()),
-			balance: Number(fees.plus(rewards).toFixed()),
+			balance: Number(fees.add(rewards).toFixed()),
 		};
 	}
 
@@ -405,8 +400,8 @@ class Round {
 			if (!self.scope.backwards) {
 				roundRewards.push({
 					timestamp: self.scope.block.timestamp,
-					fees: new Bignum(changes.fees).toString(),
-					reward: new Bignum(changes.rewards).toString(),
+					fees: new BigNum(changes.fees).toString(),
+					reward: new BigNum(changes.rewards).toString(),
 					round: self.scope.round,
 					publicKey: delegate,
 				});
@@ -453,10 +448,10 @@ class Round {
 
 			// Aggregate round rewards data (remaining fees) - when going forward
 			if (!self.scope.backwards) {
-				roundRewards[roundRewards.length - 1].fees = new Bignum(
+				roundRewards[roundRewards.length - 1].fees = new BigNum(
 					roundRewards[roundRewards.length - 1].fees
 				)
-					.plus(feesRemaining)
+					.add(feesRemaining)
 					.toString();
 			}
 
