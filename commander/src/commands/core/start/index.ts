@@ -13,9 +13,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { flags as flagParser } from '@oclif/command';
 import Listr from 'listr';
 import BaseCommand from '../../../base';
-import { stopApplication } from '../../../utils/node/pm2';
+import { restartApplication } from '../../../utils/core/pm2';
 import CacheCommand from './cache';
 import DatabaseCommand from './database';
 
@@ -23,7 +24,7 @@ interface Args {
 	readonly name: string;
 }
 
-export default class StopCommand extends BaseCommand {
+export default class StartCommand extends BaseCommand {
 	static args = [
 		{
 			name: 'name',
@@ -32,12 +33,23 @@ export default class StopCommand extends BaseCommand {
 		},
 	];
 
-	static description = 'Stop Lisk Core instance.';
+	static flags = {
+		json: flagParser.boolean({
+			...BaseCommand.flags.json,
+			hidden: true,
+		}),
+		pretty: flagParser.boolean({
+			...BaseCommand.flags.pretty,
+			hidden: true,
+		}),
+	};
 
-	static examples = ['node:stop mainnet-latest'];
+	static description = 'Start Lisk Core instance.';
+
+	static examples = ['core:start mainnet-latest'];
 
 	async run(): Promise<void> {
-		const { args } = this.parse(StopCommand);
+		const { args } = this.parse(StartCommand);
 		const { name } = args as Args;
 
 		// tslint:disable-next-line await-promise
@@ -47,13 +59,12 @@ export default class StopCommand extends BaseCommand {
 
 		const tasks = new Listr([
 			{
-				title: 'Stop Lisk Core instance',
+				title: 'Start Lisk Core instance',
 				task: async () => {
-					await stopApplication(name);
+					await restartApplication(name);
 				},
 			},
 		]);
-
 		await tasks.run();
 	}
 }
