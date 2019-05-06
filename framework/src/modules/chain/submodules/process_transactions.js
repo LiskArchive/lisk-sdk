@@ -19,6 +19,7 @@ const {
 	TransactionError,
 } = require('@liskhq/lisk-transactions');
 const roundInformation = require('../logic/rounds_information');
+const StateStore = require('../logic/state_store');
 const slots = require('../helpers/slots');
 const checkTransactionExceptions = require('../logic/check_transaction_against_exceptions.js');
 
@@ -56,9 +57,6 @@ class ProcessTransactions {
 	constructor(cb, scope) {
 		library = {
 			storage: scope.components.storage,
-			logic: {
-				stateManager: scope.logic.stateManager,
-			},
 		};
 		setImmediate(cb, null, this);
 	}
@@ -133,7 +131,7 @@ class ProcessTransactions {
 	// eslint-disable-next-line class-methods-use-this
 	async applyTransactions(transactions, tx = undefined) {
 		// Get data required for verifying transactions
-		const stateStore = library.logic.stateManager.createStore({
+		const stateStore = new StateStore(library.storage, {
 			mutate: true,
 			tx,
 		});
@@ -178,10 +176,11 @@ class ProcessTransactions {
 					errors: allowed
 						? []
 						: [
-								new Error(
+								new TransactionError(
 									`Transaction type ${
 										transaction.type
-									} is currently not allowed.`
+									} is currently not allowed.`,
+									transaction.id
 								),
 						  ],
 				};
@@ -192,7 +191,7 @@ class ProcessTransactions {
 	// eslint-disable-next-line class-methods-use-this
 	async undoTransactions(transactions, tx = undefined) {
 		// Get data required for verifying transactions
-		const stateStore = library.logic.stateManager.createStore({
+		const stateStore = new StateStore(library.storage, {
 			mutate: true,
 			tx,
 		});
@@ -223,14 +222,14 @@ class ProcessTransactions {
 	// eslint-disable-next-line class-methods-use-this
 	async verifyTransactions(transactions) {
 		// Get data required for verifying transactions
-		const stateStore = library.logic.stateManager.createStore({
+		const stateStore = new StateStore(library.storage, {
 			mutate: false,
 		});
 
 		await Promise.all(transactions.map(t => t.prepare(stateStore)));
 
 		const transactionsResponses = transactions.map(transaction => {
-			library.logic.stateManager.createSnapshot();
+			stateStore.createSnapshot();
 			const transactionResponse = transaction.apply(stateStore);
 			if (slots.getSlotNumber(transaction.timestamp) > slots.getSlotNumber()) {
 				transactionResponse.status = 0;
@@ -242,7 +241,7 @@ class ProcessTransactions {
 					)
 				);
 			}
-			library.logic.stateManager.restoreSnapshot();
+			stateStore.restoreSnapshot();
 			return transactionResponse;
 		});
 
@@ -263,7 +262,7 @@ class ProcessTransactions {
 	// eslint-disable-next-line class-methods-use-this
 	async processSignature(transaction, signature) {
 		// Get data required for processing signature
-		const stateStore = library.logic.stateManager.createStore({
+		const stateStore = new StateStore(library.storage, {
 			mutate: false,
 		});
 		await transaction.prepare(stateStore);
@@ -275,52 +274,6 @@ class ProcessTransactions {
 	onBind(scope) {
 		library.modules = {
 			blocks: scope.modules.blocks,
-		};
-	}
-
-	/**
-	 * Executes each step from left to right and pipes the transactions that succeed to the next
-	 * step. Finally collects all responses and formats them accordingly.
-	 * @param steps
-	 * @returns {function(*=): {transactionsResponses: *[]}}
-	 */
-	static composeProcessTransactionSteps(...steps) {
-		return async transactions => {
-			let failedResponses = [];
-			const { transactionsResponses: successfulResponses } = await steps.reduce(
-				async (previousValue, fn, index) => {
-					if (index === 0) {
-						// previousValue === transactions argument in the first iteration
-						// First iteration includes raw transaction objects instead of formatted responses.
-						return fn(previousValue);
-					}
-
-					previousValue = await previousValue;
-
-					// Keep track of transactions that failed in the current step
-					failedResponses = [
-						...failedResponses,
-						...previousValue.transactionsResponses.filter(
-							response => response.status === TransactionStatus.FAIL
-						),
-					];
-
-					// Return only transactions that succeeded to the next step
-					return fn(
-						transactions.filter(transaction =>
-							previousValue.transactionsResponses
-								.filter(response => response.status === TransactionStatus.OK)
-								.map(transactionResponse => transactionResponse.id)
-								.includes(transaction.id)
-						)
-					);
-				},
-				transactions
-			);
-
-			return {
-				transactionsResponses: [...failedResponses, ...successfulResponses],
-			};
 		};
 	}
 

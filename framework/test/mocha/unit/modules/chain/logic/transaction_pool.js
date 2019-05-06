@@ -17,7 +17,7 @@
 const pool = require('@liskhq/lisk-transaction-pool');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const expect = require('chai').expect;
-const ProcessTransactions = require('../../../../../../src/modules/chain/submodules/process_transactions');
+const processTransactionLogic = require('../../../../../../src/modules/chain/logic/process_transaction');
 const TransactionPool = require('../../../../../../src/modules/chain/logic/transaction_pool');
 
 const config = __testContext.config;
@@ -92,7 +92,7 @@ describe('transactionPool', () => {
 	describe('bind', () => {
 		let txPool;
 		beforeEach(async () => {
-			sinonSandbox.spy(ProcessTransactions, 'composeProcessTransactionSteps');
+			sinonSandbox.spy(processTransactionLogic, 'composeTransactionSteps');
 			txPool = new TransactionPool(
 				config.modules.chain.broadcasts.broadcastInterval,
 				config.modules.chain.broadcasts.releaseLimit,
@@ -106,9 +106,9 @@ describe('transactionPool', () => {
 			expect(txPool.pool).to.be.an.instanceOf(pool.TransactionPool);
 		});
 
-		it('should call composeProcessTransactionSteps to compose verifyTransactions', async () => {
+		it('should call composeTransactionSteps to compose verifyTransactions', async () => {
 			expect(
-				ProcessTransactions.composeProcessTransactionSteps
+				processTransactionLogic.composeTransactionSteps
 			).to.have.been.calledWith(
 				processTransactionsStub.checkAllowedTransactions,
 				processTransactionsStub.checkPersistedTransactions,
@@ -116,9 +116,9 @@ describe('transactionPool', () => {
 			);
 		});
 
-		it('should call composeProcessTransactionsteps to compose processTransactions', async () => {
+		it('should call composeTransactionSteps to compose processTransactions', async () => {
 			expect(
-				ProcessTransactions.composeProcessTransactionSteps.getCall(1)
+				processTransactionLogic.composeTransactionSteps.getCall(1)
 			).to.have.been.calledWith(
 				processTransactionsStub.checkPersistedTransactions,
 				processTransactionsStub.applyTransactions

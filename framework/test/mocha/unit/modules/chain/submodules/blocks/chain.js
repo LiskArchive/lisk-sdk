@@ -181,10 +181,6 @@ describe('blocks/chain', () => {
 			tick: sinonSandbox.stub(),
 		};
 
-		const modulesTransportStub = {
-			broadcastHeaders: sinonSandbox.stub(),
-		};
-
 		const modulesTransactionsStub = {
 			applyUnconfirmed: sinonSandbox.stub(),
 			applyConfirmed: sinonSandbox.stub(),
@@ -203,7 +199,6 @@ describe('blocks/chain', () => {
 				blocks: modulesBlocksStub,
 				rounds: modulesRoundsStub,
 				transactions: modulesTransactionsStub,
-				transport: modulesTransportStub,
 				processTransactions: {
 					applyTransactions: sinonSandbox.stub().resolves({
 						stateStore: {
@@ -793,25 +788,6 @@ describe('blocks/chain', () => {
 				return expect(modules.blocks.isActive.set.args[1][0]).to.be.false;
 			});
 
-			describe('when reason === Snapshot finished', () => {
-				beforeEach(done => {
-					storageStub.entities.Block.begin = (desc, tx) => tx(txTemp.rejects());
-					__private.saveBlockStep.rejects('Snapshot finished');
-					done();
-				});
-
-				it('should call a callback with error', done => {
-					blocksChainModule.applyBlock(blockWithTransactions, true, err => {
-						expect(err.name).to.equal('Snapshot finished');
-						expect(loggerStub.info.args[0][0].name).to.equal(
-							'Snapshot finished'
-						);
-						expect(process.emit).to.have.been.calledWith('SIGTERM');
-						done();
-					});
-				});
-			});
-
 			describe('when reason !== Snapshot finished', () => {
 				beforeEach(done => {
 					storageStub.entities.Block.begin = (desc, tx) => tx(txTemp.rejects());
@@ -1025,7 +1001,6 @@ describe('blocks/chain', () => {
 		beforeEach(done => {
 			popLastBlockTemp = __private.popLastBlock;
 			__private.popLastBlock = sinonSandbox.stub();
-			modules.transport.broadcastHeaders.callsArgWith(0, null, true);
 			done();
 		});
 
@@ -1156,7 +1131,6 @@ describe('blocks/chain', () => {
 			expect(modules.accounts).to.equal(bindingsStub.modules.accounts);
 			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
 			expect(modules.rounds).to.equal(bindingsStub.modules.rounds);
-			expect(modules.transport).to.equal(bindingsStub.modules.transport);
 			return expect(modules.transactions).to.equal(
 				bindingsStub.modules.transactions
 			);

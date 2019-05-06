@@ -35,10 +35,6 @@ const modulesToInstrument = {
 		identifier: 'modules.chain.submodules.blocks',
 		callbackMethods: ['shared.getBlocks'],
 	},
-	'../submodules/dapps': {
-		identifier: 'modules.chain.submodules.dapps',
-		callbackMethods: ['getDapps'],
-	},
 	'../submodules/delegates': {
 		identifier: 'modules.chain.submodules.delegates',
 		callbackMethods: ['getForgers', 'getDelegates'],
@@ -71,17 +67,12 @@ const modulesToInstrument = {
 	'../submodules/transport': {
 		identifier: 'modules.chain.submodules.transport',
 		callbackMethods: [
-			'broadcastHeaders',
 			'shared.blocksCommon',
 			'shared.blocks',
-			'shared.list',
-			'shared.height',
-			'shared.status',
 			'shared.postSignature',
 			'shared.getSignatures',
 			'shared.getTransactions',
 			'shared.postTransaction',
-			'internal.updatePeer',
 		],
 	},
 };

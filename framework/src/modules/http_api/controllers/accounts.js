@@ -100,25 +100,21 @@ AccountsController.getAccounts = async function(context, next) {
 		limit: params.limit.value,
 		offset: params.offset.value,
 		sort: params.sort.value,
+		extended: false,
 	};
 
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	try {
-		let lastBlock = await storage.entities.Block.get(
-			{},
-			{ sort: 'height:desc', limit: 1 }
-		);
-		lastBlock = lastBlock[0];
-
+		const { lastBlock } = await channel.invoke('chain:getNodeStatus');
 		const data = await storage.entities.Account.get(filters, options).map(
 			accountFormatter.bind(
 				null,
 				lastBlock.height
 					? await channel.invoke('chain:calculateSupply', {
 							height: lastBlock.height,
-						})
+					  })
 					: 0
 			)
 		);

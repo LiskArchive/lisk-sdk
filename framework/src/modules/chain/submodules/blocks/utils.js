@@ -592,7 +592,7 @@ Utils.prototype.getBlockProgressLogger = function(
 		this.log = function() {
 			library.logger.info(
 				loggerMsg,
-				`${(this.applied / this.target * 100).toPrecision(4)} %: applied ${
+				`${((this.applied / this.target) * 100).toPrecision(4)} %: applied ${
 					this.applied
 				} of ${this.target} transactions`
 			);

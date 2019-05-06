@@ -18,7 +18,6 @@ const {
 	Account,
 	Block,
 	Migration,
-	Peer,
 	Round,
 	Transaction,
 } = require('../components/storage/entities');
@@ -32,7 +31,6 @@ module.exports = async ({ components: { storage, logger } }, accountLimit) => {
 			replaceExisting: true,
 		});
 		storage.registerEntity('Migration', Migration);
-		storage.registerEntity('Peer', Peer);
 		storage.registerEntity('Round', Round);
 		storage.registerEntity('Transaction', Transaction, {
 			replaceExisting: true,

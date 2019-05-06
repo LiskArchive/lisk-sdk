@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const assert = require('assert');
 const {
 	TransferTransaction,
@@ -10,14 +26,15 @@ const randomstring = require('randomstring');
 const _ = require('lodash');
 const Controller = require('./controller');
 const version = require('../version');
-const validator = require('./helpers/validator');
-const configurator = require('./helpers/configurator');
+const validator = require('./validator');
+const configurator = require('./default_configurator');
 const { genesisBlockSchema, constantsSchema } = require('./schema');
 
 const { createLoggerComponent } = require('../components/logger');
 
 const ChainModule = require('../modules/chain');
 const HttpAPIModule = require('../modules/http_api');
+const NetworkModule = require('../modules/network');
 
 // Private __private used because private keyword is restricted
 const __private = {
@@ -63,7 +80,7 @@ const registerProcessHooks = app => {
  * @requires assert
  * @requires Controller
  * @requires module.defaults
- * @requires helpers/validator
+ * @requires validator
  * @requires schema/application
  * @requires components/logger
  * @requires components/storage
@@ -151,6 +168,7 @@ class Application {
 		this.registerModule(ChainModule, {
 			registeredTransactions: this.getTransactions(),
 		});
+		this.registerModule(NetworkModule);
 		this.registerModule(HttpAPIModule);
 		this.overrideModuleOptions(HttpAPIModule.alias, {
 			loadAsChildProcess: true,
@@ -225,7 +243,9 @@ class Application {
 		assert(Transaction, 'Transaction implementation is required');
 
 		if (options.matcher) {
-			Transaction.matcher = options.matcher;
+			Object.defineProperty(Transaction.prototype, 'matcher', {
+				get: () => options.matcher,
+			});
 		}
 
 		const transactions = this.getTransactions();
@@ -314,7 +334,7 @@ class Application {
 		if (this.controller) {
 			await this.controller.cleanup(errorCode, message);
 		}
-		this.logger.log(`Shutting down with error code ${errorCode}: ${message}`);
+		this.logger.info(`Shutting down with error code ${errorCode}: ${message}`);
 		process.exit(errorCode);
 	}
 
@@ -337,7 +357,7 @@ class Application {
 		// TODO: move this configuration to module especific config file
 		const childProcessModules = process.env.LISK_CHILD_PROCESS_MODULES
 			? process.env.LISK_CHILD_PROCESS_MODULES.split(',')
-			: ['httpApi'];
+			: [];
 
 		Object.keys(modules).forEach(alias => {
 			this.overrideModuleOptions(alias, {
@@ -352,7 +372,7 @@ class Application {
 			protocolVersion: this.config.app.protocolVersion,
 			nonce: this.config.app.nonce,
 			nethash: this.config.app.nethash,
-			wsPort: this.config.modules.chain.network.wsPort,
+			wsPort: this.config.modules.network.wsPort,
 			httpPort: this.config.modules.http_api.httpPort,
 		};
 

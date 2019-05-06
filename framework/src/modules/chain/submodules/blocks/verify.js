@@ -60,7 +60,7 @@ class Verify {
 			},
 			config: {
 				loading: {
-					snapshotRound: config.loading.snapshotRound,
+					rebuildUpToRound: config.loading.rebuildUpToRound,
 				},
 			},
 			channel,
@@ -86,13 +86,12 @@ class Verify {
  * @returns {Object} cb.err - Error if occurred
  */
 __private.checkTransactions = async (block, checkExists) => {
-	const { version, height, timestamp } = block;
+	const { version, height, timestamp, transactions } = block;
 	const context = {
 		blockVersion: version,
 		blockHeight: height,
 		blockTimestamp: timestamp,
 	};
-	const transactions = block.transactions;
 
 	if (transactions.length === 0) {
 		return;
@@ -815,11 +814,11 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 				// Also that function set new block as our last block
 				modules.blocks.chain.applyBlock(block, saveBlock, seriesCb);
 			},
-			// Perform next two steps only when 'broadcast' flag is set, it can be:
+			// Perform the next step only when 'broadcast' flag is set, it can be:
 			// 'true' if block comes from generation or receiving process
 			// 'false' if block comes from chain synchronization process
 			updateApplicationState(seriesCb) {
-				if (!library.config.loading.snapshotRound) {
+				if (!library.config.loading.rebuildUpToRound && broadcast) {
 					return modules.blocks
 						.calculateNewBroadhash()
 						.then(({ broadhash, height }) => {
@@ -837,10 +836,6 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 						.catch(seriesCb);
 				}
 				return seriesCb();
-			},
-			broadcastHeaders(seriesCb) {
-				// Notify all remote peers about our new headers
-				broadcast ? modules.transport.broadcastHeaders(seriesCb) : seriesCb();
 			},
 		},
 		err => setImmediate(cb, err)
@@ -860,7 +855,6 @@ Verify.prototype.onBind = function(scope) {
 		blocks: scope.modules.blocks,
 		delegates: scope.modules.delegates,
 		transactions: scope.modules.transactions,
-		transport: scope.modules.transport,
 		processTransactions: scope.modules.processTransactions,
 	};
 

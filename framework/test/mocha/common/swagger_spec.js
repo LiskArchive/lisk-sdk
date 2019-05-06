@@ -16,6 +16,7 @@
 
 const chai = require('chai');
 const supertest = require('supertest');
+const _ = require('lodash');
 const Promise = require('bluebird');
 const swaggerHelper = require('../../../src/modules/http_api/helpers/swagger');
 

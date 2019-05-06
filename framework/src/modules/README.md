@@ -2,13 +2,13 @@
 
 ### Table of contents
 
-* [Description](#description)
-  * [Core Modules](#core-modules)
-  * [Custom Modules](#custom-modules)
-* [Module Communication](#module-communication)
-  * [InMemory Channel](#inmemory-channel)
-  * [ChildProcess Channel](#childprocess-channel)
-* [Module Lifecycle](#module-life-cycle)
+- [Description](#description)
+  - [Core Modules](#core-modules)
+  - [Custom Modules](#custom-modules)
+- [Module Communication](#module-communication)
+  - [InMemory Channel](#inmemory-channel)
+  - [ChildProcess Channel](#childprocess-channel)
+- [Module Lifecycle](#module-life-cycle)
 
 ## Description
 
@@ -20,8 +20,8 @@ Core Modules are shipped along with the Lisk Core distribution itself. These mod
 
 #### List of Core Modules
 
-* **Chain Module:** handles all events and actions, that are related to the blockchain system.
-* **HTTP API Module:** provides API endpoints, that enable users and other programs to communicate with the Lisk blockchain through the API.
+- **Chain Module:** handles all events and actions, that are related to the blockchain system.
+- **HTTP API Module:** provides API endpoints, that enable users and other programs to communicate with the Lisk blockchain through the API.
 
 ### Custom Modules
 
@@ -57,7 +57,7 @@ export default class MyModule extends BaseModule {
     *
     * Package meta information.
     *
-    * @return {Object} info - JSON object referring the version, module name and module author.  
+    * @return {Object} info - JSON object referring the version, module name and module author.
     */
     static get info(){
         return {
@@ -146,11 +146,11 @@ A modules' life cycle consists of following events in the right order:
 
 **Loading**
 
-* _module_:registeredToBus
-* _module_:loading:started
-* _module_:loading:finished
+- _module_:registeredToBus
+- _module_:loading:started
+- _module_:loading:finished
 
 **Unloading**
 
-* _module_:unloading:started
-* _module_:unloading:finished
+- _module_:unloading:started
+- _module_:unloading:finished

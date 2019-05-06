@@ -65,18 +65,28 @@ export enum NETWORK {
 	MAINNET = 'mainnet',
 	TESTNET = 'testnet',
 	BETANET = 'betanet',
+	ALPHANET = 'alphanet',
+	DEVNET = 'devnet',
 }
 
-export const POSTGRES_PORTS = {
-	mainnet: 5432,
-	testnet: 5433,
-	betanet: 5434,
+export const POSTGRES_PORT = 5432;
+
+export const REDIS_PORT = 6380;
+
+export const HTTP_PORTS = {
+	mainnet: 8000,
+	testnet: 7000,
+	betanet: 6000,
+	alphanet: 5000,
+	devnet: 4000,
 };
 
-export const REDIS_PORTS = {
-	mainnet: 6380,
-	testnet: 6381,
-	betanet: 6382,
+export const WS_PORTS = {
+	mainnet: 8001,
+	testnet: 7001,
+	betanet: 6001,
+	alphanet: 5001,
+	devnet: 4001,
 };
 
 export enum OS {
@@ -86,4 +96,4 @@ export enum OS {
 
 export const RELEASE_URL = 'https://downloads.lisk.io/lisk';
 export const SNAPSHOT_URL =
-	'http://snapshots.lisk.io.s3-eu-west-1.amazonaws.com/lisk';
+	'https://downloads.lisk.io/lisk/mainnet/blockchain.db.gz';

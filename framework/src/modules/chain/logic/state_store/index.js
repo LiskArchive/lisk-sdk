@@ -1,38 +1,19 @@
-const AccountStore = require('./account_store');
-const TransactionStore = require('./transaction_store');
-const RoundStore = require('./round_store');
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 
-class StateStoreManager {
-	constructor(storage, cb) {
-		this.entities = {
-			Account: storage.entities.Account,
-			Transaction: storage.entities.Transaction,
-			Round: storage.entities.Round,
-		};
+'use strict';
 
-		this.stateStore = {};
+const StateStore = require('./state_store');
 
-		return setImmediate(cb, null, this);
-	}
-
-	createStore(options) {
-		this.stateStore = {
-			account: new AccountStore(this.entities.Account, options),
-			round: new RoundStore(this.entities.Round, options),
-			transaction: new TransactionStore(this.entities.Transaction, options),
-		};
-		return this.stateStore;
-	}
-
-	createSnapshot() {
-		this.stateStore.account.createSnapshot();
-		this.stateStore.transaction.createSnapshot();
-	}
-
-	restoreSnapshot() {
-		this.stateStore.account.restoreSnapshot();
-		this.stateStore.transaction.restoreSnapshot();
-	}
-}
-
-module.exports = StateStoreManager;
+module.exports = StateStore;

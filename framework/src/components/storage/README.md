@@ -11,14 +11,14 @@ The initial implementation includes CRUD operations for the entities `Account`, 
 
 ### CRUD operations
 
-* `create` takes an object or an array of objects and persist them to the database.
-* `get` takes the filter as specified in the `Filter Combinator` section and options object where you can define `limit`, `offset` and `sort` params.
-* `getOne` behaves like `get` except it will throw an error if the filter returns zero or more than one item.
-* `update` takes the filter as specified in the `Filter Combinator` section and the data to update the matched items.
-* `updateOne` behaves like `get` except it only updates one item.
-* `delete` takes the filter as specified in the `Filter Combinator` section and delete the matched items.
-* `count` takes the filter as specified in the `Filter Combinator` section and count the number of matched items.
-* `isPersisted` takes the filter as specified in the `Filter Combinator` section and returns true if the item is persisted and false otherwise.
+- `create` takes an object or an array of objects and persist them to the database.
+- `get` takes the filter as specified in the `Filter Combinator` section and options object where you can define `limit`, `offset` and `sort` params.
+- `getOne` behaves like `get` except it will throw an error if the filter returns zero or more than one item.
+- `update` takes the filter as specified in the `Filter Combinator` section and the data to update the matched items.
+- `updateOne` behaves like `get` except it only updates one item.
+- `delete` takes the filter as specified in the `Filter Combinator` section and delete the matched items.
+- `count` takes the filter as specified in the `Filter Combinator` section and count the number of matched items.
+- `isPersisted` takes the filter as specified in the `Filter Combinator` section and returns true if the item is persisted and false otherwise.
 
 Examples:
 
@@ -111,9 +111,9 @@ New entities are created by extending the `BaseEntity` and implementing the requ
 
 Following conventions must be followed strictly
 
-* Dynamic getter functions must accept `filters` object as the first parameter.
-* All interfaces in the entity must return a `Promise`.
-* Timestamp types always refer to the network Epoch timestamp. In the case of Unix timestamp, the attribute name should be prefixed with `unix_`.
-* All values related to the amounts should be exposed as strings, due to the limited JavaScript integers precision (find out more while reading about Number. MAX_SAFE_INTEGER). The block height and round number can be safely stored as integers and should be exposed as integers.
-* All `BYTEA` fields in 'hex' encoding should be exposed as strings. Any other encoding should be exposed as Buffer.
-* Use `Symbol` to define constants within database entities and export them, so the other modules can use them explicitly instead of strings.
+- Dynamic getter functions must accept `filters` object as the first parameter.
+- All interfaces in the entity must return a `Promise`.
+- Timestamp types always refer to the network Epoch timestamp. In the case of Unix timestamp, the attribute name should be prefixed with `unix_`.
+- All values related to the amounts should be exposed as strings, due to the limited JavaScript integers precision (find out more while reading about Number. MAX_SAFE_INTEGER). The block height and round number can be safely stored as integers and should be exposed as integers.
+- All `BYTEA` fields in 'hex' encoding should be exposed as strings. Any other encoding should be exposed as Buffer.
+- Use `Symbol` to define constants within database entities and export them, so the other modules can use them explicitly instead of strings.

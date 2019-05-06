@@ -29,7 +29,7 @@ const sendTransactionPromise = require('../../../common/helpers/api')
 const randomUtil = require('../../../common/utils/random');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 
-const { NORMALIZER } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 
 const specialChar = '❤';
 const nullChar1 = '\0';
@@ -392,7 +392,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 						expect(res.body.message).to.be.eql('Invalid transaction body');
 						expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 						expect(res.body.errors[0].message).to.be.equal(
-							'\'.data\' should match format "noNullByte"'
+							'\'.data\' should match format "transferData"'
 						);
 						badTransactions.push(transaction);
 					});
@@ -415,7 +415,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 						expect(res.body.message).to.be.eql('Invalid transaction body');
 						expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 						expect(res.body.errors[0].message).to.be.equal(
-							'\'.data\' should match format "noNullByte"'
+							'\'.data\' should match format "transferData"'
 						);
 						badTransactions.push(transaction);
 					});
@@ -438,7 +438,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 						expect(res.body.message).to.be.eql('Invalid transaction body');
 						expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 						expect(res.body.errors[0].message).to.be.equal(
-							'\'.data\' should match format "noNullByte"'
+							'\'.data\' should match format "transferData"'
 						);
 						badTransactions.push(transaction);
 					});
@@ -461,7 +461,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 						expect(res.body.message).to.be.eql('Invalid transaction body');
 						expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 						expect(res.body.errors[0].message).to.be.equal(
-							'\'.data\' should match format "noNullByte"'
+							'\'.data\' should match format "transferData"'
 						);
 						badTransactions.push(transaction);
 					});

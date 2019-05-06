@@ -142,15 +142,13 @@ class Transaction {
 	}
 
 	fromBlock(block) {
-		if (!block.transactions) {
-			return undefined;
-		}
+		const transactions = block.transactions || [];
 
-		const transactions = block.transactions.map(transaction =>
+		const response = transactions.map(transaction =>
 			this.fromJson(transaction)
 		);
 
-		return transactions;
+		return response;
 	}
 
 	fromJson(rawTx) {
@@ -160,9 +158,7 @@ class Transaction {
 			throw new Error('Transaction type not found.');
 		}
 
-		const transaction = new TransactionClass(rawTx);
-		transaction.matcher = TransactionClass.matcher;
-		return transaction;
+		return new TransactionClass(rawTx);
 	}
 
 	// TODO: remove after https://github.com/LiskHQ/lisk/issues/2424

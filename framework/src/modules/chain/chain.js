@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 if (process.env.NEW_RELIC_LICENSE_KEY) {
 	require('./helpers/newrelic_lisk');
 }
@@ -8,16 +24,14 @@ const git = require('./helpers/git');
 const Sequence = require('./helpers/sequence');
 const ed = require('./helpers/ed');
 // eslint-disable-next-line import/order
-const { ZSchema } = require('../../controller/helpers/validator');
+const { ZSchema } = require('../../controller/validator');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
 const {
-	lookupPeerIPs,
 	createBus,
 	bootstrapStorage,
 	bootstrapCache,
-	createSocketCluster,
 	initLogicStructure,
 	initModules,
 } = require('./init_steps');
@@ -87,7 +101,8 @@ module.exports = class Chain {
 			storageConfig.logFileName === loggerConfig.logFileName
 				? this.logger
 				: createLoggerComponent(
-						Object.assign({}, loggerConfig, {
+						Object.assign({
+							...loggerConfig,
 							logFileName: storageConfig.logFileName,
 						})
 				  );
@@ -107,14 +122,17 @@ module.exports = class Chain {
 		// Needs to be loaded here as its using constants that need to be initialized first
 		this.slots = require('./helpers/slots');
 
-		if (this.options.loading.snapshotRound) {
-			this.options.network.enabled = false;
-			this.options.network.list = [];
+		// Deactivate broadcast and syncing during snapshotting process
+		if (this.options.loading.rebuildUpToRound) {
 			this.options.broadcasts.active = false;
 			this.options.syncing.active = false;
 		}
 
 		try {
+			if (!this.options.genesisBlock) {
+				throw Error('Failed to assign nethash from genesis block');
+			}
+
 			// Cache
 			this.logger.debug('Initiating cache...');
 			const cache = createCacheComponent(cacheConfig, this.logger);
@@ -123,15 +141,11 @@ module.exports = class Chain {
 			this.logger.debug('Initiating storage...');
 			const storage = createStorageComponent(storageConfig, dbLogger);
 
-			if (!this.options.genesisBlock) {
-				throw Error('Failed to assign nethash from genesis block');
-			}
-
 			// TODO: For socket cluster child process, should be removed with refactoring of network module
 			this.options.loggerConfig = loggerConfig;
 
 			const self = this;
-			const scope = {
+			this.scope = {
 				lastCommit,
 				ed,
 				build: versionBuild,
@@ -158,43 +172,45 @@ module.exports = class Chain {
 				applicationState: this.applicationState,
 			};
 
-			await bootstrapStorage(scope, global.constants.ACTIVE_DELEGATES);
-			await bootstrapCache(scope);
+			await bootstrapStorage(this.scope, global.constants.ACTIVE_DELEGATES);
+			await bootstrapCache(this.scope);
 
-			scope.bus = await createBus();
-			scope.logic = await initLogicStructure(scope);
-			scope.modules = await initModules(scope);
+			this.scope.bus = await createBus();
+			this.scope.logic = await initLogicStructure(this.scope);
+			this.scope.modules = await initModules(this.scope);
 
-			if (scope.config.network.enabled) {
-				// Lookup for peers ips from dns
-				scope.config.network.list = await lookupPeerIPs(
-					scope.config.network.list,
-					scope.config.network.enabled
-				);
-
-				// Listen to websockets
-				scope.webSocket = await createSocketCluster(scope);
-				await scope.webSocket.listen();
-			} else {
-				this.logger.info(
-					'Skipping P2P server initialization due to the config settings - "peers.enabled" is set to false.'
-				);
-			}
-
-			// Ready to bind modules
-			scope.logic.peers.bindModules(scope.modules);
-			scope.logic.block.bindModules(scope.modules);
+			this.scope.logic.block.bindModules(this.scope.modules);
 
 			this.channel.subscribe('app:state:updated', event => {
-				Object.assign(scope.applicationState, event.data);
+				Object.assign(this.scope.applicationState, event.data);
 			});
 
 			// Fire onBind event in every module
-			scope.bus.message('bind', scope);
+			this.scope.bus.message('bind', this.scope);
 
 			self.logger.info('Modules ready and launched');
 
-			self.scope = scope;
+			// Avoid receiving blocks/transactions from the network during snapshotting process
+			if (!this.options.loading.rebuildUpToRound) {
+				this.channel.subscribe(
+					'network:subscribe',
+					({ data: { event, data } }) => {
+						if (event === 'postTransactions') {
+							this.scope.modules.transport.shared.postTransactions(data);
+							return;
+						}
+						if (event === 'postSignatures') {
+							this.scope.modules.transport.shared.postSignatures(data);
+							return;
+						}
+						if (event === 'postBlock') {
+							this.scope.modules.transport.shared.postBlock(data);
+							// eslint-disable-next-line no-useless-return
+							return;
+						}
+					}
+				);
+			}
 		} catch (error) {
 			this.logger.fatal('Chain initialization', {
 				message: error.message,
@@ -223,14 +239,10 @@ module.exports = class Chain {
 					action.params.password,
 					action.params.forging
 				),
-			getPeers: async action =>
-				promisify(this.scope.modules.peers.shared.getPeers)(
-					action.params.parameters
-				),
-			getPeersCountByFilter: async action =>
-				this.scope.modules.peers.shared.getPeersCountByFilter(
-					action.params.parameters
-				),
+			getTransactions: async () =>
+				promisify(this.scope.modules.transport.shared.getTransactions)(),
+			getSignatures: async () =>
+				promisify(this.scope.modules.transport.shared.getSignatures)(),
 			postSignature: async action =>
 				promisify(this.scope.modules.signatures.shared.postSignature)(
 					action.params.signature
@@ -265,18 +277,21 @@ module.exports = class Chain {
 					this.scope.modules.transactions.shared.getTransactionsCount
 				)(),
 				secondsSinceEpoch: this.slots.getTime(),
-				networkHeight: await promisify(this.scope.modules.peers.networkHeight)({
-					options: {
-						normalized: false,
-					},
-				}),
 				lastBlock: this.scope.modules.blocks.lastBlock.get(),
 			}),
+			blocks: async action =>
+				promisify(this.scope.modules.transport.shared.blocks)(
+					action.params || {}
+				),
+			blocksCommon: async action =>
+				promisify(this.scope.modules.transport.shared.blocksCommon)(
+					action.params || {}
+				),
 		};
 	}
 
 	async cleanup(code, error) {
-		const { webSocket, modules, components } = this.scope;
+		const { modules, components } = this.scope;
 		if (error) {
 			this.logger.fatal(error.toString());
 			if (code === undefined) {
@@ -287,11 +302,6 @@ module.exports = class Chain {
 		}
 		this.logger.info('Cleaning chain...');
 
-		if (webSocket) {
-			webSocket.removeAllListeners('fail');
-			webSocket.destroy();
-		}
-
 		if (components !== undefined) {
 			Object.keys(components).forEach(async key => {
 				if (components[key].cleanup) {
@@ -301,11 +311,11 @@ module.exports = class Chain {
 		}
 
 		// Run cleanup operation on each module before shutting down the node;
-		// this includes operations like snapshotting database tables.
+		// this includes operations like the rebuild verification process.
 		await Promise.all(
 			Object.keys(modules).map(key => {
 				if (typeof modules[key].cleanup === 'function') {
-					return promisify(modules[key].cleanup);
+					return modules[key].cleanup();
 				}
 				return true;
 			})
