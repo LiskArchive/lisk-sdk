@@ -497,39 +497,6 @@ describe('account', () => {
 		});
 	});
 
-	describe('set', () => {
-		it('should insert an account', done => {
-			account.set('123L', { u_username: 'test_set_insert' }, (err, res) => {
-				expect(err).to.not.exist;
-				expect(res).to.be.undefined;
-				done();
-			});
-		});
-
-		it('should set provided fields when valid', done => {
-			account.set(
-				validAccount.address,
-				{ u_username: 'test_set', vote: 1 },
-				(err, res) => {
-					expect(err).to.not.exist;
-					expect(res).to.be.undefined;
-					done();
-				}
-			);
-		});
-
-		it('should throw error when unrelated fields are provided', done => {
-			account.set(
-				validAccount.address,
-				{ unrelatedfield: 'random value' },
-				err => {
-					expect(err).to.equal('Account#set error');
-					done();
-				}
-			);
-		});
-	});
-
 	describe('merge', () => {
 		it('should merge diff when values are correct', done => {
 			account.merge(

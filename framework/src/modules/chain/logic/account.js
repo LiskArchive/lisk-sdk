@@ -266,30 +266,6 @@ class Account {
 	}
 
 	/**
-	 * Sets fields for specific address in mem_accounts table.
-	 *
-	 * @param {address} address
-	 * @param {Object} fields
-	 * @param {function} cb - Callback function
-	 * @param {Object} tx - Database transaction/task object
-	 * @returns {setImmediate} error
-	 */
-	set(address, fields, cb, tx) {
-		// Verify public key
-		this.verifyPublicKey(fields.publicKey);
-
-		// Normalize address
-		fields.address = address;
-
-		this.scope.storage.entities.Account.upsert({ address }, fields, {}, tx)
-			.then(() => setImmediate(cb))
-			.catch(err => {
-				library.logger.error(err.stack);
-				return setImmediate(cb, 'Account#set error');
-			});
-	}
-
-	/**
 	 * Updates account from mem_account with diff data belonging to an editable field.
 	 * Inserts into mem_round "address", "amount", "delegate", "round" based on balance or delegates fields.
 	 *
