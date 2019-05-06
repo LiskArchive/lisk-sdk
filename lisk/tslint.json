@@ -1,6 +1,8 @@
 {
 	"extends": ["../tslint.json"],
 	"rules": {
-		"no-null-keyword": false
+		"no-null-keyword": false,
+		"no-let": false,
+		"no-console": false
 	}
 }
