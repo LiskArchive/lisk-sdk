@@ -18,7 +18,6 @@ const {
 	Status: TransactionStatus,
 	TransactionError,
 } = require('@liskhq/lisk-transactions');
-const async = require('async');
 
 // Private fields
 let modules;
@@ -113,86 +112,6 @@ class Multisignatures {
 				return setImmediate(cb);
 			})
 			.catch(err => setImmediate(cb, [err]));
-	}
-
-	/**
-	 * Description of getGroup.
-	 *
-	 * @todo Add @returns and @param tags
-	 * @todo Add description for the function
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	getGroup(address, cb) {
-		const scope = {};
-
-		async.series(
-			{
-				getAccount(seriesCb) {
-					library.logic.account.getMultiSignature(
-						{ address },
-						(err, account) => {
-							if (err) {
-								return setImmediate(seriesCb, err);
-							}
-
-							if (!account) {
-								return setImmediate(
-									seriesCb,
-									new Error('Multisignature account not found')
-								);
-							}
-
-							scope.group = {
-								address: account.address,
-								publicKey: account.publicKey,
-								secondPublicKey: account.secondPublicKey || '',
-								balance: account.balance,
-								min: account.multiMin,
-								lifetime: account.multiLifetime,
-								members: [],
-							};
-
-							return setImmediate(seriesCb);
-						}
-					);
-				},
-				getMembers(seriesCb) {
-					library.storage.entities.Account.getOne(
-						{ address: scope.group.address },
-						{ extended: true }
-					).then(memberAccount => {
-						const memberAccountKeys = memberAccount.membersPublicKeys || [];
-						const addresses = [];
-
-						memberAccountKeys.forEach(key => {
-							addresses.push(modules.accounts.generateAddressByPublicKey(key));
-						});
-
-						modules.accounts.getAccounts(
-							{ address_in: addresses },
-							['address', 'publicKey', 'secondPublicKey'],
-							(err, accounts) => {
-								accounts.forEach(account => {
-									scope.group.members.push({
-										address: account.address,
-										publicKey: account.publicKey,
-										secondPublicKey: account.secondPublicKey || '',
-									});
-								});
-
-								return setImmediate(seriesCb);
-							}
-						);
-					});
-				},
-			},
-			err => {
-				if (err) {
-					return setImmediate(cb, err);
-				}
-				return setImmediate(cb, null, scope.group);
-			}
-		);
 	}
 
 	// Events
