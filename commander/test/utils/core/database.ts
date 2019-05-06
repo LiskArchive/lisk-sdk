@@ -1,20 +1,39 @@
 import { expect } from 'chai';
 import fs from 'fs';
+import fsExtra from 'fs-extra';
 import {
 	initDB,
 	startDatabase,
 	stopDatabase,
 	createUser,
 	createDatabase,
-} from '../../../src/utils/node/database';
+	restoreSnapshot,
+} from '../../../src/utils/core/database';
 import * as workerProcess from '../../../src/utils/worker-process';
 import { NETWORK } from '../../../src/utils/constants';
-import * as nodeConfig from '../../../src/utils/node/config';
+import * as coreConfig from '../../../src/utils/core/config';
+import * as pm2 from '../../../src/utils/core/pm2';
+import * as liskConfig from './fixtures';
+import { SinonStub } from 'sinon';
 
-describe('database node utils', () => {
+describe('database core utils', () => {
+	let pm2Stub: SinonStub;
+
+	beforeEach(() => {
+		sandbox.stub(fsExtra, 'writeJSONSync').returns();
+		pm2Stub = sandbox.stub(pm2, 'describeApplication');
+		pm2Stub.resolves({
+			pm2_env: {
+				LISK_REDIS_PORT: 6380,
+			},
+		});
+		const configStub = sandbox.stub(coreConfig, 'getLiskConfig');
+		configStub.resolves(liskConfig.config);
+	});
+
 	describe('#initDB', () => {
-		let workerProcessStub: any = null;
-		let existsSyncStub: any = null;
+		let workerProcessStub: SinonStub;
+		let existsSyncStub: SinonStub;
 
 		beforeEach(() => {
 			existsSyncStub = sandbox.stub(fs, 'existsSync');
@@ -52,7 +71,7 @@ describe('database node utils', () => {
 	});
 
 	describe('#startDatabase', () => {
-		let workerProcessStub: any = null;
+		let workerProcessStub: SinonStub;
 
 		beforeEach(() => {
 			workerProcessStub = sandbox.stub(workerProcess, 'exec');
@@ -61,13 +80,12 @@ describe('database node utils', () => {
 		it('should return database server is running', async () => {
 			workerProcessStub.resolves({ stdout: 'server is running' });
 
-			const status = await startDatabase('dummy/path', NETWORK.MAINNET);
+			const status = await startDatabase('dummy/path', 'test');
 			return expect(status).to.equal('[+] Postgresql started successfully.');
 		});
 
 		it('should throw error when failed to start database ', () => {
 			workerProcessStub.resolves({
-				stdout: 'failed to start database',
 				stderr: 'failed to start',
 			});
 
@@ -79,36 +97,26 @@ describe('database node utils', () => {
 		});
 
 		it('should start database successfully ', async () => {
-			workerProcessStub.resolves({ stdout: '' });
+			workerProcessStub.onCall(0).resolves({ stderr: 'not running' });
+			workerProcessStub.onCall(1).resolves({ stderr: null });
 
-			const result = await startDatabase('dummy/path', NETWORK.MAINNET);
+			const result = await startDatabase('dummy/path', 'test');
 			return expect(result).to.equal('[+] Postgresql started successfully.');
 		});
 	});
 
 	describe('#stopDatabase', () => {
-		let workerProcessStub: any = null;
+		let workerProcessStub: SinonStub;
 
 		beforeEach(() => {
 			workerProcessStub = sandbox.stub(workerProcess, 'exec');
 		});
 
 		it('should return database server is not running', async () => {
-			workerProcessStub.resolves({ stdout: 'server is not running' });
+			workerProcessStub.resolves({ stderr: 'server is not running' });
 
-			const status = await stopDatabase('dummy/path', NETWORK.MAINNET);
+			const status = await stopDatabase('dummy/path', 'test');
 			return expect(status).to.equal('[+] Postgresql is not running.');
-		});
-
-		it('should throw error when failed to stop  database ', () => {
-			workerProcessStub.resolves({
-				stdout: 'server is running',
-				stderr: 'failed to stop',
-			});
-
-			return expect(
-				stopDatabase('dummy/path', NETWORK.MAINNET),
-			).to.rejectedWith('[-] Postgresql failed to stop.: \n\n failed to stop');
 		});
 
 		it('should stop database successfully ', async () => {
@@ -117,16 +125,22 @@ describe('database node utils', () => {
 			const result = await stopDatabase('dummy/path', NETWORK.MAINNET);
 			return expect(result).to.equal('[+] Postgresql stopped successfully.');
 		});
+
+		it('should return failed to stop database', () => {
+			workerProcessStub.onCall(0).resolves({ stderr: null });
+			workerProcessStub.onCall(1).resolves({ stderr: 'pg_ctl failed to stop' });
+
+			return expect(
+				stopDatabase('dummy/path', NETWORK.MAINNET),
+			).to.rejectedWith('[-] Postgresql failed to stop.');
+		});
 	});
 
 	describe('#createUser', () => {
-		let workerProcessStub: any = null;
+		let workerProcessStub: SinonStub;
 
 		beforeEach(() => {
 			workerProcessStub = sandbox.stub(workerProcess, 'exec');
-			sandbox
-				.stub(nodeConfig, 'getDbConfig')
-				.returns({ user: 'lisk', password: 'lisk' });
 		});
 
 		it('should throw error when failed to create user', () => {
@@ -135,7 +149,9 @@ describe('database node utils', () => {
 				stderr: 'failed to create user',
 			});
 
-			return expect(createUser('dummy/path', NETWORK.MAINNET)).to.rejectedWith(
+			return expect(
+				createUser('dummy/path', NETWORK.MAINNET, 'test'),
+			).to.rejectedWith(
 				'[-] Failed to create Postgresql user.: \n\n failed to create user',
 			);
 		});
@@ -143,7 +159,7 @@ describe('database node utils', () => {
 		it('should create user successfully ', async () => {
 			workerProcessStub.resolves({ stdout: '' });
 
-			const result = await createUser('dummy/path', NETWORK.MAINNET);
+			const result = await createUser('dummy/path', NETWORK.MAINNET, 'test');
 			return expect(result).to.equal(
 				'[+] Postgresql user created successfully.',
 			);
@@ -151,13 +167,10 @@ describe('database node utils', () => {
 	});
 
 	describe('#createDatabase', () => {
-		let workerProcessStub: any = null;
+		let workerProcessStub: SinonStub;
 
 		beforeEach(() => {
 			workerProcessStub = sandbox.stub(workerProcess, 'exec');
-			sandbox
-				.stub(nodeConfig, 'getDbConfig')
-				.returns({ user: 'lisk', password: 'lisk' });
 		});
 
 		it('should throw error when failed to create database', () => {
@@ -167,7 +180,7 @@ describe('database node utils', () => {
 			});
 
 			return expect(
-				createDatabase('dummy/path', NETWORK.MAINNET),
+				createDatabase('dummy/path', NETWORK.MAINNET, 'test'),
 			).to.rejectedWith(
 				'[-] Failed to create Postgresql database.: \n\n failed to create database',
 			);
@@ -176,10 +189,49 @@ describe('database node utils', () => {
 		it('should create user successfully ', async () => {
 			workerProcessStub.resolves({ stdout: '' });
 
-			const result = await createDatabase('dummy/path', NETWORK.MAINNET);
+			const result = await createDatabase(
+				'dummy/path',
+				NETWORK.MAINNET,
+				'test',
+			);
 			return expect(result).to.equal(
 				'[+] Postgresql database created successfully.',
 			);
+		});
+	});
+
+	describe('#restoreSnapshot', () => {
+		let workerProcessStub: SinonStub;
+
+		beforeEach(() => {
+			workerProcessStub = sandbox.stub(workerProcess, 'exec');
+		});
+
+		it('should create user successfully ', async () => {
+			workerProcessStub.resolves({ stderr: 'failed to restore' });
+
+			return expect(
+				restoreSnapshot(
+					'/install/dir',
+					NETWORK.MAINNET,
+					'snapshot/path',
+					'test',
+				),
+			).to.be.rejectedWith(
+				'[-] Failed to restore blockchain.: \n\n failed to restore',
+			);
+		});
+
+		it('should create user successfully ', async () => {
+			workerProcessStub.resolves({ stdout: '' });
+
+			const result = await restoreSnapshot(
+				'/install/dir',
+				NETWORK.MAINNET,
+				'snapshot/path',
+				'test',
+			);
+			return expect(result).to.equal('[+] Blockchain restored successfully.');
 		});
 	});
 });

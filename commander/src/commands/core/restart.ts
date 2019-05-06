@@ -13,14 +13,16 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
-import { describeApplication, Pm2Env } from '../../utils/node/pm2';
+import StartCommand from './start';
+import StopCommand from './stop';
 
 interface Args {
 	readonly name: string;
 }
 
-export default class StatusCommand extends BaseCommand {
+export default class RestartCommand extends BaseCommand {
 	static args = [
 		{
 			name: 'name',
@@ -29,36 +31,32 @@ export default class StatusCommand extends BaseCommand {
 		},
 	];
 
-	static description = 'Show the status of a Lisk Core instance.';
+	static flags = {
+		json: flagParser.boolean({
+			...BaseCommand.flags.json,
+			hidden: true,
+		}),
+		pretty: flagParser.boolean({
+			...BaseCommand.flags.pretty,
+			hidden: true,
+		}),
+	};
 
-	static examples = ['node:status mainnet-latest'];
+	static description = 'Restart Lisk Core instance.';
+
+	static examples = ['core:restart mainnet-latest'];
 
 	async run(): Promise<void> {
-		const { args } = this.parse(StatusCommand);
+		const { args } = this.parse(RestartCommand);
 		const { name } = args as Args;
 
-		const { pm2_env, monit } = await describeApplication(name);
-		const {
-			status,
-			pm_uptime,
-			unstable_restarts,
-			pm_cwd: installationPath,
-			LISK_NETWORK: network,
-			version,
-			LISK_DB_PORT: dbPort,
-			LISK_REDIS_PORT: redisPort,
-		} = pm2_env as Pm2Env;
-
-		this.print({
-			status,
-			network,
-			version,
-			dbPort,
-			redisPort,
-			installationPath,
-			uptime: new Date(pm_uptime).toISOString(),
-			restart_count: unstable_restarts,
-			...monit,
-		});
+		try {
+			// tslint:disable-next-line await-promise
+			await StopCommand.run([name]);
+			// tslint:disable-next-line await-promise
+			await StartCommand.run([name]);
+		} catch (error) {
+			this.error(error);
+		}
 	}
 }

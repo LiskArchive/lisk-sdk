@@ -13,10 +13,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { flags as flagParser } from '@oclif/command';
 import * as childProcess from 'child_process';
 import BaseCommand from '../../base';
-import { getNetworkConfig } from '../../utils/node/config';
-import { describeApplication, Pm2Env } from '../../utils/node/pm2';
+import { describeApplication } from '../../utils/core/pm2';
 
 interface Args {
 	readonly name: string;
@@ -31,18 +31,27 @@ export default class LogsCommand extends BaseCommand {
 		},
 	];
 
+	static flags = {
+		json: flagParser.boolean({
+			...BaseCommand.flags.json,
+			hidden: true,
+		}),
+		pretty: flagParser.boolean({
+			...BaseCommand.flags.pretty,
+			hidden: true,
+		}),
+	};
+
 	static description = 'Stream logs of a Lisk Core instance.';
 
-	static examples = ['node:logs mainnet-latest'];
+	static examples = ['core:logs mainnet-latest'];
 
 	async run(): Promise<void> {
 		const { args } = this.parse(LogsCommand);
 		const { name } = args as Args;
 
-		const { pm2_env } = await describeApplication(name);
-		const { pm_cwd: installDir, LISK_NETWORK: network } = pm2_env as Pm2Env;
-		const { logFileName } = getNetworkConfig(installDir, network);
-		const fileName = `${installDir}/${logFileName}`;
+		const { installationPath, network } = await describeApplication(name);
+		const fileName = `${installationPath}/logs/${network}/lisk.log`;
 
 		const tail = childProcess.spawn('tail', ['-f', fileName]);
 		const { stderr, stdout } = tail;

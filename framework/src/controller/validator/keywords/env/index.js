@@ -45,6 +45,14 @@ const compile = (schema, parentSchema) => {
 					variableValue = parseInt(variableValue, 10);
 					break;
 				case 'boolean':
+					if (!['true', 'false'].includes(variableValue.toLowerCase())) {
+						throw new Error(
+							`Failed to apply value for option ${
+								envVariable.name
+							}, use "true" or "false"`
+						);
+					}
+
 					variableValue = variableValue.toLowerCase() === 'true';
 			}
 		}

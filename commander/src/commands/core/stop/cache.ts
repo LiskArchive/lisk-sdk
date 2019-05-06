@@ -13,11 +13,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { flags as flagParser } from '@oclif/command';
 import Listr from 'listr';
 import BaseCommand from '../../../base';
-import { isCacheRunning, stopCache } from '../../../utils/node/cache';
-import { isCacheEnabled } from '../../../utils/node/config';
-import { describeApplication, Pm2Env } from '../../../utils/node/pm2';
+import {
+	isCacheEnabled,
+	isCacheRunning,
+	stopCache,
+} from '../../../utils/core/cache';
+import { describeApplication } from '../../../utils/core/pm2';
 
 interface Args {
 	readonly name: string;
@@ -32,24 +36,34 @@ export default class CacheCommand extends BaseCommand {
 		},
 	];
 
+	static flags = {
+		json: flagParser.boolean({
+			...BaseCommand.flags.json,
+			hidden: true,
+		}),
+		pretty: flagParser.boolean({
+			...BaseCommand.flags.pretty,
+			hidden: true,
+		}),
+	};
+
 	static description = 'Stop the cache server.';
 
-	static examples = ['node:stop:cache mainnet-latest'];
+	static examples = ['core:stop:cache mainnet-latest'];
 
 	async run(): Promise<void> {
 		const { args } = this.parse(CacheCommand);
 		const { name } = args as Args;
-		const { pm2_env } = await describeApplication(name);
-		const { pm_cwd: installDir, LISK_NETWORK: network } = pm2_env as Pm2Env;
+		const { installationPath, network } = await describeApplication(name);
 
 		const tasks = new Listr([
 			{
 				title: 'Stop the cache server',
-				skip: () => !isCacheEnabled(installDir, network),
+				skip: async () => !(await isCacheEnabled(installationPath, network)),
 				task: async () => {
-					const isRunning = await isCacheRunning(installDir, network);
+					const isRunning = await isCacheRunning(installationPath, name);
 					if (isRunning) {
-						await stopCache(installDir, network);
+						await stopCache(installationPath, network, name);
 					}
 				},
 			},

@@ -13,17 +13,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { flags as flagParser } from '@oclif/command';
 import Listr from 'listr';
 import BaseCommand from '../../../base';
-import { restartApplication } from '../../../utils/node/pm2';
-import CacheCommand from './cache';
-import DatabaseCommand from './database';
+import { stopDatabase } from '../../../utils/core/database';
+import { describeApplication } from '../../../utils/core/pm2';
 
 interface Args {
 	readonly name: string;
 }
 
-export default class StartCommand extends BaseCommand {
+export default class DatabaseCommand extends BaseCommand {
 	static args = [
 		{
 			name: 'name',
@@ -32,27 +32,33 @@ export default class StartCommand extends BaseCommand {
 		},
 	];
 
-	static description = 'Start Lisk Core instance.';
+	static flags = {
+		json: flagParser.boolean({
+			...BaseCommand.flags.json,
+			hidden: true,
+		}),
+		pretty: flagParser.boolean({
+			...BaseCommand.flags.pretty,
+			hidden: true,
+		}),
+	};
 
-	static examples = ['node:start mainnet-latest'];
+	static description = 'Stop the database server.';
+
+	static examples = ['core:stop:database mainnet-latest'];
 
 	async run(): Promise<void> {
-		const { args } = this.parse(StartCommand);
+		const { args } = this.parse(DatabaseCommand);
 		const { name } = args as Args;
-
-		// tslint:disable-next-line await-promise
-		await CacheCommand.run([name]);
-		// tslint:disable-next-line await-promise
-		await DatabaseCommand.run([name]);
+		const { installationPath } = await describeApplication(name);
 
 		const tasks = new Listr([
 			{
-				title: 'Start Lisk Core instance',
-				task: async () => {
-					await restartApplication(name);
-				},
+				title: 'Stop the database server',
+				task: async () => stopDatabase(installationPath, name),
 			},
 		]);
+
 		await tasks.run();
 	}
 }

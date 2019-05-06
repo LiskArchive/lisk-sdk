@@ -1,4 +1,6 @@
 import { expect } from 'chai';
+import pm2 from 'pm2';
+import fsExtra from 'fs-extra';
 import {
 	registerApplication,
 	unRegisterApplication,
@@ -6,26 +8,48 @@ import {
 	stopApplication,
 	listApplication,
 	describeApplication,
-} from '../../../src/utils/node/pm2';
+} from '../../../src/utils/core/pm2';
 import { NETWORK } from '../../../src/utils/constants';
-import pm2 from 'pm2';
-
-const applicationList = [
-	{ name: 'testnet', status: 'online' },
-	{ name: 'mainnet', status: 'online' },
-	{ name: 'betanet', status: 'online' },
-];
 
 describe('pm2 node utils', () => {
+	const monit = {
+		cpu: 10,
+		memory: 10,
+	};
+
+	const pm2_env = {
+		LISK_DB_PORT: '5432',
+		LISK_REDIS_PORT: '6380',
+		LISK_WS_PORT: '5000',
+		LISK_HTTP_PORT: '4000',
+		pm_cwd: '.lisk/instances',
+		pm_uptime: new Date(),
+		status: 'online',
+		version: '2.0.0',
+		LISK_NETWORK: 'testnet',
+	};
+
+	const applicationList = [
+		{
+			name: 'testnet',
+			pid: 123,
+			monit,
+			pm2_env,
+		},
+	];
+
 	describe('#registerApplication', () => {
 		beforeEach(() => {
 			sandbox.stub(pm2, 'connect').yields(null, 'connected');
 			sandbox.stub(pm2, 'start').yields(null, 'started');
 			sandbox.stub(pm2, 'stop').yields(null, 'stopped');
+			sandbox
+				.stub(fsExtra, 'readJson')
+				.resolves({ apps: [{ script: 'src/index.js' }] });
 		});
 
 		it('should register an application', async () => {
-			await registerApplication('dummy/path', NETWORK.MAINNET, 'test');
+			await registerApplication('dummy/path', NETWORK.MAINNET, 'test', {});
 
 			expect(pm2.connect).to.be.calledOnce;
 			expect(pm2.start).to.be.calledOnce;
@@ -86,7 +110,7 @@ describe('pm2 node utils', () => {
 
 			expect(pm2.connect).to.be.calledOnce;
 			expect(pm2.list).to.be.calledOnce;
-			return expect(appList).to.deep.equal(applicationList);
+			return appList.map(app => expect(app.name).to.equal('testnet'));
 		});
 	});
 
@@ -101,10 +125,7 @@ describe('pm2 node utils', () => {
 
 			expect(pm2.connect).to.be.calledOnce;
 			expect(pm2.describe).to.be.calledOnce;
-			return expect(appDesc).to.deep.equal({
-				name: 'testnet',
-				status: 'online',
-			});
+			return expect(appDesc.name).to.deep.equal('testnet');
 		});
 	});
 });

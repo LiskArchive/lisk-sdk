@@ -13,12 +13,31 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as childProcess from 'child_process';
-import * as util from 'util';
+import childProcess from 'child_process';
+import fsExtra from 'fs-extra';
+import { defaultLiskInstancePath } from './core/config';
 
 export interface ExecResult {
 	readonly stderr: string;
 	readonly stdout: string;
 }
 
-export const exec = util.promisify(childProcess.exec);
+export const exec = async (
+	command: string,
+	options: childProcess.ExecOptions = {},
+): Promise<ExecResult> =>
+	new Promise(resolve => {
+		childProcess.exec(command, options, (error, stdout, stderr) => {
+			if (error || stderr) {
+				fsExtra.writeJSONSync(`${defaultLiskInstancePath}/error.log`, {
+					error,
+					stderr,
+				});
+			}
+
+			// To resolve the error gracefully, only resolving and not rejecting
+			// While using exec make sure you handle the error
+			// As it will never reject, rather return {stdout, stderr}
+			resolve({ stdout, stderr: (error as unknown) as string });
+		});
+	});
