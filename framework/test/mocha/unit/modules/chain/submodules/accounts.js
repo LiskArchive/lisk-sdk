@@ -15,7 +15,6 @@
 'use strict';
 
 const AccountModule = require('../../../../../../src/modules/chain/submodules/accounts');
-const accountFixtures = require('../../../../fixtures').accounts;
 const application = require('../../../../common/application');
 
 const validAccount = {
@@ -50,7 +49,6 @@ const validAccount = {
 describe('accounts', () => {
 	let accounts;
 	let accountLogic;
-	let storage;
 
 	before(done => {
 		application.init(
@@ -60,7 +58,6 @@ describe('accounts', () => {
 				scope.modules.blocks.lastBlock.set({ height: 10 });
 				accounts = scope.modules.accounts;
 				accountLogic = scope.logic.account;
-				storage = scope.components.storage;
 				done(err);
 			}
 		);
@@ -140,98 +137,6 @@ describe('accounts', () => {
 				getAllSpy.restore();
 				done();
 			});
-		});
-	});
-
-	describe('setAccountAndGet', () => {
-		it('should fail if address and publicKey is missing', done => {
-			const account = new accountFixtures.Account();
-
-			delete account.address;
-			delete account.publicKey;
-
-			accounts.setAccountAndGet(account, (error, data) => {
-				expect(error.message).to.be.eql('Invalid public key');
-				expect(data).to.be.undefined;
-				done();
-			});
-		});
-
-		it('should set and get account when sending address but no publicKey', done => {
-			const account = new accountFixtures.Account();
-
-			delete account.publicKey;
-
-			accounts.setAccountAndGet(account, (error, data) => {
-				expect(error).to.be.null;
-				expect(data.address).to.be.eql(account.address);
-				expect(data.publicKey).to.not.exist;
-				done();
-			});
-		});
-
-		it('should set and get account with address when publicKey is provided but address is not provided', done => {
-			const account = new accountFixtures.Account();
-
-			delete account.address;
-
-			accounts.setAccountAndGet(account, (error, data) => {
-				expect(error).to.be.null;
-				expect(data.publicKey).to.be.eql(account.publicKey);
-				expect(data.address).to.exist;
-				done();
-			});
-		});
-
-		it('should set and get account using `Accounts:setAccountAndGet` database transaction with txLevel = 0', done => {
-			const account = new accountFixtures.Account();
-			let eventCtx;
-
-			storage.adapter.db.$config.options.query = function(event) {
-				eventCtx = event.ctx;
-			};
-
-			accounts.setAccountAndGet(account, (error, data) => {
-				expect(error).to.be.null;
-				expect(data.address).to.be.eql(account.address);
-
-				expect(eventCtx).to.not.null;
-				expect(eventCtx.isTX).to.be.true;
-				expect(eventCtx.txLevel).to.be.eql(0);
-				expect(eventCtx.tag).to.be.eql('Accounts:setAccountAndGet');
-				delete storage.adapter.db.$config.options.query;
-
-				done();
-			});
-		});
-
-		it('should set and get account using `Tests:setAccountAndGet` database transaction with txLevel = 0', done => {
-			const account = new accountFixtures.Account();
-			let eventCtx;
-
-			storage.adapter.db.$config.options.query = function(event) {
-				eventCtx = event.ctx;
-			};
-
-			const task = t =>
-				accounts.setAccountAndGet(
-					account,
-					(error, data) => {
-						expect(error).to.be.null;
-						expect(data.address).to.be.eql(account.address);
-
-						expect(eventCtx).to.not.null;
-						expect(eventCtx.isTX).to.be.true;
-						expect(eventCtx.txLevel).to.be.eql(0);
-						expect(eventCtx.tag).to.be.eql('Tests:setAccountAndGet');
-						delete storage.adapter.db.$config.options.query;
-
-						done();
-					},
-					t
-				);
-
-			storage.adapter.db.tx('Tests:setAccountAndGet', task);
 		});
 	});
 

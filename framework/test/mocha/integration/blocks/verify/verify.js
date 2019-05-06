@@ -116,19 +116,6 @@ const validBlock = {
 	id: '884740302254229983',
 };
 
-const testAccount = {
-	account: {
-		username: 'test_verify',
-		isDelegate: 1,
-		address: '2737453412992791987L',
-		publicKey:
-			'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
-		balance: 5300000000000000000,
-	},
-	passphrase:
-		'message crash glance horror pear opera hedgehog monitor connect vague chuckle advice',
-};
-
 let block1;
 
 let block2;
@@ -184,7 +171,6 @@ function getValidKeypairForSlot(library, slot) {
 
 describe('blocks/verify', () => {
 	let library;
-	let accounts;
 	let blocksVerify;
 	let blocks;
 	let blockLogic;
@@ -200,7 +186,6 @@ describe('blocks/verify', () => {
 				},
 			},
 			(err, scope) => {
-				accounts = scope.modules.accounts;
 				blocksVerify = scope.modules.blocks.verify;
 				blockLogic = scope.logic.block;
 				blocks = scope.modules.blocks;
@@ -900,16 +885,6 @@ describe('blocks/verify', () => {
 					return delegates.generateDelegateList(1, null, done);
 				}
 			);
-		});
-
-		it('should generate account', done => {
-			accounts.setAccountAndGet(testAccount.account, (err, newaccount) => {
-				if (err) {
-					return done(err);
-				}
-				expect(newaccount.address).to.equal(testAccount.account.address);
-				return done();
-			});
 		});
 
 		it('should generate block 1', done => {
