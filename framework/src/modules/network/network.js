@@ -248,18 +248,16 @@ module.exports = class Network {
 
 	get actions() {
 		return {
-			invoke: async action => {
+			invoke: async action =>
 				this.p2p.request({
 					procedure: action.params.procedure,
 					data: action.params.data,
-				});
-			},
-			invokePublic: async action => {
+				}),
+			invokePublic: async action =>
 				this.p2p.request({
 					procedure: action.params.procedure,
 					data: action.params.data,
-				});
-			},
+				}),
 			publish: action =>
 				this.p2p.send({
 					event: action.params.event,

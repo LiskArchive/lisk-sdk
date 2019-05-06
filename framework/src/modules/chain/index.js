@@ -93,7 +93,7 @@ module.exports = class ChainModule extends BaseModule {
 			getForgingStatusForAllDelegates: {
 				handler: async () =>
 					this.chain.actions.getForgingStatusForAllDelegates(),
-				public: true, // Don't want this to be public
+				public: false,
 			},
 			getTransactionsFromPool: {
 				handler: async action =>

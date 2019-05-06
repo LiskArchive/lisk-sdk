@@ -43,10 +43,10 @@ class Bus extends EventEmitter2 {
 		super(options);
 		this.logger = logger;
 		this.config = config;
+		this.publicActions = [];
 
 		// Hash map used instead of arrays for performance.
 		this.actions = {};
-		this.publicActions = [];
 		this.events = {};
 		this.channels = {};
 		this.rpcClients = {};
