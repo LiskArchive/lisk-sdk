@@ -156,6 +156,13 @@ describe('Base Channel', () => {
 		});
 	});
 
+	describe('#invokePublic', () => {
+		it('should throw TypeError', () => {
+			// Assert
+			expect(baseChannel.invokePublic()).rejects.toBeInstanceOf(TypeError);
+		});
+	});
+
 	describe('#isValidEventName', () => {
 		// Arrange
 		const eventName = params.events[0];

@@ -27,9 +27,18 @@ describe('InMemoryChannel Channel', () => {
 		moduleAlias: 'moduleAlias',
 		events: ['event1', 'event2'],
 		actions: {
-			action1: jest.fn(),
-			action2: jest.fn(),
-			action3: jest.fn(),
+			action1: {
+				handler: jest.fn(),
+				public: true,
+			},
+			action2: {
+				handler: jest.fn(),
+				public: true,
+			},
+			action3: {
+				handler: jest.fn(),
+				public: true,
+			},
 		},
 		options: {},
 	};
@@ -212,7 +221,7 @@ describe('InMemoryChannel Channel', () => {
 			await inMemoryChannel.invoke(actionFullName);
 
 			// Assert
-			expect(params.actions.action1).toHaveBeenCalled();
+			expect(params.actions.action1.handler).toHaveBeenCalled();
 		});
 
 		it('should call bus.invoke if the atcion module is different to moduleAlias', async () => {

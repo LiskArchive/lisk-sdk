@@ -17,25 +17,25 @@
 const { EventEmitter2 } = require('eventemitter2');
 
 const Bus = require('../../../../../src/controller/bus');
-const Controller = require('../../../../../src/controller/controller');
 
-jest.mock('../../../../../src/controller/controller');
 jest.mock('eventemitter2');
 jest.mock('pm2-axon');
 jest.mock('pm2-axon-rpc');
 
 describe('Bus', () => {
-	const controller = new Controller();
 	const options = {};
 	const config = {
 		ipc: {
 			enabled: false,
 		},
 	};
+	const logger = {
+		info: jest.fn(),
+	};
 
 	let bus = null;
 	beforeEach(() => {
-		bus = new Bus(controller, options, config);
+		bus = new Bus(options, logger, config);
 	});
 
 	describe('#constructor', () => {
@@ -85,13 +85,47 @@ describe('Bus', () => {
 			const actions = ['action1', 'action2'];
 
 			// Act
-			await bus.registerChannel(moduleAlias, [], actions);
+			await bus.registerChannel(moduleAlias, [], actions, {
+				channel: {
+					actions: {
+						action1: {
+							public: true,
+						},
+						action2: {
+							public: true,
+						},
+					},
+				},
+			});
 
 			// Assert
 			expect(Object.keys(bus.actions)).toHaveLength(2);
 			actions.forEach(actionName => {
 				expect(bus.actions[`${moduleAlias}:${actionName}`]).toBe(true);
 			});
+		});
+
+		it('should register public actions.', async () => {
+			// Arrange
+			const moduleAlias = 'alias';
+			const actions = ['action1', 'action2'];
+
+			// Act
+			await bus.registerChannel(moduleAlias, [], actions, {
+				channel: {
+					actions: {
+						action1: {
+							public: false,
+						},
+						action2: {
+							public: true,
+						},
+					},
+				},
+			});
+
+			// Assert
+			expect(Object.keys(bus.publicActions)).toHaveLength(1);
 		});
 
 		it('should throw error when trying to register duplicate actions.', async () => {
@@ -140,7 +174,18 @@ describe('Bus', () => {
 			const actions = ['action1', 'action2'];
 			const expectedActions = actions.map(action => `${moduleAlias}:${action}`);
 
-			await bus.registerChannel(moduleAlias, [], actions);
+			await bus.registerChannel(moduleAlias, [], actions, {
+				channel: {
+					actions: {
+						action1: {
+							public: true,
+						},
+						action2: {
+							public: true,
+						},
+					},
+				},
+			});
 
 			// Act
 			const registeredActions = bus.getActions();
