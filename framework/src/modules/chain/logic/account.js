@@ -15,7 +15,6 @@
 'use strict';
 
 const _ = require('lodash');
-const ed = require('../helpers/ed');
 const Bignum = require('../helpers/bignum');
 const BlockReward = require('./block_reward');
 
@@ -160,25 +159,6 @@ class Account {
 				throw new Error('Invalid public key, must be a hex string');
 			}
 		}
-	}
-
-	/**
-	 * Normalizes address and creates binary buffers to insert.
-	 *
-	 * @param {Object} raw - With address and public key
-	 * @returns {Object} Normalized address
-	 */
-	toDB(raw) {
-		this.binary.forEach(field => {
-			if (raw[field]) {
-				raw[field] = ed.hexToBuffer(raw[field]);
-			}
-		});
-
-		// Normalize address
-		raw.address = String(raw.address).toUpperCase();
-
-		return raw;
 	}
 
 	/**
