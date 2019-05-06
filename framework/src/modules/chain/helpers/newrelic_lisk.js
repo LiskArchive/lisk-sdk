@@ -37,7 +37,7 @@ const modulesToInstrument = {
 	},
 	'../submodules/delegates': {
 		identifier: 'modules.chain.submodules.delegates',
-		callbackMethods: ['getForgers', 'getDelegates'],
+		callbackMethods: ['getForgers'],
 	},
 	'../submodules/loader': {
 		identifier: 'modules.chain.submodules.loader',
