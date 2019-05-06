@@ -101,7 +101,7 @@ class DApp {
 		}
 
 		const amount = new BigNum(transaction.amount);
-		if (amount.isGreaterThan(0)) {
+		if (amount.gt(0)) {
 			return setImmediate(cb, 'Invalid transaction amount');
 		}
 

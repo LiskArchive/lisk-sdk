@@ -304,7 +304,7 @@ class Account {
 			.toString();
 		const approval = parseFloat(approvalStr);
 
-		return !approval.isNaN() ? approval : 0;
+		return !Number.isNaN(approval) ? approval : 0;
 	}
 
 	/**
@@ -398,7 +398,7 @@ class Account {
 						}
 
 						// If updated value is positive number
-						if (value.isGreaterThan(0)) {
+						if (value.gt(0)) {
 							promises.push(
 								self.scope.storage.entities.Account.increaseFieldBy(
 									{ address },
@@ -409,7 +409,7 @@ class Account {
 							);
 
 							// If updated value is negative number
-						} else if (value.isLessThan(0)) {
+						} else if (value.lt(0)) {
 							promises.push(
 								self.scope.storage.entities.Account.decreaseFieldBy(
 									{ address },
