@@ -101,6 +101,8 @@ class Application {
 	 * @param {string} [config.app.version] - Version of the application
 	 * @param {string} [config.app.minVersion] - Minimum compatible version on the network
 	 * @param {string} [config.app.protocolVersion] - Compatible protocol version application is using
+	 * @param {string} [config.app.lastCommitId] - lastCommitId
+	 * @param {string} [config.app.buildVersion] - buildVersion
 	 * @param {Object} [config.components] - Configurations for components
 	 * @param {Object} [config.components.logger] - Configuration for logger component
 	 * @param {Object} [config.components.cache] - Configuration for cache component
@@ -167,6 +169,8 @@ class Application {
 
 		this.registerModule(ChainModule, {
 			registeredTransactions: this.getTransactions(),
+			lastCommitId: this.config.app.lastCommitId,
+			buildVersion: this.config.app.buildVersion,
 		});
 		this.registerModule(NetworkModule);
 		this.registerModule(HttpAPIModule);
