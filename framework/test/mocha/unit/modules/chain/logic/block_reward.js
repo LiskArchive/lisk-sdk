@@ -14,8 +14,8 @@
 
 'use strict';
 
-const BlockReward = require('../../../../../../src/modules/chain/logic/block_reward');
 const BigNum = require('@liskhq/bignum');
+const BlockReward = require('../../../../../../src/modules/chain/logic/block_reward');
 
 const { REWARDS, TOTAL_AMOUNT } = __testContext.config.constants;
 
