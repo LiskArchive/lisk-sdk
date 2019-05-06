@@ -61,6 +61,7 @@ module.exports = class ChainModule extends BaseModule {
 			'delegates:fork',
 			'loader:sync',
 			'dapps:change',
+			'invalidate_cache',
 		];
 	}
 

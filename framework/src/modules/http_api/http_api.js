@@ -94,6 +94,22 @@ module.exports = class HttpApi {
 			Object.assign(this.scope.applicationState, event.data);
 		});
 
+		this.channel.subscribe('chain:invalidate_cache', async event => {
+			const tasks = event.data.map(key =>
+				this.scope.components.cache.removeByPattern(key)
+			);
+			try {
+				this.logger.info(
+					`Cache - Keys with patterns: ${
+						event.data
+					} cleared from cache on new Block`
+				);
+				await Promise.all(tasks);
+			} catch (error) {
+				this.logger.error(`Cache - Error clearing keys on new Block: ${error}`);
+			}
+		});
+
 		// Bootstrap Cache component
 		await bootstrapCache(this.scope);
 		// Bootstrap Storage component

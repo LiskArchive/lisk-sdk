@@ -148,29 +148,11 @@ class Blocks {
 	// eslint-disable-next-line class-methods-use-this
 	async onNewBlock(block) {
 		if (components && components.cache && components.cache.isReady()) {
-			library.logger.debug(
-				['Cache - onNewBlock', '| Status:', components.cache.isReady()].join(
-					' '
-				)
-			);
-			const keys = [CACHE_KEYS_BLOCKS, CACHE_KEYS_TRANSACTIONS];
-			const tasks = keys.map(key => components.cache.removeByPattern(key));
-			try {
-				await Promise.all(tasks);
-				library.logger.debug(
-					[
-						'Cache - Keys with patterns:',
-						keys,
-						'cleared from cache on new Block',
-					].join(' ')
-				);
-			} catch (removeByPatternErr) {
-				library.logger.error(
-					['Cache - Error clearing keys on new Block'].join(' ')
-				);
-			}
+			library.channel.publish('chain:invalidate_cache', [
+				CACHE_KEYS_BLOCKS,
+				CACHE_KEYS_TRANSACTIONS,
+			]);
 		}
-
 		return library.channel.publish('chain:blocks:change', block);
 	}
 
