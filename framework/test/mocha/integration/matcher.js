@@ -10,14 +10,20 @@ const {
 	transfer,
 } = require('@liskhq/lisk-transactions');
 const { addTransaction, forge } = require('./common');
-const application = require('../common/application');
+const commonApplication = require('../common/application');
 const accountFixtures = require('../fixtures/accounts');
 const randomUtil = require('../common/utils/random');
 
+// Promisify callback functions
 const forgePromisified = promisify(forge);
 const addTransactionPromisified = promisify(addTransaction);
-const EPOCH_TIME = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0));
+const application = {
+	init: promisify(commonApplication.init),
+	cleanup: promisify(commonApplication.cleanup),
+};
 
+// Constants
+const EPOCH_TIME = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0));
 const { MAX_TRANSACTIONS_PER_BLOCK } = global.constants;
 /**
  * The type identifier of the Custom Transaction
@@ -112,63 +118,73 @@ function createCustomTransactionJSON({
 
 describe('matcher', () => {
 	let scope;
+	let transactionPool;
 	const randomAccount = randomUtil.account();
 	let receiveTransaction;
 
-	beforeEach(done => {
+	before(async () => {
 		TransferTransaction.matcher = () => false;
-		application.init(
-			{
-				sandbox: {
-					name: randomstring.generate({
-						length: 10,
-						charset: 'alphabetic',
-						capitalization: 'lowercase',
-					}),
-				},
-				scope: {
-					config: {
-						broadcasts: {
-							active: true,
-						},
+
+		scope = await application.init({
+			sandbox: {
+				name: 'lisk_test_integration_matcher',
+			},
+			scope: {
+				config: {
+					broadcasts: {
+						active: true,
 					},
 				},
 			},
-			(err, _scope) => {
-				if (err) {
-					return done(err);
-				}
-				_scope.config.broadcasts.active = true;
-				// BUG: There is a current restriction on transaction type and it cannot
-				// be bigger than 7, so for this tests transaction type 7 can be removed from
-				// registered transactions map so the CustomTransaction can be added with that
-				// id. Type 7 is not used anyways.
-				_scope.logic.initTransaction.transactionClassMap.delete(7);
-				receiveTransaction = _scope.rewiredModules.transport.__get__(
-					'__private.receiveTransaction'
-				);
+		});
 
-				scope = _scope;
-
-				return done();
-			}
+		scope.config.broadcasts.active = true;
+		// BUG: There is a current restriction on transaction type and it cannot
+		// be bigger than 7, so for this tests transaction type 7 can be removed from
+		// registered transactions map so the CustomTransaction can be added with that
+		// id. Type 7 is not used anyways.
+		scope.logic.initTransaction.transactionClassMap.delete(7);
+		receiveTransaction = scope.rewiredModules.transport.__get__(
+			'__private.receiveTransaction'
+		);
+		transactionPool = scope.rewiredModules.transactions.__get__(
+			'__private.transactionPool'
 		);
 	});
 
-	afterEach(done => {
+	after(() => {
+		return application.cleanup();
+	});
+
+	afterEach(async () => {
 		// Delete the custom transaction type from the registered transactions list
 		// So it can be registered again with the same type and maybe a different implementation in a different test.
 		scope.logic.initTransaction.transactionClassMap.delete(
 			CUSTOM_TRANSACTION_TYPE
 		);
 
-		application.cleanup(done);
+		// Reset transaction pool so it starts fresh back again with no transactions.
+		transactionPool.resetPool();
+
+		// Delete all blocks and set lastBlock back to the genesisBlock.
+		try {
+			await scope.components.storage.entities.Block.begin(t => {
+				return t.batch([
+					scope.components.storage.adapter.db.none(
+						'DELETE FROM blocks WHERE "height" > 1;'
+					),
+					scope.components.storage.adapter.db.none('DELETE FROM forks_stat;'),
+				]);
+			});
+			scope.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
+		} catch (err) {
+			__testContext.debug(err.stack);
+		}
 	});
 
 	describe('when receiving transactions from a peer', () => {
 		it('should not include a disallowed transaction in the transaction pool', done => {
 			// Arrange
-
 			const passphrase = accountFixtures.genesis.passphrase;
 			const { address, publicKey } = getAddressAndPublicKeyFromPassphrase(
 				passphrase
@@ -264,7 +280,7 @@ describe('matcher', () => {
 	});
 
 	describe('when forging a new block', () => {
-		describe('when transaction pool is full and current context (last block height) no longer matches the transaction matcher', () => {
+		describe('when transaction pool is full and current context (last block height) at forging time, no longer matches the transaction matcher', () => {
 			it('should not include the transaction in a new block if it is not allowed anymore', async () => {
 				const passphrase = accountFixtures.genesis.passphrase;
 				const { address, publicKey } = getAddressAndPublicKeyFromPassphrase(

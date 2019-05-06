@@ -690,6 +690,9 @@ Transport.prototype.shared = {
 				let block;
 				try {
 					block = modules.blocks.verify.addBlockProperties(query.block);
+
+					// TODO: fromBlock(query,block)
+
 					block = library.logic.block.objectNormalize(block);
 				} catch (e) {
 					library.logger.debug('Block normalization failed', {

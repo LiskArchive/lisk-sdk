@@ -388,6 +388,7 @@ module.exports = {
 	getBlocks,
 	getAccountFromDb,
 	getTransactionFromModule,
+	getDelegateForSlot,
 	getUnconfirmedTransactionFromModule,
 	beforeBlock,
 	loadTransactionType,
