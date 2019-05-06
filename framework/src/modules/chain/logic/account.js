@@ -478,22 +478,6 @@ class Account {
 	}
 
 	/**
-	 * Removes an account from mem_account table based on address.
-	 *
-	 * @param {address} address
-	 * @param {function} cb - Callback function
-	 * @returns {setImmediate} error, address
-	 */
-	remove(address, cb) {
-		this.scope.storage.entities.Account.delete({ address })
-			.then(() => setImmediate(cb, null, address))
-			.catch(err => {
-				library.logger.error(err.stack);
-				return setImmediate(cb, 'Account#remove error');
-			});
-	}
-
-	/**
 	 * @typedef {Object} account
 	 * @property {string} username - Lowercase, between 1 and 20 chars
 	 * @property {boolean} isDelegate

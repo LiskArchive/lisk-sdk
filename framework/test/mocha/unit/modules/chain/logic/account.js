@@ -632,14 +632,4 @@ describe('account', () => {
 			});
 		});
 	});
-
-	describe('remove', () => {
-		it('should remove an account', done => {
-			account.remove('123L', (err, res) => {
-				expect(err).to.not.exist;
-				expect(res).to.equal('123L');
-				done();
-			});
-		});
-	});
 });
