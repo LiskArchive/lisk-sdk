@@ -12,20 +12,23 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from '@liskhq/bignum';
+import BigNum from '@liskhq/bignum';
 import {
 	BaseTransaction,
+	convertToAssetError,
 	StateStore,
 	StateStorePrepare,
-} from './base_transaction';
-import { IN_TRANSFER_FEE } from './constants';
-import { convertToAssetError, TransactionError } from './errors';
-import { TransactionJSON } from './transaction_types';
-import { convertBeddowsToLSK, verifyAmountBalance } from './utils';
-import { validator } from './utils/validation';
+	TransactionError,
+	TransactionJSON,
+	utils,
+} from '@liskhq/lisk-transactions';
+import {
+	IN_TRANSFER_FEE,
+	TRANSACTION_DAPP_TYPE,
+	TRANSACTION_INTRANSFER_TYPE,
+} from './constants';
 
-const TRANSACTION_DAPP_TYPE = 5;
-const TRANSACTION_INTRANSFER_TYPE = 6;
+const { convertBeddowsToLSK, verifyAmountBalance, validator } = utils;
 
 export interface InTransferAsset {
 	readonly inTransfer: {
@@ -80,7 +83,7 @@ export class InTransferTransaction extends BaseTransaction {
 				? transactions.find(
 						tx =>
 							tx.type === TRANSACTION_DAPP_TYPE &&
-							tx.id === this.asset.inTransfer.dappId,
+							tx.id === this.asset.inTransfer.dappId
 				  )
 				: undefined;
 
@@ -97,7 +100,7 @@ export class InTransferTransaction extends BaseTransaction {
 
 	// tslint:disable-next-line prefer-function-over-method
 	protected verifyAgainstTransactions(
-		_: ReadonlyArray<TransactionJSON>,
+		_: ReadonlyArray<TransactionJSON>
 	): ReadonlyArray<TransactionError> {
 		return [];
 	}
@@ -106,7 +109,7 @@ export class InTransferTransaction extends BaseTransaction {
 		validator.validate(inTransferAssetFormatSchema, this.asset);
 		const errors = convertToAssetError(
 			this.id,
-			validator.errors,
+			validator.errors
 		) as TransactionError[];
 
 		if (this.type !== TRANSACTION_INTRANSFER_TYPE) {
@@ -116,8 +119,8 @@ export class InTransferTransaction extends BaseTransaction {
 					this.id,
 					'.type',
 					this.type,
-					TRANSACTION_INTRANSFER_TYPE,
-				),
+					TRANSACTION_INTRANSFER_TYPE
+				)
 			);
 		}
 
@@ -128,8 +131,8 @@ export class InTransferTransaction extends BaseTransaction {
 					'RecipientId is expected to be undefined.',
 					this.id,
 					'.recipientId',
-					this.recipientId,
-				),
+					this.recipientId
+				)
 			);
 		}
 
@@ -139,8 +142,8 @@ export class InTransferTransaction extends BaseTransaction {
 					'RecipientPublicKey is expected to be undefined.',
 					this.id,
 					'.recipientPublicKey',
-					this.recipientPublicKey,
-				),
+					this.recipientPublicKey
+				)
 			);
 		}
 
@@ -151,8 +154,8 @@ export class InTransferTransaction extends BaseTransaction {
 					this.id,
 					'.amount',
 					this.amount.toString(),
-					'0',
-				),
+					'0'
+				)
 			);
 		}
 
@@ -163,8 +166,8 @@ export class InTransferTransaction extends BaseTransaction {
 					this.id,
 					'.fee',
 					this.fee.toString(),
-					IN_TRANSFER_FEE,
-				),
+					IN_TRANSFER_FEE
+				)
 			);
 		}
 
@@ -176,7 +179,7 @@ export class InTransferTransaction extends BaseTransaction {
 		const idExists = store.transaction.find(
 			(transaction: TransactionJSON) =>
 				transaction.type === TRANSACTION_DAPP_TYPE &&
-				transaction.id === this.asset.inTransfer.dappId,
+				transaction.id === this.asset.inTransfer.dappId
 		);
 
 		if (!idExists) {
@@ -184,8 +187,8 @@ export class InTransferTransaction extends BaseTransaction {
 				new TransactionError(
 					`Application not found: ${this.asset.inTransfer.dappId}`,
 					this.id,
-					this.asset.inTransfer.dappId,
-				),
+					this.asset.inTransfer.dappId
+				)
 			);
 		}
 		const sender = store.account.get(this.senderId);
@@ -194,7 +197,7 @@ export class InTransferTransaction extends BaseTransaction {
 			this.id,
 			sender,
 			this.amount,
-			this.fee,
+			this.fee
 		);
 		if (balanceError) {
 			errors.push(balanceError);
@@ -211,7 +214,7 @@ export class InTransferTransaction extends BaseTransaction {
 		const recipient = store.account.get(dappTransaction.senderId as string);
 
 		const updatedRecipientBalance = new BigNum(recipient.balance).add(
-			this.amount,
+			this.amount
 		);
 		const updatedRecipient = {
 			...recipient,
@@ -224,7 +227,7 @@ export class InTransferTransaction extends BaseTransaction {
 	}
 
 	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
-		const errors = [];
+		const errors: TransactionError[] = [];
 		const sender = store.account.get(this.senderId);
 		const updatedBalance = new BigNum(sender.balance).add(this.amount);
 		const updatedSender = { ...sender, balance: updatedBalance.toString() };
@@ -236,7 +239,7 @@ export class InTransferTransaction extends BaseTransaction {
 		const recipient = store.account.get(dappTransaction.senderId as string);
 
 		const updatedRecipientBalance = new BigNum(recipient.balance).sub(
-			this.amount,
+			this.amount
 		);
 
 		if (updatedRecipientBalance.lt(0)) {
@@ -245,8 +248,8 @@ export class InTransferTransaction extends BaseTransaction {
 					`Account does not have enough LSK: ${
 						recipient.address
 					}, balance: ${convertBeddowsToLSK(recipient.balance)}.`,
-					this.id,
-				),
+					this.id
+				)
 			);
 		}
 		const updatedRecipient = {
