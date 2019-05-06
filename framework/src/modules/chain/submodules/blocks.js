@@ -112,237 +112,264 @@ class Blocks {
 		this.chain = this.submodules.chain;
 		self = this;
 
+		// Expose lastBlock methods
+		this.lastBlock = this.attachLastBlock();
+		// Expose lastReceipt methods
+		this.lastReceipt = this.attachLastReceipt();
+		// Expose isActive methods
+		this.isActive = this.attachIsActive();
+		// Expose isCleaning methods
+		this.isCleaning = this.attachIsCleaning();
+
 		this.submodules.chain.saveGenesisBlock(err => setImmediate(cb, err, self));
 	}
-}
 
-/**
- * PUBLIC METHODS
- */
-/**
- * Last block functions, getter, setter and isFresh.
- *
- * @property {function} get - Returns lastBlock
- * @property {function} set - Sets lastBlock
- * @property {function} isFresh - Returns status of last block - if it fresh or not
- */
-Blocks.prototype.lastBlock = {
 	/**
-	 * Returns lastBlock.
-	 *
-	 * @returns {Object} Last block
+	 * Handle components initialization.
+	 * Components are not required in this file.
 	 */
-	get() {
-		return __private.lastBlock;
-	},
-	/**
-	 * Sets lastBlock.
-	 *
-	 * @returns {Object} Last block
-	 */
-	set(lastBlock) {
-		__private.lastBlock = lastBlock;
-		return __private.lastBlock;
-	},
-	/**
-	 * Returns status of last block - if it fresh or not
-	 *
-	 * @returns {boolean} Fresh status of last block
-	 */
-	isFresh() {
-		if (!__private.lastBlock) {
-			return false;
-		}
-		// Current time in seconds - (epoch start in seconds + block timestamp)
-		const secondsAgo =
-			Math.floor(Date.now() / 1000) -
-			(Math.floor(new Date(EPOCH_TIME) / 1000) + __private.lastBlock.timestamp);
-		return secondsAgo < BLOCK_RECEIPT_TIMEOUT;
-	},
-};
+	// eslint-disable-next-line class-methods-use-this
+	onBind(scope) {
+		// TODO: move here blocks submodules modules load from app.js.
+		components = {
+			cache: scope.components ? scope.components.cache : undefined,
+		};
+		// Set module as loaded
+		__private.loaded = true;
+	}
 
-/**
- * Last Receipt functions: get, update and isStale.
- *
- * @property {function} get - Returns lastReceipt
- * @property {function} update - Updates lastReceipt
- * @property {function} isStale - Returns status of last receipt - if it fresh or not
- */
-Blocks.prototype.lastReceipt = {
-	get() {
-		return __private.lastReceipt;
-	},
-	update() {
-		__private.lastReceipt = Math.floor(Date.now() / 1000);
-		return __private.lastReceipt;
-	},
 	/**
-	 * Returns status of last receipt - if it stale or not.
+	 * Clear blocks and transactions API cache and emit socket notification `blocks/change`.
 	 *
-	 * @returns {boolean} Stale status of last receipt
-	 */
-	isStale() {
-		if (!__private.lastReceipt) {
-			return true;
-		}
-		// Current time in seconds - lastReceipt (seconds)
-		const secondsAgo = Math.floor(Date.now() / 1000) - __private.lastReceipt;
-		return secondsAgo > BLOCK_RECEIPT_TIMEOUT;
-	},
-};
-
-/**
- * Description of the member.
- *
- * @property {function} get
- * @property {function} set
- * @todo Add description for the functions
- */
-Blocks.prototype.isActive = {
-	/**
-	 * Description of the function.
-	 *
-	 * @todo Add @returns tag
-	 */
-	get() {
-		return __private.isActive;
-	},
-	/**
-	 * Description of the function.
-	 *
-	 * @param {boolean} isActive
+	 * @param {Block} block
 	 * @todo Add description for the params
 	 * @todo Add @returns tag
 	 */
-	set(isActive) {
-		__private.isActive = isActive;
-		return __private.isActive;
-	},
-};
-
-Blocks.prototype.isCleaning = {
-	get() {
-		return __private.cleanup;
-	},
-};
-
-/**
- * Handle components initialization.
- * Components are not required in this file.
- */
-Blocks.prototype.onBind = function(scope) {
-	// TODO: move here blocks submodules modules load from app.js.
-	components = {
-		cache: scope.components ? scope.components.cache : undefined,
-	};
-	// Set module as loaded
-	__private.loaded = true;
-};
-
-/**
- * Clear blocks and transactions API cache and emit socket notification `blocks/change`.
- *
- * @param {Block} block
- * @todo Add description for the params
- * @todo Add @returns tag
- */
-Blocks.prototype.onNewBlock = async function(block) {
-	if (components && components.cache && components.cache.isReady()) {
-		library.logger.debug(
-			['Cache - onNewBlock', '| Status:', components.cache.isReady()].join(' ')
-		);
-		const keys = [CACHE_KEYS_BLOCKS, CACHE_KEYS_TRANSACTIONS];
-		const tasks = keys.map(key => components.cache.removeByPattern(key));
-		try {
-			await Promise.all(tasks);
+	// eslint-disable-next-line class-methods-use-this
+	async onNewBlock(block) {
+		if (components && components.cache && components.cache.isReady()) {
 			library.logger.debug(
-				[
-					'Cache - Keys with patterns:',
-					keys,
-					'cleared from cache on new Block',
-				].join(' ')
+				['Cache - onNewBlock', '| Status:', components.cache.isReady()].join(
+					' '
+				)
 			);
-		} catch (removeByPatternErr) {
-			library.logger.error(
-				['Cache - Error clearing keys on new Block'].join(' ')
-			);
-		}
-	}
-
-	return library.channel.publish('chain:blocks:change', block);
-};
-
-/**
- * Handle node shutdown request.
- *
- * @listens module:app~event:cleanup
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb
- */
-Blocks.prototype.cleanup = function(cb) {
-	__private.loaded = false;
-	__private.cleanup = true;
-
-	if (!__private.isActive) {
-		// Module ready for shutdown
-		return setImmediate(cb);
-	}
-	// Module is not ready, repeat
-	return setImmediate(function nextWatch() {
-		if (__private.isActive) {
-			library.logger.info('Waiting for block processing to finish...');
-			return setTimeout(nextWatch, 10000); // 10 sec
-		}
-		return setImmediate(cb);
-	});
-};
-
-/**
- * Get module loading status
- *
- * @returns {boolean} status - Module loading status
- */
-Blocks.prototype.isLoaded = function() {
-	// Return 'true' if 'modules' are present
-	return __private.loaded;
-};
-
-/**
- * Calculate broadhash getting the last 5 blocks from the database
- *
- * @returns {height, broadhash} broadhash and height
- */
-Blocks.prototype.calculateNewBroadhash = async function() {
-	try {
-		const state = library.applicationState;
-		let broadhash;
-		let height;
-		const blocks = await library.storage.entities.Block.get(
-			{},
-			{
-				limit: 5,
-				sort: 'height:desc',
+			const keys = [CACHE_KEYS_BLOCKS, CACHE_KEYS_TRANSACTIONS];
+			const tasks = keys.map(key => components.cache.removeByPattern(key));
+			try {
+				await Promise.all(tasks);
+				library.logger.debug(
+					[
+						'Cache - Keys with patterns:',
+						keys,
+						'cleared from cache on new Block',
+					].join(' ')
+				);
+			} catch (removeByPatternErr) {
+				library.logger.error(
+					['Cache - Error clearing keys on new Block'].join(' ')
+				);
 			}
-		);
-
-		if (blocks.length <= 1) {
-			broadhash = state.nethash;
-			height = state.height;
-		} else {
-			const seed = blocks.map(row => row.id).join('');
-			broadhash = crypto
-				.createHash('sha256')
-				.update(seed, 'utf8')
-				.digest()
-				.toString('hex');
-			height = blocks[0].height;
 		}
-		return { broadhash, height };
-	} catch (err) {
-		library.logger.error(err.stack);
-		return err;
+
+		return library.channel.publish('chain:blocks:change', block);
 	}
-};
+
+	/**
+	 * Handle node shutdown request.
+	 *
+	 * @listens module:app~event:cleanup
+	 * @param {function} cb - Callback function
+	 * @returns {setImmediateCallback} cb
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	cleanup(cb) {
+		__private.loaded = false;
+		__private.cleanup = true;
+
+		if (!__private.isActive) {
+			// Module ready for shutdown
+			return setImmediate(cb);
+		}
+		// Module is not ready, repeat
+		return setImmediate(function nextWatch() {
+			if (__private.isActive) {
+				library.logger.info('Waiting for block processing to finish...');
+				return setTimeout(nextWatch, 10000); // 10 sec
+			}
+			return setImmediate(cb);
+		});
+	}
+
+	/**
+	 * Get module loading status
+	 *
+	 * @returns {boolean} status - Module loading status
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	isLoaded() {
+		// Return 'true' if 'modules' are present
+		return __private.loaded;
+	}
+
+	/**
+	 * Calculate broadhash getting the last 5 blocks from the database
+	 *
+	 * @returns {height, broadhash} broadhash and height
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	async calculateNewBroadhash() {
+		try {
+			const state = library.applicationState;
+			let broadhash;
+			let height;
+			const blocks = await library.storage.entities.Block.get(
+				{},
+				{
+					limit: 5,
+					sort: 'height:desc',
+				}
+			);
+
+			if (blocks.length <= 1) {
+				broadhash = state.nethash;
+				height = state.height;
+			} else {
+				const seed = blocks.map(row => row.id).join('');
+				broadhash = crypto
+					.createHash('sha256')
+					.update(seed, 'utf8')
+					.digest()
+					.toString('hex');
+				height = blocks[0].height;
+			}
+			return { broadhash, height };
+		} catch (err) {
+			library.logger.error(err.stack);
+			return err;
+		}
+	}
+
+	/**
+	 * Last block functions, getter, setter and isFresh.
+	 *
+	 * @property {function} get - Returns lastBlock
+	 * @property {function} set - Sets lastBlock
+	 * @property {function} isFresh - Returns status of last block - if it fresh or not
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	attachLastBlock() {
+		return {
+			/**
+			 * Returns lastBlock.
+			 *
+			 * @returns {Object} Last block
+			 */
+			get() {
+				return __private.lastBlock;
+			},
+			/**
+			 * Sets lastBlock.
+			 *
+			 * @returns {Object} Last block
+			 */
+			set(lastBlock) {
+				__private.lastBlock = lastBlock;
+				return __private.lastBlock;
+			},
+			/**
+			 * Returns status of last block - if it fresh or not
+			 *
+			 * @returns {boolean} Fresh status of last block
+			 */
+			isFresh() {
+				if (!__private.lastBlock) {
+					return false;
+				}
+				// Current time in seconds - (epoch start in seconds + block timestamp)
+				const secondsAgo =
+					Math.floor(Date.now() / 1000) -
+					(Math.floor(new Date(EPOCH_TIME) / 1000) +
+						__private.lastBlock.timestamp);
+				return secondsAgo < BLOCK_RECEIPT_TIMEOUT;
+			},
+		};
+	}
+
+	/**
+	 * Last Receipt functions: get, update and isStale.
+	 *
+	 * @property {function} get - Returns lastReceipt
+	 * @property {function} update - Updates lastReceipt
+	 * @property {function} isStale - Returns status of last receipt - if it fresh or not
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	attachLastReceipt() {
+		return {
+			get() {
+				return __private.lastReceipt;
+			},
+			update() {
+				__private.lastReceipt = Math.floor(Date.now() / 1000);
+				return __private.lastReceipt;
+			},
+			/**
+			 * Returns status of last receipt - if it stale or not.
+			 *
+			 * @returns {boolean} Stale status of last receipt
+			 */
+			isStale() {
+				if (!__private.lastReceipt) {
+					return true;
+				}
+				// Current time in seconds - lastReceipt (seconds)
+				const secondsAgo =
+					Math.floor(Date.now() / 1000) - __private.lastReceipt;
+				return secondsAgo > BLOCK_RECEIPT_TIMEOUT;
+			},
+		};
+	}
+
+	/**
+	 * Description of the member.
+	 *
+	 * @property {function} get
+	 * @property {function} set
+	 * @todo Add description for the functions
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	attachIsActive() {
+		return {
+			/**
+			 * Description of the function.
+			 *
+			 * @todo Add @returns tag
+			 */
+			get() {
+				return __private.isActive;
+			},
+			/**
+			 * Description of the function.
+			 *
+			 * @param {boolean} isActive
+			 * @todo Add description for the params
+			 * @todo Add @returns tag
+			 */
+			set(isActive) {
+				__private.isActive = isActive;
+				return __private.isActive;
+			},
+		};
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	attachIsCleaning() {
+		return {
+			get() {
+				return __private.cleanup;
+			},
+		};
+	}
+}
 
 // Export
 module.exports = Blocks;

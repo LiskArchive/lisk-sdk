@@ -78,6 +78,375 @@ class Process {
 		library.logger.trace('Blocks->Process: Submodule initialized.');
 		return self;
 	}
+
+	/**
+	 * Loads full blocks from database, used when rebuilding blockchain, snapshotting,
+	 * see: loader.loadBlockChain (private).
+	 *
+	 * @param {number} blocksAmount - Amount of blocks
+	 * @param {number} fromHeight - Height to start at
+	 * @param {function} cb - Callback function
+	 * @returns {function} cb - Callback function from params (through setImmediate)
+	 * @returns {Object} cb.err - Error if occurred
+	 * @returns {Object} cb.lastBlock - Current last block
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	loadBlocksOffset(blocksAmount, fromHeight = 0, cb) {
+		// Calculate toHeight
+		const toHeight = fromHeight + blocksAmount;
+
+		library.logger.debug('Loading blocks offset', {
+			limit: toHeight,
+			offset: fromHeight,
+		});
+
+		const filters = {
+			height_gte: fromHeight,
+			height_lt: toHeight,
+		};
+
+		const options = {
+			limit: null,
+			sort: ['height:asc', 'rowId:asc'],
+			extended: true,
+		};
+
+		// Loads extended blocks from storage
+		library.storage.entities.Block.get(filters, options)
+			.then(rows => {
+				// Normalize blocks
+				const blocks = modules.blocks.utils.readStorageRows(rows);
+
+				async.eachSeries(
+					blocks,
+					(block, eachBlockSeriesCb) => {
+						// Stop processing if node shutdown was requested
+						if (modules.blocks.isCleaning.get()) {
+							return setImmediate(eachBlockSeriesCb);
+						}
+
+						library.logger.debug('Processing block', block.id);
+
+						if (block.id === library.genesisBlock.block.id) {
+							// Apply block - saveBlock: false
+							return modules.blocks.chain.applyGenesisBlock(block, err =>
+								setImmediate(eachBlockSeriesCb, err)
+							);
+						}
+
+						// Process block - broadcast: false, saveBlock: false
+						return modules.blocks.verify.processBlock(
+							block,
+							false,
+							false,
+							err => {
+								if (err) {
+									library.logger.debug('Block processing failed', {
+										id: block.id,
+										err: err.toString(),
+										module: 'blocks',
+										block,
+									});
+								}
+								return setImmediate(eachBlockSeriesCb, err);
+							}
+						);
+					},
+					err => setImmediate(cb, err, modules.blocks.lastBlock.get())
+				);
+			})
+			.catch(err => {
+				library.logger.error(err);
+				return setImmediate(
+					cb,
+					new Error(`Blocks#loadBlocksOffset error: ${err}`)
+				);
+			});
+	}
+
+	/**
+	 * Ask the network for blocks and process them.
+	 *
+	 * @param {function} cb - Callback function
+	 * @returns {function} cb - Callback function from params (through setImmediate)
+	 * @returns {Object} cb.err - Error if occurred
+	 * @returns {Object} cb.lastValidBlock - Normalized new last block
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	loadBlocksFromNetwork(cb) {
+		let lastValidBlock = modules.blocks.lastBlock.get();
+
+		library.logger.debug('Loading blocks from the network');
+
+		async function getBlocksFromNetwork() {
+			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
+			// TODO: Rename procedure to include target module name. E.g. chain:blocks
+			let data;
+			try {
+				const response = await library.channel.invoke('network:invoke', {
+					procedure: 'blocks',
+					data: {
+						lastBlockId: lastValidBlock.id,
+					},
+				});
+				data = response.data;
+			} catch (p2pError) {
+				library.logger.error('Failed to load block from network', p2pError);
+				return [];
+			}
+
+			if (!data) {
+				throw new Error('Received an invalid blocks response from the network');
+			}
+			// Check for strict equality for backwards compatibility reasons.
+			if (data.success === false) {
+				throw new Error(
+					`Peer did not have a matching lastBlockId. ${data.message}`
+				);
+			}
+
+			return data.blocks;
+		}
+
+		function validateBlocks(blocks, seriesCb) {
+			const report = library.schema.validate(blocks, definitions.WSBlocksList);
+
+			if (!report) {
+				return setImmediate(
+					seriesCb,
+					new Error('Received invalid blocks data')
+				);
+			}
+			return setImmediate(seriesCb, null, blocks);
+		}
+		// Process all received blocks
+		function processBlocks(blocks, seriesCb) {
+			// Skip if ther is no blocks
+			if (blocks.length === 0) {
+				return setImmediate(seriesCb);
+			}
+			// Iterate over received blocks, normalize block first...
+			return async.eachSeries(
+				modules.blocks.utils.readDbRows(blocks),
+				(block, eachSeriesCb) => {
+					if (modules.blocks.isCleaning.get()) {
+						// Cancel processing if node shutdown was requested
+						return setImmediate(eachSeriesCb);
+					}
+					// ...then process block
+					// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
+					return processBlock(block, err => eachSeriesCb(err));
+				},
+				err => setImmediate(seriesCb, err)
+			);
+		}
+		// Process single block
+		function processBlock(block, seriesCb) {
+			// Start block processing - broadcast: false, saveBlock: true
+			modules.blocks.verify.processBlock(block, false, true, err => {
+				if (!err) {
+					// Update last valid block
+					lastValidBlock = block;
+					library.logger.info(
+						`Block ${block.id} loaded from the network`,
+						`height: ${block.height}`
+					);
+				} else {
+					const id = block ? block.id : 'null';
+
+					library.logger.debug('Block processing failed', {
+						id,
+						err: err.toString(),
+						module: 'blocks',
+						block,
+					});
+				}
+				return seriesCb(err);
+			});
+		}
+
+		async.waterfall(
+			[getBlocksFromNetwork, validateBlocks, processBlocks],
+			err => {
+				if (err) {
+					return setImmediate(
+						cb,
+						`Error loading blocks: ${err.message || err}`,
+						lastValidBlock
+					);
+				}
+				return setImmediate(cb, null, lastValidBlock);
+			}
+		);
+	}
+
+	/**
+	 * Generate new block, see: loader.loadBlockChain (private).
+	 *
+	 * @param {Object} keypair - Pair of private and public keys, see: helpers.ed.makeKeypair
+	 * @param {number} timestamp - Slot time, see: helpers.slots.getSlotTime
+	 * @param {function} cb - Callback function
+	 * @returns {function} cb - Callback function from params (through setImmediate)
+	 * @returns {Object} cb.err - Error message if error occurred
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	generateBlock(keypair, timestamp, cb) {
+		// Get transactions that will be included in block
+		const transactions =
+			modules.transactions.getUnconfirmedTransactionList(
+				false,
+				MAX_TRANSACTIONS_PER_BLOCK
+			) || [];
+
+		const context = {
+			blockTimestamp: timestamp,
+			blockHeight: modules.blocks.lastBlock.get().height + 1,
+			blockVersion: blockVersion.currentBlockVersion,
+		};
+
+		const allowedTransactionsIds = modules.processTransactions
+			.checkAllowedTransactions(transactions, context)
+			.transactionsResponses.filter(
+				transactionResponse =>
+					transactionResponse.status === TransactionStatus.OK
+			)
+			.map(transactionReponse => transactionReponse.id);
+
+		const allowedTransactions = transactions.filter(transaction =>
+			allowedTransactionsIds.includes(transaction.id)
+		);
+
+		modules.processTransactions
+			.verifyTransactions(allowedTransactions)
+			.then(({ transactionsResponses: responses }) => {
+				const readyTransactions = transactions.filter(transaction =>
+					responses
+						.filter(response => response.status === TransactionStatus.OK)
+						.map(response => response.id)
+						.includes(transaction.id)
+				);
+
+				// Create a block
+				const block = library.logic.block.create({
+					keypair,
+					timestamp,
+					previousBlock: modules.blocks.lastBlock.get(),
+					transactions: readyTransactions,
+				});
+				// Start block processing - broadcast: true, saveBlock: true
+				return modules.blocks.verify.processBlock(block, true, true, cb);
+			})
+			.catch(e => {
+				library.logger.error(e.stack);
+				return setImmediate(cb, e);
+			});
+	}
+
+	/**
+	 * Handle newly received block.
+	 *
+	 * @listens module:transport~event:receiveBlock
+	 * @param {block} block - New block
+	 * @todo Add @returns tag
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	onReceiveBlock(block) {
+		// When client is not loaded, is syncing
+		// Do not receive new blocks as client is not ready
+		if (!__private.loaded) {
+			return library.logger.debug(
+				'Client is not ready to receive block',
+				block.id
+			);
+		}
+
+		if (modules.loader.syncing()) {
+			return library.logger.debug(
+				"Client is syncing. Can't receive block at the moment.",
+				block.id
+			);
+		}
+
+		// Execute in sequence via sequence
+		return library.sequence.add(cb => {
+			// Get the last block
+			const lastBlock = modules.blocks.lastBlock.get();
+
+			// Detect sane block
+			if (
+				block.previousBlock === lastBlock.id &&
+				lastBlock.height + 1 === block.height
+			) {
+				// Process received block
+				return __private.receiveBlock(block, cb);
+			}
+
+			if (
+				block.previousBlock !== lastBlock.id &&
+				lastBlock.height + 1 === block.height
+			) {
+				// Process received fork cause 1
+				return __private.receiveForkOne(block, lastBlock, cb);
+			}
+
+			if (
+				block.previousBlock === lastBlock.previousBlock &&
+				block.height === lastBlock.height &&
+				block.id !== lastBlock.id
+			) {
+				// Process received fork cause 5
+				return __private.receiveForkFive(block, lastBlock, cb);
+			}
+
+			if (block.id === lastBlock.id) {
+				library.logger.debug('Block already processed', block.id);
+			} else {
+				library.logger.warn(
+					`Discarded block that does not match with current chain: ${
+						block.id
+					} height: ${block.height} round: ${slots.calcRound(
+						block.height
+					)} slot: ${slots.getSlotNumber(block.timestamp)} generator: ${
+						block.generatorPublicKey
+					}`
+				);
+			}
+
+			// Discard received block
+			return setImmediate(cb);
+		});
+	}
+
+	/**
+	 * Handle modules initialization
+	 * - accounts
+	 * - blocks
+	 * - delegates
+	 * - loader
+	 * - rounds
+	 * - transactions
+	 * - transport
+	 *
+	 * @param {modules} scope - Exposed modules
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	onBind(scope) {
+		library.logger.trace('Blocks->Process: Shared modules bind.');
+		modules = {
+			accounts: scope.modules.accounts,
+			blocks: scope.modules.blocks,
+			delegates: scope.modules.delegates,
+			loader: scope.modules.loader,
+			peers: scope.modules.peers,
+			rounds: scope.modules.rounds,
+			transactions: scope.modules.transactions,
+			transport: scope.modules.transport,
+			processTransactions: scope.modules.processTransactions,
+		};
+
+		// Set module as loaded
+		__private.loaded = true;
+	}
 }
 
 /**
@@ -255,266 +624,6 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
 };
 
 /**
- * Loads full blocks from database, used when rebuilding blockchain, snapshotting,
- * see: loader.loadBlockChain (private).
- *
- * @param {number} blocksAmount - Amount of blocks
- * @param {number} fromHeight - Height to start at
- * @param {function} cb - Callback function
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object} cb.err - Error if occurred
- * @returns {Object} cb.lastBlock - Current last block
- */
-Process.prototype.loadBlocksOffset = function(
-	blocksAmount,
-	fromHeight = 0,
-	cb
-) {
-	// Calculate toHeight
-	const toHeight = fromHeight + blocksAmount;
-
-	library.logger.debug('Loading blocks offset', {
-		limit: toHeight,
-		offset: fromHeight,
-	});
-
-	const filters = {
-		height_gte: fromHeight,
-		height_lt: toHeight,
-	};
-
-	const options = {
-		limit: null,
-		sort: ['height:asc', 'rowId:asc'],
-		extended: true,
-	};
-
-	// Loads extended blocks from storage
-	library.storage.entities.Block.get(filters, options)
-		.then(rows => {
-			// Normalize blocks
-			const blocks = modules.blocks.utils.readStorageRows(rows);
-
-			async.eachSeries(
-				blocks,
-				(block, eachBlockSeriesCb) => {
-					// Stop processing if node shutdown was requested
-					if (modules.blocks.isCleaning.get()) {
-						return setImmediate(eachBlockSeriesCb);
-					}
-
-					library.logger.debug('Processing block', block.id);
-
-					if (block.id === library.genesisBlock.block.id) {
-						// Apply block - saveBlock: false
-						return modules.blocks.chain.applyGenesisBlock(block, err =>
-							setImmediate(eachBlockSeriesCb, err)
-						);
-					}
-
-					// Process block - broadcast: false, saveBlock: false
-					return modules.blocks.verify.processBlock(
-						block,
-						false,
-						false,
-						err => {
-							if (err) {
-								library.logger.debug('Block processing failed', {
-									id: block.id,
-									err: err.toString(),
-									module: 'blocks',
-									block,
-								});
-							}
-							return setImmediate(eachBlockSeriesCb, err);
-						}
-					);
-				},
-				err => setImmediate(cb, err, modules.blocks.lastBlock.get())
-			);
-		})
-		.catch(err => {
-			library.logger.error(err);
-			return setImmediate(
-				cb,
-				new Error(`Blocks#loadBlocksOffset error: ${err}`)
-			);
-		});
-};
-
-/**
- * Ask the network for blocks and process them.
- *
- * @param {function} cb - Callback function
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object} cb.err - Error if occurred
- * @returns {Object} cb.lastValidBlock - Normalized new last block
- */
-Process.prototype.loadBlocksFromNetwork = function(cb) {
-	let lastValidBlock = modules.blocks.lastBlock.get();
-
-	library.logger.debug('Loading blocks from the network');
-
-	async function getBlocksFromNetwork() {
-		// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
-		// TODO: Rename procedure to include target module name. E.g. chain:blocks
-		let data;
-		try {
-			const response = await library.channel.invoke('network:invoke', {
-				procedure: 'blocks',
-				data: {
-					lastBlockId: lastValidBlock.id,
-				},
-			});
-			data = response.data;
-		} catch (p2pError) {
-			library.logger.error('Failed to load block from network', p2pError);
-			return [];
-		}
-
-		if (!data) {
-			throw new Error('Received an invalid blocks response from the network');
-		}
-		// Check for strict equality for backwards compatibility reasons.
-		if (data.success === false) {
-			throw new Error(
-				`Peer did not have a matching lastBlockId. ${data.message}`
-			);
-		}
-
-		return data.blocks;
-	}
-
-	function validateBlocks(blocks, seriesCb) {
-		const report = library.schema.validate(blocks, definitions.WSBlocksList);
-
-		if (!report) {
-			return setImmediate(seriesCb, new Error('Received invalid blocks data'));
-		}
-		return setImmediate(seriesCb, null, blocks);
-	}
-	// Process all received blocks
-	function processBlocks(blocks, seriesCb) {
-		// Skip if ther is no blocks
-		if (blocks.length === 0) {
-			return setImmediate(seriesCb);
-		}
-		// Iterate over received blocks, normalize block first...
-		return async.eachSeries(
-			modules.blocks.utils.readDbRows(blocks),
-			(block, eachSeriesCb) => {
-				if (modules.blocks.isCleaning.get()) {
-					// Cancel processing if node shutdown was requested
-					return setImmediate(eachSeriesCb);
-				}
-				// ...then process block
-				// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
-				return processBlock(block, err => eachSeriesCb(err));
-			},
-			err => setImmediate(seriesCb, err)
-		);
-	}
-	// Process single block
-	function processBlock(block, seriesCb) {
-		// Start block processing - broadcast: false, saveBlock: true
-		modules.blocks.verify.processBlock(block, false, true, err => {
-			if (!err) {
-				// Update last valid block
-				lastValidBlock = block;
-				library.logger.info(
-					`Block ${block.id} loaded from the network`,
-					`height: ${block.height}`
-				);
-			} else {
-				const id = block ? block.id : 'null';
-
-				library.logger.debug('Block processing failed', {
-					id,
-					err: err.toString(),
-					module: 'blocks',
-					block,
-				});
-			}
-			return seriesCb(err);
-		});
-	}
-
-	async.waterfall(
-		[getBlocksFromNetwork, validateBlocks, processBlocks],
-		err => {
-			if (err) {
-				return setImmediate(
-					cb,
-					`Error loading blocks: ${err.message || err}`,
-					lastValidBlock
-				);
-			}
-			return setImmediate(cb, null, lastValidBlock);
-		}
-	);
-};
-
-/**
- * Generate new block, see: loader.loadBlockChain (private).
- *
- * @param {Object} keypair - Pair of private and public keys, see: helpers.ed.makeKeypair
- * @param {number} timestamp - Slot time, see: helpers.slots.getSlotTime
- * @param {function} cb - Callback function
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object} cb.err - Error message if error occurred
- */
-Process.prototype.generateBlock = function(keypair, timestamp, cb) {
-	// Get transactions that will be included in block
-	const transactions =
-		modules.transactions.getUnconfirmedTransactionList(
-			false,
-			MAX_TRANSACTIONS_PER_BLOCK
-		) || [];
-
-	const context = {
-		blockTimestamp: timestamp,
-		blockHeight: modules.blocks.lastBlock.get().height + 1,
-		blockVersion: blockVersion.currentBlockVersion,
-	};
-
-	const allowedTransactionsIds = modules.processTransactions
-		.checkAllowedTransactions(transactions, context)
-		.transactionsResponses.filter(
-			transactionResponse => transactionResponse.status === TransactionStatus.OK
-		)
-		.map(transactionReponse => transactionReponse.id);
-
-	const allowedTransactions = transactions.filter(transaction =>
-		allowedTransactionsIds.includes(transaction.id)
-	);
-
-	modules.processTransactions
-		.verifyTransactions(allowedTransactions)
-		.then(({ transactionsResponses: responses }) => {
-			const readyTransactions = transactions.filter(transaction =>
-				responses
-					.filter(response => response.status === TransactionStatus.OK)
-					.map(response => response.id)
-					.includes(transaction.id)
-			);
-
-			// Create a block
-			const block = library.logic.block.create({
-				keypair,
-				timestamp,
-				previousBlock: modules.blocks.lastBlock.get(),
-				transactions: readyTransactions,
-			});
-			// Start block processing - broadcast: true, saveBlock: true
-			return modules.blocks.verify.processBlock(block, true, true, cb);
-		})
-		.catch(e => {
-			library.logger.error(e.stack);
-			return setImmediate(cb, e);
-		});
-};
-
-/**
  * Validate if block generator is valid delegate.
  *
  * @private
@@ -541,110 +650,6 @@ __private.validateBlockSlot = function(block, lastBlock, cb) {
 		// DATABASE: Read only to mem_accounts to extract active delegate list
 		modules.delegates.validateBlockSlot(block, err => setImmediate(cb, err));
 	}
-};
-
-/**
- * Handle newly received block.
- *
- * @listens module:transport~event:receiveBlock
- * @param {block} block - New block
- * @todo Add @returns tag
- */
-Process.prototype.onReceiveBlock = function(block) {
-	// When client is not loaded, is syncing
-	// Do not receive new blocks as client is not ready
-	if (!__private.loaded) {
-		return library.logger.debug(
-			'Client is not ready to receive block',
-			block.id
-		);
-	}
-
-	if (modules.loader.syncing()) {
-		return library.logger.debug(
-			"Client is syncing. Can't receive block at the moment.",
-			block.id
-		);
-	}
-
-	// Execute in sequence via sequence
-	return library.sequence.add(cb => {
-		// Get the last block
-		const lastBlock = modules.blocks.lastBlock.get();
-
-		// Detect sane block
-		if (
-			block.previousBlock === lastBlock.id &&
-			lastBlock.height + 1 === block.height
-		) {
-			// Process received block
-			return __private.receiveBlock(block, cb);
-		}
-
-		if (
-			block.previousBlock !== lastBlock.id &&
-			lastBlock.height + 1 === block.height
-		) {
-			// Process received fork cause 1
-			return __private.receiveForkOne(block, lastBlock, cb);
-		}
-
-		if (
-			block.previousBlock === lastBlock.previousBlock &&
-			block.height === lastBlock.height &&
-			block.id !== lastBlock.id
-		) {
-			// Process received fork cause 5
-			return __private.receiveForkFive(block, lastBlock, cb);
-		}
-
-		if (block.id === lastBlock.id) {
-			library.logger.debug('Block already processed', block.id);
-		} else {
-			library.logger.warn(
-				`Discarded block that does not match with current chain: ${
-					block.id
-				} height: ${block.height} round: ${slots.calcRound(
-					block.height
-				)} slot: ${slots.getSlotNumber(block.timestamp)} generator: ${
-					block.generatorPublicKey
-				}`
-			);
-		}
-
-		// Discard received block
-		return setImmediate(cb);
-	});
-};
-
-/**
- * Handle modules initialization
- * - accounts
- * - blocks
- * - delegates
- * - loader
- * - rounds
- * - transactions
- * - transport
- *
- * @param {modules} scope - Exposed modules
- */
-Process.prototype.onBind = function(scope) {
-	library.logger.trace('Blocks->Process: Shared modules bind.');
-	modules = {
-		accounts: scope.modules.accounts,
-		blocks: scope.modules.blocks,
-		delegates: scope.modules.delegates,
-		loader: scope.modules.loader,
-		peers: scope.modules.peers,
-		rounds: scope.modules.rounds,
-		transactions: scope.modules.transactions,
-		transport: scope.modules.transport,
-		processTransactions: scope.modules.processTransactions,
-	};
-
-	// Set module as loaded
-	__private.loaded = true;
 };
 
 module.exports = Process;

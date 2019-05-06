@@ -50,6 +50,9 @@ class Block {
 			schema,
 			transaction,
 		};
+
+		this.attachSchema();
+
 		__private.blockReward = new BlockReward();
 		if (cb) {
 			return setImmediate(cb, null, this);
@@ -233,7 +236,7 @@ class Block {
 				delete block[key];
 			}
 		});
-		const report = this.scope.schema.validate(block, Block.prototype.schema);
+		const report = this.scope.schema.validate(block, this.schema);
 		if (!report) {
 			throw new Error(
 				`Failed to validate block schema: ${this.scope.schema
@@ -253,6 +256,298 @@ class Block {
 		}
 
 		return block;
+	}
+
+	/**
+	 * Binds scope.modules to private variable modules.
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	bindModules(__modules) {
+		modules = {
+			processTransactions: __modules.processTransactions,
+		};
+	}
+
+	/**
+	 * Description of the function.
+	 *
+	 * @param {block} block
+	 * @throws {Error}
+	 * @returns {!Array} Contents as an ArrayBuffer
+	 * @todo Add description for the function and the params
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	getBytes(block) {
+		const capacity =
+			4 + // version (int)
+			4 + // timestamp (int)
+			8 + // previousBlock
+			4 + // numberOfTransactions (int)
+			8 + // totalAmount (long)
+			8 + // totalFee (long)
+			8 + // reward (long)
+			4 + // payloadLength (int)
+			32 + // payloadHash
+			32 + // generatorPublicKey
+			64 + // blockSignature or unused
+			4; // unused
+		let bytes;
+
+		try {
+			const byteBuffer = new ByteBuffer(capacity, true);
+			byteBuffer.writeInt(block.version);
+			byteBuffer.writeInt(block.timestamp);
+
+			if (block.previousBlock) {
+				const pb = new Bignum(block.previousBlock).toBuffer({ size: '8' });
+
+				for (let i = 0; i < 8; i++) {
+					byteBuffer.writeByte(pb[i]);
+				}
+			} else {
+				for (let i = 0; i < 8; i++) {
+					byteBuffer.writeByte(0);
+				}
+			}
+
+			byteBuffer.writeInt(block.numberOfTransactions);
+			byteBuffer.writeLong(block.totalAmount.toString());
+			byteBuffer.writeLong(block.totalFee.toString());
+			byteBuffer.writeLong(block.reward.toString());
+
+			byteBuffer.writeInt(block.payloadLength);
+
+			const payloadHashBuffer = this.scope.ed.hexToBuffer(block.payloadHash);
+			for (let i = 0; i < payloadHashBuffer.length; i++) {
+				byteBuffer.writeByte(payloadHashBuffer[i]);
+			}
+
+			const generatorPublicKeyBuffer = this.scope.ed.hexToBuffer(
+				block.generatorPublicKey
+			);
+			for (let i = 0; i < generatorPublicKeyBuffer.length; i++) {
+				byteBuffer.writeByte(generatorPublicKeyBuffer[i]);
+			}
+
+			if (block.blockSignature) {
+				const blockSignatureBuffer = this.scope.ed.hexToBuffer(
+					block.blockSignature
+				);
+				for (let i = 0; i < blockSignatureBuffer.length; i++) {
+					byteBuffer.writeByte(blockSignatureBuffer[i]);
+				}
+			}
+
+			byteBuffer.flip();
+			bytes = byteBuffer.toBuffer();
+		} catch (e) {
+			throw e;
+		}
+
+		return bytes;
+	}
+
+	/**
+	 * Calculates block id based on block.
+	 *
+	 * @param {block} block
+	 * @returns {string} Block id
+	 * @todo Add description for the params
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	getId(block) {
+		const hash = crypto
+			.createHash('sha256')
+			.update(this.getBytes(block))
+			.digest();
+		const temp = Buffer.alloc(8);
+		for (let i = 0; i < 8; i++) {
+			temp[i] = hash[7 - i];
+		}
+
+		// eslint-disable-next-line new-cap
+		const id = new Bignum.fromBuffer(temp).toString();
+		return id;
+	}
+
+	/**
+	 * Returns send fees from constants.
+	 *
+	 * @returns {Bignumber} Transaction fee
+	 * @todo Delete unused param
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	calculateFee() {
+		return new Bignum(FEES.SEND);
+	}
+
+	/**
+	 * Creates block object based on raw data.
+	 *
+	 * @param {Object} raw
+	 * @returns {null|block} Block object
+	 * @todo Add description for the params
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	dbRead(raw) {
+		if (!raw.b_id) {
+			return null;
+		}
+		const block = {
+			id: raw.b_id,
+			version: parseInt(raw.b_version),
+			timestamp: parseInt(raw.b_timestamp),
+			height: parseInt(raw.b_height),
+			previousBlock: raw.b_previousBlock,
+			numberOfTransactions: parseInt(raw.b_numberOfTransactions),
+			totalAmount: new Bignum(raw.b_totalAmount),
+			totalFee: new Bignum(raw.b_totalFee),
+			reward: new Bignum(raw.b_reward),
+			payloadLength: parseInt(raw.b_payloadLength),
+			payloadHash: raw.b_payloadHash,
+			generatorPublicKey: raw.b_generatorPublicKey,
+			generatorId: __private.getAddressByPublicKey(raw.b_generatorPublicKey),
+			blockSignature: raw.b_blockSignature,
+			confirmations: parseInt(raw.b_confirmations),
+		};
+		block.totalForged = block.totalFee.plus(block.reward).toString();
+		return block;
+	}
+
+	/**
+	 * Creates block object based on raw database block data.
+	 *
+	 * @param {Object} raw Raw database data block object
+	 * @returns {null|block} Block object
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	storageRead(raw) {
+		if (!raw.id) {
+			return null;
+		}
+
+		const block = {
+			id: raw.id,
+			version: parseInt(raw.version),
+			timestamp: parseInt(raw.timestamp),
+			height: parseInt(raw.height),
+			previousBlock: raw.previousBlockId,
+			numberOfTransactions: parseInt(raw.numberOfTransactions),
+			totalAmount: new Bignum(raw.totalAmount),
+			totalFee: new Bignum(raw.totalFee),
+			reward: new Bignum(raw.reward),
+			payloadLength: parseInt(raw.payloadLength),
+			payloadHash: raw.payloadHash,
+			generatorPublicKey: raw.generatorPublicKey,
+			generatorId: __private.getAddressByPublicKey(raw.generatorPublicKey),
+			blockSignature: raw.blockSignature,
+			confirmations: parseInt(raw.confirmations),
+		};
+
+		if (raw.transactions) {
+			block.transactions = raw.transactions
+				.filter(tx => !!tx.id)
+				.map(tx => _.omitBy(tx, _.isNull));
+		}
+
+		block.totalForged = block.totalFee.plus(block.reward).toString();
+
+		return block;
+	}
+
+	/**
+	 * @typedef {Object} block
+	 * @property {string} id - Between 1 and 20 chars
+	 * @property {number} height
+	 * @property {signature} blockSignature
+	 * @property {publicKey} generatorPublicKey
+	 * @property {number} numberOfTransactions
+	 * @property {string} payloadHash
+	 * @property {number} payloadLength
+	 * @property {string} previousBlock - Between 1 and 20 chars
+	 * @property {number} timestamp
+	 * @property {number} totalAmount - Minimun 0
+	 * @property {number} totalFee - Minimun 0
+	 * @property {number} reward - Minimun 0
+	 * @property {Array} transactions - Unique items
+	 * @property {number} version - Minimun 0
+	 */
+	attachSchema() {
+		this.schema = {
+			id: 'Block',
+			type: 'object',
+			properties: {
+				id: {
+					type: 'string',
+					format: 'id',
+					minLength: 1,
+					maxLength: 20,
+				},
+				height: {
+					type: 'integer',
+				},
+				blockSignature: {
+					type: 'string',
+					format: 'signature',
+				},
+				generatorPublicKey: {
+					type: 'string',
+					format: 'publicKey',
+				},
+				numberOfTransactions: {
+					type: 'integer',
+				},
+				payloadHash: {
+					type: 'string',
+					format: 'hex',
+				},
+				payloadLength: {
+					type: 'integer',
+				},
+				previousBlock: {
+					type: 'string',
+					format: 'id',
+					minLength: 1,
+					maxLength: 20,
+				},
+				timestamp: {
+					type: 'integer',
+				},
+				totalAmount: {
+					type: 'object',
+					format: 'amount',
+				},
+				totalFee: {
+					type: 'object',
+					format: 'amount',
+				},
+				reward: {
+					type: 'object',
+					format: 'amount',
+				},
+				transactions: {
+					type: 'array',
+					uniqueItems: true,
+				},
+				version: {
+					type: 'integer',
+					minimum: 0,
+				},
+			},
+			required: [
+				'blockSignature',
+				'generatorPublicKey',
+				'numberOfTransactions',
+				'payloadHash',
+				'payloadLength',
+				'timestamp',
+				'totalAmount',
+				'totalFee',
+				'reward',
+				'transactions',
+				'version',
+			],
+		};
 	}
 }
 
@@ -277,291 +572,6 @@ __private.getAddressByPublicKey = function(publicKey) {
 
 	const address = `${Bignum.fromBuffer(temp).toString()}L`;
 	return address;
-};
-
-// TODO: The below functions should be converted into static functions,
-// however, this will lead to incompatibility with modules and tests implementation.
-/**
- * Binds scope.modules to private variable modules.
- */
-Block.prototype.bindModules = function(__modules) {
-	modules = {
-		processTransactions: __modules.processTransactions,
-	};
-};
-/**
- * @typedef {Object} block
- * @property {string} id - Between 1 and 20 chars
- * @property {number} height
- * @property {signature} blockSignature
- * @property {publicKey} generatorPublicKey
- * @property {number} numberOfTransactions
- * @property {string} payloadHash
- * @property {number} payloadLength
- * @property {string} previousBlock - Between 1 and 20 chars
- * @property {number} timestamp
- * @property {number} totalAmount - Minimun 0
- * @property {number} totalFee - Minimun 0
- * @property {number} reward - Minimun 0
- * @property {Array} transactions - Unique items
- * @property {number} version - Minimun 0
- */
-Block.prototype.schema = {
-	id: 'Block',
-	type: 'object',
-	properties: {
-		id: {
-			type: 'string',
-			format: 'id',
-			minLength: 1,
-			maxLength: 20,
-		},
-		height: {
-			type: 'integer',
-		},
-		blockSignature: {
-			type: 'string',
-			format: 'signature',
-		},
-		generatorPublicKey: {
-			type: 'string',
-			format: 'publicKey',
-		},
-		numberOfTransactions: {
-			type: 'integer',
-		},
-		payloadHash: {
-			type: 'string',
-			format: 'hex',
-		},
-		payloadLength: {
-			type: 'integer',
-		},
-		previousBlock: {
-			type: 'string',
-			format: 'id',
-			minLength: 1,
-			maxLength: 20,
-		},
-		timestamp: {
-			type: 'integer',
-		},
-		totalAmount: {
-			type: 'object',
-			format: 'amount',
-		},
-		totalFee: {
-			type: 'object',
-			format: 'amount',
-		},
-		reward: {
-			type: 'object',
-			format: 'amount',
-		},
-		transactions: {
-			type: 'array',
-			uniqueItems: true,
-		},
-		version: {
-			type: 'integer',
-			minimum: 0,
-		},
-	},
-	required: [
-		'blockSignature',
-		'generatorPublicKey',
-		'numberOfTransactions',
-		'payloadHash',
-		'payloadLength',
-		'timestamp',
-		'totalAmount',
-		'totalFee',
-		'reward',
-		'transactions',
-		'version',
-	],
-};
-
-/**
- * Description of the function.
- *
- * @param {block} block
- * @throws {Error}
- * @returns {!Array} Contents as an ArrayBuffer
- * @todo Add description for the function and the params
- */
-Block.prototype.getBytes = function(block) {
-	const capacity =
-		4 + // version (int)
-		4 + // timestamp (int)
-		8 + // previousBlock
-		4 + // numberOfTransactions (int)
-		8 + // totalAmount (long)
-		8 + // totalFee (long)
-		8 + // reward (long)
-		4 + // payloadLength (int)
-		32 + // payloadHash
-		32 + // generatorPublicKey
-		64 + // blockSignature or unused
-		4; // unused
-	let bytes;
-
-	try {
-		const byteBuffer = new ByteBuffer(capacity, true);
-		byteBuffer.writeInt(block.version);
-		byteBuffer.writeInt(block.timestamp);
-
-		if (block.previousBlock) {
-			const pb = new Bignum(block.previousBlock).toBuffer({ size: '8' });
-
-			for (let i = 0; i < 8; i++) {
-				byteBuffer.writeByte(pb[i]);
-			}
-		} else {
-			for (let i = 0; i < 8; i++) {
-				byteBuffer.writeByte(0);
-			}
-		}
-
-		byteBuffer.writeInt(block.numberOfTransactions);
-		byteBuffer.writeLong(block.totalAmount.toString());
-		byteBuffer.writeLong(block.totalFee.toString());
-		byteBuffer.writeLong(block.reward.toString());
-
-		byteBuffer.writeInt(block.payloadLength);
-
-		const payloadHashBuffer = this.scope.ed.hexToBuffer(block.payloadHash);
-		for (let i = 0; i < payloadHashBuffer.length; i++) {
-			byteBuffer.writeByte(payloadHashBuffer[i]);
-		}
-
-		const generatorPublicKeyBuffer = this.scope.ed.hexToBuffer(
-			block.generatorPublicKey
-		);
-		for (let i = 0; i < generatorPublicKeyBuffer.length; i++) {
-			byteBuffer.writeByte(generatorPublicKeyBuffer[i]);
-		}
-
-		if (block.blockSignature) {
-			const blockSignatureBuffer = this.scope.ed.hexToBuffer(
-				block.blockSignature
-			);
-			for (let i = 0; i < blockSignatureBuffer.length; i++) {
-				byteBuffer.writeByte(blockSignatureBuffer[i]);
-			}
-		}
-
-		byteBuffer.flip();
-		bytes = byteBuffer.toBuffer();
-	} catch (e) {
-		throw e;
-	}
-
-	return bytes;
-};
-
-/**
- * Calculates block id based on block.
- *
- * @param {block} block
- * @returns {string} Block id
- * @todo Add description for the params
- */
-Block.prototype.getId = function(block) {
-	const hash = crypto
-		.createHash('sha256')
-		.update(this.getBytes(block))
-		.digest();
-	const temp = Buffer.alloc(8);
-	for (let i = 0; i < 8; i++) {
-		temp[i] = hash[7 - i];
-	}
-
-	// eslint-disable-next-line new-cap
-	const id = new Bignum.fromBuffer(temp).toString();
-	return id;
-};
-
-/**
- * Returns send fees from constants.
- *
- * @returns {Bignumber} Transaction fee
- * @todo Delete unused param
- */
-Block.prototype.calculateFee = function() {
-	return new Bignum(FEES.SEND);
-};
-
-/**
- * Creates block object based on raw data.
- *
- * @param {Object} raw
- * @returns {null|block} Block object
- * @todo Add description for the params
- */
-Block.prototype.dbRead = function(raw) {
-	if (!raw.b_id) {
-		return null;
-	}
-	const block = {
-		id: raw.b_id,
-		version: parseInt(raw.b_version),
-		timestamp: parseInt(raw.b_timestamp),
-		height: parseInt(raw.b_height),
-		previousBlock: raw.b_previousBlock,
-		numberOfTransactions: parseInt(raw.b_numberOfTransactions),
-		totalAmount: new Bignum(raw.b_totalAmount),
-		totalFee: new Bignum(raw.b_totalFee),
-		reward: new Bignum(raw.b_reward),
-		payloadLength: parseInt(raw.b_payloadLength),
-		payloadHash: raw.b_payloadHash,
-		generatorPublicKey: raw.b_generatorPublicKey,
-		generatorId: __private.getAddressByPublicKey(raw.b_generatorPublicKey),
-		blockSignature: raw.b_blockSignature,
-		confirmations: parseInt(raw.b_confirmations),
-	};
-	block.totalForged = block.totalFee.plus(block.reward).toString();
-	return block;
-};
-
-/**
- * Creates block object based on raw database block data.
- *
- * @param {Object} raw Raw database data block object
- * @returns {null|block} Block object
- */
-Block.prototype.storageRead = function(raw) {
-	if (!raw.id) {
-		return null;
-	}
-
-	const block = {
-		id: raw.id,
-		version: parseInt(raw.version),
-		timestamp: parseInt(raw.timestamp),
-		height: parseInt(raw.height),
-		previousBlock: raw.previousBlockId,
-		numberOfTransactions: parseInt(raw.numberOfTransactions),
-		totalAmount: new Bignum(raw.totalAmount),
-		totalFee: new Bignum(raw.totalFee),
-		reward: new Bignum(raw.reward),
-		payloadLength: parseInt(raw.payloadLength),
-		payloadHash: raw.payloadHash,
-		generatorPublicKey: raw.generatorPublicKey,
-		generatorId: __private.getAddressByPublicKey(raw.generatorPublicKey),
-		blockSignature: raw.blockSignature,
-		confirmations: parseInt(raw.confirmations),
-	};
-
-	if (raw.transactions) {
-		block.transactions = raw.transactions
-			.filter(tx => !!tx.id)
-			.map(tx => _.omitBy(tx, _.isNull));
-	}
-
-	block.totalForged = block.totalFee.plus(block.reward).toString();
-
-	return block;
 };
 
 module.exports = Block;

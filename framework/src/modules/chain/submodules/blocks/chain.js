@@ -78,105 +78,347 @@ class Chain {
 		library.logger.trace('Blocks->Chain: Submodule initialized.');
 		return self;
 	}
-}
 
-/**
- * Save genesis block to database.
- *
- * @param  {function} cb - Callback function
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object} cb.err - Error if occurred
- */
-Chain.prototype.saveGenesisBlock = function(cb) {
-	// Check if genesis block ID already exists in the database
-	library.storage.entities.Block.isPersisted({
-		id: library.genesisBlock.block.id,
-	})
-		.then(isPersisted => {
-			if (isPersisted) {
-				return setImmediate(cb);
-			}
-
-			// If there is no block with genesis ID - save to database
-			// WARNING: DB_WRITE
-			// FIXME: This will fail if we already have genesis block in database, but with different ID
-			const block = {
-				...library.genesisBlock.block,
-				transactions: library.logic.initTransaction.fromBlock(
-					library.genesisBlock.block
-				),
-			};
-			return self.saveBlock(block, err => setImmediate(cb, err));
+	/**
+	 * Save genesis block to database.
+	 *
+	 * @param  {function} cb - Callback function
+	 * @returns {function} cb - Callback function from params (through setImmediate)
+	 * @returns {Object} cb.err - Error if occurred
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	saveGenesisBlock(cb) {
+		// Check if genesis block ID already exists in the database
+		library.storage.entities.Block.isPersisted({
+			id: library.genesisBlock.block.id,
 		})
-		.catch(err => {
-			library.logger.error(err.stack);
-			return setImmediate(cb, 'Blocks#saveGenesisBlock error');
-		});
-};
+			.then(isPersisted => {
+				if (isPersisted) {
+					return setImmediate(cb);
+				}
 
-/**
- * Save block with transactions to database.
- *
- * @param {Object} block - Full normalized block
- * @param {function} cb - Callback function
- * @returns {Function|afterSave} cb - If SQL transaction was OK - returns safterSave execution, if not returns callback function from params (through setImmediate)
- * @returns {string} cb.err - Error if occurred
- */
-Chain.prototype.saveBlock = function(block, cb, tx) {
-	// Parse block data to storage module
-	const parsedBlock = _.cloneDeep(block);
-	if (parsedBlock.reward) {
-		parsedBlock.reward = parsedBlock.reward.toString();
-	}
-	if (parsedBlock.totalAmount) {
-		parsedBlock.totalAmount = parsedBlock.totalAmount.toString();
-	}
-	if (parsedBlock.totalFee) {
-		parsedBlock.totalFee = parsedBlock.totalFee.toString();
-	}
-	parsedBlock.previousBlockId = parsedBlock.previousBlock;
-	delete parsedBlock.previousBlock;
-
-	parsedBlock.transactions.map(transaction => {
-		transaction.blockId = parsedBlock.id;
-		return transaction;
-	});
-
-	function saveBlockBatch(saveBlockBatchTx) {
-		const promises = [
-			library.storage.entities.Block.create(parsedBlock, {}, saveBlockBatchTx),
-		];
-
-		if (parsedBlock.transactions.length) {
-			promises.push(
-				library.storage.entities.Transaction.create(
-					parsedBlock.transactions.map(transaction => transaction.toJSON()),
-					{},
-					saveBlockBatchTx
-				)
-			);
-		}
-
-		saveBlockBatchTx
-			.batch(promises)
-			.then(() => __private.afterSave(block, cb))
+				// If there is no block with genesis ID - save to database
+				// WARNING: DB_WRITE
+				// FIXME: This will fail if we already have genesis block in database, but with different ID
+				const block = {
+					...library.genesisBlock.block,
+					transactions: library.logic.initTransaction.fromBlock(
+						library.genesisBlock.block
+					),
+				};
+				return self.saveBlock(block, err => setImmediate(cb, err));
+			})
 			.catch(err => {
 				library.logger.error(err.stack);
-				return setImmediate(cb, 'Blocks#saveBlock error');
+				return setImmediate(cb, 'Blocks#saveGenesisBlock error');
 			});
 	}
 
-	// If there is already a running transaction use it
-	if (tx) {
-		saveBlockBatch(tx);
-	} else {
-		// Prepare and execute SQL transaction
+	/**
+	 * Save block with transactions to database.
+	 *
+	 * @param {Object} block - Full normalized block
+	 * @param {function} cb - Callback function
+	 * @returns {Function|afterSave} cb - If SQL transaction was OK - returns safterSave execution, if not returns callback function from params (through setImmediate)
+	 * @returns {string} cb.err - Error if occurred
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	saveBlock(block, cb, tx) {
+		// Parse block data to storage module
+		const parsedBlock = _.cloneDeep(block);
+		if (parsedBlock.reward) {
+			parsedBlock.reward = parsedBlock.reward.toString();
+		}
+		if (parsedBlock.totalAmount) {
+			parsedBlock.totalAmount = parsedBlock.totalAmount.toString();
+		}
+		if (parsedBlock.totalFee) {
+			parsedBlock.totalFee = parsedBlock.totalFee.toString();
+		}
+		parsedBlock.previousBlockId = parsedBlock.previousBlock;
+		delete parsedBlock.previousBlock;
+
+		parsedBlock.transactions.map(transaction => {
+			transaction.blockId = parsedBlock.id;
+			return transaction;
+		});
+
+		function saveBlockBatch(saveBlockBatchTx) {
+			const promises = [
+				library.storage.entities.Block.create(
+					parsedBlock,
+					{},
+					saveBlockBatchTx
+				),
+			];
+
+			if (parsedBlock.transactions.length) {
+				promises.push(
+					library.storage.entities.Transaction.create(
+						parsedBlock.transactions.map(transaction => transaction.toJSON()),
+						{},
+						saveBlockBatchTx
+					)
+				);
+			}
+
+			saveBlockBatchTx
+				.batch(promises)
+				.then(() => __private.afterSave(block, cb))
+				.catch(err => {
+					library.logger.error(err.stack);
+					return setImmediate(cb, 'Blocks#saveBlock error');
+				});
+		}
+
+		// If there is already a running transaction use it
+		if (tx) {
+			saveBlockBatch(tx);
+		} else {
+			// Prepare and execute SQL transaction
+			// WARNING: DB_WRITE
+			library.storage.entities.Block.begin('Chain:saveBlock', t => {
+				saveBlockBatch(t);
+			});
+		}
+	}
+
+	/**
+	 * Deletes block from blocks table.
+	 *
+	 * @param {number} blockId - ID of block to delete
+	 * @param {function} cb - Callback function
+	 * @param {Object} tx - Database transaction
+	 * @returns {function} cb - Callback function from params (through setImmediate)
+	 * @returns {Object} cb.err - String if SQL error occurred, null if success
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	deleteBlock(blockId, cb, tx) {
+		// Delete block with ID from blocks table
 		// WARNING: DB_WRITE
-		library.storage.entities.Block.begin('Chain:saveBlock', t => {
-			saveBlockBatch(t);
+		library.storage.entities.Block.delete({ id: blockId }, {}, tx)
+			.then(() => setImmediate(cb))
+			.catch(err => {
+				library.logger.error(err.stack);
+				return setImmediate(cb, 'Blocks#deleteBlock error');
+			});
+	}
+
+	/**
+	 * Deletes all blocks with height >= supplied block ID.
+	 *
+	 * @param {number} blockId - ID of block to begin with
+	 * @param {function} cb - Callback function
+	 * @returns {function} cb - Callback function from params (through setImmediate)
+	 * @returns {Object} cb.err - SQL error
+	 * @returns {Object} cb.res - SQL response
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	async deleteFromBlockId(blockId, cb) {
+		try {
+			const block = await library.storage.entities.Block.getOne({
+				id: blockId,
+			});
+			const result = await library.storage.entities.Block.delete({
+				height_gte: block.height,
+			});
+			return setImmediate(cb, null, result);
+		} catch (err) {
+			library.logger.error(err.stack);
+			return setImmediate(cb, 'Blocks#deleteFromBlockId error');
+		}
+	}
+
+	/**
+	 * Apply genesis block's transactions to blockchain.
+	 *
+	 * @param {Object} block - Full normalized genesis block
+	 * @param {function} cb - Callback function
+	 * @returns {function} cb - Callback function from params (through setImmediate)
+	 * @returns {Object} cb.err - Error if occurred
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	applyGenesisBlock(block, cb) {
+		// Sort transactions included in block
+		block.transactions = block.transactions.sort(a => {
+			if (a.type === TRANSACTION_TYPES.VOTE) {
+				return 1;
+			}
+			return 0;
+		});
+
+		__private.applyTransactions(block.transactions, err => {
+			if (err) {
+				// If genesis block is invalid, kill the node...
+				process.emit('cleanup', err.message);
+				return setImmediate(cb, err);
+			}
+			// Set genesis block as last block
+			modules.blocks.lastBlock.set(block);
+			// Tick round
+			// WARNING: DB_WRITE
+			return modules.rounds.tick(block, cb);
 		});
 	}
-};
+
+	/**
+	 * Description of the function.
+	 *
+	 * @param {Object} block - Full normalized genesis block
+	 * @param {function} cb - Callback function
+	 * @returns {function} cb - Callback function from params (through setImmediate)
+	 * @returns {Object} cb.err - Error if occurred
+	 * @todo Add description for the function
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	applyBlock(block, saveBlock, cb) {
+		return library.storage.entities.Block.begin('Chain:applyBlock', tx => {
+			modules.blocks.isActive.set(true);
+
+			return __private
+				.applyConfirmedStep(block, tx)
+				.then(() => __private.saveBlockStep(block, saveBlock, tx));
+		})
+			.then(() => {
+				modules.transactions.onConfirmedTransactions(block.transactions);
+				modules.blocks.isActive.set(false);
+				block = null;
+
+				return setImmediate(cb, null);
+			})
+			.catch(reason => {
+				modules.blocks.isActive.set(false);
+				block = null;
+
+				return setImmediate(cb, reason);
+			});
+	}
+
+	/**
+	 * Broadcast reduced block to increase network performance.
+	 *
+	 * @param {Object} reducedBlock - Block without empty/insignificant properties
+	 * @param {boolean} broadcast - Indicator that block needs to be broadcasted
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	broadcastReducedBlock(reducedBlock, broadcast) {
+		library.bus.message('broadcastBlock', reducedBlock, broadcast);
+	}
+
+	/**
+	 * Deletes last block.
+	 * - Apply the block to database if both verifications are ok
+	 * - Update headers: broadhash and height
+	 * - Put transactions from deleted block back into transaction pool
+	 *
+	 * @param  {function} cb - Callback function
+	 * @returns {function} cb - Callback function from params (through setImmediate)
+	 * @returns {Object} cb.err - Error if occurred
+	 * @returns {Object} cb.obj - New last block
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	deleteLastBlock(cb) {
+		let lastBlock = modules.blocks.lastBlock.get();
+		library.logger.warn('Deleting last block', lastBlock);
+
+		if (lastBlock.height === 1) {
+			return setImmediate(cb, 'Cannot delete genesis block');
+		}
+
+		let deletedBlockTransactions;
+
+		return async.series(
+			{
+				popLastBlock(seriesCb) {
+					// Perform actual delete of last block
+					__private.popLastBlock(lastBlock, (err, previousBlock) => {
+						if (err) {
+							library.logger.error('Error deleting last block', lastBlock);
+						} else {
+							// Store actual lastBlock transactions in reverse order
+							deletedBlockTransactions = lastBlock.transactions.reverse();
+
+							// Set previous block as our new last block
+							lastBlock = modules.blocks.lastBlock.set(previousBlock);
+						}
+						return seriesCb(err);
+					});
+				},
+				updateApplicationState(seriesCb) {
+					return modules.blocks
+						.calculateNewBroadhash()
+						.then(({ broadhash, height }) => {
+							// Listen for the update of step to move to next step
+							library.channel.once('app:state:updated', () => {
+								seriesCb();
+							});
+
+							// Update our application state: broadhash and height
+							return library.channel.invoke('app:updateApplicationState', {
+								broadhash,
+								height,
+							});
+						})
+						.catch(seriesCb);
+				},
+				addDeletedTransactions(seriesCb) {
+					// Put transactions back into transaction pool
+					modules.transactions.onDeletedTransactions(deletedBlockTransactions);
+					seriesCb();
+				},
+			},
+			err => setImmediate(cb, err, lastBlock)
+		);
+	}
+
+	/**
+	 * Recover chain - wrapper for deleteLastBlock.
+	 *
+	 * @private
+	 * @param  {function} cb - Callback function
+	 * @returns {function} cb - Callback function from params (through setImmediate)
+	 * @returns {Object} cb.err - Error if occurred
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	recoverChain(cb) {
+		library.logger.warn('Chain comparison failed, starting recovery');
+		self.deleteLastBlock((err, newLastBlock) => {
+			if (err) {
+				library.logger.error('Recovery failed');
+			} else {
+				library.logger.info(
+					'Recovery complete, new last block',
+					newLastBlock.id
+				);
+			}
+			return setImmediate(cb, err);
+		});
+	}
+
+	/**
+	 * It assigns modules & components to private constants
+	 *
+	 * @param {modules, components} scope - Exposed modules & components
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	onBind(scope) {
+		library.logger.trace('Blocks->Chain: Shared modules bind.');
+		components = {
+			cache: scope.components ? scope.components.cache : undefined,
+		};
+
+		modules = {
+			accounts: scope.modules.accounts,
+			blocks: scope.modules.blocks,
+			rounds: scope.modules.rounds,
+			transactions: scope.modules.transactions,
+			processTransactions: scope.modules.processTransactions,
+		};
+
+		// Set module as loaded
+		__private.loaded = true;
+	}
+}
 
 /**
  * Execute afterSave callback for transactions depends on transaction type.
@@ -226,79 +468,6 @@ __private.afterSave = async function(block, cb) {
 
 	// TODO: create functions for afterSave for each transaction type
 	cb();
-};
-
-/**
- * Deletes block from blocks table.
- *
- * @param {number} blockId - ID of block to delete
- * @param {function} cb - Callback function
- * @param {Object} tx - Database transaction
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object} cb.err - String if SQL error occurred, null if success
- */
-Chain.prototype.deleteBlock = function(blockId, cb, tx) {
-	// Delete block with ID from blocks table
-	// WARNING: DB_WRITE
-	library.storage.entities.Block.delete({ id: blockId }, {}, tx)
-		.then(() => setImmediate(cb))
-		.catch(err => {
-			library.logger.error(err.stack);
-			return setImmediate(cb, 'Blocks#deleteBlock error');
-		});
-};
-
-/**
- * Deletes all blocks with height >= supplied block ID.
- *
- * @param {number} blockId - ID of block to begin with
- * @param {function} cb - Callback function
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object} cb.err - SQL error
- * @returns {Object} cb.res - SQL response
- */
-Chain.prototype.deleteFromBlockId = async function(blockId, cb) {
-	try {
-		const block = await library.storage.entities.Block.getOne({ id: blockId });
-		const result = await library.storage.entities.Block.delete({
-			height_gte: block.height,
-		});
-		return setImmediate(cb, null, result);
-	} catch (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'Blocks#deleteFromBlockId error');
-	}
-};
-
-/**
- * Apply genesis block's transactions to blockchain.
- *
- * @param {Object} block - Full normalized genesis block
- * @param {function} cb - Callback function
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object} cb.err - Error if occurred
- */
-Chain.prototype.applyGenesisBlock = function(block, cb) {
-	// Sort transactions included in block
-	block.transactions = block.transactions.sort(a => {
-		if (a.type === TRANSACTION_TYPES.VOTE) {
-			return 1;
-		}
-		return 0;
-	});
-
-	__private.applyTransactions(block.transactions, err => {
-		if (err) {
-			// If genesis block is invalid, kill the node...
-			process.emit('cleanup', err.message);
-			return setImmediate(cb, err);
-		}
-		// Set genesis block as last block
-		modules.blocks.lastBlock.set(block);
-		// Tick round
-		// WARNING: DB_WRITE
-		return modules.rounds.tick(block, cb);
-	});
 };
 
 /**
@@ -429,48 +598,6 @@ __private.saveBlockStep = function(block, saveBlock, tx) {
 			);
 		}
 	});
-};
-
-/**
- * Description of the function.
- *
- * @param {Object} block - Full normalized genesis block
- * @param {function} cb - Callback function
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object} cb.err - Error if occurred
- * @todo Add description for the function
- */
-Chain.prototype.applyBlock = function(block, saveBlock, cb) {
-	return library.storage.entities.Block.begin('Chain:applyBlock', tx => {
-		modules.blocks.isActive.set(true);
-
-		return __private
-			.applyConfirmedStep(block, tx)
-			.then(() => __private.saveBlockStep(block, saveBlock, tx));
-	})
-		.then(() => {
-			modules.transactions.onConfirmedTransactions(block.transactions);
-			modules.blocks.isActive.set(false);
-			block = null;
-
-			return setImmediate(cb, null);
-		})
-		.catch(reason => {
-			modules.blocks.isActive.set(false);
-			block = null;
-
-			return setImmediate(cb, reason);
-		});
-};
-
-/**
- * Broadcast reduced block to increase network performance.
- *
- * @param {Object} reducedBlock - Block without empty/insignificant properties
- * @param {boolean} broadcast - Indicator that block needs to be broadcasted
- */
-Chain.prototype.broadcastReducedBlock = function(reducedBlock, broadcast) {
-	library.bus.message('broadcastBlock', reducedBlock, broadcast);
 };
 
 /**
@@ -613,114 +740,6 @@ __private.popLastBlock = function(oldLastBlock, cb) {
 	)
 		.then(() => setImmediate(cb, null, secondLastBlock))
 		.catch(err => setImmediate(cb, err));
-};
-
-/**
- * Deletes last block.
- * - Apply the block to database if both verifications are ok
- * - Update headers: broadhash and height
- * - Put transactions from deleted block back into transaction pool
- *
- * @param  {function} cb - Callback function
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object} cb.err - Error if occurred
- * @returns {Object} cb.obj - New last block
- */
-Chain.prototype.deleteLastBlock = function(cb) {
-	let lastBlock = modules.blocks.lastBlock.get();
-	library.logger.warn('Deleting last block', lastBlock);
-
-	if (lastBlock.height === 1) {
-		return setImmediate(cb, 'Cannot delete genesis block');
-	}
-
-	let deletedBlockTransactions;
-
-	return async.series(
-		{
-			popLastBlock(seriesCb) {
-				// Perform actual delete of last block
-				__private.popLastBlock(lastBlock, (err, previousBlock) => {
-					if (err) {
-						library.logger.error('Error deleting last block', lastBlock);
-					} else {
-						// Store actual lastBlock transactions in reverse order
-						deletedBlockTransactions = lastBlock.transactions.reverse();
-
-						// Set previous block as our new last block
-						lastBlock = modules.blocks.lastBlock.set(previousBlock);
-					}
-					return seriesCb(err);
-				});
-			},
-			updateApplicationState(seriesCb) {
-				return modules.blocks
-					.calculateNewBroadhash()
-					.then(({ broadhash, height }) => {
-						// Listen for the update of step to move to next step
-						library.channel.once('app:state:updated', () => {
-							seriesCb();
-						});
-
-						// Update our application state: broadhash and height
-						return library.channel.invoke('app:updateApplicationState', {
-							broadhash,
-							height,
-						});
-					})
-					.catch(seriesCb);
-			},
-			addDeletedTransactions(seriesCb) {
-				// Put transactions back into transaction pool
-				modules.transactions.onDeletedTransactions(deletedBlockTransactions);
-				seriesCb();
-			},
-		},
-		err => setImmediate(cb, err, lastBlock)
-	);
-};
-
-/**
- * Recover chain - wrapper for deleteLastBlock.
- *
- * @private
- * @param  {function} cb - Callback function
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object} cb.err - Error if occurred
- */
-Chain.prototype.recoverChain = function(cb) {
-	library.logger.warn('Chain comparison failed, starting recovery');
-	self.deleteLastBlock((err, newLastBlock) => {
-		if (err) {
-			library.logger.error('Recovery failed');
-		} else {
-			library.logger.info('Recovery complete, new last block', newLastBlock.id);
-		}
-		return setImmediate(cb, err);
-	});
-};
-
-/**
- * It assigns modules & components to private constants
- *
- * @param {modules, components} scope - Exposed modules & components
- */
-Chain.prototype.onBind = function(scope) {
-	library.logger.trace('Blocks->Chain: Shared modules bind.');
-	components = {
-		cache: scope.components ? scope.components.cache : undefined,
-	};
-
-	modules = {
-		accounts: scope.modules.accounts,
-		blocks: scope.modules.blocks,
-		rounds: scope.modules.rounds,
-		transactions: scope.modules.transactions,
-		processTransactions: scope.modules.processTransactions,
-	};
-
-	// Set module as loaded
-	__private.loaded = true;
 };
 
 module.exports = Chain;
