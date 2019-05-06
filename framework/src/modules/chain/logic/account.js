@@ -162,27 +162,6 @@ class Account {
 	}
 
 	/**
-	 * Gets multisignature account information for specified fields and filter criteria.
-	 *
-	 * @param {Object} filter - Contains address
-	 * @param {Object|function} fields - Table fields
-	 * @param {function} cb - Callback function
-	 * @param {Object} tx - Database transaction/task object
-	 * @returns {setImmediate} error, object or null
-	 */
-	getMultiSignature(filter, fields, cb, tx) {
-		if (typeof fields === 'function') {
-			tx = cb;
-			cb = fields;
-			fields = null;
-		}
-
-		filter.multiMin_gt = 0;
-
-		this.get(filter, fields, cb, tx);
-	}
-
-	/**
 	 * Gets account information for specified fields and filter criteria.
 	 *
 	 * @param {Object} filter - Contains address
