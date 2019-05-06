@@ -17,10 +17,6 @@
 const crypto = require('crypto');
 
 const { BLOCK_RECEIPT_TIMEOUT, EPOCH_TIME } = global.constants;
-const {
-	CACHE_KEYS_BLOCKS,
-	CACHE_KEYS_TRANSACTIONS,
-} = require('../../../components/cache');
 // Submodules
 const BlocksVerify = require('./blocks/verify');
 const BlocksProcess = require('./blocks/process');
@@ -30,7 +26,6 @@ const BlocksChain = require('./blocks/chain');
 // Private fields
 let library;
 let self;
-let components = {};
 const __private = {};
 
 __private.lastBlock = {};
@@ -129,11 +124,7 @@ class Blocks {
 	 * Components are not required in this file.
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	onBind(scope) {
-		// TODO: move here blocks submodules modules load from app.js.
-		components = {
-			cache: scope.components ? scope.components.cache : undefined,
-		};
+	onBind() {
 		// Set module as loaded
 		__private.loaded = true;
 	}
@@ -147,12 +138,6 @@ class Blocks {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	async onNewBlock(block) {
-		if (components && components.cache && components.cache.isReady()) {
-			library.channel.publish('chain:invalidate_cache', [
-				CACHE_KEYS_BLOCKS,
-				CACHE_KEYS_TRANSACTIONS,
-			]);
-		}
 		return library.channel.publish('chain:blocks:change', block);
 	}
 

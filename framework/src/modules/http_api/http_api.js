@@ -19,7 +19,11 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 }
 
 const { createLoggerComponent } = require('../../components/logger');
-const { createCacheComponent } = require('../../components/cache');
+const {
+	createCacheComponent,
+	CACHE_KEYS_BLOCKS,
+	CACHE_KEYS_TRANSACTIONS,
+} = require('../../components/cache');
 const { createStorageComponent } = require('../../components/storage');
 const {
 	bootstrapStorage,
@@ -94,19 +98,26 @@ module.exports = class HttpApi {
 			Object.assign(this.scope.applicationState, event.data);
 		});
 
-		this.channel.subscribe('chain:invalidate_cache', async event => {
-			const tasks = event.data.map(key =>
-				this.scope.components.cache.removeByPattern(key)
-			);
-			try {
-				this.logger.info(
-					`Cache - Keys with patterns: ${
-						event.data
-					} cleared from cache on new Block`
+		this.channel.subscribe('chain:blocks:change', async () => {
+			if (
+				this.scope.components &&
+				this.scope.components.cache &&
+				this.scope.components.cache.isReady()
+			) {
+				const cacheKeysToClear = [CACHE_KEYS_BLOCKS, CACHE_KEYS_TRANSACTIONS];
+				const tasks = cacheKeysToClear.map(key =>
+					this.scope.components.cache.removeByPattern(key)
 				);
-				await Promise.all(tasks);
-			} catch (error) {
-				this.logger.error(`Cache - Error clearing keys on new Block: ${error}`);
+				try {
+					this.logger.info(
+						`Cache - Keys with patterns: '${cacheKeysToClear}' cleared from cache on new Block`
+					);
+					await Promise.all(tasks);
+				} catch (error) {
+					this.logger.error(
+						`Cache - Error clearing keys on new Block: ${error}`
+					);
+				}
 			}
 		});
 
