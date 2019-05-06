@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as BigNum from '@liskhq/bignum';
 import { transfer } from './0_transfer';
 import { TransferTransaction } from './0_transfer_transaction';
 import { registerSecondPassphrase } from './1_register_second_passphrase';
@@ -24,12 +25,14 @@ import { MultisignatureTransaction } from './4_multisignature_transaction';
 import { registerMultisignature } from './4_register_multisignature_account';
 import { createDapp } from './5_create_dapp';
 import { DappTransaction } from './5_dapp_transaction';
-import { InTransferTransaction } from './6_in_transfer_transaction';
-import { OutTransferTransaction } from './7_out_transfer_transaction';
-import { BaseTransaction } from './base_transaction';
+import {
+	BaseTransaction,
+	StateStore,
+	StateStorePrepare,
+} from './base_transaction';
 import * as constants from './constants';
 import { createSignatureObject } from './create_signature_object';
-import { TransactionError } from './errors';
+import { convertToAssetError, TransactionError } from './errors';
 import { Status, TransactionResponse } from './response';
 import { TransactionJSON } from './transaction_types';
 import {
@@ -46,26 +49,33 @@ import {
 	prependPlusToPublicKeys,
 	signRawTransaction,
 	signTransaction,
+	stringEndsWith,
 	validateAddress,
 	validateFee,
 	validateKeysgroup,
 	validatePublicKey,
 	validatePublicKeys,
 	validateTransaction,
+	validator,
+	verifyAmountBalance,
 	verifyTransaction,
 } from './utils';
 
 const exposedUtils = {
+	BigNum,
 	convertBeddowsToLSK,
 	convertLSKToBeddows,
 	isValidInteger,
 	multiSignTransaction,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
+	stringEndsWith,
+	validator,
 	validateAddress,
 	validateKeysgroup,
 	validatePublicKey,
 	validatePublicKeys,
+	verifyAmountBalance,
 
 	// TODO: Deprecated
 	signTransaction,
@@ -82,6 +92,8 @@ const exposedUtils = {
 
 export {
 	BaseTransaction,
+	StateStore,
+	StateStorePrepare,
 	TransferTransaction,
 	transfer,
 	SecondSignatureTransaction,
@@ -94,13 +106,12 @@ export {
 	registerMultisignature,
 	DappTransaction,
 	createDapp,
-	InTransferTransaction,
-	OutTransferTransaction,
 	createSignatureObject,
 	Status,
 	TransactionResponse,
 	TransactionJSON,
 	TransactionError,
+	convertToAssetError,
 	constants,
 	exposedUtils as utils,
 };
