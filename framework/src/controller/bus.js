@@ -43,7 +43,6 @@ class Bus extends EventEmitter2 {
 		super(options);
 		this.logger = logger;
 		this.config = config;
-		this.publicActions = [];
 
 		// Hash map used instead of arrays for performance.
 		this.actions = {};
@@ -124,7 +123,7 @@ class Bus extends EventEmitter2 {
 			this.events[eventFullName] = true;
 		});
 
-		actions.forEach(actionName => {
+		Object.keys(actions).forEach(actionName => {
 			const actionFullName = `${moduleAlias}:${actionName}`;
 			if (this.actions[actionFullName]) {
 				throw new Error(
@@ -132,10 +131,7 @@ class Bus extends EventEmitter2 {
 				);
 			}
 
-			if (options.channel.actions[actionName].public) {
-				this.publicActions.push(actionFullName);
-			}
-			this.actions[actionFullName] = true;
+			this.actions[actionFullName] = actions[actionName];
 		});
 
 		let channel = options.channel;
@@ -202,7 +198,7 @@ class Bus extends EventEmitter2 {
 		const action = Action.deserialize(actionData);
 
 		// Check if action is public
-		if (!this.publicActions.includes(action.key())) {
+		if (!this.actions[action.key()].isPublic) {
 			throw new Error(
 				`Action ${action.key()} is not allowed because it's not public.`
 			);

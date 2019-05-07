@@ -36,11 +36,11 @@ const alpha = {
 	actions: {
 		multiplyByTwo: {
 			handler: action => action.params * 2,
-			public: true,
+			isPublic: true,
 		},
 		multiplyByThree: {
 			handler: action => action.params * 3,
-			public: true,
+			isPublic: true,
 		},
 	},
 };
@@ -53,11 +53,11 @@ const beta = {
 	actions: {
 		divideByTwo: {
 			handler: action => action.params / 2,
-			public: true,
+			isPublic: true,
 		},
 		divideByThree: {
 			handler: action => action.params / 3,
-			public: true,
+			isPublic: true,
 		},
 	},
 };

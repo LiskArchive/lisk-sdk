@@ -41,14 +41,6 @@ class InMemoryChannel extends BaseChannel {
 	 */
 	constructor(moduleAlias, events, actions, options = {}) {
 		super(moduleAlias, events, actions, options);
-
-		this.publicActions = [];
-		Object.keys(actions).forEach(actionName => {
-			const actionFullName = `${moduleAlias}:${actionName}`;
-			if (actions[actionName].public) {
-				this.publicActions.push(actionFullName);
-			}
-		});
 	}
 
 	/**
@@ -61,7 +53,7 @@ class InMemoryChannel extends BaseChannel {
 		await this.bus.registerChannel(
 			this.moduleAlias,
 			this.eventsList.map(event => event.name),
-			this.actionsList.map(action => action.name),
+			this.actions,
 			{ type: 'inMemory', channel: this }
 		);
 	}
@@ -117,16 +109,10 @@ class InMemoryChannel extends BaseChannel {
 	 * @return {Promise<string>} Data returned by bus.
 	 */
 	async invoke(actionName, params) {
-		let action = null;
-
-		// Invoked by user module
-		if (typeof actionName === 'string') {
-			action = new Action(actionName, params, this.moduleAlias);
-
-			// Invoked by bus to preserve the source
-		} else if (typeof actionName === 'object') {
-			action = actionName;
-		}
+		const action =
+			typeof actionName === 'string'
+				? new Action(actionName, params, this.moduleAlias)
+				: actionName;
 
 		if (
 			action.module === this.moduleAlias &&
@@ -147,24 +133,18 @@ class InMemoryChannel extends BaseChannel {
 	 * @return {Promise<string>} Data returned by bus.
 	 */
 	async invokePublic(actionName, params) {
-		let action = null;
-
-		// Invoked by user module
-		if (typeof actionName === 'string') {
-			action = new Action(actionName, params, this.moduleAlias);
-
-			// Invoked by bus to preserve the source
-		} else if (typeof actionName === 'object') {
-			action = actionName;
-		}
+		const action =
+			typeof actionName === 'string'
+				? new Action(actionName, params, this.moduleAlias)
+				: actionName;
 
 		if (
 			action.module === this.moduleAlias &&
 			typeof this.actions[action.name].handler === 'function'
 		) {
-			if (!this.publicActions.includes(action.key())) {
+			if (!this.actions[action.name].isPublic) {
 				throw new Error(
-					`Action ${action.key()} is not allowed because it's not public.`
+					`Action ${action.name} is not allowed because it's not public.`
 				);
 			}
 

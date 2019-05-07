@@ -68,82 +68,82 @@ module.exports = class ChainModule extends BaseModule {
 		return {
 			calculateSupply: {
 				handler: action => this.chain.actions.calculateSupply(action),
-				public: true,
+				isPublic: false,
 			},
 			calculateMilestone: {
 				handler: action => this.chain.actions.calculateMilestone(action),
-				public: true,
+				isPublic: false,
 			},
 			calculateReward: {
 				handler: action => this.chain.actions.calculateReward(action),
-				public: true,
+				isPublic: false,
 			},
 			generateDelegateList: {
 				handler: action => this.chain.actions.generateDelegateList(action),
-				public: true,
+				isPublic: false,
 			},
 			updateForgingStatus: {
 				handler: async action => this.chain.actions.updateForgingStatus(action),
-				public: true,
+				isPublic: false,
 			},
 			postSignature: {
 				handler: async action => this.chain.actions.postSignature(action),
-				public: true,
+				isPublic: false,
 			},
 			getForgingStatusForAllDelegates: {
 				handler: async () =>
 					this.chain.actions.getForgingStatusForAllDelegates(),
-				public: false,
+				isPublic: false,
 			},
 			getTransactionsFromPool: {
 				handler: async action =>
 					this.chain.actions.getTransactionsFromPool(action),
-				public: true,
+				isPublic: false,
 			},
 			getTransactions: {
 				handler: async () => this.chain.actions.getTransactions(),
-				public: true,
+				isPublic: false,
 			},
 			getSignatures: {
 				handler: async () => this.chain.actions.getSignatures(),
-				public: true,
+				isPublic: false,
 			},
 			getLastCommit: {
 				handler: async () => this.chain.actions.getLastCommit(),
-				public: true,
+				isPublic: false,
 			},
 			getBuild: {
 				handler: async () => this.chain.actions.getBuild(),
-				public: true,
+				isPublic: false,
 			},
 			postTransaction: {
 				handler: async action => this.chain.actions.postTransaction(action),
-				public: true,
+				isPublic: false,
 			},
 			getDelegateBlocksRewards: {
 				handler: async action =>
 					this.chain.actions.getDelegateBlocksRewards(action),
-				public: true,
+				isPublic: false,
 			},
 			getSlotNumber: {
 				handler: async action => this.chain.actions.getSlotNumber(action),
-				public: true,
+				isPublic: false,
 			},
 			calcSlotRound: {
 				handler: async action => this.chain.actions.calcSlotRound(action),
-				public: true,
+				isPublic: false,
 			},
 			getNodeStatus: {
 				handler: async () => this.chain.actions.getNodeStatus(),
-				public: true,
+				isPublic: false,
 			},
 			blocks: {
 				handler: async action => this.chain.actions.blocks(action),
-				public: true,
+				isPublic: true,
 			},
 			blocksCommon: {
 				handler: async action => this.chain.actions.blocksCommon(action),
-				public: true,
+				isPublic: true,
 			},
 		};
 	}

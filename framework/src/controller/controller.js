@@ -163,15 +163,15 @@ class Controller {
 			{
 				getComponentConfig: {
 					handler: action => this.config.components[action.params],
-					public: true,
+					isPublic: false,
 				},
 				getApplicationState: {
 					handler: () => this.applicationState.state,
-					public: true,
+					isPublic: false,
 				},
 				updateApplicationState: {
 					handler: action => this.applicationState.update(action.params),
-					public: true,
+					isPublic: false,
 				},
 			},
 			{ skipInternalEvents: true }

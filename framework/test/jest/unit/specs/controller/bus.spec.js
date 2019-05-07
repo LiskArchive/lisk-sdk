@@ -29,6 +29,19 @@ describe('Bus', () => {
 			enabled: false,
 		},
 	};
+	const channelOptions = {
+		type: 'inMemory',
+		channel: {
+			alias: {
+				action1: {
+					isPublic: true,
+				},
+				action2: {
+					isPublic: true,
+				},
+			},
+		},
+	};
 	const logger = {
 		info: jest.fn(),
 	};
@@ -47,8 +60,8 @@ describe('Bus', () => {
 	});
 
 	describe('#setup', () => {
-		it('should resolve with true.', () => {
-			expect(bus.setup()).resolves.toBe(true);
+		it('should resolve with true.', async () => {
+			await expect(bus.setup()).resolves.toBe(true);
 		});
 	});
 
@@ -59,7 +72,7 @@ describe('Bus', () => {
 			const events = ['event1', 'event2'];
 
 			// Act
-			await bus.registerChannel(moduleAlias, events, []);
+			await bus.registerChannel(moduleAlias, events, [], channelOptions);
 
 			// Assert
 			expect(Object.keys(bus.events)).toHaveLength(2);
@@ -74,67 +87,47 @@ describe('Bus', () => {
 			const events = ['event1', 'event1'];
 
 			// Act && Assert
-			expect(
-				bus.registerChannel(moduleAlias, events, [])
+			await expect(
+				bus.registerChannel(moduleAlias, events, [], channelOptions)
 			).rejects.toBeInstanceOf(Error);
 		});
 
 		it('should register actions.', async () => {
 			// Arrange
 			const moduleAlias = 'alias';
-			const actions = ['action1', 'action2'];
+			const actions = {
+				action1: {
+					isPublic: false,
+				},
+				action2: {
+					isPublic: false,
+				},
+			};
 
 			// Act
-			await bus.registerChannel(moduleAlias, [], actions, {
-				channel: {
-					actions: {
-						action1: {
-							public: true,
-						},
-						action2: {
-							public: true,
-						},
-					},
-				},
-			});
+			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
 
 			// Assert
 			expect(Object.keys(bus.actions)).toHaveLength(2);
-			actions.forEach(actionName => {
-				expect(bus.actions[`${moduleAlias}:${actionName}`]).toBe(true);
+			Object.keys(actions).forEach(actionName => {
+				expect(bus.actions[`${moduleAlias}:${actionName}`]).toBe(
+					actions[actionName]
+				);
 			});
-		});
-
-		it('should register public actions.', async () => {
-			// Arrange
-			const moduleAlias = 'alias';
-			const actions = ['action1', 'action2'];
-
-			// Act
-			await bus.registerChannel(moduleAlias, [], actions, {
-				channel: {
-					actions: {
-						action1: {
-							public: false,
-						},
-						action2: {
-							public: true,
-						},
-					},
-				},
-			});
-
-			// Assert
-			expect(Object.keys(bus.publicActions)).toHaveLength(1);
 		});
 
 		it('should throw error when trying to register duplicate actions.', async () => {
 			// Arrange
 			const moduleAlias = 'alias';
-			const actions = ['action1', 'action1'];
+			const actions = {
+				action1: {
+					isPublic: false,
+				},
+			};
 
+			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
 			// Act && Assert
-			expect(
+			await expect(
 				bus.registerChannel(moduleAlias, [], actions)
 			).rejects.toBeInstanceOf(Error);
 		});
@@ -154,7 +147,7 @@ describe('Bus', () => {
 			const eventName = `${moduleAlias}:${events[0]}`;
 			const eventData = '#DATA';
 
-			await bus.registerChannel(moduleAlias, events, []);
+			await bus.registerChannel(moduleAlias, events, [], channelOptions);
 
 			// Act
 			bus.publish(eventName, eventData);
@@ -171,21 +164,19 @@ describe('Bus', () => {
 		it('should return the registered actions', async () => {
 			// Arrange
 			const moduleAlias = 'alias';
-			const actions = ['action1', 'action2'];
-			const expectedActions = actions.map(action => `${moduleAlias}:${action}`);
-
-			await bus.registerChannel(moduleAlias, [], actions, {
-				channel: {
-					actions: {
-						action1: {
-							public: true,
-						},
-						action2: {
-							public: true,
-						},
-					},
+			const actions = {
+				action1: {
+					public: false,
 				},
-			});
+				action2: {
+					public: false,
+				},
+			};
+			const expectedActions = Object.keys(actions).map(
+				actionName => `${moduleAlias}:${actionName}`
+			);
+
+			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
 
 			// Act
 			const registeredActions = bus.getActions();
@@ -202,7 +193,7 @@ describe('Bus', () => {
 			const events = ['event1', 'event2'];
 			const expectedEvents = events.map(event => `${moduleAlias}:${event}`);
 
-			await bus.registerChannel(moduleAlias, events, []);
+			await bus.registerChannel(moduleAlias, events, [], channelOptions);
 
 			// Act
 			const registeredEvent = bus.getEvents();

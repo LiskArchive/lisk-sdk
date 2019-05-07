@@ -29,15 +29,15 @@ describe('InMemoryChannel Channel', () => {
 		actions: {
 			action1: {
 				handler: jest.fn(),
-				public: true,
+				isPublic: true,
 			},
 			action2: {
 				handler: jest.fn(),
-				public: true,
+				isPublic: true,
 			},
 			action3: {
 				handler: jest.fn(),
-				public: true,
+				isPublic: true,
 			},
 		},
 		options: {},
@@ -114,7 +114,7 @@ describe('InMemoryChannel Channel', () => {
 			expect(inMemoryChannel.bus.registerChannel).toHaveBeenCalledWith(
 				inMemoryChannel.moduleAlias,
 				inMemoryChannel.eventsList.map(event => event.name),
-				inMemoryChannel.actionsList.map(action => action.name),
+				inMemoryChannel.actions,
 				{ type: 'inMemory', channel: inMemoryChannel }
 			);
 		});
@@ -208,9 +208,9 @@ describe('InMemoryChannel Channel', () => {
 	describe('#invoke', () => {
 		const actionName = 'action1';
 
-		it('should throw TypeError when action name was not provided', () => {
+		it('should throw TypeError when action name was not provided', async () => {
 			// Assert
-			expect(inMemoryChannel.invoke()).rejects.toBeInstanceOf(TypeError);
+			await expect(inMemoryChannel.invoke()).rejects.toBeInstanceOf(TypeError);
 		});
 
 		it('should execute the action straight away if the action module is equal to moduleAlias', async () => {

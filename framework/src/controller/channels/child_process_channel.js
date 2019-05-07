@@ -129,6 +129,14 @@ class ChildProcessChannel extends BaseChannel {
 		}
 	}
 
+	/**
+	 * Invoke specific action.
+	 *
+	 * @async
+	 * @param {string} actionName - Name of action to invoke
+	 * @param {array} params - Params associated with the action
+	 * @return {Promise<string>} Data returned by bus.
+	 */
 	async invoke(actionName, params) {
 		const action =
 			typeof actionName === 'string'
@@ -150,6 +158,48 @@ class ChildProcessChannel extends BaseChannel {
 
 				return resolve(data);
 			});
+		});
+	}
+
+	/**
+	 * Invoke specific public defined action.
+	 *
+	 * @async
+	 * @param {string} actionName - Name of action to invoke
+	 * @param {array} params - Params associated with the action
+	 * @return {Promise<string>} Data returned by bus.
+	 */
+	async invokePublic(actionName, params) {
+		const action =
+			typeof actionName === 'string'
+				? new Action(actionName, params, this.moduleAlias)
+				: actionName;
+
+		if (
+			action.module === this.moduleAlias &&
+			typeof this.actions[action.name].handler === 'function'
+		) {
+			if (!this.actions[action.name].isPublic) {
+				throw new Error(
+					`Action ${action.name} is not allowed because it's not public.`
+				);
+			}
+
+			return this.actions[action.name].handler(action);
+		}
+
+		return new Promise((resolve, reject) => {
+			this.busRpcClient.call(
+				'invokePublic',
+				action.serialize(),
+				(err, data) => {
+					if (err) {
+						return reject(err);
+					}
+
+					return resolve(data);
+				}
+			);
 		});
 	}
 

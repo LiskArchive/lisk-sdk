@@ -92,6 +92,7 @@ describe('Action class', () => {
 					module: MODULE_NAME,
 					params: PARAMS,
 					source: VALID_ACTION_SOURCE_ARG,
+					isPublic: false,
 				};
 
 				// Act

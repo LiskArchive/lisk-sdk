@@ -40,15 +40,15 @@ describe('ChildProcessChannel Channel', () => {
 		actions: {
 			action1: {
 				handler: jest.fn(),
-				public: true,
+				isPublic: true,
 			},
 			action2: {
 				handler: jest.fn(),
-				public: true,
+				isPublic: true,
 			},
 			action3: {
 				handler: jest.fn(),
-				public: true,
+				isPublic: true,
 			},
 		},
 		options: {},
@@ -391,7 +391,7 @@ describe('ChildProcessChannel Channel', () => {
 	describe('#_rejectWhenAnySocketFailsToBind', () => {
 		beforeEach(() => childProcessChannel.registerToBus(socketsPath));
 
-		it('should reject if any of the sockets receive an "error" event', () =>
+		it('should reject if any of the sockets receive an "error" event', async () =>
 			// Assert
 			expect(
 				childProcessChannel._rejectWhenAnySocketFailsToBind()
@@ -440,7 +440,7 @@ describe('ChildProcessChannel Channel', () => {
 	describe('#_rejectWhenTimeout', () => {
 		beforeEach(() => childProcessChannel.registerToBus(socketsPath));
 
-		it('should reject with an Error object with proper message', () =>
+		it('should reject with an Error object with proper message', async () =>
 			// Assert
 			expect(childProcessChannel._rejectWhenTimeout(1)).rejects.toThrow(
 				'ChildProcessChannel sockets setup timeout'
