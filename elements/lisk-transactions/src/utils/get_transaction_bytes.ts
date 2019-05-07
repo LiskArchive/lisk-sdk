@@ -20,8 +20,6 @@ import { DelegateAsset } from '../2_delegate_transaction';
 import { VoteAsset } from '../3_vote_transaction';
 import { MultiSignatureAsset } from '../4_multisignature_transaction';
 import { DappAsset } from '../5_dapp_transaction';
-import { InTransferAsset } from '../6_in_transfer_transaction';
-import { OutTransferAsset } from '../7_out_transfer_transaction';
 import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from '../constants';
 import { TransactionJSON } from '../transaction_types';
 
@@ -139,6 +137,13 @@ export const getAssetDataForCreateDappTransaction = ({
 };
 
 // FIXME: Deprecated
+export interface InTransferAsset {
+	readonly inTransfer: {
+		readonly dappId: string;
+	};
+}
+
+// FIXME: Deprecated
 export const getAssetDataForTransferIntoDappTransaction = ({
 	inTransfer,
 }: InTransferAsset): Buffer => {
@@ -147,6 +152,14 @@ export const getAssetDataForTransferIntoDappTransaction = ({
 
 	return Buffer.from(dappId, 'utf8');
 };
+
+// FIXME: Deprecated
+export interface OutTransferAsset {
+	readonly outTransfer: {
+		readonly dappId: string;
+		readonly transactionId: string;
+	};
+}
 
 // FIXME: Deprecated
 export const getAssetDataForTransferOutOfDappTransaction = ({

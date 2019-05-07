@@ -26,7 +26,12 @@ try {
 
 	const app = new Application(genesisBlock, config);
 
-	app.registerTransaction(TRANSACTION_TYPES.DAPP, DappTransaction);
+	app.registerTransaction(TRANSACTION_TYPES.DAPP, DappTransaction, {
+		matcher: context =>
+			context.blockHeight <
+			app.config.modules.chain.exceptions.precedent.disableDappTransaction,
+	});
+
 	app.registerTransaction(
 		TRANSACTION_TYPES.IN_TRANSFER,
 		InTransferTransaction,
@@ -36,6 +41,7 @@ try {
 				app.config.modules.chain.exceptions.precedent.disableDappTransfer,
 		}
 	);
+
 	app.registerTransaction(
 		TRANSACTION_TYPES.OUT_TRANSFER,
 		OutTransferTransaction,
