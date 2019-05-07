@@ -356,6 +356,11 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 		block.reward = block.reward.toNumber();
 	}
 
+	// Convert transactions to JSON
+	block.transactions = block.transactions.map(transactionInstance =>
+		transactionInstance.toJSON()
+	);
+
 	const { broadhash } = library.applicationState;
 
 	// Perform actual broadcast operation
@@ -568,7 +573,10 @@ Transport.prototype.shared = {
 				try {
 					block = modules.blocks.verify.addBlockProperties(query.block);
 
-					// TODO: fromBlock(query,block)
+					// Instantiate transaction classes
+					block.transactions = library.logic.initTransaction.fromBlock(
+						query.block
+					);
 
 					block = library.logic.block.objectNormalize(block);
 				} catch (e) {
