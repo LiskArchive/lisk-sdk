@@ -14,17 +14,28 @@
  *
  */
 import * as axios from 'axios';
-import fs from 'fs';
-import { liskTar, liskTarSHA256 } from './node/commons';
+import fs from 'fs-extra';
+import { dateDiff, getDownloadedFileInfo } from './core/commons';
 import { exec, ExecResult } from './worker-process';
 
 export const download = async (
 	url: string,
-	filePath: string,
+	cacheDir: string,
 ): Promise<void> => {
+	const CACHE_EXPIRY_IN_DAYS = 2;
+	const { filePath, fileDir } = getDownloadedFileInfo(url, cacheDir);
+
 	if (fs.existsSync(filePath)) {
-		return;
+		if (
+			dateDiff(new Date(), fs.statSync(filePath).birthtime) <=
+			CACHE_EXPIRY_IN_DAYS
+		) {
+			return;
+		}
+		fs.unlinkSync(filePath);
 	}
+
+	fs.ensureDirSync(fileDir);
 	const writeStream = fs.createWriteStream(filePath);
 	const response = await axios.default({
 		url,
@@ -41,18 +52,20 @@ export const download = async (
 };
 
 export const validateChecksum = async (
-	filePath: string,
-	fileName: string,
+	url: string,
+	cacheDir: string,
 ): Promise<void> => {
-	const { stdout, stderr }: ExecResult = await exec(
-		`cd ${filePath}; shasum -c ${fileName}`,
-	);
+	const { fileName, fileDir } = getDownloadedFileInfo(url, cacheDir);
 
-	if (stdout.search('OK') >= 0) {
+	const { stderr }: ExecResult = await exec(`shasum -c ${fileName}`, {
+		cwd: fileDir,
+	});
+
+	if (!stderr) {
 		return;
 	}
 
-	throw new Error(`Checksum validation failed ${stdout} with error: ${stderr}`);
+	throw new Error(`Checksum validation failed with error: ${stderr}`);
 };
 
 export const extract = async (
@@ -61,7 +74,8 @@ export const extract = async (
 	outDir: string,
 ): Promise<string> => {
 	const { stdout, stderr }: ExecResult = await exec(
-		`cd ${filePath}; tar xf ${fileName} -C ${outDir} --strip-component=1;`,
+		`tar xf ${fileName} -C ${outDir} --strip-component=1;`,
+		{ cwd: filePath },
 	);
 
 	if (stderr) {
@@ -71,17 +85,8 @@ export const extract = async (
 	return stdout;
 };
 
-export const downloadLiskAndValidate = async (
-	destPath: string,
-	releaseUrl: string,
-	version: string,
-) => {
-	const LISK_RELEASE_PATH = `${destPath}/${liskTar(version)}`;
-	const LISK_RELEASE_SHA256_PATH = `${destPath}/${liskTarSHA256(version)}`;
-	const liskTarUrl = `${releaseUrl}/${liskTar(version)}`;
-	const liskTarSHA256Url = `${releaseUrl}/${liskTarSHA256(version)}`;
-
-	await download(liskTarUrl, LISK_RELEASE_PATH);
-	await download(liskTarSHA256Url, LISK_RELEASE_SHA256_PATH);
-	await validateChecksum(destPath, liskTarSHA256(version));
+export const downloadAndValidate = async (url: string, cacheDir: string) => {
+	await download(url, cacheDir);
+	await download(`${url}.SHA256`, cacheDir);
+	await validateChecksum(`${url}.SHA256`, cacheDir);
 };

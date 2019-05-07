@@ -44,13 +44,13 @@ module.exports = class NetworkModule extends BaseModule {
 	}
 
 	get events() {
-		return ['bootstrap', 'subscribe'];
+		return ['bootstrap', 'event'];
 	}
 
 	get actions() {
 		return {
-			invoke: async action => this.network.actions.invoke(action),
-			publish: action => this.network.actions.publish(action),
+			request: async action => this.network.actions.request(action),
+			emit: action => this.network.actions.emit(action),
 			getNetworkStatus: () => this.network.actions.getNetworkStatus(),
 			getPeers: action => this.network.actions.getPeers(action),
 			getPeersCountByFilter: action =>
