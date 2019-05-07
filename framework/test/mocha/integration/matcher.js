@@ -13,6 +13,7 @@ const {
 	addTransaction,
 	forge: commonForge,
 	getDelegateForSlot,
+	createValidBlock: createBlock,
 } = require('./common');
 const commonApplication = require('../common/application');
 const accountFixtures = require('../fixtures/accounts');
@@ -26,7 +27,6 @@ const application = {
 	init: promisify(commonApplication.init),
 	cleanup: promisify(commonApplication.cleanup),
 };
-
 // Constants
 const EPOCH_TIME = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0));
 const { MAX_TRANSACTIONS_PER_BLOCK } = global.constants;
@@ -317,13 +317,15 @@ describe('matcher', () => {
 			setMatcherAndRegisterTx(scope, CustomTransationClass, () => true);
 			const jsonTransaction = createRawCustomTransaction(commonTransactionData);
 
-			createRawBlock(scope, [jsonTransaction], (err, rawBlock) => {
+			// TODO: Actually create
+
+			createBlock(scope, [jsonTransaction], (err, block) => {
 				if (err) {
 					return done(err);
 				}
 
 				// Act: Simulate receiving a block from a peer
-				scope.modules.blocks.process.onReceiveBlock(rawBlock);
+				scope.modules.blocks.process.onReceiveBlock(block);
 				return scope.sequence.__tick(tickErr => {
 					if (tickErr) {
 						return done(tickErr);
