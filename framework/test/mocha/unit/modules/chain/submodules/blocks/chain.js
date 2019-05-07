@@ -442,8 +442,10 @@ describe('blocks/chain', () => {
 	describe('__private.afterSave', () => {
 		it('should call afterSave for all transactions', done => {
 			const spy = sinonSandbox.spy();
+			library.channel.publish = sinonSandbox.spy();
 			__private.afterSave(blockWithTransactions, spy);
 			expect(spy.calledOnce).to.be.true;
+			expect(library.channel.publish.calledOnce).to.be.true;
 			done();
 		});
 	});
