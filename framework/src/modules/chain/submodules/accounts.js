@@ -104,20 +104,6 @@ class Accounts {
 	}
 
 	/**
-	 * Gets accounts information, calls logic.account.getAll().
-	 *
-	 * @param {Object} filter
-	 * @param {Object} fields
-	 * @param {function} cb - Callback function
-	 * @param {Object} tx - Database transaction/task object
-	 * @todo Add description for the params
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	getAccounts(filter, fields, cb, tx) {
-		library.logic.account.getAll(filter, fields, cb, tx);
-	}
-
-	/**
 	 * Validates input address and calls logic.account.merge().
 	 *
 	 * @param {Object} data - Contains address and public key

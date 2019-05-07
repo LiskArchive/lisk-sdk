@@ -403,22 +403,25 @@ __private.updateDelegateListCache = function(round, delegatesList) {
  * @returns {setImmediateCallback} cb
  * @todo Add description for the return value
  */
-__private.getKeysSortByVote = function(cb, tx) {
-	modules.accounts.getAccounts(
-		{
-			isDelegate: true,
-			sort: ['vote:desc', 'publicKey:asc'],
-			limit: ACTIVE_DELEGATES,
-		},
-		['publicKey'],
-		(err, rows) => {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-			return setImmediate(cb, null, rows.map(el => el.publicKey));
-		},
-		tx
-	);
+__private.getKeysSortByVote = async (cb, tx) => {
+	const filters = { isDelegate: true };
+	const options = {
+		limit: ACTIVE_DELEGATES,
+		sort: ['vote:desc', 'publicKey:asc'],
+	};
+
+	try {
+		const accounts = await library.storage.entities.Account.get(
+			filters,
+			options,
+			tx
+		);
+		const result = accounts.map(account => account.publicKey);
+		return cb(null, result);
+	} catch (error) {
+		library.logger.error(error.stack);
+		return cb(new Error('Account#getAll error'));
+	}
 };
 
 /**
