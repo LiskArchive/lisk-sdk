@@ -288,11 +288,16 @@ Blocks.prototype.cleanup = async function() {
 		return;
 	}
 
+	const waitFor = () =>
+		new Promise(resolve => {
+			setTimeout(resolve, 10000);
+		});
 	// Module is not ready, repeat
-	const nextWatch = () => {
+	const nextWatch = async () => {
 		if (__private.isActive) {
 			library.logger.info('Waiting for block processing to finish...');
-			return setTimeout(nextWatch, 10000);
+			await waitFor();
+			await nextWatch();
 		}
 
 		return null;

@@ -35,8 +35,7 @@ describe('loader', () => {
 	});
 
 	after(done => {
-		application.cleanup();
-		done();
+		application.cleanup(done);
 	});
 
 	afterEach(async () => {

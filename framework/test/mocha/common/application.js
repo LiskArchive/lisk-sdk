@@ -259,7 +259,8 @@ function cleanup(done) {
 		currentAppScope.modules,
 		(module, cb) => {
 			if (typeof module.cleanup === 'function') {
-				return module.cleanup();
+				module.cleanup();
+				return cb();
 			}
 			return cb();
 		},

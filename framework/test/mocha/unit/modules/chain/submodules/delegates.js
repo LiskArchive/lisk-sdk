@@ -45,8 +45,7 @@ describe('delegates', () => {
 	});
 
 	after(done => {
-		application.cleanup();
-		done();
+		application.cleanup(done);
 	});
 
 	afterEach(() => sinonSandbox.restore());
