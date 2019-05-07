@@ -15,7 +15,6 @@
 'use strict';
 
 const rewire = require('rewire');
-const ed = require('../../../../../../src/modules/chain/helpers/ed');
 const application = require('../../../../common/application');
 const modulesLoader = require('../../../../common/modules_loader');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
@@ -51,6 +50,7 @@ const validAccount = {
 describe('account', () => {
 	let account;
 	let accountLogic;
+	let storage;
 
 	before(done => {
 		application.init(
@@ -60,6 +60,7 @@ describe('account', () => {
 					done(err);
 				}
 				account = scope.logic.account;
+				storage = scope.components.storage;
 				done();
 			}
 		);
@@ -131,64 +132,6 @@ describe('account', () => {
 					'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a2'
 				);
 			}).to.not.throw());
-	});
-
-	describe('toDB', () => {
-		it('should normalize address and transform publicKey and secondPublicKey to Buffer hex', done => {
-			const raw = {
-				address: '16313739661670634666l',
-				publicKey:
-					'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-				secondPublicKey:
-					'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
-			};
-			const toDBRes = _.cloneDeep(raw);
-
-			account.toDB(toDBRes);
-			expect(toDBRes.address).to.equal(raw.address.toUpperCase());
-			expect(toDBRes.publicKey).to.deep.equal(ed.hexToBuffer(raw.publicKey));
-			expect(toDBRes.secondPublicKey).to.deep.equal(
-				ed.hexToBuffer(raw.secondPublicKey)
-			);
-			done();
-		});
-	});
-
-	describe('getMultiSignature', () => {
-		it('should return account for a given address with requested fields', done => {
-			const filter = { address: validAccount.address };
-			const requestedFields = [
-				'username',
-				'isDelegate',
-				'address',
-				'publicKey',
-			];
-			account.getMultiSignature(filter, requestedFields, (err, res) => {
-				expect(err).to.not.exist;
-				expect(res).to.be.null;
-				done();
-			});
-		});
-
-		it('should return account for a given address with all the fields', done => {
-			const filter = { address: validAccount.address };
-			account.getMultiSignature(filter, (err, res) => {
-				expect(err).to.not.exist;
-				expect(res).to.be.null;
-				done();
-			});
-		});
-
-		it('should return null for an invalid account address', done => {
-			account.getMultiSignature(
-				{ address: 'this adress does not exist' },
-				(err, res) => {
-					expect(err).to.not.exist;
-					expect(res).to.equal(null);
-					done();
-				}
-			);
-		});
 	});
 
 	describe('get', () => {
@@ -556,40 +499,14 @@ describe('account', () => {
 		});
 	});
 
-	describe('set', () => {
-		it('should insert an account', done => {
-			account.set('123L', { u_username: 'test_set_insert' }, (err, res) => {
-				expect(err).to.not.exist;
-				expect(res).to.be.undefined;
-				done();
-			});
-		});
-
-		it('should set provided fields when valid', done => {
-			account.set(
-				validAccount.address,
-				{ u_username: 'test_set', vote: 1 },
-				(err, res) => {
-					expect(err).to.not.exist;
-					expect(res).to.be.undefined;
-					done();
-				}
-			);
-		});
-
-		it('should throw error when unrelated fields are provided', done => {
-			account.set(
-				validAccount.address,
-				{ unrelatedfield: 'random value' },
-				err => {
-					expect(err).to.equal('Account#set error');
-					done();
-				}
-			);
-		});
-	});
-
 	describe('merge', () => {
+		before(async () =>
+			storage.entities.Account.upsert(
+				{ address: validAccount.address },
+				{ u_username: 'test_set', vote: 1, address: validAccount.address }
+			)
+		);
+
 		it('should merge diff when values are correct', done => {
 			account.merge(
 				validAccount.address,
@@ -651,16 +568,6 @@ describe('account', () => {
 						done();
 					}
 				);
-			});
-		});
-	});
-
-	describe('remove', () => {
-		it('should remove an account', done => {
-			account.remove('123L', (err, res) => {
-				expect(err).to.not.exist;
-				expect(res).to.equal('123L');
-				done();
 			});
 		});
 	});

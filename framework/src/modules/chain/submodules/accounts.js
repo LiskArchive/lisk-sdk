@@ -15,7 +15,6 @@
 'use strict';
 
 const crypto = require('crypto');
-const async = require('async');
 const Bignum = require('../helpers/bignum.js');
 const BlockReward = require('../logic/block_reward.js');
 
@@ -116,98 +115,6 @@ class Accounts {
 	// eslint-disable-next-line class-methods-use-this
 	getAccounts(filter, fields, cb, tx) {
 		library.logic.account.getAll(filter, fields, cb, tx);
-	}
-
-	/**
-	 * Validates input address and calls logic.account.set() and logic.account.get().
-	 *
-	 * @param {Object} data - Contains address or public key to generate address
-	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallback} cb, err
-	 * @returns {function} Call to logic.account.get()
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	setAccountAndGet(data, cb, tx) {
-		let address = data.address || null;
-		let err;
-
-		if (address === null) {
-			if (data.publicKey) {
-				address = self.generateAddressByPublicKey(data.publicKey);
-			} else {
-				err = new Error('Missing address or public key');
-			}
-		}
-
-		if (!address) {
-			err = new Error('Invalid public key');
-		}
-
-		if (err) {
-			if (typeof cb === 'function') {
-				return setImmediate(cb, err);
-			}
-			throw err;
-		}
-
-		const task = t =>
-			new Promise((resolve, reject) => {
-				async.waterfall(
-					[
-						waterfallCb => {
-							library.logic.account.set(
-								address,
-								data,
-								setAccountErr => {
-									if (setAccountErr) {
-										library.logger.error(
-											`Set account ${address} failed`,
-											setAccountErr
-										);
-										return setImmediate(waterfallCb, setAccountErr);
-									}
-									return setImmediate(waterfallCb);
-								},
-								t
-							);
-						},
-						waterfallCb => {
-							library.logic.account.get(
-								{ address },
-								(getAccountErr, account) => {
-									if (getAccountErr) {
-										library.logger.error(
-											`Get account ${address} failed`,
-											getAccountErr
-										);
-										return setImmediate(waterfallCb, getAccountErr);
-									}
-									return setImmediate(waterfallCb, null, account);
-								},
-								t
-							);
-						},
-					],
-					(waterfallErr, account) => {
-						if (waterfallErr) {
-							return reject(waterfallErr);
-						}
-						return resolve(account);
-					}
-				);
-			});
-
-		// Force task to run in a db tx to make sure it always return the inserted account
-		const taskPromise = tx
-			? task(tx)
-			: library.storage.entities.Account.begin(
-					'Accounts:setAccountAndGet',
-					task
-			  );
-
-		return taskPromise
-			.then(taskPromiseData => setImmediate(cb, null, taskPromiseData))
-			.catch(taskPromiseErr => setImmediate(cb, taskPromiseErr));
 	}
 
 	/**

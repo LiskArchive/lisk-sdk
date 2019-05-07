@@ -135,20 +135,21 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 			describe('after applying new block fails', () => {
 				beforeEach(done => {
 					// Making mem_account invalid
-					library.logic.account.set(
-						blockAccount1.address,
+					storage.entities.Account.upsert(
+						{ address: blockAccount1.address },
 						{
 							isDelegate: 1,
 							username: randomUsername,
+							address: blockAccount1.address,
 							publicKey: blockTransaction1.senderPublicKey,
-						},
-						err => {
-							expect(err).to.not.exist;
+						}
+					)
+						.then(() =>
 							library.modules.blocks.chain.applyBlock(block, true, async () =>
 								done()
-							);
-						}
-					);
+							)
+						)
+						.catch(done);
 				});
 
 				it('should have pooled transactions in queued state', done => {

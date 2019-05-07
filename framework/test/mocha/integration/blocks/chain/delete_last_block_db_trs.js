@@ -89,7 +89,6 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 			describe('when backwardTickStep fails', () => {
 				let backwardTick;
 				beforeEach(done => {
-					// Artifically fail setAccountAndGet so we can check that test fails
 					backwardTick = library.modules.rounds.backwardTick;
 
 					sinonSandbox
@@ -143,7 +142,6 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 			describe('when deleteBlockStep fails', () => {
 				let deleteBlock;
 				beforeEach(done => {
-					// Artifically fail setAccountAndGet so we can check that test fails
 					deleteBlock = library.modules.blocks.chain.deleteBlock;
 
 					sinonSandbox
