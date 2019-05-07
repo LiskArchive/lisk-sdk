@@ -9,14 +9,18 @@ const {
 	TransferTransaction,
 	transfer,
 } = require('@liskhq/lisk-transactions');
-const { addTransaction, forge, getDelegateForSlot } = require('./common');
+const {
+	addTransaction,
+	forge: commonForge,
+	getDelegateForSlot,
+} = require('./common');
 const commonApplication = require('../common/application');
 const accountFixtures = require('../fixtures/accounts');
 const randomUtil = require('../common/utils/random');
 const slots = require('../../../src/modules/chain/helpers/slots');
 
 // Promisify callback functions
-const forgePromisified = promisify(forge);
+const forge = promisify(commonForge);
 const addTransactionPromisified = promisify(addTransaction);
 const application = {
 	init: promisify(commonApplication.init),
@@ -117,7 +121,6 @@ function createRawBlock(library, rawTransactions, callback) {
 	const lastBlock = library.modules.blocks.lastBlock.get();
 	const slot = slots.getSlotNumber();
 	const keypairs = library.modules.delegates.getForgersKeyPairs();
-
 	const transactions = rawTransactions.map(rawTransaction =>
 		library.logic.initTransaction.fromJson(rawTransaction)
 	);
@@ -141,11 +144,16 @@ function createRawBlock(library, rawTransactions, callback) {
 	});
 }
 
-function setMatcher(transactionClass, matcher) {
+function setMatcherAndRegisterTx(scope, transactionClass, matcher) {
 	Object.defineProperty(transactionClass.prototype, 'matcher', {
 		get: () => matcher,
 		configurable: true,
 	});
+
+	scope.logic.initTransaction.transactionClassMap.set(
+		CUSTOM_TRANSACTION_TYPE,
+		CustomTransationClass
+	);
 }
 
 describe('matcher', () => {
@@ -181,10 +189,10 @@ describe('matcher', () => {
 		});
 
 		scope.config.broadcasts.active = true;
-		// BUG: There is a current restriction on transaction type and it cannot
-		// be bigger than 7, so for this tests transaction type 7 can be removed from
-		// registered transactions map so the CustomTransaction can be added with that
-		// id. Type 7 is not used anyways.
+		/* TODO: [BUG] There is a current restriction on transaction type and it cannot
+		be bigger than 7, so for this tests transaction type 7 can be removed from
+		registered transactions map so the CustomTransaction can be added with that
+		id. Type 7 is not used anyways. */
 		scope.logic.initTransaction.transactionClassMap.delete(7);
 		receiveTransaction = scope.rewiredModules.transport.__get__(
 			'__private.receiveTransaction'
@@ -194,7 +202,7 @@ describe('matcher', () => {
 		);
 
 		// Define matcher property to be configurable so it can be overriden in the tests
-		setMatcher(CustomTransationClass, () => {});
+		setMatcherAndRegisterTx(scope, CustomTransationClass, () => {});
 	});
 
 	after(() => {
@@ -231,13 +239,8 @@ describe('matcher', () => {
 		it('should not include a disallowed transaction in the transaction pool', done => {
 			// Arrange
 			// Force the matcher function to return always _FALSE_, for easy testing
-			setMatcher(CustomTransationClass, () => false);
-
-			// Add the custom transactcion implementation to the list
-			scope.logic.initTransaction.transactionClassMap.set(
-				CUSTOM_TRANSACTION_TYPE,
-				CustomTransationClass
-			);
+			// and register the transaction
+			setMatcherAndRegisterTx(scope, CustomTransationClass, () => false);
 
 			const rawTransaction = createRawCustomTransaction(commonTransactionData);
 
@@ -247,7 +250,7 @@ describe('matcher', () => {
 				randomstring.generate(16),
 				null,
 				err => {
-					// Assert: transaction shouldn't be included in the transaction pool
+					// Assert
 					expect(
 						scope.modules.transactions.transactionInPool(rawTransaction.id)
 					).to.be.false;
@@ -262,24 +265,17 @@ describe('matcher', () => {
 
 		it('should include an allowed transaction in the transaction pool', done => {
 			// Arrange
-			// Force the matcher function to return always _TRUE_, for easy testing
-			setMatcher(CustomTransationClass, () => true);
-
-			// Add the custom transactcion implementation to the list
-			scope.logic.initTransaction.transactionClassMap.set(
-				CUSTOM_TRANSACTION_TYPE,
-				CustomTransationClass
-			);
+			setMatcherAndRegisterTx(scope, CustomTransationClass, () => true);
 
 			const jsonTransaction = createRawCustomTransaction(commonTransactionData);
 
-			// Act: simulate receiving transactions from another peer
+			// Act
 			receiveTransaction(
 				jsonTransaction,
 				randomstring.generate(16),
 				null,
 				err => {
-					// Assert: transaction shouldn't be included in the transaction pool
+					// Assert
 					expect(
 						scope.modules.transactions.transactionInPool(jsonTransaction.id)
 					).to.be.true;
@@ -291,21 +287,9 @@ describe('matcher', () => {
 	});
 
 	describe('when receiving a block from another peer', () => {
-		it(
-			'should reject the block if it contains disallowed transactions for the given block context'
-		);
-
-		it('should accept the block if it contains allowed transactions for the given block context', done => {
+		it('should reject the block if it contains disallowed transactions for the given block context', done => {
 			// Arrange
-			// Force the matcher function to return always _TRUE_, for easy testing
-			setMatcher(CustomTransationClass, () => true);
-
-			// Add the custom transactcion implementation to the list
-			scope.logic.initTransaction.transactionClassMap.set(
-				CUSTOM_TRANSACTION_TYPE,
-				CustomTransationClass
-			);
-
+			setMatcherAndRegisterTx(scope, CustomTransationClass, () => false);
 			const jsonTransaction = createRawCustomTransaction(commonTransactionData);
 
 			createRawBlock(scope, [jsonTransaction], (err, rawBlock) => {
@@ -313,13 +297,39 @@ describe('matcher', () => {
 					return done(err);
 				}
 
-				// Simulate receiving a block from a peer
+				// Act: Simulate receiving a block from a peer
 				scope.modules.blocks.process.onReceiveBlock(rawBlock);
 				return scope.sequence.__tick(tickErr => {
 					if (tickErr) {
 						return done(tickErr);
 					}
 
+					// Assert: received block should be accepted and set as the last block
+					expect(scope.modules.blocks.lastBlock.get().height).to.equal(1);
+
+					return done();
+				});
+			});
+		});
+
+		it('should accept the block if it contains allowed transactions for the given block context', done => {
+			// Arrange
+			setMatcherAndRegisterTx(scope, CustomTransationClass, () => true);
+			const jsonTransaction = createRawCustomTransaction(commonTransactionData);
+
+			createRawBlock(scope, [jsonTransaction], (err, rawBlock) => {
+				if (err) {
+					return done(err);
+				}
+
+				// Act: Simulate receiving a block from a peer
+				scope.modules.blocks.process.onReceiveBlock(rawBlock);
+				return scope.sequence.__tick(tickErr => {
+					if (tickErr) {
+						return done(tickErr);
+					}
+
+					// Assert: received block should be accepted and set as the last block
 					expect(scope.modules.blocks.lastBlock.get().height).to.equal(2);
 
 					return done();
@@ -331,37 +341,23 @@ describe('matcher', () => {
 	describe('when forging a new block', () => {
 		describe('when transaction pool is full and current context (last block height) at forging time, no longer matches the transaction matcher', () => {
 			it('should not include the transaction in a new block if it is not allowed anymore', async () => {
-				const passphrase = accountFixtures.genesis.passphrase;
-				const { address, publicKey } = getAddressAndPublicKeyFromPassphrase(
-					passphrase
-				);
-
-				const transactionData = {
-					passphrase,
-					recipientId: randomAccount.address,
-					senderId: address,
-					senderPublicKey: publicKey,
-				};
-
+				// Arrange
 				// Transaction is only allowed it last block height is < 2
-				Object.defineProperty(CustomTransationClass.prototype, 'matcher', {
-					get: () => ({ blockHeight }) => blockHeight < 2,
-					configurable: true,
-				});
-
-				// Add the custom transactcion implementation to the list
-				scope.logic.initTransaction.transactionClassMap.set(
-					CUSTOM_TRANSACTION_TYPE,
-					CustomTransationClass
+				setMatcherAndRegisterTx(
+					scope,
+					CustomTransationClass,
+					({ blockHeight }) => blockHeight < 2
 				);
 
-				const jsonTransaction = createRawCustomTransaction(transactionData);
+				const jsonTransaction = createRawCustomTransaction(
+					commonTransactionData
+				);
 
 				// Add transaction to the transaction pool. It will be added as
 				// the matcher will return true given the current block height is 1 (genesisBlock)
 				await addTransactionPromisified(scope, jsonTransaction);
 
-				// Populate transaction pool with more transactions so we can delay applying custom transaction
+				// Populate transaction pool with more transactions so we can delay applying the custom transaction
 				const addTransactionsToPoolSteps = Array(MAX_TRANSACTIONS_PER_BLOCK + 5)
 					.fill()
 					.map((_, i) => {
@@ -378,10 +374,10 @@ describe('matcher', () => {
 				await Promise.all(addTransactionsToPoolSteps);
 
 				// Forge dummy transactions. Height will be 2.
-				await forgePromisified(scope);
+				await forge(scope);
 
 				// Attempt to forge again and include CustomTransaction in the block.
-				await forgePromisified(scope);
+				await forge(scope);
 
 				const lastBlock = scope.modules.blocks.lastBlock.get();
 				expect(
@@ -394,36 +390,15 @@ describe('matcher', () => {
 		});
 
 		it('should include allowed transactions in the block', async () => {
-			const passphrase = accountFixtures.genesis.passphrase;
-			const { address, publicKey } = getAddressAndPublicKeyFromPassphrase(
-				passphrase
-			);
-
-			const transactionData = {
-				passphrase,
-				recipientId: randomAccount.address,
-				senderId: address,
-				senderPublicKey: publicKey,
-			};
-
-			// Force the matcher function to return always _TRUE_, for easy testing
-			Object.defineProperty(CustomTransationClass.prototype, 'matcher', {
-				get: () => () => true,
-				configurable: true,
-			});
-			// Add the custom transactcion implementation to the list
-			scope.logic.initTransaction.transactionClassMap.set(
-				CUSTOM_TRANSACTION_TYPE,
-				CustomTransationClass
-			);
-
-			const jsonTransaction = createRawCustomTransaction(transactionData);
+			// Arrange
+			setMatcherAndRegisterTx(scope, CustomTransationClass, () => true);
+			const jsonTransaction = createRawCustomTransaction(commonTransactionData);
 
 			// Add transaction to the transaction pool.
 			await addTransactionPromisified(scope, jsonTransaction);
 
-			// Forge
-			await forgePromisified(scope);
+			// Act: forge
+			await forge(scope);
 
 			const lastBlock = scope.modules.blocks.lastBlock.get();
 			expect(

@@ -82,11 +82,11 @@ class ProcessTransactions {
 
 	// eslint-disable-next-line class-methods-use-this
 	async checkPersistedTransactions(transactions) {
-		const responseObject = {
-			transactionsResponses: [],
-		};
-
-		if (transactions.length < 1) return responseObject;
+		if (!transactions.length) {
+			return {
+				transactionsResponses: [],
+			};
+		}
 
 		const confirmedTransactions = await library.storage.entities.Transaction.get(
 			{
@@ -123,7 +123,6 @@ class ProcessTransactions {
 		];
 
 		return {
-			...responseObject,
 			transactionsResponses,
 		};
 	}
