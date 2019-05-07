@@ -41,6 +41,14 @@ class InMemoryChannel extends BaseChannel {
 	 */
 	constructor(moduleAlias, events, actions, options = {}) {
 		super(moduleAlias, events, actions, options);
+
+		this.publicActions = [];
+		Object.keys(actions).forEach(actionName => {
+			const actionFullName = `${moduleAlias}:${actionName}`;
+			if (actions[actionName].public) {
+				this.publicActions.push(actionFullName);
+			}
+		});
 	}
 
 	/**
@@ -128,6 +136,42 @@ class InMemoryChannel extends BaseChannel {
 		}
 
 		return this.bus.invoke(action.serialize());
+	}
+
+	/**
+	 * Invoke specific public action.
+	 *
+	 * @async
+	 * @param {string} actionName - Name of action to invoke
+	 * @param {array} params - Params associated with the action
+	 * @return {Promise<string>} Data returned by bus.
+	 */
+	async invokePublic(actionName, params) {
+		let action = null;
+
+		// Invoked by user module
+		if (typeof actionName === 'string') {
+			action = new Action(actionName, params, this.moduleAlias);
+
+			// Invoked by bus to preserve the source
+		} else if (typeof actionName === 'object') {
+			action = actionName;
+		}
+
+		if (
+			action.module === this.moduleAlias &&
+			typeof this.actions[action.name].handler === 'function'
+		) {
+			if (!this.publicActions.includes(action.key())) {
+				throw new Error(
+					`Action ${action.key()} is not allowed because it's not public.`
+				);
+			}
+
+			return this.actions[action.name].handler(action);
+		}
+
+		return this.bus.invokePublic(action.serialize());
 	}
 }
 

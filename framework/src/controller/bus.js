@@ -191,6 +191,13 @@ class Bus extends EventEmitter2 {
 		});
 	}
 
+	/**
+	 * Invoke public defined action on bus.
+	 *
+	 * @param {Object|string} actionData - Object or stringified object containing action data like name, module, souce, and params.
+	 *
+	 * @throws {Error} If action is not registered to bus.
+	 */
 	async invokePublic(actionData) {
 		const action = Action.deserialize(actionData);
 
