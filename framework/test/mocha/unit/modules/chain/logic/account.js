@@ -50,6 +50,7 @@ const validAccount = {
 describe('account', () => {
 	let account;
 	let accountLogic;
+	let storage;
 
 	before(done => {
 		application.init(
@@ -59,6 +60,7 @@ describe('account', () => {
 					done(err);
 				}
 				account = scope.logic.account;
+				storage = scope.components.storage;
 				done();
 			}
 		);
@@ -498,6 +500,13 @@ describe('account', () => {
 	});
 
 	describe('merge', () => {
+		before(async () =>
+			storage.entities.Account.upsert(
+				{ address: validAccount.address },
+				{ u_username: 'test_set', vote: 1, address: validAccount.address }
+			)
+		);
+
 		it('should merge diff when values are correct', done => {
 			account.merge(
 				validAccount.address,
