@@ -134,14 +134,14 @@ describe('Broadcaster', () => {
 	});
 
 	describe('broadcast', () => {
-		it('should invoke "network:publish" event', async () => {
+		it('should invoke "network:emit" event', async () => {
 			await broadcaster.broadcast(params, options);
 			const wrappedData = {
 				...options.data,
 				nonce,
 			};
 			expect(channelStub.invoke).to.be.calledOnce;
-			expect(channelStub.invoke).to.be.calledWithExactly('network:publish', {
+			expect(channelStub.invoke).to.be.calledWithExactly('network:emit', {
 				event: options.api,
 				data: wrappedData,
 			});
