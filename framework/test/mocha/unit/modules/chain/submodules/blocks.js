@@ -367,11 +367,8 @@ describe('blocks', () => {
 				__private.isActive = false;
 				done();
 			});
-			it('should call callback', done => {
-				blocksInstance.cleanup(cb => {
-					expect(cb).to.be.undefined;
-					done();
-				});
+			it('should call callback', async () => {
+				await blocksInstance.cleanup();
 			});
 		});
 
@@ -387,14 +384,11 @@ describe('blocks', () => {
 						'Waiting for block processing to finish...'
 					);
 				});
-				it('should log info "Waiting for block processing to finish..."', done => {
+				it('should log info "Waiting for block processing to finish..."', async () => {
 					setTimeout(() => {
 						__private.isActive = false;
 					}, 5000);
-					blocksInstance.cleanup(cb => {
-						expect(cb).to.be.undefined;
-						done();
-					});
+					await blocksInstance.cleanup();
 				});
 			});
 
@@ -408,14 +402,11 @@ describe('blocks', () => {
 						'Waiting for block processing to finish...'
 					);
 				});
-				it('should log info "Waiting for block processing to finish..." 2 times', done => {
+				it('should log info "Waiting for block processing to finish..." 2 times', async () => {
 					setTimeout(() => {
 						__private.isActive = false;
 					}, 15000);
-					blocksInstance.cleanup(cb => {
-						expect(cb).to.be.undefined;
-						done();
-					});
+					await blocksInstance.cleanup();
 				});
 			});
 		});
