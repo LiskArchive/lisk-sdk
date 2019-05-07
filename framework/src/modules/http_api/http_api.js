@@ -118,14 +118,14 @@ module.exports = class HttpApi {
 		this.channel.subscribe(
 			'chain:confirmed_transactions:update',
 			async event => {
-				const block = event.data;
+				const transactions = event.data;
 				// Default keys to clear
 				const keysToClear = [
 					CACHE_KEYS_DELEGATES,
 					CACHE_KEYS_TRANSACTION_COUNT,
 				];
 				// If there was a delegate registration clear delegates cache too
-				const delegateTransaction = block.transactions.find(
+				const delegateTransaction = transactions.find(
 					transaction =>
 						!!transaction && transaction.type === TRANSACTION_TYPES.DELEGATE
 				);
@@ -133,7 +133,7 @@ module.exports = class HttpApi {
 					keysToClear.push(CACHE_KEYS_DELEGATES);
 				}
 				// Only clear cache if the block actually includes transactions
-				if (block.transactions.length) {
+				if (transactions.length) {
 					await this.cleanCache(keysToClear, `${event.module}:${event.name}`);
 				}
 			}
