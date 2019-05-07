@@ -24,6 +24,7 @@ const {
 	CACHE_KEYS_BLOCKS,
 	CACHE_KEYS_DELEGATES,
 	CACHE_KEYS_TRANSACTIONS,
+	CACHE_KEYS_TRANSACTION_COUNT,
 } = require('../../components/cache');
 const { createStorageComponent } = require('../../components/storage');
 const {
@@ -109,6 +110,13 @@ module.exports = class HttpApi {
 		this.channel.subscribe('chain:rounds:change', async event => {
 			await this.cleanCache(
 				[CACHE_KEYS_DELEGATES],
+				`${event.module}:${event.name}`
+			);
+		});
+
+		this.channel.subscribe('chain:blocks:saved', async event => {
+			await this.cleanCache(
+				[CACHE_KEYS_DELEGATES, CACHE_KEYS_TRANSACTION_COUNT],
 				`${event.module}:${event.name}`
 			);
 		});
