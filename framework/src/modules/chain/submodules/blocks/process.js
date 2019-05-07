@@ -97,8 +97,6 @@ __private.receiveBlock = function(block, cb) {
 		)} reward: ${block.reward}`
 	);
 
-	block.transactions = library.logic.initTransaction.fromBlock(block);
-
 	// Update last receipt
 	modules.blocks.lastReceipt.update();
 	// Start block processing - broadcast: true, saveBlock: true
@@ -115,7 +113,6 @@ __private.receiveBlock = function(block, cb) {
  */
 __private.receiveForkOne = function(block, lastBlock, cb) {
 	let tmpBlock = _.clone(block);
-	tmpBlock.transactions = library.logic.initTransaction.fromBlock(tmpBlock);
 
 	// Fork: Consecutive height but different previous block id
 	modules.delegates.fork(block, 1);
@@ -183,8 +180,6 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
  */
 __private.receiveForkFive = function(block, lastBlock, cb) {
 	let tmpBlock = _.clone(block);
-	tmpBlock.transactions = library.logic.initTransaction.fromBlock(tmpBlock);
-
 	// Fork: Same height and previous block id, but different block id
 	modules.delegates.fork(block, 5);
 
