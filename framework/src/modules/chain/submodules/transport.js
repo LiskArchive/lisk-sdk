@@ -572,6 +572,7 @@ Transport.prototype.shared = {
 					);
 				}
 				let block;
+				let success = true;
 				try {
 					block = modules.blocks.verify.addBlockProperties(query.block);
 
@@ -580,6 +581,7 @@ Transport.prototype.shared = {
 
 					block = library.logic.block.objectNormalize(block);
 				} catch (e) {
+					success = false;
 					library.logger.debug('Block normalization failed', {
 						err: e.toString(),
 						module: 'transport',
@@ -588,7 +590,12 @@ Transport.prototype.shared = {
 
 					// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 				}
-				return library.bus.message('receiveBlock', block);
+
+				if (success) {
+					library.bus.message('receiveBlock', block);
+				}
+
+				return null;
 			}
 		);
 	},
