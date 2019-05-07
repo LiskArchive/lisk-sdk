@@ -423,13 +423,7 @@ class Chain {
  * @returns {Object} cb.err - Error if occurred
  */
 __private.afterSave = async function(block, cb) {
-	const delegateTransaction = block.transactions.find(
-		transaction =>
-			!!transaction && transaction.type === TRANSACTION_TYPES.DELEGATE
-	);
-	if (delegateTransaction) {
-		library.channel.publish('chain:blocks:saved', block);
-	}
+	library.channel.publish('chain:confirmed_transactions:update', block);
 	// TODO: create functions for afterSave for each transaction type
 	cb();
 };

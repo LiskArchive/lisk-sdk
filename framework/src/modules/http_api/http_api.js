@@ -47,6 +47,7 @@ module.exports = class HttpApi {
 
 	async bootstrap() {
 		global.constants = this.options.constants;
+		const { TRANSACTION_TYPES } = global.constants;
 
 		// Logger
 		const loggerConfig = await this.channel.invoke(
@@ -114,12 +115,29 @@ module.exports = class HttpApi {
 			);
 		});
 
-		this.channel.subscribe('chain:blocks:saved', async event => {
-			await this.cleanCache(
-				[CACHE_KEYS_DELEGATES, CACHE_KEYS_TRANSACTION_COUNT],
-				`${event.module}:${event.name}`
-			);
-		});
+		this.channel.subscribe(
+			'chain:confirmed_transactions:update',
+			async event => {
+				const block = event.data;
+				// Default keys to clear
+				const keysToClear = [
+					CACHE_KEYS_DELEGATES,
+					CACHE_KEYS_TRANSACTION_COUNT,
+				];
+				// If there was a delegate registration clear delegates cache too
+				const delegateTransaction = block.transactions.find(
+					transaction =>
+						!!transaction && transaction.type === TRANSACTION_TYPES.DELEGATE
+				);
+				if (delegateTransaction) {
+					keysToClear.push(CACHE_KEYS_DELEGATES);
+				}
+				// Only clear cache if the block actually includes transactions
+				if (block.transactions.length) {
+					await this.cleanCache(keysToClear, `${event.module}:${event.name}`);
+				}
+			}
+		);
 
 		// Bootstrap Cache component
 		await bootstrapCache(this.scope);
