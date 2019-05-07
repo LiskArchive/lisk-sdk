@@ -120,25 +120,6 @@ class Account {
 	}
 
 	/**
-	 * Deletes the contents of these tables:
-	 * - mem_round
-	 * - mem_accounts2delegates
-	 * - mem_accounts2multisignatures
-	 * - rounds_rewards
-	 *
-	 * @param {function} cb - Callback function
-	 * @returns {setImmediate} error
-	 */
-	resetMemTables(cb) {
-		this.scope.storage.entities.Account.resetMemTables()
-			.then(() => setImmediate(cb))
-			.catch(err => {
-				library.logger.error(err.stack);
-				return setImmediate(cb, new Error('Account#resetMemTables error'));
-			});
-	}
-
-	/**
 	 * Checks type, lenght and format from publicKey.
 	 *
 	 * @param {publicKey} publicKey

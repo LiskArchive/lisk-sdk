@@ -464,16 +464,6 @@ describe('account', () => {
 		});
 	});
 
-	describe('resetMemTables', () => {
-		it('should remove the tables', done => {
-			account.resetMemTables((err, res) => {
-				expect(err).to.not.exist;
-				expect(res).to.be.undefined;
-				done();
-			});
-		});
-	});
-
 	describe('calculateApproval', () => {
 		it('when voterBalance = 0 and totalSupply = 0, it should return 0', async () =>
 			expect(account.calculateApproval(0, 0)).to.equal(0));
