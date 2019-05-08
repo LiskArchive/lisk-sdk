@@ -391,11 +391,12 @@ describe('ChildProcessChannel Channel', () => {
 	describe('#_rejectWhenAnySocketFailsToBind', () => {
 		beforeEach(() => childProcessChannel.registerToBus(socketsPath));
 
-		it('should reject if any of the sockets receive an "error" event', () =>
+		it('should reject if any of the sockets receive an "error" event', () => {
 			// Assert
-			expect(
+			return expect(
 				childProcessChannel._rejectWhenAnySocketFailsToBind()
-			).rejects.toBe('#MOCKED_ONCE'));
+			).rejects.toBe('#MOCKED_ONCE');
+		});
 
 		it('should call pubSocket.sock.once with proper arguments', async () => {
 			try {
@@ -440,11 +441,12 @@ describe('ChildProcessChannel Channel', () => {
 	describe('#_rejectWhenTimeout', () => {
 		beforeEach(() => childProcessChannel.registerToBus(socketsPath));
 
-		it('should reject with an Error object with proper message', () =>
+		it('should reject with an Error object with proper message', () => {
 			// Assert
-			expect(childProcessChannel._rejectWhenTimeout(1)).rejects.toThrow(
+			return expect(childProcessChannel._rejectWhenTimeout(1)).rejects.toThrow(
 				'ChildProcessChannel sockets setup timeout'
-			));
+			);
+		});
 	});
 
 	describe('#_removeAllListeners', () => {

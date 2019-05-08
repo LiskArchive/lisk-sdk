@@ -208,8 +208,9 @@ describe('InMemoryChannel Channel', () => {
 	describe('#invoke', () => {
 		const actionName = 'action1';
 
-		it('should throw TypeError when action name was not provided', () =>
-			expect(inMemoryChannel.invoke()).rejects.toBeInstanceOf(TypeError));
+		it('should throw TypeError when action name was not provided', () => {
+			return expect(inMemoryChannel.invoke()).rejects.toBeInstanceOf(TypeError);
+		});
 
 		it('should execute the action straight away if the action module is equal to moduleAlias', async () => {
 			// Arrange
