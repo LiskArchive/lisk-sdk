@@ -135,6 +135,7 @@ describe('blocks/chain', () => {
 				.stub()
 				.withArgs('app:state:updated')
 				.callsArg(1),
+			publish: sinonSandbox.stub(),
 		};
 
 		blocksChainModule = new BlocksChain(
@@ -985,6 +986,7 @@ describe('blocks/chain', () => {
 
 			it('should call a callback', done => {
 				__private.popLastBlock(blockWithTransactions, err => {
+					expect(library.bus.message.callCount).to.be.eql(1);
 					expect(err).to.be.null;
 					done();
 				});
