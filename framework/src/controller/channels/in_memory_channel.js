@@ -53,7 +53,7 @@ class InMemoryChannel extends BaseChannel {
 		await this.bus.registerChannel(
 			this.moduleAlias,
 			this.eventsList.map(event => event.name),
-			this.actionsList.map(action => action.name),
+			this.actions,
 			{ type: 'inMemory', channel: this }
 		);
 	}
@@ -109,25 +109,49 @@ class InMemoryChannel extends BaseChannel {
 	 * @return {Promise<string>} Data returned by bus.
 	 */
 	async invoke(actionName, params) {
-		let action = null;
-
-		// Invoked by user module
-		if (typeof actionName === 'string') {
-			action = new Action(actionName, params, this.moduleAlias);
-
-			// Invoked by bus to preserve the source
-		} else if (typeof actionName === 'object') {
-			action = actionName;
-		}
+		const action =
+			typeof actionName === 'string'
+				? new Action(actionName, params, this.moduleAlias)
+				: actionName;
 
 		if (
 			action.module === this.moduleAlias &&
-			typeof this.actions[action.name] === 'function'
+			typeof this.actions[action.name].handler === 'function'
 		) {
-			return this.actions[action.name](action);
+			return this.actions[action.name].handler(action);
 		}
 
 		return this.bus.invoke(action.serialize());
+	}
+
+	/**
+	 * Invoke specific public action.
+	 *
+	 * @async
+	 * @param {string} actionName - Name of action to invoke
+	 * @param {array} params - Params associated with the action
+	 * @return {Promise<string>} Data returned by bus.
+	 */
+	async invokePublic(actionName, params) {
+		const action =
+			typeof actionName === 'string'
+				? new Action(actionName, params, this.moduleAlias)
+				: actionName;
+
+		if (
+			action.module === this.moduleAlias &&
+			typeof this.actions[action.name].handler === 'function'
+		) {
+			if (!this.actions[action.name].isPublic) {
+				throw new Error(
+					`Action ${action.name} is not allowed because it's not public.`
+				);
+			}
+
+			return this.actions[action.name].handler(action);
+		}
+
+		return this.bus.invokePublic(action.serialize());
 	}
 }
 
