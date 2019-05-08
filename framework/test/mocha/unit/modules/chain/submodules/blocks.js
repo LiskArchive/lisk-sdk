@@ -303,7 +303,7 @@ describe('blocks', () => {
 	});
 
 	describe('onNewBlock', () => {
-		const block = { id: 123 };
+		const block = { id: 123, transactions: [{ type: 0, amount: 1 }] };
 
 		describe('when cache is enabled', () => {
 			beforeEach(done => {
@@ -315,6 +315,17 @@ describe('blocks', () => {
 			});
 
 			it('should call library.channel.publish with "chain:blocks:change" and block data', async () => {
+				expect(library.channel.publish).to.be.calledWith(
+					'chain:blocks:change',
+					block
+				);
+			});
+
+			it('should call library.channel.publish with "chain:confirmed_transactions:update" when transactions is not empty', async () => {
+				expect(library.channel.publish).to.be.calledWith(
+					'chain:confirmed_transactions:update',
+					block.transactions
+				);
 				expect(library.channel.publish).to.be.calledWith(
 					'chain:blocks:change',
 					block
