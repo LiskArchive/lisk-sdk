@@ -60,9 +60,8 @@ describe('Bus', () => {
 	});
 
 	describe('#setup', () => {
-		it('should resolve with true.', async () => {
-			await expect(bus.setup()).resolves.toBe(true);
-		});
+		it('should resolve with true.', () =>
+			expect(bus.setup()).resolves.toBe(true));
 	});
 
 	describe('#registerChannel', () => {

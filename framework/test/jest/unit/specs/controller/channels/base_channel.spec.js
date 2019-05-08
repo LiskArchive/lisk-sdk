@@ -129,12 +129,9 @@ describe('Base Channel', () => {
 	});
 
 	describe('#registerToBus', () => {
-		it('should throw TypeError', async () => {
+		it('should throw TypeError', () =>
 			// Assert
-			await expect(baseChannel.registerToBus()).rejects.toBeInstanceOf(
-				TypeError
-			);
-		});
+			expect(baseChannel.registerToBus()).rejects.toBeInstanceOf(TypeError));
 	});
 
 	describe('#subscribe', () => {
@@ -152,19 +149,15 @@ describe('Base Channel', () => {
 	});
 
 	describe('#invoke', () => {
-		it('should throw TypeError', async () => {
+		it('should throw TypeError', () =>
 			// Assert
-			await expect(baseChannel.invoke()).rejects.toBeInstanceOf(TypeError);
-		});
+			expect(baseChannel.invoke()).rejects.toBeInstanceOf(TypeError));
 	});
 
 	describe('#invokePublic', () => {
-		it('should throw TypeError', async () => {
+		it('should throw TypeError', () =>
 			// Assert
-			await expect(baseChannel.invokePublic()).rejects.toBeInstanceOf(
-				TypeError
-			);
-		});
+			expect(baseChannel.invokePublic()).rejects.toBeInstanceOf(TypeError));
 	});
 
 	describe('#isValidEventName', () => {

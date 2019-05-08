@@ -106,12 +106,11 @@ describe('Application State', () => {
 				};
 			});
 
-			it('should throw an error', async () => {
+			it('should throw an error', () =>
 				// Act && Assert
-				await expect(applicationState.update(newState)).rejects.toThrow(
+				expect(applicationState.update(newState)).rejects.toThrow(
 					errorMessage
-				);
-			});
+				));
 
 			it('should log the error stack', async () => {
 				try {
