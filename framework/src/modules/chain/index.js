@@ -68,37 +68,29 @@ module.exports = class ChainModule extends BaseModule {
 		return {
 			calculateSupply: {
 				handler: action => this.chain.actions.calculateSupply(action),
-				isPublic: false,
 			},
 			calculateMilestone: {
 				handler: action => this.chain.actions.calculateMilestone(action),
-				isPublic: false,
 			},
 			calculateReward: {
 				handler: action => this.chain.actions.calculateReward(action),
-				isPublic: false,
 			},
 			generateDelegateList: {
 				handler: action => this.chain.actions.generateDelegateList(action),
-				isPublic: false,
 			},
 			updateForgingStatus: {
 				handler: async action => this.chain.actions.updateForgingStatus(action),
-				isPublic: false,
 			},
 			postSignature: {
 				handler: async action => this.chain.actions.postSignature(action),
-				isPublic: false,
 			},
 			getForgingStatusForAllDelegates: {
 				handler: async () =>
 					this.chain.actions.getForgingStatusForAllDelegates(),
-				isPublic: false,
 			},
 			getTransactionsFromPool: {
 				handler: async action =>
 					this.chain.actions.getTransactionsFromPool(action),
-				isPublic: false,
 			},
 			getTransactions: {
 				handler: async () => this.chain.actions.getTransactions(),
@@ -110,32 +102,25 @@ module.exports = class ChainModule extends BaseModule {
 			},
 			getLastCommit: {
 				handler: async () => this.chain.actions.getLastCommit(),
-				isPublic: false,
 			},
 			getBuild: {
 				handler: async () => this.chain.actions.getBuild(),
-				isPublic: false,
 			},
 			postTransaction: {
 				handler: async action => this.chain.actions.postTransaction(action),
-				isPublic: false,
 			},
 			getDelegateBlocksRewards: {
 				handler: async action =>
 					this.chain.actions.getDelegateBlocksRewards(action),
-				isPublic: false,
 			},
 			getSlotNumber: {
 				handler: async action => this.chain.actions.getSlotNumber(action),
-				isPublic: false,
 			},
 			calcSlotRound: {
 				handler: async action => this.chain.actions.calcSlotRound(action),
-				isPublic: false,
 			},
 			getNodeStatus: {
 				handler: async () => this.chain.actions.getNodeStatus(),
-				isPublic: false,
 			},
 			blocks: {
 				handler: async action => this.chain.actions.blocks(action),
