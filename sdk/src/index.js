@@ -14,18 +14,25 @@
 
 'use strict';
 
-const Application = require('./controller/application');
-const version = require('./version');
-const defaultConfigurator = require('./controller/default_configurator');
-const systemDirs = require('./controller/system_dirs');
+const BigNum = require('@liskhq/bignum');
+const cryptography = require('@liskhq/lisk-cryptography');
+const transactions = require('@liskhq/lisk-transactions');
+const {
+	Application,
+	version,
+	systemDirs,
+	configurator,
+} = require('lisk-framework');
 
-/**
- * @namespace framework
- * @type {{constants, Application: (module.Application|*), version: string}}
- */
+const { genesisBlockDevnet } = require('./samples');
+
 module.exports = {
 	Application,
 	version,
 	systemDirs,
-	configurator: defaultConfigurator,
+	configurator,
+	BigNum,
+	genesisBlockDevnet,
+	cryptography,
+	transactions,
 };

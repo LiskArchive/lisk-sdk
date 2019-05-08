@@ -18,6 +18,7 @@
 const util = require('util');
 const rewire = require('rewire');
 const async = require('async');
+const _ = require('lodash');
 const { registeredTransactions } = require('./registered_transactions');
 const ed = require('../../../src/modules/chain/helpers/ed');
 const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
@@ -128,8 +129,7 @@ async function __init(sandbox, initScope) {
 			error: sinonSandbox.spy(),
 		};
 
-		const scope = Object.assign(
-			{},
+		const scope = _.merge(
 			{
 				lastCommit: '',
 				ed,
@@ -259,7 +259,8 @@ function cleanup(done) {
 		currentAppScope.modules,
 		(module, cb) => {
 			if (typeof module.cleanup === 'function') {
-				return module.cleanup(cb);
+				module.cleanup();
+				return cb();
 			}
 			return cb();
 		},

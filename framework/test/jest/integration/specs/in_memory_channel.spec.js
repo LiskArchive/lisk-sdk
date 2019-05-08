@@ -34,8 +34,14 @@ const alpha = {
 		event => new Event(`${'alphaAlias'}:${event}`)
 	),
 	actions: {
-		multiplyByTwo: action => action.params * 2,
-		multiplyByThree: action => action.params * 3,
+		multiplyByTwo: {
+			handler: action => action.params * 2,
+			isPublic: true,
+		},
+		multiplyByThree: {
+			handler: action => action.params * 3,
+			isPublic: true,
+		},
 	},
 };
 
@@ -45,8 +51,14 @@ const beta = {
 		event => new Event(`${alpha.moduleAlias}:${event}`)
 	),
 	actions: {
-		divideByTwo: action => action.params / 2,
-		divideByThree: action => action.params / 3,
+		divideByTwo: {
+			handler: action => action.params / 2,
+			isPublic: true,
+		},
+		divideByThree: {
+			handler: action => action.params / 3,
+			isPublic: true,
+		},
 	},
 };
 

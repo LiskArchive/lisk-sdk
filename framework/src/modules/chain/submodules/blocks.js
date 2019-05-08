@@ -168,22 +168,31 @@ class Blocks {
 	 * @returns {setImmediateCallback} cb
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	cleanup(cb) {
+	async cleanup() {
 		__private.loaded = false;
 		__private.cleanup = true;
 
 		if (!__private.isActive) {
 			// Module ready for shutdown
-			return setImmediate(cb);
+			return;
 		}
+
+		const waitFor = () =>
+			new Promise(resolve => {
+				setTimeout(resolve, 10000);
+			});
 		// Module is not ready, repeat
-		return setImmediate(function nextWatch() {
+		const nextWatch = async () => {
 			if (__private.isActive) {
 				library.logger.info('Waiting for block processing to finish...');
-				return setTimeout(nextWatch, 10000); // 10 sec
+				await waitFor();
+				await nextWatch();
 			}
-			return setImmediate(cb);
-		});
+
+			return null;
+		};
+
+		await nextWatch();
 	}
 
 	/**

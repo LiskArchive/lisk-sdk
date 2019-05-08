@@ -417,15 +417,16 @@ class Account {
 			? job(tx)
 			: this.scope.storage.entities.Account.begin('logic:account:merge', job)
 		)
-			.then(() =>
+			.then(() => {
 				self.get(
 					{
 						address,
 					},
 					cb,
 					tx
-				)
-			)
+				);
+				return null;
+			})
 			.catch(err => {
 				library.logger.error(err.stack);
 				return setImmediate(cb, _.isString(err) ? err : 'Account#merge error');

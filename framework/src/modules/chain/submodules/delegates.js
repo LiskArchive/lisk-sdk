@@ -357,9 +357,8 @@ class Delegates {
 	 * @returns {setImmediateCallback} cb
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	cleanup(cb) {
+	cleanup() {
 		__private.loaded = false;
-		return setImmediate(cb);
 	}
 
 	/**

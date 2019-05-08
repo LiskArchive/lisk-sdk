@@ -1,0 +1,5 @@
+*
+
+!src/**/*
+!docs/**/*
+!README.md

@@ -224,11 +224,10 @@ describe('rounds', () => {
 			const backup = get(variable);
 			const value = true;
 			set(variable, value);
-			rounds.cleanup(() => {
-				expect(get(variable)).to.equal(false);
-				set(variable, backup);
-				done();
-			});
+			rounds.cleanup();
+			expect(get(variable)).to.equal(false);
+			set(variable, backup);
+			done();
 		});
 	});
 
