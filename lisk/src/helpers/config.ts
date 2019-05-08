@@ -12,6 +12,7 @@ let buildVersion;
 try {
 	lastCommitId = getLastCommitId();
 } catch (err) {
+	// tslint:disable-next-line no-console
 	console.error('Cannot get last git commit:', err.message);
 }
 
@@ -19,6 +20,7 @@ try {
 try {
 	buildVersion = getBuildVersion();
 } catch (err) {
+	// tslint:disable-next-line no-console
 	console.error('Cannot get build version:', err.message);
 }
 
