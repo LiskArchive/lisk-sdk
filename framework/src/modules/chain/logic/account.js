@@ -15,7 +15,6 @@
 'use strict';
 
 const _ = require('lodash');
-const ed = require('../helpers/ed');
 const Bignum = require('../helpers/bignum');
 const BlockReward = require('./block_reward');
 
@@ -163,46 +162,6 @@ class Account {
 	}
 
 	/**
-	 * Normalizes address and creates binary buffers to insert.
-	 *
-	 * @param {Object} raw - With address and public key
-	 * @returns {Object} Normalized address
-	 */
-	toDB(raw) {
-		this.binary.forEach(field => {
-			if (raw[field]) {
-				raw[field] = ed.hexToBuffer(raw[field]);
-			}
-		});
-
-		// Normalize address
-		raw.address = String(raw.address).toUpperCase();
-
-		return raw;
-	}
-
-	/**
-	 * Gets multisignature account information for specified fields and filter criteria.
-	 *
-	 * @param {Object} filter - Contains address
-	 * @param {Object|function} fields - Table fields
-	 * @param {function} cb - Callback function
-	 * @param {Object} tx - Database transaction/task object
-	 * @returns {setImmediate} error, object or null
-	 */
-	getMultiSignature(filter, fields, cb, tx) {
-		if (typeof fields === 'function') {
-			tx = cb;
-			cb = fields;
-			fields = null;
-		}
-
-		filter.multiMin_gt = 0;
-
-		this.get(filter, fields, cb, tx);
-	}
-
-	/**
 	 * Gets account information for specified fields and filter criteria.
 	 *
 	 * @param {Object} filter - Contains address
@@ -304,30 +263,6 @@ class Account {
 			.decimalPlaces(2);
 
 		return !approvalBignum.isNaN() ? approvalBignum.toNumber() : 0;
-	}
-
-	/**
-	 * Sets fields for specific address in mem_accounts table.
-	 *
-	 * @param {address} address
-	 * @param {Object} fields
-	 * @param {function} cb - Callback function
-	 * @param {Object} tx - Database transaction/task object
-	 * @returns {setImmediate} error
-	 */
-	set(address, fields, cb, tx) {
-		// Verify public key
-		this.verifyPublicKey(fields.publicKey);
-
-		// Normalize address
-		fields.address = address;
-
-		this.scope.storage.entities.Account.upsert({ address }, fields, {}, tx)
-			.then(() => setImmediate(cb))
-			.catch(err => {
-				library.logger.error(err.stack);
-				return setImmediate(cb, 'Account#set error');
-			});
 	}
 
 	/**
@@ -494,22 +429,6 @@ class Account {
 			.catch(err => {
 				library.logger.error(err.stack);
 				return setImmediate(cb, _.isString(err) ? err : 'Account#merge error');
-			});
-	}
-
-	/**
-	 * Removes an account from mem_account table based on address.
-	 *
-	 * @param {address} address
-	 * @param {function} cb - Callback function
-	 * @returns {setImmediate} error, address
-	 */
-	remove(address, cb) {
-		this.scope.storage.entities.Account.delete({ address })
-			.then(() => setImmediate(cb, null, address))
-			.catch(err => {
-				library.logger.error(err.stack);
-				return setImmediate(cb, 'Account#remove error');
 			});
 	}
 
