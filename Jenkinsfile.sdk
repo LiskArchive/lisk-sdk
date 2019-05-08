@@ -3,6 +3,16 @@
 pipeline {
 	agent { node { label 'lisk-sdk' } }
 	stages {
+		stage('Cancel previous build') {
+			steps {
+				script {
+					if (env.CHANGE_ID) {
+						// we are build a pull request, try cancelling previous build
+						cancelPreviousBuild()
+					}
+				}
+			}
+		}
 		stage('Install') {
 			steps {
 				nvm(getNodejsVersion()) {
