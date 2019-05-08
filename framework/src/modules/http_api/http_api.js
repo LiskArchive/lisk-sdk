@@ -120,10 +120,7 @@ module.exports = class HttpApi {
 			async event => {
 				const transactions = event.data;
 				// Default keys to clear
-				const keysToClear = [
-					CACHE_KEYS_DELEGATES,
-					CACHE_KEYS_TRANSACTION_COUNT,
-				];
+				const keysToClear = [CACHE_KEYS_TRANSACTION_COUNT];
 				// If there was a delegate registration clear delegates cache too
 				const delegateTransaction = transactions.find(
 					transaction =>
