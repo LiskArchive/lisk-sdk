@@ -87,6 +87,12 @@ class Bus extends EventEmitter2 {
 				.catch(error => cb(error));
 		});
 
+		this.rpcServer.expose('invokePublic', (action, cb) => {
+			this.invokePublic(action)
+				.then(data => cb(null, data))
+				.catch(error => cb(error));
+		});
+
 		return Promise.race([
 			this._resolveWhenAllSocketsBound(),
 			this._rejectWhenAnySocketFailsToBind(),
@@ -123,14 +129,24 @@ class Bus extends EventEmitter2 {
 			this.events[eventFullName] = true;
 		});
 
-		actions.forEach(actionName => {
+		Object.keys(actions).forEach(actionName => {
 			const actionFullName = `${moduleAlias}:${actionName}`;
+			if (
+				typeof actions[actionName] !== 'object' ||
+				!actions[actionName].handler
+			) {
+				throw new Error(
+					`Action "${actionFullName}" should be object with handler property.`
+				);
+			}
+
 			if (this.actions[actionFullName]) {
 				throw new Error(
 					`Action "${actionFullName}" already registered with bus.`
 				);
 			}
-			this.actions[actionFullName] = true;
+
+			this.actions[actionFullName] = actions[actionName];
 		});
 
 		let channel = options.channel;
@@ -184,6 +200,26 @@ class Bus extends EventEmitter2 {
 				}
 			);
 		});
+	}
+
+	/**
+	 * Invoke public defined action on bus.
+	 *
+	 * @param {Object|string} actionData - Object or stringified object containing action data like name, module, souce, and params.
+	 *
+	 * @throws {Error} If action is not registered to bus.
+	 */
+	async invokePublic(actionData) {
+		const action = Action.deserialize(actionData);
+
+		// Check if action is public
+		if (!this.actions[action.key()].isPublic) {
+			throw new Error(
+				`Action ${action.key()} is not allowed because it's not public.`
+			);
+		}
+
+		return this.invoke(actionData);
 	}
 
 	/**
