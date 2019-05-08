@@ -14,7 +14,6 @@
 
 'use strict';
 
-const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const BlockReward = require('../logic/block_reward.js');
 
 // Private fields
@@ -55,23 +54,6 @@ class Accounts {
 		__private.blockReward = new BlockReward();
 
 		setImmediate(cb, null, self);
-	}
-
-	/**
-	 * Gets account information, calls logic.account.get().
-	 *
-	 * @param {Object} filter - Contains public key
-	 * @param {function} fields - Fields to get
-	 * @param {function} cb - Callback function
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	getAccount(filter, fields, cb, tx) {
-		if (filter.publicKey) {
-			filter.address = getAddressFromPublicKey(filter.publicKey);
-			delete filter.publicKey;
-		}
-
-		library.logic.account.get(filter, fields, cb, tx);
 	}
 
 	// Events

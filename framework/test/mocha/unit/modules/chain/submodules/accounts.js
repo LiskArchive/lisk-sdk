@@ -17,38 +17,8 @@
 const AccountModule = require('../../../../../../src/modules/chain/submodules/accounts');
 const application = require('../../../../common/application');
 
-const validAccount = {
-	username: 'genesis_100',
-	isDelegate: 1,
-	u_isDelegate: 1,
-	secondSignature: 0,
-	u_secondSignature: 0,
-	u_username: 'genesis_100',
-	address: '10881167371402274308L',
-	publicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
-	secondPublicKey: null,
-	vote: '9820020609280331',
-	rate: '0',
-	delegates: null,
-	u_delegates: null,
-	multisignatures: null,
-	u_multisignatures: null,
-	multimin: 0,
-	u_multimin: 0,
-	multilifetime: 0,
-	u_multilifetime: 0,
-	blockId: '10352824351134264746',
-	nameexist: 0,
-	u_nameexist: 0,
-	producedBlocks: 27,
-	missedBlocks: 1,
-	fees: '231386135',
-	rewards: '0',
-};
-
 describe('accounts', () => {
 	let accounts;
-	let accountLogic;
 
 	before(done => {
 		application.init(
@@ -57,7 +27,6 @@ describe('accounts', () => {
 				// For correctly initializing setting blocks module
 				scope.modules.blocks.lastBlock.set({ height: 10 });
 				accounts = scope.modules.accounts;
-				accountLogic = scope.logic.account;
 				done(err);
 			}
 		);
@@ -72,29 +41,6 @@ describe('accounts', () => {
 			expect(() => {
 				new AccountModule();
 			}).to.throw());
-	});
-
-	describe('getAccount', () => {
-		it('should convert publicKey filter to address and call account.get', done => {
-			const getAccountStub = sinonSandbox.stub(accountLogic, 'get');
-
-			accounts.getAccount({ publicKey: validAccount.publicKey });
-			expect(getAccountStub.calledOnce).to.be.ok;
-			expect(getAccountStub.calledWith({ address: validAccount.address })).to.be
-				.ok;
-			getAccountStub.restore();
-			done();
-		});
-
-		it('should get correct account for address', done => {
-			accounts.getAccount({ address: validAccount.address }, (err, res) => {
-				expect(err).to.not.exist;
-				expect(res.address).to.equal(validAccount.address);
-				expect(res.publicKey).to.equal(validAccount.publicKey);
-				expect(res.username).to.equal(validAccount.username);
-				done();
-			});
-		});
 	});
 
 	describe('onBind', () => {

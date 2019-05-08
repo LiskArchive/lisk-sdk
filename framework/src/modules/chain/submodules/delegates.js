@@ -20,6 +20,7 @@ const { promisify } = require('util');
 const {
 	decryptPassphraseWithPassword,
 	parseEncryptedPassphrase,
+	getAddressFromPublicKey,
 } = require('@liskhq/lisk-cryptography');
 const BlockReward = require('../logic/block_reward.js');
 const jobsQueue = require('../helpers/jobs_queue.js');
@@ -62,6 +63,7 @@ class Delegates {
 		library = {
 			channel: scope.channel,
 			logger: scope.components.logger,
+			logic: scope.logic,
 			sequence: scope.sequence,
 			ed: scope.ed,
 			storage: scope.components.storage,
@@ -127,9 +129,11 @@ class Delegates {
 			throw new Error('Invalid password and public key combination');
 		}
 
-		const account = await promisify(modules.accounts.getAccount)({
-			publicKey: keypair.publicKey.toString('hex'),
-		});
+		const filter = {
+			address: getAddressFromPublicKey(keypair.publicKey.toString('hex')),
+		};
+
+		const account = await promisify(library.logic.account.get)(filter);
 
 		if (account && account.isDelegate) {
 			if (forging) {
@@ -686,39 +690,36 @@ __private.loadDelegates = function(cb) {
 				);
 			}
 
-			return modules.accounts.getAccount(
-				{
-					publicKey: keypair.publicKey.toString('hex'),
-				},
-				(err, account) => {
-					if (err) {
-						return setImmediate(seriesCb, err);
-					}
+			const filter = {
+				address: getAddressFromPublicKey(keypair.publicKey.toString('hex')),
+			};
 
-					if (!account) {
-						return setImmediate(
-							seriesCb,
-							`Account with public key: ${keypair.publicKey.toString(
-								'hex'
-							)} not found`
-						);
-					}
-					if (account.isDelegate) {
-						__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
-						library.logger.info(
-							`Forging enabled on account: ${account.address}`
-						);
-					} else {
-						library.logger.warn(
-							`Account with public key: ${keypair.publicKey.toString(
-								'hex'
-							)} is not a delegate`
-						);
-					}
-
-					return setImmediate(seriesCb);
+			return library.logic.account.get(filter, (err, account) => {
+				if (err) {
+					return setImmediate(seriesCb, err);
 				}
-			);
+
+				if (!account) {
+					return setImmediate(
+						seriesCb,
+						`Account with public key: ${keypair.publicKey.toString(
+							'hex'
+						)} not found`
+					);
+				}
+				if (account.isDelegate) {
+					__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
+					library.logger.info(`Forging enabled on account: ${account.address}`);
+				} else {
+					library.logger.warn(
+						`Account with public key: ${keypair.publicKey.toString(
+							'hex'
+						)} is not a delegate`
+					);
+				}
+
+				return setImmediate(seriesCb);
+			});
 		},
 		cb
 	);
