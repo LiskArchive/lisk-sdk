@@ -46,6 +46,8 @@ function NodeController(scope) {
 		config: scope.config,
 		channel: scope.channel,
 		applicationState: scope.applicationState,
+		lastCommitId: scope.lastCommitId,
+		buildVersion: scope.buildVersion,
 	};
 }
 
@@ -75,8 +77,7 @@ NodeController.getConstants = async (context, next) => {
 			height: lastBlock.height,
 		});
 
-		const build = await library.channel.invoke('chain:getBuild');
-		const commit = await library.channel.invoke('chain:getLastCommit');
+		const { buildVersion: build, lastCommitId: commit } = library;
 
 		return next(null, {
 			build,
