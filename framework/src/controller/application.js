@@ -171,10 +171,7 @@ class Application {
 			registeredTransactions: this.getTransactions(),
 		});
 		this.registerModule(NetworkModule);
-		this.registerModule(HttpAPIModule, {
-			lastCommitId: this.config.app.lastCommitId,
-			buildVersion: this.config.app.buildVersion,
-		});
+		this.registerModule(HttpAPIModule);
 		this.overrideModuleOptions(HttpAPIModule.alias, {
 			loadAsChildProcess: true,
 		});
@@ -357,6 +354,8 @@ class Application {
 			nonce: this.config.app.nonce,
 			genesisBlock: this.genesisBlock,
 			constants: this.constants,
+			lastCommitId: this.config.app.lastCommitId,
+			buildVersion: this.config.app.buildVersion,
 		};
 
 		// TODO: move this configuration to module especific config file
