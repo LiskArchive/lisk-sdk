@@ -33,8 +33,6 @@ class Action {
 	 * @param {string} name - Can be simple event or be combination of module:event
 	 * @param {Array} [params] - Params associated with the action
 	 * @param {string} [source] - Module name if event name does not have its prefix
-	 * @param {boolean} [isPublic] - Define if action should be public
-	 * // TODO: make options object
 	 */
 	constructor(name, params = null, source = null) {
 		assert(
