@@ -18,6 +18,7 @@
 		"mocha/no-sibling-hooks": "off",
 		"mocha/no-skipped-tests": "off",
 		"mocha/no-synchronous-tests": "off",
-		"mocha/no-top-level-hooks": "off"
+		"mocha/no-top-level-hooks": "off",
+		"arrow-body-style": "off"
 	}
 }
