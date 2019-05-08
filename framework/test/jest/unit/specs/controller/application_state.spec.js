@@ -108,7 +108,9 @@ describe('Application State', () => {
 
 			it('should throw an error', () => {
 				// Act && Assert
-				expect(applicationState.update(newState)).rejects.toThrow(errorMessage);
+				return expect(applicationState.update(newState)).rejects.toThrow(
+					errorMessage
+				);
 			});
 
 			it('should log the error stack', async () => {
