@@ -179,7 +179,7 @@ class Blocks {
 		const { transactions } = block;
 		if (transactions.length) {
 			library.channel.publish(
-				'chain:confirmed_transactions:update',
+				'chain:transactions:confirmed:change',
 				transactions
 			);
 		}
