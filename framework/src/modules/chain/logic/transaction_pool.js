@@ -63,7 +63,6 @@ const readyQueue = 'ready';
  * @memberof logic
  * @see Parent: {@link logic}
  * @requires async
- * @requires helpers/jobs_queue
  * @param {number} broadcastInterval - Broadcast interval in seconds, used for bundling
  * @param {number} releaseLimit - Release limit for transactions broadcasts, used for bundling
  * @param {Object} logger - Logger instance
@@ -72,7 +71,6 @@ const readyQueue = 'ready';
 class TransactionPool {
 	constructor(broadcastInterval, releaseLimit, logger, config, bus) {
 		this.maxTransactionsPerQueue = config.transactions.maxTransactionsPerQueue;
-		this.expiryInterval = EXPIRY_INTERVAL;
 		this.bundledInterval = broadcastInterval;
 		this.bundleLimit = releaseLimit;
 		this.logger = logger;
@@ -97,15 +95,15 @@ class TransactionPool {
 		);
 
 		const poolConfig = {
-			expireTransactionsInterval: this.expiryInterval,
+			expireTransactionsInterval: EXPIRY_INTERVAL,
 			maxTransactionsPerQueue: this.maxTransactionsPerQueue,
 			receivedTransactionsLimitPerProcessing: this.bundleLimit,
 			receivedTransactionsProcessingInterval: this.bundledInterval,
 			validatedTransactionsLimitPerProcessing: this.bundleLimit,
 			validatedTransactionsProcessingInterval: this.bundledInterval,
-			verifiedTransactionsLimitPerProcessing: this.MAX_TRANSACTIONS_PER_BLOCK,
+			verifiedTransactionsLimitPerProcessing: MAX_TRANSACTIONS_PER_BLOCK,
 			verifiedTransactionsProcessingInterval: this.bundledInterval,
-			pendingTransactionsProcessingLimit: this.MAX_TRANSACTIONS_PER_BLOCK,
+			pendingTransactionsProcessingLimit: MAX_TRANSACTIONS_PER_BLOCK,
 		};
 
 		const poolDependencies = {
@@ -124,15 +122,15 @@ class TransactionPool {
 
 	resetPool() {
 		const poolConfig = {
-			expireTransactionsInterval: this.expiryInterval,
+			expireTransactionsInterval: EXPIRY_INTERVAL,
 			maxTransactionsPerQueue: this.maxTransactionsPerQueue,
 			receivedTransactionsLimitPerProcessing: this.bundleLimit,
 			receivedTransactionsProcessingInterval: this.bundledInterval,
 			validatedTransactionsLimitPerProcessing: this.bundleLimit,
 			validatedTransactionsProcessingInterval: this.bundledInterval,
-			verifiedTransactionsLimitPerProcessing: this.MAX_TRANSACTIONS_PER_BLOCK,
+			verifiedTransactionsLimitPerProcessing: MAX_TRANSACTIONS_PER_BLOCK,
 			verifiedTransactionsProcessingInterval: this.bundledInterval,
-			pendingTransactionsProcessingLimit: this.MAX_TRANSACTIONS_PER_BLOCK,
+			pendingTransactionsProcessingLimit: MAX_TRANSACTIONS_PER_BLOCK,
 		};
 
 		const poolDependencies = {
@@ -175,6 +173,13 @@ class TransactionPool {
 					)}`
 				);
 			}
+			const queueSizes = Object.keys(this.pool._queues)
+				.map(
+					queueName =>
+						`${queueName} size: ${this.pool._queues[queueName].size()}`
+				)
+				.join(' ');
+			this.logger.info(`Transaction pool - ${queueSizes}`);
 		});
 	}
 
@@ -344,6 +349,9 @@ class TransactionPool {
 				if (transactionsResponses[0].status === TransactionStatus.PENDING) {
 					return this.addMultisignatureTransaction(transaction, cb);
 				}
+				this.logger.info(
+					`Transaction pool - ${transactionsResponses[0].errors}`
+				);
 				return cb(transactionsResponses[0].errors);
 			}
 		);
