@@ -192,24 +192,21 @@ module.exports = class Chain {
 
 			// Avoid receiving blocks/transactions from the network during snapshotting process
 			if (!this.options.loading.rebuildUpToRound) {
-				this.channel.subscribe(
-					'network:subscribe',
-					({ data: { event, data } }) => {
-						if (event === 'postTransactions') {
-							this.scope.modules.transport.shared.postTransactions(data);
-							return;
-						}
-						if (event === 'postSignatures') {
-							this.scope.modules.transport.shared.postSignatures(data);
-							return;
-						}
-						if (event === 'postBlock') {
-							this.scope.modules.transport.shared.postBlock(data);
-							// eslint-disable-next-line no-useless-return
-							return;
-						}
+				this.channel.subscribe('network:event', ({ data: { event, data } }) => {
+					if (event === 'postTransactions') {
+						this.scope.modules.transport.shared.postTransactions(data);
+						return;
 					}
-				);
+					if (event === 'postSignatures') {
+						this.scope.modules.transport.shared.postSignatures(data);
+						return;
+					}
+					if (event === 'postBlock') {
+						this.scope.modules.transport.shared.postBlock(data);
+						// eslint-disable-next-line no-useless-return
+						return;
+					}
+				});
 			}
 		} catch (error) {
 			this.logger.fatal('Chain initialization', {

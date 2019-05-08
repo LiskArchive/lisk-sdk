@@ -202,7 +202,7 @@ __private.getSignaturesFromNetwork = async function() {
 	library.logger.info('Loading signatures from the network');
 
 	// TODO: Add target module to procedure name. E.g. chain:getSignatures
-	const result = await library.channel.invoke('network:invoke', {
+	const result = await library.channel.invoke('network:request', {
 		procedure: 'getSignatures',
 	});
 
@@ -251,7 +251,7 @@ __private.getTransactionsFromNetwork = async function() {
 	library.logger.info('Loading transactions from the network');
 
 	// TODO: Add target module to procedure name. E.g. chain:getTransactions
-	const result = await library.channel.invoke('network:invoke', {
+	const result = await library.channel.invoke('network:request', {
 		procedure: 'getTransactions',
 	});
 
@@ -1042,12 +1042,10 @@ Loader.prototype.onBlockchainReady = function() {
  * Sets private constant loaded to false.
  *
  * @param {function} cb
- * @returns {setImmediateCallback} cb
  * @todo Add description for the params
  */
-Loader.prototype.cleanup = function(cb) {
+Loader.prototype.cleanup = function() {
 	__private.loaded = false;
-	return setImmediate(cb);
 };
 
 // Export

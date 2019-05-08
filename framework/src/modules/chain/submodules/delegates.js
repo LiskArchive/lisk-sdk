@@ -748,11 +748,9 @@ Delegates.prototype.onBlockchainReady = function() {
  * Sets loaded to false.
  *
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb
  */
-Delegates.prototype.cleanup = function(cb) {
+Delegates.prototype.cleanup = function() {
 	__private.loaded = false;
-	return setImmediate(cb);
 };
 
 /**

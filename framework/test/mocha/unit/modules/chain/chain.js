@@ -324,7 +324,7 @@ describe('Chain', () => {
 
 		it('should subscribe to "network:subscribe" event', () => {
 			return expect(chain.channel.subscribe).to.have.been.calledWith(
-				'network:subscribe'
+				'network:event'
 			);
 		});
 
