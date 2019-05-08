@@ -321,9 +321,9 @@ describe('blocks', () => {
 				);
 			});
 
-			it('should call library.channel.publish with "chain:confirmed_transactions:update" when transactions is not empty', async () => {
+			it('should call library.channel.publish with "chain:transactions:confirmed:change" when transactions is not empty', async () => {
 				expect(library.channel.publish).to.be.calledWith(
-					'chain:confirmed_transactions:update',
+					'chain:transactions:confirmed:change',
 					block.transactions
 				);
 				expect(library.channel.publish).to.be.calledWith(

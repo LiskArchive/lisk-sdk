@@ -116,7 +116,7 @@ module.exports = class HttpApi {
 		});
 
 		this.channel.subscribe(
-			'chain:confirmed_transactions:update',
+			'chain:transactions:confirmed:change',
 			async event => {
 				const transactions = event.data;
 				// Default keys to clear

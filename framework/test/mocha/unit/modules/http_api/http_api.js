@@ -240,7 +240,7 @@ describe('HttpApi', () => {
 				'chain:rounds:change'
 			);
 			expect(channelSubscribeStub.lastCall.args[0]).to.be.eql(
-				'chain:confirmed_transactions:update'
+				'chain:transactions:confirmed:change'
 			);
 		});
 	});
