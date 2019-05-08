@@ -57,7 +57,6 @@ module.exports = class NetworkModule extends BaseModule {
 			},
 			getNetworkStatus: {
 				handler: () => this.network.actions.getNetworkStatus(),
-				isPublic: true,
 			},
 			getPeers: {
 				handler: action => this.network.actions.getPeers(action),
