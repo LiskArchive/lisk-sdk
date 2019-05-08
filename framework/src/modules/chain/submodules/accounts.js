@@ -74,42 +74,6 @@ class Accounts {
 		library.logic.account.get(filter, fields, cb, tx);
 	}
 
-	/**
-	 * Validates input address and calls logic.account.merge().
-	 *
-	 * @param {Object} data - Contains address and public key
-	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallback} cb, err
-	 * @returns {function} Calls to logic.account.merge()
-	 * @todo Improve public key validation try/catch
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	mergeAccountAndGet(data, cb, tx) {
-		let address = data.address || null;
-		let err;
-
-		if (address === null) {
-			if (data.publicKey) {
-				address = getAddressFromPublicKey(data.publicKey);
-			} else {
-				err = new Error('Missing address or public key');
-			}
-		}
-
-		if (!address) {
-			err = new Error('Invalid public key');
-		}
-
-		if (err) {
-			if (typeof cb === 'function') {
-				return setImmediate(cb, err);
-			}
-			throw err;
-		}
-
-		return library.logic.account.merge(address, data, cb, tx);
-	}
-
 	// Events
 	/**
 	 * Calls Vote.bind() with scope.

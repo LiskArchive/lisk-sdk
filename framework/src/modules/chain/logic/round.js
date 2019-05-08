@@ -43,11 +43,9 @@ class Round {
 			roundFees: scope.roundFees,
 			roundRewards: scope.roundRewards,
 			library: {
+				logic: scope.library.logic,
 				logger: scope.library.logger,
 				storage: scope.library.storage,
-			},
-			modules: {
-				accounts: scope.modules.accounts,
 			},
 			block: {
 				generatorPublicKey: scope.block.generatorPublicKey,
@@ -59,13 +57,7 @@ class Round {
 		this.t = t;
 
 		// List of required scope properties
-		let requiredProperties = [
-			'library',
-			'modules',
-			'block',
-			'round',
-			'backwards',
-		];
+		let requiredProperties = ['library', 'block', 'round', 'backwards'];
 
 		// Require extra scope properties when finishing round
 		if (scope.finishRound) {
@@ -86,27 +78,30 @@ class Round {
 	}
 
 	/**
-	 * Returns result from call to mergeAccountAndGet.
+	 * Returns result from call to logic.account.merge.
 	 *
 	 * @returns {function} Promise
 	 * @todo Check type and description of the return value
 	 */
 	mergeBlockGenerator() {
 		const self = this;
-
 		return new Promise((resolve, reject) => {
-			self.scope.modules.accounts.mergeAccountAndGet(
-				{
-					publicKey: self.scope.block.generatorPublicKey,
-					producedBlocks: self.scope.backwards ? -1 : 1,
-					round: self.scope.round,
-				},
+			const data = {
+				publicKey: self.scope.block.generatorPublicKey,
+				producedBlocks: self.scope.backwards ? -1 : 1,
+				round: self.scope.round,
+			};
+
+			const address = getAddressFromPublicKey(data.publicKey);
+
+			self.scope.library.logic.account.merge(
+				address,
+				data,
 				(err, account) => {
 					if (err) {
-						reject(err);
-					} else {
-						resolve(account);
+						return reject(err);
 					}
+					return resolve(account);
 				},
 				self.t
 			);
@@ -344,7 +339,7 @@ class Round {
 	}
 
 	/**
-	 * For each delegate calls mergeAccountAndGet and creates an address array.
+	 * For each delegate calls logic.account.merge and creates an address array.
 	 *
 	 * @returns {function} Promise with address array
 	 */
@@ -384,15 +379,17 @@ class Round {
 				rewards: self.scope.backwards ? -changes.rewards : changes.rewards,
 			};
 
+			const address = getAddressFromPublicKey(accountData.publicKey);
+
 			p = new Promise((resolve, reject) => {
-				self.scope.modules.accounts.mergeAccountAndGet(
+				self.scope.library.logic.account.merge(
+					address,
 					accountData,
 					(err, account) => {
 						if (err) {
-							reject(err);
-						} else {
-							resolve(account);
+							return reject(err);
 						}
+						return resolve(account);
 					},
 					self.t
 				);
@@ -432,19 +429,23 @@ class Round {
 			});
 
 			p = new Promise((resolve, reject) => {
-				self.scope.modules.accounts.mergeAccountAndGet(
-					{
-						publicKey: remainderDelegate,
-						balance: feesRemaining,
-						round: self.scope.round,
-						fees: feesRemaining,
-					},
+				const data = {
+					publicKey: remainderDelegate,
+					balance: feesRemaining,
+					round: self.scope.round,
+					fees: feesRemaining,
+				};
+
+				const address = getAddressFromPublicKey(data.publicKey);
+
+				self.scope.library.logic.account.merge(
+					address,
+					data,
 					(err, account) => {
 						if (err) {
-							reject(err);
-						} else {
-							resolve(account);
+							return reject(err);
 						}
+						return resolve(account);
 					},
 					self.t
 				);
