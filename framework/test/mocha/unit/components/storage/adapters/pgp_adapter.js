@@ -57,6 +57,7 @@ describe('PgpAdapter', () => {
 			expect(adapter.options).to.be.eql(validOptions);
 			expect(adapter.logger).to.be.eql(loggerStub);
 			expect(adapter.sqlDirectory).to.be.eql(validOptions.sqlDirectory);
+			expect(adapter.pgp).to.be.a('function');
 			return expect(adapter.db).to.be.undefined;
 		});
 	});

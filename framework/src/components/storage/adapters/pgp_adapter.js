@@ -51,6 +51,7 @@ class PgpAdapter extends BaseAdapter {
 		this.logger = options.logger;
 		this.sqlDirectory = options.sqlDirectory;
 
+		this.pgp = pgp;
 		this.db = undefined;
 		this.SQLs = {};
 	}
