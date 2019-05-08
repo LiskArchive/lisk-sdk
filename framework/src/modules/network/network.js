@@ -212,7 +212,7 @@ module.exports = class Network {
 				? request.procedure
 				: `chain:${request.procedure}`;
 			try {
-				const result = await this.channel.invoke(
+				const result = await this.channel.invokePublic(
 					sanitizedProcedure,
 					request.data
 				);
