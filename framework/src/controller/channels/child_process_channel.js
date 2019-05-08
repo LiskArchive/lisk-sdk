@@ -73,6 +73,12 @@ class ChildProcessChannel extends BaseChannel {
 					.then(data => cb(null, data))
 					.catch(error => cb(error));
 			});
+
+			this.rpcServer.expose('invokePublic', (action, cb) => {
+				this.invokePublic(action)
+					.then(data => cb(null, data))
+					.catch(error => cb(error));
+			});
 		}
 
 		return this.setupSockets();

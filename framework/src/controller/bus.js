@@ -87,6 +87,12 @@ class Bus extends EventEmitter2 {
 				.catch(error => cb(error));
 		});
 
+		this.rpcServer.expose('invokePublic', (action, cb) => {
+			this.invokePublic(action)
+				.then(data => cb(null, data))
+				.catch(error => cb(error));
+		});
+
 		return Promise.race([
 			this._resolveWhenAllSocketsBound(),
 			this._rejectWhenAnySocketFailsToBind(),
@@ -125,6 +131,15 @@ class Bus extends EventEmitter2 {
 
 		Object.keys(actions).forEach(actionName => {
 			const actionFullName = `${moduleAlias}:${actionName}`;
+			if (
+				typeof actions[actionName] !== 'object' ||
+				!actions[actionName].handler
+			) {
+				throw new Error(
+					`Action "${actionFullName}" should be object with handler property.`
+				);
+			}
+
 			if (this.actions[actionFullName]) {
 				throw new Error(
 					`Action "${actionFullName}" already registered with bus.`

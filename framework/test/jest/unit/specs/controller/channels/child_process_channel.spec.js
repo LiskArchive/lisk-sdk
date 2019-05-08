@@ -391,7 +391,7 @@ describe('ChildProcessChannel Channel', () => {
 	describe('#_rejectWhenAnySocketFailsToBind', () => {
 		beforeEach(() => childProcessChannel.registerToBus(socketsPath));
 
-		it('should reject if any of the sockets receive an "error" event', async () =>
+		it('should reject if any of the sockets receive an "error" event', () =>
 			// Assert
 			expect(
 				childProcessChannel._rejectWhenAnySocketFailsToBind()
@@ -440,7 +440,7 @@ describe('ChildProcessChannel Channel', () => {
 	describe('#_rejectWhenTimeout', () => {
 		beforeEach(() => childProcessChannel.registerToBus(socketsPath));
 
-		it('should reject with an Error object with proper message', async () =>
+		it('should reject with an Error object with proper message', () =>
 			// Assert
 			expect(childProcessChannel._rejectWhenTimeout(1)).rejects.toThrow(
 				'ChildProcessChannel sockets setup timeout'

@@ -36,14 +36,13 @@ class Action {
 	 * @param {boolean} [isPublic] - Define if action should be public
 	 * // TODO: make options object
 	 */
-	constructor(name, params = null, source = null, isPublic = false) {
+	constructor(name, params = null, source = null) {
 		assert(
 			actionWithModuleNameReg.test(name),
 			`Action name "${name}" must be a valid name with module name.`
 		);
 		[this.module, this.name] = name.split(':');
 		this.params = params;
-		this.isPublic = isPublic;
 
 		if (source) {
 			assert(
@@ -65,7 +64,6 @@ class Action {
 			module: this.module,
 			source: this.source,
 			params: this.params,
-			isPublic: this.isPublic,
 		};
 	}
 
@@ -80,8 +78,7 @@ class Action {
 		return new Action(
 			`${parsedAction.module}:${parsedAction.name}`,
 			parsedAction.params,
-			parsedAction.source,
-			parsedAction.isPublic
+			parsedAction.source
 		);
 	}
 

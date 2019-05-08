@@ -98,9 +98,11 @@ describe('Bus', () => {
 			const actions = {
 				action1: {
 					isPublic: false,
+					handler: jest.fn(),
 				},
 				action2: {
 					isPublic: false,
+					handler: jest.fn(),
 				},
 			};
 
@@ -116,7 +118,7 @@ describe('Bus', () => {
 			});
 		});
 
-		it('should throw error when trying to register duplicate actions.', async () => {
+		it('should throw error registering incorrect action (no handler).', async () => {
 			// Arrange
 			const moduleAlias = 'alias';
 			const actions = {
@@ -125,10 +127,43 @@ describe('Bus', () => {
 				},
 			};
 
-			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
 			// Act && Assert
 			await expect(
-				bus.registerChannel(moduleAlias, [], actions)
+				bus.registerChannel(moduleAlias, [], actions, channelOptions)
+			).rejects.toBeInstanceOf(Error);
+		});
+
+		it('should throw error registering incorrect action (no object).', async () => {
+			// Arrange
+			const moduleAlias = 'alias';
+			const actions = {
+				action1: 'not an object',
+			};
+
+			// Act && Assert
+			await expect(
+				bus.registerChannel(moduleAlias, [], actions, channelOptions)
+			).rejects.toEqual(
+				new Error(
+					'Action "alias:action1" should be object with handler property.'
+				)
+			);
+		});
+
+		it('should throw error when trying to register duplicate actions.', async () => {
+			// Arrange
+			const moduleAlias = 'alias';
+			const actions = {
+				action1: {
+					isPublic: false,
+					handler: jest.fn(),
+				},
+			};
+
+			// Act && Assert
+			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
+			await expect(
+				bus.registerChannel(moduleAlias, [], actions, channelOptions)
 			).rejects.toBeInstanceOf(Error);
 		});
 	});
@@ -167,9 +202,11 @@ describe('Bus', () => {
 			const actions = {
 				action1: {
 					public: false,
+					handler: jest.fn(),
 				},
 				action2: {
 					public: false,
+					handler: jest.fn(),
 				},
 			};
 			const expectedActions = Object.keys(actions).map(
