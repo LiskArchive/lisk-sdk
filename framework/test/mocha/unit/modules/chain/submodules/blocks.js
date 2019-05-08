@@ -25,7 +25,6 @@ describe('blocks', () => {
 	let blocksInstance;
 	let self;
 	let library;
-	let components;
 	let __private;
 	let storageStub;
 	let loggerStub;
@@ -115,7 +114,6 @@ describe('blocks', () => {
 			expect(err).to.be.undefined;
 			self = cbSelf;
 			library = Blocks.__get__('library');
-			components = Blocks.__get__('components');
 			__private = Blocks.__get__('__private');
 			done();
 		}, scope);
@@ -302,34 +300,32 @@ describe('blocks', () => {
 			blocksInstance.onBind(onBindScope);
 			return expect(__private.loaded).to.be.true;
 		});
-
-		it('should assign component property', async () =>
-			expect(components).to.have.property('cache'));
 	});
 
 	describe('onNewBlock', () => {
-		const block = { id: 123 };
+		const block = { id: 123, transactions: [{ type: 0, amount: 1 }] };
 
 		describe('when cache is enabled', () => {
 			beforeEach(done => {
 				blocksInstance = new Blocks(async err => {
 					expect(err).to.be.undefined;
-					components = Blocks.__get__('components');
-					components.cache = {
-						removeByPattern: sinonSandbox.stub().resolves(),
-						isReady: sinonSandbox.stub().returns(true),
-					};
 					await blocksInstance.onNewBlock(block);
 					done();
 				}, scope);
 			});
 
-			afterEach(done => {
-				components.cache.removeByPattern.reset();
-				done();
+			it('should call library.channel.publish with "chain:blocks:change" and block data', async () => {
+				expect(library.channel.publish).to.be.calledWith(
+					'chain:blocks:change',
+					block
+				);
 			});
 
-			it('should call library.channel.publish with "chain:blocks:change" and block data', async () => {
+			it('should call library.channel.publish with "chain:transactions:confirmed:change" when transactions is not empty', async () => {
+				expect(library.channel.publish).to.be.calledWith(
+					'chain:transactions:confirmed:change',
+					block.transactions
+				);
 				expect(library.channel.publish).to.be.calledWith(
 					'chain:blocks:change',
 					block
@@ -341,8 +337,6 @@ describe('blocks', () => {
 			beforeEach(done => {
 				blocksInstance = new Blocks(err => {
 					expect(err).to.be.undefined;
-					components = Blocks.__get__('components');
-					components.cache = undefined;
 					blocksInstance.onNewBlock(block);
 					done();
 				}, scope);

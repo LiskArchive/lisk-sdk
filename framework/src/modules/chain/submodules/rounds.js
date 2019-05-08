@@ -16,13 +16,10 @@
 
 const Bignumber = require('bignumber.js');
 const async = require('async');
-// eslint-disable-next-line prefer-const
-const { CACHE_KEYS_DELEGATES } = require('../../../components/cache');
 const Round = require('../logic/round');
 const slots = require('../helpers/slots');
 
 // Private fields
-let components;
 let modules;
 let library;
 let self;
@@ -358,10 +355,6 @@ class Rounds {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	onBind(scope) {
-		components = {
-			cache: scope.components ? scope.components.cache : undefined,
-		};
-
 		modules = {
 			blocks: scope.modules.blocks,
 			accounts: scope.modules.accounts,
@@ -388,33 +381,6 @@ class Rounds {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	async onFinishRound(round) {
-		if (components && components.cache && components.cache.isReady()) {
-			library.logger.debug(
-				['Cache - onFinishRound', '| Status:', components.cache.isReady()].join(
-					' '
-				)
-			);
-			const pattern = CACHE_KEYS_DELEGATES;
-			try {
-				await components.cache.removeByPattern(pattern);
-				library.logger.debug(
-					[
-						'Cache - Keys with pattern:',
-						pattern,
-						'cleared from cache on new Round',
-					].join(' ')
-				);
-			} catch (removeByPatternErr) {
-				library.logger.error(
-					[
-						'Cache - Error clearing keys with pattern:',
-						pattern,
-						'when round finish',
-					].join(' ')
-				);
-			}
-		}
-
 		return library.channel.publish('chain:rounds:change', { number: round });
 	}
 

@@ -21,14 +21,9 @@ const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const slots = require('../../helpers/slots.js');
 const checkTransactionExceptions = require('../../logic/check_transaction_against_exceptions.js');
 const { convertErrorsToString } = require('../../helpers/error_handlers');
-const {
-	CACHE_KEYS_DELEGATES,
-	CACHE_KEYS_TRANSACTION_COUNT,
-} = require('../../../../components/cache');
 
 const { TRANSACTION_TYPES } = global.constants;
 
-let components;
 let modules;
 let library;
 let self;
@@ -403,10 +398,6 @@ class Chain {
 	// eslint-disable-next-line class-methods-use-this
 	onBind(scope) {
 		library.logger.trace('Blocks->Chain: Shared modules bind.');
-		components = {
-			cache: scope.components ? scope.components.cache : undefined,
-		};
-
 		modules = {
 			accounts: scope.modules.accounts,
 			blocks: scope.modules.blocks,
@@ -432,40 +423,6 @@ class Chain {
  * @returns {Object} cb.err - Error if occurred
  */
 __private.afterSave = async function(block, cb) {
-	if (components && components.cache && components.cache.isReady()) {
-		library.logger.debug(
-			['Cache - chain afterSave', '| Status:', components.cache.isReady()].join(
-				' '
-			)
-		);
-		const delegateTransaction = block.transactions.find(
-			transaction =>
-				!!transaction && transaction.type === TRANSACTION_TYPES.DELEGATE
-		);
-		if (delegateTransaction) {
-			try {
-				await components.cache.removeByPattern(CACHE_KEYS_DELEGATES);
-				library.logger.debug(
-					[
-						'Cache - Keys with pattern:',
-						CACHE_KEYS_DELEGATES,
-						'cleared from cache on delegate transaction',
-					].join(' ')
-				);
-				await components.cache.deleteJsonForKey(CACHE_KEYS_TRANSACTION_COUNT);
-				components.cache.logger.debug(
-					`Cache - Keys ${CACHE_KEYS_TRANSACTION_COUNT} cleared from cache on chain afterSave`
-				);
-			} catch (err) {
-				library.logger.error(
-					['Cache - Error clearing keys', 'on chain afterSave function'].join(
-						' '
-					)
-				);
-			}
-		}
-	}
-
 	// TODO: create functions for afterSave for each transaction type
 	cb();
 };
