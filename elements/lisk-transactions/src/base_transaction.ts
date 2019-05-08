@@ -492,7 +492,7 @@ export abstract class BaseTransaction {
 		).reduce(
 			(tx, key) => {
 				// Check for null or undefined
-				if (transactionJSON[key]) {
+				if (transactionJSON[key] !== null && transactionJSON[key] !== undefined) {
 					tx[key] = transactionJSON[key];
 				}
 

@@ -236,7 +236,7 @@ describe('GET /api/node', () => {
 
 			describe('type', () => {
 				it('using invalid type should fail', async () => {
-					return UnsignedEndpoint.makeRequest({ type: 8 }, 400).then(res => {
+					return UnsignedEndpoint.makeRequest({ type: 'a' }, 400).then(res => {
 						expectSwaggerParamError(res, 'type');
 					});
 				});
