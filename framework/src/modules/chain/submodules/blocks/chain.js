@@ -738,7 +738,10 @@ __private.popLastBlock = function(oldLastBlock, cb) {
 			.then(() => __private.backwardTickStep(oldLastBlock, secondLastBlock, tx))
 			.then(() => __private.deleteBlockStep(oldLastBlock, tx))
 	)
-		.then(() => setImmediate(cb, null, secondLastBlock))
+		.then(() => {
+			library.channel.publish('chain:blocks:change', oldLastBlock);
+			return setImmediate(cb, null, secondLastBlock);
+		})
 		.catch(err => setImmediate(cb, err));
 };
 
