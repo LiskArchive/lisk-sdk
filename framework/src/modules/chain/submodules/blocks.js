@@ -174,6 +174,18 @@ class Blocks {
 		return library.channel.publish('chain:blocks:change', block);
 	}
 
+	// eslint-disable-next-line class-methods-use-this
+	async onDeleteBlock(block) {
+		const { transactions } = block;
+		if (transactions.length) {
+			library.channel.publish(
+				'chain:confirmed_transactions:update',
+				transactions
+			);
+		}
+		return library.channel.publish('chain:blocks:change', block);
+	}
+
 	/**
 	 * Handle node shutdown request.
 	 *

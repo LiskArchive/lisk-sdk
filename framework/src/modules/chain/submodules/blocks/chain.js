@@ -739,7 +739,7 @@ __private.popLastBlock = function(oldLastBlock, cb) {
 			.then(() => __private.deleteBlockStep(oldLastBlock, tx))
 	)
 		.then(() => {
-			library.channel.publish('chain:blocks:change', oldLastBlock);
+			library.bus.message('deleteBlock', oldLastBlock);
 			return setImmediate(cb, null, secondLastBlock);
 		})
 		.catch(err => setImmediate(cb, err));

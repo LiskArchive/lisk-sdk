@@ -986,7 +986,7 @@ describe('blocks/chain', () => {
 
 			it('should call a callback', done => {
 				__private.popLastBlock(blockWithTransactions, err => {
-					expect(library.channel.publish.callCount).to.be.eql(1);
+					expect(library.bus.message.callCount).to.be.eql(1);
 					expect(err).to.be.null;
 					done();
 				});
