@@ -122,9 +122,7 @@ module.exports = class Chain {
 
 			const self = this;
 			this.scope = {
-				lastCommit: self.options.lastCommitId,
 				ed,
-				build: self.options.buildVersion,
 				config: self.options,
 				genesisBlock: { block: self.options.genesisBlock },
 				registeredTransactions: self.options.registeredTransactions,
@@ -226,8 +224,6 @@ module.exports = class Chain {
 				promisify(
 					this.scope.modules.transactions.shared.getTransactionsFromPool
 				)(action.params.type, action.params.filters),
-			getLastCommit: async () => this.scope.lastCommit,
-			getBuild: async () => this.scope.build,
 			postTransaction: async action =>
 				promisify(this.scope.modules.transactions.shared.postTransaction)(
 					action.params.transaction

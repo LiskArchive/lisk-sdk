@@ -169,11 +169,12 @@ class Application {
 
 		this.registerModule(ChainModule, {
 			registeredTransactions: this.getTransactions(),
+		});
+		this.registerModule(NetworkModule);
+		this.registerModule(HttpAPIModule, {
 			lastCommitId: this.config.app.lastCommitId,
 			buildVersion: this.config.app.buildVersion,
 		});
-		this.registerModule(NetworkModule);
-		this.registerModule(HttpAPIModule);
 		this.overrideModuleOptions(HttpAPIModule.alias, {
 			loadAsChildProcess: true,
 		});
