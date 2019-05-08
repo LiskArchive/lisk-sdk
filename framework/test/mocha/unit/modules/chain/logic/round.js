@@ -58,7 +58,6 @@ describe('round', () => {
 
 	const modules = {
 		accounts: {
-			generateAddressByPublicKey: sinonSandbox.stub(),
 			mergeAccountAndGet: sinonSandbox.stub(),
 		},
 	};
@@ -360,10 +359,6 @@ describe('round', () => {
 					address: '16010222169256538112L',
 				};
 
-				scope.modules.accounts.generateAddressByPublicKey = function() {
-					return delegate.address;
-				};
-
 				getVotes_stub
 					.withArgs({ round: scope.round })
 					.resolves([delegate, delegate]);
@@ -417,10 +412,6 @@ describe('round', () => {
 					delegate:
 						'6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a',
 					address: '16010222169256538112L',
-				};
-
-				scope.modules.accounts.generateAddressByPublicKey = function() {
-					return delegate.address;
 				};
 
 				getVotes_stub.withArgs({ round: scope.round }).resolves([]);
@@ -1809,10 +1800,6 @@ describe('round', () => {
 			scope.roundRewards = [1, 2, 3];
 			scope.roundFees = 1000; // 9 LSK fee per delegate, 91 remaining fees
 
-			scope.modules.accounts.generateAddressByPublicKey = function() {
-				return delegate.address;
-			};
-
 			const delegate = {
 				amount: 10000,
 				delegate:
@@ -1899,10 +1886,6 @@ describe('round', () => {
 			];
 			scope.roundRewards = [1, 2, 3];
 			scope.roundFees = 1000; // 9 LSK fee per delegate, 91 remaining fees
-
-			scope.modules.accounts.generateAddressByPublicKey = function() {
-				return delegate.address;
-			};
 
 			const delegate = {
 				amount: 10000,

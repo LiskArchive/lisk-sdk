@@ -16,7 +16,7 @@
 
 // Init tests dependencies
 const rewire = require('rewire');
-
+const cryptography = require('@liskhq/lisk-cryptography');
 // Instantiate test subject
 const Rounds = rewire('../../../../../../src/modules/chain/submodules/rounds');
 const Round = rewire('../../../../../../src/modules/chain/logic/round'); // eslint-disable-line no-unused-vars
@@ -79,9 +79,6 @@ describe('rounds', () => {
 				generateDelegateList: sinon.stub(),
 				clearDelegateListCache: sinon.stub(),
 			},
-			accounts: {
-				generateAddressByPublicKey: sinon.stub(),
-			},
 		},
 	};
 
@@ -109,7 +106,17 @@ describe('rounds', () => {
 			'delegate2',
 			'delegate3',
 		]);
-		bindings.modules.accounts.generateAddressByPublicKey.returnsArg(0);
+
+		sinonSandbox.stub(cryptography, 'getAddressFromPublicKey');
+		cryptography.getAddressFromPublicKey
+			.withArgs('delegate1')
+			.returns('delegate1');
+		cryptography.getAddressFromPublicKey
+			.withArgs('delegate2')
+			.returns('delegate2');
+		cryptography.getAddressFromPublicKey
+			.withArgs('delegate3')
+			.returns('delegate3');
 
 		new Rounds((err, __instance) => {
 			rounds = __instance;

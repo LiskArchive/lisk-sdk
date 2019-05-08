@@ -74,24 +74,6 @@ describe('accounts', () => {
 			}).to.throw());
 	});
 
-	describe('generateAddressByPublicKey', () => {
-		it('should generate correct address for the publicKey provided', async () =>
-			expect(
-				accounts.generateAddressByPublicKey(validAccount.publicKey)
-			).to.equal(validAccount.address));
-
-		/* eslint-disable mocha/no-skipped-tests */
-		// TODO: Design a throwable test
-		it.skip('should throw error for invalid publicKey', async () => {
-			const invalidPublicKey = 'invalidPublicKey';
-
-			return expect(() => {
-				accounts.generateAddressByPublicKey(invalidPublicKey);
-			}).to.throw('Invalid public key: ', invalidPublicKey);
-		});
-		/* eslint-enable mocha/no-skipped-tests */
-	});
-
 	describe('getAccount', () => {
 		it('should convert publicKey filter to address and call account.get', done => {
 			const getAccountStub = sinonSandbox.stub(accountLogic, 'get');
