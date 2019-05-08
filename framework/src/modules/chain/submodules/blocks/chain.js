@@ -423,10 +423,6 @@ class Chain {
  * @returns {Object} cb.err - Error if occurred
  */
 __private.afterSave = async function(block, cb) {
-	library.channel.publish(
-		'chain:confirmed_transactions:update',
-		block.transactions
-	);
 	// TODO: create functions for afterSave for each transaction type
 	cb();
 };
