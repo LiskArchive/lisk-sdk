@@ -112,7 +112,7 @@ class Account {
 	 * @param {Blocks} blocks
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	bind({ blocks, rounds }) {
+	bindModules({ blocks, rounds }) {
 		modules = {
 			blocks,
 			rounds,

@@ -32,7 +32,6 @@ const promisifyParallel = util.promisify(async.parallel);
 let currentAppScope;
 
 const modulesInit = {
-	accounts: '../../../src/modules/chain/submodules/accounts',
 	blocks: '../../../src/modules/chain/submodules/blocks',
 	delegates: '../../../src/modules/chain/submodules/delegates',
 	loader: '../../../src/modules/chain/submodules/loader',
@@ -179,6 +178,7 @@ async function __init(sandbox, initScope) {
 
 		// Ready to bind modules
 		scope.logic.block.bindModules(scope.modules);
+		scope.logic.account.bindModules(scope.modules);
 
 		// Fire onBind event in every module
 		scope.bus.message('bind', scope);
