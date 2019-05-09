@@ -141,27 +141,6 @@ class Account {
 	}
 
 	/**
-	 * Calculates productivity of a delegate account.
-	 *
-	 * @param {String} votersBalance
-	 * @param {String} totalSupply
-	 * @returns {number}
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	calculateApproval(votersBalance, totalSupply) {
-		// votersBalance and totalSupply are sent as strings,
-		// we convert them into bignum and send the response as number as well
-		const votersBalanceBignum = new Bignum(votersBalance || 0);
-		const totalSupplyBignum = new Bignum(totalSupply);
-		const approvalBignum = votersBalanceBignum
-			.dividedBy(totalSupplyBignum)
-			.multipliedBy(100)
-			.decimalPlaces(2);
-
-		return !approvalBignum.isNaN() ? approvalBignum.toNumber() : 0;
-	}
-
-	/**
 	 * Updates account from mem_account with diff data belonging to an editable field.
 	 * Inserts into mem_round "address", "amount", "delegate", "round" based on balance or delegates fields.
 	 *

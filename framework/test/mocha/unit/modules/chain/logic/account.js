@@ -132,31 +132,6 @@ describe('account', () => {
 			}).to.not.throw());
 	});
 
-	describe('calculateApproval', () => {
-		it('when voterBalance = 0 and totalSupply = 0, it should return 0', async () =>
-			expect(account.calculateApproval(0, 0)).to.equal(0));
-
-		it('when voterBalance = totalSupply, it should return 100', async () => {
-			const totalSupply = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
-			const votersBalance = totalSupply;
-			return expect(
-				account.calculateApproval(votersBalance, totalSupply)
-			).to.equal(100);
-		});
-
-		it('when voterBalance = 50 and total supply = 100, it should return 50', async () =>
-			expect(account.calculateApproval(50, 100)).to.equal(50));
-
-		it('with random values, it should return approval between 0 and 100', async () => {
-			// So total supply is never 0
-			const totalSupply = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
-			const votersBalance = Math.floor(Math.random() * totalSupply);
-			return expect(account.calculateApproval(votersBalance, totalSupply))
-				.to.be.least(0)
-				.and.be.at.most(100);
-		});
-	});
-
 	describe('merge', () => {
 		before(async () =>
 			storage.entities.Account.upsert(
