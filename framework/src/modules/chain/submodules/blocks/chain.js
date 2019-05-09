@@ -102,8 +102,8 @@ Chain.prototype.saveGenesisBlock = function(cb) {
 			// FIXME: This will fail if we already have genesis block in database, but with different ID
 			const block = {
 				...library.genesisBlock.block,
-				transactions: library.genesisBlock.block.transactions.map(transaction =>
-					library.logic.initTransaction.jsonRead(transaction)
+				transactions: library.logic.initTransaction.fromBlock(
+					library.genesisBlock.block
 				),
 			};
 			return self.saveBlock(block, err => setImmediate(cb, err));
@@ -459,13 +459,6 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 			modules.blocks.isActive.set(false);
 			block = null;
 
-			// Finish here if snapshotting.
-			// FIXME: Not the best place to do that
-			if (reason.name === 'Snapshot finished') {
-				library.logger.info(reason);
-				process.emit('SIGTERM');
-			}
-
 			return setImmediate(cb, reason);
 		});
 };
@@ -677,10 +670,6 @@ Chain.prototype.deleteLastBlock = function(cb) {
 					})
 					.catch(seriesCb);
 			},
-			broadcastHeaders(seriesCb) {
-				// Notify all remote peers about our new headers
-				modules.transport.broadcastHeaders(seriesCb);
-			},
 			addDeletedTransactions(seriesCb) {
 				// Put transactions back into transaction pool
 				modules.transactions.onDeletedTransactions(deletedBlockTransactions);
@@ -727,7 +716,6 @@ Chain.prototype.onBind = function(scope) {
 		blocks: scope.modules.blocks,
 		rounds: scope.modules.rounds,
 		transactions: scope.modules.transactions,
-		transport: scope.modules.transport,
 		processTransactions: scope.modules.processTransactions,
 	};
 

@@ -26,11 +26,13 @@ const apiHelpers = require('../../../common/helpers/api');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const common = require('./common');
 
-const { FEES, NORMALIZER } = global.constants;
+const { FEES } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
-// eslint-disable-next-line
-describe.skip('[feature/improve_transactions_processing_efficiency] [dapps_in transactions are disabled] POST /api/transactions (type 5) register dapp', () => {
+// Dapp Transaction is not part of framework and can't be tested using test_app
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('POST /api/transactions (type 5) register dapp', () => {
 	let transaction;
 	const transactionsToWaitFor = [];
 	const badTransactions = [];

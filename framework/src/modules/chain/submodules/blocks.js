@@ -82,6 +82,7 @@ class Blocks {
 				scope.components.storage,
 				scope.sequence,
 				scope.genesisBlock,
+				scope.channel,
 				scope.logic.initTransaction
 			),
 			utils: new BlocksUtils(
@@ -276,24 +277,33 @@ Blocks.prototype.onNewBlock = async function(block) {
  *
  * @listens module:app~event:cleanup
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb
+ * @returns {Promise} - Promise<void>
  */
-Blocks.prototype.cleanup = function(cb) {
+Blocks.prototype.cleanup = async function() {
 	__private.loaded = false;
 	__private.cleanup = true;
 
 	if (!__private.isActive) {
 		// Module ready for shutdown
-		return setImmediate(cb);
+		return;
 	}
+
+	const waitFor = () =>
+		new Promise(resolve => {
+			setTimeout(resolve, 10000);
+		});
 	// Module is not ready, repeat
-	return setImmediate(function nextWatch() {
+	const nextWatch = async () => {
 		if (__private.isActive) {
 			library.logger.info('Waiting for block processing to finish...');
-			return setTimeout(nextWatch, 10000); // 10 sec
+			await waitFor();
+			await nextWatch();
 		}
-		return setImmediate(cb);
-	});
+
+		return null;
+	};
+
+	await nextWatch();
 };
 
 /**

@@ -94,6 +94,7 @@ describe('Account', () => {
 			'productivity',
 			'votedDelegatesPublicKeys',
 			'membersPublicKeys',
+			'asset',
 		];
 
 		validSimpleObjectFields = [

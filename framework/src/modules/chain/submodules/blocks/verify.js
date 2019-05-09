@@ -60,7 +60,7 @@ class Verify {
 			},
 			config: {
 				loading: {
-					snapshotRound: config.loading.snapshotRound,
+					rebuildUpToRound: config.loading.rebuildUpToRound,
 				},
 			},
 			channel,
@@ -85,7 +85,14 @@ class Verify {
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  */
-__private.checkTransactions = async (transactions, checkExists) => {
+__private.checkTransactions = async (block, checkExists) => {
+	const { version, height, timestamp, transactions } = block;
+	const context = {
+		blockVersion: version,
+		blockHeight: height,
+		blockTimestamp: timestamp,
+	};
+
 	if (transactions.length === 0) {
 		return;
 	}
@@ -109,6 +116,16 @@ __private.checkTransactions = async (transactions, checkExists) => {
 		transaction =>
 			!checkTransactionExceptions.checkIfTransactionIsInert(transaction)
 	);
+
+	const nonAllowedTxResponses = modules.processTransactions
+		.checkAllowedTransactions(nonInertTransactions, context)
+		.transactionsResponses.find(
+			transactionResponse => transactionResponse.status !== TransactionStatus.OK
+		);
+
+	if (nonAllowedTxResponses) {
+		throw nonAllowedTxResponses.errors;
+	}
 
 	const {
 		transactionsResponses,
@@ -785,7 +802,7 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 				// checkTransactions should check for transactions to exists in database
 				// only if the block needed to be saved to database
 				__private
-					.checkTransactions(block.transactions, saveBlock)
+					.checkTransactions(block, saveBlock)
 					.then(seriesCb)
 					.catch(seriesCb);
 			},
@@ -797,11 +814,11 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 				// Also that function set new block as our last block
 				modules.blocks.chain.applyBlock(block, saveBlock, seriesCb);
 			},
-			// Perform next two steps only when 'broadcast' flag is set, it can be:
+			// Perform the next step only when 'broadcast' flag is set, it can be:
 			// 'true' if block comes from generation or receiving process
 			// 'false' if block comes from chain synchronization process
 			updateApplicationState(seriesCb) {
-				if (!library.config.loading.snapshotRound) {
+				if (!library.config.loading.rebuildUpToRound && broadcast) {
 					return modules.blocks
 						.calculateNewBroadhash()
 						.then(({ broadhash, height }) => {
@@ -819,10 +836,6 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 						.catch(seriesCb);
 				}
 				return seriesCb();
-			},
-			broadcastHeaders(seriesCb) {
-				// Notify all remote peers about our new headers
-				broadcast ? modules.transport.broadcastHeaders(seriesCb) : seriesCb();
 			},
 		},
 		err => setImmediate(cb, err)
@@ -842,7 +855,6 @@ Verify.prototype.onBind = function(scope) {
 		blocks: scope.modules.blocks,
 		delegates: scope.modules.delegates,
 		transactions: scope.modules.transactions,
-		transport: scope.modules.transport,
 		processTransactions: scope.modules.processTransactions,
 	};
 

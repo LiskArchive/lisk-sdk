@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const InMemoryChannel = require('../../../../src/controller/channels/in_memory_channel');
 const Bus = require('../../../../src/controller/bus');
 const Event = require('../../../../src/controller/event');
@@ -18,8 +34,14 @@ const alpha = {
 		event => new Event(`${'alphaAlias'}:${event}`)
 	),
 	actions: {
-		multiplyByTwo: action => action.params * 2,
-		multiplyByThree: action => action.params * 3,
+		multiplyByTwo: {
+			handler: action => action.params * 2,
+			isPublic: true,
+		},
+		multiplyByThree: {
+			handler: action => action.params * 3,
+			isPublic: true,
+		},
 	},
 };
 
@@ -29,8 +51,14 @@ const beta = {
 		event => new Event(`${alpha.moduleAlias}:${event}`)
 	),
 	actions: {
-		divideByTwo: action => action.params / 2,
-		divideByThree: action => action.params / 3,
+		divideByTwo: {
+			handler: action => action.params / 2,
+			isPublic: true,
+		},
+		divideByThree: {
+			handler: action => action.params / 3,
+			isPublic: true,
+		},
 	},
 };
 

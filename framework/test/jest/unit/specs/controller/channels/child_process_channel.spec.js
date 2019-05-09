@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const EventEmitter2 = require('eventemitter2');
 const ChildProcessChannel = require('../../../../../../src/controller/channels/child_process_channel');
 const BaseChannel = require('../../../../../../src/controller/channels/base_channel');
@@ -22,9 +38,18 @@ describe('ChildProcessChannel Channel', () => {
 		moduleAlias: 'moduleAlias',
 		events: ['event1', 'event2'],
 		actions: {
-			action1: jest.fn(),
-			action2: jest.fn(),
-			action3: jest.fn(),
+			action1: {
+				handler: jest.fn(),
+				isPublic: true,
+			},
+			action2: {
+				handler: jest.fn(),
+				isPublic: true,
+			},
+			action3: {
+				handler: jest.fn(),
+				isPublic: true,
+			},
 		},
 		options: {},
 	};
@@ -285,7 +310,7 @@ describe('ChildProcessChannel Channel', () => {
 			await childProcessChannel.invoke(actionName, actionParams);
 
 			// Assert
-			expect(params.actions.action1).toHaveBeenCalled();
+			expect(params.actions.action1.handler).toHaveBeenCalled();
 		});
 
 		it('should execute the action straight away if the modules are the same and action is an Action object', async () => {
@@ -295,7 +320,7 @@ describe('ChildProcessChannel Channel', () => {
 			await childProcessChannel.invoke(action, actionParams);
 
 			// Assert
-			expect(params.actions.action1).toHaveBeenCalledWith(action);
+			expect(params.actions.action1.handler).toHaveBeenCalledWith(action);
 		});
 	});
 
@@ -366,11 +391,12 @@ describe('ChildProcessChannel Channel', () => {
 	describe('#_rejectWhenAnySocketFailsToBind', () => {
 		beforeEach(() => childProcessChannel.registerToBus(socketsPath));
 
-		it('should reject if any of the sockets receive an "error" event', () =>
+		it('should reject if any of the sockets receive an "error" event', () => {
 			// Assert
-			expect(
+			return expect(
 				childProcessChannel._rejectWhenAnySocketFailsToBind()
-			).rejects.toBe('#MOCKED_ONCE'));
+			).rejects.toBe('#MOCKED_ONCE');
+		});
 
 		it('should call pubSocket.sock.once with proper arguments', async () => {
 			try {
@@ -415,11 +441,12 @@ describe('ChildProcessChannel Channel', () => {
 	describe('#_rejectWhenTimeout', () => {
 		beforeEach(() => childProcessChannel.registerToBus(socketsPath));
 
-		it('should reject with an Error object with proper message', () =>
+		it('should reject with an Error object with proper message', () => {
 			// Assert
-			expect(childProcessChannel._rejectWhenTimeout(1)).rejects.toThrow(
+			return expect(childProcessChannel._rejectWhenTimeout(1)).rejects.toThrow(
 				'ChildProcessChannel sockets setup timeout'
-			));
+			);
+		});
 	});
 
 	describe('#_removeAllListeners', () => {

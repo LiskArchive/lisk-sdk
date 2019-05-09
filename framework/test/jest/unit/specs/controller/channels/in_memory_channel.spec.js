@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const InMemoryChannel = require('../../../../../../src/controller/channels/in_memory_channel');
 const BaseChannel = require('../../../../../../src/controller/channels/base_channel');
 const Bus = require('../../../../../../src/controller/bus');
@@ -11,9 +27,18 @@ describe('InMemoryChannel Channel', () => {
 		moduleAlias: 'moduleAlias',
 		events: ['event1', 'event2'],
 		actions: {
-			action1: jest.fn(),
-			action2: jest.fn(),
-			action3: jest.fn(),
+			action1: {
+				handler: jest.fn(),
+				isPublic: true,
+			},
+			action2: {
+				handler: jest.fn(),
+				isPublic: true,
+			},
+			action3: {
+				handler: jest.fn(),
+				isPublic: true,
+			},
 		},
 		options: {},
 	};
@@ -89,7 +114,7 @@ describe('InMemoryChannel Channel', () => {
 			expect(inMemoryChannel.bus.registerChannel).toHaveBeenCalledWith(
 				inMemoryChannel.moduleAlias,
 				inMemoryChannel.eventsList.map(event => event.name),
-				inMemoryChannel.actionsList.map(action => action.name),
+				inMemoryChannel.actions,
 				{ type: 'inMemory', channel: inMemoryChannel }
 			);
 		});
@@ -184,8 +209,7 @@ describe('InMemoryChannel Channel', () => {
 		const actionName = 'action1';
 
 		it('should throw TypeError when action name was not provided', () => {
-			// Assert
-			expect(inMemoryChannel.invoke()).rejects.toBeInstanceOf(TypeError);
+			return expect(inMemoryChannel.invoke()).rejects.toBeInstanceOf(TypeError);
 		});
 
 		it('should execute the action straight away if the action module is equal to moduleAlias', async () => {
@@ -196,7 +220,7 @@ describe('InMemoryChannel Channel', () => {
 			await inMemoryChannel.invoke(actionFullName);
 
 			// Assert
-			expect(params.actions.action1).toHaveBeenCalled();
+			expect(params.actions.action1.handler).toHaveBeenCalled();
 		});
 
 		it('should call bus.invoke if the atcion module is different to moduleAlias', async () => {

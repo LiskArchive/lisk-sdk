@@ -1,5 +1,5 @@
 {
-	"name": "lisk-sdk",
+	"name": "lisk-sdk-mono-repo",
 	"private": true,
 	"version": "0.1.0",
 	"description": "Reusable packages for use with the Lisk ecosystem",
@@ -26,7 +26,7 @@
 		"clean": "lerna run clean",
 		"clean:node_modules": "lerna clean --yes",
 		"format": "npm run format:root && lerna run format",
-		"format:root": "prettier types/**/*.ts --write",
+		"format:root": "prettier --write types/**/*.ts",
 		"lint": "npm run lint:root && lerna run lint",
 		"lint:fix": "npm run lint:root -- --fix && lerna run lint:fix",
 		"lint:root": "tslint -p tsconfig.json types/**/*.ts",

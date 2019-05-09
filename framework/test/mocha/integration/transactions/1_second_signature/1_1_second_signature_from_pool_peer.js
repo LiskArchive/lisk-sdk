@@ -23,9 +23,9 @@ const accountFixtures = require('../../../fixtures/accounts');
 const localCommon = require('../../common');
 const randomUtil = require('../../../common/utils/random');
 
-const { NORMALIZER } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 // eslint-disable-next-line
-describe.skip('[feature/improve_transactions_processing_efficiency] integration test (type 1) - second signature transactions from pool and peer', () => {
+describe('integration test (type 1) - second signature transactions from pool and peer', () => {
 	let library;
 	let storage;
 
@@ -81,7 +81,6 @@ describe.skip('[feature/improve_transactions_processing_efficiency] integration 
 						[signatureTransaction],
 						(err, block) => {
 							expect(err).to.not.exist;
-
 							library.modules.blocks.process.onReceiveBlock(block);
 							done();
 						}

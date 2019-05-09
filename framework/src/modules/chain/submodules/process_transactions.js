@@ -19,6 +19,7 @@ const {
 	TransactionError,
 } = require('@liskhq/lisk-transactions');
 const roundInformation = require('../logic/rounds_information');
+const StateStore = require('../logic/state_store');
 const slots = require('../helpers/slots');
 const checkTransactionExceptions = require('../logic/check_transaction_against_exceptions.js');
 
@@ -56,9 +57,6 @@ class ProcessTransactions {
 	constructor(cb, scope) {
 		library = {
 			storage: scope.components.storage,
-			logic: {
-				stateManager: scope.logic.stateManager,
-			},
 		};
 		setImmediate(cb, null, this);
 	}
@@ -84,6 +82,12 @@ class ProcessTransactions {
 
 	// eslint-disable-next-line class-methods-use-this
 	async checkPersistedTransactions(transactions) {
+		if (!transactions.length) {
+			return {
+				transactionsResponses: [],
+			};
+		}
+
 		const confirmedTransactions = await library.storage.entities.Transaction.get(
 			{
 				id_in: transactions.map(transaction => transaction.id),
@@ -126,7 +130,7 @@ class ProcessTransactions {
 	// eslint-disable-next-line class-methods-use-this
 	async applyTransactions(transactions, tx = undefined) {
 		// Get data required for verifying transactions
-		const stateStore = library.logic.stateManager.createStore({
+		const stateStore = new StateStore(library.storage, {
 			mutate: true,
 			tx,
 		});
@@ -156,9 +160,37 @@ class ProcessTransactions {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
+	checkAllowedTransactions(transactions, context) {
+		return {
+			transactionsResponses: transactions.map(transaction => {
+				const allowed =
+					!transaction.matcher ||
+					transaction.matcher(
+						context || ProcessTransactions._getCurrentContext()
+					);
+
+				return {
+					id: transaction.id,
+					status: allowed ? TransactionStatus.OK : TransactionStatus.FAIL,
+					errors: allowed
+						? []
+						: [
+								new TransactionError(
+									`Transaction type ${
+										transaction.type
+									} is currently not allowed.`,
+									transaction.id
+								),
+						  ],
+				};
+			}),
+		};
+	}
+
+	// eslint-disable-next-line class-methods-use-this
 	async undoTransactions(transactions, tx = undefined) {
 		// Get data required for verifying transactions
-		const stateStore = library.logic.stateManager.createStore({
+		const stateStore = new StateStore(library.storage, {
 			mutate: true,
 			tx,
 		});
@@ -189,14 +221,14 @@ class ProcessTransactions {
 	// eslint-disable-next-line class-methods-use-this
 	async verifyTransactions(transactions) {
 		// Get data required for verifying transactions
-		const stateStore = library.logic.stateManager.createStore({
+		const stateStore = new StateStore(library.storage, {
 			mutate: false,
 		});
 
 		await Promise.all(transactions.map(t => t.prepare(stateStore)));
 
 		const transactionsResponses = transactions.map(transaction => {
-			library.logic.stateManager.createSnapshot();
+			stateStore.createSnapshot();
 			const transactionResponse = transaction.apply(stateStore);
 			if (slots.getSlotNumber(transaction.timestamp) > slots.getSlotNumber()) {
 				transactionResponse.status = 0;
@@ -208,7 +240,7 @@ class ProcessTransactions {
 					)
 				);
 			}
-			library.logic.stateManager.restoreSnapshot();
+			stateStore.restoreSnapshot();
 			return transactionResponse;
 		});
 
@@ -229,12 +261,35 @@ class ProcessTransactions {
 	// eslint-disable-next-line class-methods-use-this
 	async processSignature(transaction, signature) {
 		// Get data required for processing signature
-		const stateStore = library.logic.stateManager.createStore({
+		const stateStore = new StateStore(library.storage, {
 			mutate: false,
 		});
 		await transaction.prepare(stateStore);
 		// Add multisignature to transaction and process
 		return transaction.addMultisignature(stateStore, signature);
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	onBind(scope) {
+		library.modules = {
+			blocks: scope.modules.blocks,
+		};
+	}
+
+	/**
+	 * Get current state from modules.blocks.lastBlock
+	 */
+	static _getCurrentContext() {
+		const {
+			version,
+			height,
+			timestamp,
+		} = library.modules.blocks.lastBlock.get();
+		return {
+			blockVersion: version,
+			blockHeight: height,
+			blockTimestamp: timestamp,
+		};
 	}
 }
 

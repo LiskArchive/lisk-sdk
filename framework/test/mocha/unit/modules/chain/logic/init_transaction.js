@@ -20,9 +20,6 @@ const {
 	DelegateTransaction,
 	VoteTransaction,
 	MultisignatureTransaction,
-	DappTransaction,
-	InTransferTransaction,
-	OutTransferTransaction,
 } = require('@liskhq/lisk-transactions');
 
 const InitTransaction = require('../../../../../../src/modules/chain/logic/init_transaction');
@@ -35,19 +32,15 @@ describe('init_transaction', () => {
 		2: DelegateTransaction,
 		3: VoteTransaction,
 		4: MultisignatureTransaction,
-		5: DappTransaction,
-		6: InTransferTransaction,
-		7: OutTransferTransaction,
 	};
 
 	beforeEach(async () => {
-		initTransaction = new InitTransaction(registeredTransactions);
+		initTransaction = new InitTransaction({ registeredTransactions });
 	});
 
 	describe('constructor', () => {
 		it('should create initTransaction with correct properties', async () => {
 			expect(initTransaction).to.have.property('transactionClassMap');
-			expect(initTransaction).to.have.property('assetDbReadMap');
 		});
 
 		it('should have transactionClassMap property with Lisk transaction types', async () => {
@@ -57,29 +50,13 @@ describe('init_transaction', () => {
 				2,
 				3,
 				4,
-				5,
-				6,
-				7,
-			]);
-		});
-
-		it('should have assetDbReadMap property with Lisk transaction types', async () => {
-			expect([...initTransaction.assetDbReadMap.keys()]).to.be.eql([
-				0,
-				1,
-				2,
-				3,
-				4,
-				5,
-				6,
-				7,
 			]);
 		});
 	});
 
-	describe('jsonRead', () => {
+	describe('fromJson', () => {
 		it('should throw an error if transaction type is not registered', async () => {
-			expect(() => initTransaction.jsonRead({ type: 9 })).to.throw(
+			expect(() => initTransaction.fromJson({ type: 9 })).to.throw(
 				'Transaction type not found.'
 			);
 		});
@@ -99,7 +76,7 @@ describe('init_transaction', () => {
 				id: '7507990258936015021',
 			};
 
-			expect(initTransaction.jsonRead(transfer)).to.be.instanceof(
+			expect(initTransaction.fromJson(transfer)).to.be.instanceof(
 				TransferTransaction
 			);
 		});
@@ -124,7 +101,7 @@ describe('init_transaction', () => {
 				id: '6998015087494860094',
 			};
 
-			expect(initTransaction.jsonRead(secondSignature)).to.be.instanceof(
+			expect(initTransaction.fromJson(secondSignature)).to.be.instanceof(
 				SecondSignatureTransaction
 			);
 		});
@@ -150,7 +127,7 @@ describe('init_transaction', () => {
 				id: '5337978774712629501',
 			};
 
-			expect(initTransaction.jsonRead(delegate)).to.be.instanceof(
+			expect(initTransaction.fromJson(delegate)).to.be.instanceof(
 				DelegateTransaction
 			);
 		});
@@ -178,7 +155,7 @@ describe('init_transaction', () => {
 				id: '9048233810524582722',
 			};
 
-			expect(initTransaction.jsonRead(vote)).to.be.instanceof(VoteTransaction);
+			expect(initTransaction.fromJson(vote)).to.be.instanceof(VoteTransaction);
 		});
 
 		it('should initialize a multisignature transaction', async () => {
@@ -208,92 +185,8 @@ describe('init_transaction', () => {
 				id: '15911083597203956215',
 			};
 
-			expect(initTransaction.jsonRead(multisignature)).to.be.instanceof(
+			expect(initTransaction.fromJson(multisignature)).to.be.instanceof(
 				MultisignatureTransaction
-			);
-		});
-
-		it('should initialize a dapp transaction', async () => {
-			const dapp = {
-				type: 5,
-				amount: '0',
-				fee: '2500000000',
-				recipientId: '',
-				senderPublicKey:
-					'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-				timestamp: 54196078,
-				asset: {
-					dapp: {
-						category: 0,
-						name: 'jSFFSiM4HZ91x7DXnOu',
-						description: 'HQWQewqxZ0AA330r',
-						tags: 'HReDOT69QpOGfR1ELav',
-						type: 0,
-						link: 'qEXks',
-						icon: 'mJM14TJiZSe3OmvYXpkaSqk6pr',
-					},
-				},
-				signature:
-					'd4888d8e916127358c5f6417ae4cc110e5509f32ef35589401e1a147e6b20a32fd280567d10f2d11224a94a32db0088a834138408d3a6d490f6be34a57e36207',
-				id: '6368378298793859048',
-			};
-
-			expect(initTransaction.jsonRead(dapp)).to.be.instanceof(DappTransaction);
-		});
-
-		it('should initialize an intransfer transaction', async () => {
-			const intransfer = {
-				id: '13847108354832975754',
-				type: 6,
-				timestamp: 60991500,
-				senderPublicKey:
-					'305b4897abc230c1cc9d0aa3bf0c75747bfa42f32f83f5a92348edea528850ad',
-				senderId: '13155556493249255133L',
-				recipientId: '',
-				recipientPublicKey: '',
-				amount: '500000000',
-				fee: '10000000',
-				signature:
-					'be015020b4a89a8cc36ab8ed0047a8138b115f5ce3b1cee35afa5af1e75307a77290bfd07ca7fcc8667cc0c22a83e48bf964d547b5decf662d2624642bd2320e',
-				signatures: [],
-				asset: {
-					inTransfer: {
-						dappId: '13227044664082109069',
-					},
-				},
-			};
-
-			expect(initTransaction.jsonRead(intransfer)).to.be.instanceof(
-				InTransferTransaction
-			);
-		});
-
-		it('should initialize an outtransfer transaction', async () => {
-			const outtransfer = {
-				id: '2897056580360618798',
-				type: 7,
-				timestamp: 63897154,
-				senderPublicKey:
-					'e65b98c217bfcab6d57293056cf4ad78bf45253ab56bc384aff1665cf3611fe9',
-				senderId: '18237045742439723234L',
-				recipientId: '18237045742439723234L',
-				recipientPublicKey:
-					'e65b98c217bfcab6d57293056cf4ad78bf45253ab56bc384aff1665cf3611fe9',
-				amount: '100000000',
-				fee: '10000000',
-				signature:
-					'286934295859e8f196f00e216f5763cfa3313cc3023e4a34e9da559a96cfb7d7f1e950513b77ace49f56cab1b56b21b05e3183f04d4f389b0355e5b8e9072c08',
-				signatures: [],
-				asset: {
-					outTransfer: {
-						dappId: '16337394785118081960',
-						transactionId: '12345678909876543213',
-					},
-				},
-			};
-
-			expect(initTransaction.jsonRead(outtransfer)).to.be.instanceof(
-				OutTransferTransaction
 			);
 		});
 	});

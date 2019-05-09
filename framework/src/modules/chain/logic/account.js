@@ -19,7 +19,7 @@ const ed = require('../helpers/ed');
 const Bignum = require('../helpers/bignum');
 const BlockReward = require('./block_reward');
 
-const { ACTIVE_DELEGATES, MULTISIG_CONSTRAINTS } = global.constants;
+const { ACTIVE_DELEGATES } = global.constants;
 
 // Private fields
 let library;
@@ -135,34 +135,6 @@ class Account {
 				library.logger.error(err.stack);
 				return setImmediate(cb, new Error('Account#resetMemTables error'));
 			});
-	}
-
-	/**
-	 * Validates account schema.
-	 *
-	 * @param {account} account
-	 * @returns {account} account
-	 * @throws {string} On schema.validate failure
-	 */
-	objectNormalize(account) {
-		const report = this.scope.schema.validate(
-			account,
-			Account.prototype.schema
-		);
-
-		if (!report) {
-			throw new Error(
-				`Failed to validate account schema: ${this.scope.schema
-					.getLastErrors()
-					.map(err => {
-						const path = err.path.replace('#/', '').trim();
-						return [path, ': ', err.message, ' (', account[path], ')'].join('');
-					})
-					.join(', ')}`
-			);
-		}
-
-		return account;
 	}
 
 	/**
@@ -508,15 +480,16 @@ class Account {
 			? job(tx)
 			: this.scope.storage.entities.Account.begin('logic:account:merge', job)
 		)
-			.then(() =>
+			.then(() => {
 				self.get(
 					{
 						address,
 					},
 					cb,
 					tx
-				)
-			)
+				);
+				return null;
+			})
 			.catch(err => {
 				library.logger.error(err.stack);
 				return setImmediate(cb, _.isString(err) ? err : 'Account#merge error');
@@ -725,28 +698,6 @@ Account.prototype.schema = {
 					type: 'null',
 				},
 			],
-		},
-		membersPublicKeys: {
-			anyOf: [
-				{
-					type: 'array',
-					minItems: MULTISIG_CONSTRAINTS.KEYSGROUP.MIN_ITEMS,
-					maxItems: MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS,
-				},
-				{
-					type: 'null',
-				},
-			],
-		},
-		multiMin: {
-			type: 'integer',
-			minimum: 0,
-			maximum: MULTISIG_CONSTRAINTS.MIN.MAXIMUM,
-		},
-		multiLifetime: {
-			type: 'integer',
-			minimum: 0,
-			maximum: MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM,
 		},
 		nameExist: {
 			type: 'integer',

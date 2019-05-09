@@ -35,9 +35,10 @@ const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
 const blockVersion = require('../../../../../src/modules/chain/logic/block_version');
 
-const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW, NORMALIZER } = global.constants;
+const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 const genesisBlock = __testContext.config.genesisBlock;
-const initTransaction = new InitTransaction(registeredTransactions);
+const initTransaction = new InitTransaction({ registeredTransactions });
 
 const previousBlock = {
 	blockSignature:
@@ -110,7 +111,7 @@ const validBlock = {
 				'9f9446b527e93f81d3fb8840b02fcd1454e2b6276d3c19bd724033a01d3121dd2edb0aff61d48fad29091e222249754e8ec541132032aefaeebc312796f69e08',
 			id: '9314232245035524467',
 		},
-	].map(transaction => initTransaction.jsonRead(transaction)),
+	].map(transaction => initTransaction.fromJson(transaction)),
 	version: 0,
 	id: '884740302254229983',
 };
@@ -147,7 +148,7 @@ function createBlock(
 			.digest()
 	);
 	transactions = transactions.map(transaction =>
-		initTransaction.jsonRead(transaction)
+		initTransaction.fromJson(transaction)
 	);
 	blocksModule.lastBlock.set(previousBlockArgs);
 	const newBlock = blockLogic.create({
@@ -1038,28 +1039,27 @@ describe('blocks/verify', () => {
 					}
 				});
 			});
-			// eslint-disable-next-line
-			it.skip('[UNCONFIRMED STATE REMOVAL] [ERROR MESSAGE] should fail when transaction type property is missing', done => {
+			it('should fail when transaction type property is missing', done => {
 				const transactionType = block2.transactions[0].type;
 				delete block2.transactions[0].type;
 				blocksVerify.processBlock(block2, false, true, err => {
 					if (err) {
-						expect(err.message).equal(
+						expect(err[0].message).equal(
 							"'' should have required property 'type'"
 						);
+						expect(err[1].message).equal('Invalid type');
 						block2.transactions[0].type = transactionType;
 						done();
 					}
 				});
 			});
-			// eslint-disable-next-line
-			it.skip('[UNCONFIRMED STATE REMOVAL] [ERROR MESSAGE] should fail when transaction timestamp property is missing', done => {
+			it('should fail when transaction timestamp property is missing', done => {
 				const transactionTimestamp = block2.transactions[0].timestamp;
 				delete block2.transactions[0].timestamp;
 				blocksVerify.processBlock(block2, false, true, err => {
 					if (err) {
-						expect(err).equal(
-							'Failed to validate transaction schema: Missing required property: timestamp'
+						expect(err[0].message).equal(
+							"'' should have required property 'timestamp'"
 						);
 						block2.transactions[0].timestamp = transactionTimestamp;
 						done();
