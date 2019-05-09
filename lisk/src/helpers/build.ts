@@ -17,7 +17,7 @@
 import fs from 'fs';
 import path from 'path';
 
-const getBuildVersion = (): string => {
+export const getBuildVersion = (): string => {
 	// .build file is being created in the root folder during build process.
 	try {
 		return fs
@@ -28,5 +28,3 @@ const getBuildVersion = (): string => {
 		throw new Error('.build file not found.');
 	}
 };
-
-export { getBuildVersion };
