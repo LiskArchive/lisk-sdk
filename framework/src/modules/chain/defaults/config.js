@@ -74,6 +74,11 @@ const defaultConfig = {
 				force: {
 					type: 'boolean',
 				},
+				waitThreshold: {
+					description:
+						'Number of seconds to wait for previous block before forging',
+					type: 'integer',
+				},
 				defaultPassword: {
 					type: 'string',
 				},
@@ -97,7 +102,7 @@ const defaultConfig = {
 					},
 				},
 			},
-			required: ['force', 'delegates'],
+			required: ['force', 'waitThreshold', 'delegates'],
 		},
 		syncing: {
 			type: 'object',
@@ -273,6 +278,7 @@ const defaultConfig = {
 		},
 		forging: {
 			force: false,
+			waitThreshold: 2,
 			delegates: [],
 		},
 		syncing: {
