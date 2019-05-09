@@ -16,6 +16,9 @@ const chainOptions = {
 	network: {
 		enabled: false,
 	},
+	forging: {
+		waitThreshold: 2,
+	},
 	exceptions: {},
 	constants: {
 		ACTIVE_DELEGATES: 101,
