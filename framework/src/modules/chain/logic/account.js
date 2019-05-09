@@ -161,8 +161,13 @@ class Account {
 
 		// If merge was called without any diff object
 		if (Object.keys(diff).length === 0) {
-			return self.scope.storage.entities.Account.getOne({ address }, {}, tx)
-				.then(account => {
+			return self.scope.storage.entities.Account.get(
+				{ address },
+				{ extended: true },
+				tx
+			)
+				.then(accounts => {
+					const account = accounts[0];
 					cb(null, account);
 				})
 				.catch(cb);
@@ -290,13 +295,15 @@ class Account {
 			? job(tx)
 			: this.scope.storage.entities.Account.begin('logic:account:merge', job)
 		)
-			.then(() =>
-				self.scope.storage.entities.Account.getOne({ address }, {}, tx)
-					.then(account => {
-						cb(null, account);
-					})
-					.catch(cb)
-			)
+			.then(async () => {
+				const [account] = await this.scope.storage.entities.Account.get(
+					{ address },
+					{ extended: true },
+					tx
+				);
+				cb(null, account);
+				return null;
+			})
 			.catch(err => {
 				library.logger.error(err.stack);
 				return setImmediate(cb, _.isString(err) ? err : 'Account#merge error');

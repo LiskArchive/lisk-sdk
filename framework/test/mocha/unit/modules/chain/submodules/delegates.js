@@ -140,45 +140,37 @@ describe('delegates', () => {
 		});
 
 		it('should update forging from enabled to disabled', async () => {
-			library.modules.accounts.getAccount(
-				{ publicKey: testDelegate.publicKey },
-				async (err, account) => {
-					expect(err).to.be.null;
-					expect(__private.keypairs[testDelegate.publicKey]).to.not.be
-						.undefined;
-					expect(account.publicKey).to.equal(testDelegate.publicKey);
+			const account = await library.components.storage.entities.Account.getOne({
+				publicKey: testDelegate.publicKey,
+			});
+			expect(__private.keypairs[testDelegate.publicKey]).to.not.be.undefined;
+			expect(account.publicKey).to.equal(testDelegate.publicKey);
 
-					const data = await library.modules.delegates.updateForgingStatus(
-						testDelegate.publicKey,
-						testDelegate.password,
-						false
-					);
-
-					expect(__private.keypairs[testDelegate.publicKey]).to.be.undefined;
-					expect(data.publicKey).to.equal(testDelegate.publicKey);
-				}
+			const data = await library.modules.delegates.updateForgingStatus(
+				testDelegate.publicKey,
+				testDelegate.password,
+				false
 			);
+
+			expect(__private.keypairs[testDelegate.publicKey]).to.be.undefined;
+			expect(data.publicKey).to.equal(testDelegate.publicKey);
 		});
 
 		it('should update forging from disabled to enabled', async () => {
-			library.modules.accounts.getAccount(
-				{ publicKey: testDelegate.publicKey },
-				async (err, account) => {
-					expect(err).to.be.null;
-					expect(__private.keypairs[testDelegate.publicKey]).to.be.undefined;
-					expect(account.publicKey).to.equal(testDelegate.publicKey);
+			const account = await library.components.storage.entities.Account.getOne({
+				publicKey: testDelegate.publicKey,
+			});
+			expect(__private.keypairs[testDelegate.publicKey]).to.be.undefined;
+			expect(account.publicKey).to.equal(testDelegate.publicKey);
 
-					const data = await library.modules.delegates.updateForgingStatus(
-						testDelegate.publicKey,
-						testDelegate.password,
-						true
-					);
-
-					expect(__private.keypairs[testDelegate.publicKey]).to.not.be
-						.undefined;
-					expect(data.publicKey).to.equal(testDelegate.publicKey);
-				}
+			const data = await library.modules.delegates.updateForgingStatus(
+				testDelegate.publicKey,
+				testDelegate.password,
+				true
 			);
+
+			expect(__private.keypairs[testDelegate.publicKey]).to.not.be.undefined;
+			expect(data.publicKey).to.equal(testDelegate.publicKey);
 		});
 	});
 
