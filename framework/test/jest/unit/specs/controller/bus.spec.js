@@ -17,25 +17,38 @@
 const { EventEmitter2 } = require('eventemitter2');
 
 const Bus = require('../../../../../src/controller/bus');
-const Controller = require('../../../../../src/controller/controller');
 
-jest.mock('../../../../../src/controller/controller');
 jest.mock('eventemitter2');
 jest.mock('pm2-axon');
 jest.mock('pm2-axon-rpc');
 
 describe('Bus', () => {
-	const controller = new Controller();
 	const options = {};
 	const config = {
 		ipc: {
 			enabled: false,
 		},
 	};
+	const channelOptions = {
+		type: 'inMemory',
+		channel: {
+			alias: {
+				action1: {
+					isPublic: true,
+				},
+				action2: {
+					isPublic: true,
+				},
+			},
+		},
+	};
+	const logger = {
+		info: jest.fn(),
+	};
 
 	let bus = null;
 	beforeEach(() => {
-		bus = new Bus(controller, options, config);
+		bus = new Bus(options, logger, config);
 	});
 
 	describe('#constructor', () => {
@@ -48,7 +61,7 @@ describe('Bus', () => {
 
 	describe('#setup', () => {
 		it('should resolve with true.', () => {
-			expect(bus.setup()).resolves.toBe(true);
+			return expect(bus.setup()).resolves.toBe(true);
 		});
 	});
 
@@ -59,7 +72,7 @@ describe('Bus', () => {
 			const events = ['event1', 'event2'];
 
 			// Act
-			await bus.registerChannel(moduleAlias, events, []);
+			await bus.registerChannel(moduleAlias, events, [], channelOptions);
 
 			// Assert
 			expect(Object.keys(bus.events)).toHaveLength(2);
@@ -74,34 +87,83 @@ describe('Bus', () => {
 			const events = ['event1', 'event1'];
 
 			// Act && Assert
-			expect(
-				bus.registerChannel(moduleAlias, events, [])
+			await expect(
+				bus.registerChannel(moduleAlias, events, [], channelOptions)
 			).rejects.toBeInstanceOf(Error);
 		});
 
 		it('should register actions.', async () => {
 			// Arrange
 			const moduleAlias = 'alias';
-			const actions = ['action1', 'action2'];
+			const actions = {
+				action1: {
+					isPublic: false,
+					handler: jest.fn(),
+				},
+				action2: {
+					isPublic: false,
+					handler: jest.fn(),
+				},
+			};
 
 			// Act
-			await bus.registerChannel(moduleAlias, [], actions);
+			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
 
 			// Assert
 			expect(Object.keys(bus.actions)).toHaveLength(2);
-			actions.forEach(actionName => {
-				expect(bus.actions[`${moduleAlias}:${actionName}`]).toBe(true);
+			Object.keys(actions).forEach(actionName => {
+				expect(bus.actions[`${moduleAlias}:${actionName}`]).toBe(
+					actions[actionName]
+				);
 			});
+		});
+
+		it('should throw error registering incorrect action (no handler).', async () => {
+			// Arrange
+			const moduleAlias = 'alias';
+			const actions = {
+				action1: {
+					isPublic: false,
+				},
+			};
+
+			// Act && Assert
+			await expect(
+				bus.registerChannel(moduleAlias, [], actions, channelOptions)
+			).rejects.toBeInstanceOf(Error);
+		});
+
+		it('should throw error registering incorrect action (no object).', async () => {
+			// Arrange
+			const moduleAlias = 'alias';
+			const actions = {
+				action1: 'not an object',
+			};
+
+			// Act && Assert
+			await expect(
+				bus.registerChannel(moduleAlias, [], actions, channelOptions)
+			).rejects.toEqual(
+				new Error(
+					'Action "alias:action1" should be object with handler property.'
+				)
+			);
 		});
 
 		it('should throw error when trying to register duplicate actions.', async () => {
 			// Arrange
 			const moduleAlias = 'alias';
-			const actions = ['action1', 'action1'];
+			const actions = {
+				action1: {
+					isPublic: false,
+					handler: jest.fn(),
+				},
+			};
 
 			// Act && Assert
-			expect(
-				bus.registerChannel(moduleAlias, [], actions)
+			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
+			await expect(
+				bus.registerChannel(moduleAlias, [], actions, channelOptions)
 			).rejects.toBeInstanceOf(Error);
 		});
 	});
@@ -120,7 +182,7 @@ describe('Bus', () => {
 			const eventName = `${moduleAlias}:${events[0]}`;
 			const eventData = '#DATA';
 
-			await bus.registerChannel(moduleAlias, events, []);
+			await bus.registerChannel(moduleAlias, events, [], channelOptions);
 
 			// Act
 			bus.publish(eventName, eventData);
@@ -137,10 +199,21 @@ describe('Bus', () => {
 		it('should return the registered actions', async () => {
 			// Arrange
 			const moduleAlias = 'alias';
-			const actions = ['action1', 'action2'];
-			const expectedActions = actions.map(action => `${moduleAlias}:${action}`);
+			const actions = {
+				action1: {
+					public: false,
+					handler: jest.fn(),
+				},
+				action2: {
+					public: false,
+					handler: jest.fn(),
+				},
+			};
+			const expectedActions = Object.keys(actions).map(
+				actionName => `${moduleAlias}:${actionName}`
+			);
 
-			await bus.registerChannel(moduleAlias, [], actions);
+			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
 
 			// Act
 			const registeredActions = bus.getActions();
@@ -157,7 +230,7 @@ describe('Bus', () => {
 			const events = ['event1', 'event2'];
 			const expectedEvents = events.map(event => `${moduleAlias}:${event}`);
 
-			await bus.registerChannel(moduleAlias, events, []);
+			await bus.registerChannel(moduleAlias, events, [], channelOptions);
 
 			// Act
 			const registeredEvent = bus.getEvents();

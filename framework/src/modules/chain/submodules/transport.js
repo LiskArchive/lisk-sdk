@@ -356,6 +356,13 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 		block.reward = block.reward.toNumber();
 	}
 
+	if (block.transactions) {
+		// Convert transactions to JSON
+		block.transactions = block.transactions.map(transactionInstance =>
+			transactionInstance.toJSON()
+		);
+	}
+
 	const { broadhash } = library.applicationState;
 
 	// Perform actual broadcast operation
@@ -371,12 +378,10 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
  * Sets loaded to false.
  *
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb
  * @todo Add description for the params
  */
-Transport.prototype.cleanup = function(cb) {
+Transport.prototype.cleanup = function() {
 	__private.loaded = false;
-	return setImmediate(cb);
 };
 
 /**
@@ -565,10 +570,16 @@ Transport.prototype.shared = {
 					);
 				}
 				let block;
+				let success = true;
 				try {
 					block = modules.blocks.verify.addBlockProperties(query.block);
+
+					// Instantiate transaction classes
+					block.transactions = library.logic.initTransaction.fromBlock(block);
+
 					block = library.logic.block.objectNormalize(block);
 				} catch (e) {
+					success = false;
 					library.logger.debug('Block normalization failed', {
 						err: e.toString(),
 						module: 'transport',
@@ -577,7 +588,12 @@ Transport.prototype.shared = {
 
 					// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 				}
-				return library.bus.message('receiveBlock', block);
+
+				if (success) {
+					library.bus.message('receiveBlock', block);
+				}
+
+				return null;
 			}
 		);
 	},

@@ -15,7 +15,6 @@
 
 'use strict';
 
-const Promise = require('bluebird');
 const {
 	adapters: { BaseAdapter, PgpAdapter },
 } = require('../../../../../../src/components/storage');
@@ -58,10 +57,6 @@ describe('PgpAdapter', () => {
 			expect(adapter.options).to.be.eql(validOptions);
 			expect(adapter.logger).to.be.eql(loggerStub);
 			expect(adapter.sqlDirectory).to.be.eql(validOptions.sqlDirectory);
-			expect(adapter.pgpOptions).to.be.an('Object');
-			expect(adapter.pgpOptions.noLocking).to.be.eql(true);
-			expect(adapter.pgpOptions.capSQL).to.be.eql(true);
-			expect(adapter.pgpOptions.promiseLib).to.be.eql(Promise);
 			expect(adapter.pgp).to.be.a('function');
 			return expect(adapter.db).to.be.undefined;
 		});
