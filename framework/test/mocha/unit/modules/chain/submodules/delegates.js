@@ -14,6 +14,7 @@
 
 'use strict';
 
+const util = require('util');
 const {
 	getPrivateAndPublicKeyFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
@@ -26,6 +27,7 @@ const exceptions = global.exceptions;
 
 describe('delegates', () => {
 	let library;
+	let getAccountPromise;
 	let defaultPassword;
 	const testDelegate = genesisDelegates.delegates[0];
 
@@ -39,6 +41,7 @@ describe('delegates', () => {
 				// Load forging delegates
 				library.rewiredModules.delegates.__get__('__private');
 				defaultPassword = library.config.forging.defaultPassword;
+				getAccountPromise = util.promisify(library.modules.accounts.getAccount);
 				done(err);
 			}
 		);
@@ -139,38 +142,37 @@ describe('delegates', () => {
 			}
 		});
 
-		it('should update forging from enabled to disabled', async () => {
-			const account = await library.components.storage.entities.Account.getOne({
+		it('should switch forging status from enabled to disabled or otherwise', async () => {
+			// Get the account
+			const account = await getAccountPromise({
 				publicKey: testDelegate.publicKey,
 			});
+
+			// The delegate would be in the list already
 			expect(__private.keypairs[testDelegate.publicKey]).to.not.be.undefined;
 			expect(account.publicKey).to.equal(testDelegate.publicKey);
 
+			// Disable the forging status
 			const data = await library.modules.delegates.updateForgingStatus(
 				testDelegate.publicKey,
 				testDelegate.password,
 				false
 			);
 
+			// Delegate removed from the list
 			expect(__private.keypairs[testDelegate.publicKey]).to.be.undefined;
 			expect(data.publicKey).to.equal(testDelegate.publicKey);
-		});
 
-		it('should update forging from disabled to enabled', async () => {
-			const account = await library.components.storage.entities.Account.getOne({
-				publicKey: testDelegate.publicKey,
-			});
-			expect(__private.keypairs[testDelegate.publicKey]).to.be.undefined;
-			expect(account.publicKey).to.equal(testDelegate.publicKey);
-
-			const data = await library.modules.delegates.updateForgingStatus(
+			// Enable again
+			const data2 = await library.modules.delegates.updateForgingStatus(
 				testDelegate.publicKey,
 				testDelegate.password,
 				true
 			);
 
+			// Delegate appear in the list again
 			expect(__private.keypairs[testDelegate.publicKey]).to.not.be.undefined;
-			expect(data.publicKey).to.equal(testDelegate.publicKey);
+			expect(data2.publicKey).to.equal(testDelegate.publicKey);
 		});
 	});
 
