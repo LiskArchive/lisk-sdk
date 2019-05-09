@@ -242,7 +242,7 @@ class TransactionPool {
 	}
 
 	getCountByQueue(queueName) {
-		this.pool.queues[queueName].size();
+		return this.pool.queues[queueName].size();
 	}
 
 	getTransactionsList(queueName, reverse, limit) {
