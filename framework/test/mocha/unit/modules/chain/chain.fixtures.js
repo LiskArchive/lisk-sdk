@@ -16,8 +16,6 @@ const chainOptions = {
 	network: {
 		enabled: false,
 	},
-	lastCommitId: gitLastCommitId,
-	buildVersion,
 	exceptions: {},
 	constants: {
 		ACTIVE_DELEGATES: 101,

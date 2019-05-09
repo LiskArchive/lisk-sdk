@@ -25,8 +25,6 @@ const {
 	cacheConfig,
 	storageConfig,
 	chainOptions,
-	gitLastCommitId,
-	buildVersion,
 } = require('./chain.fixtures');
 
 describe('Chain', () => {
@@ -179,14 +177,6 @@ describe('Chain', () => {
 					...differentStorageConfig,
 				});
 			});
-		});
-
-		it('should get last commit from git', () => {
-			return expect(chain.scope.lastCommit).to.be.equal(gitLastCommitId);
-		});
-
-		it('should get build version from config.buildVersion', () => {
-			return expect(chain.scope.build).to.be.equal(buildVersion);
 		});
 
 		it('should set global.constants from the constants passed by options', () => {

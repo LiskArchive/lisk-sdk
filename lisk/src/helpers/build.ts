@@ -25,7 +25,7 @@ const getBuildVersion = (): string => {
 			.toString()
 			.trim();
 	} catch (error) {
-		throw new Error('.build file found.');
+		throw new Error('.build file not found.');
 	}
 };
 

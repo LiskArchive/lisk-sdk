@@ -18,6 +18,7 @@ import childProcess from 'child_process';
 import fs from 'fs';
 
 const getLastCommitIdFromGit = (): string => {
+	// tslint:disable-next-line no-let
 	let lastCommitId = '';
 	try {
 		// .toString() converts Buffer to String, .trim() removes eol character
@@ -44,7 +45,7 @@ const getLastCommitIdFromRevisionFile = (): string => {
 			.toString()
 			.trim();
 	} catch (error) {
-		throw new Error('REVISION file found.');
+		throw new Error('REVISION file not found.');
 	}
 };
 
@@ -54,6 +55,7 @@ const getLastCommitIdFromRevisionFile = (): string => {
  * @throws {Error} If cannot get last git commit
  */
 const getLastCommitId = (): string => {
+	// tslint:disable-next-line no-let
 	let lastCommitId = getLastCommitIdFromGit();
 	if (!lastCommitId) {
 		lastCommitId = getLastCommitIdFromRevisionFile();

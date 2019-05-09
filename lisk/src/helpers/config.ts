@@ -5,8 +5,8 @@ import { getLastCommitId } from './git';
 
 // tslint:disable-next-line no-var-requires no-require-imports
 const packageJSON = require('../../package.json');
-let lastCommitId;
-let buildVersion;
+let lastCommitId; // tslint:disable-line no-let
+let buildVersion; // tslint:disable-line no-let
 
 // Try to get the last git commit
 try {
