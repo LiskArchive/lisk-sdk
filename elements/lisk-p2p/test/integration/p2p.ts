@@ -442,7 +442,7 @@ describe('Integration tests for P2P library', () => {
 					.sort();
 
 				const expectedPeerPortsAfterPeerCrash = ALL_NODE_PORTS.filter(port => {
-					return port !== NETWORK_START_PORT && port != NETWORK_START_PORT + 1;
+					return port !== NETWORK_START_PORT && port !== NETWORK_START_PORT + 1;
 				});
 
 				expect(peerPortsAfterPeerCrash).to.be.eql(
@@ -654,7 +654,7 @@ describe('Integration tests for P2P library', () => {
 					.sort();
 
 				expect(initialPeerPorts).to.be.eql(
-					ALL_NODE_PORTS.filter(port => port != NETWORK_START_PORT),
+					ALL_NODE_PORTS.filter(port => port !== NETWORK_START_PORT),
 				);
 
 				await p2pNodeList[1].stop();
