@@ -107,8 +107,20 @@ module.exports = class Network {
 		);
 
 		const seedPeers = await lookupPeersIPs(this.options.seedPeers, true);
+		const whiteListedPeers = this.options.whiteListedPeers
+			? this.options.whiteListedPeers.map(peer => ({
+					ipAddress: peer.ip,
+					wsPort: peer.wsPort,
+			  }))
+			: [];
 		const blacklistedPeers = this.options.blacklistedPeers
 			? this.options.blacklistedPeers.map(peer => ({
+					ipAddress: peer.ip,
+					wsPort: peer.wsPort,
+			  }))
+			: [];
+		const fixedPeers = this.options.fixedPeers
+			? this.options.fixedPeers.map(peer => ({
 					ipAddress: peer.ip,
 					wsPort: peer.wsPort,
 			  }))
@@ -116,7 +128,9 @@ module.exports = class Network {
 		const p2pConfig = {
 			nodeInfo: initialNodeInfo,
 			hostAddress: this.options.address,
+			whiteListedPeers,
 			blacklistedPeers,
+			fixedPeers,
 			seedPeers: seedPeers.map(peer => ({
 				ipAddress: peer.ip,
 				wsPort: peer.wsPort,

@@ -52,7 +52,21 @@ const defaultConfig = {
 		discoveryInterval: {
 			type: 'integer',
 		},
+		whiteListedPeers: {
+			type: 'array',
+			items: {
+				type: 'string',
+				format: 'ip',
+			},
+		},
 		blacklistedPeers: {
+			type: 'array',
+			items: {
+				type: 'string',
+				format: 'ip',
+			},
+		},
+		fixedPeers: {
 			type: 'array',
 			items: {
 				type: 'string',
@@ -75,7 +89,9 @@ const defaultConfig = {
 		address: '0.0.0.0',
 		discoveryInterval: 30000,
 		seedPeers: [],
+		whiteListedPeers: [],
 		blacklistedPeers: [],
+		fixedPeers: [],
 		ackTimeout: 20000,
 		connectTimeout: 5000,
 		wsEngine: 'ws',

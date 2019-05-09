@@ -72,7 +72,9 @@ export interface P2PClosePacket {
 }
 
 export interface P2PConfig {
+	readonly whiteListedPeers?: ReadonlyArray<P2PPeerInfo>;
 	readonly blacklistedPeers?: ReadonlyArray<P2PPeerInfo>;
+	readonly fixedPeers?: ReadonlyArray<P2PPeerInfo>;
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
 	readonly hostAddress?: string;
