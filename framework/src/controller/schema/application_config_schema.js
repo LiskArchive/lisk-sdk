@@ -42,6 +42,20 @@ module.exports = {
 					type: 'string',
 					format: 'protocolVersion',
 				},
+				buildVersion: {
+					type: 'string',
+					example: 'v09:54:35 12/04/2017',
+					description:
+						'The build number. Consists of `v` + the date and time of the build of the node.',
+				},
+				lastCommitId: {
+					type: 'string',
+					format: 'hex',
+					minLength: 40,
+					maxLength: 40,
+					example: '968d7b5b97a5bfad8f77614dc8a9918de49f6c6e',
+					description: 'The version of Lisk Core that the peer node runs on.',
+				},
 				ipc: {
 					type: 'object',
 					properties: {
