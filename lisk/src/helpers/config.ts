@@ -1,8 +1,28 @@
 import { configurator } from 'lisk-framework';
 import path from 'path';
+import { getBuildVersion } from './build';
+import { getLastCommitId } from './git';
 
 // tslint:disable-next-line no-var-requires no-require-imports
 const packageJSON = require('../../package.json');
+let lastCommitId; // tslint:disable-line no-let
+let buildVersion; // tslint:disable-line no-let
+
+// Try to get the last git commit
+try {
+	lastCommitId = getLastCommitId();
+} catch (err) {
+	// tslint:disable-next-line no-console
+	console.error('Cannot get last git commit:', err.message);
+}
+
+// Try to get the build version
+try {
+	buildVersion = getBuildVersion();
+} catch (err) {
+	// tslint:disable-next-line no-console
+	console.error('Cannot get build version:', err.message);
+}
 
 const appSchema = {
 	type: 'object',
@@ -36,6 +56,8 @@ const appConfig = {
 		version: packageJSON.version,
 		minVersion: packageJSON.lisk.minVersion,
 		protocolVersion: packageJSON.lisk.protocolVersion,
+		lastCommitId,
+		buildVersion,
 	},
 };
 

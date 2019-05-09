@@ -40,6 +40,11 @@ Object {
   "properties": Object {
     "app": Object {
       "properties": Object {
+        "buildVersion": Object {
+          "description": "The build number. Consists of \`v\` + the date and time of the build of the node.",
+          "example": "v09:54:35 12/04/2017",
+          "type": "string",
+        },
         "genesisConfig": Object {
           "additionalProperties": false,
           "id": "#/app/genesisConfig",
@@ -159,6 +164,14 @@ Random string.",
         },
         "label": Object {
           "pattern": "^[a-zA-Z][0-9a-zA-Z\\\\_\\\\-]*$",
+          "type": "string",
+        },
+        "lastCommitId": Object {
+          "description": "The version of Lisk Core that the peer node runs on.",
+          "example": "968d7b5b97a5bfad8f77614dc8a9918de49f6c6e",
+          "format": "hex",
+          "maxLength": 40,
+          "minLength": 40,
           "type": "string",
         },
         "minVersion": Object {
