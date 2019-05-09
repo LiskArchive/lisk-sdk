@@ -18,8 +18,6 @@ const _ = require('lodash');
 const Bignum = require('../helpers/bignum');
 const BlockReward = require('./block_reward');
 
-const { ACTIVE_DELEGATES } = global.constants;
-
 // Private fields
 let library;
 let modules;
@@ -143,89 +141,6 @@ class Account {
 	}
 
 	/**
-	 * Gets account information for specified fields and filter criteria.
-	 *
-	 * @param {Object} filter - Contains address
-	 * @param {Object|function} fields - Table fields
-	 * @param {function} cb - Callback function
-	 * @param {Object} tx - Database transaction/task object
-	 * @returns {setImmediate} error, account or null
-	 */
-	get(filter, fields, cb, tx) {
-		if (typeof fields === 'function') {
-			tx = cb;
-			cb = fields;
-			fields = null;
-		}
-
-		this.getAll(
-			filter,
-			fields,
-			(err, data) =>
-				setImmediate(cb, err, data && data.length ? data[0] : null),
-			tx
-		);
-	}
-
-	/**
-	 * Gets accounts information from mem_accounts.
-	 *
-	 * @param {Object} filter - Contains address
-	 * @param {Object|function} fields - Table fields
-	 * @param {function} cb - Callback function
-	 * @param {Object} tx - Database transaction/task object
-	 * @returns {setImmediate} error, accounts
-	 */
-	getAll(filter, fields, cb, tx) {
-		if (typeof fields === 'function') {
-			cb = fields;
-			fields = null;
-		}
-
-		const options = {
-			limit: filter.limit || ACTIVE_DELEGATES,
-			offset: filter.offset || 0,
-			sort: filter.sort || 'balance:asc',
-			extended: true,
-		};
-
-		if (options.limit < 0) {
-			options.limit = ACTIVE_DELEGATES;
-		}
-
-		const filters = _.omit(filter, ['limit', 'offset', 'sort']);
-
-		const self = this;
-
-		this.scope.storage.entities.Account.get(filters, options, tx)
-			.then(accounts => {
-				const lastBlock = modules.blocks.lastBlock.get();
-				// If the last block height is undefined, it means it's a genesis block with height = 1
-				// look for a constant for total supply
-				const totalSupply = lastBlock.height
-					? __private.blockReward.calcSupply(lastBlock.height)
-					: 0;
-
-				accounts.forEach(accountRow => {
-					accountRow.approval = self.calculateApproval(
-						accountRow.vote,
-						totalSupply
-					);
-				});
-
-				const result = fields
-					? accounts.map(account => _.pick(account, fields))
-					: accounts;
-
-				return setImmediate(cb, null, result);
-			})
-			.catch(err => {
-				library.logger.error(err.stack);
-				return setImmediate(cb, new Error('Account#getAll error'));
-			});
-	}
-
-	/**
 	 * Calculates productivity of a delegate account.
 	 *
 	 * @param {String} votersBalance
@@ -267,13 +182,11 @@ class Account {
 
 		// If merge was called without any diff object
 		if (Object.keys(diff).length === 0) {
-			return self.get(
-				{
-					address,
-				},
-				cb,
-				tx
-			);
+			return self.scope.storage.entities.Account.getOne({ address }, {}, tx)
+				.then(account => {
+					cb(null, account);
+				})
+				.catch(cb);
 		}
 
 		// Loop through each of updated attribute
@@ -398,16 +311,13 @@ class Account {
 			? job(tx)
 			: this.scope.storage.entities.Account.begin('logic:account:merge', job)
 		)
-			.then(() => {
-				self.get(
-					{
-						address,
-					},
-					cb,
-					tx
-				);
-				return null;
-			})
+			.then(() =>
+				self.scope.storage.entities.Account.getOne({ address }, {}, tx)
+					.then(account => {
+						cb(null, account);
+					})
+					.catch(cb)
+			)
 			.catch(err => {
 				library.logger.error(err.stack);
 				return setImmediate(cb, _.isString(err) ? err : 'Account#merge error');

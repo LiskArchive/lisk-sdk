@@ -16,7 +16,6 @@
 
 const crypto = require('crypto');
 const async = require('async');
-const { promisify } = require('util');
 const {
 	decryptPassphraseWithPassword,
 	parseEncryptedPassphrase,
@@ -129,11 +128,18 @@ class Delegates {
 			throw new Error('Invalid password and public key combination');
 		}
 
-		const filter = {
+		const filters = {
 			address: getAddressFromPublicKey(keypair.publicKey.toString('hex')),
 		};
 
-		const account = await promisify(library.logic.account.get)(filter);
+		const options = {
+			extended: true,
+		};
+
+		const [account] = await library.storage.entities.Account.get(
+			filters,
+			options
+		);
 
 		if (account && account.isDelegate) {
 			if (forging) {
@@ -690,36 +696,41 @@ __private.loadDelegates = function(cb) {
 				);
 			}
 
-			const filter = {
+			const filters = {
 				address: getAddressFromPublicKey(keypair.publicKey.toString('hex')),
 			};
 
-			return library.logic.account.get(filter, (err, account) => {
-				if (err) {
-					return setImmediate(seriesCb, err);
-				}
+			const options = {
+				extended: true,
+			};
 
-				if (!account) {
-					return setImmediate(
-						seriesCb,
-						`Account with public key: ${keypair.publicKey.toString(
-							'hex'
-						)} not found`
-					);
-				}
-				if (account.isDelegate) {
-					__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
-					library.logger.info(`Forging enabled on account: ${account.address}`);
-				} else {
-					library.logger.warn(
-						`Account with public key: ${keypair.publicKey.toString(
-							'hex'
-						)} is not a delegate`
-					);
-				}
+			return library.storage.entities.Account.get(filters, options)
+				.then(accounts => {
+					const account = accounts[0];
+					if (!account) {
+						return setImmediate(
+							seriesCb,
+							`Account with public key: ${keypair.publicKey.toString(
+								'hex'
+							)} not found`
+						);
+					}
+					if (account.isDelegate) {
+						__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
+						library.logger.info(
+							`Forging enabled on account: ${account.address}`
+						);
+					} else {
+						library.logger.warn(
+							`Account with public key: ${keypair.publicKey.toString(
+								'hex'
+							)} is not a delegate`
+						);
+					}
 
-				return setImmediate(seriesCb);
-			});
+					return setImmediate(seriesCb);
+				})
+				.catch(err => setImmediate(seriesCb, err));
 		},
 		cb
 	);

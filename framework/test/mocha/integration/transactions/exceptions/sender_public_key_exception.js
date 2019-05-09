@@ -113,13 +113,9 @@ describe('exceptions for senderPublicKey transactions', () => {
 			describe('details of the accounts', () => {
 				let senderMemAccountBefore;
 
-				before('get sender account', done => {
-					library.logic.account.get(
-						{ address: accountWithCollisionPublicKeys.address },
-						(err, res) => {
-							senderMemAccountBefore = res;
-							done();
-						}
+				before('get sender account', async () => {
+					senderMemAccountBefore = await library.components.storage.entities.Account.getOne(
+						{ address: accountWithCollisionPublicKeys.address }
 					);
 				});
 
@@ -150,13 +146,9 @@ describe('exceptions for senderPublicKey transactions', () => {
 					describe('details of the accounts', () => {
 						let senderMemAccountAfter;
 
-						before('get sender account', done => {
-							library.logic.account.get(
-								{ address: accountWithCollisionPublicKeys.address },
-								(err, res) => {
-									senderMemAccountAfter = res;
-									done();
-								}
+						before('get sender account', async () => {
+							senderMemAccountAfter = await library.components.storage.entities.Account.getOne(
+								{ address: accountWithCollisionPublicKeys.address }
 							);
 						});
 
@@ -199,13 +191,9 @@ describe('exceptions for senderPublicKey transactions', () => {
 						});
 
 						describe('details of the account', () => {
-							before('get sender account', done => {
-								library.logic.account.get(
-									{ address: accountWithCollisionPublicKeys.address },
-									(err, res) => {
-										afterDeleteSenderMemAccount = res;
-										done();
-									}
+							before('get sender account', async () => {
+								afterDeleteSenderMemAccount = await library.components.storage.entities.Account.getOne(
+									{ address: accountWithCollisionPublicKeys.address }
 								);
 							});
 

@@ -43,13 +43,7 @@ describe('integration test (type 4) - effect of multisignature registration on m
 	});
 
 	before(done => {
-		localCommon.addTransactionsAndForge(
-			library,
-			[creditTransaction],
-			async () => {
-				library.logic.account.get({ address: multisigAccount.address }, done);
-			}
-		);
+		localCommon.addTransactionsAndForge(library, [creditTransaction], done);
 	});
 
 	describe('forge block with multisignature transaction', () => {
@@ -116,14 +110,10 @@ describe('integration test (type 4) - effect of multisignature registration on m
 		describe('check sender account', () => {
 			let account;
 
-			before('get multisignature account', done => {
-				library.logic.account.get(
+			before('get multisignature account', async () => {
+				account = await library.components.storage.entities.Account.getOne(
 					{ address: multisigAccount.address },
-					(err, res) => {
-						expect(err).to.be.null;
-						account = res;
-						done();
-					}
+					{ extended: true }
 				);
 			});
 
@@ -180,14 +170,10 @@ describe('integration test (type 4) - effect of multisignature registration on m
 			describe('sender account', () => {
 				let account;
 
-				before('get multisignature account', done => {
-					library.logic.account.get(
+				before('get multisignature account', async () => {
+					account = await library.components.storage.entities.Account.getOne(
 						{ address: multisigAccount.address },
-						(err, res) => {
-							expect(err).to.be.null;
-							account = res;
-							done();
-						}
+						{ extended: true }
 					);
 				});
 
