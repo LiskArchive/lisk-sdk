@@ -135,6 +135,7 @@ describe('blocks/chain', () => {
 				.stub()
 				.withArgs('app:state:updated')
 				.callsArg(1),
+			publish: sinonSandbox.stub(),
 		};
 
 		blocksChainModule = new BlocksChain(
@@ -158,7 +159,6 @@ describe('blocks/chain', () => {
 
 		const modulesAccountsStub = {
 			getAccount: sinonSandbox.stub(),
-			setAccountAndGet: sinonSandbox.stub(),
 		};
 
 		const modulesBlocksStub = {
@@ -550,28 +550,26 @@ describe('blocks/chain', () => {
 		});
 
 		describe('when block.transactions is not empty', () => {
-			describe('when modules.accounts.setAccountAndGet succeeds', () => {
-				describe('when __private.applyTransactions succeeds', () => {
-					beforeEach(() =>
-						__private.applyTransactions.callsArgWith(1, null, true)
-					);
+			describe('when __private.applyTransactions succeeds', () => {
+				beforeEach(() =>
+					__private.applyTransactions.callsArgWith(1, null, true)
+				);
 
-					it('modules.rouds.tick should call a callback', done => {
-						blocksChainModule.applyGenesisBlock(
-							blockWithTransactions,
-							async () => {
-								expect(__private.applyTransactions.callCount).to.equal(1);
-								expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
-								expect(modules.blocks.lastBlock.set.args[0][0]).to.deep.equal(
-									blockWithTransactions
-								);
-								expect(modules.rounds.tick.args[0][0]).to.deep.equal(
-									blockWithTransactions
-								);
-								done();
-							}
-						);
-					});
+				it('modules.rouds.tick should call a callback', done => {
+					blocksChainModule.applyGenesisBlock(
+						blockWithTransactions,
+						async () => {
+							expect(__private.applyTransactions.callCount).to.equal(1);
+							expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
+							expect(modules.blocks.lastBlock.set.args[0][0]).to.deep.equal(
+								blockWithTransactions
+							);
+							expect(modules.rounds.tick.args[0][0]).to.deep.equal(
+								blockWithTransactions
+							);
+							done();
+						}
+					);
 				});
 			});
 		});
@@ -988,6 +986,7 @@ describe('blocks/chain', () => {
 
 			it('should call a callback', done => {
 				__private.popLastBlock(blockWithTransactions, err => {
+					expect(library.bus.message.callCount).to.be.eql(1);
 					expect(err).to.be.null;
 					done();
 				});

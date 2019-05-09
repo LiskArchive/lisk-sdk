@@ -1354,6 +1354,7 @@ describe('transport', () => {
 						library.bus = {
 							message: sinonSandbox.stub(),
 						};
+						library.logic.initTransaction = initTransaction;
 						done();
 					});
 

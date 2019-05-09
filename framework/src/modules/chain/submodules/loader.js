@@ -225,9 +225,8 @@ class Loader {
 	 * @todo Add description for the params
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	cleanup(cb) {
+	cleanup() {
 		__private.loaded = false;
-		return setImmediate(cb);
 	}
 }
 
@@ -336,7 +335,7 @@ __private.getSignaturesFromNetwork = async function() {
 	library.logger.info('Loading signatures from the network');
 
 	// TODO: Add target module to procedure name. E.g. chain:getSignatures
-	const result = await library.channel.invoke('network:invoke', {
+	const result = await library.channel.invoke('network:request', {
 		procedure: 'getSignatures',
 	});
 
@@ -385,7 +384,7 @@ __private.getTransactionsFromNetwork = async function() {
 	library.logger.info('Loading transactions from the network');
 
 	// TODO: Add target module to procedure name. E.g. chain:getTransactions
-	const result = await library.channel.invoke('network:invoke', {
+	const result = await library.channel.invoke('network:request', {
 		procedure: 'getTransactions',
 	});
 

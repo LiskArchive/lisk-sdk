@@ -56,7 +56,6 @@ const updateTransactionResponseForExceptionTransactions = (
 class ProcessTransactions {
 	constructor(cb, scope) {
 		library = {
-			logger: scope.components.logger,
 			storage: scope.components.storage,
 		};
 		setImmediate(cb, null, this);
@@ -83,6 +82,12 @@ class ProcessTransactions {
 
 	// eslint-disable-next-line class-methods-use-this
 	async checkPersistedTransactions(transactions) {
+		if (!transactions.length) {
+			return {
+				transactionsResponses: [],
+			};
+		}
+
 		const confirmedTransactions = await library.storage.entities.Transaction.get(
 			{
 				id_in: transactions.map(transaction => transaction.id),
@@ -125,10 +130,6 @@ class ProcessTransactions {
 	// eslint-disable-next-line class-methods-use-this
 	async applyTransactions(transactions, tx = undefined) {
 		// Get data required for verifying transactions
-		library.logger.info(
-			{ meta: { action: 'applyTransactionsStart' } },
-			'Applying transaction started'
-		);
 		const stateStore = new StateStore(library.storage, {
 			mutate: true,
 			tx,
@@ -150,10 +151,6 @@ class ProcessTransactions {
 		updateTransactionResponseForExceptionTransactions(
 			unappliableTransactionsResponse,
 			transactions
-		);
-		library.logger.info(
-			{ meta: { action: 'applyTransactionsEnd' } },
-			'Applying transaction ended'
 		);
 
 		return {
@@ -224,10 +221,6 @@ class ProcessTransactions {
 	// eslint-disable-next-line class-methods-use-this
 	async verifyTransactions(transactions) {
 		// Get data required for verifying transactions
-		library.logger.info(
-			{ meta: { action: 'verifyTransactionsStarted' } },
-			'Verify transaction started'
-		);
 		const stateStore = new StateStore(library.storage, {
 			mutate: false,
 		});
@@ -259,10 +252,6 @@ class ProcessTransactions {
 			unverifiableTransactionsResponse,
 			transactions
 		);
-		library.logger.info(
-			{ meta: { action: 'verifyTransactionsEnd' } },
-			'Verify transaction End'
-		);
 
 		return {
 			transactionsResponses,
@@ -272,10 +261,6 @@ class ProcessTransactions {
 	// eslint-disable-next-line class-methods-use-this
 	async processSignature(transaction, signature) {
 		// Get data required for processing signature
-		library.logger.info(
-			{ meta: { action: 'process signature Transactions', transaction } },
-			'process signature transaction start'
-		);
 		const stateStore = new StateStore(library.storage, {
 			mutate: false,
 		});

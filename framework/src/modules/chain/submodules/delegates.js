@@ -15,7 +15,6 @@
 'use strict';
 
 const crypto = require('crypto');
-const _ = require('lodash');
 const async = require('async');
 const { promisify } = require('util');
 const {
@@ -235,45 +234,6 @@ class Delegates {
 	}
 
 	/**
-	 * Gets a list of delegates:
-	 * - Calculating individual rank, approval, productivity.
-	 * - Sorting based on query parameter.
-	 *
-	 * @param {Object} query
-	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallback} cb, err, object with ordered delegates, offset, count, limit
-	 * @todo Sort does not affect data? What is the impact?
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	getDelegates(query, cb) {
-		if (!_.isObject(query)) {
-			throw new Error('Invalid query argument, expected object');
-		}
-		if (query.search) {
-			query.username_like = `%${query.search}%`;
-			delete query.search;
-		}
-		query.isDelegate = true;
-		modules.accounts.getAccounts(
-			query,
-			[
-				'username',
-				'address',
-				'publicKey',
-				'vote',
-				'rewards',
-				'producedBlocks',
-				'missedBlocks',
-				'secondPublicKey',
-				'rank',
-				'approval',
-				'productivity',
-			],
-			(err, delegates) => setImmediate(cb, err, delegates)
-		);
-	}
-
-	/**
 	 * Inserts a fork into 'forks_stat' table and emits a 'delegates/fork' socket signal with fork data: cause + block.
 	 *
 	 * @param {block} block
@@ -395,9 +355,8 @@ class Delegates {
 	 * @returns {setImmediateCallback} cb
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	cleanup(cb) {
+	cleanup() {
 		__private.loaded = false;
-		return setImmediate(cb);
 	}
 
 	/**

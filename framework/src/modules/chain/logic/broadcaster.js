@@ -108,7 +108,7 @@ class Broadcaster {
 			...data,
 			nonce: this.nonce,
 		};
-		await this.channel.invoke('network:publish', {
+		await this.channel.invoke('network:emit', {
 			event,
 			data: wrappedData,
 		});

@@ -131,34 +131,6 @@ transactionsByTypes[TRANSACTION_TYPES.MULTI] = {
 	ready: true,
 };
 
-transactionsByTypes[TRANSACTION_TYPES.DAPP] = {
-	type: 5,
-	amount: new Bignum('0'),
-	senderPublicKey:
-		'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
-	timestamp: 41898871,
-	asset: {
-		dapp: {
-			category: 4,
-			name: 'AjFJheh3RFKiFTecCylXhW',
-			description: 'A dapp added via API autotest',
-			tags:
-				'handy dizzy pear airplane alike wonder nifty curve young probable tart concentrate',
-			type: 0,
-			link: 'https://github.com/AjFJheh3RFKiFTecCylXhW/master.zip',
-			icon:
-				'https://raw.githubusercontent.com/MaxKK/guestbookDapp/master/icon.png',
-		},
-	},
-	signature:
-		'655fd2c24c490f9a540dfe833561e4b8f85c4dafce6fe7f696f52c5a3535ba562e11ffeb1479b01967d8f20ed87fe8c9ac58522ea28948e52ec1eba57f675104',
-	id: '16047960743788123485',
-	fee: new Bignum(2500000000),
-	senderId: '8885132815244884080L',
-	relays: 1,
-	receivedAt: '2017-09-21T15:34:31.801Z',
-};
-
 transactionsByTypes[TRANSACTION_TYPES.VOTE] = {
 	type: 3,
 	amount: new Bignum('0'),
@@ -238,46 +210,6 @@ transactionsByTypes[TRANSACTION_TYPES.SEND] = {
 	senderId: '8885132815244884080L',
 	relays: 1,
 	receivedAt: '2017-09-21T15:34:31.689Z',
-};
-
-transactionsByTypes[TRANSACTION_TYPES.IN_TRANSFER] = {
-	id: '2273003018673898961',
-	type: 6,
-	timestamp: 40420761,
-	senderPublicKey:
-		'6dc3f3f8bcf9fb689a1ec6703ed08c649cdc98619ac4689794bf72b579d6cf25',
-	senderId: '2623857243537009424L',
-	recipientId: null,
-	recipientPublicKey: null,
-	amount: new Bignum('999'),
-	fee: new Bignum(10000000),
-	signature:
-		'46b57a56f3a61c815224e4396c9c39316ca62568951f84c2e7404225cf67c489f517db6a848a0a5fd4f311b98102c36098543cecb277c7d039a07ed069d90b0b',
-	asset: {
-		inTransfer: {
-			dappId: '7400202127695414450',
-		},
-	},
-};
-
-transactionsByTypes[TRANSACTION_TYPES.OUT_TRANSFER] = {
-	id: '12010334009048463571',
-	type: 7,
-	timestamp: 41287231,
-	senderPublicKey:
-		'8d556dca10bb8294895df5477117ca2ceaae7795e7ffc4f7c7d51398a65e4911',
-	senderId: '12566082625150495618L',
-	recipientId: '477547807936790449L',
-	amount: new Bignum('100'),
-	fee: new Bignum('10000000'),
-	signature:
-		'126de9603da232b0ada5158c43640849a62736351be1f39cd98606f6d81bedff895183f12c517c96dcc71368af111e7ddde04f62c54ecd1ea47d557af69f330d',
-	asset: {
-		outTransfer: {
-			dappId: '4163713078266524209',
-			transactionId: '14144353162277138821',
-		},
-	},
 };
 
 function expectedOrderOfTransactions(sortedTransactions) {
@@ -364,7 +296,7 @@ describe('block', () => {
 		describe('when each of all supported', () => {
 			let generatedBlock;
 			let transactionsOrder;
-			const correctOrder = [0, 1, 2, 3, 5, 6, 7, 4];
+			const correctOrder = [0, 1, 2, 3, 4];
 
 			beforeEach(done => {
 				data.transactions = transactions;
@@ -378,21 +310,7 @@ describe('block', () => {
 		});
 
 		describe('when there are multiple multisignature transactions', () => {
-			const correctOrderOfTransactions = [
-				0,
-				1,
-				2,
-				3,
-				5,
-				6,
-				7,
-				4,
-				4,
-				4,
-				4,
-				4,
-				4,
-			];
+			const correctOrderOfTransactions = [0, 1, 2, 3, 4, 4, 4, 4, 4, 4];
 
 			describe('in the beginning', () => {
 				let multipleMultisigTx;

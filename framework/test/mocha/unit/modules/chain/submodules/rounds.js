@@ -21,16 +21,12 @@ const rewire = require('rewire');
 const Rounds = rewire('../../../../../../src/modules/chain/submodules/rounds');
 const Round = rewire('../../../../../../src/modules/chain/logic/round'); // eslint-disable-line no-unused-vars
 const { TestStorageSandbox } = require('../../../../common/storage_sandbox');
-const {
-	CACHE_KEYS_DELEGATES,
-} = require('../../../../../../src/components/cache');
 
 const sinon = sinonSandbox;
 
 describe('rounds', () => {
 	let rounds;
 	let scope;
-	let components;
 
 	// Init fake logger
 	const logger = {
@@ -118,11 +114,6 @@ describe('rounds', () => {
 		new Rounds((err, __instance) => {
 			rounds = __instance;
 			rounds.onBind(bindings);
-			components = get('components');
-			components.cache = {
-				isReady: sinon.stub(),
-				removeByPattern: sinonSandbox.stub().callsArg(1),
-			};
 			done();
 		}, scope);
 	});
@@ -188,11 +179,6 @@ describe('rounds', () => {
 			expect(get(variable)).to.deep.equal(roundBindings.modules);
 			return set(variable, backup);
 		});
-
-		it('should assign component property', async () => {
-			components = get('components');
-			return expect(components).to.have.property('cache');
-		});
 	});
 
 	describe('onBlockchainReady', () => {
@@ -208,20 +194,15 @@ describe('rounds', () => {
 	});
 
 	describe('onFinishRound', () => {
-		beforeEach(() => {
+		beforeEach(async () => {
 			validScope.channel.publish.resetHistory();
-			components.cache.isReady.returns(true);
-			return components.cache.removeByPattern.resetHistory();
 		});
 
 		it('should call components.cache.removeByPattern once if cache is enabled', async () => {
 			const round = 123;
-			const pattern = CACHE_KEYS_DELEGATES;
 			rounds.onFinishRound(round);
 
-			expect(components.cache.removeByPattern.called).to.be.true;
-			return expect(components.cache.removeByPattern.calledWith(pattern)).to.be
-				.true;
+			expect(validScope.channel.publish.called).to.be.true;
 		});
 
 		it('should call library.channel.publish once, with proper params', async () => {
@@ -243,11 +224,10 @@ describe('rounds', () => {
 			const backup = get(variable);
 			const value = true;
 			set(variable, value);
-			rounds.cleanup(() => {
-				expect(get(variable)).to.equal(false);
-				set(variable, backup);
-				done();
-			});
+			rounds.cleanup();
+			expect(get(variable)).to.equal(false);
+			set(variable, backup);
+			done();
 		});
 	});
 

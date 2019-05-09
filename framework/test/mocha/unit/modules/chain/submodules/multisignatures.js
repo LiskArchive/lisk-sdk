@@ -16,15 +16,12 @@
 
 const { TransactionError } = require('@liskhq/lisk-transactions');
 const rewire = require('rewire');
-const accountsFixtures = require('../../../../fixtures/index').accounts;
 const transactionsFixtures = require('../../../../fixtures/index').transactions;
 
 const { TRANSACTION_TYPES } = global.constants;
 const RewiredMultisignatures = rewire(
 	'../../../../../../src/modules/chain/submodules/multisignatures'
 );
-
-const validAccount = new accountsFixtures.Account();
 
 describe('multisignatures', () => {
 	let self;
@@ -215,134 +212,6 @@ describe('multisignatures', () => {
 					);
 					done();
 				});
-			});
-		});
-	});
-
-	describe('getGroup', () => {
-		beforeEach(done => {
-			stubs.logic.account.getMultiSignature = sinonSandbox
-				.stub()
-				.callsFake((filters, cb) => cb(null, validAccount));
-
-			stubs.getMemberPublicKeys = sinonSandbox
-				.stub()
-				.callsFake(() => Promise.resolve([]));
-
-			stubs.bindings.modules.accounts.getAccounts = sinonSandbox
-				.stub()
-				.callsFake((param1, param2, cb) => cb(null, []));
-
-			stubs.bindings.modules.accounts.generateAddressByPublicKey = sinonSandbox.stub();
-
-			stubs.bindings.modules.accounts.generateAddressByPublicKey
-				.withArgs('key1')
-				.returns('address1');
-			stubs.bindings.modules.accounts.generateAddressByPublicKey
-				.withArgs('key2')
-				.returns('address2');
-
-			library.logic.account.getMultiSignature =
-				stubs.logic.account.getMultiSignature;
-			library.storage.entities.Account.getOne = sinonSandbox
-				.stub()
-				.resolves(validAccount);
-			get('modules').accounts.getAccounts =
-				stubs.bindings.modules.accounts.getAccounts;
-			get('modules').accounts.generateAddressByPublicKey =
-				stubs.bindings.modules.accounts.generateAddressByPublicKey;
-			done();
-		});
-
-		it('should call getMultiSignature with given address', done => {
-			self.getGroup(validAccount.address, async () => {
-				expect(library.logic.account.getMultiSignature).to.be.calledWith({
-					address: validAccount.address,
-				});
-				done();
-			});
-		});
-
-		it('should return scopeGroup with given address', done => {
-			self.getGroup(validAccount.address, (err, scopeGroup) => {
-				expect(scopeGroup.address).to.equal(validAccount.address);
-				done();
-			});
-		});
-
-		it('should return an error if getMultiSignature function returns an error', done => {
-			library.logic.account.getMultiSignature = sinonSandbox
-				.stub()
-				.callsFake((filters, cb) => {
-					cb('Err', null);
-				});
-			self.getGroup(validAccount.address, (err, scopeGroup) => {
-				expect(err).to.equal('Err');
-				expect(scopeGroup).to.not.exist;
-				done();
-			});
-		});
-
-		it('should return an error if getMultiSignature function does not return an account', done => {
-			library.logic.account.getMultiSignature = sinonSandbox
-				.stub()
-				.callsFake((filters, cb) => {
-					cb(null, null);
-				});
-			self.getGroup('', (err, scopeGroup) => {
-				expect(err.message).to.equal('Multisignature account not found');
-				expect(scopeGroup).to.not.exist;
-				done();
-			});
-		});
-
-		it('should return a group if getMultiSignature function returns a valid multisig account', done => {
-			self.getGroup(validAccount.address, (err, scopeGroup) => {
-				expect(err).to.not.exist;
-				expect(scopeGroup).to.have.property('address');
-				expect(scopeGroup).to.have.property('publicKey');
-				expect(scopeGroup).to.have.property('secondPublicKey');
-				expect(scopeGroup).to.have.property('balance');
-				expect(scopeGroup).to.have.property('min');
-				expect(scopeGroup).to.have.property('lifetime');
-				expect(scopeGroup).to.have.property('members');
-				done();
-			});
-		});
-
-		it('should return group members if account.membersPublicKeys returns an array of member account keys', done => {
-			library.storage.entities.Account.getOne = sinonSandbox
-				.stub()
-				.callsFake(() =>
-					Promise.resolve({ membersPublicKeys: ['key1', 'key2'] })
-				);
-
-			const member1 = {
-				address: 'address',
-				publicKey: 'publicKey',
-				secondPublicKey: 'secondPublicKey',
-			};
-
-			const member2 = {
-				address: 'address2',
-				publicKey: 'publicKey2',
-				secondPublicKey: 'secondPublicKey2',
-			};
-
-			stubs.bindings.modules.accounts.getAccounts = sinonSandbox
-				.stub()
-				.callsFake((param1, param2, cb) => cb(null, [member1, member2]));
-
-			self.getGroup(validAccount.address, (err, scopeGroup) => {
-				expect(err).to.not.exist;
-				expect(get('modules').accounts.getAccounts).to.be.calledWith({
-					address_in: ['address1', 'address2'],
-				});
-				expect(scopeGroup.members)
-					.to.be.an('array')
-					.which.have.lengthOf(2);
-				expect(scopeGroup.members).to.deep.equal([member1, member2]);
-				done();
 			});
 		});
 	});
