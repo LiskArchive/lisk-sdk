@@ -21,9 +21,9 @@ const {
 	parseEncryptedPassphrase,
 	getAddressFromPublicKey,
 } = require('@liskhq/lisk-cryptography');
-const BlockReward = require('../logic/block_reward.js');
-const jobsQueue = require('../helpers/jobs_queue.js');
-const slots = require('../helpers/slots.js');
+const BlockReward = require('./logic/block_reward.js');
+const jobsQueue = require('./helpers/jobs_queue.js');
+const slots = require('./helpers/slots.js');
 
 // Private fields
 let modules;
@@ -58,7 +58,7 @@ __private.delegatesListCache = {};
  * @returns {setImmediateCallback} cb, err, self
  */
 class Delegates {
-	constructor(cb, scope) {
+	constructor(scope) {
 		library = {
 			channel: scope.channel,
 			logger: scope.components.logger,
@@ -79,8 +79,6 @@ class Delegates {
 		};
 		self = this;
 		__private.blockReward = new BlockReward();
-
-		setImmediate(cb, null, self);
 	}
 
 	// Public methods

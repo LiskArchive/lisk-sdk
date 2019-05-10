@@ -17,18 +17,17 @@
 const { TransactionError } = require('@liskhq/lisk-transactions');
 const async = require('async');
 const _ = require('lodash');
-const { convertErrorsToString } = require('../helpers/error_handlers');
+const { convertErrorsToString } = require('./helpers/error_handlers');
 // eslint-disable-next-line prefer-const
-let Broadcaster = require('../logic/broadcaster');
-const definitions = require('../schema/definitions');
-const processTransactionLogic = require('../logic/process_transaction');
+let Broadcaster = require('./logic/broadcaster');
+const definitions = require('./schema/definitions');
+const processTransactionLogic = require('./logic/process_transaction');
 
 const { MAX_SHARED_TRANSACTIONS } = global.constants;
 
 // Private fields
 let modules;
 let library;
-let self;
 // eslint-disable-next-line prefer-const
 let __private = {};
 
@@ -52,7 +51,7 @@ __private.messages = {};
  * @returns {setImmediateCallback} cb, null, self
  */
 class Transport {
-	constructor(cb, scope) {
+	constructor(scope) {
 		library = {
 			channel: scope.channel,
 			logger: scope.components.logger,
@@ -74,7 +73,6 @@ class Transport {
 			},
 			applicationState: scope.applicationState,
 		};
-		self = this;
 
 		__private.broadcaster = new Broadcaster(
 			scope.config.nonce,
@@ -87,8 +85,6 @@ class Transport {
 		);
 
 		this.shared = this.attachSharedMethods();
-
-		setImmediate(cb, null, self);
 	}
 
 	/**

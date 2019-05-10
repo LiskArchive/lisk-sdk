@@ -35,6 +35,9 @@ const {
 	initLogicStructure,
 	initModules,
 } = require('./init_steps');
+const { Loader } = require('./loader');
+const { Forge } = require('./forge');
+const { Transport } = require('./transport');
 
 // Begin reading from stdin
 process.stdin.resume();
@@ -178,6 +181,12 @@ module.exports = class Chain {
 			this.scope.bus = await createBus();
 			this.scope.logic = await initLogicStructure(this.scope);
 			this.scope.modules = await initModules(this.scope);
+			this.loader = new Loader(this.scope);
+			this.forge = new Forge(this.scope);
+			this.transport = new Transport(this.scope);
+			this.scope.modules.loader = this.loader;
+			this.scope.modules.forge = this.forge;
+			this.scope.modules.transport = this.transport;
 
 			this.scope.logic.block.bindModules(this.scope.modules);
 			this.scope.logic.account.bindModules(this.scope.modules);

@@ -17,11 +17,10 @@
 const async = require('async');
 const { promisify } = require('util');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
-const { convertErrorsToString } = require('../helpers/error_handlers');
-const jobsQueue = require('../helpers/jobs_queue');
-const slots = require('../helpers/slots');
-const definitions = require('../schema/definitions');
-require('colors');
+const { convertErrorsToString } = require('./helpers/error_handlers');
+const jobsQueue = require('./helpers/jobs_queue');
+const slots = require('./helpers/slots');
+const definitions = require('./schema/definitions');
 
 // Private fields
 let components;
@@ -57,7 +56,7 @@ __private.retries = 5;
  * @returns {setImmediateCallback} cb, null, self
  */
 class Loader {
-	constructor(cb, scope) {
+	constructor(scope) {
 		library = {
 			channel: scope.channel,
 			logger: scope.components.logger,
@@ -92,8 +91,6 @@ class Loader {
 		library.channel.once('network:bootstrap', () => {
 			self.onNetworkReady();
 		});
-
-		setImmediate(cb, null, self);
 	}
 
 	/**
