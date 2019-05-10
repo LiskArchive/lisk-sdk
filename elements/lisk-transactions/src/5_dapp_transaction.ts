@@ -228,7 +228,7 @@ export class DappTransaction extends BaseTransaction {
 		if (!this.amount.eq(0)) {
 			errors.push(
 				new TransactionError(
-					'Amount must be zero for vote transaction',
+					'Amount must be zero for dapp transaction',
 					this.id,
 					'.amount',
 					this.amount.toString(),
