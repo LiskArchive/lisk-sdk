@@ -949,12 +949,11 @@ describe('transport', () => {
 						done();
 					});
 
-					it('should assign blocks, dapps, loader, multisignatures, peers and transactions properties', async () => {
+					it('should assign blocks, loader, multisignatures, processTransactions and transactions properties', async () => {
 						expect(modulesObject).to.have.property('blocks');
-						expect(modulesObject).to.have.property('dapps');
 						expect(modulesObject).to.have.property('loader');
 						expect(modulesObject).to.have.property('multisignatures');
-						expect(modulesObject).to.have.property('peers');
+						expect(modulesObject).to.have.property('processTransactions');
 						return expect(modulesObject).to.have.property('transactions');
 					});
 				});

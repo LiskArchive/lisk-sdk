@@ -67,18 +67,6 @@ describe('signatures', () => {
 		});
 
 		describe('modules', () => {
-			it('should assign accounts', async () =>
-				expect(privateModules).to.have.property(
-					'accounts',
-					library.modules.accounts
-				));
-
-			it('should assign transactions', async () =>
-				expect(privateModules).to.have.property(
-					'transactions',
-					library.modules.transactions
-				));
-
 			it('should assign transport', async () =>
 				expect(privateModules).to.have.property(
 					'transport',
