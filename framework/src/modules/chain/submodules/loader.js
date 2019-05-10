@@ -1026,6 +1026,7 @@ Loader.prototype.onBind = function(scope) {
 		peers: scope.modules.peers,
 		rounds: scope.modules.rounds,
 		multisignatures: scope.modules.multisignatures,
+		processTransactions: scope.modules.processTransactions,
 	};
 
 	__private.loadBlockChain();
