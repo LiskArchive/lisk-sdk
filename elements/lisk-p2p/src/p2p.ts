@@ -451,7 +451,7 @@ export class P2P extends EventEmitter {
 					!(
 						['127.0.0.1', '0.0.0.0', 'localhost'].includes(
 							incomingPeerInfo.ipAddress,
-						) && incomingPeerInfo.wsPort !== this.nodeInfo.wsPort
+						) && incomingPeerInfo.wsPort === this.nodeInfo.wsPort
 					)
 				) {
 					this._newPeers.set(peerId, incomingPeerInfo);
@@ -522,7 +522,7 @@ export class P2P extends EventEmitter {
 				!this._newPeers.has(peerId) &&
 				!(
 					['127.0.0.1', '0.0.0.0', 'localhost'].includes(peerInfo.ipAddress) &&
-					peerInfo.wsPort !== this.nodeInfo.wsPort
+					peerInfo.wsPort === this.nodeInfo.wsPort
 				)
 			) {
 				this._newPeers.set(peerId, peerInfo);
