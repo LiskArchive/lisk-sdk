@@ -306,16 +306,17 @@ Transport.prototype.onUnconfirmedTransaction = function(
 	broadcast
 ) {
 	if (broadcast && !__private.broadcaster.maxRelays(transaction)) {
+		const transactionJSON = transaction.toJSON();
 		__private.broadcaster.enqueue(
 			{},
 			{
 				api: 'postTransactions',
 				data: {
-					transaction,
+					transaction: transactionJSON,
 				},
 			}
 		);
-		library.channel.publish('chain:transactions:change', transaction);
+		library.channel.publish('chain:transactions:change', transactionJSON);
 	}
 };
 
