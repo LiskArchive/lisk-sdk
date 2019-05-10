@@ -382,7 +382,7 @@ export class P2P extends EventEmitter {
 					const blacklist = this._config.blacklistedPeers.map(
 						peer => peer.ipAddress,
 					);
-					if (blacklist.length && blacklist.includes(socket.remoteAddress)) {
+					if (blacklist.includes(socket.remoteAddress)) {
 						this._disconnectSocketDueToFailedHandshake(
 							socket,
 							FORBIDDEN_CONNECTION,
