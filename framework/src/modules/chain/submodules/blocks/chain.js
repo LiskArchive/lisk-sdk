@@ -525,7 +525,6 @@ __private.undoConfirmedStep = async function(block, tx) {
 		nonInertTransactions,
 		tx
 	);
-
 	const unappliedTransactionResponse = transactionsResponses.find(
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK
 	);
@@ -535,7 +534,9 @@ __private.undoConfirmedStep = async function(block, tx) {
 	}
 
 	await stateStore.account.finalize();
+
 	stateStore.round.setRoundForData(slots.calcRound(block.height));
+
 	await stateStore.round.finalize();
 };
 

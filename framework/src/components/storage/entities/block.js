@@ -369,7 +369,6 @@ class Block extends BaseEntity {
 				trxOptions,
 				tx
 			);
-
 			result.forEach(block => {
 				block.transactions = transactions.filter(
 					({ blockId }) => blockId === block.id

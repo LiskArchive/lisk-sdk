@@ -158,7 +158,6 @@ async function __init(sandbox, initScope) {
 			},
 			initScope
 		);
-
 		const cache = createCacheComponent(
 			__testContext.config.components.cache,
 			logger

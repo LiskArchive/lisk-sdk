@@ -14,10 +14,11 @@
 
 'use strict';
 
+const _ = require('lodash');
+
 class Transaction {
 	constructor({ registeredTransactions = {} }) {
 		this.transactionClassMap = new Map();
-
 		Object.keys(registeredTransactions).forEach(transactionType => {
 			this.transactionClassMap.set(
 				Number(transactionType),
@@ -48,15 +49,23 @@ class Transaction {
 
 	// TODO: remove after https://github.com/LiskHQ/lisk/issues/2424
 	dbRead(raw) {
-		if (!raw.t_id || !raw.t_type) {
+		if (
+			raw.t_id === undefined ||
+			raw.t_id === null ||
+			raw.t_type === undefined ||
+			raw.t_type === null
+		) {
+			return null;
+		}
+		const transactionClass = this.transactionClassMap.get(raw.t_type);
+
+		if (!transactionClass) {
 			return null;
 		}
 
-		const transactionJSON = this.transactionClassMap(
-			parseInt(raw.t_type)
-		).dbRead(raw);
+		const transactionJSON = transactionClass.prototype.dbRead(raw);
 
-		return this.fromJson(transactionJSON);
+		return this.fromJson(_.omitBy(transactionJSON, _.isNull));
 	}
 }
 

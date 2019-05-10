@@ -460,10 +460,6 @@ export abstract class BaseTransaction {
 
 	/* tslint:disable:next-line: no-any no-null-keyword */
 	public dbRead(raw: any): TransactionJSON | null {
-		if (!raw.t_id) {
-			return null;
-		}
-
 		const transactionJSON: TransactionJSON & {
 			readonly requesterPublicKey: string;
 			readonly [key: string]: string | number | object | null;
@@ -487,19 +483,10 @@ export abstract class BaseTransaction {
 			asset: {},
 		};
 
-		const transaction = Object.keys(
-			{ ...transactionJSON, asset: this.assetDbRead(raw) } || {},
-		).reduce(
-			(tx, key) => {
-				// Check for null or undefined
-				if (transactionJSON[key] !== null && transactionJSON[key] !== undefined) {
-					tx[key] = transactionJSON[key];
-				}
-
-				return tx;
-			},
-			{} as any,
-		);
+		const transaction = {
+			...transactionJSON,
+			asset: this.assetDbRead(raw) || {},
+		};
 
 		return transaction;
 	}

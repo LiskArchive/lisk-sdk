@@ -89,7 +89,6 @@ export class VoteTransaction extends BaseTransaction {
 				publicKey,
 			};
 		});
-
 		const filterArray = [
 			{
 				address: this.senderId,
@@ -342,6 +341,7 @@ export class VoteTransaction extends BaseTransaction {
 				),
 			);
 		}
+
 		const updatedSender = {
 			...sender,
 			balance: updatedSenderBalance.toString(),
