@@ -31,6 +31,8 @@ import {
 } from './peer';
 
 import {
+	FORBIDDEN_CONNECTION,
+	FORBIDDEN_CONNECTION_REASON,
 	INCOMPATIBLE_PEER_CODE,
 	INCOMPATIBLE_PEER_UNKNOWN_REASON,
 	INVALID_CONNECTION_QUERY_CODE,
@@ -383,8 +385,8 @@ export class P2P extends EventEmitter {
 					if (blacklist.length && blacklist.includes(socket.remoteAddress)) {
 						this._disconnectSocketDueToFailedHandshake(
 							socket,
-							INVALID_CONNECTION_QUERY_CODE,
-							INVALID_CONNECTION_QUERY_REASON,
+							FORBIDDEN_CONNECTION,
+							FORBIDDEN_CONNECTION_REASON,
 						);
 
 						return;
