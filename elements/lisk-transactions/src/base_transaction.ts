@@ -102,6 +102,7 @@ export abstract class BaseTransaction {
 	public readonly recipientId: string;
 	public readonly blockId?: string;
 	public readonly height?: number;
+	public readonly relays?: number;
 	public readonly confirmations?: number;
 	public readonly recipientPublicKey?: string;
 	public readonly senderId: string;
@@ -196,6 +197,7 @@ export abstract class BaseTransaction {
 			id: this.id,
 			blockId: this.blockId,
 			height: this.height,
+			relays: this.relays,
 			confirmations: this.confirmations,
 			amount: this.amount.toString(),
 			type: this.type,
