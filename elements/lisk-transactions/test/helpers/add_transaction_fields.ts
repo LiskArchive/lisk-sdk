@@ -15,6 +15,7 @@
 export const addTransactionFields = (transaction: any) => {
 	return {
 		...transaction,
+		relays: undefined,
 		signSignature: transaction.signSignature
 			? transaction.signSignature
 			: undefined,
