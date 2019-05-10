@@ -194,11 +194,12 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handlePeerConnectAbort = (peerInfo: P2PPeerInfo) => {
-			// Re-emit the message to allow it to bubble up the class hierarchy.
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
 			if (this._triedPeers.has(peerId)) {
 				this._triedPeers.delete(peerId);
 			}
+
+			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, peerInfo);
 		};
 
