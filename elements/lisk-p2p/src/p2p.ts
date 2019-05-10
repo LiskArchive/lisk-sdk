@@ -103,7 +103,6 @@ export const EVENT_FAILED_TO_ADD_INBOUND_PEER = 'failedToAddInboundPeer';
 export const EVENT_NEW_PEER = 'newPeer';
 
 export const NODE_HOST_IP = '0.0.0.0';
-export const NODE_HOST_IP_LIST = ['127.0.0.1', '0.0.0.0', 'localhost'];
 export const DEFAULT_DISCOVERY_INTERVAL = 30000;
 
 const BASE_10_RADIX = 10;
@@ -446,14 +445,7 @@ export class P2P extends EventEmitter {
 					this.emit(EVENT_NEW_PEER, incomingPeerInfo);
 				}
 
-				if (
-					!this._newPeers.has(peerId) &&
-					!this._triedPeers.has(peerId) &&
-					!(
-						NODE_HOST_IP_LIST.includes(incomingPeerInfo.ipAddress) &&
-						incomingPeerInfo.wsPort === this.nodeInfo.wsPort
-					)
-				) {
+				if (!this._newPeers.has(peerId) && !this._triedPeers.has(peerId)) {
 					this._newPeers.set(peerId, incomingPeerInfo);
 				}
 			},
@@ -517,14 +509,7 @@ export class P2P extends EventEmitter {
 
 		discoveredPeers.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			if (
-				!this._triedPeers.has(peerId) &&
-				!this._newPeers.has(peerId) &&
-				!(
-					NODE_HOST_IP_LIST.includes(peerInfo.ipAddress) &&
-					peerInfo.wsPort === this.nodeInfo.wsPort
-				)
-			) {
+			if (!this._triedPeers.has(peerId) && !this._newPeers.has(peerId)) {
 				this._newPeers.set(peerId, peerInfo);
 			}
 		});
