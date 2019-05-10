@@ -102,6 +102,7 @@ class Transport {
 			blocks: scope.modules.blocks,
 			loader: scope.modules.loader,
 			multisignatures: scope.modules.multisignatures,
+			processTransactions: scope.modules.processTransactions,
 			transactions: scope.modules.transactions,
 		};
 	}
