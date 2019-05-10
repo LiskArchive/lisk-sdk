@@ -433,7 +433,15 @@ export class P2P extends EventEmitter {
 					this.emit(EVENT_NEW_PEER, incomingPeerInfo);
 				}
 
-				if (!this._newPeers.has(peerId) && !this._triedPeers.has(peerId)) {
+				if (
+					!this._newPeers.has(peerId) &&
+					!this._triedPeers.has(peerId) &&
+					!(
+						['127.0.0.1', '0.0.0.0', 'localhost'].includes(
+							incomingPeerInfo.ipAddress,
+						) && incomingPeerInfo.wsPort !== this.nodeInfo.wsPort
+					)
+				) {
 					this._newPeers.set(peerId, incomingPeerInfo);
 				}
 			},
@@ -497,7 +505,14 @@ export class P2P extends EventEmitter {
 
 		discoveredPeers.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			if (!this._triedPeers.has(peerId) && !this._newPeers.has(peerId)) {
+			if (
+				!this._triedPeers.has(peerId) &&
+				!this._newPeers.has(peerId) &&
+				!(
+					['127.0.0.1', '0.0.0.0', 'localhost'].includes(peerInfo.ipAddress) &&
+					peerInfo.wsPort !== this.nodeInfo.wsPort
+				)
+			) {
 				this._newPeers.set(peerId, peerInfo);
 			}
 		});
