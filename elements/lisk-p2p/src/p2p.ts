@@ -375,6 +375,22 @@ export class P2P extends EventEmitter {
 				const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
 				const peerId = constructPeerId(socket.remoteAddress, wsPort);
 
+				// Check blacklist to avoid incoming connections from backlisted ips
+				if (this._config.blacklistedPeers) {
+					const blacklist = this._config.blacklistedPeers.map(
+						peer => peer.ipAddress,
+					);
+					if (blacklist.length && blacklist.includes(socket.remoteAddress)) {
+						this._disconnectSocketDueToFailedHandshake(
+							socket,
+							INVALID_CONNECTION_QUERY_CODE,
+							INVALID_CONNECTION_QUERY_REASON,
+						);
+
+						return;
+					}
+				}
+
 				// tslint:disable-next-line no-let
 				let queryOptions;
 
