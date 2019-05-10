@@ -196,6 +196,18 @@ __private.afterSave = async function(block, cb) {
 				' '
 			)
 		);
+		try {
+			// Delete the transaction count from cache
+			await components.cache.deleteJsonForKey(CACHE_KEYS_TRANSACTION_COUNT);
+			components.cache.logger.debug(
+				`Cache - Key ${CACHE_KEYS_TRANSACTION_COUNT} cleared from cache on chain afterSave`
+			);
+		} catch (err) {
+			library.logger.error(
+				`Cache - Error clearing key ${CACHE_KEYS_TRANSACTION_COUNT} on chain afterSave function`
+			);
+		}
+
 		const delegateTransaction = block.transactions.find(
 			transaction =>
 				!!transaction && transaction.type === TRANSACTION_TYPES.DELEGATE
@@ -204,21 +216,11 @@ __private.afterSave = async function(block, cb) {
 			try {
 				await components.cache.removeByPattern(CACHE_KEYS_DELEGATES);
 				library.logger.debug(
-					[
-						'Cache - Keys with pattern:',
-						CACHE_KEYS_DELEGATES,
-						'cleared from cache on delegate transaction',
-					].join(' ')
-				);
-				await components.cache.deleteJsonForKey(CACHE_KEYS_TRANSACTION_COUNT);
-				components.cache.logger.debug(
-					`Cache - Keys ${CACHE_KEYS_TRANSACTION_COUNT} cleared from cache on chain afterSave`
+					`Cache - Keys with pattern: ${CACHE_KEYS_DELEGATES} cleared from cache on delegate transaction`
 				);
 			} catch (err) {
 				library.logger.error(
-					['Cache - Error clearing keys', 'on chain afterSave function'].join(
-						' '
-					)
+					`Cache - Error clearing key ${CACHE_KEYS_DELEGATES} on chain afterSave function`
 				);
 			}
 		}

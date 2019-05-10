@@ -355,12 +355,8 @@ describe('matcher', () => {
 					commonTransactionData
 				);
 
-				// Add transaction to the transaction pool. It will be added as
-				// the matcher will return true given the current block height is 1 (genesisBlock)
-				await addTransactionPromisified(scope, jsonTransaction);
-
 				// Populate transaction pool with more transactions so we can delay applying the custom transaction
-				const addTransactionsToPoolSteps = Array(MAX_TRANSACTIONS_PER_BLOCK + 5)
+				const addTransactionsToPoolSteps = Array(MAX_TRANSACTIONS_PER_BLOCK)
 					.fill()
 					.map((_, i) => {
 						const dummyTransferTransaction = transfer({
@@ -375,6 +371,10 @@ describe('matcher', () => {
 				// Wait until the pool is populated with other transactions
 				await Promise.all(addTransactionsToPoolSteps);
 
+				// Add transaction to the transaction pool. It will be added as
+				// the matcher will return true given the current block height is 1 (genesisBlock)
+				await addTransactionPromisified(scope, jsonTransaction);
+
 				// Forge dummy transactions. Height will be 2.
 				await forge(scope);
 
@@ -387,7 +387,7 @@ describe('matcher', () => {
 						transation => transation.id === jsonTransaction.id
 					)
 				).to.be.false;
-				expect(lastBlock.transactions.length).to.equal(5);
+				expect(lastBlock.transactions.length).to.equal(0);
 			});
 		});
 
