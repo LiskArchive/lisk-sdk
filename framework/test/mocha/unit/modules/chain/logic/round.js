@@ -16,6 +16,7 @@
 
 const rewire = require('rewire');
 const Promise = require('bluebird');
+const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 const { TestStorageSandbox } = require('../../../../common/storage_sandbox');
 
@@ -56,10 +57,9 @@ describe('round', () => {
 		storageStubs
 	);
 
-	const modules = {
-		accounts: {
-			generateAddressByPublicKey: sinonSandbox.stub(),
-			mergeAccountAndGet: sinonSandbox.stub(),
+	const logic = {
+		account: {
+			merge: sinonSandbox.stub(),
 		},
 	};
 
@@ -71,6 +71,7 @@ describe('round', () => {
 		roundFees: ACTIVE_DELEGATES,
 		roundRewards: [10],
 		library: {
+			logic,
 			storage,
 			logger: {
 				trace: sinonSandbox.spy(),
@@ -81,7 +82,6 @@ describe('round', () => {
 				error: sinonSandbox.spy(),
 			},
 		},
-		modules,
 		block: {
 			generatorPublicKey: genesisBlock.generatorPublicKey,
 			id: genesisBlock.id,
@@ -224,6 +224,7 @@ describe('round', () => {
 	describe('mergeBlockGenerator', () => {
 		describe('when going forward', () => {
 			let args = null;
+			let address = null;
 
 			beforeEach(() => {
 				scope.backwards = false;
@@ -233,22 +234,25 @@ describe('round', () => {
 					publicKey: scope.block.generatorPublicKey,
 					round: scope.round,
 				};
-				scope.modules.accounts.mergeAccountAndGet.callsArgWith(1, null, args);
+				address = getAddressFromPublicKey(args.publicKey);
+				scope.library.logic.account.merge.callsArgWith(2, null, args);
 				return round.mergeBlockGenerator();
 			});
 
 			afterEach(async () => {
-				round.scope.modules.accounts.mergeAccountAndGet.reset();
+				round.scope.library.logic.account.merge.reset();
 			});
 
-			it('should call modules.accounts.mergeAccountAndGet with proper params', async () =>
-				expect(
-					round.scope.modules.accounts.mergeAccountAndGet
-				).to.be.calledWith(args));
+			it('should call logic.account.merge with proper params', async () =>
+				expect(round.scope.library.logic.account.merge).to.be.calledWith(
+					address,
+					args
+				));
 		});
 
 		describe('when going backwards', () => {
 			let args = null;
+			let address = null;
 
 			beforeEach(() => {
 				scope.backwards = true;
@@ -258,14 +262,16 @@ describe('round', () => {
 					publicKey: scope.block.generatorPublicKey,
 					round: scope.round,
 				};
-				scope.modules.accounts.mergeAccountAndGet.callsArgWith(1, null, args);
+				address = getAddressFromPublicKey(args.publicKey);
+				scope.library.logic.account.merge.callsArgWith(2, null, args);
 				return round.mergeBlockGenerator();
 			});
 
-			it('should call modules.accounts.mergeAccountAndGet with proper params', async () =>
-				expect(
-					round.scope.modules.accounts.mergeAccountAndGet
-				).to.be.calledWith(args));
+			it('should call logic.account.merge with proper params', async () =>
+				expect(round.scope.library.logic.account.merge).to.be.calledWith(
+					address,
+					args
+				));
 		});
 	});
 
@@ -360,10 +366,6 @@ describe('round', () => {
 					address: '16010222169256538112L',
 				};
 
-				scope.modules.accounts.generateAddressByPublicKey = function() {
-					return delegate.address;
-				};
-
 				getVotes_stub
 					.withArgs({ round: scope.round })
 					.resolves([delegate, delegate]);
@@ -417,10 +419,6 @@ describe('round', () => {
 					delegate:
 						'6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a',
 					address: '16010222169256538112L',
-				};
-
-				scope.modules.accounts.generateAddressByPublicKey = function() {
-					return delegate.address;
 				};
 
 				getVotes_stub.withArgs({ round: scope.round }).resolves([]);
@@ -741,11 +739,11 @@ describe('round', () => {
 			insertRoundRewards_stub = storageStubs.Round.createRoundRewards.resolves(
 				'insertRoundRewards'
 			);
-			modules.accounts.mergeAccountAndGet.yields(null, 'mergeAccountAndGet');
+			logic.account.merge.yields(null, 'merge');
 		});
 
 		afterEach(async () => {
-			modules.accounts.mergeAccountAndGet.reset();
+			logic.account.merge.reset();
 			insertRoundRewards_stub.reset();
 		});
 
@@ -770,11 +768,11 @@ describe('round', () => {
 					});
 
 					it('query should be called', async () => {
-						// One success for mergeAccountAndGet and one for insertRoundRewards_stub
-						expect(res).to.be.eql(['mergeAccountAndGet', 'insertRoundRewards']);
+						// One success for merge and one for insertRoundRewards_stub
+						expect(res).to.be.eql(['merge', 'insertRoundRewards']);
 					});
 
-					it('should call mergeAccountAndGet with proper args (apply rewards)', async () => {
+					it('should call merge with proper args (apply rewards)', async () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -799,16 +797,16 @@ describe('round', () => {
 							rewards: scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.library.logic.account.merge.args[called][1];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.be.eql(args);
 					});
 
-					it('should not call mergeAccountAndGet another time (for apply remaining fees)', async () =>
-						expect(
-							round.scope.modules.accounts.mergeAccountAndGet.callCount
-						).to.equal(called));
+					it('should not call merge another time (for apply remaining fees)', async () =>
+						expect(round.scope.library.logic.account.merge.callCount).to.equal(
+							called
+						));
 
 					it('should call insertRoundRewards with proper args', async () =>
 						expect(insertRoundRewards_stub).to.have.been.calledWith(
@@ -834,10 +832,10 @@ describe('round', () => {
 					});
 
 					it('query should be called', async () => {
-						expect(res).to.be.eql(['mergeAccountAndGet']);
+						expect(res).to.be.eql(['merge']);
 					});
 
-					it('should call mergeAccountAndGet with proper args (apply rewards)', async () => {
+					it('should call merge with proper args (apply rewards)', async () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -862,16 +860,16 @@ describe('round', () => {
 							rewards: -scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.library.logic.account.merge.args[called][1];
 						backwardsResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should not call mergeAccountAndGet another time (for apply remaining fees)', async () =>
-						expect(
-							round.scope.modules.accounts.mergeAccountAndGet.callCount
-						).to.equal(called));
+					it('should not call merge another time (for apply remaining fees)', async () =>
+						expect(round.scope.library.logic.account.merge.callCount).to.equal(
+							called
+						));
 
 					it('should not call insertRoundRewards', async () =>
 						expect(insertRoundRewards_stub).to.have.not.been.called);
@@ -923,14 +921,10 @@ describe('round', () => {
 					});
 
 					it('query should be called', async () => {
-						expect(res).to.be.eql([
-							'mergeAccountAndGet',
-							'mergeAccountAndGet',
-							'insertRoundRewards',
-						]);
+						expect(res).to.be.eql(['merge', 'merge', 'insertRoundRewards']);
 					});
 
-					it('should call mergeAccountAndGet with proper args (apply rewards)', async () => {
+					it('should call merge with proper args (apply rewards)', async () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -955,13 +949,13 @@ describe('round', () => {
 							rewards: scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.library.logic.account.merge.args[called][1];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should call mergeAccountAndGet with proper args (fees)', async () => {
+					it('should call merge with proper args (fees)', async () => {
 						const index = 0; // Delegate index on list
 						const feesPerDelegate = new Bignum(scope.roundFees.toPrecision(15))
 							.dividedBy(ACTIVE_DELEGATES)
@@ -979,16 +973,16 @@ describe('round', () => {
 							fees: remainingFees,
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.library.logic.account.merge.args[called][1];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should not call mergeAccountAndGet another time (completed)', async () =>
-						expect(
-							round.scope.modules.accounts.mergeAccountAndGet.callCount
-						).to.equal(called));
+					it('should not call merge another time (completed)', async () =>
+						expect(round.scope.library.logic.account.merge.callCount).to.equal(
+							called
+						));
 
 					it('should call insertRoundRewards with proper args', async () =>
 						expect(insertRoundRewards_stub).to.have.been.calledWith(
@@ -1016,10 +1010,10 @@ describe('round', () => {
 					});
 
 					it('query should be called', async () => {
-						expect(res).to.be.eql(['mergeAccountAndGet', 'mergeAccountAndGet']);
+						expect(res).to.be.eql(['merge', 'merge']);
 					});
 
-					it('should call mergeAccountAndGet with proper args (apply rewards)', async () => {
+					it('should call merge with proper args (apply rewards)', async () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -1044,13 +1038,13 @@ describe('round', () => {
 							rewards: -scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.library.logic.account.merge.args[called][1];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should call mergeAccountAndGet with proper args (fees)', async () => {
+					it('should call merge with proper args (fees)', async () => {
 						const index = 0; // Delegate index on list
 						const feesPerDelegate = new Bignum(scope.roundFees.toPrecision(15))
 							.dividedBy(ACTIVE_DELEGATES)
@@ -1068,16 +1062,16 @@ describe('round', () => {
 							fees: -remainingFees,
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.library.logic.account.merge.args[called][1];
 						backwardsResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should not call mergeAccountAndGet another time (completed)', async () =>
-						expect(
-							round.scope.modules.accounts.mergeAccountAndGet.callCount
-						).to.equal(called));
+					it('should not call merge another time (completed)', async () =>
+						expect(round.scope.library.logic.account.merge.callCount).to.equal(
+							called
+						));
 
 					it('should not call insertRoundRewards', async () =>
 						expect(insertRoundRewards_stub).to.have.not.been.called);
@@ -1137,16 +1131,16 @@ describe('round', () => {
 
 					it('query should be called', async () => {
 						expect(res).to.be.eql([
-							'mergeAccountAndGet',
-							'mergeAccountAndGet',
-							'mergeAccountAndGet',
+							'merge',
+							'merge',
+							'merge',
 							'insertRoundRewards',
 							'insertRoundRewards',
 							'insertRoundRewards',
 						]);
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', async () => {
+					it('should call merge with proper args (rewards) - 1st delegate', async () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -1171,13 +1165,13 @@ describe('round', () => {
 							rewards: scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.library.logic.account.merge.args[called][1];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', async () => {
+					it('should call merge with proper args (rewards) - 2nd delegate', async () => {
 						const index = 1; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -1202,13 +1196,13 @@ describe('round', () => {
 							rewards: scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.library.logic.account.merge.args[called][1];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', async () => {
+					it('should call merge with proper args (rewards) - 3th delegate', async () => {
 						const index = 2; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -1233,16 +1227,16 @@ describe('round', () => {
 							rewards: scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.library.logic.account.merge.args[called][1];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should not call mergeAccountAndGet another time (for applying remaining fees)', async () =>
-						expect(
-							round.scope.modules.accounts.mergeAccountAndGet.callCount
-						).to.equal(called));
+					it('should not call merge another time (for applying remaining fees)', async () =>
+						expect(round.scope.library.logic.account.merge.callCount).to.equal(
+							called
+						));
 
 					it('should call insertRoundRewards with proper args', async () => {
 						expect(insertRoundRewards_stub).to.have.been.calledWith(
@@ -1289,14 +1283,10 @@ describe('round', () => {
 					});
 
 					it('query should be called', async () => {
-						expect(res).to.be.eql([
-							'mergeAccountAndGet',
-							'mergeAccountAndGet',
-							'mergeAccountAndGet',
-						]);
+						expect(res).to.be.eql(['merge', 'merge', 'merge']);
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', async () => {
+					it('should call merge with proper args (rewards) - 1st delegate', async () => {
 						const index = 2; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -1321,13 +1311,13 @@ describe('round', () => {
 							rewards: -scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.library.logic.account.merge.args[called][1];
 						backwardsResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', async () => {
+					it('should call merge with proper args (rewards) - 2nd delegate', async () => {
 						const index = 1; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -1352,13 +1342,13 @@ describe('round', () => {
 							rewards: -scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.library.logic.account.merge.args[called][1];
 						backwardsResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', async () => {
+					it('should call merge with proper args (rewards) - 3th delegate', async () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -1383,16 +1373,16 @@ describe('round', () => {
 							rewards: -scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.library.logic.account.merge.args[called][1];
 						backwardsResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should not call mergeAccountAndGet another time (for applying remaining fees)', async () =>
-						expect(
-							round.scope.modules.accounts.mergeAccountAndGet.callCount
-						).to.equal(called));
+					it('should not call merge another time (for applying remaining fees)', async () =>
+						expect(round.scope.library.logic.account.merge.callCount).to.equal(
+							called
+						));
 
 					it('should not call insertRoundRewards', async () =>
 						expect(insertRoundRewards_stub).to.have.not.been.called);
@@ -1450,17 +1440,17 @@ describe('round', () => {
 
 					it('query should be called', async () => {
 						expect(res).to.be.eql([
-							'mergeAccountAndGet',
-							'mergeAccountAndGet',
-							'mergeAccountAndGet',
-							'mergeAccountAndGet',
+							'merge',
+							'merge',
+							'merge',
+							'merge',
 							'insertRoundRewards',
 							'insertRoundRewards',
 							'insertRoundRewards',
 						]);
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', async () => {
+					it('should call merge with proper args (rewards) - 1st delegate', async () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -1485,13 +1475,13 @@ describe('round', () => {
 							rewards: scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.library.logic.account.merge.args[called][1];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', async () => {
+					it('should call merge with proper args (rewards) - 2nd delegate', async () => {
 						const index = 1; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -1516,13 +1506,13 @@ describe('round', () => {
 							rewards: scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.library.logic.account.merge.args[called][1];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', async () => {
+					it('should call merge with proper args (rewards) - 3th delegate', async () => {
 						const index = 2; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -1547,13 +1537,13 @@ describe('round', () => {
 							rewards: scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.library.logic.account.merge.args[called][1];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should call mergeAccountAndGet with proper args (fees)', async () => {
+					it('should call merge with proper args (fees)', async () => {
 						const index = 2; // Delegate index on list
 						const feesPerDelegate = new Bignum(scope.roundFees.toPrecision(15))
 							.dividedBy(ACTIVE_DELEGATES)
@@ -1571,16 +1561,16 @@ describe('round', () => {
 							fees: remainingFees,
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.library.logic.account.merge.args[called][1];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should not call mergeAccountAndGet another time (completed)', async () =>
-						expect(
-							round.scope.modules.accounts.mergeAccountAndGet.callCount
-						).to.equal(called));
+					it('should not call merge another time (completed)', async () =>
+						expect(round.scope.library.logic.account.merge.callCount).to.equal(
+							called
+						));
 
 					it('should call insertRoundRewards with proper args', async () => {
 						expect(insertRoundRewards_stub).to.have.been.calledWith(
@@ -1629,15 +1619,10 @@ describe('round', () => {
 					});
 
 					it('query should be called', async () => {
-						expect(res).to.be.eql([
-							'mergeAccountAndGet',
-							'mergeAccountAndGet',
-							'mergeAccountAndGet',
-							'mergeAccountAndGet',
-						]);
+						expect(res).to.be.eql(['merge', 'merge', 'merge', 'merge']);
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', async () => {
+					it('should call merge with proper args (rewards) - 1st delegate', async () => {
 						const index = 2; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -1662,13 +1647,13 @@ describe('round', () => {
 							rewards: -scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.library.logic.account.merge.args[called][1];
 						backwardsResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', async () => {
+					it('should call merge with proper args (rewards) - 2nd delegate', async () => {
 						const index = 1; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -1693,13 +1678,13 @@ describe('round', () => {
 							rewards: -scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.library.logic.account.merge.args[called][1];
 						backwardsResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', async () => {
+					it('should call merge with proper args (rewards) - 3th delegate', async () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
@@ -1724,13 +1709,13 @@ describe('round', () => {
 							rewards: -scope.roundRewards[index],
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.library.logic.account.merge.args[called][1];
 						backwardsResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should call mergeAccountAndGet with proper args (fees)', async () => {
+					it('should call merge with proper args (fees)', async () => {
 						const index = 2; // Delegate index on list
 						const feesPerDelegate = new Bignum(scope.roundFees.toPrecision(15))
 							.dividedBy(ACTIVE_DELEGATES)
@@ -1748,16 +1733,16 @@ describe('round', () => {
 							fees: -remainingFees,
 						};
 						const result =
-							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
+							round.scope.library.logic.account.merge.args[called][1];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
 					});
 
-					it('should not call mergeAccountAndGet another time (completed)', async () =>
-						expect(
-							round.scope.modules.accounts.mergeAccountAndGet.callCount
-						).to.equal(called));
+					it('should not call merge another time (completed)', async () =>
+						expect(round.scope.library.logic.account.merge.callCount).to.equal(
+							called
+						));
 
 					it('should not call insertRoundRewards', async () =>
 						expect(insertRoundRewards_stub).to.have.not.been.called);
@@ -1809,10 +1794,6 @@ describe('round', () => {
 			scope.roundRewards = [1, 2, 3];
 			scope.roundFees = 1000; // 9 LSK fee per delegate, 91 remaining fees
 
-			scope.modules.accounts.generateAddressByPublicKey = function() {
-				return delegate.address;
-			};
-
 			const delegate = {
 				amount: 10000,
 				delegate:
@@ -1832,10 +1813,7 @@ describe('round', () => {
 				'syncDelegatesRanks'
 			);
 			flush_stub = storageStubs.Round.delete;
-			scope.modules.accounts.mergeAccountAndGet.yields(
-				null,
-				'mergeAccountAndGet'
-			);
+			scope.library.logic.account.merge.yields(null, 'merge');
 
 			round = new Round(scope, task);
 			res = round.land();
@@ -1848,7 +1826,7 @@ describe('round', () => {
 			decreaseFieldBy_stub.reset();
 			getVotes_stub.reset();
 			syncDelegatesRanks_stub.reset();
-			round.scope.modules.accounts.mergeAccountAndGet.reset();
+			round.scope.library.logic.account.merge.reset();
 		});
 
 		it('should return promise', async () => expect(isPromise(res)).to.be.true);
@@ -1870,11 +1848,9 @@ describe('round', () => {
 		it('query updateDelegatesRanks should be called once', async () =>
 			expect(syncDelegatesRanks_stub.callCount).to.equal(1));
 
-		it('modules.accounts.mergeAccountAndGet should be called 4 times', async () =>
+		it('logic.account.merge should be called 4 times', async () =>
 			// 3x delegates + 1x remaining fees
-			expect(
-				round.scope.modules.accounts.mergeAccountAndGet.callCount
-			).to.equal(4));
+			expect(round.scope.library.logic.account.merge.callCount).to.equal(4));
 	});
 
 	describe('backwardLand', () => {
@@ -1900,10 +1876,6 @@ describe('round', () => {
 			scope.roundRewards = [1, 2, 3];
 			scope.roundFees = 1000; // 9 LSK fee per delegate, 91 remaining fees
 
-			scope.modules.accounts.generateAddressByPublicKey = function() {
-				return delegate.address;
-			};
-
 			const delegate = {
 				amount: 10000,
 				delegate:
@@ -1924,10 +1896,7 @@ describe('round', () => {
 			restoreRoundSnapshot_stub = storageStubs.Round.restoreRoundSnapshot.resolves();
 			restoreVotesSnapshot_stub = storageStubs.Round.restoreVotesSnapshot.resolves();
 			deleteRoundRewards_stub = storageStubs.Round.deleteRoundRewards.resolves();
-			scope.modules.accounts.mergeAccountAndGet.yields(
-				null,
-				'mergeAccountAndGet'
-			);
+			scope.library.logic.account.merge.yields(null, 'merge');
 
 			round = new Round(scope, task);
 			res = round.backwardLand();
@@ -1944,7 +1913,7 @@ describe('round', () => {
 			syncDelegatesRanks_stub.reset();
 			deleteRoundRewards_stub.reset();
 			flush_stub.reset();
-			round.scope.modules.accounts.mergeAccountAndGet.reset();
+			round.scope.library.logic.account.merge.reset();
 		});
 
 		it('should return promise', async () => expect(isPromise(res)).to.be.true);
@@ -1964,11 +1933,9 @@ describe('round', () => {
 		it('query flushRound should be called once', async () =>
 			expect(flush_stub.callCount).to.equal(1));
 
-		it('modules.accounts.mergeAccountAndGet should be called 4 times', async () =>
+		it('logic.account.merge should be called 4 times', async () =>
 			// 3x delegates + 1x remaining fees
-			expect(
-				round.scope.modules.accounts.mergeAccountAndGet.callCount
-			).to.equal(4));
+			expect(round.scope.library.logic.account.merge.callCount).to.equal(4));
 
 		it('query checkSnapshotAvailability should be called once', async () =>
 			expect(checkSnapshotAvailability_stub.callCount).to.equal(1));

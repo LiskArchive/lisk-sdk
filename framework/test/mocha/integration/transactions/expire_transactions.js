@@ -19,6 +19,7 @@ const {
 	registerMultisignature,
 	constants: transactionConstants,
 } = require('@liskhq/lisk-transactions');
+const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const Promise = require('bluebird');
 const randomUtil = require('../../common/utils/random');
 const accountsFixtures = require('../../fixtures/accounts');
@@ -54,9 +55,7 @@ describe('expire transactions', () => {
 
 	const getSenderAddress = transaction =>
 		transaction.senderId ||
-		library.modules.accounts.generateAddressByPublicKey(
-			transaction.senderPublicKey
-		);
+		getAddressFromPublicKey(transaction.senderPublicKey);
 
 	const createTransaction = (amount, recipientId) => {
 		return transfer({

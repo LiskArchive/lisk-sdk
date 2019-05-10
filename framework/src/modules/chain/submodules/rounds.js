@@ -16,6 +16,8 @@
 
 const Bignumber = require('bignumber.js');
 const async = require('async');
+const cryptography = require('@liskhq/lisk-cryptography');
+
 const Round = require('../logic/round');
 const slots = require('../helpers/slots');
 
@@ -47,6 +49,7 @@ class Rounds {
 	constructor(cb, scope) {
 		library = {
 			channel: scope.channel,
+			logic: scope.logic,
 			logger: scope.components.logger,
 			bus: scope.bus,
 			storage: scope.components.storage,
@@ -91,7 +94,6 @@ class Rounds {
 
 		const scope = {
 			library,
-			modules,
 			block,
 			round,
 			backwards: true,
@@ -185,7 +187,6 @@ class Rounds {
 
 		const scope = {
 			library,
-			modules,
 			block,
 			round,
 			backwards: false,
@@ -427,7 +428,7 @@ __private.getOutsiders = function(scope, cb, tx) {
 				(delegate, eachCb) => {
 					if (scope.roundDelegates.indexOf(delegate) === -1) {
 						scope.roundOutsiders.push(
-							modules.accounts.generateAddressByPublicKey(delegate)
+							cryptography.getAddressFromPublicKey(delegate)
 						);
 					}
 					return setImmediate(eachCb);

@@ -53,13 +53,7 @@ describe('delegate', () => {
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: delegateAccount.address,
 			});
-			localCommon.addTransactionsAndForge(
-				library,
-				[sendTransaction],
-				async () => {
-					library.logic.account.get({ address: delegateAccount.address }, done);
-				}
-			);
+			localCommon.addTransactionsAndForge(library, [sendTransaction], done);
 		});
 
 		describe('with delegate transaction in unconfirmed state', () => {

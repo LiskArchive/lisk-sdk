@@ -57,6 +57,9 @@ describe('Chain', () => {
 			block: {
 				bindModules: sinonSandbox.stub(),
 			},
+			account: {
+				bindModules: sinonSandbox.stub(),
+			},
 		};
 
 		stubs.modules = {
@@ -306,6 +309,12 @@ describe('Chain', () => {
 		it('should bind modules with scope.logic.block', () => {
 			return expect(
 				chain.scope.logic.block.bindModules
+			).to.have.been.calledWith(stubs.modules);
+		});
+
+		it('should bind modules with scope.logic.account', () => {
+			return expect(
+				chain.scope.logic.account.bindModules
 			).to.have.been.calledWith(stubs.modules);
 		});
 
