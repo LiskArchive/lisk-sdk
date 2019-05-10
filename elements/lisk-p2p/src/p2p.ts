@@ -191,8 +191,20 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_CLOSE_OUTBOUND, closePacket);
 		};
 
-		this._handlePeerInfoUpdate = (peerInfo: P2PPeerInfo) => {
+		this._handlePeerInfoUpdate = (peerInfo: P2PDiscoveredPeerInfo) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
+			const peerId = constructPeerIdFromPeerInfo(peerInfo);
+			const foundTriedPeer = this._triedPeers.get(peerId);
+
+			if (foundTriedPeer) {
+				const updatedPeerInfo = {
+					...peerInfo,
+					ipAddress: foundTriedPeer.ipAddress,
+					wsPort: foundTriedPeer.wsPort,
+				};
+				this._triedPeers.set(peerId, updatedPeerInfo);
+			}
+
 			this.emit(EVENT_UPDATED_PEER_INFO, peerInfo);
 		};
 
