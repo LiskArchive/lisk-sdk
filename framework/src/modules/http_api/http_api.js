@@ -87,6 +87,8 @@ module.exports = class HttpApi {
 			},
 			channel: this.channel,
 			config: this.options,
+			lastCommitId: this.options.lastCommitId,
+			buildVersion: this.options.buildVersion,
 			applicationState,
 		};
 

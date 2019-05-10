@@ -24,12 +24,16 @@ const {
 process.env.NODE_ENV = 'test';
 
 let app;
+const dummyLastCommitId = 'a4adbfb7651874c5746dbc389b281a111af79e96';
+const dummyBuildVersion = '#buildVersion';
 
 const appConfig = {
 	app: {
 		version: '2.0.0',
 		minVersion: '1.0.0',
 		protocolVersion: '1.1',
+		lastCommitId: dummyLastCommitId,
+		buildVersion: dummyBuildVersion,
 	},
 };
 
