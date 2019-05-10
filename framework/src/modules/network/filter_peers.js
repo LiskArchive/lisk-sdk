@@ -192,7 +192,7 @@ const getConsolidatedPeersList = networkStatus => {
 				...peerWithoutIp
 			} = peer;
 
-			return { ip: ipAddress, ...peerWithoutIp, state: 0 };
+			return { ip: ipAddress, ...peerWithoutIp, state: 1 };
 		});
 
 	return [...connectedList, ...disconnectedList];
