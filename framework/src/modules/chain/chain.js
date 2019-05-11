@@ -37,6 +37,7 @@ const {
 } = require('./init_steps');
 
 const syncInterval = 10000;
+const forgeInterval = 1000;
 
 // Begin reading from stdin
 process.stdin.resume();
@@ -202,13 +203,13 @@ module.exports = class Chain {
 			// Fire onBind event in every module
 			this.scope.bus.message('bind', this.scope);
 
-			self.logger.info('Modules ready and launched');
-
 			// After binding, it should immeately load blockchain
-			this.loader.loadBlockChain();
+			await this.loader.loadBlockChain();
+			this.logger.info('Modules ready and launched');
 
 			this.channel.subscribe('network:bootstrap', async () => {
 				this._startLoader();
+				await this._startForge();
 			});
 
 			// Avoid receiving blocks/transactions from the network during snapshotting process
@@ -289,8 +290,8 @@ module.exports = class Chain {
 			calcSlotRound: async action => this.slots.calcRound(action.params.height),
 			getNodeStatus: async () => ({
 				consensus: this.scope.modules.peers.getLastConsensus(),
-				loaded: this.scope.modules.loader.loaded(),
-				syncing: this.scope.modules.loader.syncing(),
+				loaded: true,
+				syncing: this.loader.syncing(),
 				transactions: await promisify(
 					this.scope.modules.transactions.shared.getTransactionsCount
 				)(),
@@ -344,7 +345,7 @@ module.exports = class Chain {
 		this.logger.info('Cleaned up successfully');
 	}
 
-	async _startLoader() {
+	_startLoader() {
 		this.loader.loadTransactionsAndSignatures();
 		if (!this.options.syncing.active) {
 			return;
@@ -353,14 +354,12 @@ module.exports = class Chain {
 		setInterval(() => {
 			this.logger.info(
 				{
-					loaded: this.loader.loaded(),
 					syncing: this.loader.isActive(),
 					lastReceipt: this.scope.modules.blocks.lastReceipt.get(),
 				},
 				'Sync time triggered'
 			);
 			if (
-				this.loader.loaded() &&
 				!this.loader.isActive() &&
 				this.scope.modules.blocks.lastReceipt.isStale()
 			) {
@@ -376,5 +375,26 @@ module.exports = class Chain {
 				);
 			}
 		}, syncInterval);
+	}
+
+	async _startForge() {
+		try {
+			await this.forge.loadDelegates();
+		} catch (err) {
+			this.logger.error(err, 'Failed to load delegates');
+		}
+		setInterval(async () => {
+			// TODO: Possibly need to add this whole section into sequence
+			await this.forge.beforeForge();
+			if (!this.forge.delegatesEnabled()) {
+				this.logger.debug('No delegates are enabled');
+				return;
+			}
+			if (this.loader.syncing() || this.scope.modules.rounds.ticking()) {
+				this.logger.debug('Client not ready to forge');
+				return;
+			}
+			this.forge.forge(() => {});
+		}, forgeInterval);
 	}
 };

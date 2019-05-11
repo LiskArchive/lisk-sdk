@@ -28,13 +28,11 @@ let library;
 const { ACTIVE_DELEGATES } = global.constants;
 const __private = {};
 
-__private.loaded = false;
 __private.isActive = false;
 __private.lastBlock = null;
 __private.genesisBlock = null;
 __private.total = 0;
 __private.blocksToSync = 0;
-__private.syncInterval = 10000;
 __private.retries = 5;
 
 /**
@@ -103,16 +101,6 @@ class Loader {
 	}
 
 	/**
-	 * Checks private constant loaded.
-	 *
-	 * @returns {boolean} False if not loaded
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	loaded() {
-		return !!__private.loaded;
-	}
-
-	/**
 	 * Checks private constant active.
 	 *
 	 * @returns {boolean} False if not loaded
@@ -143,7 +131,7 @@ class Loader {
 	 * @todo Add @returns tag
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	loadBlockChain() {
+	async loadBlockChain() {
 		let offset = 0;
 		const limit = Number(library.config.loading.loadPerIteration) || 1000;
 
@@ -264,69 +252,75 @@ class Loader {
 			}
 		}
 
-		library.storage.entities.Block.begin(
-			'loader:checkMemTables',
-			checkMemTables
-		)
-			.then(async result => {
-				const [blocksCount, getGenesisBlock, getMemRounds] = result;
+		return (
+			library.storage.entities.Block.begin(
+				'loader:checkMemTables',
+				checkMemTables
+			)
+				.then(async result => {
+					const [blocksCount, getGenesisBlock, getMemRounds] = result;
 
-				library.logger.info(`Blocks ${blocksCount}`);
+					library.logger.info(`Blocks ${blocksCount}`);
 
-				const round = slots.calcRound(blocksCount);
+					const round = slots.calcRound(blocksCount);
 
-				if (blocksCount === 1) {
-					return reload(blocksCount);
-				}
-
-				matchGenesisBlock(getGenesisBlock);
-
-				if (library.config.loading.rebuildUpToRound !== null) {
-					return __private.rebuildAccounts(blocksCount);
-				}
-
-				const unapplied = getMemRounds.filter(row => row.round !== round);
-
-				if (unapplied.length > 0) {
-					library.logger.error('Detected unapplied rounds in mem_round', {
-						currentHeight: blocksCount,
-						currentRound: round,
-						unappliedRounds: unapplied,
-					});
-
-					return reload(blocksCount, 'Detected unapplied rounds in mem_round');
-				}
-
-				const delegatesPublicKeys = await library.storage.entities.Account.get(
-					{ isDelegate: true },
-					{ limit: null }
-				).then(accounts => accounts.map(account => account.publicKey));
-
-				if (delegatesPublicKeys.length === 0) {
-					return reload(blocksCount, 'No delegates found');
-				}
-
-				return modules.blocks.utils.loadLastBlock((err, block) => {
-					if (err) {
-						return reload(blocksCount, err || 'Failed to load last block');
+					if (blocksCount === 1) {
+						return reload(blocksCount);
 					}
 
-					__private.lastBlock = block;
+					matchGenesisBlock(getGenesisBlock);
 
-					return __private.validateOwnChain(validateOwnChainError => {
-						if (validateOwnChainError) {
-							throw validateOwnChainError;
+					if (library.config.loading.rebuildUpToRound !== null) {
+						return __private.rebuildAccounts(blocksCount);
+					}
+
+					const unapplied = getMemRounds.filter(row => row.round !== round);
+
+					if (unapplied.length > 0) {
+						library.logger.error('Detected unapplied rounds in mem_round', {
+							currentHeight: blocksCount,
+							currentRound: round,
+							unappliedRounds: unapplied,
+						});
+
+						return reload(
+							blocksCount,
+							'Detected unapplied rounds in mem_round'
+						);
+					}
+
+					const delegatesPublicKeys = await library.storage.entities.Account.get(
+						{ isDelegate: true },
+						{ limit: null }
+					).then(accounts => accounts.map(account => account.publicKey));
+
+					if (delegatesPublicKeys.length === 0) {
+						return reload(blocksCount, 'No delegates found');
+					}
+
+					return modules.blocks.utils.loadLastBlock((err, block) => {
+						if (err) {
+							return reload(blocksCount, err || 'Failed to load last block');
 						}
 
-						library.logger.info('Blockchain ready');
-						library.bus.message('blockchainReady');
+						__private.lastBlock = block;
+
+						return __private.validateOwnChain(validateOwnChainError => {
+							if (validateOwnChainError) {
+								throw validateOwnChainError;
+							}
+
+							library.logger.info('Blockchain ready');
+							library.bus.message('blockchainReady');
+						});
 					});
-				});
-			})
-			.catch(err => {
-				library.logger.error(err.stack || err);
-				return process.emit('exit');
-			});
+				})
+				// TODO: No need to catch here
+				.catch(err => {
+					library.logger.error(err.stack || err);
+					return process.emit('exit');
+				})
+		);
 	}
 
 	/**
@@ -337,36 +331,30 @@ class Loader {
 		async.series(
 			{
 				loadTransactions(seriesCb) {
-					if (__private.loaded) {
-						return async.retry(
-							__private.retries,
-							__private.getTransactionsFromNetwork,
-							err => {
-								if (err) {
-									library.logger.error('Unconfirmed transactions loader', err);
-								}
-
-								return setImmediate(seriesCb);
+					return async.retry(
+						__private.retries,
+						__private.getTransactionsFromNetwork,
+						err => {
+							if (err) {
+								library.logger.error('Unconfirmed transactions loader', err);
 							}
-						);
-					}
-					return setImmediate(seriesCb);
+
+							return setImmediate(seriesCb);
+						}
+					);
 				},
 				loadSignatures(seriesCb) {
-					if (__private.loaded) {
-						return async.retry(
-							__private.retries,
-							__private.getSignaturesFromNetwork,
-							err => {
-								if (err) {
-									library.logger.error('Signatures loader', err);
-								}
-
-								return setImmediate(seriesCb);
+					return async.retry(
+						__private.retries,
+						__private.getSignaturesFromNetwork,
+						err => {
+							if (err) {
+								library.logger.error('Signatures loader', err);
 							}
-						);
-					}
-					return setImmediate(seriesCb);
+
+							return setImmediate(seriesCb);
+						}
+					);
 				},
 			},
 			err => {
@@ -468,26 +456,6 @@ class Loader {
 			multisignatures: scope.modules.multisignatures,
 			processTransactions: scope.modules.processTransactions,
 		};
-	}
-
-	/**
-	 * Sets private constant loaded to true.
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	onBlockchainReady() {
-		__private.loaded = true;
-	}
-
-	/**
-	 * Sets private constant loaded to false.
-	 *
-	 * @param {function} cb
-	 * @returns {setImmediateCallback} cb
-	 * @todo Add description for the params
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	cleanup() {
-		__private.loaded = false;
 	}
 }
 
