@@ -175,7 +175,6 @@ class Forge {
 	 * @returns {setImmediateCallback} cb
 	 * @todo Add description for the return value
 	 */
-	// eslint-disable-next-line class-methods-use-this
 	loadDelegates(cb) {
 		const encryptedList = this.config.forging.delegates;
 
@@ -421,4 +420,4 @@ class Forge {
 }
 
 // Export
-module.exports = Forge;
+module.exports = { Forge };

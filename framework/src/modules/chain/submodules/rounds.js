@@ -416,14 +416,10 @@ __private.getOutsiders = function(scope, cb, tx) {
 	if (scope.block.height === 1) {
 		return setImmediate(cb);
 	}
-	return modules.delegates.generateDelegateList(
-		scope.round,
-		null,
-		(err, roundDelegates) => {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-			return async.eachSeries(
+	return modules.delegates
+		.generateDelegateList(scope.round, null, tx)
+		.then(roundDelegates =>
+			async.eachSeries(
 				roundDelegates,
 				(delegate, eachCb) => {
 					if (scope.roundDelegates.indexOf(delegate) === -1) {
@@ -437,10 +433,11 @@ __private.getOutsiders = function(scope, cb, tx) {
 					library.logger.trace('Got outsiders', scope.roundOutsiders);
 					return setImmediate(cb, eachSeriesErr);
 				}
-			);
-		},
-		tx
-	);
+			)
+		)
+		.catch(err => {
+			setImmediate(cb, err);
+		});
 };
 
 /**

@@ -183,14 +183,16 @@ module.exports = class Chain {
 			this.scope.modules = await initModules(this.scope);
 			// TODO: Global variable forbits to require on top
 			const Loader = require('./loader');
-			const Forge = require('./forge');
+			const { Forge } = require('./forge');
+			const { Delegates } = require('./submodules/delegates');
 			const Transport = require('./transport');
 			this.loader = new Loader(this.scope);
 			this.forge = new Forge(this.scope);
 			this.transport = new Transport(this.scope);
 			// TODO: should not add to scope
+			this.scope.modules.delegates = new Delegates(this.scope);
 			this.scope.modules.loader = this.loader;
-			this.scope.modules.delegates = this.forge;
+			this.scope.modules.forge = this.forge;
 			this.scope.modules.transport = this.transport;
 
 			this.scope.logic.block.bindModules(this.scope.modules);
@@ -248,7 +250,7 @@ module.exports = class Chain {
 			calculateReward: action =>
 				this.blockReward.calcReward(action.params.height),
 			generateDelegateList: async action =>
-				promisify(this.scope.modules.delegates.generateDelegateList)(
+				this.scope.modules.delegates.generateDelegateList(
 					action.params.round,
 					action.params.source
 				),
@@ -379,7 +381,14 @@ module.exports = class Chain {
 
 	async _startForge() {
 		try {
-			await this.forge.loadDelegates();
+			await new Promise((resolve, reject) => {
+				this.forge.loadDelegates(err => {
+					if (err) {
+						return reject(err);
+					}
+					return resolve();
+				});
+			});
 		} catch (err) {
 			this.logger.error(err, 'Failed to load delegates');
 		}
