@@ -394,7 +394,14 @@ class Transport {
 
 							// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 						}
-						return library.bus.message('receiveBlock', block);
+						// TODO: endpoint should be protected before
+						if (modules.loader.syncing()) {
+							return library.logger.debug(
+								"Client is syncing. Can't receive block at the moment.",
+								block.id
+							);
+						}
+						return modules.blocks.process.receiveBlocksFromNetwork(block);
 					}
 				);
 			},

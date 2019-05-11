@@ -345,28 +345,11 @@ class Process {
 	/**
 	 * Handle newly received block.
 	 *
-	 * @listens module:transport~event:receiveBlock
 	 * @param {block} block - New block
 	 * @todo Add @returns tag
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	onReceiveBlock(block) {
-		// When client is not loaded, is syncing
-		// Do not receive new blocks as client is not ready
-		if (!__private.loaded) {
-			return library.logger.debug(
-				'Client is not ready to receive block',
-				block.id
-			);
-		}
-
-		if (modules.loader.syncing()) {
-			return library.logger.debug(
-				"Client is syncing. Can't receive block at the moment.",
-				block.id
-			);
-		}
-
+	receiveBlocksFromNetwork(block) {
 		// Execute in sequence via sequence
 		return library.sequence.add(cb => {
 			// Get the last block
@@ -422,7 +405,6 @@ class Process {
 	 * - accounts
 	 * - blocks
 	 * - delegates
-	 * - loader
 	 * - rounds
 	 * - transactions
 	 * - transport
@@ -436,7 +418,6 @@ class Process {
 			accounts: scope.modules.accounts,
 			blocks: scope.modules.blocks,
 			delegates: scope.modules.delegates,
-			loader: scope.modules.loader,
 			peers: scope.modules.peers,
 			rounds: scope.modules.rounds,
 			transactions: scope.modules.transactions,
