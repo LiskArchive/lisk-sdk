@@ -35,9 +35,8 @@ const {
 	initLogicStructure,
 	initModules,
 } = require('./init_steps');
-const { Loader } = require('./loader');
-const { Forge } = require('./forge');
-const { Transport } = require('./transport');
+
+const syncInterval = 10000;
 
 // Begin reading from stdin
 process.stdin.resume();
@@ -181,11 +180,16 @@ module.exports = class Chain {
 			this.scope.bus = await createBus();
 			this.scope.logic = await initLogicStructure(this.scope);
 			this.scope.modules = await initModules(this.scope);
+			// TODO: Global variable forbits to require on top
+			const Loader = require('./loader');
+			const Forge = require('./forge');
+			const Transport = require('./transport');
 			this.loader = new Loader(this.scope);
 			this.forge = new Forge(this.scope);
 			this.transport = new Transport(this.scope);
+			// TODO: should not add to scope
 			this.scope.modules.loader = this.loader;
-			this.scope.modules.forge = this.forge;
+			this.scope.modules.delegates = this.forge;
 			this.scope.modules.transport = this.transport;
 
 			this.scope.logic.block.bindModules(this.scope.modules);
@@ -199,6 +203,13 @@ module.exports = class Chain {
 			this.scope.bus.message('bind', this.scope);
 
 			self.logger.info('Modules ready and launched');
+
+			// After binding, it should immeately load blockchain
+			this.loader.loadBlockChain();
+
+			this.channel.subscribe('network:bootstrap', async () => {
+				this._startLoader();
+			});
 
 			// Avoid receiving blocks/transactions from the network during snapshotting process
 			if (!this.options.loading.rebuildUpToRound) {
@@ -331,5 +342,39 @@ module.exports = class Chain {
 		});
 
 		this.logger.info('Cleaned up successfully');
+	}
+
+	async _startLoader() {
+		this.loader.loadTransactionsAndSignatures();
+		if (!this.options.syncing.active) {
+			return;
+		}
+		// sync timer
+		setInterval(() => {
+			this.logger.info(
+				{
+					loaded: this.loader.loaded(),
+					syncing: this.loader.isActive(),
+					lastReceipt: this.scope.modules.blocks.lastReceipt.get(),
+				},
+				'Sync time triggered'
+			);
+			if (
+				this.loader.loaded() &&
+				!this.loader.isActive() &&
+				this.scope.modules.blocks.lastReceipt.isStale()
+			) {
+				this.scope.sequence.add(
+					sequenceCB => {
+						this.loader.sync(sequenceCB);
+					},
+					syncError => {
+						if (syncError) {
+							this.logger.error('Sync timer', syncError);
+						}
+					}
+				);
+			}
+		}, syncInterval);
 	}
 };

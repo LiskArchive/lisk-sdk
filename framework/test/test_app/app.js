@@ -38,17 +38,16 @@ if (process.env.NODE_ENV === 'test' && process.env.PROTOCOL_VERSION) {
 	appConfig.app.protocolVersion = process.env.PROTOCOL_VERSION;
 }
 
+const network = process.env.LISK_NETWORK || 'devnet';
+
 try {
 	// TODO: I would convert config.json to .JS
 	configurator.loadConfig(appConfig);
 	configurator.loadConfigFile(
-		path.resolve(__dirname, '../fixtures/config/devnet/config')
+		path.resolve(__dirname, `../fixtures/config/${network}/config`)
 	);
-	configurator.loadConfigFile(
-		path.resolve(__dirname, '../fixtures/config/devnet/exceptions'),
-		'modules.chain.exceptions'
-	);
-	const genesisBlock = require('../fixtures/config/devnet/genesis_block');
+	/* eslint-disable import/no-dynamic-require */
+	const genesisBlock = require(`../fixtures/config/${network}/genesis_block`);
 
 	if (process.env.CUSTOM_CONFIG_FILE) {
 		configurator.loadConfigFile(path.resolve(process.env.CUSTOM_CONFIG_FILE));
