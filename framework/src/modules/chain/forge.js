@@ -14,28 +14,47 @@
 
 'use strict';
 
-const crypto = require('crypto');
 const async = require('async');
 const {
+	getPrivateAndPublicKeyBytesFromPassphrase,
 	decryptPassphraseWithPassword,
 	parseEncryptedPassphrase,
 	getAddressFromPublicKey,
 } = require('@liskhq/lisk-cryptography');
-const BlockReward = require('./logic/block_reward.js');
 const slots = require('./helpers/slots.js');
 
 // Private fields
 let modules;
-let library;
-let self;
 
 const { ACTIVE_DELEGATES } = global.constants;
-const exceptions = global.exceptions;
-const __private = {};
 
-__private.keypairs = {};
-__private.tmpKeypairs = {};
-__private.delegatesListCache = {};
+/**
+ * Gets the assigned delegate to current slot and returns its keypair if present.
+ *
+ * @private
+ * @param {number} slot
+ * @param {number} round
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb, err, {time, keypair}
+ * @todo Add description for the params
+ */
+const getDelegateKeypairForCurrentSlot = async (
+	delegates,
+	keypairs,
+	currentSlot,
+	round
+) => {
+	const activeDelegates = await delegates.generateDelegateList(round);
+
+	const currentSlotIndex = currentSlot % ACTIVE_DELEGATES;
+	const currentSlotDelegate = activeDelegates[currentSlotIndex];
+
+	if (currentSlotDelegate && keypairs[currentSlotDelegate]) {
+		return keypairs[currentSlotDelegate];
+	}
+
+	return null;
+};
 
 /**
  * Main delegates methods. Initializes library with scope content and generates a Delegate instance.
@@ -44,38 +63,25 @@ __private.delegatesListCache = {};
  * @memberof modules
  * @see Parent: {@link modules}
  * @requires async
- * @requires crypto
  * @requires lodash
- * @requires helpers/jobs_queue
  * @requires helpers/slots
- * @requires logic/block_reward
- * @requires logic/delegate
  * @param {scope} scope - App instance
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, err, self
  */
-class Delegates {
+class Forge {
 	constructor(scope) {
-		library = {
-			channel: scope.channel,
-			logger: scope.components.logger,
-			logic: scope.logic,
-			sequence: scope.sequence,
-			ed: scope.ed,
-			storage: scope.components.storage,
-			network: scope.network,
-			schema: scope.schema,
-			balancesSequence: scope.balancesSequence,
-			config: {
-				forging: {
-					delegates: scope.config.forging.delegates,
-					force: scope.config.forging.force,
-					defaultPassword: scope.config.forging.defaultPassword,
-				},
+		this.keypairs = {};
+		this.channel = scope.channel;
+		this.logger = scope.components.logger;
+		this.storage = scope.components.storage;
+		this.config = {
+			forging: {
+				delegates: scope.config.forging.delegates,
+				force: scope.config.forging.force,
+				defaultPassword: scope.config.forging.defaultPassword,
 			},
 		};
-		self = this;
-		__private.blockReward = new BlockReward();
 	}
 
 	/**
@@ -85,7 +91,7 @@ class Delegates {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	delegatesEnabled() {
-		return Object.keys(__private.keypairs).length > 0;
+		return Object.keys(this.keypairs).length > 0;
 	}
 
 	/**
@@ -100,7 +106,7 @@ class Delegates {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	async updateForgingStatus(publicKey, password, forging) {
-		const encryptedList = library.config.forging.delegates;
+		const encryptedList = this.config.forging.delegates;
 		const encryptedItem = encryptedList.find(
 			item => item.publicKey === publicKey
 		);
@@ -110,20 +116,22 @@ class Delegates {
 
 		if (encryptedItem) {
 			try {
-				passphrase = __private.decryptPassphrase(
-					encryptedItem.encryptedPassphrase,
+				passphrase = decryptPassphraseWithPassword(
+					parseEncryptedPassphrase(encryptedItem.encryptedPassphrase),
 					password
 				);
 			} catch (e) {
 				throw new Error('Invalid password and public key combination');
 			}
+			const {
+				publicKeyBytes,
+				privateKeyBytes,
+			} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
 
-			keypair = library.ed.makeKeypair(
-				crypto
-					.createHash('sha256')
-					.update(passphrase, 'utf8')
-					.digest()
-			);
+			keypair = {
+				publicKey: publicKeyBytes,
+				privateKey: privateKeyBytes,
+			};
 		} else {
 			throw new Error(`Delegate with publicKey: ${publicKey} not found`);
 		}
@@ -140,18 +148,15 @@ class Delegates {
 			extended: true,
 		};
 
-		const [account] = await library.storage.entities.Account.get(
-			filters,
-			options
-		);
+		const [account] = await this.storage.entities.Account.get(filters, options);
 
 		if (account && account.isDelegate) {
 			if (forging) {
-				__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
-				library.logger.info(`Forging enabled on account: ${account.address}`);
+				this.keypairs[keypair.publicKey.toString('hex')] = keypair;
+				this.logger.info(`Forging enabled on account: ${account.address}`);
 			} else {
-				delete __private.keypairs[keypair.publicKey.toString('hex')];
-				library.logger.info(`Forging disabled on account: ${account.address}`);
+				delete this.keypairs[keypair.publicKey.toString('hex')];
+				this.logger.info(`Forging disabled on account: ${account.address}`);
 			}
 
 			return {
@@ -160,61 +165,6 @@ class Delegates {
 			};
 		}
 		throw new Error('Delegate not found');
-	}
-
-	/**
-	 * Gets delegate list based on input function by vote and changes order.
-	 *
-	 * @param {number} round
-	 * @param {function} source - Source function for get delegates
-	 * @param {function} cb - Callback function
-	 * @param {Object} tx - Database transaction/task object
-	 * @returns {setImmediateCallback} cb, err, truncated delegate list
-	 * @todo Add description for the params
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	generateDelegateList(round, source, cb, tx) {
-		// Set default function for getting delegates
-		source = source || __private.getKeysSortByVote;
-
-		if (__private.delegatesListCache[round]) {
-			library.logger.debug(
-				'Using delegate list from the cache for round',
-				round
-			);
-			return setImmediate(cb, null, __private.delegatesListCache[round]);
-		}
-
-		return source((err, truncDelegateList) => {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-
-			const seedSource = round.toString();
-			let currentSeed = crypto
-				.createHash('sha256')
-				.update(seedSource, 'utf8')
-				.digest();
-
-			for (let i = 0, delCount = truncDelegateList.length; i < delCount; i++) {
-				for (let x = 0; x < 4 && i < delCount; i++, x++) {
-					const newIndex = currentSeed[x] % delCount;
-					const b = truncDelegateList[newIndex];
-					truncDelegateList[newIndex] = truncDelegateList[i];
-					truncDelegateList[i] = b;
-				}
-				currentSeed = crypto
-					.createHash('sha256')
-					.update(currentSeed)
-					.digest();
-			}
-
-			// If the round is not an exception, cache the round.
-			if (!exceptions.ignoreDelegateListCacheForRounds.includes(round)) {
-				__private.updateDelegateListCache(round, truncDelegateList);
-			}
-			return setImmediate(cb, null, truncDelegateList);
-		}, tx);
 	}
 
 	/**
@@ -227,17 +177,17 @@ class Delegates {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	loadDelegates(cb) {
-		const encryptedList = library.config.forging.delegates;
+		const encryptedList = this.config.forging.delegates;
 
 		if (
 			!encryptedList ||
 			!encryptedList.length ||
-			!library.config.forging.force ||
-			!library.config.forging.defaultPassword
+			!this.config.forging.force ||
+			!this.config.forging.defaultPassword
 		) {
 			return setImmediate(cb);
 		}
-		library.logger.info(
+		this.logger.info(
 			`Loading ${
 				encryptedList.length
 			} delegates using encrypted passphrases from config`
@@ -248,9 +198,9 @@ class Delegates {
 			(encryptedItem, seriesCb) => {
 				let passphrase;
 				try {
-					passphrase = __private.decryptPassphrase(
-						encryptedItem.encryptedPassphrase,
-						library.config.forging.defaultPassword
+					passphrase = decryptPassphraseWithPassword(
+						parseEncryptedPassphrase(encryptedItem.encryptedPassphrase),
+						this.config.forging.defaultPassword
 					);
 				} catch (error) {
 					return setImmediate(
@@ -261,12 +211,15 @@ class Delegates {
 					);
 				}
 
-				const keypair = library.ed.makeKeypair(
-					crypto
-						.createHash('sha256')
-						.update(passphrase, 'utf8')
-						.digest()
-				);
+				const {
+					publicKeyBytes,
+					privateKeyBytes,
+				} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
+
+				const keypair = {
+					publicKey: publicKeyBytes,
+					privateKey: privateKeyBytes,
+				};
 
 				if (keypair.publicKey.toString('hex') !== encryptedItem.publicKey) {
 					return setImmediate(
@@ -285,7 +238,7 @@ class Delegates {
 					extended: true,
 				};
 
-				return library.storage.entities.Account.get(filters, options)
+				return this.storage.entities.Account.get(filters, options)
 					.then(accounts => {
 						const account = accounts[0];
 						if (!account) {
@@ -297,12 +250,12 @@ class Delegates {
 							);
 						}
 						if (account.isDelegate) {
-							__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
-							library.logger.info(
+							this.keypairs[keypair.publicKey.toString('hex')] = keypair;
+							this.logger.info(
 								`Forging enabled on account: ${account.address}`
 							);
 						} else {
-							library.logger.warn(
+							this.logger.warn(
 								`Account with public key: ${keypair.publicKey.toString(
 									'hex'
 								)} is not a delegate`
@@ -349,27 +302,22 @@ class Delegates {
 		const lastBlock = modules.blocks.lastBlock.get();
 
 		if (currentSlot === slots.getSlotNumber(lastBlock.timestamp)) {
-			library.logger.debug('Block already forged for the current slot');
+			this.logger.debug('Block already forged for the current slot');
 			return setImmediate(cb);
 		}
 
 		// We calculate round using height + 1, because we want the delegate keypair for next block to be forged
 		const round = slots.calcRound(lastBlock.height + 1);
 
-		return __private.getDelegateKeypairForCurrentSlot(
+		return getDelegateKeypairForCurrentSlot(
+			modules.delegates,
+			this.keypairs,
 			currentSlot,
-			round,
-			async (getDelegateKeypairForCurrentSlotError, delegateKeypair) => {
-				if (getDelegateKeypairForCurrentSlotError) {
-					library.logger.error(
-						'Skipping delegate slot',
-						getDelegateKeypairForCurrentSlotError
-					);
-					return setImmediate(cb);
-				}
-
+			round
+		)
+			.then(async delegateKeypair => {
 				if (delegateKeypair === null) {
-					library.logger.debug('Waiting for delegate slot', {
+					this.logger.debug('Waiting for delegate slot', {
 						currentSlot: slots.getSlotNumber(),
 					});
 					return setImmediate(cb);
@@ -377,14 +325,14 @@ class Delegates {
 				const isPoorConsensus = await modules.peers.isPoorConsensus();
 				if (isPoorConsensus) {
 					const consensusErr = `Inadequate broadhash consensus before forging a block: ${modules.peers.getLastConsensus()} %`;
-					library.logger.error(
+					this.logger.error(
 						'Failed to generate block within delegate slot',
 						consensusErr
 					);
 					return setImmediate(cb);
 				}
 
-				library.logger.info(
+				this.logger.info(
 					`Broadhash consensus before forging a block: ${modules.peers.getLastConsensus()} %`
 				);
 
@@ -393,7 +341,7 @@ class Delegates {
 					slots.getSlotTime(currentSlot),
 					blockGenerationErr => {
 						if (blockGenerationErr) {
-							library.logger.error(
+							this.logger.error(
 								'Failed to generate block within delegate slot',
 								blockGenerationErr
 							);
@@ -404,7 +352,7 @@ class Delegates {
 						const forgedBlock = modules.blocks.lastBlock.get();
 						modules.blocks.lastReceipt.update();
 
-						library.logger.info(
+						this.logger.info(
 							`Forged new block id: ${forgedBlock.id} height: ${
 								forgedBlock.height
 							} round: ${slots.calcRound(
@@ -417,72 +365,14 @@ class Delegates {
 						return setImmediate(cb);
 					}
 				);
-			}
-		);
-	}
-
-	/**
-	 * Generates delegate list and checks if block generator public key matches delegate id.
-	 *
-	 * @param {block} block
-	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallback} cb, err
-	 * @todo Add description for the params
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	validateBlockSlot(block, cb) {
-		__private.validateBlockSlot(block, __private.getKeysSortByVote, cb);
-	}
-
-	/**
-	 * Generates delegate list and checks if block generator public key matches delegate id - against previous round.
-	 *
-	 * @param {block} block
-	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallback} cb, err
-	 * @todo Add description for the params
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	validateBlockSlotAgainstPreviousRound(block, cb) {
-		__private.validateBlockSlot(
-			block,
-			__private.getDelegatesFromPreviousRound,
-			cb
-		);
-	}
-
-	/**
-	 * Inserts a fork into 'forks_stat' table and emits a 'delegates/fork' socket signal with fork data: cause + block.
-	 *
-	 * @param {block} block
-	 * @param {string} cause
-	 * @todo Add description for the params
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	fork(block, cause) {
-		library.logger.info('Fork', {
-			delegate: block.generatorPublicKey,
-			block: {
-				id: block.id,
-				timestamp: block.timestamp,
-				height: block.height,
-				previousBlock: block.previousBlock,
-			},
-			cause,
-		});
-
-		const fork = {
-			delegatePublicKey: block.generatorPublicKey,
-			blockTimestamp: block.timestamp,
-			blockId: block.id,
-			blockHeight: block.height,
-			previousBlockId: block.previousBlock,
-			cause,
-		};
-
-		library.storage.entities.Account.insertFork(fork).then(() => {
-			library.channel.publish('chain:delegates:fork', fork);
-		});
+			})
+			.catch(getDelegateKeypairForCurrentSlotError => {
+				this.logger.error(
+					'Skipping delegate slot',
+					getDelegateKeypairForCurrentSlotError
+				);
+				return setImmediate(cb);
+			});
 	}
 
 	/**
@@ -492,13 +382,13 @@ class Delegates {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	getForgersKeyPairs() {
-		return __private.keypairs;
+		return this.keypairs;
 	}
 
 	// eslint-disable-next-line class-methods-use-this
 	getForgingStatusForAllDelegates() {
-		const keyPairs = __private.keypairs;
-		const forgingDelegates = library.config.forging.delegates;
+		const keyPairs = this.keypairs;
+		const forgingDelegates = this.config.forging.delegates;
 		const forgersPublicKeys = {};
 
 		Object.keys(keyPairs).forEach(key => {
@@ -525,182 +415,10 @@ class Delegates {
 			blocks: scope.modules.blocks,
 			peers: scope.modules.peers,
 			transactions: scope.modules.transactions,
+			delegates: scope.modules.delegates,
 		};
-	}
-
-	/**
-	 * Invalidates the cached delegate list.
-	 *
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	clearDelegateListCache() {
-		library.logger.debug('Clearing delegate list cache.');
-		// We want to clear the cache.
-		__private.delegatesListCache = {};
-	}
-
-	/**
-	 * Checks if `modules` is loaded.
-	 *
-	 * @returns {boolean} True if `modules` is loaded
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	isLoaded() {
-		return !!modules;
 	}
 }
 
-/**
- * Caches delegate list for last 2 rounds.
- *
- * @private
- * @param {number} round - Round Number
- * @param {array} delegatesList - Delegate list
- */
-__private.updateDelegateListCache = function(round, delegatesList) {
-	library.logger.debug('Updating delegate list cache for round', round);
-	__private.delegatesListCache[round] = delegatesList;
-	// We want to cache delegates for only last 2 rounds and get rid of old ones
-	__private.delegatesListCache = Object.keys(__private.delegatesListCache)
-		// sort round numbers in ascending order so we can have most recent 2 rounds at the end of the list.
-		.sort((a, b) => a - b)
-		// delete all round cache except last two rounds.
-		.slice(-2)
-		.reduce((acc, current) => {
-			acc[current] = __private.delegatesListCache[current];
-			return acc;
-		}, {});
-};
-
-/**
- * Gets delegate public keys sorted by vote descending.
- *
- * @private
- * @param {function} cb - Callback function
- * @param {Object} tx - Database transaction/task object
- * @returns {setImmediateCallback} cb
- * @todo Add description for the return value
- */
-__private.getKeysSortByVote = async (cb, tx) => {
-	const filters = { isDelegate: true };
-	const options = {
-		limit: ACTIVE_DELEGATES,
-		sort: ['vote:desc', 'publicKey:asc'],
-	};
-
-	try {
-		const accounts = await library.storage.entities.Account.get(
-			filters,
-			options,
-			tx
-		);
-		const result = accounts.map(account => account.publicKey);
-		return cb(null, result);
-	} catch (error) {
-		library.logger.error(error.stack);
-		return cb(new Error('Account#getAll error'));
-	}
-};
-
-/**
- * Gets delegate public keys from previous round, sorted by vote descending.
- *
- * @private
- * @param {function} cb - Callback function
- * @param {Object} tx - Database transaction/task object
- * @returns {setImmediateCallback} cb
- * @todo Add description for the return value
- */
-__private.getDelegatesFromPreviousRound = function(cb, tx) {
-	library.storage.entities.Round.getDelegatesSnapshot(ACTIVE_DELEGATES, tx)
-		.then(rows => {
-			const delegatesPublicKeys = rows.map(({ publicKey }) => publicKey);
-			return setImmediate(cb, null, delegatesPublicKeys);
-		})
-		.catch(err => {
-			library.logger.error(err.stack);
-			return setImmediate(cb, 'getDelegatesSnapshot database query failed');
-		});
-};
-
-/**
- * Generates delegate list and checks if block generator publicKey matches delegate id.
- *
- * @param {block} block
- * @param {function} source - Source function for get delegates
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, err
- * @todo Add description for the params
- */
-__private.validateBlockSlot = function(block, source, cb) {
-	const round = slots.calcRound(block.height);
-	self.generateDelegateList(round, source, (err, activeDelegates) => {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-
-		const currentSlot = slots.getSlotNumber(block.timestamp);
-		const delegateId = activeDelegates[currentSlot % ACTIVE_DELEGATES];
-
-		if (delegateId && block.generatorPublicKey === delegateId) {
-			return setImmediate(cb);
-		}
-		library.logger.error(
-			`Expected generator: ${delegateId} Received generator: ${
-				block.generatorPublicKey
-			}`
-		);
-		return setImmediate(cb, `Failed to verify slot: ${currentSlot}`);
-	});
-};
-
-/**
- * Gets the assigned delegate to current slot and returns its keypair if present.
- *
- * @private
- * @param {number} slot
- * @param {number} round
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, err, {time, keypair}
- * @todo Add description for the params
- */
-__private.getDelegateKeypairForCurrentSlot = function(currentSlot, round, cb) {
-	self.generateDelegateList(
-		round,
-		null,
-		(generateDelegateListErr, activeDelegates) => {
-			if (generateDelegateListErr) {
-				return setImmediate(cb, generateDelegateListErr);
-			}
-
-			const currentSlotIndex = currentSlot % ACTIVE_DELEGATES;
-			const currentSlotDelegate = activeDelegates[currentSlotIndex];
-
-			if (currentSlotDelegate && __private.keypairs[currentSlotDelegate]) {
-				return setImmediate(cb, null, __private.keypairs[currentSlotDelegate]);
-			}
-
-			return setImmediate(cb, null, null);
-		}
-	);
-};
-
-/**
- * Returns the decrypted passphrase by deciphering encrypted passphrase with the password provided using aes-256-gcm algorithm.
- *
- * @private
- * @param {string} encryptedPassphrase
- * @param {string} password
- * @throws {error} If unable to decrypt using password.
- * @returns {string} Decrypted passphrase
- * @todo Add description for the params
- */
-__private.decryptPassphrase = function(encryptedPassphrase, password) {
-	return decryptPassphraseWithPassword(
-		parseEncryptedPassphrase(encryptedPassphrase),
-		password
-	);
-};
-
 // Export
-module.exports = Delegates;
+module.exports = Forge;
