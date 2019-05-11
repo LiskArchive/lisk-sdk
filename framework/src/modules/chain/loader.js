@@ -17,8 +17,6 @@
 const async = require('async');
 const { promisify } = require('util');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
-const { convertErrorsToString } = require('./helpers/error_handlers');
-const jobsQueue = require('./helpers/jobs_queue');
 const slots = require('./helpers/slots');
 const definitions = require('./schema/definitions');
 
@@ -26,7 +24,6 @@ const definitions = require('./schema/definitions');
 let components;
 let modules;
 let library;
-let self;
 const { ACTIVE_DELEGATES } = global.constants;
 const __private = {};
 
@@ -36,7 +33,6 @@ __private.lastBlock = null;
 __private.genesisBlock = null;
 __private.total = 0;
 __private.blocksToSync = 0;
-__private.syncIntervalId = null;
 __private.syncInterval = 10000;
 __private.retries = 5;
 
@@ -81,8 +77,6 @@ class Loader {
 				},
 			},
 		};
-		self = this;
-
 		__private.lastBlock = library.genesisBlock;
 		__private.genesisBlock = library.genesisBlock;
 	}
@@ -94,7 +88,7 @@ class Loader {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	syncing() {
-		return !!__private.syncIntervalId;
+		return !!__private.isActive;
 	}
 
 	/**
@@ -200,7 +194,7 @@ class Loader {
 				},
 				err => {
 					if (err) {
-						library.logger.error(convertErrorsToString(err));
+						library.logger.error({ error: err });
 						if (err.block) {
 							library.logger.error(`Blockchain failed at: ${err.block.height}`);
 							modules.blocks.chain.deleteFromBlockId(err.block.id, () => {
@@ -496,85 +490,6 @@ class Loader {
 		__private.loaded = false;
 	}
 }
-
-/**
- * Cancels timers based on input parameter and private constant syncIntervalId
- * or Sync trigger by sending a socket signal with 'loader/sync' and setting
- * next sync with 1000 milliseconds.
- *
- * @private
- * @param {boolean} turnOn
- * @emits loader/sync
- * @todo Add description for the params
- */
-__private.syncTrigger = function(turnOn) {
-	if (turnOn === false && __private.syncIntervalId) {
-		library.logger.info('Clearing sync interval');
-		clearTimeout(__private.syncIntervalId);
-		__private.syncIntervalId = null;
-	}
-	if (turnOn === true && !__private.syncIntervalId) {
-		library.logger.trace('Setting sync interval');
-		setImmediate(function nextSyncTrigger() {
-			library.logger.info('Sync trigger');
-			library.channel.publish('chain:loader:sync', {
-				blocks: __private.blocksToSync,
-				height: modules.blocks.lastBlock.get().height,
-			});
-			__private.syncIntervalId = setTimeout(nextSyncTrigger, 1000);
-		});
-	}
-};
-
-/**
- * Syncs timer trigger.
- *
- * @private
- * @todo Add @returns tag
- */
-__private.syncTimer = function() {
-	library.logger.trace('Setting sync timer');
-
-	/**
-	 * Description of nextSync.
-	 *
-	 * @param {function} cb
-	 * @todo Add description for the params
-	 * @todo Add @returns tag
-	 */
-	function nextSync(cb) {
-		library.logger.info('Sync timer trigger', {
-			loaded: __private.loaded,
-			syncing: self.syncing(),
-			last_receipt: modules.blocks.lastReceipt.get(),
-		});
-
-		if (
-			__private.loaded &&
-			!self.syncing() &&
-			modules.blocks.lastReceipt.isStale()
-		) {
-			return library.sequence.add(
-				sequenceCb => {
-					__private.sync(sequenceCb);
-				},
-				err => {
-					if (err) {
-						library.logger.error('Sync timer', err);
-					}
-					return setImmediate(cb);
-				}
-			);
-		}
-		return setImmediate(cb);
-	}
-
-	return jobsQueue.register(
-		'loaderSyncTimer',
-		nextSync,
-		__private.syncInterval
-	);
-};
 
 /**
  * Loads signatures from network.
@@ -1028,7 +943,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 				waterErr => {
 					if (waterErr) {
 						failedAttemptsToLoad += 1;
-						library.logger.error(convertErrorsToString(waterErr));
+						library.logger.error({ error: waterErr });
 					}
 					whilstCb();
 				}
