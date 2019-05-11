@@ -32,9 +32,7 @@ const processTransactionLogic = require('../../../../../../src/modules/chain/log
 
 const initTransaction = new InitTransaction({ registeredTransactions });
 
-const TransportModule = rewire(
-	'../../../../../../src/modules/chain/submodules/transport'
-);
+const TransportModule = rewire('../../../../../../src/modules/chain/transport');
 
 const { MAX_SHARED_TRANSACTIONS } = __testContext.config.constants;
 const expect = chai.expect;
@@ -219,18 +217,10 @@ describe('transport', () => {
 
 	describe('constructor', () => {
 		describe('library', () => {
-			let localTransportInstance;
-			let transportSelf;
-
-			beforeEach(done => {
-				localTransportInstance = new TransportModule((err, transport) => {
-					error = err;
-					transportSelf = transport;
-					library = TransportModule.__get__('library');
-					__private = TransportModule.__get__('__private');
-
-					done();
-				}, defaultScope);
+			beforeEach(async () => {
+				new TransportModule(defaultScope);
+				library = TransportModule.__get__('library');
+				__private = TransportModule.__get__('__private');
 			});
 
 			it('should assign scope variables when instantiating', async () => {
@@ -259,9 +249,6 @@ describe('transport', () => {
 				expect(__private)
 					.to.have.property('broadcaster')
 					.which.is.equal(broadcasterStubRef);
-
-				expect(error).to.equal(null);
-				return expect(transportSelf).to.equal(localTransportInstance);
 			});
 		});
 	});
@@ -270,55 +257,52 @@ describe('transport', () => {
 		let __privateOriginal;
 		let restoreRewiredDeps;
 
-		beforeEach(done => {
+		beforeEach(async () => {
 			__privateOriginal = {};
 
-			transportInstance = new TransportModule(() => {
-				// Backup the __private variable so that properties can be overridden
-				// by individual test cases and then we will restore them after each test case has run.
-				// This is neccessary because different test cases may want to stub out different parts of the
-				// __private modules while testing other parts.
-				__private = TransportModule.__get__('__private');
+			new TransportModule(defaultScope);
+			// Backup the __private variable so that properties can be overridden
+			// by individual test cases and then we will restore them after each test case has run.
+			// This is neccessary because different test cases may want to stub out different parts of the
+			// __private modules while testing other parts.
+			__private = TransportModule.__get__('__private');
 
-				Object.keys(__private).forEach(field => {
-					__privateOriginal[field] = __private[field];
-				});
+			Object.keys(__private).forEach(field => {
+				__privateOriginal[field] = __private[field];
+			});
 
-				library = {
-					schema: {
-						validate: sinonSandbox.stub().callsArg(2),
-					},
-					logger: {
-						debug: sinonSandbox.spy(),
-					},
-					logic: {
-						initTransaction,
-					},
-					channel: {
-						publish: sinonSandbox.stub().resolves(),
-					},
-					applicationState: {
-						broadhash:
-							'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
-					},
-				};
+			library = {
+				schema: {
+					validate: sinonSandbox.stub().callsArg(2),
+				},
+				logger: {
+					debug: sinonSandbox.spy(),
+				},
+				logic: {
+					initTransaction,
+				},
+				channel: {
+					publish: sinonSandbox.stub().resolves(),
+				},
+				applicationState: {
+					broadhash:
+						'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
+				},
+			};
 
-				modules = {
-					transactions: {
-						processUnconfirmedTransaction: sinonSandbox.stub().callsArg(2),
-					},
-					processTransactions: new ProcessTransactions(() => {}, defaultScope),
-				};
-				modules.processTransactions.onBind(defaultScope);
+			modules = {
+				transactions: {
+					processUnconfirmedTransaction: sinonSandbox.stub().callsArg(2),
+				},
+				processTransactions: new ProcessTransactions(() => {}, defaultScope),
+			};
+			modules.processTransactions.onBind(defaultScope);
 
-				restoreRewiredDeps = TransportModule.__set__({
-					library,
-					modules,
-					definitions,
-				});
-
-				done();
-			}, defaultScope);
+			restoreRewiredDeps = TransportModule.__set__({
+				library,
+				modules,
+				definitions,
+			});
 		});
 
 		afterEach(done => {
@@ -834,95 +818,92 @@ describe('transport', () => {
 		describe('Transport', () => {
 			let restoreRewiredTransportDeps;
 
-			beforeEach(done => {
+			beforeEach(async () => {
 				blocksList = [];
 				for (let j = 0; j < 10; j++) {
 					const auxBlock = new Block();
 					blocksList.push(auxBlock);
 				}
 
-				transportInstance = new TransportModule(() => {
-					library = {
-						schema: {
-							validate: sinonSandbox.stub().callsArg(2),
+				transportInstance = new TransportModule(defaultScope);
+				library = {
+					schema: {
+						validate: sinonSandbox.stub().callsArg(2),
+					},
+					logger: {
+						debug: sinonSandbox.spy(),
+					},
+					config: {
+						forging: {
+							force: false,
 						},
-						logger: {
-							debug: sinonSandbox.spy(),
+						broadcasts: {
+							active: true,
 						},
-						config: {
-							forging: {
-								force: false,
-							},
-							broadcasts: {
-								active: true,
-							},
-							httpPort: 8000,
-						},
-						channel: {
-							invokeSync: sinonSandbox.stub(),
-							publish: sinonSandbox.stub(),
-						},
-						initTransaction,
+						httpPort: 8000,
+					},
+					channel: {
+						invokeSync: sinonSandbox.stub(),
+						publish: sinonSandbox.stub(),
+					},
+					initTransaction,
+					block: {
+						objectNormalize: sinonSandbox.stub().returns(new Block()),
+					},
+					logic: {
 						block: {
 							objectNormalize: sinonSandbox.stub().returns(new Block()),
 						},
-						logic: {
-							block: {
-								objectNormalize: sinonSandbox.stub().returns(new Block()),
+					},
+					storage: {
+						entities: {
+							Block: {
+								get: sinonSandbox.stub().resolves(blocksList),
 							},
 						},
-						storage: {
-							entities: {
-								Block: {
-									get: sinonSandbox.stub().resolves(blocksList),
-								},
-							},
-						},
-					};
+					},
+				};
 
-					modules = {
-						peers: {
-							calculateConsensus: sinonSandbox.stub().returns(100),
-						},
-						loader: {
-							syncing: sinonSandbox.stub().returns(false),
-						},
-						blocks: {
-							utils: {
-								loadBlocksData: sinonSandbox
-									.stub()
-									.callsArgWith(1, null, blocksList),
-								loadBlocksDataWS: sinonSandbox
-									.stub()
-									.callsArgWith(1, null, blocksList),
-							},
-							verify: {
-								addBlockProperties: sinonSandbox.stub().returns(blockMock),
-							},
-						},
-						transactions: {
-							getMultisignatureTransactionList: sinonSandbox
+				modules = {
+					peers: {
+						calculateConsensus: sinonSandbox.stub().returns(100),
+					},
+					loader: {
+						syncing: sinonSandbox.stub().returns(false),
+					},
+					blocks: {
+						utils: {
+							loadBlocksData: sinonSandbox
 								.stub()
-								.returns(transactionsList),
-							getMergedTransactionList: sinonSandbox
+								.callsArgWith(1, null, blocksList),
+							loadBlocksDataWS: sinonSandbox
 								.stub()
-								.returns(transactionsList),
+								.callsArgWith(1, null, blocksList),
 						},
-					};
+						verify: {
+							addBlockProperties: sinonSandbox.stub().returns(blockMock),
+						},
+					},
+					transactions: {
+						getMultisignatureTransactionList: sinonSandbox
+							.stub()
+							.returns(transactionsList),
+						getMergedTransactionList: sinonSandbox
+							.stub()
+							.returns(transactionsList),
+					},
+				};
 
-					__private = {
-						broadcaster: {},
-						checkInternalAccess: sinonSandbox.stub().callsArg(1),
-					};
+				__private = {
+					broadcaster: {},
+					checkInternalAccess: sinonSandbox.stub().callsArg(1),
+				};
 
-					restoreRewiredTransportDeps = TransportModule.__set__({
-						library,
-						modules,
-						__private,
-					});
-
-					done();
-				}, defaultScope);
+				restoreRewiredTransportDeps = TransportModule.__set__({
+					library,
+					modules,
+					__private,
+				});
 			});
 
 			afterEach(done => {
@@ -931,15 +912,13 @@ describe('transport', () => {
 			});
 
 			describe('onBind', () => {
-				beforeEach(done => {
+				beforeEach(async () => {
 					// Create a new TransportModule instance.
 					// We want to check that internal variables are being set correctly so we don't
 					// want any stubs to interfere here (e.g. from the top-level beforeEach block).
-					new TransportModule((err, transportSelf) => {
-						__private.broadcaster.bind = sinonSandbox.spy();
-						transportSelf.onBind(defaultScope);
-						done();
-					}, defaultScope);
+					const transportSelf = new TransportModule(defaultScope);
+					__private.broadcaster.bind = sinonSandbox.spy();
+					transportSelf.onBind(defaultScope);
 				});
 
 				describe('modules', () => {
@@ -950,12 +929,10 @@ describe('transport', () => {
 						done();
 					});
 
-					it('should assign blocks, dapps, loader, multisignatures, peers and transactions properties', async () => {
+					it('should assign blocks, loader, multisignatures and transactions properties', async () => {
 						expect(modulesObject).to.have.property('blocks');
-						expect(modulesObject).to.have.property('dapps');
 						expect(modulesObject).to.have.property('loader');
 						expect(modulesObject).to.have.property('multisignatures');
-						expect(modulesObject).to.have.property('peers');
 						return expect(modulesObject).to.have.property('transactions');
 					});
 				});

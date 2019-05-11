@@ -33,14 +33,11 @@ let currentAppScope;
 
 const modulesInit = {
 	blocks: '../../../src/modules/chain/submodules/blocks',
-	delegates: '../../../src/modules/chain/submodules/delegates',
-	loader: '../../../src/modules/chain/submodules/loader',
 	multisignatures: '../../../src/modules/chain/submodules/multisignatures',
 	peers: '../../../src/modules/chain/submodules/peers',
 	rounds: '../../../src/modules/chain/submodules/rounds',
 	signatures: '../../../src/modules/chain/submodules/signatures',
 	transactions: '../../../src/modules/chain/submodules/transactions',
-	transport: '../../../src/modules/chain/submodules/transport',
 	processTransactions:
 		'../../../src/modules/chain/submodules/process_transactions.js',
 };
@@ -179,6 +176,10 @@ async function __init(sandbox, initScope) {
 		// Ready to bind modules
 		scope.logic.block.bindModules(scope.modules);
 		scope.logic.account.bindModules(scope.modules);
+
+		scope.modules.loader = sinonSandbox.stub();
+		scope.modules.transport = sinonSandbox.stub();
+		scope.modules.delegates = sinonSandbox.stub();
 
 		// Fire onBind event in every module
 		scope.bus.message('bind', scope);

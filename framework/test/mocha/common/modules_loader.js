@@ -221,9 +221,9 @@ const modulesLoader = new function() {
 			[
 				{ blocks: require('../../../src/modules/chain/submodules/blocks') },
 				{
-					delegates: require('../../../src/modules/chain/submodules/delegates'),
+					delegates: require('../../../src/modules/chain/forge'),
 				},
-				{ loader: require('../../../src/modules/chain/submodules/loader') },
+				{ loader: require('../../../src/modules/chain/loader') },
 				{
 					multisignatures: require('../../../src/modules/chain/submodules/multisignatures'),
 				},
@@ -236,7 +236,7 @@ const modulesLoader = new function() {
 					transactions: require('../../../src/modules/chain/submodules/transactions'),
 				},
 				{
-					transport: require('../../../src/modules/chain/submodules/transport'),
+					transport: require('../../../src/modules/chain/transport'),
 				},
 			],
 			[

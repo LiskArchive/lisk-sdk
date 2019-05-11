@@ -143,9 +143,9 @@ describe('Chain', () => {
 	});
 
 	describe('bootstrap', () => {
-		beforeEach(() => {
+		beforeEach(async () => {
 			// Act
-			return chain.bootstrap();
+			await chain.bootstrap();
 		});
 
 		it('should be an async function', () => {
