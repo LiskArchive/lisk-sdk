@@ -230,9 +230,6 @@ const modulesLoader = new function() {
 				{ peers: require('../../../src/modules/chain/submodules/peers') },
 				{ rounds: require('../../../src/modules/chain/submodules/rounds') },
 				{
-					signatures: require('../../../src/modules/chain/submodules/signatures'),
-				},
-				{
 					transactions: require('../../../src/modules/chain/submodules/transactions'),
 				},
 				{

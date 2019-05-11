@@ -36,7 +36,6 @@ const modulesInit = {
 	multisignatures: '../../../src/modules/chain/submodules/multisignatures',
 	peers: '../../../src/modules/chain/submodules/peers',
 	rounds: '../../../src/modules/chain/submodules/rounds',
-	signatures: '../../../src/modules/chain/submodules/signatures',
 	transactions: '../../../src/modules/chain/submodules/transactions',
 	processTransactions:
 		'../../../src/modules/chain/submodules/process_transactions.js',
@@ -205,44 +204,7 @@ async function __init(sandbox, initScope) {
 		}
 
 		// Overwrite onBlockchainReady function to prevent automatic forging
-		return new Promise((resolve, reject) => {
-			scope.modules.delegates.onBlockchainReady = function() {
-				__testContext.debug(
-					'initApplication: Fake onBlockchainReady event called'
-				);
-				__testContext.debug('initApplication: Loading delegates...');
-
-				const loadDelegates = scope.rewiredModules.delegates.__get__(
-					'__private.loadDelegates'
-				);
-
-				loadDelegates(loadDelegatesErr => {
-					if (loadDelegatesErr) {
-						reject(loadDelegatesErr);
-					}
-
-					const keypairs = scope.rewiredModules.delegates.__get__(
-						'__private.keypairs'
-					);
-
-					const delegatesCount = Object.keys(keypairs).length;
-					expect(delegatesCount).to.equal(
-						scope.config.forging.delegates.length
-					);
-
-					__testContext.debug(
-						`initApplication: Delegates loaded from config file - ${delegatesCount}`
-					);
-					__testContext.debug('initApplication: Done');
-
-					if (initScope.waitForGenesisBlock) {
-						resolve(scope);
-					}
-
-					resolve(scope);
-				});
-			};
-		});
+		return scope;
 	} catch (error) {
 		__testContext.debug('Error during test application init.', error);
 		throw error;

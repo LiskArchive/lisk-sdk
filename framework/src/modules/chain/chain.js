@@ -263,8 +263,8 @@ module.exports = class Chain {
 			getSignatures: async () =>
 				promisify(this.scope.modules.transport.shared.getSignatures)(),
 			postSignature: async action =>
-				promisify(this.scope.modules.signatures.shared.postSignature)(
-					action.params.signature
+				promisify(this.scope.modules.transport.shared.postSignature)(
+					action.params
 				),
 			getForgingStatusForAllDelegates: async () =>
 				this.scope.modules.delegates.getForgingStatusForAllDelegates(),

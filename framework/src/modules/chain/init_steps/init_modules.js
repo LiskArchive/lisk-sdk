@@ -21,7 +21,6 @@ const modulesList = {
 	rounds: '../submodules/rounds',
 	multisignatures: '../submodules/multisignatures',
 	peers: '../submodules/peers',
-	signatures: '../submodules/signatures',
 	transactions: '../submodules/transactions',
 	processTransactions: '../submodules/process_transactions',
 };
