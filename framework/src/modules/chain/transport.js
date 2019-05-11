@@ -96,10 +96,8 @@ class Transport {
 	onBind(scope) {
 		modules = {
 			blocks: scope.modules.blocks,
-			dapps: scope.modules.dapps,
 			loader: scope.modules.loader,
 			multisignatures: scope.modules.multisignatures,
-			peers: scope.modules.peers,
 			transactions: scope.modules.transactions,
 			processTransactions: scope.modules.processTransactions,
 		};
@@ -173,6 +171,7 @@ class Transport {
 	 * @param {boolean} broadcast - Signal flag for broadcast
 	 * @emits blocks/change
 	 */
+	// TODO: Remove after block module becomes event-emitter
 	// eslint-disable-next-line class-methods-use-this
 	onBroadcastBlock(block, broadcast) {
 		// Exit immediately when 'broadcast' flag is not set
