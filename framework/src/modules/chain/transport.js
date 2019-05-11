@@ -31,7 +31,6 @@ let library;
 // eslint-disable-next-line prefer-const
 let __private = {};
 
-__private.loaded = false;
 __private.messages = {};
 
 /**
@@ -106,14 +105,6 @@ class Transport {
 			scope.modules.transport,
 			scope.modules.transactions
 		);
-	}
-
-	/**
-	 * Sets private variable loaded to true.
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	onBlockchainReady() {
-		__private.loaded = true;
 	}
 
 	/**
@@ -212,29 +203,6 @@ class Transport {
 			},
 			{ api: 'postBlock', data: { block } }
 		);
-	}
-
-	/**
-	 * Sets loaded to false.
-	 *
-	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallback} cb
-	 * @todo Add description for the params
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	cleanup() {
-		__private.loaded = false;
-	}
-
-	/**
-	 * Returns true if modules are loaded and private variable loaded is true.
-	 *
-	 * @returns {boolean}
-	 * @todo Add description for the return value
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	isLoaded() {
-		return modules && __private.loaded;
 	}
 
 	/**
