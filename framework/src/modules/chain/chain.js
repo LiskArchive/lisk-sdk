@@ -275,8 +275,8 @@ module.exports = class Chain {
 			getLastCommit: async () => this.scope.lastCommit,
 			getBuild: async () => this.scope.build,
 			postTransaction: async action =>
-				promisify(this.scope.modules.transactions.shared.postTransaction)(
-					action.params.transaction
+				promisify(this.scope.modules.transport.shared.postTransaction)(
+					action.params
 				),
 			getDelegateBlocksRewards: async action =>
 				this.scope.components.storage.entities.Account.delegateBlocksRewards(

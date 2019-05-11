@@ -407,7 +407,6 @@ class Process {
 	 * - delegates
 	 * - rounds
 	 * - transactions
-	 * - transport
 	 *
 	 * @param {modules} scope - Exposed modules
 	 */
@@ -421,7 +420,6 @@ class Process {
 			peers: scope.modules.peers,
 			rounds: scope.modules.rounds,
 			transactions: scope.modules.transactions,
-			transport: scope.modules.transport,
 			processTransactions: scope.modules.processTransactions,
 		};
 
