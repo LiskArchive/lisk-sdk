@@ -17,6 +17,7 @@
 const async = require('async');
 const { promisify } = require('util');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const { convertErrorsToString } = require('./helpers/error_handlers');
 const slots = require('./helpers/slots');
 const definitions = require('./schema/definitions');
 
@@ -194,7 +195,7 @@ class Loader {
 				},
 				err => {
 					if (err) {
-						library.logger.error({ error: err });
+						library.logger.error(convertErrorsToString(err));
 						if (err.block) {
 							library.logger.error(`Blockchain failed at: ${err.block.height}`);
 							modules.blocks.chain.deleteFromBlockId(err.block.id, () => {
@@ -397,7 +398,6 @@ class Loader {
 		}
 
 		__private.isActive = true;
-		__private.syncTrigger(true);
 
 		async.series(
 			{
@@ -436,7 +436,6 @@ class Loader {
 			},
 			err => {
 				__private.isActive = false;
-				__private.syncTrigger(false);
 				__private.blocksToSync = 0;
 
 				library.logger.info('Finished sync');
@@ -467,6 +466,7 @@ class Loader {
 			peers: scope.modules.peers,
 			rounds: scope.modules.rounds,
 			multisignatures: scope.modules.multisignatures,
+			processTransactions: scope.modules.processTransactions,
 		};
 	}
 
@@ -504,7 +504,7 @@ __private.getSignaturesFromNetwork = async function() {
 	library.logger.info('Loading signatures from the network');
 
 	// TODO: Add target module to procedure name. E.g. chain:getSignatures
-	const result = await library.channel.invoke('network:request', {
+	const { data: result } = await library.channel.invoke('network:request', {
 		procedure: 'getSignatures',
 	});
 
@@ -553,7 +553,7 @@ __private.getTransactionsFromNetwork = async function() {
 	library.logger.info('Loading transactions from the network');
 
 	// TODO: Add target module to procedure name. E.g. chain:getTransactions
-	const result = await library.channel.invoke('network:request', {
+	const { data: result } = await library.channel.invoke('network:request', {
 		procedure: 'getTransactions',
 	});
 
@@ -943,7 +943,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 				waterErr => {
 					if (waterErr) {
 						failedAttemptsToLoad += 1;
-						library.logger.error({ error: waterErr });
+						library.logger.error(convertErrorsToString(waterErr));
 					}
 					whilstCb();
 				}
