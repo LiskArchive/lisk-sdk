@@ -428,10 +428,6 @@ class Transactions {
 			cache: scope.components ? scope.components.cache : undefined,
 		};
 
-		modules = {
-			accounts: scope.modules.accounts,
-		};
-
 		__private.transactionPool.bind(scope.modules.processTransactions);
 	}
 

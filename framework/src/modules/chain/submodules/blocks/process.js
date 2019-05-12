@@ -414,11 +414,9 @@ class Process {
 	onBind(scope) {
 		library.logger.trace('Blocks->Process: Shared modules bind.');
 		modules = {
-			accounts: scope.modules.accounts,
 			blocks: scope.modules.blocks,
 			delegates: scope.modules.delegates,
 			peers: scope.modules.peers,
-			rounds: scope.modules.rounds,
 			transactions: scope.modules.transactions,
 			processTransactions: scope.modules.processTransactions,
 		};

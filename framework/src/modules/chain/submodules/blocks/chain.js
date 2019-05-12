@@ -399,7 +399,6 @@ class Chain {
 	onBind(scope) {
 		library.logger.trace('Blocks->Chain: Shared modules bind.');
 		modules = {
-			accounts: scope.modules.accounts,
 			blocks: scope.modules.blocks,
 			rounds: scope.modules.rounds,
 			transactions: scope.modules.transactions,

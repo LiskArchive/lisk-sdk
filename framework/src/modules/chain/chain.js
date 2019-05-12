@@ -255,7 +255,7 @@ module.exports = class Chain {
 					action.params.source
 				),
 			updateForgingStatus: async action =>
-				this.scope.modules.delegates.updateForgingStatus(
+				this.scope.modules.forge.updateForgingStatus(
 					action.params.publicKey,
 					action.params.password,
 					action.params.forging
@@ -269,7 +269,7 @@ module.exports = class Chain {
 					action.params
 				),
 			getForgingStatusForAllDelegates: async () =>
-				this.scope.modules.delegates.getForgingStatusForAllDelegates(),
+				this.scope.modules.forge.getForgingStatusForAllDelegates(),
 			getTransactionsFromPool: async action =>
 				promisify(
 					this.scope.modules.transactions.shared.getTransactionsFromPool

@@ -353,7 +353,6 @@ class Verify {
 		library.logger.trace('Blocks->Verify: Shared modules bind.');
 
 		modules = {
-			accounts: scope.modules.accounts,
 			blocks: scope.modules.blocks,
 			delegates: scope.modules.delegates,
 			transactions: scope.modules.transactions,

@@ -56,16 +56,11 @@ class Loader {
 			channel: scope.channel,
 			logger: scope.components.logger,
 			storage: scope.components.storage,
-			network: scope.network,
 			schema: scope.schema,
 			sequence: scope.sequence,
 			bus: scope.bus,
 			genesisBlock: scope.genesisBlock,
 			balancesSequence: scope.balancesSequence,
-			logic: {
-				account: scope.logic.account,
-				peers: scope.logic.peers,
-			},
 			config: {
 				loading: {
 					loadPerIteration: scope.config.loading.loadPerIteration,
@@ -120,7 +115,6 @@ class Loader {
 	 * 2. Matches genesis block with database.
 	 * 3. Verifies rebuild mode.
 	 * 4. Recreates memory tables when neccesary:
-	 *  - Calls logic.account to resetMemTables
 	 *  - Calls block to load block. When blockchain ready emits a bus message.
 	 * 5. Detects orphaned blocks in `mem_accounts` and gets delegates.
 	 * 6. Loads last block and emits a bus message blockchain is ready.
