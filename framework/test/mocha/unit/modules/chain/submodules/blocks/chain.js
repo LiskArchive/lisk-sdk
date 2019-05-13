@@ -157,10 +157,6 @@ describe('blocks/chain', () => {
 			applyNext: sinonSandbox.stub(),
 		};
 
-		const modulesAccountsStub = {
-			getAccount: sinonSandbox.stub(),
-		};
-
 		const modulesBlocksStub = {
 			lastBlock: {
 				get: sinonSandbox.stub(),
@@ -195,7 +191,6 @@ describe('blocks/chain', () => {
 
 		bindingsStub = {
 			modules: {
-				accounts: modulesAccountsStub,
 				blocks: modulesBlocksStub,
 				rounds: modulesRoundsStub,
 				transactions: modulesTransactionsStub,
@@ -1127,7 +1122,6 @@ describe('blocks/chain', () => {
 			));
 
 		it('should assign params to modules', async () => {
-			expect(modules.accounts).to.equal(bindingsStub.modules.accounts);
 			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
 			expect(modules.rounds).to.equal(bindingsStub.modules.rounds);
 			return expect(modules.transactions).to.equal(

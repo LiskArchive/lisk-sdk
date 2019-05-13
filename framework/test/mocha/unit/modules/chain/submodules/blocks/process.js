@@ -156,10 +156,6 @@ describe('blocks/process', () => {
 			transactions: [],
 		};
 
-		const modulesAccountsStub = {
-			getAccount: sinonSandbox.stub(),
-		};
-
 		const modulesBlocksStub = {
 			lastReceipt: {
 				update: sinonSandbox.stub(),
@@ -205,29 +201,17 @@ describe('blocks/process', () => {
 		const modulesLoaderStub = {
 			syncing: sinonSandbox.stub(),
 		};
-
-		const modulesRoundsStub = {
-			ticking: sinonSandbox.stub(),
-		};
-
 		const modulesTransactionsStub = {
 			getUnconfirmedTransactionList: sinonSandbox.stub(),
 		};
 
-		const modulesPeersStub = {
-			remove: sinonSandbox.spy(),
-		};
-
 		bindingsStub = {
 			modules: {
-				accounts: modulesAccountsStub,
 				blocks: modulesBlocksStub,
 				delegates: modulesDelegatesStub,
 				loader: modulesLoaderStub,
-				peers: modulesPeersStub,
-				processTransactions: modulesProcessTransactionsStub,
-				rounds: modulesRoundsStub,
 				transactions: modulesTransactionsStub,
+				processTransactions: modulesProcessTransactionsStub,
 			},
 		};
 
@@ -1859,13 +1843,13 @@ describe('blocks/process', () => {
 			));
 
 		it('should assign params to modules', done => {
-			expect(modules.accounts).to.equal(bindingsStub.modules.accounts);
 			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
 			expect(modules.delegates).to.equal(bindingsStub.modules.delegates);
 			expect(modules.loader).to.equal(bindingsStub.modules.loader);
-			expect(modules.rounds).to.equal(bindingsStub.modules.rounds);
 			expect(modules.transactions).to.equal(bindingsStub.modules.transactions);
-			expect(modules.transport).to.equal(bindingsStub.modules.transport);
+			expect(modules.processTransactions).to.equal(
+				bindingsStub.modules.processTransactions
+			);
 			done();
 		});
 

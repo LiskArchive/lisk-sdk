@@ -90,7 +90,6 @@ describe('multisignatures', () => {
 
 		stubs.bindings = {
 			modules: {
-				accounts: sinonSandbox.stub(),
 				transactions: sinonSandbox.stub(),
 				processTransactions: sinonSandbox.stub(),
 			},

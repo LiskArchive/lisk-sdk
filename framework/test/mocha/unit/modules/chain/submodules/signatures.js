@@ -38,7 +38,6 @@ describe('signatures', () => {
 		it('should return true if modules exists', async () => {
 			// Arrange
 			revert = library.rewiredModules.signatures.__set__('modules', {
-				accounts: library.modules.accounts,
 				transactions: library.modules.transactions,
 				transport: library.modules.transport,
 			});
@@ -67,18 +66,6 @@ describe('signatures', () => {
 		});
 
 		describe('modules', () => {
-			it('should assign accounts', async () =>
-				expect(privateModules).to.have.property(
-					'accounts',
-					library.modules.accounts
-				));
-
-			it('should assign transactions', async () =>
-				expect(privateModules).to.have.property(
-					'transactions',
-					library.modules.transactions
-				));
-
 			it('should assign transport', async () =>
 				expect(privateModules).to.have.property(
 					'transport',
