@@ -420,4 +420,4 @@ class Forge {
 }
 
 // Export
-module.exports = { Forge };
+module.exports = { Forge, getDelegateKeypairForCurrentSlot };
