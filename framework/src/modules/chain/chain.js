@@ -20,10 +20,8 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 
 const { promisify } = require('util');
 const { convertErrorsToString } = require('./helpers/error_handlers');
-const git = require('./helpers/git');
 const Sequence = require('./helpers/sequence');
 const ed = require('./helpers/ed');
-// eslint-disable-next-line import/order
 const { ZSchema } = require('../../controller/validator');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
@@ -38,21 +36,6 @@ const {
 
 // Begin reading from stdin
 process.stdin.resume();
-
-// Read build version from file
-// TODO: Remove from framework
-const versionBuild = 'version-0.1.0';
-// const versionBuild = fs
-// 	.readFileSync(path.join(__dirname, '../../../../', '.build'), 'utf8')
-// 	.toString()
-// 	.trim();
-
-/**
- * Hash of the last git commit.
- *
- * @memberof! app
- */
-let lastCommit = '';
 
 if (typeof gc !== 'undefined') {
 	setInterval(() => {
@@ -107,13 +90,6 @@ module.exports = class Chain {
 						})
 				  );
 
-		// Try to get the last git commit
-		try {
-			lastCommit = git.getLastCommit();
-		} catch (err) {
-			this.logger.debug('Cannot get last git commit', err.message);
-		}
-
 		global.constants = this.options.constants;
 		global.exceptions = this.options.exceptions;
 
@@ -146,9 +122,7 @@ module.exports = class Chain {
 
 			const self = this;
 			this.scope = {
-				lastCommit,
 				ed,
-				build: versionBuild,
 				config: self.options,
 				genesisBlock: { block: self.options.genesisBlock },
 				registeredTransactions: self.options.registeredTransactions,
@@ -251,8 +225,6 @@ module.exports = class Chain {
 				promisify(
 					this.scope.modules.transactions.shared.getTransactionsFromPool
 				)(action.params.type, action.params.filters),
-			getLastCommit: async () => this.scope.lastCommit,
-			getBuild: async () => this.scope.build,
 			postTransaction: async action =>
 				promisify(this.scope.modules.transactions.shared.postTransaction)(
 					action.params.transaction
