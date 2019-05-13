@@ -17,10 +17,10 @@
 const {
 	getPrivateAndPublicKeyFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
-const genesisDelegates = require('../../../../data/genesis_delegates.json');
-const delegatesRoundsList = require('../../../../data/delegates_rounds_list.json');
-const accountFixtures = require('../../../../fixtures/accounts');
-const application = require('../../../../common/application');
+const genesisDelegates = require('../../../data/genesis_delegates.json');
+const delegatesRoundsList = require('../../../data/delegates_rounds_list.json');
+const accountFixtures = require('../../../fixtures/accounts');
+const application = require('../../../common/application');
 
 const exceptions = global.exceptions;
 

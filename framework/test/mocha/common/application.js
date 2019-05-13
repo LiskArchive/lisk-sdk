@@ -255,6 +255,11 @@ const initStepsForTest = {
 		});
 
 		const modules = await promisifyParallel(tasks);
+		// TODO: remove rewiring
+		const RewiredLoader = rewire('../../../src/modules/chain/loader');
+		scope.rewiredModules.loader = RewiredLoader;
+		modules.loader = new RewiredLoader(scope);
+
 		scope.bus.registerModules(modules);
 
 		return modules;

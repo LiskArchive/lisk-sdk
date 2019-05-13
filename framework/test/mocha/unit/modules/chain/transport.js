@@ -23,19 +23,19 @@ const {
 } = require('@liskhq/lisk-transactions');
 const { transfer, TransactionError } = require('@liskhq/lisk-transactions');
 
-const accountFixtures = require('../../../../fixtures/accounts');
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
-const Block = require('../../../../fixtures/blocks').Block;
+const accountFixtures = require('../../../fixtures/accounts');
+const Bignum = require('../../../../../src/modules/chain/helpers/bignum');
+const Block = require('../../../fixtures/blocks').Block;
 const {
 	registeredTransactions,
-} = require('../../../../common/registered_transactions');
-const InitTransaction = require('../../../../../../src/modules/chain/logic/init_transaction');
-const ProcessTransactions = require('../../../../../../src/modules/chain/submodules/process_transactions');
-const processTransactionLogic = require('../../../../../../src/modules/chain/logic/process_transaction');
+} = require('../../../common/registered_transactions');
+const InitTransaction = require('../../../../../src/modules/chain/logic/init_transaction');
+const ProcessTransactions = require('../../../../../src/modules/chain/submodules/process_transactions');
+const processTransactionLogic = require('../../../../../src/modules/chain/logic/process_transaction');
 
 const initTransaction = new InitTransaction({ registeredTransactions });
 
-const TransportModule = rewire('../../../../../../src/modules/chain/transport');
+const TransportModule = rewire('../../../../../src/modules/chain/transport');
 
 const { MAX_SHARED_TRANSACTIONS } = __testContext.config.constants;
 const expect = chai.expect;
