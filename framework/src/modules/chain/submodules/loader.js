@@ -202,7 +202,7 @@ __private.getSignaturesFromNetwork = async function() {
 	library.logger.info('Loading signatures from the network');
 
 	// TODO: Add target module to procedure name. E.g. chain:getSignatures
-	const result = await library.channel.invoke('network:request', {
+	const { data: result } = await library.channel.invoke('network:request', {
 		procedure: 'getSignatures',
 	});
 
@@ -251,7 +251,7 @@ __private.getTransactionsFromNetwork = async function() {
 	library.logger.info('Loading transactions from the network');
 
 	// TODO: Add target module to procedure name. E.g. chain:getTransactions
-	const result = await library.channel.invoke('network:request', {
+	const { data: result } = await library.channel.invoke('network:request', {
 		procedure: 'getTransactions',
 	});
 
