@@ -65,14 +65,14 @@ const getDelegatesFromPreviousRound = async (storage, tx) => {
  * @returns {setImmediateCallback} cb, err
  * @todo Add description for the params
  */
-const validateBlockSlot = (block, activeDelegates) => {
+const validateBlockSlot = (block, activeDelegates, logger) => {
 	const currentSlot = slots.getSlotNumber(block.timestamp);
 	const delegateId = activeDelegates[currentSlot % ACTIVE_DELEGATES];
 
 	if (delegateId && block.generatorPublicKey === delegateId) {
 		return true;
 	}
-	this.logger.error(
+	logger.error(
 		`Expected generator: ${delegateId} Received generator: ${
 			block.generatorPublicKey
 		}`
@@ -178,7 +178,7 @@ class Delegates {
 	 * @param {string} cause
 	 * @todo Add description for the params
 	 */
-	fork(block, cause) {
+	async fork(block, cause) {
 		this.logger.info('Fork', {
 			delegate: block.generatorPublicKey,
 			block: {
@@ -199,9 +199,8 @@ class Delegates {
 			cause,
 		};
 
-		this.storage.entities.Account.insertFork(fork).then(() => {
-			this.channel.publish('chain:delegates:fork', fork);
-		});
+		await this.storage.entities.Account.insertFork(fork);
+		this.channel.publish('chain:delegates:fork', fork);
 	}
 
 	/**
