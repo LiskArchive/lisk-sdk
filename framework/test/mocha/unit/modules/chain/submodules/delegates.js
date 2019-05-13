@@ -1019,5 +1019,170 @@ describe('delegates', () => {
 				});
 			});
 		});
+
+		describe('forge', () => {
+			let forgePromise;
+			let loggerSpy;
+			let __private;
+
+			const genesis1 = {
+				passphrase:
+					'robust swift grocery peasant forget share enable convince deputy road keep cheap',
+				publicKey:
+					'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+			};
+			const genesis1Keypair = getPrivateAndPublicKeyFromPassphrase(
+				genesis1.passphrase
+			);
+
+			beforeEach(async () => {
+				__private = library.rewiredModules.delegates.__get__('__private');
+				forgePromise = util.promisify(__private.forge);
+				loggerSpy = library.components.logger;
+				sinonSandbox
+					.stub(__private, 'getDelegateKeypairForCurrentSlot')
+					.yields(null, genesis1Keypair);
+				sinonSandbox.stub(library.modules.loader, 'syncing').returns(false);
+				sinonSandbox.stub(library.modules.rounds, 'loaded').returns(true);
+				sinonSandbox.stub(library.modules.rounds, 'ticking').returns(false);
+
+				loggerSpy.info.resetHistory();
+				loggerSpy.debug.resetHistory();
+				loggerSpy.error.resetHistory();
+			});
+
+			describe('when client not ready to forge', () => {
+				it('should log message and return if delegate list is empty', async () => {
+					const keyPairs = __private.keypairs;
+					__private.keypairs = {};
+
+					const data = await forgePromise();
+
+					expect(data).to.be.undefined;
+					expect(loggerSpy.debug).to.be.calledOnce;
+					expect(loggerSpy.debug).to.be.calledWith('No delegates enabled');
+
+					expect(__private.getDelegateKeypairForCurrentSlot).to.be.not.called;
+
+					__private.keypairs = keyPairs;
+				});
+
+				it('should log message and return if __private.loaded is false', async () => {
+					const loaded = __private.loaded;
+					__private.loaded = false;
+
+					const data = await forgePromise();
+
+					expect(data).to.be.undefined;
+					expect(loggerSpy.debug).to.be.calledOnce;
+					expect(loggerSpy.debug).to.be.calledWith('Client not ready to forge');
+
+					expect(__private.getDelegateKeypairForCurrentSlot).to.be.not.called;
+
+					__private.loaded = loaded;
+				});
+
+				it('should log message and return if modules.loader.syncing() returns true', async () => {
+					library.modules.loader.syncing.returns(true);
+
+					const data = await forgePromise();
+
+					expect(data).to.be.undefined;
+					expect(loggerSpy.debug).to.be.calledOnce;
+					expect(loggerSpy.debug).to.be.calledWith('Client not ready to forge');
+
+					expect(__private.getDelegateKeypairForCurrentSlot).to.be.not.called;
+				});
+
+				it('should log message and return if modules.rounds.loaded() returns false', async () => {
+					library.modules.rounds.loaded.returns(false);
+
+					const data = await forgePromise();
+
+					expect(data).to.be.undefined;
+					expect(loggerSpy.debug).to.be.calledOnce;
+					expect(loggerSpy.debug).to.be.calledWith('Client not ready to forge');
+
+					expect(__private.getDelegateKeypairForCurrentSlot).to.be.not.called;
+				});
+
+				it('should log message and return if modules.rounds.ticking() returns true', async () => {
+					library.modules.rounds.ticking.returns(true);
+
+					const data = await forgePromise();
+
+					expect(data).to.be.undefined;
+					expect(loggerSpy.debug).to.be.calledOnce;
+					expect(loggerSpy.debug).to.be.calledWith('Client not ready to forge');
+
+					expect(__private.getDelegateKeypairForCurrentSlot).to.be.not.called;
+				});
+			});
+
+			describe('when block already forged', () => {
+				it('should log message and return if current block slot is same as last block slot', async () => {
+					const slots = library.rewiredModules.delegates.__get__('slots');
+					const getSlotNumberStub = sinonSandbox.stub(slots, 'getSlotNumber');
+					getSlotNumberStub.withArgs().returns(4);
+					getSlotNumberStub
+						.withArgs(library.modules.blocks.lastBlock.get().timestamp)
+						.returns(4);
+
+					const data = await forgePromise();
+
+					expect(data).to.be.undefined;
+					expect(loggerSpy.debug).to.be.calledOnce;
+					expect(loggerSpy.debug).to.be.calledWith(
+						'Block already forged for the current slot'
+					);
+
+					expect(__private.getDelegateKeypairForCurrentSlot).to.be.not.called;
+				});
+			});
+
+			it('should log message and return if getDelegateKeypairForCurrentSlot failed', async () => {
+				__private.getDelegateKeypairForCurrentSlot.yields(
+					'CustomKeypairForCurrentError'
+				);
+
+				const data = await forgePromise();
+				expect(data).to.be.undefined;
+				expect(loggerSpy.error).to.be.calledOnce;
+				expect(loggerSpy.error).to.be.calledWithExactly(
+					'Skipping delegate slot',
+					'CustomKeypairForCurrentError'
+				);
+			});
+
+			it('should log message and return if getDelegateKeypairForCurrentSlot return no result', async () => {
+				__private.getDelegateKeypairForCurrentSlot.yields(null, null);
+
+				const data = await forgePromise();
+				expect(data).to.be.undefined;
+				expect(loggerSpy.debug).to.be.calledOnce;
+				expect(loggerSpy.debug).to.be.calledWith('Waiting for delegate slot');
+			});
+
+			it('should log message and return if there is poor consensus', async () => {
+				sinonSandbox
+					.stub(library.modules.peers, 'isPoorConsensus')
+					.resolves(true);
+
+				const data = await forgePromise();
+
+				expect(data).to.be.undefined;
+				expect(loggerSpy.error).to.be.calledOnce;
+				expect(loggerSpy.error).to.be.calledWithExactly(
+					'Failed to generate block within delegate slot',
+					'Inadequate broadhash consensus before forging a block: 0 %'
+				);
+			});
+
+			// eslint-disable-next-line mocha/no-pending-tests
+			it('should wait for threshold time if last block not received');
+
+			// eslint-disable-next-line mocha/no-pending-tests
+			it('should not wait for threshold time if last block already received');
+		});
 	});
 });
