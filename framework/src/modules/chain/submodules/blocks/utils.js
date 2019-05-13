@@ -625,52 +625,53 @@ class Utils {
 	// eslint-disable-next-line class-methods-use-this
 	aggregateBlocksReward(filter, cb) {
 		const params = {};
+		const filters = { address: filter.address };
+		const options = { extended: true };
 
-		library.logic.account.get({ address: filter.address }, (err, account) => {
-			if (err) {
-				return setImmediate(cb, err);
-			}
+		library.storage.entities.Account.get(filters, options)
+			.then(accounts => {
+				const account = accounts[0];
+				if (!account) {
+					return setImmediate(cb, 'Account not found');
+				}
 
-			if (!account) {
-				return setImmediate(cb, 'Account not found');
-			}
+				params.generatorPublicKey = account.publicKey;
+				params.delegates = ACTIVE_DELEGATES;
 
-			params.generatorPublicKey = account.publicKey;
-			params.delegates = ACTIVE_DELEGATES;
+				if (filter.start !== undefined) {
+					params.fromTimestamp = Math.floor(
+						(filter.start - new Date(EPOCH_TIME).getTime()) / 1000
+					);
+					params.fromTimestamp = params.fromTimestamp.toFixed();
+				}
 
-			if (filter.start !== undefined) {
-				params.fromTimestamp = Math.floor(
-					(filter.start - new Date(EPOCH_TIME).getTime()) / 1000
-				);
-				params.fromTimestamp = params.fromTimestamp.toFixed();
-			}
+				if (filter.end !== undefined) {
+					params.toTimestamp = Math.floor(
+						(filter.end - new Date(EPOCH_TIME).getTime()) / 1000
+					);
+					params.toTimestamp = params.toTimestamp.toFixed();
+				}
 
-			if (filter.end !== undefined) {
-				params.toTimestamp = Math.floor(
-					(filter.end - new Date(EPOCH_TIME).getTime()) / 1000
-				);
-				params.toTimestamp = params.toTimestamp.toFixed();
-			}
-
-			// Get calculated rewards
-			return library.storage.entities.Account.delegateBlocksRewards(params)
-				.then(rows => {
-					let data = rows[0];
-					if (data.delegate === null) {
-						return setImmediate(cb, 'Account is not a delegate');
-					}
-					data = {
-						fees: data.fees || '0',
-						rewards: data.rewards || '0',
-						count: data.count || '0',
-					};
-					return setImmediate(cb, null, data);
-				})
-				.catch(delegateBlocksRewardsErr => {
-					library.logger.error(delegateBlocksRewardsErr.stack);
-					return setImmediate(cb, 'Blocks#aggregateBlocksReward error');
-				});
-		});
+				// Get calculated rewards
+				return library.storage.entities.Account.delegateBlocksRewards(params)
+					.then(rows => {
+						let data = rows[0];
+						if (data.delegate === null) {
+							return setImmediate(cb, 'Account is not a delegate');
+						}
+						data = {
+							fees: data.fees || '0',
+							rewards: data.rewards || '0',
+							count: data.count || '0',
+						};
+						return setImmediate(cb, null, data);
+					})
+					.catch(delegateBlocksRewardsErr => {
+						library.logger.error(delegateBlocksRewardsErr.stack);
+						return setImmediate(cb, 'Blocks#aggregateBlocksReward error');
+					});
+			})
+			.catch(err => setImmediate(cb, err));
 	}
 
 	/**

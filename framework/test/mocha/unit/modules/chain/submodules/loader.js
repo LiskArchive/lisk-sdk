@@ -145,7 +145,7 @@ describe('loader', () => {
 		let RewiredLoader;
 
 		beforeEach(done => {
-			resetMemTablesStub = sinonSandbox.stub().callsArgWith(0, null, true);
+			resetMemTablesStub = sinonSandbox.stub().resolves();
 			loadBlocksOffsetStub = sinonSandbox.stub().callsArgWith(2, null, true);
 			deleteStub = sinonSandbox.stub().resolves();
 
@@ -162,6 +162,9 @@ describe('loader', () => {
 					logger: loggerStub,
 					storage: {
 						entities: {
+							Account: {
+								resetMemTables: resetMemTablesStub,
+							},
 							Block: {
 								delete: deleteStub,
 							},
@@ -178,7 +181,6 @@ describe('loader', () => {
 				genesisBlock: sinonSandbox.stub(),
 				balancesSequence: sinonSandbox.stub(),
 				logic: {
-					account: { resetMemTables: resetMemTablesStub },
 					peers: sinonSandbox.stub(),
 				},
 				config: {
@@ -298,9 +300,9 @@ describe('loader', () => {
 		});
 
 		it('should emit an event with proper error when resetMemTables fails', done => {
-			resetMemTablesStub.callsArgWith(0, 'resetMemTables#ERR', true);
+			resetMemTablesStub.rejects();
 			__privateVar.rebuildFinished = err => {
-				expect(err).to.eql('resetMemTables#ERR');
+				expect(err.message).to.eql('Account#resetMemTables error');
 				done();
 			};
 

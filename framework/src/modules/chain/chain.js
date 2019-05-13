@@ -180,6 +180,7 @@ module.exports = class Chain {
 			this.scope.modules = await initModules(this.scope);
 
 			this.scope.logic.block.bindModules(this.scope.modules);
+			this.scope.logic.account.bindModules(this.scope.modules);
 
 			this.channel.subscribe('app:state:updated', event => {
 				Object.assign(this.scope.applicationState, event.data);

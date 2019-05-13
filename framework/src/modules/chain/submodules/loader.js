@@ -472,13 +472,12 @@ __private.loadBlockChain = function() {
 		async.series(
 			{
 				resetMemTables(seriesCb) {
-					library.logic.account.resetMemTables(err => {
-						if (err) {
-							throw err;
-						} else {
-							return setImmediate(seriesCb);
-						}
-					});
+					library.storage.entities.Account.resetMemTables()
+						.then(() => seriesCb())
+						.catch(err => {
+							library.logger.error(err.stack);
+							return seriesCb(new Error('Account#resetMemTables error'));
+						});
 				},
 				loadBlocksOffset(seriesCb) {
 					async.until(
@@ -869,7 +868,12 @@ __private.rebuildAccounts = height => {
 	async.series(
 		{
 			resetMemTables(seriesCb) {
-				library.logic.account.resetMemTables(seriesCb);
+				library.storage.entities.Account.resetMemTables()
+					.then(() => seriesCb())
+					.catch(err => {
+						library.logger.error(err.stack);
+						return seriesCb(new Error('Account#resetMemTables error'));
+					});
 			},
 			loadBlocksOffset(seriesCb) {
 				async.until(

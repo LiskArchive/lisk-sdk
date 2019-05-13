@@ -21,6 +21,7 @@ const {
 	castVotes,
 	registerDelegate,
 } = require('@liskhq/lisk-transactions');
+const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const Promise = require('bluebird');
 const ed = require('../../../src/modules/chain/helpers/ed');
 const slots = require('../../../src/modules/chain/helpers/slots');
@@ -102,9 +103,7 @@ describe('rounds', () => {
 			// SENDER: Get address from senderId or if not available - get from senderPublicKey
 			let address =
 				transaction.senderId ||
-				library.modules.accounts.generateAddressByPublicKey(
-					transaction.senderPublicKey
-				);
+				getAddressFromPublicKey(transaction.senderPublicKey);
 
 			// If account with address exists - set expected values
 			if (accounts[address]) {

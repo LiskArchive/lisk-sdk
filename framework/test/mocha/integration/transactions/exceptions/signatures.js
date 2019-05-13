@@ -77,13 +77,9 @@ describe('exceptions for senderPublicKey transactions', () => {
 		describe('details of the accounts', () => {
 			let senderMemAccountBefore;
 
-			before('get sender account', done => {
-				library.logic.account.get(
-					{ address: accountWithInvalidSignatureTransaction.address },
-					(err, res) => {
-						senderMemAccountBefore = res;
-						done();
-					}
+			before('get sender account', async () => {
+				senderMemAccountBefore = await library.components.storage.entities.Account.getOne(
+					{ address: accountWithInvalidSignatureTransaction.address }
 				);
 			});
 
@@ -108,13 +104,9 @@ describe('exceptions for senderPublicKey transactions', () => {
 				describe('details of the accounts', () => {
 					let senderMemAccountAfter;
 
-					before('get sender account', done => {
-						library.logic.account.get(
-							{ address: accountWithInvalidSignatureTransaction.address },
-							(err, res) => {
-								senderMemAccountAfter = res;
-								done();
-							}
+					before('get sender account', async () => {
+						senderMemAccountAfter = await library.components.storage.entities.Account.getOne(
+							{ address: accountWithInvalidSignatureTransaction.address }
 						);
 					});
 
@@ -154,13 +146,9 @@ describe('exceptions for senderPublicKey transactions', () => {
 					});
 
 					describe('details of the account', () => {
-						before('get sender and recipient accounts', done => {
-							library.logic.account.get(
-								{ address: accountWithInvalidSignatureTransaction.address },
-								(err, res) => {
-									senderMemAccountAfterBlockDelete = res;
-									done();
-								}
+						before('get sender and recipient accounts', async () => {
+							senderMemAccountAfterBlockDelete = await library.components.storage.entities.Account.getOne(
+								{ address: accountWithInvalidSignatureTransaction.address }
 							);
 						});
 

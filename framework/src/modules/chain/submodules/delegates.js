@@ -16,10 +16,10 @@
 
 const crypto = require('crypto');
 const async = require('async');
-const { promisify } = require('util');
 const {
 	decryptPassphraseWithPassword,
 	parseEncryptedPassphrase,
+	getAddressFromPublicKey,
 } = require('@liskhq/lisk-cryptography');
 const BlockReward = require('../logic/block_reward.js');
 const jobsQueue = require('../helpers/jobs_queue.js');
@@ -62,6 +62,7 @@ class Delegates {
 		library = {
 			channel: scope.channel,
 			logger: scope.components.logger,
+			logic: scope.logic,
 			sequence: scope.sequence,
 			ed: scope.ed,
 			storage: scope.components.storage,
@@ -127,9 +128,18 @@ class Delegates {
 			throw new Error('Invalid password and public key combination');
 		}
 
-		const account = await promisify(modules.accounts.getAccount)({
-			publicKey: keypair.publicKey.toString('hex'),
-		});
+		const filters = {
+			address: getAddressFromPublicKey(keypair.publicKey.toString('hex')),
+		};
+
+		const options = {
+			extended: true,
+		};
+
+		const [account] = await library.storage.entities.Account.get(
+			filters,
+			options
+		);
 
 		if (account && account.isDelegate) {
 			if (forging) {
@@ -401,22 +411,25 @@ __private.updateDelegateListCache = function(round, delegatesList) {
  * @returns {setImmediateCallback} cb
  * @todo Add description for the return value
  */
-__private.getKeysSortByVote = function(cb, tx) {
-	modules.accounts.getAccounts(
-		{
-			isDelegate: true,
-			sort: ['vote:desc', 'publicKey:asc'],
-			limit: ACTIVE_DELEGATES,
-		},
-		['publicKey'],
-		(err, rows) => {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-			return setImmediate(cb, null, rows.map(el => el.publicKey));
-		},
-		tx
-	);
+__private.getKeysSortByVote = async (cb, tx) => {
+	const filters = { isDelegate: true };
+	const options = {
+		limit: ACTIVE_DELEGATES,
+		sort: ['vote:desc', 'publicKey:asc'],
+	};
+
+	try {
+		const accounts = await library.storage.entities.Account.get(
+			filters,
+			options,
+			tx
+		);
+		const result = accounts.map(account => account.publicKey);
+		return cb(null, result);
+	} catch (error) {
+		library.logger.error(error.stack);
+		return cb(new Error('Account#getAll error'));
+	}
 };
 
 /**
@@ -681,15 +694,17 @@ __private.loadDelegates = function(cb) {
 				);
 			}
 
-			return modules.accounts.getAccount(
-				{
-					publicKey: keypair.publicKey.toString('hex'),
-				},
-				(err, account) => {
-					if (err) {
-						return setImmediate(seriesCb, err);
-					}
+			const filters = {
+				address: getAddressFromPublicKey(keypair.publicKey.toString('hex')),
+			};
 
+			const options = {
+				extended: true,
+			};
+
+			return library.storage.entities.Account.get(filters, options)
+				.then(accounts => {
+					const account = accounts[0];
 					if (!account) {
 						return setImmediate(
 							seriesCb,
@@ -712,8 +727,8 @@ __private.loadDelegates = function(cb) {
 					}
 
 					return setImmediate(seriesCb);
-				}
-			);
+				})
+				.catch(err => setImmediate(seriesCb, err));
 		},
 		cb
 	);

@@ -96,13 +96,9 @@ describe('exceptions for senderPublicKey transactions', () => {
 			describe('details of the accounts', () => {
 				let recipientMemAccountAfter;
 
-				before('get recipient account', done => {
-					library.logic.account.get(
-						{ address: accountWithLeadingZero.address },
-						(err, res) => {
-							recipientMemAccountAfter = res;
-							done();
-						}
+				before('get recipient account', async () => {
+					recipientMemAccountAfter = await library.components.storage.entities.Account.getOne(
+						{ address: accountWithLeadingZero.address }
 					);
 				});
 
@@ -139,13 +135,9 @@ describe('exceptions for senderPublicKey transactions', () => {
 				});
 
 				describe('details of the account', () => {
-					before('get recipient account', done => {
-						library.logic.account.get(
-							{ address: accountWithLeadingZero.address },
-							(err, res) => {
-								recipientMemAccountAfterBlockDelete = res;
-								done();
-							}
+					before('get recipient account', async () => {
+						recipientMemAccountAfterBlockDelete = await library.components.storage.entities.Account.getOne(
+							{ address: accountWithLeadingZero.address }
 						);
 					});
 

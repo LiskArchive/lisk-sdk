@@ -16,6 +16,7 @@
 
 const _ = require('lodash');
 const async = require('async');
+const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const { CACHE_KEYS_TRANSACTION_COUNT } = require('../../../components/cache');
 
 // Private fields
@@ -673,9 +674,7 @@ __private.getPooledTransactions = function(method, filters, cb) {
 	let toSend = [];
 
 	if (filters.recipientPublicKey) {
-		filters.recipientId = modules.accounts.generateAddressByPublicKey(
-			filters.recipientPublicKey
-		);
+		filters.recipientId = getAddressFromPublicKey(filters.recipientPublicKey);
 		delete filters.recipientPublicKey;
 	}
 

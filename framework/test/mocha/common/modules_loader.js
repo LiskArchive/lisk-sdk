@@ -219,7 +219,6 @@ const modulesLoader = new function() {
 	this.initAllModules = function(cb, scope) {
 		this.initModules(
 			[
-				{ accounts: require('../../../src/modules/chain/submodules/accounts') },
 				{ blocks: require('../../../src/modules/chain/submodules/blocks') },
 				{
 					delegates: require('../../../src/modules/chain/submodules/delegates'),
