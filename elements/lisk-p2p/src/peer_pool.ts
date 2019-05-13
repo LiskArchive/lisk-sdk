@@ -164,14 +164,14 @@ export class PeerPool extends EventEmitter {
 			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, peerInfo);
 		};
 		this._handlePeerCloseOutbound = (closePacket: P2PClosePacket) => {
-			// If we disconnect from a peer outbound, we should remove them to conserve our resources (especially in case of a malicious peer).
-			// A peer which was removed may added back later during the next round of discovery.
 			const peerId = constructPeerIdFromPeerInfo(closePacket.peerInfo);
-			this.removePeer(peerId);
+			this._removePeerIfFullyDisconnected(peerId);
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CLOSE_OUTBOUND, closePacket);
 		};
 		this._handlePeerCloseInbound = (closePacket: P2PClosePacket) => {
+			const peerId = constructPeerIdFromPeerInfo(closePacket.peerInfo);
+			this._removePeerIfFullyDisconnected(peerId);
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CLOSE_INBOUND, closePacket);
 		};
@@ -507,6 +507,17 @@ export class PeerPool extends EventEmitter {
 		}
 
 		return this._peerMap.delete(peerId);
+	}
+
+	private _removePeerIfFullyDisconnected(peerId: string): void {
+		const peer = this.getPeer(peerId);
+		if (
+			peer &&
+			peer.state.inbound === ConnectionState.CLOSED &&
+			peer.state.outbound === ConnectionState.CLOSED
+		) {
+			this.removePeer(peerId);
+		}
 	}
 
 	private _applyNodeInfoOnPeer(peer: Peer, nodeInfo: P2PNodeInfo): void {
