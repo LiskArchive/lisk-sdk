@@ -101,12 +101,6 @@ module.exports = class ChainModule extends BaseModule {
 				handler: async () => this.chain.actions.getSignatures(),
 				isPublic: true,
 			},
-			getLastCommit: {
-				handler: async () => this.chain.actions.getLastCommit(),
-			},
-			getBuild: {
-				handler: async () => this.chain.actions.getBuild(),
-			},
 			postTransaction: {
 				handler: async action => this.chain.actions.postTransaction(action),
 			},

@@ -204,6 +204,7 @@ class Loader {
 			blocks: scope.modules.blocks,
 			peers: scope.modules.peers,
 			multisignatures: scope.modules.multisignatures,
+			processTransactions: scope.modules.processTransactions,
 		};
 
 		__private.loadBlockChain();

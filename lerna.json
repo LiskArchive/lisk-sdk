@@ -1,6 +1,6 @@
 {
 	"lerna": "2.11.0",
-	"packages": ["lisk", "framework", "elements/*", "commander", "sdk"],
+	"packages": ["framework", "elements/*", "commander", "sdk"],
 	"version": "independent",
 	"stream": true
 }
