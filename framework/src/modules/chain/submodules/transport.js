@@ -157,16 +157,17 @@ class Transport {
 	// eslint-disable-next-line class-methods-use-this
 	onUnconfirmedTransaction(transaction, broadcast) {
 		if (broadcast && !__private.broadcaster.maxRelays(transaction)) {
+			const transactionJSON = transaction.toJSON();
 			__private.broadcaster.enqueue(
 				{},
 				{
 					api: 'postTransactions',
 					data: {
-						transaction,
+						transaction: transactionJSON,
 					},
 				}
 			);
-			library.channel.publish('chain:transactions:change', transaction);
+			library.channel.publish('chain:transactions:change', transactionJSON);
 		}
 	}
 
@@ -206,6 +207,13 @@ class Transport {
 
 		if (block.reward) {
 			block.reward = block.reward.toNumber();
+		}
+
+		if (block.transactions) {
+			// Convert transactions to JSON
+			block.transactions = block.transactions.map(transactionInstance =>
+				transactionInstance.toJSON()
+			);
 		}
 
 		const { broadhash } = library.applicationState;
@@ -419,10 +427,18 @@ class Transport {
 							);
 						}
 						let block;
+						let success = true;
 						try {
 							block = modules.blocks.verify.addBlockProperties(query.block);
+
+							// Instantiate transaction classes
+							block.transactions = library.logic.initTransaction.fromBlock(
+								block
+							);
+
 							block = library.logic.block.objectNormalize(block);
 						} catch (e) {
+							success = false;
 							library.logger.debug('Block normalization failed', {
 								err: e.toString(),
 								module: 'transport',
@@ -431,7 +447,12 @@ class Transport {
 
 							// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 						}
-						return library.bus.message('receiveBlock', block);
+
+						if (success) {
+							library.bus.message('receiveBlock', block);
+						}
+
+						return null;
 					}
 				);
 			},
