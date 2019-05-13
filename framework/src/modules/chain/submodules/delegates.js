@@ -71,6 +71,7 @@ class Delegates {
 			balancesSequence: scope.balancesSequence,
 			config: {
 				forging: {
+					waitThreshold: scope.config.forging.waitThreshold,
 					delegates: scope.config.forging.delegates,
 					force: scope.config.forging.force,
 					defaultPassword: scope.config.forging.defaultPassword,
@@ -546,8 +547,9 @@ __private.forge = function(cb) {
 
 	const currentSlot = slots.getSlotNumber();
 	const lastBlock = modules.blocks.lastBlock.get();
+	const lastBlockSlot = slots.getSlotNumber(lastBlock.timestamp);
 
-	if (currentSlot === slots.getSlotNumber(lastBlock.timestamp)) {
+	if (currentSlot === lastBlockSlot) {
 		library.logger.debug('Block already forged for the current slot');
 		return setImmediate(cb);
 	}
@@ -587,35 +589,55 @@ __private.forge = function(cb) {
 				`Broadhash consensus before forging a block: ${modules.peers.getLastConsensus()} %`
 			);
 
-			return modules.blocks.process.generateBlock(
-				delegateKeypair,
-				slots.getSlotTime(currentSlot),
-				blockGenerationErr => {
-					if (blockGenerationErr) {
-						library.logger.error(
-							'Failed to generate block within delegate slot',
-							blockGenerationErr
-						);
+			// If last block slot is way back than one block
+			if (lastBlockSlot < currentSlot - 1) {
+				library.logger.info(
+					`Waiting for ${
+						library.config.forging.waitThreshold
+					} seconds for the last block before forging`
+				);
+				library.logger.debug('Slot information', {
+					currentSlot,
+					lastBlockSlot,
+				});
+				return setTimeout(() => {
+					__private.generateBlock(delegateKeypair, currentSlot, cb);
+				}, library.config.forging.waitThreshold * 1000);
+			}
 
-						return setImmediate(cb);
-					}
+			return __private.generateBlock(delegateKeypair, currentSlot, cb);
+		}
+	);
+};
 
-					const forgedBlock = modules.blocks.lastBlock.get();
-					modules.blocks.lastReceipt.update();
+__private.generateBlock = function(delegateKeypair, slot, cb) {
+	return modules.blocks.process.generateBlock(
+		delegateKeypair,
+		slots.getSlotTime(slot),
+		blockGenerationErr => {
+			if (blockGenerationErr) {
+				library.logger.error(
+					'Failed to generate block within delegate slot',
+					blockGenerationErr
+				);
 
-					library.logger.info(
-						`Forged new block id: ${forgedBlock.id} height: ${
-							forgedBlock.height
-						} round: ${slots.calcRound(
-							forgedBlock.height
-						)} slot: ${slots.getSlotNumber(forgedBlock.timestamp)} reward: ${
-							forgedBlock.reward
-						}`
-					);
+				return setImmediate(cb);
+			}
 
-					return setImmediate(cb);
-				}
+			const forgedBlock = modules.blocks.lastBlock.get();
+			modules.blocks.lastReceipt.update();
+
+			library.logger.info(
+				`Forged new block id: ${forgedBlock.id} height: ${
+					forgedBlock.height
+				} round: ${slots.calcRound(
+					forgedBlock.height
+				)} slot: ${slots.getSlotNumber(forgedBlock.timestamp)} reward: ${
+					forgedBlock.reward
+				}`
 			);
+
+			return setImmediate(cb);
 		}
 	);
 };
