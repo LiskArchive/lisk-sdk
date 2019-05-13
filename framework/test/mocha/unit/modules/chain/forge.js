@@ -17,7 +17,10 @@
 const {
 	getPrivateAndPublicKeyBytesFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
-const { Forge, getDelegateKeypairForCurrentSlot } = require('../../../../../src/modules/chain/forge');
+const {
+	Forge,
+	getDelegateKeypairForCurrentSlot,
+} = require('../../../../../src/modules/chain/forge');
 const genesisDelegates = require('../../../data/genesis_delegates.json');
 const delegatesRoundsList = require('../../../data/delegates_rounds_list.json');
 const accountFixtures = require('../../../fixtures/accounts');
@@ -43,18 +46,10 @@ describe('forge', () => {
 		},
 	};
 	const mockModules = {
-		blocks: {
-
-		},
-		peers: {
-
-		},
-		transactions: {
-
-		},
-		delegates: {
-
-		},
+		blocks: {},
+		peers: {},
+		transactions: {},
+		delegates: {},
 	};
 	const testDelegate = genesisDelegates.delegates[0];
 
@@ -130,11 +125,16 @@ describe('forge', () => {
 
 			it('should update forging from enabled to disabled', async () => {
 				// Arrange
-				mockStorage.entities.Account.get.resolves([{
-					isDelegate: true,
-					address: testDelegate.address,
-				}]);
-				forgeModule.keypairs[testDelegate.publicKey] = Buffer.from('privateKey', 'utf8');
+				mockStorage.entities.Account.get.resolves([
+					{
+						isDelegate: true,
+						address: testDelegate.address,
+					},
+				]);
+				forgeModule.keypairs[testDelegate.publicKey] = Buffer.from(
+					'privateKey',
+					'utf8'
+				);
 
 				// Act
 				const data = await forgeModule.updateForgingStatus(
@@ -155,7 +155,8 @@ describe('forge', () => {
 					true
 				);
 
-				expect(forgeModule.keypairs[testDelegate.publicKey]).not.to.be.undefined;
+				expect(forgeModule.keypairs[testDelegate.publicKey]).not.to.be
+					.undefined;
 				expect(data.publicKey).to.equal(testDelegate.publicKey);
 			});
 		});
@@ -233,7 +234,7 @@ describe('forge', () => {
 				forgeModule.loadDelegates(err => {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
-						accountDetails.publicKey
+							accountDetails.publicKey
 						}. Unsupported state or unable to authenticate data`
 					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
@@ -255,7 +256,7 @@ describe('forge', () => {
 				forgeModule.loadDelegates(err => {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
-						accountDetails.publicKey
+							accountDetails.publicKey
 						}. Unsupported state or unable to authenticate data`
 					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
@@ -278,7 +279,7 @@ describe('forge', () => {
 				forgeModule.loadDelegates(err => {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
-						accountDetails.publicKey
+							accountDetails.publicKey
 						}. Encrypted passphrase to parse must have only one value per key.`
 					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
@@ -300,7 +301,7 @@ describe('forge', () => {
 				forgeModule.loadDelegates(err => {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
-						accountDetails.publicKey
+							accountDetails.publicKey
 						}. Unsupported state or unable to authenticate data`
 					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
@@ -323,7 +324,7 @@ describe('forge', () => {
 				forgeModule.loadDelegates(err => {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
-						accountDetails.publicKey
+							accountDetails.publicKey
 						}. Encrypted passphrase to parse must have only one value per key.`
 					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
@@ -345,7 +346,7 @@ describe('forge', () => {
 				forgeModule.loadDelegates(err => {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
-						accountDetails.publicKey
+							accountDetails.publicKey
 						}. Unsupported state or unable to authenticate data`
 					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
@@ -368,7 +369,7 @@ describe('forge', () => {
 				forgeModule.loadDelegates(err => {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
-						accountDetails.publicKey
+							accountDetails.publicKey
 						}. Encrypted passphrase to parse must have only one value per key.`
 					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
@@ -390,7 +391,7 @@ describe('forge', () => {
 				forgeModule.loadDelegates(err => {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
-						accountDetails.publicKey
+							accountDetails.publicKey
 						}. Unsupported state or unable to authenticate data`
 					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
@@ -413,7 +414,7 @@ describe('forge', () => {
 				forgeModule.loadDelegates(err => {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
-						accountDetails.publicKey
+							accountDetails.publicKey
 						}. Encrypted passphrase to parse must have only one value per key.`
 					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
@@ -435,7 +436,7 @@ describe('forge', () => {
 				forgeModule.loadDelegates(err => {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
-						accountDetails.publicKey
+							accountDetails.publicKey
 						}. Unsupported state or unable to authenticate data`
 					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
@@ -457,7 +458,7 @@ describe('forge', () => {
 				forgeModule.loadDelegates(err => {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
-						accountDetails.publicKey
+							accountDetails.publicKey
 						}. Tag must be 16 bytes.`
 					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
@@ -478,7 +479,7 @@ describe('forge', () => {
 				forgeModule.loadDelegates(err => {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
-						accountDetails.publicKey
+							accountDetails.publicKey
 						}. Public keys do not match`
 					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
@@ -574,10 +575,12 @@ describe('forge', () => {
 			});
 
 			it('should load all 101 delegates', done => {
-				forgeModule.config.forging.delegates = genesisDelegates.delegates.map(delegate => ({
-					encryptedPassphrase: delegate.encryptedPassphrase,
-					publicKey: delegate.publicKey,
-				}));
+				forgeModule.config.forging.delegates = genesisDelegates.delegates.map(
+					delegate => ({
+						encryptedPassphrase: delegate.encryptedPassphrase,
+						publicKey: delegate.publicKey,
+					})
+				);
 
 				forgeModule.loadDelegates(err => {
 					expect(err).to.not.exist;
@@ -652,18 +655,20 @@ describe('forge', () => {
 				const round = 1;
 
 				delegatesModuleStub.generateDelegateList
-					.withArgs(round).resolves(delegatesRoundsList[round]);
+					.withArgs(round)
+					.resolves(delegatesRoundsList[round]);
 
-				const { publicKey, privateKey } = await getDelegateKeypairForCurrentSlot(
+				const {
+					publicKey,
+					privateKey,
+				} = await getDelegateKeypairForCurrentSlot(
 					delegatesModuleStub,
 					forgeModule.keypairs,
 					currentSlot,
 					round
 				);
 				expect(publicKey).to.deep.equal(genesis1Keypair.publicKey);
-				expect(privateKey).to.deep.equal(
-					genesis1Keypair.privateKey
-				);
+				expect(privateKey).to.deep.equal(genesis1Keypair.privateKey);
 			});
 
 			it('should return genesis_2 keypair for slot N where (N % 101 === 73) in the second round', async () => {
@@ -671,19 +676,21 @@ describe('forge', () => {
 				const currentSlot = 578;
 				const round = 2;
 
-				delegatesModuleStub.generateDelegateList
-					.resolves(delegatesRoundsList[round]);
+				delegatesModuleStub.generateDelegateList.resolves(
+					delegatesRoundsList[round]
+				);
 
-				const { publicKey, privateKey } = await getDelegateKeypairForCurrentSlot(
+				const {
+					publicKey,
+					privateKey,
+				} = await getDelegateKeypairForCurrentSlot(
 					delegatesModuleStub,
 					forgeModule.keypairs,
 					currentSlot,
 					round
 				);
 				expect(publicKey).to.deep.equal(genesis2Keypair.publicKey);
-				expect(privateKey).to.deep.equal(
-					genesis2Keypair.privateKey
-				);
+				expect(privateKey).to.deep.equal(genesis2Keypair.privateKey);
 			});
 
 			it('should return genesis_3 keypair for slot N where (N % 101 === 41) in the third round', async () => {
@@ -691,19 +698,21 @@ describe('forge', () => {
 				const currentSlot = 1051;
 				const round = 3;
 
-				delegatesModuleStub.generateDelegateList
-					.resolves(delegatesRoundsList[round]);
+				delegatesModuleStub.generateDelegateList.resolves(
+					delegatesRoundsList[round]
+				);
 
-				const { publicKey, privateKey } = await getDelegateKeypairForCurrentSlot(
+				const {
+					publicKey,
+					privateKey,
+				} = await getDelegateKeypairForCurrentSlot(
 					delegatesModuleStub,
 					forgeModule.keypairs,
 					currentSlot,
 					round
 				);
 				expect(publicKey).to.deep.equal(genesis3Keypair.publicKey);
-				expect(privateKey).to.deep.equal(
-					genesis3Keypair.privateKey
-				);
+				expect(privateKey).to.deep.equal(genesis3Keypair.privateKey);
 			});
 
 			it('should return null when the slot does not belong to a public key set in keypairs', async () => {
@@ -712,8 +721,9 @@ describe('forge', () => {
 				const currentSlot = 1;
 				const round = 4;
 
-				delegatesModuleStub.generateDelegateList
-					.resolves(delegatesRoundsList[round]);
+				delegatesModuleStub.generateDelegateList.resolves(
+					delegatesRoundsList[round]
+				);
 
 				const keyPair = await getDelegateKeypairForCurrentSlot(
 					delegatesModuleStub,
