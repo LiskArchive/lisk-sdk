@@ -357,7 +357,6 @@ class Rounds {
 	// eslint-disable-next-line class-methods-use-this
 	onBind(scope) {
 		modules = {
-			accounts: scope.modules.accounts,
 			delegates: scope.modules.delegates,
 		};
 	}

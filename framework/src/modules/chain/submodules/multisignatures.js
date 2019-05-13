@@ -123,8 +123,6 @@ class Multisignatures {
 	// eslint-disable-next-line class-methods-use-this
 	onBind(scope) {
 		modules = {
-			// TODO: move the getGroup function to http_api module and remove the accounts dependency
-			accounts: scope.modules.accounts,
 			transactions: scope.modules.transactions,
 			processTransactions: scope.modules.processTransactions,
 		};

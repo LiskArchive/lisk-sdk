@@ -38,7 +38,6 @@ describe('signatures', () => {
 		it('should return true if modules exists', async () => {
 			// Arrange
 			revert = library.rewiredModules.signatures.__set__('modules', {
-				accounts: library.modules.accounts,
 				transactions: library.modules.transactions,
 				transport: library.modules.transport,
 			});

@@ -422,7 +422,6 @@ class Transactions {
 		};
 
 		modules = {
-			accounts: scope.modules.accounts,
 			transport: scope.modules.transport,
 		};
 

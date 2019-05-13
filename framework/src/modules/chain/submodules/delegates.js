@@ -314,7 +314,6 @@ class Delegates {
 	// eslint-disable-next-line class-methods-use-this
 	onBind(scope) {
 		modules = {
-			accounts: scope.modules.accounts,
 			blocks: scope.modules.blocks,
 			loader: scope.modules.loader,
 			peers: scope.modules.peers,
