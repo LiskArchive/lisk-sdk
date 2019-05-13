@@ -177,7 +177,6 @@ describe('rounds', () => {
 			const backup = get(variable);
 			const roundBindings = {
 				modules: {
-					accounts: 'accounts',
 					delegates: 'delegates',
 				},
 			};
