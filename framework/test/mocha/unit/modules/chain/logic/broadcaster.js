@@ -31,9 +31,8 @@ describe('Broadcaster', () => {
 	};
 	let broadcaster;
 	let broadcasts;
-	let transactionStub;
+	let transactionPoolStub;
 	let loggerStub;
-	let modulesStub;
 	let jobsQueue;
 	let library;
 	let channelStub;
@@ -54,15 +53,12 @@ describe('Broadcaster', () => {
 			debug: sinonSandbox.stub(),
 		};
 
-		modulesStub = {
-			transport: {},
-			transactions: {
-				transactionInPool: sinonSandbox.stub().returns(false),
-			},
-		};
-
 		channelStub = {
 			invoke: sinonSandbox.stub().returns(),
+		};
+
+		transactionPoolStub = {
+			transactionInPool: sinonSandbox.stub(),
 		};
 
 		jobsQueue = Broadcaster.__get__('jobsQueue');
@@ -81,13 +77,11 @@ describe('Broadcaster', () => {
 			nonce,
 			broadcasts,
 			force,
-			transactionStub,
+			transactionPoolStub,
 			loggerStub,
 			channelStub,
 			storageStub
 		);
-
-		broadcaster.bind(modulesStub.transport, modulesStub.transactions);
 
 		library = Broadcaster.__get__('library');
 	});
@@ -227,7 +221,7 @@ describe('Broadcaster', () => {
 
 			it('should call transaction pool with [signature.transactionId]', async () => {
 				await broadcaster.filterQueue();
-				expect(modulesStub.transactions.transactionInPool).calledWithExactly(
+				expect(transactionPoolStub.transactionInPool).calledWithExactly(
 					validSignature.transactionId
 				);
 			});
@@ -256,14 +250,14 @@ describe('Broadcaster', () => {
 
 			it('should call transaction pool with [transaction.id]', async () => {
 				await broadcaster.filterQueue();
-				expect(modulesStub.transactions.transactionInPool).calledWithExactly(
+				expect(transactionPoolStub.transactionInPool).calledWithExactly(
 					validTransaction.id
 				);
 			});
 
 			describe('when [validTransaction] exists in transaction pool', () => {
 				beforeEach(async () => {
-					modulesStub.transactions.transactionInPool.returns(true);
+					transactionPoolStub.transactionInPool.returns(true);
 				});
 				it('should leave [broadcast] in broadcaster.queue', async () => {
 					await broadcaster.filterQueue();
@@ -275,7 +269,7 @@ describe('Broadcaster', () => {
 
 			describe('when [validTransaction] does not exist in transaction pool', () => {
 				beforeEach(async () => {
-					modulesStub.transactions.transactionInPool.returns(false);
+					transactionPoolStub.transactionInPool.returns(false);
 				});
 				describe('when [validTransaction] is confirmed', () => {
 					beforeEach(async () => {
@@ -411,7 +405,7 @@ describe('Broadcaster', () => {
 
 			describe('when all of them exist in transaction pool', () => {
 				beforeEach(async () => {
-					modulesStub.transactions.transactionInPool.returns(true);
+					transactionPoolStub.transactionInPool.returns(true);
 				});
 				it('should leave all of them in broadcaster.queue', async () => {
 					await broadcaster.filterQueue();

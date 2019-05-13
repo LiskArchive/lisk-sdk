@@ -24,12 +24,16 @@ const {
 process.env.NODE_ENV = 'test';
 
 let app;
+const dummyLastCommitId = 'a4adbfb7651874c5746dbc389b281a111af79e96';
+const dummyBuildVersion = '#buildVersion';
 
 const appConfig = {
 	app: {
 		version: '2.0.0',
 		minVersion: '1.0.0',
 		protocolVersion: '1.1',
+		lastCommitId: dummyLastCommitId,
+		buildVersion: dummyBuildVersion,
 	},
 };
 
@@ -46,7 +50,7 @@ try {
 	configurator.loadConfigFile(
 		path.resolve(__dirname, `../fixtures/config/${network}/config`)
 	);
-	/* eslint-disable import/no-dynamic-require */
+	// eslint-disable-next-line import/no-dynamic-require
 	const genesisBlock = require(`../fixtures/config/${network}/genesis_block`);
 
 	if (process.env.CUSTOM_CONFIG_FILE) {

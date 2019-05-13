@@ -199,7 +199,9 @@ class Process {
 				throw new Error('Received an invalid blocks response from the network');
 			}
 			// Check for strict equality for backwards compatibility reasons.
-			if (data.success === false) {
+			// The misspelled data.sucess is required to support v1 nodes.
+			// TODO: Remove the misspelled data.sucess === false condition once enough nodes have migrated to v2.
+			if (data.success === false || data.sucess === false) {
 				throw new Error(
 					`Peer did not have a matching lastBlockId. ${data.message}`
 				);
@@ -416,7 +418,6 @@ class Process {
 		modules = {
 			blocks: scope.modules.blocks,
 			delegates: scope.modules.delegates,
-			peers: scope.modules.peers,
 			transactions: scope.modules.transactions,
 			processTransactions: scope.modules.processTransactions,
 		};

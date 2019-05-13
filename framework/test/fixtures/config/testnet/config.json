@@ -1,7 +1,6 @@
 {
 	"components": {
 		"logger": {
-			"consoleLogLevel": "debug",
 			"logFileName": "logs/testnet/lisk.log"
 		},
 		"storage": {

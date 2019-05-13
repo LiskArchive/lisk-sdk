@@ -18,7 +18,6 @@ const _ = require('lodash');
 const async = require('async');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const { CACHE_KEYS_TRANSACTION_COUNT } = require('../../../components/cache');
-const TransactionPool = require('../logic/transaction_pool');
 
 // Private fields
 const __private = {};
@@ -58,13 +57,7 @@ class Transactions {
 
 		self = this;
 
-		__private.transactionPool = new TransactionPool(
-			scope.config.broadcasts.broadcastInterval,
-			scope.config.broadcasts.releaseLimit,
-			scope.components.logger,
-			scope.config,
-			scope.bus
-		);
+		__private.transactionPool = scope.logic.transactionPool;
 
 		this.shared = this.attachSharedMethods();
 

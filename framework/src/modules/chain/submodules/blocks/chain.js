@@ -454,7 +454,7 @@ __private.applyTransactions = function(transactions, cb) {
 };
 
 /**
- * Calls applyConfirmed from modules.transactions for each transaction in block after get serder with modules.accounts.getAccount
+ * Calls applyConfirmed from modules.transactions for each transaction in block
  *
  * @private
  * @param {Object} block - Block object
@@ -492,7 +492,7 @@ __private.applyConfirmedStep = async function(block, tx) {
 };
 
 /**
- * Calls applyConfirmed from modules.transactions for each transaction in block after get serder with modules.accounts.getAccount
+ * Calls saveBlock for the block and performs round tick
  *
  * @private
  * @param {Object} block - Block object

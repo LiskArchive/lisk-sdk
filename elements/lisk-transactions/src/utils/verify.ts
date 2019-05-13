@@ -64,8 +64,6 @@ export const verifyBalance = (
 				}, balance: ${convertBeddowsToLSK(account.balance.toString())}`,
 				id,
 				'.balance',
-				account.balance,
-				convertBeddowsToLSK(account.balance.toString()),
 		  )
 		: undefined;
 

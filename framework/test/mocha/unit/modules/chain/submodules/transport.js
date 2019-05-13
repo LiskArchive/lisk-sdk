@@ -17,7 +17,10 @@
 const rewire = require('rewire');
 const chai = require('chai');
 const randomstring = require('randomstring');
-const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const {
+	Status: TransactionStatus,
+	TransferTransaction,
+} = require('@liskhq/lisk-transactions');
 const { transfer, TransactionError } = require('@liskhq/lisk-transactions');
 
 const accountFixtures = require('../../../../fixtures/accounts');
@@ -929,10 +932,11 @@ describe('transport', () => {
 						done();
 					});
 
-					it('should assign blocks, loader, multisignatures and transactions properties', async () => {
+					it('should assign blocks, loader, multisignatures, processTransactions and transactions properties', async () => {
 						expect(modulesObject).to.have.property('blocks');
 						expect(modulesObject).to.have.property('loader');
 						expect(modulesObject).to.have.property('multisignatures');
+						expect(modulesObject).to.have.property('processTransactions');
 						return expect(modulesObject).to.have.property('transactions');
 					});
 				});
@@ -995,7 +999,7 @@ describe('transport', () => {
 
 			describe('onUnconfirmedTransaction', () => {
 				beforeEach(done => {
-					transaction = {
+					transaction = new TransferTransaction({
 						id: '222675625422353767',
 						type: 0,
 						amount: '100',
@@ -1007,7 +1011,7 @@ describe('transport', () => {
 						asset: {},
 						signature:
 							'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
-					};
+					});
 					__private.broadcaster = {
 						maxRelays: sinonSandbox.stub().returns(true),
 						enqueue: sinonSandbox.stub(),
@@ -1019,9 +1023,9 @@ describe('transport', () => {
 				describe('when broadcast is defined', () => {
 					it('should call __private.broadcaster.maxRelays with transaction', async () => {
 						expect(__private.broadcaster.maxRelays.calledOnce).to.be.true;
-						return expect(
-							__private.broadcaster.maxRelays.calledWith(transaction)
-						).to.be.true;
+						return expect(__private.broadcaster.maxRelays).to.be.calledWith(
+							transaction
+						);
 					});
 
 					describe('when result of __private.broadcaster.maxRelays is false', () => {
@@ -1047,7 +1051,7 @@ describe('transport', () => {
 									{},
 									{
 										api: 'postTransactions',
-										data: { transaction },
+										data: { transaction: transaction.toJSON() },
 									}
 								)
 							).to.be.true;
@@ -1057,7 +1061,7 @@ describe('transport', () => {
 							expect(library.channel.publish).to.be.calledOnce;
 							expect(library.channel.publish).to.be.calledWith(
 								'chain:transactions:change',
-								transaction
+								transaction.toJSON()
 							);
 						});
 					});

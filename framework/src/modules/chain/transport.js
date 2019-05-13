@@ -77,7 +77,7 @@ class Transport {
 			scope.config.nonce,
 			scope.config.broadcasts,
 			scope.config.forging.force,
-			scope.logic.initTransaction,
+			scope.logic.transactionPool,
 			scope.components.logger,
 			scope.channel,
 			scope.components.storage
@@ -97,14 +97,9 @@ class Transport {
 			blocks: scope.modules.blocks,
 			loader: scope.modules.loader,
 			multisignatures: scope.modules.multisignatures,
-			transactions: scope.modules.transactions,
 			processTransactions: scope.modules.processTransactions,
+			transactions: scope.modules.transactions,
 		};
-
-		__private.broadcaster.bind(
-			scope.modules.transport,
-			scope.modules.transactions
-		);
 	}
 
 	/**
@@ -142,16 +137,17 @@ class Transport {
 	// eslint-disable-next-line class-methods-use-this
 	onUnconfirmedTransaction(transaction, broadcast) {
 		if (broadcast && !__private.broadcaster.maxRelays(transaction)) {
+			const transactionJSON = transaction.toJSON();
 			__private.broadcaster.enqueue(
 				{},
 				{
 					api: 'postTransactions',
 					data: {
-						transaction,
+						transaction: transactionJSON,
 					},
 				}
 			);
-			library.channel.publish('chain:transactions:change', transaction);
+			library.channel.publish('chain:transactions:change', transactionJSON);
 		}
 	}
 
@@ -192,6 +188,13 @@ class Transport {
 
 		if (block.reward) {
 			block.reward = block.reward.toNumber();
+		}
+
+		if (block.transactions) {
+			// Convert transactions to JSON
+			block.transactions = block.transactions.map(transactionInstance =>
+				transactionInstance.toJSON()
+			);
 		}
 
 		const { broadhash } = library.applicationState;
@@ -344,7 +347,7 @@ class Transport {
 							return setImmediate(cb, null, {
 								blocks: [],
 								message: err,
-								sucess: false,
+								success: false,
 							});
 						}
 
@@ -382,10 +385,18 @@ class Transport {
 							);
 						}
 						let block;
+						let success = true;
 						try {
 							block = modules.blocks.verify.addBlockProperties(query.block);
+
+							// Instantiate transaction classes
+							block.transactions = library.logic.initTransaction.fromBlock(
+								block
+							);
+
 							block = library.logic.block.objectNormalize(block);
 						} catch (e) {
+							success = false;
 							library.logger.debug('Block normalization failed', {
 								err: e.toString(),
 								module: 'transport',
@@ -401,7 +412,10 @@ class Transport {
 								block.id
 							);
 						}
-						return modules.blocks.process.receiveBlocksFromNetwork(block);
+						if (success) {
+							return modules.blocks.process.receiveBlocksFromNetwork(block);
+						}
+						return null;
 					}
 				);
 			},
