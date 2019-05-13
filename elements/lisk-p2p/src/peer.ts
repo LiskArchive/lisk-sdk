@@ -89,9 +89,9 @@ type SCServerSocketUpdated = {
 } & SCServerSocket;
 
 export enum ConnectionState {
-	CONNECTING = 0,
-	CONNECTED = 1,
-	DISCONNECTED = 2,
+	CONNECTING = 'connecting',
+	OPEN = 'open',
+	CLOSED = 'closed',
 }
 
 export interface PeerConnectionState {
@@ -301,14 +301,14 @@ export class Peer extends EventEmitter {
 	public get state(): PeerConnectionState {
 		const inbound = this._inboundSocket
 			? this._inboundSocket.state === this._inboundSocket.OPEN
-				? ConnectionState.CONNECTED
-				: ConnectionState.DISCONNECTED
-			: ConnectionState.DISCONNECTED;
+				? ConnectionState.OPEN
+				: ConnectionState.CLOSED
+			: ConnectionState.CLOSED;
 		const outbound = this._outboundSocket
 			? this._outboundSocket.state === this._outboundSocket.OPEN
-				? ConnectionState.CONNECTED
-				: ConnectionState.DISCONNECTED
-			: ConnectionState.DISCONNECTED;
+				? ConnectionState.OPEN
+				: ConnectionState.CLOSED
+			: ConnectionState.CLOSED;
 
 		return {
 			inbound,

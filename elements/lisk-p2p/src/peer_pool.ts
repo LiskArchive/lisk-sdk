@@ -429,7 +429,7 @@ export class PeerPool extends EventEmitter {
 		if (existingPeer) {
 			// Update the peerInfo from the latest inbound socket.
 			existingPeer.updatePeerInfo(peerInfo);
-			if (existingPeer.state.inbound === ConnectionState.DISCONNECTED) {
+			if (existingPeer.state.inbound === ConnectionState.CLOSED) {
 				existingPeer.inboundSocket = socket;
 
 				return false;
@@ -453,7 +453,7 @@ export class PeerPool extends EventEmitter {
 		if (existingPeer) {
 			// Update the peerInfo from the latest inbound socket.
 			existingPeer.updatePeerInfo(peerInfo);
-			if (existingPeer.state.outbound === ConnectionState.DISCONNECTED) {
+			if (existingPeer.state.outbound === ConnectionState.CLOSED) {
 				existingPeer.outboundSocket = socket;
 
 				return false;
