@@ -709,7 +709,7 @@ Transport.prototype.shared = {
 				if (err) {
 					return setImmediate(cb, null, {
 						success: false,
-						message: 'Invalid transaction body',
+						message: err.message || 'Invalid transaction body',
 						errors: err,
 					});
 				}
