@@ -31,6 +31,8 @@ import {
 } from './peer';
 
 import {
+	FORBIDDEN_CONNECTION,
+	FORBIDDEN_CONNECTION_REASON,
 	INCOMPATIBLE_PEER_CODE,
 	INCOMPATIBLE_PEER_UNKNOWN_REASON,
 	INVALID_CONNECTION_QUERY_CODE,
@@ -366,6 +368,22 @@ export class P2P extends EventEmitter {
 		this._scServer.on(
 			'connection',
 			(socket: SCServerSocket): void => {
+				// Check blacklist to avoid incoming connections from backlisted ips
+				if (this._config.blacklistedPeers) {
+					const blacklist = this._config.blacklistedPeers.map(
+						peer => peer.ipAddress,
+					);
+					if (blacklist.includes(socket.remoteAddress)) {
+						this._disconnectSocketDueToFailedHandshake(
+							socket,
+							FORBIDDEN_CONNECTION,
+							FORBIDDEN_CONNECTION_REASON,
+						);
+
+						return;
+					}
+				}
+
 				if (!socket.request.url) {
 					this._disconnectSocketDueToFailedHandshake(
 						socket,
