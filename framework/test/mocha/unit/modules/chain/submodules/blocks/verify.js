@@ -101,11 +101,6 @@ describe('blocks/verify', () => {
 		__private = BlocksVerify.__get__('__private');
 
 		// Modules
-		const modulesAccountsStub = {
-			getAccount: sinonSandbox.stub(),
-			validateBlockSlot: sinonSandbox.stub(),
-		};
-
 		const modulesDelegatesStub = {
 			fork: sinonSandbox.stub(),
 			validateBlockSlot: sinonSandbox.stub(),
@@ -139,7 +134,6 @@ describe('blocks/verify', () => {
 
 		bindingsStub = {
 			modules: {
-				accounts: modulesAccountsStub,
 				blocks: modulesBlocksStub,
 				delegates: modulesDelegatesStub,
 				transactions: modulesTransactionsStub,
@@ -2071,10 +2065,12 @@ describe('blocks/verify', () => {
 			));
 
 		it('should assign params to modules', done => {
-			expect(modules.accounts).to.equal(bindingsStub.modules.accounts);
 			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
 			expect(modules.delegates).to.equal(bindingsStub.modules.delegates);
 			expect(modules.transactions).to.equal(bindingsStub.modules.transactions);
+			expect(modules.processTransactions).to.equal(
+				bindingsStub.modules.processTransactions
+			);
 			done();
 		});
 

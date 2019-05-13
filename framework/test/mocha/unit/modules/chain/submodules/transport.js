@@ -939,7 +939,6 @@ describe('transport', () => {
 					// We want to check that internal variables are being set correctly so we don't
 					// want any stubs to interfere here (e.g. from the top-level beforeEach block).
 					new TransportModule((err, transportSelf) => {
-						__private.broadcaster.bind = sinonSandbox.spy();
 						transportSelf.onBind(defaultScope);
 						done();
 					}, defaultScope);
@@ -953,12 +952,11 @@ describe('transport', () => {
 						done();
 					});
 
-					it('should assign blocks, dapps, loader, multisignatures, peers and transactions properties', async () => {
+					it('should assign blocks, loader, multisignatures, processTransactions and transactions properties', async () => {
 						expect(modulesObject).to.have.property('blocks');
-						expect(modulesObject).to.have.property('dapps');
 						expect(modulesObject).to.have.property('loader');
 						expect(modulesObject).to.have.property('multisignatures');
-						expect(modulesObject).to.have.property('peers');
+						expect(modulesObject).to.have.property('processTransactions');
 						return expect(modulesObject).to.have.property('transactions');
 					});
 				});

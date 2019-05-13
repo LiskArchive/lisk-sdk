@@ -314,14 +314,11 @@ class Delegates {
 	// eslint-disable-next-line class-methods-use-this
 	onBind(scope) {
 		modules = {
-			accounts: scope.modules.accounts,
 			blocks: scope.modules.blocks,
-			delegates: scope.modules.delegates,
 			loader: scope.modules.loader,
 			peers: scope.modules.peers,
 			rounds: scope.modules.rounds,
 			transactions: scope.modules.transactions,
-			transport: scope.modules.transport,
 		};
 	}
 
@@ -735,7 +732,6 @@ __private.loadDelegates = function(cb) {
 		cb
 	);
 };
-
 /**
  * Forge the next block and then fill the transaction pool.
  * Registered by jobs queue every __private.forgeInterval.

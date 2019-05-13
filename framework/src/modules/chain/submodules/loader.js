@@ -203,7 +203,6 @@ class Loader {
 			transactions: scope.modules.transactions,
 			blocks: scope.modules.blocks,
 			peers: scope.modules.peers,
-			rounds: scope.modules.rounds,
 			multisignatures: scope.modules.multisignatures,
 			processTransactions: scope.modules.processTransactions,
 		};
@@ -1061,6 +1060,5 @@ __private.sync = function(cb) {
 		}
 	);
 };
-
 // Export
 module.exports = Loader;
