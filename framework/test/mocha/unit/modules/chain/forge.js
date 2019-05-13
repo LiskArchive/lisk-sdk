@@ -32,16 +32,13 @@ describe('forge', () => {
 	const mockLogger = {
 		debug: sinonSandbox.stub(),
 		info: sinonSandbox.stub(),
+		warn: sinonSandbox.stub(),
 		error: sinonSandbox.stub(),
 	};
 	const mockStorage = {
 		entities: {
 			Account: {
 				get: sinonSandbox.stub(),
-				insertFork: sinonSandbox.stub(),
-			},
-			Round: {
-				getDelegatesSnapshot: sinonSandbox.stub(),
 			},
 		},
 	};
@@ -70,7 +67,7 @@ describe('forge', () => {
 					forging: {
 						delegates: genesisDelegates.delegates,
 						force: false,
-						defaultPassword: '',
+						defaultPassword: testDelegate.password,
 					},
 				},
 			});
@@ -186,6 +183,12 @@ describe('forge', () => {
 			beforeEach(async () => {
 				forgeModule.config.forging.force = true;
 				forgeModule.config.forging.delegates = [];
+				mockStorage.entities.Account.get.resolves([
+					{
+						isDelegate: true,
+						address: testDelegate.address,
+					},
+				]);
 			});
 
 			it('should not load any delegates when forging.force is false', done => {
@@ -501,6 +504,8 @@ describe('forge', () => {
 					publicKey: randomAccount.publicKey,
 				};
 
+				mockStorage.entities.Account.get.resolves([]);
+
 				forgeModule.config.forging.delegates = [accountDetails];
 
 				forgeModule.loadDelegates(err => {
@@ -523,6 +528,12 @@ describe('forge', () => {
 						publicKey: accountFixtures.genesis.publicKey,
 					},
 				];
+				mockStorage.entities.Account.get.resolves([
+					{
+						isDelegate: false,
+						address: accountFixtures.genesis.address,
+					},
+				]);
 
 				forgeModule.loadDelegates(err => {
 					expect(err).to.not.exist;
@@ -536,7 +547,7 @@ describe('forge', () => {
 
 				forgeModule.loadDelegates(err => {
 					expect(err).to.not.exist;
-					expect(Object.keys(__private.keypairs).length).to.equal(
+					expect(Object.keys(forgeModule.keypairs).length).to.equal(
 						delegates.length
 					);
 					done();
