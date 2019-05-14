@@ -66,6 +66,7 @@ export { P2PRequest };
 import { selectForConnection, selectPeers } from './peer_selection';
 
 import {
+	EVENT_CLOSE_INBOUND,
 	EVENT_CLOSE_OUTBOUND,
 	EVENT_CONNECT_ABORT_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
@@ -84,6 +85,7 @@ import {
 import { checkPeerCompatibility } from './validation';
 
 export {
+	EVENT_CLOSE_INBOUND,
 	EVENT_CLOSE_OUTBOUND,
 	EVENT_CONNECT_ABORT_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
@@ -138,7 +140,8 @@ export class P2P extends EventEmitter {
 	private readonly _handlePeerConnectAbort: (
 		peerInfo: P2PDiscoveredPeerInfo,
 	) => void;
-	private readonly _handlePeerClose: (closePacket: P2PClosePacket) => void;
+	private readonly _handlePeerCloseOutbound: (closePacket: P2PClosePacket) => void;
+	private readonly _handlePeerCloseInbound: (closePacket: P2PClosePacket) => void;
 	private readonly _handlePeerInfoUpdate: (
 		peerInfo: P2PDiscoveredPeerInfo,
 	) => void;
@@ -186,9 +189,14 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, peerInfo);
 		};
 
-		this._handlePeerClose = (closePacket: P2PClosePacket) => {
+		this._handlePeerCloseOutbound = (closePacket: P2PClosePacket) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CLOSE_OUTBOUND, closePacket);
+		};
+
+		this._handlePeerCloseInbound = (closePacket: P2PClosePacket) => {
+			// Re-emit the message to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_CLOSE_INBOUND, closePacket);
 		};
 
 		this._handlePeerInfoUpdate = (peerInfo: P2PPeerInfo) => {
@@ -613,7 +621,8 @@ export class P2P extends EventEmitter {
 		peerPool.on(EVENT_MESSAGE_RECEIVED, this._handlePeerPoolMessage);
 		peerPool.on(EVENT_CONNECT_OUTBOUND, this._handlePeerConnect);
 		peerPool.on(EVENT_CONNECT_ABORT_OUTBOUND, this._handlePeerConnectAbort);
-		peerPool.on(EVENT_CLOSE_OUTBOUND, this._handlePeerClose);
+		peerPool.on(EVENT_CLOSE_INBOUND, this._handlePeerCloseInbound);
+		peerPool.on(EVENT_CLOSE_OUTBOUND, this._handlePeerCloseOutbound);
 		peerPool.on(EVENT_UPDATED_PEER_INFO, this._handlePeerInfoUpdate);
 		peerPool.on(
 			EVENT_FAILED_PEER_INFO_UPDATE,

@@ -67,6 +67,7 @@ export const EVENT_INVALID_MESSAGE_RECEIVED = 'invalidMessageReceived';
 export const EVENT_CONNECT_OUTBOUND = 'connectOutbound';
 export const EVENT_CONNECT_ABORT_OUTBOUND = 'connectAbortOutbound';
 export const EVENT_CLOSE_OUTBOUND = 'closeOutbound';
+export const EVENT_CLOSE_INBOUND = 'closeInbound';
 export const EVENT_OUTBOUND_SOCKET_ERROR = 'outboundSocketError';
 export const EVENT_INBOUND_SOCKET_ERROR = 'inboundSocketError';
 
@@ -88,9 +89,9 @@ type SCServerSocketUpdated = {
 } & SCServerSocket;
 
 export enum ConnectionState {
-	CONNECTING = 0,
-	CONNECTED = 1,
-	DISCONNECTED = 2,
+	CONNECTING = 'connecting',
+	OPEN = 'open',
+	CLOSED = 'closed',
 }
 
 export interface PeerConnectionState {
@@ -150,6 +151,7 @@ export class Peer extends EventEmitter {
 		packet: unknown,
 	) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
+	private readonly _handleInboundSocketClose: (code: number, reason: string) => void;
 
 	public constructor(
 		peerInfo: P2PDiscoveredPeerInfo,
@@ -237,6 +239,14 @@ export class Peer extends EventEmitter {
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
 
+		this._handleInboundSocketClose = (code, reason) => {
+			this.emit(EVENT_CLOSE_INBOUND, {
+				peerInfo: this._peerInfo,
+				code,
+				reason,
+			});
+		};
+
 		this._inboundSocket = peerSockets ? peerSockets.inbound : undefined;
 		if (this._inboundSocket) {
 			this._bindHandlersToInboundSocket(this._inboundSocket);
@@ -291,14 +301,14 @@ export class Peer extends EventEmitter {
 	public get state(): PeerConnectionState {
 		const inbound = this._inboundSocket
 			? this._inboundSocket.state === this._inboundSocket.OPEN
-				? ConnectionState.CONNECTED
-				: ConnectionState.DISCONNECTED
-			: ConnectionState.DISCONNECTED;
+				? ConnectionState.OPEN
+				: ConnectionState.CLOSED
+			: ConnectionState.CLOSED;
 		const outbound = this._outboundSocket
 			? this._outboundSocket.state === this._outboundSocket.OPEN
-				? ConnectionState.CONNECTED
-				: ConnectionState.DISCONNECTED
-			: ConnectionState.DISCONNECTED;
+				? ConnectionState.OPEN
+				: ConnectionState.CLOSED
+			: ConnectionState.CLOSED;
 
 		return {
 			inbound,
@@ -503,7 +513,7 @@ export class Peer extends EventEmitter {
 			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, this._peerInfo);
 		});
 
-		outboundSocket.on('close', (code, reason) => {
+		outboundSocket.on('close', (code: number, reason: string) => {
 			this.emit(EVENT_CLOSE_OUTBOUND, {
 				peerInfo: this._peerInfo,
 				code,
@@ -528,6 +538,7 @@ export class Peer extends EventEmitter {
 	private _bindHandlersToInboundSocket(
 		inboundSocket: SCServerSocketUpdated,
 	): void {
+		inboundSocket.on('close', this._handleInboundSocketClose);
 		inboundSocket.on(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
 		inboundSocket.on(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
 		inboundSocket.on('error', this._handleInboundSocketError);
@@ -546,6 +557,7 @@ export class Peer extends EventEmitter {
 	private _unbindHandlersFromInboundSocket(
 		inboundSocket: SCServerSocket,
 	): void {
+		inboundSocket.off('close', this._handleInboundSocketClose);
 		inboundSocket.off(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
 		inboundSocket.off(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
 		inboundSocket.off('postBlock', this._handleRawLegacyMessagePostBlock);

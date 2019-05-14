@@ -41,6 +41,7 @@ import {
 	connectAndFetchPeerInfo,
 	ConnectionState,
 	constructPeerIdFromPeerInfo,
+	EVENT_CLOSE_INBOUND,
 	EVENT_CLOSE_OUTBOUND,
 	EVENT_CONNECT_ABORT_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
@@ -60,6 +61,7 @@ export const EVENT_DISCOVERED_PEER = 'discoveredPeer';
 export const EVENT_FAILED_TO_FETCH_PEER_INFO = 'failedToFetchPeerInfo';
 
 export {
+	EVENT_CLOSE_INBOUND,
 	EVENT_CLOSE_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_CONNECT_ABORT_OUTBOUND,
@@ -98,7 +100,8 @@ export class PeerPool extends EventEmitter {
 	private readonly _handlePeerConnectAbort: (
 		peerInfo: P2PDiscoveredPeerInfo,
 	) => void;
-	private readonly _handlePeerClose: (closePacket: P2PClosePacket) => void;
+	private readonly _handlePeerCloseOutbound: (closePacket: P2PClosePacket) => void;
+	private readonly _handlePeerCloseInbound: (closePacket: P2PClosePacket) => void;
 	private readonly _handlePeerOutboundSocketError: (error: Error) => void;
 	private readonly _handlePeerInboundSocketError: (error: Error) => void;
 	private readonly _handlePeerInfoUpdate: (
@@ -160,13 +163,17 @@ export class PeerPool extends EventEmitter {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, peerInfo);
 		};
-		this._handlePeerClose = (closePacket: P2PClosePacket) => {
-			// If we disconnect from a peer outbound, we should remove them to conserve our resources (especially in case of a malicious peer).
-			// A peer which was removed may added back later during the next round of discovery.
+		this._handlePeerCloseOutbound = (closePacket: P2PClosePacket) => {
 			const peerId = constructPeerIdFromPeerInfo(closePacket.peerInfo);
-			this.removePeer(peerId);
+			this._removePeerIfFullyDisconnected(peerId);
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CLOSE_OUTBOUND, closePacket);
+		};
+		this._handlePeerCloseInbound = (closePacket: P2PClosePacket) => {
+			const peerId = constructPeerIdFromPeerInfo(closePacket.peerInfo);
+			this._removePeerIfFullyDisconnected(peerId);
+			// Re-emit the message to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_CLOSE_INBOUND, closePacket);
 		};
 		this._handlePeerOutboundSocketError = (error: Error) => {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
@@ -422,7 +429,7 @@ export class PeerPool extends EventEmitter {
 		if (existingPeer) {
 			// Update the peerInfo from the latest inbound socket.
 			existingPeer.updatePeerInfo(peerInfo);
-			if (existingPeer.state.inbound === ConnectionState.DISCONNECTED) {
+			if (existingPeer.state.inbound === ConnectionState.CLOSED) {
 				existingPeer.inboundSocket = socket;
 
 				return false;
@@ -446,7 +453,7 @@ export class PeerPool extends EventEmitter {
 		if (existingPeer) {
 			// Update the peerInfo from the latest inbound socket.
 			existingPeer.updatePeerInfo(peerInfo);
-			if (existingPeer.state.outbound === ConnectionState.DISCONNECTED) {
+			if (existingPeer.state.outbound === ConnectionState.CLOSED) {
 				existingPeer.outboundSocket = socket;
 
 				return false;
@@ -502,6 +509,17 @@ export class PeerPool extends EventEmitter {
 		return this._peerMap.delete(peerId);
 	}
 
+	private _removePeerIfFullyDisconnected(peerId: string): void {
+		const peer = this.getPeer(peerId);
+		if (
+			peer &&
+			peer.state.inbound === ConnectionState.CLOSED &&
+			peer.state.outbound === ConnectionState.CLOSED
+		) {
+			this.removePeer(peerId);
+		}
+	}
+
 	private _applyNodeInfoOnPeer(peer: Peer, nodeInfo: P2PNodeInfo): void {
 		// tslint:disable-next-line no-floating-promises
 		(async () => {
@@ -518,7 +536,8 @@ export class PeerPool extends EventEmitter {
 		peer.on(EVENT_MESSAGE_RECEIVED, this._handlePeerMessage);
 		peer.on(EVENT_CONNECT_OUTBOUND, this._handlePeerConnect);
 		peer.on(EVENT_CONNECT_ABORT_OUTBOUND, this._handlePeerConnectAbort);
-		peer.on(EVENT_CLOSE_OUTBOUND, this._handlePeerClose);
+		peer.on(EVENT_CLOSE_OUTBOUND, this._handlePeerCloseOutbound);
+		peer.on(EVENT_CLOSE_INBOUND, this._handlePeerCloseInbound);
 		peer.on(EVENT_OUTBOUND_SOCKET_ERROR, this._handlePeerOutboundSocketError);
 		peer.on(EVENT_INBOUND_SOCKET_ERROR, this._handlePeerInboundSocketError);
 		peer.on(EVENT_UPDATED_PEER_INFO, this._handlePeerInfoUpdate);
@@ -533,7 +552,8 @@ export class PeerPool extends EventEmitter {
 			EVENT_CONNECT_ABORT_OUTBOUND,
 			this._handlePeerConnectAbort,
 		);
-		peer.removeListener(EVENT_CLOSE_OUTBOUND, this._handlePeerClose);
+		peer.removeListener(EVENT_CLOSE_OUTBOUND, this._handlePeerCloseOutbound);
+		peer.removeListener(EVENT_CLOSE_INBOUND, this._handlePeerCloseInbound);
 		peer.removeListener(EVENT_UPDATED_PEER_INFO, this._handlePeerInfoUpdate);
 		peer.removeListener(
 			EVENT_FAILED_PEER_INFO_UPDATE,
