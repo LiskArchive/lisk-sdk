@@ -642,7 +642,7 @@ Transactions.prototype.shared = {
 							});
 					}
 
-					return setImmediate(waterCb, null, null);
+					return setImmediate(waterCb, null, dbCount);
 				},
 
 				function getAllCount(confirmedTransactionCount, waterCb) {
