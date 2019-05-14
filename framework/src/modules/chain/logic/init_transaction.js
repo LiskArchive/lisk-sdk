@@ -57,13 +57,13 @@ class Transaction {
 		) {
 			return null;
 		}
-		const transactionClass = this.transactionClassMap.get(raw.t_type);
+		const TransactionClass = this.transactionClassMap.get(raw.t_type);
 
-		if (!transactionClass) {
+		if (!TransactionClass) {
 			return null;
 		}
 
-		const transactionJSON = transactionClass.prototype.dbRead(raw);
+		const transactionJSON = new TransactionClass().dbRead(raw);
 
 		return this.fromJson(_.omitBy(transactionJSON, _.isNull));
 	}
