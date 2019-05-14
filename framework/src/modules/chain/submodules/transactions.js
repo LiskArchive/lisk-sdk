@@ -599,7 +599,7 @@ Transactions.prototype.shared = {
 		async.waterfall(
 			[
 				function getConfirmedCountFromCache(waterCb) {
-					if (components.cache.cacheReady && components.cache.options.enabled) {
+					if (components.cache.cacheReady) {
 						return components.cache
 							.getJsonForKey(CACHE_KEYS_TRANSACTION_COUNT)
 							.then(data => {
@@ -630,7 +630,7 @@ Transactions.prototype.shared = {
 						// Cache already persisted, no need to set cache again
 						return setImmediate(waterCb, null, cachedCount);
 					}
-					if (components.cache.cacheReady && components.cache.options.enabled) {
+					if (components.cache.cacheReady) {
 						return components.cache
 							.setJsonForKey(CACHE_KEYS_TRANSACTION_COUNT, {
 								confirmed: dbCount,
