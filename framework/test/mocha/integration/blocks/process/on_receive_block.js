@@ -25,10 +25,13 @@ const slots = require('../../../../../src/modules/chain/helpers/slots');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
 const application = require('../../../common/application');
+const {
+	getKeysSortByVote,
+} = require('../../../../../src/modules/chain/submodules/delegates');
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
 
-describe('integration test (blocks) - process onReceiveBlock()', () => {
+describe('integration test (blocks) - process receiveBlockFromNetwork()', () => {
 	let library;
 	let storage;
 
@@ -86,12 +89,9 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 
 		function getNextForger(offset, seriesCb) {
 			offset = !offset ? 0 : offset;
-			const keys = library.rewiredModules.delegates.__get__(
-				'__private.getKeysSortByVote'
-			);
 			const round = slots.calcRound(last_block.height + 1);
 			library.modules.delegates
-				.generateDelegateList(round, keys)
+				.generateDelegateList(round, getKeysSortByVote)
 				.then(delegateList => {
 					const nextForger = delegateList[(slot + offset) % ACTIVE_DELEGATES];
 					return seriesCb(nextForger);
@@ -150,7 +150,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 		// Setting the initialSlot based on the numberOfBlocksToForge. Because:
 		// a) We don't want to forge blocks with timestamp too far in the past
 		// b) We don't want to forge blocks with timestamp in the future
-		// This allows us to play with onReceiveBlock function and different fork scenarios
+		// This allows us to play with receiveBlockFromNetwork function and different fork scenarios
 		const initialSlot = slots.getSlotNumber() - numberOfBlocksToForge + 1;
 
 		async.mapSeries(
@@ -177,13 +177,11 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 	}
 
 	function getValidKeypairForSlot(slot) {
-		const generateDelegateListPromisified = Promise.promisify(
-			library.modules.delegates.generateDelegateList
-		);
 		const lastBlock = library.modules.blocks.lastBlock.get();
 		const round = slots.calcRound(lastBlock.height);
 
-		return generateDelegateListPromisified(round, null)
+		return library.modules.delegates
+			.generateDelegateList(round, null)
 			.then(list => {
 				const delegatePublicKey = list[slot % ACTIVE_DELEGATES];
 				return getKeypair(
@@ -230,7 +228,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 			});
 	}
 
-	describe('onReceiveBlock (empty transactions)', () => {
+	describe('receiveBlockFromNetwork (empty transactions)', () => {
 		describe('for valid block', () => {
 			let lastBlock;
 			let block;
@@ -244,7 +242,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 			});
 
 			it('should add block to blockchain', done => {
-				library.modules.blocks.process.onReceiveBlock(block);
+				library.modules.blocks.process.receiveBlockFromNetwork(block);
 				getBlocks((err, blockIds) => {
 					expect(err).to.not.exist;
 					expect(blockIds).to.have.length(2);
@@ -276,7 +274,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 					});
 
 					it('should not add block to blockchain', done => {
-						library.modules.blocks.process.onReceiveBlock(block);
+						library.modules.blocks.process.receiveBlockFromNetwork(block);
 						getBlocks((err, blockIds) => {
 							expect(err).to.not.exist;
 							expect(blockIds).to.have.length(1);
@@ -300,7 +298,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 					});
 
 					it('should not add block to blockchain', done => {
-						library.modules.blocks.process.onReceiveBlock(block);
+						library.modules.blocks.process.receiveBlockFromNetwork(block);
 						getBlocks((err, blockIds) => {
 							expect(err).to.not.exist;
 							expect(blockIds).to.have.length(1);
@@ -349,7 +347,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 							keypair,
 							dummyBlock
 						);
-						library.modules.blocks.process.onReceiveBlock(
+						library.modules.blocks.process.receiveBlockFromNetwork(
 							blockWithGreaterTimestamp
 						);
 					});
@@ -388,7 +386,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 							keypair,
 							dummyBlock
 						);
-						library.modules.blocks.process.onReceiveBlock(
+						library.modules.blocks.process.receiveBlockFromNetwork(
 							blockWithLowerTimestamp
 						);
 					});
@@ -422,7 +420,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 						blockFromPreviousRound =
 							forgedBlocks[forgedBlocks.length - ACTIVE_DELEGATES];
 						blockFromPreviousRound.height = mutatedHeight;
-						return library.modules.blocks.process.onReceiveBlock(
+						return library.modules.blocks.process.receiveBlockFromNetwork(
 							blockFromPreviousRound
 						);
 					});
@@ -448,7 +446,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 						inSlotsWindowBlock =
 							forgedBlocks[forgedBlocks.length - (BLOCK_SLOT_WINDOW - 1)];
 						inSlotsWindowBlock.height = mutatedHeight;
-						return library.modules.blocks.process.onReceiveBlock(
+						return library.modules.blocks.process.receiveBlockFromNetwork(
 							inSlotsWindowBlock
 						);
 					});
@@ -473,7 +471,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 						outOfSlotWindowBlock =
 							forgedBlocks[forgedBlocks.length - (BLOCK_SLOT_WINDOW + 2)];
 						outOfSlotWindowBlock.height = mutatedHeight;
-						return library.modules.blocks.process.onReceiveBlock(
+						return library.modules.blocks.process.receiveBlockFromNetwork(
 							outOfSlotWindowBlock
 						);
 					});
@@ -507,7 +505,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 								keypair,
 								dummyBlock
 							);
-							library.modules.blocks.process.onReceiveBlock(
+							library.modules.blocks.process.receiveBlockFromNetwork(
 								blockFromFutureSlot
 							);
 						});
@@ -565,7 +563,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 							keypair,
 							secondLastBlock
 						);
-						library.modules.blocks.process.onReceiveBlock(
+						library.modules.blocks.process.receiveBlockFromNetwork(
 							blockWithGreaterTimestamp
 						);
 						getBlocks((err, blockIds) => {
@@ -597,7 +595,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 								keypair,
 								secondLastBlock
 							);
-							library.modules.blocks.process.onReceiveBlock(
+							library.modules.blocks.process.receiveBlockFromNetwork(
 								blockWithGreaterTimestamp
 							);
 							getBlocks((err, blockIds) => {
@@ -638,7 +636,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 								keypair,
 								secondLastBlock
 							);
-							library.modules.blocks.process.onReceiveBlock(
+							library.modules.blocks.process.receiveBlockFromNetwork(
 								blockWithInvalidSlot
 							);
 							getBlocks((err, blockIds) => {
@@ -662,7 +660,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 								keypair,
 								secondLastBlock
 							);
-							library.modules.blocks.process.onReceiveBlock(
+							library.modules.blocks.process.receiveBlockFromNetwork(
 								blockWithLowerTimestamp
 							);
 							getBlocks((err, blockIds) => {
@@ -701,7 +699,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 									keypair,
 									secondLastBlock
 								);
-								library.modules.blocks.process.onReceiveBlock(
+								library.modules.blocks.process.receiveBlockFromNetwork(
 									blockWithDifferentKeyAndTimestamp
 								);
 								getBlocks((err, blockIds) => {
@@ -739,7 +737,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 									keypair,
 									secondLastBlock
 								);
-								library.modules.blocks.process.onReceiveBlock(
+								library.modules.blocks.process.receiveBlockFromNetwork(
 									blockWithDifferentKeyAndTimestamp
 								);
 								getBlocks((err, blockIds) => {
@@ -781,7 +779,9 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 							);
 
 							function sendSkippedSlotBlock() {
-								library.modules.blocks.process.onReceiveBlock(nextSlotBlock);
+								library.modules.blocks.process.receiveBlockFromNetwork(
+									nextSlotBlock
+								);
 								done();
 							}
 
@@ -806,7 +806,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 							keypair,
 							lastBlock
 						);
-						library.modules.blocks.process.onReceiveBlock(
+						library.modules.blocks.process.receiveBlockFromNetwork(
 							blockWithUnskippedSlot
 						);
 						getBlocks((err, blockIds) => {
@@ -858,7 +858,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 					});
 
 					it('should delete last block and save received block (from previous round)', done => {
-						library.modules.blocks.process.onReceiveBlock(
+						library.modules.blocks.process.receiveBlockFromNetwork(
 							blockFromPreviousRound
 						);
 						getBlocks((err, blockIds) => {
@@ -890,7 +890,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 				});
 
 				it('should reject received block', done => {
-					library.modules.blocks.process.onReceiveBlock(block);
+					library.modules.blocks.process.receiveBlockFromNetwork(block);
 					getBlocks((err, blockIds) => {
 						expect(err).to.not.exist;
 						expect(blockIds).to.have.length(2);
@@ -920,7 +920,9 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 				});
 
 				it('should reject received block', done => {
-					library.modules.blocks.process.onReceiveBlock(differentChainBlock);
+					library.modules.blocks.process.receiveBlockFromNetwork(
+						differentChainBlock
+					);
 					getBlocks((err, blockIds) => {
 						expect(err).to.not.exist;
 						expect(blockIds).to.have.length(1);

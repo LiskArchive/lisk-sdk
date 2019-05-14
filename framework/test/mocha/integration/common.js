@@ -71,7 +71,7 @@ function createBlock(library, transactions, timestamp, keypair, previousBlock) {
 function createValidBlockWithSlotOffset(library, transactions, slotOffset, cb) {
 	const lastBlock = library.modules.blocks.lastBlock.get();
 	const slot = slots.getSlotNumber() - slotOffset;
-	const keypairs = library.modules.delegates.getForgersKeyPairs();
+	const keypairs = library.modules.forge.getForgersKeyPairs();
 	getDelegateForSlot(library, slot, (err, delegateKey) => {
 		const block = createBlock(
 			library,
@@ -87,7 +87,7 @@ function createValidBlockWithSlotOffset(library, transactions, slotOffset, cb) {
 function createValidBlock(library, transactions, cb) {
 	const lastBlock = library.modules.blocks.lastBlock.get();
 	const slot = slots.getSlotNumber();
-	const keypairs = library.modules.delegates.getForgersKeyPairs();
+	const keypairs = library.modules.forge.getForgersKeyPairs();
 	getDelegateForSlot(library, slot, (err, delegateKey) => {
 		const block = createBlock(
 			library,

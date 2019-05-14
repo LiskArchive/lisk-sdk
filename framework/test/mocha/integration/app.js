@@ -335,11 +335,8 @@ describe('app', () => {
 
 		describe('__private.loadDelegates', () => {
 			before(done => {
-				const loadDelegates = library.rewiredModules.delegates.__get__(
-					'__private.loadDelegates'
-				);
-				loadDelegates(err => {
-					keypairs = library.modules.delegates.getForgersKeyPairs();
+				library.modules.forge.loadDelegates(err => {
+					keypairs = library.modules.forge.getForgersKeyPairs();
 					done(err);
 				});
 			});

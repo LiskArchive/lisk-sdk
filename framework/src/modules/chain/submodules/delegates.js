@@ -65,18 +65,13 @@ const getDelegatesFromPreviousRound = async (storage, tx) => {
  * @returns {setImmediateCallback} cb, err
  * @todo Add description for the params
  */
-const validateBlockSlot = (block, activeDelegates, logger) => {
+const validateBlockSlot = (block, activeDelegates) => {
 	const currentSlot = slots.getSlotNumber(block.timestamp);
 	const delegateId = activeDelegates[currentSlot % ACTIVE_DELEGATES];
 
 	if (delegateId && block.generatorPublicKey === delegateId) {
 		return true;
 	}
-	logger.error(
-		`Expected generator: ${delegateId} Received generator: ${
-			block.generatorPublicKey
-		}`
-	);
 	throw new Error(`Failed to verify slot: ${currentSlot}`);
 };
 
