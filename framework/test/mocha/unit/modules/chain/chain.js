@@ -17,7 +17,8 @@
 /* eslint-disable mocha/no-pending-tests */
 const rewire = require('rewire');
 
-const Chain = rewire('../../../../../src/modules/chain/chain.js');
+const Chain = rewire('../../../../../src/modules/chain/chain');
+const Loader = require('../../../../../src/modules/chain/loader');
 const BlockReward = require('../../../../../src/modules/chain/logic/block_reward');
 const slots = require('../../../../../src/modules/chain/helpers/slots');
 const {
@@ -33,6 +34,8 @@ describe('Chain', () => {
 
 	beforeEach(async () => {
 		// Arrange
+
+		sinonSandbox.stub(Loader.prototype, 'loadBlockChain').resolves();
 
 		/* Arranging Stubs start */
 		stubs.logger = {
@@ -118,6 +121,8 @@ describe('Chain', () => {
 		// Act
 		chain = new Chain(stubs.channel, chainOptions);
 	});
+
+	afterEach(() => sinonSandbox.restore());
 
 	describe('constructor', () => {
 		it('should accept channel as first parameter and assign to object instance', () => {

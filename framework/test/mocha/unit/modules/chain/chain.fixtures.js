@@ -13,6 +13,9 @@ const peerList = ['peerList'];
 const chainOptions = {
 	genesisBlock: {},
 	loading: {},
+	syncing: {},
+	forging: {},
+	broadcasts: {},
 	network: {
 		enabled: false,
 	},
