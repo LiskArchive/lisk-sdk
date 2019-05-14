@@ -351,7 +351,7 @@ class Process {
 	 * @todo Add @returns tag
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	receiveBlocksFromNetwork(block) {
+	receiveBlockFromNetwork(block) {
 		// Execute in sequence via sequence
 		return library.sequence.add(cb => {
 			// Get the last block

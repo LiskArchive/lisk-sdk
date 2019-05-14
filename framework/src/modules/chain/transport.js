@@ -413,7 +413,7 @@ class Transport {
 							);
 						}
 						if (success) {
-							return modules.blocks.process.receiveBlocksFromNetwork(block);
+							return modules.blocks.process.receiveBlockFromNetwork(block);
 						}
 						return null;
 					}
