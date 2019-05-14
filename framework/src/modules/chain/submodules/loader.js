@@ -1005,7 +1005,7 @@ __private.loadBlocksFromNetwork = function(cb) {
  */
 __private.sync = function(cb) {
 	library.logger.info('Starting sync');
-	if (components.cache) {
+	if (components.cache.cacheReady) {
 		components.cache.disable();
 	}
 
@@ -1053,7 +1053,7 @@ __private.sync = function(cb) {
 			__private.blocksToSync = 0;
 
 			library.logger.info('Finished sync');
-			if (components.cache) {
+			if (!components.cache.cacheReady) {
 				components.cache.enable();
 			}
 			return setImmediate(cb, err);
