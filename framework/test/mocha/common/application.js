@@ -259,8 +259,8 @@ const initStepsForTest = {
 		const { Forger: RewiredForge } = rewire(
 			'../../../src/modules/chain/forger'
 		);
-		scope.rewiredModules.forge = RewiredForge;
-		modules.forge = new RewiredForge(scope);
+		scope.rewiredModules.forger = RewiredForge;
+		modules.forger = new RewiredForge(scope);
 		const RewiredTransport = rewire('../../../src/modules/chain/transport');
 		scope.rewiredModules.transport = RewiredTransport;
 		modules.transport = new RewiredTransport(scope);

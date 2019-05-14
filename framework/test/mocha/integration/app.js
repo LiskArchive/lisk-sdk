@@ -335,8 +335,8 @@ describe('app', () => {
 
 		describe('__private.loadDelegates', () => {
 			before(done => {
-				library.modules.forge.loadDelegates(err => {
-					keypairs = library.modules.forge.getForgersKeyPairs();
+				library.modules.forger.loadDelegates(err => {
+					keypairs = library.modules.forger.getForgersKeyPairs();
 					done(err);
 				});
 			});

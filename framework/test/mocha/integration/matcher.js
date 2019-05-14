@@ -120,7 +120,7 @@ function createRawCustomTransaction({ passphrase, senderId, senderPublicKey }) {
 function createRawBlock(library, rawTransactions, callback) {
 	const lastBlock = library.modules.blocks.lastBlock.get();
 	const slot = slots.getSlotNumber();
-	const keypairs = library.modules.forge.getForgersKeyPairs();
+	const keypairs = library.modules.forger.getForgersKeyPairs();
 	const transactions = rawTransactions.map(rawTransaction =>
 		library.logic.initTransaction.fromJson(rawTransaction)
 	);

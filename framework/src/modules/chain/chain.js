@@ -161,12 +161,12 @@ module.exports = class Chain {
 			const { Delegates } = require('./submodules/delegates');
 			const Transport = require('./transport');
 			this.loader = new Loader(this.scope);
-			this.forge = new Forger(this.scope);
+			this.forger = new Forger(this.scope);
 			this.transport = new Transport(this.scope);
 			// TODO: should not add to scope
 			this.scope.modules.delegates = new Delegates(this.scope);
 			this.scope.modules.loader = this.loader;
-			this.scope.modules.forge = this.forge;
+			this.scope.modules.forger = this.forger;
 			this.scope.modules.transport = this.transport;
 
 			this.scope.logic.block.bindModules(this.scope.modules);
@@ -185,7 +185,7 @@ module.exports = class Chain {
 
 			this.channel.subscribe('network:bootstrap', async () => {
 				this._startLoader();
-				await this._startForge();
+				await this._startForging();
 			});
 
 			// Avoid receiving blocks/transactions from the network during snapshotting process
@@ -229,7 +229,7 @@ module.exports = class Chain {
 					action.params.source
 				),
 			updateForgingStatus: async action =>
-				this.scope.modules.forge.updateForgingStatus(
+				this.scope.modules.forger.updateForgingStatus(
 					action.params.publicKey,
 					action.params.password,
 					action.params.forging
@@ -243,7 +243,7 @@ module.exports = class Chain {
 					action.params
 				),
 			getForgingStatusForAllDelegates: async () =>
-				this.scope.modules.forge.getForgingStatusForAllDelegates(),
+				this.scope.modules.forger.getForgingStatusForAllDelegates(),
 			getTransactionsFromPool: async action =>
 				promisify(
 					this.scope.modules.transactions.shared.getTransactionsFromPool
@@ -351,10 +351,10 @@ module.exports = class Chain {
 		}, syncInterval);
 	}
 
-	async _startForge() {
+	async _startForging() {
 		try {
 			await new Promise((resolve, reject) => {
-				this.forge.loadDelegates(err => {
+				this.forger.loadDelegates(err => {
 					if (err) {
 						return reject(err);
 					}
@@ -366,8 +366,8 @@ module.exports = class Chain {
 		}
 		setInterval(async () => {
 			// TODO: Possibly need to add this whole section into sequence
-			await this.forge.beforeForge();
-			if (!this.forge.delegatesEnabled()) {
+			await this.forger.beforeForge();
+			if (!this.forger.delegatesEnabled()) {
 				this.logger.debug('No delegates are enabled');
 				return;
 			}
@@ -375,7 +375,7 @@ module.exports = class Chain {
 				this.logger.debug('Client not ready to forge');
 				return;
 			}
-			this.forge.forge(() => {});
+			this.forger.forge(() => {});
 		}, forgeInterval);
 	}
 };
