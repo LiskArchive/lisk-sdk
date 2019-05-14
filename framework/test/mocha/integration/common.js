@@ -34,10 +34,16 @@ const { ACTIVE_DELEGATES } = global.constants;
 function getDelegateForSlot(library, slot, cb) {
 	const lastBlock = library.modules.blocks.lastBlock.get();
 	const round = slots.calcRound(lastBlock.height + 1);
-
-	library.modules.delegates.generateDelegateList(round, null, (err, list) => {
-		const delegatePublicKey = list[slot % ACTIVE_DELEGATES];
-		return cb(err, delegatePublicKey);
+	library.modules.forge.loadDelegates(() => {
+		library.modules.delegates
+			.generateDelegateList(round)
+			.then(list => {
+				const delegatePublicKey = list[slot % ACTIVE_DELEGATES];
+				return cb(null, delegatePublicKey);
+			})
+			.catch(err => {
+				cb(err);
+			});
 	});
 }
 
@@ -118,7 +124,7 @@ function getNextForger(library, offset, cb) {
 }
 
 function forge(library, cb) {
-	const keypairs = library.modules.delegates.getForgersKeyPairs();
+	const keypairs = library.modules.forge.getForgersKeyPairs();
 
 	async.waterfall(
 		[

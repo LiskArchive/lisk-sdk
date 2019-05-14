@@ -90,14 +90,12 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 				'__private.getKeysSortByVote'
 			);
 			const round = slots.calcRound(last_block.height + 1);
-			library.modules.delegates.generateDelegateList(
-				round,
-				keys,
-				(err, delegateList) => {
+			library.modules.delegates
+				.generateDelegateList(round, keys)
+				.then(delegateList => {
 					const nextForger = delegateList[(slot + offset) % ACTIVE_DELEGATES];
 					return seriesCb(nextForger);
-				}
-			);
+				});
 		}
 
 		async.waterfall(

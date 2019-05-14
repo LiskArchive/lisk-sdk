@@ -882,7 +882,7 @@ describe('blocks/verify', () => {
 					if (err) {
 						return done(err);
 					}
-					return delegates.generateDelegateList(1, null, done);
+					return delegates.generateDelegateList(1, null).then(() => done());
 				}
 			);
 		});

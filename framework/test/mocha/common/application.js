@@ -176,10 +176,6 @@ async function __init(sandbox, initScope) {
 		scope.logic.block.bindModules(scope.modules);
 		scope.logic.account.bindModules(scope.modules);
 
-		scope.modules.loader = sinonSandbox.stub();
-		scope.modules.transport = sinonSandbox.stub();
-		scope.modules.delegates = sinonSandbox.stub();
-
 		// Fire onBind event in every module
 		scope.bus.message('bind', scope);
 
@@ -204,6 +200,7 @@ async function __init(sandbox, initScope) {
 		}
 
 		// Overwrite onBlockchainReady function to prevent automatic forging
+		await scope.modules.loader.loadBlockChain();
 		return scope;
 	} catch (error) {
 		__testContext.debug('Error during test application init.', error);
@@ -259,6 +256,17 @@ const initStepsForTest = {
 		const RewiredLoader = rewire('../../../src/modules/chain/loader');
 		scope.rewiredModules.loader = RewiredLoader;
 		modules.loader = new RewiredLoader(scope);
+		const { Forge: RewiredForge } = rewire('../../../src/modules/chain/forge');
+		scope.rewiredModules.forge = RewiredForge;
+		modules.forge = new RewiredForge(scope);
+		const RewiredTransport = rewire('../../../src/modules/chain/transport');
+		scope.rewiredModules.transport = RewiredTransport;
+		modules.transport = new RewiredTransport(scope);
+		const { Delegates: RewiredDelegates } = rewire(
+			'../../../src/modules/chain/submodules/delegates'
+		);
+		scope.rewiredModules.delegates = RewiredDelegates;
+		modules.delegates = new RewiredDelegates(scope);
 
 		scope.bus.registerModules(modules);
 
