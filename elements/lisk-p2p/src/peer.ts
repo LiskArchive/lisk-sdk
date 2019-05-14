@@ -510,6 +510,19 @@ export class Peer extends EventEmitter {
 				reason,
 			});
 		});
+
+		// Bind RPC and remote event handlers
+		outboundSocket.on(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
+		outboundSocket.on(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
+		outboundSocket.on('postBlock', this._handleRawLegacyMessagePostBlock);
+		outboundSocket.on(
+			'postSignatures',
+			this._handleRawLegacyMessagePostSignatures,
+		);
+		outboundSocket.on(
+			'postTransactions',
+			this._handleRawLegacyMessagePostTransactions,
+		);
 	}
 
 	// All event handlers for the outbound socket should be unbound in this method.
@@ -522,15 +535,30 @@ export class Peer extends EventEmitter {
 		outboundSocket.off('connect');
 		outboundSocket.off('connectAbort');
 		outboundSocket.off('close');
+
+		// Unbind RPC and remote event handlers
+		outboundSocket.off(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
+		outboundSocket.off(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
+		outboundSocket.off('postBlock', this._handleRawLegacyMessagePostBlock);
+		outboundSocket.off(
+			'postSignatures',
+			this._handleRawLegacyMessagePostSignatures,
+		);
+		outboundSocket.off(
+			'postTransactions',
+			this._handleRawLegacyMessagePostTransactions,
+		);
 	}
 
 	// All event handlers for the inbound socket should be bound in this method.
 	private _bindHandlersToInboundSocket(
 		inboundSocket: SCServerSocketUpdated,
 	): void {
+		inboundSocket.on('error', this._handleInboundSocketError);
+
+		// Bind RPC and remote event handlers
 		inboundSocket.on(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
 		inboundSocket.on(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
-		inboundSocket.on('error', this._handleInboundSocketError);
 		inboundSocket.on('postBlock', this._handleRawLegacyMessagePostBlock);
 		inboundSocket.on(
 			'postSignatures',
@@ -546,6 +574,7 @@ export class Peer extends EventEmitter {
 	private _unbindHandlersFromInboundSocket(
 		inboundSocket: SCServerSocket,
 	): void {
+		// Unbind RPC and remote event handlers
 		inboundSocket.off(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
 		inboundSocket.off(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
 		inboundSocket.off('postBlock', this._handleRawLegacyMessagePostBlock);

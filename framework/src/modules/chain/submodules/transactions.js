@@ -447,7 +447,7 @@ class Transactions {
 				async.waterfall(
 					[
 						function getConfirmedCountFromCache(waterCb) {
-							if (components.cache) {
+							if (components.cache.cacheReady) {
 								return components.cache
 									.getJsonForKey(CACHE_KEYS_TRANSACTION_COUNT)
 									.then(data => {
@@ -482,7 +482,7 @@ class Transactions {
 								// Cache already persisted, no need to set cache again
 								return setImmediate(waterCb, null, cachedCount);
 							}
-							if (components.cache) {
+							if (components.cache.cacheReady) {
 								return components.cache
 									.setJsonForKey(CACHE_KEYS_TRANSACTION_COUNT, {
 										confirmed: dbCount,
