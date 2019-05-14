@@ -165,9 +165,11 @@ describe('GET /api/node', () => {
 
 			describe('type', () => {
 				it('using invalid type should fail', async () => {
-					return UnProcessedEndpoint.makeRequest({ type: 8 }, 400).then(res => {
-						expectSwaggerParamError(res, 'type');
-					});
+					return UnProcessedEndpoint.makeRequest({ type: 'a' }, 400).then(
+						res => {
+							expectSwaggerParamError(res, 'type');
+						}
+					);
 				});
 
 				it('using valid type should be ok @unstable', async () => {

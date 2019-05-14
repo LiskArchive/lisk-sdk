@@ -88,6 +88,7 @@ Utils.prototype.readDbRows = function(rows) {
 
 			// Normalize transaction
 			const transaction = library.logic.initTransaction.dbRead(rows[i]);
+
 			// Set empty object if there are no transactions in block
 			blocks[block.id].transactions = blocks[block.id].transactions || {};
 
@@ -157,7 +158,6 @@ Utils.prototype.loadBlocksPart = function(filter, cb, tx) {
 		filter,
 		(err, rows) => {
 			let blocks;
-
 			if (!err) {
 				// Normalize list of blocks
 				blocks = self.readDbRows(rows);
@@ -303,7 +303,6 @@ Utils.prototype.loadBlockByHeight = function(height, cb, tx) {
  */
 Utils.prototype.loadBlocksData = function(filter, cb, tx) {
 	const params = { limit: filter.limit || 1 };
-
 	// FIXME: filter.id is not used
 	if (filter.id && filter.lastId) {
 		return setImmediate(cb, 'Invalid filter: Received both id and lastId');
@@ -343,7 +342,6 @@ Utils.prototype.loadBlocksData = function(filter, cb, tx) {
 				queryFilters.height_gt = mergedParams.height;
 				queryFilters.height_lt = mergedParams.limit;
 			}
-
 			// Retrieve blocks from database
 			return library.storage.entities.Block.get(
 				queryFilters,

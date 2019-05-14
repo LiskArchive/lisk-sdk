@@ -1173,10 +1173,9 @@ parameters:
   transactionType:
     name: type
     in: query
-    description: Transaction type (0-7)
+    description: Transaction type (0-*)
     type: integer
     minimum: 0
-    maximum: 7
   minAmount:
     name: minAmount
     in: query
@@ -1272,7 +1271,6 @@ definitions:
       type:
         type: integer
         minimum: 0
-        maximum: 7
         description: |
           Describes the Transaction type.
       timestamp:
