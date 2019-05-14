@@ -157,11 +157,11 @@ module.exports = class Chain {
 			this.scope.modules = await initModules(this.scope);
 			// TODO: Global variable forbits to require on top
 			const Loader = require('./loader');
-			const { Forge } = require('./forge');
+			const { Forger } = require('./forger');
 			const { Delegates } = require('./submodules/delegates');
 			const Transport = require('./transport');
 			this.loader = new Loader(this.scope);
-			this.forge = new Forge(this.scope);
+			this.forge = new Forger(this.scope);
 			this.transport = new Transport(this.scope);
 			// TODO: should not add to scope
 			this.scope.modules.delegates = new Delegates(this.scope);
@@ -179,9 +179,9 @@ module.exports = class Chain {
 			// Fire onBind event in every module
 			this.scope.bus.message('bind', this.scope);
 
+			this.logger.info('Modules ready and launched');
 			// After binding, it should immeately load blockchain
 			await this.loader.loadBlockChain();
-			this.logger.info('Modules ready and launched');
 
 			this.channel.subscribe('network:bootstrap', async () => {
 				this._startLoader();

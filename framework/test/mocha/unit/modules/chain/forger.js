@@ -18,9 +18,9 @@ const {
 	getPrivateAndPublicKeyBytesFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
 const {
-	Forge,
+	Forger,
 	getDelegateKeypairForCurrentSlot,
-} = require('../../../../../src/modules/chain/forge');
+} = require('../../../../../src/modules/chain/forger');
 const genesisDelegates = require('../../../data/genesis_delegates.json');
 const delegatesRoundsList = require('../../../data/delegates_rounds_list.json');
 const accountFixtures = require('../../../fixtures/accounts');
@@ -55,9 +55,9 @@ describe('forge', () => {
 
 	afterEach(() => sinonSandbox.restore());
 
-	describe('Forge', () => {
+	describe('Forger', () => {
 		beforeEach(async () => {
-			forgeModule = new Forge({
+			forgeModule = new Forger({
 				channel: mockChannel,
 				components: {
 					logger: mockLogger,

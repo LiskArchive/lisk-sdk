@@ -221,7 +221,7 @@ const modulesLoader = new function() {
 			[
 				{ blocks: require('../../../src/modules/chain/submodules/blocks') },
 				{
-					delegates: require('../../../src/modules/chain/forge'),
+					delegates: require('../../../src/modules/chain/submodules/delegates'),
 				},
 				{ loader: require('../../../src/modules/chain/loader') },
 				{

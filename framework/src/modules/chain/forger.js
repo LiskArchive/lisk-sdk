@@ -69,7 +69,7 @@ const getDelegateKeypairForCurrentSlot = async (
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, err, self
  */
-class Forge {
+class Forger {
 	constructor(scope) {
 		this.keypairs = {};
 		this.channel = scope.channel;
@@ -420,4 +420,4 @@ class Forge {
 }
 
 // Export
-module.exports = { Forge, getDelegateKeypairForCurrentSlot };
+module.exports = { Forger, getDelegateKeypairForCurrentSlot };
