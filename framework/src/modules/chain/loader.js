@@ -135,7 +135,7 @@ class Loader {
 		 * @todo Add @param tags
 		 * @todo Add description for the function
 		 */
-		function load(count) {
+		function load(count, loadCb) {
 			__private.total = count;
 			async.series(
 				{
@@ -183,11 +183,15 @@ class Loader {
 							modules.blocks.chain.deleteFromBlockId(err.block.id, () => {
 								library.logger.error('Blockchain clipped');
 								library.bus.message('blockchainReady');
+								setImmediate(loadCb);
 							});
+							return;
 						}
+						setImmediate(loadCb);
 					} else {
 						library.logger.info('Blockchain ready');
 						library.bus.message('blockchainReady');
+						setImmediate(loadCb);
 					}
 				}
 			);
@@ -199,13 +203,13 @@ class Loader {
 		 * @todo Add @returns and @param tags
 		 * @todo Add description for the function
 		 */
-		function reload(count, message) {
+		function reload(count, message, reloadCb) {
 			if (message) {
 				library.logger.warn(message);
 				library.logger.warn('Recreating memory tables');
 			}
 
-			return load(count);
+			return load(count, reloadCb);
 		}
 
 		/**
@@ -259,7 +263,9 @@ class Loader {
 					const round = slots.calcRound(blocksCount);
 
 					if (blocksCount === 1) {
-						return reload(blocksCount);
+						return new Promise(resolve => {
+							reload(blocksCount, undefined, resolve);
+						});
 					}
 
 					matchGenesisBlock(getGenesisBlock);
@@ -277,10 +283,13 @@ class Loader {
 							unappliedRounds: unapplied,
 						});
 
-						return reload(
-							blocksCount,
-							'Detected unapplied rounds in mem_round'
-						);
+						return new Promise(resolve => {
+							reload(
+								blocksCount,
+								'Detected unapplied rounds in mem_round',
+								resolve
+							);
+						});
 					}
 
 					const delegatesPublicKeys = await library.storage.entities.Account.get(
@@ -289,30 +298,39 @@ class Loader {
 					).then(accounts => accounts.map(account => account.publicKey));
 
 					if (delegatesPublicKeys.length === 0) {
-						return reload(blocksCount, 'No delegates found');
+						return new Promise(resolve => {
+							reload(blocksCount, 'No delegates found', resolve);
+						});
 					}
-
-					return modules.blocks.utils.loadLastBlock((err, block) => {
-						if (err) {
-							return reload(blocksCount, err || 'Failed to load last block');
-						}
-
-						__private.lastBlock = block;
-
-						return __private.validateOwnChain(validateOwnChainError => {
-							if (validateOwnChainError) {
-								throw validateOwnChainError;
+					return new Promise((resolve, reject) => {
+						modules.blocks.utils.loadLastBlock((err, block) => {
+							if (err) {
+								reload(
+									blocksCount,
+									err || 'Failed to load last block',
+									resolve
+								);
 							}
 
-							library.logger.info('Blockchain ready');
-							library.bus.message('blockchainReady');
+							__private.lastBlock = block;
+
+							return __private.validateOwnChain(validateOwnChainError => {
+								if (validateOwnChainError) {
+									reject(validateOwnChainError);
+								}
+
+								library.logger.info('Blockchain ready');
+								library.bus.message('blockchainReady');
+								resolve();
+							});
 						});
 					});
 				})
 				// TODO: No need to catch here
 				.catch(err => {
 					library.logger.error(err.stack || err);
-					return process.emit('exit');
+					process.emit('exit');
+					return Promise.reject(err);
 				})
 		);
 	}
