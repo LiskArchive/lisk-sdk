@@ -1729,6 +1729,31 @@ describe('transport', () => {
 								.which.is.equal(receiveTransactionError);
 						});
 					});
+
+					describe('when __private.receiveTransaction fails with "Transaction pool is full"', () => {
+						const receiveTransactionError = 'Transaction pool is full';
+
+						beforeEach(done => {
+							__private.receiveTransaction = sinonSandbox
+								.stub()
+								.callsArgWith(3, receiveTransactionError);
+							transportInstance.shared.postTransaction(query, (err, res) => {
+								error = err;
+								result = res;
+								done();
+							});
+						});
+
+						it('should invoke callback with object { success: false, message: err }', async () => {
+							expect(error).to.equal(null);
+							expect(result)
+								.to.have.property('success')
+								.which.is.equal(false);
+							return expect(result)
+								.to.have.property('errors')
+								.which.is.equal(receiveTransactionError);
+						});
+					});
 				});
 
 				describe('postTransactions', () => {
