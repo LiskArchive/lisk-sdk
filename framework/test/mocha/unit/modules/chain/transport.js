@@ -883,6 +883,9 @@ describe('transport', () => {
 								.stub()
 								.callsArgWith(1, null, blocksList),
 						},
+						process: {
+							receiveBlockFromNetwork: sinonSandbox.stub().resolves(true),
+						},
 						verify: {
 							addBlockProperties: sinonSandbox.stub().returns(blockMock),
 						},
@@ -1411,10 +1414,11 @@ describe('transport', () => {
 									library.logic.block.objectNormalize.calledWith(blockMock)
 								).to.be.true);
 
-							it('should call library.bus.message with "receiveBlock" and block', async () =>
+							it('should call block.process.receiveBlockFromNetwork with block', async () => {
 								expect(
-									library.bus.message.calledWith('receiveBlock', blockMock)
-								).to.be.true);
+									modules.blocks.process.receiveBlockFromNetwork
+								).to.be.calledWithExactly(blockMock);
+							});
 						});
 					});
 				});
