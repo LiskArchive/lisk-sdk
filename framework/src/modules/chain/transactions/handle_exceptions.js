@@ -14,6 +14,8 @@
 
 'use strict';
 
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+
 const checkSenderPublicKeyException = (exceptions, transactionResponse) => {
 	if (!exceptions.senderPublicKey.includes(transactionResponse.id)) {
 		return false;
@@ -226,7 +228,40 @@ const checkIfTransactionIsException = (
 const checkIfTransactionIsInert = (exceptions, transaction) =>
 	exceptions.inertTransactions.includes(transaction.id);
 
+const updateTransactionResponseForExceptionTransactions = (
+	unprocessableTransactionResponses,
+	transactions
+) => {
+	const unprocessableTransactionAndResponsePairs = unprocessableTransactionResponses.map(
+		unprocessableTransactionResponse => ({
+			transactionResponse: unprocessableTransactionResponse,
+			transaction: transactions.find(
+				transaction => transaction.id === unprocessableTransactionResponse.id
+			),
+		})
+	);
+
+	const exceptionTransactionsAndResponsePairs = unprocessableTransactionAndResponsePairs.filter(
+		({ transactionResponse, transaction }) =>
+			checkIfTransactionIsException(transactionResponse, transaction)
+	);
+
+	// Update the transaction response for exception transactions
+	exceptionTransactionsAndResponsePairs.forEach(({ transactionResponse }) => {
+		transactionResponse.status = TransactionStatus.OK;
+		transactionResponse.errors = [];
+	});
+};
+
 module.exports = {
+	checkSenderPublicKeyException,
+	checkSignature,
+	checkSignSignature,
+	checkDuplicateSignatures,
+	checkMultisig,
+	checkVotes,
+	checkNullByte,
 	checkIfTransactionIsException,
 	checkIfTransactionIsInert,
+	updateTransactionResponseForExceptionTransactions,
 };

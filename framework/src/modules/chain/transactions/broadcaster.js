@@ -276,4 +276,6 @@ class Broadcaster {
 	}
 }
 
-module.exports = Broadcaster;
+module.exports = {
+	Broadcaster,
+};

@@ -19,7 +19,7 @@ const {
 	Status: TransactionStatus,
 	TransactionError,
 } = require('@liskhq/lisk-transactions');
-const processTransactionLogic = require('../logic/process_transaction');
+const { composeTransactionSteps } = require('./compose_transaction_steps');
 const slots = require('../helpers/slots');
 
 const {
@@ -69,29 +69,22 @@ const readyQueue = 'ready';
  * @param {Object} config - config variable
  */
 class TransactionPool {
-	constructor(broadcastInterval, releaseLimit, logger, config, bus) {
+	constructor(transactions, broadcastInterval, releaseLimit, logger, config) {
 		this.maxTransactionsPerQueue = config.transactions.maxTransactionsPerQueue;
 		this.bundledInterval = broadcastInterval;
 		this.bundleLimit = releaseLimit;
 		this.logger = logger;
-		this.bus = bus;
-	}
+		this.transactions = transactions;
 
-	/**
-	 * Bounds input parameters to private and sets up the liskhq-transaction-pool module.
-	 *
-	 * @param {Transactions} processTransactions - Transactions processing module instance
-	 */
-	bind(processTransactions) {
-		this.validateTransactions = processTransactions.validateTransactions;
-		this.verifyTransactions = processTransactionLogic.composeTransactionSteps(
-			processTransactions.checkAllowedTransactions,
-			processTransactions.checkPersistedTransactions,
-			processTransactions.verifyTransactions
+		this.validateTransactions = transactions.validateTransactions;
+		this.verifyTransactions = composeTransactionSteps(
+			transactions.checkAllowedTransactions,
+			transactions.checkPersistedTransactions,
+			transactions.verifyTransactions
 		);
-		this.processTransactions = processTransactionLogic.composeTransactionSteps(
-			processTransactions.checkPersistedTransactions,
-			processTransactions.applyTransactions
+		this.processTransactions = composeTransactionSteps(
+			transactions.checkPersistedTransactions,
+			transactions.applyTransactions
 		);
 
 		const poolConfig = {
@@ -183,6 +176,43 @@ class TransactionPool {
 		});
 	}
 
+	async getTransactionAndProcessSignature(signature) {
+		if (!signature) {
+			const message = 'Unable to process signature, signature not provided';
+			this.logger.error(message);
+			throw new TransactionError(message, '', '.signature');
+		}
+		// Grab transaction with corresponding ID from transaction pool
+		const transaction = this.getMultisignatureTransaction(
+			signature.transactionId
+		);
+
+		if (!transaction) {
+			const message =
+				'Unable to process signature, corresponding transaction not found';
+			this.logger.error(message, { signature });
+			throw new TransactionError(message, '', '.signature');
+		}
+
+		const transactionResponse = await this.transactions.processSignature(
+			transaction,
+			signature
+		);
+		if (
+			transactionResponse.status === TransactionStatus.FAIL &&
+			transactionResponse.errors.length > 0
+		) {
+			const message = transactionResponse.errors[0].message;
+			this.logger.error(message, { signature });
+			throw transactionResponse.errors;
+		}
+		// Emit events
+		this.emit('chain:multisignatures:signature:change', {
+			id: transaction.id,
+			signature,
+		});
+	}
+
 	transactionInPool(id) {
 		return this.pool.existsInTransactionPool(id);
 	}
@@ -258,13 +288,10 @@ class TransactionPool {
 		return transactionList;
 	}
 
-	fillPool(cb) {
-		return this.pool
-			.validateReceivedTransactions()
-			.then(() => this.pool.verifyValidatedTransactions())
-			.then(() => this.pool.processVerifiedTransactions())
-			.then(() => cb())
-			.catch(cb);
+	async fillPool() {
+		await this.pool.validateReceivedTransactions();
+		await this.pool.verifyValidatedTransactions();
+		await this.pool.processVerifiedTransactions();
 	}
 
 	/**
@@ -302,6 +329,7 @@ class TransactionPool {
 			cb,
 			transaction
 		);
+		// Register to braodcaster
 	}
 
 	addVerifiedTransaction(transaction, cb) {
@@ -310,6 +338,7 @@ class TransactionPool {
 			cb,
 			transaction
 		);
+		// Register to braodcaster
 	}
 
 	addMultisignatureTransaction(transaction, cb) {
@@ -318,6 +347,7 @@ class TransactionPool {
 			cb,
 			transaction
 		);
+		// Register to braodcaster
 	}
 
 	processUnconfirmedTransaction(transaction, broadcast, cb) {
@@ -355,6 +385,7 @@ class TransactionPool {
 				return cb(transactionsResponses[0].errors);
 			}
 		);
+		// Register to braodcaster
 	}
 
 	onConfirmedTransactions(transactions) {
@@ -366,4 +397,4 @@ class TransactionPool {
 	}
 }
 
-module.exports = TransactionPool;
+module.exports = { TransactionPool };
