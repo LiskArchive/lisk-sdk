@@ -134,7 +134,7 @@ export abstract class BaseTransaction {
 		transactions: ReadonlyArray<TransactionJSON>,
 	): ReadonlyArray<TransactionError>;
 	// tslint:disable-next-line no-any
-	protected abstract assetDbRead(raw: any): object | undefined;
+	protected abstract assetFromSync(raw: any): object | undefined;
 
 	// tslint:disable-next-line cyclomatic-complexity
 	public constructor(rawTransaction: unknown) {
@@ -459,7 +459,7 @@ export abstract class BaseTransaction {
 	}
 
 	/* tslint:disable:next-line: no-any no-null-keyword */
-	public dbRead(raw: any): TransactionJSON | null {
+	public fromSync(raw: any): TransactionJSON | null {
 		const transactionJSON: TransactionJSON & {
 			readonly requesterPublicKey: string;
 			readonly [key: string]: string | number | object | null;
@@ -485,7 +485,7 @@ export abstract class BaseTransaction {
 
 		const transaction = {
 			...transactionJSON,
-			asset: this.assetDbRead(raw) || {},
+			asset: this.assetFromSync(raw) || {},
 		};
 
 		return transaction;

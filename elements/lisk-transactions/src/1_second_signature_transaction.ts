@@ -212,7 +212,7 @@ export class SecondSignatureTransaction extends BaseTransaction {
 	}
 
 	// tslint:disable:next-line: prefer-function-over-method no-any
-	protected assetDbRead(raw: any): object | undefined {
+	protected assetFromSync(raw: any): object | undefined {
 		if (!raw.s_publicKey) {
 			return undefined;
 		}

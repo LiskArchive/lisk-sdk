@@ -49,7 +49,7 @@ export class TestTransaction extends BaseTransaction {
 		return [];
 	}
 
-	public assetDbRead(raw: any) {
+	public assetFromSync(raw: any) {
 		return { data: raw };
 	}
 }

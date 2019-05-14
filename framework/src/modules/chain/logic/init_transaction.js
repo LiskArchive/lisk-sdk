@@ -63,7 +63,7 @@ class Transaction {
 			return null;
 		}
 
-		const transactionJSON = new TransactionClass().dbRead(raw);
+		const transactionJSON = new TransactionClass().fromSync(raw);
 
 		return this.fromJson(_.omitBy(transactionJSON, _.isNull));
 	}
