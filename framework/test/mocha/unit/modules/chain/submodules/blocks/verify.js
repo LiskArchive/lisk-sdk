@@ -1714,13 +1714,11 @@ describe('blocks/verify', () => {
 		const dummyBlock = { id: 1 };
 
 		describe('when modules.delegates.validateBlockSlot fails', () => {
-			beforeEach(() =>
-				modules.delegates.validateBlockSlot.callsArgWith(
-					1,
-					'validateBlockSlot-ERR',
-					null
-				)
-			);
+			beforeEach(async () => {
+				modules.delegates.validateBlockSlot.rejects(
+					new Error('validateBlockSlot-ERR')
+				);
+			});
 
 			afterEach(() => {
 				expect(modules.delegates.validateBlockSlot).calledWith(dummyBlock);
@@ -1729,16 +1727,16 @@ describe('blocks/verify', () => {
 
 			it('should call a callback with error', done => {
 				__private.validateBlockSlot(dummyBlock, err => {
-					expect(err).to.equal('validateBlockSlot-ERR');
+					expect(err.message).to.equal('validateBlockSlot-ERR');
 					done();
 				});
 			});
 		});
 
 		describe('when modules.delegates.validateBlockSlot succeeds', () => {
-			beforeEach(() =>
-				modules.delegates.validateBlockSlot.callsArgWith(1, null, true)
-			);
+			beforeEach(async () => {
+				modules.delegates.validateBlockSlot.resolves(true);
+			});
 
 			afterEach(() => {
 				expect(modules.delegates.validateBlockSlot).calledWith(dummyBlock);
