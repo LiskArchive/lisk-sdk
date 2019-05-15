@@ -2409,6 +2409,7 @@ definitions:
           - unsigned
           - unprocessed
           - confirmed
+          - validated
           - total
         description: Transactions known to the node.
         properties:
@@ -2428,6 +2429,10 @@ definitions:
             type: integer
             example: 5
             description: Number of confirmed Transactions known to the node.
+          validated: 
+            type: integer
+            example: 5
+            description: Number of validated Transactions known to the node.
           total:
             type: integer
             example: 15
