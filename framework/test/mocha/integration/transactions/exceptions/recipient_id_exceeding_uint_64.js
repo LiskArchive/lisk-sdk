@@ -96,13 +96,10 @@ describe('exceptions for recipient transactions exceeding uint64', () => {
 			describe('details of the accounts', () => {
 				let recipientMemAccountAfter;
 
-				before('get recipient account', done => {
-					library.logic.account.get(
+				before('get recipient account', async () => {
+					recipientMemAccountAfter = await library.components.storage.entities.Account.getOne(
 						{ address: accountWithExceedingUint64Recipient.address },
-						(err, res) => {
-							recipientMemAccountAfter = res;
-							done();
-						}
+						{ extended: true }
 					);
 				});
 
@@ -139,13 +136,10 @@ describe('exceptions for recipient transactions exceeding uint64', () => {
 				});
 
 				describe('details of the account', () => {
-					before('get recipient account', done => {
-						library.logic.account.get(
+					before('get recipient account', async () => {
+						recipientMemAccountAfterBlockDelete = await library.components.storage.entities.Account.getOne(
 							{ address: accountWithExceedingUint64Recipient.address },
-							(err, res) => {
-								recipientMemAccountAfterBlockDelete = res;
-								done();
-							}
+							{ extended: true }
 						);
 					});
 

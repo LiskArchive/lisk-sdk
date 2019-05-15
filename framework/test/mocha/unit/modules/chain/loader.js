@@ -15,20 +15,18 @@
 'use strict';
 
 const rewire = require('rewire');
-const application = require('../../../../common/application');
+const application = require('../../../common/application');
 
 const { ACTIVE_DELEGATES } = __testContext.config.constants;
 
 describe('loader', () => {
 	let library;
-	let __private;
 
 	before(done => {
 		application.init(
 			{ sandbox: { name: 'lisk_test_unit_module_loader' } },
 			(err, scope) => {
 				library = scope;
-				__private = library.rewiredModules.loader.__get__('__private');
 				done(err);
 			}
 		);
@@ -42,98 +40,6 @@ describe('loader', () => {
 		sinonSandbox.restore();
 	});
 
-	describe('__private.syncTrigger', () => {
-		let turnOn;
-		let loggerStub;
-		let channelStub;
-		let restoreLogger;
-		let restoreChannel;
-
-		beforeEach(async () => {
-			loggerStub = {
-				trace: sinonSandbox.stub(),
-			};
-			channelStub = {
-				publish: sinonSandbox.stub(),
-				once: sinonSandbox.stub(),
-			};
-			restoreLogger = library.rewiredModules.loader.__set__(
-				'library.logger',
-				loggerStub
-			);
-			restoreChannel = library.rewiredModules.loader.__set__(
-				'library.channel',
-				channelStub
-			);
-			__private.syncTrigger(turnOn);
-		});
-
-		afterEach(async () => {
-			restoreLogger();
-			restoreChannel();
-		});
-
-		describe('if turnOn === false and __private.syncIntervalId !== null', () => {
-			const originalSyncIntervalId = 3;
-			let restoreSyncIntervalId;
-
-			beforeEach(async () => {
-				turnOn = false;
-				restoreSyncIntervalId = library.rewiredModules.loader.__set__(
-					'__private.syncIntervalId',
-					originalSyncIntervalId
-				);
-				__private.syncTrigger(turnOn);
-			});
-
-			afterEach(async () => {
-				restoreSyncIntervalId();
-			});
-
-			it('should call logger.trace with "Clearing sync interval"', async () => {
-				expect(loggerStub.trace).to.be.calledWith('Clearing sync interval');
-			});
-
-			it('should assign null to __private.syncIntervalId', async () => {
-				expect(__private.syncIntervalId).to.be.null;
-			});
-		});
-
-		describe('if turnOn === true and __private.syncInternalId is null', () => {
-			let restoreSyncIntervalId;
-			let lastBlockGetStub;
-			const expectedBlockHeight = 1;
-
-			beforeEach(async () => {
-				turnOn = true;
-				restoreSyncIntervalId = library.rewiredModules.loader.__set__(
-					'__private.syncIntervalId',
-					null
-				);
-				lastBlockGetStub = sinonSandbox
-					.stub(library.modules.blocks.lastBlock, 'get')
-					.returns({ height: expectedBlockHeight });
-				__private.syncTrigger(turnOn);
-			});
-
-			afterEach(async () => {
-				restoreSyncIntervalId();
-				lastBlockGetStub.restore();
-			});
-
-			it('should call logger.trace with "Setting sync interval"', async () => {
-				expect(loggerStub.trace).to.be.calledWith('Setting sync interval');
-			});
-
-			it('should call library.channel.publish with "chain:loader:sync"', async () => {
-				expect(channelStub.publish).to.be.calledWith('chain:loader:sync', {
-					blocks: __private.blocksToSync,
-					height: expectedBlockHeight,
-				});
-			});
-		});
-	});
-
 	describe('__private.rebuildAccounts', () => {
 		let __privateVar;
 		let libraryVar;
@@ -144,8 +50,8 @@ describe('loader', () => {
 		let deleteStub;
 		let RewiredLoader;
 
-		beforeEach(done => {
-			resetMemTablesStub = sinonSandbox.stub().callsArgWith(0, null, true);
+		beforeEach(async () => {
+			resetMemTablesStub = sinonSandbox.stub().resolves();
 			loadBlocksOffsetStub = sinonSandbox.stub().callsArgWith(2, null, true);
 			deleteStub = sinonSandbox.stub().resolves();
 
@@ -162,6 +68,9 @@ describe('loader', () => {
 					logger: loggerStub,
 					storage: {
 						entities: {
+							Account: {
+								resetMemTables: resetMemTablesStub,
+							},
 							Block: {
 								delete: deleteStub,
 							},
@@ -178,7 +87,6 @@ describe('loader', () => {
 				genesisBlock: sinonSandbox.stub(),
 				balancesSequence: sinonSandbox.stub(),
 				logic: {
-					account: { resetMemTables: resetMemTablesStub },
 					peers: sinonSandbox.stub(),
 				},
 				config: {
@@ -207,16 +115,12 @@ describe('loader', () => {
 				},
 				swagger: { definitions: null },
 			};
-			RewiredLoader = rewire(
-				'../../../../../../src/modules/chain/submodules/loader'
-			);
+			RewiredLoader = rewire('../../../../../src/modules/chain/loader');
 			__privateVar = RewiredLoader.__get__('__private');
-			RewiredLoader.__set__('__private.loadBlockChain', sinonSandbox.stub());
-			new RewiredLoader((__err, __loader) => {
-				libraryVar = RewiredLoader.__get__('library');
-				__loader.onBind(bindingsStub);
-				done();
-			}, validScope);
+			const __loader = new RewiredLoader(validScope);
+			sinonSandbox.stub(__loader, 'loadBlockChain');
+			libraryVar = RewiredLoader.__get__('library');
+			__loader.onBind(bindingsStub);
 		});
 
 		it('should throw an error when called with height below active delegates count', done => {
@@ -298,9 +202,9 @@ describe('loader', () => {
 		});
 
 		it('should emit an event with proper error when resetMemTables fails', done => {
-			resetMemTablesStub.callsArgWith(0, 'resetMemTables#ERR', true);
+			resetMemTablesStub.rejects();
 			__privateVar.rebuildFinished = err => {
-				expect(err).to.eql('resetMemTables#ERR');
+				expect(err.message).to.eql('Account#resetMemTables error');
 				done();
 			};
 

@@ -17,24 +17,25 @@
 const rewire = require('rewire');
 const chai = require('chai');
 const randomstring = require('randomstring');
-const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const {
+	Status: TransactionStatus,
+	TransferTransaction,
+} = require('@liskhq/lisk-transactions');
 const { transfer, TransactionError } = require('@liskhq/lisk-transactions');
 
-const accountFixtures = require('../../../../fixtures/accounts');
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
-const Block = require('../../../../fixtures/blocks').Block;
+const accountFixtures = require('../../../fixtures/accounts');
+const Bignum = require('../../../../../src/modules/chain/helpers/bignum');
+const Block = require('../../../fixtures/blocks').Block;
 const {
 	registeredTransactions,
-} = require('../../../../common/registered_transactions');
-const InitTransaction = require('../../../../../../src/modules/chain/logic/init_transaction');
-const ProcessTransactions = require('../../../../../../src/modules/chain/submodules/process_transactions');
-const processTransactionLogic = require('../../../../../../src/modules/chain/logic/process_transaction');
+} = require('../../../common/registered_transactions');
+const InitTransaction = require('../../../../../src/modules/chain/logic/init_transaction');
+const ProcessTransactions = require('../../../../../src/modules/chain/submodules/process_transactions');
+const processTransactionLogic = require('../../../../../src/modules/chain/logic/process_transaction');
 
 const initTransaction = new InitTransaction({ registeredTransactions });
 
-const TransportModule = rewire(
-	'../../../../../../src/modules/chain/submodules/transport'
-);
+const TransportModule = rewire('../../../../../src/modules/chain/transport');
 
 const { MAX_SHARED_TRANSACTIONS } = __testContext.config.constants;
 const expect = chai.expect;
@@ -219,18 +220,10 @@ describe('transport', () => {
 
 	describe('constructor', () => {
 		describe('library', () => {
-			let localTransportInstance;
-			let transportSelf;
-
-			beforeEach(done => {
-				localTransportInstance = new TransportModule((err, transport) => {
-					error = err;
-					transportSelf = transport;
-					library = TransportModule.__get__('library');
-					__private = TransportModule.__get__('__private');
-
-					done();
-				}, defaultScope);
+			beforeEach(async () => {
+				new TransportModule(defaultScope);
+				library = TransportModule.__get__('library');
+				__private = TransportModule.__get__('__private');
 			});
 
 			it('should assign scope variables when instantiating', async () => {
@@ -259,9 +252,6 @@ describe('transport', () => {
 				expect(__private)
 					.to.have.property('broadcaster')
 					.which.is.equal(broadcasterStubRef);
-
-				expect(error).to.equal(null);
-				return expect(transportSelf).to.equal(localTransportInstance);
 			});
 		});
 	});
@@ -270,55 +260,52 @@ describe('transport', () => {
 		let __privateOriginal;
 		let restoreRewiredDeps;
 
-		beforeEach(done => {
+		beforeEach(async () => {
 			__privateOriginal = {};
 
-			transportInstance = new TransportModule(() => {
-				// Backup the __private variable so that properties can be overridden
-				// by individual test cases and then we will restore them after each test case has run.
-				// This is neccessary because different test cases may want to stub out different parts of the
-				// __private modules while testing other parts.
-				__private = TransportModule.__get__('__private');
+			new TransportModule(defaultScope);
+			// Backup the __private variable so that properties can be overridden
+			// by individual test cases and then we will restore them after each test case has run.
+			// This is neccessary because different test cases may want to stub out different parts of the
+			// __private modules while testing other parts.
+			__private = TransportModule.__get__('__private');
 
-				Object.keys(__private).forEach(field => {
-					__privateOriginal[field] = __private[field];
-				});
+			Object.keys(__private).forEach(field => {
+				__privateOriginal[field] = __private[field];
+			});
 
-				library = {
-					schema: {
-						validate: sinonSandbox.stub().callsArg(2),
-					},
-					logger: {
-						debug: sinonSandbox.spy(),
-					},
-					logic: {
-						initTransaction,
-					},
-					channel: {
-						publish: sinonSandbox.stub().resolves(),
-					},
-					applicationState: {
-						broadhash:
-							'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
-					},
-				};
+			library = {
+				schema: {
+					validate: sinonSandbox.stub().callsArg(2),
+				},
+				logger: {
+					debug: sinonSandbox.spy(),
+				},
+				logic: {
+					initTransaction,
+				},
+				channel: {
+					publish: sinonSandbox.stub().resolves(),
+				},
+				applicationState: {
+					broadhash:
+						'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
+				},
+			};
 
-				modules = {
-					transactions: {
-						processUnconfirmedTransaction: sinonSandbox.stub().callsArg(2),
-					},
-					processTransactions: new ProcessTransactions(() => {}, defaultScope),
-				};
-				modules.processTransactions.onBind(defaultScope);
+			modules = {
+				transactions: {
+					processUnconfirmedTransaction: sinonSandbox.stub().callsArg(2),
+				},
+				processTransactions: new ProcessTransactions(() => {}, defaultScope),
+			};
+			modules.processTransactions.onBind(defaultScope);
 
-				restoreRewiredDeps = TransportModule.__set__({
-					library,
-					modules,
-					definitions,
-				});
-
-				done();
-			}, defaultScope);
+			restoreRewiredDeps = TransportModule.__set__({
+				library,
+				modules,
+				definitions,
+			});
 		});
 
 		afterEach(done => {
@@ -834,95 +821,95 @@ describe('transport', () => {
 		describe('Transport', () => {
 			let restoreRewiredTransportDeps;
 
-			beforeEach(done => {
+			beforeEach(async () => {
 				blocksList = [];
 				for (let j = 0; j < 10; j++) {
 					const auxBlock = new Block();
 					blocksList.push(auxBlock);
 				}
 
-				transportInstance = new TransportModule(() => {
-					library = {
-						schema: {
-							validate: sinonSandbox.stub().callsArg(2),
+				transportInstance = new TransportModule(defaultScope);
+				library = {
+					schema: {
+						validate: sinonSandbox.stub().callsArg(2),
+					},
+					logger: {
+						debug: sinonSandbox.spy(),
+					},
+					config: {
+						forging: {
+							force: false,
 						},
-						logger: {
-							debug: sinonSandbox.spy(),
+						broadcasts: {
+							active: true,
 						},
-						config: {
-							forging: {
-								force: false,
-							},
-							broadcasts: {
-								active: true,
-							},
-							httpPort: 8000,
-						},
-						channel: {
-							invokeSync: sinonSandbox.stub(),
-							publish: sinonSandbox.stub(),
-						},
-						initTransaction,
+						httpPort: 8000,
+					},
+					channel: {
+						invokeSync: sinonSandbox.stub(),
+						publish: sinonSandbox.stub(),
+					},
+					initTransaction,
+					block: {
+						objectNormalize: sinonSandbox.stub().returns(new Block()),
+					},
+					logic: {
 						block: {
 							objectNormalize: sinonSandbox.stub().returns(new Block()),
 						},
-						logic: {
-							block: {
-								objectNormalize: sinonSandbox.stub().returns(new Block()),
+					},
+					storage: {
+						entities: {
+							Block: {
+								get: sinonSandbox.stub().resolves(blocksList),
 							},
 						},
-						storage: {
-							entities: {
-								Block: {
-									get: sinonSandbox.stub().resolves(blocksList),
-								},
-							},
-						},
-					};
+					},
+				};
 
-					modules = {
-						peers: {
-							calculateConsensus: sinonSandbox.stub().returns(100),
-						},
-						loader: {
-							syncing: sinonSandbox.stub().returns(false),
-						},
-						blocks: {
-							utils: {
-								loadBlocksData: sinonSandbox
-									.stub()
-									.callsArgWith(1, null, blocksList),
-								loadBlocksDataWS: sinonSandbox
-									.stub()
-									.callsArgWith(1, null, blocksList),
-							},
-							verify: {
-								addBlockProperties: sinonSandbox.stub().returns(blockMock),
-							},
-						},
-						transactions: {
-							getMultisignatureTransactionList: sinonSandbox
+				modules = {
+					peers: {
+						calculateConsensus: sinonSandbox.stub().returns(100),
+					},
+					loader: {
+						syncing: sinonSandbox.stub().returns(false),
+					},
+					blocks: {
+						utils: {
+							loadBlocksData: sinonSandbox
 								.stub()
-								.returns(transactionsList),
-							getMergedTransactionList: sinonSandbox
+								.callsArgWith(1, null, blocksList),
+							loadBlocksDataWS: sinonSandbox
 								.stub()
-								.returns(transactionsList),
+								.callsArgWith(1, null, blocksList),
 						},
-					};
+						process: {
+							receiveBlockFromNetwork: sinonSandbox.stub().resolves(true),
+						},
+						verify: {
+							addBlockProperties: sinonSandbox.stub().returns(blockMock),
+						},
+					},
+					transactions: {
+						getMultisignatureTransactionList: sinonSandbox
+							.stub()
+							.returns(transactionsList),
+						getMergedTransactionList: sinonSandbox
+							.stub()
+							.returns(transactionsList),
+					},
+				};
 
-					__private = {
-						broadcaster: {},
-						checkInternalAccess: sinonSandbox.stub().callsArg(1),
-					};
+				__private = {
+					broadcaster: {},
+					checkInternalAccess: sinonSandbox.stub().callsArg(1),
+				};
 
-					restoreRewiredTransportDeps = TransportModule.__set__({
-						library,
-						modules,
-						__private,
-					});
-
-					done();
-				}, defaultScope);
+				restoreRewiredTransportDeps = TransportModule.__set__({
+					library,
+					modules,
+					__private,
+				});
 			});
 
 			afterEach(done => {
@@ -931,15 +918,13 @@ describe('transport', () => {
 			});
 
 			describe('onBind', () => {
-				beforeEach(done => {
+				beforeEach(async () => {
 					// Create a new TransportModule instance.
 					// We want to check that internal variables are being set correctly so we don't
 					// want any stubs to interfere here (e.g. from the top-level beforeEach block).
-					new TransportModule((err, transportSelf) => {
-						__private.broadcaster.bind = sinonSandbox.spy();
-						transportSelf.onBind(defaultScope);
-						done();
-					}, defaultScope);
+					const transportSelf = new TransportModule(defaultScope);
+					__private.broadcaster.bind = sinonSandbox.spy();
+					transportSelf.onBind(defaultScope);
 				});
 
 				describe('modules', () => {
@@ -950,12 +935,11 @@ describe('transport', () => {
 						done();
 					});
 
-					it('should assign blocks, dapps, loader, multisignatures, peers and transactions properties', async () => {
+					it('should assign blocks, loader, multisignatures, processTransactions and transactions properties', async () => {
 						expect(modulesObject).to.have.property('blocks');
-						expect(modulesObject).to.have.property('dapps');
 						expect(modulesObject).to.have.property('loader');
 						expect(modulesObject).to.have.property('multisignatures');
-						expect(modulesObject).to.have.property('peers');
+						expect(modulesObject).to.have.property('processTransactions');
 						return expect(modulesObject).to.have.property('transactions');
 					});
 				});
@@ -1018,7 +1002,7 @@ describe('transport', () => {
 
 			describe('onUnconfirmedTransaction', () => {
 				beforeEach(done => {
-					transaction = {
+					transaction = new TransferTransaction({
 						id: '222675625422353767',
 						type: 0,
 						amount: '100',
@@ -1030,7 +1014,7 @@ describe('transport', () => {
 						asset: {},
 						signature:
 							'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
-					};
+					});
 					__private.broadcaster = {
 						maxRelays: sinonSandbox.stub().returns(true),
 						enqueue: sinonSandbox.stub(),
@@ -1042,9 +1026,9 @@ describe('transport', () => {
 				describe('when broadcast is defined', () => {
 					it('should call __private.broadcaster.maxRelays with transaction', async () => {
 						expect(__private.broadcaster.maxRelays.calledOnce).to.be.true;
-						return expect(
-							__private.broadcaster.maxRelays.calledWith(transaction)
-						).to.be.true;
+						return expect(__private.broadcaster.maxRelays).to.be.calledWith(
+							transaction
+						);
 					});
 
 					describe('when result of __private.broadcaster.maxRelays is false', () => {
@@ -1070,7 +1054,7 @@ describe('transport', () => {
 									{},
 									{
 										api: 'postTransactions',
-										data: { transaction },
+										data: { transaction: transaction.toJSON() },
 									}
 								)
 							).to.be.true;
@@ -1080,7 +1064,7 @@ describe('transport', () => {
 							expect(library.channel.publish).to.be.calledOnce;
 							expect(library.channel.publish).to.be.calledWith(
 								'chain:transactions:change',
-								transaction
+								transaction.toJSON()
 							);
 						});
 					});
@@ -1430,10 +1414,11 @@ describe('transport', () => {
 									library.logic.block.objectNormalize.calledWith(blockMock)
 								).to.be.true);
 
-							it('should call library.bus.message with "receiveBlock" and block', async () =>
+							it('should call block.process.receiveBlockFromNetwork with block', async () => {
 								expect(
-									library.bus.message.calledWith('receiveBlock', blockMock)
-								).to.be.true);
+									modules.blocks.process.receiveBlockFromNetwork
+								).to.be.calledWithExactly(blockMock);
+							});
 						});
 					});
 				});
@@ -1706,6 +1691,31 @@ describe('transport', () => {
 
 					describe('when __private.receiveTransaction fails', () => {
 						const receiveTransactionError = 'Invalid transaction body ...';
+
+						beforeEach(done => {
+							__private.receiveTransaction = sinonSandbox
+								.stub()
+								.callsArgWith(3, receiveTransactionError);
+							transportInstance.shared.postTransaction(query, (err, res) => {
+								error = err;
+								result = res;
+								done();
+							});
+						});
+
+						it('should invoke callback with object { success: false, message: err }', async () => {
+							expect(error).to.equal(null);
+							expect(result)
+								.to.have.property('success')
+								.which.is.equal(false);
+							return expect(result)
+								.to.have.property('errors')
+								.which.is.equal(receiveTransactionError);
+						});
+					});
+
+					describe('when __private.receiveTransaction fails with "Transaction pool is full"', () => {
+						const receiveTransactionError = 'Transaction pool is full';
 
 						beforeEach(done => {
 							__private.receiveTransaction = sinonSandbox

@@ -16,8 +16,8 @@
 
 const _ = require('lodash');
 const async = require('async');
+const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const { CACHE_KEYS_TRANSACTION_COUNT } = require('../../../components/cache');
-const TransactionPool = require('../logic/transaction_pool');
 
 // Private fields
 const __private = {};
@@ -57,13 +57,7 @@ class Transactions {
 
 		self = this;
 
-		__private.transactionPool = new TransactionPool(
-			scope.config.broadcasts.broadcastInterval,
-			scope.config.broadcasts.releaseLimit,
-			scope.components.logger,
-			scope.config,
-			scope.bus
-		);
+		__private.transactionPool = scope.logic.transactionPool;
 
 		this.shared = this.attachSharedMethods();
 
@@ -427,15 +421,7 @@ class Transactions {
 			cache: scope.components ? scope.components.cache : undefined,
 		};
 
-		modules = {
-			accounts: scope.modules.accounts,
-			transport: scope.modules.transport,
-		};
-
-		__private.transactionPool.bind(
-			scope.modules.processTransactions,
-			scope.modules.loader
-		);
+		__private.transactionPool.bind(scope.modules.processTransactions);
 	}
 
 	// Shared API
@@ -461,7 +447,7 @@ class Transactions {
 				async.waterfall(
 					[
 						function getConfirmedCountFromCache(waterCb) {
-							if (components.cache) {
+							if (components.cache.cacheReady) {
 								return components.cache
 									.getJsonForKey(CACHE_KEYS_TRANSACTION_COUNT)
 									.then(data => {
@@ -496,7 +482,7 @@ class Transactions {
 								// Cache already persisted, no need to set cache again
 								return setImmediate(waterCb, null, cachedCount);
 							}
-							if (components.cache) {
+							if (components.cache.cacheReady) {
 								return components.cache
 									.setJsonForKey(CACHE_KEYS_TRANSACTION_COUNT, {
 										confirmed: dbCount,
@@ -562,34 +548,6 @@ class Transactions {
 				};
 
 				return __private.getPooledTransactions(typeMap[type], filters, cb);
-			},
-
-			/**
-			 * Description of postTransaction.
-			 *
-			 * @todo Add @param tags
-			 * @todo Add @returns tag
-			 * @todo Add description of the function
-			 */
-			postTransaction(transaction, cb) {
-				return modules.transport.shared.postTransaction(
-					{ transaction },
-					(err, res) => setImmediate(cb, err, res)
-				);
-			},
-
-			/**
-			 * Description of postTransactions.
-			 *
-			 * @todo Add @param tags
-			 * @todo Add @returns tag
-			 * @todo Add description of the function
-			 */
-			postTransactions(transactions, cb) {
-				return modules.transport.shared.postTransactions(
-					{ transactions },
-					(err, res) => setImmediate(cb, err, res)
-				);
 			},
 		};
 	}
@@ -680,9 +638,7 @@ __private.getPooledTransactions = function(method, filters, cb) {
 	let toSend = [];
 
 	if (filters.recipientPublicKey) {
-		filters.recipientId = modules.accounts.generateAddressByPublicKey(
-			filters.recipientPublicKey
-		);
+		filters.recipientId = getAddressFromPublicKey(filters.recipientPublicKey);
 		delete filters.recipientPublicKey;
 	}
 

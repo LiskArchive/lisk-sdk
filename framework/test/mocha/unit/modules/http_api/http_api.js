@@ -189,15 +189,15 @@ describe('HttpApi', () => {
 			expect(stubs.logger.debug).to.be.calledWith('Initiating storage...');
 		});
 		it('should initialize scope object with valid structure and assign it to object instance', async () => {
-			expect(httpApi.scope).to.be.deep.equal({
-				applicationState: {},
-				components: {
-					cache: stubs.cache,
-					logger: stubs.logger,
-					storage: stubs.storage,
-				},
-				channel: stubs.channel,
-				config: stubs.options,
+			expect(httpApi.scope).to.have.property('buildVersion');
+			expect(httpApi.scope).to.have.property('lastCommitId');
+			expect(httpApi.scope.channel).to.be.equal(stubs.channel);
+			expect(httpApi.scope.config).to.be.equal(stubs.options);
+			expect(httpApi.scope.applicationState).to.be.deep.equal({});
+			expect(httpApi.scope.components).to.be.deep.equal({
+				cache: stubs.cache,
+				logger: stubs.logger,
+				storage: stubs.storage,
 			});
 		});
 

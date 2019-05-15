@@ -219,25 +219,21 @@ const modulesLoader = new function() {
 	this.initAllModules = function(cb, scope) {
 		this.initModules(
 			[
-				{ accounts: require('../../../src/modules/chain/submodules/accounts') },
 				{ blocks: require('../../../src/modules/chain/submodules/blocks') },
 				{
 					delegates: require('../../../src/modules/chain/submodules/delegates'),
 				},
-				{ loader: require('../../../src/modules/chain/submodules/loader') },
+				{ loader: require('../../../src/modules/chain/loader') },
 				{
 					multisignatures: require('../../../src/modules/chain/submodules/multisignatures'),
 				},
 				{ peers: require('../../../src/modules/chain/submodules/peers') },
 				{ rounds: require('../../../src/modules/chain/submodules/rounds') },
 				{
-					signatures: require('../../../src/modules/chain/submodules/signatures'),
-				},
-				{
 					transactions: require('../../../src/modules/chain/submodules/transactions'),
 				},
 				{
-					transport: require('../../../src/modules/chain/submodules/transport'),
+					transport: require('../../../src/modules/chain/transport'),
 				},
 			],
 			[

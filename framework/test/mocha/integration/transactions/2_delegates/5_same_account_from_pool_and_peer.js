@@ -53,13 +53,7 @@ describe('delegate', () => {
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: delegateAccount.address,
 			});
-			localCommon.addTransactionsAndForge(
-				library,
-				[sendTransaction],
-				async () => {
-					library.logic.account.get({ address: delegateAccount.address }, done);
-				}
-			);
+			localCommon.addTransactionsAndForge(library, [sendTransaction], done);
 		});
 
 		describe('with delegate transaction in unconfirmed state', () => {
@@ -89,7 +83,7 @@ describe('delegate', () => {
 						[delegateTransaction],
 						(err, block) => {
 							expect(err).to.not.exist;
-							library.modules.blocks.process.onReceiveBlock(block);
+							library.modules.blocks.process.receiveBlockFromNetwork(block);
 							done();
 						}
 					);
@@ -127,7 +121,7 @@ describe('delegate', () => {
 						[delegateTransaction2],
 						(err, block) => {
 							expect(err).to.not.exist;
-							library.modules.blocks.process.onReceiveBlock(block);
+							library.modules.blocks.process.receiveBlockFromNetwork(block);
 							done();
 						}
 					);

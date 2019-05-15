@@ -17,7 +17,6 @@
 const _ = require('lodash');
 const jobsQueue = require('../helpers/jobs_queue');
 
-let modules;
 let library;
 
 /**
@@ -37,11 +36,19 @@ let library;
  * @todo Add description for the params
  */
 class Broadcaster {
-	constructor(nonce, broadcasts, force, transaction, logger, channel, storage) {
+	constructor(
+		nonce,
+		broadcasts,
+		force,
+		transactionPool,
+		logger,
+		channel,
+		storage
+	) {
 		library = {
 			logger,
 			logic: {
-				transaction,
+				transactionPool,
 			},
 			config: {
 				broadcasts,
@@ -169,7 +176,7 @@ class Broadcaster {
 					return filteredBroadcast;
 				}
 				// Broadcast if transaction is in transaction pool
-				if (modules.transactions.transactionInPool(transactionId)) {
+				if (library.logic.transactionPool.transactionInPool(transactionId)) {
 					filteredBroadcast.push(broadcast);
 					return filteredBroadcast;
 				}
@@ -253,13 +260,11 @@ class Broadcaster {
 			const broadcasts = this.queue.splice(0, this.config.releaseLimit);
 			const squashedBroadcasts = this.squashQueue(broadcasts);
 
-			// eslint-disable-next-line no-restricted-syntax
-			for await (const squashedBroadcast of squashedBroadcasts) {
-				return this.broadcast(
-					squashedBroadcast.params,
-					squashedBroadcast.options
-				);
-			}
+			await Promise.all(
+				squashedBroadcasts.map(({ params, options }) =>
+					this.broadcast(params, options)
+				)
+			);
 
 			return library.logger.info(
 				`Broadcasts released: ${squashedBroadcasts.length}`
@@ -268,21 +273,6 @@ class Broadcaster {
 			library.logger.error('Failed to release broadcast queue', err);
 			throw err;
 		}
-	}
-
-	/**
-	 * Binds input parameters to private variables modules.
-	 *
-	 * @param {Transport} transport
-	 * @param {Transactions} transactions
-	 * @todo Add description for the params
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	bind(transport, transactions) {
-		modules = {
-			transport,
-			transactions,
-		};
 	}
 }
 

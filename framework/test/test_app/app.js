@@ -24,12 +24,16 @@ const {
 process.env.NODE_ENV = 'test';
 
 let app;
+const dummyLastCommitId = 'a4adbfb7651874c5746dbc389b281a111af79e96';
+const dummyBuildVersion = '#buildVersion';
 
 const appConfig = {
 	app: {
 		version: '2.0.0',
 		minVersion: '1.0.0',
 		protocolVersion: '1.1',
+		lastCommitId: dummyLastCommitId,
+		buildVersion: dummyBuildVersion,
 	},
 };
 
@@ -38,17 +42,16 @@ if (process.env.NODE_ENV === 'test' && process.env.PROTOCOL_VERSION) {
 	appConfig.app.protocolVersion = process.env.PROTOCOL_VERSION;
 }
 
+const network = process.env.LISK_NETWORK || 'devnet';
+
 try {
 	// TODO: I would convert config.json to .JS
 	configurator.loadConfig(appConfig);
 	configurator.loadConfigFile(
-		path.resolve(__dirname, '../fixtures/config/devnet/config')
+		path.resolve(__dirname, `../fixtures/config/${network}/config`)
 	);
-	configurator.loadConfigFile(
-		path.resolve(__dirname, '../fixtures/config/devnet/exceptions'),
-		'modules.chain.exceptions'
-	);
-	const genesisBlock = require('../fixtures/config/devnet/genesis_block');
+	// eslint-disable-next-line import/no-dynamic-require
+	const genesisBlock = require(`../fixtures/config/${network}/genesis_block`);
 
 	if (process.env.CUSTOM_CONFIG_FILE) {
 		configurator.loadConfigFile(path.resolve(process.env.CUSTOM_CONFIG_FILE));

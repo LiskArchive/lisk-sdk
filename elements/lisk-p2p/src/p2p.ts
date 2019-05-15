@@ -31,6 +31,8 @@ import {
 } from './peer';
 
 import {
+	FORBIDDEN_CONNECTION,
+	FORBIDDEN_CONNECTION_REASON,
 	INCOMPATIBLE_PEER_CODE,
 	INCOMPATIBLE_PEER_UNKNOWN_REASON,
 	INVALID_CONNECTION_QUERY_CODE,
@@ -175,17 +177,34 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_MESSAGE_RECEIVED, message);
 		};
 
-		this._handlePeerConnect = (peerInfo: P2PPeerInfo) => {
+		this._handlePeerConnect = (peerInfo: P2PDiscoveredPeerInfo) => {
+			const peerId = constructPeerIdFromPeerInfo(peerInfo);
+			const foundTriedPeer = this._triedPeers.get(peerId);
+			// On successful connection remove it from newPeers list
+			this._newPeers.delete(peerId);
+
+			if (foundTriedPeer) {
+				const updatedPeerInfo = {
+					...peerInfo,
+					ipAddress: foundTriedPeer.ipAddress,
+					wsPort: foundTriedPeer.wsPort,
+				};
+				this._triedPeers.set(peerId, updatedPeerInfo);
+			} else {
+				this._triedPeers.set(peerId, peerInfo);
+			}
+
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CONNECT_OUTBOUND, peerInfo);
 		};
 
 		this._handlePeerConnectAbort = (peerInfo: P2PPeerInfo) => {
-			// Re-emit the message to allow it to bubble up the class hierarchy.
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
 			if (this._triedPeers.has(peerId)) {
 				this._triedPeers.delete(peerId);
 			}
+
+			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, peerInfo);
 		};
 
@@ -199,7 +218,19 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_CLOSE_INBOUND, closePacket);
 		};
 
-		this._handlePeerInfoUpdate = (peerInfo: P2PPeerInfo) => {
+		this._handlePeerInfoUpdate = (peerInfo: P2PDiscoveredPeerInfo) => {
+			const peerId = constructPeerIdFromPeerInfo(peerInfo);
+			const foundTriedPeer = this._triedPeers.get(peerId);
+
+			if (foundTriedPeer) {
+				const updatedPeerInfo = {
+					...peerInfo,
+					ipAddress: foundTriedPeer.ipAddress,
+					wsPort: foundTriedPeer.wsPort,
+				};
+				this._triedPeers.set(peerId, updatedPeerInfo);
+			}
+
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_UPDATED_PEER_INFO, peerInfo);
 		};
@@ -345,6 +376,22 @@ export class P2P extends EventEmitter {
 		this._scServer.on(
 			'connection',
 			(socket: SCServerSocket): void => {
+				// Check blacklist to avoid incoming connections from backlisted ips
+				if (this._config.blacklistedPeers) {
+					const blacklist = this._config.blacklistedPeers.map(
+						peer => peer.ipAddress,
+					);
+					if (blacklist.includes(socket.remoteAddress)) {
+						this._disconnectSocketDueToFailedHandshake(
+							socket,
+							FORBIDDEN_CONNECTION,
+							FORBIDDEN_CONNECTION_REASON,
+						);
+
+						return;
+					}
+				}
+
 				if (!socket.request.url) {
 					this._disconnectSocketDueToFailedHandshake(
 						socket,

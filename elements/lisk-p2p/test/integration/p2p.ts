@@ -97,9 +97,8 @@ describe('Integration tests for P2P library', () => {
 					blacklistedPeers: [],
 					seedPeers,
 					wsEngine: 'ws',
-					// A short connectTimeout and ackTimeout will make the node to give up on discovery quicker for our test.
-					connectTimeout: 1000,
-					ackTimeout: 1000,
+					connectTimeout: 5000,
+					ackTimeout: 5000,
 					// Set a different discoveryInterval for each node; that way they don't keep trying to discover each other at the same time.
 					discoveryInterval: DISCOVERY_INTERVAL + index * 11,
 					nodeInfo: {
@@ -121,6 +120,7 @@ describe('Integration tests for P2P library', () => {
 			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
 				p2p => p2p.start(),
 			);
+
 			await Promise.all(peerStartPromises);
 			await wait(100);
 		});
@@ -240,7 +240,7 @@ describe('Integration tests for P2P library', () => {
 								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 							version: p2p.nodeInfo.version,
 							wsPort: p2p.nodeInfo.wsPort,
-							height: 1000 + (p2p.nodeInfo.wsPort % 5000),
+							height: 1000 + (p2p.nodeInfo.wsPort % NETWORK_START_PORT),
 							options: p2p.nodeInfo.options,
 						});
 					});
@@ -299,8 +299,8 @@ describe('Integration tests for P2P library', () => {
 				const actualConnectedPeers = connectedPeers
 					.filter(
 						peer =>
-							peer.wsPort !== 5000 &&
-							peer.wsPort % 5000 > NETWORK_PEER_COUNT / 2,
+							peer.wsPort !== NETWORK_START_PORT &&
+							peer.wsPort % NETWORK_START_PORT > NETWORK_PEER_COUNT / 2,
 					)
 					.map(peer => peer.wsPort);
 
@@ -428,7 +428,7 @@ describe('Integration tests for P2P library', () => {
 					.sort();
 
 				const expectedPeerPorts = ALL_NODE_PORTS.filter(port => {
-					return port !== 5000;
+					return port !== NETWORK_START_PORT;
 				});
 				expect(initialPeerPorts).to.be.eql(expectedPeerPorts);
 				await secondNode.stop();
@@ -442,7 +442,7 @@ describe('Integration tests for P2P library', () => {
 					.sort();
 
 				const expectedPeerPortsAfterPeerCrash = ALL_NODE_PORTS.filter(port => {
-					return port !== 5000 && port != 5001;
+					return port !== NETWORK_START_PORT && port !== NETWORK_START_PORT + 1;
 				});
 
 				expect(peerPortsAfterPeerCrash).to.be.eql(
@@ -654,7 +654,7 @@ describe('Integration tests for P2P library', () => {
 					.sort();
 
 				expect(initialPeerPorts).to.be.eql(
-					ALL_NODE_PORTS.filter(port => port != 5000),
+					ALL_NODE_PORTS.filter(port => port !== NETWORK_START_PORT),
 				);
 
 				await p2pNodeList[1].stop();
@@ -669,7 +669,11 @@ describe('Integration tests for P2P library', () => {
 					.sort();
 
 				const expectedPeerPortsAfterPeerCrash = ALL_NODE_PORTS.filter(port => {
-					return port !== 5001 && port !== 5002 && port !== 5000;
+					return (
+						port !== NETWORK_START_PORT + 1 &&
+						port !== NETWORK_START_PORT + 2 &&
+						port !== NETWORK_START_PORT
+					);
 				});
 
 				expect(peerPortsAfterPeerCrash).to.be.eql(

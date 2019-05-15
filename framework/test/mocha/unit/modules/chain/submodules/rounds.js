@@ -16,7 +16,7 @@
 
 // Init tests dependencies
 const rewire = require('rewire');
-
+const cryptography = require('@liskhq/lisk-cryptography');
 // Instantiate test subject
 const Rounds = rewire('../../../../../../src/modules/chain/submodules/rounds');
 const Round = rewire('../../../../../../src/modules/chain/logic/round'); // eslint-disable-line no-unused-vars
@@ -79,9 +79,6 @@ describe('rounds', () => {
 				generateDelegateList: sinon.stub(),
 				clearDelegateListCache: sinon.stub(),
 			},
-			accounts: {
-				generateAddressByPublicKey: sinon.stub(),
-			},
 		},
 	};
 
@@ -104,12 +101,22 @@ describe('rounds', () => {
 	beforeEach(done => {
 		scope = _.cloneDeep(validScope);
 
-		bindings.modules.delegates.generateDelegateList.yields(null, [
+		bindings.modules.delegates.generateDelegateList.resolves([
 			'delegate1',
 			'delegate2',
 			'delegate3',
 		]);
-		bindings.modules.accounts.generateAddressByPublicKey.returnsArg(0);
+
+		sinonSandbox.stub(cryptography, 'getAddressFromPublicKey');
+		cryptography.getAddressFromPublicKey
+			.withArgs('delegate1')
+			.returns('delegate1');
+		cryptography.getAddressFromPublicKey
+			.withArgs('delegate2')
+			.returns('delegate2');
+		cryptography.getAddressFromPublicKey
+			.withArgs('delegate3')
+			.returns('delegate3');
 
 		new Rounds((err, __instance) => {
 			rounds = __instance;
@@ -170,8 +177,6 @@ describe('rounds', () => {
 			const backup = get(variable);
 			const roundBindings = {
 				modules: {
-					blocks: 'blocks',
-					accounts: 'accounts',
 					delegates: 'delegates',
 				},
 			};
@@ -327,12 +332,14 @@ describe('rounds', () => {
 			describe('when generateDelegateList fails', () => {
 				beforeEach(async () => {
 					scope.block.height = 2;
-					bindings.modules.delegates.generateDelegateList.yields('error');
+					bindings.modules.delegates.generateDelegateList.rejects(
+						new Error('error')
+					);
 				});
 
 				it('should call a callback with error', done => {
 					getOutsiders(scope, err => {
-						expect(err).to.equal('error');
+						expect(err.message).to.equal('error');
 						done();
 					});
 				});

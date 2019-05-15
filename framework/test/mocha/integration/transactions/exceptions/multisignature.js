@@ -87,13 +87,10 @@ describe('exceptions for multisignature transactions', () => {
 		describe('details of the accounts', () => {
 			let senderMemAccountBefore;
 
-			before('get sender account', done => {
-				library.logic.account.get(
+			before('get sender account', async () => {
+				senderMemAccountBefore = await library.components.storage.entities.Account.getOne(
 					{ address: accountWithExceptionMultisig.address },
-					(err, res) => {
-						senderMemAccountBefore = res;
-						done();
-					}
+					{ extended: true }
 				);
 			});
 
@@ -118,13 +115,10 @@ describe('exceptions for multisignature transactions', () => {
 				describe('details of the accounts', () => {
 					let senderMemAccountAfter;
 
-					before('get sender account', done => {
-						library.logic.account.get(
+					before('get sender account', async () => {
+						senderMemAccountAfter = await library.components.storage.entities.Account.getOne(
 							{ address: accountWithExceptionMultisig.address },
-							(err, res) => {
-								senderMemAccountAfter = res;
-								done();
-							}
+							{ extended: true }
 						);
 					});
 
@@ -170,13 +164,10 @@ describe('exceptions for multisignature transactions', () => {
 					});
 
 					describe('details of the account', () => {
-						before('get sender', done => {
-							library.logic.account.get(
+						before('get sender', async () => {
+							senderMemAccountAfterBlockDelete = await library.components.storage.entities.Account.getOne(
 								{ address: accountWithExceptionMultisig.address },
-								(err, res) => {
-									senderMemAccountAfterBlockDelete = res;
-									done();
-								}
+								{ extended: true }
 							);
 						});
 

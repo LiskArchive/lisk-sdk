@@ -133,7 +133,7 @@ describe('block_version', () => {
 				done();
 			};
 
-			__private.loadBlockChain();
+			library.modules.loader.loadBlockChain();
 		});
 	});
 
@@ -161,7 +161,7 @@ describe('block_version', () => {
 				done();
 			};
 
-			__private.loadBlockChain();
+			library.modules.loader.loadBlockChain();
 		});
 	});
 });

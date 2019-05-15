@@ -16,6 +16,8 @@
 
 const Bignumber = require('bignumber.js');
 const async = require('async');
+const cryptography = require('@liskhq/lisk-cryptography');
+
 const Round = require('../logic/round');
 const slots = require('../helpers/slots');
 
@@ -47,6 +49,7 @@ class Rounds {
 	constructor(cb, scope) {
 		library = {
 			channel: scope.channel,
+			logic: scope.logic,
 			logger: scope.components.logger,
 			bus: scope.bus,
 			storage: scope.components.storage,
@@ -91,7 +94,6 @@ class Rounds {
 
 		const scope = {
 			library,
-			modules,
 			block,
 			round,
 			backwards: true,
@@ -185,7 +187,6 @@ class Rounds {
 
 		const scope = {
 			library,
-			modules,
 			block,
 			round,
 			backwards: false,
@@ -356,8 +357,6 @@ class Rounds {
 	// eslint-disable-next-line class-methods-use-this
 	onBind(scope) {
 		modules = {
-			blocks: scope.modules.blocks,
-			accounts: scope.modules.accounts,
 			delegates: scope.modules.delegates,
 		};
 	}
@@ -415,19 +414,15 @@ __private.getOutsiders = function(scope, cb, tx) {
 	if (scope.block.height === 1) {
 		return setImmediate(cb);
 	}
-	return modules.delegates.generateDelegateList(
-		scope.round,
-		null,
-		(err, roundDelegates) => {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-			return async.eachSeries(
+	return modules.delegates
+		.generateDelegateList(scope.round, null, tx)
+		.then(roundDelegates =>
+			async.eachSeries(
 				roundDelegates,
 				(delegate, eachCb) => {
 					if (scope.roundDelegates.indexOf(delegate) === -1) {
 						scope.roundOutsiders.push(
-							modules.accounts.generateAddressByPublicKey(delegate)
+							cryptography.getAddressFromPublicKey(delegate)
 						);
 					}
 					return setImmediate(eachCb);
@@ -436,10 +431,11 @@ __private.getOutsiders = function(scope, cb, tx) {
 					library.logger.trace('Got outsiders', scope.roundOutsiders);
 					return setImmediate(cb, eachSeriesErr);
 				}
-			);
-		},
-		tx
-	);
+			)
+		)
+		.catch(err => {
+			setImmediate(cb, err);
+		});
 };
 
 /**

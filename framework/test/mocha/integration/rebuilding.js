@@ -114,7 +114,7 @@ describe('rebuilding', () => {
 					});
 			};
 
-			__private.loadBlockChain();
+			library.modules.loader.loadBlockChain();
 		});
 	});
 });

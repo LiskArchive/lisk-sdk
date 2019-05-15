@@ -181,7 +181,7 @@ class Controller {
 		// If log level is greater than info
 		if (this.logger.level && this.logger.level() < 30) {
 			this.bus.onAny((name, event) => {
-				this.logger.debug(
+				this.logger.trace(
 					`MONITOR: ${event.source} -> ${event.module}:${event.name}`,
 					event.data
 				);
