@@ -5,7 +5,9 @@ const Rx = require('rx');
 const localCommon = require('../common');
 const jobsQueue = require('../../../../src/modules/chain/helpers/jobs_queue');
 
-describe('integration test (delegates) - synchronous tasks', () => {
+// TODO: move to Jest and revert
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('integration test (delegates) - synchronous tasks', () => {
 	let library;
 
 	localCommon.beforeBlock('delegates_synchronous_tasks', lib => {

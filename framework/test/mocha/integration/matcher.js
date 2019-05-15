@@ -120,7 +120,7 @@ function createRawCustomTransaction({ passphrase, senderId, senderPublicKey }) {
 function createRawBlock(library, rawTransactions, callback) {
 	const lastBlock = library.modules.blocks.lastBlock.get();
 	const slot = slots.getSlotNumber();
-	const keypairs = library.modules.delegates.getForgersKeyPairs();
+	const keypairs = library.modules.forger.getForgersKeyPairs();
 	const transactions = rawTransactions.map(rawTransaction =>
 		library.logic.initTransaction.fromJson(rawTransaction)
 	);
@@ -298,7 +298,7 @@ describe('matcher', () => {
 				}
 
 				// Act: Simulate receiving a block from a peer
-				scope.modules.blocks.process.onReceiveBlock(rawBlock);
+				scope.modules.blocks.process.receiveBlockFromNetwork(rawBlock);
 				return scope.sequence.__tick(tickErr => {
 					if (tickErr) {
 						return done(tickErr);
@@ -325,7 +325,7 @@ describe('matcher', () => {
 				}
 
 				// Act: Simulate receiving a block from a peer
-				scope.modules.blocks.process.onReceiveBlock(block);
+				scope.modules.blocks.process.receiveBlockFromNetwork(block);
 				return scope.sequence.__tick(tickErr => {
 					if (tickErr) {
 						return done(tickErr);

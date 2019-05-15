@@ -421,14 +421,7 @@ class Transactions {
 			cache: scope.components ? scope.components.cache : undefined,
 		};
 
-		modules = {
-			transport: scope.modules.transport,
-		};
-
-		__private.transactionPool.bind(
-			scope.modules.processTransactions,
-			scope.modules.loader
-		);
+		__private.transactionPool.bind(scope.modules.processTransactions);
 	}
 
 	// Shared API
@@ -555,34 +548,6 @@ class Transactions {
 				};
 
 				return __private.getPooledTransactions(typeMap[type], filters, cb);
-			},
-
-			/**
-			 * Description of postTransaction.
-			 *
-			 * @todo Add @param tags
-			 * @todo Add @returns tag
-			 * @todo Add description of the function
-			 */
-			postTransaction(transaction, cb) {
-				return modules.transport.shared.postTransaction(
-					{ transaction },
-					(err, res) => setImmediate(cb, err, res)
-				);
-			},
-
-			/**
-			 * Description of postTransactions.
-			 *
-			 * @todo Add @param tags
-			 * @todo Add @returns tag
-			 * @todo Add description of the function
-			 */
-			postTransactions(transactions, cb) {
-				return modules.transport.shared.postTransactions(
-					{ transactions },
-					(err, res) => setImmediate(cb, err, res)
-				);
 			},
 		};
 	}

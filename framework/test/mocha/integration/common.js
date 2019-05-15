@@ -34,10 +34,16 @@ const { ACTIVE_DELEGATES } = global.constants;
 function getDelegateForSlot(library, slot, cb) {
 	const lastBlock = library.modules.blocks.lastBlock.get();
 	const round = slots.calcRound(lastBlock.height + 1);
-
-	library.modules.delegates.generateDelegateList(round, null, (err, list) => {
-		const delegatePublicKey = list[slot % ACTIVE_DELEGATES];
-		return cb(err, delegatePublicKey);
+	library.modules.forger.loadDelegates(() => {
+		library.modules.delegates
+			.generateDelegateList(round)
+			.then(list => {
+				const delegatePublicKey = list[slot % ACTIVE_DELEGATES];
+				return cb(null, delegatePublicKey);
+			})
+			.catch(err => {
+				cb(err);
+			});
 	});
 }
 
@@ -65,7 +71,7 @@ function createBlock(library, transactions, timestamp, keypair, previousBlock) {
 function createValidBlockWithSlotOffset(library, transactions, slotOffset, cb) {
 	const lastBlock = library.modules.blocks.lastBlock.get();
 	const slot = slots.getSlotNumber() - slotOffset;
-	const keypairs = library.modules.delegates.getForgersKeyPairs();
+	const keypairs = library.modules.forger.getForgersKeyPairs();
 	getDelegateForSlot(library, slot, (err, delegateKey) => {
 		const block = createBlock(
 			library,
@@ -81,7 +87,7 @@ function createValidBlockWithSlotOffset(library, transactions, slotOffset, cb) {
 function createValidBlock(library, transactions, cb) {
 	const lastBlock = library.modules.blocks.lastBlock.get();
 	const slot = slots.getSlotNumber();
-	const keypairs = library.modules.delegates.getForgersKeyPairs();
+	const keypairs = library.modules.forger.getForgersKeyPairs();
 	getDelegateForSlot(library, slot, (err, delegateKey) => {
 		const block = createBlock(
 			library,
@@ -118,7 +124,7 @@ function getNextForger(library, offset, cb) {
 }
 
 function forge(library, cb) {
-	const keypairs = library.modules.delegates.getForgersKeyPairs();
+	const keypairs = library.modules.forger.getForgersKeyPairs();
 
 	async.waterfall(
 		[

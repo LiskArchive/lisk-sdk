@@ -83,7 +83,7 @@ describe('delegate', () => {
 						[delegateTransaction],
 						(err, block) => {
 							expect(err).to.not.exist;
-							library.modules.blocks.process.onReceiveBlock(block);
+							library.modules.blocks.process.receiveBlockFromNetwork(block);
 							done();
 						}
 					);
@@ -121,7 +121,7 @@ describe('delegate', () => {
 						[delegateTransaction2],
 						(err, block) => {
 							expect(err).to.not.exist;
-							library.modules.blocks.process.onReceiveBlock(block);
+							library.modules.blocks.process.receiveBlockFromNetwork(block);
 							done();
 						}
 					);

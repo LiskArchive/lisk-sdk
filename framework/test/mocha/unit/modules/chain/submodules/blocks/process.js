@@ -246,7 +246,7 @@ describe('blocks/process', () => {
 			expect(blocksProcessModule.loadBlocksOffset).to.be.a('function');
 			expect(blocksProcessModule.loadBlocksFromNetwork).to.be.a('function');
 			expect(blocksProcessModule.generateBlock).to.be.a('function');
-			expect(blocksProcessModule.onReceiveBlock).to.be.a('function');
+			expect(blocksProcessModule.receiveBlockFromNetwork).to.be.a('function');
 			return expect(blocksProcessModule.onBind).to.be.a('function');
 		});
 	});
@@ -1451,20 +1451,18 @@ describe('blocks/process', () => {
 		describe('lastBlock.height % ACTIVE_DELEGATES === 0', () => {
 			describe('validateBlockSlotAgainstPreviousRound', () => {
 				describe('when fails', () => {
-					beforeEach(() =>
-						modules.delegates.validateBlockSlotAgainstPreviousRound.callsArgWith(
-							1,
-							'round-ERR',
-							null
-						)
-					);
+					beforeEach(async () => {
+						modules.delegates.validateBlockSlotAgainstPreviousRound.rejects(
+							new Error('round-ERR')
+						);
+					});
 
 					it('should call a callback with error', done => {
 						__private.validateBlockSlot(
 							{ height: 10 },
 							{ height: 202 },
 							err => {
-								expect(err).to.equal('round-ERR');
+								expect(err.message).to.equal('round-ERR');
 								expect(
 									modules.delegates.validateBlockSlotAgainstPreviousRound
 										.calledOnce
@@ -1476,24 +1474,20 @@ describe('blocks/process', () => {
 				});
 
 				describe('when succeeds', () => {
-					beforeEach(() =>
-						modules.delegates.validateBlockSlotAgainstPreviousRound.callsArgWith(
-							1,
-							null,
+					beforeEach(async () => {
+						modules.delegates.validateBlockSlotAgainstPreviousRound.resolves(
 							true
-						)
-					);
+						);
+					});
 
 					it('should call a callback with no error', done => {
 						__private.validateBlockSlot(
 							{ height: 10 },
 							{ height: 202 },
 							err => {
-								expect(err).to.be.null;
-								expect(
-									modules.delegates.validateBlockSlotAgainstPreviousRound
-										.calledOnce
-								).to.be.true;
+								expect(err).to.be.undefined;
+								expect(modules.delegates.validateBlockSlotAgainstPreviousRound)
+									.to.be.calledOnce;
 								done();
 							}
 						);
@@ -1506,24 +1500,21 @@ describe('blocks/process', () => {
 			describe('roundLastBlock < roundNextBlock', () => {
 				describe('validateBlockSlotAgainstPreviousRound', () => {
 					describe('when fails', () => {
-						beforeEach(() =>
-							modules.delegates.validateBlockSlotAgainstPreviousRound.callsArgWith(
-								1,
-								'round-ERR',
-								null
-							)
-						);
+						beforeEach(async () => {
+							modules.delegates.validateBlockSlotAgainstPreviousRound.rejects(
+								new Error('round-ERR')
+							);
+						});
 
 						it('should call a callback with error', done => {
 							__private.validateBlockSlot(
 								{ height: 400 },
 								{ height: 200 },
 								err => {
-									expect(err).to.equal('round-ERR');
+									expect(err.message).to.equal('round-ERR');
 									expect(
 										modules.delegates.validateBlockSlotAgainstPreviousRound
-											.calledOnce
-									).to.be.true;
+									).to.be.calledOnce;
 									done();
 								}
 							);
@@ -1531,24 +1522,21 @@ describe('blocks/process', () => {
 					});
 
 					describe('when succeeds', () => {
-						beforeEach(() =>
-							modules.delegates.validateBlockSlotAgainstPreviousRound.callsArgWith(
-								1,
-								null,
+						beforeEach(async () => {
+							modules.delegates.validateBlockSlotAgainstPreviousRound.resolves(
 								true
-							)
-						);
+							);
+						});
 
 						it('should call a callback with no error', done => {
 							__private.validateBlockSlot(
 								{ height: 400 },
 								{ height: 200 },
 								err => {
-									expect(err).to.be.null;
+									expect(err).to.be.undefined;
 									expect(
 										modules.delegates.validateBlockSlotAgainstPreviousRound
-											.calledOnce
-									).to.be.true;
+									).to.be.calledOnce;
 									done();
 								}
 							);
@@ -1560,22 +1548,19 @@ describe('blocks/process', () => {
 			describe('roundLastBlock >= roundNextBlock', () => {
 				describe('validateBlockSlot', () => {
 					describe('when fails', () => {
-						beforeEach(() =>
-							modules.delegates.validateBlockSlot.callsArgWith(
-								1,
-								'round-ERR',
-								null
-							)
-						);
+						beforeEach(async () => {
+							modules.delegates.validateBlockSlot.rejects(
+								new Error('round-ERR')
+							);
+						});
 
 						it('should call a callback with error', done => {
 							__private.validateBlockSlot(
 								{ height: 10 },
 								{ height: 200 },
 								err => {
-									expect(err).to.equal('round-ERR');
-									expect(modules.delegates.validateBlockSlot.calledOnce).to.be
-										.true;
+									expect(err.message).to.equal('round-ERR');
+									expect(modules.delegates.validateBlockSlot).to.be.calledOnce;
 									done();
 								}
 							);
@@ -1583,18 +1568,17 @@ describe('blocks/process', () => {
 					});
 
 					describe('when succeeds', () => {
-						beforeEach(() =>
-							modules.delegates.validateBlockSlot.callsArgWith(1, null, true)
-						);
+						beforeEach(async () => {
+							modules.delegates.validateBlockSlot.resolves(true);
+						});
 
 						it('should call a callback with no error', done => {
 							__private.validateBlockSlot(
 								{ height: 10 },
 								{ height: 200 },
 								err => {
-									expect(err).to.be.null;
-									expect(modules.delegates.validateBlockSlot.calledOnce).to.be
-										.true;
+									expect(err).to.be.undefined;
+									expect(modules.delegates.validateBlockSlot).to.be.calledOnce;
 									done();
 								}
 							);
@@ -1605,7 +1589,7 @@ describe('blocks/process', () => {
 		});
 	});
 
-	describe('onReceiveBlock', () => {
+	describe('receiveBlockFromNetwork', () => {
 		let tempReceiveBlock;
 		let tempReceiveForkOne;
 		let tempReceiveForkFive;
@@ -1622,46 +1606,6 @@ describe('blocks/process', () => {
 			__private.receiveForkOne = tempReceiveForkOne;
 			__private.receiveForkFive = tempReceiveForkFive;
 			done();
-		});
-
-		describe('Client is syncing and not ready to receive block', () => {
-			describe('when __private.loaded is false', () => {
-				beforeEach(done => {
-					__private.loaded = false;
-					done();
-				});
-
-				afterEach(done => {
-					__private.loaded = true;
-					done();
-				});
-
-				it('should return without process block', async () => {
-					blocksProcessModule.onReceiveBlock({ id: 5 });
-
-					expect(loggerStub.debug.args[0][0]).to.equal(
-						'Client is not ready to receive block'
-					);
-					expect(loggerStub.debug.args[0][1]).to.equal(5);
-					return expect(modules.blocks.lastBlock.get.calledOnce).to.be.false;
-				});
-			});
-
-			describe('when modules.loader.syncing is true', () => {
-				beforeEach(() => modules.loader.syncing.returns(true));
-
-				afterEach(() => modules.loader.syncing.returns(false));
-
-				it('should return without process block', async () => {
-					blocksProcessModule.onReceiveBlock({ id: 5 });
-
-					expect(loggerStub.debug.args[0][0]).to.equal(
-						"Client is syncing. Can't receive block at the moment."
-					);
-					expect(loggerStub.debug.args[0][1]).to.equal(5);
-					return expect(modules.blocks.lastBlock.get.calledOnce).to.be.false;
-				});
-			});
 		});
 
 		describe('client ready to receive block', () => {
@@ -1688,7 +1632,7 @@ describe('blocks/process', () => {
 							done();
 						});
 					};
-					blocksProcessModule.onReceiveBlock({
+					blocksProcessModule.receiveBlockFromNetwork({
 						id: 5,
 						previousBlock: '2',
 						height: 3,
@@ -1727,7 +1671,7 @@ describe('blocks/process', () => {
 							done();
 						});
 					};
-					blocksProcessModule.onReceiveBlock({
+					blocksProcessModule.receiveBlockFromNetwork({
 						id: 5,
 						previousBlock: '3',
 						height: 3,
@@ -1771,7 +1715,7 @@ describe('blocks/process', () => {
 							done();
 						});
 					};
-					blocksProcessModule.onReceiveBlock({
+					blocksProcessModule.receiveBlockFromNetwork({
 						id: 5,
 						previousBlock: '1',
 						height: 2,
@@ -1795,7 +1739,7 @@ describe('blocks/process', () => {
 							done();
 						});
 					};
-					blocksProcessModule.onReceiveBlock({
+					blocksProcessModule.receiveBlockFromNetwork({
 						id: '2',
 						previousBlock: '1',
 						height: 2,
@@ -1817,7 +1761,7 @@ describe('blocks/process', () => {
 							done();
 						});
 					};
-					blocksProcessModule.onReceiveBlock({
+					blocksProcessModule.receiveBlockFromNetwork({
 						id: '7',
 						previousBlock: '6',
 						height: 11,
@@ -1845,7 +1789,6 @@ describe('blocks/process', () => {
 		it('should assign params to modules', done => {
 			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
 			expect(modules.delegates).to.equal(bindingsStub.modules.delegates);
-			expect(modules.loader).to.equal(bindingsStub.modules.loader);
 			expect(modules.transactions).to.equal(bindingsStub.modules.transactions);
 			expect(modules.processTransactions).to.equal(
 				bindingsStub.modules.processTransactions
