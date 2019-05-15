@@ -23,7 +23,7 @@ import { EventEmitter } from 'events';
 import shuffle = require('lodash.shuffle');
 import { SCClientSocket } from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
-import { RequestFailError } from './errors';
+import { RequestFailError, SendFailError } from './errors';
 import { P2PRequest } from './p2p_request';
 import {
 	P2PClosePacket,
@@ -59,6 +59,7 @@ import { discoverPeers } from './peer_discovery';
 export const EVENT_FAILED_TO_PUSH_NODE_INFO = 'failedToPushNodeInfo';
 export const EVENT_DISCOVERED_PEER = 'discoveredPeer';
 export const EVENT_FAILED_TO_FETCH_PEER_INFO = 'failedToFetchPeerInfo';
+export const EVENT_FAILED_TO_SEND_TO_PEER = 'failedToSendToPeer';
 
 export {
 	EVENT_CLOSE_INBOUND,
@@ -239,7 +240,7 @@ export class PeerPool extends EventEmitter {
 		return selectedPeers;
 	}
 
-	public async requestFromPeer(
+	public async request(
 		packet: P2PRequestPacket,
 	): Promise<P2PResponsePacket> {
 		const selectedPeer = this.selectPeersForRequest(packet, 1);
@@ -251,30 +252,47 @@ export class PeerPool extends EventEmitter {
 		}
 
 		const selectedPeerId = constructPeerIdFromPeerInfo(selectedPeer[0]);
-		const peer = this._peerMap.get(selectedPeerId);
-
-		if (!peer) {
-			throw new RequestFailError(
-				`No such Peer exist in PeerPool with the selected peer with Id: ${selectedPeerId}`,
-			);
-		}
-
-		const response: P2PResponsePacket = await peer.request(packet);
-
-		return response;
+		return this.requestFromPeer(packet, selectedPeerId);
 	}
 
-	public sendToPeers(message: P2PMessagePacket): void {
+	public send(message: P2PMessagePacket): void {
 		const selectedPeers = this.selectPeersForSend(message);
 
-		selectedPeers.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
+		selectedPeers.forEach(async (peerInfo: P2PDiscoveredPeerInfo) => {
 			const selectedPeerId = constructPeerIdFromPeerInfo(peerInfo);
-			const peer = this._peerMap.get(selectedPeerId);
-
-			if (peer) {
-				peer.send(message);
+			try {
+				await this.sendToPeer(message, selectedPeerId);
+			} catch (error) {
+				this.emit(EVENT_FAILED_TO_SEND_TO_PEER, error)
 			}
 		});
+	}
+
+	public async requestFromPeer(
+		packet: P2PRequestPacket,
+		peerId: string,
+	): Promise<P2PResponsePacket> {
+		const peer = this._peerMap.get(peerId);
+		if (!peer) {
+			throw new RequestFailError(
+				`Request failed because a peer with id ${
+					peerId
+				} could not be found`
+			);
+		}
+		return peer.request(packet);
+	}
+
+	public sendToPeer(message: P2PMessagePacket, peerId: string): void {
+		const peer = this._peerMap.get(peerId);
+		if (!peer) {
+			throw new SendFailError(
+				`Send failed because a peer with id ${
+					peerId
+				} could not be found`
+			);
+		}
+		peer.send(message);
 	}
 
 	public async fetchStatusAndCreatePeers(

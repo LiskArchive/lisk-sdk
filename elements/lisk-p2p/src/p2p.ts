@@ -346,13 +346,21 @@ export class P2P extends EventEmitter {
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
-		const response = await this._peerPool.requestFromPeer(packet);
+		const response = await this._peerPool.request(packet);
 
 		return response;
 	}
 
 	public send(message: P2PMessagePacket): void {
-		this._peerPool.sendToPeers(message);
+		this._peerPool.send(message);
+	}
+
+	public async requestFromPeer(packet: P2PRequestPacket, peerId: string): Promise<P2PResponsePacket> {
+		return this._peerPool.requestFromPeer(packet, peerId);
+	}
+
+	public sendToPeer(message: P2PMessagePacket, peerId: string): void {
+		return this._peerPool.sendToPeer(message, peerId);
 	}
 
 	private _disconnectSocketDueToFailedHandshake(
