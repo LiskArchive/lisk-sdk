@@ -16,7 +16,11 @@
 
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 
-const checkSenderPublicKeyException = (exceptions, transactionResponse) => {
+const checkSenderPublicKeyException = (
+	transactionResponse,
+	_,
+	exceptions = {}
+) => {
 	if (!exceptions.senderPublicKey.includes(transactionResponse.id)) {
 		return false;
 	}
@@ -32,7 +36,7 @@ const checkSenderPublicKeyException = (exceptions, transactionResponse) => {
 	return true;
 };
 
-const checkSignature = (exceptions, transactionResponse, transaction) => {
+const checkSignature = (transactionResponse, transaction, exceptions = {}) => {
 	if (!exceptions.signatures.includes(transaction.id)) {
 		return false;
 	}
@@ -48,7 +52,11 @@ const checkSignature = (exceptions, transactionResponse, transaction) => {
 	return true;
 };
 
-const checkSignSignature = (exceptions, transactionResponse, transaction) => {
+const checkSignSignature = (
+	transactionResponse,
+	transaction,
+	exceptions = {}
+) => {
 	if (!exceptions.signSignature.includes(transaction.id)) {
 		return false;
 	}
@@ -64,7 +72,7 @@ const checkSignSignature = (exceptions, transactionResponse, transaction) => {
 	return true;
 };
 
-const checkNullByte = (exceptions, transactionResponse, transaction) => {
+const checkNullByte = (transactionResponse, transaction, exceptions = {}) => {
 	if (!exceptions.transactionWithNullByte.includes(transaction.id)) {
 		return false;
 	}
@@ -80,7 +88,7 @@ const checkNullByte = (exceptions, transactionResponse, transaction) => {
 	return true;
 };
 
-const checkMultisig = (exceptions, transactionResponse, transaction) => {
+const checkMultisig = (transactionResponse, transaction, exceptions = {}) => {
 	if (!exceptions.multisignatures.includes(transaction.id)) {
 		return false;
 	}
@@ -96,7 +104,7 @@ const checkMultisig = (exceptions, transactionResponse, transaction) => {
 	return true;
 };
 
-const checkVotes = (exceptions, transactionResponse, transaction) => {
+const checkVotes = (transactionResponse, transaction, exceptions = {}) => {
 	if (!exceptions.votes.includes(transaction.id)) {
 		return false;
 	}
@@ -113,9 +121,9 @@ const checkVotes = (exceptions, transactionResponse, transaction) => {
 };
 
 const checkVoteTransactionAmount = (
-	exceptions,
 	transactionResponse,
-	transaction
+	transaction,
+	exceptions = {}
 ) => {
 	if (!exceptions.votes.includes(transaction.id)) {
 		return false;
@@ -133,9 +141,9 @@ const checkVoteTransactionAmount = (
 };
 
 const checkRecipientLeadingZero = (
-	exceptions,
 	transactionResponse,
-	transaction
+	transaction,
+	exceptions = {}
 ) => {
 	if (!exceptions.recipientLeadingZero[transactionResponse.id]) {
 		return false;
@@ -160,9 +168,9 @@ const checkRecipientLeadingZero = (
 };
 
 const checkRecipientExceedingUint64 = (
-	exceptions,
 	transactionResponse,
-	transaction
+	transaction,
+	exceptions = {}
 ) => {
 	if (!exceptions.recipientExceedingUint64[transactionResponse.id]) {
 		return false;
@@ -187,9 +195,9 @@ const checkRecipientExceedingUint64 = (
 };
 
 const checkDuplicateSignatures = (
-	exceptions,
 	transactionResponse,
-	transaction
+	transaction,
+	exceptions = {}
 ) => {
 	if (!exceptions.duplicatedSignatures[transaction.id]) {
 		return false;
@@ -206,9 +214,9 @@ const checkDuplicateSignatures = (
 };
 
 const checkIfTransactionIsException = (
-	exceptions,
 	transactionResponse,
-	transaction
+	transaction,
+	exceptions = {}
 ) =>
 	[
 		checkSenderPublicKeyException,
@@ -225,12 +233,13 @@ const checkIfTransactionIsException = (
 		.map(fn => fn(exceptions, transactionResponse, transaction))
 		.some(isException => isException);
 
-const checkIfTransactionIsInert = (exceptions, transaction) =>
+const checkIfTransactionIsInert = (transaction, exceptions = {}) =>
 	exceptions.inertTransactions.includes(transaction.id);
 
 const updateTransactionResponseForExceptionTransactions = (
 	unprocessableTransactionResponses,
-	transactions
+	transactions,
+	exceptions
 ) => {
 	const unprocessableTransactionAndResponsePairs = unprocessableTransactionResponses.map(
 		unprocessableTransactionResponse => ({
@@ -243,7 +252,11 @@ const updateTransactionResponseForExceptionTransactions = (
 
 	const exceptionTransactionsAndResponsePairs = unprocessableTransactionAndResponsePairs.filter(
 		({ transactionResponse, transaction }) =>
-			checkIfTransactionIsException(transactionResponse, transaction)
+			checkIfTransactionIsException(
+				transactionResponse,
+				transaction,
+				exceptions
+			)
 	);
 
 	// Update the transaction response for exception transactions
