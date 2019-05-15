@@ -68,6 +68,7 @@ export { P2PRequest };
 import { selectForConnection, selectPeers } from './peer_selection';
 
 import {
+	EVENT_BAN_PEER,
 	EVENT_CLOSE_INBOUND,
 	EVENT_CLOSE_OUTBOUND,
 	EVENT_CONNECT_ABORT_OUTBOUND,
@@ -80,6 +81,7 @@ import {
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_OUTBOUND_SOCKET_ERROR,
 	EVENT_REQUEST_RECEIVED,
+	EVENT_UNBAN_PEER,
 	EVENT_UPDATED_PEER_INFO,
 	MAX_PEER_LIST_BATCH_SIZE,
 	PeerPool,
@@ -100,6 +102,8 @@ export {
 	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_UPDATED_PEER_INFO,
 	EVENT_FAILED_PEER_INFO_UPDATE,
+	EVENT_BAN_PEER,
+	EVENT_UNBAN_PEER,
 };
 
 export const EVENT_NEW_INBOUND_PEER = 'newInboundPeer';
@@ -142,12 +146,18 @@ export class P2P extends EventEmitter {
 	private readonly _handlePeerConnectAbort: (
 		peerInfo: P2PDiscoveredPeerInfo,
 	) => void;
-	private readonly _handlePeerCloseOutbound: (closePacket: P2PClosePacket) => void;
-	private readonly _handlePeerCloseInbound: (closePacket: P2PClosePacket) => void;
+	private readonly _handlePeerCloseOutbound: (
+		closePacket: P2PClosePacket,
+	) => void;
+	private readonly _handlePeerCloseInbound: (
+		closePacket: P2PClosePacket,
+	) => void;
 	private readonly _handlePeerInfoUpdate: (
 		peerInfo: P2PDiscoveredPeerInfo,
 	) => void;
 	private readonly _handleFailedPeerInfoUpdate: (error: Error) => void;
+	private readonly _handleBanPeer: (peerId: string) => void;
+	private readonly _handleUnbanPeer: (peerId: string) => void;
 	private readonly _handleOutboundSocketError: (error: Error) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
 	private readonly _peerHandshakeCheck: P2PCheckPeerCompatibility;
@@ -238,6 +248,22 @@ export class P2P extends EventEmitter {
 		this._handleFailedPeerInfoUpdate = (error: Error) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
+		};
+
+		this._handleBanPeer = (peerId: string) => {
+			if (this._triedPeers.has(peerId)) {
+				this._triedPeers.delete(peerId);
+			}
+			if (this._newPeers.has(peerId)) {
+				this._newPeers.delete(peerId);
+			}
+			// Re-emit the message to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_BAN_PEER, peerId);
+		};
+
+		this._handleUnbanPeer = (peerId: string) => {
+			// Re-emit the message to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_UNBAN_PEER, peerId);
 		};
 
 		this._handleDiscoveredPeer = (detailedPeerInfo: P2PDiscoveredPeerInfo) => {
@@ -332,9 +358,21 @@ export class P2P extends EventEmitter {
 		return this._nodeInfo;
 	}
 
-	/* tslint:disable:next-line: prefer-function-over-method */
-	public applyPenalty(penalty: P2PPenalty): void {
-		penalty;
+	public applyPenalty(peerPenalty: P2PPenalty): void {
+		// tslint:disable-next-line no-let
+		let exempt;
+
+		// TODO: Skip if whitelisted or fixed
+		this._config.seedPeers.forEach(seedPeer => {
+			const peerId = constructPeerId(seedPeer.ipAddress, seedPeer.wsPort);
+			if (peerPenalty.peerId === peerId) {
+				exempt = true;
+			}
+		});
+
+		if (!exempt) {
+			this._peerPool.updatePeerScore(peerPenalty);
+		}
 	}
 
 	public getNetworkStatus(): P2PNetworkStatus {
@@ -446,6 +484,19 @@ export class P2P extends EventEmitter {
 					);
 
 					return;
+				}
+
+				//
+				const existingPeer = this._peerPool.getPeer(peerId);
+
+				if (existingPeer) {
+					if (existingPeer.isBanned) {
+						this._disconnectSocketDueToFailedHandshake(
+							socket,
+							FORBIDDEN_CONNECTION,
+							FORBIDDEN_CONNECTION_REASON,
+						);
+					}
 				}
 
 				const incomingPeerInfo: P2PDiscoveredPeerInfo = {
@@ -671,6 +722,8 @@ export class P2P extends EventEmitter {
 		peerPool.on(EVENT_CLOSE_INBOUND, this._handlePeerCloseInbound);
 		peerPool.on(EVENT_CLOSE_OUTBOUND, this._handlePeerCloseOutbound);
 		peerPool.on(EVENT_UPDATED_PEER_INFO, this._handlePeerInfoUpdate);
+		peerPool.on(EVENT_BAN_PEER, this._handleBanPeer);
+		peerPool.on(EVENT_UNBAN_PEER, this._handleUnbanPeer);
 		peerPool.on(
 			EVENT_FAILED_PEER_INFO_UPDATE,
 			this._handleFailedPeerInfoUpdate,

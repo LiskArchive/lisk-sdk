@@ -23,7 +23,7 @@ import { EventEmitter } from 'events';
 import shuffle = require('lodash.shuffle');
 import { SCClientSocket } from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
-import { RequestFailError } from './errors';
+import { InvalidPeerError, RequestFailError } from './errors';
 import { P2PRequest } from './p2p_request';
 import {
 	P2PClosePacket,
@@ -34,6 +34,7 @@ import {
 	P2PPeerSelectionForConnection,
 	P2PPeerSelectionForRequest,
 	P2PPeerSelectionForSend,
+	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
 } from './p2p_types';
@@ -41,6 +42,7 @@ import {
 	connectAndFetchPeerInfo,
 	ConnectionState,
 	constructPeerIdFromPeerInfo,
+	EVENT_BAN_PEER,
 	EVENT_CLOSE_INBOUND,
 	EVENT_CLOSE_OUTBOUND,
 	EVENT_CONNECT_ABORT_OUTBOUND,
@@ -50,6 +52,7 @@ import {
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_OUTBOUND_SOCKET_ERROR,
 	EVENT_REQUEST_RECEIVED,
+	EVENT_UNBAN_PEER,
 	EVENT_UPDATED_PEER_INFO,
 	Peer,
 	PeerConfig,
@@ -71,6 +74,8 @@ export {
 	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_UPDATED_PEER_INFO,
 	EVENT_FAILED_PEER_INFO_UPDATE,
+	EVENT_BAN_PEER,
+	EVENT_UNBAN_PEER,
 };
 
 interface PeerPoolConfig {
@@ -100,14 +105,20 @@ export class PeerPool extends EventEmitter {
 	private readonly _handlePeerConnectAbort: (
 		peerInfo: P2PDiscoveredPeerInfo,
 	) => void;
-	private readonly _handlePeerCloseOutbound: (closePacket: P2PClosePacket) => void;
-	private readonly _handlePeerCloseInbound: (closePacket: P2PClosePacket) => void;
+	private readonly _handlePeerCloseOutbound: (
+		closePacket: P2PClosePacket,
+	) => void;
+	private readonly _handlePeerCloseInbound: (
+		closePacket: P2PClosePacket,
+	) => void;
 	private readonly _handlePeerOutboundSocketError: (error: Error) => void;
 	private readonly _handlePeerInboundSocketError: (error: Error) => void;
 	private readonly _handlePeerInfoUpdate: (
 		peerInfo: P2PDiscoveredPeerInfo,
 	) => void;
 	private readonly _handleFailedPeerInfoUpdate: (error: Error) => void;
+	private readonly _handleBanPeer: (peerId: string) => void;
+	private readonly _handleUnbanPeer: (peerId: string) => void;
 	private _nodeInfo: P2PNodeInfo | undefined;
 	private readonly _peerSelectForSend: P2PPeerSelectionForSend;
 	private readonly _peerSelectForRequest: P2PPeerSelectionForRequest;
@@ -190,6 +201,14 @@ export class PeerPool extends EventEmitter {
 		this._handleFailedPeerInfoUpdate = (error: Error) => {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
+		};
+		this._handleBanPeer = (peerId: string) => {
+			// Re-emit the peerId to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_BAN_PEER, peerId);
+		};
+		this._handleUnbanPeer = (peerId: string) => {
+			// Re-emit the peerId to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_UNBAN_PEER, peerId);
 		};
 	}
 
@@ -509,6 +528,15 @@ export class PeerPool extends EventEmitter {
 		return this._peerMap.delete(peerId);
 	}
 
+	public updatePeerScore(peerPenalty: P2PPenalty): void {
+		const peer = this._peerMap.get(peerPenalty.peerId);
+		if (peer) {
+			peer.applyPenalty(peerPenalty.penalty);
+		}
+
+		throw new InvalidPeerError('Peer not found');
+	}
+
 	private _removePeerIfFullyDisconnected(peerId: string): void {
 		const peer = this.getPeer(peerId);
 		if (
@@ -542,6 +570,8 @@ export class PeerPool extends EventEmitter {
 		peer.on(EVENT_INBOUND_SOCKET_ERROR, this._handlePeerInboundSocketError);
 		peer.on(EVENT_UPDATED_PEER_INFO, this._handlePeerInfoUpdate);
 		peer.on(EVENT_FAILED_PEER_INFO_UPDATE, this._handleFailedPeerInfoUpdate);
+		peer.on(EVENT_BAN_PEER, this._handleBanPeer);
+		peer.on(EVENT_UNBAN_PEER, this._handleUnbanPeer);
 	}
 
 	private _unbindHandlersFromPeer(peer: Peer): void {

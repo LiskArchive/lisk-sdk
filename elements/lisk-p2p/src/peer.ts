@@ -60,6 +60,8 @@ type SCClientSocket = socketClusterClient.SCClientSocket;
 // Local emitted events.
 export const EVENT_UPDATED_PEER_INFO = 'updatedPeerInfo';
 export const EVENT_FAILED_PEER_INFO_UPDATE = 'failedPeerInfoUpdate';
+export const EVENT_BAN_PEER = 'banPeer';
+export const EVENT_UNBAN_PEER = 'unbanPeer';
 export const EVENT_REQUEST_RECEIVED = 'requestReceived';
 export const EVENT_INVALID_REQUEST_RECEIVED = 'invalidRequestReceived';
 export const EVENT_MESSAGE_RECEIVED = 'messageReceived';
@@ -81,6 +83,10 @@ export const REMOTE_RPC_GET_ALL_PEERS_LIST = 'list';
 
 export const DEFAULT_CONNECT_TIMEOUT = 2000;
 export const DEFAULT_ACK_TIMEOUT = 2000;
+export const DEFAULT_REPUTATION_SCORE = 100;
+// TODO: Change to config
+// tslint:disable-next-line:no-magic-numbers
+export const DEFAULT_BAN_TIME = 60 * 60 * 24;
 
 type SCServerSocketUpdated = {
 	destroy(code?: number, data?: string | object): void;
@@ -133,6 +139,8 @@ export class Peer extends EventEmitter {
 	private readonly _ipAddress: string;
 	private readonly _wsPort: number;
 	private readonly _height: number;
+	private _reputation: number;
+	private _banTimer: NodeJS.Timer | undefined;
 	private _peerInfo: P2PDiscoveredPeerInfo;
 	private readonly _peerConfig: PeerConfig;
 	private _nodeInfo: P2PNodeInfo | undefined;
@@ -151,7 +159,10 @@ export class Peer extends EventEmitter {
 		packet: unknown,
 	) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
-	private readonly _handleInboundSocketClose: (code: number, reason: string) => void;
+	private readonly _handleInboundSocketClose: (
+		code: number,
+		reason: string,
+	) => void;
 
 	public constructor(
 		peerInfo: P2PDiscoveredPeerInfo,
@@ -159,6 +170,8 @@ export class Peer extends EventEmitter {
 		peerSockets?: PeerSockets,
 	) {
 		super();
+		this._reputation = DEFAULT_REPUTATION_SCORE;
+		this._banTimer = undefined;
 		this._peerInfo = peerInfo;
 		this._peerConfig = peerConfig ? peerConfig : {};
 		this._ipAddress = peerInfo.ipAddress;
@@ -294,6 +307,14 @@ export class Peer extends EventEmitter {
 		};
 	}
 
+	public applyPenalty(penalty: number): void {
+		this._reputation -= penalty;
+
+		if (this._reputation <= 0) {
+			this._banPeer();
+		}
+	}
+
 	public get peerInfo(): P2PDiscoveredPeerInfo {
 		return this._peerInfo;
 	}
@@ -381,6 +402,10 @@ export class Peer extends EventEmitter {
 				data: packet.data,
 			});
 		}
+	}
+
+	public isBanned(): boolean {
+		return this._reputation <= 0;
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
@@ -586,7 +611,7 @@ export class Peer extends EventEmitter {
 		inboundSocket: SCServerSocket,
 	): void {
 		inboundSocket.off('close', this._handleInboundSocketClose);
-		
+
 		// Unbind RPC and remote event handlers
 		inboundSocket.off(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
 		inboundSocket.off(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
@@ -627,6 +652,21 @@ export class Peer extends EventEmitter {
 			? convertNodeInfoToLegacyFormat(this._nodeInfo)
 			: {};
 		request.end(legacyNodeInfo);
+	}
+
+	private _banPeer(): void {
+		this.emit(EVENT_BAN_PEER, this._id);
+		this._banTimer = setTimeout(this._unbanPeer, DEFAULT_BAN_TIME);
+	}
+
+	private _unbanPeer(): void {
+		// Reset reputation score
+		this._reputation = DEFAULT_REPUTATION_SCORE;
+		this.emit(EVENT_UNBAN_PEER, this._id);
+		if (this._banTimer) {
+			this._banTimer = undefined;
+			clearTimeout(this._banTimer);
+		}
 	}
 }
 
