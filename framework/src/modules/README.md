@@ -162,8 +162,3 @@ A modules' life cycle consists of following events in the right order:
 - _module_:registeredToBus
 - _module_:loading:started
 - _module_:loading:finished
-
-**Unloading**
-
-- _module_:unloading:started
-- _module_:unloading:finished
