@@ -494,6 +494,7 @@ paths:
           enum:
             - pending
             - ready
+            - received
             - validated
             - verified
           default: verified
@@ -2411,6 +2412,7 @@ definitions:
           - verified
           - confirmed
           - validated
+          - received
           - total
         description: Transactions known to the node.
         properties:
@@ -2434,6 +2436,10 @@ definitions:
             type: integer
             example: 5
             description: Number of validated Transactions known to the node.
+          received: 
+            type: integer
+            example: 5
+            description: Number of received Transactions known to the node. 
           total:
             type: integer
             example: 15

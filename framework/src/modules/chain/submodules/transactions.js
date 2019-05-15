@@ -466,6 +466,18 @@ Transactions.prototype.getValidatedTransactionList = function(reverse, limit) {
 };
 
 /**
+ * Gets validated transactions based on limit and reverse option.
+ *
+ * @param {boolean} reverse - Reverse order of results
+ * @param {number} limit - Limit applied to results
+ * @returns {function} Calls transactionPool.getQueuedTransactionList
+ * @todo Add description for the params
+ */
+Transactions.prototype.getReceivedTransactionList = function(reverse, limit) {
+	return __private.transactionPool.getReceivedTransactionList(reverse, limit);
+};
+
+/**
  * Search transactions based on the query parameter passed.
  *
  * @param {Object} filters - Filters applied to results
@@ -666,6 +678,8 @@ Transactions.prototype.shared = {
 						pending: __private.transactionPool.getCountByQueue('pending') || 0,
 						validated:
 							__private.transactionPool.getCountByQueue('validated') || 0,
+						received:
+							__private.transactionPool.getCountByQueue('received') || 0,
 					});
 				},
 			],
@@ -680,7 +694,8 @@ Transactions.prototype.shared = {
 					result.ready +
 					result.verified +
 					result.validated +
-					result.pending;
+					result.pending +
+					result.received;
 
 				return setImmediate(cb, null, result);
 			}
@@ -698,6 +713,7 @@ Transactions.prototype.shared = {
 		const typeMap = {
 			pending: 'getMultisignatureTransactionList',
 			ready: 'getUnconfirmedTransactionList',
+			received: 'getReceivedTransactionList',
 			validated: 'getValidatedTransactionList',
 			verified: 'getQueuedTransactionList',
 		};

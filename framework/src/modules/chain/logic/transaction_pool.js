@@ -236,6 +236,17 @@ class TransactionPool {
 	}
 
 	/**
+	 * Gets received transactions based on limit and reverse option.
+	 *
+	 * @param {boolean} reverse - Reverse order of results
+	 * @param {number} limit - Limit applied to results
+	 * @returns {Object[]} Of bundled transactions
+	 */
+	getReceivedTransactionList(reverse, limit) {
+		return this.getTransactionsList(receivedQueue, reverse, limit);
+	}
+
+	/**
 	 * Gets multisignature transactions based on limit and reverse option.
 	 *
 	 * @param {boolean} reverse - Reverse order of results
