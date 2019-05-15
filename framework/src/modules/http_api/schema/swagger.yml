@@ -495,6 +495,7 @@ paths:
             - unprocessed
             - unconfirmed
             - unsigned
+            - validated
           default: unprocessed
         - $ref: '#/parameters/transactionId'
         - $ref: '#/parameters/recipientId'

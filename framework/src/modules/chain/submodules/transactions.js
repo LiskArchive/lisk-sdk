@@ -454,6 +454,18 @@ Transactions.prototype.getMergedTransactionList = function(reverse, limit) {
 };
 
 /**
+ * Gets validated transactions based on limit and reverse option.
+ *
+ * @param {boolean} reverse - Reverse order of results
+ * @param {number} limit - Limit applied to results
+ * @returns {function} Calls transactionPool.getQueuedTransactionList
+ * @todo Add description for the params
+ */
+Transactions.prototype.getValidatedTransactionList = function(reverse, limit) {
+	return __private.transactionPool.getValidatedTransactionList(reverse, limit);
+};
+
+/**
  * Search transactions based on the query parameter passed.
  *
  * @param {Object} filters - Filters applied to results
@@ -688,6 +700,7 @@ Transactions.prototype.shared = {
 			unprocessed: 'getQueuedTransactionList',
 			unconfirmed: 'getUnconfirmedTransactionList',
 			unsigned: 'getMultisignatureTransactionList',
+			validated: 'getValidatedTransactionList',
 		};
 
 		return __private.getPooledTransactions(typeMap[type], filters, cb);

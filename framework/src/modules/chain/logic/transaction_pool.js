@@ -55,6 +55,7 @@ const receivedQueue = 'recieved';
 const pendingQueue = 'pending';
 const verifiedQueue = 'verified';
 const readyQueue = 'ready';
+const validatedQueue = 'validated';
 
 /**
  * Transaction pool logic. Initializes variables,
@@ -222,6 +223,17 @@ class TransactionPool {
 	 */
 	getQueuedTransactionList(reverse, limit) {
 		return this.getTransactionsList(verifiedQueue, reverse, limit);
+	}
+
+	/**
+	 * Gets validated transactions based on limit and reverse option.
+	 *
+	 * @param {boolean} reverse - Reverse order of results
+	 * @param {number} limit - Limit applied to results
+	 * @returns {Object[]} Of bundled transactions
+	 */
+	getValidatedTransactionList(reverse, limit) {
+		return this.getTransactionsList(validatedQueue, reverse, limit);
 	}
 
 	/**
