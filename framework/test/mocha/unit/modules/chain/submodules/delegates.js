@@ -27,7 +27,6 @@ const exceptions = global.exceptions;
 
 describe('delegates', () => {
 	let library;
-	let getAccountPromise;
 	let defaultPassword;
 	const testDelegate = genesisDelegates.delegates[0];
 
@@ -41,7 +40,6 @@ describe('delegates', () => {
 				// Load forging delegates
 				library.rewiredModules.delegates.__get__('__private');
 				defaultPassword = library.config.forging.defaultPassword;
-				getAccountPromise = util.promisify(library.modules.accounts.getAccount);
 				done(err);
 			}
 		);
@@ -144,7 +142,7 @@ describe('delegates', () => {
 
 		it('should switch forging status from enabled to disabled or otherwise', async () => {
 			// Get the account
-			const account = await getAccountPromise({
+			const account = await library.components.storage.entities.Account.getOne({
 				publicKey: testDelegate.publicKey,
 			});
 
@@ -1178,11 +1176,91 @@ describe('delegates', () => {
 				);
 			});
 
-			// eslint-disable-next-line mocha/no-pending-tests
-			it('should wait for threshold time if last block not received');
+			it('should wait for threshold time if last block not received', async () => {
+				const slots = library.rewiredModules.delegates.__get__('slots');
+				const generateBlockSpy = sinonSandbox.spy(__private, 'generateBlock');
+				const getSlotNumberStub = sinonSandbox.stub(slots, 'getSlotNumber');
+				const waitThreshold = library.config.forging.waitThreshold * 1000;
+				const currentSlotTime = new Date(2019, 0, 1, 0, 0, 0).getTime();
+				const currentTime = new Date(2019, 0, 1, 0, 0, 2).getTime();
+				const clock = sinonSandbox.useFakeTimers({
+					now: currentTime,
+					shouldAdvanceTime: true,
+				});
 
-			// eslint-disable-next-line mocha/no-pending-tests
-			it('should not wait for threshold time if last block already received');
+				const currentSlot = 4;
+				const lastBlockSlot = currentSlot - 2;
+
+				sinonSandbox.stub(slots, 'getRealTime').returns(currentSlotTime);
+				getSlotNumberStub.withArgs().returns(currentSlot);
+				getSlotNumberStub
+					.withArgs(library.modules.blocks.lastBlock.get().timestamp)
+					.returns(lastBlockSlot);
+
+				await forgePromise();
+				expect(generateBlockSpy).to.not.been.called;
+				expect(loggerSpy.info).to.be.calledTwice;
+				expect(loggerSpy.info.secondCall.args).to.be.eql([
+					'Skipping forging to wait for last block',
+				]);
+				expect(loggerSpy.debug).to.be.calledWith('Slot information', {
+					currentSlot,
+					lastBlockSlot,
+					waitThreshold,
+				});
+
+				clock.restore();
+			});
+
+			it('should not wait if threshold time passed and last block not received', async () => {
+				const slots = library.rewiredModules.delegates.__get__('slots');
+				const generateBlockSpy = sinonSandbox.spy(__private, 'generateBlock');
+				const getSlotNumberStub = sinonSandbox.stub(slots, 'getSlotNumber');
+				const currentSlotTime = new Date(2019, 0, 1, 0, 0, 0).getTime();
+				const currentTime = new Date(2019, 0, 1, 0, 0, 3).getTime();
+				const clock = sinonSandbox.useFakeTimers({
+					now: currentTime,
+					shouldAdvanceTime: true,
+				});
+
+				const currentSlot = 4;
+				const lastBlockSlot = currentSlot - 2;
+
+				sinonSandbox.stub(slots, 'getRealTime').returns(currentSlotTime);
+				getSlotNumberStub.withArgs().returns(currentSlot);
+				getSlotNumberStub
+					.withArgs(library.modules.blocks.lastBlock.get().timestamp)
+					.returns(lastBlockSlot);
+
+				await forgePromise();
+				expect(generateBlockSpy).to.be.calledOnce;
+				clock.restore();
+			});
+
+			it('should not wait if threshold remaining but last block already received', async () => {
+				const slots = library.rewiredModules.delegates.__get__('slots');
+				const generateBlockSpy = sinonSandbox.spy(__private, 'generateBlock');
+				const getSlotNumberStub = sinonSandbox.stub(slots, 'getSlotNumber');
+				const currentSlotTime = new Date(2019, 0, 1, 0, 0, 0).getTime();
+				const currentTime = new Date(2019, 0, 1, 0, 0, 1).getTime();
+				const clock = sinonSandbox.useFakeTimers({
+					now: currentTime,
+					shouldAdvanceTime: true,
+				});
+
+				const currentSlot = 4;
+				const lastBlockSlot = currentSlot - 1;
+
+				sinonSandbox.stub(slots, 'getRealTime').returns(currentSlotTime);
+				getSlotNumberStub.withArgs().returns(currentSlot);
+				getSlotNumberStub
+					.withArgs(library.modules.blocks.lastBlock.get().timestamp)
+					.returns(lastBlockSlot);
+
+				await forgePromise();
+				expect(generateBlockSpy).to.be.calledOnce;
+				clock.restore();
+			});
 		});
 	});
 });
