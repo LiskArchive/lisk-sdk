@@ -128,11 +128,10 @@ Configuration options for each module are located in `framework/src/modules/<mod
 
 Each `config.js` file consists of 2 parts:
 
-1. A general schema description of all available config options.
+1. JSON-schema specification for all available config options
 2. Default values for the available config options for this specific module.
 
-To customize the predefined defaults values, please don't change the default values in these files directly, as they will be overwritten on software updates.
-Instead, define the custom configuration options inisde your blockchain application, and let it overwrite the default config options.
+Please don't change the default values in these files directly as they will be overwritten on software updates, instead define the custom configuration options inside your blockchain application.
 
 ## Module Communication
 
