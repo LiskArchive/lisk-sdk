@@ -22,12 +22,6 @@ It exposes an interface with specific features for getting or setting particular
 
 Find more details about the storage component in the dedicated [LIP](https://github.com/LiskHQ/lips/blob/master/proposals/lip-0011.md).
 
-### System
-
-The system component provides per-module system information. Each module is responsible for keeping the information up-to-date.
-
-It holds the variables and constants critical for the whole application, possibly affecting other modules. For now, those are: "os", "version", "wsPort", "httpPort", "minVersion", "protocolVersion", "height", "nethash", "broadhash" and "nonce".
-
 ## Configuration
 
 Configuration options for each component are located in `framework/src/component/<component-name>/defaults/config.js`.
