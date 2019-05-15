@@ -696,10 +696,10 @@ Transactions.prototype.shared = {
 	 */
 	getTransactionsFromPool(type, filters, cb) {
 		const typeMap = {
-			unprocessed: 'getQueuedTransactionList',
-			unconfirmed: 'getUnconfirmedTransactionList',
-			unsigned: 'getMultisignatureTransactionList',
+			pending: 'getMultisignatureTransactionList',
+			ready: 'getUnconfirmedTransactionList',
 			validated: 'getValidatedTransactionList',
+			verified: 'getQueuedTransactionList',
 		};
 
 		return __private.getPooledTransactions(typeMap[type], filters, cb);

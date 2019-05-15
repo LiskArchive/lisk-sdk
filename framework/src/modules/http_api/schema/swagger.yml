@@ -492,11 +492,11 @@ paths:
           required: true
           type: string
           enum:
-            - unprocessed
-            - unconfirmed
-            - unsigned
+            - pending
+            - ready
             - validated
-          default: unprocessed
+            - verified
+          default: verified
         - $ref: '#/parameters/transactionId'
         - $ref: '#/parameters/recipientId'
         - $ref: '#/parameters/recipientPublicKey'
