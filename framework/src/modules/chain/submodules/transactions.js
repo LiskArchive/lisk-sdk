@@ -653,6 +653,8 @@ Transactions.prototype.shared = {
 						unprocessed:
 							__private.transactionPool.getCountByQueue('verified') || 0,
 						unsigned: __private.transactionPool.getCountByQueue('pending') || 0,
+						validated:
+							__private.transactionPool.getCountByQueue('validated') || 0,
 					});
 				},
 			],
@@ -666,6 +668,7 @@ Transactions.prototype.shared = {
 					result.confirmed +
 					result.unconfirmed +
 					result.unprocessed +
+					result.validated +
 					result.unsigned;
 
 				return setImmediate(cb, null, result);
