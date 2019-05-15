@@ -189,7 +189,7 @@ describe('transactionPool', () => {
 			const limit = 10;
 			transactionPool.getBundledTransactionList(reverse, limit);
 			expect(getTransactionsListStub).to.be.calledWithExactly(
-				'recieved',
+				'received',
 				reverse,
 				limit
 			);
