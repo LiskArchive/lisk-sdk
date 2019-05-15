@@ -26,6 +26,7 @@ module.exports = {
 		'MAX_SHARED_TRANSACTIONS',
 		'MAX_VOTES_PER_ACCOUNT',
 		'MIN_BROADHASH_CONSENSUS',
+		'MAX_PEERS',
 		'TOTAL_AMOUNT',
 		'TRANSACTION_TYPES',
 		'UNCONFIRMED_TRANSACTION_TIMEOUT',
@@ -146,6 +147,13 @@ module.exports = {
 			description:
 				'Minimum broadhash consensus(%) among connected {MAX_PEERS} peers',
 		},
+		MAX_PEERS: {
+			type: 'integer',
+			min: 1,
+			const: 100,
+			description:
+				'Maximum number of peers for calculating broadhash consensus',
+		},
 		TOTAL_AMOUNT: {
 			type: 'string',
 			format: 'amount',
@@ -234,6 +242,7 @@ module.exports = {
 		MAX_SHARED_TRANSACTIONS: 100,
 		MAX_VOTES_PER_ACCOUNT: 101,
 		MIN_BROADHASH_CONSENSUS: 51,
+		MAX_PEERS: 100,
 		// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
 		TOTAL_AMOUNT: '10000000000000000',
 		TRANSACTION_TYPES: {
