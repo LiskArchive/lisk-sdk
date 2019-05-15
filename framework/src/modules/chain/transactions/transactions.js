@@ -26,30 +26,8 @@ const {
 } = require('./handle_exceptions');
 const { composeTransactionSteps } = require('./compose_transaction_steps');
 
-class Transactions extends EventEmitter {
-	constructor({ storage, logger, poolConfig, exceptions, slot }) {
-		super();
-
-		const poolDependencies = {
-			validateTransactions: this.validateTransactions,
-			verifyTransactions: composeTransactionSteps(
-				this.checkAllowedTransactions.bind(this),
-				this.checkPersistedTransactions.bind(this),
-				this.verifyTransactions.bind(this)
-			),
-			processTransactions: composeTransactionSteps(
-				this.checkPersistedTransactions.bind(this),
-				this.applyTransactions.bind(this)
-			),
-		};
-
-		this.pool = new TransactionPool({
-			...poolConfig,
-			...poolDependencies,
-		});
-
-		this.pool.subscribeEvents();
-	}
+class Transactions {
+	constructor({ storage, logger, exceptions, slot }) {}
 
 	getTransactions(filters) {}
 
