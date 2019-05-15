@@ -546,6 +546,9 @@ __private.forge = function(cb) {
 	}
 
 	const currentSlot = slots.getSlotNumber();
+	const currentSlotTime = slots.getRealTime(slots.getSlotTime(currentSlot));
+	const currentTime = new Date().getTime();
+	const waitThreshold = library.config.forging.waitThreshold * 1000;
 	const lastBlock = modules.blocks.lastBlock.get();
 	const lastBlockSlot = slots.getSlotNumber(lastBlock.timestamp);
 
@@ -590,19 +593,18 @@ __private.forge = function(cb) {
 			);
 
 			// If last block slot is way back than one block
-			if (lastBlockSlot < currentSlot - 1) {
-				library.logger.info(
-					`Waiting for ${
-						library.config.forging.waitThreshold
-					} seconds for the last block before forging`
-				);
+			// and still time left as per threshold specified
+			if (
+				lastBlockSlot < currentSlot - 1 &&
+				currentTime <= currentSlotTime + waitThreshold
+			) {
+				library.logger.info('Skipping forging to wait for last block');
 				library.logger.debug('Slot information', {
 					currentSlot,
 					lastBlockSlot,
+					waitThreshold,
 				});
-				return setTimeout(() => {
-					__private.generateBlock(delegateKeypair, currentSlot, cb);
-				}, library.config.forging.waitThreshold * 1000);
+				return setImmediate(cb);
 			}
 
 			return __private.generateBlock(delegateKeypair, currentSlot, cb);
