@@ -2406,26 +2406,26 @@ definitions:
       transactions:
         type: object
         required:
-          - unconfirmed
-          - unsigned
-          - unprocessed
+          - ready
+          - pending
+          - verified
           - confirmed
           - validated
           - total
         description: Transactions known to the node.
         properties:
-          unconfirmed:
+          ready:
             type: integer
             example: 5
             description: Number of unconfirmed Transactions known to the node.
-          unsigned:
+          pending:
             type: integer
             example: 2
-            description: Number of unsigned Transactions known to the node.
-          unprocessed:
+            description: Number of pending Transactions known to the node.
+          verified:
             type: integer
             example: 3
-            description: Number of unprocessed Transactions known to the node.
+            description: Number of verified Transactions known to the node.
           confirmed:
             type: integer
             example: 5

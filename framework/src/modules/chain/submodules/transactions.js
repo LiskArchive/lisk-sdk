@@ -660,11 +660,10 @@ Transactions.prototype.shared = {
 				function getAllCount(confirmedTransactionCount, waterCb) {
 					setImmediate(waterCb, null, {
 						confirmed: confirmedTransactionCount,
-						unconfirmed:
-							__private.transactionPool.getCountByQueue('ready') || 0,
-						unprocessed:
+						ready: __private.transactionPool.getCountByQueue('ready') || 0,
+						verified:
 							__private.transactionPool.getCountByQueue('verified') || 0,
-						unsigned: __private.transactionPool.getCountByQueue('pending') || 0,
+						pending: __private.transactionPool.getCountByQueue('pending') || 0,
 						validated:
 							__private.transactionPool.getCountByQueue('validated') || 0,
 					});
@@ -678,10 +677,10 @@ Transactions.prototype.shared = {
 
 				result.total =
 					result.confirmed +
-					result.unconfirmed +
-					result.unprocessed +
+					result.ready +
+					result.verified +
 					result.validated +
-					result.unsigned;
+					result.pending;
 
 				return setImmediate(cb, null, result);
 			}
