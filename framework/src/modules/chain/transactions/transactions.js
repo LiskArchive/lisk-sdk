@@ -63,7 +63,7 @@ class Transactions {
 
 		const transactionsResponses = transactions.map(transaction => {
 			const transactionResponse = transaction.apply(stateStore);
-			votes.apply(stateStore, transaction);
+			votes.apply(stateStore, transaction, this.exceptions);
 			stateStore.transaction.add(transaction);
 			return transactionResponse;
 		});
@@ -163,7 +163,7 @@ class Transactions {
 
 		const transactionsResponses = transactions.map(transaction => {
 			const transactionResponse = transaction.undo(stateStore);
-			votes.undo(stateStore, transaction);
+			votes.undo(stateStore, transaction, this.exceptions);
 			return transactionResponse;
 		});
 

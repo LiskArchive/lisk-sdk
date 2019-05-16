@@ -16,8 +16,11 @@
 
 const Bignumber = require('bignumber.js');
 
-const { TRANSACTION_TYPES } = global.constants;
-const exceptions = global.exceptions;
+// TODO: change to more generic way
+const TRANSACTION_TYPES_SEND = 0;
+const TRANSACTION_TYPES_VOTE = 3;
+const TRANSACTION_TYPES_IN_TRANSFER = 6;
+const TRANSACTION_TYPES_OUT_TRANSFER = 7;
 
 const reverseVotes = function(diff) {
 	const copyDiff = diff.slice();
@@ -33,7 +36,7 @@ const updateRoundInformationWithDelegatesForTransaction = (
 	transaction,
 	forwardTick
 ) => {
-	if (transaction.type !== TRANSACTION_TYPES.VOTE) {
+	if (transaction.type !== TRANSACTION_TYPES_VOTE) {
 		return;
 	}
 
@@ -68,7 +71,8 @@ const updateRoundInformationWithDelegatesForTransaction = (
 const updateSenderRoundInformationWithAmountForTransaction = (
 	stateStore,
 	transaction,
-	forwardTick
+	forwardTick,
+	exceptions
 ) => {
 	const amount = transaction.fee.plus(transaction.amount);
 	const amountToUpdate = forwardTick
@@ -77,7 +81,7 @@ const updateSenderRoundInformationWithAmountForTransaction = (
 	const account = stateStore.account.get(transaction.senderId);
 	let dependentPublicKeysToAdd = account.votedDelegatesPublicKeys || [];
 
-	if (transaction.type === TRANSACTION_TYPES.VOTE) {
+	if (transaction.type === TRANSACTION_TYPES_VOTE) {
 		const newVotes = forwardTick
 			? transaction.asset.votes
 			: reverseVotes(transaction.asset.votes);
@@ -116,16 +120,16 @@ const updateRecipientRoundInformationWithAmountForTransaction = (
 	forwardTick
 ) => {
 	let address;
-	if (transaction.type === TRANSACTION_TYPES.IN_TRANSFER) {
+	if (transaction.type === TRANSACTION_TYPES_IN_TRANSFER) {
 		const dappTransaction = stateStore.transaction.get(
 			transaction.asset.inTransfer.dappId
 		);
 		address = dappTransaction.senderId;
 	}
 	if (
-		transaction.type === TRANSACTION_TYPES.SEND ||
-		transaction.type === TRANSACTION_TYPES.OUT_TRANSFER ||
-		transaction.type === TRANSACTION_TYPES.VOTE
+		transaction.type === TRANSACTION_TYPES_SEND ||
+		transaction.type === TRANSACTION_TYPES_OUT_TRANSFER ||
+		transaction.type === TRANSACTION_TYPES_VOTE
 	) {
 		address = transaction.recipientId;
 	}
@@ -151,7 +155,7 @@ const updateRecipientRoundInformationWithAmountForTransaction = (
 	}
 };
 
-const apply = (stateStore, transaction) => {
+const apply = (stateStore, transaction, exceptions = {}) => {
 	const isForwardTick = true;
 	updateRecipientRoundInformationWithAmountForTransaction(
 		stateStore,
@@ -161,7 +165,8 @@ const apply = (stateStore, transaction) => {
 	updateSenderRoundInformationWithAmountForTransaction(
 		stateStore,
 		transaction,
-		isForwardTick
+		isForwardTick,
+		exceptions
 	);
 	updateRoundInformationWithDelegatesForTransaction(
 		stateStore,
@@ -170,7 +175,7 @@ const apply = (stateStore, transaction) => {
 	);
 };
 
-const undo = (stateStore, transaction) => {
+const undo = (stateStore, transaction, exceptions = {}) => {
 	const isForwardTick = false;
 	updateRecipientRoundInformationWithAmountForTransaction(
 		stateStore,
@@ -180,7 +185,8 @@ const undo = (stateStore, transaction) => {
 	updateSenderRoundInformationWithAmountForTransaction(
 		stateStore,
 		transaction,
-		isForwardTick
+		isForwardTick,
+		exceptions
 	);
 	updateRoundInformationWithDelegatesForTransaction(
 		stateStore,

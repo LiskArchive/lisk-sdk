@@ -164,7 +164,14 @@ module.exports = class Chain {
 			this.transactionPool = new TransactionPool({
 				transactions: this.transactions,
 				logger: this.looger,
+				maxTransactionsPerQueue: this.options.transactions
+					.maxTransactionsPerQueue,
 				expireTransactionsInterval: this.options.constants.EXPIRY_INTERVAL,
+				maxTransactionsPerBlock: this.options.constants
+					.MAX_TRANSACTIONS_PER_BLOCK,
+				maxSharedTransactions: this.options.constants.MAX_SHARED_TRANSACTIONS,
+				broadcastInterval: this.options.broadcasts.broadcastInterval,
+				releaseLimit: this.options.broadcasts.releaseLimit,
 			});
 			// TODO: Global variable forbits to require on top
 			const Loader = require('./loader');
