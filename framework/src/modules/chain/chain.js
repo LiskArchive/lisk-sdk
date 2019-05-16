@@ -155,13 +155,13 @@ module.exports = class Chain {
 			await bootstrapCache(this.scope);
 
 			this.scope.bus = await createBus();
-			this.scope.logic = await initLogicStructure(this.scope);
 
 			this._initModules();
 			this.scope.modules = {};
 			// TODO: Remove - Temporal write to modules for blocks circular dependency
 			this.scope.modules.transactions = this.transactions;
 
+			this.scope.logic = await initLogicStructure(this.scope);
 			this.scope.modules = await initModules(this.scope);
 			// TODO: Remove - Temporal write to modules for blocks circular dependency
 			this.scope.modules.transactions = this.transactions;

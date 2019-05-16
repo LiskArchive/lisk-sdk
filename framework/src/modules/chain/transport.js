@@ -21,7 +21,7 @@ const { convertErrorsToString } = require('./helpers/error_handlers');
 // eslint-disable-next-line prefer-const
 let Broadcaster = require('./logic/broadcaster');
 const definitions = require('./schema/definitions');
-const processTransactionLogic = require('./logic/process_transaction');
+const { composeTransactionSteps } = require('./transactions');
 
 const { MAX_SHARED_TRANSACTIONS } = global.constants;
 
@@ -95,8 +95,7 @@ class Transport {
 		modules = {
 			blocks: scope.modules.blocks,
 			loader: scope.modules.loader,
-			multisignatures: scope.modules.multisignatures,
-			processTransactions: scope.modules.processTransactions,
+			transactions: scope.modules.transactions,
 			transactionPool: scope.modules.transactionPool,
 		};
 	}
@@ -609,7 +608,7 @@ __private.receiveSignature = function(signature, cb) {
 			return setImmediate(cb, [new TransactionError(err[0].message)], 400);
 		}
 
-		return modules.multisignatures.getTransactionAndProcessSignature(
+		return modules.transactionPool.getTransactionAndProcessSignature(
 			signature,
 			errors => {
 				if (errors) {
@@ -672,9 +671,9 @@ __private.receiveTransaction = async function(
 	try {
 		transaction = modules.transactions.fromJson(transactionJSON);
 
-		const composedTransactionsCheck = processTransactionLogic.composeTransactionSteps(
-			modules.processTransactions.checkAllowedTransactions,
-			modules.processTransactions.validateTransactions
+		const composedTransactionsCheck = composeTransactionSteps(
+			modules.transactions.checkAllowedTransactions,
+			modules.transactions.validateTransactions
 		);
 
 		const { transactionsResponses } = await composedTransactionsCheck([

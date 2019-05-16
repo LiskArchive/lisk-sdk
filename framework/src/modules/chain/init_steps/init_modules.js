@@ -19,10 +19,7 @@ const domain = require('domain');
 const modulesList = {
 	blocks: '../submodules/blocks',
 	rounds: '../submodules/rounds',
-	// multisignatures: '../submodules/multisignatures',
 	peers: '../submodules/peers',
-	// transactions: '../submodules/transactions',
-	// processTransactions: '../submodules/process_transactions',
 };
 
 module.exports = async scope => {
