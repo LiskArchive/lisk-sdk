@@ -16,56 +16,128 @@
 
 require('../../../functional');
 const Promise = require('bluebird');
-const { transfer } = require('@liskhq/lisk-transactions');
+const {
+	transfer,
+	registerSecondPassphrase,
+	registerMultisignature,
+} = require('@liskhq/lisk-transactions');
 const apiHelpers = require('../../../../common/helpers/api');
 const randomUtil = require('../../../../common/utils/random');
 const SwaggerEndpoint = require('../../../../common/swagger_spec');
 const accountFixtures = require('../../../../fixtures/accounts');
+const waitFor = require('../../../../common/utils/wait_for');
 
+const { NORMALIZER } = global.__testContext.config;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('GET /api/node', () => {
 	describe('/transactions', () => {
-		// eslint-disable-next-line
-		describe('/unprocessed', () => {
-			const UnProcessedEndpoint = new SwaggerEndpoint(
+		describe('/pending', () => {
+			const PendingEndpoint = new SwaggerEndpoint(
 				'GET /node/transactions/{state}'
-			).addParameters({ state: 'unprocessed' });
+			).addParameters({ state: 'pending' });
+			const signatureEndpoint = new SwaggerEndpoint('POST /signatures');
 
-			const account = randomUtil.account();
+			const senderAccount = randomUtil.account();
+			const recipientAccount = randomUtil.account();
+
 			const transactionList = [];
-			const numOfTransactions = 100;
+			const numOfTransactions = 5;
+			let transaction = null;
+
+			const randomMember = randomUtil.account();
 
 			before(() => {
-				const data = 'extra information';
+				// Credit account with some funds
+				transaction = transfer({
+					amount: (1000 * NORMALIZER).toString(),
+					passphrase: accountFixtures.genesis.passphrase,
+					recipientId: senderAccount.address,
+				});
 
-				// Create numOfTransactions transactions
-				for (let i = 0; i < numOfTransactions; i++) {
-					transactionList.push(
-						transfer({
-							amount: randomUtil.number(100000000, 1000000000).toString(),
-							passphrase: accountFixtures.genesis.passphrase,
-							recipientId: account.address,
-							data,
-						})
-					);
-				}
-
-				return Promise.map(transactionList, transaction => {
-					return sendTransactionPromise(transaction);
-				}).then(responses => {
-					responses.map(res => {
-						return expect(res.body.data.message).to.be.equal(
+				return sendTransactionPromise(transaction)
+					.then(res => {
+						expect(res.body.data.message).to.be.equal(
 							'Transaction(s) accepted'
 						);
+
+						return waitFor.confirmations([transaction.id]);
+					})
+					.then(() => {
+						// Create Second Signature for sender account
+						transaction = registerSecondPassphrase({
+							passphrase: senderAccount.passphrase,
+							secondPassphrase: senderAccount.secondPassphrase,
+						});
+
+						return sendTransactionPromise(transaction);
+					})
+					.then(res => {
+						expect(res.body.data.message).to.be.equal(
+							'Transaction(s) accepted'
+						);
+
+						return waitFor.confirmations([transaction.id]);
+					})
+					.then(() => {
+						// Convert account to multisig account
+						transaction = registerMultisignature({
+							passphrase: senderAccount.passphrase,
+							secondPassphrase: senderAccount.secondPassphrase,
+							keysgroup: [`${randomMember.publicKey}`],
+							lifetime: 1,
+							minimum: 1,
+						});
+
+						return sendTransactionPromise(transaction);
+					})
+					.then(res => {
+						expect(res.body.data.message).to.be.equal(
+							'Transaction(s) accepted'
+						);
+
+						const signature = apiHelpers.createSignatureObject(
+							transaction,
+							randomMember
+						);
+
+						return signatureEndpoint.makeRequest({ signature }, 200);
+					})
+					.then(res => {
+						expect(res.body.data.message).to.be.equal('Signature Accepted');
+
+						return waitFor.confirmations([transaction.id]);
+					})
+					.then(() => {
+						// Create numOfTransactions transactions
+						for (let i = 0; i < numOfTransactions; i++) {
+							transactionList.push(
+								transfer({
+									amount: ((i + 1) * NORMALIZER).toString(),
+									passphrase: senderAccount.passphrase,
+									secondPassphrase: senderAccount.secondPassphrase,
+									recipientId: recipientAccount.address,
+								})
+							);
+						}
+
+						return Promise.map(transactionList, mapTransaction => {
+							return sendTransactionPromise(mapTransaction);
+						});
+					})
+					.then(responses => {
+						responses.map(res => {
+							return expect(res.body.data.message).to.be.equal(
+								'Transaction(s) accepted'
+							);
+						});
 					});
-				});
 			});
 
 			describe('with wrong input', () => {
 				it('using invalid field name should fail', async () => {
-					return UnProcessedEndpoint.makeRequest(
+					return PendingEndpoint.makeRequest(
 						{
 							whatever: accountFixtures.genesis.address,
 						},
@@ -76,7 +148,7 @@ describe('GET /api/node', () => {
 				});
 
 				it('using empty parameter should fail', async () => {
-					return UnProcessedEndpoint.makeRequest(
+					return PendingEndpoint.makeRequest(
 						{
 							recipientPublicKey: '',
 						},
@@ -87,7 +159,7 @@ describe('GET /api/node', () => {
 				});
 
 				it('using completely invalid fields should fail', async () => {
-					return UnProcessedEndpoint.makeRequest(
+					return PendingEndpoint.makeRequest(
 						{
 							senderId: 'invalid',
 							recipientId: 'invalid',
@@ -106,10 +178,10 @@ describe('GET /api/node', () => {
 				});
 
 				it('using partially invalid fields should fail', async () => {
-					return UnProcessedEndpoint.makeRequest(
+					return PendingEndpoint.makeRequest(
 						{
 							senderId: 'invalid',
-							recipientId: account.address,
+							recipientId: senderAccount.address,
 							limit: 'invalid',
 							offset: 'invalid',
 							sort: 'invalid',
@@ -125,14 +197,14 @@ describe('GET /api/node', () => {
 			});
 
 			it('using no params should be ok', async () => {
-				return UnProcessedEndpoint.makeRequest({}, 200).then(res => {
-					expect(res.body.meta.count).to.be.at.least(1);
+				return PendingEndpoint.makeRequest({}, 200).then(res => {
+					expect(res.body.meta.count).to.be.at.least(numOfTransactions);
 				});
 			});
 
 			describe('id', () => {
 				it('using invalid id should fail', async () => {
-					return UnProcessedEndpoint.makeRequest({ id: '79fjdfd' }, 400).then(
+					return PendingEndpoint.makeRequest({ id: '79fjdfd' }, 400).then(
 						res => {
 							expectSwaggerParamError(res, 'id');
 						}
@@ -140,10 +212,9 @@ describe('GET /api/node', () => {
 				});
 
 				it('using valid id should be ok', async () => {
-					const transactionInCheck =
-						transactionList[transactionList.length - 1];
+					const transactionInCheck = transactionList[0];
 
-					return UnProcessedEndpoint.makeRequest(
+					return PendingEndpoint.makeRequest(
 						{ id: transactionInCheck.id },
 						200
 					).then(res => {
@@ -154,7 +225,7 @@ describe('GET /api/node', () => {
 				});
 
 				it('using valid but unknown id should be ok', async () => {
-					return UnProcessedEndpoint.makeRequest(
+					return PendingEndpoint.makeRequest(
 						{ id: '1111111111111111' },
 						200
 					).then(res => {
@@ -165,24 +236,22 @@ describe('GET /api/node', () => {
 
 			describe('type', () => {
 				it('using invalid type should fail', async () => {
-					return UnProcessedEndpoint.makeRequest({ type: 'a' }, 400).then(
-						res => {
-							expectSwaggerParamError(res, 'type');
-						}
-					);
+					return PendingEndpoint.makeRequest({ type: 'a' }, 400).then(res => {
+						expectSwaggerParamError(res, 'type');
+					});
 				});
 
-				it('using valid type should be ok @unstable', async () => {
+				it('using valid type should be ok', async () => {
 					const transactionInCheck = transactionList[0];
 
-					return UnProcessedEndpoint.makeRequest(
+					return PendingEndpoint.makeRequest(
 						{ type: transactionInCheck.type },
 						200
 					).then(res => {
 						expect(res.body.data).to.not.empty;
-						expect(res.body.data.length).to.be.at.least(1);
-						res.body.data.map(transaction => {
-							return expect(transaction.type).to.be.equal(
+						expect(res.body.data.length).to.be.at.least(numOfTransactions);
+						res.body.data.map(mapTransaction => {
+							return expect(mapTransaction.type).to.be.equal(
 								transactionInCheck.type
 							);
 						});
@@ -192,31 +261,30 @@ describe('GET /api/node', () => {
 
 			describe('senderId', () => {
 				it('using invalid senderId should fail', async () => {
-					return UnProcessedEndpoint.makeRequest(
-						{ senderId: '79fjdfd' },
-						400
-					).then(res => {
-						expectSwaggerParamError(res, 'senderId');
-					});
+					return PendingEndpoint.makeRequest({ senderId: '79fjdfd' }, 400).then(
+						res => {
+							expectSwaggerParamError(res, 'senderId');
+						}
+					);
 				});
 
 				it('using valid senderId should be ok', async () => {
-					return UnProcessedEndpoint.makeRequest(
-						{ senderId: accountFixtures.genesis.address },
+					return PendingEndpoint.makeRequest(
+						{ senderId: senderAccount.address },
 						200
 					).then(res => {
 						expect(res.body.data).to.not.empty;
-						expect(res.body.data.length).to.be.at.least(1);
-						res.body.data.map(transaction => {
-							return expect(transaction.senderId).to.be.equal(
-								accountFixtures.genesis.address
+						expect(res.body.data.length).to.be.at.least(numOfTransactions);
+						res.body.data.map(mapTransaction => {
+							return expect(mapTransaction.senderId).to.be.equal(
+								senderAccount.address
 							);
 						});
 					});
 				});
 
 				it('using valid but unknown senderId should be ok', async () => {
-					return UnProcessedEndpoint.makeRequest(
+					return PendingEndpoint.makeRequest(
 						{ senderId: '1631373961111634666L' },
 						200
 					).then(res => {
@@ -227,7 +295,7 @@ describe('GET /api/node', () => {
 
 			describe('senderPublicKey', () => {
 				it('using invalid senderPublicKey should fail', async () => {
-					return UnProcessedEndpoint.makeRequest(
+					return PendingEndpoint.makeRequest(
 						{ senderPublicKey: '79fjdfd' },
 						400
 					).then(res => {
@@ -236,22 +304,22 @@ describe('GET /api/node', () => {
 				});
 
 				it('using valid senderPublicKey should be ok', async () => {
-					return UnProcessedEndpoint.makeRequest(
-						{ senderPublicKey: accountFixtures.genesis.publicKey },
+					return PendingEndpoint.makeRequest(
+						{ senderPublicKey: senderAccount.publicKey },
 						200
 					).then(res => {
 						expect(res.body.data).to.not.empty;
-						expect(res.body.data.length).to.be.at.least(1);
-						res.body.data.map(transaction => {
-							return expect(transaction.senderPublicKey).to.be.equal(
-								accountFixtures.genesis.publicKey
+						expect(res.body.data.length).to.be.at.least(numOfTransactions);
+						res.body.data.map(mapTransaction => {
+							return expect(mapTransaction.senderPublicKey).to.be.equal(
+								senderAccount.publicKey
 							);
 						});
 					});
 				});
 
 				it('using valid but unknown senderPublicKey should be ok', async () => {
-					return UnProcessedEndpoint.makeRequest(
+					return PendingEndpoint.makeRequest(
 						{
 							senderPublicKey:
 								'c094ebee7ec0c50ebeeaaaa8655e089f6e1a604b83bcaa760293c61e0f18ab6f',
@@ -265,7 +333,7 @@ describe('GET /api/node', () => {
 
 			describe('recipientId', () => {
 				it('using invalid recipientId should fail', async () => {
-					return UnProcessedEndpoint.makeRequest(
+					return PendingEndpoint.makeRequest(
 						{ recipientId: '79fjdfd' },
 						400
 					).then(res => {
@@ -274,22 +342,22 @@ describe('GET /api/node', () => {
 				});
 
 				it('using valid recipientId should be ok', async () => {
-					return UnProcessedEndpoint.makeRequest(
-						{ recipientId: account.address },
+					return PendingEndpoint.makeRequest(
+						{ recipientId: recipientAccount.address },
 						200
 					).then(res => {
 						expect(res.body.data).to.not.empty;
-						expect(res.body.data.length).to.be.at.least(1);
-						res.body.data.map(transaction => {
-							return expect(transaction.recipientId).to.be.equal(
-								account.address
+						expect(res.body.data.length).to.be.at.least(numOfTransactions);
+						res.body.data.map(mapTransaction => {
+							return expect(mapTransaction.recipientId).to.be.equal(
+								recipientAccount.address
 							);
 						});
 					});
 				});
 
 				it('using valid but unknown recipientId should be ok', async () => {
-					return UnProcessedEndpoint.makeRequest(
+					return PendingEndpoint.makeRequest(
 						{ recipientId: '1631373961111634666L' },
 						200
 					).then(res => {
@@ -300,7 +368,7 @@ describe('GET /api/node', () => {
 
 			describe('recipientPublicKey', () => {
 				it('using invalid recipientPublicKey should fail', async () => {
-					return UnProcessedEndpoint.makeRequest(
+					return PendingEndpoint.makeRequest(
 						{ recipientPublicKey: '79fjdfd' },
 						400
 					).then(res => {
@@ -309,22 +377,22 @@ describe('GET /api/node', () => {
 				});
 
 				it('using valid recipientPublicKey should be ok', async () => {
-					return UnProcessedEndpoint.makeRequest(
-						{ recipientPublicKey: account.publicKey },
+					return PendingEndpoint.makeRequest(
+						{ recipientPublicKey: recipientAccount.publicKey },
 						200
 					).then(res => {
 						expect(res.body.data).to.not.empty;
-						expect(res.body.data.length).to.be.at.least(1);
-						res.body.data.map(transaction => {
-							return expect(transaction.recipientId).to.be.equal(
-								account.address
+						expect(res.body.data.length).to.be.at.least(numOfTransactions);
+						res.body.data.map(mapTransaction => {
+							return expect(mapTransaction.recipientId).to.be.equal(
+								recipientAccount.address
 							);
 						});
 					});
 				});
 
 				it('using valid but unknown recipientPublicKey should be ok', async () => {
-					return UnProcessedEndpoint.makeRequest(
+					return PendingEndpoint.makeRequest(
 						{
 							recipientPublicKey:
 								'c094ebee7ec0c50ebeeaaaa8655e089f6e1a604b83bcaa760293c61e0f18ab6f',
@@ -338,34 +406,28 @@ describe('GET /api/node', () => {
 
 			describe('limit', () => {
 				it('using limit < 0 should fail', async () => {
-					return UnProcessedEndpoint.makeRequest({ limit: -1 }, 400).then(
-						res => {
-							expectSwaggerParamError(res, 'limit');
-						}
-					);
+					return PendingEndpoint.makeRequest({ limit: -1 }, 400).then(res => {
+						expectSwaggerParamError(res, 'limit');
+					});
 				});
 
 				it('using limit > 100 should fail', async () => {
-					return UnProcessedEndpoint.makeRequest({ limit: 101 }, 400).then(
-						res => {
-							expectSwaggerParamError(res, 'limit');
-						}
-					);
+					return PendingEndpoint.makeRequest({ limit: 101 }, 400).then(res => {
+						expectSwaggerParamError(res, 'limit');
+					});
 				});
 
 				it('using limit = 2 should return 2 transactions', async () => {
-					return UnProcessedEndpoint.makeRequest({ limit: 2 }, 200).then(
-						res => {
-							expect(res.body.data).to.not.be.empty;
-							expect(res.body.data.length).to.be.at.most(2);
-						}
-					);
+					return PendingEndpoint.makeRequest({ limit: 2 }, 200).then(res => {
+						expect(res.body.data).to.not.be.empty;
+						expect(res.body.data.length).to.be.at.most(2);
+					});
 				});
 			});
 
-			describe('offset @unstable', () => {
+			describe('offset', () => {
 				it('using offset="one" should fail', async () => {
-					return UnProcessedEndpoint.makeRequest({ offset: 'one' }, 400).then(
+					return PendingEndpoint.makeRequest({ offset: 'one' }, 400).then(
 						res => {
 							expectSwaggerParamError(res, 'offset');
 						}
@@ -375,18 +437,15 @@ describe('GET /api/node', () => {
 				it('using offset=1 should be ok', async () => {
 					let firstTransaction = null;
 
-					return UnProcessedEndpoint.makeRequest({ offset: 0, limit: 2 }, 200)
+					return PendingEndpoint.makeRequest({ offset: 0, limit: 2 }, 200)
 						.then(res => {
 							firstTransaction = res.body.data[0];
 
-							return UnProcessedEndpoint.makeRequest(
-								{ offset: 1, limit: 2 },
-								200
-							);
+							return PendingEndpoint.makeRequest({ offset: 1, limit: 2 }, 200);
 						})
 						.then(res => {
-							res.body.data.forEach(transaction => {
-								expect(transaction.id).to.not.equal(firstTransaction.id);
+							res.body.data.forEach(mapTransaction => {
+								expect(mapTransaction.id).to.not.equal(firstTransaction.id);
 							});
 						});
 				});
@@ -395,7 +454,7 @@ describe('GET /api/node', () => {
 			describe('sort', () => {
 				describe('amount', () => {
 					it('sorted by amount:asc should be ok', async () => {
-						return UnProcessedEndpoint.makeRequest(
+						return PendingEndpoint.makeRequest(
 							{ sort: 'amount:asc' },
 							200
 						).then(res => {
@@ -410,7 +469,7 @@ describe('GET /api/node', () => {
 					});
 
 					it('sorted by amount:desc should be ok', async () => {
-						return UnProcessedEndpoint.makeRequest(
+						return PendingEndpoint.makeRequest(
 							{ sort: 'amount:desc' },
 							200
 						).then(res => {
@@ -427,71 +486,69 @@ describe('GET /api/node', () => {
 
 				describe('fee', () => {
 					it('sorted by fee:asc should be ok', async () => {
-						return UnProcessedEndpoint.makeRequest(
-							{ sort: 'fee:asc' },
-							200
-						).then(res => {
-							expect(res.body.data).to.not.be.empty;
+						return PendingEndpoint.makeRequest({ sort: 'fee:asc' }, 200).then(
+							res => {
+								expect(res.body.data).to.not.be.empty;
 
-							const values = _.map(res.body.data, 'fee').map(value => {
-								return parseInt(value);
-							});
+								const values = _.map(res.body.data, 'fee').map(value => {
+									return parseInt(value);
+								});
 
-							expect(_(_.clone(values)).sortNumbers('asc')).to.be.eql(values);
-						});
+								expect(_(_.clone(values)).sortNumbers('asc')).to.be.eql(values);
+							}
+						);
 					});
 
 					it('sorted by fee:desc should be ok', async () => {
-						return UnProcessedEndpoint.makeRequest(
-							{ sort: 'fee:desc' },
-							200
-						).then(res => {
-							expect(res.body.data).to.not.be.empty;
+						return PendingEndpoint.makeRequest({ sort: 'fee:desc' }, 200).then(
+							res => {
+								expect(res.body.data).to.not.be.empty;
 
-							const values = _.map(res.body.data, 'fee').map(value => {
-								return parseInt(value);
-							});
+								const values = _.map(res.body.data, 'fee').map(value => {
+									return parseInt(value);
+								});
 
-							expect(_(_.clone(values)).sortNumbers('desc')).to.be.eql(values);
-						});
+								expect(_(_.clone(values)).sortNumbers('desc')).to.be.eql(
+									values
+								);
+							}
+						);
 					});
 				});
 
 				describe('type', () => {
 					it('sorted by fee:asc should be ok', async () => {
-						return UnProcessedEndpoint.makeRequest(
-							{ sort: 'type:asc' },
-							200
-						).then(res => {
-							expect(res.body.data).to.not.be.empty;
+						return PendingEndpoint.makeRequest({ sort: 'type:asc' }, 200).then(
+							res => {
+								expect(res.body.data).to.not.be.empty;
 
-							expect(
-								_(res.body.data)
-									.map('type')
-									.sortNumbers('asc')
-							).to.be.eql(_.map(res.body.data, 'type'));
-						});
+								expect(
+									_(res.body.data)
+										.map('type')
+										.sortNumbers('asc')
+								).to.be.eql(_.map(res.body.data, 'type'));
+							}
+						);
 					});
 
 					it('sorted by fee:desc should be ok', async () => {
-						return UnProcessedEndpoint.makeRequest(
-							{ sort: 'type:desc' },
-							200
-						).then(res => {
-							expect(res.body.data).to.not.be.empty;
+						return PendingEndpoint.makeRequest({ sort: 'type:desc' }, 200).then(
+							res => {
+								expect(res.body.data).to.not.be.empty;
 
-							expect(
-								_(res.body.data)
-									.map('type')
-									.sortNumbers('desc')
-							).to.be.eql(_.map(res.body.data, 'type'));
-						});
+								expect(
+									_(res.body.data)
+										.map('type')
+										.sortNumbers('desc')
+								).to.be.eql(_.map(res.body.data, 'type'));
+							}
+						);
 					});
 				});
 
 				describe('timestamp', () => {
 					it('sorted by timestamp:asc should be ok', async () => {
-						return UnProcessedEndpoint.makeRequest(
+						return PendingEndpoint.makeRequest(
 							{ sort: 'timestamp:asc' },
 							200
 						).then(res => {
@@ -506,7 +563,7 @@ describe('GET /api/node', () => {
 					});
 
 					it('sorted by timestamp:desc should be ok', async () => {
-						return UnProcessedEndpoint.makeRequest(
+						return PendingEndpoint.makeRequest(
 							{ sort: 'timestamp:desc' },
 							200
 						).then(res => {
@@ -522,7 +579,7 @@ describe('GET /api/node', () => {
 				});
 
 				it('using any other sort field should fail', async () => {
-					return UnProcessedEndpoint.makeRequest({ sort: 'id:asc' }, 400).then(
+					return PendingEndpoint.makeRequest({ sort: 'id:asc' }, 400).then(
 						res => {
 							expectSwaggerParamError(res, 'sort');
 						}
