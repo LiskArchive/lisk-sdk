@@ -34,6 +34,7 @@ const {
 	initModules,
 } = require('./init_steps');
 const { Transactions, TransactionPool } = require('./transactions');
+const { BlockSlots } = require('./logic/block_slots');
 
 const syncInterval = 10000;
 const forgeInterval = 1000;
@@ -156,13 +157,20 @@ module.exports = class Chain {
 			this.scope.bus = await createBus();
 			this.scope.logic = await initLogicStructure(this.scope);
 			this.scope.modules = await initModules(this.scope);
+			const blockSlots = new BlockSlots({
+				epochTime: this.options.constants.EPOCH_TIME,
+				interval: this.options.constants.BLCOK_TIME,
+				blocksPerRound: this.options.constants.ACTIVE_DELEGATES,
+			});
 			this.transactions = new Transactions({
 				storage,
 				logger: this.looger,
 				exceptions: this.options.exceptions,
+				slots: blockSlots,
 			});
 			this.transactionPool = new TransactionPool({
 				transactions: this.transactions,
+				slots: blockSlots,
 				logger: this.looger,
 				maxTransactionsPerQueue: this.options.transactions
 					.maxTransactionsPerQueue,
