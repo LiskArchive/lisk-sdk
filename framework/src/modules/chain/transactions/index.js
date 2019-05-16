@@ -17,12 +17,11 @@
 const { Transactions } = require('./transactions');
 const { Transaction } = require('./transaction');
 const { TransactionPool } = require('./transaction_pool');
-const { sort, sortBy } = require('./sort');
+const { sort } = require('./sort');
 
 module.exports = {
 	Transactions,
 	TransactionPool,
 	Transaction,
-	sortBy,
 	sort,
 };

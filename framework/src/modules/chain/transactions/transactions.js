@@ -24,49 +24,9 @@ const votes = require('./votes');
 const {
 	updateTransactionResponseForExceptionTransactions,
 } = require('./handle_exceptions');
-const { composeTransactionSteps } = require('./compose_transaction_steps');
 
 class Transactions {
 	constructor({ storage, logger, exceptions, slot }) {}
-
-	getTransactions(filters) {}
-
-	async getTransactionAndProcessSignature(signature) {
-		if (!signature) {
-			const message = 'Unable to process signature, signature not provided';
-			this.logger.error(message);
-			throw new TransactionError(message, '', '.signature');
-		}
-		// Grab transaction with corresponding ID from transaction pool
-		const transaction = this.pool.getMultisignatureTransaction(
-			signature.transactionId
-		);
-
-		if (!transaction) {
-			const message =
-				'Unable to process signature, corresponding transaction not found';
-			this.logger.error(message, { signature });
-			throw new TransactionError(message, '', '.signature');
-		}
-
-		const transactionResponse = await this.processSignature(
-			transaction,
-			signature
-		);
-		if (
-			transactionResponse.status === TransactionStatus.FAIL &&
-			transactionResponse.errors.length > 0
-		) {
-			const message = transactionResponse.errors[0].message;
-			this.logger.error(message, { signature });
-			throw transactionResponse.errors;
-		}
-		// Emit events
-		this.emit('chain:multisignatures:signature:change', {
-			id: transaction.id,
-			signature,
-		});
-	}
 
 	// eslint-disable-next-line class-methods-use-this
 	validateTransactions(transactions) {
@@ -79,7 +39,8 @@ class Transactions {
 		);
 		updateTransactionResponseForExceptionTransactions(
 			invalidTransactionResponses,
-			transactions
+			transactions,
+			this.exceptions
 		);
 
 		return {
@@ -109,7 +70,8 @@ class Transactions {
 
 		updateTransactionResponseForExceptionTransactions(
 			unappliableTransactionsResponse,
-			transactions
+			transactions,
+			this.exceptions
 		);
 
 		return {
@@ -207,7 +169,8 @@ class Transactions {
 
 		updateTransactionResponseForExceptionTransactions(
 			unundoableTransactionsResponse,
-			transactions
+			transactions,
+			this.exceptions
 		);
 
 		return {
@@ -250,7 +213,8 @@ class Transactions {
 
 		updateTransactionResponseForExceptionTransactions(
 			unverifiableTransactionsResponse,
-			transactions
+			transactions,
+			this.exceptions
 		);
 
 		return {
