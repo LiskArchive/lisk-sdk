@@ -163,14 +163,14 @@ function getUnconfirmedTransactions(cb) {
 
 function getQueuedTransaction(transaction, cb) {
 	http.get(
-		`/api/node/transactions/ready?id=${transaction}`,
+		`/api/node/transactions/verified?id=${transaction}`,
 		httpResponseCallbackHelper.bind(null, cb)
 	);
 }
 
 function getQueuedTransactions(cb) {
 	http.get(
-		'/api/node/transactions/ready',
+		'/api/node/transactions/verified',
 		httpResponseCallbackHelper.bind(null, cb)
 	);
 }
