@@ -24,6 +24,8 @@ import shuffle = require('lodash.shuffle');
 import { SCClientSocket } from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
 import { RequestFailError } from './errors';
+import { InboundPeer } from './inbound_peer';
+import { OutboundPeer } from './outobund_peer';
 import { P2PRequest } from './p2p_request';
 import {
 	P2PClosePacket,
@@ -100,8 +102,12 @@ export class PeerPool extends EventEmitter {
 	private readonly _handlePeerConnectAbort: (
 		peerInfo: P2PDiscoveredPeerInfo,
 	) => void;
-	private readonly _handlePeerCloseOutbound: (closePacket: P2PClosePacket) => void;
-	private readonly _handlePeerCloseInbound: (closePacket: P2PClosePacket) => void;
+	private readonly _handlePeerCloseOutbound: (
+		closePacket: P2PClosePacket,
+	) => void;
+	private readonly _handlePeerCloseInbound: (
+		closePacket: P2PClosePacket,
+	) => void;
 	private readonly _handlePeerOutboundSocketError: (error: Error) => void;
 	private readonly _handlePeerInboundSocketError: (error: Error) => void;
 	private readonly _handlePeerInfoUpdate: (
@@ -321,14 +327,8 @@ export class PeerPool extends EventEmitter {
 	): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> {
 		const peersForDiscovery = knownPeers.map(peerInfo => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			const existingPeer = this.getPeer(peerId);
-			if (existingPeer) {
-				existingPeer.updatePeerInfo(peerInfo);
 
-				return existingPeer;
-			}
-
-			return this.addPeer(peerInfo);
+			return this.addOutboundPeer(peerId, peerInfo);
 		});
 
 		const peerSampleToProbe = selectRandomPeerSample(
@@ -360,28 +360,22 @@ export class PeerPool extends EventEmitter {
 
 		peersToConnect.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			const existingPeer = this.getPeer(peerId);
-			if (!existingPeer) {
-				return this.addPeer(peerInfo);
-			}
 
-			existingPeer.updatePeerInfo(peerInfo);
-
-			return existingPeer;
+			return this.addOutboundPeer(peerId, peerInfo);
 		});
 
 		return peersToConnect;
 	}
 
-	public addPeer(
+	public addInboundPeer(
 		peerInfo: P2PDiscoveredPeerInfo,
-		inboundSocket?: SCServerSocket,
+		socket: SCServerSocket,
 	): Peer {
 		const peerConfig = {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
 		};
-		const peer = new Peer(peerInfo, peerConfig, { inbound: inboundSocket });
+		const peer = new InboundPeer(peerInfo, peerConfig, socket);
 
 		// Throw an error because adding a peer multiple times is a common developer error which is very difficult to identify and debug.
 		if (this._peerMap.has(peer.id)) {
@@ -392,81 +386,28 @@ export class PeerPool extends EventEmitter {
 		if (this._nodeInfo) {
 			this._applyNodeInfoOnPeer(peer, this._nodeInfo);
 		}
-		peer.connect();
 
 		return peer;
-	}
-
-	public addDiscoveredPeer(
-		detailedPeerInfo: P2PDiscoveredPeerInfo,
-		inboundSocket?: SCServerSocket,
-	): Peer {
-		const peerConfig = {
-			connectTimeout: this._peerPoolConfig.connectTimeout,
-			ackTimeout: this._peerPoolConfig.ackTimeout,
-		};
-		const peer = new Peer(detailedPeerInfo, peerConfig, {
-			inbound: inboundSocket,
-		});
-		this._peerMap.set(peer.id, peer);
-		this._bindHandlersToPeer(peer);
-		if (this._nodeInfo) {
-			this._applyNodeInfoOnPeer(peer, this._nodeInfo);
-		}
-		peer.updatePeerInfo(detailedPeerInfo);
-		peer.connect();
-
-		return peer;
-	}
-
-	public addInboundPeer(
-		peerId: string,
-		peerInfo: P2PDiscoveredPeerInfo,
-		socket: SCServerSocket,
-	): boolean {
-		const existingPeer = this.getPeer(peerId);
-
-		if (existingPeer) {
-			// Update the peerInfo from the latest inbound socket.
-			existingPeer.updatePeerInfo(peerInfo);
-			if (existingPeer.state.inbound === ConnectionState.CLOSED) {
-				existingPeer.inboundSocket = socket;
-
-				return false;
-			}
-
-			return false;
-		}
-
-		this.addPeer(peerInfo, socket);
-
-		return true;
 	}
 
 	public addOutboundPeer(
 		peerId: string,
 		peerInfo: P2PDiscoveredPeerInfo,
-		socket: SCClientSocket,
-	): boolean {
+		socket?: SCClientSocket,
+	): Peer {
 		const existingPeer = this.getPeer(peerId);
-
 		if (existingPeer) {
 			// Update the peerInfo from the latest inbound socket.
 			existingPeer.updatePeerInfo(peerInfo);
-			if (existingPeer.state.outbound === ConnectionState.CLOSED) {
-				existingPeer.outboundSocket = socket;
 
-				return false;
-			}
-
-			return false;
+			return existingPeer;
 		}
 
 		const peerConfig = {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
 		};
-		const peer = new Peer(peerInfo, peerConfig, { outbound: socket });
+		const peer = new OutboundPeer(peerInfo, peerConfig, socket);
 
 		this._peerMap.set(peer.id, peer);
 		this._bindHandlersToPeer(peer);
@@ -474,7 +415,7 @@ export class PeerPool extends EventEmitter {
 			this._applyNodeInfoOnPeer(peer, this._nodeInfo);
 		}
 
-		return true;
+		return peer;
 	}
 
 	public removeAllPeers(): void {
@@ -511,11 +452,7 @@ export class PeerPool extends EventEmitter {
 
 	private _removePeerIfFullyDisconnected(peerId: string): void {
 		const peer = this.getPeer(peerId);
-		if (
-			peer &&
-			peer.state.inbound === ConnectionState.CLOSED &&
-			peer.state.outbound === ConnectionState.CLOSED
-		) {
+		if (peer && peer.state === ConnectionState.CLOSED) {
 			this.removePeer(peerId);
 		}
 	}

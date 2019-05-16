@@ -142,8 +142,12 @@ export class P2P extends EventEmitter {
 	private readonly _handlePeerConnectAbort: (
 		peerInfo: P2PDiscoveredPeerInfo,
 	) => void;
-	private readonly _handlePeerCloseOutbound: (closePacket: P2PClosePacket) => void;
-	private readonly _handlePeerCloseInbound: (closePacket: P2PClosePacket) => void;
+	private readonly _handlePeerCloseOutbound: (
+		closePacket: P2PClosePacket,
+	) => void;
+	private readonly _handlePeerCloseInbound: (
+		closePacket: P2PClosePacket,
+	) => void;
 	private readonly _handlePeerInfoUpdate: (
 		peerInfo: P2PDiscoveredPeerInfo,
 	) => void;
@@ -477,13 +481,10 @@ export class P2P extends EventEmitter {
 					return;
 				}
 
-				const isNewPeer = this._peerPool.addInboundPeer(
-					peerId,
-					incomingPeerInfo,
-					socket,
-				);
+				const existingPeer = this._peerPool.getPeer(peerId);
 
-				if (isNewPeer) {
+				if (!existingPeer) {
+					this._peerPool.addInboundPeer(incomingPeerInfo, socket);
 					this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
 					this.emit(EVENT_NEW_PEER, incomingPeerInfo);
 				}
