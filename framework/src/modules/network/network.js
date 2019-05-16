@@ -142,29 +142,33 @@ module.exports = class Network {
 
 		this.p2p.on(EVENT_CLOSE_OUTBOUND, closePacket => {
 			this.logger.debug(
-				`Outbound connection of peer ${closePacket.peerInfo.ipAddress}:${
-					closePacket.peerInfo.wsPort
-				} was closed with code ${closePacket.code} and reason: ${
-					closePacket.reason
-				}`
+				`Peer disconnect event: Outbound connection of peer ${
+					closePacket.peerInfo.ipAddress
+				}:${closePacket.peerInfo.wsPort} was closed with code ${
+					closePacket.code
+				} and reason: ${closePacket.reason}`
 			);
 		});
 
 		this.p2p.on(EVENT_CONNECT_OUTBOUND, peerInfo => {
 			this.logger.info(
-				`Connected to peer ${peerInfo.ipAddress}:${peerInfo.wsPort}`
+				`Peer connect event: Connected to peer ${peerInfo.ipAddress}:${
+					peerInfo.wsPort
+				}`
 			);
 		});
 
 		this.p2p.on(EVENT_DISCOVERED_PEER, peerInfo => {
 			this.logger.info(
-				`Discovered peer ${peerInfo.ipAddress}:${peerInfo.wsPort}`
+				`New peer found event: Discovered peer ${peerInfo.ipAddress}:${
+					peerInfo.wsPort
+				}`
 			);
 		});
 
 		this.p2p.on(EVENT_NEW_INBOUND_PEER, peerInfo => {
 			this.logger.debug(
-				`Connected from peer ${peerInfo.ipAddress}:${
+				`New inbound peer event: Connected from peer ${peerInfo.ipAddress}:${
 					peerInfo.wsPort
 				} ${JSON.stringify(peerInfo)}`
 			);
@@ -188,7 +192,7 @@ module.exports = class Network {
 
 		this.p2p.on(EVENT_UPDATED_PEER_INFO, peerInfo => {
 			this.logger.debug(
-				`Updated info of peer ${peerInfo.ipAddress}:${
+				`Peer update info event: Updated info of peer ${peerInfo.ipAddress}:${
 					peerInfo.wsPort
 				} to ${JSON.stringify(peerInfo)}`
 			);
@@ -200,7 +204,9 @@ module.exports = class Network {
 
 		this.p2p.on(EVENT_REQUEST_RECEIVED, async request => {
 			this.logger.info(
-				`Received inbound request for procedure ${request.procedure}`
+				`Incoming request event: Received inbound request for procedure ${
+					request.procedure
+				}`
 			);
 			// If the request has already been handled internally by the P2P library, we ignore.
 			if (request.wasResponseSent) {
@@ -216,11 +222,15 @@ module.exports = class Network {
 					sanitizedProcedure,
 					request.data
 				);
-				this.logger.debug(`Responsed to peer request ${request.procedure}`);
+				this.logger.debug(
+					`Peer request fulfilled event: Responsed to peer request ${
+						request.procedure
+					}`
+				);
 				request.end(result); // Send the response back to the peer.
 			} catch (error) {
 				this.logger.error(
-					`Could not respond to peer request ${
+					`Peer request not fulfilled event: Could not respond to peer request ${
 						request.procedure
 					} because of error: ${error.message || error}`
 				);
@@ -229,7 +239,11 @@ module.exports = class Network {
 		});
 
 		this.p2p.on(EVENT_MESSAGE_RECEIVED, async packet => {
-			this.logger.debug(`Received inbound message for event ${packet.event}`);
+			this.logger.debug(
+				`Message Received event: Received inbound message for event ${
+					packet.event
+				}`
+			);
 			this.channel.publish('network:event', packet);
 		});
 
