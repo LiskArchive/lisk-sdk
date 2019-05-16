@@ -629,7 +629,7 @@ describe('Integration tests for P2P library', () => {
 			});
 		});
 
-		describe('Cleanup unresponsive peers', () => {
+		describe.skip('Cleanup unresponsive peers', () => {
 			it('should remove crashed nodes from network status of other nodes', async () => {
 				const initialNetworkStatus = p2pNodeList[0].getNetworkStatus();
 				const initialPeerPorts = initialNetworkStatus.connectedPeers
