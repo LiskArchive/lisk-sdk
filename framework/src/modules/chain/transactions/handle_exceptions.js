@@ -230,7 +230,7 @@ const checkIfTransactionIsException = (
 		checkMultisig,
 		checkVoteTransactionAmount,
 	]
-		.map(fn => fn(exceptions, transactionResponse, transaction))
+		.map(fn => fn(transactionResponse, transaction, exceptions))
 		.some(isException => isException);
 
 const checkIfTransactionIsInert = (transaction, exceptions = {}) =>

@@ -20,7 +20,7 @@ const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const BlockReward = require('../../logic/block_reward');
 const slots = require('../../helpers/slots');
 const blockVersion = require('../../logic/block_version');
-const checkTransactionExceptions = require('../../logic/check_transaction_against_exceptions.js');
+const { checkIfTransactionIsInert } = require('../../transactions');
 const Bignum = require('../../helpers/bignum');
 
 let modules;
@@ -51,7 +51,7 @@ __private.lastNBlockIds = [];
  * @todo Add description for the class
  */
 class Verify {
-	constructor(logger, block, storage, config, channel) {
+	constructor(logger, block, storage, config, channel, transactions) {
 		library = {
 			logger,
 			storage,
@@ -67,6 +67,9 @@ class Verify {
 		};
 		self = this;
 		__private.blockReward = new BlockReward();
+		self.modules = {
+			transactions,
+		};
 		library.logger.trace('Blocks->Verify: Submodule initialized.');
 		return self;
 	}
@@ -355,8 +358,7 @@ class Verify {
 		modules = {
 			blocks: scope.modules.blocks,
 			delegates: scope.modules.delegates,
-			transactions: scope.modules.transactions,
-			processTransactions: scope.modules.processTransactions,
+			transactionPool: scope.modules.transactionPool,
 		};
 
 		// Set module as loaded
@@ -397,7 +399,9 @@ __private.checkTransactions = async (block, checkExists) => {
 		);
 
 		if (persistedTransactions.length > 0) {
-			modules.transactions.onConfirmedTransactions([persistedTransactions[0]]);
+			modules.transactionPool.onConfirmedTransactions([
+				persistedTransactions[0],
+			]);
 			throw new Error(
 				`Transaction is already confirmed: ${persistedTransactions[0].id}`
 			);
@@ -405,11 +409,10 @@ __private.checkTransactions = async (block, checkExists) => {
 	}
 
 	const nonInertTransactions = transactions.filter(
-		transaction =>
-			!checkTransactionExceptions.checkIfTransactionIsInert(transaction)
+		transaction => !checkIfTransactionIsInert(transaction, exceptions)
 	);
 
-	const nonAllowedTxResponses = modules.processTransactions
+	const nonAllowedTxResponses = self.modules.transactions
 		.checkAllowedTransactions(nonInertTransactions, context)
 		.transactionsResponses.find(
 			transactionResponse => transactionResponse.status !== TransactionStatus.OK
@@ -421,9 +424,7 @@ __private.checkTransactions = async (block, checkExists) => {
 
 	const {
 		transactionsResponses,
-	} = await modules.processTransactions.verifyTransactions(
-		nonInertTransactions
-	);
+	} = await self.modules.transactions.verifyTransactions(nonInertTransactions);
 
 	const unverifiableTransactionsResponse = transactionsResponses.filter(
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK

@@ -461,11 +461,10 @@ class Loader {
 		};
 
 		modules = {
-			transactions: scope.modules.transactions,
+			transactionPool: scope.modules.transactionPool,
 			blocks: scope.modules.blocks,
 			peers: scope.modules.peers,
-			multisignatures: scope.modules.multisignatures,
-			processTransactions: scope.modules.processTransactions,
+			transactions: scope.modules.transactions,
 		};
 	}
 }
@@ -501,13 +500,8 @@ __private.getSignaturesFromNetwork = async function() {
 			for (let j = 0; j < subSignatureCount; j++) {
 				const signature = signaturePacket.signatures[j];
 
-				const processSignature = promisify(
-					modules.multisignatures.getTransactionAndProcessSignature.bind(
-						modules.multisignatures
-					)
-				);
 				// eslint-disable-next-line no-await-in-loop
-				await processSignature({
+				await modules.transactionPool.getTransactionAndProcessSignature({
 					signature,
 					transactionId: signature.transactionId,
 				});
@@ -541,9 +535,9 @@ __private.getTransactionsFromNetwork = async function() {
 
 	const transactions = result.transactions;
 	try {
-		const {
-			transactionsResponses,
-		} = modules.processTransactions.validateTransactions(transactions);
+		const { transactionsResponses } = modules.transactions.validateTransactions(
+			transactions
+		);
 		const invalidTransactionResponse = transactionsResponses.find(
 			transactionResponse => transactionResponse.status !== TransactionStatus.OK
 		);
@@ -572,7 +566,7 @@ __private.getTransactionsFromNetwork = async function() {
 			/* eslint-disable-next-line */
 			await balancesSequenceAdd(addSequenceCb => {
 				transaction.bundled = true;
-				modules.transactions.processUnconfirmedTransaction(
+				modules.transactionPool.processUnconfirmedTransaction(
 					transaction,
 					false,
 					addSequenceCb

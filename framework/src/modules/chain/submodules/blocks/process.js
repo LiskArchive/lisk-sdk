@@ -58,7 +58,7 @@ class Process {
 		sequence,
 		genesisBlock,
 		channel,
-		initTransaction
+		transactions
 	) {
 		library = {
 			channel,
@@ -70,10 +70,12 @@ class Process {
 			logic: {
 				block,
 				peers,
-				initTransaction,
 			},
 		};
 		self = this;
+		self.modules = {
+			transactions,
+		};
 
 		library.logger.trace('Blocks->Process: Submodule initialized.');
 		return self;
@@ -295,7 +297,7 @@ class Process {
 	generateBlock(keypair, timestamp, cb) {
 		// Get transactions that will be included in block
 		const transactions =
-			modules.transactions.getUnconfirmedTransactionList(
+			modules.transactionPool.getUnconfirmedTransactionList(
 				false,
 				MAX_TRANSACTIONS_PER_BLOCK
 			) || [];
@@ -306,7 +308,7 @@ class Process {
 			blockVersion: blockVersion.currentBlockVersion,
 		};
 
-		const allowedTransactionsIds = modules.processTransactions
+		const allowedTransactionsIds = self.modules.transactions
 			.checkAllowedTransactions(transactions, context)
 			.transactionsResponses.filter(
 				transactionResponse =>
@@ -318,7 +320,7 @@ class Process {
 			allowedTransactionsIds.includes(transaction.id)
 		);
 
-		modules.processTransactions
+		self.modules.transactions
 			.verifyTransactions(allowedTransactions)
 			.then(({ transactionsResponses: responses }) => {
 				const readyTransactions = transactions.filter(transaction =>
@@ -418,8 +420,7 @@ class Process {
 		modules = {
 			blocks: scope.modules.blocks,
 			delegates: scope.modules.delegates,
-			transactions: scope.modules.transactions,
-			processTransactions: scope.modules.processTransactions,
+			transactionPool: scope.modules.transactionPool,
 		};
 
 		// Set module as loaded

@@ -91,7 +91,7 @@ class Multisignatures {
 			]);
 		}
 
-		return modules.processTransactions
+		return modules.transactions
 			.processSignature(transaction, signature)
 			.then(transactionResponse => {
 				if (
@@ -124,7 +124,7 @@ class Multisignatures {
 	onBind(scope) {
 		modules = {
 			transactions: scope.modules.transactions,
-			processTransactions: scope.modules.processTransactions,
+			transactions: scope.modules.transactions,
 		};
 	}
 

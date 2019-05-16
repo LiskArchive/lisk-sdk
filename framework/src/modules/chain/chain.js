@@ -116,11 +116,11 @@ module.exports = class Chain {
 
 			// Cache
 			this.logger.debug('Initiating cache...');
-			const cache = createCacheComponent(cacheConfig, this.logger);
+			this.cache = createCacheComponent(cacheConfig, this.logger);
 
 			// Storage
 			this.logger.debug('Initiating storage...');
-			const storage = createStorageComponent(storageConfig, dbLogger);
+			this.storage = createStorageComponent(storageConfig, dbLogger);
 
 			// TODO: For socket cluster child process, should be removed with refactoring of network module
 			this.options.loggerConfig = loggerConfig;
@@ -143,9 +143,9 @@ module.exports = class Chain {
 					},
 				}),
 				components: {
-					storage,
-					cache,
-					logger: self.logger,
+					storage: this.storage,
+					cache: this.cache,
+					logger: this.logger,
 				},
 				channel: this.channel,
 				applicationState: this.applicationState,
@@ -156,31 +156,17 @@ module.exports = class Chain {
 
 			this.scope.bus = await createBus();
 			this.scope.logic = await initLogicStructure(this.scope);
+
+			this._initModules();
+			this.scope.modules = {};
+			// TODO: Remove - Temporal write to modules for blocks circular dependency
+			this.scope.modules.transactions = this.transactions;
+
 			this.scope.modules = await initModules(this.scope);
-			const blockSlots = new BlockSlots({
-				epochTime: this.options.constants.EPOCH_TIME,
-				interval: this.options.constants.BLCOK_TIME,
-				blocksPerRound: this.options.constants.ACTIVE_DELEGATES,
-			});
-			this.transactions = new Transactions({
-				storage,
-				logger: this.looger,
-				exceptions: this.options.exceptions,
-				slots: blockSlots,
-			});
-			this.transactionPool = new TransactionPool({
-				transactions: this.transactions,
-				slots: blockSlots,
-				logger: this.looger,
-				maxTransactionsPerQueue: this.options.transactions
-					.maxTransactionsPerQueue,
-				expireTransactionsInterval: this.options.constants.EXPIRY_INTERVAL,
-				maxTransactionsPerBlock: this.options.constants
-					.MAX_TRANSACTIONS_PER_BLOCK,
-				maxSharedTransactions: this.options.constants.MAX_SHARED_TRANSACTIONS,
-				broadcastInterval: this.options.broadcasts.broadcastInterval,
-				releaseLimit: this.options.broadcasts.releaseLimit,
-			});
+			// TODO: Remove - Temporal write to modules for blocks circular dependency
+			this.scope.modules.transactions = this.transactions;
+			this.scope.modules.transactionPool = this.transactionPool;
+
 			// TODO: Global variable forbits to require on top
 			const Loader = require('./loader');
 			const { Forger } = require('./forger');
@@ -293,6 +279,7 @@ module.exports = class Chain {
 				loaded: true,
 				syncing: this.loader.syncing(),
 				transactions: await promisify(
+					// TODO: move to HTTP-API module
 					this.scope.modules.transactions.shared.getTransactionsCount
 				)(),
 				secondsSinceEpoch: this.slots.getTime(),
@@ -343,6 +330,34 @@ module.exports = class Chain {
 		});
 
 		this.logger.info('Cleaned up successfully');
+	}
+
+	_initModules() {
+		const blockSlots = new BlockSlots({
+			epochTime: this.options.constants.EPOCH_TIME,
+			interval: this.options.constants.BLCOK_TIME,
+			blocksPerRound: this.options.constants.ACTIVE_DELEGATES,
+		});
+		this.transactions = new Transactions({
+			storage: this.storage,
+			logger: this.loger,
+			registeredTransactions: this.options.registeredTransactions,
+			slots: blockSlots,
+			exceptions: this.options.exceptions,
+		});
+		this.transactionPool = new TransactionPool({
+			transactions: this.transactions,
+			slots: blockSlots,
+			logger: this.logger,
+			maxTransactionsPerQueue: this.options.transactions
+				.maxTransactionsPerQueue,
+			expireTransactionsInterval: this.options.constants.EXPIRY_INTERVAL,
+			maxTransactionsPerBlock: this.options.constants
+				.MAX_TRANSACTIONS_PER_BLOCK,
+			maxSharedTransactions: this.options.constants.MAX_SHARED_TRANSACTIONS,
+			broadcastInterval: this.options.broadcasts.broadcastInterval,
+			releaseLimit: this.options.broadcasts.releaseLimit,
+		});
 	}
 
 	_startLoader() {

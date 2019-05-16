@@ -421,7 +421,7 @@ class Transactions {
 			cache: scope.components ? scope.components.cache : undefined,
 		};
 
-		__private.transactionPool.bind(scope.modules.processTransactions);
+		__private.transactionPool.bind(scope.modules.transactions);
 	}
 
 	// Shared API

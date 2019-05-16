@@ -14,6 +14,7 @@
 
 'use strict';
 
+const { omitBy, isNull } = require('lodash');
 const {
 	Status: TransactionStatus,
 	TransactionError,
@@ -25,11 +26,60 @@ const {
 } = require('./handle_exceptions');
 
 class Transactions {
-	constructor({ storage, logger, exceptions, slots }) {
+	constructor({ storage, logger, exceptions, slots, registeredTransactions }) {
 		this.storage = storage;
 		this.logger = logger;
 		this.exceptions = exceptions;
 		this.slots = slots;
+
+		this.transactionClassMap = new Map();
+		Object.keys(registeredTransactions || {}).forEach(transactionType => {
+			this.transactionClassMap.set(
+				Number(transactionType),
+				registeredTransactions[transactionType]
+			);
+		});
+	}
+
+	fromBlock(block) {
+		const transactions = block.transactions || [];
+
+		const response = transactions.map(transaction =>
+			this.fromJson(transaction)
+		);
+
+		return response;
+	}
+
+	fromJson(rawTx) {
+		const TransactionClass = this.transactionClassMap.get(rawTx.type);
+
+		if (!TransactionClass) {
+			throw new Error('Transaction type not found.');
+		}
+
+		return new TransactionClass(rawTx);
+	}
+
+	// TODO: remove after https://github.com/LiskHQ/lisk/issues/2424
+	dbRead(raw) {
+		if (
+			raw.t_id === undefined ||
+			raw.t_id === null ||
+			raw.t_type === undefined ||
+			raw.t_type === null
+		) {
+			return null;
+		}
+		const TransactionClass = this.transactionClassMap.get(raw.t_type);
+
+		if (!TransactionClass) {
+			return null;
+		}
+
+		const transactionJSON = new TransactionClass().fromSync(raw);
+
+		return this.fromJson(omitBy(transactionJSON, isNull));
 	}
 
 	// eslint-disable-next-line class-methods-use-this

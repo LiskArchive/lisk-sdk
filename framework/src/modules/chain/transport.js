@@ -60,7 +60,6 @@ class Transport {
 			balancesSequence: scope.balancesSequence,
 			logic: {
 				block: scope.logic.block,
-				initTransaction: scope.logic.initTransaction,
 			},
 			config: {
 				forging: {
@@ -98,7 +97,7 @@ class Transport {
 			loader: scope.modules.loader,
 			multisignatures: scope.modules.multisignatures,
 			processTransactions: scope.modules.processTransactions,
-			transactions: scope.modules.transactions,
+			transactionPool: scope.modules.transactionPool,
 		};
 	}
 
@@ -390,9 +389,7 @@ class Transport {
 							block = modules.blocks.verify.addBlockProperties(query.block);
 
 							// Instantiate transaction classes
-							block.transactions = library.logic.initTransaction.fromBlock(
-								block
-							);
+							block.transactions = modules.transactions.fromBlock(block);
 
 							block = library.logic.block.objectNormalize(block);
 						} catch (e) {
@@ -475,7 +472,7 @@ class Transport {
 			 * @todo Add description of the function
 			 */
 			getSignatures(cb) {
-				const transactions = modules.transactions.getMultisignatureTransactionList(
+				const transactions = modules.transactionPool.getMultisignatureTransactionList(
 					true,
 					MAX_SHARED_TRANSACTIONS
 				);
@@ -508,7 +505,7 @@ class Transport {
 			 * @todo Add description of the function
 			 */
 			getTransactions(cb) {
-				const transactions = modules.transactions.getMergedTransactionList(
+				const transactions = modules.transactionPool.getMergedTransactionList(
 					true,
 					MAX_SHARED_TRANSACTIONS
 				);
@@ -673,7 +670,7 @@ __private.receiveTransaction = async function(
 	const id = transactionJSON ? transactionJSON.id : 'null';
 	let transaction;
 	try {
-		transaction = library.logic.initTransaction.fromJson(transactionJSON);
+		transaction = modules.transactions.fromJson(transactionJSON);
 
 		const composedTransactionsCheck = processTransactionLogic.composeTransactionSteps(
 			modules.processTransactions.checkAllowedTransactions,
@@ -700,7 +697,7 @@ __private.receiveTransaction = async function(
 		return setImmediate(cb, errors);
 	}
 
-	return library.balancesSequence.add(balancesSequenceCb => {
+	return library.balancesSequence.add(async balancesSequenceCb => {
 		if (!nonce) {
 			library.logger.debug(
 				`Received transaction ${transaction.id} from public client`
@@ -711,21 +708,19 @@ __private.receiveTransaction = async function(
 			);
 		}
 
-		modules.transactions.processUnconfirmedTransaction(
-			transaction,
-			true,
-			err => {
-				if (err) {
-					library.logger.debug(`Transaction ${id}`, convertErrorsToString(err));
-					if (transaction) {
-						library.logger.debug('Transaction', transaction);
-					}
-					return setImmediate(balancesSequenceCb, err);
-				}
-
-				return setImmediate(balancesSequenceCb, null, transaction.id);
+		try {
+			await modules.transactionPool.processUnconfirmedTransaction(
+				transaction,
+				true
+			);
+			return setImmediate(balancesSequenceCb, null, transaction.id);
+		} catch (err) {
+			library.logger.debug(`Transaction ${id}`, convertErrorsToString(err));
+			if (transaction) {
+				library.logger.debug('Transaction', transaction);
 			}
-		);
+			return setImmediate(balancesSequenceCb, err);
+		}
 	}, cb);
 };
 

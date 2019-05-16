@@ -246,9 +246,9 @@ class Block {
 					.join(', ')}`
 			);
 		}
-		const {
-			transactionsResponses,
-		} = modules.processTransactions.validateTransactions(block.transactions);
+		const { transactionsResponses } = modules.transactions.validateTransactions(
+			block.transactions
+		);
 		const invalidTransactionResponse = transactionsResponses.find(
 			transactionResponse => transactionResponse.status !== TransactionStatus.OK
 		);
@@ -265,7 +265,7 @@ class Block {
 	// eslint-disable-next-line class-methods-use-this
 	bindModules(__modules) {
 		modules = {
-			processTransactions: __modules.processTransactions,
+			transactions: __modules.transactions,
 		};
 	}
 

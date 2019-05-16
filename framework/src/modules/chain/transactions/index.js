@@ -15,13 +15,13 @@
 'use strict';
 
 const { Transactions } = require('./transactions');
-const { Transaction } = require('./transaction');
 const { TransactionPool } = require('./transaction_pool');
+const { checkIfTransactionIsInert } = require('./handle_exceptions');
 const { sort } = require('./sort');
 
 module.exports = {
 	Transactions,
 	TransactionPool,
-	Transaction,
 	sort,
+	checkIfTransactionIsInert,
 };
