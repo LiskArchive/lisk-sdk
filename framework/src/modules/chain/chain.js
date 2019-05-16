@@ -33,6 +33,7 @@ const {
 	initLogicStructure,
 	initModules,
 } = require('./init_steps');
+const { Transactions, TransactionPool } = require('./transactions');
 
 const syncInterval = 10000;
 const forgeInterval = 1000;
@@ -155,6 +156,16 @@ module.exports = class Chain {
 			this.scope.bus = await createBus();
 			this.scope.logic = await initLogicStructure(this.scope);
 			this.scope.modules = await initModules(this.scope);
+			this.transactions = new Transactions({
+				storage,
+				logger: this.looger,
+				exceptions: this.options.exceptions,
+			});
+			this.transactionPool = new TransactionPool({
+				transactions: this.transactions,
+				logger: this.looger,
+				expireTransactionsInterval: this.options.constants.EXPIRY_INTERVAL,
+			});
 			// TODO: Global variable forbits to require on top
 			const Loader = require('./loader');
 			const { Forger } = require('./forger');

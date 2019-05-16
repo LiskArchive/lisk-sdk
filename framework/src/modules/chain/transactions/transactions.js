@@ -18,7 +18,6 @@ const {
 	Status: TransactionStatus,
 	TransactionError,
 } = require('@liskhq/lisk-transactions');
-const { TransactionPool } = require('@liskhq/lisk-transaction-pool');
 const StateStore = require('../logic/state_store');
 const votes = require('./votes');
 const {
@@ -26,7 +25,12 @@ const {
 } = require('./handle_exceptions');
 
 class Transactions {
-	constructor({ storage, logger, exceptions, slot }) {}
+	constructor({ storage, logger, exceptions, slots }) {
+		this.storage = storage;
+		this.logger = logger;
+		this.exceptions = exceptions;
+		this.slots = slots;
+	}
 
 	// eslint-disable-next-line class-methods-use-this
 	validateTransactions(transactions) {

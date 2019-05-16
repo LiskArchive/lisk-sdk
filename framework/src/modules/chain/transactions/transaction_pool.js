@@ -20,13 +20,6 @@ const {
 	TransactionError,
 } = require('@liskhq/lisk-transactions');
 const { composeTransactionSteps } = require('./compose_transaction_steps');
-const slots = require('../helpers/slots');
-
-const {
-	EXPIRY_INTERVAL,
-	MAX_TRANSACTIONS_PER_BLOCK,
-	MAX_SHARED_TRANSACTIONS,
-} = global.constants;
 
 const wrapAddTransactionResponseInCb = (
 	addTransactionResponse,
@@ -69,12 +62,26 @@ const readyQueue = 'ready';
  * @param {Object} config - config variable
  */
 class TransactionPool {
-	constructor(transactions, broadcastInterval, releaseLimit, logger, config) {
-		this.maxTransactionsPerQueue = config.transactions.maxTransactionsPerQueue;
+	constructor({
+		transactions,
+		slots,
+		logger,
+		broadcastInterval,
+		releaseLimit,
+		expireTransactionsInterval,
+		maxSharedTransactions,
+		maxTransactionsPerQueue,
+		maxTransactionsPerBlock,
+	}) {
+		this.transactions = transactions;
+		this.logger = logger;
+		this.slots = slots;
+		this.expireTransactionsInterval = expireTransactionsInterval;
+		this.maxTransactionsPerQueue = maxTransactionsPerQueue;
+		this.maxTransactionsPerBlock = maxTransactionsPerBlock;
+		this.maxSharedTransactions = maxSharedTransactions;
 		this.bundledInterval = broadcastInterval;
 		this.bundleLimit = releaseLimit;
-		this.logger = logger;
-		this.transactions = transactions;
 
 		this.validateTransactions = transactions.validateTransactions;
 		this.verifyTransactions = composeTransactionSteps(
@@ -88,15 +95,15 @@ class TransactionPool {
 		);
 
 		const poolConfig = {
-			expireTransactionsInterval: EXPIRY_INTERVAL,
+			expireTransactionsInterval: this.expireTransactionsInterval,
 			maxTransactionsPerQueue: this.maxTransactionsPerQueue,
 			receivedTransactionsLimitPerProcessing: this.bundleLimit,
 			receivedTransactionsProcessingInterval: this.bundledInterval,
 			validatedTransactionsLimitPerProcessing: this.bundleLimit,
 			validatedTransactionsProcessingInterval: this.bundledInterval,
-			verifiedTransactionsLimitPerProcessing: MAX_TRANSACTIONS_PER_BLOCK,
+			verifiedTransactionsLimitPerProcessing: this.maxTransactionsPerBlock,
 			verifiedTransactionsProcessingInterval: this.bundledInterval,
-			pendingTransactionsProcessingLimit: MAX_TRANSACTIONS_PER_BLOCK,
+			pendingTransactionsProcessingLimit: this.maxTransactionsPerBlock,
 		};
 
 		const poolDependencies = {
@@ -115,15 +122,15 @@ class TransactionPool {
 
 	resetPool() {
 		const poolConfig = {
-			expireTransactionsInterval: EXPIRY_INTERVAL,
+			expireTransactionsInterval: this.expireTransactionsInterval,
 			maxTransactionsPerQueue: this.maxTransactionsPerQueue,
 			receivedTransactionsLimitPerProcessing: this.bundleLimit,
 			receivedTransactionsProcessingInterval: this.bundledInterval,
 			validatedTransactionsLimitPerProcessing: this.bundleLimit,
 			validatedTransactionsProcessingInterval: this.bundledInterval,
-			verifiedTransactionsLimitPerProcessing: MAX_TRANSACTIONS_PER_BLOCK,
+			verifiedTransactionsLimitPerProcessing: this.maxTransactionsPerBlock,
 			verifiedTransactionsProcessingInterval: this.bundledInterval,
-			pendingTransactionsProcessingLimit: MAX_TRANSACTIONS_PER_BLOCK,
+			pendingTransactionsProcessingLimit: this.maxTransactionsPerBlock,
 		};
 
 		const poolDependencies = {
@@ -206,11 +213,7 @@ class TransactionPool {
 			this.logger.error(message, { signature });
 			throw transactionResponse.errors;
 		}
-		// Emit events
-		this.emit('chain:multisignatures:signature:change', {
-			id: transaction.id,
-			signature,
-		});
+		return transactionResponse;
 	}
 
 	transactionInPool(id) {
@@ -302,19 +305,22 @@ class TransactionPool {
 	 * @returns {Object[]} Of unconfirmed, multisignatures, queued transactions
 	 * @todo Limit is only implemented with queued transactions, reverse param is unused
 	 */
-	getMergedTransactionList(reverse = false, limit = MAX_SHARED_TRANSACTIONS) {
-		if (limit > MAX_SHARED_TRANSACTIONS) {
-			limit = MAX_SHARED_TRANSACTIONS;
+	getMergedTransactionList(
+		reverse = false,
+		limit = this.maxSharedTransactions
+	) {
+		if (limit > this.maxSharedTransactions) {
+			limit = this.maxSharedTransactions;
 		}
 
 		const ready = this.getUnconfirmedTransactionList(
 			reverse,
-			Math.min(MAX_TRANSACTIONS_PER_BLOCK, limit)
+			Math.min(this.maxTransactionsPerBlock, limit)
 		);
 		limit -= ready.length;
 		const pending = this.getMultisignatureTransactionList(
 			reverse,
-			Math.min(MAX_TRANSACTIONS_PER_BLOCK, limit)
+			Math.min(this.maxTransactionsPerBlock, limit)
 		);
 		limit -= pending.length;
 		const verified = this.getQueuedTransactionList(reverse, limit);
@@ -361,7 +367,10 @@ class TransactionPool {
 			]);
 		}
 
-		if (slots.getSlotNumber(transaction.timestamp) > slots.getSlotNumber()) {
+		if (
+			this.slots.getSlotNumber(transaction.timestamp) >
+			this.slots.getSlotNumber()
+		) {
 			return setImmediate(cb, [
 				new TransactionError(
 					'Invalid transaction timestamp. Timestamp is in the future',
