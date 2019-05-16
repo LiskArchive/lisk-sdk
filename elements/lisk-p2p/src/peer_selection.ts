@@ -12,8 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
 import { NotEnoughPeersError } from './errors';
 import { P2PDiscoveredPeerInfo, P2PNodeInfo } from './p2p_types';
+
 /* tslint:disable: readonly-keyword*/
 interface Histogram {
 	[key: number]: number;
