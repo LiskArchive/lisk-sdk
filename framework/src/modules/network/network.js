@@ -187,7 +187,7 @@ module.exports = class Network {
 		});
 
 		this.p2p.on(EVENT_UPDATED_PEER_INFO, peerInfo => {
-			this.logger.info(
+			this.logger.debug(
 				`Updated info of peer ${peerInfo.ipAddress}:${
 					peerInfo.wsPort
 				} to ${JSON.stringify(peerInfo)}`
@@ -216,7 +216,7 @@ module.exports = class Network {
 					sanitizedProcedure,
 					request.data
 				);
-				this.logger.info(`Responsed to peer request ${request.procedure}`);
+				this.logger.debug(`Responsed to peer request ${request.procedure}`);
 				request.end(result); // Send the response back to the peer.
 			} catch (error) {
 				this.logger.error(
@@ -229,7 +229,7 @@ module.exports = class Network {
 		});
 
 		this.p2p.on(EVENT_MESSAGE_RECEIVED, async packet => {
-			this.logger.info(`Received inbound message for event ${packet.event}`);
+			this.logger.debug(`Received inbound message for event ${packet.event}`);
 			this.channel.publish('network:event', packet);
 		});
 
