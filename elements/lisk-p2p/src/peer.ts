@@ -43,7 +43,7 @@ import {
 } from './validation';
 
 // This interface is needed because pingTimeoutDisabled is missing from ClientOptions in socketcluster-client.
-interface ClientOptionsUpdated {
+export interface ClientOptionsUpdated {
 	readonly hostname: string;
 	readonly port: number;
 	readonly query: string;
@@ -54,6 +54,12 @@ interface ClientOptionsUpdated {
 	readonly ackTimeout?: number;
 	readonly connectTimeout?: number;
 }
+
+export type SCServerSocketUpdated = {
+	destroy(code?: number, data?: string | object): void;
+	on(event: string | unknown, listener: (packet?: unknown) => void): void;
+	on(event: string, listener: (packet: any, respond: any) => void): void;
+} & SCServerSocket;
 
 type SCClientSocket = socketClusterClient.SCClientSocket;
 
@@ -82,21 +88,10 @@ export const REMOTE_RPC_GET_ALL_PEERS_LIST = 'list';
 export const DEFAULT_CONNECT_TIMEOUT = 2000;
 export const DEFAULT_ACK_TIMEOUT = 2000;
 
-type SCServerSocketUpdated = {
-	destroy(code?: number, data?: string | object): void;
-	on(event: string | unknown, listener: (packet?: unknown) => void): void;
-	on(event: string, listener: (packet: any, respond: any) => void): void;
-} & SCServerSocket;
-
 export enum ConnectionState {
 	CONNECTING = 'connecting',
 	OPEN = 'open',
 	CLOSED = 'closed',
-}
-
-export interface PeerConnectionState {
-	readonly inbound: ConnectionState;
-	readonly outbound: ConnectionState;
 }
 
 export const constructPeerId = (ipAddress: string, wsPort: number): string =>
@@ -106,7 +101,7 @@ export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
 	`${peerInfo.ipAddress}:${peerInfo.wsPort}`;
 
 // Format the node info so that it will be valid from the perspective of both new and legacy nodes.
-const convertNodeInfoToLegacyFormat = (
+export const convertNodeInfoToLegacyFormat = (
 	nodeInfo: P2PNodeInfo,
 ): ProtocolNodeInfo => {
 	const { httpPort, nonce, broadhash } = nodeInfo;
@@ -123,41 +118,37 @@ export interface PeerConfig {
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
 }
-export interface PeerSockets {
-	readonly outbound?: SCClientSocket;
-	readonly inbound?: SCServerSocket;
-}
 
 export class Peer extends EventEmitter {
 	private readonly _id: string;
-	private readonly _ipAddress: string;
-	private readonly _wsPort: number;
+	protected readonly _ipAddress: string;
+	protected readonly _wsPort: number;
 	private readonly _height: number;
-	private _peerInfo: P2PDiscoveredPeerInfo;
-	private readonly _peerConfig: PeerConfig;
-	private _nodeInfo: P2PNodeInfo | undefined;
-	private _inboundSocket: SCServerSocketUpdated | undefined;
-	private _outboundSocket: SCClientSocket | undefined;
-	private readonly _handleRawRPC: (
+	protected _peerInfo: P2PDiscoveredPeerInfo;
+	protected readonly _peerConfig: PeerConfig;
+	protected _nodeInfo: P2PNodeInfo | undefined;
+	protected readonly _handleRawRPC: (
 		packet: unknown,
 		respond: (responseError?: Error, responseData?: unknown) => void,
 	) => void;
-	private readonly _handleRawMessage: (packet: unknown) => void;
-	private readonly _handleRawLegacyMessagePostBlock: (packet: unknown) => void;
-	private readonly _handleRawLegacyMessagePostTransactions: (
+	protected readonly _handleRawMessage: (packet: unknown) => void;
+	protected readonly _handleRawLegacyMessagePostBlock: (
 		packet: unknown,
 	) => void;
-	private readonly _handleRawLegacyMessagePostSignatures: (
+	protected readonly _handleRawLegacyMessagePostTransactions: (
 		packet: unknown,
 	) => void;
-	private readonly _handleInboundSocketError: (error: Error) => void;
-	private readonly _handleInboundSocketClose: (code: number, reason: string) => void;
+	protected readonly _handleRawLegacyMessagePostSignatures: (
+		packet: unknown,
+	) => void;
+	protected readonly _handleInboundSocketError: (error: Error) => void;
+	protected readonly _handleInboundSocketClose: (
+		code: number,
+		reason: string,
+	) => void;
+	protected _socket: SCServerSocketUpdated | SCClientSocket | undefined;
 
-	public constructor(
-		peerInfo: P2PDiscoveredPeerInfo,
-		peerConfig?: PeerConfig,
-		peerSockets?: PeerSockets,
-	) {
+	public constructor(peerInfo: P2PDiscoveredPeerInfo, peerConfig?: PeerConfig) {
 		super();
 		this._peerInfo = peerInfo;
 		this._peerConfig = peerConfig ? peerConfig : {};
@@ -246,15 +237,6 @@ export class Peer extends EventEmitter {
 				reason,
 			});
 		};
-
-		this._inboundSocket = peerSockets ? peerSockets.inbound : undefined;
-		if (this._inboundSocket) {
-			this._bindHandlersToInboundSocket(this._inboundSocket);
-		}
-		this._outboundSocket = peerSockets ? peerSockets.outbound : undefined;
-		if (this._outboundSocket) {
-			this._bindHandlersToOutboundSocket(this._outboundSocket);
-		}
 	}
 
 	public get height(): number {
@@ -265,24 +247,8 @@ export class Peer extends EventEmitter {
 		return this._id;
 	}
 
-	public set inboundSocket(scServerSocket: SCServerSocket) {
-		if (this._inboundSocket) {
-			this._unbindHandlersFromInboundSocket(this._inboundSocket);
-		}
-		this._inboundSocket = scServerSocket as SCServerSocketUpdated;
-		this._bindHandlersToInboundSocket(this._inboundSocket);
-	}
-
 	public get ipAddress(): string {
 		return this._ipAddress;
-	}
-
-	public set outboundSocket(scClientSocket: SCClientSocket) {
-		if (this._outboundSocket) {
-			this._unbindHandlersFromOutboundSocket(this._outboundSocket);
-		}
-		this._outboundSocket = scClientSocket;
-		this._bindHandlersToOutboundSocket(this._outboundSocket);
 	}
 
 	public updatePeerInfo(newPeerInfo: P2PDiscoveredPeerInfo): void {
@@ -298,26 +264,18 @@ export class Peer extends EventEmitter {
 		return this._peerInfo;
 	}
 
-	public get state(): PeerConnectionState {
-		const inbound = this._inboundSocket
-			? this._inboundSocket.state === this._inboundSocket.OPEN
-				? ConnectionState.OPEN
-				: ConnectionState.CLOSED
-			: ConnectionState.CLOSED;
-		const outbound = this._outboundSocket
-			? this._outboundSocket.state === this._outboundSocket.OPEN
-				? ConnectionState.OPEN
-				: ConnectionState.CLOSED
-			: ConnectionState.CLOSED;
-
-		return {
-			inbound,
-			outbound,
-		};
-	}
-
 	public get wsPort(): number {
 		return this._wsPort;
+	}
+
+	public get state(): ConnectionState {
+		const state = this._socket
+			? this._socket.state === this._socket.OPEN
+				? ConnectionState.OPEN
+				: ConnectionState.CLOSED
+			: ConnectionState.CLOSED;
+
+		return state;
 	}
 
 	/**
@@ -340,43 +298,30 @@ export class Peer extends EventEmitter {
 	}
 
 	public connect(): void {
-		if (!this._outboundSocket) {
-			this._outboundSocket = this._createOutboundSocket();
+		if (!this._socket) {
+			throw new Error();
 		}
-		this._outboundSocket.connect();
 	}
 
 	public disconnect(code: number = 1000, reason?: string): void {
-		this.dropInboundConnection(code, reason);
-		this.dropOutboundConnection(code, reason);
-	}
-
-	public dropInboundConnection(code: number = 1000, reason?: string): void {
-		if (this._inboundSocket) {
-			this._inboundSocket.destroy(code, reason);
-			this._unbindHandlersFromInboundSocket(this._inboundSocket);
+		if (!this._socket) {
+			throw new Error();
 		}
-	}
-
-	public dropOutboundConnection(code: number = 1000, reason?: string): void {
-		if (this._outboundSocket) {
-			this._outboundSocket.destroy(code, reason);
-			this._unbindHandlersFromOutboundSocket(this._outboundSocket);
-		}
+		this._socket.destroy(code, reason);
 	}
 
 	public send(packet: P2PMessagePacket): void {
-		if (!this._outboundSocket) {
-			this._outboundSocket = this._createOutboundSocket();
+		if (!this._socket) {
+			throw new Error('Socket undefined before send');
 		}
 
 		const legacyEvents = ['postBlock', 'postTransactions', 'postSignatures'];
 		// TODO later: Legacy events will no longer be required after migrating to the LIP protocol version.
 		if (legacyEvents.includes(packet.event)) {
 			// Emit legacy remote events.
-			this._outboundSocket.emit(packet.event, packet.data);
+			this._socket.emit(packet.event, packet.data);
 		} else {
-			this._outboundSocket.emit(REMOTE_EVENT_MESSAGE, {
+			this._socket.emit(REMOTE_EVENT_MESSAGE, {
 				event: packet.event,
 				data: packet.data,
 			});
@@ -389,10 +334,10 @@ export class Peer extends EventEmitter {
 				resolve: (result: P2PResponsePacket) => void,
 				reject: (result: Error) => void,
 			): void => {
-				if (!this._outboundSocket) {
-					this._outboundSocket = this._createOutboundSocket();
+				if (!this._socket) {
+					throw new Error('Socket undefined before request');
 				}
-				this._outboundSocket.emit(
+				this._socket.emit(
 					REMOTE_EVENT_RPC_REQUEST,
 					{
 						type: '/RPCRequest',
@@ -462,143 +407,6 @@ export class Peer extends EventEmitter {
 
 		// Return the updated detailed peer info.
 		return this._peerInfo;
-	}
-
-	private _createOutboundSocket(): SCClientSocket {
-		const legacyNodeInfo = this._nodeInfo
-			? convertNodeInfoToLegacyFormat(this._nodeInfo)
-			: undefined;
-
-		const connectTimeout = this._peerConfig.connectTimeout
-			? this._peerConfig.connectTimeout
-			: DEFAULT_CONNECT_TIMEOUT;
-		const ackTimeout = this._peerConfig.ackTimeout
-			? this._peerConfig.ackTimeout
-			: DEFAULT_ACK_TIMEOUT;
-
-		// Ideally, we should JSON-serialize the whole NodeInfo object but this cannot be done for compatibility reasons, so instead we put it inside an options property.
-		const clientOptions: ClientOptionsUpdated = {
-			hostname: this._ipAddress,
-			port: this._wsPort,
-			query: querystring.stringify({
-				...legacyNodeInfo,
-				options: JSON.stringify(legacyNodeInfo),
-			}),
-			connectTimeout,
-			ackTimeout,
-			multiplex: false,
-			autoConnect: false,
-			autoReconnect: false,
-			pingTimeoutDisabled: true,
-		};
-
-		const outboundSocket = socketClusterClient.create(clientOptions);
-
-		this._bindHandlersToOutboundSocket(outboundSocket);
-
-		return outboundSocket;
-	}
-
-	// All event handlers for the outbound socket should be bound in this method.
-	private _bindHandlersToOutboundSocket(outboundSocket: SCClientSocket): void {
-		outboundSocket.on('error', (error: Error) => {
-			this.emit(EVENT_OUTBOUND_SOCKET_ERROR, error);
-		});
-
-		outboundSocket.on('connect', () => {
-			this.emit(EVENT_CONNECT_OUTBOUND, this._peerInfo);
-		});
-
-		outboundSocket.on('connectAbort', () => {
-			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, this._peerInfo);
-		});
-
-		outboundSocket.on('close', (code: number, reason: string) => {
-			this.emit(EVENT_CLOSE_OUTBOUND, {
-				peerInfo: this._peerInfo,
-				code,
-				reason,
-			});
-		});
-
-		// Bind RPC and remote event handlers
-		outboundSocket.on(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
-		outboundSocket.on(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
-		outboundSocket.on('postBlock', this._handleRawLegacyMessagePostBlock);
-		outboundSocket.on(
-			'postSignatures',
-			this._handleRawLegacyMessagePostSignatures,
-		);
-		outboundSocket.on(
-			'postTransactions',
-			this._handleRawLegacyMessagePostTransactions,
-		);
-	}
-
-	// All event handlers for the outbound socket should be unbound in this method.
-	/* tslint:disable-next-line:prefer-function-over-method*/
-	private _unbindHandlersFromOutboundSocket(
-		outboundSocket: SCClientSocket,
-	): void {
-		// Do not unbind the error handler because error could still throw after disconnect.
-		// We don't want to have uncaught errors.
-		outboundSocket.off('connect');
-		outboundSocket.off('connectAbort');
-		outboundSocket.off('close');
-
-		// Unbind RPC and remote event handlers
-		outboundSocket.off(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
-		outboundSocket.off(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
-		outboundSocket.off('postBlock', this._handleRawLegacyMessagePostBlock);
-		outboundSocket.off(
-			'postSignatures',
-			this._handleRawLegacyMessagePostSignatures,
-		);
-		outboundSocket.off(
-			'postTransactions',
-			this._handleRawLegacyMessagePostTransactions,
-		);
-	}
-
-	// All event handlers for the inbound socket should be bound in this method.
-	private _bindHandlersToInboundSocket(
-		inboundSocket: SCServerSocketUpdated,
-	): void {
-		inboundSocket.on('close', this._handleInboundSocketClose);
-		inboundSocket.on('error', this._handleInboundSocketError);
-
-		// Bind RPC and remote event handlers
-		inboundSocket.on(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
-		inboundSocket.on(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
-		inboundSocket.on('postBlock', this._handleRawLegacyMessagePostBlock);
-		inboundSocket.on(
-			'postSignatures',
-			this._handleRawLegacyMessagePostSignatures,
-		);
-		inboundSocket.on(
-			'postTransactions',
-			this._handleRawLegacyMessagePostTransactions,
-		);
-	}
-
-	// All event handlers for the inbound socket should be unbound in this method.
-	private _unbindHandlersFromInboundSocket(
-		inboundSocket: SCServerSocket,
-	): void {
-		inboundSocket.off('close', this._handleInboundSocketClose);
-		
-		// Unbind RPC and remote event handlers
-		inboundSocket.off(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
-		inboundSocket.off(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
-		inboundSocket.off('postBlock', this._handleRawLegacyMessagePostBlock);
-		inboundSocket.off(
-			'postSignatures',
-			this._handleRawLegacyMessagePostSignatures,
-		);
-		inboundSocket.off(
-			'postTransactions',
-			this._handleRawLegacyMessagePostTransactions,
-		);
 	}
 
 	private _updateFromProtocolPeerInfo(rawPeerInfo: unknown): void {

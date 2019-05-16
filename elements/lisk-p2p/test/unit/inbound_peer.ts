@@ -14,10 +14,10 @@
  */
 import { expect } from 'chai';
 
-import { Peer } from '../../src/peer';
+import { InboundPeer } from '../../src/inbound_peer';
 import { P2PDiscoveredPeerInfo } from '../../src/p2p_types';
 
-describe('peer', () => {
+describe('inbound_peer', () => {
 	const defaultPeerInfo: P2PDiscoveredPeerInfo = {
 		ipAddress: '12.12.12.12',
 		wsPort: 5001,
@@ -26,7 +26,7 @@ describe('peer', () => {
 		version: '1.1.1',
 	};
 
-	const defaultPeer = new Peer(defaultPeerInfo);
+	const defaultPeer = new InboundPeer(defaultPeerInfo);
 
 	describe('#constructor', () => {
 		it('should be an object', () => {
@@ -36,7 +36,7 @@ describe('peer', () => {
 		it('should be an instance of P2P blockchain', () => {
 			return expect(defaultPeer)
 				.to.be.an('object')
-				.and.be.instanceof(Peer);
+				.and.be.instanceof(InboundPeer);
 		});
 	});
 
