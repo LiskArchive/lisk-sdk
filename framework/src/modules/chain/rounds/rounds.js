@@ -23,7 +23,6 @@ const Round = require('./round');
 const slots = require('../helpers/slots');
 
 // Private fields
-let modules;
 let library;
 const { ACTIVE_DELEGATES } = global.constants;
 const __private = {};
@@ -162,7 +161,7 @@ class Rounds {
 				 * delegate list.
 				 * */
 				if (scope.finishRound) {
-					modules.delegates.clearDelegateListCache();
+					library.delegates.clearDelegateListCache();
 				}
 
 				return done();
@@ -353,11 +352,7 @@ class Rounds {
 	 * @param {modules} scope - Loaded modules
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	onBind(scope) {
-		modules = {
-			delegates: scope.modules.delegates,
-		};
-	}
+	onBind() {}
 
 	/**
 	 * Sets private constant loaded to true.
@@ -434,7 +429,7 @@ __private.getOutsiders = function(scope, cb, tx) {
 	if (scope.block.height === 1) {
 		return setImmediate(cb);
 	}
-	return modules.delegates
+	return library.delegates
 		.generateDelegateList(scope.round, null, tx)
 		.then(roundDelegates =>
 			async.eachSeries(
