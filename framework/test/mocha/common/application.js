@@ -35,7 +35,7 @@ const modulesInit = {
 	blocks: '../../../src/modules/chain/submodules/blocks',
 	multisignatures: '../../../src/modules/chain/submodules/multisignatures',
 	peers: '../../../src/modules/chain/submodules/peers',
-	rounds: '../../../src/modules/chain/submodules/rounds',
+	rounds: '../../../src/modules/chain/rounds/rounds',
 	transactions: '../../../src/modules/chain/submodules/transactions',
 	processTransactions:
 		'../../../src/modules/chain/submodules/process_transactions.js',
@@ -264,7 +264,7 @@ const initStepsForTest = {
 		scope.rewiredModules.transport = RewiredTransport;
 		modules.transport = new RewiredTransport(scope);
 		const { Delegates: RewiredDelegates } = rewire(
-			'../../../src/modules/chain/submodules/delegates'
+			'../../../src/modules/chain/rounds/delegates'
 		);
 		scope.rewiredModules.delegates = RewiredDelegates;
 		modules.delegates = new RewiredDelegates(scope);

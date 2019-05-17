@@ -27,7 +27,7 @@ const genesisDelegates = require('../../../data/genesis_delegates.json')
 const application = require('../../../common/application');
 const {
 	getKeysSortByVote,
-} = require('../../../../../src/modules/chain/submodules/delegates');
+} = require('../../../../../src/modules/chain/rounds/delegates');
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
 

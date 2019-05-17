@@ -18,7 +18,7 @@
 const rewire = require('rewire');
 const cryptography = require('@liskhq/lisk-cryptography');
 // Instantiate test subject
-const Rounds = rewire('../../../../../../src/modules/chain/submodules/rounds');
+const Rounds = rewire('../../../../../../src/modules/chain/rounds/rounds');
 const Round = rewire('../../../../../../src/modules/chain/logic/round'); // eslint-disable-line no-unused-vars
 const { TestStorageSandbox } = require('../../../../common/storage_sandbox');
 

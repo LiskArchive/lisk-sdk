@@ -19,7 +19,7 @@ const {
 	validateBlockSlot,
 	getKeysSortByVote,
 	getDelegatesFromPreviousRound,
-} = require('../../../../../../src/modules/chain/submodules/delegates');
+} = require('../../../../../../src/modules/chain/rounds/delegates');
 
 const exceptions = global.exceptions;
 

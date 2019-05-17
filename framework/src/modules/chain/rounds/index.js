@@ -14,10 +14,8 @@
 
 'use strict';
 
-const { Round } = require('./round.js');
 const { Rounds } = require('./rounds.js');
 
 module.exports = {
-	Round,
 	Rounds,
 };
