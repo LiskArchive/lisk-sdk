@@ -25,7 +25,7 @@ import { SCClientSocket } from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
 import { RequestFailError } from './errors';
 import { InboundPeer } from './inbound_peer';
-import { OutboundPeer } from './outobund_peer';
+import { OutboundPeer } from './outbound_peer';
 import { P2PRequest } from './p2p_request';
 import {
 	P2PClosePacket,
