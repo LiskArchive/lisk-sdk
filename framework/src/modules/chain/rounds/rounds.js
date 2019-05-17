@@ -18,7 +18,7 @@ const Bignumber = require('bignumber.js');
 const async = require('async');
 const cryptography = require('@liskhq/lisk-cryptography');
 
-const Round = require('../logic/round');
+const Round = require('./round');
 const slots = require('../helpers/slots');
 
 // Private fields

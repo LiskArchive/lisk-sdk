@@ -158,7 +158,7 @@ module.exports = class Chain {
 			// TODO: Global variable forbits to require on top
 			const Loader = require('./loader');
 			const { Forger } = require('./forger');
-			const { Delegates } = require('./submodules/delegates');
+			const { Delegates } = require('./rounds/delegates');
 			const Transport = require('./transport');
 			this.loader = new Loader(this.scope);
 			this.forger = new Forger(this.scope);
