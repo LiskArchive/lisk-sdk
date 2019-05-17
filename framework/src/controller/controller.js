@@ -24,6 +24,8 @@ const Bus = require('./bus');
 const { DuplicateAppInstanceError } = require('../errors');
 const { validateModuleSpec } = require('./validator');
 const ApplicationState = require('./application_state');
+const { createStorageComponent } = require('../components/storage');
+const { Migration } = require('./migrations');
 
 const isPidRunning = async pid =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -84,6 +86,7 @@ class Controller {
 		await this._validatePidFile();
 		await this._initState();
 		await this._setupBus();
+		await this._loadMigrations();
 		await this._loadModules(modules, moduleOptions);
 
 		this.logger.info('Bus listening to events', this.bus.getEvents());
@@ -187,6 +190,14 @@ class Controller {
 				);
 			});
 		}
+	}
+
+	async _loadMigrations() {
+		const storageConfig = this.config.components.storage;
+		this.storage = createStorageComponent(storageConfig, this.logger);
+		this.storage.registerEntity('Migration', Migration);
+		await this.storage.bootstrap();
+		return this.storage.entities.Migration.applyAll();
 	}
 
 	async _loadModules(modules, moduleOptions) {

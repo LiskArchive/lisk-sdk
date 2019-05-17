@@ -23,14 +23,14 @@ const {
 	utils: {
 		filterTypes: { TEXT },
 	},
-} = require('../../../../../components/storage');
+} = require('../../components/storage');
 
 const defaultCreateValues = {};
 
 const sqlFiles = {
-	select: 'migrations/get.sql',
-	isPersisted: 'migrations/is_persisted.sql',
-	create: 'migrations/create.sql',
+	select: 'get.sql',
+	isPersisted: 'is_persisted.sql',
+	create: 'create.sql',
 };
 
 /**
@@ -70,8 +70,7 @@ class Migration extends BaseEntity {
 		const defaultSort = { sort: 'id:asc' };
 		this.extendDefaultOptions(defaultSort);
 
-		this.sqlDirectory = path.join(path.dirname(__filename), '../sql');
-
+		this.sqlDirectory = path.join(path.dirname(__filename), './sql');
 		this.SQLs = this.loadSQLFiles('migration', sqlFiles, this.sqlDirectory);
 	}
 
@@ -237,14 +236,14 @@ class Migration extends BaseEntity {
 	}
 
 	/**
-	 * Reads 'sql/migrations/updates' folder and returns an array of objects for further processing.
+	 * Reads/updates' folder and returns an array of objects for further processing.
 	 *
 	 * @param {number} lastMigrationId
 	 * @returns {Promise<Array<Object>>}
 	 * Promise object that resolves with an array of objects `{id, name, path, file}`.
 	 */
 	readPending(lastMigrationId) {
-		const updatesPath = path.join(__dirname, '../sql/migrations/updates');
+		const updatesPath = `${this.sqlDirectory}/updates`;
 		return fs.readdir(updatesPath).then(files =>
 			files
 				.map(migrationFile => {
@@ -253,7 +252,7 @@ class Migration extends BaseEntity {
 						migration && {
 							id: migration[1],
 							name: migration[2],
-							path: path.join('../sql/migrations/updates', migrationFile),
+							path: path.join(updatesPath, migrationFile),
 						}
 					);
 				})
@@ -261,13 +260,11 @@ class Migration extends BaseEntity {
 				.filter(
 					migration =>
 						migration &&
-						fs
-							.statSync(path.join(this.sqlDirectory, migration.path))
-							.isFile() &&
+						fs.statSync(migration.path).isFile() &&
 						(!lastMigrationId || +migration.id > lastMigrationId)
 				)
 				.map(f => {
-					f.file = this.adapter.loadSQLFile(f.path, this.sqlDirectory);
+					f.file = this.adapter.loadSQLFile(f.path, '');
 					return f;
 				})
 		);

@@ -15,8 +15,5 @@
 'use strict';
 
 module.exports = {
-	Account: require('./account'),
-	Block: require('./block'),
-	Round: require('./round'),
-	Transaction: require('./transaction'),
+	Migration: require('./migration'),
 };
