@@ -299,20 +299,20 @@ export class Peer extends EventEmitter {
 
 	public connect(): void {
 		if (!this._socket) {
-			throw new Error();
+			throw new Error('Peer socket does not exist');
 		}
 	}
 
 	public disconnect(code: number = 1000, reason?: string): void {
 		if (!this._socket) {
-			throw new Error();
+			throw new Error('Peer socket does not exist');
 		}
 		this._socket.destroy(code, reason);
 	}
 
 	public send(packet: P2PMessagePacket): void {
 		if (!this._socket) {
-			throw new Error('Socket undefined before send');
+			throw new Error('Peer socket does not exist');
 		}
 
 		const legacyEvents = ['postBlock', 'postTransactions', 'postSignatures'];
@@ -335,7 +335,7 @@ export class Peer extends EventEmitter {
 				reject: (result: Error) => void,
 			): void => {
 				if (!this._socket) {
-					throw new Error('Socket undefined before request');
+					throw new Error('Peer socket does not exist');
 				}
 				this._socket.emit(
 					REMOTE_EVENT_RPC_REQUEST,

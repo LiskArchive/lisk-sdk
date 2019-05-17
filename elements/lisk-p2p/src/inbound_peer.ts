@@ -50,7 +50,7 @@ export class InboundPeer extends Peer {
 
 	public disconnect(): void {
 		if (!this._socket) {
-			throw new Error();
+			throw new Error('Peer socket does not exist');
 		}
 		this._unbindHandlersFromInboundSocket(this._socket);
 	}
