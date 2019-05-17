@@ -84,6 +84,9 @@ describe('Controller Class', () => {
 				_validatePidFile: jest.spyOn(controller, '_validatePidFile'),
 				_initState: jest.spyOn(controller, '_initState'),
 				_setupBus: jest.spyOn(controller, '_setupBus'),
+				_loadMigrations: jest
+					.spyOn(controller, '_loadMigrations')
+					.mockImplementation(),
 				_loadModules: jest.spyOn(controller, '_loadModules'),
 			};
 			const modules = {};
@@ -100,7 +103,8 @@ describe('Controller Class', () => {
 			);
 			expect(spies._initState).toHaveBeenCalledAfter(spies._validatePidFile);
 			expect(spies._setupBus).toHaveBeenCalledAfter(spies._initState);
-			expect(spies._loadModules).toHaveBeenCalledAfter(spies._setupBus);
+			expect(spies._loadMigrations).toHaveBeenCalledAfter(spies._setupBus);
+			expect(spies._loadModules).toHaveBeenCalledAfter(spies._loadMigrations);
 			expect(spies._loadModules).toHaveBeenCalledWith(modules, moduleOptions);
 		});
 
@@ -213,6 +217,10 @@ describe('Controller Class', () => {
 		});
 
 		it.todo('should log events if level is greater than info.');
+	});
+
+	describe('#_loadMigrations', () => {
+		it.todo('should load migrations.');
 	});
 
 	describe('#_loadModules', () => {
