@@ -59,5 +59,9 @@ describe('outound_peer', () => {
 				.to.be.a('number')
 				.and.be.eql(5001);
 		});
+
+		it('should get socket property', () => {
+			return expect(defaultPeer.socket).to.be.undefined;
+		});
 	});
 });

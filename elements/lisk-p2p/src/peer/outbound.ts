@@ -45,8 +45,8 @@ export class OutboundPeer extends Peer {
 
 	public constructor(
 		peerInfo: P2PDiscoveredPeerInfo,
-		peerConfig?: PeerConfig,
 		peerSocket?: SCClientSocket,
+		peerConfig?: PeerConfig,
 	) {
 		super(peerInfo, peerConfig);
 		this._socket = peerSocket ? peerSocket : undefined;

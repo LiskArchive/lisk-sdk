@@ -13,6 +13,7 @@
  *
  */
 import { expect } from 'chai';
+import { SCServerSocket } from 'socketcluster-server';
 
 import { InboundPeer } from '../../src/peer';
 import { P2PDiscoveredPeerInfo } from '../../src/p2p_types';
@@ -26,7 +27,11 @@ describe('inbound_peer', () => {
 		version: '1.1.1',
 	};
 
-	const defaultPeer = new InboundPeer(defaultPeerInfo);
+	const socket = <SCServerSocket>({
+		on: sandbox.stub(),
+	} as any);
+
+	const defaultPeer = new InboundPeer(defaultPeerInfo, socket);
 
 	describe('#constructor', () => {
 		it('should be an object', () => {
@@ -57,6 +62,10 @@ describe('inbound_peer', () => {
 			return expect(defaultPeer.wsPort)
 				.to.be.a('number')
 				.and.be.eql(5001);
+		});
+
+		it('should get socket property', () => {
+			return expect(defaultPeer['_socket']).to.equal(socket);
 		});
 	});
 });

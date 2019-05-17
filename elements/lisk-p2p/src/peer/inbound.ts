@@ -30,8 +30,8 @@ export class InboundPeer extends Peer {
 
 	public constructor(
 		peerInfo: P2PDiscoveredPeerInfo,
+		peerSocket: SCServerSocket,
 		peerConfig?: PeerConfig,
-		peerSocket?: SCServerSocket,
 	) {
 		super(peerInfo, peerConfig);
 		this._socket = peerSocket ? peerSocket : undefined;
