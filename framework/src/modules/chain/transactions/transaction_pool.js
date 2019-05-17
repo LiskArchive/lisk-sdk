@@ -14,12 +14,15 @@
 
 'use strict';
 
+const _ = require('lodash');
 const pool = require('@liskhq/lisk-transaction-pool');
 const {
 	Status: TransactionStatus,
 	TransactionError,
 } = require('@liskhq/lisk-transactions');
+const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const { composeTransactionSteps } = require('./compose_transaction_steps');
+const { sortBy } = require('./sort');
 
 const wrapAddTransactionResponseInCb = (
 	addTransactionResponse,
@@ -403,6 +406,74 @@ class TransactionPool {
 
 	onDeletedTransactions(transactions) {
 		this.pool.addVerifiedRemovedTransactions(transactions);
+	}
+
+	getPooledTransactions(type, filters) {
+		const typeMap = {
+			unprocessed: 'getQueuedTransactionList',
+			unconfirmed: 'getUnconfirmedTransactionList',
+			unsigned: 'getMultisignatureTransactionList',
+		};
+		const transactions = this[typeMap[type]](true);
+		let toSend = [];
+
+		if (filters.recipientPublicKey) {
+			filters.recipientId = getAddressFromPublicKey(filters.recipientPublicKey);
+			delete filters.recipientPublicKey;
+		}
+
+		// Filter transactions
+		if (
+			filters.id ||
+			filters.recipientId ||
+			filters.recipientPublicKey ||
+			filters.senderId ||
+			filters.senderPublicKey ||
+			Object.prototype.hasOwnProperty.call(filters, 'type')
+		) {
+			toSend = _.filter(
+				transactions,
+				_.omit(filters, ['limit', 'offset', 'sort'])
+			);
+		} else {
+			toSend = _.cloneDeep(transactions);
+		}
+
+		// Sort the results
+		const sortAttribute = sortBy(filters.sort, { quoteField: false });
+
+		if (
+			sortAttribute.sortField === 'fee' ||
+			sortAttribute.sortField === 'amount'
+		) {
+			/**
+			 * sortOrder - Sorting by asc or desc, -1 desc order, 1 is asc order
+			 * amount and fee are bignumber here, so in order to sort
+			 * we need to use bignumber functions here specific to amount, fee
+			 */
+			const sortOrder =
+				sortAttribute.sortMethod.toLowerCase() === 'desc' ? -1 : 1;
+			toSend = toSend.sort((a, b) => {
+				if (sortAttribute.sortField === 'fee') {
+					return a.fee.minus(b.fee) * sortOrder;
+				}
+				return a.amount.minus(b.amount) * sortOrder;
+			});
+		} else {
+			toSend = _.orderBy(
+				toSend,
+				[sortAttribute.sortField],
+				[sortAttribute.sortMethod.toLowerCase()]
+			);
+		}
+
+		// Paginate filtered transactions
+		toSend = toSend.slice(filters.offset, filters.offset + filters.limit);
+
+		return {
+			transactions: toSend,
+			count: transactions.length,
+		};
 	}
 }
 

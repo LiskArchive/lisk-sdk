@@ -82,6 +82,10 @@ class Transactions {
 		return this.fromJson(omitBy(transactionJSON, isNull));
 	}
 
+	async countConfirmed() {
+		return this.storage.entities.Transaction.count();
+	}
+
 	// eslint-disable-next-line class-methods-use-this
 	validateTransactions(transactions) {
 		const transactionsResponses = transactions.map(transaction =>

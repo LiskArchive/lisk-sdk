@@ -114,6 +114,9 @@ module.exports = class ChainModule extends BaseModule {
 			calcSlotRound: {
 				handler: async action => this.chain.actions.calcSlotRound(action),
 			},
+			getConfirmedTransactionCount: {
+				handler: async () => this.chain.actions.getConfirmedTransactionCount(),
+			},
 			getNodeStatus: {
 				handler: async () => this.chain.actions.getNodeStatus(),
 			},

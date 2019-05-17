@@ -256,10 +256,8 @@ module.exports = class Chain {
 				),
 			getForgingStatusForAllDelegates: async () =>
 				this.scope.modules.forger.getForgingStatusForAllDelegates(),
-			getTransactionsFromPool: async action =>
-				promisify(
-					this.scope.modules.transactions.shared.getTransactionsFromPool
-				)(action.params.type, action.params.filters),
+			getTransactionsFromPool: async ({ params }) =>
+				this.transactionPool.getPooledTransactions(params.type, params.filters),
 			postTransaction: async action =>
 				promisify(this.scope.modules.transport.shared.postTransaction)(
 					action.params
@@ -274,14 +272,17 @@ module.exports = class Chain {
 					? this.slots.getSlotNumber(action.params.epochTime)
 					: this.slots.getSlotNumber(),
 			calcSlotRound: async action => this.slots.calcRound(action.params.height),
+			getConfirmedTransactionCount: async () =>
+				this.transactions.countConfirmed(),
 			getNodeStatus: async () => ({
 				consensus: this.scope.modules.peers.getLastConsensus(),
 				loaded: true,
 				syncing: this.loader.syncing(),
-				transactions: await promisify(
-					// TODO: move to HTTP-API module
-					this.scope.modules.transactions.shared.getTransactionsCount
-				)(),
+				unconfirmedTransactions: {
+					unconfirmed: this.transactionPool.getCountByQueue('ready') || 0,
+					unprocessed: this.transactionPool.getCountByQueue('verified') || 0,
+					unsigned: this.transactionPool.getCountByQueue('pending') || 0,
+				},
 				secondsSinceEpoch: this.slots.getTime(),
 				lastBlock: this.scope.modules.blocks.lastBlock.get(),
 			}),
