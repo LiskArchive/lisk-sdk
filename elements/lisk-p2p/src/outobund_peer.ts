@@ -55,7 +55,7 @@ export class OutboundPeer extends Peer {
 		}
 	}
 
-	public set outboundSocket(scClientSocket: SCClientSocket) {
+	public set socket(scClientSocket: SCClientSocket) {
 		if (this._socket) {
 			this._unbindHandlersFromOutboundSocket(this._socket);
 		}

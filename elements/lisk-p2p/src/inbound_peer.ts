@@ -40,7 +40,7 @@ export class InboundPeer extends Peer {
 		}
 	}
 
-	public set inboundSocket(scServerSocket: SCServerSocket) {
+	public set socket(scServerSocket: SCServerSocket) {
 		if (this._socket) {
 			this._unbindHandlersFromInboundSocket(this._socket);
 		}
