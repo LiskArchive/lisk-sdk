@@ -203,7 +203,7 @@ module.exports = class Network {
 		});
 
 		this.p2p.on(EVENT_REQUEST_RECEIVED, async request => {
-			this.logger.info(
+			this.logger.trace(
 				`Incoming request event: Received inbound request for procedure ${
 					request.procedure
 				}`
