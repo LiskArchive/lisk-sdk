@@ -306,6 +306,35 @@ class Transactions {
 	}
 
 	/**
+	 * Gets validated transactions based on limit and reverse option.
+	 *
+	 * @param {boolean} reverse - Reverse order of results
+	 * @param {number} limit - Limit applied to results
+	 * @returns {function} Calls transactionPool.getQueuedTransactionList
+	 * @todo Add description for the params
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	getValidatedTransactionList(reverse, limit) {
+		return __private.transactionPool.getValidatedTransactionList(
+			reverse,
+			limit
+		);
+	}
+
+	/**
+	 * Gets validated transactions based on limit and reverse option.
+	 *
+	 * @param {boolean} reverse - Reverse order of results
+	 * @param {number} limit - Limit applied to results
+	 * @returns {function} Calls transactionPool.getQueuedTransactionList
+	 * @todo Add description for the params
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	getReceivedTransactionList(reverse, limit) {
+		return __private.transactionPool.getReceivedTransactionList(reverse, limit);
+	}
+
+	/**
 	 * Search transactions based on the query parameter passed.
 	 *
 	 * @param {Object} filters - Filters applied to results
@@ -500,12 +529,15 @@ class Transactions {
 						function getAllCount(confirmedTransactionCount, waterCb) {
 							setImmediate(waterCb, null, {
 								confirmed: confirmedTransactionCount,
-								unconfirmed:
-									__private.transactionPool.getCountByQueue('ready') || 0,
-								unprocessed:
+								ready: __private.transactionPool.getCountByQueue('ready') || 0,
+								verified:
 									__private.transactionPool.getCountByQueue('verified') || 0,
-								unsigned:
+								pending:
 									__private.transactionPool.getCountByQueue('pending') || 0,
+								validated:
+									__private.transactionPool.getCountByQueue('validated') || 0,
+								received:
+									__private.transactionPool.getCountByQueue('received') || 0,
 							});
 						},
 					],
@@ -524,9 +556,11 @@ class Transactions {
 
 						result.total =
 							result.confirmed +
-							result.unconfirmed +
-							result.unprocessed +
-							result.unsigned;
+							result.ready +
+							result.verified +
+							result.validated +
+							result.pending +
+							result.received;
 
 						return setImmediate(cb, null, result);
 					}
@@ -542,9 +576,11 @@ class Transactions {
 			 */
 			getTransactionsFromPool(type, filters, cb) {
 				const typeMap = {
-					unprocessed: 'getQueuedTransactionList',
-					unconfirmed: 'getUnconfirmedTransactionList',
-					unsigned: 'getMultisignatureTransactionList',
+					pending: 'getMultisignatureTransactionList',
+					ready: 'getUnconfirmedTransactionList',
+					received: 'getReceivedTransactionList',
+					validated: 'getValidatedTransactionList',
+					verified: 'getQueuedTransactionList',
 				};
 
 				return __private.getPooledTransactions(typeMap[type], filters, cb);

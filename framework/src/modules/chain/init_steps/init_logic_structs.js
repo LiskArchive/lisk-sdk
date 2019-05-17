@@ -33,10 +33,7 @@ module.exports = async ({
 			err ? reject(err) : resolve(object);
 		});
 	});
-
-	const initTransactionLogic = new InitTransaction({
-		registeredTransactions,
-	});
+	const initTransactionLogic = new InitTransaction({ registeredTransactions });
 
 	const blockLogic = await new Promise((resolve, reject) => {
 		new Block(ed, schema, initTransactionLogic, (err, object) => {

@@ -520,7 +520,10 @@ class Utils {
 				v_votes: t.asset && t.asset.votes ? t.asset.votes.join(',') : null,
 				m_min: _.get(t, 'asset.multisignature.min', null),
 				m_lifetime: _.get(t, 'asset.multisignature.lifetime', null),
-				m_keysgroup: _.get(t, 'asset.multisignature.keysgroup', null),
+				m_keysgroup:
+					t.asset && t.asset.multisignature && t.asset.multisignature.keysgroup
+						? t.asset.multisignature.keysgroup.join(',')
+						: null,
 				dapp_name: _.get(t, 'asset.dapp.name', null),
 				dapp_description: _.get(t, 'asset.dapp.description', null),
 				dapp_tags: _.get(t, 'asset.dapp.tags', null),
