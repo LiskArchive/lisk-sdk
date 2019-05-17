@@ -272,8 +272,6 @@ module.exports = class Chain {
 					? this.slots.getSlotNumber(action.params.epochTime)
 					: this.slots.getSlotNumber(),
 			calcSlotRound: async action => this.slots.calcRound(action.params.height),
-			getConfirmedTransactionCount: async () =>
-				this.transactions.countConfirmed(),
 			getNodeStatus: async () => ({
 				consensus: this.scope.modules.peers.getLastConsensus(),
 				loaded: true,

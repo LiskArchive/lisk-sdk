@@ -357,9 +357,7 @@ async function getConfirmedTransactionCount() {
 			library.logger.warn("Transaction count wasn't cached", error);
 		}
 	}
-	const confirmed = await library.channel.invoke(
-		'chain:getConfirmedTransactionCount'
-	);
+	const confirmed = await library.storage.entities.Transaction.count();
 	// only update cache if ready
 	if (library.components.cache.cacheReady) {
 		try {
