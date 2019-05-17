@@ -564,13 +564,16 @@ __private.getTransactionsFromNetwork = async function() {
 		);
 		try {
 			/* eslint-disable-next-line */
-			await balancesSequenceAdd(addSequenceCb => {
+			await balancesSequenceAdd(async addSequenceCb => {
 				transaction.bundled = true;
-				modules.transactionPool.processUnconfirmedTransaction(
-					transaction,
-					false,
-					addSequenceCb
-				);
+				try {
+					await modules.transactionPool.processUnconfirmedTransaction(
+						transaction
+					);
+					setImmediate(addSequenceCb);
+				} catch (err) {
+					setImmediate(addSequenceCb, err);
+				}
 			});
 		} catch (error) {
 			library.logger.error(error);

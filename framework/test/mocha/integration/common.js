@@ -187,17 +187,15 @@ function addTransaction(library, transaction, cb) {
 	// See: modules.transport.__private.receiveTransaction
 	__testContext.debug(`	Add transaction ID: ${transaction.id}`);
 	transaction = library.logic.initTransaction.fromJson(transaction);
-	library.balancesSequence.add(sequenceCb => {
-		library.modules.transactions.processUnconfirmedTransaction(
-			transaction,
-			true,
-			err => {
-				if (err) {
-					return setImmediate(sequenceCb, err.toString());
-				}
-				return setImmediate(sequenceCb, null, transaction.id);
-			}
-		);
+	library.balancesSequence.add(async sequenceCb => {
+		try {
+			await library.modules.transactionPool.processUnconfirmedTransaction(
+				transaction
+			);
+			setImmediate(sequenceCb, null, transaction.id);
+		} catch (err) {
+			setImmediate(sequenceCb, err.toString());
+		}
 	}, cb);
 }
 
@@ -205,19 +203,15 @@ function addTransactionToUnconfirmedQueue(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
 	transaction = library.logic.initTransaction.fromJson(transaction);
-	library.modules.transactions.processUnconfirmedTransaction(
-		transaction,
-		true,
-		err => {
-			if (err) {
-				return setImmediate(cb, err.toString());
-			}
+	library.modules.transactionPool
+		.processUnconfirmedTransaction(transaction)
+		.then(() => {
 			const transactionPool = library.rewiredModules.transactions.__get__(
 				'__private.transactionPool'
 			);
-			return transactionPool.fillPool(cb);
-		}
-	);
+			return transactionPool.fillPool().finally(() => setImmediate(cb));
+		})
+		.catch(err => setImmediate(cb, err.toString()));
 }
 
 function addTransactionsAndForge(library, transactions, forgeDelay, cb) {

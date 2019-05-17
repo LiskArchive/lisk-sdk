@@ -15,52 +15,63 @@
 'use strict';
 
 const pool = require('@liskhq/lisk-transaction-pool');
-const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
-const expect = require('chai').expect;
-const processTransactionLogic = require('../../../../../../src/modules/chain/logic/process_transaction');
-const TransactionPool = require('../../../../../../src/modules/chain/logic/transaction_pool');
-
-const config = __testContext.config;
-
 const {
-	MAX_TRANSACTIONS_PER_BLOCK,
-	MAX_SHARED_TRANSACTIONS,
-} = global.constants;
+	Status: TransactionStatus,
+	TransactionError,
+} = require('@liskhq/lisk-transactions');
+const { expect } = require('chai');
+const {
+	TransactionPool,
+} = require('../../../../../../src/modules/chain/transactions/transaction_pool');
+const compose = require('../../../../../../src/modules/chain/transactions/compose_transaction_steps');
+const { transactions: transactionsFixtures } = require('../../../../fixtures');
+
 describe('transactionPool', () => {
-	let transactionPool;
-	let dummyTransactions;
+	const broadcastInterval = 5;
+	const releaseLimit = 25;
+	const expireTransactionsInterval = 10000;
+	const maxSharedTransactions = 25;
+	const maxTransactionsPerQueue = 1000;
+	const maxTransactionsPerBlock = 25;
 
 	const logger = {
-		trace: sinonSandbox.spy(),
-		debug: sinonSandbox.spy(),
 		info: sinonSandbox.spy(),
-		log: sinonSandbox.spy(),
-		warn: sinonSandbox.spy(),
 		error: sinonSandbox.spy(),
 	};
 
-	const processTransactionsStub = {
+	const transactionsStub = {
 		checkPersistedTransactions: sinonSandbox.stub().resolves(),
 		validateTransactions: sinonSandbox.stub().resolves(),
 		verifyTransactions: sinonSandbox.stub().resolves(),
 		applyTransactions: sinonSandbox.stub().resolves(),
 		checkAllowedTransactions: sinonSandbox.stub().resolves(),
+		processSignature: sinonSandbox.stub().resolves(),
 	};
 
+	const slotsStub = {
+		getSlotNumber: sinonSandbox.stub(),
+	};
+
+	let transactionPool;
+	let dummyTransactions;
+
 	beforeEach(async () => {
-		config.transactions = config.modules.chain.transactions;
-		// Init test subject
-		transactionPool = new TransactionPool(
-			config.modules.chain.broadcasts.broadcastInterval,
-			config.modules.chain.broadcasts.releaseLimit,
-			logger, // logger
-			config
-		);
+		sinonSandbox
+			.stub(compose, 'composeTransactionSteps')
+			.returns(sinonSandbox.stub());
+		transactionPool = new TransactionPool({
+			transactions: transactionsStub,
+			slots: slotsStub,
+			logger,
+			broadcastInterval,
+			releaseLimit,
+			expireTransactionsInterval,
+			maxSharedTransactions,
+			maxTransactionsPerQueue,
+			maxTransactionsPerBlock,
+		});
 
 		dummyTransactions = [{ id: 1 }, { id: 2 }, { id: 3 }];
-
-		// Bind stub modules
-		transactionPool.bind(processTransactionsStub);
 	});
 
 	afterEach(async () => {
@@ -69,59 +80,26 @@ describe('transactionPool', () => {
 
 	describe('constructor', () => {
 		it('should set the instance variables', async () => {
-			const tp = new TransactionPool(
-				config.modules.chain.broadcasts.broadcastInterval,
-				config.modules.chain.broadcasts.releaseLimit,
-				logger, // logger
-				config
+			expect(transactionPool.maxTransactionsPerQueue).to.equal(
+				maxTransactionsPerQueue
 			);
-
-			expect(tp.maxTransactionsPerQueue).to.equal(
-				config.transactions.maxTransactionsPerQueue
-			);
-			expect(tp.bundledInterval).to.equal(
-				config.modules.chain.broadcasts.broadcastInterval
-			);
-			expect(tp.bundleLimit).to.equal(
-				config.modules.chain.broadcasts.releaseLimit
-			);
-			expect(tp.logger).to.equal(logger);
-		});
-	});
-
-	describe('bind', () => {
-		let txPool;
-		beforeEach(async () => {
-			sinonSandbox.spy(processTransactionLogic, 'composeTransactionSteps');
-			txPool = new TransactionPool(
-				config.modules.chain.broadcasts.broadcastInterval,
-				config.modules.chain.broadcasts.releaseLimit,
-				logger, // logger
-				config
-			);
-			txPool.bind(processTransactionsStub);
+			expect(transactionPool.bundledInterval).to.equal(broadcastInterval);
+			expect(transactionPool.bundleLimit).to.equal(releaseLimit);
+			expect(transactionPool.logger).to.equal(logger);
 		});
 
 		it('should create pool instance', async () => {
-			expect(txPool.pool).to.be.an.instanceOf(pool.TransactionPool);
+			expect(transactionPool.pool).to.be.an.instanceOf(pool.TransactionPool);
 		});
 
 		it('should call composeTransactionSteps to compose verifyTransactions', async () => {
-			expect(
-				processTransactionLogic.composeTransactionSteps
-			).to.have.been.calledWith(
-				processTransactionsStub.checkAllowedTransactions,
-				processTransactionsStub.checkPersistedTransactions,
-				processTransactionsStub.verifyTransactions
-			);
+			expect(compose.composeTransactionSteps).to.have.been.calledTwice;
 		});
 
 		it('should call composeTransactionSteps to compose processTransactions', async () => {
-			expect(
-				processTransactionLogic.composeTransactionSteps.getCall(1)
-			).to.have.been.calledWith(
-				processTransactionsStub.checkPersistedTransactions,
-				processTransactionsStub.applyTransactions
+			expect(compose.composeTransactionSteps).to.have.been.calledWith(
+				transactionsStub.checkPersistedTransactions,
+				transactionsStub.applyTransactions
 			);
 		});
 	});
@@ -312,40 +290,35 @@ describe('transactionPool', () => {
 		});
 
 		it('should get transactions from queues using correct parameters', async () => {
-			transactionPool.getMergedTransactionList(false, MAX_SHARED_TRANSACTIONS);
+			transactionPool.getMergedTransactionList(false, maxSharedTransactions);
 			expect(getUnconfirmedTransactionListStub).to.be.calledWithExactly(
 				false,
-				MAX_TRANSACTIONS_PER_BLOCK
+				maxSharedTransactions
 			);
 			expect(getMultisignatureTransactionListStub).to.be.calledWithExactly(
 				false,
-				MAX_TRANSACTIONS_PER_BLOCK
+				maxSharedTransactions - 1
 			);
 			expect(getQueuedTransactionListStub).to.be.calledWithExactly(
 				false,
-				MAX_SHARED_TRANSACTIONS - 2
+				maxSharedTransactions - 2
 			);
 		});
 
 		it('should return transactions from all the queues', async () => {
 			expect(
-				transactionPool.getMergedTransactionList(false, MAX_SHARED_TRANSACTIONS)
+				transactionPool.getMergedTransactionList(false, maxSharedTransactions)
 			).to.eql(dummyTransactions);
 		});
 	});
 
 	describe('addBundledTransaction', () => {
-		it('should call this.pool.addTransaction with tranasction as parameter', done => {
+		it('should call this.pool.addTransaction with tranasction as parameter', async () => {
 			const addTransactionStub = sinonSandbox
 				.stub(transactionPool.pool, 'addTransaction')
 				.returns({ isFull: false, exists: false, queueName: 'recieved' });
-			transactionPool.addBundledTransaction(dummyTransactions[0], err => {
-				expect(err).to.not.exist;
-				expect(addTransactionStub).to.be.calledWithExactly(
-					dummyTransactions[0]
-				);
-				done();
-			});
+			transactionPool.addBundledTransaction(dummyTransactions[0]);
+			expect(addTransactionStub).to.be.calledWithExactly(dummyTransactions[0]);
 		});
 	});
 
@@ -354,12 +327,10 @@ describe('transactionPool', () => {
 			const addVerifiedTransactionStub = sinonSandbox
 				.stub(transactionPool.pool, 'addVerifiedTransaction')
 				.returns({ isFull: false, exists: false, queueName: 'verified' });
-			transactionPool.addVerifiedTransaction(dummyTransactions[0], err => {
-				expect(err).to.not.exist;
-				expect(addVerifiedTransactionStub).to.be.calledWithExactly(
-					dummyTransactions[0]
-				);
-			});
+			transactionPool.addVerifiedTransaction(dummyTransactions[0]);
+			expect(addVerifiedTransactionStub).to.be.calledWithExactly(
+				dummyTransactions[0]
+			);
 		});
 	});
 
@@ -368,121 +339,170 @@ describe('transactionPool', () => {
 			const addMultisignatureTransactionStub = sinonSandbox
 				.stub(transactionPool.pool, 'addPendingTransaction')
 				.returns({ isFull: false, exists: false, queueName: 'pending' });
-			transactionPool.addMultisignatureTransaction(
-				dummyTransactions[0],
-				err => {
-					expect(err).to.not.exist;
-					expect(addMultisignatureTransactionStub).to.be.calledWithExactly(
-						dummyTransactions[0]
-					);
-				}
+			transactionPool.addMultisignatureTransaction(dummyTransactions[0]);
+			expect(addMultisignatureTransactionStub).to.be.calledWithExactly(
+				dummyTransactions[0]
 			);
 		});
 	});
 
+	describe('getTransactionAndProcessSignature', () => {
+		const TRANSACTION_TYPES_MULTI = 4;
+		let transactionResponse;
+		let transactionObject;
+		let signatureObject;
+
+		beforeEach(async () => {
+			// Set some random data used for tests
+			transactionObject = new transactionsFixtures.Transaction({
+				type: TRANSACTION_TYPES_MULTI,
+			});
+			transactionResponse = {
+				id: transactionObject.id,
+				status: 1,
+				errors: [],
+			};
+			signatureObject = {
+				transactionId: transactionObject.id,
+				publicKey: 'publicKey1',
+				signature: 'signature1',
+			};
+			transactionObject.signatures = [];
+			sinonSandbox
+				.stub(transactionPool, 'getMultisignatureTransaction')
+				.returns(transactionObject);
+		});
+
+		describe('when signature is not present', () => {
+			it('should throw a TransactionError instance', async () => {
+				try {
+					await transactionPool.getTransactionAndProcessSignature(undefined);
+				} catch (errors) {
+					expect(errors[0]).to.be.an.instanceof(TransactionError);
+					expect(errors[0].message).to.eql(
+						'Unable to process signature, signature not provided'
+					);
+				}
+			});
+		});
+
+		describe('when getMultisignatureTransaction returns no transaction', () => {
+			it('should throw an Error instance', async () => {
+				transactionPool.getMultisignatureTransaction.returns(undefined);
+				try {
+					await transactionPool.getTransactionAndProcessSignature(
+						signatureObject
+					);
+				} catch (errors) {
+					expect(errors[0]).to.be.an.instanceof(TransactionError);
+					expect(errors[0].message).to.eql(
+						'Unable to process signature, corresponding transaction not found'
+					);
+				}
+			});
+		});
+
+		describe('when signature already exists in transaction', () => {
+			it('should throw an Error instance', async () => {
+				transactionsStub.processSignature.resolves({
+					...transactionResponse,
+					status: 0,
+					errors: [
+						new TransactionError('Signature already present in transaction.'),
+					],
+				});
+				transactionObject.signatures = ['signature1'];
+				try {
+					await transactionPool.getTransactionAndProcessSignature(
+						signatureObject
+					);
+				} catch (errors) {
+					expect(
+						transactionPool.getMultisignatureTransaction
+					).to.have.been.calledWith(signatureObject.transactionId);
+					expect(transactionPool.getMultisignatureTransaction).to.have.been
+						.calledOnce;
+					expect(transactionsStub.processSignature).to.have.been.calledOnce;
+					expect(errors[0]).to.be.an.instanceof(TransactionError);
+					expect(errors[0].message).to.eql(
+						'Signature already present in transaction.'
+					);
+				}
+			});
+		});
+	});
+
 	describe('processUnconfirmedTransaction', () => {
+		let transactionsResponses;
 		let transaction;
 
 		beforeEach(async () => {
 			transaction = dummyTransactions[0];
+			transactionsResponses = [
+				{
+					status: TransactionStatus.OK,
+					errors: [],
+				},
+			];
+			transactionPool.verifyTransactions.returns({ transactionsResponses });
 		});
 
-		it('should call the callback with error if the transaction already exists', done => {
+		it('should throw an error if the transaction already exists', async () => {
 			sinonSandbox.stub(transactionPool, 'transactionInPool').returns(true);
-			transactionPool.processUnconfirmedTransaction(transaction, false, err => {
+			try {
+				await transactionPool.processUnconfirmedTransaction(transaction);
+			} catch (err) {
 				expect(err).to.be.an('array');
 				err.forEach(anErr => {
 					expect(anErr.message).to.equal(
 						`Transaction is already processed: ${transaction.id}`
 					);
 				});
-				done();
-			});
+			}
 		});
 
-		it('should add transaction to the verified queue when status is OK', done => {
-			const transactionsResponses = [
-				{
-					status: TransactionStatus.OK,
-					errors: [],
-				},
-			];
-			const addVerifiedTransactionStub = sinonSandbox
-				.stub(transactionPool, 'addVerifiedTransaction')
-				.callsArg(1);
-			processTransactionsStub.checkPersistedTransactions.resolves({
-				transactionsResponses,
-			});
-			processTransactionsStub.verifyTransactions.resolves({
-				transactionsResponses,
-			});
-			processTransactionsStub.checkAllowedTransactions.resolves({
-				transactionsResponses,
-			});
-			transactionPool.processUnconfirmedTransaction(transaction, false, () => {
-				expect(addVerifiedTransactionStub).to.be.calledWith(transaction);
-				done();
-			});
+		it('should add transaction to the verified queue when status is OK', async () => {
+			const addVerifiedTransactionStub = sinonSandbox.stub(
+				transactionPool,
+				'addVerifiedTransaction'
+			);
+			await transactionPool.processUnconfirmedTransaction(transaction);
+			expect(addVerifiedTransactionStub).to.be.calledWith(transaction);
 		});
 
-		it('should add transaction to pending when status is PENDING', done => {
-			const transactionsResponses1 = [
-				{
-					status: TransactionStatus.OK,
-					errors: [],
-				},
-			];
-			const transactionsResponses2 = [
-				{
-					status: TransactionStatus.PENDING,
-					errors: [],
-				},
-			];
-			const addMultisignatureTransactionStub = sinonSandbox
-				.stub(transactionPool, 'addMultisignatureTransaction')
-				.callsArg(1);
-			processTransactionsStub.checkPersistedTransactions.resolves({
-				transactionsResponses: transactionsResponses1,
+		it('should add transaction to pending when status is PENDING', async () => {
+			transactionPool.verifyTransactions.resolves({
+				transactionsResponses: [
+					{
+						status: TransactionStatus.PENDING,
+						errors: [],
+					},
+				],
 			});
-			processTransactionsStub.verifyTransactions.resolves({
-				transactionsResponses: transactionsResponses2,
-			});
-			processTransactionsStub.checkAllowedTransactions.resolves({
-				transactionsResponses: transactionsResponses2,
-			});
-			transactionPool.processUnconfirmedTransaction(transaction, false, () => {
-				expect(addMultisignatureTransactionStub).to.be.calledWith(transaction);
-				done();
-			});
+			const addMultisignatureTransactionStub = sinonSandbox.stub(
+				transactionPool,
+				'addMultisignatureTransaction'
+			);
+			await transactionPool.processUnconfirmedTransaction(transaction);
+			expect(addMultisignatureTransactionStub).to.be.calledWith(transaction);
 		});
 
-		it('should return error when when status is FAIL', done => {
-			const transactionsResponses1 = [
-				{
-					status: TransactionStatus.OK,
-					errors: [],
-				},
-			];
-			const transactionsResponses2 = [
+		it('should return error when when status is FAIL', async () => {
+			const responses = [
 				{
 					status: TransactionStatus.FAIL,
 					errors: [new Error()],
 				},
 			];
-			processTransactionsStub.checkPersistedTransactions.resolves({
-				transactionsResponses: transactionsResponses1,
+			transactionPool.verifyTransactions.resolves({
+				transactionsResponses: responses,
 			});
-			processTransactionsStub.verifyTransactions.resolves({
-				transactionsResponses: transactionsResponses2,
-			});
-			processTransactionsStub.checkAllowedTransactions.resolves({
-				transactionsResponses: transactionsResponses2,
-			});
-			transactionPool.processUnconfirmedTransaction(transaction, false, err => {
+			try {
+				await transactionPool.processUnconfirmedTransaction(transaction);
+			} catch (err) {
 				expect(err).to.be.an('array');
-				expect(err[0]).to.eql(transactionsResponses2[0].errors[0]);
-				done();
-			});
+				expect(err[0]).to.eql(responses[0].errors[0]);
+			}
 		});
 	});
 });

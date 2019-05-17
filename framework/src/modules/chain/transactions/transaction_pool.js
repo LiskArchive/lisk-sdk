@@ -14,6 +14,7 @@
 
 'use strict';
 
+const EventEmitter = require('events');
 const _ = require('lodash');
 const pool = require('@liskhq/lisk-transaction-pool');
 const {
@@ -21,28 +22,20 @@ const {
 	TransactionError,
 } = require('@liskhq/lisk-transactions');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
-const { composeTransactionSteps } = require('./compose_transaction_steps');
+const compose = require('./compose_transaction_steps');
 const { sortBy } = require('./sort');
 
-const wrapAddTransactionResponseInCb = (
-	addTransactionResponse,
-	cb,
-	transaction,
-	err
-) => {
-	if (err) {
-		return cb(err);
-	}
+const handleAddTransactionResponse = (addTransactionResponse, transaction) => {
 	if (addTransactionResponse.isFull) {
-		return cb(new Error('Transaction pool is full'));
+		throw new Error('Transaction pool is full');
 	}
 	if (addTransactionResponse.alreadyExists) {
 		if (addTransactionResponse.queueName === readyQueue) {
-			return cb(new Error('Transaction is already in unconfirmed state'));
+			throw new Error('Transaction is already in unconfirmed state');
 		}
-		return cb(new Error(`Transaction is already processed: ${transaction.id}`));
+		throw new Error(`Transaction is already processed: ${transaction.id}`);
 	}
-	return cb();
+	return addTransactionResponse;
 };
 
 const receivedQueue = 'recieved';
@@ -64,7 +57,7 @@ const readyQueue = 'ready';
  * @param {Object} logger - Logger instance
  * @param {Object} config - config variable
  */
-class TransactionPool {
+class TransactionPool extends EventEmitter {
 	constructor({
 		transactions,
 		slots,
@@ -76,6 +69,7 @@ class TransactionPool {
 		maxTransactionsPerQueue,
 		maxTransactionsPerBlock,
 	}) {
+		super();
 		this.transactions = transactions;
 		this.logger = logger;
 		this.slots = slots;
@@ -87,12 +81,12 @@ class TransactionPool {
 		this.bundleLimit = releaseLimit;
 
 		this.validateTransactions = transactions.validateTransactions;
-		this.verifyTransactions = composeTransactionSteps(
+		this.verifyTransactions = compose.composeTransactionSteps(
 			transactions.checkAllowedTransactions,
 			transactions.checkPersistedTransactions,
 			transactions.verifyTransactions
 		);
-		this.processTransactions = composeTransactionSteps(
+		this.processTransactions = compose.composeTransactionSteps(
 			transactions.checkPersistedTransactions,
 			transactions.applyTransactions
 		);
@@ -155,7 +149,7 @@ class TransactionPool {
 			if (payload.length > 0) {
 				if (action === pool.ACTION_ADD_TRANSACTIONS) {
 					payload.forEach(aTransaction =>
-						this.bus.message('unconfirmedTransaction', aTransaction, true)
+						this.emit('unconfirmedTransaction', aTransaction)
 					);
 				}
 
@@ -190,7 +184,7 @@ class TransactionPool {
 		if (!signature) {
 			const message = 'Unable to process signature, signature not provided';
 			this.logger.error(message);
-			throw new TransactionError(message, '', '.signature');
+			throw [new TransactionError(message, '', '.signature')];
 		}
 		// Grab transaction with corresponding ID from transaction pool
 		const transaction = this.getMultisignatureTransaction(
@@ -201,7 +195,7 @@ class TransactionPool {
 			const message =
 				'Unable to process signature, corresponding transaction not found';
 			this.logger.error(message, { signature });
-			throw new TransactionError(message, '', '.signature');
+			throw [new TransactionError(message, '', '.signature')];
 		}
 
 		const transactionResponse = await this.transactions.processSignature(
@@ -332,71 +326,65 @@ class TransactionPool {
 		return [...ready, ...pending, ...verified];
 	}
 
-	addBundledTransaction(transaction, cb) {
-		return wrapAddTransactionResponseInCb(
+	addBundledTransaction(transaction) {
+		return handleAddTransactionResponse(
 			this.pool.addTransaction(transaction),
-			cb,
 			transaction
 		);
 		// Register to braodcaster
 	}
 
-	addVerifiedTransaction(transaction, cb) {
-		return wrapAddTransactionResponseInCb(
+	addVerifiedTransaction(transaction) {
+		return handleAddTransactionResponse(
 			this.pool.addVerifiedTransaction(transaction),
-			cb,
 			transaction
 		);
 		// Register to braodcaster
 	}
 
-	addMultisignatureTransaction(transaction, cb) {
-		return wrapAddTransactionResponseInCb(
+	addMultisignatureTransaction(transaction) {
+		return handleAddTransactionResponse(
 			this.pool.addPendingTransaction(transaction),
-			cb,
 			transaction
 		);
 		// Register to braodcaster
 	}
 
-	processUnconfirmedTransaction(transaction, broadcast, cb) {
+	async processUnconfirmedTransaction(transaction) {
 		if (this.transactionInPool(transaction.id)) {
-			return setImmediate(cb, [
+			throw [
 				new TransactionError(
 					`Transaction is already processed: ${transaction.id}`,
 					transaction.id,
 					'.id'
 				),
-			]);
+			];
 		}
 
 		if (
 			this.slots.getSlotNumber(transaction.timestamp) >
 			this.slots.getSlotNumber()
 		) {
-			return setImmediate(cb, [
+			throw [
 				new TransactionError(
 					'Invalid transaction timestamp. Timestamp is in the future',
 					transaction.id,
 					'.timestamp'
 				),
-			]);
+			];
 		}
 
-		return this.verifyTransactions([transaction]).then(
-			({ transactionsResponses }) => {
-				if (transactionsResponses[0].status === TransactionStatus.OK) {
-					return this.addVerifiedTransaction(transaction, cb);
-				}
-				if (transactionsResponses[0].status === TransactionStatus.PENDING) {
-					return this.addMultisignatureTransaction(transaction, cb);
-				}
-				this.logger.info(
-					`Transaction pool - ${transactionsResponses[0].errors}`
-				);
-				return cb(transactionsResponses[0].errors);
-			}
-		);
+		const { transactionsResponses } = await this.verifyTransactions([
+			transaction,
+		]);
+		if (transactionsResponses[0].status === TransactionStatus.OK) {
+			return this.addVerifiedTransaction(transaction);
+		}
+		if (transactionsResponses[0].status === TransactionStatus.PENDING) {
+			return this.addMultisignatureTransaction(transaction);
+		}
+		this.logger.info(`Transaction pool - ${transactionsResponses[0].errors}`);
+		throw transactionsResponses[0].errors;
 		// Register to braodcaster
 	}
 
