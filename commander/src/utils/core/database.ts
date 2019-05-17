@@ -97,10 +97,8 @@ export const createUser = async (
 ): Promise<string> => {
 	try {
 		const {
-			config: {
-				components: {
-					storage: { user, password },
-				},
+			components: {
+				storage: { user, password },
 			},
 		}: LiskConfig = await getLiskConfig(installDir, network);
 		const { dbPort } = await describeApplication(name);
@@ -129,10 +127,8 @@ export const createDatabase = async (
 ): Promise<string> => {
 	try {
 		const {
-			config: {
-				components: {
-					storage: { database },
-				},
+			components: {
+				storage: { database },
 			},
 		}: LiskConfig = await getLiskConfig(installDir, network);
 		const { dbPort } = await describeApplication(name);
@@ -184,10 +180,8 @@ export const restoreSnapshot = async (
 ): Promise<string> => {
 	try {
 		const {
-			config: {
-				components: {
-					storage: { database, user },
-				},
+			components: {
+				storage: { database, user },
 			},
 		}: LiskConfig = await getLiskConfig(installDir, network);
 		const { dbPort } = await describeApplication(name);
