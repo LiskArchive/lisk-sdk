@@ -54,10 +54,8 @@ describe('delegates', () => {
 		beforeEach(async () => {
 			delegatesModule = new Delegates({
 				channel: mockChannel,
-				components: {
-					logger: mockLogger,
-					storage: mockStorage,
-				},
+				logger: mockLogger,
+				storage: mockStorage,
 			});
 		});
 
