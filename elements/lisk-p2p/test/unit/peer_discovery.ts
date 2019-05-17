@@ -66,6 +66,10 @@ describe('peer discovery', () => {
 				});
 			});
 
+			afterEach(async () => {
+				sandbox.restore();
+			});
+
 			it('should return an array for a given seed list', () => {
 				return expect(discoveredPeers).to.be.an('array');
 			});
