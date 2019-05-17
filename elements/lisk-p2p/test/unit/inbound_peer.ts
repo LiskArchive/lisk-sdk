@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 
-import { InboundPeer } from '../../src/inbound_peer';
+import { InboundPeer } from '../../src/peer';
 import { P2PDiscoveredPeerInfo } from '../../src/p2p_types';
 
 describe('inbound_peer', () => {

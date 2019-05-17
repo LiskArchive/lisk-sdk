@@ -26,14 +26,14 @@ import {
 	PeerConfig,
 	REMOTE_EVENT_MESSAGE,
 	REMOTE_EVENT_RPC_REQUEST,
-} from './peer';
+} from './base';
 
 import {
 	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
 	P2PRequestPacket,
 	P2PResponsePacket,
-} from './p2p_types';
+} from '../p2p_types';
 
 import * as querystring from 'querystring';
 import * as socketClusterClient from 'socketcluster-client';

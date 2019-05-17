@@ -19,7 +19,7 @@ import {
 	FetchPeerStatusError,
 	PeerOutboundConnectionError,
 	RPCResponseError,
-} from './errors';
+} from '../errors';
 
 import {
 	P2PDiscoveredPeerInfo,
@@ -29,9 +29,9 @@ import {
 	P2PRequestPacket,
 	P2PResponsePacket,
 	ProtocolNodeInfo,
-} from './p2p_types';
+} from '../p2p_types';
 
-import { P2PRequest } from './p2p_request';
+import { P2PRequest } from '../p2p_request';
 
 import * as socketClusterClient from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
@@ -40,7 +40,7 @@ import {
 	validatePeerInfoList,
 	validateProtocolMessage,
 	validateRPCRequest,
-} from './validation';
+} from '../validation';
 
 // This interface is needed because pingTimeoutDisabled is missing from ClientOptions in socketcluster-client.
 export interface ClientOptionsUpdated {

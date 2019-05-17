@@ -24,8 +24,6 @@ import shuffle = require('lodash.shuffle');
 import { SCClientSocket } from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
 import { RequestFailError } from './errors';
-import { InboundPeer } from './inbound_peer';
-import { OutboundPeer } from './outbound_peer';
 import { P2PRequest } from './p2p_request';
 import {
 	P2PClosePacket,
@@ -53,9 +51,11 @@ import {
 	EVENT_OUTBOUND_SOCKET_ERROR,
 	EVENT_REQUEST_RECEIVED,
 	EVENT_UPDATED_PEER_INFO,
+	InboundPeer,
+	OutboundPeer,
 	Peer,
 	PeerConfig,
-} from './peer';
+} from './peer/';
 import { discoverPeers } from './peer_discovery';
 
 export const EVENT_FAILED_TO_PUSH_NODE_INFO = 'failedToPushNodeInfo';

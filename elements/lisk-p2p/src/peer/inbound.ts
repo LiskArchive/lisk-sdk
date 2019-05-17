@@ -19,9 +19,9 @@ import {
 	REMOTE_EVENT_MESSAGE,
 	REMOTE_EVENT_RPC_REQUEST,
 	SCServerSocketUpdated,
-} from './peer';
+} from './base';
 
-import { P2PDiscoveredPeerInfo } from './p2p_types';
+import { P2PDiscoveredPeerInfo } from '../p2p_types';
 
 import { SCServerSocket } from 'socketcluster-server';
 
