@@ -36,7 +36,7 @@ class BaseChannel {
 	 * Create the baseChannel object
 	 *
 	 * @param {string} moduleAlias - Label used for module
-	 * @param {module.Event} events - Collection of events for event listener
+	 * @param {string[]} events - Array of event names
 	 * @param {module.Action} actions - Collection of actions available
 	 * @param {Object} [options] - Options impacting events and actions list
 	 * @param {boolean} [options.skipInternalEvents] - Skip internal events

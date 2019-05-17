@@ -47,9 +47,7 @@ const alpha = {
 
 const beta = {
 	moduleAlias: 'betaAlias',
-	events: ['beta1', 'beta2'].map(
-		event => new Event(`${alpha.moduleAlias}:${event}`)
-	),
+	events: ['beta1', 'beta2'].map(event => new Event(`betaAlias:${event}`)),
 	actions: {
 		divideByTwo: {
 			handler: action => action.params / 2,
