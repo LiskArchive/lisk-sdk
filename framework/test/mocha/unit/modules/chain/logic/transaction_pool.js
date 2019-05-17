@@ -189,7 +189,7 @@ describe('transactionPool', () => {
 			const limit = 10;
 			transactionPool.getBundledTransactionList(reverse, limit);
 			expect(getTransactionsListStub).to.be.calledWithExactly(
-				'recieved',
+				'received',
 				reverse,
 				limit
 			);
@@ -338,7 +338,7 @@ describe('transactionPool', () => {
 		it('should call this.pool.addTransaction with tranasction as parameter', done => {
 			const addTransactionStub = sinonSandbox
 				.stub(transactionPool.pool, 'addTransaction')
-				.returns({ isFull: false, exists: false, queueName: 'recieved' });
+				.returns({ isFull: false, exists: false, queueName: 'received' });
 			transactionPool.addBundledTransaction(dummyTransactions[0], err => {
 				expect(err).to.not.exist;
 				expect(addTransactionStub).to.be.calledWithExactly(

@@ -388,4 +388,22 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 		return createResponse(this.id, errors);
 	}
+
+	// tslint:disable:next-line: prefer-function-over-method no-any
+	protected assetFromSync(raw: any): object | undefined {
+		if (!raw.m_keysgroup) {
+			return undefined;
+		}
+		const multisignature = {
+			min: raw.m_min,
+			lifetime: raw.m_lifetime,
+			keysgroup: [],
+		};
+
+		if (typeof raw.m_keysgroup === 'string') {
+			multisignature.keysgroup = raw.m_keysgroup.split(',');
+		}
+
+		return { multisignature };
+	}
 }

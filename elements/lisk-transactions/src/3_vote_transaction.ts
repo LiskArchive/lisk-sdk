@@ -89,7 +89,6 @@ export class VoteTransaction extends BaseTransaction {
 				publicKey,
 			};
 		});
-
 		const filterArray = [
 			{
 				address: this.senderId,
@@ -342,6 +341,7 @@ export class VoteTransaction extends BaseTransaction {
 				),
 			);
 		}
+
 		const updatedSender = {
 			...sender,
 			balance: updatedSenderBalance.toString(),
@@ -350,5 +350,15 @@ export class VoteTransaction extends BaseTransaction {
 		store.account.set(updatedSender.address, updatedSender);
 
 		return errors;
+	}
+
+	// tslint:disable:next-line: prefer-function-over-method no-any
+	protected assetFromSync(raw: any): object | undefined {
+		if (!raw.v_votes) {
+			return undefined;
+		}
+		const votes = raw.v_votes.split(',');
+
+		return { votes };
 	}
 }
