@@ -18,13 +18,13 @@ const Bignumber = require('bignumber.js');
 const async = require('async');
 const cryptography = require('@liskhq/lisk-cryptography');
 
+const { Delegates } = require('./delegates');
 const Round = require('./round');
 const slots = require('../helpers/slots');
 
 // Private fields
 let modules;
 let library;
-let self;
 const { ACTIVE_DELEGATES } = global.constants;
 const __private = {};
 
@@ -46,7 +46,7 @@ __private.ticking = false;
  * @todo Apply node pattern for callbacks: callback always at the end
  */
 class Rounds {
-	constructor(cb, scope) {
+	constructor(scope) {
 		library = {
 			channel: scope.channel,
 			logic: scope.logic,
@@ -54,9 +54,7 @@ class Rounds {
 			bus: scope.bus,
 			storage: scope.components.storage,
 		};
-		self = this;
-
-		setImmediate(cb, null, self);
+		library.delegates = new Delegates(library);
 	}
 
 	/**
@@ -393,6 +391,28 @@ class Rounds {
 	// eslint-disable-next-line class-methods-use-this
 	cleanup() {
 		__private.loaded = false;
+	}
+
+	// Delegates Proxy
+
+	// eslint-disable-next-line class-methods-use-this
+	validateBlockSlot(block) {
+		return library.delegates.validateBlockSlot(block);
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	generateDelegateList(round, source, tx) {
+		return library.delegates.generateDelegateList(round, source, tx);
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	fork(block, cause) {
+		return library.delegates.fork(block, cause);
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	validateBlockSlotAgainstPreviousRound(block) {
+		return library.delegates.fork(block);
 	}
 }
 

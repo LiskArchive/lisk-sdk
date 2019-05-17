@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { Rounds } = require('./rounds.js');
+const Rounds = require('./rounds.js');
 
 module.exports = {
 	Rounds,
