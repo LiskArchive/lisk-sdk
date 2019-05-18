@@ -44,6 +44,7 @@ function NodeController(scope) {
 		components: {
 			storage: scope.components.storage,
 			cache: scope.components.cache,
+			logger: scope.components.logger,
 		},
 		config: scope.config,
 		channel: scope.channel,
@@ -354,10 +355,10 @@ async function getConfirmedTransactionCount() {
 			}
 			return confirmed;
 		} catch (error) {
-			library.logger.warn("Transaction count wasn't cached", error);
+			library.components.logger.warn("Transaction count wasn't cached", error);
 		}
 	}
-	const confirmed = await library.storage.entities.Transaction.count();
+	const confirmed = await library.components.storage.entities.Transaction.count();
 	// only update cache if ready
 	if (library.components.cache.cacheReady) {
 		try {
@@ -369,7 +370,7 @@ async function getConfirmedTransactionCount() {
 			);
 		} catch (error) {
 			// Ignore error and just put warn
-			library.logger.warn("Transaction count wasn't cached", error);
+			library.components.logger.warn("Transaction count wasn't cached", error);
 		}
 	}
 	return confirmed;
