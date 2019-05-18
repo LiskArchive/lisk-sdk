@@ -21,10 +21,12 @@ const Bignum = require('../../../../../../../src/modules/chain/helpers/bignum');
 const {
 	registeredTransactions,
 } = require('../../../../../common/registered_transactions');
-const InitTransaction = require('../../../../../../../src/modules/chain/logic/init_transaction');
+const {
+	Transactions,
+} = require('../../../../../../../src/modules/chain/transactions');
 const { Transaction } = require('../../../../../fixtures/transactions');
 
-const initTransaction = new InitTransaction({ registeredTransactions });
+const initTransaction = new Transactions({ registeredTransactions });
 
 const BlocksVerify = rewire(
 	'../../../../../../../src/modules/chain/submodules/blocks/verify'
@@ -43,6 +45,7 @@ describe('blocks/verify', () => {
 	let bindingsStub;
 	let modules;
 	let channelMock;
+	let transactionsMock;
 
 	beforeEach(done => {
 		// Logic
@@ -89,12 +92,20 @@ describe('blocks/verify', () => {
 				.callsArg(1),
 		};
 
+		transactionsMock = {
+			checkAllowedTransactions: sinonSandbox.stub().returns({
+				transactionsResponses: [],
+			}),
+			verifyTransactions: sinonSandbox.stub(),
+		};
+
 		blocksVerifyModule = new BlocksVerify(
 			loggerStub,
 			logicBlockStub,
 			storageStub,
 			configMock,
-			channelMock
+			channelMock,
+			transactionsMock
 		);
 
 		library = BlocksVerify.__get__('library');
@@ -106,7 +117,7 @@ describe('blocks/verify', () => {
 			validateBlockSlot: sinonSandbox.stub(),
 		};
 
-		const modulesTransactionsStub = {
+		const modulesTransactionPoolStub = {
 			undoUnconfirmed: sinonSandbox.stub(),
 			removeUnconfirmedTransaction: sinonSandbox.stub(),
 		};
@@ -125,19 +136,11 @@ describe('blocks/verify', () => {
 			calculateNewBroadhash: sinonSandbox.stub(),
 		};
 
-		const modulesProcessTransactionsStub = {
-			verifyTransactions: sinonSandbox.stub(),
-			checkAllowedTransactions: sinonSandbox.stub().returns({
-				transactionsResponses: [],
-			}),
-		};
-
 		bindingsStub = {
 			modules: {
 				blocks: modulesBlocksStub,
 				delegates: modulesDelegatesStub,
-				transactions: modulesTransactionsStub,
-				processTransactions: modulesProcessTransactionsStub,
+				transactionPool: modulesTransactionPoolStub,
 			},
 		};
 
@@ -1815,16 +1818,16 @@ describe('blocks/verify', () => {
 					// TODO: slight behaviour changed in method check
 					// eslint-disable-next-line
 					it.skip('should not throw if the verifyTransaction returns transaction response with Status = OK', async () => {
-						modules.processTransactions.verifyTransactions.resolves(
+						blocksVerifyModule.modules.transactions.verifyTransactions.resolves(
 							validTransactionsResponse
 						);
 						await __private.checkTransactions(dummyBlock, true);
-						expect(modules.processTransactions.verifyTransactions).to.be
-							.calledOnce;
+						expect(blocksVerifyModule.modules.transactions.verifyTransactions)
+							.to.be.calledOnce;
 					});
 
 					it('should throw if the verifyTransaction returns transaction response with Status != OK', async () => {
-						modules.processTransactions.verifyTransactions.resolves(
+						blocksVerifyModule.modules.transactions.verifyTransactions.resolves(
 							invalidTransactionsResponse
 						);
 						expect(__private.checkTransactions(dummyBlock, true)).to.eventually
@@ -1833,23 +1836,25 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			it('should call modules.processTransactions.checkAllowedTransactions', async () => {
+			it('should call blocksVerifyModule.modules.transactions.checkAllowedTransactions', async () => {
 				__private.checkTransactions(dummyBlock, false);
 
-				expect(modules.processTransactions.checkAllowedTransactions).to.have
-					.been.called;
+				expect(blocksVerifyModule.modules.transactions.checkAllowedTransactions)
+					.to.have.been.called;
 			});
 
 			it('should throw an array of errors if transactions are not allowed', async () => {
-				modules.processTransactions.checkAllowedTransactions.returns({
-					transactionsResponses: [
-						{
-							id: 1,
-							status: transactionStatus.FAIL,
-							errors: [new Error('anError')],
-						},
-					],
-				});
+				blocksVerifyModule.modules.transactions.checkAllowedTransactions.returns(
+					{
+						transactionsResponses: [
+							{
+								id: 1,
+								status: transactionStatus.FAIL,
+								errors: [new Error('anError')],
+							},
+						],
+					}
+				);
 
 				expect(__private.checkTransactions(dummyBlock, false)).to.eventually.be
 					.rejected;
@@ -2065,9 +2070,8 @@ describe('blocks/verify', () => {
 		it('should assign params to modules', done => {
 			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
 			expect(modules.delegates).to.equal(bindingsStub.modules.delegates);
-			expect(modules.transactions).to.equal(bindingsStub.modules.transactions);
-			expect(modules.processTransactions).to.equal(
-				bindingsStub.modules.processTransactions
+			expect(modules.transactionPool).to.equal(
+				bindingsStub.modules.transactionPool
 			);
 			done();
 		});

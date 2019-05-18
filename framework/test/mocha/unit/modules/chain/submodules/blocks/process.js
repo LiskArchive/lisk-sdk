@@ -129,8 +129,12 @@ describe('blocks/process', () => {
 			invoke: sinonSandbox.stub(),
 		};
 
-		const InitTransaction = require('../../../../../../../src/modules/chain/logic/init_transaction');
-		const initTrs = new InitTransaction({});
+		const {
+			Transactions,
+		} = require('../../../../../../../src/modules/chain/transactions');
+		const transactionsModule = new Transactions({});
+		sinonSandbox.stub(transactionsModule, 'verifyTransactions');
+		sinonSandbox.stub(transactionsModule, 'checkAllowedTransactions');
 
 		blocksProcessModule = new BlocksProcess(
 			loggerStub,
@@ -141,7 +145,7 @@ describe('blocks/process', () => {
 			sequenceStub,
 			genesisBlockStub,
 			channelStub,
-			initTrs
+			transactionsModule
 		);
 
 		library = BlocksProcess.__get__('library');
@@ -187,11 +191,6 @@ describe('blocks/process', () => {
 			},
 		};
 
-		const modulesProcessTransactionsStub = {
-			verifyTransactions: sinonSandbox.stub(),
-			checkAllowedTransactions: sinonSandbox.stub(),
-		};
-
 		const modulesDelegatesStub = {
 			fork: sinonSandbox.stub(),
 			validateBlockSlotAgainstPreviousRound: sinonSandbox.stub(),
@@ -201,7 +200,7 @@ describe('blocks/process', () => {
 		const modulesLoaderStub = {
 			syncing: sinonSandbox.stub(),
 		};
-		const modulesTransactionsStub = {
+		const modulesTransactionPoolStub = {
 			getUnconfirmedTransactionList: sinonSandbox.stub(),
 		};
 
@@ -210,8 +209,7 @@ describe('blocks/process', () => {
 				blocks: modulesBlocksStub,
 				delegates: modulesDelegatesStub,
 				loader: modulesLoaderStub,
-				transactions: modulesTransactionsStub,
-				processTransactions: modulesProcessTransactionsStub,
+				transactionPool: modulesTransactionPoolStub,
 			},
 		};
 
@@ -1131,16 +1129,18 @@ describe('blocks/process', () => {
 			sinonSandbox.restore();
 		});
 
-		describe('modules.transactions.getUnconfirmedTransactionList', () => {
+		describe('modules.transactionPool.getUnconfirmedTransactionList', () => {
 			describe('when query returns empty array', () => {
 				beforeEach(async () => {
-					modules.transactions.getUnconfirmedTransactionList.returns([]);
-					modules.processTransactions.verifyTransactions.resolves({
+					modules.transactionPool.getUnconfirmedTransactionList.returns([]);
+					blocksProcessModule.modules.transactions.verifyTransactions.resolves({
 						transactionsResponses: [],
 					});
-					modules.processTransactions.checkAllowedTransactions.returns({
-						transactionsResponses: [],
-					});
+					blocksProcessModule.modules.transactions.checkAllowedTransactions.returns(
+						{
+							transactionsResponses: [],
+						}
+					);
 					modules.blocks.verify.processBlock.callsArgWith(
 						3,
 						null,
@@ -1166,11 +1166,15 @@ describe('blocks/process', () => {
 
 			describe('when query returns undefined', () => {
 				beforeEach(async () => {
-					modules.transactions.getUnconfirmedTransactionList.returns(undefined);
-					modules.processTransactions.checkAllowedTransactions.returns({
-						transactionsResponses: [],
-					});
-					modules.processTransactions.verifyTransactions.resolves({
+					modules.transactionPool.getUnconfirmedTransactionList.returns(
+						undefined
+					);
+					blocksProcessModule.modules.transactions.checkAllowedTransactions.returns(
+						{
+							transactionsResponses: [],
+						}
+					);
+					blocksProcessModule.modules.transactions.verifyTransactions.resolves({
 						transactionsResponses: [],
 					});
 					modules.blocks.verify.processBlock.callsArgWith(
@@ -1198,24 +1202,26 @@ describe('blocks/process', () => {
 
 			describe('when query returns transactions', () => {
 				beforeEach(async () => {
-					modules.transactions.getUnconfirmedTransactionList.returns([
+					modules.transactionPool.getUnconfirmedTransactionList.returns([
 						{ id: 1, type: 0, matcher: () => true },
 						{ id: 2, type: 1, matcher: () => true },
 					]);
-					modules.processTransactions.checkAllowedTransactions.returns({
-						transactionsResponses: [
-							{
-								id: 1,
-								status: TransactionStatus.OK,
-								errors: [],
-							},
-							{
-								id: 2,
-								status: TransactionStatus.OK,
-								errors: [],
-							},
-						],
-					});
+					blocksProcessModule.modules.transactions.checkAllowedTransactions.returns(
+						{
+							transactionsResponses: [
+								{
+									id: 1,
+									status: TransactionStatus.OK,
+									errors: [],
+								},
+								{
+									id: 2,
+									status: TransactionStatus.OK,
+									errors: [],
+								},
+							],
+						}
+					);
 					modules.blocks.verify.processBlock.callsArgWith(
 						3,
 						null,
@@ -1223,10 +1229,10 @@ describe('blocks/process', () => {
 					);
 				});
 
-				describe('modules.processTransactions.verifyTransactions', () => {
+				describe('modules.transactions.verifyTransactions', () => {
 					describe('when transaction initializations fail', () => {
 						beforeEach(async () =>
-							modules.processTransactions.verifyTransactions.rejects(
+							blocksProcessModule.modules.transactions.verifyTransactions.rejects(
 								new Error('Invalid field types')
 							)
 						);
@@ -1244,12 +1250,14 @@ describe('blocks/process', () => {
 
 					describe('when transactions verification fails', () => {
 						beforeEach(async () =>
-							modules.processTransactions.verifyTransactions.resolves({
-								transactionsResponses: [
-									{ id: 1, status: 0, errors: [] },
-									{ id: 2, status: 0, errors: [] },
-								],
-							})
+							blocksProcessModule.modules.transactions.verifyTransactions.resolves(
+								{
+									transactionsResponses: [
+										{ id: 1, status: 0, errors: [] },
+										{ id: 2, status: 0, errors: [] },
+									],
+								}
+							)
 						);
 
 						it('should generate block without transactions', done => {
@@ -1270,12 +1278,14 @@ describe('blocks/process', () => {
 
 					describe('when transactions verification succeeds', () => {
 						beforeEach(async () => {
-							modules.processTransactions.verifyTransactions.resolves({
-								transactionsResponses: [
-									{ id: 1, status: 1, errors: [] },
-									{ id: 2, status: 1, errors: [] },
-								],
-							});
+							blocksProcessModule.modules.transactions.verifyTransactions.resolves(
+								{
+									transactionsResponses: [
+										{ id: 1, status: 1, errors: [] },
+										{ id: 2, status: 1, errors: [] },
+									],
+								}
+							);
 						});
 
 						it('should generate block with transactions', done => {
@@ -1296,9 +1306,11 @@ describe('blocks/process', () => {
 
 					describe('when transactions pending', () => {
 						beforeEach(async () =>
-							modules.processTransactions.verifyTransactions.resolves({
-								transactionsResponses: [{ id: 1, status: 2, errors: [] }],
-							})
+							blocksProcessModule.modules.transactions.verifyTransactions.resolves(
+								{
+									transactionsResponses: [{ id: 1, status: 2, errors: [] }],
+								}
+							)
 						);
 
 						it('should generate block without pending transactions', done => {
@@ -1320,12 +1332,14 @@ describe('blocks/process', () => {
 
 				describe('library.logic.block.create', () => {
 					beforeEach(async () => {
-						modules.processTransactions.verifyTransactions.resolves({
-							transactionsResponses: [
-								{ id: 1, status: 1, errors: [] },
-								{ id: 2, status: 1, errors: [] },
-							],
-						});
+						blocksProcessModule.modules.transactions.verifyTransactions.resolves(
+							{
+								transactionsResponses: [
+									{ id: 1, status: 1, errors: [] },
+									{ id: 2, status: 1, errors: [] },
+								],
+							}
+						);
 					});
 
 					describe('when fails', () => {
@@ -1412,19 +1426,21 @@ describe('blocks/process', () => {
 				blockVersion: blockVersion.currentBlockVersion,
 			};
 
-			modules.transactions.getUnconfirmedTransactionList.returns(
+			modules.transactionPool.getUnconfirmedTransactionList.returns(
 				sampleTransactons
 			);
 			modules.blocks.lastBlock.get.returns(lastBlock);
-			modules.processTransactions.checkAllowedTransactions.returns({
-				transactionsResponses: [
-					{
-						id: sampleTransactons[0],
-						status: TransactionStatus.OK,
-					},
-				],
-			});
-			modules.processTransactions.verifyTransactions.resolves({
+			blocksProcessModule.modules.transactions.checkAllowedTransactions.returns(
+				{
+					transactionsResponses: [
+						{
+							id: sampleTransactons[0],
+							status: TransactionStatus.OK,
+						},
+					],
+				}
+			);
+			blocksProcessModule.modules.transactions.verifyTransactions.resolves({
 				transactionsResponses: [
 					{
 						id: sampleTransactons[0],
@@ -1439,7 +1455,7 @@ describe('blocks/process', () => {
 				timestamp,
 				() => {
 					expect(
-						modules.processTransactions.checkAllowedTransactions
+						blocksProcessModule.modules.transactions.checkAllowedTransactions
 					).to.have.been.calledWith(sampleTransactons, state);
 					done();
 				}
@@ -1789,9 +1805,8 @@ describe('blocks/process', () => {
 		it('should assign params to modules', done => {
 			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
 			expect(modules.delegates).to.equal(bindingsStub.modules.delegates);
-			expect(modules.transactions).to.equal(bindingsStub.modules.transactions);
-			expect(modules.processTransactions).to.equal(
-				bindingsStub.modules.processTransactions
+			expect(modules.transactionPool).to.equal(
+				bindingsStub.modules.transactionPool
 			);
 			done();
 		});

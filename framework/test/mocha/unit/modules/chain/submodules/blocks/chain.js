@@ -18,13 +18,15 @@ const rewire = require('rewire');
 const {
 	registeredTransactions,
 } = require('../../../../../common/registered_transactions');
-const InitTransaction = require('../../../../../../../src/modules/chain/logic/init_transaction');
+const {
+	Transactions,
+} = require('../../../../../../../src/modules/chain/transactions');
 const { Transaction } = require('../../../../../fixtures/transactions');
 
 const BlocksChain = rewire(
 	'../../../../../../../src/modules/chain/submodules/blocks/chain'
 );
-const initTransaction = new InitTransaction({ registeredTransactions });
+const transactionsModule = new Transactions({ registeredTransactions });
 
 describe('blocks/chain', () => {
 	let __private;
@@ -34,7 +36,7 @@ describe('blocks/chain', () => {
 	let storageStub;
 	let loggerStub;
 	let blockStub;
-	let initTransactionStub;
+	let transactionsModuleStub;
 	let busStub;
 	let balancesSequenceStub;
 	let genesisBlockStub;
@@ -56,7 +58,7 @@ describe('blocks/chain', () => {
 		id: 3,
 		height: 3,
 		transactions: transactionsForBlock.map(transaction =>
-			initTransaction.fromJson(transaction)
+			transactionsModule.fromJson(transaction)
 		),
 	};
 
@@ -70,7 +72,7 @@ describe('blocks/chain', () => {
 		id: 1,
 		height: 1,
 		transactions: transactionsForGenesisBlock.map(transaction =>
-			initTransaction.fromJson(transaction)
+			transactionsModule.fromJson(transaction)
 		),
 	};
 	const blockReduced = { id: 3, height: 3 };
@@ -109,7 +111,7 @@ describe('blocks/chain', () => {
 			message: sinonSandbox.stub(),
 		};
 
-		initTransactionStub = {
+		transactionsModuleStub = {
 			fromJson: sinonSandbox.stub(),
 		};
 
@@ -141,12 +143,12 @@ describe('blocks/chain', () => {
 		blocksChainModule = new BlocksChain(
 			loggerStub,
 			blockStub,
-			initTransactionStub,
 			storageStub,
 			genesisBlockStub,
 			busStub,
 			balancesSequenceStub,
-			channelMock
+			channelMock,
+			transactionsModuleStub
 		);
 
 		library = BlocksChain.__get__('library');
@@ -183,8 +185,12 @@ describe('blocks/chain', () => {
 			receiveTransactions: sinonSandbox.stub(),
 			undoConfirmed: sinonSandbox.stub(),
 			undoUnconfirmed: sinonSandbox.stub(),
-			undoUnconfirmedList: sinonSandbox.stub(),
 			removeUnconfirmedTransaction: sinonSandbox.stub(),
+			onConfirmedTransactions: sinonSandbox.stub(),
+			onDeletedTransactions: sinonSandbox.stub(),
+		};
+
+		const modulesTransactionPoolStub = {
 			onConfirmedTransactions: sinonSandbox.stub(),
 			onDeletedTransactions: sinonSandbox.stub(),
 		};
@@ -194,19 +200,7 @@ describe('blocks/chain', () => {
 				blocks: modulesBlocksStub,
 				rounds: modulesRoundsStub,
 				transactions: modulesTransactionsStub,
-				processTransactions: {
-					applyTransactions: sinonSandbox.stub().resolves({
-						stateStore: {
-							account: {
-								finalize: sinonSandbox.stub().resolves(),
-							},
-							round: {
-								setRoundForData: sinonSandbox.stub().resolves(),
-								finalize: sinonSandbox.stub().resolves(),
-							},
-						},
-					}),
-				},
+				transactionPool: modulesTransactionPoolStub,
 			},
 		};
 
@@ -226,8 +220,7 @@ describe('blocks/chain', () => {
 			expect(library.genesisBlock).to.eql(genesisBlockStub);
 			expect(library.bus).to.eql(busStub);
 			expect(library.balancesSequence).to.eql(balancesSequenceStub);
-			expect(library.logic.block).to.eql(blockStub);
-			return expect(library.logic.initTransaction).to.eql(initTransactionStub);
+			return expect(library.logic.block).to.eql(blockStub);
 		});
 
 		it('should call library.logger.trace with "Blocks->Chain: Submodule initialized."', async () =>
@@ -246,6 +239,9 @@ describe('blocks/chain', () => {
 			expect(blocksChainModule.broadcastReducedBlock).to.be.a('function');
 			expect(blocksChainModule.deleteLastBlock).to.be.a('function');
 			expect(blocksChainModule.recoverChain).to.be.a('function');
+			expect(blocksChainModule.modules.transactions).to.eql(
+				transactionsModuleStub
+			);
 			return expect(blocksChainModule.onBind).to.be.a('function');
 		});
 	});
@@ -749,7 +745,6 @@ describe('blocks/chain', () => {
 			txTemp = storageStub.entities.Block.begin;
 			privateTemp = __private;
 			process.emit = sinonSandbox.stub();
-			modules.transactions.undoUnconfirmedList.callsArgWith(0, null, true);
 			__private.applyConfirmedStep = sinonSandbox
 				.stub()
 				.resolves(blockWithTransactions);
@@ -1124,8 +1119,8 @@ describe('blocks/chain', () => {
 		it('should assign params to modules', async () => {
 			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
 			expect(modules.rounds).to.equal(bindingsStub.modules.rounds);
-			return expect(modules.transactions).to.equal(
-				bindingsStub.modules.transactions
+			return expect(modules.transactionPool).to.equal(
+				bindingsStub.modules.transactionPool
 			);
 		});
 
