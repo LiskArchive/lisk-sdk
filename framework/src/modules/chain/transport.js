@@ -21,7 +21,7 @@ const { convertErrorsToString } = require('./helpers/error_handlers');
 // eslint-disable-next-line prefer-const
 let Broadcaster = require('./logic/broadcaster');
 const definitions = require('./schema/definitions');
-const { composeTransactionSteps } = require('./transactions');
+const transactionsModule = require('./transactions');
 
 const { MAX_SHARED_TRANSACTIONS } = global.constants;
 
@@ -76,7 +76,7 @@ class Transport {
 			scope.config.nonce,
 			scope.config.broadcasts,
 			scope.config.forging.force,
-			scope.logic.transactionPool,
+			scope.modules.transactionPool,
 			scope.components.logger,
 			scope.channel,
 			scope.components.storage
@@ -608,15 +608,10 @@ __private.receiveSignature = function(signature, cb) {
 			return setImmediate(cb, [new TransactionError(err[0].message)], 400);
 		}
 
-		return modules.transactionPool.getTransactionAndProcessSignature(
-			signature,
-			errors => {
-				if (errors) {
-					return setImmediate(cb, errors, 409);
-				}
-				return setImmediate(cb);
-			}
-		);
+		return modules.transactionPool
+			.getTransactionAndProcessSignature(signature)
+			.then(() => setImmediate(cb))
+			.catch(errors => setImmediate(cb, errors, 409));
 	});
 };
 
@@ -671,9 +666,11 @@ __private.receiveTransaction = async function(
 	try {
 		transaction = modules.transactions.fromJson(transactionJSON);
 
-		const composedTransactionsCheck = composeTransactionSteps(
-			modules.transactions.checkAllowedTransactions,
-			modules.transactions.validateTransactions
+		const composedTransactionsCheck = transactionsModule.composeTransactionSteps(
+			modules.transactions
+				.checkAllowedTransactions(modules.blocks.lastBlock.get())
+				.bind(modules.transactions),
+			modules.transactions.validateTransactions.bind(modules.transactions)
 		);
 
 		const { transactionsResponses } = await composedTransactionsCheck([
@@ -718,7 +715,7 @@ __private.receiveTransaction = async function(
 			if (transaction) {
 				library.logger.debug('Transaction', transaction);
 			}
-			return setImmediate(balancesSequenceCb, err);
+			return setImmediate(balancesSequenceCb, err.toString());
 		}
 	}, cb);
 };

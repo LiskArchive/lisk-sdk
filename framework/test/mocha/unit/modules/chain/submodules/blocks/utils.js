@@ -347,9 +347,9 @@ describe('blocks/utils', () => {
 			loggerStub,
 			accountMock,
 			blockMock,
-			transactionMock,
 			storageStub,
-			modulesLoader.scope.genesisBlock
+			modulesLoader.scope.genesisBlock,
+			transactionMock
 		);
 
 		bindingsStub = {

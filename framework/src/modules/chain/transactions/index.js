@@ -18,10 +18,12 @@ const { Transactions } = require('./transactions');
 const { TransactionPool } = require('./transaction_pool');
 const { checkIfTransactionIsInert } = require('./handle_exceptions');
 const { sort } = require('./sort');
+const { composeTransactionSteps } = require('./compose_transaction_steps');
 
 module.exports = {
 	Transactions,
 	TransactionPool,
 	sort,
+	composeTransactionSteps,
 	checkIfTransactionIsInert,
 };

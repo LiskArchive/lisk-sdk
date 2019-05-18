@@ -60,6 +60,7 @@ const readyQueue = 'ready';
 class TransactionPool extends EventEmitter {
 	constructor({
 		transactions,
+		blocks,
 		slots,
 		logger,
 		broadcastInterval,
@@ -71,6 +72,7 @@ class TransactionPool extends EventEmitter {
 	}) {
 		super();
 		this.transactions = transactions;
+		this.blocks = blocks;
 		this.logger = logger;
 		this.slots = slots;
 		this.expireTransactionsInterval = expireTransactionsInterval;
@@ -82,13 +84,15 @@ class TransactionPool extends EventEmitter {
 
 		this.validateTransactions = transactions.validateTransactions;
 		this.verifyTransactions = compose.composeTransactionSteps(
-			transactions.checkAllowedTransactions,
-			transactions.checkPersistedTransactions,
-			transactions.verifyTransactions
+			transactions
+				.checkAllowedTransactions(this.blocks.lastBlock.get())
+				.bind(transactions),
+			transactions.checkPersistedTransactions.bind(transactions),
+			transactions.verifyTransactions.bind(transactions)
 		);
 		this.processTransactions = compose.composeTransactionSteps(
-			transactions.checkPersistedTransactions,
-			transactions.applyTransactions
+			transactions.checkPersistedTransactions.bind(transactions),
+			transactions.applyTransactions.bind(transactions)
 		);
 
 		const poolConfig = {

@@ -309,7 +309,7 @@ class Process {
 		};
 
 		const allowedTransactionsIds = self.modules.transactions
-			.checkAllowedTransactions(transactions, context)
+			.checkAllowedTransactions(context)(transactions)
 			.transactionsResponses.filter(
 				transactionResponse =>
 					transactionResponse.status === TransactionStatus.OK

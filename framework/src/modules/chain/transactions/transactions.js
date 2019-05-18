@@ -179,8 +179,8 @@ class Transactions {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	checkAllowedTransactions(transactions, context) {
-		return {
+	checkAllowedTransactions(context) {
+		return transactions => ({
 			transactionsResponses: transactions.map(transaction => {
 				const allowed = !transaction.matcher || transaction.matcher(context);
 
@@ -199,7 +199,7 @@ class Transactions {
 						  ],
 				};
 			}),
-		};
+		});
 	}
 
 	async undoTransactions(transactions, tx = undefined) {

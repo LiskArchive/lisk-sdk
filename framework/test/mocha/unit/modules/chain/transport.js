@@ -22,18 +22,13 @@ const {
 	TransferTransaction,
 } = require('@liskhq/lisk-transactions');
 const { transfer, TransactionError } = require('@liskhq/lisk-transactions');
-
 const accountFixtures = require('../../../fixtures/accounts');
 const Bignum = require('../../../../../src/modules/chain/helpers/bignum');
 const Block = require('../../../fixtures/blocks').Block;
 const {
 	registeredTransactions,
 } = require('../../../common/registered_transactions');
-const InitTransaction = require('../../../../../src/modules/chain/logic/init_transaction');
-const ProcessTransactions = require('../../../../../src/modules/chain/submodules/process_transactions');
-const processTransactionLogic = require('../../../../../src/modules/chain/logic/process_transaction');
-
-const initTransaction = new InitTransaction({ registeredTransactions });
+const transactionsModule = require('../../../../../src/modules/chain/transactions');
 
 const TransportModule = rewire('../../../../../src/modules/chain/transport');
 
@@ -42,6 +37,11 @@ const expect = chai.expect;
 
 // TODO: Sometimes the callback error is null, other times it's undefined. It should be consistent.
 describe('transport', () => {
+	const transactions = new transactionsModule.Transactions({
+		registeredTransactions,
+		exceptions: __testContext.config.modules.chain.exceptions,
+	});
+
 	let storageStub;
 	let loggerStub;
 	let busStub;
@@ -175,7 +175,6 @@ describe('transport', () => {
 		defaultScope = {
 			logic: {
 				block: blockStub,
-				initTransaction,
 			},
 			components: {
 				storage: storageStub,
@@ -201,6 +200,12 @@ describe('transport', () => {
 				httpPort: 8000,
 			},
 			modules: {
+				transactionPool: {
+					getMultisignatureTransactionList: sinonSandbox.stub(),
+					getMergedTransactionList: sinonSandbox.stub(),
+					getTransactionAndProcessSignature: sinonSandbox.stub(),
+					processUnconfirmedTransaction: sinonSandbox.stub(),
+				},
 				blocks: {
 					lastBlock: {
 						get: sinonSandbox
@@ -281,9 +286,6 @@ describe('transport', () => {
 				logger: {
 					debug: sinonSandbox.spy(),
 				},
-				logic: {
-					initTransaction,
-				},
 				channel: {
 					publish: sinonSandbox.stub().resolves(),
 				},
@@ -294,12 +296,16 @@ describe('transport', () => {
 			};
 
 			modules = {
-				transactions: {
-					processUnconfirmedTransaction: sinonSandbox.stub().callsArg(2),
+				blocks: {
+					lastBlock: {
+						get: sinonSandbox
+							.stub()
+							.returns({ height: 1, version: 1, timestamp: 1 }),
+					},
 				},
-				processTransactions: new ProcessTransactions(() => {}, defaultScope),
+				transactions,
+				transactionPool: defaultScope.modules.transactionPool,
 			};
-			modules.processTransactions.onBind(defaultScope);
 
 			restoreRewiredDeps = TransportModule.__set__({
 				library,
@@ -391,11 +397,9 @@ describe('transport', () => {
 			});
 
 			describe('when library.schema.validate succeeds', () => {
-				describe('when modules.multisignatures.processSignature succeeds', () => {
+				describe('when modules.transactionPool.getTransactionAndProcessSignature succeeds', () => {
 					beforeEach(done => {
-						modules.multisignatures.getTransactionAndProcessSignature = sinonSandbox
-							.stub()
-							.callsArg(1);
+						modules.transactionPool.getTransactionAndProcessSignature.resolves();
 
 						__private.receiveSignature(SAMPLE_SIGNATURE_1, err => {
 							error = err;
@@ -411,29 +415,27 @@ describe('transport', () => {
 						).to.be.true;
 					});
 
-					it('should call modules.multisignatures.processSignature with signature', async () => {
+					it('should call modules.transactionPool.getTransactionAndProcessSignature with signature', async () => {
 						expect(error).to.equal(undefined);
 						return expect(
-							modules.multisignatures.getTransactionAndProcessSignature.calledWith(
-								SAMPLE_SIGNATURE_1
-							)
-						).to.be.true;
+							modules.transactionPool.getTransactionAndProcessSignature
+						).to.be.calledWith(SAMPLE_SIGNATURE_1);
 					});
 
 					it('should call callback with error = undefined', async () =>
 						expect(error).to.equal(undefined));
 				});
 
-				describe('when modules.multisignatures.processSignature fails', () => {
+				describe('when modules.transactionPool.getTransactionAndProcessSignature fails', () => {
 					let processSignatureError;
 
 					beforeEach(done => {
 						processSignatureError = new TransactionError(
 							'Transaction not found'
 						);
-						modules.multisignatures.getTransactionAndProcessSignature = sinonSandbox
-							.stub()
-							.callsArgWith(1, [processSignatureError]);
+						modules.transactionPool.getTransactionAndProcessSignature.rejects([
+							processSignatureError,
+						]);
 
 						__private.receiveSignature(SAMPLE_SIGNATURE_1, err => {
 							error = err;
@@ -559,9 +561,6 @@ describe('transport', () => {
 						callback(doneCallback);
 					});
 
-				library.logic = {
-					initTransaction,
-				};
 				library.schema = {
 					validate: sinonSandbox.stub().callsArg(2),
 				};
@@ -570,28 +569,21 @@ describe('transport', () => {
 				};
 				library.balancesSequence = balancesSequenceStub;
 
-				modules.transactions.processUnconfirmedTransaction = sinonSandbox
-					.stub()
-					.callsArg(2);
+				modules.transactionPool.processUnconfirmedTransaction.resolves();
 				done();
 			});
 
 			afterEach(() => sinonSandbox.restore());
 
 			it('should composeProcessTransactionsSteps with checkAllowedTransactions and validateTransactions', done => {
-				sinonSandbox.spy(processTransactionLogic, 'composeTransactionSteps');
+				sinonSandbox.spy(transactionsModule, 'composeTransactionSteps');
 
 				__private.receiveTransaction(
 					transaction,
 					validNonce,
 					'This is a log message',
-					async () => {
-						expect(
-							processTransactionLogic.composeTransactionSteps
-						).to.have.been.calledWith(
-							modules.processTransactions.checkAllowedTransactions,
-							modules.processTransactions.validateTransactions
-						);
+					() => {
+						expect(transactionsModule.composeTransactionSteps).to.be.calledOnce;
 						done();
 					}
 				);
@@ -608,12 +600,10 @@ describe('transport', () => {
 					],
 				});
 
-				const tranasactionInstance = library.logic.initTransaction.fromJson(
-					transaction
-				);
+				const tranasactionInstance = transactions.fromJson(transaction);
 
 				sinonSandbox
-					.stub(processTransactionLogic, 'composeTransactionSteps')
+					.stub(transactionsModule, 'composeTransactionSteps')
 					.returns(composedTransactionsCheck);
 
 				__private.receiveTransaction(
@@ -633,11 +623,8 @@ describe('transport', () => {
 				const errorMessage = 'Transaction type 0 is currently not allowed.';
 
 				sinonSandbox
-					.stub(initTransaction, 'fromJson')
+					.stub(transactions, 'fromJson')
 					.returns({ ...transaction, matcher: () => false });
-				library.logic = {
-					initTransaction,
-				};
 
 				__private.receiveTransaction(
 					transaction,
@@ -653,9 +640,6 @@ describe('transport', () => {
 
 			describe('when transaction and peer are defined', () => {
 				beforeEach(done => {
-					library.logic = {
-						initTransaction,
-					};
 					__private.receiveTransaction(
 						transaction,
 						validNonce,
@@ -669,10 +653,10 @@ describe('transport', () => {
 				it('should call library.balancesSequence.add', async () =>
 					expect(library.balancesSequence.add.called).to.be.true);
 
-				it('should call modules.transactions.processUnconfirmedTransaction with transaction and true as arguments', async () =>
+				it('should call modules.transactionPool.processUnconfirmedTransaction with transaction and true as arguments', async () =>
 					expect(
-						modules.transactions.processUnconfirmedTransaction.calledWith(
-							initTransaction.fromJson(transaction),
+						modules.transactionPool.processUnconfirmedTransaction.calledWith(
+							transactions.fromJson(transaction),
 							true
 						)
 					).to.be.true);
@@ -699,7 +683,7 @@ describe('transport', () => {
 				});
 
 				it('should call the call back with error message', async () => {
-					initTransaction.fromJson(invalidTransaction).validate();
+					transactions.fromJson(invalidTransaction).validate();
 					expect(errorResult).to.be.an('array');
 					errorResult.forEach(anError => {
 						expect(anError).to.be.instanceOf(TransactionError);
@@ -729,9 +713,6 @@ describe('transport', () => {
 
 			describe('when nonce is defined', () => {
 				beforeEach(done => {
-					library.logic = {
-						initTransaction,
-					};
 					__private.receiveTransaction(
 						transaction,
 						validNonce,
@@ -757,9 +738,9 @@ describe('transport', () => {
 					processUnconfirmedTransactionError = `Transaction is already processed: ${
 						transaction.id
 					}`;
-					modules.transactions.processUnconfirmedTransaction = sinonSandbox
-						.stub()
-						.callsArgWith(2, processUnconfirmedTransactionError);
+					modules.transactionPool.processUnconfirmedTransaction.rejects([
+						new Error(processUnconfirmedTransactionError),
+					]);
 
 					__private.receiveTransaction(
 						transaction,
@@ -772,26 +753,27 @@ describe('transport', () => {
 					);
 				});
 
-				it('should call library.logger.debug with "Transaction ${transaction.id}" and error string', async () =>
-					expect(
-						library.logger.debug.calledWith(
-							`Transaction ${transaction.id}`,
-							processUnconfirmedTransactionError
-						)
-					).to.be.true);
-
-				describe('when transaction is defined', () => {
-					it('should call library.logger.debug with "Transaction" and transaction as arguments', async () =>
-						expect(
-							library.logger.debug.calledWith(
-								'Transaction',
-								initTransaction.fromJson(transaction)
-							)
-						).to.be.true);
+				it('should call library.logger.debug with "Transaction ${transaction.id}" and error string', async () => {
+					expect(library.logger.debug).to.be.calledWith(
+						`Transaction ${transaction.id}`,
+						`Error: ${processUnconfirmedTransactionError}`
+					);
 				});
 
-				it('should call callback with err.toString()', async () =>
-					expect(error).to.equal(processUnconfirmedTransactionError));
+				describe('when transaction is defined', () => {
+					it('should call library.logger.debug with "Transaction" and transaction as arguments', async () => {
+						expect(library.logger.debug).to.be.calledWith(
+							'Transaction',
+							transactions.fromJson(transaction)
+						);
+					});
+				});
+
+				it('should call callback with err.toString()', async () => {
+					expect(error).to.equal(
+						`Error: ${processUnconfirmedTransactionError}`
+					);
+				});
 			});
 
 			describe('when modules.transactions.processUnconfirmedTransaction succeeds', () => {
@@ -849,7 +831,7 @@ describe('transport', () => {
 						invokeSync: sinonSandbox.stub(),
 						publish: sinonSandbox.stub(),
 					},
-					initTransaction,
+					transactions,
 					block: {
 						objectNormalize: sinonSandbox.stub().returns(new Block()),
 					},
@@ -874,6 +856,9 @@ describe('transport', () => {
 					loader: {
 						syncing: sinonSandbox.stub().returns(false),
 					},
+					transactions: {
+						fromBlock: sinonSandbox.stub(),
+					},
 					blocks: {
 						utils: {
 							loadBlocksData: sinonSandbox
@@ -890,7 +875,7 @@ describe('transport', () => {
 							addBlockProperties: sinonSandbox.stub().returns(blockMock),
 						},
 					},
-					transactions: {
+					transactionPool: {
 						getMultisignatureTransactionList: sinonSandbox
 							.stub()
 							.returns(transactionsList),
@@ -938,9 +923,8 @@ describe('transport', () => {
 					it('should assign blocks, loader, multisignatures, processTransactions and transactions properties', async () => {
 						expect(modulesObject).to.have.property('blocks');
 						expect(modulesObject).to.have.property('loader');
-						expect(modulesObject).to.have.property('multisignatures');
-						expect(modulesObject).to.have.property('processTransactions');
-						return expect(modulesObject).to.have.property('transactions');
+						expect(modulesObject).to.have.property('transactions');
+						return expect(modulesObject).to.have.property('transactionPool');
 					});
 				});
 
@@ -1339,7 +1323,6 @@ describe('transport', () => {
 						library.bus = {
 							message: sinonSandbox.stub(),
 						};
-						library.logic.initTransaction = initTransaction;
 						done();
 					});
 
@@ -1378,17 +1361,16 @@ describe('transport', () => {
 								done();
 							});
 
-							it('should call library.logger.debug with "Block normalization failed" and {err: error, module: "transport", block: query.block }', async () =>
-								expect(
-									library.logger.debug.calledWith(
-										'Block normalization failed',
-										{
-											err: blockValidationError.toString(),
-											module: 'transport',
-											block: blockMock,
-										}
-									)
-								).to.be.true);
+							it('should call library.logger.debug with "Block normalization failed" and {err: error, module: "transport", block: query.block }', async () => {
+								expect(library.logger.debug).to.be.calledWith(
+									'Block normalization failed',
+									{
+										err: blockValidationError.toString(),
+										module: 'transport',
+										block: blockMock,
+									}
+								);
+							});
 						});
 
 						describe('when it does not throw', () => {
@@ -1542,7 +1524,7 @@ describe('transport', () => {
 
 				describe('getSignatures', () => {
 					beforeEach(done => {
-						modules.transactions.getMultisignatureTransactionList = sinonSandbox
+						modules.transactionPool.getMultisignatureTransactionList = sinonSandbox
 							.stub()
 							.returns(multisignatureTransactionsList);
 						transportInstance.shared.getSignatures((err, res) => {
@@ -1552,15 +1534,15 @@ describe('transport', () => {
 						});
 					});
 
-					it('should call modules.transactions.getMultisignatureTransactionList with true and MAX_SHARED_TRANSACTIONS', async () =>
+					it('should call modules.transactionPool.getMultisignatureTransactionList with true and MAX_SHARED_TRANSACTIONS', async () =>
 						expect(
-							modules.transactions.getMultisignatureTransactionList.calledWith(
+							modules.transactionPool.getMultisignatureTransactionList.calledWith(
 								true,
 								MAX_SHARED_TRANSACTIONS
 							)
 						).to.be.true);
 
-					describe('when all transactions returned by modules.transactions.getMultisignatureTransactionList are multisignature transactions', () => {
+					describe('when all transactions returned by modules.transactionPool.getMultisignatureTransactionList are multisignature transactions', () => {
 						it('should call callback with error = null', async () =>
 							expect(error).to.equal(null));
 
@@ -1576,7 +1558,7 @@ describe('transport', () => {
 						});
 					});
 
-					describe('when some transactions returned by modules.transactions.getMultisignatureTransactionList are multisignature registration transactions', () => {
+					describe('when some transactions returned by modules.transactionPool.getMultisignatureTransactionList are multisignature registration transactions', () => {
 						beforeEach(done => {
 							// Make it so that the first transaction in the list is a multisignature registration transaction.
 							multisignatureTransactionsList[0] = {
@@ -1593,7 +1575,7 @@ describe('transport', () => {
 									'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
 							};
 
-							modules.transactions.getMultisignatureTransactionList = sinonSandbox
+							modules.transactionPool.getMultisignatureTransactionList = sinonSandbox
 								.stub()
 								.returns(multisignatureTransactionsList);
 							transportInstance.shared.getSignatures((err, res) => {
@@ -1628,9 +1610,9 @@ describe('transport', () => {
 						});
 					});
 
-					it('should call modules.transactions.getMergedTransactionList with true and MAX_SHARED_TRANSACTIONS', async () =>
+					it('should call modules.transactionPool.getMergedTransactionList with true and MAX_SHARED_TRANSACTIONS', async () =>
 						expect(
-							modules.transactions.getMergedTransactionList.calledWith(
+							modules.transactionPool.getMergedTransactionList.calledWith(
 								true,
 								MAX_SHARED_TRANSACTIONS
 							)

@@ -413,7 +413,7 @@ __private.checkTransactions = async (block, checkExists) => {
 	);
 
 	const nonAllowedTxResponses = self.modules.transactions
-		.checkAllowedTransactions(nonInertTransactions, context)
+		.checkAllowedTransactions(context)(nonInertTransactions)
 		.transactionsResponses.find(
 			transactionResponse => transactionResponse.status !== TransactionStatus.OK
 		);
