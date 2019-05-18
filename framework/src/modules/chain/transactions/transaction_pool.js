@@ -149,6 +149,7 @@ class TransactionPool extends EventEmitter {
 			if (payload.length > 0) {
 				if (action === pool.ACTION_ADD_TRANSACTIONS) {
 					payload.forEach(aTransaction =>
+						// TODO: make it as a valid event
 						this.emit('unconfirmedTransaction', aTransaction)
 					);
 				}

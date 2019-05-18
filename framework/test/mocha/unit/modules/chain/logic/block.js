@@ -22,9 +22,11 @@ const modulesLoader = require('../../../../common/modules_loader');
 const {
 	registeredTransactions,
 } = require('../../../../common/registered_transactions');
-const InitTransaction = require('../../../../../../src/modules/chain/logic/init_transaction');
+const {
+	Transactions,
+} = require('../../../../../../src/modules/chain/transactions');
 
-const initTransaction = new InitTransaction({ registeredTransactions });
+const transactionModule = new Transactions({ registeredTransactions });
 
 const { FEES, TRANSACTION_TYPES } = __testContext.config.constants;
 
@@ -270,7 +272,7 @@ describe('block', () => {
 		data = _.cloneDeep(validDataForBlock);
 		transactions = _.values(transactionsByTypes);
 		transactions = transactions.map(transaction =>
-			initTransaction.fromJson(transaction)
+			transactionModule.fromJson(transaction)
 		);
 		done();
 	});
@@ -320,7 +322,7 @@ describe('block', () => {
 				beforeEach(done => {
 					// Create 6 multisignature transactions
 					multipleMultisigTx = Array(...Array(5)).map(() =>
-						initTransaction.fromJson(
+						transactionModule.fromJson(
 							transactionsByTypes[TRANSACTION_TYPES.MULTI]
 						)
 					);
@@ -345,7 +347,7 @@ describe('block', () => {
 
 				beforeEach(done => {
 					multipleMultisigTx = Array(...Array(5)).map(() =>
-						initTransaction.fromJson(
+						transactionModule.fromJson(
 							transactionsByTypes[TRANSACTION_TYPES.MULTI]
 						)
 					);
@@ -372,7 +374,7 @@ describe('block', () => {
 
 				beforeEach(done => {
 					multipleMultisigTx = Array(...Array(5)).map(() =>
-						initTransaction.fromJson(
+						transactionModule.fromJson(
 							transactionsByTypes[TRANSACTION_TYPES.MULTI]
 						)
 					);
@@ -398,7 +400,7 @@ describe('block', () => {
 				beforeEach(done => {
 					// Create 6 multisignature transactions
 					multipleMultisigTx = Array(...Array(5)).map(() =>
-						initTransaction.fromJson(
+						transactionModule.fromJson(
 							transactionsByTypes[TRANSACTION_TYPES.MULTI]
 						)
 					);

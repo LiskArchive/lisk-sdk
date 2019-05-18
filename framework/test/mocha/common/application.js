@@ -23,6 +23,7 @@ const { registeredTransactions } = require('./registered_transactions');
 const ed = require('../../../src/modules/chain/helpers/ed');
 const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
 const Sequence = require('../../../src/modules/chain/helpers/sequence');
+const { BlockSlots } = require('../../../src/modules/chain/logic/block_slots');
 const { createCacheComponent } = require('../../../src/components/cache');
 const { StorageSandbox } = require('./storage_sandbox');
 const { ZSchema } = require('../../../src/controller/validator');
@@ -33,12 +34,8 @@ let currentAppScope;
 
 const modulesInit = {
 	blocks: '../../../src/modules/chain/submodules/blocks',
-	multisignatures: '../../../src/modules/chain/submodules/multisignatures',
 	peers: '../../../src/modules/chain/submodules/peers',
 	rounds: '../../../src/modules/chain/submodules/rounds',
-	transactions: '../../../src/modules/chain/submodules/transactions',
-	processTransactions:
-		'../../../src/modules/chain/submodules/process_transactions.js',
 };
 
 function init(options, cb) {
@@ -169,6 +166,7 @@ async function __init(sandbox, initScope) {
 		await cache.bootstrap();
 
 		scope.bus = await initSteps.createBus();
+		scope.modules = await initStepsForTest.initNewModules(scope);
 		scope.logic = await initSteps.initLogicStructure(scope);
 		scope.modules = await initStepsForTest.initModules(scope);
 
@@ -243,6 +241,7 @@ const initStepsForTest = {
 	initModules: async scope => {
 		const tasks = {};
 		scope.rewiredModules = {};
+
 		Object.keys(modulesInit).forEach(name => {
 			tasks[name] = function(tasksCb) {
 				const Instance = rewire(modulesInit[name]);
@@ -252,6 +251,7 @@ const initStepsForTest = {
 		});
 
 		const modules = await promisifyParallel(tasks);
+		initStepsForTest.initNewModules(scope, modules);
 		// TODO: remove rewiring
 		const RewiredLoader = rewire('../../../src/modules/chain/loader');
 		scope.rewiredModules.loader = RewiredLoader;
@@ -271,6 +271,47 @@ const initStepsForTest = {
 		modules.delegates = new RewiredDelegates(scope);
 
 		scope.bus.registerModules(modules);
+
+		return modules;
+	},
+
+	initNewModules: (scope, modules = {}) => {
+		const {
+			Transactions: RewiredTransactions,
+			TransactionPool: RewiredTransactionPool,
+		} = rewire('../../../src/modules/chain/Transactions');
+		scope.rewiredModules = scope.rewiredModules || {};
+		scope.rewiredModules.transactions = RewiredTransactions;
+		scope.rewiredModules.transactionPool = RewiredTransactionPool;
+		const slots = new BlockSlots({
+			epochTime: __testContext.config.constants.EPOCH_TIME,
+			interval: __testContext.config.constants.BLCOK_TIME,
+			blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
+		});
+		modules.transactions = new RewiredTransactions({
+			storage: scope.components.storage,
+			logger: scope.components.loger,
+			registeredTransactions:
+				__testContext.config.modules.chain.registeredTransactions,
+			slots,
+			exceptions: __testContext.config.modules.chain.exceptions,
+		});
+		modules.transactionPool = new RewiredTransactionPool({
+			transactions: modules.transactions,
+			slots,
+			logger: scope.components.logger,
+			maxTransactionsPerQueue:
+				__testContext.config.modules.chain.transactions.maxTransactionsPerQueue,
+			expireTransactionsInterval:
+				__testContext.config.constants.EXPIRY_INTERVAL,
+			maxTransactionsPerBlock:
+				__testContext.config.constants.MAX_TRANSACTIONS_PER_BLOCK,
+			maxSharedTransactions:
+				__testContext.config.constants.MAX_SHARED_TRANSACTIONS,
+			broadcastInterval:
+				__testContext.config.modules.chain.broadcasts.broadcastInterval,
+			releaseLimit: __testContext.config.modules.chain.broadcasts.releaseLimit,
+		});
 
 		return modules;
 	},
