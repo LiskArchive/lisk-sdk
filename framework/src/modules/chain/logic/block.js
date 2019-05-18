@@ -19,13 +19,13 @@ const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const _ = require('lodash');
 const crypto = require('crypto');
 const ByteBuffer = require('bytebuffer');
+const { validateTransactions } = require('../transactions');
 const Bignum = require('../helpers/bignum');
 const blockVersion = require('./block_version');
 const BlockReward = require('./block_reward');
 
 const { MAX_PAYLOAD_LENGTH, FEES, TRANSACTION_TYPES } = global.constants;
 const __private = {};
-let modules;
 
 /**
  * Main Block logic.
@@ -39,17 +39,15 @@ let modules;
  * @requires logic/block_reward
  * @param {Object} ed
  * @param {ZSchema} schema
- * @param {Transaction} transaction
  * @param {function} cb - Callback function
  * @returns {SetImmediate} error, this
  * @todo Add description for the params
  */
 class Block {
-	constructor(ed, schema, transaction, cb) {
+	constructor(ed, schema, cb) {
 		this.scope = {
 			ed,
 			schema,
-			transaction,
 		};
 
 		this.attachSchema();
@@ -246,7 +244,7 @@ class Block {
 					.join(', ')}`
 			);
 		}
-		const { transactionsResponses } = modules.transactions.validateTransactions(
+		const { transactionsResponses } = validateTransactions()(
 			block.transactions
 		);
 		const invalidTransactionResponse = transactionsResponses.find(
@@ -257,16 +255,6 @@ class Block {
 		}
 
 		return block;
-	}
-
-	/**
-	 * Binds scope.modules to private variable modules.
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	bindModules(__modules) {
-		modules = {
-			transactions: __modules.transactions,
-		};
 	}
 
 	/**

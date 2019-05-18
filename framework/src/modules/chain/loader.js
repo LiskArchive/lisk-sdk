@@ -17,6 +17,7 @@
 const async = require('async');
 const { promisify } = require('util');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const { validateTransactions } = require('./transactions');
 const { convertErrorsToString } = require('./helpers/error_handlers');
 const slots = require('./helpers/slots');
 const definitions = require('./schema/definitions');
@@ -464,7 +465,6 @@ class Loader {
 			transactionPool: scope.modules.transactionPool,
 			blocks: scope.modules.blocks,
 			peers: scope.modules.peers,
-			transactions: scope.modules.transactions,
 		};
 	}
 }
@@ -535,9 +535,7 @@ __private.getTransactionsFromNetwork = async function() {
 
 	const transactions = result.transactions;
 	try {
-		const { transactionsResponses } = modules.transactions.validateTransactions(
-			transactions
-		);
+		const { transactionsResponses } = validateTransactions()(transactions);
 		const invalidTransactionResponse = transactionsResponses.find(
 			transactionResponse => transactionResponse.status !== TransactionStatus.OK
 		);

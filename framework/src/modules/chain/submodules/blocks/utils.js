@@ -38,7 +38,14 @@ let self;
  * @todo Add description for the params
  */
 class Utils {
-	constructor(logger, account, block, storage, genesisBlock, transactions) {
+	constructor(
+		logger,
+		account,
+		block,
+		storage,
+		genesisBlock,
+		transactionManager
+	) {
 		library = {
 			logger,
 			account,
@@ -52,7 +59,7 @@ class Utils {
 		};
 		self = this;
 		self.modules = {
-			transactions,
+			transactionManager,
 		};
 		library.logger.trace('Blocks->Utils: Submodule initialized.');
 		return self;
@@ -89,7 +96,7 @@ class Utils {
 				}
 
 				// Normalize transaction
-				const transaction = self.modules.transactions.dbRead(rows[i]);
+				const transaction = self.modules.transactionManager.dbRead(rows[i]);
 				// Set empty object if there are no transactions in block
 				blocks[block.id].transactions = blocks[block.id].transactions || {};
 
@@ -134,7 +141,7 @@ class Utils {
 
 				// Normalize transaction
 				if (block.transactions) {
-					block.transactions = self.modules.transactions.fromBlock(block);
+					block.transactions = self.modules.transactionManager.fromBlock(block);
 				}
 			}
 			return block;

@@ -17,6 +17,10 @@
 const _ = require('lodash');
 const async = require('async');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const {
+	checkAllowedTransactions,
+	verifyTransactions,
+} = require('../../transactions');
 const { convertErrorsToString } = require('../../helpers/error_handlers');
 const slots = require('../../helpers/slots');
 const definitions = require('../../schema/definitions');
@@ -28,6 +32,8 @@ const __private = {};
 let modules;
 let library;
 let self;
+
+const exceptions = global.exceptions;
 
 /**
  * Main process logic. Allows process blocks. Initializes library.
@@ -308,8 +314,9 @@ class Process {
 			blockVersion: blockVersion.currentBlockVersion,
 		};
 
-		const allowedTransactionsIds = self.modules.transactions
-			.checkAllowedTransactions(context)(transactions)
+		const allowedTransactionsIds = checkAllowedTransactions(context)(
+			transactions
+		)
 			.transactionsResponses.filter(
 				transactionResponse =>
 					transactionResponse.status === TransactionStatus.OK
@@ -320,8 +327,9 @@ class Process {
 			allowedTransactionsIds.includes(transaction.id)
 		);
 
-		self.modules.transactions
-			.verifyTransactions(allowedTransactions)
+		verifyTransactions(library.storage, library.slots, exceptions)(
+			allowedTransactions
+		)
 			.then(({ transactionsResponses: responses }) => {
 				const readyTransactions = transactions.filter(transaction =>
 					responses

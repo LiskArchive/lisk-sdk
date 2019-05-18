@@ -19,7 +19,11 @@ const async = require('async');
 const _ = require('lodash');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const slots = require('../../helpers/slots.js');
-const { checkIfTransactionIsInert } = require('../../transactions');
+const {
+	checkIfTransactionIsInert,
+	applyTransactions,
+	undoTransactions,
+} = require('../../transactions');
 const { convertErrorsToString } = require('../../helpers/error_handlers');
 
 const { TRANSACTION_TYPES } = global.constants;
@@ -55,7 +59,7 @@ class Chain {
 		bus,
 		balancesSequence,
 		channel,
-		transactions
+		transactionManager
 	) {
 		library = {
 			logger,
@@ -70,7 +74,7 @@ class Chain {
 		};
 		self = this;
 		self.modules = {
-			transactions,
+			transactionManager,
 		};
 
 		library.logger.trace('Blocks->Chain: Submodule initialized.');
@@ -100,7 +104,7 @@ class Chain {
 				// FIXME: This will fail if we already have genesis block in database, but with different ID
 				const block = {
 					...library.genesisBlock.block,
-					transactions: self.modules.transactions.fromBlock(
+					transactions: self.modules.transactionManager.fromBlock(
 						library.genesisBlock.block
 					),
 				};
@@ -442,8 +446,7 @@ __private.afterSave = async function(block, cb) {
  * @returns {Object} cb.err - Error if occurred
  */
 __private.applyTransactions = function(transactions, cb) {
-	self.modules.transactions
-		.applyTransactions(transactions)
+	applyTransactions(library.components.storage, exceptions)(transactions)
 		.then(({ stateStore }) => {
 			// TODO: Need to add logic for handling exceptions for genesis block transactions
 			stateStore.account.finalize();
@@ -458,7 +461,7 @@ __private.applyTransactions = function(transactions, cb) {
 };
 
 /**
- * Calls applyConfirmed from modules.transactions for each transaction in block
+ * Calls applyConfirmed from transactions module for each transaction in block
  *
  * @private
  * @param {Object} block - Block object
@@ -473,13 +476,10 @@ __private.applyConfirmedStep = async function(block, tx) {
 		transaction => !checkIfTransactionIsInert(transaction, exceptions)
 	);
 
-	const {
-		stateStore,
-		transactionsResponses,
-	} = await self.modules.transactions.applyTransactions(
-		nonInertTransactions,
-		tx
-	);
+	const { stateStore, transactionsResponses } = await applyTransactions(
+		library.components.storage,
+		exceptions
+	)(nonInertTransactions, tx);
 
 	const unappliableTransactionsResponse = transactionsResponses.filter(
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK
@@ -602,13 +602,10 @@ __private.undoConfirmedStep = async function(block, tx) {
 		transaction => !exceptions.inertTransactions.includes(transaction.id)
 	);
 
-	const {
-		stateStore,
-		transactionsResponses,
-	} = await self.modules.transactions.undoTransactions(
-		nonInertTransactions,
-		tx
-	);
+	const { stateStore, transactionsResponses } = await undoTransactions(
+		library.components.storage,
+		exceptions
+	)(nonInertTransactions, tx);
 
 	const unappliedTransactionResponse = transactionsResponses.find(
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK

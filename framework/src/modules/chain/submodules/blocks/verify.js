@@ -20,7 +20,11 @@ const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const BlockReward = require('../../logic/block_reward');
 const slots = require('../../helpers/slots');
 const blockVersion = require('../../logic/block_version');
-const { checkIfTransactionIsInert } = require('../../transactions');
+const {
+	checkIfTransactionIsInert,
+	checkAllowedTransactions,
+	verifyTransactions,
+} = require('../../transactions');
 const Bignum = require('../../helpers/bignum');
 
 let modules;
@@ -412,19 +416,21 @@ __private.checkTransactions = async (block, checkExists) => {
 		transaction => !checkIfTransactionIsInert(transaction, exceptions)
 	);
 
-	const nonAllowedTxResponses = self.modules.transactions
-		.checkAllowedTransactions(context)(nonInertTransactions)
-		.transactionsResponses.find(
-			transactionResponse => transactionResponse.status !== TransactionStatus.OK
-		);
+	const nonAllowedTxResponses = checkAllowedTransactions(context)(
+		nonInertTransactions
+	).transactionsResponses.find(
+		transactionResponse => transactionResponse.status !== TransactionStatus.OK
+	);
 
 	if (nonAllowedTxResponses) {
 		throw nonAllowedTxResponses.errors;
 	}
 
-	const {
-		transactionsResponses,
-	} = await self.modules.transactions.verifyTransactions(nonInertTransactions);
+	const { transactionsResponses } = await verifyTransactions(
+		library.storage,
+		slots,
+		exceptions
+	)(nonInertTransactions);
 
 	const unverifiableTransactionsResponse = transactionsResponses.filter(
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK

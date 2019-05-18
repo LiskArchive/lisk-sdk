@@ -22,8 +22,8 @@ const {
 	TransactionError,
 } = require('@liskhq/lisk-transactions');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
-const compose = require('./compose_transaction_steps');
 const { sortBy } = require('./sort');
+const transactionModule = require('../transactions');
 
 const handleAddTransactionResponse = (addTransactionResponse, transaction) => {
 	if (addTransactionResponse.isFull) {
@@ -59,7 +59,8 @@ const readyQueue = 'ready';
  */
 class TransactionPool extends EventEmitter {
 	constructor({
-		transactions,
+		storage,
+		exceptions,
 		blocks,
 		slots,
 		logger,
@@ -71,7 +72,6 @@ class TransactionPool extends EventEmitter {
 		maxTransactionsPerBlock,
 	}) {
 		super();
-		this.transactions = transactions;
 		this.blocks = blocks;
 		this.logger = logger;
 		this.slots = slots;
@@ -82,17 +82,15 @@ class TransactionPool extends EventEmitter {
 		this.bundledInterval = broadcastInterval;
 		this.bundleLimit = releaseLimit;
 
-		this.validateTransactions = transactions.validateTransactions;
-		this.verifyTransactions = compose.composeTransactionSteps(
-			transactions
-				.checkAllowedTransactions(this.blocks.lastBlock.get())
-				.bind(transactions),
-			transactions.checkPersistedTransactions.bind(transactions),
-			transactions.verifyTransactions.bind(transactions)
+		this.validateTransactions = transactionModule.validateTransactions;
+		this.verifyTransactions = transactionModule.composeTransactionSteps(
+			transactionModule.checkAllowedTransactions(this.blocks.lastBlock.get()),
+			transactionModule.checkPersistedTransactions(storage),
+			transactionModule.verifyTransactions(storage, slots, exceptions)
 		);
-		this.processTransactions = compose.composeTransactionSteps(
-			transactions.checkPersistedTransactions.bind(transactions),
-			transactions.applyTransactions.bind(transactions)
+		this.processTransactions = transactionModule.composeTransactionSteps(
+			transactionModule.checkPersistedTransactions(storage),
+			transactionModule.applyTransactions(storage, exceptions)
 		);
 
 		const poolConfig = {

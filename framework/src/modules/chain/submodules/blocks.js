@@ -68,7 +68,7 @@ class Blocks {
 				scope.components.storage,
 				scope.config,
 				scope.channel,
-				scope.modules.transactions
+				scope.modules.transactionManager
 			),
 			process: new BlocksProcess(
 				scope.components.logger,
@@ -79,7 +79,7 @@ class Blocks {
 				scope.sequence,
 				scope.genesisBlock,
 				scope.channel,
-				scope.modules.transactions
+				scope.modules.transactionManager
 			),
 			utils: new BlocksUtils(
 				scope.components.logger,
@@ -87,7 +87,7 @@ class Blocks {
 				scope.logic.block,
 				scope.components.storage,
 				scope.genesisBlock,
-				scope.modules.transactions
+				scope.modules.transactionManager
 			),
 			chain: new BlocksChain(
 				scope.components.logger,
@@ -97,7 +97,7 @@ class Blocks {
 				scope.bus,
 				scope.balancesSequence,
 				scope.channel,
-				scope.modules.transactions
+				scope.modules.transactionManager
 			),
 		};
 

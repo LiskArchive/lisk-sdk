@@ -14,12 +14,7 @@
 
 'use strict';
 
-module.exports = async ({
-	ed,
-	schema,
-	components: { storage, logger },
-	modules,
-}) => {
+module.exports = async ({ ed, schema, components: { storage, logger } }) => {
 	const Block = require('../logic/block.js');
 	const Account = require('../logic/account.js');
 
@@ -30,7 +25,7 @@ module.exports = async ({
 	});
 
 	const blockLogic = await new Promise((resolve, reject) => {
-		new Block(ed, schema, modules.transactions, (err, object) => {
+		new Block(ed, schema, (err, object) => {
 			err ? reject(err) : resolve(object);
 		});
 	});

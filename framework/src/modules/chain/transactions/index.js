@@ -14,16 +14,28 @@
 
 'use strict';
 
-const { Transactions } = require('./transactions');
-const { TransactionPool } = require('./transaction_pool');
+const { TransactionManager } = require('./transaction_manager');
 const { checkIfTransactionIsInert } = require('./handle_exceptions');
-const { sort } = require('./sort');
 const { composeTransactionSteps } = require('./compose_transaction_steps');
+const {
+	validateTransactions,
+	applyTransactions,
+	checkPersistedTransactions,
+	checkAllowedTransactions,
+	undoTransactions,
+	verifyTransactions,
+	processSignature,
+} = require('./handle_transactions');
 
 module.exports = {
-	Transactions,
-	TransactionPool,
-	sort,
+	TransactionManager,
 	composeTransactionSteps,
 	checkIfTransactionIsInert,
+	validateTransactions,
+	applyTransactions,
+	checkPersistedTransactions,
+	checkAllowedTransactions,
+	undoTransactions,
+	verifyTransactions,
+	processSignature,
 };

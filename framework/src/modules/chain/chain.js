@@ -33,7 +33,8 @@ const {
 	initLogicStructure,
 	initModules,
 } = require('./init_steps');
-const { Transactions, TransactionPool } = require('./transactions');
+const { TransactionManager } = require('./transactions');
+const { TransactionPool } = require('./transaction_pool');
 const { BlockSlots } = require('./logic/block_slots');
 
 const syncInterval = 10000;
@@ -157,14 +158,11 @@ module.exports = class Chain {
 			this.scope.bus = await createBus();
 
 			this._initModules();
-			this.scope.modules = {};
-			// TODO: Remove - Temporal write to modules for blocks circular dependency
-			this.scope.modules.transactions = this.transactions;
 
 			this.scope.logic = await initLogicStructure(this.scope);
 			this.scope.modules = await initModules(this.scope);
 			// TODO: Remove - Temporal write to modules for blocks circular dependency
-			this.scope.modules.transactions = this.transactions;
+			this.scope.modules.transactionManager = this.transactionManager;
 			this.scope.modules.transactionPool = this.transactionPool;
 
 			// TODO: Global variable forbits to require on top
@@ -181,7 +179,6 @@ module.exports = class Chain {
 			this.scope.modules.forger = this.forger;
 			this.scope.modules.transport = this.transport;
 
-			this.scope.logic.block.bindModules(this.scope.modules);
 			this.scope.logic.account.bindModules(this.scope.modules);
 
 			this.channel.subscribe('app:state:updated', event => {
@@ -337,17 +334,14 @@ module.exports = class Chain {
 			interval: this.options.constants.BLCOK_TIME,
 			blocksPerRound: this.options.constants.ACTIVE_DELEGATES,
 		});
-		this.transactions = new Transactions({
+		this.transactionManager = new TransactionManager(
+			this.options.registeredTransactions
+		);
+		this.transactionPool = new TransactionPool({
+			logger: this.logger,
 			storage: this.storage,
-			logger: this.loger,
-			registeredTransactions: this.options.registeredTransactions,
 			slots: blockSlots,
 			exceptions: this.options.exceptions,
-		});
-		this.transactionPool = new TransactionPool({
-			transactions: this.transactions,
-			slots: blockSlots,
-			logger: this.logger,
 			maxTransactionsPerQueue: this.options.transactions
 				.maxTransactionsPerQueue,
 			expireTransactionsInterval: this.options.constants.EXPIRY_INTERVAL,
