@@ -23,7 +23,7 @@ const {
 } = require('@liskhq/lisk-transactions');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const { sortBy } = require('./sort');
-const transactionModule = require('../transactions');
+const transactionsModule = require('../transactions');
 
 const handleAddTransactionResponse = (addTransactionResponse, transaction) => {
 	if (addTransactionResponse.isFull) {
@@ -73,6 +73,7 @@ class TransactionPool extends EventEmitter {
 	}) {
 		super();
 		this.blocks = blocks;
+		this.storage = storage;
 		this.logger = logger;
 		this.slots = slots;
 		this.expireTransactionsInterval = expireTransactionsInterval;
@@ -82,15 +83,15 @@ class TransactionPool extends EventEmitter {
 		this.bundledInterval = broadcastInterval;
 		this.bundleLimit = releaseLimit;
 
-		this.validateTransactions = transactionModule.validateTransactions;
-		this.verifyTransactions = transactionModule.composeTransactionSteps(
-			transactionModule.checkAllowedTransactions(this.blocks.lastBlock.get()),
-			transactionModule.checkPersistedTransactions(storage),
-			transactionModule.verifyTransactions(storage, slots, exceptions)
+		this.validateTransactions = transactionsModule.validateTransactions();
+		this.verifyTransactions = transactionsModule.composeTransactionSteps(
+			transactionsModule.checkAllowedTransactions(this.blocks.lastBlock.get()),
+			transactionsModule.checkPersistedTransactions(storage),
+			transactionsModule.verifyTransactions(storage, slots, exceptions)
 		);
-		this.processTransactions = transactionModule.composeTransactionSteps(
-			transactionModule.checkPersistedTransactions(storage),
-			transactionModule.applyTransactions(storage, exceptions)
+		this.processTransactions = transactionsModule.composeTransactionSteps(
+			transactionsModule.checkPersistedTransactions(storage),
+			transactionsModule.applyTransactions(storage, exceptions)
 		);
 
 		const poolConfig = {
@@ -201,10 +202,9 @@ class TransactionPool extends EventEmitter {
 			throw [new TransactionError(message, '', '.signature')];
 		}
 
-		const transactionResponse = await this.transactions.processSignature(
-			transaction,
-			signature
-		);
+		const transactionResponse = await transactionsModule.processSignature(
+			this.storage
+		)(transaction, signature);
 		if (
 			transactionResponse.status === TransactionStatus.FAIL &&
 			transactionResponse.errors.length > 0

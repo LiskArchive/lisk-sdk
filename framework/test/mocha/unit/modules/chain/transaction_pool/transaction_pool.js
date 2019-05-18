@@ -22,8 +22,8 @@ const {
 const { expect } = require('chai');
 const {
 	TransactionPool,
-} = require('../../../../../../src/modules/chain/transactions/transaction_pool');
-const compose = require('../../../../../../src/modules/chain/transactions/compose_transaction_steps');
+} = require('../../../../../../src/modules/chain/transaction_pool/transaction_pool');
+const transactionsModule = require('../../../../../../src/modules/chain/transactions');
 const { transactions: transactionsFixtures } = require('../../../../fixtures');
 
 describe('transactionPool', () => {
@@ -39,13 +39,18 @@ describe('transactionPool', () => {
 		error: sinonSandbox.spy(),
 	};
 
-	const transactionsStub = {
-		checkPersistedTransactions: sinonSandbox.stub().resolves(),
-		validateTransactions: sinonSandbox.stub().resolves(),
-		verifyTransactions: sinonSandbox.stub().resolves(),
-		applyTransactions: sinonSandbox.stub().resolves(),
-		checkAllowedTransactions: sinonSandbox.stub().resolves(),
-		processSignature: sinonSandbox.stub().resolves(),
+	const storage = {
+		entities: {
+			Transaction: {
+				get: sinonSandbox.stub(),
+			},
+		},
+	};
+
+	const blocksStub = {
+		lastBlock: {
+			get: sinonSandbox.stub(),
+		},
 	};
 
 	const slotsStub = {
@@ -57,10 +62,11 @@ describe('transactionPool', () => {
 
 	beforeEach(async () => {
 		sinonSandbox
-			.stub(compose, 'composeTransactionSteps')
+			.stub(transactionsModule, 'composeTransactionSteps')
 			.returns(sinonSandbox.stub());
 		transactionPool = new TransactionPool({
-			transactions: transactionsStub,
+			storage,
+			blocks: blocksStub,
 			slots: slotsStub,
 			logger,
 			broadcastInterval,
@@ -93,14 +99,8 @@ describe('transactionPool', () => {
 		});
 
 		it('should call composeTransactionSteps to compose verifyTransactions', async () => {
-			expect(compose.composeTransactionSteps).to.have.been.calledTwice;
-		});
-
-		it('should call composeTransactionSteps to compose processTransactions', async () => {
-			expect(compose.composeTransactionSteps).to.have.been.calledWith(
-				transactionsStub.checkPersistedTransactions,
-				transactionsStub.applyTransactions
-			);
+			expect(transactionsModule.composeTransactionSteps).to.have.been
+				.calledTwice;
 		});
 	});
 
@@ -403,14 +403,19 @@ describe('transactionPool', () => {
 		});
 
 		describe('when signature already exists in transaction', () => {
+			beforeEach(async () => {
+				sinonSandbox.stub(transactionsModule, 'processSignature').returns(
+					sinonSandbox.stub().resolves({
+						...transactionResponse,
+						status: 0,
+						errors: [
+							new TransactionError('Signature already present in transaction.'),
+						],
+					})
+				);
+			});
+
 			it('should throw an Error instance', async () => {
-				transactionsStub.processSignature.resolves({
-					...transactionResponse,
-					status: 0,
-					errors: [
-						new TransactionError('Signature already present in transaction.'),
-					],
-				});
 				transactionObject.signatures = ['signature1'];
 				try {
 					await transactionPool.getTransactionAndProcessSignature(
@@ -422,7 +427,7 @@ describe('transactionPool', () => {
 					).to.have.been.calledWith(signatureObject.transactionId);
 					expect(transactionPool.getMultisignatureTransaction).to.have.been
 						.calledOnce;
-					expect(transactionsStub.processSignature).to.have.been.calledOnce;
+					expect(transactionsModule.processSignature).to.have.been.calledOnce;
 					expect(errors[0]).to.be.an.instanceof(TransactionError);
 					expect(errors[0].message).to.eql(
 						'Signature already present in transaction.'

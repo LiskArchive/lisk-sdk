@@ -15,7 +15,6 @@
 'use strict';
 
 const {
-	Status: TransactionStatus,
 	TransferTransaction,
 	SecondSignatureTransaction,
 	DelegateTransaction,
@@ -23,27 +22,14 @@ const {
 	MultisignatureTransaction,
 } = require('@liskhq/lisk-transactions');
 const {
-	Transactions,
-} = require('../../../../../../src/modules/chain/transactions/transactions');
+	TransactionManager,
+} = require('../../../../../../src/modules/chain/transactions/transaction_manager');
 
 // TODO: re-implement for new transaction processing
 describe('transactions', () => {
 	afterEach(() => sinonSandbox.restore());
 
-	describe('Transaction', () => {
-		const dummyTransactions = [
-			{
-				id: 'aTransactionId',
-				matcher: () => true,
-				type: 0,
-			},
-		];
-		const dummyState = {
-			version: 1,
-			height: 1,
-			timestamp: 'aTimestamp',
-		};
-
+	describe('TransactionManager', () => {
 		const registeredTransactions = {
 			0: TransferTransaction,
 			1: SecondSignatureTransaction,
@@ -56,9 +42,7 @@ describe('transactions', () => {
 
 		beforeEach(async () => {
 			// Act
-			transactions = new Transactions({
-				registeredTransactions,
-			});
+			transactions = new TransactionManager(registeredTransactions);
 		});
 
 		describe('constructor', () => {
@@ -210,181 +194,6 @@ describe('transactions', () => {
 
 				expect(transactions.fromJson(multisignature)).to.be.instanceof(
 					MultisignatureTransaction
-				);
-			});
-		});
-
-		describe('#checkAllowedTransactions', () => {
-			let checkAllowedTransactionsStub;
-
-			beforeEach(async () => {
-				// Arrange
-				checkAllowedTransactionsStub = sinonSandbox.spy(
-					transactions,
-					'checkAllowedTransactions'
-				);
-			});
-
-			it('should accept two exact arguments with proper data', async () => {
-				// Act
-				transactions.checkAllowedTransactions(dummyTransactions, dummyState);
-
-				// Assert
-				expect(checkAllowedTransactionsStub).to.have.been.calledWithExactly(
-					dummyTransactions,
-					dummyState
-				);
-			});
-
-			it('should return a proper response format', async () => {
-				// Act
-				const response = transactions.checkAllowedTransactions(
-					dummyTransactions,
-					dummyState
-				);
-
-				// Assert
-				expect(response).to.have.deep.property('transactionsResponses', [
-					{
-						id: 'aTransactionId',
-						status: 1,
-						errors: [],
-					},
-				]);
-			});
-
-			it('in case of non allowed transactions, it should return responses with TransactionStatus.FAIL and proper error message', async () => {
-				// Arrange
-				const disallowedTransaction = {
-					...dummyTransactions[0],
-					matcher: () => false,
-				};
-
-				// Act
-				const response = transactions.checkAllowedTransactions(
-					[disallowedTransaction],
-					dummyState
-				);
-
-				// Assert
-				expect(response.transactionsResponses.length).to.equal(1);
-				expect(response.transactionsResponses[0]).to.have.property(
-					'id',
-					disallowedTransaction.id
-				);
-				expect(response.transactionsResponses[0]).to.have.property(
-					'status',
-					TransactionStatus.FAIL
-				);
-				expect(response.transactionsResponses[0].errors.length).to.equal(1);
-				expect(response.transactionsResponses[0].errors[0]).to.be.instanceOf(
-					Error
-				);
-				expect(response.transactionsResponses[0].errors[0].message).to.equal(
-					`Transaction type ${
-						disallowedTransaction.type
-					} is currently not allowed.`
-				);
-			});
-
-			it('should report a transaction as allowed if it does not implement matcher', async () => {
-				// Arrange
-				const {
-					matcher,
-					...transactionWithoutMatcherImpl
-				} = dummyTransactions[0];
-
-				// Act
-				const response = transactions.checkAllowedTransactions(
-					[transactionWithoutMatcherImpl],
-					dummyState
-				);
-
-				// Assert
-				expect(response.transactionsResponses.length).to.equal(1);
-				expect(response.transactionsResponses[0]).to.have.property(
-					'id',
-					transactionWithoutMatcherImpl.id
-				);
-				expect(response.transactionsResponses[0]).to.have.property(
-					'status',
-					TransactionStatus.OK
-				);
-				expect(response.transactionsResponses[0].errors.length).to.equal(0);
-			});
-
-			it('in case of allowed transactions, it should return responses with TransactionStatus.OK and no errors', async () => {
-				// Arrange
-				const allowedTransaction = {
-					...dummyTransactions[0],
-					matcher: () => true,
-				};
-
-				// Act
-				const response = transactions.checkAllowedTransactions(
-					[allowedTransaction],
-					dummyState
-				);
-
-				// Assert
-				expect(response.transactionsResponses.length).to.equal(1);
-				expect(response.transactionsResponses[0]).to.have.property(
-					'id',
-					allowedTransaction.id
-				);
-				expect(response.transactionsResponses[0]).to.have.property(
-					'status',
-					TransactionStatus.OK
-				);
-				expect(response.transactionsResponses[0].errors.length).to.equal(0);
-			});
-
-			it('should return a mix of responses including allowed and disallowed transactions', async () => {
-				// Arrange
-				const testTransactions = [
-					dummyTransactions[0], // Allowed
-					{
-						...dummyTransactions[0],
-						matcher: () => false, // Disallowed
-					},
-				];
-
-				// Act
-				const response = transactions.checkAllowedTransactions(
-					testTransactions,
-					dummyState
-				);
-
-				// Assert
-				expect(response.transactionsResponses.length).to.equal(2);
-				// Allowed transaction formatted response check
-				expect(response.transactionsResponses[0]).to.have.property(
-					'id',
-					testTransactions[0].id
-				);
-				expect(response.transactionsResponses[0]).to.have.property(
-					'status',
-					TransactionStatus.OK
-				);
-				expect(response.transactionsResponses[0].errors.length).to.equal(0);
-
-				// Allowed transaction formatted response check
-				expect(response.transactionsResponses[1]).to.have.property(
-					'id',
-					testTransactions[1].id
-				);
-				expect(response.transactionsResponses[1]).to.have.property(
-					'status',
-					TransactionStatus.FAIL
-				);
-				expect(response.transactionsResponses[1].errors.length).to.equal(1);
-				expect(response.transactionsResponses[1].errors[0]).to.be.instanceOf(
-					Error
-				);
-				expect(response.transactionsResponses[1].errors[0].message).to.equal(
-					`Transaction type ${
-						testTransactions[1].type
-					} is currently not allowed.`
 				);
 			});
 		});

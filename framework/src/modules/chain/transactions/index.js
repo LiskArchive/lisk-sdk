@@ -15,7 +15,7 @@
 'use strict';
 
 const { TransactionManager } = require('./transaction_manager');
-const { checkIfTransactionIsInert } = require('./handle_exceptions');
+const { checkIfTransactionIsInert } = require('./exceptions_handlers');
 const { composeTransactionSteps } = require('./compose_transaction_steps');
 const {
 	validateTransactions,
@@ -25,7 +25,7 @@ const {
 	undoTransactions,
 	verifyTransactions,
 	processSignature,
-} = require('./handle_transactions');
+} = require('./transactions_handlers');
 
 module.exports = {
 	TransactionManager,

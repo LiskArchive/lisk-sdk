@@ -21,7 +21,7 @@ const {
 const votes = require('./votes');
 const {
 	updateTransactionResponseForExceptionTransactions,
-} = require('./handle_exceptions');
+} = require('./exceptions_handlers');
 const StateStore = require('../logic/state_store');
 
 const validateTransactions = () => transactions => {
