@@ -264,7 +264,7 @@ const initStepsForTest = {
 		scope.modules = modules;
 		await promisifyParallel(tasks);
 		const { TransactionPool: RewiredTransactionPool } = rewire(
-			'../../../src/modules/chain/Transaction_pool'
+			'../../../src/modules/chain/transaction_pool'
 		);
 		scope.rewiredModules.transactionPool = RewiredTransactionPool;
 		modules.transactionPool = new RewiredTransactionPool({
