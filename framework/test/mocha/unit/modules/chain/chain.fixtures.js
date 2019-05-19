@@ -19,6 +19,9 @@ const chainOptions = {
 	network: {
 		enabled: false,
 	},
+	transactions: {
+		maxTransactionsPerQueue: 1000,
+	},
 	exceptions: {},
 	constants: {
 		ACTIVE_DELEGATES: 101,

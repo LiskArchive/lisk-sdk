@@ -156,30 +156,13 @@ module.exports = class Chain {
 			await bootstrapCache(this.scope);
 
 			this.scope.bus = await createBus();
-
-			this._initModules();
-
 			this.scope.logic = await initLogicStructure(this.scope);
-			this.scope.modules = await initModules(this.scope);
-			// TODO: Remove - Temporal write to modules for blocks circular dependency
-			this.scope.modules.transactionManager = this.transactionManager;
-			this.scope.modules.transactionPool = this.transactionPool;
 
-			// TODO: Global variable forbits to require on top
-			const Loader = require('./loader');
-			const { Forger } = require('./forger');
-			const { Delegates } = require('./submodules/delegates');
-			const Transport = require('./transport');
-			this.loader = new Loader(this.scope);
-			this.forger = new Forger(this.scope);
-			this.transport = new Transport(this.scope);
-			// TODO: should not add to scope
-			this.scope.modules.delegates = new Delegates(this.scope);
-			this.scope.modules.loader = this.loader;
-			this.scope.modules.forger = this.forger;
-			this.scope.modules.transport = this.transport;
+			await this._initModules();
 
 			this.scope.logic.account.bindModules(this.scope.modules);
+
+			this.scope.bus.registerModules(this.scope.modules);
 
 			this.channel.subscribe('app:state:updated', event => {
 				Object.assign(this.scope.applicationState, event.data);
@@ -328,18 +311,23 @@ module.exports = class Chain {
 		this.logger.info('Cleaned up successfully');
 	}
 
-	_initModules() {
+	async _initModules() {
+		this.scope.modules = {};
+		this.transactionManager = new TransactionManager(
+			this.options.registeredTransactions
+		);
+		this.scope.modules.transactionManager = this.transactionManager;
+		const autoModules = await initModules(this.scope);
+		this.scope.modules = Object.assign(this.scope.modules, autoModules);
 		const blockSlots = new BlockSlots({
 			epochTime: this.options.constants.EPOCH_TIME,
 			interval: this.options.constants.BLCOK_TIME,
 			blocksPerRound: this.options.constants.ACTIVE_DELEGATES,
 		});
-		this.transactionManager = new TransactionManager(
-			this.options.registeredTransactions
-		);
 		this.transactionPool = new TransactionPool({
 			logger: this.logger,
 			storage: this.storage,
+			blocks: this.scope.modules.blocks,
 			slots: blockSlots,
 			exceptions: this.options.exceptions,
 			maxTransactionsPerQueue: this.options.transactions
@@ -351,6 +339,22 @@ module.exports = class Chain {
 			broadcastInterval: this.options.broadcasts.broadcastInterval,
 			releaseLimit: this.options.broadcasts.releaseLimit,
 		});
+		this.scope.modules.transactionPool = this.transactionPool;
+		// TODO: Remove - Temporal write to modules for blocks circular dependency
+
+		// TODO: Global variable forbits to require on top
+		const Loader = require('./loader');
+		const { Forger } = require('./forger');
+		const { Delegates } = require('./submodules/delegates');
+		const Transport = require('./transport');
+		this.loader = new Loader(this.scope);
+		this.forger = new Forger(this.scope);
+		this.transport = new Transport(this.scope);
+		// TODO: should not add to scope
+		this.scope.modules.delegates = new Delegates(this.scope);
+		this.scope.modules.loader = this.loader;
+		this.scope.modules.forger = this.forger;
+		this.scope.modules.transport = this.transport;
 	}
 
 	_startLoader() {

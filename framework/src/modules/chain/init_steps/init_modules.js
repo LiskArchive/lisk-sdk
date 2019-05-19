@@ -56,8 +56,5 @@ module.exports = async scope => {
 		(prev, module, index) => ({ ...prev, [moduleNames[index]]: module }),
 		{}
 	);
-
-	scope.bus.registerModules(modules);
-
 	return modules;
 };
