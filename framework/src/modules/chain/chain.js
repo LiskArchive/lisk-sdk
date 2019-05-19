@@ -323,7 +323,7 @@ module.exports = class Chain {
 		this.scope.modules = Object.assign(this.scope.modules, autoModules);
 		const blockSlots = new BlockSlots({
 			epochTime: this.options.constants.EPOCH_TIME,
-			interval: this.options.constants.BLCOK_TIME,
+			interval: this.options.constants.BLOCK_TIME,
 			blocksPerRound: this.options.constants.ACTIVE_DELEGATES,
 		});
 		this.transactionPool = new TransactionPool({
