@@ -309,6 +309,16 @@ class TransactionPool extends EventEmitter {
 		return this.pool.queues[queueName].size();
 	}
 
+	getCount() {
+		return {
+			ready: this.getCountByQueue('ready') || 0,
+			verified: this.getCountByQueue('verified') || 0,
+			pending: this.getCountByQueue('pending') || 0,
+			validated: this.getCountByQueue('validated') || 0,
+			received: this.getCountByQueue('received') || 0,
+		};
+	}
+
 	getTransactionsList(queueName, reverse, limit) {
 		const transactions = this.pool.queues[queueName].transactions;
 		let transactionList = [...transactions];

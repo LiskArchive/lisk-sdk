@@ -131,6 +131,12 @@ NodeController.getStatus = async (context, next) => {
 		const confirmed = await getConfirmedTransactionCount();
 
 		const networkHeight = await _getNetworkHeight();
+		const total =
+			confirmed +
+			Object.values(unconfirmedTransactions).reduce(
+				(prev, current) => prev + current,
+				0
+			);
 
 		const data = {
 			broadhash: library.applicationState.broadhash,
@@ -144,6 +150,7 @@ NodeController.getStatus = async (context, next) => {
 			transactions: {
 				confirmed,
 				...unconfirmedTransactions,
+				total,
 			},
 		};
 
