@@ -489,7 +489,8 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					createAccountWithFunds(done);
 				});
 
-				describe('(type 5) register dapp', () => {
+				/* eslint-disable mocha/no-skipped-tests */
+				describe.skip('(type 5) register dapp', () => {
 					it('should validate account data from sender after account creation', async () => {
 						const account = await library.components.storage.entities.Account.getOne(
 							{ address: testAccount.address }
