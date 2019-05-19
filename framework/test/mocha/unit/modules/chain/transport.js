@@ -774,9 +774,8 @@ describe('transport', () => {
 				});
 
 				it('should call callback with err.toString()', async () => {
-					expect(error).to.equal(
-						`Error: ${processUnconfirmedTransactionError}`
-					);
+					expect(error).to.be.an('array');
+					expect(error[0].message).to.equal(processUnconfirmedTransactionError);
 				});
 			});
 
