@@ -265,9 +265,17 @@ function getAccountFromDb(library, address) {
 }
 
 function getTransactionFromModule(library, filter, cb) {
-	library.modules.transactions.getTransactions(filter, (err, res) => {
-		cb(err, res);
-	});
+	Promise.all([
+		library.components.storage.entities.Transaction.get(filter),
+		library.components.storage.entities.Transaction.count(filter),
+	])
+		.then(([data, count]) => {
+			cb(null, {
+				transactions: data,
+				count,
+			});
+		})
+		.catch(err => cb(err));
 }
 
 function getUnconfirmedTransactionFromModule(library, filter, cb) {
