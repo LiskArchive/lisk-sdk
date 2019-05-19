@@ -37,9 +37,7 @@ describe('duplicate_signatures', () => {
 			localCommon.addTransactionsAndForge
 		);
 
-		transactionPool = library.rewiredModules.transactions.__get__(
-			'__private.transactionPool'
-		);
+		transactionPool = library.modules.transactionPool;
 	});
 
 	const prepareMultisignatureAccountRegistration = () => {
@@ -183,16 +181,16 @@ describe('duplicate_signatures', () => {
 					async.parallel(
 						async.reflectAll([
 							parallelCb => {
-								library.modules.multisignatures.getTransactionAndProcessSignature(
-									signatures[0],
-									parallelCb
-								);
+								library.modules.transactionPool
+									.getTransactionAndProcessSignature(signatures[0])
+									.then(() => parallelCb())
+									.catch(err => parallelCb(err));
 							},
 							parallelCb => {
-								library.modules.multisignatures.getTransactionAndProcessSignature(
-									signatures[1],
-									parallelCb
-								);
+								library.modules.transactionPool
+									.getTransactionAndProcessSignature(signatures[1])
+									.then(() => parallelCb())
+									.catch(err => parallelCb(err));
 							},
 						]),
 						(err, results) => {
@@ -293,16 +291,16 @@ describe('duplicate_signatures', () => {
 					async.parallel(
 						async.reflectAll([
 							parallelCb => {
-								library.modules.multisignatures.getTransactionAndProcessSignature(
-									signatures[0],
-									parallelCb
-								);
+								library.modules.transactionPool
+									.getTransactionAndProcessSignature(signatures[0])
+									.then(() => parallelCb())
+									.catch(err => parallelCb(err));
 							},
 							parallelCb => {
-								library.modules.multisignatures.getTransactionAndProcessSignature(
-									signatures[1],
-									parallelCb
-								);
+								library.modules.transactionPool
+									.getTransactionAndProcessSignature(signatures[1])
+									.then(() => parallelCb())
+									.catch(err => parallelCb(err));
 							},
 						]),
 						(err, results) => {
@@ -390,22 +388,22 @@ describe('duplicate_signatures', () => {
 					async.parallel(
 						async.reflectAll([
 							parallelCb => {
-								library.modules.multisignatures.getTransactionAndProcessSignature(
-									signatures[0],
-									parallelCb
-								);
+								library.modules.transactionPool
+									.getTransactionAndProcessSignature(signatures[0])
+									.then(() => parallelCb())
+									.catch(err => parallelCb(err));
 							},
 							parallelCb => {
-								library.modules.multisignatures.getTransactionAndProcessSignature(
-									signatures[0],
-									parallelCb
-								);
+								library.modules.transactionPool
+									.getTransactionAndProcessSignature(signatures[0])
+									.then(() => parallelCb())
+									.catch(err => parallelCb(err));
 							},
 							parallelCb => {
-								library.modules.multisignatures.getTransactionAndProcessSignature(
-									signatures[1],
-									parallelCb
-								);
+								library.modules.transactionPool
+									.getTransactionAndProcessSignature(signatures[1])
+									.then(() => parallelCb())
+									.catch(err => parallelCb(err));
 							},
 						]),
 						(err, results) => {
@@ -509,22 +507,22 @@ describe('duplicate_signatures', () => {
 					async.parallel(
 						async.reflectAll([
 							parallelCb => {
-								library.modules.multisignatures.getTransactionAndProcessSignature(
-									signatures[0],
-									parallelCb
-								);
+								library.modules.transactionPool
+									.getTransactionAndProcessSignature(signatures[0])
+									.then(() => parallelCb())
+									.catch(err => parallelCb(err));
 							},
 							parallelCb => {
-								library.modules.multisignatures.getTransactionAndProcessSignature(
-									signatures[0],
-									parallelCb
-								);
+								library.modules.transactionPool
+									.getTransactionAndProcessSignature(signatures[0])
+									.then(() => parallelCb())
+									.catch(err => parallelCb(err));
 							},
 							parallelCb => {
-								library.modules.multisignatures.getTransactionAndProcessSignature(
-									signatures[1],
-									parallelCb
-								);
+								library.modules.transactionPool
+									.getTransactionAndProcessSignature(signatures[1])
+									.then(() => parallelCb())
+									.catch(err => parallelCb(err));
 							},
 						]),
 						(err, results) => {

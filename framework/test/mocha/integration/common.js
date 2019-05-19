@@ -206,10 +206,9 @@ function addTransactionToUnconfirmedQueue(library, transaction, cb) {
 	library.modules.transactionPool
 		.processUnconfirmedTransaction(transaction)
 		.then(() => {
-			const transactionPool = library.rewiredModules.transactions.__get__(
-				'__private.transactionPool'
-			);
-			return transactionPool.fillPool().finally(() => setImmediate(cb));
+			return library.modules.transactionPool
+				.fillPool()
+				.finally(() => setImmediate(cb));
 		})
 		.catch(err => setImmediate(cb, err.toString()));
 }
@@ -386,10 +385,7 @@ function loadTransactionType(key, account, dapp, secondPassphrase, cb) {
 }
 
 function transactionInPool(library, transactionId) {
-	const transactionPool = library.rewiredModules.transactions.__get__(
-		'__private.transactionPool'
-	);
-	return transactionPool.transactionInPool(transactionId);
+	return library.modules.transactionPool.transactionInPool(transactionId);
 }
 
 module.exports = {

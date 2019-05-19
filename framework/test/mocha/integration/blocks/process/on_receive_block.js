@@ -100,7 +100,9 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 
 		async.waterfall(
 			[
-				library.modules.transactions.fillPool,
+				function(waterFallCb) {
+					library.modules.transactionPool.fillPool().then(() => waterFallCb());
+				},
 				function(waterFallCb) {
 					getNextForger(null, delegatePublicKey => {
 						waterFallCb(null, delegatePublicKey);
