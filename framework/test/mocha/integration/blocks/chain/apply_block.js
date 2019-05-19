@@ -20,13 +20,15 @@ const { transfer, registerDelegate } = require('@liskhq/lisk-transactions');
 const {
 	registeredTransactions,
 } = require('../../../common/registered_transactions');
-const InitTransaction = require('../../../../../src/modules/chain/logic/init_transaction.js');
+const {
+	TransactionManager,
+} = require('../../../../../src/modules/chain/transactions');
 
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
 
-const initTransaction = new InitTransaction({ registeredTransactions });
+const transactionManager = new TransactionManager(registeredTransactions);
 
 describe('integration test (blocks) - chain/applyBlock', () => {
 	const transferAmount = (100000000 * 100).toString();
@@ -251,7 +253,7 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 								'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05',
 							id: '1465651642158264048',
 						},
-					].map(transaction => initTransaction.fromJson(transaction)),
+					].map(transaction => transactionManager.fromJson(transaction)),
 					version: 0,
 					id: '884740302254229983',
 				};

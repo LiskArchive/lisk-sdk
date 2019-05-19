@@ -22,9 +22,11 @@ const application = require('../common/application');
 const random = require('../common/utils/random');
 const localCommon = require('./common');
 const { registeredTransactions } = require('../common/registered_transactions');
-const InitTransaction = require('../../../src/modules/chain/logic/init_transaction.js');
+const {
+	TransactionManager,
+} = require('../../../src/modules/chain/transactions');
 
-const initTransaction = new InitTransaction({ registeredTransactions });
+const transactionManager = new TransactionManager(registeredTransactions);
 const genesisBlock = __testContext.config.genesisBlock;
 const { NORMALIZER } = global.__testContext.config;
 const transactionStatus = liskTransactions.Status;
@@ -118,7 +120,7 @@ describe('processTransactions', () => {
 						passphrase: account.passphrase,
 						options: random.application(),
 					}),
-				].map(transaction => initTransaction.fromJson(transaction));
+				].map(transaction => transactionManager.fromJson(transaction));
 
 				// If we include second signature transaction, then the rest of the transactions in the set will be required to have second signature.
 				// Therefore removing it from the appliable transactions
@@ -132,7 +134,7 @@ describe('processTransactions', () => {
 						recipientId: accountFixtures.genesis.address,
 						passphrase: random.account().passphrase,
 					}),
-				].map(transaction => initTransaction.fromJson(transaction));
+				].map(transaction => transactionManager.fromJson(transaction));
 
 				keysgroup = new Array(4).fill(0).map(() => random.account().publicKey);
 
@@ -143,7 +145,7 @@ describe('processTransactions', () => {
 						lifetime: 10,
 						minimum: 2,
 					}),
-				].map(transaction => initTransaction.fromJson(transaction));
+				].map(transaction => transactionManager.fromJson(transaction));
 			});
 
 			describe('checkAllowedTransactions', () => {
@@ -263,7 +265,7 @@ describe('processTransactions', () => {
 					const recipient = random.account();
 
 					const { transactionsResponses } = await undoTransactions([
-						initTransaction.fromJson(
+						transactionManager.fromJson(
 							liskTransactions.transfer({
 								amount: (NORMALIZER * 1000).toString(),
 								recipientId: recipient.address,
