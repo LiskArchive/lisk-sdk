@@ -119,24 +119,29 @@ const checkPersistedTransactions = storage => async transactions => {
 	};
 };
 
-const checkAllowedTransactions = context => transactions => ({
-	transactionsResponses: transactions.map(transaction => {
-		const allowed = !transaction.matcher || transaction.matcher(context);
+const checkAllowedTransactions = contexter => {
+	const context = typeof contexter === 'function' ? contexter() : contexter;
+	return transactions => ({
+		transactionsResponses: transactions.map(transaction => {
+			const allowed = !transaction.matcher || transaction.matcher(context);
 
-		return {
-			id: transaction.id,
-			status: allowed ? TransactionStatus.OK : TransactionStatus.FAIL,
-			errors: allowed
-				? []
-				: [
-						new TransactionError(
-							`Transaction type ${transaction.type} is currently not allowed.`,
-							transaction.id
-						),
-				  ],
-		};
-	}),
-});
+			return {
+				id: transaction.id,
+				status: allowed ? TransactionStatus.OK : TransactionStatus.FAIL,
+				errors: allowed
+					? []
+					: [
+							new TransactionError(
+								`Transaction type ${
+									transaction.type
+								} is currently not allowed.`,
+								transaction.id
+							),
+					  ],
+			};
+		}),
+	});
+};
 
 const undoTransactions = (storage, exceptions) => async (
 	transactions,

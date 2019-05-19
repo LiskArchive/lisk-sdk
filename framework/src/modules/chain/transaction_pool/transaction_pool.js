@@ -87,7 +87,9 @@ class TransactionPool extends EventEmitter {
 			this.exceptions
 		);
 		this.verifyTransactions = transactionsModule.composeTransactionSteps(
-			transactionsModule.checkAllowedTransactions(this.blocks.lastBlock.get()), // TODO: probably wrong
+			transactionsModule.checkAllowedTransactions(
+				this.blocks.lastBlock.get.bind(this)
+			), // TODO: probably wrong
 			transactionsModule.checkPersistedTransactions(storage),
 			transactionsModule.verifyTransactions(storage, slots, exceptions)
 		);
