@@ -24,6 +24,7 @@ const Bignum = require('../helpers/bignum');
 const blockVersion = require('./block_version');
 const BlockReward = require('./block_reward');
 
+const exceptions = global.exceptions;
 const { MAX_PAYLOAD_LENGTH, FEES, TRANSACTION_TYPES } = global.constants;
 const __private = {};
 
@@ -244,7 +245,7 @@ class Block {
 					.join(', ')}`
 			);
 		}
-		const { transactionsResponses } = validateTransactions()(
+		const { transactionsResponses } = validateTransactions(exceptions)(
 			block.transactions
 		);
 		const invalidTransactionResponse = transactionsResponses.find(

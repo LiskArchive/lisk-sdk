@@ -83,9 +83,11 @@ class TransactionPool extends EventEmitter {
 		this.bundledInterval = broadcastInterval;
 		this.bundleLimit = releaseLimit;
 
-		this.validateTransactions = transactionsModule.validateTransactions();
+		this.validateTransactions = transactionsModule.validateTransactions(
+			this.exceptions
+		);
 		this.verifyTransactions = transactionsModule.composeTransactionSteps(
-			transactionsModule.checkAllowedTransactions(this.blocks.lastBlock.get()),
+			transactionsModule.checkAllowedTransactions(this.blocks.lastBlock.get()), // TODO: probably wrong
 			transactionsModule.checkPersistedTransactions(storage),
 			transactionsModule.verifyTransactions(storage, slots, exceptions)
 		);

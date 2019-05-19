@@ -166,12 +166,10 @@ async function __init(sandbox, initScope) {
 		await cache.bootstrap();
 
 		scope.bus = await initSteps.createBus();
-		scope.modules = await initStepsForTest.initNewModules(scope);
 		scope.logic = await initSteps.initLogicStructure(scope);
 		scope.modules = await initStepsForTest.initModules(scope);
 
 		// Ready to bind modules
-		scope.logic.block.bindModules(scope.modules);
 		scope.logic.account.bindModules(scope.modules);
 
 		// Fire onBind event in every module
@@ -241,17 +239,52 @@ const initStepsForTest = {
 	initModules: async scope => {
 		const tasks = {};
 		scope.rewiredModules = {};
+		const modules = {};
 
 		Object.keys(modulesInit).forEach(name => {
 			tasks[name] = function(tasksCb) {
 				const Instance = rewire(modulesInit[name]);
 				scope.rewiredModules[name] = Instance;
-				return new Instance(tasksCb, scope);
+				modules[name] = new Instance(tasksCb, scope);
 			};
 		});
 
-		const modules = await promisifyParallel(tasks);
-		initStepsForTest.initNewModules(scope, modules);
+		const { TransactionManager: RewiredTransactionManager } = rewire(
+			'../../../src/modules/chain/transactions'
+		);
+		scope.rewiredModules.transactionManager = RewiredTransactionManager;
+		const slots = new BlockSlots({
+			epochTime: __testContext.config.constants.EPOCH_TIME,
+			interval: __testContext.config.constants.BLCOK_TIME,
+			blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
+		});
+		modules.transactionManager = new RewiredTransactionManager(
+			__testContext.config.modules.chain.registeredTransactions
+		);
+		scope.modules = scope.modules || {};
+		scope.modules = modules;
+		await promisifyParallel(tasks);
+		const { TransactionPool: RewiredTransactionPool } = rewire(
+			'../../../src/modules/chain/Transaction_pool'
+		);
+		scope.rewiredModules.transactionPool = RewiredTransactionPool;
+		modules.transactionPool = new RewiredTransactionPool({
+			storage: scope.components.storage,
+			slots,
+			blocks: scope.modules.blocks,
+			logger: scope.components.logger,
+			maxTransactionsPerQueue:
+				__testContext.config.modules.chain.transactions.maxTransactionsPerQueue,
+			expireTransactionsInterval:
+				__testContext.config.constants.EXPIRY_INTERVAL,
+			maxTransactionsPerBlock:
+				__testContext.config.constants.MAX_TRANSACTIONS_PER_BLOCK,
+			maxSharedTransactions:
+				__testContext.config.constants.MAX_SHARED_TRANSACTIONS,
+			broadcastInterval:
+				__testContext.config.modules.chain.broadcasts.broadcastInterval,
+			releaseLimit: __testContext.config.modules.chain.broadcasts.releaseLimit,
+		});
 		// TODO: remove rewiring
 		const RewiredLoader = rewire('../../../src/modules/chain/loader');
 		scope.rewiredModules.loader = RewiredLoader;
@@ -271,47 +304,6 @@ const initStepsForTest = {
 		modules.delegates = new RewiredDelegates(scope);
 
 		scope.bus.registerModules(modules);
-
-		return modules;
-	},
-
-	initNewModules: (scope, modules = {}) => {
-		const {
-			Transactions: RewiredTransactions,
-			TransactionPool: RewiredTransactionPool,
-		} = rewire('../../../src/modules/chain/Transactions');
-		scope.rewiredModules = scope.rewiredModules || {};
-		scope.rewiredModules.transactions = RewiredTransactions;
-		scope.rewiredModules.transactionPool = RewiredTransactionPool;
-		const slots = new BlockSlots({
-			epochTime: __testContext.config.constants.EPOCH_TIME,
-			interval: __testContext.config.constants.BLCOK_TIME,
-			blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
-		});
-		modules.transactions = new RewiredTransactions({
-			storage: scope.components.storage,
-			logger: scope.components.loger,
-			registeredTransactions:
-				__testContext.config.modules.chain.registeredTransactions,
-			slots,
-			exceptions: __testContext.config.modules.chain.exceptions,
-		});
-		modules.transactionPool = new RewiredTransactionPool({
-			transactions: modules.transactions,
-			slots,
-			logger: scope.components.logger,
-			maxTransactionsPerQueue:
-				__testContext.config.modules.chain.transactions.maxTransactionsPerQueue,
-			expireTransactionsInterval:
-				__testContext.config.constants.EXPIRY_INTERVAL,
-			maxTransactionsPerBlock:
-				__testContext.config.constants.MAX_TRANSACTIONS_PER_BLOCK,
-			maxSharedTransactions:
-				__testContext.config.constants.MAX_SHARED_TRANSACTIONS,
-			broadcastInterval:
-				__testContext.config.modules.chain.broadcasts.broadcastInterval,
-			releaseLimit: __testContext.config.modules.chain.broadcasts.releaseLimit,
-		});
 
 		return modules;
 	},

@@ -24,7 +24,7 @@ const {
 } = require('./exceptions_handlers');
 const StateStore = require('../logic/state_store');
 
-const validateTransactions = () => transactions => {
+const validateTransactions = exceptions => transactions => {
 	const transactionsResponses = transactions.map(transaction =>
 		transaction.validate()
 	);
@@ -35,7 +35,7 @@ const validateTransactions = () => transactions => {
 	updateTransactionResponseForExceptionTransactions(
 		invalidTransactionResponses,
 		transactions,
-		this.exceptions
+		exceptions
 	);
 
 	return {

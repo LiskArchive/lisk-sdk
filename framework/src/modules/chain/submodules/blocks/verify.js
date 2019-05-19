@@ -20,11 +20,7 @@ const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const BlockReward = require('../../logic/block_reward');
 const slots = require('../../helpers/slots');
 const blockVersion = require('../../logic/block_version');
-const {
-	checkIfTransactionIsInert,
-	checkAllowedTransactions,
-	verifyTransactions,
-} = require('../../transactions');
+const transactionsModule = require('../../transactions');
 const Bignum = require('../../helpers/bignum');
 
 let modules;
@@ -55,7 +51,7 @@ __private.lastNBlockIds = [];
  * @todo Add description for the class
  */
 class Verify {
-	constructor(logger, block, storage, config, channel, transactions) {
+	constructor(logger, block, storage, config, channel) {
 		library = {
 			logger,
 			storage,
@@ -71,9 +67,6 @@ class Verify {
 		};
 		self = this;
 		__private.blockReward = new BlockReward();
-		self.modules = {
-			transactions,
-		};
 		library.logger.trace('Blocks->Verify: Submodule initialized.');
 		return self;
 	}
@@ -413,20 +406,21 @@ __private.checkTransactions = async (block, checkExists) => {
 	}
 
 	const nonInertTransactions = transactions.filter(
-		transaction => !checkIfTransactionIsInert(transaction, exceptions)
+		transaction =>
+			!transactionsModule.checkIfTransactionIsInert(transaction, exceptions)
 	);
 
-	const nonAllowedTxResponses = checkAllowedTransactions(context)(
-		nonInertTransactions
-	).transactionsResponses.find(
-		transactionResponse => transactionResponse.status !== TransactionStatus.OK
-	);
+	const nonAllowedTxResponses = transactionsModule
+		.checkAllowedTransactions(context)(nonInertTransactions)
+		.transactionsResponses.find(
+			transactionResponse => transactionResponse.status !== TransactionStatus.OK
+		);
 
 	if (nonAllowedTxResponses) {
 		throw nonAllowedTxResponses.errors;
 	}
 
-	const { transactionsResponses } = await verifyTransactions(
+	const { transactionsResponses } = await transactionsModule.verifyTransactions(
 		library.storage,
 		slots,
 		exceptions

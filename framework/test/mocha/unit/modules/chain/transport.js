@@ -37,10 +37,9 @@ const expect = chai.expect;
 
 // TODO: Sometimes the callback error is null, other times it's undefined. It should be consistent.
 describe('transport', () => {
-	const transactions = new transactionsModule.Transactions({
-		registeredTransactions,
-		exceptions: __testContext.config.modules.chain.exceptions,
-	});
+	const transactionManager = new transactionsModule.TransactionManager(
+		registeredTransactions
+	);
 
 	let storageStub;
 	let loggerStub;
@@ -206,6 +205,11 @@ describe('transport', () => {
 					getTransactionAndProcessSignature: sinonSandbox.stub(),
 					processUnconfirmedTransaction: sinonSandbox.stub(),
 				},
+				transactionManager: {
+					fromBlock: sinonSandbox.stub(),
+					fromJson: sinonSandbox.stub(),
+					dbRead: sinonSandbox.stub(),
+				},
 				blocks: {
 					lastBlock: {
 						get: sinonSandbox
@@ -303,7 +307,7 @@ describe('transport', () => {
 							.returns({ height: 1, version: 1, timestamp: 1 }),
 					},
 				},
-				transactions,
+				transactionManager,
 				transactionPool: defaultScope.modules.transactionPool,
 			};
 
@@ -600,7 +604,7 @@ describe('transport', () => {
 					],
 				});
 
-				const tranasactionInstance = transactions.fromJson(transaction);
+				const tranasactionInstance = transactionManager.fromJson(transaction);
 
 				sinonSandbox
 					.stub(transactionsModule, 'composeTransactionSteps')
@@ -623,7 +627,7 @@ describe('transport', () => {
 				const errorMessage = 'Transaction type 0 is currently not allowed.';
 
 				sinonSandbox
-					.stub(transactions, 'fromJson')
+					.stub(transactionManager, 'fromJson')
 					.returns({ ...transaction, matcher: () => false });
 
 				__private.receiveTransaction(
@@ -656,7 +660,7 @@ describe('transport', () => {
 				it('should call modules.transactionPool.processUnconfirmedTransaction with transaction and true as arguments', async () =>
 					expect(
 						modules.transactionPool.processUnconfirmedTransaction.calledWith(
-							transactions.fromJson(transaction),
+							transactionManager.fromJson(transaction),
 							true
 						)
 					).to.be.true);
@@ -683,7 +687,7 @@ describe('transport', () => {
 				});
 
 				it('should call the call back with error message', async () => {
-					transactions.fromJson(invalidTransaction).validate();
+					transactionManager.fromJson(invalidTransaction).validate();
 					expect(errorResult).to.be.an('array');
 					errorResult.forEach(anError => {
 						expect(anError).to.be.instanceOf(TransactionError);
@@ -764,7 +768,7 @@ describe('transport', () => {
 					it('should call library.logger.debug with "Transaction" and transaction as arguments', async () => {
 						expect(library.logger.debug).to.be.calledWith(
 							'Transaction',
-							transactions.fromJson(transaction)
+							transactionManager.fromJson(transaction)
 						);
 					});
 				});
@@ -831,7 +835,6 @@ describe('transport', () => {
 						invokeSync: sinonSandbox.stub(),
 						publish: sinonSandbox.stub(),
 					},
-					transactions,
 					block: {
 						objectNormalize: sinonSandbox.stub().returns(new Block()),
 					},
@@ -856,7 +859,7 @@ describe('transport', () => {
 					loader: {
 						syncing: sinonSandbox.stub().returns(false),
 					},
-					transactions: {
+					transactionManager: {
 						fromBlock: sinonSandbox.stub(),
 					},
 					blocks: {
@@ -923,7 +926,7 @@ describe('transport', () => {
 					it('should assign blocks, loader, multisignatures, processTransactions and transactions properties', async () => {
 						expect(modulesObject).to.have.property('blocks');
 						expect(modulesObject).to.have.property('loader');
-						expect(modulesObject).to.have.property('transactions');
+						expect(modulesObject).to.have.property('transactionManager');
 						return expect(modulesObject).to.have.property('transactionPool');
 					});
 				});

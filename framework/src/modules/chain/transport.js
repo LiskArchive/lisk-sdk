@@ -23,6 +23,7 @@ let Broadcaster = require('./logic/broadcaster');
 const definitions = require('./schema/definitions');
 const transactionsModule = require('./transactions');
 
+const exceptions = global.exceptions;
 const { MAX_SHARED_TRANSACTIONS } = global.constants;
 
 // Private fields
@@ -670,7 +671,7 @@ __private.receiveTransaction = async function(
 			transactionsModule.checkAllowedTransactions(
 				modules.blocks.lastBlock.get()
 			),
-			transactionsModule.validateTransactions()
+			transactionsModule.validateTransactions(exceptions)
 		);
 
 		const { transactionsResponses } = await composedTransactionsCheck([

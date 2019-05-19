@@ -17,10 +17,7 @@
 const _ = require('lodash');
 const async = require('async');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
-const {
-	checkAllowedTransactions,
-	verifyTransactions,
-} = require('../../transactions');
+const transactionsModule = require('../../transactions');
 const { convertErrorsToString } = require('../../helpers/error_handlers');
 const slots = require('../../helpers/slots');
 const definitions = require('../../schema/definitions');
@@ -63,8 +60,7 @@ class Process {
 		storage,
 		sequence,
 		genesisBlock,
-		channel,
-		transactions
+		channel
 	) {
 		library = {
 			channel,
@@ -79,9 +75,6 @@ class Process {
 			},
 		};
 		self = this;
-		self.modules = {
-			transactions,
-		};
 
 		library.logger.trace('Blocks->Process: Submodule initialized.');
 		return self;
@@ -314,9 +307,8 @@ class Process {
 			blockVersion: blockVersion.currentBlockVersion,
 		};
 
-		const allowedTransactionsIds = checkAllowedTransactions(context)(
-			transactions
-		)
+		const allowedTransactionsIds = transactionsModule
+			.checkAllowedTransactions(context)(transactions)
 			.transactionsResponses.filter(
 				transactionResponse =>
 					transactionResponse.status === TransactionStatus.OK
@@ -327,9 +319,10 @@ class Process {
 			allowedTransactionsIds.includes(transaction.id)
 		);
 
-		verifyTransactions(library.storage, library.slots, exceptions)(
-			allowedTransactions
-		)
+		transactionsModule
+			.verifyTransactions(library.storage, library.slots, exceptions)(
+				allowedTransactions
+			)
 			.then(({ transactionsResponses: responses }) => {
 				const readyTransactions = transactions.filter(transaction =>
 					responses

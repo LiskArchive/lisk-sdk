@@ -19,14 +19,14 @@ const {
 	registeredTransactions,
 } = require('../../../../../common/registered_transactions');
 const {
-	Transactions,
+	TransactionManager,
 } = require('../../../../../../../src/modules/chain/transactions');
 const { Transaction } = require('../../../../../fixtures/transactions');
 
 const BlocksChain = rewire(
 	'../../../../../../../src/modules/chain/submodules/blocks/chain'
 );
-const transactionsModule = new Transactions({ registeredTransactions });
+const transactionManager = new TransactionManager(registeredTransactions);
 
 describe('blocks/chain', () => {
 	let __private;
@@ -36,7 +36,7 @@ describe('blocks/chain', () => {
 	let storageStub;
 	let loggerStub;
 	let blockStub;
-	let transactionsModuleStub;
+	let transactionManagerStub;
 	let busStub;
 	let balancesSequenceStub;
 	let genesisBlockStub;
@@ -58,7 +58,7 @@ describe('blocks/chain', () => {
 		id: 3,
 		height: 3,
 		transactions: transactionsForBlock.map(transaction =>
-			transactionsModule.fromJson(transaction)
+			transactionManager.fromJson(transaction)
 		),
 	};
 
@@ -72,7 +72,7 @@ describe('blocks/chain', () => {
 		id: 1,
 		height: 1,
 		transactions: transactionsForGenesisBlock.map(transaction =>
-			transactionsModule.fromJson(transaction)
+			transactionManager.fromJson(transaction)
 		),
 	};
 	const blockReduced = { id: 3, height: 3 };
@@ -111,7 +111,7 @@ describe('blocks/chain', () => {
 			message: sinonSandbox.stub(),
 		};
 
-		transactionsModuleStub = {
+		transactionManagerStub = {
 			fromJson: sinonSandbox.stub(),
 		};
 
@@ -148,7 +148,7 @@ describe('blocks/chain', () => {
 			busStub,
 			balancesSequenceStub,
 			channelMock,
-			transactionsModuleStub
+			transactionManagerStub
 		);
 
 		library = BlocksChain.__get__('library');
@@ -239,8 +239,8 @@ describe('blocks/chain', () => {
 			expect(blocksChainModule.broadcastReducedBlock).to.be.a('function');
 			expect(blocksChainModule.deleteLastBlock).to.be.a('function');
 			expect(blocksChainModule.recoverChain).to.be.a('function');
-			expect(blocksChainModule.modules.transactions).to.eql(
-				transactionsModuleStub
+			expect(blocksChainModule.modules.transactionManager).to.eql(
+				transactionManagerStub
 			);
 			return expect(blocksChainModule.onBind).to.be.a('function');
 		});

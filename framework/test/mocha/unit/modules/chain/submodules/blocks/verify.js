@@ -21,12 +21,12 @@ const Bignum = require('../../../../../../../src/modules/chain/helpers/bignum');
 const {
 	registeredTransactions,
 } = require('../../../../../common/registered_transactions');
-const {
-	Transactions,
-} = require('../../../../../../../src/modules/chain/transactions');
+const transactionsModule = require('../../../../../../../src/modules/chain/transactions');
 const { Transaction } = require('../../../../../fixtures/transactions');
 
-const initTransaction = new Transactions({ registeredTransactions });
+const transactionManager = new transactionsModule.TransactionManager(
+	registeredTransactions
+);
 
 const BlocksVerify = rewire(
 	'../../../../../../../src/modules/chain/submodules/blocks/verify'
@@ -92,12 +92,14 @@ describe('blocks/verify', () => {
 				.callsArg(1),
 		};
 
-		transactionsMock = {
-			checkAllowedTransactions: sinonSandbox.stub().returns({
+		sinonSandbox.stub(transactionsModule, 'checkAllowedTransactions').returns(
+			sinonSandbox.stub().returns({
 				transactionsResponses: [],
-			}),
-			verifyTransactions: sinonSandbox.stub(),
-		};
+			})
+		);
+		sinonSandbox
+			.stub(transactionsModule, 'verifyTransactions')
+			.returns(sinonSandbox.stub());
 
 		blocksVerifyModule = new BlocksVerify(
 			loggerStub,
@@ -612,10 +614,10 @@ describe('blocks/verify', () => {
 		let verifyPayload;
 
 		const payloadHash = crypto.createHash('sha256');
-		const transactionOne = initTransaction.fromJson(
+		const transactionOne = transactionManager.fromJson(
 			new Transaction({ type: 0 })
 		);
-		const transactionTwo = initTransaction.fromJson(
+		const transactionTwo = transactionManager.fromJson(
 			new Transaction({ type: 0 })
 		);
 		const transactions = [transactionOne, transactionTwo];
@@ -1818,16 +1820,15 @@ describe('blocks/verify', () => {
 					// TODO: slight behaviour changed in method check
 					// eslint-disable-next-line
 					it.skip('should not throw if the verifyTransaction returns transaction response with Status = OK', async () => {
-						blocksVerifyModule.modules.transactions.verifyTransactions.resolves(
-							validTransactionsResponse
+						transactionsModule.verifyTransactions.returns(
+							sinonSandbox.stub().resolves(validTransactionsResponse)
 						);
 						await __private.checkTransactions(dummyBlock, true);
-						expect(blocksVerifyModule.modules.transactions.verifyTransactions)
-							.to.be.calledOnce;
+						expect(transactionsModule.verifyTransactions).to.be.calledOnce;
 					});
 
 					it('should throw if the verifyTransaction returns transaction response with Status != OK', async () => {
-						blocksVerifyModule.modules.transactions.verifyTransactions.resolves(
+						transactionsModule.verifyTransactions.resolves(
 							invalidTransactionsResponse
 						);
 						expect(__private.checkTransactions(dummyBlock, true)).to.eventually
@@ -1836,16 +1837,15 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			it('should call blocksVerifyModule.modules.transactions.checkAllowedTransactions', async () => {
+			it('should call transactionsModule.checkAllowedTransactions', async () => {
 				__private.checkTransactions(dummyBlock, false);
 
-				expect(blocksVerifyModule.modules.transactions.checkAllowedTransactions)
-					.to.have.been.called;
+				expect(transactionsModule.checkAllowedTransactions).to.have.been.called;
 			});
 
 			it('should throw an array of errors if transactions are not allowed', async () => {
-				blocksVerifyModule.modules.transactions.checkAllowedTransactions.returns(
-					{
+				transactionsModule.checkAllowedTransactions.returns(
+					sinonSandbox.stub().returns({
 						transactionsResponses: [
 							{
 								id: 1,
@@ -1853,7 +1853,7 @@ describe('blocks/verify', () => {
 								errors: [new Error('anError')],
 							},
 						],
-					}
+					})
 				);
 
 				expect(__private.checkTransactions(dummyBlock, false)).to.eventually.be
