@@ -22,14 +22,16 @@ const application = require('../common/application');
 const random = require('../common/utils/random');
 const localCommon = require('./common');
 const { registeredTransactions } = require('../common/registered_transactions');
-const {
-	TransactionManager,
-} = require('../../../src/modules/chain/transactions');
+const transactionsModule = require('../../../src/modules/chain/transactions');
 
-const transactionManager = new TransactionManager(registeredTransactions);
+const transactionManager = new transactionsModule.TransactionManager(
+	registeredTransactions
+);
 const genesisBlock = __testContext.config.genesisBlock;
+const exceptions = __testContext.config.modules.chain.exceptions;
 const { NORMALIZER } = global.__testContext.config;
 const transactionStatus = liskTransactions.Status;
+const slots = require('../../../src/modules/chain/helpers/slots');
 
 describe('processTransactions', () => {
 	let library;
@@ -116,10 +118,10 @@ describe('processTransactions', () => {
 						passphrase: account.passphrase,
 						votes: [`${accountFixtures.existingDelegate.publicKey}`],
 					}),
-					liskTransactions.createDapp({
-						passphrase: account.passphrase,
-						options: random.application(),
-					}),
+					// liskTransactions.createDapp({
+					// 	passphrase: account.passphrase,
+					// 	options: random.application(),
+					// }),
 				].map(transaction => transactionManager.fromJson(transaction));
 
 				// If we include second signature transaction, then the rest of the transactions in the set will be required to have second signature.
@@ -152,8 +154,9 @@ describe('processTransactions', () => {
 				let checkAllowedTransactions;
 
 				beforeEach(async () => {
-					checkAllowedTransactions =
-						library.modules.processTransactions.checkAllowedTransactions;
+					checkAllowedTransactions = transactionsModule.checkAllowedTransactions(
+						library.modules.blocks.lastBlock.get()
+					);
 				});
 
 				it('should return transactionsResponses with status OK for allowed transactions', async () => {
@@ -193,8 +196,11 @@ describe('processTransactions', () => {
 				let verifyTransactions;
 
 				beforeEach(async () => {
-					verifyTransactions =
-						library.modules.processTransactions.verifyTransactions;
+					verifyTransactions = transactionsModule.verifyTransactions(
+						library.components.storage,
+						slots,
+						exceptions
+					);
 				});
 
 				it('should return transactionsResponses with status OK for verified transactions', async () => {
@@ -230,8 +236,10 @@ describe('processTransactions', () => {
 			describe('undoTransactions', () => {
 				let undoTransactions;
 				beforeEach(done => {
-					undoTransactions =
-						library.modules.processTransactions.undoTransactions;
+					undoTransactions = transactionsModule.undoTransactions(
+						library.components.storage,
+						exceptions
+					);
 					localCommon.addTransactionsAndForge(
 						library,
 						appliableTransactions.map(appliableTransaction =>
@@ -283,8 +291,10 @@ describe('processTransactions', () => {
 			describe('applyTransactions', () => {
 				let applyTransactions;
 				beforeEach(async () => {
-					applyTransactions =
-						library.modules.processTransactions.applyTransactions;
+					applyTransactions = transactionsModule.applyTransactions(
+						library.components.storage,
+						exceptions
+					);
 				});
 
 				it('should return stateStore', async () => {
