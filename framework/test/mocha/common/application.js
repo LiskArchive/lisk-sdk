@@ -271,6 +271,7 @@ const initStepsForTest = {
 			storage: scope.components.storage,
 			slots,
 			blocks: scope.modules.blocks,
+			exceptions: __testContext.config.modules.chain.exceptions,
 			logger: scope.components.logger,
 			maxTransactionsPerQueue:
 				__testContext.config.modules.chain.transactions.maxTransactionsPerQueue,

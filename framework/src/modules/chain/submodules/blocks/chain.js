@@ -446,7 +446,7 @@ __private.afterSave = async function(block, cb) {
  * @returns {Object} cb.err - Error if occurred
  */
 __private.applyTransactions = function(transactions, cb) {
-	applyTransactions(library.components.storage, exceptions)(transactions)
+	applyTransactions(library.storage, exceptions)(transactions)
 		.then(({ stateStore }) => {
 			// TODO: Need to add logic for handling exceptions for genesis block transactions
 			stateStore.account.finalize();
@@ -477,7 +477,7 @@ __private.applyConfirmedStep = async function(block, tx) {
 	);
 
 	const { stateStore, transactionsResponses } = await applyTransactions(
-		library.components.storage,
+		library.storage,
 		exceptions
 	)(nonInertTransactions, tx);
 
@@ -603,7 +603,7 @@ __private.undoConfirmedStep = async function(block, tx) {
 	);
 
 	const { stateStore, transactionsResponses } = await undoTransactions(
-		library.components.storage,
+		library.storage,
 		exceptions
 	)(nonInertTransactions, tx);
 

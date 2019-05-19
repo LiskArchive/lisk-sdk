@@ -186,7 +186,7 @@ function addTransaction(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
 	__testContext.debug(`	Add transaction ID: ${transaction.id}`);
-	transaction = library.logic.initTransaction.fromJson(transaction);
+	transaction = library.modules.transactionManager.fromJson(transaction);
 	library.balancesSequence.add(async sequenceCb => {
 		try {
 			await library.modules.transactionPool.processUnconfirmedTransaction(
