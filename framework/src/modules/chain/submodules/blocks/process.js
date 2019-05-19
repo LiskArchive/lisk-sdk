@@ -320,7 +320,7 @@ class Process {
 		);
 
 		transactionsModule
-			.verifyTransactions(library.storage, library.slots, exceptions)(
+			.verifyTransactions(library.storage, slots, exceptions)(
 				allowedTransactions
 			)
 			.then(({ transactionsResponses: responses }) => {
