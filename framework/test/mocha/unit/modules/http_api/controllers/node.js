@@ -124,10 +124,11 @@ describe('node/api', () => {
 			loaded: true,
 			syncing: false,
 			unconfirmedTransactions: {
-				unconfirmed: 0,
-				unprocessed: 0,
-				unsigned: 0,
-				total: 10,
+				ready: 0,
+				verified: 0,
+				pending: 0,
+				validated: 0,
+				received: 0,
 			},
 		};
 		const now = Date.now();
@@ -143,9 +144,11 @@ describe('node/api', () => {
 			syncing: false,
 			transactions: {
 				confirmed: confirmedTransactions,
-				unconfirmed: 0,
-				unprocessed: 0,
-				unsigned: 0,
+				ready: 0,
+				verified: 0,
+				pending: 0,
+				validated: 0,
+				received: 0,
 				total: 10,
 			},
 			currentTime: now,
