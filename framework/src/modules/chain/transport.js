@@ -716,7 +716,7 @@ __private.receiveTransaction = async function(
 			if (transaction) {
 				library.logger.debug('Transaction', transaction);
 			}
-			return setImmediate(balancesSequenceCb, err.toString());
+			return setImmediate(balancesSequenceCb, err);
 		}
 	}, cb);
 };
