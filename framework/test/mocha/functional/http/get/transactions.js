@@ -363,7 +363,7 @@ describe('GET /api/transactions', () => {
 
 		describe('type', () => {
 			it('using invalid type should fail', async () => {
-				const res = await transactionsEndpoint.makeRequest({ type: 8 }, 400);
+				const res = await transactionsEndpoint.makeRequest({ type: 'a' }, 400);
 				expectSwaggerParamError(res, 'type');
 			});
 

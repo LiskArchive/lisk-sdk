@@ -492,10 +492,12 @@ paths:
           required: true
           type: string
           enum:
-            - unprocessed
-            - unconfirmed
-            - unsigned
-          default: unprocessed
+            - pending
+            - ready
+            - received
+            - validated
+            - verified
+          default: verified
         - $ref: '#/parameters/transactionId'
         - $ref: '#/parameters/recipientId'
         - $ref: '#/parameters/recipientPublicKey'
@@ -1173,10 +1175,9 @@ parameters:
   transactionType:
     name: type
     in: query
-    description: Transaction type (0-7)
+    description: Transaction type (0-*)
     type: integer
     minimum: 0
-    maximum: 7
   minAmount:
     name: minAmount
     in: query
@@ -1272,7 +1273,6 @@ definitions:
       type:
         type: integer
         minimum: 0
-        maximum: 7
         description: |
           Describes the Transaction type.
       timestamp:
@@ -2407,29 +2407,39 @@ definitions:
       transactions:
         type: object
         required:
-          - unconfirmed
-          - unsigned
-          - unprocessed
+          - ready
+          - pending
+          - verified
           - confirmed
+          - validated
+          - received
           - total
         description: Transactions known to the node.
         properties:
-          unconfirmed:
+          ready:
             type: integer
             example: 5
             description: Number of unconfirmed Transactions known to the node.
-          unsigned:
+          pending:
             type: integer
             example: 2
-            description: Number of unsigned Transactions known to the node.
-          unprocessed:
+            description: Number of pending Transactions known to the node.
+          verified:
             type: integer
             example: 3
-            description: Number of unprocessed Transactions known to the node.
+            description: Number of verified Transactions known to the node.
           confirmed:
             type: integer
             example: 5
             description: Number of confirmed Transactions known to the node.
+          validated: 
+            type: integer
+            example: 5
+            description: Number of validated Transactions known to the node.
+          received: 
+            type: integer
+            example: 5
+            description: Number of received Transactions known to the node. 
           total:
             type: integer
             example: 15

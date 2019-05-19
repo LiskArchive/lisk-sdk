@@ -396,7 +396,7 @@ class Loader {
 	// eslint-disable-next-line class-methods-use-this
 	sync(cb) {
 		library.logger.info('Starting sync');
-		if (components.cache) {
+		if (components.cache.cacheReady) {
 			components.cache.disable();
 		}
 
@@ -442,7 +442,7 @@ class Loader {
 				__private.blocksToSync = 0;
 
 				library.logger.info('Finished sync');
-				if (components.cache) {
+				if (components.cache.cacheReady) {
 					components.cache.enable();
 				}
 				return setImmediate(cb, err);

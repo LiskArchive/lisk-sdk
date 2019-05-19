@@ -172,7 +172,7 @@ module.exports = class Chain {
 			this.scope.bus.message('bind', this.scope);
 
 			this.logger.info('Modules ready and launched');
-			// After binding, it should immeately load blockchain
+			// After binding, it should immediately load blockchain
 			await this.loader.loadBlockChain();
 
 			this.channel.subscribe('network:bootstrap', async () => {

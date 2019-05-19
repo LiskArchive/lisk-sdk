@@ -22,6 +22,7 @@ let self;
 const { MIN_BROADHASH_CONSENSUS } = global.constants;
 
 const PEER_STATE_CONNECTED = 2;
+const MAX_PEERS = 100;
 
 /**
  * Main peers methods. Initializes library with scope content.
@@ -83,14 +84,21 @@ class Peers {
 	// eslint-disable-next-line class-methods-use-this
 	async calculateConsensus() {
 		const { broadhash } = library.applicationState;
-		const activeCount = await library.channel.invoke(
-			'network:getPeersCountByFilter',
-			{ state: PEER_STATE_CONNECTED }
+		const activeCount = Math.min(
+			await library.channel.invoke('network:getPeersCountByFilter', {
+				state: PEER_STATE_CONNECTED,
+			}),
+			MAX_PEERS
 		);
-		const matchedCount = await library.channel.invoke(
-			'network:getPeersCountByFilter',
-			{ broadhash }
+
+		const matchedCount = Math.min(
+			await library.channel.invoke('network:getPeersCountByFilter', {
+				broadhash,
+				state: PEER_STATE_CONNECTED,
+			}),
+			MAX_PEERS
 		);
+
 		const consensus = +((matchedCount / activeCount) * 100).toPrecision(2);
 		self.consensus = Number.isNaN(consensus) ? 0 : consensus;
 		return self.consensus;
