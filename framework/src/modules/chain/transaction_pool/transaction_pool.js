@@ -427,9 +427,11 @@ class TransactionPool extends EventEmitter {
 
 	getPooledTransactions(type, filters) {
 		const typeMap = {
-			unprocessed: 'getQueuedTransactionList',
-			unconfirmed: 'getUnconfirmedTransactionList',
-			unsigned: 'getMultisignatureTransactionList',
+			pending: 'getMultisignatureTransactionList',
+			ready: 'getUnconfirmedTransactionList',
+			received: 'getReceivedTransactionList',
+			validated: 'getValidatedTransactionList',
+			verified: 'getQueuedTransactionList',
 		};
 		const transactions = this[typeMap[type]](true);
 		let toSend = [];

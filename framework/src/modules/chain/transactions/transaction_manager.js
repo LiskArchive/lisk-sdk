@@ -17,9 +17,9 @@
 const { omitBy, isNull } = require('lodash');
 
 class TransactionManager {
-	constructor(registeredTransactions) {
+	constructor(registeredTransactions = {}) {
 		this.transactionClassMap = new Map();
-		Object.keys(registeredTransactions || {}).forEach(transactionType => {
+		Object.keys(registeredTransactions).forEach(transactionType => {
 			this.transactionClassMap.set(
 				Number(transactionType),
 				registeredTransactions[transactionType]
