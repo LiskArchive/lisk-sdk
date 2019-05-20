@@ -388,7 +388,7 @@ class Rounds {
 
 	// eslint-disable-next-line class-methods-use-this
 	validateBlockSlotAgainstPreviousRound(block) {
-		return library.delegates.fork(block);
+		return library.delegates.validateBlockSlotAgainstPreviousRound(block);
 	}
 }
 
