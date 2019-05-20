@@ -425,6 +425,12 @@ const verifyBlock = (block, lastBlock) => {
 	return result;
 };
 
+const isFork = (block, lastBlock) => {};
+
+const isForkOne = (block, lastBlock) => {};
+
+const isForkFive = (block, lastBlock) => {};
+
 module.exports = {
 	checkExists,
 	validateBlockSlot,
@@ -438,4 +444,7 @@ module.exports = {
 	verifyReward,
 	verifyReceipt,
 	verifyBlock,
+	isFork,
+	isForkOne,
+	isForkFive,
 };
