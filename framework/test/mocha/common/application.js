@@ -262,11 +262,6 @@ const initStepsForTest = {
 		const RewiredTransport = rewire('../../../src/modules/chain/transport');
 		scope.rewiredModules.transport = RewiredTransport;
 		modules.transport = new RewiredTransport(scope);
-		const { Delegates: RewiredDelegates } = rewire(
-			'../../../src/modules/chain/rounds/delegates'
-		);
-		scope.rewiredModules.delegates = RewiredDelegates;
-		modules.delegates = new RewiredDelegates(scope);
 		const {
 			Rounds: RewiredRounds,
 		} = require('../../../src/modules/chain/rounds');

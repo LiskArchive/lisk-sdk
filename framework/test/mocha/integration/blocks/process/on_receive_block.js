@@ -90,7 +90,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 		function getNextForger(offset, seriesCb) {
 			offset = !offset ? 0 : offset;
 			const round = slots.calcRound(last_block.height + 1);
-			library.modules.delegates
+			library.modules.rounds
 				.generateDelegateList(round, getKeysSortByVote)
 				.then(delegateList => {
 					const nextForger = delegateList[(slot + offset) % ACTIVE_DELEGATES];
@@ -180,7 +180,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 		const lastBlock = library.modules.blocks.lastBlock.get();
 		const round = slots.calcRound(lastBlock.height);
 
-		return library.modules.delegates
+		return library.modules.rounds
 			.generateDelegateList(round, null)
 			.then(list => {
 				const delegatePublicKey = list[slot % ACTIVE_DELEGATES];

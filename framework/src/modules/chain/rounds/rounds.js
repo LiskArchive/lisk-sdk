@@ -358,6 +358,16 @@ class Rounds {
 	}
 
 	/**
+	 * Sets private constant loaded to true.
+	 *
+	 * @listens module:loader~event:blockchainReady
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	onBlockchainReady() {
+		__private.loaded = true;
+	}
+
+	/**
 	 * Sets private constant `loaded` to false.
 	 *
 	 * @param {function} cb
