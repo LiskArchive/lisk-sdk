@@ -413,8 +413,7 @@ describe('Integration tests for P2P library', () => {
 
 					const peerPorts = newPeers.map(peerInfo => peerInfo.wsPort).sort();
 
-					// TODO ASAP: Make better assertions.
-					expect(peerPorts).to.be.an.instanceOf(Array);
+					expect(ALL_NODE_PORTS).to.include.members(peerPorts);
 				});
 			});
 
@@ -429,7 +428,7 @@ describe('Integration tests for P2P library', () => {
 						return port !== p2p.nodeInfo.wsPort;
 					});
 
-					expect(peerPorts).to.be.eql(expectedPeerPorts);
+					expect(expectedPeerPorts).to.include.members(peerPorts);
 				});
 			});
 		});
