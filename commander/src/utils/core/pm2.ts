@@ -258,10 +258,20 @@ export const listApplication = async (): Promise<
 
 export const describeApplication = async (
 	name: string,
-): Promise<PM2ProcessInstance> => {
-	await connectPM2();
-	const application = (await describePM2(name)) as PM2ProcessInstance;
-	disconnect();
+): Promise<PM2ProcessInstance | boolean> => {
+	try {
+		await connectPM2();
+		const application = await describePM2(name);
+		disconnect();
 
-	return extractProcessDetails(application);
+		if (application) {
+			return extractProcessDetails(application);
+		}
+
+		return false;
+	} catch (error) {
+		disconnect();
+
+		return false;
+	}
 };
