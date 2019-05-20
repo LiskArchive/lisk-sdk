@@ -15,8 +15,8 @@
 
 import { expect } from 'chai';
 
-import { OutboundPeer } from '../../src/peer';
-import { P2PDiscoveredPeerInfo } from '../../src/p2p_types';
+import { OutboundPeer } from '../../../src/peer';
+import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 
 describe('outbound_peer', () => {
 	const defaultPeerInfo: P2PDiscoveredPeerInfo = {
