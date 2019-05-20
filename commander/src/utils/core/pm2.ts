@@ -264,11 +264,7 @@ export const describeApplication = async (
 		const application = await describePM2(name);
 		disconnect();
 
-		if (application) {
-			return extractProcessDetails(application);
-		}
-
-		return false;
+		return extractProcessDetails(application);
 	} catch (error) {
 		disconnect();
 
