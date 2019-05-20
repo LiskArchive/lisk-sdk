@@ -50,7 +50,7 @@ describe('cache node utils', () => {
 			return expect(
 				isCacheEnabled('~/.lisk/instance', NETWORK.DEVNET),
 			).to.rejectedWith(
-				"TypeError: Cannot destructure property `components` of 'undefined' or 'null'.",
+				"TypeError: Cannot destructure property `cache` of 'undefined' or 'null'.",
 			);
 		});
 	});
@@ -147,15 +147,11 @@ describe('cache node utils', () => {
 			it('should stop successfully when password is empty', async () => {
 				workerProcessStub.resolves({
 					stdout: {
-						config: {
-							components: { cache: { password: null } },
-						},
+						components: { cache: { password: null } },
 					},
 				});
 				configStub.resolves({
-					config: {
-						components: { cache: { password: null } },
-					},
+					components: { cache: { password: null } },
 				});
 
 				const status = await stopCache(
