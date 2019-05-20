@@ -242,34 +242,37 @@ class Migration extends BaseEntity {
 	 * @returns {Promise<Array<Object>>}
 	 * Promise object that resolves with an array of objects `{id, name, path, file}`.
 	 */
-	readPending(migrations, lastMigrationId) {
+	async readPending(migrationsObj, executedMigrationIDs) {
 		// const updatesPath = `${this.sqlDirectory}/updates`;
-		return migrations
-			.map(migrationFile => {
-				const migration = migrationFile.match(/(\d+)_(.+).sql/);
-				return (
-					migration && {
-						id: migration[1],
-						name: migration[2],
-						path: migrationFile,
-					}
-				);
-			})
-			.sort((a, b) => a.id - b.id) // Sort by migration ID, ascending
-			.filter(
-				migration =>
-					migration &&
-					fs.statSync(migration.path).isFile() &&
-					(!lastMigrationId || +migration.id > lastMigrationId)
-			)
-			.map(f => {
-				f.file = this.adapter.loadSQLFile(f.path, '');
-				return f;
-			});
+		return Object.keys(migrationsObj).reduce((prev, namespace) => {
+			const curr = migrationsObj[namespace]
+				.map(migrationFile => {
+					const migration = migrationFile.match(/(\d+)_(.+).sql/);
+					return (
+						migration && {
+							id: migration[1],
+							name: migration[2],
+							path: migrationFile,
+							namespace,
+						}
+					);
+				})
+				.sort((a, b) => a.id - b.id) // Sort by migration ID, ascending
+				.filter(
+					migration =>
+						migration &&
+						fs.statSync(migration.path).isFile() &&
+						!executedMigrationIDs.includes(migration.id)
+				)
+				.map(migration => {
+					migration.file = this.adapter.loadSQLFile(migration.path, '');
+					return migration;
+				});
+			return prev.concat(curr);
+		}, []);
 	}
 
 	async applyPendingMigration(pendingMigration, tx) {
-		// eslint-disable-next-line no-restricted-syntax
 		await this.adapter.executeFile(pendingMigration.file, {}, {}, tx);
 		await this.create(
 			{ id: pendingMigration.id, name: pendingMigration.name },
@@ -284,10 +287,15 @@ class Migration extends BaseEntity {
 	 *
 	 * @returns {Promise} Promise object that resolves with `undefined`.
 	 */
-	async apply(migrations) {
+	async apply(migrationsObj) {
 		const hasMigrations = await this.hasMigrations();
-		const lastId = hasMigrations ? await this.getLastId() : 0;
-		const pendingMigrations = await this.readPending(migrations, lastId);
+		const executedMigrationIDs = hasMigrations
+			? (await this.get({}, { limit: null })).map(m => m.id)
+			: [];
+		const pendingMigrations = await this.readPending(
+			migrationsObj,
+			executedMigrationIDs
+		);
 
 		if (pendingMigrations.length > 0) {
 			// eslint-disable-next-line no-restricted-syntax

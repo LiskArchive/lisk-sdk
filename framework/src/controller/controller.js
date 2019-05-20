@@ -27,7 +27,7 @@ const ApplicationState = require('./application_state');
 const { createStorageComponent } = require('../components/storage');
 const {
 	MigrationEntity,
-	migrations: controllerMigrations,
+	migrations: frameworkMigrations,
 } = require('./migrations');
 
 const isPidRunning = async pid =>
@@ -195,20 +195,18 @@ class Controller {
 		}
 	}
 
-	async _loadMigrations(applicationMigrations) {
-		const flatten = list =>
-			list.reduce((a, b) => a.concat(Array.isArray(b) ? flatten(b) : b), []);
-
-		const allMigrations = [
-			...controllerMigrations,
-			...flatten(Object.values(applicationMigrations)),
-		];
+	async _loadMigrations(applicationMigrationsObj) {
+		const frameworkMigrationsObj = {
+			framework: frameworkMigrations,
+		};
 
 		const storageConfig = this.config.components.storage;
 		this.storage = createStorageComponent(storageConfig, this.logger);
 		this.storage.registerEntity('Migration', MigrationEntity);
 		await this.storage.bootstrap();
-		return this.storage.entities.Migration.apply(allMigrations);
+		await this.storage.entities.Migration.apply(frameworkMigrationsObj);
+		await this.storage.entities.Migration.apply(applicationMigrationsObj);
+		return true;
 	}
 
 	async _loadModules(modules, moduleOptions) {
