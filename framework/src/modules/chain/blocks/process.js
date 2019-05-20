@@ -15,15 +15,6 @@
 'use strict';
 
 /**
- * Apply block without saving block
- *
- * @param {number} blocksAmount - Amount of blocks
- * @param {number} fromHeight - Height to start at
- * @returns {Block} applied block
- */
-const applyBlock = ({}) => {};
-
-/**
  * Apply and save block
  *
  * @param {number} blocksAmount - Amount of blocks
@@ -42,10 +33,28 @@ const processBlock = ({}) => {};
 const generateBlock = ({}) => {};
 
 /**
+ * Apply block without saving block
+ *
+ * @param {number} blocksAmount - Amount of blocks
+ * @param {number} fromHeight - Height to start at
+ * @returns {Block} applied block
+ */
+const reload = ({}) => {};
+
+/**
  * Rebuild accounts
  *
  * @param {number} blocksAmount - Amount of blocks
  * @param {number} fromHeight - Height to start at
  * @returns {Block} applied block
  */
-const rebuildAccounts = ({}) => {};
+const rebuild = ({}) => {};
+
+/**
+ * Recover own blockchain state
+ *
+ * @param {number} blocksAmount - Amount of blocks
+ * @param {number} fromHeight - Height to start at
+ * @returns {Block} applied block
+ */
+const recoverInvalidOwnChain = ({}) => {};
