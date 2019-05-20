@@ -53,9 +53,11 @@ import {
 	validateAddress,
 	validateFee,
 	validateKeysgroup,
+	validateNonTransferAmount,
 	validatePublicKey,
 	validatePublicKeys,
 	validateTransaction,
+	validateTransferAmount,
 	validator,
 	verifyAmountBalance,
 	verifyTransaction,
@@ -76,6 +78,8 @@ const exposedUtils = {
 	validatePublicKey,
 	validatePublicKeys,
 	verifyAmountBalance,
+	validateNonTransferAmount,
+	validateTransferAmount,
 
 	// TODO: Deprecated
 	signTransaction,
