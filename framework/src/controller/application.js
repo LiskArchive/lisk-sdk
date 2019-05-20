@@ -40,6 +40,7 @@ const NetworkModule = require('../modules/network');
 const __private = {
 	modules: new WeakMap(),
 	transactions: new WeakMap(),
+	migrations: new WeakMap(),
 };
 
 const registerProcessHooks = app => {
@@ -205,6 +206,9 @@ class Application {
 			options
 		);
 		__private.modules.set(this, modules);
+
+		// Register migrations defined by the module
+		this.registerMigrations(moduleKlass.alias, moduleKlass.migrations);
 	}
 
 	/**
@@ -256,6 +260,20 @@ class Application {
 	}
 
 	/**
+	 * Register migrations with the application
+	 *
+	 * @param {Object} namespace - Migration namespace
+	 * @param {Array} migrations - Migrations list. Format ['yyyyMMddHHmmss_name_of_migration.sql']
+	 */
+	registerMigrations(namespace, migrations) {
+		assert(namespace, 'Namespace is required');
+		assert(migrations instanceof Array, 'Migrations list should be an array');
+		const currentMigrations = this.getMigrations() || {};
+		currentMigrations[namespace] = migrations;
+		__private.migrations.set(this, currentMigrations);
+	}
+
+	/**
 	 * Get list of all transactions registered with the application
 	 *
 	 * @return {Object}
@@ -294,6 +312,15 @@ class Application {
 	}
 
 	/**
+	 * Get all registered migrations
+	 *
+	 * @return {Array.<Object>}
+	 */
+	getMigrations() {
+		return __private.migrations.get(this);
+	}
+
+	/**
 	 * Run the application
 	 *
 	 * @async
@@ -322,7 +349,11 @@ class Application {
 			},
 			this.logger
 		);
-		return this.controller.load(this.getModules(), this.config.modules);
+		return this.controller.load(
+			this.getModules(),
+			this.config.modules,
+			this.getMigrations()
+		);
 	}
 
 	/**

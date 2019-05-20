@@ -25,7 +25,10 @@ const { DuplicateAppInstanceError } = require('../errors');
 const { validateModuleSpec } = require('./validator');
 const ApplicationState = require('./application_state');
 const { createStorageComponent } = require('../components/storage');
-const { Migration } = require('./migrations');
+const {
+	MigrationEntity,
+	migrations: controllerMigrations,
+} = require('./migrations');
 
 const isPidRunning = async pid =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -80,13 +83,13 @@ class Controller {
 	 * @param modules
 	 * @async
 	 */
-	async load(modules, moduleOptions) {
+	async load(modules, moduleOptions, migrations) {
 		this.logger.info('Loading controller');
 		await this._setupDirectories();
 		await this._validatePidFile();
 		await this._initState();
 		await this._setupBus();
-		await this._loadMigrations();
+		await this._loadMigrations(migrations);
 		await this._loadModules(modules, moduleOptions);
 
 		this.logger.info('Bus listening to events', this.bus.getEvents());
@@ -192,12 +195,20 @@ class Controller {
 		}
 	}
 
-	async _loadMigrations() {
+	async _loadMigrations(applicationMigrations) {
+		const flatten = list =>
+			list.reduce((a, b) => a.concat(Array.isArray(b) ? flatten(b) : b), []);
+
+		const allMigrations = [
+			...controllerMigrations,
+			...flatten(Object.values(applicationMigrations)),
+		];
+
 		const storageConfig = this.config.components.storage;
 		this.storage = createStorageComponent(storageConfig, this.logger);
-		this.storage.registerEntity('Migration', Migration);
+		this.storage.registerEntity('Migration', MigrationEntity);
 		await this.storage.bootstrap();
-		return this.storage.entities.Migration.applyAll();
+		return this.storage.entities.Migration.apply(allMigrations);
 	}
 
 	async _loadModules(modules, moduleOptions) {

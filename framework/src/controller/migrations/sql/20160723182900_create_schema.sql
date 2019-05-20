@@ -12,19 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-const path = require('path');
+/*
+  DESCRIPTION: Creates schema.
 
-const migrations = [
-	path.join(path.dirname(__filename), './sql/20160723182900_create_schema.sql'),
-	path.join(
-		path.dirname(__filename),
-		'./sql/20180205000000_underscore_patch.sql'
-	),
-];
+  PARAMETERS: None
+*/
 
-module.exports = {
-	MigrationEntity: require('./migration'),
-	migrations,
-};
+/* Tables */
+CREATE TABLE IF NOT EXISTS "migrations"(
+  "id" VARCHAR(22) NOT NULL PRIMARY KEY,
+  "name" TEXT NOT NULL
+);
