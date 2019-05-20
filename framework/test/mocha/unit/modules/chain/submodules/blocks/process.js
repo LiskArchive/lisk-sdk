@@ -192,7 +192,7 @@ describe('blocks/process', () => {
 			checkAllowedTransactions: sinonSandbox.stub(),
 		};
 
-		const modulesDelegatesStub = {
+		const modulesRoundsStub = {
 			fork: sinonSandbox.stub(),
 			validateBlockSlotAgainstPreviousRound: sinonSandbox.stub(),
 			validateBlockSlot: sinonSandbox.stub(),
@@ -208,7 +208,7 @@ describe('blocks/process', () => {
 		bindingsStub = {
 			modules: {
 				blocks: modulesBlocksStub,
-				delegates: modulesDelegatesStub,
+				rounds: modulesRoundsStub,
 				loader: modulesLoaderStub,
 				transactions: modulesTransactionsStub,
 				processTransactions: modulesProcessTransactionsStub,
@@ -289,7 +289,7 @@ describe('blocks/process', () => {
 		describe('last block stands', () => {
 			afterEach(() => {
 				expect(
-					modules.delegates.fork.calledWithExactly(sinonSandbox.match.object, 1)
+					modules.rounds.fork.calledWithExactly(sinonSandbox.match.object, 1)
 				).to.be.true;
 				return expect(loggerStub.info.args[0][0]).to.equal('Last block stands');
 			});
@@ -322,10 +322,7 @@ describe('blocks/process', () => {
 			afterEach(
 				async () =>
 					expect(
-						modules.delegates.fork.calledWithExactly(
-							sinonSandbox.match.object,
-							1
-						)
+						modules.rounds.fork.calledWithExactly(sinonSandbox.match.object, 1)
 					).to.be.true
 			);
 
@@ -618,7 +615,7 @@ describe('blocks/process', () => {
 		describe('last block stands', () => {
 			afterEach(() => {
 				expect(
-					modules.delegates.fork.calledWithExactly(sinonSandbox.match.object, 5)
+					modules.rounds.fork.calledWithExactly(sinonSandbox.match.object, 5)
 				).to.be.true;
 				return expect(loggerStub.info.args[0][0]).to.equal('Last block stands');
 			});
@@ -652,10 +649,7 @@ describe('blocks/process', () => {
 			afterEach(
 				async () =>
 					expect(
-						modules.delegates.fork.calledWithExactly(
-							sinonSandbox.match.object,
-							5
-						)
+						modules.rounds.fork.calledWithExactly(sinonSandbox.match.object, 5)
 					).to.be.true
 			);
 
@@ -1452,7 +1446,7 @@ describe('blocks/process', () => {
 			describe('validateBlockSlotAgainstPreviousRound', () => {
 				describe('when fails', () => {
 					beforeEach(async () => {
-						modules.delegates.validateBlockSlotAgainstPreviousRound.rejects(
+						modules.rounds.validateBlockSlotAgainstPreviousRound.rejects(
 							new Error('round-ERR')
 						);
 					});
@@ -1464,7 +1458,7 @@ describe('blocks/process', () => {
 							err => {
 								expect(err.message).to.equal('round-ERR');
 								expect(
-									modules.delegates.validateBlockSlotAgainstPreviousRound
+									modules.rounds.validateBlockSlotAgainstPreviousRound
 										.calledOnce
 								).to.be.true;
 								done();
@@ -1475,9 +1469,7 @@ describe('blocks/process', () => {
 
 				describe('when succeeds', () => {
 					beforeEach(async () => {
-						modules.delegates.validateBlockSlotAgainstPreviousRound.resolves(
-							true
-						);
+						modules.rounds.validateBlockSlotAgainstPreviousRound.resolves(true);
 					});
 
 					it('should call a callback with no error', done => {
@@ -1486,8 +1478,8 @@ describe('blocks/process', () => {
 							{ height: 202 },
 							err => {
 								expect(err).to.be.undefined;
-								expect(modules.delegates.validateBlockSlotAgainstPreviousRound)
-									.to.be.calledOnce;
+								expect(modules.rounds.validateBlockSlotAgainstPreviousRound).to
+									.be.calledOnce;
 								done();
 							}
 						);
@@ -1501,7 +1493,7 @@ describe('blocks/process', () => {
 				describe('validateBlockSlotAgainstPreviousRound', () => {
 					describe('when fails', () => {
 						beforeEach(async () => {
-							modules.delegates.validateBlockSlotAgainstPreviousRound.rejects(
+							modules.rounds.validateBlockSlotAgainstPreviousRound.rejects(
 								new Error('round-ERR')
 							);
 						});
@@ -1512,9 +1504,8 @@ describe('blocks/process', () => {
 								{ height: 200 },
 								err => {
 									expect(err.message).to.equal('round-ERR');
-									expect(
-										modules.delegates.validateBlockSlotAgainstPreviousRound
-									).to.be.calledOnce;
+									expect(modules.rounds.validateBlockSlotAgainstPreviousRound)
+										.to.be.calledOnce;
 									done();
 								}
 							);
@@ -1523,7 +1514,7 @@ describe('blocks/process', () => {
 
 					describe('when succeeds', () => {
 						beforeEach(async () => {
-							modules.delegates.validateBlockSlotAgainstPreviousRound.resolves(
+							modules.rounds.validateBlockSlotAgainstPreviousRound.resolves(
 								true
 							);
 						});
@@ -1534,9 +1525,8 @@ describe('blocks/process', () => {
 								{ height: 200 },
 								err => {
 									expect(err).to.be.undefined;
-									expect(
-										modules.delegates.validateBlockSlotAgainstPreviousRound
-									).to.be.calledOnce;
+									expect(modules.rounds.validateBlockSlotAgainstPreviousRound)
+										.to.be.calledOnce;
 									done();
 								}
 							);
@@ -1549,9 +1539,7 @@ describe('blocks/process', () => {
 				describe('validateBlockSlot', () => {
 					describe('when fails', () => {
 						beforeEach(async () => {
-							modules.delegates.validateBlockSlot.rejects(
-								new Error('round-ERR')
-							);
+							modules.rounds.validateBlockSlot.rejects(new Error('round-ERR'));
 						});
 
 						it('should call a callback with error', done => {
@@ -1560,7 +1548,7 @@ describe('blocks/process', () => {
 								{ height: 200 },
 								err => {
 									expect(err.message).to.equal('round-ERR');
-									expect(modules.delegates.validateBlockSlot).to.be.calledOnce;
+									expect(modules.rounds.validateBlockSlot).to.be.calledOnce;
 									done();
 								}
 							);
@@ -1569,7 +1557,7 @@ describe('blocks/process', () => {
 
 					describe('when succeeds', () => {
 						beforeEach(async () => {
-							modules.delegates.validateBlockSlot.resolves(true);
+							modules.rounds.validateBlockSlot.resolves(true);
 						});
 
 						it('should call a callback with no error', done => {
@@ -1578,7 +1566,7 @@ describe('blocks/process', () => {
 								{ height: 200 },
 								err => {
 									expect(err).to.be.undefined;
-									expect(modules.delegates.validateBlockSlot).to.be.calledOnce;
+									expect(modules.rounds.validateBlockSlot).to.be.calledOnce;
 									done();
 								}
 							);
@@ -1788,7 +1776,7 @@ describe('blocks/process', () => {
 
 		it('should assign params to modules', done => {
 			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
-			expect(modules.delegates).to.equal(bindingsStub.modules.delegates);
+			expect(modules.rounds).to.equal(bindingsStub.modules.rounds);
 			expect(modules.transactions).to.equal(bindingsStub.modules.transactions);
 			expect(modules.processTransactions).to.equal(
 				bindingsStub.modules.processTransactions
