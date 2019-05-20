@@ -30,9 +30,7 @@ const config = {
 
 const alpha = {
 	moduleAlias: 'alphaAlias',
-	events: ['alpha1', 'alpha2'].map(
-		event => new Event(`${'alphaAlias'}:${event}`)
-	),
+	events: ['alpha1', 'alpha2'],
 	actions: {
 		multiplyByTwo: {
 			handler: action => action.params * 2,
@@ -47,7 +45,7 @@ const alpha = {
 
 const beta = {
 	moduleAlias: 'betaAlias',
-	events: ['beta1', 'beta2'].map(event => new Event(`betaAlias:${event}`)),
+	events: ['beta1', 'beta2'],
 	actions: {
 		divideByTwo: {
 			handler: action => action.params / 2,
@@ -97,7 +95,7 @@ describe('InMemoryChannel', () => {
 			it('should be able to subscribe to an event.', done => {
 				// Arrange
 				const betaEventData = '#DATA';
-				const eventName = beta.events[0].key();
+				const eventName = beta.events[0];
 
 				// Act
 				inMemoryChannelAlpha.subscribe(
@@ -118,7 +116,7 @@ describe('InMemoryChannel', () => {
 			it('should be able to subscribe to an event once.', done => {
 				// Arrange
 				const betaEventData = '#DATA';
-				const eventName = beta.events[0].key();
+				const eventName = beta.events[0];
 
 				// Act
 				inMemoryChannelAlpha.once(`${beta.moduleAlias}:${eventName}`, data => {
@@ -167,7 +165,7 @@ describe('InMemoryChannel', () => {
 			it('should be able to publish an event.', done => {
 				// Arrange
 				const alphaEventData = '#DATA';
-				const eventName = alpha.events[0].key();
+				const eventName = alpha.events[0];
 
 				// Act
 				inMemoryChannelBeta.once(`${alpha.moduleAlias}:${eventName}`, data => {

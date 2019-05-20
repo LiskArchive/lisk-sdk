@@ -9,6 +9,7 @@
  * propagated, or distributed except according to the terms contained in the
  * LICENSE file.
  *
+ *
  * Removal or modification of this copyright notice is prohibited.
  */
 
@@ -16,8 +17,10 @@
 
 const child_process = require('child_process');
 const ChildProcessChannel = require('../../../../../src/controller/channels/child_process_channel');
+// const InMemoryChannel = require('../../../../../src/controller/channels/in_memory_channel');
 const Bus = require('../../../../../src/controller/bus');
-const { socketsPath } = require('./child_process_helper');
+const Event = require('../../../../../src/controller/event');
+const { betaChannelConfig, socketsPath } = require('./child_process_helper');
 
 jest.unmock('pm2-axon');
 
@@ -45,7 +48,7 @@ describe('ChildProcessChannel', () => {
 		beforeEach(async () => {
 			// Arrange
 
-			// Create bus
+			// 1. Create bus
 			bus = new Bus(
 				{
 					wildcard: true,
@@ -65,32 +68,61 @@ describe('ChildProcessChannel', () => {
 				alpha.actions
 			);
 
-			await childProcessChannelAlpha.registerToBus(socketsPath);
+			await childProcessChannelAlpha.registerToBus(bus);
 
-			// Fork Child Process
+			// 2. Fork Child Process
 			channelBetaProcess = child_process.fork(
-				`${__dirname}/beta_channel_child_process.js`
+				`${__dirname}/beta_channel_child_process.js`,
+				[],
+				{
+					silent: true,
+				}
 			);
 
 			return new Promise((resolve, reject) => {
-				channelBetaProcess.on('message', m => {
+				channelBetaProcess.once('message', m => {
+					console.log('beforeEachChild', m);
 					if (m.child === 'ready') {
 						resolve();
 					}
 				});
-				// fail after 2 seconds, if we don't hear from the child process
-				setTimeout(() => reject(), 2000);
+				// fail after 1 seconds,
+				// if we don't hear from the child process
+				setTimeout(() => reject(Error('timeout')), 1000);
 			});
 		});
 
-		afterEach(() => {
+		afterEach(async () => {
 			channelBetaProcess.kill();
-			childProcessChannelAlpha.cleanup();
+			// await childProcessChannelAlpha.cleanup();
+			await bus.cleanup();
 		});
 
 		describe('#subscribe', () => {
-			it('should be able to subscribe to an event.', () => {
-				expect('memo').rejects.toBe('memo');
+			it('should be able to subscribe to an event.', done => {
+				// Arrange
+				const eventName = `${betaChannelConfig.moduleAlias}:${'beta1'}`;
+				const betaEventData = '#DATA';
+
+				// Act
+				childProcessChannelAlpha.subscribe(eventName, data => {
+					// Assert
+					console.log('subscribeData', data);
+					expect(Event.deserialize(data).data).toBe(betaEventData);
+					done();
+				});
+
+				setTimeout(() => {
+					channelBetaProcess.send({
+						method: 'publish',
+						eventName,
+						eventData: betaEventData,
+					});
+				}, 1000);
+
+				channelBetaProcess.on('message', m => {
+					console.log('mmm', m);
+				});
 			});
 		});
 	});
