@@ -345,25 +345,6 @@ class Rounds {
 		);
 	}
 
-	// Events
-	/**
-	 * Assigns modules to private constant `modules`.
-	 *
-	 * @param {modules} scope - Loaded modules
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	onBind() {}
-
-	/**
-	 * Sets private constant loaded to true.
-	 *
-	 * @listens module:loader~event:blockchainReady
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	onBlockchainReady() {
-		__private.loaded = true;
-	}
-
 	/**
 	 * Clear all cache entries related to delegate and emits a 'rounds/change' socket message.
 	 *
