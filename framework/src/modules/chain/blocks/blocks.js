@@ -15,66 +15,80 @@
 'use strict';
 
 const {
-    loadLastBlock,
-    loadBlockByHeight,
-    loadBlocksDataWS,
+	loadLastBlock,
+	loadBlockByHeight,
+	loadBlocksDataWS,
 } = require('./utils');
 
 class Blocks {
-    constructor({
-        logger,
-        storage,
-        genesisBlock,
-        transactionManager,
-        excptions,
-        blockReceiptTimeout, // set default
-    }) {
-        this.logger = logger;
-        this.storage = storage;
-        this.exceptions = excptions;
-        this.blockReceiptTimeout = blockReceiptTimeout;
-        this.genesisBlock = genesisBlock;
-        this.transactionManager = transactionManager;
+	constructor({
+		logger,
+		storage,
+		genesisBlock,
+		transactionManager,
+		excptions,
+		blockReceiptTimeout, // set default
+	}) {
+		this.logger = logger;
+		this.storage = storage;
+		this.exceptions = excptions;
+		this.blockReceiptTimeout = blockReceiptTimeout;
+		this.genesisBlock = genesisBlock;
+		this.transactionManager = transactionManager;
 
-        this._lastBlock = {};
-        this._isActive = false;
-        this._lastReceipt = null;
-        this._cleaning = false;
-    }
+		this._lastBlock = {};
+		this._isActive = false;
+		this._lastReceipt = null;
+		this._cleaning = false;
+	}
 
-    get lastBlock() {
-        return this._lastBlock;
-    }
+	get lastBlock() {
+		return this._lastBlock;
+	}
 
-    get isActive() {
-        return this._isActive;
-    }
+	get isActive() {
+		return this._isActive;
+	}
 
-    get lastReceipt() {
-        return this._lastReceipt;
-    }
-
-    /**
-     * Returns status of last receipt - if it stale or not.
-     *
-     * @returns {boolean} Stale status of last receipt
-     */
-    isStale() {
-        if (!this._lastReceipt) {
-            return true;
-        }
-        // Current time in seconds - lastReceipt (seconds)
-        const secondsAgo =
-            Math.floor(Date.now() / 1000) - this._lastReceipt;
-        return secondsAgo > this.blockReceiptTimeout;
-    }
-
-    updateLastReceipt() {
-       this._lastReceipt = Math.floor(Date.now() / 1000);
+	get lastReceipt() {
 		return this._lastReceipt;
-    }
+	}
 
-    /**
+	/**
+	 * Returns status of last receipt - if it stale or not.
+	 *
+	 * @returns {boolean} Stale status of last receipt
+	 */
+	isStale() {
+		if (!this._lastReceipt) {
+			return true;
+		}
+		// Current time in seconds - lastReceipt (seconds)
+		const secondsAgo = Math.floor(Date.now() / 1000) - this._lastReceipt;
+		return secondsAgo > this.blockReceiptTimeout;
+	}
+
+	updateLastReceipt() {
+		this._lastReceipt = Math.floor(Date.now() / 1000);
+		return this._lastReceipt;
+	}
+
+	async init() {
+		try {
+			const rows = await this.storage.entities.Block.get(
+				{},
+				{ limit: this.blockSlotWindow, sort: 'height:desc' }
+			);
+			this._lastNBlockIds = rows.map(row => row.id);
+		} catch (error) {
+			this.logger.error(
+				error,
+				`Unable to load last ${this.blockSlotWindow} block ids`
+			);
+		}
+	}
+
+	/**
 	 * Handle node shutdown request.
 	 *
 	 * @listens module:app~event:cleanup
@@ -82,7 +96,7 @@ class Blocks {
 	 * @returns {setImmediateCallback} cb
 	 */
 	async cleanup() {
-        this._cleaning = true;
+		this._cleaning = true;
 		if (!this._isActive) {
 			// Module ready for shutdown
 			return;
@@ -103,47 +117,57 @@ class Blocks {
 			return null;
 		};
 		await nextWatch();
-    }
+	}
 
-    async loadLastBlock() {
-        return loadLastBlock(this.storage, this.transactionManager, this.generateBlock);
-    }
+	async loadLastBlock() {
+		return loadLastBlock(
+			this.storage,
+			this.transactionManager,
+			this.generateBlock
+		);
+	}
 
-    async loadBlockByHeight(height, tx) {
-        return loadBlockByHeight(this.storage, height, this.transactionManager, this.generateBlock, tx);
-    }
+	async loadBlockByHeight(height, tx) {
+		return loadBlockByHeight(
+			this.storage,
+			height,
+			this.transactionManager,
+			this.generateBlock,
+			tx
+		);
+	}
 
-    async loadBlocksDataWS(filter, tx) {
-        return loadBlocksDataWS(this.storage, filter, tx);
-    }
+	async loadBlocksDataWS(filter, tx) {
+		return loadBlocksDataWS(this.storage, filter, tx);
+	}
 
-    async receiveBlockFromNetwork() {}
+	async receiveBlockFromNetwork() {}
 
-    async loadBlocksFromNetwork() {}
+	async loadBlocksFromNetwork() {}
 
-    async loadBlocksOffset(blocksAmount, fromHeight = 0) {
-	    const toHeight = fromHeight + blocksAmount;
-        this.logger.debug('Loading blocks offset', {
-            limit: toHeight,
-            offset: fromHeight,
-        });
-    }
+	async loadBlocksOffset(blocksAmount, fromHeight = 0) {
+		const toHeight = fromHeight + blocksAmount;
+		this.logger.debug('Loading blocks offset', {
+			limit: toHeight,
+			offset: fromHeight,
+		});
+	}
 
-    async generateBlock() {}
+	async generateBlock() {}
 
-    async deleteFromBlockId() {}
+	async deleteFromBlockId() {}
 
-    async deleteLastBlock() {}
+	async deleteLastBlock() {}
 
-    async recoverChain() {}
+	async recoverChain() {}
 
-    async applyGenesisBlock() {}
+	async applyGenesisBlock() {}
 
-    async verifyBlock() {}
+	async verifyBlock() {}
 
-    async addBlockProperties() {}
+	async addBlockProperties() {}
 }
 
 module.exports = {
-    Blocks,
+	Blocks,
 };
