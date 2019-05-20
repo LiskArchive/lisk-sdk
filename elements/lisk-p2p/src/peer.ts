@@ -667,8 +667,8 @@ export class Peer extends EventEmitter {
 		this._reputation = DEFAULT_REPUTATION_SCORE;
 		this.emit(EVENT_UNBAN_PEER, this._id);
 		if (this._banTimer) {
-			this._banTimer = undefined;
 			clearTimeout(this._banTimer);
+			this._banTimer = undefined;
 		}
 	}
 }
