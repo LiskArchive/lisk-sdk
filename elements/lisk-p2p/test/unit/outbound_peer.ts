@@ -18,7 +18,7 @@ import { expect } from 'chai';
 import { OutboundPeer } from '../../src/peer';
 import { P2PDiscoveredPeerInfo } from '../../src/p2p_types';
 
-describe('outound_peer', () => {
+describe('outbound_peer', () => {
 	const defaultPeerInfo: P2PDiscoveredPeerInfo = {
 		ipAddress: '12.12.12.12',
 		wsPort: 5001,
