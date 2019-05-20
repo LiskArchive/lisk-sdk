@@ -14,33 +14,20 @@
 
 'use strict';
 
-const Promise = require('bluebird');
-const async = require('async');
-const _ = require('lodash');
+const { cloneDeep } = require('lodash');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const {
 	checkIfTransactionIsInert,
 	applyTransactions,
 	undoTransactions,
 } = require('../transactions');
-const {
-	loadBlocksPart,
-} = require('./utils');
+const { loadSecondLastBlock } = require('./utils');
 
-const { TRANSACTION_TYPES } = global.constants;
-
-let modules;
-let library;
-let self;
-const __private = {};
+const TRANSACTION_TYPES_VOTE = 3;
 
 const saveBlockBatch = async (storage, parsedBlock, saveBlockBatchTx) => {
 	const promises = [
-		storage.entities.Block.create(
-			parsedBlock,
-			{},
-			saveBlockBatchTx
-		),
+		storage.entities.Block.create(parsedBlock, {}, saveBlockBatchTx),
 	];
 
 	if (parsedBlock.transactions.length) {
@@ -53,8 +40,7 @@ const saveBlockBatch = async (storage, parsedBlock, saveBlockBatchTx) => {
 		);
 	}
 
-	return saveBlockBatchTx
-		.batch(promises);
+	return saveBlockBatchTx.batch(promises);
 };
 
 /**
@@ -67,7 +53,7 @@ const saveBlockBatch = async (storage, parsedBlock, saveBlockBatchTx) => {
  */
 const saveBlock = async (storage, block, tx) => {
 	// Parse block data to storage module
-	const parsedBlock = _.cloneDeep(block);
+	const parsedBlock = cloneDeep(block);
 	if (parsedBlock.reward) {
 		parsedBlock.reward = parsedBlock.reward.toString();
 	}
@@ -117,9 +103,7 @@ const saveGenesisBlock = async (storage, transactionManager, genesisBlock) => {
 	// FIXME: This will fail if we already have genesis block in database, but with different ID
 	const block = {
 		...genesisBlock.block,
-		transactions: transactionManager.fromBlock(
-			genesisBlock.block
-		),
+		transactions: transactionManager.fromBlock(genesisBlock.block),
 	};
 	await saveBlock(storage, block);
 };
@@ -136,7 +120,7 @@ const saveGenesisBlock = async (storage, transactionManager, genesisBlock) => {
 const deleteBlock = (storage, blockId, tx) =>
 	// Delete block with ID from blocks table
 	// WARNING: DB_WRITE
-	storage.entities.Block.delete({ id: blockId }, {}, tx)
+	storage.entities.Block.delete({ id: blockId }, {}, tx);
 
 /**
  * Deletes all blocks with height >= supplied block ID.
@@ -164,29 +148,31 @@ const deleteFromBlockId = async (storage, blockId) => {
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  */
-const applyGenesisBlock = async (storage, roundsModule, block) => {
+const applyGenesisBlock = async (
+	storage,
+	slots,
+	roundsModule,
+	block,
+	exceptions
+) => {
 	// Sort transactions included in block
 	block.transactions = block.transactions.sort(a => {
-		if (a.type === TRANSACTION_TYPES.VOTE) {
+		if (a.type === TRANSACTION_TYPES_VOTE) {
 			return 1;
 		}
 		return 0;
 	});
 
-	__private.applyTransactions(block.transactions, err => {
-		if (err) {
-			// If genesis block is invalid, kill the node...
-			process.emit('cleanup', err.message);
-			return setImmediate(cb, err);
-		}
-		// Set genesis block as last block
-		// TODO: set to last block after this
-		modules.blocks.lastBlock.set(block);
-		// Tick round
-		// WARNING: DB_WRITE
-		return modules.rounds.tick(block);
+	await applyBlockTransactions(storage, slots, block.transactions, exceptions);
+	await new Promise((resolve, reject) => {
+		roundsModule.tick(block, tickErr => {
+			if (tickErr) {
+				return reject(tickErr);
+			}
+			return resolve();
+		});
 	});
-}
+};
 
 /**
  * Description of the function.
@@ -197,192 +183,22 @@ const applyGenesisBlock = async (storage, roundsModule, block) => {
  * @returns {Object} cb.err - Error if occurred
  * @todo Add description for the function
  */
-const applyBlock = async (storage, roundsModule, transactionPoolModule, slots, block, shouldSave, exceptions) => {
+const applyBlock = async (
+	storage,
+	roundsModule,
+	transactionPoolModule,
+	slots,
+	block,
+	shouldSave,
+	exceptions
+) => {
 	const tx = await storage.entities.Block.begin('Chain:applyBlock');
 	// TODO: recover this
 	// modules.blocks.isActive.set(true);
 	await applyConfirmedStep(storage, slots, block, exceptions, tx);
 	await saveBlockStep(storage, roundsModule, block, shouldSave, tx);
-	return library.storage.entities.Block.begin('Chain:applyBlock', tx => {
-	// TODO: Remove this dependency
-	transactionPool.onConfirmedTransactions(block.transactions);
-	// TODO: Remove this dependency
-	// modules.blocks.isActive.set(false);
-}
-
-/**
- * Main chain logic. Allows set information. Initializes library.
- *
- * @class
- * @memberof modules.blocks
- * @see Parent: {@link modules.blocks}
- * @requires async
- * @requires bluebird
- * @param {Object} logger
- * @param {Block} block
- * @param {Storage} storage
- * @param {Object} genesisBlock
- * @param {bus} bus
- * @param {Sequence} balancesSequence
- * @todo Add description for the params
- */
-class Chain {
-	constructor(
-		logger,
-		block,
-		storage,
-		genesisBlock,
-		bus,
-		balancesSequence,
-		channel,
-		transactionManager
-	) {
-		library = {
-			logger,
-			storage,
-			genesisBlock,
-			bus,
-			balancesSequence,
-			logic: {
-				block,
-			},
-			channel,
-		};
-		self = this;
-		self.modules = {
-			transactionManager,
-		};
-
-		library.logger.trace('Blocks->Chain: Submodule initialized.');
-		return self;
-	}
-
-
-
-
-
-
-	/**
-	 * Broadcast reduced block to increase network performance.
-	 *
-	 * @param {Object} reducedBlock - Block without empty/insignificant properties
-	 * @param {boolean} broadcast - Indicator that block needs to be broadcasted
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	broadcastReducedBlock(reducedBlock, broadcast) {
-		library.bus.message('broadcastBlock', reducedBlock, broadcast);
-	}
-
-	/**
-	 * Deletes last block.
-	 * - Apply the block to database if both verifications are ok
-	 * - Update headers: broadhash and height
-	 * - Put transactions from deleted block back into transaction pool
-	 *
-	 * @param  {function} cb - Callback function
-	 * @returns {function} cb - Callback function from params (through setImmediate)
-	 * @returns {Object} cb.err - Error if occurred
-	 * @returns {Object} cb.obj - New last block
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	deleteLastBlock(cb) {
-		let lastBlock = modules.blocks.lastBlock.get();
-		library.logger.warn('Deleting last block', lastBlock);
-
-		if (lastBlock.height === 1) {
-			return setImmediate(cb, 'Cannot delete genesis block');
-		}
-
-		let deletedBlockTransactions;
-
-		return async.series(
-			{
-				popLastBlock(seriesCb) {
-					// Perform actual delete of last block
-					__private.popLastBlock(lastBlock, (err, previousBlock) => {
-						if (err) {
-							library.logger.error('Error deleting last block', lastBlock);
-						} else {
-							// Store actual lastBlock transactions in reverse order
-							deletedBlockTransactions = lastBlock.transactions.reverse();
-
-							// Set previous block as our new last block
-							lastBlock = modules.blocks.lastBlock.set(previousBlock);
-						}
-						return seriesCb(err);
-					});
-				},
-				updateApplicationState(seriesCb) {
-					return modules.blocks
-						.calculateNewBroadhash()
-						.then(({ broadhash, height }) => {
-							// Listen for the update of step to move to next step
-							library.channel.once('app:state:updated', () => {
-								seriesCb();
-							});
-
-							// Update our application state: broadhash and height
-							return library.channel.invoke('app:updateApplicationState', {
-								broadhash,
-								height,
-							});
-						})
-						.catch(seriesCb);
-				},
-				addDeletedTransactions(seriesCb) {
-					// Put transactions back into transaction pool
-					modules.transactionPool.onDeletedTransactions(
-						deletedBlockTransactions
-					);
-					seriesCb();
-				},
-			},
-			err => setImmediate(cb, err, lastBlock)
-		);
-	}
-
-	/**
-	 * Recover chain - wrapper for deleteLastBlock.
-	 *
-	 * @private
-	 * @param  {function} cb - Callback function
-	 * @returns {function} cb - Callback function from params (through setImmediate)
-	 * @returns {Object} cb.err - Error if occurred
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	recoverChain(cb) {
-		library.logger.warn('Chain comparison failed, starting recovery');
-		self.deleteLastBlock((err, newLastBlock) => {
-			if (err) {
-				library.logger.error('Recovery failed');
-			} else {
-				library.logger.info(
-					'Recovery complete, new last block',
-					newLastBlock.id
-				);
-			}
-			return setImmediate(cb, err);
-		});
-	}
-
-	/**
-	 * It assigns modules & components to private constants
-	 *
-	 * @param {modules, components} scope - Exposed modules & components
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	onBind(scope) {
-		library.logger.trace('Blocks->Chain: Shared modules bind.');
-		modules = {
-			blocks: scope.modules.blocks,
-			rounds: scope.modules.rounds,
-			transactionPool: scope.modules.transactionPool,
-		};
-
-		// Set module as loaded
-		__private.loaded = true;
-	}
-}
+	// transactionPool.onConfirmedTransactions(block.transactions)
+};
 
 /**
  * Applies transactions to the confirmed state.
@@ -395,8 +211,15 @@ class Chain {
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  */
-const applyBlockTransactions = async (storage, slots, transactions, exceptions) => {
-	const { stateStore } = await applyTransactions(storage, exceptions)(transactions);
+const applyBlockTransactions = async (
+	storage,
+	slots,
+	transactions,
+	exceptions
+) => {
+	const { stateStore } = await applyTransactions(storage, exceptions)(
+		transactions
+	);
 	await stateStore.account.finalize();
 	stateStore.round.setRoundForData(slots.calcRound(1));
 	await stateStore.round.finalize();
@@ -449,34 +272,21 @@ const saveBlockStep = async (storage, roundsModule, block, shouldSave, tx) => {
 	if (shouldSave) {
 		await saveBlock(storage, block, tx);
 	}
-		await new Promise((resolve, reject) => {
-			roundsModule.tick(
-				block,
-				tickErr => {
-					if (tickErr) {
-						return reject(tickErr);
-					}
-					resolve();
-				},
-				tx
-			);
-		});
-		// TODO: recover below
-		// library.bus.message('newBlock', block);
-		// modules.blocks.lastBlock.set(block);
-};
-
-/**
- * Loads 2nd last block from the database
- * @param {String} secondLastBlockId - id of the second last block
- * @param {Object} tx - database transaction
- */
-const loadSecondLastBlockStep = async (storage, secondLastBlockId, tx) => {
-	const blocks = await loadBlocksPart(storage, { id: secondLastBlockId }, tx);
-	if (!blocks.length) {
-		throw new Error('PreviousBlock is null');
-	}
-	return blocks[0];
+	await new Promise((resolve, reject) => {
+		roundsModule.tick(
+			block,
+			tickErr => {
+				if (tickErr) {
+					return reject(tickErr);
+				}
+				return resolve();
+			},
+			tx
+		);
+	});
+	// TODO: recover below
+	// library.bus.message('newBlock', block);
+	// modules.blocks.lastBlock.set(block);
 };
 
 /**
@@ -519,7 +329,12 @@ const undoConfirmedStep = async (storage, slots, block, exceptions, tx) => {
  * @param {Object} previousBlock - block to delete
  * @param {Object} tx - database transaction
  */
-const backwardTickStep = async (roundsModule, oldLastBlock, previousBlock, tx) =>
+const backwardTickStep = async (
+	roundsModule,
+	oldLastBlock,
+	previousBlock,
+	tx
+) =>
 	new Promise((resolve, reject) => {
 		// Perform backward tick on rounds
 		// WARNING: DB_WRITE
@@ -537,12 +352,32 @@ const backwardTickStep = async (roundsModule, oldLastBlock, previousBlock, tx) =
 	});
 
 /**
- * deletes block and relevant transactions
- * @param {Object} oldLastBlock - secondLastBlock
- * @param {Object} tx - database transaction
+ * Deletes last block.
+ * - Apply the block to database if both verifications are ok
+ * - Update headers: broadhash and height
+ * - Put transactions from deleted block back into transaction pool
+ *
+ * @param  {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ * @returns {Object} cb.obj - New last block
  */
-const deleteBlockStep = async (storage, oldLastBlock, tx) =>
-	deleteBlock(storage, oldLastBlock.id, tx);
+const deleteLastBlock = async (storage, roundsModule, slots, lastBlock) => {
+	if (lastBlock.height === 1) {
+		throw new Error('Cannot delete genesis block');
+	}
+	const previousBlock = await popLastBlock(
+		storage,
+		roundsModule,
+		slots,
+		lastBlock
+	);
+	// set to last block
+	// update broadhash
+	// report to application state
+	// transactionPool.onDeletedTransactions in reverse order
+	return previousBlock;
+};
 
 /**
  * Deletes last block, undo transactions, recalculate round.
@@ -553,15 +388,30 @@ const deleteBlockStep = async (storage, oldLastBlock, tx) =>
  * @returns {Object} cb.obj - New last block
  */
 const popLastBlock = async (storage, roundsModule, slots, oldLastBlock) => {
-	let secondLastBlock;
-
 	const tx = await storage.entities.Block.begin('Chain:deleteBlock');
-	const secondLastBlock = await loadSecondLastBlockStep(storage, oldLastBlock.previousBlock, tx);
+	const secondLastBlock = await loadSecondLastBlock(
+		storage,
+		oldLastBlock.previousBlock,
+		tx
+	);
 	await undoConfirmedStep(storage, slots, oldLastBlock, tx);
 	await backwardTickStep(roundsModule, secondLastBlock, tx);
-	await deleteBlockStep(storage, oldLastBlock, tx);
+	await deleteBlock(storage, oldLastBlock.id, tx);
 	// TODO: recover this
 	// library.bus.message('deleteBlock', oldLastBlock);
 };
 
-module.exports = Chain;
+module.exports = {
+	applyBlock,
+	applyBlockTransactions,
+	applyGenesisBlock,
+	backwardTickStep,
+	saveBlockBatch,
+	deleteFromBlockId,
+	saveBlockStep,
+	saveGenesisBlock,
+	applyConfirmedStep,
+	undoConfirmedStep,
+	popLastBlock,
+	deleteLastBlock,
+};

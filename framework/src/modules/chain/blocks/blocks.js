@@ -14,11 +14,8 @@
 
 'use strict';
 
-const {
-	loadLastBlock,
-	loadBlockByHeight,
-	loadBlocksDataWS,
-} = require('./utils');
+const blocksUtils = require('./utils');
+const blocksProcess = require('./process');
 
 class Blocks {
 	constructor({
@@ -119,53 +116,35 @@ class Blocks {
 		await nextWatch();
 	}
 
-	async loadLastBlock() {
-		return loadLastBlock(
-			this.storage,
-			this.transactionManager,
-			this.generateBlock
-		);
-	}
-
-	async loadBlockByHeight(height, tx) {
-		return loadBlockByHeight(
-			this.storage,
-			height,
-			this.transactionManager,
-			this.generateBlock,
-			tx
-		);
+	// Initializing the blockchain
+	async loadBlockChain() {
+		await blocksProcess.loadBlockChain(this.storage);
 	}
 
 	async loadBlocksDataWS(filter, tx) {
-		return loadBlocksDataWS(this.storage, filter, tx);
+		return blocksUtils.loadBlocksDataWS(this.storage, filter, tx);
 	}
 
-	async receiveBlockFromNetwork() {}
-
-	async loadBlocksFromNetwork() {}
-
-	async loadBlocksOffset(blocksAmount, fromHeight = 0) {
-		const toHeight = fromHeight + blocksAmount;
-		this.logger.debug('Loading blocks offset', {
-			limit: toHeight,
-			offset: fromHeight,
-		});
+	// Process a block from the P2P
+	async receiveBlockFromNetwork() {
+		await blocksProcess.loadBlockChain(this.storage);
 	}
 
-	async generateBlock() {}
+	// Process a block from syncing
+	async loadBlocksFromNetwork() {
+		await blocksProcess.loadBlocksFromNetwork(this.storage);
+	}
 
-	async deleteFromBlockId() {}
+	// Generate a block for forging
+	async generateBlock() {
+		blocksProcess.loadBlockChain(this.storage);
+	}
 
-	async deleteLastBlock() {}
-
-	async recoverChain() {}
-
-	async applyGenesisBlock() {}
-
-	async verifyBlock() {}
-
-	async addBlockProperties() {}
+	// Used for transport
+	// eslint-disable-next-line
+	async addBlockProperties() {
+		return blocksUtils.addBlockProperties();
+	}
 }
 
 module.exports = {

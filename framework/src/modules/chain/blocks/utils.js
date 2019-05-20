@@ -16,6 +16,7 @@
 
 const _ = require('lodash');
 const { hash } = require('@liskhq/lisk-cryptography');
+const Bignum = require('../helpers/bignum');
 const { storageRead, dbRead } = require('./block');
 
 /**
@@ -164,9 +165,7 @@ const loadBlocksDataWS = async (storage, filter, tx) => {
 
 	let parsedBlocks = [];
 	blockRows.forEach(block => {
-		parsedBlocks = parsedBlocks.concat(
-			parseStorageObjToLegacyObj(block)
-		);
+		parsedBlocks = parsedBlocks.concat(parseStorageObjToLegacyObj(block));
 	});
 	return parsedBlocks;
 };
@@ -236,9 +235,7 @@ const loadBlocksData = async (storage, filter, tx) => {
 	);
 	let parsedBlocks = [];
 	blockRows.forEach(block => {
-		parsedBlocks = parsedBlocks.concat(
-			parseStorageObjToLegacyObj(block)
-		);
+		parsedBlocks = parsedBlocks.concat(parseStorageObjToLegacyObj(block));
 	});
 	return parsedBlocks;
 };
@@ -378,6 +375,19 @@ const loadLastBlock = async (storage, transactionManager, genesisBlock) => {
 };
 
 /**
+ * Loads 2nd last block from the database
+ * @param {String} secondLastBlockId - id of the second last block
+ * @param {Object} tx - database transaction
+ */
+const loadSecondLastBlock = async (storage, secondLastBlockId, tx) => {
+	const blocks = await loadBlocksPart(storage, { id: secondLastBlockId }, tx);
+	if (!blocks.length) {
+		throw new Error('PreviousBlock is null');
+	}
+	return blocks[0];
+};
+
+/**
  * Get blocks IDs sequence - last block ID, IDs of first blocks of last 5 rounds, genesis block ID.
  *
  * @param {number} height - Block height
@@ -388,7 +398,13 @@ const loadLastBlock = async (storage, transactionManager, genesisBlock) => {
  * @returns {string} cb.res.firstHeight - Height of last block
  * @returns {string} cb.res.ids - Comma separated list of blocks IDs
  */
-const getIdSequence = async (storage, height, lastBlock, genesisBlock, numberOfDelegates) => {
+const getIdSequence = async (
+	storage,
+	height,
+	lastBlock,
+	genesisBlock,
+	numberOfDelegates
+) => {
 	// Get IDs of first blocks of (n) last rounds, descending order
 	// EXAMPLE: For height 2000000 (round 19802) we will get IDs of blocks at height: 1999902, 1999801, 1999700, 1999599, 1999498
 	const rows = await storage.entities.Block.getFirstBlockIdOfLastRounds({
@@ -445,10 +461,55 @@ const getIdSequence = async (storage, height, lastBlock, genesisBlock, numberOfD
  * @returns {Object} cb.err - Error if occurred
  * @returns {Object} cb.block - Block with requested height
  */
-const loadBlockByHeight = async (storage, height, transactionManager, genesisBlock, tx) => {
-	const row = await storage.entities.Block.getOne({ height }, { extended: true }, tx);
+const loadBlockByHeight = async (
+	storage,
+	height,
+	transactionManager,
+	genesisBlock,
+	tx
+) => {
+	const row = await storage.entities.Block.getOne(
+		{ height },
+		{ extended: true },
+		tx
+	);
 	return readStorageRows([row], transactionManager, genesisBlock)[0];
 };
+
+/**
+ * Load blocks with offset
+ *
+ *
+ * @param {number} height - Block height
+ * @param {object} tx - Database transaction object
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ * @returns {Object} cb.block - Block with requested height
+ */
+const loadBlockBlocksWithOffset = async (
+	storage,
+	blocksAmount,
+	fromHeight = 0
+) => {
+	// Calculate toHeight
+	const toHeight = fromHeight + blocksAmount;
+
+	const filters = {
+		height_gte: fromHeight,
+		height_lt: toHeight,
+	};
+
+	const options = {
+		limit: null,
+		sort: ['height:asc', 'rowId:asc'],
+		extended: true,
+	};
+
+	// Loads extended blocks from storage
+	const rows = await storage.entities.Block.get(filters, options);
+	return readStorageRows(rows);
+};
+
 /**
  * Calculate broadhash getting the last 5 blocks from the database
  *
@@ -476,15 +537,99 @@ const calculateNewBroadhash = async (storage, nethash, height) => {
 	return { broadhash, height: blockHeight };
 };
 
+/**
+ * Adds default properties to block.
+ *
+ * @param {Object} block - Block object reduced
+ * @returns {Object} Block object completed
+ */
+const addBlockProperties = block => {
+	block.totalAmount = new Bignum(block.totalAmount || 0);
+	block.totalFee = new Bignum(block.totalFee || 0);
+	block.reward = new Bignum(block.reward || 0);
+
+	if (block.version === undefined) {
+		block.version = 0;
+	}
+	if (block.numberOfTransactions === undefined) {
+		if (block.transactions === undefined) {
+			block.numberOfTransactions = 0;
+		} else {
+			block.numberOfTransactions = block.transactions.length;
+		}
+	}
+	if (block.payloadLength === undefined) {
+		block.payloadLength = 0;
+	}
+	if (block.transactions === undefined) {
+		block.transactions = [];
+	}
+	return block;
+};
+
+/**
+ * Deletes default properties from block.
+ *
+ * @param {Object} block - Block object completed
+ * @returns {Object} Block object reduced
+ */
+const deleteBlockProperties = block => {
+	const reducedBlock = {
+		...block,
+	};
+	if (reducedBlock.version === 0) {
+		delete reducedBlock.version;
+	}
+	// verifyBlock ensures numberOfTransactions is transactions.length
+	if (typeof reducedBlock.numberOfTransactions === 'number') {
+		delete reducedBlock.numberOfTransactions;
+	}
+	if (reducedBlock.totalAmount.isEqualTo(0)) {
+		delete reducedBlock.totalAmount;
+	}
+	if (reducedBlock.totalFee.isEqualTo(0)) {
+		delete reducedBlock.totalFee;
+	}
+	if (reducedBlock.payloadLength === 0) {
+		delete reducedBlock.payloadLength;
+	}
+	if (reducedBlock.reward.isEqualTo(0)) {
+		delete reducedBlock.reward;
+	}
+	if (reducedBlock.transactions && reducedBlock.transactions.length === 0) {
+		delete reducedBlock.transactions;
+	}
+	return reducedBlock;
+};
+
+/**
+ * Set height according to the given last block.
+ *
+ * @private
+ * @func setHeight
+ * @param {Object} block - Target block
+ * @param {Object} lastBlock - Last block
+ * @returns {Object} block - Target block
+ */
+const setHeight = (block, lastBlock) => {
+	block.height = lastBlock.height + 1;
+	return block;
+};
+
 module.exports = {
 	parseStorageObjToLegacyObj,
-	loadBlocksDataWS,
-	loadBlocksData,
+	getIdSequence,
 	readStorageRows,
 	readDbRows,
+	loadBlocksDataWS,
+	loadBlocksData,
 	loadBlocksPart,
 	loadLastBlock,
-	getIdSequence,
+	loadSecondLastBlock,
 	loadBlockByHeight,
+	loadBlockBlocksWithOffset,
 	calculateNewBroadhash,
+	setHeight,
+	addBlockProperties,
+	deleteBlockProperties,
 };
