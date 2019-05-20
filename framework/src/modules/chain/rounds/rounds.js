@@ -48,8 +48,8 @@ class Rounds {
 	constructor(scope) {
 		library = {
 			channel: scope.channel,
-			logic: scope.logic,
 			logger: scope.components.logger,
+			logic: scope.logic,
 			bus: scope.bus,
 			storage: scope.components.storage,
 		};
