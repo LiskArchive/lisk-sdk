@@ -15,10 +15,12 @@
 'use strict';
 
 const crypto = require('crypto');
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const blockVersion = require('./block_version');
-const { getId, verifySignature: verifyBlockSignature } = require('./block');
+const blocksLogic = require('./block');
+const blocksUtils = require('./utils');
+const transactionsModule = require('../transactions');
 const Bignum = require('../helpers/bignum');
-const { setHeight } = require('./utils');
 
 /**
  * Checks if block is in database.
@@ -39,6 +41,60 @@ const checkExists = async (storage, block) => {
 	});
 	if (isPersisted) {
 		throw new Error(`Block ${block.id} already exists`);
+	}
+};
+
+/**
+ * Check transactions - perform transactions validation when processing block.
+ * FIXME: Some checks are probably redundant, see: logic.transactionPool
+ *
+ * @private
+ * @func checkTransactions
+ * @param {Object} block - Block object
+ * @param {Object} transaction - Transaction object
+ * @param  {boolean} checkExists - Check if transaction already exists in database
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ */
+const checkTransactions = async (storage, slots, block, exceptions) => {
+	if (transactions.length === 0) {
+		return;
+	}
+	const { version, height, timestamp, transactions } = block;
+	const context = {
+		blockVersion: version,
+		blockHeight: height,
+		blockTimestamp: timestamp,
+	};
+
+	const nonInertTransactions = transactions.filter(
+		transaction =>
+			!transactionsModule.checkIfTransactionIsInert(transaction, exceptions)
+	);
+
+	const nonAllowedTxResponses = transactionsModule
+		.checkAllowedTransactions(context)(nonInertTransactions)
+		.transactionsResponses.find(
+			transactionResponse => transactionResponse.status !== TransactionStatus.OK
+		);
+
+	if (nonAllowedTxResponses) {
+		throw nonAllowedTxResponses.errors;
+	}
+
+	const { transactionsResponses } = await transactionsModule.verifyTransactions(
+		storage,
+		slots,
+		exceptions
+	)(nonInertTransactions);
+
+	const unverifiableTransactionsResponse = transactionsResponses.filter(
+		transactionResponse => transactionResponse.status !== TransactionStatus.OK
+	);
+
+	if (unverifiableTransactionsResponse.length > 0) {
+		throw unverifiableTransactionsResponse[0].errors;
 	}
 };
 
@@ -78,7 +134,7 @@ const verifySignature = (block, result) => {
 	let valid;
 
 	try {
-		valid = verifyBlockSignature(block);
+		valid = blocksLogic.verifySignature(block);
 	} catch (error) {
 		result.errors.push(error);
 	}
@@ -188,7 +244,7 @@ const verifyReward = (blockReward, block, exceptions, result) => {
 const verifyId = (block, result) => {
 	try {
 		// Overwrite block ID
-		block.id = getId(block);
+		block.id = blocksLogic.getId(block);
 	} catch (error) {
 		result.errors.push(error);
 	}
@@ -360,8 +416,7 @@ const verifyBlockSlotWindow = (slots, blockSlotWindow, block, result) => {
  * @returns {boolean} result.verified - Indicator that verification passed
  * @returns {Array} result.errors - Array of validation errors
  */
-const verifyReceipt = (
-	storage,
+const verifyReceipt = ({
 	slots,
 	blockSlotWindow,
 	maxTransactionsPerBlock,
@@ -370,9 +425,9 @@ const verifyReceipt = (
 	lastNBlockIds,
 	exceptions,
 	block,
-	lastBlock
-) => {
-	block = setHeight(block, lastBlock);
+	lastBlock,
+}) => {
+	block = blocksUtils.setHeight(block, lastBlock);
 
 	let result = { verified: false, errors: [] };
 
@@ -404,20 +459,34 @@ const verifyReceipt = (
  * @returns {boolean} result.verified - Indicator that verification passed
  * @returns {Array} result.errors - Array of validation errors
  */
-const verifyBlock = (block, lastBlock) => {
-	block = setHeight(block, lastBlock);
+const verifyBlock = ({
+	slots,
+	delegatesModule,
+	maxTransactionsPerBlock,
+	maxPayloadLength,
+	blockRewards,
+	exceptions,
+	block,
+	lastBlock,
+}) => {
+	block = blocksUtils.setHeight(block, lastBlock);
 
 	let result = { verified: false, errors: [] };
 
 	result = verifySignature(block, result);
 	result = verifyPreviousBlock(block, result);
-	result = verifyVersion(block, result);
-	result = verifyReward(block, result);
+	result = verifyVersion(block, exceptions, result);
+	result = verifyReward(blockRewards, block, result);
 	result = verifyId(block, result);
-	result = verifyPayload(block, result);
+	result = verifyPayload(
+		block,
+		maxTransactionsPerBlock,
+		maxPayloadLength,
+		result
+	);
 
-	result = verifyForkOne(block, lastBlock, result);
-	result = verifyBlockSlot(block, lastBlock, result);
+	result = verifyForkOne(delegatesModule, block, lastBlock, result);
+	result = verifyBlockSlot(slots, block, lastBlock, result);
 
 	result.verified = result.errors.length === 0;
 	result.errors.reverse();
@@ -425,14 +494,104 @@ const verifyBlock = (block, lastBlock) => {
 	return result;
 };
 
-const isFork = (block, lastBlock) => {};
+const isSaneBlock = (block, lastBlock) =>
+	block.previousBlock === lastBlock.id && lastBlock.height + 1 === block.height;
 
-const isForkOne = (block, lastBlock) => {};
+const isForkOne = (block, lastBlock) =>
+	block.previousBlock !== lastBlock.id && lastBlock.height + 1 === block.height;
 
-const isForkFive = (block, lastBlock) => {};
+const shouldDiscardForkOne = (block, lastBlock) =>
+	block.timestamp > lastBlock.timestamp ||
+	(block.timestamp === lastBlock.timestamp && block.id > lastBlock.id);
+
+const isForkFive = (block, lastBlock) =>
+	block.previousBlock === lastBlock.previousBlock &&
+	block.height === lastBlock.height &&
+	block.id !== lastBlock.id;
+
+const isDoubleForge = (block, lastBlock) =>
+	block.generatorPublicKey === lastBlock.generatorPublicKey;
+
+const shouldDiscardForkFive = (block, lastBlock) =>
+	block.timestamp > lastBlock.timestamp ||
+	(block.timestamp === lastBlock.timestamp && block.id > lastBlock.id);
+
+const matchGenesisBlock = (ownGenesisBlock, targetGenesisBlock) =>
+	targetGenesisBlock.id === ownGenesisBlock.genesisBlock.block.id &&
+	targetGenesisBlock.payloadHash.toString('hex') ===
+		ownGenesisBlock.genesisBlock.block.payloadHash &&
+	targetGenesisBlock.blockSignature.toString('hex') ===
+		ownGenesisBlock.genesisBlock.block.blockSignature;
+
+const reloadRequired = async (storage, slots, blocksCount, memRounds) => {
+	const round = slots.calcRound(blocksCount);
+	const unapplied = memRounds.filter(row => row.round !== round);
+	if (unapplied.length > 0) {
+		throw new Error('Detected unapplied rounds in mem_round');
+	}
+	const accounts = await storage.entities.Account.get(
+		{ isDelegate: true },
+		{ limit: null }
+	);
+	const delegatesPublicKeys = accounts.map(account => account.publicKey);
+	if (delegatesPublicKeys.length === 0) {
+		throw new Error('No delegates found');
+	}
+};
+
+const requireBlockRewind = async ({
+	storage,
+	slots,
+	transactionManager,
+	genesisBlock,
+	currentBlock,
+}) => {
+	const currentHeight = currentBlock.height;
+	const currentRound = slots.calcRound(currentHeight);
+	const secondLastRound = currentRound - 2;
+	const validateTillHeight =
+		secondLastRound < 1 ? 2 : slots.calcRoundEndHeight(secondLastRound);
+	const secondLastBlock = await blocksUtils.loadBlockByHeight(
+		storage,
+		currentHeight - 1,
+		transactionManager,
+		genesisBlock
+	);
+	const currentBlockResult = verifyBlock({
+		block: currentBlock,
+		lastBlock: secondLastBlock,
+	});
+	if (currentBlockResult.verified) {
+		return false;
+	}
+	const startBlock = await blocksUtils.loadBlockByHeight(
+		storage,
+		validateTillHeight,
+		transactionManager,
+		genesisBlock
+	);
+	const startBlockLastBlock = await blocksUtils.loadBlockByHeight(
+		storage,
+		startBlock.height - 1,
+		transactionManager,
+		genesisBlock
+	);
+	const startBlockResult = verifyBlock({
+		block: startBlock,
+		lastBlock: startBlockLastBlock,
+	});
+	if (!startBlockResult.verified) {
+		throw new Error(
+			`There are more than ${currentHeight -
+				validateTillHeight} invalid blocks. Can't delete those to recover the chain.`
+		);
+	}
+	return true;
+};
 
 module.exports = {
 	checkExists,
+	checkTransactions,
 	validateBlockSlot,
 	verifySignature,
 	verifyBlockSlotWindow,
@@ -444,7 +603,13 @@ module.exports = {
 	verifyReward,
 	verifyReceipt,
 	verifyBlock,
-	isFork,
+	isSaneBlock,
 	isForkOne,
+	shouldDiscardForkOne,
 	isForkFive,
+	shouldDiscardForkFive,
+	isDoubleForge,
+	matchGenesisBlock,
+	reloadRequired,
+	requireBlockRewind,
 };

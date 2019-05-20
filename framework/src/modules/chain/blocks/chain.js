@@ -186,18 +186,14 @@ const applyGenesisBlock = async (
 const applyBlock = async (
 	storage,
 	roundsModule,
-	transactionPoolModule,
 	slots,
 	block,
-	shouldSave,
-	exceptions
+	exceptions,
+	shouldSave
 ) => {
 	const tx = await storage.entities.Block.begin('Chain:applyBlock');
-	// TODO: recover this
-	// modules.blocks.isActive.set(true);
 	await applyConfirmedStep(storage, slots, block, exceptions, tx);
 	await saveBlockStep(storage, roundsModule, block, shouldSave, tx);
-	// transactionPool.onConfirmedTransactions(block.transactions)
 };
 
 /**

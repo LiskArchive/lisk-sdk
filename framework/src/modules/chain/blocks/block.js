@@ -15,7 +15,13 @@
 'use strict';
 
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
-const { getAddressFromPublicKey, hexToBuffer, signDataWithPrivateKey, hash, verifyData } = require('@liskhq/lisk-cryptography');
+const {
+	getAddressFromPublicKey,
+	hexToBuffer,
+	signDataWithPrivateKey,
+	hash,
+	verifyData,
+} = require('@liskhq/lisk-cryptography');
 const _ = require('lodash');
 const crypto = require('crypto');
 const ByteBuffer = require('bytebuffer');
@@ -45,8 +51,7 @@ const sign = (block, keypair) =>
  * @returns {Buffer} SHA256 hash
  * @todo Add description for the params
  */
-const getHash = block =>
-	hash(getBytes(block));
+const getHash = block => hash(getBytes(block));
 
 /**
  * Description of the function.
@@ -99,17 +104,13 @@ const getBytes = block => {
 		byteBuffer.writeByte(payloadHashBuffer[i]);
 	}
 
-	const generatorPublicKeyBuffer = hexToBuffer(
-		block.generatorPublicKey
-	);
+	const generatorPublicKeyBuffer = hexToBuffer(block.generatorPublicKey);
 	for (let i = 0; i < generatorPublicKeyBuffer.length; i++) {
 		byteBuffer.writeByte(generatorPublicKeyBuffer[i]);
 	}
 
 	if (block.blockSignature) {
-		const blockSignatureBuffer = hexToBuffer(
-			block.blockSignature
-		);
+		const blockSignatureBuffer = hexToBuffer(block.blockSignature);
 		for (let i = 0; i < blockSignatureBuffer.length; i++) {
 			byteBuffer.writeByte(blockSignatureBuffer[i]);
 		}
@@ -155,10 +156,6 @@ const objectNormalize = (block, exceptions = {}) => {
 	return block;
 };
 
-const defaultCreateOptions = {
-	maxPayloadLength: 1024 * 1024,
-};
-
 /**
  * Sorts input data transactions.
  * Calculates reward based on previous block data.
@@ -168,9 +165,16 @@ const defaultCreateOptions = {
  * @returns {block} block
  * @todo Add description for the params
  */
-const create = (blockReward, data, options = defaultCreateOptions) => {
+const create = ({
+	blockReward,
+	transactions,
+	previousBlock,
+	keypair,
+	timestamp,
+	maxPayloadLength,
+}) => {
 	// TODO: move to transactions module logic
-	const transactions = data.transactions.sort((a, b) => {
+	const sortedTransactions = transactions.sort((a, b) => {
 		// Place MULTI transaction after all other transaction types
 		if (
 			a.type === TRANSACTION_TYPES_MULTI &&
@@ -202,7 +206,7 @@ const create = (blockReward, data, options = defaultCreateOptions) => {
 		return 0;
 	});
 
-	const nextHeight = data.previousBlock ? data.previousBlock.height + 1 : 1;
+	const nextHeight = previousBlock ? previousBlock.height + 1 : 1;
 
 	const reward = blockReward.calcReward(nextHeight);
 	let totalFee = new Bignum(0);
@@ -212,11 +216,11 @@ const create = (blockReward, data, options = defaultCreateOptions) => {
 	const blockTransactions = [];
 	const payloadHash = crypto.createHash('sha256');
 
-	for (let i = 0; i < transactions.length; i++) {
-		const transaction = transactions[i];
+	for (let i = 0; i < sortedTransactions.length; i++) {
+		const transaction = sortedTransactions[i];
 		const bytes = transaction.getBytes(transaction);
 
-		if (size + bytes.length > options.maxPayloadLength) {
+		if (size + bytes.length > maxPayloadLength) {
 			break;
 		}
 
@@ -235,15 +239,15 @@ const create = (blockReward, data, options = defaultCreateOptions) => {
 		totalFee,
 		reward,
 		payloadHash: payloadHash.digest().toString('hex'),
-		timestamp: data.timestamp,
+		timestamp,
 		numberOfTransactions: blockTransactions.length,
 		payloadLength: size,
-		previousBlock: data.previousBlock.id,
-		generatorPublicKey: data.keypair.publicKey.toString('hex'),
+		previousBlock: previousBlock.id,
+		generatorPublicKey: keypair.publicKey.toString('hex'),
 		transactions: blockTransactions,
 	};
 
-	block.blockSignature = sign(block, data.keypair);
+	block.blockSignature = sign(block, keypair);
 	return objectNormalize(block);
 };
 
@@ -264,7 +268,11 @@ const verifySignature = block => {
 		dataWithoutSignature[i] = data[i];
 	}
 	const hashedBlock = hash(dataWithoutSignature);
-	return verifyData(hashedBlock, block.blockSignature, block.generatorPublicKey);
+	return verifyData(
+		hashedBlock,
+		block.blockSignature,
+		block.generatorPublicKey
+	);
 };
 
 /**

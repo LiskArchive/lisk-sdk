@@ -616,6 +616,31 @@ const setHeight = (block, lastBlock) => {
 	return block;
 };
 
+/**
+ * Get mem table status for state check
+ *
+ * @private
+ * @func setHeight
+ * @param {Object} storage - storage class
+ * @param {Object} tx - database transaction
+ * @returns {Object} blockcount, genesisBlock, memRounds
+ */
+const loadMemTables = async (storage, tx) => {
+	const promises = [
+		storage.entities.Block.count({}, {}, tx),
+		storage.entities.Block.getOne({ height: 1 }, {}, tx),
+		storage.entities.Round.getUniqueRounds(tx),
+	];
+
+	const [blocksCount, genesisBlock, memRounds] = await tx.batch(promises);
+
+	return {
+		blocksCount,
+		genesisBlock,
+		memRounds,
+	};
+};
+
 module.exports = {
 	parseStorageObjToLegacyObj,
 	getIdSequence,
@@ -628,6 +653,7 @@ module.exports = {
 	loadSecondLastBlock,
 	loadBlockByHeight,
 	loadBlockBlocksWithOffset,
+	loadMemTables,
 	calculateNewBroadhash,
 	setHeight,
 	addBlockProperties,

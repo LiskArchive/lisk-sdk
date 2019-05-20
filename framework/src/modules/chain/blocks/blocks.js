@@ -139,7 +139,7 @@ class Blocks extends EventEmitter {
 			blockCount,
 			genesisBlock,
 			memRounds,
-		} = await blocksUtils.getMemTables();
+		} = await blocksUtils.loadMemTables();
 		if (blockCount === 1) {
 			this._lastBlock = await blocksProcess.reload(blockCount);
 			this._isActive = false;
@@ -175,10 +175,9 @@ class Blocks extends EventEmitter {
 			this._isActive = false;
 			return;
 		}
-		try {
-			await blocksVerify.validateOwnChain();
-		} catch (error) {
-			this.logger.error(error, 'Invalid own blockchain');
+		const recoverRequired = await blocksVerify.requireBlockRewind();
+		if (recoverRequired) {
+			this.logger.error('Invalid own blockchain');
 			await blocksProcess.recoverInvalidOwnChain();
 		}
 		this._isActive = false;
@@ -195,10 +194,20 @@ class Blocks extends EventEmitter {
 			this._shouldNotBeActive();
 			this._isActive = true;
 			// set active to true
-			if (!blocksVerify.isFork(block, this._lastBlock)) {
+			if (blocksVerify.isSaneBlock(block, this._lastBlock)) {
 				this.updateLastReceipt();
 				try {
 					const newBlock = await blocksProcess.processBlock({
+						block,
+						lastBlock: this._lastBlock,
+						storage: this.storage,
+						exceptions: this.exceptions,
+						slots: this.slots,
+						delegatesModule: this.delegatesModule,
+						roundsModule: this.roundsModule,
+						maxPayloadLength: this.maxPayloadLength,
+						maxTransactionsPerBlock: this.maxTransactionsPerBlock,
+						blockRewards: this.blockRewards,
 						broadcast: validBlock => this.broadcast(validBlock),
 					});
 					this._lastBlock = newBlock;
@@ -333,13 +342,27 @@ class Blocks extends EventEmitter {
 		this._shouldNotBeActive();
 		this._isActive = true;
 		const block = await blocksProcess.generateBlock({
-			lastBlock: this._lastBlock,
-			transactions,
 			keypair,
 			timestamp,
+			transactions,
+			lastBlock: this._lastBlock,
+			storage: this.storage,
+			exceptions: this.exceptions,
+			slots: this.slots,
+			maxPayloadLength: this.maxPayloadLength,
+			blockRewards: this.blockRewards,
 		});
 		this._lastBlock = await blocksProcess.processBlock({
 			block,
+			lastBlock: this._lastBlock,
+			storage: this.storage,
+			exceptions: this.exceptions,
+			slots: this.slots,
+			delegatesModule: this.delegatesModule,
+			roundsModule: this.roundsModule,
+			maxPayloadLength: this.maxPayloadLength,
+			maxTransactionsPerBlock: this.maxTransactionsPerBlock,
+			blockRewards: this.blockRewards,
 			broadcast: validBlock => this.broadcast(validBlock),
 		});
 		// emit event
