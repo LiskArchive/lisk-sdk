@@ -66,10 +66,8 @@ const stopCommand = async (
 ): Promise<string> => {
 	try {
 		const {
-			config: {
-				components: {
-					cache: { password },
-				},
+			components: {
+				cache: { password },
 			},
 		}: LiskConfig = await getLiskConfig(installDir, network);
 		const { redisPort } = await describeApplication(name);
@@ -109,10 +107,8 @@ export const isCacheEnabled = async (
 ): Promise<boolean> => {
 	try {
 		const {
-			config: {
-				components: {
-					cache: { enabled },
-				},
+			components: {
+				cache: { enabled },
 			},
 		}: LiskConfig = await getLiskConfig(installDir, network);
 

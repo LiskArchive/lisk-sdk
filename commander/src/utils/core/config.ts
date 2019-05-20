@@ -40,12 +40,9 @@ interface ComponentsConfig {
 	readonly cache: CacheConfig;
 }
 
-interface Config {
+export interface LiskConfig {
 	readonly app: AppConfig;
 	readonly components: ComponentsConfig;
-}
-export interface LiskConfig {
-	readonly config: Config;
 }
 
 export const defaultLiskPath = path.join(os.homedir(), '.lisk');
