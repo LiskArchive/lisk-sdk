@@ -182,9 +182,8 @@ class Process {
 			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 			// TODO: Rename procedure to include target module name. E.g. chain:blocks
 			let data;
-			let response;
 			try {
-					response = await library.channel.invoke('network:request', {
+				const response = await library.channel.invoke('network:request', {
 					procedure: 'blocks',
 					data: {
 						lastBlockId: lastValidBlock.id,
@@ -203,13 +202,6 @@ class Process {
 			// The misspelled data.sucess is required to support v1 nodes.
 			// TODO: Remove the misspelled data.sucess === false condition once enough nodes have migrated to v2.
 			if (data.success === false || data.sucess === false) {
-				await library.channel.invoke('network:applyPenalty', {
-					procedure: 'chain:blocks',
-					data: {
-						peerId: response.params.peerId,
-						penalty: 100,
-					},
-				});
 				throw new Error(
 					`Peer did not have a matching lastBlockId. ${data.message}`
 				);

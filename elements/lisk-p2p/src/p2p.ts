@@ -310,6 +310,7 @@ export class P2P extends EventEmitter {
 			peerSelectionForConnection: config.peerSelectionForConnection
 				? config.peerSelectionForConnection
 				: selectForConnection,
+			peerBanTime: config.peerBanTime,
 		});
 
 		this._bindHandlersToPeerPool(this._peerPool);
@@ -486,7 +487,6 @@ export class P2P extends EventEmitter {
 					return;
 				}
 
-				//
 				const existingPeer = this._peerPool.getPeer(peerId);
 
 				if (existingPeer) {

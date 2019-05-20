@@ -84,6 +84,7 @@ interface PeerPoolConfig {
 	readonly peerSelectionForSend: P2PPeerSelectionForSend;
 	readonly peerSelectionForRequest: P2PPeerSelectionForRequest;
 	readonly peerSelectionForConnection: P2PPeerSelectionForConnection;
+	readonly peerBanTime?: number;
 }
 
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
@@ -399,6 +400,7 @@ export class PeerPool extends EventEmitter {
 		const peerConfig = {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
+			banTime: this._peerPoolConfig.peerBanTime,
 		};
 		const peer = new Peer(peerInfo, peerConfig, { inbound: inboundSocket });
 
@@ -423,6 +425,7 @@ export class PeerPool extends EventEmitter {
 		const peerConfig = {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
+			banTime: this._peerPoolConfig.peerBanTime,
 		};
 		const peer = new Peer(detailedPeerInfo, peerConfig, {
 			inbound: inboundSocket,
@@ -484,6 +487,7 @@ export class PeerPool extends EventEmitter {
 		const peerConfig = {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
+			banTime: this._peerPoolConfig.peerBanTime,
 		};
 		const peer = new Peer(peerInfo, peerConfig, { outbound: socket });
 

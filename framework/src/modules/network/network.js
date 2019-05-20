@@ -44,6 +44,8 @@ const { Peer } = require('./components/storage/entities');
 
 const hasNamespaceReg = /:/;
 
+const DEFAULT_PEER_BAN_TIME = 86400;
+
 /**
  * Network Module
  *
@@ -131,6 +133,7 @@ module.exports = class Network {
 					...peerWithoutIp,
 				};
 			}),
+			peerBanTime: DEFAULT_PEER_BAN_TIME,
 		};
 
 		this.p2p = new P2P(p2pConfig);

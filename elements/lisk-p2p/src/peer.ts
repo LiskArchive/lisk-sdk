@@ -84,9 +84,7 @@ export const REMOTE_RPC_GET_ALL_PEERS_LIST = 'list';
 export const DEFAULT_CONNECT_TIMEOUT = 2000;
 export const DEFAULT_ACK_TIMEOUT = 2000;
 export const DEFAULT_REPUTATION_SCORE = 100;
-// TODO: Change to config
-// tslint:disable-next-line:no-magic-numbers
-export const DEFAULT_BAN_TIME = 60 * 60 * 24;
+export const DEFAULT_BAN_TIME = 86400;
 
 type SCServerSocketUpdated = {
 	destroy(code?: number, data?: string | object): void;
@@ -128,6 +126,7 @@ const convertNodeInfoToLegacyFormat = (
 export interface PeerConfig {
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
+	readonly banTime?: number;
 }
 export interface PeerSockets {
 	readonly outbound?: SCClientSocket;
@@ -655,8 +654,12 @@ export class Peer extends EventEmitter {
 	}
 
 	private _banPeer(): void {
+		const banTime =
+			this._peerConfig && this._peerConfig.banTime
+				? this._peerConfig.banTime
+				: DEFAULT_BAN_TIME;
 		this.emit(EVENT_BAN_PEER, this._id);
-		this._banTimer = setTimeout(this._unbanPeer, DEFAULT_BAN_TIME);
+		this._banTimer = setTimeout(this._unbanPeer, banTime);
 	}
 
 	private _unbanPeer(): void {
