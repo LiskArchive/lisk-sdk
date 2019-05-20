@@ -118,6 +118,16 @@ class Blocks {
 
 	// Initializing the blockchain
 	async loadBlockChain() {
+		// check mem tables
+		// check genesisBlock
+		// rebuild account if it's rebuild
+		// check reload condition, true then reload
+		// reload
+		// reset memtables
+		// loadBlocksOffsets
+		// loadBlocksOffsets
+		// processBlock, boradcast: false, save: false (apply only)
+		// validate own chain
 		await blocksProcess.loadBlockChain(this.storage);
 	}
 
@@ -127,16 +137,45 @@ class Blocks {
 
 	// Process a block from the P2P
 	async receiveBlockFromNetwork() {
+		// add to sequence
+		// get last block
+		// check if it's not fork
+		// if not, update lastReceipt
+		// processBlock, boradcast: true, save: true
+		// if fork one
+		// save fork
+		// check discard condition
+		// object normalize
+		// validateBlockSlot
+		// verifyReceipt
+		// deleteLastBlock
+		// deleteLastBlock
+		// if fork five
+		// save fork
+		// check double forge
+		// check discard condition
+		// update lastReceipt
+		// object normalize
+		// validateBlockSlot
+		// verifyReceipt
+		// deleteLastBlock
+		// processBlock, boradcast: true, save: true
 		await blocksProcess.loadBlockChain(this.storage);
 	}
 
 	// Process a block from syncing
 	async loadBlocksFromNetwork() {
+		// readDBRows (for sync syntax)
+		// processBlock, boradcast: false, save: true
 		await blocksProcess.loadBlocksFromNetwork(this.storage);
 	}
 
 	// Generate a block for forging
-	async generateBlock() {
+	async generateBlock(transactions = []) {
+		// checkAllowedTransactions
+		// verifyTransactions
+		// createBlock
+		// processBlock, boradcast: true, save: true
 		blocksProcess.loadBlockChain(this.storage);
 	}
 
