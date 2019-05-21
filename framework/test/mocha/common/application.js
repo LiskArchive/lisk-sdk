@@ -41,6 +41,15 @@ const modulesInit = {
 		'../../../src/modules/chain/submodules/process_transactions.js',
 };
 
+const ChainModule = require('../../../src/modules/chain');
+const NetworkModule = require('../../../src/modules/network');
+const HttpAPIModule = require('../../../src/modules/http_api');
+
+const modulesMigrations = {};
+modulesMigrations[ChainModule.alias] = ChainModule.migrations;
+modulesMigrations[NetworkModule.alias] = NetworkModule.migrations;
+modulesMigrations[HttpAPIModule.alias] = HttpAPIModule.migrations;
+
 function init(options, cb) {
 	options = options || {};
 	options.scope = options.scope ? options.scope : {};
@@ -111,7 +120,8 @@ async function __init(sandbox, initScope) {
 				})
 				.then(async status => {
 					if (status) {
-						await storage.entities.Migration.applyAll();
+						await storage.entities.Migration.applyInternal();
+						await storage.entities.Migration.applyList(modulesMigrations);
 					}
 				});
 
