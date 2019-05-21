@@ -17,7 +17,7 @@
 const path = require('path');
 
 const migrations = [
-	path.join(path.dirname(__filename), './sql/20160723182902_create_schema.sql'),
+	path.join(path.dirname(__filename), './sql/20160723182900_create_schema.sql'),
 	path.join(
 		path.dirname(__filename),
 		'./sql/20161016133824_add_broadhash_column_to_peers.sql'

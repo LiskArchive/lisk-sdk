@@ -38,6 +38,7 @@ const sqlFiles = {
  * @typedef {Object} Migration
  * @property {string} id
  * @property {string} name
+ * @property {string} namespace
  */
 
 /**
@@ -53,6 +54,11 @@ const sqlFiles = {
  * @property {string} [name_ne]
  * @property {string} [name_in]
  * @property {string} [name_like]
+ * @property {string} [namespace]
+ * @property {string} [namespace_eql]
+ * @property {string} [namespace_ne]
+ * @property {string} [namespace_in]
+ * @property {string} [namespace_like]
  */
 
 class Migration extends BaseEntity {
@@ -66,6 +72,7 @@ class Migration extends BaseEntity {
 
 		this.addField('id', 'string', { filter: TEXT });
 		this.addField('name', 'string', { filter: TEXT });
+		this.addField('namespace', 'string', { filter: TEXT });
 
 		const defaultSort = { sort: 'id:asc' };
 		this.extendDefaultOptions(defaultSort);
@@ -217,7 +224,19 @@ class Migration extends BaseEntity {
 	 *
 	 * @returns {Promise<boolean>} Promise object that resolves with a boolean.
 	 */
-	async hasMigrations() {
+	async hasInternalMigrationsTable() {
+		const hasMigrations = await this.adapter.execute(
+			"SELECT table_name hasMigrations FROM information_schema.tables WHERE table_name = 'internal_migrations';"
+		);
+		return !!hasMigrations.length;
+	}
+
+	/**
+	 * Verifies presence of the 'migrations' OID named relation.
+	 *
+	 * @returns {Promise<boolean>} Promise object that resolves with a boolean.
+	 */
+	async hasMigrationsTable() {
 		const hasMigrations = await this.adapter.execute(
 			"SELECT table_name hasMigrations FROM information_schema.tables WHERE table_name = 'migrations';"
 		);
@@ -230,9 +249,47 @@ class Migration extends BaseEntity {
 	 * @returns {Promise<number>}
 	 * Promise object that resolves with either 0 or id of the last migration record.
 	 */
-	async getLastId() {
-		const result = await this.get({}, { sort: 'id:DESC', limit: 1 });
-		return result.length ? parseInt(result[0].id) : null;
+	async getLastInternalMigrationId() {
+		const lastID = await this.adapter.execute(
+			'SELECT id FROM internal_migrations ORDER BY id DESC LIMIT 1;'
+		);
+
+		return lastID ? lastID[0].id : 0;
+	}
+
+	/**
+	 * Reads 'sql/migrations/updates' folder and returns an array of objects for further processing.
+	 *
+	 * @param {number} lastMigrationId
+	 * @returns {Promise<Array<Object>>}
+	 * Promise object that resolves with an array of objects `{id, name, path, file}`.
+	 */
+	readPendingInternalMigrations(lastMigrationId) {
+		const updatesPath = path.join(__dirname, './sql/updates');
+		return fs.readdir(updatesPath).then(files =>
+			files
+				.map(migrationFile => {
+					const migration = migrationFile.match(/(\d+)_(.+).sql/);
+					return (
+						migration && {
+							id: migration[1],
+							name: migration[2],
+							path: `${updatesPath}/${migrationFile}`,
+						}
+					);
+				})
+				.sort((a, b) => a.id - b.id) // Sort by migration ID, ascending
+				.filter(
+					migration =>
+						migration &&
+						fs.statSync(migration.path).isFile() &&
+						(!lastMigrationId || +migration.id > lastMigrationId)
+				)
+				.map(migration => {
+					migration.file = this.adapter.loadSQLFile(migration.path, '');
+					return migration;
+				})
+		);
 	}
 
 	/**
@@ -272,10 +329,23 @@ class Migration extends BaseEntity {
 		}, []);
 	}
 
+	async applyPendingInternalMigration(pendingMigration, tx) {
+		await this.adapter.executeFile(pendingMigration.file, {}, {}, tx);
+		const query = this.adapter.parseQueryComponent(
+			'INSERT INTO "internal_migrations" ("id", "name") VALUES (${id}, ${name});',
+			{ id: pendingMigration.id, name: pendingMigration.name }
+		);
+		await this.adapter.execute(query, {}, {}, tx);
+	}
+
 	async applyPendingMigration(pendingMigration, tx) {
 		await this.adapter.executeFile(pendingMigration.file, {}, {}, tx);
 		await this.create(
-			{ id: pendingMigration.id, name: pendingMigration.name },
+			{
+				id: pendingMigration.id,
+				name: pendingMigration.name,
+				namespace: pendingMigration.namespace,
+			},
 			{},
 			tx
 		);
@@ -287,11 +357,35 @@ class Migration extends BaseEntity {
 	 *
 	 * @returns {Promise} Promise object that resolves with `undefined`.
 	 */
-	async apply(migrationsObj) {
-		const hasMigrations = await this.hasMigrations();
-		const executedMigrationIDs = hasMigrations
+	async applyInternal() {
+		const hasInternalMigrationsTable = await this.hasInternalMigrationsTable();
+		const lastId = hasInternalMigrationsTable
+			? await this.getLastInternalMigrationId()
+			: 0;
+		const pendingMigrations = await this.readPendingInternalMigrations(lastId);
+
+		if (pendingMigrations.length > 0) {
+			// eslint-disable-next-line no-restricted-syntax
+			for (const migration of pendingMigrations) {
+				const execute = tx => this.applyPendingInternalMigration(migration, tx);
+				// eslint-disable-next-line no-await-in-loop
+				await this.begin('migrations:applyInternal', execute);
+			}
+		}
+	}
+
+	/**
+	 * Applies a cumulative update: all pending migrations + runtime.
+	 * Each update+insert execute within their own SAVEPOINT, to ensure data integrity on the updates level.
+	 *
+	 * @returns {Promise} Promise object that resolves with `undefined`.
+	 */
+	async applyList(migrationsObj) {
+		const hasMigrationsTable = await this.hasMigrationsTable();
+		const executedMigrationIDs = hasMigrationsTable
 			? (await this.get({}, { limit: null })).map(m => m.id)
 			: [];
+
 		const pendingMigrations = await this.readPending(
 			migrationsObj,
 			executedMigrationIDs

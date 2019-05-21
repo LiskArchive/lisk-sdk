@@ -25,10 +25,7 @@ const { DuplicateAppInstanceError } = require('../errors');
 const { validateModuleSpec } = require('./validator');
 const ApplicationState = require('./application_state');
 const { createStorageComponent } = require('../components/storage');
-const {
-	MigrationEntity,
-	migrations: frameworkMigrations,
-} = require('./migrations');
+const { MigrationEntity } = require('./migrations');
 
 const isPidRunning = async pid =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -196,16 +193,12 @@ class Controller {
 	}
 
 	async _loadMigrations(applicationMigrationsObj) {
-		const frameworkMigrationsObj = {
-			framework: frameworkMigrations,
-		};
-
 		const storageConfig = this.config.components.storage;
 		this.storage = createStorageComponent(storageConfig, this.logger);
 		this.storage.registerEntity('Migration', MigrationEntity);
 		await this.storage.bootstrap();
-		await this.storage.entities.Migration.apply(frameworkMigrationsObj);
-		await this.storage.entities.Migration.apply(applicationMigrationsObj);
+		await this.storage.entities.Migration.applyInternal();
+		await this.storage.entities.Migration.applyList(applicationMigrationsObj);
 		return true;
 	}
 

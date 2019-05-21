@@ -17,8 +17,8 @@
 const path = require('path');
 
 const migrations = [
-	path.join(path.dirname(__filename), './sql/20160723182901_create_schema.sql'),
-	path.join(path.dirname(__filename), './sql/20160723182903_create_views.sql'),
+	path.join(path.dirname(__filename), './sql/20160723182900_create_schema.sql'),
+	path.join(path.dirname(__filename), './sql/20160723182901_create_views.sql'),
 	path.join(
 		path.dirname(__filename),
 		'./sql/20160724114255_create_memory_tables.sql'

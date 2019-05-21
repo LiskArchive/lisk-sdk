@@ -14,12 +14,18 @@
 
 
 /*
-  DESCRIPTION: Creates schema.
+  DESCRIPTION: Creates `internal_migrations` table to manage framework migrations
+    and `migrations` table to manage app/modules migrations.
 
   PARAMETERS: None
 */
 
 /* Tables */
+CREATE TABLE IF NOT EXISTS "internal_migrations"(
+  "id" VARCHAR(22) NOT NULL PRIMARY KEY,
+  "name" TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS "migrations"(
   "id" VARCHAR(22) NOT NULL PRIMARY KEY,
   "name" TEXT NOT NULL

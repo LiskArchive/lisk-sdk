@@ -12,14 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-SELECT
-	*
-FROM
-	migrations
 
-${parsedFilters:raw}
+/*
+  DESCRIPTION: Add `namespace` column to migrations table
+    and replace primary key by a composite key using id and namespace
 
-${parsedSort:raw}
+  PARAMETERS: None
+*/
 
-LIMIT ${limit}
-OFFSET ${offset}
+ALTER TABLE "migrations" ADD COLUMN IF NOT EXISTS "namespace" TEXT NOT NULL DEFAULT 'undefined';
+ALTER TABLE "migrations" DROP CONSTRAINT "migrations_pkey";
+ALTER TABLE "migrations" ADD CONSTRAINT "migrations_pkey" PRIMARY KEY ("id", "namespace");
