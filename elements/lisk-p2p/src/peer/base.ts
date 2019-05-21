@@ -65,8 +65,6 @@ export const EVENT_REQUEST_RECEIVED = 'requestReceived';
 export const EVENT_INVALID_REQUEST_RECEIVED = 'invalidRequestReceived';
 export const EVENT_MESSAGE_RECEIVED = 'messageReceived';
 export const EVENT_INVALID_MESSAGE_RECEIVED = 'invalidMessageReceived';
-export const EVENT_CLOSE_INBOUND = 'closeInbound';
-export const EVENT_INBOUND_SOCKET_ERROR = 'inboundSocketError';
 
 // Remote event or RPC names sent to or received from peers.
 export const REMOTE_EVENT_RPC_REQUEST = 'rpc-request';
@@ -110,6 +108,11 @@ export interface PeerConfig {
 	readonly ackTimeout?: number;
 }
 
+export interface ConnectAndFetchResponse {
+	readonly responsePacket: P2PResponsePacket;
+	readonly socket: SCClientSocket;
+}
+
 export class Peer extends EventEmitter {
 	private readonly _id: string;
 	protected readonly _ipAddress: string;
@@ -131,11 +134,6 @@ export class Peer extends EventEmitter {
 	) => void;
 	protected readonly _handleRawLegacyMessagePostSignatures: (
 		packet: unknown,
-	) => void;
-	protected readonly _handleInboundSocketError: (error: Error) => void;
-	protected readonly _handleInboundSocketClose: (
-		code: number,
-		reason: string,
 	) => void;
 	protected _socket: SCServerSocketUpdated | SCClientSocket | undefined;
 
@@ -214,18 +212,6 @@ export class Peer extends EventEmitter {
 			this._handleRawMessage({
 				event: 'postSignatures',
 				data,
-			});
-		};
-
-		this._handleInboundSocketError = (error: Error) => {
-			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
-		};
-
-		this._handleInboundSocketClose = (code, reason) => {
-			this.emit(EVENT_CLOSE_INBOUND, {
-				peerInfo: this._peerInfo,
-				code,
-				reason,
 			});
 		};
 	}
@@ -427,9 +413,4 @@ export class Peer extends EventEmitter {
 			: {};
 		request.end(legacyNodeInfo);
 	}
-}
-
-export interface ConnectAndFetchResponse {
-	readonly responsePacket: P2PResponsePacket;
-	readonly socket: SCClientSocket;
 }

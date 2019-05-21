@@ -25,8 +25,16 @@ import { P2PDiscoveredPeerInfo } from '../p2p_types';
 
 import { SCServerSocket } from 'socketcluster-server';
 
+export const EVENT_CLOSE_INBOUND = 'closeInbound';
+export const EVENT_INBOUND_SOCKET_ERROR = 'inboundSocketError';
+
 export class InboundPeer extends Peer {
 	protected _socket: SCServerSocketUpdated | undefined;
+	protected readonly _handleInboundSocketError: (error: Error) => void;
+	protected readonly _handleInboundSocketClose: (
+		code: number,
+		reason: string,
+	) => void;
 
 	public constructor(
 		peerInfo: P2PDiscoveredPeerInfo,
@@ -34,6 +42,16 @@ export class InboundPeer extends Peer {
 		peerConfig?: PeerConfig,
 	) {
 		super(peerInfo, peerConfig);
+		this._handleInboundSocketError = (error: Error) => {
+			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
+		};
+		this._handleInboundSocketClose = (code, reason) => {
+			this.emit(EVENT_CLOSE_INBOUND, {
+				peerInfo,
+				code,
+				reason,
+			});
+		};
 		this._socket = peerSocket ? peerSocket : undefined;
 		if (this._socket) {
 			this._bindHandlersToInboundSocket(this._socket);
@@ -48,10 +66,11 @@ export class InboundPeer extends Peer {
 		this._bindHandlersToInboundSocket(this._socket);
 	}
 
-	public disconnect(): void {
+	public disconnect(code: number = 1000, reason?: string): void {
 		if (!this._socket) {
 			throw new Error('Peer socket does not exist');
 		}
+		this._socket.destroy(code, reason);
 		this._unbindHandlersFromInboundSocket(this._socket);
 	}
 
