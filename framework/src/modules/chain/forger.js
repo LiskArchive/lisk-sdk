@@ -26,36 +26,6 @@ const slots = require('./helpers/slots.js');
 // Private fields
 let modules;
 
-const { ACTIVE_DELEGATES } = global.constants;
-
-/**
- * Gets the assigned delegate to current slot and returns its keypair if present.
- *
- * @private
- * @param {number} slot
- * @param {number} round
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, err, {time, keypair}
- * @todo Add description for the params
- */
-const getDelegateKeypairForCurrentSlot = async (
-	delegates,
-	keypairs,
-	currentSlot,
-	round
-) => {
-	const activeDelegates = await delegates.generateDelegateList(round);
-
-	const currentSlotIndex = currentSlot % ACTIVE_DELEGATES;
-	const currentSlotDelegate = activeDelegates[currentSlotIndex];
-
-	if (currentSlotDelegate && keypairs[currentSlotDelegate]) {
-		return keypairs[currentSlotDelegate];
-	}
-
-	return null;
-};
-
 /**
  * Main delegates methods. Initializes library with scope content and generates a Delegate instance.
  *
@@ -77,6 +47,7 @@ class Forger {
 		this.storage = scope.components.storage;
 		this.config = {
 			forging: {
+				waitThreshold: scope.config.forging.waitThreshold,
 				delegates: scope.config.forging.delegates,
 				force: scope.config.forging.force,
 				defaultPassword: scope.config.forging.defaultPassword,
@@ -298,9 +269,13 @@ class Forger {
 	// eslint-disable-next-line class-methods-use-this
 	forge(cb) {
 		const currentSlot = slots.getSlotNumber();
+		const currentSlotTime = slots.getRealTime(slots.getSlotTime(currentSlot));
+		const currentTime = new Date().getTime();
+		const waitThreshold = this.config.forging.waitThreshold * 1000;
 		const lastBlock = modules.blocks.lastBlock.get();
+		const lastBlockSlot = slots.getSlotNumber(lastBlock.timestamp);
 
-		if (currentSlot === slots.getSlotNumber(lastBlock.timestamp)) {
+		if (currentSlot === lastBlockSlot) {
 			this.logger.debug('Block already forged for the current slot');
 			return setImmediate(cb);
 		}
@@ -308,12 +283,8 @@ class Forger {
 		// We calculate round using height + 1, because we want the delegate keypair for next block to be forged
 		const round = slots.calcRound(lastBlock.height + 1);
 
-		return getDelegateKeypairForCurrentSlot(
-			modules.delegates,
-			this.keypairs,
-			currentSlot,
-			round
-		)
+		return modules.delegates
+			.getDelegateKeypairForCurrentSlot(this.keypairs, currentSlot, round)
 			.then(async delegateKeypair => {
 				if (delegateKeypair === null) {
 					this.logger.debug('Waiting for delegate slot', {
@@ -334,6 +305,21 @@ class Forger {
 				this.logger.info(
 					`Broadhash consensus before forging a block: ${modules.peers.getLastConsensus()} %`
 				);
+
+				// If last block slot is way back than one block
+				// and still time left as per threshold specified
+				if (
+					lastBlockSlot < currentSlot - 1 &&
+					currentTime <= currentSlotTime + waitThreshold
+				) {
+					this.logger.info('Skipping forging to wait for last block');
+					this.logger.debug('Slot information', {
+						currentSlot,
+						lastBlockSlot,
+						waitThreshold,
+					});
+					return setImmediate(cb);
+				}
 
 				return modules.blocks.process.generateBlock(
 					delegateKeypair,
@@ -420,4 +406,4 @@ class Forger {
 }
 
 // Export
-module.exports = { Forger, getDelegateKeypairForCurrentSlot };
+module.exports = { Forger };
