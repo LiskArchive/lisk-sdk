@@ -126,6 +126,7 @@ export class P2P extends EventEmitter {
 	private _isActive: boolean;
 	private readonly _newPeers: Map<string, P2PDiscoveredPeerInfo>;
 	private readonly _triedPeers: Map<string, P2PDiscoveredPeerInfo>;
+	private readonly _bannedPeers: Set<string>;
 	private readonly _discoveryInterval: number;
 	private _discoveryIntervalId: NodeJS.Timer | undefined;
 
@@ -168,7 +169,7 @@ export class P2P extends EventEmitter {
 		this._isActive = false;
 		this._newPeers = new Map();
 		this._triedPeers = new Map();
-
+		this._bannedPeers = new Set();
 		this._httpServer = http.createServer();
 		this._scServer = attach(this._httpServer) as SCServerUpdated;
 
@@ -251,17 +252,13 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handleBanPeer = (peerId: string) => {
-			if (this._triedPeers.has(peerId)) {
-				this._triedPeers.delete(peerId);
-			}
-			if (this._newPeers.has(peerId)) {
-				this._newPeers.delete(peerId);
-			}
+			this._bannedPeers.add(peerId);
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_BAN_PEER, peerId);
 		};
 
 		this._handleUnbanPeer = (peerId: string) => {
+			this._bannedPeers.delete(peerId);
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_UNBAN_PEER, peerId);
 		};
@@ -487,16 +484,12 @@ export class P2P extends EventEmitter {
 					return;
 				}
 
-				const existingPeer = this._peerPool.getPeer(peerId);
-
-				if (existingPeer) {
-					if (existingPeer.isBanned) {
-						this._disconnectSocketDueToFailedHandshake(
-							socket,
-							FORBIDDEN_CONNECTION,
-							FORBIDDEN_CONNECTION_REASON,
-						);
-					}
+				if (this._bannedPeers.has(peerId)) {
+					this._disconnectSocketDueToFailedHandshake(
+						socket,
+						FORBIDDEN_CONNECTION,
+						FORBIDDEN_CONNECTION_REASON,
+					);
 				}
 
 				const incomingPeerInfo: P2PDiscoveredPeerInfo = {

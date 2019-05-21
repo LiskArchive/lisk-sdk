@@ -243,7 +243,7 @@ module.exports = class Network {
 		});
 
 		this.p2p.on(EVENT_UNBAN_PEER, peerId => {
-			this.logger.error(`Peer ${peerId} has been unbanned.`);
+			this.logger.error(`Ban on peer ${peerId} has expired.`);
 		});
 
 		// ---- END: Bind event handlers ----

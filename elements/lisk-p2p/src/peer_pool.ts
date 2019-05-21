@@ -535,10 +535,10 @@ export class PeerPool extends EventEmitter {
 	public updatePeerScore(peerPenalty: P2PPenalty): void {
 		const peer = this._peerMap.get(peerPenalty.peerId);
 		if (peer) {
-			peer.applyPenalty(peerPenalty.penalty);
+			return peer.applyPenalty(peerPenalty.penalty);
 		}
 
-		throw new InvalidPeerError('Peer not found');
+		throw new Error('Peer not found');
 	}
 
 	private _removePeerIfFullyDisconnected(peerId: string): void {

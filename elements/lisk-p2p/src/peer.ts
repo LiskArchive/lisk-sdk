@@ -13,8 +13,14 @@
  *
  */
 
+// TODO: Add RPS per peer and add onto message / request
+
 import { EventEmitter } from 'events';
 import * as querystring from 'querystring';
+import {
+	FORBIDDEN_CONNECTION,
+	FORBIDDEN_CONNECTION_REASON,
+} from './disconnect_status_codes';
 import {
 	FetchPeerStatusError,
 	PeerOutboundConnectionError,
@@ -658,18 +664,19 @@ export class Peer extends EventEmitter {
 			this._peerConfig && this._peerConfig.banTime
 				? this._peerConfig.banTime
 				: DEFAULT_BAN_TIME;
-		this.emit(EVENT_BAN_PEER, this._id);
 		this._banTimer = setTimeout(this._unbanPeer, banTime);
+		this.disconnect(FORBIDDEN_CONNECTION, FORBIDDEN_CONNECTION_REASON);
+		this.emit(EVENT_BAN_PEER, this._id);
 	}
 
 	private _unbanPeer(): void {
 		// Reset reputation score
 		this._reputation = DEFAULT_REPUTATION_SCORE;
-		this.emit(EVENT_UNBAN_PEER, this._id);
 		if (this._banTimer) {
 			clearTimeout(this._banTimer);
 			this._banTimer = undefined;
 		}
+		this.emit(EVENT_UNBAN_PEER, this._id);
 	}
 }
 
