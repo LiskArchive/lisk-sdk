@@ -639,9 +639,11 @@ describe('Integration tests for P2P library', () => {
 					ALL_NODE_PORTS.filter(port => port !== NETWORK_START_PORT),
 				);
 
-				await p2pNodeList[1].stop();
-				await wait(100);
-				await p2pNodeList[2].stop();
+				await Promise.all(
+					p2pNodeList
+						.filter(p2p => p2p.isActive)
+						.map(async p2p => await p2p.stop()),
+				);
 				await wait(100);
 
 				const networkStatusAfterPeerCrash = p2pNodeList[0].getNetworkStatus();

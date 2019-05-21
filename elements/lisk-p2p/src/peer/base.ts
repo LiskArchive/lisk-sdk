@@ -14,12 +14,7 @@
  */
 
 import { EventEmitter } from 'events';
-import * as querystring from 'querystring';
-import {
-	FetchPeerStatusError,
-	PeerOutboundConnectionError,
-	RPCResponseError,
-} from '../errors';
+import { RPCResponseError } from '../errors';
 
 import {
 	P2PDiscoveredPeerInfo,
@@ -70,11 +65,7 @@ export const EVENT_REQUEST_RECEIVED = 'requestReceived';
 export const EVENT_INVALID_REQUEST_RECEIVED = 'invalidRequestReceived';
 export const EVENT_MESSAGE_RECEIVED = 'messageReceived';
 export const EVENT_INVALID_MESSAGE_RECEIVED = 'invalidMessageReceived';
-export const EVENT_CONNECT_OUTBOUND = 'connectOutbound';
-export const EVENT_CONNECT_ABORT_OUTBOUND = 'connectAbortOutbound';
-export const EVENT_CLOSE_OUTBOUND = 'closeOutbound';
 export const EVENT_CLOSE_INBOUND = 'closeInbound';
-export const EVENT_OUTBOUND_SOCKET_ERROR = 'outboundSocketError';
 export const EVENT_INBOUND_SOCKET_ERROR = 'inboundSocketError';
 
 // Remote event or RPC names sent to or received from peers.
@@ -442,139 +433,3 @@ export interface ConnectAndFetchResponse {
 	readonly responsePacket: P2PResponsePacket;
 	readonly socket: SCClientSocket;
 }
-
-export interface PeerInfoAndOutboundConnection {
-	readonly peerInfo: P2PDiscoveredPeerInfo;
-	readonly socket: SCClientSocket;
-}
-
-export const connectAndRequest = async (
-	basicPeerInfo: P2PPeerInfo,
-	procedure: string,
-	nodeInfo?: P2PNodeInfo,
-	peerConfig?: PeerConfig,
-): Promise<ConnectAndFetchResponse> =>
-	new Promise<ConnectAndFetchResponse>(
-		(resolve, reject): void => {
-			const legacyNodeInfo = nodeInfo
-				? convertNodeInfoToLegacyFormat(nodeInfo)
-				: undefined;
-			// Add a new field discovery to tell the receiving side that the connection will be short lived
-			const requestPacket = {
-				procedure,
-			};
-			// Ideally, we should JSON-serialize the whole NodeInfo object but this cannot be done for compatibility reasons, so instead we put it inside an options property.
-			const clientOptions: ClientOptionsUpdated = {
-				hostname: basicPeerInfo.ipAddress,
-				port: basicPeerInfo.wsPort,
-				query: querystring.stringify({
-					...legacyNodeInfo,
-					options: JSON.stringify(legacyNodeInfo),
-				}),
-				connectTimeout: peerConfig
-					? peerConfig.connectTimeout
-						? peerConfig.connectTimeout
-						: DEFAULT_CONNECT_TIMEOUT
-					: DEFAULT_CONNECT_TIMEOUT,
-				ackTimeout: peerConfig
-					? peerConfig.connectTimeout
-						? peerConfig.connectTimeout
-						: DEFAULT_CONNECT_TIMEOUT
-					: DEFAULT_ACK_TIMEOUT,
-				multiplex: false,
-				autoConnect: false,
-				autoReconnect: false,
-				pingTimeoutDisabled: true,
-			};
-
-			const outboundSocket = socketClusterClient.create(clientOptions);
-			// Bind an error handler immediately after creating the socket; otherwise errors may crash the process
-			// tslint:disable-next-line no-empty
-			outboundSocket.on('error', () => {});
-
-			// tslint:disable-next-line no-let
-			let disconnectStatusCode: number;
-			// tslint:disable-next-line no-let
-			let disconnectReason: string;
-			const closeHandler = (statusCode: number, reason: string) => {
-				disconnectStatusCode = statusCode;
-				disconnectReason = reason;
-			};
-			outboundSocket.once('close', closeHandler);
-
-			// Attaching handlers for various events that could be used future for logging or any other application
-			outboundSocket.emit(
-				REMOTE_EVENT_RPC_REQUEST,
-				{
-					type: '/RPCRequest',
-					procedure: requestPacket.procedure,
-				},
-				(err: Error | undefined, responseData: unknown) => {
-					outboundSocket.off('close', closeHandler);
-					if (err) {
-						const isFailedConnection =
-							disconnectReason &&
-							(err.name === 'TimeoutError' ||
-								err.name === 'BadConnectionError');
-						const connectionError = new PeerOutboundConnectionError(
-							isFailedConnection ? disconnectReason : err.message,
-							disconnectStatusCode,
-						);
-						reject(connectionError);
-
-						return;
-					}
-					if (responseData) {
-						const responsePacket = responseData as P2PResponsePacket;
-						resolve({
-							responsePacket,
-							socket: outboundSocket,
-						});
-
-						return;
-					}
-
-					reject(
-						new RPCResponseError(
-							`Failed to handle response for procedure ${
-								requestPacket.procedure
-							}`,
-							basicPeerInfo.ipAddress,
-							basicPeerInfo.wsPort,
-						),
-					);
-				},
-			);
-		},
-	);
-
-export const connectAndFetchPeerInfo = async (
-	basicPeerInfo: P2PPeerInfo,
-	nodeInfo?: P2PNodeInfo,
-	peerConfig?: PeerConfig,
-): Promise<PeerInfoAndOutboundConnection> => {
-	try {
-		const { responsePacket, socket } = await connectAndRequest(
-			basicPeerInfo,
-			REMOTE_RPC_GET_NODE_INFO,
-			nodeInfo,
-			peerConfig,
-		);
-
-		const protocolPeerInfo = responsePacket.data;
-		const rawPeerInfo = {
-			...protocolPeerInfo,
-			ip: basicPeerInfo.ipAddress,
-			wsPort: basicPeerInfo.wsPort,
-		};
-		const peerInfo = validatePeerInfo(rawPeerInfo);
-
-		return { peerInfo, socket };
-	} catch (error) {
-		throw new FetchPeerStatusError(
-			`Error occurred while fetching information from ${
-				basicPeerInfo.ipAddress
-			}:${basicPeerInfo.wsPort}`,
-		);
-	}
-};
