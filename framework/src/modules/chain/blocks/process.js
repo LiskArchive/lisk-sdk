@@ -58,6 +58,7 @@ const processBlock = async ({
 		exceptions,
 		normalizedBlock,
 		lastBlock,
+		block,
 	});
 	if (!verified) {
 		throw errors;

@@ -58,10 +58,10 @@ const checkExists = async (storage, block) => {
  * @returns {Object} cb.err - Error if occurred
  */
 const checkTransactions = async (storage, slots, block, exceptions) => {
+	const { version, height, timestamp, transactions } = block;
 	if (transactions.length === 0) {
 		return;
 	}
-	const { version, height, timestamp, transactions } = block;
 	const context = {
 		blockVersion: version,
 		blockHeight: height,
@@ -436,7 +436,7 @@ const verifyReceipt = ({
 	result = verifyAgainstLastNBlockIds(block, lastNBlockIds, result);
 	result = verifyBlockSlotWindow(slots, blockSlotWindow, block, result);
 	result = verifyVersion(block, exceptions, result);
-	result = verifyReward(blockReward, block, result);
+	result = verifyReward(blockReward, block, exceptions, result);
 	result = verifyId(block, result);
 	result = verifyPayload(
 		block,
@@ -476,7 +476,7 @@ const verifyBlock = ({
 	result = verifySignature(block, result);
 	result = verifyPreviousBlock(block, result);
 	result = verifyVersion(block, exceptions, result);
-	result = verifyReward(blockReward, block, result);
+	result = verifyReward(blockReward, block, exceptions, result);
 	result = verifyId(block, result);
 	result = verifyPayload(
 		block,
@@ -545,6 +545,11 @@ const requireBlockRewind = async ({
 	transactionManager,
 	genesisBlock,
 	currentBlock,
+	delegatesModule,
+	maxTransactionsPerBlock,
+	maxPayloadLength,
+	blockReward,
+	exceptions,
 }) => {
 	const currentHeight = currentBlock.height;
 	const currentRound = slots.calcRound(currentHeight);
@@ -560,6 +565,12 @@ const requireBlockRewind = async ({
 	const currentBlockResult = verifyBlock({
 		block: currentBlock,
 		lastBlock: secondLastBlock,
+		slots,
+		delegatesModule,
+		maxTransactionsPerBlock,
+		maxPayloadLength,
+		blockReward,
+		exceptions,
 	});
 	if (currentBlockResult.verified) {
 		return false;
@@ -579,6 +590,12 @@ const requireBlockRewind = async ({
 	const startBlockResult = verifyBlock({
 		block: startBlock,
 		lastBlock: startBlockLastBlock,
+		slots,
+		delegatesModule,
+		maxTransactionsPerBlock,
+		maxPayloadLength,
+		blockReward,
+		exceptions,
 	});
 	if (!startBlockResult.verified) {
 		throw new Error(
@@ -589,11 +606,30 @@ const requireBlockRewind = async ({
 	return true;
 };
 
-const normalizeAndVerify = async ({ block, exceptions, delegatesModule }) => {
+const normalizeAndVerify = async ({
+	block,
+	exceptions,
+	delegatesModule,
+	slots,
+	blockSlotWindow,
+	maxTransactionsPerBlock,
+	maxPayloadLength,
+	blockReward,
+	lastNBlockIds,
+	lastBlock,
+}) => {
 	const normalizedBlock = blocksLogic.objectNormalize(block, exceptions);
 	await validateBlockSlot(delegatesModule, normalizedBlock);
 	return verifyReceipt({
 		block: normalizedBlock,
+		exceptions,
+		slots,
+		blockSlotWindow,
+		maxTransactionsPerBlock,
+		maxPayloadLength,
+		blockReward,
+		lastNBlockIds,
+		lastBlock,
 	});
 };
 

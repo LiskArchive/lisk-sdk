@@ -26,7 +26,7 @@ const slots = require('./helpers/slots.js');
 // Private fields
 let modules;
 
-const { ACTIVE_DELEGATES } = global.constants;
+const { ACTIVE_DELEGATES, MAX_TRANSACTIONS_PER_BLOCK } = global.constants;
 
 /**
  * Gets the assigned delegate to current slot and returns its keypair if present.
@@ -291,7 +291,7 @@ class Forger {
 	// eslint-disable-next-line class-methods-use-this
 	forge(cb) {
 		const currentSlot = slots.getSlotNumber();
-		const lastBlock = modules.blocks.lastBlock.get();
+		const lastBlock = modules.blocks.lastBlock;
 
 		if (currentSlot === slots.getSlotNumber(lastBlock.timestamp)) {
 			this.logger.debug('Block already forged for the current slot');
@@ -328,22 +328,19 @@ class Forger {
 					`Broadhash consensus before forging a block: ${modules.peers.getLastConsensus()} %`
 				);
 
-				return modules.blocks.process.generateBlock(
-					delegateKeypair,
-					slots.getSlotTime(currentSlot),
-					blockGenerationErr => {
-						if (blockGenerationErr) {
-							this.logger.error(
-								'Failed to generate block within delegate slot',
-								blockGenerationErr
-							);
+				const transactions =
+					modules.transactionPool.getUnconfirmedTransactionList(
+						false,
+						MAX_TRANSACTIONS_PER_BLOCK
+					) || [];
 
-							return setImmediate(cb);
-						}
-
-						const forgedBlock = modules.blocks.lastBlock.get();
-						modules.blocks.lastReceipt.update();
-
+				return modules.blocks
+					.generateBlock(
+						delegateKeypair,
+						slots.getSlotTime(currentSlot),
+						transactions
+					)
+					.then(forgedBlock => {
 						this.logger.info(
 							`Forged new block id: ${forgedBlock.id} height: ${
 								forgedBlock.height
@@ -355,8 +352,14 @@ class Forger {
 						);
 
 						return setImmediate(cb);
-					}
-				);
+					})
+					.catch(error => {
+						this.logger.error(
+							error,
+							'Failed to generate block within delegate slot'
+						);
+						return setImmediate(cb);
+					});
 			})
 			.catch(getDelegateKeypairForCurrentSlotError => {
 				this.logger.error(

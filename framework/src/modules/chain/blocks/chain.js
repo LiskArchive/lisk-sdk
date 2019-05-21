@@ -192,9 +192,10 @@ const applyBlock = async (
 	exceptions,
 	shouldSave
 ) => {
-	const tx = await storage.entities.Block.begin('Chain:applyBlock');
-	await applyConfirmedStep(storage, slots, block, exceptions, tx);
-	await saveBlockStep(storage, roundsModule, block, shouldSave, tx);
+	await storage.entities.Block.begin('Chain:applyBlock', async tx => {
+		await applyConfirmedStep(storage, slots, block, exceptions, tx);
+		await saveBlockStep(storage, roundsModule, block, shouldSave, tx);
+	});
 };
 
 /**
@@ -385,17 +386,18 @@ const deleteLastBlock = async (storage, roundsModule, slots, lastBlock) => {
  * @returns {Object} cb.obj - New last block
  */
 const popLastBlock = async (storage, roundsModule, slots, oldLastBlock) => {
-	const tx = await storage.entities.Block.begin('Chain:deleteBlock');
-	const secondLastBlock = await loadSecondLastBlock(
-		storage,
-		oldLastBlock.previousBlock,
-		tx
-	);
-	await undoConfirmedStep(storage, slots, oldLastBlock, tx);
-	await backwardTickStep(roundsModule, secondLastBlock, tx);
-	await deleteBlock(storage, oldLastBlock.id, tx);
-	// TODO: recover this
-	// library.bus.message('deleteBlock', oldLastBlock);
+	let secondLastBlock;
+	await storage.entities.Block.begin('Chain:deleteBlock', async tx => {
+		secondLastBlock = await loadSecondLastBlock(
+			storage,
+			oldLastBlock.previousBlock,
+			tx
+		);
+		await undoConfirmedStep(storage, slots, oldLastBlock, tx);
+		await backwardTickStep(roundsModule, secondLastBlock, tx);
+		await deleteBlock(storage, oldLastBlock.id, tx);
+	});
+	return secondLastBlock;
 };
 
 module.exports = {

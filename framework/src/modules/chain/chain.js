@@ -258,7 +258,7 @@ module.exports = class Chain {
 				syncing: this.loader.syncing(),
 				unconfirmedTransactions: this.transactionPool.getCount(),
 				secondsSinceEpoch: this.slots.getTime(),
-				lastBlock: this.scope.modules.blocks.lastBlock.get(),
+				lastBlock: this.scope.modules.blocks.lastBlock,
 			}),
 			blocks: async action =>
 				promisify(this.scope.modules.transport.shared.blocks)(
@@ -320,6 +320,8 @@ module.exports = class Chain {
 			interval: this.options.constants.BLOCK_TIME,
 			blocksPerRound: this.options.constants.ACTIVE_DELEGATES,
 		});
+		const { Delegates } = require('./submodules/delegates');
+		this.scope.modules.delegates = new Delegates(this.scope);
 		this.blocks = new Blocks({
 			logger: this.logger,
 			storage: this.storage,
@@ -362,13 +364,11 @@ module.exports = class Chain {
 		// TODO: Global variable forbits to require on top
 		const Loader = require('./loader');
 		const { Forger } = require('./forger');
-		const { Delegates } = require('./submodules/delegates');
 		const Transport = require('./transport');
 		this.loader = new Loader(this.scope);
 		this.forger = new Forger(this.scope);
 		this.transport = new Transport(this.scope);
 		// TODO: should not add to scope
-		this.scope.modules.delegates = new Delegates(this.scope);
 		this.scope.modules.loader = this.loader;
 		this.scope.modules.forger = this.forger;
 		this.scope.modules.transport = this.transport;
@@ -384,14 +384,11 @@ module.exports = class Chain {
 			this.logger.info(
 				{
 					syncing: this.loader.isActive(),
-					lastReceipt: this.scope.modules.blocks.lastReceipt.get(),
+					lastReceipt: this.scope.modules.blocks.lastReceipt,
 				},
 				'Sync time triggered'
 			);
-			if (
-				!this.loader.isActive() &&
-				this.scope.modules.blocks.lastReceipt.isStale()
-			) {
+			if (!this.loader.isActive() && this.scope.modules.blocks.isStale()) {
 				this.scope.sequence.add(
 					sequenceCB => {
 						this.loader.sync(sequenceCB);

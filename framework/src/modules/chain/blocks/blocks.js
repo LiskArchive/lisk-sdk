@@ -74,6 +74,7 @@ class Blocks extends EventEmitter {
 		};
 
 		this._broadhash = genesisBlock.payloadHash;
+		this._lastNBlockIds = [];
 		this._lastBlock = {};
 		this._isActive = false;
 		this._lastReceipt = null;
@@ -108,11 +109,6 @@ class Blocks extends EventEmitter {
 		// Current time in seconds - lastReceipt (seconds)
 		const secondsAgo = Math.floor(Date.now() / 1000) - this._lastReceipt;
 		return secondsAgo > this.constants.blockReceiptTimeout;
-	}
-
-	updateLastReceipt() {
-		this._lastReceipt = Math.floor(Date.now() / 1000);
-		return this._lastReceipt;
 	}
 
 	async init() {
@@ -229,11 +225,15 @@ class Blocks extends EventEmitter {
 			return;
 		}
 		const recoverRequired = await blocksVerify.requireBlockRewind({
+			...this.constants,
 			storage: this.storage,
 			slots: this.slots,
 			transactionManager: this.transactionManager,
 			genesisBlock: this.genesisBlock,
-			currentBlock: this._lastBlock || this.genesisBlock,
+			currentBlock: this._lastBlock,
+			delegatesModule: this.delegatesModule,
+			blockReward: this.blockReward,
+			exceptions: this.exceptions,
 		});
 		if (recoverRequired) {
 			this.logger.error('Invalid own blockchain');
@@ -248,7 +248,7 @@ class Blocks extends EventEmitter {
 				roundsModule: this.roundsModule,
 				slots: this.slots,
 				transactionManager: this.transactionManager,
-				genesisBlock: this.generateBlock,
+				genesisBlock: this.genesisBlock,
 				delegatesModule: this.delegatesModule,
 				blockReward: this.blockReward,
 				exceptions: this.exceptions,
@@ -269,7 +269,7 @@ class Blocks extends EventEmitter {
 			this._isActive = true;
 			// set active to true
 			if (blocksVerify.isSaneBlock(block, this._lastBlock)) {
-				this.updateLastReceipt();
+				this._updateLastReceipt();
 				try {
 					const newBlock = await this._processBlock(
 						block,
@@ -332,12 +332,17 @@ class Blocks extends EventEmitter {
 					this._isActive = false;
 					return;
 				}
-				this.updateLastReceipt();
+				this._updateLastReceipt();
 				try {
 					const { verified, errors } = blocksVerify.normalizeAndVerify({
+						...this.constants,
 						block,
+						lastBlock: this._lastBlock,
 						exceptions: this.exceptions,
 						delegatesModule: this.delegatesModule,
+						slots: this.slots,
+						blockReward: this.blockReward,
+						lastNBlockIds: this._lastNBlockIds,
 					});
 					if (!verified) {
 						throw errors;
@@ -397,27 +402,34 @@ class Blocks extends EventEmitter {
 	async generateBlock(keypair, timestamp, transactions = []) {
 		this._shouldNotBeActive();
 		this._isActive = true;
-		const block = await blocksProcess.generateBlock({
-			keypair,
-			timestamp,
-			transactions,
-			lastBlock: this._lastBlock,
-			storage: this.storage,
-			exceptions: this.exceptions,
-			slots: this.slots,
-			maxPayloadLength: this.maxPayloadLength,
-			blockReward: this.blockReward,
-		});
-		this._lastBlock = await this._processBlock(
-			block,
-			this._lastBlock,
-			validBlock => this.broadcast(validBlock)
-		)();
+		try {
+			const block = await blocksProcess.generateBlock({
+				keypair,
+				timestamp,
+				transactions,
+				lastBlock: this._lastBlock,
+				storage: this.storage,
+				exceptions: this.exceptions,
+				slots: this.slots,
+				maxPayloadLength: this.maxPayloadLength,
+				blockReward: this.blockReward,
+			});
+			this._lastBlock = await this._processBlock(
+				block,
+				this._lastBlock,
+				validBlock => this.broadcast(validBlock)
+			)();
+		} catch (error) {
+			this._isActive = false;
+			throw error;
+		}
 		await this._updateBroadhash();
 		// emit event
+		this._updateLastReceipt();
 		this._updateLastNBlocks(this._lastBlock);
 		this.emit(EVENT_NEW_BLOCK, { block: this._lastBlock });
 		this._isActive = false;
+		return this._lastBlock;
 	}
 
 	async _rebuildMode(rebuildUpToRound, blocksCount) {
@@ -450,10 +462,15 @@ class Blocks extends EventEmitter {
 	}
 
 	_updateLastNBlocks(block) {
-		this.lastNBlockIds.push(block.id);
-		if (this.lastNBlockIds.length > this.blockSlotWindow) {
-			this.lastNBlockIds.shift();
+		this._lastNBlockIds.push(block.id);
+		if (this._lastNBlockIds.length > this.blockSlotWindow) {
+			this._lastNBlockIds.shift();
 		}
+	}
+
+	_updateLastReceipt() {
+		this._lastReceipt = Math.floor(Date.now() / 1000);
+		return this._lastReceipt;
 	}
 
 	async _updateBroadhash() {

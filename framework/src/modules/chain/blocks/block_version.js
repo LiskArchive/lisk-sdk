@@ -41,7 +41,7 @@ const isValid = (version, height, exceptions) => {
 
 	if (exceptionVersion === undefined) {
 		// If there is no exception for provided height - check against current block version
-		return version === this.currentBlockVersion;
+		return version === currentBlockVersion;
 	}
 
 	// If there is an exception - check if version match
