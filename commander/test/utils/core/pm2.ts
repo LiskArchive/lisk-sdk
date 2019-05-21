@@ -135,11 +135,11 @@ describe('pm2 node utils', () => {
 			return expect(appDesc.name).to.deep.equal('testnet');
 		});
 
-		it('should return false when the application does not exists', async () => {
+		it('should return undefined when the application does not exists', async () => {
 			describeStub.yields('process does not exists', null);
 			const instance = await describeApplication('testnet');
 
-			return expect(instance).to.equal(false);
+			return expect(instance).to.equal(undefined);
 		});
 	});
 });
