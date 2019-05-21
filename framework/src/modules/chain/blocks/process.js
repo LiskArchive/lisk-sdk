@@ -216,7 +216,7 @@ const reload = async ({
 	blockReward,
 }) => {
 	await storage.entities.Account.resetMemTables();
-	await rebuild({
+	const lastBlock = await rebuild({
 		currentHeight: 0,
 		targetHeight,
 		isCleaning,
@@ -233,6 +233,7 @@ const reload = async ({
 		maxPayloadLength,
 		blockReward,
 	});
+	return lastBlock;
 };
 
 // loadBlockOffset until, count < offset, offset += limit
@@ -274,7 +275,7 @@ const rebuild = async ({
 	// eslint-disable-next-line no-restricted-syntax
 	for (const block of blocks) {
 		if (isCleaning()) {
-			return;
+			return lastBlock;
 		}
 		if (block.id === genesisBlock.id) {
 			// eslint-disable-next-line no-await-in-loop
@@ -323,6 +324,7 @@ const rebuild = async ({
 			blockReward,
 		});
 	}
+	return lastBlock;
 };
 
 /**
@@ -379,6 +381,7 @@ const recoverInvalidOwnChain = async ({
 			exceptions,
 		});
 	}
+	return newLastBlock;
 };
 
 module.exports = {

@@ -77,8 +77,8 @@ const saveBlock = async (storage, block, tx) => {
 	}
 	// Prepare and execute SQL transaction
 	// WARNING: DB_WRITE
-	return storage.entities.Block.begin('Chain:saveBlock', t => {
-		saveBlockBatch(t);
+	return storage.entities.Block.begin('Chain:saveBlock', async t => {
+		await saveBlockBatch(storage, parsedBlock, t);
 	});
 };
 
@@ -172,6 +172,7 @@ const applyGenesisBlock = async (
 			return resolve();
 		});
 	});
+	return block;
 };
 
 /**

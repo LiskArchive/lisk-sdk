@@ -170,8 +170,13 @@ class Blocks extends EventEmitter {
 	async loadBlockChain(rebuildUpToRound) {
 		this._shouldNotBeActive();
 		this._isActive = true;
+		await blocksChain.saveGenesisBlock(
+			this.storage,
+			this.transactionManager,
+			this.genesisBlock
+		);
 		// check mem tables
-		const { blockCount, genesisBlock, memRounds } = await new Promise(
+		const { blocksCount, genesisBlock, memRounds } = await new Promise(
 			(resolve, reject) => {
 				this.storage.entities.Block.begin('loader:checkMemTables', async tx => {
 					try {
@@ -183,8 +188,8 @@ class Blocks extends EventEmitter {
 				});
 			}
 		);
-		if (blockCount === 1) {
-			this._lastBlock = await this._reload(blockCount)();
+		if (blocksCount === 1) {
+			this._lastBlock = await this._reload(blocksCount)();
 			this._isActive = false;
 			return;
 		}
@@ -192,7 +197,7 @@ class Blocks extends EventEmitter {
 		blocksVerify.matchGenesisBlock(this.genesisBlock, genesisBlock);
 		// rebuild accounts if it's rebuild
 		if (rebuildUpToRound !== null && rebuildUpToRound !== undefined) {
-			await this._rebuildMode(rebuildUpToRound, blockCount);
+			await this._rebuildMode(rebuildUpToRound, blocksCount);
 			this._isActive = false;
 			return;
 		}
@@ -201,28 +206,38 @@ class Blocks extends EventEmitter {
 			await blocksVerify.reloadRequired(
 				this.storage,
 				this.slots,
-				blockCount,
+				blocksCount,
 				memRounds
 			);
 		} catch (error) {
 			this.logger.error(error, 'Reload of blockchain is required');
-			this._lastBlock = await this._reload(blockCount)();
+			this._lastBlock = await this._reload(blocksCount)();
 			this._isActive = false;
 			return;
 		}
 		try {
-			this._lastBlock = await blocksUtils.loadLastBlock();
+			this._lastBlock = await blocksUtils.loadLastBlock(
+				this.storage,
+				this.transactionManager,
+				this.genesisBlock
+			);
 		} catch (error) {
 			this.logger.error(error, 'Failed to fetch last block');
 			// This is last attempt
-			this._lastBlock = await this._reload(blockCount)();
+			this._lastBlock = await this._reload(blocksCount)();
 			this._isActive = false;
 			return;
 		}
-		const recoverRequired = await blocksVerify.requireBlockRewind();
+		const recoverRequired = await blocksVerify.requireBlockRewind({
+			storage: this.storage,
+			slots: this.slots,
+			transactionManager: this.transactionManager,
+			genesisBlock: this.genesisBlock,
+			currentBlock: this._lastBlock || this.genesisBlock,
+		});
 		if (recoverRequired) {
 			this.logger.error('Invalid own blockchain');
-			await blocksProcess.recoverInvalidOwnChain({
+			this._lastBlock = await blocksProcess.recoverInvalidOwnChain({
 				...this.constants,
 				lastBlock: this._lastBlock,
 				onDelete: (lastBlock, newLastBlock) => {
@@ -405,12 +420,12 @@ class Blocks extends EventEmitter {
 		this._isActive = false;
 	}
 
-	async _rebuildMode(rebuildUpToRound, blockCount) {
+	async _rebuildMode(rebuildUpToRound, blocksCount) {
 		this.logger.info(
-			{ rebuildUpToRound, blockCount },
+			{ rebuildUpToRound, blocksCount },
 			'Rebuild process started'
 		);
-		if (blockCount < this.activeDelegates) {
+		if (blocksCount < this.activeDelegates) {
 			throw new Error(
 				'Unable to rebuild, blockchain should contain at least one round of blocks'
 			);
@@ -457,15 +472,18 @@ class Blocks extends EventEmitter {
 		}
 	}
 
-	_reload(blockCount) {
+	_reload(blocksCount) {
 		return async () =>
 			blocksProcess.reload({
 				...this.constants,
-				targetHeight: blockCount,
+				targetHeight: blocksCount,
 				isCleaning: () => this._cleaning,
 				onProgress: block => {
 					this._lastBlock = block;
-					this.logger.info({ block }, 'Rebuilding block');
+					this.logger.info(
+						{ blockId: block.id, height: block.height },
+						'Rebuilding block'
+					);
 				},
 				transactionManager: this.transactionManager,
 				storage: this.storage,
