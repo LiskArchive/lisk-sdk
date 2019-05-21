@@ -18,14 +18,10 @@ const domain = require('domain');
 
 const modulesList = {
 	blocks: '../submodules/blocks',
-	delegates: '../submodules/delegates',
 	rounds: '../submodules/rounds',
-	loader: '../submodules/loader',
 	multisignatures: '../submodules/multisignatures',
 	peers: '../submodules/peers',
-	signatures: '../submodules/signatures',
 	transactions: '../submodules/transactions',
-	transport: '../submodules/transport',
 	processTransactions: '../submodules/process_transactions',
 };
 

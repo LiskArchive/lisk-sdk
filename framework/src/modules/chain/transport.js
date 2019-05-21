@@ -17,22 +17,20 @@
 const { TransactionError } = require('@liskhq/lisk-transactions');
 const async = require('async');
 const _ = require('lodash');
-const { convertErrorsToString } = require('../helpers/error_handlers');
+const { convertErrorsToString } = require('./helpers/error_handlers');
 // eslint-disable-next-line prefer-const
-let Broadcaster = require('../logic/broadcaster');
-const definitions = require('../schema/definitions');
-const processTransactionLogic = require('../logic/process_transaction');
+let Broadcaster = require('./logic/broadcaster');
+const definitions = require('./schema/definitions');
+const processTransactionLogic = require('./logic/process_transaction');
 
 const { MAX_SHARED_TRANSACTIONS } = global.constants;
 
 // Private fields
 let modules;
 let library;
-let self;
 // eslint-disable-next-line prefer-const
 let __private = {};
 
-__private.loaded = false;
 __private.messages = {};
 
 /**
@@ -52,7 +50,7 @@ __private.messages = {};
  * @returns {setImmediateCallback} cb, null, self
  */
 class Transport {
-	constructor(cb, scope) {
+	constructor(scope) {
 		library = {
 			channel: scope.channel,
 			logger: scope.components.logger,
@@ -74,21 +72,18 @@ class Transport {
 			},
 			applicationState: scope.applicationState,
 		};
-		self = this;
 
 		__private.broadcaster = new Broadcaster(
 			scope.config.nonce,
 			scope.config.broadcasts,
 			scope.config.forging.force,
-			scope.logic.initTransaction,
+			scope.logic.transactionPool,
 			scope.components.logger,
 			scope.channel,
 			scope.components.storage
 		);
 
 		this.shared = this.attachSharedMethods();
-
-		setImmediate(cb, null, self);
 	}
 
 	/**
@@ -100,26 +95,11 @@ class Transport {
 	onBind(scope) {
 		modules = {
 			blocks: scope.modules.blocks,
-			dapps: scope.modules.dapps,
 			loader: scope.modules.loader,
 			multisignatures: scope.modules.multisignatures,
-			peers: scope.modules.peers,
-			transactions: scope.modules.transactions,
 			processTransactions: scope.modules.processTransactions,
+			transactions: scope.modules.transactions,
 		};
-
-		__private.broadcaster.bind(
-			scope.modules.transport,
-			scope.modules.transactions
-		);
-	}
-
-	/**
-	 * Sets private variable loaded to true.
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	onBlockchainReady() {
-		__private.loaded = true;
 	}
 
 	/**
@@ -178,6 +158,7 @@ class Transport {
 	 * @param {boolean} broadcast - Signal flag for broadcast
 	 * @emits blocks/change
 	 */
+	// TODO: Remove after block module becomes event-emitter
 	// eslint-disable-next-line class-methods-use-this
 	onBroadcastBlock(block, broadcast) {
 		// Exit immediately when 'broadcast' flag is not set
@@ -225,29 +206,6 @@ class Transport {
 			},
 			{ api: 'postBlock', data: { block } }
 		);
-	}
-
-	/**
-	 * Sets loaded to false.
-	 *
-	 * @param {function} cb - Callback function
-	 * @returns {setImmediateCallback} cb
-	 * @todo Add description for the params
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	cleanup() {
-		__private.loaded = false;
-	}
-
-	/**
-	 * Returns true if modules are loaded and private variable loaded is true.
-	 *
-	 * @returns {boolean}
-	 * @todo Add description for the return value
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	isLoaded() {
-		return modules && __private.loaded;
 	}
 
 	/**
@@ -389,7 +347,7 @@ class Transport {
 							return setImmediate(cb, null, {
 								blocks: [],
 								message: err,
-								sucess: false,
+								success: false,
 							});
 						}
 
@@ -447,11 +405,16 @@ class Transport {
 
 							// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 						}
-
-						if (success) {
-							library.bus.message('receiveBlock', block);
+						// TODO: endpoint should be protected before
+						if (modules.loader.syncing()) {
+							return library.logger.debug(
+								"Client is syncing. Can't receive block at the moment.",
+								block.id
+							);
 						}
-
+						if (success) {
+							return modules.blocks.process.receiveBlockFromNetwork(block);
+						}
 						return null;
 					}
 				);
@@ -571,7 +534,7 @@ class Transport {
 						if (err) {
 							return setImmediate(cb, null, {
 								success: false,
-								message: 'Invalid transaction body',
+								message: err.message || 'Invalid transaction body',
 								errors: err,
 							});
 						}

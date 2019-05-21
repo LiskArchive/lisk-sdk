@@ -31,6 +31,8 @@ import {
 } from './peer';
 
 import {
+	FORBIDDEN_CONNECTION,
+	FORBIDDEN_CONNECTION_REASON,
 	INCOMPATIBLE_PEER_CODE,
 	INCOMPATIBLE_PEER_UNKNOWN_REASON,
 	INVALID_CONNECTION_QUERY_CODE,
@@ -366,6 +368,22 @@ export class P2P extends EventEmitter {
 		this._scServer.on(
 			'connection',
 			(socket: SCServerSocket): void => {
+				// Check blacklist to avoid incoming connections from backlisted ips
+				if (this._config.blacklistedPeers) {
+					const blacklist = this._config.blacklistedPeers.map(
+						peer => peer.ipAddress,
+					);
+					if (blacklist.includes(socket.remoteAddress)) {
+						this._disconnectSocketDueToFailedHandshake(
+							socket,
+							FORBIDDEN_CONNECTION,
+							FORBIDDEN_CONNECTION_REASON,
+						);
+
+						return;
+					}
+				}
+
 				if (!socket.request.url) {
 					this._disconnectSocketDueToFailedHandshake(
 						socket,
@@ -534,17 +552,15 @@ export class P2P extends EventEmitter {
 		this._peerPool.selectPeersAndConnect([...this._newPeers.values()]);
 	}
 
-	private async _startDiscovery(
-		knownPeers: ReadonlyArray<P2PDiscoveredPeerInfo> = [],
-	): Promise<void> {
+	private async _startDiscovery(): Promise<void> {
 		if (this._discoveryIntervalId) {
 			throw new Error('Discovery is already running');
 		}
 		this._discoveryIntervalId = setInterval(async () => {
-			await this._discoverPeers(knownPeers);
+			await this._discoverPeers([...this._triedPeers.values()]);
 		}, this._discoveryInterval);
 
-		await this._discoverPeers(knownPeers);
+		await this._discoverPeers([...this._triedPeers.values()]);
 	}
 
 	private _stopDiscovery(): void {
@@ -625,7 +641,7 @@ export class P2P extends EventEmitter {
 			}
 		});
 
-		await this._startDiscovery(seedPeerInfos);
+		await this._startDiscovery();
 	}
 
 	public async stop(): Promise<void> {

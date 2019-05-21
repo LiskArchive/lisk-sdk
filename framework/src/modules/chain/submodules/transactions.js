@@ -18,7 +18,6 @@ const _ = require('lodash');
 const async = require('async');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const { CACHE_KEYS_TRANSACTION_COUNT } = require('../../../components/cache');
-const TransactionPool = require('../logic/transaction_pool');
 
 // Private fields
 const __private = {};
@@ -58,13 +57,7 @@ class Transactions {
 
 		self = this;
 
-		__private.transactionPool = new TransactionPool(
-			scope.config.broadcasts.broadcastInterval,
-			scope.config.broadcasts.releaseLimit,
-			scope.components.logger,
-			scope.config,
-			scope.bus
-		);
+		__private.transactionPool = scope.logic.transactionPool;
 
 		this.shared = this.attachSharedMethods();
 
@@ -313,6 +306,35 @@ class Transactions {
 	}
 
 	/**
+	 * Gets validated transactions based on limit and reverse option.
+	 *
+	 * @param {boolean} reverse - Reverse order of results
+	 * @param {number} limit - Limit applied to results
+	 * @returns {function} Calls transactionPool.getQueuedTransactionList
+	 * @todo Add description for the params
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	getValidatedTransactionList(reverse, limit) {
+		return __private.transactionPool.getValidatedTransactionList(
+			reverse,
+			limit
+		);
+	}
+
+	/**
+	 * Gets validated transactions based on limit and reverse option.
+	 *
+	 * @param {boolean} reverse - Reverse order of results
+	 * @param {number} limit - Limit applied to results
+	 * @returns {function} Calls transactionPool.getQueuedTransactionList
+	 * @todo Add description for the params
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	getReceivedTransactionList(reverse, limit) {
+		return __private.transactionPool.getReceivedTransactionList(reverse, limit);
+	}
+
+	/**
 	 * Search transactions based on the query parameter passed.
 	 *
 	 * @param {Object} filters - Filters applied to results
@@ -428,15 +450,7 @@ class Transactions {
 			cache: scope.components ? scope.components.cache : undefined,
 		};
 
-		modules = {
-			accounts: scope.modules.accounts,
-			transport: scope.modules.transport,
-		};
-
-		__private.transactionPool.bind(
-			scope.modules.processTransactions,
-			scope.modules.loader
-		);
+		__private.transactionPool.bind(scope.modules.processTransactions);
 	}
 
 	// Shared API
@@ -462,7 +476,7 @@ class Transactions {
 				async.waterfall(
 					[
 						function getConfirmedCountFromCache(waterCb) {
-							if (components.cache) {
+							if (components.cache.cacheReady) {
 								return components.cache
 									.getJsonForKey(CACHE_KEYS_TRANSACTION_COUNT)
 									.then(data => {
@@ -497,7 +511,7 @@ class Transactions {
 								// Cache already persisted, no need to set cache again
 								return setImmediate(waterCb, null, cachedCount);
 							}
-							if (components.cache) {
+							if (components.cache.cacheReady) {
 								return components.cache
 									.setJsonForKey(CACHE_KEYS_TRANSACTION_COUNT, {
 										confirmed: dbCount,
@@ -515,12 +529,15 @@ class Transactions {
 						function getAllCount(confirmedTransactionCount, waterCb) {
 							setImmediate(waterCb, null, {
 								confirmed: confirmedTransactionCount,
-								unconfirmed:
-									__private.transactionPool.getCountByQueue('ready') || 0,
-								unprocessed:
+								ready: __private.transactionPool.getCountByQueue('ready') || 0,
+								verified:
 									__private.transactionPool.getCountByQueue('verified') || 0,
-								unsigned:
+								pending:
 									__private.transactionPool.getCountByQueue('pending') || 0,
+								validated:
+									__private.transactionPool.getCountByQueue('validated') || 0,
+								received:
+									__private.transactionPool.getCountByQueue('received') || 0,
 							});
 						},
 					],
@@ -539,9 +556,11 @@ class Transactions {
 
 						result.total =
 							result.confirmed +
-							result.unconfirmed +
-							result.unprocessed +
-							result.unsigned;
+							result.ready +
+							result.verified +
+							result.validated +
+							result.pending +
+							result.received;
 
 						return setImmediate(cb, null, result);
 					}
@@ -557,40 +576,14 @@ class Transactions {
 			 */
 			getTransactionsFromPool(type, filters, cb) {
 				const typeMap = {
-					unprocessed: 'getQueuedTransactionList',
-					unconfirmed: 'getUnconfirmedTransactionList',
-					unsigned: 'getMultisignatureTransactionList',
+					pending: 'getMultisignatureTransactionList',
+					ready: 'getUnconfirmedTransactionList',
+					received: 'getReceivedTransactionList',
+					validated: 'getValidatedTransactionList',
+					verified: 'getQueuedTransactionList',
 				};
 
 				return __private.getPooledTransactions(typeMap[type], filters, cb);
-			},
-
-			/**
-			 * Description of postTransaction.
-			 *
-			 * @todo Add @param tags
-			 * @todo Add @returns tag
-			 * @todo Add description of the function
-			 */
-			postTransaction(transaction, cb) {
-				return modules.transport.shared.postTransaction(
-					{ transaction },
-					(err, res) => setImmediate(cb, err, res)
-				);
-			},
-
-			/**
-			 * Description of postTransactions.
-			 *
-			 * @todo Add @param tags
-			 * @todo Add @returns tag
-			 * @todo Add description of the function
-			 */
-			postTransactions(transactions, cb) {
-				return modules.transport.shared.postTransactions(
-					{ transactions },
-					(err, res) => setImmediate(cb, err, res)
-				);
 			},
 		};
 	}

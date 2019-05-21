@@ -17,28 +17,22 @@
 const async = require('async');
 const { promisify } = require('util');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
-const { convertErrorsToString } = require('../helpers/error_handlers');
-const jobsQueue = require('../helpers/jobs_queue');
-const slots = require('../helpers/slots');
-const definitions = require('../schema/definitions');
-require('colors');
+const { convertErrorsToString } = require('./helpers/error_handlers');
+const slots = require('./helpers/slots');
+const definitions = require('./schema/definitions');
 
 // Private fields
 let components;
 let modules;
 let library;
-let self;
 const { ACTIVE_DELEGATES } = global.constants;
 const __private = {};
 
-__private.loaded = false;
 __private.isActive = false;
 __private.lastBlock = null;
 __private.genesisBlock = null;
 __private.total = 0;
 __private.blocksToSync = 0;
-__private.syncIntervalId = null;
-__private.syncInterval = 10000;
 __private.retries = 5;
 
 /**
@@ -57,21 +51,16 @@ __private.retries = 5;
  * @returns {setImmediateCallback} cb, null, self
  */
 class Loader {
-	constructor(cb, scope) {
+	constructor(scope) {
 		library = {
 			channel: scope.channel,
 			logger: scope.components.logger,
 			storage: scope.components.storage,
-			network: scope.network,
 			schema: scope.schema,
 			sequence: scope.sequence,
 			bus: scope.bus,
 			genesisBlock: scope.genesisBlock,
 			balancesSequence: scope.balancesSequence,
-			logic: {
-				account: scope.logic.account,
-				peers: scope.logic.peers,
-			},
 			config: {
 				loading: {
 					loadPerIteration: scope.config.loading.loadPerIteration,
@@ -82,18 +71,8 @@ class Loader {
 				},
 			},
 		};
-		self = this;
-
-		__private.initialize();
 		__private.lastBlock = library.genesisBlock;
 		__private.genesisBlock = library.genesisBlock;
-
-		// On App Ready
-		library.channel.once('network:bootstrap', () => {
-			self.onNetworkReady();
-		});
-
-		setImmediate(cb, null, self);
 	}
 
 	/**
@@ -103,7 +82,7 @@ class Loader {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	syncing() {
-		return !!__private.syncIntervalId;
+		return !!__private.isActive;
 	}
 
 	/**
@@ -117,73 +96,355 @@ class Loader {
 	}
 
 	/**
-	 * Checks private constant loaded.
+	 * Checks private constant active.
 	 *
 	 * @returns {boolean} False if not loaded
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	loaded() {
-		return !!__private.loaded;
+	isActive() {
+		return !!__private.isActive;
 	}
 
-	// Events
 	/**
-	 * Pulls Transactions and signatures.
+	 * Loads blockchain upon application start:
+	 * 1. Checks mem tables:
+	 * - count blocks from `blocks` table
+	 * - get genesis block from `blocks` table
+	 * - count accounts from `mem_accounts` table by block id
+	 * - get rounds from `mem_round`
+	 * 2. Matches genesis block with database.
+	 * 3. Verifies rebuild mode.
+	 * 4. Recreates memory tables when neccesary:
+	 *  - Calls block to load block. When blockchain ready emits a bus message.
+	 * 5. Detects orphaned blocks in `mem_accounts` and gets delegates.
+	 * 6. Loads last block and emits a bus message blockchain is ready.
 	 *
-	 * @returns {function} Calling __private.syncTimer()
+	 * @private
+	 * @emits exit
+	 * @throws {string} On failure to match genesis block with database.
+	 * @todo Add @returns tag
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	onNetworkReady() {
-		library.logger.trace('Peers ready', { module: 'loader' });
-		// Enforce sync early
-		if (library.config.syncing.active) {
-			__private.syncTimer();
-		}
+	async loadBlockChain() {
+		let offset = 0;
+		const limit = Number(library.config.loading.loadPerIteration) || 1000;
 
-		setImmediate(() => {
+		/**
+		 * Description of load.
+		 *
+		 * @todo Add @param tags
+		 * @todo Add description for the function
+		 */
+		function load(count, loadCb) {
+			__private.total = count;
 			async.series(
 				{
-					loadTransactions(seriesCb) {
-						if (__private.loaded) {
-							return async.retry(
-								__private.retries,
-								__private.getTransactionsFromNetwork,
-								err => {
-									if (err) {
-										library.logger.error(
-											'Unconfirmed transactions loader',
-											err
-										);
-									}
-
-									return setImmediate(seriesCb);
-								}
-							);
-						}
-						return setImmediate(seriesCb);
+					resetMemTables(seriesCb) {
+						library.storage.entities.Account.resetMemTables()
+							.then(() => seriesCb())
+							.catch(err => {
+								library.logger.error(err.stack);
+								return seriesCb(new Error('Account#resetMemTables error'));
+							});
 					},
-					loadSignatures(seriesCb) {
-						if (__private.loaded) {
-							return async.retry(
-								__private.retries,
-								__private.getSignaturesFromNetwork,
-								err => {
-									if (err) {
-										library.logger.error('Signatures loader', err);
-									}
-
-									return setImmediate(seriesCb);
+					loadBlocksOffset(seriesCb) {
+						async.until(
+							() => count < offset,
+							cb => {
+								if (count > 1) {
+									library.logger.info(
+										`Rebuilding blockchain, current block height: ${offset + 1}`
+									);
 								}
-							);
-						}
-						return setImmediate(seriesCb);
+								modules.blocks.process.loadBlocksOffset(
+									limit,
+									offset,
+									(err, lastBlock) => {
+										if (err) {
+											return setImmediate(cb, err);
+										}
+
+										offset += limit;
+										__private.lastBlock = lastBlock;
+
+										return setImmediate(cb);
+									}
+								);
+							},
+							err => setImmediate(seriesCb, err)
+						);
 					},
 				},
 				err => {
-					library.logger.trace('Transactions and signatures pulled', err);
+					if (err) {
+						library.logger.error(convertErrorsToString(err));
+						if (err.block) {
+							library.logger.error(`Blockchain failed at: ${err.block.height}`);
+							modules.blocks.chain.deleteFromBlockId(err.block.id, () => {
+								library.logger.error('Blockchain clipped');
+								library.bus.message('blockchainReady');
+								setImmediate(loadCb);
+							});
+							return;
+						}
+						setImmediate(loadCb);
+					} else {
+						library.logger.info('Blockchain ready');
+						library.bus.message('blockchainReady');
+						setImmediate(loadCb);
+					}
 				}
 			);
-		});
+		}
+
+		/**
+		 * Description of reload.
+		 *
+		 * @todo Add @returns and @param tags
+		 * @todo Add description for the function
+		 */
+		function reload(count, message, reloadCb) {
+			if (message) {
+				library.logger.warn(message);
+				library.logger.warn('Recreating memory tables');
+			}
+
+			return load(count, reloadCb);
+		}
+
+		/**
+		 * Description of checkMemTables.
+		 *
+		 * @todo Add @returns and @param tags
+		 * @todo Add description for the function
+		 */
+		function checkMemTables(t) {
+			const promises = [
+				library.storage.entities.Block.count({}, {}, t),
+				library.storage.entities.Block.getOne({ height: 1 }, {}, t),
+				library.storage.entities.Round.getUniqueRounds(t),
+			];
+
+			return t.batch(promises);
+		}
+
+		/**
+		 * Description of matchGenesisBlock.
+		 *
+		 * @todo Add @throws and @param tags
+		 * @todo Add description for the function
+		 */
+		function matchGenesisBlock(row) {
+			if (row) {
+				const matched =
+					row.id === __private.genesisBlock.block.id &&
+					row.payloadHash.toString('hex') ===
+						__private.genesisBlock.block.payloadHash &&
+					row.blockSignature.toString('hex') ===
+						__private.genesisBlock.block.blockSignature;
+				if (matched) {
+					library.logger.info('Genesis block matched with database');
+				} else {
+					throw new Error('Failed to match genesis block with database');
+				}
+			}
+		}
+
+		return (
+			library.storage.entities.Block.begin(
+				'loader:checkMemTables',
+				checkMemTables
+			)
+				.then(async result => {
+					const [blocksCount, getGenesisBlock, getMemRounds] = result;
+
+					library.logger.info(`Blocks ${blocksCount}`);
+
+					const round = slots.calcRound(blocksCount);
+
+					if (blocksCount === 1) {
+						return new Promise(resolve => {
+							reload(blocksCount, undefined, resolve);
+						});
+					}
+
+					matchGenesisBlock(getGenesisBlock);
+
+					if (library.config.loading.rebuildUpToRound !== null) {
+						return __private.rebuildAccounts(blocksCount);
+					}
+
+					const unapplied = getMemRounds.filter(row => row.round !== round);
+
+					if (unapplied.length > 0) {
+						library.logger.error('Detected unapplied rounds in mem_round', {
+							currentHeight: blocksCount,
+							currentRound: round,
+							unappliedRounds: unapplied,
+						});
+
+						return new Promise(resolve => {
+							reload(
+								blocksCount,
+								'Detected unapplied rounds in mem_round',
+								resolve
+							);
+						});
+					}
+
+					const delegatesPublicKeys = await library.storage.entities.Account.get(
+						{ isDelegate: true },
+						{ limit: null }
+					).then(accounts => accounts.map(account => account.publicKey));
+
+					if (delegatesPublicKeys.length === 0) {
+						return new Promise(resolve => {
+							reload(blocksCount, 'No delegates found', resolve);
+						});
+					}
+					return new Promise((resolve, reject) => {
+						modules.blocks.utils.loadLastBlock((err, block) => {
+							if (err) {
+								reload(
+									blocksCount,
+									err || 'Failed to load last block',
+									resolve
+								);
+							}
+
+							__private.lastBlock = block;
+
+							return __private.validateOwnChain(validateOwnChainError => {
+								if (validateOwnChainError) {
+									reject(validateOwnChainError);
+								}
+
+								library.logger.info('Blockchain ready');
+								library.bus.message('blockchainReady');
+								resolve();
+							});
+						});
+					});
+				})
+				// TODO: No need to catch here
+				.catch(err => {
+					library.logger.error(err.stack || err);
+					process.emit('exit');
+					return Promise.reject(err);
+				})
+		);
+	}
+
+	/**
+	 * Pulls Transactions and signatures.
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	loadTransactionsAndSignatures() {
+		async.series(
+			{
+				loadTransactions(seriesCb) {
+					return async.retry(
+						__private.retries,
+						__private.getTransactionsFromNetwork,
+						err => {
+							if (err) {
+								library.logger.error('Unconfirmed transactions loader', err);
+							}
+
+							return setImmediate(seriesCb);
+						}
+					);
+				},
+				loadSignatures(seriesCb) {
+					return async.retry(
+						__private.retries,
+						__private.getSignaturesFromNetwork,
+						err => {
+							if (err) {
+								library.logger.error('Signatures loader', err);
+							}
+
+							return setImmediate(seriesCb);
+						}
+					);
+				},
+			},
+			err => {
+				library.logger.trace('Transactions and signatures pulled', err);
+			}
+		);
+	}
+
+	/**
+	 * Performs sync operation:
+	 * - Undoes unconfirmed transactions.
+	 * - Establishes broadhash consensus before sync.
+	 * - Performs sync operation: loads blocks from network.
+	 * - Update headers: broadhash and height
+	 * - Notify remote peers about our new headers
+	 * - Establishes broadhash consensus after sync.
+	 * - Applies unconfirmed transactions.
+	 *
+	 * @private
+	 * @param {function} cb
+	 * @todo Check err actions
+	 * @todo Add description for the params
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	sync(cb) {
+		library.logger.info('Starting sync');
+		if (components.cache.cacheReady) {
+			components.cache.disable();
+		}
+
+		__private.isActive = true;
+
+		async.series(
+			{
+				async calculateConsensusBefore() {
+					const consensus = await modules.peers.calculateConsensus();
+					return library.logger.debug(
+						`Establishing broadhash consensus before sync: ${consensus} %`
+					);
+				},
+				loadBlocksFromNetwork(seriesCb) {
+					return __private.loadBlocksFromNetwork(seriesCb);
+				},
+				updateApplicationState(seriesCb) {
+					return modules.blocks
+						.calculateNewBroadhash()
+						.then(({ broadhash, height }) => {
+							// Listen for the update of step to move to next step
+							library.channel.once('app:state:updated', () => {
+								seriesCb();
+							});
+
+							// Update our application state: broadhash and height
+							return library.channel.invoke('app:updateApplicationState', {
+								broadhash,
+								height,
+							});
+						})
+						.catch(seriesCb);
+				},
+				async calculateConsensusAfter() {
+					const consensus = await modules.peers.calculateConsensus();
+					return library.logger.debug(
+						`Establishing broadhash consensus after sync: ${consensus} %`
+					);
+				},
+			},
+			err => {
+				__private.isActive = false;
+				__private.blocksToSync = 0;
+
+				library.logger.info('Finished sync');
+				if (components.cache.cacheReady) {
+					components.cache.enable();
+				}
+				return setImmediate(cb, err);
+			}
+		);
 	}
 
 	/**
@@ -203,126 +464,11 @@ class Loader {
 			transactions: scope.modules.transactions,
 			blocks: scope.modules.blocks,
 			peers: scope.modules.peers,
-			rounds: scope.modules.rounds,
 			multisignatures: scope.modules.multisignatures,
 			processTransactions: scope.modules.processTransactions,
 		};
-
-		__private.loadBlockChain();
-	}
-
-	/**
-	 * Sets private constant loaded to true.
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	onBlockchainReady() {
-		__private.loaded = true;
-	}
-
-	/**
-	 * Sets private constant loaded to false.
-	 *
-	 * @param {function} cb
-	 * @returns {setImmediateCallback} cb
-	 * @todo Add description for the params
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	cleanup() {
-		__private.loaded = false;
 	}
 }
-
-// Private methods
-/**
- * Sets private network object with height 0 and peers empty array.
- *
- * @private
- */
-__private.initialize = function() {
-	__private.network = {
-		height: 0, // Network height
-		peers: [], // "Good" peers and with height close to network height
-	};
-};
-
-/**
- * Cancels timers based on input parameter and private constant syncIntervalId
- * or Sync trigger by sending a socket signal with 'loader/sync' and setting
- * next sync with 1000 milliseconds.
- *
- * @private
- * @param {boolean} turnOn
- * @emits loader/sync
- * @todo Add description for the params
- */
-__private.syncTrigger = function(turnOn) {
-	if (turnOn === false && __private.syncIntervalId) {
-		library.logger.trace('Clearing sync interval');
-		clearTimeout(__private.syncIntervalId);
-		__private.syncIntervalId = null;
-	}
-	if (turnOn === true && !__private.syncIntervalId) {
-		library.logger.trace('Setting sync interval');
-		setImmediate(function nextSyncTrigger() {
-			library.logger.trace('Sync trigger');
-			library.channel.publish('chain:loader:sync', {
-				blocks: __private.blocksToSync,
-				height: modules.blocks.lastBlock.get().height,
-			});
-			__private.syncIntervalId = setTimeout(nextSyncTrigger, 1000);
-		});
-	}
-};
-
-/**
- * Syncs timer trigger.
- *
- * @private
- * @todo Add @returns tag
- */
-__private.syncTimer = function() {
-	library.logger.trace('Setting sync timer');
-
-	/**
-	 * Description of nextSync.
-	 *
-	 * @param {function} cb
-	 * @todo Add description for the params
-	 * @todo Add @returns tag
-	 */
-	function nextSync(cb) {
-		library.logger.trace('Sync timer trigger', {
-			loaded: __private.loaded,
-			syncing: self.syncing(),
-			last_receipt: modules.blocks.lastReceipt.get(),
-		});
-
-		if (
-			__private.loaded &&
-			!self.syncing() &&
-			modules.blocks.lastReceipt.isStale()
-		) {
-			return library.sequence.add(
-				sequenceCb => {
-					__private.sync(sequenceCb);
-				},
-				err => {
-					if (err) {
-						library.logger.error('Sync timer', err);
-					}
-					return setImmediate(cb);
-				}
-			);
-		}
-		return setImmediate(cb);
-	}
-
-	return jobsQueue.register(
-		'loaderSyncTimer',
-		nextSync,
-		__private.syncInterval
-	);
-};
 
 /**
  * Loads signatures from network.
@@ -337,7 +483,7 @@ __private.getSignaturesFromNetwork = async function() {
 	library.logger.info('Loading signatures from the network');
 
 	// TODO: Add target module to procedure name. E.g. chain:getSignatures
-	const result = await library.channel.invoke('network:request', {
+	const { data: result } = await library.channel.invoke('network:request', {
 		procedure: 'getSignatures',
 	});
 
@@ -386,7 +532,7 @@ __private.getTransactionsFromNetwork = async function() {
 	library.logger.info('Loading transactions from the network');
 
 	// TODO: Add target module to procedure name. E.g. chain:getTransactions
-	const result = await library.channel.invoke('network:request', {
+	const { data: result } = await library.channel.invoke('network:request', {
 		procedure: 'getTransactions',
 	});
 
@@ -437,209 +583,6 @@ __private.getTransactionsFromNetwork = async function() {
 			throw error;
 		}
 	}
-};
-
-/**
- * Loads blockchain upon application start:
- * 1. Checks mem tables:
- * - count blocks from `blocks` table
- * - get genesis block from `blocks` table
- * - count accounts from `mem_accounts` table by block id
- * - get rounds from `mem_round`
- * 2. Matches genesis block with database.
- * 3. Verifies rebuild mode.
- * 4. Recreates memory tables when neccesary:
- *  - Calls logic.account to resetMemTables
- *  - Calls block to load block. When blockchain ready emits a bus message.
- * 5. Detects orphaned blocks in `mem_accounts` and gets delegates.
- * 6. Loads last block and emits a bus message blockchain is ready.
- *
- * @private
- * @emits exit
- * @throws {string} On failure to match genesis block with database.
- * @todo Add @returns tag
- */
-__private.loadBlockChain = function() {
-	let offset = 0;
-	const limit = Number(library.config.loading.loadPerIteration) || 1000;
-
-	/**
-	 * Description of load.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add description for the function
-	 */
-	function load(count) {
-		__private.total = count;
-		async.series(
-			{
-				resetMemTables(seriesCb) {
-					library.storage.entities.Account.resetMemTables()
-						.then(() => seriesCb())
-						.catch(err => {
-							library.logger.error(err.stack);
-							return seriesCb(new Error('Account#resetMemTables error'));
-						});
-				},
-				loadBlocksOffset(seriesCb) {
-					async.until(
-						() => count < offset,
-						cb => {
-							if (count > 1) {
-								library.logger.info(
-									`Rebuilding blockchain, current block height: ${offset + 1}`
-								);
-							}
-							modules.blocks.process.loadBlocksOffset(
-								limit,
-								offset,
-								(err, lastBlock) => {
-									if (err) {
-										return setImmediate(cb, err);
-									}
-
-									offset += limit;
-									__private.lastBlock = lastBlock;
-
-									return setImmediate(cb);
-								}
-							);
-						},
-						err => setImmediate(seriesCb, err)
-					);
-				},
-			},
-			err => {
-				if (err) {
-					library.logger.error(convertErrorsToString(err));
-					if (err.block) {
-						library.logger.error(`Blockchain failed at: ${err.block.height}`);
-						modules.blocks.chain.deleteFromBlockId(err.block.id, () => {
-							library.logger.error('Blockchain clipped');
-							library.bus.message('blockchainReady');
-						});
-					}
-				} else {
-					library.logger.info('Blockchain ready');
-					library.bus.message('blockchainReady');
-				}
-			}
-		);
-	}
-
-	/**
-	 * Description of reload.
-	 *
-	 * @todo Add @returns and @param tags
-	 * @todo Add description for the function
-	 */
-	function reload(count, message) {
-		if (message) {
-			library.logger.warn(message);
-			library.logger.warn('Recreating memory tables');
-		}
-
-		return load(count);
-	}
-
-	/**
-	 * Description of checkMemTables.
-	 *
-	 * @todo Add @returns and @param tags
-	 * @todo Add description for the function
-	 */
-	function checkMemTables(t) {
-		const promises = [
-			library.storage.entities.Block.count({}, {}, t),
-			library.storage.entities.Block.getOne({ height: 1 }, {}, t),
-			library.storage.entities.Round.getUniqueRounds(t),
-		];
-
-		return t.batch(promises);
-	}
-
-	/**
-	 * Description of matchGenesisBlock.
-	 *
-	 * @todo Add @throws and @param tags
-	 * @todo Add description for the function
-	 */
-	function matchGenesisBlock(row) {
-		if (row) {
-			const matched =
-				row.id === __private.genesisBlock.block.id &&
-				row.payloadHash.toString('hex') ===
-					__private.genesisBlock.block.payloadHash &&
-				row.blockSignature.toString('hex') ===
-					__private.genesisBlock.block.blockSignature;
-			if (matched) {
-				library.logger.info('Genesis block matched with database');
-			} else {
-				throw new Error('Failed to match genesis block with database');
-			}
-		}
-	}
-
-	library.storage.entities.Block.begin('loader:checkMemTables', checkMemTables)
-		.then(async result => {
-			const [blocksCount, getGenesisBlock, getMemRounds] = result;
-
-			library.logger.info(`Blocks ${blocksCount}`);
-
-			const round = slots.calcRound(blocksCount);
-
-			if (blocksCount === 1) {
-				return reload(blocksCount);
-			}
-
-			matchGenesisBlock(getGenesisBlock);
-
-			if (library.config.loading.rebuildUpToRound !== null) {
-				return __private.rebuildAccounts(blocksCount);
-			}
-
-			const unapplied = getMemRounds.filter(row => row.round !== round);
-
-			if (unapplied.length > 0) {
-				library.logger.error('Detected unapplied rounds in mem_round', {
-					currentHeight: blocksCount,
-					currentRound: round,
-					unappliedRounds: unapplied,
-				});
-
-				return reload(blocksCount, 'Detected unapplied rounds in mem_round');
-			}
-
-			const delegatesPublicKeys = await library.storage.entities.Account.get(
-				{ isDelegate: true },
-				{ limit: null }
-			).then(accounts => accounts.map(account => account.publicKey));
-
-			if (delegatesPublicKeys.length === 0) {
-				return reload(blocksCount, 'No delegates found');
-			}
-
-			return modules.blocks.utils.loadLastBlock((err, block) => {
-				if (err) {
-					return reload(blocksCount, err || 'Failed to load last block');
-				}
-
-				__private.lastBlock = block;
-
-				return __private.validateOwnChain(validateOwnChainError => {
-					if (validateOwnChainError) {
-						throw validateOwnChainError;
-					}
-
-					library.logger.info('Blockchain ready');
-					library.bus.message('blockchainReady');
-				});
-			});
-		})
-		.catch(err => {
-			library.logger.error(err.stack || err);
-			return process.emit('exit');
-		});
 };
 
 /**
@@ -986,79 +929,6 @@ __private.loadBlocksFromNetwork = function(cb) {
 			);
 		},
 		() => setImmediate(cb)
-	);
-};
-
-/**
- * Performs sync operation:
- * - Undoes unconfirmed transactions.
- * - Establishes broadhash consensus before sync.
- * - Performs sync operation: loads blocks from network.
- * - Update headers: broadhash and height
- * - Notify remote peers about our new headers
- * - Establishes broadhash consensus after sync.
- * - Applies unconfirmed transactions.
- *
- * @private
- * @param {function} cb
- * @todo Check err actions
- * @todo Add description for the params
- */
-__private.sync = function(cb) {
-	library.logger.info('Starting sync');
-	if (components.cache) {
-		components.cache.disable();
-	}
-
-	__private.isActive = true;
-	__private.syncTrigger(true);
-
-	async.series(
-		{
-			async calculateConsensusBefore() {
-				const consensus = await modules.peers.calculateConsensus();
-				return library.logger.debug(
-					`Establishing broadhash consensus before sync: ${consensus} %`
-				);
-			},
-			loadBlocksFromNetwork(seriesCb) {
-				return __private.loadBlocksFromNetwork(seriesCb);
-			},
-			updateApplicationState(seriesCb) {
-				return modules.blocks
-					.calculateNewBroadhash()
-					.then(({ broadhash, height }) => {
-						// Listen for the update of step to move to next step
-						library.channel.once('app:state:updated', () => {
-							seriesCb();
-						});
-
-						// Update our application state: broadhash and height
-						return library.channel.invoke('app:updateApplicationState', {
-							broadhash,
-							height,
-						});
-					})
-					.catch(seriesCb);
-			},
-			async calculateConsensusAfter() {
-				const consensus = await modules.peers.calculateConsensus();
-				return library.logger.debug(
-					`Establishing broadhash consensus after sync: ${consensus} %`
-				);
-			},
-		},
-		err => {
-			__private.isActive = false;
-			__private.syncTrigger(false);
-			__private.blocksToSync = 0;
-
-			library.logger.info('Finished sync');
-			if (components.cache) {
-				components.cache.enable();
-			}
-			return setImmediate(cb, err);
-		}
 	);
 };
 

@@ -33,14 +33,10 @@ let currentAppScope;
 
 const modulesInit = {
 	blocks: '../../../src/modules/chain/submodules/blocks',
-	delegates: '../../../src/modules/chain/submodules/delegates',
-	loader: '../../../src/modules/chain/submodules/loader',
 	multisignatures: '../../../src/modules/chain/submodules/multisignatures',
 	peers: '../../../src/modules/chain/submodules/peers',
 	rounds: '../../../src/modules/chain/submodules/rounds',
-	signatures: '../../../src/modules/chain/submodules/signatures',
 	transactions: '../../../src/modules/chain/submodules/transactions',
-	transport: '../../../src/modules/chain/submodules/transport',
 	processTransactions:
 		'../../../src/modules/chain/submodules/process_transactions.js',
 };
@@ -157,7 +153,6 @@ async function __init(sandbox, initScope) {
 			},
 			initScope
 		);
-
 		const cache = createCacheComponent(
 			__testContext.config.components.cache,
 			logger
@@ -204,44 +199,8 @@ async function __init(sandbox, initScope) {
 		}
 
 		// Overwrite onBlockchainReady function to prevent automatic forging
-		return new Promise((resolve, reject) => {
-			scope.modules.delegates.onBlockchainReady = function() {
-				__testContext.debug(
-					'initApplication: Fake onBlockchainReady event called'
-				);
-				__testContext.debug('initApplication: Loading delegates...');
-
-				const loadDelegates = scope.rewiredModules.delegates.__get__(
-					'__private.loadDelegates'
-				);
-
-				loadDelegates(loadDelegatesErr => {
-					if (loadDelegatesErr) {
-						reject(loadDelegatesErr);
-					}
-
-					const keypairs = scope.rewiredModules.delegates.__get__(
-						'__private.keypairs'
-					);
-
-					const delegatesCount = Object.keys(keypairs).length;
-					expect(delegatesCount).to.equal(
-						scope.config.forging.delegates.length
-					);
-
-					__testContext.debug(
-						`initApplication: Delegates loaded from config file - ${delegatesCount}`
-					);
-					__testContext.debug('initApplication: Done');
-
-					if (initScope.waitForGenesisBlock) {
-						resolve(scope);
-					}
-
-					resolve(scope);
-				});
-			};
-		});
+		await scope.modules.loader.loadBlockChain();
+		return scope;
 	} catch (error) {
 		__testContext.debug('Error during test application init.', error);
 		throw error;
@@ -292,6 +251,24 @@ const initStepsForTest = {
 		});
 
 		const modules = await promisifyParallel(tasks);
+		// TODO: remove rewiring
+		const RewiredLoader = rewire('../../../src/modules/chain/loader');
+		scope.rewiredModules.loader = RewiredLoader;
+		modules.loader = new RewiredLoader(scope);
+		const { Forger: RewiredForge } = rewire(
+			'../../../src/modules/chain/forger'
+		);
+		scope.rewiredModules.forger = RewiredForge;
+		modules.forger = new RewiredForge(scope);
+		const RewiredTransport = rewire('../../../src/modules/chain/transport');
+		scope.rewiredModules.transport = RewiredTransport;
+		modules.transport = new RewiredTransport(scope);
+		const { Delegates: RewiredDelegates } = rewire(
+			'../../../src/modules/chain/submodules/delegates'
+		);
+		scope.rewiredModules.delegates = RewiredDelegates;
+		modules.delegates = new RewiredDelegates(scope);
+
 		scope.bus.registerModules(modules);
 
 		return modules;

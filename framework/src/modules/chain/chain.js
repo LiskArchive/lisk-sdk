@@ -34,6 +34,9 @@ const {
 	initModules,
 } = require('./init_steps');
 
+const syncInterval = 10000;
+const forgeInterval = 1000;
+
 // Begin reading from stdin
 process.stdin.resume();
 
@@ -164,6 +167,19 @@ module.exports = class Chain {
 			this.scope.bus = await createBus();
 			this.scope.logic = await initLogicStructure(this.scope);
 			this.scope.modules = await initModules(this.scope);
+			// TODO: Global variable forbits to require on top
+			const Loader = require('./loader');
+			const { Forger } = require('./forger');
+			const { Delegates } = require('./submodules/delegates');
+			const Transport = require('./transport');
+			this.loader = new Loader(this.scope);
+			this.forger = new Forger(this.scope);
+			this.transport = new Transport(this.scope);
+			// TODO: should not add to scope
+			this.scope.modules.delegates = new Delegates(this.scope);
+			this.scope.modules.loader = this.loader;
+			this.scope.modules.forger = this.forger;
+			this.scope.modules.transport = this.transport;
 
 			this.scope.logic.block.bindModules(this.scope.modules);
 			this.scope.logic.account.bindModules(this.scope.modules);
@@ -175,7 +191,14 @@ module.exports = class Chain {
 			// Fire onBind event in every module
 			this.scope.bus.message('bind', this.scope);
 
-			self.logger.info('Modules ready and launched');
+			this.logger.info('Modules ready and launched');
+			// After binding, it should immediately load blockchain
+			await this.loader.loadBlockChain();
+
+			this.channel.subscribe('network:bootstrap', async () => {
+				this._startLoader();
+				await this._startForging();
+			});
 
 			// Avoid receiving blocks/transactions from the network during snapshotting process
 			if (!this.options.loading.rebuildUpToRound) {
@@ -213,12 +236,12 @@ module.exports = class Chain {
 			calculateReward: action =>
 				this.blockReward.calcReward(action.params.height),
 			generateDelegateList: async action =>
-				promisify(this.scope.modules.delegates.generateDelegateList)(
+				this.scope.modules.delegates.generateDelegateList(
 					action.params.round,
 					action.params.source
 				),
 			updateForgingStatus: async action =>
-				this.scope.modules.delegates.updateForgingStatus(
+				this.scope.modules.forger.updateForgingStatus(
 					action.params.publicKey,
 					action.params.password,
 					action.params.forging
@@ -228,18 +251,18 @@ module.exports = class Chain {
 			getSignatures: async () =>
 				promisify(this.scope.modules.transport.shared.getSignatures)(),
 			postSignature: async action =>
-				promisify(this.scope.modules.signatures.shared.postSignature)(
-					action.params.signature
+				promisify(this.scope.modules.transport.shared.postSignature)(
+					action.params
 				),
 			getForgingStatusForAllDelegates: async () =>
-				this.scope.modules.delegates.getForgingStatusForAllDelegates(),
+				this.scope.modules.forger.getForgingStatusForAllDelegates(),
 			getTransactionsFromPool: async action =>
 				promisify(
 					this.scope.modules.transactions.shared.getTransactionsFromPool
 				)(action.params.type, action.params.filters),
 			postTransaction: async action =>
-				promisify(this.scope.modules.transactions.shared.postTransaction)(
-					action.params.transaction
+				promisify(this.scope.modules.transport.shared.postTransaction)(
+					action.params
 				),
 			getDelegateBlocksRewards: async action =>
 				this.scope.components.storage.entities.Account.delegateBlocksRewards(
@@ -253,8 +276,8 @@ module.exports = class Chain {
 			calcSlotRound: async action => this.slots.calcRound(action.params.height),
 			getNodeStatus: async () => ({
 				consensus: this.scope.modules.peers.getLastConsensus(),
-				loaded: this.scope.modules.loader.loaded(),
-				syncing: this.scope.modules.loader.syncing(),
+				loaded: true,
+				syncing: this.loader.syncing(),
 				transactions: await promisify(
 					this.scope.modules.transactions.shared.getTransactionsCount
 				)(),
@@ -306,5 +329,65 @@ module.exports = class Chain {
 		});
 
 		this.logger.info('Cleaned up successfully');
+	}
+
+	_startLoader() {
+		this.loader.loadTransactionsAndSignatures();
+		if (!this.options.syncing.active) {
+			return;
+		}
+		// sync timer
+		setInterval(() => {
+			this.logger.info(
+				{
+					syncing: this.loader.isActive(),
+					lastReceipt: this.scope.modules.blocks.lastReceipt.get(),
+				},
+				'Sync time triggered'
+			);
+			if (
+				!this.loader.isActive() &&
+				this.scope.modules.blocks.lastReceipt.isStale()
+			) {
+				this.scope.sequence.add(
+					sequenceCB => {
+						this.loader.sync(sequenceCB);
+					},
+					syncError => {
+						if (syncError) {
+							this.logger.error('Sync timer', syncError);
+						}
+					}
+				);
+			}
+		}, syncInterval);
+	}
+
+	async _startForging() {
+		try {
+			await new Promise((resolve, reject) => {
+				this.forger.loadDelegates(err => {
+					if (err) {
+						return reject(err);
+					}
+					return resolve();
+				});
+			});
+		} catch (err) {
+			this.logger.error(err, 'Failed to load delegates');
+		}
+		setInterval(async () => {
+			// TODO: Possibly need to add this whole section into sequence
+			await this.forger.beforeForge();
+			if (!this.forger.delegatesEnabled()) {
+				this.logger.debug('No delegates are enabled');
+				return;
+			}
+			if (this.loader.syncing() || this.scope.modules.rounds.ticking()) {
+				this.logger.debug('Client not ready to forge');
+				return;
+			}
+			this.forger.forge(() => {});
+		}, forgeInterval);
 	}
 };

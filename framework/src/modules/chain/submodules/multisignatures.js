@@ -123,7 +123,6 @@ class Multisignatures {
 	// eslint-disable-next-line class-methods-use-this
 	onBind(scope) {
 		modules = {
-			accounts: scope.modules.accounts,
 			transactions: scope.modules.transactions,
 			processTransactions: scope.modules.processTransactions,
 		};

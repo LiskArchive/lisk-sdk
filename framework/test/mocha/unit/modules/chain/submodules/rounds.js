@@ -101,7 +101,7 @@ describe('rounds', () => {
 	beforeEach(done => {
 		scope = _.cloneDeep(validScope);
 
-		bindings.modules.delegates.generateDelegateList.yields(null, [
+		bindings.modules.delegates.generateDelegateList.resolves([
 			'delegate1',
 			'delegate2',
 			'delegate3',
@@ -177,8 +177,6 @@ describe('rounds', () => {
 			const backup = get(variable);
 			const roundBindings = {
 				modules: {
-					blocks: 'blocks',
-					accounts: 'accounts',
 					delegates: 'delegates',
 				},
 			};
@@ -334,12 +332,14 @@ describe('rounds', () => {
 			describe('when generateDelegateList fails', () => {
 				beforeEach(async () => {
 					scope.block.height = 2;
-					bindings.modules.delegates.generateDelegateList.yields('error');
+					bindings.modules.delegates.generateDelegateList.rejects(
+						new Error('error')
+					);
 				});
 
 				it('should call a callback with error', done => {
 					getOutsiders(scope, err => {
-						expect(err).to.equal('error');
+						expect(err.message).to.equal('error');
 						done();
 					});
 				});

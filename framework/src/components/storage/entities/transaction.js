@@ -403,7 +403,10 @@ class Transaction extends BaseEntity {
 
 		// TODO: improve this logic
 		parsedSort = parsedSort.replace('"rowId"', 'trs."rowId"');
-		parsedSort = parsedSort.replace('"dapp_name"', "asset->'dapp'->>'name'");
+		parsedSort = parsedSort.replace(
+			'"dapp_name"',
+			"trs.asset->'dapp'->>'name'"
+		);
 
 		const params = {
 			limit: parsedOptions.limit,

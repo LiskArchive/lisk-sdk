@@ -81,7 +81,7 @@ describe('integration test (type 1) - second signature transactions from pool an
 						[signatureTransaction],
 						(err, block) => {
 							expect(err).to.not.exist;
-							library.modules.blocks.process.onReceiveBlock(block);
+							library.modules.blocks.process.receiveBlockFromNetwork(block);
 							done();
 						}
 					);
@@ -119,7 +119,7 @@ describe('integration test (type 1) - second signature transactions from pool an
 						[signatureTransaction2],
 						(err, block) => {
 							expect(err).to.not.exist;
-							library.modules.blocks.process.onReceiveBlock(block);
+							library.modules.blocks.process.receiveBlockFromNetwork(block);
 							done();
 						}
 					);
@@ -165,7 +165,7 @@ describe('integration test (type 1) - second signature transactions from pool an
 						(err, block) => {
 							blockId = block.id;
 							expect(err).to.not.exist;
-							library.modules.blocks.process.onReceiveBlock(block);
+							library.modules.blocks.process.receiveBlockFromNetwork(block);
 							done();
 						}
 					);

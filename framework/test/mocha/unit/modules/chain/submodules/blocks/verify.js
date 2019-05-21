@@ -101,11 +101,6 @@ describe('blocks/verify', () => {
 		__private = BlocksVerify.__get__('__private');
 
 		// Modules
-		const modulesAccountsStub = {
-			getAccount: sinonSandbox.stub(),
-			validateBlockSlot: sinonSandbox.stub(),
-		};
-
 		const modulesDelegatesStub = {
 			fork: sinonSandbox.stub(),
 			validateBlockSlot: sinonSandbox.stub(),
@@ -139,7 +134,6 @@ describe('blocks/verify', () => {
 
 		bindingsStub = {
 			modules: {
-				accounts: modulesAccountsStub,
 				blocks: modulesBlocksStub,
 				delegates: modulesDelegatesStub,
 				transactions: modulesTransactionsStub,
@@ -1720,13 +1714,11 @@ describe('blocks/verify', () => {
 		const dummyBlock = { id: 1 };
 
 		describe('when modules.delegates.validateBlockSlot fails', () => {
-			beforeEach(() =>
-				modules.delegates.validateBlockSlot.callsArgWith(
-					1,
-					'validateBlockSlot-ERR',
-					null
-				)
-			);
+			beforeEach(async () => {
+				modules.delegates.validateBlockSlot.rejects(
+					new Error('validateBlockSlot-ERR')
+				);
+			});
 
 			afterEach(() => {
 				expect(modules.delegates.validateBlockSlot).calledWith(dummyBlock);
@@ -1735,16 +1727,16 @@ describe('blocks/verify', () => {
 
 			it('should call a callback with error', done => {
 				__private.validateBlockSlot(dummyBlock, err => {
-					expect(err).to.equal('validateBlockSlot-ERR');
+					expect(err.message).to.equal('validateBlockSlot-ERR');
 					done();
 				});
 			});
 		});
 
 		describe('when modules.delegates.validateBlockSlot succeeds', () => {
-			beforeEach(() =>
-				modules.delegates.validateBlockSlot.callsArgWith(1, null, true)
-			);
+			beforeEach(async () => {
+				modules.delegates.validateBlockSlot.resolves(true);
+			});
 
 			afterEach(() => {
 				expect(modules.delegates.validateBlockSlot).calledWith(dummyBlock);
@@ -2071,10 +2063,12 @@ describe('blocks/verify', () => {
 			));
 
 		it('should assign params to modules', done => {
-			expect(modules.accounts).to.equal(bindingsStub.modules.accounts);
 			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
 			expect(modules.delegates).to.equal(bindingsStub.modules.delegates);
 			expect(modules.transactions).to.equal(bindingsStub.modules.transactions);
+			expect(modules.processTransactions).to.equal(
+				bindingsStub.modules.processTransactions
+			);
 			done();
 		});
 

@@ -43,7 +43,7 @@ const __private = {
 };
 
 const registerProcessHooks = app => {
-	process.title = `${app.label}`;
+	process.title = `${app.config.app.label}(${app.config.app.version})`;
 
 	process.on('uncaughtException', err => {
 		// Handle error safely

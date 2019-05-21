@@ -13,6 +13,8 @@
  */
 const { shuffle } = require('lodash');
 
+const PEER_STATE_CONNECTED = 2;
+const PEER_STATE_DISCONNECTED = 1;
 /**
  * Sorts peers.
  *
@@ -172,9 +174,9 @@ const getConsolidatedPeersList = networkStatus => {
 	const connectedList = connectedPeers.map(peer => {
 		const { ipAddress, options, minVersion, nethash, ...peerWithoutIp } = peer;
 
-		return { ip: ipAddress, ...peerWithoutIp, state: 2 };
+		return { ip: ipAddress, ...peerWithoutIp, state: PEER_STATE_CONNECTED };
 	});
-	// For the peers that are not present in connectedList should be assigned state 0
+	// For the peers that are not present in connectedList should be assigned state 1 which is a DISCONNECTED state.
 	const disconnectedList = [...newPeers, ...triedPeers]
 		.filter(peer => {
 			const found = connectedList.find(
@@ -192,7 +194,11 @@ const getConsolidatedPeersList = networkStatus => {
 				...peerWithoutIp
 			} = peer;
 
-			return { ip: ipAddress, ...peerWithoutIp, state: 1 };
+			return {
+				ip: ipAddress,
+				...peerWithoutIp,
+				state: PEER_STATE_DISCONNECTED,
+			};
 		});
 
 	return [...connectedList, ...disconnectedList];

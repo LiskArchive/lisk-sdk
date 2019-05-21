@@ -51,10 +51,6 @@ const modulesToInstrument = {
 		identifier: 'modules.chain.submodules.rounds',
 		callbackMethods: ['flush'],
 	},
-	'../submodules/signatures': {
-		identifier: 'modules.chain.submodules.signatures',
-		callbackMethods: ['shared.postSignature', 'shared.postSignatures'],
-	},
 	'../submodules/transactions': {
 		identifier: 'modules.chain.submodules.transactions',
 		callbackMethods: [

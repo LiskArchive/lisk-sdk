@@ -14,7 +14,6 @@
 
 'use strict';
 
-const Promise = require('bluebird');
 const Bignum = require('../../../src/modules/chain/helpers/bignum');
 const application = require('../common/application');
 const QueriesHelper = require('../common/integration/sql/queries_helper');
@@ -297,22 +296,15 @@ describe('app', () => {
 	});
 
 	describe('modules.delegates', () => {
-		let generateDelegateListPromise;
-
-		before(done => {
-			generateDelegateListPromise = Promise.promisify(
-				library.modules.delegates.generateDelegateList
-			);
-			done();
-		});
-
 		describe('__private.delegatesList', () => {
 			let delegatesList;
 
 			before(() => {
-				return generateDelegateListPromise(1, null).then(_delegatesList => {
-					delegatesList = _delegatesList;
-				});
+				return library.modules.delegates
+					.generateDelegateList(1, null)
+					.then(_delegatesList => {
+						delegatesList = _delegatesList;
+					});
 			});
 
 			it('should be an array', async () => {
@@ -343,11 +335,8 @@ describe('app', () => {
 
 		describe('__private.loadDelegates', () => {
 			before(done => {
-				const loadDelegates = library.rewiredModules.delegates.__get__(
-					'__private.loadDelegates'
-				);
-				loadDelegates(err => {
-					keypairs = library.modules.delegates.getForgersKeyPairs();
+				library.modules.forger.loadDelegates(err => {
+					keypairs = library.modules.forger.getForgersKeyPairs();
 					done(err);
 				});
 			});
