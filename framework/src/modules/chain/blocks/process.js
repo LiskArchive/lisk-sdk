@@ -85,6 +85,59 @@ const processBlock = async ({
 };
 
 /**
+ * Apply block without saving the block
+ *
+ * @returns {Block} applied block
+ */
+const applyBlock = async ({
+	block,
+	lastBlock,
+	storage,
+	exceptions,
+	slots,
+	delegatesModule,
+	roundsModule,
+	maxTransactionsPerBlock,
+	maxPayloadLength,
+	blockRewards,
+}) => {
+	const enhancedBlock = blocksUtils.addBlockProperties(block);
+	const normalizedBlock = blocksLogic.objectNormalize(
+		enhancedBlock,
+		exceptions
+	);
+	const { verified, errors } = blocksVerify.verifyBlock({
+		slots,
+		delegatesModule,
+		maxTransactionsPerBlock,
+		maxPayloadLength,
+		blockRewards,
+		exceptions,
+		normalizedBlock,
+		lastBlock,
+	});
+	if (!verified) {
+		throw errors;
+	}
+	await blocksVerify.validateBlockSlot(delegatesModule, normalizedBlock);
+	await blocksVerify.checkTransactions(
+		storage,
+		slots,
+		normalizedBlock,
+		exceptions
+	);
+	await blocksChain.applyBlock(
+		storage,
+		roundsModule,
+		slots,
+		normalizedBlock,
+		exceptions,
+		false
+	);
+	return normalizedBlock;
+};
+
+/**
  * Apply and save block
  *
  * @param {number} blocksAmount - Amount of blocks
@@ -147,22 +200,70 @@ const generateBlock = async ({
  * @returns {Block} applied block
  */
 const reload = async ({
-	storage,
-	count,
-	loadPerIteration,
+	targetHeight,
 	isCleaning,
+	onProgress,
+	storage,
+	loadPerIteration,
 	genesisBlock,
 	slots,
 	roundsModule,
 	exceptions,
+	delegatesModule,
+	maxTransactionsPerBlock,
+	maxPayloadLength,
+	blockRewards,
 }) => {
-	let offset = 0;
-	const limit = loadPerIteration || 1000;
 	await storage.entities.Account.resetMemTables();
+	await rebuild({
+		currentHeight: 0,
+		targetHeight,
+		isCleaning,
+		onProgress,
+		storage,
+		loadPerIteration,
+		genesisBlock,
+		slots,
+		roundsModule,
+		exceptions,
+		delegatesModule,
+		maxTransactionsPerBlock,
+		maxPayloadLength,
+		blockRewards,
+	});
+};
+
+// loadBlockOffset until, count < offset, offset += limit
+// targetHeight until, count < offset, offset += limit
+
+/**
+ * Rebuild accounts
+ *
+ * @param {number} blocksAmount - Amount of blocks
+ * @param {number} fromHeight - Height to start at
+ * @returns {Block} applied block
+ */
+const rebuild = async ({
+	currentHeight,
+	targetHeight,
+	isCleaning,
+	onProgress,
+	storage,
+	loadPerIteration,
+	genesisBlock,
+	slots,
+	roundsModule,
+	exceptions,
+	delegatesModule,
+	maxTransactionsPerBlock,
+	maxPayloadLength,
+	blockRewards,
+}) => {
+	const limit = loadPerIteration || 1000;
 	const blocks = await blocksUtils.loadBlockBlocksWithOffset(
 		storage,
 		limit,
-		offset
+		currentHeight
 	);
 	let lastBlock;
 	// eslint-disable-next-line no-restricted-syntax
@@ -179,20 +280,44 @@ const reload = async ({
 				block,
 				exceptions
 			);
+			onProgress(lastBlock);
 			// eslint-disable-next-line no-continue
 			continue;
 		}
+		// eslint-disable-next-line no-await-in-loop
+		lastBlock = await applyBlock({
+			block,
+			lastBlock,
+			slots,
+			roundsModule,
+			exceptions,
+			delegatesModule,
+			maxTransactionsPerBlock,
+			maxPayloadLength,
+			blockRewards,
+		});
+		onProgress(lastBlock);
+	}
+	const nextHeight = currentHeight + limit;
+	if (currentHeight <= targetHeight) {
+		await rebuild({
+			currentHeight: nextHeight,
+			targetHeight,
+			isCleaning,
+			onProgress,
+			storage,
+			loadPerIteration,
+			genesisBlock,
+			slots,
+			roundsModule,
+			exceptions,
+			delegatesModule,
+			maxTransactionsPerBlock,
+			maxPayloadLength,
+			blockRewards,
+		});
 	}
 };
-
-/**
- * Rebuild accounts
- *
- * @param {number} blocksAmount - Amount of blocks
- * @param {number} fromHeight - Height to start at
- * @returns {Block} applied block
- */
-const rebuild = ({}) => {};
 
 /**
  * Recover own blockchain state
@@ -201,7 +326,55 @@ const rebuild = ({}) => {};
  * @param {number} fromHeight - Height to start at
  * @returns {Block} applied block
  */
-const recoverInvalidOwnChain = ({}) => {};
+const recoverInvalidOwnChain = async ({
+	lastBlock,
+	onDelete,
+	storage,
+	roundsModule,
+	slots,
+	transactionManager,
+	genesisBlock,
+	delegatesModule,
+	maxTransactionsPerBlock,
+	maxPayloadLength,
+	blockRewards,
+	exceptions,
+}) => {
+	await blocksChain.deleteLastBlock(storage, roundsModule, slots, lastBlock);
+	const newLastBlock = await blocksUtils.loadBlockByHeight(
+		storage,
+		lastBlock.height - 1,
+		transactionManager,
+		genesisBlock
+	);
+	onDelete(lastBlock, newLastBlock);
+	const { verified } = blocksVerify.verifyBlock({
+		slots,
+		delegatesModule,
+		maxTransactionsPerBlock,
+		maxPayloadLength,
+		blockRewards,
+		exceptions,
+		block: lastBlock,
+		lastBlock: newLastBlock,
+	});
+	if (!verified) {
+		await recoverInvalidOwnChain({
+			lastBlock: newLastBlock,
+			onDelete,
+			storage,
+			roundsModule,
+			slots,
+			transactionManager,
+			genesisBlock,
+			delegatesModule,
+			maxTransactionsPerBlock,
+			maxPayloadLength,
+			blockRewards,
+			exceptions,
+		});
+	}
+};
 
 module.exports = {
 	processBlock,

@@ -149,11 +149,7 @@ class Blocks extends EventEmitter {
 		blocksVerify.matchGenesisBlock(this.genesisBlock, genesisBlock);
 		// rebuild accounts if it's rebuild
 		if (rebuildUpToRound !== null) {
-			this.logger.info(
-				{ rebuildUpToRound, blockCount },
-				'Rebuild process started'
-			);
-			this._lastBlock = await blocksProcess.rebuild(blockCount);
+			await this._rebuildMode(rebuildUpToRound, blockCount);
 			this._isActive = false;
 			return;
 		}
@@ -369,6 +365,35 @@ class Blocks extends EventEmitter {
 		this._updateLastNBlocks(this._lastBlock);
 		this.emit(EVENT_NEW_BLOCK, { block: this._lastBlock });
 		this._isActive = false;
+	}
+
+	async _rebuildMode(rebuildUpToRound, blockCount) {
+		this.logger.info(
+			{ rebuildUpToRound, blockCount },
+			'Rebuild process started'
+		);
+		if (blockCount < this.activeDelegates) {
+			throw new Error(
+				'Unable to rebuild, blockchain should contain at least one round of blocks'
+			);
+		}
+		if (
+			Number.isNaN(parseInt(rebuildUpToRound)) ||
+			parseInt(rebuildUpToRound) < 0
+		) {
+			throw new Error(
+				'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero'
+			);
+		}
+		const totalRounds = this.slots.calcRound();
+		const targetRound =
+			parseInt(rebuildUpToRound) === 0
+				? totalRounds
+				: Math.min(totalRounds, parseInt(rebuildUpToRound));
+		const targetHeight = targetRound * this.activeDelegates;
+		this._lastBlock = await blocksProcess.reload({
+			targetHeight,
+		});
 	}
 
 	_shouldNotBeActive() {
