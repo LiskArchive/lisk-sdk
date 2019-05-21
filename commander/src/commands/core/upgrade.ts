@@ -110,6 +110,7 @@ export default class UpgradeCommand extends BaseCommand {
 		const upgradeVersion: string = await getVersionToInstall(
 			network,
 			liskVersion,
+			releaseUrl,
 		);
 		const { cacheDir } = this.config;
 		// TODO: Commander not creating cache directory

@@ -106,6 +106,7 @@ const installOptions = async (
 	const installVersion: string = await getVersionToInstall(
 		network,
 		liskVersion,
+		releaseUrl,
 	);
 
 	const { version, liskTarUrl, liskTarSHA256Url } = await getReleaseInfo(
@@ -292,7 +293,6 @@ export default class InstallCommand extends BaseCommand {
 
 		try {
 			const instance = await describeApplication(name);
-
 			if (instance) {
 				this.log(`\n Lisk Core instance ${name} already installed: `);
 				this.print(instance);
@@ -310,12 +310,12 @@ export default class InstallCommand extends BaseCommand {
 				return;
 			}
 		} catch (error) {
+			this.error(JSON.stringify(error));
 			const { installDir }: Options = error.context.options;
 			const dirPath = installDir.substr(0, installDir.length - 1);
 
 			fsExtra.emptyDirSync(installDir);
 			fsExtra.rmdirSync(dirPath);
-			this.error(JSON.stringify(error));
 		}
 	}
 }
