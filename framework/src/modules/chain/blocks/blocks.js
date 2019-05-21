@@ -18,30 +18,53 @@ const EventEmitter = require('events');
 const blocksUtils = require('./utils');
 const blocksProcess = require('./process');
 const blocksVerify = require('./verify');
-const blocksLogic = require('./block');
 const blocksChain = require('./chain');
 
 const EVENT_NEW_BLOCK = 'EVENT_NEW_BLOCK';
 const EVENT_DELETE_BLOCK = 'EVENT_DELETE_BLOCK';
 const EVENT_BROADCAST_BLOCK = 'EVENT_BROADCAST_BLOCK';
+const EVENT_NEW_BROADHASH = 'EVENT_NEW_BROADHASH';
 
 class Blocks extends EventEmitter {
 	constructor({
+		// components
 		logger,
 		storage,
+		// Unique requirements
 		genesisBlock,
-		transactionManager,
+		slots,
+		blockRewards,
 		excptions,
+		// Modules
+		roundsModule,
+		delegatesModule,
+		transactionManager,
+		// constants
 		blockReceiptTimeout, // set default
+		loadPerIteration,
+		maxPayloadLength,
+		maxTransactionsPerBlock,
+		activeDelegates,
 	}) {
 		super();
 		this.logger = logger;
 		this.storage = storage;
+		this.roundsModule = roundsModule;
+		this.delegatesModule = delegatesModule;
 		this.exceptions = excptions;
-		this.blockReceiptTimeout = blockReceiptTimeout;
 		this.genesisBlock = genesisBlock;
 		this.transactionManager = transactionManager;
+		this.slots = slots;
+		this.blockRewards = blockRewards;
+		this.constants = {
+			blockReceiptTimeout,
+			maxPayloadLength,
+			maxTransactionsPerBlock,
+			loadPerIteration,
+			activeDelegates,
+		};
 
+		this._broadhash = genesisBlock.block.payloadHash;
 		this._lastBlock = {};
 		this._isActive = false;
 		this._lastReceipt = null;
@@ -60,6 +83,10 @@ class Blocks extends EventEmitter {
 		return this._lastReceipt;
 	}
 
+	get broadhash() {
+		return this._broadhash;
+	}
+
 	/**
 	 * Returns status of last receipt - if it stale or not.
 	 *
@@ -71,7 +98,7 @@ class Blocks extends EventEmitter {
 		}
 		// Current time in seconds - lastReceipt (seconds)
 		const secondsAgo = Math.floor(Date.now() / 1000) - this._lastReceipt;
-		return secondsAgo > this.blockReceiptTimeout;
+		return secondsAgo > this.constants.blockReceiptTimeout;
 	}
 
 	updateLastReceipt() {
@@ -141,7 +168,7 @@ class Blocks extends EventEmitter {
 			memRounds,
 		} = await blocksUtils.loadMemTables();
 		if (blockCount === 1) {
-			this._lastBlock = await blocksProcess.reload(blockCount);
+			this._lastBlock = await this._reload(blockCount)();
 			this._isActive = false;
 			return;
 		}
@@ -158,7 +185,7 @@ class Blocks extends EventEmitter {
 			await blocksVerify.reloadRequired(memRounds);
 		} catch (error) {
 			this.logger.error(error, 'Reload of blockchain is required');
-			this._lastBlock = await blocksProcess.reload(blockCount);
+			this._lastBlock = await this._reload(blockCount)();
 			this._isActive = false;
 			return;
 		}
@@ -167,14 +194,29 @@ class Blocks extends EventEmitter {
 		} catch (error) {
 			this.logger.error(error, 'Failed to fetch last block');
 			// This is last attempt
-			this._lastBlock = await blocksProcess.reload(blockCount);
+			this._lastBlock = await this._reload(blockCount)();
 			this._isActive = false;
 			return;
 		}
 		const recoverRequired = await blocksVerify.requireBlockRewind();
 		if (recoverRequired) {
 			this.logger.error('Invalid own blockchain');
-			await blocksProcess.recoverInvalidOwnChain();
+			await blocksProcess.recoverInvalidOwnChain({
+				...this.constants,
+				lastBlock: this._lastBlock,
+				onDelete: (lastBlock, newLastBlock) => {
+					this.logger.info({ lastBlock, newLastBlock }, 'Deleted block');
+					this.emit(EVENT_DELETE_BLOCK, { block: lastBlock, newLastBlock });
+				},
+				storage: this.storage,
+				roundsModule: this.roundsModule,
+				slots: this.slots,
+				transactionManager: this._broadhash.transactionManager,
+				genesisBlock: this.generateBlock,
+				delegatesModule: this.delegatesModule,
+				blockRewards: this.blockRewards,
+				exceptions: this.exceptions,
+			});
 		}
 		this._isActive = false;
 		this.logger.info('Blockchain ready');
@@ -193,19 +235,12 @@ class Blocks extends EventEmitter {
 			if (blocksVerify.isSaneBlock(block, this._lastBlock)) {
 				this.updateLastReceipt();
 				try {
-					const newBlock = await blocksProcess.processBlock({
+					const newBlock = await this._processBlock(
 						block,
-						lastBlock: this._lastBlock,
-						storage: this.storage,
-						exceptions: this.exceptions,
-						slots: this.slots,
-						delegatesModule: this.delegatesModule,
-						roundsModule: this.roundsModule,
-						maxPayloadLength: this.maxPayloadLength,
-						maxTransactionsPerBlock: this.maxTransactionsPerBlock,
-						blockRewards: this.blockRewards,
-						broadcast: validBlock => this.broadcast(validBlock),
-					});
+						this._lastBlock,
+						validBlock => this.broadcast(validBlock)
+					)();
+					await this._updateBroadhash();
 					this._lastBlock = newBlock;
 					this._isActive = false;
 					setImmediate(cb);
@@ -224,17 +259,11 @@ class Blocks extends EventEmitter {
 					this._isActive = false;
 					return;
 				}
-				const normalizedBlock = blocksLogic.objectNormalize(
-					block,
-					this.exceptions
-				);
 				try {
-					await blocksVerify.validateBlockSlot(
-						this.delegatesModule,
-						normalizedBlock
-					);
-					const { verified, errors } = blocksVerify.verifyReceipt({
-						block: normalizedBlock,
+					const { verified, errors } = blocksVerify.normalizeAndVerify({
+						block,
+						exceptions: this.exceptions,
+						delegatesModule: this.delegatesModule,
 					});
 					if (!verified) {
 						throw errors;
@@ -268,17 +297,11 @@ class Blocks extends EventEmitter {
 					return;
 				}
 				this.updateLastReceipt();
-				const normalizedBlock = blocksLogic.objectNormalize(
-					block,
-					this.exceptions
-				);
 				try {
-					await blocksVerify.validateBlockSlot(
-						this.delegatesModule,
-						normalizedBlock
-					);
-					const { verified, errors } = blocksVerify.verifyReceipt({
-						block: normalizedBlock,
+					const { verified, errors } = blocksVerify.normalizeAndVerify({
+						block,
+						exceptions: this.exceptions,
+						delegatesModule: this.delegatesModule,
 					});
 					if (!verified) {
 						throw errors;
@@ -287,11 +310,12 @@ class Blocks extends EventEmitter {
 					this._lastBlock = await blocksChain.deleteLastBlock();
 					this.emit(EVENT_DELETE_BLOCK, { block: deletingBlock });
 					// emit event
-					const secondDeletingBlock = this._lastBlock;
-					this._lastBlock = await blocksProcess.processBlock({
-						broadcast: validBlock => this.broadcast(validBlock),
-					});
-					this.emit(EVENT_DELETE_BLOCK, { block: secondDeletingBlock });
+					this._lastBlock = await this._processBlock(
+						block,
+						this._lastBlock,
+						validBlock => this.broadcast(validBlock)
+					)();
+					await this._updateBroadhash();
 					this._isActive = false;
 					setImmediate(cb);
 					return;
@@ -325,7 +349,7 @@ class Blocks extends EventEmitter {
 				return;
 			}
 			// eslint-disable-next-line no-await-in-loop
-			this._lastBlock = await blocksProcess.processBlock({ block });
+			this._lastBlock = await this._processBlock(block, this._lastBlock)();
 			// emit event
 			this._updateLastNBlocks(block);
 			this.emit(EVENT_NEW_BLOCK, { block });
@@ -348,19 +372,12 @@ class Blocks extends EventEmitter {
 			maxPayloadLength: this.maxPayloadLength,
 			blockRewards: this.blockRewards,
 		});
-		this._lastBlock = await blocksProcess.processBlock({
+		this._lastBlock = await this._processBlock(
 			block,
-			lastBlock: this._lastBlock,
-			storage: this.storage,
-			exceptions: this.exceptions,
-			slots: this.slots,
-			delegatesModule: this.delegatesModule,
-			roundsModule: this.roundsModule,
-			maxPayloadLength: this.maxPayloadLength,
-			maxTransactionsPerBlock: this.maxTransactionsPerBlock,
-			blockRewards: this.blockRewards,
-			broadcast: validBlock => this.broadcast(validBlock),
-		});
+			this._lastBlock,
+			validBlock => this.broadcast(validBlock)
+		)();
+		await this._updateBroadhash();
 		// emit event
 		this._updateLastNBlocks(this._lastBlock);
 		this.emit(EVENT_NEW_BLOCK, { block: this._lastBlock });
@@ -385,21 +402,15 @@ class Blocks extends EventEmitter {
 				'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero'
 			);
 		}
-		const totalRounds = this.slots.calcRound();
+		const totalRounds = Math.floor(
+			rebuildUpToRound / this.constants.activeDelegates
+		);
 		const targetRound =
 			parseInt(rebuildUpToRound) === 0
 				? totalRounds
 				: Math.min(totalRounds, parseInt(rebuildUpToRound));
 		const targetHeight = targetRound * this.activeDelegates;
-		this._lastBlock = await blocksProcess.reload({
-			targetHeight,
-		});
-	}
-
-	_shouldNotBeActive() {
-		if (this._isActive) {
-			throw new Error('Block process cannot be executed in parallel');
-		}
+		this._lastBlock = await blocksProcess.reload(targetHeight);
 	}
 
 	_updateLastNBlocks(block) {
@@ -408,6 +419,60 @@ class Blocks extends EventEmitter {
 			this.lastNBlockIds.shift();
 		}
 	}
+
+	async _updateBroadhash() {
+		const { broadhash, height } = await blocksUtils.calculateNewBroadhash(
+			this.storage,
+			this._broadhash,
+			this._lastBlock.height
+		);
+		this._broadhash = broadhash;
+		this.emit(EVENT_NEW_BROADHASH, { broadhash, height });
+	}
+
+	_shouldNotBeActive() {
+		if (this._isActive) {
+			throw new Error('Block process cannot be executed in parallel');
+		}
+	}
+
+	_reload(blockCount) {
+		return async () =>
+			blocksProcess.reload({
+				...this.constants,
+				targetHeight: blockCount,
+				isCleaning: () => this._cleaning,
+				onProgress: block => {
+					this._lastBlock = block;
+					this.logger.info({ block }, 'Rebuilding block');
+				},
+				storage: this.storage,
+				loadPerIteration: this.constants.loadPerIteration,
+				genesisBlock: this._cleaning.genesisBlock,
+				slots: this.slots,
+				roundsModule: this.roundsModule,
+				exceptions: this.exceptions,
+				delegatesModule: this.delegatesModule,
+				blockRewards: this.blockRewards,
+			});
+	}
+
+	_processBlock(block, lastBlock, broadcast) {
+		return async () =>
+			blocksProcess.processBlock({
+				block,
+				lastBlock,
+				broadcast,
+				storage: this.storage,
+				exceptions: this.exceptions,
+				slots: this.slots,
+				delegatesModule: this.delegatesModule,
+				roundsModule: this.roundsModule,
+				maxPayloadLength: this.maxPayloadLength,
+				maxTransactionsPerBlock: this.maxTransactionsPerBlock,
+				blockRewards: this.blockRewards,
+			});
+	}
 }
 
 module.exports = {
@@ -415,4 +480,5 @@ module.exports = {
 	EVENT_NEW_BLOCK,
 	EVENT_DELETE_BLOCK,
 	EVENT_BROADCAST_BLOCK,
+	EVENT_NEW_BROADHASH,
 };

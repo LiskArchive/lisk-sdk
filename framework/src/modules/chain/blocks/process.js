@@ -340,12 +340,11 @@ const recoverInvalidOwnChain = async ({
 	blockRewards,
 	exceptions,
 }) => {
-	await blocksChain.deleteLastBlock(storage, roundsModule, slots, lastBlock);
-	const newLastBlock = await blocksUtils.loadBlockByHeight(
+	const newLastBlock = await blocksChain.deleteLastBlock(
 		storage,
-		lastBlock.height - 1,
-		transactionManager,
-		genesisBlock
+		roundsModule,
+		slots,
+		lastBlock
 	);
 	onDelete(lastBlock, newLastBlock);
 	const { verified } = blocksVerify.verifyBlock({

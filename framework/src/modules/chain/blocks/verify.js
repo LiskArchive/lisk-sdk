@@ -589,6 +589,14 @@ const requireBlockRewind = async ({
 	return true;
 };
 
+const normalizeAndVerify = async ({ block, exceptions, delegatesModule }) => {
+	const normalizedBlock = blocksLogic.objectNormalize(block, exceptions);
+	await validateBlockSlot(delegatesModule, normalizedBlock);
+	return verifyReceipt({
+		block: normalizedBlock,
+	});
+};
+
 module.exports = {
 	checkExists,
 	checkTransactions,
@@ -603,6 +611,7 @@ module.exports = {
 	verifyReward,
 	verifyReceipt,
 	verifyBlock,
+	normalizeAndVerify,
 	isSaneBlock,
 	isForkOne,
 	shouldDiscardForkOne,
