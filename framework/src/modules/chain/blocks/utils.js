@@ -263,7 +263,7 @@ const readStorageRows = (rows, transactionManager, genesisBlock) => {
 		block = storageRead(block);
 
 		if (block) {
-			if (block.id === genesisBlock.block.id) {
+			if (block.id === genesisBlock.id) {
 				// Generate fake signature for genesis block
 				block.generationSignature = new Array(65).join('0');
 			}
@@ -298,7 +298,7 @@ const readDbRows = (rows, transactionManager, genesisBlock) => {
 		if (block) {
 			// If block is not already in the list...
 			if (!blocks[block.id]) {
-				if (block.id === genesisBlock.block.id) {
+				if (block.id === genesisBlock.id) {
 					// Generate fake signature for genesis block
 					block.generationSignature = new Array(65).join('0');
 				}
@@ -419,10 +419,10 @@ const getIdSequence = async (
 	const ids = [];
 
 	// Add genesis block at the end if the set doesn't contain it already
-	if (genesisBlock && genesisBlock.block) {
+	if (genesisBlock) {
 		const __genesisBlock = {
-			id: genesisBlock.block.id,
-			height: genesisBlock.block.height,
+			id: genesisBlock.id,
+			height: genesisBlock.height,
 		};
 
 		if (!_.includes(rows, __genesisBlock.id)) {
@@ -488,6 +488,8 @@ const loadBlockByHeight = async (
  */
 const loadBlockBlocksWithOffset = async (
 	storage,
+	transactionManager,
+	genesisBlock,
 	blocksAmount,
 	fromHeight = 0
 ) => {
@@ -507,7 +509,7 @@ const loadBlockBlocksWithOffset = async (
 
 	// Loads extended blocks from storage
 	const rows = await storage.entities.Block.get(filters, options);
-	return readStorageRows(rows);
+	return readStorageRows(rows, transactionManager, genesisBlock);
 };
 
 /**

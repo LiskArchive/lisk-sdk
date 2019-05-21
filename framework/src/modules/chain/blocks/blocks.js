@@ -73,7 +73,7 @@ class Blocks extends EventEmitter {
 			activeDelegates,
 		};
 
-		this._broadhash = genesisBlock.block.payloadHash;
+		this._broadhash = genesisBlock.payloadHash;
 		this._lastBlock = {};
 		this._isActive = false;
 		this._lastReceipt = null;
@@ -171,11 +171,18 @@ class Blocks extends EventEmitter {
 		this._shouldNotBeActive();
 		this._isActive = true;
 		// check mem tables
-		const {
-			blockCount,
-			genesisBlock,
-			memRounds,
-		} = await blocksUtils.loadMemTables();
+		const { blockCount, genesisBlock, memRounds } = await new Promise(
+			(resolve, reject) => {
+				this.storage.entities.Block.begin('loader:checkMemTables', async tx => {
+					try {
+						const result = await blocksUtils.loadMemTables(this.storage, tx);
+						resolve(result);
+					} catch (error) {
+						reject(error);
+					}
+				});
+			}
+		);
 		if (blockCount === 1) {
 			this._lastBlock = await this._reload(blockCount)();
 			this._isActive = false;
@@ -184,14 +191,19 @@ class Blocks extends EventEmitter {
 		// check genesisBlock
 		blocksVerify.matchGenesisBlock(this.genesisBlock, genesisBlock);
 		// rebuild accounts if it's rebuild
-		if (rebuildUpToRound !== null) {
+		if (rebuildUpToRound !== null && rebuildUpToRound !== undefined) {
 			await this._rebuildMode(rebuildUpToRound, blockCount);
 			this._isActive = false;
 			return;
 		}
 		// check reload condition, true then reload
 		try {
-			await blocksVerify.reloadRequired(memRounds);
+			await blocksVerify.reloadRequired(
+				this.storage,
+				this.slots,
+				blockCount,
+				memRounds
+			);
 		} catch (error) {
 			this.logger.error(error, 'Reload of blockchain is required');
 			this._lastBlock = await this._reload(blockCount)();
@@ -220,7 +232,7 @@ class Blocks extends EventEmitter {
 				storage: this.storage,
 				roundsModule: this.roundsModule,
 				slots: this.slots,
-				transactionManager: this._broadhash.transactionManager,
+				transactionManager: this.transactionManager,
 				genesisBlock: this.generateBlock,
 				delegatesModule: this.delegatesModule,
 				blockReward: this.blockReward,
@@ -455,9 +467,10 @@ class Blocks extends EventEmitter {
 					this._lastBlock = block;
 					this.logger.info({ block }, 'Rebuilding block');
 				},
+				transactionManager: this.transactionManager,
 				storage: this.storage,
 				loadPerIteration: this.constants.loadPerIteration,
-				genesisBlock: this._cleaning.genesisBlock,
+				genesisBlock: this.genesisBlock,
 				slots: this.slots,
 				roundsModule: this.roundsModule,
 				exceptions: this.exceptions,

@@ -35,7 +35,7 @@ const {
 } = require('./init_steps');
 const { TransactionManager } = require('./transactions');
 const { TransactionPool } = require('./transaction_pool');
-const { BlockSlots } = require('./logic/block_slots');
+const { BlockSlots, Blocks } = require('./blocks');
 
 const syncInterval = 10000;
 const forgeInterval = 1000;
@@ -173,7 +173,7 @@ module.exports = class Chain {
 
 			this.logger.info('Modules ready and launched');
 			// After binding, it should immediately load blockchain
-			await this.loader.loadBlockChain();
+			await this.blocks.loadBlockChain();
 
 			this.channel.subscribe('network:bootstrap', async () => {
 				this._startLoader();
@@ -320,10 +320,30 @@ module.exports = class Chain {
 			interval: this.options.constants.BLOCK_TIME,
 			blocksPerRound: this.options.constants.ACTIVE_DELEGATES,
 		});
+		this.blocks = new Blocks({
+			logger: this.logger,
+			storage: this.storage,
+			genesisBlock: this.options.genesisBlock,
+			slots: blockSlots,
+			excptions: this.options.exceptions,
+			roundsModule: this.scope.modules.rounds,
+			delegatesModule: this.scope.modules.delegates,
+			transactionManager: this.transactionManager,
+			blockReceiptTimeout: this.options.constants.BLOCK_RECEIPT_TIMEOUT,
+			loadPerIteration: 1000,
+			maxPayloadLength: this.options.constants.MAX_PAYLOAD_LENGTH,
+			maxTransactionsPerBlock: this.options.constants
+				.MAX_TRANSACTIONS_PER_BLOCK,
+			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+			rewardDistance: this.options.constants.REWARDS.DISTANCE,
+			rewardOffset: this.options.constants.REWARDS.OFFSET,
+			rewardMileStones: this.options.constants.REWARDS.MILESTONES,
+			totalAmount: this.options.constants.TOTAL_AMOUNT,
+		});
 		this.transactionPool = new TransactionPool({
 			logger: this.logger,
 			storage: this.storage,
-			blocks: this.scope.modules.blocks,
+			blocks: this.blocks,
 			slots: blockSlots,
 			exceptions: this.options.exceptions,
 			maxTransactionsPerQueue: this.options.transactions
@@ -335,6 +355,7 @@ module.exports = class Chain {
 			broadcastInterval: this.options.broadcasts.broadcastInterval,
 			releaseLimit: this.options.broadcasts.releaseLimit,
 		});
+		this.scope.modules.blocks = this.blocks;
 		this.scope.modules.transactionPool = this.transactionPool;
 		// TODO: Remove - Temporal write to modules for blocks circular dependency
 

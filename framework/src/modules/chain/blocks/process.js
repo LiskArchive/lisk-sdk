@@ -208,6 +208,7 @@ const reload = async ({
 	genesisBlock,
 	slots,
 	roundsModule,
+	transactionManager,
 	exceptions,
 	delegatesModule,
 	maxTransactionsPerBlock,
@@ -222,6 +223,7 @@ const reload = async ({
 		onProgress,
 		storage,
 		loadPerIteration,
+		transactionManager,
 		genesisBlock,
 		slots,
 		roundsModule,
@@ -249,6 +251,7 @@ const rebuild = async ({
 	isCleaning,
 	onProgress,
 	storage,
+	transactionManager,
 	loadPerIteration,
 	genesisBlock,
 	slots,
@@ -262,6 +265,8 @@ const rebuild = async ({
 	const limit = loadPerIteration || 1000;
 	const blocks = await blocksUtils.loadBlockBlocksWithOffset(
 		storage,
+		transactionManager,
+		genesisBlock,
 		limit,
 		currentHeight
 	);
@@ -271,7 +276,7 @@ const rebuild = async ({
 		if (isCleaning()) {
 			return;
 		}
-		if (block.id === genesisBlock.block.id) {
+		if (block.id === genesisBlock.id) {
 			// eslint-disable-next-line no-await-in-loop
 			lastBlock = await blocksChain.applyGenesisBlock(
 				storage,
@@ -306,6 +311,7 @@ const rebuild = async ({
 			isCleaning,
 			onProgress,
 			storage,
+			transactionManager,
 			loadPerIteration,
 			genesisBlock,
 			slots,

@@ -92,7 +92,7 @@ const saveBlock = async (storage, block, tx) => {
 const saveGenesisBlock = async (storage, transactionManager, genesisBlock) => {
 	// Check if genesis block ID already exists in the database
 	const isPersisted = await storage.entities.Block.isPersisted({
-		id: genesisBlock.block.id,
+		id: genesisBlock.id,
 	});
 	if (isPersisted) {
 		return;
@@ -102,8 +102,8 @@ const saveGenesisBlock = async (storage, transactionManager, genesisBlock) => {
 	// WARNING: DB_WRITE
 	// FIXME: This will fail if we already have genesis block in database, but with different ID
 	const block = {
-		...genesisBlock.block,
-		transactions: transactionManager.fromBlock(genesisBlock.block),
+		...genesisBlock,
+		transactions: transactionManager.fromBlock(genesisBlock),
 	};
 	await saveBlock(storage, block);
 };

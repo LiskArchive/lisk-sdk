@@ -517,11 +517,11 @@ const shouldDiscardForkFive = (block, lastBlock) =>
 	(block.timestamp === lastBlock.timestamp && block.id > lastBlock.id);
 
 const matchGenesisBlock = (ownGenesisBlock, targetGenesisBlock) =>
-	targetGenesisBlock.id === ownGenesisBlock.genesisBlock.block.id &&
+	targetGenesisBlock.id === ownGenesisBlock.id &&
 	targetGenesisBlock.payloadHash.toString('hex') ===
-		ownGenesisBlock.genesisBlock.block.payloadHash &&
+		ownGenesisBlock.payloadHash &&
 	targetGenesisBlock.blockSignature.toString('hex') ===
-		ownGenesisBlock.genesisBlock.block.blockSignature;
+		ownGenesisBlock.blockSignature;
 
 const reloadRequired = async (storage, slots, blocksCount, memRounds) => {
 	const round = slots.calcRound(blocksCount);
