@@ -40,7 +40,7 @@ export interface P2PPenalty {
 
 export interface P2PRateInfo {
 	readonly peerId: string;
-	readonly rate?: number;
+	readonly rate: number;
 }
 
 // Allows the user to provide custom fields.

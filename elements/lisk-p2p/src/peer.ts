@@ -12,9 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
-// TODO: Add RPS per peer and add onto message / request
-
 import { EventEmitter } from 'events';
 import * as querystring from 'querystring';
 import {
@@ -618,7 +615,6 @@ export class Peer extends EventEmitter {
 		inboundSocket: SCServerSocket,
 	): void {
 		inboundSocket.off('close', this._handleInboundSocketClose);
-
 		// Unbind RPC and remote event handlers
 		inboundSocket.off(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
 		inboundSocket.off(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
