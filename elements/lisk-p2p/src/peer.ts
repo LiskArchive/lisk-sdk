@@ -91,6 +91,7 @@ export const DEFAULT_CONNECT_TIMEOUT = 2000;
 export const DEFAULT_ACK_TIMEOUT = 2000;
 export const DEFAULT_REPUTATION_SCORE = 100;
 export const DEFAULT_BAN_TIME = 86400;
+export const DEFAULT_RATE_INTERVAL = 1000;
 
 type SCServerSocketUpdated = {
 	destroy(code?: number, data?: string | object): void;
@@ -145,7 +146,8 @@ export class Peer extends EventEmitter {
 	private readonly _wsPort: number;
 	private readonly _height: number;
 	private _reputation: number;
-	private _banTimer: NodeJS.Timer | undefined;
+	private _callCounter: number;
+	private readonly _counterResetInterval: NodeJS.Timer;
 	private _peerInfo: P2PDiscoveredPeerInfo;
 	private readonly _peerConfig: PeerConfig;
 	private _nodeInfo: P2PNodeInfo | undefined;
@@ -176,13 +178,17 @@ export class Peer extends EventEmitter {
 	) {
 		super();
 		this._reputation = DEFAULT_REPUTATION_SCORE;
-		this._banTimer = undefined;
 		this._peerInfo = peerInfo;
 		this._peerConfig = peerConfig ? peerConfig : {};
 		this._ipAddress = peerInfo.ipAddress;
 		this._wsPort = peerInfo.wsPort;
 		this._id = constructPeerId(this._ipAddress, this._wsPort);
 		this._height = peerInfo.height ? peerInfo.height : 0;
+		this._callCounter = 0;
+		this._counterResetInterval = setInterval(
+			() => (this._callCounter = 0),
+			DEFAULT_RATE_INTERVAL,
+		);
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawRPC = (
@@ -211,7 +217,7 @@ export class Peer extends EventEmitter {
 				this._handleGetNodeInfo(request);
 			}
 
-			this.emit(EVENT_REQUEST_RECEIVED, request);
+			this.emit(EVENT_REQUEST_RECEIVED, this._attachRateInfo(request));
 		};
 
 		// This needs to be an arrow function so that it can be used as a listener.
@@ -227,7 +233,7 @@ export class Peer extends EventEmitter {
 				return;
 			}
 
-			this.emit(EVENT_MESSAGE_RECEIVED, protocolMessage);
+			this.emit(EVENT_MESSAGE_RECEIVED, this._attachRateInfo(protocolMessage));
 		};
 
 		// TODO later: Delete the following legacy message handlers.
@@ -314,7 +320,6 @@ export class Peer extends EventEmitter {
 
 	public applyPenalty(penalty: number): void {
 		this._reputation -= penalty;
-
 		if (this._reputation <= 0) {
 			this._banPeer();
 		}
@@ -373,6 +378,7 @@ export class Peer extends EventEmitter {
 	}
 
 	public disconnect(code: number = 1000, reason?: string): void {
+		clearInterval(this._counterResetInterval);
 		this.dropInboundConnection(code, reason);
 		this.dropOutboundConnection(code, reason);
 	}
@@ -407,10 +413,6 @@ export class Peer extends EventEmitter {
 				data: packet.data,
 			});
 		}
-	}
-
-	public isBanned(): boolean {
-		return this._reputation <= 0;
 	}
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
@@ -664,20 +666,23 @@ export class Peer extends EventEmitter {
 			this._peerConfig && this._peerConfig.banTime
 				? this._peerConfig.banTime
 				: DEFAULT_BAN_TIME;
-		this._banTimer = setTimeout(this._unbanPeer, banTime);
+		setTimeout(this._unbanPeer, banTime);
 		this.disconnect(FORBIDDEN_CONNECTION, FORBIDDEN_CONNECTION_REASON);
 		this.emit(EVENT_BAN_PEER, this._id);
 	}
 
 	private _unbanPeer(): void {
-		// Reset reputation score
-		this._reputation = DEFAULT_REPUTATION_SCORE;
-		if (this._banTimer) {
-			clearTimeout(this._banTimer);
-			this._banTimer = undefined;
-		}
 		this.emit(EVENT_UNBAN_PEER, this._id);
 	}
+
+	private _attachRateInfo = (packet: any) => {
+		packet.rateInfo = {
+			peerId: this._id,
+			rate: this._callCounter / DEFAULT_RATE_INTERVAL,
+		};
+
+		return packet;
+	};
 }
 
 export interface ConnectAndFetchResponse {
