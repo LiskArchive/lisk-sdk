@@ -217,6 +217,10 @@ describe('rounds', () => {
 
 		beforeEach(async () => {
 			getOutsiders = get('__private.getOutsiders');
+			set(
+				'library.delegates.generateDelegateList',
+				sinon.stub().resolves(['delegate1', 'delegate2', 'delegate3'])
+			);
 		});
 
 		describe('when scope.block.height = 1', () => {
@@ -274,7 +278,7 @@ describe('rounds', () => {
 					});
 
 					it('should add 1 outsider scope.roundOutsiders', done => {
-						getOutsiders(scope, async () => {
+						getOutsiders(scope, () => {
 							expect(scope.roundOutsiders).to.be.eql(['delegate1']);
 							done();
 						});
@@ -295,7 +299,7 @@ describe('rounds', () => {
 					});
 
 					it('should add 2 outsiders to scope.roundOutsiders', done => {
-						getOutsiders(scope, async () => {
+						getOutsiders(scope, () => {
 							expect(scope.roundOutsiders).to.be.eql([
 								'delegate1',
 								'delegate2',
