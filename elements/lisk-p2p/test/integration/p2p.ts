@@ -628,7 +628,7 @@ describe('Integration tests for P2P library', () => {
 			});
 		});
 
-		describe.skip('Cleanup unresponsive peers', () => {
+		describe('Cleanup unresponsive peers', () => {
 			it('should remove crashed nodes from network status of other nodes', async () => {
 				const initialNetworkStatus = p2pNodeList[0].getNetworkStatus();
 				const initialPeerPorts = initialNetworkStatus.connectedPeers
@@ -639,14 +639,12 @@ describe('Integration tests for P2P library', () => {
 					ALL_NODE_PORTS.filter(port => port !== NETWORK_START_PORT),
 				);
 
-				await Promise.all(
-					p2pNodeList
-						.filter(p2p => p2p.isActive)
-						.map(async p2p => await p2p.stop()),
-				);
+				await p2pNodeList[0].stop();
+				await wait(100);
+				await p2pNodeList[1].stop();
 				await wait(100);
 
-				const networkStatusAfterPeerCrash = p2pNodeList[0].getNetworkStatus();
+				const networkStatusAfterPeerCrash = p2pNodeList[2].getNetworkStatus();
 
 				const peerPortsAfterPeerCrash = networkStatusAfterPeerCrash.connectedPeers
 					.map(peerInfo => peerInfo.wsPort)
