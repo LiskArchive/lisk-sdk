@@ -15,9 +15,19 @@
 'use strict';
 
 const { BlockSlots } = require('./block_slots');
-const { Blocks } = require('./blocks');
+const {
+	Blocks,
+	EVENT_NEW_BLOCK,
+	EVENT_DELETE_BLOCK,
+	EVENT_BROADCAST_BLOCK,
+	EVENT_NEW_BROADHASH,
+} = require('./blocks');
 
 module.exports = {
 	BlockSlots,
 	Blocks,
+	EVENT_NEW_BLOCK,
+	EVENT_DELETE_BLOCK,
+	EVENT_BROADCAST_BLOCK,
+	EVENT_NEW_BROADHASH,
 };
