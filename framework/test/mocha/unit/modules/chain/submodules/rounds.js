@@ -97,7 +97,7 @@ describe('rounds', () => {
 		return Rounds.__set__(variable, value);
 	}
 
-	beforeEach(async () => {
+	beforeEach(done => {
 		scope = _.cloneDeep(validScope);
 
 		bindings.modules.rounds.generateDelegateList.resolves([
@@ -118,13 +118,18 @@ describe('rounds', () => {
 			.returns('delegate3');
 
 		rounds = new Rounds(scope);
+		done();
 	});
 
-	afterEach(async () => {
+	afterEach(done => {
 		sinon.restore();
+		done();
 	});
 
 	describe('constructor', () => {
+		it('should return Rounds instance', async () =>
+			expect(rounds).to.be.instanceof(Rounds));
+
 		it('should set library to scope', async () => {
 			const library = get('library');
 
@@ -157,6 +162,18 @@ describe('rounds', () => {
 		});
 	});
 
+	describe('onBlockchainReady', () => {
+		it('should set __private.loaded = true', async () => {
+			const variable = '__private.loaded ';
+			const backup = get(variable);
+			const value = false;
+			set(variable, value);
+			rounds.onBlockchainReady();
+			expect(get(variable)).to.equal(true);
+			return set(variable, backup);
+		});
+	});
+
 	describe('onFinishRound', () => {
 		beforeEach(async () => {
 			validScope.channel.publish.resetHistory();
@@ -183,7 +200,7 @@ describe('rounds', () => {
 	});
 
 	describe('cleanup', () => {
-		it('should set __private.loaded = false and call a callback', async () => {
+		it('should set __private.loaded = false and call a callback', done => {
 			const variable = '__private.loaded ';
 			const backup = get(variable);
 			const value = true;
@@ -191,6 +208,7 @@ describe('rounds', () => {
 			rounds.cleanup();
 			expect(get(variable)).to.equal(false);
 			set(variable, backup);
+			done();
 		});
 	});
 
@@ -206,9 +224,10 @@ describe('rounds', () => {
 				scope.block = { height: 1 };
 			});
 
-			it('should call a callback', async () => {
+			it('should call a callback', done => {
 				getOutsiders(scope, err => {
 					expect(err).to.not.exist;
+					done();
 				});
 			});
 		});
@@ -226,15 +245,17 @@ describe('rounds', () => {
 						scope.roundOutsiders = [];
 					});
 
-					it('should call a callback', async () => {
-						await getOutsiders(scope, err => {
+					it('should call a callback', done => {
+						getOutsiders(scope, err => {
 							expect(err).to.not.exist;
+							done();
 						});
 					});
 
-					it('should not modify scope.roundOutsiders', async () => {
+					it('should not modify scope.roundOutsiders', done => {
 						getOutsiders(scope, async () => {
 							expect(scope.roundOutsiders).to.be.eql([]);
+							done();
 						});
 					});
 				});
@@ -245,15 +266,17 @@ describe('rounds', () => {
 						scope.roundOutsiders = [];
 					});
 
-					it('should call a callback', async () => {
+					it('should call a callback', done => {
 						getOutsiders(scope, err => {
 							expect(err).to.not.exist;
+							done();
 						});
 					});
 
-					it('should add 1 outsider scope.roundOutsiders', async () => {
+					it('should add 1 outsider scope.roundOutsiders', done => {
 						getOutsiders(scope, async () => {
 							expect(scope.roundOutsiders).to.be.eql(['delegate1']);
+							done();
 						});
 					});
 				});
@@ -264,18 +287,20 @@ describe('rounds', () => {
 						scope.roundOutsiders = [];
 					});
 
-					it('should call a callback', async () => {
+					it('should call a callback', done => {
 						getOutsiders(scope, err => {
 							expect(err).to.not.exist;
+							done();
 						});
 					});
 
-					it('should add 2 outsiders to scope.roundOutsiders', async () => {
+					it('should add 2 outsiders to scope.roundOutsiders', done => {
 						getOutsiders(scope, async () => {
 							expect(scope.roundOutsiders).to.be.eql([
 								'delegate1',
 								'delegate2',
 							]);
+							done();
 						});
 					});
 				});
@@ -284,16 +309,16 @@ describe('rounds', () => {
 			describe('when generateDelegateList fails', () => {
 				beforeEach(async () => {
 					scope.block.height = 2;
-					scope.round = 1;
 					const library = get('library');
 					library.delegates = {
 						generateDelegateList: sinon.stub().rejects(new Error('error')),
 					};
 				});
 
-				it('should call a callback with error', async () => {
+				it('should call a callback with error', done => {
 					getOutsiders(scope, err => {
 						expect(err.message).to.equal('error');
+						done();
 					});
 				});
 			});
@@ -303,8 +328,9 @@ describe('rounds', () => {
 	describe('__private.sumRound', () => {
 		let sumRound;
 
-		beforeEach(async () => {
+		beforeEach(done => {
 			sumRound = get('__private.sumRound');
+			done();
 		});
 
 		describe('when last block is genesis block', () => {
@@ -318,29 +344,33 @@ describe('rounds', () => {
 				};
 			});
 
-			it('should call a callback', async () => {
+			it('should call a callback', done => {
 				sumRound(scope, err => {
 					expect(err).to.not.exist;
+					done();
 				});
 			});
 
-			it('should set scope.roundFees to 0', async () => {
+			it('should set scope.roundFees to 0', done => {
 				sumRound(scope, async () => {
 					expect(scope.roundFees).to.equal(0);
+					done();
 				});
 			});
 
-			it('should set scope.roundRewards to 0', async () => {
+			it('should set scope.roundRewards to 0', done => {
 				sumRound(scope, async () => {
 					expect(scope.roundRewards).to.deep.equal([0]);
+					done();
 				});
 			});
 
-			it('should set scope.roundDelegates', async () => {
+			it('should set scope.roundDelegates', done => {
 				sumRound(scope, async () => {
 					expect(scope.roundDelegates).to.deep.equal([
 						scope.block.generatorPublicKey,
 					]);
+					done();
 				});
 			});
 		});
@@ -361,45 +391,51 @@ describe('rounds', () => {
 					storageStubs.Round.summedRound.resolves(rows);
 				});
 
-				it('should call a callback', async () => {
+				it('should call a callback', done => {
 					sumRound(scope, err => {
 						expect(err).to.not.exist;
+						done();
 					});
 				});
 
-				it('should set scope.roundFees correctly', async () => {
+				it('should set scope.roundFees correctly', done => {
 					sumRound(scope, async () => {
 						expect(scope.roundFees).to.equal(100);
+						done();
 					});
 				});
 
-				it('should set scope.roundRewards correctly', async () => {
+				it('should set scope.roundRewards correctly', done => {
 					sumRound(scope, async () => {
 						expect(scope.roundRewards).to.deep.equal([1, 2, 3]);
+						done();
 					});
 				});
 
-				it('should set scope.roundDelegates', async () => {
+				it('should set scope.roundDelegates', done => {
 					sumRound(scope, async () => {
 						expect(scope.roundDelegates).to.deep.equal([
 							'delegate1',
 							'delegate2',
 							'delegate3',
 						]);
+						done();
 					});
 				});
 			});
 
 			describe('when summedRound query fails', () => {
-				beforeEach(async () => {
+				beforeEach(done => {
 					// Because for genesis block we don't invoke summedRound
 					scope.block = { height: 2 };
 					storageStubs.Round.summedRound.rejects('fail');
+					done();
 				});
 
-				it('should call a callback with error = fail', async () => {
+				it('should call a callback with error = fail', done => {
 					sumRound(scope, err => {
 						expect(err.name).to.equal('fail');
+						done();
 					});
 				});
 			});
@@ -443,41 +479,45 @@ describe('rounds', () => {
 			describe('scope properties', () => {
 				describe('finishRound', () => {
 					describe('when block height = 1', () => {
-						it('should be set to true', async () => {
+						it('should be set to true', done => {
 							block = { height: 1 };
 							rounds.tick(block, err => {
 								expect(err).to.not.exist;
 								expect(roundScope.finishRound).to.be.true;
+								done();
 							});
 						});
 					});
 
 					describe('when block height = 101', () => {
-						it('should be set to true', async () => {
+						it('should be set to true', done => {
 							block = { height: 101 };
 							rounds.tick(block, err => {
 								expect(err).to.not.exist;
 								expect(roundScope.finishRound).to.be.true;
+								done();
 							});
 						});
 					});
 
 					describe('when round !== nextRound', () => {
-						it('should be set to true', async () => {
+						it('should be set to true', done => {
 							block = { height: 202 };
 							rounds.tick(block, err => {
 								expect(err).to.not.exist;
 								expect(roundScope.finishRound).to.be.true;
+								done();
 							});
 						});
 					});
 
 					describe('when other height supplied (middle-round)', () => {
-						it('should be set to false', async () => {
+						it('should be set to false', done => {
 							block = { height: 203 };
 							rounds.tick(block, err => {
 								expect(err).to.not.exist;
 								expect(roundScope.finishRound).to.be.false;
+								done();
 							});
 						});
 					});
@@ -494,12 +534,13 @@ describe('rounds', () => {
 			});
 
 			describe('when true', () => {
-				beforeEach(async () => {
+				beforeEach(done => {
 					scope.finishRound = true;
 					block = { height: 1 };
 					rounds.tick(block, err => {
 						expect(err).to.not.exist;
 						expect(roundScope.finishRound).to.be.true;
+						done();
 					});
 				});
 
@@ -526,11 +567,12 @@ describe('rounds', () => {
 			});
 
 			describe('when false', () => {
-				beforeEach(async () => {
+				beforeEach(done => {
 					block = { height: 203 };
 					rounds.tick(block, err => {
 						expect(err).to.not.exist;
 						expect(roundScope.finishRound).to.be.false;
+						done();
 					});
 				});
 
@@ -582,10 +624,11 @@ describe('rounds', () => {
 				describe('when queries are successful', () => {
 					let res;
 
-					beforeEach(async () => {
+					beforeEach(done => {
 						block = { height: 100 };
 						rounds.tick(block, err => {
 							res = err;
+							done();
 						});
 					});
 
@@ -608,7 +651,7 @@ describe('rounds', () => {
 				describe('when clearRoundSnapshot query fails', () => {
 					let res;
 
-					beforeEach(async () => {
+					beforeEach(done => {
 						clearRoundSnapshot_stub = storageStubs.Round.clearRoundSnapshot.rejects(
 							'clearRoundSnapshot'
 						);
@@ -616,6 +659,7 @@ describe('rounds', () => {
 						block = { height: 100 };
 						rounds.tick(block, err => {
 							res = err;
+							done();
 						});
 					});
 
@@ -640,7 +684,7 @@ describe('rounds', () => {
 				describe('when performRoundSnapshot query fails', () => {
 					let res;
 
-					beforeEach(async () => {
+					beforeEach(done => {
 						performRoundSnapshot_stub = storageStubs.Round.performRoundSnapshot.rejects(
 							'performRoundSnapshot'
 						);
@@ -648,6 +692,7 @@ describe('rounds', () => {
 						block = { height: 100 };
 						rounds.tick(block, err => {
 							res = err;
+							done();
 						});
 					});
 
@@ -672,7 +717,7 @@ describe('rounds', () => {
 				describe('when clearVotesSnapshot query fails', () => {
 					let res;
 
-					beforeEach(async () => {
+					beforeEach(done => {
 						clearVotesSnapshot_stub = storageStubs.Round.clearVotesSnapshot.rejects(
 							'clearVotesSnapshot'
 						);
@@ -680,6 +725,7 @@ describe('rounds', () => {
 						block = { height: 100 };
 						rounds.tick(block, err => {
 							res = err;
+							done();
 						});
 					});
 
@@ -704,7 +750,7 @@ describe('rounds', () => {
 				describe('when performVotesSnapshot query fails', () => {
 					let res;
 
-					beforeEach(async () => {
+					beforeEach(done => {
 						performVotesSnapshot_stub = storageStubs.Round.performVotesSnapshot.rejects(
 							'performVotesSnapshot'
 						);
@@ -712,6 +758,7 @@ describe('rounds', () => {
 						block = { height: 100 };
 						rounds.tick(block, err => {
 							res = err;
+							done();
 						});
 					});
 
@@ -735,10 +782,11 @@ describe('rounds', () => {
 			});
 
 			describe('when (block.height+1) % ACTIVE_DELEGATES !== 0', () => {
-				beforeEach(async () => {
+				beforeEach(done => {
 					block = { height: 101 };
 					rounds.tick(block, err => {
 						expect(err).to.not.exist;
+						done();
 					});
 				});
 
@@ -798,7 +846,7 @@ describe('rounds', () => {
 			describe('scope properties', () => {
 				describe('finishRound', () => {
 					describe('when block height = 1', () => {
-						it('should be set to true', async () => {
+						it('should be set to true', done => {
 							block = { height: 1 };
 							previousBlock = { height: 1 };
 							rounds.backwardTick(
@@ -807,6 +855,7 @@ describe('rounds', () => {
 								err => {
 									expect(err).to.not.exist;
 									expect(roundScope.finishRound).to.be.true;
+									done();
 								},
 								null
 							);
@@ -814,7 +863,7 @@ describe('rounds', () => {
 					});
 
 					describe('when block height = 101', () => {
-						it('should be set to true', async () => {
+						it('should be set to true', done => {
 							block = { height: 101 };
 							previousBlock = { height: 1 };
 							rounds.backwardTick(
@@ -823,6 +872,7 @@ describe('rounds', () => {
 								err => {
 									expect(err).to.not.exist;
 									expect(roundScope.finishRound).to.be.true;
+									done();
 								},
 								null
 							);
@@ -830,23 +880,25 @@ describe('rounds', () => {
 					});
 
 					describe('prevRound === round && nextRound !== round', () => {
-						it('should be set to true', async () => {
+						it('should be set to true', done => {
 							block = { height: 202 };
 							previousBlock = { height: 202 };
 							rounds.backwardTick(block, previousBlock, err => {
 								expect(err).to.not.exist;
 								expect(roundScope.finishRound).to.be.true;
+								done();
 							});
 						});
 					});
 
 					describe('when other height supplied (middle-round)', () => {
-						it('should be set to false', async () => {
+						it('should be set to false', done => {
 							block = { height: 203 };
 							previousBlock = { height: 203 };
 							rounds.backwardTick(block, previousBlock, err => {
 								expect(err).to.not.exist;
 								expect(roundScope.finishRound).to.be.false;
+								done();
 							});
 						});
 					});
@@ -856,12 +908,13 @@ describe('rounds', () => {
 
 		describe('scope.finishRound', () => {
 			describe('when true', () => {
-				beforeEach(async () => {
+				beforeEach(done => {
 					block = { height: 1 };
 					previousBlock = { height: 1 };
 					rounds.backwardTick(block, previousBlock, err => {
 						expect(err).to.not.exist;
 						expect(roundScope.finishRound).to.be.true;
+						done();
 					});
 				});
 
@@ -879,12 +932,13 @@ describe('rounds', () => {
 			});
 
 			describe('when false', () => {
-				beforeEach(async () => {
+				beforeEach(done => {
 					block = { height: 5 };
 					previousBlock = { height: 5 };
 					rounds.backwardTick(block, previousBlock, err => {
 						expect(err).to.not.exist;
 						expect(roundScope.finishRound).to.be.false;
+						done();
 					});
 				});
 
