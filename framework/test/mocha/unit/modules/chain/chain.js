@@ -266,7 +266,7 @@ describe('Chain', () => {
 				'Chain initialization'
 			);
 			expect(chain.logger.fatal.firstCall.args[1].message).to.be.eql(
-				'modules.chain.forging.waitThreshold=5 is greater or equal to app.genesisConfig.BLOCK_TIME=4. It impact the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold'
+				'modules.chain.forging.waitThreshold=5 is greater or equal to app.genesisConfig.BLOCK_TIME=4. It impacts the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold'
 			);
 		});
 
@@ -289,7 +289,7 @@ describe('Chain', () => {
 				'Chain initialization'
 			);
 			expect(chain.logger.fatal.firstCall.args[1].message).to.be.eql(
-				'modules.chain.forging.waitThreshold=5 is greater or equal to app.genesisConfig.BLOCK_TIME=5. It impact the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold'
+				'modules.chain.forging.waitThreshold=5 is greater or equal to app.genesisConfig.BLOCK_TIME=5. It impacts the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold'
 			);
 		});
 
