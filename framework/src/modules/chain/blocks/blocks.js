@@ -19,6 +19,7 @@ const blocksUtils = require('./utils');
 const blocksProcess = require('./process');
 const blocksVerify = require('./verify');
 const blocksChain = require('./chain');
+const { BlockReward } = require('./block_reward');
 
 const EVENT_NEW_BLOCK = 'EVENT_NEW_BLOCK';
 const EVENT_DELETE_BLOCK = 'EVENT_DELETE_BLOCK';
@@ -33,7 +34,6 @@ class Blocks extends EventEmitter {
 		// Unique requirements
 		genesisBlock,
 		slots,
-		blockRewards,
 		excptions,
 		// Modules
 		roundsModule,
@@ -45,6 +45,10 @@ class Blocks extends EventEmitter {
 		maxPayloadLength,
 		maxTransactionsPerBlock,
 		activeDelegates,
+		rewardDistance,
+		rewardOffset,
+		rewardMileStones,
+		totalAmount,
 	}) {
 		super();
 		this.logger = logger;
@@ -55,7 +59,12 @@ class Blocks extends EventEmitter {
 		this.genesisBlock = genesisBlock;
 		this.transactionManager = transactionManager;
 		this.slots = slots;
-		this.blockRewards = blockRewards;
+		this.blockReward = new BlockReward({
+			distance: rewardDistance,
+			rewardOffset,
+			milestones: rewardMileStones,
+			totalAmount,
+		});
 		this.constants = {
 			blockReceiptTimeout,
 			maxPayloadLength,
@@ -214,7 +223,7 @@ class Blocks extends EventEmitter {
 				transactionManager: this._broadhash.transactionManager,
 				genesisBlock: this.generateBlock,
 				delegatesModule: this.delegatesModule,
-				blockRewards: this.blockRewards,
+				blockReward: this.blockReward,
 				exceptions: this.exceptions,
 			});
 		}
@@ -370,7 +379,7 @@ class Blocks extends EventEmitter {
 			exceptions: this.exceptions,
 			slots: this.slots,
 			maxPayloadLength: this.maxPayloadLength,
-			blockRewards: this.blockRewards,
+			blockReward: this.blockReward,
 		});
 		this._lastBlock = await this._processBlock(
 			block,
@@ -453,7 +462,7 @@ class Blocks extends EventEmitter {
 				roundsModule: this.roundsModule,
 				exceptions: this.exceptions,
 				delegatesModule: this.delegatesModule,
-				blockRewards: this.blockRewards,
+				blockReward: this.blockReward,
 			});
 	}
 
@@ -470,7 +479,7 @@ class Blocks extends EventEmitter {
 				roundsModule: this.roundsModule,
 				maxPayloadLength: this.maxPayloadLength,
 				maxTransactionsPerBlock: this.maxTransactionsPerBlock,
-				blockRewards: this.blockRewards,
+				blockReward: this.blockReward,
 			});
 	}
 }

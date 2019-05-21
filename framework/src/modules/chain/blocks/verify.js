@@ -218,7 +218,7 @@ const verifyReward = (blockReward, block, exceptions, result) => {
 	if (
 		block.height !== 1 &&
 		!expectedReward.isEqualTo(block.reward) &&
-		!exceptions.blockRewards.includes(block.id)
+		!exceptions.blockReward.includes(block.id)
 	) {
 		result.errors.push(
 			new Error(
@@ -421,7 +421,7 @@ const verifyReceipt = ({
 	blockSlotWindow,
 	maxTransactionsPerBlock,
 	maxPayloadLength,
-	blockRewards,
+	blockReward,
 	lastNBlockIds,
 	exceptions,
 	block,
@@ -436,7 +436,7 @@ const verifyReceipt = ({
 	result = verifyAgainstLastNBlockIds(block, lastNBlockIds, result);
 	result = verifyBlockSlotWindow(slots, blockSlotWindow, block, result);
 	result = verifyVersion(block, exceptions, result);
-	result = verifyReward(blockRewards, block, result);
+	result = verifyReward(blockReward, block, result);
 	result = verifyId(block, result);
 	result = verifyPayload(
 		block,
@@ -464,7 +464,7 @@ const verifyBlock = ({
 	delegatesModule,
 	maxTransactionsPerBlock,
 	maxPayloadLength,
-	blockRewards,
+	blockReward,
 	exceptions,
 	block,
 	lastBlock,
@@ -476,7 +476,7 @@ const verifyBlock = ({
 	result = verifySignature(block, result);
 	result = verifyPreviousBlock(block, result);
 	result = verifyVersion(block, exceptions, result);
-	result = verifyReward(blockRewards, block, result);
+	result = verifyReward(blockReward, block, result);
 	result = verifyId(block, result);
 	result = verifyPayload(
 		block,

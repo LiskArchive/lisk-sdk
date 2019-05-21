@@ -40,7 +40,7 @@ const processBlock = async ({
 	roundsModule,
 	maxTransactionsPerBlock,
 	maxPayloadLength,
-	blockRewards,
+	blockReward,
 }) => {
 	const enhancedBlock = !broadcast
 		? blocksUtils.addBlockProperties(block)
@@ -54,7 +54,7 @@ const processBlock = async ({
 		delegatesModule,
 		maxTransactionsPerBlock,
 		maxPayloadLength,
-		blockRewards,
+		blockReward,
 		exceptions,
 		normalizedBlock,
 		lastBlock,
@@ -99,7 +99,7 @@ const applyBlock = async ({
 	roundsModule,
 	maxTransactionsPerBlock,
 	maxPayloadLength,
-	blockRewards,
+	blockReward,
 }) => {
 	const enhancedBlock = blocksUtils.addBlockProperties(block);
 	const normalizedBlock = blocksLogic.objectNormalize(
@@ -111,7 +111,7 @@ const applyBlock = async ({
 		delegatesModule,
 		maxTransactionsPerBlock,
 		maxPayloadLength,
-		blockRewards,
+		blockReward,
 		exceptions,
 		normalizedBlock,
 		lastBlock,
@@ -153,7 +153,7 @@ const generateBlock = async ({
 	exceptions,
 	slots,
 	maxPayloadLength,
-	blockRewards,
+	blockReward,
 }) => {
 	const context = {
 		blockTimestamp: timestamp,
@@ -183,7 +183,7 @@ const generateBlock = async ({
 			.includes(transaction.id)
 	);
 	return blocksLogic.create({
-		blockRewards,
+		blockReward,
 		previousBlock: lastBlock,
 		transactions: readyTransactions,
 		maxPayloadLength,
@@ -212,7 +212,7 @@ const reload = async ({
 	delegatesModule,
 	maxTransactionsPerBlock,
 	maxPayloadLength,
-	blockRewards,
+	blockReward,
 }) => {
 	await storage.entities.Account.resetMemTables();
 	await rebuild({
@@ -229,7 +229,7 @@ const reload = async ({
 		delegatesModule,
 		maxTransactionsPerBlock,
 		maxPayloadLength,
-		blockRewards,
+		blockReward,
 	});
 };
 
@@ -257,7 +257,7 @@ const rebuild = async ({
 	delegatesModule,
 	maxTransactionsPerBlock,
 	maxPayloadLength,
-	blockRewards,
+	blockReward,
 }) => {
 	const limit = loadPerIteration || 1000;
 	const blocks = await blocksUtils.loadBlockBlocksWithOffset(
@@ -294,7 +294,7 @@ const rebuild = async ({
 			delegatesModule,
 			maxTransactionsPerBlock,
 			maxPayloadLength,
-			blockRewards,
+			blockReward,
 		});
 		onProgress(lastBlock);
 	}
@@ -314,7 +314,7 @@ const rebuild = async ({
 			delegatesModule,
 			maxTransactionsPerBlock,
 			maxPayloadLength,
-			blockRewards,
+			blockReward,
 		});
 	}
 };
@@ -337,7 +337,7 @@ const recoverInvalidOwnChain = async ({
 	delegatesModule,
 	maxTransactionsPerBlock,
 	maxPayloadLength,
-	blockRewards,
+	blockReward,
 	exceptions,
 }) => {
 	const newLastBlock = await blocksChain.deleteLastBlock(
@@ -352,7 +352,7 @@ const recoverInvalidOwnChain = async ({
 		delegatesModule,
 		maxTransactionsPerBlock,
 		maxPayloadLength,
-		blockRewards,
+		blockReward,
 		exceptions,
 		block: lastBlock,
 		lastBlock: newLastBlock,
@@ -369,7 +369,7 @@ const recoverInvalidOwnChain = async ({
 			delegatesModule,
 			maxTransactionsPerBlock,
 			maxPayloadLength,
-			blockRewards,
+			blockReward,
 			exceptions,
 		});
 	}
