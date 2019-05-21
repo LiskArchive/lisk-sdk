@@ -360,7 +360,7 @@ export class P2P extends EventEmitter {
 	}
 
 	public sendToPeer(message: P2PMessagePacket, peerId: string): void {
-		return this._peerPool.sendToPeer(message, peerId);
+		this._peerPool.sendToPeer(message, peerId);
 	}
 
 	private _disconnectSocketDueToFailedHandshake(

@@ -59,7 +59,6 @@ import { discoverPeers } from './peer_discovery';
 export const EVENT_FAILED_TO_PUSH_NODE_INFO = 'failedToPushNodeInfo';
 export const EVENT_DISCOVERED_PEER = 'discoveredPeer';
 export const EVENT_FAILED_TO_FETCH_PEER_INFO = 'failedToFetchPeerInfo';
-export const EVENT_FAILED_TO_SEND_TO_PEER = 'failedToSendToPeer';
 
 export {
 	EVENT_CLOSE_INBOUND,
@@ -252,6 +251,7 @@ export class PeerPool extends EventEmitter {
 		}
 
 		const selectedPeerId = constructPeerIdFromPeerInfo(selectedPeer[0]);
+		
 		return this.requestFromPeer(packet, selectedPeerId);
 	}
 
@@ -260,11 +260,7 @@ export class PeerPool extends EventEmitter {
 
 		selectedPeers.forEach(async (peerInfo: P2PDiscoveredPeerInfo) => {
 			const selectedPeerId = constructPeerIdFromPeerInfo(peerInfo);
-			try {
-				await this.sendToPeer(message, selectedPeerId);
-			} catch (error) {
-				this.emit(EVENT_FAILED_TO_SEND_TO_PEER, error)
-			}
+			this.sendToPeer(message, selectedPeerId);
 		});
 	}
 
@@ -280,6 +276,7 @@ export class PeerPool extends EventEmitter {
 				} could not be found`
 			);
 		}
+		
 		return peer.request(packet);
 	}
 
