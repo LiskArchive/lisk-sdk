@@ -1,8 +1,6 @@
 # Controller
 
-The controller is responsible for initialization of the infrastructure-level components.
-The controller also initializes each module separately.
-If any module is configured to load as a child process, then it is the controller's responsibility to do so.
+The controller is responsible for initialization the communication bus and any other dependencies required to load the modules. If any module is configured to load as a child process, then it is the controller's responsibility to do so.
 The controller defines a set of events, that each component can subscribe to:
 
 ### Default Events & Actions
