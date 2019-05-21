@@ -299,7 +299,7 @@ class Migration extends BaseEntity {
 	 * @returns {Promise<Array<Object>>}
 	 * Promise object that resolves with an array of objects `{id, name, path, file}`.
 	 */
-	async readPending(migrationsObj, executedMigrationIDs) {
+	async readPending(migrationsObj, savedMigrations) {
 		// const updatesPath = `${this.sqlDirectory}/updates`;
 		return Object.keys(migrationsObj).reduce((prev, namespace) => {
 			const curr = migrationsObj[namespace]
@@ -314,13 +314,17 @@ class Migration extends BaseEntity {
 						}
 					);
 				})
-				.sort((a, b) => a.id - b.id) // Sort by migration ID, ascending
 				.filter(
 					migration =>
 						migration &&
 						fs.statSync(migration.path).isFile() &&
-						!executedMigrationIDs.includes(migration.id)
+						!savedMigrations.find(
+							saved =>
+								saved.id === migration.id &&
+								saved.namespace === migration.namespace
+						)
 				)
+				.sort((a, b) => a.id - b.id) // Sort by migration ID, ascending
 				.map(migration => {
 					migration.file = this.adapter.loadSQLFile(migration.path, '');
 					return migration;
@@ -381,14 +385,11 @@ class Migration extends BaseEntity {
 	 * @returns {Promise} Promise object that resolves with `undefined`.
 	 */
 	async applyList(migrationsObj) {
-		const hasMigrationsTable = await this.hasMigrationsTable();
-		const executedMigrationIDs = hasMigrationsTable
-			? (await this.get({}, { limit: null })).map(m => m.id)
-			: [];
+		const savedMigrations = await this.get({}, { limit: null });
 
 		const pendingMigrations = await this.readPending(
 			migrationsObj,
-			executedMigrationIDs
+			savedMigrations
 		);
 
 		if (pendingMigrations.length > 0) {
