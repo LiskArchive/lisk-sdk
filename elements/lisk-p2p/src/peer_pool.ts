@@ -54,7 +54,7 @@ import {
 	OutboundPeer,
 	Peer,
 	PeerConfig,
-} from './peer/';
+} from './peer';
 import { discoverPeers } from './peer_discovery';
 
 export const EVENT_FAILED_TO_PUSH_NODE_INFO = 'failedToPushNodeInfo';
