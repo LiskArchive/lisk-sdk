@@ -15,7 +15,7 @@
 import { expect } from 'chai';
 import { initializePeerInfoList } from '../utils/peers';
 import {
-	selectForConnection,
+	selectPeersForConnection,
 	selectPeersForRequest,
 } from '../../src/peer_selection';
 import { P2PNodeInfo } from '../../src/p2p_types';
@@ -97,13 +97,13 @@ describe('peer selector', () => {
 		});
 	});
 
-	describe('#selectForConnection', () => {
+	describe('#selectPeersForConnection', () => {
 		const peerList = initializePeerInfoList();
 		const numberOfPeers = peerList.length;
 
 		describe('get all the peers for selection', () => {
 			it('should return all the peers given as argument for connection', () => {
-				return expect(selectForConnection({peers: peerList}))
+				return expect(selectPeersForConnection({peers: peerList}))
 					.be.an('array')
 					.and.is.eql(peerList)
 					.of.length(numberOfPeers);

@@ -64,7 +64,7 @@ import {
 import { P2PRequest } from './p2p_request';
 export { P2PRequest };
 import {
-	selectForConnection,
+	selectPeersForConnection,
 	selectPeersForRequest,
 	selectPeersForSend,
 } from './peer_selection';
@@ -277,7 +277,7 @@ export class P2P extends EventEmitter {
 				: selectPeersForRequest,
 			peerSelectionForConnection: config.peerSelectionForConnection
 				? config.peerSelectionForConnection
-				: selectForConnection,
+				: selectPeersForConnection,
 			sendPeerLimit: config.sendPeerLimit
 		});
 
