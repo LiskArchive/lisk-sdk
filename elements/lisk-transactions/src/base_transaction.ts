@@ -112,6 +112,7 @@ export abstract class BaseTransaction {
 	public readonly type: number;
 	public readonly containsUniqueData?: boolean;
 	public readonly fee: BigNum;
+	public readonly asset: object;
 	public receivedAt?: Date;
 
 	protected _id?: string;
@@ -120,7 +121,6 @@ export abstract class BaseTransaction {
 	protected _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.UNKNOWN;
 
-	public abstract assetToJSON(): object;
 	public abstract prepare(store: StateStorePrepare): Promise<void>;
 	protected abstract assetToBytes(): Buffer;
 	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
@@ -173,6 +173,7 @@ export abstract class BaseTransaction {
 		this.height = tx.height;
 		this.receivedAt = tx.receivedAt ? new Date(tx.receivedAt) : undefined;
 		this.relays = typeof tx.relays === 'number' ? tx.relays : undefined;
+		this.asset = tx.asset || {};
 	}
 
 	public get id(): string {
@@ -519,6 +520,10 @@ export abstract class BaseTransaction {
 			transactionAmount,
 			this.assetToBytes(),
 		]);
+	}
+
+	public assetToJSON(): object {
+		return this.asset;
 	}
 
 	private _verify(sender: Account): ReadonlyArray<TransactionError> {
