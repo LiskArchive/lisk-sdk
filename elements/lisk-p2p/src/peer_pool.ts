@@ -58,7 +58,7 @@ import { discoverPeers } from './peer_discovery';
 export const EVENT_FAILED_TO_PUSH_NODE_INFO = 'failedToPushNodeInfo';
 export const EVENT_DISCOVERED_PEER = 'discoveredPeer';
 export const EVENT_FAILED_TO_FETCH_PEER_INFO = 'failedToFetchPeerInfo';
-export const DEFAULT_PEER_SEND_LIMIT = 25;
+export const DEFAULT_SEND_PEER_LIMIT = 25;
 
 export {
 	EVENT_CLOSE_OUTBOUND,
@@ -120,7 +120,7 @@ export class PeerPool extends EventEmitter {
 		this._peerSelectForSend = peerPoolConfig.peerSelectionForSend;
 		this._peerSelectForRequest = peerPoolConfig.peerSelectionForRequest;
 		this._peerSelectForConnection = peerPoolConfig.peerSelectionForConnection;
-		this._sendPeerLimit = peerPoolConfig.sendPeerLimit === undefined ? DEFAULT_PEER_SEND_LIMIT : peerPoolConfig.sendPeerLimit;
+		this._sendPeerLimit = peerPoolConfig.sendPeerLimit === undefined ? DEFAULT_SEND_PEER_LIMIT : peerPoolConfig.sendPeerLimit;
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerRPC = (request: P2PRequest) => {
