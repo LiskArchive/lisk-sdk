@@ -96,6 +96,12 @@ class HeadersList {
 		__private.items.set(this, items);
 		return itemsToReturn;
 	}
+
+	empty() {
+		const items = [...this.items];
+		__private.items.set(this, []);
+		return items;
+	}
 }
 
 module.exports = { HeadersList };
