@@ -19,6 +19,7 @@ const jobsQueue = require('../helpers/jobs_queue');
 // Private fields
 let library;
 let self;
+let modules;
 const { MIN_BROADHASH_CONSENSUS } = global.constants;
 
 const PEER_STATE_CONNECTED = 2;
@@ -53,7 +54,6 @@ class Peers {
 					force: scope.config.forging.force,
 				},
 			},
-			applicationState: scope.applicationState,
 			channel: scope.channel,
 		};
 		self = this;
@@ -83,7 +83,7 @@ class Peers {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	async calculateConsensus() {
-		const { broadhash } = library.applicationState;
+		const broadhash = modules.blocks.broadhash;
 		const activeCount = Math.min(
 			await library.channel.invoke('network:getPeersCountByFilter', {
 				state: PEER_STATE_CONNECTED,
@@ -102,6 +102,20 @@ class Peers {
 		const consensus = +((matchedCount / activeCount) * 100).toPrecision(2);
 		self.consensus = Number.isNaN(consensus) ? 0 : consensus;
 		return self.consensus;
+	}
+
+	/**
+	 * It assigns components & modules from scope to private constants.
+	 *
+	 * @param {components, modules} scope modules & components
+	 * @returns {function} Calling __private.loadBlockChain
+	 * @todo Add description for the params
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	onBind(scope) {
+		modules = {
+			blocks: scope.modules.blocks,
+		};
 	}
 
 	// Public methods

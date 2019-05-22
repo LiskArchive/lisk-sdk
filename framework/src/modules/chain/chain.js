@@ -35,7 +35,14 @@ const {
 } = require('./init_steps');
 const { TransactionManager } = require('./transactions');
 const { TransactionPool } = require('./transaction_pool');
-const { BlockSlots, Blocks } = require('./blocks');
+const {
+	BlockSlots,
+	Blocks,
+	EVENT_NEW_BLOCK,
+	EVENT_DELETE_BLOCK,
+	EVENT_BROADCAST_BLOCK,
+	EVENT_NEW_BROADHASH,
+} = require('./blocks');
 
 const syncInterval = 10000;
 const forgeInterval = 1000;
@@ -174,6 +181,7 @@ module.exports = class Chain {
 			this.logger.info('Modules ready and launched');
 			// After binding, it should immediately load blockchain
 			await this.blocks.loadBlockChain();
+			this._subscribeToEvents();
 
 			this.channel.subscribe('network:bootstrap', async () => {
 				this._startLoader();
@@ -272,6 +280,7 @@ module.exports = class Chain {
 	}
 
 	async cleanup(code, error) {
+		this._unsubscribeToEvents();
 		const { modules, components } = this.scope;
 		if (error) {
 			this.logger.fatal(error.toString());
@@ -430,5 +439,27 @@ module.exports = class Chain {
 			}
 			this.forger.forge(() => {});
 		}, forgeInterval);
+	}
+
+	_subscribeToEvents() {
+		this.blocks.on(EVENT_BROADCAST_BLOCK, ({ block }) => {
+			this.transport.onBroadcastBlock(block, true);
+		});
+		this.blocks.on(EVENT_DELETE_BLOCK, ({ block }) => {
+			this.transactionPool.onDeletedTransactions(block.transactions);
+		});
+		this.blocks.on(EVENT_NEW_BLOCK, ({ block }) => {
+			this.transactionPool.onConfirmedTransactions(block.transactions);
+		});
+		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {
+			this.channel.invoke('app:updateApplicationState', { broadhash, height });
+		});
+	}
+
+	_unsubscribeToEvents() {
+		this.blocks.off(EVENT_BROADCAST_BLOCK);
+		this.blocks.off(EVENT_DELETE_BLOCK);
+		this.blocks.on(EVENT_NEW_BLOCK);
+		this.blocks.on(EVENT_NEW_BROADHASH);
 	}
 };
