@@ -210,11 +210,11 @@ module.exports = class Chain {
 	get actions() {
 		return {
 			calculateSupply: action =>
-				this.blockReward.calcSupply(action.params.height),
+				this.blocks.blockReward.calcSupply(action.params.height),
 			calculateMilestone: action =>
-				this.blockReward.calcMilestone(action.params.height),
+				this.blocks.blockReward.calcMilestone(action.params.height),
 			calculateReward: action =>
-				this.blockReward.calcReward(action.params.height),
+				this.blocks.blockReward.calcReward(action.params.height),
 			generateDelegateList: async action =>
 				this.scope.modules.delegates.generateDelegateList(
 					action.params.round,
@@ -325,6 +325,7 @@ module.exports = class Chain {
 		this.blocks = new Blocks({
 			logger: this.logger,
 			storage: this.storage,
+			sequence: this.scope.sequence,
 			genesisBlock: this.options.genesisBlock,
 			slots: blockSlots,
 			excptions: this.options.exceptions,

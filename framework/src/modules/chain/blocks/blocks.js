@@ -31,6 +31,7 @@ class Blocks extends EventEmitter {
 		// components
 		logger,
 		storage,
+		sequence,
 		// Unique requirements
 		genesisBlock,
 		slots,
@@ -59,6 +60,7 @@ class Blocks extends EventEmitter {
 		this.genesisBlock = genesisBlock;
 		this.transactionManager = transactionManager;
 		this.slots = slots;
+		this.sequence = sequence;
 		this.blockReward = new BlockReward({
 			distance: rewardDistance,
 			rewardOffset,
@@ -162,7 +164,22 @@ class Blocks extends EventEmitter {
 		await nextWatch();
 	}
 
-	// Initializing the blockchain
+	/**
+	 * Loads blockchain upon application start:
+	 * 1. Checks mem tables:
+	 * - count blocks from `blocks` table
+	 * - get genesis block from `blocks` table
+	 * - count accounts from `mem_accounts` table by block id
+	 * - get rounds from `mem_round`
+	 * 2. Matches genesis block with database.
+	 * 3. Verifies rebuild mode.
+	 * 4. Recreates memory tables when neccesary:
+	 *  - Calls block to load block. When blockchain ready emits a bus message.
+	 * 5. Detects orphaned blocks in `mem_accounts` and gets delegates.
+	 * 6. Loads last block and emits a bus message blockchain is ready.
+	 *
+	 * @todo Add @returns tag
+	 */
 	async loadBlockChain(rebuildUpToRound) {
 		this._shouldNotBeActive();
 		this._isActive = true;
@@ -256,6 +273,11 @@ class Blocks extends EventEmitter {
 		}
 		this._isActive = false;
 		this.logger.info('Blockchain ready');
+	}
+
+	async recoverChain() {
+		this._lastBlock = await blocksChain.deleteLastBlock();
+		return this._lastBlock;
 	}
 
 	async loadBlocksDataWS(filter, tx) {
@@ -386,8 +408,7 @@ class Blocks extends EventEmitter {
 		for (const block of normalizedBlocks) {
 			// check if it's cleaning
 			if (this._cleaning) {
-				this._isActive = false;
-				return;
+				break;
 			}
 			// eslint-disable-next-line no-await-in-loop
 			this._lastBlock = await this._processBlock(block, this._lastBlock)();
@@ -396,6 +417,7 @@ class Blocks extends EventEmitter {
 			this.emit(EVENT_NEW_BLOCK, { block });
 		}
 		this._isActive = false;
+		return this._lastBlock;
 	}
 
 	// Generate a block for forging

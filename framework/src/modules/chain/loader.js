@@ -19,7 +19,6 @@ const { promisify } = require('util');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const { validateTransactions } = require('./transactions');
 const { convertErrorsToString } = require('./helpers/error_handlers');
-const slots = require('./helpers/slots');
 const definitions = require('./schema/definitions');
 
 const exceptions = global.exceptions;
@@ -28,7 +27,6 @@ const exceptions = global.exceptions;
 let components;
 let modules;
 let library;
-const { ACTIVE_DELEGATES } = global.constants;
 const __private = {};
 
 __private.isActive = false;
@@ -47,7 +45,6 @@ __private.retries = 5;
  * @see Parent: {@link modules}
  * @requires async
  * @requires helpers/jobs_queue
- * @requires helpers/slots
  * @requires logic/peer
  * @param {function} cb - Callback function
  * @param {scope} scope - App instance
@@ -106,236 +103,6 @@ class Loader {
 	// eslint-disable-next-line class-methods-use-this
 	isActive() {
 		return !!__private.isActive;
-	}
-
-	/**
-	 * Loads blockchain upon application start:
-	 * 1. Checks mem tables:
-	 * - count blocks from `blocks` table
-	 * - get genesis block from `blocks` table
-	 * - count accounts from `mem_accounts` table by block id
-	 * - get rounds from `mem_round`
-	 * 2. Matches genesis block with database.
-	 * 3. Verifies rebuild mode.
-	 * 4. Recreates memory tables when neccesary:
-	 *  - Calls block to load block. When blockchain ready emits a bus message.
-	 * 5. Detects orphaned blocks in `mem_accounts` and gets delegates.
-	 * 6. Loads last block and emits a bus message blockchain is ready.
-	 *
-	 * @private
-	 * @emits exit
-	 * @throws {string} On failure to match genesis block with database.
-	 * @todo Add @returns tag
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	async loadBlockChain() {
-		let offset = 0;
-		const limit = Number(library.config.loading.loadPerIteration) || 1000;
-
-		/**
-		 * Description of load.
-		 *
-		 * @todo Add @param tags
-		 * @todo Add description for the function
-		 */
-		function load(count, loadCb) {
-			__private.total = count;
-			async.series(
-				{
-					resetMemTables(seriesCb) {
-						library.storage.entities.Account.resetMemTables()
-							.then(() => seriesCb())
-							.catch(err => {
-								library.logger.error(err.stack);
-								return seriesCb(new Error('Account#resetMemTables error'));
-							});
-					},
-					loadBlocksOffset(seriesCb) {
-						async.until(
-							() => count < offset,
-							cb => {
-								if (count > 1) {
-									library.logger.info(
-										`Rebuilding blockchain, current block height: ${offset + 1}`
-									);
-								}
-								modules.blocks.process.loadBlocksOffset(
-									limit,
-									offset,
-									(err, lastBlock) => {
-										if (err) {
-											return setImmediate(cb, err);
-										}
-
-										offset += limit;
-										__private.lastBlock = lastBlock;
-
-										return setImmediate(cb);
-									}
-								);
-							},
-							err => setImmediate(seriesCb, err)
-						);
-					},
-				},
-				err => {
-					if (err) {
-						library.logger.error(convertErrorsToString(err));
-						if (err.block) {
-							library.logger.error(`Blockchain failed at: ${err.block.height}`);
-							modules.blocks.chain.deleteFromBlockId(err.block.id, () => {
-								library.logger.error('Blockchain clipped');
-								library.bus.message('blockchainReady');
-								setImmediate(loadCb);
-							});
-							return;
-						}
-						setImmediate(loadCb);
-					} else {
-						library.logger.info('Blockchain ready');
-						library.bus.message('blockchainReady');
-						setImmediate(loadCb);
-					}
-				}
-			);
-		}
-
-		/**
-		 * Description of reload.
-		 *
-		 * @todo Add @returns and @param tags
-		 * @todo Add description for the function
-		 */
-		function reload(count, message, reloadCb) {
-			if (message) {
-				library.logger.warn(message);
-				library.logger.warn('Recreating memory tables');
-			}
-
-			return load(count, reloadCb);
-		}
-
-		/**
-		 * Description of checkMemTables.
-		 *
-		 * @todo Add @returns and @param tags
-		 * @todo Add description for the function
-		 */
-		function checkMemTables(t) {
-			const promises = [
-				library.storage.entities.Block.count({}, {}, t),
-				library.storage.entities.Block.getOne({ height: 1 }, {}, t),
-				library.storage.entities.Round.getUniqueRounds(t),
-			];
-
-			return t.batch(promises);
-		}
-
-		/**
-		 * Description of matchGenesisBlock.
-		 *
-		 * @todo Add @throws and @param tags
-		 * @todo Add description for the function
-		 */
-		function matchGenesisBlock(row) {
-			if (row) {
-				const matched =
-					row.id === __private.genesisBlock.block.id &&
-					row.payloadHash.toString('hex') ===
-						__private.genesisBlock.block.payloadHash &&
-					row.blockSignature.toString('hex') ===
-						__private.genesisBlock.block.blockSignature;
-				if (matched) {
-					library.logger.info('Genesis block matched with database');
-				} else {
-					throw new Error('Failed to match genesis block with database');
-				}
-			}
-		}
-
-		return (
-			library.storage.entities.Block.begin(
-				'loader:checkMemTables',
-				checkMemTables
-			)
-				.then(async result => {
-					const [blocksCount, getGenesisBlock, getMemRounds] = result;
-
-					library.logger.info(`Blocks ${blocksCount}`);
-
-					const round = slots.calcRound(blocksCount);
-
-					if (blocksCount === 1) {
-						return new Promise(resolve => {
-							reload(blocksCount, undefined, resolve);
-						});
-					}
-
-					matchGenesisBlock(getGenesisBlock);
-
-					if (library.config.loading.rebuildUpToRound !== null) {
-						return __private.rebuildAccounts(blocksCount);
-					}
-
-					const unapplied = getMemRounds.filter(row => row.round !== round);
-
-					if (unapplied.length > 0) {
-						library.logger.error('Detected unapplied rounds in mem_round', {
-							currentHeight: blocksCount,
-							currentRound: round,
-							unappliedRounds: unapplied,
-						});
-
-						return new Promise(resolve => {
-							reload(
-								blocksCount,
-								'Detected unapplied rounds in mem_round',
-								resolve
-							);
-						});
-					}
-
-					const delegatesPublicKeys = await library.storage.entities.Account.get(
-						{ isDelegate: true },
-						{ limit: null }
-					).then(accounts => accounts.map(account => account.publicKey));
-
-					if (delegatesPublicKeys.length === 0) {
-						return new Promise(resolve => {
-							reload(blocksCount, 'No delegates found', resolve);
-						});
-					}
-					return new Promise((resolve, reject) => {
-						modules.blocks.utils.loadLastBlock((err, block) => {
-							if (err) {
-								reload(
-									blocksCount,
-									err || 'Failed to load last block',
-									resolve
-								);
-							}
-
-							__private.lastBlock = block;
-
-							return __private.validateOwnChain(validateOwnChainError => {
-								if (validateOwnChainError) {
-									reject(validateOwnChainError);
-								}
-
-								library.logger.info('Blockchain ready');
-								library.bus.message('blockchainReady');
-								resolve();
-							});
-						});
-					});
-				})
-				// TODO: No need to catch here
-				.catch(err => {
-					library.logger.error(err.stack || err);
-					process.emit('exit');
-					return Promise.reject(err);
-				})
-		);
 	}
 
 	/**
@@ -585,288 +352,6 @@ __private.getTransactionsFromNetwork = async function() {
 };
 
 /**
- * Validate given block
- *
- * @param {object} block
- * @param {function} cb
- * @returns {setImmediateCallback} cb, err
- */
-__private.validateBlock = (blockToVerify, cb) => {
-	library.logger.info(
-		`Loader->validateBlock Validating block ${blockToVerify.id} at height ${
-			blockToVerify.height
-		}`
-	);
-	library.logger.debug(JSON.stringify(blockToVerify));
-
-	const lastBlock = modules.blocks.lastBlock.get();
-
-	modules.blocks.utils.loadBlockByHeight(
-		blockToVerify.height - 1,
-		(secondLastBlockError, secondLastBlockToVerify) => {
-			if (secondLastBlockError) {
-				return setImmediate(cb, secondLastBlockError);
-			}
-
-			// Set the block temporarily for block verification
-			modules.blocks.lastBlock.set(secondLastBlockToVerify);
-			library.logger.debug(
-				`Loader->validateBlock Setting temporarily last block to height ${
-					secondLastBlockToVerify.height
-				}.`
-			);
-			const result = modules.blocks.verify.verifyBlock(blockToVerify);
-
-			// Revert last block changes
-			modules.blocks.lastBlock.set(lastBlock);
-			library.logger.debug(
-				`Loader->validateBlock Reverting last block to height ${
-					lastBlock.height
-				}.`
-			);
-
-			if (result.verified) {
-				library.logger.info(
-					`Loader->validateBlock Validating block succeed for ${
-						blockToVerify.id
-					} at height ${blockToVerify.height}.`
-				);
-				return setImmediate(cb, null);
-			}
-			library.logger.error(
-				`Loader->validateBlock Validating block failed for ${
-					blockToVerify.id
-				} at height ${blockToVerify.height}.`,
-				result.errors
-			);
-			return setImmediate(cb, result.errors);
-		}
-	);
-};
-
-/**
- * Validate own block chain before startup
- *
- * @private
- * @param {function} cb
- * @returns {setImmediateCallback} cb, err
- */
-__private.validateOwnChain = cb => {
-	// Validation should be done backward starting from higher height to the lower height
-	const currentBlock = modules.blocks.lastBlock.get();
-	const currentHeight = currentBlock.height;
-	const currentRound = slots.calcRound(currentHeight);
-	const secondLastRound = currentRound - 2;
-
-	// Validate till the end height of second last round
-	let validateTillHeight;
-
-	if (secondLastRound < 1) {
-		// Skip the genesis block validation
-		validateTillHeight = 2;
-	} else {
-		// Till last block of second last round
-		validateTillHeight = slots.calcRoundEndHeight(secondLastRound);
-	}
-
-	// Validate the top most block
-	const validateCurrentBlock = validateCurrentBlockCb => {
-		library.logger.info(
-			`Validating current block with height ${currentHeight}`
-		);
-
-		__private.validateBlock(currentBlock, validateBlockErr => {
-			if (!validateBlockErr) {
-				library.logger.info(
-					`Finished validating the chain. You are at height ${
-						modules.blocks.lastBlock.get().height
-					}.`
-				);
-			}
-			return setImmediate(validateCurrentBlockCb, validateBlockErr);
-		});
-	};
-
-	const validateStartBlock = validateStartBlockCb => {
-		library.logger.info(
-			`Validating last block of second last round with height ${validateTillHeight}`
-		);
-
-		modules.blocks.utils.loadBlockByHeight(
-			validateTillHeight,
-			(_lastBlockError, startBlock) => {
-				__private.validateBlock(startBlock, validateBlockErr => {
-					if (validateBlockErr) {
-						library.logger.error(
-							`There are more than ${currentHeight -
-								validateTillHeight} invalid blocks. Can't delete those to recover the chain.`
-						);
-						return setImmediate(
-							validateStartBlockCb,
-							new Error(
-								'Your block chain is invalid. Please rebuild using rebuilding mode.'
-							)
-						);
-					}
-
-					return setImmediate(validateStartBlockCb, null);
-				});
-			}
-		);
-	};
-
-	const deleteInvalidBlocks = deleteInvalidBlocksCb => {
-		async.doDuring(
-			// Iterator
-			doDuringCb => {
-				modules.blocks.chain.deleteLastBlock(doDuringCb);
-			},
-			// Test condition
-			(_deleteLastBlockStatus, testCb) => {
-				__private.validateBlock(
-					modules.blocks.lastBlock.get(),
-					validateError => setImmediate(testCb, null, !!validateError) // Continue deleting if there is an error
-				);
-			},
-			doDuringErr => {
-				if (doDuringErr) {
-					library.logger.error(
-						'Error occurred during deleting invalid blocks',
-						doDuringErr
-					);
-					return setImmediate(
-						deleteInvalidBlocksCb,
-						new Error(
-							"Your block chain can't be recovered. Please rebuild using rebuilding mode."
-						)
-					);
-				}
-
-				library.logger.info(
-					`Finished validating the chain. You are at height ${
-						modules.blocks.lastBlock.get().height
-					}.`
-				);
-				return setImmediate(deleteInvalidBlocksCb, null);
-			}
-		);
-	};
-
-	validateCurrentBlock(currentBlockError => {
-		// If current block is valid no need to check further
-		if (!currentBlockError) {
-			return setImmediate(cb, null);
-		}
-
-		return validateStartBlock(startBlockError => {
-			// If start block is invalid can't proceed further
-			if (startBlockError) {
-				return setImmediate(cb, startBlockError);
-			}
-
-			return deleteInvalidBlocks(cb);
-		});
-	});
-};
-
-/**
- * Rebuilding mode - performs rebuild of accounts states from blockchain data
- *
- * @private
- * @emits rebuildFinished
- * @throws {Error} When blockchain is shorter than one round of blocks
- */
-__private.rebuildAccounts = height => {
-	library.logger.info('Rebuild mode enabled');
-
-	// Single round contains amount of blocks equal to number of active delegates
-	if (height < ACTIVE_DELEGATES) {
-		throw new Error(
-			'Unable to rebuild, blockchain should contain at least one round of blocks'
-		);
-	}
-
-	const rebuildUpToRound = library.config.loading.rebuildUpToRound;
-	// Negative number not possible as `commander` does not recognize this as valid flag (throws error)
-	if (
-		Number.isNaN(parseInt(rebuildUpToRound)) ||
-		parseInt(rebuildUpToRound) < 0
-	) {
-		throw new Error(
-			'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero'
-		);
-	}
-
-	const totalRounds = Math.floor(height / ACTIVE_DELEGATES);
-	const targetRound =
-		parseInt(rebuildUpToRound) === 0
-			? totalRounds
-			: Math.min(totalRounds, parseInt(rebuildUpToRound));
-	const targetHeight = targetRound * ACTIVE_DELEGATES;
-
-	library.logger.info(
-		`Rebuilding to end of round: ${targetRound}, height: ${targetHeight}`
-	);
-
-	let currentHeight = 1;
-	async.series(
-		{
-			resetMemTables(seriesCb) {
-				library.storage.entities.Account.resetMemTables()
-					.then(() => seriesCb())
-					.catch(err => {
-						library.logger.error(err.stack);
-						return seriesCb(new Error('Account#resetMemTables error'));
-					});
-			},
-			loadBlocksOffset(seriesCb) {
-				async.until(
-					() => targetHeight < currentHeight,
-					untilCb => {
-						library.logger.info(
-							`Rebuilding accounts states, current round: ${slots.calcRound(
-								currentHeight
-							)}, height: ${currentHeight}`
-						);
-						modules.blocks.process.loadBlocksOffset(
-							ACTIVE_DELEGATES,
-							currentHeight,
-							loadBlocksOffsetErr => {
-								currentHeight += ACTIVE_DELEGATES;
-								return setImmediate(untilCb, loadBlocksOffsetErr);
-							}
-						);
-					},
-					seriesCb
-				);
-			},
-			truncateBlocks(seriesCb) {
-				library.storage.entities.Block.delete({ height_gt: targetHeight })
-					.then(() => setImmediate(seriesCb))
-					.catch(err => setImmediate(seriesCb, err));
-			},
-		},
-		__private.rebuildFinished
-	);
-};
-
-/**
- * Executed when rebuild process is complete.
- *
- * @private
- * @param {err} Error if any
- * @emits cleanup
- */
-__private.rebuildFinished = err => {
-	if (err) {
-		library.logger.error('Rebuilding failed', err);
-	} else {
-		library.logger.info('Rebuilding finished');
-	}
-	process.emit('cleanup', err);
-};
-
-/**
  * Loads blocks from network.
  *
  * @private
@@ -885,37 +370,90 @@ __private.loadBlocksFromNetwork = function(cb) {
 		whilstCb => {
 			async.waterfall(
 				[
-					function loadBlocksFromNetwork(waterCb) {
-						const lastBlock = modules.blocks.lastBlock.get();
-						modules.blocks.process.loadBlocksFromNetwork(
-							(loadBlocksFromNetworkErr, lastValidBlock) => {
-								if (loadBlocksFromNetworkErr) {
-									// If comparison failed and current consensus is low - perform chain recovery
-									if (modules.peers.isPoorConsensus()) {
-										library.logger.debug(
-											'Perform chain recovery due to poor consensus'
-										);
-										return modules.blocks.chain.recoverChain(recoveryError => {
-											waterCb(
-												`Failed chain recovery after failing to load blocks while network consensus was low. ${recoveryError}`
-											);
-										});
-									}
-									library.logger.error(
-										'Failed to process block from network',
-										loadBlocksFromNetworkErr
-									);
-									return waterCb(
-										`Failed to load blocks from the network. ${loadBlocksFromNetworkErr}`
+					async function getBlocksFromNetwork() {
+						const lastBlock = modules.blocks.lastBlock;
+						// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
+						// TODO: Rename procedure to include target module name. E.g. chain:blocks
+						let data;
+						try {
+							const response = await library.channel.invoke('network:request', {
+								procedure: 'blocks',
+								data: {
+									lastBlockId: lastBlock.id,
+								},
+							});
+							data = response.data;
+						} catch (p2pError) {
+							library.logger.error(
+								'Failed to load block from network',
+								p2pError
+							);
+							return [];
+						}
+
+						if (!data) {
+							throw new Error(
+								'Received an invalid blocks response from the network'
+							);
+						}
+						// Check for strict equality for backwards compatibility reasons.
+						// The misspelled data.sucess is required to support v1 nodes.
+						// TODO: Remove the misspelled data.sucess === false condition once enough nodes have migrated to v2.
+						if (data.success === false || data.sucess === false) {
+							throw new Error(
+								`Peer did not have a matching lastBlockId. ${data.message}`
+							);
+						}
+						return data.blocks;
+					},
+					function validateBlocks(blocks, waterCb) {
+						const report = library.schema.validate(
+							blocks,
+							definitions.WSBlocksList
+						);
+
+						if (!report) {
+							return setImmediate(
+								waterCb,
+								new Error('Received invalid blocks data')
+							);
+						}
+						return setImmediate(waterCb, null, blocks);
+					},
+					async function loadBlocksFromNetwork(blocks) {
+						const lastBlock = modules.blocks.lastBlock;
+						try {
+							const lastValidBlock = await modules.blocks.loadBlocksFromNetwork(
+								blocks
+							);
+							__private.blocksToSync = lastValidBlock.height;
+							loaded = lastValidBlock.id === lastBlock.id;
+							// Reset counter after a batch of blocks was successfully loaded from the network
+							failedAttemptsToLoad = 0;
+						} catch (loadBlocksFromNetworkErr) {
+							if (modules.peers.isPoorConsensus()) {
+								library.logger.debug(
+									'Perform chain recovery due to poor consensus'
+								);
+								try {
+									await modules.blocks.recoverChain();
+								} catch (recoveryError) {
+									throw new Error(
+										`Failed chain recovery after failing to load blocks while network consensus was low. ${recoveryError}`
 									);
 								}
-								__private.blocksToSync = lastValidBlock.height;
-								loaded = lastValidBlock.id === lastBlock.id;
-								// Reset counter after a batch of blocks was successfully loaded from the network
-								failedAttemptsToLoad = 0;
-								return waterCb();
+								throw new Error(
+									'Failed chain recovery after failing to load blocks while network consensus was low.'
+								);
 							}
-						);
+							library.logger.error(
+								'Failed to process block from network',
+								loadBlocksFromNetworkErr
+							);
+							throw new Error(
+								`Failed to load blocks from the network. ${loadBlocksFromNetworkErr}`
+							);
+						}
 					},
 				],
 				waterErr => {
