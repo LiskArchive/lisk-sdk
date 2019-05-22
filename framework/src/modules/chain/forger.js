@@ -39,12 +39,12 @@ const { ACTIVE_DELEGATES } = global.constants;
  * @todo Add description for the params
  */
 const getDelegateKeypairForCurrentSlot = async (
-	delegates,
+	rounds,
 	keypairs,
 	currentSlot,
 	round
 ) => {
-	const activeDelegates = await delegates.generateDelegateList(round);
+	const activeDelegates = await rounds.generateDelegateList(round);
 
 	const currentSlotIndex = currentSlot % ACTIVE_DELEGATES;
 	const currentSlotDelegate = activeDelegates[currentSlotIndex];
@@ -307,9 +307,8 @@ class Forger {
 
 		// We calculate round using height + 1, because we want the delegate keypair for next block to be forged
 		const round = slots.calcRound(lastBlock.height + 1);
-
 		return getDelegateKeypairForCurrentSlot(
-			modules.delegates,
+			modules.rounds,
 			this.keypairs,
 			currentSlot,
 			round
@@ -414,7 +413,7 @@ class Forger {
 			blocks: scope.modules.blocks,
 			peers: scope.modules.peers,
 			transactions: scope.modules.transactions,
-			delegates: scope.modules.delegates,
+			rounds: scope.modules.rounds,
 		};
 	}
 }
