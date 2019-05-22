@@ -21,8 +21,6 @@ const { validateTransactions } = require('./transactions');
 const { convertErrorsToString } = require('./helpers/error_handlers');
 const definitions = require('./schema/definitions');
 
-const exceptions = global.exceptions;
-
 // Private fields
 let components;
 let modules;
@@ -304,9 +302,7 @@ __private.getTransactionsFromNetwork = async function() {
 
 	const transactions = result.transactions;
 	try {
-		const { transactionsResponses } = validateTransactions(exceptions)(
-			transactions
-		);
+		const { transactionsResponses } = validateTransactions()(transactions);
 		const invalidTransactionResponse = transactionsResponses.find(
 			transactionResponse => transactionResponse.status !== TransactionStatus.OK
 		);
