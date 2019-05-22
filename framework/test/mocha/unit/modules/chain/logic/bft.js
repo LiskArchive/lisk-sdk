@@ -218,5 +218,53 @@ describe('bft', () => {
 				expect(myList.items).to.be.eql([]);
 			});
 		});
+
+		describe('reset()', () => {
+			let header1;
+			let header2;
+			let header3;
+			let header4;
+			let header5;
+
+			beforeEach(async () => {
+				header1 = blockHeaderFixture({ height: 1 });
+				header2 = blockHeaderFixture({ height: 2 });
+				header3 = blockHeaderFixture({ height: 3 });
+				header4 = blockHeaderFixture({ height: 4 });
+				header5 = blockHeaderFixture({ height: 5 });
+
+				list
+					.add(header1)
+					.add(header2)
+					.add(header3)
+					.add(header4)
+					.add(header5);
+
+				expect(list.items).to.be.eql([
+					header1,
+					header2,
+					header3,
+					header4,
+					header5,
+				]);
+			});
+
+			it('should empty the list', async () => {
+				list.empty();
+
+				expect(list.items).to.be.eql([]);
+			});
+			it('should return all items when empty the list', async () => {
+				const returnValue = list.empty();
+
+				expect(returnValue).to.be.eql([
+					header1,
+					header2,
+					header3,
+					header4,
+					header5,
+				]);
+			});
+		});
 	});
 });
