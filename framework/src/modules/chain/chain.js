@@ -216,7 +216,7 @@ module.exports = class Chain {
 			calculateReward: action =>
 				this.blockReward.calcReward(action.params.height),
 			generateDelegateList: async action =>
-				this.scope.modules.delegates.generateDelegateList(
+				this.scope.modules.rounds.generateDelegateList(
 					action.params.round,
 					action.params.source
 				),
@@ -341,16 +341,17 @@ module.exports = class Chain {
 		// TODO: Global variable forbits to require on top
 		const Loader = require('./loader');
 		const { Forger } = require('./forger');
-		const { Delegates } = require('./submodules/delegates');
 		const Transport = require('./transport');
+		const { Rounds } = require('./rounds');
 		this.loader = new Loader(this.scope);
 		this.forger = new Forger(this.scope);
 		this.transport = new Transport(this.scope);
+		this.rounds = new Rounds(this.scope);
 		// TODO: should not add to scope
-		this.scope.modules.delegates = new Delegates(this.scope);
 		this.scope.modules.loader = this.loader;
 		this.scope.modules.forger = this.forger;
 		this.scope.modules.transport = this.transport;
+		this.scope.modules.rounds = this.rounds;
 	}
 
 	_startLoader() {

@@ -18,13 +18,12 @@ const Bignumber = require('bignumber.js');
 const async = require('async');
 const cryptography = require('@liskhq/lisk-cryptography');
 
-const Round = require('../logic/round');
+const { Delegates } = require('./delegates');
+const Round = require('./round');
 const slots = require('../helpers/slots');
 
 // Private fields
-let modules;
 let library;
-let self;
 const { ACTIVE_DELEGATES } = global.constants;
 const __private = {};
 
@@ -46,17 +45,15 @@ __private.ticking = false;
  * @todo Apply node pattern for callbacks: callback always at the end
  */
 class Rounds {
-	constructor(cb, scope) {
+	constructor(scope) {
 		library = {
 			channel: scope.channel,
-			logic: scope.logic,
 			logger: scope.components.logger,
+			logic: scope.logic,
 			bus: scope.bus,
 			storage: scope.components.storage,
 		};
-		self = this;
-
-		setImmediate(cb, null, self);
+		library.delegates = new Delegates(library);
 	}
 
 	/**
@@ -164,7 +161,7 @@ class Rounds {
 				 * delegate list.
 				 * */
 				if (scope.finishRound) {
-					modules.delegates.clearDelegateListCache();
+					library.delegates.clearDelegateListCache();
 				}
 
 				return done();
@@ -348,29 +345,6 @@ class Rounds {
 		);
 	}
 
-	// Events
-	/**
-	 * Assigns modules to private constant `modules`.
-	 *
-	 * @param {modules} scope - Loaded modules
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	onBind(scope) {
-		modules = {
-			delegates: scope.modules.delegates,
-		};
-	}
-
-	/**
-	 * Sets private constant loaded to true.
-	 *
-	 * @listens module:loader~event:blockchainReady
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	onBlockchainReady() {
-		__private.loaded = true;
-	}
-
 	/**
 	 * Clear all cache entries related to delegate and emits a 'rounds/change' socket message.
 	 *
@@ -384,6 +358,16 @@ class Rounds {
 	}
 
 	/**
+	 * Sets private constant loaded to true.
+	 *
+	 * @listens module:loader~event:blockchainReady
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	onBlockchainReady() {
+		__private.loaded = true;
+	}
+
+	/**
 	 * Sets private constant `loaded` to false.
 	 *
 	 * @param {function} cb
@@ -393,6 +377,28 @@ class Rounds {
 	// eslint-disable-next-line class-methods-use-this
 	cleanup() {
 		__private.loaded = false;
+	}
+
+	// Delegates Proxy
+
+	// eslint-disable-next-line class-methods-use-this
+	validateBlockSlot(block) {
+		return library.delegates.validateBlockSlot(block);
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	generateDelegateList(round, source, tx) {
+		return library.delegates.generateDelegateList(round, source, tx);
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	fork(block, cause) {
+		return library.delegates.fork(block, cause);
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	validateBlockSlotAgainstPreviousRound(block) {
+		return library.delegates.validateBlockSlotAgainstPreviousRound(block);
 	}
 }
 
@@ -414,7 +420,7 @@ __private.getOutsiders = function(scope, cb, tx) {
 	if (scope.block.height === 1) {
 		return setImmediate(cb);
 	}
-	return modules.delegates
+	return library.delegates
 		.generateDelegateList(scope.round, null, tx)
 		.then(roundDelegates =>
 			async.eachSeries(

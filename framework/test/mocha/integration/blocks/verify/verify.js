@@ -154,7 +154,7 @@ function getValidKeypairForSlot(library, slot) {
 	const lastBlock = genesisBlock;
 	const round = slots.calcRound(lastBlock.height);
 
-	return library.modules.delegates
+	return library.modules.rounds
 		.generateDelegateList(round, null)
 		.then(list => {
 			const delegatePublicKey = list[slot % ACTIVE_DELEGATES];
@@ -173,7 +173,7 @@ describe('blocks/verify', () => {
 	let blocksVerify;
 	let blocks;
 	let blockLogic;
-	let delegates;
+	let rounds;
 	let storage;
 	let results;
 
@@ -188,7 +188,7 @@ describe('blocks/verify', () => {
 				blocksVerify = scope.modules.blocks.verify;
 				blockLogic = scope.logic.block;
 				blocks = scope.modules.blocks;
-				delegates = scope.modules.delegates;
+				rounds = scope.modules.rounds;
 				storage = scope.components.storage;
 
 				// Set current block version to 0
@@ -881,7 +881,7 @@ describe('blocks/verify', () => {
 					if (err) {
 						return done(err);
 					}
-					return delegates.generateDelegateList(1, null).then(() => done());
+					return rounds.generateDelegateList(1, null).then(() => done());
 				}
 			);
 		});
