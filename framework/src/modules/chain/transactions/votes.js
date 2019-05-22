@@ -93,7 +93,7 @@ const updateSenderRoundInformationWithAmountForTransaction = (
 			.map(vote => vote.slice(1));
 
 		// Votes inside the transaction should not be incase it's an exception, but the existing votes should be updated
-		if (!(exceptions.roundVotes || []).includes(transaction.id)) {
+		if (!exceptions.roundVotes.includes(transaction.id)) {
 			const dependentPublicKeysWithoutUpvotes = dependentPublicKeysToAdd.filter(
 				vote => !upvotes.find(v => v === vote)
 			);
