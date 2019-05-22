@@ -278,13 +278,13 @@ class Migration extends BaseEntity {
 						}
 					);
 				})
-				.sort((a, b) => a.id - b.id) // Sort by migration ID, ascending
 				.filter(
 					migration =>
 						migration &&
 						fs.statSync(migration.path).isFile() &&
 						(!lastMigrationId || +migration.id > lastMigrationId)
 				)
+				.sort((a, b) => a.id - b.id) // Sort by migration ID, ascending
 				.map(migration => {
 					migration.file = this.adapter.loadSQLFile(migration.path, '');
 					return migration;
