@@ -84,9 +84,16 @@ export class InvalidPeerError extends Error {
 }
 
 export class RequestFailError extends Error {
-	public constructor(message: string) {
+	public peerId: string;
+	public peerVersion: string;
+	public constructor(message: string, peerId?: string, peerVersion?: string) {
 		super(message);
 		this.name = 'RequestFailError';
+		this.peerId = peerId || '';
+		this.peerVersion = peerVersion || '';
+		this.message = `${this.message}: PeerId: ${this.peerId}: Peer Version: ${
+			this.peerVersion
+		}`;
 	}
 }
 

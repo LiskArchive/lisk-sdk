@@ -18,6 +18,7 @@ import * as querystring from 'querystring';
 import {
 	FetchPeerStatusError,
 	PeerOutboundConnectionError,
+	RequestFailError,
 	RPCResponseError,
 } from './errors';
 
@@ -391,7 +392,13 @@ export class Peer extends EventEmitter {
 					},
 					(err: Error | undefined, responseData: unknown) => {
 						if (err) {
-							reject(err);
+							reject(
+								new RequestFailError(
+									err.message,
+									constructPeerIdFromPeerInfo(this._peerInfo),
+									this._peerInfo.version,
+								),
+							);
 
 							return;
 						}
