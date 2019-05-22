@@ -54,8 +54,6 @@ import {
 	P2PNetworkStatus,
 	P2PNodeInfo,
 	P2PPeerInfo,
-	P2PPeerSelectionForRequestFunction,
-	P2PPeerSelectionForSendFunction,
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
@@ -280,7 +278,7 @@ export class P2P extends EventEmitter {
 			peerSelectionForConnection: config.peerSelectionForConnection
 				? config.peerSelectionForConnection
 				: selectForConnection,
-			peerSendLimit: config.peerSendLimit
+			sendPeerLimit: config.sendPeerLimit
 		});
 
 		this._bindHandlersToPeerPool(this._peerPool);

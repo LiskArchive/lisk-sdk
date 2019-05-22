@@ -78,7 +78,7 @@ interface PeerPoolConfig {
 	readonly peerSelectionForSend: P2PPeerSelectionForSendFunction;
 	readonly peerSelectionForRequest: P2PPeerSelectionForRequestFunction;
 	readonly peerSelectionForConnection: P2PPeerSelectionForConnectionFunction;
-	readonly peerSendLimit?: number;
+	readonly sendPeerLimit?: number;
 }
 
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
@@ -111,7 +111,7 @@ export class PeerPool extends EventEmitter {
 	private readonly _peerSelectForSend: P2PPeerSelectionForSendFunction;
 	private readonly _peerSelectForRequest: P2PPeerSelectionForRequestFunction;
 	private readonly _peerSelectForConnection: P2PPeerSelectionForConnectionFunction;
-	private readonly _peerSendLimit: number;
+	private readonly _sendPeerLimit: number;
 
 	public constructor(peerPoolConfig: PeerPoolConfig) {
 		super();
@@ -120,7 +120,7 @@ export class PeerPool extends EventEmitter {
 		this._peerSelectForSend = peerPoolConfig.peerSelectionForSend;
 		this._peerSelectForRequest = peerPoolConfig.peerSelectionForRequest;
 		this._peerSelectForConnection = peerPoolConfig.peerSelectionForConnection;
-		this._peerSendLimit = peerPoolConfig.peerSendLimit === undefined ? DEFAULT_PEER_SEND_LIMIT : peerPoolConfig.peerSendLimit;
+		this._sendPeerLimit = peerPoolConfig.sendPeerLimit === undefined ? DEFAULT_PEER_SEND_LIMIT : peerPoolConfig.sendPeerLimit;
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerRPC = (request: P2PRequest) => {
@@ -243,7 +243,7 @@ export class PeerPool extends EventEmitter {
 		const selectedPeers = this._peerSelectForSend({
 			peers: listOfPeerInfo,
 			nodeInfo: this._nodeInfo,
-			peerLimit: this._peerSendLimit,
+			peerLimit: this._sendPeerLimit,
 			messagePacket: message,
 		});
 

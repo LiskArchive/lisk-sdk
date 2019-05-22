@@ -79,6 +79,7 @@ const defaultConfig = {
 		ackTimeout: 20000,
 		connectTimeout: 5000,
 		wsEngine: 'ws',
+		emitPeerLimit: 25,
 	},
 };
 
