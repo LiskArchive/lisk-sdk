@@ -163,14 +163,8 @@ module.exports = {
 	WSBlocksBroadcast: {
 		id: 'WSBlocksBroadcast',
 		type: 'object',
-		required: ['block', 'nonce'],
+		required: ['block'],
 		properties: {
-			nonce: {
-				type: 'string',
-				example: 'sYHEDBKcScaAAAYg',
-				minLength: 16,
-				maxLength: 16,
-			},
 			block: {
 				type: 'object',
 				required: ['id', 'height', 'timestamp', 'generatorPublicKey'],
