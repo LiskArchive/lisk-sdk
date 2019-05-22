@@ -74,7 +74,26 @@ const GenesisBlock = stampit(Block, {
 	},
 });
 
+const BlockHeader = stampit({
+	props: {
+		blockId: '',
+		height: 0,
+		maxHeightPreviouslyForged: 0,
+		prevotedConfirmedUptoHeight: 0,
+		activeSinceRound: 3,
+		delegatePublicKey: '',
+	},
+	init({ height }) {
+		this.blockId = randomstring.generate({ charset: 'numeric', length: 20 });
+		this.height = height || Math.floor(Math.random() * Math.floor(5000));
+		this.delegatePublicKey = randomstring
+			.generate({ charset: '0123456789ABCDE', length: 32 })
+			.toLowerCase();
+	},
+});
+
 module.exports = {
 	Block,
 	GenesisBlock,
+	BlockHeader,
 };
