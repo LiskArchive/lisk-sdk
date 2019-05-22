@@ -324,6 +324,9 @@ module.exports = class Chain {
 		this.scope.modules.transactionManager = this.transactionManager;
 		const autoModules = await initModules(this.scope);
 		this.scope.modules = Object.assign(this.scope.modules, autoModules);
+		const { Rounds } = require('./rounds');
+		this.rounds = new Rounds(this.scope);
+		this.scope.modules.rounds = this.rounds;
 		const blockSlots = new BlockSlots({
 			epochTime: this.options.constants.EPOCH_TIME,
 			interval: this.options.constants.BLOCK_TIME,
@@ -336,8 +339,7 @@ module.exports = class Chain {
 			genesisBlock: this.options.genesisBlock,
 			slots: blockSlots,
 			excptions: this.options.exceptions,
-			roundsModule: this.scope.modules.rounds,
-			delegatesModule: this.scope.modules.delegates,
+			roundsModule: this.rounds,
 			transactionManager: this.transactionManager,
 			blockReceiptTimeout: this.options.constants.BLOCK_RECEIPT_TIMEOUT,
 			loadPerIteration: 1000,
@@ -373,16 +375,13 @@ module.exports = class Chain {
 		const Loader = require('./loader');
 		const { Forger } = require('./forger');
 		const Transport = require('./transport');
-		const { Rounds } = require('./rounds');
 		this.loader = new Loader(this.scope);
 		this.forger = new Forger(this.scope);
 		this.transport = new Transport(this.scope);
-		this.rounds = new Rounds(this.scope);
 		// TODO: should not add to scope
 		this.scope.modules.loader = this.loader;
 		this.scope.modules.forger = this.forger;
 		this.scope.modules.transport = this.transport;
-		this.scope.modules.rounds = this.rounds;
 	}
 
 	_startLoader() {

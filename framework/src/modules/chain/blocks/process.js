@@ -36,7 +36,6 @@ const processBlock = async ({
 	storage,
 	exceptions,
 	slots,
-	delegatesModule,
 	roundsModule,
 	maxTransactionsPerBlock,
 	maxPayloadLength,
@@ -51,7 +50,7 @@ const processBlock = async ({
 	);
 	const { verified, errors } = blocksVerify.verifyBlock({
 		slots,
-		delegatesModule,
+		roundsModule,
 		maxTransactionsPerBlock,
 		maxPayloadLength,
 		blockReward,
@@ -67,7 +66,7 @@ const processBlock = async ({
 		broadcast(normalizedBlock);
 	}
 	await blocksVerify.checkExists(storage, normalizedBlock);
-	await blocksVerify.validateBlockSlot(delegatesModule, normalizedBlock);
+	await blocksVerify.validateBlockSlot(roundsModule, normalizedBlock);
 	await blocksVerify.checkTransactions(
 		storage,
 		slots,
@@ -96,7 +95,6 @@ const applyBlock = async ({
 	storage,
 	exceptions,
 	slots,
-	delegatesModule,
 	roundsModule,
 	maxTransactionsPerBlock,
 	maxPayloadLength,
@@ -109,7 +107,7 @@ const applyBlock = async ({
 	);
 	const { verified, errors } = blocksVerify.verifyBlock({
 		slots,
-		delegatesModule,
+		roundsModule,
 		maxTransactionsPerBlock,
 		maxPayloadLength,
 		blockReward,
@@ -120,7 +118,7 @@ const applyBlock = async ({
 	if (!verified) {
 		throw errors;
 	}
-	await blocksVerify.validateBlockSlot(delegatesModule, normalizedBlock);
+	await blocksVerify.validateBlockSlot(roundsModule, normalizedBlock);
 	await blocksVerify.checkTransactions(
 		storage,
 		slots,
@@ -211,7 +209,6 @@ const reload = async ({
 	roundsModule,
 	transactionManager,
 	exceptions,
-	delegatesModule,
 	maxTransactionsPerBlock,
 	maxPayloadLength,
 	blockReward,
@@ -229,7 +226,6 @@ const reload = async ({
 		slots,
 		roundsModule,
 		exceptions,
-		delegatesModule,
 		maxTransactionsPerBlock,
 		maxPayloadLength,
 		blockReward,
@@ -259,7 +255,6 @@ const rebuild = async ({
 	slots,
 	roundsModule,
 	exceptions,
-	delegatesModule,
 	maxTransactionsPerBlock,
 	maxPayloadLength,
 	blockReward,
@@ -298,7 +293,6 @@ const rebuild = async ({
 			slots,
 			roundsModule,
 			exceptions,
-			delegatesModule,
 			maxTransactionsPerBlock,
 			maxPayloadLength,
 			blockReward,
@@ -319,7 +313,6 @@ const rebuild = async ({
 			slots,
 			roundsModule,
 			exceptions,
-			delegatesModule,
 			maxTransactionsPerBlock,
 			maxPayloadLength,
 			blockReward,
@@ -343,7 +336,6 @@ const recoverInvalidOwnChain = async ({
 	slots,
 	transactionManager,
 	genesisBlock,
-	delegatesModule,
 	maxTransactionsPerBlock,
 	maxPayloadLength,
 	blockReward,
@@ -358,7 +350,7 @@ const recoverInvalidOwnChain = async ({
 	onDelete(lastBlock, newLastBlock);
 	const { verified } = blocksVerify.verifyBlock({
 		slots,
-		delegatesModule,
+		roundsModule,
 		maxTransactionsPerBlock,
 		maxPayloadLength,
 		blockReward,
@@ -375,7 +367,6 @@ const recoverInvalidOwnChain = async ({
 			slots,
 			transactionManager,
 			genesisBlock,
-			delegatesModule,
 			maxTransactionsPerBlock,
 			maxPayloadLength,
 			blockReward,

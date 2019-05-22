@@ -38,7 +38,6 @@ class Blocks extends EventEmitter {
 		excptions,
 		// Modules
 		roundsModule,
-		delegatesModule,
 		transactionManager,
 		// constants
 		blockReceiptTimeout, // set default
@@ -55,7 +54,6 @@ class Blocks extends EventEmitter {
 		this.logger = logger;
 		this.storage = storage;
 		this.roundsModule = roundsModule;
-		this.delegatesModule = delegatesModule;
 		this.exceptions = excptions;
 		this.genesisBlock = genesisBlock;
 		this.transactionManager = transactionManager;
@@ -248,7 +246,7 @@ class Blocks extends EventEmitter {
 			transactionManager: this.transactionManager,
 			genesisBlock: this.genesisBlock,
 			currentBlock: this._lastBlock,
-			delegatesModule: this.delegatesModule,
+			roundsModule: this.roundsModule,
 			blockReward: this.blockReward,
 			exceptions: this.exceptions,
 		});
@@ -266,7 +264,6 @@ class Blocks extends EventEmitter {
 				slots: this.slots,
 				transactionManager: this.transactionManager,
 				genesisBlock: this.genesisBlock,
-				delegatesModule: this.delegatesModule,
 				blockReward: this.blockReward,
 				exceptions: this.exceptions,
 			});
@@ -310,7 +307,7 @@ class Blocks extends EventEmitter {
 				return;
 			}
 			if (blocksVerify.isForkOne(block, this._lastBlock)) {
-				this.delegatesModule.fork(block, 1);
+				this.roundsModule.fork(block, 1);
 				if (blocksVerify.shouldDiscardForkOne(block, this._lastBlock)) {
 					this.logger.info('Last block stands');
 					setImmediate(cb);
@@ -321,7 +318,7 @@ class Blocks extends EventEmitter {
 					const { verified, errors } = blocksVerify.normalizeAndVerify({
 						block,
 						exceptions: this.exceptions,
-						delegatesModule: this.delegatesModule,
+						roundsModule: this.roundsModule,
 					});
 					if (!verified) {
 						throw errors;
@@ -341,7 +338,7 @@ class Blocks extends EventEmitter {
 				}
 			}
 			if (blocksVerify.isForkFive(block, this._lastBlock)) {
-				this.delegatesModule.fork(block, 5);
+				this.roundsModule.fork(block, 5);
 				if (blocksVerify.isDoubleForge(block, this._lastBlock)) {
 					this.logger.warn(
 						'Delegate forging on multiple nodes',
@@ -361,7 +358,7 @@ class Blocks extends EventEmitter {
 						block,
 						lastBlock: this._lastBlock,
 						exceptions: this.exceptions,
-						delegatesModule: this.delegatesModule,
+						roundsModule: this.roundsModule,
 						slots: this.slots,
 						blockReward: this.blockReward,
 						lastNBlockIds: this._lastNBlockIds,
@@ -531,7 +528,6 @@ class Blocks extends EventEmitter {
 				slots: this.slots,
 				roundsModule: this.roundsModule,
 				exceptions: this.exceptions,
-				delegatesModule: this.delegatesModule,
 				blockReward: this.blockReward,
 			});
 	}
@@ -545,7 +541,6 @@ class Blocks extends EventEmitter {
 				storage: this.storage,
 				exceptions: this.exceptions,
 				slots: this.slots,
-				delegatesModule: this.delegatesModule,
 				roundsModule: this.roundsModule,
 				maxPayloadLength: this.maxPayloadLength,
 				maxTransactionsPerBlock: this.maxTransactionsPerBlock,
