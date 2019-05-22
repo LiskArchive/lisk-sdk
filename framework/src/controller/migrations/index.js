@@ -14,17 +14,6 @@
 
 'use strict';
 
-const path = require('path');
-
-const migrations = [
-	path.join(path.dirname(__filename), './sql/20160723182900_create_schema.sql'),
-	path.join(
-		path.dirname(__filename),
-		'./sql/20180205000000_underscore_patch.sql'
-	),
-];
-
 module.exports = {
 	MigrationEntity: require('./migration'),
-	migrations,
 };
