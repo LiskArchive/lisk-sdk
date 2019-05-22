@@ -459,7 +459,7 @@ module.exports = class Chain {
 	_unsubscribeToEvents() {
 		this.blocks.off(EVENT_BROADCAST_BLOCK);
 		this.blocks.off(EVENT_DELETE_BLOCK);
-		this.blocks.on(EVENT_NEW_BLOCK);
-		this.blocks.on(EVENT_NEW_BROADHASH);
+		this.blocks.off(EVENT_NEW_BLOCK);
+		this.blocks.off(EVENT_NEW_BROADHASH);
 	}
 };
