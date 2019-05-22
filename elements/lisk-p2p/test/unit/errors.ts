@@ -207,10 +207,17 @@ describe('errors', () => {
 	describe('#RequestFailError', () => {
 		const defaultMessage =
 			'Request failed due to no peers found in peer selection';
+		const peerId = '127.0.0.1:4000';
+		const peerVersion = '1.5.0';
+
 		let requestFailError: RequestFailError;
 
 		beforeEach(async () => {
-			requestFailError = new RequestFailError(defaultMessage);
+			requestFailError = new RequestFailError(
+				defaultMessage,
+				peerId,
+				peerVersion,
+			);
 		});
 
 		it('should create a new instance of RequestFailError', async () => {
@@ -222,7 +229,9 @@ describe('errors', () => {
 		});
 
 		it('should set error message when passed an argument', async () => {
-			expect(requestFailError.message).to.eql(defaultMessage);
+			expect(requestFailError.message).to.eql(
+				`${defaultMessage}: PeerId: ${peerId}: Peer Version: ${peerVersion}`,
+			);
 		});
 	});
 });
