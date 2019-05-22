@@ -54,8 +54,8 @@ import {
 	P2PNetworkStatus,
 	P2PNodeInfo,
 	P2PPeerInfo,
-	P2PPeerSelectionForRequest,
-	P2PPeerSelectionForSend,
+	P2PPeerSelectionForRequestFunction,
+	P2PPeerSelectionForSendFunction,
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
@@ -65,7 +65,11 @@ import {
 
 import { P2PRequest } from './p2p_request';
 export { P2PRequest };
-import { selectForConnection, selectPeers } from './peer_selection';
+import {
+	selectForConnection,
+	selectPeersForRequest,
+	selectPeersForSend,
+} from './peer_selection';
 
 import {
 	EVENT_CLOSE_OUTBOUND,
@@ -269,13 +273,14 @@ export class P2P extends EventEmitter {
 			ackTimeout: config.ackTimeout,
 			peerSelectionForSend: config.peerSelectionForSend
 				? config.peerSelectionForSend
-				: (selectPeers as P2PPeerSelectionForSend),
+				: selectPeersForSend,
 			peerSelectionForRequest: config.peerSelectionForRequest
 				? config.peerSelectionForRequest
-				: (selectPeers as P2PPeerSelectionForRequest),
+				: selectPeersForRequest,
 			peerSelectionForConnection: config.peerSelectionForConnection
 				? config.peerSelectionForConnection
 				: selectForConnection,
+			peerSendLimit: config.peerSendLimit
 		});
 
 		this._bindHandlersToPeerPool(this._peerPool);
