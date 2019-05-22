@@ -223,15 +223,15 @@ export class PeerPool extends EventEmitter {
 		}
 
 		const selectedPeerId = constructPeerIdFromPeerInfo(selectedPeers[0]);
-		const peer = this._peerMap.get(selectedPeerId);
+		const selectedPeer = this._peerMap.get(selectedPeerId);
 
-		if (!peer) {
+		if (!selectedPeer) {
 			throw new RequestFailError(
 				`No such Peer exist in PeerPool with the selected peer with Id: ${selectedPeerId}`,
 			);
 		}
 
-		const response: P2PResponsePacket = await peer.request(packet);
+		const response: P2PResponsePacket = await selectedPeer.request(packet);
 
 		return response;
 	}

@@ -12,13 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+// tslint:disable-next-line no-require-imports
+import shuffle = require('lodash.shuffle');
 import {
 	P2PDiscoveredPeerInfo,
-	P2PPeerSelectionForSendInput,
-	P2PPeerSelectionForRequestInput,
 	P2PPeerSelectionForConnectionInput,
+	P2PPeerSelectionForRequestInput,
+	P2PPeerSelectionForSendInput,
 } from './p2p_types';
-import shuffle = require('lodash.shuffle');
 
 /* tslint:disable: readonly-keyword*/
 interface Histogram {
@@ -92,9 +93,8 @@ export const selectPeersForRequest = (
 
 export const selectPeersForSend = (
 	input: P2PPeerSelectionForSendInput,
-): ReadonlyArray<P2PDiscoveredPeerInfo> => {
-	return shuffle(input.peers).slice(0, input.peerLimit);
-};
+): ReadonlyArray<P2PDiscoveredPeerInfo> =>
+	shuffle(input.peers).slice(0, input.peerLimit);
 
 export const selectForConnection = (
 	input: P2PPeerSelectionForConnectionInput,
