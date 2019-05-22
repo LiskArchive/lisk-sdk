@@ -129,6 +129,7 @@ module.exports = class Network {
 					...peerWithoutIp,
 				};
 			}),
+			sendPeerLimit: this.options.emitPeerLimit,
 		};
 
 		this.p2p = new P2P(p2pConfig);

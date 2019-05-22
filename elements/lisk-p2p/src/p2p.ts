@@ -54,8 +54,6 @@ import {
 	P2PNetworkStatus,
 	P2PNodeInfo,
 	P2PPeerInfo,
-	P2PPeerSelectionForRequest,
-	P2PPeerSelectionForSend,
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
@@ -65,7 +63,11 @@ import {
 
 import { P2PRequest } from './p2p_request';
 export { P2PRequest };
-import { selectForConnection, selectPeers } from './peer_selection';
+import {
+	selectPeersForConnection,
+	selectPeersForRequest,
+	selectPeersForSend,
+} from './peer_selection';
 
 import {
 	EVENT_CLOSE_OUTBOUND,
@@ -106,6 +108,7 @@ export const EVENT_NEW_PEER = 'newPeer';
 
 export const NODE_HOST_IP = '0.0.0.0';
 export const DEFAULT_DISCOVERY_INTERVAL = 30000;
+export const DEFAULT_SEND_PEER_LIMIT = 25;
 
 const BASE_10_RADIX = 10;
 
@@ -269,13 +272,14 @@ export class P2P extends EventEmitter {
 			ackTimeout: config.ackTimeout,
 			peerSelectionForSend: config.peerSelectionForSend
 				? config.peerSelectionForSend
-				: (selectPeers as P2PPeerSelectionForSend),
+				: selectPeersForSend,
 			peerSelectionForRequest: config.peerSelectionForRequest
 				? config.peerSelectionForRequest
-				: (selectPeers as P2PPeerSelectionForRequest),
+				: selectPeersForRequest,
 			peerSelectionForConnection: config.peerSelectionForConnection
 				? config.peerSelectionForConnection
-				: selectForConnection,
+				: selectPeersForConnection,
+			sendPeerLimit: config.sendPeerLimit === undefined ? DEFAULT_SEND_PEER_LIMIT : config.sendPeerLimit,
 		});
 
 		this._bindHandlersToPeerPool(this._peerPool);
