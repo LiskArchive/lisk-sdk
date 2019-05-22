@@ -28,16 +28,6 @@ const defaultConfig = {
 					minimum: 1000,
 					maximum: 60000,
 				},
-				broadcastLimit: {
-					type: 'integer',
-					minimum: 1,
-					maximum: 100,
-				},
-				parallelLimit: {
-					type: 'integer',
-					minimum: 1,
-					maximum: 100,
-				},
 				releaseLimit: {
 					type: 'integer',
 					minimum: 1,
@@ -49,13 +39,7 @@ const defaultConfig = {
 					maximum: 100,
 				},
 			},
-			required: [
-				'broadcastInterval',
-				'broadcastLimit',
-				'parallelLimit',
-				'releaseLimit',
-				'relayLimit',
-			],
+			required: ['broadcastInterval', 'releaseLimit', 'relayLimit'],
 		},
 		transactions: {
 			type: 'object',
@@ -262,9 +246,7 @@ const defaultConfig = {
 	default: {
 		broadcasts: {
 			active: true,
-			broadcastInterval: 5000,
-			broadcastLimit: 25,
-			parallelLimit: 20,
+			broadcastinterval: 5000,
 			releaseLimit: 25,
 			relayLimit: 3,
 		},
