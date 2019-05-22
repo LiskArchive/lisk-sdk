@@ -23,7 +23,7 @@ import { EventEmitter } from 'events';
 import shuffle = require('lodash.shuffle');
 import { SCClientSocket } from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
-import { InvalidPeerError, RequestFailError } from './errors';
+import { RequestFailError } from './errors';
 import { P2PRequest } from './p2p_request';
 import {
 	P2PClosePacket,
@@ -532,7 +532,7 @@ export class PeerPool extends EventEmitter {
 		return this._peerMap.delete(peerId);
 	}
 
-	public updatePeerScore(peerPenalty: P2PPenalty): void {
+	public applyPenalty(peerPenalty: P2PPenalty): void {
 		const peer = this._peerMap.get(peerPenalty.peerId);
 		if (peer) {
 			return peer.applyPenalty(peerPenalty.penalty);

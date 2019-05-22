@@ -28,6 +28,7 @@ import {
 	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
 	P2PNodeInfo,
+	P2PPacket,
 	P2PPeerInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
@@ -182,10 +183,9 @@ export class Peer extends EventEmitter {
 		this._id = constructPeerId(this._ipAddress, this._wsPort);
 		this._height = peerInfo.height ? peerInfo.height : 0;
 		this._callCounter = 0;
-		this._counterResetInterval = setInterval(
-			() => (this._callCounter = 0),
-			DEFAULT_RATE_INTERVAL,
-		);
+		this._counterResetInterval = setInterval(() => {
+			this._callCounter = 0;
+		}, DEFAULT_RATE_INTERVAL);
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawRPC = (
@@ -214,7 +214,9 @@ export class Peer extends EventEmitter {
 				this._handleGetNodeInfo(request);
 			}
 
-			this.emit(EVENT_REQUEST_RECEIVED, this._attachRateInfo(request));
+			const requestWithRateInfo = this._attachRateInfo(request);
+
+			this.emit(EVENT_REQUEST_RECEIVED, requestWithRateInfo);
 		};
 
 		// This needs to be an arrow function so that it can be used as a listener.
@@ -230,7 +232,9 @@ export class Peer extends EventEmitter {
 				return;
 			}
 
-			this.emit(EVENT_MESSAGE_RECEIVED, this._attachRateInfo(protocolMessage));
+			const messageWithRateInfo = this._attachRateInfo(protocolMessage);
+
+			this.emit(EVENT_MESSAGE_RECEIVED, messageWithRateInfo);
 		};
 
 		// TODO later: Delete the following legacy message handlers.
@@ -671,14 +675,13 @@ export class Peer extends EventEmitter {
 		this.emit(EVENT_UNBAN_PEER, this._id);
 	}
 
-	private _attachRateInfo = (packet: any) => {
-		packet.rateInfo = {
+	private _attachRateInfo = (packet: P2PPacket) => ({
+		...packet,
+		rateInfo: {
 			peerId: this._id,
 			rate: this._callCounter / DEFAULT_RATE_INTERVAL,
-		};
-
-		return packet;
-	};
+		},
+	});
 }
 
 export interface ConnectAndFetchResponse {

@@ -357,19 +357,15 @@ export class P2P extends EventEmitter {
 	}
 
 	public applyPenalty(peerPenalty: P2PPenalty): void {
-		// tslint:disable-next-line no-let
-		let exempt;
+		// TODO: Also skip if whitelisted or fixed
+		const isSeed = this._config.seedPeers.find(
+			seedPeer =>
+				peerPenalty.peerId ===
+				constructPeerId(seedPeer.ipAddress, seedPeer.wsPort),
+		);
 
-		// TODO: Skip if whitelisted or fixed
-		this._config.seedPeers.forEach(seedPeer => {
-			const peerId = constructPeerId(seedPeer.ipAddress, seedPeer.wsPort);
-			if (peerPenalty.peerId === peerId) {
-				exempt = true;
-			}
-		});
-
-		if (!exempt) {
-			this._peerPool.updatePeerScore(peerPenalty);
+		if (!isSeed) {
+			this._peerPool.applyPenalty(peerPenalty);
 		}
 	}
 
