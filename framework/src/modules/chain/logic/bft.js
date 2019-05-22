@@ -74,6 +74,28 @@ class HeadersList {
 
 		return this;
 	}
+
+	remove({ beforeHeight } = {}) {
+		if (!beforeHeight) {
+			beforeHeight = this.last.height - 1;
+		}
+
+		const items = this.items;
+		const removeItemsCount = this.last.height - beforeHeight;
+		let itemsToReturn;
+
+		if (removeItemsCount < 0 || removeItemsCount >= items.length) {
+			itemsToReturn = items.splice(0, items.length);
+		} else {
+			itemsToReturn = items.splice(
+				items.length - removeItemsCount,
+				removeItemsCount
+			);
+		}
+
+		__private.items.set(this, items);
+		return itemsToReturn;
+	}
 }
 
 module.exports = { HeadersList };
