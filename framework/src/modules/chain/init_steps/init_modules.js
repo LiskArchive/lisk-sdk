@@ -17,7 +17,6 @@
 const domain = require('domain');
 
 const modulesList = {
-	rounds: '../submodules/rounds',
 	peers: '../submodules/peers',
 };
 

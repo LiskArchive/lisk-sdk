@@ -20,7 +20,7 @@ const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 const { TestStorageSandbox } = require('../../../../common/storage_sandbox');
 
-const Round = rewire('../../../../../../src/modules/chain/logic/round');
+const Round = rewire('../../../../../../src/modules/chain/rounds/round');
 const genesisBlock = __testContext.config.genesisBlock;
 
 const { ACTIVE_DELEGATES } = global.constants;

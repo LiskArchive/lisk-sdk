@@ -45,7 +45,7 @@ describe.skip('integration test (delegates) - synchronous tasks', () => {
 			durationMs = intervalMs + 1;
 
 			before(done => {
-				library.modules.delegates.onBlockchainReady =
+				library.modules.rounds.onBlockchainReady =
 					library.rewiredModules.delegates.prototype.onBlockchainReady;
 				library.rewiredModules.delegates.__set__(
 					'__private.forgeInterval',
@@ -55,7 +55,7 @@ describe.skip('integration test (delegates) - synchronous tasks', () => {
 					'__private.nextForge',
 					synchronousTaskMock.bind(null, attemptToForgeRunningSubject)
 				);
-				library.modules.delegates.onBlockchainReady();
+				library.modules.rounds.onBlockchainReady();
 				done();
 			});
 
