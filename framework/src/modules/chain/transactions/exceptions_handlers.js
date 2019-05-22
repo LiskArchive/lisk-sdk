@@ -21,7 +21,10 @@ const checkSenderPublicKeyException = (
 	_,
 	exceptions = {}
 ) => {
-	if (!exceptions.senderPublicKey.includes(transactionResponse.id)) {
+	if (
+		exceptions.senderPublicKey &&
+		!exceptions.senderPublicKey.includes(transactionResponse.id)
+	) {
 		return false;
 	}
 
@@ -37,7 +40,10 @@ const checkSenderPublicKeyException = (
 };
 
 const checkSignature = (transactionResponse, transaction, exceptions = {}) => {
-	if (!exceptions.signatures.includes(transaction.id)) {
+	if (
+		!exceptions.signatures ||
+		!exceptions.signatures.includes(transaction.id)
+	) {
 		return false;
 	}
 
@@ -57,7 +63,10 @@ const checkSignSignature = (
 	transaction,
 	exceptions = {}
 ) => {
-	if (!exceptions.signSignature.includes(transaction.id)) {
+	if (
+		!exceptions.signSignature ||
+		!exceptions.signSignature.includes(transaction.id)
+	) {
 		return false;
 	}
 
@@ -73,7 +82,10 @@ const checkSignSignature = (
 };
 
 const checkNullByte = (transactionResponse, transaction, exceptions = {}) => {
-	if (!exceptions.transactionWithNullByte.includes(transaction.id)) {
+	if (
+		!exceptions.transactionWithNullByte ||
+		!exceptions.transactionWithNullByte.includes(transaction.id)
+	) {
 		return false;
 	}
 
@@ -89,7 +101,10 @@ const checkNullByte = (transactionResponse, transaction, exceptions = {}) => {
 };
 
 const checkMultisig = (transactionResponse, transaction, exceptions = {}) => {
-	if (!exceptions.multisignatures.includes(transaction.id)) {
+	if (
+		!exceptions.multisignatures ||
+		!exceptions.multisignatures.includes(transaction.id)
+	) {
 		return false;
 	}
 
@@ -105,7 +120,7 @@ const checkMultisig = (transactionResponse, transaction, exceptions = {}) => {
 };
 
 const checkVotes = (transactionResponse, transaction, exceptions = {}) => {
-	if (!exceptions.votes.includes(transaction.id)) {
+	if (!exceptions.votes || !exceptions.votes.includes(transaction.id)) {
 		return false;
 	}
 
@@ -125,7 +140,7 @@ const checkVoteTransactionAmount = (
 	transaction,
 	exceptions = {}
 ) => {
-	if (!exceptions.votes.includes(transaction.id)) {
+	if (!exceptions.votes || !exceptions.votes.includes(transaction.id)) {
 		return false;
 	}
 
@@ -145,7 +160,10 @@ const checkRecipientLeadingZero = (
 	transaction,
 	exceptions = {}
 ) => {
-	if (!exceptions.recipientLeadingZero[transactionResponse.id]) {
+	if (
+		!exceptions.recipientLeadingZero ||
+		!exceptions.recipientLeadingZero[transactionResponse.id]
+	) {
 		return false;
 	}
 
@@ -172,7 +190,10 @@ const checkRecipientExceedingUint64 = (
 	transaction,
 	exceptions = {}
 ) => {
-	if (!exceptions.recipientExceedingUint64[transactionResponse.id]) {
+	if (
+		!exceptions.recipientExceedingUint64 ||
+		!exceptions.recipientExceedingUint64[transactionResponse.id]
+	) {
 		return false;
 	}
 
@@ -199,7 +220,10 @@ const checkDuplicateSignatures = (
 	transaction,
 	exceptions = {}
 ) => {
-	if (!exceptions.duplicatedSignatures[transaction.id]) {
+	if (
+		!exceptions.duplicatedSignatures ||
+		!exceptions.duplicatedSignatures[transaction.id]
+	) {
 		return false;
 	}
 
