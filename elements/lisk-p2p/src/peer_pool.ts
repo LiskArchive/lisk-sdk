@@ -593,5 +593,7 @@ export class PeerPool extends EventEmitter {
 			EVENT_FAILED_PEER_INFO_UPDATE,
 			this._handleFailedPeerInfoUpdate,
 		);
+		peer.removeListener(EVENT_BAN_PEER, this._handleBanPeer);
+		peer.removeListener(EVENT_UNBAN_PEER, this._handleUnbanPeer);
 	}
 }

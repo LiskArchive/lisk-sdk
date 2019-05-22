@@ -64,8 +64,6 @@ type SCClientSocket = socketClusterClient.SCClientSocket;
 // Local emitted events.
 export const EVENT_UPDATED_PEER_INFO = 'updatedPeerInfo';
 export const EVENT_FAILED_PEER_INFO_UPDATE = 'failedPeerInfoUpdate';
-export const EVENT_BAN_PEER = 'banPeer';
-export const EVENT_UNBAN_PEER = 'unbanPeer';
 export const EVENT_REQUEST_RECEIVED = 'requestReceived';
 export const EVENT_INVALID_REQUEST_RECEIVED = 'invalidRequestReceived';
 export const EVENT_MESSAGE_RECEIVED = 'messageReceived';
@@ -76,6 +74,8 @@ export const EVENT_CLOSE_OUTBOUND = 'closeOutbound';
 export const EVENT_CLOSE_INBOUND = 'closeInbound';
 export const EVENT_OUTBOUND_SOCKET_ERROR = 'outboundSocketError';
 export const EVENT_INBOUND_SOCKET_ERROR = 'inboundSocketError';
+export const EVENT_BAN_PEER = 'banPeer';
+export const EVENT_UNBAN_PEER = 'unbanPeer';
 
 // Remote event or RPC names sent to or received from peers.
 export const REMOTE_EVENT_RPC_REQUEST = 'rpc-request';
@@ -88,7 +88,6 @@ export const REMOTE_RPC_GET_ALL_PEERS_LIST = 'list';
 export const DEFAULT_CONNECT_TIMEOUT = 2000;
 export const DEFAULT_ACK_TIMEOUT = 2000;
 export const DEFAULT_REPUTATION_SCORE = 100;
-export const DEFAULT_BAN_TIME = 86400;
 export const DEFAULT_RATE_INTERVAL = 1000;
 
 type SCServerSocketUpdated = {
@@ -202,9 +201,14 @@ export class Peer extends EventEmitter {
 
 				return;
 			}
+			const rateInfo = {
+				peerId: this._id,
+				rate: this._callCounter / DEFAULT_RATE_INTERVAL,
+			};
 			const request = new P2PRequest(
 				rawRequest.procedure,
 				rawRequest.data,
+				rateInfo,
 				respond,
 			);
 
@@ -214,9 +218,7 @@ export class Peer extends EventEmitter {
 				this._handleGetNodeInfo(request);
 			}
 
-			const requestWithRateInfo = this._attachRateInfo(request);
-
-			this.emit(EVENT_REQUEST_RECEIVED, requestWithRateInfo);
+			this.emit(EVENT_REQUEST_RECEIVED, request);
 		};
 
 		// This needs to be an arrow function so that it can be used as a listener.
@@ -425,6 +427,7 @@ export class Peer extends EventEmitter {
 				if (!this._outboundSocket) {
 					this._outboundSocket = this._createOutboundSocket();
 				}
+
 				this._outboundSocket.emit(
 					REMOTE_EVENT_RPC_REQUEST,
 					{
@@ -438,7 +441,6 @@ export class Peer extends EventEmitter {
 
 							return;
 						}
-
 						if (responseData) {
 							resolve(responseData as P2PResponsePacket);
 
@@ -662,11 +664,7 @@ export class Peer extends EventEmitter {
 	}
 
 	private _banPeer(): void {
-		const banTime =
-			this._peerConfig && this._peerConfig.banTime
-				? this._peerConfig.banTime
-				: DEFAULT_BAN_TIME;
-		setTimeout(this._unbanPeer, banTime);
+		setTimeout(this._unbanPeer, this._peerConfig.banTime);
 		this.disconnect(FORBIDDEN_CONNECTION, FORBIDDEN_CONNECTION_REASON);
 		this.emit(EVENT_BAN_PEER, this._id);
 	}

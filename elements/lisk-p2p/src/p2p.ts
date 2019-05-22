@@ -112,6 +112,7 @@ export const EVENT_NEW_PEER = 'newPeer';
 
 export const NODE_HOST_IP = '0.0.0.0';
 export const DEFAULT_DISCOVERY_INTERVAL = 30000;
+export const DEFAULT_BAN_TIME = 86400;
 
 const BASE_10_RADIX = 10;
 
@@ -307,7 +308,7 @@ export class P2P extends EventEmitter {
 			peerSelectionForConnection: config.peerSelectionForConnection
 				? config.peerSelectionForConnection
 				: selectForConnection,
-			peerBanTime: config.peerBanTime,
+			peerBanTime: config.peerBanTime ? config.peerBanTime : DEFAULT_BAN_TIME,
 		});
 
 		this._bindHandlersToPeerPool(this._peerPool);
@@ -574,6 +575,7 @@ export class P2P extends EventEmitter {
 	private async _discoverPeers(
 		knownPeers: ReadonlyArray<P2PDiscoveredPeerInfo> = [],
 	): Promise<void> {
+
 		// Make sure that we do not try to connect to peers if the P2P node is no longer active.
 		if (!this._isActive) {
 			return;
@@ -679,10 +681,12 @@ export class P2P extends EventEmitter {
 			throw new Error('Cannot start the node because it is already active');
 		}
 		await this._startPeerServer();
+
 		// Fetch status of all the seed peers and then start the discovery
 		const seedPeerInfos = await this._fetchSeedPeerStatus(
 			this._config.seedPeers,
 		);
+
 		// Add seed's peerinfos in tried peer as we already tried them to fetch status
 		seedPeerInfos.forEach(seedInfo => {
 			const peerId = constructPeerIdFromPeerInfo(seedInfo);
@@ -711,8 +715,6 @@ export class P2P extends EventEmitter {
 		peerPool.on(EVENT_CLOSE_INBOUND, this._handlePeerCloseInbound);
 		peerPool.on(EVENT_CLOSE_OUTBOUND, this._handlePeerCloseOutbound);
 		peerPool.on(EVENT_UPDATED_PEER_INFO, this._handlePeerInfoUpdate);
-		peerPool.on(EVENT_BAN_PEER, this._handleBanPeer);
-		peerPool.on(EVENT_UNBAN_PEER, this._handleUnbanPeer);
 		peerPool.on(
 			EVENT_FAILED_PEER_INFO_UPDATE,
 			this._handleFailedPeerInfoUpdate,
@@ -728,5 +730,7 @@ export class P2P extends EventEmitter {
 		);
 		peerPool.on(EVENT_OUTBOUND_SOCKET_ERROR, this._handleOutboundSocketError);
 		peerPool.on(EVENT_INBOUND_SOCKET_ERROR, this._handleInboundSocketError);
+		peerPool.on(EVENT_BAN_PEER, this._handleBanPeer);
+		peerPool.on(EVENT_UNBAN_PEER, this._handleUnbanPeer);
 	}
 }

@@ -120,8 +120,8 @@ describe('Integration tests for P2P library', () => {
 			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
 				p2p => p2p.start(),
 			);
-
 			await Promise.all(peerStartPromises);
+
 			await wait(100);
 		});
 
@@ -136,7 +136,7 @@ describe('Integration tests for P2P library', () => {
 		describe('Peer discovery', () => {
 			it('should discover all peers in the network after a few cycles of discovery', async () => {
 				// Wait for a few cycles of discovery.
-				await wait(DISCOVERY_INTERVAL * 5);
+				await wait(DISCOVERY_INTERVAL * 7);
 
 				p2pNodeList.forEach(p2p => {
 					const { connectedPeers } = p2p.getNetworkStatus();
@@ -147,8 +147,7 @@ describe('Integration tests for P2P library', () => {
 					const expectedPeerPorts = ALL_NODE_PORTS.filter(
 						peerPort => peerPort !== p2p.nodeInfo.wsPort,
 					);
-
-					expect(peerPorts).to.be.eql(expectedPeerPorts);
+					expect(peerPorts).to.have.members(expectedPeerPorts);
 				});
 			});
 		});
@@ -388,7 +387,7 @@ describe('Integration tests for P2P library', () => {
 						return port !== p2p.nodeInfo.wsPort;
 					});
 
-					expect(peerPorts).to.be.eql(expectedPeerPorts);
+					expect(peerPorts).to.have.members(expectedPeerPorts);
 				});
 			});
 
@@ -406,7 +405,6 @@ describe('Integration tests for P2P library', () => {
 			it('should discover all peers and add them to the triedPeers list within each node', () => {
 				p2pNodeList.forEach(p2p => {
 					const { triedPeers } = p2p.getNetworkStatus();
-
 					const peerPorts = triedPeers.map(peerInfo => peerInfo.wsPort).sort();
 
 					// The current node should not be in its own peer list.
@@ -414,7 +412,7 @@ describe('Integration tests for P2P library', () => {
 						return port !== p2p.nodeInfo.wsPort;
 					});
 
-					expect(peerPorts).to.be.eql(expectedPeerPorts);
+					expect(peerPorts).to.have.members(expectedPeerPorts);
 				});
 			});
 		});
@@ -430,7 +428,8 @@ describe('Integration tests for P2P library', () => {
 				const expectedPeerPorts = ALL_NODE_PORTS.filter(port => {
 					return port !== NETWORK_START_PORT;
 				});
-				expect(initialPeerPorts).to.be.eql(expectedPeerPorts);
+
+				expect(initialPeerPorts).to.have.members(expectedPeerPorts);
 				await secondNode.stop();
 
 				await wait(200);
@@ -445,7 +444,7 @@ describe('Integration tests for P2P library', () => {
 					return port !== NETWORK_START_PORT && port !== NETWORK_START_PORT + 1;
 				});
 
-				expect(peerPortsAfterPeerCrash).to.be.eql(
+				expect(peerPortsAfterPeerCrash).to.have.members(
 					expectedPeerPortsAfterPeerCrash,
 				);
 			});
@@ -653,7 +652,7 @@ describe('Integration tests for P2P library', () => {
 					.map(peerInfo => peerInfo.wsPort)
 					.sort();
 
-				expect(initialPeerPorts).to.be.eql(
+				expect(initialPeerPorts).to.have.members(
 					ALL_NODE_PORTS.filter(port => port !== NETWORK_START_PORT),
 				);
 
@@ -676,7 +675,7 @@ describe('Integration tests for P2P library', () => {
 					);
 				});
 
-				expect(peerPortsAfterPeerCrash).to.be.eql(
+				expect(peerPortsAfterPeerCrash).to.have.members(
 					expectedPeerPortsAfterPeerCrash,
 				);
 			});

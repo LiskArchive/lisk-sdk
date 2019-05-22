@@ -1,9 +1,10 @@
 import { RPCResponseAlreadySentError } from './errors';
-import { P2PResponsePacket } from './p2p_types';
+import { P2PRateInfo, P2PResponsePacket } from './p2p_types';
 
 export class P2PRequest {
 	private readonly _procedure: string;
 	private readonly _data: unknown;
+	private readonly _rateInfo: P2PRateInfo;
 	private readonly _respondCallback: (
 		responseError?: Error,
 		responseData?: P2PResponsePacket,
@@ -13,10 +14,12 @@ export class P2PRequest {
 	public constructor(
 		procedure: string,
 		data: unknown,
+		rateInfo: P2PRateInfo,
 		respondCallback: (responseError?: Error, responseData?: unknown) => void,
 	) {
 		this._procedure = procedure;
 		this._data = data;
+		this._rateInfo = rateInfo;
 		this._respondCallback = (
 			responseError?: Error,
 			responsePacket?: P2PResponsePacket,
@@ -38,6 +41,10 @@ export class P2PRequest {
 
 	public get data(): unknown {
 		return this._data;
+	}
+
+	public get rateInfo(): unknown {
+		return this._rateInfo;
 	}
 
 	public get wasResponseSent(): boolean {
