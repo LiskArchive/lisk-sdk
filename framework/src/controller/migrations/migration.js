@@ -250,11 +250,11 @@ class Migration extends BaseEntity {
 	 * Promise object that resolves with either 0 or id of the last migration record.
 	 */
 	async getLastInternalMigrationId() {
-		const lastID = await this.adapter.execute(
+		const [lastID] = await this.adapter.execute(
 			'SELECT id FROM internal_migrations ORDER BY id DESC LIMIT 1;'
 		);
 
-		return lastID ? lastID[0].id : 0;
+		return lastID ? lastID.id : 0;
 	}
 
 	/**
@@ -274,7 +274,7 @@ class Migration extends BaseEntity {
 						migration && {
 							id: migration[1],
 							name: migration[2],
-							path: `${updatesPath}/${migrationFile}`,
+							path: path.join(updatesPath, migrationFile),
 						}
 					);
 				})

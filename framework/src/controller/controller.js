@@ -198,8 +198,7 @@ class Controller {
 		this.storage.registerEntity('Migration', MigrationEntity);
 		await this.storage.bootstrap();
 		await this.storage.entities.Migration.applyInternal();
-		await this.storage.entities.Migration.applyList(applicationMigrationsObj);
-		return true;
+		return this.storage.entities.Migration.applyList(applicationMigrationsObj);
 	}
 
 	async _loadModules(modules, moduleOptions) {
