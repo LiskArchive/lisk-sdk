@@ -22,7 +22,7 @@ const checkSenderPublicKeyException = (
 	exceptions = {}
 ) => {
 	if (
-		exceptions.senderPublicKey &&
+		!exceptions.senderPublicKey ||
 		!exceptions.senderPublicKey.includes(transactionResponse.id)
 	) {
 		return false;
@@ -258,6 +258,7 @@ const checkIfTransactionIsException = (
 		.some(isException => isException);
 
 const checkIfTransactionIsInert = (transaction, exceptions = {}) =>
+	exceptions.inertTransactions &&
 	exceptions.inertTransactions.includes(transaction.id);
 
 const updateTransactionResponseForExceptionTransactions = (
