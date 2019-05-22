@@ -133,5 +133,90 @@ describe('bft', () => {
 				]);
 			});
 		});
+
+		describe('remove()', () => {
+			let header1;
+			let header2;
+			let header3;
+			let header4;
+			let header5;
+
+			beforeEach(async () => {
+				header1 = blockHeaderFixture({ height: 1 });
+				header2 = blockHeaderFixture({ height: 2 });
+				header3 = blockHeaderFixture({ height: 3 });
+				header4 = blockHeaderFixture({ height: 4 });
+				header5 = blockHeaderFixture({ height: 5 });
+
+				list
+					.add(header1)
+					.add(header2)
+					.add(header3)
+					.add(header4)
+					.add(header5);
+
+				expect(list.items).to.be.eql([
+					header1,
+					header2,
+					header3,
+					header4,
+					header5,
+				]);
+			});
+
+			it('should remove last item from the list if passed without height', async () => {
+				list.remove();
+				expect(list.items).to.be.eql([header1, header2, header3, header4]);
+			});
+			it('should remove all items upto and including the provided height', async () => {
+				list.remove({ beforeHeight: 2 });
+				expect(list.items).to.be.eql([header1, header2]);
+			});
+			it('should return removed items if removed one', async () => {
+				const removedItems = list.remove();
+
+				expect(removedItems).to.be.eql([header5]);
+			});
+			it('should return removed items if removed multiple', async () => {
+				const removedItems = list.remove({ beforeHeight: 2 });
+
+				expect(removedItems).to.be.eql([header3, header4, header5]);
+			});
+
+			it('should empty the list if remove is called number of items item in the list', async () => {
+				list.remove();
+				list.remove();
+				list.remove();
+				list.remove();
+				list.remove();
+
+				expect(list.items).to.be.eql([]);
+			});
+
+			it('should not throw any error if called on empty list', async () => {
+				list.remove();
+				list.remove();
+				list.remove();
+				list.remove();
+				list.remove();
+
+				expect(list.items).to.be.eql([]);
+
+				expect(() => {
+					list.remove();
+				}).to.not.throw;
+			});
+
+			it('should empty the list if provided height is less than the first item height', async () => {
+				const myList = new HeadersList({ size: SIZE });
+				myList
+					.add(header3)
+					.add(header4)
+					.add(header5);
+				myList.remove({ beforeHeight: 1 });
+
+				expect(myList.items).to.be.eql([]);
+			});
+		});
 	});
 });
