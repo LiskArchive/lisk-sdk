@@ -172,6 +172,7 @@ export abstract class BaseTransaction {
 		this.blockId = tx.blockId;
 		this.height = tx.height;
 		this.receivedAt = tx.receivedAt ? new Date(tx.receivedAt) : undefined;
+		this.relays = typeof tx.relays === 'number' ? tx.relays : undefined;
 	}
 
 	public get id(): string {

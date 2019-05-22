@@ -28,10 +28,10 @@ const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('GET /api/node', () => {
 	describe('/transactions', () => {
-		describe('/unconfirmed', () => {
-			const UnconfirmedEndpoint = new SwaggerEndpoint(
+		describe('/ready', () => {
+			const ReadyEndpoint = new SwaggerEndpoint(
 				'GET /node/transactions/{state}'
-			).addParameters({ state: 'unconfirmed' });
+			).addParameters({ state: 'ready' });
 
 			const account = randomUtil.account();
 			const transactionList = [];
@@ -65,7 +65,7 @@ describe('GET /api/node', () => {
 
 			describe('with wrong input', () => {
 				it('using invalid field name should fail', async () => {
-					return UnconfirmedEndpoint.makeRequest(
+					return ReadyEndpoint.makeRequest(
 						{
 							whatever: accountFixtures.genesis.address,
 						},
@@ -76,7 +76,7 @@ describe('GET /api/node', () => {
 				});
 
 				it('using empty parameter should fail', async () => {
-					return UnconfirmedEndpoint.makeRequest(
+					return ReadyEndpoint.makeRequest(
 						{
 							recipientPublicKey: '',
 						},
@@ -87,7 +87,7 @@ describe('GET /api/node', () => {
 				});
 
 				it('using completely invalid fields should fail', async () => {
-					return UnconfirmedEndpoint.makeRequest(
+					return ReadyEndpoint.makeRequest(
 						{
 							senderId: 'invalid',
 							recipientId: 'invalid',
@@ -106,7 +106,7 @@ describe('GET /api/node', () => {
 				});
 
 				it('using partially invalid fields should fail', async () => {
-					return UnconfirmedEndpoint.makeRequest(
+					return ReadyEndpoint.makeRequest(
 						{
 							senderId: 'invalid',
 							recipientId: account.address,
@@ -125,22 +125,20 @@ describe('GET /api/node', () => {
 			});
 
 			it('using no params should be ok', async () => {
-				return UnconfirmedEndpoint.makeRequest({}, 200).then(res => {
+				return ReadyEndpoint.makeRequest({}, 200).then(res => {
 					expect(res.body.meta.count).to.be.at.least(0);
 				});
 			});
 
 			describe('id', () => {
 				it('using invalid id should fail', async () => {
-					return UnconfirmedEndpoint.makeRequest({ id: '79fjdfd' }, 400).then(
-						res => {
-							expectSwaggerParamError(res, 'id');
-						}
-					);
+					return ReadyEndpoint.makeRequest({ id: '79fjdfd' }, 400).then(res => {
+						expectSwaggerParamError(res, 'id');
+					});
 				});
 
 				it('using valid but unknown id should be ok', async () => {
-					return UnconfirmedEndpoint.makeRequest(
+					return ReadyEndpoint.makeRequest(
 						{ id: '1111111111111111' },
 						200
 					).then(res => {
@@ -151,26 +149,23 @@ describe('GET /api/node', () => {
 
 			describe('type', () => {
 				it('using invalid type should fail', async () => {
-					return UnconfirmedEndpoint.makeRequest({ type: 'a' }, 400).then(
-						res => {
-							expectSwaggerParamError(res, 'type');
-						}
-					);
+					return ReadyEndpoint.makeRequest({ type: 'a' }, 400).then(res => {
+						expectSwaggerParamError(res, 'type');
+					});
 				});
 			});
 
 			describe('senderId', () => {
 				it('using invalid senderId should fail', async () => {
-					return UnconfirmedEndpoint.makeRequest(
-						{ senderId: '79fjdfd' },
-						400
-					).then(res => {
-						expectSwaggerParamError(res, 'senderId');
-					});
+					return ReadyEndpoint.makeRequest({ senderId: '79fjdfd' }, 400).then(
+						res => {
+							expectSwaggerParamError(res, 'senderId');
+						}
+					);
 				});
 
 				it('using valid but unknown senderId should be ok', async () => {
-					return UnconfirmedEndpoint.makeRequest(
+					return ReadyEndpoint.makeRequest(
 						{ senderId: '1631373961111634666L' },
 						200
 					).then(res => {
@@ -181,7 +176,7 @@ describe('GET /api/node', () => {
 
 			describe('senderPublicKey', () => {
 				it('using invalid senderPublicKey should fail', async () => {
-					return UnconfirmedEndpoint.makeRequest(
+					return ReadyEndpoint.makeRequest(
 						{ senderPublicKey: '79fjdfd' },
 						400
 					).then(res => {
@@ -190,7 +185,7 @@ describe('GET /api/node', () => {
 				});
 
 				it('using valid but unknown senderPublicKey should be ok', async () => {
-					return UnconfirmedEndpoint.makeRequest(
+					return ReadyEndpoint.makeRequest(
 						{
 							senderPublicKey:
 								'c094ebee7ec0c50ebeeaaaa8655e089f6e1a604b83bcaa760293c61e0f18ab6f',
@@ -204,7 +199,7 @@ describe('GET /api/node', () => {
 
 			describe('recipientId', () => {
 				it('using invalid recipientId should fail', async () => {
-					return UnconfirmedEndpoint.makeRequest(
+					return ReadyEndpoint.makeRequest(
 						{ recipientId: '79fjdfd' },
 						400
 					).then(res => {
@@ -213,7 +208,7 @@ describe('GET /api/node', () => {
 				});
 
 				it('using valid but unknown recipientId should be ok', async () => {
-					return UnconfirmedEndpoint.makeRequest(
+					return ReadyEndpoint.makeRequest(
 						{ recipientId: '1631373961111634666L' },
 						200
 					).then(res => {
@@ -224,7 +219,7 @@ describe('GET /api/node', () => {
 
 			describe('recipientPublicKey', () => {
 				it('using invalid recipientPublicKey should fail', async () => {
-					return UnconfirmedEndpoint.makeRequest(
+					return ReadyEndpoint.makeRequest(
 						{ recipientPublicKey: '79fjdfd' },
 						400
 					).then(res => {
@@ -233,7 +228,7 @@ describe('GET /api/node', () => {
 				});
 
 				it('using valid but unknown recipientPublicKey should be ok', async () => {
-					return UnconfirmedEndpoint.makeRequest(
+					return ReadyEndpoint.makeRequest(
 						{
 							recipientPublicKey:
 								'c094ebee7ec0c50ebeeaaaa8655e089f6e1a604b83bcaa760293c61e0f18ab6f',
@@ -247,113 +242,98 @@ describe('GET /api/node', () => {
 
 			describe('limit', () => {
 				it('using limit < 0 should fail', async () => {
-					return UnconfirmedEndpoint.makeRequest({ limit: -1 }, 400).then(
-						res => {
-							expectSwaggerParamError(res, 'limit');
-						}
-					);
+					return ReadyEndpoint.makeRequest({ limit: -1 }, 400).then(res => {
+						expectSwaggerParamError(res, 'limit');
+					});
 				});
 
 				it('using limit > 100 should fail', async () => {
-					return UnconfirmedEndpoint.makeRequest({ limit: 101 }, 400).then(
-						res => {
-							expectSwaggerParamError(res, 'limit');
-						}
-					);
+					return ReadyEndpoint.makeRequest({ limit: 101 }, 400).then(res => {
+						expectSwaggerParamError(res, 'limit');
+					});
 				});
 
 				it('using limit = 10 should be ok', async () => {
-					return UnconfirmedEndpoint.makeRequest({ limit: 10 }, 200).then(
-						res => {
-							expect(res.body).to.not.be.empty;
-						}
-					);
+					return ReadyEndpoint.makeRequest({ limit: 10 }, 200).then(res => {
+						expect(res.body).to.not.be.empty;
+					});
 				});
 			});
 
 			describe('offset', () => {
 				it('using offset="one" should fail', async () => {
-					return UnconfirmedEndpoint.makeRequest({ offset: 'one' }, 400).then(
-						res => {
-							expectSwaggerParamError(res, 'offset');
-						}
-					);
+					return ReadyEndpoint.makeRequest({ offset: 'one' }, 400).then(res => {
+						expectSwaggerParamError(res, 'offset');
+					});
 				});
 
 				it('using offset=1 should be ok', async () => {
-					return UnconfirmedEndpoint.makeRequest(
-						{ offset: 0, limit: 2 },
-						200
-					).then(res => {
-						expect(res.body).to.not.be.empty;
-					});
+					return ReadyEndpoint.makeRequest({ offset: 0, limit: 2 }, 200).then(
+						res => {
+							expect(res.body).to.not.be.empty;
+						}
+					);
 				});
 			});
 
 			describe('sort', () => {
 				describe('amount', () => {
 					it('sorted by amount:asc should be ok', async () => {
-						return UnconfirmedEndpoint.makeRequest(
-							{ sort: 'amount:asc' },
-							200
-						).then(res => {
-							expect(res.body).to.not.be.empty;
-						});
+						return ReadyEndpoint.makeRequest({ sort: 'amount:asc' }, 200).then(
+							res => {
+								expect(res.body).to.not.be.empty;
+							}
+						);
 					});
 
 					it('sorted by amount:desc should be ok', async () => {
-						return UnconfirmedEndpoint.makeRequest(
-							{ sort: 'amount:desc' },
-							200
-						).then(res => {
-							expect(res.body).to.not.be.empty;
-						});
+						return ReadyEndpoint.makeRequest({ sort: 'amount:desc' }, 200).then(
+							res => {
+								expect(res.body).to.not.be.empty;
+							}
+						);
 					});
 				});
 
 				describe('fee', () => {
 					it('sorted by fee:asc should be ok', async () => {
-						return UnconfirmedEndpoint.makeRequest(
-							{ sort: 'fee:asc' },
-							200
-						).then(res => {
-							expect(res.body).to.not.be.empty;
-						});
+						return ReadyEndpoint.makeRequest({ sort: 'fee:asc' }, 200).then(
+							res => {
+								expect(res.body).to.not.be.empty;
+							}
+						);
 					});
 
 					it('sorted by fee:desc should be ok', async () => {
-						return UnconfirmedEndpoint.makeRequest(
-							{ sort: 'fee:desc' },
-							200
-						).then(res => {
-							expect(res.body).to.not.be.empty;
-						});
+						return ReadyEndpoint.makeRequest({ sort: 'fee:desc' }, 200).then(
+							res => {
+								expect(res.body).to.not.be.empty;
+							}
+						);
 					});
 				});
 
 				describe('type', () => {
 					it('sorted by fee:asc should be ok', async () => {
-						return UnconfirmedEndpoint.makeRequest(
-							{ sort: 'type:asc' },
-							200
-						).then(res => {
-							expect(res.body).to.not.be.empty;
-						});
+						return ReadyEndpoint.makeRequest({ sort: 'type:asc' }, 200).then(
+							res => {
+								expect(res.body).to.not.be.empty;
+							}
+						);
 					});
 
 					it('sorted by fee:desc should be ok', async () => {
-						return UnconfirmedEndpoint.makeRequest(
-							{ sort: 'type:desc' },
-							200
-						).then(res => {
-							expect(res.body).to.not.be.empty;
-						});
+						return ReadyEndpoint.makeRequest({ sort: 'type:desc' }, 200).then(
+							res => {
+								expect(res.body).to.not.be.empty;
+							}
+						);
 					});
 				});
 
 				describe('timestamp', () => {
 					it('sorted by timestamp:asc should be ok', async () => {
-						return UnconfirmedEndpoint.makeRequest(
+						return ReadyEndpoint.makeRequest(
 							{ sort: 'timestamp:asc' },
 							200
 						).then(res => {
@@ -362,7 +342,7 @@ describe('GET /api/node', () => {
 					});
 
 					it('sorted by timestamp:desc should be ok', async () => {
-						return UnconfirmedEndpoint.makeRequest(
+						return ReadyEndpoint.makeRequest(
 							{ sort: 'timestamp:desc' },
 							200
 						).then(res => {
@@ -372,7 +352,7 @@ describe('GET /api/node', () => {
 				});
 
 				it('using any other sort field should fail', async () => {
-					return UnconfirmedEndpoint.makeRequest({ sort: 'id:asc' }, 400).then(
+					return ReadyEndpoint.makeRequest({ sort: 'id:asc' }, 400).then(
 						res => {
 							expectSwaggerParamError(res, 'sort');
 						}

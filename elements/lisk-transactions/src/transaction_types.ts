@@ -52,6 +52,7 @@ export interface TransactionJSON {
 	readonly timestamp: number;
 	readonly type: number;
 	readonly receivedAt?: string;
+	readonly relays?: number;
 }
 
 export interface IsValidResponse {

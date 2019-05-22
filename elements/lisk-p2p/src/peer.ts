@@ -555,7 +555,7 @@ export class Peer extends EventEmitter {
 		inboundSocket: SCServerSocketUpdated,
 	): void {
 		inboundSocket.on('error', this._handleInboundSocketError);
-		
+
 		// Bind RPC and remote event handlers
 		inboundSocket.on(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
 		inboundSocket.on(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
@@ -589,7 +589,11 @@ export class Peer extends EventEmitter {
 	}
 
 	private _updateFromProtocolPeerInfo(rawPeerInfo: unknown): void {
-		const protocolPeerInfo = { ...rawPeerInfo, ip: this._ipAddress };
+		const protocolPeerInfo = {
+			...rawPeerInfo,
+			ip: this._ipAddress,
+			wsPort: this._wsPort,
+		};
 		const newPeerInfo = validatePeerInfo(protocolPeerInfo);
 		this.updatePeerInfo(newPeerInfo);
 	}

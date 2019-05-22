@@ -157,6 +157,7 @@ describe('peers', () => {
 				channelMock.invoke
 					.withArgs('network:getPeersCountByFilter', {
 						broadhash: prefixedPeer.broadhash,
+						state: PEER_STATE_CONNECTED,
 					})
 					.returns(2);
 			});
@@ -181,7 +182,7 @@ describe('peers', () => {
 				expect(
 					channelMock.invoke.calledWithExactly(
 						'network:getPeersCountByFilter',
-						{ broadhash: prefixedPeer.broadhash }
+						{ broadhash: prefixedPeer.broadhash, state: PEER_STATE_CONNECTED }
 					)
 				).to.be.true);
 
@@ -202,6 +203,7 @@ describe('peers', () => {
 				channelMock.invoke
 					.withArgs('network:getPeersCountByFilter', {
 						broadhash: prefixedPeer.broadhash,
+						state: PEER_STATE_CONNECTED,
 					})
 					.returns(1);
 			});

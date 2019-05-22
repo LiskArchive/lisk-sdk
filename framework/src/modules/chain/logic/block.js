@@ -503,6 +503,9 @@ Block.prototype.dbRead = function(raw) {
 	if (!raw.b_id) {
 		return null;
 	}
+
+	const confirmations = parseInt(raw.b_confirmations);
+
 	const block = {
 		id: raw.b_id,
 		version: parseInt(raw.b_version),
@@ -518,7 +521,7 @@ Block.prototype.dbRead = function(raw) {
 		generatorPublicKey: raw.b_generatorPublicKey,
 		generatorId: __private.getAddressByPublicKey(raw.b_generatorPublicKey),
 		blockSignature: raw.b_blockSignature,
-		confirmations: parseInt(raw.b_confirmations),
+		confirmations: !Number.isNaN(confirmations) ? confirmations : 0,
 	};
 	block.totalForged = block.totalFee.plus(block.reward).toString();
 	return block;
@@ -535,6 +538,8 @@ Block.prototype.storageRead = function(raw) {
 		return null;
 	}
 
+	const confirmations = parseInt(raw.confirmations);
+
 	const block = {
 		id: raw.id,
 		version: parseInt(raw.version),
@@ -550,7 +555,7 @@ Block.prototype.storageRead = function(raw) {
 		generatorPublicKey: raw.generatorPublicKey,
 		generatorId: __private.getAddressByPublicKey(raw.generatorPublicKey),
 		blockSignature: raw.blockSignature,
-		confirmations: parseInt(raw.confirmations),
+		confirmations: !Number.isNaN(confirmations) ? confirmations : 0,
 	};
 
 	if (raw.transactions) {
@@ -560,7 +565,6 @@ Block.prototype.storageRead = function(raw) {
 	}
 
 	block.totalForged = block.totalFee.plus(block.reward).toString();
-
 	return block;
 };
 
