@@ -15,46 +15,12 @@
 'use strict';
 
 const path = require('path');
+const fs = require('fs-extra');
 
-const migrations = [
-	path.join(path.dirname(__filename), './sql/20160723182900_create_schema.sql'),
-	path.join(
-		path.dirname(__filename),
-		'./sql/20161016133824_add_broadhash_column_to_peers.sql'
-	),
-	path.join(
-		path.dirname(__filename),
-		'./sql/20170113181857_add_constraints_to_peers.sql'
-	),
-	path.join(
-		path.dirname(__filename),
-		'./sql/20171207000001_remove_peers_dapp_table.sql'
-	),
-	path.join(
-		path.dirname(__filename),
-		'./sql/20171227155620_rename_port_to_ws_port.sql'
-	),
-	path.join(
-		path.dirname(__filename),
-		'./sql/20180205000002_add_height_column_to_peers.sql'
-	),
-	path.join(
-		path.dirname(__filename),
-		'./sql/20180327170000_support_long_peer_version_numbers.sql'
-	),
-	path.join(
-		path.dirname(__filename),
-		'./sql/20181106000006_change_wsport_type_in_peers.sql'
-	),
-	path.join(
-		path.dirname(__filename),
-		'./sql/20190103000001_drop_peers_clock.sql'
-	),
-	path.join(
-		path.dirname(__filename),
-		'./sql/20190111111557_add_protocolVersion_column_to_peers.sql'
-	),
-];
+const updatesPath = path.join(__dirname, './sql');
+const migrations = fs
+	.readdirSync(updatesPath)
+	.map(file => path.join(updatesPath, file));
 
 module.exports = {
 	migrations,
