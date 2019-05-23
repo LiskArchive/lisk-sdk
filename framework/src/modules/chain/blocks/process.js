@@ -343,6 +343,8 @@ const recoverInvalidOwnChain = async ({
 }) => {
 	const newLastBlock = await blocksChain.deleteLastBlock(
 		storage,
+		transactionManager,
+		genesisBlock,
 		roundsModule,
 		slots,
 		lastBlock

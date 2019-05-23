@@ -360,12 +360,21 @@ const backwardTickStep = async (
  * @returns {Object} cb.err - Error if occurred
  * @returns {Object} cb.obj - New last block
  */
-const deleteLastBlock = async (storage, roundsModule, slots, lastBlock) => {
+const deleteLastBlock = async (
+	storage,
+	transactionManager,
+	genesisBlock,
+	roundsModule,
+	slots,
+	lastBlock
+) => {
 	if (lastBlock.height === 1) {
 		throw new Error('Cannot delete genesis block');
 	}
 	const previousBlock = await popLastBlock(
 		storage,
+		transactionManager,
+		genesisBlock,
 		roundsModule,
 		slots,
 		lastBlock
@@ -385,11 +394,20 @@ const deleteLastBlock = async (storage, roundsModule, slots, lastBlock) => {
  * @returns {Object} cb.err - Error
  * @returns {Object} cb.obj - New last block
  */
-const popLastBlock = async (storage, roundsModule, slots, oldLastBlock) => {
+const popLastBlock = async (
+	storage,
+	transactionManager,
+	genesisBlock,
+	roundsModule,
+	slots,
+	oldLastBlock
+) => {
 	let secondLastBlock;
 	await storage.entities.Block.begin('Chain:deleteBlock', async tx => {
 		secondLastBlock = await loadSecondLastBlock(
 			storage,
+			transactionManager,
+			genesisBlock,
 			oldLastBlock.previousBlock,
 			tx
 		);

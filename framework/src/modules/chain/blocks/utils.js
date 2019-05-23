@@ -17,7 +17,7 @@
 const _ = require('lodash');
 const { hash } = require('@liskhq/lisk-cryptography');
 const Bignum = require('../helpers/bignum');
-const { storageRead, dbRead } = require('./block');
+const blocksLogic = require('./block');
 
 /**
  * Generates a list of full blocks structured as full_blocks_list DB view
@@ -260,7 +260,7 @@ const readStorageRows = (rows, transactionManager, genesisBlock) => {
 	const blocks = rows.map(block => {
 		// Normalize block
 		// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
-		block = storageRead(block);
+		block = blocksLogic.storageRead(block);
 
 		if (block) {
 			if (block.id === genesisBlock.id) {
@@ -293,7 +293,7 @@ const readDbRows = (rows, transactionManager, genesisBlock) => {
 	for (let i = 0, length = rows.length; i < length; i++) {
 		// Normalize block
 		// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
-		const block = dbRead(rows[i]);
+		const block = blocksLogic.dbRead(rows[i]);
 
 		if (block) {
 			// If block is not already in the list...
@@ -346,9 +346,15 @@ const readDbRows = (rows, transactionManager, genesisBlock) => {
  * @returns {Object} cb.err - Error if occurred
  * @returns {Object} cb.rows - List of normalized blocks
  */
-const loadBlocksPart = async (storage, filter, tx) => {
+const loadBlocksPart = async (
+	storage,
+	transactionManager,
+	genesisBlock,
+	filter,
+	tx
+) => {
 	const rows = await loadBlocksData(storage, filter, tx);
-	return readDbRows(rows);
+	return readDbRows(rows, transactionManager, genesisBlock);
 };
 
 /**
@@ -366,6 +372,9 @@ const loadLastBlock = async (storage, transactionManager, genesisBlock) => {
 		{},
 		{ sort: 'height:desc', limit: 1, extended: true }
 	);
+	if (!rows) {
+		throw new Error('Failed to load last block');
+	}
 	// Normalize block
 	return readStorageRows(rows, transactionManager, genesisBlock)[0];
 
@@ -379,8 +388,20 @@ const loadLastBlock = async (storage, transactionManager, genesisBlock) => {
  * @param {String} secondLastBlockId - id of the second last block
  * @param {Object} tx - database transaction
  */
-const loadSecondLastBlock = async (storage, secondLastBlockId, tx) => {
-	const blocks = await loadBlocksPart(storage, { id: secondLastBlockId }, tx);
+const loadSecondLastBlock = async (
+	storage,
+	transactionManager,
+	genesisBlock,
+	secondLastBlockId,
+	tx
+) => {
+	const blocks = await loadBlocksPart(
+		storage,
+		transactionManager,
+		genesisBlock,
+		{ id: secondLastBlockId },
+		tx
+	);
 	if (!blocks.length) {
 		throw new Error('PreviousBlock is null');
 	}
