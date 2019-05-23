@@ -16,28 +16,28 @@
 
 const assert = require('assert');
 
-const __private = {
-	items: new WeakMap(),
-	size: new WeakMap(),
-};
-
 class HeadersList {
 	constructor({ size }) {
 		assert(size, 'Must provide size of the queue');
-		__private.size.set(this, size);
-		__private.items.set(this, []);
+		this.__items = [];
+		this.__size = size;
 	}
 
 	get items() {
-		return __private.items.get(this);
+		return this.__items;
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	set items(value) {
+		throw new Error('You can\'t set the items directly use "list.add"');
 	}
 
 	get length() {
-		return __private.items.get(this).length;
+		return this.items.length;
 	}
 
 	get size() {
-		return __private.size.get(this);
+		return this.__size;
 	}
 
 	set size(newSize) {
@@ -46,7 +46,7 @@ class HeadersList {
 			this.items.splice(0, currentSize - newSize);
 		}
 
-		__private.size.set(this, newSize);
+		this.__size = newSize;
 	}
 
 	get first() {
@@ -58,11 +58,10 @@ class HeadersList {
 	}
 
 	add(blockHeader) {
-		const items = this.items;
 		const first = this.first;
 		const last = this.last;
 
-		if (items.length) {
+		if (this.items.length) {
 			assert(
 				blockHeader.height === last.height + 1 ||
 					blockHeader.height === first.height - 1,
@@ -73,18 +72,16 @@ class HeadersList {
 
 		if (first && blockHeader.height === last.height + 1) {
 			// Add to the end
-			items.push(blockHeader);
+			this.items.push(blockHeader);
 		} else {
 			// Add to the start
-			items.unshift(blockHeader);
+			this.items.unshift(blockHeader);
 		}
 
 		// If the list size is already full remove one item
-		if (items.length > this.size) {
-			items.shift();
+		if (this.items.length > this.size) {
+			this.items.shift();
 		}
-
-		__private.items.set(this, items);
 
 		return this;
 	}
@@ -94,26 +91,21 @@ class HeadersList {
 			beforeHeight = this.last.height - 1;
 		}
 
-		const items = this.items;
 		const removeItemsCount = this.last.height - beforeHeight;
-		let itemsToReturn;
 
-		if (removeItemsCount < 0 || removeItemsCount >= items.length) {
-			itemsToReturn = items.splice(0, items.length);
-		} else {
-			itemsToReturn = items.splice(
-				items.length - removeItemsCount,
-				removeItemsCount
-			);
+		if (removeItemsCount < 0 || removeItemsCount >= this.items.length) {
+			return this.items.splice(0, this.items.length);
 		}
 
-		__private.items.set(this, items);
-		return itemsToReturn;
+		return this.items.splice(
+			this.items.length - removeItemsCount,
+			removeItemsCount
+		);
 	}
 
 	empty() {
 		const items = [...this.items];
-		__private.items.set(this, []);
+		this.__items = [];
 		return items;
 	}
 }
