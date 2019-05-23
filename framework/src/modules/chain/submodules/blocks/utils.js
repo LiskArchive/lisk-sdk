@@ -38,7 +38,14 @@ let self;
  * @todo Add description for the params
  */
 class Utils {
-	constructor(logger, account, block, storage, genesisBlock, interfaceAdapter) {
+	constructor(
+		logger,
+		account,
+		block,
+		storage,
+		genesisBlock,
+		interfaceAdapters
+	) {
 		library = {
 			logger,
 			account,
@@ -52,7 +59,7 @@ class Utils {
 		};
 		self = this;
 		self.modules = {
-			interfaceAdapter,
+			interfaceAdapters,
 		};
 		library.logger.trace('Blocks->Utils: Submodule initialized.');
 		return self;
@@ -89,7 +96,7 @@ class Utils {
 				}
 
 				// Normalize transaction
-				const transaction = self.modules.interfaceAdapter.transactions.dbRead(
+				const transaction = self.modules.interfaceAdapters.transactions.dbRead(
 					rows[i]
 				);
 				// Set empty object if there are no transactions in block
@@ -136,7 +143,7 @@ class Utils {
 
 				// Normalize transaction
 				if (block.transactions) {
-					block.transactions = self.modules.interfaceAdapter.transactions.fromBlock(
+					block.transactions = self.modules.interfaceAdapters.transactions.fromBlock(
 						block
 					);
 				}

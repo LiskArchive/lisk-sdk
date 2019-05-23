@@ -309,12 +309,12 @@ module.exports = class Chain {
 
 	async _initModules() {
 		this.scope.modules = {};
-		this.interfaceAdapter = {
+		this.interfaceAdapters = {
 			transactions: new TransactionInterfaceAdapter(
 				this.options.registeredTransactions
 			),
 		};
-		this.scope.modules.interfaceAdapter = this.interfaceAdapter;
+		this.scope.modules.interfaceAdapters = this.interfaceAdapters;
 		const autoModules = await initModules(this.scope);
 		this.scope.modules = Object.assign(this.scope.modules, autoModules);
 		const blockSlots = new BlockSlots({

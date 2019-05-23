@@ -96,7 +96,7 @@ class Transport {
 		modules = {
 			blocks: scope.modules.blocks,
 			loader: scope.modules.loader,
-			interfaceAdapter: scope.modules.interfaceAdapter,
+			interfaceAdapters: scope.modules.interfaceAdapters,
 			transactionPool: scope.modules.transactionPool,
 		};
 	}
@@ -389,7 +389,7 @@ class Transport {
 							block = modules.blocks.verify.addBlockProperties(query.block);
 
 							// Instantiate transaction classes
-							block.transactions = modules.interfaceAdapter.transactions.fromBlock(
+							block.transactions = modules.interfaceAdapters.transactions.fromBlock(
 								block
 							);
 
@@ -667,7 +667,7 @@ __private.receiveTransaction = async function(
 	const id = transactionJSON ? transactionJSON.id : 'null';
 	let transaction;
 	try {
-		transaction = modules.interfaceAdapter.transactions.fromJson(
+		transaction = modules.interfaceAdapters.transactions.fromJson(
 			transactionJSON
 		);
 
