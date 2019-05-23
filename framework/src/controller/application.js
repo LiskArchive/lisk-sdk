@@ -153,6 +153,7 @@ class Application {
 
 		__private.modules.set(this, {});
 		__private.transactions.set(this, {});
+		__private.migrations.set(this, {});
 
 		const { TRANSACTION_TYPES } = constants;
 
@@ -268,7 +269,12 @@ class Application {
 	registerMigrations(namespace, migrations) {
 		assert(namespace, 'Namespace is required');
 		assert(migrations instanceof Array, 'Migrations list should be an array');
-		const currentMigrations = this.getMigrations() || {};
+		assert(
+			!Object.keys(this.getMigrations()).includes(namespace),
+			`Migrations for "${namespace}" was already registered.`
+		);
+
+		const currentMigrations = this.getMigrations();
 		currentMigrations[namespace] = Object.freeze(migrations);
 		__private.migrations.set(this, currentMigrations);
 	}
