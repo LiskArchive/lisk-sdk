@@ -323,7 +323,7 @@ describe('blocks/utils', () => {
 				},
 				Block: {
 					get: sinonSandbox.stub().resolves(['1']),
-					getFirstBlockIdOfLastRounds: sinonSandbox.stub().resolves(),
+					getFirstBlockIdOfLastRounds: sinonSandbox.stub().resolves(storageBlocksListRows),
 				},
 			},
 		};
@@ -513,164 +513,110 @@ describe('blocks/utils', () => {
 		});
 	});
 
-	describe('getIdSequence', () => {
-		it('should call library.storage.entities.Block.getFirstBlockIdOfLastRounds with proper params', done => {
-			blocksUtils.getIdSequence(10, async () => {
-				expect(library.storage.entities.Block.getFirstBlockIdOfLastRounds).to
-					.have.been.calledOnce;
-				expect(
-					library.storage.entities.Block.getFirstBlockIdOfLastRounds
-				).to.have.been.calledWith({
-					height: 10,
-					numberOfRounds: 5,
-					numberOfDelegates: 101,
-				});
-				done();
+	describe.only('getIdSequence', () => {
+		const lastBlock = { id: '9314232245035524467' };
+
+		it('should call storage.entities.Block.getFirstBlockIdOfLastRounds with proper params', async () => {
+			await blocksUtils.getIdSequence(storageStub, 10, lastBlock, genesisBlock, 101);
+			expect(storageStub.entities.Block.getFirstBlockIdOfLastRounds).to
+				.have.been.calledOnce;
+			expect(
+				storageStub.entities.Block.getFirstBlockIdOfLastRounds
+			).to.have.been.calledWith({
+				height: 10,
+				numberOfRounds: 5,
+				numberOfDelegates: 101,
 			});
 		});
 
-		it('should return error when library.storage.entities.Block.getFirstBlockIdOfLastRounds fails', done => {
-			blocksUtils.getIdSequence(10, (err, sequence) => {
-				expect(loggerStub.error.args[0][0]).to.contains(
-					"TypeError: Cannot read property 'length' of undefined"
-				);
-				expect(err).to.equal('Blocks#getIdSequence error');
-				expect(sequence).to.be.undefined;
-				done();
-			});
+		it('should return error when storage.entities.Block.getFirstBlockIdOfLastRounds fails', async () => {
+			const message = 'Database went wrong';
+			storageStub.entities.Block.getFirstBlockIdOfLastRounds.rejects(new Error(message));
+			try {
+				await blocksUtils.getIdSequence(storageStub, 10, {}, genesisBlock, 101);
+			} catch (err) {
+				expect(err.message).to.equal(message);
+			}
 		});
 
-		it('should return error when no row is found', done => {
-			library.storage.entities.Block.getFirstBlockIdOfLastRounds = sinonSandbox
-				.stub()
-				.resolves([]);
-
-			blocksUtils.getIdSequence(10, (err, sequence) => {
+		it('should return error when no row is found', async () => {
+			storageStub.entities.Block.getFirstBlockIdOfLastRounds.resolves([]);
+			try {
+				await blocksUtils.getIdSequence(storageStub, 10, lastBlock, genesisBlock, 101);
+			} catch (err) {
 				expect(err).to.equal('Failed to get id sequence for height: 10');
-				expect(sequence).to.be.undefined;
-				done();
-			});
+			}
 		});
 
-		it('should return valid block id list', done => {
-			library.storage.entities.Block.getFirstBlockIdOfLastRounds = sinonSandbox
-				.stub()
-				.resolves([
+		it('should return valid block id list', async () => {
+			storageStub.entities.Block.getFirstBlockIdOfLastRounds.resolves([
 					{ id: 1, height: 2 },
 					{ id: 2, height: 3 },
 					{ id: 3, height: 4 },
 					{ id: 4, height: 5 },
 				]);
-
-			blocksUtils.getIdSequence(10, (err, sequence) => {
-				expect(err).to.be.null;
-				expect(sequence).to.be.an('object');
-				expect(sequence.firstHeight).to.equal(1);
-				expect(sequence.ids).to.equal(
-					'9314232245035524467,1,2,3,4,6524861224470851795'
-				);
-				done();
-			});
+			const sequence = await blocksUtils.getIdSequence(storageStub, 10, lastBlock, genesisBlock, 101);
+			expect(sequence).to.be.an('object');
+			expect(sequence.firstHeight).to.equal(1);
+			expect(sequence.ids).to.equal(
+				'9314232245035524467,1,2,3,4,6524861224470851795'
+			);
 		});
 
-		it('should not add genesis block to the set when library.genesisBlock is undefined', done => {
-			library.storage.entities.Block.getFirstBlockIdOfLastRounds = sinonSandbox
-				.stub()
+		it('should not add genesis block to the set when genesisBlock is undefined', async () => {
+			storageStub.entities.Block.getFirstBlockIdOfLastRounds
 				.resolves([{ id: 1, height: 2 }]);
 
-			const genesisBlock = library.genesisBlock;
-			library.genesisBlock = undefined;
-
-			blocksUtils.getIdSequence(10, (err, sequence) => {
-				expect(err).to.be.null;
-				expect(sequence).to.be.an('object');
-				expect(sequence.firstHeight).to.equal(1);
-				expect(sequence.ids).to.equal('9314232245035524467,1');
-				library.genesisBlock = genesisBlock;
-				done();
-			});
+			const sequence = await blocksUtils.getIdSequence(storageStub, 10, lastBlock, undefined, 101);
+			expect(sequence).to.be.an('object');
+			expect(sequence.firstHeight).to.equal(1);
+			expect(sequence.ids).to.equal('9314232245035524467,1');
 		});
 
-		it('should not add genesis block to the set when library.genesisBlock.block is undefined', done => {
-			library.storage.entities.Block.getFirstBlockIdOfLastRounds = sinonSandbox
-				.stub()
-				.resolves([{ id: 1, height: 2 }]);
-
-			const block = library.genesisBlock.block;
-			library.genesisBlock.block = undefined;
-
-			blocksUtils.getIdSequence(10, (err, sequence) => {
-				expect(err).to.be.null;
-				expect(sequence).to.be.an('object');
-				expect(sequence.firstHeight).to.equal(1);
-				expect(sequence.ids).to.equal('9314232245035524467,1');
-				library.genesisBlock.block = block;
-				done();
-			});
-		});
-
-		it('should not add genesis block to the set more than once', done => {
-			library.storage.entities.Block.getFirstBlockIdOfLastRounds = sinonSandbox
-				.stub()
+		it('should not add genesis block to the set more than once', async () => {
+			storageStub.entities.Block.getFirstBlockIdOfLastRounds
 				.resolves([{ id: '6524861224470851795', height: 1 }]);
 
-			blocksUtils.getIdSequence(10, (err, sequence) => {
-				expect(err).to.be.null;
-				expect(sequence).to.be.an('object');
-				expect(sequence.firstHeight).to.equal(1);
-				expect(sequence.ids).to.equal(
-					'9314232245035524467,6524861224470851795'
-				);
-				done();
-			});
+			const sequence = await blocksUtils.getIdSequence(storageStub, 10, {}, genesisBlock, 101);
+			expect(sequence).to.be.an('object');
+			expect(sequence.firstHeight).to.equal(1);
+			expect(sequence.ids).to.equal(
+				'9314232245035524467,6524861224470851795'
+			);
 		});
 
-		it('should not add last block when it is undefined', done => {
-			library.storage.entities.Block.getFirstBlockIdOfLastRounds = sinonSandbox
-				.stub()
+		it('should not add last block when it is undefined', async () => {
+			storageStub.entities.Block.getFirstBlockIdOfLastRounds
 				.resolves([{ id: '6524861224470851795', height: 1 }]);
 
-			modules.blocks.lastBlock.get = sinonSandbox.stub(undefined);
-
-			blocksUtils.getIdSequence(10, (err, sequence) => {
-				expect(err).to.be.null;
-				expect(sequence).to.be.an('object');
-				expect(sequence.firstHeight).to.equal(1);
-				expect(sequence.ids).to.equal('6524861224470851795');
-				done();
-			});
+			const sequence = await blocksUtils.getIdSequence(storageStub, 10, undefined, genesisBlock, 101);
+			expect(sequence).to.be.an('object');
+			expect(sequence.firstHeight).to.equal(1);
+			expect(sequence.ids).to.equal('6524861224470851795');
 		});
 
-		it('should not add last block to the set more than once', done => {
-			library.storage.entities.Block.getFirstBlockIdOfLastRounds = sinonSandbox
-				.stub()
+		it('should not add last block to the set more than once', async () => {
+			storageStub.entities.Block.getFirstBlockIdOfLastRounds
 				.resolves([{ id: '9314232245035524467', height: 1 }]);
 
-			blocksUtils.getIdSequence(10, (err, sequence) => {
-				expect(err).to.be.null;
-				expect(sequence).to.be.an('object');
-				expect(sequence.firstHeight).to.equal(1);
-				expect(sequence.ids).to.equal(
-					'9314232245035524467,6524861224470851795'
-				);
-				done();
-			});
+			const sequence = await blocksUtils.getIdSequence(storageStub, 10, lastBlock, genesisBlock, 101);
+			expect(sequence).to.be.an('object');
+			expect(sequence.firstHeight).to.equal(1);
+			expect(sequence.ids).to.equal(
+				'9314232245035524467,6524861224470851795'
+			);
 		});
 
-		it('should not add resolved block to the set more than once', done => {
-			library.storage.entities.Block.getFirstBlockIdOfLastRounds = sinonSandbox
-				.stub()
+		it('should not add resolved block to the set more than once', async () => {
+			storageStub.entities.Block.getFirstBlockIdOfLastRounds
 				.resolves([{ id: 2, height: 3 }, { id: 2, height: 3 }]);
 
-			blocksUtils.getIdSequence(10, (err, sequence) => {
-				expect(err).to.be.null;
+			const sequence = await blocksUtils.getIdSequence(storageStub, 10, lastBlock, genesisBlock, 101);
 				expect(sequence).to.be.an('object');
 				expect(sequence.firstHeight).to.equal(1);
 				expect(sequence.ids).to.equal(
 					'9314232245035524467,2,6524861224470851795'
 				);
-				done();
-			});
 		});
 	});
 
