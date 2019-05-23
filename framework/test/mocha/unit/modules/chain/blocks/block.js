@@ -21,15 +21,17 @@ const {
 	registeredTransactions,
 } = require('../../../../common/registered_transactions');
 const {
-	TransactionManager,
-} = require('../../../../../../src/modules/chain/transactions');
+	TransactionInterfaceAdapter,
+} = require('../../../../../../src/modules/chain/interface_adapters');
 const {
 	BlockReward,
 } = require('../../../../../../src/modules/chain/blocks/block_reward');
 const block = require('../../../../../../src/modules/chain/blocks/block');
 
 describe('block', () => {
-	const transactionManager = new TransactionManager(registeredTransactions);
+	const interfaceAdapters = {
+		transactions: new TransactionInterfaceAdapter(registeredTransactions),
+	};
 	const TRANSACTION_TYPES_SEND = 0;
 	const TRANSACTION_TYPES_SIGNATURE = 1;
 	const TRANSACTION_TYPES_DELEGATE = 2;
@@ -278,7 +280,7 @@ describe('block', () => {
 		data = _.cloneDeep(validDataForBlock);
 		transactions = _.values(transactionsByTypes);
 		transactions = transactions.map(transaction =>
-			transactionManager.fromJson(transaction)
+			interfaceAdapters.transactions.fromJson(transaction)
 		);
 	});
 
@@ -312,7 +314,7 @@ describe('block', () => {
 				beforeEach(async () => {
 					// Create 6 multisignature transactions
 					multipleMultisigTx = Array(...Array(5)).map(() =>
-						transactionManager.fromJson(
+						interfaceAdapters.transactions.fromJson(
 							transactionsByTypes[TRANSACTION_TYPES_MULTI]
 						)
 					);
@@ -338,7 +340,7 @@ describe('block', () => {
 
 				beforeEach(async () => {
 					multipleMultisigTx = Array(...Array(5)).map(() =>
-						transactionManager.fromJson(
+						interfaceAdapters.transactions.fromJson(
 							transactionsByTypes[TRANSACTION_TYPES_MULTI]
 						)
 					);
@@ -366,7 +368,7 @@ describe('block', () => {
 
 				beforeEach(async () => {
 					multipleMultisigTx = Array(...Array(5)).map(() =>
-						transactionManager.fromJson(
+						interfaceAdapters.transactions.fromJson(
 							transactionsByTypes[TRANSACTION_TYPES_MULTI]
 						)
 					);
@@ -393,7 +395,7 @@ describe('block', () => {
 				beforeEach(async () => {
 					// Create 6 multisignature transactions
 					multipleMultisigTx = Array(...Array(5)).map(() =>
-						transactionManager.fromJson(
+						interfaceAdapters.transactions.fromJson(
 							transactionsByTypes[TRANSACTION_TYPES_MULTI]
 						)
 					);

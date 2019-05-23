@@ -59,7 +59,7 @@ class Chain {
 		bus,
 		balancesSequence,
 		channel,
-		transactionManager
+		interfaceAdapters
 	) {
 		library = {
 			logger,
@@ -74,7 +74,7 @@ class Chain {
 		};
 		self = this;
 		self.modules = {
-			transactionManager,
+			interfaceAdapters,
 		};
 
 		library.logger.trace('Blocks->Chain: Submodule initialized.');
@@ -104,7 +104,7 @@ class Chain {
 				// FIXME: This will fail if we already have genesis block in database, but with different ID
 				const block = {
 					...library.genesisBlock.block,
-					transactions: self.modules.transactionManager.fromBlock(
+					transactions: self.modules.interfaceAdapters.transactions.fromBlock(
 						library.genesisBlock.block
 					),
 				};

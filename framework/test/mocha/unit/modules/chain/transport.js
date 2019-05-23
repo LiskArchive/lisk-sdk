@@ -29,6 +29,9 @@ const {
 	registeredTransactions,
 } = require('../../../common/registered_transactions');
 const transactionsModule = require('../../../../../src/modules/chain/transactions');
+const {
+	TransactionInterfaceAdapter,
+} = require('../../../../../src/modules/chain/interface_adapters');
 
 const TransportModule = rewire('../../../../../src/modules/chain/transport');
 
@@ -37,9 +40,9 @@ const expect = chai.expect;
 
 // TODO: Sometimes the callback error is null, other times it's undefined. It should be consistent.
 describe('transport', () => {
-	const transactionManager = new transactionsModule.TransactionManager(
-		registeredTransactions
-	);
+	const interfaceAdapters = {
+		transactions: new TransactionInterfaceAdapter(registeredTransactions),
+	};
 
 	let storageStub;
 	let loggerStub;
@@ -205,10 +208,12 @@ describe('transport', () => {
 					getTransactionAndProcessSignature: sinonSandbox.stub(),
 					processUnconfirmedTransaction: sinonSandbox.stub(),
 				},
-				transactionManager: {
-					fromBlock: sinonSandbox.stub(),
-					fromJson: sinonSandbox.stub(),
-					dbRead: sinonSandbox.stub(),
+				interfaceAdapters: {
+					transactions: {
+						fromBlock: sinonSandbox.stub(),
+						fromJson: sinonSandbox.stub(),
+						dbRead: sinonSandbox.stub(),
+					},
 				},
 				blocks: {
 					lastBlock: {
@@ -307,7 +312,7 @@ describe('transport', () => {
 							.returns({ height: 1, version: 1, timestamp: 1 }),
 					},
 				},
-				transactionManager,
+				interfaceAdapters,
 				transactionPool: defaultScope.modules.transactionPool,
 			};
 
@@ -604,7 +609,9 @@ describe('transport', () => {
 					],
 				});
 
-				const tranasactionInstance = transactionManager.fromJson(transaction);
+				const tranasactionInstance = interfaceAdapters.transactions.fromJson(
+					transaction
+				);
 
 				sinonSandbox
 					.stub(transactionsModule, 'composeTransactionSteps')
@@ -627,7 +634,7 @@ describe('transport', () => {
 				const errorMessage = 'Transaction type 0 is currently not allowed.';
 
 				sinonSandbox
-					.stub(transactionManager, 'fromJson')
+					.stub(interfaceAdapters.transactions, 'fromJson')
 					.returns({ ...transaction, matcher: () => false });
 
 				__private.receiveTransaction(
@@ -660,7 +667,7 @@ describe('transport', () => {
 				it('should call modules.transactionPool.processUnconfirmedTransaction with transaction and true as arguments', async () =>
 					expect(
 						modules.transactionPool.processUnconfirmedTransaction.calledWith(
-							transactionManager.fromJson(transaction),
+							interfaceAdapters.transactions.fromJson(transaction),
 							true
 						)
 					).to.be.true);
@@ -687,7 +694,9 @@ describe('transport', () => {
 				});
 
 				it('should call the call back with error message', async () => {
-					transactionManager.fromJson(invalidTransaction).validate();
+					interfaceAdapters.transactions
+						.fromJson(invalidTransaction)
+						.validate();
 					expect(errorResult).to.be.an('array');
 					errorResult.forEach(anError => {
 						expect(anError).to.be.instanceOf(TransactionError);
@@ -768,7 +777,7 @@ describe('transport', () => {
 					it('should call library.logger.debug with "Transaction" and transaction as arguments', async () => {
 						expect(library.logger.debug).to.be.calledWith(
 							'Transaction',
-							transactionManager.fromJson(transaction)
+							interfaceAdapters.transactions.fromJson(transaction)
 						);
 					});
 				});
@@ -858,8 +867,10 @@ describe('transport', () => {
 					loader: {
 						syncing: sinonSandbox.stub().returns(false),
 					},
-					transactionManager: {
-						fromBlock: sinonSandbox.stub(),
+					interfaceAdapters: {
+						transactions: {
+							fromBlock: sinonSandbox.stub(),
+						},
 					},
 					blocks: {
 						utils: {
@@ -925,7 +936,7 @@ describe('transport', () => {
 					it('should assign blocks, loader, multisignatures, processTransactions and transactions properties', async () => {
 						expect(modulesObject).to.have.property('blocks');
 						expect(modulesObject).to.have.property('loader');
-						expect(modulesObject).to.have.property('transactionManager');
+						expect(modulesObject).to.have.property('interfaceAdapters');
 						return expect(modulesObject).to.have.property('transactionPool');
 					});
 				});

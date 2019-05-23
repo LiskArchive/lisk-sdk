@@ -19,14 +19,16 @@ const {
 	registeredTransactions,
 } = require('../../../../../common/registered_transactions');
 const {
-	TransactionManager,
-} = require('../../../../../../../src/modules/chain/transactions');
+	TransactionInterfaceAdapter,
+} = require('../../../../../../../src/modules/chain/interface_adapters');
 const { Transaction } = require('../../../../../fixtures/transactions');
 
 const BlocksChain = rewire(
 	'../../../../../../../src/modules/chain/submodules/blocks/chain'
 );
-const transactionManager = new TransactionManager(registeredTransactions);
+const interfaceAdapters = {
+	transactions: new TransactionInterfaceAdapter(registeredTransactions),
+};
 
 describe('blocks/chain', () => {
 	let __private;
@@ -36,7 +38,7 @@ describe('blocks/chain', () => {
 	let storageStub;
 	let loggerStub;
 	let blockStub;
-	let transactionManagerStub;
+	let interfaceAdaptersStub;
 	let busStub;
 	let balancesSequenceStub;
 	let genesisBlockStub;
@@ -58,7 +60,7 @@ describe('blocks/chain', () => {
 		id: 3,
 		height: 3,
 		transactions: transactionsForBlock.map(transaction =>
-			transactionManager.fromJson(transaction)
+			interfaceAdapters.transactions.fromJson(transaction)
 		),
 	};
 
@@ -72,7 +74,7 @@ describe('blocks/chain', () => {
 		id: 1,
 		height: 1,
 		transactions: transactionsForGenesisBlock.map(transaction =>
-			transactionManager.fromJson(transaction)
+			interfaceAdapters.transactions.fromJson(transaction)
 		),
 	};
 	const blockReduced = { id: 3, height: 3 };
@@ -111,8 +113,10 @@ describe('blocks/chain', () => {
 			message: sinonSandbox.stub(),
 		};
 
-		transactionManagerStub = {
-			fromJson: sinonSandbox.stub(),
+		interfaceAdaptersStub = {
+			transactions: {
+				fromJson: sinonSandbox.stub(),
+			},
 		};
 
 		balancesSequenceStub = {
@@ -148,7 +152,7 @@ describe('blocks/chain', () => {
 			busStub,
 			balancesSequenceStub,
 			channelMock,
-			transactionManagerStub
+			interfaceAdaptersStub
 		);
 
 		library = BlocksChain.__get__('library');
@@ -239,8 +243,8 @@ describe('blocks/chain', () => {
 			expect(blocksChainModule.broadcastReducedBlock).to.be.a('function');
 			expect(blocksChainModule.deleteLastBlock).to.be.a('function');
 			expect(blocksChainModule.recoverChain).to.be.a('function');
-			expect(blocksChainModule.modules.transactionManager).to.eql(
-				transactionManagerStub
+			expect(blocksChainModule.modules.interfaceAdapters).to.eql(
+				interfaceAdaptersStub
 			);
 			return expect(blocksChainModule.onBind).to.be.a('function');
 		});

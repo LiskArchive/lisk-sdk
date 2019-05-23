@@ -247,16 +247,19 @@ const initStepsForTest = {
 			};
 		});
 
-		const { TransactionManager: RewiredTransactionManager } = rewire(
-			'../../../src/modules/chain/transactions'
-		);
-		scope.rewiredModules.transactionManager = RewiredTransactionManager;
+		const {
+			TransactionInterfaceAdapter: RewiredTransactionInterfaceAdapter,
+		} = rewire('../../../src/modules/chain/interface_adapters');
+
+		scope.rewiredModules.interfaceAdapters = {};
+		scope.rewiredModules.interfaceAdapters.transactions = RewiredTransactionInterfaceAdapter;
 		const slots = new BlockSlots({
 			epochTime: __testContext.config.constants.EPOCH_TIME,
 			interval: __testContext.config.constants.BLCOK_TIME,
 			blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
 		});
-		modules.transactionManager = new RewiredTransactionManager(
+		modules.interfaceAdapters = {};
+		modules.interfaceAdapters.transactions = new RewiredTransactionInterfaceAdapter(
 			__testContext.config.modules.chain.registeredTransactions
 		);
 		scope.modules = scope.modules || {};

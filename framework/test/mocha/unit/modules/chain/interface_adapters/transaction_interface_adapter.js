@@ -22,14 +22,14 @@ const {
 	MultisignatureTransaction,
 } = require('@liskhq/lisk-transactions');
 const {
-	TransactionManager,
-} = require('../../../../../../src/modules/chain/transactions/transaction_manager');
+	TransactionInterfaceAdapter,
+} = require('../../../../../../src/modules/chain/interface_adapters');
 
 // TODO: re-implement for new transaction processing
 describe('transactions', () => {
 	afterEach(() => sinonSandbox.restore());
 
-	describe('TransactionManager', () => {
+	describe('TransactionInterfaceAdapter', () => {
 		const registeredTransactions = {
 			0: TransferTransaction,
 			1: SecondSignatureTransaction,
@@ -42,7 +42,7 @@ describe('transactions', () => {
 
 		beforeEach(async () => {
 			// Act
-			transactions = new TransactionManager(registeredTransactions);
+			transactions = new TransactionInterfaceAdapter(registeredTransactions);
 		});
 
 		describe('constructor', () => {

@@ -22,11 +22,14 @@ const {
 	registeredTransactions,
 } = require('../../../../../common/registered_transactions');
 const transactionsModule = require('../../../../../../../src/modules/chain/transactions');
+const {
+	TransactionInterfaceAdapter,
+} = require('../../../../../../../src/modules/chain/interface_adapters');
 const { Transaction } = require('../../../../../fixtures/transactions');
 
-const transactionManager = new transactionsModule.TransactionManager(
-	registeredTransactions
-);
+const interfaceAdapters = {
+	transactions: new TransactionInterfaceAdapter(registeredTransactions),
+};
 
 const BlocksVerify = rewire(
 	'../../../../../../../src/modules/chain/submodules/blocks/verify'
@@ -614,10 +617,10 @@ describe('blocks/verify', () => {
 		let verifyPayload;
 
 		const payloadHash = crypto.createHash('sha256');
-		const transactionOne = transactionManager.fromJson(
+		const transactionOne = interfaceAdapters.transactions.fromJson(
 			new Transaction({ type: 0 })
 		);
-		const transactionTwo = transactionManager.fromJson(
+		const transactionTwo = interfaceAdapters.transactions.fromJson(
 			new Transaction({ type: 0 })
 		);
 		const transactions = [transactionOne, transactionTwo];
