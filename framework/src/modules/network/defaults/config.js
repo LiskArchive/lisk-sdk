@@ -68,6 +68,11 @@ const defaultConfig = {
 		ackTimeout: {
 			type: 'integer',
 		},
+		emitPeerLimit: {
+			type: 'integer',
+			minimum: 1,
+			maximum: 100,
+		},
 	},
 	required: ['wsPort', 'seedPeers'],
 	default: {
