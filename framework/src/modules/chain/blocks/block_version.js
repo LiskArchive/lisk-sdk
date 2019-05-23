@@ -28,12 +28,13 @@ const currentBlockVersion = 1;
  * @param {number} height - Block height
  * @returns {boolean}
  */
-const isValid = (version, height, exceptions) => {
+const isValid = (version, height, exceptions = {}) => {
 	// Check is there an exception for provided height and if yes assing its version
-	const exceptionVersion = Object.keys(exceptions.blockVersions).find(
+	const blockVersionExceptions = exceptions.blockVersions || {};
+	const exceptionVersion = Object.keys(blockVersionExceptions).find(
 		exception => {
 			// Get height range of current exceptions
-			const heightsRange = exceptions.blockVersions[exception];
+			const heightsRange = blockVersionExceptions[exception];
 			// Check if provided height is between the range boundaries
 			return height >= heightsRange.start && height <= heightsRange.end;
 		}
