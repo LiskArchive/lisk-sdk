@@ -14,7 +14,9 @@
 
 'use strict';
 
-const { TransactionInterfaceAdapter } = require('./transaction_manager');
+const {
+	TransactionInterfaceAdapter,
+} = require('./transaction_interface_adapter');
 
 module.exports = {
 	TransactionInterfaceAdapter,
