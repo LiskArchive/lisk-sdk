@@ -104,4 +104,4 @@ class HeadersList {
 	}
 }
 
-module.exports = { HeadersList };
+module.exports = HeadersList;
