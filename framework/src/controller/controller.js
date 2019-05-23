@@ -71,6 +71,10 @@ class Controller {
 		this.childrenList = [];
 		this.channel = null; // Channel for controller
 		this.bus = null;
+
+		const storageConfig = config.components.storage;
+		this.storage = createStorageComponent(storageConfig, logger);
+		this.storage.registerEntity('Migration', MigrationEntity);
 	}
 
 	/**
@@ -80,7 +84,7 @@ class Controller {
 	 * @param modules
 	 * @async
 	 */
-	async load(modules, moduleOptions, migrations) {
+	async load(modules, moduleOptions, migrations = {}) {
 		this.logger.info('Loading controller');
 		await this._setupDirectories();
 		await this._validatePidFile();
@@ -193,9 +197,6 @@ class Controller {
 	}
 
 	async _loadMigrations(applicationMigrationsObj) {
-		const storageConfig = this.config.components.storage;
-		this.storage = createStorageComponent(storageConfig, this.logger);
-		this.storage.registerEntity('Migration', MigrationEntity);
 		await this.storage.bootstrap();
 		await this.storage.entities.Migration.applyInternal();
 		return this.storage.entities.Migration.applyList(applicationMigrationsObj);
