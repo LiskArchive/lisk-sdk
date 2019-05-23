@@ -16,9 +16,9 @@
 
 const EventEmitter = require('events');
 const blocksUtils = require('./utils');
-const blocksProcess = require('./process');
-const blocksVerify = require('./verify');
-const blocksChain = require('./chain');
+const { BlocksProcess } = require('./process');
+const { BlocksVerify } = require('./verify');
+const { BlocksChain } = require('./chain');
 const { BlockReward } = require('./block_reward');
 
 const EVENT_NEW_BLOCK = 'EVENT_NEW_BLOCK';
@@ -51,6 +51,14 @@ class Blocks extends EventEmitter {
 		totalAmount,
 	}) {
 		super();
+
+		this._broadhash = genesisBlock.payloadHash;
+		this._lastNBlockIds = [];
+		this._lastBlock = {};
+		this._isActive = false;
+		this._lastReceipt = null;
+		this._cleaning = false;
+
 		this.logger = logger;
 		this.storage = storage;
 		this.roundsModule = roundsModule;
@@ -73,12 +81,35 @@ class Blocks extends EventEmitter {
 			activeDelegates,
 		};
 
-		this._broadhash = genesisBlock.payloadHash;
-		this._lastNBlockIds = [];
-		this._lastBlock = {};
-		this._isActive = false;
-		this._lastReceipt = null;
-		this._cleaning = false;
+		this.blocksChain = new BlocksChain({
+			storage: this.storage,
+			interfaceAdapters: this.interfaceAdapters,
+			roundsModule: this.roundsModule,
+			slots: this.slots,
+			exceptions: this.exceptions,
+			genesisBlock: this.genesisBlock,
+		});
+		this.blocksVerify = new BlocksVerify({
+			storage: this.storage,
+			exceptions: this.exceptions,
+			slots: this.slots,
+			genesisBlock: this.genesisBlock,
+			roundsModule: this.roundsModule,
+			blockReward: this.blockReward,
+			constants: this.constants,
+			interfaceAdapters: this.interfaceAdapters,
+		});
+		this.blocksProcess = new BlocksProcess({
+			blocksChain: this.blocksChain,
+			blocksVerify: this.blocksVerify,
+			storage: this.storage,
+			exceptions: this.exceptions,
+			slots: this.slots,
+			interfaceAdapters: this.interfaceAdapters,
+			genesisBlock: this.genesisBlock,
+			blockReward: this.blockReward,
+			constants: this.constants,
+		});
 	}
 
 	get lastBlock() {
@@ -181,11 +212,7 @@ class Blocks extends EventEmitter {
 	async loadBlockChain(rebuildUpToRound) {
 		this._shouldNotBeActive();
 		this._isActive = true;
-		await blocksChain.saveGenesisBlock(
-			this.storage,
-			this.interfaceAdapters,
-			this.genesisBlock
-		);
+		await this.blocksChain.saveGenesisBlock();
 		// check mem tables
 		const { blocksCount, genesisBlock, memRounds } = await new Promise(
 			(resolve, reject) => {
@@ -200,12 +227,12 @@ class Blocks extends EventEmitter {
 			}
 		);
 		if (blocksCount === 1) {
-			this._lastBlock = await this._reload(blocksCount)();
+			this._lastBlock = await this._reload(blocksCount);
 			this._isActive = false;
 			return;
 		}
 		// check genesisBlock
-		blocksVerify.matchGenesisBlock(this.genesisBlock, genesisBlock);
+		this.blocksVerify.matchGenesisBlock(genesisBlock);
 		// rebuild accounts if it's rebuild
 		if (rebuildUpToRound !== null && rebuildUpToRound !== undefined) {
 			await this._rebuildMode(rebuildUpToRound, blocksCount);
@@ -214,15 +241,10 @@ class Blocks extends EventEmitter {
 		}
 		// check reload condition, true then reload
 		try {
-			await blocksVerify.reloadRequired(
-				this.storage,
-				this.slots,
-				blocksCount,
-				memRounds
-			);
+			await this.blocksVerify.reloadRequired(blocksCount, memRounds);
 		} catch (error) {
 			this.logger.error(error, 'Reload of blockchain is required');
-			this._lastBlock = await this._reload(blocksCount)();
+			this._lastBlock = await this._reload(blocksCount);
 			this._isActive = false;
 			return;
 		}
@@ -235,45 +257,30 @@ class Blocks extends EventEmitter {
 		} catch (error) {
 			this.logger.error(error, 'Failed to fetch last block');
 			// This is last attempt
-			this._lastBlock = await this._reload(blocksCount)();
+			this._lastBlock = await this._reload(blocksCount);
 			this._isActive = false;
 			return;
 		}
-		const recoverRequired = await blocksVerify.requireBlockRewind({
-			...this.constants,
-			storage: this.storage,
-			slots: this.slots,
-			interfaceAdapters: this.interfaceAdapters,
-			genesisBlock: this.genesisBlock,
-			currentBlock: this._lastBlock,
-			roundsModule: this.roundsModule,
-			blockReward: this.blockReward,
-			exceptions: this.exceptions,
-		});
+		const recoverRequired = await this.blocksVerify.requireBlockRewind(
+			this._lastBlock
+		);
+
 		if (recoverRequired) {
 			this.logger.error('Invalid own blockchain');
-			this._lastBlock = await blocksProcess.recoverInvalidOwnChain({
-				...this.constants,
-				lastBlock: this._lastBlock,
-				onDelete: (lastBlock, newLastBlock) => {
+			this._lastBlock = await this.blocksProcess.recoverInvalidOwnChain(
+				this._lastBlock,
+				(lastBlock, newLastBlock) => {
 					this.logger.info({ lastBlock, newLastBlock }, 'Deleted block');
 					this.emit(EVENT_DELETE_BLOCK, { block: lastBlock, newLastBlock });
-				},
-				storage: this.storage,
-				roundsModule: this.roundsModule,
-				slots: this.slots,
-				interfaceAdapters: this.interfaceAdapters,
-				genesisBlock: this.genesisBlock,
-				blockReward: this.blockReward,
-				exceptions: this.exceptions,
-			});
+				}
+			);
 		}
 		this._isActive = false;
 		this.logger.info('Blockchain ready');
 	}
 
 	async recoverChain() {
-		this._lastBlock = await blocksChain.deleteLastBlock();
+		this._lastBlock = await this.blocksChain.deleteLastBlock(this._lastBlock);
 		return this._lastBlock;
 	}
 
@@ -287,14 +294,14 @@ class Blocks extends EventEmitter {
 			this._shouldNotBeActive();
 			this._isActive = true;
 			// set active to true
-			if (blocksVerify.isSaneBlock(block, this._lastBlock)) {
+			if (this.blocksVerify.isSaneBlock(block, this._lastBlock)) {
 				this._updateLastReceipt();
 				try {
-					const newBlock = await this._processBlock(
+					const newBlock = await this.blocksProcess(
 						block,
 						this._lastBlock,
 						validBlock => this.broadcast(validBlock)
-					)();
+					);
 					await this._updateBroadhash();
 					this._lastBlock = newBlock;
 					this._isActive = false;
@@ -306,26 +313,30 @@ class Blocks extends EventEmitter {
 				}
 				return;
 			}
-			if (blocksVerify.isForkOne(block, this._lastBlock)) {
+			if (this.blocksVerify.isForkOne(block, this._lastBlock)) {
 				this.roundsModule.fork(block, 1);
-				if (blocksVerify.shouldDiscardForkOne(block, this._lastBlock)) {
+				if (this.blocksVerify.shouldDiscardForkOne(block, this._lastBlock)) {
 					this.logger.info('Last block stands');
 					setImmediate(cb);
 					this._isActive = false;
 					return;
 				}
 				try {
-					const { verified, errors } = blocksVerify.normalizeAndVerify({
+					const { verified, errors } = this.blocksVerify.normalizeAndVerify(
 						block,
-						exceptions: this.exceptions,
-						roundsModule: this.roundsModule,
-					});
+						this._lastBlock,
+						this._lastNBlockIds
+					);
 					if (!verified) {
 						throw errors;
 					}
-					await blocksChain.deleteLastBlock();
+					this._lastBlock = await this.blocksChain.deleteLastBlock(
+						this._lastBlock
+					);
 					// emit event
-					this._lastBlock = await blocksChain.deleteLastBlock();
+					this._lastBlock = await this.blocksChain.deleteLastBlock(
+						this._lastBlock
+					);
 					// emit event
 					this._isActive = false;
 					setImmediate(cb);
@@ -337,15 +348,15 @@ class Blocks extends EventEmitter {
 					return;
 				}
 			}
-			if (blocksVerify.isForkFive(block, this._lastBlock)) {
+			if (this.blocksVerify.isForkFive(block, this._lastBlock)) {
 				this.roundsModule.fork(block, 5);
-				if (blocksVerify.isDoubleForge(block, this._lastBlock)) {
+				if (this.blocksVerify.isDoubleForge(block, this._lastBlock)) {
 					this.logger.warn(
 						'Delegate forging on multiple nodes',
 						block.generatorPublicKey
 					);
 				}
-				if (blocksVerify.shouldDiscardForkFive(block, this._lastBlock)) {
+				if (this.blocksVerify.shouldDiscardForkFive(block, this._lastBlock)) {
 					this.logger.info('Last block stands');
 					setImmediate(cb);
 					this._isActive = false;
@@ -353,28 +364,25 @@ class Blocks extends EventEmitter {
 				}
 				this._updateLastReceipt();
 				try {
-					const { verified, errors } = blocksVerify.normalizeAndVerify({
-						...this.constants,
+					const { verified, errors } = this.blocksVerify.normalizeAndVerify(
 						block,
-						lastBlock: this._lastBlock,
-						exceptions: this.exceptions,
-						roundsModule: this.roundsModule,
-						slots: this.slots,
-						blockReward: this.blockReward,
-						lastNBlockIds: this._lastNBlockIds,
-					});
+						this._lastBlock,
+						this._lastNBlockIds
+					);
 					if (!verified) {
 						throw errors;
 					}
 					const deletingBlock = this._lastBlock;
-					this._lastBlock = await blocksChain.deleteLastBlock();
+					this._lastBlock = await this.blocksChain.deleteLastBlock(
+						this._lastBlock
+					);
 					this.emit(EVENT_DELETE_BLOCK, { block: deletingBlock });
 					// emit event
-					this._lastBlock = await this._processBlock(
+					this._lastBlock = await this.blocksProcess.processBlock(
 						block,
 						this._lastBlock,
 						validBlock => this.broadcast(validBlock)
-					)();
+					);
 					await this._updateBroadhash();
 					this._isActive = false;
 					setImmediate(cb);
@@ -408,7 +416,7 @@ class Blocks extends EventEmitter {
 				break;
 			}
 			// eslint-disable-next-line no-await-in-loop
-			this._lastBlock = await this._processBlock(block, this._lastBlock)();
+			this._lastBlock = await this.blocksProcess(block, this._lastBlock);
 			// emit event
 			this._updateLastNBlocks(block);
 			this.emit(EVENT_NEW_BLOCK, { block });
@@ -422,22 +430,17 @@ class Blocks extends EventEmitter {
 		this._shouldNotBeActive();
 		this._isActive = true;
 		try {
-			const block = await blocksProcess.generateBlock({
+			const block = await this.blocksProcess.generateBlock(
+				this._lastBlock,
 				keypair,
 				timestamp,
-				transactions,
-				lastBlock: this._lastBlock,
-				storage: this.storage,
-				exceptions: this.exceptions,
-				slots: this.slots,
-				maxPayloadLength: this.maxPayloadLength,
-				blockReward: this.blockReward,
-			});
-			this._lastBlock = await this._processBlock(
+				transactions
+			);
+			this._lastBlock = await this.blocksProcess.processBlock(
 				block,
 				this._lastBlock,
 				validBlock => this.broadcast(validBlock)
-			)();
+			);
 		} catch (error) {
 			this._isActive = false;
 			throw error;
@@ -477,7 +480,7 @@ class Blocks extends EventEmitter {
 				? totalRounds
 				: Math.min(totalRounds, parseInt(rebuildUpToRound));
 		const targetHeight = targetRound * this.activeDelegates;
-		this._lastBlock = await blocksProcess.reload(targetHeight);
+		this._lastBlock = await this._reload(targetHeight);
 	}
 
 	_updateLastNBlocks(block) {
@@ -508,44 +511,18 @@ class Blocks extends EventEmitter {
 		}
 	}
 
-	_reload(blocksCount) {
-		return async () =>
-			blocksProcess.reload({
-				...this.constants,
-				targetHeight: blocksCount,
-				isCleaning: () => this._cleaning,
-				onProgress: block => {
-					this._lastBlock = block;
-					this.logger.info(
-						{ blockId: block.id, height: block.height },
-						'Rebuilding block'
-					);
-				},
-				interfaceAdapters: this.interfaceAdapters,
-				storage: this.storage,
-				loadPerIteration: this.constants.loadPerIteration,
-				genesisBlock: this.genesisBlock,
-				slots: this.slots,
-				roundsModule: this.roundsModule,
-				exceptions: this.exceptions,
-				blockReward: this.blockReward,
-			});
-	}
-
-	_processBlock(block, lastBlock, broadcast) {
-		return async () =>
-			blocksProcess.processBlock({
-				block,
-				lastBlock,
-				broadcast,
-				storage: this.storage,
-				exceptions: this.exceptions,
-				slots: this.slots,
-				roundsModule: this.roundsModule,
-				maxPayloadLength: this.maxPayloadLength,
-				maxTransactionsPerBlock: this.maxTransactionsPerBlock,
-				blockReward: this.blockReward,
-			});
+	async _reload(blocksCount) {
+		return this.blocksProcess.reload(
+			blocksCount,
+			() => this._cleaning,
+			block => {
+				this._lastBlock = block;
+				this.logger.info(
+					{ blockId: block.id, height: block.height },
+					'Rebuilding block'
+				);
+			}
+		);
 	}
 }
 

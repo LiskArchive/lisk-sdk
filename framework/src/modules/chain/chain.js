@@ -447,12 +447,20 @@ module.exports = class Chain {
 		this.blocks.on(EVENT_BROADCAST_BLOCK, ({ block }) => {
 			this.transport.onBroadcastBlock(block, true);
 		});
+
 		this.blocks.on(EVENT_DELETE_BLOCK, ({ block }) => {
-			this.transactionPool.onDeletedTransactions(block.transactions);
+			if (block.transactions.length) {
+				const transactions = block.transactions.reverse();
+				this.transactionPool.onDeletedTransactions(transactions);
+			}
 		});
+
 		this.blocks.on(EVENT_NEW_BLOCK, ({ block }) => {
-			this.transactionPool.onConfirmedTransactions(block.transactions);
+			if (block.transactions.length) {
+				this.transactionPool.onConfirmedTransactions(block.transactions);
+			}
 		});
+
 		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {
 			this.channel.invoke('app:updateApplicationState', { broadhash, height });
 		});
