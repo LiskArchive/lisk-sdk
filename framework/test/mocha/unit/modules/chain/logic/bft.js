@@ -219,6 +219,59 @@ describe('bft', () => {
 			});
 		});
 
+		describe('size', () => {
+			let header1;
+			let header2;
+			let header3;
+			let header4;
+			let header5;
+
+			beforeEach(async () => {
+				header1 = blockHeaderFixture({ height: 1 });
+				header2 = blockHeaderFixture({ height: 2 });
+				header3 = blockHeaderFixture({ height: 3 });
+				header4 = blockHeaderFixture({ height: 4 });
+				header5 = blockHeaderFixture({ height: 5 });
+
+				list
+					.add(header1)
+					.add(header2)
+					.add(header3)
+					.add(header4)
+					.add(header5);
+
+				expect(list.items).to.be.eql([
+					header1,
+					header2,
+					header3,
+					header4,
+					header5,
+				]);
+			});
+
+			it('should return the current size of the list', async () => {
+				expect(list.size).to.be.eql(SIZE);
+			});
+
+			it('should increase the size without effecting list', async () => {
+				list.size = 10;
+				expect(list.size).to.be.eql(10);
+				expect(list.items).to.be.eql([
+					header1,
+					header2,
+					header3,
+					header4,
+					header5,
+				]);
+			});
+
+			it('should decrease the  size by chopping the headers with lowest height', async () => {
+				list.size = 2;
+				expect(list.size).to.be.eql(2);
+				expect(list.items).to.be.eql([header4, header5]);
+			});
+		});
+
 		describe('reset()', () => {
 			let header1;
 			let header2;

@@ -18,12 +18,13 @@ const assert = require('assert');
 
 const __private = {
 	items: new WeakMap(),
+	size: new WeakMap(),
 };
 
 class HeadersList {
 	constructor({ size }) {
 		assert(size, 'Must provide size of the queue');
-		this.size = size;
+		__private.size.set(this, size);
 		__private.items.set(this, []);
 	}
 
@@ -33,6 +34,19 @@ class HeadersList {
 
 	get length() {
 		return __private.items.get(this).length;
+	}
+
+	get size() {
+		return __private.size.get(this);
+	}
+
+	set size(newSize) {
+		const currentSize = this.size;
+		if (currentSize > newSize) {
+			this.items.splice(0, currentSize - newSize);
+		}
+
+		__private.size.set(this, newSize);
 	}
 
 	get first() {
