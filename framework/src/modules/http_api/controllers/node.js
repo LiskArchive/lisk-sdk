@@ -128,9 +128,11 @@ NodeController.getStatus = async (context, next) => {
 		} = await library.channel.invoke('chain:getNodeStatus');
 
 		// get confirmed count from cache or chain
-		const confirmed = await getConfirmedTransactionCount();
 
-		const networkHeight = await _getNetworkHeight();
+		const [confirmed, networkHeight] = await Promise.all([
+			_getConfirmedTransactionCount(),
+			_getNetworkHeight(),
+		]);
 		const total =
 			confirmed +
 			Object.values(unconfirmedTransactions).reduce(
@@ -348,7 +350,7 @@ async function _getNetworkHeight() {
  * @returns Number
  * @private
  */
-async function getConfirmedTransactionCount() {
+async function _getConfirmedTransactionCount() {
 	// if cache is ready, then get cache and return
 	if (library.components.cache.cacheReady) {
 		try {
