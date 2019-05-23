@@ -414,8 +414,7 @@ export class Peer extends EventEmitter {
 						reject(
 							new RPCResponseError(
 								`Failed to handle response for procedure ${packet.procedure}`,
-								this.ipAddress,
-								this.wsPort,
+								constructPeerIdFromPeerInfo(this._peerInfo),
 							),
 						);
 					},
@@ -434,8 +433,7 @@ export class Peer extends EventEmitter {
 		} catch (error) {
 			throw new RPCResponseError(
 				'Failed to fetch peer list of peer',
-				this.ipAddress,
-				this.wsPort,
+				constructPeerIdFromPeerInfo(this._peerInfo),
 			);
 		}
 	}
@@ -452,8 +450,7 @@ export class Peer extends EventEmitter {
 
 			throw new RPCResponseError(
 				'Failed to fetch peer info of peer',
-				this.ipAddress,
-				this.wsPort,
+				constructPeerIdFromPeerInfo(this._peerInfo),
 			);
 		}
 
@@ -731,8 +728,7 @@ export const connectAndRequest = async (
 							`Failed to handle response for procedure ${
 								requestPacket.procedure
 							}`,
-							basicPeerInfo.ipAddress,
-							basicPeerInfo.wsPort,
+							constructPeerIdFromPeerInfo(basicPeerInfo),
 						),
 					);
 				},

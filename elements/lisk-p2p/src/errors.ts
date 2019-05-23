@@ -44,14 +44,12 @@ export class PeerOutboundConnectionError extends Error {
 }
 
 export class RPCResponseError extends Error {
-	public peerIp: string;
-	public peerPort: number;
+	public peerId: string;
 
-	public constructor(message: string, peerIp: string, peerPort: number) {
+	public constructor(message: string, peerId: string) {
 		super(message);
 		this.name = 'RPCResponseError';
-		this.peerIp = peerIp;
-		this.peerPort = peerPort;
+		this.peerId = peerId;
 	}
 }
 
@@ -99,7 +97,7 @@ export class RequestFailError extends Error {
 		this.peerId = peerId || '';
 		this.peerVersion = peerVersion || '';
 		this.message = peerId
-			? `${this.message}: PeerId: ${this.peerId}: Peer Version: ${
+			? `${this.message}: Peer Id: ${this.peerId}: Peer Version: ${
 					this.peerVersion
 			  }`
 			: message;
