@@ -392,7 +392,7 @@ export class Peer extends EventEmitter {
 					},
 					(err: Error | undefined, responseData: unknown) => {
 						if (err) {
-							// Wrap reponse error within the a new custom erro and attach peer id and version
+							// Wrap response error within the a new custom error and add peer id and version info
 							reject(
 								new RequestFailError(
 									err.message,

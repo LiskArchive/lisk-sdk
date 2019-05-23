@@ -98,9 +98,11 @@ export class RequestFailError extends Error {
 		this.errorResponse = errorResponse || new Error(message);
 		this.peerId = peerId || '';
 		this.peerVersion = peerVersion || '';
-		this.message = `${this.message}: PeerId: ${this.peerId}: Peer Version: ${
-			this.peerVersion
-		}`;
+		this.message = peerId
+			? `${this.message}: PeerId: ${this.peerId}: Peer Version: ${
+					this.peerVersion
+			  }`
+			: message;
 	}
 }
 
