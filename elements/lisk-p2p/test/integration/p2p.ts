@@ -151,7 +151,7 @@ describe('Integration tests for P2P library', () => {
 		describe('Peer discovery', () => {
 			it('should discover all peers in the network after a few cycles of discovery', async () => {
 				// Wait for a few cycles of discovery.
-				await wait(DISCOVERY_INTERVAL * 5);
+				await wait(DISCOVERY_INTERVAL * 7);
 
 				p2pNodeList.forEach(p2p => {
 					const { connectedPeers } = p2p.getNetworkStatus();
