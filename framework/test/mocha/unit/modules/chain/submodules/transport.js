@@ -489,7 +489,7 @@ describe('transport', () => {
 					debug: sinonSandbox.spy(),
 				};
 
-				__private.receiveTransaction = sinonSandbox.stub().callsArg(3);
+				__private.receiveTransaction = sinonSandbox.stub().callsArg(2);
 
 				done();
 			});
@@ -538,7 +538,7 @@ describe('transport', () => {
 							receiveTransactionError = 'Invalid transaction body - ...';
 							__private.receiveTransaction = sinonSandbox
 								.stub()
-								.callsArgWith(3, receiveTransactionError);
+								.callsArgWith(2, receiveTransactionError);
 
 							__private.receiveTransactions(
 								transactionsList,
@@ -693,7 +693,6 @@ describe('transport', () => {
 					};
 					__private.receiveTransaction(
 						invalidTransaction,
-						undefined,
 						'This is a log message',
 						err => {
 							errorResult = err;
@@ -1626,7 +1625,7 @@ describe('transport', () => {
 						};
 						__private.receiveTransaction = sinonSandbox
 							.stub()
-							.callsArgWith(3, null, transaction.id);
+							.callsArgWith(2, null, transaction.id);
 						transportInstance.shared.postTransaction(query, (err, res) => {
 							error = err;
 							result = res;
@@ -1660,7 +1659,7 @@ describe('transport', () => {
 						beforeEach(done => {
 							__private.receiveTransaction = sinonSandbox
 								.stub()
-								.callsArgWith(3, receiveTransactionError);
+								.callsArgWith(2, receiveTransactionError);
 							transportInstance.shared.postTransaction(query, (err, res) => {
 								error = err;
 								result = res;
@@ -1685,7 +1684,7 @@ describe('transport', () => {
 						beforeEach(done => {
 							__private.receiveTransaction = sinonSandbox
 								.stub()
-								.callsArgWith(3, receiveTransactionError);
+								.callsArgWith(2, receiveTransactionError);
 							transportInstance.shared.postTransaction(query, (err, res) => {
 								error = err;
 								result = res;
