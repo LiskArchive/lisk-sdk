@@ -15,9 +15,6 @@
 'use strict';
 
 const util = require('util');
-const {
-	getPrivateAndPublicKeyBytesFromPassphrase,
-} = require('@liskhq/lisk-cryptography');
 const slots = require('../../../../../src/modules/chain/helpers/slots');
 const { Forger } = require('../../../../../src/modules/chain/forger');
 const genesisDelegates = require('../../../data/genesis_delegates.json');
@@ -57,8 +54,8 @@ describe('forge', () => {
 			getLastConsensus: sinonSandbox.stub().returns(lastConsensus),
 		},
 		transactions: {},
-		delegates: {
-			getDelegateKeypairForCurrentSlot: sinonSandbox.stub(),
+		rounds: {
+			generateDelegateList: sinonSandbox.stub().resolves(genesisDelegates),
 		},
 	};
 	const testDelegate = genesisDelegates.delegates[0];
@@ -93,6 +90,7 @@ describe('forge', () => {
 					},
 				},
 			});
+
 			forgeModule.onBind({ modules: mockModules });
 		});
 
@@ -627,9 +625,6 @@ describe('forge', () => {
 			let forgePromise;
 			let getSlotNumberStub;
 
-			const testDelegateKeypair = getPrivateAndPublicKeyBytesFromPassphrase(
-				testDelegate.passphrase
-			);
 			const lastBlock = {
 				id: '6846255774763267134',
 				height: 9187702,
@@ -640,15 +635,16 @@ describe('forge', () => {
 
 			beforeEach(async () => {
 				mockModules.blocks.lastBlock.get.returns(lastBlock);
-				mockModules.delegates.getDelegateKeypairForCurrentSlot.resolves();
 				getSlotNumberStub = sinonSandbox.stub(slots, 'getSlotNumber');
 				getSlotNumberStub.withArgs().returns(currentSlot);
 				getSlotNumberStub.withArgs(lastBlock.timestamp).returns(lastBlockSlot);
-				mockModules.delegates.getDelegateKeypairForCurrentSlot.resolves(
-					testDelegateKeypair
-				);
 				mockModules.peers.isPoorConsensus.resolves(false);
 				mockModules.blocks.process.generateBlock.yields(true);
+
+				forgeModule.keypairs[testDelegate.publicKey] = Buffer.from(
+					'privateKey',
+					'utf8'
+				);
 
 				forgePromise = util.promisify(forgeModule.forge.bind(forgeModule));
 			});
@@ -664,16 +660,11 @@ describe('forge', () => {
 				expect(mockLogger.debug).to.be.calledWith(
 					'Block already forged for the current slot'
 				);
-
-				expect(mockModules.delegates.getDelegateKeypairForCurrentSlot).to.be.not
-					.called;
 			});
 
 			it('should log message and return if getDelegateKeypairForCurrentSlot failed', async () => {
 				const rejectionError = new Error('CustomKeypairForCurrentError');
-				mockModules.delegates.getDelegateKeypairForCurrentSlot.rejects(
-					rejectionError
-				);
+				mockModules.rounds.generateDelegateList.rejects(rejectionError);
 
 				const data = await forgePromise();
 
@@ -686,7 +677,7 @@ describe('forge', () => {
 			});
 
 			it('should log message and return if getDelegateKeypairForCurrentSlot return no result', async () => {
-				mockModules.delegates.getDelegateKeypairForCurrentSlot.resolves(null);
+				mockModules.rounds.generateDelegateList.resolves([]);
 
 				const data = await forgePromise();
 				expect(data).to.be.undefined;
@@ -695,6 +686,9 @@ describe('forge', () => {
 			});
 
 			it('should log message and return if there is poor consensus', async () => {
+				mockModules.rounds.generateDelegateList.resolves(
+					new Array(101).fill(testDelegate.publicKey)
+				);
 				mockModules.peers.isPoorConsensus.resolves(true);
 
 				const data = await forgePromise();
