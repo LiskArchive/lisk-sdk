@@ -542,7 +542,7 @@ const reloadRequired = async (storage, slots, blocksCount, memRounds) => {
 const requireBlockRewind = async ({
 	storage,
 	slots,
-	transactionManager,
+	interfaceAdapters,
 	genesisBlock,
 	currentBlock,
 	roundsModule,
@@ -559,7 +559,7 @@ const requireBlockRewind = async ({
 	const secondLastBlock = await blocksUtils.loadBlockByHeight(
 		storage,
 		currentHeight - 1,
-		transactionManager,
+		interfaceAdapters,
 		genesisBlock
 	);
 	const currentBlockResult = verifyBlock({
@@ -578,13 +578,13 @@ const requireBlockRewind = async ({
 	const startBlock = await blocksUtils.loadBlockByHeight(
 		storage,
 		validateTillHeight,
-		transactionManager,
+		interfaceAdapters,
 		genesisBlock
 	);
 	const startBlockLastBlock = await blocksUtils.loadBlockByHeight(
 		storage,
 		startBlock.height - 1,
-		transactionManager,
+		interfaceAdapters,
 		genesisBlock
 	);
 	const startBlockResult = verifyBlock({

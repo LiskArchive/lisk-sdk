@@ -38,7 +38,7 @@ class Blocks extends EventEmitter {
 		excptions,
 		// Modules
 		roundsModule,
-		transactionManager,
+		interfaceAdapters,
 		// constants
 		blockReceiptTimeout, // set default
 		loadPerIteration,
@@ -56,7 +56,7 @@ class Blocks extends EventEmitter {
 		this.roundsModule = roundsModule;
 		this.exceptions = excptions;
 		this.genesisBlock = genesisBlock;
-		this.transactionManager = transactionManager;
+		this.interfaceAdapters = interfaceAdapters;
 		this.slots = slots;
 		this.sequence = sequence;
 		this.blockReward = new BlockReward({
@@ -183,7 +183,7 @@ class Blocks extends EventEmitter {
 		this._isActive = true;
 		await blocksChain.saveGenesisBlock(
 			this.storage,
-			this.transactionManager,
+			this.interfaceAdapters,
 			this.genesisBlock
 		);
 		// check mem tables
@@ -229,7 +229,7 @@ class Blocks extends EventEmitter {
 		try {
 			this._lastBlock = await blocksUtils.loadLastBlock(
 				this.storage,
-				this.transactionManager,
+				this.interfaceAdapters,
 				this.genesisBlock
 			);
 		} catch (error) {
@@ -243,7 +243,7 @@ class Blocks extends EventEmitter {
 			...this.constants,
 			storage: this.storage,
 			slots: this.slots,
-			transactionManager: this.transactionManager,
+			interfaceAdapters: this.interfaceAdapters,
 			genesisBlock: this.genesisBlock,
 			currentBlock: this._lastBlock,
 			roundsModule: this.roundsModule,
@@ -262,7 +262,7 @@ class Blocks extends EventEmitter {
 				storage: this.storage,
 				roundsModule: this.roundsModule,
 				slots: this.slots,
-				transactionManager: this.transactionManager,
+				interfaceAdapters: this.interfaceAdapters,
 				genesisBlock: this.genesisBlock,
 				blockReward: this.blockReward,
 				exceptions: this.exceptions,
@@ -398,7 +398,7 @@ class Blocks extends EventEmitter {
 		this._isActive = true;
 		const normalizedBlocks = blocksUtils.readDbRows(
 			blocks,
-			this.transactionManager,
+			this.interfaceAdapters,
 			this.genesisBlock
 		);
 		// eslint-disable-next-line no-restricted-syntax
@@ -521,7 +521,7 @@ class Blocks extends EventEmitter {
 						'Rebuilding block'
 					);
 				},
-				transactionManager: this.transactionManager,
+				interfaceAdapters: this.interfaceAdapters,
 				storage: this.storage,
 				loadPerIteration: this.constants.loadPerIteration,
 				genesisBlock: this.genesisBlock,

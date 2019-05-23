@@ -342,7 +342,7 @@ module.exports = class Chain {
 			slots: blockSlots,
 			excptions: this.options.exceptions,
 			roundsModule: this.rounds,
-			transactionManager: this.transactionManager,
+			interfaceAdapters: this.interfaceAdapters,
 			blockReceiptTimeout: this.options.constants.BLOCK_RECEIPT_TIMEOUT,
 			loadPerIteration: 1000,
 			maxPayloadLength: this.options.constants.MAX_PAYLOAD_LENGTH,

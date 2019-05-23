@@ -256,7 +256,7 @@ const loadBlocksData = async (storage, filter, tx) => {
  * @param {Array} rows - Data from extended block entity
  * @returns {Array} blocks - List of normalized blocks with transactions
  */
-const readStorageRows = (rows, transactionManager, genesisBlock) => {
+const readStorageRows = (rows, interfaceAdapters, genesisBlock) => {
 	const blocks = rows.map(block => {
 		// Normalize block
 		// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
@@ -270,7 +270,7 @@ const readStorageRows = (rows, transactionManager, genesisBlock) => {
 
 			// Normalize transaction
 			if (block.transactions) {
-				block.transactions = transactionManager.fromBlock(block);
+				block.transactions = interfaceAdapters.transactions.fromBlock(block);
 			}
 		}
 		return block;
@@ -286,7 +286,7 @@ const readStorageRows = (rows, transactionManager, genesisBlock) => {
  * @returns {Array} blocks - List of normalized blocks with transactions
  */
 
-const readDbRows = (rows, transactionManager, genesisBlock) => {
+const readDbRows = (rows, interfaceAdapters, genesisBlock) => {
 	let blocks = {};
 	const order = [];
 
@@ -310,7 +310,7 @@ const readDbRows = (rows, transactionManager, genesisBlock) => {
 			}
 
 			// Normalize transaction
-			const transaction = transactionManager.dbRead(rows[i]);
+			const transaction = interfaceAdapters.transactions.dbRead(rows[i]);
 			// Set empty object if there are no transactions in block
 			blocks[block.id].transactions = blocks[block.id].transactions || {};
 
@@ -348,13 +348,13 @@ const readDbRows = (rows, transactionManager, genesisBlock) => {
  */
 const loadBlocksPart = async (
 	storage,
-	transactionManager,
+	interfaceAdapters,
 	genesisBlock,
 	filter,
 	tx
 ) => {
 	const rows = await loadBlocksData(storage, filter, tx);
-	return readDbRows(rows, transactionManager, genesisBlock);
+	return readDbRows(rows, interfaceAdapters, genesisBlock);
 };
 
 /**
@@ -365,7 +365,7 @@ const loadBlocksPart = async (
  * @returns {Object} cb.err - Error message if error occurred
  * @returns {Object} cb.block - Full normalized last block
  */
-const loadLastBlock = async (storage, transactionManager, genesisBlock) => {
+const loadLastBlock = async (storage, interfaceAdapters, genesisBlock) => {
 	// Get full last block from database
 	// FIXME: Review SQL order by clause
 	const rows = await storage.entities.Block.get(
@@ -376,7 +376,7 @@ const loadLastBlock = async (storage, transactionManager, genesisBlock) => {
 		throw new Error('Failed to load last block');
 	}
 	// Normalize block
-	return readStorageRows(rows, transactionManager, genesisBlock)[0];
+	return readStorageRows(rows, interfaceAdapters, genesisBlock)[0];
 
 	// Update last block
 	// TODO: Update from callee
@@ -390,14 +390,14 @@ const loadLastBlock = async (storage, transactionManager, genesisBlock) => {
  */
 const loadSecondLastBlock = async (
 	storage,
-	transactionManager,
+	interfaceAdapters,
 	genesisBlock,
 	secondLastBlockId,
 	tx
 ) => {
 	const blocks = await loadBlocksPart(
 		storage,
-		transactionManager,
+		interfaceAdapters,
 		genesisBlock,
 		{ id: secondLastBlockId },
 		tx
@@ -485,7 +485,7 @@ const getIdSequence = async (
 const loadBlockByHeight = async (
 	storage,
 	height,
-	transactionManager,
+	interfaceAdapters,
 	genesisBlock,
 	tx
 ) => {
@@ -494,7 +494,7 @@ const loadBlockByHeight = async (
 		{ extended: true },
 		tx
 	);
-	return readStorageRows([row], transactionManager, genesisBlock)[0];
+	return readStorageRows([row], interfaceAdapters, genesisBlock)[0];
 };
 
 /**
@@ -509,7 +509,7 @@ const loadBlockByHeight = async (
  */
 const loadBlockBlocksWithOffset = async (
 	storage,
-	transactionManager,
+	interfaceAdapters,
 	genesisBlock,
 	blocksAmount,
 	fromHeight = 0
@@ -530,7 +530,7 @@ const loadBlockBlocksWithOffset = async (
 
 	// Loads extended blocks from storage
 	const rows = await storage.entities.Block.get(filters, options);
-	return readStorageRows(rows, transactionManager, genesisBlock);
+	return readStorageRows(rows, interfaceAdapters, genesisBlock);
 };
 
 /**

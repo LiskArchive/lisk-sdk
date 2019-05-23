@@ -89,7 +89,7 @@ const saveBlock = async (storage, block, tx) => {
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  */
-const saveGenesisBlock = async (storage, transactionManager, genesisBlock) => {
+const saveGenesisBlock = async (storage, interfaceAdapters, genesisBlock) => {
 	// Check if genesis block ID already exists in the database
 	const isPersisted = await storage.entities.Block.isPersisted({
 		id: genesisBlock.id,
@@ -103,7 +103,7 @@ const saveGenesisBlock = async (storage, transactionManager, genesisBlock) => {
 	// FIXME: This will fail if we already have genesis block in database, but with different ID
 	const block = {
 		...genesisBlock,
-		transactions: transactionManager.fromBlock(genesisBlock),
+		transactions: interfaceAdapters.transactions.fromBlock(genesisBlock),
 	};
 	await saveBlock(storage, block);
 };
@@ -362,7 +362,7 @@ const backwardTickStep = async (
  */
 const deleteLastBlock = async (
 	storage,
-	transactionManager,
+	interfaceAdapters,
 	genesisBlock,
 	roundsModule,
 	slots,
@@ -373,7 +373,7 @@ const deleteLastBlock = async (
 	}
 	const previousBlock = await popLastBlock(
 		storage,
-		transactionManager,
+		interfaceAdapters,
 		genesisBlock,
 		roundsModule,
 		slots,
@@ -396,7 +396,7 @@ const deleteLastBlock = async (
  */
 const popLastBlock = async (
 	storage,
-	transactionManager,
+	interfaceAdapters,
 	genesisBlock,
 	roundsModule,
 	slots,
@@ -406,7 +406,7 @@ const popLastBlock = async (
 	await storage.entities.Block.begin('Chain:deleteBlock', async tx => {
 		secondLastBlock = await loadSecondLastBlock(
 			storage,
-			transactionManager,
+			interfaceAdapters,
 			genesisBlock,
 			oldLastBlock.previousBlock,
 			tx
