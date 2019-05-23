@@ -225,10 +225,10 @@ class Migration extends BaseEntity {
 	 * @returns {Promise<boolean>} Promise object that resolves with a boolean.
 	 */
 	async hasInternalMigrationsTable() {
-		const hasMigrations = await this.adapter.execute(
-			"SELECT table_name hasMigrations FROM information_schema.tables WHERE table_name = 'internal_migrations';"
+		const response = await this.adapter.execute(
+			"SELECT table_name FROM information_schema.tables WHERE table_name = 'internal_migrations';"
 		);
-		return !!hasMigrations.length;
+		return !!response.length;
 	}
 
 	/**
@@ -237,10 +237,10 @@ class Migration extends BaseEntity {
 	 * @returns {Promise<boolean>} Promise object that resolves with a boolean.
 	 */
 	async hasMigrationsTable() {
-		const hasMigrations = await this.adapter.execute(
-			"SELECT table_name hasMigrations FROM information_schema.tables WHERE table_name = 'migrations';"
+		const response = await this.adapter.execute(
+			"SELECT table_name FROM information_schema.tables WHERE table_name = 'migrations';"
 		);
-		return !!hasMigrations.length;
+		return !!response.length;
 	}
 
 	/**
