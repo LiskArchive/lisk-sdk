@@ -160,7 +160,7 @@ describe('ChainAccount', () => {
 			await AccountEntity.create(account);
 
 			const mergedObject = Object.assign({}, defaultCreateValues, account);
-			mergedObject.asset = mergedObject.asset ? mergedObject.asset : null;
+			// mergedObject.asset = mergedObject.asset ? mergedObject.asset : null;
 
 			expect(AccountEntity.getValuesSet.firstCall.args[0]).to.be.eql([
 				mergedObject,
@@ -281,7 +281,7 @@ describe('ChainAccount', () => {
 				productivity: 0,
 				votedDelegatesPublicKeys: null,
 				membersPublicKeys: null,
-				asset: null,
+				asset: {},
 			};
 			expect(accountFromDB).to.be.eql(expectedObject);
 		});
