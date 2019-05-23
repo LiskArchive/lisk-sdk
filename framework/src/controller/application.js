@@ -263,13 +263,13 @@ class Application {
 	 * Register migrations with the application
 	 *
 	 * @param {Object} namespace - Migration namespace
-	 * @param {Array} migrations - Migrations list. Format ['yyyyMMddHHmmss_name_of_migration.sql']
+	 * @param {Array} migrations - Migrations list. Format ['/path/to/migration/yyyyMMddHHmmss_name_of_migration.sql']
 	 */
 	registerMigrations(namespace, migrations) {
 		assert(namespace, 'Namespace is required');
 		assert(migrations instanceof Array, 'Migrations list should be an array');
 		const currentMigrations = this.getMigrations() || {};
-		currentMigrations[namespace] = migrations;
+		currentMigrations[namespace] = Object.freeze(migrations);
 		__private.migrations.set(this, currentMigrations);
 	}
 
