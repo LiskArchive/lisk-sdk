@@ -52,10 +52,8 @@ export class InboundPeer extends Peer {
 				reason,
 			});
 		};
-		this._socket = peerSocket ? peerSocket : undefined;
-		if (this._socket) {
-			this._bindHandlersToInboundSocket(this._socket);
-		}
+		this._socket = peerSocket;
+		this._bindHandlersToInboundSocket(this._socket);
 	}
 
 	public set socket(scServerSocket: SCServerSocket) {
