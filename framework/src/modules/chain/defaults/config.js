@@ -246,7 +246,7 @@ const defaultConfig = {
 	default: {
 		broadcasts: {
 			active: true,
-			broadcastinterval: 5000,
+			broadcastInterval: 5000,
 			releaseLimit: 25,
 			relayLimit: 3,
 		},
