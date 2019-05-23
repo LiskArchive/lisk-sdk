@@ -101,7 +101,7 @@ describe('blocks/verify', () => {
 		__private = BlocksVerify.__get__('__private');
 
 		// Modules
-		const modulesDelegatesStub = {
+		const modulesRoundsStub = {
 			fork: sinonSandbox.stub(),
 			validateBlockSlot: sinonSandbox.stub(),
 		};
@@ -135,7 +135,7 @@ describe('blocks/verify', () => {
 		bindingsStub = {
 			modules: {
 				blocks: modulesBlocksStub,
-				delegates: modulesDelegatesStub,
+				rounds: modulesRoundsStub,
 				transactions: modulesTransactionsStub,
 				processTransactions: modulesProcessTransactionsStub,
 			},
@@ -748,9 +748,9 @@ describe('blocks/verify', () => {
 		describe('when __private.verifyForkOne fails', () => {
 			describe('when block.previousBlock && block.previousBlock != lastBlock.id', () => {
 				afterEach(() => {
-					expect(modules.delegates.fork.calledOnce).to.be.true;
-					expect(modules.delegates.fork.args[0][0]).to.deep.equal(block);
-					return expect(modules.delegates.fork.args[0][1]).to.equal(1);
+					expect(modules.rounds.fork.calledOnce).to.be.true;
+					expect(modules.rounds.fork.args[0][0]).to.deep.equal(block);
+					return expect(modules.rounds.fork.args[0][1]).to.equal(1);
 				});
 
 				it('should return error', async () => {
@@ -769,7 +769,7 @@ describe('blocks/verify', () => {
 		describe('when __private.verifyForkOne succeeds', () => {
 			describe('when block.previousBlock = undefined', () => {
 				afterEach(
-					async () => expect(modules.delegates.fork.calledOnce).to.be.false
+					async () => expect(modules.rounds.fork.calledOnce).to.be.false
 				);
 
 				it('should return no error', async () => {
@@ -784,7 +784,7 @@ describe('blocks/verify', () => {
 
 			describe('when block.previousBlock = lastBlock.id', () => {
 				afterEach(
-					async () => expect(modules.delegates.fork.calledOnce).to.be.false
+					async () => expect(modules.rounds.fork.calledOnce).to.be.false
 				);
 
 				it('should return no error', async () => {
@@ -1713,16 +1713,16 @@ describe('blocks/verify', () => {
 	describe('__private.validateBlockSlot', () => {
 		const dummyBlock = { id: 1 };
 
-		describe('when modules.delegates.validateBlockSlot fails', () => {
+		describe('when modules.rounds.validateBlockSlot fails', () => {
 			beforeEach(async () => {
-				modules.delegates.validateBlockSlot.rejects(
+				modules.rounds.validateBlockSlot.rejects(
 					new Error('validateBlockSlot-ERR')
 				);
 			});
 
 			afterEach(() => {
-				expect(modules.delegates.validateBlockSlot).calledWith(dummyBlock);
-				return expect(modules.delegates.fork).calledWith(dummyBlock, 3);
+				expect(modules.rounds.validateBlockSlot).calledWith(dummyBlock);
+				return expect(modules.rounds.fork).calledWith(dummyBlock, 3);
 			});
 
 			it('should call a callback with error', done => {
@@ -1733,14 +1733,14 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when modules.delegates.validateBlockSlot succeeds', () => {
+		describe('when modules.rounds.validateBlockSlot succeeds', () => {
 			beforeEach(async () => {
-				modules.delegates.validateBlockSlot.resolves(true);
+				modules.rounds.validateBlockSlot.resolves(true);
 			});
 
 			afterEach(() => {
-				expect(modules.delegates.validateBlockSlot).calledWith(dummyBlock);
-				return expect(modules.delegates.fork.calledOnce).to.be.false;
+				expect(modules.rounds.validateBlockSlot).calledWith(dummyBlock);
+				return expect(modules.rounds.fork.calledOnce).to.be.false;
 			});
 
 			it('should call a callback with no error', done => {
@@ -2064,7 +2064,7 @@ describe('blocks/verify', () => {
 
 		it('should assign params to modules', done => {
 			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
-			expect(modules.delegates).to.equal(bindingsStub.modules.delegates);
+			expect(modules.rounds).to.equal(bindingsStub.modules.rounds);
 			expect(modules.transactions).to.equal(bindingsStub.modules.transactions);
 			expect(modules.processTransactions).to.equal(
 				bindingsStub.modules.processTransactions

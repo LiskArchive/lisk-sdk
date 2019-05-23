@@ -347,10 +347,7 @@ describe('rounds', () => {
 				return Promise.join(
 					getMemAccounts(),
 					getDelegates(),
-					library.modules.delegates.generateDelegateList(
-						tick.before.round,
-						null
-					),
+					library.modules.rounds.generateDelegateList(tick.before.round, null),
 					Queries.getDelegatesOrderedByVote(),
 					(_accounts, _delegates, _delegatesList, _delegatesOrderedByVote) => {
 						tick.before.accounts = _.cloneDeep(_accounts);
@@ -374,7 +371,7 @@ describe('rounds', () => {
 							return Promise.join(
 								getMemAccounts(),
 								getDelegates(),
-								library.modules.delegates.generateDelegateList(
+								library.modules.rounds.generateDelegateList(
 									slots.calcRound(tick.after.block.height + 1),
 									null
 								),
@@ -556,7 +553,7 @@ describe('rounds', () => {
 			return Promise.join(
 				getMemAccounts(),
 				getDelegates(),
-				library.modules.delegates.generateDelegateList(
+				library.modules.rounds.generateDelegateList(
 					slots.calcRound(lastBlock.height),
 					null
 				),
@@ -721,7 +718,7 @@ describe('rounds', () => {
 
 			it('should generate a different delegate list than one generated at the beginning of round 1', async () => {
 				const lastBlock = library.modules.blocks.lastBlock.get();
-				return library.modules.delegates
+				return library.modules.rounds
 					.generateDelegateList(slots.calcRound(lastBlock.height + 1), null)
 					.then(delegatesList => {
 						expect(delegatesList).to.not.deep.equal(round.delegatesList);
@@ -775,7 +772,7 @@ describe('rounds', () => {
 
 			it('delegates list should be equal to one generated at the beginning of round 1', async () => {
 				const freshLastBlock = library.modules.blocks.lastBlock.get();
-				return library.modules.delegates
+				return library.modules.rounds
 					.generateDelegateList(
 						slots.calcRound(freshLastBlock.height + 1),
 						null
@@ -803,7 +800,7 @@ describe('rounds', () => {
 
 			it('delegates list should be equal to one generated at the beginning of round 1', async () => {
 				const lastBlock = library.modules.blocks.lastBlock.get();
-				return library.modules.delegates
+				return library.modules.rounds
 					.generateDelegateList(slots.calcRound(lastBlock.height + 1), null)
 					.then(delegatesList => {
 						expect(delegatesList).to.deep.equal(round.delegatesList);
@@ -889,7 +886,7 @@ describe('rounds', () => {
 			describe('after round finish', () => {
 				it('delegates list should be different than one generated at the beginning of round 1', async () => {
 					const freshLastBlock = library.modules.blocks.lastBlock.get();
-					return library.modules.delegates
+					return library.modules.rounds
 						.generateDelegateList(
 							slots.calcRound(freshLastBlock.height + 1),
 							null
@@ -913,7 +910,7 @@ describe('rounds', () => {
 				it('delegates list should be equal to one generated at the beginning of round 1', async () => {
 					return deleteLastBlockPromise().then(() => {
 						const freshLastBlock = library.modules.blocks.lastBlock.get();
-						return library.modules.delegates
+						return library.modules.rounds
 							.generateDelegateList(
 								slots.calcRound(freshLastBlock.height),
 								null
@@ -1019,7 +1016,7 @@ describe('rounds', () => {
 
 					return Promise.join(
 						getDelegates(),
-						library.modules.delegates.generateDelegateList(
+						library.modules.rounds.generateDelegateList(
 							slots.calcRound(lastBlock.height + 1),
 							null
 						),
@@ -1071,7 +1068,7 @@ describe('rounds', () => {
 				it('delegates list should be equal to one generated at the beginning of round 1', async () => {
 					return deleteLastBlockPromise().then(() => {
 						lastBlock = library.modules.blocks.lastBlock.get();
-						return library.modules.delegates
+						return library.modules.rounds
 							.generateDelegateList(slots.calcRound(lastBlock.height), null)
 							.then(delegatesList => {
 								expect(delegatesList).to.deep.equal(round.delegatesList);

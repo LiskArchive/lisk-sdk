@@ -26,6 +26,36 @@ const slots = require('./helpers/slots.js');
 // Private fields
 let modules;
 
+const { ACTIVE_DELEGATES } = global.constants;
+
+/**
+ * Gets the assigned delegate to current slot and returns its keypair if present.
+ *
+ * @private
+ * @param {number} slot
+ * @param {number} round
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb, err, {time, keypair}
+ * @todo Add description for the params
+ */
+const getDelegateKeypairForCurrentSlot = async (
+	rounds,
+	keypairs,
+	currentSlot,
+	round
+) => {
+	const activeDelegates = await rounds.generateDelegateList(round);
+
+	const currentSlotIndex = currentSlot % ACTIVE_DELEGATES;
+	const currentSlotDelegate = activeDelegates[currentSlotIndex];
+
+	if (currentSlotDelegate && keypairs[currentSlotDelegate]) {
+		return keypairs[currentSlotDelegate];
+	}
+
+	return null;
+};
+
 /**
  * Main delegates methods. Initializes library with scope content and generates a Delegate instance.
  *
@@ -282,9 +312,12 @@ class Forger {
 
 		// We calculate round using height + 1, because we want the delegate keypair for next block to be forged
 		const round = slots.calcRound(lastBlock.height + 1);
-
-		return modules.delegates
-			.getDelegateKeypairForCurrentSlot(this.keypairs, currentSlot, round)
+		return getDelegateKeypairForCurrentSlot(
+			modules.rounds,
+			this.keypairs,
+			currentSlot,
+			round
+		)
 			.then(async delegateKeypair => {
 				if (delegateKeypair === null) {
 					this.logger.debug('Waiting for delegate slot', {
@@ -400,7 +433,7 @@ class Forger {
 			blocks: scope.modules.blocks,
 			peers: scope.modules.peers,
 			transactions: scope.modules.transactions,
-			delegates: scope.modules.delegates,
+			rounds: scope.modules.rounds,
 		};
 	}
 }

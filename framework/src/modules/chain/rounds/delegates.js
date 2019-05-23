@@ -87,8 +87,8 @@ const validateBlockSlot = (block, activeDelegates) => {
 class Delegates {
 	constructor(scope) {
 		this.delegatesListCache = {};
-		this.logger = scope.components.logger;
-		this.storage = scope.components.storage;
+		this.logger = scope.logger;
+		this.storage = scope.storage;
 		this.channel = scope.channel;
 	}
 

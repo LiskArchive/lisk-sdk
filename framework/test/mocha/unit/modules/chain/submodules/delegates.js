@@ -22,7 +22,7 @@ const {
 	validateBlockSlot,
 	getKeysSortByVote,
 	getDelegatesFromPreviousRound,
-} = require('../../../../../../src/modules/chain/submodules/delegates');
+} = require('../../../../../../src/modules/chain/rounds/delegates');
 const delegatesRoundsList = require('../../../../data/delegates_rounds_list.json');
 
 const exceptions = global.exceptions;
@@ -52,10 +52,8 @@ describe('delegates', () => {
 	beforeEach(async () => {
 		delegatesModule = new Delegates({
 			channel: mockChannel,
-			components: {
-				logger: mockLogger,
-				storage: mockStorage,
-			},
+			logger: mockLogger,
+			storage: mockStorage,
 		});
 	});
 
