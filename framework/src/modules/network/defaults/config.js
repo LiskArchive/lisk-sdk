@@ -55,6 +55,9 @@ const defaultConfig = {
 		peerBanTime: {
 			type: 'integer',
 		},
+		populatorInterval: {
+			type: 'integer',
+		},
 		blacklistedPeers: {
 			type: 'array',
 			items: {
@@ -78,6 +81,7 @@ const defaultConfig = {
 		address: '0.0.0.0',
 		discoveryInterval: 30000,
 		peerBanTime: 86400,
+		populatorInterval: 10000,
 		seedPeers: [],
 		blacklistedPeers: [],
 		ackTimeout: 20000,

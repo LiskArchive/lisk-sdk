@@ -84,6 +84,7 @@ export interface P2PConfig {
 	readonly nodeInfo: P2PNodeInfo;
 	readonly wsEngine?: string;
 	readonly discoveryInterval?: number;
+	readonly populatorInterval?: number;
 	readonly peerSelectionForSend?: P2PPeerSelectionForSend;
 	readonly peerSelectionForRequest?: P2PPeerSelectionForRequest;
 	readonly peerSelectionForConnection?: P2PPeerSelectionForConnection;

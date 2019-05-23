@@ -82,6 +82,7 @@ export const config = {
 				wsPort: 5000,
 				address: '0.0.0.0',
 				discoveryInterval: 30000,
+				populatorInterval: 10000,
 				blacklistedPeers: [],
 				ackTimeout: 20000,
 				connectTimeout: 5000,
