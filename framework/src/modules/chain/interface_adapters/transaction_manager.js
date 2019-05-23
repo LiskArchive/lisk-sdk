@@ -16,7 +16,7 @@
 
 const { omitBy, isNull } = require('lodash');
 
-class TransactionManager {
+class TransactionInterfaceAdapter {
 	constructor(registeredTransactions = {}) {
 		this.transactionClassMap = new Map();
 		Object.keys(registeredTransactions).forEach(transactionType => {
@@ -70,5 +70,5 @@ class TransactionManager {
 }
 
 module.exports = {
-	TransactionManager,
+	TransactionInterfaceAdapter,
 };

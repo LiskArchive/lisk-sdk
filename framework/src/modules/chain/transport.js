@@ -96,7 +96,7 @@ class Transport {
 		modules = {
 			blocks: scope.modules.blocks,
 			loader: scope.modules.loader,
-			transactionManager: scope.modules.transactionManager,
+			interfaceAdapter: scope.modules.interfaceAdapter,
 			transactionPool: scope.modules.transactionPool,
 		};
 	}
@@ -389,7 +389,9 @@ class Transport {
 							block = modules.blocks.verify.addBlockProperties(query.block);
 
 							// Instantiate transaction classes
-							block.transactions = modules.transactionManager.fromBlock(block);
+							block.transactions = modules.interfaceAdapter.transactions.fromBlock(
+								block
+							);
 
 							block = library.logic.block.objectNormalize(block);
 						} catch (e) {
@@ -665,7 +667,9 @@ __private.receiveTransaction = async function(
 	const id = transactionJSON ? transactionJSON.id : 'null';
 	let transaction;
 	try {
-		transaction = modules.transactionManager.fromJson(transactionJSON);
+		transaction = modules.interfaceAdapter.transactions.fromJson(
+			transactionJSON
+		);
 
 		const composedTransactionsCheck = transactionsModule.composeTransactionSteps(
 			transactionsModule.checkAllowedTransactions(

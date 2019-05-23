@@ -54,7 +54,7 @@ function blockToJSON(block) {
 
 function createBlock(library, transactions, timestamp, keypair, previousBlock) {
 	transactions = transactions.map(transaction =>
-		library.modules.transactionManager.fromJson(transaction)
+		library.modules.interfaceAdapters.transactions.fromJson(transaction)
 	);
 	const block = library.logic.block.create({
 		keypair,
@@ -186,7 +186,9 @@ function addTransaction(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
 	__testContext.debug(`	Add transaction ID: ${transaction.id}`);
-	transaction = library.modules.transactionManager.fromJson(transaction);
+	transaction = library.modules.interfaceAdapters.transactions.fromJson(
+		transaction
+	);
 	library.balancesSequence.add(async sequenceCb => {
 		try {
 			await library.modules.transactionPool.processUnconfirmedTransaction(
@@ -202,7 +204,9 @@ function addTransaction(library, transaction, cb) {
 function addTransactionToUnconfirmedQueue(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
-	transaction = library.modules.transactionManager.fromJson(transaction);
+	transaction = library.modules.interfaceAdapters.transactions.fromJson(
+		transaction
+	);
 	library.modules.transactionPool
 		.processUnconfirmedTransaction(transaction)
 		.then(() => {

@@ -85,7 +85,7 @@ class Blocks {
 				scope.logic.block,
 				scope.components.storage,
 				scope.genesisBlock,
-				scope.modules.transactionManager
+				scope.modules.interfaceAdapter
 			),
 			chain: new BlocksChain(
 				scope.components.logger,
@@ -95,7 +95,7 @@ class Blocks {
 				scope.bus,
 				scope.balancesSequence,
 				scope.channel,
-				scope.modules.transactionManager
+				scope.modules.interfaceAdapter
 			),
 		};
 

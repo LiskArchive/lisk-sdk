@@ -23,10 +23,13 @@ const random = require('../common/utils/random');
 const localCommon = require('./common');
 const { registeredTransactions } = require('../common/registered_transactions');
 const transactionsModule = require('../../../src/modules/chain/transactions');
+const {
+	TransactionInterfaceAdapter,
+} = require('../../../src/modules/chain/interface_adapters');
 
-const transactionManager = new transactionsModule.TransactionManager(
-	registeredTransactions
-);
+const interfaceAdapters = {
+	transactions: new TransactionInterfaceAdapter(registeredTransactions),
+};
 const genesisBlock = __testContext.config.genesisBlock;
 const exceptions = __testContext.config.modules.chain.exceptions;
 const { NORMALIZER } = global.__testContext.config;
@@ -122,7 +125,9 @@ describe('processTransactions', () => {
 					// 	passphrase: account.passphrase,
 					// 	options: random.application(),
 					// }),
-				].map(transaction => transactionManager.fromJson(transaction));
+				].map(transaction =>
+					interfaceAdapters.transactions.fromJson(transaction)
+				);
 
 				// If we include second signature transaction, then the rest of the transactions in the set will be required to have second signature.
 				// Therefore removing it from the appliable transactions
@@ -136,7 +141,9 @@ describe('processTransactions', () => {
 						recipientId: accountFixtures.genesis.address,
 						passphrase: random.account().passphrase,
 					}),
-				].map(transaction => transactionManager.fromJson(transaction));
+				].map(transaction =>
+					interfaceAdapters.transactions.fromJson(transaction)
+				);
 
 				keysgroup = new Array(4).fill(0).map(() => random.account().publicKey);
 
@@ -147,7 +154,9 @@ describe('processTransactions', () => {
 						lifetime: 10,
 						minimum: 2,
 					}),
-				].map(transaction => transactionManager.fromJson(transaction));
+				].map(transaction =>
+					interfaceAdapters.transactions.fromJson(transaction)
+				);
 			});
 
 			describe('checkAllowedTransactions', () => {
@@ -273,7 +282,7 @@ describe('processTransactions', () => {
 					const recipient = random.account();
 
 					const { transactionsResponses } = await undoTransactions([
-						transactionManager.fromJson(
+						interfaceAdapters.transactions.fromJson(
 							liskTransactions.transfer({
 								amount: (NORMALIZER * 1000).toString(),
 								recipientId: recipient.address,

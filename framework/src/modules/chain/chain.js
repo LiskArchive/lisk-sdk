@@ -33,7 +33,7 @@ const {
 	initLogicStructure,
 	initModules,
 } = require('./init_steps');
-const { TransactionManager } = require('./transactions');
+const { TransactionInterfaceAdapter } = require('./interface_adapters');
 const { TransactionPool } = require('./transaction_pool');
 const { BlockSlots } = require('./logic/block_slots');
 
@@ -309,10 +309,12 @@ module.exports = class Chain {
 
 	async _initModules() {
 		this.scope.modules = {};
-		this.transactionManager = new TransactionManager(
-			this.options.registeredTransactions
-		);
-		this.scope.modules.transactionManager = this.transactionManager;
+		this.interfaceAdapter = {
+			transactions: new TransactionInterfaceAdapter(
+				this.options.registeredTransactions
+			),
+		};
+		this.scope.modules.interfaceAdapter = this.interfaceAdapter;
 		const autoModules = await initModules(this.scope);
 		this.scope.modules = Object.assign(this.scope.modules, autoModules);
 		const blockSlots = new BlockSlots({

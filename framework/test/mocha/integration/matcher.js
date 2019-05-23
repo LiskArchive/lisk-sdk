@@ -122,7 +122,7 @@ function createRawBlock(library, rawTransactions, callback) {
 	const slot = slots.getSlotNumber();
 	const keypairs = library.modules.forger.getForgersKeyPairs();
 	const transactions = rawTransactions.map(rawTransaction =>
-		library.modules.transactionManager.fromJson(rawTransaction)
+		library.modules.interfaceAdapters.transactions.fromJson(rawTransaction)
 	);
 
 	return getDelegateForSlot(library, slot, (err, delegateKey) => {
@@ -150,7 +150,7 @@ function setMatcherAndRegisterTx(scope, transactionClass, matcher) {
 		configurable: true,
 	});
 
-	scope.modules.transactionManager.transactionClassMap.set(
+	scope.modules.interfaceAdapters.transactions.transactionClassMap.set(
 		CUSTOM_TRANSACTION_TYPE,
 		CustomTransationClass
 	);
@@ -193,7 +193,7 @@ describe('matcher', () => {
 		be bigger than 7, so for this tests transaction type 7 can be removed from
 		registered transactions map so the CustomTransaction can be added with that
 		id. Type 7 is not used anyways. */
-		scope.modules.transactionManager.transactionClassMap.delete(7);
+		scope.modules.interfaceAdapters.transactions.transactionClassMap.delete(7);
 		receiveTransaction = scope.rewiredModules.transport.__get__(
 			'__private.receiveTransaction'
 		);
@@ -210,7 +210,7 @@ describe('matcher', () => {
 	afterEach(async () => {
 		// Delete the custom transaction type from the registered transactions list
 		// So it can be registered again with the same type and maybe a different implementation in a different test.
-		scope.modules.transactionManager.transactionClassMap.delete(
+		scope.modules.interfaceAdapters.transactions.transactionClassMap.delete(
 			CUSTOM_TRANSACTION_TYPE
 		);
 
