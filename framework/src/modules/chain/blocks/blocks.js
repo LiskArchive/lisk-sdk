@@ -15,6 +15,7 @@
 'use strict';
 
 const EventEmitter = require('events');
+const { cloneDeep } = require('lodash');
 const blocksUtils = require('./utils');
 const { BlocksProcess } = require('./process');
 const { BlocksVerify } = require('./verify');
@@ -159,7 +160,8 @@ class Blocks extends EventEmitter {
 
 	broadcast(block) {
 		// emit event
-		this.emit(EVENT_BROADCAST_BLOCK, { block });
+		const cloned = cloneDeep(block);
+		this.emit(EVENT_BROADCAST_BLOCK, { block: cloned });
 	}
 
 	/**
@@ -271,7 +273,10 @@ class Blocks extends EventEmitter {
 				this._lastBlock,
 				(lastBlock, newLastBlock) => {
 					this.logger.info({ lastBlock, newLastBlock }, 'Deleted block');
-					this.emit(EVENT_DELETE_BLOCK, { block: lastBlock, newLastBlock });
+					this.emit(EVENT_DELETE_BLOCK, {
+						block: cloneDeep(lastBlock),
+						newLastBlock: cloneDeep(newLastBlock),
+					});
 				}
 			);
 		}
@@ -335,14 +340,23 @@ class Blocks extends EventEmitter {
 					if (!verified) {
 						throw errors;
 					}
+					const originalLastBlock = cloneDeep(this._lastBlock);
 					this._lastBlock = await this.blocksChain.deleteLastBlock(
 						this._lastBlock
 					);
+					this.emit(EVENT_DELETE_BLOCK, {
+						block: originalLastBlock,
+						newLastBlock: cloneDeep(this._lastBlock),
+					});
 					// emit event
+					const secondLastBlock = cloneDeep(this._lastBlock);
 					this._lastBlock = await this.blocksChain.deleteLastBlock(
 						this._lastBlock
 					);
-					// emit event
+					this.emit(EVENT_DELETE_BLOCK, {
+						block: secondLastBlock,
+						newLastBlock: cloneDeep(this._lastBlock),
+					});
 					this._isActive = false;
 					setImmediate(cb);
 					return;
@@ -377,11 +391,14 @@ class Blocks extends EventEmitter {
 					if (!verified) {
 						throw errors;
 					}
-					const deletingBlock = this._lastBlock;
+					const deletingBlock = cloneDeep(this._lastBlock);
 					this._lastBlock = await this.blocksChain.deleteLastBlock(
 						this._lastBlock
 					);
-					this.emit(EVENT_DELETE_BLOCK, { block: deletingBlock });
+					this.emit(EVENT_DELETE_BLOCK, {
+						block: deletingBlock,
+						newLastBlock: cloneDeep(this._lastBlock),
+					});
 					// emit event
 					this._lastBlock = await this.blocksProcess.processBlock(
 						block,
@@ -424,7 +441,7 @@ class Blocks extends EventEmitter {
 			this._lastBlock = await this.blocksProcess(block, this._lastBlock);
 			// emit event
 			this._updateLastNBlocks(block);
-			this.emit(EVENT_NEW_BLOCK, { block });
+			this.emit(EVENT_NEW_BLOCK, { block: cloneDeep(block) });
 		}
 		this._isActive = false;
 		return this._lastBlock;
@@ -451,10 +468,9 @@ class Blocks extends EventEmitter {
 			throw error;
 		}
 		await this._updateBroadhash();
-		// emit event
 		this._updateLastReceipt();
 		this._updateLastNBlocks(this._lastBlock);
-		this.emit(EVENT_NEW_BLOCK, { block: this._lastBlock });
+		this.emit(EVENT_NEW_BLOCK, { block: cloneDeep(this._lastBlock) });
 		this._isActive = false;
 		return this._lastBlock;
 	}
