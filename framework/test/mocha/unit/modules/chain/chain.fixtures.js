@@ -14,10 +14,12 @@ const chainOptions = {
 	genesisBlock: {},
 	loading: {},
 	syncing: {},
-	forging: {},
 	broadcasts: {},
 	network: {
 		enabled: false,
+	},
+	forging: {
+		waitThreshold: 2,
 	},
 	exceptions: {},
 	constants: {

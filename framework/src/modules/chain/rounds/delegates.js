@@ -228,6 +228,27 @@ class Delegates {
 		this.logger.debug('Clearing delegate list cache.');
 		this.delegatesListCache = {};
 	}
+
+	/**
+	 * Gets the assigned delegate to current slot and returns its keypair if present.
+	 *
+	 * @param {Object} keypairs
+	 * @param {number} currentSlot
+	 * @param {number} round
+	 * @todo Add description for the params
+	 */
+	async getDelegateKeypairForCurrentSlot(keypairs, currentSlot, round) {
+		const activeDelegates = await this.generateDelegateList(round);
+
+		const currentSlotIndex = currentSlot % ACTIVE_DELEGATES;
+		const currentSlotDelegate = activeDelegates[currentSlotIndex];
+
+		if (currentSlotDelegate && keypairs[currentSlotDelegate]) {
+			return keypairs[currentSlotDelegate];
+		}
+
+		return null;
+	}
 }
 
 // Export

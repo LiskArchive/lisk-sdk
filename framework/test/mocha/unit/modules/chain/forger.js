@@ -14,18 +14,16 @@
 
 'use strict';
 
-const {
-	getPrivateAndPublicKeyBytesFromPassphrase,
-} = require('@liskhq/lisk-cryptography');
-const {
-	Forger,
-	getDelegateKeypairForCurrentSlot,
-} = require('../../../../../src/modules/chain/forger');
+const util = require('util');
+const slots = require('../../../../../src/modules/chain/helpers/slots');
+const { Forger } = require('../../../../../src/modules/chain/forger');
 const genesisDelegates = require('../../../data/genesis_delegates.json');
-const delegatesRoundsList = require('../../../data/delegates_rounds_list.json');
 const accountFixtures = require('../../../fixtures/accounts');
 
 describe('forge', () => {
+	const waitThreshold = 2;
+	const lastConsensus = 10;
+
 	const mockChannel = {
 		publish: sinonSandbox.stub(),
 	};
@@ -43,17 +41,37 @@ describe('forge', () => {
 		},
 	};
 	const mockModules = {
-		blocks: {},
-		peers: {},
+		blocks: {
+			process: {
+				generateBlock: sinonSandbox.stub(),
+			},
+			lastBlock: {
+				get: sinonSandbox.stub(),
+			},
+		},
+		peers: {
+			isPoorConsensus: sinonSandbox.stub(),
+			getLastConsensus: sinonSandbox.stub().returns(lastConsensus),
+		},
 		transactions: {},
-		delegates: {},
+		rounds: {
+			generateDelegateList: sinonSandbox.stub().resolves(genesisDelegates),
+		},
 	};
 	const testDelegate = genesisDelegates.delegates[0];
 
 	let forgeModule;
 	let defaultPassword;
 
-	afterEach(() => sinonSandbox.restore());
+	afterEach(async () => {
+		sinonSandbox.restore();
+
+		// TODO: Debug why sinonSandbox.reset is not resetting all stubs
+		mockLogger.info.resetHistory();
+		mockLogger.debug.resetHistory();
+		mockLogger.error.resetHistory();
+		mockModules.blocks.process.generateBlock.resetHistory();
+	});
 
 	describe('Forger', () => {
 		beforeEach(async () => {
@@ -65,12 +83,14 @@ describe('forge', () => {
 				},
 				config: {
 					forging: {
+						waitThreshold,
 						delegates: genesisDelegates.delegates,
 						force: false,
 						defaultPassword: testDelegate.password,
 					},
 				},
 			});
+
 			forgeModule.onBind({ modules: mockModules });
 		});
 
@@ -601,168 +621,155 @@ describe('forge', () => {
 			});
 		});
 
-		describe('getDelegateKeypairForCurrentSlot', () => {
-			const genesis1 = {
-				passphrase:
-					'robust swift grocery peasant forget share enable convince deputy road keep cheap',
-				publicKey:
-					'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
-			};
+		describe('forge', () => {
+			let forgePromise;
+			let getSlotNumberStub;
 
-			const genesis2 = {
-				passphrase:
-					'weapon van trap again sustain write useless great pottery urge month nominee',
-				publicKey:
-					'141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
+			const lastBlock = {
+				id: '6846255774763267134',
+				height: 9187702,
+				timestamp: 93716450,
 			};
-
-			const genesis3 = {
-				passphrase:
-					'course genuine appear elite library fabric armed chat pipe scissors mask novel',
-				publicKey:
-					'3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
-			};
-
-			let genesis1Keypair;
-			let genesis2Keypair;
-			let genesis3Keypair;
-			let delegatesModuleStub;
+			const currentSlot = 5;
+			const lastBlockSlot = 4;
 
 			beforeEach(async () => {
-				const genesis1KeypairBuffer = getPrivateAndPublicKeyBytesFromPassphrase(
-					genesis1.passphrase
-				);
-				genesis1Keypair = {
-					publicKey: genesis1KeypairBuffer.publicKeyBytes,
-					privateKey: genesis1KeypairBuffer.privateKeyBytes,
-				};
-				const genesis2KeypairBuffer = getPrivateAndPublicKeyBytesFromPassphrase(
-					genesis2.passphrase
-				);
-				genesis2Keypair = {
-					publicKey: genesis2KeypairBuffer.publicKeyBytes,
-					privateKey: genesis2KeypairBuffer.privateKeyBytes,
-				};
-				const genesis3KeypairBuffer = getPrivateAndPublicKeyBytesFromPassphrase(
-					genesis3.passphrase
-				);
-				genesis3Keypair = {
-					publicKey: genesis3KeypairBuffer.publicKeyBytes,
-					privateKey: genesis3KeypairBuffer.privateKeyBytes,
-				};
+				mockModules.blocks.lastBlock.get.returns(lastBlock);
+				getSlotNumberStub = sinonSandbox.stub(slots, 'getSlotNumber');
+				getSlotNumberStub.withArgs().returns(currentSlot);
+				getSlotNumberStub.withArgs(lastBlock.timestamp).returns(lastBlockSlot);
+				mockModules.peers.isPoorConsensus.resolves(false);
+				mockModules.blocks.process.generateBlock.yields(true);
 
-				forgeModule.keypairs[genesis1.publicKey] = genesis1Keypair;
-				forgeModule.keypairs[genesis2.publicKey] = genesis2Keypair;
-				forgeModule.keypairs[genesis3.publicKey] = genesis3Keypair;
+				forgeModule.keypairs[testDelegate.publicKey] = Buffer.from(
+					'privateKey',
+					'utf8'
+				);
 
-				delegatesModuleStub = {
-					generateDelegateList: sinonSandbox.stub(),
-				};
+				forgePromise = util.promisify(forgeModule.forge.bind(forgeModule));
 			});
 
-			it('should return genesis_1 keypair for slot N where (N % 101 === 35) in the first round', async () => {
-				// For round 1, delegates genesis_1, genesis_2 and genesis_3 should forge for slots 35, 53 and 16 respectively.
-				const currentSlot = 35;
-				const round = 1;
+			it('should log message and return if current block slot is same as last block slot', async () => {
+				getSlotNumberStub.withArgs().returns(currentSlot);
+				getSlotNumberStub.withArgs(lastBlock.timestamp).returns(currentSlot);
 
-				delegatesModuleStub.generateDelegateList
-					.withArgs(round)
-					.resolves(delegatesRoundsList[round]);
+				const data = await forgePromise();
 
-				const {
-					publicKey,
-					privateKey,
-				} = await getDelegateKeypairForCurrentSlot(
-					delegatesModuleStub,
-					forgeModule.keypairs,
+				expect(data).to.be.undefined;
+				expect(mockLogger.debug).to.be.calledOnce;
+				expect(mockLogger.debug).to.be.calledWith(
+					'Block already forged for the current slot'
+				);
+			});
+
+			it('should log message and return if getDelegateKeypairForCurrentSlot failed', async () => {
+				const rejectionError = new Error('CustomKeypairForCurrentError');
+				mockModules.rounds.generateDelegateList.rejects(rejectionError);
+
+				const data = await forgePromise();
+
+				expect(data).to.be.undefined;
+				expect(mockLogger.error).to.be.calledOnce;
+				expect(mockLogger.error).to.be.calledWithExactly(
+					'Skipping delegate slot',
+					rejectionError
+				);
+			});
+
+			it('should log message and return if getDelegateKeypairForCurrentSlot return no result', async () => {
+				mockModules.rounds.generateDelegateList.resolves([]);
+
+				const data = await forgePromise();
+				expect(data).to.be.undefined;
+				expect(mockLogger.debug).to.be.calledOnce;
+				expect(mockLogger.debug).to.be.calledWith('Waiting for delegate slot');
+			});
+
+			it('should log message and return if there is poor consensus', async () => {
+				mockModules.rounds.generateDelegateList.resolves(
+					new Array(101).fill(testDelegate.publicKey)
+				);
+				mockModules.peers.isPoorConsensus.resolves(true);
+
+				const data = await forgePromise();
+
+				expect(data).to.be.undefined;
+				expect(mockLogger.error).to.be.calledOnce;
+				expect(mockLogger.error).to.be.calledWithExactly(
+					'Failed to generate block within delegate slot',
+					`Inadequate broadhash consensus before forging a block: ${lastConsensus} %`
+				);
+			});
+
+			it('should wait for threshold time if last block not received', async () => {
+				const waitThresholdMs = waitThreshold * 1000;
+				const currentSlotTime = new Date(2019, 0, 1, 0, 0, 0).getTime();
+				const currentTime = new Date(2019, 0, 1, 0, 0, 2).getTime();
+				const clock = sinonSandbox.useFakeTimers({
+					now: currentTime,
+					shouldAdvanceTime: true,
+				});
+
+				sinonSandbox.stub(slots, 'getRealTime').returns(currentSlotTime);
+
+				const changedLastBlockSlot = currentSlot - 2;
+
+				getSlotNumberStub
+					.withArgs(lastBlock.timestamp)
+					.returns(changedLastBlockSlot);
+
+				await forgePromise();
+				expect(mockModules.blocks.process.generateBlock).to.not.been.called;
+				expect(mockLogger.info).to.be.calledTwice;
+				expect(mockLogger.info.secondCall.args).to.be.eql([
+					'Skipping forging to wait for last block',
+				]);
+				expect(mockLogger.debug).to.be.calledWithExactly('Slot information', {
 					currentSlot,
-					round
-				);
-				expect(publicKey).to.deep.equal(genesis1Keypair.publicKey);
-				expect(privateKey).to.deep.equal(genesis1Keypair.privateKey);
+					lastBlockSlot: changedLastBlockSlot,
+					waitThreshold: waitThresholdMs,
+				});
+
+				clock.restore();
 			});
 
-			it('should return genesis_2 keypair for slot N where (N % 101 === 73) in the second round', async () => {
-				// For round 2, delegates genesis_1, genesis_2 and genesis_3 should forge for slots 50, 73 and 100 respectively.
-				const currentSlot = 578;
-				const round = 2;
+			it('should not wait if threshold time passed and last block not received', async () => {
+				const currentSlotTime = new Date(2019, 0, 1, 0, 0, 0).getTime();
+				const currentTime = new Date(2019, 0, 1, 0, 0, 3).getTime();
+				const clock = sinonSandbox.useFakeTimers({
+					now: currentTime,
+					shouldAdvanceTime: true,
+				});
 
-				delegatesModuleStub.generateDelegateList.resolves(
-					delegatesRoundsList[round]
-				);
+				const changedLastBlockSlot = currentSlot - 2;
 
-				const {
-					publicKey,
-					privateKey,
-				} = await getDelegateKeypairForCurrentSlot(
-					delegatesModuleStub,
-					forgeModule.keypairs,
-					currentSlot,
-					round
-				);
-				expect(publicKey).to.deep.equal(genesis2Keypair.publicKey);
-				expect(privateKey).to.deep.equal(genesis2Keypair.privateKey);
+				getSlotNumberStub
+					.withArgs(lastBlock.timestamp)
+					.returns(changedLastBlockSlot);
+				sinonSandbox.stub(slots, 'getRealTime').returns(currentSlotTime);
+
+				await forgePromise();
+				expect(mockModules.blocks.process.generateBlock).to.be.calledOnce;
+				clock.restore();
 			});
 
-			it('should return genesis_3 keypair for slot N where (N % 101 === 41) in the third round', async () => {
-				// For round 3, delegates genesis_1, genesis_2 and genesis_3 should forge for slots 12, 16 and 41 respectively.
-				const currentSlot = 1051;
-				const round = 3;
+			it('should not wait if threshold remaining but last block already received', async () => {
+				const currentSlotTime = new Date(2019, 0, 1, 0, 0, 0).getTime();
+				const currentTime = new Date(2019, 0, 1, 0, 0, 1).getTime();
+				const clock = sinonSandbox.useFakeTimers({
+					now: currentTime,
+					shouldAdvanceTime: true,
+				});
 
-				delegatesModuleStub.generateDelegateList.resolves(
-					delegatesRoundsList[round]
-				);
+				const lastBlockSlotChanged = currentSlot - 1;
+				sinonSandbox.stub(slots, 'getRealTime').returns(currentSlotTime);
+				getSlotNumberStub
+					.withArgs(lastBlock.timestamp)
+					.returns(lastBlockSlotChanged);
 
-				const {
-					publicKey,
-					privateKey,
-				} = await getDelegateKeypairForCurrentSlot(
-					delegatesModuleStub,
-					forgeModule.keypairs,
-					currentSlot,
-					round
-				);
-				expect(publicKey).to.deep.equal(genesis3Keypair.publicKey);
-				expect(privateKey).to.deep.equal(genesis3Keypair.privateKey);
-			});
-
-			it('should return null when the slot does not belong to a public key set in keypairs', async () => {
-				// For round 4, delegates genesis_1, genesis_2 and genesis_3 should forge for slots 93, 68 and 87 respectively.
-				// Any other slot should return null as genesis_1, genesis_2 and genesis_3 are the only one forging delegates set for this test
-				const currentSlot = 1;
-				const round = 4;
-
-				delegatesModuleStub.generateDelegateList.resolves(
-					delegatesRoundsList[round]
-				);
-
-				const keyPair = await getDelegateKeypairForCurrentSlot(
-					delegatesModuleStub,
-					forgeModule.keypairs,
-					currentSlot,
-					round
-				);
-				expect(keyPair).to.be.null;
-			});
-
-			it('should return error when `generateDelegateList` fails', async () => {
-				const currentSlot = 1;
-				const round = 4;
-
-				const expectedError = new Error('generateDelegateList error');
-
-				delegatesModuleStub.generateDelegateList.rejects(expectedError);
-
-				try {
-					await getDelegateKeypairForCurrentSlot(
-						delegatesModuleStub,
-						forgeModule.keypairs,
-						currentSlot,
-						round
-					);
-				} catch (error) {
-					expect(error).to.equal(expectedError);
-				}
+				await forgePromise();
+				expect(mockModules.blocks.process.generateBlock).to.be.calledOnce;
+				clock.restore();
 			});
 		});
 	});
