@@ -28,7 +28,6 @@ import {
 	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
 	P2PNodeInfo,
-	P2PPacket,
 	P2PPeerInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
@@ -234,7 +233,13 @@ export class Peer extends EventEmitter {
 				return;
 			}
 
-			const messageWithRateInfo = this._attachRateInfo(protocolMessage);
+			const messageWithRateInfo = {
+				...protocolMessage,
+				rateInfo: {
+					peerId: this._id,
+					rate: this._callCounter / DEFAULT_RATE_INTERVAL,
+				},
+			};
 
 			this.emit(EVENT_MESSAGE_RECEIVED, messageWithRateInfo);
 		};
@@ -664,7 +669,7 @@ export class Peer extends EventEmitter {
 	}
 
 	private _banPeer(): void {
-		setTimeout(this._unbanPeer, this._peerConfig.banTime);
+		setTimeout(this._unbanPeer.bind(this), this._peerConfig.banTime);
 		this.disconnect(FORBIDDEN_CONNECTION, FORBIDDEN_CONNECTION_REASON);
 		this.emit(EVENT_BAN_PEER, this._id);
 	}
@@ -672,14 +677,6 @@ export class Peer extends EventEmitter {
 	private _unbanPeer(): void {
 		this.emit(EVENT_UNBAN_PEER, this._id);
 	}
-
-	private _attachRateInfo = (packet: P2PPacket) => ({
-		...packet,
-		rateInfo: {
-			peerId: this._id,
-			rate: this._callCounter / DEFAULT_RATE_INTERVAL,
-		},
-	});
 }
 
 export interface ConnectAndFetchResponse {

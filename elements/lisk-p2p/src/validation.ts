@@ -159,7 +159,7 @@ export const checkProtocolVersionCompatibility = (
 	peerInfo: P2PDiscoveredPeerInfo,
 	nodeInfo: P2PNodeInfo,
 ): boolean => {
-	if (!peerInfo.protocolVersion) {
+	if (!peerInfo.protocolVersion || !nodeInfo.protocolVersion) {
 		return false;
 	}
 

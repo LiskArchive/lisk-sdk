@@ -358,14 +358,7 @@ export class P2P extends EventEmitter {
 	}
 
 	public applyPenalty(peerPenalty: P2PPenalty): void {
-		// TODO: Also skip if whitelisted or fixed
-		const isSeed = this._config.seedPeers.find(
-			seedPeer =>
-				peerPenalty.peerId ===
-				constructPeerId(seedPeer.ipAddress, seedPeer.wsPort),
-		);
-
-		if (!isSeed) {
+		if (!this._isTrustedPeer(peerPenalty.peerId)) {
 			this._peerPool.applyPenalty(peerPenalty);
 		}
 	}
@@ -575,7 +568,6 @@ export class P2P extends EventEmitter {
 	private async _discoverPeers(
 		knownPeers: ReadonlyArray<P2PDiscoveredPeerInfo> = [],
 	): Promise<void> {
-
 		// Make sure that we do not try to connect to peers if the P2P node is no longer active.
 		if (!this._isActive) {
 			return;
@@ -674,6 +666,16 @@ export class P2P extends EventEmitter {
 		};
 
 		request.end(protocolPeerInfoList);
+	}
+
+	private _isTrustedPeer(peerId: string): boolean {
+		// TODO: Also skip if whitelisted or fixed
+		const isSeed = this._config.seedPeers.find(
+			seedPeer =>
+				peerId === constructPeerId(seedPeer.ipAddress, seedPeer.wsPort),
+		);
+
+		return !!isSeed;
 	}
 
 	public async start(): Promise<void> {

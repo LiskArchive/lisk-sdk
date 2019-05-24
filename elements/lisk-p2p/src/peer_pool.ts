@@ -535,7 +535,9 @@ export class PeerPool extends EventEmitter {
 	public applyPenalty(peerPenalty: P2PPenalty): void {
 		const peer = this._peerMap.get(peerPenalty.peerId);
 		if (peer) {
-			return peer.applyPenalty(peerPenalty.penalty);
+			peer.applyPenalty(peerPenalty.penalty);
+
+			return;
 		}
 
 		throw new Error('Peer not found');

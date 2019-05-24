@@ -281,6 +281,29 @@ describe('Integration tests for P2P library', () => {
 			});
 		});
 
+		describe('Peer banning mechanism', () => {
+			it('should ban a bad peer', async () => {
+				const firstP2PNode = p2pNodeList[0];
+				const { connectedPeers } = firstP2PNode.getNetworkStatus();
+				const badPeer = connectedPeers[2];
+				const peerPenalty = {
+					peerId: `${badPeer.ipAddress}:${badPeer.wsPort}`,
+					penalty: 100,
+				};
+				firstP2PNode.applyPenalty(peerPenalty);
+				await wait(200);
+				const {
+					newPeers,
+					triedPeers,
+					connectedPeers: updatedConnectedPeers,
+				} = firstP2PNode.getNetworkStatus();
+
+				expect(newPeers).to.not.include(badPeer);
+				expect(triedPeers).to.not.include(badPeer);
+				expect(updatedConnectedPeers).to.not.include(badPeer);
+			});
+		});
+
 		describe('When half of the nodes crash', () => {
 			it('should get network status with all unresponsive nodes removed', async () => {
 				const firstP2PNode = p2pNodeList[0];
