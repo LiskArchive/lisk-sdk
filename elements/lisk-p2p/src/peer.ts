@@ -589,7 +589,11 @@ export class Peer extends EventEmitter {
 	}
 
 	private _updateFromProtocolPeerInfo(rawPeerInfo: unknown): void {
-		const protocolPeerInfo = { ...rawPeerInfo, ip: this._ipAddress };
+		const protocolPeerInfo = {
+			...rawPeerInfo,
+			ip: this._ipAddress,
+			wsPort: this._wsPort,
+		};
 		const newPeerInfo = validatePeerInfo(protocolPeerInfo);
 		this.updatePeerInfo(newPeerInfo);
 	}

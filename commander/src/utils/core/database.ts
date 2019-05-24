@@ -17,7 +17,7 @@ import fs from 'fs';
 import { NETWORK } from '../constants';
 import { exec, ExecResult } from '../worker-process';
 import { getLiskConfig, LiskConfig } from './config';
-import { describeApplication } from './pm2';
+import { describeApplication, PM2ProcessInstance } from './pm2';
 
 const DATABASE_START_SUCCESS = '[+] Postgresql started successfully.';
 const DATABASE_START_FAILURE = '[-] Failed to start Postgresql.';
@@ -72,7 +72,7 @@ export const startDatabase = async (
 	installDir: string,
 	name: string,
 ): Promise<string> => {
-	const { dbPort } = await describeApplication(name);
+	const { dbPort } = (await describeApplication(name)) as PM2ProcessInstance;
 	const isRunning = await isDbRunning(installDir, dbPort);
 	if (isRunning) {
 		return DATABASE_START_SUCCESS;
@@ -97,13 +97,11 @@ export const createUser = async (
 ): Promise<string> => {
 	try {
 		const {
-			config: {
-				components: {
-					storage: { user, password },
-				},
+			components: {
+				storage: { user, password },
 			},
 		}: LiskConfig = await getLiskConfig(installDir, network);
-		const { dbPort } = await describeApplication(name);
+		const { dbPort } = (await describeApplication(name)) as PM2ProcessInstance;
 
 		const { stderr }: ExecResult = await exec(
 			`${PG_BIN}/dropuser --if-exists ${user} --port ${dbPort};
@@ -129,13 +127,11 @@ export const createDatabase = async (
 ): Promise<string> => {
 	try {
 		const {
-			config: {
-				components: {
-					storage: { database },
-				},
+			components: {
+				storage: { database },
 			},
 		}: LiskConfig = await getLiskConfig(installDir, network);
-		const { dbPort } = await describeApplication(name);
+		const { dbPort } = (await describeApplication(name)) as PM2ProcessInstance;
 
 		const { stderr }: ExecResult = await exec(
 			`${PG_BIN}/dropdb --if-exists ${database} --port ${dbPort};
@@ -158,7 +154,7 @@ export const stopDatabase = async (
 	installDir: string,
 	name: string,
 ): Promise<string> => {
-	const { dbPort } = await describeApplication(name);
+	const { dbPort } = (await describeApplication(name)) as PM2ProcessInstance;
 	const isRunning = await isDbRunning(installDir, dbPort);
 	if (!isRunning) {
 		return DATABASE_STATUS;
@@ -184,13 +180,11 @@ export const restoreSnapshot = async (
 ): Promise<string> => {
 	try {
 		const {
-			config: {
-				components: {
-					storage: { database, user },
-				},
+			components: {
+				storage: { database, user },
 			},
 		}: LiskConfig = await getLiskConfig(installDir, network);
-		const { dbPort } = await describeApplication(name);
+		const { dbPort } = (await describeApplication(name)) as PM2ProcessInstance;
 
 		const { stderr }: ExecResult = await exec(
 			`gunzip --force --stdout --quiet ${snapshotFilePath} | ${PG_BIN}/psql --username ${user} --dbname ${database} --port ${dbPort};`,

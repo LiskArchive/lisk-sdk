@@ -43,13 +43,6 @@ export class PeerOutboundConnectionError extends Error {
 	}
 }
 
-export class NotEnoughPeersError extends Error {
-	public constructor(message: string) {
-		super(message);
-		this.name = 'NotEnoughPeersError';
-	}
-}
-
 export class RPCResponseError extends Error {
 	public peerIp: string;
 	public peerPort: number;

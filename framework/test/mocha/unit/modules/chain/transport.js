@@ -16,7 +16,6 @@
 
 const rewire = require('rewire');
 const chai = require('chai');
-const randomstring = require('randomstring');
 const {
 	Status: TransactionStatus,
 	TransferTransaction,
@@ -75,8 +74,6 @@ describe('transport', () => {
 			'32636139613731343366633732316664633534306665663839336232376538643634386432323838656661363165353632363465646630316132633233303739',
 	};
 
-	const validNonce = randomstring.generate(16);
-
 	const SAMPLE_SIGNATURE_2 = {
 		transactionId: '222675625422353768',
 		publicKey:
@@ -84,8 +81,6 @@ describe('transport', () => {
 		signature:
 			'61383939393932343233383933613237653864363438643232383865666136316535363236346564663031613263323330373784192003750382840553137595',
 	};
-
-	const nonce = 'sYHEDBKcScaAAAYg';
 
 	beforeEach(async () => {
 		// Recreate all the stubs and default structures before each test case to make
@@ -489,14 +484,14 @@ describe('transport', () => {
 					debug: sinonSandbox.spy(),
 				};
 
-				__private.receiveTransaction = sinonSandbox.stub().callsArg(3);
+				__private.receiveTransaction = sinonSandbox.stub().callsArg(2);
 
 				done();
 			});
 
 			describe('when transactions argument is undefined', () => {
 				beforeEach(done => {
-					__private.receiveTransactions(undefined, nonce, '');
+					__private.receiveTransactions(undefined, '');
 					done();
 				});
 
@@ -512,7 +507,6 @@ describe('transport', () => {
 						beforeEach(done => {
 							__private.receiveTransactions(
 								transactionsList,
-								nonce,
 								'This is a log message'
 							);
 							done();
@@ -527,7 +521,6 @@ describe('transport', () => {
 							expect(
 								__private.receiveTransaction.calledWith(
 									transactionsList[0],
-									nonce,
 									'This is a log message'
 								)
 							).to.be.true);
@@ -540,11 +533,10 @@ describe('transport', () => {
 							receiveTransactionError = 'Invalid transaction body - ...';
 							__private.receiveTransaction = sinonSandbox
 								.stub()
-								.callsArgWith(3, receiveTransactionError);
+								.callsArgWith(2, receiveTransactionError);
 
 							__private.receiveTransactions(
 								transactionsList,
-								nonce,
 								'This is a log message'
 							);
 							done();
@@ -589,7 +581,6 @@ describe('transport', () => {
 
 				__private.receiveTransaction(
 					transaction,
-					validNonce,
 					'This is a log message',
 					() => {
 						expect(transactionsModule.composeTransactionSteps).to.be.calledOnce;
@@ -619,7 +610,6 @@ describe('transport', () => {
 
 				__private.receiveTransaction(
 					transaction,
-					validNonce,
 					'This is a log message',
 					() => {
 						expect(composedTransactionsCheck).to.have.been.calledWith([
@@ -639,7 +629,6 @@ describe('transport', () => {
 
 				__private.receiveTransaction(
 					transaction,
-					validNonce,
 					'This is a log message',
 					err => {
 						expect(err[0]).to.be.instanceOf(Error);
@@ -653,7 +642,6 @@ describe('transport', () => {
 				beforeEach(done => {
 					__private.receiveTransaction(
 						transaction,
-						validNonce,
 						'This is a log message',
 						async () => {
 							done();
@@ -684,7 +672,6 @@ describe('transport', () => {
 					};
 					__private.receiveTransaction(
 						invalidTransaction,
-						undefined,
 						'This is a log message',
 						err => {
 							errorResult = err;
@@ -704,46 +691,6 @@ describe('transport', () => {
 				});
 			});
 
-			describe('when nonce is undefined', () => {
-				beforeEach(done => {
-					__private.receiveTransaction(
-						transaction,
-						undefined,
-						'This is a log message',
-						async () => {
-							done();
-						}
-					);
-				});
-
-				it('should call library.logger.debug with "Received transaction " + transaction.id + " from public client"', async () =>
-					expect(
-						library.logger.debug.calledWith(
-							`Received transaction ${transaction.id} from public client`
-						)
-					).to.be.true);
-			});
-
-			describe('when nonce is defined', () => {
-				beforeEach(done => {
-					__private.receiveTransaction(
-						transaction,
-						validNonce,
-						'This is a log message',
-						async () => {
-							done();
-						}
-					);
-				});
-
-				it('should call library.logger.debug with "Received transaction " + transaction.id + " from network"', async () =>
-					expect(
-						library.logger.debug.calledWith(
-							`Received transaction ${transaction.id} from network`
-						)
-					).to.be.true);
-			});
-
 			describe('when modules.transactions.processUnconfirmedTransaction fails', () => {
 				let processUnconfirmedTransactionError;
 
@@ -757,7 +704,6 @@ describe('transport', () => {
 
 					__private.receiveTransaction(
 						transaction,
-						nonce,
 						'This is a log message',
 						err => {
 							error = err;
@@ -794,7 +740,6 @@ describe('transport', () => {
 				beforeEach(done => {
 					__private.receiveTransaction(
 						transaction,
-						nonce,
 						'This is a log message',
 						(err, res) => {
 							error = err;
@@ -809,6 +754,13 @@ describe('transport', () => {
 
 				it('should call callback with result = transaction.id', async () =>
 					expect(result).to.equal(transaction.id));
+
+				it('should call library.logger.debug with "Received transaction " + transaction.id', async () =>
+					expect(
+						library.logger.debug.calledWith(
+							`Received transaction ${transaction.id}`
+						)
+					).to.be.true);
 			});
 		});
 
@@ -1331,7 +1283,6 @@ describe('transport', () => {
 					beforeEach(done => {
 						postBlockQuery = {
 							block: blockMock,
-							nonce: validNonce,
 						};
 						library.bus = {
 							message: sinonSandbox.stub(),
@@ -1650,12 +1601,11 @@ describe('transport', () => {
 					beforeEach(done => {
 						query = {
 							transaction,
-							nonce: validNonce,
 							extraLogMessage: 'This is a log message',
 						};
 						__private.receiveTransaction = sinonSandbox
 							.stub()
-							.callsArgWith(3, null, transaction.id);
+							.callsArgWith(2, null, transaction.id);
 						transportInstance.shared.postTransaction(query, (err, res) => {
 							error = err;
 							result = res;
@@ -1667,7 +1617,6 @@ describe('transport', () => {
 						expect(
 							__private.receiveTransaction.calledWith(
 								query.transaction,
-								validNonce,
 								query.extraLogMessage
 							)
 						).to.be.true);
@@ -1690,7 +1639,7 @@ describe('transport', () => {
 						beforeEach(done => {
 							__private.receiveTransaction = sinonSandbox
 								.stub()
-								.callsArgWith(3, receiveTransactionError);
+								.callsArgWith(2, receiveTransactionError);
 							transportInstance.shared.postTransaction(query, (err, res) => {
 								error = err;
 								result = res;
@@ -1715,7 +1664,7 @@ describe('transport', () => {
 						beforeEach(done => {
 							__private.receiveTransaction = sinonSandbox
 								.stub()
-								.callsArgWith(3, receiveTransactionError);
+								.callsArgWith(2, receiveTransactionError);
 							transportInstance.shared.postTransaction(query, (err, res) => {
 								error = err;
 								result = res;
@@ -1759,7 +1708,6 @@ describe('transport', () => {
 						beforeEach(done => {
 							query = {
 								transactions: transactionsList,
-								nonce: validNonce,
 								extraLogMessage: 'This is a log message',
 							};
 							__private.receiveTransactions = sinonSandbox.stub();
@@ -1767,11 +1715,10 @@ describe('transport', () => {
 							done();
 						});
 
-						it('should call __private.receiveTransactions with query.transaction, valid nonce and query.extraLogMessage as arguments', async () =>
+						it('should call __private.receiveTransactions with query.transaction and query.extraLogMessage as arguments', async () =>
 							expect(
 								__private.receiveTransactions.calledWith(
 									query.transactions,
-									validNonce,
 									query.extraLogMessage
 								)
 							).to.be.true);

@@ -30,6 +30,7 @@ import {
 import { startDatabase, stopDatabase } from '../../utils/core/database';
 import {
 	describeApplication,
+	PM2ProcessInstance,
 	registerApplication,
 	restartApplication,
 	stopApplication,
@@ -90,14 +91,26 @@ export default class UpgradeCommand extends BaseCommand {
 			'lisk-version': liskVersion,
 			'release-url': releaseUrl,
 		} = flags as Flags;
+		const instance = await describeApplication(name);
+
+		if (!instance) {
+			this.log(
+				`Lisk Core instance: ${name} doesn't exists.\nTo upgrade first install using lisk core:install and then run lisk core:upgrade`,
+			);
+
+			return;
+		}
+
 		const {
 			installationPath,
 			network,
 			version: currentVersion,
-		} = await describeApplication(name);
+		} = instance as PM2ProcessInstance;
+
 		const upgradeVersion: string = await getVersionToInstall(
 			network,
 			liskVersion,
+			releaseUrl,
 		);
 		const { cacheDir } = this.config;
 		// TODO: Commander not creating cache directory

@@ -243,22 +243,17 @@ describe('matcher', () => {
 			const rawTransaction = createRawCustomTransaction(commonTransactionData);
 
 			// Act: simulate receiving transactions from another peer
-			receiveTransaction(
-				rawTransaction,
-				randomstring.generate(16),
-				null,
-				err => {
-					// Assert
-					expect(
-						scope.modules.transactionPool.transactionInPool(rawTransaction.id)
-					).to.be.false;
-					expect(err[0]).to.be.instanceOf(Error);
-					expect(err[0].message).to.equal(
-						`Transaction type ${CUSTOM_TRANSACTION_TYPE} is currently not allowed.`
-					);
-					done();
-				}
-			);
+			receiveTransaction(rawTransaction, null, err => {
+				// Assert
+				expect(
+					scope.modules.transactionPool.transactionInPool(rawTransaction.id)
+				).to.be.false;
+				expect(err[0]).to.be.instanceOf(Error);
+				expect(err[0].message).to.equal(
+					`Transaction type ${CUSTOM_TRANSACTION_TYPE} is currently not allowed.`
+				);
+				done();
+			});
 		});
 
 		it('should include an allowed transaction in the transaction pool', done => {
@@ -268,19 +263,14 @@ describe('matcher', () => {
 			const jsonTransaction = createRawCustomTransaction(commonTransactionData);
 
 			// Act
-			receiveTransaction(
-				jsonTransaction,
-				randomstring.generate(16),
-				null,
-				err => {
-					// Assert
-					expect(
-						scope.modules.transactionPool.transactionInPool(jsonTransaction.id)
-					).to.be.true;
-					expect(err).to.be.null;
-					done();
-				}
-			);
+			receiveTransaction(jsonTransaction, null, err => {
+				// Assert
+				expect(
+					scope.modules.transactionPool.transactionInPool(jsonTransaction.id)
+				).to.be.true;
+				expect(err).to.be.null;
+				done();
+			});
 		});
 	});
 

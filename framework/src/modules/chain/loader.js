@@ -850,7 +850,7 @@ __private.rebuildAccounts = height => {
  * Executed when rebuild process is complete.
  *
  * @private
- * @param {err} Error if any
+ * @param {err} Error if anysyncing
  * @emits cleanup
  */
 __private.rebuildFinished = err => {
