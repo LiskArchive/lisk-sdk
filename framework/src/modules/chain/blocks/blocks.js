@@ -291,7 +291,12 @@ class Blocks extends EventEmitter {
 	// Process a block from the P2P
 	receiveBlockFromNetwork(block) {
 		this.sequence.add(async cb => {
-			this._shouldNotBeActive();
+			try {
+				this._shouldNotBeActive();
+			} catch (error) {
+				setImmediate(cb, error);
+				return;
+			}
 			this._isActive = true;
 			// set active to true
 			if (this.blocksVerify.isSaneBlock(block, this._lastBlock)) {
@@ -317,8 +322,8 @@ class Blocks extends EventEmitter {
 				this.roundsModule.fork(block, 1);
 				if (this.blocksVerify.shouldDiscardForkOne(block, this._lastBlock)) {
 					this.logger.info('Last block stands');
-					setImmediate(cb);
 					this._isActive = false;
+					setImmediate(cb);
 					return;
 				}
 				try {
