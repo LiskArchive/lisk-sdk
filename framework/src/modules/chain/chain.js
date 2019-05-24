@@ -180,7 +180,11 @@ module.exports = class Chain {
 
 			this.logger.info('Modules ready and launched');
 			// After binding, it should immediately load blockchain
-			await this.blocks.loadBlockChain();
+			await this.blocks.loadBlockChain(this.options.loading.rebuildUpToRound);
+			if (this.options.loading.rebuildUpToRound) {
+				process.emit('cleanup');
+				return;
+			}
 			this._subscribeToEvents();
 
 			this.channel.subscribe('network:bootstrap', async () => {
