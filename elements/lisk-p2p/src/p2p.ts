@@ -116,6 +116,7 @@ export const DEFAULT_BAN_TIME = 86400;
 export const DEFAULT_POPULATOR_INTERVAL = 10000;
 
 const BASE_10_RADIX = 10;
+const MAX_OUTBOUND_CONNECTIONS = 20;
 
 const selectRandomPeerSample = (
 	peerList: ReadonlyArray<P2PDiscoveredPeerInfo>,
@@ -318,6 +319,9 @@ export class P2P extends EventEmitter {
 				? config.peerSelectionForConnection
 				: selectForConnection,
 			peerBanTime: config.peerBanTime ? config.peerBanTime : DEFAULT_BAN_TIME,
+			maxOutboundConnections: config.maxOutboundConnections
+				? config.maxOutboundConnections
+				: MAX_OUTBOUND_CONNECTIONS,
 		});
 
 		this._bindHandlersToPeerPool(this._peerPool);

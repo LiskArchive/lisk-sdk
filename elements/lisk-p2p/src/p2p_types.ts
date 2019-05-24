@@ -95,6 +95,7 @@ export interface P2PConfig {
 	readonly peerSelectionForConnection?: P2PPeerSelectionForConnection;
 	readonly peerHandshakeCheck?: P2PCheckPeerCompatibility;
 	readonly peerBanTime?: number;
+	readonly maxOutboundConnections: number;
 }
 
 // Network info exposed by the P2P library.

@@ -87,11 +87,11 @@ interface PeerPoolConfig {
 	readonly peerSelectionForRequest: P2PPeerSelectionForRequest;
 	readonly peerSelectionForConnection: P2PPeerSelectionForConnection;
 	readonly peerBanTime?: number;
+	readonly maxOutboundConnections: number;
 }
 
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
 export const MAX_PEER_DISCOVERY_PROBE_SAMPLE_SIZE = 100;
-export const MAX_OUTBOUND_CONNECTIONS = 20;
 
 const selectRandomPeerSample = (
 	peerList: ReadonlyArray<Peer>,
@@ -127,6 +127,7 @@ export class PeerPool extends EventEmitter {
 	private readonly _peerSelectForSend: P2PPeerSelectionForSend;
 	private readonly _peerSelectForRequest: P2PPeerSelectionForRequest;
 	private readonly _peerSelectForConnection: P2PPeerSelectionForConnection;
+	private readonly _maxOutboundConnections: number;
 
 	public constructor(peerPoolConfig: PeerPoolConfig) {
 		super();
@@ -135,6 +136,7 @@ export class PeerPool extends EventEmitter {
 		this._peerSelectForSend = peerPoolConfig.peerSelectionForSend;
 		this._peerSelectForRequest = peerPoolConfig.peerSelectionForRequest;
 		this._peerSelectForConnection = peerPoolConfig.peerSelectionForConnection;
+		this._maxOutboundConnections = peerPoolConfig.maxOutboundConnections;
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerRPC = (request: P2PRequest) => {
 			// Re-emit the request to allow it to bubble up the class hierarchy.
@@ -394,7 +396,7 @@ export class PeerPool extends EventEmitter {
 		const peersCount = this.getPeersCountByKind();
 
 		// Trigger new connection only if the maximum of outbound connections has not been reached
-		if (peersCount.outbound < MAX_OUTBOUND_CONNECTIONS) {
+		if (peersCount.outbound < this._maxOutboundConnections) {
 			const peersToConnect = this._peerSelectForConnection(peers);
 
 			peersToConnect.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
