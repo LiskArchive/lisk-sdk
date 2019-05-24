@@ -394,6 +394,9 @@ class Block {
 		if (!raw.b_id) {
 			return null;
 		}
+
+		const confirmations = parseInt(raw.b_confirmations);
+
 		const block = {
 			id: raw.b_id,
 			version: parseInt(raw.b_version),
@@ -409,7 +412,7 @@ class Block {
 			generatorPublicKey: raw.b_generatorPublicKey,
 			generatorId: getAddressFromPublicKey(raw.b_generatorPublicKey),
 			blockSignature: raw.b_blockSignature,
-			confirmations: parseInt(raw.b_confirmations),
+			confirmations: !Number.isNaN(confirmations) ? confirmations : 0,
 		};
 		block.totalForged = block.totalFee.plus(block.reward).toString();
 		return block;
@@ -427,6 +430,8 @@ class Block {
 			return null;
 		}
 
+		const confirmations = parseInt(raw.confirmations);
+
 		const block = {
 			id: raw.id,
 			version: parseInt(raw.version),
@@ -442,7 +447,7 @@ class Block {
 			generatorPublicKey: raw.generatorPublicKey,
 			generatorId: getAddressFromPublicKey(raw.generatorPublicKey),
 			blockSignature: raw.blockSignature,
-			confirmations: parseInt(raw.confirmations),
+			confirmations: !Number.isNaN(confirmations) ? confirmations : 0,
 		};
 
 		if (raw.transactions) {
@@ -450,8 +455,6 @@ class Block {
 				.filter(tx => !!tx.id)
 				.map(tx => _.omitBy(tx, _.isNull));
 		}
-
-		block.totalForged = block.totalFee.plus(block.reward).toString();
 
 		return block;
 	}

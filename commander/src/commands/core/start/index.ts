@@ -16,7 +16,10 @@
 import { flags as flagParser } from '@oclif/command';
 import Listr from 'listr';
 import BaseCommand from '../../../base';
-import { restartApplication } from '../../../utils/core/pm2';
+import {
+	describeApplication,
+	restartApplication,
+} from '../../../utils/core/pm2';
 import CacheCommand from './cache';
 import DatabaseCommand from './database';
 
@@ -51,6 +54,15 @@ export default class StartCommand extends BaseCommand {
 	async run(): Promise<void> {
 		const { args } = this.parse(StartCommand);
 		const { name } = args as Args;
+		const instance = await describeApplication(name);
+
+		if (!instance) {
+			this.log(
+				`Lisk Core instance: ${name} doesn't exists, Please install using lisk core:install`,
+			);
+
+			return;
+		}
 
 		// tslint:disable-next-line await-promise
 		await CacheCommand.run([name]);
@@ -65,6 +77,7 @@ export default class StartCommand extends BaseCommand {
 				},
 			},
 		]);
+
 		await tasks.run();
 	}
 }

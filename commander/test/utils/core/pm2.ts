@@ -8,8 +8,10 @@ import {
 	stopApplication,
 	listApplication,
 	describeApplication,
+	PM2ProcessInstance,
 } from '../../../src/utils/core/pm2';
 import { NETWORK } from '../../../src/utils/constants';
+import { SinonStub } from 'sinon';
 
 describe('pm2 node utils', () => {
 	const monit = {
@@ -115,17 +117,29 @@ describe('pm2 node utils', () => {
 	});
 
 	describe('#describeApplication', () => {
+		let describeStub: SinonStub;
+
 		beforeEach(() => {
 			sandbox.stub(pm2, 'connect').yields(null, 'connected');
-			sandbox.stub(pm2, 'describe').yields(null, applicationList);
+			describeStub = sandbox.stub(pm2, 'describe');
 		});
 
 		it('should return application description', async () => {
-			const appDesc = await describeApplication('testnet');
+			describeStub.yields(null, applicationList);
+			const appDesc = (await describeApplication(
+				'testnet',
+			)) as PM2ProcessInstance;
 
 			expect(pm2.connect).to.be.calledOnce;
 			expect(pm2.describe).to.be.calledOnce;
 			return expect(appDesc.name).to.deep.equal('testnet');
+		});
+
+		it('should return undefined when the application does not exists', async () => {
+			describeStub.yields('process does not exists', null);
+			const instance = await describeApplication('testnet');
+
+			return expect(instance).to.equal(undefined);
 		});
 	});
 });

@@ -103,15 +103,29 @@ export const validURL = (url: string): void => {
 	throw new Error(`Invalid URL: ${url}`);
 };
 
+export const getSemver = (str: string): string => {
+	const exp = new RegExp(
+		/(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:[1-9]\d*|[\da-z-]*[a-z-][\da-z-]*)(?:\.(?:[1-9]\d*|[\da-z-]*[a-z-][\da-z-]*))*)?\.?(?:0|[1-9]\d*)?/,
+	);
+	const result = exp.exec(str) as ReadonlyArray<string>;
+
+	return result[0];
+};
+
 export const getVersionToInstall = async (
 	network: NETWORK,
 	version?: string,
+	releaseUrl?: string,
 ) => {
 	if (!version) {
-		const url = `${RELEASE_URL}/${network}/latest.txt`;
-		const latestVersion = await getLatestVersion(url);
+		if (releaseUrl) {
+			return getSemver(releaseUrl);
+		} else {
+			const url = `${RELEASE_URL}/${network}/latest.txt`;
+			const latestVersion = await getLatestVersion(url);
 
-		return latestVersion;
+			return latestVersion;
+		}
 	}
 
 	return version;
@@ -173,15 +187,6 @@ export const validateVersion = async (
 		}
 		throw new Error(error.message);
 	}
-};
-
-export const getSemver = (str: string): string => {
-	const exp = new RegExp(
-		/(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:[1-9]\d*|[\da-z-]*[a-z-][\da-z-]*)(?:\.(?:[1-9]\d*|[\da-z-]*[a-z-][\da-z-]*))*)?\.?(?:0|[1-9]\d*)?/,
-	);
-	const result = exp.exec(str) as ReadonlyArray<string>;
-
-	return result[0];
 };
 
 export const dateDiff = (date1: Date, date2: Date): number => {
