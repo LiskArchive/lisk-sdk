@@ -47,6 +47,11 @@ export interface P2PPeerInfo {
 	readonly wsPort: number;
 }
 
+export interface P2PPeersCount {
+	readonly outbound: number;
+	readonly inbound: number;
+}
+
 export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
 	readonly height: number;
 	readonly updatedAt?: Date;

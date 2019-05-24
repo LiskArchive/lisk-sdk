@@ -31,6 +31,7 @@ import {
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
+	P2PPeersCount,
 	P2PPeerSelectionForConnection,
 	P2PPeerSelectionForRequest,
 	P2PPeerSelectionForSend,
@@ -450,6 +451,21 @@ export class PeerPool extends EventEmitter {
 		}
 
 		return peer;
+	}
+
+	public getPeersCountByKind(): P2PPeersCount {
+		const peersCount = { outbound: 0, inbound: 0 };
+		this._peerMap.forEach((peer: Peer) => {
+			if (peer instanceof OutboundPeer) {
+				return (peersCount.outbound += 1);
+			} else if (peer instanceof InboundPeer) {
+				return (peersCount.inbound += 1);
+			}
+
+			throw new Error('A non-identified peer exists in the pool.');
+		});
+
+		return peersCount;
 	}
 
 	public removeAllPeers(): void {
