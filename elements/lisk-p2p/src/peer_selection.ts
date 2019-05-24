@@ -12,8 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { NotEnoughPeersError } from './errors';
-import { P2PDiscoveredPeerInfo, P2PNodeInfo } from './p2p_types';
+// tslint:disable-next-line no-require-imports
+import shuffle = require('lodash.shuffle');
+import {
+	P2PDiscoveredPeerInfo,
+	P2PPeerSelectionForConnectionInput,
+	P2PPeerSelectionForRequestInput,
+	P2PPeerSelectionForSendInput,
+} from './p2p_types';
+
 /* tslint:disable: readonly-keyword*/
 interface Histogram {
 	[key: number]: number;
@@ -25,11 +32,11 @@ interface HistogramValues {
 }
 
 /* tslint:enable: readonly-keyword */
-export const selectPeers = (
-	peers: ReadonlyArray<P2PDiscoveredPeerInfo>,
-	nodeInfo?: P2PNodeInfo,
-	numOfPeers: number = 0,
+export const selectPeersForRequest = (
+	input: P2PPeerSelectionForRequestInput,
 ): ReadonlyArray<P2PDiscoveredPeerInfo> => {
+	const { peers, nodeInfo } = input;
+	const peerLimit = input.peerLimit;
 	const nodeHeight = nodeInfo ? nodeInfo.height : 0;
 	const filteredPeers = peers.filter(
 		// Remove unreachable peers or heights below last block height
@@ -69,24 +76,11 @@ export const selectPeers = (
 				aggregation + 1,
 	);
 
-	if (numOfPeers <= 0) {
+	if (peerLimit === undefined) {
 		return processedPeers;
 	}
 
-	// Select n number of peers
-	if (numOfPeers > processedPeers.length) {
-		throw new NotEnoughPeersError(
-			`Requested number of peers: '${numOfPeers}' is more than the available number of good peers: '${
-				processedPeers.length
-			}'`,
-		);
-	}
-
-	if (numOfPeers === processedPeers.length) {
-		return processedPeers;
-	}
-
-	if (numOfPeers === 1) {
+	if (peerLimit === 1) {
 		const goodPeer: ReadonlyArray<P2PDiscoveredPeerInfo> = [
 			processedPeers[Math.floor(Math.random() * processedPeers.length)],
 		];
@@ -94,29 +88,14 @@ export const selectPeers = (
 		return goodPeer;
 	}
 
-	const { peerList } = new Array(numOfPeers).fill(0).reduce(
-		peerListObject => {
-			const index = Math.floor(
-				Math.random() * peerListObject.processedPeersArray.length,
-			);
-			const peer = peerListObject.processedPeersArray[index];
-			// This will ensure that the selected peer is not choosen again by the random function above
-			const tempProcessedPeers = peerListObject.processedPeersArray.filter(
-				(findPeer: P2PDiscoveredPeerInfo) => findPeer !== peer,
-			);
-
-			return {
-				peerList: [...peerListObject.peerList, peer],
-				processedPeersArray: tempProcessedPeers,
-			};
-		},
-		{ peerList: [], processedPeersArray: processedPeers },
-	);
-
-	return peerList;
+	return shuffle(processedPeers).slice(0, peerLimit);
 };
 
-export const selectForConnection = (
-	peerInfoList: ReadonlyArray<P2PDiscoveredPeerInfo>,
-	_nodeInfo?: P2PNodeInfo,
-) => peerInfoList;
+export const selectPeersForSend = (
+	input: P2PPeerSelectionForSendInput,
+): ReadonlyArray<P2PDiscoveredPeerInfo> =>
+	shuffle(input.peers).slice(0, input.peerLimit);
+
+export const selectPeersForConnection = (
+	input: P2PPeerSelectionForConnectionInput,
+) => input.peers;

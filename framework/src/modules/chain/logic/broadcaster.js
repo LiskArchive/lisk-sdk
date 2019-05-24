@@ -249,10 +249,10 @@ class Broadcaster {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	async releaseQueue() {
-		library.logger.info('Releasing enqueued broadcasts');
+		library.logger.trace('Releasing enqueued broadcasts');
 
 		if (!this.queue.length) {
-			library.logger.info('Queue empty');
+			library.logger.trace('Queue empty');
 			return null;
 		}
 		try {

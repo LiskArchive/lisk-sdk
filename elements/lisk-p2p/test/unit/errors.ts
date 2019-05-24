@@ -15,7 +15,6 @@
 import { expect } from 'chai';
 import {
 	InvalidPeerError,
-	NotEnoughPeersError,
 	PeerInboundHandshakeError,
 	RPCResponseError,
 	InvalidRPCResponseError,
@@ -26,28 +25,6 @@ import {
 } from '../../src';
 
 describe('errors', () => {
-	describe('#NotEnoughPeersError', () => {
-		const defaultMessage =
-			'Requested number of peers is greater than available good peers';
-		let notEnoughPeersError: NotEnoughPeersError;
-
-		beforeEach(async () => {
-			notEnoughPeersError = new NotEnoughPeersError(defaultMessage);
-		});
-
-		it('should create a new instance of NotEnoughPeersError', async () => {
-			expect(notEnoughPeersError).to.be.instanceof(NotEnoughPeersError);
-		});
-
-		it('should set error name to `NotEnoughPeersError`', async () => {
-			expect(notEnoughPeersError.name).to.eql('NotEnoughPeersError');
-		});
-
-		it('should set error message when passed an argument', async () => {
-			expect(notEnoughPeersError.message).to.eql(defaultMessage);
-		});
-	});
-
 	describe('#PeerInboundHandshakeError', () => {
 		const remoteAddress = '127.0.0.1';
 		const statusCode = 4501;
