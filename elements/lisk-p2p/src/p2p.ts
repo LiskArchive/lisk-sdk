@@ -480,6 +480,8 @@ export class P2P extends EventEmitter {
 						FORBIDDEN_CONNECTION,
 						FORBIDDEN_CONNECTION_REASON,
 					);
+
+					return;
 				}
 
 				const incomingPeerInfo: P2PDiscoveredPeerInfo = {
