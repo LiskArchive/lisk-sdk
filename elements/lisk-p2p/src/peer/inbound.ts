@@ -29,7 +29,7 @@ export const EVENT_CLOSE_INBOUND = 'closeInbound';
 export const EVENT_INBOUND_SOCKET_ERROR = 'inboundSocketError';
 
 export class InboundPeer extends Peer {
-	protected _socket: SCServerSocketUpdated | undefined;
+	protected _socket: SCServerSocketUpdated;
 	protected readonly _handleInboundSocketError: (error: Error) => void;
 	protected readonly _handleInboundSocketClose: (
 		code: number,
@@ -57,17 +57,12 @@ export class InboundPeer extends Peer {
 	}
 
 	public set socket(scServerSocket: SCServerSocket) {
-		if (this._socket) {
-			this._unbindHandlersFromInboundSocket(this._socket);
-		}
+		this._unbindHandlersFromInboundSocket(this._socket);
 		this._socket = scServerSocket as SCServerSocketUpdated;
 		this._bindHandlersToInboundSocket(this._socket);
 	}
 
 	public disconnect(code: number = 1000, reason?: string): void {
-		if (!this._socket) {
-			throw new Error('Peer socket does not exist');
-		}
 		this._socket.destroy(code, reason);
 		this._unbindHandlersFromInboundSocket(this._socket);
 	}
