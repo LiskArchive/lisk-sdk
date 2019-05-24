@@ -534,4 +534,21 @@ describe('blocks/utils', () => {
 			expect(blocks[0].b_id).to.eql('13068833527549895884');
 		});
 	});
+
+	describe('setHeight', () => {
+		const dummyBlock = {
+			id: '6',
+			height: 4,
+		};
+		const dummyLastBlock = {
+			id: '5',
+			height: 5,
+		};
+
+		it('should return block with increased height based on last block', async () =>
+			expect(blocksUtils.setHeight(dummyBlock, dummyLastBlock)).to.eql({
+				id: '6',
+				height: 6,
+			}));
+	});
 });

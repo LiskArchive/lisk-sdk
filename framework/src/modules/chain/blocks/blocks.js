@@ -36,7 +36,7 @@ class Blocks extends EventEmitter {
 		// Unique requirements
 		genesisBlock,
 		slots,
-		excptions,
+		exceptions,
 		// Modules
 		roundsModule,
 		interfaceAdapters,
@@ -63,7 +63,7 @@ class Blocks extends EventEmitter {
 		this.logger = logger;
 		this.storage = storage;
 		this.roundsModule = roundsModule;
-		this.exceptions = excptions;
+		this.exceptions = exceptions;
 		this.genesisBlock = genesisBlock;
 		this.interfaceAdapters = interfaceAdapters;
 		this.slots = slots;

@@ -15,51 +15,44 @@
 'use strict';
 
 const crypto = require('crypto');
-const rewire = require('rewire');
 const transactionStatus = require('@liskhq/lisk-transactions').Status;
-const Bignum = require('../../../../../../../src/modules/chain/helpers/bignum');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 const {
 	registeredTransactions,
-} = require('../../../../../common/registered_transactions');
-const transactionsModule = require('../../../../../../../src/modules/chain/transactions');
+} = require('../../../../common/registered_transactions');
+const transactionsModule = require('../../../../../../src/modules/chain/transactions');
 const {
 	TransactionInterfaceAdapter,
-} = require('../../../../../../../src/modules/chain/interface_adapters');
-const { Transaction } = require('../../../../../fixtures/transactions');
+} = require('../../../../../../src/modules/chain/interface_adapters');
+const { Transaction } = require('../../../../fixtures/transactions');
 
 const interfaceAdapters = {
 	transactions: new TransactionInterfaceAdapter(registeredTransactions),
 };
-
-const BlocksVerify = rewire(
-	'../../../../../../../src/modules/chain/submodules/blocks/verify'
-);
-
-const exceptions = global.exceptions;
+const blocksVerifyModule = require('../../../../../../src/modules/chain/blocks/verify');
+const {
+	BlockSlots,
+} = require('../../../../../../src/modules/chain/blocks/block_slots');
+const {
+	BlockReward,
+} = require('../../../../../../src/modules/chain/blocks/block_reward');
+const blocksLogic = require('../../../../../../src/modules/chain/blocks/block');
 
 describe('blocks/verify', () => {
-	let library;
-	let __private;
-	let loggerStub;
 	let storageStub;
-	let logicBlockStub;
-	let configMock;
-	let blocksVerifyModule;
+	let roundsModuleStub;
+	let blocksVerify;
 	let bindingsStub;
 	let modules;
 	let channelMock;
-	let transactionsMock;
+	let interfaceAdaptersMock;
+	let slots;
+	let blockReward;
+	let exceptions;
+	let constants;
 
-	beforeEach(done => {
-		// Logic
-		loggerStub = {
-			trace: sinonSandbox.spy(),
-			info: sinonSandbox.spy(),
-			error: sinonSandbox.spy(),
-			warn: sinonSandbox.spy(),
-			debug: sinonSandbox.spy(),
-		};
-
+	beforeEach(async () => {
+		exceptions = __testContext.config.modules.chain.exceptions;
 		storageStub = {
 			entities: {
 				Block: {
@@ -72,27 +65,9 @@ describe('blocks/verify', () => {
 			},
 		};
 
-		logicBlockStub = {
-			verifySignature: sinonSandbox.stub(),
-			getId: sinonSandbox.stub(),
-			objectNormalize: sinonSandbox.stub(),
-		};
-
-		configMock = {
-			loading: {
-				rebuildUpToRound: null,
-			},
-		};
-
-		channelMock = {
-			invoke: sinonSandbox
-				.stub()
-				.withArgs('app:updateApplicationState')
-				.returns(true),
-			once: sinonSandbox
-				.stub()
-				.withArgs('app:state:updated')
-				.callsArg(1),
+		roundsModuleStub = {
+			validateBlockSlot: sinonSandbox.stub(),
+			fork: sinonSandbox.stub(),
 		};
 
 		sinonSandbox.stub(transactionsModule, 'checkAllowedTransactions').returns(
@@ -104,145 +79,100 @@ describe('blocks/verify', () => {
 			.stub(transactionsModule, 'verifyTransactions')
 			.returns(sinonSandbox.stub());
 
-		blocksVerifyModule = new BlocksVerify(
-			loggerStub,
-			logicBlockStub,
-			storageStub,
-			configMock,
-			channelMock,
-			transactionsMock
-		);
-
-		library = BlocksVerify.__get__('library');
-		__private = BlocksVerify.__get__('__private');
-
-		// Modules
-		const modulesRoundsStub = {
-			fork: sinonSandbox.stub(),
-			validateBlockSlot: sinonSandbox.stub(),
-		};
-
-		const modulesTransactionPoolStub = {
-			undoUnconfirmed: sinonSandbox.stub(),
-			removeUnconfirmedTransaction: sinonSandbox.stub(),
-		};
-
-		const modulesBlocksStub = {
-			lastBlock: {
-				get: sinonSandbox.stub(),
-			},
-			isCleaning: {
-				get: sinonSandbox.stub(),
-			},
-			chain: {
-				broadcastReducedBlock: sinonSandbox.stub(),
-				applyBlock: sinonSandbox.stub(),
-			},
-			calculateNewBroadhash: sinonSandbox.stub(),
-		};
-
-		bindingsStub = {
-			modules: {
-				blocks: modulesBlocksStub,
-				rounds: modulesRoundsStub,
-				transactionPool: modulesTransactionPoolStub,
+		interfaceAdaptersMock = {
+			transactions: {
+				toJson: sinonSandbox.stub(),
 			},
 		};
 
-		blocksVerifyModule.onBind(bindingsStub);
-		modules = BlocksVerify.__get__('modules');
-		done();
+		slots = new BlockSlots({
+			epochTime: __testContext.config.constants.EPOCH_TIME,
+			interval: __testContext.config.constants.BLOCK_TIME,
+			blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
+		});
+
+		blockReward = new BlockReward({
+			distance: __testContext.config.constants.REWARDS.DISTANCE,
+			rewardOffset: __testContext.config.constants.REWARDS.DISTANCE,
+			milestones: __testContext.config.constants.REWARDS.MILESTONES,
+			totalAmount: __testContext.config.constants.TOTAL_AMOUNT,
+		});
+
+		constants = {
+			blockReceiptTimeout: __testContext.config.constants.BLOCK_RECEIPT_TIMEOUT,
+			maxPayloadLength: __testContext.config.constants.MAX_PAYLOAD_LENGTH,
+			maxTransactionsPerBlock:
+				__testContext.config.constants.MAX_TRANSACTIONS_PER_BLOCK,
+			loadPerIteration: 1000,
+			activeDelegates: __testContext.config.constants.ACTIVE_DELEGATES,
+			blockSlotWindow: __testContext.config.constants.BLOCK_SLOT_WINDOW,
+		};
+
+		blocksVerify = new blocksVerifyModule.BlocksVerify({
+			storage: storageStub,
+			exceptions,
+			slots,
+			roundsModule: roundsModuleStub,
+			interfaceAdapters: interfaceAdaptersMock,
+			genesisBlock: __testContext.config.genesisBlock,
+			blockReward,
+			constants,
+		});
 	});
 
 	afterEach(() => sinonSandbox.restore());
 
 	describe('constructor', () => {
-		it('should assign params to library', async () => {
-			expect(library.logger).to.eql(loggerStub);
-			expect(library.storage).to.eql(storageStub);
-			expect(library.logic.block).to.eql(logicBlockStub);
-			expect(library.config).to.eql(configMock);
-		});
-
-		it('should initialize __private.blockReward', async () => {
-			expect(__private.blockReward).to.be.an('object');
-			return expect(__private.blockReward.calcReward).to.be.a('function');
-		});
-
-		it('should call library.logger.trace with "Blocks->Verify: Submodule initialized."', async () =>
-			expect(loggerStub.trace.args[0][0]).to.equal(
-				'Blocks->Verify: Submodule initialized.'
-			));
-
-		it('should return self', async () => {
-			expect(blocksVerifyModule).to.be.an('object');
-			expect(blocksVerifyModule.verifyReceipt).to.be.a('function');
-			expect(blocksVerifyModule.onBlockchainReady).to.be.a('function');
-			expect(blocksVerifyModule.onNewBlock).to.be.a('function');
-			expect(blocksVerifyModule.verifyBlock).to.be.a('function');
-			expect(blocksVerifyModule.addBlockProperties).to.be.a('function');
-			expect(blocksVerifyModule.deleteBlockProperties).to.be.a('function');
-			expect(blocksVerifyModule.processBlock).to.be.a('function');
-			return expect(blocksVerifyModule.onBind).to.be.a('function');
+		it('should assign params to itself', async () => {
+			expect(blocksVerify.storage).to.eql(storageStub);
+			expect(blocksVerify.roundsModule).to.eql(roundsModuleStub);
+			expect(blocksVerify.slots).to.eql(slots);
+			expect(blocksVerify.blockReward).to.eql(blockReward);
+			expect(blocksVerify.exceptions).to.eql(exceptions);
+			expect(blocksVerify.constants).to.eql(constants);
+			expect(blocksVerify.genesisBlock).to.eql(
+				__testContext.config.genesisBlock
+			);
+			expect(blocksVerify.interfaceAdapters).to.eql(interfaceAdaptersMock);
 		});
 	});
 
-	describe('__private.setHeight', () => {
-		const dummyBlock = {
-			id: '6',
-			height: 4,
-		};
-		const dummyLastBlock = {
-			id: '5',
-			height: 5,
-		};
+	describe('verifySignature', () => {
+		beforeEach(async () => {
+			sinonSandbox.stub(blocksLogic, 'verifySignature');
+		});
 
-		it('should return block with increased height based on last block', async () =>
-			expect(__private.setHeight(dummyBlock, dummyLastBlock)).to.deep.equal({
-				id: '6',
-				height: 6,
-			}));
-	});
-
-	describe('__private.verifySignature', () => {
-		describe('when library.logic.block.verifySignature fails', () => {
-			describe('if throws error', () => {
-				beforeEach(() =>
-					library.logic.block.verifySignature.throws('verifySignature-ERR')
+		describe('when block.verifySignature fails', () => {
+			it('should return error when it throws an error', async () => {
+				blocksLogic.verifySignature.throws(new Error('verifySignature-ERR'));
+				const verifySignature = blocksVerifyModule.verifySignature(
+					{ id: 6 },
+					{ errors: [] }
 				);
-
-				it('should return error', async () => {
-					const verifySignature = __private.verifySignature(
-						{ id: 6 },
-						{ errors: [] }
-					);
-					expect(verifySignature.errors[0]).to.equal('verifySignature-ERR');
-					return expect(verifySignature.errors[1]).to.equal(
-						'Failed to verify block signature'
-					);
-				});
+				expect(verifySignature.errors[0].message).to.equal(
+					'verifySignature-ERR'
+				);
+				return expect(verifySignature.errors[1].message).to.equal(
+					'Failed to verify block signature'
+				);
 			});
 
-			describe('if is not valid', () => {
-				beforeEach(() => library.logic.block.verifySignature.returns(false));
-
-				it('should return error', async () => {
-					const verifySignature = __private.verifySignature(
-						{ id: 6 },
-						{ errors: [] }
-					);
-					return expect(verifySignature.errors[0]).to.equal(
-						'Failed to verify block signature'
-					);
-				});
+			it('should return error when signature is invalid', async () => {
+				blocksLogic.verifySignature.returns(false);
+				const verifySignature = blocksVerifyModule.verifySignature(
+					{ id: 6 },
+					{ errors: [] }
+				);
+				return expect(verifySignature.errors[0].message).to.equal(
+					'Failed to verify block signature'
+				);
 			});
 		});
 
-		describe('when library.logic.block.verifySignature succeeds', () => {
-			beforeEach(() => library.logic.block.verifySignature.returns(true));
-
+		describe('when block.verifySignature succeeds', () => {
 			it('should return no error', async () => {
-				const verifySignature = __private.verifySignature(
+				blocksLogic.verifySignature.returns(true);
+				const verifySignature = blocksVerifyModule.verifySignature(
 					{ id: 6 },
 					{ errors: [] }
 				);
@@ -251,114 +181,106 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('when __private.verifyPreviousBlock fails', () => {
-		describe('if block.previousBlock is not defined and height != 1', () => {
-			it('should return error', async () => {
-				const verifyPreviousBlock = __private.verifyPreviousBlock(
-					{ id: 6, height: 3 },
-					{ errors: [] }
-				);
-				return expect(verifyPreviousBlock.errors[0]).to.equal(
-					'Invalid previous block'
-				);
+	describe.only('verifyPreviousBlock', () => {
+		describe('when verifyPreviousBlock fails', () => {
+			describe('if block.previousBlock is not defined and height != 1', () => {
+				it('should return error', async () => {
+					const verifyPreviousBlock = blocksVerifyModule.verifyPreviousBlock(
+						{ id: 6, height: 3 },
+						{ errors: [] }
+					);
+					return expect(verifyPreviousBlock.errors[0].message).to.equal(
+						'Invalid previous block'
+					);
+				});
+			});
+		});
+
+		describe('when verifyPreviousBlock succeeds', () => {
+			describe('if block.previousBlock is not defined and height = 1', () => {
+				it('should return no error', async () => {
+					const verifyPreviousBlock = blocksVerifyModule.verifyPreviousBlock(
+						{ id: 6, height: 1 },
+						{ errors: [] }
+					);
+					return expect(verifyPreviousBlock.errors.length).to.equal(0);
+				});
+			});
+
+			describe('if block.previousBlock is defined and block.height != 1', () => {
+				it('should return no error', async () => {
+					const verifyPreviousBlock = blocksVerifyModule.verifyPreviousBlock(
+						{ id: 6, previousBlock: 5, height: 3 },
+						{ errors: [] }
+					);
+					return expect(verifyPreviousBlock.errors.length).to.equal(0);
+				});
+			});
+
+			describe('if block.previousBlock is defined and block.height = 1', () => {
+				it('should return no error', async () => {
+					const verifyPreviousBlock = blocksVerifyModule.verifyPreviousBlock(
+						{ id: 6, previousBlock: 5, height: 1 },
+						{ errors: [] }
+					);
+					return expect(verifyPreviousBlock.errors.length).to.equal(0);
+				});
 			});
 		});
 	});
 
-	describe('when __private.verifyPreviousBlock succeeds', () => {
-		describe('if block.previousBlock is not defined and height = 1', () => {
-			it('should return no error', async () => {
-				const verifyPreviousBlock = __private.verifyPreviousBlock(
-					{ id: 6, height: 1 },
-					{ errors: [] }
-				);
-				return expect(verifyPreviousBlock.errors.length).to.equal(0);
-			});
-		});
-
-		describe('if block.previousBlock is defined and block.height != 1', () => {
-			it('should return no error', async () => {
-				const verifyPreviousBlock = __private.verifyPreviousBlock(
-					{ id: 6, previousBlock: 5, height: 3 },
-					{ errors: [] }
-				);
-				return expect(verifyPreviousBlock.errors.length).to.equal(0);
-			});
-		});
-
-		describe('if block.previousBlock is defined and block.height = 1', () => {
-			it('should return no error', async () => {
-				const verifyPreviousBlock = __private.verifyPreviousBlock(
-					{ id: 6, previousBlock: 5, height: 1 },
-					{ errors: [] }
-				);
-				return expect(verifyPreviousBlock.errors.length).to.equal(0);
-			});
-		});
-	});
-
-	describe('__private.verifyAgainstLastNBlockIds', () => {
-		let lastNBlockIdsTemp;
-
-		beforeEach(done => {
-			lastNBlockIdsTemp = __private.lastNBlockIds;
-			__private.lastNBlockIds = [1, 2, 3, 4];
-			done();
-		});
-
-		afterEach(done => {
-			__private.lastNBlockIds = lastNBlockIdsTemp;
-			done();
-		});
-
+	describe('verifyAgainstLastNBlockIds', () => {
 		it('should return error when block is in list', async () => {
-			const verifyAgainstLastNBlockIds = __private.verifyAgainstLastNBlockIds(
+			const verifyAgainstLastNBlockIds = blocksVerifyModule.verifyAgainstLastNBlockIds(
 				{ id: 3 },
+				[1, 2, 3, 4],
 				{ errors: [] }
 			);
-			return expect(verifyAgainstLastNBlockIds.errors[0]).to.equal(
+			return expect(verifyAgainstLastNBlockIds.errors[0].message).to.equal(
 				'Block already exists in chain'
 			);
 		});
 
 		it('should return no error when block is not in list', async () => {
-			const verifyAgainstLastNBlockIds = __private.verifyAgainstLastNBlockIds(
+			const verifyAgainstLastNBlockIds = blocksVerifyModule.verifyAgainstLastNBlockIds(
 				{ id: 5 },
+				[1, 2, 3, 4],
 				{ errors: [] }
 			);
 			return expect(verifyAgainstLastNBlockIds.errors.length).to.equal(0);
 		});
 	});
 
-	describe('__private.verifyVersion', () => {
-		let verifyVersion;
-
+	describe('verifyVersion', () => {
 		describe('when there are no exceptions for block versions', () => {
 			describe('when block height provided', () => {
 				it('should return no error when block version = 1', async () => {
-					verifyVersion = __private.verifyVersion(
+					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 1, height: 1 },
+						{},
 						{ errors: [] }
 					);
 					return expect(verifyVersion.errors.length).to.equal(0);
 				});
 
 				it('should return error when block version = 0', async () => {
-					verifyVersion = __private.verifyVersion(
+					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 0, height: 1 },
+						{},
 						{ errors: [] }
 					);
-					return expect(verifyVersion.errors[0]).to.equal(
+					return expect(verifyVersion.errors[0].message).to.equal(
 						'Invalid block version'
 					);
 				});
 
 				it('should return error when block version 2', async () => {
-					verifyVersion = __private.verifyVersion(
+					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 2, height: 1 },
+						{},
 						{ errors: [] }
 					);
-					return expect(verifyVersion.errors[0]).to.equal(
+					return expect(verifyVersion.errors[0].message).to.equal(
 						'Invalid block version'
 					);
 				});
@@ -366,29 +288,32 @@ describe('blocks/verify', () => {
 
 			describe('when block height is missing', () => {
 				it('should return no error when block version = 1', async () => {
-					verifyVersion = __private.verifyVersion(
+					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 1 },
+						{},
 						{ errors: [] }
 					);
 					return expect(verifyVersion.errors.length).to.equal(0);
 				});
 
 				it('should return error when block version = 2', async () => {
-					verifyVersion = __private.verifyVersion(
+					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 2 },
+						{},
 						{ errors: [] }
 					);
-					return expect(verifyVersion.errors[0]).to.equal(
+					return expect(verifyVersion.errors[0].message).to.equal(
 						'Invalid block version'
 					);
 				});
 
 				it('should return error when block version = 3', async () => {
-					verifyVersion = __private.verifyVersion(
+					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 3 },
+						{},
 						{ errors: [] }
 					);
-					return expect(verifyVersion.errors[0]).to.equal(
+					return expect(verifyVersion.errors[0].message).to.equal(
 						'Invalid block version'
 					);
 				});
@@ -396,45 +321,40 @@ describe('blocks/verify', () => {
 		});
 
 		describe('when there are proper exceptions set for block versions', () => {
-			before(done => {
-				// Set proper exceptions for blocks versions
-				exceptions.blockVersions = {
+			const blocksVersionException = {
+				blockVersions: {
 					0: { start: 1, end: 101 },
-				};
-				done();
-			});
-
-			after(done => {
-				// Reset exceptions
-				exceptions.blockVersions = {};
-				done();
-			});
+				},
+			};
 
 			describe('when block height provided', () => {
 				it('should return no error when block version = 0', async () => {
-					verifyVersion = __private.verifyVersion(
+					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 0, height: 1 },
+						blocksVersionException,
 						{ errors: [] }
 					);
 					return expect(verifyVersion.errors.length).to.equal(0);
 				});
 
 				it('should return error when block version = 1', async () => {
-					verifyVersion = __private.verifyVersion(
+					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 1, height: 1 },
+						blocksVersionException,
 						{ errors: [] }
 					);
-					return expect(verifyVersion.errors[0]).to.equal(
+					return expect(verifyVersion.errors[0].message).to.equal(
 						'Invalid block version'
 					);
 				});
 
 				it('should return error when block version = 2', async () => {
-					verifyVersion = __private.verifyVersion(
+					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 2, height: 1 },
+						blocksVersionException,
 						{ errors: [] }
 					);
-					return expect(verifyVersion.errors[0]).to.equal(
+					return expect(verifyVersion.errors[0].message).to.equal(
 						'Invalid block version'
 					);
 				});
@@ -442,29 +362,32 @@ describe('blocks/verify', () => {
 
 			describe('when block height is missing', () => {
 				it('should return no error when block version = 1', async () => {
-					verifyVersion = __private.verifyVersion(
+					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 1 },
+						blocksVersionException,
 						{ errors: [] }
 					);
 					return expect(verifyVersion.errors.length).to.equal(0);
 				});
 
 				it('should return error when block version = 2', async () => {
-					verifyVersion = __private.verifyVersion(
+					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 2 },
+						blocksVersionException,
 						{ errors: [] }
 					);
-					return expect(verifyVersion.errors[0]).to.equal(
+					return expect(verifyVersion.errors[0].message).to.equal(
 						'Invalid block version'
 					);
 				});
 
 				it('should return error when block version = 3', async () => {
-					verifyVersion = __private.verifyVersion(
+					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 3 },
+						blocksVersionException,
 						{ errors: [] }
 					);
-					return expect(verifyVersion.errors[0]).to.equal(
+					return expect(verifyVersion.errors[0].message).to.equal(
 						'Invalid block version'
 					);
 				});
@@ -472,39 +395,33 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('__private.verifyReward', () => {
-		let verifyReward;
-		let blockRewardTemp;
-		let exceptionsTemp;
-		let exceptionsTemp2;
+	describe('verifyReward', () => {
+		const blockRewardsExceptions = {
+			blockReward: [1, 2, 3, 4],
+		};
 
-		beforeEach(done => {
-			blockRewardTemp = __private.blockReward;
-			__private.blockReward = {
+		let blockRewardStub;
+
+		beforeEach(async () => {
+			blockRewardStub = {
 				calcReward: sinonSandbox.stub(),
 			};
-			exceptionsTemp2 = BlocksVerify.__get__('exceptions');
-			exceptionsTemp = exceptionsTemp2;
-			exceptionsTemp2.blockRewards = [1, 2, 3, 4];
-			done();
 		});
 
-		afterEach(done => {
-			__private.blockReward = blockRewardTemp;
-			exceptionsTemp2 = exceptionsTemp;
-			done();
-		});
-
-		describe('when __private.blockReward.calcReward succeeds', () => {
-			beforeEach(() => __private.blockReward.calcReward.returns(new Bignum(5)));
+		describe('when blockReward.calcReward succeeds', () => {
+			beforeEach(async () => {
+				blockRewardStub.calcReward.returns(new Bignum(5));
+			});
 
 			describe('if block.height != 1 && expectedReward != block.reward && exceptions.blockRewards.indexOf(block.id) = -1', () => {
 				it('should return error', async () => {
-					verifyReward = __private.verifyReward(
+					const verifyReward = blocksVerifyModule.verifyReward(
+						blockRewardStub,
 						{ height: 5, reward: 1, id: 5 },
+						blockRewardsExceptions,
 						{ errors: [] }
 					);
-					return expect(verifyReward.errors[0]).to.equal(
+					return expect(verifyReward.errors[0].message).to.equal(
 						'Invalid block reward: 1 expected: 5'
 					);
 				});
@@ -512,8 +429,10 @@ describe('blocks/verify', () => {
 
 			describe('if block.height != 1 && expectedReward != block.reward && exceptions.blockRewards.indexOf(block.id) != -1', () => {
 				it('should return no error', async () => {
-					verifyReward = __private.verifyReward(
+					const verifyReward = blocksVerifyModule.verifyReward(
+						blockRewardStub,
 						{ height: 5, reward: 1, id: 3 },
+						blockRewardsExceptions,
 						{ errors: [] }
 					);
 					return expect(verifyReward.errors.length).to.equal(0);
@@ -522,8 +441,10 @@ describe('blocks/verify', () => {
 
 			describe('if block.height != 1 && expectedReward = block.reward && exceptions.blockRewards.indexOf(block.id) = -1', () => {
 				it('should return no error', async () => {
-					verifyReward = __private.verifyReward(
+					const verifyReward = blocksVerifyModule.verifyReward(
+						blockRewardStub,
 						{ height: 5, reward: 5, id: 3 },
+						blockRewardsExceptions,
 						{ errors: [] }
 					);
 					return expect(verifyReward.errors.length).to.equal(0);
@@ -532,8 +453,10 @@ describe('blocks/verify', () => {
 
 			describe('if block.height != 1 && expectedReward = block.reward && exceptions.blockRewards.indexOf(block.id) != -1', () => {
 				it('should return no error', async () => {
-					verifyReward = __private.verifyReward(
+					const verifyReward = blocksVerifyModule.verifyReward(
+						blockRewardStub,
 						{ height: 5, reward: 5, id: 5 },
+						blockRewardsExceptions,
 						{ errors: [] }
 					);
 					return expect(verifyReward.errors.length).to.equal(0);
@@ -542,8 +465,10 @@ describe('blocks/verify', () => {
 
 			describe('if block.height = 1 && expectedReward != block.reward && exceptions.blockRewards.indexOf(block.id) = -1', () => {
 				it('should return no error', async () => {
-					verifyReward = __private.verifyReward(
+					const verifyReward = blocksVerifyModule.verifyReward(
+						blockRewardStub,
 						{ height: 1, reward: 1, id: 5 },
+						blockRewardsExceptions,
 						{ errors: [] }
 					);
 					return expect(verifyReward.errors.length).to.equal(0);
@@ -552,8 +477,10 @@ describe('blocks/verify', () => {
 
 			describe('if block.height = 1 && expectedReward != block.reward && exceptions.blockRewards.indexOf(block.id) != -1', () => {
 				it('should return no error', async () => {
-					verifyReward = __private.verifyReward(
+					const verifyReward = blocksVerifyModule.verifyReward(
+						blockRewardStub,
 						{ height: 1, reward: 1, id: 3 },
+						blockRewardsExceptions,
 						{ errors: [] }
 					);
 					return expect(verifyReward.errors.length).to.equal(0);
@@ -562,8 +489,10 @@ describe('blocks/verify', () => {
 
 			describe('if block.height = 1 && expectedReward = block.reward && exceptions.blockRewards.indexOf(block.id) = -1', () => {
 				it('should return no error', async () => {
-					verifyReward = __private.verifyReward(
+					const verifyReward = blocksVerifyModule.verifyReward(
+						blockRewardStub,
 						{ height: 1, reward: 5, id: 5 },
+						blockRewardsExceptions,
 						{ errors: [] }
 					);
 					return expect(verifyReward.errors.length).to.equal(0);
@@ -572,8 +501,10 @@ describe('blocks/verify', () => {
 
 			describe('if block.height = 1 && expectedReward = block.reward && exceptions.blockRewards.indexOf(block.id) != -1', () => {
 				it('should return no error', async () => {
-					verifyReward = __private.verifyReward(
+					const verifyReward = blocksVerifyModule.verifyReward(
+						blockRewardStub,
 						{ height: 1, reward: 5, id: 3 },
+						blockRewardsExceptions,
 						{ errors: [] }
 					);
 					return expect(verifyReward.errors.length).to.equal(0);
@@ -582,38 +513,44 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('__private.verifyId', () => {
-		let verifyId;
-
+	describe('verifyId', () => {
 		describe('when block = undefined', () => {
+			beforeEach(async () => {
+				sinonSandbox.stub(blocksLogic, 'getId');
+			});
+
 			it('should return error', async () => {
-				verifyId = __private.verifyId(undefined, { errors: [] });
-				return expect(verifyId.errors[0]).to.equal(
-					"TypeError: Cannot set property 'id' of undefined"
+				const verifyId = blocksVerifyModule.verifyId(undefined, { errors: [] });
+				return expect(verifyId.errors[0].message).to.equal(
+					"Cannot set property 'id' of undefined"
 				);
 			});
 		});
 
-		describe('when library.logic.block.getId fails', () => {
-			beforeEach(() => library.logic.block.getId.throws('getId-ERR'));
+		describe('when block.getId fails', () => {
+			beforeEach(async () => {
+				sinonSandbox.stub(blocksLogic, 'getId').throws(new Error('getId-ERR'));
+			});
 
 			it('should return error', async () => {
-				verifyId = __private.verifyId({ id: 5 }, { errors: [] });
-				return expect(verifyId.errors[0]).to.equal('getId-ERR');
+				const verifyId = blocksVerifyModule.verifyId({ id: 5 }, { errors: [] });
+				return expect(verifyId.errors[0].message).to.equal('getId-ERR');
 			});
 		});
 
-		describe('when library.logic.block.getId succeeds', () => {
-			beforeEach(() => library.logic.block.getId.returns(5));
+		describe('when block.getId succeeds', () => {
+			beforeEach(async () => {
+				sinonSandbox.stub(blocksLogic, 'getId').returns(5);
+			});
 
 			it('should return no error', async () => {
-				verifyId = __private.verifyId({ id: 5 }, { errors: [] });
+				const verifyId = blocksVerifyModule.verifyId({ id: 5 }, { errors: [] });
 				return expect(verifyId.errors.length).to.equal(0);
 			});
 		});
 	});
 
-	describe('__private.verifyPayload', () => {
+	describe('verifyPayload', () => {
 		let verifyPayload;
 
 		const payloadHash = crypto.createHash('sha256');
@@ -645,15 +582,20 @@ describe('blocks/verify', () => {
 			transactions,
 		};
 
-		describe('when __private.verifyPayload fails', () => {
+		describe('when verifyPayload fails', () => {
 			describe('when payload lenght is too long', () => {
 				it('should return error', async () => {
 					const dummyBlockERR = _.cloneDeep(dummyBlock);
 					dummyBlockERR.payloadLength = 1048577;
-					verifyPayload = __private.verifyPayload(dummyBlockERR, {
-						errors: [],
-					});
-					return expect(verifyPayload.errors[0]).to.equal(
+					verifyPayload = blocksVerifyModule.verifyPayload(
+						dummyBlockERR,
+						constants.maxTransactionsPerBlock,
+						constants.maxPayloadLength,
+						{
+							errors: [],
+						}
+					);
+					return expect(verifyPayload.errors[0].message).to.equal(
 						'Payload length is too long'
 					);
 				});
@@ -663,10 +605,15 @@ describe('blocks/verify', () => {
 				it('should return error', async () => {
 					const dummyBlockERR = _.cloneDeep(dummyBlock);
 					dummyBlockERR.numberOfTransactions = 4;
-					verifyPayload = __private.verifyPayload(dummyBlockERR, {
-						errors: [],
-					});
-					return expect(verifyPayload.errors[0]).to.equal(
+					verifyPayload = blocksVerifyModule.verifyPayload(
+						dummyBlockERR,
+						constants.maxTransactionsPerBlock,
+						constants.maxPayloadLength,
+						{
+							errors: [],
+						}
+					);
+					return expect(verifyPayload.errors[0].message).to.equal(
 						'Included transactions do not match block transactions count'
 					);
 				});
@@ -679,10 +626,15 @@ describe('blocks/verify', () => {
 					dummyBlockERR.transactions = dummyBlockERR.transactions.concat(
 						new Array(30)
 					);
-					verifyPayload = __private.verifyPayload(dummyBlockERR, {
-						errors: [],
-					});
-					return expect(verifyPayload.errors[0]).to.equal(
+					verifyPayload = blocksVerifyModule.verifyPayload(
+						dummyBlockERR,
+						constants.maxTransactionsPerBlock,
+						constants.maxPayloadLength,
+						{
+							errors: [],
+						}
+					);
+					return expect(verifyPayload.errors[0].message).to.equal(
 						'Number of transactions exceeds maximum per block'
 					);
 				});
@@ -693,10 +645,15 @@ describe('blocks/verify', () => {
 					const dummyBlockERR = _.cloneDeep(dummyBlock);
 					dummyBlockERR.transactions.pop();
 					dummyBlockERR.transactions.push(transactionOne);
-					verifyPayload = __private.verifyPayload(dummyBlockERR, {
-						errors: [],
-					});
-					return expect(verifyPayload.errors[0]).to.equal(
+					verifyPayload = blocksVerifyModule.verifyPayload(
+						dummyBlockERR,
+						constants.maxTransactionsPerBlock,
+						constants.maxPayloadLength,
+						{
+							errors: [],
+						}
+					);
+					return expect(verifyPayload.errors[0].message).to.equal(
 						`Encountered duplicate transaction: ${transactionOne.id}`
 					);
 				});
@@ -706,10 +663,15 @@ describe('blocks/verify', () => {
 				it('should return error', async () => {
 					const dummyBlockERR = _.cloneDeep(dummyBlock);
 					dummyBlockERR.payloadHash = 'abc';
-					verifyPayload = __private.verifyPayload(dummyBlockERR, {
-						errors: [],
-					});
-					return expect(verifyPayload.errors[0]).to.equal(
+					verifyPayload = blocksVerifyModule.verifyPayload(
+						dummyBlockERR,
+						constants.maxTransactionsPerBlock,
+						constants.maxPayloadLength,
+						{
+							errors: [],
+						}
+					);
+					return expect(verifyPayload.errors[0].message).to.equal(
 						'Invalid payload hash'
 					);
 				});
@@ -719,10 +681,15 @@ describe('blocks/verify', () => {
 				it('should return error', async () => {
 					const dummyBlockERR = _.cloneDeep(dummyBlock);
 					dummyBlockERR.totalAmount = 1;
-					verifyPayload = __private.verifyPayload(dummyBlockERR, {
-						errors: [],
-					});
-					return expect(verifyPayload.errors[0]).to.equal(
+					verifyPayload = blocksVerifyModule.verifyPayload(
+						dummyBlockERR,
+						constants.maxTransactionsPerBlock,
+						constants.maxPayloadLength,
+						{
+							errors: [],
+						}
+					);
+					return expect(verifyPayload.errors[0].message).to.equal(
 						'Invalid total amount'
 					);
 				});
@@ -732,109 +699,128 @@ describe('blocks/verify', () => {
 				it('should return error', async () => {
 					const dummyBlockERR = _.cloneDeep(dummyBlock);
 					dummyBlockERR.totalFee = 1;
-					verifyPayload = __private.verifyPayload(dummyBlockERR, {
-						errors: [],
-					});
-					return expect(verifyPayload.errors[0]).to.equal('Invalid total fee');
+					verifyPayload = blocksVerifyModule.verifyPayload(
+						dummyBlockERR,
+						constants.maxTransactionsPerBlock,
+						constants.maxPayloadLength,
+						{
+							errors: [],
+						}
+					);
+					return expect(verifyPayload.errors[0].message).to.equal(
+						'Invalid total fee'
+					);
 				});
 			});
 		});
 
-		describe('when __private.verifyPayload succeeds', () => {
+		describe('when verifyPayload succeeds', () => {
 			it('should return no error', async () => {
-				verifyPayload = __private.verifyPayload(dummyBlock, { errors: [] });
+				verifyPayload = blocksVerifyModule.verifyPayload(
+					dummyBlock,
+					constants.maxTransactionsPerBlock,
+					constants.maxPayloadLength,
+					{ errors: [] }
+				);
 				return expect(verifyPayload.errors.length).to.equal(0);
 			});
 		});
 	});
 
-	describe('__private.verifyForkOne', () => {
+	describe('verifyForkOne', () => {
 		let verifyForkOne;
 		let block;
 		let lastBlock;
 
-		describe('when __private.verifyForkOne fails', () => {
+		describe('when verifyForkOne fails', () => {
 			describe('when block.previousBlock && block.previousBlock != lastBlock.id', () => {
-				afterEach(() => {
-					expect(modules.rounds.fork.calledOnce).to.be.true;
-					expect(modules.rounds.fork.args[0][0]).to.deep.equal(block);
-					return expect(modules.rounds.fork.args[0][1]).to.equal(1);
-				});
-
 				it('should return error', async () => {
 					block = { previousBlock: 4 };
 					lastBlock = { id: 5 };
-					verifyForkOne = __private.verifyForkOne(block, lastBlock, {
-						errors: [],
-					});
-					return expect(verifyForkOne.errors[0]).to.equal(
+					verifyForkOne = blocksVerifyModule.verifyForkOne(
+						roundsModuleStub,
+						block,
+						lastBlock,
+						{
+							errors: [],
+						}
+					);
+					expect(roundsModuleStub.fork.calledOnce).to.be.true;
+					expect(roundsModuleStub.fork.args[0][0]).to.deep.equal(block);
+					expect(roundsModuleStub.fork.args[0][1]).to.equal(1);
+					return expect(verifyForkOne.errors[0].message).to.equal(
 						'Invalid previous block: 4 expected: 5'
 					);
 				});
 			});
 		});
 
-		describe('when __private.verifyForkOne succeeds', () => {
+		describe('when verifyForkOne succeeds', () => {
 			describe('when block.previousBlock = undefined', () => {
 				afterEach(
-					async () => expect(modules.rounds.fork.calledOnce).to.be.false
+					async () => expect(roundsModuleStub.fork.calledOnce).to.be.false
 				);
 
 				it('should return no error', async () => {
 					block = { id: 6 };
 					lastBlock = { id: 5 };
-					verifyForkOne = __private.verifyForkOne(block, lastBlock, {
-						errors: [],
-					});
+					verifyForkOne = blocksVerifyModule.verifyForkOne(
+						roundsModuleStub,
+						block,
+						lastBlock,
+						{
+							errors: [],
+						}
+					);
 					return expect(verifyForkOne.errors.length).to.equal(0);
 				});
 			});
 
 			describe('when block.previousBlock = lastBlock.id', () => {
 				afterEach(
-					async () => expect(modules.rounds.fork.calledOnce).to.be.false
+					async () => expect(roundsModuleStub.fork.calledOnce).to.be.false
 				);
 
 				it('should return no error', async () => {
 					block = { previousBlock: 5 };
 					lastBlock = { id: 5 };
-					verifyForkOne = __private.verifyForkOne(block, lastBlock, {
-						errors: [],
-					});
+					verifyForkOne = blocksVerifyModule.verifyForkOne(
+						roundsModuleStub,
+						block,
+						lastBlock,
+						{
+							errors: [],
+						}
+					);
 					return expect(verifyForkOne.errors.length).to.equal(0);
 				});
 			});
 		});
 	});
 
-	describe('__private.verifyBlockSlot', () => {
-		let verifyBlockSlot;
-		let block;
-		let lastBlock;
-		let slots;
-		let slotsTemp;
+	describe('verifyBlockSlot', () => {
+		let slotMock;
 
-		beforeEach(done => {
-			slots = BlocksVerify.__get__('slots');
-			slotsTemp = slots;
-			slots.getSlotNumber = input => (input === undefined ? 4 : input);
-			done();
+		beforeEach(async () => {
+			slotMock = {
+				getSlotNumber: input => (input === undefined ? 4 : input),
+			};
 		});
 
-		afterEach(done => {
-			slots = slotsTemp;
-			done();
-		});
-
-		describe('when __private.verifyBlockSlot fails', () => {
+		describe('when verifyBlockSlot fails', () => {
 			describe('when blockSlotNumber > slots.getSlotNumber()', () => {
 				it('should return error', async () => {
-					block = { timestamp: 5 };
-					lastBlock = { timestamp: 5 };
-					verifyBlockSlot = __private.verifyBlockSlot(block, lastBlock, {
-						errors: [],
-					});
-					return expect(verifyBlockSlot.errors[0]).to.equal(
+					const block = { timestamp: 5 };
+					const lastBlock = { timestamp: 5 };
+					const verifyBlockSlot = blocksVerifyModule.verifyBlockSlot(
+						slotMock,
+						block,
+						lastBlock,
+						{
+							errors: [],
+						}
+					);
+					return expect(verifyBlockSlot.errors[0].message).to.equal(
 						'Invalid block timestamp'
 					);
 				});
@@ -842,55 +828,59 @@ describe('blocks/verify', () => {
 
 			describe('when blockSlotNumber <= lastBlockSlotNumber', () => {
 				it('should return error', async () => {
-					block = { timestamp: 3 };
-					lastBlock = { timestamp: 3 };
-					verifyBlockSlot = __private.verifyBlockSlot(block, lastBlock, {
-						errors: [],
-					});
-					return expect(verifyBlockSlot.errors[0]).to.equal(
+					const block = { timestamp: 3 };
+					const lastBlock = { timestamp: 3 };
+					const verifyBlockSlot = blocksVerifyModule.verifyBlockSlot(
+						slotMock,
+						block,
+						lastBlock,
+						{
+							errors: [],
+						}
+					);
+					return expect(verifyBlockSlot.errors[0].message).to.equal(
 						'Invalid block timestamp'
 					);
 				});
 			});
 		});
 
-		describe('when __private.verifyBlockSlot succeeds', () => {
+		describe('when verifyBlockSlot succeeds', () => {
 			it('should return no error', async () => {
-				block = { timestamp: 4 };
-				lastBlock = { timestamp: 3 };
-				verifyBlockSlot = __private.verifyBlockSlot(block, lastBlock, {
-					errors: [],
-				});
+				const block = { timestamp: 4 };
+				const lastBlock = { timestamp: 3 };
+				const verifyBlockSlot = blocksVerifyModule.verifyBlockSlot(
+					slotMock,
+					block,
+					lastBlock,
+					{
+						errors: [],
+					}
+				);
 				return expect(verifyBlockSlot.errors.length).to.equal(0);
 			});
 		});
 	});
 
-	describe('__private.verifyBlockSlotWindow', () => {
-		let verifyBlockSlotWindow;
-		let slots;
-		let slotsTemp;
+	describe('verifyBlockSlotWindow', () => {
+		let slotMock;
 
-		beforeEach(done => {
-			slots = BlocksVerify.__get__('slots');
-			slotsTemp = slots;
-			slots.getSlotNumber = input => (input === undefined ? 100 : input);
-			done();
+		beforeEach(async () => {
+			slotMock = {
+				getSlotNumber: input => (input === undefined ? 100 : input),
+			};
 		});
 
-		afterEach(done => {
-			slots = slotsTemp;
-			done();
-		});
-
-		describe('when __private.verifyBlockSlotWindow fails', () => {
+		describe('when verifyBlockSlotWindow fails', () => {
 			describe('when currentApplicationSlot - blockSlot > BLOCK_SLOT_WINDOW', () => {
 				it('should return error', async () => {
-					verifyBlockSlotWindow = __private.verifyBlockSlotWindow(
+					const verifyBlockSlotWindow = blocksVerifyModule.verifyBlockSlotWindow(
+						slotMock,
+						constants.blockSlotWindow,
 						{ timestamp: 10 },
 						{ errors: [] }
 					);
-					return expect(verifyBlockSlotWindow.errors[0]).to.equal(
+					return expect(verifyBlockSlotWindow.errors[0].message).to.equal(
 						'Block slot is too old'
 					);
 				});
@@ -898,20 +888,24 @@ describe('blocks/verify', () => {
 
 			describe('currentApplicationSlot < blockSlot', () => {
 				it('should return error', async () => {
-					verifyBlockSlotWindow = __private.verifyBlockSlotWindow(
+					const verifyBlockSlotWindow = blocksVerifyModule.verifyBlockSlotWindow(
+						slotMock,
+						constants.blockSlotWindow,
 						{ timestamp: 110 },
 						{ errors: [] }
 					);
-					return expect(verifyBlockSlotWindow.errors[0]).to.equal(
+					return expect(verifyBlockSlotWindow.errors[0].message).to.equal(
 						'Block slot is in the future'
 					);
 				});
 			});
 		});
 
-		describe('when __private.verifyBlockSlotWindow succeeds', () => {
+		describe('when verifyBlockSlotWindow succeeds', () => {
 			it('should return no error', async () => {
-				verifyBlockSlotWindow = __private.verifyBlockSlotWindow(
+				const verifyBlockSlotWindow = blocksVerifyModule.verifyBlockSlotWindow(
+					slotMock,
+					constants.blockSlotWindow,
 					{ timestamp: 99 },
 					{ errors: [] }
 				);
@@ -920,87 +914,94 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('verifyReceipt', () => {
-		let privateTemp;
-		let verifyReceipt;
+	describe.only('verifyReceipt', () => {
 		const dummyBlock = { id: 5 };
 		const dummylastBlock = { id: 4 };
 
-		beforeEach(done => {
-			privateTemp = __private;
-			__private.setHeight = sinonSandbox.stub().returns(dummyBlock);
-			__private.verifySignature = sinonSandbox
-				.stub()
+		beforeEach(async () => {
+			sinonSandbox.stub(blocksVerifyModule, 'setHeight').returns(dummyBlock);
+			sinonSandbox
+				.stub(blocksVerifyModule, 'verifySignature')
 				.returns({ verified: false, errors: [] });
-			__private.verifyPreviousBlock = sinonSandbox
-				.stub()
+			sinonSandbox
+				.stub(blocksVerifyModule, 'verifyPreviousBlock')
 				.returns({ verified: false, errors: [] });
-			__private.verifyAgainstLastNBlockIds = sinonSandbox
-				.stub()
+			sinonSandbox
+				.stub(blocksVerifyModule, 'verifyAgainstLastNBlockIds')
 				.returns({ verified: false, errors: [] });
-			__private.verifyBlockSlotWindow = sinonSandbox
-				.stub()
+			sinonSandbox
+				.stub(blocksVerifyModule, 'verifyBlockSlotWindow')
 				.returns({ verified: false, errors: [] });
-			__private.verifyVersion = sinonSandbox
-				.stub()
+			sinonSandbox
+				.stub(blocksVerifyModule, 'verifyVersion')
 				.returns({ verified: false, errors: [] });
-			__private.verifyReward = sinonSandbox
-				.stub()
+			sinonSandbox
+				.stub(blocksVerifyModule, 'verifyReward')
 				.returns({ verified: false, errors: [] });
-			__private.verifyId = sinonSandbox
-				.stub()
+			sinonSandbox
+				.stub(blocksVerifyModule, 'verifyId')
 				.returns({ verified: false, errors: [] });
-			__private.verifyPayload = sinonSandbox
-				.stub()
+			sinonSandbox
+				.stub(blocksVerifyModule, 'verifyPayload')
 				.returns({ verified: false, errors: [] });
-			modules.blocks.lastBlock.get.returns(dummylastBlock);
-			done();
-		});
-
-		afterEach(done => {
-			expect(modules.blocks.lastBlock.get.calledOnce).to.be.true;
-			expect(__private.setHeight).to.have.been.calledWith(
-				dummyBlock,
-				dummylastBlock
-			);
-			expect(__private.verifySignature).to.have.been.calledWith(dummyBlock, {
-				verified: false,
-				errors: [],
-			});
-			expect(__private.verifyPreviousBlock).to.have.been.calledWith(
-				dummyBlock,
-				{ verified: false, errors: [] }
-			);
-			expect(__private.verifyAgainstLastNBlockIds).to.have.been.calledWith(
-				dummyBlock,
-				{ verified: false, errors: [] }
-			);
-			expect(__private.verifyBlockSlotWindow).to.have.been.calledWith(
-				dummyBlock,
-				{ verified: false, errors: [] }
-			);
-			expect(__private.verifyVersion).to.have.been.calledWith(dummyBlock, {
-				verified: false,
-				errors: [],
-			});
-			expect(__private.verifyReward).to.have.been.calledWith(dummyBlock, {
-				verified: false,
-				errors: [],
-			});
-			expect(__private.verifyId).to.have.been.calledWith(dummyBlock, {
-				verified: false,
-				errors: [],
-			});
-			expect(__private.verifyPayload).to.have.been.calledWith(dummyBlock, {
-				verified: false,
-				errors: [],
-			});
-			__private = privateTemp;
-			done();
+			sinonSandbox
+				.stub(blocksVerifyModule, 'verifySignature')
+				.returns({ verified: false, errors: [] });
+			sinonSandbox
+				.stub(blocksVerifyModule, 'verifySignature')
+				.returns({ verified: false, errors: [] });
 		});
 
 		it('should call private functions with correct parameters', async () => {
-			verifyReceipt = blocksVerifyModule.verifyReceipt(dummyBlock);
+			const verifyReceipt = blocksVerifyModule.verifyReceipt(dummyBlock);
+			expect(modules.blocks.lastBlock.get.calledOnce).to.be.true;
+			expect(blocksVerifyModule.setHeight).to.have.been.calledWith(
+				dummyBlock,
+				dummylastBlock
+			);
+			expect(blocksVerifyModule.verifySignature).to.have.been.calledWith(
+				dummyBlock,
+				{
+					verified: false,
+					errors: [],
+				}
+			);
+			expect(blocksVerifyModule.verifyPreviousBlock).to.have.been.calledWith(
+				dummyBlock,
+				{ verified: false, errors: [] }
+			);
+			expect(
+				blocksVerifyModule.verifyAgainstLastNBlockIds
+			).to.have.been.calledWith(dummyBlock, { verified: false, errors: [] });
+			expect(blocksVerifyModule.verifyBlockSlotWindow).to.have.been.calledWith(
+				dummyBlock,
+				{ verified: false, errors: [] }
+			);
+			expect(blocksVerifyModule.verifyVersion).to.have.been.calledWith(
+				dummyBlock,
+				{
+					verified: false,
+					errors: [],
+				}
+			);
+			expect(blocksVerifyModule.verifyReward).to.have.been.calledWith(
+				dummyBlock,
+				{
+					verified: false,
+					errors: [],
+				}
+			);
+			expect(blocksVerifyModule.verifyId).to.have.been.calledWith(dummyBlock, {
+				verified: false,
+				errors: [],
+			});
+			expect(blocksVerifyModule.verifyPayload).to.have.been.calledWith(
+				dummyBlock,
+				{
+					verified: false,
+					errors: [],
+				}
+			);
 			return expect(verifyReceipt).to.deep.equal({
 				verified: true,
 				errors: [],

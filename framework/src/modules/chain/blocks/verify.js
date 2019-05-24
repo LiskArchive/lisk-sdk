@@ -34,7 +34,6 @@ class BlocksVerify {
 		constants,
 	}) {
 		this.storage = storage;
-		this.storage = storage;
 		this.roundsModule = roundsModule;
 		this.slots = slots;
 		this.blockReward = blockReward;
@@ -440,7 +439,7 @@ const verifyPayload = (
 
 		if (appliedTransactions[transaction.id]) {
 			result.errors.push(
-				`Encountered duplicate transaction: ${transaction.id}`
+				new Error(`Encountered duplicate transaction: ${transaction.id}`)
 			);
 		}
 
@@ -591,10 +590,13 @@ const verifyReceipt = ({
 };
 
 module.exports = {
+	setHeight,
 	BlocksVerify,
+	verifyId,
 	verifySignature,
 	verifyBlockSlotWindow,
 	verifyPreviousBlock,
+	verifyPayload,
 	verifyBlockSlot,
 	verifyForkOne,
 	verifyAgainstLastNBlockIds,
