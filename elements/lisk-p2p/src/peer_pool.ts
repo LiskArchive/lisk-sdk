@@ -91,6 +91,7 @@ interface PeerPoolConfig {
 
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
 export const MAX_PEER_DISCOVERY_PROBE_SAMPLE_SIZE = 100;
+export const MAX_OUTBOUND_CONNECTIONS = 20;
 
 const selectRandomPeerSample = (
 	peerList: ReadonlyArray<Peer>,
@@ -387,18 +388,23 @@ export class PeerPool extends EventEmitter {
 		return discoveredPeers;
 	}
 
-	public selectPeersAndConnect(
+	public triggerPopulator(
 		peers: ReadonlyArray<P2PDiscoveredPeerInfo>,
-	): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		const peersToConnect = this._peerSelectForConnection(peers);
+	): ReadonlyArray<P2PDiscoveredPeerInfo> | void {
+		const peersCount = this.getPeersCountByKind();
 
-		peersToConnect.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
-			const peerId = constructPeerIdFromPeerInfo(peerInfo);
+		// Trigger new connection only if the maximum of outbound connections has not been reached
+		if (peersCount.outbound < MAX_OUTBOUND_CONNECTIONS) {
+			const peersToConnect = this._peerSelectForConnection(peers);
 
-			return this.addOutboundPeer(peerId, peerInfo);
-		});
+			peersToConnect.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
+				const peerId = constructPeerIdFromPeerInfo(peerInfo);
 
-		return peersToConnect;
+				return this.addOutboundPeer(peerId, peerInfo);
+			});
+
+			return peersToConnect;
+		}
 	}
 
 	public addInboundPeer(

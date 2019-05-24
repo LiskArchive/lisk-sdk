@@ -644,10 +644,10 @@ export class P2P extends EventEmitter {
 			throw new Error('Populator is already running');
 		}
 		this._populatorIntervalId = setInterval(async () => {
-			this._peerPool.selectPeersAndConnect([...this._newPeers.values()]);
+			this._peerPool.triggerPopulator([...this._newPeers.values()]);
 		}, this._populatorInterval);
 
-		this._peerPool.selectPeersAndConnect([...this._newPeers.values()]);
+		this._peerPool.triggerPopulator([...this._newPeers.values()]);
 	}
 
 	private _stopPopulator(): void {
