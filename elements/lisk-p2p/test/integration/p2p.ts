@@ -29,6 +29,8 @@ import {
 describe('Integration tests for P2P library', () => {
 	const NETWORK_START_PORT = 5000;
 	const NETWORK_PEER_COUNT = 10;
+	const DISCOVERY_INTERVAL = 200;
+	const POPULATOR_INTERVAL = 1000;
 	const ALL_NODE_PORTS: ReadonlyArray<number> = [
 		...new Array(NETWORK_PEER_COUNT).keys(),
 	].map(index => NETWORK_START_PORT + index);
@@ -44,6 +46,7 @@ describe('Integration tests for P2P library', () => {
 					connectTimeout: 5000,
 					seedPeers: [],
 					wsEngine: 'ws',
+					populatorInterval: POPULATOR_INTERVAL,
 					nodeInfo: {
 						wsPort: nodePort,
 						nethash:
@@ -94,8 +97,6 @@ describe('Integration tests for P2P library', () => {
 	});
 
 	describe('Partially connected network which becomes fully connected: All nodes launch at the same time. The seedPeers list of each node contains the next node in the sequence. Discovery interval runs multiple times.', () => {
-		const DISCOVERY_INTERVAL = 200;
-
 		beforeEach(async () => {
 			p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				// Each node will have the next node in the sequence as a seed peer.
@@ -117,6 +118,7 @@ describe('Integration tests for P2P library', () => {
 					// Set a different discoveryInterval for each node; that way they don't keep trying to discover each other at the same time.
 					discoveryInterval: DISCOVERY_INTERVAL + index * 11,
 					peerBanTime: 100,
+					populatorInterval: POPULATOR_INTERVAL,
 					nodeInfo: {
 						wsPort: nodePort,
 						nethash:
@@ -413,6 +415,7 @@ describe('Integration tests for P2P library', () => {
 					ackTimeout: 5000,
 					seedPeers,
 					wsEngine: 'ws',
+					populatorInterval: POPULATOR_INTERVAL,
 					nodeInfo: {
 						wsPort: nodePort,
 						nethash:
@@ -924,6 +927,7 @@ describe('Integration tests for P2P library', () => {
 					peerSelectionForConnection,
 					seedPeers,
 					wsEngine: 'ws',
+					populatorInterval: POPULATOR_INTERVAL,
 					nodeInfo: {
 						wsPort: nodePort,
 						nethash:
@@ -1062,8 +1066,6 @@ describe('Integration tests for P2P library', () => {
 	});
 
 	describe('Partially connected network of 4 nodes: All nodes launch at the same time. The custom fields that are passed in nodeinfo is captured by other nodes.', () => {
-		const DISCOVERY_INTERVAL = 200;
-
 		beforeEach(async () => {
 			p2pNodeList = [...Array(4).keys()].map(index => {
 				// Each node will have the next node in the sequence as a seed peer.
@@ -1085,6 +1087,7 @@ describe('Integration tests for P2P library', () => {
 					ackTimeout: 1000,
 					// Set a different discoveryInterval for each node; that way they don't keep trying to discover each other at the same time.
 					discoveryInterval: DISCOVERY_INTERVAL + index * 11,
+					populatorInterval: POPULATOR_INTERVAL,
 					nodeInfo: {
 						wsPort: nodePort,
 						nethash:
