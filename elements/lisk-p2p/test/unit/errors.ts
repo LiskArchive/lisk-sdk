@@ -53,17 +53,12 @@ describe('errors', () => {
 	});
 
 	describe('#RPCResponseError', () => {
-		const peerIp = '127.0.0.1:5001';
-		const peerPort = 5001;
-		const defaultMessage = `Error when fetching peerlist of peer with peer ip ${peerIp} and port ${peerPort}`;
+		const peerId = '127.0.0.1:5001';
+		const defaultMessage = `Error when fetching peerlist of peer with peer Id ${peerId}`;
 		let rpcGetPeersFailed: RPCResponseError;
 
 		beforeEach(async () => {
-			rpcGetPeersFailed = new RPCResponseError(
-				defaultMessage,
-				peerIp,
-				peerPort,
-			);
+			rpcGetPeersFailed = new RPCResponseError(defaultMessage, peerId);
 		});
 
 		it('should create a new instance of RPCResponseError', async () => {
@@ -74,16 +69,10 @@ describe('errors', () => {
 			expect(rpcGetPeersFailed.name).to.eql('RPCResponseError');
 		});
 
-		it('should set error property peer ip when passed as an argument', async () => {
+		it('should set error property peer Id when passed as an argument', async () => {
 			expect(rpcGetPeersFailed)
-				.and.to.have.property('peerIp')
-				.which.is.eql(peerIp);
-		});
-
-		it('should set error property peer port when passed as an argument', async () => {
-			expect(rpcGetPeersFailed)
-				.and.to.have.property('peerPort')
-				.which.is.eql(peerPort);
+				.and.to.have.property('peerId')
+				.which.is.eql(peerId);
 		});
 	});
 
@@ -207,10 +196,20 @@ describe('errors', () => {
 	describe('#RequestFailError', () => {
 		const defaultMessage =
 			'Request failed due to no peers found in peer selection';
+		const errorResponseMessage = 'Invalid block id';
+		const response = new Error(errorResponseMessage);
+		const peerId = '127.0.0.1:4000';
+		const peerVersion = '1.5.0';
+
 		let requestFailError: RequestFailError;
 
 		beforeEach(async () => {
-			requestFailError = new RequestFailError(defaultMessage);
+			requestFailError = new RequestFailError(
+				defaultMessage,
+				response,
+				peerId,
+				peerVersion,
+			);
 		});
 
 		it('should create a new instance of RequestFailError', async () => {
@@ -222,7 +221,16 @@ describe('errors', () => {
 		});
 
 		it('should set error message when passed an argument', async () => {
-			expect(requestFailError.message).to.eql(defaultMessage);
+			expect(requestFailError.message).to.eql(
+				`${defaultMessage}: Peer Id: ${peerId}: Peer Version: ${peerVersion}`,
+			);
+		});
+
+		it('should set response object within this custom error', async () => {
+			expect(requestFailError.response)
+				.to.eql(response)
+				.to.have.property('message')
+				.eql(errorResponseMessage);
 		});
 	});
 });
