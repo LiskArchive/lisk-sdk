@@ -19,12 +19,12 @@ const assert = require('assert');
 class HeadersList {
 	constructor({ size }) {
 		assert(size, 'Must provide size of the queue');
-		this.__items = [];
-		this.__size = size;
+		this._items = [];
+		this._size = size;
 	}
 
 	get items() {
-		return this.__items;
+		return this._items;
 	}
 
 	// eslint-disable-next-line class-methods-use-this
@@ -37,7 +37,7 @@ class HeadersList {
 	}
 
 	get size() {
-		return this.__size;
+		return this._size;
 	}
 
 	set size(newSize) {
@@ -46,7 +46,7 @@ class HeadersList {
 			this.items.splice(0, currentSize - newSize);
 		}
 
-		this.__size = newSize;
+		this._size = newSize;
 	}
 
 	get first() {
@@ -105,7 +105,7 @@ class HeadersList {
 
 	empty() {
 		const items = [...this.items];
-		this.__items = [];
+		this._items = [];
 		return items;
 	}
 }

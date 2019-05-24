@@ -32,8 +32,8 @@ describe('bft', () => {
 
 		describe('constructor()', () => {
 			it('should set set the object attributes', async () => {
-				expect(list.size).to.eql(SIZE);
-				expect(list.items).to.eql([]);
+				expect(list._size).to.eql(SIZE);
+				expect(list._items).to.eql([]);
 			});
 		});
 
