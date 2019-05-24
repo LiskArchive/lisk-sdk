@@ -168,8 +168,8 @@ describe('bft', () => {
 				list.remove();
 				expect(list.items).to.be.eql([header1, header2, header3, header4]);
 			});
-			it('should remove all items upto and including the provided height', async () => {
-				list.remove({ beforeHeight: 2 });
+			it('should remove all items above provided aboveHeight', async () => {
+				list.remove({ aboveHeight: 2 });
 				expect(list.items).to.be.eql([header1, header2]);
 			});
 			it('should return removed items if removed one', async () => {
@@ -178,7 +178,7 @@ describe('bft', () => {
 				expect(removedItems).to.be.eql([header5]);
 			});
 			it('should return removed items if removed multiple', async () => {
-				const removedItems = list.remove({ beforeHeight: 2 });
+				const removedItems = list.remove({ aboveHeight: 2 });
 
 				expect(removedItems).to.be.eql([header3, header4, header5]);
 			});
@@ -213,7 +213,7 @@ describe('bft', () => {
 					.add(header3)
 					.add(header4)
 					.add(header5);
-				myList.remove({ beforeHeight: 1 });
+				myList.remove({ aboveHeight: 1 });
 
 				expect(myList.items).to.be.eql([]);
 			});

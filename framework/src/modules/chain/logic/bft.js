@@ -86,12 +86,12 @@ class HeadersList {
 		return this;
 	}
 
-	remove({ beforeHeight } = {}) {
-		if (!beforeHeight) {
-			beforeHeight = this.last.height - 1;
+	remove({ aboveHeight } = {}) {
+		if (!aboveHeight) {
+			aboveHeight = this.last.height - 1;
 		}
 
-		const removeItemsCount = this.last.height - beforeHeight;
+		const removeItemsCount = this.last.height - aboveHeight;
 
 		if (removeItemsCount < 0 || removeItemsCount >= this.items.length) {
 			return this.items.splice(0, this.items.length);
