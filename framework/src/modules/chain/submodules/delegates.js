@@ -257,7 +257,7 @@ __private.forge = function(cb) {
 	const lastBlock = modules.blocks.lastBlock.get();
 
 	if (currentSlot === slots.getSlotNumber(lastBlock.timestamp)) {
-		library.logger.debug('Block already forged for the current slot');
+		library.logger.trace('Block already forged for the current slot');
 		return setImmediate(cb);
 	}
 
