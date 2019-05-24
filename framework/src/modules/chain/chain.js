@@ -456,13 +456,23 @@ module.exports = class Chain {
 			if (block.transactions.length) {
 				const transactions = block.transactions.reverse();
 				this.transactionPool.onDeletedTransactions(transactions);
+				this.channel.publish(
+					'chain:transactions:confirmed:change',
+					block.transactions
+				);
 			}
+			this.channel.publish('chain:blocks:change', block);
 		});
 
 		this.blocks.on(EVENT_NEW_BLOCK, ({ block }) => {
 			if (block.transactions.length) {
 				this.transactionPool.onConfirmedTransactions(block.transactions);
+				this.channel.publish(
+					'chain:transactions:confirmed:change',
+					block.transactions
+				);
 			}
+			this.channel.publish('chain:blocks:change', block);
 		});
 
 		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {
