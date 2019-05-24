@@ -3,12 +3,12 @@ import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
 import {
-	P2PPeerSelectionForSendRequest,
-	P2PPeerSelectionForSend,
-	P2PPeerSelectionForRequest,
-	P2PNodeInfo,
-	P2PDiscoveredPeerInfo,
-	P2PPeerSelectionForConnection,
+	P2PPeerSelectionForSendFunction,
+	P2PPeerSelectionForRequestFunction,
+	P2PPeerSelectionForConnectionFunction,
+	P2PPeerSelectionForSendInput,
+	P2PPeerSelectionForRequestInput,
+	P2PPeerSelectionForConnectionInput,
 } from '../../src/p2p_types';
 
 describe('Integration tests for P2P library', () => {
@@ -685,11 +685,13 @@ describe('Integration tests for P2P library', () => {
 
 	describe('Connected network: User custom selection algorithm is passed to each node', () => {
 		// Custom selection function that finds peers having common values for modules field for example.
-		const peerSelectionForSendRequest: P2PPeerSelectionForSendRequest = (
-			peersList: ReadonlyArray<P2PDiscoveredPeerInfo>,
-			nodeInfo?: P2PNodeInfo,
-			_numOfPeer?: number,
+		const peerSelectionForSendRequest:
+			| P2PPeerSelectionForSendFunction
+			| P2PPeerSelectionForRequestFunction = (
+			input: P2PPeerSelectionForSendInput | P2PPeerSelectionForRequestInput,
 		) => {
+			const { peers: peersList, nodeInfo } = input;
+
 			const filteredPeers = peersList.filter(peer => {
 				if (nodeInfo && nodeInfo.height <= peer.height) {
 					const nodesModules = nodeInfo.modules
@@ -724,9 +726,9 @@ describe('Integration tests for P2P library', () => {
 			return filteredPeers;
 		};
 		// Custom Peer selection for connection that returns all the peers
-		const peerSelectionForConnection: P2PPeerSelectionForConnection = (
-			peersList: ReadonlyArray<P2PDiscoveredPeerInfo>,
-		) => peersList;
+		const peerSelectionForConnection: P2PPeerSelectionForConnectionFunction = (
+			input: P2PPeerSelectionForConnectionInput,
+		) => input.peers;
 
 		beforeEach(async () => {
 			p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
@@ -748,8 +750,8 @@ describe('Integration tests for P2P library', () => {
 					blacklistedPeers: [],
 					connectTimeout: 5000,
 					ackTimeout: 5000,
-					peerSelectionForSend: peerSelectionForSendRequest as P2PPeerSelectionForSend,
-					peerSelectionForRequest: peerSelectionForSendRequest as P2PPeerSelectionForRequest,
+					peerSelectionForSend: peerSelectionForSendRequest as P2PPeerSelectionForSendFunction,
+					peerSelectionForRequest: peerSelectionForSendRequest as P2PPeerSelectionForRequestFunction,
 					peerSelectionForConnection,
 					seedPeers,
 					wsEngine: 'ws',

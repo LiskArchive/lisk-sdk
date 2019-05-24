@@ -526,7 +526,6 @@ class Transport {
 			postTransaction(query, cb) {
 				__private.receiveTransaction(
 					query.transaction,
-					query.nonce,
 					query.extraLogMessage,
 					(err, id) => {
 						if (err) {
@@ -567,7 +566,6 @@ class Transport {
 						}
 						return __private.receiveTransactions(
 							query.transactions,
-							query.nonce,
 							query.extraLogMessage
 						);
 					}
@@ -624,19 +622,14 @@ __private.receiveSignature = function(signature, cb) {
  * @implements {library.schema.validate}
  * @implements {__private.receiveTransaction}
  * @param {Array} transactions - Array of transactions
- * @param {string} nonce - Peer's nonce
  * @param {string} extraLogMessage - Extra log message
  */
-__private.receiveTransactions = function(
-	transactions = [],
-	nonce,
-	extraLogMessage
-) {
+__private.receiveTransactions = function(transactions = [], extraLogMessage) {
 	transactions.forEach(transaction => {
 		if (transaction) {
 			transaction.bundled = true;
 		}
-		__private.receiveTransaction(transaction, nonce, extraLogMessage, err => {
+		__private.receiveTransaction(transaction, extraLogMessage, err => {
 			if (err) {
 				library.logger.debug(convertErrorsToString(err), transaction);
 			}
@@ -651,7 +644,6 @@ __private.receiveTransactions = function(
  *
  * @private
  * @param {transaction} transaction
- * @param {string} nonce
  * @param {string} extraLogMessage - Extra log message
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, err
@@ -659,7 +651,6 @@ __private.receiveTransactions = function(
  */
 __private.receiveTransaction = async function(
 	transactionJSON,
-	nonce,
 	extraLogMessage,
 	cb
 ) {
@@ -696,15 +687,7 @@ __private.receiveTransaction = async function(
 	}
 
 	return library.balancesSequence.add(async balancesSequenceCb => {
-		if (!nonce) {
-			library.logger.debug(
-				`Received transaction ${transaction.id} from public client`
-			);
-		} else {
-			library.logger.debug(
-				`Received transaction ${transaction.id} from network`
-			);
-		}
+		library.logger.debug(`Received transaction ${transaction.id}`);
 
 		try {
 			await modules.transactionPool.processUnconfirmedTransaction(
