@@ -54,7 +54,7 @@ function blockToJSON(block) {
 
 function createBlock(library, transactions, timestamp, keypair, previousBlock) {
 	transactions = transactions.map(transaction =>
-		library.logic.initTransaction.fromJson(transaction)
+		library.modules.interfaceAdapters.transactions.fromJson(transaction)
 	);
 	const block = library.logic.block.create({
 		keypair,
@@ -176,48 +176,45 @@ function deleteLastBlock(library, cb) {
 }
 
 function fillPool(library, cb) {
-	const transactionPool = library.rewiredModules.transactions.__get__(
-		'__private.transactionPool'
-	);
-	transactionPool.fillPool(cb);
+	library.modules.transactionPool
+		.fillPool()
+		.then(() => cb())
+		.catch(err => cb(err));
 }
 
 function addTransaction(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
 	__testContext.debug(`	Add transaction ID: ${transaction.id}`);
-	transaction = library.logic.initTransaction.fromJson(transaction);
-	library.balancesSequence.add(sequenceCb => {
-		library.modules.transactions.processUnconfirmedTransaction(
-			transaction,
-			true,
-			err => {
-				if (err) {
-					return setImmediate(sequenceCb, err.toString());
-				}
-				return setImmediate(sequenceCb, null, transaction.id);
-			}
-		);
+	transaction = library.modules.interfaceAdapters.transactions.fromJson(
+		transaction
+	);
+	library.balancesSequence.add(async sequenceCb => {
+		try {
+			await library.modules.transactionPool.processUnconfirmedTransaction(
+				transaction
+			);
+			setImmediate(sequenceCb, null, transaction.id);
+		} catch (err) {
+			setImmediate(sequenceCb, err.toString());
+		}
 	}, cb);
 }
 
 function addTransactionToUnconfirmedQueue(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
-	transaction = library.logic.initTransaction.fromJson(transaction);
-	library.modules.transactions.processUnconfirmedTransaction(
-		transaction,
-		true,
-		err => {
-			if (err) {
-				return setImmediate(cb, err.toString());
-			}
-			const transactionPool = library.rewiredModules.transactions.__get__(
-				'__private.transactionPool'
-			);
-			return transactionPool.fillPool(cb);
-		}
+	transaction = library.modules.interfaceAdapters.transactions.fromJson(
+		transaction
 	);
+	library.modules.transactionPool
+		.processUnconfirmedTransaction(transaction)
+		.then(() => {
+			return library.modules.transactionPool
+				.fillPool()
+				.finally(() => setImmediate(cb));
+		})
+		.catch(err => setImmediate(cb, err.toString()));
 }
 
 function addTransactionsAndForge(library, transactions, forgeDelay, cb) {
@@ -271,29 +268,41 @@ function getAccountFromDb(library, address) {
 }
 
 function getTransactionFromModule(library, filter, cb) {
-	library.modules.transactions.getTransactions(filter, (err, res) => {
-		cb(err, res);
-	});
+	Promise.all([
+		library.components.storage.entities.Transaction.get(filter),
+		library.components.storage.entities.Transaction.count(filter),
+	])
+		.then(([data, count]) => {
+			cb(null, {
+				transactions: data,
+				count,
+			});
+		})
+		.catch(err => cb(err));
 }
 
 function getUnconfirmedTransactionFromModule(library, filter, cb) {
-	library.modules.transactions.shared.getTransactionsFromPool(
-		'ready',
-		filter,
-		(err, res) => {
-			cb(err, res);
-		}
-	);
+	try {
+		const res = library.modules.transactionPool.getPooledTransactions(
+			'ready',
+			filter
+		);
+		return setImmediate(cb, null, res);
+	} catch (err) {
+		return setImmediate(cb, null);
+	}
 }
 
 function getMultisignatureTransactions(library, filter, cb) {
-	library.modules.transactions.shared.getTransactionsFromPool(
-		'pending',
-		filter,
-		(err, res) => {
-			cb(err, res);
-		}
-	);
+	try {
+		const res = library.modules.transactionPool.getPooledTransactions(
+			'pending',
+			filter
+		);
+		return setImmediate(cb, null, res);
+	} catch (err) {
+		return setImmediate(cb, null);
+	}
 }
 
 function beforeBlock(type, cb) {
@@ -380,10 +389,7 @@ function loadTransactionType(key, account, dapp, secondPassphrase, cb) {
 }
 
 function transactionInPool(library, transactionId) {
-	const transactionPool = library.rewiredModules.transactions.__get__(
-		'__private.transactionPool'
-	);
-	return transactionPool.transactionInPool(transactionId);
+	return library.modules.transactionPool.transactionInPool(transactionId);
 }
 
 module.exports = {

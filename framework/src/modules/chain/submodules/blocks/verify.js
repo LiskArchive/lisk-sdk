@@ -20,7 +20,7 @@ const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const BlockReward = require('../../logic/block_reward');
 const slots = require('../../helpers/slots');
 const blockVersion = require('../../logic/block_version');
-const checkTransactionExceptions = require('../../logic/check_transaction_against_exceptions.js');
+const transactionsModule = require('../../transactions');
 const Bignum = require('../../helpers/bignum');
 
 let modules;
@@ -355,8 +355,7 @@ class Verify {
 		modules = {
 			blocks: scope.modules.blocks,
 			rounds: scope.modules.rounds,
-			transactions: scope.modules.transactions,
-			processTransactions: scope.modules.processTransactions,
+			transactionPool: scope.modules.transactionPool,
 		};
 
 		// Set module as loaded
@@ -397,7 +396,9 @@ __private.checkTransactions = async (block, checkExists) => {
 		);
 
 		if (persistedTransactions.length > 0) {
-			modules.transactions.onConfirmedTransactions([persistedTransactions[0]]);
+			modules.transactionPool.onConfirmedTransactions([
+				persistedTransactions[0],
+			]);
 			throw new Error(
 				`Transaction is already confirmed: ${persistedTransactions[0].id}`
 			);
@@ -406,11 +407,11 @@ __private.checkTransactions = async (block, checkExists) => {
 
 	const nonInertTransactions = transactions.filter(
 		transaction =>
-			!checkTransactionExceptions.checkIfTransactionIsInert(transaction)
+			!transactionsModule.checkIfTransactionIsInert(transaction, exceptions)
 	);
 
-	const nonAllowedTxResponses = modules.processTransactions
-		.checkAllowedTransactions(nonInertTransactions, context)
+	const nonAllowedTxResponses = transactionsModule
+		.checkAllowedTransactions(context)(nonInertTransactions)
 		.transactionsResponses.find(
 			transactionResponse => transactionResponse.status !== TransactionStatus.OK
 		);
@@ -419,11 +420,11 @@ __private.checkTransactions = async (block, checkExists) => {
 		throw nonAllowedTxResponses.errors;
 	}
 
-	const {
-		transactionsResponses,
-	} = await modules.processTransactions.verifyTransactions(
-		nonInertTransactions
-	);
+	const { transactionsResponses } = await transactionsModule.verifyTransactions(
+		library.storage,
+		slots,
+		exceptions
+	)(nonInertTransactions);
 
 	const unverifiableTransactionsResponse = transactionsResponses.filter(
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK

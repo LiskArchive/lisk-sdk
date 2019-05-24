@@ -14,10 +14,10 @@
 
 'use strict';
 
-const _ = require('lodash');
+const { omitBy, isNull } = require('lodash');
 
-class Transaction {
-	constructor({ registeredTransactions = {} }) {
+class TransactionInterfaceAdapter {
+	constructor(registeredTransactions = {}) {
 		this.transactionClassMap = new Map();
 		Object.keys(registeredTransactions).forEach(transactionType => {
 			this.transactionClassMap.set(
@@ -65,8 +65,10 @@ class Transaction {
 
 		const transactionJSON = new TransactionClass().fromSync(raw);
 
-		return this.fromJson(_.omitBy(transactionJSON, _.isNull));
+		return this.fromJson(omitBy(transactionJSON, isNull));
 	}
 }
 
-module.exports = Transaction;
+module.exports = {
+	TransactionInterfaceAdapter,
+};

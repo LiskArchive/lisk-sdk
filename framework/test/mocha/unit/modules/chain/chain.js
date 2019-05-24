@@ -53,6 +53,7 @@ describe('Chain', () => {
 		};
 		stubs.bus = {
 			message: sinonSandbox.stub(),
+			registerModules: sinonSandbox.stub(),
 		};
 
 		stubs.logic = {
@@ -70,6 +71,11 @@ describe('Chain', () => {
 			},
 			module2: {
 				cleanup: sinonSandbox.stub().resolves('module2cleanup'),
+			},
+			blocks: {
+				lastBlock: {
+					get: sinonSandbox.stub(),
+				},
 			},
 		};
 
@@ -295,20 +301,12 @@ describe('Chain', () => {
 		});
 
 		it('should init modules object and assign to scope.modules', () => {
-			expect(stubs.initSteps.initModules).to.have.been.calledWith(chain.scope);
-			return expect(chain.scope.modules).to.be.equal(stubs.modules);
-		});
-
-		it('should bind modules with scope.logic.block', () => {
-			return expect(
-				chain.scope.logic.block.bindModules
-			).to.have.been.calledWith(stubs.modules);
+			return expect(stubs.initSteps.initModules).to.have.been.calledOnce;
 		});
 
 		it('should bind modules with scope.logic.account', () => {
-			return expect(
-				chain.scope.logic.account.bindModules
-			).to.have.been.calledWith(stubs.modules);
+			return expect(chain.scope.logic.account.bindModules).to.have.been
+				.calledOnce;
 		});
 
 		it('should subscribe to "app:state:updated" event', () => {

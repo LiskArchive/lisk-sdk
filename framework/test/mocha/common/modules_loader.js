@@ -22,9 +22,9 @@ const { createLoggerComponent } = require('../../../src/components/logger');
 const { ZSchema } = require('../../../src/controller/validator');
 const ed = require('../../../src/modules/chain/helpers/ed');
 const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
-const InitTransaction = require('../../../src/modules/chain/logic/init_transaction');
 const Account = require('../../../src/modules/chain/logic/account');
 
+// TODO: Remove this file
 const modulesLoader = new function() {
 	this.storage = null;
 	this.logger = createLoggerComponent(__testContext.config.components.logger);
@@ -104,9 +104,6 @@ const modulesLoader = new function() {
 					cb
 				);
 				break;
-			case 'InitTransaction':
-				new Logic(cb);
-				break;
 			case 'Block':
 				async.waterfall(
 					[
@@ -118,13 +115,9 @@ const modulesLoader = new function() {
 								waterCb
 							);
 						},
-						function(account, waterCb) {
-							const initTransaction = new InitTransaction({});
-							return waterCb(null, initTransaction);
-						},
 					],
-					(err, transaction) => {
-						new Logic(scope.ed, scope.schema, transaction, cb);
+					() => {
+						new Logic(scope.ed, scope.schema, this.transactions, cb);
 					}
 				);
 				break;
@@ -224,22 +217,13 @@ const modulesLoader = new function() {
 					delegates: require('../../../src/modules/chain/rounds/delegates'),
 				},
 				{ loader: require('../../../src/modules/chain/loader') },
-				{
-					multisignatures: require('../../../src/modules/chain/submodules/multisignatures'),
-				},
 				{ peers: require('../../../src/modules/chain/submodules/peers') },
 				{ rounds: require('../../../src/modules/chain/rounds/rounds') },
-				{
-					transactions: require('../../../src/modules/chain/submodules/transactions'),
-				},
 				{
 					transport: require('../../../src/modules/chain/transport'),
 				},
 			],
 			[
-				{
-					initTransaction: require('../../../src/modules/chain/logic/init_transaction'),
-				},
 				{ account: require('../../../src/modules/chain/logic/account') },
 				{ block: require('../../../src/modules/chain/logic/block') },
 			],

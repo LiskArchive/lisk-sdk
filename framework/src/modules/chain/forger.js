@@ -276,15 +276,8 @@ class Forger {
 	 * @todo Add description for the return value
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	beforeForge() {
-		return new Promise((resolve, reject) => {
-			modules.transactions.fillPool(err => {
-				if (err) {
-					return reject(err);
-				}
-				return resolve();
-			});
-		});
+	async beforeForge() {
+		await modules.transactionPool.fillPool();
 	}
 
 	/**
@@ -412,7 +405,7 @@ class Forger {
 		modules = {
 			blocks: scope.modules.blocks,
 			peers: scope.modules.peers,
-			transactions: scope.modules.transactions,
+			transactionPool: scope.modules.transactionPool,
 			rounds: scope.modules.rounds,
 		};
 	}

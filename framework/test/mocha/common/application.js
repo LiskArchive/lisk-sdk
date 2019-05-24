@@ -23,6 +23,7 @@ const { registeredTransactions } = require('./registered_transactions');
 const ed = require('../../../src/modules/chain/helpers/ed');
 const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
 const Sequence = require('../../../src/modules/chain/helpers/sequence');
+const { BlockSlots } = require('../../../src/modules/chain/logic/block_slots');
 const { createCacheComponent } = require('../../../src/components/cache');
 const { StorageSandbox } = require('./storage_sandbox');
 const { ZSchema } = require('../../../src/controller/validator');
@@ -33,11 +34,7 @@ let currentAppScope;
 
 const modulesInit = {
 	blocks: '../../../src/modules/chain/submodules/blocks',
-	multisignatures: '../../../src/modules/chain/submodules/multisignatures',
 	peers: '../../../src/modules/chain/submodules/peers',
-	transactions: '../../../src/modules/chain/submodules/transactions',
-	processTransactions:
-		'../../../src/modules/chain/submodules/process_transactions.js',
 };
 
 function init(options, cb) {
@@ -171,7 +168,6 @@ async function __init(sandbox, initScope) {
 		scope.modules = await initStepsForTest.initModules(scope);
 
 		// Ready to bind modules
-		scope.logic.block.bindModules(scope.modules);
 		scope.logic.account.bindModules(scope.modules);
 
 		// Fire onBind event in every module
@@ -241,15 +237,56 @@ const initStepsForTest = {
 	initModules: async scope => {
 		const tasks = {};
 		scope.rewiredModules = {};
+		const modules = {};
+
 		Object.keys(modulesInit).forEach(name => {
 			tasks[name] = function(tasksCb) {
 				const Instance = rewire(modulesInit[name]);
 				scope.rewiredModules[name] = Instance;
-				return new Instance(tasksCb, scope);
+				modules[name] = new Instance(tasksCb, scope);
 			};
 		});
 
-		const modules = await promisifyParallel(tasks);
+		const {
+			TransactionInterfaceAdapter: RewiredTransactionInterfaceAdapter,
+		} = rewire('../../../src/modules/chain/interface_adapters');
+
+		scope.rewiredModules.interfaceAdapters = {};
+		scope.rewiredModules.interfaceAdapters.transactions = RewiredTransactionInterfaceAdapter;
+		const slots = new BlockSlots({
+			epochTime: __testContext.config.constants.EPOCH_TIME,
+			interval: __testContext.config.constants.BLCOK_TIME,
+			blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
+		});
+		modules.interfaceAdapters = {};
+		modules.interfaceAdapters.transactions = new RewiredTransactionInterfaceAdapter(
+			__testContext.config.modules.chain.registeredTransactions
+		);
+		scope.modules = scope.modules || {};
+		scope.modules = modules;
+		await promisifyParallel(tasks);
+		const { TransactionPool: RewiredTransactionPool } = rewire(
+			'../../../src/modules/chain/transaction_pool'
+		);
+		scope.rewiredModules.transactionPool = RewiredTransactionPool;
+		modules.transactionPool = new RewiredTransactionPool({
+			storage: scope.components.storage,
+			slots,
+			blocks: scope.modules.blocks,
+			exceptions: __testContext.config.modules.chain.exceptions,
+			logger: scope.components.logger,
+			maxTransactionsPerQueue:
+				__testContext.config.modules.chain.transactions.maxTransactionsPerQueue,
+			expireTransactionsInterval:
+				__testContext.config.constants.EXPIRY_INTERVAL,
+			maxTransactionsPerBlock:
+				__testContext.config.constants.MAX_TRANSACTIONS_PER_BLOCK,
+			maxSharedTransactions:
+				__testContext.config.constants.MAX_SHARED_TRANSACTIONS,
+			broadcastInterval:
+				__testContext.config.modules.chain.broadcasts.broadcastInterval,
+			releaseLimit: __testContext.config.modules.chain.broadcasts.releaseLimit,
+		});
 		// TODO: remove rewiring
 		const RewiredLoader = rewire('../../../src/modules/chain/loader');
 		scope.rewiredModules.loader = RewiredLoader;

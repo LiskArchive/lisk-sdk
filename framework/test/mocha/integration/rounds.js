@@ -736,9 +736,7 @@ describe('rounds', () => {
 			});
 
 			it('transactions from deleted block should be added back to transaction pool', done => {
-				const transactionPool = library.rewiredModules.transactions.__get__(
-					'__private.transactionPool'
-				);
+				const transactionPool = library.modules.transactionPool;
 
 				_.each(lastBlock.transactions, transaction => {
 					// Transaction should be present in transaction pool
@@ -839,9 +837,7 @@ describe('rounds', () => {
 			});
 			// eslint-disable-next-line
 			it('transactions from deleted block should be added back to transaction pool', done => {
-				const transactionPool = library.rewiredModules.transactions.__get__(
-					'__private.transactionPool'
-				);
+				const transactionPool = library.modules.transactionPool;
 
 				_.each(lastBlock.transactions, transaction => {
 					// Transaction should be present in transaction pool
@@ -973,9 +969,7 @@ describe('rounds', () => {
 					});
 					transactions.vote.push(transaction);
 
-					const transactionPool = library.rewiredModules.transactions.__get__(
-						'__private.transactionPool'
-					);
+					const transactionPool = library.modules.transactionPool;
 					// Delete two blocks more
 					lastBlock = library.modules.blocks.lastBlock.get();
 					deleteLastBlockPromise()
@@ -1112,9 +1106,7 @@ describe('rounds', () => {
 				const transactionsPerBlock = 1;
 
 				before(done => {
-					const transactionPool = library.rewiredModules.transactions.__get__(
-						'__private.transactionPool'
-					);
+					const transactionPool = library.modules.transactionPool;
 					transactionPool.resetPool();
 
 					// Set expected reward per block
@@ -1168,9 +1160,7 @@ describe('rounds', () => {
 				const transactionsPerBlock = 1;
 
 				before(done => {
-					const transactionPool = library.rewiredModules.transactions.__get__(
-						'__private.transactionPool'
-					);
+					const transactionPool = library.modules.transactionPool;
 					transactionPool.resetPool();
 
 					// Set expected reward per block as first milestone

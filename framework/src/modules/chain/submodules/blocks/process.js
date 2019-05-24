@@ -17,6 +17,7 @@
 const _ = require('lodash');
 const async = require('async');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const transactionsModule = require('../../transactions');
 const { convertErrorsToString } = require('../../helpers/error_handlers');
 const slots = require('../../helpers/slots');
 const definitions = require('../../schema/definitions');
@@ -28,6 +29,8 @@ const __private = {};
 let modules;
 let library;
 let self;
+
+const exceptions = global.exceptions;
 
 /**
  * Main process logic. Allows process blocks. Initializes library.
@@ -57,8 +60,7 @@ class Process {
 		storage,
 		sequence,
 		genesisBlock,
-		channel,
-		initTransaction
+		channel
 	) {
 		library = {
 			channel,
@@ -70,7 +72,6 @@ class Process {
 			logic: {
 				block,
 				peers,
-				initTransaction,
 			},
 		};
 		self = this;
@@ -295,7 +296,7 @@ class Process {
 	generateBlock(keypair, timestamp, cb) {
 		// Get transactions that will be included in block
 		const transactions =
-			modules.transactions.getUnconfirmedTransactionList(
+			modules.transactionPool.getUnconfirmedTransactionList(
 				false,
 				MAX_TRANSACTIONS_PER_BLOCK
 			) || [];
@@ -306,8 +307,8 @@ class Process {
 			blockVersion: blockVersion.currentBlockVersion,
 		};
 
-		const allowedTransactionsIds = modules.processTransactions
-			.checkAllowedTransactions(transactions, context)
+		const allowedTransactionsIds = transactionsModule
+			.checkAllowedTransactions(context)(transactions)
 			.transactionsResponses.filter(
 				transactionResponse =>
 					transactionResponse.status === TransactionStatus.OK
@@ -318,8 +319,10 @@ class Process {
 			allowedTransactionsIds.includes(transaction.id)
 		);
 
-		modules.processTransactions
-			.verifyTransactions(allowedTransactions)
+		transactionsModule
+			.verifyTransactions(library.storage, slots, exceptions)(
+				allowedTransactions
+			)
 			.then(({ transactionsResponses: responses }) => {
 				const readyTransactions = transactions.filter(transaction =>
 					responses
@@ -418,8 +421,7 @@ class Process {
 		modules = {
 			blocks: scope.modules.blocks,
 			rounds: scope.modules.rounds,
-			transactions: scope.modules.transactions,
-			processTransactions: scope.modules.processTransactions,
+			transactionPool: scope.modules.transactionPool,
 		};
 
 		// Set module as loaded

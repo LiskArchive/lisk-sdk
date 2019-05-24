@@ -122,7 +122,7 @@ function createRawBlock(library, rawTransactions, callback) {
 	const slot = slots.getSlotNumber();
 	const keypairs = library.modules.forger.getForgersKeyPairs();
 	const transactions = rawTransactions.map(rawTransaction =>
-		library.logic.initTransaction.fromJson(rawTransaction)
+		library.modules.interfaceAdapters.transactions.fromJson(rawTransaction)
 	);
 
 	return getDelegateForSlot(library, slot, (err, delegateKey) => {
@@ -150,7 +150,7 @@ function setMatcherAndRegisterTx(scope, transactionClass, matcher) {
 		configurable: true,
 	});
 
-	scope.logic.initTransaction.transactionClassMap.set(
+	scope.modules.interfaceAdapters.transactions.transactionClassMap.set(
 		CUSTOM_TRANSACTION_TYPE,
 		CustomTransationClass
 	);
@@ -193,13 +193,11 @@ describe('matcher', () => {
 		be bigger than 7, so for this tests transaction type 7 can be removed from
 		registered transactions map so the CustomTransaction can be added with that
 		id. Type 7 is not used anyways. */
-		scope.logic.initTransaction.transactionClassMap.delete(7);
+		scope.modules.interfaceAdapters.transactions.transactionClassMap.delete(7);
 		receiveTransaction = scope.rewiredModules.transport.__get__(
 			'__private.receiveTransaction'
 		);
-		transactionPool = scope.rewiredModules.transactions.__get__(
-			'__private.transactionPool'
-		);
+		transactionPool = scope.modules.transactionPool;
 
 		// Define matcher property to be configurable so it can be overriden in the tests
 		setMatcherAndRegisterTx(scope, CustomTransationClass, () => {});
@@ -212,7 +210,7 @@ describe('matcher', () => {
 	afterEach(async () => {
 		// Delete the custom transaction type from the registered transactions list
 		// So it can be registered again with the same type and maybe a different implementation in a different test.
-		scope.logic.initTransaction.transactionClassMap.delete(
+		scope.modules.interfaceAdapters.transactions.transactionClassMap.delete(
 			CUSTOM_TRANSACTION_TYPE
 		);
 
@@ -247,8 +245,9 @@ describe('matcher', () => {
 			// Act: simulate receiving transactions from another peer
 			receiveTransaction(rawTransaction, null, err => {
 				// Assert
-				expect(scope.modules.transactions.transactionInPool(rawTransaction.id))
-					.to.be.false;
+				expect(
+					scope.modules.transactionPool.transactionInPool(rawTransaction.id)
+				).to.be.false;
 				expect(err[0]).to.be.instanceOf(Error);
 				expect(err[0].message).to.equal(
 					`Transaction type ${CUSTOM_TRANSACTION_TYPE} is currently not allowed.`
@@ -266,8 +265,9 @@ describe('matcher', () => {
 			// Act
 			receiveTransaction(jsonTransaction, null, err => {
 				// Assert
-				expect(scope.modules.transactions.transactionInPool(jsonTransaction.id))
-					.to.be.true;
+				expect(
+					scope.modules.transactionPool.transactionInPool(jsonTransaction.id)
+				).to.be.true;
 				expect(err).to.be.null;
 				done();
 			});
