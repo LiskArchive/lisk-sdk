@@ -88,7 +88,7 @@ class TransactionPool extends EventEmitter {
 		);
 		this.verifyTransactions = transactionsModule.composeTransactionSteps(
 			transactionsModule.checkAllowedTransactions(() => {
-				const { version, height, timestamp } = this.blocks.lastBlock.get();
+				const { version, height, timestamp } = this.blocks.lastBlock;
 				return {
 					blockVersion: version,
 					blockHeight: height,
