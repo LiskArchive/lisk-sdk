@@ -162,12 +162,10 @@ describe('WS transport blocks', () => {
 			} catch (err) {
 				__testContext.debug(
 					'> Error / Response:'.grey,
-					JSON.stringify(err.errorResponse),
+					JSON.stringify(err.response),
 					JSON.stringify(res)
 				);
-				expect(err.errorResponse).to.equal(
-					'Missing required property: ids: #/'
-				);
+				expect(err.response).to.equal('Missing required property: ids: #/');
 				expect(res).to.be.undefined;
 			}
 		});
@@ -182,10 +180,10 @@ describe('WS transport blocks', () => {
 			} catch (err) {
 				__testContext.debug(
 					'> Error / Response:'.grey,
-					JSON.stringify(err.errorResponse),
+					JSON.stringify(err.response),
 					JSON.stringify(res)
 				);
-				expect(err.errorResponse).to.equal('Invalid block id sequence');
+				expect(err.response).to.equal('Invalid block id sequence');
 			}
 		});
 
@@ -199,10 +197,10 @@ describe('WS transport blocks', () => {
 			} catch (err) {
 				__testContext.debug(
 					'> Error / Response:'.grey,
-					JSON.stringify(err.errorResponse),
+					JSON.stringify(err.response),
 					JSON.stringify(res)
 				);
-				expect(err.errorResponse).to.equal('Invalid block id sequence');
+				expect(err.response).to.equal('Invalid block id sequence');
 			}
 		});
 
@@ -216,10 +214,10 @@ describe('WS transport blocks', () => {
 			} catch (err) {
 				__testContext.debug(
 					'> Error / Response:'.grey,
-					JSON.stringify(err.errorResponse),
+					JSON.stringify(err.response),
 					JSON.stringify(res)
 				);
-				expect(err.errorResponse).to.equal('Invalid block id sequence');
+				expect(err.response).to.equal('Invalid block id sequence');
 			}
 		});
 
@@ -233,10 +231,10 @@ describe('WS transport blocks', () => {
 			} catch (err) {
 				__testContext.debug(
 					'> Error / Response:'.grey,
-					JSON.stringify(err.errorResponse),
+					JSON.stringify(err.response),
 					JSON.stringify(res)
 				);
-				expect(err.errorResponse).to.equal('Invalid block id sequence');
+				expect(err.response).to.equal('Invalid block id sequence');
 			}
 		});
 

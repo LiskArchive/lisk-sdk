@@ -395,7 +395,7 @@ export class Peer extends EventEmitter {
 							// Wrap response error within the a new custom error and add peer id and version info
 							reject(
 								new RequestFailError(
-									err.message,
+									err instanceof Error ? err.message : err,
 									err,
 									constructPeerIdFromPeerInfo(this._peerInfo),
 									this._peerInfo.version,

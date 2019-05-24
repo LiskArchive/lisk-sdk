@@ -197,7 +197,7 @@ describe('errors', () => {
 		const defaultMessage =
 			'Request failed due to no peers found in peer selection';
 		const errorResponseMessage = 'Invalid block id';
-		const errorResponse = new Error(errorResponseMessage);
+		const response = new Error(errorResponseMessage);
 		const peerId = '127.0.0.1:4000';
 		const peerVersion = '1.5.0';
 
@@ -206,7 +206,7 @@ describe('errors', () => {
 		beforeEach(async () => {
 			requestFailError = new RequestFailError(
 				defaultMessage,
-				errorResponse,
+				response,
 				peerId,
 				peerVersion,
 			);
@@ -226,9 +226,9 @@ describe('errors', () => {
 			);
 		});
 
-		it('should set errorResponse object within this custom error', async () => {
-			expect(requestFailError.errorResponse)
-				.to.eql(errorResponse)
+		it('should set response object within this custom error', async () => {
+			expect(requestFailError.response)
+				.to.eql(response)
 				.to.have.property('message')
 				.eql(errorResponseMessage);
 		});
