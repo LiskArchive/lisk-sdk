@@ -139,11 +139,10 @@ export class OutboundPeer extends Peer {
 	}
 
 	public disconnect(code: number = 1000, reason?: string): void {
-		if (!this._socket) {
-			throw new Error('Peer socket does not exist');
+		if (this._socket) {
+			this._socket.destroy(code, reason);
+			this._unbindHandlersFromOutboundSocket(this._socket);
 		}
-		this._socket.destroy(code, reason);
-		this._unbindHandlersFromOutboundSocket(this._socket);
 	}
 
 	// All event handlers for the outbound socket should be bound in this method.
