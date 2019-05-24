@@ -388,7 +388,9 @@ export class PeerPool extends EventEmitter {
 		return discoveredPeers;
 	}
 
-	public triggerPopulator(peers: ReadonlyArray<P2PDiscoveredPeerInfo>): void {
+	public triggerNewConnection(
+		peers: ReadonlyArray<P2PDiscoveredPeerInfo>,
+	): void {
 		const peersCount = this.getPeersCountByKind();
 
 		// Trigger new connection only if the maximum of outbound connections has not been reached
