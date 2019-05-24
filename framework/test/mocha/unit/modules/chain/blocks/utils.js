@@ -124,196 +124,10 @@ describe('blocks/utils', () => {
 		},
 	];
 
-	const storageBlocksListRowsParsed = [
-		{
-			b_blockSignature: null,
-			b_generatorPublicKey:
-				'a24416a05bef8874fb1c638105d892162f7d5736b7a2deda318e976fd80f64e9',
-			b_height: 3,
-			b_id: '13068833527549895884',
-			b_numberOfTransactions: null,
-			b_payloadHash: null,
-			b_payloadLength: null,
-			b_previousBlock: null,
-			b_reward: null,
-			b_timestamp: null,
-			b_totalAmount: null,
-			b_totalFee: null,
-			b_version: 0,
-			d_username: null,
-			dapp_category: 0,
-			dapp_description: 'my app desc',
-			dapp_icon: 'app.icon',
-			dapp_link: 'app-link.com',
-			dapp_name: 'App Name',
-			dapp_tags: null,
-			dapp_type: 0,
-			in_dappId: null,
-			m_keysgroup: null,
-			m_lifetime: null,
-			m_min: null,
-			ot_dappId: null,
-			ot_outTransactionId: null,
-			s_publicKey: null,
-			t_amount: null,
-			t_fee: null,
-			t_id: '6950874693022090568',
-			t_recipientId: null,
-			t_requesterPublicKey: null,
-			t_senderId: null,
-			t_senderPublicKey: null,
-			t_signSignature: null,
-			t_signature: null,
-			t_signatures: null,
-			t_timestamp: null,
-			t_type: 5,
-			tf_data: null,
-			v_votes: null,
-		},
-		{
-			b_blockSignature: null,
-			b_generatorPublicKey:
-				'a24416a05bef8874fb1c638105d892162f7d5736b7a2deda318e976fd80f64e9',
-			b_height: 3,
-			b_id: '13068833527549895884',
-			b_numberOfTransactions: null,
-			b_payloadHash: null,
-			b_payloadLength: null,
-			b_previousBlock: null,
-			b_reward: null,
-			b_timestamp: null,
-			b_totalAmount: null,
-			b_totalFee: null,
-			b_version: 0,
-			d_username: null,
-			dapp_category: null,
-			dapp_description: null,
-			dapp_icon: null,
-			dapp_link: null,
-			dapp_name: null,
-			dapp_tags: null,
-			dapp_type: null,
-			in_dappId: null,
-			m_keysgroup: null,
-			m_lifetime: null,
-			m_min: null,
-			ot_dappId: null,
-			ot_outTransactionId: null,
-			s_publicKey: null,
-			t_amount: null,
-			t_fee: null,
-			t_id: '13831767660337349834',
-			t_recipientId: null,
-			t_requesterPublicKey: null,
-			t_senderId: null,
-			t_senderPublicKey: null,
-			t_signSignature: null,
-			t_signature: null,
-			t_signatures: null,
-			t_timestamp: null,
-			t_type: 1,
-			tf_data: null,
-			v_votes: null,
-		},
-		{
-			b_blockSignature: null,
-			b_generatorPublicKey:
-				'a24416a05bef8874fb1c638105d892162f7d5736b7a2deda318e976fd80f64e9',
-			b_height: 4,
-			b_id: '7018883617995376402',
-			b_numberOfTransactions: null,
-			b_payloadHash: null,
-			b_payloadLength: null,
-			b_previousBlock: null,
-			b_reward: null,
-			b_timestamp: null,
-			b_totalAmount: null,
-			b_totalFee: null,
-			b_version: 1,
-			d_username: null,
-			dapp_category: null,
-			dapp_description: null,
-			dapp_icon: null,
-			dapp_link: null,
-			dapp_name: null,
-			dapp_tags: null,
-			dapp_type: null,
-			in_dappId: null,
-			m_keysgroup: null,
-			m_lifetime: null,
-			m_min: null,
-			ot_dappId: null,
-			ot_outTransactionId: null,
-			s_publicKey: null,
-			t_amount: null,
-			t_fee: null,
-			t_id: '10550826199952791739',
-			t_recipientId: null,
-			t_requesterPublicKey: null,
-			t_senderId: null,
-			t_senderPublicKey: null,
-			t_signSignature: null,
-			t_signature: null,
-			t_signatures: null,
-			t_timestamp: null,
-			t_type: 2,
-			tf_data: null,
-			v_votes: null,
-		},
-		{
-			b_blockSignature: null,
-			b_generatorPublicKey:
-				'a24416a05bef8874fb1c638105d892162f7d5736b7a2deda318e976fd80f64e9',
-			b_height: 4,
-			b_id: '7018883617995376402',
-			b_numberOfTransactions: null,
-			b_payloadHash: null,
-			b_payloadLength: null,
-			b_previousBlock: null,
-			b_reward: null,
-			b_timestamp: null,
-			b_totalAmount: null,
-			b_totalFee: null,
-			b_version: 1,
-			d_username: null,
-			dapp_category: null,
-			dapp_description: null,
-			dapp_icon: null,
-			dapp_link: null,
-			dapp_name: null,
-			dapp_tags: null,
-			dapp_type: null,
-			in_dappId: null,
-			m_keysgroup: null,
-			m_lifetime: null,
-			m_min: null,
-			ot_dappId: null,
-			ot_outTransactionId: null,
-			s_publicKey: null,
-			t_amount: null,
-			t_fee: null,
-			t_id: '3502881310841638511',
-			t_recipientId: null,
-			t_requesterPublicKey: null,
-			t_senderId: null,
-			t_senderPublicKey: null,
-			t_signSignature: null,
-			t_signature: null,
-			t_signatures: null,
-			t_timestamp: null,
-			t_type: 3,
-			tf_data: null,
-			v_votes: null,
-		},
-	];
-
 	const lastBlock = { id: '9314232245035524467', height: 1 };
 
 	let storageStub;
-	let blockMock;
-	let transactionMock;
-	let accountStub;
-	let bindingsStub;
+	let interfaceAdaptersMock;
 
 	beforeEach(async () => {
 		storageStub = {
@@ -323,31 +137,23 @@ describe('blocks/utils', () => {
 				},
 				Block: {
 					get: sinonSandbox.stub().resolves(['1']),
-					getFirstBlockIdOfLastRounds: sinonSandbox.stub().resolves(storageBlocksListRows),
+					getFirstBlockIdOfLastRounds: sinonSandbox
+						.stub()
+						.resolves([...storageBlocksListRows]),
 				},
 			},
 		};
 
-		transactionMock = {
-			dbRead(input) {
-				return { id: input.t_id, type: input.t_type };
-			},
-			fromBlock(input) {
-				return input;
+		interfaceAdaptersMock = {
+			transactions: {
+				dbRead(input) {
+					return { id: input.t_id, type: input.t_type };
+				},
+				fromBlock(input) {
+					return input;
+				},
 			},
 		};
-
-		accountStub = {
-			get: sinonSandbox.stub(),
-		};
-
-		accountStub.get
-			.withArgs(sinonSandbox.match({ address: 'ERRL' }))
-			.callsArgWith(1, 'Address error stub', null)
-			.withArgs(sinonSandbox.match({ address: '0L' }))
-			.callsArgWith(1, null, undefined)
-			.withArgs(sinonSandbox.match({ address: '1L' }))
-			.callsArgWith(1, null, { publicKey: '123abc' });
 	});
 
 	afterEach(() => sinonSandbox.restore());
@@ -358,7 +164,11 @@ describe('blocks/utils', () => {
 		});
 
 		it('should call library.logic.block.dbRead with each block', async () => {
-			blocksUtils.readDbRows(fullBlocksListRows, transactionMock, genesisBlock);
+			blocksUtils.readDbRows(
+				fullBlocksListRows,
+				interfaceAdaptersMock,
+				genesisBlock
+			);
 
 			fullBlocksListRows.forEach(block => {
 				expect(blocksLogic.dbRead).to.have.callCount(4);
@@ -375,7 +185,7 @@ describe('blocks/utils', () => {
 			beforeEach(async () => {
 				blocks = blocksUtils.readDbRows(
 					fullBlocksListRows,
-					transactionMock,
+					interfaceAdaptersMock,
 					genesisBlock
 				);
 				expect(blocks).to.be.an('array');
@@ -430,7 +240,7 @@ describe('blocks/utils', () => {
 
 			const blockObject = blocksUtils.readDbRows(
 				genesisBlock_view_full_blocks_list,
-				transactionMock,
+				interfaceAdaptersMock,
 				genesisBlock
 			);
 
@@ -455,7 +265,7 @@ describe('blocks/utils', () => {
 			try {
 				await blocksUtils.loadBlocksPart(
 					storageStub,
-					transactionMock,
+					interfaceAdaptersMock,
 					genesisBlock,
 					{}
 				);
@@ -469,11 +279,11 @@ describe('blocks/utils', () => {
 				.onCall(0)
 				.resolves(['1'])
 				.onCall(1)
-				.resolves(storageBlocksListRows);
+				.resolves([...storageBlocksListRows]);
 
 			const blocks = await blocksUtils.loadBlocksPart(
 				storageStub,
-				transactionMock,
+				interfaceAdaptersMock,
 				genesisBlock,
 				{}
 			);
@@ -490,7 +300,7 @@ describe('blocks/utils', () => {
 			try {
 				await blocksUtils.loadLastBlock(
 					storageStub,
-					transactionMock,
+					interfaceAdaptersMock,
 					genesisBlock
 				);
 			} catch (err) {
@@ -500,10 +310,10 @@ describe('blocks/utils', () => {
 
 		describe('sorting the block.transactions array', () => {
 			it('should return the block', async () => {
-				storageStub.entities.Block.get.resolves(storageBlocksListRows);
+				storageStub.entities.Block.get.resolves([...storageBlocksListRows]);
 				const block = await blocksUtils.loadLastBlock(
 					storageStub,
-					transactionMock,
+					interfaceAdaptersMock,
 					genesisBlock
 				);
 
@@ -513,13 +323,17 @@ describe('blocks/utils', () => {
 		});
 	});
 
-	describe.only('getIdSequence', () => {
-		const lastBlock = { id: '9314232245035524467' };
-
+	describe('getIdSequence', () => {
 		it('should call storage.entities.Block.getFirstBlockIdOfLastRounds with proper params', async () => {
-			await blocksUtils.getIdSequence(storageStub, 10, lastBlock, genesisBlock, 101);
-			expect(storageStub.entities.Block.getFirstBlockIdOfLastRounds).to
-				.have.been.calledOnce;
+			await blocksUtils.getIdSequence(
+				storageStub,
+				10,
+				lastBlock,
+				genesisBlock,
+				101
+			);
+			expect(storageStub.entities.Block.getFirstBlockIdOfLastRounds).to.have
+				.been.calledOnce;
 			expect(
 				storageStub.entities.Block.getFirstBlockIdOfLastRounds
 			).to.have.been.calledWith({
@@ -531,7 +345,9 @@ describe('blocks/utils', () => {
 
 		it('should return error when storage.entities.Block.getFirstBlockIdOfLastRounds fails', async () => {
 			const message = 'Database went wrong';
-			storageStub.entities.Block.getFirstBlockIdOfLastRounds.rejects(new Error(message));
+			storageStub.entities.Block.getFirstBlockIdOfLastRounds.rejects(
+				new Error(message)
+			);
 			try {
 				await blocksUtils.getIdSequence(storageStub, 10, {}, genesisBlock, 101);
 			} catch (err) {
@@ -542,20 +358,34 @@ describe('blocks/utils', () => {
 		it('should return error when no row is found', async () => {
 			storageStub.entities.Block.getFirstBlockIdOfLastRounds.resolves([]);
 			try {
-				await blocksUtils.getIdSequence(storageStub, 10, lastBlock, genesisBlock, 101);
+				await blocksUtils.getIdSequence(
+					storageStub,
+					10,
+					lastBlock,
+					genesisBlock,
+					101
+				);
 			} catch (err) {
-				expect(err).to.equal('Failed to get id sequence for height: 10');
+				expect(err.message).to.equal(
+					'Failed to get id sequence for height: 10'
+				);
 			}
 		});
 
 		it('should return valid block id list', async () => {
 			storageStub.entities.Block.getFirstBlockIdOfLastRounds.resolves([
-					{ id: 1, height: 2 },
-					{ id: 2, height: 3 },
-					{ id: 3, height: 4 },
-					{ id: 4, height: 5 },
-				]);
-			const sequence = await blocksUtils.getIdSequence(storageStub, 10, lastBlock, genesisBlock, 101);
+				{ id: 1, height: 2 },
+				{ id: 2, height: 3 },
+				{ id: 3, height: 4 },
+				{ id: 4, height: 5 },
+			]);
+			const sequence = await blocksUtils.getIdSequence(
+				storageStub,
+				10,
+				lastBlock,
+				genesisBlock,
+				101
+			);
 			expect(sequence).to.be.an('object');
 			expect(sequence.firstHeight).to.equal(1);
 			expect(sequence.ids).to.equal(
@@ -564,173 +394,144 @@ describe('blocks/utils', () => {
 		});
 
 		it('should not add genesis block to the set when genesisBlock is undefined', async () => {
-			storageStub.entities.Block.getFirstBlockIdOfLastRounds
-				.resolves([{ id: 1, height: 2 }]);
+			storageStub.entities.Block.getFirstBlockIdOfLastRounds.resolves([
+				{ id: 1, height: 2 },
+			]);
 
-			const sequence = await blocksUtils.getIdSequence(storageStub, 10, lastBlock, undefined, 101);
+			const sequence = await blocksUtils.getIdSequence(
+				storageStub,
+				10,
+				lastBlock,
+				undefined,
+				101
+			);
 			expect(sequence).to.be.an('object');
 			expect(sequence.firstHeight).to.equal(1);
 			expect(sequence.ids).to.equal('9314232245035524467,1');
 		});
 
 		it('should not add genesis block to the set more than once', async () => {
-			storageStub.entities.Block.getFirstBlockIdOfLastRounds
-				.resolves([{ id: '6524861224470851795', height: 1 }]);
+			storageStub.entities.Block.getFirstBlockIdOfLastRounds.resolves([
+				{ id: '6524861224470851795', height: 1 },
+			]);
 
-			const sequence = await blocksUtils.getIdSequence(storageStub, 10, {}, genesisBlock, 101);
+			const sequence = await blocksUtils.getIdSequence(
+				storageStub,
+				10,
+				lastBlock,
+				genesisBlock,
+				101
+			);
 			expect(sequence).to.be.an('object');
 			expect(sequence.firstHeight).to.equal(1);
-			expect(sequence.ids).to.equal(
-				'9314232245035524467,6524861224470851795'
-			);
+			expect(sequence.ids).to.equal('9314232245035524467,6524861224470851795');
 		});
 
 		it('should not add last block when it is undefined', async () => {
-			storageStub.entities.Block.getFirstBlockIdOfLastRounds
-				.resolves([{ id: '6524861224470851795', height: 1 }]);
+			storageStub.entities.Block.getFirstBlockIdOfLastRounds.resolves([
+				{ id: '6524861224470851795', height: 1 },
+			]);
 
-			const sequence = await blocksUtils.getIdSequence(storageStub, 10, undefined, genesisBlock, 101);
+			const sequence = await blocksUtils.getIdSequence(
+				storageStub,
+				10,
+				undefined,
+				genesisBlock,
+				101
+			);
 			expect(sequence).to.be.an('object');
 			expect(sequence.firstHeight).to.equal(1);
 			expect(sequence.ids).to.equal('6524861224470851795');
 		});
 
 		it('should not add last block to the set more than once', async () => {
-			storageStub.entities.Block.getFirstBlockIdOfLastRounds
-				.resolves([{ id: '9314232245035524467', height: 1 }]);
+			storageStub.entities.Block.getFirstBlockIdOfLastRounds.resolves([
+				{ id: '9314232245035524467', height: 1 },
+			]);
 
-			const sequence = await blocksUtils.getIdSequence(storageStub, 10, lastBlock, genesisBlock, 101);
+			const sequence = await blocksUtils.getIdSequence(
+				storageStub,
+				10,
+				lastBlock,
+				genesisBlock,
+				101
+			);
 			expect(sequence).to.be.an('object');
 			expect(sequence.firstHeight).to.equal(1);
-			expect(sequence.ids).to.equal(
-				'9314232245035524467,6524861224470851795'
-			);
+			expect(sequence.ids).to.equal('9314232245035524467,6524861224470851795');
 		});
 
 		it('should not add resolved block to the set more than once', async () => {
-			storageStub.entities.Block.getFirstBlockIdOfLastRounds
-				.resolves([{ id: 2, height: 3 }, { id: 2, height: 3 }]);
+			storageStub.entities.Block.getFirstBlockIdOfLastRounds.resolves([
+				{ id: 2, height: 3 },
+				{ id: 2, height: 3 },
+			]);
 
-			const sequence = await blocksUtils.getIdSequence(storageStub, 10, lastBlock, genesisBlock, 101);
-				expect(sequence).to.be.an('object');
-				expect(sequence.firstHeight).to.equal(1);
-				expect(sequence.ids).to.equal(
-					'9314232245035524467,2,6524861224470851795'
-				);
+			const sequence = await blocksUtils.getIdSequence(
+				storageStub,
+				10,
+				lastBlock,
+				genesisBlock,
+				101
+			);
+			expect(sequence).to.be.an('object');
+			expect(sequence.firstHeight).to.equal(1);
+			expect(sequence.ids).to.equal(
+				'9314232245035524467,2,6524861224470851795'
+			);
 		});
 	});
 
 	describe('loadBlocksData', () => {
-		it('should return error when library.storage.entities.Block.get fails', done => {
-			library.storage.entities.Block.get = sinonSandbox
-				.stub()
+		it('should return error when storage.entities.Block.get fails', async () => {
+			storageStub.entities.Block.get
 				.onCall(0)
 				.resolves(['1'])
 				.onCall(1)
 				.resolves(null);
 
-			blocksUtils.loadBlocksData({ id: '1' }, (err, blocks) => {
-				expect(loggerStub.error.args[0][0]).to.contains(
-					"TypeError: Cannot read property 'forEach' of null"
+			try {
+				await blocksUtils.loadBlocksData(storageStub, { id: '1' });
+			} catch (err) {
+				expect(err.message).to.equal("Cannot read property 'forEach' of null");
+			}
+		});
+
+		it('should return error when called with both id and lastId', async () => {
+			storageStub.entities.Block.get.resolves(['1']);
+
+			try {
+				await blocksUtils.loadBlocksData(storageStub, { id: '1' });
+			} catch (err) {
+				expect(err.message).to.equal(
+					'Invalid filter: Received both id and lastId'
 				);
-				expect(err).to.equal('Blocks#loadBlockData error');
-				expect(blocks).to.be.undefined;
-				done();
-			});
+			}
 		});
 
-		it('should return error when called with both id and lastId', done => {
-			library.storage.entities.Block.get = sinonSandbox.stub().resolves(['1']);
-
-			blocksUtils.loadBlocksData({ id: '1', lastId: '5' }, (err, blocks) => {
-				expect(err).to.equal('Invalid filter: Received both id and lastId');
-				expect(blocks).to.be.undefined;
-				done();
-			});
-		});
-
-		it('should return empty row when called with invalid id', done => {
-			library.storage.entities.Block.get = sinonSandbox
-				.stub()
+		it('should return empty row when called with invalid id', async () => {
+			storageStub.entities.Block.get
 				.onCall(0)
 				.resolves(['1'])
 				.onCall(1)
 				.resolves([]);
 
-			blocksUtils.loadBlocksData({ id: '1' }, (err, blocks) => {
-				expect(err).to.be.null;
-				expect(blocks).to.an('array').that.is.empty;
-				done();
-			});
+			const blocks = await blocksUtils.loadBlocksData(storageStub, { id: '1' });
+			expect(blocks).to.an('array').that.is.empty;
 		});
 
-		it('should return one row when called with valid id', done => {
-			library.storage.entities.Block.get = sinonSandbox
-				.stub()
+		it('should return one row when called with valid id', async () => {
+			storageStub.entities.Block.get
 				.onCall(0)
 				.resolves(['1'])
 				.onCall(1)
-				.resolves(storageBlocksListRows);
+				.resolves([...storageBlocksListRows]);
 
-			blocksUtils.loadBlocksData(
-				{ id: '13068833527549895884' },
-				(err, blocks) => {
-					expect(err).to.be.null;
-					expect(blocks).to.be.an('array');
-					expect(blocks[0].b_id).to.eql('13068833527549895884');
-					done();
-				}
-			);
+			const blocks = await blocksUtils.loadBlocksData(storageStub, {
+				id: '13068833527549895884',
+			});
+			expect(blocks).to.be.an('array');
+			expect(blocks[0].b_id).to.eql('13068833527549895884');
 		});
-	});
-
-	describe('getBlockProgressLogger', () => {
-		let testTracker;
-
-		it('should initialize BlockProgressLogger', async () => {
-			testTracker = blocksUtils.getBlockProgressLogger(1, 1, 'Test tracker');
-			expect(testTracker.target).to.eql(1);
-			return expect(testTracker.step).to.eql(1);
-		});
-
-		it('should return valid log information when call applyNext()', async () => {
-			testTracker.applyNext();
-			expect(loggerStub.info.args[0][0]).to.equal('Test tracker');
-			return expect(loggerStub.info.args[0][1]).to.equal(
-				'100.0 %: applied 1 of 1 transactions'
-			);
-		});
-
-		it('should throw error when times applied >= transactionsCount', async () =>
-			expect(() => {
-				testTracker.applyNext();
-			}).to.throw('Cannot apply transaction over the limit: 1'));
-
-		it('should return valid log information when reset tracker and call applyNext()', async () => {
-			testTracker.reset();
-			testTracker.applyNext();
-			expect(loggerStub.info.args[0][0]).to.equal('Test tracker');
-			return expect(loggerStub.info.args[0][1]).to.equal(
-				'100.0 %: applied 1 of 1 transactions'
-			);
-		});
-	});
-
-	describe('onBind', () => {
-		beforeEach(() => {
-			loggerStub.trace.resetHistory();
-			return blocksUtils.onBind(bindingsStub);
-		});
-
-		it('should call library.logger.trace with "Blocks->Utils: Shared modules bind."', async () =>
-			expect(loggerStub.trace.args[0][0]).to.equal(
-				'Blocks->Utils: Shared modules bind.'
-			));
-
-		it('should create a modules object { blocks: scope.blocks }', async () =>
-			expect(modules.blocks).to.equal(bindingsStub.modules.blocks));
-
-		it('should set __private.loaded to true', async () =>
-			expect(__private.loaded).to.be.true);
 	});
 });
