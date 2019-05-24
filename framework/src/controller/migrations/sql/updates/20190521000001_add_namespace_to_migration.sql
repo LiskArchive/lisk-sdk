@@ -21,5 +21,5 @@
 */
 
 ALTER TABLE "migrations" ADD COLUMN IF NOT EXISTS "namespace" TEXT NOT NULL DEFAULT 'undefined';
-ALTER TABLE "migrations" DROP CONSTRAINT "migrations_pkey";
-ALTER TABLE "migrations" ADD CONSTRAINT "migrations_pkey" PRIMARY KEY ("id", "namespace");
+ALTER TABLE "migrations" DROP CONSTRAINT IF EXISTS "migrations_pkey";
+ALTER TABLE "migrations" ADD CONSTRAINT IF NOT EXISTS "migrations_pkey" PRIMARY KEY ("id", "namespace");
