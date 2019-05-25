@@ -37,18 +37,62 @@ const {
 	BlockReward,
 } = require('../../../../../../src/modules/chain/blocks/block_reward');
 const blocksLogic = require('../../../../../../src/modules/chain/blocks/block');
+// const blocksUtils = require('../../../../../../src/modules/chain/blocks/utils');
 
 describe('blocks/verify', () => {
+	const validBlock = {
+		id: '16995938957789927028',
+		version: 0,
+		timestamp: 8090,
+		height: 5,
+		numberOfTransactions: 0,
+		totalAmount: '0',
+		totalFee: '0',
+		reward: '0',
+		payloadLength: 0,
+		payloadHash:
+			'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+		generatorPublicKey:
+			'f42203fbd0e6a781530f8e60e41603b04b54cc148b8fc7b975cebe33a682dbb2',
+		blockSignature:
+			'ef4256e2ba51446acc7a95ecc4e782349ee71bc484bde9a5e86b25b1e5a73a8871aa27d77a7482c089b4332fb0362238dd11348b9874e13c8df91bcdc016d205',
+		confirmations: 9222099,
+		totalForged: '0',
+		generatorAddress: '2617786862889436018L',
+		previousBlock: '15347727973645470262',
+		transactions: [],
+	};
+	const validLastBlock = {
+		id: '15347727973645470262',
+		version: 0,
+		timestamp: 8070,
+		height: 4,
+		numberOfTransactions: 0,
+		totalAmount: '0',
+		totalFee: '0',
+		reward: '0',
+		payloadLength: 0,
+		payloadHash:
+			'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+		generatorPublicKey:
+			'09e13e1c72143c9b75013f0d5fe13e1e978e608ea883bb93a3a9c38f0c8826f3',
+		blockSignature:
+			'74ac5868f454a97298e30c50cfa01e3f936c1a29be9e250bb9944096a188d78feb20926c40e8998d16811ed965221bfb7416c4e19cb6ca18cb1d3b85486c2f07',
+		confirmations: 9222109,
+		totalForged: '0',
+		generatorAddress: '15004777821391872075L',
+		previousBlock: '7234275607611561282',
+		transactions: [],
+	};
+
 	let storageStub;
 	let roundsModuleStub;
 	let blocksVerify;
-	let bindingsStub;
-	let modules;
-	let channelMock;
 	let interfaceAdaptersMock;
 	let slots;
 	let blockReward;
 	let exceptions;
+	let exceptionsWithVersion;
 	let constants;
 
 	beforeEach(async () => {
@@ -108,9 +152,19 @@ describe('blocks/verify', () => {
 			blockSlotWindow: __testContext.config.constants.BLOCK_SLOT_WINDOW,
 		};
 
+		exceptionsWithVersion = {
+			...exceptions,
+			blockVersions: {
+				0: {
+					start: 1,
+					end: 101,
+				},
+			},
+		};
+
 		blocksVerify = new blocksVerifyModule.BlocksVerify({
 			storage: storageStub,
-			exceptions,
+			exceptions: exceptionsWithVersion,
 			slots,
 			roundsModule: roundsModuleStub,
 			interfaceAdapters: interfaceAdaptersMock,
@@ -128,7 +182,7 @@ describe('blocks/verify', () => {
 			expect(blocksVerify.roundsModule).to.eql(roundsModuleStub);
 			expect(blocksVerify.slots).to.eql(slots);
 			expect(blocksVerify.blockReward).to.eql(blockReward);
-			expect(blocksVerify.exceptions).to.eql(exceptions);
+			expect(blocksVerify.exceptions).to.eql(exceptionsWithVersion);
 			expect(blocksVerify.constants).to.eql(constants);
 			expect(blocksVerify.genesisBlock).to.eql(
 				__testContext.config.genesisBlock
@@ -181,7 +235,7 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe.only('verifyPreviousBlock', () => {
+	describe('verifyPreviousBlock', () => {
 		describe('when verifyPreviousBlock fails', () => {
 			describe('if block.previousBlock is not defined and height != 1', () => {
 				it('should return error', async () => {
@@ -914,253 +968,48 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe.only('verifyReceipt', () => {
-		const dummyBlock = { id: 5 };
-		const dummylastBlock = { id: 4 };
+	describe('verifyReceipt', () => {
+		let slotsMock;
 
 		beforeEach(async () => {
-			sinonSandbox.stub(blocksVerifyModule, 'setHeight').returns(dummyBlock);
-			sinonSandbox
-				.stub(blocksVerifyModule, 'verifySignature')
-				.returns({ verified: false, errors: [] });
-			sinonSandbox
-				.stub(blocksVerifyModule, 'verifyPreviousBlock')
-				.returns({ verified: false, errors: [] });
-			sinonSandbox
-				.stub(blocksVerifyModule, 'verifyAgainstLastNBlockIds')
-				.returns({ verified: false, errors: [] });
-			sinonSandbox
-				.stub(blocksVerifyModule, 'verifyBlockSlotWindow')
-				.returns({ verified: false, errors: [] });
-			sinonSandbox
-				.stub(blocksVerifyModule, 'verifyVersion')
-				.returns({ verified: false, errors: [] });
-			sinonSandbox
-				.stub(blocksVerifyModule, 'verifyReward')
-				.returns({ verified: false, errors: [] });
-			sinonSandbox
-				.stub(blocksVerifyModule, 'verifyId')
-				.returns({ verified: false, errors: [] });
-			sinonSandbox
-				.stub(blocksVerifyModule, 'verifyPayload')
-				.returns({ verified: false, errors: [] });
-			sinonSandbox
-				.stub(blocksVerifyModule, 'verifySignature')
-				.returns({ verified: false, errors: [] });
-			sinonSandbox
-				.stub(blocksVerifyModule, 'verifySignature')
-				.returns({ verified: false, errors: [] });
+			slotsMock = {
+				getSlotNumber: input => (input === undefined ? 8090 : input),
+			};
 		});
 
 		it('should call private functions with correct parameters', async () => {
-			const verifyReceipt = blocksVerifyModule.verifyReceipt(dummyBlock);
-			expect(modules.blocks.lastBlock.get.calledOnce).to.be.true;
-			expect(blocksVerifyModule.setHeight).to.have.been.calledWith(
-				dummyBlock,
-				dummylastBlock
-			);
-			expect(blocksVerifyModule.verifySignature).to.have.been.calledWith(
-				dummyBlock,
-				{
-					verified: false,
-					errors: [],
-				}
-			);
-			expect(blocksVerifyModule.verifyPreviousBlock).to.have.been.calledWith(
-				dummyBlock,
-				{ verified: false, errors: [] }
-			);
-			expect(
-				blocksVerifyModule.verifyAgainstLastNBlockIds
-			).to.have.been.calledWith(dummyBlock, { verified: false, errors: [] });
-			expect(blocksVerifyModule.verifyBlockSlotWindow).to.have.been.calledWith(
-				dummyBlock,
-				{ verified: false, errors: [] }
-			);
-			expect(blocksVerifyModule.verifyVersion).to.have.been.calledWith(
-				dummyBlock,
-				{
-					verified: false,
-					errors: [],
-				}
-			);
-			expect(blocksVerifyModule.verifyReward).to.have.been.calledWith(
-				dummyBlock,
-				{
-					verified: false,
-					errors: [],
-				}
-			);
-			expect(blocksVerifyModule.verifyId).to.have.been.calledWith(dummyBlock, {
-				verified: false,
-				errors: [],
+			const verifyReceipt = blocksVerifyModule.verifyReceipt({
+				block: validBlock,
+				lastBlock: validLastBlock,
+				lastNBlockIds: [1, 2, 3],
+				maxTransactionsPerBlock: constants.maxTransactionsPerBlock,
+				slots: slotsMock,
+				blockSlotWindow: constants.blockSlotWindow,
+				maxPayloadLength: constants.maxPayloadLength,
+				blockReward,
+				exceptions: {
+					blockVersions: {
+						0: {
+							start: 0,
+							end: 10,
+						},
+					},
+				},
 			});
-			expect(blocksVerifyModule.verifyPayload).to.have.been.calledWith(
-				dummyBlock,
-				{
-					verified: false,
-					errors: [],
-				}
-			);
-			return expect(verifyReceipt).to.deep.equal({
+
+			return expect(verifyReceipt).to.eql({
 				verified: true,
 				errors: [],
 			});
-		});
-	});
-
-	describe('onBlockchainReady', () => {
-		describe('when library.storage.entities.Block.get fails', () => {
-			beforeEach(() =>
-				library.storage.entities.Block.get.rejects('loadLastNBlockIds-ERR')
-			);
-
-			afterEach(() => {
-				expect(loggerStub.error.args[0][0]).to.equal(
-					'Unable to load last 5 block ids'
-				);
-				return expect(loggerStub.error.args[1][0].name).to.equal(
-					'loadLastNBlockIds-ERR'
-				);
-			});
-
-			it('should log error', async () =>
-				blocksVerifyModule.onBlockchainReady());
-		});
-
-		describe('when library.storage.entities.Block.get succeeds', () => {
-			beforeEach(() =>
-				library.storage.entities.Block.get.resolves([
-					{ id: 1 },
-					{ id: 2 },
-					{ id: 3 },
-					{ id: 4 },
-				])
-			);
-
-			afterEach(() => {
-				expect(__private.lastNBlockIds).to.deep.equal([1, 2, 3, 4]);
-				return expect(loggerStub.error.args.length).to.equal(0);
-			});
-
-			it('should log error', async () =>
-				blocksVerifyModule.onBlockchainReady());
-		});
-	});
-
-	describe('onNewBlock', () => {
-		describe('when __private.lastNBlockIds.length > BLOCK_SLOT_WINDOW', () => {
-			beforeEach(done => {
-				__private.lastNBlockIds = [1, 2, 3, 4, 5, 6];
-				done();
-			});
-
-			afterEach(() =>
-				expect(__private.lastNBlockIds).to.deep.equal([2, 3, 4, 5, 6, 7])
-			);
-
-			it('should add new id to the end of lastNBlockIds array and delete first one', async () =>
-				blocksVerifyModule.onNewBlock({ id: 7 }));
-		});
-
-		describe('when __private.lastNBlockIds.length <= BLOCK_SLOT_WINDOW', () => {
-			beforeEach(done => {
-				__private.lastNBlockIds = [1, 2, 3, 4];
-				done();
-			});
-
-			afterEach(() =>
-				expect(__private.lastNBlockIds).to.deep.equal([1, 2, 3, 4, 5])
-			);
-
-			it('should add new id to the end of lastNBlockIds array', async () =>
-				blocksVerifyModule.onNewBlock({ id: 5 }));
 		});
 	});
 
 	describe('verifyBlock', () => {
-		let privateTemp;
-		let verifyReceipt;
-		const dummyBlock = { id: 5 };
-		const dummylastBlock = { id: 4 };
-
-		beforeEach(done => {
-			modules.blocks.lastBlock.get.returns(dummylastBlock);
-			privateTemp = __private;
-			__private.setHeight = sinonSandbox.stub().returns(dummyBlock);
-			__private.verifySignature = sinonSandbox
-				.stub()
-				.returns({ verified: false, errors: [] });
-			__private.verifyPreviousBlock = sinonSandbox
-				.stub()
-				.returns({ verified: false, errors: [] });
-			__private.verifyVersion = sinonSandbox
-				.stub()
-				.returns({ verified: false, errors: [] });
-			__private.verifyReward = sinonSandbox
-				.stub()
-				.returns({ verified: false, errors: [] });
-			__private.verifyId = sinonSandbox
-				.stub()
-				.returns({ verified: false, errors: [] });
-			__private.verifyPayload = sinonSandbox
-				.stub()
-				.returns({ verified: false, errors: [] });
-			__private.verifyForkOne = sinonSandbox
-				.stub()
-				.returns({ verified: false, errors: [] });
-			__private.verifyBlockSlot = sinonSandbox
-				.stub()
-				.returns({ verified: false, errors: [] });
-			done();
-		});
-
-		afterEach(done => {
-			expect(modules.blocks.lastBlock.get.calledOnce).to.be.true;
-			expect(__private.setHeight).to.have.been.calledWith(
-				dummyBlock,
-				dummylastBlock
-			);
-			expect(__private.verifySignature).to.have.been.calledWith(dummyBlock, {
-				verified: false,
-				errors: [],
-			});
-			expect(__private.verifyPreviousBlock).to.have.been.calledWith(
-				dummyBlock,
-				{ verified: false, errors: [] }
-			);
-			expect(__private.verifyVersion).to.have.been.calledWith(dummyBlock, {
-				verified: false,
-				errors: [],
-			});
-			expect(__private.verifyReward).to.have.been.calledWith(dummyBlock, {
-				verified: false,
-				errors: [],
-			});
-			expect(__private.verifyId).to.have.been.calledWith(dummyBlock, {
-				verified: false,
-				errors: [],
-			});
-			expect(__private.verifyPayload).to.have.been.calledWith(dummyBlock, {
-				verified: false,
-				errors: [],
-			});
-			expect(__private.verifyForkOne).to.have.been.calledWith(
-				dummyBlock,
-				dummylastBlock,
-				{ verified: false, errors: [] }
-			);
-			expect(__private.verifyBlockSlot).to.have.been.calledWith(
-				dummyBlock,
-				dummylastBlock,
-				{ verified: false, errors: [] }
-			);
-			__private = privateTemp;
-			done();
-		});
-
 		it('should call private functions with correct parameters', async () => {
-			verifyReceipt = blocksVerifyModule.verifyBlock(dummyBlock);
+			const verifyReceipt = blocksVerify.verifyBlock(
+				validBlock,
+				validLastBlock
+			);
 			return expect(verifyReceipt).to.deep.equal({
 				verified: true,
 				errors: [],
@@ -1168,600 +1017,89 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('addBlockProperties', () => {
-		let dummyBlockReturned;
-		const dummyBlock = {
-			id: 1,
-			version: 0,
-			numberOfTransactions: 0,
-			transactions: [],
-			totalAmount: new Bignum(0),
-			totalFee: new Bignum(0),
-			payloadLength: 0,
-			reward: new Bignum(0),
-		};
-
-		afterEach(() => expect(dummyBlockReturned).to.deep.equal(dummyBlock));
-
-		describe('when block.version = undefined', () => {
-			it('should add version = 0', async () => {
-				const dummyBlockReduced = _.cloneDeep(dummyBlock);
-				delete dummyBlockReduced.version;
-				dummyBlockReturned = blocksVerifyModule.addBlockProperties(
-					dummyBlockReduced
-				);
-				return dummyBlockReturned;
-			});
-		});
-
-		describe('when block.numberOfTransactions = undefined', () => {
-			describe('and block.transactions = undefined', () => {
-				it('should add numberOfTransactions = 0', async () => {
-					const dummyBlockReduced = _.cloneDeep(dummyBlock);
-					delete dummyBlockReduced.numberOfTransactions;
-					delete dummyBlockReduced.transactions;
-					dummyBlockReturned = blocksVerifyModule.addBlockProperties(
-						dummyBlockReduced
-					);
-					return dummyBlockReturned;
-				});
-			});
-
-			describe('and block.transactions != undefined', () => {
-				it('should add numberOfTransactions = block.transactions.length', async () => {
-					const dummyBlockReduced = _.cloneDeep(dummyBlock);
-					delete dummyBlockReduced.numberOfTransactions;
-					dummyBlockReturned = blocksVerifyModule.addBlockProperties(
-						dummyBlockReduced
-					);
-					return dummyBlockReturned;
-				});
-			});
-		});
-
-		describe('when block.totalAmount = undefined', () => {
-			it('should add totalAmount = 0', async () => {
-				const dummyBlockReduced = _.cloneDeep(dummyBlock);
-				delete dummyBlockReduced.totalAmount;
-				dummyBlockReturned = blocksVerifyModule.addBlockProperties(
-					dummyBlockReduced
-				);
-				return dummyBlockReturned;
-			});
-		});
-
-		describe('when block.totalFee = undefined', () => {
-			it('should add totalFee = 0', async () => {
-				const dummyBlockReduced = _.cloneDeep(dummyBlock);
-				delete dummyBlockReduced.totalFee;
-				dummyBlockReturned = blocksVerifyModule.addBlockProperties(
-					dummyBlockReduced
-				);
-				return dummyBlockReturned;
-			});
-		});
-
-		describe('when block.payloadLength = undefined', () => {
-			it('should add payloadLength = 0', async () => {
-				const dummyBlockReduced = _.cloneDeep(dummyBlock);
-				delete dummyBlockReduced.payloadLength;
-				dummyBlockReturned = blocksVerifyModule.addBlockProperties(
-					dummyBlockReduced
-				);
-				return dummyBlockReturned;
-			});
-		});
-
-		describe('when block.reward = undefined', () => {
-			it('should add reward = 0', async () => {
-				const dummyBlockReduced = _.cloneDeep(dummyBlock);
-				delete dummyBlockReduced.reward;
-				dummyBlockReturned = blocksVerifyModule.addBlockProperties(
-					dummyBlockReduced
-				);
-				return dummyBlockReturned;
-			});
-		});
-
-		describe('when block.transactions = undefined', () => {
-			it('should add transactions = []', async () => {
-				const dummyBlockReduced = _.cloneDeep(dummyBlock);
-				delete dummyBlockReduced.transactions;
-				dummyBlockReturned = blocksVerifyModule.addBlockProperties(
-					dummyBlockReduced
-				);
-				return dummyBlockReturned;
-			});
-		});
-	});
-
-	describe('deleteBlockProperties', () => {
-		let dummyBlockReduced;
-		const dummyBlock = {
-			id: 1,
-			version: 1,
-			numberOfTransactions: 1,
-			transactions: [{ id: 1 }],
-			totalAmount: new Bignum(1),
-			totalFee: new Bignum(1),
-			payloadLength: 1,
-			reward: new Bignum(1),
-		};
-
-		describe('when block.version = 0', () => {
-			afterEach(() => {
-				expect(dummyBlockReduced).to.not.have.property('version');
-				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
-				expect(dummyBlockReduced).to.have.property('totalAmount');
-				expect(dummyBlockReduced).to.have.property('totalFee');
-				expect(dummyBlockReduced).to.have.property('payloadLength');
-				expect(dummyBlockReduced).to.have.property('reward');
-				return expect(dummyBlockReduced).to.have.property('transactions');
-			});
-
-			it('should delete version property', async () => {
-				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
-				dummyBlockCompleted.version = 0;
-				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
-					dummyBlockCompleted
-				);
-				return dummyBlockReduced;
-			});
-		});
-
-		describe('when block.numberOfTransactions = number', () => {
-			afterEach(() => {
-				expect(dummyBlockReduced).to.have.property('version');
-				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
-				expect(dummyBlockReduced).to.have.property('totalAmount');
-				expect(dummyBlockReduced).to.have.property('totalFee');
-				expect(dummyBlockReduced).to.have.property('payloadLength');
-				expect(dummyBlockReduced).to.have.property('reward');
-				return expect(dummyBlockReduced).to.have.property('transactions');
-			});
-
-			it('should delete numberOfTransactions property', async () => {
-				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
-				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
-					dummyBlockCompleted
-				);
-				return dummyBlockReduced;
-			});
-		});
-
-		describe('when block.totalAmount = 0', () => {
-			afterEach(() => {
-				expect(dummyBlockReduced).to.have.property('version');
-				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
-				expect(dummyBlockReduced).to.not.have.property('totalAmount');
-				expect(dummyBlockReduced).to.have.property('totalFee');
-				expect(dummyBlockReduced).to.have.property('payloadLength');
-				expect(dummyBlockReduced).to.have.property('reward');
-				return expect(dummyBlockReduced).to.have.property('transactions');
-			});
-
-			it('should delete totalAmount property', async () => {
-				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
-				dummyBlockCompleted.totalAmount = new Bignum(0);
-				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
-					dummyBlockCompleted
-				);
-				return dummyBlockReduced;
-			});
-		});
-
-		describe('when block.totalFee = 0', () => {
-			afterEach(() => {
-				expect(dummyBlockReduced).to.have.property('version');
-				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
-				expect(dummyBlockReduced).to.have.property('totalAmount');
-				expect(dummyBlockReduced).to.not.have.property('totalFee');
-				expect(dummyBlockReduced).to.have.property('payloadLength');
-				expect(dummyBlockReduced).to.have.property('reward');
-				return expect(dummyBlockReduced).to.have.property('transactions');
-			});
-
-			it('should delete totalFee property', async () => {
-				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
-				dummyBlockCompleted.totalFee = new Bignum(0);
-				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
-					dummyBlockCompleted
-				);
-				return dummyBlockReduced;
-			});
-		});
-
-		describe('when block.payloadLength = 0', () => {
-			afterEach(() => {
-				expect(dummyBlockReduced).to.have.property('version');
-				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
-				expect(dummyBlockReduced).to.have.property('totalAmount');
-				expect(dummyBlockReduced).to.have.property('totalFee');
-				expect(dummyBlockReduced).to.not.have.property('payloadLength');
-				expect(dummyBlockReduced).to.have.property('reward');
-				return expect(dummyBlockReduced).to.have.property('transactions');
-			});
-
-			it('should delete totalFee property', async () => {
-				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
-				dummyBlockCompleted.payloadLength = 0;
-				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
-					dummyBlockCompleted
-				);
-				return dummyBlockReduced;
-			});
-		});
-
-		describe('when block.reward = 0', () => {
-			afterEach(() => {
-				expect(dummyBlockReduced).to.have.property('version');
-				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
-				expect(dummyBlockReduced).to.have.property('totalAmount');
-				expect(dummyBlockReduced).to.have.property('totalFee');
-				expect(dummyBlockReduced).to.have.property('payloadLength');
-				expect(dummyBlockReduced).to.not.have.property('reward');
-				return expect(dummyBlockReduced).to.have.property('transactions');
-			});
-
-			it('should delete totalFee property', async () => {
-				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
-				dummyBlockCompleted.reward = new Bignum(0);
-				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
-					dummyBlockCompleted
-				);
-				return dummyBlockReduced;
-			});
-		});
-
-		describe('when block.transactions.length = 0', () => {
-			afterEach(() => {
-				expect(dummyBlockReduced).to.have.property('version');
-				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
-				expect(dummyBlockReduced).to.have.property('totalAmount');
-				expect(dummyBlockReduced).to.have.property('totalFee');
-				expect(dummyBlockReduced).to.have.property('payloadLength');
-				expect(dummyBlockReduced).to.have.property('reward');
-				return expect(dummyBlockReduced).to.not.have.property('transactions');
-			});
-
-			it('should delete totalFee property', async () => {
-				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
-				dummyBlockCompleted.transactions = [];
-				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
-					dummyBlockCompleted
-				);
-				return dummyBlockReduced;
-			});
-		});
-	});
-
-	describe('__private.addBlockProperties', () => {
-		let addBlockPropertiesTemp;
+	describe('checkExists', () => {
 		const dummyBlock = { id: 1 };
 
-		beforeEach(done => {
-			addBlockPropertiesTemp = blocksVerifyModule.addBlockProperties;
-			blocksVerifyModule.addBlockProperties = sinonSandbox.stub();
-			done();
-		});
-
-		afterEach(done => {
-			blocksVerifyModule.addBlockProperties = addBlockPropertiesTemp;
-			done();
-		});
-
-		describe('when broadcast = false', () => {
-			describe('when self.addBlockProperties fails', () => {
-				beforeEach(() =>
-					blocksVerifyModule.addBlockProperties.throws('addBlockProperties-ERR')
-				);
-
-				it('should call a callback with error', done => {
-					__private.addBlockProperties(dummyBlock, false, err => {
-						expect(err.name).to.equal('addBlockProperties-ERR');
-						done();
-					});
-				});
-			});
-
-			describe('when self.addBlockProperties succeeds', () => {
-				beforeEach(() =>
-					blocksVerifyModule.addBlockProperties.returns({
-						id: 1,
-						version: 0,
-					})
-				);
-
-				it('should call a callback with no error', done => {
-					__private.addBlockProperties(dummyBlock, false, err => {
-						expect(err).to.be.undefined;
-						done();
-					});
-				});
-			});
-		});
-
-		describe('when broadcast = true', () => {
-			beforeEach(() =>
-				blocksVerifyModule.addBlockProperties.returns({
-					id: 1,
-					version: 0,
-				})
-			);
-
-			it('should call a callback with no error', done => {
-				__private.addBlockProperties(dummyBlock, true, err => {
-					expect(err).to.be.undefined;
-					done();
-				});
-			});
-		});
-	});
-
-	describe('__private.normalizeBlock', () => {
-		const dummyBlock = { id: 1 };
-
-		describe('when library.logic.block.objectNormalize fails', () => {
-			beforeEach(() =>
-				library.logic.block.objectNormalize.throws('objectNormalize-ERR')
-			);
-
-			it('should call a callback with error', done => {
-				__private.normalizeBlock(dummyBlock, err => {
-					expect(err.name).to.equal('objectNormalize-ERR');
-					done();
-				});
-			});
-		});
-
-		describe('when library.logic.block.objectNormalize succeeds', () => {
-			beforeEach(() =>
-				library.logic.block.objectNormalize.returns({
-					id: 1,
-					version: 0,
-				})
-			);
-
-			it('should call a callback with no error', done => {
-				__private.normalizeBlock(dummyBlock, err => {
-					expect(err).to.be.undefined;
-					done();
-				});
-			});
-		});
-	});
-
-	describe('__private.verifyBlock', () => {
-		let verifyBlockTemp;
-		const dummyBlock = { id: 1 };
-
-		beforeEach(done => {
-			verifyBlockTemp = blocksVerifyModule.verifyBlock;
-			blocksVerifyModule.verifyBlock = sinonSandbox.stub();
-			done();
-		});
-
-		afterEach(done => {
-			blocksVerifyModule.verifyBlock = verifyBlockTemp;
-			done();
-		});
-
-		describe('when self.verifyBlock fails', () => {
-			beforeEach(() =>
-				blocksVerifyModule.verifyBlock.returns({
-					verified: false,
-					errors: ['verifyBlock-ERR'],
-				})
-			);
-
-			afterEach(() => {
-				expect(loggerStub.error.args[0][0]).to.be.equal(
-					'Block 1 verification failed'
-				);
-				return expect(loggerStub.error.args[0][1]).to.be.equal(
-					'verifyBlock-ERR'
+		describe('when storage.entities.Block.isPersisted fails', () => {
+			beforeEach(async () => {
+				storageStub.entities.Block.isPersisted.rejects(
+					new Error('blockExists-ERR')
 				);
 			});
 
-			it('should call a callback with error', done => {
-				__private.verifyBlock(dummyBlock, err => {
-					expect(err).to.equal('verifyBlock-ERR');
-					done();
-				});
+			it('should throw an error from storage', async () => {
+				try {
+					await blocksVerify.checkExists(dummyBlock);
+				} catch (error) {
+					expect(error.message).to.equal('blockExists-ERR');
+				}
 			});
 		});
 
-		describe('when self.verifyBlock succeeds', () => {
-			beforeEach(() =>
-				blocksVerifyModule.verifyBlock.returns({
-					verified: true,
-					errors: [],
-				})
-			);
-
-			it('should call a callback with no error', done => {
-				__private.verifyBlock(dummyBlock, err => {
-					expect(err).to.be.undefined;
-					done();
-				});
-			});
-		});
-	});
-
-	describe('__private.broadcastBlock', () => {
-		let broadcastReducedBlockTemp;
-		let deleteBlockPropertiesTemp;
-		const dummyBlock = { id: 1, version: 0 };
-		const dummyBlockReduced = { id: 1 };
-
-		beforeEach(done => {
-			broadcastReducedBlockTemp = blocksVerifyModule.broadcastReducedBlock;
-			deleteBlockPropertiesTemp = blocksVerifyModule.deleteBlockProperties;
-			blocksVerifyModule.broadcastReducedBlock = sinonSandbox.stub();
-			blocksVerifyModule.deleteBlockProperties = sinonSandbox
-				.stub()
-				.returns(dummyBlock);
-			done();
-		});
-
-		afterEach(done => {
-			blocksVerifyModule.broadcastReducedBlock = broadcastReducedBlockTemp;
-			blocksVerifyModule.deleteBlockProperties = deleteBlockPropertiesTemp;
-			done();
-		});
-
-		describe('when broadcast = true', () => {
-			describe('when self.deleteBlockProperties fails', () => {
-				beforeEach(() =>
-					blocksVerifyModule.deleteBlockProperties.throws(
-						'deleteBlockProperties-ERR'
-					)
-				);
-
-				afterEach(
-					async () =>
-						expect(modules.blocks.chain.broadcastReducedBlock.calledOnce).to.be
-							.false
-				);
-
-				it('should call a callback with error', done => {
-					__private.broadcastBlock(dummyBlock, true, err => {
-						expect(err.name).to.equal('deleteBlockProperties-ERR');
-						done();
-					});
-				});
-			});
-
-			describe('when self.deleteBlockProperties succeeds', () => {
-				beforeEach(() =>
-					blocksVerifyModule.deleteBlockProperties.returns(dummyBlockReduced)
-				);
-
-				afterEach(() => {
-					expect(modules.blocks.chain.broadcastReducedBlock.calledOnce).to.be
-						.true;
-					return expect(
-						modules.blocks.chain.broadcastReducedBlock
-					).to.have.been.calledWith(dummyBlockReduced, true);
-				});
-
-				it('should call a callback with no error', done => {
-					__private.broadcastBlock(dummyBlock, true, err => {
-						expect(err).to.be.undefined;
-						done();
-					});
-				});
-			});
-		});
-
-		describe('when broadcast = false', () => {
-			afterEach(() => {
-				expect(blocksVerifyModule.deleteBlockProperties.calledOnce).to.be.false;
-				return expect(modules.blocks.chain.broadcastReducedBlock.calledOnce).to
-					.be.false;
-			});
-
-			it('should call a callback with no error', done => {
-				__private.broadcastBlock(dummyBlock, false, err => {
-					expect(err).to.be.undefined;
-					done();
-				});
-			});
-		});
-	});
-
-	describe('__private.checkExists', () => {
-		const dummyBlock = { id: 1 };
-
-		describe('when library.storage.entities.Block.isPersisted fails', () => {
-			beforeEach(() =>
-				library.storage.entities.Block.isPersisted.rejects('blockExists-ERR')
-			);
-
-			afterEach(() =>
-				expect(loggerStub.error.args[0][0].name).to.equal('blockExists-ERR')
-			);
-
-			it('should call a callback with error', done => {
-				__private.checkExists(dummyBlock, err => {
-					expect(err).to.equal('Block#blockExists error');
-					done();
-				});
-			});
-		});
-
-		describe('when library.storage.entities.Block.isPersisted succeeds', () => {
+		describe('when storage.entities.Block.isPersisted succeeds', () => {
 			describe('if rows = true', () => {
-				beforeEach(() =>
-					library.storage.entities.Block.isPersisted.resolves(true)
-				);
+				beforeEach(async () => {
+					storageStub.entities.Block.isPersisted.resolves(true);
+				});
 
-				it('should call a callback with error', done => {
-					__private.checkExists(dummyBlock, err => {
-						expect(err).to.be.equal('Block 1 already exists');
-						done();
-					});
+				it('should call a callback with error', async () => {
+					try {
+						await blocksVerify.checkExists(dummyBlock);
+					} catch (error) {
+						expect(error.message).to.equal('Block 1 already exists');
+					}
 				});
 			});
 
 			describe('if rows = false', () => {
-				beforeEach(() =>
-					library.storage.entities.Block.isPersisted.resolves(false)
-				);
+				beforeEach(async () => {
+					storageStub.entities.Block.isPersisted.resolves(false);
+				});
 
-				it('should call a callback with no error', done => {
-					__private.checkExists(dummyBlock, err => {
-						expect(err).to.be.undefined;
-						done();
-					});
+				it('should call a callback with no error', async () => {
+					const result = await blocksVerify.checkExists(dummyBlock);
+					expect(result).to.be.undefined;
 				});
 			});
 		});
 	});
 
-	describe('__private.validateBlockSlot', () => {
+	describe('validateBlockSlot', () => {
 		const dummyBlock = { id: 1 };
 
-		describe('when modules.rounds.validateBlockSlot fails', () => {
+		describe('when rounds.validateBlockSlot fails', () => {
 			beforeEach(async () => {
-				modules.rounds.validateBlockSlot.rejects(
+				roundsModuleStub.validateBlockSlot.rejects(
 					new Error('validateBlockSlot-ERR')
 				);
 			});
 
-			afterEach(() => {
-				expect(modules.rounds.validateBlockSlot).calledWith(dummyBlock);
-				return expect(modules.rounds.fork).calledWith(dummyBlock, 3);
-			});
-
-			it('should call a callback with error', done => {
-				__private.validateBlockSlot(dummyBlock, err => {
-					expect(err.message).to.equal('validateBlockSlot-ERR');
-					done();
-				});
+			it('should call a callback with error', async () => {
+				try {
+					await blocksVerify.validateBlockSlot(dummyBlock);
+				} catch (error) {
+					expect(roundsModuleStub.fork).calledWith(dummyBlock, 3);
+					expect(roundsModuleStub.validateBlockSlot).calledWith(dummyBlock);
+					expect(error.message).to.equal('validateBlockSlot-ERR');
+				}
 			});
 		});
 
-		describe('when modules.rounds.validateBlockSlot succeeds', () => {
+		describe('when modules.validateBlockSlot succeeds', () => {
 			beforeEach(async () => {
-				modules.rounds.validateBlockSlot.resolves(true);
+				roundsModuleStub.validateBlockSlot.resolves(true);
 			});
 
-			afterEach(() => {
-				expect(modules.rounds.validateBlockSlot).calledWith(dummyBlock);
-				return expect(modules.rounds.fork.calledOnce).to.be.false;
-			});
+			it('should call a callback with no error', async () => {
+				await blocksVerify.validateBlockSlot(dummyBlock);
 
-			it('should call a callback with no error', done => {
-				__private.validateBlockSlot(dummyBlock, err => {
-					expect(err).to.be.undefined;
-					done();
-				});
+				expect(roundsModuleStub.validateBlockSlot).calledWith(dummyBlock);
+				return expect(roundsModuleStub.fork).not.to.be.called;
 			});
 		});
 	});
 
-	describe('__private.checkTransactions', () => {
+	describe('checkTransactions', () => {
 		let dummyBlock;
 		let validTransactionsResponse;
 		let invalidTransactionsResponse;
@@ -1780,71 +1118,62 @@ describe('blocks/verify', () => {
 		describe('when block.transactions is empty', () => {
 			it('should not throw', async () => {
 				dummyBlock = { id: 1, transactions: [] };
-				expect(__private.checkTransactions.bind(__private, dummyBlock, true)).to
-					.not.throw;
+				const result = await blocksVerify.checkTransactions(dummyBlock);
+				expect(result).to.be.undefined;
 			});
 		});
 
 		describe('when block.transactions is not empty', () => {
-			describe('when checkExists is set to true', () => {
-				describe('when Transaction.get returns confirmed transactions', () => {
-					beforeEach(async () => {
-						storageStub.entities.Transaction.get.resolves(
-							dummyBlock.transactions
-						);
-					});
+			beforeEach(async () => {
+				validTransactionsResponse = dummyBlock.transactions.map(
+					transaction => ({
+						id: transaction.id,
+						status: transactionStatus.OK,
+						errors: [],
+					})
+				);
 
-					it('should throw error when transaction is already confirmed', async () => {
-						expect(__private.checkTransactions(dummyBlock, true)).to.eventually
-							.rejected;
-					});
-				});
+				invalidTransactionsResponse = dummyBlock.transactions.map(
+					transaction => ({
+						id: transaction.id,
+						status: transactionStatus.FAIL,
+						errors: [new Error('Invalid transaction error')],
+					})
+				);
+			});
 
-				describe('when Transaction.get returns empty array', () => {
-					beforeEach(async () => {
-						validTransactionsResponse = dummyBlock.transactions.map(
-							transaction => ({
-								id: transaction.id,
-								status: transactionStatus.OK,
-								errors: [],
-							})
-						);
+			// TODO: slight behaviour changed in method check
+			// eslint-disable-next-line
+			it.skip('should not throw if the verifyTransaction returns transaction response with Status = OK', async () => {
+				transactionsModule.verifyTransactions.returns(
+					sinonSandbox
+						.stub()
+						.resolves({ transactionsResponses: validTransactionsResponse })
+				);
+				await blocksVerify.checkTransactions(dummyBlock);
+				expect(transactionsModule.verifyTransactions).to.be.calledOnce;
+			});
 
-						invalidTransactionsResponse = dummyBlock.transactions.map(
-							transaction => ({
-								id: transaction.id,
-								status: transactionStatus.FAIL,
-								errors: [new Error()],
-							})
-						);
-
-						storageStub.entities.Transaction.get.resolves([]);
-					});
-
-					// TODO: slight behaviour changed in method check
-					// eslint-disable-next-line
-					it.skip('should not throw if the verifyTransaction returns transaction response with Status = OK', async () => {
-						transactionsModule.verifyTransactions.returns(
-							sinonSandbox.stub().resolves(validTransactionsResponse)
-						);
-						await __private.checkTransactions(dummyBlock, true);
-						expect(transactionsModule.verifyTransactions).to.be.calledOnce;
-					});
-
-					it('should throw if the verifyTransaction returns transaction response with Status != OK', async () => {
-						transactionsModule.verifyTransactions.resolves(
-							invalidTransactionsResponse
-						);
-						expect(__private.checkTransactions(dummyBlock, true)).to.eventually
-							.throw;
-					});
-				});
+			it('should throw if the verifyTransaction returns transaction response with Status != OK', async () => {
+				transactionsModule.verifyTransactions.returns(
+					sinonSandbox
+						.stub()
+						.resolves({ transactionsResponses: invalidTransactionsResponse })
+				);
+				try {
+					await blocksVerify.checkTransactions(dummyBlock);
+				} catch (errors) {
+					expect(errors[0].message).to.eql('Invalid transaction error');
+				}
 			});
 
 			it('should call transactionsModule.checkAllowedTransactions', async () => {
-				__private.checkTransactions(dummyBlock, false);
-
-				expect(transactionsModule.checkAllowedTransactions).to.have.been.called;
+				try {
+					await blocksVerify.checkTransactions(dummyBlock);
+				} catch (error) {
+					expect(transactionsModule.checkAllowedTransactions).to.have.been
+						.called;
+				}
 			});
 
 			it('should throw an array of errors if transactions are not allowed', async () => {
@@ -1860,227 +1189,9 @@ describe('blocks/verify', () => {
 					})
 				);
 
-				expect(__private.checkTransactions(dummyBlock, false)).to.eventually.be
-					.rejected;
+				expect(blocksVerify.checkTransactions(dummyBlock, false)).to.eventually
+					.be.rejected;
 			});
 		});
-	});
-
-	describe('processBlock', () => {
-		let privateTemp;
-		const dummyBlock = { id: 5 };
-		let broadcast;
-		let saveBlock;
-
-		beforeEach(done => {
-			privateTemp = __private;
-			__private.addBlockProperties = sinonSandbox
-				.stub()
-				.callsArgWith(2, null, true);
-			__private.normalizeBlock = sinonSandbox
-				.stub()
-				.callsArgWith(1, null, true);
-			__private.verifyBlock = sinonSandbox.stub().callsArgWith(1, null, true);
-			__private.checkExists = sinonSandbox.stub().callsArgWith(1, null, true);
-			__private.validateBlockSlot = sinonSandbox
-				.stub()
-				.callsArgWith(1, null, true);
-			__private.checkTransactions = sinonSandbox.stub().resolves();
-			modules.blocks.chain.applyBlock.callsArgWith(2, null, true);
-			__private.broadcastBlock = sinonSandbox
-				.stub()
-				.callsArgWith(2, null, true);
-			done();
-		});
-
-		afterEach(done => {
-			expect(modules.blocks.isCleaning.get.calledOnce).to.be.true;
-			expect(__private.addBlockProperties).to.have.been.calledWith(
-				dummyBlock,
-				broadcast
-			);
-			expect(__private.normalizeBlock).to.have.been.calledWith(dummyBlock);
-			expect(__private.verifyBlock).to.have.been.calledWith(dummyBlock);
-			expect(__private.broadcastBlock).to.have.been.calledWith(
-				dummyBlock,
-				broadcast
-			);
-			expect(__private.validateBlockSlot).to.have.been.calledWith(dummyBlock);
-			expect(__private.checkTransactions).to.have.been.calledWith(dummyBlock);
-			expect(modules.blocks.chain.applyBlock).to.have.been.calledWith(
-				dummyBlock,
-				saveBlock
-			);
-			__private = privateTemp;
-			done();
-		});
-
-		describe('applicationState update', () => {
-			beforeEach(() =>
-				modules.blocks.calculateNewBroadhash.resolves({
-					broadhash: 'xx',
-					height: 1,
-				})
-			);
-
-			afterEach(() => channelMock.invoke.resetHistory());
-
-			it('should be called if snapshotting was not activated and broadcast is true', done => {
-				broadcast = true;
-				blocksVerifyModule.processBlock(
-					dummyBlock,
-					broadcast,
-					saveBlock,
-					err => {
-						expect(err).to.be.null;
-						expect(channelMock.once).to.be.calledOnce;
-						expect(channelMock.invoke).to.be.calledOnce;
-						done();
-					}
-				);
-			});
-		});
-
-		describe('when broadcast = true', () => {
-			beforeEach(() =>
-				modules.blocks.calculateNewBroadhash.resolves({
-					broadhash: 'xx',
-					height: 1,
-				})
-			);
-
-			describe('when saveBlock = true', () => {
-				it('should call private functions with correct parameters', done => {
-					broadcast = true;
-					saveBlock = true;
-					blocksVerifyModule.processBlock(
-						dummyBlock,
-						broadcast,
-						saveBlock,
-						err => {
-							expect(err).to.be.null;
-							expect(__private.checkExists).to.have.been.calledWith(dummyBlock);
-							done();
-						}
-					);
-				});
-			});
-
-			describe('when saveBlock = false', () => {
-				it('should call private functions with correct parameters', done => {
-					broadcast = true;
-					saveBlock = false;
-					blocksVerifyModule.processBlock(
-						dummyBlock,
-						broadcast,
-						saveBlock,
-						err => {
-							expect(err).to.be.null;
-							expect(__private.checkExists).to.not.called;
-							done();
-						}
-					);
-				});
-			});
-		});
-
-		describe('when broadcast = false', () => {
-			beforeEach(() =>
-				modules.blocks.calculateNewBroadhash.resolves({
-					broadhash: 'xx',
-					height: 1,
-				})
-			);
-
-			describe('when saveBlock = true', () => {
-				it('should call private functions with correct parameters', done => {
-					broadcast = false;
-					saveBlock = true;
-					blocksVerifyModule.processBlock(
-						dummyBlock,
-						broadcast,
-						saveBlock,
-						err => {
-							expect(err).to.be.null;
-							expect(__private.checkExists).to.have.been.calledWith(dummyBlock);
-							done();
-						}
-					);
-				});
-			});
-
-			describe('when saveBlock = false', () => {
-				it('should call private functions with correct parameters', done => {
-					broadcast = false;
-					saveBlock = false;
-					blocksVerifyModule.processBlock(
-						dummyBlock,
-						broadcast,
-						saveBlock,
-						err => {
-							expect(err).to.be.null;
-							expect(__private.checkExists).to.not.called;
-							done();
-						}
-					);
-				});
-			});
-
-			describe('when broadcast = true and saveBlock = true', () => {
-				it('should call all functions in the correct order', done => {
-					broadcast = true;
-					saveBlock = true;
-					blocksVerifyModule.processBlock(
-						dummyBlock,
-						broadcast,
-						saveBlock,
-						err => {
-							expect(err).to.be.null;
-
-							sinonSandbox.assert.callOrder(
-								__private.addBlockProperties,
-								__private.normalizeBlock,
-								__private.verifyBlock,
-								__private.broadcastBlock,
-								__private.checkExists,
-								__private.validateBlockSlot,
-								__private.checkTransactions,
-								modules.blocks.chain.applyBlock,
-
-								channelMock.invoke
-							);
-
-							done();
-						}
-					);
-				});
-			});
-		});
-	});
-
-	describe('onBind', () => {
-		beforeEach(done => {
-			loggerStub.trace.resetHistory();
-			__private.loaded = false;
-			blocksVerifyModule.onBind(bindingsStub);
-			done();
-		});
-
-		it('should call library.logger.trace with "Blocks->Verify: Shared modules bind."', async () =>
-			expect(loggerStub.trace.args[0][0]).to.equal(
-				'Blocks->Verify: Shared modules bind.'
-			));
-
-		it('should assign params to modules', done => {
-			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
-			expect(modules.rounds).to.equal(bindingsStub.modules.rounds);
-			expect(modules.transactionPool).to.equal(
-				bindingsStub.modules.transactionPool
-			);
-			done();
-		});
-
-		it('should set __private.loaded to true', async () =>
-			expect(__private.loaded).to.be.true);
 	});
 });

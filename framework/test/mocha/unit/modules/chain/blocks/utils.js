@@ -14,6 +14,7 @@
 
 'use strict';
 
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 const blocksUtils = require('../../../../../../src/modules/chain/blocks/utils');
 const blocksLogic = require('../../../../../../src/modules/chain/blocks/block');
 
@@ -550,5 +551,260 @@ describe('blocks/utils', () => {
 				id: '6',
 				height: 6,
 			}));
+	});
+
+	describe('addBlockProperties', () => {
+		let dummyBlockReturned;
+		const dummyBlock = {
+			id: 1,
+			version: 0,
+			numberOfTransactions: 0,
+			transactions: [],
+			totalAmount: new Bignum(0),
+			totalFee: new Bignum(0),
+			payloadLength: 0,
+			reward: new Bignum(0),
+		};
+
+		afterEach(() => expect(dummyBlockReturned).to.deep.equal(dummyBlock));
+
+		describe('when block.version = undefined', () => {
+			it('should add version = 0', async () => {
+				const dummyBlockReduced = _.cloneDeep(dummyBlock);
+				delete dummyBlockReduced.version;
+				dummyBlockReturned = blocksUtils.addBlockProperties(dummyBlockReduced);
+				return dummyBlockReturned;
+			});
+		});
+
+		describe('when block.numberOfTransactions = undefined', () => {
+			describe('and block.transactions = undefined', () => {
+				it('should add numberOfTransactions = 0', async () => {
+					const dummyBlockReduced = _.cloneDeep(dummyBlock);
+					delete dummyBlockReduced.numberOfTransactions;
+					delete dummyBlockReduced.transactions;
+					dummyBlockReturned = blocksUtils.addBlockProperties(
+						dummyBlockReduced
+					);
+					return dummyBlockReturned;
+				});
+			});
+
+			describe('and block.transactions != undefined', () => {
+				it('should add numberOfTransactions = block.transactions.length', async () => {
+					const dummyBlockReduced = _.cloneDeep(dummyBlock);
+					delete dummyBlockReduced.numberOfTransactions;
+					dummyBlockReturned = blocksUtils.addBlockProperties(
+						dummyBlockReduced
+					);
+					return dummyBlockReturned;
+				});
+			});
+		});
+
+		describe('when block.totalAmount = undefined', () => {
+			it('should add totalAmount = 0', async () => {
+				const dummyBlockReduced = _.cloneDeep(dummyBlock);
+				delete dummyBlockReduced.totalAmount;
+				dummyBlockReturned = blocksUtils.addBlockProperties(dummyBlockReduced);
+				return dummyBlockReturned;
+			});
+		});
+
+		describe('when block.totalFee = undefined', () => {
+			it('should add totalFee = 0', async () => {
+				const dummyBlockReduced = _.cloneDeep(dummyBlock);
+				delete dummyBlockReduced.totalFee;
+				dummyBlockReturned = blocksUtils.addBlockProperties(dummyBlockReduced);
+				return dummyBlockReturned;
+			});
+		});
+
+		describe('when block.payloadLength = undefined', () => {
+			it('should add payloadLength = 0', async () => {
+				const dummyBlockReduced = _.cloneDeep(dummyBlock);
+				delete dummyBlockReduced.payloadLength;
+				dummyBlockReturned = blocksUtils.addBlockProperties(dummyBlockReduced);
+				return dummyBlockReturned;
+			});
+		});
+
+		describe('when block.reward = undefined', () => {
+			it('should add reward = 0', async () => {
+				const dummyBlockReduced = _.cloneDeep(dummyBlock);
+				delete dummyBlockReduced.reward;
+				dummyBlockReturned = blocksUtils.addBlockProperties(dummyBlockReduced);
+				return dummyBlockReturned;
+			});
+		});
+
+		describe('when block.transactions = undefined', () => {
+			it('should add transactions = []', async () => {
+				const dummyBlockReduced = _.cloneDeep(dummyBlock);
+				delete dummyBlockReduced.transactions;
+				dummyBlockReturned = blocksUtils.addBlockProperties(dummyBlockReduced);
+				return dummyBlockReturned;
+			});
+		});
+	});
+
+	describe('deleteBlockProperties', () => {
+		let dummyBlockReduced;
+		const dummyBlock = {
+			id: 1,
+			version: 1,
+			numberOfTransactions: 1,
+			transactions: [{ id: 1 }],
+			totalAmount: new Bignum(1),
+			totalFee: new Bignum(1),
+			payloadLength: 1,
+			reward: new Bignum(1),
+		};
+
+		describe('when block.version = 0', () => {
+			afterEach(() => {
+				expect(dummyBlockReduced).to.not.have.property('version');
+				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
+				expect(dummyBlockReduced).to.have.property('totalAmount');
+				expect(dummyBlockReduced).to.have.property('totalFee');
+				expect(dummyBlockReduced).to.have.property('payloadLength');
+				expect(dummyBlockReduced).to.have.property('reward');
+				return expect(dummyBlockReduced).to.have.property('transactions');
+			});
+
+			it('should delete version property', async () => {
+				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
+				dummyBlockCompleted.version = 0;
+				dummyBlockReduced = blocksUtils.deleteBlockProperties(
+					dummyBlockCompleted
+				);
+				return dummyBlockReduced;
+			});
+		});
+
+		describe('when block.numberOfTransactions = number', () => {
+			afterEach(() => {
+				expect(dummyBlockReduced).to.have.property('version');
+				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
+				expect(dummyBlockReduced).to.have.property('totalAmount');
+				expect(dummyBlockReduced).to.have.property('totalFee');
+				expect(dummyBlockReduced).to.have.property('payloadLength');
+				expect(dummyBlockReduced).to.have.property('reward');
+				return expect(dummyBlockReduced).to.have.property('transactions');
+			});
+
+			it('should delete numberOfTransactions property', async () => {
+				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
+				dummyBlockReduced = blocksUtils.deleteBlockProperties(
+					dummyBlockCompleted
+				);
+				return dummyBlockReduced;
+			});
+		});
+
+		describe('when block.totalAmount = 0', () => {
+			afterEach(() => {
+				expect(dummyBlockReduced).to.have.property('version');
+				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
+				expect(dummyBlockReduced).to.not.have.property('totalAmount');
+				expect(dummyBlockReduced).to.have.property('totalFee');
+				expect(dummyBlockReduced).to.have.property('payloadLength');
+				expect(dummyBlockReduced).to.have.property('reward');
+				return expect(dummyBlockReduced).to.have.property('transactions');
+			});
+
+			it('should delete totalAmount property', async () => {
+				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
+				dummyBlockCompleted.totalAmount = new Bignum(0);
+				dummyBlockReduced = blocksUtils.deleteBlockProperties(
+					dummyBlockCompleted
+				);
+				return dummyBlockReduced;
+			});
+		});
+
+		describe('when block.totalFee = 0', () => {
+			afterEach(() => {
+				expect(dummyBlockReduced).to.have.property('version');
+				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
+				expect(dummyBlockReduced).to.have.property('totalAmount');
+				expect(dummyBlockReduced).to.not.have.property('totalFee');
+				expect(dummyBlockReduced).to.have.property('payloadLength');
+				expect(dummyBlockReduced).to.have.property('reward');
+				return expect(dummyBlockReduced).to.have.property('transactions');
+			});
+
+			it('should delete totalFee property', async () => {
+				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
+				dummyBlockCompleted.totalFee = new Bignum(0);
+				dummyBlockReduced = blocksUtils.deleteBlockProperties(
+					dummyBlockCompleted
+				);
+				return dummyBlockReduced;
+			});
+		});
+
+		describe('when block.payloadLength = 0', () => {
+			afterEach(() => {
+				expect(dummyBlockReduced).to.have.property('version');
+				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
+				expect(dummyBlockReduced).to.have.property('totalAmount');
+				expect(dummyBlockReduced).to.have.property('totalFee');
+				expect(dummyBlockReduced).to.not.have.property('payloadLength');
+				expect(dummyBlockReduced).to.have.property('reward');
+				return expect(dummyBlockReduced).to.have.property('transactions');
+			});
+
+			it('should delete totalFee property', async () => {
+				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
+				dummyBlockCompleted.payloadLength = 0;
+				dummyBlockReduced = blocksUtils.deleteBlockProperties(
+					dummyBlockCompleted
+				);
+				return dummyBlockReduced;
+			});
+		});
+
+		describe('when block.reward = 0', () => {
+			afterEach(() => {
+				expect(dummyBlockReduced).to.have.property('version');
+				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
+				expect(dummyBlockReduced).to.have.property('totalAmount');
+				expect(dummyBlockReduced).to.have.property('totalFee');
+				expect(dummyBlockReduced).to.have.property('payloadLength');
+				expect(dummyBlockReduced).to.not.have.property('reward');
+				return expect(dummyBlockReduced).to.have.property('transactions');
+			});
+
+			it('should delete totalFee property', async () => {
+				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
+				dummyBlockCompleted.reward = new Bignum(0);
+				dummyBlockReduced = blocksUtils.deleteBlockProperties(
+					dummyBlockCompleted
+				);
+				return dummyBlockReduced;
+			});
+		});
+
+		describe('when block.transactions.length = 0', () => {
+			afterEach(() => {
+				expect(dummyBlockReduced).to.have.property('version');
+				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
+				expect(dummyBlockReduced).to.have.property('totalAmount');
+				expect(dummyBlockReduced).to.have.property('totalFee');
+				expect(dummyBlockReduced).to.have.property('payloadLength');
+				expect(dummyBlockReduced).to.have.property('reward');
+				return expect(dummyBlockReduced).to.not.have.property('transactions');
+			});
+
+			it('should delete totalFee property', async () => {
+				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
+				dummyBlockCompleted.transactions = [];
+				dummyBlockReduced = blocksUtils.deleteBlockProperties(
+					dummyBlockCompleted
+				);
+				return dummyBlockReduced;
+			});
+		});
 	});
 });

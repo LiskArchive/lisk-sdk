@@ -356,7 +356,7 @@ const verifyReward = (blockReward, block, exceptions, result) => {
 	if (
 		block.height !== 1 &&
 		!expectedReward.isEqualTo(block.reward) &&
-		!exceptions.blockReward.includes(block.id)
+		(!exceptions.blockReward || !exceptions.blockReward.includes(block.id))
 	) {
 		result.errors.push(
 			new Error(
@@ -590,7 +590,6 @@ const verifyReceipt = ({
 };
 
 module.exports = {
-	setHeight,
 	BlocksVerify,
 	verifyId,
 	verifySignature,
