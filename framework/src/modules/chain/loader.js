@@ -17,6 +17,7 @@
 const async = require('async');
 const { promisify } = require('util');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const { validateTransactions } = require('./transactions');
 const { convertErrorsToString } = require('./helpers/error_handlers');
 const slots = require('./helpers/slots');
 const definitions = require('./schema/definitions');
@@ -461,11 +462,9 @@ class Loader {
 		};
 
 		modules = {
-			transactions: scope.modules.transactions,
+			transactionPool: scope.modules.transactionPool,
 			blocks: scope.modules.blocks,
 			peers: scope.modules.peers,
-			multisignatures: scope.modules.multisignatures,
-			processTransactions: scope.modules.processTransactions,
 		};
 	}
 }
@@ -501,13 +500,8 @@ __private.getSignaturesFromNetwork = async function() {
 			for (let j = 0; j < subSignatureCount; j++) {
 				const signature = signaturePacket.signatures[j];
 
-				const processSignature = promisify(
-					modules.multisignatures.getTransactionAndProcessSignature.bind(
-						modules.multisignatures
-					)
-				);
 				// eslint-disable-next-line no-await-in-loop
-				await processSignature({
+				await modules.transactionPool.getTransactionAndProcessSignature({
 					signature,
 					transactionId: signature.transactionId,
 				});
@@ -541,9 +535,7 @@ __private.getTransactionsFromNetwork = async function() {
 
 	const transactions = result.transactions;
 	try {
-		const {
-			transactionsResponses,
-		} = modules.processTransactions.validateTransactions(transactions);
+		const { transactionsResponses } = validateTransactions()(transactions);
 		const invalidTransactionResponse = transactionsResponses.find(
 			transactionResponse => transactionResponse.status !== TransactionStatus.OK
 		);
@@ -570,13 +562,16 @@ __private.getTransactionsFromNetwork = async function() {
 		);
 		try {
 			/* eslint-disable-next-line */
-			await balancesSequenceAdd(addSequenceCb => {
+			await balancesSequenceAdd(async addSequenceCb => {
 				transaction.bundled = true;
-				modules.transactions.processUnconfirmedTransaction(
-					transaction,
-					false,
-					addSequenceCb
-				);
+				try {
+					await modules.transactionPool.processUnconfirmedTransaction(
+						transaction
+					);
+					setImmediate(addSequenceCb);
+				} catch (err) {
+					setImmediate(addSequenceCb, err);
+				}
 			});
 		} catch (error) {
 			library.logger.error(error);
@@ -855,7 +850,7 @@ __private.rebuildAccounts = height => {
  * Executed when rebuild process is complete.
  *
  * @private
- * @param {err} Error if any
+ * @param {err} Error if anysyncing
  * @emits cleanup
  */
 __private.rebuildFinished = err => {

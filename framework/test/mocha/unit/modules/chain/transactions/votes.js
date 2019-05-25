@@ -15,7 +15,7 @@
 'use strict';
 
 const Bignum = require('browserify-bignum');
-const RoundInformation = require('../../../../../../src/modules/chain/logic/rounds_information');
+const Votes = require('../../../../../../src/modules/chain/transactions/votes');
 
 describe('rounds information', () => {
 	const transferTransaction = {
@@ -125,35 +125,35 @@ describe('rounds information', () => {
 		sinonSandbox.reset();
 	});
 
-	describe('updateRecipientRoundInformationWithAmountForTransaction', () => {
+	describe('updateRecipientVotesWithAmountForTransaction', () => {
 		it('should get intransfer transaction from state store when transaction type 6', async () => {
-			RoundInformation.apply(storageStubs, inTransferTransaction);
+			Votes.apply(storageStubs, inTransferTransaction);
 			expect(storageStubs.transaction.get).to.be.calledWithExactly(
 				inTransferTransaction.asset.inTransfer.dappId
 			);
 		});
 
 		it('should get dapp registration transaction sender account from state store when transaction type 6', async () => {
-			RoundInformation.apply(storageStubs, inTransferTransaction);
+			Votes.apply(storageStubs, inTransferTransaction);
 			expect(storageStubs.account.get).to.be.calledWithExactly('1L');
 		});
 
 		it('should get send transaction recipient account from state store when transaction type 0', async () => {
-			RoundInformation.apply(storageStubs, transferTransaction);
+			Votes.apply(storageStubs, transferTransaction);
 			expect(storageStubs.account.get).to.have.been.calledWithExactly(
 				transferTransaction.recipientId
 			);
 		});
 
 		it('should get send transaction recipient account from state store when transaction type 7', async () => {
-			RoundInformation.apply(storageStubs, outTransferTransaction);
+			Votes.apply(storageStubs, outTransferTransaction);
 			expect(storageStubs.account.get).to.have.been.calledWithExactly(
 				outTransferTransaction.recipientId
 			);
 		});
 
 		it('should add correct data to state store round for apply', async () => {
-			RoundInformation.apply(storageStubs, inTransferTransaction);
+			Votes.apply(storageStubs, inTransferTransaction);
 			expect(storageStubs.round.add).to.be.calledWithExactly({
 				address: '1L',
 				amount: transferTransaction.amount.toString(),
@@ -162,7 +162,7 @@ describe('rounds information', () => {
 		});
 
 		it('should add correct data to state store round for undo', async () => {
-			RoundInformation.undo(storageStubs, inTransferTransaction);
+			Votes.undo(storageStubs, inTransferTransaction);
 			expect(storageStubs.round.add).to.be.calledWithExactly({
 				address: '1L',
 				amount: transferTransaction.amount.mul(-1).toString(),
@@ -171,13 +171,17 @@ describe('rounds information', () => {
 		});
 	});
 
-	describe('updateSenderRoundInformationWithAmountForTransaction', () => {
+	describe('updateSenderVotesWithAmountForTransaction', () => {
+		let exceptions;
+
 		afterEach(async () => {
-			global.exceptions.roundVotes = [];
+			exceptions = {
+				roundVotes: [],
+			};
 		});
 
 		it('should get transaction sender account from state store', async () => {
-			RoundInformation.apply(storageStubs, voteTransaction);
+			Votes.apply(storageStubs, voteTransaction, exceptions);
 			expect(storageStubs.account.get).to.be.calledWithExactly(
 				voteTransaction.senderId
 			);
@@ -189,14 +193,18 @@ describe('rounds information', () => {
 					'05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
 				],
 			});
-			RoundInformation.apply(storageStubs, {
-				...voteTransaction,
-				asset: {
-					votes: [
-						'-05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
-					],
+			Votes.apply(
+				storageStubs,
+				{
+					...voteTransaction,
+					asset: {
+						votes: [
+							'-05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
+						],
+					},
 				},
-			});
+				exceptions
+			);
 			expect(storageStubs.round.add).to.be.calledWithExactly({
 				address: voteTransaction.senderId,
 				amount: '-100000000',
@@ -210,7 +218,7 @@ describe('rounds information', () => {
 					'05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
 				],
 			});
-			RoundInformation.undo(storageStubs, voteTransaction);
+			Votes.undo(storageStubs, voteTransaction, exceptions);
 			expect(storageStubs.round.add).to.be.calledWithExactly({
 				address: voteTransaction.senderId,
 				amount: '100000000',
@@ -219,8 +227,8 @@ describe('rounds information', () => {
 		});
 
 		it('should not add data to state store round for vote transaction if its an exception', async () => {
-			global.exceptions.roundVotes = ['3729501093004464059'];
-			RoundInformation.undo(storageStubs, voteTransaction);
+			exceptions.roundVotes = ['3729501093004464059'];
+			Votes.undo(storageStubs, voteTransaction, exceptions);
 			storageStubs.account.get.returns({
 				balance: new Bignum('100000'),
 				votedDelegatesPublicKeys: [
@@ -235,7 +243,7 @@ describe('rounds information', () => {
 		});
 
 		it('should add data to state store round for existing votedDelegatesPublicKeys but not for removed votes inside the transaction if its an exception', async () => {
-			global.exceptions.roundVotes = ['3729501093004464059'];
+			exceptions.roundVotes = ['3729501093004464059'];
 			storageStubs.account.get.returns({
 				balance: new Bignum('0'),
 				votedDelegatesPublicKeys: [
@@ -243,7 +251,7 @@ describe('rounds information', () => {
 					'05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
 				],
 			});
-			RoundInformation.undo(storageStubs, voteTransaction);
+			Votes.undo(storageStubs, voteTransaction, exceptions);
 			expect(storageStubs.round.add).to.be.calledWithExactly({
 				address: voteTransaction.senderId,
 				amount: '100000000',
@@ -253,9 +261,9 @@ describe('rounds information', () => {
 		});
 	});
 
-	describe('updateRoundInformationWithDelegatesForTransaction', () => {
+	describe('updateVotesWithDelegatesForTransaction', () => {
 		it('should get transaction sender account from state store', async () => {
-			RoundInformation.apply(storageStubs, voteTransaction);
+			Votes.apply(storageStubs, voteTransaction);
 			expect(storageStubs.account.get.getCall(1)).to.be.calledWithExactly(
 				voteTransaction.senderId
 			);
@@ -265,7 +273,7 @@ describe('rounds information', () => {
 			storageStubs.account.get.returns({
 				balance: '500000000',
 			});
-			RoundInformation.apply(storageStubs, voteTransaction);
+			Votes.apply(storageStubs, voteTransaction);
 			expect(storageStubs.round.add).to.be.calledWithExactly({
 				address: voteTransaction.senderId,
 				amount: '500000000',
@@ -277,7 +285,7 @@ describe('rounds information', () => {
 			storageStubs.account.get.returns({
 				balance: '500000000',
 			});
-			RoundInformation.undo(storageStubs, voteTransaction);
+			Votes.undo(storageStubs, voteTransaction);
 			expect(storageStubs.round.add).to.be.calledWithExactly({
 				address: voteTransaction.senderId,
 				amount: '-500000000',

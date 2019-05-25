@@ -29,7 +29,7 @@ describe('blocks', () => {
 	let storageStub;
 	let loggerStub;
 	let logicBlockStub;
-	let logicTransactionStub;
+	let moduleTransactionsStub;
 	let schemaStub;
 	let dbSequenceStub;
 	let sequenceStub;
@@ -65,7 +65,7 @@ describe('blocks', () => {
 			},
 		};
 		logicBlockStub = sinonSandbox.stub();
-		logicTransactionStub = sinonSandbox.stub();
+		moduleTransactionsStub = sinonSandbox.stub();
 		schemaStub = sinonSandbox.stub();
 		dbSequenceStub = sinonSandbox.stub();
 		sequenceStub = sinonSandbox.stub();
@@ -94,7 +94,6 @@ describe('blocks', () => {
 			logic: {
 				account: accountStub,
 				block: logicBlockStub,
-				transaction: logicTransactionStub,
 				peers: peersStub,
 			},
 			channel: channelStub,
@@ -106,6 +105,9 @@ describe('blocks', () => {
 			balancesSequence: balancesSequenceStub,
 			config: {
 				loading: {},
+			},
+			modules: {
+				transactions: moduleTransactionsStub,
 			},
 			applicationState: applicationStateStub,
 		};

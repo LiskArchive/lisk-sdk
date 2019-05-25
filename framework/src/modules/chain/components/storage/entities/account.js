@@ -37,6 +37,7 @@ const defaultCreateValues = {
 	nameExist: false,
 	multiMin: 0,
 	multiLifetime: 0,
+	asset: null,
 };
 
 const readOnlyFields = ['address'];

@@ -21,9 +21,13 @@ const NodeController = rewire(
 );
 
 describe('node/api', () => {
+	const confirmedTransactions = 10;
+
 	let library;
 	let privateLibrary;
 	let channelStub;
+	let cacheStub;
+	let loggerStub;
 	let storageStub;
 	let configStub;
 	let getStatus;
@@ -33,10 +37,21 @@ describe('node/api', () => {
 			invoke: sinonSandbox.stub().resolves(),
 		};
 
+		loggerStub = {
+			warn: sinonSandbox.stub(),
+		};
+
+		cacheStub = {
+			cacheReady: sinonSandbox.stub(),
+		};
+
 		storageStub = {
 			entities: {
 				Block: {
 					get: sinonSandbox.stub().resolves([]),
+				},
+				Transaction: {
+					count: sinonSandbox.stub().resolves(confirmedTransactions),
 				},
 			},
 		};
@@ -44,6 +59,8 @@ describe('node/api', () => {
 		library = {
 			components: {
 				storage: storageStub,
+				cache: cacheStub,
+				logger: loggerStub,
 			},
 			config: configStub,
 			channel: channelStub,
@@ -106,15 +123,14 @@ describe('node/api', () => {
 			},
 			loaded: true,
 			syncing: false,
-			transactions: {
-				confirmed: 10,
-				unconfirmed: 0,
-				unprocessed: 0,
-				unsigned: 0,
-				total: 10,
+			unconfirmedTransactions: {
+				ready: 0,
+				verified: 0,
+				pending: 0,
+				validated: 0,
+				received: 0,
 			},
 		};
-
 		const now = Date.now();
 
 		const expectedStatus = {
@@ -127,10 +143,12 @@ describe('node/api', () => {
 			networkHeight: 456,
 			syncing: false,
 			transactions: {
-				confirmed: 10,
-				unconfirmed: 0,
-				unprocessed: 0,
-				unsigned: 0,
+				confirmed: confirmedTransactions,
+				ready: 0,
+				verified: 0,
+				pending: 0,
+				validated: 0,
+				received: 0,
 				total: 10,
 			},
 			currentTime: now,

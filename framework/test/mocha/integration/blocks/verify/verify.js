@@ -28,7 +28,9 @@ const slots = require('../../../../../src/modules/chain/helpers/slots');
 const {
 	registeredTransactions,
 } = require('../../../common/registered_transactions');
-const InitTransaction = require('../../../../../src/modules/chain/logic/init_transaction');
+const {
+	TransactionInterfaceAdapter,
+} = require('../../../../../src/modules/chain/interface_adapters');
 const accountFixtures = require('../../../fixtures/accounts');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
@@ -37,7 +39,9 @@ const blockVersion = require('../../../../../src/modules/chain/logic/block_versi
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
 const { NORMALIZER } = global.__testContext.config;
 const genesisBlock = __testContext.config.genesisBlock;
-const initTransaction = new InitTransaction({ registeredTransactions });
+const interfaceAdapters = {
+	transactions: new TransactionInterfaceAdapter(registeredTransactions),
+};
 
 const previousBlock = {
 	blockSignature:
@@ -110,7 +114,7 @@ const validBlock = {
 				'9f9446b527e93f81d3fb8840b02fcd1454e2b6276d3c19bd724033a01d3121dd2edb0aff61d48fad29091e222249754e8ec541132032aefaeebc312796f69e08',
 			id: '9314232245035524467',
 		},
-	].map(transaction => initTransaction.fromJson(transaction)),
+	].map(transaction => interfaceAdapters.transactions.fromJson(transaction)),
 	version: 0,
 	id: '884740302254229983',
 };
@@ -134,7 +138,7 @@ function createBlock(
 			.digest()
 	);
 	transactions = transactions.map(transaction =>
-		initTransaction.fromJson(transaction)
+		interfaceAdapters.transactions.fromJson(transaction)
 	);
 	blocksModule.lastBlock.set(previousBlockArgs);
 	const newBlock = blockLogic.create({
@@ -152,7 +156,7 @@ function getValidKeypairForSlot(library, slot) {
 	const lastBlock = genesisBlock;
 	const round = slots.calcRound(lastBlock.height);
 
-	return library.modules.delegates
+	return library.modules.rounds
 		.generateDelegateList(round, null)
 		.then(list => {
 			const delegatePublicKey = list[slot % ACTIVE_DELEGATES];
@@ -171,7 +175,7 @@ describe('blocks/verify', () => {
 	let blocksVerify;
 	let blocks;
 	let blockLogic;
-	let delegates;
+	let rounds;
 	let storage;
 	let results;
 
@@ -186,7 +190,7 @@ describe('blocks/verify', () => {
 				blocksVerify = scope.modules.blocks.verify;
 				blockLogic = scope.logic.block;
 				blocks = scope.modules.blocks;
-				delegates = scope.modules.delegates;
+				rounds = scope.modules.rounds;
 				storage = scope.components.storage;
 
 				// Set current block version to 0
@@ -879,7 +883,7 @@ describe('blocks/verify', () => {
 					if (err) {
 						return done(err);
 					}
-					return delegates.generateDelegateList(1, null).then(() => done());
+					return rounds.generateDelegateList(1, null).then(() => done());
 				}
 			);
 		});

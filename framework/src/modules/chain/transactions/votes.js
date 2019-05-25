@@ -16,8 +16,11 @@
 
 const Bignumber = require('bignumber.js');
 
-const { TRANSACTION_TYPES } = global.constants;
-const exceptions = global.exceptions;
+// TODO: change to more generic way
+const TRANSACTION_TYPES_SEND = 0;
+const TRANSACTION_TYPES_VOTE = 3;
+const TRANSACTION_TYPES_IN_TRANSFER = 6;
+const TRANSACTION_TYPES_OUT_TRANSFER = 7;
 
 const reverseVotes = function(diff) {
 	const copyDiff = diff.slice();
@@ -28,12 +31,12 @@ const reverseVotes = function(diff) {
 	return copyDiff;
 };
 
-const updateRoundInformationWithDelegatesForTransaction = function(
+const updateRoundInformationWithDelegatesForTransaction = (
 	stateStore,
 	transaction,
 	forwardTick
-) {
-	if (transaction.type !== TRANSACTION_TYPES.VOTE) {
+) => {
+	if (transaction.type !== TRANSACTION_TYPES_VOTE) {
 		return;
 	}
 
@@ -65,11 +68,12 @@ const updateRoundInformationWithDelegatesForTransaction = function(
 		.forEach(data => stateStore.round.add(data));
 };
 
-const updateSenderRoundInformationWithAmountForTransaction = function(
+const updateSenderRoundInformationWithAmountForTransaction = (
 	stateStore,
 	transaction,
-	forwardTick
-) {
+	forwardTick,
+	exceptions
+) => {
 	const amount = transaction.fee.plus(transaction.amount);
 	const amountToUpdate = forwardTick
 		? amount.mul(-1).toString()
@@ -77,7 +81,7 @@ const updateSenderRoundInformationWithAmountForTransaction = function(
 	const account = stateStore.account.get(transaction.senderId);
 	let dependentPublicKeysToAdd = account.votedDelegatesPublicKeys || [];
 
-	if (transaction.type === TRANSACTION_TYPES.VOTE) {
+	if (transaction.type === TRANSACTION_TYPES_VOTE) {
 		const newVotes = forwardTick
 			? transaction.asset.votes
 			: reverseVotes(transaction.asset.votes);
@@ -89,7 +93,10 @@ const updateSenderRoundInformationWithAmountForTransaction = function(
 			.map(vote => vote.slice(1));
 
 		// Votes inside the transaction should not be incase it's an exception, but the existing votes should be updated
-		if (!exceptions.roundVotes.includes(transaction.id)) {
+		if (
+			!exceptions.roundVotes ||
+			!exceptions.roundVotes.includes(transaction.id)
+		) {
 			const dependentPublicKeysWithoutUpvotes = dependentPublicKeysToAdd.filter(
 				vote => !upvotes.find(v => v === vote)
 			);
@@ -110,22 +117,22 @@ const updateSenderRoundInformationWithAmountForTransaction = function(
 	}
 };
 
-const updateRecipientRoundInformationWithAmountForTransaction = function(
+const updateRecipientRoundInformationWithAmountForTransaction = (
 	stateStore,
 	transaction,
 	forwardTick
-) {
+) => {
 	let address;
-	if (transaction.type === TRANSACTION_TYPES.IN_TRANSFER) {
+	if (transaction.type === TRANSACTION_TYPES_IN_TRANSFER) {
 		const dappTransaction = stateStore.transaction.get(
 			transaction.asset.inTransfer.dappId
 		);
 		address = dappTransaction.senderId;
 	}
 	if (
-		transaction.type === TRANSACTION_TYPES.SEND ||
-		transaction.type === TRANSACTION_TYPES.OUT_TRANSFER ||
-		transaction.type === TRANSACTION_TYPES.VOTE
+		transaction.type === TRANSACTION_TYPES_SEND ||
+		transaction.type === TRANSACTION_TYPES_OUT_TRANSFER ||
+		transaction.type === TRANSACTION_TYPES_VOTE
 	) {
 		address = transaction.recipientId;
 	}
@@ -151,42 +158,49 @@ const updateRecipientRoundInformationWithAmountForTransaction = function(
 	}
 };
 
-module.exports = {
-	apply(stateStore, transaction) {
-		const isForwardTick = true;
-		updateRecipientRoundInformationWithAmountForTransaction(
-			stateStore,
-			transaction,
-			isForwardTick
-		);
-		updateSenderRoundInformationWithAmountForTransaction(
-			stateStore,
-			transaction,
-			isForwardTick
-		);
-		updateRoundInformationWithDelegatesForTransaction(
-			stateStore,
-			transaction,
-			isForwardTick
-		);
-	},
+const apply = (stateStore, transaction, exceptions = {}) => {
+	const isForwardTick = true;
+	updateRecipientRoundInformationWithAmountForTransaction(
+		stateStore,
+		transaction,
+		isForwardTick
+	);
+	updateSenderRoundInformationWithAmountForTransaction(
+		stateStore,
+		transaction,
+		isForwardTick,
+		exceptions
+	);
+	updateRoundInformationWithDelegatesForTransaction(
+		stateStore,
+		transaction,
+		isForwardTick
+	);
+};
 
-	undo(stateStore, transaction) {
-		const isForwardTick = false;
-		updateRecipientRoundInformationWithAmountForTransaction(
-			stateStore,
-			transaction,
-			isForwardTick
-		);
-		updateSenderRoundInformationWithAmountForTransaction(
-			stateStore,
-			transaction,
-			isForwardTick
-		);
-		updateRoundInformationWithDelegatesForTransaction(
-			stateStore,
-			transaction,
-			isForwardTick
-		);
-	},
+const undo = (stateStore, transaction, exceptions = {}) => {
+	const isForwardTick = false;
+	updateRecipientRoundInformationWithAmountForTransaction(
+		stateStore,
+		transaction,
+		isForwardTick
+	);
+	updateSenderRoundInformationWithAmountForTransaction(
+		stateStore,
+		transaction,
+		isForwardTick,
+		exceptions
+	);
+	updateRoundInformationWithDelegatesForTransaction(
+		stateStore,
+		transaction,
+		isForwardTick
+	);
+};
+
+module.exports = {
+	updateRoundInformationWithDelegatesForTransaction,
+	updateSenderRoundInformationWithAmountForTransaction,
+	apply,
+	undo,
 };

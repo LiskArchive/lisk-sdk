@@ -21,7 +21,10 @@ import {
 	isCacheRunning,
 	startCache,
 } from '../../../utils/core/cache';
-import { describeApplication } from '../../../utils/core/pm2';
+import {
+	describeApplication,
+	PM2ProcessInstance,
+} from '../../../utils/core/pm2';
 
 interface Args {
 	readonly name: string;
@@ -54,7 +57,17 @@ export default class CacheCommand extends BaseCommand {
 	async run(): Promise<void> {
 		const { args } = this.parse(CacheCommand);
 		const { name } = args as Args;
-		const { installationPath, network } = await describeApplication(name);
+		const instance = await describeApplication(name);
+
+		if (!instance) {
+			this.log(
+				`Lisk Core instance: ${name} doesn't exists, Please install using lisk core:install`,
+			);
+
+			return;
+		}
+
+		const { installationPath, network } = instance as PM2ProcessInstance;
 
 		const tasks = new Listr([
 			{

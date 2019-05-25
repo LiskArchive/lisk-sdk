@@ -77,26 +77,25 @@ class Blocks {
 				scope.components.storage,
 				scope.sequence,
 				scope.genesisBlock,
-				scope.channel,
-				scope.logic.initTransaction
+				scope.channel
 			),
 			utils: new BlocksUtils(
 				scope.components.logger,
 				scope.logic.account,
 				scope.logic.block,
-				scope.logic.initTransaction,
 				scope.components.storage,
-				scope.genesisBlock
+				scope.genesisBlock,
+				scope.modules.interfaceAdapters
 			),
 			chain: new BlocksChain(
 				scope.components.logger,
 				scope.logic.block,
-				scope.logic.initTransaction,
 				scope.components.storage,
 				scope.genesisBlock,
 				scope.bus,
 				scope.balancesSequence,
-				scope.channel
+				scope.channel,
+				scope.modules.interfaceAdapters
 			),
 		};
 

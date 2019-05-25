@@ -14,39 +14,28 @@
 
 'use strict';
 
+const EventEmitter = require('events');
+const _ = require('lodash');
 const pool = require('@liskhq/lisk-transaction-pool');
 const {
 	Status: TransactionStatus,
 	TransactionError,
 } = require('@liskhq/lisk-transactions');
-const processTransactionLogic = require('../logic/process_transaction');
-const slots = require('../helpers/slots');
+const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
+const { sortBy } = require('./sort');
+const transactionsModule = require('../transactions');
 
-const {
-	EXPIRY_INTERVAL,
-	MAX_TRANSACTIONS_PER_BLOCK,
-	MAX_SHARED_TRANSACTIONS,
-} = global.constants;
-
-const wrapAddTransactionResponseInCb = (
-	addTransactionResponse,
-	cb,
-	transaction,
-	err
-) => {
-	if (err) {
-		return cb(err);
-	}
+const handleAddTransactionResponse = (addTransactionResponse, transaction) => {
 	if (addTransactionResponse.isFull) {
-		return cb(new Error('Transaction pool is full'));
+		throw new Error('Transaction pool is full');
 	}
 	if (addTransactionResponse.alreadyExists) {
 		if (addTransactionResponse.queueName === readyQueue) {
-			return cb(new Error('Transaction is already in unconfirmed state'));
+			throw new Error('Transaction is already in unconfirmed state');
 		}
-		return cb(new Error(`Transaction is already processed: ${transaction.id}`));
+		throw new Error(`Transaction is already processed: ${transaction.id}`);
 	}
-	return cb();
+	return addTransactionResponse;
 };
 
 const receivedQueue = 'received';
@@ -68,42 +57,62 @@ const validatedQueue = 'validated';
  * @param {Object} logger - Logger instance
  * @param {Object} config - config variable
  */
-class TransactionPool {
-	constructor(broadcastInterval, releaseLimit, logger, config, bus) {
-		this.maxTransactionsPerQueue = config.transactions.maxTransactionsPerQueue;
+class TransactionPool extends EventEmitter {
+	constructor({
+		storage,
+		exceptions,
+		blocks,
+		slots,
+		logger,
+		broadcastInterval,
+		releaseLimit,
+		expireTransactionsInterval,
+		maxSharedTransactions,
+		maxTransactionsPerQueue,
+		maxTransactionsPerBlock,
+	}) {
+		super();
+		this.blocks = blocks;
+		this.storage = storage;
+		this.logger = logger;
+		this.slots = slots;
+		this.expireTransactionsInterval = expireTransactionsInterval;
+		this.maxTransactionsPerQueue = maxTransactionsPerQueue;
+		this.maxTransactionsPerBlock = maxTransactionsPerBlock;
+		this.maxSharedTransactions = maxSharedTransactions;
 		this.bundledInterval = broadcastInterval;
 		this.bundleLimit = releaseLimit;
-		this.logger = logger;
-		this.bus = bus;
-	}
 
-	/**
-	 * Bounds input parameters to private and sets up the liskhq-transaction-pool module.
-	 *
-	 * @param {Transactions} processTransactions - Transactions processing module instance
-	 */
-	bind(processTransactions) {
-		this.validateTransactions = processTransactions.validateTransactions;
-		this.verifyTransactions = processTransactionLogic.composeTransactionSteps(
-			processTransactions.checkAllowedTransactions,
-			processTransactions.checkPersistedTransactions,
-			processTransactions.verifyTransactions
+		this.validateTransactions = transactionsModule.validateTransactions(
+			this.exceptions
 		);
-		this.processTransactions = processTransactionLogic.composeTransactionSteps(
-			processTransactions.checkPersistedTransactions,
-			processTransactions.applyTransactions
+		this.verifyTransactions = transactionsModule.composeTransactionSteps(
+			transactionsModule.checkAllowedTransactions(() => {
+				const { version, height, timestamp } = this.blocks.lastBlock.get();
+				return {
+					blockVersion: version,
+					blockHeight: height,
+					blockTimestamp: timestamp,
+				};
+			}), // TODO: probably wrong
+			transactionsModule.checkPersistedTransactions(storage),
+			transactionsModule.verifyTransactions(storage, slots, exceptions)
+		);
+		this.processTransactions = transactionsModule.composeTransactionSteps(
+			transactionsModule.checkPersistedTransactions(storage),
+			transactionsModule.applyTransactions(storage, exceptions)
 		);
 
 		const poolConfig = {
-			expireTransactionsInterval: EXPIRY_INTERVAL,
+			expireTransactionsInterval: this.expireTransactionsInterval,
 			maxTransactionsPerQueue: this.maxTransactionsPerQueue,
 			receivedTransactionsLimitPerProcessing: this.bundleLimit,
 			receivedTransactionsProcessingInterval: this.bundledInterval,
 			validatedTransactionsLimitPerProcessing: this.bundleLimit,
 			validatedTransactionsProcessingInterval: this.bundledInterval,
-			verifiedTransactionsLimitPerProcessing: MAX_TRANSACTIONS_PER_BLOCK,
+			verifiedTransactionsLimitPerProcessing: this.maxTransactionsPerBlock,
 			verifiedTransactionsProcessingInterval: this.bundledInterval,
-			pendingTransactionsProcessingLimit: MAX_TRANSACTIONS_PER_BLOCK,
+			pendingTransactionsProcessingLimit: this.maxTransactionsPerBlock,
 		};
 
 		const poolDependencies = {
@@ -122,15 +131,15 @@ class TransactionPool {
 
 	resetPool() {
 		const poolConfig = {
-			expireTransactionsInterval: EXPIRY_INTERVAL,
+			expireTransactionsInterval: this.expireTransactionsInterval,
 			maxTransactionsPerQueue: this.maxTransactionsPerQueue,
 			receivedTransactionsLimitPerProcessing: this.bundleLimit,
 			receivedTransactionsProcessingInterval: this.bundledInterval,
 			validatedTransactionsLimitPerProcessing: this.bundleLimit,
 			validatedTransactionsProcessingInterval: this.bundledInterval,
-			verifiedTransactionsLimitPerProcessing: MAX_TRANSACTIONS_PER_BLOCK,
+			verifiedTransactionsLimitPerProcessing: this.maxTransactionsPerBlock,
 			verifiedTransactionsProcessingInterval: this.bundledInterval,
-			pendingTransactionsProcessingLimit: MAX_TRANSACTIONS_PER_BLOCK,
+			pendingTransactionsProcessingLimit: this.maxTransactionsPerBlock,
 		};
 
 		const poolDependencies = {
@@ -152,7 +161,8 @@ class TransactionPool {
 			if (payload.length > 0) {
 				if (action === pool.ACTION_ADD_TRANSACTIONS) {
 					payload.forEach(aTransaction =>
-						this.bus.message('unconfirmedTransaction', aTransaction, true)
+						// TODO: make it as a valid event
+						this.emit('unconfirmedTransaction', aTransaction)
 					);
 				}
 
@@ -181,6 +191,38 @@ class TransactionPool {
 				.join(' ');
 			this.logger.info(`Transaction pool - ${queueSizes}`);
 		});
+	}
+
+	async getTransactionAndProcessSignature(signature) {
+		if (!signature) {
+			const message = 'Unable to process signature, signature not provided';
+			this.logger.error(message);
+			throw [new TransactionError(message, '', '.signature')];
+		}
+		// Grab transaction with corresponding ID from transaction pool
+		const transaction = this.getMultisignatureTransaction(
+			signature.transactionId
+		);
+
+		if (!transaction) {
+			const message =
+				'Unable to process signature, corresponding transaction not found';
+			this.logger.error(message, { signature });
+			throw [new TransactionError(message, '', '.signature')];
+		}
+
+		const transactionResponse = await transactionsModule.processSignature(
+			this.storage
+		)(transaction, signature);
+		if (
+			transactionResponse.status === TransactionStatus.FAIL &&
+			transactionResponse.errors.length > 0
+		) {
+			const message = transactionResponse.errors[0].message;
+			this.logger.error(message, { signature });
+			throw transactionResponse.errors;
+		}
+		return transactionResponse;
 	}
 
 	transactionInPool(id) {
@@ -267,6 +309,16 @@ class TransactionPool {
 		return this.pool.queues[queueName].size();
 	}
 
+	getCount() {
+		return {
+			ready: this.getCountByQueue('ready') || 0,
+			verified: this.getCountByQueue('verified') || 0,
+			pending: this.getCountByQueue('pending') || 0,
+			validated: this.getCountByQueue('validated') || 0,
+			received: this.getCountByQueue('received') || 0,
+		};
+	}
+
 	getTransactionsList(queueName, reverse, limit) {
 		const transactions = this.pool.queues[queueName].transactions;
 		let transactionList = [...transactions];
@@ -280,13 +332,10 @@ class TransactionPool {
 		return transactionList;
 	}
 
-	fillPool(cb) {
-		return this.pool
-			.validateReceivedTransactions()
-			.then(() => this.pool.verifyValidatedTransactions())
-			.then(() => this.pool.processVerifiedTransactions())
-			.then(() => cb())
-			.catch(cb);
+	async fillPool() {
+		await this.pool.validateReceivedTransactions();
+		await this.pool.verifyValidatedTransactions();
+		await this.pool.processVerifiedTransactions();
 	}
 
 	/**
@@ -297,19 +346,22 @@ class TransactionPool {
 	 * @returns {Object[]} Of unconfirmed, multisignatures, queued transactions
 	 * @todo Limit is only implemented with queued transactions, reverse param is unused
 	 */
-	getMergedTransactionList(reverse = false, limit = MAX_SHARED_TRANSACTIONS) {
-		if (limit > MAX_SHARED_TRANSACTIONS) {
-			limit = MAX_SHARED_TRANSACTIONS;
+	getMergedTransactionList(
+		reverse = false,
+		limit = this.maxSharedTransactions
+	) {
+		if (limit > this.maxSharedTransactions) {
+			limit = this.maxSharedTransactions;
 		}
 
 		const ready = this.getUnconfirmedTransactionList(
 			reverse,
-			Math.min(MAX_TRANSACTIONS_PER_BLOCK, limit)
+			Math.min(this.maxTransactionsPerBlock, limit)
 		);
 		limit -= ready.length;
 		const pending = this.getMultisignatureTransactionList(
 			reverse,
-			Math.min(MAX_TRANSACTIONS_PER_BLOCK, limit)
+			Math.min(this.maxTransactionsPerBlock, limit)
 		);
 		limit -= pending.length;
 		const verified = this.getQueuedTransactionList(reverse, limit);
@@ -318,65 +370,66 @@ class TransactionPool {
 		return [...ready, ...pending, ...verified];
 	}
 
-	addBundledTransaction(transaction, cb) {
-		return wrapAddTransactionResponseInCb(
+	addBundledTransaction(transaction) {
+		return handleAddTransactionResponse(
 			this.pool.addTransaction(transaction),
-			cb,
 			transaction
 		);
+		// Register to braodcaster
 	}
 
-	addVerifiedTransaction(transaction, cb) {
-		return wrapAddTransactionResponseInCb(
+	addVerifiedTransaction(transaction) {
+		return handleAddTransactionResponse(
 			this.pool.addVerifiedTransaction(transaction),
-			cb,
 			transaction
 		);
+		// Register to braodcaster
 	}
 
-	addMultisignatureTransaction(transaction, cb) {
-		return wrapAddTransactionResponseInCb(
+	addMultisignatureTransaction(transaction) {
+		return handleAddTransactionResponse(
 			this.pool.addPendingTransaction(transaction),
-			cb,
 			transaction
 		);
+		// Register to braodcaster
 	}
 
-	processUnconfirmedTransaction(transaction, broadcast, cb) {
+	async processUnconfirmedTransaction(transaction) {
 		if (this.transactionInPool(transaction.id)) {
-			return setImmediate(cb, [
+			throw [
 				new TransactionError(
 					`Transaction is already processed: ${transaction.id}`,
 					transaction.id,
 					'.id'
 				),
-			]);
+			];
 		}
 
-		if (slots.getSlotNumber(transaction.timestamp) > slots.getSlotNumber()) {
-			return setImmediate(cb, [
+		if (
+			this.slots.getSlotNumber(transaction.timestamp) >
+			this.slots.getSlotNumber()
+		) {
+			throw [
 				new TransactionError(
 					'Invalid transaction timestamp. Timestamp is in the future',
 					transaction.id,
 					'.timestamp'
 				),
-			]);
+			];
 		}
 
-		return this.verifyTransactions([transaction]).then(
-			({ transactionsResponses }) => {
-				if (transactionsResponses[0].status === TransactionStatus.OK) {
-					return this.addVerifiedTransaction(transaction, cb);
-				}
-				if (transactionsResponses[0].status === TransactionStatus.PENDING) {
-					return this.addMultisignatureTransaction(transaction, cb);
-				}
-				this.logger.info(
-					`Transaction pool - ${transactionsResponses[0].errors}`
-				);
-				return cb(transactionsResponses[0].errors);
-			}
-		);
+		const { transactionsResponses } = await this.verifyTransactions([
+			transaction,
+		]);
+		if (transactionsResponses[0].status === TransactionStatus.OK) {
+			return this.addVerifiedTransaction(transaction);
+		}
+		if (transactionsResponses[0].status === TransactionStatus.PENDING) {
+			return this.addMultisignatureTransaction(transaction);
+		}
+		this.logger.info(`Transaction pool - ${transactionsResponses[0].errors}`);
+		throw transactionsResponses[0].errors;
+		// Register to braodcaster
 	}
 
 	onConfirmedTransactions(transactions) {
@@ -386,6 +439,76 @@ class TransactionPool {
 	onDeletedTransactions(transactions) {
 		this.pool.addVerifiedRemovedTransactions(transactions);
 	}
+
+	getPooledTransactions(type, filters) {
+		const typeMap = {
+			pending: 'getMultisignatureTransactionList',
+			ready: 'getUnconfirmedTransactionList',
+			received: 'getReceivedTransactionList',
+			validated: 'getValidatedTransactionList',
+			verified: 'getQueuedTransactionList',
+		};
+		const transactions = this[typeMap[type]](true);
+		let toSend = [];
+
+		if (filters.recipientPublicKey) {
+			filters.recipientId = getAddressFromPublicKey(filters.recipientPublicKey);
+			delete filters.recipientPublicKey;
+		}
+
+		// Filter transactions
+		if (
+			filters.id ||
+			filters.recipientId ||
+			filters.recipientPublicKey ||
+			filters.senderId ||
+			filters.senderPublicKey ||
+			Object.prototype.hasOwnProperty.call(filters, 'type')
+		) {
+			toSend = _.filter(
+				transactions,
+				_.omit(filters, ['limit', 'offset', 'sort'])
+			);
+		} else {
+			toSend = _.cloneDeep(transactions);
+		}
+
+		// Sort the results
+		const sortAttribute = sortBy(filters.sort, { quoteField: false });
+
+		if (
+			sortAttribute.sortField === 'fee' ||
+			sortAttribute.sortField === 'amount'
+		) {
+			/**
+			 * sortOrder - Sorting by asc or desc, -1 desc order, 1 is asc order
+			 * amount and fee are bignumber here, so in order to sort
+			 * we need to use bignumber functions here specific to amount, fee
+			 */
+			const sortOrder =
+				sortAttribute.sortMethod.toLowerCase() === 'desc' ? -1 : 1;
+			toSend = toSend.sort((a, b) => {
+				if (sortAttribute.sortField === 'fee') {
+					return a.fee.minus(b.fee) * sortOrder;
+				}
+				return a.amount.minus(b.amount) * sortOrder;
+			});
+		} else {
+			toSend = _.orderBy(
+				toSend,
+				[sortAttribute.sortField],
+				[sortAttribute.sortMethod.toLowerCase()]
+			);
+		}
+
+		// Paginate filtered transactions
+		toSend = toSend.slice(filters.offset, filters.offset + filters.limit);
+
+		return {
+			transactions: toSend,
+			count: transactions.length,
+		};
+	}
 }
 
-module.exports = TransactionPool;
+module.exports = { TransactionPool };

@@ -22,9 +22,13 @@ const modulesLoader = require('../../../../common/modules_loader');
 const {
 	registeredTransactions,
 } = require('../../../../common/registered_transactions');
-const InitTransaction = require('../../../../../../src/modules/chain/logic/init_transaction');
+const {
+	TransactionInterfaceAdapter,
+} = require('../../../../../../src/modules/chain/interface_adapters');
 
-const initTransaction = new InitTransaction({ registeredTransactions });
+const interfaceAdapters = {
+	transactions: new TransactionInterfaceAdapter(registeredTransactions),
+};
 
 const { FEES, TRANSACTION_TYPES } = __testContext.config.constants;
 
@@ -250,19 +254,10 @@ function expectedOrderOfTransactions(sortedTransactions) {
 describe('block', () => {
 	let block;
 	let data;
-	let transactionStub;
 	let transactions = [];
 
 	before(done => {
-		transactionStub = {
-			getBytes: sinonSandbox.stub(),
-		};
-
-		block = new Block(
-			modulesLoader.scope.ed,
-			modulesLoader.scope.schema,
-			transactionStub
-		);
+		block = new Block(modulesLoader.scope.ed, modulesLoader.scope.schema);
 		done();
 	});
 
@@ -270,7 +265,7 @@ describe('block', () => {
 		data = _.cloneDeep(validDataForBlock);
 		transactions = _.values(transactionsByTypes);
 		transactions = transactions.map(transaction =>
-			initTransaction.fromJson(transaction)
+			interfaceAdapters.transactions.fromJson(transaction)
 		);
 		done();
 	});
@@ -278,19 +273,14 @@ describe('block', () => {
 	describe('create', () => {
 		let blockNormalizeStub;
 
-		before(() => {
+		before(async () => {
 			blockNormalizeStub = sinonSandbox
 				.stub(block, 'objectNormalize')
 				.returnsArg(0);
-
-			return transactionStub.getBytes.returns(
-				Buffer.from('dummy transaction bytes')
-			);
 		});
 
-		after(() => {
+		after(async () => {
 			blockNormalizeStub.resetHistory();
-			return transactionStub.getBytes.resetHistory();
 		});
 
 		describe('when each of all supported', () => {
@@ -320,7 +310,7 @@ describe('block', () => {
 				beforeEach(done => {
 					// Create 6 multisignature transactions
 					multipleMultisigTx = Array(...Array(5)).map(() =>
-						initTransaction.fromJson(
+						interfaceAdapters.transactions.fromJson(
 							transactionsByTypes[TRANSACTION_TYPES.MULTI]
 						)
 					);
@@ -345,7 +335,7 @@ describe('block', () => {
 
 				beforeEach(done => {
 					multipleMultisigTx = Array(...Array(5)).map(() =>
-						initTransaction.fromJson(
+						interfaceAdapters.transactions.fromJson(
 							transactionsByTypes[TRANSACTION_TYPES.MULTI]
 						)
 					);
@@ -372,7 +362,7 @@ describe('block', () => {
 
 				beforeEach(done => {
 					multipleMultisigTx = Array(...Array(5)).map(() =>
-						initTransaction.fromJson(
+						interfaceAdapters.transactions.fromJson(
 							transactionsByTypes[TRANSACTION_TYPES.MULTI]
 						)
 					);
@@ -398,7 +388,7 @@ describe('block', () => {
 				beforeEach(done => {
 					// Create 6 multisignature transactions
 					multipleMultisigTx = Array(...Array(5)).map(() =>
-						initTransaction.fromJson(
+						interfaceAdapters.transactions.fromJson(
 							transactionsByTypes[TRANSACTION_TYPES.MULTI]
 						)
 					);

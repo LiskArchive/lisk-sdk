@@ -131,14 +131,6 @@ class Bus extends EventEmitter2 {
 
 		Object.keys(actions).forEach(actionName => {
 			const actionFullName = `${moduleAlias}:${actionName}`;
-			if (
-				typeof actions[actionName] !== 'object' ||
-				!actions[actionName].handler
-			) {
-				throw new Error(
-					`Action "${actionFullName}" should be object with handler property.`
-				);
-			}
 
 			if (this.actions[actionFullName]) {
 				throw new Error(

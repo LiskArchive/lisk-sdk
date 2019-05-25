@@ -19,6 +19,7 @@ const rewire = require('rewire');
 const Promise = require('bluebird');
 const Bignum = require('../../../../../../../src/modules/chain/helpers/bignum');
 const blockVersion = require('../../../../../../../src/modules/chain/logic/block_version');
+const transactionsModule = require('../../../../../../../src/modules/chain/transactions');
 
 const BlocksProcess = rewire(
 	'../../../../../../../src/modules/chain/submodules/blocks/process'
@@ -40,6 +41,8 @@ describe('blocks/process', () => {
 	let channelStub;
 	let genesisBlockStub;
 	let bindingsStub;
+	let verifyTransactionsStub;
+	let checkAllowedTransactionsStub;
 
 	beforeEach(done => {
 		storageStub = {
@@ -129,8 +132,14 @@ describe('blocks/process', () => {
 			invoke: sinonSandbox.stub(),
 		};
 
-		const InitTransaction = require('../../../../../../../src/modules/chain/logic/init_transaction');
-		const initTrs = new InitTransaction({});
+		verifyTransactionsStub = sinonSandbox.stub();
+		sinonSandbox
+			.stub(transactionsModule, 'verifyTransactions')
+			.returns(verifyTransactionsStub);
+		checkAllowedTransactionsStub = sinonSandbox.stub();
+		sinonSandbox
+			.stub(transactionsModule, 'checkAllowedTransactions')
+			.returns(checkAllowedTransactionsStub);
 
 		blocksProcessModule = new BlocksProcess(
 			loggerStub,
@@ -141,7 +150,7 @@ describe('blocks/process', () => {
 			sequenceStub,
 			genesisBlockStub,
 			channelStub,
-			initTrs
+			transactionsModule
 		);
 
 		library = BlocksProcess.__get__('library');
@@ -187,12 +196,7 @@ describe('blocks/process', () => {
 			},
 		};
 
-		const modulesProcessTransactionsStub = {
-			verifyTransactions: sinonSandbox.stub(),
-			checkAllowedTransactions: sinonSandbox.stub(),
-		};
-
-		const modulesDelegatesStub = {
+		const modulesRoundsStub = {
 			fork: sinonSandbox.stub(),
 			validateBlockSlotAgainstPreviousRound: sinonSandbox.stub(),
 			validateBlockSlot: sinonSandbox.stub(),
@@ -201,17 +205,16 @@ describe('blocks/process', () => {
 		const modulesLoaderStub = {
 			syncing: sinonSandbox.stub(),
 		};
-		const modulesTransactionsStub = {
+		const modulesTransactionPoolStub = {
 			getUnconfirmedTransactionList: sinonSandbox.stub(),
 		};
 
 		bindingsStub = {
 			modules: {
 				blocks: modulesBlocksStub,
-				delegates: modulesDelegatesStub,
+				rounds: modulesRoundsStub,
 				loader: modulesLoaderStub,
-				transactions: modulesTransactionsStub,
-				processTransactions: modulesProcessTransactionsStub,
+				transactionPool: modulesTransactionPoolStub,
 			},
 		};
 
@@ -289,7 +292,7 @@ describe('blocks/process', () => {
 		describe('last block stands', () => {
 			afterEach(() => {
 				expect(
-					modules.delegates.fork.calledWithExactly(sinonSandbox.match.object, 1)
+					modules.rounds.fork.calledWithExactly(sinonSandbox.match.object, 1)
 				).to.be.true;
 				return expect(loggerStub.info.args[0][0]).to.equal('Last block stands');
 			});
@@ -322,10 +325,7 @@ describe('blocks/process', () => {
 			afterEach(
 				async () =>
 					expect(
-						modules.delegates.fork.calledWithExactly(
-							sinonSandbox.match.object,
-							1
-						)
+						modules.rounds.fork.calledWithExactly(sinonSandbox.match.object, 1)
 					).to.be.true
 			);
 
@@ -618,7 +618,7 @@ describe('blocks/process', () => {
 		describe('last block stands', () => {
 			afterEach(() => {
 				expect(
-					modules.delegates.fork.calledWithExactly(sinonSandbox.match.object, 5)
+					modules.rounds.fork.calledWithExactly(sinonSandbox.match.object, 5)
 				).to.be.true;
 				return expect(loggerStub.info.args[0][0]).to.equal('Last block stands');
 			});
@@ -652,10 +652,7 @@ describe('blocks/process', () => {
 			afterEach(
 				async () =>
 					expect(
-						modules.delegates.fork.calledWithExactly(
-							sinonSandbox.match.object,
-							5
-						)
+						modules.rounds.fork.calledWithExactly(sinonSandbox.match.object, 5)
 					).to.be.true
 			);
 
@@ -1131,14 +1128,14 @@ describe('blocks/process', () => {
 			sinonSandbox.restore();
 		});
 
-		describe('modules.transactions.getUnconfirmedTransactionList', () => {
+		describe('modules.transactionPool.getUnconfirmedTransactionList', () => {
 			describe('when query returns empty array', () => {
 				beforeEach(async () => {
-					modules.transactions.getUnconfirmedTransactionList.returns([]);
-					modules.processTransactions.verifyTransactions.resolves({
+					modules.transactionPool.getUnconfirmedTransactionList.returns([]);
+					verifyTransactionsStub.resolves({
 						transactionsResponses: [],
 					});
-					modules.processTransactions.checkAllowedTransactions.returns({
+					checkAllowedTransactionsStub.returns({
 						transactionsResponses: [],
 					});
 					modules.blocks.verify.processBlock.callsArgWith(
@@ -1166,11 +1163,13 @@ describe('blocks/process', () => {
 
 			describe('when query returns undefined', () => {
 				beforeEach(async () => {
-					modules.transactions.getUnconfirmedTransactionList.returns(undefined);
-					modules.processTransactions.checkAllowedTransactions.returns({
+					modules.transactionPool.getUnconfirmedTransactionList.returns(
+						undefined
+					);
+					checkAllowedTransactionsStub.returns({
 						transactionsResponses: [],
 					});
-					modules.processTransactions.verifyTransactions.resolves({
+					verifyTransactionsStub.resolves({
 						transactionsResponses: [],
 					});
 					modules.blocks.verify.processBlock.callsArgWith(
@@ -1198,11 +1197,11 @@ describe('blocks/process', () => {
 
 			describe('when query returns transactions', () => {
 				beforeEach(async () => {
-					modules.transactions.getUnconfirmedTransactionList.returns([
+					modules.transactionPool.getUnconfirmedTransactionList.returns([
 						{ id: 1, type: 0, matcher: () => true },
 						{ id: 2, type: 1, matcher: () => true },
 					]);
-					modules.processTransactions.checkAllowedTransactions.returns({
+					checkAllowedTransactionsStub.returns({
 						transactionsResponses: [
 							{
 								id: 1,
@@ -1223,12 +1222,10 @@ describe('blocks/process', () => {
 					);
 				});
 
-				describe('modules.processTransactions.verifyTransactions', () => {
+				describe('modules.transactions.verifyTransactions', () => {
 					describe('when transaction initializations fail', () => {
 						beforeEach(async () =>
-							modules.processTransactions.verifyTransactions.rejects(
-								new Error('Invalid field types')
-							)
+							verifyTransactionsStub.rejects(new Error('Invalid field types'))
 						);
 
 						it('should call a callback with error', async () => {
@@ -1244,7 +1241,7 @@ describe('blocks/process', () => {
 
 					describe('when transactions verification fails', () => {
 						beforeEach(async () =>
-							modules.processTransactions.verifyTransactions.resolves({
+							verifyTransactionsStub.resolves({
 								transactionsResponses: [
 									{ id: 1, status: 0, errors: [] },
 									{ id: 2, status: 0, errors: [] },
@@ -1270,7 +1267,7 @@ describe('blocks/process', () => {
 
 					describe('when transactions verification succeeds', () => {
 						beforeEach(async () => {
-							modules.processTransactions.verifyTransactions.resolves({
+							verifyTransactionsStub.resolves({
 								transactionsResponses: [
 									{ id: 1, status: 1, errors: [] },
 									{ id: 2, status: 1, errors: [] },
@@ -1296,7 +1293,7 @@ describe('blocks/process', () => {
 
 					describe('when transactions pending', () => {
 						beforeEach(async () =>
-							modules.processTransactions.verifyTransactions.resolves({
+							verifyTransactionsStub.resolves({
 								transactionsResponses: [{ id: 1, status: 2, errors: [] }],
 							})
 						);
@@ -1320,7 +1317,7 @@ describe('blocks/process', () => {
 
 				describe('library.logic.block.create', () => {
 					beforeEach(async () => {
-						modules.processTransactions.verifyTransactions.resolves({
+						verifyTransactionsStub.resolves({
 							transactionsResponses: [
 								{ id: 1, status: 1, errors: [] },
 								{ id: 2, status: 1, errors: [] },
@@ -1412,11 +1409,11 @@ describe('blocks/process', () => {
 				blockVersion: blockVersion.currentBlockVersion,
 			};
 
-			modules.transactions.getUnconfirmedTransactionList.returns(
+			modules.transactionPool.getUnconfirmedTransactionList.returns(
 				sampleTransactons
 			);
 			modules.blocks.lastBlock.get.returns(lastBlock);
-			modules.processTransactions.checkAllowedTransactions.returns({
+			checkAllowedTransactionsStub.returns({
 				transactionsResponses: [
 					{
 						id: sampleTransactons[0],
@@ -1424,7 +1421,7 @@ describe('blocks/process', () => {
 					},
 				],
 			});
-			modules.processTransactions.verifyTransactions.resolves({
+			verifyTransactionsStub.resolves({
 				transactionsResponses: [
 					{
 						id: sampleTransactons[0],
@@ -1439,8 +1436,8 @@ describe('blocks/process', () => {
 				timestamp,
 				() => {
 					expect(
-						modules.processTransactions.checkAllowedTransactions
-					).to.have.been.calledWith(sampleTransactons, state);
+						transactionsModule.checkAllowedTransactions
+					).to.have.been.calledWith(state);
 					done();
 				}
 			);
@@ -1452,7 +1449,7 @@ describe('blocks/process', () => {
 			describe('validateBlockSlotAgainstPreviousRound', () => {
 				describe('when fails', () => {
 					beforeEach(async () => {
-						modules.delegates.validateBlockSlotAgainstPreviousRound.rejects(
+						modules.rounds.validateBlockSlotAgainstPreviousRound.rejects(
 							new Error('round-ERR')
 						);
 					});
@@ -1464,7 +1461,7 @@ describe('blocks/process', () => {
 							err => {
 								expect(err.message).to.equal('round-ERR');
 								expect(
-									modules.delegates.validateBlockSlotAgainstPreviousRound
+									modules.rounds.validateBlockSlotAgainstPreviousRound
 										.calledOnce
 								).to.be.true;
 								done();
@@ -1475,9 +1472,7 @@ describe('blocks/process', () => {
 
 				describe('when succeeds', () => {
 					beforeEach(async () => {
-						modules.delegates.validateBlockSlotAgainstPreviousRound.resolves(
-							true
-						);
+						modules.rounds.validateBlockSlotAgainstPreviousRound.resolves(true);
 					});
 
 					it('should call a callback with no error', done => {
@@ -1486,8 +1481,8 @@ describe('blocks/process', () => {
 							{ height: 202 },
 							err => {
 								expect(err).to.be.undefined;
-								expect(modules.delegates.validateBlockSlotAgainstPreviousRound)
-									.to.be.calledOnce;
+								expect(modules.rounds.validateBlockSlotAgainstPreviousRound).to
+									.be.calledOnce;
 								done();
 							}
 						);
@@ -1501,7 +1496,7 @@ describe('blocks/process', () => {
 				describe('validateBlockSlotAgainstPreviousRound', () => {
 					describe('when fails', () => {
 						beforeEach(async () => {
-							modules.delegates.validateBlockSlotAgainstPreviousRound.rejects(
+							modules.rounds.validateBlockSlotAgainstPreviousRound.rejects(
 								new Error('round-ERR')
 							);
 						});
@@ -1512,9 +1507,8 @@ describe('blocks/process', () => {
 								{ height: 200 },
 								err => {
 									expect(err.message).to.equal('round-ERR');
-									expect(
-										modules.delegates.validateBlockSlotAgainstPreviousRound
-									).to.be.calledOnce;
+									expect(modules.rounds.validateBlockSlotAgainstPreviousRound)
+										.to.be.calledOnce;
 									done();
 								}
 							);
@@ -1523,7 +1517,7 @@ describe('blocks/process', () => {
 
 					describe('when succeeds', () => {
 						beforeEach(async () => {
-							modules.delegates.validateBlockSlotAgainstPreviousRound.resolves(
+							modules.rounds.validateBlockSlotAgainstPreviousRound.resolves(
 								true
 							);
 						});
@@ -1534,9 +1528,8 @@ describe('blocks/process', () => {
 								{ height: 200 },
 								err => {
 									expect(err).to.be.undefined;
-									expect(
-										modules.delegates.validateBlockSlotAgainstPreviousRound
-									).to.be.calledOnce;
+									expect(modules.rounds.validateBlockSlotAgainstPreviousRound)
+										.to.be.calledOnce;
 									done();
 								}
 							);
@@ -1549,9 +1542,7 @@ describe('blocks/process', () => {
 				describe('validateBlockSlot', () => {
 					describe('when fails', () => {
 						beforeEach(async () => {
-							modules.delegates.validateBlockSlot.rejects(
-								new Error('round-ERR')
-							);
+							modules.rounds.validateBlockSlot.rejects(new Error('round-ERR'));
 						});
 
 						it('should call a callback with error', done => {
@@ -1560,7 +1551,7 @@ describe('blocks/process', () => {
 								{ height: 200 },
 								err => {
 									expect(err.message).to.equal('round-ERR');
-									expect(modules.delegates.validateBlockSlot).to.be.calledOnce;
+									expect(modules.rounds.validateBlockSlot).to.be.calledOnce;
 									done();
 								}
 							);
@@ -1569,7 +1560,7 @@ describe('blocks/process', () => {
 
 					describe('when succeeds', () => {
 						beforeEach(async () => {
-							modules.delegates.validateBlockSlot.resolves(true);
+							modules.rounds.validateBlockSlot.resolves(true);
 						});
 
 						it('should call a callback with no error', done => {
@@ -1578,7 +1569,7 @@ describe('blocks/process', () => {
 								{ height: 200 },
 								err => {
 									expect(err).to.be.undefined;
-									expect(modules.delegates.validateBlockSlot).to.be.calledOnce;
+									expect(modules.rounds.validateBlockSlot).to.be.calledOnce;
 									done();
 								}
 							);
@@ -1788,10 +1779,9 @@ describe('blocks/process', () => {
 
 		it('should assign params to modules', done => {
 			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
-			expect(modules.delegates).to.equal(bindingsStub.modules.delegates);
-			expect(modules.transactions).to.equal(bindingsStub.modules.transactions);
-			expect(modules.processTransactions).to.equal(
-				bindingsStub.modules.processTransactions
+			expect(modules.rounds).to.equal(bindingsStub.modules.rounds);
+			expect(modules.transactionPool).to.equal(
+				bindingsStub.modules.transactionPool
 			);
 			done();
 		});

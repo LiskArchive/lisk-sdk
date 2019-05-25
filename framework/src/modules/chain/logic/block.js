@@ -19,13 +19,14 @@ const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const _ = require('lodash');
 const crypto = require('crypto');
 const ByteBuffer = require('bytebuffer');
+const { validateTransactions } = require('../transactions');
 const Bignum = require('../helpers/bignum');
 const blockVersion = require('./block_version');
 const BlockReward = require('./block_reward');
 
+const exceptions = global.exceptions;
 const { MAX_PAYLOAD_LENGTH, FEES, TRANSACTION_TYPES } = global.constants;
 const __private = {};
-let modules;
 
 /**
  * Main Block logic.
@@ -39,17 +40,15 @@ let modules;
  * @requires logic/block_reward
  * @param {Object} ed
  * @param {ZSchema} schema
- * @param {Transaction} transaction
  * @param {function} cb - Callback function
  * @returns {SetImmediate} error, this
  * @todo Add description for the params
  */
 class Block {
-	constructor(ed, schema, transaction, cb) {
+	constructor(ed, schema, cb) {
 		this.scope = {
 			ed,
 			schema,
-			transaction,
 		};
 
 		this.attachSchema();
@@ -246,9 +245,9 @@ class Block {
 					.join(', ')}`
 			);
 		}
-		const {
-			transactionsResponses,
-		} = modules.processTransactions.validateTransactions(block.transactions);
+		const { transactionsResponses } = validateTransactions(exceptions)(
+			block.transactions
+		);
 		const invalidTransactionResponse = transactionsResponses.find(
 			transactionResponse => transactionResponse.status !== TransactionStatus.OK
 		);
@@ -257,16 +256,6 @@ class Block {
 		}
 
 		return block;
-	}
-
-	/**
-	 * Binds scope.modules to private variable modules.
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	bindModules(__modules) {
-		modules = {
-			processTransactions: __modules.processTransactions,
-		};
 	}
 
 	/**
@@ -394,6 +383,9 @@ class Block {
 		if (!raw.b_id) {
 			return null;
 		}
+
+		const confirmations = parseInt(raw.b_confirmations);
+
 		const block = {
 			id: raw.b_id,
 			version: parseInt(raw.b_version),
@@ -409,7 +401,7 @@ class Block {
 			generatorPublicKey: raw.b_generatorPublicKey,
 			generatorId: getAddressFromPublicKey(raw.b_generatorPublicKey),
 			blockSignature: raw.b_blockSignature,
-			confirmations: parseInt(raw.b_confirmations),
+			confirmations: !Number.isNaN(confirmations) ? confirmations : 0,
 		};
 		block.totalForged = block.totalFee.plus(block.reward).toString();
 		return block;
@@ -427,6 +419,8 @@ class Block {
 			return null;
 		}
 
+		const confirmations = parseInt(raw.confirmations);
+
 		const block = {
 			id: raw.id,
 			version: parseInt(raw.version),
@@ -442,7 +436,7 @@ class Block {
 			generatorPublicKey: raw.generatorPublicKey,
 			generatorId: getAddressFromPublicKey(raw.generatorPublicKey),
 			blockSignature: raw.blockSignature,
-			confirmations: parseInt(raw.confirmations),
+			confirmations: !Number.isNaN(confirmations) ? confirmations : 0,
 		};
 
 		if (raw.transactions) {
@@ -450,8 +444,6 @@ class Block {
 				.filter(tx => !!tx.id)
 				.map(tx => _.omitBy(tx, _.isNull));
 		}
-
-		block.totalForged = block.totalFee.plus(block.reward).toString();
 
 		return block;
 	}

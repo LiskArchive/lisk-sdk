@@ -27,7 +27,7 @@ const genesisDelegates = require('../../../data/genesis_delegates.json')
 const application = require('../../../common/application');
 const {
 	getKeysSortByVote,
-} = require('../../../../../src/modules/chain/submodules/delegates');
+} = require('../../../../../src/modules/chain/rounds/delegates');
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
 
@@ -90,7 +90,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 		function getNextForger(offset, seriesCb) {
 			offset = !offset ? 0 : offset;
 			const round = slots.calcRound(last_block.height + 1);
-			library.modules.delegates
+			library.modules.rounds
 				.generateDelegateList(round, getKeysSortByVote)
 				.then(delegateList => {
 					const nextForger = delegateList[(slot + offset) % ACTIVE_DELEGATES];
@@ -100,7 +100,9 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 
 		async.waterfall(
 			[
-				library.modules.transactions.fillPool,
+				function(waterFallCb) {
+					library.modules.transactionPool.fillPool().then(() => waterFallCb());
+				},
 				function(waterFallCb) {
 					getNextForger(null, delegatePublicKey => {
 						waterFallCb(null, delegatePublicKey);
@@ -180,7 +182,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 		const lastBlock = library.modules.blocks.lastBlock.get();
 		const round = slots.calcRound(lastBlock.height);
 
-		return library.modules.delegates
+		return library.modules.rounds
 			.generateDelegateList(round, null)
 			.then(list => {
 				const delegatePublicKey = list[slot % ACTIVE_DELEGATES];

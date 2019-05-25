@@ -289,7 +289,7 @@ describe('blocks/utils', () => {
 	let storageStub;
 	let loggerStub;
 	let blockMock;
-	let transactionMock;
+	let interfaceAdaptersMock;
 	let accountMock;
 	let blocksUtilsModule;
 	let bindingsStub;
@@ -325,9 +325,11 @@ describe('blocks/utils', () => {
 			},
 		};
 
-		transactionMock = {
-			dbRead(input) {
-				return { id: input.t_id, type: input.t_type };
+		interfaceAdaptersMock = {
+			transactions: {
+				dbRead(input) {
+					return { id: input.t_id, type: input.t_type };
+				},
 			},
 		};
 
@@ -347,9 +349,9 @@ describe('blocks/utils', () => {
 			loggerStub,
 			accountMock,
 			blockMock,
-			transactionMock,
 			storageStub,
-			modulesLoader.scope.genesisBlock
+			modulesLoader.scope.genesisBlock,
+			interfaceAdaptersMock
 		);
 
 		bindingsStub = {

@@ -33,6 +33,9 @@ const {
 	initLogicStructure,
 	initModules,
 } = require('./init_steps');
+const { TransactionInterfaceAdapter } = require('./interface_adapters');
+const { TransactionPool } = require('./transaction_pool');
+const { BlockSlots } = require('./logic/block_slots');
 
 const syncInterval = 10000;
 const forgeInterval = 1000;
@@ -114,11 +117,11 @@ module.exports = class Chain {
 
 			// Cache
 			this.logger.debug('Initiating cache...');
-			const cache = createCacheComponent(cacheConfig, this.logger);
+			this.cache = createCacheComponent(cacheConfig, this.logger);
 
 			// Storage
 			this.logger.debug('Initiating storage...');
-			const storage = createStorageComponent(storageConfig, dbLogger);
+			this.storage = createStorageComponent(storageConfig, dbLogger);
 
 			// TODO: For socket cluster child process, should be removed with refactoring of network module
 			this.options.loggerConfig = loggerConfig;
@@ -141,9 +144,9 @@ module.exports = class Chain {
 					},
 				}),
 				components: {
-					storage,
-					cache,
-					logger: self.logger,
+					storage: this.storage,
+					cache: this.cache,
+					logger: this.logger,
 				},
 				channel: this.channel,
 				applicationState: this.applicationState,
@@ -154,23 +157,12 @@ module.exports = class Chain {
 
 			this.scope.bus = await createBus();
 			this.scope.logic = await initLogicStructure(this.scope);
-			this.scope.modules = await initModules(this.scope);
-			// TODO: Global variable forbits to require on top
-			const Loader = require('./loader');
-			const { Forger } = require('./forger');
-			const { Delegates } = require('./submodules/delegates');
-			const Transport = require('./transport');
-			this.loader = new Loader(this.scope);
-			this.forger = new Forger(this.scope);
-			this.transport = new Transport(this.scope);
-			// TODO: should not add to scope
-			this.scope.modules.delegates = new Delegates(this.scope);
-			this.scope.modules.loader = this.loader;
-			this.scope.modules.forger = this.forger;
-			this.scope.modules.transport = this.transport;
 
-			this.scope.logic.block.bindModules(this.scope.modules);
+			await this._initModules();
+
 			this.scope.logic.account.bindModules(this.scope.modules);
+
+			this.scope.bus.registerModules(this.scope.modules);
 
 			this.channel.subscribe('app:state:updated', event => {
 				Object.assign(this.scope.applicationState, event.data);
@@ -224,7 +216,7 @@ module.exports = class Chain {
 			calculateReward: action =>
 				this.blockReward.calcReward(action.params.height),
 			generateDelegateList: async action =>
-				this.scope.modules.delegates.generateDelegateList(
+				this.scope.modules.rounds.generateDelegateList(
 					action.params.round,
 					action.params.source
 				),
@@ -244,10 +236,8 @@ module.exports = class Chain {
 				),
 			getForgingStatusForAllDelegates: async () =>
 				this.scope.modules.forger.getForgingStatusForAllDelegates(),
-			getTransactionsFromPool: async action =>
-				promisify(
-					this.scope.modules.transactions.shared.getTransactionsFromPool
-				)(action.params.type, action.params.filters),
+			getTransactionsFromPool: async ({ params }) =>
+				this.transactionPool.getPooledTransactions(params.type, params.filters),
 			postTransaction: async action =>
 				promisify(this.scope.modules.transport.shared.postTransaction)(
 					action.params
@@ -266,9 +256,7 @@ module.exports = class Chain {
 				consensus: this.scope.modules.peers.getLastConsensus(),
 				loaded: true,
 				syncing: this.loader.syncing(),
-				transactions: await promisify(
-					this.scope.modules.transactions.shared.getTransactionsCount
-				)(),
+				unconfirmedTransactions: this.transactionPool.getCount(),
 				secondsSinceEpoch: this.slots.getTime(),
 				lastBlock: this.scope.modules.blocks.lastBlock.get(),
 			}),
@@ -317,6 +305,55 @@ module.exports = class Chain {
 		});
 
 		this.logger.info('Cleaned up successfully');
+	}
+
+	async _initModules() {
+		this.scope.modules = {};
+		this.interfaceAdapters = {
+			transactions: new TransactionInterfaceAdapter(
+				this.options.registeredTransactions
+			),
+		};
+		this.scope.modules.interfaceAdapters = this.interfaceAdapters;
+		const autoModules = await initModules(this.scope);
+		this.scope.modules = Object.assign(this.scope.modules, autoModules);
+		const blockSlots = new BlockSlots({
+			epochTime: this.options.constants.EPOCH_TIME,
+			interval: this.options.constants.BLOCK_TIME,
+			blocksPerRound: this.options.constants.ACTIVE_DELEGATES,
+		});
+		this.transactionPool = new TransactionPool({
+			logger: this.logger,
+			storage: this.storage,
+			blocks: this.scope.modules.blocks,
+			slots: blockSlots,
+			exceptions: this.options.exceptions,
+			maxTransactionsPerQueue: this.options.transactions
+				.maxTransactionsPerQueue,
+			expireTransactionsInterval: this.options.constants.EXPIRY_INTERVAL,
+			maxTransactionsPerBlock: this.options.constants
+				.MAX_TRANSACTIONS_PER_BLOCK,
+			maxSharedTransactions: this.options.constants.MAX_SHARED_TRANSACTIONS,
+			broadcastInterval: this.options.broadcasts.broadcastInterval,
+			releaseLimit: this.options.broadcasts.releaseLimit,
+		});
+		this.scope.modules.transactionPool = this.transactionPool;
+		// TODO: Remove - Temporal write to modules for blocks circular dependency
+
+		// TODO: Global variable forbits to require on top
+		const Loader = require('./loader');
+		const { Forger } = require('./forger');
+		const Transport = require('./transport');
+		const { Rounds } = require('./rounds');
+		this.loader = new Loader(this.scope);
+		this.forger = new Forger(this.scope);
+		this.transport = new Transport(this.scope);
+		this.rounds = new Rounds(this.scope);
+		// TODO: should not add to scope
+		this.scope.modules.loader = this.loader;
+		this.scope.modules.forger = this.forger;
+		this.scope.modules.transport = this.transport;
+		this.scope.modules.rounds = this.rounds;
 	}
 
 	_startLoader() {
