@@ -294,8 +294,8 @@ class Blocks extends EventEmitter {
 	}
 
 	// Process a block from the P2P
-	receiveBlockFromNetwork(block) {
-		this.sequence.add(async cb => {
+	async receiveBlockFromNetwork(block) {
+		return this.sequence.add(async cb => {
 			try {
 				this._shouldNotBeActive();
 			} catch (error) {
@@ -307,7 +307,7 @@ class Blocks extends EventEmitter {
 			if (this.blocksVerify.isSaneBlock(block, this._lastBlock)) {
 				this._updateLastReceipt();
 				try {
-					const newBlock = await this.blocksProcess(
+					const newBlock = await this.blocksProcess.processBlock(
 						block,
 						this._lastBlock,
 						validBlock => this.broadcast(validBlock)
@@ -332,7 +332,10 @@ class Blocks extends EventEmitter {
 					return;
 				}
 				try {
-					const { verified, errors } = this.blocksVerify.normalizeAndVerify(
+					const {
+						verified,
+						errors,
+					} = await this.blocksVerify.normalizeAndVerify(
 						block,
 						this._lastBlock,
 						this._lastNBlockIds
@@ -383,7 +386,10 @@ class Blocks extends EventEmitter {
 				}
 				this._updateLastReceipt();
 				try {
-					const { verified, errors } = this.blocksVerify.normalizeAndVerify(
+					const {
+						verified,
+						errors,
+					} = await this.blocksVerify.normalizeAndVerify(
 						block,
 						this._lastBlock,
 						this._lastNBlockIds
@@ -416,6 +422,20 @@ class Blocks extends EventEmitter {
 					return;
 				}
 			}
+			if (block.id === this._lastBlock.id) {
+				this.logger.debug({ blockId: block.id }, 'Block already processed');
+			} else {
+				this.logger.warn(
+					{
+						blockId: block.id,
+						height: block.height,
+						round: this.slots.calcRound(block.height),
+						generatorPublicKey: block.generatorPublicKey,
+						slot: this.slots.getSlotNumber(block.timestamp),
+					},
+					'Discarded block that does not match with current chain'
+				);
+			}
 			// Discard received block
 			this._isActive = false;
 			setImmediate(cb);
@@ -438,7 +458,10 @@ class Blocks extends EventEmitter {
 				break;
 			}
 			// eslint-disable-next-line no-await-in-loop
-			this._lastBlock = await this.blocksProcess(block, this._lastBlock);
+			this._lastBlock = await this.blocksProcess.processBlock(
+				block,
+				this._lastBlock
+			);
 			// emit event
 			this._updateLastNBlocks(block);
 			this.emit(EVENT_NEW_BLOCK, { block: cloneDeep(block) });

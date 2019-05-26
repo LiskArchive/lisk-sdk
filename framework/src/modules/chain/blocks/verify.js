@@ -216,13 +216,30 @@ class BlocksVerify {
 
 	// eslint-disable-next-line class-methods-use-this
 	shouldDiscardForkOne(block, lastBlock) {
-		block.timestamp > lastBlock.timestamp ||
-			(block.timestamp === lastBlock.timestamp && block.id > lastBlock.id);
+		return (
+			block.timestamp > lastBlock.timestamp ||
+			(block.timestamp === lastBlock.timestamp && block.id > lastBlock.id)
+		);
 	}
 
 	async normalizeAndVerify(block, lastBlock, lastNBlockIds) {
-		const normalizedBlock = blocksLogic.objectNormalize(block, this.exceptions);
-		await this.validateBlockSlot(normalizedBlock);
+		let normalizedBlock;
+		try {
+			normalizedBlock = blocksLogic.objectNormalize(block, this.exceptions);
+		} catch (errors) {
+			return {
+				verified: false,
+				errors,
+			};
+		}
+		try {
+			await this.validateBlockSlot(normalizedBlock);
+		} catch (error) {
+			return {
+				verified: false,
+				errors: [error],
+			};
+		}
 		return verifyReceipt({
 			...this.constants,
 			block: normalizedBlock,

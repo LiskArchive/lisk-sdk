@@ -14,6 +14,7 @@
 
 'use strict';
 
+const crypto = require('crypto');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 const blocksUtils = require('../../../../../../src/modules/chain/blocks/utils');
 const blocksLogic = require('../../../../../../src/modules/chain/blocks/block');
@@ -872,6 +873,84 @@ describe('blocks/utils', () => {
 					1
 				);
 				expect(block.id).to.equal(2);
+			});
+		});
+	});
+
+	describe('calculateNewBroadhash', () => {
+		const defaultNethash = '';
+		const defaultHeight = 1;
+
+		describe('when there is a problem getting blocks from the db', () => {
+			beforeEach(async () => {
+				storageStub.entities.Block.get.rejects(new Error('error'));
+			});
+
+			it('should throw an error', async () => {
+				try {
+					await blocksUtils.calculateNewBroadhash(
+						storageStub,
+						defaultNethash,
+						defaultHeight
+					);
+				} catch (error) {
+					expect(error.message).to.equal('error');
+				}
+			});
+		});
+		describe('when there is just a single block', () => {
+			const blocks = [
+				{
+					id: '00000002',
+					height: 2,
+				},
+			];
+
+			beforeEach(async () => {
+				storageStub.entities.Block.get.resolves(blocks);
+			});
+
+			it('should return broadhash equal to nethash and same height', async () => {
+				const { broadhash, height } = await blocksUtils.calculateNewBroadhash(
+					storageStub,
+					defaultNethash,
+					defaultHeight
+				);
+				expect(broadhash).to.equal(defaultNethash);
+				expect(height).to.equal(defaultHeight);
+			});
+		});
+
+		describe('when there are more than one block', () => {
+			const blocks = [
+				{
+					id: '00000002',
+					height: 2,
+				},
+				{
+					id: '00000001',
+					height: 1,
+				},
+			];
+
+			beforeEach(async () => {
+				storageStub.entities.Block.get.resolves(blocks);
+			});
+
+			it('should return just calculated broadhash and best height', async () => {
+				const { broadhash, height } = await blocksUtils.calculateNewBroadhash(
+					storageStub,
+					defaultNethash,
+					defaultHeight
+				);
+				const seed = blocks.map(row => row.id).join('');
+				const newBroadhash = crypto
+					.createHash('sha256')
+					.update(seed, 'utf8')
+					.digest()
+					.toString('hex');
+				expect(broadhash).to.equal(newBroadhash);
+				expect(height).to.equal(blocks[0].height);
 			});
 		});
 	});

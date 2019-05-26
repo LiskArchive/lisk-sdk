@@ -134,15 +134,10 @@ const objectNormalize = (block, exceptions = {}) => {
 			delete block[key];
 		}
 	});
-	// TODO: validate?
-	const valid = validator.validate(block, blockSchema);
-	if (!valid) {
-		throw new Error(
-			`Failed to validate block schema: ${blockSchema
-				.getLastErrors()
-				.map(err => err.message)
-				.join(', ')}`
-		);
+	try {
+		validator.validate(blockSchema, block);
+	} catch (schemaError) {
+		throw schemaError.errors;
 	}
 	const { transactionsResponses } = validateTransactions(exceptions)(
 		block.transactions
@@ -367,7 +362,6 @@ const storageRead = raw => {
 };
 
 const blockSchema = {
-	id: 'Block',
 	type: 'object',
 	properties: {
 		id: {
