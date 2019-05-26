@@ -492,4 +492,188 @@ describe('blocks', () => {
 			});
 		});
 	});
+
+	describe('receiveBlockFromNetwork', () => {
+		let tempReceiveBlock;
+		let tempReceiveForkOne;
+		let tempReceiveForkFive;
+
+		beforeEach(done => {
+			tempReceiveBlock = __private.receiveBlock;
+			tempReceiveForkOne = __private.receiveForkOne;
+			tempReceiveForkFive = __private.receiveForkFive;
+			done();
+		});
+
+		afterEach(done => {
+			__private.receiveBlock = tempReceiveBlock;
+			__private.receiveForkOne = tempReceiveForkOne;
+			__private.receiveForkFive = tempReceiveForkFive;
+			done();
+		});
+
+		describe('client ready to receive block', () => {
+			afterEach(
+				async () => expect(modules.blocks.lastBlock.get.calledOnce).to.be.true
+			);
+
+			describe('when block.previousBlock === lastBlock.id && lastBlock.height + 1 === block.height', () => {
+				beforeEach(done => {
+					__private.receiveBlock = sinonSandbox
+						.stub()
+						.callsArgWith(1, null, true);
+					done();
+				});
+
+				afterEach(
+					async () => expect(__private.receiveBlock.calledOnce).to.be.true
+				);
+
+				it('should call __private.receiveBlock', done => {
+					library.sequence.add = function(cb) {
+						const fn = Promise.promisify(cb);
+						fn().then(() => {
+							done();
+						});
+					};
+					blocksProcessModule.receiveBlockFromNetwork({
+						id: 5,
+						previousBlock: '2',
+						height: 3,
+					});
+				});
+			});
+
+			describe('when block.previousBlock !== lastBlock.id && lastBlock.height + 1 === block.height', () => {
+				beforeEach(done => {
+					__private.receiveForkOne = sinonSandbox
+						.stub()
+						.callsArgWith(2, null, true);
+					done();
+				});
+
+				afterEach(() => {
+					expect(__private.receiveForkOne.calledOnce).to.be.true;
+					expect(__private.receiveForkOne.args[0][0]).to.deep.equal({
+						id: 5,
+						previousBlock: '3',
+						height: 3,
+					});
+					expect(__private.receiveForkOne.args[0][1]).to.deep.equal({
+						id: '2',
+						height: 2,
+					});
+					return expect(__private.receiveForkOne.args[0][2]).to.be.an(
+						'function'
+					);
+				});
+
+				it('should call __private.receiveForkOne', done => {
+					library.sequence.add = function(cb) {
+						const fn = Promise.promisify(cb);
+						fn().then(() => {
+							done();
+						});
+					};
+					blocksProcessModule.receiveBlockFromNetwork({
+						id: 5,
+						previousBlock: '3',
+						height: 3,
+					});
+				});
+			});
+
+			describe('when block.previousBlock === lastBlock.previousBlock && block.height === lastBlock.height && block.id !== lastBlock.id', () => {
+				beforeEach(() => {
+					__private.receiveForkFive = sinonSandbox
+						.stub()
+						.callsArgWith(2, null, true);
+					return modules.blocks.lastBlock.get.returns({
+						id: '2',
+						height: 2,
+						previousBlock: '1',
+					});
+				});
+
+				afterEach(() => {
+					expect(__private.receiveForkFive.calledOnce).to.be.true;
+					expect(__private.receiveForkFive.args[0][0]).to.deep.equal({
+						id: 5,
+						previousBlock: '1',
+						height: 2,
+					});
+					expect(__private.receiveForkFive.args[0][1]).to.deep.equal({
+						id: '2',
+						previousBlock: '1',
+						height: 2,
+					});
+					return expect(__private.receiveForkFive.args[0][2]).to.be.an(
+						'function'
+					);
+				});
+
+				it('should call __private.receiveForkFive', done => {
+					library.sequence.add = function(cb) {
+						const fn = Promise.promisify(cb);
+						fn().then(() => {
+							done();
+						});
+					};
+					blocksProcessModule.receiveBlockFromNetwork({
+						id: 5,
+						previousBlock: '1',
+						height: 2,
+					});
+				});
+			});
+
+			describe('when block.id === lastBlock.id', () => {
+				afterEach(done => {
+					expect(loggerStub.debug.args[0][0]).to.equal(
+						'Block already processed'
+					);
+					expect(loggerStub.debug.args[0][1]).to.equal('2');
+					done();
+				});
+
+				it('should log debug message and call a callback', done => {
+					library.sequence.add = function(cb) {
+						const fn = Promise.promisify(cb);
+						fn().then(() => {
+							done();
+						});
+					};
+					blocksProcessModule.receiveBlockFromNetwork({
+						id: '2',
+						previousBlock: '1',
+						height: 2,
+					});
+				});
+			});
+
+			describe('when block.id !== lastBlock.id', () => {
+				afterEach(() =>
+					expect(loggerStub.warn.args[0][0]).to.equal(
+						'Discarded block that does not match with current chain: 7 height: 11 round: 1 slot: 544076 generator: a1'
+					)
+				);
+
+				it('should discard block, when it does not match with current chain', done => {
+					library.sequence.add = function(cb) {
+						const fn = Promise.promisify(cb);
+						fn().then(() => {
+							done();
+						});
+					};
+					blocksProcessModule.receiveBlockFromNetwork({
+						id: '7',
+						previousBlock: '6',
+						height: 11,
+						timestamp: 5440768,
+						generatorPublicKey: 'a1',
+					});
+				});
+			});
+		});
+	});
 });
