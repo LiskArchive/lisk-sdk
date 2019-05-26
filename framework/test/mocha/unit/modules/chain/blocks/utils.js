@@ -807,4 +807,72 @@ describe('blocks/utils', () => {
 			});
 		});
 	});
+
+	describe('loadSecondLastBlock', () => {
+		describe('when utils.loadBlocksPart fails', () => {
+			describe('if should reject with an error', () => {
+				it('should call a callback with returned error', async () => {
+					storageStub.entities.Block.get.rejects(new Error('Block Error'));
+					try {
+						await blocksUtils.loadSecondLastBlock(
+							storageStub,
+							interfaceAdaptersMock,
+							genesisBlock,
+							1
+						);
+					} catch (error) {
+						expect(error.message).to.eql('Block Error');
+					}
+				});
+			});
+
+			describe('if returns empty', () => {
+				beforeEach(async () => {
+					storageStub.entities.Block.get.resolves([]);
+				});
+
+				it('should call a callback with error "previousBlock is null"', async () => {
+					try {
+						await blocksUtils.loadSecondLastBlock(
+							storageStub,
+							interfaceAdaptersMock,
+							genesisBlock,
+							1
+						);
+					} catch (error) {
+						expect(error.message).to.equal('PreviousBlock is null');
+					}
+				});
+			});
+		});
+
+		describe('when modules.blocks.utils.loadBlocksPart succeeds', () => {
+			beforeEach(async () => {
+				storageStub.entities.Block.get.resolves([
+					{
+						id: 2,
+						height: 2,
+						generatorPublicKey:
+							'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
+					},
+					{
+						id: 3,
+						height: 3,
+						generatorPublicKey:
+							'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a9',
+					},
+				]);
+			});
+
+			it('returns the fist block', async () => {
+				const block = await blocksUtils.loadSecondLastBlock(
+					storageStub,
+					interfaceAdaptersMock,
+					genesisBlock,
+					1
+				);
+				expect(block.id).to.equal(2);
+			});
+		});
+	});
 });

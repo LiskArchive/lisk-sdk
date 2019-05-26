@@ -1194,4 +1194,15 @@ describe('blocks/verify', () => {
 			});
 		});
 	});
+
+	describe('matchGenesisBlock', () => {});
+	describe('reloadRequired', () => {});
+	describe('requiredBlockRewind', () => {});
+	describe('normalizeAndVerify', () => {});
+	describe('isSaneBlock', () => {});
+	describe('isForkOne', () => {});
+	describe('isForkFive', () => {});
+	describe('isDoubleForge', () => {});
+	describe('shouldDiscardForkOne', () => {});
+	describe('shouldDiscardForkFive', () => {});
 });

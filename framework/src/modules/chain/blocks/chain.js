@@ -16,11 +16,7 @@
 
 const { cloneDeep } = require('lodash');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
-const {
-	checkIfTransactionIsInert,
-	applyTransactions,
-	undoTransactions,
-} = require('../transactions');
+const transactionsModule = require('../transactions');
 const { loadSecondLastBlock } = require('./utils');
 
 const TRANSACTION_TYPES_VOTE = 3;
@@ -205,7 +201,7 @@ const saveBlock = async (storage, block, tx) => {
 
 	// If there is already a running transaction use it
 	if (tx) {
-		return saveBlockBatch(storage, parsedBlock, tx);
+		await saveBlockBatch(storage, parsedBlock, tx);
 	}
 	// Prepare and execute SQL transaction
 	// WARNING: DB_WRITE
@@ -223,7 +219,7 @@ const saveBlock = async (storage, block, tx) => {
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - String if SQL error occurred, null if success
  */
-const deleteBlock = (storage, blockId, tx) =>
+const deleteBlock = async (storage, blockId, tx) =>
 	// Delete block with ID from blocks table
 	// WARNING: DB_WRITE
 	storage.entities.Block.delete({ id: blockId }, {}, tx);
@@ -263,9 +259,10 @@ const applyBlockTransactions = async (
 	transactions,
 	exceptions
 ) => {
-	const { stateStore } = await applyTransactions(storage, exceptions)(
-		transactions
-	);
+	const { stateStore } = await transactionsModule.applyTransactions(
+		storage,
+		exceptions
+	)(transactions);
 	await stateStore.account.finalize();
 	stateStore.round.setRoundForData(slots.calcRound(1));
 	await stateStore.round.finalize();
@@ -284,13 +281,17 @@ const applyConfirmedStep = async (storage, slots, block, exceptions, tx) => {
 		return;
 	}
 	const nonInertTransactions = block.transactions.filter(
-		transaction => !checkIfTransactionIsInert(transaction, exceptions)
+		transaction =>
+			!transactionsModule.checkIfTransactionIsInert(transaction, exceptions)
 	);
 
-	const { stateStore, transactionsResponses } = await applyTransactions(
-		storage,
-		exceptions
-	)(nonInertTransactions, tx);
+	const {
+		stateStore,
+		transactionsResponses,
+	} = await transactionsModule.applyTransactions(storage, exceptions)(
+		nonInertTransactions,
+		tx
+	);
 
 	const unappliableTransactionsResponse = transactionsResponses.filter(
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK
@@ -343,13 +344,18 @@ const undoConfirmedStep = async (storage, slots, block, exceptions, tx) => {
 	}
 
 	const nonInertTransactions = block.transactions.filter(
-		transaction => !exceptions.inertTransactions.includes(transaction.id)
+		transaction =>
+			!exceptions.inertTransactions ||
+			!exceptions.inertTransactions.includes(transaction.id)
 	);
 
-	const { stateStore, transactionsResponses } = await undoTransactions(
-		storage,
-		exceptions
-	)(nonInertTransactions, tx);
+	const {
+		stateStore,
+		transactionsResponses,
+	} = await transactionsModule.undoTransactions(storage, exceptions)(
+		nonInertTransactions,
+		tx
+	);
 
 	const unappliedTransactionResponse = transactionsResponses.find(
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK
@@ -428,9 +434,11 @@ const popLastBlock = async (
 
 module.exports = {
 	BlocksChain,
+	saveBlock,
 	applyBlockTransactions,
 	backwardTickStep,
 	saveBlockBatch,
+	deleteBlock,
 	deleteFromBlockId,
 	saveBlockStep,
 	applyConfirmedStep,
