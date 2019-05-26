@@ -156,7 +156,7 @@ class BlocksProcess {
 		loadPerIteration
 	) {
 		const limit = loadPerIteration;
-		const blocks = await blocksUtils.loadBlockBlocksWithOffset(
+		const blocks = await blocksUtils.loadBlocksWithOffset(
 			this.storage,
 			this.interfaceAdapters,
 			this.genesisBlock,
@@ -180,10 +180,10 @@ class BlocksProcess {
 			lastBlock = await this.applyBlock(block, lastBlock);
 			onProgress(lastBlock);
 		}
-		const nextHeight = currentHeight + limit;
-		if (currentHeight <= targetHeight) {
+		const nextCurrentHeight = lastBlock.height;
+		if (nextCurrentHeight < targetHeight) {
 			await this._rebuild(
-				nextHeight,
+				nextCurrentHeight,
 				targetHeight,
 				isCleaning,
 				onProgress,

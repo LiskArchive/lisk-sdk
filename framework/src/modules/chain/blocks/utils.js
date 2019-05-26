@@ -507,7 +507,7 @@ const loadBlockByHeight = async (
  * @returns {Object} cb.err - Error if occurred
  * @returns {Object} cb.block - Block with requested height
  */
-const loadBlockBlocksWithOffset = async (
+const loadBlocksWithOffset = async (
 	storage,
 	interfaceAdapters,
 	genesisBlock,
@@ -675,7 +675,7 @@ module.exports = {
 	loadLastBlock,
 	loadSecondLastBlock,
 	loadBlockByHeight,
-	loadBlockBlocksWithOffset,
+	loadBlocksWithOffset,
 	loadMemTables,
 	calculateNewBroadhash,
 	setHeight,

@@ -34,6 +34,7 @@ const {
 	BlockReward,
 } = require('../../../../../../src/modules/chain/blocks/block_reward');
 const blocksLogic = require('../../../../../../src/modules/chain/blocks/block');
+const blocksUtils = require('../../../../../../src/modules/chain/blocks/utils');
 
 describe('blocks/process', () => {
 	const interfaceAdapters = {
@@ -42,9 +43,8 @@ describe('blocks/process', () => {
 
 	let blocksProcess;
 	let storageStub;
+	let lastDummyBlock;
 	let dummyBlock;
-	let dummyCommonBlock;
-	let genesisBlockStub;
 	let blocksVerifyStub;
 	let blocksChainStub;
 	let verifyTransactionsStub;
@@ -62,19 +62,30 @@ describe('blocks/process', () => {
 					isPersisted: sinonSandbox.stub(),
 					get: sinonSandbox.stub(),
 				},
+				Account: {
+					resetMemTables: sinonSandbox.stub(),
+				},
 			},
 		};
 
-		blocksVerifyStub = {};
+		blocksVerifyStub = {
+			verifyBlock: sinonSandbox.stub().returns({ verified: true, errors: [] }),
+			checkExists: sinonSandbox.stub(),
+			validateBlockSlot: sinonSandbox.stub(),
+			checkTransactions: sinonSandbox.stub(),
+		};
 
-		blocksChainStub = {};
-
-		genesisBlockStub = {
-			block: {
-				id: '6524861224470851795',
-				height: 1,
-				previousBlock: null,
-			},
+		blocksChainStub = {
+			applyBlock: sinonSandbox.stub(),
+			applyGenesisBlock: sinonSandbox.stub(),
+			deleteLastBlock: sinonSandbox.stub(),
+		};
+		lastDummyBlock = {
+			id: '3',
+			height: 3,
+			timestamp: 41287221,
+			reward: new Bignum(100),
+			transactions: [],
 		};
 		dummyBlock = {
 			id: '4',
@@ -83,10 +94,8 @@ describe('blocks/process', () => {
 			reward: new Bignum(100),
 			transactions: [],
 		};
-		sinonSandbox.stub(blocksLogic, 'objectNormalize');
+		sinonSandbox.stub(blocksLogic, 'objectNormalize').callsFake(input => input);
 		sinonSandbox.stub(blocksLogic, 'create').returns(dummyBlock);
-
-		dummyCommonBlock = { id: '3', previousBlock: '2', height: '3' };
 
 		verifyTransactionsStub = sinonSandbox.stub();
 		sinonSandbox
@@ -155,15 +164,68 @@ describe('blocks/process', () => {
 		});
 	});
 
-	describe('processBlock', () => {});
+	describe('processBlock', () => {
+		beforeEach(async () => {
+			sinonSandbox
+				.stub(blocksUtils, 'addBlockProperties')
+				.callsFake(input => input);
+		});
 
-	describe('applyBlock', () => {});
+		it('should throw error if verified is not true', async () => {
+			const errors = [new Error('verify error')];
+			blocksVerifyStub.verifyBlock.returns({ verified: false, errors });
 
-	describe('recoverInvalidOwnChain', () => {});
+			try {
+				await blocksProcess.processBlock(dummyBlock, lastDummyBlock);
+			} catch (errs) {
+				expect(errs).to.eql(errors);
+			}
+		});
 
-	describe('reload', () => {});
+		it('should call addBlockProperties if not broadcast is supplied', async () => {
+			await blocksProcess.processBlock(dummyBlock, lastDummyBlock);
+			expect(blocksUtils.addBlockProperties).to.be.called;
+		});
 
-	describe('_rebuild', () => {});
+		it('should call broadcast if supplied', async () => {
+			const broadcast = sinonSandbox.stub();
+			await blocksProcess.processBlock(dummyBlock, lastDummyBlock, broadcast);
+			expect(broadcast).to.be.called;
+		});
+
+		it('should call apply block with save true', async () => {
+			await blocksProcess.processBlock(dummyBlock, lastDummyBlock);
+			expect(blocksChainStub.applyBlock).to.be.calledWith(dummyBlock, true);
+		});
+	});
+
+	describe('applyBlock', () => {
+		it('should throw error if verified is not true', async () => {
+			const errors = [new Error('verify error')];
+			blocksVerifyStub.verifyBlock.returns({ verified: false, errors });
+
+			try {
+				await blocksProcess.applyBlock(dummyBlock, lastDummyBlock);
+			} catch (errs) {
+				expect(errs).to.eql(errors);
+			}
+		});
+
+		it('should call validateBlockSlot', async () => {
+			await blocksProcess.applyBlock(dummyBlock, lastDummyBlock);
+			expect(blocksVerifyStub.validateBlockSlot).to.be.calledWith(dummyBlock);
+		});
+
+		it('should call checkTransactions', async () => {
+			await blocksProcess.applyBlock(dummyBlock, lastDummyBlock);
+			expect(blocksVerifyStub.checkTransactions).to.be.calledWith(dummyBlock);
+		});
+
+		it('should call apply block with save false', async () => {
+			await blocksProcess.applyBlock(dummyBlock, lastDummyBlock);
+			expect(blocksChainStub.applyBlock).to.be.calledWith(dummyBlock, false);
+		});
+	});
 
 	describe('generateBlock', () => {
 		const timestamp = 41287231;
@@ -369,6 +431,123 @@ describe('blocks/process', () => {
 					transactionsModule.checkAllowedTransactions
 				).to.have.been.calledWith(state);
 			});
+		});
+	});
+
+	describe('recoverInvalidOwnChain', () => {
+		let onDelete;
+		let newLastBlock;
+		beforeEach(async () => {
+			newLastBlock = {
+				id: '1',
+			};
+			onDelete = sinonSandbox.stub();
+			blocksChainStub.deleteLastBlock.resolves(newLastBlock);
+		});
+
+		it('should call deleteLastBlock', async () => {
+			await blocksProcess.recoverInvalidOwnChain(lastDummyBlock, onDelete);
+			expect(blocksChainStub.deleteLastBlock).to.be.calledWith(lastDummyBlock);
+		});
+
+		it('should call onDelete', async () => {
+			await blocksProcess.recoverInvalidOwnChain(lastDummyBlock, onDelete);
+			expect(onDelete).to.be.calledWith(lastDummyBlock, newLastBlock);
+		});
+
+		it('should call verifyBlock with the new last block', async () => {
+			await blocksProcess.recoverInvalidOwnChain(lastDummyBlock, onDelete);
+			expect(blocksVerifyStub.verifyBlock).to.be.calledWith(
+				lastDummyBlock,
+				newLastBlock
+			);
+		});
+	});
+
+	describe('reload', () => {
+		let isCleaning;
+		let onProgress;
+		let newLastBlock;
+
+		beforeEach(async () => {
+			isCleaning = sinonSandbox.stub();
+			onProgress = sinonSandbox.stub();
+			newLastBlock = {
+				id: '1',
+			};
+			sinonSandbox.stub(blocksProcess, '_rebuild').resolves(newLastBlock);
+		});
+
+		it('should call resetMemTables', async () => {
+			await blocksProcess.reload(100, isCleaning, onProgress);
+			expect(storageStub.entities.Account.resetMemTables).to.be.calledOnce;
+		});
+
+		it('should return result of _rebuild', async () => {
+			const newBlock = await blocksProcess.reload(100, isCleaning, onProgress);
+			expect(newBlock).to.equal(newLastBlock);
+		});
+	});
+
+	describe('_rebuild', () => {
+		let isCleaning;
+		let onProgress;
+		let loadedBlocks;
+
+		beforeEach(async () => {
+			isCleaning = sinonSandbox.stub().returns(false);
+			onProgress = sinonSandbox.stub();
+			loadedBlocks = [
+				{ id: '6524861224470851795', height: 1 },
+				{ id: '2', height: 2 },
+				{ id: '3', height: 3 },
+				{ id: '4', height: 4 },
+				{ id: '5', height: 5 },
+			];
+			sinonSandbox.stub(blocksProcess, 'applyBlock').callsFake(block => block);
+			sinonSandbox
+				.stub(blocksUtils, 'loadBlocksWithOffset')
+				.resolves(loadedBlocks);
+		});
+
+		it('should call loadBlocksWithOffset', async () => {
+			await blocksProcess._rebuild(0, 5, isCleaning, onProgress, 10);
+			expect(blocksUtils.loadBlocksWithOffset).to.be.calledWith(
+				storageStub,
+				interfaceAdapters,
+				blocksProcess.genesisBlock,
+				10,
+				0
+			);
+		});
+
+		it('should call return last block when is cleaning is true', async () => {
+			isCleaning.onCall(0).returns(false);
+			isCleaning.onCall(1).returns(false);
+			isCleaning.onCall(2).returns(true);
+			await blocksProcess._rebuild(0, 5, isCleaning, onProgress, 5);
+			expect(blocksProcess.applyBlock).to.be.calledOnce;
+		});
+
+		it('should call on progress per block', async () => {
+			await blocksProcess._rebuild(0, 5, isCleaning, onProgress, 5);
+			expect(onProgress).to.be.callCount(5);
+		});
+
+		it('should call apply genesisBlock if block id is the same as genesis block', async () => {
+			await blocksProcess._rebuild(0, 5, isCleaning, onProgress, 5);
+			expect(blocksChainStub.applyGenesisBlock).to.be.calledOnce;
+		});
+
+		it('should call loadBlocksWithOffset second time with the next currentHeight', async () => {
+			blocksUtils.loadBlocksWithOffset
+				.onCall(0)
+				.resolves([...loadedBlocks].slice(0, 3));
+			blocksUtils.loadBlocksWithOffset
+				.onCall(1)
+				.resolves([...loadedBlocks].slice(3, 5));
+			await blocksProcess._rebuild(0, 5, isCleaning, onProgress, 3);
+			expect(blocksUtils.loadBlocksWithOffset).to.be.calledTwice;
 		});
 	});
 });
