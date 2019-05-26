@@ -20,11 +20,16 @@ const accountFixtures = require('../../../fixtures/accounts');
 const waitFor = require('../../../common/utils/wait_for');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const apiHelpers = require('../../../common/helpers/api');
-const slots = require('../../../../../src/modules/chain/helpers/slots');
+const { BlockSlots } = require('../../../../../src/modules/chain/blocks');
 
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /blocks', () => {
+	const slots = new BlockSlots({
+		epochTime: __testContext.config.constants.EPOCH_TIME,
+		interval: __testContext.config.constants.BLOCK_TIME,
+		blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
+	});
 	const blocksEndpoint = new SwaggerEndpoint('GET /blocks');
 
 	// Testnet genesis block data

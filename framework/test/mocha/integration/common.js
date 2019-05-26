@@ -24,10 +24,16 @@ const {
 	castVotes,
 	createDapp,
 } = require('@liskhq/lisk-transactions');
-const slots = require('../../../src/modules/chain/helpers/slots');
+const { BlockSlots } = require('../../../src/modules/chain/blocks');
 const application = require('../common/application');
 const randomUtil = require('../common/utils/random');
 const accountFixtures = require('../fixtures/accounts');
+
+const slots = new BlockSlots({
+	epochTime: __testContext.config.constants.EPOCH_TIME,
+	interval: __testContext.config.constants.BLOCK_TIME,
+	blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
+});
 
 const { ACTIVE_DELEGATES } = global.constants;
 

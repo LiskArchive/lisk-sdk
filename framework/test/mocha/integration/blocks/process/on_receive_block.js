@@ -21,7 +21,7 @@ const _ = require('lodash');
 const Promise = require('bluebird');
 const PQ = require('pg-promise').ParameterizedQuery;
 const accountFixtures = require('../../../fixtures/accounts');
-const slots = require('../../../../../src/modules/chain/helpers/slots');
+const { BlockSlots } = require('../../../../../src/modules/chain/blocks');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
 const application = require('../../../common/application');
@@ -32,6 +32,12 @@ const {
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
 
 describe('integration test (blocks) - process receiveBlockFromNetwork()', () => {
+	const slots = new BlockSlots({
+		epochTime: __testContext.config.constants.EPOCH_TIME,
+		interval: __testContext.config.constants.BLOCK_TIME,
+		blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
+	});
+
 	let library;
 	let storage;
 

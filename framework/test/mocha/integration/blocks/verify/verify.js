@@ -24,7 +24,6 @@ const application = require('../../../common/application');
 const { clearDatabaseTable } = require('../../../common/storage_sandbox');
 const modulesLoader = require('../../../common/modules_loader');
 const random = require('../../../common/utils/random');
-const slots = require('../../../../../src/modules/chain/helpers/slots');
 const {
 	registeredTransactions,
 } = require('../../../common/registered_transactions');
@@ -34,7 +33,8 @@ const {
 const accountFixtures = require('../../../fixtures/accounts');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
-const blockVersion = require('../../../../../src/modules/chain/logic/block_version');
+const { BlockSlots } = require('../../../../../src/modules/chain/blocks');
+const blockVersion = require('../../../../../src/modules/chain/blocks/block_version');
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
 const { NORMALIZER } = global.__testContext.config;
@@ -42,6 +42,12 @@ const genesisBlock = __testContext.config.genesisBlock;
 const interfaceAdapters = {
 	transactions: new TransactionInterfaceAdapter(registeredTransactions),
 };
+
+const slots = new BlockSlots({
+	epochTime: __testContext.config.constants.EPOCH_TIME,
+	interval: __testContext.config.constants.BLOCK_TIME,
+	blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
+});
 
 const previousBlock = {
 	blockSignature:

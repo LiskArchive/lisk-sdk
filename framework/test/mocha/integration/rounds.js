@@ -24,7 +24,7 @@ const {
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const Promise = require('bluebird');
 const ed = require('../../../src/modules/chain/helpers/ed');
-const slots = require('../../../src/modules/chain/helpers/slots');
+const { BlockSlots } = require('../../../src/modules/chain/blocks');
 const Bignum = require('../../../src/modules/chain/helpers/bignum');
 const accountsFixtures = require('../fixtures/accounts');
 const randomUtil = require('../common/utils/random');
@@ -34,6 +34,11 @@ const localCommon = require('./common');
 const { REWARDS, ACTIVE_DELEGATES } = global.constants;
 
 describe('rounds', () => {
+	const slots = new BlockSlots({
+		epochTime: __testContext.config.constants.EPOCH_TIME,
+		interval: __testContext.config.constants.BLOCK_TIME,
+		blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
+	});
 	let library;
 	let Queries;
 	let addTransactionsAndForgePromise;

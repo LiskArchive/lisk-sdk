@@ -323,16 +323,17 @@ module.exports = class Chain {
 			),
 		};
 		this.scope.modules.interfaceAdapters = this.interfaceAdapters;
-		const autoModules = await initModules(this.scope);
-		this.scope.modules = Object.assign(this.scope.modules, autoModules);
-		const { Rounds } = require('./rounds');
-		this.rounds = new Rounds(this.scope);
-		this.scope.modules.rounds = this.rounds;
 		this.slots = new BlockSlots({
 			epochTime: this.options.constants.EPOCH_TIME,
 			interval: this.options.constants.BLOCK_TIME,
 			blocksPerRound: this.options.constants.ACTIVE_DELEGATES,
 		});
+		this.scope.slots = this.slots;
+		const autoModules = await initModules(this.scope);
+		this.scope.modules = Object.assign(this.scope.modules, autoModules);
+		const { Rounds } = require('./rounds');
+		this.rounds = new Rounds(this.scope);
+		this.scope.modules.rounds = this.rounds;
 		this.blocks = new Blocks({
 			logger: this.logger,
 			storage: this.storage,
@@ -491,9 +492,9 @@ module.exports = class Chain {
 	}
 
 	_unsubscribeToEvents() {
-		this.blocks.off(EVENT_BROADCAST_BLOCK);
-		this.blocks.off(EVENT_DELETE_BLOCK);
-		this.blocks.off(EVENT_NEW_BLOCK);
-		this.blocks.off(EVENT_NEW_BROADHASH);
+		this.blocks.removeAllListeners(EVENT_BROADCAST_BLOCK);
+		this.blocks.removeAllListeners(EVENT_DELETE_BLOCK);
+		this.blocks.removeAllListeners(EVENT_NEW_BLOCK);
+		this.blocks.removeAllListeners(EVENT_NEW_BROADHASH);
 	}
 };

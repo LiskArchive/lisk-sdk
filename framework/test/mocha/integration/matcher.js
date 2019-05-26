@@ -18,7 +18,13 @@ const {
 const commonApplication = require('../common/application');
 const accountFixtures = require('../fixtures/accounts');
 const randomUtil = require('../common/utils/random');
-const slots = require('../../../src/modules/chain/helpers/slots');
+const { BlockSlots } = require('../../../src/modules/chain/blocks');
+
+const slots = new BlockSlots({
+	epochTime: __testContext.config.constants.EPOCH_TIME,
+	interval: __testContext.config.constants.BLOCK_TIME,
+	blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
+});
 
 // Promisify callback functions
 const forge = promisify(commonForge);
