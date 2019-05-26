@@ -14,9 +14,21 @@
 
 'use strict';
 
-const slots = require('../../../../../../src/modules/chain/helpers/slots');
+const {
+	BlockSlots,
+} = require('../../../../../../src/modules/chain/blocks/block_slots');
 
-describe('helpers/slots', () => {
+describe('BlockSlots', () => {
+	let slots;
+
+	beforeEach(async () => {
+		slots = new BlockSlots({
+			epochTime: __testContext.config.constants.EPOCH_TIME,
+			interval: __testContext.config.constants.BLOCK_TIME,
+			blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
+		});
+	});
+
 	describe('calc', () => {
 		it('should calculate round number from given block height', async () => {
 			expect(slots.calcRound(100)).equal(1);
