@@ -178,23 +178,6 @@ class Loader {
 				loadBlocksFromNetwork(seriesCb) {
 					return __private.loadBlocksFromNetwork(seriesCb);
 				},
-				updateApplicationState(seriesCb) {
-					return modules.blocks
-						.calculateNewBroadhash()
-						.then(({ broadhash, height }) => {
-							// Listen for the update of step to move to next step
-							library.channel.once('app:state:updated', () => {
-								seriesCb();
-							});
-
-							// Update our application state: broadhash and height
-							return library.channel.invoke('app:updateApplicationState', {
-								broadhash,
-								height,
-							});
-						})
-						.catch(seriesCb);
-				},
 				async calculateConsensusAfter() {
 					const consensus = await modules.peers.calculateConsensus();
 					return library.logger.debug(

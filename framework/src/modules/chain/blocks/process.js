@@ -65,6 +65,7 @@ class BlocksProcess {
 		await this.blocksVerify.validateBlockSlot(normalizedBlock);
 		await this.blocksVerify.checkTransactions(normalizedBlock);
 		await this.blocksChain.applyBlock(normalizedBlock, true);
+
 		return normalizedBlock;
 	}
 

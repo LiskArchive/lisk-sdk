@@ -202,7 +202,7 @@ const saveBlock = async (storage, block, tx) => {
 
 	// If there is already a running transaction use it
 	if (tx) {
-		await saveBlockBatch(storage, parsedBlock, tx);
+		return saveBlockBatch(storage, parsedBlock, tx);
 	}
 	// Prepare and execute SQL transaction
 	// WARNING: DB_WRITE

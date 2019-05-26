@@ -68,7 +68,6 @@ module.exports = class Chain {
 		this.options = options;
 		this.logger = null;
 		this.scope = null;
-		this.blockReward = null;
 		this.slots = null;
 	}
 
@@ -105,11 +104,6 @@ module.exports = class Chain {
 
 		global.constants = this.options.constants;
 		global.exceptions = this.options.exceptions;
-
-		const BlockReward = require('./logic/block_reward');
-		this.blockReward = new BlockReward();
-		// Needs to be loaded here as its using constants that need to be initialized first
-		this.slots = require('./helpers/slots');
 
 		// Deactivate broadcast and syncing during snapshotting process
 		if (this.options.loading.rebuildUpToRound) {
@@ -333,7 +327,7 @@ module.exports = class Chain {
 		const { Rounds } = require('./rounds');
 		this.rounds = new Rounds(this.scope);
 		this.scope.modules.rounds = this.rounds;
-		const blockSlots = new BlockSlots({
+		this.slots = new BlockSlots({
 			epochTime: this.options.constants.EPOCH_TIME,
 			interval: this.options.constants.BLOCK_TIME,
 			blocksPerRound: this.options.constants.ACTIVE_DELEGATES,
@@ -343,7 +337,7 @@ module.exports = class Chain {
 			storage: this.storage,
 			sequence: this.scope.sequence,
 			genesisBlock: this.options.genesisBlock,
-			slots: blockSlots,
+			slots: this.slots,
 			excptions: this.options.exceptions,
 			roundsModule: this.rounds,
 			interfaceAdapters: this.interfaceAdapters,
@@ -362,7 +356,7 @@ module.exports = class Chain {
 			logger: this.logger,
 			storage: this.storage,
 			blocks: this.blocks,
-			slots: blockSlots,
+			slots: this.slots,
 			exceptions: this.options.exceptions,
 			maxTransactionsPerQueue: this.options.transactions
 				.maxTransactionsPerQueue,
@@ -432,8 +426,7 @@ module.exports = class Chain {
 		} catch (err) {
 			this.logger.error(err, 'Failed to load delegates');
 		}
-		setInterval(async () => {
-			// TODO: Possibly need to add this whole section into sequence
+		const forgeLoop = async () => {
 			await this.forger.beforeForge();
 			if (!this.forger.delegatesEnabled()) {
 				this.logger.debug('No delegates are enabled');
@@ -443,8 +436,19 @@ module.exports = class Chain {
 				this.logger.debug('Client not ready to forge');
 				return;
 			}
-			this.forger.forge(() => {});
-		}, forgeInterval);
+			await new Promise((resolve, reject) => {
+				this.forger.forge(err => {
+					if (err) {
+						return reject(err);
+					}
+					return resolve();
+				});
+			});
+			setTimeout(async () => {
+				await forgeLoop();
+			}, forgeInterval);
+		};
+		await forgeLoop();
 	}
 
 	_subscribeToEvents() {

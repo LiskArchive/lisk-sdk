@@ -19,7 +19,9 @@ const rewire = require('rewire');
 
 const Chain = rewire('../../../../../src/modules/chain/chain');
 const Loader = require('../../../../../src/modules/chain/loader');
-const BlockReward = require('../../../../../src/modules/chain/logic/block_reward');
+const {
+	BlockReward,
+} = require('../../../../../src/modules/chain/blocks/block_reward');
 const slots = require('../../../../../src/modules/chain/helpers/slots');
 const {
 	loggerConfig,
