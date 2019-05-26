@@ -435,9 +435,6 @@ module.exports = class Chain {
 		jobQueue.register(
 			'nextForge',
 			async () => {
-				if (this.loader.isActive()) {
-					return;
-				}
 				await this.forger.beforeForge();
 				if (!this.forger.delegatesEnabled()) {
 					this.logger.debug('No delegates are enabled');
