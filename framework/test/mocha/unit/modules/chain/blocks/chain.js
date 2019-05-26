@@ -661,7 +661,8 @@ describe('blocks/chain', () => {
 						genesisBlockWithTransactions,
 						roundsModuleStub,
 						slots,
-						blockWithTransactions
+						blockWithTransactions,
+						exceptions
 					);
 				} catch (error) {
 					expect(error.message).to.eql('db-tx_ERR');
@@ -715,7 +716,8 @@ describe('blocks/chain', () => {
 					genesisBlockWithTransactions,
 					roundsModuleStub,
 					slots,
-					blockWithTransactions
+					blockWithTransactions,
+					exceptions
 				);
 			});
 		});

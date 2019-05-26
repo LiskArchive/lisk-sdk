@@ -109,7 +109,7 @@ class BlocksChain {
 			return 0;
 		});
 
-		await applyBlockTransactions(
+		await applyGenesisBlockTransactions(
 			this.storage,
 			this.slots,
 			block.transactions,
@@ -147,7 +147,8 @@ class BlocksChain {
 			this.genesisBlock,
 			this.roundsModule,
 			this.slots,
-			lastBlock
+			lastBlock,
+			this.exceptions
 		);
 		return previousBlock;
 	}
@@ -253,7 +254,7 @@ const deleteFromBlockId = async (storage, blockId) => {
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  */
-const applyBlockTransactions = async (
+const applyGenesisBlockTransactions = async (
 	storage,
 	slots,
 	transactions,
@@ -414,7 +415,8 @@ const popLastBlock = async (
 	genesisBlock,
 	roundsModule,
 	slots,
-	oldLastBlock
+	oldLastBlock,
+	exceptions
 ) => {
 	let secondLastBlock;
 	await storage.entities.Block.begin('Chain:deleteBlock', async tx => {
@@ -425,7 +427,7 @@ const popLastBlock = async (
 			oldLastBlock.previousBlock,
 			tx
 		);
-		await undoConfirmedStep(storage, slots, oldLastBlock, tx);
+		await undoConfirmedStep(storage, slots, oldLastBlock, exceptions, tx);
 		await backwardTickStep(roundsModule, secondLastBlock, tx);
 		await deleteBlock(storage, oldLastBlock.id, tx);
 	});
@@ -435,7 +437,7 @@ const popLastBlock = async (
 module.exports = {
 	BlocksChain,
 	saveBlock,
-	applyBlockTransactions,
+	applyGenesisBlockTransactions,
 	backwardTickStep,
 	saveBlockBatch,
 	deleteBlock,
