@@ -26,6 +26,7 @@ describe('peers', () => {
 	let storageMock;
 	let peers;
 	let PeersRewired;
+	let blocksStub;
 
 	let scope;
 	let channelMock;
@@ -48,6 +49,10 @@ describe('peers', () => {
 			'../../../../../../src/modules/chain/submodules/peers'
 		);
 
+		blocksStub = {
+			broadhash: prefixedPeer.broadhash,
+		};
+
 		scope = _.defaultsDeep(
 			{
 				nonce: NONCE,
@@ -58,10 +63,11 @@ describe('peers', () => {
 			modulesLoader.scope
 		);
 
-		new PeersRewired((err, peersModule) => {
+		const peer = new PeersRewired((err, peersModule) => {
 			peers = peersModule;
 			done();
 		}, scope);
+		peer.onBind({ modules: { blocks: blocksStub } });
 	});
 
 	describe('isPoorConsensus', () => {

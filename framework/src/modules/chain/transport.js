@@ -21,7 +21,7 @@ const { convertErrorsToString } = require('./helpers/error_handlers');
 // eslint-disable-next-line prefer-const
 let Broadcaster = require('./logic/broadcaster');
 const definitions = require('./schema/definitions');
-const { addBlockProperties } = require('./blocks');
+const blocksModule = require('./blocks');
 const transactionsModule = require('./transactions');
 
 const exceptions = global.exceptions;
@@ -385,7 +385,7 @@ class Transport {
 						let block;
 						let success = true;
 						try {
-							block = addBlockProperties(query.block);
+							block = blocksModule.addBlockProperties(query.block);
 
 							// Instantiate transaction classes
 							block.transactions = modules.interfaceAdapters.transactions.fromBlock(
