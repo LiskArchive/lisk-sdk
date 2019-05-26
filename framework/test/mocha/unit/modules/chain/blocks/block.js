@@ -27,6 +27,7 @@ const {
 	BlockReward,
 } = require('../../../../../../src/modules/chain/blocks/block_reward');
 const block = require('../../../../../../src/modules/chain/blocks/block');
+const validator = require('../../../../../../src/controller/validator');
 
 describe('block', () => {
 	const interfaceAdapters = {
@@ -312,6 +313,7 @@ describe('block', () => {
 				let transactionsOrder;
 
 				beforeEach(async () => {
+					sinonSandbox.stub(validator, 'validate');
 					// Create 6 multisignature transactions
 					multipleMultisigTx = Array(...Array(5)).map(() =>
 						interfaceAdapters.transactions.fromJson(

@@ -243,7 +243,8 @@ describe('blocks/chain', () => {
 						blockWithTransactions,
 						txStub
 					);
-					expect(storageStub.entities.Block.begin).to.be.calledOnce;
+
+					expect(storageStub.entities.Block.begin).not.to.be.called;
 					expect(storageStub.entities.Block.create).to.be.calledOnce;
 					expect(storageStub.entities.Transaction.create).to.be.calledOnce;
 					expect(txStub.batch).to.be.calledOnce;
