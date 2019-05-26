@@ -33,6 +33,7 @@ const {
 	initLogicStructure,
 	initModules,
 } = require('./init_steps');
+const jobQueue = require('./helpers/jobs_queue');
 const { TransactionInterfaceAdapter } = require('./interface_adapters');
 const { TransactionPool } = require('./transaction_pool');
 const {
@@ -389,28 +390,33 @@ module.exports = class Chain {
 		if (!this.options.syncing.active) {
 			return;
 		}
-		// sync timer
-		setInterval(() => {
-			this.logger.info(
-				{
-					syncing: this.loader.isActive(),
-					lastReceipt: this.scope.modules.blocks.lastReceipt,
-				},
-				'Sync time triggered'
-			);
-			if (!this.loader.isActive() && this.scope.modules.blocks.isStale()) {
-				this.scope.sequence.add(
-					sequenceCB => {
-						this.loader.sync(sequenceCB);
+		jobQueue.register(
+			'nextSync',
+			cb => {
+				this.logger.info(
+					{
+						syncing: this.loader.isActive(),
+						lastReceipt: this.scope.modules.blocks.lastReceipt,
 					},
-					syncError => {
-						if (syncError) {
-							this.logger.error('Sync timer', syncError);
-						}
-					}
+					'Sync time triggered'
 				);
-			}
-		}, syncInterval);
+				if (!this.loader.isActive() && this.scope.modules.blocks.isStale()) {
+					this.scope.sequence.add(
+						sequenceCB => {
+							this.loader.sync(sequenceCB);
+						},
+						syncError => {
+							if (syncError) {
+								this.logger.error('Sync timer', syncError);
+								return cb(syncError);
+							}
+							return cb();
+						}
+					);
+				}
+			},
+			syncInterval
+		);
 	}
 
 	async _startForging() {
@@ -426,29 +432,32 @@ module.exports = class Chain {
 		} catch (err) {
 			this.logger.error(err, 'Failed to load delegates');
 		}
-		const forgeLoop = async () => {
-			await this.forger.beforeForge();
-			if (!this.forger.delegatesEnabled()) {
-				this.logger.debug('No delegates are enabled');
-				return;
-			}
-			if (this.loader.syncing() || this.scope.modules.rounds.ticking()) {
-				this.logger.debug('Client not ready to forge');
-				return;
-			}
-			await new Promise((resolve, reject) => {
-				this.forger.forge(err => {
-					if (err) {
-						return reject(err);
-					}
-					return resolve();
+		jobQueue.register(
+			'nextForge',
+			async () => {
+				if (this.loader.isActive()) {
+					return;
+				}
+				await this.forger.beforeForge();
+				if (!this.forger.delegatesEnabled()) {
+					this.logger.debug('No delegates are enabled');
+					return;
+				}
+				if (this.loader.syncing() || this.scope.modules.rounds.ticking()) {
+					this.logger.debug('Client not ready to forge');
+					return;
+				}
+				await new Promise((resolve, reject) => {
+					this.forger.forge(err => {
+						if (err) {
+							return reject(err);
+						}
+						return resolve();
+					});
 				});
-			});
-			setTimeout(async () => {
-				await forgeLoop();
-			}, forgeInterval);
-		};
-		await forgeLoop();
+			},
+			forgeInterval
+		);
 	}
 
 	_subscribeToEvents() {
