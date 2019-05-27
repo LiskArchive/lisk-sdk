@@ -63,8 +63,8 @@ describe('processTransactions', () => {
 			},
 			(err, scope) => {
 				library = scope;
-				library.modules.blocks.lastBlock.set(genesisBlock);
-				done();
+				library.modules.blocks._lastBlock = genesisBlock;
+				done(err);
 			}
 		);
 	});
@@ -170,7 +170,7 @@ describe('processTransactions', () => {
 
 				beforeEach(async () => {
 					checkAllowedTransactions = transactionsModule.checkAllowedTransactions(
-						library.modules.blocks.lastBlock.get()
+						library.modules.blocks.lastBlock
 					);
 				});
 
