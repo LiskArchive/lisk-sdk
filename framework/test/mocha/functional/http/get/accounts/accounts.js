@@ -449,6 +449,7 @@ describe('GET /accounts', () => {
 				delegate.vote,
 				constansts.supply
 			);
+
 			expect(delegate.approval).to.be.eql(calculatedApproval);
 		});
 
