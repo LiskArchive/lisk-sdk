@@ -124,7 +124,7 @@ function createRawCustomTransaction({ passphrase, senderId, senderPublicKey }) {
 }
 
 function createRawBlock(library, rawTransactions, callback) {
-	const lastBlock = library.modules.blocks.lastBlock.get();
+	const lastBlock = library.modules.blocks.lastBlock;
 	const slot = slots.getSlotNumber();
 	const keypairs = library.modules.forger.getForgersKeyPairs();
 	const transactions = rawTransactions.map(rawTransaction =>
@@ -375,7 +375,7 @@ describe('matcher', () => {
 				// Attempt to forge again and include CustomTransaction in the block.
 				await forge(scope);
 
-				const lastBlock = scope.modules.blocks.lastBlock.get();
+				const lastBlock = scope.modules.blocks.lastBlock;
 				expect(
 					lastBlock.transactions.some(
 						transation => transation.id === jsonTransaction.id
@@ -396,7 +396,7 @@ describe('matcher', () => {
 			// Act: forge
 			await forge(scope);
 
-			const lastBlock = scope.modules.blocks.lastBlock.get();
+			const lastBlock = scope.modules.blocks.lastBlock;
 			expect(
 				lastBlock.transactions.some(
 					transation => transation.id === jsonTransaction.id

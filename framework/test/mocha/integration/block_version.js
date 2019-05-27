@@ -15,7 +15,7 @@
 'use strict';
 
 const Promise = require('bluebird');
-const blockVersion = require('../../../src/modules/chain/logic/block_version');
+const blockVersion = require('../../../src/modules/chain/blocks/block_version');
 const QueriesHelper = require('../common/integration/sql/queries_helper');
 const localCommon = require('./common');
 
@@ -47,7 +47,7 @@ describe('block_version', () => {
 		});
 
 		it('blockchain should be at height 101', async () => {
-			const lastBlock = library.modules.blocks.lastBlock.get();
+			const lastBlock = library.modules.blocks.lastBlock;
 			return expect(lastBlock.height).to.eql(101);
 		});
 
@@ -75,7 +75,7 @@ describe('block_version', () => {
 		});
 
 		it('blockchain should be at height 202', async () => {
-			const lastBlock = library.modules.blocks.lastBlock.get();
+			const lastBlock = library.modules.blocks.lastBlock;
 			return expect(lastBlock.height).to.eql(202);
 		});
 
@@ -103,7 +103,7 @@ describe('block_version', () => {
 		});
 
 		it('blockchain should be at height 303', async () => {
-			const lastBlock = library.modules.blocks.lastBlock.get();
+			const lastBlock = library.modules.blocks.lastBlock;
 			return expect(lastBlock.height).to.eql(303);
 		});
 

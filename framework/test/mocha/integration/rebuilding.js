@@ -92,7 +92,7 @@ describe('rebuilding', () => {
 		});
 
 		it('mem_accounts states after rebuilding should match copy taken after round 2', done => {
-			const lastBlock = library.modules.blocks.lastBlock.get();
+			const lastBlock = library.modules.blocks.lastBlock;
 			expect(lastBlock.height).to.eql(303);
 
 			const __private = library.rewiredModules.loader.__get__('__private');

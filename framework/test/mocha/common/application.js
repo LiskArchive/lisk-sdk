@@ -239,7 +239,7 @@ const initStepsForTest = {
 		scope.rewiredModules.interfaceAdapters.transactions = RewiredTransactionInterfaceAdapter;
 		scope.slots = new BlockSlots({
 			epochTime: __testContext.config.constants.EPOCH_TIME,
-			interval: __testContext.config.constants.BLCOK_TIME,
+			interval: __testContext.config.constants.BLOCK_TIME,
 			blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
 		});
 		modules.interfaceAdapters = {};

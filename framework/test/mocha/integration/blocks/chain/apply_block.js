@@ -27,6 +27,7 @@ const {
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
+const blocksChainModule = require('../../../../../src/modules/chain/blocks/chain');
 
 const interfaceAdapters = {
 	transactions: new TransactionInterfaceAdapter(registeredTransactions),
@@ -50,7 +51,7 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 			]);
 		})
 			.then(() => {
-				library.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
+				library.modules.blocks._lastBlock = __testContext.config.genesisBlock;
 				done();
 			})
 			.catch(err => {
@@ -149,9 +150,7 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 						}
 					)
 						.then(() =>
-							library.modules.blocks.chain.applyBlock(block, true, async () =>
-								done()
-							)
+							library.modules.blocks.blocksChain.applyBlock(block, true)
 						)
 						.catch(done);
 				});
@@ -200,8 +199,8 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 			});
 
 			describe('after applying a new block', () => {
-				beforeEach(done => {
-					library.modules.blocks.chain.applyBlock(block, true, done);
+				beforeEach(async () => {
+					await library.modules.blocks.blocksChain.applyBlock(block, true);
 				});
 
 				it('should applyConfirmedStep', done => {
@@ -262,11 +261,11 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 					id: '884740302254229983',
 				};
 
-				it('should call a callback with proper error', done => {
-					library.modules.blocks.chain.saveBlock(auxBlock, err => {
-						expect(err).to.eql('Blocks#saveBlock error');
-						done();
-					});
+				it('should call a callback with proper error', async () => {
+					await blocksChainModule.saveBlock(
+						library.components.storage,
+						auxBlock
+					);
 				});
 			});
 
@@ -291,11 +290,15 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 					transactions: [],
 				};
 
-				it('should call a callback with proper error', done => {
-					library.modules.blocks.chain.saveBlock(auxBlock, err => {
-						expect(err).to.eql('Blocks#saveBlock error');
-						done();
-					});
+				it('should call a callback with proper error', async () => {
+					try {
+						await blocksChainModule.saveBlock(
+							library.components.storage,
+							auxBlock
+						);
+					} catch (error) {
+						expect(error.message).to.equal('');
+					}
 				});
 			});
 		});
@@ -303,13 +306,11 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 		describe('saveBlockStep', () => {
 			describe('after applying new block fails', () => {
 				let blockId;
-				beforeEach(done => {
+				beforeEach(async () => {
 					blockId = block.id;
 					// Make block invalid
 					block.id = null;
-					library.modules.blocks.chain.applyBlock(block, true, async () =>
-						done()
-					);
+					await library.modules.blocks.blocksCHain.applyBlock(block, true);
 				});
 
 				it('should have pooled transactions in queued state', done => {
@@ -361,8 +362,8 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 			});
 
 			describe('after applying a new block', () => {
-				beforeEach(done => {
-					library.modules.blocks.chain.applyBlock(block, true, done);
+				beforeEach(async () => {
+					await library.modules.blocks.chain.applyBlock(block, true);
 				});
 
 				it('should save block in the blocks table', done => {

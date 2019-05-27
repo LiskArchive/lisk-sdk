@@ -88,7 +88,7 @@ describe('rounds', () => {
 
 	function expectedMemState(transactions, _accounts) {
 		const accounts = _.cloneDeep(_accounts);
-		const lastBlock = library.modules.blocks.lastBlock.get();
+		const lastBlock = library.modules.blocks.lastBlock;
 
 		// Update last block forger account
 		const found = _.find(accounts, {
@@ -346,7 +346,7 @@ describe('rounds', () => {
 
 		describe('new block', () => {
 			before(() => {
-				tick.before.block = library.modules.blocks.lastBlock.get();
+				tick.before.block = library.modules.blocks.lastBlock;
 				tick.before.round = slots.calcRound(tick.before.block.height);
 
 				return Promise.join(
@@ -365,7 +365,7 @@ describe('rounds', () => {
 				).then(() => {
 					return addTransactionsAndForgePromise(library, transactions, 0).then(
 						async () => {
-							tick.after.block = library.modules.blocks.lastBlock.get();
+							tick.after.block = library.modules.blocks.lastBlock;
 							tick.after.round = slots.calcRound(tick.after.block.height);
 							// Detect if round changed
 							tick.isRoundChanged = tick.before.round !== tick.after.round;
@@ -552,7 +552,7 @@ describe('rounds', () => {
 		};
 
 		before(() => {
-			const lastBlock = library.modules.blocks.lastBlock.get();
+			const lastBlock = library.modules.blocks.lastBlock;
 
 			// Copy initial states for later comparison
 			return Promise.join(
@@ -671,7 +671,7 @@ describe('rounds', () => {
 
 		describe('after round 1 is finished', () => {
 			it('last block height should equal active delegates count', async () => {
-				const lastBlock = library.modules.blocks.lastBlock.get();
+				const lastBlock = library.modules.blocks.lastBlock;
 				return expect(lastBlock.height).to.be.equal(ACTIVE_DELEGATES);
 			});
 
@@ -722,7 +722,7 @@ describe('rounds', () => {
 			});
 
 			it('should generate a different delegate list than one generated at the beginning of round 1', async () => {
-				const lastBlock = library.modules.blocks.lastBlock.get();
+				const lastBlock = library.modules.blocks.lastBlock;
 				return library.modules.rounds
 					.generateDelegateList(slots.calcRound(lastBlock.height + 1), null)
 					.then(delegatesList => {
@@ -735,7 +735,7 @@ describe('rounds', () => {
 			let lastBlock;
 
 			before(() => {
-				lastBlock = library.modules.blocks.lastBlock.get();
+				lastBlock = library.modules.blocks.lastBlock;
 				// Delete last block of round
 				return deleteLastBlockPromise();
 			});
@@ -774,7 +774,7 @@ describe('rounds', () => {
 			});
 
 			it('delegates list should be equal to one generated at the beginning of round 1', async () => {
-				const freshLastBlock = library.modules.blocks.lastBlock.get();
+				const freshLastBlock = library.modules.blocks.lastBlock;
 				return library.modules.rounds
 					.generateDelegateList(
 						slots.calcRound(freshLastBlock.height + 1),
@@ -802,7 +802,7 @@ describe('rounds', () => {
 			});
 
 			it('delegates list should be equal to one generated at the beginning of round 1', async () => {
-				const lastBlock = library.modules.blocks.lastBlock.get();
+				const lastBlock = library.modules.blocks.lastBlock;
 				return library.modules.rounds
 					.generateDelegateList(slots.calcRound(lastBlock.height + 1), null)
 					.then(delegatesList => {
@@ -828,7 +828,7 @@ describe('rounds', () => {
 					});
 					transactions.push(transaction);
 
-					lastBlock = library.modules.blocks.lastBlock.get();
+					lastBlock = library.modules.blocks.lastBlock;
 					// Delete one block more
 					return deleteLastBlockPromise().then(() => {
 						done();
@@ -837,7 +837,7 @@ describe('rounds', () => {
 			});
 
 			it('last block height should be at height 99 after deleting one more block', async () => {
-				const freshLastBlock = library.modules.blocks.lastBlock.get();
+				const freshLastBlock = library.modules.blocks.lastBlock;
 				return expect(freshLastBlock.height).to.equal(99);
 			});
 			// eslint-disable-next-line
@@ -866,7 +866,7 @@ describe('rounds', () => {
 
 			describe('after forging 1 block', () => {
 				it('should unvote expected forger of last block of round (block data)', async () => {
-					const freshLastBlock = library.modules.blocks.lastBlock.get();
+					const freshLastBlock = library.modules.blocks.lastBlock;
 					return Queries.getFullBlock(freshLastBlock.height).then(blocks => {
 						expect(blocks[0].transactions[0].asset.votes[0]).to.equal(
 							`-${lastBlockForger}`
@@ -886,7 +886,7 @@ describe('rounds', () => {
 
 			describe('after round finish', () => {
 				it('delegates list should be different than one generated at the beginning of round 1', async () => {
-					const freshLastBlock = library.modules.blocks.lastBlock.get();
+					const freshLastBlock = library.modules.blocks.lastBlock;
 					return library.modules.rounds
 						.generateDelegateList(
 							slots.calcRound(freshLastBlock.height + 1),
@@ -910,7 +910,7 @@ describe('rounds', () => {
 			describe('after last block of round is deleted', () => {
 				it('delegates list should be equal to one generated at the beginning of round 1', async () => {
 					return deleteLastBlockPromise().then(() => {
-						const freshLastBlock = library.modules.blocks.lastBlock.get();
+						const freshLastBlock = library.modules.blocks.lastBlock;
 						return library.modules.rounds
 							.generateDelegateList(
 								slots.calcRound(freshLastBlock.height),
@@ -948,7 +948,7 @@ describe('rounds', () => {
 			before(done => {
 				// Set last block forger
 				localCommon.getNextForger(library, null, (err, delegatePublicKey) => {
-					lastBlock = library.modules.blocks.lastBlock.get();
+					lastBlock = library.modules.blocks.lastBlock;
 					lastBlockForger = delegatePublicKey;
 					tmpAccount = randomUtil.account();
 
@@ -976,14 +976,14 @@ describe('rounds', () => {
 
 					const transactionPool = library.modules.transactionPool;
 					// Delete two blocks more
-					lastBlock = library.modules.blocks.lastBlock.get();
+					lastBlock = library.modules.blocks.lastBlock;
 					deleteLastBlockPromise()
 						.then(() => {
 							_.each(lastBlock.transactions, eachTransaction => {
 								// Remove transaction from pool
 								transactionPool.onConfirmedTransactions([eachTransaction]);
 							});
-							lastBlock = library.modules.blocks.lastBlock.get();
+							lastBlock = library.modules.blocks.lastBlock;
 							deleteLastBlockPromise()
 								.then(() => {
 									_.each(lastBlock.transactions, eachTransaction => {
@@ -1011,7 +1011,7 @@ describe('rounds', () => {
 				let delegates;
 
 				before(() => {
-					lastBlock = library.modules.blocks.lastBlock.get();
+					lastBlock = library.modules.blocks.lastBlock;
 
 					return Promise.join(
 						getDelegates(),
@@ -1066,7 +1066,7 @@ describe('rounds', () => {
 			describe('after last block of round is deleted', () => {
 				it('delegates list should be equal to one generated at the beginning of round 1', async () => {
 					return deleteLastBlockPromise().then(() => {
-						lastBlock = library.modules.blocks.lastBlock.get();
+						lastBlock = library.modules.blocks.lastBlock;
 						return library.modules.rounds
 							.generateDelegateList(slots.calcRound(lastBlock.height), null)
 							.then(delegatesList => {
@@ -1148,12 +1148,12 @@ describe('rounds', () => {
 
 			describe('before rewards start', () => {
 				it('last block height should be at height 149', async () => {
-					const lastBlock = library.modules.blocks.lastBlock.get();
+					const lastBlock = library.modules.blocks.lastBlock;
 					return expect(lastBlock.height).to.equal(149);
 				});
 
 				it('block just before rewards start should have reward = 0', async () => {
-					const lastBlock = library.modules.blocks.lastBlock.get();
+					const lastBlock = library.modules.blocks.lastBlock;
 					return expect(lastBlock.reward.isEqualTo(expectedRewardsPerBlock)).to
 						.be.true;
 				});
@@ -1195,7 +1195,7 @@ describe('rounds', () => {
 
 						describe('rewards check', () => {
 							it('all blocks from now until round end should have proper rewards (5 LSK)', async () => {
-								const lastBlock = library.modules.blocks.lastBlock.get();
+								const lastBlock = library.modules.blocks.lastBlock;
 								return expect(
 									lastBlock.reward.isEqualTo(expectedRewardsPerBlock)
 								).to.be.true;
@@ -1237,7 +1237,7 @@ describe('rounds', () => {
 		});
 
 		it('last block height should be at height 101', async () => {
-			lastBlock = library.modules.blocks.lastBlock.get();
+			lastBlock = library.modules.blocks.lastBlock;
 			return expect(lastBlock.height).to.equal(101);
 		});
 
@@ -1248,7 +1248,7 @@ describe('rounds', () => {
 		});
 
 		it('last block height should be still at height 101', async () => {
-			lastBlock = library.modules.blocks.lastBlock.get();
+			lastBlock = library.modules.blocks.lastBlock;
 			return expect(lastBlock.height).to.equal(101);
 		});
 	});

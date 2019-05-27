@@ -89,7 +89,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 	}
 
 	function forge(forgingSlot, cb) {
-		let last_block = library.modules.blocks.lastBlock.get();
+		let last_block = library.modules.blocks.lastBlock;
 		const slot = forgingSlot || slots.getSlotNumber(last_block.timestamp) + 1;
 		let delegate;
 
@@ -136,7 +136,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							if (err) {
 								return waterFallCb(err);
 							}
-							last_block = library.modules.blocks.lastBlock.get();
+							last_block = library.modules.blocks.lastBlock;
 							__testContext.debug(
 								`New last block height: ${
 									last_block.height
@@ -185,7 +185,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 	}
 
 	function getValidKeypairForSlot(slot) {
-		const lastBlock = library.modules.blocks.lastBlock.get();
+		const lastBlock = library.modules.blocks.lastBlock;
 		const round = slots.calcRound(lastBlock.height);
 
 		return library.modules.rounds
@@ -242,7 +242,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 			let block;
 
 			before(() => {
-				lastBlock = library.modules.blocks.lastBlock.get();
+				lastBlock = library.modules.blocks.lastBlock;
 				const slot = slots.getSlotNumber();
 				return getValidKeypairForSlot(slot).then(keypair => {
 					block = createBlock([], slots.getSlotTime(slot), keypair, lastBlock);
@@ -267,7 +267,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 					let block;
 
 					beforeEach(done => {
-						lastBlock = library.modules.blocks.lastBlock.get();
+						lastBlock = library.modules.blocks.lastBlock;
 						const slot = slots.getSlotNumber();
 						const nonDelegateKeypair = getKeypair(
 							accountFixtures.genesis.passphrase
@@ -297,7 +297,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 					let block;
 
 					beforeEach(() => {
-						lastBlock = library.modules.blocks.lastBlock.get();
+						lastBlock = library.modules.blocks.lastBlock;
 						// Using last block's slot
 						const slot = slots.getSlotNumber() - 1;
 						return getValidKeypairForSlot(slot - 1).then(keypair => {
@@ -890,7 +890,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 				let block;
 
 				beforeEach(done => {
-					lastBlock = library.modules.blocks.lastBlock.get();
+					lastBlock = library.modules.blocks.lastBlock;
 					forge(null, (err, forgedBlock) => {
 						block = forgedBlock;
 						done();
