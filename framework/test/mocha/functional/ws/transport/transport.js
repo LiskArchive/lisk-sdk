@@ -17,7 +17,6 @@
 require('../../functional');
 const { P2P } = require('@liskhq/lisk-p2p');
 const { generatePeerHeader } = require('../../../common/generatePeerHeader');
-const waitFor = require('../../../common/utils/wait_for');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 
 describe('RPC', () => {
@@ -26,7 +25,6 @@ describe('RPC', () => {
 	before(async () => {
 		p2p = new P2P(generatePeerHeader());
 		await p2p.start();
-		await waitFor.blocksPromise(1, null);
 	});
 
 	after(async () => {

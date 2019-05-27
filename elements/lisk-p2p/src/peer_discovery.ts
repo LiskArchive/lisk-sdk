@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
 import { P2PDiscoveredPeerInfo } from './p2p_types';
 import { constructPeerIdFromPeerInfo, Peer } from './peer';
 // For Lips, this will be used for fixed and white lists
