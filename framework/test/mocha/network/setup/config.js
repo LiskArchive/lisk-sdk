@@ -150,8 +150,6 @@ const config = {
 					NODE_ENV: 'test',
 					CUSTOM_CONFIG_FILE: `test/mocha/network/configs/config.node-${index}.json`,
 				},
-				error_file: `test/mocha/network/logs/lisk-test-node-${index}.err.log`,
-				out_file: `test/mocha/network/logs/lisk-test-node-${index}.out.log`,
 				configuration,
 			});
 			return pm2Config;
