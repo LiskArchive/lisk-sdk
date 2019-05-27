@@ -424,7 +424,7 @@ class Network {
 	// eslint-disable-next-line class-methods-use-this
 	stopNode(nodeName) {
 		return new Promise((resolve, reject) => {
-			childProcess.exec(`node_modules/.bin/pm2 stop ${nodeName}`, err => {
+			childProcess.exec(`npx pm2 stop ${nodeName}`, err => {
 				if (err) {
 					return reject(
 						new Error(`Failed to stop node ${nodeName}: ${err.message || err}`)
@@ -437,7 +437,7 @@ class Network {
 
 	startNode(nodeName, waitForSync) {
 		let startPromise = new Promise((resolve, reject) => {
-			childProcess.exec(`node_modules/.bin/pm2 start ${nodeName}`, err => {
+			childProcess.exec(`npx pm2 start ${nodeName}`, err => {
 				if (err) {
 					return reject(
 						new Error(`Failed to start node ${nodeName}: ${err.message || err}`)
@@ -476,7 +476,7 @@ class Network {
 
 		await new Promise((resolve, reject) => {
 			childProcess.exec(
-				`node_modules/.bin/pm2 reload test/mocha/network/pm2.network.json --only ${nodeName}${update}`,
+				`npx pm2 reload test/mocha/network/pm2.network.json --only ${nodeName}${update}`,
 				err => {
 					if (err) {
 						return reject(

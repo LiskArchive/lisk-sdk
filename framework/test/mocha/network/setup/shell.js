@@ -35,7 +35,7 @@ module.exports = {
 
 	launchTestNodes(cb) {
 		child_process.exec(
-			'node_modules/.bin/pm2 start test/mocha/network/pm2.network.json',
+			'npx pm2 start test/mocha/network/pm2.network.json',
 			err => {
 				return cb(err);
 			}
@@ -49,7 +49,7 @@ module.exports = {
 	},
 
 	killTestNodes(cb) {
-		child_process.exec('node_modules/.bin/pm2 kill', err => {
+		child_process.exec('npx pm2 kill', err => {
 			if (err) {
 				console.warn(
 					'Failed to killed PM2 process. Please execute command "pm2 kill" manually'
