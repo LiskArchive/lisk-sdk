@@ -27,9 +27,9 @@ module.exports = function(configurations, network) {
 				.then(() => {
 					return Promise.all(
 						configurations.map(configuration => {
-							return utils.http.getBlocks(
-								configuration.modules.http_api.httpPort
-							);
+							return utils.http.getBlocks({
+								httPort: configuration.modules.http_api.httpPort,
+							});
 						})
 					);
 				})

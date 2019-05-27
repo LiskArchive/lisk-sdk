@@ -74,13 +74,10 @@ module.exports = {
 		currentVersion = version;
 	},
 
-	getBlocks(port, ip) {
+	getBlocks({ port = 4000, ip = '127.0.0.1' }) {
 		return popsicle
 			.get({
-				url: endpoints.versions[currentVersion].getBlocks(
-					ip || '127.0.0.1',
-					port || 4000
-				),
+				url: endpoints.versions[currentVersion].getBlocks(ip, port),
 				headers,
 			})
 			.then(res => {
@@ -91,13 +88,10 @@ module.exports = {
 			});
 	},
 
-	getHeight(port, ip) {
+	getHeight({ port = 4000, ip = '127.0.0.1' }) {
 		return popsicle
 			.get({
-				url: endpoints.versions[currentVersion].getHeight(
-					ip || '127.0.0.1',
-					port || 4000
-				),
+				url: endpoints.versions[currentVersion].getHeight(ip, port),
 				headers,
 			})
 			.then(res => {
@@ -105,13 +99,10 @@ module.exports = {
 			});
 	},
 
-	getNodeStatus(port, ip) {
+	getNodeStatus({ port = 4000, ip = '127.0.0.1' }) {
 		return popsicle
 			.get({
-				url: endpoints.versions[currentVersion].getNodeStatus(
-					ip || '127.0.0.1',
-					port || 4000
-				),
+				url: endpoints.versions[currentVersion].getNodeStatus(ip, port),
 				headers,
 			})
 			.then(res => {
@@ -119,13 +110,13 @@ module.exports = {
 			});
 	},
 
-	getTransaction(transactionId, port, ip) {
+	getTransaction({ id, port = 4000, ip = '127.0.0.1' }) {
 		return popsicle
 			.get({
 				url: `${endpoints.versions[currentVersion].getTransactions(
-					ip || '127.0.0.1',
-					port || 4000
-				)}?id=${transactionId}`,
+					ip,
+					port
+				)}?id=${id}`,
 				headers,
 			})
 			.then(res => {
@@ -153,13 +144,10 @@ module.exports = {
 			});
 	},
 
-	enableForging(keys, port, ip) {
+	enableForging({ keys, port = 4000, ip = '127.0.0.1' }) {
 		return popsicle
 			.put({
-				url: endpoints.versions[currentVersion].enableForging(
-					ip || '127.0.0.1',
-					port || 4000
-				),
+				url: endpoints.versions[currentVersion].enableForging(ip, port),
 				headers,
 				body: {
 					password: 'elephant tree paris dragon chair galaxy',
@@ -186,13 +174,10 @@ module.exports = {
 			});
 	},
 
-	getPeers(port, ip) {
+	getPeers({ port = 4000, ip = '127.0.0.1' }) {
 		return popsicle
 			.get({
-				url: endpoints.versions[currentVersion].getPeers(
-					ip || '127.0.0.1',
-					port || 4000
-				),
+				url: endpoints.versions[currentVersion].getPeers(ip, port),
 				headers,
 			})
 			.then(res => {

@@ -25,7 +25,10 @@ const WAIT_BEFORE_CONNECT_MS = 20000;
 const getPeersStatus = peers => {
 	return Promise.all(
 		peers.map(peer => {
-			return utils.http.getNodeStatus(peer.httpPort, peer.ip);
+			return utils.http.getNodeStatus({
+				httpPort: peer.httpPort,
+				ip: peer.ip,
+			});
 		})
 	);
 };
@@ -338,10 +341,10 @@ class Network {
 			configuration.modules.chain.forging.delegates
 				.filter(() => !configuration.modules.chain.forging.force)
 				.map(keys => {
-					const enableForgingPromise = utils.http.enableForging(
+					const enableForgingPromise = utils.http.enableForging({
 						keys,
-						configuration.modules.http_api.httpPort
-					);
+						httPort: configuration.modules.http_api.httpPort,
+					});
 					return enableForgingPromises.push(enableForgingPromise);
 				});
 		});
