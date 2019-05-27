@@ -15,8 +15,6 @@
 
 'use strict';
 
-const path = require('path');
-const fs = require('fs-extra');
 const {
 	entities: { BaseEntity },
 	errors: {
@@ -364,7 +362,6 @@ describe('Migration', () => {
 	});
 
 	describe('Schema Updates methods', () => {
-		let internalMigrationIDs;
 		let savedMigrations;
 
 		const modulesMigrations = {};
@@ -373,16 +370,6 @@ describe('Migration', () => {
 		modulesMigrations[HttpAPIModule.alias] = HttpAPIModule.migrations;
 
 		before(async () => {
-			const internalMigrationFiles = await fs.readdir(
-				path.join(
-					__dirname,
-					'../../../../../../../../src/controller/migrations/sql/updates'
-				)
-			);
-			internalMigrationIDs = internalMigrationFiles
-				.map(f => f.match(/(\d+)_(.+).sql/)[1])
-				.sort();
-
 			savedMigrations = Object.keys(modulesMigrations).reduce(
 				(prev, namespace) => {
 					const curr = modulesMigrations[namespace].map(migrationFile => {
@@ -403,99 +390,6 @@ describe('Migration', () => {
 
 		afterEach(async () => {
 			sinonSandbox.restore();
-		});
-
-		describe('hasInternalMigrationsTable()', () => {
-			it('should resolve with true if internal_migrations table exists', async () => {
-				expect(await storage.entities.Migration.hasInternalMigrationsTable()).to
-					.be.true;
-			});
-
-			it('should resolve with false if migrations table does not exists', async () => {
-				// Create backup table and drop migrations table
-				await storage.entities.Migration.adapter.execute(
-					'CREATE TABLE temp_migrations AS TABLE internal_migrations; DROP TABLE internal_migrations;'
-				);
-
-				expect(await storage.entities.Migration.hasInternalMigrationsTable()).to
-					.be.false;
-
-				// Restore the migrations table and drop the backup
-				await storage.entities.Migration.adapter.execute(
-					'CREATE TABLE internal_migrations AS TABLE temp_migrations; DROP TABLE temp_migrations;'
-				);
-			});
-		});
-
-		describe('hasMigrationsTable()', () => {
-			it('should resolve with true if migrations table exists', async () => {
-				expect(await storage.entities.Migration.hasMigrationsTable()).to.be
-					.true;
-			});
-
-			it('should resolve with false if migrations table does not exists', async () => {
-				// Create backup table and drop migrations table
-				await storage.entities.Migration.adapter.execute(
-					'CREATE TABLE temp_migrations AS TABLE migrations; DROP TABLE migrations;'
-				);
-
-				expect(await storage.entities.Migration.hasMigrationsTable()).to.be
-					.false;
-
-				// Restore the migrations table and drop the backup
-				await storage.entities.Migration.adapter.execute(
-					'CREATE TABLE migrations AS TABLE temp_migrations; DROP TABLE temp_migrations;'
-				);
-			});
-		});
-
-		describe('getLastInternalMigrationId', () => {
-			it('should use the correct filters for get', async () => {
-				sinonSandbox.spy(storage.entities.Migration.adapter, 'execute');
-				await storage.entities.Migration.getLastInternalMigrationId();
-				expect(
-					storage.entities.Migration.adapter.execute.firstCall.args[0]
-				).to.be.eql(
-					'SELECT id FROM internal_migrations ORDER BY id DESC LIMIT 1;'
-				);
-			});
-
-			it('should return id of the last migration file', async () => {
-				const result = await storage.entities.Migration.getLastInternalMigrationId();
-				expect(result).to.be.eql(
-					internalMigrationIDs[internalMigrationIDs.length - 1]
-				);
-			});
-		});
-
-		describe('readPendingInternalMigrations', () => {
-			it('should resolve with list of pending files if there exists any', async () => {
-				const pending = (await storage.entities.Migration.readPendingInternalMigrations(
-					internalMigrationIDs[0]
-				)).map(f => f.id);
-				internalMigrationIDs.splice(0, 1);
-				expect(pending).to.be.eql(internalMigrationIDs);
-			});
-
-			it('should resolve with empty array if there is no pending migration', async () => {
-				const pending = await storage.entities.Migration.readPendingInternalMigrations(
-					internalMigrationIDs[internalMigrationIDs.length - 1]
-				);
-
-				return expect(pending).to.be.empty;
-			});
-
-			it('should resolve with the list in correct format', async () => {
-				const pending = await storage.entities.Migration.readPendingInternalMigrations(
-					internalMigrationIDs[0]
-				);
-
-				expect(pending).to.be.an('array');
-				expect(pending[0]).to.have.all.keys('id', 'name', 'path', 'file');
-				expect(pending[0].file).to.be.instanceOf(
-					storage.entities.Migration.adapter.pgp.QueryFile
-				);
-			});
 		});
 
 		describe('readPending', () => {
@@ -545,76 +439,19 @@ describe('Migration', () => {
 			});
 		});
 
-		describe('applyInternal()', () => {
-			let updates;
+		describe('defineSchema()', () => {
+			it('should call adapter.executeFile with proper params', async () => {
+				sinonSandbox.spy(adapter, 'executeFile');
+				const migration = new MigrationEntity(adapter);
+				await migration.defineSchema();
 
-			beforeEach(async () => {
-				updates = await storage.entities.Migration.readPendingInternalMigrations(
-					internalMigrationIDs[0]
+				expect(adapter.executeFile.firstCall.args[0]).to.be.eql(
+					migration.SQLs.defineSchema
 				);
-			});
-
-			it('should call hasMigrations()', async () => {
-				sinonSandbox.spy(
-					storage.entities.Migration,
-					'hasInternalMigrationsTable'
-				);
-				await storage.entities.Migration.applyInternal();
-				expect(storage.entities.Migration.hasInternalMigrationsTable).to.be
-					.calledOnce;
-			});
-
-			it('should call getLastInternalMigrationId()', async () => {
-				sinonSandbox.spy(
-					storage.entities.Migration,
-					'getLastInternalMigrationId'
-				);
-				await storage.entities.Migration.applyInternal();
-				expect(storage.entities.Migration.getLastInternalMigrationId).to.be
-					.calledOnce;
-			});
-
-			it('should call readPendingInternalMigrations()', async () => {
-				sinonSandbox.spy(
-					storage.entities.Migration,
-					'readPendingInternalMigrations'
-				);
-				await storage.entities.Migration.applyInternal();
-				expect(storage.entities.Migration.readPendingInternalMigrations).to.be
-					.calledOnce;
-			});
-
-			it('should apply all pending internal migrations in independent transactions', async () => {
-				sinonSandbox.spy(storage.entities.Migration, 'begin');
-				sinonSandbox
-					.stub(storage.entities.Migration, 'readPendingInternalMigrations')
-					.resolves(updates);
-				sinonSandbox
-					.stub(storage.entities.Migration, 'applyPendingInternalMigration')
-					.resolves(null);
-
-				await storage.entities.Migration.applyInternal();
-
-				expect(storage.entities.Migration.begin.callCount).to.be.eql(
-					updates.length
-				);
-				expect(
-					storage.entities.Migration.begin
-						.getCalls()
-						.filter(aCall => aCall.args[0] !== 'migrations:applyInternal')
-						.length
-				).to.be.eql(0);
-
-				const applyPendingInternalMigrationCalls = storage.entities.Migration.applyPendingInternalMigration.getCalls();
-
-				applyPendingInternalMigrationCalls.forEach((aCall, idx) => {
-					expect(aCall.args[0]).to.be.eql(updates[idx]);
-					expect(aCall.args[1].constructor.name).to.be.eql('Task');
-				});
 			});
 		});
 
-		describe('applyList()', () => {
+		describe('applyAll()', () => {
 			let pendingMigrations;
 
 			beforeEach(async () => {
@@ -627,13 +464,13 @@ describe('Migration', () => {
 
 			it('should call this.get()', async () => {
 				sinonSandbox.spy(storage.entities.Migration, 'get');
-				await storage.entities.Migration.applyList(modulesMigrations);
+				await storage.entities.Migration.applyAll(modulesMigrations);
 				expect(storage.entities.Migration.get).to.be.calledOnce;
 			});
 
 			it('should call readPending()', async () => {
 				sinonSandbox.spy(storage.entities.Migration, 'readPending');
-				await storage.entities.Migration.applyList(modulesMigrations);
+				await storage.entities.Migration.applyAll(modulesMigrations);
 				expect(storage.entities.Migration.readPending).to.be.calledOnce;
 			});
 
@@ -646,7 +483,7 @@ describe('Migration', () => {
 					.stub(storage.entities.Migration, 'applyPendingMigration')
 					.resolves(null);
 
-				await storage.entities.Migration.applyList(modulesMigrations);
+				await storage.entities.Migration.applyAll(modulesMigrations);
 
 				expect(storage.entities.Migration.begin.callCount).to.be.eql(
 					pendingMigrations.length
@@ -654,7 +491,7 @@ describe('Migration', () => {
 				expect(
 					storage.entities.Migration.begin
 						.getCalls()
-						.filter(aCall => aCall.args[0] !== 'migrations:applyList').length
+						.filter(aCall => aCall.args[0] !== 'migrations:applyAll').length
 				).to.be.eql(0);
 
 				const applyPendingMigrationCalls = storage.entities.Migration.applyPendingMigration.getCalls();

@@ -116,8 +116,8 @@ async function __init(sandbox, initScope) {
 				})
 				.then(async status => {
 					if (status) {
-						await storage.entities.Migration.applyInternal();
-						await storage.entities.Migration.applyList(modulesMigrations);
+						await storage.entities.Migration.defineSchema();
+						await storage.entities.Migration.applyAll(modulesMigrations);
 					}
 				});
 

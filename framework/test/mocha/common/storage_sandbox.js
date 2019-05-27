@@ -136,8 +136,8 @@ class StorageSandbox extends Storage {
 
 	async _createSchema() {
 		try {
-			await this.entities.Migration.applyInternal();
-			await this.entities.Migration.applyList(modulesMigrations);
+			await this.entities.Migration.defineSchema();
+			await this.entities.Migration.applyAll(modulesMigrations);
 		} catch (err) {
 			Promise.reject(err);
 		}
