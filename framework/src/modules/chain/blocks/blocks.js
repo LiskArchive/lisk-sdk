@@ -503,7 +503,7 @@ class Blocks extends EventEmitter {
 			{ rebuildUpToRound, blocksCount },
 			'Rebuild process started'
 		);
-		if (blocksCount < this.activeDelegates) {
+		if (blocksCount < this.constants.activeDelegates) {
 			throw new Error(
 				'Unable to rebuild, blockchain should contain at least one round of blocks'
 			);
@@ -523,8 +523,9 @@ class Blocks extends EventEmitter {
 			parseInt(rebuildUpToRound) === 0
 				? totalRounds
 				: Math.min(totalRounds, parseInt(rebuildUpToRound));
-		const targetHeight = targetRound * this.activeDelegates;
+		const targetHeight = targetRound * this.constants.activeDelegates;
 		this._lastBlock = await this._reload(targetHeight);
+		// Remove remaining
 	}
 
 	_updateLastNBlocks(block) {

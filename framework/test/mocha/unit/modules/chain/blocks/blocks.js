@@ -34,6 +34,7 @@ const {
 const {
 	BlockSlots,
 } = require('../../../../../../src/modules/chain/blocks/block_slots');
+const blocksUtils = require('../../../../../../src/modules/chain/blocks/utils');
 
 describe('blocks', () => {
 	const interfaceAdapters = {
@@ -63,6 +64,10 @@ describe('blocks', () => {
 					isPersisted: sinonSandbox.stub().resolves(true),
 					get: sinonSandbox.stub().resolves([]),
 					begin: sinonSandbox.stub().resolves(true),
+					delete: sinonSandbox.stub(),
+				},
+				Account: {
+					resetMemTables: sinonSandbox.stub(),
 				},
 			},
 		};
@@ -336,6 +341,108 @@ describe('blocks', () => {
 					expect(loggerStub.warn).to.be.calledOnce;
 				});
 			});
+		});
+	});
+
+	describe('_rebuildMode', () => {
+		const ACTIVE_DELEGATES = 101;
+
+		beforeEach(async () => {
+			sinonSandbox.stub(blocksUtils, 'loadBlocksWithOffset');
+			sinonSandbox.stub(blocksInstance.blocksProcess, 'reload');
+		});
+
+		it('should throw an error when called with height below active delegates count', async () => {
+			try {
+				await blocksInstance._rebuildMode(2, ACTIVE_DELEGATES - 1);
+			} catch (err) {
+				expect(err).to.exist;
+				expect(err.message).to.eql(
+					'Unable to rebuild, blockchain should contain at least one round of blocks'
+				);
+			}
+		});
+
+		it('should throw an error when called with rebuildUpToRound = string', async () => {
+			try {
+				await blocksInstance._rebuildMode(
+					'type string = invalid',
+					ACTIVE_DELEGATES
+				);
+			} catch (err) {
+				expect(err).to.exist;
+				expect(err.message).to.eql(
+					'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero'
+				);
+			}
+		});
+
+		it('should throw an error when called with rebuildUpToRound = boolean', async () => {
+			try {
+				await blocksInstance._rebuildMode(true, ACTIVE_DELEGATES);
+			} catch (err) {
+				expect(err).to.exist;
+				expect(err.message).to.eql(
+					'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero'
+				);
+			}
+		});
+
+		it('should not throw an error when called with rebuildUpToRound = integer as string', async () => {
+			await blocksInstance._rebuildMode('2', ACTIVE_DELEGATES);
+		});
+
+		it('should throw an error when called with rebuildUpToRound = ""', async () => {
+			try {
+				await blocksInstance._rebuildMode('', ACTIVE_DELEGATES);
+			} catch (err) {
+				expect(err).to.exist;
+				expect(err.message).to.eql(
+					'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero'
+				);
+			}
+		});
+
+		it('should throw an error when called with rebuildUpToRound = undefined', async () => {
+			try {
+				await blocksInstance._rebuildMode(undefined, ACTIVE_DELEGATES);
+			} catch (err) {
+				expect(err).to.exist;
+				expect(err.message).to.eql(
+					'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero'
+				);
+			}
+		});
+
+		it('should emit an event with proper error when resetMemTables fails', async () => {
+			storageStub.entities.Account.resetMemTables.rejects(
+				new Error('Account#resetMemTables error')
+			);
+			try {
+				await blocksInstance._rebuildMode(2, ACTIVE_DELEGATES);
+			} catch (error) {
+				expect(error.message).to.eql('Account#resetMemTables error');
+			}
+		});
+
+		it('should emit an event with proper error when loadBlocksOffset fails', async () => {
+			blocksUtils.loadBlocksWithOffset.rejects(
+				new Error('loadBlocksOffsetStub#ERR')
+			);
+			try {
+				await blocksInstance._rebuildMode(2, ACTIVE_DELEGATES);
+			} catch (error) {
+				expect(error.message).to.eql('Account#resetMemTables error');
+			}
+		});
+
+		it('should emit an event with proper error when storage.entities.Block.delete fails', async () => {
+			storageStub.entities.Block.delete.rejects(new Error('beginStub#ERR'));
+			try {
+				await blocksInstance._rebuildMode(2, ACTIVE_DELEGATES);
+			} catch (error) {
+				expect(error.message).to.eql('beginStub#ERR');
+			}
 		});
 	});
 });

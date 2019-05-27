@@ -31,9 +31,9 @@ const {
 	bootstrapStorage,
 	bootstrapCache,
 	initLogicStructure,
-	initModules,
 } = require('./init_steps');
 const jobQueue = require('./helpers/jobs_queue');
+const Peers = require('./submodules/peers');
 const { TransactionInterfaceAdapter } = require('./interface_adapters');
 const { TransactionPool } = require('./transaction_pool');
 const {
@@ -329,8 +329,6 @@ module.exports = class Chain {
 			blocksPerRound: this.options.constants.ACTIVE_DELEGATES,
 		});
 		this.scope.slots = this.slots;
-		const autoModules = await initModules(this.scope);
-		this.scope.modules = Object.assign(this.scope.modules, autoModules);
 		const { Rounds } = require('./rounds');
 		this.rounds = new Rounds(this.scope);
 		this.scope.modules.rounds = this.rounds;
@@ -372,7 +370,7 @@ module.exports = class Chain {
 		this.scope.modules.blocks = this.blocks;
 		this.scope.modules.transactionPool = this.transactionPool;
 		// TODO: Remove - Temporal write to modules for blocks circular dependency
-
+		this.peers = new Peers(this.scope);
 		// TODO: Global variable forbits to require on top
 		const Loader = require('./loader');
 		const { Forger } = require('./forger');
