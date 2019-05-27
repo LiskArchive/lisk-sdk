@@ -275,7 +275,7 @@ class Migration extends BaseEntity {
 	}
 
 	/**
-	 * Applies a cumulative update: all pending migrations + runtime.
+	 * Applies a cumulative update: all migrations passed as argument except the ones present in the migrations table.
 	 * Each update+insert execute within their own SAVEPOINT, to ensure data integrity on the updates level.
 	 *
 	 * @returns {Promise} Promise object that resolves with `undefined`.
