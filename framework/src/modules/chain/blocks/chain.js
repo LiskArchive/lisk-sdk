@@ -428,7 +428,7 @@ const popLastBlock = async (
 			tx
 		);
 		await undoConfirmedStep(storage, slots, oldLastBlock, exceptions, tx);
-		await backwardTickStep(roundsModule, secondLastBlock, tx);
+		await backwardTickStep(roundsModule, oldLastBlock, secondLastBlock, tx);
 		await deleteBlock(storage, oldLastBlock.id, tx);
 	});
 	return secondLastBlock;
