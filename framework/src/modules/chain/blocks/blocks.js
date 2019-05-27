@@ -526,6 +526,8 @@ class Blocks extends EventEmitter {
 		const targetHeight = targetRound * this.constants.activeDelegates;
 		this._lastBlock = await this._reload(targetHeight);
 		// Remove remaining
+		await this.storage.entities.Block.delete({ height_gt: targetHeight });
+		this.logger.info({ targetHeight, totalRounds }, 'Rebuilding finished');
 	}
 
 	_updateLastNBlocks(block) {
