@@ -127,14 +127,20 @@ class BlocksProcess {
 		});
 	}
 
-	async recoverInvalidOwnChain(lastBlock, onDelete) {
-		const newLastBlock = await this.blocksChain.deleteLastBlock(lastBlock);
-		onDelete(lastBlock, newLastBlock);
-		const { verified } = this.blocksVerify.verifyBlock(lastBlock, newLastBlock);
+	async recoverInvalidOwnChain(currentBlock, onDelete) {
+		const lastBlock = await blocksUtils.loadBlockByHeight(
+			this.storage,
+			currentBlock.height - 1,
+			this.interfaceAdapters,
+			this.genesisBlock
+		);
+		const { verified } = this.blocksVerify.verifyBlock(currentBlock, lastBlock);
 		if (!verified) {
-			await this.recoverInvalidOwnChain(newLastBlock, onDelete);
+			await this.blocksChain.deleteLastBlock(currentBlock);
+			onDelete(currentBlock, lastBlock);
+			return this.recoverInvalidOwnChain(lastBlock, onDelete);
 		}
-		return newLastBlock;
+		return currentBlock;
 	}
 
 	async reload(targetHeight, isCleaning, onProgress, loadPerIteration = 1000) {
