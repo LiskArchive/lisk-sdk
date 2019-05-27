@@ -371,6 +371,7 @@ module.exports = class Chain {
 		this.scope.modules.transactionPool = this.transactionPool;
 		// TODO: Remove - Temporal write to modules for blocks circular dependency
 		this.peers = new Peers(this.scope);
+		this.scope.modules.peers = this.peers;
 		// TODO: Global variable forbits to require on top
 		const Loader = require('./loader');
 		const { Forger } = require('./forger');
