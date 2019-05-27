@@ -237,8 +237,13 @@ class Blocks extends EventEmitter {
 		this.blocksVerify.matchGenesisBlock(genesisBlock);
 		// rebuild accounts if it's rebuild
 		if (rebuildUpToRound !== null && rebuildUpToRound !== undefined) {
-			await this._rebuildMode(rebuildUpToRound, blocksCount);
-			this._isActive = false;
+			try {
+				await this._rebuildMode(rebuildUpToRound, blocksCount);
+				this._isActive = false;
+			} catch (errors) {
+				this._isActive = false;
+				throw errors;
+			}
 			return;
 		}
 		// check reload condition, true then reload
