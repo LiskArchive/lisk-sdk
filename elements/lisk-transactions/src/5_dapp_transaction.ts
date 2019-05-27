@@ -90,7 +90,7 @@ export const dappAssetFormatSchema = {
 export class DappTransaction extends BaseTransaction {
 	public readonly containsUniqueData: boolean;
 	public readonly asset: DappAsset;
-	protected static TYPE = 5;
+	public static TYPE = 5;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);

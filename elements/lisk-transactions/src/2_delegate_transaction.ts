@@ -50,7 +50,7 @@ export const delegateAssetFormatSchema = {
 export class DelegateTransaction extends BaseTransaction {
 	public readonly asset: DelegateAsset;
 	public readonly containsUniqueData: boolean;
-	protected static TYPE = 2;
+	public static TYPE = 2;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);

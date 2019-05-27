@@ -48,7 +48,7 @@ export const secondSignatureAssetFormatSchema = {
 
 export class SecondSignatureTransaction extends BaseTransaction {
 	public readonly asset: SecondSignatureAsset;
-	protected static TYPE = 1;
+	public static TYPE = 1;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);

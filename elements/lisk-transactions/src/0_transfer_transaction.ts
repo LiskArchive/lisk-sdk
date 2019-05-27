@@ -47,7 +47,7 @@ export const transferAssetFormatSchema = {
 
 export class TransferTransaction extends BaseTransaction {
 	public readonly asset: TransferAsset;
-	protected static TYPE = 0;
+	public static TYPE = 0;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);

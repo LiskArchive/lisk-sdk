@@ -114,7 +114,7 @@ export abstract class BaseTransaction {
 	public readonly fee: BigNum;
 	public receivedAt?: Date;
 
-	protected static TYPE: number;
+	public static TYPE: number;
 
 	protected _id?: string;
 	protected _signature?: string;

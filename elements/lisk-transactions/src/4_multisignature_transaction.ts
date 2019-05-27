@@ -92,7 +92,7 @@ export interface MultiSignatureAsset {
 
 export class MultisignatureTransaction extends BaseTransaction {
 	public readonly asset: MultiSignatureAsset;
-	protected static TYPE = 4;
+	public static TYPE = 4;
 	protected _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.PENDING;
 

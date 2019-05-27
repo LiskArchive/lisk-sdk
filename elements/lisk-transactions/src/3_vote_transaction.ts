@@ -62,7 +62,7 @@ export const voteAssetFormatSchema = {
 export class VoteTransaction extends BaseTransaction {
 	public readonly containsUniqueData: boolean;
 	public readonly asset: VoteAsset;
-	protected static TYPE = 3;
+	public static TYPE = 3;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
