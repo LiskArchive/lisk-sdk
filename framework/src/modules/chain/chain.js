@@ -352,6 +352,7 @@ module.exports = class Chain {
 			rewardMileStones: this.options.constants.REWARDS.MILESTONES,
 			totalAmount: this.options.constants.TOTAL_AMOUNT,
 		});
+		this.scope.modules.blocks = this.blocks;
 		this.transactionPool = new TransactionPool({
 			logger: this.logger,
 			storage: this.storage,
@@ -367,7 +368,6 @@ module.exports = class Chain {
 			broadcastInterval: this.options.broadcasts.broadcastInterval,
 			releaseLimit: this.options.broadcasts.releaseLimit,
 		});
-		this.scope.modules.blocks = this.blocks;
 		this.scope.modules.transactionPool = this.transactionPool;
 		// TODO: Remove - Temporal write to modules for blocks circular dependency
 		this.peers = new Peers(this.scope);

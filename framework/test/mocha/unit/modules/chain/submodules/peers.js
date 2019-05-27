@@ -31,7 +31,7 @@ describe('peers', () => {
 	let scope;
 	let channelMock;
 
-	before(done => {
+	before(async () => {
 		storageMock = {
 			entities: {
 				Peer: {
@@ -53,21 +53,18 @@ describe('peers', () => {
 			broadhash: prefixedPeer.broadhash,
 		};
 
-		scope = _.defaultsDeep(
-			{
-				nonce: NONCE,
-				components: { storage: storageMock },
-				channel: channelMock,
-				applicationState: {},
+		scope = _.cloneDeep({
+			...modulesLoader.scope,
+			nonce: NONCE,
+			components: {
+				storage: storageMock,
+				...modulesLoader.scope.components,
 			},
-			modulesLoader.scope
-		);
-
-		const peer = new PeersRewired((err, peersModule) => {
-			peers = peersModule;
-			done();
-		}, scope);
-		peer.onBind({ modules: { blocks: blocksStub } });
+			channel: channelMock,
+			applicationState: {},
+			modules: { blocks: blocksStub },
+		});
+		peers = new PeersRewired(scope);
 	});
 
 	describe('isPoorConsensus', () => {
@@ -83,20 +80,14 @@ describe('peers', () => {
 		});
 
 		describe('when library.config.forging.force is false', () => {
-			beforeEach(done => {
+			beforeEach(async () => {
 				scope.config.forging.force = false;
-				new PeersRewired((err, peersModule) => {
-					peers = peersModule;
-					done();
-				}, scope);
+				peers = new PeersRewired(scope);
 			});
 
-			afterEach(done => {
+			afterEach(async () => {
 				scope.config.forging.force = true;
-				new PeersRewired((err, peersModule) => {
-					peers = peersModule;
-					done();
-				}, scope);
+				peers = new PeersRewired(scope);
 			});
 
 			describe('when consensus < MIN_BROADHASH_CONSENSUS', () => {

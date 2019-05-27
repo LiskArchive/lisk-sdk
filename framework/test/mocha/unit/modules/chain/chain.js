@@ -70,11 +70,6 @@ describe('Chain', () => {
 			module2: {
 				cleanup: sinonSandbox.stub().resolves('module2cleanup'),
 			},
-			blocks: {
-				lastBlock: {
-					get: sinonSandbox.stub(),
-				},
-			},
 		};
 
 		stubs.webSocket = {
@@ -86,6 +81,7 @@ describe('Chain', () => {
 		stubs.channel = {
 			invoke: sinonSandbox.stub(),
 			subscribe: sinonSandbox.stub(),
+			once: sinonSandbox.stub(),
 		};
 
 		stubs.channel.invoke
@@ -108,7 +104,6 @@ describe('Chain', () => {
 			bootstrapStorage: sinonSandbox.stub(),
 			bootstrapCache: sinonSandbox.stub(),
 			initLogicStructure: sinonSandbox.stub().resolves(stubs.logic),
-			initModules: sinonSandbox.stub().resolves(stubs.modules),
 		};
 
 		/* Arranging Stubs end */
@@ -120,7 +115,6 @@ describe('Chain', () => {
 		Chain.__set__('bootstrapStorage', stubs.initSteps.bootstrapStorage);
 		Chain.__set__('bootstrapCache', stubs.initSteps.bootstrapCache);
 		Chain.__set__('initLogicStructure', stubs.initSteps.initLogicStructure);
-		Chain.__set__('initModules', stubs.initSteps.initModules);
 
 		// Act
 		chain = new Chain(stubs.channel, chainOptions);
@@ -289,10 +283,6 @@ describe('Chain', () => {
 			return expect(chain.scope.logic).to.be.equal(stubs.logic);
 		});
 
-		it('should init modules object and assign to scope.modules', () => {
-			return expect(stubs.initSteps.initModules).to.have.been.calledOnce;
-		});
-
 		it('should bind modules with scope.logic.account', () => {
 			return expect(chain.scope.logic.account.bindModules).to.have.been
 				.calledOnce;
@@ -375,6 +365,8 @@ describe('Chain', () => {
 		});
 
 		it('should call cleanup on all modules', async () => {
+			// replace with stub
+			chain.scope.modules = stubs.modules;
 			// Act
 			await chain.cleanup();
 
