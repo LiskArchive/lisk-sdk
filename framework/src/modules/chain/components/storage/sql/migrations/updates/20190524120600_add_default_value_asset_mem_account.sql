@@ -19,4 +19,4 @@
 */
 
  -- Alter asset field to empty JSON
-UPDATE mem_accounts SET asset = '{}'::json;
+UPDATE mem_accounts SET asset = '{}'::json WHERE asset IS NULL;
