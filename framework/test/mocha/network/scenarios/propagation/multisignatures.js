@@ -19,14 +19,14 @@ const {
 	transfer,
 	registerMultisignature,
 } = require('@liskhq/lisk-transactions');
-const accountFixtures = require('../../../../../fixtures/accounts');
-const randomUtil = require('../../../../../common/utils/random');
+const accountFixtures = require('../../../fixtures/accounts');
+const randomUtil = require('../../../common/utils/random');
 const {
 	createSignatureObject,
 	sendTransactionPromise,
 	getPendingMultisignaturesPromise,
-} = require('../../../../../common/helpers/api');
-const confirmTransactionsOnAllNodes = require('../../../../utils/transactions')
+} = require('../../../common/helpers/api');
+const confirmTransactionsOnAllNodes = require('../../utils/transactions')
 	.confirmTransactionsOnAllNodes;
 
 const { MAX_TRANSACTIONS_PER_BLOCK } = __testContext.config.constants;
