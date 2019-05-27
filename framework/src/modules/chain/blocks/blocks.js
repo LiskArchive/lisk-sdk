@@ -522,7 +522,7 @@ class Blocks extends EventEmitter {
 			);
 		}
 		const totalRounds = Math.floor(
-			rebuildUpToRound / this.constants.activeDelegates
+			blocksCount / this.constants.activeDelegates
 		);
 		const targetRound =
 			parseInt(rebuildUpToRound) === 0

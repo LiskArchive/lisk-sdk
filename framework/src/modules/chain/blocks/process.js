@@ -162,7 +162,7 @@ class BlocksProcess {
 		onProgress,
 		loadPerIteration
 	) {
-		const limit = loadPerIteration;
+		const limit = 100;
 		const blocks = await blocksUtils.loadBlocksWithOffset(
 			this.storage,
 			this.interfaceAdapters,
@@ -173,7 +173,7 @@ class BlocksProcess {
 		let lastBlock;
 		// eslint-disable-next-line no-restricted-syntax
 		for (const block of blocks) {
-			if (isCleaning()) {
+			if (isCleaning() || block.height > targetHeight) {
 				return lastBlock;
 			}
 			if (block.id === this.genesisBlock.id) {
@@ -187,17 +187,13 @@ class BlocksProcess {
 			lastBlock = await this.applyBlock(block, lastBlock);
 			onProgress(lastBlock);
 		}
-		const nextCurrentHeight = lastBlock.height;
-		if (nextCurrentHeight < targetHeight) {
-			await this._rebuild(
-				nextCurrentHeight,
-				targetHeight,
-				isCleaning,
-				onProgress,
-				loadPerIteration
-			);
-		}
-		return lastBlock;
+		return this._rebuild(
+			lastBlock.height,
+			targetHeight,
+			isCleaning,
+			onProgress,
+			loadPerIteration
+		);
 	}
 }
 
