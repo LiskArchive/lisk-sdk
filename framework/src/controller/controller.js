@@ -193,10 +193,10 @@ class Controller {
 		}
 	}
 
-	async _loadMigrations(applicationMigrationsObj) {
+	async _loadMigrations(migrationsObj) {
 		await this.storage.bootstrap();
-		await this.storage.entities.Migration.applyInternal();
-		return this.storage.entities.Migration.applyList(applicationMigrationsObj);
+		await this.storage.entities.Migration.defineSchema();
+		return this.storage.entities.Migration.applyAll(migrationsObj);
 	}
 
 	async _loadModules(modules, moduleOptions) {
