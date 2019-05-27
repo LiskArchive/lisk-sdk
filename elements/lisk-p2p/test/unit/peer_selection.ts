@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
 import { expect } from 'chai';
 import { initializePeerInfoList } from '../utils/peers';
 import { selectForConnection, selectPeers } from '../../src/peer_selection';

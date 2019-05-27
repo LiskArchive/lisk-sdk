@@ -10,8 +10,21 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
-afterEach(() => {
-	return sandbox.restore();
-});
+
+export {
+	constructPeerId,
+	constructPeerIdFromPeerInfo,
+	EVENT_BAN_PEER,
+	EVENT_UNBAN_PEER,
+	EVENT_FAILED_PEER_INFO_UPDATE,
+	EVENT_MESSAGE_RECEIVED,
+	EVENT_REQUEST_RECEIVED,
+	EVENT_UPDATED_PEER_INFO,
+	Peer,
+	PeerConfig,
+	REMOTE_RPC_GET_ALL_PEERS_LIST,
+} from './base';
+
+export * from './inbound';
+export * from './outbound';

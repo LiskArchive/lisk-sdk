@@ -1,3 +1,18 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+
 import { expect } from 'chai';
 import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
@@ -120,8 +135,8 @@ describe('Integration tests for P2P library', () => {
 			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
 				p2p => p2p.start(),
 			);
-			await Promise.all(peerStartPromises);
 
+			await Promise.all(peerStartPromises);
 			await wait(100);
 		});
 
@@ -147,8 +162,36 @@ describe('Integration tests for P2P library', () => {
 					const expectedPeerPorts = ALL_NODE_PORTS.filter(
 						peerPort => peerPort !== p2p.nodeInfo.wsPort,
 					);
-					expect(peerPorts).to.have.members(expectedPeerPorts);
+
+					expect(peerPorts).to.be.eql(expectedPeerPorts);
 				});
+			});
+		});
+
+		describe('Peer banning mechanism', () => {
+			it('should ban a bad peer', async () => {
+				const firstP2PNode = p2pNodeList[0];
+				const { connectedPeers } = firstP2PNode.getNetworkStatus();
+				const badPeer = connectedPeers[2];
+				const peerPenalty = {
+					peerId: `${badPeer.ipAddress}:${badPeer.wsPort}`,
+					penalty: 100,
+				};
+				firstP2PNode.applyPenalty(peerPenalty);
+				const {
+					newPeers,
+					triedPeers,
+					connectedPeers: updatedConnectedPeers,
+				} = firstP2PNode.getNetworkStatus();
+				expect(newPeers.map(peer => peer.wsPort)).to.not.include(
+					badPeer.wsPort,
+				);
+				expect(triedPeers.map(peer => peer.wsPort)).to.not.include(
+					badPeer.wsPort,
+				);
+				expect(updatedConnectedPeers.map(peer => peer.wsPort)).to.not.include(
+					badPeer.wsPort,
+				);
 			});
 		});
 
@@ -281,29 +324,6 @@ describe('Integration tests for P2P library', () => {
 			});
 		});
 
-		describe('Peer banning mechanism', () => {
-			it('should ban a bad peer', async () => {
-				const firstP2PNode = p2pNodeList[0];
-				const { connectedPeers } = firstP2PNode.getNetworkStatus();
-				const badPeer = connectedPeers[2];
-				const peerPenalty = {
-					peerId: `${badPeer.ipAddress}:${badPeer.wsPort}`,
-					penalty: 100,
-				};
-				firstP2PNode.applyPenalty(peerPenalty);
-				await wait(200);
-				const {
-					newPeers,
-					triedPeers,
-					connectedPeers: updatedConnectedPeers,
-				} = firstP2PNode.getNetworkStatus();
-
-				expect(newPeers).to.not.include(badPeer);
-				expect(triedPeers).to.not.include(badPeer);
-				expect(updatedConnectedPeers).to.not.include(badPeer);
-			});
-		});
-
 		describe('When half of the nodes crash', () => {
 			it('should get network status with all unresponsive nodes removed', async () => {
 				const firstP2PNode = p2pNodeList[0];
@@ -410,7 +430,7 @@ describe('Integration tests for P2P library', () => {
 						return port !== p2p.nodeInfo.wsPort;
 					});
 
-					expect(peerPorts).to.have.members(expectedPeerPorts);
+					expect(peerPorts).to.be.eql(expectedPeerPorts);
 				});
 			});
 
@@ -420,14 +440,14 @@ describe('Integration tests for P2P library', () => {
 
 					const peerPorts = newPeers.map(peerInfo => peerInfo.wsPort).sort();
 
-					// TODO ASAP: Make better assertions.
-					expect(peerPorts).to.be.an.instanceOf(Array);
+					expect(ALL_NODE_PORTS).to.include.members(peerPorts);
 				});
 			});
 
 			it('should discover all peers and add them to the triedPeers list within each node', () => {
 				p2pNodeList.forEach(p2p => {
 					const { triedPeers } = p2p.getNetworkStatus();
+
 					const peerPorts = triedPeers.map(peerInfo => peerInfo.wsPort).sort();
 
 					// The current node should not be in its own peer list.
@@ -435,41 +455,8 @@ describe('Integration tests for P2P library', () => {
 						return port !== p2p.nodeInfo.wsPort;
 					});
 
-					expect(peerPorts).to.have.members(expectedPeerPorts);
+					expect(expectedPeerPorts).to.include.members(peerPorts);
 				});
-			});
-		});
-
-		describe('Cleanup unresponsive peers', () => {
-			it('should remove inactive 2nd node from connected peer list of other', async () => {
-				const initialNetworkStatus = p2pNodeList[0].getNetworkStatus();
-				const secondNode = p2pNodeList[1];
-				const initialPeerPorts = initialNetworkStatus.connectedPeers
-					.map(peerInfo => peerInfo.wsPort)
-					.sort();
-
-				const expectedPeerPorts = ALL_NODE_PORTS.filter(port => {
-					return port !== NETWORK_START_PORT;
-				});
-
-				expect(initialPeerPorts).to.have.members(expectedPeerPorts);
-				await secondNode.stop();
-
-				await wait(200);
-
-				const networkStatusAfterPeerCrash = p2pNodeList[0].getNetworkStatus();
-
-				const peerPortsAfterPeerCrash = networkStatusAfterPeerCrash.connectedPeers
-					.map(peerInfo => peerInfo.wsPort)
-					.sort();
-
-				const expectedPeerPortsAfterPeerCrash = ALL_NODE_PORTS.filter(port => {
-					return port !== NETWORK_START_PORT && port !== NETWORK_START_PORT + 1;
-				});
-
-				expect(peerPortsAfterPeerCrash).to.have.members(
-					expectedPeerPortsAfterPeerCrash,
-				);
 			});
 		});
 
@@ -668,23 +655,23 @@ describe('Integration tests for P2P library', () => {
 			});
 		});
 
-		describe('when couple of node shuts down and are unresponsive', () => {
-			it('should remove the unresponsive nodes from network status of other nodes', async () => {
+		describe('Cleanup unresponsive peers', () => {
+			it('should remove crashed nodes from network status of other nodes', async () => {
 				const initialNetworkStatus = p2pNodeList[0].getNetworkStatus();
 				const initialPeerPorts = initialNetworkStatus.connectedPeers
 					.map(peerInfo => peerInfo.wsPort)
 					.sort();
 
-				expect(initialPeerPorts).to.have.members(
+				expect(initialPeerPorts).to.be.eql(
 					ALL_NODE_PORTS.filter(port => port !== NETWORK_START_PORT),
 				);
 
+				await p2pNodeList[0].stop();
+				await wait(100);
 				await p2pNodeList[1].stop();
 				await wait(100);
-				await p2pNodeList[2].stop();
-				await wait(100);
 
-				const networkStatusAfterPeerCrash = p2pNodeList[0].getNetworkStatus();
+				const networkStatusAfterPeerCrash = p2pNodeList[2].getNetworkStatus();
 
 				const peerPortsAfterPeerCrash = networkStatusAfterPeerCrash.connectedPeers
 					.map(peerInfo => peerInfo.wsPort)
@@ -698,7 +685,7 @@ describe('Integration tests for P2P library', () => {
 					);
 				});
 
-				expect(peerPortsAfterPeerCrash).to.have.members(
+				expect(peerPortsAfterPeerCrash).to.be.eql(
 					expectedPeerPortsAfterPeerCrash,
 				);
 			});

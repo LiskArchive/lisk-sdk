@@ -25,7 +25,6 @@ export interface P2PRequestPacket extends P2PPacket {
 
 export interface P2PResponsePacket extends P2PPacket {
 	readonly data: unknown;
-	readonly peerId?: string;
 }
 
 export interface P2PMessagePacket extends P2PPacket {
@@ -33,14 +32,14 @@ export interface P2PMessagePacket extends P2PPacket {
 	readonly event: string;
 }
 
-export interface P2PPenalty {
-	readonly peerId: string;
-	readonly penalty: number;
-}
-
 export interface P2PRateInfo {
 	readonly peerId: string;
 	readonly rate: number;
+}
+
+export interface P2PPenalty {
+	readonly peerId: string;
+	readonly penalty: number;
 }
 
 // Allows the user to provide custom fields.

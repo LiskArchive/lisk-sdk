@@ -17,6 +17,7 @@
 const {
 	P2P,
 	EVENT_NEW_INBOUND_PEER,
+	EVENT_CLOSE_INBOUND,
 	EVENT_CLOSE_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_DISCOVERED_PEER,
@@ -148,6 +149,16 @@ module.exports = class Network {
 		this.p2p.on(EVENT_CLOSE_OUTBOUND, closePacket => {
 			this.logger.debug(
 				`Outbound connection of peer ${closePacket.peerInfo.ipAddress}:${
+					closePacket.peerInfo.wsPort
+				} was closed with code ${closePacket.code} and reason: ${
+					closePacket.reason
+				}`
+			);
+		});
+
+		this.p2p.on(EVENT_CLOSE_INBOUND, closePacket => {
+			this.logger.debug(
+				`INbound connection of peer ${closePacket.peerInfo.ipAddress}:${
 					closePacket.peerInfo.wsPort
 				} was closed with code ${closePacket.code} and reason: ${
 					closePacket.reason

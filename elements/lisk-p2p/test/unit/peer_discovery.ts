@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
 import { expect } from 'chai';
 import { P2PDiscoveredPeerInfo } from '../../src/p2p_types';
 import { initializePeerList } from '../utils/peers';
