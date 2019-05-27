@@ -165,6 +165,7 @@ function forge(library, cb) {
 					.generateBlock(keypair, slots.getSlotTime(slot), transactions)
 					.then(() => {
 						last_block = library.modules.blocks.lastBlock;
+						library.modules.transactionPool.resetPool();
 						__testContext.debug(
 							`		New last block height: ${last_block.height} New last block ID: ${
 								last_block.id
