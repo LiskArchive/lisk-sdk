@@ -223,6 +223,7 @@ function addTransactionToUnconfirmedQueue(library, transaction, cb) {
 	library.modules.transactionPool
 		.processUnconfirmedTransaction(transaction)
 		.then(() => library.modules.transactionPool.fillPool())
+		.then(() => cb())
 		.catch(err => setImmediate(cb, err.toString()));
 }
 
