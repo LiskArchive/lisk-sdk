@@ -136,6 +136,23 @@ module.exports = {
 			});
 	},
 
+	getTransactionsFromBlock({ blockId, port = 4000, ip = '127.0.0.1' }) {
+		return popsicle
+			.get({
+				url: `${endpoints.versions[currentVersion].getTransactions(
+					ip,
+					port
+				)}?blockId=${blockId}`,
+				headers,
+			})
+			.then(res => {
+				if (currentVersion === '1.0.0') {
+					return JSON.parse(res.body).data;
+				}
+				return JSON.parse(res.body).transactions;
+			});
+	},
+
 	enableForging(keys, port, ip) {
 		return popsicle
 			.put({
