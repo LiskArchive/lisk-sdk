@@ -266,19 +266,17 @@ export abstract class BaseTransaction {
 			errors.push(idError);
 		}
 
-		/* tslint:disable */
-		if (this.type !== (<typeof BaseTransaction>this.constructor).TYPE) {
+		if (this.type !== (this.constructor as typeof BaseTransaction).TYPE) {
 			errors.push(
 				new TransactionError(
 					`Invalid type`,
 					this.id,
 					'.type',
 					this.type,
-					(<typeof BaseTransaction>this.constructor).TYPE,
+					(this.constructor as typeof BaseTransaction).TYPE,
 				),
 			);
 		}
-		/* tslint:enable */
 
 		return createResponse(this.id, errors);
 	}
