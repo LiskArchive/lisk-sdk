@@ -37,6 +37,15 @@ describe('validateOwnChain', () => {
 		before(() => {
 			// Set current block version to 0
 			blockVersion.currentBlockVersion = 0;
+			library.modules.blocks.blocksVerify.exceptions = {
+				...library.modules.blocks.exceptions,
+				blockVersions: {
+					0: {
+						start: 1,
+						end: 303,
+					},
+				},
+			};
 
 			// Not consider the genesis block
 			return Promise.mapSeries([...Array(101 * 3 - 1)], async () => {
