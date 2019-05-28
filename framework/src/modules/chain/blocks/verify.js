@@ -76,6 +76,18 @@ class BlocksVerify {
 		if (isPersisted) {
 			throw new Error(`Block ${block.id} already exists`);
 		}
+		if (!block.transactions.length) {
+			return;
+		}
+		const persistedTransactions = await this.storage.entities.Transaction.get({
+			id_in: block.transactions.map(transaction => transaction.id),
+		});
+
+		if (persistedTransactions.length > 0) {
+			throw new Error(
+				`Transaction is already confirmed: ${persistedTransactions[0].id}`
+			);
+		}
 	}
 
 	async validateBlockSlot(block) {
