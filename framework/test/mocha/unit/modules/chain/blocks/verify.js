@@ -1018,7 +1018,7 @@ describe('blocks/verify', () => {
 	});
 
 	describe('checkExists', () => {
-		const dummyBlock = { id: 1 };
+		const dummyBlock = { id: 1, transactions: [] };
 
 		describe('when storage.entities.Block.isPersisted fails', () => {
 			beforeEach(async () => {
