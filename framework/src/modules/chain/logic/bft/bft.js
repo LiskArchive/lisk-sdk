@@ -108,7 +108,7 @@ class BFT {
 			// without strictly larger maxHeightPreviouslyForged or larger height as
 			// justification. This in particular happens, if a delegate is double forging.
 			throw new Error(
-				'Violation of fork choice rule. Delegate moved to different chain.'
+				'Violation of fork choice rule, delegate moved to different chain'
 			);
 		}
 
