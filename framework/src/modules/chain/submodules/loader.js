@@ -71,6 +71,7 @@ class Loader {
 			logic: {
 				account: scope.logic.account,
 				peers: scope.logic.peers,
+				initTransaction: scope.logic.initTransaction,
 			},
 			config: {
 				loading: {
@@ -258,7 +259,10 @@ __private.getTransactionsFromNetwork = async function() {
 	const validate = promisify(library.schema.validate.bind(library.schema));
 	await validate(result, definitions.WSTransactionsResponse);
 
-	const transactions = result.transactions;
+	const transactions = result.transactions.map(tx =>
+		library.logic.initTransaction.fromJson(tx)
+	);
+
 	try {
 		const {
 			transactionsResponses,
