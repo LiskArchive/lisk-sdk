@@ -114,7 +114,9 @@ describe('Migration', () => {
 
 	it('should be a constructable function', async () => {
 		expect(MigrationEntity.prototype.constructor).not.to.be.null;
-		expect(MigrationEntity.prototype.constructor.name).to.be.eql('Migration');
+		expect(MigrationEntity.prototype.constructor.name).to.be.eql(
+			'MigrationEntity'
+		);
 	});
 
 	it('should extend BaseEntity', async () => {

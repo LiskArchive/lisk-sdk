@@ -14,7 +14,7 @@
 
 'use strict';
 
-const MigrationEntity = require('./migration');
+const MigrationEntity = require('./migration_entity');
 
 module.exports = {
 	MigrationEntity,

@@ -62,7 +62,7 @@ const sqlFiles = {
  * @property {string} [namespace_like]
  */
 
-class Migration extends BaseEntity {
+class MigrationEntity extends BaseEntity {
 	/**
 	 * Constructor
 	 * @param {BaseAdapter} adapter - Adapter to retrieve the data from
@@ -308,4 +308,4 @@ class Migration extends BaseEntity {
 	}
 }
 
-module.exports = Migration;
+module.exports = MigrationEntity;
