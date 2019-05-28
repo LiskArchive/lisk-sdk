@@ -12,12 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+'use strict';
 
-/*
-  DESCRIPTION: Patches any existing database that contains migration names in camel case,
-               and changes them into low-case underscore.
+const MigrationEntity = require('./migration_entity');
 
-  PARAMETERS: None
-*/
-
-UPDATE migrations SET name = lower(regexp_replace(name, E'([A-Z])', E'\_\\1','g'))
+module.exports = {
+	MigrationEntity,
+};

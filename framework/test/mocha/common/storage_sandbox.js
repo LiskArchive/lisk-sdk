@@ -25,7 +25,6 @@ const {
 const {
 	Account,
 	Block,
-	Migration,
 	Round,
 	Transaction,
 } = require('../../../src/modules/chain/components/storage/entities');
@@ -33,6 +32,19 @@ const {
 const {
 	Peer,
 } = require('../../../src/modules/network/components/storage/entities');
+
+const {
+	MigrationEntity: Migration,
+} = require('../../../src/controller/migrations');
+
+const ChainModule = require('../../../src/modules/chain');
+const NetworkModule = require('../../../src/modules/network');
+const HttpAPIModule = require('../../../src/modules/http_api');
+
+const modulesMigrations = {};
+modulesMigrations[ChainModule.alias] = ChainModule.migrations;
+modulesMigrations[NetworkModule.alias] = NetworkModule.migrations;
+modulesMigrations[HttpAPIModule.alias] = HttpAPIModule.migrations;
 
 const dbNames = [];
 
@@ -124,7 +136,8 @@ class StorageSandbox extends Storage {
 
 	async _createSchema() {
 		try {
-			await this.entities.Migration.applyAll();
+			await this.entities.Migration.defineSchema();
+			await this.entities.Migration.applyAll(modulesMigrations);
 		} catch (err) {
 			Promise.reject(err);
 		}
