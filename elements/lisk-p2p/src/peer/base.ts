@@ -178,15 +178,14 @@ export class Peer extends EventEmitter {
 				return;
 			}
 
-			const rateInfo = {
-				peerId: this._id,
-				rate: this._callCounter / DEFAULT_RATE_INTERVAL,
-			};
+			this._callCounter += 1;
+			const rate = this._callCounter / DEFAULT_RATE_INTERVAL;
 
 			const request = new P2PRequest(
 				rawRequest.procedure,
 				rawRequest.data,
-				rateInfo,
+				this._id,
+				rate,
 				respond,
 			);
 
@@ -212,12 +211,11 @@ export class Peer extends EventEmitter {
 				return;
 			}
 
+			this._callCounter += 1;
 			const messageWithRateInfo = {
 				...message,
-				rateInfo: {
-					peerId: this._id,
-					rate: this._callCounter / DEFAULT_RATE_INTERVAL,
-				},
+				peerId: this._id,
+				rate: this._callCounter / DEFAULT_RATE_INTERVAL,
 			};
 
 			this.emit(EVENT_MESSAGE_RECEIVED, messageWithRateInfo);

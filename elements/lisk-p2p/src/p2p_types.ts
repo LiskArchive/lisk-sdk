@@ -32,11 +32,6 @@ export interface P2PMessagePacket extends P2PPacket {
 	readonly event: string;
 }
 
-export interface P2PRateInfo {
-	readonly peerId: string;
-	readonly rate: number;
-}
-
 export interface P2PPenalty {
 	readonly peerId: string;
 	readonly penalty: number;

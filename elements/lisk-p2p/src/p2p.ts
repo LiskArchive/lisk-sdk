@@ -253,7 +253,7 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handleBanPeer = (peerId: string) => {
-			this._bannedPeers.add(peerId);
+			this._bannedPeers.add(peerId.split(':')[0]);
 			if (this._triedPeers.has(peerId)) {
 				this._triedPeers.delete(peerId);
 			}
@@ -265,7 +265,7 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handleUnbanPeer = (peerId: string) => {
-			this._bannedPeers.delete(peerId);
+			this._bannedPeers.delete(peerId.split(':')[0]);
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_UNBAN_PEER, peerId);
 		};
@@ -480,7 +480,7 @@ export class P2P extends EventEmitter {
 					return;
 				}
 
-				if (this._bannedPeers.has(peerId)) {
+				if (this._bannedPeers.has(socket.remoteAddress)) {
 					this._disconnectSocketDueToFailedHandshake(
 						socket,
 						FORBIDDEN_CONNECTION,
