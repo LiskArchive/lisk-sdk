@@ -385,7 +385,7 @@ const verifyReward = (blockReward, block, exceptions, result) => {
 	if (
 		block.height !== 1 &&
 		!expectedReward.isEqualTo(block.reward) &&
-		(!exceptions.blockReward || !exceptions.blockReward.includes(block.id))
+		(!exceptions.blockRewards || !exceptions.blockRewards.includes(block.id))
 	) {
 		result.errors.push(
 			new Error(
