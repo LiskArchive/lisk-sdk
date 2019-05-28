@@ -27,6 +27,7 @@ import {
 	P2PPeerInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
+	ProtocolMessagePacket,
 	ProtocolNodeInfo,
 } from '../p2p_types';
 
@@ -127,7 +128,7 @@ export class Peer extends EventEmitter {
 	protected readonly _wsPort: number;
 	private readonly _height: number;
 	private _reputation: number;
-	private _callCounter: number;
+	private _callCounter: Map<string, number>;
 	private readonly _counterResetInterval: NodeJS.Timer;
 	protected _peerInfo: P2PDiscoveredPeerInfo;
 	protected readonly _peerConfig: PeerConfig;
@@ -157,9 +158,9 @@ export class Peer extends EventEmitter {
 		this._id = constructPeerId(this._ipAddress, this._wsPort);
 		this._height = peerInfo.height ? peerInfo.height : 0;
 		this._reputation = DEFAULT_REPUTATION_SCORE;
-		this._callCounter = 0;
+		this._callCounter = new Map();
 		this._counterResetInterval = setInterval(() => {
-			this._callCounter = 0;
+			this._callCounter = new Map();
 		}, DEFAULT_RATE_INTERVAL);
 
 		// This needs to be an arrow function so that it can be used as a listener.
@@ -178,9 +179,7 @@ export class Peer extends EventEmitter {
 				return;
 			}
 
-			this._callCounter += 1;
-			const rate = this._callCounter / DEFAULT_RATE_INTERVAL;
-
+			const rate = this._getPeerRate(packet as P2PRequestPacket);
 			const request = new P2PRequest(
 				rawRequest.procedure,
 				rawRequest.data,
@@ -211,11 +210,11 @@ export class Peer extends EventEmitter {
 				return;
 			}
 
-			this._callCounter += 1;
+			const rate = this._getPeerRate(packet as P2PRequestPacket);
 			const messageWithRateInfo = {
 				...message,
 				peerId: this._id,
-				rate: this._callCounter / DEFAULT_RATE_INTERVAL,
+				rate,
 			};
 
 			this.emit(EVENT_MESSAGE_RECEIVED, messageWithRateInfo);
@@ -451,5 +450,17 @@ export class Peer extends EventEmitter {
 	private _banPeer(): void {
 		this.emit(EVENT_BAN_PEER, this._id);
 		this.disconnect(FORBIDDEN_CONNECTION, FORBIDDEN_CONNECTION_REASON);
+	}
+
+	private _getPeerRate(packet: unknown): number {
+		const key = (packet as P2PRequestPacket).procedure
+			? (packet as P2PRequestPacket).procedure
+			: (packet as ProtocolMessagePacket).event;
+		if (!this._callCounter.has(key)) {
+			this._callCounter.set(key, 0);
+		}
+		const callCount = (this._callCounter.get(key) as number) + 1;
+
+		return callCount / DEFAULT_RATE_INTERVAL;
 	}
 }
