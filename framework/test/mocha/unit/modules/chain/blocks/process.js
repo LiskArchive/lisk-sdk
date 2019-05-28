@@ -535,7 +535,14 @@ describe('blocks/process', () => {
 		});
 
 		it('should call loadBlocksWithOffset', async () => {
-			await blocksProcess._rebuild(0, 5, isCleaning, onProgress, 10);
+			await blocksProcess._rebuild(
+				0,
+				dummyBlock,
+				5,
+				isCleaning,
+				onProgress,
+				10
+			);
 			expect(blocksUtils.loadBlocksWithOffset).to.be.calledWith(
 				storageStub,
 				interfaceAdapters,
@@ -549,17 +556,38 @@ describe('blocks/process', () => {
 			isCleaning.onCall(0).returns(false);
 			isCleaning.onCall(1).returns(false);
 			isCleaning.onCall(2).returns(true);
-			await blocksProcess._rebuild(0, 5, isCleaning, onProgress, 5);
+			await blocksProcess._rebuild(
+				0,
+				dummyBlock,
+				5,
+				isCleaning,
+				onProgress,
+				10
+			);
 			expect(blocksProcess.applyBlock).to.be.calledOnce;
 		});
 
 		it('should call on progress per block', async () => {
-			await blocksProcess._rebuild(0, 5, isCleaning, onProgress, 5);
+			await blocksProcess._rebuild(
+				0,
+				dummyBlock,
+				5,
+				isCleaning,
+				onProgress,
+				10
+			);
 			expect(onProgress).to.be.callCount(5);
 		});
 
 		it('should call apply genesisBlock if block id is the same as genesis block', async () => {
-			await blocksProcess._rebuild(0, 5, isCleaning, onProgress, 5);
+			await blocksProcess._rebuild(
+				0,
+				dummyBlock,
+				5,
+				isCleaning,
+				onProgress,
+				10
+			);
 			expect(blocksChainStub.applyGenesisBlock).to.be.calledOnce;
 		});
 
@@ -570,7 +598,14 @@ describe('blocks/process', () => {
 			blocksUtils.loadBlocksWithOffset
 				.onCall(1)
 				.resolves([...loadedBlocks].slice(3, 5));
-			await blocksProcess._rebuild(0, 5, isCleaning, onProgress, 3);
+			await blocksProcess._rebuild(
+				0,
+				dummyBlock,
+				5,
+				isCleaning,
+				onProgress,
+				10
+			);
 			expect(blocksUtils.loadBlocksWithOffset).to.be.calledTwice;
 		});
 	});
