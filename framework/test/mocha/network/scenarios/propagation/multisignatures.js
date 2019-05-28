@@ -39,8 +39,9 @@ module.exports = function(configurations, network) {
 		const signatures = [];
 		const numbers = _.range(numberOfTransactions);
 		// Adding two extra blocks as a safety timeframe
-		const blocksToWait =
-			Math.ceil(numberOfTransactions / MAX_TRANSACTIONS_PER_BLOCK) + 2;
+		const blocksToWait = Math.ceil(
+			numberOfTransactions / MAX_TRANSACTIONS_PER_BLOCK
+		);
 
 		const postSignatures = signature => {
 			const signaturesToPost = {
