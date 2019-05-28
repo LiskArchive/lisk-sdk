@@ -15,6 +15,7 @@
 'use strict';
 
 const async = require('async');
+const { promisify } = require('util');
 const { transfer } = require('@liskhq/lisk-transactions');
 const {
 	getAddressFromPublicKey,
@@ -112,12 +113,9 @@ describe('integration test (type 0) - address collision', () => {
 		});
 
 		describe('after forging one block', () => {
-			before(done => {
-				localCommon.forge(library, (err, res) => {
-					expect(err).to.be.null;
-					expect(res).to.be.undefined;
-					done();
-				});
+			before(async () => {
+				const forge = promisify(localCommon.forge);
+				return forge(library);
 			});
 
 			it('first transaction to arrive should be included', done => {
