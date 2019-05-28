@@ -23,7 +23,7 @@ module.exports = {
 				return transactions.map(transaction => {
 					return getTransaction({
 						id: transaction.id,
-						httPort: configuration.modules.http_api.httpPort,
+						port: configuration.modules.http_api.httpPort,
 					});
 				});
 			})

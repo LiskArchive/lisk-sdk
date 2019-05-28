@@ -88,14 +88,14 @@ module.exports = {
 			});
 	},
 
-	getHeight({ port = 4000, ip = '127.0.0.1' }) {
+	async getHeight({ port = 4000, ip = '127.0.0.1' }) {
 		return popsicle
 			.get({
 				url: endpoints.versions[currentVersion].getHeight(ip, port),
 				headers,
 			})
 			.then(res => {
-				return res.body.height;
+				return JSON.parse(res.body).data.height;
 			});
 	},
 

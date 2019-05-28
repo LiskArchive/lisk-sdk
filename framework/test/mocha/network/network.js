@@ -26,7 +26,7 @@ const getPeersStatus = peers => {
 	return Promise.all(
 		peers.map(peer => {
 			return utils.http.getNodeStatus({
-				httpPort: peer.httpPort,
+				port: peer.httpPort,
 				ip: peer.ip,
 			});
 		})
@@ -343,7 +343,7 @@ class Network {
 				.map(keys => {
 					const enableForgingPromise = utils.http.enableForging({
 						keys,
-						httPort: configuration.modules.http_api.httpPort,
+						port: configuration.modules.http_api.httpPort,
 					});
 					return enableForgingPromises.push(enableForgingPromise);
 				});
@@ -526,6 +526,18 @@ class Network {
 				};
 				return status;
 			});
+	}
+
+	async wait(number) {
+		this.logger.info(
+			`Waiting ${number /
+				(60 * 1000)} minute to check how many blocks are forged`
+		);
+		return new Promise(resolve => {
+			setTimeout(() => {
+				resolve();
+			}, number);
+		});
 	}
 }
 
