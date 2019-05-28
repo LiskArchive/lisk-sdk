@@ -338,7 +338,7 @@ module.exports = class Chain {
 			sequence: this.scope.sequence,
 			genesisBlock: this.options.genesisBlock,
 			slots: this.slots,
-			excptions: this.options.exceptions,
+			exceptions: this.options.exceptions,
 			roundsModule: this.rounds,
 			interfaceAdapters: this.interfaceAdapters,
 			blockReceiptTimeout: this.options.constants.BLOCK_RECEIPT_TIMEOUT,
