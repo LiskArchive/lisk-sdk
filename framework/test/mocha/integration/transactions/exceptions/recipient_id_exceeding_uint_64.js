@@ -19,8 +19,6 @@ const { transfer } = require('@liskhq/lisk-transactions');
 const localCommon = require('../../common');
 const accountFixtures = require('../../../fixtures/accounts');
 
-const exceptions = global.exceptions;
-
 describe('exceptions for recipient transactions exceeding uint64', () => {
 	let library;
 	let slotOffset = 10;
@@ -53,44 +51,69 @@ describe('exceptions for recipient transactions exceeding uint64', () => {
 		asset: {},
 	};
 
-	exceptions.recipientExceedingUint64 = {
-		'393955899193580559': '19961131544040416558L',
-	};
-
 	localCommon.beforeBlock('system_exceptions_recipientId_uint_64', lib => {
 		library = lib;
+		library.modules.blocks.blocksProcess.exceptions = {
+			...library.modules.blocks.exceptions,
+			recipientExceedingUint64: {
+				'393955899193580559': '19961131544040416558L',
+			},
+		};
 	});
 
 	describe('send funds to account', () => {
-		before(done => {
+		before(async () => {
 			const transferTransaction = transfer({
 				recipientId:
 					accountWhichCreatesTransactionWithExceedingUint64Recipient.address,
 				amount: (6000000000 * 100).toString(),
 				passphrase: senderAccount.passphrase,
 			});
-			localCommon.createValidBlockWithSlotOffset(
-				library,
-				[transferTransaction],
-				--slotOffset,
-				(err, block) => {
-					expect(err).to.not.exist;
-					library.modules.blocks.verify.processBlock(block, true, true, done);
-				}
+			const newBlock = await new Promise((resolve, reject) => {
+				localCommon.createValidBlockWithSlotOffset(
+					library,
+					[transferTransaction],
+					--slotOffset,
+					(err, block) => {
+						if (err) {
+							return reject(err);
+						}
+						return resolve(block);
+					}
+				);
+			});
+			await library.modules.blocks.blocksProcess.processBlock(
+				newBlock,
+				library.modules.blocks.lastBlock
 			);
+			library.modules.blocks._lastBlock = newBlock;
 		});
 
 		describe('when forging block with transaction with exceeding uint_64 recipientId', () => {
-			before(done => {
-				localCommon.createValidBlockWithSlotOffset(
-					library,
-					[transactionWithExceedingUint64Recipient],
-					--slotOffset,
-					(err, block) => {
-						expect(err).to.not.exist;
-						library.modules.blocks.verify.processBlock(block, true, true, done);
-					}
+			before(async () => {
+				const newBlock = await new Promise((resolve, reject) => {
+					localCommon.createValidBlockWithSlotOffset(
+						library,
+						[transactionWithExceedingUint64Recipient],
+						--slotOffset,
+						{
+							recipientExceedingUint64: {
+								'393955899193580559': '19961131544040416558L',
+							},
+						},
+						(err, block) => {
+							if (err) {
+								return reject(err);
+							}
+							return resolve(block);
+						}
+					);
+				});
+				await library.modules.blocks.blocksProcess.processBlock(
+					newBlock,
+					library.modules.blocks.lastBlock
 				);
+				library.modules.blocks._lastBlock = newBlock;
 			});
 
 			describe('details of the accounts', () => {
