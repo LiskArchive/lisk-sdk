@@ -154,10 +154,7 @@ export class P2P extends EventEmitter {
 
 	public constructor(config: P2PConfig) {
 		super();
-		this._config = {
-			...config,
-			blacklistedPeers: config.blacklistedPeers ? config.blacklistedPeers : [],
-		};
+		this._config = config;
 		this._isActive = false;
 		this._newPeers = new Map();
 		this._triedPeers = new Map();

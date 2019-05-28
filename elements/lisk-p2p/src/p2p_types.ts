@@ -72,8 +72,7 @@ export interface P2PClosePacket {
 }
 
 export interface P2PConfig {
-	// tslint:disable-next-line:readonly-keyword
-	blacklistedPeers: P2PPeerInfo[];
+	readonly blacklistedPeers?: ReadonlyArray<P2PPeerInfo>;
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
 	readonly hostAddress?: string;
