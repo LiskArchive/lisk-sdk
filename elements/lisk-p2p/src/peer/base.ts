@@ -174,7 +174,10 @@ export class Peer extends EventEmitter {
 			try {
 				rawRequest = validateRPCRequest(packet);
 			} catch (err) {
-				this.emit(EVENT_INVALID_REQUEST_RECEIVED, packet);
+				this.emit(EVENT_INVALID_REQUEST_RECEIVED, {
+					packet,
+					peerId: this._id,
+				});
 
 				return;
 			}
@@ -205,7 +208,10 @@ export class Peer extends EventEmitter {
 			try {
 				message = validateProtocolMessage(packet);
 			} catch (err) {
-				this.emit(EVENT_INVALID_MESSAGE_RECEIVED, packet);
+				this.emit(EVENT_INVALID_MESSAGE_RECEIVED, {
+					packet,
+					peerId: this._id,
+				});
 
 				return;
 			}

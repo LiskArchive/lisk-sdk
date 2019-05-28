@@ -23,7 +23,7 @@ import { EventEmitter } from 'events';
 import shuffle = require('lodash.shuffle');
 import { SCClientSocket } from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
-import { RequestFailError } from './errors';
+import { RequestFailError, SendFailError } from './errors';
 import { P2PRequest } from './p2p_request';
 import {
 	P2PClosePacket,
@@ -269,9 +269,7 @@ export class PeerPool extends EventEmitter {
 		return selectedPeers;
 	}
 
-	public async requestFromPeer(
-		packet: P2PRequestPacket,
-	): Promise<P2PResponsePacket> {
+	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
 		const selectedPeer = this.selectPeersForRequest(packet, 1);
 
 		if (selectedPeer.length <= 0) {
@@ -281,30 +279,41 @@ export class PeerPool extends EventEmitter {
 		}
 
 		const selectedPeerId = constructPeerIdFromPeerInfo(selectedPeer[0]);
-		const peer = this._peerMap.get(selectedPeerId);
 
+		return this.requestFromPeer(packet, selectedPeerId);
+	}
+
+	public send(message: P2PMessagePacket): void {
+		const selectedPeers = this.selectPeersForSend(message);
+
+		selectedPeers.forEach(async (peerInfo: P2PDiscoveredPeerInfo) => {
+			const selectedPeerId = constructPeerIdFromPeerInfo(peerInfo);
+			this.sendToPeer(message, selectedPeerId);
+		});
+	}
+
+	public async requestFromPeer(
+		packet: P2PRequestPacket,
+		peerId: string,
+	): Promise<P2PResponsePacket> {
+		const peer = this._peerMap.get(peerId);
 		if (!peer) {
 			throw new RequestFailError(
-				`No such Peer exist in PeerPool with the selected peer with Id: ${selectedPeerId}`,
+				`Request failed because a peer with id ${peerId} could not be found`,
 			);
 		}
 
-		const response: P2PResponsePacket = await peer.request(packet);
-
-		return response;
+		return peer.request(packet);
 	}
 
-	public sendToPeers(message: P2PMessagePacket): void {
-		const selectedPeers = this.selectPeersForSend(message);
-
-		selectedPeers.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
-			const selectedPeerId = constructPeerIdFromPeerInfo(peerInfo);
-			const peer = this._peerMap.get(selectedPeerId);
-
-			if (peer) {
-				peer.send(message);
-			}
-		});
+	public sendToPeer(message: P2PMessagePacket, peerId: string): void {
+		const peer = this._peerMap.get(peerId);
+		if (!peer) {
+			throw new SendFailError(
+				`Send failed because a peer with id ${peerId} could not be found`,
+			);
+		}
+		peer.send(message);
 	}
 
 	public async fetchStatusAndCreatePeers(

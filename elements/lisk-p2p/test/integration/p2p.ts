@@ -499,6 +499,7 @@ describe('Integration tests for P2P library', () => {
 							nodePort: p2p.nodeInfo.wsPort,
 							requestProcedure: request.procedure,
 							requestData: request.data,
+							requestPeerId: request.peerId,
 						});
 					});
 				});
@@ -520,6 +521,9 @@ describe('Integration tests for P2P library', () => {
 				expect(response.data)
 					.to.have.property('requestData')
 					.which.is.equal('bar');
+				expect(response.data)
+					.to.have.property('requestPeerId')
+					.which.is.equal(`127.0.0.1:${firstP2PNode.nodeInfo.wsPort}`);
 			});
 
 			// Check for even distribution of requests across the network. Account for an error margin.
@@ -610,6 +614,26 @@ describe('Integration tests for P2P library', () => {
 					},
 				);
 			});
+
+			it('should receive a message in the correct format', async () => {
+				const firstP2PNode = p2pNodeList[0];
+				firstP2PNode.send({ event: 'bar', data: 'test' });
+
+				await wait(100);
+
+				expect(collectedMessages).to.be.an('array');
+				expect(collectedMessages.length).to.be.eql(9);
+				expect(collectedMessages[0]).to.have.property('message');
+				expect(collectedMessages[0].message)
+					.to.have.property('event')
+					.which.is.equal('bar');
+				expect(collectedMessages[0].message)
+					.to.have.property('data')
+					.which.is.equal('test');
+				expect(collectedMessages[0].message)
+					.to.have.property('peerId')
+					.which.is.equal(`127.0.0.1:${NETWORK_START_PORT}`);
+			});
 		});
 
 		describe('P2P.applyNodeInfo', () => {
@@ -627,7 +651,7 @@ describe('Integration tests for P2P library', () => {
 				});
 			});
 
-			it('should send the node info to a subset of peers within the network.', async () => {
+			it('should send the node info to a subset of peers within the network', async () => {
 				const firstP2PNode = p2pNodeList[0];
 				const nodePortToMessagesMap: any = {};
 
@@ -682,6 +706,114 @@ describe('Integration tests for P2P library', () => {
 						.to.have.property('height')
 						.which.equals(10);
 				});
+			});
+		});
+
+		describe('P2P.sendToPeer', () => {
+			let collectedMessages: Array<any> = [];
+
+			beforeEach(async () => {
+				collectedMessages = [];
+				p2pNodeList.forEach(p2p => {
+					p2p.on('messageReceived', request => {
+						collectedMessages.push({
+							nodePort: p2p.nodeInfo.wsPort,
+							request,
+						});
+					});
+				});
+			});
+
+			it('should send message to a specific peer within the network', async () => {
+				const firstP2PNode = p2pNodeList[0];
+
+				const targetPeerPort = NETWORK_START_PORT + 3;
+				const targetPeerId = `127.0.0.1:${targetPeerPort}`;
+
+				firstP2PNode.sendToPeer(
+					{
+						event: 'foo',
+						data: 123,
+					},
+					targetPeerId,
+				);
+
+				await wait(100);
+
+				expect(collectedMessages.length).to.equal(1);
+				expect(collectedMessages[0])
+					.to.have.property('nodePort')
+					.which.is.equal(targetPeerPort);
+				expect(collectedMessages[0]).to.have.property('request');
+				expect(collectedMessages[0].request)
+					.to.have.property('event')
+					.which.is.equal('foo');
+				expect(collectedMessages[0].request)
+					.to.have.property('data')
+					.which.is.equal(123);
+			});
+		});
+
+		describe('P2P.requestFromPeer', () => {
+			let collectedMessages: Array<any> = [];
+
+			beforeEach(async () => {
+				collectedMessages = [];
+				p2pNodeList.forEach(p2p => {
+					p2p.on('requestReceived', request => {
+						collectedMessages.push({
+							nodePort: p2p.nodeInfo.wsPort,
+							request,
+						});
+						if (request.procedure === 'getGreeting') {
+							request.end(
+								`Hello ${request.data} from peer ${p2p.nodeInfo.wsPort}`,
+							);
+						} else {
+							request.end(456);
+						}
+					});
+				});
+			});
+
+			it('should send request to a specific peer within the network', async () => {
+				const firstP2PNode = p2pNodeList[0];
+
+				const targetPeerPort = NETWORK_START_PORT + 4;
+				const targetPeerId = `127.0.0.1:${targetPeerPort}`;
+
+				await firstP2PNode.requestFromPeer(
+					{
+						procedure: 'proc',
+						data: 123456,
+					},
+					targetPeerId,
+				);
+
+				expect(collectedMessages.length).to.equal(1);
+				expect(collectedMessages[0]).to.have.property('request');
+				expect(collectedMessages[0].request.procedure).to.equal('proc');
+				expect(collectedMessages[0].request.data).to.equal(123456);
+			});
+
+			it('should receive response from a specific peer within the network', async () => {
+				const firstP2PNode = p2pNodeList[0];
+
+				const targetPeerPort = NETWORK_START_PORT + 2;
+				const targetPeerId = `127.0.0.1:${targetPeerPort}`;
+
+				const response = await firstP2PNode.requestFromPeer(
+					{
+						procedure: 'getGreeting',
+						data: 'world',
+					},
+					targetPeerId,
+				);
+
+				expect(response).to.have.property('data');
+				expect(response.data).to.equal(
+					`Hello world from peer ${targetPeerPort}`,
+				);
 			});
 		});
 

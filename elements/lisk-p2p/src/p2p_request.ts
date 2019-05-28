@@ -19,13 +19,13 @@ import { P2PResponsePacket } from './p2p_types';
 export class P2PRequest {
 	private readonly _procedure: string;
 	private readonly _data: unknown;
-	private _peerId: string;
-	private _rate: number;
 	private readonly _respondCallback: (
 		responseError?: Error,
 		responseData?: P2PResponsePacket,
 	) => void;
+	private readonly _peerId: string;
 	private _wasResponseSent: boolean;
+	private readonly _rate: number;
 
 	public constructor(
 		procedure: string,
@@ -51,6 +51,7 @@ export class P2PRequest {
 			respondCallback(responseError, responsePacket);
 		};
 		this._wasResponseSent = false;
+		this._peerId = peerId;
 	}
 
 	public get procedure(): string {

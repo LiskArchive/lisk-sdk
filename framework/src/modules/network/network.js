@@ -279,6 +279,22 @@ module.exports = class Network {
 					event: action.params.event,
 					data: action.params.data,
 				}),
+			requestFromPeer: async action =>
+				this.p2p.requestFromPeer(
+					{
+						procedure: action.params.procedure,
+						data: action.params.data,
+					},
+					action.params.peer
+				),
+			emitToPeer: action =>
+				this.p2p.sendToPeer(
+					{
+						event: action.params.event,
+						data: action.params.data,
+					},
+					action.params.peer
+				),
 			getNetworkStatus: () => this.p2p.getNetworkStatus(),
 			getPeers: action => {
 				const peerList = getConsolidatedPeersList(this.p2p.getNetworkStatus());
