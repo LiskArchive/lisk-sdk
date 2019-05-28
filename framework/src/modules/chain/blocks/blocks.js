@@ -50,6 +50,7 @@ class Blocks extends EventEmitter {
 		rewardOffset,
 		rewardMileStones,
 		totalAmount,
+		blockSlotWindow,
 	}) {
 		super();
 
@@ -80,6 +81,7 @@ class Blocks extends EventEmitter {
 			maxTransactionsPerBlock,
 			loadPerIteration,
 			activeDelegates,
+			blockSlotWindow,
 		};
 
 		this.blocksChain = new BlocksChain({
@@ -147,13 +149,13 @@ class Blocks extends EventEmitter {
 		try {
 			const rows = await this.storage.entities.Block.get(
 				{},
-				{ limit: this.blockSlotWindow, sort: 'height:desc' }
+				{ limit: this.constants.blockSlotWindow, sort: 'height:desc' }
 			);
 			this._lastNBlockIds = rows.map(row => row.id);
 		} catch (error) {
 			this.logger.error(
 				error,
-				`Unable to load last ${this.blockSlotWindow} block ids`
+				`Unable to load last ${this.constants.blockSlotWindow} block ids`
 			);
 		}
 	}
@@ -537,7 +539,7 @@ class Blocks extends EventEmitter {
 
 	_updateLastNBlocks(block) {
 		this._lastNBlockIds.push(block.id);
-		if (this._lastNBlockIds.length > this.blockSlotWindow) {
+		if (this._lastNBlockIds.length > this.constants.blockSlotWindow) {
 			this._lastNBlockIds.shift();
 		}
 	}

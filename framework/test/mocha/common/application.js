@@ -272,6 +272,7 @@ const initStepsForTest = {
 			rewardOffset: __testContext.config.constants.REWARDS.OFFSET,
 			rewardMileStones: __testContext.config.constants.REWARDS.MILESTONES,
 			totalAmount: __testContext.config.constants.TOTAL_AMOUNT,
+			blockSlotWindow: __testContext.config.constants.BLOCK_SLOT_WINDOW,
 		});
 		scope.modules = modules;
 		const RewiredPeers = rewire('../../../src/modules/chain/submodules/peers');

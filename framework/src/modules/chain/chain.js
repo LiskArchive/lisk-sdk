@@ -351,6 +351,7 @@ module.exports = class Chain {
 			rewardOffset: this.options.constants.REWARDS.OFFSET,
 			rewardMileStones: this.options.constants.REWARDS.MILESTONES,
 			totalAmount: this.options.constants.TOTAL_AMOUNT,
+			blockSlotWindow: this.options.constants.BLOCK_SLOT_WINDOW,
 		});
 		this.scope.modules.blocks = this.blocks;
 		this.transactionPool = new TransactionPool({
