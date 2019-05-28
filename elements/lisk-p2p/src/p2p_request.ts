@@ -23,8 +23,8 @@ export class P2PRequest {
 		responseError?: Error,
 		responseData?: P2PResponsePacket,
 	) => void;
+	private readonly _peerId: string;
 	private _wasResponseSent: boolean;
-	private _peerId: string;
 
 	public constructor(
 		procedure: string,
