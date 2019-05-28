@@ -13,8 +13,7 @@
  */
 
 SELECT
-	"id",
-	"name"
+	*
 FROM
 	migrations
 

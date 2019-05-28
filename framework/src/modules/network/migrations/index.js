@@ -14,9 +14,14 @@
 
 'use strict';
 
+const path = require('path');
+const fs = require('fs-extra');
+
+const updatesPath = path.join(__dirname, './sql');
+const migrations = fs
+	.readdirSync(updatesPath)
+	.map(file => path.join(updatesPath, file));
+
 module.exports = {
-	Account: require('./account'),
-	Block: require('./block'),
-	Round: require('./round'),
-	Transaction: require('./transaction'),
+	migrations,
 };

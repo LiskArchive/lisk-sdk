@@ -20,11 +20,6 @@
 */
 
 /* Tables */
-CREATE TABLE IF NOT EXISTS "migrations"(
-  "id" VARCHAR(22) NOT NULL PRIMARY KEY,
-  "name" TEXT NOT NULL
-);
-
 CREATE TABLE IF NOT EXISTS "blocks"(
   "id" VARCHAR(20) PRIMARY KEY,
   "rowId" SERIAL NOT NULL,
@@ -122,28 +117,10 @@ CREATE TABLE IF NOT EXISTS "outtransfer"(
   FOREIGN KEY("transactionId") REFERENCES "trs"("id") ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS "peers"(
-  "id" SERIAL NOT NULL PRIMARY KEY,
-  "ip" INET NOT NULL,
-  "port" SMALLINT NOT NULL,
-  "state" SMALLINT NOT NULL,
-  "os" VARCHAR(64),
-  "version" VARCHAR(11),
-  "clock" BIGINT
-);
-
-CREATE TABLE IF NOT EXISTS "peers_dapp"(
-  "peerId" INT NOT NULL,
-  "dappid" VARCHAR(20) NOT NULL,
-  FOREIGN KEY("peerId") REFERENCES "peers"("id") ON DELETE CASCADE
-);
-
 /* Unique Indexes */
 CREATE UNIQUE INDEX IF NOT EXISTS "blocks_height" ON "blocks"("height");
 CREATE UNIQUE INDEX IF NOT EXISTS "blocks_previousBlock" ON "blocks"("previousBlock");
 CREATE UNIQUE INDEX IF Not EXISTS "out_transaction_id" ON "outtransfer"("outTransactionId");
-CREATE UNIQUE INDEX IF NOT EXISTS "peers_unique" ON "peers"("ip", "port");
-CREATE UNIQUE INDEX IF NOT EXISTS "peers_dapp_unique" ON "peers_dapp"("peerId", "dappid");
 
 /* Indexes */
 CREATE INDEX IF NOT EXISTS "blocks_rowId" ON "blocks"("rowId");

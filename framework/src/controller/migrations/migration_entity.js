@@ -23,14 +23,15 @@ const {
 	utils: {
 		filterTypes: { TEXT },
 	},
-} = require('../../../../../components/storage');
+} = require('../../components/storage');
 
 const defaultCreateValues = {};
 
 const sqlFiles = {
-	select: 'migrations/get.sql',
-	isPersisted: 'migrations/is_persisted.sql',
-	create: 'migrations/create.sql',
+	select: 'get.sql',
+	isPersisted: 'is_persisted.sql',
+	create: 'create.sql',
+	defineSchema: 'define_schema.sql',
 };
 
 /**
@@ -38,6 +39,7 @@ const sqlFiles = {
  * @typedef {Object} Migration
  * @property {string} id
  * @property {string} name
+ * @property {string} namespace
  */
 
 /**
@@ -53,9 +55,14 @@ const sqlFiles = {
  * @property {string} [name_ne]
  * @property {string} [name_in]
  * @property {string} [name_like]
+ * @property {string} [namespace]
+ * @property {string} [namespace_eql]
+ * @property {string} [namespace_ne]
+ * @property {string} [namespace_in]
+ * @property {string} [namespace_like]
  */
 
-class Migration extends BaseEntity {
+class MigrationEntity extends BaseEntity {
 	/**
 	 * Constructor
 	 * @param {BaseAdapter} adapter - Adapter to retrieve the data from
@@ -66,12 +73,12 @@ class Migration extends BaseEntity {
 
 		this.addField('id', 'string', { filter: TEXT });
 		this.addField('name', 'string', { filter: TEXT });
+		this.addField('namespace', 'string', { filter: TEXT });
 
 		const defaultSort = { sort: 'id:asc' };
 		this.extendDefaultOptions(defaultSort);
 
-		this.sqlDirectory = path.join(path.dirname(__filename), '../sql');
-
+		this.sqlDirectory = path.join(path.dirname(__filename), './sql');
 		this.SQLs = this.loadSQLFiles('migration', sqlFiles, this.sqlDirectory);
 	}
 
@@ -214,85 +221,72 @@ class Migration extends BaseEntity {
 	}
 
 	/**
-	 * Verifies presence of the 'migrations' OID named relation.
+	 * Creates an array of objects with `{id, name, namespace, path}`, remove the ones already executed, sorts by ID ascending and add the file property
 	 *
-	 * @returns {Promise<boolean>} Promise object that resolves with a boolean.
-	 */
-	async hasMigrations() {
-		const hasMigrations = await this.adapter.execute(
-			"SELECT table_name hasMigrations FROM information_schema.tables WHERE table_name = 'migrations';"
-		);
-		return !!hasMigrations.length;
-	}
-
-	/**
-	 * Gets id of the last migration record, or 0, if none exist.
-	 *
-	 * @returns {Promise<number>}
-	 * Promise object that resolves with either 0 or id of the last migration record.
-	 */
-	async getLastId() {
-		const result = await this.get({}, { sort: 'id:DESC', limit: 1 });
-		return result.length ? parseInt(result[0].id) : null;
-	}
-
-	/**
-	 * Reads 'sql/migrations/updates' folder and returns an array of objects for further processing.
-	 *
-	 * @param {number} lastMigrationId
+	 * @param {Objec} migrationsObj - Object where the key is the migrations namespace and the value an array of migration's path
+	 * @param {Array} savedMigrations - Array of objects with all migrations already executed before
 	 * @returns {Promise<Array<Object>>}
-	 * Promise object that resolves with an array of objects `{id, name, path, file}`.
+	 * Promise object that resolves with an array of objects `{id, name, namespace, path, file}`.
 	 */
-	readPending(lastMigrationId) {
-		const updatesPath = path.join(__dirname, '../sql/migrations/updates');
-		return fs.readdir(updatesPath).then(files =>
-			files
+	async readPending(migrationsObj, savedMigrations) {
+		return Object.keys(migrationsObj).reduce((prev, namespace) => {
+			const curr = migrationsObj[namespace]
 				.map(migrationFile => {
 					const migration = migrationFile.match(/(\d+)_(.+).sql/);
 					return (
 						migration && {
 							id: migration[1],
 							name: migration[2],
-							path: path.join('../sql/migrations/updates', migrationFile),
+							path: migrationFile,
+							namespace,
 						}
 					);
 				})
-				.sort((a, b) => a.id - b.id) // Sort by migration ID, ascending
 				.filter(
 					migration =>
 						migration &&
-						fs
-							.statSync(path.join(this.sqlDirectory, migration.path))
-							.isFile() &&
-						(!lastMigrationId || +migration.id > lastMigrationId)
+						fs.statSync(migration.path).isFile() &&
+						!savedMigrations.find(
+							saved =>
+								saved.id === migration.id &&
+								saved.namespace === migration.namespace
+						)
 				)
-				.map(f => {
-					f.file = this.adapter.loadSQLFile(f.path, this.sqlDirectory);
-					return f;
-				})
-		);
+				.sort((a, b) => a.id - b.id) // Sort by migration ID, ascending
+				.map(migration => {
+					migration.file = this.adapter.loadSQLFile(migration.path, '');
+					return migration;
+				});
+			return prev.concat(curr);
+		}, []);
 	}
 
 	async applyPendingMigration(pendingMigration, tx) {
-		// eslint-disable-next-line no-restricted-syntax
 		await this.adapter.executeFile(pendingMigration.file, {}, {}, tx);
 		await this.create(
-			{ id: pendingMigration.id, name: pendingMigration.name },
+			{
+				id: pendingMigration.id,
+				name: pendingMigration.name,
+				namespace: pendingMigration.namespace,
+			},
 			{},
 			tx
 		);
 	}
 
 	/**
-	 * Applies a cumulative update: all pending migrations + runtime.
+	 * Applies a cumulative update: all migrations passed as argument except the ones present in the migrations table.
 	 * Each update+insert execute within their own SAVEPOINT, to ensure data integrity on the updates level.
 	 *
 	 * @returns {Promise} Promise object that resolves with `undefined`.
 	 */
-	async applyAll() {
-		const hasMigrations = await this.hasMigrations();
-		const lastId = hasMigrations ? await this.getLastId() : 0;
-		const pendingMigrations = await this.readPending(lastId);
+	async applyAll(migrationsObj) {
+		const savedMigrations = await this.get({}, { limit: null });
+
+		const pendingMigrations = await this.readPending(
+			migrationsObj,
+			savedMigrations
+		);
 
 		if (pendingMigrations.length > 0) {
 			// eslint-disable-next-line no-restricted-syntax
@@ -303,6 +297,15 @@ class Migration extends BaseEntity {
 			}
 		}
 	}
+
+	/**
+	 * Define migrations schema
+	 *
+	 * @returns {Promise} Promise object that resolves with `undefined`.
+	 */
+	async defineSchema() {
+		return this.adapter.executeFile(this.SQLs.defineSchema);
+	}
 }
 
-module.exports = Migration;
+module.exports = MigrationEntity;
