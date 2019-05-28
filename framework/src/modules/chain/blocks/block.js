@@ -167,6 +167,7 @@ const create = ({
 	keypair,
 	timestamp,
 	maxPayloadLength,
+	exceptions,
 }) => {
 	// TODO: move to transactions module logic
 	const sortedTransactions = transactions.sort((a, b) => {
@@ -243,7 +244,7 @@ const create = ({
 	};
 
 	block.blockSignature = sign(block, keypair);
-	return objectNormalize(block);
+	return objectNormalize(block, exceptions);
 };
 
 /**
