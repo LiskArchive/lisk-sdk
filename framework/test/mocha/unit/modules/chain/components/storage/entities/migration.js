@@ -101,6 +101,7 @@ describe('Migration', () => {
 		validMigration = {
 			id: '30200723182900',
 			name: 'create_schema',
+			namespace: 'module_name',
 		};
 
 		adapter = storage.adapter;
