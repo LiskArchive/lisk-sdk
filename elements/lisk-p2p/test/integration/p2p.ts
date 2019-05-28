@@ -282,6 +282,76 @@ describe('Integration tests for P2P library', () => {
 			});
 		});
 
+		describe('P2P.applyNodeInfo', () => {
+			it('should send the node info to a subset of peers within the network. It should update itself and reflect new values', async () => {
+				const firstP2PNode = p2pNodeList[0];
+
+				firstP2PNode.applyNodeInfo({
+					os: platform(),
+					nethash:
+						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+					version: firstP2PNode.nodeInfo.version,
+					wsPort: firstP2PNode.nodeInfo.wsPort,
+					height: 10,
+					options: firstP2PNode.nodeInfo.options,
+				});
+
+				await wait(100);
+
+				// For each peer of firstP2PNode, check that the firstP2PNode's P2PPeerInfo was updated with the new height.
+				p2pNodeList.slice(1).forEach(p2pNode => {
+					const networkStatus = p2pNode.getNetworkStatus();
+					const firstNodeInConnectedPeer = networkStatus.connectedPeers.find(
+						peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
+					);
+
+					const firstNodeInNewPeer = networkStatus.newPeers.find(
+						peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
+					);
+
+					const firstNodeInTriedPeer = networkStatus.triedPeers.find(
+						peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
+					);
+
+					// Check if the peerinfo is updated in new peer list
+					if (firstNodeInNewPeer) {
+						expect(firstNodeInNewPeer)
+							.to.have.property('height')
+							.which.equals(10);
+						expect(firstNodeInNewPeer)
+							.to.have.property('nethash')
+							.which.equals(
+								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+							);
+					}
+
+					// Check if the peerinfo is updated in tried peer list
+					if (firstNodeInTriedPeer) {
+						expect(firstNodeInTriedPeer)
+							.to.have.property('height')
+							.which.equals(10);
+						expect(firstNodeInTriedPeer)
+							.to.have.property('nethash')
+							.which.equals(
+								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+							);
+					}
+
+					// Check if the peerinfo is updated in connected peer list
+					if (firstNodeInConnectedPeer) {
+						expect(firstNodeInConnectedPeer)
+							.to.have.property('height')
+							.which.equals(10);
+						expect(firstNodeInConnectedPeer)
+							.to.have.property('nethash')
+							.which.equals(
+								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+							);
+					}
+				});
+			});
+		});
+
 		describe('When half of the nodes crash', () => {
 			it('should get network status with all unresponsive nodes removed', async () => {
 				const firstP2PNode = p2pNodeList[0];
@@ -685,10 +755,12 @@ describe('Integration tests for P2P library', () => {
 
 	describe('Connected network: User custom selection algorithm is passed to each node', () => {
 		// Custom selection function that finds peers having common values for modules field for example.
-		const peerSelectionForSendRequest: P2PPeerSelectionForSendFunction | P2PPeerSelectionForRequestFunction = (
-			input: P2PPeerSelectionForSendInput | P2PPeerSelectionForRequestInput
+		const peerSelectionForSendRequest:
+			| P2PPeerSelectionForSendFunction
+			| P2PPeerSelectionForRequestFunction = (
+			input: P2PPeerSelectionForSendInput | P2PPeerSelectionForRequestInput,
 		) => {
-			const {peers: peersList, nodeInfo} = input;
+			const { peers: peersList, nodeInfo } = input;
 
 			const filteredPeers = peersList.filter(peer => {
 				if (nodeInfo && nodeInfo.height <= peer.height) {
@@ -725,7 +797,7 @@ describe('Integration tests for P2P library', () => {
 		};
 		// Custom Peer selection for connection that returns all the peers
 		const peerSelectionForConnection: P2PPeerSelectionForConnectionFunction = (
-			input: P2PPeerSelectionForConnectionInput
+			input: P2PPeerSelectionForConnectionInput,
 		) => input.peers;
 
 		beforeEach(async () => {
