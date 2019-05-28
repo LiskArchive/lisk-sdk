@@ -157,13 +157,17 @@ export class Peer extends EventEmitter {
 			try {
 				rawRequest = validateRPCRequest(packet);
 			} catch (err) {
-				this.emit(EVENT_INVALID_REQUEST_RECEIVED, packet);
+				this.emit(EVENT_INVALID_REQUEST_RECEIVED, {
+					packet,
+					peerId: this._id
+				});
 
 				return;
 			}
 			const request = new P2PRequest(
 				rawRequest.procedure,
 				rawRequest.data,
+				this._id,
 				respond,
 			);
 
@@ -184,12 +188,18 @@ export class Peer extends EventEmitter {
 			try {
 				protocolMessage = validateProtocolMessage(packet);
 			} catch (err) {
-				this.emit(EVENT_INVALID_MESSAGE_RECEIVED, packet);
+				this.emit(EVENT_INVALID_MESSAGE_RECEIVED, {
+					packet,
+					peerId: this._id
+				});
 
 				return;
 			}
 
-			this.emit(EVENT_MESSAGE_RECEIVED, protocolMessage);
+			this.emit(EVENT_MESSAGE_RECEIVED, {
+				...protocolMessage,
+				peerId: this._id
+			});
 		};
 
 		// TODO later: Delete the following legacy message handlers.
