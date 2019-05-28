@@ -9,10 +9,12 @@ export class P2PRequest {
 		responseData?: P2PResponsePacket,
 	) => void;
 	private _wasResponseSent: boolean;
+	private _peerId: string;
 
 	public constructor(
 		procedure: string,
 		data: unknown,
+		peerId: string,
 		respondCallback: (responseError?: Error, responseData?: unknown) => void,
 	) {
 		this._procedure = procedure;
@@ -30,6 +32,7 @@ export class P2PRequest {
 			respondCallback(responseError, responsePacket);
 		};
 		this._wasResponseSent = false;
+		this._peerId = peerId;
 	}
 
 	public get procedure(): string {
@@ -38,6 +41,10 @@ export class P2PRequest {
 
 	public get data(): unknown {
 		return this._data;
+	}
+
+	public get peerId(): string {
+		return this._peerId;
 	}
 
 	public get wasResponseSent(): boolean {
