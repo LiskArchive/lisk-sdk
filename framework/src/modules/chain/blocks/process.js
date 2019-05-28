@@ -146,7 +146,8 @@ class BlocksProcess {
 	async reload(targetHeight, isCleaning, onProgress, loadPerIteration = 1000) {
 		await this.storage.entities.Account.resetMemTables();
 		const lastBlock = await this._rebuild(
-			0,
+			1,
+			undefined,
 			targetHeight,
 			isCleaning,
 			onProgress,
@@ -157,6 +158,7 @@ class BlocksProcess {
 
 	async _rebuild(
 		currentHeight,
+		initialBlock,
 		targetHeight,
 		isCleaning,
 		onProgress,
@@ -170,7 +172,7 @@ class BlocksProcess {
 			limit,
 			currentHeight
 		);
-		let lastBlock;
+		let lastBlock = initialBlock;
 		// eslint-disable-next-line no-restricted-syntax
 		for (const block of blocks) {
 			if (isCleaning() || block.height > targetHeight) {
@@ -187,10 +189,11 @@ class BlocksProcess {
 			lastBlock = await this.applyBlock(block, lastBlock);
 			onProgress(lastBlock);
 		}
-		const nextCurrentHeight = lastBlock.height;
+		const nextCurrentHeight = lastBlock.height + 1;
 		if (nextCurrentHeight < targetHeight) {
 			return this._rebuild(
 				nextCurrentHeight,
+				lastBlock,
 				targetHeight,
 				isCleaning,
 				onProgress,
