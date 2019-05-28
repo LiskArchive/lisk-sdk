@@ -83,12 +83,25 @@ const BlockHeader = stampit({
 		activeSinceRound: 3,
 		delegatePublicKey: '',
 	},
-	init({ height }) {
-		this.blockId = randomstring.generate({ charset: 'numeric', length: 20 });
+	init({
+		height,
+		blockId,
+		delegatePublicKey,
+		activeSinceRound,
+		maxHeightPreviouslyForged,
+		prevotedConfirmedUptoHeight,
+	}) {
+		this.blockId =
+			blockId || randomstring.generate({ charset: 'numeric', length: 20 });
 		this.height = height || Math.floor(Math.random() * Math.floor(5000));
-		this.delegatePublicKey = randomstring
-			.generate({ charset: '0123456789ABCDE', length: 32 })
-			.toLowerCase();
+		this.delegatePublicKey =
+			delegatePublicKey ||
+			randomstring
+				.generate({ charset: '0123456789ABCDE', length: 64 })
+				.toLowerCase();
+		this.activeSinceRound = activeSinceRound || 3;
+		this.maxHeightPreviouslyForged = maxHeightPreviouslyForged || 0;
+		this.prevotedConfirmedUptoHeight = prevotedConfirmedUptoHeight || 0;
 	},
 });
 

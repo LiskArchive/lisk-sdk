@@ -22,6 +22,6 @@ const HeadersList = require('./headers_list');
 const BFT = require('./bft');
 
 module.exports = {
-	HeadersList,
-	BFT,
+	...HeadersList,
+	...BFT,
 };
