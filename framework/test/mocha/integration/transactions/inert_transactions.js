@@ -9,8 +9,6 @@ const localCommon = require('../common');
 const accountFixtures = require('../../fixtures/accounts');
 const randomUtil = require('../../common/utils/random');
 
-const exceptions = global.exceptions;
-
 describe('inert transactions', () => {
 	let library;
 	const senderAccount = accountFixtures.genesis;
@@ -31,14 +29,16 @@ describe('inert transactions', () => {
 		username: recipientAccount.username,
 	});
 
-	exceptions.inertTransactions = [
-		transferInertTransaction.id,
-		voteInertTransaction.id,
-		delegateInertTransaction.id,
-	];
-
 	localCommon.beforeBlock('inert_transactions', lib => {
 		library = lib;
+		library.modules.blocks.blocksChain.exceptions = {
+			...library.modules.blocks.exceptions,
+			inertTransactions: [
+				transferInertTransaction.id,
+				voteInertTransaction.id,
+				delegateInertTransaction.id,
+			],
+		};
 	});
 
 	describe('send funds to account', () => {

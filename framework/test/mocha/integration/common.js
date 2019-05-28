@@ -59,7 +59,14 @@ function blockToJSON(block) {
 	return block;
 }
 
-function createBlock(library, transactions, timestamp, keypair, previousBlock) {
+function createBlock(
+	library,
+	transactions,
+	timestamp,
+	keypair,
+	previousBlock,
+	exceptions
+) {
 	transactions = transactions.map(transaction =>
 		library.modules.interfaceAdapters.transactions.fromJson(transaction)
 	);
@@ -70,6 +77,7 @@ function createBlock(library, transactions, timestamp, keypair, previousBlock) {
 		previousBlock,
 		transactions,
 		maxPayloadLength: __testContext.config.constants.MAX_PAYLOAD_LENGTH,
+		exceptions,
 	});
 
 	block.id = blocksLogic.getId(block);
@@ -77,17 +85,25 @@ function createBlock(library, transactions, timestamp, keypair, previousBlock) {
 	return block;
 }
 
-function createValidBlockWithSlotOffset(library, transactions, slotOffset, cb) {
+function createValidBlockWithSlotOffset(
+	library,
+	transactions,
+	slotOffset,
+	exceptions,
+	cb
+) {
 	const lastBlock = library.modules.blocks.lastBlock;
 	const slot = slots.getSlotNumber() - slotOffset;
 	const keypairs = library.modules.forger.getForgersKeyPairs();
 	getDelegateForSlot(library, slot, (err, delegateKey) => {
+		cb = typeof exceptions === 'object' ? cb : exceptions;
 		const block = createBlock(
 			library,
 			transactions,
 			slots.getSlotTime(slot),
 			keypairs[delegateKey],
-			lastBlock
+			lastBlock,
+			typeof exceptions === 'object' ? exceptions : undefined
 		);
 		cb(err, block);
 	});
@@ -185,7 +201,13 @@ function forge(library, cb) {
 }
 
 function deleteLastBlock(library, cb) {
-	library.modules.blocks.chain.deleteLastBlock(cb);
+	library.modules.blocks.blocksChain
+		.deleteLastBlock(library.modules.blocks.lastBlock)
+		.then(newLastBlock => {
+			library.modules.blocks._lastBlock = newLastBlock;
+			cb();
+		})
+		.catch(err => cb(err));
 }
 
 function fillPool(library, cb) {
