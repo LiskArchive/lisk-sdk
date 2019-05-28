@@ -114,6 +114,8 @@ export abstract class BaseTransaction {
 	public readonly fee: BigNum;
 	public receivedAt?: Date;
 
+	public static TYPE: number;
+
 	protected _id?: string;
 	protected _signature?: string;
 	protected _signSignature?: string;
@@ -262,6 +264,18 @@ export abstract class BaseTransaction {
 
 		if (idError) {
 			errors.push(idError);
+		}
+
+		if (this.type !== (this.constructor as typeof BaseTransaction).TYPE) {
+			errors.push(
+				new TransactionError(
+					`Invalid type`,
+					this.id,
+					'.type',
+					this.type,
+					(this.constructor as typeof BaseTransaction).TYPE,
+				),
+			);
 		}
 
 		return createResponse(this.id, errors);
