@@ -453,28 +453,34 @@ class Blocks extends EventEmitter {
 	async loadBlocksFromNetwork(blocks) {
 		this._shouldNotBeActive();
 		this._isActive = true;
-		const normalizedBlocks = blocksUtils.readDbRows(
-			blocks,
-			this.interfaceAdapters,
-			this.genesisBlock
-		);
-		// eslint-disable-next-line no-restricted-syntax
-		for (const block of normalizedBlocks) {
-			// check if it's cleaning
-			if (this._cleaning) {
-				break;
-			}
-			// eslint-disable-next-line no-await-in-loop
-			this._lastBlock = await this.blocksProcess.processBlock(
-				block,
-				this._lastBlock
+
+		try {
+			const normalizedBlocks = blocksUtils.readDbRows(
+				blocks,
+				this.interfaceAdapters,
+				this.genesisBlock
 			);
-			// emit event
-			this._updateLastNBlocks(block);
-			this.emit(EVENT_NEW_BLOCK, { block: cloneDeep(block) });
+			// eslint-disable-next-line no-restricted-syntax
+			for (const block of normalizedBlocks) {
+				// check if it's cleaning
+				if (this._cleaning) {
+					break;
+				}
+				// eslint-disable-next-line no-await-in-loop
+				this._lastBlock = await this.blocksProcess.processBlock(
+					block,
+					this._lastBlock
+				);
+				// emit event
+				this._updateLastNBlocks(block);
+				this.emit(EVENT_NEW_BLOCK, { block: cloneDeep(block) });
+			}
+			this._isActive = false;
+			return this._lastBlock;
+		} catch (error) {
+			this._isActive = false;
+			throw error;
 		}
-		this._isActive = false;
-		return this._lastBlock;
 	}
 
 	// Generate a block for forging
