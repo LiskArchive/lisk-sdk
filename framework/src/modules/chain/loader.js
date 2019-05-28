@@ -463,6 +463,7 @@ class Loader {
 
 		modules = {
 			transactionPool: scope.modules.transactionPool,
+			interfaceAdapters: scope.modules.interfaceAdapters,
 			blocks: scope.modules.blocks,
 			peers: scope.modules.peers,
 		};
@@ -533,7 +534,10 @@ __private.getTransactionsFromNetwork = async function() {
 	const validate = promisify(library.schema.validate.bind(library.schema));
 	await validate(result, definitions.WSTransactionsResponse);
 
-	const transactions = result.transactions;
+	const transactions = result.transactions.map(tx =>
+		modules.interfaceAdapters.transactions.fromJson(tx)
+	);
+
 	try {
 		const { transactionsResponses } = validateTransactions()(transactions);
 		const invalidTransactionResponse = transactionsResponses.find(
