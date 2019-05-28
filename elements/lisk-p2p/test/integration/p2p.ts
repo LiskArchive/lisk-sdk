@@ -462,14 +462,13 @@ describe('Integration tests for P2P library', () => {
 				});
 			});
 
-			it('should discover all peers and add them to the newPeers list within each node', () => {
+			it('should discover all peers and connect to all the peers so there should be no peer in newPeers list', () => {
 				p2pNodeList.forEach(p2p => {
 					const { newPeers } = p2p.getNetworkStatus();
 
 					const peerPorts = newPeers.map(peerInfo => peerInfo.wsPort).sort();
 
-					// TODO ASAP: Make better assertions.
-					expect(peerPorts).to.be.an.instanceOf(Array);
+					expect(peerPorts).to.be.eql([]);
 				});
 			});
 
@@ -485,6 +484,30 @@ describe('Integration tests for P2P library', () => {
 					});
 
 					expect(peerPorts).to.be.eql(expectedPeerPorts);
+				});
+			});
+
+			it('should not contain itself in any of its peer list', async () => {
+				p2pNodeList.forEach(p2p => {
+					const {
+						triedPeers,
+						connectedPeers,
+						newPeers,
+					} = p2p.getNetworkStatus();
+
+					const triedPeerPorts = triedPeers
+						.map(peerInfo => peerInfo.wsPort)
+						.sort();
+					const newPeerPorts = newPeers.map(peerInfo => peerInfo.wsPort).sort();
+					const connectedPeerPorts = connectedPeers
+						.map(peerInfo => peerInfo.wsPort)
+						.sort();
+
+					expect([
+						...triedPeerPorts,
+						...newPeerPorts,
+						...connectedPeerPorts,
+					]).to.not.contain.members([p2p.nodeInfo.wsPort]);
 				});
 			});
 		});
