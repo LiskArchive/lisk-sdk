@@ -181,7 +181,9 @@ describe('blocks/process', () => {
 
 		it('should throw error if verified is not true', async () => {
 			const errors = [new Error('verify error')];
-			blocksVerifyStub.verifyBlock.returns({ verified: false, errors });
+			blocksVerifyStub.verifyBlock = sinonSandbox
+				.stub()
+				.returns({ verified: false, errors });
 
 			try {
 				await blocksProcess.processBlock(dummyBlock, lastDummyBlock);
@@ -190,27 +192,40 @@ describe('blocks/process', () => {
 			}
 		});
 
-		it('should call addBlockProperties if not broadcast is supplied', async () => {
-			await blocksProcess.processBlock(dummyBlock, lastDummyBlock);
-			expect(blocksUtils.addBlockProperties).to.be.called;
-		});
-
 		it('should call broadcast if supplied', async () => {
+			blocksVerifyStub.verifyBlock = sinonSandbox
+				.stub()
+				.returns({ verified: true, errors: [] });
+
 			const broadcast = sinonSandbox.stub();
 			await blocksProcess.processBlock(dummyBlock, lastDummyBlock, broadcast);
 			expect(broadcast).to.be.called;
 		});
 
 		it('should call apply block with save true', async () => {
+			blocksVerifyStub.verifyBlock = sinonSandbox
+				.stub()
+				.returns({ verified: true, errors: [] });
 			await blocksProcess.processBlock(dummyBlock, lastDummyBlock);
 			expect(blocksChainStub.applyBlock).to.be.calledWith(dummyBlock, true);
+		});
+
+		it('should call addBlockProperties if not broadcast is supplied', async () => {
+			blocksVerifyStub.verifyBlock = sinonSandbox
+				.stub()
+				.returns({ verified: true, errors: [] });
+
+			await blocksProcess.applyBlock(dummyBlock, lastDummyBlock);
+			expect(blocksUtils.addBlockProperties).to.be.called;
 		});
 	});
 
 	describe('applyBlock', () => {
 		it('should throw error if verified is not true', async () => {
 			const errors = [new Error('verify error')];
-			blocksVerifyStub.verifyBlock.returns({ verified: false, errors });
+			blocksVerifyStub.verifyBlock = sinonSandbox
+				.stub()
+				.returns({ verified: false, errors });
 
 			try {
 				await blocksProcess.applyBlock(dummyBlock, lastDummyBlock);
@@ -220,16 +235,28 @@ describe('blocks/process', () => {
 		});
 
 		it('should call validateBlockSlot', async () => {
+			blocksVerifyStub.verifyBlock = sinonSandbox
+				.stub()
+				.returns({ verified: true, errors: [] });
+
 			await blocksProcess.applyBlock(dummyBlock, lastDummyBlock);
 			expect(blocksVerifyStub.validateBlockSlot).to.be.calledWith(dummyBlock);
 		});
 
 		it('should call checkTransactions', async () => {
+			blocksVerifyStub.verifyBlock = sinonSandbox
+				.stub()
+				.returns({ verified: true, errors: [] });
+
 			await blocksProcess.applyBlock(dummyBlock, lastDummyBlock);
 			expect(blocksVerifyStub.checkTransactions).to.be.calledWith(dummyBlock);
 		});
 
 		it('should call apply block with save false', async () => {
+			blocksVerifyStub.verifyBlock = sinonSandbox
+				.stub()
+				.returns({ verified: true, errors: [] });
+
 			await blocksProcess.applyBlock(dummyBlock, lastDummyBlock);
 			expect(blocksChainStub.applyBlock).to.be.calledWith(dummyBlock, false);
 		});
