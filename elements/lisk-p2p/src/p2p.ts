@@ -422,28 +422,14 @@ export class P2P extends EventEmitter {
 						INVALID_CONNECTION_SELF_REASON,
 					);
 
-					// Ignore these steps for local network tests since all the IPs will be localhost
-					if (socket.remoteAddress !== '127.0.0.1') {
-						const selfWSPort = queryObject.wsPort
-							? +queryObject.wsPort
-							: this._nodeInfo.wsPort;
-						const selfP2PInfo = {
-							ipAddress: socket.remoteAddress,
-							wsPort: selfWSPort,
-						};
-						// When a node tries to connect itself then add it to blacklist so that it doesn't connect itself.
-						this._config.blacklistedPeers = this._config.blacklistedPeers
-							? [...this._config.blacklistedPeers, selfP2PInfo]
-							: [selfP2PInfo];
+					const selfWSPort = queryObject.wsPort
+						? +queryObject.wsPort
+						: this._nodeInfo.wsPort;
 
-						const selfPeerId = constructPeerId(
-							socket.remoteAddress,
-							selfWSPort,
-						);
-						// Delete from both the lists
-						this._newPeers.delete(selfPeerId);
-						this._triedPeers.delete(selfPeerId);
-					}
+					const selfPeerId = constructPeerId(socket.remoteAddress, selfWSPort);
+					// Delete you peerinfo from both the lists
+					this._newPeers.delete(selfPeerId);
+					this._triedPeers.delete(selfPeerId);
 
 					return;
 				}
@@ -587,7 +573,12 @@ export class P2P extends EventEmitter {
 
 		discoveredPeers.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			if (!this._triedPeers.has(peerId) && !this._newPeers.has(peerId)) {
+			// Check for value of nonce, if its same then its our own info
+			if (
+				!this._triedPeers.has(peerId) &&
+				!this._newPeers.has(peerId) &&
+				peerInfo.nonce !== this._nodeInfo.nonce
+			) {
 				this._newPeers.set(peerId, peerInfo);
 			}
 		});
