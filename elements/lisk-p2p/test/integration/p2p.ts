@@ -116,7 +116,7 @@ describe('Integration tests for P2P library', () => {
 					ackTimeout: 5000,
 					// Set a different discoveryInterval for each node; that way they don't keep trying to discover each other at the same time.
 					discoveryInterval: DISCOVERY_INTERVAL + index * 11,
-					peerBanTime: 5000,
+					peerBanTime: 100,
 					nodeInfo: {
 						wsPort: nodePort,
 						nethash:
@@ -166,6 +166,63 @@ describe('Integration tests for P2P library', () => {
 
 					expect(peerPorts).to.be.eql(expectedPeerPorts);
 				});
+			});
+		});
+
+		describe('Peer banning mechanism', () => {
+			it('should not ban a bad peer for a 10 point penalty', async () => {
+				const firstP2PNode = p2pNodeList[0];
+				const { connectedPeers } = firstP2PNode.getNetworkStatus();
+				const badPeer = connectedPeers[1];
+				const peerPenalty = {
+					peerId: `${badPeer.ipAddress}:${badPeer.wsPort}`,
+					penalty: 10,
+				};
+				firstP2PNode.applyPenalty(peerPenalty);
+				const {
+					connectedPeers: updatedConnectedPeers,
+				} = firstP2PNode.getNetworkStatus();
+				expect(updatedConnectedPeers.map(peer => peer.wsPort)).to.include(
+					badPeer.wsPort,
+				);
+			});
+
+			it('should ban a bad peer for a 100 point penalty', async () => {
+				const firstP2PNode = p2pNodeList[0];
+				const { connectedPeers } = firstP2PNode.getNetworkStatus();
+				const badPeer = connectedPeers[2];
+				const peerPenalty = {
+					peerId: `${badPeer.ipAddress}:${badPeer.wsPort}`,
+					penalty: 100,
+				};
+				firstP2PNode.applyPenalty(peerPenalty);
+				const {
+					connectedPeers: updatedConnectedPeers,
+				} = firstP2PNode.getNetworkStatus();
+
+				expect(updatedConnectedPeers.map(peer => peer.wsPort)).to.not.include(
+					badPeer.wsPort,
+				);
+			});
+
+			it('should unban a peer after the ban period', async () => {
+				const firstP2PNode = p2pNodeList[0];
+				const { connectedPeers } = firstP2PNode.getNetworkStatus();
+				const badPeer = connectedPeers[2];
+				const peerPenalty = {
+					peerId: `${badPeer.ipAddress}:${badPeer.wsPort}`,
+					penalty: 100,
+				};
+				firstP2PNode.applyPenalty(peerPenalty);
+				// Wait for ban time to expire and peer to be re-discovered
+				await wait(200);
+				const {
+					connectedPeers: updatedConnectedPeers,
+				} = firstP2PNode.getNetworkStatus();
+
+				expect(updatedConnectedPeers.map(peer => peer.wsPort)).to.include(
+					badPeer.wsPort,
+				);
 			});
 		});
 
@@ -350,7 +407,6 @@ describe('Integration tests for P2P library', () => {
 						  ];
 
 				const nodePort = NETWORK_START_PORT + index;
-
 				return new P2P({
 					blacklistedPeers: [],
 					connectTimeout: 5000,
@@ -431,45 +487,6 @@ describe('Integration tests for P2P library', () => {
 
 					expect(expectedPeerPorts).to.include.members(peerPorts);
 				});
-			});
-		});
-
-		describe('Peer banning mechanism', () => {
-			it('should not ban a bad peer for a 10 point penalty', async () => {
-				const firstP2PNode = p2pNodeList[0];
-				await wait(200);
-				const { connectedPeers } = firstP2PNode.getNetworkStatus();
-				const badPeer = connectedPeers[1];
-				const peerPenalty = {
-					peerId: `${badPeer.ipAddress}:${badPeer.wsPort}`,
-					penalty: 10,
-				};
-				firstP2PNode.applyPenalty(peerPenalty);
-				const {
-					connectedPeers: updatedConnectedPeers,
-				} = firstP2PNode.getNetworkStatus();
-
-				expect(updatedConnectedPeers.map(peer => peer.wsPort)).to.include(
-					badPeer.wsPort,
-				);
-			});
-
-			it('should ban a bad peer for a 100 point penalty', async () => {
-				const firstP2PNode = p2pNodeList[0];
-				const { connectedPeers } = firstP2PNode.getNetworkStatus();
-				const badPeer = connectedPeers[2];
-				const peerPenalty = {
-					peerId: `${badPeer.ipAddress}:${badPeer.wsPort}`,
-					penalty: 100,
-				};
-				firstP2PNode.applyPenalty(peerPenalty);
-				const {
-					connectedPeers: updatedConnectedPeers,
-				} = firstP2PNode.getNetworkStatus();
-
-				expect(updatedConnectedPeers.map(peer => peer.wsPort)).to.not.include(
-					badPeer.wsPort,
-				);
 			});
 		});
 
