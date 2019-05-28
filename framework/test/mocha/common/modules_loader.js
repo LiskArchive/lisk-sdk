@@ -212,7 +212,7 @@ const modulesLoader = new function() {
 	this.initAllModules = function(cb, scope) {
 		this.initModules(
 			[
-				{ blocks: require('../../../src/modules/chain/submodules/blocks') },
+				{ blocks: require('../../../src/modules/chain/blocks/blocks') },
 				{
 					delegates: require('../../../src/modules/chain/rounds/delegates'),
 				},
@@ -225,7 +225,7 @@ const modulesLoader = new function() {
 			],
 			[
 				{ account: require('../../../src/modules/chain/logic/account') },
-				{ block: require('../../../src/modules/chain/logic/block') },
+				{ block: require('../../../src/modules/chain/blocks/block') },
 			],
 			scope || {},
 			cb
