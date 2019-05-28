@@ -61,6 +61,7 @@ describe('blocks/process', () => {
 				Block: {
 					isPersisted: sinonSandbox.stub(),
 					get: sinonSandbox.stub(),
+					getOne: sinonSandbox.stub().resolves([lastDummyBlock]),
 				},
 				Account: {
 					resetMemTables: sinonSandbox.stub(),
@@ -69,11 +70,18 @@ describe('blocks/process', () => {
 		};
 
 		blocksVerifyStub = {
-			verifyBlock: sinonSandbox.stub().returns({ verified: true, errors: [] }),
+			verifyBlock: sinonSandbox.stub(),
 			checkExists: sinonSandbox.stub(),
 			validateBlockSlot: sinonSandbox.stub(),
 			checkTransactions: sinonSandbox.stub(),
 		};
+
+		blocksVerifyStub.verifyBlock
+			.onFirstCall()
+			.returns({ verified: false, errors: [] });
+		blocksVerifyStub.verifyBlock
+			.onSecondCall()
+			.returns({ verified: true, errors: [] });
 
 		blocksChainStub = {
 			applyBlock: sinonSandbox.stub(),
@@ -436,30 +444,46 @@ describe('blocks/process', () => {
 
 	describe('recoverInvalidOwnChain', () => {
 		let onDelete;
-		let newLastBlock;
+		let beforeLastDummyBlock;
 		beforeEach(async () => {
-			newLastBlock = {
-				id: '1',
+			beforeLastDummyBlock = {
+				id: '2',
+				height: 2,
+				timestamp: 41287211,
+				reward: new Bignum(100),
+				transactions: [],
 			};
 			onDelete = sinonSandbox.stub();
-			blocksChainStub.deleteLastBlock.resolves(newLastBlock);
+			blocksChainStub.deleteLastBlock.resolves(beforeLastDummyBlock);
 		});
 
 		it('should call deleteLastBlock', async () => {
+			sinonSandbox
+				.stub(blocksUtils, 'loadBlockByHeight')
+				.resolves(beforeLastDummyBlock);
 			await blocksProcess.recoverInvalidOwnChain(lastDummyBlock, onDelete);
 			expect(blocksChainStub.deleteLastBlock).to.be.calledWith(lastDummyBlock);
 		});
 
 		it('should call onDelete', async () => {
+			sinonSandbox
+				.stub(blocksUtils, 'loadBlockByHeight')
+				.resolves(beforeLastDummyBlock);
 			await blocksProcess.recoverInvalidOwnChain(lastDummyBlock, onDelete);
-			expect(onDelete).to.be.calledWith(lastDummyBlock, newLastBlock);
+			expect(onDelete.firstCall.args).to.be.eql([
+				lastDummyBlock,
+				beforeLastDummyBlock,
+			]);
 		});
 
 		it('should call verifyBlock with the new last block', async () => {
+			sinonSandbox
+				.stub(blocksUtils, 'loadBlockByHeight')
+				.resolves(beforeLastDummyBlock);
 			await blocksProcess.recoverInvalidOwnChain(lastDummyBlock, onDelete);
 			expect(blocksVerifyStub.verifyBlock).to.be.calledWith(
 				lastDummyBlock,
-				newLastBlock
+				beforeLastDummyBlock
 			);
 		});
 	});
