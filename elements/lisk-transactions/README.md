@@ -26,8 +26,8 @@ The lifecycle of a transaction in general in Lisk SDK can be summarized as follo
 1. A transaction is created and signed (off-chain). The script to do it is in `src/create_and_sign.ts`.
 2. The transaction is sent to a network. This can be done by a third party tool (like `curl` or `Postman`), but also using Lisk Commander, Lisk Hub or Mobile. All of the tools need to be authorized to access an HTTP API of a network node.
 3. A network node receives a transaction and after a lightweight schema validation, adds it to a transaction pool.
-4. In TransactionPool the transaction gets `validated`, also `validatedAgainstOtherTransactions` of the same type.
-5. Valid transactions go to the `prepare` step of the StateStore, which to limit the I/O database operations prepares all the information relevant to properly `validate`, `apply` or `undo` the transaction. The store with the prepared data is a parameter of the mentioned methods.
+4. In the transaction pool, the transactions are firstly `validated`. In this step, only static checks are performed. These include schema validation and signature validation.
+5. Validated transactions go to the `prepare` step defined in the transaction class, which to limit the I/O database operations prepares all the information relevant to properly `apply` or `undo` the transaction. The store with the prepared data is a parameter of the mentioned methods.
 6. Delegates are forging the valid transactions into the blocks and broadcasting the blocks to the network. Each network node performs the `apply` and `applyAsset` steps after the successful `validate` step.
 7. It is probable, especially shortly after a block is applied, that due to the decentralized network conditions a node does the `undo` step and the block containing all of the included transactions get reverted in favour of a competing block.
 
