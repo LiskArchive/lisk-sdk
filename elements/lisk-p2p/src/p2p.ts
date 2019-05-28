@@ -136,14 +136,18 @@ export class P2P extends EventEmitter {
 	) => void;
 	private readonly _handleFailedToPushNodeInfo: (error: Error) => void;
 	private readonly _handleFailedToFetchPeerInfo: (error: Error) => void;
-	private readonly _handlePeerConnect: (
+	private readonly _handleOutboundPeerConnect: (
 		peerInfo: P2PDiscoveredPeerInfo,
 	) => void;
-	private readonly _handlePeerConnectAbort: (
+	private readonly _handleOutboundPeerConnectAbort: (
 		peerInfo: P2PDiscoveredPeerInfo,
 	) => void;
-	private readonly _handlePeerCloseOutbound: (closePacket: P2PClosePacket) => void;
-	private readonly _handlePeerCloseInbound: (closePacket: P2PClosePacket) => void;
+	private readonly _handlePeerCloseOutbound: (
+		closePacket: P2PClosePacket,
+	) => void;
+	private readonly _handlePeerCloseInbound: (
+		closePacket: P2PClosePacket,
+	) => void;
 	private readonly _handlePeerInfoUpdate: (
 		peerInfo: P2PDiscoveredPeerInfo,
 	) => void;
@@ -177,7 +181,7 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_MESSAGE_RECEIVED, message);
 		};
 
-		this._handlePeerConnect = (peerInfo: P2PDiscoveredPeerInfo) => {
+		this._handleOutboundPeerConnect = (peerInfo: P2PDiscoveredPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
 			const foundTriedPeer = this._triedPeers.get(peerId);
 			// On successful connection remove it from newPeers list
@@ -198,7 +202,7 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_CONNECT_OUTBOUND, peerInfo);
 		};
 
-		this._handlePeerConnectAbort = (peerInfo: P2PPeerInfo) => {
+		this._handleOutboundPeerConnectAbort = (peerInfo: P2PPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
 			if (this._triedPeers.has(peerId)) {
 				this._triedPeers.delete(peerId);
@@ -485,18 +489,19 @@ export class P2P extends EventEmitter {
 					return;
 				}
 
-				const isNewPeer = this._peerPool.addInboundPeer(
-					peerId,
-					incomingPeerInfo,
-					socket,
-				);
+				const existingPeer = this._peerPool.getPeer(peerId);
 
-				if (isNewPeer) {
+				if (!existingPeer) {
+					this._peerPool.addInboundPeer(incomingPeerInfo, socket);
 					this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerInfo);
 					this.emit(EVENT_NEW_PEER, incomingPeerInfo);
 				}
 
-				if (!this._newPeers.has(peerId) && !this._triedPeers.has(peerId)) {
+				if (this._triedPeers.has(peerId)) {
+					this._triedPeers.delete(peerId);
+				}
+
+				if (!this._newPeers.has(peerId)) {
 					this._newPeers.set(peerId, incomingPeerInfo);
 				}
 			},
@@ -674,8 +679,11 @@ export class P2P extends EventEmitter {
 	private _bindHandlersToPeerPool(peerPool: PeerPool): void {
 		peerPool.on(EVENT_REQUEST_RECEIVED, this._handlePeerPoolRPC);
 		peerPool.on(EVENT_MESSAGE_RECEIVED, this._handlePeerPoolMessage);
-		peerPool.on(EVENT_CONNECT_OUTBOUND, this._handlePeerConnect);
-		peerPool.on(EVENT_CONNECT_ABORT_OUTBOUND, this._handlePeerConnectAbort);
+		peerPool.on(EVENT_CONNECT_OUTBOUND, this._handleOutboundPeerConnect);
+		peerPool.on(
+			EVENT_CONNECT_ABORT_OUTBOUND,
+			this._handleOutboundPeerConnectAbort,
+		);
 		peerPool.on(EVENT_CLOSE_INBOUND, this._handlePeerCloseInbound);
 		peerPool.on(EVENT_CLOSE_OUTBOUND, this._handlePeerCloseOutbound);
 		peerPool.on(EVENT_UPDATED_PEER_INFO, this._handlePeerInfoUpdate);

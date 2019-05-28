@@ -10,19 +10,19 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
 
-import * as chai from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
-import 'chai/register-expect';
-import * as sinonChai from 'sinon-chai';
-import * as sinon from 'sinon';
+export {
+	constructPeerId,
+	constructPeerIdFromPeerInfo,
+	EVENT_FAILED_PEER_INFO_UPDATE,
+	EVENT_MESSAGE_RECEIVED,
+	EVENT_REQUEST_RECEIVED,
+	EVENT_UPDATED_PEER_INFO,
+	Peer,
+	PeerConfig,
+	REMOTE_RPC_GET_ALL_PEERS_LIST,
+} from './base';
 
-process.env.NODE_ENV = 'test';
-
-[sinonChai, chaiAsPromised].forEach(plugin => chai.use(plugin));
-
-global.sandbox = sinon.createSandbox({
-	useFakeTimers: process.env.USE_REAL_TIMERS !== 'true',
-});
+export * from './inbound';
+export * from './outbound';

@@ -38,7 +38,7 @@ describe('Posting transaction (type 0)', () => {
 		});
 	}
 
-	before('establish client WS connection to server', async () => {
+	before(async () => {
 		p2p = new P2P(generatePeerHeader());
 		await p2p.start();
 	});

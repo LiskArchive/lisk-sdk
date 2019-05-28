@@ -12,10 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
 import { expect } from 'chai';
 
-import { Peer } from '../../src/peer';
-import { P2PDiscoveredPeerInfo } from '../../src/p2p_types';
+import { Peer } from '../../../src/peer';
+import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 
 describe('peer', () => {
 	const defaultPeerInfo: P2PDiscoveredPeerInfo = {
@@ -57,10 +58,6 @@ describe('peer', () => {
 			return expect(defaultPeer.wsPort)
 				.to.be.a('number')
 				.and.be.eql(5001);
-		});
-
-		it('should get inboundSocket property', () => {
-			return expect(defaultPeer.inboundSocket).to.be.undefined;
 		});
 	});
 });
