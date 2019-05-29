@@ -132,6 +132,10 @@ module.exports = class Network {
 					...peerWithoutIp,
 				};
 			}),
+			discoveryInterval: this.options.discoveryInterval,
+			maxOutboundConnections: this.options.maxOutboundConnections,
+			peerBanTime: this.options.peerBanTime,
+			populatorInterval: this.options.populatorInterval,
 		};
 
 		this.p2p = new P2P(p2pConfig);
