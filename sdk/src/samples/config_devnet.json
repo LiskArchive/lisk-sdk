@@ -1,12 +1,12 @@
 {
 	"app": {
-		"ipc": {
-			"enabled": true
-		},
-		"label": "hello-world-app",
+		"label": "devnet-alpha-sdk",
 		"minVersion": "0.0.0",
 		"version": "0.0.0",
-		"protocolVersion": "0.0"
+		"protocolVersion": "1.1",
+		"ipc": {
+			"enabled": true
+		}
 	},
 	"components": {
 		"logger": {
