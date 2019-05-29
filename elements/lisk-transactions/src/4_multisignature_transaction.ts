@@ -115,10 +115,6 @@ export class MultisignatureTransaction extends BaseTransaction {
 		return Buffer.concat([minBuffer, lifetimeBuffer, keysgroupBuffer]);
 	}
 
-	public assetToJSON(): MultiSignatureAsset {
-		return this.asset;
-	}
-
 	public async prepare(store: StateStorePrepare): Promise<void> {
 		const membersAddresses = extractPublicKeysFromAsset(
 			this.asset.multisignature.keysgroup,
