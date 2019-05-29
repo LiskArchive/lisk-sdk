@@ -43,7 +43,9 @@ While implementing a custom transaction, it is necessary to implement some of th
 
 ### Interface
 
-#### Required
+Over the course of the alpha phase there will be significant changes in the Lisk protocol and implementation. We will be working towards the great developer experience while using Alpha SDK by reducing and optimizing the set of functions in custom transaction's API in the following releases. We strongly rely on the community feedback of how the interfaces can be improved.
+
+#### Required methods
 
 All of the abstract methods and properties on the base transaction's interface are required to implement. Those are:
 
@@ -79,7 +81,7 @@ Invalidate the transaction by pushing an error into the result array.
 
 Prepare the relevant information about the accounts, which will be accessible in the later steps during the `apply` and `undo` steps.
 
-#### Performance
+#### Additional methods
 
 To increase your application's performance, you should override the following functions: `verifyAgainstTransactions`, `assetFromSync`, `fromSync`.
 
