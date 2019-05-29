@@ -6,10 +6,13 @@
 
 Transactions are the essential part of the blockchain applications created using Lisk SDK.
 
-The Lisk SDK provides a base transaction from which developers can inherit and extend from,
-in which the application-specific business logic can be defined according to an abstract interface that is common across all transaction types.
+The Lisk SDK provides a class [BaseTransaction](https://github.com/LiskHQ/lisk-sdk/blob/development/elements/lisk-transactions/src/base_transaction.ts) from which developers can inherit and extend from, to create __custom transaction types__.```
+The application-specific business logic for custom transaction types is defined according to an abstract [interface](#interface) that is common across all transaction types.
 
-All of the default for Lisk SDK transactions are implementing the abstract interface of base transaction, therefore can be used as a role model for the custom transactions. All of them implement a different use-case of the Lisk network, i.e:
+All of the default transaction types of the Lisk SDK transactions implement the abstract interface of the base transaction, and therefore can be used as a role model for custom transactions.
+It's also possible to inherit from one of the default transaction types, in order to extent or modify them.
+
+The default transaction types each implement a different use-case of the Lisk network, i.e:
 
 0. Balance transfer (type 0),
 1. Second signature registration (type 1)
@@ -17,7 +20,11 @@ All of the default for Lisk SDK transactions are implementing the abstract inter
 1. Delegate vote (type 3)
 1. Multisignature account registration (type 4)
 
-First 10 transaction types are reserved for the Lisk protocol, don't use them to register custom transactions.
+> The first 10 transaction types are reserved for the [Lisk protocol](https://lisk.io/documentation/lisk-protocol), don't use them to register custom transactions.
+
+For a complete list of all default transaction types, check out the section [Lisk Transactions](https://lisk.io/documentation/lisk-protocol/transactions) of the Lisk Protocol.
+
+Check out the Lisk SDK [Example Apps](https://github.com/LiskHQ/lisk-sdk-test-app) for simple [code examples of custom transaction types](https://github.com/LiskHQ/lisk-sdk-test-app/blob/development/hello_world/hello_transaction.js).
 
 ### Lifecycle
 
