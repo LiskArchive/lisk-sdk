@@ -2,7 +2,11 @@
 	"app": {
 		"ipc": {
 			"enabled": true
-		}
+		},
+		"label": "hello-world-app",
+		"minVersion": "0.0.0",
+		"version": "0.0.0",
+		"protocolVersion": "0.0"
 	},
 	"components": {
 		"logger": {
