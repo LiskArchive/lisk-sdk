@@ -451,7 +451,7 @@ describe('blocks/verify', () => {
 
 	describe('verifyReward', () => {
 		const blockRewardsExceptions = {
-			blockReward: [1, 2, 3, 4],
+			blockRewards: [1, 2, 3, 4],
 		};
 
 		let blockRewardStub;
