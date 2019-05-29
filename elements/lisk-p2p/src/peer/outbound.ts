@@ -298,8 +298,7 @@ export const connectAndRequest = async (
 							`Failed to handle response for procedure ${
 								requestPacket.procedure
 							}`,
-							basicPeerInfo.ipAddress,
-							basicPeerInfo.wsPort,
+							`${basicPeerInfo.ipAddress}:${basicPeerInfo.wsPort}`,
 						),
 					);
 				},

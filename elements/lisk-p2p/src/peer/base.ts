@@ -14,6 +14,10 @@
  */
 
 import { EventEmitter } from 'events';
+import {
+	FORBIDDEN_CONNECTION,
+	FORBIDDEN_CONNECTION_REASON,
+} from '../disconnect_status_codes';
 import { RPCResponseError } from '../errors';
 
 import {
@@ -23,6 +27,7 @@ import {
 	P2PPeerInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
+	ProtocolMessagePacket,
 	ProtocolNodeInfo,
 } from '../p2p_types';
 
@@ -65,6 +70,8 @@ export const EVENT_REQUEST_RECEIVED = 'requestReceived';
 export const EVENT_INVALID_REQUEST_RECEIVED = 'invalidRequestReceived';
 export const EVENT_MESSAGE_RECEIVED = 'messageReceived';
 export const EVENT_INVALID_MESSAGE_RECEIVED = 'invalidMessageReceived';
+export const EVENT_BAN_PEER = 'banPeer';
+export const EVENT_UNBAN_PEER = 'banPeer';
 
 // Remote event or RPC names sent to or received from peers.
 export const REMOTE_EVENT_RPC_REQUEST = 'rpc-request';
@@ -76,6 +83,8 @@ export const REMOTE_RPC_GET_ALL_PEERS_LIST = 'list';
 
 export const DEFAULT_CONNECT_TIMEOUT = 2000;
 export const DEFAULT_ACK_TIMEOUT = 2000;
+export const DEFAULT_REPUTATION_SCORE = 100;
+export const DEFAULT_RATE_INTERVAL = 1000;
 
 export enum ConnectionState {
 	CONNECTING = 'connecting',
@@ -118,6 +127,9 @@ export class Peer extends EventEmitter {
 	protected readonly _ipAddress: string;
 	protected readonly _wsPort: number;
 	private readonly _height: number;
+	private _reputation: number;
+	private _callCounter: Map<string, number>;
+	private readonly _counterResetInterval: NodeJS.Timer;
 	protected _peerInfo: P2PDiscoveredPeerInfo;
 	protected readonly _peerConfig: PeerConfig;
 	protected _nodeInfo: P2PNodeInfo | undefined;
@@ -145,6 +157,11 @@ export class Peer extends EventEmitter {
 		this._wsPort = peerInfo.wsPort;
 		this._id = constructPeerId(this._ipAddress, this._wsPort);
 		this._height = peerInfo.height ? peerInfo.height : 0;
+		this._reputation = DEFAULT_REPUTATION_SCORE;
+		this._callCounter = new Map();
+		this._counterResetInterval = setInterval(() => {
+			this._callCounter = new Map();
+		}, DEFAULT_RATE_INTERVAL);
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawRPC = (
@@ -159,15 +176,18 @@ export class Peer extends EventEmitter {
 			} catch (err) {
 				this.emit(EVENT_INVALID_REQUEST_RECEIVED, {
 					packet,
-					peerId: this._id
+					peerId: this._id,
 				});
 
 				return;
 			}
+
+			const rate = this._getPeerRate(packet as P2PRequestPacket);
 			const request = new P2PRequest(
 				rawRequest.procedure,
 				rawRequest.data,
 				this._id,
+				rate,
 				respond,
 			);
 
@@ -184,22 +204,26 @@ export class Peer extends EventEmitter {
 		this._handleRawMessage = (packet: unknown) => {
 			// TODO later: Switch to LIP protocol format.
 			// tslint:disable-next-line:no-let
-			let protocolMessage;
+			let message;
 			try {
-				protocolMessage = validateProtocolMessage(packet);
+				message = validateProtocolMessage(packet);
 			} catch (err) {
 				this.emit(EVENT_INVALID_MESSAGE_RECEIVED, {
 					packet,
-					peerId: this._id
+					peerId: this._id,
 				});
 
 				return;
 			}
 
-			this.emit(EVENT_MESSAGE_RECEIVED, {
-				...protocolMessage,
-				peerId: this._id
-			});
+			const rate = this._getPeerRate(packet as P2PRequestPacket);
+			const messageWithRateInfo = {
+				...message,
+				peerId: this._id,
+				rate,
+			};
+
+			this.emit(EVENT_MESSAGE_RECEIVED, messageWithRateInfo);
 		};
 
 		// TODO later: Delete the following legacy message handlers.
@@ -251,6 +275,13 @@ export class Peer extends EventEmitter {
 		return this._peerInfo;
 	}
 
+	public applyPenalty(penalty: number): void {
+		this._reputation -= penalty;
+		if (this._reputation <= 0) {
+			this._banPeer();
+		}
+	}
+
 	public get wsPort(): number {
 		return this._wsPort;
 	}
@@ -291,6 +322,7 @@ export class Peer extends EventEmitter {
 	}
 
 	public disconnect(code: number = 1000, reason?: string): void {
+		clearInterval(this._counterResetInterval);
 		if (!this._socket) {
 			throw new Error('Peer socket does not exist');
 		}
@@ -347,8 +379,7 @@ export class Peer extends EventEmitter {
 						reject(
 							new RPCResponseError(
 								`Failed to handle response for procedure ${packet.procedure}`,
-								this.ipAddress,
-								this.wsPort,
+								`${this.ipAddress}:${this.wsPort}`,
 							),
 						);
 					},
@@ -368,7 +399,6 @@ export class Peer extends EventEmitter {
 			throw new RPCResponseError(
 				'Failed to fetch peer list of peer',
 				this.ipAddress,
-				this.wsPort,
 			);
 		}
 	}
@@ -385,8 +415,7 @@ export class Peer extends EventEmitter {
 
 			throw new RPCResponseError(
 				'Failed to fetch peer info of peer',
-				this.ipAddress,
-				this.wsPort,
+				`${this.ipAddress}:${this.wsPort}`,
 			);
 		}
 
@@ -422,5 +451,22 @@ export class Peer extends EventEmitter {
 			? convertNodeInfoToLegacyFormat(this._nodeInfo)
 			: {};
 		request.end(legacyNodeInfo);
+	}
+
+	private _banPeer(): void {
+		this.emit(EVENT_BAN_PEER, this._id);
+		this.disconnect(FORBIDDEN_CONNECTION, FORBIDDEN_CONNECTION_REASON);
+	}
+
+	private _getPeerRate(packet: unknown): number {
+		const key = (packet as P2PRequestPacket).procedure
+			? (packet as P2PRequestPacket).procedure
+			: (packet as ProtocolMessagePacket).event;
+		if (!this._callCounter.has(key)) {
+			this._callCounter.set(key, 0);
+		}
+		const callCount = (this._callCounter.get(key) as number) + 1;
+
+		return callCount / DEFAULT_RATE_INTERVAL;
 	}
 }

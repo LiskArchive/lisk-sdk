@@ -116,6 +116,7 @@ describe('Integration tests for P2P library', () => {
 					ackTimeout: 5000,
 					// Set a different discoveryInterval for each node; that way they don't keep trying to discover each other at the same time.
 					discoveryInterval: DISCOVERY_INTERVAL + index * 11,
+					peerBanTime: 100,
 					nodeInfo: {
 						wsPort: nodePort,
 						nethash:
@@ -165,6 +166,63 @@ describe('Integration tests for P2P library', () => {
 
 					expect(peerPorts).to.be.eql(expectedPeerPorts);
 				});
+			});
+		});
+
+		describe('Peer banning mechanism', () => {
+			it('should not ban a bad peer for a 10 point penalty', async () => {
+				const firstP2PNode = p2pNodeList[0];
+				const { connectedPeers } = firstP2PNode.getNetworkStatus();
+				const badPeer = connectedPeers[1];
+				const peerPenalty = {
+					peerId: `${badPeer.ipAddress}:${badPeer.wsPort}`,
+					penalty: 10,
+				};
+				firstP2PNode.applyPenalty(peerPenalty);
+				const {
+					connectedPeers: updatedConnectedPeers,
+				} = firstP2PNode.getNetworkStatus();
+				expect(updatedConnectedPeers.map(peer => peer.wsPort)).to.include(
+					badPeer.wsPort,
+				);
+			});
+
+			it('should ban a bad peer for a 100 point penalty', async () => {
+				const firstP2PNode = p2pNodeList[0];
+				const { connectedPeers } = firstP2PNode.getNetworkStatus();
+				const badPeer = connectedPeers[2];
+				const peerPenalty = {
+					peerId: `${badPeer.ipAddress}:${badPeer.wsPort}`,
+					penalty: 100,
+				};
+				firstP2PNode.applyPenalty(peerPenalty);
+				const {
+					connectedPeers: updatedConnectedPeers,
+				} = firstP2PNode.getNetworkStatus();
+
+				expect(updatedConnectedPeers.map(peer => peer.wsPort)).to.not.include(
+					badPeer.wsPort,
+				);
+			});
+
+			it('should unban a peer after the ban period', async () => {
+				const firstP2PNode = p2pNodeList[0];
+				const { connectedPeers } = firstP2PNode.getNetworkStatus();
+				const badPeer = connectedPeers[2];
+				const peerPenalty = {
+					peerId: `${badPeer.ipAddress}:${badPeer.wsPort}`,
+					penalty: 100,
+				};
+				firstP2PNode.applyPenalty(peerPenalty);
+				// Wait for ban time to expire and peer to be re-discovered
+				await wait(200);
+				const {
+					connectedPeers: updatedConnectedPeers,
+				} = firstP2PNode.getNetworkStatus();
+
+				expect(updatedConnectedPeers.map(peer => peer.wsPort)).to.include(
+					badPeer.wsPort,
+				);
 			});
 		});
 
@@ -349,7 +407,6 @@ describe('Integration tests for P2P library', () => {
 						  ];
 
 				const nodePort = NETWORK_START_PORT + index;
-
 				return new P2P({
 					blacklistedPeers: [],
 					connectTimeout: 5000,
@@ -567,9 +624,15 @@ describe('Integration tests for P2P library', () => {
 				expect(collectedMessages).to.be.an('array');
 				expect(collectedMessages.length).to.be.eql(9);
 				expect(collectedMessages[0]).to.have.property('message');
-				expect(collectedMessages[0].message).to.have.property('event').which.is.equal('bar');
-				expect(collectedMessages[0].message).to.have.property('data').which.is.equal('test');
-				expect(collectedMessages[0].message).to.have.property('peerId').which.is.equal(`127.0.0.1:${NETWORK_START_PORT}`);
+				expect(collectedMessages[0].message)
+					.to.have.property('event')
+					.which.is.equal('bar');
+				expect(collectedMessages[0].message)
+					.to.have.property('data')
+					.which.is.equal('test');
+				expect(collectedMessages[0].message)
+					.to.have.property('peerId')
+					.which.is.equal(`127.0.0.1:${NETWORK_START_PORT}`);
 			});
 		});
 
@@ -670,18 +733,24 @@ describe('Integration tests for P2P library', () => {
 				firstP2PNode.sendToPeer(
 					{
 						event: 'foo',
-						data: 123
+						data: 123,
 					},
-					targetPeerId
+					targetPeerId,
 				);
 
 				await wait(100);
 
 				expect(collectedMessages.length).to.equal(1);
-				expect(collectedMessages[0]).to.have.property('nodePort').which.is.equal(targetPeerPort);
+				expect(collectedMessages[0])
+					.to.have.property('nodePort')
+					.which.is.equal(targetPeerPort);
 				expect(collectedMessages[0]).to.have.property('request');
-				expect(collectedMessages[0].request).to.have.property('event').which.is.equal('foo');
-				expect(collectedMessages[0].request).to.have.property('data').which.is.equal(123);
+				expect(collectedMessages[0].request)
+					.to.have.property('event')
+					.which.is.equal('foo');
+				expect(collectedMessages[0].request)
+					.to.have.property('data')
+					.which.is.equal(123);
 			});
 		});
 
@@ -697,7 +766,9 @@ describe('Integration tests for P2P library', () => {
 							request,
 						});
 						if (request.procedure === 'getGreeting') {
-							request.end(`Hello ${request.data} from peer ${p2p.nodeInfo.wsPort}`);
+							request.end(
+								`Hello ${request.data} from peer ${p2p.nodeInfo.wsPort}`,
+							);
 						} else {
 							request.end(456);
 						}
@@ -714,9 +785,9 @@ describe('Integration tests for P2P library', () => {
 				await firstP2PNode.requestFromPeer(
 					{
 						procedure: 'proc',
-						data: 123456
+						data: 123456,
 					},
-					targetPeerId
+					targetPeerId,
 				);
 
 				expect(collectedMessages.length).to.equal(1);
@@ -734,13 +805,15 @@ describe('Integration tests for P2P library', () => {
 				const response = await firstP2PNode.requestFromPeer(
 					{
 						procedure: 'getGreeting',
-						data: 'world'
+						data: 'world',
 					},
-					targetPeerId
+					targetPeerId,
 				);
-				
+
 				expect(response).to.have.property('data');
-				expect(response.data).to.equal(`Hello world from peer ${targetPeerPort}`);
+				expect(response.data).to.equal(
+					`Hello world from peer ${targetPeerPort}`,
+				);
 			});
 		});
 

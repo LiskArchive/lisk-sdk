@@ -32,7 +32,10 @@ export interface P2PMessagePacket extends P2PPacket {
 	readonly event: string;
 }
 
-export interface P2PPenalty {}
+export interface P2PPenalty {
+	readonly peerId: string;
+	readonly penalty: number;
+}
 
 // Allows the user to provide custom fields.
 export interface P2PInfoOptions {
@@ -85,6 +88,7 @@ export interface P2PConfig {
 	readonly peerSelectionForRequest?: P2PPeerSelectionForRequest;
 	readonly peerSelectionForConnection?: P2PPeerSelectionForConnection;
 	readonly peerHandshakeCheck?: P2PCheckPeerCompatibility;
+	readonly peerBanTime?: number;
 }
 
 // Network info exposed by the P2P library.

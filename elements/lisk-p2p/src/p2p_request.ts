@@ -25,15 +25,19 @@ export class P2PRequest {
 	) => void;
 	private readonly _peerId: string;
 	private _wasResponseSent: boolean;
+	private readonly _rate: number;
 
 	public constructor(
 		procedure: string,
 		data: unknown,
 		peerId: string,
+		rate: number,
 		respondCallback: (responseError?: Error, responseData?: unknown) => void,
 	) {
 		this._procedure = procedure;
 		this._data = data;
+		this._peerId = peerId;
+		this._rate = rate;
 		this._respondCallback = (
 			responseError?: Error,
 			responsePacket?: P2PResponsePacket,
@@ -58,7 +62,11 @@ export class P2PRequest {
 		return this._data;
 	}
 
-	public get peerId(): string {
+	public get rate(): unknown {
+		return this._rate;
+	}
+
+	public get peerId(): unknown {
 		return this._peerId;
 	}
 

@@ -29,6 +29,8 @@ const {
 	EVENT_FAILED_PEER_INFO_UPDATE,
 	EVENT_REQUEST_RECEIVED,
 	EVENT_MESSAGE_RECEIVED,
+	EVENT_BAN_PEER,
+	EVENT_UNBAN_PEER,
 } = require('@liskhq/lisk-p2p');
 const randomstring = require('randomstring');
 const lookupPeersIPs = require('./lookup_peers_ips');
@@ -244,6 +246,14 @@ module.exports = class Network {
 			this.channel.publish('network:event', packet);
 		});
 
+		this.p2p.on(EVENT_BAN_PEER, peerId => {
+			this.logger.error(`Peer ${peerId} has been temporarily banned.`);
+		});
+
+		this.p2p.on(EVENT_UNBAN_PEER, peerId => {
+			this.logger.error(`Ban on peer ${peerId} has expired.`);
+		});
+
 		// ---- END: Bind event handlers ----
 
 		try {
@@ -270,15 +280,21 @@ module.exports = class Network {
 					data: action.params.data,
 				}),
 			requestFromPeer: async action =>
-				this.p2p.requestFromPeer({
-					procedure: action.params.procedure,
-					data: action.params.data,
-				}, action.params.peer),
+				this.p2p.requestFromPeer(
+					{
+						procedure: action.params.procedure,
+						data: action.params.data,
+					},
+					action.params.peerId
+				),
 			emitToPeer: action =>
-				this.p2p.sendToPeer({
-					event: action.params.event,
-					data: action.params.data,
-				}, action.params.peer),
+				this.p2p.sendToPeer(
+					{
+						event: action.params.event,
+						data: action.params.data,
+					},
+					action.params.peerId
+				),
 			getNetworkStatus: () => this.p2p.getNetworkStatus(),
 			getPeers: action => {
 				const peerList = getConsolidatedPeersList(this.p2p.getNetworkStatus());
@@ -290,7 +306,8 @@ module.exports = class Network {
 
 				return getCountByFilter(peerList, action.params);
 			},
-			applyPenalty: action => this.p2p.applyPenalty(action.params),
+			applyPenalty: action =>
+				this.p2p.applyPenalty(action.params.peerId, action.params.penalty),
 		};
 	}
 

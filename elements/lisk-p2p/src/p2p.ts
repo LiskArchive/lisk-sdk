@@ -68,6 +68,7 @@ export { P2PRequest };
 import { selectForConnection, selectPeers } from './peer_selection';
 
 import {
+	EVENT_BAN_PEER,
 	EVENT_CLOSE_INBOUND,
 	EVENT_CLOSE_OUTBOUND,
 	EVENT_CONNECT_ABORT_OUTBOUND,
@@ -80,6 +81,7 @@ import {
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_OUTBOUND_SOCKET_ERROR,
 	EVENT_REQUEST_RECEIVED,
+	EVENT_UNBAN_PEER,
 	EVENT_UPDATED_PEER_INFO,
 	MAX_PEER_LIST_BATCH_SIZE,
 	PeerPool,
@@ -100,6 +102,8 @@ export {
 	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_UPDATED_PEER_INFO,
 	EVENT_FAILED_PEER_INFO_UPDATE,
+	EVENT_BAN_PEER,
+	EVENT_UNBAN_PEER,
 };
 
 export const EVENT_NEW_INBOUND_PEER = 'newInboundPeer';
@@ -108,6 +112,7 @@ export const EVENT_NEW_PEER = 'newPeer';
 
 export const NODE_HOST_IP = '0.0.0.0';
 export const DEFAULT_DISCOVERY_INTERVAL = 30000;
+export const DEFAULT_BAN_TIME = 86400;
 
 const BASE_10_RADIX = 10;
 
@@ -122,6 +127,7 @@ export class P2P extends EventEmitter {
 	private _isActive: boolean;
 	private readonly _newPeers: Map<string, P2PDiscoveredPeerInfo>;
 	private readonly _triedPeers: Map<string, P2PDiscoveredPeerInfo>;
+	private readonly _bannedPeers: Set<string>;
 	private readonly _discoveryInterval: number;
 	private _discoveryIntervalId: NodeJS.Timer | undefined;
 
@@ -152,6 +158,8 @@ export class P2P extends EventEmitter {
 		peerInfo: P2PDiscoveredPeerInfo,
 	) => void;
 	private readonly _handleFailedPeerInfoUpdate: (error: Error) => void;
+	private readonly _handleBanPeer: (peerId: string) => void;
+	private readonly _handleUnbanPeer: (peerId: string) => void;
 	private readonly _handleOutboundSocketError: (error: Error) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
 	private readonly _peerHandshakeCheck: P2PCheckPeerCompatibility;
@@ -162,7 +170,7 @@ export class P2P extends EventEmitter {
 		this._isActive = false;
 		this._newPeers = new Map();
 		this._triedPeers = new Map();
-
+		this._bannedPeers = new Set();
 		this._httpServer = http.createServer();
 		this._scServer = attach(this._httpServer) as SCServerUpdated;
 
@@ -244,6 +252,24 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
 		};
 
+		this._handleBanPeer = (peerId: string) => {
+			this._bannedPeers.add(peerId.split(':')[0]);
+			if (this._triedPeers.has(peerId)) {
+				this._triedPeers.delete(peerId);
+			}
+			if (this._newPeers.has(peerId)) {
+				this._newPeers.delete(peerId);
+			}
+			// Re-emit the message to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_BAN_PEER, peerId);
+		};
+
+		this._handleUnbanPeer = (peerId: string) => {
+			this._bannedPeers.delete(peerId.split(':')[0]);
+			// Re-emit the message to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_UNBAN_PEER, peerId);
+		};
+
 		this._handleDiscoveredPeer = (detailedPeerInfo: P2PDiscoveredPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(detailedPeerInfo);
 			if (!this._triedPeers.has(peerId)) {
@@ -288,6 +314,7 @@ export class P2P extends EventEmitter {
 			peerSelectionForConnection: config.peerSelectionForConnection
 				? config.peerSelectionForConnection
 				: selectForConnection,
+			peerBanTime: config.peerBanTime ? config.peerBanTime : DEFAULT_BAN_TIME,
 		});
 
 		this._bindHandlersToPeerPool(this._peerPool);
@@ -336,9 +363,10 @@ export class P2P extends EventEmitter {
 		return this._nodeInfo;
 	}
 
-	/* tslint:disable:next-line: prefer-function-over-method */
-	public applyPenalty(penalty: P2PPenalty): void {
-		penalty;
+	public applyPenalty(peerPenalty: P2PPenalty): void {
+		if (!this._isTrustedPeer(peerPenalty.peerId)) {
+			this._peerPool.applyPenalty(peerPenalty);
+		}
 	}
 
 	public getNetworkStatus(): P2PNetworkStatus {
@@ -359,7 +387,10 @@ export class P2P extends EventEmitter {
 		this._peerPool.send(message);
 	}
 
-	public async requestFromPeer(packet: P2PRequestPacket, peerId: string): Promise<P2PResponsePacket> {
+	public async requestFromPeer(
+		packet: P2PRequestPacket,
+		peerId: string,
+	): Promise<P2PResponsePacket> {
 		return this._peerPool.requestFromPeer(packet, peerId);
 	}
 
@@ -455,6 +486,16 @@ export class P2P extends EventEmitter {
 						socket,
 						INVALID_CONNECTION_QUERY_CODE,
 						INVALID_CONNECTION_QUERY_REASON,
+					);
+
+					return;
+				}
+
+				if (this._bannedPeers.has(socket.remoteAddress)) {
+					this._disconnectSocketDueToFailedHandshake(
+						socket,
+						FORBIDDEN_CONNECTION,
+						FORBIDDEN_CONNECTION_REASON,
 					);
 
 					return;
@@ -647,15 +688,27 @@ export class P2P extends EventEmitter {
 		request.end(protocolPeerInfoList);
 	}
 
+	private _isTrustedPeer(peerId: string): boolean {
+		// TODO: Also skip if whitelisted or fixed
+		const isSeed = this._config.seedPeers.find(
+			seedPeer =>
+				peerId === constructPeerId(seedPeer.ipAddress, seedPeer.wsPort),
+		);
+
+		return !!isSeed;
+	}
+
 	public async start(): Promise<void> {
 		if (this._isActive) {
 			throw new Error('Cannot start the node because it is already active');
 		}
 		await this._startPeerServer();
+
 		// Fetch status of all the seed peers and then start the discovery
 		const seedPeerInfos = await this._fetchSeedPeerStatus(
 			this._config.seedPeers,
 		);
+
 		// Add seed's peerinfos in tried peer as we already tried them to fetch status
 		seedPeerInfos.forEach(seedInfo => {
 			const peerId = constructPeerIdFromPeerInfo(seedInfo);
@@ -702,5 +755,7 @@ export class P2P extends EventEmitter {
 		);
 		peerPool.on(EVENT_OUTBOUND_SOCKET_ERROR, this._handleOutboundSocketError);
 		peerPool.on(EVENT_INBOUND_SOCKET_ERROR, this._handleInboundSocketError);
+		peerPool.on(EVENT_BAN_PEER, this._handleBanPeer);
+		peerPool.on(EVENT_UNBAN_PEER, this._handleUnbanPeer);
 	}
 }
