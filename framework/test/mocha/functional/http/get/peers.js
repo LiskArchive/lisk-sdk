@@ -297,10 +297,14 @@ describe('GET /peers', () => {
 	describe('node does not connect to itself', () => {
 		it('should not contain itself in its peer list', async () => {
 			return peersEndpoint.makeRequest({}, 200).then(res => {
-				expect(res.body.data).is.an('array');
+				const responseData = res.body.data;
 
-				res.body.data.forEach(peer => {
-					expect(peer.wsPort).to.be.eql(p2p1.nodeInfo.wsPort);
+				expect(responseData).is.an('array');
+
+				responseData.forEach(peer => {
+					expect(peer.wsPort).to.not.be.eql(
+						__testContext.config.modules.network.wsPort
+					);
 				});
 			});
 		});
