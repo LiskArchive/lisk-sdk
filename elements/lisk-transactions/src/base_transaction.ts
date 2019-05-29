@@ -122,7 +122,6 @@ export abstract class BaseTransaction {
 		MultisignatureStatus.UNKNOWN;
 
 	public abstract prepare(store: StateStorePrepare): Promise<void>;
-	protected abstract assetToBytes(): Buffer;
 	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
 	protected abstract applyAsset(
 		store: StateStore,
@@ -524,6 +523,10 @@ export abstract class BaseTransaction {
 
 	public assetToJSON(): object {
 		return this.asset;
+	}
+
+	protected assetToBytes(): Buffer {
+		return Buffer.from(JSON.stringify(this.asset), 'utf-8');
 	}
 
 	private _verify(sender: Account): ReadonlyArray<TransactionError> {
