@@ -123,7 +123,6 @@ export abstract class BaseTransaction {
 	protected _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.UNKNOWN;
 
-	public abstract prepare(store: StateStorePrepare): Promise<void>;
 	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
 	protected abstract applyAsset(
 		store: StateStore,
@@ -174,7 +173,6 @@ export abstract class BaseTransaction {
 		this.height = tx.height;
 		this.receivedAt = tx.receivedAt ? new Date(tx.receivedAt) : undefined;
 		this.relays = typeof tx.relays === 'number' ? tx.relays : undefined;
-		this.asset = tx.asset || {};
 	}
 
 	public get id(): string {
@@ -349,6 +347,14 @@ export abstract class BaseTransaction {
 		errors.push(...assetErrors);
 
 		return createResponse(this.id, errors);
+	}
+
+	public async prepare(store: StateStorePrepare): Promise<void> {
+		await store.account.cache([
+			{
+				address: this.senderId,
+			},
+		]);
 	}
 
 	public addMultisignature(
