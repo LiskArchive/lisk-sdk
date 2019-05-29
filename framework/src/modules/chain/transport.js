@@ -531,7 +531,7 @@ class Transport {
 						if (err) {
 							return setImmediate(cb, null, {
 								success: false,
-								message: err.message || 'Invalid transaction body',
+								message: err.message || 'Transaction was rejected with errors',
 								errors: err,
 							});
 						}
