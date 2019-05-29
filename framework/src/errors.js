@@ -38,6 +38,7 @@ class SchemaValidationError extends FrameworkError {
 	constructor(errors) {
 		super('Schema validation error');
 		this.errors = errors;
+		this.message = JSON.stringify(errors, null, 2);
 	}
 }
 
