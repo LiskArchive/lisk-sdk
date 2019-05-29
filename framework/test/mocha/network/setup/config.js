@@ -63,13 +63,27 @@ const config = {
 			delete devConfigCopy.modules.http_api.genesisBlock;
 			delete devConfigCopy.modules.http_api.constants;
 			delete devConfigCopy.initialState;
+			delete devConfigCopy.modules.network.loadAsChildProcess;
+			delete devConfigCopy.modules.network.version;
+			delete devConfigCopy.modules.network.minVersion;
+			delete devConfigCopy.modules.network.protocolVersion;
+			delete devConfigCopy.modules.network.nethash;
+			delete devConfigCopy.modules.network.nonce;
+			delete devConfigCopy.modules.network.genesisBlock;
+			delete devConfigCopy.modules.network.constants;
+			delete devConfigCopy.modules.network.lastCommitId;
+			delete devConfigCopy.modules.network.buildVersion;
+			delete devConfigCopy.modules.network.access;
+			delete devConfigCopy.modules.network.list;
+			delete devConfigCopy.NORMALIZER;
+			delete devConfigCopy.ADDITIONAL_DATA;
+			delete devConfigCopy.MAX_VOTES_PER_TRANSACTION;
+			delete devConfigCopy.MULTISIG_CONSTRAINTS;
 
 			const wsPort = 5000 + index;
 			// TODO: Remove when p2p library automatically removes itself
 			devConfigCopy.modules.network.wsPort = wsPort;
-			devConfigCopy.modules.network.access = {
-				blackList: [{ ip: '127.0.0.1', wsPort }],
-			};
+
 			devConfigCopy.modules.http_api.httpPort = 4000 + index;
 			devConfigCopy.app.label = `lisk-devnet-${4000 + index}`;
 			devConfigCopy.components.logger.logFileName = `../logs/lisk_node_${index}.log`;
@@ -78,7 +92,7 @@ const config = {
 
 		// Generate peers for each node
 		configurations.forEach(configuration => {
-			configuration.modules.network.list = config.generatePeers(
+			configuration.modules.network.seedPeers = config.generatePeers(
 				configurations,
 				config.SYNC_MODES.ALL_TO_GROUP,
 				{
@@ -136,8 +150,6 @@ const config = {
 					NODE_ENV: 'test',
 					CUSTOM_CONFIG_FILE: `test/mocha/network/configs/config.node-${index}.json`,
 				},
-				error_file: `test/mocha/network/logs/lisk-test-node-${index}.err.log`,
-				out_file: `test/mocha/network/logs/lisk-test-node-${index}.out.log`,
 				configuration,
 			});
 			return pm2Config;

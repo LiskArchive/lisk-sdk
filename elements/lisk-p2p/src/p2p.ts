@@ -216,6 +216,7 @@ export class P2P extends EventEmitter {
 		this._handlePeerInfoUpdate = (peerInfo: P2PDiscoveredPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
 			const foundTriedPeer = this._triedPeers.get(peerId);
+			const foundNewPeer = this._newPeers.get(peerId);
 
 			if (foundTriedPeer) {
 				const updatedPeerInfo = {
@@ -224,6 +225,15 @@ export class P2P extends EventEmitter {
 					wsPort: foundTriedPeer.wsPort,
 				};
 				this._triedPeers.set(peerId, updatedPeerInfo);
+			}
+
+			if (foundNewPeer) {
+				const updatedPeerInfo = {
+					...peerInfo,
+					ipAddress: foundNewPeer.ipAddress,
+					wsPort: foundNewPeer.wsPort,
+				};
+				this._newPeers.set(peerId, updatedPeerInfo);
 			}
 
 			// Re-emit the message to allow it to bubble up the class hierarchy.
@@ -279,7 +289,10 @@ export class P2P extends EventEmitter {
 			peerSelectionForConnection: config.peerSelectionForConnection
 				? config.peerSelectionForConnection
 				: selectPeersForConnection,
-			sendPeerLimit: config.sendPeerLimit === undefined ? DEFAULT_SEND_PEER_LIMIT : config.sendPeerLimit,
+			sendPeerLimit:
+				config.sendPeerLimit === undefined
+					? DEFAULT_SEND_PEER_LIMIT
+					: config.sendPeerLimit,
 		});
 
 		this._bindHandlersToPeerPool(this._peerPool);
