@@ -31,6 +31,7 @@ const transactionsModule = require('../../../../../src/modules/chain/transaction
 const {
 	TransactionInterfaceAdapter,
 } = require('../../../../../src/modules/chain/interface_adapters');
+const blocksModule = require('../../../../../src/modules/chain/blocks');
 
 const TransportModule = rewire('../../../../../src/modules/chain/transport');
 
@@ -825,20 +826,8 @@ describe('transport', () => {
 						},
 					},
 					blocks: {
-						utils: {
-							loadBlocksData: sinonSandbox
-								.stub()
-								.callsArgWith(1, null, blocksList),
-							loadBlocksDataWS: sinonSandbox
-								.stub()
-								.callsArgWith(1, null, blocksList),
-						},
-						process: {
-							receiveBlockFromNetwork: sinonSandbox.stub().resolves(true),
-						},
-						verify: {
-							addBlockProperties: sinonSandbox.stub().returns(blockMock),
-						},
+						loadBlocksDataWS: sinonSandbox.stub().resolves(blocksList),
+						receiveBlockFromNetwork: sinonSandbox.stub().resolves(true),
 					},
 					transactionPool: {
 						getMultisignatureTransactionList: sinonSandbox
@@ -849,6 +838,9 @@ describe('transport', () => {
 							.returns(transactionsList),
 					},
 				};
+				sinonSandbox
+					.stub(blocksModule, 'addBlockProperties')
+					.returns(blockMock);
 
 				__private = {
 					broadcaster: {},
@@ -1211,7 +1203,7 @@ describe('transport', () => {
 						beforeEach(done => {
 							query = undefined;
 
-							modules.blocks.utils.loadBlocksData = sinonSandbox
+							modules.blocks.loadBlocksData = sinonSandbox
 								.stub()
 								.callsArgWith(1, null, []);
 
@@ -1245,7 +1237,7 @@ describe('transport', () => {
 						});
 
 						it('should call modules.blocks.utils.loadBlocksData with { limit: 34, lastId: query.lastBlockId }', async () =>
-							expect(modules.blocks.utils.loadBlocksDataWS).to.be.calledWith({
+							expect(modules.blocks.loadBlocksDataWS).to.be.calledWith({
 								limit: 34,
 								lastId: query.lastBlockId,
 							}));
@@ -1255,9 +1247,7 @@ describe('transport', () => {
 
 							beforeEach(done => {
 								loadBlockFailed = new Error('Failed to load blocks...');
-								modules.blocks.utils.loadBlocksDataWS = sinonSandbox
-									.stub()
-									.callsArgWith(1, loadBlockFailed);
+								modules.blocks.loadBlocksDataWS.rejects(loadBlockFailed);
 
 								transportInstance.shared.blocks(query, (err, res) => {
 									error = err;
@@ -1349,7 +1339,7 @@ describe('transport', () => {
 							describe('when query.block is defined', () => {
 								it('should call modules.blocks.verify.addBlockProperties with query.block', async () =>
 									expect(
-										modules.blocks.verify.addBlockProperties.calledWith(
+										blocksModule.addBlockProperties.calledWith(
 											postBlockQuery.block
 										)
 									).to.be.true);
@@ -1362,7 +1352,7 @@ describe('transport', () => {
 
 							it('should call block.process.receiveBlockFromNetwork with block', async () => {
 								expect(
-									modules.blocks.process.receiveBlockFromNetwork
+									modules.blocks.receiveBlockFromNetwork
 								).to.be.calledWithExactly(blockMock);
 							});
 						});

@@ -14,30 +14,30 @@
 
 'use strict';
 
-const BlockReward = require('../../../../../../src/modules/chain/logic/block_reward');
+const {
+	BlockReward,
+} = require('../../../../../../src/modules/chain/blocks/block_reward');
 const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 
-const { REWARDS, TOTAL_AMOUNT } = __testContext.config.constants;
-
 describe('BlockReward @slow', () => {
-	let oldDistance;
-	let oldOffset;
 	let blockReward;
 
-	before(done => {
-		oldDistance = global.constants.REWARDS.DISTANCE;
-		oldOffset = global.constants.REWARDS.OFFSET;
+	const totalAmount = '10000000000000000';
+	const milestones = [
+		'500000000', // Initial Reward
+		'400000000', // Milestone 1
+		'300000000', // Milestone 2
+		'200000000', // Milestone 3
+		'100000000', // Milestone 4
+	];
 
-		global.constants.REWARDS.DISTANCE = 3000000;
-		global.constants.REWARDS.OFFSET = 1451520;
-
-		blockReward = new BlockReward();
-		done();
-	});
-
-	after(async () => {
-		global.constants.REWARDS.DISTANCE = oldDistance;
-		global.constants.REWARDS.OFFSET = oldOffset;
+	before(async () => {
+		blockReward = new BlockReward({
+			distance: 3000000,
+			rewardOffset: 1451520,
+			milestones: [...milestones],
+			totalAmount: '10000000000000000',
+		});
 	});
 
 	describe('calcMilestone', () => {
@@ -404,89 +404,78 @@ describe('BlockReward @slow', () => {
 
 		describe('completely', () => {
 			describe('before reward offset', () => {
-				it('should be ok', done => {
+				it('should be ok', async () => {
 					let supply = blockReward.calcSupply(1);
 
 					for (let i = 1; i < 1451520; i++) {
 						supply = blockReward.calcSupply(i);
-						expect(supply.isEqualTo(TOTAL_AMOUNT)).to.be.true;
+						expect(supply.isEqualTo(totalAmount)).to.be.true;
 					}
-					done();
 				});
 			});
 
 			describe('for milestone 0', () => {
-				it('should be ok', done => {
+				it('should be ok', async () => {
 					let supply = blockReward.calcSupply(1451519);
 					let prev = supply;
 
 					for (let i = 1451520; i < 4451520; i++) {
 						supply = blockReward.calcSupply(i);
-						expect(supply.isEqualTo(prev.plus(REWARDS.MILESTONES[0]))).to.be
-							.true;
+						expect(supply.isEqualTo(prev.plus(milestones[0]))).to.be.true;
 						prev = supply;
 					}
-					done();
 				});
 			});
 
 			describe('for milestone 1', () => {
-				it('should be ok', done => {
+				it('should be ok', async () => {
 					let supply = blockReward.calcSupply(4451519);
 					let prev = supply;
 
 					for (let i = 4451520; i < 7451520; i++) {
 						supply = blockReward.calcSupply(i);
-						expect(supply.isEqualTo(prev.plus(REWARDS.MILESTONES[1]))).to.be
-							.true;
+						expect(supply.isEqualTo(prev.plus(milestones[1]))).to.be.true;
 						prev = supply;
 					}
-					done();
 				});
 			});
 
 			describe('for milestone 2', () => {
-				it('should be ok', done => {
+				it('should be ok', async () => {
 					let supply = blockReward.calcSupply(7451519);
 					let prev = supply;
 
 					for (let i = 7451520; i < 10451520; i++) {
 						supply = blockReward.calcSupply(i);
-						expect(supply.isEqualTo(prev.plus(REWARDS.MILESTONES[2]))).to.be
-							.true;
+						expect(supply.isEqualTo(prev.plus(milestones[2]))).to.be.true;
 						prev = supply;
 					}
-					done();
 				});
 			});
 
 			describe('for milestone 3', () => {
-				it('should be ok', done => {
+				it('should be ok', async () => {
 					let supply = blockReward.calcSupply(10451519);
 					let prev = supply;
 
 					for (let i = 10451520; i < 13451520; i++) {
 						supply = blockReward.calcSupply(i);
-						expect(supply.isEqualTo(prev.plus(REWARDS.MILESTONES[3]))).to.be
-							.true;
+						expect(supply.isEqualTo(prev.plus(milestones[3]))).to.be.true;
 						prev = supply;
 					}
-					done();
 				});
 			});
 
 			describe('for milestone 4 and beyond', () => {
-				it('should be ok', done => {
+				it('should be ok', async () => {
 					let supply = blockReward.calcSupply(13451519);
 					let prev = supply;
 
 					for (let i = 13451520; i < 13451520 + 100; i++) {
 						supply = blockReward.calcSupply(i);
-						expect(supply.isEqualTo(prev.plus(REWARDS.MILESTONES[4]))).to.be
-							.true;
+						expect(supply.isEqualTo(prev.plus(milestones[4]))).to.be.true;
 						prev = supply;
 					}
-					done();
 				});
 			});
 		});

@@ -20,8 +20,6 @@ const { transfer } = require('@liskhq/lisk-transactions');
 const localCommon = require('../../common');
 const accountFixtures = require('../../../fixtures/accounts');
 
-const exceptions = global.exceptions;
-
 describe('exceptions for null byte transaction', () => {
 	let library;
 	let slotOffset = 10;
@@ -50,28 +48,39 @@ describe('exceptions for null byte transaction', () => {
 		},
 	};
 
-	exceptions.transactionWithNullByte = ['10589655532517440995'];
-
 	localCommon.beforeBlock('system_exceptions_null_byte', lib => {
 		library = lib;
+		library.modules.blocks.blocksProcess.exceptions = {
+			...library.modules.blocks.exceptions,
+			transactionWithNullByte: ['10589655532517440995'],
+		};
 	});
 
 	describe('send funds to account', () => {
-		before(done => {
+		before(async () => {
 			const transferTransaction = transfer({
 				recipientId: accountWhichCreatesTransactionNullByte.address,
 				amount: (6000000000 * 100).toString(),
 				passphrase: senderAccount.passphrase,
 			});
-			localCommon.createValidBlockWithSlotOffset(
-				library,
-				[transferTransaction],
-				--slotOffset,
-				(err, block) => {
-					expect(err).to.not.exist;
-					library.modules.blocks.verify.processBlock(block, true, true, done);
-				}
+			const newBlock = await new Promise((resolve, reject) => {
+				localCommon.createValidBlockWithSlotOffset(
+					library,
+					[transferTransaction],
+					--slotOffset,
+					(err, block) => {
+						if (err) {
+							return reject(err);
+						}
+						return resolve(block);
+					}
+				);
+			});
+			await library.modules.blocks.blocksProcess.processBlock(
+				newBlock,
+				library.modules.blocks.lastBlock
 			);
+			library.modules.blocks._lastBlock = newBlock;
 		});
 
 		describe('details of the accounts', () => {
@@ -85,21 +94,26 @@ describe('exceptions for null byte transaction', () => {
 			});
 
 			describe('when forging block with transaction with leading zero recipientId', () => {
-				before(done => {
-					localCommon.createValidBlockWithSlotOffset(
-						library,
-						[transactionWithNullByte],
-						--slotOffset,
-						(err, block) => {
-							expect(err).to.not.exist;
-							library.modules.blocks.verify.processBlock(
-								block,
-								true,
-								true,
-								done
-							);
-						}
+				before(async () => {
+					const newBlock = await new Promise((resolve, reject) => {
+						localCommon.createValidBlockWithSlotOffset(
+							library,
+							[transactionWithNullByte],
+							--slotOffset,
+							{ transactionWithNullByte: ['10589655532517440995'] },
+							(err, block) => {
+								if (err) {
+									return reject(err);
+								}
+								return resolve(block);
+							}
+						);
+					});
+					await library.modules.blocks.blocksProcess.processBlock(
+						newBlock,
+						library.modules.blocks.lastBlock
 					);
+					library.modules.blocks._lastBlock = newBlock;
 				});
 
 				describe('details of the accounts', () => {

@@ -18,7 +18,14 @@ const {
 const commonApplication = require('../common/application');
 const accountFixtures = require('../fixtures/accounts');
 const randomUtil = require('../common/utils/random');
-const slots = require('../../../src/modules/chain/helpers/slots');
+const { BlockSlots } = require('../../../src/modules/chain/blocks');
+const blocksLogic = require('../../../src/modules/chain/blocks/block');
+
+const slots = new BlockSlots({
+	epochTime: __testContext.config.constants.EPOCH_TIME,
+	interval: __testContext.config.constants.BLOCK_TIME,
+	blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
+});
 
 // Promisify callback functions
 const forge = promisify(commonForge);
@@ -118,7 +125,7 @@ function createRawCustomTransaction({ passphrase, senderId, senderPublicKey }) {
 }
 
 function createRawBlock(library, rawTransactions, callback) {
-	const lastBlock = library.modules.blocks.lastBlock.get();
+	const lastBlock = library.modules.blocks.lastBlock;
 	const slot = slots.getSlotNumber();
 	const keypairs = library.modules.forger.getForgersKeyPairs();
 	const transactions = rawTransactions.map(rawTransaction =>
@@ -128,14 +135,17 @@ function createRawBlock(library, rawTransactions, callback) {
 	return getDelegateForSlot(library, slot, (err, delegateKey) => {
 		if (err) return callback(err);
 
-		const block = library.logic.block.create({
+		const block = blocksLogic.create({
+			blockReward: library.modules.blocks.blockReward,
 			keypair: keypairs[delegateKey],
 			timestamp: slots.getSlotTime(slot),
 			previousBlock: lastBlock,
 			transactions,
+			maxTransactionPerBlock:
+				library.modules.blocks.constants.maxTransactionPerBlock,
 		});
 
-		block.id = library.logic.block.getId(block);
+		block.id = blocksLogic.getId(block);
 		block.height = lastBlock.height + 1;
 		block.transactions = block.transactions.map(transaction =>
 			transaction.toJSON()
@@ -227,7 +237,7 @@ describe('matcher', () => {
 					scope.components.storage.adapter.db.none('DELETE FROM forks_stat;'),
 				]);
 			});
-			scope.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
+			scope.modules.blocks._lastBlock = __testContext.config.genesisBlock;
 		} catch (err) {
 			__testContext.debug(err.stack);
 		}
@@ -286,14 +296,14 @@ describe('matcher', () => {
 				}
 
 				// Act: Simulate receiving a block from a peer
-				scope.modules.blocks.process.receiveBlockFromNetwork(rawBlock);
+				scope.modules.blocks.receiveBlockFromNetwork(rawBlock);
 				return scope.sequence.__tick(tickErr => {
 					if (tickErr) {
 						return done(tickErr);
 					}
 
 					// Assert: received block should be accepted and set as the last block
-					expect(scope.modules.blocks.lastBlock.get().height).to.equal(1);
+					expect(scope.modules.blocks.lastBlock.height).to.equal(1);
 
 					return done();
 				});
@@ -313,14 +323,14 @@ describe('matcher', () => {
 				}
 
 				// Act: Simulate receiving a block from a peer
-				scope.modules.blocks.process.receiveBlockFromNetwork(block);
+				scope.modules.blocks.receiveBlockFromNetwork(block);
 				return scope.sequence.__tick(tickErr => {
 					if (tickErr) {
 						return done(tickErr);
 					}
 
 					// Assert: received block should be accepted and set as the last block
-					expect(scope.modules.blocks.lastBlock.get().height).to.equal(2);
+					expect(scope.modules.blocks.lastBlock.height).to.equal(2);
 
 					return done();
 				});
@@ -369,7 +379,7 @@ describe('matcher', () => {
 				// Attempt to forge again and include CustomTransaction in the block.
 				await forge(scope);
 
-				const lastBlock = scope.modules.blocks.lastBlock.get();
+				const lastBlock = scope.modules.blocks.lastBlock;
 				expect(
 					lastBlock.transactions.some(
 						transation => transation.id === jsonTransaction.id
@@ -390,7 +400,7 @@ describe('matcher', () => {
 			// Act: forge
 			await forge(scope);
 
-			const lastBlock = scope.modules.blocks.lastBlock.get();
+			const lastBlock = scope.modules.blocks.lastBlock;
 			expect(
 				lastBlock.transactions.some(
 					transation => transation.id === jsonTransaction.id

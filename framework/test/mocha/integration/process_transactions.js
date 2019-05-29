@@ -34,9 +34,15 @@ const genesisBlock = __testContext.config.genesisBlock;
 const exceptions = __testContext.config.modules.chain.exceptions;
 const { NORMALIZER } = global.__testContext.config;
 const transactionStatus = liskTransactions.Status;
-const slots = require('../../../src/modules/chain/helpers/slots');
+const { BlockSlots } = require('../../../src/modules/chain/blocks');
 
 describe('processTransactions', () => {
+	const slots = new BlockSlots({
+		epochTime: __testContext.config.constants.EPOCH_TIME,
+		interval: __testContext.config.constants.BLOCK_TIME,
+		blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
+	});
+
 	let library;
 	let account;
 	let verifiableTransactions;
@@ -57,8 +63,8 @@ describe('processTransactions', () => {
 			},
 			(err, scope) => {
 				library = scope;
-				library.modules.blocks.lastBlock.set(genesisBlock);
-				done();
+				library.modules.blocks._lastBlock = genesisBlock;
+				done(err);
 			}
 		);
 	});
@@ -164,7 +170,7 @@ describe('processTransactions', () => {
 
 				beforeEach(async () => {
 					checkAllowedTransactions = transactionsModule.checkAllowedTransactions(
-						library.modules.blocks.lastBlock.get()
+						library.modules.blocks.lastBlock
 					);
 				});
 

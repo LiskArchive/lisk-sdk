@@ -21,6 +21,7 @@ const { convertErrorsToString } = require('./helpers/error_handlers');
 // eslint-disable-next-line prefer-const
 let Broadcaster = require('./logic/broadcaster');
 const definitions = require('./schema/definitions');
+const blocksModule = require('./blocks');
 const transactionsModule = require('./transactions');
 
 const exceptions = global.exceptions;
@@ -321,12 +322,12 @@ class Transport {
 					});
 				}
 
-				modules.blocks.utils.loadBlocksDataWS(
-					{
+				modules.blocks
+					.loadBlocksDataWS({
 						limit: 34, // 1977100 bytes
 						lastId: query.lastBlockId,
-					},
-					(err, data) => {
+					})
+					.then(data => {
 						_.each(data, block => {
 							if (block.tf_data) {
 								try {
@@ -342,17 +343,15 @@ class Transport {
 								}
 							}
 						});
-						if (err) {
-							return setImmediate(cb, null, {
-								blocks: [],
-								message: err,
-								success: false,
-							});
-						}
-
 						return setImmediate(cb, null, { blocks: data, success: true });
-					}
-				);
+					})
+					.catch(err =>
+						setImmediate(cb, null, {
+							blocks: [],
+							message: err,
+							success: false,
+						})
+					);
 			},
 
 			/**
@@ -386,7 +385,7 @@ class Transport {
 						let block;
 						let success = true;
 						try {
-							block = modules.blocks.verify.addBlockProperties(query.block);
+							block = blocksModule.addBlockProperties(query.block);
 
 							// Instantiate transaction classes
 							block.transactions = modules.interfaceAdapters.transactions.fromBlock(
@@ -412,7 +411,7 @@ class Transport {
 							);
 						}
 						if (success) {
-							return modules.blocks.process.receiveBlockFromNetwork(block);
+							return modules.blocks.receiveBlockFromNetwork(block);
 						}
 						return null;
 					}
@@ -663,9 +662,7 @@ __private.receiveTransaction = async function(
 		);
 
 		const composedTransactionsCheck = transactionsModule.composeTransactionSteps(
-			transactionsModule.checkAllowedTransactions(
-				modules.blocks.lastBlock.get()
-			),
+			transactionsModule.checkAllowedTransactions(modules.blocks.lastBlock),
 			transactionsModule.validateTransactions(exceptions)
 		);
 

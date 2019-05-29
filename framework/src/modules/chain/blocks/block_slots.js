@@ -14,7 +14,6 @@
 
 'use strict';
 
-// Temporally created, but should be move to block logic
 class BlockSlots {
 	constructor({ epochTime, interval, blocksPerRound }) {
 		this.epochTime = epochTime;
@@ -114,6 +113,38 @@ class BlockSlots {
 	 */
 	getLastSlot(nextSlot) {
 		return nextSlot + this.blocksPerRound;
+	}
+
+	/**
+	 * Calculates round number from the given height.
+	 *
+	 * @param {number} height - Height from which round is calculated
+	 * @returns {number} Round number
+	 * @todo Add description for the params
+	 *
+	 */
+	calcRound(height) {
+		return Math.ceil(height / this.blocksPerRound);
+	}
+
+	/**
+	 * Calculate starting height of the round
+	 *
+	 * @param round
+	 * @return {number}
+	 */
+	calcRoundStartHeight(round) {
+		return (round < 1 ? 0 : round - 1) * this.blocksPerRound + 1;
+	}
+
+	/**
+	 * Calculating end height of the round
+	 *
+	 * @param round
+	 * @return {number}
+	 */
+	calcRoundEndHeight(round) {
+		return (round < 1 ? 1 : round) * this.blocksPerRound;
 	}
 }
 

@@ -14,16 +14,6 @@
 
 'use strict';
 
-const exceptions = global.exceptions;
-
-/**
- * Main blockVersion logic
- *
- * @class
- * @memberof logic
- * @see Parent: {@link logic}
- */
-
 /**
  * Current block version.
  *
@@ -38,12 +28,13 @@ const currentBlockVersion = 1;
  * @param {number} height - Block height
  * @returns {boolean}
  */
-function isValid(version, height) {
+const isValid = (version, height, exceptions = {}) => {
 	// Check is there an exception for provided height and if yes assing its version
-	const exceptionVersion = Object.keys(exceptions.blockVersions).find(
+	const blockVersionExceptions = exceptions.blockVersions || {};
+	const exceptionVersion = Object.keys(blockVersionExceptions).find(
 		exception => {
 			// Get height range of current exceptions
-			const heightsRange = exceptions.blockVersions[exception];
+			const heightsRange = blockVersionExceptions[exception];
 			// Check if provided height is between the range boundaries
 			return height >= heightsRange.start && height <= heightsRange.end;
 		}
@@ -51,12 +42,12 @@ function isValid(version, height) {
 
 	if (exceptionVersion === undefined) {
 		// If there is no exception for provided height - check against current block version
-		return version === this.currentBlockVersion;
+		return version === currentBlockVersion;
 	}
 
 	// If there is an exception - check if version match
 	return Number(exceptionVersion) === version;
-}
+};
 
 module.exports = {
 	isValid,

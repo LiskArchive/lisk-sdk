@@ -14,16 +14,22 @@
 
 'use strict';
 
-module.exports = async ({ schema, components: { storage, logger } }) => {
-	const Account = require('../logic/account.js');
+const { BlockSlots } = require('./block_slots');
+const { addBlockProperties } = require('./utils');
+const {
+	Blocks,
+	EVENT_NEW_BLOCK,
+	EVENT_DELETE_BLOCK,
+	EVENT_BROADCAST_BLOCK,
+	EVENT_NEW_BROADHASH,
+} = require('./blocks');
 
-	const accountLogic = await new Promise((resolve, reject) => {
-		new Account(storage, schema, logger, (err, object) => {
-			err ? reject(err) : resolve(object);
-		});
-	});
-
-	return {
-		account: accountLogic,
-	};
+module.exports = {
+	BlockSlots,
+	Blocks,
+	EVENT_NEW_BLOCK,
+	EVENT_DELETE_BLOCK,
+	EVENT_BROADCAST_BLOCK,
+	EVENT_NEW_BROADHASH,
+	addBlockProperties,
 };

@@ -16,9 +16,27 @@
 
 const Bignum = require('../helpers/bignum');
 
-const { REWARDS, TOTAL_AMOUNT } = global.constants;
+/**
+ * Returns absolute value from number.
+ *
+ * @private
+ * @param {number} height
+ * @returns {number}
+ * @throws If block height invalid
+ * @todo Add description for the params and the return value
+ */
+const parseHeight = height => {
+	if (
+		typeof height === 'undefined' ||
+		height === null ||
+		Number.isNaN(height)
+	) {
+		throw new TypeError('Invalid block height');
+	} else {
+		return Math.abs(height);
+	}
+};
 
-const __private = {};
 /**
  * Main BlockReward logic.
  * Initializes variables:
@@ -30,12 +48,15 @@ const __private = {};
  * @see Parent: {@link logic}
  */
 class BlockReward {
-	constructor() {
+	constructor({ distance, rewardOffset, milestones, totalAmount }) {
 		// Distance between each milestone
-		this.distance = Math.floor(REWARDS.DISTANCE);
+		this.distance = Math.floor(distance);
 
 		// Start rewards at block (n)
-		this.rewardOffset = Math.floor(REWARDS.OFFSET);
+		this.rewardOffset = Math.floor(rewardOffset);
+
+		this.milestones = milestones;
+		this.totalAmount = totalAmount;
 	}
 
 	/**
@@ -46,13 +67,13 @@ class BlockReward {
 	 * @todo Add description for the function, params and the return value
 	 */
 	calcMilestone(height) {
-		height = __private.parseHeight(height);
+		height = parseHeight(height);
 
 		const location = Math.trunc((height - this.rewardOffset) / this.distance);
-		const lastMile = REWARDS.MILESTONES[REWARDS.MILESTONES.length - 1];
+		const lastMile = this.milestones[this.milestones.length - 1];
 
-		if (location > REWARDS.MILESTONES.length - 1) {
-			return REWARDS.MILESTONES.lastIndexOf(lastMile);
+		if (location > this.milestones.length - 1) {
+			return this.milestones.lastIndexOf(lastMile);
 		}
 		return location;
 	}
@@ -65,12 +86,12 @@ class BlockReward {
 	 * @todo Add description for the function, params and the return value
 	 */
 	calcReward(height) {
-		height = __private.parseHeight(height);
+		height = parseHeight(height);
 
 		if (height < this.rewardOffset) {
 			return new Bignum(0);
 		}
-		return new Bignum(REWARDS.MILESTONES[this.calcMilestone(height)]);
+		return new Bignum(this.milestones[this.calcMilestone(height)]);
 	}
 
 	/**
@@ -81,8 +102,8 @@ class BlockReward {
 	 * @todo Add description for the function, params and the return value
 	 */
 	calcSupply(height) {
-		height = __private.parseHeight(height);
-		let supply = new Bignum(TOTAL_AMOUNT);
+		height = parseHeight(height);
+		let supply = new Bignum(this.totalAmount);
 
 		if (height < this.rewardOffset) {
 			// Rewards not started yet
@@ -98,9 +119,9 @@ class BlockReward {
 		// Remove offset from height
 		height -= this.rewardOffset - 1;
 
-		for (let i = 0; i < REWARDS.MILESTONES.length; i++) {
+		for (let i = 0; i < this.milestones.length; i++) {
 			if (milestone >= i) {
-				multiplier = REWARDS.MILESTONES[i];
+				multiplier = this.milestones[i];
 
 				if (height < this.distance) {
 					// Measure this.distance thus far
@@ -110,7 +131,7 @@ class BlockReward {
 					height -= this.distance; // Deduct from total height
 
 					// After last milestone
-					if (height > 0 && i === REWARDS.MILESTONES.length - 1) {
+					if (height > 0 && i === this.milestones.length - 1) {
 						amount += height;
 					}
 				}
@@ -130,25 +151,4 @@ class BlockReward {
 	}
 }
 
-/**
- * Returns absolute value from number.
- *
- * @private
- * @param {number} height
- * @returns {number}
- * @throws If block height invalid
- * @todo Add description for the params and the return value
- */
-__private.parseHeight = function(height) {
-	if (
-		typeof height === 'undefined' ||
-		height === null ||
-		Number.isNaN(height)
-	) {
-		throw new TypeError('Invalid block height');
-	} else {
-		return Math.abs(height);
-	}
-};
-
-module.exports = BlockReward;
+module.exports = { BlockReward };
