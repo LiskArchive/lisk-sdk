@@ -282,6 +282,76 @@ describe('Integration tests for P2P library', () => {
 			});
 		});
 
+		describe('P2P.applyNodeInfo', () => {
+			it('should send the node info to a subset of peers within the network. It should update itself and reflect new values', async () => {
+				const firstP2PNode = p2pNodeList[0];
+
+				firstP2PNode.applyNodeInfo({
+					os: platform(),
+					nethash:
+						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+					version: firstP2PNode.nodeInfo.version,
+					wsPort: firstP2PNode.nodeInfo.wsPort,
+					height: 10,
+					options: firstP2PNode.nodeInfo.options,
+				});
+
+				await wait(100);
+
+				// For each peer of firstP2PNode, check that the firstP2PNode's P2PPeerInfo was updated with the new height.
+				p2pNodeList.slice(1).forEach(p2pNode => {
+					const networkStatus = p2pNode.getNetworkStatus();
+					const firstNodeInConnectedPeer = networkStatus.connectedPeers.find(
+						peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
+					);
+
+					const firstNodeInNewPeer = networkStatus.newPeers.find(
+						peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
+					);
+
+					const firstNodeInTriedPeer = networkStatus.triedPeers.find(
+						peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
+					);
+
+					// Check if the peerinfo is updated in new peer list
+					if (firstNodeInNewPeer) {
+						expect(firstNodeInNewPeer)
+							.to.have.property('height')
+							.which.equals(10);
+						expect(firstNodeInNewPeer)
+							.to.have.property('nethash')
+							.which.equals(
+								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+							);
+					}
+
+					// Check if the peerinfo is updated in tried peer list
+					if (firstNodeInTriedPeer) {
+						expect(firstNodeInTriedPeer)
+							.to.have.property('height')
+							.which.equals(10);
+						expect(firstNodeInTriedPeer)
+							.to.have.property('nethash')
+							.which.equals(
+								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+							);
+					}
+
+					// Check if the peerinfo is updated in connected peer list
+					if (firstNodeInConnectedPeer) {
+						expect(firstNodeInConnectedPeer)
+							.to.have.property('height')
+							.which.equals(10);
+						expect(firstNodeInConnectedPeer)
+							.to.have.property('nethash')
+							.which.equals(
+								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+							);
+					}
+				});
+			});
+		});
+
 		describe('When half of the nodes crash', () => {
 			it('should get network status with all unresponsive nodes removed', async () => {
 				const firstP2PNode = p2pNodeList[0];
@@ -392,14 +462,13 @@ describe('Integration tests for P2P library', () => {
 				});
 			});
 
-			it('should discover all peers and add them to the newPeers list within each node', () => {
+			it('should discover all peers and connect to all the peers so there should be no peer in newPeers list', () => {
 				p2pNodeList.forEach(p2p => {
 					const { newPeers } = p2p.getNetworkStatus();
 
 					const peerPorts = newPeers.map(peerInfo => peerInfo.wsPort).sort();
 
-					// TODO ASAP: Make better assertions.
-					expect(peerPorts).to.be.an.instanceOf(Array);
+					expect(peerPorts).to.be.eql([]);
 				});
 			});
 
@@ -415,6 +484,30 @@ describe('Integration tests for P2P library', () => {
 					});
 
 					expect(peerPorts).to.be.eql(expectedPeerPorts);
+				});
+			});
+
+			it('should not contain itself in any of its peer list', async () => {
+				p2pNodeList.forEach(p2p => {
+					const {
+						triedPeers,
+						connectedPeers,
+						newPeers,
+					} = p2p.getNetworkStatus();
+
+					const triedPeerPorts = triedPeers
+						.map(peerInfo => peerInfo.wsPort)
+						.sort();
+					const newPeerPorts = newPeers.map(peerInfo => peerInfo.wsPort).sort();
+					const connectedPeerPorts = connectedPeers
+						.map(peerInfo => peerInfo.wsPort)
+						.sort();
+
+					expect([
+						...triedPeerPorts,
+						...newPeerPorts,
+						...connectedPeerPorts,
+					]).to.not.contain.members([p2p.nodeInfo.wsPort]);
 				});
 			});
 		});
