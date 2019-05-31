@@ -246,18 +246,14 @@ describe('bft', () => {
 
 			describe('should have proper preVotes and preCommits', () => {
 				describe('11 delegates switched partially on 3rd round', () => {
-					let myBft;
 					const delegatesMap = {};
 					const data = require('./scenarios/11_delegates_switch_on_3_round');
-
-					it('should create the bft object', async () => {
-						myBft = new BFT({
-							finalizedHeight: 0,
-							activeDelegates: data.activeDelegates,
-						});
+					const myBft = new BFT({
+						finalizedHeight: 0,
+						activeDelegates: data.activeDelegates,
 					});
 
-					data.headers.forEach(headerData => {
+					data.headers.forEach((headerData, index) => {
 						const delegatePublicKey =
 							delegatesMap[headerData.d] || accountFixture().publicKey;
 						delegatesMap[headerData.d] = delegatePublicKey;
@@ -265,17 +261,40 @@ describe('bft', () => {
 						it(`have proper pre-votes and pre-commits when ${
 							headerData.d
 						} forge block at height = ${headerData.h}`, async () => {
+							const beforeBlockPreVotedConfirmedHeight =
+								index > 0
+									? data.headers[index - 1].votes.lastIndexOf(
+											myBft.PRE_VOTE_THRESHOLD
+									  ) + 1
+									: 0;
+
 							const blockHeader = blockHeaderFixture({
 								height: headerData.h,
 								maxHeightPreviouslyForged: headerData.p,
 								delegatePublicKey: delegatesMap[headerData.d],
 								activeSinceRound: headerData.a,
+								prevotedConfirmedUptoHeight: beforeBlockPreVotedConfirmedHeight,
 							});
+							const afterBlockFinalizedHeight =
+								headerData.commits.lastIndexOf(myBft.PRE_COMMIT_THRESHOLD) + 1;
+
+							const afterBlockPreVotedConfirmedHeight =
+								headerData.votes.lastIndexOf(myBft.PRE_VOTE_THRESHOLD) + 1;
+
 							myBft.addBlockHeader(blockHeader);
+
 							expect(Object.values(myBft.preCommits)).to.be.eql(
 								headerData.commits
 							);
 							expect(Object.values(myBft.preVotes)).to.be.eql(headerData.votes);
+
+							expect(myBft.finalizedHeight).to.be.eql(
+								afterBlockFinalizedHeight
+							);
+
+							expect(myBft.prevotedConfirmedHeight).to.be.eql(
+								afterBlockPreVotedConfirmedHeight
+							);
 						});
 					});
 				});

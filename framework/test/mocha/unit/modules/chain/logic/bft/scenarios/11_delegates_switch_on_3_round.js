@@ -1,14 +1,48 @@
 module.exports = {
 	activeDelegates: 11,
+	// d - delegate identifier
+	// a - active since round
+	// h - height
+	// p - height previously forged
+	// commits - status of pre-commits
+	// votes - status of pre-votes
 	headers: [
 		{ d: 'D1', a: 1, h: 1, p: 0, commits: [], votes: [1] },
 		{ d: 'D2', a: 1, h: 2, p: 0, commits: [], votes: [2, 1] },
 		{ d: 'D3', a: 1, h: 3, p: 0, commits: [], votes: [3, 2, 1] },
 		{ d: 'D4', a: 1, h: 4, p: 0, commits: [], votes: [4, 3, 2, 1] },
-		{ d: 'D5', a: 1, h: 5, p: 0, commits: [], votes: [5, 4, 3, 2, 1] },
-		{ d: 'D6', a: 1, h: 6, p: 0, commits: [], votes: [6, 5, 4, 3, 2, 1] },
-		{ d: 'D7', a: 1, h: 7, p: 0, commits: [], votes: [7, 6, 5, 4, 3, 2, 1] },
-		{ d: 'D8', a: 1, h: 8, p: 0, commits: [], votes: [8, 7, 6, 5, 4, 3, 2, 1] },
+		{
+			d: 'D5',
+			a: 1,
+			h: 5,
+			p: 0,
+			commits: [],
+			votes: [5, 4, 3, 2, 1],
+		},
+		{
+			d: 'D6',
+			a: 1,
+			h: 6,
+			p: 0,
+			commits: [],
+			votes: [6, 5, 4, 3, 2, 1],
+		},
+		{
+			d: 'D7',
+			a: 1,
+			h: 7,
+			p: 0,
+			commits: [],
+			votes: [7, 6, 5, 4, 3, 2, 1],
+		},
+		{
+			d: 'D8',
+			a: 1,
+			h: 8,
+			p: 0,
+			commits: [],
+			votes: [8, 7, 6, 5, 4, 3, 2, 1],
+		},
 		{
 			d: 'D9',
 			a: 1,
