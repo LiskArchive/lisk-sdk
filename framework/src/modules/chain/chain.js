@@ -264,9 +264,7 @@ module.exports = class Chain {
 					action.params || {}
 				),
 			blocksCommon: async action =>
-				promisify(this.scope.modules.transport.shared.blocksCommon)(
-					action.params || {}
-				),
+				this.scope.modules.transport.shared.blocksCommon(action.params || {}),
 		};
 	}
 

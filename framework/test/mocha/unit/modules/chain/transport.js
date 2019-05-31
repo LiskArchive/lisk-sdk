@@ -1096,7 +1096,7 @@ describe('transport', () => {
 					let validateErr;
 
 					describe('when query is undefined', () => {
-						beforeEach(done => {
+						it('should send back error due to schema validation failure', () => {
 							query = undefined;
 							validateErr = new Error('Query did not match schema');
 							validateErr.code = 'INVALID_FORMAT';
@@ -1105,26 +1105,16 @@ describe('transport', () => {
 								.stub()
 								.callsArgWith(2, [validateErr]);
 
-							transportInstance.shared.blocksCommon(query, err => {
-								error = err;
-								done();
-							});
+							return expect(
+								transportInstance.shared.blocksCommon(query)
+							).to.be.rejectedWith('Query did not match schema: undefined');
 						});
-
-						it('should send back error due to schema validation failure', async () =>
-							expect(error).to.equal(`${validateErr.message}: undefined`));
 					});
 
 					describe('when query is specified', () => {
-						beforeEach(done => {
-							query = { ids: '"1","2","3"' };
-							transportInstance.shared.blocksCommon(query, err => {
-								error = err;
-								done();
-							});
-						});
-
 						it('should call library.schema.validate with query and schema.commonBlock', async () => {
+							query = { ids: '"1","2","3"' };
+							await transportInstance.shared.blocksCommon(query);
 							expect(library.schema.validate.calledOnce).to.be.true;
 							return expect(
 								library.schema.validate.calledWith(
@@ -1135,21 +1125,16 @@ describe('transport', () => {
 						});
 
 						describe('when library.schema.validate fails', () => {
-							beforeEach(done => {
+							it('should call library.logger.debug with "Common block request validation failed" and {err: err.toString(), req: query}', async () => {
 								validateErr = new Error('Query did not match schema');
 								validateErr.code = 'INVALID_FORMAT';
-
 								library.schema.validate = sinonSandbox
 									.stub()
 									.callsArgWith(2, [validateErr]);
 
-								transportInstance.shared.blocksCommon(query, err => {
-									error = err;
-									done();
-								});
-							});
-
-							it('should call library.logger.debug with "Common block request validation failed" and {err: err.toString(), req: query}', async () => {
+								expect(
+									transportInstance.shared.blocksCommon(query)
+								).to.be.rejectedWith('Query did not match schema');
 								expect(library.logger.debug.calledOnce).to.be.true;
 								return expect(
 									library.logger.debug.calledWith(
@@ -1158,23 +1143,15 @@ describe('transport', () => {
 									)
 								).to.be.true;
 							});
-
-							it('should call callback with error', async () =>
-								expect(error).to.equal(`${validateErr.message}: undefined`));
 						});
 
 						describe('when library.schema.validate succeeds', () => {
 							describe('when escapedIds.length = 0', () => {
-								beforeEach(done => {
-									// All ids will be filtered out because they are non-numeric.
-									query = { ids: '"abc","def","ghi"' };
-									transportInstance.shared.blocksCommon(query, err => {
-										error = err;
-										done();
-									});
-								});
-
 								it('should call library.logger.debug with "Common block request validation failed" and {err: "ESCAPE", req: query.ids}', async () => {
+									query = { ids: '"abc","def","ghi"' };
+									expect(
+										transportInstance.shared.blocksCommon(query)
+									).to.be.rejectedWith('Invalid block id sequence');
 									expect(library.logger.debug.calledOnce).to.be.true;
 									return expect(
 										library.logger.debug.calledWith(
@@ -1183,9 +1160,6 @@ describe('transport', () => {
 										)
 									).to.be.true;
 								});
-
-								it('should call callback with error = "Invalid block id sequence"', async () =>
-									expect(error).to.be.equal('Invalid block id sequence'));
 							});
 						});
 					});

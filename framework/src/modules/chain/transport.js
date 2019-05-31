@@ -231,9 +231,9 @@ class Transport {
 			 * @todo Add @returns tag
 			 * @todo Add description of the function
 			 */
-			blocksCommon(query, cb) {
+			async blocksCommon(query) {
 				query = query || {};
-				return library.schema.validate(
+				library.schema.validate(
 					query,
 					definitions.WSBlocksCommonRequest,
 					err => {
@@ -243,7 +243,7 @@ class Transport {
 								err: err.toString(),
 								req: query,
 							});
-							return setImmediate(cb, err);
+							throw new Error(err);
 						}
 
 						const escapedIds = query.ids
@@ -260,7 +260,7 @@ class Transport {
 								req: query.ids,
 							});
 
-							return setImmediate(cb, 'Invalid block id sequence');
+							throw new Error('Invalid block id sequence');
 						}
 
 						return library.storage.entities.Block.get({
@@ -268,10 +268,10 @@ class Transport {
 						})
 							.then(row => {
 								if (!row.length > 0) {
-									return setImmediate(cb, null, {
+									return {
 										success: true,
 										common: null,
-									});
+									};
 								}
 
 								const {
@@ -288,14 +288,14 @@ class Transport {
 									timestamp,
 								};
 
-								return setImmediate(cb, null, {
+								return {
 									success: true,
 									common: parsedRow,
-								});
+								};
 							})
 							.catch(getOneError => {
 								library.logger.error(getOneError.stack);
-								return setImmediate(cb, 'Failed to get common block');
+								throw new Error('Failed to get common block');
 							});
 					}
 				);
