@@ -352,7 +352,7 @@ async function _getNetworkHeight() {
  */
 async function _getConfirmedTransactionCount() {
 	// if cache is ready, then get cache and return
-	if (library.components.cache.cacheReady) {
+	if (library.components.cache.ready) {
 		try {
 			const { confirmed } = await library.components.cache.getJsonForKey(
 				CACHE_KEYS_TRANSACTION_COUNT
@@ -369,7 +369,7 @@ async function _getConfirmedTransactionCount() {
 	}
 	const confirmed = await library.components.storage.entities.Transaction.count();
 	// only update cache if ready
-	if (library.components.cache.cacheReady) {
+	if (library.components.cache.ready) {
 		try {
 			await library.components.cache.setJsonForKey(
 				CACHE_KEYS_TRANSACTION_COUNT,
