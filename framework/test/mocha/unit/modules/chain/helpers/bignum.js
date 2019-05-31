@@ -14,7 +14,7 @@
 
 'use strict';
 
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
+const BigNum = require('@liskhq/bignum');
 
 describe('BigNumber', () => {
 	let validBuf;
@@ -28,7 +28,7 @@ describe('BigNumber', () => {
 	describe('exponential values', () => {
 		it('should not return exponential value for a long number', async () => {
 			const amount = '10000000000000000000000000000000000000000000000000000';
-			const value = new Bignum(amount).toString();
+			const value = new BigNum(amount).toString();
 			return expect(value.match(/[e]/i)).to.be.null;
 		});
 	});
@@ -54,7 +54,7 @@ describe('BigNumber', () => {
 
 				it('should throw RangeError', done => {
 					expect(() => {
-						Bignum.fromBuffer(validBuf, validOpts);
+						BigNum.fromBuffer(validBuf, validOpts);
 					}).throws('Buffer length (14) must be a multiple of size (3)');
 					done();
 				});
@@ -69,13 +69,13 @@ describe('BigNumber', () => {
 			});
 
 			beforeEach(done => {
-				bignumResult = Bignum.fromBuffer(validBuf, validOpts);
+				bignumResult = BigNum.fromBuffer(validBuf, validOpts);
 				done();
 			});
 
 			describe('when opts does not have a size attribute', () => {
 				it('should set opts to an empty object', done => {
-					expect(bignumResult).to.eql(new Bignum(validSeed));
+					expect(bignumResult).to.eql(new BigNum(validSeed));
 					done();
 				});
 			});
@@ -92,7 +92,7 @@ describe('BigNumber', () => {
 					});
 
 					it('should equal BUFFER_SEED', done => {
-						expect(bignumResult).to.eql(new Bignum(validSeed));
+						expect(bignumResult).to.eql(new BigNum(validSeed));
 						done();
 					});
 				});
@@ -108,7 +108,7 @@ describe('BigNumber', () => {
 					});
 
 					it('should equal BUFFER_SEED', done => {
-						expect(bignumResult).to.eql(new Bignum(validSeed));
+						expect(bignumResult).to.eql(new BigNum(validSeed));
 						done();
 					});
 				});
@@ -123,7 +123,7 @@ describe('BigNumber', () => {
 					});
 
 					it('should equal BUFFER_SEED', done => {
-						expect(bignumResult).to.eql(new Bignum(validSeed));
+						expect(bignumResult).to.eql(new BigNum(validSeed));
 						done();
 					});
 				});
@@ -148,7 +148,7 @@ describe('BigNumber', () => {
 				});
 
 				beforeEach(done => {
-					bignumResult = new Bignum(validSeed);
+					bignumResult = new BigNum(validSeed);
 					done();
 				});
 
@@ -168,7 +168,7 @@ describe('BigNumber', () => {
 				});
 
 				beforeEach(done => {
-					bignumResult = new Bignum(validSeed);
+					bignumResult = new BigNum(validSeed);
 					done();
 				});
 
@@ -190,7 +190,7 @@ describe('BigNumber', () => {
 			});
 
 			beforeEach(done => {
-				bignumResult = new Bignum(validSeed);
+				bignumResult = new BigNum(validSeed);
 				toBufferResult = bignumResult.toBuffer(validOpts);
 				done();
 			});

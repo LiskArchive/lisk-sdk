@@ -24,7 +24,7 @@ const {
 	getKeys,
 	getAddressFromPublicKey,
 } = require('@liskhq/lisk-cryptography');
-const Bignum = require('../../../../src/modules/chain/helpers/bignum');
+const BigNum = require('@liskhq/bignum');
 const accountFixtures = require('../../fixtures/accounts');
 
 const random = {};
@@ -191,12 +191,12 @@ random.multisigDappRegistrationMaxiumData = function(
 	return dappTransaction;
 };
 
-const convertToBignum = transactions =>
+const convertToBigNum = transactions =>
 	transactions.forEach(transaction => {
-		transaction.amount = new Bignum(transaction.amount);
-		transaction.fee = new Bignum(transaction.fee);
+		transaction.amount = new BigNum(transaction.amount);
+		transaction.fee = new BigNum(transaction.fee);
 	});
 
-random.convertToBignum = convertToBignum;
+random.convertToBigNum = convertToBigNum;
 
 module.exports = random;

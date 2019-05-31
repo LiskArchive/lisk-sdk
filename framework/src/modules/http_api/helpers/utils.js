@@ -26,7 +26,7 @@ function calculateApproval(votersBalance, totalSupply) {
 	const totalSupplyBignum = new Bignumber(totalSupply);
 	const approvalBignum = votersBalanceBignum
 		.dividedBy(totalSupplyBignum)
-		.multipliedBy(100)
+		.times(100)
 		.decimalPlaces(2);
 
 	return !approvalBignum.isNaN() ? approvalBignum.toNumber() : 0;

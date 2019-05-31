@@ -15,7 +15,7 @@
 'use strict';
 
 const crypto = require('crypto');
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
+const BigNum = require('@liskhq/bignum');
 const blocksUtils = require('../../../../../../src/modules/chain/blocks/utils');
 const blocksLogic = require('../../../../../../src/modules/chain/blocks/block');
 
@@ -561,10 +561,10 @@ describe('blocks/utils', () => {
 			version: 0,
 			numberOfTransactions: 0,
 			transactions: [],
-			totalAmount: new Bignum(0),
-			totalFee: new Bignum(0),
+			totalAmount: new BigNum(0),
+			totalFee: new BigNum(0),
 			payloadLength: 0,
-			reward: new Bignum(0),
+			reward: new BigNum(0),
 		};
 
 		afterEach(() => expect(dummyBlockReturned).to.deep.equal(dummyBlock));
@@ -656,10 +656,10 @@ describe('blocks/utils', () => {
 			version: 1,
 			numberOfTransactions: 1,
 			transactions: [{ id: 1 }],
-			totalAmount: new Bignum(1),
-			totalFee: new Bignum(1),
+			totalAmount: new BigNum(1),
+			totalFee: new BigNum(1),
 			payloadLength: 1,
-			reward: new Bignum(1),
+			reward: new BigNum(1),
 		};
 
 		describe('when block.version = 0', () => {
@@ -716,7 +716,7 @@ describe('blocks/utils', () => {
 
 			it('should delete totalAmount property', async () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
-				dummyBlockCompleted.totalAmount = new Bignum(0);
+				dummyBlockCompleted.totalAmount = new BigNum(0);
 				dummyBlockReduced = blocksUtils.deleteBlockProperties(
 					dummyBlockCompleted
 				);
@@ -737,7 +737,7 @@ describe('blocks/utils', () => {
 
 			it('should delete totalFee property', async () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
-				dummyBlockCompleted.totalFee = new Bignum(0);
+				dummyBlockCompleted.totalFee = new BigNum(0);
 				dummyBlockReduced = blocksUtils.deleteBlockProperties(
 					dummyBlockCompleted
 				);
@@ -779,7 +779,7 @@ describe('blocks/utils', () => {
 
 			it('should delete totalFee property', async () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
-				dummyBlockCompleted.reward = new Bignum(0);
+				dummyBlockCompleted.reward = new BigNum(0);
 				dummyBlockReduced = blocksUtils.deleteBlockProperties(
 					dummyBlockCompleted
 				);

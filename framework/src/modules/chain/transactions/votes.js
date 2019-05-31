@@ -54,7 +54,7 @@ const updateRoundInformationWithDelegatesForTransaction = (
 			// TODO: Core uses bignumber.js library and lisk-elements uses browserify-bignum. Their interface for multiplication are different
 			// therefore we should pick one library and use it in both of the projects.
 			const balance = new Bignumber(account.balance)
-				.multipliedBy(balanceFactor)
+				.times(balanceFactor)
 				.toString();
 
 			const roundData = {

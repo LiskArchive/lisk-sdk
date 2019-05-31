@@ -330,7 +330,7 @@ class Rounds {
 		return library.storage.entities.Account.getOne({ address }, {}, tx).then(
 			account => {
 				const balance = new Bignumber(account.balance)
-					.multipliedBy(balanceFactor)
+					.times(balanceFactor)
 					.toString();
 
 				const roundData = {

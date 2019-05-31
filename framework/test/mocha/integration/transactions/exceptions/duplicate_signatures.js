@@ -15,7 +15,7 @@
 'use strict';
 
 const { expect } = require('chai');
-const Bignum = require('bignumber.js');
+const BigNum = require('@liskhq/bignum');
 const { transfer } = require('@liskhq/lisk-transactions');
 const localCommon = require('../../common');
 const accountFixtures = require('../../../fixtures/accounts');
@@ -249,7 +249,7 @@ describe('exceptions for duplicatedSignatures transactions', () => {
 
 						it('should deduct balance from sender account', async () => {
 							return expect(senderMemAccountAfter.balance).to.equal(
-								new Bignum(senderMemAccountBefore.balance)
+								new BigNum(senderMemAccountBefore.balance)
 									.minus(transactionWithSignaturesFromSamePublicKey.fee)
 									.toString()
 							);

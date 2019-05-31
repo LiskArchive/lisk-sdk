@@ -14,7 +14,7 @@
 
 'use strict';
 
-const Bignum = require('../helpers/bignum');
+const BigNum = require('@liskhq/bignum');
 
 /**
  * Returns absolute value from number.
@@ -89,9 +89,9 @@ class BlockReward {
 		height = parseHeight(height);
 
 		if (height < this.rewardOffset) {
-			return new Bignum(0);
+			return new BigNum(0);
 		}
-		return new Bignum(this.milestones[this.calcMilestone(height)]);
+		return new BigNum(this.milestones[this.calcMilestone(height)]);
 	}
 
 	/**
@@ -103,7 +103,7 @@ class BlockReward {
 	 */
 	calcSupply(height) {
 		height = parseHeight(height);
-		let supply = new Bignum(this.totalAmount);
+		let supply = new BigNum(this.totalAmount);
 
 		if (height < this.rewardOffset) {
 			// Rewards not started yet
@@ -144,7 +144,7 @@ class BlockReward {
 
 		for (let i = 0; i < rewards.length; i++) {
 			const reward = rewards[i];
-			supply = supply.plus(new Bignum(reward[0]).multipliedBy(reward[1]));
+			supply = supply.plus(new BigNum(reward[0]).times(reward[1]));
 		}
 
 		return supply;

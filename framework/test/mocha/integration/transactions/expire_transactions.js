@@ -19,13 +19,13 @@ const {
 	registerMultisignature,
 	constants: transactionConstants,
 } = require('@liskhq/lisk-transactions');
+const BigNum = require('@liskhq/bignum');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const Promise = require('bluebird');
 const randomUtil = require('../../common/utils/random');
 const accountsFixtures = require('../../fixtures/accounts');
 const QueriesHelper = require('../../common/integration/sql/queries_helper');
 const localCommon = require('../common');
-const Bignum = require('../../../../src/modules/chain/helpers/bignum');
 
 const addTransactionsAndForgePromise = Promise.promisify(
 	localCommon.addTransactionsAndForge
@@ -222,7 +222,7 @@ describe('expire transactions', () => {
 				.then(multiSigAccount => {
 					// Multi-signature transaction was expired, however
 					// the account still exists with the balance
-					expect(new Bignum(multiSigAccount[0].balance).isEqualTo(amount)).to.be
+					expect(new BigNum(multiSigAccount[0].balance).equals(amount)).to.be
 						.true;
 					done();
 				})
