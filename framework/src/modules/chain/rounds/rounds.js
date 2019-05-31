@@ -14,7 +14,7 @@
 
 'use strict';
 
-const Bignumber = require('bignumber.js');
+const BigNum = require('@liskhq/bignum');
 const async = require('async');
 const cryptography = require('@liskhq/lisk-cryptography');
 
@@ -329,7 +329,7 @@ class Rounds {
 		const balanceFactor = mode === '-' ? -1 : 1;
 		return library.storage.entities.Account.getOne({ address }, {}, tx).then(
 			account => {
-				const balance = new Bignumber(account.balance)
+				const balance = new BigNum(account.balance)
 					.times(balanceFactor)
 					.toString();
 
