@@ -308,19 +308,19 @@ class Transport {
 			 * @todo Add description of the function
 			 */
 			// eslint-disable-next-line consistent-return
-			blocks(query, cb) {
+			async blocks(query) {
 				// Get 34 blocks with all data (joins) from provided block id
 				// According to maxium payload of 58150 bytes per block with every transaction being a vote
 				// Discounting maxium compression setting used in middleware
 				// Maximum transport payload = 2000000 bytes
 				if (!query || !query.lastBlockId) {
-					return setImmediate(cb, null, {
+					return {
 						success: false,
 						message: 'Invalid lastBlockId requested',
-					});
+					};
 				}
 
-				modules.blocks
+				return modules.blocks
 					.loadBlocksDataWS({
 						limit: 34, // 1977100 bytes
 						lastId: query.lastBlockId,
@@ -341,15 +341,13 @@ class Transport {
 								}
 							}
 						});
-						return setImmediate(cb, null, { blocks: data, success: true });
+						return { blocks: data, success: true };
 					})
-					.catch(err =>
-						setImmediate(cb, null, {
-							blocks: [],
-							message: err,
-							success: false,
-						})
-					);
+					.catch(err => ({
+						blocks: [],
+						message: err,
+						success: false,
+					}));
 			},
 
 			/**

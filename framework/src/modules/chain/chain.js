@@ -260,9 +260,7 @@ module.exports = class Chain {
 				lastBlock: this.scope.modules.blocks.lastBlock,
 			}),
 			blocks: async action =>
-				promisify(this.scope.modules.transport.shared.blocks)(
-					action.params || {}
-				),
+				this.scope.modules.transport.shared.blocks(action.params || {}),
 			blocksCommon: async action =>
 				this.scope.modules.transport.shared.blocksCommon(action.params || {}),
 		};

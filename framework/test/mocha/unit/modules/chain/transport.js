@@ -1167,23 +1167,14 @@ describe('transport', () => {
 
 				describe('blocks', () => {
 					describe('when query is undefined', () => {
-						beforeEach(done => {
+						it('should send back empty blocks', async () => {
 							query = undefined;
-
 							modules.blocks.loadBlocksData = sinonSandbox
 								.stub()
 								.callsArgWith(1, null, []);
 
-							transportInstance.shared.blocks(query, (err, res) => {
-								error = err;
-								result = res;
-								done();
-							});
-						});
-
-						it('should send back empty blocks', async () => {
-							expect(error).to.equal(null);
-							return expect(result).to.eql({
+							const response = await transportInstance.shared.blocks(query);
+							return expect(response).to.eql({
 								success: false,
 								message: 'Invalid lastBlockId requested',
 							});
@@ -1191,45 +1182,32 @@ describe('transport', () => {
 					});
 
 					describe('when query is defined', () => {
-						beforeEach(done => {
+						it('should call modules.blocks.utils.loadBlocksData with { limit: 34, lastId: query.lastBlockId }', async () => {
 							query = {
 								lastBlockId: '6258354802676165798',
 							};
 
-							transportInstance.shared.blocks(query, (err, res) => {
-								error = err;
-								result = res;
-								done();
-							});
-						});
-
-						it('should call modules.blocks.utils.loadBlocksData with { limit: 34, lastId: query.lastBlockId }', async () =>
-							expect(modules.blocks.loadBlocksDataWS).to.be.calledWith({
+							await transportInstance.shared.blocks(query);
+							return expect(modules.blocks.loadBlocksDataWS).to.be.calledWith({
 								limit: 34,
 								lastId: query.lastBlockId,
-							}));
-
-						describe('when modules.blocks.utils.loadBlocksData fails', () => {
-							let loadBlockFailed;
-
-							beforeEach(done => {
-								loadBlockFailed = new Error('Failed to load blocks...');
-								modules.blocks.loadBlocksDataWS.rejects(loadBlockFailed);
-
-								transportInstance.shared.blocks(query, (err, res) => {
-									error = err;
-									result = res;
-									done();
-								});
 							});
+						});
+					});
 
-							it('should call callback with error = null', async () =>
-								expect(error).to.be.equal(null));
+					describe('when modules.blocks.utils.loadBlocksData fails', () => {
+						it('should call callback with result = { blocks: [] }', async () => {
+							query = {
+								lastBlockId: '6258354802676165798',
+							};
 
-							it('should call callback with result = { blocks: [] }', async () =>
-								expect(result)
-									.to.have.property('blocks')
-									.which.is.an('array').that.is.empty);
+							const loadBlockFailed = new Error('Failed to load blocks...');
+							modules.blocks.loadBlocksDataWS.rejects(loadBlockFailed);
+
+							const response = await transportInstance.shared.blocks(query);
+							return expect(response)
+								.to.have.property('blocks')
+								.which.is.an('array').that.is.empty;
 						});
 					});
 				});
