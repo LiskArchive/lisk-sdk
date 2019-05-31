@@ -77,6 +77,9 @@ class BFT {
 		// Update the pre-votes and pre-commits
 		this.updatePreVotesPreCommits(blockHeader);
 
+		// Update the pre-voted confirmed and finalized height
+		this.updatePreVotedAndFinalizedHeight();
+
 		return this;
 	}
 
@@ -152,6 +155,28 @@ class BFT {
 
 		// Set the delegate state
 		this.state[delegatePublicKey] = delegateState;
+	}
+
+	updatePreVotedAndFinalizedHeight() {
+		if (this.headers.length === 0) {
+			return;
+		}
+
+		const higherPairVoted = Object.entries(this.preVotes)
+			.reverse()
+			.find(pair => pair[1] >= this.PRE_VOTE_THRESHOLD);
+
+		this.prevotedConfirmedHeight = higherPairVoted
+			? parseInt(higherPairVoted[0])
+			: this.prevotedConfirmedHeight;
+
+		const higherPairCommitted = Object.entries(this.preCommits)
+			.reverse()
+			.find(pair => pair[1] >= this.PRE_COMMIT_THRESHOLD);
+
+		this.finalizedHeight = higherPairCommitted
+			? parseInt(higherPairCommitted[0])
+			: this.finalizedHeight;
 	}
 
 	/**
