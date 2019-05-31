@@ -77,7 +77,7 @@ describe('HeadersList', () => {
 			expect(() => {
 				list.add(header3);
 			}).to.throw(
-				'Block header with height 12 or 9 can be added at the moment'
+				'Block header with height 12 or 9 can only be added at the moment, you provided 13 height'
 			);
 		});
 
@@ -91,7 +91,7 @@ describe('HeadersList', () => {
 			expect(() => {
 				list.add(header3);
 			}).to.throw(
-				'Block header with height 11 or 8 can be added at the moment'
+				'Block header with height 11 or 8 can only be added at the moment, you provided 7 height'
 			);
 		});
 

@@ -66,7 +66,9 @@ class HeadersList {
 				blockHeader.height === last.height + 1 ||
 					blockHeader.height === first.height - 1,
 				`Block header with height ${last.height + 1} or ${first.height -
-					1} can be added at the moment`
+					1} can only be added at the moment, you provided ${
+					blockHeader.height
+				} height`
 			);
 		}
 
