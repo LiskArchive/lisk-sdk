@@ -367,7 +367,7 @@ const validationFormats = {
 		validate: value => {
 			const { TOTAL_AMOUNT } = global.constants;
 			if (new BigNum(value).isPositive()) {
-				return new BigNum(value).isLessThanOrEqualTo(TOTAL_AMOUNT);
+				return new BigNum(value).lessThanOrEqualTo(TOTAL_AMOUNT);
 			}
 
 			return false;
