@@ -322,9 +322,7 @@ class Round {
 			fees.times(ACTIVE_DELEGATES)
 		);
 		const rewards =
-			new BigNum(roundRewards[index].toPrecision(15)).floor(
-				BigNum.ROUND_FLOOR
-			) || 0;
+			new BigNum(roundRewards[index].toPrecision(15)).floor() || 0;
 
 		return {
 			fees: Number(fees.toFixed()),
