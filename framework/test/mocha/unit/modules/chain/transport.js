@@ -1304,50 +1304,36 @@ describe('transport', () => {
 				});
 
 				describe('postSignature', () => {
-					beforeEach(done => {
-						query = {
-							signature: SAMPLE_SIGNATURE_1,
-						};
-						__private.receiveSignature = sinonSandbox.stub().callsArg(1);
-						transportInstance.shared.postSignature(query, (err, res) => {
-							error = err;
-							result = res;
-							done();
-						});
-					});
-
-					it('should call __private.receiveSignature with query.signature as argument', async () =>
-						expect(__private.receiveSignature.calledWith(query.signature)).to.be
-							.true);
-
-					describe('when __private.receiveSignature succeeds', () => {
+					describe('when getTransactionAndProcessSignature succeeds', () => {
 						it('should invoke callback with object { success: true }', async () => {
-							expect(error).to.equal(null);
+							query = {
+								signature: SAMPLE_SIGNATURE_1,
+							};
+							modules.transactionPool = {
+								getTransactionAndProcessSignature: sinonSandbox
+									.stub()
+									.resolves(),
+							};
+							result = await transportInstance.shared.postSignature(query);
 							return expect(result)
 								.to.have.property('success')
 								.which.is.equal(true);
 						});
 					});
 
-					describe('when __private.receiveSignature fails', () => {
-						const receiveSignatureError = 'Invalid signature body ...';
+					describe('when getTransactionAndProcessSignature fails', () => {
+						const receiveSignatureError = ['Invalid signature body ...'];
 
-						beforeEach(done => {
+						it('should invoke callback with object { success: false, message: err }', async () => {
 							query = {
 								signature: SAMPLE_SIGNATURE_1,
 							};
-							__private.receiveSignature = sinonSandbox
-								.stub()
-								.callsArgWith(1, receiveSignatureError);
-							transportInstance.shared.postSignature(query, (err, res) => {
-								error = err;
-								result = res;
-								done();
-							});
-						});
-
-						it('should invoke callback with object { success: false, message: err }', async () => {
-							expect(error).to.equal(null);
+							modules.transactionPool = {
+								getTransactionAndProcessSignature: sinonSandbox
+									.stub()
+									.rejects(receiveSignatureError),
+							};
+							result = await transportInstance.shared.postSignature(query);
 							expect(result)
 								.to.have.property('success')
 								.which.is.equal(false);

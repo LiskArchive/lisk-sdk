@@ -16,6 +16,7 @@
 
 const { TransactionError } = require('@liskhq/lisk-transactions');
 const async = require('async');
+const { promisify } = require('util');
 const _ = require('lodash');
 const { convertErrorsToString } = require('./helpers/error_handlers');
 // eslint-disable-next-line prefer-const
@@ -421,19 +422,27 @@ class Transport {
 			 * @todo Add @returns tag
 			 * @todo Add description of the function
 			 */
-			postSignature(query, cb) {
-				__private.receiveSignature(query.signature, (err, code) => {
-					if (err) {
-						return setImmediate(cb, null, {
-							success: false,
-							code,
-							errors: err,
-						});
-					}
-					return setImmediate(cb, null, {
-						success: true,
-					});
-				});
+			async postSignature(query) {
+				try {
+					await promisify(library.schema.validate)(
+						query.signature,
+						definitions.Signature
+					);
+				} catch (err) {
+					return {
+						success: false,
+						code: 400,
+						errors: [new TransactionError(err[0].message)],
+					};
+				}
+				return modules.transactionPool
+					.getTransactionAndProcessSignature(query.signature)
+					.then(() => ({ success: true }))
+					.catch(err => ({
+						success: false,
+						code: 409,
+						errors: err,
+					}));
 			},
 
 			/**
