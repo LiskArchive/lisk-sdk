@@ -108,7 +108,7 @@
 		"@oclif/config": "1.9.0",
 		"@oclif/errors": "1.2.2",
 		"@oclif/plugin-help": "2.1.1",
-		"axios": "0.18.0",
+		"axios": "0.19.0",
 		"bip39": "2.5.0",
 		"chalk": "2.4.1",
 		"cli-table3": "0.5.0",
