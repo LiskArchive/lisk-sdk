@@ -111,6 +111,7 @@ describe('rounds information', () => {
 			account: {
 				get: sinonSandbox.stub().returns({
 					votedDelegatesPublicKeys: ['12345'],
+					balance: '0',
 				}),
 			},
 			transaction: {
@@ -192,6 +193,7 @@ describe('rounds information', () => {
 				votedDelegatesPublicKeys: [
 					'05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
 				],
+				balance: '0',
 			});
 			Votes.apply(
 				storageStubs,
@@ -217,6 +219,7 @@ describe('rounds information', () => {
 				votedDelegatesPublicKeys: [
 					'05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
 				],
+				balance: 0,
 			});
 			Votes.undo(storageStubs, voteTransaction, exceptions);
 			expect(storageStubs.round.add).to.be.calledWithExactly({

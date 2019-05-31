@@ -33,6 +33,9 @@ describe('blocks/utils', () => {
 				'a24416a05bef8874fb1c638105d892162f7d5736b7a2deda318e976fd80f64e9',
 			t_id: '6950874693022090568',
 			t_type: 0,
+			b_totalAmount: 100,
+			b_totalFee: 10,
+			b_reward: 1,
 		},
 		{
 			b_id: '13068833527549895884',
@@ -41,6 +44,9 @@ describe('blocks/utils', () => {
 				'a24416a05bef8874fb1c638105d892162f7d5736b7a2deda318e976fd80f64e9',
 			t_id: '13831767660337349834',
 			t_type: 1,
+			b_totalAmount: 100,
+			b_totalFee: 10,
+			b_reward: 1,
 		},
 		{
 			b_id: '7018883617995376402',
@@ -49,6 +55,9 @@ describe('blocks/utils', () => {
 				'a24416a05bef8874fb1c638105d892162f7d5736b7a2deda318e976fd80f64e9',
 			t_id: '10550826199952791739',
 			t_type: 2,
+			b_totalAmount: 100,
+			b_totalFee: 10,
+			b_reward: 1,
 		},
 		{
 			b_id: '7018883617995376402',
@@ -57,6 +66,9 @@ describe('blocks/utils', () => {
 				'a24416a05bef8874fb1c638105d892162f7d5736b7a2deda318e976fd80f64e9',
 			t_id: '3502881310841638511',
 			t_type: 3,
+			b_totalAmount: 100,
+			b_totalFee: 10,
+			b_reward: 1,
 		},
 	];
 
@@ -84,6 +96,9 @@ describe('blocks/utils', () => {
 					},
 				},
 			],
+			totalAmount: 100,
+			totalFee: 10,
+			reward: 1,
 		},
 		{
 			id: '13068833527549895884',
@@ -97,6 +112,9 @@ describe('blocks/utils', () => {
 					type: 1,
 				},
 			],
+			totalAmount: 100,
+			totalFee: 10,
+			reward: 1,
 		},
 		{
 			id: '7018883617995376402',
@@ -110,6 +128,9 @@ describe('blocks/utils', () => {
 					type: 2,
 				},
 			],
+			totalAmount: 100,
+			totalFee: 10,
+			reward: 1,
 		},
 		{
 			id: '7018883617995376402',
@@ -123,6 +144,9 @@ describe('blocks/utils', () => {
 					type: 3,
 				},
 			],
+			totalAmount: 100,
+			totalFee: 10,
+			reward: 1,
 		},
 	];
 
@@ -229,6 +253,9 @@ describe('blocks/utils', () => {
 						'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
 					t_id: '1465651642158264047',
 					t_type: 0,
+					b_totalAmount: 100,
+					b_totalFee: 10,
+					b_reward: 1,
 				},
 				{
 					b_id: '6524861224470851795',
@@ -237,6 +264,9 @@ describe('blocks/utils', () => {
 						'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
 					t_id: '3634383815892709956',
 					t_type: 2,
+					b_totalAmount: 100,
+					b_totalFee: 10,
+					b_reward: 1,
 				},
 			];
 
@@ -855,12 +885,18 @@ describe('blocks/utils', () => {
 						height: 2,
 						generatorPublicKey:
 							'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
+						totalAmount: 100,
+						totalFee: 10,
+						reward: 1,
 					},
 					{
 						id: 3,
 						height: 3,
 						generatorPublicKey:
 							'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a9',
+						totalAmount: 100,
+						totalFee: 10,
+						reward: 1,
 					},
 				]);
 			});
