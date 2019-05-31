@@ -23,5 +23,5 @@ const BFT = require('./bft');
 
 module.exports = {
 	HeadersList,
-	...BFT,
+	BFT,
 };

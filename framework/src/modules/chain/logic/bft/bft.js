@@ -28,15 +28,6 @@ const { validate } = require('../../../../../src/controller/validator');
  * @property {string} delegatePublicKey
  */
 
-/**
- * Validate schema of block header
- *
- * @param {BlockHeader} blockHeader
- * @return {boolean}
- */
-const validateBlockHeader = blockHeader =>
-	validate(blockHeaderSchema, blockHeader);
-
 class BFT {
 	constructor({ finalizedHeight, activeDelegates = 101 }) {
 		// Set constants
@@ -74,7 +65,7 @@ class BFT {
 	 */
 	addBlockHeader(blockHeader) {
 		// Validate the schema of the header
-		validateBlockHeader(blockHeader);
+		BFT.validateBlockHeader(blockHeader);
 
 		// Verify the integrity of the header with chain
 		this.verifyBlockHeaders(blockHeader);
@@ -183,6 +174,16 @@ class BFT {
 		return true;
 	}
 
+	/**
+	 * Validate schema of block header
+	 *
+	 * @param {BlockHeader} blockHeader
+	 * @return {boolean}
+	 */
+	static validateBlockHeader(blockHeader) {
+		return validate(blockHeaderSchema, blockHeader);
+	}
+
 	get minHeight() {
 		return this.headers.first.height;
 	}
@@ -192,7 +193,4 @@ class BFT {
 	}
 }
 
-module.exports = {
-	BFT,
-	validateBlockHeader,
-};
+module.exports = BFT;

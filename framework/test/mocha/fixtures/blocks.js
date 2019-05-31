@@ -99,7 +99,7 @@ const BlockHeader = stampit({
 			randomstring
 				.generate({ charset: '0123456789ABCDE', length: 64 })
 				.toLowerCase();
-		this.activeSinceRound = activeSinceRound || 3;
+		this.activeSinceRound = activeSinceRound || 1;
 		this.maxHeightPreviouslyForged = maxHeightPreviouslyForged || 0;
 		this.prevotedConfirmedUptoHeight = prevotedConfirmedUptoHeight || 0;
 	},
