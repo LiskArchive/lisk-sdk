@@ -30,6 +30,36 @@ const generateValidHeaders = count => {
 	});
 };
 
+const delegatesMap = {};
+const generateHeaderInformation = (data, threshold, lastBlockData) => {
+	const delegatePublicKey = delegatesMap[data.d] || accountFixture().publicKey;
+	delegatesMap[data.d] = delegatePublicKey;
+
+	const beforeBlockPreVotedConfirmedHeight = lastBlockData
+		? lastBlockData.votes.lastIndexOf(threshold) + 1
+		: 0;
+
+	const header = blockHeaderFixture({
+		height: data.h,
+		maxHeightPreviouslyForged: data.p,
+		delegatePublicKey: delegatesMap[data.d],
+		activeSinceRound: data.a,
+		prevotedConfirmedUptoHeight: beforeBlockPreVotedConfirmedHeight,
+	});
+
+	const finalizedHeight = data.commits.lastIndexOf(threshold) + 1;
+
+	const preVotedConfirmedHeight = data.votes.lastIndexOf(threshold) + 1;
+
+	return {
+		header,
+		finalizedHeight,
+		preVotedConfirmedHeight,
+		preVotes: data.votes,
+		preCommits: data.commits,
+	};
+};
+
 describe('bft', () => {
 	describe('BFT', () => {
 		let bft;
@@ -246,7 +276,6 @@ describe('bft', () => {
 
 			describe('should have proper preVotes and preCommits', () => {
 				describe('11 delegates switched partially on 3rd round', () => {
-					const delegatesMap = {};
 					const data = require('./scenarios/11_delegates_switch_on_3_round');
 					const myBft = new BFT({
 						finalizedHeight: 0,
@@ -254,50 +283,75 @@ describe('bft', () => {
 					});
 
 					data.headers.forEach((headerData, index) => {
-						const delegatePublicKey =
-							delegatesMap[headerData.d] || accountFixture().publicKey;
-						delegatesMap[headerData.d] = delegatePublicKey;
-
-						it(`have proper pre-votes and pre-commits when ${
+						it(`have accurate information when ${
 							headerData.d
 						} forge block at height = ${headerData.h}`, async () => {
-							const beforeBlockPreVotedConfirmedHeight =
-								index > 0
-									? data.headers[index - 1].votes.lastIndexOf(
-											myBft.PRE_VOTE_THRESHOLD
-									  ) + 1
-									: 0;
+							const blockData = generateHeaderInformation(
+								headerData,
+								myBft.PRE_COMMIT_THRESHOLD,
+								data.headers[index - 1]
+							);
 
-							const blockHeader = blockHeaderFixture({
-								height: headerData.h,
-								maxHeightPreviouslyForged: headerData.p,
-								delegatePublicKey: delegatesMap[headerData.d],
-								activeSinceRound: headerData.a,
-								prevotedConfirmedUptoHeight: beforeBlockPreVotedConfirmedHeight,
-							});
-							const afterBlockFinalizedHeight =
-								headerData.commits.lastIndexOf(myBft.PRE_COMMIT_THRESHOLD) + 1;
-
-							const afterBlockPreVotedConfirmedHeight =
-								headerData.votes.lastIndexOf(myBft.PRE_VOTE_THRESHOLD) + 1;
-
-							myBft.addBlockHeader(blockHeader);
+							myBft.addBlockHeader(blockData.header);
 
 							expect(Object.values(myBft.preCommits)).to.be.eql(
-								headerData.commits
+								blockData.preCommits
 							);
-							expect(Object.values(myBft.preVotes)).to.be.eql(headerData.votes);
+							expect(Object.values(myBft.preVotes)).to.be.eql(
+								blockData.preVotes
+							);
 
 							expect(myBft.finalizedHeight).to.be.eql(
-								afterBlockFinalizedHeight
+								blockData.finalizedHeight
 							);
 
 							expect(myBft.prevotedConfirmedHeight).to.be.eql(
-								afterBlockPreVotedConfirmedHeight
+								blockData.preVotedConfirmedHeight
 							);
 						});
 					});
 				});
+			});
+		});
+
+		describe('recompute', () => {
+			it('should have accurate information after recompute', async () => {
+				// Let's first compute in proper way
+
+				const data = require('./scenarios/11_delegates_switch_on_3_round');
+				let blockData;
+				const myBft = new BFT({
+					finalizedHeight: 0,
+					activeDelegates: data.activeDelegates,
+				});
+
+				data.headers.forEach((headerData, index) => {
+					blockData = generateHeaderInformation(
+						headerData,
+						myBft.PRE_COMMIT_THRESHOLD,
+						data.headers[index - 1]
+					);
+					myBft.addBlockHeader(blockData.header);
+				});
+
+				// Values should match with expectations
+				expect(Object.values(myBft.preCommits)).to.be.eql(blockData.preCommits);
+				expect(Object.values(myBft.preVotes)).to.be.eql(blockData.preVotes);
+				expect(myBft.finalizedHeight).to.be.eql(blockData.finalizedHeight);
+				expect(myBft.prevotedConfirmedHeight).to.be.eql(
+					blockData.preVotedConfirmedHeight
+				);
+
+				// Now recompute all information again
+				myBft.recompute();
+
+				// Values should match with expectations
+				expect(Object.values(myBft.preCommits)).to.be.eql(blockData.preCommits);
+				expect(Object.values(myBft.preVotes)).to.be.eql(blockData.preVotes);
+				expect(myBft.finalizedHeight).to.be.eql(blockData.finalizedHeight);
+				expect(myBft.prevotedConfirmedHeight).to.be.eql(
+					blockData.preVotedConfirmedHeight
+				);
 			});
 		});
 	});
