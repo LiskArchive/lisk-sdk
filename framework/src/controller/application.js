@@ -225,7 +225,7 @@ class Application {
 	 * @param {number} transactionType - Unique integer that identifies the transaction type
 	 * @param {constructor} Transaction - Implementation of @liskhq/lisk-transactions/base_transaction
 	 */
-	registerTransaction(Transaction, { matcher }) {
+	registerTransaction(Transaction, { matcher } = {}) {
 		assert(Transaction, 'Transaction implementation is required');
 
 		assert(
