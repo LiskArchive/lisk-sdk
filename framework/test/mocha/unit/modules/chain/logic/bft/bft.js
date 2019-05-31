@@ -49,8 +49,8 @@ describe('bft', () => {
 			it('should initialize the object correctly', async () => {
 				expect(bft).an.instanceOf(BFT);
 				expect(bft.ACTIVE_DELEGATES).to.be.eql(activeDelegates);
-				expect(bft.PREVOTE_THRESHOLD).to.be.eql(prevoteThreshold);
-				expect(bft.PRECOMMIT_THRESHOLD).to.be.eql(precommitThreshold);
+				expect(bft.PRE_VOTE_THRESHOLD).to.be.eql(prevoteThreshold);
+				expect(bft.PRE_COMMIT_THRESHOLD).to.be.eql(precommitThreshold);
 				expect(bft.PROCESSING_THRESHOLD).to.be.eql(processingThreshold);
 				expect(bft.MAX_HEADERS).to.be.eql(maxHeaders);
 			});
@@ -232,19 +232,19 @@ describe('bft', () => {
 				expect(bft.headers.items).to.be.eql([header1, header2]);
 			});
 
-			it('should call updatePrevotesPrecommits with the provided header', async () => {
+			it('should call updatePreVotesPreCommits with the provided header', async () => {
 				const header1 = blockHeaderFixture({
 					height: 1,
 					maxHeightPreviouslyForged: 0,
 				});
-				sinonSandbox.spy(bft, 'updatePrevotesPrecommits');
+				sinonSandbox.spy(bft, 'updatePreVotesPreCommits');
 				bft.addBlockHeader(header1);
 
-				expect(bft.updatePrevotesPrecommits).to.be.calledOnce;
-				expect(bft.updatePrevotesPrecommits).to.be.calledWith(header1);
+				expect(bft.updatePreVotesPreCommits).to.be.calledOnce;
+				expect(bft.updatePreVotesPreCommits).to.be.calledWith(header1);
 			});
 
-			describe('should have proper prevotes and precommits', () => {
+			describe('should have proper preVotes and preCommits', () => {
 				describe('11 delegates switched partially on 3rd round', () => {
 					let myBft;
 					const delegatesMap = {};
@@ -272,10 +272,10 @@ describe('bft', () => {
 								activeSinceRound: headerData.a,
 							});
 							myBft.addBlockHeader(blockHeader);
-							expect(Object.values(myBft.precommits)).to.be.eql(
+							expect(Object.values(myBft.preCommits)).to.be.eql(
 								headerData.commits
 							);
-							expect(Object.values(myBft.prevotes)).to.be.eql(headerData.votes);
+							expect(Object.values(myBft.preVotes)).to.be.eql(headerData.votes);
 						});
 					});
 				});

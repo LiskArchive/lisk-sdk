@@ -34,10 +34,10 @@ class BFT {
 		this.ACTIVE_DELEGATES = activeDelegates;
 
 		// Threshold to consider a block prevoted
-		this.PREVOTE_THRESHOLD = Math.ceil((this.ACTIVE_DELEGATES * 2) / 3);
+		this.PRE_VOTE_THRESHOLD = Math.ceil((this.ACTIVE_DELEGATES * 2) / 3);
 
 		// Threshold to consider a block pre-committed (or finalized)
-		this.PRECOMMIT_THRESHOLD = Math.ceil((this.ACTIVE_DELEGATES * 2) / 3);
+		this.PRE_COMMIT_THRESHOLD = Math.ceil((this.ACTIVE_DELEGATES * 2) / 3);
 
 		// Limit to of blocks to must have to make any prevote-precommit verification on blocks (1 block less than 3 rounds)
 		this.PROCESSING_THRESHOLD = this.ACTIVE_DELEGATES * 3 - 1;
@@ -50,18 +50,19 @@ class BFT {
 		// Height up to which blocks are finalized
 		this.finalizedHeight = finalizedHeight || 0;
 
-		// Height up to which blocks have prevoted
+		// Height up to which blocks have pre-voted
 		this.prevotedConfirmedHeight = 0;
 
-		this.delegatesState = {};
-		this.prevotes = {};
-		this.precommits = {};
+		this.state = {};
+		this.preVotes = {};
+		this.preCommits = {};
 	}
 
 	/**
 	 * Add block header to BFT
 	 *
 	 * @param {BlockHeader} blockHeader
+	 * @return {BFT}
 	 */
 	addBlockHeader(blockHeader) {
 		// Validate the schema of the header
@@ -70,55 +71,87 @@ class BFT {
 		// Verify the integrity of the header with chain
 		this.verifyBlockHeaders(blockHeader);
 
+		// Add the header to the list
 		this.headers.add(blockHeader);
-		this.updatePrevotesPrecommits(blockHeader);
+
+		// Update the pre-votes and pre-commits
+		this.updatePreVotesPreCommits(blockHeader);
 
 		return this;
 	}
 
-	updatePrevotesPrecommits(lastBlockHeader) {
+	/**
+	 * Update pre-votes and pre-commits in reference to particular block header
+	 *
+	 * @param {BlockHeader} lastBlockHeader
+	 * @return {undefined}
+	 */
+	updatePreVotesPreCommits(lastBlockHeader) {
+		// Update applies particularly in reference to last block header in the list
 		const header = lastBlockHeader || this.headers.last;
 
+		// If delegate forged a block with higher or same height previously
+		// that means he is forging on other chain and we don't count any
+		// pre-votes and pre-commits from him
 		if (header.maxHeightPreviouslyForged >= header.height) {
 			return;
 		}
 
+		// Get delegate public key
 		const delegatePublicKey = header.delegatePublicKey;
-		const delegateState = this.delegatesState[delegatePublicKey] || {
-			maxPrevoteHeight: 0,
-			maxPrecommitHeight: 0,
+
+		// Load or initialize delegate state in reference to current BFT block headers
+		const delegateState = this.state[delegatePublicKey] || {
+			maxPreVoteHeight: 0,
+			maxPreCommitHeight: 0,
 		};
+
+		// Get first block of the round when delegate was active
 		const delegateMinHeightActive =
 			(header.activeSinceRound - 1) * this.ACTIVE_DELEGATES + 1;
 
-		const minPrecommitHeight = Math.max(
+		// If delegate is new then first block of the round will be considered
+		// if it forged before then we probably have the last commit height
+		// delegate can't pre-commit and block before above mentioned conditions
+		const minPreCommit = Math.max(
 			delegateMinHeightActive,
-			delegateState.maxPrecommitHeight + 1
+			delegateState.maxPreCommitHeight + 1
 		);
-		const maxPrecommitHeight = header.height - 1;
 
-		for (let j = minPrecommitHeight; j <= maxPrecommitHeight; j++) {
-			// Add precommit if threshold is reached
-			if (this.prevotes[j] >= this.PREVOTE_THRESHOLD) {
-				this.precommits[j] = (this.precommits[j] || 0) + 1;
-				delegateState.maxPrecommitHeight = j;
+		// Delegate can't pre-commit the blocks on tip of the chain
+		const maxPreCommitHeight = header.height - 1;
+
+		for (let j = minPreCommit; j <= maxPreCommitHeight; j++) {
+			// Add pre-commit if threshold is reached
+			if (this.preVotes[j] >= this.PRE_VOTE_THRESHOLD) {
+				// Increase the pre-commit for particular height
+				this.preCommits[j] = (this.preCommits[j] || 0) + 1;
+
+				// Keep track of the last pre-commit point
+				delegateState.maxPreCommitHeight = j;
 			}
 		}
 
-		// Add implied prevotes by newBlockheader
-		const minPrevoteHeight = Math.max(
-			header.maxHeightPreviouslyForged + 1,
+		// Check between height of first block of the round when delegate was active
+		// Or one step ahead where it forged the last block
+		// Or one step ahead where it left the last pre-vote
+		// Or maximum 3 rounds backward
+		const minPreVoteHeight = Math.max(
 			delegateMinHeightActive,
+			header.maxHeightPreviouslyForged + 1,
+			delegateState.maxPreVoteHeight + 1,
 			header.height - this.PROCESSING_THRESHOLD
 		);
-		const maxPrevoteHeight = header.height;
-		for (let j = minPrevoteHeight; j <= maxPrevoteHeight; j++) {
-			this.prevotes[j] = (this.prevotes[j] || 0) + 1;
+		// Pre-vote upto current block height
+		const maxPreVoteHeight = header.height;
+		for (let j = minPreVoteHeight; j <= maxPreVoteHeight; j++) {
+			this.preVotes[j] = (this.preVotes[j] || 0) + 1;
 		}
+		// Update delegate state
+		delegateState.maxPreVoteHeight = maxPreVoteHeight;
 
-		delegateState.maxPrevoteHeight = maxPrevoteHeight;
-
-		this.delegatesState[delegatePublicKey] = delegateState;
+		// Set the delegate state
+		this.state[delegatePublicKey] = delegateState;
 	}
 
 	/**
