@@ -37,27 +37,34 @@ const { validate } = require('../../../../../src/controller/validator');
 const validateBlockHeader = blockHeader =>
 	validate(blockHeaderSchema, blockHeader);
 
-// Maximum headers to store (5 rounds)
-const MAX_HEADERS = 505;
-
-// Limit to of blocks to must have to make any prevote-precommit verification on blocks (1 block less than 3 rounds)
-const PROCESSING_THRESHOLD = 302;
-
-// Threshold to consider a block prevoted
-const PREVOTE_THRESHOLD = 68;
-
-// Threshold to consider a block pre-committed (or finalized)
-const PRECOMMIT_THRESHOLD = 68;
-
 class BFT {
-	constructor({ finalizedHeight }) {
-		this.headers = new HeadersList({ size: MAX_HEADERS });
+	constructor({ finalizedHeight, activeDelegates = 101 }) {
+		// Set constants
+		this.ACTIVE_DELEGATES = activeDelegates;
+
+		// Threshold to consider a block prevoted
+		this.PREVOTE_THRESHOLD = Math.ceil((this.ACTIVE_DELEGATES * 2) / 3);
+
+		// Threshold to consider a block pre-committed (or finalized)
+		this.PRECOMMIT_THRESHOLD = Math.ceil((this.ACTIVE_DELEGATES * 2) / 3);
+
+		// Limit to of blocks to must have to make any prevote-precommit verification on blocks (1 block less than 3 rounds)
+		this.PROCESSING_THRESHOLD = this.ACTIVE_DELEGATES * 3 - 1;
+
+		// Maximum headers to store (5 rounds)
+		this.MAX_HEADERS = this.ACTIVE_DELEGATES * 5;
+
+		this.headers = new HeadersList({ size: this.MAX_HEADERS });
 
 		// Height up to which blocks are finalized
 		this.finalizedHeight = finalizedHeight || 0;
 
 		// Height up to which blocks have prevoted
 		this.prevotedConfirmedHeight = 0;
+
+		this.delegatesState = {};
+		this.prevotes = {};
+		this.precommits = {};
 	}
 
 	/**
@@ -73,6 +80,54 @@ class BFT {
 		this.verifyBlockHeaders(blockHeader);
 
 		this.headers.add(blockHeader);
+		this.updatePrevotesPrecommits(blockHeader);
+
+		return this;
+	}
+
+	updatePrevotesPrecommits(lastBlockHeader) {
+		const header = lastBlockHeader || this.headers.last;
+
+		if (header.maxHeightPreviouslyForged >= header.height) {
+			return;
+		}
+
+		const delegatePublicKey = header.delegatePublicKey;
+		const delegateState = this.delegatesState[delegatePublicKey] || {
+			maxPrevoteHeight: 0,
+			maxPrecommitHeight: 0,
+		};
+		const delegateMinHeightActive =
+			(header.activeSinceRound - 1) * this.ACTIVE_DELEGATES + 1;
+
+		const minPrecommitHeight = Math.max(
+			delegateMinHeightActive,
+			delegateState.maxPrecommitHeight + 1
+		);
+		const maxPrecommitHeight = header.height - 1;
+
+		for (let j = minPrecommitHeight; j <= maxPrecommitHeight; j++) {
+			// Add precommit if threshold is reached
+			if (this.prevotes[j] >= this.PREVOTE_THRESHOLD) {
+				this.precommits[j] = (this.precommits[j] || 0) + 1;
+				delegateState.maxPrecommitHeight = j;
+			}
+		}
+
+		// Add implied prevotes by newBlockheader
+		const minPrevoteHeight = Math.max(
+			header.maxHeightPreviouslyForged + 1,
+			delegateMinHeightActive,
+			header.height - this.PROCESSING_THRESHOLD
+		);
+		const maxPrevoteHeight = header.height;
+		for (let j = minPrevoteHeight; j <= maxPrevoteHeight; j++) {
+			this.prevotes[j] = (this.prevotes[j] || 0) + 1;
+		}
+
+		delegateState.maxPrevoteHeight = maxPrevoteHeight;
+
+		this.delegatesState[delegatePublicKey] = delegateState;
 	}
 
 	/**
@@ -84,7 +139,7 @@ class BFT {
 		// We need minimum PROCESSING_THRESHOLD to decide
 		// if prevotedConfirmedUptoHeight is correct
 		if (
-			this.headers.length >= PROCESSING_THRESHOLD &&
+			this.headers.length >= this.PROCESSING_THRESHOLD &&
 			blockHeader.prevotedConfirmedUptoHeight !== this.prevotedConfirmedHeight
 		) {
 			throw new Error('Wrong provtedConfirmedHeight in blockHeader.');
@@ -92,7 +147,7 @@ class BFT {
 
 		const delegateLastBlock = this.headers.getBlockHeaderForDelegate(
 			blockHeader.delegatePublicKey,
-			{ fromTop: PROCESSING_THRESHOLD }
+			{ fromTop: this.PROCESSING_THRESHOLD }
 		);
 
 		if (!delegateLastBlock) {
@@ -140,8 +195,4 @@ class BFT {
 module.exports = {
 	BFT,
 	validateBlockHeader,
-	MAX_HEADERS,
-	PROCESSING_THRESHOLD,
-	PREVOTE_THRESHOLD,
-	PRECOMMIT_THRESHOLD,
 };
