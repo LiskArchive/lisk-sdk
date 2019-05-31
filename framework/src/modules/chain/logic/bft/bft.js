@@ -157,6 +157,9 @@ class BFT {
 		this.state[delegatePublicKey] = delegateState;
 	}
 
+	/**
+	 * Update the pre-voted confirmed and finalized height
+	 */
 	updatePreVotedAndFinalizedHeight() {
 		if (this.headers.length === 0) {
 			return;
@@ -177,6 +180,22 @@ class BFT {
 		this.finalizedHeight = higherPairCommitted
 			? parseInt(higherPairCommitted[0])
 			: this.finalizedHeight;
+	}
+
+	/**
+	 * Use existing block headers and re-compute all information
+	 */
+	recompute() {
+		this.state = {};
+		this.finalizedHeight = 0;
+		this.prevotedConfirmedHeight = 0;
+		this.preVotes = {};
+		this.preCommits = {};
+
+		this.headers.items.forEach(header => {
+			this.updatePreVotesPreCommits(header);
+			this.updatePreVotedAndFinalizedHeight();
+		});
 	}
 
 	/**
