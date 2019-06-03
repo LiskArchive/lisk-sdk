@@ -57,7 +57,12 @@ describe('account', () => {
 				if (err) {
 					done(err);
 				}
-				account = scope.logic.account;
+				account = new Account(
+					scope.components.storage,
+					scope.schema,
+					scope.components.logger,
+					scope.modules.rounds
+				);
 				storage = scope.components.storage;
 				done();
 			}

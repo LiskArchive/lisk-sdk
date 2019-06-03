@@ -797,9 +797,6 @@ describe('transport', () => {
 						invokeSync: sinonSandbox.stub(),
 						publish: sinonSandbox.stub(),
 					},
-					block: {
-						objectNormalize: sinonSandbox.stub().returns(new Block()),
-					},
 					storage: {
 						entities: {
 							Block: {
@@ -1304,8 +1301,8 @@ describe('transport', () => {
 							const blockValidationError = 'Failed to validate block schema';
 
 							beforeEach(done => {
-								library.block.objectNormalize = sinonSandbox
-									.stub()
+								sinonSandbox
+									.stub(blocksModule, 'objectNormalize')
 									.throws(blockValidationError);
 								transportInstance.shared.postBlock(postBlockQuery);
 								done();
@@ -1325,8 +1322,8 @@ describe('transport', () => {
 
 						describe('when it does not throw', () => {
 							beforeEach(done => {
-								library.block.objectNormalize = sinonSandbox
-									.stub()
+								sinonSandbox
+									.stub(blocksModule, 'objectNormalize')
 									.returns(blockMock);
 								transportInstance.shared.postBlock(postBlockQuery);
 								done();
@@ -1342,8 +1339,8 @@ describe('transport', () => {
 							});
 
 							it('should call library.block.objectNormalize with block', async () =>
-								expect(library.block.objectNormalize.calledWith(blockMock)).to
-									.be.true);
+								expect(blocksModule.objectNormalize.calledWith(blockMock)).to.be
+									.true);
 
 							it('should call block.process.receiveBlockFromNetwork with block', async () => {
 								expect(

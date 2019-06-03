@@ -170,9 +170,6 @@ async function __init(sandbox, initScope) {
 		// scope.logic = await initSteps.initLogicStructure(scope);
 		scope.modules = await initStepsForTest.initModules(scope);
 
-		// Ready to bind modules
-		scope.logic.account.bindModules(scope.modules);
-
 		// Fire onBind event in every module
 		scope.bus.message('bind', scope);
 
