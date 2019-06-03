@@ -61,7 +61,7 @@ class Transport {
 			schema: scope.schema,
 			balancesSequence: scope.balancesSequence,
 			logic: {
-				block: scope.logic.block,
+				// block: scope.logic.block,
 			},
 			config: {
 				forging: {
@@ -392,7 +392,7 @@ class Transport {
 								block
 							);
 
-							block = library.logic.block.objectNormalize(block);
+							// block = library.logic.block.objectNormalize(block);
 						} catch (e) {
 							success = false;
 							library.logger.debug('Block normalization failed', {
