@@ -14,4 +14,12 @@
 
 'use strict';
 
-module.exports = () => {};
+module.exports = ({ schema, components: { storage, logger } }) => {
+	const Account = require('../rounds/account.js');
+
+	const accountLogic = new Account(storage, schema, logger);
+
+	return {
+		account: accountLogic,
+	};
+};
