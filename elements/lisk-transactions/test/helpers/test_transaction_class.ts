@@ -48,4 +48,8 @@ export class TestTransaction extends BaseTransaction {
 
 		return [];
 	}
+
+	public assetFromSync(raw: any) {
+		return { data: raw };
+	}
 }

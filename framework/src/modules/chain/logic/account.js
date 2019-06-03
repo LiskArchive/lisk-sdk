@@ -16,13 +16,10 @@
 
 const _ = require('lodash');
 const Bignum = require('../helpers/bignum');
-const BlockReward = require('./block_reward');
 
 // Private fields
 let library;
 let modules;
-
-const __private = {};
 
 /**
  * Main account logic.
@@ -32,7 +29,6 @@ const __private = {};
  * @see Parent: {@link logic}
  * @requires lodash
  * @requires helpers/bignum
- * @requires logic/block_reward
  * @param {Storage} storage
  * @param {ZSchema} schema
  * @param {Object} logger
@@ -48,8 +44,6 @@ class Account {
 			schema,
 			storage,
 		};
-
-		__private.blockReward = new BlockReward();
 
 		library = {
 			logger,

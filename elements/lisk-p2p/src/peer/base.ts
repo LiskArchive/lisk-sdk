@@ -323,10 +323,9 @@ export class Peer extends EventEmitter {
 
 	public disconnect(code: number = 1000, reason?: string): void {
 		clearInterval(this._counterResetInterval);
-		if (!this._socket) {
-			throw new Error('Peer socket does not exist');
+		if (this._socket) {
+			this._socket.destroy(code, reason);
 		}
-		this._socket.destroy(code, reason);
 	}
 
 	public send(packet: P2PMessagePacket): void {

@@ -21,8 +21,10 @@ const { convertErrorsToString } = require('./helpers/error_handlers');
 // eslint-disable-next-line prefer-const
 let Broadcaster = require('./logic/broadcaster');
 const definitions = require('./schema/definitions');
-const processTransactionLogic = require('./logic/process_transaction');
+const blocksModule = require('./blocks');
+const transactionsModule = require('./transactions');
 
+const exceptions = global.exceptions;
 const { MAX_SHARED_TRANSACTIONS } = global.constants;
 
 // Private fields
@@ -60,7 +62,6 @@ class Transport {
 			balancesSequence: scope.balancesSequence,
 			logic: {
 				block: scope.logic.block,
-				initTransaction: scope.logic.initTransaction,
 			},
 			config: {
 				forging: {
@@ -77,7 +78,7 @@ class Transport {
 			scope.config.nonce,
 			scope.config.broadcasts,
 			scope.config.forging.force,
-			scope.logic.transactionPool,
+			scope.modules.transactionPool,
 			scope.components.logger,
 			scope.channel,
 			scope.components.storage
@@ -96,9 +97,8 @@ class Transport {
 		modules = {
 			blocks: scope.modules.blocks,
 			loader: scope.modules.loader,
-			multisignatures: scope.modules.multisignatures,
-			processTransactions: scope.modules.processTransactions,
-			transactions: scope.modules.transactions,
+			interfaceAdapters: scope.modules.interfaceAdapters,
+			transactionPool: scope.modules.transactionPool,
 		};
 	}
 
@@ -322,12 +322,12 @@ class Transport {
 					});
 				}
 
-				modules.blocks.utils.loadBlocksDataWS(
-					{
+				modules.blocks
+					.loadBlocksDataWS({
 						limit: 34, // 1977100 bytes
 						lastId: query.lastBlockId,
-					},
-					(err, data) => {
+					})
+					.then(data => {
 						_.each(data, block => {
 							if (block.tf_data) {
 								try {
@@ -343,17 +343,15 @@ class Transport {
 								}
 							}
 						});
-						if (err) {
-							return setImmediate(cb, null, {
-								blocks: [],
-								message: err,
-								success: false,
-							});
-						}
-
 						return setImmediate(cb, null, { blocks: data, success: true });
-					}
-				);
+					})
+					.catch(err =>
+						setImmediate(cb, null, {
+							blocks: [],
+							message: err,
+							success: false,
+						})
+					);
 			},
 
 			/**
@@ -387,10 +385,10 @@ class Transport {
 						let block;
 						let success = true;
 						try {
-							block = modules.blocks.verify.addBlockProperties(query.block);
+							block = blocksModule.addBlockProperties(query.block);
 
 							// Instantiate transaction classes
-							block.transactions = library.logic.initTransaction.fromBlock(
+							block.transactions = modules.interfaceAdapters.transactions.fromBlock(
 								block
 							);
 
@@ -413,7 +411,7 @@ class Transport {
 							);
 						}
 						if (success) {
-							return modules.blocks.process.receiveBlockFromNetwork(block);
+							return modules.blocks.receiveBlockFromNetwork(block);
 						}
 						return null;
 					}
@@ -475,7 +473,7 @@ class Transport {
 			 * @todo Add description of the function
 			 */
 			getSignatures(cb) {
-				const transactions = modules.transactions.getMultisignatureTransactionList(
+				const transactions = modules.transactionPool.getMultisignatureTransactionList(
 					true,
 					MAX_SHARED_TRANSACTIONS
 				);
@@ -508,7 +506,7 @@ class Transport {
 			 * @todo Add description of the function
 			 */
 			getTransactions(cb) {
-				const transactions = modules.transactions.getMergedTransactionList(
+				const transactions = modules.transactionPool.getMergedTransactionList(
 					true,
 					MAX_SHARED_TRANSACTIONS
 				);
@@ -528,13 +526,12 @@ class Transport {
 			postTransaction(query, cb) {
 				__private.receiveTransaction(
 					query.transaction,
-					query.nonce,
 					query.extraLogMessage,
 					(err, id) => {
 						if (err) {
 							return setImmediate(cb, null, {
 								success: false,
-								message: err.message || 'Invalid transaction body',
+								message: err.message || 'Transaction was rejected with errors',
 								errors: err,
 							});
 						}
@@ -569,7 +566,6 @@ class Transport {
 						}
 						return __private.receiveTransactions(
 							query.transactions,
-							query.nonce,
 							query.extraLogMessage
 						);
 					}
@@ -612,15 +608,10 @@ __private.receiveSignature = function(signature, cb) {
 			return setImmediate(cb, [new TransactionError(err[0].message)], 400);
 		}
 
-		return modules.multisignatures.getTransactionAndProcessSignature(
-			signature,
-			errors => {
-				if (errors) {
-					return setImmediate(cb, errors, 409);
-				}
-				return setImmediate(cb);
-			}
-		);
+		return modules.transactionPool
+			.getTransactionAndProcessSignature(signature)
+			.then(() => setImmediate(cb))
+			.catch(errors => setImmediate(cb, errors, 409));
 	});
 };
 
@@ -631,19 +622,14 @@ __private.receiveSignature = function(signature, cb) {
  * @implements {library.schema.validate}
  * @implements {__private.receiveTransaction}
  * @param {Array} transactions - Array of transactions
- * @param {string} nonce - Peer's nonce
  * @param {string} extraLogMessage - Extra log message
  */
-__private.receiveTransactions = function(
-	transactions = [],
-	nonce,
-	extraLogMessage
-) {
+__private.receiveTransactions = function(transactions = [], extraLogMessage) {
 	transactions.forEach(transaction => {
 		if (transaction) {
 			transaction.bundled = true;
 		}
-		__private.receiveTransaction(transaction, nonce, extraLogMessage, err => {
+		__private.receiveTransaction(transaction, extraLogMessage, err => {
 			if (err) {
 				library.logger.debug(convertErrorsToString(err), transaction);
 			}
@@ -658,7 +644,6 @@ __private.receiveTransactions = function(
  *
  * @private
  * @param {transaction} transaction
- * @param {string} nonce
  * @param {string} extraLogMessage - Extra log message
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, err
@@ -666,18 +651,19 @@ __private.receiveTransactions = function(
  */
 __private.receiveTransaction = async function(
 	transactionJSON,
-	nonce,
 	extraLogMessage,
 	cb
 ) {
 	const id = transactionJSON ? transactionJSON.id : 'null';
 	let transaction;
 	try {
-		transaction = library.logic.initTransaction.fromJson(transactionJSON);
+		transaction = modules.interfaceAdapters.transactions.fromJson(
+			transactionJSON
+		);
 
-		const composedTransactionsCheck = processTransactionLogic.composeTransactionSteps(
-			modules.processTransactions.checkAllowedTransactions,
-			modules.processTransactions.validateTransactions
+		const composedTransactionsCheck = transactionsModule.composeTransactionSteps(
+			transactionsModule.checkAllowedTransactions(modules.blocks.lastBlock),
+			transactionsModule.validateTransactions(exceptions)
 		);
 
 		const { transactionsResponses } = await composedTransactionsCheck([
@@ -700,32 +686,22 @@ __private.receiveTransaction = async function(
 		return setImmediate(cb, errors);
 	}
 
-	return library.balancesSequence.add(balancesSequenceCb => {
-		if (!nonce) {
-			library.logger.debug(
-				`Received transaction ${transaction.id} from public client`
-			);
-		} else {
-			library.logger.debug(
-				`Received transaction ${transaction.id} from network`
-			);
-		}
+	return library.balancesSequence.add(async balancesSequenceCb => {
+		library.logger.debug(`Received transaction ${transaction.id}`);
 
-		modules.transactions.processUnconfirmedTransaction(
-			transaction,
-			true,
-			err => {
-				if (err) {
-					library.logger.debug(`Transaction ${id}`, convertErrorsToString(err));
-					if (transaction) {
-						library.logger.debug('Transaction', transaction);
-					}
-					return setImmediate(balancesSequenceCb, err);
-				}
-
-				return setImmediate(balancesSequenceCb, null, transaction.id);
+		try {
+			await modules.transactionPool.processUnconfirmedTransaction(
+				transaction,
+				true
+			);
+			return setImmediate(balancesSequenceCb, null, transaction.id);
+		} catch (err) {
+			library.logger.debug(`Transaction ${id}`, convertErrorsToString(err));
+			if (transaction) {
+				library.logger.debug('Transaction', transaction);
 			}
-		);
+			return setImmediate(balancesSequenceCb, err);
+		}
 	}, cb);
 };
 

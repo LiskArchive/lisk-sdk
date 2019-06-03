@@ -149,10 +149,7 @@ class ChildProcessChannel extends BaseChannel {
 				? new Action(actionName, params, this.moduleAlias)
 				: actionName;
 
-		if (
-			action.module === this.moduleAlias &&
-			typeof this.actions[action.name].handler === 'function'
-		) {
+		if (action.module === this.moduleAlias) {
 			return this.actions[action.name].handler(action);
 		}
 
@@ -181,10 +178,7 @@ class ChildProcessChannel extends BaseChannel {
 				? new Action(actionName, params, this.moduleAlias)
 				: actionName;
 
-		if (
-			action.module === this.moduleAlias &&
-			typeof this.actions[action.name].handler === 'function'
-		) {
+		if (action.module === this.moduleAlias) {
 			if (!this.actions[action.name].isPublic) {
 				throw new Error(
 					`Action ${action.name} is not allowed because it's not public.`

@@ -139,8 +139,8 @@ export class OutboundPeer extends Peer {
 	}
 
 	public disconnect(code: number = 1000, reason?: string): void {
+		super.disconnect(code, reason);
 		if (this._socket) {
-			this._socket.destroy(code, reason);
 			this._unbindHandlersFromOutboundSocket(this._socket);
 		}
 	}

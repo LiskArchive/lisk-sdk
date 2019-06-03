@@ -19,9 +19,9 @@ const jobsQueue = require('../helpers/jobs_queue');
 // Private fields
 let library;
 let self;
-const { MIN_BROADHASH_CONSENSUS } = global.constants;
 
 const PEER_STATE_CONNECTED = 2;
+const MAX_PEERS = 100;
 
 /**
  * Main peers methods. Initializes library with scope content.
@@ -42,7 +42,7 @@ const PEER_STATE_CONNECTED = 2;
  * @returns {setImmediateCallback} cb, null, self
  */
 class Peers {
-	constructor(cb, scope) {
+	constructor(scope) {
 		library = {
 			logger: scope.components.logger,
 			storage: scope.components.storage,
@@ -52,8 +52,11 @@ class Peers {
 					force: scope.config.forging.force,
 				},
 			},
-			applicationState: scope.applicationState,
 			channel: scope.channel,
+			blocks: scope.modules.blocks,
+			constants: {
+				minBroadhashConsensus: scope.config.constants.MIN_BROADHASH_CONSENSUS,
+			},
 		};
 		self = this;
 		self.consensus = scope.config.forging.force ? 100 : 0;
@@ -62,7 +65,6 @@ class Peers {
 		library.channel.once('network:bootstrap', () => {
 			self.onNetworkReady();
 		});
-		setImmediate(cb, null, self);
 	}
 
 	/**
@@ -82,15 +84,22 @@ class Peers {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	async calculateConsensus() {
-		const { broadhash } = library.applicationState;
-		const activeCount = await library.channel.invoke(
-			'network:getPeersCountByFilter',
-			{ state: PEER_STATE_CONNECTED }
+		const broadhash = library.blocks.broadhash;
+		const activeCount = Math.min(
+			await library.channel.invoke('network:getPeersCountByFilter', {
+				state: PEER_STATE_CONNECTED,
+			}),
+			MAX_PEERS
 		);
-		const matchedCount = await library.channel.invoke(
-			'network:getPeersCountByFilter',
-			{ broadhash }
+
+		const matchedCount = Math.min(
+			await library.channel.invoke('network:getPeersCountByFilter', {
+				broadhash,
+				state: PEER_STATE_CONNECTED,
+			}),
+			MAX_PEERS
 		);
+
 		const consensus = +((matchedCount / activeCount) * 100).toPrecision(2);
 		self.consensus = Number.isNaN(consensus) ? 0 : consensus;
 		return self.consensus;
@@ -110,7 +119,7 @@ class Peers {
 			return false;
 		}
 		const consensus = await self.calculateConsensus();
-		return consensus < MIN_BROADHASH_CONSENSUS;
+		return consensus < library.constants.minBroadhashConsensus;
 	}
 
 	/**

@@ -32,9 +32,9 @@ import {
 	P2PNodeInfo,
 	P2PPeerInfo,
 	P2PPeersCount,
-	P2PPeerSelectionForConnection,
-	P2PPeerSelectionForRequest,
-	P2PPeerSelectionForSend,
+	P2PPeerSelectionForConnectionFunction,
+	P2PPeerSelectionForRequestFunction,
+	P2PPeerSelectionForSendFunction,
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
@@ -83,9 +83,10 @@ export {
 interface PeerPoolConfig {
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
-	readonly peerSelectionForSend: P2PPeerSelectionForSend;
-	readonly peerSelectionForRequest: P2PPeerSelectionForRequest;
-	readonly peerSelectionForConnection: P2PPeerSelectionForConnection;
+	readonly peerSelectionForSend: P2PPeerSelectionForSendFunction;
+	readonly peerSelectionForRequest: P2PPeerSelectionForRequestFunction;
+	readonly peerSelectionForConnection: P2PPeerSelectionForConnectionFunction;
+	readonly sendPeerLimit: number;
 	readonly peerBanTime?: number;
 	readonly maxOutboundConnections: number;
 }
@@ -124,10 +125,11 @@ export class PeerPool extends EventEmitter {
 	private readonly _handleBanPeer: (peerId: string) => void;
 	private readonly _handleUnbanPeer: (peerId: string) => void;
 	private _nodeInfo: P2PNodeInfo | undefined;
-	private readonly _peerSelectForSend: P2PPeerSelectionForSend;
-	private readonly _peerSelectForRequest: P2PPeerSelectionForRequest;
-	private readonly _peerSelectForConnection: P2PPeerSelectionForConnection;
 	private readonly _maxOutboundConnections: number;
+	private readonly _peerSelectForSend: P2PPeerSelectionForSendFunction;
+	private readonly _peerSelectForRequest: P2PPeerSelectionForRequestFunction;
+	private readonly _peerSelectForConnection: P2PPeerSelectionForConnectionFunction;
+	private readonly _sendPeerLimit: number;
 
 	public constructor(peerPoolConfig: PeerPoolConfig) {
 		super();
@@ -137,6 +139,8 @@ export class PeerPool extends EventEmitter {
 		this._peerSelectForRequest = peerPoolConfig.peerSelectionForRequest;
 		this._peerSelectForConnection = peerPoolConfig.peerSelectionForConnection;
 		this._maxOutboundConnections = peerPoolConfig.maxOutboundConnections;
+		this._sendPeerLimit = peerPoolConfig.sendPeerLimit;
+
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerRPC = (request: P2PRequest) => {
 			// Re-emit the request to allow it to bubble up the class hierarchy.
@@ -239,58 +243,39 @@ export class PeerPool extends EventEmitter {
 		return this._nodeInfo;
 	}
 
-	public selectPeersForRequest(
-		requestPacket?: P2PRequestPacket,
-		numOfPeers?: number,
-	): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		const listOfPeerInfo = [...this._peerMap.values()].map(
-			(peer: Peer) => peer.peerInfo,
-		);
-		const selectedPeers = this._peerSelectForRequest(
-			listOfPeerInfo,
-			this._nodeInfo,
-			numOfPeers,
-			requestPacket,
-		);
-
-		return selectedPeers;
-	}
-
-	public selectPeersForSend(
-		messagePacket?: P2PMessagePacket,
-		numOfPeers?: number,
-	): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		const listOfPeerInfo = [...this._peerMap.values()].map(
-			(peer: Peer) => peer.peerInfo,
-		);
-		const selectedPeers = this._peerSelectForSend(
-			listOfPeerInfo,
-			this._nodeInfo,
-			numOfPeers,
-			messagePacket,
-		);
-
-		return selectedPeers;
-	}
-
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
-		const selectedPeer = this.selectPeersForRequest(packet, 1);
+		const listOfPeerInfo = [...this._peerMap.values()].map(
+			(peer: Peer) => peer.peerInfo,
+		);
+		const selectedPeers = this._peerSelectForRequest({
+			peers: listOfPeerInfo,
+			nodeInfo: this._nodeInfo,
+			peerLimit: 1,
+			requestPacket: packet,
+		});
 
-		if (selectedPeer.length <= 0) {
+		if (selectedPeers.length <= 0) {
 			throw new RequestFailError(
 				'Request failed due to no peers found in peer selection',
 			);
 		}
-
-		const selectedPeerId = constructPeerIdFromPeerInfo(selectedPeer[0]);
+		const selectedPeerId = constructPeerIdFromPeerInfo(selectedPeers[0]);
 
 		return this.requestFromPeer(packet, selectedPeerId);
 	}
 
 	public send(message: P2PMessagePacket): void {
-		const selectedPeers = this.selectPeersForSend(message);
+		const listOfPeerInfo = [...this._peerMap.values()].map(
+			(peer: Peer) => peer.peerInfo,
+		);
+		const selectedPeers = this._peerSelectForSend({
+			peers: listOfPeerInfo,
+			nodeInfo: this._nodeInfo,
+			peerLimit: this._sendPeerLimit,
+			messagePacket: message,
+		});
 
-		selectedPeers.forEach(async (peerInfo: P2PDiscoveredPeerInfo) => {
+		selectedPeers.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
 			const selectedPeerId = constructPeerIdFromPeerInfo(peerInfo);
 			this.sendToPeer(message, selectedPeerId);
 		});
@@ -401,7 +386,10 @@ export class PeerPool extends EventEmitter {
 				0,
 				this._maxOutboundConnections - peersCount.outbound,
 			);
-			const peersToConnect = this._peerSelectForConnection(shuffledPeers);
+
+			const peersToConnect = this._peerSelectForConnection({
+				peers: shuffledPeers,
+			});
 			peersToConnect.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
 				const peerId = constructPeerIdFromPeerInfo(peerInfo);
 

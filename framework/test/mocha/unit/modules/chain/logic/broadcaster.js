@@ -51,6 +51,7 @@ describe('Broadcaster', () => {
 			info: sinonSandbox.stub(),
 			error: sinonSandbox.stub(),
 			debug: sinonSandbox.stub(),
+			trace: sinonSandbox.stub(),
 		};
 
 		channelStub = {
@@ -450,11 +451,11 @@ describe('Broadcaster', () => {
 
 		it('should return immediately for an empty queue', async () => {
 			await broadcaster.releaseQueue();
-			expect(loggerStub.info.called).to.be.true;
-			expect(loggerStub.info.args[0][0]).to.be.eql(
+			expect(loggerStub.trace.called).to.be.true;
+			expect(loggerStub.trace.args[0][0]).to.be.eql(
 				'Releasing enqueued broadcasts'
 			);
-			expect(loggerStub.info.args[1][0]).to.be.eql('Queue empty');
+			expect(loggerStub.trace.args[1][0]).to.be.eql('Queue empty');
 		});
 
 		it('should return error when failed to broadcast to queue', async () => {

@@ -21,18 +21,15 @@ const accountsFixtures = require('../fixtures/accounts');
 const QueriesHelper = require('../common/integration/sql/queries_helper');
 const localCommon = require('./common');
 
-const { REWARDS } = global.constants;
-
 describe('rebuilding', () => {
 	let library;
 	let Queries;
 	let addTransactionsAndForgePromise;
 
-	// Set rewards start at 150-th block
-	REWARDS.OFFSET = 150;
-
 	localCommon.beforeBlock('rebuilding', lib => {
 		library = lib;
+		// Set rewards start at 150-th block
+		library.modules.blocks.blockReward.rewardOffset = 150;
 		Queries = new QueriesHelper(lib, lib.components.storage);
 
 		addTransactionsAndForgePromise = Promise.promisify(
@@ -91,30 +88,13 @@ describe('rebuilding', () => {
 			);
 		});
 
-		it('mem_accounts states after rebuilding should match copy taken after round 2', done => {
-			const lastBlock = library.modules.blocks.lastBlock.get();
+		it('mem_accounts states after rebuilding should match copy taken after round 2', async () => {
+			const lastBlock = library.modules.blocks.lastBlock;
 			expect(lastBlock.height).to.eql(303);
 
-			const __private = library.rewiredModules.loader.__get__('__private');
-
-			library.rewiredModules.loader.__set__(
-				'library.config.loading.rebuildUpToRound',
-				2
-			);
-
-			__private.rebuildFinished = function(err) {
-				expect(err).to.not.exist;
-				getMemAccounts()
-					.then(_accounts => {
-						expect(_accounts).to.deep.equal(memAccountsBeforeRebuild);
-						done();
-					})
-					.catch(getMemAccountsErr => {
-						done(getMemAccountsErr);
-					});
-			};
-
-			library.modules.loader.loadBlockChain();
+			await library.modules.blocks.loadBlockChain(2);
+			const _accounts = await getMemAccounts();
+			expect(_accounts).to.deep.equal(memAccountsBeforeRebuild);
 		});
 	});
 });

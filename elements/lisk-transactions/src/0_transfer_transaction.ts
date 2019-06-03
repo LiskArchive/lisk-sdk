@@ -260,4 +260,16 @@ export class TransferTransaction extends BaseTransaction {
 
 		return errors;
 	}
+
+	// tslint:disable:next-line: prefer-function-over-method no-any
+	protected assetFromSync(raw: any): object | undefined {
+		if (raw.tf_data) {
+			// This line will throw if there is an error
+			const data = raw.tf_data.toString('utf8');
+
+			return { data };
+		}
+
+		return undefined;
+	}
 }

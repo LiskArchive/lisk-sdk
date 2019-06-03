@@ -17,7 +17,11 @@ import { flags as flagParser } from '@oclif/command';
 import * as fsExtra from 'fs-extra';
 import Listr from 'listr';
 import BaseCommand from '../../base';
-import { describeApplication } from '../../utils/core/pm2';
+import {
+	describeApplication,
+	PM2ProcessInstance,
+	unRegisterApplication,
+} from '../../utils/core/pm2';
 import StopCommand from './stop';
 
 interface Args {
@@ -51,16 +55,27 @@ export default class UnInstallCommand extends BaseCommand {
 	async run(): Promise<void> {
 		const { args } = this.parse(UnInstallCommand);
 		const { name } = args as Args;
-		const { installationPath, network } = await describeApplication(name);
 
 		try {
+			const instance = await describeApplication(name);
+
+			if (!instance) {
+				this.log(
+					`Lisk Core instance: ${name} doesn't exists, Please install using lisk core:install`,
+				);
+
+				return;
+			}
 			// tslint:disable-next-line await-promise
 			await StopCommand.run([name]);
+
+			const { installationPath, network } = instance as PM2ProcessInstance;
 
 			const tasks = new Listr([
 				{
 					title: `Uninstall Lisk Core ${network} instance Installed as ${name}`,
 					task: async () => {
+						await unRegisterApplication(name);
 						fsExtra.removeSync(installationPath);
 					},
 				},

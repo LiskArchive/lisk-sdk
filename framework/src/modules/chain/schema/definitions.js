@@ -74,7 +74,7 @@ module.exports = {
 	WSSignaturesList: {
 		id: 'WSSignaturesList',
 		type: 'object',
-		required: ['nonce', 'signatures'],
+		required: ['signatures'],
 		properties: {
 			nonce: {
 				type: 'string',
@@ -113,7 +113,7 @@ module.exports = {
 	WSTransactionsRequest: {
 		id: 'WSTransactionsRequest',
 		type: 'object',
-		required: ['nonce', 'transactions'],
+		required: ['transactions'],
 		properties: {
 			nonce: {
 				type: 'string',
