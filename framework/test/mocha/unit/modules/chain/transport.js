@@ -404,17 +404,12 @@ describe('transport', () => {
 
 			describe('when library.schema.validate succeeds', () => {
 				describe('when modules.transactionPool.getTransactionAndProcessSignature succeeds', () => {
-					beforeEach(done => {
+					beforeEach(async () => {
 						modules.transactionPool.getTransactionAndProcessSignature.resolves();
-
-						__private.receiveSignature(SAMPLE_SIGNATURE_1, err => {
-							error = err;
-							done();
-						});
+						return __private.receiveSignature(SAMPLE_SIGNATURE_1);
 					});
 
 					it('should call library.schema.validate with signature', async () => {
-						expect(error).to.equal(undefined);
 						expect(library.schema.validate.calledOnce).to.be.true;
 						return expect(
 							library.schema.validate.calledWith(SAMPLE_SIGNATURE_1)
@@ -422,58 +417,41 @@ describe('transport', () => {
 					});
 
 					it('should call modules.transactionPool.getTransactionAndProcessSignature with signature', async () => {
-						expect(error).to.equal(undefined);
 						return expect(
 							modules.transactionPool.getTransactionAndProcessSignature
 						).to.be.calledWith(SAMPLE_SIGNATURE_1);
 					});
-
-					it('should call callback with error = undefined', async () =>
-						expect(error).to.equal(undefined));
 				});
 
 				describe('when modules.transactionPool.getTransactionAndProcessSignature fails', () => {
-					let processSignatureError;
+					const processSignatureError = new TransactionError(
+						'Transaction not found'
+					);
 
-					beforeEach(done => {
-						processSignatureError = new TransactionError(
-							'Transaction not found'
-						);
+					it('should call callback with error', async () => {
 						modules.transactionPool.getTransactionAndProcessSignature.rejects([
 							processSignatureError,
 						]);
 
-						__private.receiveSignature(SAMPLE_SIGNATURE_1, err => {
-							error = err;
-							done();
-						});
+						return expect(
+							__private.receiveSignature(SAMPLE_SIGNATURE_1)
+						).to.be.rejectedWith([processSignatureError]);
 					});
-
-					it('should call callback with error', async () =>
-						expect(error[0].message).to.equal(
-							`${processSignatureError.message}`
-						));
 				});
 			});
 
 			describe('when library.schema.validate fails', () => {
-				let validateErr;
-
-				beforeEach(done => {
-					validateErr = new Error('Signature did not match schema');
+				it('should call callback with error = "Invalid signature body"', async () => {
+					const validateErr = new Error('Signature did not match schema');
 					validateErr.code = 'INVALID_FORMAT';
 					library.schema.validate = sinonSandbox
 						.stub()
 						.callsArgWith(2, [validateErr]);
 
-					__private.receiveSignature(SAMPLE_SIGNATURE_1, err => {
-						error = err;
-						done();
-					});
+					return expect(
+						__private.receiveSignature(SAMPLE_SIGNATURE_1)
+					).to.be.rejectedWith([validateErr]);
 				});
-
-				it('should call callback with error = "Invalid signature body"', async () =>
-					expect(error[0].message).to.equal(`${validateErr.message}`));
 			});
 		});
 

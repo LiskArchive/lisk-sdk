@@ -607,17 +607,9 @@ __private.receiveSignatures = function(signatures = []) {
  * @returns {setImmediateCallback} cb, err
  * @todo Add description for the params
  */
-__private.receiveSignature = function(signature, cb) {
-	library.schema.validate(signature, definitions.Signature, err => {
-		if (err) {
-			return setImmediate(cb, [new TransactionError(err[0].message)], 400);
-		}
-
-		return modules.transactionPool
-			.getTransactionAndProcessSignature(signature)
-			.then(() => setImmediate(cb))
-			.catch(errors => setImmediate(cb, errors, 409));
-	});
+__private.receiveSignature = async function(signature) {
+	await promisify(library.schema.validate)(signature, definitions.Signature);
+	return modules.transactionPool.getTransactionAndProcessSignature(signature);
 };
 
 /**
