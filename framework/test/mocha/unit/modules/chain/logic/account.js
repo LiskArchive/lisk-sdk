@@ -19,7 +19,7 @@ const BigNum = require('@liskhq/bignum');
 const application = require('../../../../common/application');
 const modulesLoader = require('../../../../common/modules_loader');
 
-const Account = rewire('../../../../../../src/modules/chain/logic/account');
+const Account = rewire('../../../../../../src/modules/chain/rounds/account');
 
 const validAccount = {
 	username: 'genesis_100',

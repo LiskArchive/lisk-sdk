@@ -15,7 +15,7 @@
 'use strict';
 
 module.exports = async ({ schema, components: { storage, logger } }) => {
-	const Account = require('../logic/account.js');
+	const Account = require('../rounds/account.js');
 
 	const accountLogic = await new Promise((resolve, reject) => {
 		new Account(storage, schema, logger, (err, object) => {
