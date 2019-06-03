@@ -14,7 +14,7 @@
 
 'use strict';
 
-module.exports = async ({ schema, components: { storage, logger } }) => {
+module.exports = ({ schema, components: { storage, logger } }) => {
 	const Account = require('../rounds/account.js');
 
 	const accountLogic = new Account(storage, schema, logger);

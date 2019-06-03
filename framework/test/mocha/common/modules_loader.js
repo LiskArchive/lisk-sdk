@@ -100,20 +100,20 @@ const modulesLoader = new function() {
 				new Logic(
 					scope.components.storage,
 					scope.schema,
-					scope.components.logger,
-					cb
+					scope.components.logger
 				);
 				break;
 			case 'Block':
 				async.waterfall(
 					[
 						function(waterCb) {
-							return new Account(
+							new Account(
 								scope.components.storage,
 								scope.schema,
-								scope.components.logger,
-								waterCb
+								scope.components.logger
 							);
+
+							return waterCb();
 						},
 					],
 					() => {
