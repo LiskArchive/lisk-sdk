@@ -81,9 +81,7 @@ export const validatePeerInfo = (
 			? +protocolPeer.height
 			: 0;
 	const { options, ...protocolPeerWithoutOptions } = protocolPeer;
-
 	const peerInfo: P2PDiscoveredPeerInfo = {
-		...(options as object),
 		...protocolPeerWithoutOptions,
 		ipAddress: protocolPeerWithoutOptions.ip,
 		wsPort,

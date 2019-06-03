@@ -216,6 +216,7 @@ export class P2P extends EventEmitter {
 		this._handlePeerInfoUpdate = (peerInfo: P2PDiscoveredPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
 			const foundTriedPeer = this._triedPeers.get(peerId);
+			const foundNewPeer = this._newPeers.get(peerId);
 
 			if (foundTriedPeer) {
 				const updatedPeerInfo = {
@@ -224,6 +225,15 @@ export class P2P extends EventEmitter {
 					wsPort: foundTriedPeer.wsPort,
 				};
 				this._triedPeers.set(peerId, updatedPeerInfo);
+			}
+
+			if (foundNewPeer) {
+				const updatedPeerInfo = {
+					...peerInfo,
+					ipAddress: foundNewPeer.ipAddress,
+					wsPort: foundNewPeer.wsPort,
+				};
+				this._newPeers.set(peerId, updatedPeerInfo);
 			}
 
 			// Re-emit the message to allow it to bubble up the class hierarchy.
@@ -279,7 +289,10 @@ export class P2P extends EventEmitter {
 			peerSelectionForConnection: config.peerSelectionForConnection
 				? config.peerSelectionForConnection
 				: selectPeersForConnection,
-			sendPeerLimit: config.sendPeerLimit === undefined ? DEFAULT_SEND_PEER_LIMIT : config.sendPeerLimit,
+			sendPeerLimit:
+				config.sendPeerLimit === undefined
+					? DEFAULT_SEND_PEER_LIMIT
+					: config.sendPeerLimit,
 		});
 
 		this._bindHandlersToPeerPool(this._peerPool);
@@ -405,6 +418,15 @@ export class P2P extends EventEmitter {
 						INVALID_CONNECTION_SELF_CODE,
 						INVALID_CONNECTION_SELF_REASON,
 					);
+
+					const selfWSPort = queryObject.wsPort
+						? +queryObject.wsPort
+						: this._nodeInfo.wsPort;
+
+					const selfPeerId = constructPeerId(socket.remoteAddress, selfWSPort);
+					// Delete you peerinfo from both the lists
+					this._newPeers.delete(selfPeerId);
+					this._triedPeers.delete(selfPeerId);
 
 					return;
 				}
@@ -548,7 +570,12 @@ export class P2P extends EventEmitter {
 
 		discoveredPeers.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			if (!this._triedPeers.has(peerId) && !this._newPeers.has(peerId)) {
+			// Check for value of nonce, if its same then its our own info
+			if (
+				!this._triedPeers.has(peerId) &&
+				!this._newPeers.has(peerId) &&
+				peerInfo.nonce !== this._nodeInfo.nonce
+			) {
 				this._newPeers.set(peerId, peerInfo);
 			}
 		});
