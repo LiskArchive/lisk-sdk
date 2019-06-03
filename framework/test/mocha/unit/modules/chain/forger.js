@@ -191,39 +191,30 @@ describe('forge', () => {
 				]);
 			});
 
-			it('should not load any delegates when forging.force is false', done => {
+			it('should not load any delegates when forging.force is false', async () => {
 				forgeModule.config.forging.force = false;
 				forgeModule.config.forging.delegates = delegates;
 
-				forgeModule.loadDelegates(err => {
-					expect(err).to.not.exist;
-					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-					done();
-				});
+				await forgeModule.loadDelegates();
+				return expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 			});
 
-			it('should not load any delegates when forging.delegates array is empty', done => {
+			it('should not load any delegates when forging.delegates array is empty', async () => {
 				forgeModule.config.forging.force = true;
 				forgeModule.config.forging.delegates = [];
 
-				forgeModule.loadDelegates(err => {
-					expect(err).to.not.exist;
-					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-					done();
-				});
+				await forgeModule.loadDelegates();
+				return expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 			});
 
-			it('should not load any delegates when forging.delegates list is undefined', done => {
+			it('should not load any delegates when forging.delegates list is undefined', async () => {
 				forgeModule.config.forging.delegates = undefined;
 
-				forgeModule.loadDelegates(err => {
-					expect(err).to.not.exist;
-					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-					done();
-				});
+				await forgeModule.loadDelegates();
+				expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 			});
 
-			it('should return error if number of iterations is omitted', done => {
+			it('should return error if number of iterations is omitted', async () => {
 				const accountDetails = {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
@@ -234,18 +225,19 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				forgeModule.loadDelegates(err => {
+				try {
+					await forgeModule.loadDelegates();
+				} catch (err) {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
 							accountDetails.publicKey
 						}. Unsupported state or unable to authenticate data`
 					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-					done();
-				});
+				}
 			});
 
-			it('should return error if number of iterations is incorrect', done => {
+			it('should return error if number of iterations is incorrect', async () => {
 				const accountDetails = {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
@@ -256,18 +248,19 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				forgeModule.loadDelegates(err => {
+				try {
+					await forgeModule.loadDelegates();
+				} catch (err) {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
 							accountDetails.publicKey
 						}. Unsupported state or unable to authenticate data`
 					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-					done();
-				});
+				}
 			});
 
-			it('should return error if encrypted passphrase has no salt', done => {
+			it('should return error if encrypted passphrase has no salt', async () => {
 				const accountDetails = {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
@@ -279,18 +272,19 @@ describe('forge', () => {
 
 				// TODO: Update the expectation after fixing
 				// https://github.com/LiskHQ/lisk-elements/issues/1162
-				forgeModule.loadDelegates(err => {
+				try {
+					await forgeModule.loadDelegates();
+				} catch (err) {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
 							accountDetails.publicKey
 						}. Encrypted passphrase to parse must have only one value per key.`
 					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-					done();
-				});
+				}
 			});
 
-			it('should return error if encrypted passphrase has a modified salt', done => {
+			it('should return error if encrypted passphrase has a modified salt', async () => {
 				const accountDetails = {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
@@ -301,18 +295,19 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				forgeModule.loadDelegates(err => {
+				try {
+					await forgeModule.loadDelegates();
+				} catch (err) {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
 							accountDetails.publicKey
 						}. Unsupported state or unable to authenticate data`
 					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-					done();
-				});
+				}
 			});
 
-			it('should return error if encrypted passphrase has no cipher text', done => {
+			it('should return error if encrypted passphrase has no cipher text', async () => {
 				const accountDetails = {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
@@ -324,18 +319,19 @@ describe('forge', () => {
 
 				// TODO: Update the expectation after fixing
 				// https://github.com/LiskHQ/lisk-elements/issues/1162
-				forgeModule.loadDelegates(err => {
+				try {
+					await forgeModule.loadDelegates();
+				} catch (err) {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
 							accountDetails.publicKey
 						}. Encrypted passphrase to parse must have only one value per key.`
 					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-					done();
-				});
+				}
 			});
 
-			it('should return error if encrypted passphrase has a modified ciphertext', done => {
+			it('should return error if encrypted passphrase has a modified ciphertext', async () => {
 				const accountDetails = {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
@@ -346,18 +342,19 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				forgeModule.loadDelegates(err => {
+				try {
+					await forgeModule.loadDelegates();
+				} catch (err) {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
 							accountDetails.publicKey
 						}. Unsupported state or unable to authenticate data`
 					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-					done();
-				});
+				}
 			});
 
-			it('should return error if encrypted passphrase has no iv', done => {
+			it('should return error if encrypted passphrase has no iv', async () => {
 				const accountDetails = {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
@@ -369,18 +366,19 @@ describe('forge', () => {
 
 				// TODO: Update the expectation after fixing
 				// https://github.com/LiskHQ/lisk-elements/issues/1162
-				forgeModule.loadDelegates(err => {
+				try {
+					await forgeModule.loadDelegates();
+				} catch (err) {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
 							accountDetails.publicKey
 						}. Encrypted passphrase to parse must have only one value per key.`
 					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-					done();
-				});
+				}
 			});
 
-			it('should return error if encrypted passphrase has a modified iv', done => {
+			it('should return error if encrypted passphrase has a modified iv', async () => {
 				const accountDetails = {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
@@ -391,18 +389,19 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				forgeModule.loadDelegates(err => {
+				try {
+					await forgeModule.loadDelegates();
+				} catch (err) {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
 							accountDetails.publicKey
 						}. Unsupported state or unable to authenticate data`
 					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-					done();
-				});
+				}
 			});
 
-			it('should return error if encrypted passphrase has no tag', done => {
+			it('should return error if encrypted passphrase has no tag', async () => {
 				const accountDetails = {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
@@ -414,18 +413,19 @@ describe('forge', () => {
 
 				// TODO: Update the expectation after fixing
 				// https://github.com/LiskHQ/lisk-elements/issues/1162
-				forgeModule.loadDelegates(err => {
+				try {
+					await forgeModule.loadDelegates();
+				} catch (err) {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
 							accountDetails.publicKey
 						}. Encrypted passphrase to parse must have only one value per key.`
 					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-					done();
-				});
+				}
 			});
 
-			it('should return error if encrypted passphrase has invalid tag', done => {
+			it('should return error if encrypted passphrase has invalid tag', async () => {
 				const accountDetails = {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
@@ -436,18 +436,19 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				forgeModule.loadDelegates(err => {
+				try {
+					await forgeModule.loadDelegates();
+				} catch (err) {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
 							accountDetails.publicKey
 						}. Unsupported state or unable to authenticate data`
 					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-					done();
-				});
+				}
 			});
 
-			it('should return error if encrypted passphrase has shortened tag', done => {
+			it('should return error if encrypted passphrase has shortened tag', async () => {
 				const accountDetails = {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
@@ -458,18 +459,19 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				forgeModule.loadDelegates(err => {
+				try {
+					await forgeModule.loadDelegates();
+				} catch (err) {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
 							accountDetails.publicKey
 						}. Tag must be 16 bytes.`
 					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-					done();
-				});
+				}
 			});
 
-			it('should return error if publicKeys do not match', done => {
+			it('should return error if publicKeys do not match', async () => {
 				const accountDetails = {
 					publicKey:
 						'141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
@@ -479,18 +481,19 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				forgeModule.loadDelegates(err => {
+				try {
+					await forgeModule.loadDelegates();
+				} catch (err) {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
 							accountDetails.publicKey
 						}. Public keys do not match`
 					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-					done();
-				});
+				}
 			});
 
-			it('should return error if account does not exist', done => {
+			it('should return error if account does not exist', async () => {
 				const randomAccount = {
 					passphrase:
 						'robust swift deputy enable forget peasant grocery road convince',
@@ -508,7 +511,9 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				forgeModule.loadDelegates(err => {
+				try {
+					await forgeModule.loadDelegates();
+				} catch (err) {
 					expect(err).to.equal(
 						[
 							'Account with public key:',
@@ -517,11 +522,10 @@ describe('forge', () => {
 						].join(' ')
 					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-					done();
-				});
+				}
 			});
 
-			it('should ignore passphrases which do not belong to a delegate', done => {
+			it('should ignore passphrases which do not belong to a delegate', async () => {
 				forgeModule.config.forging.delegates = [
 					{
 						encryptedPassphrase: accountFixtures.genesis.encryptedPassphrase,
@@ -535,26 +539,20 @@ describe('forge', () => {
 					},
 				]);
 
-				forgeModule.loadDelegates(err => {
-					expect(err).to.not.exist;
-					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-					done();
-				});
+				await forgeModule.loadDelegates();
+				return expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 			});
 
-			it('should load delegates in encrypted format with the key', done => {
+			it('should load delegates in encrypted format with the key', async () => {
 				forgeModule.config.forging.delegates = delegates;
 
-				forgeModule.loadDelegates(err => {
-					expect(err).to.not.exist;
-					expect(Object.keys(forgeModule.keypairs).length).to.equal(
-						delegates.length
-					);
-					done();
-				});
+				await forgeModule.loadDelegates();
+				return expect(Object.keys(forgeModule.keypairs).length).to.equal(
+					delegates.length
+				);
 			});
 
-			it('should load delegates in encrypted format with the key with default 1e6 iterations if not set', done => {
+			it('should load delegates in encrypted format with the key with default 1e6 iterations if not set', async () => {
 				forgeModule.config.forging.delegates = [
 					{
 						publicKey:
@@ -576,16 +574,13 @@ describe('forge', () => {
 					},
 				];
 
-				forgeModule.loadDelegates(err => {
-					expect(err).to.not.exist;
-					expect(Object.keys(forgeModule.keypairs).length).to.equal(
-						delegates.length
-					);
-					done();
-				});
+				await forgeModule.loadDelegates();
+				return expect(Object.keys(forgeModule.keypairs).length).to.equal(
+					delegates.length
+				);
 			});
 
-			it('should load all 101 delegates', done => {
+			it('should load all 101 delegates', async () => {
 				forgeModule.config.forging.delegates = genesisDelegates.delegates.map(
 					delegate => ({
 						encryptedPassphrase: delegate.encryptedPassphrase,
@@ -593,11 +588,8 @@ describe('forge', () => {
 					})
 				);
 
-				forgeModule.loadDelegates(err => {
-					expect(err).to.not.exist;
-					expect(Object.keys(forgeModule.keypairs).length).to.equal(101);
-					done();
-				});
+				await forgeModule.loadDelegates();
+				return expect(Object.keys(forgeModule.keypairs).length).to.equal(101);
 			});
 		});
 
