@@ -14,9 +14,18 @@
 
 'use strict';
 
-const HeadersList = require('./headers_list');
+const { HeadersList } = require('./headers_list');
 const blockHeaderSchema = require('./block_header_schema');
 const { validate } = require('../../../../../src/controller/validator');
+
+/**
+ * Validate schema of block header
+ *
+ * @param {BlockHeader} blockHeader
+ * @return {boolean}
+ */
+const validateBlockHeader = blockHeader =>
+	validate(blockHeaderSchema, blockHeader);
 
 /**
  * @typedef {Object} BlockHeader
@@ -66,7 +75,8 @@ class BFT {
 	 */
 	addBlockHeader(blockHeader) {
 		// Validate the schema of the header
-		BFT.validateBlockHeader(blockHeader);
+		// To spy exported function in same module we have to call it as this
+		exportedInterface.validateBlockHeader(blockHeader);
 
 		// Verify the integrity of the header with chain
 		this.verifyBlockHeaders(blockHeader);
@@ -251,16 +261,6 @@ class BFT {
 		return true;
 	}
 
-	/**
-	 * Validate schema of block header
-	 *
-	 * @param {BlockHeader} blockHeader
-	 * @return {boolean}
-	 */
-	static validateBlockHeader(blockHeader) {
-		return validate(blockHeaderSchema, blockHeader);
-	}
-
 	get minHeight() {
 		return this.headers.first.height;
 	}
@@ -270,4 +270,9 @@ class BFT {
 	}
 }
 
-module.exports = BFT;
+const exportedInterface = {
+	BFT,
+	validateBlockHeader,
+};
+
+module.exports = exportedInterface;

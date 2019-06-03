@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { BFT } = require('../../../../../../../../src/modules/chain/logic/bft');
+const bftModule = require('../../../../../../../../src/modules/chain/logic/bft/bft');
 const {
 	BlockHeader: blockHeaderFixture,
 } = require('../../../../../../../mocha/fixtures/blocks');
@@ -22,6 +22,9 @@ const {
 const {
 	Account: accountFixture,
 } = require('../../../../../../../mocha/fixtures/accounts');
+
+const BFT = bftModule.BFT;
+const validateBlockHeader = bftModule.validateBlockHeader;
 
 const generateValidHeaders = count => {
 	return [...Array(count)].map((_, index) => {
@@ -85,35 +88,6 @@ describe('bft', () => {
 				expect(bft.PRE_COMMIT_THRESHOLD).toEqual(precommitThreshold);
 				expect(bft.PROCESSING_THRESHOLD).toEqual(processingThreshold);
 				expect(bft.MAX_HEADERS).toEqual(maxHeaders);
-			});
-		});
-
-		describe('validateBlockHeader', () => {
-			it('should be ok for valid headers', async () => {
-				const header = blockHeaderFixture();
-				expect(BFT.validateBlockHeader(header)).toBeTruthy();
-			});
-
-			it('should throw error if any header is not valid format', async () => {
-				let header;
-
-				// Setting non-integer value
-				header = blockHeaderFixture({ height: '1' });
-				expect(() => BFT.validateBlockHeader(header)).toThrow(
-					'Schema validation error'
-				);
-
-				// Setting invalid id
-				header = blockHeaderFixture({ blockId: 'Al123' });
-				expect(() => BFT.validateBlockHeader(header)).toThrow(
-					'Schema validation error'
-				);
-
-				// Setting invalid public key;
-				header = blockHeaderFixture({ delegatePublicKey: 'abdef' });
-				expect(() => BFT.validateBlockHeader(header)).toThrow(
-					'Schema validation error'
-				);
 			});
 		});
 
@@ -231,11 +205,11 @@ describe('bft', () => {
 					height: 1,
 					maxHeightPreviouslyForged: 0,
 				});
-				jest.spyOn(BFT, 'validateBlockHeader');
+				jest.spyOn(bftModule, 'validateBlockHeader');
 				bft.addBlockHeader(header1);
 
-				expect(BFT.validateBlockHeader).toHaveBeenCalledTimes(1);
-				expect(BFT.validateBlockHeader).toHaveBeenCalledWith(header1);
+				expect(bftModule.validateBlockHeader).toHaveBeenCalledTimes(1);
+				expect(bftModule.validateBlockHeader).toHaveBeenCalledWith(header1);
 			});
 
 			it('should call verifyBlockHeaders with the provided header', async () => {
@@ -243,11 +217,11 @@ describe('bft', () => {
 					height: 1,
 					maxHeightPreviouslyForged: 0,
 				});
-				jest.spyOn(BFT, 'validateBlockHeader');
+				jest.spyOn(bftModule, 'validateBlockHeader');
 				bft.addBlockHeader(header1);
 
-				expect(BFT.validateBlockHeader).toHaveBeenCalledTimes(1);
-				expect(BFT.validateBlockHeader).toHaveBeenCalledWith(header1);
+				expect(bftModule.validateBlockHeader).toHaveBeenCalledTimes(1);
+				expect(bftModule.validateBlockHeader).toHaveBeenCalledWith(header1);
 			});
 
 			it('should add headers to list', async () => {
@@ -351,6 +325,35 @@ describe('bft', () => {
 					blockData.preVotedConfirmedHeight
 				);
 			});
+		});
+	});
+
+	describe('validateBlockHeader', () => {
+		it('should be ok for valid headers', async () => {
+			const header = blockHeaderFixture();
+			expect(validateBlockHeader(header)).toBeTruthy();
+		});
+
+		it('should throw error if any header is not valid format', async () => {
+			let header;
+
+			// Setting non-integer value
+			header = blockHeaderFixture({ height: '1' });
+			expect(() => validateBlockHeader(header)).toThrow(
+				'Schema validation error'
+			);
+
+			// Setting invalid id
+			header = blockHeaderFixture({ blockId: 'Al123' });
+			expect(() => validateBlockHeader(header)).toThrow(
+				'Schema validation error'
+			);
+
+			// Setting invalid public key;
+			header = blockHeaderFixture({ delegatePublicKey: 'abdef' });
+			expect(() => validateBlockHeader(header)).toThrow(
+				'Schema validation error'
+			);
 		});
 	});
 });
