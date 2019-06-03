@@ -17,7 +17,7 @@
 const rewire = require('rewire');
 const Promise = require('bluebird');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
+const BigNum = require('@liskhq/bignum');
 const { TestStorageSandbox } = require('../../../../common/storage_sandbox');
 
 const Round = rewire('../../../../../../src/modules/chain/rounds/round');
@@ -775,18 +775,18 @@ describe('round', () => {
 					it('should call merge with proper args (apply rewards)', async () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
-							new Bignum(scope.roundRewards[index].toPrecision(15))
+							new BigNum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new Bignum(scope.roundFees.toPrecision(15))
+									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.integerValue(Bignum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						const feesPerDelegate = Number(
-							new Bignum(scope.roundFees.toPrecision(15))
+							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
-								.integerValue(Bignum.ROUND_FLOOR)
+								.floor(BigNum.ROUND_FLOOR)
 								.toFixed()
 						);
 						const args = {
@@ -838,18 +838,18 @@ describe('round', () => {
 					it('should call merge with proper args (apply rewards)', async () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
-							new Bignum(scope.roundRewards[index].toPrecision(15))
+							new BigNum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new Bignum(scope.roundFees.toPrecision(15))
+									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.integerValue(Bignum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						const feesPerDelegate = Number(
-							new Bignum(scope.roundFees.toPrecision(15))
+							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
-								.integerValue(Bignum.ROUND_FLOOR)
+								.floor(BigNum.ROUND_FLOOR)
 								.toFixed()
 						);
 						const args = {
@@ -927,18 +927,18 @@ describe('round', () => {
 					it('should call merge with proper args (apply rewards)', async () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
-							new Bignum(scope.roundRewards[index].toPrecision(15))
+							new BigNum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new Bignum(scope.roundFees.toPrecision(15))
+									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.integerValue(Bignum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						const feesPerDelegate = Number(
-							new Bignum(scope.roundFees.toPrecision(15))
+							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
-								.integerValue(Bignum.ROUND_FLOOR)
+								.floor(BigNum.ROUND_FLOOR)
 								.toFixed()
 						);
 						const args = {
@@ -957,12 +957,12 @@ describe('round', () => {
 
 					it('should call merge with proper args (fees)', async () => {
 						const index = 0; // Delegate index on list
-						const feesPerDelegate = new Bignum(scope.roundFees.toPrecision(15))
+						const feesPerDelegate = new BigNum(scope.roundFees.toPrecision(15))
 							.dividedBy(ACTIVE_DELEGATES)
-							.integerValue(Bignum.ROUND_FLOOR);
+							.floor(BigNum.ROUND_FLOOR);
 						const remainingFees = Number(
-							new Bignum(scope.roundFees.toPrecision(15))
-								.minus(feesPerDelegate.multipliedBy(ACTIVE_DELEGATES))
+							new BigNum(scope.roundFees.toPrecision(15))
+								.minus(feesPerDelegate.times(ACTIVE_DELEGATES))
 								.toFixed()
 						);
 
@@ -1016,18 +1016,18 @@ describe('round', () => {
 					it('should call merge with proper args (apply rewards)', async () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
-							new Bignum(scope.roundRewards[index].toPrecision(15))
+							new BigNum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new Bignum(scope.roundFees.toPrecision(15))
+									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.integerValue(Bignum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						const feesPerDelegate = Number(
-							new Bignum(scope.roundFees.toPrecision(15))
+							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
-								.integerValue(Bignum.ROUND_FLOOR)
+								.floor(BigNum.ROUND_FLOOR)
 								.toFixed()
 						);
 						const args = {
@@ -1046,12 +1046,12 @@ describe('round', () => {
 
 					it('should call merge with proper args (fees)', async () => {
 						const index = 0; // Delegate index on list
-						const feesPerDelegate = new Bignum(scope.roundFees.toPrecision(15))
+						const feesPerDelegate = new BigNum(scope.roundFees.toPrecision(15))
 							.dividedBy(ACTIVE_DELEGATES)
-							.integerValue(Bignum.ROUND_FLOOR);
+							.floor(BigNum.ROUND_FLOOR);
 						const remainingFees = Number(
-							new Bignum(scope.roundFees.toPrecision(15))
-								.minus(feesPerDelegate.multipliedBy(ACTIVE_DELEGATES))
+							new BigNum(scope.roundFees.toPrecision(15))
+								.minus(feesPerDelegate.times(ACTIVE_DELEGATES))
 								.toFixed()
 						);
 
@@ -1143,18 +1143,18 @@ describe('round', () => {
 					it('should call merge with proper args (rewards) - 1st delegate', async () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
-							new Bignum(scope.roundRewards[index].toPrecision(15))
+							new BigNum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new Bignum(scope.roundFees.toPrecision(15))
+									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.integerValue(Bignum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						const feesPerDelegate = Number(
-							new Bignum(scope.roundFees.toPrecision(15))
+							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
-								.integerValue(Bignum.ROUND_FLOOR)
+								.floor(BigNum.ROUND_FLOOR)
 								.toFixed()
 						);
 						const args = {
@@ -1174,18 +1174,18 @@ describe('round', () => {
 					it('should call merge with proper args (rewards) - 2nd delegate', async () => {
 						const index = 1; // Delegate index on list
 						const balancePerDelegate = Number(
-							new Bignum(scope.roundRewards[index].toPrecision(15))
+							new BigNum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new Bignum(scope.roundFees.toPrecision(15))
+									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.integerValue(Bignum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						const feesPerDelegate = Number(
-							new Bignum(scope.roundFees.toPrecision(15))
+							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
-								.integerValue(Bignum.ROUND_FLOOR)
+								.floor(BigNum.ROUND_FLOOR)
 								.toFixed()
 						);
 						const args = {
@@ -1205,18 +1205,18 @@ describe('round', () => {
 					it('should call merge with proper args (rewards) - 3th delegate', async () => {
 						const index = 2; // Delegate index on list
 						const balancePerDelegate = Number(
-							new Bignum(scope.roundRewards[index].toPrecision(15))
+							new BigNum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new Bignum(scope.roundFees.toPrecision(15))
+									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.integerValue(Bignum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						const feesPerDelegate = Number(
-							new Bignum(scope.roundFees.toPrecision(15))
+							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
-								.integerValue(Bignum.ROUND_FLOOR)
+								.floor(BigNum.ROUND_FLOOR)
 								.toFixed()
 						);
 						const args = {
@@ -1289,18 +1289,18 @@ describe('round', () => {
 					it('should call merge with proper args (rewards) - 1st delegate', async () => {
 						const index = 2; // Delegate index on list
 						const balancePerDelegate = Number(
-							new Bignum(scope.roundRewards[index].toPrecision(15))
+							new BigNum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new Bignum(scope.roundFees.toPrecision(15))
+									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.integerValue(Bignum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						const feesPerDelegate = Number(
-							new Bignum(scope.roundFees.toPrecision(15))
+							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
-								.integerValue(Bignum.ROUND_FLOOR)
+								.floor(BigNum.ROUND_FLOOR)
 								.toFixed()
 						);
 						const args = {
@@ -1320,18 +1320,18 @@ describe('round', () => {
 					it('should call merge with proper args (rewards) - 2nd delegate', async () => {
 						const index = 1; // Delegate index on list
 						const balancePerDelegate = Number(
-							new Bignum(scope.roundRewards[index].toPrecision(15))
+							new BigNum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new Bignum(scope.roundFees.toPrecision(15))
+									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.integerValue(Bignum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						const feesPerDelegate = Number(
-							new Bignum(scope.roundFees.toPrecision(15))
+							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
-								.integerValue(Bignum.ROUND_FLOOR)
+								.floor(BigNum.ROUND_FLOOR)
 								.toFixed()
 						);
 						const args = {
@@ -1351,18 +1351,18 @@ describe('round', () => {
 					it('should call merge with proper args (rewards) - 3th delegate', async () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
-							new Bignum(scope.roundRewards[index].toPrecision(15))
+							new BigNum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new Bignum(scope.roundFees.toPrecision(15))
+									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.integerValue(Bignum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						const feesPerDelegate = Number(
-							new Bignum(scope.roundFees.toPrecision(15))
+							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
-								.integerValue(Bignum.ROUND_FLOOR)
+								.floor(BigNum.ROUND_FLOOR)
 								.toFixed()
 						);
 						const args = {
@@ -1453,18 +1453,18 @@ describe('round', () => {
 					it('should call merge with proper args (rewards) - 1st delegate', async () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
-							new Bignum(scope.roundRewards[index].toPrecision(15))
+							new BigNum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new Bignum(scope.roundFees.toPrecision(15))
+									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.integerValue(Bignum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						const feesPerDelegate = Number(
-							new Bignum(scope.roundFees.toPrecision(15))
+							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
-								.integerValue(Bignum.ROUND_FLOOR)
+								.floor(BigNum.ROUND_FLOOR)
 								.toFixed()
 						);
 						const args = {
@@ -1484,18 +1484,18 @@ describe('round', () => {
 					it('should call merge with proper args (rewards) - 2nd delegate', async () => {
 						const index = 1; // Delegate index on list
 						const balancePerDelegate = Number(
-							new Bignum(scope.roundRewards[index].toPrecision(15))
+							new BigNum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new Bignum(scope.roundFees.toPrecision(15))
+									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.integerValue(Bignum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						const feesPerDelegate = Number(
-							new Bignum(scope.roundFees.toPrecision(15))
+							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
-								.integerValue(Bignum.ROUND_FLOOR)
+								.floor(BigNum.ROUND_FLOOR)
 								.toFixed()
 						);
 						const args = {
@@ -1515,18 +1515,18 @@ describe('round', () => {
 					it('should call merge with proper args (rewards) - 3th delegate', async () => {
 						const index = 2; // Delegate index on list
 						const balancePerDelegate = Number(
-							new Bignum(scope.roundRewards[index].toPrecision(15))
+							new BigNum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new Bignum(scope.roundFees.toPrecision(15))
+									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.integerValue(Bignum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						const feesPerDelegate = Number(
-							new Bignum(scope.roundFees.toPrecision(15))
+							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
-								.integerValue(Bignum.ROUND_FLOOR)
+								.floor(BigNum.ROUND_FLOOR)
 								.toFixed()
 						);
 						const args = {
@@ -1545,12 +1545,12 @@ describe('round', () => {
 
 					it('should call merge with proper args (fees)', async () => {
 						const index = 2; // Delegate index on list
-						const feesPerDelegate = new Bignum(scope.roundFees.toPrecision(15))
+						const feesPerDelegate = new BigNum(scope.roundFees.toPrecision(15))
 							.dividedBy(ACTIVE_DELEGATES)
-							.integerValue(Bignum.ROUND_FLOOR);
+							.floor(BigNum.ROUND_FLOOR);
 						const remainingFees = Number(
-							new Bignum(scope.roundFees.toPrecision(15))
-								.minus(feesPerDelegate.multipliedBy(ACTIVE_DELEGATES))
+							new BigNum(scope.roundFees.toPrecision(15))
+								.minus(feesPerDelegate.times(ACTIVE_DELEGATES))
 								.toFixed()
 						);
 
@@ -1625,18 +1625,18 @@ describe('round', () => {
 					it('should call merge with proper args (rewards) - 1st delegate', async () => {
 						const index = 2; // Delegate index on list
 						const balancePerDelegate = Number(
-							new Bignum(scope.roundRewards[index].toPrecision(15))
+							new BigNum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new Bignum(scope.roundFees.toPrecision(15))
+									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.integerValue(Bignum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						const feesPerDelegate = Number(
-							new Bignum(scope.roundFees.toPrecision(15))
+							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
-								.integerValue(Bignum.ROUND_FLOOR)
+								.floor(BigNum.ROUND_FLOOR)
 								.toFixed()
 						);
 						const args = {
@@ -1656,18 +1656,18 @@ describe('round', () => {
 					it('should call merge with proper args (rewards) - 2nd delegate', async () => {
 						const index = 1; // Delegate index on list
 						const balancePerDelegate = Number(
-							new Bignum(scope.roundRewards[index].toPrecision(15))
+							new BigNum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new Bignum(scope.roundFees.toPrecision(15))
+									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.integerValue(Bignum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						const feesPerDelegate = Number(
-							new Bignum(scope.roundFees.toPrecision(15))
+							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
-								.integerValue(Bignum.ROUND_FLOOR)
+								.floor(BigNum.ROUND_FLOOR)
 								.toFixed()
 						);
 						const args = {
@@ -1687,18 +1687,18 @@ describe('round', () => {
 					it('should call merge with proper args (rewards) - 3th delegate', async () => {
 						const index = 0; // Delegate index on list
 						const balancePerDelegate = Number(
-							new Bignum(scope.roundRewards[index].toPrecision(15))
+							new BigNum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new Bignum(scope.roundFees.toPrecision(15))
+									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.integerValue(Bignum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						const feesPerDelegate = Number(
-							new Bignum(scope.roundFees.toPrecision(15))
+							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
-								.integerValue(Bignum.ROUND_FLOOR)
+								.floor(BigNum.ROUND_FLOOR)
 								.toFixed()
 						);
 						const args = {
@@ -1717,12 +1717,12 @@ describe('round', () => {
 
 					it('should call merge with proper args (fees)', async () => {
 						const index = 2; // Delegate index on list
-						const feesPerDelegate = new Bignum(scope.roundFees.toPrecision(15))
+						const feesPerDelegate = new BigNum(scope.roundFees.toPrecision(15))
 							.dividedBy(ACTIVE_DELEGATES)
-							.integerValue(Bignum.ROUND_FLOOR);
+							.floor(BigNum.ROUND_FLOOR);
 						const remainingFees = Number(
-							new Bignum(scope.roundFees.toPrecision(15))
-								.minus(feesPerDelegate.multipliedBy(ACTIVE_DELEGATES))
+							new BigNum(scope.roundFees.toPrecision(15))
+								.minus(feesPerDelegate.times(ACTIVE_DELEGATES))
 								.toFixed()
 						);
 

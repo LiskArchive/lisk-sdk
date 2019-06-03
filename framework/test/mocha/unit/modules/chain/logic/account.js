@@ -15,9 +15,9 @@
 'use strict';
 
 const rewire = require('rewire');
+const BigNum = require('@liskhq/bignum');
 const application = require('../../../../common/application');
 const modulesLoader = require('../../../../common/modules_loader');
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 
 const Account = rewire('../../../../../../src/modules/chain/logic/account');
 
@@ -28,13 +28,13 @@ const validAccount = {
 	address: '10881167371402274308L',
 	publicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 	secondPublicKey: null,
-	balance: new Bignum('0'),
+	balance: new BigNum('0'),
 	multiMin: 0,
 	multiLifetime: 1,
 	nameExist: 0,
-	fees: new Bignum('0'),
+	fees: new BigNum('0'),
 	rank: '70',
-	rewards: new Bignum('0'),
+	rewards: new BigNum('0'),
 	vote: 10000000000000000,
 	producedBlocks: 0,
 	missedBlocks: 0,
@@ -154,8 +154,9 @@ describe('account', () => {
 		});
 
 		it('should throw error when a numeric field receives non numeric value', done => {
-			account.merge(validAccount.address, { balance: 'Not a Number' }, err => {
-				expect(err).to.equal('Encountered insane number: NaN');
+			const balance = 'Not a Number';
+			account.merge(validAccount.address, { balance }, err => {
+				expect(err).to.equal(`Encountered insane number: ${balance}`);
 				done();
 			});
 		});

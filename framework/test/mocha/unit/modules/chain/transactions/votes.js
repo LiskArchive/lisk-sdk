@@ -14,7 +14,7 @@
 
 'use strict';
 
-const Bignum = require('browserify-bignum');
+const BigNum = require('@liskhq/bignum');
 const Votes = require('../../../../../../src/modules/chain/transactions/votes');
 
 describe('rounds information', () => {
@@ -27,8 +27,8 @@ describe('rounds information', () => {
 		senderId: '1977368676922172803L',
 		recipientId: '7675634738153324567L',
 		recipientPublicKey: '',
-		amount: new Bignum('500000000'),
-		fee: new Bignum('10000000'),
+		amount: new BigNum('500000000'),
+		fee: new BigNum('10000000'),
 		signature:
 			'bc42403a1a29bcd786839c13d8f84e39d30ff486e032b755bcd1cf9a74c9ef1817ab94f5eccbc61959daf2b2f23721edc1848ee707f9d74dbf2f6f38fe1ada0a',
 		signatures: [],
@@ -44,8 +44,8 @@ describe('rounds information', () => {
 		senderId: '13155556493249255133L',
 		recipientId: '',
 		recipientPublicKey: '',
-		amount: new Bignum('500000000'),
-		fee: new Bignum('10000000'),
+		amount: new BigNum('500000000'),
+		fee: new BigNum('10000000'),
 		signature:
 			'be015020b4a89a8cc36ab8ed0047a8138b115f5ce3b1cee35afa5af1e75307a77290bfd07ca7fcc8667cc0c22a83e48bf964d547b5decf662d2624642bd2320e',
 		signatures: [],
@@ -66,8 +66,8 @@ describe('rounds information', () => {
 		recipientId: '18237045742439723234L',
 		recipientPublicKey:
 			'e65b98c217bfcab6d57293056cf4ad78bf45253ab56bc384aff1665cf3611fe9',
-		amount: new Bignum('100000000'),
-		fee: new Bignum('10000000'),
+		amount: new BigNum('100000000'),
+		fee: new BigNum('10000000'),
 		signature:
 			'286934295859e8f196f00e216f5763cfa3313cc3023e4a34e9da559a96cfb7d7f1e950513b77ace49f56cab1b56b21b05e3183f04d4f389b0355e5b8e9072c08',
 		signatures: [],
@@ -89,8 +89,8 @@ describe('rounds information', () => {
 		recipientId: '10773624498522558426L',
 		recipientPublicKey:
 			'961d1a1057a09f865291873e9ba3d0af7b2a3a1e971bb7576a2aab1c526acbcd',
-		amount: new Bignum('0'),
-		fee: new Bignum('100000000'),
+		amount: new BigNum('0'),
+		fee: new BigNum('100000000'),
 		signature:
 			'8ac892e223db5cc6695563ffbbb13e86d099d62d41f86e8131f8a03082c51a3b868830a5ca4a60cdb10a63dc0605bf217798dfb00f599e37491b5e701f856704',
 		signatures: [],
@@ -111,6 +111,7 @@ describe('rounds information', () => {
 			account: {
 				get: sinonSandbox.stub().returns({
 					votedDelegatesPublicKeys: ['12345'],
+					balance: '0',
 				}),
 			},
 			transaction: {
@@ -192,6 +193,7 @@ describe('rounds information', () => {
 				votedDelegatesPublicKeys: [
 					'05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
 				],
+				balance: '0',
 			});
 			Votes.apply(
 				storageStubs,
@@ -217,6 +219,7 @@ describe('rounds information', () => {
 				votedDelegatesPublicKeys: [
 					'05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
 				],
+				balance: 0,
 			});
 			Votes.undo(storageStubs, voteTransaction, exceptions);
 			expect(storageStubs.round.add).to.be.calledWithExactly({
@@ -230,7 +233,7 @@ describe('rounds information', () => {
 			exceptions.roundVotes = ['3729501093004464059'];
 			Votes.undo(storageStubs, voteTransaction, exceptions);
 			storageStubs.account.get.returns({
-				balance: new Bignum('100000'),
+				balance: new BigNum('100000'),
 				votedDelegatesPublicKeys: [
 					'05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
 				],
@@ -245,7 +248,7 @@ describe('rounds information', () => {
 		it('should add data to state store round for existing votedDelegatesPublicKeys but not for removed votes inside the transaction if its an exception', async () => {
 			exceptions.roundVotes = ['3729501093004464059'];
 			storageStubs.account.get.returns({
-				balance: new Bignum('0'),
+				balance: new BigNum('0'),
 				votedDelegatesPublicKeys: [
 					'e5e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
 					'05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',

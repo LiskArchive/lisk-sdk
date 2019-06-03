@@ -16,7 +16,7 @@
 
 const _ = require('lodash');
 const { hash } = require('@liskhq/lisk-cryptography');
-const Bignum = require('../helpers/bignum');
+const BigNum = require('@liskhq/bignum');
 const blocksLogic = require('./block');
 
 /**
@@ -567,9 +567,9 @@ const calculateNewBroadhash = async (storage, nethash, height) => {
  * @returns {Object} Block object completed
  */
 const addBlockProperties = block => {
-	block.totalAmount = new Bignum(block.totalAmount || 0);
-	block.totalFee = new Bignum(block.totalFee || 0);
-	block.reward = new Bignum(block.reward || 0);
+	block.totalAmount = new BigNum(block.totalAmount || 0);
+	block.totalFee = new BigNum(block.totalFee || 0);
+	block.reward = new BigNum(block.reward || 0);
 
 	if (block.version === undefined) {
 		block.version = 0;
@@ -607,16 +607,16 @@ const deleteBlockProperties = block => {
 	if (typeof reducedBlock.numberOfTransactions === 'number') {
 		delete reducedBlock.numberOfTransactions;
 	}
-	if (reducedBlock.totalAmount.isEqualTo(0)) {
+	if (reducedBlock.totalAmount.equals(0)) {
 		delete reducedBlock.totalAmount;
 	}
-	if (reducedBlock.totalFee.isEqualTo(0)) {
+	if (reducedBlock.totalFee.equals(0)) {
 		delete reducedBlock.totalFee;
 	}
 	if (reducedBlock.payloadLength === 0) {
 		delete reducedBlock.payloadLength;
 	}
-	if (reducedBlock.reward.isEqualTo(0)) {
+	if (reducedBlock.reward.equals(0)) {
 		delete reducedBlock.reward;
 	}
 	if (reducedBlock.transactions && reducedBlock.transactions.length === 0) {

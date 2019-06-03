@@ -15,7 +15,7 @@
 'use strict';
 
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
+const BigNum = require('@liskhq/bignum');
 const blockVersion = require('../../../../../../src/modules/chain/blocks/block_version');
 const {
 	registeredTransactions,
@@ -92,14 +92,14 @@ describe('blocks/process', () => {
 			id: '3',
 			height: 3,
 			timestamp: 41287221,
-			reward: new Bignum(100),
+			reward: new BigNum(100),
 			transactions: [],
 		};
 		dummyBlock = {
 			id: '4',
 			height: 4,
 			timestamp: 41287231,
-			reward: new Bignum(100),
+			reward: new BigNum(100),
 			transactions: [],
 		};
 		sinonSandbox.stub(blocksLogic, 'objectNormalize').callsFake(input => input);
@@ -477,7 +477,7 @@ describe('blocks/process', () => {
 				id: '2',
 				height: 2,
 				timestamp: 41287211,
-				reward: new Bignum(100),
+				reward: new BigNum(100),
 				transactions: [],
 			};
 			onDelete = sinonSandbox.stub();

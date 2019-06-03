@@ -16,7 +16,7 @@
 
 const crypto = require('crypto');
 const transactionStatus = require('@liskhq/lisk-transactions').Status;
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
+const BigNum = require('@liskhq/bignum');
 const {
 	registeredTransactions,
 } = require('../../../../common/registered_transactions');
@@ -464,7 +464,7 @@ describe('blocks/verify', () => {
 
 		describe('when blockReward.calcReward succeeds', () => {
 			beforeEach(async () => {
-				blockRewardStub.calcReward.returns(new Bignum(5));
+				blockRewardStub.calcReward.returns(new BigNum(5));
 			});
 
 			describe('if block.height != 1 && expectedReward != block.reward && exceptions.blockRewards.indexOf(block.id) = -1', () => {
@@ -615,8 +615,8 @@ describe('blocks/verify', () => {
 			new Transaction({ type: 0 })
 		);
 		const transactions = [transactionOne, transactionTwo];
-		let totalAmount = new Bignum(0);
-		let totalFee = new Bignum(0);
+		let totalAmount = new BigNum(0);
+		let totalFee = new BigNum(0);
 
 		for (let i = 0; i < transactions.length; i++) {
 			const transaction = transactions[i];
