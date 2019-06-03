@@ -101,12 +101,10 @@ describe('expire transactions', () => {
 
 	localCommon.beforeBlock('expire_transactions', lib => {
 		library = lib;
-		transactionPool = library.rewiredModules.transactions.__get__(
-			'__private.transactionPool'
-		);
+		transactionPool = library.modules.transactionPool;
 
 		// Set hourInSeconds to zero to test multi-signature transaction expiry
-		transactionPool.hourInSeconds = 1;
+		transactionPool.pool._expireTransactionsInterval = 1;
 		queries = new QueriesHelper(lib, lib.components.storage);
 	});
 
@@ -156,7 +154,7 @@ describe('expire transactions', () => {
 					expect(res.count).to.equal(0);
 					done();
 				});
-			}, 5000);
+			}, 30000);
 		});
 	});
 
@@ -204,8 +202,8 @@ describe('expire transactions', () => {
 			// Multi-signature transaction is created with lifetime 1
 			// and the timeout multiplier is set to 1
 			// so the time to expiry will be 1 second
-			// and extract 5 second to ensure transaction is expired and removed from queue
-			const timeout = lifetime * 1 * 1000 + 5000;
+			// and extract 30 second to ensure transaction is expired and removed from queue
+			const timeout = lifetime * 1 * 1000 + 30000;
 
 			setTimeout(() => {
 				// verify if the multi-signature transaction was removed from queue

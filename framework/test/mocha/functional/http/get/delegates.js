@@ -24,17 +24,22 @@ const {
 const Bignum = require('bignumber.js');
 const genesisDelegates = require('../../../data/genesis_delegates.json');
 const accountFixtures = require('../../../fixtures/accounts');
-const slots = require('../../../../../src/modules/chain/helpers/slots');
 const randomUtil = require('../../../common/utils/random');
 const waitFor = require('../../../common/utils/wait_for');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const apiHelpers = require('../../../common/helpers/api');
+const { BlockSlots } = require('../../../../../src/modules/chain/blocks');
 
 Promise.promisify(waitFor.newRound);
 const { FEES } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /delegates', () => {
+	const slots = new BlockSlots({
+		epochTime: __testContext.config.constants.EPOCH_TIME,
+		interval: __testContext.config.constants.BLOCK_TIME,
+		blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
+	});
 	const delegatesEndpoint = new SwaggerEndpoint('GET /delegates');
 	const validDelegate = genesisDelegates.delegates[0];
 	const validNotExistingPublicKey =

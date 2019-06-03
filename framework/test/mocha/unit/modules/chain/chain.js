@@ -18,9 +18,7 @@
 const rewire = require('rewire');
 
 const Chain = rewire('../../../../../src/modules/chain/chain');
-const Loader = require('../../../../../src/modules/chain/loader');
-const BlockReward = require('../../../../../src/modules/chain/logic/block_reward');
-const slots = require('../../../../../src/modules/chain/helpers/slots');
+const { Blocks } = require('../../../../../src/modules/chain/blocks');
 const {
 	loggerConfig,
 	cacheConfig,
@@ -35,7 +33,7 @@ describe('Chain', () => {
 	beforeEach(async () => {
 		// Arrange
 
-		sinonSandbox.stub(Loader.prototype, 'loadBlockChain').resolves();
+		sinonSandbox.stub(Blocks.prototype, 'loadBlockChain').resolves();
 
 		/* Arranging Stubs start */
 		stubs.logger = {
@@ -53,6 +51,7 @@ describe('Chain', () => {
 		};
 		stubs.bus = {
 			message: sinonSandbox.stub(),
+			registerModules: sinonSandbox.stub(),
 		};
 
 		stubs.logic = {
@@ -82,6 +81,7 @@ describe('Chain', () => {
 		stubs.channel = {
 			invoke: sinonSandbox.stub(),
 			subscribe: sinonSandbox.stub(),
+			once: sinonSandbox.stub(),
 		};
 
 		stubs.channel.invoke
@@ -104,7 +104,6 @@ describe('Chain', () => {
 			bootstrapStorage: sinonSandbox.stub(),
 			bootstrapCache: sinonSandbox.stub(),
 			initLogicStructure: sinonSandbox.stub().resolves(stubs.logic),
-			initModules: sinonSandbox.stub().resolves(stubs.modules),
 		};
 
 		/* Arranging Stubs end */
@@ -116,7 +115,6 @@ describe('Chain', () => {
 		Chain.__set__('bootstrapStorage', stubs.initSteps.bootstrapStorage);
 		Chain.__set__('bootstrapCache', stubs.initSteps.bootstrapCache);
 		Chain.__set__('initLogicStructure', stubs.initSteps.initLogicStructure);
-		Chain.__set__('initModules', stubs.initSteps.initModules);
 
 		// Act
 		chain = new Chain(stubs.channel, chainOptions);
@@ -136,7 +134,6 @@ describe('Chain', () => {
 		it('should assign logger, scope, blockReward, slots properties as null', () => {
 			expect(chain.logger).to.be.null;
 			expect(chain.scope).to.be.null;
-			expect(chain.blockReward).to.be.null;
 			return expect(chain.slots).to.be.null;
 		});
 	});
@@ -193,14 +190,6 @@ describe('Chain', () => {
 
 		it('should set global.exceptions as a merger default exceptions and passed options', () => {
 			return expect(global.exceptions).to.be.equal(chainOptions.exceptions);
-		});
-
-		it('should create blockReward object and assign it to chain.blockReward', () => {
-			return expect(chain.blockReward).to.be.instanceOf(BlockReward);
-		});
-
-		it('should assign slots from helpers/slots', () => {
-			return expect(chain.slots).to.be.equal(slots);
 		});
 
 		describe('when options.loading.rebuildUpToRound is truthy', () => {
@@ -294,21 +283,9 @@ describe('Chain', () => {
 			return expect(chain.scope.logic).to.be.equal(stubs.logic);
 		});
 
-		it('should init modules object and assign to scope.modules', () => {
-			expect(stubs.initSteps.initModules).to.have.been.calledWith(chain.scope);
-			return expect(chain.scope.modules).to.be.equal(stubs.modules);
-		});
-
-		it('should bind modules with scope.logic.block', () => {
-			return expect(
-				chain.scope.logic.block.bindModules
-			).to.have.been.calledWith(stubs.modules);
-		});
-
 		it('should bind modules with scope.logic.account', () => {
-			return expect(
-				chain.scope.logic.account.bindModules
-			).to.have.been.calledWith(stubs.modules);
+			return expect(chain.scope.logic.account.bindModules).to.have.been
+				.calledOnce;
 		});
 
 		it('should subscribe to "app:state:updated" event', () => {
@@ -388,6 +365,8 @@ describe('Chain', () => {
 		});
 
 		it('should call cleanup on all modules', async () => {
+			// replace with stub
+			chain.scope.modules = stubs.modules;
 			// Act
 			await chain.cleanup();
 

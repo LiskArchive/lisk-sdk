@@ -80,7 +80,9 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					`Failed to validate signature ${transaction.signature}`
@@ -97,7 +99,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.eql('Invalid transaction body');
+				expect(res.body.message).to.eql('Transaction was rejected with errors');
 				expect(res.body.code).to.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors).to.not.be.empty;
 				badTransactions.push(transaction);
@@ -121,7 +123,9 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					'Amount must be a valid number in string format.'
@@ -141,7 +145,9 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					`Account does not have enough LSK: ${account.address}, balance: 0`
@@ -161,7 +167,9 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.include(
 					'Account does not have enough LSK: 16313739661670634666L, balance: '
@@ -190,7 +198,9 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				signedTransactionFromGenesis,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.include(
 					'Account does not have enough LSK: 1085993630748340485L, balance: -'
@@ -211,7 +221,9 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				goodTransaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					`Transaction is already processed: ${goodTransaction.id}`
@@ -226,7 +238,9 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				cloneGoodTransaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[1].message).to.be.equal(
 					'Invalid transaction id'
@@ -241,7 +255,9 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				cloneGoodTransaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					`Transaction is already processed: ${cloneGoodTransaction.id}`
@@ -276,7 +292,9 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.equal('Invalid transaction body');
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
 						'Invalid transaction timestamp. Timestamp is in the future'
@@ -304,7 +322,9 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 							transaction,
 							apiCodes.PROCESSING_ERROR
 						).then(res => {
-							expect(res.body.message).to.be.equal('Invalid transaction body');
+							expect(res.body.message).to.be.equal(
+								'Transaction was rejected with errors'
+							);
 							expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 							expect(res.body.errors[0].message).to.not.be.empty;
 							badTransactions.push(transaction);
@@ -389,7 +409,9 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 						transaction,
 						apiCodes.PROCESSING_ERROR
 					).then(res => {
-						expect(res.body.message).to.be.eql('Invalid transaction body');
+						expect(res.body.message).to.be.eql(
+							'Transaction was rejected with errors'
+						);
 						expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 						expect(res.body.errors[0].message).to.be.equal(
 							'\'.data\' should match format "transferData"'
@@ -412,7 +434,9 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 						transaction,
 						apiCodes.PROCESSING_ERROR
 					).then(res => {
-						expect(res.body.message).to.be.eql('Invalid transaction body');
+						expect(res.body.message).to.be.eql(
+							'Transaction was rejected with errors'
+						);
 						expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 						expect(res.body.errors[0].message).to.be.equal(
 							'\'.data\' should match format "transferData"'
@@ -435,7 +459,9 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 						transaction,
 						apiCodes.PROCESSING_ERROR
 					).then(res => {
-						expect(res.body.message).to.be.eql('Invalid transaction body');
+						expect(res.body.message).to.be.eql(
+							'Transaction was rejected with errors'
+						);
 						expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 						expect(res.body.errors[0].message).to.be.equal(
 							'\'.data\' should match format "transferData"'
@@ -458,7 +484,9 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 						transaction,
 						apiCodes.PROCESSING_ERROR
 					).then(res => {
-						expect(res.body.message).to.be.eql('Invalid transaction body');
+						expect(res.body.message).to.be.eql(
+							'Transaction was rejected with errors'
+						);
 						expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 						expect(res.body.errors[0].message).to.be.equal(
 							'\'.data\' should match format "transferData"'
@@ -480,7 +508,9 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				goodTransaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.eql('Invalid transaction body');
+				expect(res.body.message).to.be.eql(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					`Transaction is already confirmed: ${goodTransaction.id}`

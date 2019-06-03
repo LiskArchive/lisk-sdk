@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-p2p",
-	"version": "0.1.0-alpha.9",
+	"version": "0.1.0-alpha.13",
 	"description": "Unstructured P2P library for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
@@ -28,7 +28,7 @@
 		"format": "prettier --write '**/*'",
 		"lint": "tslint --format verbose --project .",
 		"lint:fix": "npm run lint -- --fix",
-		"test": "TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/{,/**/}{,/**/}/*.ts",
+		"test": "USE_REAL_TIMERS=true TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/{,/**/}{,/**/}/*.ts",
 		"test:unit": "TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/unit/{,/**/}/*.ts",
 		"test:integration": "USE_REAL_TIMERS=true TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/integration/{,/**/}/*.ts",
 		"test:watch": "npm test -- --watch",

@@ -19,11 +19,17 @@ const {
 	validateBlockSlot,
 	getKeysSortByVote,
 	getDelegatesFromPreviousRound,
-} = require('../../../../../../src/modules/chain/submodules/delegates');
+} = require('../../../../../../src/modules/chain/rounds/delegates');
+const { BlockSlots } = require('../../../../../../src/modules/chain/blocks');
 
 const exceptions = global.exceptions;
 
 describe('delegates', () => {
+	const slots = new BlockSlots({
+		epochTime: __testContext.config.constants.EPOCH_TIME,
+		interval: __testContext.config.constants.BLOCK_TIME,
+		blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
+	});
 	const mockChannel = {
 		publish: sinonSandbox.stub(),
 	};
@@ -54,10 +60,9 @@ describe('delegates', () => {
 		beforeEach(async () => {
 			delegatesModule = new Delegates({
 				channel: mockChannel,
-				components: {
-					logger: mockLogger,
-					storage: mockStorage,
-				},
+				logger: mockLogger,
+				storage: mockStorage,
+				slots,
 			});
 		});
 
@@ -372,7 +377,7 @@ describe('delegates', () => {
 				generatorPublicKey: 'pk_1',
 			};
 			// Act
-			const result = validateBlockSlot(mockBlock, mockDelegateList, mockLogger);
+			const result = validateBlockSlot(mockBlock, slots, mockDelegateList);
 			// Assert
 			expect(result).to.be.true;
 		});
@@ -385,7 +390,7 @@ describe('delegates', () => {
 			};
 			// Act
 			expect(
-				validateBlockSlot.bind(null, mockBlock, mockDelegateList, mockLogger)
+				validateBlockSlot.bind(null, mockBlock, slots, mockDelegateList)
 			).to.throw('Failed to verify slot: 2');
 		});
 	});

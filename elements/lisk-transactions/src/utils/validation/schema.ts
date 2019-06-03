@@ -108,7 +108,6 @@ export const baseTransaction = {
 		type: {
 			type: 'integer',
 			minimum: 0,
-			maximum: 7,
 		},
 		timestamp: {
 			type: 'integer',
