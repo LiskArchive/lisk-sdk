@@ -178,6 +178,7 @@ describe('transport', () => {
 				storage: storageStub,
 				logger: loggerStub,
 			},
+			block: blockStub,
 			bus: busStub,
 			schema: schemaStub,
 			channel: channelStub,
@@ -256,7 +257,7 @@ describe('transport', () => {
 					.to.have.property('balancesSequence')
 					.which.is.equal(balancesSequenceStub);
 				expect(library)
-					.to.have.nested.property('logic.block')
+					.to.have.nested.property('block')
 					.which.is.equal(blockStub);
 
 				expect(__private)
@@ -799,11 +800,6 @@ describe('transport', () => {
 					block: {
 						objectNormalize: sinonSandbox.stub().returns(new Block()),
 					},
-					logic: {
-						block: {
-							objectNormalize: sinonSandbox.stub().returns(new Block()),
-						},
-					},
 					storage: {
 						entities: {
 							Block: {
@@ -1308,7 +1304,7 @@ describe('transport', () => {
 							const blockValidationError = 'Failed to validate block schema';
 
 							beforeEach(done => {
-								library.logic.block.objectNormalize = sinonSandbox
+								library.block.objectNormalize = sinonSandbox
 									.stub()
 									.throws(blockValidationError);
 								transportInstance.shared.postBlock(postBlockQuery);
@@ -1329,7 +1325,7 @@ describe('transport', () => {
 
 						describe('when it does not throw', () => {
 							beforeEach(done => {
-								library.logic.block.objectNormalize = sinonSandbox
+								library.block.objectNormalize = sinonSandbox
 									.stub()
 									.returns(blockMock);
 								transportInstance.shared.postBlock(postBlockQuery);
@@ -1345,10 +1341,9 @@ describe('transport', () => {
 									).to.be.true);
 							});
 
-							it('should call library.logic.block.objectNormalize with block', async () =>
-								expect(
-									library.logic.block.objectNormalize.calledWith(blockMock)
-								).to.be.true);
+							it('should call library.block.objectNormalize with block', async () =>
+								expect(library.block.objectNormalize.calledWith(blockMock)).to
+									.be.true);
 
 							it('should call block.process.receiveBlockFromNetwork with block', async () => {
 								expect(

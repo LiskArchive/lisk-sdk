@@ -43,7 +43,7 @@ class Round {
 			roundFees: scope.roundFees,
 			roundRewards: scope.roundRewards,
 			library: {
-				logic: { account: scope.library.account },
+				account: scope.library.account,
 				logger: scope.library.logger,
 				storage: scope.library.storage,
 			},
@@ -94,7 +94,7 @@ class Round {
 
 			const address = getAddressFromPublicKey(data.publicKey);
 
-			self.scope.library.logic.account.merge(
+			self.scope.library.account.merge(
 				address,
 				data,
 				(err, account) => {
@@ -376,7 +376,7 @@ class Round {
 			const address = getAddressFromPublicKey(accountData.publicKey);
 
 			p = new Promise((resolve, reject) => {
-				self.scope.library.logic.account.merge(
+				self.scope.library.account.merge(
 					address,
 					accountData,
 					(err, account) => {
@@ -432,7 +432,7 @@ class Round {
 
 				const address = getAddressFromPublicKey(data.publicKey);
 
-				self.scope.library.logic.account.merge(
+				self.scope.library.account.merge(
 					address,
 					data,
 					(err, account) => {
