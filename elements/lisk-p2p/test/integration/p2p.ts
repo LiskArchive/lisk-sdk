@@ -1176,4 +1176,96 @@ describe('Integration tests for P2P library', () => {
 			});
 		});
 	});
+
+	describe('Network with a maximum number of outbound connections', () => {
+		const NETWORK_PEER_COUNT_WITH_OUTBOUND_LIMIT = 30;
+		const TEN_OUTBOUND_CONNECTIONS = 10;
+		const ALL_NODE_PORTS_WITH_OUTBOUND_LIMIT: ReadonlyArray<number> = [
+			...new Array(NETWORK_PEER_COUNT_WITH_OUTBOUND_LIMIT).keys(),
+		].map(index => NETWORK_START_PORT + index);
+		const DISCOVERY_INTERVAL_WITH_OUTBOUND_LIMIT = 10;
+		const POPULATOR_INTERVAL_WITH_OUTBOUND_LIMIT = 10;
+
+		beforeEach(async () => {
+			p2pNodeList = [
+				...new Array(NETWORK_PEER_COUNT_WITH_OUTBOUND_LIMIT).keys(),
+			].map(index => {
+				// Each node will have the previous node in the sequence as a seed peer except the first node.
+				const seedPeers =
+					index === 0
+						? []
+						: [
+								{
+									ipAddress: '127.0.0.1',
+									wsPort:
+										NETWORK_START_PORT +
+										((index - 1) % NETWORK_PEER_COUNT_WITH_OUTBOUND_LIMIT),
+								},
+						  ];
+
+				const nodePort = NETWORK_START_PORT + index;
+				return new P2P({
+					blacklistedPeers: [],
+					connectTimeout: 5000,
+					ackTimeout: 5000,
+					seedPeers,
+					wsEngine: 'ws',
+					discoveryInterval: DISCOVERY_INTERVAL_WITH_OUTBOUND_LIMIT,
+					populatorInterval: POPULATOR_INTERVAL_WITH_OUTBOUND_LIMIT,
+					maxOutboundConnections: TEN_OUTBOUND_CONNECTIONS,
+					nodeInfo: {
+						wsPort: nodePort,
+						nethash:
+							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+						version: '1.0.1',
+						protocolVersion: '1.0.1',
+						minVersion: '1.0.0',
+						os: platform(),
+						height: 0,
+						broadhash:
+							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+						nonce: `O2wTkjqplHII${nodePort}`,
+					},
+				});
+			});
+
+			// Launch nodes one at a time with a delay between each launch.
+			for (const p2p of p2pNodeList) {
+				p2p.start();
+			}
+			await wait(1000);
+		});
+
+		afterEach(async () => {
+			await Promise.all(
+				p2pNodeList
+					.filter(p2p => p2p.isActive)
+					.map(async p2p => await p2p.stop()),
+			);
+			await wait(100);
+		});
+
+		describe('Peer discovery and connections', () => {
+			it(`should not create more than ${TEN_OUTBOUND_CONNECTIONS} outbound connections`, async () => {
+				p2pNodeList.forEach(p2p => {
+					const { outbound } = p2p['_peerPool'].getPeersCountByKind();
+					expect(outbound).to.be.at.most(TEN_OUTBOUND_CONNECTIONS);
+				});
+			});
+
+			it('should discover peers and add them to the peer lists within each node', () => {
+				p2pNodeList.forEach(p2p => {
+					const { newPeers, triedPeers } = p2p.getNetworkStatus();
+
+					const peerPorts = [...newPeers, ...triedPeers].map(
+						peerInfo => peerInfo.wsPort,
+					);
+
+					expect(ALL_NODE_PORTS_WITH_OUTBOUND_LIMIT).to.include.members(
+						peerPorts,
+					);
+				});
+			});
+		});
+	});
 });
