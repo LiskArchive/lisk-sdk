@@ -33,6 +33,6 @@ module.exports = {
 	configurator,
 	BigNum,
 	cryptography,
-	transactions,
+	...transactions,
 	...samples,
 };
