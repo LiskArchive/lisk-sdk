@@ -220,7 +220,7 @@ describe('Integration tests for P2P library', () => {
 				};
 				firstP2PNode.applyPenalty(peerPenalty);
 				// Wait for ban time to expire and peer to be re-discovered
-				await wait(200);
+				await wait(1000);
 				const {
 					connectedPeers: updatedConnectedPeers,
 				} = firstP2PNode.getNetworkStatus();
