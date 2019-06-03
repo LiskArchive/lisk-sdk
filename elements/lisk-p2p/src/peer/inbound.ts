@@ -63,7 +63,7 @@ export class InboundPeer extends Peer {
 	}
 
 	public disconnect(code: number = 1000, reason?: string): void {
-		this._socket.destroy(code, reason);
+		super.disconnect(code, reason);
 		this._unbindHandlersFromInboundSocket(this._socket);
 	}
 
