@@ -100,7 +100,8 @@ const modulesLoader = new function() {
 				new Logic(
 					scope.components.storage,
 					scope.schema,
-					scope.components.logger
+					scope.components.logger,
+					scope.modules.rounds
 				);
 				break;
 			case 'Block':

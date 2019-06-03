@@ -27,7 +27,6 @@ const { createCacheComponent } = require('../../../src/components/cache');
 const { StorageSandbox } = require('./storage_sandbox');
 const { ZSchema } = require('../../../src/controller/validator');
 const initSteps = require('../../../src/modules/chain/init_steps');
-const initAccountLogic = require('../../../src/modules/chain/rounds/initAccount');
 
 let currentAppScope;
 
@@ -168,9 +167,6 @@ async function __init(sandbox, initScope) {
 		await cache.bootstrap();
 
 		scope.bus = await initSteps.createBus();
-		scope.logic = {
-			account: initAccountLogic(scope).account,
-		};
 		// scope.logic = await initSteps.initLogicStructure(scope);
 		scope.modules = await initStepsForTest.initModules(scope);
 

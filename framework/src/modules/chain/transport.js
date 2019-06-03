@@ -390,7 +390,7 @@ class Transport {
 								block
 							);
 
-							block = library.block.objectNormalize(block);
+							block = blocksModule.objectNormalize(block);
 						} catch (e) {
 							success = false;
 							library.logger.debug('Block normalization failed', {
