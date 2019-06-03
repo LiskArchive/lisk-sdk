@@ -1427,12 +1427,8 @@ describe('transport', () => {
 				});
 
 				describe('getTransactions', () => {
-					beforeEach(done => {
-						transportInstance.shared.getTransactions((err, res) => {
-							error = err;
-							result = res;
-							done();
-						});
+					beforeEach(async () => {
+						result = await transportInstance.shared.getTransactions();
 					});
 
 					it('should call modules.transactionPool.getMergedTransactionList with true and MAX_SHARED_TRANSACTIONS', async () =>
@@ -1442,9 +1438,6 @@ describe('transport', () => {
 								MAX_SHARED_TRANSACTIONS
 							)
 						).to.be.true);
-
-					it('should call callback with error = null', async () =>
-						expect(error).to.equal(null));
 
 					it('should call callback with result = {success: true, transactions: transactions}', async () => {
 						expect(result)

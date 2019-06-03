@@ -48,7 +48,6 @@ __private.messages = {};
  * @requires api/ws/workers/rules
  * @requires api/ws/rpc/ws_rpc
  * @requires logic/broadcaster
- * @param {function} cb - Callback function
  * @param {scope} scope - App instance
  * @returns {setImmediateCallback} cb, null, self
  */
@@ -510,15 +509,16 @@ class Transport {
 			 * @todo Add @returns tag
 			 * @todo Add description of the function
 			 */
-			getTransactions(cb) {
+			async getTransactions() {
 				const transactions = modules.transactionPool.getMergedTransactionList(
 					true,
 					MAX_SHARED_TRANSACTIONS
 				);
-				return setImmediate(cb, null, {
+
+				return {
 					success: true,
 					transactions,
-				});
+				};
 			},
 
 			/**
