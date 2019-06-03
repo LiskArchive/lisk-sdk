@@ -228,7 +228,7 @@ module.exports = class Chain {
 			getTransactions: async () =>
 				this.scope.modules.transport.shared.getTransactions(),
 			getSignatures: async () =>
-				promisify(this.scope.modules.transport.shared.getSignatures)(),
+				this.scope.modules.transport.shared.getSignatures(),
 			postSignature: async action =>
 				promisify(this.scope.modules.transport.shared.postSignature)(
 					action.params

@@ -1348,15 +1348,12 @@ describe('transport', () => {
 				});
 
 				describe('getSignatures', () => {
-					beforeEach(done => {
+					beforeEach(async () => {
 						modules.transactionPool.getMultisignatureTransactionList = sinonSandbox
 							.stub()
 							.returns(multisignatureTransactionsList);
-						transportInstance.shared.getSignatures((err, res) => {
-							error = err;
-							result = res;
-							done();
-						});
+
+						result = await transportInstance.shared.getSignatures();
 					});
 
 					it('should call modules.transactionPool.getMultisignatureTransactionList with true and MAX_SHARED_TRANSACTIONS', async () =>
@@ -1368,9 +1365,6 @@ describe('transport', () => {
 						).to.be.true);
 
 					describe('when all transactions returned by modules.transactionPool.getMultisignatureTransactionList are multisignature transactions', () => {
-						it('should call callback with error = null', async () =>
-							expect(error).to.equal(null));
-
 						it('should call callback with result = {success: true, signatures: signatures} where signatures contains all transactions', async () => {
 							expect(result)
 								.to.have.property('success')
@@ -1384,7 +1378,7 @@ describe('transport', () => {
 					});
 
 					describe('when some transactions returned by modules.transactionPool.getMultisignatureTransactionList are multisignature registration transactions', () => {
-						beforeEach(done => {
+						beforeEach(async () => {
 							// Make it so that the first transaction in the list is a multisignature registration transaction.
 							multisignatureTransactionsList[0] = {
 								id: '222675625422353767',
@@ -1403,15 +1397,9 @@ describe('transport', () => {
 							modules.transactionPool.getMultisignatureTransactionList = sinonSandbox
 								.stub()
 								.returns(multisignatureTransactionsList);
-							transportInstance.shared.getSignatures((err, res) => {
-								error = err;
-								result = res;
-								done();
-							});
-						});
 
-						it('should call callback with error = null', async () =>
-							expect(error).to.equal(null));
+							result = await transportInstance.shared.getSignatures();
+						});
 
 						it('should call callback with result = {success: true, signatures: signatures} where signatures does not contain multisignature registration transactions', async () => {
 							expect(result)

@@ -15,7 +15,6 @@
 'use strict';
 
 const { TransactionError } = require('@liskhq/lisk-transactions');
-const async = require('async');
 const { promisify } = require('util');
 const _ = require('lodash');
 const { convertErrorsToString } = require('./helpers/error_handlers');
@@ -476,30 +475,26 @@ class Transport {
 			 * @todo Add @returns tag
 			 * @todo Add description of the function
 			 */
-			getSignatures(cb) {
+			async getSignatures() {
 				const transactions = modules.transactionPool.getMultisignatureTransactionList(
 					true,
 					MAX_SHARED_TRANSACTIONS
 				);
-				const signatures = [];
 
-				async.eachSeries(
-					transactions,
-					(transaction, __cb) => {
-						if (transaction.signatures && transaction.signatures.length) {
-							signatures.push({
-								transaction: transaction.id,
-								signatures: transaction.signatures,
-							});
-						}
-						return setImmediate(__cb);
-					},
-					() =>
-						setImmediate(cb, null, {
-							success: true,
-							signatures,
-						})
-				);
+				const signatures = transactions
+					.filter(
+						transaction =>
+							transaction.signatures && transaction.signatures.length
+					)
+					.map(transaction => ({
+						transaction: transaction.id,
+						signatures: transaction.signatures,
+					}));
+
+				return {
+					success: true,
+					signatures,
+				};
 			},
 
 			/**
