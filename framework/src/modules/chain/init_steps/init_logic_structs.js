@@ -17,11 +17,7 @@
 module.exports = async ({ schema, components: { storage, logger } }) => {
 	const Account = require('../rounds/account.js');
 
-	const accountLogic = await new Promise((resolve, reject) => {
-		new Account(storage, schema, logger, (err, object) => {
-			err ? reject(err) : resolve(object);
-		});
-	});
+	const accountLogic = new Account(storage, schema, logger);
 
 	return {
 		account: accountLogic,

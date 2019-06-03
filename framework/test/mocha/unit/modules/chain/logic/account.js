@@ -72,7 +72,7 @@ describe('account', () => {
 		let library;
 		let storageStub;
 
-		before(done => {
+		before(async () => {
 			storageStub = {
 				entities: {
 					Account: {
@@ -81,16 +81,13 @@ describe('account', () => {
 				},
 			};
 
-			new Account(
+			accountLogic = new Account(
 				storageStub,
 				modulesLoader.scope.schema,
-				modulesLoader.scope.components.logger,
-				(err, lgAccount) => {
-					accountLogic = lgAccount;
-					library = Account.__get__('library');
-					done();
-				}
+				modulesLoader.scope.components.logger
 			);
+
+			library = Account.__get__('library');
 		});
 
 		it('should attach schema to scope variable', async () =>
