@@ -14,7 +14,7 @@
 
 'use strict';
 
-const Bignumber = require('bignumber.js');
+const BigNum = require('@liskhq/bignum');
 
 // TODO: This file will be renamed or deleted after deciding where calculateApproval belongs
 
@@ -22,14 +22,14 @@ const Bignumber = require('bignumber.js');
 function calculateApproval(votersBalance, totalSupply) {
 	// votersBalance and totalSupply are sent as strings,
 	// we convert them into bignum and send the response as number as well
-	const votersBalanceBignum = new Bignumber(votersBalance || 0);
-	const totalSupplyBignum = new Bignumber(totalSupply);
+	const votersBalanceBignum = new BigNum(votersBalance || 0);
+	const totalSupplyBignum = new BigNum(totalSupply);
 	const approvalBignum = votersBalanceBignum
 		.dividedBy(totalSupplyBignum)
-		.multipliedBy(100)
-		.decimalPlaces(2);
+		.times(100)
+		.toFixed(2);
 
-	return !approvalBignum.isNaN() ? approvalBignum.toNumber() : 0;
+	return Number(parseFloat(approvalBignum).toFixed(2));
 }
 
 module.exports = {

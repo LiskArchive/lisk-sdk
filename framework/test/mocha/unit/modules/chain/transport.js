@@ -20,9 +20,9 @@ const {
 	Status: TransactionStatus,
 	TransferTransaction,
 } = require('@liskhq/lisk-transactions');
+const BigNum = require('@liskhq/bignum');
 const { transfer, TransactionError } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
-const Bignum = require('../../../../../src/modules/chain/helpers/bignum');
 const Block = require('../../../fixtures/blocks').Block;
 const {
 	registeredTransactions,
@@ -1022,9 +1022,9 @@ describe('transport', () => {
 							generatorPublicKey:
 								'968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b',
 							numberOfTransactions: 15,
-							totalAmount: new Bignum('150000000'),
-							totalFee: new Bignum('15000000'),
-							reward: new Bignum('50000000'),
+							totalAmount: new BigNum('150000000'),
+							totalFee: new BigNum('15000000'),
+							reward: new BigNum('50000000'),
 							totalForged: '65000000',
 						};
 						__private.broadcaster = {

@@ -15,7 +15,7 @@
 'use strict';
 
 const _ = require('lodash');
-const Bignum = require('../helpers/bignum');
+const BigNum = require('@liskhq/bignum');
 
 // Private fields
 let library;
@@ -28,7 +28,7 @@ let modules;
  * @memberof logic
  * @see Parent: {@link logic}
  * @requires lodash
- * @requires helpers/bignum
+ * @requires liskhq/bignum
  * @param {Storage} storage
  * @param {ZSchema} schema
  * @param {Object} logger
@@ -180,7 +180,7 @@ class Account {
 				// Get field data type
 				const fieldType = self.conv[updatedField];
 				const updatedValue = diff[updatedField];
-				const value = new Bignum(updatedValue);
+				let value;
 
 				// Make execution selection based on field type
 				switch (fieldType) {
@@ -199,12 +199,14 @@ class Account {
 					// fees, rewards, votes, producedBlocks, missedBlocks
 					// eslint-disable-next-line no-case-declarations
 					case Number:
-						if (value.isNaN() || !value.isFinite()) {
-							throw `Encountered insane number: ${value.toString()}`;
+						try {
+							value = new BigNum(updatedValue);
+						} catch (bigNumbError) {
+							throw `Encountered insane number: ${updatedValue.toString()}`;
 						}
 
 						// If updated value is positive number
-						if (value.isGreaterThan(0)) {
+						if (value.greaterThan(0)) {
 							promises.push(
 								self.scope.storage.entities.Account.increaseFieldBy(
 									{ address },
@@ -215,7 +217,7 @@ class Account {
 							);
 
 							// If updated value is negative number
-						} else if (value.isLessThan(0)) {
+						} else if (value.lessThan(0)) {
 							promises.push(
 								self.scope.storage.entities.Account.decreaseFieldBy(
 									{ address },

@@ -16,7 +16,7 @@
 
 require('../../functional');
 const Promise = require('bluebird');
-const Bignum = require('bignumber.js');
+const BigNum = require('@liskhq/bignum');
 const {
 	transfer,
 	registerDelegate,
@@ -143,7 +143,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				transaction: {
 					type: 2,
 					amount: '0',
-					fee: new Bignum(FEES.DELEGATE).toString(),
+					fee: new BigNum(FEES.DELEGATE).toString(),
 					asset: {
 						delegate: {
 							username: '',
@@ -307,7 +307,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				transaction: {
 					type: 2,
 					amount: '0',
-					fee: new Bignum(FEES.DELEGATE).toString(),
+					fee: new BigNum(FEES.DELEGATE).toString(),
 					asset: {
 						delegate: {
 							username: delegateName,
