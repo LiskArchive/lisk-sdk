@@ -529,24 +529,20 @@ class Transport {
 			 * @todo Add description of the function
 			 */
 			postTransaction(query, cb) {
-				__private.receiveTransaction(
-					query.transaction,
-					query.extraLogMessage,
-					(err, id) => {
-						if (err) {
-							return setImmediate(cb, null, {
-								success: false,
-								message: err.message || 'Transaction was rejected with errors',
-								errors: err,
-							});
-						}
-
+				__private.receiveTransaction(query.transaction, (err, id) => {
+					if (err) {
 						return setImmediate(cb, null, {
-							success: true,
-							transactionId: id,
+							success: false,
+							message: err.message || 'Transaction was rejected with errors',
+							errors: err,
 						});
 					}
-				);
+
+					return setImmediate(cb, null, {
+						success: true,
+						transactionId: id,
+					});
+				});
 			},
 
 			/**
@@ -569,10 +565,7 @@ class Transport {
 						if (err) {
 							return library.logger.debug('Invalid transactions body', err);
 						}
-						return __private.receiveTransactions(
-							query.transactions,
-							query.extraLogMessage
-						);
+						return __private.receiveTransactions(query.transactions);
 					}
 				);
 			},
@@ -619,14 +612,13 @@ __private.receiveSignature = async function(signature) {
  * @implements {library.schema.validate}
  * @implements {__private.receiveTransaction}
  * @param {Array} transactions - Array of transactions
- * @param {string} extraLogMessage - Extra log message
  */
-__private.receiveTransactions = function(transactions = [], extraLogMessage) {
+__private.receiveTransactions = function(transactions = []) {
 	transactions.forEach(transaction => {
 		if (transaction) {
 			transaction.bundled = true;
 		}
-		__private.receiveTransaction(transaction, extraLogMessage, err => {
+		__private.receiveTransaction(transaction, err => {
 			if (err) {
 				library.logger.debug(convertErrorsToString(err), transaction);
 			}
@@ -641,16 +633,11 @@ __private.receiveTransactions = function(transactions = [], extraLogMessage) {
  *
  * @private
  * @param {transaction} transaction
- * @param {string} extraLogMessage - Extra log message
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, err
  * @todo Add description for the params
  */
-__private.receiveTransaction = async function(
-	transactionJSON,
-	extraLogMessage,
-	cb
-) {
+__private.receiveTransaction = async function(transactionJSON, cb) {
 	const id = transactionJSON ? transactionJSON.id : 'null';
 	let transaction;
 	try {

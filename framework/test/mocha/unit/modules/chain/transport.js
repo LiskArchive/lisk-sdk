@@ -464,14 +464,14 @@ describe('transport', () => {
 					debug: sinonSandbox.spy(),
 				};
 
-				__private.receiveTransaction = sinonSandbox.stub().callsArg(2);
+				__private.receiveTransaction = sinonSandbox.stub().callsArg(1);
 
 				done();
 			});
 
 			describe('when transactions argument is undefined', () => {
 				beforeEach(done => {
-					__private.receiveTransactions(undefined, '');
+					__private.receiveTransactions(undefined);
 					done();
 				});
 
@@ -485,10 +485,7 @@ describe('transport', () => {
 				describe('when transaction is defined', () => {
 					describe('when call __private.receiveTransaction succeeds', () => {
 						beforeEach(done => {
-							__private.receiveTransactions(
-								transactionsList,
-								'This is a log message'
-							);
+							__private.receiveTransactions(transactionsList);
 							done();
 						});
 
@@ -497,12 +494,9 @@ describe('transport', () => {
 								.to.have.property('bundled')
 								.which.equals(true));
 
-						it('should call __private.receiveTransaction with transaction with transaction, peer and extraLogMessage arguments', async () =>
+						it('should call __private.receiveTransaction with transaction with transaction argument', async () =>
 							expect(
-								__private.receiveTransaction.calledWith(
-									transactionsList[0],
-									'This is a log message'
-								)
+								__private.receiveTransaction.calledWith(transactionsList[0])
 							).to.be.true);
 					});
 
@@ -513,12 +507,9 @@ describe('transport', () => {
 							receiveTransactionError = 'Invalid transaction body - ...';
 							__private.receiveTransaction = sinonSandbox
 								.stub()
-								.callsArgWith(2, receiveTransactionError);
+								.callsArgWith(1, receiveTransactionError);
 
-							__private.receiveTransactions(
-								transactionsList,
-								'This is a log message'
-							);
+							__private.receiveTransactions(transactionsList);
 							done();
 						});
 
@@ -559,14 +550,10 @@ describe('transport', () => {
 			it('should composeProcessTransactionsSteps with checkAllowedTransactions and validateTransactions', done => {
 				sinonSandbox.spy(transactionsModule, 'composeTransactionSteps');
 
-				__private.receiveTransaction(
-					transaction,
-					'This is a log message',
-					() => {
-						expect(transactionsModule.composeTransactionSteps).to.be.calledOnce;
-						done();
-					}
-				);
+				__private.receiveTransaction(transaction, () => {
+					expect(transactionsModule.composeTransactionSteps).to.be.calledOnce;
+					done();
+				});
 			});
 
 			it('should call composedTransactionsCheck an array of transactions', done => {
@@ -588,16 +575,12 @@ describe('transport', () => {
 					.stub(transactionsModule, 'composeTransactionSteps')
 					.returns(composedTransactionsCheck);
 
-				__private.receiveTransaction(
-					transaction,
-					'This is a log message',
-					() => {
-						expect(composedTransactionsCheck).to.have.been.calledWith([
-							tranasactionInstance,
-						]);
-						done();
-					}
-				);
+				__private.receiveTransaction(transaction, () => {
+					expect(composedTransactionsCheck).to.have.been.calledWith([
+						tranasactionInstance,
+					]);
+					done();
+				});
 			});
 
 			it('should call callback with error if transaction is not allowed', done => {
@@ -607,26 +590,18 @@ describe('transport', () => {
 					.stub(interfaceAdapters.transactions, 'fromJson')
 					.returns({ ...transaction, matcher: () => false });
 
-				__private.receiveTransaction(
-					transaction,
-					'This is a log message',
-					err => {
-						expect(err[0]).to.be.instanceOf(Error);
-						expect(err[0].message).to.equal(errorMessage);
-						done();
-					}
-				);
+				__private.receiveTransaction(transaction, err => {
+					expect(err[0]).to.be.instanceOf(Error);
+					expect(err[0].message).to.equal(errorMessage);
+					done();
+				});
 			});
 
 			describe('when transaction and peer are defined', () => {
 				beforeEach(done => {
-					__private.receiveTransaction(
-						transaction,
-						'This is a log message',
-						async () => {
-							done();
-						}
-					);
+					__private.receiveTransaction(transaction, async () => {
+						done();
+					});
 				});
 
 				it('should call library.balancesSequence.add', async () =>
@@ -650,14 +625,10 @@ describe('transport', () => {
 						...transaction,
 						amount: '0',
 					};
-					__private.receiveTransaction(
-						invalidTransaction,
-						'This is a log message',
-						err => {
-							errorResult = err;
-							done();
-						}
-					);
+					__private.receiveTransaction(invalidTransaction, err => {
+						errorResult = err;
+						done();
+					});
 				});
 
 				it('should call the call back with error message', async () => {
@@ -682,14 +653,10 @@ describe('transport', () => {
 						new Error(processUnconfirmedTransactionError),
 					]);
 
-					__private.receiveTransaction(
-						transaction,
-						'This is a log message',
-						err => {
-							error = err;
-							done();
-						}
-					);
+					__private.receiveTransaction(transaction, err => {
+						error = err;
+						done();
+					});
 				});
 
 				it('should call library.logger.debug with "Transaction ${transaction.id}" and error string', async () => {
@@ -718,15 +685,11 @@ describe('transport', () => {
 				let result;
 
 				beforeEach(done => {
-					__private.receiveTransaction(
-						transaction,
-						'This is a log message',
-						(err, res) => {
-							error = err;
-							result = res;
-							done();
-						}
-					);
+					__private.receiveTransaction(transaction, (err, res) => {
+						error = err;
+						result = res;
+						done();
+					});
 				});
 
 				it('should call callback with error = null', async () =>
@@ -1499,11 +1462,10 @@ describe('transport', () => {
 					beforeEach(done => {
 						query = {
 							transaction,
-							extraLogMessage: 'This is a log message',
 						};
 						__private.receiveTransaction = sinonSandbox
 							.stub()
-							.callsArgWith(2, null, transaction.id);
+							.callsArgWith(1, null, transaction.id);
 						transportInstance.shared.postTransaction(query, (err, res) => {
 							error = err;
 							result = res;
@@ -1511,13 +1473,9 @@ describe('transport', () => {
 						});
 					});
 
-					it('should call __private.receiveTransaction with query.transaction, query.peer and query.extraLogMessage as arguments', async () =>
-						expect(
-							__private.receiveTransaction.calledWith(
-								query.transaction,
-								query.extraLogMessage
-							)
-						).to.be.true);
+					it('should call __private.receiveTransaction with query.transaction as argument', async () =>
+						expect(__private.receiveTransaction.calledWith(query.transaction))
+							.to.be.true);
 
 					describe('when __private.receiveTransaction succeeds', () => {
 						it('should invoke callback with object { success: true, transactionId: id }', async () => {
@@ -1537,7 +1495,7 @@ describe('transport', () => {
 						beforeEach(done => {
 							__private.receiveTransaction = sinonSandbox
 								.stub()
-								.callsArgWith(2, receiveTransactionError);
+								.callsArgWith(1, receiveTransactionError);
 							transportInstance.shared.postTransaction(query, (err, res) => {
 								error = err;
 								result = res;
@@ -1562,7 +1520,7 @@ describe('transport', () => {
 						beforeEach(done => {
 							__private.receiveTransaction = sinonSandbox
 								.stub()
-								.callsArgWith(2, receiveTransactionError);
+								.callsArgWith(1, receiveTransactionError);
 							transportInstance.shared.postTransaction(query, (err, res) => {
 								error = err;
 								result = res;
@@ -1606,19 +1564,15 @@ describe('transport', () => {
 						beforeEach(done => {
 							query = {
 								transactions: transactionsList,
-								extraLogMessage: 'This is a log message',
 							};
 							__private.receiveTransactions = sinonSandbox.stub();
 							transportInstance.shared.postTransactions(query);
 							done();
 						});
 
-						it('should call __private.receiveTransactions with query.transaction and query.extraLogMessage as arguments', async () =>
+						it('should call __private.receiveTransactions with query.transaction as argument', async () =>
 							expect(
-								__private.receiveTransactions.calledWith(
-									query.transactions,
-									query.extraLogMessage
-								)
+								__private.receiveTransactions.calledWith(query.transactions)
 							).to.be.true);
 					});
 
