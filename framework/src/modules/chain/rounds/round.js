@@ -43,7 +43,7 @@ class Round {
 			roundFees: scope.roundFees,
 			roundRewards: scope.roundRewards,
 			library: {
-				logic: scope.library.logic,
+				logic: { account: scope.library.account },
 				logger: scope.library.logger,
 				storage: scope.library.storage,
 			},

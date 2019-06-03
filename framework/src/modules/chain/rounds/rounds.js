@@ -55,7 +55,7 @@ class Rounds {
 			schema: scope.schema,
 		};
 		library.delegates = new Delegates(library);
-		library.AccountLogic = accountLogic(scope).account;
+		library.account = accountLogic(scope).account;
 	}
 
 	/**
