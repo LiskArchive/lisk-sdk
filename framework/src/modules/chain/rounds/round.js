@@ -305,19 +305,19 @@ class Round {
 			roundRewards.forEach((reward, subIndex) => {
 				roundRewards[subIndex] = new BigNum(reward.toPrecision(15))
 					.times(exceptions.rounds[this.scope.round.toString()].rewards_factor)
-					.floor(BigNum.ROUND_FLOOR);
+					.floor();
 			});
 
 			// Apply fees factor and bonus
 			roundFees = new BigNum(roundFees.toPrecision(15))
 				.times(exceptions.rounds[this.scope.round.toString()].fees_factor)
 				.plus(exceptions.rounds[this.scope.round.toString()].fees_bonus)
-				.floor(BigNum.ROUND_FLOOR);
+				.floor();
 		}
 
 		const fees = new BigNum(roundFees.toPrecision(15))
 			.dividedBy(ACTIVE_DELEGATES)
-			.floor(BigNum.ROUND_FLOOR);
+			.floor();
 		const feesRemaining = new BigNum(roundFees.toPrecision(15)).minus(
 			fees.times(ACTIVE_DELEGATES)
 		);
