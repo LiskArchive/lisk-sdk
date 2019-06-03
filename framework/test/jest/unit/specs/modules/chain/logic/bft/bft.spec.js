@@ -14,12 +14,14 @@
 
 'use strict';
 
-const { BFT } = require('../../../../../../../src/modules/chain/logic/bft');
+const { BFT } = require('../../../../../../../../src/modules/chain/logic/bft');
 const {
 	BlockHeader: blockHeaderFixture,
-} = require('../../../../../fixtures/blocks');
+} = require('../../../../../../../mocha/fixtures/blocks');
 
-const { Account: accountFixture } = require('../../../../../fixtures/accounts');
+const {
+	Account: accountFixture,
+} = require('../../../../../../../mocha/fixtures/accounts');
 
 const generateValidHeaders = count => {
 	return [...Array(count)].map((_, index) => {
@@ -72,24 +74,24 @@ describe('bft', () => {
 
 		beforeEach(async () => {
 			bft = new BFT({ finalizedHeight, activeDelegates });
-			sinonSandbox.stub(bft.headers, 'getBlockHeaderForDelegate');
+			jest.spyOn(bft.headers, 'getBlockHeaderForDelegate');
 		});
 
 		describe('constructor', () => {
 			it('should initialize the object correctly', async () => {
-				expect(bft).an.instanceOf(BFT);
-				expect(bft.ACTIVE_DELEGATES).to.be.eql(activeDelegates);
-				expect(bft.PRE_VOTE_THRESHOLD).to.be.eql(prevoteThreshold);
-				expect(bft.PRE_COMMIT_THRESHOLD).to.be.eql(precommitThreshold);
-				expect(bft.PROCESSING_THRESHOLD).to.be.eql(processingThreshold);
-				expect(bft.MAX_HEADERS).to.be.eql(maxHeaders);
+				expect(bft).toBeInstanceOf(BFT);
+				expect(bft.ACTIVE_DELEGATES).toEqual(activeDelegates);
+				expect(bft.PRE_VOTE_THRESHOLD).toEqual(prevoteThreshold);
+				expect(bft.PRE_COMMIT_THRESHOLD).toEqual(precommitThreshold);
+				expect(bft.PROCESSING_THRESHOLD).toEqual(processingThreshold);
+				expect(bft.MAX_HEADERS).toEqual(maxHeaders);
 			});
 		});
 
 		describe('validateBlockHeader', () => {
 			it('should be ok for valid headers', async () => {
 				const header = blockHeaderFixture();
-				expect(BFT.validateBlockHeader(header)).to.be.true;
+				expect(BFT.validateBlockHeader(header)).toBeTruthy();
 			});
 
 			it('should throw error if any header is not valid format', async () => {
@@ -97,19 +99,19 @@ describe('bft', () => {
 
 				// Setting non-integer value
 				header = blockHeaderFixture({ height: '1' });
-				expect(() => BFT.validateBlockHeader(header)).to.throw(
+				expect(() => BFT.validateBlockHeader(header)).toThrow(
 					'Schema validation error'
 				);
 
 				// Setting invalid id
 				header = blockHeaderFixture({ blockId: 'Al123' });
-				expect(() => BFT.validateBlockHeader(header)).to.throw(
+				expect(() => BFT.validateBlockHeader(header)).toThrow(
 					'Schema validation error'
 				);
 
 				// Setting invalid public key;
 				header = blockHeaderFixture({ delegatePublicKey: 'abdef' });
-				expect(() => BFT.validateBlockHeader(header)).to.throw(
+				expect(() => BFT.validateBlockHeader(header)).toThrow(
 					'Schema validation error'
 				);
 			});
@@ -123,7 +125,7 @@ describe('bft', () => {
 				});
 				const header = blockHeaderFixture({ prevotedConfirmedUptoHeight: 10 });
 
-				expect(() => bft.verifyBlockHeaders(header)).to.throw(
+				expect(() => bft.verifyBlockHeaders(header)).toThrow(
 					'Wrong provtedConfirmedHeight in blockHeader.'
 				);
 			});
@@ -136,14 +138,14 @@ describe('bft', () => {
 				const header = blockHeaderFixture({ prevotedConfirmedUptoHeight: 10 });
 				bft.prevotedConfirmedHeight = 10;
 
-				expect(() => bft.verifyBlockHeaders(header)).to.not.throw;
+				expect(() => bft.verifyBlockHeaders(header)).not.toThrow();
 			});
 
 			it("should return true if delegate didn't forge any block previously", async () => {
 				const header = blockHeaderFixture();
-				bft.headers.getBlockHeaderForDelegate.returns(null);
+				bft.headers.getBlockHeaderForDelegate.mockReturnValue(null);
 
-				expect(bft.verifyBlockHeaders(header)).to.be.true;
+				expect(bft.verifyBlockHeaders(header)).toBeTruthy();
 			});
 
 			it('should throw error if delegate forged block on different height', async () => {
@@ -157,9 +159,9 @@ describe('bft', () => {
 					height: 9,
 				});
 
-				bft.headers.getBlockHeaderForDelegate.returns(lastBlock);
+				bft.headers.getBlockHeaderForDelegate.mockReturnValue(lastBlock);
 
-				expect(() => bft.verifyBlockHeaders(currentBlock)).to.throw(
+				expect(() => bft.verifyBlockHeaders(currentBlock)).toThrow(
 					'Violation of fork choice rule, delegate moved to different chain'
 				);
 			});
@@ -175,9 +177,9 @@ describe('bft', () => {
 					height: 10,
 				});
 
-				bft.headers.getBlockHeaderForDelegate.returns(lastBlock);
+				bft.headers.getBlockHeaderForDelegate.mockReturnValue(lastBlock);
 
-				expect(() => bft.verifyBlockHeaders(currentBlock)).to.throw(
+				expect(() => bft.verifyBlockHeaders(currentBlock)).toThrow(
 					'Violation of fork choice rule, delegate moved to different chain'
 				);
 			});
@@ -190,9 +192,9 @@ describe('bft', () => {
 					maxHeightPreviouslyForged: 9,
 				});
 
-				bft.headers.getBlockHeaderForDelegate.returns(lastBlock);
+				bft.headers.getBlockHeaderForDelegate.mockReturnValue(lastBlock);
 
-				expect(() => bft.verifyBlockHeaders(currentBlock)).to.throw(
+				expect(() => bft.verifyBlockHeaders(currentBlock)).toThrow(
 					'Violates disjointness condition'
 				);
 			});
@@ -208,18 +210,18 @@ describe('bft', () => {
 					height: 10,
 				});
 
-				bft.headers.getBlockHeaderForDelegate.returns(lastBlock);
+				bft.headers.getBlockHeaderForDelegate.mockReturnValue(lastBlock);
 
-				expect(() => bft.verifyBlockHeaders(currentBlock)).to.throw(
+				expect(() => bft.verifyBlockHeaders(currentBlock)).toThrow(
 					'Violates that delegate chooses branch with largest prevotedConfirmedUptoHeight'
 				);
 			});
 
 			it('should return true if headers are valid', async () => {
 				const [lastBlock, currentBlock] = generateValidHeaders(2);
-				bft.headers.getBlockHeaderForDelegate.returns(lastBlock);
+				bft.headers.getBlockHeaderForDelegate.mockReturnValue(lastBlock);
 
-				expect(bft.verifyBlockHeaders(currentBlock)).to.be.true;
+				expect(bft.verifyBlockHeaders(currentBlock)).toBeTruthy();
 			});
 		});
 
@@ -229,11 +231,11 @@ describe('bft', () => {
 					height: 1,
 					maxHeightPreviouslyForged: 0,
 				});
-				sinonSandbox.spy(BFT, 'validateBlockHeader');
+				jest.spyOn(BFT, 'validateBlockHeader');
 				bft.addBlockHeader(header1);
 
-				expect(BFT.validateBlockHeader).to.be.calledOnce;
-				expect(BFT.validateBlockHeader).to.be.calledWith(header1);
+				expect(BFT.validateBlockHeader).toHaveBeenCalledTimes(1);
+				expect(BFT.validateBlockHeader).toHaveBeenCalledWith(header1);
 			});
 
 			it('should call verifyBlockHeaders with the provided header', async () => {
@@ -241,11 +243,11 @@ describe('bft', () => {
 					height: 1,
 					maxHeightPreviouslyForged: 0,
 				});
-				sinonSandbox.spy(bft, 'verifyBlockHeaders');
+				jest.spyOn(BFT, 'validateBlockHeader');
 				bft.addBlockHeader(header1);
 
-				expect(bft.verifyBlockHeaders).to.be.calledOnce;
-				expect(bft.verifyBlockHeaders).to.be.calledWith(header1);
+				expect(BFT.validateBlockHeader).toHaveBeenCalledTimes(1);
+				expect(BFT.validateBlockHeader).toHaveBeenCalledWith(header1);
 			});
 
 			it('should add headers to list', async () => {
@@ -258,8 +260,8 @@ describe('bft', () => {
 					maxHeightPreviouslyForged: 1,
 				});
 				bft.addBlockHeader(header1).addBlockHeader(header2);
-				expect(bft.headers.length).to.be.eql(2);
-				expect(bft.headers.items).to.be.eql([header1, header2]);
+				expect(bft.headers.length).toEqual(2);
+				expect(bft.headers.items).toEqual([header1, header2]);
 			});
 
 			it('should call updatePreVotesPreCommits with the provided header', async () => {
@@ -267,11 +269,11 @@ describe('bft', () => {
 					height: 1,
 					maxHeightPreviouslyForged: 0,
 				});
-				sinonSandbox.spy(bft, 'updatePreVotesPreCommits');
+				jest.spyOn(bft, 'updatePreVotesPreCommits');
 				bft.addBlockHeader(header1);
 
-				expect(bft.updatePreVotesPreCommits).to.be.calledOnce;
-				expect(bft.updatePreVotesPreCommits).to.be.calledWith(header1);
+				expect(bft.updatePreVotesPreCommits).toHaveBeenCalledTimes(1);
+				expect(bft.updatePreVotesPreCommits).toHaveBeenCalledWith(header1);
 			});
 
 			describe('should have proper preVotes and preCommits', () => {
@@ -294,18 +296,14 @@ describe('bft', () => {
 
 							myBft.addBlockHeader(blockData.header);
 
-							expect(Object.values(myBft.preCommits)).to.be.eql(
+							expect(Object.values(myBft.preCommits)).toEqual(
 								blockData.preCommits
 							);
-							expect(Object.values(myBft.preVotes)).to.be.eql(
-								blockData.preVotes
-							);
+							expect(Object.values(myBft.preVotes)).toEqual(blockData.preVotes);
 
-							expect(myBft.finalizedHeight).to.be.eql(
-								blockData.finalizedHeight
-							);
+							expect(myBft.finalizedHeight).toEqual(blockData.finalizedHeight);
 
-							expect(myBft.prevotedConfirmedHeight).to.be.eql(
+							expect(myBft.prevotedConfirmedHeight).toEqual(
 								blockData.preVotedConfirmedHeight
 							);
 						});
@@ -335,10 +333,10 @@ describe('bft', () => {
 				});
 
 				// Values should match with expectations
-				expect(Object.values(myBft.preCommits)).to.be.eql(blockData.preCommits);
-				expect(Object.values(myBft.preVotes)).to.be.eql(blockData.preVotes);
-				expect(myBft.finalizedHeight).to.be.eql(blockData.finalizedHeight);
-				expect(myBft.prevotedConfirmedHeight).to.be.eql(
+				expect(Object.values(myBft.preCommits)).toEqual(blockData.preCommits);
+				expect(Object.values(myBft.preVotes)).toEqual(blockData.preVotes);
+				expect(myBft.finalizedHeight).toEqual(blockData.finalizedHeight);
+				expect(myBft.prevotedConfirmedHeight).toEqual(
 					blockData.preVotedConfirmedHeight
 				);
 
@@ -346,10 +344,10 @@ describe('bft', () => {
 				myBft.recompute();
 
 				// Values should match with expectations
-				expect(Object.values(myBft.preCommits)).to.be.eql(blockData.preCommits);
-				expect(Object.values(myBft.preVotes)).to.be.eql(blockData.preVotes);
-				expect(myBft.finalizedHeight).to.be.eql(blockData.finalizedHeight);
-				expect(myBft.prevotedConfirmedHeight).to.be.eql(
+				expect(Object.values(myBft.preCommits)).toEqual(blockData.preCommits);
+				expect(Object.values(myBft.preVotes)).toEqual(blockData.preVotes);
+				expect(myBft.finalizedHeight).toEqual(blockData.finalizedHeight);
+				expect(myBft.prevotedConfirmedHeight).toEqual(
 					blockData.preVotedConfirmedHeight
 				);
 			});

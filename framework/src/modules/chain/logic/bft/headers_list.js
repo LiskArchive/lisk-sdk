@@ -89,6 +89,11 @@ class HeadersList {
 	}
 
 	remove({ aboveHeight } = {}) {
+		// If list is empty just return
+		if (this.length === 0) {
+			return undefined;
+		}
+
 		if (!aboveHeight) {
 			aboveHeight = this.last.height - 1;
 		}
