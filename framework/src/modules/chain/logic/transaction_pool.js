@@ -148,14 +148,16 @@ class TransactionPool {
 	}
 
 	subscribeEvents() {
+		this.pool.on(pool.EVENT_VERIFIED_TRANSACTION_ONCE, ({ payload }) => {
+			if (payload.length > 0) {
+				payload.forEach(aTransaction =>
+					this.bus.message('unconfirmedTransaction', aTransaction, true)
+				);
+			}
+		});
+
 		this.pool.on(pool.EVENT_ADDED_TRANSACTIONS, ({ action, to, payload }) => {
 			if (payload.length > 0) {
-				if (action === pool.ACTION_ADD_TRANSACTIONS) {
-					payload.forEach(aTransaction =>
-						this.bus.message('unconfirmedTransaction', aTransaction, true)
-					);
-				}
-
 				this.logger.info(
 					`Transaction pool - added transactions ${
 						to ? `to ${to} queue` : ''
@@ -165,6 +167,7 @@ class TransactionPool {
 				);
 			}
 		});
+
 		this.pool.on(pool.EVENT_REMOVED_TRANSACTIONS, ({ action, payload }) => {
 			if (payload.length > 0) {
 				this.logger.info(
