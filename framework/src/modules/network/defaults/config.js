@@ -65,6 +65,13 @@ const defaultConfig = {
 				format: 'ip',
 			},
 		},
+		whitelistedPeers: {
+			type: 'array',
+			items: {
+				type: 'string',
+				format: 'ip',
+			},
+		},
 		wsEngine: {
 			type: 'string',
 		},
@@ -95,6 +102,7 @@ const defaultConfig = {
 		populatorInterval: 10000,
 		seedPeers: [],
 		blacklistedPeers: [],
+		whitelistedPeers: [],
 		ackTimeout: 20000,
 		connectTimeout: 5000,
 		wsEngine: 'ws',

@@ -116,10 +116,17 @@ module.exports = class Network {
 					wsPort: peer.wsPort,
 			  }))
 			: [];
+		const whitelistedPeers = this.options.whiteListedPeers
+			? this.options.whiteListedPeers.map(peer => ({
+					ipAddress: peer.ip,
+					wsPort: peer.wsPort,
+			  }))
+			: [];
 		const p2pConfig = {
 			nodeInfo: initialNodeInfo,
 			hostAddress: this.options.address,
 			blacklistedPeers,
+			whitelistedPeers,
 			seedPeers: seedPeers.map(peer => ({
 				ipAddress: peer.ip,
 				wsPort: peer.wsPort,
