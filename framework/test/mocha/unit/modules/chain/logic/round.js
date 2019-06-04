@@ -57,10 +57,8 @@ describe('round', () => {
 		storageStubs
 	);
 
-	const logic = {
-		account: {
-			merge: sinonSandbox.stub(),
-		},
+	const account = {
+		merge: sinonSandbox.stub(),
 	};
 
 	const validScope = {
@@ -71,7 +69,7 @@ describe('round', () => {
 		roundFees: ACTIVE_DELEGATES,
 		roundRewards: [10],
 		library: {
-			logic,
+			account,
 			storage,
 			logger: {
 				trace: sinonSandbox.spy(),
@@ -235,16 +233,16 @@ describe('round', () => {
 					round: scope.round,
 				};
 				address = getAddressFromPublicKey(args.publicKey);
-				scope.library.logic.account.merge.callsArgWith(2, null, args);
+				round.scope.library.account.merge.callsArgWith(2, null, args);
 				return round.mergeBlockGenerator();
 			});
 
 			afterEach(async () => {
-				round.scope.library.logic.account.merge.reset();
+				round.scope.library.account.merge.reset();
 			});
 
-			it('should call logic.account.merge with proper params', async () =>
-				expect(round.scope.library.logic.account.merge).to.be.calledWith(
+			it('should call account.merge with proper params', async () =>
+				expect(round.scope.library.account.merge).to.be.calledWith(
 					address,
 					args
 				));
@@ -263,12 +261,12 @@ describe('round', () => {
 					round: scope.round,
 				};
 				address = getAddressFromPublicKey(args.publicKey);
-				scope.library.logic.account.merge.callsArgWith(2, null, args);
+				round.scope.library.account.merge.callsArgWith(2, null, args);
 				return round.mergeBlockGenerator();
 			});
 
-			it('should call logic.account.merge with proper params', async () =>
-				expect(round.scope.library.logic.account.merge).to.be.calledWith(
+			it('should call account.merge with proper params', async () =>
+				expect(round.scope.library.account.merge).to.be.calledWith(
 					address,
 					args
 				));
@@ -739,11 +737,11 @@ describe('round', () => {
 			insertRoundRewards_stub = storageStubs.Round.createRoundRewards.resolves(
 				'insertRoundRewards'
 			);
-			logic.account.merge.yields(null, 'merge');
+			scope.library.account.merge.yields(null, 'merge');
 		});
 
 		afterEach(async () => {
-			logic.account.merge.reset();
+			scope.library.account.merge.reset();
 			insertRoundRewards_stub.reset();
 		});
 
@@ -796,15 +794,14 @@ describe('round', () => {
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
 						};
-						const result =
-							round.scope.library.logic.account.merge.args[called][1];
+						const result = round.scope.library.account.merge.args[called][1];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.be.eql(args);
 					});
 
 					it('should not call merge another time (for apply remaining fees)', async () =>
-						expect(round.scope.library.logic.account.merge.callCount).to.equal(
+						expect(round.scope.library.account.merge.callCount).to.equal(
 							called
 						));
 
@@ -859,15 +856,14 @@ describe('round', () => {
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
 						};
-						const result =
-							round.scope.library.logic.account.merge.args[called][1];
+						const result = round.scope.library.account.merge.args[called][1];
 						backwardsResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
 					});
 
 					it('should not call merge another time (for apply remaining fees)', async () =>
-						expect(round.scope.library.logic.account.merge.callCount).to.equal(
+						expect(round.scope.library.account.merge.callCount).to.equal(
 							called
 						));
 
@@ -948,8 +944,7 @@ describe('round', () => {
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
 						};
-						const result =
-							round.scope.library.logic.account.merge.args[called][1];
+						const result = round.scope.library.account.merge.args[called][1];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -972,15 +967,14 @@ describe('round', () => {
 							round: scope.round,
 							fees: remainingFees,
 						};
-						const result =
-							round.scope.library.logic.account.merge.args[called][1];
+						const result = round.scope.library.account.merge.args[called][1];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
 					});
 
 					it('should not call merge another time (completed)', async () =>
-						expect(round.scope.library.logic.account.merge.callCount).to.equal(
+						expect(round.scope.library.account.merge.callCount).to.equal(
 							called
 						));
 
@@ -1037,8 +1031,7 @@ describe('round', () => {
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
 						};
-						const result =
-							round.scope.library.logic.account.merge.args[called][1];
+						const result = round.scope.library.account.merge.args[called][1];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1061,15 +1054,14 @@ describe('round', () => {
 							round: scope.round,
 							fees: -remainingFees,
 						};
-						const result =
-							round.scope.library.logic.account.merge.args[called][1];
+						const result = round.scope.library.account.merge.args[called][1];
 						backwardsResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
 					});
 
 					it('should not call merge another time (completed)', async () =>
-						expect(round.scope.library.logic.account.merge.callCount).to.equal(
+						expect(round.scope.library.account.merge.callCount).to.equal(
 							called
 						));
 
@@ -1164,8 +1156,7 @@ describe('round', () => {
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
 						};
-						const result =
-							round.scope.library.logic.account.merge.args[called][1];
+						const result = round.scope.library.account.merge.args[called][1];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1195,8 +1186,7 @@ describe('round', () => {
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
 						};
-						const result =
-							round.scope.library.logic.account.merge.args[called][1];
+						const result = round.scope.library.account.merge.args[called][1];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1226,15 +1216,14 @@ describe('round', () => {
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
 						};
-						const result =
-							round.scope.library.logic.account.merge.args[called][1];
+						const result = round.scope.library.account.merge.args[called][1];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
 					});
 
 					it('should not call merge another time (for applying remaining fees)', async () =>
-						expect(round.scope.library.logic.account.merge.callCount).to.equal(
+						expect(round.scope.library.account.merge.callCount).to.equal(
 							called
 						));
 
@@ -1310,8 +1299,7 @@ describe('round', () => {
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
 						};
-						const result =
-							round.scope.library.logic.account.merge.args[called][1];
+						const result = round.scope.library.account.merge.args[called][1];
 						backwardsResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1341,8 +1329,7 @@ describe('round', () => {
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
 						};
-						const result =
-							round.scope.library.logic.account.merge.args[called][1];
+						const result = round.scope.library.account.merge.args[called][1];
 						backwardsResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1372,15 +1359,14 @@ describe('round', () => {
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
 						};
-						const result =
-							round.scope.library.logic.account.merge.args[called][1];
+						const result = round.scope.library.account.merge.args[called][1];
 						backwardsResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
 					});
 
 					it('should not call merge another time (for applying remaining fees)', async () =>
-						expect(round.scope.library.logic.account.merge.callCount).to.equal(
+						expect(round.scope.library.account.merge.callCount).to.equal(
 							called
 						));
 
@@ -1474,8 +1460,7 @@ describe('round', () => {
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
 						};
-						const result =
-							round.scope.library.logic.account.merge.args[called][1];
+						const result = round.scope.library.account.merge.args[called][1];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1505,8 +1490,7 @@ describe('round', () => {
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
 						};
-						const result =
-							round.scope.library.logic.account.merge.args[called][1];
+						const result = round.scope.library.account.merge.args[called][1];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1536,8 +1520,7 @@ describe('round', () => {
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
 						};
-						const result =
-							round.scope.library.logic.account.merge.args[called][1];
+						const result = round.scope.library.account.merge.args[called][1];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1560,15 +1543,14 @@ describe('round', () => {
 							round: scope.round,
 							fees: remainingFees,
 						};
-						const result =
-							round.scope.library.logic.account.merge.args[called][1];
+						const result = round.scope.library.account.merge.args[called][1];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
 					});
 
 					it('should not call merge another time (completed)', async () =>
-						expect(round.scope.library.logic.account.merge.callCount).to.equal(
+						expect(round.scope.library.account.merge.callCount).to.equal(
 							called
 						));
 
@@ -1646,8 +1628,7 @@ describe('round', () => {
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
 						};
-						const result =
-							round.scope.library.logic.account.merge.args[called][1];
+						const result = round.scope.library.account.merge.args[called][1];
 						backwardsResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1677,8 +1658,7 @@ describe('round', () => {
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
 						};
-						const result =
-							round.scope.library.logic.account.merge.args[called][1];
+						const result = round.scope.library.account.merge.args[called][1];
 						backwardsResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1708,8 +1688,7 @@ describe('round', () => {
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
 						};
-						const result =
-							round.scope.library.logic.account.merge.args[called][1];
+						const result = round.scope.library.account.merge.args[called][1];
 						backwardsResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
@@ -1732,15 +1711,14 @@ describe('round', () => {
 							round: scope.round,
 							fees: -remainingFees,
 						};
-						const result =
-							round.scope.library.logic.account.merge.args[called][1];
+						const result = round.scope.library.account.merge.args[called][1];
 						forwardResults.push(result);
 						called++;
 						return expect(result).to.deep.equal(args);
 					});
 
 					it('should not call merge another time (completed)', async () =>
-						expect(round.scope.library.logic.account.merge.callCount).to.equal(
+						expect(round.scope.library.account.merge.callCount).to.equal(
 							called
 						));
 
@@ -1813,7 +1791,7 @@ describe('round', () => {
 				'syncDelegatesRanks'
 			);
 			flush_stub = storageStubs.Round.delete;
-			scope.library.logic.account.merge.yields(null, 'merge');
+			scope.library.account.merge.yields(null, 'merge');
 
 			round = new Round(scope, task);
 			res = round.land();
@@ -1826,7 +1804,7 @@ describe('round', () => {
 			decreaseFieldBy_stub.reset();
 			getVotes_stub.reset();
 			syncDelegatesRanks_stub.reset();
-			round.scope.library.logic.account.merge.reset();
+			round.scope.library.account.merge.reset();
 		});
 
 		it('should return promise', async () => expect(isPromise(res)).to.be.true);
@@ -1850,7 +1828,7 @@ describe('round', () => {
 
 		it('logic.account.merge should be called 4 times', async () =>
 			// 3x delegates + 1x remaining fees
-			expect(round.scope.library.logic.account.merge.callCount).to.equal(4));
+			expect(round.scope.library.account.merge.callCount).to.equal(4));
 	});
 
 	describe('backwardLand', () => {
@@ -1896,7 +1874,7 @@ describe('round', () => {
 			restoreRoundSnapshot_stub = storageStubs.Round.restoreRoundSnapshot.resolves();
 			restoreVotesSnapshot_stub = storageStubs.Round.restoreVotesSnapshot.resolves();
 			deleteRoundRewards_stub = storageStubs.Round.deleteRoundRewards.resolves();
-			scope.library.logic.account.merge.yields(null, 'merge');
+			scope.library.account.merge.yields(null, 'merge');
 
 			round = new Round(scope, task);
 			res = round.backwardLand();
@@ -1913,7 +1891,7 @@ describe('round', () => {
 			syncDelegatesRanks_stub.reset();
 			deleteRoundRewards_stub.reset();
 			flush_stub.reset();
-			round.scope.library.logic.account.merge.reset();
+			round.scope.library.account.merge.reset();
 		});
 
 		it('should return promise', async () => expect(isPromise(res)).to.be.true);
@@ -1935,7 +1913,7 @@ describe('round', () => {
 
 		it('logic.account.merge should be called 4 times', async () =>
 			// 3x delegates + 1x remaining fees
-			expect(round.scope.library.logic.account.merge.callCount).to.equal(4));
+			expect(round.scope.library.account.merge.callCount).to.equal(4));
 
 		it('query checkSnapshotAvailability should be called once', async () =>
 			expect(checkSnapshotAvailability_stub.callCount).to.equal(1));

@@ -19,6 +19,7 @@ const async = require('async');
 const cryptography = require('@liskhq/lisk-cryptography');
 
 const { Delegates } = require('./delegates');
+const Account = require('./account.js');
 const Round = require('./round');
 
 // Private fields
@@ -51,8 +52,15 @@ class Rounds {
 			bus: scope.bus,
 			storage: scope.components.storage,
 			slots: scope.slots,
+			schema: scope.schema,
 		};
 		library.delegates = new Delegates(library);
+		library.account = new Account(
+			library.storage,
+			library.schema,
+			library.logger,
+			this
+		);
 	}
 
 	/**
