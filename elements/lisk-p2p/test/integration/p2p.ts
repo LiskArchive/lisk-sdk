@@ -27,6 +27,12 @@ import {
 } from '../../src/p2p_types';
 
 describe('Integration tests for P2P library', () => {
+
+	before(() => {
+		// Make sure that integration tests use real timers.
+		sandbox.restore();
+	});
+
 	const NETWORK_START_PORT = 5000;
 
 	const NETWORK_PEER_COUNT = 10;
