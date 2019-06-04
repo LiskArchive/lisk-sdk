@@ -19,11 +19,18 @@ const rewire = require('rewire');
 const cryptography = require('@liskhq/lisk-cryptography');
 // Instantiate test subject
 const Rounds = rewire('../../../../../../src/modules/chain/rounds/rounds');
+const { BlockSlots } = require('../../../../../../src/modules/chain/blocks');
 const { TestStorageSandbox } = require('../../../../common/storage_sandbox');
 
 const sinon = sinonSandbox;
 
 describe('rounds', () => {
+	const slots = new BlockSlots({
+		epochTime: __testContext.config.constants.EPOCH_TIME,
+		interval: __testContext.config.constants.BLOCK_TIME,
+		blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
+	});
+
 	let rounds;
 	let scope;
 
@@ -87,6 +94,7 @@ describe('rounds', () => {
 		channel: {
 			publish: sinonSandbox.stub(),
 		},
+		slots,
 	};
 
 	function get(variable) {

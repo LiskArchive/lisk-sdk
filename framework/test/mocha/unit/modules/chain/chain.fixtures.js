@@ -21,6 +21,9 @@ const chainOptions = {
 	forging: {
 		waitThreshold: 2,
 	},
+	transactions: {
+		maxTransactionsPerQueue: 1000,
+	},
 	exceptions: {},
 	constants: {
 		ACTIVE_DELEGATES: 101,

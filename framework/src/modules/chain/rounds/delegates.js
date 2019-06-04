@@ -15,7 +15,6 @@
 'use strict';
 
 const { hash } = require('@liskhq/lisk-cryptography');
-const slots = require('../helpers/slots.js');
 
 const { ACTIVE_DELEGATES } = global.constants;
 const exceptions = global.exceptions;
@@ -65,7 +64,7 @@ const getDelegatesFromPreviousRound = async (storage, tx) => {
  * @returns {setImmediateCallback} cb, err
  * @todo Add description for the params
  */
-const validateBlockSlot = (block, activeDelegates) => {
+const validateBlockSlot = (block, slots, activeDelegates) => {
 	const currentSlot = slots.getSlotNumber(block.timestamp);
 	const delegateId = activeDelegates[currentSlot % ACTIVE_DELEGATES];
 
@@ -80,7 +79,6 @@ const validateBlockSlot = (block, activeDelegates) => {
  *
  * @class
  * @memberof modules
- * @requires helpers/slots
  * @requires logic/delegate
  * @param {scope} scope - App instance
  */
@@ -90,6 +88,7 @@ class Delegates {
 		this.logger = scope.logger;
 		this.storage = scope.storage;
 		this.channel = scope.channel;
+		this.slots = scope.slots;
 	}
 
 	/**
@@ -141,12 +140,12 @@ class Delegates {
 	 * @todo Add description for the params
 	 */
 	async validateBlockSlot(block) {
-		const round = slots.calcRound(block.height);
+		const round = this.slots.calcRound(block.height);
 		const activeDelegates = await this.generateDelegateList(
 			round,
 			getKeysSortByVote
 		);
-		validateBlockSlot(block, activeDelegates);
+		validateBlockSlot(block, this.slots, activeDelegates);
 	}
 
 	/**
@@ -158,12 +157,12 @@ class Delegates {
 	 * @todo Add description for the params
 	 */
 	async validateBlockSlotAgainstPreviousRound(block) {
-		const round = slots.calcRound(block.height);
+		const round = this.slots.calcRound(block.height);
 		const activeDelegates = await this.generateDelegateList(
 			round,
 			getDelegatesFromPreviousRound
 		);
-		validateBlockSlot(block, activeDelegates);
+		validateBlockSlot(block, this.slots, activeDelegates);
 	}
 
 	/**

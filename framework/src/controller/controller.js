@@ -24,6 +24,8 @@ const Bus = require('./bus');
 const { DuplicateAppInstanceError } = require('../errors');
 const { validateModuleSpec } = require('./validator');
 const ApplicationState = require('./application_state');
+const { createStorageComponent } = require('../components/storage');
+const { MigrationEntity } = require('./migrations');
 
 const isPidRunning = async pid =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -69,6 +71,10 @@ class Controller {
 		this.childrenList = [];
 		this.channel = null; // Channel for controller
 		this.bus = null;
+
+		const storageConfig = config.components.storage;
+		this.storage = createStorageComponent(storageConfig, logger);
+		this.storage.registerEntity('Migration', MigrationEntity);
 	}
 
 	/**
@@ -78,12 +84,13 @@ class Controller {
 	 * @param modules
 	 * @async
 	 */
-	async load(modules, moduleOptions) {
+	async load(modules, moduleOptions, migrations = {}) {
 		this.logger.info('Loading controller');
 		await this._setupDirectories();
 		await this._validatePidFile();
 		await this._initState();
 		await this._setupBus();
+		await this._loadMigrations(migrations);
 		await this._loadModules(modules, moduleOptions);
 
 		this.logger.info('Bus listening to events', this.bus.getEvents());
@@ -181,12 +188,15 @@ class Controller {
 		// If log level is greater than info
 		if (this.logger.level && this.logger.level() < 30) {
 			this.bus.onAny((name, event) => {
-				this.logger.trace(
-					`MONITOR: ${event.source} -> ${event.module}:${event.name}`,
-					event.data
-				);
+				this.logger.trace(`MONITOR: ${event.module}:${event.name}`, event.data);
 			});
 		}
+	}
+
+	async _loadMigrations(migrationsObj) {
+		await this.storage.bootstrap();
+		await this.storage.entities.Migration.defineSchema();
+		return this.storage.entities.Migration.applyAll(migrationsObj);
 	}
 
 	async _loadModules(modules, moduleOptions) {

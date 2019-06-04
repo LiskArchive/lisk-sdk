@@ -20,13 +20,18 @@ const { transfer, registerDelegate } = require('@liskhq/lisk-transactions');
 const {
 	registeredTransactions,
 } = require('../../../common/registered_transactions');
-const InitTransaction = require('../../../../../src/modules/chain/logic/init_transaction.js');
+const {
+	TransactionInterfaceAdapter,
+} = require('../../../../../src/modules/chain/interface_adapters');
 
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
+const blocksChainModule = require('../../../../../src/modules/chain/blocks/chain');
 
-const initTransaction = new InitTransaction({ registeredTransactions });
+const interfaceAdapters = {
+	transactions: new TransactionInterfaceAdapter(registeredTransactions),
+};
 
 describe('integration test (blocks) - chain/applyBlock', () => {
 	const transferAmount = (100000000 * 100).toString();
@@ -38,21 +43,14 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 		storage = library.components.storage;
 	});
 
-	afterEach(done => {
-		storage.entities.Block.begin(t => {
+	afterEach(async () => {
+		await storage.entities.Block.begin(t => {
 			return t.batch([
 				storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
 				storage.adapter.db.none('DELETE FROM forks_stat;'),
 			]);
-		})
-			.then(() => {
-				library.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
-				done();
-			})
-			.catch(err => {
-				__testContext.debug(err.stack);
-				done();
-			});
+		});
+		library.modules.blocks._lastBlock = __testContext.config.genesisBlock;
 	});
 
 	let blockAccount1;
@@ -133,9 +131,9 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 		describe('applyConfirmedStep', () => {
 			const randomUsername = randomUtil.username();
 			describe('after applying new block fails', () => {
-				beforeEach(done => {
+				beforeEach(async () => {
 					// Making mem_account invalid
-					storage.entities.Account.upsert(
+					await storage.entities.Account.upsert(
 						{ address: blockAccount1.address },
 						{
 							isDelegate: 1,
@@ -143,13 +141,12 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 							address: blockAccount1.address,
 							publicKey: blockTransaction1.senderPublicKey,
 						}
-					)
-						.then(() =>
-							library.modules.blocks.chain.applyBlock(block, true, async () =>
-								done()
-							)
-						)
-						.catch(done);
+					);
+					try {
+						await library.modules.blocks.blocksChain.applyBlock(block, true);
+					} catch (error) {
+						// this error is expected to happen
+					}
 				});
 
 				it('should have pooled transactions in queued state', done => {
@@ -196,8 +193,8 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 			});
 
 			describe('after applying a new block', () => {
-				beforeEach(done => {
-					library.modules.blocks.chain.applyBlock(block, true, done);
+				beforeEach(async () => {
+					await library.modules.blocks.blocksChain.applyBlock(block, true);
 				});
 
 				it('should applyConfirmedStep', done => {
@@ -221,6 +218,16 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 		});
 
 		describe('saveBlock', () => {
+			beforeEach(async () => {
+				await storage.entities.Block.begin(t => {
+					return t.batch([
+						storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
+						storage.adapter.db.none('DELETE FROM forks_stat;'),
+					]);
+				});
+				library.modules.blocks._lastBlock = __testContext.config.genesisBlock;
+			});
+
 			describe('when block contains invalid transaction - timestamp out of postgres integer range', () => {
 				const auxBlock = {
 					blockSignature:
@@ -251,16 +258,22 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 								'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05',
 							id: '1465651642158264048',
 						},
-					].map(transaction => initTransaction.fromJson(transaction)),
+					].map(transaction =>
+						interfaceAdapters.transactions.fromJson(transaction)
+					),
 					version: 0,
 					id: '884740302254229983',
 				};
 
-				it('should call a callback with proper error', done => {
-					library.modules.blocks.chain.saveBlock(auxBlock, err => {
-						expect(err).to.eql('Blocks#saveBlock error');
-						done();
-					});
+				it('should call a callback with proper error', async () => {
+					try {
+						await blocksChainModule.saveBlock(
+							library.components.storage,
+							auxBlock
+						);
+					} catch (error) {
+						expect(error.message).to.equal('integer out of range');
+					}
 				});
 			});
 
@@ -285,11 +298,17 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 					transactions: [],
 				};
 
-				it('should call a callback with proper error', done => {
-					library.modules.blocks.chain.saveBlock(auxBlock, err => {
-						expect(err).to.eql('Blocks#saveBlock error');
-						done();
-					});
+				it('should call a callback with proper error', async () => {
+					try {
+						await blocksChainModule.saveBlock(
+							library.components.storage,
+							auxBlock
+						);
+					} catch (error) {
+						expect(error.message).to.equal(
+							'insert or update on table "blocks" violates foreign key constraint "blocks_previousBlock_fkey"'
+						);
+					}
 				});
 			});
 		});
@@ -297,13 +316,15 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 		describe('saveBlockStep', () => {
 			describe('after applying new block fails', () => {
 				let blockId;
-				beforeEach(done => {
+				beforeEach(async () => {
 					blockId = block.id;
 					// Make block invalid
 					block.id = null;
-					library.modules.blocks.chain.applyBlock(block, true, async () =>
-						done()
-					);
+					try {
+						await library.modules.blocks.blocksChain.applyBlock(block, true);
+					} catch (error) {
+						// this error is expected
+					}
 				});
 
 				it('should have pooled transactions in queued state', done => {
@@ -355,8 +376,8 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 			});
 
 			describe('after applying a new block', () => {
-				beforeEach(done => {
-					library.modules.blocks.chain.applyBlock(block, true, done);
+				beforeEach(async () => {
+					await library.modules.blocks.blocksChain.applyBlock(block, true);
 				});
 
 				it('should save block in the blocks table', done => {

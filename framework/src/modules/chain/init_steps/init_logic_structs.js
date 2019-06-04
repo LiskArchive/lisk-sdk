@@ -14,18 +14,7 @@
 
 'use strict';
 
-module.exports = async ({
-	ed,
-	schema,
-	components: { storage, logger },
-	registeredTransactions,
-	config,
-	bus,
-}) => {
-	const InitTransaction = require('../logic/init_transaction.js');
-	const TransactionPool = require('../logic/transaction_pool.js');
-	const processTransactionLogic = require('../logic/process_transaction.js');
-	const Block = require('../logic/block.js');
+module.exports = async ({ schema, components: { storage, logger } }) => {
 	const Account = require('../logic/account.js');
 
 	const accountLogic = await new Promise((resolve, reject) => {
@@ -33,27 +22,8 @@ module.exports = async ({
 			err ? reject(err) : resolve(object);
 		});
 	});
-	const initTransactionLogic = new InitTransaction({ registeredTransactions });
-
-	const blockLogic = await new Promise((resolve, reject) => {
-		new Block(ed, schema, initTransactionLogic, (err, object) => {
-			err ? reject(err) : resolve(object);
-		});
-	});
-
-	const transactionPoolLogic = new TransactionPool(
-		config.broadcasts.broadcastInterval,
-		config.broadcasts.releaseLimit,
-		logger,
-		config,
-		bus
-	);
 
 	return {
 		account: accountLogic,
-		initTransaction: initTransactionLogic,
-		processTransaction: processTransactionLogic,
-		block: blockLogic,
-		transactionPool: transactionPoolLogic,
 	};
 };

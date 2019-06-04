@@ -18,6 +18,7 @@ import * as querystring from 'querystring';
 import {
 	FetchPeerStatusError,
 	PeerOutboundConnectionError,
+	RequestFailError,
 	RPCResponseError,
 } from './errors';
 
@@ -391,7 +392,15 @@ export class Peer extends EventEmitter {
 					},
 					(err: Error | undefined, responseData: unknown) => {
 						if (err) {
-							reject(err);
+							// Wrap response error within the a new custom error and add peer id and version info
+							reject(
+								new RequestFailError(
+									err instanceof Error ? err.message : err,
+									err,
+									constructPeerIdFromPeerInfo(this._peerInfo),
+									this._peerInfo.version,
+								),
+							);
 
 							return;
 						}
@@ -405,8 +414,7 @@ export class Peer extends EventEmitter {
 						reject(
 							new RPCResponseError(
 								`Failed to handle response for procedure ${packet.procedure}`,
-								this.ipAddress,
-								this.wsPort,
+								constructPeerIdFromPeerInfo(this._peerInfo),
 							),
 						);
 					},
@@ -425,8 +433,7 @@ export class Peer extends EventEmitter {
 		} catch (error) {
 			throw new RPCResponseError(
 				'Failed to fetch peer list of peer',
-				this.ipAddress,
-				this.wsPort,
+				constructPeerIdFromPeerInfo(this._peerInfo),
 			);
 		}
 	}
@@ -443,8 +450,7 @@ export class Peer extends EventEmitter {
 
 			throw new RPCResponseError(
 				'Failed to fetch peer info of peer',
-				this.ipAddress,
-				this.wsPort,
+				constructPeerIdFromPeerInfo(this._peerInfo),
 			);
 		}
 
@@ -589,7 +595,11 @@ export class Peer extends EventEmitter {
 	}
 
 	private _updateFromProtocolPeerInfo(rawPeerInfo: unknown): void {
-		const protocolPeerInfo = { ...rawPeerInfo, ip: this._ipAddress };
+		const protocolPeerInfo = {
+			...rawPeerInfo,
+			ip: this._ipAddress,
+			wsPort: this._wsPort,
+		};
 		const newPeerInfo = validatePeerInfo(protocolPeerInfo);
 		this.updatePeerInfo(newPeerInfo);
 	}
@@ -718,8 +728,7 @@ export const connectAndRequest = async (
 							`Failed to handle response for procedure ${
 								requestPacket.procedure
 							}`,
-							basicPeerInfo.ipAddress,
-							basicPeerInfo.wsPort,
+							constructPeerIdFromPeerInfo(basicPeerInfo),
 						),
 					);
 				},

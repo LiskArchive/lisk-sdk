@@ -16,6 +16,7 @@
 
 const { config: DefaultConfig } = require('./defaults');
 const Chain = require('./chain');
+const { migrations } = require('./migrations');
 const BaseModule = require('../base_module');
 
 /* eslint-disable class-methods-use-this */
@@ -43,6 +44,10 @@ module.exports = class ChainModule extends BaseModule {
 			version: '0.1.0',
 			name: 'lisk-framework-chain',
 		};
+	}
+
+	static get migrations() {
+		return migrations;
 	}
 
 	static get defaults() {

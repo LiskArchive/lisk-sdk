@@ -19,13 +19,13 @@ const {
 	registerMultisignature,
 	constants: transactionConstants,
 } = require('@liskhq/lisk-transactions');
+const BigNum = require('@liskhq/bignum');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const Promise = require('bluebird');
 const randomUtil = require('../../common/utils/random');
 const accountsFixtures = require('../../fixtures/accounts');
 const QueriesHelper = require('../../common/integration/sql/queries_helper');
 const localCommon = require('../common');
-const Bignum = require('../../../../src/modules/chain/helpers/bignum');
 
 const addTransactionsAndForgePromise = Promise.promisify(
 	localCommon.addTransactionsAndForge
@@ -101,12 +101,10 @@ describe('expire transactions', () => {
 
 	localCommon.beforeBlock('expire_transactions', lib => {
 		library = lib;
-		transactionPool = library.rewiredModules.transactions.__get__(
-			'__private.transactionPool'
-		);
+		transactionPool = library.modules.transactionPool;
 
 		// Set hourInSeconds to zero to test multi-signature transaction expiry
-		transactionPool.hourInSeconds = 1;
+		transactionPool.pool._expireTransactionsInterval = 1;
 		queries = new QueriesHelper(lib, lib.components.storage);
 	});
 
@@ -156,7 +154,7 @@ describe('expire transactions', () => {
 					expect(res.count).to.equal(0);
 					done();
 				});
-			}, 5000);
+			}, 30000);
 		});
 	});
 
@@ -204,8 +202,8 @@ describe('expire transactions', () => {
 			// Multi-signature transaction is created with lifetime 1
 			// and the timeout multiplier is set to 1
 			// so the time to expiry will be 1 second
-			// and extract 5 second to ensure transaction is expired and removed from queue
-			const timeout = lifetime * 1 * 1000 + 5000;
+			// and extract 30 second to ensure transaction is expired and removed from queue
+			const timeout = lifetime * 1 * 1000 + 30000;
 
 			setTimeout(() => {
 				// verify if the multi-signature transaction was removed from queue
@@ -224,7 +222,7 @@ describe('expire transactions', () => {
 				.then(multiSigAccount => {
 					// Multi-signature transaction was expired, however
 					// the account still exists with the balance
-					expect(new Bignum(multiSigAccount[0].balance).isEqualTo(amount)).to.be
+					expect(new BigNum(multiSigAccount[0].balance).equals(amount)).to.be
 						.true;
 					done();
 				})

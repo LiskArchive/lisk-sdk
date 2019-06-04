@@ -21,12 +21,11 @@ const {
 	parseEncryptedPassphrase,
 	getAddressFromPublicKey,
 } = require('@liskhq/lisk-cryptography');
-const slots = require('./helpers/slots.js');
 
 // Private fields
 let modules;
 
-const { ACTIVE_DELEGATES } = global.constants;
+const { ACTIVE_DELEGATES, MAX_TRANSACTIONS_PER_BLOCK } = global.constants;
 
 /**
  * Gets the assigned delegate to current slot and returns its keypair if present.
@@ -64,7 +63,6 @@ const getDelegateKeypairForCurrentSlot = async (
  * @see Parent: {@link modules}
  * @requires async
  * @requires lodash
- * @requires helpers/slots
  * @param {scope} scope - App instance
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, err, self
@@ -75,6 +73,7 @@ class Forger {
 		this.channel = scope.channel;
 		this.logger = scope.components.logger;
 		this.storage = scope.components.storage;
+		this.slots = scope.slots;
 		this.config = {
 			forging: {
 				waitThreshold: scope.config.forging.waitThreshold,
@@ -277,15 +276,8 @@ class Forger {
 	 * @todo Add description for the return value
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	beforeForge() {
-		return new Promise((resolve, reject) => {
-			modules.transactions.fillPool(err => {
-				if (err) {
-					return reject(err);
-				}
-				return resolve();
-			});
-		});
+	async beforeForge() {
+		await modules.transactionPool.fillPool();
 	}
 
 	/**
@@ -298,12 +290,14 @@ class Forger {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	forge(cb) {
-		const currentSlot = slots.getSlotNumber();
-		const currentSlotTime = slots.getRealTime(slots.getSlotTime(currentSlot));
+		const currentSlot = this.slots.getSlotNumber();
+		const currentSlotTime = this.slots.getRealTime(
+			this.slots.getSlotTime(currentSlot)
+		);
 		const currentTime = new Date().getTime();
 		const waitThreshold = this.config.forging.waitThreshold * 1000;
 		const lastBlock = modules.blocks.lastBlock.get();
-		const lastBlockSlot = slots.getSlotNumber(lastBlock.timestamp);
+		const lastBlockSlot = this.slots.getSlotNumber(lastBlock.timestamp);
 
 		if (currentSlot === lastBlockSlot) {
 			this.logger.debug('Block already forged for the current slot');
@@ -311,7 +305,7 @@ class Forger {
 		}
 
 		// We calculate round using height + 1, because we want the delegate keypair for next block to be forged
-		const round = slots.calcRound(lastBlock.height + 1);
+		const round = this.slots.calcRound(lastBlock.height + 1);
 		return getDelegateKeypairForCurrentSlot(
 			modules.rounds,
 			this.keypairs,
@@ -321,7 +315,7 @@ class Forger {
 			.then(async delegateKeypair => {
 				if (delegateKeypair === null) {
 					this.logger.debug('Waiting for delegate slot', {
-						currentSlot: slots.getSlotNumber(),
+						currentSlot: this.slots.getSlotNumber(),
 					});
 					return setImmediate(cb);
 				}
@@ -354,35 +348,38 @@ class Forger {
 					return setImmediate(cb);
 				}
 
-				return modules.blocks.process.generateBlock(
-					delegateKeypair,
-					slots.getSlotTime(currentSlot),
-					blockGenerationErr => {
-						if (blockGenerationErr) {
-							this.logger.error(
-								'Failed to generate block within delegate slot',
-								blockGenerationErr
-							);
+				const transactions =
+					modules.transactionPool.getUnconfirmedTransactionList(
+						false,
+						MAX_TRANSACTIONS_PER_BLOCK
+					) || [];
 
-							return setImmediate(cb);
-						}
-
-						const forgedBlock = modules.blocks.lastBlock.get();
-						modules.blocks.lastReceipt.update();
-
+				return modules.blocks
+					.generateBlock(
+						delegateKeypair,
+						this.slots.getSlotTime(currentSlot),
+						transactions
+					)
+					.then(forgedBlock => {
 						this.logger.info(
 							`Forged new block id: ${forgedBlock.id} height: ${
 								forgedBlock.height
-							} round: ${slots.calcRound(
+							} round: ${this.slots.calcRound(
 								forgedBlock.height
-							)} slot: ${slots.getSlotNumber(forgedBlock.timestamp)} reward: ${
-								forgedBlock.reward
-							}`
+							)} slot: ${this.slots.getSlotNumber(
+								forgedBlock.timestamp
+							)} reward: ${forgedBlock.reward}`
 						);
 
 						return setImmediate(cb);
-					}
-				);
+					})
+					.catch(error => {
+						this.logger.error(
+							error,
+							'Failed to generate block within delegate slot'
+						);
+						return setImmediate(cb);
+					});
 			})
 			.catch(getDelegateKeypairForCurrentSlotError => {
 				this.logger.error(
@@ -432,7 +429,7 @@ class Forger {
 		modules = {
 			blocks: scope.modules.blocks,
 			peers: scope.modules.peers,
-			transactions: scope.modules.transactions,
+			transactionPool: scope.modules.transactionPool,
 			rounds: scope.modules.rounds,
 		};
 	}

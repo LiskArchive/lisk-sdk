@@ -19,7 +19,6 @@ const jobsQueue = require('../helpers/jobs_queue');
 // Private fields
 let library;
 let self;
-const { MIN_BROADHASH_CONSENSUS } = global.constants;
 
 const PEER_STATE_CONNECTED = 2;
 const MAX_PEERS = 100;
@@ -43,7 +42,7 @@ const MAX_PEERS = 100;
  * @returns {setImmediateCallback} cb, null, self
  */
 class Peers {
-	constructor(cb, scope) {
+	constructor(scope) {
 		library = {
 			logger: scope.components.logger,
 			storage: scope.components.storage,
@@ -53,8 +52,11 @@ class Peers {
 					force: scope.config.forging.force,
 				},
 			},
-			applicationState: scope.applicationState,
 			channel: scope.channel,
+			blocks: scope.modules.blocks,
+			constants: {
+				minBroadhashConsensus: scope.config.constants.MIN_BROADHASH_CONSENSUS,
+			},
 		};
 		self = this;
 		self.consensus = scope.config.forging.force ? 100 : 0;
@@ -63,7 +65,6 @@ class Peers {
 		library.channel.once('network:bootstrap', () => {
 			self.onNetworkReady();
 		});
-		setImmediate(cb, null, self);
 	}
 
 	/**
@@ -83,7 +84,7 @@ class Peers {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	async calculateConsensus() {
-		const { broadhash } = library.applicationState;
+		const broadhash = library.blocks.broadhash;
 		const activeCount = Math.min(
 			await library.channel.invoke('network:getPeersCountByFilter', {
 				state: PEER_STATE_CONNECTED,
@@ -118,7 +119,7 @@ class Peers {
 			return false;
 		}
 		const consensus = await self.calculateConsensus();
-		return consensus < MIN_BROADHASH_CONSENSUS;
+		return consensus < library.constants.minBroadhashConsensus;
 	}
 
 	/**

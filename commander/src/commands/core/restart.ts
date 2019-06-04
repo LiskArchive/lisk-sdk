@@ -15,6 +15,7 @@
  */
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
+import { describeApplication } from '../../utils/core/pm2';
 import StartCommand from './start';
 import StopCommand from './stop';
 
@@ -49,14 +50,18 @@ export default class RestartCommand extends BaseCommand {
 	async run(): Promise<void> {
 		const { args } = this.parse(RestartCommand);
 		const { name } = args as Args;
+		const instance = await describeApplication(name);
 
-		try {
-			// tslint:disable-next-line await-promise
-			await StopCommand.run([name]);
-			// tslint:disable-next-line await-promise
-			await StartCommand.run([name]);
-		} catch (error) {
-			this.error(error);
+		if (!instance) {
+			this.log(
+				`Lisk Core instance: ${name} doesn't exists, Please install using lisk core:install`,
+			);
+
+			return;
 		}
+		// tslint:disable-next-line await-promise
+		await StopCommand.run([name]);
+		// tslint:disable-next-line await-promise
+		await StartCommand.run([name]);
 	}
 }

@@ -16,7 +16,7 @@
 import { flags as flagParser } from '@oclif/command';
 import * as childProcess from 'child_process';
 import BaseCommand from '../../base';
-import { describeApplication } from '../../utils/core/pm2';
+import { describeApplication, PM2ProcessInstance } from '../../utils/core/pm2';
 
 interface Args {
 	readonly name: string;
@@ -50,7 +50,17 @@ export default class LogsCommand extends BaseCommand {
 		const { args } = this.parse(LogsCommand);
 		const { name } = args as Args;
 
-		const { installationPath, network } = await describeApplication(name);
+		const instance = await describeApplication(name);
+
+		if (!instance) {
+			this.log(
+				`Lisk Core instance: ${name} doesn't exists, Please install using lisk core:install`,
+			);
+
+			return;
+		}
+
+		const { installationPath, network } = instance as PM2ProcessInstance;
 		const fileName = `${installationPath}/logs/${network}/lisk.log`;
 
 		const tail = childProcess.spawn('tail', ['-f', fileName]);

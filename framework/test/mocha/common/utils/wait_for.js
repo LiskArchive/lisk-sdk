@@ -17,10 +17,16 @@
 const popsicle = require('popsicle');
 const async = require('async');
 const Promise = require('bluebird');
-const slots = require('../../../../src/modules/chain/helpers/slots');
 const apiHelpers = require('../helpers/api');
+const { BlockSlots } = require('../../../../src/modules/chain/blocks');
 
 const { ACTIVE_DELEGATES } = global.constants;
+
+const slots = new BlockSlots({
+	epochTime: __testContext.config.constants.EPOCH_TIME,
+	interval: __testContext.config.constants.BLOCK_TIME,
+	blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
+});
 
 /**
  * @param {number} [retries=10] retries
