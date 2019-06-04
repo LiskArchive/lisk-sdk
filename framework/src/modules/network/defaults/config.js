@@ -49,16 +49,14 @@ const defaultConfig = {
 			env: { variable: 'LISK_PEERS', formatter: 'stringToIpPortSet' },
 			arg: { name: '--peers,-x', formatter: 'stringToIpPortSet' }, // TODO: Need to confirm parsing logic, old logic was using network WSPort to be default port for peers, we don't have it at the time of compilation
 		},
-		discoveryInterval: {
-			type: 'integer',
-		},
-		peerBanTime: {
-			type: 'integer',
-		},
-		populatorInterval: {
-			type: 'integer',
-		},
 		blacklistedPeers: {
+			type: 'array',
+			items: {
+				type: 'string',
+				format: 'ip',
+			},
+		},
+		fixedPeers: {
 			type: 'array',
 			items: {
 				type: 'string',
@@ -71,6 +69,15 @@ const defaultConfig = {
 				type: 'string',
 				format: 'ip',
 			},
+		},
+		discoveryInterval: {
+			type: 'integer',
+		},
+		peerBanTime: {
+			type: 'integer',
+		},
+		populatorInterval: {
+			type: 'integer',
 		},
 		wsEngine: {
 			type: 'string',
@@ -102,6 +109,7 @@ const defaultConfig = {
 		populatorInterval: 10000,
 		seedPeers: [],
 		blacklistedPeers: [],
+		fixedPeers: [],
 		whitelistedPeers: [],
 		ackTimeout: 20000,
 		connectTimeout: 5000,
