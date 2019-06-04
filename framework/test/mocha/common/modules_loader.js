@@ -22,7 +22,7 @@ const { createLoggerComponent } = require('../../../src/components/logger');
 const { ZSchema } = require('../../../src/controller/validator');
 const ed = require('../../../src/modules/chain/helpers/ed');
 const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
-const Account = require('../../../src/modules/chain/logic/account');
+const Account = require('../../../src/modules/chain/rounds/account');
 
 // TODO: Remove this file
 const modulesLoader = new function() {
@@ -101,19 +101,20 @@ const modulesLoader = new function() {
 					scope.components.storage,
 					scope.schema,
 					scope.components.logger,
-					cb
+					scope.modules.rounds
 				);
 				break;
 			case 'Block':
 				async.waterfall(
 					[
 						function(waterCb) {
-							return new Account(
+							new Account(
 								scope.components.storage,
 								scope.schema,
-								scope.components.logger,
-								waterCb
+								scope.components.logger
 							);
+
+							return waterCb();
 						},
 					],
 					() => {
@@ -224,7 +225,7 @@ const modulesLoader = new function() {
 				},
 			],
 			[
-				{ account: require('../../../src/modules/chain/logic/account') },
+				{ account: require('../../../src/modules/chain/rounds/account') },
 				{ block: require('../../../src/modules/chain/blocks/block') },
 			],
 			scope || {},

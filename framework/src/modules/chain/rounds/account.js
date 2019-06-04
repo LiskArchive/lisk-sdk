@@ -39,7 +39,7 @@ let modules;
  * @todo Add description for the params
  */
 class Account {
-	constructor(storage, schema, logger, cb) {
+	constructor(storage, schema, logger, rounds) {
 		this.scope = {
 			schema,
 			storage,
@@ -47,6 +47,9 @@ class Account {
 
 		library = {
 			logger,
+		};
+		modules = {
+			rounds,
 		};
 
 		this.attachModelandSchema();
@@ -93,22 +96,6 @@ class Account {
 				this.editable.push(field.name);
 			}
 		});
-
-		return setImmediate(cb, null, this);
-	}
-
-	// Public methods
-	/**
-	 * Binds input parameters to private variables modules.
-	 *
-	 * @param {Blocks} blocks
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	bindModules({ blocks, rounds }) {
-		modules = {
-			blocks,
-			rounds,
-		};
 	}
 
 	/**

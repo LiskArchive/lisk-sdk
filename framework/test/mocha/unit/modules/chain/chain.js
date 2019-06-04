@@ -54,15 +54,6 @@ describe('Chain', () => {
 			registerModules: sinonSandbox.stub(),
 		};
 
-		stubs.logic = {
-			block: {
-				bindModules: sinonSandbox.stub(),
-			},
-			account: {
-				bindModules: sinonSandbox.stub(),
-			},
-		};
-
 		stubs.modules = {
 			module1: {
 				cleanup: sinonSandbox.stub().resolves('module1cleanup'),
@@ -103,7 +94,6 @@ describe('Chain', () => {
 			createBus: sinonSandbox.stub().resolves(stubs.bus),
 			bootstrapStorage: sinonSandbox.stub(),
 			bootstrapCache: sinonSandbox.stub(),
-			initLogicStructure: sinonSandbox.stub().resolves(stubs.logic),
 		};
 
 		/* Arranging Stubs end */
@@ -114,7 +104,6 @@ describe('Chain', () => {
 		Chain.__set__('createBus', stubs.initSteps.createBus);
 		Chain.__set__('bootstrapStorage', stubs.initSteps.bootstrapStorage);
 		Chain.__set__('bootstrapCache', stubs.initSteps.bootstrapCache);
-		Chain.__set__('initLogicStructure', stubs.initSteps.initLogicStructure);
 
 		// Act
 		chain = new Chain(stubs.channel, chainOptions);
@@ -276,18 +265,6 @@ describe('Chain', () => {
 			return expect(chain.scope.bus).to.be.equal(stubs.bus);
 		});
 
-		it('should init logic structure object and assign to scope.logic', () => {
-			expect(stubs.initSteps.initLogicStructure).to.have.been.calledWith(
-				chain.scope
-			);
-			return expect(chain.scope.logic).to.be.equal(stubs.logic);
-		});
-
-		it('should bind modules with scope.logic.account', () => {
-			return expect(chain.scope.logic.account.bindModules).to.have.been
-				.calledOnce;
-		});
-
 		it('should subscribe to "app:state:updated" event', () => {
 			return expect(chain.channel.subscribe).to.have.been.calledWith(
 				'app:state:updated'
@@ -309,10 +286,8 @@ describe('Chain', () => {
 
 		describe('if any error thrown', () => {
 			let processEmitStub;
-			const error = new Error('err');
 			beforeEach(async () => {
 				// Arrange
-				stubs.logic.block.bindModules.throws(error);
 				chain = new Chain(stubs.channel, {
 					...chainOptions,
 					genesisBlock: null,

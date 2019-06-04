@@ -178,6 +178,7 @@ describe('transport', () => {
 				storage: storageStub,
 				logger: loggerStub,
 			},
+			block: blockStub,
 			bus: busStub,
 			schema: schemaStub,
 			channel: channelStub,
@@ -256,7 +257,7 @@ describe('transport', () => {
 					.to.have.property('balancesSequence')
 					.which.is.equal(balancesSequenceStub);
 				expect(library)
-					.to.have.nested.property('logic.block')
+					.to.have.nested.property('block')
 					.which.is.equal(blockStub);
 
 				expect(__private)
@@ -796,14 +797,6 @@ describe('transport', () => {
 						invokeSync: sinonSandbox.stub(),
 						publish: sinonSandbox.stub(),
 					},
-					block: {
-						objectNormalize: sinonSandbox.stub().returns(new Block()),
-					},
-					logic: {
-						block: {
-							objectNormalize: sinonSandbox.stub().returns(new Block()),
-						},
-					},
 					storage: {
 						entities: {
 							Block: {
@@ -1308,8 +1301,8 @@ describe('transport', () => {
 							const blockValidationError = 'Failed to validate block schema';
 
 							beforeEach(done => {
-								library.logic.block.objectNormalize = sinonSandbox
-									.stub()
+								sinonSandbox
+									.stub(blocksModule, 'objectNormalize')
 									.throws(blockValidationError);
 								transportInstance.shared.postBlock(postBlockQuery);
 								done();
@@ -1329,8 +1322,8 @@ describe('transport', () => {
 
 						describe('when it does not throw', () => {
 							beforeEach(done => {
-								library.logic.block.objectNormalize = sinonSandbox
-									.stub()
+								sinonSandbox
+									.stub(blocksModule, 'objectNormalize')
 									.returns(blockMock);
 								transportInstance.shared.postBlock(postBlockQuery);
 								done();
@@ -1345,10 +1338,9 @@ describe('transport', () => {
 									).to.be.true);
 							});
 
-							it('should call library.logic.block.objectNormalize with block', async () =>
-								expect(
-									library.logic.block.objectNormalize.calledWith(blockMock)
-								).to.be.true);
+							it('should call library.block.objectNormalize with block', async () =>
+								expect(blocksModule.objectNormalize.calledWith(blockMock)).to.be
+									.true);
 
 							it('should call block.process.receiveBlockFromNetwork with block', async () => {
 								expect(
