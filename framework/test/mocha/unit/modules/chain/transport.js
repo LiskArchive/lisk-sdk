@@ -356,16 +356,18 @@ describe('transport', () => {
 				describe('when __private.receiveSignature fails', () => {
 					let receiveSignatureError;
 
-					beforeEach(done => {
-						receiveSignatureError = 'Error processing signature: Error message';
+					beforeEach(async () => {
+						receiveSignatureError = new Error(
+							'Error processing signature: Error message'
+						);
 						__private.receiveSignature = sinonSandbox
 							.stub()
-							.callsArgWith(1, receiveSignatureError);
-						__private.receiveSignatures([
+							.rejects(receiveSignatureError);
+
+						await __private.receiveSignatures([
 							SAMPLE_SIGNATURE_1,
 							SAMPLE_SIGNATURE_2,
 						]);
-						done();
 					});
 
 					it('should call library.logger.debug with err and signature', async () => {
@@ -390,16 +392,15 @@ describe('transport', () => {
 		});
 
 		describe('receiveSignature', () => {
-			beforeEach(done => {
+			beforeEach(async () => {
 				library.schema = {
-					validate: sinonSandbox.stub().callsArg(2),
+					validate: sinonSandbox.stub().returns(true),
+					getLastErrors: sinonSandbox.stub(),
 				};
 
 				modules.multisignatures = {
 					getTransactionAndProcessSignature: sinonSandbox.stub().callsArg(1),
 				};
-
-				done();
 			});
 
 			describe('when library.schema.validate succeeds', () => {
@@ -1247,6 +1248,11 @@ describe('transport', () => {
 				describe('postSignature', () => {
 					describe('when getTransactionAndProcessSignature succeeds', () => {
 						it('should invoke callback with object { success: true }', async () => {
+							library.schema = {
+								validate: sinonSandbox.stub().returns(true),
+								getLastErrors: sinonSandbox.stub(),
+							};
+
 							query = {
 								signature: SAMPLE_SIGNATURE_1,
 							};
@@ -1266,6 +1272,11 @@ describe('transport', () => {
 						const receiveSignatureError = ['Invalid signature body ...'];
 
 						it('should invoke callback with object { success: false, message: err }', async () => {
+							library.schema = {
+								validate: sinonSandbox.stub().returns(true),
+								getLastErrors: sinonSandbox.stub(),
+							};
+
 							query = {
 								signature: SAMPLE_SIGNATURE_1,
 							};

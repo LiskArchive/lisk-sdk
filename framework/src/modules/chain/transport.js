@@ -15,7 +15,6 @@
 'use strict';
 
 const { TransactionError } = require('@liskhq/lisk-transactions');
-const { promisify } = require('util');
 const _ = require('lodash');
 const { convertErrorsToString } = require('./helpers/error_handlers');
 // eslint-disable-next-line prefer-const
@@ -421,18 +420,21 @@ class Transport {
 			 * @todo Add description of the function
 			 */
 			async postSignature(query) {
-				try {
-					await promisify(library.schema.validate)(
-						query.signature,
-						definitions.Signature
-					);
-				} catch (err) {
+				const valid = library.schema.validate(
+					query.signature,
+					definitions.Signature
+				);
+
+				if (!valid) {
+					const err = library.schema.getLastErrors();
+					const error = new TransactionError(err[0].message);
 					return {
 						success: false,
 						code: 400,
-						errors: [new TransactionError(err[0].message)],
+						errors: [error],
 					};
 				}
+
 				return modules.transactionPool
 					.getTransactionAndProcessSignature(query.signature)
 					.then(() => ({ success: true }))
@@ -575,14 +577,16 @@ class Transport {
  * @implements {__private.receiveSignature}
  * @param {Array} signatures - Array of signatures
  */
-__private.receiveSignatures = function(signatures = []) {
-	signatures.forEach(signature => {
-		__private.receiveSignature(signature, err => {
-			if (err) {
-				library.logger.debug(err, signature);
-			}
-		});
-	});
+__private.receiveSignatures = async function(signatures = []) {
+	// eslint-disable-next-line no-restricted-syntax
+	for (const signature of signatures) {
+		try {
+			// eslint-disable-next-line no-await-in-loop
+			await __private.receiveSignature(signature);
+		} catch (err) {
+			library.logger.debug(err, signature);
+		}
+	}
 };
 
 /**
@@ -596,7 +600,13 @@ __private.receiveSignatures = function(signatures = []) {
  * @todo Add description for the params
  */
 __private.receiveSignature = async function(signature) {
-	await promisify(library.schema.validate)(signature, definitions.Signature);
+	const valid = library.schema.validate(signature, definitions.Signature);
+
+	if (!valid) {
+		const err = library.schema.getLastErrors();
+		throw err;
+	}
+
 	return modules.transactionPool.getTransactionAndProcessSignature(signature);
 };
 
