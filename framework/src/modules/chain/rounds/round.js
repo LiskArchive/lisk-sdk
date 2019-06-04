@@ -18,9 +18,6 @@ const Promise = require('bluebird');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const BigNum = require('@liskhq/bignum');
 
-const exceptions = global.exceptions;
-const { ACTIVE_DELEGATES } = global.constants;
-
 /**
  * Validates required scope properties.
  *
@@ -53,6 +50,8 @@ class Round {
 				height: scope.block.height,
 				timestamp: scope.block.timestamp,
 			},
+			constants: scope.library.constants,
+			exceptions: scope.library.exceptions,
 		};
 		this.t = t;
 
@@ -300,26 +299,33 @@ class Round {
 		const roundRewards = [...this.scope.roundRewards] || [];
 
 		// Apply exception for round if required
-		if (exceptions.rounds[this.scope.round.toString()]) {
+		if (this.scope.exceptions.rounds[this.scope.round.toString()]) {
 			// Apply rewards factor
 			roundRewards.forEach((reward, subIndex) => {
 				roundRewards[subIndex] = new BigNum(reward.toPrecision(15))
-					.times(exceptions.rounds[this.scope.round.toString()].rewards_factor)
+					.times(
+						this.scope.exceptions.rounds[this.scope.round.toString()]
+							.rewards_factor
+					)
 					.floor();
 			});
 
 			// Apply fees factor and bonus
 			roundFees = new BigNum(roundFees.toPrecision(15))
-				.times(exceptions.rounds[this.scope.round.toString()].fees_factor)
-				.plus(exceptions.rounds[this.scope.round.toString()].fees_bonus)
+				.times(
+					this.scope.exceptions.rounds[this.scope.round.toString()].fees_factor
+				)
+				.plus(
+					this.scope.exceptions.rounds[this.scope.round.toString()].fees_bonus
+				)
 				.floor();
 		}
 
 		const fees = new BigNum(roundFees.toPrecision(15))
-			.dividedBy(ACTIVE_DELEGATES)
+			.dividedBy(this.scope.constants.activeDelegates)
 			.floor();
 		const feesRemaining = new BigNum(roundFees.toPrecision(15)).minus(
-			fees.times(ACTIVE_DELEGATES)
+			fees.times(this.scope.constants.activeDelegates)
 		);
 		const rewards =
 			new BigNum(roundRewards[index].toPrecision(15)).floor() || 0;

@@ -16,9 +16,6 @@
 
 const { hash } = require('@liskhq/lisk-cryptography');
 
-const { ACTIVE_DELEGATES } = global.constants;
-const exceptions = global.exceptions;
-
 /**
  * Gets delegate public keys sorted by vote descending.
  *
@@ -28,10 +25,10 @@ const exceptions = global.exceptions;
  * @returns {setImmediateCallback} cb
  * @todo Add description for the return value
  */
-const getKeysSortByVote = async (storage, tx) => {
+const getKeysSortByVote = async (storage, numOfActiveDelegates, tx) => {
 	const filters = { isDelegate: true };
 	const options = {
-		limit: ACTIVE_DELEGATES,
+		limit: numOfActiveDelegates,
 		sort: ['vote:desc', 'publicKey:asc'],
 	};
 	const accounts = await storage.entities.Account.get(filters, options, tx);
@@ -47,9 +44,13 @@ const getKeysSortByVote = async (storage, tx) => {
  * @returns {setImmediateCallback} cb
  * @todo Add description for the return value
  */
-const getDelegatesFromPreviousRound = async (storage, tx) => {
+const getDelegatesFromPreviousRound = async (
+	storage,
+	numOfActiveDelegates,
+	tx
+) => {
 	const rows = await storage.entities.Round.getDelegatesSnapshot(
-		ACTIVE_DELEGATES,
+		numOfActiveDelegates,
 		tx
 	);
 	return rows.map(({ publicKey }) => publicKey);
@@ -64,9 +65,14 @@ const getDelegatesFromPreviousRound = async (storage, tx) => {
  * @returns {setImmediateCallback} cb, err
  * @todo Add description for the params
  */
-const validateBlockSlot = (block, slots, activeDelegates) => {
+const validateBlockSlot = (
+	block,
+	slots,
+	activeDelegates,
+	numOfActiveDelegates
+) => {
 	const currentSlot = slots.getSlotNumber(block.timestamp);
-	const delegateId = activeDelegates[currentSlot % ACTIVE_DELEGATES];
+	const delegateId = activeDelegates[currentSlot % numOfActiveDelegates];
 
 	if (delegateId && block.generatorPublicKey === delegateId) {
 		return true;
@@ -89,6 +95,8 @@ class Delegates {
 		this.storage = scope.storage;
 		this.channel = scope.channel;
 		this.slots = scope.slots;
+		this.constants = scope.constants;
+		this.exceptions = scope.exceptions;
 	}
 
 	/**
@@ -108,8 +116,12 @@ class Delegates {
 		}
 
 		const truncDelegateList = source
-			? await source(this.storage, tx)
-			: await getKeysSortByVote(this.storage, tx);
+			? await source(this.storage, this.constants.activeDelegates, tx)
+			: await getKeysSortByVote(
+					this.storage,
+					this.constants.activeDelegates,
+					tx
+			  );
 
 		const seedSource = round.toString();
 		let currentSeed = hash(seedSource, 'utf8');
@@ -125,7 +137,7 @@ class Delegates {
 		}
 
 		// If the round is not an exception, cache the round.
-		if (!exceptions.ignoreDelegateListCacheForRounds.includes(round)) {
+		if (!this.exceptions.ignoreDelegateListCacheForRounds.includes(round)) {
 			this.updateDelegateListCache(round, truncDelegateList);
 		}
 		return truncDelegateList;
@@ -145,7 +157,12 @@ class Delegates {
 			round,
 			getKeysSortByVote
 		);
-		validateBlockSlot(block, this.slots, activeDelegates);
+		validateBlockSlot(
+			block,
+			this.slots,
+			activeDelegates,
+			this.constants.activeDelegates
+		);
 	}
 
 	/**
@@ -162,7 +179,12 @@ class Delegates {
 			round,
 			getDelegatesFromPreviousRound
 		);
-		validateBlockSlot(block, this.slots, activeDelegates);
+		validateBlockSlot(
+			block,
+			this.slots,
+			activeDelegates,
+			this.constants.activeDelegates
+		);
 	}
 
 	/**
