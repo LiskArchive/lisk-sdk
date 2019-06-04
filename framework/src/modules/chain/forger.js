@@ -296,7 +296,7 @@ class Forger {
 		);
 		const currentTime = new Date().getTime();
 		const waitThreshold = this.config.forging.waitThreshold * 1000;
-		const lastBlock = modules.blocks.lastBlock.get();
+		const lastBlock = modules.blocks.lastBlock; // Removed .get() function - Bug or part of refactoring process still?
 		const lastBlockSlot = this.slots.getSlotNumber(lastBlock.timestamp);
 
 		if (currentSlot === lastBlockSlot) {

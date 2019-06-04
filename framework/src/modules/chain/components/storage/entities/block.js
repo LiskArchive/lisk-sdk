@@ -22,10 +22,15 @@ const {
 	errors: { NonSupportedOperationError },
 } = require('../../../../../components/storage');
 
-const defaultCreateValues = {};
+const defaultCreateValues = {
+	maxHeightPreviouslyForged: null,
+	prevotedConfirmedUptoHeight: null,
+};
 const createFields = [
 	'id',
 	'height',
+	'maxHeightPreviouslyForged',
+	'prevotedConfirmedUptoHeight',
 	'blockSignature',
 	'generatorPublicKey',
 	'payloadHash',
