@@ -393,7 +393,7 @@ export class PeerPool extends EventEmitter {
 			peersToConnect.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
 				const peerId = constructPeerIdFromPeerInfo(peerInfo);
 
-				return this.addOutboundPeer(peerId, peerInfo);
+				this.addOutboundPeer(peerId, peerInfo);
 			});
 		}
 	}
@@ -451,18 +451,23 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public getPeersCountByKind(): P2PPeersCount {
-		const peersCount = { outbound: 0, inbound: 0 };
-		this._peerMap.forEach((peer: Peer) => {
-			if (peer instanceof OutboundPeer) {
-				return (peersCount.outbound += 1);
-			} else if (peer instanceof InboundPeer) {
-				return (peersCount.inbound += 1);
-			}
-
-			throw new Error('A non-identified peer exists in the pool.');
-		});
-
-		return peersCount;
+		return [...this._peerMap.values()].reduce(
+			(prev, peer) => {
+				if (peer instanceof OutboundPeer) {
+					return {
+						outbound: prev.outbound + 1,
+						inbound: prev.inbound,
+					};
+				} else if (peer instanceof InboundPeer) {
+					return {
+						outbound: prev.outbound,
+						inbound: prev.inbound + 1,
+					};
+				}
+				throw new Error('A non-identified peer exists in the pool.');
+			},
+			{ outbound: 0, inbound: 0 },
+		);
 	}
 
 	public removeAllPeers(): void {
