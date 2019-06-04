@@ -225,16 +225,11 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				try {
-					await forgeModule.loadDelegates();
-				} catch (err) {
-					expect(err).to.equal(
-						`Invalid encryptedPassphrase for publicKey: ${
-							accountDetails.publicKey
-						}. Unsupported state or unable to authenticate data`
-					);
-					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-				}
+				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
+					`Invalid encryptedPassphrase for publicKey: ${
+						accountDetails.publicKey
+					}. Unsupported state or unable to authenticate data`
+				);
 			});
 
 			it('should return error if number of iterations is incorrect', async () => {
@@ -248,16 +243,11 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				try {
-					await forgeModule.loadDelegates();
-				} catch (err) {
-					expect(err).to.equal(
-						`Invalid encryptedPassphrase for publicKey: ${
-							accountDetails.publicKey
-						}. Unsupported state or unable to authenticate data`
-					);
-					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-				}
+				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
+					`Invalid encryptedPassphrase for publicKey: ${
+						accountDetails.publicKey
+					}. Unsupported state or unable to authenticate data`
+				);
 			});
 
 			it('should return error if encrypted passphrase has no salt', async () => {
@@ -272,14 +262,28 @@ describe('forge', () => {
 
 				// TODO: Update the expectation after fixing
 				// https://github.com/LiskHQ/lisk-elements/issues/1162
+				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
+					`Invalid encryptedPassphrase for publicKey: ${
+						accountDetails.publicKey
+					}. Encrypted passphrase to parse must have only one value per key.`
+				);
+			});
+
+			it('if encrypted passphrase has no salt forgeModule.keypairs should be empty', async () => {
+				const accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					encryptedPassphrase:
+						'iterations=1&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
+				};
+
+				forgeModule.config.forging.delegates = [accountDetails];
+
+				// TODO: Update the expectation after fixing
+				// https://github.com/LiskHQ/lisk-elements/issues/1162
 				try {
 					await forgeModule.loadDelegates();
 				} catch (err) {
-					expect(err).to.equal(
-						`Invalid encryptedPassphrase for publicKey: ${
-							accountDetails.publicKey
-						}. Encrypted passphrase to parse must have only one value per key.`
-					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 				}
 			});
@@ -295,14 +299,27 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
+				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
+					`Invalid encryptedPassphrase for publicKey: ${
+						accountDetails.publicKey
+					}. Unsupported state or unable to authenticate data`
+				);
+			});
+
+			it('if encrypted passphrase has a modified salt forgeModule.keypairs should be empty', async () => {
+				const accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					// salt is 1 character different
+					encryptedPassphrase:
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bc&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
+				};
+
+				forgeModule.config.forging.delegates = [accountDetails];
+
 				try {
 					await forgeModule.loadDelegates();
 				} catch (err) {
-					expect(err).to.equal(
-						`Invalid encryptedPassphrase for publicKey: ${
-							accountDetails.publicKey
-						}. Unsupported state or unable to authenticate data`
-					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 				}
 			});
@@ -319,14 +336,28 @@ describe('forge', () => {
 
 				// TODO: Update the expectation after fixing
 				// https://github.com/LiskHQ/lisk-elements/issues/1162
+				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
+					`Invalid encryptedPassphrase for publicKey: ${
+						accountDetails.publicKey
+					}. Encrypted passphrase to parse must have only one value per key.`
+				);
+			});
+
+			it('if encrypted passphrase has no cipher text forgeModule.keypairs should be empty', async () => {
+				const accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					encryptedPassphrase:
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
+				};
+
+				forgeModule.config.forging.delegates = [accountDetails];
+
+				// TODO: Update the expectation after fixing
+				// https://github.com/LiskHQ/lisk-elements/issues/1162
 				try {
 					await forgeModule.loadDelegates();
 				} catch (err) {
-					expect(err).to.equal(
-						`Invalid encryptedPassphrase for publicKey: ${
-							accountDetails.publicKey
-						}. Encrypted passphrase to parse must have only one value per key.`
-					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 				}
 			});
@@ -342,14 +373,27 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
+				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
+					`Invalid encryptedPassphrase for publicKey: ${
+						accountDetails.publicKey
+					}. Unsupported state or unable to authenticate data`
+				);
+			});
+
+			it('if encrypted passphrase has a modified ciphertext forgeModule.keypairs should be empty', async () => {
+				const accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					// cipher text is 1 character different
+					encryptedPassphrase:
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d05&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
+				};
+
+				forgeModule.config.forging.delegates = [accountDetails];
+
 				try {
 					await forgeModule.loadDelegates();
 				} catch (err) {
-					expect(err).to.equal(
-						`Invalid encryptedPassphrase for publicKey: ${
-							accountDetails.publicKey
-						}. Unsupported state or unable to authenticate data`
-					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 				}
 			});
@@ -366,14 +410,28 @@ describe('forge', () => {
 
 				// TODO: Update the expectation after fixing
 				// https://github.com/LiskHQ/lisk-elements/issues/1162
+				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
+					`Invalid encryptedPassphrase for publicKey: ${
+						accountDetails.publicKey
+					}. Encrypted passphrase to parse must have only one value per key.`
+				);
+			});
+
+			it('if encrypted passphrase has no iv forgeModule.keypairs should be empty', async () => {
+				const accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					encryptedPassphrase:
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&tag=86231fb20e7b263264ca68b3585967ca&version=1',
+				};
+
+				forgeModule.config.forging.delegates = [accountDetails];
+
+				// TODO: Update the expectation after fixing
+				// https://github.com/LiskHQ/lisk-elements/issues/1162
 				try {
 					await forgeModule.loadDelegates();
 				} catch (err) {
-					expect(err).to.equal(
-						`Invalid encryptedPassphrase for publicKey: ${
-							accountDetails.publicKey
-						}. Encrypted passphrase to parse must have only one value per key.`
-					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 				}
 			});
@@ -389,14 +447,27 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
+				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
+					`Invalid encryptedPassphrase for publicKey: ${
+						accountDetails.publicKey
+					}. Unsupported state or unable to authenticate data`
+				);
+			});
+
+			it('if encrypted passphrase has a modified iv forgeModule.keypairs should be empty', async () => {
+				const accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					// iv is 1 character different
+					encryptedPassphrase:
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c933&tag=86231fb20e7b263264ca68b3585967ca&version=1',
+				};
+
+				forgeModule.config.forging.delegates = [accountDetails];
+
 				try {
 					await forgeModule.loadDelegates();
 				} catch (err) {
-					expect(err).to.equal(
-						`Invalid encryptedPassphrase for publicKey: ${
-							accountDetails.publicKey
-						}. Unsupported state or unable to authenticate data`
-					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 				}
 			});
@@ -413,14 +484,28 @@ describe('forge', () => {
 
 				// TODO: Update the expectation after fixing
 				// https://github.com/LiskHQ/lisk-elements/issues/1162
+				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
+					`Invalid encryptedPassphrase for publicKey: ${
+						accountDetails.publicKey
+					}. Encrypted passphrase to parse must have only one value per key.`
+				);
+			});
+
+			it('if encrypted passphrase has no tag forgeModule.keypairs should be empty', async () => {
+				const accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					encryptedPassphrase:
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&version=1',
+				};
+
+				forgeModule.config.forging.delegates = [accountDetails];
+
+				// TODO: Update the expectation after fixing
+				// https://github.com/LiskHQ/lisk-elements/issues/1162
 				try {
 					await forgeModule.loadDelegates();
 				} catch (err) {
-					expect(err).to.equal(
-						`Invalid encryptedPassphrase for publicKey: ${
-							accountDetails.publicKey
-						}. Encrypted passphrase to parse must have only one value per key.`
-					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 				}
 			});
@@ -436,14 +521,27 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
+				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
+					`Invalid encryptedPassphrase for publicKey: ${
+						accountDetails.publicKey
+					}. Unsupported state or unable to authenticate data`
+				);
+			});
+
+			it('if encrypted passphrase has invalid tag forgeModule.keypairs should be empty', async () => {
+				const accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					// tag is 1 character different
+					encryptedPassphrase:
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967cb&version=1',
+				};
+
+				forgeModule.config.forging.delegates = [accountDetails];
+
 				try {
 					await forgeModule.loadDelegates();
 				} catch (err) {
-					expect(err).to.equal(
-						`Invalid encryptedPassphrase for publicKey: ${
-							accountDetails.publicKey
-						}. Unsupported state or unable to authenticate data`
-					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 				}
 			});
@@ -459,14 +557,27 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
+				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
+					`Invalid encryptedPassphrase for publicKey: ${
+						accountDetails.publicKey
+					}. Tag must be 16 bytes.`
+				);
+			});
+
+			it('if encrypted passphrase has shortened tag forgeModule.keypairs should be empty', async () => {
+				const accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					// tag is 4 characters shorter
+					encryptedPassphrase:
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b35859&version=1',
+				};
+
+				forgeModule.config.forging.delegates = [accountDetails];
+
 				try {
 					await forgeModule.loadDelegates();
 				} catch (err) {
-					expect(err).to.equal(
-						`Invalid encryptedPassphrase for publicKey: ${
-							accountDetails.publicKey
-						}. Tag must be 16 bytes.`
-					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 				}
 			});
@@ -481,14 +592,26 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
+				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
+					`Invalid encryptedPassphrase for publicKey: ${
+						accountDetails.publicKey
+					}. Public keys do not match`
+				);
+			});
+
+			it('if publicKeys do not match forgeModule.keypairs should be empty', async () => {
+				const accountDetails = {
+					publicKey:
+						'141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
+					encryptedPassphrase:
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
+				};
+
+				forgeModule.config.forging.delegates = [accountDetails];
+
 				try {
 					await forgeModule.loadDelegates();
 				} catch (err) {
-					expect(err).to.equal(
-						`Invalid encryptedPassphrase for publicKey: ${
-							accountDetails.publicKey
-						}. Public keys do not match`
-					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 				}
 			});
@@ -511,16 +634,36 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
+				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
+					[
+						'Account with public key:',
+						accountDetails.publicKey.toString('hex'),
+						'not found',
+					].join(' ')
+				);
+			});
+
+			it('if account does not exist forgeModule.keypairs should be empty', async () => {
+				const randomAccount = {
+					passphrase:
+						'robust swift deputy enable forget peasant grocery road convince',
+					publicKey:
+						'35b9364d1733e503599a1e9eefdb4994dd07bb9924acebfec06195cf1a0fa6db',
+					encryptedPassphrase:
+						'iterations=1&salt=b51aba5a50cc44a8badd26bb89eb19c9&cipherText=9e345573201d8d064409deaa9d4125f85974c1309f7bd5087ea84b77cb0d46f1fc71b6f317bcd14de0f1cf76fd25293671273f57266876dc6afd4732b24db6&iv=ecc42c613ad6a72e4320231a&tag=7febd325fbcd7f81f3cd39f055ef356a&version=1',
+				};
+				const accountDetails = {
+					encryptedPassphrase: randomAccount.encryptedPassphrase,
+					publicKey: randomAccount.publicKey,
+				};
+
+				mockStorage.entities.Account.get.resolves([]);
+
+				forgeModule.config.forging.delegates = [accountDetails];
+
 				try {
 					await forgeModule.loadDelegates();
 				} catch (err) {
-					expect(err).to.equal(
-						[
-							'Account with public key:',
-							accountDetails.publicKey.toString('hex'),
-							'not found',
-						].join(' ')
-					);
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 				}
 			});

@@ -441,6 +441,7 @@ module.exports = class Chain {
 				try {
 					await this.forger.forge();
 				} catch (error) {
+					this.logger.error(error);
 					throw error;
 				}
 			},

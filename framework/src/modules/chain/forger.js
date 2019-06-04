@@ -215,6 +215,12 @@ class Forger {
 				privateKey: privateKeyBytes,
 			};
 
+			if (keypair.publicKey.toString('hex') !== encryptedItem.publicKey) {
+				throw `Invalid encryptedPassphrase for publicKey: ${
+					encryptedItem.publicKey
+				}. Public keys do not match`;
+			}
+
 			const filters = {
 				address: getAddressFromPublicKey(keypair.publicKey.toString('hex')),
 			};
@@ -320,27 +326,20 @@ class Forger {
 				MAX_TRANSACTIONS_PER_BLOCK
 			) || [];
 
-		let forgedBlock;
-		try {
-			forgedBlock = await modules.blocks.generateBlock(
-				delegateKeypair,
-				this.slots.getSlotTime(currentSlot),
-				transactions
-			);
-			this.logger.info(
-				`Forged new block id: ${forgedBlock.id} height: ${
-					forgedBlock.height
-				} round: ${this.slots.calcRound(
-					forgedBlock.height
-				)} slot: ${this.slots.getSlotNumber(forgedBlock.timestamp)} reward: ${
-					forgedBlock.reward
-				}`
-			);
-			return;
-		} catch (error) {
-			this.logger.error(error, 'Failed to generate block within delegate slot');
-			throw error;
-		}
+		const forgedBlock = await modules.blocks.generateBlock(
+			delegateKeypair,
+			this.slots.getSlotTime(currentSlot),
+			transactions
+		);
+		this.logger.info(
+			`Forged new block id: ${forgedBlock.id} height: ${
+				forgedBlock.height
+			} round: ${this.slots.calcRound(
+				forgedBlock.height
+			)} slot: ${this.slots.getSlotNumber(forgedBlock.timestamp)} reward: ${
+				forgedBlock.reward
+			}`
+		);
 	}
 
 	/**
