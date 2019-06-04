@@ -341,9 +341,10 @@ export class P2P extends EventEmitter {
 				config.maxOutboundConnections === undefined
 					? DEFAULT_MAX_OUTBOUND_CONNECTIONS
 					: config.maxOutboundConnections,
-			maxInboundConnections: config.maxInboundConnections
-				? config.maxInboundConnections
-				: DEFAULT_MAX_INBOUND_CONNECTIONS,
+			maxInboundConnections:
+				config.maxInboundConnections === undefined
+					? DEFAULT_MAX_INBOUND_CONNECTIONS
+					: config.maxInboundConnections,
 		});
 
 		this._bindHandlersToPeerPool(this._peerPool);
