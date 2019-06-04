@@ -16,6 +16,7 @@
 
 const { BlockSlots } = require('./block_slots');
 const { addBlockProperties } = require('./utils');
+const { objectNormalize } = require('./block');
 const {
 	Blocks,
 	EVENT_NEW_BLOCK,
@@ -31,5 +32,6 @@ module.exports = {
 	EVENT_DELETE_BLOCK,
 	EVENT_BROADCAST_BLOCK,
 	EVENT_NEW_BROADHASH,
+	objectNormalize,
 	addBlockProperties,
 };
