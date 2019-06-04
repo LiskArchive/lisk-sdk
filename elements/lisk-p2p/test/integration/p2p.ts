@@ -32,7 +32,7 @@ describe('Integration tests for P2P library', () => {
 	const NETWORK_PEER_COUNT = 10;
 	const DISCOVERY_INTERVAL = 200;
 	const POPULATOR_INTERVAL = 1000;
-	const MAX_OUTBOUND_CONNECTIONS = 20;
+	const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
 	const ALL_NODE_PORTS: ReadonlyArray<number> = [
 		...new Array(NETWORK_PEER_COUNT).keys(),
 	].map(index => NETWORK_START_PORT + index);
@@ -49,7 +49,7 @@ describe('Integration tests for P2P library', () => {
 					seedPeers: [],
 					wsEngine: 'ws',
 					populatorInterval: POPULATOR_INTERVAL,
-					maxOutboundConnections: MAX_OUTBOUND_CONNECTIONS,
+					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 					nodeInfo: {
 						wsPort: nodePort,
 						nethash:
@@ -122,7 +122,7 @@ describe('Integration tests for P2P library', () => {
 					discoveryInterval: DISCOVERY_INTERVAL + index * 11,
 					peerBanTime: 100,
 					populatorInterval: POPULATOR_INTERVAL,
-					maxOutboundConnections: MAX_OUTBOUND_CONNECTIONS,
+					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 					nodeInfo: {
 						wsPort: nodePort,
 						nethash:
@@ -490,7 +490,7 @@ describe('Integration tests for P2P library', () => {
 					seedPeers,
 					wsEngine: 'ws',
 					populatorInterval: POPULATOR_INTERVAL,
-					maxOutboundConnections: MAX_OUTBOUND_CONNECTIONS,
+					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 					nodeInfo: {
 						wsPort: nodePort,
 						nethash:
@@ -1061,7 +1061,7 @@ describe('Integration tests for P2P library', () => {
 					seedPeers,
 					wsEngine: 'ws',
 					populatorInterval: POPULATOR_INTERVAL,
-					maxOutboundConnections: MAX_OUTBOUND_CONNECTIONS,
+					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 					nodeInfo: {
 						wsPort: nodePort,
 						nethash:
@@ -1221,7 +1221,7 @@ describe('Integration tests for P2P library', () => {
 					// Set a different discoveryInterval for each node; that way they don't keep trying to discover each other at the same time.
 					discoveryInterval: DISCOVERY_INTERVAL + index * 11,
 					populatorInterval: POPULATOR_INTERVAL,
-					maxOutboundConnections: MAX_OUTBOUND_CONNECTIONS,
+					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 					nodeInfo: {
 						wsPort: nodePort,
 						nethash:
