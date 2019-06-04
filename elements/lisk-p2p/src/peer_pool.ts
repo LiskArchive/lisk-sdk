@@ -89,6 +89,7 @@ interface PeerPoolConfig {
 	readonly sendPeerLimit: number;
 	readonly peerBanTime?: number;
 	readonly maxOutboundConnections: number;
+	readonly maxInboundConnections: number;
 }
 
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
@@ -126,6 +127,7 @@ export class PeerPool extends EventEmitter {
 	private readonly _handleUnbanPeer: (peerId: string) => void;
 	private _nodeInfo: P2PNodeInfo | undefined;
 	private readonly _maxOutboundConnections: number;
+	private readonly _maxInboundConnections: number;
 	private readonly _peerSelectForSend: P2PPeerSelectionForSendFunction;
 	private readonly _peerSelectForRequest: P2PPeerSelectionForRequestFunction;
 	private readonly _peerSelectForConnection: P2PPeerSelectionForConnectionFunction;
@@ -139,8 +141,8 @@ export class PeerPool extends EventEmitter {
 		this._peerSelectForRequest = peerPoolConfig.peerSelectionForRequest;
 		this._peerSelectForConnection = peerPoolConfig.peerSelectionForConnection;
 		this._maxOutboundConnections = peerPoolConfig.maxOutboundConnections;
+		this._maxInboundConnections = peerPoolConfig.maxInboundConnections;
 		this._sendPeerLimit = peerPoolConfig.sendPeerLimit;
-
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerRPC = (request: P2PRequest) => {
 			// Re-emit the request to allow it to bubble up the class hierarchy.
@@ -395,6 +397,11 @@ export class PeerPool extends EventEmitter {
 		peerInfo: P2PDiscoveredPeerInfo,
 		socket: SCServerSocket,
 	): Peer {
+		const inboundPeers = this.getAllPeers(InboundPeer);
+		if (inboundPeers.length >= this._maxInboundConnections) {
+			this.removePeer(shuffle(inboundPeers)[0].id);
+		}
+
 		const peerConfig = {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
@@ -473,8 +480,13 @@ export class PeerPool extends EventEmitter {
 		return this.getAllPeers().map(peer => peer.peerInfo);
 	}
 
-	public getAllPeers(): ReadonlyArray<Peer> {
-		return [...this._peerMap.values()];
+	public getAllPeers(kind?: any): ReadonlyArray<Peer> {
+		const peers = [...this._peerMap.values()];
+		if (kind) {
+			return peers.filter(peer => peer instanceof kind);
+		}
+
+		return peers;
 	}
 
 	public getPeer(peerId: string): Peer | undefined {
