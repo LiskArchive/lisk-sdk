@@ -91,7 +91,8 @@ export interface P2PConfig {
 	readonly discoveryInterval?: number;
 	readonly populatorInterval?: number;
 	readonly maxOutboundConnections: number;
-	readonly peerSelectionForSend?: P2PPeerSelectionForSendFunction;
+	readonly maxInboundConnections: number;
+	readonly peerSelectionForSend?: P2PPeerSelectionForSendFunction;	
 	readonly peerSelectionForRequest?: P2PPeerSelectionForRequestFunction;
 	readonly peerSelectionForConnection?: P2PPeerSelectionForConnectionFunction;
 	readonly peerHandshakeCheck?: P2PCheckPeerCompatibility;

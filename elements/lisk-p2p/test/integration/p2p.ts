@@ -27,7 +27,6 @@ import {
 } from '../../src/p2p_types';
 
 describe('Integration tests for P2P library', () => {
-
 	before(() => {
 		// Make sure that integration tests use real timers.
 		sandbox.restore();
@@ -39,6 +38,7 @@ describe('Integration tests for P2P library', () => {
 	const DISCOVERY_INTERVAL = 200;
 	const POPULATOR_INTERVAL = 1000;
 	const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
+	const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
 	const ALL_NODE_PORTS: ReadonlyArray<number> = [
 		...new Array(NETWORK_PEER_COUNT).keys(),
 	].map(index => NETWORK_START_PORT + index);
@@ -56,6 +56,7 @@ describe('Integration tests for P2P library', () => {
 					wsEngine: 'ws',
 					populatorInterval: POPULATOR_INTERVAL,
 					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
+					maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
 					nodeInfo: {
 						wsPort: nodePort,
 						nethash:
@@ -129,6 +130,7 @@ describe('Integration tests for P2P library', () => {
 					peerBanTime: 100,
 					populatorInterval: POPULATOR_INTERVAL,
 					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
+					maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
 					nodeInfo: {
 						wsPort: nodePort,
 						nethash:
@@ -497,6 +499,7 @@ describe('Integration tests for P2P library', () => {
 					wsEngine: 'ws',
 					populatorInterval: POPULATOR_INTERVAL,
 					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
+					maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
 					nodeInfo: {
 						wsPort: nodePort,
 						nethash:
@@ -1068,6 +1071,7 @@ describe('Integration tests for P2P library', () => {
 					wsEngine: 'ws',
 					populatorInterval: POPULATOR_INTERVAL,
 					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
+					maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
 					nodeInfo: {
 						wsPort: nodePort,
 						nethash:
@@ -1228,6 +1232,7 @@ describe('Integration tests for P2P library', () => {
 					discoveryInterval: DISCOVERY_INTERVAL + index * 11,
 					populatorInterval: POPULATOR_INTERVAL,
 					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
+					maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
 					nodeInfo: {
 						wsPort: nodePort,
 						nethash:
@@ -1348,6 +1353,7 @@ describe('Integration tests for P2P library', () => {
 					discoveryInterval: DISCOVERY_INTERVAL_WITH_OUTBOUND_LIMIT,
 					populatorInterval: POPULATOR_INTERVAL_WITH_OUTBOUND_LIMIT,
 					maxOutboundConnections: TEN_OUTBOUND_CONNECTIONS,
+					maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
 					nodeInfo: {
 						wsPort: nodePort,
 						nethash:
