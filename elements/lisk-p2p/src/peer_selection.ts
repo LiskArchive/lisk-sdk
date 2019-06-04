@@ -98,4 +98,5 @@ export const selectPeersForSend = (
 
 export const selectPeersForConnection = (
 	input: P2PPeerSelectionForConnectionInput,
-) => input.peers;
+): ReadonlyArray<P2PDiscoveredPeerInfo> =>
+	shuffle(input.peers).slice(0, input.peerLimit);

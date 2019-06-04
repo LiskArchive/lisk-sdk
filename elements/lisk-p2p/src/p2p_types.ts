@@ -146,6 +146,7 @@ export type P2PPeerSelectionForRequestFunction = (
 export interface P2PPeerSelectionForConnectionInput {
 	readonly peers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 	readonly nodeInfo?: P2PNodeInfo;
+	readonly peerLimit?: number;
 }
 
 export type P2PPeerSelectionForConnectionFunction = (
