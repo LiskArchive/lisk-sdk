@@ -18,7 +18,6 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 	require('./helpers/newrelic_lisk');
 }
 
-const { promisify } = require('util');
 const { convertErrorsToString } = require('./helpers/error_handlers');
 const Sequence = require('./helpers/sequence');
 const ed = require('./helpers/ed');
@@ -236,9 +235,7 @@ module.exports = class Chain {
 			getTransactionsFromPool: async ({ params }) =>
 				this.transactionPool.getPooledTransactions(params.type, params.filters),
 			postTransaction: async action =>
-				promisify(this.scope.modules.transport.shared.postTransaction)(
-					action.params
-				),
+				this.scope.modules.transport.shared.postTransaction(action.params),
 			getDelegateBlocksRewards: async action =>
 				this.scope.components.storage.entities.Account.delegateBlocksRewards(
 					action.params.filters,

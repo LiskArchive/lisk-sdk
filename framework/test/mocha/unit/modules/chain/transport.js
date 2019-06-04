@@ -504,14 +504,13 @@ describe('transport', () => {
 					describe('when call __private.receiveTransaction fails', () => {
 						let receiveTransactionError;
 
-						beforeEach(done => {
+						beforeEach(async () => {
 							receiveTransactionError = 'Invalid transaction body - ...';
 							__private.receiveTransaction = sinonSandbox
 								.stub()
-								.callsArgWith(1, receiveTransactionError);
+								.rejects(receiveTransactionError);
 
-							__private.receiveTransactions(transactionsList);
-							done();
+							return __private.receiveTransactions(transactionsList);
 						});
 
 						it('should call library.logger.debug with error and transaction', async () =>
@@ -548,16 +547,14 @@ describe('transport', () => {
 
 			afterEach(() => sinonSandbox.restore());
 
-			it('should composeProcessTransactionsSteps with checkAllowedTransactions and validateTransactions', done => {
+			it('should composeProcessTransactionsSteps with checkAllowedTransactions and validateTransactions', async () => {
 				sinonSandbox.spy(transactionsModule, 'composeTransactionSteps');
-
-				__private.receiveTransaction(transaction, () => {
-					expect(transactionsModule.composeTransactionSteps).to.be.calledOnce;
-					done();
-				});
+				await __private.receiveTransaction(transaction);
+				return expect(transactionsModule.composeTransactionSteps).to.be
+					.calledOnce;
 			});
 
-			it('should call composedTransactionsCheck an array of transactions', done => {
+			it('should call composedTransactionsCheck an array of transactions', async () => {
 				const composedTransactionsCheck = sinonSandbox.stub().returns({
 					transactionsResponses: [
 						{
@@ -576,33 +573,29 @@ describe('transport', () => {
 					.stub(transactionsModule, 'composeTransactionSteps')
 					.returns(composedTransactionsCheck);
 
-				__private.receiveTransaction(transaction, () => {
-					expect(composedTransactionsCheck).to.have.been.calledWith([
-						tranasactionInstance,
-					]);
-					done();
-				});
+				await __private.receiveTransaction(transaction);
+				return expect(composedTransactionsCheck).to.have.been.calledWith([
+					tranasactionInstance,
+				]);
 			});
 
-			it('should call callback with error if transaction is not allowed', done => {
-				const errorMessage = 'Transaction type 0 is currently not allowed.';
+			it('should call callback with error if transaction is not allowed', async () => {
+				const errorMessage = new Error(
+					'Transaction type 0 is currently not allowed.'
+				);
 
 				sinonSandbox
 					.stub(interfaceAdapters.transactions, 'fromJson')
 					.returns({ ...transaction, matcher: () => false });
 
-				__private.receiveTransaction(transaction, err => {
-					expect(err[0]).to.be.instanceOf(Error);
-					expect(err[0].message).to.equal(errorMessage);
-					done();
-				});
+				return expect(
+					__private.receiveTransaction(transaction)
+				).to.be.rejectedWith([errorMessage]);
 			});
 
 			describe('when transaction and peer are defined', () => {
-				beforeEach(done => {
-					__private.receiveTransaction(transaction, async () => {
-						done();
-					});
+				beforeEach(async () => {
+					await __private.receiveTransaction(transaction);
 				});
 
 				it('should call library.balancesSequence.add', async () =>
@@ -621,15 +614,17 @@ describe('transport', () => {
 				let invalidTransaction;
 				let errorResult;
 
-				beforeEach(done => {
+				beforeEach(async () => {
 					invalidTransaction = {
 						...transaction,
 						amount: '0',
 					};
-					__private.receiveTransaction(invalidTransaction, err => {
+
+					try {
+						await __private.receiveTransaction(invalidTransaction);
+					} catch (err) {
 						errorResult = err;
-						done();
-					});
+					}
 				});
 
 				it('should call the call back with error message', async () => {
@@ -646,18 +641,20 @@ describe('transport', () => {
 			describe('when modules.transactions.processUnconfirmedTransaction fails', () => {
 				let processUnconfirmedTransactionError;
 
-				beforeEach(done => {
+				beforeEach(async () => {
 					processUnconfirmedTransactionError = `Transaction is already processed: ${
 						transaction.id
 					}`;
+
 					modules.transactionPool.processUnconfirmedTransaction.rejects([
 						new Error(processUnconfirmedTransactionError),
 					]);
 
-					__private.receiveTransaction(transaction, err => {
+					try {
+						await __private.receiveTransaction(transaction);
+					} catch (err) {
 						error = err;
-						done();
-					});
+					}
 				});
 
 				it('should call library.logger.debug with "Transaction ${transaction.id}" and error string', async () => {
@@ -685,16 +682,9 @@ describe('transport', () => {
 			describe('when modules.transactions.processUnconfirmedTransaction succeeds', () => {
 				let result;
 
-				beforeEach(done => {
-					__private.receiveTransaction(transaction, (err, res) => {
-						error = err;
-						result = res;
-						done();
-					});
+				beforeEach(async () => {
+					result = await __private.receiveTransaction(transaction);
 				});
-
-				it('should call callback with error = null', async () =>
-					expect(error).to.equal(null));
 
 				it('should call callback with result = transaction.id', async () =>
 					expect(result).to.equal(transaction.id));
@@ -1451,18 +1441,16 @@ describe('transport', () => {
 				});
 
 				describe('postTransaction', () => {
-					beforeEach(done => {
+					beforeEach(async () => {
 						query = {
 							transaction,
 						};
+
 						__private.receiveTransaction = sinonSandbox
 							.stub()
-							.callsArgWith(1, null, transaction.id);
-						transportInstance.shared.postTransaction(query, (err, res) => {
-							error = err;
-							result = res;
-							done();
-						});
+							.resolves(transaction.id);
+
+						result = await transportInstance.shared.postTransaction(query);
 					});
 
 					it('should call __private.receiveTransaction with query.transaction as argument', async () =>
@@ -1471,7 +1459,6 @@ describe('transport', () => {
 
 					describe('when __private.receiveTransaction succeeds', () => {
 						it('should invoke callback with object { success: true, transactionId: id }', async () => {
-							expect(error).to.equal(null);
 							expect(result)
 								.to.have.property('transactionId')
 								.which.is.a('string');
@@ -1482,21 +1469,19 @@ describe('transport', () => {
 					});
 
 					describe('when __private.receiveTransaction fails', () => {
-						const receiveTransactionError = 'Invalid transaction body ...';
+						const receiveTransactionError = new Error(
+							'Invalid transaction body ...'
+						);
 
-						beforeEach(done => {
+						beforeEach(async () => {
 							__private.receiveTransaction = sinonSandbox
 								.stub()
-								.callsArgWith(1, receiveTransactionError);
-							transportInstance.shared.postTransaction(query, (err, res) => {
-								error = err;
-								result = res;
-								done();
-							});
+								.rejects(receiveTransactionError);
+
+							result = await transportInstance.shared.postTransaction(query);
 						});
 
 						it('should invoke callback with object { success: false, message: err }', async () => {
-							expect(error).to.equal(null);
 							expect(result)
 								.to.have.property('success')
 								.which.is.equal(false);
@@ -1507,21 +1492,19 @@ describe('transport', () => {
 					});
 
 					describe('when __private.receiveTransaction fails with "Transaction pool is full"', () => {
-						const receiveTransactionError = 'Transaction pool is full';
+						const receiveTransactionError = new Error(
+							'Transaction pool is full'
+						);
 
-						beforeEach(done => {
+						beforeEach(async () => {
 							__private.receiveTransaction = sinonSandbox
 								.stub()
-								.callsArgWith(1, receiveTransactionError);
-							transportInstance.shared.postTransaction(query, (err, res) => {
-								error = err;
-								result = res;
-								done();
-							});
+								.rejects(receiveTransactionError);
+
+							result = await transportInstance.shared.postTransaction(query);
 						});
 
 						it('should invoke callback with object { success: false, message: err }', async () => {
-							expect(error).to.equal(null);
 							expect(result)
 								.to.have.property('success')
 								.which.is.equal(false);
@@ -1534,11 +1517,10 @@ describe('transport', () => {
 
 				describe('postTransactions', () => {
 					describe('when library.config.broadcasts.active option is false', () => {
-						beforeEach(done => {
+						beforeEach(async () => {
 							library.config.broadcasts.active = false;
-							library.schema.validate = sinonSandbox.stub().callsArg(2);
-							transportInstance.shared.postTransactions(query);
-							done();
+							library.schema.validate = sinonSandbox.stub().returns(true);
+							return transportInstance.shared.postTransactions(query);
 						});
 
 						it('should call library.logger.debug', async () =>
@@ -1553,13 +1535,13 @@ describe('transport', () => {
 					});
 
 					describe('when library.schema.validate succeeds', () => {
-						beforeEach(done => {
+						beforeEach(async () => {
 							query = {
 								transactions: transactionsList,
 							};
+							library.schema.validate = sinonSandbox.stub().returns(true);
 							__private.receiveTransactions = sinonSandbox.stub();
-							transportInstance.shared.postTransactions(query);
-							done();
+							return transportInstance.shared.postTransactions(query);
 						});
 
 						it('should call __private.receiveTransactions with query.transaction as argument', async () =>
@@ -1569,27 +1551,21 @@ describe('transport', () => {
 					});
 
 					describe('when library.schema.validate fails', () => {
-						let validateErr;
-
-						beforeEach(done => {
-							validateErr = new Error('Transaction query did not match schema');
+						it('should invoke callback with error = null and result = {success: false, message: message}', async () => {
+							const validateErr = new Error(
+								'Transaction query did not match schema'
+							);
 							validateErr.code = 'INVALID_FORMAT';
 
-							library.schema.validate = sinonSandbox
-								.stub()
-								.callsArgWith(2, [validateErr]);
-							transportInstance.shared.postTransactions(query);
-							done();
-						});
+							library.schema.validate = sinonSandbox.stub().returns(false);
 
-						it('should invoke callback with error = null and result = {success: false, message: message}', async () => {
-							expect(error).to.equal(null);
-							expect(result)
-								.to.have.property('success')
-								.which.equals(false);
-							return expect(result)
-								.to.have.property('message')
-								.which.is.a('string');
+							library.schema.getLastErrors = sinonSandbox
+								.stub()
+								.returns([validateErr]);
+
+							return expect(
+								transportInstance.shared.postTransactions(query)
+							).to.be.rejectedWith([validateErr]);
 						});
 					});
 				});

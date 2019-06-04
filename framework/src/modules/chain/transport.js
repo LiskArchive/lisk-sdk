@@ -15,6 +15,7 @@
 'use strict';
 
 const { TransactionError } = require('@liskhq/lisk-transactions');
+const { promisify } = require('util');
 const _ = require('lodash');
 const { convertErrorsToString } = require('./helpers/error_handlers');
 // eslint-disable-next-line prefer-const
@@ -525,21 +526,20 @@ class Transport {
 			 * @todo Add @returns tag
 			 * @todo Add description of the function
 			 */
-			postTransaction(query, cb) {
-				__private.receiveTransaction(query.transaction, (err, id) => {
-					if (err) {
-						return setImmediate(cb, null, {
-							success: false,
-							message: err.message || 'Transaction was rejected with errors',
-							errors: err,
-						});
-					}
-
-					return setImmediate(cb, null, {
+			async postTransaction(query) {
+				try {
+					const id = await __private.receiveTransaction(query.transaction);
+					return {
 						success: true,
 						transactionId: id,
-					});
-				});
+					};
+				} catch (err) {
+					return {
+						success: false,
+						message: err.message || 'Transaction was rejected with errors',
+						errors: err,
+					};
+				}
 			},
 
 			/**
@@ -549,22 +549,25 @@ class Transport {
 			 * @todo Add @returns tag
 			 * @todo Add description of the function
 			 */
-			postTransactions(query) {
+			async postTransactions(query) {
 				if (!library.config.broadcasts.active) {
 					return library.logger.debug(
 						'Receiving transactions disabled by user through config.json'
 					);
 				}
-				return library.schema.validate(
+
+				const valid = library.schema.validate(
 					query,
-					definitions.WSTransactionsRequest,
-					err => {
-						if (err) {
-							return library.logger.debug('Invalid transactions body', err);
-						}
-						return __private.receiveTransactions(query.transactions);
-					}
+					definitions.WSTransactionsRequest
 				);
+
+				if (!valid) {
+					const err = library.schema.getLastErrors();
+					library.logger.debug('Invalid transactions body', err);
+					throw err;
+				}
+
+				return __private.receiveTransactions(query.transactions);
 			},
 		};
 	}
@@ -618,17 +621,19 @@ __private.receiveSignature = async function(signature) {
  * @implements {__private.receiveTransaction}
  * @param {Array} transactions - Array of transactions
  */
-__private.receiveTransactions = function(transactions = []) {
-	transactions.forEach(transaction => {
-		if (transaction) {
-			transaction.bundled = true;
-		}
-		__private.receiveTransaction(transaction, err => {
-			if (err) {
-				library.logger.debug(convertErrorsToString(err), transaction);
+__private.receiveTransactions = async function(transactions = []) {
+	// eslint-disable-next-line no-restricted-syntax
+	for (const transaction of transactions) {
+		try {
+			if (transaction) {
+				transaction.bundled = true;
 			}
-		});
-	});
+			// eslint-disable-next-line no-await-in-loop
+			await __private.receiveTransaction(transaction);
+		} catch (err) {
+			library.logger.debug(convertErrorsToString(err), transaction);
+		}
+	}
 };
 
 /**
@@ -642,7 +647,7 @@ __private.receiveTransactions = function(transactions = []) {
  * @returns {setImmediateCallback} cb, err
  * @todo Add description for the params
  */
-__private.receiveTransaction = async function(transactionJSON, cb) {
+__private.receiveTransaction = async function(transactionJSON) {
 	const id = transactionJSON ? transactionJSON.id : 'null';
 	let transaction;
 	try {
@@ -671,11 +676,14 @@ __private.receiveTransaction = async function(transactionJSON, cb) {
 		});
 
 		// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
-
-		return setImmediate(cb, errors);
+		throw errors;
 	}
 
-	return library.balancesSequence.add(async balancesSequenceCb => {
+	const balancesSequenceAdd = promisify(
+		library.balancesSequence.add.bind(library.balancesSequence)
+	);
+
+	return balancesSequenceAdd(async addSequenceCb => {
 		library.logger.debug(`Received transaction ${transaction.id}`);
 
 		try {
@@ -683,15 +691,15 @@ __private.receiveTransaction = async function(transactionJSON, cb) {
 				transaction,
 				true
 			);
-			return setImmediate(balancesSequenceCb, null, transaction.id);
+			return setImmediate(addSequenceCb, null, transaction.id);
 		} catch (err) {
 			library.logger.debug(`Transaction ${id}`, convertErrorsToString(err));
 			if (transaction) {
 				library.logger.debug('Transaction', transaction);
 			}
-			return setImmediate(balancesSequenceCb, err);
+			return setImmediate(addSequenceCb, err);
 		}
-	}, cb);
+	});
 };
 
 // Export
