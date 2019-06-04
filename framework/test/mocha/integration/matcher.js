@@ -42,7 +42,6 @@ const CUSTOM_TRANSACTION_TYPE = 7;
 class CustomTransationClass extends BaseTransaction {
 	constructor(input) {
 		super(input);
-		this.type = CUSTOM_TRANSACTION_TYPE;
 		this.asset = input.asset;
 	}
 
@@ -93,6 +92,7 @@ class CustomTransationClass extends BaseTransaction {
  */
 function createRawCustomTransaction({ passphrase, senderId, senderPublicKey }) {
 	const aCustomTransation = new CustomTransationClass({
+		type: 7,
 		senderId,
 		senderPublicKey,
 		asset: {
