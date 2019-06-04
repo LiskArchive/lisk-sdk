@@ -26,12 +26,7 @@ const { ZSchema } = require('../../controller/validator');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
-const {
-	createBus,
-	bootstrapStorage,
-	bootstrapCache,
-	initLogicStructure,
-} = require('./init_steps');
+const { createBus, bootstrapStorage, bootstrapCache } = require('./init_steps');
 const jobQueue = require('./helpers/jobs_queue');
 const Peers = require('./submodules/peers');
 const { TransactionInterfaceAdapter } = require('./interface_adapters');
@@ -158,11 +153,8 @@ module.exports = class Chain {
 			await bootstrapCache(this.scope);
 
 			this.scope.bus = await createBus();
-			this.scope.logic = await initLogicStructure(this.scope);
 
 			await this._initModules();
-
-			this.scope.logic.account.bindModules(this.scope.modules);
 
 			this.scope.bus.registerModules(this.scope.modules);
 

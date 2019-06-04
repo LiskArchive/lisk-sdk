@@ -19,7 +19,7 @@ const BigNum = require('@liskhq/bignum');
 const application = require('../../../../common/application');
 const modulesLoader = require('../../../../common/modules_loader');
 
-const Account = rewire('../../../../../../src/modules/chain/logic/account');
+const Account = rewire('../../../../../../src/modules/chain/rounds/account');
 
 const validAccount = {
 	username: 'genesis_100',
@@ -57,7 +57,12 @@ describe('account', () => {
 				if (err) {
 					done(err);
 				}
-				account = scope.logic.account;
+				account = new Account(
+					scope.components.storage,
+					scope.schema,
+					scope.components.logger,
+					scope.modules.rounds
+				);
 				storage = scope.components.storage;
 				done();
 			}
@@ -72,7 +77,7 @@ describe('account', () => {
 		let library;
 		let storageStub;
 
-		before(done => {
+		before(async () => {
 			storageStub = {
 				entities: {
 					Account: {
@@ -81,16 +86,13 @@ describe('account', () => {
 				},
 			};
 
-			new Account(
+			accountLogic = new Account(
 				storageStub,
 				modulesLoader.scope.schema,
-				modulesLoader.scope.components.logger,
-				(err, lgAccount) => {
-					accountLogic = lgAccount;
-					library = Account.__get__('library');
-					done();
-				}
+				modulesLoader.scope.components.logger
 			);
+
+			library = Account.__get__('library');
 		});
 
 		it('should attach schema to scope variable', async () =>
