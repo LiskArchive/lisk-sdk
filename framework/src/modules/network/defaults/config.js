@@ -77,6 +77,9 @@ const defaultConfig = {
 		maxOutboundConnections: {
 			type: 'integer',
 		},
+		maxInboundConnections: {
+			type: 'integer',
+		},
 		emitPeerLimit: {
 			type: 'integer',
 			minimum: 1,
@@ -96,6 +99,7 @@ const defaultConfig = {
 		connectTimeout: 5000,
 		wsEngine: 'ws',
 		maxOutboundConnections: 20,
+		maxInboundConnections: 100,
 		emitPeerLimit: 25,
 	},
 };
