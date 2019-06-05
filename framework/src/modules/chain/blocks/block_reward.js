@@ -44,7 +44,7 @@ const parseHeight = height => {
  * @returns {number}
  * @todo Add description for the function, params and the return value
  */
-const calcMilestone = (height, blockRewardArgs) => {
+const calculateMilestone = (height, blockRewardArgs) => {
 	height = parseHeight(height);
 	const distance = Math.floor(blockRewardArgs.distance);
 
@@ -67,14 +67,14 @@ const calcMilestone = (height, blockRewardArgs) => {
  * @returns {Bignumber}
  * @todo Add description for the function, params and the return value
  */
-const calcReward = (height, blockRewardArgs) => {
+const calculateReward = (height, blockRewardArgs) => {
 	height = parseHeight(height);
 
 	if (height < blockRewardArgs.rewardOffset) {
 		return new BigNum(0);
 	}
 	return new BigNum(
-		blockRewardArgs.milestones[calcMilestone(height, blockRewardArgs)]
+		blockRewardArgs.milestones[calculateMilestone(height, blockRewardArgs)]
 	);
 };
 
@@ -85,7 +85,7 @@ const calcReward = (height, blockRewardArgs) => {
  * @returns {Bignumber}
  * @todo Add description for the function, params and the return value
  */
-const calcSupply = (height, blockRewardArgs) => {
+const calculateSupply = (height, blockRewardArgs) => {
 	height = parseHeight(height);
 	const distance = Math.floor(blockRewardArgs.distance);
 	let supply = new BigNum(blockRewardArgs.totalAmount);
@@ -95,7 +95,7 @@ const calcSupply = (height, blockRewardArgs) => {
 		return supply;
 	}
 
-	const milestone = calcMilestone(height, blockRewardArgs);
+	const milestone = calculateMilestone(height, blockRewardArgs);
 	const rewards = [];
 
 	let amount = 0;
@@ -135,4 +135,4 @@ const calcSupply = (height, blockRewardArgs) => {
 	return supply;
 };
 
-module.exports = { calcMilestone, calcSupply, calcReward };
+module.exports = { calculateMilestone, calculateReward, calculateSupply };

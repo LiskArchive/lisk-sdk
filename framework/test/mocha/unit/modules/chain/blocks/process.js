@@ -31,9 +31,9 @@ const {
 	BlockSlots,
 } = require('../../../../../../src/modules/chain/blocks/block_slots');
 const {
-	calcMilestone,
-	calcReward,
-	calcSupply,
+	calculateMilestone,
+	calculateReward,
+	calculateSupply,
 } = require('../../../../../../src/modules/chain/blocks/block_reward');
 const blocksLogic = require('../../../../../../src/modules/chain/blocks/block');
 const blocksUtils = require('../../../../../../src/modules/chain/blocks/utils');
@@ -130,9 +130,9 @@ describe('blocks/process', () => {
 		};
 
 		blockReward = {
-			calcMilestone: height => calcMilestone(height, blockRewardArgs),
-			calcSupply: height => calcSupply(height, blockRewardArgs),
-			calcReward: height => calcReward(height, blockRewardArgs),
+			calculateMilestone: height => calculateMilestone(height, blockRewardArgs),
+			calculateSupply: height => calculateSupply(height, blockRewardArgs),
+			calculateReward: height => calculateReward(height, blockRewardArgs),
 		};
 
 		constants = {

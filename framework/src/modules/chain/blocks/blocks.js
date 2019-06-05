@@ -20,7 +20,11 @@ const blocksUtils = require('./utils');
 const { BlocksProcess } = require('./process');
 const { BlocksVerify } = require('./verify');
 const { BlocksChain } = require('./chain');
-const { calcSupply, calcReward, calcMilestone } = require('./block_reward');
+const {
+	calculateSupply,
+	calculateReward,
+	calculateMilestone,
+} = require('./block_reward');
 
 const EVENT_NEW_BLOCK = 'EVENT_NEW_BLOCK';
 const EVENT_DELETE_BLOCK = 'EVENT_DELETE_BLOCK';
@@ -76,9 +80,10 @@ class Blocks extends EventEmitter {
 			totalAmount,
 		};
 		this.blockReward = {
-			calcMilestone: height => calcMilestone(height, this.blockRewardArgs),
-			calcReward: height => calcReward(height, this.blockRewardArgs),
-			calcSupply: height => calcSupply(height, this.blockRewardArgs),
+			calculateMilestone: height =>
+				calculateMilestone(height, this.blockRewardArgs),
+			calculateReward: height => calculateReward(height, this.blockRewardArgs),
+			calculateSupply: height => calculateSupply(height, this.blockRewardArgs),
 		};
 		this.constants = {
 			blockReceiptTimeout,

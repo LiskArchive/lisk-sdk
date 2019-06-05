@@ -26,9 +26,9 @@ const {
 const block = require('../../../../../../src/modules/chain/blocks/block');
 const validator = require('../../../../../../src/controller/validator');
 const {
-	calcSupply,
-	calcReward,
-	calcMilestone,
+	calculateSupply,
+	calculateReward,
+	calculateMilestone,
 } = require('../../../../../../src/modules/chain/blocks/block_reward');
 
 describe('block', () => {
@@ -54,9 +54,9 @@ describe('block', () => {
 	};
 
 	const blockReward = {
-		calcMilestone: height => calcMilestone(height, blockRewardArgs),
-		calcSupply: height => calcSupply(height, blockRewardArgs),
-		calcReward: height => calcReward(height, blockRewardArgs),
+		calculateMilestone: height => calculateMilestone(height, blockRewardArgs),
+		calculateSupply: height => calculateSupply(height, blockRewardArgs),
+		calculateReward: height => calculateReward(height, blockRewardArgs),
 	};
 	const maxPayloadLength = 1024 * 1024;
 
