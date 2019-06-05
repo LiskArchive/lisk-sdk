@@ -24,15 +24,6 @@ const shuffleActiveDelegateList = async (round, list) => {
 	return delegateList;
 };
 
-/**
- * Main delegates methods. Initializes library with scope content and generates a Delegate instance.
- *
- * @class
- * @memberof modules
- * @requires helpers/slots
- * @requires logic/delegate
- * @param {scope} scope - App instance
- */
 class Delegates {
 	constructor({ storage }) {
 		this.delegateListCache = {};
