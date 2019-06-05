@@ -41,17 +41,22 @@ const { ACTIVE_DELEGATES } = global.constants;
 function getDelegateForSlot(library, slot, cb) {
 	const lastBlock = library.modules.blocks.lastBlock;
 	const round = slots.calcRound(lastBlock.height + 1);
-	library.modules.forger.loadDelegates(() => {
-		library.modules.rounds
-			.generateDelegateList(round)
-			.then(list => {
-				const delegatePublicKey = list[slot % ACTIVE_DELEGATES];
-				return cb(null, delegatePublicKey);
-			})
-			.catch(err => {
-				return cb(err);
-			});
-	});
+	library.modules.forger
+		.loadDelegates()
+		.then(() => {
+			library.modules.rounds
+				.generateDelegateList(round)
+				.then(list => {
+					const delegatePublicKey = list[slot % ACTIVE_DELEGATES];
+					return cb(null, delegatePublicKey);
+				})
+				.catch(err => {
+					return cb(err);
+				});
+		})
+		.catch(err => {
+			return cb(err);
+		});
 }
 
 function blockToJSON(block) {
