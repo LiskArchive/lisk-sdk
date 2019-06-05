@@ -50,7 +50,6 @@ describe('Integration tests for P2P library', () => {
 		beforeEach(async () => {
 			p2pNodeList = ALL_NODE_PORTS.map(nodePort => {
 				return new P2P({
-					blacklistedPeers: [],
 					connectTimeout: 5000,
 					seedPeers: [],
 					wsEngine: 'ws',
@@ -120,7 +119,6 @@ describe('Integration tests for P2P library', () => {
 				const nodePort = NETWORK_START_PORT + index;
 
 				return new P2P({
-					blacklistedPeers: [],
 					seedPeers,
 					wsEngine: 'ws',
 					connectTimeout: 5000,
@@ -492,7 +490,6 @@ describe('Integration tests for P2P library', () => {
 
 				const nodePort = NETWORK_START_PORT + index;
 				return new P2P({
-					blacklistedPeers: [],
 					connectTimeout: 5000,
 					ackTimeout: 5000,
 					seedPeers,
@@ -1061,7 +1058,6 @@ describe('Integration tests for P2P library', () => {
 				const nodePort = NETWORK_START_PORT + index;
 
 				return new P2P({
-					blacklistedPeers: [],
 					connectTimeout: 5000,
 					ackTimeout: 5000,
 					peerSelectionForSend: peerSelectionForSendRequest as P2PPeerSelectionForSendFunction,
@@ -1222,7 +1218,6 @@ describe('Integration tests for P2P library', () => {
 				const nodePort = NETWORK_START_PORT + index;
 
 				return new P2P({
-					blacklistedPeers: [],
 					seedPeers,
 					wsEngine: 'ws',
 					// A short connectTimeout and ackTimeout will make the node to give up on discovery quicker for our test.
@@ -1344,7 +1339,6 @@ describe('Integration tests for P2P library', () => {
 
 					const nodePort = NETWORK_START_PORT + index;
 					return new P2P({
-						blacklistedPeers: [],
 						connectTimeout: 5000,
 						ackTimeout: 5000,
 						seedPeers,
@@ -1374,7 +1368,7 @@ describe('Integration tests for P2P library', () => {
 			for (const p2p of p2pNodeList) {
 				p2p.start();
 			}
-			await wait(1000);
+			await wait(1800);
 		});
 
 		afterEach(async () => {
@@ -1389,15 +1383,15 @@ describe('Integration tests for P2P library', () => {
 		describe('Peer discovery and connections', () => {
 			it(`should not create more than ${TEN_CONNECTIONS} outbound connections`, async () => {
 				p2pNodeList.forEach(p2p => {
-					const x = p2p['_peerPool'].getPeersCountByKind();
-					expect(x.outbound).to.be.at.most(TEN_CONNECTIONS);
+					const { outbound } = p2p['_peerPool'].getPeersCountByKind();
+					expect(outbound).to.be.at.most(TEN_CONNECTIONS);
 				});
 			});
 
 			it(`should not create more than ${TEN_CONNECTIONS} inbound connections`, async () => {
 				p2pNodeList.forEach(p2p => {
-					const x = p2p['_peerPool'].getPeersCountByKind();
-					expect(x.inbound).to.be.at.most(TEN_CONNECTIONS);
+					const { inbound } = p2p['_peerPool'].getPeersCountByKind();
+					expect(inbound).to.be.at.most(TEN_CONNECTIONS);
 				});
 			});
 

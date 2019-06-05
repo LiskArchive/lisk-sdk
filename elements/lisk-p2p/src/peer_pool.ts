@@ -380,11 +380,14 @@ export class PeerPool extends EventEmitter {
 	public triggerNewConnections(
 		peers: ReadonlyArray<P2PDiscoveredPeerInfo>,
 	): void {
-		const peersCount = this.getPeersCountByKind();
+		const disconnectPeers = peers.filter(
+			peer => !this._peerMap.has(constructPeerIdFromPeerInfo(peer)),
+		);
+		const { outbound } = this.getPeersCountByKind();
 		// Trigger new connections only if the maximum of outbound connections has not been reached
 		const peersToConnect = this._peerSelectForConnection({
-			peers,
-			peerLimit: this._maxOutboundConnections - peersCount.outbound,
+			peers: disconnectPeers,
+			peerLimit: this._maxOutboundConnections - outbound,
 		});
 		peersToConnect.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
