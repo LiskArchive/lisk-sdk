@@ -17,6 +17,7 @@
 const {
 	Account,
 	Block,
+	Dpos,
 	Round,
 	Transaction,
 } = require('../components/storage/entities');
@@ -29,6 +30,7 @@ module.exports = async ({ components: { storage, logger } }, accountLimit) => {
 		storage.registerEntity('Block', Block, {
 			replaceExisting: true,
 		});
+		storage.registerEntity('Dpos', Dpos);
 		storage.registerEntity('Round', Round);
 		storage.registerEntity('Transaction', Transaction, {
 			replaceExisting: true,
