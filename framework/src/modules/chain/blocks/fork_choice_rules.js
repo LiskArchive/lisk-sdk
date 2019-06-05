@@ -6,12 +6,9 @@
  * @private
  */
 // eslint-disable-next-line class-methods-use-this
-function isValidBlock(lastBlock, currentBlock) {
-	return (
-		lastBlock.height + 1 === currentBlock.height &&
-		lastBlock.id === currentBlock.previousBlock
-	);
-}
+const isValidBlock = (lastBlock, currentBlock) =>
+	lastBlock.height + 1 === currentBlock.height &&
+	lastBlock.id === currentBlock.previousBlock;
 
 /**
  * Determine if Case 1 fulfills
@@ -21,9 +18,8 @@ function isValidBlock(lastBlock, currentBlock) {
  * @private
  */
 // eslint-disable-next-line class-methods-use-this
-function isIdenticalBlock(lastBlock, currentBlock) {
-	return lastBlock.id === currentBlock.id;
-}
+const isIdenticalBlock = (lastBlock, currentBlock) =>
+	lastBlock.id === currentBlock.id;
 
 /**
  * Determine if two blocks are duplicates
@@ -33,13 +29,10 @@ function isIdenticalBlock(lastBlock, currentBlock) {
  * @private
  */
 // eslint-disable-next-line class-methods-use-this
-function isDuplicateBlock(lastBlock, currentBlock) {
-	return (
-		lastBlock.height === currentBlock.height &&
-		lastBlock.heightPrevoted === currentBlock.heightPrevoted &&
-		lastBlock.previousBlock === currentBlock.previousBlock
-	);
-}
+const isDuplicateBlock = (lastBlock, currentBlock) =>
+	lastBlock.height === currentBlock.height &&
+	lastBlock.heightPrevoted === currentBlock.heightPrevoted &&
+	lastBlock.previousBlock === currentBlock.previousBlock;
 
 /**
  * Determine if Case 3 fulfills
@@ -48,12 +41,9 @@ function isDuplicateBlock(lastBlock, currentBlock) {
  * @return {*|boolean}
  * @private
  */
-function isDoubleForging(lastBlock, currentBlock) {
-	return (
-		isDuplicateBlock(lastBlock, currentBlock) &&
-		lastBlock.generatorPublicKey === currentBlock.generatorPublicKey
-	);
-}
+const isDoubleForging = (lastBlock, currentBlock) =>
+	isDuplicateBlock(lastBlock, currentBlock) &&
+	lastBlock.generatorPublicKey === currentBlock.generatorPublicKey;
 
 /**
  * Determine if Case 4 fulfills
@@ -65,21 +55,24 @@ function isDoubleForging(lastBlock, currentBlock) {
  * @return {*|boolean}
  * @private
  */
-function isTieBreak({
+const isTieBreak = ({
 	slots,
 	lastBlock,
 	currentBlock,
 	lastReceivedAt,
 	currentReceivedAt,
-}) {
-	return (
-		isDuplicateBlock(lastBlock, currentBlock) &&
-		slots.getSlotNumber(lastBlock.timestamp) <
-			slots.getSlotNumber(currentBlock.timestamp) &&
-		!this._receivedInSlot(lastBlock, lastReceivedAt) &&
-		this._receivedInSlot(currentBlock, currentReceivedAt)
+}) =>
+	isDuplicateBlock(lastBlock, currentBlock) &&
+	slots.getSlotNumber(lastBlock.timestamp) <
+		slots.getSlotNumber(currentBlock.timestamp) &&
+	!slots.timeFallsInSlot(
+		slots.getSlotNumber(lastBlock.timestamp),
+		lastReceivedAt
+	) &&
+	slots.timeFallsInSlot(
+		slots.getSlotNumber(currentBlock.timestamp),
+		currentReceivedAt
 	);
-}
 
 /**
  * Determine if Case 5 fulfills
@@ -88,13 +81,10 @@ function isTieBreak({
  * @return {boolean}
  */
 // eslint-disable-next-line class-methods-use-this
-function isDifferentChain(lastBlock, currentBlock) {
-	return (
-		lastBlock.heightPrevoted < currentBlock.heightPrevoted ||
-		(lastBlock.height < currentBlock.height &&
-			lastBlock.heightPrevoted === currentBlock.heightPrevoted)
-	);
-}
+const isDifferentChain = (lastBlock, currentBlock) =>
+	lastBlock.heightPrevoted < currentBlock.heightPrevoted ||
+	(lastBlock.height < currentBlock.height &&
+		lastBlock.heightPrevoted === currentBlock.heightPrevoted);
 
 module.exports = {
 	isTieBreak,
