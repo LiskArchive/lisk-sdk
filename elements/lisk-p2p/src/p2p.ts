@@ -121,6 +121,7 @@ export const DEFAULT_SEND_PEER_LIMIT = 25;
 const BASE_10_RADIX = 10;
 const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
 const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
+const DEFAULT_OUTBOUND_SHUFFLE_INTERVAL = 300000;
 
 const selectRandomPeerSample = (
 	peerList: ReadonlyArray<P2PDiscoveredPeerInfo>,
@@ -319,7 +320,6 @@ export class P2P extends EventEmitter {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
-
 		this._peerPool = new PeerPool({
 			connectTimeout: config.connectTimeout,
 			ackTimeout: config.ackTimeout,
@@ -345,6 +345,9 @@ export class P2P extends EventEmitter {
 				config.maxInboundConnections === undefined
 					? DEFAULT_MAX_INBOUND_CONNECTIONS
 					: config.maxInboundConnections,
+			outboundEvictionInterval: config.outboundEvictionInterval
+				? config.outboundEvictionInterval
+				: DEFAULT_OUTBOUND_SHUFFLE_INTERVAL,
 		});
 
 		this._bindHandlersToPeerPool(this._peerPool);

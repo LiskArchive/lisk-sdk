@@ -90,6 +90,7 @@ interface PeerPoolConfig {
 	readonly peerBanTime?: number;
 	readonly maxOutboundConnections: number;
 	readonly maxInboundConnections: number;
+	readonly outboundEvictionInterval?: number;
 }
 
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
@@ -132,6 +133,7 @@ export class PeerPool extends EventEmitter {
 	private readonly _peerSelectForRequest: P2PPeerSelectionForRequestFunction;
 	private readonly _peerSelectForConnection: P2PPeerSelectionForConnectionFunction;
 	private readonly _sendPeerLimit: number;
+	private readonly _outboundShuffleIntervalId: NodeJS.Timer | undefined;
 
 	public constructor(peerPoolConfig: PeerPoolConfig) {
 		super();
@@ -143,6 +145,13 @@ export class PeerPool extends EventEmitter {
 		this._maxOutboundConnections = peerPoolConfig.maxOutboundConnections;
 		this._maxInboundConnections = peerPoolConfig.maxInboundConnections;
 		this._sendPeerLimit = peerPoolConfig.sendPeerLimit;
+		this._outboundShuffleIntervalId = setInterval(
+			() => {
+				this._evictPeer(OutboundPeer);
+			},
+			peerPoolConfig.outboundEvictionInterval as number,
+		);
+
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerRPC = (request: P2PRequest) => {
 			// Re-emit the request to allow it to bubble up the class hierarchy.
@@ -474,6 +483,11 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public removeAllPeers(): void {
+		// Clear periodic eviction of outbound peers for shuffling
+		if (this._outboundShuffleIntervalId) {
+			clearInterval(this._outboundShuffleIntervalId);
+		}
+
 		this._peerMap.forEach((peer: Peer) => {
 			this.removePeer(peer.id);
 		});
@@ -532,6 +546,18 @@ export class PeerPool extends EventEmitter {
 				this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
 			}
 		})();
+	}
+
+	private _evictPeer(kind: typeof InboundPeer | typeof OutboundPeer): void {
+		const peers = this.getPeers(kind);
+		if (peers.length === 0) {
+			return;
+		}
+
+		if (kind === OutboundPeer) {
+			const peerIdToRemove = shuffle(peers.map(constructPeerIdFromPeerInfo))[0];
+			this.removePeer(peerIdToRemove);
+		}
 	}
 
 	private _bindHandlersToPeer(peer: Peer): void {
