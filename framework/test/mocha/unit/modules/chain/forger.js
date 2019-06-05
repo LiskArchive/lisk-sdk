@@ -283,6 +283,8 @@ describe('forge', () => {
 				// https://github.com/LiskHQ/lisk-elements/issues/1162
 				try {
 					await forgeModule.loadDelegates();
+					// Next line is to make sure the above method actually failed; should never execute.
+					expect(false).to.be(true);
 				} catch (err) {
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 				}
@@ -319,6 +321,8 @@ describe('forge', () => {
 
 				try {
 					await forgeModule.loadDelegates();
+					// Next line is to make sure the above method actually failed; should never execute.
+					expect(false).to.be(true);
 				} catch (err) {
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 				}
@@ -357,6 +361,8 @@ describe('forge', () => {
 				// https://github.com/LiskHQ/lisk-elements/issues/1162
 				try {
 					await forgeModule.loadDelegates();
+					// Next line is to make sure the above method actually failed; should never execute.
+					expect(false).to.be(true);
 				} catch (err) {
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 				}
@@ -393,6 +399,8 @@ describe('forge', () => {
 
 				try {
 					await forgeModule.loadDelegates();
+					// Next line is to make sure the above method actually failed; should never execute.
+					expect(false).to.be(true);
 				} catch (err) {
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 				}
@@ -431,6 +439,8 @@ describe('forge', () => {
 				// https://github.com/LiskHQ/lisk-elements/issues/1162
 				try {
 					await forgeModule.loadDelegates();
+					// Next line is to make sure the above method actually failed; should never execute.
+					expect(false).to.be(true);
 				} catch (err) {
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 				}
@@ -467,6 +477,8 @@ describe('forge', () => {
 
 				try {
 					await forgeModule.loadDelegates();
+					// Next line is to make sure the above method actually failed; should never execute.
+					expect(false).to.be(true);
 				} catch (err) {
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 				}
@@ -505,6 +517,8 @@ describe('forge', () => {
 				// https://github.com/LiskHQ/lisk-elements/issues/1162
 				try {
 					await forgeModule.loadDelegates();
+					// Next line is to make sure the above method actually failed; should never execute.
+					expect(false).to.be(true);
 				} catch (err) {
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 				}
@@ -541,6 +555,8 @@ describe('forge', () => {
 
 				try {
 					await forgeModule.loadDelegates();
+					// Next line is to make sure the above method actually failed; should never execute.
+					expect(false).to.be(true);
 				} catch (err) {
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 				}
@@ -577,6 +593,8 @@ describe('forge', () => {
 
 				try {
 					await forgeModule.loadDelegates();
+					// Next line is to make sure the above method actually failed; should never execute.
+					expect(false).to.be(true);
 				} catch (err) {
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 				}
@@ -611,6 +629,8 @@ describe('forge', () => {
 
 				try {
 					await forgeModule.loadDelegates();
+					// Next line is to make sure the above method actually failed; should never execute.
+					expect(false).to.be(true);
 				} catch (err) {
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 				}
@@ -663,6 +683,8 @@ describe('forge', () => {
 
 				try {
 					await forgeModule.loadDelegates();
+					// Next line is to make sure the above method actually failed; should never execute.
+					expect(false).to.be(true);
 				} catch (err) {
 					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 				}
