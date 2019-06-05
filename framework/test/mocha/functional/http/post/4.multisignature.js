@@ -106,7 +106,9 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.eql('Invalid transaction body');
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
 						"'.multisignature.keysgroup' should NOT have fewer than 1 items"
@@ -139,7 +141,9 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.eql('Invalid transaction body');
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
 						"'.multisignature.keysgroup[3]' should be string"
@@ -165,7 +169,9 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.eql('Invalid transaction body');
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[1].message).to.be.equal(
 						'Invalid multisignature keysgroup. Can not contain sender'
@@ -200,7 +206,9 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.eql('Invalid transaction body');
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
 						"'.multisignature.keysgroup' should NOT have duplicate items (items ## 1 and 0 are identical)"
@@ -235,7 +243,9 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.eql('Invalid transaction body');
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
 						'\'.multisignature.keysgroup[1]\' should match format "additionPublicKey"'
@@ -271,7 +281,9 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.eql('Invalid transaction body');
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
 						'\'.multisignature.keysgroup[0]\' should match format "additionPublicKey"'
@@ -303,7 +315,9 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.eql('Invalid transaction body');
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
 						'\'.multisignature.keysgroup[0]\' should match format "additionPublicKey"'
@@ -339,7 +353,9 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.eql('Invalid transaction body');
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
 						'\'.multisignature.keysgroup[0]\' should match format "additionPublicKey"'
@@ -375,7 +391,9 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.eql('Invalid transaction body');
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
 						'\'.multisignature.keysgroup[0]\' should match format "additionPublicKey"'
@@ -398,7 +416,9 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.eql('Invalid transaction body');
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
 						"'.multisignature.keysgroup' should NOT have more than 15 items"
@@ -422,7 +442,9 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.eql('Invalid transaction body');
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
 						'Invalid multisignature min. Must be less than or equal to keysgroup size'
@@ -446,7 +468,9 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.eql('Invalid transaction body');
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
 						"'.multisignature.min' should be <= 15"
@@ -470,7 +494,9 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.eql('Invalid transaction body');
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
 						"'.multisignature.min' should be >= 1"
@@ -496,7 +522,9 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.eql('Invalid transaction body');
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
 						"'.multisignature.lifetime' should be <= 72"
@@ -520,7 +548,9 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.eql('Invalid transaction body');
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
 						"'.multisignature.lifetime' should be >= 1"
@@ -539,7 +569,9 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				scenario.multiSigTransaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					`Account does not have enough LSK: ${

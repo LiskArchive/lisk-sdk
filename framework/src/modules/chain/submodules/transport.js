@@ -144,10 +144,7 @@ __private.receiveSignature = function(signature, cb) {
  * @param {Array} transactions - Array of transactions
  * @param {string} extraLogMessage - Extra log message
  */
-__private.receiveTransactions = function(
-	transactions = [],
-	extraLogMessage
-) {
+__private.receiveTransactions = function(transactions = [], extraLogMessage) {
 	transactions.forEach(transaction => {
 		if (transaction) {
 			transaction.bundled = true;
@@ -208,9 +205,7 @@ __private.receiveTransaction = async function(
 	}
 
 	return library.balancesSequence.add(balancesSequenceCb => {
-		library.logger.debug(
-			`Received transaction ${transaction.id}`
-		);
+		library.logger.debug(`Received transaction ${transaction.id}`);
 
 		modules.transactions.processUnconfirmedTransaction(
 			transaction,
@@ -698,7 +693,7 @@ Transport.prototype.shared = {
 				if (err) {
 					return setImmediate(cb, null, {
 						success: false,
-						message: err.message || 'Invalid transaction body',
+						message: err.message || 'Transaction was rejected with errors',
 						errors: err,
 					});
 				}

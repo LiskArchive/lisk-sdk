@@ -19,14 +19,14 @@ const {
 	transfer,
 	registerMultisignature,
 } = require('@liskhq/lisk-transactions');
-const accountFixtures = require('../../../../../fixtures/accounts');
-const randomUtil = require('../../../../../common/utils/random');
+const accountFixtures = require('../../../fixtures/accounts');
+const randomUtil = require('../../../common/utils/random');
 const {
 	createSignatureObject,
 	sendTransactionPromise,
 	getPendingMultisignaturesPromise,
-} = require('../../../../../common/helpers/api');
-const confirmTransactionsOnAllNodes = require('../../../../utils/transactions')
+} = require('../../../common/helpers/api');
+const confirmTransactionsOnAllNodes = require('../../utils/transactions')
 	.confirmTransactionsOnAllNodes;
 
 const { MAX_TRANSACTIONS_PER_BLOCK } = __testContext.config.constants;
@@ -39,8 +39,9 @@ module.exports = function(configurations, network) {
 		const signatures = [];
 		const numbers = _.range(numberOfTransactions);
 		// Adding two extra blocks as a safety timeframe
-		const blocksToWait =
-			Math.ceil(numberOfTransactions / MAX_TRANSACTIONS_PER_BLOCK) + 2;
+		const blocksToWait = Math.ceil(
+			numberOfTransactions / MAX_TRANSACTIONS_PER_BLOCK
+		);
 
 		const postSignatures = signature => {
 			const signaturesToPost = {
