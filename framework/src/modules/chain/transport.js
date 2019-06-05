@@ -232,72 +232,73 @@ class Transport {
 			 */
 			async blocksCommon(query) {
 				query = query || {};
-				library.schema.validate(
+
+				const valid = library.schema.validate(
 					query,
-					definitions.WSBlocksCommonRequest,
-					err => {
-						if (err) {
-							err = `${err[0].message}: ${err[0].path}`;
-							library.logger.debug('Common block request validation failed', {
-								err: err.toString(),
-								req: query,
-							});
-							throw new Error(err);
-						}
-
-						const escapedIds = query.ids
-							// Remove quotes
-							.replace(/['"]+/g, '')
-							// Separate by comma into an array
-							.split(',')
-							// Reject any non-numeric values
-							.filter(id => /^[0-9]+$/.test(id));
-
-						if (!escapedIds.length) {
-							library.logger.debug('Common block request validation failed', {
-								err: 'ESCAPE',
-								req: query.ids,
-							});
-
-							throw new Error('Invalid block id sequence');
-						}
-
-						return library.storage.entities.Block.get({
-							id: escapedIds[0],
-						})
-							.then(row => {
-								if (!row.length > 0) {
-									return {
-										success: true,
-										common: null,
-									};
-								}
-
-								const {
-									height,
-									id,
-									previousBlockId: previousBlock,
-									timestamp,
-								} = row[0];
-
-								const parsedRow = {
-									id,
-									height,
-									previousBlock,
-									timestamp,
-								};
-
-								return {
-									success: true,
-									common: parsedRow,
-								};
-							})
-							.catch(getOneError => {
-								library.logger.error(getOneError.stack);
-								throw new Error('Failed to get common block');
-							});
-					}
+					definitions.WSBlocksCommonRequest
 				);
+
+				if (!valid) {
+					const err = library.schema.getLastErrors();
+					const error = `${err[0].message}: ${err[0].path}`;
+					library.logger.debug('Common block request validation failed', {
+						err: error.toString(),
+						req: query,
+					});
+					throw new Error(error);
+				}
+
+				const escapedIds = query.ids
+					// Remove quotes
+					.replace(/['"]+/g, '')
+					// Separate by comma into an array
+					.split(',')
+					// Reject any non-numeric values
+					.filter(id => /^[0-9]+$/.test(id));
+
+				if (!escapedIds.length) {
+					library.logger.debug('Common block request validation failed', {
+						err: 'ESCAPE',
+						req: query.ids,
+					});
+
+					throw new Error('Invalid block id sequence');
+				}
+
+				try {
+					const row = await library.storage.entities.Block.get({
+						id: escapedIds[0],
+					});
+
+					if (!row.length > 0) {
+						return {
+							success: true,
+							common: null,
+						};
+					}
+
+					const {
+						height,
+						id,
+						previousBlockId: previousBlock,
+						timestamp,
+					} = row[0];
+
+					const parsedRow = {
+						id,
+						height,
+						previousBlock,
+						timestamp,
+					};
+
+					return {
+						success: true,
+						common: parsedRow,
+					};
+				} catch (error) {
+					library.logger.error(error.stack);
+					throw new Error('Failed to get common block');
+				}
 			},
 
 			/**
