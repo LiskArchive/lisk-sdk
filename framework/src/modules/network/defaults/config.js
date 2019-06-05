@@ -56,6 +56,7 @@ const defaultConfig = {
 				format: 'ip',
 			},
 		},
+		// Warning! The connectivity of the node might be negatively impacted if using this option.
 		fixedPeers: {
 			type: 'array',
 			items: {
@@ -64,6 +65,8 @@ const defaultConfig = {
 			},
 			maximum: 4,
 		},
+		// Warning! Beware of declaring only trustworthy peers in this array as these could attack a
+		// node with a denial-of-service attack because the banning mechanism is deactivated.
 		whitelistedPeers: {
 			type: 'array',
 			items: {
