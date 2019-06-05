@@ -62,6 +62,7 @@ const defaultConfig = {
 				type: 'string',
 				format: 'ip',
 			},
+			maximum: 4,
 		},
 		whitelistedPeers: {
 			type: 'array',
