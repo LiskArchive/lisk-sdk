@@ -124,6 +124,9 @@ class BlocksProcess {
 			maxPayloadLength: this.constants.maxPayloadLength,
 			keypair,
 			timestamp,
+			prevotedConfirmedUptoHeight: 1,
+			maxHeightPreviouslyForged: 1,
+			height: context.blockHeight,
 		});
 	}
 
