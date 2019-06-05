@@ -55,6 +55,9 @@ const defaultConfig = {
 		peerBanTime: {
 			type: 'integer',
 		},
+		populatorInterval: {
+			type: 'integer',
+		},
 		blacklistedPeers: {
 			type: 'array',
 			items: {
@@ -71,6 +74,9 @@ const defaultConfig = {
 		ackTimeout: {
 			type: 'integer',
 		},
+		maxOutboundConnections: {
+			type: 'integer',
+		},
 		emitPeerLimit: {
 			type: 'integer',
 			minimum: 1,
@@ -83,11 +89,13 @@ const defaultConfig = {
 		address: '0.0.0.0',
 		discoveryInterval: 30000,
 		peerBanTime: 86400,
+		populatorInterval: 10000,
 		seedPeers: [],
 		blacklistedPeers: [],
 		ackTimeout: 20000,
 		connectTimeout: 5000,
 		wsEngine: 'ws',
+		maxOutboundConnections: 20,
 		emitPeerLimit: 25,
 	},
 };

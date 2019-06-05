@@ -31,6 +31,7 @@ import {
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
+	P2PPeersCount,
 	P2PPeerSelectionForConnectionFunction,
 	P2PPeerSelectionForRequestFunction,
 	P2PPeerSelectionForSendFunction,
@@ -87,6 +88,7 @@ interface PeerPoolConfig {
 	readonly peerSelectionForConnection: P2PPeerSelectionForConnectionFunction;
 	readonly sendPeerLimit: number;
 	readonly peerBanTime?: number;
+	readonly maxOutboundConnections: number;
 }
 
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
@@ -123,6 +125,7 @@ export class PeerPool extends EventEmitter {
 	private readonly _handleBanPeer: (peerId: string) => void;
 	private readonly _handleUnbanPeer: (peerId: string) => void;
 	private _nodeInfo: P2PNodeInfo | undefined;
+	private readonly _maxOutboundConnections: number;
 	private readonly _peerSelectForSend: P2PPeerSelectionForSendFunction;
 	private readonly _peerSelectForRequest: P2PPeerSelectionForRequestFunction;
 	private readonly _peerSelectForConnection: P2PPeerSelectionForConnectionFunction;
@@ -135,6 +138,7 @@ export class PeerPool extends EventEmitter {
 		this._peerSelectForSend = peerPoolConfig.peerSelectionForSend;
 		this._peerSelectForRequest = peerPoolConfig.peerSelectionForRequest;
 		this._peerSelectForConnection = peerPoolConfig.peerSelectionForConnection;
+		this._maxOutboundConnections = peerPoolConfig.maxOutboundConnections;
 		this._sendPeerLimit = peerPoolConfig.sendPeerLimit;
 
 		// This needs to be an arrow function so that it can be used as a listener.
@@ -239,9 +243,7 @@ export class PeerPool extends EventEmitter {
 		return this._nodeInfo;
 	}
 
-	public async request(
-		packet: P2PRequestPacket,
-	): Promise<P2PResponsePacket> {
+	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
 		const listOfPeerInfo = [...this._peerMap.values()].map(
 			(peer: Peer) => peer.peerInfo,
 		);
@@ -373,18 +375,20 @@ export class PeerPool extends EventEmitter {
 		return discoveredPeers;
 	}
 
-	public selectPeersAndConnect(
+	public triggerNewConnections(
 		peers: ReadonlyArray<P2PDiscoveredPeerInfo>,
-	): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		const peersToConnect = this._peerSelectForConnection({ peers });
-
+	): void {
+		const peersCount = this.getPeersCountByKind();
+		// Trigger new connections only if the maximum of outbound connections has not been reached
+		const peersToConnect = this._peerSelectForConnection({
+			peers,
+			peerLimit: this._maxOutboundConnections - peersCount.outbound,
+		});
 		peersToConnect.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
 
-			return this.addOutboundPeer(peerId, peerInfo);
+			this.addOutboundPeer(peerId, peerInfo);
 		});
-
-		return peersToConnect;
 	}
 
 	public addInboundPeer(
@@ -437,6 +441,26 @@ export class PeerPool extends EventEmitter {
 		}
 
 		return peer;
+	}
+
+	public getPeersCountByKind(): P2PPeersCount {
+		return [...this._peerMap.values()].reduce(
+			(prev, peer) => {
+				if (peer instanceof OutboundPeer) {
+					return {
+						outbound: prev.outbound + 1,
+						inbound: prev.inbound,
+					};
+				} else if (peer instanceof InboundPeer) {
+					return {
+						outbound: prev.outbound,
+						inbound: prev.inbound + 1,
+					};
+				}
+				throw new Error('A non-identified peer exists in the pool.');
+			},
+			{ outbound: 0, inbound: 0 },
+		);
 	}
 
 	public removeAllPeers(): void {

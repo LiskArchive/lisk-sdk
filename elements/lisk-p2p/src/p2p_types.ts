@@ -47,6 +47,11 @@ export interface P2PPeerInfo {
 	readonly wsPort: number;
 }
 
+export interface P2PPeersCount {
+	readonly outbound: number;
+	readonly inbound: number;
+}
+
 export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
 	readonly height: number;
 	readonly updatedAt?: Date;
@@ -84,6 +89,8 @@ export interface P2PConfig {
 	readonly nodeInfo: P2PNodeInfo;
 	readonly wsEngine?: string;
 	readonly discoveryInterval?: number;
+	readonly populatorInterval?: number;
+	readonly maxOutboundConnections: number;
 	readonly peerSelectionForSend?: P2PPeerSelectionForSendFunction;
 	readonly peerSelectionForRequest?: P2PPeerSelectionForRequestFunction;
 	readonly peerSelectionForConnection?: P2PPeerSelectionForConnectionFunction;
@@ -139,6 +146,7 @@ export type P2PPeerSelectionForRequestFunction = (
 export interface P2PPeerSelectionForConnectionInput {
 	readonly peers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 	readonly nodeInfo?: P2PNodeInfo;
+	readonly peerLimit?: number;
 }
 
 export type P2PPeerSelectionForConnectionFunction = (

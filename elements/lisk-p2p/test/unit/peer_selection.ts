@@ -120,10 +120,11 @@ describe('peer selector', () => {
 
 		describe('get all the peers for selection', () => {
 			it('should return all the peers given as argument for connection', () => {
-				return expect(selectPeersForConnection({ peers: peerList }))
-					.be.an('array')
-					.and.is.eql(peerList)
+				const selectedPeers = selectPeersForConnection({ peers: peerList });
+				expect(selectedPeers)
+					.to.be.an('array')
 					.of.length(numberOfPeers);
+				return expect(peerList).to.have.members(selectedPeers);
 			});
 		});
 	});

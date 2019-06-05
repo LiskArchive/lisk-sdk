@@ -23,6 +23,7 @@ describe('p2p', () => {
 			connectTimeout: 5000,
 			seedPeers: [],
 			wsEngine: 'ws',
+			maxOutboundConnections: 20,
 			nodeInfo: {
 				wsPort: 5000,
 				nethash:
