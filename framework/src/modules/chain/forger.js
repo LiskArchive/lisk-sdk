@@ -230,11 +230,10 @@ class Forger {
 			};
 
 			// eslint-disable-next-line no-await-in-loop
-			const accounts = await this.storage.entities.Account.get(
+			const [account] = await this.storage.entities.Account.get(
 				filters,
 				options
 			);
-			const account = accounts[0];
 			if (!account) {
 				throw `Account with public key: ${keypair.publicKey.toString(
 					'hex'
