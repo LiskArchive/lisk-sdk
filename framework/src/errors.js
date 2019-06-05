@@ -39,6 +39,7 @@ class SchemaValidationError extends FrameworkError {
 		super('Schema validation error');
 		this.message = JSON.stringify(errors, null, 2);
 		this.errors = errors;
+		this.message = JSON.stringify(errors, null, 2);
 	}
 }
 
