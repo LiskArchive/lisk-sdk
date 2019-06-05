@@ -225,10 +225,9 @@ describe('transport', () => {
 		};
 	});
 
-	afterEach(done => {
+	afterEach(async () => {
 		restoreRewiredTopDeps();
 		sinonSandbox.restore();
-		done();
 	});
 
 	describe('constructor', () => {
@@ -320,7 +319,7 @@ describe('transport', () => {
 			});
 		});
 
-		afterEach(done => {
+		afterEach(async () => {
 			Object.keys(__private).forEach(field => {
 				delete __private[field];
 			});
@@ -328,19 +327,17 @@ describe('transport', () => {
 				__private[field] = __privateOriginal[field];
 			});
 			restoreRewiredDeps();
-			done();
 		});
 
 		describe('receiveSignatures', () => {
 			describe('for every signature in signatures', () => {
 				describe('when __private.receiveSignature succeeds', () => {
-					beforeEach(done => {
+					beforeEach(async () => {
 						__private.receiveSignature = sinonSandbox.stub().callsArg(1);
 						__private.receiveSignatures([
 							SAMPLE_SIGNATURE_1,
 							SAMPLE_SIGNATURE_2,
 						]);
-						done();
 					});
 
 					it('should call __private.receiveSignature with signature', async () => {
@@ -453,20 +450,17 @@ describe('transport', () => {
 		});
 
 		describe('receiveTransactions', () => {
-			beforeEach(done => {
+			beforeEach(async () => {
 				library.logger = {
 					debug: sinonSandbox.spy(),
 				};
 
 				__private.receiveTransaction = sinonSandbox.stub().callsArg(1);
-
-				done();
 			});
 
 			describe('when transactions argument is undefined', () => {
-				beforeEach(done => {
+				beforeEach(async () => {
 					__private.receiveTransactions(undefined);
-					done();
 				});
 
 				// If a single transaction within the batch fails, it is not going to
@@ -478,9 +472,8 @@ describe('transport', () => {
 			describe('for every transaction in transactions', () => {
 				describe('when transaction is defined', () => {
 					describe('when call __private.receiveTransaction succeeds', () => {
-						beforeEach(done => {
+						beforeEach(async () => {
 							__private.receiveTransactions(transactionsList);
-							done();
 						});
 
 						it('should set transaction.bundled = true', async () =>
@@ -519,7 +512,7 @@ describe('transport', () => {
 		});
 
 		describe('receiveTransaction', () => {
-			beforeEach(done => {
+			beforeEach(async () => {
 				sinonSandbox
 					.stub(balancesSequenceStub, 'add')
 					.callsFake((callback, doneCallback) => {
@@ -532,7 +525,6 @@ describe('transport', () => {
 				library.balancesSequence = balancesSequenceStub;
 
 				modules.transactionPool.processUnconfirmedTransaction.resolves();
-				done();
 			});
 
 			afterEach(() => sinonSandbox.restore());
@@ -767,9 +759,8 @@ describe('transport', () => {
 				});
 			});
 
-			afterEach(done => {
+			afterEach(async () => {
 				restoreRewiredTransportDeps();
-				done();
 			});
 
 			describe('onBind', () => {
@@ -785,9 +776,8 @@ describe('transport', () => {
 				describe('modules', () => {
 					let modulesObject;
 
-					beforeEach(done => {
+					beforeEach(async () => {
 						modulesObject = TransportModule.__get__('modules');
-						done();
 					});
 
 					it('should assign blocks, loader, multisignatures, processTransactions and transactions properties', async () => {
@@ -801,9 +791,8 @@ describe('transport', () => {
 				describe('definitions', () => {
 					let definitionsObject;
 
-					beforeEach(done => {
+					beforeEach(async () => {
 						definitionsObject = TransportModule.__get__('definitions');
-						done();
 					});
 
 					it('should assign definitions object', async () =>
@@ -813,13 +802,12 @@ describe('transport', () => {
 
 			describe('onSignature', () => {
 				describe('when broadcast is defined', () => {
-					beforeEach(done => {
+					beforeEach(async () => {
 						__private.broadcaster = {
 							maxRelays: sinonSandbox.stub().returns(false),
 							enqueue: sinonSandbox.stub(),
 						};
 						transportInstance.onSignature(SAMPLE_SIGNATURE_1, true);
-						done();
 					});
 
 					it('should call __private.broadcaster.maxRelays with signature', async () => {
@@ -855,7 +843,7 @@ describe('transport', () => {
 			});
 
 			describe('onUnconfirmedTransaction', () => {
-				beforeEach(done => {
+				beforeEach(async () => {
 					transaction = new TransferTransaction({
 						id: '222675625422353767',
 						type: 0,
@@ -874,7 +862,6 @@ describe('transport', () => {
 						enqueue: sinonSandbox.stub(),
 					};
 					transportInstance.onUnconfirmedTransaction(transaction, true);
-					done();
 				});
 
 				describe('when broadcast is defined', () => {
@@ -886,7 +873,7 @@ describe('transport', () => {
 					});
 
 					describe('when result of __private.broadcaster.maxRelays is false', () => {
-						beforeEach(done => {
+						beforeEach(async () => {
 							__private.broadcaster = {
 								maxRelays: sinonSandbox.stub().returns(false),
 								enqueue: sinonSandbox.stub(),
@@ -898,7 +885,6 @@ describe('transport', () => {
 										'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
 								});
 							transportInstance.onUnconfirmedTransaction(transaction, true);
-							done();
 						});
 
 						it('should call __private.broadcaster.enqueue with {} and {api: "postTransactions", data: {transaction}}', async () => {
@@ -975,12 +961,11 @@ describe('transport', () => {
 					});
 
 					describe('when __private.broadcaster.maxRelays returns true', () => {
-						beforeEach(done => {
+						beforeEach(async () => {
 							__private.broadcaster.maxRelays = sinonSandbox
 								.stub()
 								.returns(true);
 							transportInstance.onBroadcastBlock(block, true);
-							done();
 						});
 
 						it('should call library.logger.debug with proper error message', async () =>
@@ -992,10 +977,9 @@ describe('transport', () => {
 					});
 
 					describe('when modules.loader.syncing = true', () => {
-						beforeEach(done => {
+						beforeEach(async () => {
 							modules.loader.syncing = sinonSandbox.stub().returns(true);
 							transportInstance.onBroadcastBlock(block, true);
-							done();
 						});
 
 						it('should call library.logger.debug with proper error message', async () =>
@@ -1140,21 +1124,19 @@ describe('transport', () => {
 				describe('postBlock', () => {
 					let postBlockQuery;
 
-					beforeEach(done => {
+					beforeEach(async () => {
 						postBlockQuery = {
 							block: blockMock,
 						};
 						library.bus = {
 							message: sinonSandbox.stub(),
 						};
-						done();
 					});
 
 					describe('when library.config.broadcasts.active option is false', () => {
-						beforeEach(done => {
+						beforeEach(async () => {
 							library.config.broadcasts.active = false;
 							transportInstance.shared.postBlock(postBlockQuery);
-							done();
 						});
 
 						it('should call library.logger.debug', async () =>
@@ -1169,20 +1151,18 @@ describe('transport', () => {
 					});
 
 					describe('when query is specified', () => {
-						beforeEach(done => {
+						beforeEach(async () => {
 							transportInstance.shared.postBlock(postBlockQuery);
-							done();
 						});
 
 						describe('when it throws', () => {
 							const blockValidationError = 'Failed to validate block schema';
 
-							beforeEach(done => {
+							beforeEach(async () => {
 								sinonSandbox
 									.stub(blocksModule, 'objectNormalize')
 									.throws(blockValidationError);
 								transportInstance.shared.postBlock(postBlockQuery);
-								done();
 							});
 
 							it('should call library.logger.debug with "Block normalization failed" and {err: error, module: "transport", block: query.block }', async () => {
@@ -1198,12 +1178,11 @@ describe('transport', () => {
 						});
 
 						describe('when it does not throw', () => {
-							beforeEach(done => {
+							beforeEach(async () => {
 								sinonSandbox
 									.stub(blocksModule, 'objectNormalize')
 									.returns(blockMock);
 								transportInstance.shared.postBlock(postBlockQuery);
-								done();
 							});
 
 							describe('when query.block is defined', () => {
