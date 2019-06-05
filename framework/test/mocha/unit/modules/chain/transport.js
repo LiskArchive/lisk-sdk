@@ -38,7 +38,6 @@ const TransportModule = rewire('../../../../../src/modules/chain/transport');
 const { MAX_SHARED_TRANSACTIONS } = __testContext.config.constants;
 const expect = chai.expect;
 
-// TODO: Sometimes the callback error is null, other times it's undefined. It should be consistent.
 describe('transport', () => {
 	const interfaceAdapters = {
 		transactions: new TransactionInterfaceAdapter(registeredTransactions),
@@ -429,7 +428,7 @@ describe('transport', () => {
 						'Transaction not found'
 					);
 
-					it('should call callback with error', async () => {
+					it('should reject with error', async () => {
 						modules.transactionPool.getTransactionAndProcessSignature.rejects([
 							processSignatureError,
 						]);
@@ -442,7 +441,7 @@ describe('transport', () => {
 			});
 
 			describe('when library.schema.validate fails', () => {
-				it('should call callback with error = "Invalid signature body"', async () => {
+				it('should reject with error = "Invalid signature body"', async () => {
 					const validateErr = new Error('Signature did not match schema');
 					validateErr.code = 'INVALID_FORMAT';
 					library.schema.validate = sinonSandbox
@@ -579,7 +578,7 @@ describe('transport', () => {
 				]);
 			});
 
-			it('should call callback with error if transaction is not allowed', async () => {
+			it('should reject with error if transaction is not allowed', async () => {
 				const errorMessage = new Error(
 					'Transaction type 0 is currently not allowed.'
 				);
@@ -673,7 +672,7 @@ describe('transport', () => {
 					});
 				});
 
-				it('should call callback with err.toString()', async () => {
+				it('should reject with error', async () => {
 					expect(error).to.be.an('array');
 					expect(error[0].message).to.equal(processUnconfirmedTransactionError);
 				});
@@ -686,7 +685,7 @@ describe('transport', () => {
 					result = await __private.receiveTransaction(transaction);
 				});
 
-				it('should call callback with result = transaction.id', async () =>
+				it('should resolve with result = transaction.id', async () =>
 					expect(result).to.equal(transaction.id));
 
 				it('should call library.logger.debug with "Received transaction " + transaction.id', async () =>
@@ -1128,7 +1127,7 @@ describe('transport', () => {
 					});
 
 					describe('when modules.blocks.utils.loadBlocksData fails', () => {
-						it('should call callback with result = { blocks: [] }', async () => {
+						it('should resolve with result = { blocks: [] }', async () => {
 							query = {
 								lastBlockId: '6258354802676165798',
 							};
@@ -1237,7 +1236,7 @@ describe('transport', () => {
 
 				describe('postSignature', () => {
 					describe('when getTransactionAndProcessSignature succeeds', () => {
-						it('should invoke callback with object { success: true }', async () => {
+						it('should invoke resolve with object { success: true }', async () => {
 							library.schema = {
 								validate: sinonSandbox.stub().returns(true),
 								getLastErrors: sinonSandbox.stub(),
@@ -1261,7 +1260,7 @@ describe('transport', () => {
 					describe('when getTransactionAndProcessSignature fails', () => {
 						const receiveSignatureError = ['Invalid signature body ...'];
 
-						it('should invoke callback with object { success: false, message: err }', async () => {
+						it('should invoke resolve with object { success: false, message: err }', async () => {
 							library.schema = {
 								validate: sinonSandbox.stub().returns(true),
 								getLastErrors: sinonSandbox.stub(),
@@ -1366,7 +1365,7 @@ describe('transport', () => {
 						).to.be.true);
 
 					describe('when all transactions returned by modules.transactionPool.getMultisignatureTransactionList are multisignature transactions', () => {
-						it('should call callback with result = {success: true, signatures: signatures} where signatures contains all transactions', async () => {
+						it('should resolve with result = {success: true, signatures: signatures} where signatures contains all transactions', async () => {
 							expect(result)
 								.to.have.property('success')
 								.which.equals(true);
@@ -1402,7 +1401,7 @@ describe('transport', () => {
 							result = await transportInstance.shared.getSignatures();
 						});
 
-						it('should call callback with result = {success: true, signatures: signatures} where signatures does not contain multisignature registration transactions', async () => {
+						it('should resolve with result = {success: true, signatures: signatures} where signatures does not contain multisignature registration transactions', async () => {
 							expect(result)
 								.to.have.property('success')
 								.which.equals(true);
@@ -1428,7 +1427,7 @@ describe('transport', () => {
 							)
 						).to.be.true);
 
-					it('should call callback with result = {success: true, transactions: transactions}', async () => {
+					it('should resolve with result = {success: true, transactions: transactions}', async () => {
 						expect(result)
 							.to.have.property('success')
 							.which.is.equal(true);
@@ -1458,7 +1457,7 @@ describe('transport', () => {
 							.to.be.true);
 
 					describe('when __private.receiveTransaction succeeds', () => {
-						it('should invoke callback with object { success: true, transactionId: id }', async () => {
+						it('should resolve with object { success: true, transactionId: id }', async () => {
 							expect(result)
 								.to.have.property('transactionId')
 								.which.is.a('string');
@@ -1481,7 +1480,7 @@ describe('transport', () => {
 							result = await transportInstance.shared.postTransaction(query);
 						});
 
-						it('should invoke callback with object { success: false, message: err }', async () => {
+						it('should resolve with object { success: false, message: err }', async () => {
 							expect(result)
 								.to.have.property('success')
 								.which.is.equal(false);
@@ -1504,7 +1503,7 @@ describe('transport', () => {
 							result = await transportInstance.shared.postTransaction(query);
 						});
 
-						it('should invoke callback with object { success: false, message: err }', async () => {
+						it('should resolve with object { success: false, message: err }', async () => {
 							expect(result)
 								.to.have.property('success')
 								.which.is.equal(false);
@@ -1551,7 +1550,7 @@ describe('transport', () => {
 					});
 
 					describe('when library.schema.validate fails', () => {
-						it('should invoke callback with error = null and result = {success: false, message: message}', async () => {
+						it('should resolve with error = null and result = {success: false, message: message}', async () => {
 							const validateErr = new Error(
 								'Transaction query did not match schema'
 							);

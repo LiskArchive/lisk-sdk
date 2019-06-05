@@ -48,7 +48,6 @@ __private.messages = {};
  * @requires api/ws/rpc/ws_rpc
  * @requires logic/broadcaster
  * @param {scope} scope - App instance
- * @returns {setImmediateCallback} cb, null, self
  */
 class Transport {
 	constructor(scope) {
@@ -600,7 +599,7 @@ __private.receiveSignatures = async function(signatures = []) {
  * @param {Object} query
  * @param {string} query.signature
  * @param {Object} query.transaction
- * @returns {setImmediateCallback} cb, err
+ * @returns {Promise.<boolean, Error>}
  * @todo Add description for the params
  */
 __private.receiveSignature = async function(signature) {
@@ -644,8 +643,7 @@ __private.receiveTransactions = async function(transactions = []) {
  *
  * @private
  * @param {transaction} transaction
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, err
+ * @returns {Promise.<boolean, Error>}
  * @todo Add description for the params
  */
 __private.receiveTransaction = async function(transactionJSON) {
