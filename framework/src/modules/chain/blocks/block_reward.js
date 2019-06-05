@@ -44,7 +44,7 @@ const parseHeight = height => {
  * @returns {number}
  * @todo Add description for the function, params and the return value
  */
-const calcMilestone = ({ height, distance, rewardOffset, milestones }) => {
+const calcMilestone = (height, { distance, rewardOffset, milestones }) => {
 	distance = Math.floor(distance);
 	height = parseHeight(height);
 
@@ -64,7 +64,7 @@ const calcMilestone = ({ height, distance, rewardOffset, milestones }) => {
  * @returns {Bignumber}
  * @todo Add description for the function, params and the return value
  */
-const calcReward = ({ height, distance, rewardOffset, milestones }) => {
+const calcReward = (height, { distance, rewardOffset, milestones }) => {
 	height = parseHeight(height);
 
 	if (height < this.rewardOffset) {
@@ -82,13 +82,10 @@ const calcReward = ({ height, distance, rewardOffset, milestones }) => {
  * @returns {Bignumber}
  * @todo Add description for the function, params and the return value
  */
-const calcSupply = ({
+const calcSupply = (
 	height,
-	distance,
-	rewardOffset,
-	milestones,
-	totalAmount,
-}) => {
+	{ distance, rewardOffset, milestones, totalAmount }
+) => {
 	distance = Math.floor(distance);
 	height = parseHeight(height);
 	let supply = new BigNum(totalAmount);
