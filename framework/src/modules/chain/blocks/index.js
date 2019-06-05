@@ -17,6 +17,7 @@
 const { BlockSlots } = require('./block_slots');
 const { addBlockProperties } = require('./utils');
 const { objectNormalize } = require('./block');
+const { calcMilestone, calcReward, calcSupply } = require('./block_reward');
 const {
 	Blocks,
 	EVENT_NEW_BLOCK,
@@ -28,6 +29,9 @@ const {
 module.exports = {
 	BlockSlots,
 	Blocks,
+	calcMilestone,
+	calcReward,
+	calcSupply,
 	EVENT_NEW_BLOCK,
 	EVENT_DELETE_BLOCK,
 	EVENT_BROADCAST_BLOCK,
