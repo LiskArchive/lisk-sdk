@@ -211,7 +211,7 @@ describe('forge', () => {
 				forgeModule.config.forging.delegates = undefined;
 
 				await forgeModule.loadDelegates();
-				expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
+				return expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
 			});
 
 			it('should return error if number of iterations is omitted', async () => {
