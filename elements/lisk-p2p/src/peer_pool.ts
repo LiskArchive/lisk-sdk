@@ -480,7 +480,9 @@ export class PeerPool extends EventEmitter {
 		return this.getAllPeers().map(peer => peer.peerInfo);
 	}
 
-	public getAllPeers(kind?: any): ReadonlyArray<Peer> {
+	public getAllPeers(
+		kind?: typeof OutboundPeer | typeof InboundPeer,
+	): ReadonlyArray<Peer> {
 		const peers = [...this._peerMap.values()];
 		if (kind) {
 			return peers.filter(peer => peer instanceof kind);
