@@ -363,54 +363,57 @@ class Transport {
 					);
 				}
 				query = query || {};
-				return library.schema.validate(
+
+				const valid = library.schema.validate(
 					query,
-					definitions.WSBlocksBroadcast,
-					err => {
-						if (err) {
-							return library.logger.debug(
-								'Received post block broadcast request in unexpected format',
-								{
-									err,
-									module: 'transport',
-									query,
-								}
-							);
-						}
-						let block;
-						let success = true;
-						try {
-							block = blocksModule.addBlockProperties(query.block);
-
-							// Instantiate transaction classes
-							block.transactions = modules.interfaceAdapters.transactions.fromBlock(
-								block
-							);
-
-							block = blocksModule.objectNormalize(block);
-						} catch (e) {
-							success = false;
-							library.logger.debug('Block normalization failed', {
-								err: e.toString(),
-								module: 'transport',
-								block: query.block,
-							});
-
-							// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
-						}
-						// TODO: endpoint should be protected before
-						if (modules.loader.syncing()) {
-							return library.logger.debug(
-								"Client is syncing. Can't receive block at the moment.",
-								block.id
-							);
-						}
-						if (success) {
-							return modules.blocks.receiveBlockFromNetwork(block);
-						}
-						return null;
-					}
+					definitions.WSBlocksBroadcast
 				);
+
+				if (!valid) {
+					const err = library.schema.getLastErrors();
+					library.logger.debug(
+						'Received post block broadcast request in unexpected format',
+						{
+							err,
+							module: 'transport',
+							query,
+						}
+					);
+					throw new Error(err);
+				}
+
+				let block;
+				let success = true;
+				try {
+					block = blocksModule.addBlockProperties(query.block);
+
+					// Instantiate transaction classes
+					block.transactions = modules.interfaceAdapters.transactions.fromBlock(
+						block
+					);
+
+					block = blocksModule.objectNormalize(block);
+				} catch (e) {
+					success = false;
+					library.logger.debug('Block normalization failed', {
+						err: e.toString(),
+						module: 'transport',
+						block: query.block,
+					});
+
+					// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
+				}
+				// TODO: endpoint should be protected before
+				if (modules.loader.syncing()) {
+					return library.logger.debug(
+						"Client is syncing. Can't receive block at the moment.",
+						block.id
+					);
+				}
+				if (success) {
+					return modules.blocks.receiveBlockFromNetwork(block);
+				}
+				return null;
 			},
 
 			/**
@@ -453,22 +456,25 @@ class Transport {
 			 * @todo Add @returns tag
 			 * @todo Add description of the function
 			 */
-			postSignatures(query) {
+			async postSignatures(query) {
 				if (!library.config.broadcasts.active) {
 					return library.logger.debug(
 						'Receiving signatures disabled by user through config.json'
 					);
 				}
-				return library.schema.validate(
+
+				const valid = library.schema.validate(
 					query,
-					definitions.WSSignaturesList,
-					err => {
-						if (err) {
-							return library.logger.debug('Invalid signatures body', err);
-						}
-						return __private.receiveSignatures(query.signatures);
-					}
+					definitions.WSSignaturesList
 				);
+
+				if (!valid) {
+					const err = library.schema.getLastErrors();
+					library.logger.debug('Invalid signatures body', err);
+					throw err;
+				}
+
+				return __private.receiveSignatures(query.signatures);
 			},
 
 			/**

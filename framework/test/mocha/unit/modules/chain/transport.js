@@ -149,7 +149,10 @@ describe('transport', () => {
 		};
 
 		busStub = {};
-		schemaStub = {};
+		schemaStub = {
+			validate: sinonSandbox.stub().returns(true),
+			getLastErrors: sinonSandbox.stub().returns([]),
+		};
 		channelStub = {
 			publish: sinonSandbox.stub(),
 		};
@@ -285,9 +288,7 @@ describe('transport', () => {
 			});
 
 			library = {
-				schema: {
-					validate: sinonSandbox.stub().callsArg(2),
-				},
+				schema: schemaStub,
 				logger: {
 					debug: sinonSandbox.spy(),
 				},
@@ -392,11 +393,6 @@ describe('transport', () => {
 
 		describe('receiveSignature', () => {
 			beforeEach(async () => {
-				library.schema = {
-					validate: sinonSandbox.stub().returns(true),
-					getLastErrors: sinonSandbox.stub(),
-				};
-
 				modules.multisignatures = {
 					getTransactionAndProcessSignature: sinonSandbox.stub().callsArg(1),
 				};
@@ -444,22 +440,20 @@ describe('transport', () => {
 				it('should reject with error = "Invalid signature body"', async () => {
 					const validateErr = new Error('Signature did not match schema');
 					validateErr.code = 'INVALID_FORMAT';
-					library.schema.validate = sinonSandbox
+					library.schema.validate = sinonSandbox.stub().returns(false);
+					library.schema.getLastErrors = sinonSandbox
 						.stub()
-						.callsArgWith(2, [validateErr]);
+						.returns(validateErr);
 
 					return expect(
 						__private.receiveSignature(SAMPLE_SIGNATURE_1)
-					).to.be.rejectedWith([validateErr]);
+					).to.be.rejectedWith(validateErr);
 				});
 			});
 		});
 
 		describe('receiveTransactions', () => {
 			beforeEach(done => {
-				library.schema = {
-					validate: sinonSandbox.stub().callsArg(2),
-				};
 				library.logger = {
 					debug: sinonSandbox.spy(),
 				};
@@ -532,9 +526,6 @@ describe('transport', () => {
 						callback(doneCallback);
 					});
 
-				library.schema = {
-					validate: sinonSandbox.stub().callsArg(2),
-				};
 				library.logger = {
 					debug: sinonSandbox.spy(),
 				};
@@ -709,9 +700,7 @@ describe('transport', () => {
 
 				transportInstance = new TransportModule(defaultScope);
 				library = {
-					schema: {
-						validate: sinonSandbox.stub().callsArg(2),
-					},
+					schema: schemaStub,
 					logger: {
 						debug: sinonSandbox.spy(),
 					},
@@ -1031,10 +1020,10 @@ describe('transport', () => {
 							query = undefined;
 							validateErr = new Error('Query did not match schema');
 							validateErr.code = 'INVALID_FORMAT';
-
-							library.schema.validate = sinonSandbox
+							library.schema.validate = sinonSandbox.stub().returns(false);
+							library.schema.getLastErrors = sinonSandbox
 								.stub()
-								.callsArgWith(2, [validateErr]);
+								.returns([validateErr]);
 
 							return expect(
 								transportInstance.shared.blocksCommon(query)
@@ -1045,7 +1034,9 @@ describe('transport', () => {
 					describe('when query is specified', () => {
 						it('should call library.schema.validate with query and schema.commonBlock', async () => {
 							query = { ids: '"1","2","3"' };
+
 							await transportInstance.shared.blocksCommon(query);
+
 							expect(library.schema.validate.calledOnce).to.be.true;
 							return expect(
 								library.schema.validate.calledWith(
@@ -1059,9 +1050,10 @@ describe('transport', () => {
 							it('should call library.logger.debug with "Common block request validation failed" and {err: err.toString(), req: query}', async () => {
 								validateErr = new Error('Query did not match schema');
 								validateErr.code = 'INVALID_FORMAT';
-								library.schema.validate = sinonSandbox
+								library.schema.validate = sinonSandbox.stub().returns(false);
+								library.schema.getLastErrors = sinonSandbox
 									.stub()
-									.callsArgWith(2, [validateErr]);
+									.returns([validateErr]);
 
 								expect(
 									transportInstance.shared.blocksCommon(query)
@@ -1080,6 +1072,8 @@ describe('transport', () => {
 							describe('when escapedIds.length = 0', () => {
 								it('should call library.logger.debug with "Common block request validation failed" and {err: "ESCAPE", req: query.ids}', async () => {
 									query = { ids: '"abc","def","ghi"' };
+									library.schema.validate = sinonSandbox.stub().returns(true);
+
 									expect(
 										transportInstance.shared.blocksCommon(query)
 									).to.be.rejectedWith('Invalid block id sequence');
@@ -1237,11 +1231,6 @@ describe('transport', () => {
 				describe('postSignature', () => {
 					describe('when getTransactionAndProcessSignature succeeds', () => {
 						it('should invoke resolve with object { success: true }', async () => {
-							library.schema = {
-								validate: sinonSandbox.stub().returns(true),
-								getLastErrors: sinonSandbox.stub(),
-							};
-
 							query = {
 								signature: SAMPLE_SIGNATURE_1,
 							};
@@ -1261,11 +1250,6 @@ describe('transport', () => {
 						const receiveSignatureError = ['Invalid signature body ...'];
 
 						it('should invoke resolve with object { success: false, message: err }', async () => {
-							library.schema = {
-								validate: sinonSandbox.stub().returns(true),
-								getLastErrors: sinonSandbox.stub(),
-							};
-
 							query = {
 								signature: SAMPLE_SIGNATURE_1,
 							};
@@ -1286,20 +1270,17 @@ describe('transport', () => {
 				});
 
 				describe('postSignatures', () => {
-					beforeEach(done => {
+					beforeEach(async () => {
 						query = {
 							signatures: [SAMPLE_SIGNATURE_1],
 						};
 						__private.receiveSignatures = sinonSandbox.stub();
-						done();
 					});
 
 					describe('when library.config.broadcasts.active option is false', () => {
-						beforeEach(done => {
+						beforeEach(async () => {
 							library.config.broadcasts.active = false;
-							library.schema.validate = sinonSandbox.stub().callsArg(2);
 							transportInstance.shared.postSignatures(query);
-							done();
 						});
 
 						it('should call library.logger.debug', async () =>
@@ -1314,9 +1295,8 @@ describe('transport', () => {
 					});
 
 					describe('when library.schema.validate succeeds', () => {
-						beforeEach(done => {
+						beforeEach(async () => {
 							transportInstance.shared.postSignatures(query);
-							done();
 						});
 
 						it('should call __private.receiveSignatures with query.signatures as argument', async () =>
@@ -1326,24 +1306,24 @@ describe('transport', () => {
 					describe('when library.schema.validate fails', () => {
 						let validateErr;
 
-						beforeEach(done => {
+						it('should call library.logger.debug with "Invalid signatures body" and err as arguments', async () => {
 							validateErr = new Error('Transaction query did not match schema');
 							validateErr.code = 'INVALID_FORMAT';
-
-							library.schema.validate = sinonSandbox
+							library.schema.validate = sinonSandbox.stub().returns(false);
+							library.schema.getLastErrors = sinonSandbox
 								.stub()
-								.callsArgWith(2, validateErr);
-							transportInstance.shared.postSignatures(query);
-							done();
-						});
+								.returns([validateErr]);
 
-						it('should call library.logger.debug with "Invalid signatures body" and err as arguments', async () =>
 							expect(
-								library.logger.debug.calledWith(
-									'Invalid signatures body',
-									validateErr
-								)
-							).to.be.true);
+								transportInstance.shared.postSignatures(query)
+							).to.be.rejectedWith([validateErr]);
+
+							return expect(
+								library.logger.debug.calledWith('Invalid signatures body', [
+									validateErr,
+								])
+							).to.be.true;
+						});
 					});
 				});
 
@@ -1518,7 +1498,6 @@ describe('transport', () => {
 					describe('when library.config.broadcasts.active option is false', () => {
 						beforeEach(async () => {
 							library.config.broadcasts.active = false;
-							library.schema.validate = sinonSandbox.stub().returns(true);
 							return transportInstance.shared.postTransactions(query);
 						});
 
@@ -1538,7 +1517,6 @@ describe('transport', () => {
 							query = {
 								transactions: transactionsList,
 							};
-							library.schema.validate = sinonSandbox.stub().returns(true);
 							__private.receiveTransactions = sinonSandbox.stub();
 							return transportInstance.shared.postTransactions(query);
 						});
@@ -1555,9 +1533,7 @@ describe('transport', () => {
 								'Transaction query did not match schema'
 							);
 							validateErr.code = 'INVALID_FORMAT';
-
 							library.schema.validate = sinonSandbox.stub().returns(false);
-
 							library.schema.getLastErrors = sinonSandbox
 								.stub()
 								.returns([validateErr]);
