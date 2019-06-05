@@ -31,7 +31,8 @@ const isIdenticalBlock = (lastBlock, currentBlock) =>
 // eslint-disable-next-line class-methods-use-this
 const isDuplicateBlock = (lastBlock, currentBlock) =>
 	lastBlock.height === currentBlock.height &&
-	lastBlock.heightPrevoted === currentBlock.heightPrevoted &&
+	lastBlock.prevotedConfirmedUptoHeight ===
+		currentBlock.prevotedConfirmedUptoHeight &&
 	lastBlock.previousBlock === currentBlock.previousBlock;
 
 /**
@@ -82,9 +83,11 @@ const isTieBreak = ({
  */
 // eslint-disable-next-line class-methods-use-this
 const isDifferentChain = (lastBlock, currentBlock) =>
-	lastBlock.heightPrevoted < currentBlock.heightPrevoted ||
+	lastBlock.prevotedConfirmedUptoHeight <
+		currentBlock.prevotedConfirmedUptoHeight ||
 	(lastBlock.height < currentBlock.height &&
-		lastBlock.heightPrevoted === currentBlock.heightPrevoted);
+		lastBlock.prevotedConfirmedUptoHeight ===
+			currentBlock.prevotedConfirmedUptoHeight);
 
 module.exports = {
 	isTieBreak,
@@ -92,4 +95,5 @@ module.exports = {
 	isDifferentChain,
 	isIdenticalBlock,
 	isValidBlock,
+	isDuplicateBlock,
 };

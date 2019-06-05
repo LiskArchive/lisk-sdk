@@ -28,7 +28,7 @@ const {
 	isDoubleForging,
 	isDifferentChain,
 	isValidBlock,
-} = require('./fork_choice_rules');
+} = require('./fork_choice_rule');
 
 const EVENT_NEW_BLOCK = 'EVENT_NEW_BLOCK';
 const EVENT_DELETE_BLOCK = 'EVENT_DELETE_BLOCK';
@@ -320,11 +320,11 @@ class Blocks extends EventEmitter {
 			} version: ${block.version}`
 		);
 
-		// New block version, different onReceiveBlock implementation
+		// New block version, different receiveBlockFromNetwork implementation
 		if (block.version === 2) {
 			// TODO: Remove hard coding.
-			// Current slot number based on current time since LiskEpoch ~ Slot number at the time the new block is received
-			// Better to do it here rather than in the Sequence so reciving time is more accurate
+			// Current slot number based on current time since Lisk Epoch ~ Slot number at the time the new block is received
+			// Better to do it here rather than in the Sequence so receiving time is more accurate
 			const newBlockReceivedAt = this.slots.getTime();
 
 			// Execute in sequence via sequence
@@ -353,7 +353,7 @@ class Blocks extends EventEmitter {
 			// set active to true
 			if (this.blocksVerify.isSaneBlock(block, this._lastBlock)) {
 				try {
-					await this._processBlock(block);
+					await this._processReceivedBlock(block);
 				} catch (error) {
 					setImmediate(cb, error);
 					return;
@@ -443,7 +443,7 @@ class Blocks extends EventEmitter {
 						newLastBlock: cloneDeep(this._lastBlock),
 					});
 
-					await this._processBlock(block);
+					await this._processReceivedBlock(block);
 
 					setImmediate(cb);
 					return;
@@ -475,7 +475,7 @@ class Blocks extends EventEmitter {
 	}
 
 	// PRE: Block has been validated and verified before
-	async _processBlock(block) {
+	async _processReceivedBlock(block) {
 		this._updateLastReceipt();
 		try {
 			const newBlock = await this.blocksProcess.processBlock(
@@ -485,21 +485,29 @@ class Blocks extends EventEmitter {
 			);
 
 			this.logger.info(
-				`Successfully applied new block id: ${block.id} height: ${
+				`Successfully applied new received block id: ${block.id} height: ${
 					block.height
 				} round: ${this.slots.calcRound(
 					block.height
 				)} slot: ${this.slots.getSlotNumber(block.timestamp)} reward: ${
 					block.reward
-				}`
+				} version: ${block.version}`
 			);
 
 			await this._updateBroadhash();
 			this._lastBlock = newBlock;
 			this._isActive = false;
 		} catch (error) {
+			this.logger.error(
+				`Failed to apply new received block id: ${block.id} height: ${
+					block.height
+				} round: ${this.slots.calcRound(
+					block.height
+				)} slot: ${this.slots.getSlotNumber(block.timestamp)} reward: ${
+					block.reward
+				} version: ${block.version} with error: ${error}`
+			);
 			this._isActive = false;
-			this.logger.error(error);
 			throw error;
 		}
 	}
@@ -711,7 +719,7 @@ class Blocks extends EventEmitter {
 	 * @private
 	 */
 	_handleGoodBlock(block) {
-		return this._processBlock(block);
+		return this._processReceivedBlock(block);
 	}
 
 	/**
@@ -772,9 +780,9 @@ class Blocks extends EventEmitter {
 		this.recoverChain();
 
 		try {
-			await this._processBlock(block);
+			await this._processReceivedBlock(block);
 		} catch (error) {
-			await this._processBlock(previousLastBlock);
+			await this._processReceivedBlock(previousLastBlock);
 		}
 	}
 
