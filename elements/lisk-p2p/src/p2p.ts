@@ -644,16 +644,25 @@ export class P2P extends EventEmitter {
 		if (this._populatorIntervalId) {
 			throw new Error('Populator is already running');
 		}
+		// Blacklisted peer list takes preference over fixed peers
+		// tslint:disable-next-line: no-let
+		let fixedPeers = ([] as unknown) as ReadonlyArray<P2PPeerInfo>;
+		if (this._config.fixedPeers) {
+			fixedPeers = this._config.fixedPeers.filter(peer => {
+				if (this._config.blacklistedPeers) {
+					this._config.blacklistedPeers.includes(peer);
+				}
+			});
+		}
 		this._populatorIntervalId = setInterval(() => {
 			this._peerPool.triggerNewConnections(
 				[...this._newPeers.values(), ...this._triedPeers.values()],
-				this._config.fixedPeers || [],
+				fixedPeers,
 			);
 		}, this._populatorInterval);
-
 		this._peerPool.triggerNewConnections(
 			[...this._newPeers.values(), ...this._triedPeers.values()],
-			this._config.fixedPeers || [],
+			fixedPeers,
 		);
 	}
 
