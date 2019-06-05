@@ -645,16 +645,16 @@ export class P2P extends EventEmitter {
 			throw new Error('Populator is already running');
 		}
 		this._populatorIntervalId = setInterval(() => {
-			this._peerPool.triggerNewConnections([
-				...this._newPeers.values(),
-				...this._triedPeers.values(),
-			]);
+			this._peerPool.triggerNewConnections(
+				[...this._newPeers.values(), ...this._triedPeers.values()],
+				this._config.fixedPeers || [],
+			);
 		}, this._populatorInterval);
 
-		this._peerPool.triggerNewConnections([
-			...this._newPeers.values(),
-			...this._triedPeers.values(),
-		]);
+		this._peerPool.triggerNewConnections(
+			[...this._newPeers.values(), ...this._triedPeers.values()],
+			this._config.fixedPeers || [],
+		);
 	}
 
 	private _stopPopulator(): void {

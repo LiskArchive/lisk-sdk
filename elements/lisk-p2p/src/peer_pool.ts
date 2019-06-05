@@ -317,24 +317,40 @@ export class PeerPool extends EventEmitter {
 		peer.send(message);
 	}
 
-	public triggerNewConnections(peers: ReadonlyArray<P2PPeerInfo>): void {
-		const disconnectedPeers = peers.filter(
-			peer => !this._peerMap.has(constructPeerIdFromPeerInfo(peer)),
+	public triggerNewConnections(
+		knownPeers: ReadonlyArray<P2PDiscoveredPeerInfo>,
+		fixedPeers: ReadonlyArray<P2PPeerInfo>,
+	): void {
+		// Try to connect to disconnected peers avoiding the fixed ones
+		const disconnectedPeers = knownPeers.filter(
+			peer =>
+				!this._peerMap.has(constructPeerIdFromPeerInfo(peer)) ||
+				!fixedPeers.includes(peer),
 		);
 		const { outbound } = this.getPeersCountPerKind();
+		const disconnectedFixedPeers = fixedPeers
+			.filter(peer => !this._peerMap.has(constructPeerIdFromPeerInfo(peer)))
+			.map(peer2Convert => peer2Convert as P2PDiscoveredPeerInfo);
+
 		// Trigger new connections only if the maximum of outbound connections has not been reached
+		// If the node is not yet connected to any of the fixed peers, enough slots should be saved for them
+		const peerLimit =
+			this._maxOutboundConnections - disconnectedFixedPeers.length - outbound;
 		const peersToConnect = this._peerSelectForConnection({
 			peers: disconnectedPeers,
-			peerLimit: this._maxOutboundConnections - outbound,
+			peerLimit,
 		});
-		peersToConnect.forEach((peerInfo: P2PPeerInfo) => {
-			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			const existingPeer = this.getPeer(peerId);
 
-			return existingPeer
-				? existingPeer
-				: this.addOutboundPeer(peerId, peerInfo);
-		});
+		[...peersToConnect, ...disconnectedFixedPeers].forEach(
+			(peerInfo: P2PPeerInfo) => {
+				const peerId = constructPeerIdFromPeerInfo(peerInfo);
+				const existingPeer = this.getPeer(peerId);
+
+				return existingPeer
+					? existingPeer
+					: this.addOutboundPeer(peerId, peerInfo);
+			},
+		);
 	}
 
 	public addInboundPeer(
