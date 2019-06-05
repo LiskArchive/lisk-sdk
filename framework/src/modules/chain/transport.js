@@ -356,7 +356,7 @@ class Transport {
 			 * @todo Add @returns tag
 			 * @todo Add description of the function
 			 */
-			postBlock(query) {
+			async postBlock(query) {
 				if (!library.config.broadcasts.active) {
 					return library.logger.debug(
 						'Receiving blocks disabled by user through config.json'
@@ -586,7 +586,7 @@ class Transport {
  * @implements {__private.receiveSignature}
  * @param {Array} signatures - Array of signatures
  */
-__private.receiveSignatures = async function(signatures = []) {
+__private.receiveSignatures = async (signatures = []) => {
 	// eslint-disable-next-line no-restricted-syntax
 	for (const signature of signatures) {
 		try {
@@ -608,7 +608,7 @@ __private.receiveSignatures = async function(signatures = []) {
  * @returns {Promise.<boolean, Error>}
  * @todo Add description for the params
  */
-__private.receiveSignature = async function(signature) {
+__private.receiveSignature = async signature => {
 	const valid = library.schema.validate(signature, definitions.Signature);
 
 	if (!valid) {
@@ -627,7 +627,7 @@ __private.receiveSignature = async function(signature) {
  * @implements {__private.receiveTransaction}
  * @param {Array} transactions - Array of transactions
  */
-__private.receiveTransactions = async function(transactions = []) {
+__private.receiveTransactions = async (transactions = []) => {
 	// eslint-disable-next-line no-restricted-syntax
 	for (const transaction of transactions) {
 		try {
@@ -652,7 +652,7 @@ __private.receiveTransactions = async function(transactions = []) {
  * @returns {Promise.<boolean, Error>}
  * @todo Add description for the params
  */
-__private.receiveTransaction = async function(transactionJSON) {
+__private.receiveTransaction = async transactionJSON => {
 	const id = transactionJSON ? transactionJSON.id : 'null';
 	let transaction;
 	try {
