@@ -405,14 +405,7 @@ module.exports = class Chain {
 
 	async _startForging() {
 		try {
-			await new Promise((resolve, reject) => {
-				this.forger.loadDelegates(err => {
-					if (err) {
-						return reject(err);
-					}
-					return resolve();
-				});
-			});
+			await this.forger.loadDelegates();
 		} catch (err) {
 			this.logger.error(err, 'Failed to load delegates');
 		}
@@ -428,14 +421,12 @@ module.exports = class Chain {
 					this.logger.debug('Client not ready to forge');
 					return;
 				}
-				await new Promise((resolve, reject) => {
-					this.forger.forge(err => {
-						if (err) {
-							return reject(err);
-						}
-						return resolve();
-					});
-				});
+				try {
+					await this.forger.forge();
+				} catch (error) {
+					this.logger.error(error);
+					throw error;
+				}
 			},
 			forgeInterval
 		);
