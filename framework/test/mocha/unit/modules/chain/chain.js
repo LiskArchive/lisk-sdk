@@ -87,8 +87,9 @@ describe('Chain', () => {
 		stubs.channel.invoke.withArgs('app:getApplicationState').resolves({});
 
 		stubs.createLoggerComponent = sinonSandbox.stub().returns(stubs.logger);
+		stubs.createChainLogger = sinonSandbox.stub().returns(stubs.logger);
 		stubs.createCacheComponent = sinonSandbox.stub().returns(stubs.cache);
-		stubs.createStorageComponent = sinonSandbox.stub().returns(stubs.storage);
+		stubs.createChainStorage = sinonSandbox.stub().returns(stubs.storage);
 
 		stubs.initSteps = {
 			createBus: sinonSandbox.stub().resolves(stubs.bus),
@@ -100,7 +101,8 @@ describe('Chain', () => {
 
 		Chain.__set__('createLoggerComponent', stubs.createLoggerComponent);
 		Chain.__set__('createCacheComponent', stubs.createCacheComponent);
-		Chain.__set__('createStorageComponent', stubs.createStorageComponent);
+		Chain.__set__('createChainStorage', stubs.createChainStorage);
+		Chain.__set__('createChainLogger', stubs.createChainLogger);
 		Chain.__set__('createBus', stubs.initSteps.createBus);
 		Chain.__set__('bootstrapStorage', stubs.initSteps.bootstrapStorage);
 		Chain.__set__('bootstrapCache', stubs.initSteps.bootstrapCache);
@@ -141,7 +143,7 @@ describe('Chain', () => {
 
 		it('should create logger component with loggerConfig coming from app:getComponentConfig', () => {
 			// Assert
-			expect(stubs.createLoggerComponent).to.have.been.calledWith(loggerConfig);
+			expect(stubs.createChainLogger).to.have.been.calledWith(loggerConfig);
 
 			return expect(chain.logger).to.be.equal(stubs.logger);
 		});

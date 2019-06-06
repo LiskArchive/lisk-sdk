@@ -23,9 +23,10 @@ const { convertErrorsToString } = require('./helpers/error_handlers');
 const Sequence = require('./helpers/sequence');
 const ed = require('./helpers/ed');
 const { ZSchema } = require('../../controller/validator');
-const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
+const { createChainStorage } = require('./components/storage');
+const { createChainLogger } = require('./components/logger');
 const { createBus, bootstrapStorage, bootstrapCache } = require('./init_steps');
 const jobQueue = require('./helpers/jobs_queue');
 const Peers = require('./submodules/peers');
@@ -86,17 +87,15 @@ module.exports = class Chain {
 			'app:getApplicationState'
 		);
 
-		this.logger = createLoggerComponent(loggerConfig);
-		const dbLogger =
-			storageConfig.logFileName &&
-			storageConfig.logFileName === loggerConfig.logFileName
+		this.logger = createChainLogger(loggerConfig);
+		const storageLogger =
+			loggerConfig.logFileName &&
+			loggerConfig.logFileName === storageConfig.logFileName
 				? this.logger
-				: createLoggerComponent(
-						Object.assign({
-							...loggerConfig,
-							logFileName: storageConfig.logFileName,
-						})
-				  );
+				: createLoggerComponent({
+						...loggerConfig,
+						logFileName: storageConfig.logFileName,
+				  });
 
 		global.constants = this.options.constants;
 		global.exceptions = this.options.exceptions;
@@ -118,7 +117,7 @@ module.exports = class Chain {
 
 			// Storage
 			this.logger.debug('Initiating storage...');
-			this.storage = createStorageComponent(storageConfig, dbLogger);
+			this.storage = createChainStorage(storageConfig, storageLogger);
 
 			// TODO: For socket cluster child process, should be removed with refactoring of network module
 			this.options.loggerConfig = loggerConfig;
