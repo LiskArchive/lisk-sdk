@@ -314,31 +314,16 @@ class Blocks extends EventEmitter {
 			} version: ${block.version}`
 		);
 
-		// New block version, different receiveBlockFromNetwork implementation
-		if (block.version === 2) {
-			// TODO: Remove hard coding.
-			// Current time since Lisk Epoch
-			// Better to do it here rather than in the Sequence so receiving time is more accurate
-			const newBlockReceivedAt = this.slots.getTime();
+		const receiveBlockImplementations = {
+			1: this.receiveBlockFromNetworkV1,
+			2: this.receiveBlockFromNetworkV2,
+		};
 
-			// Execute in sequence via sequence
-			return this.sequence.add(callback => {
-				try {
-					this._shouldNotBeActive();
-				} catch (error) {
-					callback(error);
-					return;
-				}
-				this._isActive = true;
-				this._forkChoiceTask(block, newBlockReceivedAt)
-					.then(result => callback(null, result))
-					.catch(error => callback(error))
-					.finally(() => {
-						this._isActive = false;
-					});
-			});
-		}
+		// TODO: Use block_version.js#getBlockVersion when https://github.com/LiskHQ/lisk-sdk/pull/3722 is merged
+		return receiveBlockImplementations[block.version](block);
+	}
 
+	async receiveBlockFromNetworkV1(block) {
 		return this.sequence.add(async cb => {
 			try {
 				this._shouldNotBeActive();
@@ -468,6 +453,29 @@ class Blocks extends EventEmitter {
 			// Discard received block
 			this._isActive = false;
 			setImmediate(cb);
+		});
+	}
+
+	async receiveBlockFromNetworkV2(block) {
+		// Current time since Lisk Epoch
+		// Better to do it here rather than in the Sequence so receiving time is more accurate
+		const newBlockReceivedAt = this.slots.getTime();
+
+		// Execute in sequence via sequence
+		return this.sequence.add(callback => {
+			try {
+				this._shouldNotBeActive();
+			} catch (error) {
+				callback(error);
+				return;
+			}
+			this._isActive = true;
+			this._forkChoiceTask(block, newBlockReceivedAt)
+				.then(result => callback(null, result))
+				.catch(error => callback(error))
+				.finally(() => {
+					this._isActive = false;
+				});
 		});
 	}
 
