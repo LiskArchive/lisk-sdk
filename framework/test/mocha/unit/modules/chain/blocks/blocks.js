@@ -511,11 +511,14 @@ describe('blocks', () => {
 			});
 
 			it('should call _handleDoubleForgingTieBreak if _isTieBreak evaluates to true', async () => {
+				const aTime = Date.now();
 				const handleDoubleForgingTieBreak = sinonSandbox.stub(
 					blocksInstance,
 					'_handleDoubleForgingTieBreak'
 				);
 				stubs.isTieBreak.returns(true);
+
+				blocksInstance._lastReceipt = aTime;
 
 				await blocksInstance._forkChoiceTask(
 					defaults.newBlock,
@@ -525,7 +528,7 @@ describe('blocks', () => {
 					slots: blocksInstance.slots,
 					lastBlock: defaults.lastBlock,
 					currentBlock: defaults.newBlock,
-					lastReceivedAt: blocksInstance._lastReceipt,
+					lastReceivedAt: aTime,
 					currentReceivedAt: newBlockReceivedAt,
 				});
 				expect(handleDoubleForgingTieBreak).to.be.calledWith(
