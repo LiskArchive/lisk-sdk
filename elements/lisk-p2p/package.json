@@ -43,7 +43,8 @@
 		"prebuild": "npm run prebuild:node",
 		"build": "npm run build:node",
 		"build:check": "node -e \"require('./dist-node')\"",
-		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
+		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check",
+		"enableLocalIPs": "sudo ./scripts/enableTestLocalIPs.sh 10 19"
 	},
 	"dependencies": {
 		"lodash.shuffle": "4.2.0",
