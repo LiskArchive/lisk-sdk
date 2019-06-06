@@ -103,6 +103,7 @@ export interface P2PConfig {
 	readonly peerBanTime?: number;
 	readonly sendPeerLimit?: number;
 	readonly outboundShuffleInterval?: number;
+	readonly hostIp?: string;
 }
 
 // Network info exposed by the P2P library.

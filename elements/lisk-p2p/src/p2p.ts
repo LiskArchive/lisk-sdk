@@ -115,7 +115,7 @@ export const EVENT_NEW_INBOUND_PEER = 'newInboundPeer';
 export const EVENT_FAILED_TO_ADD_INBOUND_PEER = 'failedToAddInboundPeer';
 export const EVENT_NEW_PEER = 'newPeer';
 
-export const NODE_HOST_IP = '0.0.0.0';
+export const DEFAULT_NODE_HOST_IP = '0.0.0.0';
 export const DEFAULT_DISCOVERY_INTERVAL = 30000;
 export const DEFAULT_BAN_TIME = 86400;
 export const DEFAULT_POPULATOR_INTERVAL = 10000;
@@ -604,7 +604,10 @@ export class P2P extends EventEmitter {
 			},
 		);
 
-		this._httpServer.listen(this._nodeInfo.wsPort, NODE_HOST_IP);
+		this._httpServer.listen(
+			this._nodeInfo.wsPort,
+			this._config.hostIp || DEFAULT_NODE_HOST_IP,
+		);
 		if (this._scServer.isReady) {
 			this._isActive = true;
 
