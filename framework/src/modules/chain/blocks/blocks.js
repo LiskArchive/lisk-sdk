@@ -22,13 +22,7 @@ const { BlocksProcess } = require('./process');
 const { BlocksVerify } = require('./verify');
 const { BlocksChain } = require('./chain');
 const { BlockReward } = require('./block_reward');
-const {
-	isTieBreak,
-	isIdenticalBlock,
-	isDoubleForging,
-	isDifferentChain,
-	isValidBlock,
-} = require('./fork_choice_rule');
+const forkChoiceRule = require('./fork_choice_rule');
 
 const EVENT_NEW_BLOCK = 'EVENT_NEW_BLOCK';
 const EVENT_DELETE_BLOCK = 'EVENT_DELETE_BLOCK';
@@ -323,7 +317,7 @@ class Blocks extends EventEmitter {
 		// New block version, different receiveBlockFromNetwork implementation
 		if (block.version === 2) {
 			// TODO: Remove hard coding.
-			// Current slot number based on current time since Lisk Epoch ~ Slot number at the time the new block is received
+			// Current time since Lisk Epoch
 			// Better to do it here rather than in the Sequence so receiving time is more accurate
 			const newBlockReceivedAt = this.slots.getTime();
 
@@ -524,17 +518,17 @@ class Blocks extends EventEmitter {
 		// See: https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#applying-blocks-according-to-fork-choice-rule
 		// Case 2 and 1 have flipped execution order for better readability. Behavior is still the same
 
-		if (isValidBlock(this._lastBlock, block)) {
+		if (forkChoiceRule.isValidBlock(this._lastBlock, block)) {
 			// Case 2: correct block received
 			return this._handleGoodBlock(block);
 		}
 
-		if (isIdenticalBlock(this._lastBlock, block)) {
+		if (forkChoiceRule.isIdenticalBlock(this._lastBlock, block)) {
 			// Case 1: same block received twice
 			return this._handleSameBlockReceived(block);
 		}
 
-		if (isDoubleForging(this._lastBlock, block)) {
+		if (forkChoiceRule.isDoubleForging(this._lastBlock, block)) {
 			// Delegates are the same
 			// Case 3: double forging different blocks in the same slot.
 			// Last Block stands.
@@ -542,7 +536,7 @@ class Blocks extends EventEmitter {
 		}
 
 		if (
-			isTieBreak({
+			forkChoiceRule.isTieBreak({
 				slots: this.slots,
 				lastBlock: this._lastBlock,
 				currentBlock: block,
@@ -555,7 +549,7 @@ class Blocks extends EventEmitter {
 			return this._handleDoubleForgingTieBreak(block, this._lastBlock);
 		}
 
-		if (isDifferentChain(this._lastBlock, block)) {
+		if (forkChoiceRule.isDifferentChain(this._lastBlock, block)) {
 			// Case 5: received block has priority. Move to a different chain.
 			// TODO: Move to a different chain
 			return this._handleMovingToDifferentChain();
@@ -751,7 +745,7 @@ class Blocks extends EventEmitter {
 	async _handleDoubleForgingTieBreak(newBlock, lastBlock) {
 		const block = cloneDeep(newBlock);
 		// It mutates the argument
-		const check = this.blocksVerify.normalizeAndVerify(
+		const check = await this.blocksVerify.normalizeAndVerify(
 			block,
 			lastBlock,
 			this._lastNBlockIds
@@ -772,12 +766,15 @@ class Blocks extends EventEmitter {
 
 		// If the new block is correctly validated and verified,
 		// last block is deleted and new block is added to the tip of the chain
-		this.logger.info('Deleting last block due to Fork Choice Case 4');
+		this.logger.info(
+			`Deleting last block with id: ${
+				lastBlock.id
+			} due to Fork Choice Rule Case 4`
+		);
 		const previousLastBlock = cloneDeep(this._lastBlock);
 
-		// Deletes last block and assigns new last block to this._lastBlock
-		// Mutates this._lastBlock
-		this.recoverChain();
+		// Deletes last block and assigns new received block to this._lastBlock
+		await this.recoverChain();
 
 		try {
 			await this._processReceivedBlock(block);
