@@ -116,7 +116,7 @@ class BlockSlots {
 	}
 
 	/**
-	 * Check if timestamp is contained within a slot time
+	 * Check if timestamp is contained within a slot time window
 	 * @param slot
 	 * @param time
 	 * @returns {boolean}

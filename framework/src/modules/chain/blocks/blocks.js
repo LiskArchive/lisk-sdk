@@ -332,7 +332,10 @@ class Blocks extends EventEmitter {
 				this._isActive = true;
 				this._forkChoiceTask(block, newBlockReceivedAt)
 					.then(result => callback(null, result))
-					.catch(error => callback(error));
+					.catch(error => callback(error))
+					.finally(() => {
+						this._isActive = false;
+					});
 			});
 		}
 
@@ -779,6 +782,12 @@ class Blocks extends EventEmitter {
 		try {
 			await this._processReceivedBlock(block);
 		} catch (error) {
+			this.logger.warn(
+				`Failed to apply newly received block with id: ${
+					block.id
+				}, restoring previous block ${previousLastBlock.id}`
+			);
+
 			await this._processReceivedBlock(previousLastBlock);
 		}
 	}
@@ -790,7 +799,7 @@ class Blocks extends EventEmitter {
 	// eslint-disable-next-line class-methods-use-this
 	_handleMovingToDifferentChain() {
 		// TODO: Move to a different chain.
-		// Determine with method to use to move to a different chain: Block Sync Mechanism or Fast Chain Switching Mechanism
+		// Determine which method to use to move to a different chain: Block Sync Mechanism or Fast Chain Switching Mechanism
 	}
 
 	/**

@@ -251,7 +251,6 @@ describe('blocks', () => {
 
 				await blocksInstance.receiveBlockFromNetwork(block);
 				expect(blocksInstance._forkChoiceTask).to.be.calledWith(block, aTime);
-				expect(blocksInstance._isActive).to.be.true;
 			});
 
 			it('should abort if _isActive is true and throw an exception', async () => {
@@ -707,6 +706,20 @@ describe('blocks', () => {
 
 			expect(stubs.recoverChain).to.be.called;
 			expect(stubs.processReceivedBlock).to.be.calledWith(newBlock);
+		});
+
+		it('should warn log if the applying the newly received block fails ', async () => {
+			stubs.processReceivedBlock
+				.withArgs(newBlock)
+				.rejects('Error while processing the block');
+
+			const previousLastBlock = cloneDeep(blocksInstance._lastBlock);
+			await blocksInstance._handleDoubleForgingTieBreak(newBlock, lastBlock);
+			expect(loggerStub.warn).to.be.calledWith(
+				`Failed to apply newly received block with id: ${
+					newBlock.id
+				}, restoring previous block ${previousLastBlock.id}`
+			);
 		});
 
 		it('should restore the last block if processing the new block fails', async () => {
