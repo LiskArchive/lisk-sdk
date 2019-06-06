@@ -165,6 +165,10 @@ export class OutboundPeer extends Peer {
 			});
 		});
 
+		outboundSocket.on('ping', () => {
+			this.emit('pong', Date.now());
+		});
+
 		// Bind RPC and remote event handlers
 		outboundSocket.on(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
 		outboundSocket.on(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
@@ -202,6 +206,7 @@ export class OutboundPeer extends Peer {
 			'postTransactions',
 			this._handleRawLegacyMessagePostTransactions,
 		);
+		outboundSocket.off('ping');
 	}
 }
 
@@ -248,6 +253,9 @@ export const connectAndRequest = async (
 			// Bind an error handler immediately after creating the socket; otherwise errors may crash the process
 			// tslint:disable-next-line no-empty
 			outboundSocket.on('error', () => {});
+			outboundSocket.on('ping' as any, () => {
+				outboundSocket.emit('pong', Date.now());
+			});
 
 			// tslint:disable-next-line no-let
 			let disconnectStatusCode: number;

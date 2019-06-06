@@ -343,7 +343,7 @@ export class PeerPool extends EventEmitter {
 	): Peer {
 		const inboundPeers = this.getPeers(InboundPeer);
 		if (inboundPeers.length >= this._maxInboundConnections) {
-			this.removePeer(shuffle(inboundPeers)[0].id);
+			this._evictPeer(InboundPeer);
 		}
 
 		const peerConfig = {

@@ -128,7 +128,9 @@ export class Peer extends EventEmitter {
 	protected readonly _ipAddress: string;
 	protected readonly _wsPort: number;
 	private readonly _height: number;
-	private _reputation: number;
+	public _reputation: number;
+	public _latency: number;
+	protected _connectTime: number;
 	private _callCounter: Map<string, number>;
 	private readonly _counterResetInterval: NodeJS.Timer;
 	protected _peerInfo: P2PPeerInfo;
@@ -159,6 +161,8 @@ export class Peer extends EventEmitter {
 		this._id = constructPeerId(this._ipAddress, this._wsPort);
 		this._height = peerInfo.height ? (peerInfo.height as number) : 0;
 		this._reputation = DEFAULT_REPUTATION_SCORE;
+		this._latency = 0;
+		this._connectTime = Date.now();
 		this._callCounter = new Map();
 		this._counterResetInterval = setInterval(() => {
 			this._callCounter = new Map();
