@@ -30,45 +30,8 @@ const validator = require('../../../controller/validator');
 const { validateTransactions } = require('../transactions');
 const blockVersion = require('./block_version');
 
-const bftUpgradeHeight = 2; // TODO: define strategy to inject this variable from chain config
-
 // TODO: remove type constraints
 const TRANSACTION_TYPES_MULTI = 4;
-
-const create = data => {
-	console.log('\n\n\n\n\n');
-	console.log(data.height);
-	return data.height > bftUpgradeHeight || bftUpgradeHeight === 0
-		? createBFT(data)
-		: createLegacy(data);
-};
-
-const getBytes = block => {
-	console.log('getBytes');
-	return block.version === 2 ? getBytesBFT(block) : getBytesLegacy(block);
-};
-
-// getBytes {
-// 	 1: function,
-//	 2; function,
-// }
-// Call: getBytes[block.version]
-
-const dbRead = raw => {
-	console.log('dbRead');
-	console.log(raw);
-	return parseInt(raw.b_height) > bftUpgradeHeight || bftUpgradeHeight === 0
-		? dbReadBFT(raw)
-		: dbReadLegacy(raw);
-};
-
-const storageRead = raw => {
-	console.log('storageRead');
-	console.log(raw);
-	return parseInt(raw.height) > bftUpgradeHeight || bftUpgradeHeight === 0
-		? storageReadBFT(raw)
-		: storageReadLegacy(raw);
-};
 
 /**
  * Creates a block signature.
@@ -78,10 +41,8 @@ const storageRead = raw => {
  * @returns {signature} Block signature
  * @todo Add description for the params
  */
-const sign = (block, keypair) => {
-	console.log('verifysignature');
-	return signDataWithPrivateKey(hash(getBytes(block)), keypair.privateKey);
-};
+const sign = (block, keypair) =>
+	signDataWithPrivateKey(hash(getBytes(block)), keypair.privateKey);
 
 /**
  * Creates hash based on block bytes.
@@ -100,9 +61,7 @@ const getHash = block => hash(getBytes(block));
  * @returns {!Array} Contents as an ArrayBuffer
  * @todo Add description for the function and the params
  */
-const getBytesLegacy = block => {
-	console.log('legacy');
-	console.log(block);
+const getBytesV1 = block => {
 	const capacity =
 		4 + // version (int)
 		4 + // timestamp (int)
@@ -169,9 +128,7 @@ const getBytesLegacy = block => {
  * @returns {!Array} Contents as an ArrayBuffer
  * @todo Add description for the function and the params
  */
-const getBytesBFT = block => {
-	console.log('legacy');
-	console.log(block);
+const getBytesV2 = block => {
 	const capacity =
 		4 + // version (int)
 		4 + // timestamp (int)
@@ -276,7 +233,7 @@ const objectNormalize = (block, exceptions = {}) => {
  * @returns {block} block
  * @todo Add description for the params
  */
-const createLegacy = ({
+const createV1 = ({
 	blockReward,
 	transactions,
 	previousBlock,
@@ -346,7 +303,7 @@ const createLegacy = ({
 	}
 
 	const block = {
-		version: blockVersion.currentBlockVersion,
+		version: blockVersion.getBlockVersion(nextHeight),
 		totalAmount,
 		totalFee,
 		reward,
@@ -372,7 +329,7 @@ const createLegacy = ({
  * @returns {block} block
  * @todo Add description for the params
  */
-const createBFT = ({
+const createV2 = ({
 	blockReward,
 	transactions,
 	previousBlock,
@@ -444,7 +401,7 @@ const createBFT = ({
 	}
 
 	const block = {
-		version: blockVersion.currentBlockVersion,
+		version: blockVersion.getBlockVersion(nextHeight), // Was blockVersion.currentBlockVersion + 1 before
 		totalAmount,
 		totalFee,
 		reward,
@@ -456,8 +413,8 @@ const createBFT = ({
 		generatorPublicKey: keypair.publicKey.toString('hex'),
 		transactions: blockTransactions,
 		height: nextHeight,
-		maxHeightPreviouslyForged: maxHeightPreviouslyForged,
-		prevotedConfirmedUptoHeight: prevotedConfirmedUptoHeight,
+		maxHeightPreviouslyForged,
+		prevotedConfirmedUptoHeight,
 	};
 
 	block.blockSignature = sign(block, keypair);
@@ -474,7 +431,6 @@ const createBFT = ({
  */
 const verifySignature = block => {
 	const signatureLength = 64;
-	console.log('verifysignature');
 	const data = getBytes(block);
 	const dataWithoutSignature = Buffer.alloc(data.length - signatureLength);
 
@@ -497,7 +453,6 @@ const verifySignature = block => {
  * @todo Add description for the params
  */
 const getId = block => {
-	console.log('getId');
 	const hashedBlock = hash(getBytes(block));
 	const temp = Buffer.alloc(8);
 	for (let i = 0; i < 8; i++) {
@@ -516,7 +471,7 @@ const getId = block => {
  * @returns {null|block} Block object
  * @todo Add description for the params
  */
-const dbReadLegacy = raw => {
+const dbReadV1 = raw => {
 	if (!raw.b_id) {
 		return null;
 	}
@@ -548,7 +503,7 @@ const dbReadLegacy = raw => {
  * @returns {null|block} Block object
  * @todo Add description for the params
  */
-const dbReadBFT = raw => {
+const dbReadV2 = raw => {
 	if (!raw.b_id) {
 		return null;
 	}
@@ -581,7 +536,7 @@ const dbReadBFT = raw => {
  * @param {Object} raw Raw database data block object
  * @returns {null|block} Block object
  */
-const storageReadLegacy = raw => {
+const storageReadV0 = raw => {
 	if (!raw.id) {
 		return null;
 	}
@@ -615,13 +570,15 @@ const storageReadLegacy = raw => {
 	return block;
 };
 
+const storageReadV1 = raw => storageReadV0(raw);
+
 /**
  * Creates block object based on raw database block data.
  *
  * @param {Object} raw Raw database data block object
  * @returns {null|block} Block object
  */
-const storageReadBFT = raw => {
+const storageReadV2 = raw => {
 	if (!raw.id) {
 		return null;
 	}
@@ -737,6 +694,31 @@ const blockSchema = {
 		'version',
 	],
 };
+
+const createFunc = {
+	1: createV1,
+	2: createV2,
+};
+const create = data => createFunc[data.version](data);
+
+const getBytesFunc = {
+	1: getBytesV1,
+	2: getBytesV2,
+};
+const getBytes = block => getBytesFunc[block.version](block);
+
+const dbReadFunc = {
+	1: dbReadV1,
+	2: dbReadV2,
+};
+const dbRead = raw => dbReadFunc[raw.b_version](raw);
+
+const storageReadFunc = {
+	0: storageReadV0,
+	1: storageReadV1,
+	2: storageReadV2,
+};
+const storageRead = raw => storageReadFunc[raw.version](raw);
 
 module.exports = {
 	sign,

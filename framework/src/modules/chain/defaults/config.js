@@ -187,15 +187,8 @@ const defaultConfig = {
 						disableDappTransaction: {
 							type: 'integer',
 						},
-						bftUpgradeHeight: {
-							type: 'integer',
-						},
 					},
-					required: [
-						'disableDappTransfer',
-						'disableDappTransaction',
-						'bftUpgradeHeight',
-					],
+					required: ['disableDappTransfer', 'disableDappTransaction'],
 				},
 				ignoreDelegateListCacheForRounds: {
 					type: 'array',
@@ -289,7 +282,6 @@ const defaultConfig = {
 			precedent: {
 				disableDappTransfer: 0,
 				disableDappTransaction: 0,
-				bftUpgradeHeight: 0,
 			},
 			ignoreDelegateListCacheForRounds: [],
 			blockVersions: {},

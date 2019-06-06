@@ -19,7 +19,20 @@
  *
  * @property {number} currentBlockVersion - Current block version used for forging and verify
  */
-const currentBlockVersion = 1;
+const currentBlockVersion = 2;
+
+const exceptions = {
+	blockVersions: {
+		'1': {
+			start: 1,
+			end: 4,
+		},
+		'2': {
+			start: 5,
+			end: 6901027,
+		},
+	},
+}; // TODO BFT: define strategy to inject this variable from chain config
 
 /**
  * Checks if block version is valid - if match current version or there is an exception for provided block height.
@@ -49,7 +62,32 @@ const isValid = (version, height, exceptions = {}) => {
 	return Number(exceptionVersion) === version;
 };
 
+const getBlockVersion = height => {
+	if (!exceptions.blockVersions) {
+		return -1;
+	}
+
+	const exceptionVersion = Object.keys(exceptions.blockVersions).find(
+		exception => {
+			// Get height range of current exceptions
+			const heightsRange = exceptions.blockVersions[exception];
+			// Check if provided height is between the range boundaries
+			return height >= heightsRange.start && height <= heightsRange.end
+				? exception
+				: false;
+		}
+	);
+
+	if (exceptionVersion === undefined) {
+		// If there is no exception for provided height return currentBlockVersion
+		return currentBlockVersion;
+	}
+
+	return Number(exceptionVersion);
+};
+
 module.exports = {
 	isValid,
 	currentBlockVersion,
+	getBlockVersion,
 };

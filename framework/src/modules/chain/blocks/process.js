@@ -92,7 +92,7 @@ class BlocksProcess {
 		const context = {
 			blockTimestamp: timestamp,
 			blockHeight: lastBlock.height + 1,
-			blockVersion: blockVersion.currentBlockVersion,
+			blockVersion: blockVersion.getBlockVersion(lastBlock.height + 1),
 		};
 
 		const allowedTransactionsIds = transactionsModule
@@ -127,6 +127,7 @@ class BlocksProcess {
 			prevotedConfirmedUptoHeight: 1,
 			maxHeightPreviouslyForged: 1,
 			height: context.blockHeight,
+			version: context.blockVersion,
 		});
 	}
 
