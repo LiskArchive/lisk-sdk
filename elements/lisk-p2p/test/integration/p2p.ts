@@ -1325,17 +1325,14 @@ describe('Integration tests for P2P library', () => {
 			p2pNodeList = [...new Array(NETWORK_PEER_COUNT_WITH_LIMIT).keys()].map(
 				index => {
 					// Each node will have the previous node in the sequence as a seed peer except the first node.
-					const seedPeers =
-						index === 0
-							? []
-							: [
-									{
-										ipAddress: '127.0.0.1',
-										wsPort:
-											NETWORK_START_PORT +
-											((index - 1) % NETWORK_PEER_COUNT_WITH_LIMIT),
-									},
-							  ];
+					const seedPeers = [
+						{
+							ipAddress: '127.0.0.1',
+							wsPort:
+								NETWORK_START_PORT +
+								((index + 1) % NETWORK_PEER_COUNT_WITH_LIMIT),
+						},
+					];
 
 					const nodePort = NETWORK_START_PORT + index;
 					return new P2P({
@@ -1368,7 +1365,7 @@ describe('Integration tests for P2P library', () => {
 			for (const p2p of p2pNodeList) {
 				p2p.start();
 			}
-			await wait(1800);
+			await wait(1000);
 		});
 
 		afterEach(async () => {
