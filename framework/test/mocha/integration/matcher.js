@@ -244,7 +244,7 @@ describe('matcher', () => {
 	});
 
 	describe('when receiving transactions from a peer', () => {
-		it('should not include a disallowed transaction in the transaction pool', done => {
+		it('should not include a disallowed transaction in the transaction pool', async () => {
 			// Arrange
 			// Force the matcher function to return always _FALSE_, for easy testing
 			// and register the transaction
@@ -252,8 +252,13 @@ describe('matcher', () => {
 
 			const rawTransaction = createRawCustomTransaction(commonTransactionData);
 
-			// Act: simulate receiving transactions from another peer
-			receiveTransaction(rawTransaction, null, err => {
+			try {
+				// Act: simulate receiving transactions from another peer
+				await receiveTransaction(rawTransaction);
+
+				// Forces the test to fail if `receiveTransaction` doesn't throw
+				throw [new Error('receiveTransaction was not rejected')];
+			} catch (err) {
 				// Assert
 				expect(
 					scope.modules.transactionPool.transactionInPool(rawTransaction.id)
@@ -262,25 +267,21 @@ describe('matcher', () => {
 				expect(err[0].message).to.equal(
 					`Transaction type ${CUSTOM_TRANSACTION_TYPE} is currently not allowed.`
 				);
-				done();
-			});
+			}
 		});
 
-		it('should include an allowed transaction in the transaction pool', done => {
+		it('should include an allowed transaction in the transaction pool', async () => {
 			// Arrange
 			setMatcherAndRegisterTx(scope, CustomTransationClass, () => true);
-
 			const jsonTransaction = createRawCustomTransaction(commonTransactionData);
 
 			// Act
-			receiveTransaction(jsonTransaction, null, err => {
-				// Assert
-				expect(
-					scope.modules.transactionPool.transactionInPool(jsonTransaction.id)
-				).to.be.true;
-				expect(err).to.be.null;
-				done();
-			});
+			await receiveTransaction(jsonTransaction);
+
+			// Assert
+			expect(
+				scope.modules.transactionPool.transactionInPool(jsonTransaction.id)
+			).to.be.true;
 		});
 	});
 
