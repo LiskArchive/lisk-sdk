@@ -319,34 +319,36 @@ class Transport {
 					};
 				}
 
-				return modules.blocks
-					.loadBlocksDataWS({
+				try {
+					const data = await modules.blocks.loadBlocksDataWS({
 						limit: 34, // 1977100 bytes
 						lastId: query.lastBlockId,
-					})
-					.then(data => {
-						_.each(data, block => {
-							if (block.tf_data) {
-								try {
-									block.tf_data = block.tf_data.toString('utf8');
-								} catch (e) {
-									library.logger.error(
-										'Transport->blocks: Failed to convert data field to UTF-8',
-										{
-											block,
-											error: e,
-										}
-									);
-								}
+					});
+
+					_.each(data, block => {
+						if (block.tf_data) {
+							try {
+								block.tf_data = block.tf_data.toString('utf8');
+							} catch (e) {
+								library.logger.error(
+									'Transport->blocks: Failed to convert data field to UTF-8',
+									{
+										block,
+										error: e,
+									}
+								);
 							}
-						});
-						return { blocks: data, success: true };
-					})
-					.catch(err => ({
+						}
+					});
+
+					return { blocks: data, success: true };
+				} catch (err) {
+					return {
 						blocks: [],
 						message: err,
 						success: false,
-					}));
+					};
+				}
 			},
 
 			/**
@@ -439,14 +441,18 @@ class Transport {
 					};
 				}
 
-				return modules.transactionPool
-					.getTransactionAndProcessSignature(query.signature)
-					.then(() => ({ success: true }))
-					.catch(err => ({
+				try {
+					await modules.transactionPool.getTransactionAndProcessSignature(
+						query.signature
+					);
+					return { success: true };
+				} catch (err) {
+					return {
 						success: false,
 						code: 409,
 						errors: err,
-					}));
+					};
+				}
 			},
 
 			/**
