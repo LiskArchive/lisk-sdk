@@ -51,7 +51,7 @@
 		"@types/sinon-chai": "3.2.2",
 		"chai": "4.2.0",
 		"mocha": "5.2.0",
-		"nyc": "13.2.0",
+		"nyc": "14.1.1",
 		"prettier": "1.16.4",
 		"sinon": "7.2.3",
 		"sinon-chai": "3.3.0",
