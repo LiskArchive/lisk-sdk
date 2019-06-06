@@ -34,6 +34,9 @@ import * as constants from './constants';
 import { createSignatureObject } from './create_signature_object';
 import { convertToAssetError, TransactionError } from './errors';
 import { Status, TransactionResponse } from './response';
+
+import * as createSendable from './create_sendable';
+
 import { TransactionJSON } from './transaction_types';
 import {
 	checkPublicKeysForDuplicates,
@@ -117,5 +120,6 @@ export {
 	TransactionError,
 	convertToAssetError,
 	constants,
+	createSendable,
 	exposedUtils as utils,
 };
