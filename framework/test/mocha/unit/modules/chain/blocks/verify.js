@@ -34,7 +34,9 @@ const {
 	BlockSlots,
 } = require('../../../../../../src/modules/chain/blocks/block_slots');
 const {
-	BlockReward,
+	calculateMilestone,
+	calculateReward,
+	calculateSupply,
 } = require('../../../../../../src/modules/chain/blocks/block_reward');
 const blocksLogic = require('../../../../../../src/modules/chain/blocks/block');
 // const blocksUtils = require('../../../../../../src/modules/chain/blocks/utils');
@@ -135,12 +137,18 @@ describe('blocks/verify', () => {
 			blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
 		});
 
-		blockReward = new BlockReward({
+		const blockRewardArgs = {
 			distance: __testContext.config.constants.REWARDS.DISTANCE,
 			rewardOffset: __testContext.config.constants.REWARDS.DISTANCE,
 			milestones: __testContext.config.constants.REWARDS.MILESTONES,
 			totalAmount: __testContext.config.constants.TOTAL_AMOUNT,
-		});
+		};
+
+		blockReward = {
+			calculateMilestone: height => calculateMilestone(height, blockRewardArgs),
+			calculateSupply: height => calculateSupply(height, blockRewardArgs),
+			calculateReward: height => calculateReward(height, blockRewardArgs),
+		};
 
 		constants = {
 			blockReceiptTimeout: __testContext.config.constants.BLOCK_RECEIPT_TIMEOUT,
@@ -458,13 +466,13 @@ describe('blocks/verify', () => {
 
 		beforeEach(async () => {
 			blockRewardStub = {
-				calcReward: sinonSandbox.stub(),
+				calculateReward: sinonSandbox.stub(),
 			};
 		});
 
-		describe('when blockReward.calcReward succeeds', () => {
+		describe('when blockReward.calculateReward succeeds', () => {
 			beforeEach(async () => {
-				blockRewardStub.calcReward.returns(new BigNum(5));
+				blockRewardStub.calculateReward.returns(new BigNum(5));
 			});
 
 			describe('if block.height != 1 && expectedReward != block.reward && exceptions.blockRewards.indexOf(block.id) = -1', () => {
