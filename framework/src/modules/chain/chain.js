@@ -18,7 +18,6 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 	require('./helpers/newrelic_lisk');
 }
 
-const { promisify } = require('util');
 const { convertErrorsToString } = require('./helpers/error_handlers');
 const Sequence = require('./helpers/sequence');
 const ed = require('./helpers/ed');
@@ -226,21 +225,17 @@ module.exports = class Chain {
 					action.params.forging
 				),
 			getTransactions: async () =>
-				promisify(this.scope.modules.transport.shared.getTransactions)(),
+				this.scope.modules.transport.shared.getTransactions(),
 			getSignatures: async () =>
-				promisify(this.scope.modules.transport.shared.getSignatures)(),
+				this.scope.modules.transport.shared.getSignatures(),
 			postSignature: async action =>
-				promisify(this.scope.modules.transport.shared.postSignature)(
-					action.params
-				),
+				this.scope.modules.transport.shared.postSignature(action.params),
 			getForgingStatusForAllDelegates: async () =>
 				this.scope.modules.forger.getForgingStatusForAllDelegates(),
 			getTransactionsFromPool: async ({ params }) =>
 				this.transactionPool.getPooledTransactions(params.type, params.filters),
 			postTransaction: async action =>
-				promisify(this.scope.modules.transport.shared.postTransaction)(
-					action.params
-				),
+				this.scope.modules.transport.shared.postTransaction(action.params),
 			getDelegateBlocksRewards: async action =>
 				this.scope.components.storage.entities.Account.delegateBlocksRewards(
 					action.params.filters,
@@ -260,13 +255,9 @@ module.exports = class Chain {
 				lastBlock: this.scope.modules.blocks.lastBlock,
 			}),
 			blocks: async action =>
-				promisify(this.scope.modules.transport.shared.blocks)(
-					action.params || {}
-				),
+				this.scope.modules.transport.shared.blocks(action.params || {}),
 			blocksCommon: async action =>
-				promisify(this.scope.modules.transport.shared.blocksCommon)(
-					action.params || {}
-				),
+				this.scope.modules.transport.shared.blocksCommon(action.params || {}),
 		};
 	}
 
