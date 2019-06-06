@@ -122,6 +122,9 @@ __private.receiveSignature = function(signature, cb) {
 		if (err) {
 			return setImmediate(cb, [new TransactionError(err[0].message)], 400);
 		}
+		library.logger.debug(
+			`Received signature for transaction ${signature.transactionId}`
+		);
 
 		return modules.multisignatures.getTransactionAndProcessSignature(
 			signature,
@@ -203,26 +206,23 @@ __private.receiveTransaction = async function(
 
 		return setImmediate(cb, errors);
 	}
+	library.logger.debug(`Received transaction ${transaction.id}`);
 
-	return library.balancesSequence.add(balancesSequenceCb => {
-		library.logger.debug(`Received transaction ${transaction.id}`);
-
-		modules.transactions.processUnconfirmedTransaction(
-			transaction,
-			true,
-			err => {
-				if (err) {
-					library.logger.debug(`Transaction ${id}`, convertErrorsToString(err));
-					if (transaction) {
-						library.logger.debug('Transaction', transaction);
-					}
-					return setImmediate(balancesSequenceCb, err);
+	return modules.transactions.processUnconfirmedTransaction(
+		transaction,
+		true,
+		err => {
+			if (err) {
+				library.logger.debug(`Transaction ${id}`, convertErrorsToString(err));
+				if (transaction) {
+					library.logger.debug('Transaction', transaction);
 				}
-
-				return setImmediate(balancesSequenceCb, null, transaction.id);
+				return setImmediate(cb, err);
 			}
-		);
-	}, cb);
+
+			return setImmediate(cb, null, transaction.id);
+		}
+	);
 };
 
 // Events
