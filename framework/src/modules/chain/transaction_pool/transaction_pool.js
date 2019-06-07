@@ -157,15 +157,16 @@ class TransactionPool extends EventEmitter {
 	}
 
 	subscribeEvents() {
+		this.pool.on(pool.EVENT_VERIFIED_TRANSACTION_ONCE, ({ payload }) => {
+			if (payload.length > 0) {
+				payload.forEach(aTransaction =>
+					this.emit('unconfirmedTransaction', aTransaction)
+				);
+			}
+		});
+
 		this.pool.on(pool.EVENT_ADDED_TRANSACTIONS, ({ action, to, payload }) => {
 			if (payload.length > 0) {
-				if (action === pool.ACTION_ADD_TRANSACTIONS) {
-					payload.forEach(aTransaction =>
-						// TODO: make it as a valid event
-						this.emit('unconfirmedTransaction', aTransaction)
-					);
-				}
-
 				this.logger.info(
 					`Transaction pool - added transactions ${
 						to ? `to ${to} queue` : ''
@@ -175,6 +176,7 @@ class TransactionPool extends EventEmitter {
 				);
 			}
 		});
+
 		this.pool.on(pool.EVENT_REMOVED_TRANSACTIONS, ({ action, payload }) => {
 			if (payload.length > 0) {
 				this.logger.info(

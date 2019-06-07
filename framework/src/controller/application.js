@@ -16,6 +16,7 @@
 
 const assert = require('assert');
 const {
+	BaseTransaction,
 	TransferTransaction,
 	SecondSignatureTransaction,
 	DelegateTransaction,
@@ -156,19 +157,11 @@ class Application {
 		__private.transactions.set(this, {});
 		__private.migrations.set(this, {});
 
-		const { TRANSACTION_TYPES } = constants;
-
-		this.registerTransaction(TRANSACTION_TYPES.SEND, TransferTransaction);
-		this.registerTransaction(
-			TRANSACTION_TYPES.SIGNATURE,
-			SecondSignatureTransaction
-		);
-		this.registerTransaction(TRANSACTION_TYPES.DELEGATE, DelegateTransaction);
-		this.registerTransaction(TRANSACTION_TYPES.VOTE, VoteTransaction);
-		this.registerTransaction(
-			TRANSACTION_TYPES.MULTI,
-			MultisignatureTransaction
-		);
+		this.registerTransaction(TransferTransaction);
+		this.registerTransaction(SecondSignatureTransaction);
+		this.registerTransaction(DelegateTransaction);
+		this.registerTransaction(VoteTransaction);
+		this.registerTransaction(MultisignatureTransaction);
 
 		this.registerModule(ChainModule, {
 			registeredTransactions: this.getTransactions(),
@@ -238,26 +231,32 @@ class Application {
 	 * @param {number} transactionType - Unique integer that identifies the transaction type
 	 * @param {constructor} Transaction - Implementation of @liskhq/lisk-transactions/base_transaction
 	 */
-	registerTransaction(transactionType, Transaction, options = {}) {
-		// TODO: Validate the transaction is properly inherited from base class
-		assert(
-			Number.isInteger(transactionType),
-			'Transaction type is required as an integer'
-		);
-		assert(
-			!Object.keys(this.getTransactions()).includes(transactionType.toString()),
-			`A transaction type "${transactionType}" is already registered.`
-		);
+	registerTransaction(Transaction, { matcher } = {}) {
 		assert(Transaction, 'Transaction implementation is required');
 
-		if (options.matcher) {
+		assert(
+			Transaction.prototype instanceof BaseTransaction,
+			'Transaction must extend BaseTransaction.'
+		);
+
+		assert(
+			Number.isInteger(Transaction.TYPE),
+			'Transaction type is required as an integer'
+		);
+
+		assert(
+			!Object.keys(this.getTransactions()).includes(Transaction.TYPE),
+			`A transaction type "${Transaction.TYPE}" is already registered.`
+		);
+
+		if (matcher) {
 			Object.defineProperty(Transaction.prototype, 'matcher', {
-				get: () => options.matcher,
+				get: () => matcher,
 			});
 		}
-
 		const transactions = this.getTransactions();
-		transactions[transactionType] = Object.freeze(Transaction);
+
+		transactions[Transaction.TYPE] = Object.freeze(Transaction);
 		__private.transactions.set(this, transactions);
 	}
 

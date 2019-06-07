@@ -206,6 +206,10 @@ module.exports = {
 	additionalProperties: false,
 	default: {
 		app: {
+			label: 'alpha-sdk-app',
+			version: '0.0.0',
+			minVersion: '0.0.0',
+			protocolVersion: '1.1',
 			ipc: {
 				enabled: false,
 			},
