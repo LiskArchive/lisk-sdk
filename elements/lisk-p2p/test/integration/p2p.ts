@@ -27,7 +27,6 @@ import {
 } from '../../src/p2p_types';
 
 describe('Integration tests for P2P library', () => {
-
 	before(() => {
 		// Make sure that integration tests use real timers.
 		sandbox.restore();
@@ -39,6 +38,7 @@ describe('Integration tests for P2P library', () => {
 	const DISCOVERY_INTERVAL = 200;
 	const POPULATOR_INTERVAL = 1000;
 	const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
+	const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
 	const ALL_NODE_PORTS: ReadonlyArray<number> = [
 		...new Array(NETWORK_PEER_COUNT).keys(),
 	].map(index => NETWORK_START_PORT + index);
@@ -50,12 +50,12 @@ describe('Integration tests for P2P library', () => {
 		beforeEach(async () => {
 			p2pNodeList = ALL_NODE_PORTS.map(nodePort => {
 				return new P2P({
-					blacklistedPeers: [],
 					connectTimeout: 5000,
 					seedPeers: [],
 					wsEngine: 'ws',
 					populatorInterval: POPULATOR_INTERVAL,
 					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
+					maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
 					nodeInfo: {
 						wsPort: nodePort,
 						nethash:
@@ -119,7 +119,6 @@ describe('Integration tests for P2P library', () => {
 				const nodePort = NETWORK_START_PORT + index;
 
 				return new P2P({
-					blacklistedPeers: [],
 					seedPeers,
 					wsEngine: 'ws',
 					connectTimeout: 5000,
@@ -129,6 +128,7 @@ describe('Integration tests for P2P library', () => {
 					peerBanTime: 100,
 					populatorInterval: POPULATOR_INTERVAL,
 					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
+					maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
 					nodeInfo: {
 						wsPort: nodePort,
 						nethash:
@@ -490,13 +490,13 @@ describe('Integration tests for P2P library', () => {
 
 				const nodePort = NETWORK_START_PORT + index;
 				return new P2P({
-					blacklistedPeers: [],
 					connectTimeout: 5000,
 					ackTimeout: 5000,
 					seedPeers,
 					wsEngine: 'ws',
 					populatorInterval: POPULATOR_INTERVAL,
 					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
+					maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
 					nodeInfo: {
 						wsPort: nodePort,
 						nethash:
@@ -1058,7 +1058,6 @@ describe('Integration tests for P2P library', () => {
 				const nodePort = NETWORK_START_PORT + index;
 
 				return new P2P({
-					blacklistedPeers: [],
 					connectTimeout: 5000,
 					ackTimeout: 5000,
 					peerSelectionForSend: peerSelectionForSendRequest as P2PPeerSelectionForSendFunction,
@@ -1068,6 +1067,7 @@ describe('Integration tests for P2P library', () => {
 					wsEngine: 'ws',
 					populatorInterval: POPULATOR_INTERVAL,
 					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
+					maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
 					nodeInfo: {
 						wsPort: nodePort,
 						nethash:
@@ -1218,7 +1218,6 @@ describe('Integration tests for P2P library', () => {
 				const nodePort = NETWORK_START_PORT + index;
 
 				return new P2P({
-					blacklistedPeers: [],
 					seedPeers,
 					wsEngine: 'ws',
 					// A short connectTimeout and ackTimeout will make the node to give up on discovery quicker for our test.
@@ -1228,6 +1227,7 @@ describe('Integration tests for P2P library', () => {
 					discoveryInterval: DISCOVERY_INTERVAL + index * 11,
 					populatorInterval: POPULATOR_INTERVAL,
 					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
+					maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
 					nodeInfo: {
 						wsPort: nodePort,
 						nethash:
@@ -1312,57 +1312,54 @@ describe('Integration tests for P2P library', () => {
 		});
 	});
 
-	describe('Network with a maximum number of outbound connections', () => {
-		const NETWORK_PEER_COUNT_WITH_OUTBOUND_LIMIT = 30;
-		const TEN_OUTBOUND_CONNECTIONS = 10;
-		const ALL_NODE_PORTS_WITH_OUTBOUND_LIMIT: ReadonlyArray<number> = [
-			...new Array(NETWORK_PEER_COUNT_WITH_OUTBOUND_LIMIT).keys(),
+	describe('Network with a maximum number of outbound/inbound connections', () => {
+		const NETWORK_PEER_COUNT_WITH_LIMIT = 30;
+		const TEN_CONNECTIONS = 10;
+		const ALL_NODE_PORTS_WITH_LIMIT: ReadonlyArray<number> = [
+			...new Array(NETWORK_PEER_COUNT_WITH_LIMIT).keys(),
 		].map(index => NETWORK_START_PORT + index);
-		const DISCOVERY_INTERVAL_WITH_OUTBOUND_LIMIT = 10;
-		const POPULATOR_INTERVAL_WITH_OUTBOUND_LIMIT = 10;
+		const DISCOVERY_INTERVAL_WITH_LIMIT = 10;
+		const POPULATOR_INTERVAL_WITH_LIMIT = 10;
 
 		beforeEach(async () => {
-			p2pNodeList = [
-				...new Array(NETWORK_PEER_COUNT_WITH_OUTBOUND_LIMIT).keys(),
-			].map(index => {
-				// Each node will have the previous node in the sequence as a seed peer except the first node.
-				const seedPeers =
-					index === 0
-						? []
-						: [
-								{
-									ipAddress: '127.0.0.1',
-									wsPort:
-										NETWORK_START_PORT +
-										((index - 1) % NETWORK_PEER_COUNT_WITH_OUTBOUND_LIMIT),
-								},
-						  ];
+			p2pNodeList = [...new Array(NETWORK_PEER_COUNT_WITH_LIMIT).keys()].map(
+				index => {
+					// Each node will have the previous node in the sequence as a seed peer except the first node.
+					const seedPeers = [
+						{
+							ipAddress: '127.0.0.1',
+							wsPort:
+								NETWORK_START_PORT +
+								((index + 1) % NETWORK_PEER_COUNT_WITH_LIMIT),
+						},
+					];
 
-				const nodePort = NETWORK_START_PORT + index;
-				return new P2P({
-					blacklistedPeers: [],
-					connectTimeout: 5000,
-					ackTimeout: 5000,
-					seedPeers,
-					wsEngine: 'ws',
-					discoveryInterval: DISCOVERY_INTERVAL_WITH_OUTBOUND_LIMIT,
-					populatorInterval: POPULATOR_INTERVAL_WITH_OUTBOUND_LIMIT,
-					maxOutboundConnections: TEN_OUTBOUND_CONNECTIONS,
-					nodeInfo: {
-						wsPort: nodePort,
-						nethash:
-							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-						version: '1.0.1',
-						protocolVersion: '1.0.1',
-						minVersion: '1.0.0',
-						os: platform(),
-						height: 0,
-						broadhash:
-							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
-						nonce: `O2wTkjqplHII${nodePort}`,
-					},
-				});
-			});
+					const nodePort = NETWORK_START_PORT + index;
+					return new P2P({
+						connectTimeout: 5000,
+						ackTimeout: 5000,
+						seedPeers,
+						wsEngine: 'ws',
+						discoveryInterval: DISCOVERY_INTERVAL_WITH_LIMIT,
+						populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
+						maxOutboundConnections: TEN_CONNECTIONS,
+						maxInboundConnections: TEN_CONNECTIONS,
+						nodeInfo: {
+							wsPort: nodePort,
+							nethash:
+								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+							version: '1.0.1',
+							protocolVersion: '1.0.1',
+							minVersion: '1.0.0',
+							os: platform(),
+							height: 0,
+							broadhash:
+								'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+							nonce: `O2wTkjqplHII${nodePort}`,
+						},
+					});
+				},
+			);
 
 			// Launch nodes one at a time with a delay between each launch.
 			for (const p2p of p2pNodeList) {
@@ -1381,10 +1378,17 @@ describe('Integration tests for P2P library', () => {
 		});
 
 		describe('Peer discovery and connections', () => {
-			it(`should not create more than ${TEN_OUTBOUND_CONNECTIONS} outbound connections`, async () => {
+			it(`should not create more than ${TEN_CONNECTIONS} outbound connections`, async () => {
 				p2pNodeList.forEach(p2p => {
-					const { outbound } = p2p['_peerPool'].getPeersCountByKind();
-					expect(outbound).to.be.at.most(TEN_OUTBOUND_CONNECTIONS);
+					const { outbound } = p2p['_peerPool'].getPeersCountPerKind();
+					expect(outbound).to.be.at.most(TEN_CONNECTIONS);
+				});
+			});
+
+			it(`should not create more than ${TEN_CONNECTIONS} inbound connections`, async () => {
+				p2pNodeList.forEach(p2p => {
+					const { inbound } = p2p['_peerPool'].getPeersCountPerKind();
+					expect(inbound).to.be.at.most(TEN_CONNECTIONS);
 				});
 			});
 
@@ -1396,9 +1400,7 @@ describe('Integration tests for P2P library', () => {
 						peerInfo => peerInfo.wsPort,
 					);
 
-					expect(ALL_NODE_PORTS_WITH_OUTBOUND_LIMIT).to.include.members(
-						peerPorts,
-					);
+					expect(ALL_NODE_PORTS_WITH_LIMIT).to.include.members(peerPorts);
 				});
 			});
 		});

@@ -24,6 +24,7 @@ describe('p2p', () => {
 			seedPeers: [],
 			wsEngine: 'ws',
 			maxOutboundConnections: 20,
+			maxInboundConnections: 100,
 			nodeInfo: {
 				wsPort: 5000,
 				nethash:

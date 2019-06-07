@@ -120,6 +120,7 @@ export const DEFAULT_SEND_PEER_LIMIT = 25;
 
 const BASE_10_RADIX = 10;
 const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
+const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
 
 const selectRandomPeerSample = (
 	peerList: ReadonlyArray<P2PDiscoveredPeerInfo>,
@@ -340,6 +341,10 @@ export class P2P extends EventEmitter {
 				config.maxOutboundConnections === undefined
 					? DEFAULT_MAX_OUTBOUND_CONNECTIONS
 					: config.maxOutboundConnections,
+			maxInboundConnections:
+				config.maxInboundConnections === undefined
+					? DEFAULT_MAX_INBOUND_CONNECTIONS
+					: config.maxInboundConnections,
 		});
 
 		this._bindHandlersToPeerPool(this._peerPool);
