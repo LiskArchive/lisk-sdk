@@ -1,3 +1,5 @@
+import { Method } from 'axios';
+
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -49,7 +51,7 @@ export interface InitOptions {
 
 export interface RequestConfig {
 	readonly defaultData?: object;
-	readonly method?: string;
+	readonly method?: Method;
 	readonly path?: string;
 	readonly retry?: boolean;
 	readonly urlParams?: ReadonlyArray<string>;
