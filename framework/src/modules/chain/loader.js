@@ -365,7 +365,7 @@ __private.getBlocksFromNetwork = async () => {
 };
 
 /**
- * Loads blocks from network.
+ * Validate blocks from the network.
  *
  * @private
  * @returns {Promise} void
@@ -382,7 +382,7 @@ __private.validateBlocks = async blocks => {
 };
 
 /**
- * Loads blocks from network.
+ * Loads valided blocks from network.
  *
  * @private
  * @returns {Promise} void
