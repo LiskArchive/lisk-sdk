@@ -121,6 +121,14 @@ npm run jest:<testType>
 npm run jest:<testType> -- [testPathPattern] [jestCliOptions]
 ```
 
+## Contribution
+
+To test the changes in framework you can run,
+
+`node test/test_app` or `node test/test_app | npx bunyan`
+
+If you want to test the changes in `lisk-sdk/elements` to reflect in `lisk-sdk/framework`, please make sure you run `npm run build` at `lisk-sdk` after making any changes in elements library and run `node test/test_app`.
+
 ## Get Involved
 
 | Reason                           | How                                                                                            |

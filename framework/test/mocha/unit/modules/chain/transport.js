@@ -580,9 +580,6 @@ describe('transport', () => {
 					await __private.receiveTransaction(transaction);
 				});
 
-				it('should call library.balancesSequence.add', async () =>
-					expect(library.balancesSequence.add.called).to.be.true);
-
 				it('should call modules.transactionPool.processUnconfirmedTransaction with transaction and true as arguments', async () =>
 					expect(
 						modules.transactionPool.processUnconfirmedTransaction.calledWith(
