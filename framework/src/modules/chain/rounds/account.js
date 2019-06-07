@@ -16,6 +16,7 @@
 
 const _ = require('lodash');
 const BigNum = require('@liskhq/bignum');
+const { validator } = require('@liskhq/lisk-validator');
 
 // Private fields
 let library;
@@ -39,9 +40,8 @@ let modules;
  * @todo Add description for the params
  */
 class Account {
-	constructor(storage, schema, logger, rounds) {
+	constructor(storage, logger, rounds) {
 		this.scope = {
-			schema,
 			storage,
 		};
 
@@ -104,6 +104,7 @@ class Account {
 	 * @param {publicKey} publicKey
 	 * @throws {string} On invalid public key
 	 */
+	// eslint-disable-next-line class-methods-use-this
 	verifyPublicKey(publicKey) {
 		if (publicKey !== undefined) {
 			// Check type
@@ -115,7 +116,7 @@ class Account {
 				throw new Error('Invalid public key, must be 64 characters long');
 			}
 
-			if (!this.scope.schema.validate(publicKey, { format: 'hex' })) {
+			if (!validator.validate({ format: 'hex' }, publicKey)) {
 				throw new Error('Invalid public key, must be a hex string');
 			}
 		}
