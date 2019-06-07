@@ -18,6 +18,7 @@ import * as Ajv from 'ajv';
 import addKeywords = require('ajv-merge-patch');
 import {
 	isGreaterThanMaxTransactionId,
+	isHexString,
 	isNullCharacterIncluded,
 	isNumberString,
 	isSignature,
@@ -29,7 +30,13 @@ import {
 	validateTransferAmount,
 } from './validation';
 
-export const validator = new Ajv({ allErrors: true, removeAdditional: 'all' });
+export const validator = new Ajv({
+	allErrors: true,
+	removeAdditional: 'all',
+	schemaId: 'auto',
+	useDefaults: false,
+});
+
 addKeywords(validator);
 
 validator.addFormat('signature', isSignature);
@@ -121,3 +128,5 @@ validator.addKeyword('uniqueSignedPublicKeys', {
 	compile: () => (data: ReadonlyArray<string>) =>
 		new Set(data.map((key: string) => key.slice(1))).size === data.length,
 });
+
+validator.addFormat('hex', isHexString);
