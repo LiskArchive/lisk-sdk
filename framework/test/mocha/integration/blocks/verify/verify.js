@@ -511,7 +511,6 @@ describe('blocks/verify', () => {
 					expect(err[0].message).equal(
 						"'' should have required property 'type'"
 					);
-					expect(err[1].message).equal('Invalid type');
 					block2.transactions[0].type = transactionType;
 				}
 			});
