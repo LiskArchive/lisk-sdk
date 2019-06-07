@@ -508,10 +508,10 @@ describe('blocks', () => {
 			expect(handleSameBlockReceived).to.be.calledWith(defaults.newBlock);
 		});
 
-		it('should call _handleGoodBlock if _isValidBlock evaluates to true', async () => {
-			const handleGoodBlock = sinonSandbox.stub(
+		it('should call _handleValidBlock if _isValidBlock evaluates to true', async () => {
+			const handleValidBlock = sinonSandbox.stub(
 				blocksInstance,
-				'_handleGoodBlock'
+				'_handleValidBlock'
 			);
 			stubs.isValidBlock.returns(true);
 
@@ -523,7 +523,7 @@ describe('blocks', () => {
 				defaults.lastBlock,
 				defaults.newBlock
 			);
-			expect(handleGoodBlock).to.be.calledWith(defaults.newBlock);
+			expect(handleValidBlock).to.be.calledWith(defaults.newBlock);
 		});
 		//
 		describe('when double forging', () => {
@@ -621,7 +621,7 @@ describe('blocks', () => {
 		});
 	});
 
-	describe('_handleGoodBlock', () => {
+	describe('_handleValidBlock', () => {
 		it('should call _processReceivedBlock with the given block', async () => {
 			const block = {
 				id: '1',
@@ -632,7 +632,7 @@ describe('blocks', () => {
 				'_processReceivedBlock'
 			);
 
-			blocksInstance._handleGoodBlock(block);
+			blocksInstance._handleValidBlock(block);
 			expect(_processBlock).to.be.calledWith(block);
 		});
 	});
@@ -650,17 +650,17 @@ describe('blocks', () => {
 			generatorPublicKey: lastBlock.generatorPublicKey,
 		};
 
-		it('should warn log that the delegate is forging on multiple nodes', async () => {
+		it('should debug log that the delegate is forging on multiple nodes', async () => {
 			blocksInstance._handleDoubleForging(newBlock, lastBlock);
-			expect(loggerStub.warn).to.be.calledWith(
+			expect(loggerStub.debug).to.be.calledWith(
 				'Delegate forging on multiple nodes',
 				newBlock.generatorPublicKey
 			);
 		});
 
-		it('should info log that the last block stands and the new block is discarded', async () => {
+		it('should debug log that the last block stands and the new block is discarded', async () => {
 			blocksInstance._handleDoubleForging(newBlock, lastBlock);
-			expect(loggerStub.info).to.be.calledWith(
+			expect(loggerStub.debug).to.be.calledWith(
 				`Last block ${lastBlock.id} stands, new block ${
 					newBlock.id
 				} is discarded`
@@ -730,10 +730,10 @@ describe('blocks', () => {
 			);
 		});
 
-		it('should info log that the last block is getting deleted due to case 4', async () => {
+		it('should debug log that the last block is getting deleted due to case 4', async () => {
 			await blocksInstance._handleDoubleForgingTieBreak(newBlock, lastBlock);
 
-			expect(loggerStub.info).to.be.calledWith(
+			expect(loggerStub.debug).to.be.calledWith(
 				`Deleting last block with id: ${
 					lastBlock.id
 				} due to Fork Choice Rule Case 4`
@@ -747,14 +747,14 @@ describe('blocks', () => {
 			expect(stubs.processReceivedBlock).to.be.calledWith(newBlock);
 		});
 
-		it('should warn log if the applying the newly received block fails ', async () => {
+		it('should error log if the applying the newly received block fails ', async () => {
 			stubs.processReceivedBlock
 				.withArgs(newBlock)
 				.rejects('Error while processing the block');
 
 			const previousLastBlock = cloneDeep(blocksInstance._lastBlock);
 			await blocksInstance._handleDoubleForgingTieBreak(newBlock, lastBlock);
-			expect(loggerStub.warn).to.be.calledWith(
+			expect(loggerStub.error).to.be.calledWith(
 				`Failed to apply newly received block with id: ${
 					newBlock.id
 				}, restoring previous block ${previousLastBlock.id}`
@@ -790,7 +790,7 @@ describe('blocks', () => {
 
 			blocksInstance._handleDiscardedBlock(block);
 
-			expect(loggerStub.warn).to.be.calledWith(
+			expect(loggerStub.debug).to.be.calledWith(
 				`Discarded block that does not match with current chain: ${
 					block.id
 				} height: ${block.height} round: ${slots.calcRound(
@@ -838,10 +838,10 @@ describe('blocks', () => {
 			expect(stubs.processBlock).to.be.called;
 		});
 
-		it('should info log that the block has been successfully applied if so', async () => {
+		it('should debug log that the block has been successfully applied if so', async () => {
 			await blocksInstance._processReceivedBlock(block);
 
-			expect(loggerStub.info).to.be.calledWith(
+			expect(loggerStub.debug).to.be.calledWith(
 				`Successfully applied new received block id: ${block.id} height: ${
 					block.height
 				} round: ${blocksInstance.slots.calcRound(

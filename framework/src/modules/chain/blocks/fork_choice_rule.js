@@ -66,11 +66,11 @@ const isTieBreak = ({
 	isDuplicateBlock(lastBlock, currentBlock) &&
 	slots.getSlotNumber(lastBlock.timestamp) <
 		slots.getSlotNumber(currentBlock.timestamp) &&
-	!slots.timeFallsInSlot(
+	!slots.isWithinTimeslot(
 		slots.getSlotNumber(lastBlock.timestamp),
 		lastReceivedAt
 	) &&
-	slots.timeFallsInSlot(
+	slots.isWithinTimeslot(
 		slots.getSlotNumber(currentBlock.timestamp),
 		currentReceivedAt
 	);

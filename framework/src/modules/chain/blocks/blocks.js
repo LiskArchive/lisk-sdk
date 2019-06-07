@@ -489,7 +489,7 @@ class Blocks extends EventEmitter {
 				validBlock => this.broadcast(validBlock)
 			);
 
-			this.logger.info(
+			this.logger.debug(
 				`Successfully applied new received block id: ${block.id} height: ${
 					block.height
 				} round: ${this.slots.calcRound(
@@ -531,7 +531,7 @@ class Blocks extends EventEmitter {
 
 		if (forkChoiceRule.isValidBlock(this._lastBlock, block)) {
 			// Case 2: correct block received
-			return this._handleGoodBlock(block);
+			return this._handleValidBlock(block);
 		}
 
 		if (forkChoiceRule.isIdenticalBlock(this._lastBlock, block)) {
@@ -723,7 +723,7 @@ class Blocks extends EventEmitter {
 	 * @returns {Promise}
 	 * @private
 	 */
-	_handleGoodBlock(block) {
+	async _handleValidBlock(block) {
 		return this._processReceivedBlock(block);
 	}
 
@@ -736,11 +736,11 @@ class Blocks extends EventEmitter {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	_handleDoubleForging(block, lastBlock) {
-		this.logger.warn(
+		this.logger.debug(
 			'Delegate forging on multiple nodes',
 			block.generatorPublicKey
 		);
-		this.logger.info(
+		this.logger.debug(
 			`Last block ${lastBlock.id} stands, new block ${block.id} is discarded`
 		);
 		// TODO: Implement Proof of Misbehavior
@@ -777,7 +777,7 @@ class Blocks extends EventEmitter {
 
 		// If the new block is correctly validated and verified,
 		// last block is deleted and new block is added to the tip of the chain
-		this.logger.info(
+		this.logger.debug(
 			`Deleting last block with id: ${
 				lastBlock.id
 			} due to Fork Choice Rule Case 4`
@@ -790,7 +790,7 @@ class Blocks extends EventEmitter {
 		try {
 			await this._processReceivedBlock(block);
 		} catch (error) {
-			this.logger.warn(
+			this.logger.error(
 				`Failed to apply newly received block with id: ${
 					block.id
 				}, restoring previous block ${previousLastBlock.id}`
@@ -819,7 +819,7 @@ class Blocks extends EventEmitter {
 	// eslint-disable-next-line class-methods-use-this
 	_handleDiscardedBlock(block) {
 		// Discard newly received block
-		return this.logger.warn(
+		this.logger.debug(
 			`Discarded block that does not match with current chain: ${
 				block.id
 			} height: ${block.height} round: ${this.slots.calcRound(

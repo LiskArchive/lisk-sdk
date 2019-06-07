@@ -121,7 +121,7 @@ class BlockSlots {
 	 * @param time
 	 * @returns {boolean}
 	 */
-	timeFallsInSlot(slot, time) {
+	isWithinTimeslot(slot, time) {
 		return this.getSlotNumber(time) === slot;
 	}
 

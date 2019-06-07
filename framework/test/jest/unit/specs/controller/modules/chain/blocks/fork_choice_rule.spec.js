@@ -90,7 +90,7 @@ describe('Fork Choice Rule', () => {
 	});
 
 	describe('_isTieBreak', () => {
-		it('should return true if this._isDuplicateBlock(last, current) && slots.getSlotNumber(last.timestamp) < slots.getSlotNumber(current.timestamp) && !slots.timeFallsInSlot(slots.getSlotNumber(lastBlock.timestamp),lastReceivedAt) && slots.timeFallsInSlot(slots.getSlotNumber(currentBlock.timestamp), currentReceivedAt)', async () => {
+		it('should return true if this._isDuplicateBlock(last, current) && slots.getSlotNumber(last.timestamp) < slots.getSlotNumber(current.timestamp) && !slots.isWithinTimeslot(slots.getSlotNumber(lastBlock.timestamp),lastReceivedAt) && slots.isWithinTimeslot(slots.getSlotNumber(currentBlock.timestamp), currentReceivedAt)', async () => {
 			const lastReceivedAt = 100000;
 			const currentReceivedAt = 200000;
 
