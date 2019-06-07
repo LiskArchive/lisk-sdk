@@ -304,7 +304,7 @@ class Blocks extends EventEmitter {
 
 	// Process a block from the P2P
 	async receiveBlockFromNetwork(block) {
-		this.logger.info(
+		this.logger.debug(
 			`Received new block from network with id: ${block.id} height: ${
 				block.height
 			} round: ${this.slots.calcRound(
@@ -315,15 +315,15 @@ class Blocks extends EventEmitter {
 		);
 
 		const receiveBlockImplementations = {
-			1: this.receiveBlockFromNetworkV1,
-			2: this.receiveBlockFromNetworkV2,
+			1: this._receiveBlockFromNetworkV1,
+			2: this._receiveBlockFromNetworkV2,
 		};
 
 		// TODO: Use block_version.js#getBlockVersion when https://github.com/LiskHQ/lisk-sdk/pull/3722 is merged
 		return receiveBlockImplementations[block.version](block);
 	}
 
-	async receiveBlockFromNetworkV1(block) {
+	async _receiveBlockFromNetworkV1(block) {
 		return this.sequence.add(async cb => {
 			try {
 				this._shouldNotBeActive();
@@ -456,7 +456,7 @@ class Blocks extends EventEmitter {
 		});
 	}
 
-	async receiveBlockFromNetworkV2(block) {
+	async _receiveBlockFromNetworkV2(block) {
 		// Current time since Lisk Epoch
 		// Better to do it here rather than in the Sequence so receiving time is more accurate
 		const newBlockReceivedAt = this.slots.getTime();

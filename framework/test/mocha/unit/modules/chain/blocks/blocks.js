@@ -200,6 +200,62 @@ describe('blocks', () => {
 	});
 
 	describe('receiveBlockFromNetwork', () => {
+		const block = {
+			height: 1,
+			id: '1',
+			version: 1,
+			reward: 2,
+		};
+
+		beforeEach(async () => {
+			sequenceStub.add.callsFake(async cb => {
+				const fn = promisify(cb);
+				await fn();
+			});
+			sinonSandbox
+				.stub(blocksInstance, '_receiveBlockFromNetworkV1')
+				.resolves();
+			sinonSandbox
+				.stub(blocksInstance, '_receiveBlockFromNetworkV2')
+				.resolves();
+		});
+
+		it('should debug log that a new block has been received', async () => {
+			await blocksInstance.receiveBlockFromNetwork(block);
+			expect(loggerStub.debug).to.be.calledWith(
+				`Received new block from network with id: ${block.id} height: ${
+					block.height
+				} round: ${blocksInstance.slots.calcRound(
+					block.height
+				)} slot: ${blocksInstance.slots.getSlotNumber(
+					block.timestamp
+				)} reward: ${block.reward} version: ${block.version}`
+			);
+		});
+
+		it('should call _receiveBlockFromNetworkV1 when block version is 1', async () => {
+			await blocksInstance.receiveBlockFromNetwork(block);
+
+			expect(blocksInstance._receiveBlockFromNetworkV1).to.be.calledWith(block);
+			expect(blocksInstance._receiveBlockFromNetworkV2).to.not.be.called;
+		});
+
+		it('should call _receiveBlockFromNetworkV2 when block version is 2', async () => {
+			const blockv2 = {
+				...block,
+				version: 2,
+			};
+
+			await blocksInstance.receiveBlockFromNetwork(blockv2);
+
+			expect(blocksInstance._receiveBlockFromNetworkV2).to.be.calledWith(
+				blockv2
+			);
+			expect(blocksInstance._receiveBlockFromNetworkV1).to.not.be.called;
+		});
+	});
+
+	describe('_receiveBlockFromNetworkV1', () => {
 		const defaultLastBlock = {
 			id: '2',
 			height: 2,
@@ -210,195 +266,178 @@ describe('blocks', () => {
 		};
 
 		beforeEach(async () => {
+			blocksInstance._lastBlock = {
+				...defaultLastBlock,
+			};
+
+			sequenceStub.add.callsFake(async cb => {
+				const fn = promisify(cb);
+				await fn();
+			});
+
+			sinonSandbox.stub(blocksInstance, '_processReceivedBlock');
+			sinonSandbox
+				.stub(blocksInstance.blocksProcess, 'processBlock')
+				.callsFake(input => input);
+			sinonSandbox
+				.stub(blocksInstance.blocksVerify, 'normalizeAndVerify')
+				.resolves({
+					verified: true,
+					errors: [],
+				});
+			sinonSandbox.stub(blocksInstance.blocksChain, 'deleteLastBlock');
+		});
+
+		describe('when block.previousBlock === lastBlock.id && lastBlock.height + 1 === block.height', () => {
+			it('should call _processReceivedBlock', async () => {
+				const block = {
+					id: '5',
+					previousBlock: '2',
+					height: 3,
+				};
+				await blocksInstance._receiveBlockFromNetworkV1(block);
+				expect(blocksInstance._processReceivedBlock).to.be.calledWith(block);
+			});
+		});
+
+		describe('when block.previousBlock !== lastBlock.id && lastBlock.height + 1 === block.height', () => {
+			it('should call fork', async () => {
+				const forkOneBlock = {
+					id: '5',
+					previousBlock: '3',
+					height: 3,
+				};
+				await blocksInstance._receiveBlockFromNetworkV1(forkOneBlock);
+				expect(roundsModuleStub.fork).to.be.calledWith(forkOneBlock, 1);
+				expect(blocksInstance._processReceivedBlock).not.to.be.called;
+				expect(blocksInstance._isActive).to.be.false;
+			});
+
+			it('should discard block if id is higher', async () => {
+				const forkOneBlock = {
+					id: '5',
+					previousBlock: '3',
+					height: 3,
+					timestamp: '200',
+				};
+				await blocksInstance._receiveBlockFromNetworkV1(forkOneBlock);
+				expect(roundsModuleStub.fork).to.be.calledWith(forkOneBlock, 1);
+				expect(blocksInstance.blocksChain.deleteLastBlock).not.to.be.called;
+				expect(blocksInstance._isActive).to.be.false;
+			});
+
+			it('should delete 2 blocks if timestamp is the same id is less', async () => {
+				const forkOneBlock = {
+					id: '1',
+					previousBlock: '3',
+					height: 3,
+					timestamp: '100',
+				};
+				await blocksInstance._receiveBlockFromNetworkV1(forkOneBlock);
+				expect(roundsModuleStub.fork).to.be.calledWith(forkOneBlock, 1);
+				expect(blocksInstance.blocksChain.deleteLastBlock).to.be.calledTwice;
+				expect(blocksInstance._isActive).to.be.false;
+			});
+		});
+
+		describe('when block.previousBlock === lastBlock.previousBlock && block.height === lastBlock.height && block.id !== lastBlock.id', () => {
+			it('should processBlock', async () => {
+				const forkFiveBlock = {
+					id: '5',
+					previousBlock: '1',
+					height: 2,
+				};
+				await blocksInstance._receiveBlockFromNetworkV1(forkFiveBlock);
+				expect(blocksInstance.blocksChain.deleteLastBlock).to.be.calledOnce;
+				expect(roundsModuleStub.fork).to.be.calledWith(forkFiveBlock, 5);
+				expect(blocksInstance._processReceivedBlock).to.be.calledOnce;
+			});
+
+			it('should discard block', async () => {
+				const forkFiveBlock = {
+					id: '5',
+					previousBlock: '1',
+					height: 2,
+					timestamp: 1000,
+				};
+				await blocksInstance._receiveBlockFromNetworkV1(forkFiveBlock);
+				expect(roundsModuleStub.fork).to.be.calledWith(forkFiveBlock, 5);
+				expect(blocksInstance._isActive).to.be.false;
+				expect(blocksInstance.blocksChain.deleteLastBlock).not.to.be.called;
+				expect(blocksInstance._processReceivedBlock).not.to.be.called;
+			});
+
+			it('should log warning if double forging', async () => {
+				const forkFiveBlock = {
+					id: '5',
+					generatorPublicKey: 'a',
+					previousBlock: '1',
+					height: 2,
+				};
+				await blocksInstance._receiveBlockFromNetworkV1(forkFiveBlock);
+				expect(roundsModuleStub.fork).to.be.calledWith(forkFiveBlock, 5);
+				expect(loggerStub.warn).to.be.calledOnce;
+			});
+		});
+
+		describe('when block.id === lastBlock.id', () => {
+			it('should log debug message', async () => {
+				await blocksInstance._receiveBlockFromNetworkV1({
+					id: '2',
+					previousBlock: '1',
+					height: 2,
+				});
+				expect(loggerStub.debug).to.be.calledOnce;
+			});
+		});
+
+		describe('when block.id !== lastBlock.id', () => {
+			it('should discard block, when it does not match with current chain', async () => {
+				await blocksInstance._receiveBlockFromNetworkV1({
+					id: '7',
+					previousBlock: '6',
+					height: 11,
+					timestamp: 5440768,
+					generatorPublicKey: 'a1',
+				});
+				expect(loggerStub.warn).to.be.calledOnce;
+			});
+		});
+	});
+
+	describe('_receiveBlockFromNetworkV2', () => {
+		const block = {
+			id: '5',
+			previousBlock: '2',
+			height: 3,
+			version: 2,
+		};
+
+		beforeEach(async () => {
+			sinonSandbox.stub(blocksInstance, '_forkChoiceTask').resolves();
 			sequenceStub.add.callsFake(async cb => {
 				const fn = promisify(cb);
 				await fn();
 			});
 		});
 
-		it('should info log that a new block has been received', async () => {
-			await blocksInstance.receiveBlockFromNetwork(defaultLastBlock);
-			expect(loggerStub.info).to.be.calledWith(
-				`Received new block from network with id: ${
-					defaultLastBlock.id
-				} height: ${
-					defaultLastBlock.height
-				} round: ${blocksInstance.slots.calcRound(
-					defaultLastBlock.height
-				)} slot: ${blocksInstance.slots.getSlotNumber(
-					defaultLastBlock.timestamp
-				)} reward: ${defaultLastBlock.reward} version: ${
-					defaultLastBlock.version
-				}`
+		it('should call _forkChoiceTask with proper arguments', async () => {
+			const aTime = 23445;
+			sinonSandbox.stub(blocksInstance.slots, 'getTime').returns(aTime);
+
+			await blocksInstance._receiveBlockFromNetworkV2(block);
+			expect(blocksInstance._forkChoiceTask).to.be.calledWith(block, aTime);
+		});
+
+		it('should abort if _isActive is true and throw an exception', async () => {
+			blocksInstance._isActive = true;
+
+			expect(
+				blocksInstance._receiveBlockFromNetworkV2(block)
+			).to.eventually.be.rejectedWith(
+				'Block process cannot be executed in parallel'
 			);
-		});
-
-		describe('when block version is 2', () => {
-			const block = {
-				id: '5',
-				previousBlock: '2',
-				height: 3,
-				version: 2,
-			};
-
-			beforeEach(async () => {
-				sinonSandbox.stub(blocksInstance, '_forkChoiceTask').resolves();
-			});
-
-			it('should call _forkChoiceTask with proper arguments', async () => {
-				const aTime = 23445;
-				sinonSandbox.stub(blocksInstance.slots, 'getTime').returns(aTime);
-
-				await blocksInstance.receiveBlockFromNetwork(block);
-				expect(blocksInstance._forkChoiceTask).to.be.calledWith(block, aTime);
-			});
-
-			it('should abort if _isActive is true and throw an exception', async () => {
-				blocksInstance._isActive = true;
-
-				expect(
-					blocksInstance.receiveBlockFromNetwork(block)
-				).to.eventually.be.rejectedWith(
-					'Block process cannot be executed in parallel'
-				);
-				expect(blocksInstance._forkChoiceTask).to.not.be.called;
-			});
-		});
-
-		describe('when block version is 1', () => {
-			beforeEach(async () => {
-				blocksInstance._lastBlock = {
-					...defaultLastBlock,
-				};
-
-				sinonSandbox.stub(blocksInstance, '_processReceivedBlock');
-				sinonSandbox
-					.stub(blocksInstance.blocksProcess, 'processBlock')
-					.callsFake(input => input);
-				sinonSandbox
-					.stub(blocksInstance.blocksVerify, 'normalizeAndVerify')
-					.resolves({
-						verified: true,
-						errors: [],
-					});
-				sinonSandbox.stub(blocksInstance.blocksChain, 'deleteLastBlock');
-			});
-
-			describe('when block.previousBlock === lastBlock.id && lastBlock.height + 1 === block.height', () => {
-				it('should call _processReceivedBlock', async () => {
-					const block = {
-						id: '5',
-						previousBlock: '2',
-						height: 3,
-					};
-					await blocksInstance.receiveBlockFromNetwork(block);
-					expect(blocksInstance._processReceivedBlock).to.be.calledWith(block);
-				});
-			});
-
-			describe('when block.previousBlock !== lastBlock.id && lastBlock.height + 1 === block.height', () => {
-				it('should call fork', async () => {
-					const forkOneBlock = {
-						id: '5',
-						previousBlock: '3',
-						height: 3,
-					};
-					await blocksInstance.receiveBlockFromNetwork(forkOneBlock);
-					expect(roundsModuleStub.fork).to.be.calledWith(forkOneBlock, 1);
-					expect(blocksInstance._processReceivedBlock).not.to.be.called;
-					expect(blocksInstance._isActive).to.be.false;
-				});
-
-				it('should discard block if id is higher', async () => {
-					const forkOneBlock = {
-						id: '5',
-						previousBlock: '3',
-						height: 3,
-						timestamp: '200',
-					};
-					await blocksInstance.receiveBlockFromNetwork(forkOneBlock);
-					expect(roundsModuleStub.fork).to.be.calledWith(forkOneBlock, 1);
-					expect(blocksInstance.blocksChain.deleteLastBlock).not.to.be.called;
-					expect(blocksInstance._isActive).to.be.false;
-				});
-
-				it('should delete 2 blocks if timestamp is the same id is less', async () => {
-					const forkOneBlock = {
-						id: '1',
-						previousBlock: '3',
-						height: 3,
-						timestamp: '100',
-					};
-					await blocksInstance.receiveBlockFromNetwork(forkOneBlock);
-					expect(roundsModuleStub.fork).to.be.calledWith(forkOneBlock, 1);
-					expect(blocksInstance.blocksChain.deleteLastBlock).to.be.calledTwice;
-					expect(blocksInstance._isActive).to.be.false;
-				});
-			});
-
-			describe('when block.previousBlock === lastBlock.previousBlock && block.height === lastBlock.height && block.id !== lastBlock.id', () => {
-				it('should processBlock', async () => {
-					const forkFiveBlock = {
-						id: '5',
-						previousBlock: '1',
-						height: 2,
-					};
-					await blocksInstance.receiveBlockFromNetwork(forkFiveBlock);
-					expect(blocksInstance.blocksChain.deleteLastBlock).to.be.calledOnce;
-					expect(roundsModuleStub.fork).to.be.calledWith(forkFiveBlock, 5);
-					expect(blocksInstance._processReceivedBlock).to.be.calledOnce;
-				});
-
-				it('should discard block', async () => {
-					const forkFiveBlock = {
-						id: '5',
-						previousBlock: '1',
-						height: 2,
-						timestamp: 1000,
-					};
-					await blocksInstance.receiveBlockFromNetwork(forkFiveBlock);
-					expect(roundsModuleStub.fork).to.be.calledWith(forkFiveBlock, 5);
-					expect(blocksInstance._isActive).to.be.false;
-					expect(blocksInstance.blocksChain.deleteLastBlock).not.to.be.called;
-					expect(blocksInstance._processReceivedBlock).not.to.be.called;
-				});
-
-				it('should log warning if double forging', async () => {
-					const forkFiveBlock = {
-						id: '5',
-						generatorPublicKey: 'a',
-						previousBlock: '1',
-						height: 2,
-					};
-					await blocksInstance.receiveBlockFromNetwork(forkFiveBlock);
-					expect(roundsModuleStub.fork).to.be.calledWith(forkFiveBlock, 5);
-					expect(loggerStub.warn).to.be.calledOnce;
-				});
-			});
-
-			describe('when block.id === lastBlock.id', () => {
-				it('should log debug message', async () => {
-					await blocksInstance.receiveBlockFromNetwork({
-						id: '2',
-						previousBlock: '1',
-						height: 2,
-					});
-					expect(loggerStub.debug).to.be.calledOnce;
-				});
-			});
-
-			describe('when block.id !== lastBlock.id', () => {
-				it('should discard block, when it does not match with current chain', async () => {
-					await blocksInstance.receiveBlockFromNetwork({
-						id: '7',
-						previousBlock: '6',
-						height: 11,
-						timestamp: 5440768,
-						generatorPublicKey: 'a1',
-					});
-					expect(loggerStub.warn).to.be.calledOnce;
-				});
-			});
+			expect(blocksInstance._forkChoiceTask).to.not.be.called;
 		});
 	});
 
