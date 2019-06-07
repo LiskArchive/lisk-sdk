@@ -17,6 +17,7 @@
 const async = require('async');
 const { promisify } = require('util');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const { validator } = require('@liskhq/lisk-validator');
 const { validateTransactions } = require('./transactions');
 const { convertErrorsToString } = require('./helpers/error_handlers');
 const definitions = require('./schema/definitions');
@@ -54,7 +55,6 @@ class Loader {
 			channel: scope.channel,
 			logger: scope.components.logger,
 			storage: scope.components.storage,
-			schema: scope.schema,
 			sequence: scope.sequence,
 			bus: scope.bus,
 			genesisBlock: scope.genesisBlock,
@@ -237,8 +237,11 @@ __private.getSignaturesFromNetwork = async function() {
 		procedure: 'getSignatures',
 	});
 
-	const validate = promisify(library.schema.validate.bind(library.schema));
-	await validate(result, definitions.WSSignaturesResponse);
+	validator.validate(definitions.WSSignaturesResponse, result);
+
+	if (validator.errors) {
+		throw validator.errors;
+	}
 
 	const { signatures } = result;
 	const sequenceAdd = promisify(library.sequence.add.bind(library.sequence));
@@ -281,8 +284,11 @@ __private.getTransactionsFromNetwork = async function() {
 		procedure: 'getTransactions',
 	});
 
-	const validate = promisify(library.schema.validate.bind(library.schema));
-	await validate(result, definitions.WSTransactionsResponse);
+	validator.validate(definitions.WSTransactionsResponse, result);
+
+	if (validator.errors) {
+		throw validator.errors;
+	}
 
 	const transactions = result.transactions.map(tx =>
 		modules.interfaceAdapters.transactions.fromJson(tx)
@@ -390,10 +396,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 						return data.blocks;
 					},
 					function validateBlocks(blocks, waterCb) {
-						const report = library.schema.validate(
-							blocks,
-							definitions.WSBlocksList
-						);
+						const report = validator.validate(definitions.WSBlocksList, blocks);
 
 						if (!report) {
 							return setImmediate(
