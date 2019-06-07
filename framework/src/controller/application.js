@@ -116,6 +116,9 @@ class Application {
 	 */
 	constructor(genesisBlock, config = {}) {
 		liskValidator.validate(genesisBlockSchema, genesisBlock);
+		if (liskValidator.errors) {
+			throw liskValidator.errors;
+		}
 
 		// Don't change the object parameters provided
 		let appConfig = _.cloneDeep(config);

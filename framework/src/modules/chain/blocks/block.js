@@ -135,9 +135,9 @@ const objectNormalize = (block, exceptions = {}) => {
 		}
 	});
 
-	const blockValidationErrors = validator.validate(blockSchema, block);
+	validator.validate(blockSchema, block);
 
-	if (!blockValidationErrors) {
+	if (validator.errors) {
 		throw validator.errors;
 	}
 	const { transactionsResponses } = validateTransactions(exceptions)(
