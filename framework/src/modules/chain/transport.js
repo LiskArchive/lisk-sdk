@@ -15,6 +15,7 @@
 'use strict';
 
 const { TransactionError } = require('@liskhq/lisk-transactions');
+const { validator } = require('@liskhq/lisk-validator');
 const { promisify } = require('util');
 const _ = require('lodash');
 const { convertErrorsToString } = require('./helpers/error_handlers');
@@ -56,7 +57,6 @@ class Transport {
 			logger: scope.components.logger,
 			storage: scope.components.storage,
 			bus: scope.bus,
-			schema: scope.schema,
 			balancesSequence: scope.balancesSequence,
 			block: scope.block,
 			config: {
@@ -232,13 +232,13 @@ class Transport {
 			async blocksCommon(query) {
 				query = query || {};
 
-				const valid = library.schema.validate(
-					query,
-					definitions.WSBlocksCommonRequest
+				const valid = validator.validate(
+					definitions.WSBlocksCommonRequest,
+					query
 				);
 
 				if (!valid) {
-					const err = library.schema.getLastErrors();
+					const err = validator.errors;
 					const error = `${err[0].message}: ${err[0].path}`;
 					library.logger.debug('Common block request validation failed', {
 						err: error.toString(),
@@ -366,13 +366,10 @@ class Transport {
 				}
 				query = query || {};
 
-				const valid = library.schema.validate(
-					query,
-					definitions.WSBlocksBroadcast
-				);
+				const valid = validator.validate(definitions.WSBlocksBroadcast, query);
 
 				if (!valid) {
-					const err = library.schema.getLastErrors();
+					const err = validator.errors;
 					library.logger.debug(
 						'Received post block broadcast request in unexpected format',
 						{
@@ -426,13 +423,13 @@ class Transport {
 			 * @todo Add description of the function
 			 */
 			async postSignature(query) {
-				const valid = library.schema.validate(
-					query.signature,
-					definitions.Signature
+				const valid = validator.validate(
+					definitions.Signature,
+					query.signature
 				);
 
 				if (!valid) {
-					const err = library.schema.getLastErrors();
+					const err = validator.errors;
 					const error = new TransactionError(err[0].message);
 					return {
 						success: false,
@@ -469,13 +466,10 @@ class Transport {
 					);
 				}
 
-				const valid = library.schema.validate(
-					query,
-					definitions.WSSignaturesList
-				);
+				const valid = validator.validate(definitions.WSSignaturesList, query);
 
 				if (!valid) {
-					const err = library.schema.getLastErrors();
+					const err = validator.errors;
 					library.logger.debug('Invalid signatures body', err);
 					throw err;
 				}
@@ -568,13 +562,13 @@ class Transport {
 					);
 				}
 
-				const valid = library.schema.validate(
-					query,
-					definitions.WSTransactionsRequest
+				const valid = validator.validate(
+					definitions.WSTransactionsRequest,
+					query
 				);
 
 				if (!valid) {
-					const err = library.schema.getLastErrors();
+					const err = validator.errors;
 					library.logger.debug('Invalid transactions body', err);
 					throw err;
 				}
@@ -615,10 +609,10 @@ __private.receiveSignatures = async (signatures = []) => {
  * @todo Add description for the params
  */
 __private.receiveSignature = async signature => {
-	const valid = library.schema.validate(signature, definitions.Signature);
+	const valid = validator.validate(definitions.Signature, signature);
 
 	if (!valid) {
-		const err = library.schema.getLastErrors();
+		const err = validator.errors;
 		throw err;
 	}
 
@@ -629,7 +623,6 @@ __private.receiveSignature = async signature => {
  * Validates transactions with schema and calls receiveTransaction for each transaction.
  *
  * @private
- * @implements {library.schema.validate}
  * @implements {__private.receiveTransaction}
  * @param {Array} transactions - Array of transactions
  */
