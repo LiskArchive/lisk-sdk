@@ -26,7 +26,7 @@ const _ = require('lodash');
 const crypto = require('crypto');
 const ByteBuffer = require('bytebuffer');
 const BigNum = require('@liskhq/bignum');
-const validator = require('../../../controller/validator');
+const { validator } = require('@liskhq/lisk-validator');
 const { validateTransactions } = require('../transactions');
 const blockVersion = require('./block_version');
 
