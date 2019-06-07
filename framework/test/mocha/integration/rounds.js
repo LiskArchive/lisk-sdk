@@ -16,6 +16,7 @@
 
 const async = require('async');
 const _ = require('lodash');
+const { promisify } = require('util');
 const {
 	transfer,
 	castVotes,
@@ -816,27 +817,25 @@ describe('rounds', () => {
 			let lastBlockForger;
 			const transactions = [];
 
-			before(done => {
+			before(async () => {
 				// Set last block forger
-				localCommon.getNextForger(library, null, (err, delegatePublicKey) => {
-					lastBlockForger = delegatePublicKey;
+				const promisifiedGetNextForger = promisify(localCommon.getNextForger);
+				const delegatePublicKey = await promisifiedGetNextForger(library, null);
+				lastBlockForger = delegatePublicKey;
 
-					// Create unvote transaction
-					const transaction = castVotes({
-						passphrase: accountsFixtures.genesis.passphrase,
-						unvotes: [lastBlockForger],
-					});
-					transactions.push(transaction);
-
-					lastBlock = library.modules.blocks.lastBlock;
-					// Delete one block more
-					return library.modules.blocks.blocksChain
-						.deleteLastBlock(lastBlock)
-						.then(newLastBlock => {
-							library.modules.blocks._lastBlock = newLastBlock;
-							done();
-						});
+				// Create unvote transaction
+				const transaction = castVotes({
+					passphrase: accountsFixtures.genesis.passphrase,
+					unvotes: [lastBlockForger],
 				});
+				transactions.push(transaction);
+
+				lastBlock = library.modules.blocks.lastBlock;
+				// Delete one block more
+				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+					lastBlock
+				);
+				library.modules.blocks._lastBlock = newLastBlock;
 			});
 
 			it('last block height should be at height 99 after deleting one more block', async () => {
