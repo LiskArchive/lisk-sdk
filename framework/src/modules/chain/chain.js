@@ -387,7 +387,10 @@ module.exports = class Chain {
 				if (!this.loader.isActive() && this.scope.modules.blocks.isStale()) {
 					this.scope.sequence.add(
 						sequenceCB => {
-							this.loader.sync().then(() => sequenceCB());
+							this.loader
+								.sync()
+								.then(() => sequenceCB())
+								.catch(err => sequenceCB(err));
 						},
 						syncError => {
 							if (syncError) {
