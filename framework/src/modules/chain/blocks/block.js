@@ -134,10 +134,11 @@ const objectNormalize = (block, exceptions = {}) => {
 			delete block[key];
 		}
 	});
-	try {
-		validator.validate(blockSchema, block);
-	} catch (schemaError) {
-		throw schemaError.errors;
+
+	const blockValidationErrors = validator.validate(blockSchema, block);
+
+	if (!blockValidationErrors) {
+		throw validator.errors;
 	}
 	const { transactionsResponses } = validateTransactions(exceptions)(
 		block.transactions
