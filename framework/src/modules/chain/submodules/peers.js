@@ -16,10 +16,6 @@
 
 const jobsQueue = require('../utils/jobs_queue');
 
-// Private fields
-let library;
-let self;
-
 const PEER_STATE_CONNECTED = 2;
 const MAX_PEERS = 100;
 
@@ -43,27 +39,23 @@ const MAX_PEERS = 100;
  */
 class Peers {
 	constructor(scope) {
-		library = {
+		this.library = {
 			logger: scope.components.logger,
-			storage: scope.components.storage,
 			config: {
-				version: scope.config.version,
 				forging: {
 					force: scope.config.forging.force,
 				},
 			},
 			channel: scope.channel,
-			blocks: scope.modules.blocks,
 			constants: {
 				minBroadhashConsensus: scope.config.constants.minBroadhashConsensus,
 			},
 		};
-		self = this;
-		self.consensus = scope.config.forging.force ? 100 : 0;
-		self.broadhashConsensusCalculationInterval = 5000;
+		this.consensus = scope.config.forging.force ? 100 : 0;
+		this.broadhashConsensusCalculationInterval = 5000;
 
-		library.channel.once('network:bootstrap', () => {
-			self.onNetworkReady();
+		this.library.channel.once('network:bootstrap', () => {
+			this.onNetworkReady();
 		});
 	}
 
@@ -74,7 +66,7 @@ class Peers {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	getLastConsensus() {
-		return self.consensus;
+		return this.consensus;
 	}
 
 	/**
@@ -83,17 +75,16 @@ class Peers {
 	 * @returns {Promise.<number, Error>} Consensus or undefined if config.forging.force = true
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	async calculateConsensus() {
-		const broadhash = library.blocks.broadhash;
+	async calculateConsensus(broadhash) {
 		const activeCount = Math.min(
-			await library.channel.invoke('network:getPeersCountByFilter', {
+			await this.library.channel.invoke('network:getPeersCountByFilter', {
 				state: PEER_STATE_CONNECTED,
 			}),
 			MAX_PEERS
 		);
 
 		const matchedCount = Math.min(
-			await library.channel.invoke('network:getPeersCountByFilter', {
+			await this.library.channel.invoke('network:getPeersCountByFilter', {
 				broadhash,
 				state: PEER_STATE_CONNECTED,
 			}),
@@ -101,8 +92,8 @@ class Peers {
 		);
 
 		const consensus = +((matchedCount / activeCount) * 100).toPrecision(2);
-		self.consensus = Number.isNaN(consensus) ? 0 : consensus;
-		return self.consensus;
+		this.consensus = Number.isNaN(consensus) ? 0 : consensus;
+		return this.consensus;
 	}
 
 	// Public methods
@@ -115,11 +106,11 @@ class Peers {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	async isPoorConsensus() {
-		if (library.config.forging.force) {
+		if (this.library.config.forging.force) {
 			return false;
 		}
-		const consensus = await self.calculateConsensus();
-		return consensus < library.constants.minBroadhashConsensus;
+		const consensus = await this.calculateConsensus();
+		return consensus < this.library.constants.minBroadhashConsensus;
 	}
 
 	/**
@@ -127,16 +118,16 @@ class Peers {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	onNetworkReady() {
-		library.logger.trace('Peers ready');
+		this.library.logger.trace('Peers ready');
 		const calculateConsensus = async () => {
-			const consensus = await self.calculateConsensus();
-			return library.logger.debug(`Broadhash consensus: ${consensus} %`);
+			const consensus = await this.calculateConsensus();
+			return this.library.logger.debug(`Broadhash consensus: ${consensus} %`);
 		};
 
 		jobsQueue.register(
 			'calculateConsensus',
 			calculateConsensus,
-			self.broadhashConsensusCalculationInterval
+			this.broadhashConsensusCalculationInterval
 		);
 	}
 }
