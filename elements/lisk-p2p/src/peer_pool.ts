@@ -235,7 +235,7 @@ export class PeerPool extends EventEmitter {
 
 	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
 		this._nodeInfo = nodeInfo;
-		const peerList = this.getAllPeers();
+		const peerList = this.getPeers();
 		peerList.forEach(peer => {
 			this._applyNodeInfoOnPeer(peer, nodeInfo);
 		});
@@ -380,13 +380,13 @@ export class PeerPool extends EventEmitter {
 	public triggerNewConnections(
 		peers: ReadonlyArray<P2PDiscoveredPeerInfo>,
 	): void {
-		const disconnectPeers = peers.filter(
+		const disconnectedPeers = peers.filter(
 			peer => !this._peerMap.has(constructPeerIdFromPeerInfo(peer)),
 		);
-		const { outbound } = this.getPeersCountByKind();
+		const { outbound } = this.getPeersCountPerKind();
 		// Trigger new connections only if the maximum of outbound connections has not been reached
 		const peersToConnect = this._peerSelectForConnection({
-			peers: disconnectPeers,
+			peers: disconnectedPeers,
 			peerLimit: this._maxOutboundConnections - outbound,
 		});
 		peersToConnect.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
@@ -400,7 +400,7 @@ export class PeerPool extends EventEmitter {
 		peerInfo: P2PDiscoveredPeerInfo,
 		socket: SCServerSocket,
 	): Peer {
-		const inboundPeers = this.getAllPeers(InboundPeer);
+		const inboundPeers = this.getPeers(InboundPeer);
 		if (inboundPeers.length >= this._maxInboundConnections) {
 			this.removePeer(shuffle(inboundPeers)[0].id);
 		}
@@ -453,7 +453,7 @@ export class PeerPool extends EventEmitter {
 		return peer;
 	}
 
-	public getPeersCountByKind(): P2PPeersCount {
+	public getPeersCountPerKind(): P2PPeersCount {
 		return [...this._peerMap.values()].reduce(
 			(prev, peer) => {
 				if (peer instanceof OutboundPeer) {
@@ -480,10 +480,10 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public getAllPeerInfos(): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		return this.getAllPeers().map(peer => peer.peerInfo);
+		return this.getPeers().map(peer => peer.peerInfo);
 	}
 
-	public getAllPeers(
+	public getPeers(
 		kind?: typeof OutboundPeer | typeof InboundPeer,
 	): ReadonlyArray<Peer> {
 		const peers = [...this._peerMap.values()];

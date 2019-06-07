@@ -1380,14 +1380,14 @@ describe('Integration tests for P2P library', () => {
 		describe('Peer discovery and connections', () => {
 			it(`should not create more than ${TEN_CONNECTIONS} outbound connections`, async () => {
 				p2pNodeList.forEach(p2p => {
-					const { outbound } = p2p['_peerPool'].getPeersCountByKind();
+					const { outbound } = p2p['_peerPool'].getPeersCountPerKind();
 					expect(outbound).to.be.at.most(TEN_CONNECTIONS);
 				});
 			});
 
 			it(`should not create more than ${TEN_CONNECTIONS} inbound connections`, async () => {
 				p2pNodeList.forEach(p2p => {
-					const { inbound } = p2p['_peerPool'].getPeersCountByKind();
+					const { inbound } = p2p['_peerPool'].getPeersCountPerKind();
 					expect(inbound).to.be.at.most(TEN_CONNECTIONS);
 				});
 			});
