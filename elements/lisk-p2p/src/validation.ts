@@ -167,8 +167,8 @@ export const checkProtocolVersionCompatibility = (
 		}
 	}
 
-	const peerHardForks = +peerInfo.protocolVersion.split('.')[0];
-	const systemHardForks = +nodeInfo.protocolVersion.split('.')[0];
+	const peerHardForks = parseInt(peerInfo.protocolVersion.split('.')[0], 10);
+	const systemHardForks = parseInt(nodeInfo.protocolVersion.split('.')[0], 10);
 
 	return systemHardForks === peerHardForks && peerHardForks >= 1;
 };
