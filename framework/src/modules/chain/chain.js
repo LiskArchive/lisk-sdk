@@ -319,14 +319,15 @@ module.exports = class Chain {
 				logger: this.logger,
 				storage: this.storage,
 			},
+			bus: this.scope.bus,
 			slots: this.slots,
+			schema: this.scope.schema,
 			config: {
 				exceptions: this.options.exceptions,
 				constants: {
 					activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 				},
 			},
-			bus: this.bus,
 		});
 		this.scope.modules.rounds = this.rounds;
 		this.blocks = new Blocks({

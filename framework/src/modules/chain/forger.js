@@ -314,7 +314,8 @@ class Forger {
 				this.roundsModule,
 				this.keypairs,
 				currentSlot,
-				round
+				round,
+				this.constants.activeDelegates
 			);
 		} catch (getDelegateKeypairForCurrentSlotError) {
 			this.logger.error(
