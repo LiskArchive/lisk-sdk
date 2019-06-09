@@ -91,8 +91,6 @@ class Transport {
 			this.channel,
 			this.storage
 		);
-
-		this.shared = this.attachSharedMethods();
 	}
 
 	/**
@@ -216,366 +214,347 @@ class Transport {
 	 * @todo Implement API comments with apidoc.
 	 * @see {@link http://apidocjs.com/}
 	 */
-	// eslint-disable-next-line class-methods-use-this
-	attachSharedMethods() {
-		return {
-			/**
-			 * Description of blocksCommon.
-			 *
-			 * @todo Add @param tags
-			 * @todo Add @returns tag
-			 * @todo Add description of the function
-			 */
-			async blocksCommon(query) {
-				query = query || {};
+	/**
+	 * Description of blocksCommon.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
+	async blocksCommon(query) {
+		query = query || {};
 
-				const valid = this.schema.validate(
-					query,
-					definitions.WSBlocksCommonRequest
-				);
+		const valid = this.schema.validate(
+			query,
+			definitions.WSBlocksCommonRequest
+		);
 
-				if (!valid) {
-					const err = this.schema.getLastErrors();
-					const error = `${err[0].message}: ${err[0].path}`;
-					this.logger.debug('Common block request validation failed', {
-						err: error.toString(),
-						req: query,
-					});
-					throw new Error(error);
-				}
+		if (!valid) {
+			const err = this.schema.getLastErrors();
+			const error = `${err[0].message}: ${err[0].path}`;
+			this.logger.debug('Common block request validation failed', {
+				err: error.toString(),
+				req: query,
+			});
+			throw new Error(error);
+		}
 
-				const escapedIds = query.ids
-					// Remove quotes
-					.replace(/['"]+/g, '')
-					// Separate by comma into an array
-					.split(',')
-					// Reject any non-numeric values
-					.filter(id => /^[0-9]+$/.test(id));
+		const escapedIds = query.ids
+			// Remove quotes
+			.replace(/['"]+/g, '')
+			// Separate by comma into an array
+			.split(',')
+			// Reject any non-numeric values
+			.filter(id => /^[0-9]+$/.test(id));
 
-				if (!escapedIds.length) {
-					this.logger.debug('Common block request validation failed', {
-						err: 'ESCAPE',
-						req: query.ids,
-					});
+		if (!escapedIds.length) {
+			this.logger.debug('Common block request validation failed', {
+				err: 'ESCAPE',
+				req: query.ids,
+			});
 
-					throw new Error('Invalid block id sequence');
-				}
+			throw new Error('Invalid block id sequence');
+		}
 
-				try {
-					const row = await this.storage.entities.Block.get({
-						id: escapedIds[0],
-					});
+		try {
+			const row = await this.storage.entities.Block.get({
+				id: escapedIds[0],
+			});
 
-					if (!row.length > 0) {
-						return {
-							success: true,
-							common: null,
-						};
-					}
+			if (!row.length > 0) {
+				return {
+					success: true,
+					common: null,
+				};
+			}
 
-					const {
-						height,
-						id,
-						previousBlockId: previousBlock,
-						timestamp,
-					} = row[0];
+			const { height, id, previousBlockId: previousBlock, timestamp } = row[0];
 
-					const parsedRow = {
-						id,
-						height,
-						previousBlock,
-						timestamp,
-					};
+			const parsedRow = {
+				id,
+				height,
+				previousBlock,
+				timestamp,
+			};
 
-					return {
-						success: true,
-						common: parsedRow,
-					};
-				} catch (error) {
-					this.logger.error(error.stack);
-					throw new Error('Failed to get common block');
-				}
-			},
+			return {
+				success: true,
+				common: parsedRow,
+			};
+		} catch (error) {
+			this.logger.error(error.stack);
+			throw new Error('Failed to get common block');
+		}
+	}
 
-			/**
-			 * Description of blocks.
-			 *
-			 * @todo Add @param tags
-			 * @todo Add description of the function
-			 */
-			// eslint-disable-next-line consistent-return
-			async blocks(query) {
-				// Get 34 blocks with all data (joins) from provided block id
-				// According to maxium payload of 58150 bytes per block with every transaction being a vote
-				// Discounting maxium compression setting used in middleware
-				// Maximum transport payload = 2000000 bytes
-				if (!query || !query.lastBlockId) {
-					return {
-						success: false,
-						message: 'Invalid lastBlockId requested',
-					};
-				}
+	/**
+	 * Description of blocks.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add description of the function
+	 */
+	// eslint-disable-next-line consistent-return
+	async blocks(query) {
+		// Get 34 blocks with all data (joins) from provided block id
+		// According to maxium payload of 58150 bytes per block with every transaction being a vote
+		// Discounting maxium compression setting used in middleware
+		// Maximum transport payload = 2000000 bytes
+		if (!query || !query.lastBlockId) {
+			return {
+				success: false,
+				message: 'Invalid lastBlockId requested',
+			};
+		}
 
-				try {
-					const data = await this.blocksModule.loadBlocksDataWS({
-						limit: 34, // 1977100 bytes
-						lastId: query.lastBlockId,
-					});
+		try {
+			const data = await this.blocksModule.loadBlocksDataWS({
+				limit: 34, // 1977100 bytes
+				lastId: query.lastBlockId,
+			});
 
-					_.each(data, block => {
-						if (block.tf_data) {
-							try {
-								block.tf_data = block.tf_data.toString('utf8');
-							} catch (e) {
-								this.logger.error(
-									'Transport->blocks: Failed to convert data field to UTF-8',
-									{
-										block,
-										error: e,
-									}
-								);
+			_.each(data, block => {
+				if (block.tf_data) {
+					try {
+						block.tf_data = block.tf_data.toString('utf8');
+					} catch (e) {
+						this.logger.error(
+							'Transport->blocks: Failed to convert data field to UTF-8',
+							{
+								block,
+								error: e,
 							}
-						}
-					});
-
-					return { blocks: data, success: true };
-				} catch (err) {
-					return {
-						blocks: [],
-						message: err,
-						success: false,
-					};
+						);
+					}
 				}
-			},
+			});
 
-			/**
-			 * Description of postBlock.
-			 *
-			 * @todo Add @param tags
-			 * @todo Add @returns tag
-			 * @todo Add description of the function
-			 */
-			async postBlock(query) {
-				if (!this.constants.broadcastsActive) {
-					return this.logger.debug(
-						'Receiving blocks disabled by user through config.json'
-					);
-				}
-				query = query || {};
+			return { blocks: data, success: true };
+		} catch (err) {
+			return {
+				blocks: [],
+				message: err,
+				success: false,
+			};
+		}
+	}
 
-				const valid = this.schema.validate(
+	/**
+	 * Description of postBlock.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
+	async postBlock(query) {
+		if (!this.constants.broadcastsActive) {
+			return this.logger.debug(
+				'Receiving blocks disabled by user through config.json'
+			);
+		}
+		query = query || {};
+
+		const valid = this.schema.validate(query, definitions.WSBlocksBroadcast);
+
+		if (!valid) {
+			const err = this.schema.getLastErrors();
+			this.logger.debug(
+				'Received post block broadcast request in unexpected format',
+				{
+					err,
+					module: 'transport',
 					query,
-					definitions.WSBlocksBroadcast
-				);
-
-				if (!valid) {
-					const err = this.schema.getLastErrors();
-					this.logger.debug(
-						'Received post block broadcast request in unexpected format',
-						{
-							err,
-							module: 'transport',
-							query,
-						}
-					);
-					throw new Error(err);
 				}
+			);
+			throw new Error(err);
+		}
 
-				let block;
-				let success = true;
-				try {
-					block = blocksUtils.addBlockProperties(query.block);
+		let block;
+		let success = true;
+		try {
+			block = blocksUtils.addBlockProperties(query.block);
 
-					// Instantiate transaction classes
-					block.transactions = this.interfaceAdapters.transactions.fromBlock(
-						block
-					);
+			// Instantiate transaction classes
+			block.transactions = this.interfaceAdapters.transactions.fromBlock(block);
 
-					block = blocksUtils.objectNormalize(block);
-				} catch (e) {
-					success = false;
-					this.logger.debug('Block normalization failed', {
-						err: e.toString(),
-						module: 'transport',
-						block: query.block,
-					});
+			block = blocksUtils.objectNormalize(block);
+		} catch (e) {
+			success = false;
+			this.logger.debug('Block normalization failed', {
+				err: e.toString(),
+				module: 'transport',
+				block: query.block,
+			});
 
-					// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
-				}
-				// TODO: endpoint should be protected before
-				if (this.loaderModule.syncing()) {
-					return this.logger.debug(
-						"Client is syncing. Can't receive block at the moment.",
-						block.id
-					);
-				}
-				if (success) {
-					return this.blocksModule.receiveBlockFromNetwork(block);
-				}
-				return null;
-			},
+			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
+		}
+		// TODO: endpoint should be protected before
+		if (this.loaderModule.syncing()) {
+			return this.logger.debug(
+				"Client is syncing. Can't receive block at the moment.",
+				block.id
+			);
+		}
+		if (success) {
+			return this.blocksModule.receiveBlockFromNetwork(block);
+		}
+		return null;
+	}
 
-			/**
-			 * Description of postSignature.
-			 *
-			 * @todo Add @param tags
-			 * @todo Add @returns tag
-			 * @todo Add description of the function
-			 */
-			async postSignature(query) {
-				const valid = this.schema.validate(
-					query.signature,
-					definitions.Signature
-				);
+	/**
+	 * Description of postSignature.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
+	async postSignature(query) {
+		const valid = this.schema.validate(query.signature, definitions.Signature);
 
-				if (!valid) {
-					const err = this.schema.getLastErrors();
-					const error = new TransactionError(err[0].message);
-					return {
-						success: false,
-						code: 400,
-						errors: [error],
-					};
-				}
+		if (!valid) {
+			const err = this.schema.getLastErrors();
+			const error = new TransactionError(err[0].message);
+			return {
+				success: false,
+				code: 400,
+				errors: [error],
+			};
+		}
 
-				try {
-					await this.transactionPoolModule.getTransactionAndProcessSignature(
-						query.signature
-					);
-					return { success: true };
-				} catch (err) {
-					return {
-						success: false,
-						code: 409,
-						errors: err,
-					};
-				}
-			},
+		try {
+			await this.transactionPoolModule.getTransactionAndProcessSignature(
+				query.signature
+			);
+			return { success: true };
+		} catch (err) {
+			return {
+				success: false,
+				code: 409,
+				errors: err,
+			};
+		}
+	}
 
-			/**
-			 * Description of postSignatures.
-			 *
-			 * @todo Add @param tags
-			 * @todo Add @returns tag
-			 * @todo Add description of the function
-			 */
-			async postSignatures(query) {
-				if (!this.constants.broadcastsActive) {
-					return this.logger.debug(
-						'Receiving signatures disabled by user through config.json'
-					);
-				}
+	/**
+	 * Description of postSignatures.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
+	async postSignatures(query) {
+		if (!this.constants.broadcastsActive) {
+			return this.logger.debug(
+				'Receiving signatures disabled by user through config.json'
+			);
+		}
 
-				const valid = this.schema.validate(query, definitions.WSSignaturesList);
+		const valid = this.schema.validate(query, definitions.WSSignaturesList);
 
-				if (!valid) {
-					const err = this.schema.getLastErrors();
-					this.logger.debug('Invalid signatures body', err);
-					throw err;
-				}
+		if (!valid) {
+			const err = this.schema.getLastErrors();
+			this.logger.debug('Invalid signatures body', err);
+			throw err;
+		}
 
-				return this._receiveSignatures(query.signatures);
-			},
+		return this._receiveSignatures(query.signatures);
+	}
 
-			/**
-			 * Description of getSignatures.
-			 *
-			 * @todo Add @param tags
-			 * @todo Add @returns tag
-			 * @todo Add description of the function
-			 */
-			async getSignatures() {
-				const transactions = this.transactionPoolModule.getMultisignatureTransactionList(
-					true,
-					this.maxSharedTransactions
-				);
+	/**
+	 * Description of getSignatures.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
+	async getSignatures() {
+		const transactions = this.transactionPoolModule.getMultisignatureTransactionList(
+			true,
+			this.maxSharedTransactions
+		);
 
-				const signatures = transactions
-					.filter(
-						transaction =>
-							transaction.signatures && transaction.signatures.length
-					)
-					.map(transaction => ({
-						transaction: transaction.id,
-						signatures: transaction.signatures,
-					}));
+		const signatures = transactions
+			.filter(
+				transaction => transaction.signatures && transaction.signatures.length
+			)
+			.map(transaction => ({
+				transaction: transaction.id,
+				signatures: transaction.signatures,
+			}));
 
-				return {
-					success: true,
-					signatures,
-				};
-			},
-
-			/**
-			 * Description of getTransactions.
-			 *
-			 * @todo Add @param tags
-			 * @todo Add @returns tag
-			 * @todo Add description of the function
-			 */
-			async getTransactions() {
-				const transactions = this.transactionPoolModule.getMergedTransactionList(
-					true,
-					this.maxSharedTransactions
-				);
-
-				return {
-					success: true,
-					transactions,
-				};
-			},
-
-			/**
-			 * Description of postTransaction.
-			 *
-			 * @todo Add @param tags
-			 * @todo Add @returns tag
-			 * @todo Add description of the function
-			 */
-			async postTransaction(query) {
-				try {
-					const id = await this._receiveTransaction(query.transaction);
-					return {
-						success: true,
-						transactionId: id,
-					};
-				} catch (err) {
-					return {
-						success: false,
-						message: err.message || 'Transaction was rejected with errors',
-						errors: err,
-					};
-				}
-			},
-
-			/**
-			 * Description of postTransactions.
-			 *
-			 * @todo Add @param tags
-			 * @todo Add @returns tag
-			 * @todo Add description of the function
-			 */
-			async postTransactions(query) {
-				if (!this.constants.broadcastsActive) {
-					return this.logger.debug(
-						'Receiving transactions disabled by user through config.json'
-					);
-				}
-
-				const valid = this.schema.validate(
-					query,
-					definitions.WSTransactionsRequest
-				);
-
-				if (!valid) {
-					const err = this.schema.getLastErrors();
-					this.logger.debug('Invalid transactions body', err);
-					throw err;
-				}
-
-				return this._receiveTransactions(query.transactions);
-			},
+		return {
+			success: true,
+			signatures,
 		};
+	}
+
+	/**
+	 * Description of getTransactions.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
+	async getTransactions() {
+		const transactions = this.transactionPoolModule.getMergedTransactionList(
+			true,
+			this.maxSharedTransactions
+		);
+
+		return {
+			success: true,
+			transactions,
+		};
+	}
+
+	/**
+	 * Description of postTransaction.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
+	async postTransaction(query) {
+		try {
+			const id = await this._receiveTransaction(query.transaction);
+			return {
+				success: true,
+				transactionId: id,
+			};
+		} catch (err) {
+			return {
+				success: false,
+				message: err.message || 'Transaction was rejected with errors',
+				errors: err,
+			};
+		}
+	}
+
+	/**
+	 * Description of postTransactions.
+	 *
+	 * @todo Add @param tags
+	 * @todo Add @returns tag
+	 * @todo Add description of the function
+	 */
+	async postTransactions(query) {
+		if (!this.constants.broadcastsActive) {
+			return this.logger.debug(
+				'Receiving transactions disabled by user through config.json'
+			);
+		}
+
+		const valid = this.schema.validate(
+			query,
+			definitions.WSTransactionsRequest
+		);
+
+		if (!valid) {
+			const err = this.schema.getLastErrors();
+			this.logger.debug('Invalid transactions body', err);
+			throw err;
+		}
+
+		return this._receiveTransactions(query.transactions);
 	}
 
 	/**

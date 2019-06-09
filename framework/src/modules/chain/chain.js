@@ -186,15 +186,15 @@ module.exports = class Chain {
 			if (!this.options.loading.rebuildUpToRound) {
 				this.channel.subscribe('network:event', ({ data: { event, data } }) => {
 					if (event === 'postTransactions') {
-						this.transport.shared.postTransactions(data);
+						this.transport.postTransactions(data);
 						return;
 					}
 					if (event === 'postSignatures') {
-						this.transport.shared.postSignatures(data);
+						this.transport.postSignatures(data);
 						return;
 					}
 					if (event === 'postBlock') {
-						this.transport.shared.postBlock(data);
+						this.transport.postBlock(data);
 						// eslint-disable-next-line no-useless-return
 						return;
 					}
@@ -228,16 +228,16 @@ module.exports = class Chain {
 					action.params.password,
 					action.params.forging
 				),
-			getTransactions: async () => this.transport.shared.getTransactions(),
-			getSignatures: async () => this.transport.shared.getSignatures(),
+			getTransactions: async () => this.transport.getTransactions(),
+			getSignatures: async () => this.transport.getSignatures(),
 			postSignature: async action =>
-				this.transport.shared.postSignature(action.params),
+				this.transport.postSignature(action.params),
 			getForgingStatusForAllDelegates: async () =>
 				this.forger.getForgingStatusForAllDelegates(),
 			getTransactionsFromPool: async ({ params }) =>
 				this.transactionPool.getPooledTransactions(params.type, params.filters),
 			postTransaction: async action =>
-				this.transport.shared.postTransaction(action.params),
+				this.transport.postTransaction(action.params),
 			getDelegateBlocksRewards: async action =>
 				this.scope.components.storage.entities.Account.delegateBlocksRewards(
 					action.params.filters,
@@ -256,9 +256,9 @@ module.exports = class Chain {
 				secondsSinceEpoch: this.slots.getTime(),
 				lastBlock: this.blocks.lastBlock,
 			}),
-			blocks: async action => this.transport.shared.blocks(action.params || {}),
+			blocks: async action => this.transport.blocks(action.params || {}),
 			blocksCommon: async action =>
-				this.transport.shared.blocksCommon(action.params || {}),
+				this.transport.blocksCommon(action.params || {}),
 		};
 	}
 
