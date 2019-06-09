@@ -186,15 +186,15 @@ module.exports = class Chain {
 			if (!this.options.loading.rebuildUpToRound) {
 				this.channel.subscribe('network:event', ({ data: { event, data } }) => {
 					if (event === 'postTransactions') {
-						this.scope.modules.transport.shared.postTransactions(data);
+						this.transport.shared.postTransactions(data);
 						return;
 					}
 					if (event === 'postSignatures') {
-						this.scope.modules.transport.shared.postSignatures(data);
+						this.transport.shared.postSignatures(data);
 						return;
 					}
 					if (event === 'postBlock') {
-						this.scope.modules.transport.shared.postBlock(data);
+						this.transport.shared.postBlock(data);
 						// eslint-disable-next-line no-useless-return
 						return;
 					}
@@ -218,28 +218,26 @@ module.exports = class Chain {
 			calculateReward: action =>
 				this.blocks.blockReward.calculateReward(action.params.height),
 			generateDelegateList: async action =>
-				this.scope.modules.rounds.generateDelegateList(
+				this.rounds.generateDelegateList(
 					action.params.round,
 					action.params.source
 				),
 			updateForgingStatus: async action =>
-				this.scope.modules.forger.updateForgingStatus(
+				this.forger.updateForgingStatus(
 					action.params.publicKey,
 					action.params.password,
 					action.params.forging
 				),
-			getTransactions: async () =>
-				this.scope.modules.transport.shared.getTransactions(),
-			getSignatures: async () =>
-				this.scope.modules.transport.shared.getSignatures(),
+			getTransactions: async () => this.transport.shared.getTransactions(),
+			getSignatures: async () => this.transport.shared.getSignatures(),
 			postSignature: async action =>
-				this.scope.modules.transport.shared.postSignature(action.params),
+				this.transport.shared.postSignature(action.params),
 			getForgingStatusForAllDelegates: async () =>
-				this.scope.modules.forger.getForgingStatusForAllDelegates(),
+				this.forger.getForgingStatusForAllDelegates(),
 			getTransactionsFromPool: async ({ params }) =>
 				this.transactionPool.getPooledTransactions(params.type, params.filters),
 			postTransaction: async action =>
-				this.scope.modules.transport.shared.postTransaction(action.params),
+				this.transport.shared.postTransaction(action.params),
 			getDelegateBlocksRewards: async action =>
 				this.scope.components.storage.entities.Account.delegateBlocksRewards(
 					action.params.filters,
@@ -251,17 +249,16 @@ module.exports = class Chain {
 					: this.slots.getSlotNumber(),
 			calcSlotRound: async action => this.slots.calcRound(action.params.height),
 			getNodeStatus: async () => ({
-				consensus: this.scope.modules.peers.getLastConsensus(),
+				consensus: this.peers.getLastConsensus(),
 				loaded: true,
 				syncing: this.loader.syncing(),
 				unconfirmedTransactions: this.transactionPool.getCount(),
 				secondsSinceEpoch: this.slots.getTime(),
-				lastBlock: this.scope.modules.blocks.lastBlock,
+				lastBlock: this.blocks.lastBlock,
 			}),
-			blocks: async action =>
-				this.scope.modules.transport.shared.blocks(action.params || {}),
+			blocks: async action => this.transport.shared.blocks(action.params || {}),
 			blocksCommon: async action =>
-				this.scope.modules.transport.shared.blocksCommon(action.params || {}),
+				this.transport.shared.blocksCommon(action.params || {}),
 		};
 	}
 
@@ -458,11 +455,11 @@ module.exports = class Chain {
 				this.logger.info(
 					{
 						syncing: this.loader.syncing(),
-						lastReceipt: this.scope.modules.blocks.lastReceipt,
+						lastReceipt: this.blocks.lastReceipt,
 					},
 					'Sync time triggered'
 				);
-				if (!this.loader.syncing() && this.scope.modules.blocks.isStale()) {
+				if (!this.loader.syncing() && this.blocks.isStale()) {
 					this.scope.sequence.add(
 						sequenceCB => {
 							this.loader
@@ -498,7 +495,7 @@ module.exports = class Chain {
 					this.logger.debug('No delegates are enabled');
 					return;
 				}
-				if (this.loader.syncing() || this.scope.modules.rounds.ticking()) {
+				if (this.loader.syncing() || this.rounds.ticking()) {
 					this.logger.debug('Client not ready to forge');
 					return;
 				}
