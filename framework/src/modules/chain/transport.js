@@ -712,4 +712,4 @@ class Transport {
 }
 
 // Export
-module.exports = Transport;
+module.exports = { Transport };

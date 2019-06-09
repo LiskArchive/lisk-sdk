@@ -104,41 +104,31 @@ class Loader {
 	/**
 	 * Pulls Transactions and signatures.
 	 */
-	// eslint-disable-next-line class-methods-use-this
-	loadTransactionsAndSignatures() {
-		async.series(
-			{
-				loadTransactions(seriesCb) {
-					return async.retry(
-						this.retries,
-						this._getTransactionsFromNetwork,
-						err => {
-							if (err) {
-								this.logger.error('Unconfirmed transactions loader', err);
-							}
-
-							return setImmediate(seriesCb);
-						}
-					);
-				},
-				loadSignatures(seriesCb) {
-					return async.retry(
-						this.retries,
-						this._getSignaturesFromNetwork,
-						err => {
-							if (err) {
-								this.logger.error('Signatures loader', err);
-							}
-
-							return setImmediate(seriesCb);
-						}
-					);
-				},
-			},
-			err => {
-				this.logger.trace('Transactions and signatures pulled', err);
-			}
-		);
+	async loadTransactionsAndSignatures() {
+		await new Promise(resolve => {
+			async.retry(
+				this.retries,
+				async () => this._getTransactionsFromNetwork(),
+				err => {
+					if (err) {
+						this.logger.error('Unconfirmed transactions loader', err);
+					}
+					resolve();
+				}
+			);
+		});
+		await new Promise(resolve => {
+			async.retry(
+				this.retries,
+				async () => this._getSignaturesFromNetwork(),
+				err => {
+					if (err) {
+						this.logger.error('Signatures loader', err);
+					}
+					resolve();
+				}
+			);
+		});
 	}
 
 	/**
@@ -434,4 +424,4 @@ class Loader {
 }
 
 // Export
-module.exports = Loader;
+module.exports = { Loader };

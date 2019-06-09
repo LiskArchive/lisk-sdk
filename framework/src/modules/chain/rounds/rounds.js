@@ -54,7 +54,7 @@ class Rounds {
 			schema: scope.schema,
 			exceptions: scope.config.exceptions,
 			constants: {
-				activeDelegates: scope.config.constants.ACTIVE_DELEGATES,
+				activeDelegates: scope.config.constants.activeDelegates,
 			},
 		};
 		library.delegates = new Delegates(library);
