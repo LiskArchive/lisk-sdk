@@ -555,7 +555,7 @@ export class PeerPool extends EventEmitter {
 		}
 
 		if (kind === OutboundPeer) {
-			const peerIdToRemove = shuffle(peers.map(constructPeerIdFromPeerInfo))[0];
+			const peerIdToRemove = constructPeerIdFromPeerInfo(shuffle(peers)[0]);
 			this.removePeer(peerIdToRemove);
 		}
 	}
