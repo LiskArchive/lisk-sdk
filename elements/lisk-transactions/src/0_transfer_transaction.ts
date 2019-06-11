@@ -30,8 +30,6 @@ import {
 	verifyBalance,
 } from './utils';
 
-const TRANSACTION_TRANSFER_TYPE = 0;
-
 export interface TransferAsset {
 	readonly data: string;
 }
@@ -49,6 +47,7 @@ export const transferAssetFormatSchema = {
 
 export class TransferTransaction extends BaseTransaction {
 	public readonly asset: TransferAsset;
+	public static TYPE = 0;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
@@ -93,17 +92,6 @@ export class TransferTransaction extends BaseTransaction {
 			this.id,
 			validator.errors,
 		) as TransactionError[];
-		if (this.type !== TRANSACTION_TRANSFER_TYPE) {
-			errors.push(
-				new TransactionError(
-					'Invalid type',
-					this.id,
-					'.type',
-					this.type,
-					TRANSACTION_TRANSFER_TYPE,
-				),
-			);
-		}
 
 		if (!validateTransferAmount(this.amount.toString())) {
 			errors.push(

@@ -72,6 +72,9 @@ export const EVENT_MESSAGE_RECEIVED = 'messageReceived';
 export const EVENT_INVALID_MESSAGE_RECEIVED = 'invalidMessageReceived';
 export const EVENT_BAN_PEER = 'banPeer';
 export const EVENT_UNBAN_PEER = 'banPeer';
+export const EVENT_DISCOVERED_PEER = 'discoveredPeer';
+export const EVENT_FAILED_TO_FETCH_PEER_INFO = 'failedToFetchPeerInfo';
+export const EVENT_FAILED_TO_PUSH_NODE_INFO = 'failedToPushNodeInfo';
 
 // Remote event or RPC names sent to or received from peers.
 export const REMOTE_EVENT_RPC_REQUEST = 'rpc-request';

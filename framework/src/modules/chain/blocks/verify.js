@@ -15,12 +15,12 @@
 'use strict';
 
 const crypto = require('crypto');
+const BigNum = require('@liskhq/bignum');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const blockVersion = require('./block_version');
 const blocksLogic = require('./block');
 const blocksUtils = require('./utils');
 const transactionsModule = require('../transactions');
-const Bignum = require('../helpers/bignum');
 
 class BlocksVerify {
 	constructor({
@@ -381,10 +381,10 @@ const verifyVersion = (block, exceptions, result) => {
  * @returns {Array} result.errors - Array of validation errors
  */
 const verifyReward = (blockReward, block, exceptions, result) => {
-	const expectedReward = blockReward.calcReward(block.height);
+	const expectedReward = blockReward.calculateReward(block.height);
 	if (
 		block.height !== 1 &&
-		!expectedReward.isEqualTo(block.reward) &&
+		!expectedReward.equals(block.reward) &&
 		(!exceptions.blockRewards || !exceptions.blockRewards.includes(block.id))
 	) {
 		result.errors.push(
@@ -452,8 +452,8 @@ const verifyPayload = (
 		);
 	}
 
-	let totalAmount = new Bignum(0);
-	let totalFee = new Bignum(0);
+	let totalAmount = new BigNum(0);
+	let totalFee = new BigNum(0);
 	const payloadHash = crypto.createHash('sha256');
 	const appliedTransactions = {};
 
@@ -484,11 +484,11 @@ const verifyPayload = (
 		result.errors.push(new Error('Invalid payload hash'));
 	}
 
-	if (!totalAmount.isEqualTo(block.totalAmount)) {
+	if (!totalAmount.equals(block.totalAmount)) {
 		result.errors.push(new Error('Invalid total amount'));
 	}
 
-	if (!totalFee.isEqualTo(block.totalFee)) {
+	if (!totalFee.equals(block.totalFee)) {
 		result.errors.push(new Error('Invalid total fee'));
 	}
 

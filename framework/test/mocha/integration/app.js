@@ -14,7 +14,7 @@
 
 'use strict';
 
-const Bignum = require('../../../src/modules/chain/helpers/bignum');
+const BigNum = require('@liskhq/bignum');
 const application = require('../common/application');
 const QueriesHelper = require('../common/integration/sql/queries_helper');
 const accountsFixtures = require('../fixtures/accounts');
@@ -162,12 +162,12 @@ describe('app', () => {
 										library.genesisBlock.block.transactions,
 										(reduceBalance, acc) => {
 											if (acc.recipientId === voter.senderId) {
-												return new Bignum(reduceBalance)
+												return new BigNum(reduceBalance)
 													.plus(acc.amount)
 													.toString();
 											}
 											if (acc.senderId === voter.senderId) {
-												return new Bignum(reduceBalance)
+												return new BigNum(reduceBalance)
 													.minus(acc.amount)
 													.toString();
 											}
@@ -175,7 +175,7 @@ describe('app', () => {
 										},
 										'0'
 									);
-									voters_balance = new Bignum(voters_balance)
+									voters_balance = new BigNum(voters_balance)
 										.plus(balance)
 										.toString();
 								});
@@ -264,7 +264,7 @@ describe('app', () => {
 									library.genesisBlock.block.transactions,
 									(reduceBalance, acc) => {
 										if (acc.senderId === genesisAccount.address) {
-											return new Bignum(reduceBalance)
+											return new BigNum(reduceBalance)
 												.minus(acc.amount)
 												.toString();
 										}
@@ -334,11 +334,9 @@ describe('app', () => {
 		});
 
 		describe('__private.loadDelegates', () => {
-			before(done => {
-				library.modules.forger.loadDelegates(err => {
-					keypairs = library.modules.forger.getForgersKeyPairs();
-					done(err);
-				});
+			before(async () => {
+				await library.modules.forger.loadDelegates();
+				keypairs = library.modules.forger.getForgersKeyPairs();
 			});
 
 			describe('__private.keypairs', () => {

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,18 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-module.exports = async ({ schema, components: { storage, logger } }) => {
-	const Account = require('../logic/account.js');
+/*
+   DESCRIPTION: Alter null value to empty JSON object {} for asset field for mem_accounts column
+   PARAMETERS: None
+*/
 
-	const accountLogic = await new Promise((resolve, reject) => {
-		new Account(storage, schema, logger, (err, object) => {
-			err ? reject(err) : resolve(object);
-		});
-	});
-
-	return {
-		account: accountLogic,
-	};
-};
+ -- Alter asset field to empty JSON
+UPDATE mem_accounts SET asset = '{}'::json WHERE asset IS NULL;

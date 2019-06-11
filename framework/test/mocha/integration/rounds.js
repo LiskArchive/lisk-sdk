@@ -21,11 +21,11 @@ const {
 	castVotes,
 	registerDelegate,
 } = require('@liskhq/lisk-transactions');
+const BigNum = require('@liskhq/bignum');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const Promise = require('bluebird');
 const ed = require('../../../src/modules/chain/helpers/ed');
 const { BlockSlots } = require('../../../src/modules/chain/blocks');
-const Bignum = require('../../../src/modules/chain/helpers/bignum');
 const accountsFixtures = require('../fixtures/accounts');
 const randomUtil = require('../common/utils/random');
 const QueriesHelper = require('../common/integration/sql/queries_helper');
@@ -46,7 +46,7 @@ describe('rounds', () => {
 	localCommon.beforeBlock('rounds', lib => {
 		library = lib;
 		// Set rewards start at 150-th block
-		library.modules.blocks.blockReward.rewardOffset = 150;
+		library.modules.blocks.blockRewardArgs.rewardOffset = 150;
 		Queries = new QueriesHelper(lib, lib.components.storage);
 
 		addTransactionsAndForgePromise = Promise.promisify(
@@ -102,9 +102,9 @@ describe('rounds', () => {
 			// If account with address exists - set expected values
 			if (accounts[address]) {
 				// Update sender
-				accounts[address].balance = new Bignum(accounts[address].balance)
+				accounts[address].balance = new BigNum(accounts[address].balance)
 					.minus(
-						new Bignum(transaction.fee).plus(new Bignum(transaction.amount))
+						new BigNum(transaction.fee).plus(new BigNum(transaction.amount))
 					)
 					.toString();
 
@@ -130,14 +130,14 @@ describe('rounds', () => {
 				// If account with address exists - set expected values
 				if (accounts[address]) {
 					// Update recipient
-					accounts[address].balance = new Bignum(accounts[address].balance)
-						.plus(new Bignum(transaction.amount))
+					accounts[address].balance = new BigNum(accounts[address].balance)
+						.plus(new BigNum(transaction.amount))
 						.toString();
 				} else {
 					// Funds sent to new account - create account with default values
 					accounts[address] = accountsFixtures.dbAccount({
 						address,
-						balance: new Bignum(transaction.amount).toString(),
+						balance: new BigNum(transaction.amount).toString(),
 					});
 				}
 			}
@@ -153,15 +153,15 @@ describe('rounds', () => {
 				publicKey: ed.hexToBuffer(reward.publicKey),
 			});
 			if (found) {
-				found.fees = new Bignum(found.fees)
-					.plus(new Bignum(reward.fees))
+				found.fees = new BigNum(found.fees)
+					.plus(new BigNum(reward.fees))
 					.toString();
-				found.rewards = new Bignum(found.rewards)
-					.plus(new Bignum(reward.rewards))
+				found.rewards = new BigNum(found.rewards)
+					.plus(new BigNum(reward.rewards))
 					.toString();
-				found.balance = new Bignum(found.balance)
-					.plus(new Bignum(reward.fees))
-					.plus(new Bignum(reward.rewards))
+				found.balance = new BigNum(found.balance)
+					.plus(new BigNum(reward.fees))
+					.plus(new BigNum(reward.rewards))
 					.toString();
 			}
 		});
@@ -188,8 +188,8 @@ describe('rounds', () => {
 				const foundAccount = _.find(accounts, {
 					address: voter,
 				});
-				votes = new Bignum(votes)
-					.plus(new Bignum(foundAccount.balance))
+				votes = new BigNum(votes)
+					.plus(new BigNum(foundAccount.balance))
 					.toString();
 			});
 			found.vote = votes;
@@ -204,8 +204,8 @@ describe('rounds', () => {
 		// Sort accounts - vote DESC, publicKey ASC
 		accounts = Object.keys(accounts)
 			.sort((a, b) => {
-				const aVote = new Bignum(accounts[a].vote);
-				const bVote = new Bignum(accounts[b].vote);
+				const aVote = new BigNum(accounts[a].vote);
+				const bVote = new BigNum(accounts[b].vote);
 				const aPK = accounts[a].publicKey;
 				const bPK = accounts[b].publicKey;
 				// Compare vote weights first:
@@ -282,7 +282,7 @@ describe('rounds', () => {
 		const feesTotal = _.reduce(
 			blocks,
 			(fees, block) => {
-				return new Bignum(fees).plus(block.totalFee);
+				return new BigNum(fees).plus(block.totalFee);
 			},
 			0
 		);
@@ -290,16 +290,16 @@ describe('rounds', () => {
 		const rewardsTotal = _.reduce(
 			blocks,
 			(reward, block) => {
-				return new Bignum(reward).plus(block.reward);
+				return new BigNum(reward).plus(block.reward);
 			},
 			0
 		);
 
-		const feesPerDelegate = new Bignum(feesTotal.toPrecision(15))
+		const feesPerDelegate = new BigNum(feesTotal.toPrecision(15))
 			.dividedBy(ACTIVE_DELEGATES)
-			.integerValue(Bignum.ROUND_FLOOR);
-		const feesRemaining = new Bignum(feesTotal.toPrecision(15)).minus(
-			feesPerDelegate.multipliedBy(ACTIVE_DELEGATES)
+			.floor();
+		const feesRemaining = new BigNum(feesTotal.toPrecision(15)).minus(
+			feesPerDelegate.times(ACTIVE_DELEGATES)
 		);
 
 		__testContext.debug(
@@ -316,8 +316,8 @@ describe('rounds', () => {
 			} else {
 				rewards[publicKey] = {
 					publicKey,
-					fees: new Bignum(feesPerDelegate),
-					rewards: new Bignum(block.reward),
+					fees: new BigNum(feesPerDelegate),
+					rewards: new BigNum(block.reward),
 				};
 			}
 
@@ -496,8 +496,8 @@ describe('rounds', () => {
 									if (!_.isEqual(actualAccount.vote, expectedAccount.vote)) {
 										// When comparison fails - calculate absolute difference of 'vote' values
 										const absoluteDiff = Math.abs(
-											new Bignum(actualAccount.vote)
-												.minus(new Bignum(expectedAccount.vote))
+											new BigNum(actualAccount.vote)
+												.minus(new BigNum(expectedAccount.vote))
 												.toNumber()
 										);
 										// If absolute value is 1 beddows - pass the test, as reason is related to issue #716
@@ -1168,8 +1168,8 @@ describe('rounds', () => {
 
 				it('block just before rewards start should have reward = 0', async () => {
 					const lastBlock = library.modules.blocks.lastBlock;
-					return expect(lastBlock.reward.isEqualTo(expectedRewardsPerBlock)).to
-						.be.true;
+					return expect(lastBlock.reward.equals(expectedRewardsPerBlock)).to.be
+						.true;
 				});
 			});
 
@@ -1184,7 +1184,7 @@ describe('rounds', () => {
 
 					// Set expected reward per block as first milestone
 					expectedRewardsPerBlock =
-						library.modules.blocks.blockReward.milestones[0];
+						library.modules.blocks.blockRewardArgs.milestones[0];
 					done();
 				});
 
@@ -1211,9 +1211,8 @@ describe('rounds', () => {
 						describe('rewards check', () => {
 							it('all blocks from now until round end should have proper rewards (5 LSK)', async () => {
 								const lastBlock = library.modules.blocks.lastBlock;
-								return expect(
-									lastBlock.reward.isEqualTo(expectedRewardsPerBlock)
-								).to.be.true;
+								return expect(lastBlock.reward.equals(expectedRewardsPerBlock))
+									.to.be.true;
 							});
 						});
 

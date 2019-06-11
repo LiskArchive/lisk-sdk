@@ -49,7 +49,7 @@ describe('validator.js', () => {
 					errorThrown = error;
 				}
 
-				expect(errorThrown.message).toBe('Schema validation error');
+				expect(errorThrown).toBeInstanceOf(Error);
 				expect(errorThrown.errors).toEqual([
 					{
 						dataPath: '.prop1',

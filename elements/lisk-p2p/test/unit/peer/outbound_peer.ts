@@ -25,6 +25,7 @@ describe('outbound_peer', () => {
 		height: 545776,
 		isDiscoveredPeer: true,
 		version: '1.1.1',
+		protocolVersion: '1.1',
 	};
 
 	const defaultPeer = new OutboundPeer(defaultPeerInfo);

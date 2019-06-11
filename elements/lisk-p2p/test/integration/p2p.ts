@@ -61,7 +61,7 @@ describe('Integration tests for P2P library', () => {
 						nethash:
 							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 						version: '1.0.1',
-						protocolVersion: '1.0.1',
+						protocolVersion: '1.1',
 						minVersion: '1.0.0',
 						os: platform(),
 						height: 0,
@@ -135,7 +135,7 @@ describe('Integration tests for P2P library', () => {
 							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 						minVersion: '1.0.1',
 						version: '1.0.1',
-						protocolVersion: '1.0.1',
+						protocolVersion: '1.1',
 						os: platform(),
 						height: 0,
 						broadhash:
@@ -324,6 +324,7 @@ describe('Integration tests for P2P library', () => {
 							nethash:
 								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 							version: p2p.nodeInfo.version,
+							protocolVersion: '1.1',
 							wsPort: p2p.nodeInfo.wsPort,
 							height: 1000 + (p2p.nodeInfo.wsPort % NETWORK_START_PORT),
 							options: p2p.nodeInfo.options,
@@ -376,6 +377,7 @@ describe('Integration tests for P2P library', () => {
 					nethash:
 						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 					version: firstP2PNode.nodeInfo.version,
+					protocolVersion: '1.1',
 					wsPort: firstP2PNode.nodeInfo.wsPort,
 					height: 10,
 					options: firstP2PNode.nodeInfo.options,
@@ -502,7 +504,7 @@ describe('Integration tests for P2P library', () => {
 						nethash:
 							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 						version: '1.0.1',
-						protocolVersion: '1.0.1',
+						protocolVersion: '1.1',
 						minVersion: '1.0.0',
 						os: platform(),
 						height: 0,
@@ -800,6 +802,7 @@ describe('Integration tests for P2P library', () => {
 					nethash:
 						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 					version: firstP2PNode.nodeInfo.version,
+					protocolVersion: '1.1',
 					wsPort: firstP2PNode.nodeInfo.wsPort,
 					height: 10,
 					options: firstP2PNode.nodeInfo.options,
@@ -1073,7 +1076,7 @@ describe('Integration tests for P2P library', () => {
 						nethash:
 							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 						version: '1.0.1',
-						protocolVersion: '1.0.1',
+						protocolVersion: '1.1',
 						os: platform(),
 						height: 1000 + index,
 						broadhash:
@@ -1233,7 +1236,7 @@ describe('Integration tests for P2P library', () => {
 						nethash:
 							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 						version: '1.0.1',
-						protocolVersion: '1.0.1',
+						protocolVersion: '1.1',
 						minVersion: '1.0.0',
 						os: platform(),
 						height: 0,

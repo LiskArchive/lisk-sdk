@@ -57,6 +57,7 @@ export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
 	readonly updatedAt?: Date;
 	readonly os?: string;
 	readonly version: string;
+	readonly protocolVersion: string;
 	// tslint:disable-next-line: no-mixed-interface
 	readonly [key: string]: unknown;
 }
@@ -66,6 +67,7 @@ export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
 export interface P2PNodeInfo {
 	readonly os: string;
 	readonly version: string;
+	readonly protocolVersion: string;
 	readonly nethash: string;
 	readonly wsPort: number;
 	readonly height: number;
@@ -92,7 +94,7 @@ export interface P2PConfig {
 	readonly populatorInterval?: number;
 	readonly maxOutboundConnections: number;
 	readonly maxInboundConnections: number;
-	readonly peerSelectionForSend?: P2PPeerSelectionForSendFunction;	
+	readonly peerSelectionForSend?: P2PPeerSelectionForSendFunction;
 	readonly peerSelectionForRequest?: P2PPeerSelectionForRequestFunction;
 	readonly peerSelectionForConnection?: P2PPeerSelectionForConnectionFunction;
 	readonly peerHandshakeCheck?: P2PCheckPeerCompatibility;
@@ -173,6 +175,7 @@ export interface ProtocolPeerInfo {
 	readonly nonce: string;
 	readonly os?: string;
 	readonly version: string;
+	readonly protocolVersion: string;
 	readonly wsPort: number;
 	readonly httpPort?: number;
 	// tslint:disable-next-line: no-mixed-interface

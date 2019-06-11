@@ -174,6 +174,7 @@ export class P2P extends EventEmitter {
 
 	public constructor(config: P2PConfig) {
 		super();
+
 		this._config = config;
 		this._isActive = false;
 		this._newPeers = new Map();
@@ -288,13 +289,24 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_UNBAN_PEER, peerId);
 		};
 
+		// When peer is fetched for status after connection then update the peerinfo in triedPeer list
 		this._handleDiscoveredPeer = (detailedPeerInfo: P2PDiscoveredPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(detailedPeerInfo);
-			if (!this._triedPeers.has(peerId)) {
-				if (this._newPeers.has(peerId)) {
-					this._newPeers.delete(peerId);
-				}
+			const foundTriedPeer = this._triedPeers.get(peerId);
+			// Remove the discovered peer from newPeer list on successful connect and discovery
+			if (this._newPeers.has(peerId)) {
+				this._newPeers.delete(peerId);
+			}
+
+			if (!foundTriedPeer) {
 				this._triedPeers.set(peerId, detailedPeerInfo);
+			} else {
+				const updatedPeerInfo = {
+					...detailedPeerInfo,
+					ipAddress: foundTriedPeer.ipAddress,
+					wsPort: foundTriedPeer.wsPort,
+				};
+				this._triedPeers.set(peerId, updatedPeerInfo);
 			}
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);

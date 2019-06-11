@@ -25,6 +25,8 @@ import {
 	convertNodeInfoToLegacyFormat,
 	DEFAULT_ACK_TIMEOUT,
 	DEFAULT_CONNECT_TIMEOUT,
+	EVENT_DISCOVERED_PEER,
+	EVENT_FAILED_TO_FETCH_PEER_INFO,
 	Peer,
 	PeerConfig,
 	REMOTE_EVENT_MESSAGE,
@@ -145,14 +147,28 @@ export class OutboundPeer extends Peer {
 		}
 	}
 
+	private async _updatePeerOnConnect(): Promise<void> {
+		// tslint:disable-next-line no-let
+		let detailedPeerInfo;
+		try {
+			detailedPeerInfo = await this.fetchStatus();
+		} catch (error) {
+			this.emit(EVENT_FAILED_TO_FETCH_PEER_INFO, error);
+
+			return;
+		}
+		this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
+	}
+
 	// All event handlers for the outbound socket should be bound in this method.
 	private _bindHandlersToOutboundSocket(outboundSocket: SCClientSocket): void {
 		outboundSocket.on('error', (error: Error) => {
 			this.emit(EVENT_OUTBOUND_SOCKET_ERROR, error);
 		});
 
-		outboundSocket.on('connect', () => {
+		outboundSocket.on('connect', async () => {
 			this.emit(EVENT_CONNECT_OUTBOUND, this._peerInfo);
+			await this._updatePeerOnConnect();
 		});
 
 		outboundSocket.on('connectAbort', () => {

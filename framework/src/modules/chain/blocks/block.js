@@ -25,9 +25,9 @@ const {
 const _ = require('lodash');
 const crypto = require('crypto');
 const ByteBuffer = require('bytebuffer');
+const BigNum = require('@liskhq/bignum');
 const validator = require('../../../controller/validator');
 const { validateTransactions } = require('../transactions');
-const Bignum = require('../helpers/bignum');
 const blockVersion = require('./block_version');
 
 // TODO: remove type constraints
@@ -81,7 +81,7 @@ const getBytes = block => {
 	byteBuffer.writeInt(block.timestamp);
 
 	if (block.previousBlock) {
-		const pb = new Bignum(block.previousBlock).toBuffer({ size: '8' });
+		const pb = new BigNum(block.previousBlock).toBuffer({ size: '8' });
 
 		for (let i = 0; i < 8; i++) {
 			byteBuffer.writeByte(pb[i]);
@@ -204,9 +204,9 @@ const create = ({
 
 	const nextHeight = previousBlock ? previousBlock.height + 1 : 1;
 
-	const reward = blockReward.calcReward(nextHeight);
-	let totalFee = new Bignum(0);
-	let totalAmount = new Bignum(0);
+	const reward = blockReward.calculateReward(nextHeight);
+	let totalFee = new BigNum(0);
+	let totalAmount = new BigNum(0);
 	let size = 0;
 
 	const blockTransactions = [];
@@ -286,7 +286,7 @@ const getId = block => {
 	}
 
 	// eslint-disable-next-line new-cap
-	const id = new Bignum.fromBuffer(temp).toString();
+	const id = new BigNum.fromBuffer(temp).toString();
 	return id;
 };
 
@@ -308,9 +308,9 @@ const dbRead = raw => {
 		height: parseInt(raw.b_height),
 		previousBlock: raw.b_previousBlock,
 		numberOfTransactions: parseInt(raw.b_numberOfTransactions),
-		totalAmount: new Bignum(raw.b_totalAmount),
-		totalFee: new Bignum(raw.b_totalFee),
-		reward: new Bignum(raw.b_reward),
+		totalAmount: new BigNum(raw.b_totalAmount),
+		totalFee: new BigNum(raw.b_totalFee),
+		reward: new BigNum(raw.b_reward),
 		payloadLength: parseInt(raw.b_payloadLength),
 		payloadHash: raw.b_payloadHash,
 		generatorPublicKey: raw.b_generatorPublicKey,
@@ -340,9 +340,9 @@ const storageRead = raw => {
 		height: parseInt(raw.height),
 		previousBlock: raw.previousBlockId,
 		numberOfTransactions: parseInt(raw.numberOfTransactions),
-		totalAmount: new Bignum(raw.totalAmount),
-		totalFee: new Bignum(raw.totalFee),
-		reward: new Bignum(raw.reward),
+		totalAmount: new BigNum(raw.totalAmount),
+		totalFee: new BigNum(raw.totalFee),
+		reward: new BigNum(raw.reward),
 		payloadLength: parseInt(raw.payloadLength),
 		payloadHash: raw.payloadHash,
 		generatorPublicKey: raw.generatorPublicKey,

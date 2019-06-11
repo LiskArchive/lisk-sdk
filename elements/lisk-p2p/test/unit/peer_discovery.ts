@@ -30,6 +30,7 @@ describe('peer discovery', () => {
 		height: 23232,
 		isDiscoveredPeer: true,
 		version: '1.2.1',
+		protocolVersion: '1.1',
 	};
 
 	const validatedPeer2: P2PDiscoveredPeerInfo = {
@@ -38,6 +39,7 @@ describe('peer discovery', () => {
 		height: 23232,
 		isDiscoveredPeer: true,
 		version: '1.2.1',
+		protocolVersion: '1.1',
 	};
 
 	const validatedPeer3: P2PDiscoveredPeerInfo = {
@@ -46,6 +48,7 @@ describe('peer discovery', () => {
 		height: 23232,
 		isDiscoveredPeer: true,
 		version: '1.3.1',
+		protocolVersion: '1.1',
 	};
 
 	describe('#discoverPeer', () => {

@@ -14,11 +14,12 @@
 
 'use strict';
 
-const Bignumber = require('bignumber.js');
+const BigNum = require('@liskhq/bignum');
 const async = require('async');
 const cryptography = require('@liskhq/lisk-cryptography');
 
 const { Delegates } = require('./delegates');
+const Account = require('./account.js');
 const Round = require('./round');
 
 // Private fields
@@ -51,8 +52,15 @@ class Rounds {
 			bus: scope.bus,
 			storage: scope.components.storage,
 			slots: scope.slots,
+			schema: scope.schema,
 		};
 		library.delegates = new Delegates(library);
+		library.account = new Account(
+			library.storage,
+			library.schema,
+			library.logger,
+			this
+		);
 	}
 
 	/**
@@ -329,8 +337,8 @@ class Rounds {
 		const balanceFactor = mode === '-' ? -1 : 1;
 		return library.storage.entities.Account.getOne({ address }, {}, tx).then(
 			account => {
-				const balance = new Bignumber(account.balance)
-					.multipliedBy(balanceFactor)
+				const balance = new BigNum(account.balance)
+					.times(balanceFactor)
 					.toString();
 
 				const roundData = {
