@@ -294,7 +294,45 @@ describe('bft', () => {
 					data.forEach((headerData, index) => {
 						it(`have accurate information when ${
 							headerData.d
-						} forge block at height = ${headerData.h}`, async () => {
+						} forge block at height = ${headerData.height}`, async () => {
+							const blockData = generateHeaderInformation(
+								headerData,
+								myBft.PRE_COMMIT_THRESHOLD,
+								data[index - 1]
+							);
+
+							myBft.addBlockHeader(blockData.header);
+
+							expect(Object.values(myBft.preCommits)).toEqual(
+								blockData.preCommits
+							);
+							expect(Object.values(myBft.preVotes)).toEqual(blockData.preVotes);
+
+							expect(myBft.finalizedHeight).toEqual(blockData.finalizedHeight);
+
+							expect(myBft.prevotedConfirmedHeight).toEqual(
+								blockData.preVotedConfirmedHeight
+							);
+						});
+					});
+				});
+
+				describe('5 delegates switched completely on 3rd round', () => {
+					const data = loadCSVSimulationData(
+						path.join(
+							__dirname,
+							'./scenarios/5_delegates_switched_completely.csv'
+						)
+					);
+					const myBft = new BFT({
+						finalizedHeight: 0,
+						activeDelegates: 5,
+					});
+
+					data.forEach((headerData, index) => {
+						it(`have accurate information when ${
+							headerData.d
+						} forge block at height = ${headerData.height}`, async () => {
 							const blockData = generateHeaderInformation(
 								headerData,
 								myBft.PRE_COMMIT_THRESHOLD,
