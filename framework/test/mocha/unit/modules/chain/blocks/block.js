@@ -23,11 +23,13 @@ const {
 const {
 	TransactionInterfaceAdapter,
 } = require('../../../../../../src/modules/chain/interface_adapters');
-const {
-	BlockReward,
-} = require('../../../../../../src/modules/chain/blocks/block_reward');
 const block = require('../../../../../../src/modules/chain/blocks/block');
 const validator = require('../../../../../../src/controller/validator');
+const {
+	calculateSupply,
+	calculateReward,
+	calculateMilestone,
+} = require('../../../../../../src/modules/chain/blocks/block_reward');
 
 describe('block', () => {
 	const interfaceAdapters = {
@@ -38,7 +40,7 @@ describe('block', () => {
 	const TRANSACTION_TYPES_DELEGATE = 2;
 	const TRANSACTION_TYPES_VOTE = 3;
 	const TRANSACTION_TYPES_MULTI = 4;
-	const blockReward = new BlockReward({
+	const blockRewardArgs = {
 		distance: 3000000,
 		rewardOffset: 2160,
 		milestones: [
@@ -49,7 +51,13 @@ describe('block', () => {
 			'100000000', // Milestone 4
 		],
 		totalAmount: '10000000000000000',
-	});
+	};
+
+	const blockReward = {
+		calculateMilestone: height => calculateMilestone(height, blockRewardArgs),
+		calculateSupply: height => calculateSupply(height, blockRewardArgs),
+		calculateReward: height => calculateReward(height, blockRewardArgs),
+	};
 	const maxPayloadLength = 1024 * 1024;
 
 	const validPassphrase =

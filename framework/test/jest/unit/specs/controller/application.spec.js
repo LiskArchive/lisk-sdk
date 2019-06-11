@@ -161,7 +161,7 @@ describe.skip('Application', () => {
 	});
 
 	describe('#registerTransaction', () => {
-		it('should throw error when transaction type is missing.', () => {
+		it('should throw error when transaction class is missing.', () => {
 			// Arrange
 			const app = new Application(
 				params.label,
@@ -171,6 +171,44 @@ describe.skip('Application', () => {
 
 			// Act && Assert
 			expect(() => app.registerTransaction()).toThrow(
+				'Transaction implementation is required'
+			);
+		});
+
+		it('should throw error when transaction does not extend BaseTransaction.', () => {
+			// Arrange
+			const app = new Application(
+				params.label,
+				params.genesisBlock,
+				params.config
+			);
+
+			const TransactionWithoutBase = Object.assign(
+				{ prototype: {} },
+				DappTransaction
+			);
+
+			// Act && Assert
+			expect(() => app.registerTransaction(TransactionWithoutBase)).toThrow(
+				'Transaction must extend BaseTransaction.'
+			);
+		});
+
+		it('should throw error when transaction type is missing.', () => {
+			// Arrange
+			const app = new Application(
+				params.label,
+				params.genesisBlock,
+				params.config
+			);
+
+			const TransactionWithoutType = Object.assign(
+				{ TYPE: undefined },
+				DappTransaction
+			);
+
+			// Act && Assert
+			expect(() => app.registerTransaction(TransactionWithoutType)).toThrow(
 				'Transaction type is required as an integer'
 			);
 		});
@@ -183,23 +221,14 @@ describe.skip('Application', () => {
 				params.config
 			);
 
+			const TransactionWithStringType = Object.assign(
+				{ TYPE: '5' },
+				DappTransaction
+			);
+
 			// Act && Assert
-			expect(() => app.registerTransaction('5')).toThrow(
+			expect(() => app.registerTransaction(TransactionWithStringType)).toThrow(
 				'Transaction type is required as an integer'
-			);
-		});
-
-		it('should throw error when transaction class is missing.', () => {
-			// Arrange
-			const app = new Application(
-				params.label,
-				params.genesisBlock,
-				params.config
-			);
-
-			// Act && Assert
-			expect(() => app.registerTransaction(5)).toThrow(
-				'Transaction implementation is required'
 			);
 		});
 
@@ -211,8 +240,10 @@ describe.skip('Application', () => {
 				params.config
 			);
 
+			const TransactionRegistered = Object.assign({ TYPE: 1 }, DappTransaction);
+
 			// Act && Assert
-			expect(() => app.registerTransaction(1, DappTransaction)).toThrow(
+			expect(() => app.registerTransaction(TransactionRegistered)).toThrow(
 				'A transaction type "1" is already registered.'
 			);
 		});
@@ -226,7 +257,7 @@ describe.skip('Application', () => {
 			);
 
 			// Act
-			app.registerTransaction(5, DappTransaction);
+			app.registerTransaction(DappTransaction);
 
 			// Assert
 			expect(app.getTransaction(5)).toBe(DappTransaction);

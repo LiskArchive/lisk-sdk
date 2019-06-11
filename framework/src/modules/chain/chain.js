@@ -18,7 +18,6 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 	require('./helpers/newrelic_lisk');
 }
 
-const { promisify } = require('util');
 const { convertErrorsToString } = require('./helpers/error_handlers');
 const Sequence = require('./helpers/sequence');
 const ed = require('./helpers/ed');
@@ -221,11 +220,11 @@ module.exports = class Chain {
 	get actions() {
 		return {
 			calculateSupply: action =>
-				this.blocks.blockReward.calcSupply(action.params.height),
+				this.blocks.blockReward.calculateSupply(action.params.height),
 			calculateMilestone: action =>
-				this.blocks.blockReward.calcMilestone(action.params.height),
+				this.blocks.blockReward.calculateMilestone(action.params.height),
 			calculateReward: action =>
-				this.blocks.blockReward.calcReward(action.params.height),
+				this.blocks.blockReward.calculateReward(action.params.height),
 			generateDelegateList: async action =>
 				this.scope.modules.rounds.generateDelegateList(
 					action.params.round,
@@ -238,21 +237,17 @@ module.exports = class Chain {
 					action.params.forging
 				),
 			getTransactions: async () =>
-				promisify(this.scope.modules.transport.shared.getTransactions)(),
+				this.scope.modules.transport.shared.getTransactions(),
 			getSignatures: async () =>
-				promisify(this.scope.modules.transport.shared.getSignatures)(),
+				this.scope.modules.transport.shared.getSignatures(),
 			postSignature: async action =>
-				promisify(this.scope.modules.transport.shared.postSignature)(
-					action.params
-				),
+				this.scope.modules.transport.shared.postSignature(action.params),
 			getForgingStatusForAllDelegates: async () =>
 				this.scope.modules.forger.getForgingStatusForAllDelegates(),
 			getTransactionsFromPool: async ({ params }) =>
 				this.transactionPool.getPooledTransactions(params.type, params.filters),
 			postTransaction: async action =>
-				promisify(this.scope.modules.transport.shared.postTransaction)(
-					action.params
-				),
+				this.scope.modules.transport.shared.postTransaction(action.params),
 			getDelegateBlocksRewards: async action =>
 				this.scope.components.storage.entities.Account.delegateBlocksRewards(
 					action.params.filters,
@@ -272,13 +267,9 @@ module.exports = class Chain {
 				lastBlock: this.scope.modules.blocks.lastBlock,
 			}),
 			blocks: async action =>
-				promisify(this.scope.modules.transport.shared.blocks)(
-					action.params || {}
-				),
+				this.scope.modules.transport.shared.blocks(action.params || {}),
 			blocksCommon: async action =>
-				promisify(this.scope.modules.transport.shared.blocksCommon)(
-					action.params || {}
-				),
+				this.scope.modules.transport.shared.blocksCommon(action.params || {}),
 		};
 	}
 
@@ -408,7 +399,10 @@ module.exports = class Chain {
 				if (!this.loader.isActive() && this.scope.modules.blocks.isStale()) {
 					this.scope.sequence.add(
 						sequenceCB => {
-							this.loader.sync(sequenceCB);
+							this.loader
+								.sync()
+								.then(() => sequenceCB())
+								.catch(err => sequenceCB(err));
 						},
 						syncError => {
 							if (syncError) {
@@ -426,14 +420,7 @@ module.exports = class Chain {
 
 	async _startForging() {
 		try {
-			await new Promise((resolve, reject) => {
-				this.forger.loadDelegates(err => {
-					if (err) {
-						return reject(err);
-					}
-					return resolve();
-				});
-			});
+			await this.forger.loadDelegates();
 		} catch (err) {
 			this.logger.error(err, 'Failed to load delegates');
 		}
@@ -449,14 +436,12 @@ module.exports = class Chain {
 					this.logger.debug('Client not ready to forge');
 					return;
 				}
-				await new Promise((resolve, reject) => {
-					this.forger.forge(err => {
-						if (err) {
-							return reject(err);
-						}
-						return resolve();
-					});
-				});
+				try {
+					await this.forger.forge();
+				} catch (error) {
+					this.logger.error(error);
+					throw error;
+				}
 			},
 			forgeInterval
 		);

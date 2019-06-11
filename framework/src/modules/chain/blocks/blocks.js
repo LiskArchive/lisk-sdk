@@ -21,7 +21,11 @@ const { convertErrorsToString } = require('../helpers/error_handlers');
 const { BlocksProcess } = require('./process');
 const { BlocksVerify } = require('./verify');
 const { BlocksChain } = require('./chain');
-const { BlockReward } = require('./block_reward');
+const {
+	calculateSupply,
+	calculateReward,
+	calculateMilestone,
+} = require('./block_reward');
 const forkChoiceRule = require('./fork_choice_rule');
 
 const EVENT_NEW_BLOCK = 'EVENT_NEW_BLOCK';
@@ -71,12 +75,18 @@ class Blocks extends EventEmitter {
 		this.interfaceAdapters = interfaceAdapters;
 		this.slots = slots;
 		this.sequence = sequence;
-		this.blockReward = new BlockReward({
+		this.blockRewardArgs = {
 			distance: rewardDistance,
 			rewardOffset,
 			milestones: rewardMileStones,
 			totalAmount,
-		});
+		};
+		this.blockReward = {
+			calculateMilestone: height =>
+				calculateMilestone(height, this.blockRewardArgs),
+			calculateReward: height => calculateReward(height, this.blockRewardArgs),
+			calculateSupply: height => calculateSupply(height, this.blockRewardArgs),
+		};
 		this.constants = {
 			blockReceiptTimeout,
 			maxPayloadLength,
