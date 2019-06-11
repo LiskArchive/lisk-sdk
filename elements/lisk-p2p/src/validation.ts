@@ -195,31 +195,28 @@ export const checkPeerCompatibility = (
 	};
 };
 
-interface PeerList {
+export interface PeerLists {
 	readonly blacklistedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly seedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly fixedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly whitelisted: ReadonlyArray<P2PPeerInfo>;
 }
 
-export const handlePeerListsConflicts = (lists: PeerList): PeerList => {
+export const handlePeerListsConflicts = (lists: PeerLists): PeerLists => {
 	// Blacklist takes preference above all
-	const seedPeers = lists.seedPeers.filter(peer => {
-		if (lists.blacklistedPeers) {
-			lists.blacklistedPeers.includes(peer);
-		}
-	});
-	const fixedPeers = lists.fixedPeers.filter(peer => {
-		lists.blacklistedPeers.includes(peer);
-	});
+	const seedPeers = lists.seedPeers.filter(
+		peer => !lists.blacklistedPeers.includes(peer),
+	);
+	const fixedPeers = lists.fixedPeers.filter(
+		peer => !lists.blacklistedPeers.includes(peer),
+	);
 	const whitelisted = lists.whitelisted
-		.filter(peer => {
-			lists.blacklistedPeers.includes(peer);
-		})
-		.filter(peer => {
-			// Fixed takes preference over whitelisted
-			lists.fixedPeers.includes(peer);
-		});
+		.filter(peer => !lists.blacklistedPeers.includes(peer))
+		.filter(
+			peer =>
+				// Fixed takes preference over whitelisted
+				!lists.fixedPeers.includes(peer),
+		);
 
 	return {
 		blacklistedPeers: lists.blacklistedPeers,
