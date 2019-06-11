@@ -89,7 +89,6 @@
 		"redis": "2.8.0",
 		"semver": "5.6.0",
 		"socket.io": "2.2.0",
-		"sodium-native": "2.2.4",
 		"strftime": "0.10.0",
 		"swagger-node-runner": "0.7.3",
 		"sway": "2.0.5",

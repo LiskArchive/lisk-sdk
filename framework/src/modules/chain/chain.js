@@ -20,7 +20,6 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 
 const { convertErrorsToString } = require('./helpers/error_handlers');
 const Sequence = require('./helpers/sequence');
-const ed = require('./helpers/ed');
 const { ZSchema } = require('../../controller/validator');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
@@ -124,7 +123,6 @@ module.exports = class Chain {
 
 			const self = this;
 			this.scope = {
-				ed,
 				config: self.options,
 				genesisBlock: { block: self.options.genesisBlock },
 				registeredTransactions: self.options.registeredTransactions,
