@@ -469,7 +469,7 @@ class Transport {
 	async getSignatures() {
 		const transactions = this.transactionPoolModule.getMultisignatureTransactionList(
 			true,
-			this.maxSharedTransactions
+			this.constants.maxSharedTransactions
 		);
 
 		const signatures = transactions
@@ -497,7 +497,7 @@ class Transport {
 	async getTransactions() {
 		const transactions = this.transactionPoolModule.getMergedTransactionList(
 			true,
-			this.maxSharedTransactions
+			this.constants.maxSharedTransactions
 		);
 
 		return {
