@@ -51,12 +51,7 @@ class Peers {
 				minBroadhashConsensus: scope.config.constants.minBroadhashConsensus,
 			},
 		};
-		this.consensus = scope.config.forging.force ? 100 : 0;
 		this.broadhashConsensusCalculationInterval = 5000;
-
-		this.library.channel.once('network:bootstrap', () => {
-			this.onNetworkReady();
-		});
 	}
 
 	/**
@@ -65,8 +60,8 @@ class Peers {
 	 * @returns {number|undefined} Last calculated consensus or null if wasn't calculated yet
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	getLastConsensus() {
-		return this.consensus;
+	getLastConsensus(broadhash) {
+		return this.calculateConsensus(broadhash);
 	}
 
 	/**
@@ -92,8 +87,7 @@ class Peers {
 		);
 
 		const consensus = +((matchedCount / activeCount) * 100).toPrecision(2);
-		this.consensus = Number.isNaN(consensus) ? 0 : consensus;
-		return this.consensus;
+		return Number.isNaN(consensus) ? 0 : consensus;
 	}
 
 	// Public methods
@@ -105,11 +99,11 @@ class Peers {
 	 * @todo Add description for the return value
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	async isPoorConsensus() {
+	async isPoorConsensus(broadhash) {
 		if (this.library.config.forging.force) {
 			return false;
 		}
-		const consensus = await this.calculateConsensus();
+		const consensus = await this.calculateConsensus(broadhash);
 		return consensus < this.library.constants.minBroadhashConsensus;
 	}
 
@@ -117,10 +111,10 @@ class Peers {
 	 * Periodically calculate consensus
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	onNetworkReady() {
+	onNetworkReady(broadhash) {
 		this.library.logger.trace('Peers ready');
 		const calculateConsensus = async () => {
-			const consensus = await this.calculateConsensus();
+			const consensus = await this.calculateConsensus(broadhash);
 			return this.library.logger.debug(`Broadhash consensus: ${consensus} %`);
 		};
 

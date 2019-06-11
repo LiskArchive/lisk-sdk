@@ -180,6 +180,10 @@ module.exports = class Chain {
 				await this._startForging();
 			});
 
+			this.channel.once('network:bootstrap', () => {
+				this.peers.onNetworkReady(this.blocks.broadhash);
+			});
+
 			// Avoid receiving blocks/transactions from the network during snapshotting process
 			if (!this.options.loading.rebuildUpToRound) {
 				this.channel.subscribe('network:event', ({ data: { event, data } }) => {
@@ -247,7 +251,9 @@ module.exports = class Chain {
 					: this.slots.getSlotNumber(),
 			calcSlotRound: async action => this.slots.calcRound(action.params.height),
 			getNodeStatus: async () => ({
-				consensus: this.peers.getLastConsensus(),
+				consensus: this.scope.modules.peers.getLastConsensus(
+					this.blocks.broadhash
+				),
 				loaded: true,
 				syncing: this.loader.syncing(),
 				unconfirmedTransactions: this.transactionPool.getCount(),
