@@ -14,13 +14,13 @@
 
 'use strict';
 
-const Bignumber = require('bignumber.js');
+const BigNum = require('@liskhq/bignum');
 const async = require('async');
 const cryptography = require('@liskhq/lisk-cryptography');
 
 const { Delegates } = require('./delegates');
+const Account = require('./account.js');
 const Round = require('./round');
-const slots = require('../helpers/slots');
 
 // Private fields
 let library;
@@ -37,7 +37,6 @@ __private.ticking = false;
  * @memberof modules
  * @see Parent: {@link modules}
  * @requires async
- * @requires helpers/slots
  * @requires logic/round
  * @param {function} cb - Callback function
  * @param {scope} scope - App instance
@@ -52,8 +51,16 @@ class Rounds {
 			logic: scope.logic,
 			bus: scope.bus,
 			storage: scope.components.storage,
+			slots: scope.slots,
+			schema: scope.schema,
 		};
 		library.delegates = new Delegates(library);
+		library.account = new Account(
+			library.storage,
+			library.schema,
+			library.logger,
+			this
+		);
 	}
 
 	/**
@@ -85,9 +92,9 @@ class Rounds {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	backwardTick(block, previousBlock, done, tx) {
-		const round = slots.calcRound(block.height);
-		const prevRound = slots.calcRound(previousBlock.height);
-		const nextRound = slots.calcRound(block.height + 1);
+		const round = library.slots.calcRound(block.height);
+		const prevRound = library.slots.calcRound(previousBlock.height);
+		const nextRound = library.slots.calcRound(block.height + 1);
 
 		const scope = {
 			library,
@@ -179,8 +186,8 @@ class Rounds {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	tick(block, done, tx) {
-		const round = slots.calcRound(block.height);
-		const nextRound = slots.calcRound(block.height + 1);
+		const round = library.slots.calcRound(block.height);
+		const nextRound = library.slots.calcRound(block.height + 1);
 
 		const scope = {
 			library,
@@ -330,8 +337,8 @@ class Rounds {
 		const balanceFactor = mode === '-' ? -1 : 1;
 		return library.storage.entities.Account.getOne({ address }, {}, tx).then(
 			account => {
-				const balance = new Bignumber(account.balance)
-					.multipliedBy(balanceFactor)
+				const balance = new BigNum(account.balance)
+					.times(balanceFactor)
 					.toString();
 
 				const roundData = {

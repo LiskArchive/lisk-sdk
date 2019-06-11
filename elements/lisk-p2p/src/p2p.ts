@@ -54,8 +54,6 @@ import {
 	P2PNetworkStatus,
 	P2PNodeInfo,
 	P2PPeerInfo,
-	P2PPeerSelectionForRequest,
-	P2PPeerSelectionForSend,
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
@@ -65,7 +63,11 @@ import {
 
 import { P2PRequest } from './p2p_request';
 export { P2PRequest };
-import { selectForConnection, selectPeers } from './peer_selection';
+import {
+	selectPeersForConnection,
+	selectPeersForRequest,
+	selectPeersForSend,
+} from './peer_selection';
 
 import {
 	EVENT_CLOSE_OUTBOUND,
@@ -106,6 +108,7 @@ export const EVENT_NEW_PEER = 'newPeer';
 
 export const NODE_HOST_IP = '0.0.0.0';
 export const DEFAULT_DISCOVERY_INTERVAL = 30000;
+export const DEFAULT_SEND_PEER_LIMIT = 25;
 
 const BASE_10_RADIX = 10;
 
@@ -151,6 +154,7 @@ export class P2P extends EventEmitter {
 
 	public constructor(config: P2PConfig) {
 		super();
+
 		this._config = config;
 		this._isActive = false;
 		this._newPeers = new Map();
@@ -213,6 +217,7 @@ export class P2P extends EventEmitter {
 		this._handlePeerInfoUpdate = (peerInfo: P2PDiscoveredPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
 			const foundTriedPeer = this._triedPeers.get(peerId);
+			const foundNewPeer = this._newPeers.get(peerId);
 
 			if (foundTriedPeer) {
 				const updatedPeerInfo = {
@@ -223,6 +228,15 @@ export class P2P extends EventEmitter {
 				this._triedPeers.set(peerId, updatedPeerInfo);
 			}
 
+			if (foundNewPeer) {
+				const updatedPeerInfo = {
+					...peerInfo,
+					ipAddress: foundNewPeer.ipAddress,
+					wsPort: foundNewPeer.wsPort,
+				};
+				this._newPeers.set(peerId, updatedPeerInfo);
+			}
+
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_UPDATED_PEER_INFO, peerInfo);
 		};
@@ -231,14 +245,24 @@ export class P2P extends EventEmitter {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
 		};
-
+		// When peer is fetched for status after connection then update the peerinfo in triedPeer list
 		this._handleDiscoveredPeer = (detailedPeerInfo: P2PDiscoveredPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(detailedPeerInfo);
-			if (!this._triedPeers.has(peerId)) {
-				if (this._newPeers.has(peerId)) {
-					this._newPeers.delete(peerId);
-				}
+			const foundTriedPeer = this._triedPeers.get(peerId);
+			// Remove the discovered peer from newPeer list on successful connect and discovery
+			if (this._newPeers.has(peerId)) {
+				this._newPeers.delete(peerId);
+			}
+
+			if (!foundTriedPeer) {
 				this._triedPeers.set(peerId, detailedPeerInfo);
+			} else {
+				const updatedPeerInfo = {
+					...detailedPeerInfo,
+					ipAddress: foundTriedPeer.ipAddress,
+					wsPort: foundTriedPeer.wsPort,
+				};
+				this._triedPeers.set(peerId, updatedPeerInfo);
 			}
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
@@ -269,13 +293,17 @@ export class P2P extends EventEmitter {
 			ackTimeout: config.ackTimeout,
 			peerSelectionForSend: config.peerSelectionForSend
 				? config.peerSelectionForSend
-				: (selectPeers as P2PPeerSelectionForSend),
+				: selectPeersForSend,
 			peerSelectionForRequest: config.peerSelectionForRequest
 				? config.peerSelectionForRequest
-				: (selectPeers as P2PPeerSelectionForRequest),
+				: selectPeersForRequest,
 			peerSelectionForConnection: config.peerSelectionForConnection
 				? config.peerSelectionForConnection
-				: selectForConnection,
+				: selectPeersForConnection,
+			sendPeerLimit:
+				config.sendPeerLimit === undefined
+					? DEFAULT_SEND_PEER_LIMIT
+					: config.sendPeerLimit,
 		});
 
 		this._bindHandlersToPeerPool(this._peerPool);
@@ -401,6 +429,15 @@ export class P2P extends EventEmitter {
 						INVALID_CONNECTION_SELF_CODE,
 						INVALID_CONNECTION_SELF_REASON,
 					);
+
+					const selfWSPort = queryObject.wsPort
+						? +queryObject.wsPort
+						: this._nodeInfo.wsPort;
+
+					const selfPeerId = constructPeerId(socket.remoteAddress, selfWSPort);
+					// Delete you peerinfo from both the lists
+					this._newPeers.delete(selfPeerId);
+					this._triedPeers.delete(selfPeerId);
 
 					return;
 				}
@@ -544,7 +581,12 @@ export class P2P extends EventEmitter {
 
 		discoveredPeers.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			if (!this._triedPeers.has(peerId) && !this._newPeers.has(peerId)) {
+			// Check for value of nonce, if its same then its our own info
+			if (
+				!this._triedPeers.has(peerId) &&
+				!this._newPeers.has(peerId) &&
+				peerInfo.nonce !== this._nodeInfo.nonce
+			) {
 				this._newPeers.set(peerId, peerInfo);
 			}
 		});

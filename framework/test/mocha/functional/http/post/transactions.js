@@ -70,7 +70,9 @@ describe('POST /api/transactions (general)', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.eql('Invalid transaction body');
+				expect(res.body.message).to.be.eql(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					`Transaction is already confirmed: ${transaction.id}`

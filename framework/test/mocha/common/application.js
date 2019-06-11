@@ -15,7 +15,6 @@
 'use strict';
 
 // Global imports
-const util = require('util');
 const rewire = require('rewire');
 const async = require('async');
 const _ = require('lodash');
@@ -23,22 +22,22 @@ const { registeredTransactions } = require('./registered_transactions');
 const ed = require('../../../src/modules/chain/helpers/ed');
 const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
 const Sequence = require('../../../src/modules/chain/helpers/sequence');
+const { BlockSlots } = require('../../../src/modules/chain/blocks/block_slots');
 const { createCacheComponent } = require('../../../src/components/cache');
 const { StorageSandbox } = require('./storage_sandbox');
 const { ZSchema } = require('../../../src/controller/validator');
 const initSteps = require('../../../src/modules/chain/init_steps');
 
-const promisifyParallel = util.promisify(async.parallel);
 let currentAppScope;
 
-const modulesInit = {
-	blocks: '../../../src/modules/chain/submodules/blocks',
-	multisignatures: '../../../src/modules/chain/submodules/multisignatures',
-	peers: '../../../src/modules/chain/submodules/peers',
-	transactions: '../../../src/modules/chain/submodules/transactions',
-	processTransactions:
-		'../../../src/modules/chain/submodules/process_transactions.js',
-};
+const ChainModule = require('../../../src/modules/chain');
+const NetworkModule = require('../../../src/modules/network');
+const HttpAPIModule = require('../../../src/modules/http_api');
+
+const modulesMigrations = {};
+modulesMigrations[ChainModule.alias] = ChainModule.migrations;
+modulesMigrations[NetworkModule.alias] = NetworkModule.migrations;
+modulesMigrations[HttpAPIModule.alias] = HttpAPIModule.migrations;
 
 function init(options, cb) {
 	options = options || {};
@@ -110,7 +109,8 @@ async function __init(sandbox, initScope) {
 				})
 				.then(async status => {
 					if (status) {
-						await storage.entities.Migration.applyAll();
+						await storage.entities.Migration.defineSchema();
+						await storage.entities.Migration.applyAll(modulesMigrations);
 					}
 				});
 
@@ -167,12 +167,7 @@ async function __init(sandbox, initScope) {
 		await cache.bootstrap();
 
 		scope.bus = await initSteps.createBus();
-		scope.logic = await initSteps.initLogicStructure(scope);
 		scope.modules = await initStepsForTest.initModules(scope);
-
-		// Ready to bind modules
-		scope.logic.block.bindModules(scope.modules);
-		scope.logic.account.bindModules(scope.modules);
 
 		// Fire onBind event in every module
 		scope.bus.message('bind', scope);
@@ -198,7 +193,7 @@ async function __init(sandbox, initScope) {
 		}
 
 		// Overwrite onBlockchainReady function to prevent automatic forging
-		await scope.modules.loader.loadBlockChain();
+		await scope.modules.blocks.loadBlockChain();
 		return scope;
 	} catch (error) {
 		__testContext.debug('Error during test application init.', error);
@@ -239,17 +234,78 @@ function cleanup(done) {
 
 const initStepsForTest = {
 	initModules: async scope => {
-		const tasks = {};
 		scope.rewiredModules = {};
-		Object.keys(modulesInit).forEach(name => {
-			tasks[name] = function(tasksCb) {
-				const Instance = rewire(modulesInit[name]);
-				scope.rewiredModules[name] = Instance;
-				return new Instance(tasksCb, scope);
-			};
-		});
+		const modules = {};
 
-		const modules = await promisifyParallel(tasks);
+		const {
+			TransactionInterfaceAdapter: RewiredTransactionInterfaceAdapter,
+		} = rewire('../../../src/modules/chain/interface_adapters');
+
+		scope.rewiredModules.interfaceAdapters = {};
+		scope.rewiredModules.interfaceAdapters.transactions = RewiredTransactionInterfaceAdapter;
+		scope.slots = new BlockSlots({
+			epochTime: __testContext.config.constants.EPOCH_TIME,
+			interval: __testContext.config.constants.BLOCK_TIME,
+			blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
+		});
+		modules.interfaceAdapters = {};
+		modules.interfaceAdapters.transactions = new RewiredTransactionInterfaceAdapter(
+			__testContext.config.modules.chain.registeredTransactions
+		);
+		const {
+			Rounds: RewiredRounds,
+		} = require('../../../src/modules/chain/rounds');
+		modules.rounds = new RewiredRounds(scope);
+		const { Blocks: RewiredBlocks } = rewire(
+			'../../../src/modules/chain/blocks'
+		);
+		modules.blocks = new RewiredBlocks({
+			logger: scope.components.logger,
+			storage: scope.components.storage,
+			sequence: scope.sequence,
+			genesisBlock: __testContext.config.genesisBlock,
+			slots: scope.slots,
+			exceptions: __testContext.config.modules.chain.exceptions,
+			roundsModule: modules.rounds,
+			interfaceAdapters: modules.interfaceAdapters,
+			blockReceiptTimeout: __testContext.config.constants.BLOCK_RECEIPT_TIMEOUT,
+			loadPerIteration: 1000,
+			maxPayloadLength: __testContext.config.constants.MAX_PAYLOAD_LENGTH,
+			maxTransactionsPerBlock:
+				__testContext.config.constants.MAX_TRANSACTIONS_PER_BLOCK,
+			activeDelegates: __testContext.config.constants.ACTIVE_DELEGATES,
+			rewardDistance: __testContext.config.constants.REWARDS.DISTANCE,
+			rewardOffset: __testContext.config.constants.REWARDS.OFFSET,
+			rewardMileStones: __testContext.config.constants.REWARDS.MILESTONES,
+			totalAmount: __testContext.config.constants.TOTAL_AMOUNT,
+			blockSlotWindow: __testContext.config.constants.BLOCK_SLOT_WINDOW,
+		});
+		scope.modules = modules;
+		const RewiredPeers = rewire('../../../src/modules/chain/submodules/peers');
+		scope.rewiredModules.peers = RewiredPeers;
+		modules.peers = new RewiredPeers(scope);
+		const { TransactionPool: RewiredTransactionPool } = rewire(
+			'../../../src/modules/chain/transaction_pool'
+		);
+		scope.rewiredModules.transactionPool = RewiredTransactionPool;
+		modules.transactionPool = new RewiredTransactionPool({
+			storage: scope.components.storage,
+			slots: scope.slots,
+			blocks: modules.blocks,
+			exceptions: __testContext.config.modules.chain.exceptions,
+			logger: scope.components.logger,
+			maxTransactionsPerQueue:
+				__testContext.config.modules.chain.transactions.maxTransactionsPerQueue,
+			expireTransactionsInterval:
+				__testContext.config.constants.EXPIRY_INTERVAL,
+			maxTransactionsPerBlock:
+				__testContext.config.constants.MAX_TRANSACTIONS_PER_BLOCK,
+			maxSharedTransactions:
+				__testContext.config.constants.MAX_SHARED_TRANSACTIONS,
+			broadcastInterval:
+				__testContext.config.modules.chain.broadcasts.broadcastInterval,
+			releaseLimit: __testContext.config.modules.chain.broadcasts.releaseLimit,
+		});
 		// TODO: remove rewiring
 		const RewiredLoader = rewire('../../../src/modules/chain/loader');
 		scope.rewiredModules.loader = RewiredLoader;
@@ -262,10 +318,6 @@ const initStepsForTest = {
 		const RewiredTransport = rewire('../../../src/modules/chain/transport');
 		scope.rewiredModules.transport = RewiredTransport;
 		modules.transport = new RewiredTransport(scope);
-		const {
-			Rounds: RewiredRounds,
-		} = require('../../../src/modules/chain/rounds');
-		modules.rounds = new RewiredRounds(scope);
 
 		scope.bus.registerModules(modules);
 

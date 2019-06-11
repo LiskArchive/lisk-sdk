@@ -16,7 +16,7 @@
 import { NETWORK } from '../constants';
 import { exec, ExecResult } from '../worker-process';
 import { getLiskConfig, LiskConfig } from './config';
-import { describeApplication } from './pm2';
+import { describeApplication, PM2ProcessInstance } from './pm2';
 
 const CACHE_START_SUCCESS = '[+] Redis-Server started successfully.';
 const CACHE_START_FAILURE = '[-] Failed to start Redis-Server.';
@@ -31,7 +31,7 @@ export const isCacheRunning = async (
 	installDir: string,
 	name: string,
 ): Promise<boolean> => {
-	const { redisPort } = await describeApplication(name);
+	const { redisPort } = (await describeApplication(name)) as PM2ProcessInstance;
 
 	const { stderr }: ExecResult = await exec(
 		`${REDIS_CLI} -p ${redisPort} ping`,
@@ -45,7 +45,7 @@ export const startCache = async (
 	installDir: string,
 	name: string,
 ): Promise<string> => {
-	const { redisPort } = await describeApplication(name);
+	const { redisPort } = (await describeApplication(name)) as PM2ProcessInstance;
 
 	const { stderr }: ExecResult = await exec(
 		`${REDIS_BIN} ${REDIS_CONFIG} --port ${redisPort}`,
@@ -66,13 +66,14 @@ const stopCommand = async (
 ): Promise<string> => {
 	try {
 		const {
-			config: {
-				components: {
-					cache: { password },
-				},
+			components: {
+				cache: { password },
 			},
 		}: LiskConfig = await getLiskConfig(installDir, network);
-		const { redisPort } = await describeApplication(name);
+		const { redisPort } = (await describeApplication(
+			name,
+		)) as PM2ProcessInstance;
+
 		if (password) {
 			return `${REDIS_CLI} -p ${redisPort} -a ${password} shutdown`;
 		}
@@ -109,10 +110,8 @@ export const isCacheEnabled = async (
 ): Promise<boolean> => {
 	try {
 		const {
-			config: {
-				components: {
-					cache: { enabled },
-				},
+			components: {
+				cache: { enabled },
 			},
 		}: LiskConfig = await getLiskConfig(installDir, network);
 

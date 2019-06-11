@@ -17,7 +17,6 @@
 const {
 	transfer,
 	registerSecondPassphrase,
-	createDapp,
 } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
@@ -35,12 +34,6 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 	});
-	const dapp = randomUtil.application();
-	const dappTransaction = createDapp({
-		passphrase: account.passphrase,
-		options: dapp,
-	});
-	dapp.id = dappTransaction.id;
 	let transactionWith;
 	const transactionSecondSignature = registerSecondPassphrase({
 		passphrase: account.passphrase,
@@ -53,13 +46,9 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 
 	before(done => {
 		localCommon.addTransactionsAndForge(library, [transaction], async () => {
-			localCommon.addTransactionsAndForge(
-				library,
-				[dappTransaction],
-				async () => {
-					done();
-				}
-			);
+			localCommon.addTransactionsAndForge(library, [], async () => {
+				done();
+			});
 		});
 	});
 
@@ -77,7 +66,7 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 	describe('validating unconfirmed status while adding to pool other transaction types from same account', () => {
 		describe('with second signature', () => {
 			Object.keys(TRANSACTION_TYPES).forEach((key, index) => {
-				if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
+				if (key === 'DAPP' || key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
 					return true;
 				}
 				if (key === 'SIGNATURE') {
@@ -114,7 +103,7 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 						localCommon.loadTransactionType(
 							key,
 							account,
-							dapp,
+							transaction,
 							null,
 							loadedTransaction => {
 								localCommon.addTransaction(library, loadedTransaction, err => {
@@ -140,7 +129,7 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 						localCommon.loadTransactionType(
 							key,
 							account,
-							dapp,
+							transaction,
 							null,
 							loadedTransaction => {
 								localCommon.addTransaction(library, loadedTransaction, err => {
@@ -162,7 +151,7 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 
 		describe('without second signature', () => {
 			Object.keys(TRANSACTION_TYPES).forEach((key, index) => {
-				if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
+				if (key === 'DAPP' || key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
 					return true;
 				}
 				if (key !== 'SIGNATURE') {
@@ -170,7 +159,7 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 						localCommon.loadTransactionType(
 							key,
 							account,
-							dapp,
+							transaction,
 							true,
 							loadedTransaction => {
 								localCommon.addTransaction(

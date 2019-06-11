@@ -106,6 +106,7 @@ const installOptions = async (
 	const installVersion: string = await getVersionToInstall(
 		network,
 		liskVersion,
+		releaseUrl,
 	);
 
 	const { version, liskTarUrl, liskTarSHA256Url } = await getReleaseInfo(
@@ -292,22 +293,29 @@ export default class InstallCommand extends BaseCommand {
 
 		try {
 			const instance = await describeApplication(name);
-			this.log(`\n Lisk Core instance ${name} already installed: `);
-			this.print(instance);
-		} catch (error) {
-			try {
-				await tasks.run();
-				if (!noStart) {
-					return StartCommand.run([name]);
-				}
-			} catch (error) {
-				const { installDir }: Options = error.context.options;
-				const dirPath = installDir.substr(0, installDir.length - 1);
+			if (instance) {
+				this.log(`\n Lisk Core instance ${name} already installed: `);
+				this.print(instance);
 
-				fsExtra.emptyDirSync(installDir);
-				fsExtra.rmdirSync(dirPath);
-				this.error(JSON.stringify(error));
+				return;
 			}
+
+			await tasks.run();
+			if (!noStart) {
+				// tslint:disable-next-line await-promise
+				await StartCommand.run([name]);
+				const newInstance = await describeApplication(name);
+				this.print(newInstance);
+
+				return;
+			}
+		} catch (error) {
+			this.error(JSON.stringify(error));
+			const { installDir }: Options = error.context.options;
+			const dirPath = installDir.substr(0, installDir.length - 1);
+
+			fsExtra.emptyDirSync(installDir);
+			fsExtra.rmdirSync(dirPath);
 		}
 	}
 }

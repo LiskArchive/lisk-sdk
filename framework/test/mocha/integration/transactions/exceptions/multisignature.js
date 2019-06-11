@@ -15,12 +15,10 @@
 'use strict';
 
 const { expect } = require('chai');
-const Bignum = require('bignumber.js');
+const BigNum = require('@liskhq/bignum');
 const { transfer } = require('@liskhq/lisk-transactions');
 const localCommon = require('../../common');
 const accountFixtures = require('../../../fixtures/accounts');
-
-const exceptions = global.exceptions;
 
 describe('exceptions for multisignature transactions', () => {
 	let library;
@@ -60,28 +58,35 @@ describe('exceptions for multisignature transactions', () => {
 		},
 	};
 
-	exceptions.multisignatures = ['8191213966308378713'];
-
 	localCommon.beforeBlock('system_multisignature_transactions', lib => {
 		library = lib;
 	});
 
 	describe('send funds to account', () => {
-		before(done => {
+		before(async () => {
 			const transferTransaction = transfer({
 				recipientId: accountWithExceptionMultisig.address,
 				amount: (5000000000 * 100).toString(),
 				passphrase: senderAccount.passphrase,
 			});
-			localCommon.createValidBlockWithSlotOffset(
-				library,
-				[transferTransaction],
-				--slotOffset,
-				(err, block) => {
-					expect(err).to.not.exist;
-					library.modules.blocks.verify.processBlock(block, true, true, done);
-				}
+			const newBlock = await new Promise((resolve, reject) => {
+				localCommon.createValidBlockWithSlotOffset(
+					library,
+					[transferTransaction],
+					--slotOffset,
+					(err, block) => {
+						if (err) {
+							return reject(err);
+						}
+						return resolve(block);
+					}
+				);
+			});
+			const newLastBlock = await library.modules.blocks.blocksProcess.processBlock(
+				newBlock,
+				library.modules.blocks.lastBlock
 			);
+			library.modules.blocks._lastBlock = newLastBlock;
 		});
 
 		describe('details of the accounts', () => {
@@ -95,21 +100,30 @@ describe('exceptions for multisignature transactions', () => {
 			});
 
 			describe('when forging block with transaction with multisignature exception', () => {
-				before(done => {
-					localCommon.createValidBlockWithSlotOffset(
-						library,
-						[exceptionMultisingatureTransaction],
-						--slotOffset,
-						(err, block) => {
-							expect(err).to.not.exist;
-							library.modules.blocks.verify.processBlock(
-								block,
-								true,
-								true,
-								done
-							);
-						}
+				before(async () => {
+					library.modules.blocks.blocksProcess.exceptions = {
+						...library.modules.blocks.exceptions,
+						multisignatures: ['8191213966308378713'],
+					};
+					const newBlock = await new Promise((resolve, reject) => {
+						localCommon.createValidBlockWithSlotOffset(
+							library,
+							[exceptionMultisingatureTransaction],
+							--slotOffset,
+							{ multisignatures: ['8191213966308378713'] },
+							(err, block) => {
+								if (err) {
+									return reject(err);
+								}
+								return resolve(block);
+							}
+						);
+					});
+					const newLastBlock = await library.modules.blocks.blocksProcess.processBlock(
+						newBlock,
+						library.modules.blocks.lastBlock
 					);
+					library.modules.blocks._lastBlock = newLastBlock;
 				});
 
 				describe('details of the accounts', () => {
@@ -131,7 +145,7 @@ describe('exceptions for multisignature transactions', () => {
 
 					it('should deduct balance from sender account', async () => {
 						return expect(senderMemAccountAfter.balance).to.equal(
-							new Bignum(senderMemAccountBefore.balance)
+							new BigNum(senderMemAccountBefore.balance)
 								.minus(exceptionMultisingatureTransaction.fee)
 								.toString()
 						);

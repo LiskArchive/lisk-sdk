@@ -269,7 +269,9 @@ describe('POST /api/transactions (type 3) votes', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					'\'.votes[0]\' should match format "signedPublicKey"'
@@ -295,7 +297,9 @@ describe('POST /api/transactions (type 3) votes', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					'\'.votes[0]\' should match format "signedPublicKey"'
@@ -319,7 +323,9 @@ describe('POST /api/transactions (type 3) votes', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					'\'.votes[0]\' should match format "signedPublicKey"'
@@ -343,7 +349,9 @@ describe('POST /api/transactions (type 3) votes', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					'\'.votes[0]\' should match format "signedPublicKey"'
@@ -367,7 +375,9 @@ describe('POST /api/transactions (type 3) votes', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					"'.votes[0]' should be string"
@@ -387,7 +397,9 @@ describe('POST /api/transactions (type 3) votes', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					`Account does not have enough LSK: ${
@@ -408,7 +420,9 @@ describe('POST /api/transactions (type 3) votes', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					`${accountMinimalFunds.publicKey} is not a delegate.`
@@ -439,7 +453,9 @@ describe('POST /api/transactions (type 3) votes', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					`${accountFixtures.existingDelegate.publicKey} is not voted.`
@@ -501,7 +517,9 @@ describe('POST /api/transactions (type 3) votes', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					"'.votes' should NOT have more than 33 items"
@@ -571,7 +589,9 @@ describe('POST /api/transactions (type 3) votes', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					`${accountFixtures.existingDelegate.publicKey} is already voted.`
@@ -614,7 +634,9 @@ describe('POST /api/transactions (type 3) votes', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					'Vote cannot exceed 101 but has 102.'
@@ -650,7 +672,9 @@ describe('POST /api/transactions (type 3) votes', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					"'.votes' should NOT have more than 33 items"

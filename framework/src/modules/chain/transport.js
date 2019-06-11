@@ -15,14 +15,16 @@
 'use strict';
 
 const { TransactionError } = require('@liskhq/lisk-transactions');
-const async = require('async');
+const { promisify } = require('util');
 const _ = require('lodash');
 const { convertErrorsToString } = require('./helpers/error_handlers');
 // eslint-disable-next-line prefer-const
 let Broadcaster = require('./logic/broadcaster');
 const definitions = require('./schema/definitions');
-const processTransactionLogic = require('./logic/process_transaction');
+const blocksModule = require('./blocks');
+const transactionsModule = require('./transactions');
 
+const exceptions = global.exceptions;
 const { MAX_SHARED_TRANSACTIONS } = global.constants;
 
 // Private fields
@@ -45,9 +47,7 @@ __private.messages = {};
  * @requires api/ws/workers/rules
  * @requires api/ws/rpc/ws_rpc
  * @requires logic/broadcaster
- * @param {function} cb - Callback function
  * @param {scope} scope - App instance
- * @returns {setImmediateCallback} cb, null, self
  */
 class Transport {
 	constructor(scope) {
@@ -58,10 +58,7 @@ class Transport {
 			bus: scope.bus,
 			schema: scope.schema,
 			balancesSequence: scope.balancesSequence,
-			logic: {
-				block: scope.logic.block,
-				initTransaction: scope.logic.initTransaction,
-			},
+			block: scope.block,
 			config: {
 				forging: {
 					force: scope.config.forging.force,
@@ -77,7 +74,7 @@ class Transport {
 			scope.config.nonce,
 			scope.config.broadcasts,
 			scope.config.forging.force,
-			scope.logic.transactionPool,
+			scope.modules.transactionPool,
 			scope.components.logger,
 			scope.channel,
 			scope.components.storage
@@ -96,9 +93,8 @@ class Transport {
 		modules = {
 			blocks: scope.modules.blocks,
 			loader: scope.modules.loader,
-			multisignatures: scope.modules.multisignatures,
-			processTransactions: scope.modules.processTransactions,
-			transactions: scope.modules.transactions,
+			interfaceAdapters: scope.modules.interfaceAdapters,
+			transactionPool: scope.modules.transactionPool,
 		};
 	}
 
@@ -233,74 +229,75 @@ class Transport {
 			 * @todo Add @returns tag
 			 * @todo Add description of the function
 			 */
-			blocksCommon(query, cb) {
+			async blocksCommon(query) {
 				query = query || {};
-				return library.schema.validate(
+
+				const valid = library.schema.validate(
 					query,
-					definitions.WSBlocksCommonRequest,
-					err => {
-						if (err) {
-							err = `${err[0].message}: ${err[0].path}`;
-							library.logger.debug('Common block request validation failed', {
-								err: err.toString(),
-								req: query,
-							});
-							return setImmediate(cb, err);
-						}
-
-						const escapedIds = query.ids
-							// Remove quotes
-							.replace(/['"]+/g, '')
-							// Separate by comma into an array
-							.split(',')
-							// Reject any non-numeric values
-							.filter(id => /^[0-9]+$/.test(id));
-
-						if (!escapedIds.length) {
-							library.logger.debug('Common block request validation failed', {
-								err: 'ESCAPE',
-								req: query.ids,
-							});
-
-							return setImmediate(cb, 'Invalid block id sequence');
-						}
-
-						return library.storage.entities.Block.get({
-							id: escapedIds[0],
-						})
-							.then(row => {
-								if (!row.length > 0) {
-									return setImmediate(cb, null, {
-										success: true,
-										common: null,
-									});
-								}
-
-								const {
-									height,
-									id,
-									previousBlockId: previousBlock,
-									timestamp,
-								} = row[0];
-
-								const parsedRow = {
-									id,
-									height,
-									previousBlock,
-									timestamp,
-								};
-
-								return setImmediate(cb, null, {
-									success: true,
-									common: parsedRow,
-								});
-							})
-							.catch(getOneError => {
-								library.logger.error(getOneError.stack);
-								return setImmediate(cb, 'Failed to get common block');
-							});
-					}
+					definitions.WSBlocksCommonRequest
 				);
+
+				if (!valid) {
+					const err = library.schema.getLastErrors();
+					const error = `${err[0].message}: ${err[0].path}`;
+					library.logger.debug('Common block request validation failed', {
+						err: error.toString(),
+						req: query,
+					});
+					throw new Error(error);
+				}
+
+				const escapedIds = query.ids
+					// Remove quotes
+					.replace(/['"]+/g, '')
+					// Separate by comma into an array
+					.split(',')
+					// Reject any non-numeric values
+					.filter(id => /^[0-9]+$/.test(id));
+
+				if (!escapedIds.length) {
+					library.logger.debug('Common block request validation failed', {
+						err: 'ESCAPE',
+						req: query.ids,
+					});
+
+					throw new Error('Invalid block id sequence');
+				}
+
+				try {
+					const row = await library.storage.entities.Block.get({
+						id: escapedIds[0],
+					});
+
+					if (!row.length > 0) {
+						return {
+							success: true,
+							common: null,
+						};
+					}
+
+					const {
+						height,
+						id,
+						previousBlockId: previousBlock,
+						timestamp,
+					} = row[0];
+
+					const parsedRow = {
+						id,
+						height,
+						previousBlock,
+						timestamp,
+					};
+
+					return {
+						success: true,
+						common: parsedRow,
+					};
+				} catch (error) {
+					library.logger.error(error.stack);
+					throw new Error('Failed to get common block');
+				}
 			},
 
 			/**
@@ -310,50 +307,48 @@ class Transport {
 			 * @todo Add description of the function
 			 */
 			// eslint-disable-next-line consistent-return
-			blocks(query, cb) {
+			async blocks(query) {
 				// Get 34 blocks with all data (joins) from provided block id
 				// According to maxium payload of 58150 bytes per block with every transaction being a vote
 				// Discounting maxium compression setting used in middleware
 				// Maximum transport payload = 2000000 bytes
 				if (!query || !query.lastBlockId) {
-					return setImmediate(cb, null, {
+					return {
 						success: false,
 						message: 'Invalid lastBlockId requested',
-					});
+					};
 				}
 
-				modules.blocks.utils.loadBlocksDataWS(
-					{
+				try {
+					const data = await modules.blocks.loadBlocksDataWS({
 						limit: 34, // 1977100 bytes
 						lastId: query.lastBlockId,
-					},
-					(err, data) => {
-						_.each(data, block => {
-							if (block.tf_data) {
-								try {
-									block.tf_data = block.tf_data.toString('utf8');
-								} catch (e) {
-									library.logger.error(
-										'Transport->blocks: Failed to convert data field to UTF-8',
-										{
-											block,
-											error: e,
-										}
-									);
-								}
-							}
-						});
-						if (err) {
-							return setImmediate(cb, null, {
-								blocks: [],
-								message: err,
-								success: false,
-							});
-						}
+					});
 
-						return setImmediate(cb, null, { blocks: data, success: true });
-					}
-				);
+					_.each(data, block => {
+						if (block.tf_data) {
+							try {
+								block.tf_data = block.tf_data.toString('utf8');
+							} catch (e) {
+								library.logger.error(
+									'Transport->blocks: Failed to convert data field to UTF-8',
+									{
+										block,
+										error: e,
+									}
+								);
+							}
+						}
+					});
+
+					return { blocks: data, success: true };
+				} catch (err) {
+					return {
+						blocks: [],
+						message: err,
+						success: false,
+					};
+				}
 			},
 
 			/**
@@ -363,61 +358,64 @@ class Transport {
 			 * @todo Add @returns tag
 			 * @todo Add description of the function
 			 */
-			postBlock(query) {
+			async postBlock(query) {
 				if (!library.config.broadcasts.active) {
 					return library.logger.debug(
 						'Receiving blocks disabled by user through config.json'
 					);
 				}
 				query = query || {};
-				return library.schema.validate(
+
+				const valid = library.schema.validate(
 					query,
-					definitions.WSBlocksBroadcast,
-					err => {
-						if (err) {
-							return library.logger.debug(
-								'Received post block broadcast request in unexpected format',
-								{
-									err,
-									module: 'transport',
-									query,
-								}
-							);
-						}
-						let block;
-						let success = true;
-						try {
-							block = modules.blocks.verify.addBlockProperties(query.block);
-
-							// Instantiate transaction classes
-							block.transactions = library.logic.initTransaction.fromBlock(
-								block
-							);
-
-							block = library.logic.block.objectNormalize(block);
-						} catch (e) {
-							success = false;
-							library.logger.debug('Block normalization failed', {
-								err: e.toString(),
-								module: 'transport',
-								block: query.block,
-							});
-
-							// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
-						}
-						// TODO: endpoint should be protected before
-						if (modules.loader.syncing()) {
-							return library.logger.debug(
-								"Client is syncing. Can't receive block at the moment.",
-								block.id
-							);
-						}
-						if (success) {
-							return modules.blocks.process.receiveBlockFromNetwork(block);
-						}
-						return null;
-					}
+					definitions.WSBlocksBroadcast
 				);
+
+				if (!valid) {
+					const err = library.schema.getLastErrors();
+					library.logger.debug(
+						'Received post block broadcast request in unexpected format',
+						{
+							err,
+							module: 'transport',
+							query,
+						}
+					);
+					throw new Error(err);
+				}
+
+				let block;
+				let success = true;
+				try {
+					block = blocksModule.addBlockProperties(query.block);
+
+					// Instantiate transaction classes
+					block.transactions = modules.interfaceAdapters.transactions.fromBlock(
+						block
+					);
+
+					block = blocksModule.objectNormalize(block);
+				} catch (e) {
+					success = false;
+					library.logger.debug('Block normalization failed', {
+						err: e.toString(),
+						module: 'transport',
+						block: query.block,
+					});
+
+					// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
+				}
+				// TODO: endpoint should be protected before
+				if (modules.loader.syncing()) {
+					return library.logger.debug(
+						"Client is syncing. Can't receive block at the moment.",
+						block.id
+					);
+				}
+				if (success) {
+					return modules.blocks.receiveBlockFromNetwork(block);
+				}
+				return null;
 			},
 
 			/**
@@ -427,19 +425,34 @@ class Transport {
 			 * @todo Add @returns tag
 			 * @todo Add description of the function
 			 */
-			postSignature(query, cb) {
-				__private.receiveSignature(query.signature, (err, code) => {
-					if (err) {
-						return setImmediate(cb, null, {
-							success: false,
-							code,
-							errors: err,
-						});
-					}
-					return setImmediate(cb, null, {
-						success: true,
-					});
-				});
+			async postSignature(query) {
+				const valid = library.schema.validate(
+					query.signature,
+					definitions.Signature
+				);
+
+				if (!valid) {
+					const err = library.schema.getLastErrors();
+					const error = new TransactionError(err[0].message);
+					return {
+						success: false,
+						code: 400,
+						errors: [error],
+					};
+				}
+
+				try {
+					await modules.transactionPool.getTransactionAndProcessSignature(
+						query.signature
+					);
+					return { success: true };
+				} catch (err) {
+					return {
+						success: false,
+						code: 409,
+						errors: err,
+					};
+				}
 			},
 
 			/**
@@ -449,22 +462,25 @@ class Transport {
 			 * @todo Add @returns tag
 			 * @todo Add description of the function
 			 */
-			postSignatures(query) {
+			async postSignatures(query) {
 				if (!library.config.broadcasts.active) {
 					return library.logger.debug(
 						'Receiving signatures disabled by user through config.json'
 					);
 				}
-				return library.schema.validate(
+
+				const valid = library.schema.validate(
 					query,
-					definitions.WSSignaturesList,
-					err => {
-						if (err) {
-							return library.logger.debug('Invalid signatures body', err);
-						}
-						return __private.receiveSignatures(query.signatures);
-					}
+					definitions.WSSignaturesList
 				);
+
+				if (!valid) {
+					const err = library.schema.getLastErrors();
+					library.logger.debug('Invalid signatures body', err);
+					throw err;
+				}
+
+				return __private.receiveSignatures(query.signatures);
 			},
 
 			/**
@@ -474,30 +490,26 @@ class Transport {
 			 * @todo Add @returns tag
 			 * @todo Add description of the function
 			 */
-			getSignatures(cb) {
-				const transactions = modules.transactions.getMultisignatureTransactionList(
+			async getSignatures() {
+				const transactions = modules.transactionPool.getMultisignatureTransactionList(
 					true,
 					MAX_SHARED_TRANSACTIONS
 				);
-				const signatures = [];
 
-				async.eachSeries(
-					transactions,
-					(transaction, __cb) => {
-						if (transaction.signatures && transaction.signatures.length) {
-							signatures.push({
-								transaction: transaction.id,
-								signatures: transaction.signatures,
-							});
-						}
-						return setImmediate(__cb);
-					},
-					() =>
-						setImmediate(cb, null, {
-							success: true,
-							signatures,
-						})
-				);
+				const signatures = transactions
+					.filter(
+						transaction =>
+							transaction.signatures && transaction.signatures.length
+					)
+					.map(transaction => ({
+						transaction: transaction.id,
+						signatures: transaction.signatures,
+					}));
+
+				return {
+					success: true,
+					signatures,
+				};
 			},
 
 			/**
@@ -507,15 +519,16 @@ class Transport {
 			 * @todo Add @returns tag
 			 * @todo Add description of the function
 			 */
-			getTransactions(cb) {
-				const transactions = modules.transactions.getMergedTransactionList(
+			async getTransactions() {
+				const transactions = modules.transactionPool.getMergedTransactionList(
 					true,
 					MAX_SHARED_TRANSACTIONS
 				);
-				return setImmediate(cb, null, {
+
+				return {
 					success: true,
 					transactions,
-				});
+				};
 			},
 
 			/**
@@ -525,26 +538,20 @@ class Transport {
 			 * @todo Add @returns tag
 			 * @todo Add description of the function
 			 */
-			postTransaction(query, cb) {
-				__private.receiveTransaction(
-					query.transaction,
-					query.nonce,
-					query.extraLogMessage,
-					(err, id) => {
-						if (err) {
-							return setImmediate(cb, null, {
-								success: false,
-								message: err.message || 'Invalid transaction body',
-								errors: err,
-							});
-						}
-
-						return setImmediate(cb, null, {
-							success: true,
-							transactionId: id,
-						});
-					}
-				);
+			async postTransaction(query) {
+				try {
+					const id = await __private.receiveTransaction(query.transaction);
+					return {
+						success: true,
+						transactionId: id,
+					};
+				} catch (err) {
+					return {
+						success: false,
+						message: err.message || 'Transaction was rejected with errors',
+						errors: err,
+					};
+				}
 			},
 
 			/**
@@ -554,26 +561,25 @@ class Transport {
 			 * @todo Add @returns tag
 			 * @todo Add description of the function
 			 */
-			postTransactions(query) {
+			async postTransactions(query) {
 				if (!library.config.broadcasts.active) {
 					return library.logger.debug(
 						'Receiving transactions disabled by user through config.json'
 					);
 				}
-				return library.schema.validate(
+
+				const valid = library.schema.validate(
 					query,
-					definitions.WSTransactionsRequest,
-					err => {
-						if (err) {
-							return library.logger.debug('Invalid transactions body', err);
-						}
-						return __private.receiveTransactions(
-							query.transactions,
-							query.nonce,
-							query.extraLogMessage
-						);
-					}
+					definitions.WSTransactionsRequest
 				);
+
+				if (!valid) {
+					const err = library.schema.getLastErrors();
+					library.logger.debug('Invalid transactions body', err);
+					throw err;
+				}
+
+				return __private.receiveTransactions(query.transactions);
 			},
 		};
 	}
@@ -586,14 +592,16 @@ class Transport {
  * @implements {__private.receiveSignature}
  * @param {Array} signatures - Array of signatures
  */
-__private.receiveSignatures = function(signatures = []) {
-	signatures.forEach(signature => {
-		__private.receiveSignature(signature, err => {
-			if (err) {
-				library.logger.debug(err, signature);
-			}
-		});
-	});
+__private.receiveSignatures = async (signatures = []) => {
+	// eslint-disable-next-line no-restricted-syntax
+	for (const signature of signatures) {
+		try {
+			// eslint-disable-next-line no-await-in-loop
+			await __private.receiveSignature(signature);
+		} catch (err) {
+			library.logger.debug(err, signature);
+		}
+	}
 };
 
 /**
@@ -603,25 +611,18 @@ __private.receiveSignatures = function(signatures = []) {
  * @param {Object} query
  * @param {string} query.signature
  * @param {Object} query.transaction
- * @returns {setImmediateCallback} cb, err
+ * @returns {Promise.<boolean, Error>}
  * @todo Add description for the params
  */
-__private.receiveSignature = function(signature, cb) {
-	library.schema.validate(signature, definitions.Signature, err => {
-		if (err) {
-			return setImmediate(cb, [new TransactionError(err[0].message)], 400);
-		}
+__private.receiveSignature = async signature => {
+	const valid = library.schema.validate(signature, definitions.Signature);
 
-		return modules.multisignatures.getTransactionAndProcessSignature(
-			signature,
-			errors => {
-				if (errors) {
-					return setImmediate(cb, errors, 409);
-				}
-				return setImmediate(cb);
-			}
-		);
-	});
+	if (!valid) {
+		const err = library.schema.getLastErrors();
+		throw err;
+	}
+
+	return modules.transactionPool.getTransactionAndProcessSignature(signature);
 };
 
 /**
@@ -631,24 +632,20 @@ __private.receiveSignature = function(signature, cb) {
  * @implements {library.schema.validate}
  * @implements {__private.receiveTransaction}
  * @param {Array} transactions - Array of transactions
- * @param {string} nonce - Peer's nonce
- * @param {string} extraLogMessage - Extra log message
  */
-__private.receiveTransactions = function(
-	transactions = [],
-	nonce,
-	extraLogMessage
-) {
-	transactions.forEach(transaction => {
-		if (transaction) {
-			transaction.bundled = true;
-		}
-		__private.receiveTransaction(transaction, nonce, extraLogMessage, err => {
-			if (err) {
-				library.logger.debug(convertErrorsToString(err), transaction);
+__private.receiveTransactions = async (transactions = []) => {
+	// eslint-disable-next-line no-restricted-syntax
+	for (const transaction of transactions) {
+		try {
+			if (transaction) {
+				transaction.bundled = true;
 			}
-		});
-	});
+			// eslint-disable-next-line no-await-in-loop
+			await __private.receiveTransaction(transaction);
+		} catch (err) {
+			library.logger.debug(convertErrorsToString(err), transaction);
+		}
+	}
 };
 
 /**
@@ -658,26 +655,20 @@ __private.receiveTransactions = function(
  *
  * @private
  * @param {transaction} transaction
- * @param {string} nonce
- * @param {string} extraLogMessage - Extra log message
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, err
+ * @returns {Promise.<boolean, Error>}
  * @todo Add description for the params
  */
-__private.receiveTransaction = async function(
-	transactionJSON,
-	nonce,
-	extraLogMessage,
-	cb
-) {
+__private.receiveTransaction = async transactionJSON => {
 	const id = transactionJSON ? transactionJSON.id : 'null';
 	let transaction;
 	try {
-		transaction = library.logic.initTransaction.fromJson(transactionJSON);
+		transaction = modules.interfaceAdapters.transactions.fromJson(
+			transactionJSON
+		);
 
-		const composedTransactionsCheck = processTransactionLogic.composeTransactionSteps(
-			modules.processTransactions.checkAllowedTransactions,
-			modules.processTransactions.validateTransactions
+		const composedTransactionsCheck = transactionsModule.composeTransactionSteps(
+			transactionsModule.checkAllowedTransactions(modules.blocks.lastBlock),
+			transactionsModule.validateTransactions(exceptions)
 		);
 
 		const { transactionsResponses } = await composedTransactionsCheck([
@@ -696,37 +687,30 @@ __private.receiveTransaction = async function(
 		});
 
 		// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
-
-		return setImmediate(cb, errors);
+		throw errors;
 	}
 
-	return library.balancesSequence.add(balancesSequenceCb => {
-		if (!nonce) {
-			library.logger.debug(
-				`Received transaction ${transaction.id} from public client`
-			);
-		} else {
-			library.logger.debug(
-				`Received transaction ${transaction.id} from network`
-			);
-		}
+	const balancesSequenceAdd = promisify(
+		library.balancesSequence.add.bind(library.balancesSequence)
+	);
 
-		modules.transactions.processUnconfirmedTransaction(
-			transaction,
-			true,
-			err => {
-				if (err) {
-					library.logger.debug(`Transaction ${id}`, convertErrorsToString(err));
-					if (transaction) {
-						library.logger.debug('Transaction', transaction);
-					}
-					return setImmediate(balancesSequenceCb, err);
-				}
+	return balancesSequenceAdd(async addSequenceCb => {
+		library.logger.debug(`Received transaction ${transaction.id}`);
 
-				return setImmediate(balancesSequenceCb, null, transaction.id);
+		try {
+			await modules.transactionPool.processUnconfirmedTransaction(
+				transaction,
+				true
+			);
+			return setImmediate(addSequenceCb, null, transaction.id);
+		} catch (err) {
+			library.logger.debug(`Transaction ${id}`, convertErrorsToString(err));
+			if (transaction) {
+				library.logger.debug('Transaction', transaction);
 			}
-		);
-	}, cb);
+			return setImmediate(addSequenceCb, err);
+		}
+	});
 };
 
 // Export

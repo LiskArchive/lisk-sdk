@@ -16,7 +16,7 @@
 
 require('../../functional');
 const Promise = require('bluebird');
-const Bignum = require('bignumber.js');
+const BigNum = require('@liskhq/bignum');
 const {
 	transfer,
 	registerDelegate,
@@ -112,7 +112,9 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					`Account does not have enough LSK: ${
@@ -141,7 +143,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				transaction: {
 					type: 2,
 					amount: '0',
-					fee: new Bignum(FEES.DELEGATE).toString(),
+					fee: new BigNum(FEES.DELEGATE).toString(),
 					asset: {
 						delegate: {
 							username: '',
@@ -155,7 +157,9 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					"'.delegate.username' should NOT be shorter than 1 characters"
@@ -175,7 +179,9 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					'\'.delegate.username\' should match format "username"'
@@ -195,7 +201,9 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					'\'.delegate.username\' should match format "username"'
@@ -215,7 +223,9 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					'\'.delegate.username\' should match format "username"'
@@ -235,7 +245,9 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					'\'.delegate.username\' should match format "username"'
@@ -255,7 +267,9 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					'\'.delegate.username\' should match format "username"'
@@ -275,7 +289,9 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					'\'.delegate.username\' should match format "username"'
@@ -291,7 +307,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				transaction: {
 					type: 2,
 					amount: '0',
-					fee: new Bignum(FEES.DELEGATE).toString(),
+					fee: new BigNum(FEES.DELEGATE).toString(),
 					asset: {
 						delegate: {
 							username: delegateName,
@@ -305,7 +321,9 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					"'.delegate.username' should NOT be longer than 20 characters"
@@ -324,7 +342,9 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					'\'.delegate.username\' should match format "username"'
@@ -361,7 +381,9 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					'Username is not unique.'
@@ -380,7 +402,9 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					'Username is not unique.'
@@ -399,7 +423,9 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal('Invalid transaction body');
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					'Account is already a delegate'

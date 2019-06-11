@@ -21,37 +21,36 @@ const {
 	castVotes,
 	registerDelegate,
 } = require('@liskhq/lisk-transactions');
+const BigNum = require('@liskhq/bignum');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const Promise = require('bluebird');
 const ed = require('../../../src/modules/chain/helpers/ed');
-const slots = require('../../../src/modules/chain/helpers/slots');
-const Bignum = require('../../../src/modules/chain/helpers/bignum');
+const { BlockSlots } = require('../../../src/modules/chain/blocks');
 const accountsFixtures = require('../fixtures/accounts');
 const randomUtil = require('../common/utils/random');
 const QueriesHelper = require('../common/integration/sql/queries_helper');
 const localCommon = require('./common');
 
-const { REWARDS, ACTIVE_DELEGATES } = global.constants;
+const { ACTIVE_DELEGATES } = global.constants;
 
 describe('rounds', () => {
+	const slots = new BlockSlots({
+		epochTime: __testContext.config.constants.EPOCH_TIME,
+		interval: __testContext.config.constants.BLOCK_TIME,
+		blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
+	});
 	let library;
 	let Queries;
 	let addTransactionsAndForgePromise;
-	let deleteLastBlockPromise;
-
-	// Set rewards start at 150-th block
-	REWARDS.OFFSET = 150;
 
 	localCommon.beforeBlock('rounds', lib => {
 		library = lib;
+		// Set rewards start at 150-th block
+		library.modules.blocks.blockRewardArgs.rewardOffset = 150;
 		Queries = new QueriesHelper(lib, lib.components.storage);
 
 		addTransactionsAndForgePromise = Promise.promisify(
 			localCommon.addTransactionsAndForge
-		);
-
-		deleteLastBlockPromise = Promise.promisify(
-			library.modules.blocks.chain.deleteLastBlock
 		);
 	});
 
@@ -83,7 +82,7 @@ describe('rounds', () => {
 
 	function expectedMemState(transactions, _accounts) {
 		const accounts = _.cloneDeep(_accounts);
-		const lastBlock = library.modules.blocks.lastBlock.get();
+		const lastBlock = library.modules.blocks.lastBlock;
 
 		// Update last block forger account
 		const found = _.find(accounts, {
@@ -103,9 +102,9 @@ describe('rounds', () => {
 			// If account with address exists - set expected values
 			if (accounts[address]) {
 				// Update sender
-				accounts[address].balance = new Bignum(accounts[address].balance)
+				accounts[address].balance = new BigNum(accounts[address].balance)
 					.minus(
-						new Bignum(transaction.fee).plus(new Bignum(transaction.amount))
+						new BigNum(transaction.fee).plus(new BigNum(transaction.amount))
 					)
 					.toString();
 
@@ -131,14 +130,14 @@ describe('rounds', () => {
 				// If account with address exists - set expected values
 				if (accounts[address]) {
 					// Update recipient
-					accounts[address].balance = new Bignum(accounts[address].balance)
-						.plus(new Bignum(transaction.amount))
+					accounts[address].balance = new BigNum(accounts[address].balance)
+						.plus(new BigNum(transaction.amount))
 						.toString();
 				} else {
 					// Funds sent to new account - create account with default values
 					accounts[address] = accountsFixtures.dbAccount({
 						address,
-						balance: new Bignum(transaction.amount).toString(),
+						balance: new BigNum(transaction.amount).toString(),
 					});
 				}
 			}
@@ -154,15 +153,15 @@ describe('rounds', () => {
 				publicKey: ed.hexToBuffer(reward.publicKey),
 			});
 			if (found) {
-				found.fees = new Bignum(found.fees)
-					.plus(new Bignum(reward.fees))
+				found.fees = new BigNum(found.fees)
+					.plus(new BigNum(reward.fees))
 					.toString();
-				found.rewards = new Bignum(found.rewards)
-					.plus(new Bignum(reward.rewards))
+				found.rewards = new BigNum(found.rewards)
+					.plus(new BigNum(reward.rewards))
 					.toString();
-				found.balance = new Bignum(found.balance)
-					.plus(new Bignum(reward.fees))
-					.plus(new Bignum(reward.rewards))
+				found.balance = new BigNum(found.balance)
+					.plus(new BigNum(reward.fees))
+					.plus(new BigNum(reward.rewards))
 					.toString();
 			}
 		});
@@ -189,8 +188,8 @@ describe('rounds', () => {
 				const foundAccount = _.find(accounts, {
 					address: voter,
 				});
-				votes = new Bignum(votes)
-					.plus(new Bignum(foundAccount.balance))
+				votes = new BigNum(votes)
+					.plus(new BigNum(foundAccount.balance))
 					.toString();
 			});
 			found.vote = votes;
@@ -205,8 +204,8 @@ describe('rounds', () => {
 		// Sort accounts - vote DESC, publicKey ASC
 		accounts = Object.keys(accounts)
 			.sort((a, b) => {
-				const aVote = new Bignum(accounts[a].vote);
-				const bVote = new Bignum(accounts[b].vote);
+				const aVote = new BigNum(accounts[a].vote);
+				const bVote = new BigNum(accounts[b].vote);
 				const aPK = accounts[a].publicKey;
 				const bPK = accounts[b].publicKey;
 				// Compare vote weights first:
@@ -283,7 +282,7 @@ describe('rounds', () => {
 		const feesTotal = _.reduce(
 			blocks,
 			(fees, block) => {
-				return new Bignum(fees).plus(block.totalFee);
+				return new BigNum(fees).plus(block.totalFee);
 			},
 			0
 		);
@@ -291,16 +290,16 @@ describe('rounds', () => {
 		const rewardsTotal = _.reduce(
 			blocks,
 			(reward, block) => {
-				return new Bignum(reward).plus(block.reward);
+				return new BigNum(reward).plus(block.reward);
 			},
 			0
 		);
 
-		const feesPerDelegate = new Bignum(feesTotal.toPrecision(15))
+		const feesPerDelegate = new BigNum(feesTotal.toPrecision(15))
 			.dividedBy(ACTIVE_DELEGATES)
-			.integerValue(Bignum.ROUND_FLOOR);
-		const feesRemaining = new Bignum(feesTotal.toPrecision(15)).minus(
-			feesPerDelegate.multipliedBy(ACTIVE_DELEGATES)
+			.floor();
+		const feesRemaining = new BigNum(feesTotal.toPrecision(15)).minus(
+			feesPerDelegate.times(ACTIVE_DELEGATES)
 		);
 
 		__testContext.debug(
@@ -317,8 +316,8 @@ describe('rounds', () => {
 			} else {
 				rewards[publicKey] = {
 					publicKey,
-					fees: new Bignum(feesPerDelegate),
-					rewards: new Bignum(block.reward),
+					fees: new BigNum(feesPerDelegate),
+					rewards: new BigNum(block.reward),
 				};
 			}
 
@@ -341,7 +340,7 @@ describe('rounds', () => {
 
 		describe('new block', () => {
 			before(() => {
-				tick.before.block = library.modules.blocks.lastBlock.get();
+				tick.before.block = library.modules.blocks.lastBlock;
 				tick.before.round = slots.calcRound(tick.before.block.height);
 
 				return Promise.join(
@@ -360,7 +359,7 @@ describe('rounds', () => {
 				).then(() => {
 					return addTransactionsAndForgePromise(library, transactions, 0).then(
 						async () => {
-							tick.after.block = library.modules.blocks.lastBlock.get();
+							tick.after.block = library.modules.blocks.lastBlock;
 							tick.after.round = slots.calcRound(tick.after.block.height);
 							// Detect if round changed
 							tick.isRoundChanged = tick.before.round !== tick.after.round;
@@ -497,8 +496,8 @@ describe('rounds', () => {
 									if (!_.isEqual(actualAccount.vote, expectedAccount.vote)) {
 										// When comparison fails - calculate absolute difference of 'vote' values
 										const absoluteDiff = Math.abs(
-											new Bignum(actualAccount.vote)
-												.minus(new Bignum(expectedAccount.vote))
+											new BigNum(actualAccount.vote)
+												.minus(new BigNum(expectedAccount.vote))
 												.toNumber()
 										);
 										// If absolute value is 1 beddows - pass the test, as reason is related to issue #716
@@ -547,7 +546,7 @@ describe('rounds', () => {
 		};
 
 		before(() => {
-			const lastBlock = library.modules.blocks.lastBlock.get();
+			const lastBlock = library.modules.blocks.lastBlock;
 
 			// Copy initial states for later comparison
 			return Promise.join(
@@ -666,7 +665,7 @@ describe('rounds', () => {
 
 		describe('after round 1 is finished', () => {
 			it('last block height should equal active delegates count', async () => {
-				const lastBlock = library.modules.blocks.lastBlock.get();
+				const lastBlock = library.modules.blocks.lastBlock;
 				return expect(lastBlock.height).to.be.equal(ACTIVE_DELEGATES);
 			});
 
@@ -717,7 +716,7 @@ describe('rounds', () => {
 			});
 
 			it('should generate a different delegate list than one generated at the beginning of round 1', async () => {
-				const lastBlock = library.modules.blocks.lastBlock.get();
+				const lastBlock = library.modules.blocks.lastBlock;
 				return library.modules.rounds
 					.generateDelegateList(slots.calcRound(lastBlock.height + 1), null)
 					.then(delegatesList => {
@@ -729,16 +728,17 @@ describe('rounds', () => {
 		describe('delete last block of round 1, block contains 1 transaction type SEND', () => {
 			let lastBlock;
 
-			before(() => {
-				lastBlock = library.modules.blocks.lastBlock.get();
-				// Delete last block of round
-				return deleteLastBlockPromise();
+			before(async () => {
+				lastBlock = library.modules.blocks.lastBlock;
+				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+					lastBlock
+				);
+				library.modules.blocks._lastBlock = newLastBlock;
 			});
 
-			it('transactions from deleted block should be added back to transaction pool', done => {
-				const transactionPool = library.rewiredModules.transactions.__get__(
-					'__private.transactionPool'
-				);
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('transactions from deleted block should be added back to transaction pool', done => {
+				const transactionPool = library.modules.transactionPool;
 
 				_.each(lastBlock.transactions, transaction => {
 					// Transaction should be present in transaction pool
@@ -771,7 +771,7 @@ describe('rounds', () => {
 			});
 
 			it('delegates list should be equal to one generated at the beginning of round 1', async () => {
-				const freshLastBlock = library.modules.blocks.lastBlock.get();
+				const freshLastBlock = library.modules.blocks.lastBlock;
 				return library.modules.rounds
 					.generateDelegateList(
 						slots.calcRound(freshLastBlock.height + 1),
@@ -789,7 +789,10 @@ describe('rounds', () => {
 			});
 
 			it('should be able to delete last block of round again', async () => {
-				return deleteLastBlockPromise();
+				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+					library.modules.blocks.lastBlock
+				);
+				library.modules.blocks._lastBlock = newLastBlock;
 			});
 
 			it('mem_accounts table should be equal to one generated before last block of round deletion', async () => {
@@ -799,7 +802,7 @@ describe('rounds', () => {
 			});
 
 			it('delegates list should be equal to one generated at the beginning of round 1', async () => {
-				const lastBlock = library.modules.blocks.lastBlock.get();
+				const lastBlock = library.modules.blocks.lastBlock;
 				return library.modules.rounds
 					.generateDelegateList(slots.calcRound(lastBlock.height + 1), null)
 					.then(delegatesList => {
@@ -825,23 +828,25 @@ describe('rounds', () => {
 					});
 					transactions.push(transaction);
 
-					lastBlock = library.modules.blocks.lastBlock.get();
+					lastBlock = library.modules.blocks.lastBlock;
 					// Delete one block more
-					return deleteLastBlockPromise().then(() => {
-						done();
-					});
+					return library.modules.blocks.blocksChain
+						.deleteLastBlock(lastBlock)
+						.then(newLastBlock => {
+							library.modules.blocks._lastBlock = newLastBlock;
+							done();
+						});
 				});
 			});
 
 			it('last block height should be at height 99 after deleting one more block', async () => {
-				const freshLastBlock = library.modules.blocks.lastBlock.get();
+				const freshLastBlock = library.modules.blocks.lastBlock;
 				return expect(freshLastBlock.height).to.equal(99);
 			});
-			// eslint-disable-next-line
-			it('transactions from deleted block should be added back to transaction pool', done => {
-				const transactionPool = library.rewiredModules.transactions.__get__(
-					'__private.transactionPool'
-				);
+
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('transactions from deleted block should be added back to transaction pool', done => {
+				const transactionPool = library.modules.transactionPool;
 
 				_.each(lastBlock.transactions, transaction => {
 					// Transaction should be present in transaction pool
@@ -865,7 +870,7 @@ describe('rounds', () => {
 
 			describe('after forging 1 block', () => {
 				it('should unvote expected forger of last block of round (block data)', async () => {
-					const freshLastBlock = library.modules.blocks.lastBlock.get();
+					const freshLastBlock = library.modules.blocks.lastBlock;
 					return Queries.getFullBlock(freshLastBlock.height).then(blocks => {
 						expect(blocks[0].transactions[0].asset.votes[0]).to.equal(
 							`-${lastBlockForger}`
@@ -885,7 +890,7 @@ describe('rounds', () => {
 
 			describe('after round finish', () => {
 				it('delegates list should be different than one generated at the beginning of round 1', async () => {
-					const freshLastBlock = library.modules.blocks.lastBlock.get();
+					const freshLastBlock = library.modules.blocks.lastBlock;
 					return library.modules.rounds
 						.generateDelegateList(
 							slots.calcRound(freshLastBlock.height + 1),
@@ -908,17 +913,20 @@ describe('rounds', () => {
 
 			describe('after last block of round is deleted', () => {
 				it('delegates list should be equal to one generated at the beginning of round 1', async () => {
-					return deleteLastBlockPromise().then(() => {
-						const freshLastBlock = library.modules.blocks.lastBlock.get();
-						return library.modules.rounds
-							.generateDelegateList(
-								slots.calcRound(freshLastBlock.height),
-								null
-							)
-							.then(delegatesList => {
-								expect(delegatesList).to.deep.equal(round.delegatesList);
-							});
-					});
+					return library.modules.blocks.blocksChain
+						.deleteLastBlock(library.modules.blocks.lastBlock)
+						.then(newLastBlock => {
+							library.modules.blocks._lastBlock = newLastBlock;
+							const freshLastBlock = library.modules.blocks.lastBlock;
+							return library.modules.rounds
+								.generateDelegateList(
+									slots.calcRound(freshLastBlock.height),
+									null
+								)
+								.then(delegatesList => {
+									expect(delegatesList).to.deep.equal(round.delegatesList);
+								});
+						});
 				});
 
 				it('expected forger of last block of round should have proper votes again', async () => {
@@ -947,7 +955,7 @@ describe('rounds', () => {
 			before(done => {
 				// Set last block forger
 				localCommon.getNextForger(library, null, (err, delegatePublicKey) => {
-					lastBlock = library.modules.blocks.lastBlock.get();
+					lastBlock = library.modules.blocks.lastBlock;
 					lastBlockForger = delegatePublicKey;
 					tmpAccount = randomUtil.account();
 
@@ -973,20 +981,22 @@ describe('rounds', () => {
 					});
 					transactions.vote.push(transaction);
 
-					const transactionPool = library.rewiredModules.transactions.__get__(
-						'__private.transactionPool'
-					);
+					const transactionPool = library.modules.transactionPool;
 					// Delete two blocks more
-					lastBlock = library.modules.blocks.lastBlock.get();
-					deleteLastBlockPromise()
-						.then(() => {
+					lastBlock = library.modules.blocks.lastBlock;
+					library.modules.blocks.blocksChain
+						.deleteLastBlock(lastBlock)
+						.then(newLastBlock => {
+							library.modules.blocks._lastBlock = newLastBlock;
 							_.each(lastBlock.transactions, eachTransaction => {
 								// Remove transaction from pool
 								transactionPool.onConfirmedTransactions([eachTransaction]);
 							});
-							lastBlock = library.modules.blocks.lastBlock.get();
-							deleteLastBlockPromise()
-								.then(() => {
+							lastBlock = library.modules.blocks.lastBlock;
+							library.modules.blocks.blocksChain
+								.deleteLastBlock(lastBlock)
+								.then(secondLastBlock => {
+									library.modules.blocks._lastBlock = secondLastBlock;
 									_.each(lastBlock.transactions, eachTransaction => {
 										// Remove transaction from pool
 										transactionPool.onConfirmedTransactions([eachTransaction]);
@@ -1012,7 +1022,7 @@ describe('rounds', () => {
 				let delegates;
 
 				before(() => {
-					lastBlock = library.modules.blocks.lastBlock.get();
+					lastBlock = library.modules.blocks.lastBlock;
 
 					return Promise.join(
 						getDelegates(),
@@ -1066,14 +1076,17 @@ describe('rounds', () => {
 
 			describe('after last block of round is deleted', () => {
 				it('delegates list should be equal to one generated at the beginning of round 1', async () => {
-					return deleteLastBlockPromise().then(() => {
-						lastBlock = library.modules.blocks.lastBlock.get();
-						return library.modules.rounds
-							.generateDelegateList(slots.calcRound(lastBlock.height), null)
-							.then(delegatesList => {
-								expect(delegatesList).to.deep.equal(round.delegatesList);
-							});
-					});
+					return library.modules.blocks.blocksChain
+						.deleteLastBlock(library.modules.blocks.lastBlock)
+						.then(newLastBlock => {
+							library.modules.blocks._lastBlock = newLastBlock;
+							lastBlock = library.modules.blocks.lastBlock;
+							return library.modules.rounds
+								.generateDelegateList(slots.calcRound(lastBlock.height), null)
+								.then(delegatesList => {
+									expect(delegatesList).to.deep.equal(round.delegatesList);
+								});
+						});
 				});
 
 				it('last block height should be at height 100', async () => {
@@ -1112,9 +1125,7 @@ describe('rounds', () => {
 				const transactionsPerBlock = 1;
 
 				before(done => {
-					const transactionPool = library.rewiredModules.transactions.__get__(
-						'__private.transactionPool'
-					);
+					const transactionPool = library.modules.transactionPool;
 					transactionPool.resetPool();
 
 					// Set expected reward per block
@@ -1151,14 +1162,14 @@ describe('rounds', () => {
 
 			describe('before rewards start', () => {
 				it('last block height should be at height 149', async () => {
-					const lastBlock = library.modules.blocks.lastBlock.get();
+					const lastBlock = library.modules.blocks.lastBlock;
 					return expect(lastBlock.height).to.equal(149);
 				});
 
 				it('block just before rewards start should have reward = 0', async () => {
-					const lastBlock = library.modules.blocks.lastBlock.get();
-					return expect(lastBlock.reward.isEqualTo(expectedRewardsPerBlock)).to
-						.be.true;
+					const lastBlock = library.modules.blocks.lastBlock;
+					return expect(lastBlock.reward.equals(expectedRewardsPerBlock)).to.be
+						.true;
 				});
 			});
 
@@ -1168,13 +1179,12 @@ describe('rounds', () => {
 				const transactionsPerBlock = 1;
 
 				before(done => {
-					const transactionPool = library.rewiredModules.transactions.__get__(
-						'__private.transactionPool'
-					);
+					const transactionPool = library.modules.transactionPool;
 					transactionPool.resetPool();
 
 					// Set expected reward per block as first milestone
-					expectedRewardsPerBlock = REWARDS.MILESTONES[0];
+					expectedRewardsPerBlock =
+						library.modules.blocks.blockRewardArgs.milestones[0];
 					done();
 				});
 
@@ -1200,10 +1210,9 @@ describe('rounds', () => {
 
 						describe('rewards check', () => {
 							it('all blocks from now until round end should have proper rewards (5 LSK)', async () => {
-								const lastBlock = library.modules.blocks.lastBlock.get();
-								return expect(
-									lastBlock.reward.isEqualTo(expectedRewardsPerBlock)
-								).to.be.true;
+								const lastBlock = library.modules.blocks.lastBlock;
+								return expect(lastBlock.reward.equals(expectedRewardsPerBlock))
+									.to.be.true;
 							});
 						});
 
@@ -1237,23 +1246,29 @@ describe('rounds', () => {
 
 		before(() => {
 			return Promise.mapSeries([...Array(101)], async () => {
-				return deleteLastBlockPromise();
+				return library.modules.blocks.blocksChain
+					.deleteLastBlock(library.modules.blocks.lastBlock)
+					.then(newLastBlock => {
+						library.modules.blocks._lastBlock = newLastBlock;
+					});
 			});
 		});
 
 		it('last block height should be at height 101', async () => {
-			lastBlock = library.modules.blocks.lastBlock.get();
+			lastBlock = library.modules.blocks.lastBlock;
 			return expect(lastBlock.height).to.equal(101);
 		});
 
 		it('should fail when try to delete one more block (last block of round 1)', async () => {
-			return expect(deleteLastBlockPromise()).to.eventually.be.rejectedWith(
-				'Snapshot for round 1 not available'
-			);
+			return expect(
+				library.modules.blocks.blocksChain.deleteLastBlock(
+					library.modules.blocks.lastBlock
+				)
+			).to.eventually.be.rejectedWith('Snapshot for round 1 not available');
 		});
 
 		it('last block height should be still at height 101', async () => {
-			lastBlock = library.modules.blocks.lastBlock.get();
+			lastBlock = library.modules.blocks.lastBlock;
 			return expect(lastBlock.height).to.equal(101);
 		});
 	});
@@ -1266,13 +1281,18 @@ describe('rounds', () => {
 		});
 
 		it('should be able to delete last block of round', async () => {
-			return deleteLastBlockPromise();
+			const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+				library.modules.blocks.lastBlock
+			);
+			library.modules.blocks._lastBlock = newLastBlock;
 		});
 
 		it('should be able to delete last block of round again', async () => {
-			return addTransactionsAndForgePromise(library, [], 0).then(() => {
-				return deleteLastBlockPromise();
-			});
+			await addTransactionsAndForgePromise(library, [], 0);
+			const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+				library.modules.blocks.lastBlock
+			);
+			library.modules.blocks._lastBlock = newLastBlock;
 		});
 	});
 });

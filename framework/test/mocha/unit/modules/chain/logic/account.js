@@ -15,11 +15,11 @@
 'use strict';
 
 const rewire = require('rewire');
+const BigNum = require('@liskhq/bignum');
 const application = require('../../../../common/application');
 const modulesLoader = require('../../../../common/modules_loader');
-const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 
-const Account = rewire('../../../../../../src/modules/chain/logic/account');
+const Account = rewire('../../../../../../src/modules/chain/rounds/account');
 
 const validAccount = {
 	username: 'genesis_100',
@@ -28,13 +28,13 @@ const validAccount = {
 	address: '10881167371402274308L',
 	publicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 	secondPublicKey: null,
-	balance: new Bignum('0'),
+	balance: new BigNum('0'),
 	multiMin: 0,
 	multiLifetime: 1,
 	nameExist: 0,
-	fees: new Bignum('0'),
+	fees: new BigNum('0'),
 	rank: '70',
-	rewards: new Bignum('0'),
+	rewards: new BigNum('0'),
 	vote: 10000000000000000,
 	producedBlocks: 0,
 	missedBlocks: 0,
@@ -42,7 +42,7 @@ const validAccount = {
 	productivity: 0,
 	membersPublicKeys: null,
 	votedDelegatesPublicKeys: null,
-	asset: null,
+	asset: {},
 };
 
 describe('account', () => {
@@ -57,7 +57,12 @@ describe('account', () => {
 				if (err) {
 					done(err);
 				}
-				account = scope.logic.account;
+				account = new Account(
+					scope.components.storage,
+					scope.schema,
+					scope.components.logger,
+					scope.modules.rounds
+				);
 				storage = scope.components.storage;
 				done();
 			}
@@ -72,7 +77,7 @@ describe('account', () => {
 		let library;
 		let storageStub;
 
-		before(done => {
+		before(async () => {
 			storageStub = {
 				entities: {
 					Account: {
@@ -81,16 +86,13 @@ describe('account', () => {
 				},
 			};
 
-			new Account(
+			accountLogic = new Account(
 				storageStub,
 				modulesLoader.scope.schema,
-				modulesLoader.scope.components.logger,
-				(err, lgAccount) => {
-					accountLogic = lgAccount;
-					library = Account.__get__('library');
-					done();
-				}
+				modulesLoader.scope.components.logger
 			);
+
+			library = Account.__get__('library');
 		});
 
 		it('should attach schema to scope variable', async () =>
@@ -154,8 +156,9 @@ describe('account', () => {
 		});
 
 		it('should throw error when a numeric field receives non numeric value', done => {
-			account.merge(validAccount.address, { balance: 'Not a Number' }, err => {
-				expect(err).to.equal('Encountered insane number: NaN');
+			const balance = 'Not a Number';
+			account.merge(validAccount.address, { balance }, err => {
+				expect(err).to.equal(`Encountered insane number: ${balance}`);
 				done();
 			});
 		});

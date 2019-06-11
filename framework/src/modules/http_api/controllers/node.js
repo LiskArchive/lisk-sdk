@@ -18,6 +18,7 @@ const _ = require('lodash');
 const checkIpInList = require('../helpers/check_ip_in_list');
 const apiCodes = require('../api_codes');
 const swaggerHelper = require('../helpers/swagger');
+const { CACHE_KEYS_TRANSACTION_COUNT } = require('../../../components/cache');
 
 const { EPOCH_TIME, FEES } = global.constants;
 
@@ -42,6 +43,8 @@ function NodeController(scope) {
 	library = {
 		components: {
 			storage: scope.components.storage,
+			cache: scope.components.cache,
+			logger: scope.components.logger,
 		},
 		config: scope.config,
 		channel: scope.channel,
@@ -120,11 +123,22 @@ NodeController.getStatus = async (context, next) => {
 			secondsSinceEpoch,
 			loaded,
 			syncing,
-			transactions,
+			unconfirmedTransactions,
 			lastBlock,
 		} = await library.channel.invoke('chain:getNodeStatus');
 
-		const networkHeight = await _getNetworkHeight();
+		// get confirmed count from cache or chain
+
+		const [confirmed, networkHeight] = await Promise.all([
+			_getConfirmedTransactionCount(),
+			_getNetworkHeight(),
+		]);
+		const total =
+			confirmed +
+			Object.values(unconfirmedTransactions).reduce(
+				(prev, current) => prev + current,
+				0
+			);
 
 		const data = {
 			broadhash: library.applicationState.broadhash,
@@ -135,7 +149,11 @@ NodeController.getStatus = async (context, next) => {
 			loaded,
 			networkHeight,
 			syncing,
-			transactions,
+			transactions: {
+				confirmed,
+				...unconfirmedTransactions,
+				total,
+			},
 		};
 
 		return next(null, data);
@@ -324,6 +342,47 @@ async function _getNetworkHeight() {
 	);
 
 	return parseInt(networkHeight);
+}
+
+/**
+ * Get count of confirmedTransaction from cache
+ *
+ * @returns Number
+ * @private
+ */
+async function _getConfirmedTransactionCount() {
+	// if cache is ready, then get cache and return
+	if (library.components.cache.ready) {
+		try {
+			const { confirmed } = await library.components.cache.getJsonForKey(
+				CACHE_KEYS_TRANSACTION_COUNT
+			);
+			if (confirmed === undefined || confirmed === null) {
+				throw new Error(
+					'Transaction count wasn cached but confirmed did not exist'
+				);
+			}
+			return confirmed;
+		} catch (error) {
+			library.components.logger.warn("Transaction count wasn't cached", error);
+		}
+	}
+	const confirmed = await library.components.storage.entities.Transaction.count();
+	// only update cache if ready
+	if (library.components.cache.ready) {
+		try {
+			await library.components.cache.setJsonForKey(
+				CACHE_KEYS_TRANSACTION_COUNT,
+				{
+					confirmed,
+				}
+			);
+		} catch (error) {
+			// Ignore error and just put warn
+			library.components.logger.warn("Transaction count wasn't cached", error);
+		}
+	}
+	return confirmed;
 }
 
 module.exports = NodeController;

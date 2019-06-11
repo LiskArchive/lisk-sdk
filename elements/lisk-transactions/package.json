@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-transactions",
-	"version": "2.1.0-alpha.11",
+	"version": "2.1.0-alpha.13",
 	"description": "Everything related to transactions according to the Lisk protocol",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
@@ -58,7 +58,7 @@
 	},
 	"dependencies": {
 		"@liskhq/bignum": "1.3.1",
-		"@liskhq/lisk-cryptography": "2.1.0-alpha.1",
+		"@liskhq/lisk-cryptography": "2.1.0-alpha.2",
 		"@types/node": "10.12.21",
 		"ajv": "6.8.1",
 		"ajv-merge-patch": "4.1.0"
@@ -74,7 +74,7 @@
 		"cypress": "3.1.5",
 		"http-server": "0.11.1",
 		"mocha": "5.2.0",
-		"nyc": "13.2.0",
+		"nyc": "14.1.1",
 		"prettier": "1.16.4",
 		"sinon": "7.2.3",
 		"sinon-chai": "3.3.0",

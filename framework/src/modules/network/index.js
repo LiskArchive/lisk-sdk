@@ -15,6 +15,7 @@
 'use strict';
 
 const { config } = require('./defaults');
+const { migrations } = require('./migrations');
 const Network = require('./network');
 const BaseModule = require('../base_module');
 
@@ -37,6 +38,10 @@ module.exports = class NetworkModule extends BaseModule {
 			version: '0.1.0',
 			name: 'lisk-framework-network',
 		};
+	}
+
+	static get migrations() {
+		return migrations;
 	}
 
 	static get defaults() {

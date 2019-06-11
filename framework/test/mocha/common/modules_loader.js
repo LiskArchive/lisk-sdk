@@ -22,9 +22,9 @@ const { createLoggerComponent } = require('../../../src/components/logger');
 const { ZSchema } = require('../../../src/controller/validator');
 const ed = require('../../../src/modules/chain/helpers/ed');
 const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
-const InitTransaction = require('../../../src/modules/chain/logic/init_transaction');
-const Account = require('../../../src/modules/chain/logic/account');
+const Account = require('../../../src/modules/chain/rounds/account');
 
+// TODO: Remove this file
 const modulesLoader = new function() {
 	this.storage = null;
 	this.logger = createLoggerComponent(__testContext.config.components.logger);
@@ -101,30 +101,24 @@ const modulesLoader = new function() {
 					scope.components.storage,
 					scope.schema,
 					scope.components.logger,
-					cb
+					scope.modules.rounds
 				);
-				break;
-			case 'InitTransaction':
-				new Logic(cb);
 				break;
 			case 'Block':
 				async.waterfall(
 					[
 						function(waterCb) {
-							return new Account(
+							new Account(
 								scope.components.storage,
 								scope.schema,
-								scope.components.logger,
-								waterCb
+								scope.components.logger
 							);
-						},
-						function(account, waterCb) {
-							const initTransaction = new InitTransaction({});
-							return waterCb(null, initTransaction);
+
+							return waterCb();
 						},
 					],
-					(err, transaction) => {
-						new Logic(scope.ed, scope.schema, transaction, cb);
+					() => {
+						new Logic(scope.ed, scope.schema, this.transactions, cb);
 					}
 				);
 				break;
@@ -219,29 +213,20 @@ const modulesLoader = new function() {
 	this.initAllModules = function(cb, scope) {
 		this.initModules(
 			[
-				{ blocks: require('../../../src/modules/chain/submodules/blocks') },
+				{ blocks: require('../../../src/modules/chain/blocks/blocks') },
 				{
 					delegates: require('../../../src/modules/chain/rounds/delegates'),
 				},
 				{ loader: require('../../../src/modules/chain/loader') },
-				{
-					multisignatures: require('../../../src/modules/chain/submodules/multisignatures'),
-				},
 				{ peers: require('../../../src/modules/chain/submodules/peers') },
 				{ rounds: require('../../../src/modules/chain/rounds/rounds') },
-				{
-					transactions: require('../../../src/modules/chain/submodules/transactions'),
-				},
 				{
 					transport: require('../../../src/modules/chain/transport'),
 				},
 			],
 			[
-				{
-					initTransaction: require('../../../src/modules/chain/logic/init_transaction'),
-				},
-				{ account: require('../../../src/modules/chain/logic/account') },
-				{ block: require('../../../src/modules/chain/logic/block') },
+				{ account: require('../../../src/modules/chain/rounds/account') },
+				{ block: require('../../../src/modules/chain/blocks/block') },
 			],
 			scope || {},
 			cb

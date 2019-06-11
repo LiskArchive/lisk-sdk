@@ -79,7 +79,8 @@ describe('integration test - multi signature edge cases', () => {
 		}
 	);
 
-	describe('try to register more dapps than balance will allow from a multisignature account', () => {
+	// eslint-disable-next-line mocha/no-skipped-tests
+	describe.skip('try to register more dapps than balance will allow from a multisignature account', () => {
 		const transactionIds = [];
 		const transactions = [];
 		before('Create more transactions than available funds can cover', done => {

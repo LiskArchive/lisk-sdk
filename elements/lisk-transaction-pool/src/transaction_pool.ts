@@ -35,6 +35,7 @@ export interface TransactionObject {
 	readonly type: number;
 	readonly senderId: string;
 	containsUniqueData?: boolean;
+	verifiedOnce?: boolean;
 }
 
 export interface SignatureObject {
@@ -104,6 +105,7 @@ const DEFAULT_VERIFIED_TRANSACTIONS_LIMIT_PER_PROCESSING = 100;
 
 export const EVENT_ADDED_TRANSACTIONS = 'transactionsAdded';
 export const EVENT_REMOVED_TRANSACTIONS = 'transactionsRemoved';
+export const EVENT_VERIFIED_TRANSACTION_ONCE = 'transactionVerifiedOnce';
 export const ACTION_ADD_VERIFIED_REMOVED_TRANSACTIONS =
 	'addVerifiedRemovedTransactions';
 export const ACTION_REMOVE_CONFIRMED_TRANSACTIONS =
@@ -116,6 +118,8 @@ export const ACTION_VALIDATE_RECEIVED_TRANSACTIONS =
 	'validateReceivedTransactions';
 export const ACTION_VERIFY_VALIDATED_TRANSACTIONS =
 	'verifyValidatedTransactions';
+export const ACTION_ADD_VERIFIED_TRANSACTIONS = 'addVerifiedTransactions';
+export const ACTION_ADD_PENDING_TRANSACTIONS = 'addPendingTransactions';
 
 export class TransactionPool extends EventEmitter {
 	private readonly _pendingTransactionsProcessingLimit: number;
@@ -223,12 +227,20 @@ export class TransactionPool extends EventEmitter {
 
 	public addTransaction(transaction: Transaction): AddTransactionResult {
 		const receivedQueue: QueueNames = 'received';
+		// Transactions which are added to the received queue should fire the event  "EVENT_VERIFIED_TRANSACTION_ONCE"
+		// When they are verified for the first time. VerifiedOnce flag is primarily used for it.
+		transaction.verifiedOnce = false;
 
 		return this.addTransactionToQueue(receivedQueue, transaction);
 	}
 
 	public addPendingTransaction(transaction: Transaction): AddTransactionResult {
 		const pendingQueue: QueueNames = 'pending';
+
+		this.emit(EVENT_VERIFIED_TRANSACTION_ONCE, {
+			action: ACTION_ADD_PENDING_TRANSACTIONS,
+			payload: [transaction],
+		});
 
 		return this.addTransactionToQueue(pendingQueue, transaction);
 	}
@@ -237,6 +249,11 @@ export class TransactionPool extends EventEmitter {
 		transaction: Transaction,
 	): AddTransactionResult {
 		const verifiedQueue: QueueNames = 'verified';
+
+		this.emit(EVENT_VERIFIED_TRANSACTION_ONCE, {
+			action: ACTION_ADD_VERIFIED_TRANSACTIONS,
+			payload: [transaction],
+		});
 
 		return this.addTransactionToQueue(verifiedQueue, transaction);
 	}
@@ -691,6 +708,21 @@ export class TransactionPool extends EventEmitter {
 		this.emit(EVENT_REMOVED_TRANSACTIONS, {
 			action: ACTION_VERIFY_VALIDATED_TRANSACTIONS,
 			payload: removedTransactions,
+		});
+
+		// Checking which transactions were verified for the first time, filtering them and firing an event for those transactions
+		const transactionsVerifiedForFirstTime = [
+			...pendingTransactions,
+			...passedTransactions,
+		].filter(transaction => transaction.verifiedOnce === false);
+
+		transactionsVerifiedForFirstTime.forEach(
+			transaction => delete transaction.verifiedOnce,
+		);
+
+		this.emit(EVENT_VERIFIED_TRANSACTION_ONCE, {
+			action: ACTION_VERIFY_VALIDATED_TRANSACTIONS,
+			payload: transactionsVerifiedForFirstTime,
 		});
 
 		return {

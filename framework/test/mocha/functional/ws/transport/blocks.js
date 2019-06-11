@@ -162,10 +162,12 @@ describe('WS transport blocks', () => {
 			} catch (err) {
 				__testContext.debug(
 					'> Error / Response:'.grey,
-					JSON.stringify(err),
+					JSON.stringify(err.response),
 					JSON.stringify(res)
 				);
-				expect(err).to.equal('Missing required property: ids: #/');
+				expect(err.response.message).to.equal(
+					'Missing required property: ids: #/'
+				);
 				expect(res).to.be.undefined;
 			}
 		});
@@ -180,10 +182,10 @@ describe('WS transport blocks', () => {
 			} catch (err) {
 				__testContext.debug(
 					'> Error / Response:'.grey,
-					JSON.stringify(err),
+					JSON.stringify(err.response),
 					JSON.stringify(res)
 				);
-				expect(err).to.equal('Invalid block id sequence');
+				expect(err.response.message).to.equal('Invalid block id sequence');
 			}
 		});
 
@@ -197,10 +199,10 @@ describe('WS transport blocks', () => {
 			} catch (err) {
 				__testContext.debug(
 					'> Error / Response:'.grey,
-					JSON.stringify(err),
+					JSON.stringify(err.response),
 					JSON.stringify(res)
 				);
-				expect(err).to.equal('Invalid block id sequence');
+				expect(err.response.message).to.equal('Invalid block id sequence');
 			}
 		});
 
@@ -214,10 +216,10 @@ describe('WS transport blocks', () => {
 			} catch (err) {
 				__testContext.debug(
 					'> Error / Response:'.grey,
-					JSON.stringify(err),
+					JSON.stringify(err.response),
 					JSON.stringify(res)
 				);
-				expect(err).to.equal('Invalid block id sequence');
+				expect(err.response.message).to.equal('Invalid block id sequence');
 			}
 		});
 
@@ -231,10 +233,10 @@ describe('WS transport blocks', () => {
 			} catch (err) {
 				__testContext.debug(
 					'> Error / Response:'.grey,
-					JSON.stringify(err),
+					JSON.stringify(err.response),
 					JSON.stringify(res)
 				);
-				expect(err).to.equal('Invalid block id sequence');
+				expect(err.response.message).to.equal('Invalid block id sequence');
 			}
 		});
 

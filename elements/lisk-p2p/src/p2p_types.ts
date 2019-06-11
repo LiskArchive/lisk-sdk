@@ -49,6 +49,7 @@ export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
 	readonly updatedAt?: Date;
 	readonly os?: string;
 	readonly version: string;
+	readonly protocolVersion: string;
 	// tslint:disable-next-line: no-mixed-interface
 	readonly [key: string]: unknown;
 }
@@ -58,6 +59,7 @@ export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
 export interface P2PNodeInfo {
 	readonly os: string;
 	readonly version: string;
+	readonly protocolVersion: string;
 	readonly nethash: string;
 	readonly wsPort: number;
 	readonly height: number;
@@ -81,10 +83,11 @@ export interface P2PConfig {
 	readonly nodeInfo: P2PNodeInfo;
 	readonly wsEngine?: string;
 	readonly discoveryInterval?: number;
-	readonly peerSelectionForSend?: P2PPeerSelectionForSend;
-	readonly peerSelectionForRequest?: P2PPeerSelectionForRequest;
-	readonly peerSelectionForConnection?: P2PPeerSelectionForConnection;
+	readonly peerSelectionForSend?: P2PPeerSelectionForSendFunction;
+	readonly peerSelectionForRequest?: P2PPeerSelectionForRequestFunction;
+	readonly peerSelectionForConnection?: P2PPeerSelectionForConnectionFunction;
 	readonly peerHandshakeCheck?: P2PCheckPeerCompatibility;
+	readonly sendPeerLimit?: number;
 }
 
 // Network info exposed by the P2P library.
@@ -109,29 +112,35 @@ export interface ProtocolNodeInfo {
 	readonly [key: string]: unknown;
 }
 
-export type P2PPeerSelectionForSendRequest = (
-	peers: ReadonlyArray<P2PDiscoveredPeerInfo>,
-	nodeInfo?: P2PNodeInfo,
-	numOfPeers?: number,
+export interface P2PPeerSelectionForSendInput {
+	readonly peers: ReadonlyArray<P2PDiscoveredPeerInfo>;
+	readonly nodeInfo?: P2PNodeInfo;
+	readonly peerLimit?: number;
+	readonly messagePacket?: P2PMessagePacket;
+}
+
+export type P2PPeerSelectionForSendFunction = (
+	input: P2PPeerSelectionForSendInput,
 ) => ReadonlyArray<P2PDiscoveredPeerInfo>;
 
-export type P2PPeerSelectionForSend = (
-	peers: ReadonlyArray<P2PDiscoveredPeerInfo>,
-	nodeInfo?: P2PNodeInfo,
-	numOfPeers?: number,
-	messagePacket?: P2PMessagePacket,
+export interface P2PPeerSelectionForRequestInput {
+	readonly peers: ReadonlyArray<P2PDiscoveredPeerInfo>;
+	readonly nodeInfo?: P2PNodeInfo;
+	readonly peerLimit?: number;
+	readonly requestPacket?: P2PRequestPacket;
+}
+
+export type P2PPeerSelectionForRequestFunction = (
+	input: P2PPeerSelectionForRequestInput,
 ) => ReadonlyArray<P2PDiscoveredPeerInfo>;
 
-export type P2PPeerSelectionForRequest = (
-	peers: ReadonlyArray<P2PDiscoveredPeerInfo>,
-	nodeInfo?: P2PNodeInfo,
-	numOfPeers?: number,
-	requestPacket?: P2PRequestPacket,
-) => ReadonlyArray<P2PDiscoveredPeerInfo>;
+export interface P2PPeerSelectionForConnectionInput {
+	readonly peers: ReadonlyArray<P2PDiscoveredPeerInfo>;
+	readonly nodeInfo?: P2PNodeInfo;
+}
 
-export type P2PPeerSelectionForConnection = (
-	peers: ReadonlyArray<P2PDiscoveredPeerInfo>,
-	nodeInfo?: P2PNodeInfo,
+export type P2PPeerSelectionForConnectionFunction = (
+	input: P2PPeerSelectionForConnectionInput,
 ) => ReadonlyArray<P2PDiscoveredPeerInfo>;
 
 export interface P2PCompatibilityCheckReturnType {
@@ -153,6 +162,7 @@ export interface ProtocolPeerInfo {
 	readonly nonce: string;
 	readonly os?: string;
 	readonly version: string;
+	readonly protocolVersion: string;
 	readonly wsPort: number;
 	readonly httpPort?: number;
 	// tslint:disable-next-line: no-mixed-interface

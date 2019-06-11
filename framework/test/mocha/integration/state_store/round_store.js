@@ -14,7 +14,7 @@
 
 'use strict';
 
-const Bignum = require('browserify-bignum');
+const BigNum = require('@liskhq/bignum');
 const localCommon = require('../common');
 const RoundStore = require('../../../../src/modules/chain/logic/state_store/round_store.js');
 
@@ -38,8 +38,8 @@ describe('system test - round store', () => {
 		recipientId: '10773624498522558426L',
 		recipientPublicKey:
 			'961d1a1057a09f865291873e9ba3d0af7b2a3a1e971bb7576a2aab1c526acbcd',
-		amount: new Bignum('0'),
-		fee: new Bignum('100000000'),
+		amount: new BigNum('0'),
+		fee: new BigNum('100000000'),
 		signature:
 			'8ac892e223db5cc6695563ffbbb13e86d099d62d41f86e8131f8a03082c51a3b868830a5ca4a60cdb10a63dc0605bf217798dfb00f599e37491b5e701f856704',
 		signatures: [],

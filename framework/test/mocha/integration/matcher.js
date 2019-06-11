@@ -18,7 +18,14 @@ const {
 const commonApplication = require('../common/application');
 const accountFixtures = require('../fixtures/accounts');
 const randomUtil = require('../common/utils/random');
-const slots = require('../../../src/modules/chain/helpers/slots');
+const { BlockSlots } = require('../../../src/modules/chain/blocks');
+const blocksLogic = require('../../../src/modules/chain/blocks/block');
+
+const slots = new BlockSlots({
+	epochTime: __testContext.config.constants.EPOCH_TIME,
+	interval: __testContext.config.constants.BLOCK_TIME,
+	blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
+});
 
 // Promisify callback functions
 const forge = promisify(commonForge);
@@ -42,25 +49,15 @@ const CUSTOM_TRANSACTION_TYPE = 7;
 class CustomTransationClass extends BaseTransaction {
 	constructor(input) {
 		super(input);
-		this.type = CUSTOM_TRANSACTION_TYPE;
 		this.asset = input.asset;
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	assetToJSON() {
-		return this.asset;
+	static get TYPE() {
+		return 7;
 	}
 
-	// eslint-disable-next-line class-methods-use-this,no-empty-function
-	async prepare(store) {
-		await store.account.cache([
-			{
-				address: this.senderId,
-			},
-			{
-				address: this.recipientId,
-			},
-		]);
+	assetToJSON() {
+		return this.asset;
 	}
 
 	// eslint-disable-next-line class-methods-use-this
@@ -74,19 +71,21 @@ class CustomTransationClass extends BaseTransaction {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	validateAsset() {
-		return [];
-	}
-
-	// eslint-disable-next-line class-methods-use-this
 	undoAsset() {
 		return [];
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	verifyAgainstTransactions(transactions) {
-		transactions.forEach(() => true);
+	validateAsset() {
 		return [];
+	}
+
+	async prepare(store) {
+		await store.account.cache([
+			{
+				address: this.senderId,
+			},
+		]);
 	}
 }
 
@@ -100,6 +99,7 @@ class CustomTransationClass extends BaseTransaction {
  */
 function createRawCustomTransaction({ passphrase, senderId, senderPublicKey }) {
 	const aCustomTransation = new CustomTransationClass({
+		type: 7,
 		senderId,
 		senderPublicKey,
 		asset: {
@@ -118,24 +118,27 @@ function createRawCustomTransaction({ passphrase, senderId, senderPublicKey }) {
 }
 
 function createRawBlock(library, rawTransactions, callback) {
-	const lastBlock = library.modules.blocks.lastBlock.get();
+	const lastBlock = library.modules.blocks.lastBlock;
 	const slot = slots.getSlotNumber();
 	const keypairs = library.modules.forger.getForgersKeyPairs();
 	const transactions = rawTransactions.map(rawTransaction =>
-		library.logic.initTransaction.fromJson(rawTransaction)
+		library.modules.interfaceAdapters.transactions.fromJson(rawTransaction)
 	);
 
 	return getDelegateForSlot(library, slot, (err, delegateKey) => {
 		if (err) return callback(err);
 
-		const block = library.logic.block.create({
+		const block = blocksLogic.create({
+			blockReward: library.modules.blocks.blockReward,
 			keypair: keypairs[delegateKey],
 			timestamp: slots.getSlotTime(slot),
 			previousBlock: lastBlock,
 			transactions,
+			maxTransactionPerBlock:
+				library.modules.blocks.constants.maxTransactionPerBlock,
 		});
 
-		block.id = library.logic.block.getId(block);
+		block.id = blocksLogic.getId(block);
 		block.height = lastBlock.height + 1;
 		block.transactions = block.transactions.map(transaction =>
 			transaction.toJSON()
@@ -150,7 +153,7 @@ function setMatcherAndRegisterTx(scope, transactionClass, matcher) {
 		configurable: true,
 	});
 
-	scope.logic.initTransaction.transactionClassMap.set(
+	scope.modules.interfaceAdapters.transactions.transactionClassMap.set(
 		CUSTOM_TRANSACTION_TYPE,
 		CustomTransationClass
 	);
@@ -193,13 +196,11 @@ describe('matcher', () => {
 		be bigger than 7, so for this tests transaction type 7 can be removed from
 		registered transactions map so the CustomTransaction can be added with that
 		id. Type 7 is not used anyways. */
-		scope.logic.initTransaction.transactionClassMap.delete(7);
+		scope.modules.interfaceAdapters.transactions.transactionClassMap.delete(7);
 		receiveTransaction = scope.rewiredModules.transport.__get__(
 			'__private.receiveTransaction'
 		);
-		transactionPool = scope.rewiredModules.transactions.__get__(
-			'__private.transactionPool'
-		);
+		transactionPool = scope.modules.transactionPool;
 
 		// Define matcher property to be configurable so it can be overriden in the tests
 		setMatcherAndRegisterTx(scope, CustomTransationClass, () => {});
@@ -212,7 +213,7 @@ describe('matcher', () => {
 	afterEach(async () => {
 		// Delete the custom transaction type from the registered transactions list
 		// So it can be registered again with the same type and maybe a different implementation in a different test.
-		scope.logic.initTransaction.transactionClassMap.delete(
+		scope.modules.interfaceAdapters.transactions.transactionClassMap.delete(
 			CUSTOM_TRANSACTION_TYPE
 		);
 
@@ -229,14 +230,14 @@ describe('matcher', () => {
 					scope.components.storage.adapter.db.none('DELETE FROM forks_stat;'),
 				]);
 			});
-			scope.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
+			scope.modules.blocks._lastBlock = __testContext.config.genesisBlock;
 		} catch (err) {
 			__testContext.debug(err.stack);
 		}
 	});
 
 	describe('when receiving transactions from a peer', () => {
-		it('should not include a disallowed transaction in the transaction pool', done => {
+		it('should not include a disallowed transaction in the transaction pool', async () => {
 			// Arrange
 			// Force the matcher function to return always _FALSE_, for easy testing
 			// and register the transaction
@@ -244,45 +245,35 @@ describe('matcher', () => {
 
 			const rawTransaction = createRawCustomTransaction(commonTransactionData);
 
-			// Act: simulate receiving transactions from another peer
-			receiveTransaction(
-				rawTransaction,
-				randomstring.generate(16),
-				null,
-				err => {
-					// Assert
-					expect(
-						scope.modules.transactions.transactionInPool(rawTransaction.id)
-					).to.be.false;
-					expect(err[0]).to.be.instanceOf(Error);
-					expect(err[0].message).to.equal(
-						`Transaction type ${CUSTOM_TRANSACTION_TYPE} is currently not allowed.`
-					);
-					done();
-				}
-			);
+			try {
+				// Act: simulate receiving transactions from another peer
+				await receiveTransaction(rawTransaction);
+
+				// Forces the test to fail if `receiveTransaction` doesn't throw
+				throw [new Error('receiveTransaction was not rejected')];
+			} catch (err) {
+				// Assert
+				expect(
+					scope.modules.transactionPool.transactionInPool(rawTransaction.id)
+				).to.be.false;
+				expect(err[0]).to.be.instanceOf(Error);
+				expect(err[0].message).to.equal(
+					`Transaction type ${CUSTOM_TRANSACTION_TYPE} is currently not allowed.`
+				);
+			}
 		});
 
-		it('should include an allowed transaction in the transaction pool', done => {
+		it('should include an allowed transaction in the transaction pool', async () => {
 			// Arrange
 			setMatcherAndRegisterTx(scope, CustomTransationClass, () => true);
-
 			const jsonTransaction = createRawCustomTransaction(commonTransactionData);
-
 			// Act
-			receiveTransaction(
-				jsonTransaction,
-				randomstring.generate(16),
-				null,
-				err => {
-					// Assert
-					expect(
-						scope.modules.transactions.transactionInPool(jsonTransaction.id)
-					).to.be.true;
-					expect(err).to.be.null;
-					done();
-				}
-			);
+			await receiveTransaction(jsonTransaction);
+
+			// Assert
+			expect(
+				scope.modules.transactionPool.transactionInPool(jsonTransaction.id)
+			).to.be.true;
 		});
 	});
 
@@ -291,21 +282,19 @@ describe('matcher', () => {
 			// Arrange
 			setMatcherAndRegisterTx(scope, CustomTransationClass, () => false);
 			const jsonTransaction = createRawCustomTransaction(commonTransactionData);
-
 			createRawBlock(scope, [jsonTransaction], (err, rawBlock) => {
 				if (err) {
 					return done(err);
 				}
 
 				// Act: Simulate receiving a block from a peer
-				scope.modules.blocks.process.receiveBlockFromNetwork(rawBlock);
+				scope.modules.blocks.receiveBlockFromNetwork(rawBlock);
 				return scope.sequence.__tick(tickErr => {
 					if (tickErr) {
 						return done(tickErr);
 					}
-
 					// Assert: received block should be accepted and set as the last block
-					expect(scope.modules.blocks.lastBlock.get().height).to.equal(1);
+					expect(scope.modules.blocks.lastBlock.height).to.equal(1);
 
 					return done();
 				});
@@ -325,14 +314,14 @@ describe('matcher', () => {
 				}
 
 				// Act: Simulate receiving a block from a peer
-				scope.modules.blocks.process.receiveBlockFromNetwork(block);
+				scope.modules.blocks.receiveBlockFromNetwork(block);
 				return scope.sequence.__tick(tickErr => {
 					if (tickErr) {
 						return done(tickErr);
 					}
 
 					// Assert: received block should be accepted and set as the last block
-					expect(scope.modules.blocks.lastBlock.get().height).to.equal(2);
+					expect(scope.modules.blocks.lastBlock.height).to.equal(2);
 
 					return done();
 				});
@@ -381,7 +370,7 @@ describe('matcher', () => {
 				// Attempt to forge again and include CustomTransaction in the block.
 				await forge(scope);
 
-				const lastBlock = scope.modules.blocks.lastBlock.get();
+				const lastBlock = scope.modules.blocks.lastBlock;
 				expect(
 					lastBlock.transactions.some(
 						transation => transation.id === jsonTransaction.id
@@ -402,7 +391,7 @@ describe('matcher', () => {
 			// Act: forge
 			await forge(scope);
 
-			const lastBlock = scope.modules.blocks.lastBlock.get();
+			const lastBlock = scope.modules.blocks.lastBlock;
 			expect(
 				lastBlock.transactions.some(
 					transation => transation.id === jsonTransaction.id

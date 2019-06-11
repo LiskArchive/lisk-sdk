@@ -40,12 +40,14 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 	describe('deleteLastBlock', () => {
 		describe('errors', () => {
-			it('should fail when trying to delete genesis block', done => {
-				library.modules.blocks.chain.deleteLastBlock((err, res) => {
-					expect(err).to.equal('Cannot delete genesis block');
-					expect(res).to.not.exist;
-					done();
-				});
+			it('should fail when trying to delete genesis block', async () => {
+				try {
+					await library.modules.blocks.blocksChain.deleteLastBlock(
+						library.modules.blocks.lastBlock
+					);
+				} catch (err) {
+					expect(err.message).to.equal('Cannot delete genesis block');
+				}
 			});
 		});
 
@@ -109,12 +111,16 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					expect(account.publicKey).to.be.null;
 				});
 
-				it('should delete last block', done => {
-					library.modules.blocks.chain.deleteLastBlock((err, res) => {
-						expect(err).to.not.exist;
-						expect(res).to.be.an('object');
-						done();
-					});
+				it('should delete last block', async () => {
+					const transactions = library.modules.blocks.lastBlock.transactions;
+					const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+						library.modules.blocks.lastBlock
+					);
+					library.modules.blocks._lastBlock = newLastBlock;
+					library.modules.transactionPool.onDeletedTransactions(
+						transactions.reverse()
+					);
+					expect(newLastBlock).to.be.an('object');
 				});
 
 				it('should validate account data from sender after deleting the last block', async () => {
@@ -190,12 +196,16 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					expect(account.secondSignature).to.equal(true);
 				});
 
-				it('should delete last block', done => {
-					library.modules.blocks.chain.deleteLastBlock((err, res) => {
-						expect(err).to.not.exist;
-						expect(res).to.be.an('object');
-						done();
-					});
+				it('should delete last block', async () => {
+					const transactions = library.modules.blocks.lastBlock.transactions;
+					const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+						library.modules.blocks.lastBlock
+					);
+					library.modules.blocks._lastBlock = newLastBlock;
+					library.modules.transactionPool.onDeletedTransactions(
+						transactions.reverse()
+					);
+					expect(newLastBlock).to.be.an('object');
 				});
 
 				it('should validate account data from sender after deleting the last block', async () => {
@@ -273,12 +283,16 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					expect(account.vote).to.equal('0');
 				});
 
-				it('should delete last block', done => {
-					library.modules.blocks.chain.deleteLastBlock((err, res) => {
-						expect(err).to.not.exist;
-						expect(res).to.be.an('object');
-						done();
-					});
+				it('should delete last block', async () => {
+					const transactions = library.modules.blocks.lastBlock.transactions;
+					const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+						library.modules.blocks.lastBlock
+					);
+					library.modules.blocks._lastBlock = newLastBlock;
+					library.modules.transactionPool.onDeletedTransactions(
+						transactions.reverse()
+					);
+					expect(newLastBlock).to.be.an('object');
 				});
 
 				it('should validate account data from sender after delete the last block', async () => {
@@ -354,12 +368,16 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					);
 				});
 
-				it('should delete last block', done => {
-					library.modules.blocks.chain.deleteLastBlock((err, res) => {
-						expect(err).to.not.exist;
-						expect(res).to.be.an('object');
-						done();
-					});
+				it('should delete last block', async () => {
+					const transactions = library.modules.blocks.lastBlock.transactions;
+					const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+						library.modules.blocks.lastBlock
+					);
+					library.modules.blocks._lastBlock = newLastBlock;
+					library.modules.transactionPool.onDeletedTransactions(
+						transactions.reverse()
+					);
+					expect(newLastBlock).to.be.an('object');
 				});
 
 				it('should validate account data from sender after deleting the last block', async () => {
@@ -442,12 +460,16 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					);
 				});
 
-				it('should delete last block', done => {
-					library.modules.blocks.chain.deleteLastBlock((err, res) => {
-						expect(err).to.not.exist;
-						expect(res).to.be.an('object');
-						done();
-					});
+				it('should delete last block', async () => {
+					const transactions = library.modules.blocks.lastBlock.transactions;
+					const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+						library.modules.blocks.lastBlock
+					);
+					library.modules.blocks._lastBlock = newLastBlock;
+					library.modules.transactionPool.onDeletedTransactions(
+						transactions.reverse()
+					);
+					expect(newLastBlock).to.be.an('object');
 				});
 
 				it('should validate account data from sender', async () => {
@@ -489,7 +511,8 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					createAccountWithFunds(done);
 				});
 
-				describe('(type 5) register dapp', () => {
+				/* eslint-disable mocha/no-skipped-tests */
+				describe.skip('(type 5) register dapp', () => {
 					it('should validate account data from sender after account creation', async () => {
 						const account = await library.components.storage.entities.Account.getOne(
 							{ address: testAccount.address }
@@ -519,12 +542,16 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 						expect(account.publicKey).to.not.be.null;
 					});
 
-					it('should delete last block', done => {
-						library.modules.blocks.chain.deleteLastBlock((err, res) => {
-							expect(err).to.not.exist;
-							expect(res).to.be.an('object');
-							done();
-						});
+					it('should delete last block', async () => {
+						const transactions = library.modules.blocks.lastBlock.transactions;
+						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+							library.modules.blocks.lastBlock
+						);
+						library.modules.blocks._lastBlock = newLastBlock;
+						library.modules.transactionPool.onDeletedTransactions(
+							transactions.reverse()
+						);
+						expect(newLastBlock).to.be.an('object');
 					});
 
 					it('should validate account data from sender after deleting the last block', async () => {
@@ -580,12 +607,16 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 						expect(account.publicKey).to.not.be.null;
 					});
 
-					it('should delete last block', done => {
-						library.modules.blocks.chain.deleteLastBlock((err, res) => {
-							expect(err).to.not.exist;
-							expect(res).to.be.an('object');
-							done();
-						});
+					it('should delete last block', async () => {
+						const transactions = library.modules.blocks.lastBlock.transactions;
+						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+							library.modules.blocks.lastBlock
+						);
+						library.modules.blocks._lastBlock = newLastBlock;
+						library.modules.transactionPool.onDeletedTransactions(
+							transactions.reverse()
+						);
+						expect(newLastBlock).to.be.an('object');
 					});
 
 					it('should validate account data from sender after deleting the last block', async () => {
@@ -645,12 +676,16 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 						expect(account.publicKey).to.not.be.null;
 					});
 
-					it('should delete last block', done => {
-						library.modules.blocks.chain.deleteLastBlock((err, res) => {
-							expect(err).to.not.exist;
-							expect(res).to.be.an('object');
-							done();
-						});
+					it('should delete last block', async () => {
+						const transactions = library.modules.blocks.lastBlock.transactions;
+						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+							library.modules.blocks.lastBlock
+						);
+						library.modules.blocks._lastBlock = newLastBlock;
+						library.modules.transactionPool.onDeletedTransactions(
+							transactions.reverse()
+						);
+						expect(newLastBlock).to.be.an('object');
 					});
 
 					it('should validate account data from sender after deleting the last block', async () => {

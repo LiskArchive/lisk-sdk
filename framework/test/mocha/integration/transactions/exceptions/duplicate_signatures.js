@@ -15,12 +15,10 @@
 'use strict';
 
 const { expect } = require('chai');
-const Bignum = require('bignumber.js');
+const BigNum = require('@liskhq/bignum');
 const { transfer } = require('@liskhq/lisk-transactions');
 const localCommon = require('../../common');
 const accountFixtures = require('../../../fixtures/accounts');
-
-const exceptions = global.exceptions;
 
 describe('exceptions for duplicatedSignatures transactions', () => {
 	let library;
@@ -94,47 +92,93 @@ describe('exceptions for duplicatedSignatures transactions', () => {
 		},
 	};
 
-	exceptions.duplicatedSignatures = {
-		'15181013796707110990': [
-			'2ec5bbc4ff552f991262867cd8f1c30a417e4596e8343d882b7c4fc86288b9e53592031f3de75ffe8cf4d431a7291b76c758999bb52f46a4da62a27c8901b60a',
-			'36d5c7da5f54007e22609105570fad04597f4f2b00d46baba603c213eaed8de55e9f3e5d0f39789dbc396330b2d9d4da46b7d67187075e86220bc0341c3f7802',
-		],
-	};
-
 	localCommon.beforeBlock('system_duplicate_signatures', lib => {
 		library = lib;
+		library.modules.blocks.blocksProcess.exceptions = {
+			...library.modules.blocks.exceptions,
+			duplicatedSignatures: {
+				'15181013796707110990': [
+					'2ec5bbc4ff552f991262867cd8f1c30a417e4596e8343d882b7c4fc86288b9e53592031f3de75ffe8cf4d431a7291b76c758999bb52f46a4da62a27c8901b60a',
+					'36d5c7da5f54007e22609105570fad04597f4f2b00d46baba603c213eaed8de55e9f3e5d0f39789dbc396330b2d9d4da46b7d67187075e86220bc0341c3f7802',
+				],
+			},
+		};
+		library.modules.blocks.blocksChain.exceptions = {
+			...library.modules.blocks.exceptions,
+			duplicatedSignatures: {
+				'15181013796707110990': [
+					'2ec5bbc4ff552f991262867cd8f1c30a417e4596e8343d882b7c4fc86288b9e53592031f3de75ffe8cf4d431a7291b76c758999bb52f46a4da62a27c8901b60a',
+					'36d5c7da5f54007e22609105570fad04597f4f2b00d46baba603c213eaed8de55e9f3e5d0f39789dbc396330b2d9d4da46b7d67187075e86220bc0341c3f7802',
+				],
+			},
+		};
+		library.modules.blocks.blocksVerify.exceptions = {
+			...library.modules.blocks.exceptions,
+			duplicatedSignatures: {
+				'15181013796707110990': [
+					'2ec5bbc4ff552f991262867cd8f1c30a417e4596e8343d882b7c4fc86288b9e53592031f3de75ffe8cf4d431a7291b76c758999bb52f46a4da62a27c8901b60a',
+					'36d5c7da5f54007e22609105570fad04597f4f2b00d46baba603c213eaed8de55e9f3e5d0f39789dbc396330b2d9d4da46b7d67187075e86220bc0341c3f7802',
+				],
+			},
+		};
 	});
 
 	describe('send funds to account', () => {
-		before(done => {
+		before(async () => {
 			const transferTransaction = transfer({
 				recipientId:
 					accountWithTransactionWithSignaturesFromSamePublicKey.address,
 				amount: (5000000000 * 100).toString(),
 				passphrase: senderAccount.passphrase,
 			});
-			localCommon.createValidBlockWithSlotOffset(
-				library,
-				[transferTransaction],
-				--slotOffset,
-				(err, block) => {
-					expect(err).to.not.exist;
-					library.modules.blocks.verify.processBlock(block, true, true, done);
-				}
+			const newBlock = await new Promise((resolve, reject) => {
+				localCommon.createValidBlockWithSlotOffset(
+					library,
+					[transferTransaction],
+					--slotOffset,
+					(err, block) => {
+						if (err) {
+							return reject(err);
+						}
+						return resolve(block);
+					}
+				);
+			});
+			await library.modules.blocks.blocksProcess.processBlock(
+				newBlock,
+				library.modules.blocks.lastBlock
 			);
+			library.modules.blocks._lastBlock = newBlock;
 		});
 
 		describe('when forging block with transaction which initializes the account', () => {
-			before(done => {
-				localCommon.createValidBlockWithSlotOffset(
-					library,
-					[transactionToRegisterMultisignature],
-					--slotOffset,
-					(err, block) => {
-						expect(err).to.not.exist;
-						library.modules.blocks.verify.processBlock(block, true, true, done);
-					}
+			before(async () => {
+				const newBlock = await new Promise((resolve, reject) => {
+					localCommon.createValidBlockWithSlotOffset(
+						library,
+						[transactionToRegisterMultisignature],
+						--slotOffset,
+						{
+							duplicatedSignatures: {
+								'15181013796707110990': [
+									'2ec5bbc4ff552f991262867cd8f1c30a417e4596e8343d882b7c4fc86288b9e53592031f3de75ffe8cf4d431a7291b76c758999bb52f46a4da62a27c8901b60a',
+									'36d5c7da5f54007e22609105570fad04597f4f2b00d46baba603c213eaed8de55e9f3e5d0f39789dbc396330b2d9d4da46b7d67187075e86220bc0341c3f7802',
+								],
+							},
+						},
+						(err, block) => {
+							if (err) {
+								return reject(err);
+							}
+							return resolve(block);
+						}
+					);
+				});
+				await library.modules.blocks.blocksProcess.processBlock(
+					newBlock,
+					library.modules.blocks.lastBlock
 				);
+				library.modules.blocks._lastBlock = newBlock;
 			});
 
 			describe('details of the accounts', () => {
@@ -161,21 +205,33 @@ describe('exceptions for duplicatedSignatures transactions', () => {
 				});
 
 				describe('when forging block with transaction with duplicate signatures', () => {
-					before(done => {
-						localCommon.createValidBlockWithSlotOffset(
-							library,
-							[transactionWithSignaturesFromSamePublicKey],
-							--slotOffset,
-							(err, block) => {
-								expect(err).to.not.exist;
-								library.modules.blocks.verify.processBlock(
-									block,
-									true,
-									true,
-									done
-								);
-							}
+					before(async () => {
+						const newBlock = await new Promise((resolve, reject) => {
+							localCommon.createValidBlockWithSlotOffset(
+								library,
+								[transactionWithSignaturesFromSamePublicKey],
+								--slotOffset,
+								{
+									duplicatedSignatures: {
+										'15181013796707110990': [
+											'2ec5bbc4ff552f991262867cd8f1c30a417e4596e8343d882b7c4fc86288b9e53592031f3de75ffe8cf4d431a7291b76c758999bb52f46a4da62a27c8901b60a',
+											'36d5c7da5f54007e22609105570fad04597f4f2b00d46baba603c213eaed8de55e9f3e5d0f39789dbc396330b2d9d4da46b7d67187075e86220bc0341c3f7802',
+										],
+									},
+								},
+								(err, block) => {
+									if (err) {
+										return reject(err);
+									}
+									return resolve(block);
+								}
+							);
+						});
+						await library.modules.blocks.blocksProcess.processBlock(
+							newBlock,
+							library.modules.blocks.lastBlock
 						);
+						library.modules.blocks._lastBlock = newBlock;
 					});
 
 					describe('details of the accounts', () => {
@@ -193,7 +249,7 @@ describe('exceptions for duplicatedSignatures transactions', () => {
 
 						it('should deduct balance from sender account', async () => {
 							return expect(senderMemAccountAfter.balance).to.equal(
-								new Bignum(senderMemAccountBefore.balance)
+								new BigNum(senderMemAccountBefore.balance)
 									.minus(transactionWithSignaturesFromSamePublicKey.fee)
 									.toString()
 							);

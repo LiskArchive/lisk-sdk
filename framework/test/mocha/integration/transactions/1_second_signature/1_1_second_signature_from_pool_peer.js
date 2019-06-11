@@ -14,6 +14,7 @@
 
 'use strict';
 
+const { promisify } = require('util');
 const {
 	transfer,
 	registerSecondPassphrase,
@@ -22,6 +23,8 @@ const expect = require('chai').expect;
 const accountFixtures = require('../../../fixtures/accounts');
 const localCommon = require('../../common');
 const randomUtil = require('../../../common/utils/random');
+
+const createValidBlockPromisified = promisify(localCommon.createValidBlock);
 
 const { NORMALIZER } = global.__testContext.config;
 // eslint-disable-next-line
@@ -41,7 +44,7 @@ describe('integration test (type 1) - second signature transactions from pool an
 				storage.adapter.db.none('DELETE FROM forks_stat;'),
 			]);
 		}).then(() => {
-			library.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
+			library.modules.blocks._lastBlock = __testContext.config.genesisBlock;
 			done();
 		});
 	});
@@ -75,16 +78,11 @@ describe('integration test (type 1) - second signature transactions from pool an
 			});
 
 			describe('when receiving block with same transaction', () => {
-				beforeEach(done => {
-					localCommon.createValidBlock(
-						library,
-						[signatureTransaction],
-						(err, block) => {
-							expect(err).to.not.exist;
-							library.modules.blocks.process.receiveBlockFromNetwork(block);
-							done();
-						}
-					);
+				beforeEach(async () => {
+					const block = await createValidBlockPromisified(library, [
+						signatureTransaction,
+					]);
+					return library.modules.blocks.receiveBlockFromNetwork(block);
 				});
 
 				describe('confirmed state', () => {
@@ -109,20 +107,16 @@ describe('integration test (type 1) - second signature transactions from pool an
 			describe('when receiving block with signature transaction with different id', () => {
 				let signatureTransaction2;
 
-				beforeEach(done => {
+				beforeEach(async () => {
 					signatureTransaction2 = registerSecondPassphrase({
 						passphrase: signatureAccount.passphrase,
 						secondPassphrase: randomUtil.password(),
 					});
-					localCommon.createValidBlock(
-						library,
-						[signatureTransaction2],
-						(err, block) => {
-							expect(err).to.not.exist;
-							library.modules.blocks.process.receiveBlockFromNetwork(block);
-							done();
-						}
-					);
+
+					const block = await createValidBlockPromisified(library, [
+						signatureTransaction2,
+					]);
+					return library.modules.blocks.receiveBlockFromNetwork(block);
 				});
 
 				describe('confirmed state', () => {
@@ -149,7 +143,7 @@ describe('integration test (type 1) - second signature transactions from pool an
 				let signatureTransaction4;
 				let blockId;
 
-				beforeEach(done => {
+				beforeEach(async () => {
 					signatureTransaction3 = registerSecondPassphrase({
 						passphrase: signatureAccount.passphrase,
 						secondPassphrase: randomUtil.password(),
@@ -159,16 +153,12 @@ describe('integration test (type 1) - second signature transactions from pool an
 						passphrase: signatureAccount.passphrase,
 						secondPassphrase: randomUtil.password(),
 					});
-					localCommon.createValidBlock(
-						library,
-						[signatureTransaction3, signatureTransaction4],
-						(err, block) => {
-							blockId = block.id;
-							expect(err).to.not.exist;
-							library.modules.blocks.process.receiveBlockFromNetwork(block);
-							done();
-						}
-					);
+
+					const block = await createValidBlockPromisified(library, [
+						signatureTransaction3,
+						signatureTransaction4,
+					]);
+					return library.modules.blocks.receiveBlockFromNetwork(block);
 				});
 
 				describe('should reject block', () => {

@@ -16,7 +16,7 @@
 
 const Promise = require('bluebird');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
-const Bignum = require('../helpers/bignum');
+const BigNum = require('@liskhq/bignum');
 
 const exceptions = global.exceptions;
 const { ACTIVE_DELEGATES } = global.constants;
@@ -43,7 +43,7 @@ class Round {
 			roundFees: scope.roundFees,
 			roundRewards: scope.roundRewards,
 			library: {
-				logic: scope.library.logic,
+				account: scope.library.account,
 				logger: scope.library.logger,
 				storage: scope.library.storage,
 			},
@@ -94,7 +94,7 @@ class Round {
 
 			const address = getAddressFromPublicKey(data.publicKey);
 
-			self.scope.library.logic.account.merge(
+			self.scope.library.account.merge(
 				address,
 				data,
 				(err, account) => {
@@ -303,32 +303,26 @@ class Round {
 		if (exceptions.rounds[this.scope.round.toString()]) {
 			// Apply rewards factor
 			roundRewards.forEach((reward, subIndex) => {
-				roundRewards[subIndex] = new Bignum(reward.toPrecision(15))
-					.multipliedBy(
-						exceptions.rounds[this.scope.round.toString()].rewards_factor
-					)
-					.integerValue(Bignum.ROUND_FLOOR);
+				roundRewards[subIndex] = new BigNum(reward.toPrecision(15))
+					.times(exceptions.rounds[this.scope.round.toString()].rewards_factor)
+					.floor();
 			});
 
 			// Apply fees factor and bonus
-			roundFees = new Bignum(roundFees.toPrecision(15))
-				.multipliedBy(
-					exceptions.rounds[this.scope.round.toString()].fees_factor
-				)
+			roundFees = new BigNum(roundFees.toPrecision(15))
+				.times(exceptions.rounds[this.scope.round.toString()].fees_factor)
 				.plus(exceptions.rounds[this.scope.round.toString()].fees_bonus)
-				.integerValue(Bignum.ROUND_FLOOR);
+				.floor();
 		}
 
-		const fees = new Bignum(roundFees.toPrecision(15))
+		const fees = new BigNum(roundFees.toPrecision(15))
 			.dividedBy(ACTIVE_DELEGATES)
-			.integerValue(Bignum.ROUND_FLOOR);
-		const feesRemaining = new Bignum(roundFees.toPrecision(15)).minus(
-			fees.multipliedBy(ACTIVE_DELEGATES)
+			.floor();
+		const feesRemaining = new BigNum(roundFees.toPrecision(15)).minus(
+			fees.times(ACTIVE_DELEGATES)
 		);
 		const rewards =
-			new Bignum(roundRewards[index].toPrecision(15)).integerValue(
-				Bignum.ROUND_FLOOR
-			) || 0;
+			new BigNum(roundRewards[index].toPrecision(15)).floor() || 0;
 
 		return {
 			fees: Number(fees.toFixed()),
@@ -382,7 +376,7 @@ class Round {
 			const address = getAddressFromPublicKey(accountData.publicKey);
 
 			p = new Promise((resolve, reject) => {
-				self.scope.library.logic.account.merge(
+				self.scope.library.account.merge(
 					address,
 					accountData,
 					(err, account) => {
@@ -401,8 +395,8 @@ class Round {
 			if (!self.scope.backwards) {
 				roundRewards.push({
 					timestamp: self.scope.block.timestamp,
-					fees: new Bignum(changes.fees).toString(),
-					reward: new Bignum(changes.rewards).toString(),
+					fees: new BigNum(changes.fees).toString(),
+					reward: new BigNum(changes.rewards).toString(),
 					round: self.scope.round,
 					publicKey: delegate,
 				});
@@ -438,7 +432,7 @@ class Round {
 
 				const address = getAddressFromPublicKey(data.publicKey);
 
-				self.scope.library.logic.account.merge(
+				self.scope.library.account.merge(
 					address,
 					data,
 					(err, account) => {
@@ -453,7 +447,7 @@ class Round {
 
 			// Aggregate round rewards data (remaining fees) - when going forward
 			if (!self.scope.backwards) {
-				roundRewards[roundRewards.length - 1].fees = new Bignum(
+				roundRewards[roundRewards.length - 1].fees = new BigNum(
 					roundRewards[roundRewards.length - 1].fees
 				)
 					.plus(feesRemaining)
