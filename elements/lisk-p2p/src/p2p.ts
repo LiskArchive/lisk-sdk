@@ -345,8 +345,8 @@ export class P2P extends EventEmitter {
 				config.maxInboundConnections === undefined
 					? DEFAULT_MAX_INBOUND_CONNECTIONS
 					: config.maxInboundConnections,
-			outboundEvictionInterval: config.outboundEvictionInterval
-				? config.outboundEvictionInterval
+			outboundShuffleInterval: config.outboundShuffleInterval
+				? config.outboundShuffleInterval
 				: DEFAULT_OUTBOUND_SHUFFLE_INTERVAL,
 		});
 

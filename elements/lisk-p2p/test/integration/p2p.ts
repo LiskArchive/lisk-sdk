@@ -1406,12 +1406,12 @@ describe('Integration tests for P2P library', () => {
 		});
 	});
 
-	describe('Network with frequent peer evictions', () => {
+	describe('Network with frequent peer shuffling', () => {
 		const NETWORK_PEER_COUNT_WITH_LIMIT = 30;
 		const TEN_CONNECTIONS = 10;
 		const DISCOVERY_INTERVAL_WITH_LIMIT = 1000;
-		const POPULATOR_INTERVAL_WITH_LIMIT = 1000;
-		const OUTBOUND_EVICTION_INTERVAL = 500;
+		const POPULATOR_INTERVAL_WITH_LIMIT = 10000;
+		const OUTBOUND_SHUFFLE_INTERVAL = 500;
 		beforeEach(async () => {
 			p2pNodeList = [...new Array(NETWORK_PEER_COUNT_WITH_LIMIT).keys()].map(
 				index => {
@@ -1435,7 +1435,7 @@ describe('Integration tests for P2P library', () => {
 						populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
 						maxOutboundConnections: TEN_CONNECTIONS,
 						maxInboundConnections: TEN_CONNECTIONS,
-						outboundEvictionInterval: OUTBOUND_EVICTION_INTERVAL,
+						outboundShuffleInterval: OUTBOUND_SHUFFLE_INTERVAL,
 						nodeInfo: {
 							wsPort: nodePort,
 							nethash:
@@ -1469,8 +1469,8 @@ describe('Integration tests for P2P library', () => {
 			await wait(100);
 		});
 
-		describe('Peer outbound eviction', () => {
-			it('should evict a random outbound peer in an interval', async () => {
+		describe('Peer outbound shuffling', () => {
+			it('should shuffle outbound peers in an interval', async () => {
 				const p2pNode = p2pNodeList[0];
 				const { outbound } = p2pNode['_peerPool'].getPeersCountPerKind();
 				// Wait for periodic shuffling
@@ -1479,7 +1479,7 @@ describe('Integration tests for P2P library', () => {
 					'_peerPool'
 				].getPeersCountPerKind();
 
-				expect(updatedOutbound).to.be.lessThan(outbound);
+				expect(updatedOutbound).to.equal(outbound - 1);
 			});
 		});
 	});

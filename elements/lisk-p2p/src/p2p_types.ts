@@ -92,13 +92,13 @@ export interface P2PConfig {
 	readonly populatorInterval?: number;
 	readonly maxOutboundConnections: number;
 	readonly maxInboundConnections: number;
-	readonly peerSelectionForSend?: P2PPeerSelectionForSendFunction;	
+	readonly peerSelectionForSend?: P2PPeerSelectionForSendFunction;
 	readonly peerSelectionForRequest?: P2PPeerSelectionForRequestFunction;
 	readonly peerSelectionForConnection?: P2PPeerSelectionForConnectionFunction;
 	readonly peerHandshakeCheck?: P2PCheckPeerCompatibility;
 	readonly peerBanTime?: number;
 	readonly sendPeerLimit?: number;
-	readonly outboundEvictionInterval?: number;
+	readonly outboundShuffleInterval?: number;
 }
 
 // Network info exposed by the P2P library.

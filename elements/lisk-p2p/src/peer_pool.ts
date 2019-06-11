@@ -90,7 +90,7 @@ interface PeerPoolConfig {
 	readonly peerBanTime?: number;
 	readonly maxOutboundConnections: number;
 	readonly maxInboundConnections: number;
-	readonly outboundEvictionInterval?: number;
+	readonly outboundShuffleInterval?: number;
 }
 
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
@@ -149,7 +149,7 @@ export class PeerPool extends EventEmitter {
 			() => {
 				this._evictPeer(OutboundPeer);
 			},
-			peerPoolConfig.outboundEvictionInterval as number,
+			peerPoolConfig.outboundShuffleInterval as number,
 		);
 
 		// This needs to be an arrow function so that it can be used as a listener.
