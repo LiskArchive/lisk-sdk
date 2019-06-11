@@ -49,6 +49,7 @@ export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
 	readonly updatedAt?: Date;
 	readonly os?: string;
 	readonly version: string;
+	readonly protocolVersion: string;
 	// tslint:disable-next-line: no-mixed-interface
 	readonly [key: string]: unknown;
 }
@@ -58,6 +59,7 @@ export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
 export interface P2PNodeInfo {
 	readonly os: string;
 	readonly version: string;
+	readonly protocolVersion: string;
 	readonly nethash: string;
 	readonly wsPort: number;
 	readonly height: number;
@@ -160,6 +162,7 @@ export interface ProtocolPeerInfo {
 	readonly nonce: string;
 	readonly os?: string;
 	readonly version: string;
+	readonly protocolVersion: string;
 	readonly wsPort: number;
 	readonly httpPort?: number;
 	// tslint:disable-next-line: no-mixed-interface

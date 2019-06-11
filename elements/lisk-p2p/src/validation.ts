@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { valid as isValidVersion } from 'semver';
+import { gte as isVersionGTE, valid as isValidVersion } from 'semver';
 import { isIP, isNumeric, isPort } from 'validator';
 import {
 	InvalidPeerError,
@@ -74,6 +74,7 @@ export const validatePeerInfo = (
 	}
 
 	const version = protocolPeer.version;
+	const protocolVersion = protocolPeer.protocolVersion;
 	const wsPort = +protocolPeer.wsPort;
 	const os = protocolPeer.os ? protocolPeer.os : '';
 	const height =
@@ -88,6 +89,7 @@ export const validatePeerInfo = (
 		height,
 		os,
 		version,
+		protocolVersion,
 	};
 
 	const { ip, ...peerInfoUpdated } = peerInfo;
@@ -158,11 +160,15 @@ export const checkProtocolVersionCompatibility = (
 	nodeInfo: P2PNodeInfo,
 ): boolean => {
 	if (!peerInfo.protocolVersion) {
-		return false;
+		try {
+			return isVersionGTE(peerInfo.version, nodeInfo.minVersion as string);
+		} catch (error) {
+			return false;
+		}
 	}
 
-	const peerHardForks = +(peerInfo.protocolVersion as string).split('.')[0];
-	const systemHardForks = +(nodeInfo.protocolVersion as string).split('.')[0];
+	const peerHardForks = parseInt(peerInfo.protocolVersion.split('.')[0], 10);
+	const systemHardForks = parseInt(nodeInfo.protocolVersion.split('.')[0], 10);
 
 	return systemHardForks === peerHardForks && peerHardForks >= 1;
 };

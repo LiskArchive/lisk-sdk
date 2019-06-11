@@ -28,6 +28,7 @@ describe('peer selector', () => {
 			nethash: '73458irc3yb7rg37r7326dbt7236',
 			os: 'linux',
 			version: '1.1.1',
+			protocolVersion: '1.1',
 			wsPort: 5000,
 		};
 
