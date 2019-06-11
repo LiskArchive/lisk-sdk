@@ -18,7 +18,7 @@ const async = require('async');
 const { promisify } = require('util');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const { validateTransactions } = require('./transactions');
-const { convertErrorsToString } = require('./helpers/error_handlers');
+const { convertErrorsToString } = require('./utils/error_handlers');
 const definitions = require('./schema/definitions');
 
 // Private fields

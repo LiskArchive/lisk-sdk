@@ -15,18 +15,18 @@
 'use strict';
 
 if (process.env.NEW_RELIC_LICENSE_KEY) {
-	require('./helpers/newrelic_lisk');
+	require('./utils/newrelic_lisk');
 }
 
-const { convertErrorsToString } = require('./helpers/error_handlers');
-const Sequence = require('./helpers/sequence');
-const ed = require('./helpers/ed');
+const { convertErrorsToString } = require('./utils/error_handlers');
+const Sequence = require('./utils/sequence');
+const ed = require('./utils/ed');
 const { ZSchema } = require('../../controller/validator');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
 const { createBus, bootstrapStorage, bootstrapCache } = require('./init_steps');
-const jobQueue = require('./helpers/jobs_queue');
+const jobQueue = require('./utils/jobs_queue');
 const Peers = require('./submodules/peers');
 const { TransactionInterfaceAdapter } = require('./interface_adapters');
 const { TransactionPool } = require('./transaction_pool');

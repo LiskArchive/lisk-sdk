@@ -14,7 +14,7 @@
 
 'use strict';
 
-const jobsQueue = require('../helpers/jobs_queue');
+const jobsQueue = require('../utils/jobs_queue');
 
 // Private fields
 let library;

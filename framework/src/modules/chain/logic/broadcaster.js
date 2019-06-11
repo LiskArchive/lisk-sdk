@@ -15,7 +15,7 @@
 'use strict';
 
 const _ = require('lodash');
-const jobsQueue = require('../helpers/jobs_queue');
+const jobsQueue = require('../utils/jobs_queue');
 
 let library;
 

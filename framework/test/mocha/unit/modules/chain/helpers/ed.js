@@ -15,7 +15,7 @@
 'use strict';
 
 const crypto = require('crypto');
-const ed = require('../../../../../../src/modules/chain/helpers/ed');
+const ed = require('../../../../../../src/modules/chain/utils/ed');
 
 describe('ed', () => {
 	describe('makeKeypair', () => {
