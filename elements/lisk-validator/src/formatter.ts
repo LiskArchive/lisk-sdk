@@ -17,6 +17,7 @@ import * as Ajv from 'ajv';
 // tslint:disable-next-line no-require-imports
 import addKeywords = require('ajv-merge-patch');
 import {
+	isCsv,
 	isGreaterThanMaxTransactionId,
 	isHexString,
 	isNullCharacterIncluded,
@@ -130,3 +131,5 @@ validator.addKeyword('uniqueSignedPublicKeys', {
 });
 
 validator.addFormat('hex', isHexString);
+
+validator.addFormat('csv', isCsv);
