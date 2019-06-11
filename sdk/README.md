@@ -93,8 +93,8 @@ More usage examples and configuration samples will be made available during the 
 
 | Reason                           | How                                                                                            |
 | -------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Want to chat with our community  | [Chat with them on Lisk.chat](http://lisk.chat)                                                |
-| Want to chat with our developers | [Chat with them on Gitter](https://gitter.im/LiskHQ/lisk)                                      |
+| Want to chat with our community  | [Reach them on Lisk.chat](https://lisk.chat)                                                   |
+| Want to chat with our developers | [Reach them on Gitter](https://gitter.im/LiskHQ/lisk)                                          |
 | Found a bug                      | [Open a new issue](https://github.com/LiskHQ/lisk/issues/new)                                  |
 | Found a security issue           | [See our bounty program](https://blog.lisk.io/announcing-lisk-bug-bounty-program-5895bdd46ed4) |
 | Want to share your research      | [Propose your research](https://research.lisk.io)                                              |
@@ -119,11 +119,19 @@ Before testing local changes to `lisk-sdk/framework`, follow the above steps for
 
 ### Testing local changes to `lisk-sdk/elements`
 
-Before testing local changes to `lisk-sdk/elements`, follow the above steps for installation/building of dependencies and then run,
+Before testing local changes to `lisk-sdk/elements`, follow the above steps for installation/building of dependencies and then run:
 
 1. `npx lerna link`
 
-Once you have linked your local repo, everytime you make changes in `lisk-sdk/elements` you must run `npm run build` before testing.
+2. Once you have linked your local repo, everytime you make changes in `lisk-sdk/elements` you must build packages before testing:
+
+   a. To build all packages: `npm run build`
+
+   b. To build specific package: `lerna run build --scope <package name>`
+   Example: `lerna run build --scope @liskhq/lisk-p2p`
+
+   c. To build packages that have been modified in your branch: `lerna run build --since <branch name>`
+   Example:`lerna run build --since development`
 
 **Note:** In case you face any issues during the installation make sure you have the right version of `npm` and `node` and try to install from scratch by running,
 `npm run clean:node_modules && rm -rf ./node_modules`.
