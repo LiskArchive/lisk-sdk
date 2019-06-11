@@ -131,7 +131,7 @@ describe('bft', () => {
 				const header = blockHeaderFixture({ prevotedConfirmedUptoHeight: 10 });
 
 				expect(() => bft.verifyBlockHeaders(header)).toThrow(
-					'Wrong provtedConfirmedHeight in blockHeader.'
+					'Wrong prevotedConfirmedHeight in blockHeader.'
 				);
 			});
 
@@ -167,7 +167,7 @@ describe('bft', () => {
 				bft.headers.getBlockHeaderForDelegate.mockReturnValue(lastBlock);
 
 				expect(() => bft.verifyBlockHeaders(currentBlock)).toThrow(
-					'Violation of fork choice rule, delegate moved to different chain'
+					'Violation of fork choice rule, delegate moved to a different chain'
 				);
 			});
 
@@ -185,7 +185,7 @@ describe('bft', () => {
 				bft.headers.getBlockHeaderForDelegate.mockReturnValue(lastBlock);
 
 				expect(() => bft.verifyBlockHeaders(currentBlock)).toThrow(
-					'Violation of fork choice rule, delegate moved to different chain'
+					'Violation of fork choice rule, delegate moved to a different chain'
 				);
 			});
 
