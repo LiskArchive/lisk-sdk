@@ -435,8 +435,7 @@ module.exports = class Chain {
 			loaderModule: this.loader,
 			interfaceAdapters: this.interfaceAdapters,
 			nonce: this.options.nonce,
-			forgingForce: this.options.forging.force,
-			broadcastsActive: this.options.broadcasts.active,
+			broadcasts: this.options.broadcasts,
 			maxSharedTransactions: this.options.constants.MAX_SHARED_TRANSACTIONS,
 		});
 		// TODO: should not add to scope

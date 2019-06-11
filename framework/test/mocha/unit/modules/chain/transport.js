@@ -35,6 +35,7 @@ const definitions = require('../../../../../src/modules/chain/schema/definitions
 const {
 	Transport: TransportModule,
 } = require('../../../../../src/modules/chain/transport');
+const jobsQueue = require('../../../../../src/modules/chain/helpers/jobs_queue');
 
 const expect = chai.expect;
 
@@ -139,6 +140,7 @@ describe('transport', () => {
 			debug: sinonSandbox.spy(),
 			error: sinonSandbox.spy(),
 			info: sinonSandbox.spy(),
+			trace: sinonSandbox.spy(),
 		};
 
 		schemaStub = {
@@ -152,6 +154,8 @@ describe('transport', () => {
 		balancesSequenceStub = {
 			add: async () => {},
 		};
+
+		sinonSandbox.stub(jobsQueue, 'register');
 
 		transportModule = new TransportModule({
 			channel: channelStub,
@@ -179,8 +183,7 @@ describe('transport', () => {
 			},
 			interfaceAdapters,
 			nonce: __testContext.config.app.nonce,
-			forfingForce: __testContext.config.modules.chain.forging.force,
-			broadcastsActive: __testContext.config.modules.chain.broadcasts.active,
+			broadcasts: __testContext.config.modules.chain.broadcasts,
 			maxSharedTransactions:
 				__testContext.config.constants.MAX_SHARED_TRANSACTIONS,
 		});
@@ -927,7 +930,7 @@ describe('transport', () => {
 
 					describe('when transportModule.config.broadcasts.active option is false', () => {
 						beforeEach(async () => {
-							transportModule.constants.broadcastsActive = false;
+							transportModule.constants.broadcasts.active = false;
 							transportModule.postBlock(postBlockQuery);
 						});
 
@@ -944,6 +947,7 @@ describe('transport', () => {
 
 					describe('when query is specified', () => {
 						beforeEach(async () => {
+							transportModule.constants.broadcasts.active = true;
 							transportModule.postBlock(postBlockQuery);
 						});
 
@@ -1046,7 +1050,7 @@ describe('transport', () => {
 
 					describe('when transportModule.config.broadcasts.active option is false', () => {
 						beforeEach(async () => {
-							transportModule.constants.broadcastsActive = false;
+							transportModule.constants.broadcasts.active = false;
 							transportModule.postSignatures(query);
 						});
 
@@ -1063,6 +1067,7 @@ describe('transport', () => {
 
 					describe('when transportModule.schema.validate succeeds', () => {
 						beforeEach(async () => {
+							transportModule.constants.broadcasts.active = true;
 							transportModule.postSignatures(query);
 						});
 
@@ -1269,7 +1274,7 @@ describe('transport', () => {
 				describe('postTransactions', () => {
 					describe('when transportModule.config.broadcasts.active option is false', () => {
 						beforeEach(async () => {
-							transportModule.constants.broadcastsActive = false;
+							transportModule.constants.broadcasts.active = false;
 							return transportModule.postTransactions(query);
 						});
 
@@ -1289,6 +1294,7 @@ describe('transport', () => {
 							query = {
 								transactions: transactionsList,
 							};
+							transportModule.constants.broadcasts.active = true;
 							transportModule._receiveTransactions = sinonSandbox.stub();
 							return transportModule.postTransactions(query);
 						});

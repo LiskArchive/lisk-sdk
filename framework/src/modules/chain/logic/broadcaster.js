@@ -17,8 +17,6 @@
 const _ = require('lodash');
 const jobsQueue = require('../helpers/jobs_queue');
 
-let library;
-
 /**
  * Main Broadcaster logic.
  * Initializes variables, sets Broadcast routes and timer based on
@@ -36,35 +34,15 @@ let library;
  * @todo Add description for the params
  */
 class Broadcaster {
-	constructor(
-		nonce,
-		broadcastsActive,
-		force,
-		transactionPool,
-		logger,
-		channel,
-		storage
-	) {
-		library = {
-			logger,
-			logic: {
-				transactionPool,
-			},
-			config: {
-				broadcasts: {
-					active: broadcastsActive,
-				},
-				forging: {
-					force,
-				},
-			},
-			storage,
-		};
-
+	constructor(nonce, broadcasts, transactionPool, logger, channel, storage) {
+		this.logger = logger;
+		this.transactionPool = transactionPool;
+		this.config = broadcasts;
+		this.channel = channel;
 		this.nonce = nonce;
+		this.storage = storage;
 
 		this.queue = [];
-		this.config = library.config.broadcasts;
 
 		// Broadcast routes
 		this.routes = [
@@ -80,8 +58,6 @@ class Broadcaster {
 			},
 		];
 
-		this.channel = channel;
-
 		if (this.config.active) {
 			jobsQueue.register(
 				'broadcasterReleaseQueue',
@@ -89,7 +65,7 @@ class Broadcaster {
 				this.config.broadcastInterval
 			);
 		} else {
-			library.logger.info(
+			this.logger.info(
 				'Broadcasting data disabled by user through config.json'
 			);
 		}
@@ -142,7 +118,7 @@ class Broadcaster {
 		}
 
 		if (Math.abs(object.relays) >= this.config.relayLimit) {
-			library.logger.debug('Broadcast relays exhausted', object);
+			this.logger.debug('Broadcast relays exhausted', object);
 			return true;
 		}
 		object.relays++; // Next broadcast
@@ -157,7 +133,7 @@ class Broadcaster {
 	 * @todo Add description for the params
 	 */
 	async filterQueue() {
-		library.logger.debug(`Broadcasts before filtering: ${this.queue.length}`);
+		this.logger.debug(`Broadcasts before filtering: ${this.queue.length}`);
 
 		this.queue = await this.queue.reduce(async (prev, broadcast) => {
 			const filteredBroadcast = await prev;
@@ -178,13 +154,13 @@ class Broadcaster {
 					return filteredBroadcast;
 				}
 				// Broadcast if transaction is in transaction pool
-				if (library.logic.transactionPool.transactionInPool(transactionId)) {
+				if (this.transactionPool.transactionInPool(transactionId)) {
 					filteredBroadcast.push(broadcast);
 					return filteredBroadcast;
 				}
 				// Don't broadcast if transaction is already confirmed
 				try {
-					const isPersisted = await library.storage.entities.Transaction.isPersisted(
+					const isPersisted = await this.storage.entities.Transaction.isPersisted(
 						{
 							id: transactionId,
 						}
@@ -203,7 +179,7 @@ class Broadcaster {
 			return filteredBroadcast;
 		}, []);
 
-		library.logger.debug(`Broadcasts after filtering: ${this.queue.length}`);
+		this.logger.debug(`Broadcasts after filtering: ${this.queue.length}`);
 
 		return null;
 	}
@@ -251,15 +227,15 @@ class Broadcaster {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	async releaseQueue() {
-		library.logger.trace('Releasing enqueued broadcasts');
+		this.logger.trace('Releasing enqueued broadcasts');
 
 		if (!this.queue.length) {
-			library.logger.trace('Queue empty');
+			this.logger.trace('Queue empty');
 			return null;
 		}
 		try {
 			await this.filterQueue();
-			const broadcasts = this.queue.splice(0, this.config.releaseLimit);
+			const broadcasts = this.queue.splice(0, this.broadcasts.releaseLimit);
 			const squashedBroadcasts = this.squashQueue(broadcasts);
 
 			await Promise.all(
@@ -268,11 +244,11 @@ class Broadcaster {
 				)
 			);
 
-			return library.logger.info(
+			return this.logger.info(
 				`Broadcasts released: ${squashedBroadcasts.length}`
 			);
 		} catch (err) {
-			library.logger.error('Failed to release broadcast queue', err);
+			this.logger.error('Failed to release broadcast queue', err);
 			throw err;
 		}
 	}
