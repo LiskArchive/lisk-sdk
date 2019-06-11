@@ -333,7 +333,9 @@ class Forger {
 		}
 		const isPoorConsensus = await this.peersModule.isPoorConsensus();
 		if (isPoorConsensus) {
-			const consensusErr = `Inadequate broadhash consensus before forging a block: ${this.peersModule.getLastConsensus()} %`;
+			const consensusErr = `Inadequate broadhash consensus before forging a block: ${modules.peers.getLastConsensus(
+				this.blocksModule.broadhash
+			)} %`;
 			this.logger.error(
 				'Failed to generate block within delegate slot',
 				consensusErr
@@ -342,7 +344,9 @@ class Forger {
 		}
 
 		this.logger.info(
-			`Broadhash consensus before forging a block: ${this.peersModule.getLastConsensus()} %`
+			`Broadhash consensus before forging a block: ${modules.peers.getLastConsensus(
+				this.blocksModule.broadhash
+			)} %`
 		);
 
 		const transactions =
