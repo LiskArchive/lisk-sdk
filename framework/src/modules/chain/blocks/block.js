@@ -61,7 +61,7 @@ const getHash = block => hash(getBytes(block));
  * @returns {!Array} Contents as an ArrayBuffer
  * @todo Add description for the function and the params
  */
-const getBytesV1 = block => {
+const getBytesV0 = block => {
 	const capacity =
 		4 + // version (int)
 		4 + // timestamp (int)
@@ -119,6 +119,8 @@ const getBytesV1 = block => {
 	byteBuffer.flip();
 	return byteBuffer.toBuffer();
 };
+
+const getBytesV1 = block => getBytesV0(block);
 
 /**
  * Description of the function.
@@ -471,7 +473,7 @@ const getId = block => {
  * @returns {null|block} Block object
  * @todo Add description for the params
  */
-const dbReadV1 = raw => {
+const dbReadV0 = raw => {
 	if (!raw.b_id) {
 		return null;
 	}
@@ -495,6 +497,8 @@ const dbReadV1 = raw => {
 	block.totalForged = block.totalFee.plus(block.reward).toString();
 	return block;
 };
+
+const dbReadV1 = raw => dbReadV0(raw);
 
 /**
  * Creates block object based on raw data.
@@ -702,12 +706,14 @@ const createFunc = {
 const create = data => createFunc[data.version](data);
 
 const getBytesFunc = {
+	0: getBytesV0,
 	1: getBytesV1,
 	2: getBytesV2,
 };
 const getBytes = block => getBytesFunc[block.version](block);
 
 const dbReadFunc = {
+	0: dbReadV0,
 	1: dbReadV1,
 	2: dbReadV2,
 };

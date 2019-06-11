@@ -100,6 +100,11 @@ describe('block', () => {
 	};
 
 	const blockData = validDataForBlock.previousBlock;
+	const blockDataV2 = {
+		...blockData,
+		maxHeightPreviouslyForged: 1,
+		prevotedConfirmedUptoHeight: 1,
+	};
 
 	const transactionsByTypes = {};
 	transactionsByTypes[TRANSACTION_TYPES_MULTI] = {
@@ -449,28 +454,57 @@ describe('block', () => {
 	});
 
 	describe('getBytes', () => {
-		it('should throw error for invalid block', async () =>
-			expect(() => {
-				block.getBytes(invalidBlock);
-			}).to.throw());
+		describe('getBytesV0-1', () => {
+			it('should throw error for invalid block', async () =>
+				expect(() => {
+					block.getBytes(invalidBlock);
+				}).to.throw());
 
-		it('should return a buffer for a given block', async () =>
-			expect(block.getBytes(blockData)).to.be.an.instanceof(Buffer));
+			it('should return a buffer for a given block', async () =>
+				expect(block.getBytes(blockData)).to.be.an.instanceof(Buffer));
 
-		it('should return same bytes for a given block', async () => {
-			const bytes1 = block.getBytes(blockData);
-			const bytes2 = block.getBytes(blockData);
-			return expect(bytes1).to.deep.equal(bytes2);
+			it('should return same bytes for a given block', async () => {
+				const bytes1 = block.getBytes(blockData);
+				const bytes2 = block.getBytes(blockData);
+				return expect(bytes1).to.deep.equal(bytes2);
+			});
+
+			it('should return different bytes for different blocks', async () => {
+				const bytes1 = block.getBytes(blockData);
+				const blockDataCopy = Object.assign({}, blockData);
+				blockDataCopy.height = 100;
+				blockDataCopy.generatorPublicKey =
+					'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc';
+				const bytes2 = block.getBytes(blockDataCopy);
+				return expect(bytes1).to.not.deep.equal(bytes2);
+			});
 		});
 
-		it('should return different bytes for different blocks', async () => {
-			const bytes1 = block.getBytes(blockData);
-			const blockDataCopy = Object.assign({}, blockData);
-			blockDataCopy.height = 100;
-			blockDataCopy.generatorPublicKey =
-				'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc';
-			const bytes2 = block.getBytes(blockDataCopy);
-			return expect(bytes1).to.not.deep.equal(bytes2);
+		describe('getBytesV2', () => {
+			it('should throw error for invalid block', async () =>
+				expect(() => {
+					const invalidBlockV2 = { ...invalidBlock, version: 2 };
+					block.getBytes(invalidBlockV2);
+				}).to.throw());
+
+			it('should return a buffer for a given block', async () =>
+				expect(block.getBytes(blockDataV2)).to.be.an.instanceof(Buffer));
+
+			it('should return same bytes for a given block', async () => {
+				const bytes1 = block.getBytes(blockDataV2);
+				const bytes2 = block.getBytes(blockDataV2);
+				return expect(bytes1).to.deep.equal(bytes2);
+			});
+
+			it('should return different bytes for different blocks', async () => {
+				const bytes1 = block.getBytes(blockDataV2);
+				const blockDataCopy = Object.assign({}, blockDataV2);
+				blockDataCopy.height = 100;
+				blockDataCopy.generatorPublicKey =
+					'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc';
+				const bytes2 = block.getBytes(blockDataCopy);
+				return expect(bytes1).to.not.deep.equal(bytes2);
+			});
 		});
 	});
 
@@ -576,52 +610,108 @@ describe('block', () => {
 	});
 
 	describe('dbRead', () => {
-		it('should throw error for null values', async () =>
-			expect(() => {
-				block.dbRead(null);
-			}).to.throw());
+		describe('dbRead V1', () => {
+			it('should throw error for null values', async () =>
+				expect(() => {
+					block.dbRead(null);
+				}).to.throw("Cannot read property 'b_version' of null"));
 
-		it('should return raw block data', async () => {
-			const rawBlock = {
-				b_version: 0,
-				b_totalAmount: 0,
-				b_totalFee: 0,
-				b_reward: 0,
-				b_payloadHash:
-					'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-				b_timestamp: 41898490,
-				b_numberOfTransactions: 0,
-				b_payloadLength: 0,
-				b_previousBlock: '1087874036928524397',
-				b_generatorPublicKey:
-					'1cc68fa0b12521158e09779fd5978ccc0ac26bf99320e00a9549b542dd9ada16',
-				b_transactions: [],
-				b_blockSignature:
-					'8a727cc77864b6fc81755a1f4eb4796b68f4a943d69c74a043b5ca422f3b05608a22da4a916ca7b721d096129938b6eb3381d75f1a116484d1ce2be4904d9a0e',
-				b_height: 69,
-				b_id: '3920300554926889269',
-				b_relays: 1,
-				b_confirmations: 0,
-			};
+			it('should return raw block data', async () => {
+				const rawBlock = {
+					b_version: 0,
+					b_totalAmount: 0,
+					b_totalFee: 0,
+					b_reward: 0,
+					b_payloadHash:
+						'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+					b_timestamp: 41898490,
+					b_numberOfTransactions: 0,
+					b_payloadLength: 0,
+					b_previousBlock: '1087874036928524397',
+					b_generatorPublicKey:
+						'1cc68fa0b12521158e09779fd5978ccc0ac26bf99320e00a9549b542dd9ada16',
+					b_transactions: [],
+					b_blockSignature:
+						'8a727cc77864b6fc81755a1f4eb4796b68f4a943d69c74a043b5ca422f3b05608a22da4a916ca7b721d096129938b6eb3381d75f1a116484d1ce2be4904d9a0e',
+					b_height: 69,
+					b_id: '3920300554926889269',
+					b_relays: 1,
+					b_confirmations: 0,
+				};
 
-			return expect(block.dbRead(rawBlock)).to.contain.keys(
-				'id',
-				'version',
-				'timestamp',
-				'height',
-				'previousBlock',
-				'numberOfTransactions',
-				'totalAmount',
-				'totalFee',
-				'reward',
-				'payloadLength',
-				'payloadHash',
-				'generatorPublicKey',
-				'generatorId',
-				'blockSignature',
-				'confirmations',
-				'totalForged'
-			);
+				return expect(block.dbRead(rawBlock)).to.contain.keys(
+					'id',
+					'version',
+					'timestamp',
+					'height',
+					'previousBlock',
+					'numberOfTransactions',
+					'totalAmount',
+					'totalFee',
+					'reward',
+					'payloadLength',
+					'payloadHash',
+					'generatorPublicKey',
+					'generatorId',
+					'blockSignature',
+					'confirmations',
+					'totalForged'
+				);
+			});
+		});
+
+		describe('dbRead V2', () => {
+			it('should throw error for null values', async () =>
+				expect(() => {
+					block.dbRead(null);
+				}).to.throw("Cannot read property 'b_version' of null"));
+
+			it('should return raw block data', async () => {
+				const rawBlock = {
+					b_version: 2,
+					b_totalAmount: 0,
+					b_totalFee: 0,
+					b_reward: 0,
+					b_payloadHash:
+						'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+					b_timestamp: 41898490,
+					b_numberOfTransactions: 0,
+					b_payloadLength: 0,
+					b_previousBlock: '1087874036928524397',
+					b_generatorPublicKey:
+						'1cc68fa0b12521158e09779fd5978ccc0ac26bf99320e00a9549b542dd9ada16',
+					b_transactions: [],
+					b_blockSignature:
+						'8a727cc77864b6fc81755a1f4eb4796b68f4a943d69c74a043b5ca422f3b05608a22da4a916ca7b721d096129938b6eb3381d75f1a116484d1ce2be4904d9a0e',
+					b_height: 69,
+					b_maxHeightPreviouslyForged: 1,
+					b_prevotedConfirmedUptoHeight: 1,
+					b_id: '3920300554926889269',
+					b_relays: 1,
+					b_confirmations: 0,
+				};
+
+				return expect(block.dbRead(rawBlock)).to.contain.keys(
+					'id',
+					'version',
+					'timestamp',
+					'height',
+					'maxHeightPreviouslyForged',
+					'prevotedConfirmedUptoHeight',
+					'previousBlock',
+					'numberOfTransactions',
+					'totalAmount',
+					'totalFee',
+					'reward',
+					'payloadLength',
+					'payloadHash',
+					'generatorPublicKey',
+					'generatorId',
+					'blockSignature',
+					'confirmations',
+					'totalForged'
+				);
+			});
 		});
 	});
 });
