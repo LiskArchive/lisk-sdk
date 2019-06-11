@@ -17,7 +17,7 @@
 const domain = require('domain');
 
 const modulesList = {
-	peers: '../submodules/peers',
+	peers: '../helpers/peers',
 };
 
 module.exports = async scope => {
