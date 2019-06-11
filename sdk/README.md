@@ -89,6 +89,39 @@ node index.js
 
 More usage examples and configuration samples will be made available during the alpha phase on the official Lisk [documentation portal](http://docs.lisk.io).
 
+## Contribution
+
+To contribute in `lisk-sdk` or `framework` or `elements`, first clone the `lisk-sdk` repo,
+
+1. `git clone https://github.com/LiskHQ/lisk-sdk.git`
+
+2. Now install all the dependencies and build,
+   1. `npm ci`
+   2. `npm run boostrap`
+   3. `npm run build`
+
+### Test local changes of `lisk-sdk/framework`
+
+In order to test local changes of `lisk-sdk/framework`, follow the above steps of installation/building of dependencies and then run,
+
+1. `npx lerna link`.
+
+### Test local changes of `lisk-sdk/elements`
+
+In order to test local changes of `lisk-sdk/elements`, follow the above steps of installation/building of dependencies and then run,
+
+1. `npm run build`
+2. `npx lerna link`
+
+Once you have linked your local repo, everytime you can make changes in `lisk-sdk/elements`, you only run `npm run build` everytime to test the local changes.
+
+**Note:** In case you face any issues during the installation make sure you have the right version of `npm` and `node` and try to install from scratch by running,
+`npm run clean:node_modules && rm -rf ./node_modules`.
+
+### Testing your local `lisk-sdk` in your application.
+
+In order to link your local lisk-sdk repository and test your application based on `lisk-sdk`, simply follow the steps above in your local `lisk-sdk` repository and run `npm link lisk-sdk` in the root of your application.
+
 ## Get Involved
 
 | Reason                           | How                                                                                            |

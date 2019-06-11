@@ -24,6 +24,10 @@ Object {
       "ipc": Object {
         "enabled": false,
       },
+      "label": "alpha-sdk-app",
+      "minVersion": "0.0.0",
+      "protocolVersion": "1.1",
+      "version": "0.0.0",
     },
     "components": Object {
       "cache": Object {},

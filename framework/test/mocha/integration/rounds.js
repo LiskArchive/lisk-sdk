@@ -46,7 +46,7 @@ describe('rounds', () => {
 	localCommon.beforeBlock('rounds', lib => {
 		library = lib;
 		// Set rewards start at 150-th block
-		library.modules.blocks.blockReward.rewardOffset = 150;
+		library.modules.blocks.blockRewardArgs.rewardOffset = 150;
 		Queries = new QueriesHelper(lib, lib.components.storage);
 
 		addTransactionsAndForgePromise = Promise.promisify(
@@ -1184,7 +1184,7 @@ describe('rounds', () => {
 
 					// Set expected reward per block as first milestone
 					expectedRewardsPerBlock =
-						library.modules.blocks.blockReward.milestones[0];
+						library.modules.blocks.blockRewardArgs.milestones[0];
 					done();
 				});
 

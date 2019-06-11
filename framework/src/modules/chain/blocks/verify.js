@@ -381,7 +381,7 @@ const verifyVersion = (block, exceptions, result) => {
  * @returns {Array} result.errors - Array of validation errors
  */
 const verifyReward = (blockReward, block, exceptions, result) => {
-	const expectedReward = blockReward.calcReward(block.height);
+	const expectedReward = blockReward.calculateReward(block.height);
 	if (
 		block.height !== 1 &&
 		!expectedReward.equals(block.reward) &&

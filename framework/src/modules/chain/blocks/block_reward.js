@@ -38,117 +38,101 @@ const parseHeight = height => {
 };
 
 /**
- * Main BlockReward logic.
- * Initializes variables:
- * - distance
- * - rewardOffset
+ * Description of the function.
  *
- * @class
- * @memberof logic
- * @see Parent: {@link logic}
+ * @param {number} height
+ * @returns {number}
+ * @todo Add description for the function, params and the return value
  */
-class BlockReward {
-	constructor({ distance, rewardOffset, milestones, totalAmount }) {
-		// Distance between each milestone
-		this.distance = Math.floor(distance);
+const calculateMilestone = (height, blockRewardArgs) => {
+	height = parseHeight(height);
+	const distance = Math.floor(blockRewardArgs.distance);
 
-		// Start rewards at block (n)
-		this.rewardOffset = Math.floor(rewardOffset);
+	const location = Math.trunc(
+		(height - blockRewardArgs.rewardOffset) / distance
+	);
+	const lastMile =
+		blockRewardArgs.milestones[blockRewardArgs.milestones.length - 1];
 
-		this.milestones = milestones;
-		this.totalAmount = totalAmount;
+	if (location > blockRewardArgs.milestones.length - 1) {
+		return blockRewardArgs.milestones.lastIndexOf(lastMile);
 	}
+	return location;
+};
 
-	/**
-	 * Description of the function.
-	 *
-	 * @param {number} height
-	 * @returns {number}
-	 * @todo Add description for the function, params and the return value
-	 */
-	calcMilestone(height) {
-		height = parseHeight(height);
+/**
+ * Description of the function.
+ *
+ * @param {number} height
+ * @returns {Bignumber}
+ * @todo Add description for the function, params and the return value
+ */
+const calculateReward = (height, blockRewardArgs) => {
+	height = parseHeight(height);
 
-		const location = Math.trunc((height - this.rewardOffset) / this.distance);
-		const lastMile = this.milestones[this.milestones.length - 1];
-
-		if (location > this.milestones.length - 1) {
-			return this.milestones.lastIndexOf(lastMile);
-		}
-		return location;
+	if (height < blockRewardArgs.rewardOffset) {
+		return new BigNum(0);
 	}
+	return new BigNum(
+		blockRewardArgs.milestones[calculateMilestone(height, blockRewardArgs)]
+	);
+};
 
-	/**
-	 * Description of the function.
-	 *
-	 * @param {number} height
-	 * @returns {Bignumber}
-	 * @todo Add description for the function, params and the return value
-	 */
-	calcReward(height) {
-		height = parseHeight(height);
+/**
+ * Description of the function.
+ *
+ * @param {number} height
+ * @returns {Bignumber}
+ * @todo Add description for the function, params and the return value
+ */
+const calculateSupply = (height, blockRewardArgs) => {
+	height = parseHeight(height);
+	const distance = Math.floor(blockRewardArgs.distance);
+	let supply = new BigNum(blockRewardArgs.totalAmount);
 
-		if (height < this.rewardOffset) {
-			return new BigNum(0);
-		}
-		return new BigNum(this.milestones[this.calcMilestone(height)]);
-	}
-
-	/**
-	 * Description of the function.
-	 *
-	 * @param {number} height
-	 * @returns {Bignumber}
-	 * @todo Add description for the function, params and the return value
-	 */
-	calcSupply(height) {
-		height = parseHeight(height);
-		let supply = new BigNum(this.totalAmount);
-
-		if (height < this.rewardOffset) {
-			// Rewards not started yet
-			return supply;
-		}
-
-		const milestone = this.calcMilestone(height);
-		const rewards = [];
-
-		let amount = 0;
-		let multiplier = 0;
-
-		// Remove offset from height
-		height -= this.rewardOffset - 1;
-
-		for (let i = 0; i < this.milestones.length; i++) {
-			if (milestone >= i) {
-				multiplier = this.milestones[i];
-
-				if (height < this.distance) {
-					// Measure this.distance thus far
-					amount = height % this.distance;
-				} else {
-					amount = this.distance; // Assign completed milestone
-					height -= this.distance; // Deduct from total height
-
-					// After last milestone
-					if (height > 0 && i === this.milestones.length - 1) {
-						amount += height;
-					}
-				}
-
-				rewards.push([amount, multiplier]);
-			} else {
-				break; // Milestone out of bounds
-			}
-		}
-
-		for (let i = 0; i < rewards.length; i++) {
-			const reward = rewards[i];
-			supply = supply.plus(new BigNum(reward[0]).times(reward[1]));
-		}
-
+	if (height < blockRewardArgs.rewardOffset) {
+		// Rewards not started yet
 		return supply;
 	}
-}
 
-module.exports = { BlockReward };
+	const milestone = calculateMilestone(height, blockRewardArgs);
+	const rewards = [];
+
+	let amount = 0;
+	let multiplier = 0;
+
+	// Remove offset from height
+	height -= blockRewardArgs.rewardOffset - 1;
+
+	for (let i = 0; i < blockRewardArgs.milestones.length; i++) {
+		if (milestone >= i) {
+			multiplier = blockRewardArgs.milestones[i];
+
+			if (height < distance) {
+				// Measure distance thus far
+				amount = height % distance;
+			} else {
+				amount = distance; // Assign completed milestone
+				height -= distance; // Deduct from total height
+
+				// After last milestone
+				if (height > 0 && i === blockRewardArgs.milestones.length - 1) {
+					amount += height;
+				}
+			}
+
+			rewards.push([amount, multiplier]);
+		} else {
+			break; // Milestone out of bounds
+		}
+	}
+
+	for (let i = 0; i < rewards.length; i++) {
+		const reward = rewards[i];
+		supply = supply.plus(new BigNum(reward[0]).times(reward[1]));
+	}
+
+	return supply;
+};
+
+module.exports = { calculateMilestone, calculateReward, calculateSupply };
