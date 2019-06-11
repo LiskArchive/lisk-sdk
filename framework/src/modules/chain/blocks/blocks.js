@@ -115,6 +115,11 @@ class Blocks extends EventEmitter {
 			blockReward: this.blockReward,
 			constants: this.constants,
 		});
+
+		this._receiveBlockImplementations = {
+			1: this._receiveBlockFromNetworkV1.bind(this),
+			2: this._receiveBlockFromNetworkV2.bind(this),
+		};
 	}
 
 	get lastBlock() {
@@ -314,13 +319,8 @@ class Blocks extends EventEmitter {
 			} version: ${block.version}`
 		);
 
-		const receiveBlockImplementations = {
-			1: this._receiveBlockFromNetworkV1,
-			2: this._receiveBlockFromNetworkV2,
-		};
-
 		// TODO: Use block_version.js#getBlockVersion when https://github.com/LiskHQ/lisk-sdk/pull/3722 is merged
-		return receiveBlockImplementations[block.version](block);
+		return this._receiveBlockImplementations[block.version](block);
 	}
 
 	async _receiveBlockFromNetworkV1(block) {
@@ -512,8 +512,9 @@ class Blocks extends EventEmitter {
 					block.reward
 				} version: ${block.version} with error: ${error}`
 			);
-			this._isActive = false;
 			throw error;
+		} finally {
+			this._isActive = false;
 		}
 	}
 

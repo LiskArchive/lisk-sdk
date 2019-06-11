@@ -213,10 +213,10 @@ describe('blocks', () => {
 				await fn();
 			});
 			sinonSandbox
-				.stub(blocksInstance, '_receiveBlockFromNetworkV1')
+				.stub(blocksInstance._receiveBlockImplementations, '1')
 				.resolves();
 			sinonSandbox
-				.stub(blocksInstance, '_receiveBlockFromNetworkV2')
+				.stub(blocksInstance._receiveBlockImplementations, '2')
 				.resolves();
 		});
 
@@ -236,8 +236,8 @@ describe('blocks', () => {
 		it('should call _receiveBlockFromNetworkV1 when block version is 1', async () => {
 			await blocksInstance.receiveBlockFromNetwork(block);
 
-			expect(blocksInstance._receiveBlockFromNetworkV1).to.be.calledWith(block);
-			expect(blocksInstance._receiveBlockFromNetworkV2).to.not.be.called;
+			expect(blocksInstance._receiveBlockImplementations['1']).to.be.called;
+			expect(blocksInstance._receiveBlockImplementations['2']).to.not.be.called;
 		});
 
 		it('should call _receiveBlockFromNetworkV2 when block version is 2', async () => {
@@ -248,10 +248,10 @@ describe('blocks', () => {
 
 			await blocksInstance.receiveBlockFromNetwork(blockv2);
 
-			expect(blocksInstance._receiveBlockFromNetworkV2).to.be.calledWith(
+			expect(blocksInstance._receiveBlockImplementations['2']).to.be.calledWith(
 				blockv2
 			);
-			expect(blocksInstance._receiveBlockFromNetworkV1).to.not.be.called;
+			expect(blocksInstance._receiveBlockImplementations['1']).to.not.be.called;
 		});
 	});
 
