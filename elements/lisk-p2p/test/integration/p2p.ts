@@ -51,6 +51,9 @@ describe('Integration tests for P2P library', () => {
 				return new P2P({
 					connectTimeout: 100,
 					seedPeers: [],
+					fixedPeers: [],
+					whiteListedPeers: [],
+					blacklistedPeers: [],
 					wsEngine: 'ws',
 					populatorInterval: POPULATOR_INTERVAL,
 					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
@@ -119,6 +122,9 @@ describe('Integration tests for P2P library', () => {
 
 				return new P2P({
 					seedPeers,
+					fixedPeers: [],
+					whiteListedPeers: [],
+					blacklistedPeers: [],
 					wsEngine: 'ws',
 					connectTimeout: 100,
 					ackTimeout: 200,
@@ -420,6 +426,9 @@ describe('Integration tests for P2P library', () => {
 					connectTimeout: 100,
 					ackTimeout: 200,
 					seedPeers,
+					fixedPeers: [],
+					whiteListedPeers: [],
+					blacklistedPeers: [],
 					wsEngine: 'ws',
 					populatorInterval: POPULATOR_INTERVAL,
 					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
@@ -1061,6 +1070,9 @@ describe('Integration tests for P2P library', () => {
 					peerSelectionForRequest: peerSelectionForSendRequest as P2PPeerSelectionForRequestFunction,
 					peerSelectionForConnection,
 					seedPeers,
+					fixedPeers: [],
+					whiteListedPeers: [],
+					blacklistedPeers: [],
 					wsEngine: 'ws',
 					populatorInterval: POPULATOR_INTERVAL,
 					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
@@ -1216,6 +1228,9 @@ describe('Integration tests for P2P library', () => {
 
 				return new P2P({
 					seedPeers,
+					fixedPeers: [],
+					whiteListedPeers: [],
+					blacklistedPeers: [],
 					wsEngine: 'ws',
 					// A short connectTimeout and ackTimeout will make the node to give up on discovery quicker for our test.
 					connectTimeout: 100,
@@ -1333,6 +1348,9 @@ describe('Integration tests for P2P library', () => {
 						connectTimeout: 200,
 						ackTimeout: 200,
 						seedPeers,
+						fixedPeers: [],
+						whiteListedPeers: [],
+						blacklistedPeers: [],
 						wsEngine: 'ws',
 						populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
 						maxOutboundConnections: TEN_CONNECTIONS,
@@ -1428,6 +1446,8 @@ describe('Integration tests for P2P library', () => {
 					connectTimeout: 5000,
 					ackTimeout: 5000,
 					seedPeers,
+					fixedPeers: [],
+					whiteListedPeers: [],
 					blacklistedPeers,
 					wsEngine: 'ws',
 					discoveryInterval: DISCOVERY_INTERVAL_WITH_LIMIT,

@@ -19,9 +19,11 @@ import { P2P } from '../../src';
 describe('p2p', () => {
 	describe('#constructor', () => {
 		const lisk = new P2P({
-			blacklistedPeers: [],
-			connectTimeout: 5000,
 			seedPeers: [],
+			blacklistedPeers: [],
+			fixedPeers: [],
+			whiteListedPeers: [],
+			connectTimeout: 5000,
 			wsEngine: 'ws',
 			maxOutboundConnections: 20,
 			maxInboundConnections: 100,
