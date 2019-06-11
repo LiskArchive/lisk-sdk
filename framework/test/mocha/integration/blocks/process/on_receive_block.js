@@ -187,7 +187,15 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 	}
 
 	function getKeypair(passphrase) {
-		return getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
+		const {
+			publicKeyBytes: publicKey,
+			privateKeyBytes: privateKey,
+		} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
+
+		return {
+			publicKey,
+			privateKey,
+		};
 	}
 
 	function getValidKeypairForSlot(slot) {
