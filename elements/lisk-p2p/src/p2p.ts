@@ -235,7 +235,10 @@ export class P2P extends EventEmitter {
 
 		this._handleOutboundPeerConnectAbort = (peerInfo: P2PPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			if (this._triedPeers.has(peerId)) {
+			const isWhiteListed = this._peerListsWithoutConflicts.whitelisted.find(
+				peer => constructPeerIdFromPeerInfo(peer) === peerId,
+			);
+			if (this._triedPeers.has(peerId) && !isWhiteListed) {
 				this._triedPeers.delete(peerId);
 			}
 
@@ -302,7 +305,10 @@ export class P2P extends EventEmitter {
 
 		this._handleBanPeer = (peerId: string) => {
 			this._bannedPeers.add(peerId.split(':')[0]);
-			if (this._triedPeers.has(peerId)) {
+			const isWhiteListed = this._peerListsWithoutConflicts.whitelisted.find(
+				peer => constructPeerIdFromPeerInfo(peer) === peerId,
+			);
+			if (this._triedPeers.has(peerId) && !isWhiteListed) {
 				this._triedPeers.delete(peerId);
 			}
 			if (this._newPeers.has(peerId)) {
@@ -613,10 +619,12 @@ export class P2P extends EventEmitter {
 					this.emit(EVENT_NEW_PEER, incomingPeerInfo);
 				}
 
-				if (this._triedPeers.has(peerId)) {
+				const isWhiteListed = this._peerListsWithoutConflicts.whitelisted.find(
+					peer => constructPeerIdFromPeerInfo(peer) === peerId,
+				);
+				if (this._triedPeers.has(peerId) && !isWhiteListed) {
 					this._triedPeers.delete(peerId);
 				}
-
 				if (!this._newPeers.has(peerId)) {
 					this._newPeers.set(peerId, incomingPeerInfo);
 				}
