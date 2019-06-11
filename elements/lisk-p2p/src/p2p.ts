@@ -723,13 +723,20 @@ export class P2P extends EventEmitter {
 	}
 
 	private _isTrustedPeer(peerId: string): boolean {
-		// TODO: Also skip if whitelisted or fixed
 		const isSeed = this._peerListsWithoutConflicts.seedPeers.find(
 			seedPeer =>
 				peerId === constructPeerId(seedPeer.ipAddress, seedPeer.wsPort),
 		);
 
-		return !!isSeed;
+		const isWhiteListed = this._peerListsWithoutConflicts.whitelisted.find(
+			peer => constructPeerIdFromPeerInfo(peer) === peerId,
+		);
+
+		const isFixed = this._peerListsWithoutConflicts.fixedPeers.find(
+			peer => constructPeerIdFromPeerInfo(peer) === peerId,
+		);
+
+		return !!isSeed || !!isWhiteListed || !!isFixed;
 	}
 
 	public async start(): Promise<void> {
