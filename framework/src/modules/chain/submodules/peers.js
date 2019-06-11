@@ -60,7 +60,7 @@ class Peers {
 	 * @returns {number|undefined} Last calculated consensus or null if wasn't calculated yet
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	getLastConsensus(broadhash) {
+	async getLastConsensus(broadhash) {
 		return this.calculateConsensus(broadhash);
 	}
 
