@@ -44,9 +44,7 @@ describe('forge', () => {
 	const mockModules = {
 		blocks: {
 			generateBlock: sinonSandbox.stub().resolves(),
-			lastBlock: {
-				get: sinonSandbox.stub(),
-			},
+			lastBlock: sinonSandbox.stub(),
 		},
 		peers: {
 			isPoorConsensus: sinonSandbox.stub(),
@@ -803,7 +801,7 @@ describe('forge', () => {
 			};
 
 			beforeEach(async () => {
-				mockModules.blocks.lastBlock.get.returns(lastBlock);
+				mockModules.blocks.lastBlock = lastBlock;
 				getSlotNumberStub = sinonSandbox.stub(
 					forgeModule.slots,
 					'getSlotNumber'
