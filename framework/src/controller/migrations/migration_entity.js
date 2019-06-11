@@ -232,7 +232,9 @@ class MigrationEntity extends BaseEntity {
 		return Object.keys(migrationsObj).reduce((prev, namespace) => {
 			const curr = migrationsObj[namespace]
 				.map(migrationFile => {
-					const migration = migrationFile.match(/(\d+)_(.+).sql/);
+					const migration = path
+						.basename(migrationFile)
+						.match(/(\d+)_(.+).sql/);
 					return (
 						migration && {
 							id: migration[1],

@@ -20,7 +20,11 @@ const blocksUtils = require('./utils');
 const { BlocksProcess } = require('./process');
 const { BlocksVerify } = require('./verify');
 const { BlocksChain } = require('./chain');
-const { BlockReward } = require('./block_reward');
+const {
+	calculateSupply,
+	calculateReward,
+	calculateMilestone,
+} = require('./block_reward');
 
 const EVENT_NEW_BLOCK = 'EVENT_NEW_BLOCK';
 const EVENT_DELETE_BLOCK = 'EVENT_DELETE_BLOCK';
@@ -69,12 +73,18 @@ class Blocks extends EventEmitter {
 		this.interfaceAdapters = interfaceAdapters;
 		this.slots = slots;
 		this.sequence = sequence;
-		this.blockReward = new BlockReward({
+		this.blockRewardArgs = {
 			distance: rewardDistance,
 			rewardOffset,
 			milestones: rewardMileStones,
 			totalAmount,
-		});
+		};
+		this.blockReward = {
+			calculateMilestone: height =>
+				calculateMilestone(height, this.blockRewardArgs),
+			calculateReward: height => calculateReward(height, this.blockRewardArgs),
+			calculateSupply: height => calculateSupply(height, this.blockRewardArgs),
+		};
 		this.constants = {
 			blockReceiptTimeout,
 			maxPayloadLength,

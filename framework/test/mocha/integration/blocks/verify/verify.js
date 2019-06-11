@@ -52,84 +52,7 @@ const slots = new BlockSlots({
 	blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
 });
 
-// const previousBlock = {
-// 	blockSignature:
-// 		'696f78bed4d02faae05224db64e964195c39f715471ebf416b260bc01fa0148f3bddf559127b2725c222b01cededb37c7652293eb1a81affe2acdc570266b501',
-// 	generatorPublicKey:
-// 		'86499879448d1b0215d59cbf078836e3d7d9d2782d56a2274a568761bff36f19',
-// 	height: 488,
-// 	id: '11850828211026019525',
-// 	numberOfTransactions: 0,
-// 	payloadHash:
-// 		'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-// 	payloadLength: 0,
-// 	previousBlock: '8805727971083409014',
-// 	relays: 1,
-// 	reward: 0,
-// 	timestamp: 32578360,
-// 	totalAmount: 0,
-// 	totalFee: 0,
-// 	transactions: [],
-// 	version: 0,
-// };
-
-// const validBlock = {
-// 	blockSignature:
-// 		'56d63b563e00332ec31451376f5f2665fcf7e118d45e68f8db0b00db5963b56bc6776a42d520978c1522c39545c9aff62a7d5bdcf851bf65904b2c2158870f00',
-// 	generatorPublicKey:
-// 		'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
-// 	numberOfTransactions: 2,
-// 	payloadHash:
-// 		'be0df321b1653c203226add63ac0d13b3411c2f4caf0a213566cbd39edb7ce3b',
-// 	payloadLength: 494,
-// 	height: 489,
-// 	previousBlock: '11850828211026019525',
-// 	reward: 0,
-// 	timestamp: 32578370,
-// 	totalAmount: 10000000000000000,
-// 	totalFee: 0,
-// 	transactions: [
-// 		{
-// 			type: 0,
-// 			amount: '10000000000000000',
-// 			fee: 0,
-// 			timestamp: 0,
-// 			recipientId: '16313739661670634666L',
-// 			senderId: '1085993630748340485L',
-// 			senderPublicKey:
-// 				'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
-// 			signature:
-// 				'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05',
-// 			id: '1465651642158264047',
-// 		},
-// 		{
-// 			type: 3,
-// 			amount: '0',
-// 			fee: 0,
-// 			timestamp: 0,
-// 			recipientId: '16313739661670634666L',
-// 			senderId: '16313739661670634666L',
-// 			senderPublicKey:
-// 				'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-// 			asset: {
-// 				votes: [
-// 					'+9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
-// 					'+141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
-// 					'-3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
-// 					'-5d28e992b80172f38d3a2f9592cad740fd18d3c2e187745cd5f7badf285ed819',
-// 				],
-// 			},
-// 			signature:
-// 				'9f9446b527e93f81d3fb8840b02fcd1454e2b6276d3c19bd724033a01d3121dd2edb0aff61d48fad29091e222249754e8ec541132032aefaeebc312796f69e08',
-// 			id: '9314232245035524467',
-// 		},
-// 	].map(transaction => interfaceAdapters.transactions.fromJson(transaction)),
-// 	version: 0,
-// 	id: '884740302254229983',
-// };
-
 let block1;
-
 let block2;
 
 function createBlock(
@@ -511,7 +434,6 @@ describe('blocks/verify', () => {
 					expect(err[0].message).equal(
 						"'' should have required property 'type'"
 					);
-					expect(err[1].message).equal('Invalid type');
 					block2.transactions[0].type = transactionType;
 				}
 			});
