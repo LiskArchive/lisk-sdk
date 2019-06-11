@@ -295,8 +295,7 @@ const initStepsForTest = {
 		});
 		scope.modules = modules;
 		const RewiredPeers = rewire('../../../src/modules/chain/helpers/peers');
-		scope.rewiredModules.peers = RewiredPeers;
-		modules.peers = new RewiredPeers(scope);
+		scope.peers = new RewiredPeers(scope);
 		const { TransactionPool: RewiredTransactionPool } = rewire(
 			'../../../src/modules/chain/transaction_pool'
 		);

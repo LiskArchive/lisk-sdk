@@ -331,11 +331,11 @@ class Forger {
 			});
 			return;
 		}
-		const isPoorConsensus = await modules.peers.isPoorConsensus(
+		const isPoorConsensus = await this.peersModule.isPoorConsensus(
 			this.blocksModule.broadhash
 		);
 		if (isPoorConsensus) {
-			const consensusErr = `Inadequate broadhash consensus before forging a block: ${await modules.peers.getLastConsensus(
+			const consensusErr = `Inadequate broadhash consensus before forging a block: ${await this.peersModule.getLastConsensus(
 				this.blocksModule.broadhash
 			)} %`;
 			this.logger.error(
@@ -346,7 +346,7 @@ class Forger {
 		}
 
 		this.logger.info(
-			`Broadhash consensus before forging a block: ${await modules.peers.getLastConsensus(
+			`Broadhash consensus before forging a block: ${await this.peersModule.getLastConsensus(
 				this.blocksModule.broadhash
 			)} %`
 		);

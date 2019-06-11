@@ -143,7 +143,7 @@ class Loader {
 
 		this.isActive = true;
 
-		const consensusBefore = await modules.peers.calculateConsensus(
+		const consensusBefore = await this.peersModule.calculateConsensus(
 			this.blocksModule.broadhash
 		);
 
@@ -153,7 +153,7 @@ class Loader {
 
 		await this._loadBlocksFromNetwork();
 
-		const consensusAfter = await modules.peers.calculateConsensus(
+		const consensusAfter = await this.peersModule.calculateConsensus(
 			this.blocksModule.broadhash
 		);
 

@@ -128,6 +128,7 @@ module.exports = class Chain {
 			const self = this;
 			this.scope = {
 				config: self.options,
+				peers: this.peers,
 				genesisBlock: { block: self.options.genesisBlock },
 				registeredTransactions: self.options.registeredTransactions,
 				schema: new ZSchema(),
@@ -181,7 +182,7 @@ module.exports = class Chain {
 			});
 
 			this.channel.once('network:bootstrap', () => {
-				this.peers.onNetworkReady(this.blocks.broadhash);
+				this.scope.peers.onNetworkReady(this.blocks.broadhash);
 			});
 
 			// Avoid receiving blocks/transactions from the network during snapshotting process
@@ -251,7 +252,7 @@ module.exports = class Chain {
 					: this.slots.getSlotNumber(),
 			calcSlotRound: async action => this.slots.calcRound(action.params.height),
 			getNodeStatus: async () => ({
-				consensus: await this.scope.modules.peers.getLastConsensus(
+				consensus: await this.scope.peers.getLastConsensus(
 					this.blocks.broadhash
 				),
 				loaded: true,
