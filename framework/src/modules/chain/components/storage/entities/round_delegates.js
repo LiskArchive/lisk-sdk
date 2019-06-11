@@ -24,9 +24,9 @@ const {
 } = require('../../../../../components/storage');
 
 const sqlFiles = {
-	create: 'dpos/create.sql',
-	delete: 'dpos/delete.sql',
-	getRoundDelegates: 'dpos/get_round_delegates.sql',
+	create: 'round_delegates/create.sql',
+	delete: 'round_delegates/delete.sql',
+	getRoundDelegates: 'round_delegates/get_round_delegates.sql',
 };
 
 /**
@@ -52,7 +52,7 @@ const sqlFiles = {
  * @property {json} [delegatePublicKeys]
  */
 
-class Dpos extends BaseEntity {
+class RoundDelegates extends BaseEntity {
 	/**
 	 * Constructor
 	 * @param {BaseAdapter} adapter - Adapter to retrieve the data from
@@ -137,4 +137,4 @@ class Dpos extends BaseEntity {
 	}
 }
 
-module.exports = Dpos;
+module.exports = RoundDelegates;

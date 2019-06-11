@@ -17,7 +17,7 @@
 module.exports = {
 	Account: require('./account'),
 	Block: require('./block'),
-	Dpos: require('./dpos'),
+	RoundDelegates: require('./round_delegates'),
 	Round: require('./round'),
 	Transaction: require('./transaction'),
 };
