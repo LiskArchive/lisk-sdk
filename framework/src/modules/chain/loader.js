@@ -356,7 +356,7 @@ class Loader {
 
 			return lastValidBlock.id === lastBlock.id;
 		} catch (loadBlocksFromNetworkErr) {
-			if (this.peersModule.isPoorConsensus()) {
+			if (this.peersModule.isPoorConsensus(this.blocksModule.broadhash)) {
 				this.logger.debug('Perform chain recovery due to poor consensus');
 				try {
 					await this.blocksModule.recoverChain();
