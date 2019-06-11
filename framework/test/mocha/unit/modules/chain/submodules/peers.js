@@ -17,7 +17,7 @@
 const randomstring = require('randomstring');
 const prefixedPeer = require('../../../../fixtures/peers').randomNormalizedPeer;
 const modulesLoader = require('../../../../common/modules_loader');
-const Peers = require('../../../../../../src/modules/chain/submodules/peers');
+const Peers = require('../../../../../../src/modules/chain/helpers/peers');
 
 describe('peers', () => {
 	const PEER_STATE_CONNECTED = 2;

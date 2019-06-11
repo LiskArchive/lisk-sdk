@@ -17,7 +17,7 @@
 const rewire = require('rewire');
 const jobsQueue = require('../../../../../../src/modules/chain/utils/jobs_queue');
 
-const peers = rewire('../../../../../../src/modules/chain/submodules/peers');
+const peers = rewire('../../../../../../src/modules/chain/helpers/peers');
 
 // These tests are breaking other tests (relying on setTimeout) running on the same process because of a time stubbing
 describe('helpers/jobsQueue', () => {
