@@ -220,7 +220,7 @@ class BFT {
 			this.headers.length >= this.PROCESSING_THRESHOLD &&
 			blockHeader.prevotedConfirmedUptoHeight !== this.prevotedConfirmedHeight
 		) {
-			throw new Error('Wrong provtedConfirmedHeight in blockHeader.');
+			throw new Error('Wrong prevotedConfirmedHeight in blockHeader.');
 		}
 
 		const delegateLastBlock = this.headers.getBlockHeaderForDelegate(
@@ -241,7 +241,7 @@ class BFT {
 			// without strictly larger maxHeightPreviouslyForged or larger height as
 			// justification. This in particular happens, if a delegate is double forging.
 			throw new Error(
-				'Violation of fork choice rule, delegate moved to different chain'
+				'Violation of fork choice rule, delegate moved to a different chain'
 			);
 		}
 
