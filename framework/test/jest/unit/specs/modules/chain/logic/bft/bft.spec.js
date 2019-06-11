@@ -120,6 +120,22 @@ describe('bft', () => {
 				expect(bft.PROCESSING_THRESHOLD).toEqual(processingThreshold);
 				expect(bft.MAX_HEADERS).toEqual(maxHeaders);
 			});
+
+			it('should throw error if finalizedHeight is not provided', async () => {
+				expect(() => new BFT()).toThrow('Must provide finalizedHeight');
+			});
+
+			it('should throw error if activeDelegates is not provided', async () => {
+				expect(() => new BFT({ finalizedHeight })).toThrow(
+					'Must provide activeDelegates'
+				);
+			});
+
+			it('should throw error if activeDelegates is not positive', async () => {
+				expect(() => new BFT({ finalizedHeight, activeDelegates: 0 })).toThrow(
+					'Must provide a positive activeDelegates'
+				);
+			});
 		});
 
 		describe('verifyBlockHeaders', () => {

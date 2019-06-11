@@ -14,6 +14,7 @@
 
 'use strict';
 
+const assert = require('assert');
 const { HeadersList } = require('./headers_list');
 const blockHeaderSchema = require('./block_header_schema');
 const { validate } = require('../../../../../src/controller/validator');
@@ -38,7 +39,11 @@ const validateBlockHeader = blockHeader =>
  */
 
 class BFT {
-	constructor({ finalizedHeight, activeDelegates = 101 }) {
+	constructor({ finalizedHeight, activeDelegates } = {}) {
+		assert(finalizedHeight !== undefined, 'Must provide finalizedHeight');
+		assert(activeDelegates !== undefined, 'Must provide activeDelegates');
+		assert(activeDelegates > 0, 'Must provide a positive activeDelegates');
+
 		// Set constants
 		this.ACTIVE_DELEGATES = activeDelegates;
 
