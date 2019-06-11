@@ -38,7 +38,7 @@ let library;
 class Broadcaster {
 	constructor(
 		nonce,
-		broadcasts,
+		broadcastsActive,
 		force,
 		transactionPool,
 		logger,
@@ -51,7 +51,9 @@ class Broadcaster {
 				transactionPool,
 			},
 			config: {
-				broadcasts,
+				broadcasts: {
+					active: broadcastsActive,
+				},
 				forging: {
 					force,
 				},
@@ -80,7 +82,7 @@ class Broadcaster {
 
 		this.channel = channel;
 
-		if (broadcasts.active) {
+		if (this.config.active) {
 			jobsQueue.register(
 				'broadcasterReleaseQueue',
 				async () => this.releaseQueue(),
