@@ -14,6 +14,8 @@
 
 'use strict';
 
+const path = require('path');
+const fs = require('fs');
 const bftModule = require('../../../../../../../../src/modules/chain/logic/bft/bft');
 const {
 	BlockHeader: blockHeaderFixture,
@@ -35,33 +37,62 @@ const generateValidHeaders = count => {
 	});
 };
 
+const loadCSVSimulationData = filePath => {
+	const fileContents = fs.readFileSync(filePath);
+	const data = fileContents
+		.toString()
+		.split('\n')
+		.map(line => line.toString().split(','));
+	const result = [];
+
+	for (let i = 1; i < data.length - 1; i += 2) {
+		result.push({
+			delegate: data[i][1],
+			maxHeightPreviouslyForged: parseInt(data[i][2]),
+			activeSinceRound: parseInt(data[i][3]),
+			height: parseInt(data[i][4]),
+			preCommits: data[i]
+				.slice(6)
+				.map(Number)
+				.filter(a => a !== 0),
+			preVotes: data[i + 1]
+				.slice(6)
+				.map(Number)
+				.filter(a => a !== 0),
+		});
+	}
+
+	return result;
+};
+
 const delegatesMap = {};
 const generateHeaderInformation = (data, threshold, lastBlockData) => {
-	const delegatePublicKey = delegatesMap[data.d] || accountFixture().publicKey;
-	delegatesMap[data.d] = delegatePublicKey;
+	const delegatePublicKey =
+		delegatesMap[data.delegate] || accountFixture().publicKey;
+	delegatesMap[data.delegate] = delegatePublicKey;
 
 	const beforeBlockPreVotedConfirmedHeight = lastBlockData
-		? lastBlockData.votes.lastIndexOf(threshold) + 1
+		? lastBlockData.preVotes.lastIndexOf(threshold) + 1
 		: 0;
 
 	const header = blockHeaderFixture({
-		height: data.h,
-		maxHeightPreviouslyForged: data.p,
-		delegatePublicKey: delegatesMap[data.d],
-		activeSinceRound: data.a,
+		height: data.height,
+		maxHeightPreviouslyForged: data.maxHeightPreviouslyForged,
+		delegatePublicKey: delegatesMap[data.delegate],
+		activeSinceRound: data.activeSinceRound,
 		prevotedConfirmedUptoHeight: beforeBlockPreVotedConfirmedHeight,
 	});
 
-	const finalizedHeight = data.commits.lastIndexOf(threshold) + 1;
+	const finalizedHeight = data.preCommits.lastIndexOf(threshold) + 1;
 
-	const preVotedConfirmedHeight = data.votes.lastIndexOf(threshold) + 1;
+	const preVotedConfirmedHeight = data.preVotes.lastIndexOf(threshold) + 1;
 
 	return {
 		header,
 		finalizedHeight,
 		preVotedConfirmedHeight,
-		preVotes: data.votes,
-		preCommits: data.commits,
+		preVotes: data.preVotes,
+		preCommits: data.preCommits,
 	};
 };
 
@@ -252,20 +283,22 @@ describe('bft', () => {
 
 			describe('should have proper preVotes and preCommits', () => {
 				describe('11 delegates switched partially on 3rd round', () => {
-					const data = require('./scenarios/11_delegates_switch_on_3_round');
+					const data = loadCSVSimulationData(
+						path.join(__dirname, './scenarios/11_delegates.csv')
+					);
 					const myBft = new BFT({
 						finalizedHeight: 0,
-						activeDelegates: data.activeDelegates,
+						activeDelegates: 11,
 					});
 
-					data.headers.forEach((headerData, index) => {
+					data.forEach((headerData, index) => {
 						it(`have accurate information when ${
 							headerData.d
 						} forge block at height = ${headerData.h}`, async () => {
 							const blockData = generateHeaderInformation(
 								headerData,
 								myBft.PRE_COMMIT_THRESHOLD,
-								data.headers[index - 1]
+								data[index - 1]
 							);
 
 							myBft.addBlockHeader(blockData.header);
@@ -290,18 +323,20 @@ describe('bft', () => {
 			it('should have accurate information after recompute', async () => {
 				// Let's first compute in proper way
 
-				const data = require('./scenarios/11_delegates_switch_on_3_round');
+				const data = loadCSVSimulationData(
+					path.join(__dirname, './scenarios/11_delegates.csv')
+				);
 				let blockData;
 				const myBft = new BFT({
 					finalizedHeight: 0,
-					activeDelegates: data.activeDelegates,
+					activeDelegates: 11,
 				});
 
-				data.headers.forEach((headerData, index) => {
+				data.forEach((headerData, index) => {
 					blockData = generateHeaderInformation(
 						headerData,
 						myBft.PRE_COMMIT_THRESHOLD,
-						data.headers[index - 1]
+						data[index - 1]
 					);
 					myBft.addBlockHeader(blockData.header);
 				});
