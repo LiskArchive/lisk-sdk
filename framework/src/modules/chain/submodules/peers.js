@@ -55,7 +55,7 @@ class Peers {
 			channel: scope.channel,
 			blocks: scope.modules.blocks,
 			constants: {
-				minBroadhashConsensus: scope.config.constants.MIN_BROADHASH_CONSENSUS,
+				minBroadhashConsensus: scope.config.constants.minBroadhashConsensus,
 			},
 		};
 		self = this;

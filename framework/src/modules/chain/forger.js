@@ -21,11 +21,6 @@ const {
 	getAddressFromPublicKey,
 } = require('@liskhq/lisk-cryptography');
 
-// Private fields
-let modules;
-
-const { ACTIVE_DELEGATES, MAX_TRANSACTIONS_PER_BLOCK } = global.constants;
-
 /**
  * Gets the assigned delegate to current slot and returns its keypair if present.
  *
@@ -40,11 +35,12 @@ const getDelegateKeypairForCurrentSlot = async (
 	rounds,
 	keypairs,
 	currentSlot,
-	round
+	round,
+	numOfActiveDelegates
 ) => {
 	const activeDelegates = await rounds.generateDelegateList(round);
 
-	const currentSlotIndex = currentSlot % ACTIVE_DELEGATES;
+	const currentSlotIndex = currentSlot % numOfActiveDelegates;
 	const currentSlotDelegate = activeDelegates[currentSlotIndex];
 
 	if (currentSlotDelegate && keypairs[currentSlotDelegate]) {
@@ -67,19 +63,48 @@ const getDelegateKeypairForCurrentSlot = async (
  * @returns {setImmediateCallback} cb, err, self
  */
 class Forger {
-	constructor(scope) {
+	constructor({
+		// components
+		channel,
+		logger,
+		storage,
+		sequence,
+		// Unique requirements
+		slots,
+		// Modules
+		roundsModule,
+		transactionPoolModule,
+		blocksModule,
+		peersModule,
+		// constants
+		activeDelegates,
+		maxTransactionsPerBlock,
+		forgingDelegates,
+		forgingForce,
+		forgingDefaultPassword,
+	}) {
 		this.keypairs = {};
-		this.channel = scope.channel;
-		this.logger = scope.components.logger;
-		this.storage = scope.components.storage;
-		this.slots = scope.slots;
+		this.channel = channel;
+		this.logger = logger;
+		this.storage = storage;
+		this.slots = slots;
+		this.sequence = sequence;
 		this.config = {
 			forging: {
-				delegates: scope.config.forging.delegates,
-				force: scope.config.forging.force,
-				defaultPassword: scope.config.forging.defaultPassword,
+				delegates: forgingDelegates,
+				force: forgingForce,
+				defaultPassword: forgingDefaultPassword,
 			},
 		};
+		this.constants = {
+			activeDelegates,
+			maxTransactionsPerBlock,
+		};
+
+		this.roundsModule = roundsModule;
+		this.peersModule = peersModule;
+		this.transactionPoolModule = transactionPoolModule;
+		this.blocksModule = blocksModule;
 	}
 
 	/**
@@ -260,7 +285,7 @@ class Forger {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	async beforeForge() {
-		await modules.transactionPool.fillPool();
+		await this.transactionPoolModule.fillPool();
 	}
 
 	/**
@@ -273,7 +298,7 @@ class Forger {
 	// eslint-disable-next-line class-methods-use-this
 	async forge() {
 		const currentSlot = this.slots.getSlotNumber();
-		const lastBlock = modules.blocks.lastBlock;
+		const lastBlock = this.blocksModule.lastBlock;
 
 		if (currentSlot === this.slots.getSlotNumber(lastBlock.timestamp)) {
 			this.logger.debug('Block already forged for the current slot');
@@ -286,10 +311,11 @@ class Forger {
 		let delegateKeypair;
 		try {
 			delegateKeypair = await getDelegateKeypairForCurrentSlot(
-				modules.rounds,
+				this.roundsModule,
 				this.keypairs,
 				currentSlot,
-				round
+				round,
+				this.constants.activeDelegates
 			);
 		} catch (getDelegateKeypairForCurrentSlotError) {
 			this.logger.error(
@@ -305,9 +331,9 @@ class Forger {
 			});
 			return;
 		}
-		const isPoorConsensus = await modules.peers.isPoorConsensus();
+		const isPoorConsensus = await this.peersModule.isPoorConsensus();
 		if (isPoorConsensus) {
-			const consensusErr = `Inadequate broadhash consensus before forging a block: ${modules.peers.getLastConsensus()} %`;
+			const consensusErr = `Inadequate broadhash consensus before forging a block: ${this.peersModule.getLastConsensus()} %`;
 			this.logger.error(
 				'Failed to generate block within delegate slot',
 				consensusErr
@@ -316,16 +342,16 @@ class Forger {
 		}
 
 		this.logger.info(
-			`Broadhash consensus before forging a block: ${modules.peers.getLastConsensus()} %`
+			`Broadhash consensus before forging a block: ${this.peersModule.getLastConsensus()} %`
 		);
 
 		const transactions =
-			modules.transactionPool.getUnconfirmedTransactionList(
+			this.transactionPoolModule.getUnconfirmedTransactionList(
 				false,
-				MAX_TRANSACTIONS_PER_BLOCK
+				this.constants.maxTransactionsPerBlock
 			) || [];
 
-		const forgedBlock = await modules.blocks.generateBlock(
+		const forgedBlock = await this.blocksModule.generateBlock(
 			delegateKeypair,
 			this.slots.getSlotTime(currentSlot),
 			transactions
@@ -367,22 +393,6 @@ class Forger {
 		}));
 
 		return fullList;
-	}
-
-	// Events
-	/**
-	 * Calls Delegate.bind() with scope.
-	 *
-	 * @param {modules} scope - Loaded modules
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	onBind(scope) {
-		modules = {
-			blocks: scope.modules.blocks,
-			peers: scope.modules.peers,
-			transactionPool: scope.modules.transactionPool,
-			rounds: scope.modules.rounds,
-		};
 	}
 }
 
