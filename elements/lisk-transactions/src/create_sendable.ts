@@ -66,9 +66,8 @@ const asJSON = (transaction: Partial<TransactionJSON>): string =>
 const skipUndefined = (
 	transaction: Partial<TransactionJSON>,
 ): Partial<TransactionJSON> =>
-	Object.keys(transaction).reduce(
-		// tslint:disable-next-line
-		(transactionWithValues: object, property: string, value: any) => {
+	Object.entries(transaction).reduce(
+		(transactionWithValues: object, [property, value]) => {
 			if (value !== undefined) {
 				Object.assign(transactionWithValues, { [property]: value });
 			}
