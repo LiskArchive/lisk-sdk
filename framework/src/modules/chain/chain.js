@@ -20,7 +20,6 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 
 const { convertErrorsToString } = require('./helpers/error_handlers');
 const Sequence = require('./helpers/sequence');
-const { ZSchema } = require('../../controller/validator');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
@@ -130,7 +129,6 @@ module.exports = class Chain {
 				config: self.options,
 				genesisBlock: { block: self.options.genesisBlock },
 				registeredTransactions: self.options.registeredTransactions,
-				schema: new ZSchema(),
 				sequence: new Sequence({
 					onWarning(current) {
 						self.logger.warn('Main queue', current);
@@ -319,7 +317,6 @@ module.exports = class Chain {
 			},
 			bus: this.scope.bus,
 			slots: this.slots,
-			schema: this.scope.schema,
 			config: {
 				exceptions: this.options.exceptions,
 				constants: {
@@ -425,7 +422,6 @@ module.exports = class Chain {
 			storage: this.storage,
 			applicationState: this.applicationState,
 			balancesSequence: this.scope.balancesSequence,
-			schema: this.scope.schema,
 			exceptions: this.options.exceptions,
 			transactionPoolModule: this.transactionPool,
 			blocksModule: this.blocks,

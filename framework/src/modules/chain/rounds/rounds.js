@@ -49,7 +49,6 @@ class Rounds {
 			bus: scope.bus,
 			storage: scope.components.storage,
 			slots: scope.slots,
-			schema: scope.schema,
 			exceptions: scope.config.exceptions,
 			constants: {
 				activeDelegates: scope.config.constants.activeDelegates,
