@@ -306,7 +306,6 @@ class Transport {
 			 * @todo Add @param tags
 			 * @todo Add description of the function
 			 */
-			// eslint-disable-next-line consistent-return
 			async blocks(query) {
 				// Get 34 blocks with all data (joins) from provided block id
 				// According to maxium payload of 58150 bytes per block with every transaction being a vote
