@@ -279,7 +279,7 @@ const createV1 = ({
 
 	const nextHeight = previousBlock ? previousBlock.height + 1 : 1;
 
-	const reward = blockReward.calcReward(nextHeight);
+	const reward = blockReward.calculateReward(nextHeight);
 	let totalFee = new BigNum(0);
 	let totalAmount = new BigNum(0);
 	let size = 0;

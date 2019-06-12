@@ -17,6 +17,8 @@ import { TransactionJSON } from '../../src/transaction_types';
 import { TransactionError } from '../../src/errors';
 
 export class TestTransaction extends BaseTransaction {
+	public static TYPE = 0;
+
 	public assetToJSON(): object {
 		return {};
 	}

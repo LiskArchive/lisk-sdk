@@ -22,8 +22,6 @@ import { convertToAssetError, TransactionError } from './errors';
 import { Account, TransactionJSON } from './transaction_types';
 import { validator } from './utils';
 
-const TRANSACTION_DELEGATE_TYPE = 2;
-
 export interface DelegateAsset {
 	readonly delegate: {
 		readonly username: string;
@@ -52,6 +50,7 @@ export const delegateAssetFormatSchema = {
 export class DelegateTransaction extends BaseTransaction {
 	public readonly asset: DelegateAsset;
 	public readonly containsUniqueData: boolean;
+	public static TYPE = 2;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
@@ -109,18 +108,6 @@ export class DelegateTransaction extends BaseTransaction {
 			this.id,
 			validator.errors,
 		) as TransactionError[];
-
-		if (this.type !== TRANSACTION_DELEGATE_TYPE) {
-			errors.push(
-				new TransactionError(
-					'Invalid type',
-					this.id,
-					'.type',
-					this.type,
-					TRANSACTION_DELEGATE_TYPE,
-				),
-			);
-		}
 
 		if (!this.amount.eq(0)) {
 			errors.push(

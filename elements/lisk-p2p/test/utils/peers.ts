@@ -24,6 +24,7 @@ export const initializePeerInfoList = (): ReadonlyArray<
 		height: 545776,
 		isDiscoveredPeer: false,
 		version: '1.1.1',
+		protocolVersion: '1.1',
 	};
 
 	const peerOption2: P2PDiscoveredPeerInfo = {
@@ -32,6 +33,7 @@ export const initializePeerInfoList = (): ReadonlyArray<
 		height: 545981,
 		isDiscoveredPeer: false,
 		version: '1.1.1',
+		protocolVersion: '1.1',
 	};
 
 	const peerOption3: P2PDiscoveredPeerInfo = {
@@ -40,6 +42,7 @@ export const initializePeerInfoList = (): ReadonlyArray<
 		height: 645980,
 		isDiscoveredPeer: false,
 		version: '1.3.1',
+		protocolVersion: '1.1',
 	};
 
 	const peerOption4: P2PDiscoveredPeerInfo = {
@@ -48,6 +51,7 @@ export const initializePeerInfoList = (): ReadonlyArray<
 		height: 645982,
 		isDiscoveredPeer: false,
 		version: '1.2.1',
+		protocolVersion: '1.1',
 	};
 
 	const peerOption5: P2PDiscoveredPeerInfo = {
@@ -56,6 +60,7 @@ export const initializePeerInfoList = (): ReadonlyArray<
 		height: 645980,
 		isDiscoveredPeer: false,
 		version: '1.1.1',
+		protocolVersion: '1.1',
 	};
 
 	return [peerOption1, peerOption2, peerOption3, peerOption4, peerOption5];

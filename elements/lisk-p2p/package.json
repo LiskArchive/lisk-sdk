@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-p2p",
-	"version": "0.1.0-alpha.13",
+	"version": "0.1.0-alpha.14",
 	"description": "Unstructured P2P library for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
@@ -72,7 +72,7 @@
 		"chai": "4.2.0",
 		"chai-as-promised": "7.1.1",
 		"mocha": "5.2.0",
-		"nyc": "13.2.0",
+		"nyc": "14.1.1",
 		"prettier": "1.16.4",
 		"sinon": "7.2.3",
 		"sinon-chai": "3.3.0",

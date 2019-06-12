@@ -16,6 +16,7 @@ import { expect } from 'chai';
 import { APIClient } from '../src/api_client';
 import { APIResource } from '../src/api_resource';
 import * as sinon from 'sinon';
+import { AxiosRequestConfig } from 'axios';
 // Required for stub
 const axios = require('axios');
 
@@ -107,21 +108,25 @@ describe('API resource module', () => {
 		});
 
 		it('should make a request to API without calling retry', () => {
-			return resource.request(defaultRequest, false).then(res => {
-				expect(requestStub).to.be.calledOnce;
-				expect(requestStub).to.be.calledWithExactly(defaultRequest);
-				expect(handleRetryStub).not.to.be.called;
-				return expect(res).to.eql(sendRequestResult);
-			});
+			return resource
+				.request(defaultRequest as AxiosRequestConfig, false)
+				.then(res => {
+					expect(requestStub).to.be.calledOnce;
+					expect(requestStub).to.be.calledWithExactly(defaultRequest);
+					expect(handleRetryStub).not.to.be.called;
+					return expect(res).to.eql(sendRequestResult);
+				});
 		});
 
 		it('should make a request to API without calling retry when it succeeds', () => {
-			return resource.request(defaultRequest, true).then(res => {
-				expect(requestStub).to.be.calledOnce;
-				expect(requestStub).to.be.calledWithExactly(defaultRequest);
-				expect(handleRetryStub).not.to.be.called;
-				return expect(res).to.eql(sendRequestResult);
-			});
+			return resource
+				.request(defaultRequest as AxiosRequestConfig, true)
+				.then(res => {
+					expect(requestStub).to.be.calledOnce;
+					expect(requestStub).to.be.calledWithExactly(defaultRequest);
+					expect(handleRetryStub).not.to.be.called;
+					return expect(res).to.eql(sendRequestResult);
+				});
 		});
 
 		describe('when response status is greater than 300', () => {
@@ -134,9 +139,11 @@ describe('API resource module', () => {
 					},
 				});
 
-				return resource.request(defaultRequest, false).catch(err => {
-					return expect(err.errno).to.equal(statusCode);
-				});
+				return resource
+					.request(defaultRequest as AxiosRequestConfig, false)
+					.catch(err => {
+						return expect(err.errno).to.equal(statusCode);
+					});
 			});
 
 			it('should reject with "An unknown error has occured." message if there is no data is supplied', () => {
@@ -148,9 +155,13 @@ describe('API resource module', () => {
 					},
 				});
 
-				return resource.request(defaultRequest, false).catch(err => {
-					return expect(err.message).to.equal('An unknown error has occurred.');
-				});
+				return resource
+					.request(defaultRequest as AxiosRequestConfig, false)
+					.catch(err => {
+						return expect(err.message).to.equal(
+							'An unknown error has occurred.',
+						);
+					});
 			});
 
 			it('should reject with "An unknown error has occured." message if there is no message is supplied', () => {
@@ -162,9 +173,13 @@ describe('API resource module', () => {
 					},
 				});
 
-				return resource.request(defaultRequest, false).catch(err => {
-					return expect(err.message).to.equal('An unknown error has occurred.');
-				});
+				return resource
+					.request(defaultRequest as AxiosRequestConfig, false)
+					.catch(err => {
+						return expect(err.message).to.equal(
+							'An unknown error has occurred.',
+						);
+					});
 			});
 
 			it('should reject with error message from server if message is supplied', () => {
@@ -177,9 +192,11 @@ describe('API resource module', () => {
 					},
 				});
 
-				return resource.request(defaultRequest, false).catch(err => {
-					return expect(err.message).to.eql(serverErrorMessage);
-				});
+				return resource
+					.request(defaultRequest as AxiosRequestConfig, false)
+					.catch(err => {
+						return expect(err.message).to.eql(serverErrorMessage);
+					});
 			});
 
 			it('should reject with error message from server if message is undefined and error is supplied', () => {
@@ -192,9 +209,11 @@ describe('API resource module', () => {
 					},
 				});
 
-				return resource.request(defaultRequest, false).catch(err => {
-					return expect(err.message).to.eql(serverErrorMessage);
-				});
+				return resource
+					.request(defaultRequest as AxiosRequestConfig, false)
+					.catch(err => {
+						return expect(err.message).to.eql(serverErrorMessage);
+					});
 			});
 
 			it('should reject with errors from server if errors are supplied', () => {
@@ -217,17 +236,21 @@ describe('API resource module', () => {
 					},
 				});
 
-				return resource.request(defaultRequest, false).catch(err => {
-					return expect(err.errors).to.eql(errors);
-				});
+				return resource
+					.request(defaultRequest as AxiosRequestConfig, false)
+					.catch(err => {
+						return expect(err.errors).to.eql(errors);
+					});
 			});
 
 			it('should reject with error if client rejects with plain error', () => {
 				const clientError = new Error('client error');
 				requestStub.rejects(clientError);
-				return resource.request(defaultRequest, false).catch(err => {
-					return expect(err).to.eql(clientError);
-				});
+				return resource
+					.request(defaultRequest as AxiosRequestConfig, false)
+					.catch(err => {
+						return expect(err).to.eql(clientError);
+					});
 			});
 
 			it('should make a request to API with calling retry', () => {
@@ -238,10 +261,12 @@ describe('API resource module', () => {
 						data: sendRequestResult,
 					},
 				});
-				return resource.request(defaultRequest, true).catch(() => {
-					expect(requestStub).to.be.calledOnce;
-					return expect(handleRetryStub).to.be.calledOnce;
-				});
+				return resource
+					.request(defaultRequest as AxiosRequestConfig, true)
+					.catch(() => {
+						expect(requestStub).to.be.calledOnce;
+						return expect(handleRetryStub).to.be.calledOnce;
+					});
 			});
 		});
 	});
@@ -272,7 +297,11 @@ describe('API resource module', () => {
 
 			it('should call banActiveNode when randomizeNodes is true', () => {
 				apiClient.randomizeNodes = true;
-				const req = resource.handleRetry(defaultError, defaultRequest, 1);
+				const req = resource.handleRetry(
+					defaultError,
+					defaultRequest as AxiosRequestConfig,
+					1,
+				);
 				clock.tick(1000);
 				return req.then(res => {
 					expect(apiClient.banActiveNodeAndSelect).to.be.calledOnce;
@@ -283,7 +312,11 @@ describe('API resource module', () => {
 
 			it('should not call ban active node when randomizeNodes is false', () => {
 				apiClient.randomizeNodes = false;
-				const req = resource.handleRetry(defaultError, defaultRequest, 1);
+				const req = resource.handleRetry(
+					defaultError,
+					defaultRequest as AxiosRequestConfig,
+					1,
+				);
 				clock.tick(1000);
 				return req.then(res => {
 					expect(apiClient.banActiveNodeAndSelect).not.to.be.called;
@@ -294,7 +327,11 @@ describe('API resource module', () => {
 
 			it('should throw an error when randomizeNodes is false and the maximum retry count has been reached', () => {
 				apiClient.randomizeNodes = false;
-				const req = resource.handleRetry(defaultError, defaultRequest, 4);
+				const req = resource.handleRetry(
+					defaultError,
+					defaultRequest as AxiosRequestConfig,
+					4,
+				);
 				clock.tick(1000);
 				return expect(req).to.be.rejectedWith(defaultError);
 			});
@@ -307,7 +344,11 @@ describe('API resource module', () => {
 			});
 
 			it('should throw an error that is the same as input error', () => {
-				const res = resource.handleRetry(defaultError, defaultRequest, 1);
+				const res = resource.handleRetry(
+					defaultError,
+					defaultRequest as AxiosRequestConfig,
+					1,
+				);
 				return expect(res).to.be.rejectedWith(defaultError);
 			});
 		});

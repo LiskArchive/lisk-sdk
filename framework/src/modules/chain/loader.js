@@ -46,7 +46,6 @@ __private.retries = 5;
  * @requires logic/peer
  * @param {function} cb - Callback function
  * @param {scope} scope - App instance
- * @returns {setImmediateCallback} cb, null, self
  */
 class Loader {
 	constructor(scope) {
@@ -159,7 +158,7 @@ class Loader {
 	 * @todo Add description for the params
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	sync(cb) {
+	async sync() {
 		library.logger.info('Starting sync');
 		if (components.cache.ready) {
 			components.cache.disable();
@@ -167,35 +166,27 @@ class Loader {
 
 		__private.isActive = true;
 
-		async.series(
-			{
-				async calculateConsensusBefore() {
-					const consensus = await modules.peers.calculateConsensus();
-					return library.logger.debug(
-						`Establishing broadhash consensus before sync: ${consensus} %`
-					);
-				},
-				loadBlocksFromNetwork(seriesCb) {
-					return __private.loadBlocksFromNetwork(seriesCb);
-				},
-				async calculateConsensusAfter() {
-					const consensus = await modules.peers.calculateConsensus();
-					return library.logger.debug(
-						`Establishing broadhash consensus after sync: ${consensus} %`
-					);
-				},
-			},
-			err => {
-				__private.isActive = false;
-				__private.blocksToSync = 0;
+		const consensusBefore = await modules.peers.calculateConsensus();
 
-				library.logger.info('Finished sync');
-				if (components.cache.ready) {
-					components.cache.enable();
-				}
-				return setImmediate(cb, err);
-			}
+		library.logger.debug(
+			`Establishing broadhash consensus before sync: ${consensusBefore} %`
 		);
+
+		await __private.loadBlocksFromNetwork();
+
+		const consensusAfter = await modules.peers.calculateConsensus();
+
+		library.logger.debug(
+			`Establishing broadhash consensus after sync: ${consensusAfter} %`
+		);
+		__private.isActive = false;
+		__private.blocksToSync = 0;
+
+		library.logger.info('Finished sync');
+
+		if (components.cache.ready) {
+			components.cache.enable();
+		}
 	}
 
 	/**
@@ -229,7 +220,7 @@ class Loader {
  * @returns {setImmediateCallback} cb, err
  * @todo Add description for the params
  */
-__private.getSignaturesFromNetwork = async function() {
+__private.getSignaturesFromNetwork = async () => {
 	library.logger.info('Loading signatures from the network');
 
 	// TODO: Add target module to procedure name. E.g. chain:getSignatures
@@ -273,7 +264,7 @@ __private.getSignaturesFromNetwork = async function() {
  * @todo Add description for the params
  * @todo Missing error propagation when calling balancesSequence.add
  */
-__private.getTransactionsFromNetwork = async function() {
+__private.getTransactionsFromNetwork = async () => {
 	library.logger.info('Loading transactions from the network');
 
 	// TODO: Add target module to procedure name. E.g. chain:getTransactions
@@ -338,118 +329,128 @@ __private.getTransactionsFromNetwork = async function() {
  * Loads blocks from network.
  *
  * @private
- * @param {function} cb
- * @returns {setImmediateCallback} cb, err
+ * @returns {Promise} void
  * @todo Add description for the params
  */
-__private.loadBlocksFromNetwork = function(cb) {
+__private.getBlocksFromNetwork = async () => {
+	const lastBlock = modules.blocks.lastBlock;
+	// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
+	// TODO: Rename procedure to include target module name. E.g. chain:blocks
+	let data;
+	try {
+		const response = await library.channel.invoke('network:request', {
+			procedure: 'blocks',
+			data: {
+				lastBlockId: lastBlock.id,
+			},
+		});
+		data = response.data;
+	} catch (p2pError) {
+		library.logger.error('Failed to load block from network', p2pError);
+		return [];
+	}
+
+	if (!data) {
+		throw new Error('Received an invalid blocks response from the network');
+	}
+	// Check for strict equality for backwards compatibility reasons.
+	// The misspelled data.sucess is required to support v1 nodes.
+	// TODO: Remove the misspelled data.sucess === false condition once enough nodes have migrated to v2.
+	if (data.success === false || data.sucess === false) {
+		throw new Error(
+			`Peer did not have a matching lastBlockId. ${data.message}`
+		);
+	}
+	return data.blocks;
+};
+
+/**
+ * Validate blocks from the network.
+ *
+ * @private
+ * @returns {Promise} void
+ * @todo Add description for the params
+ */
+__private.validateBlocks = async blocks => {
+	const report = library.schema.validate(blocks, definitions.WSBlocksList);
+
+	if (!report) {
+		throw new Error('Received invalid blocks data');
+	}
+
+	return blocks;
+};
+
+/**
+ * Loads valided blocks from network.
+ *
+ * @private
+ * @returns {Promise} void
+ * @todo Add description for the params
+ */
+__private.getValidatedBlocksFromNetwork = async blocks => {
+	const lastBlock = modules.blocks.lastBlock;
+	try {
+		const lastValidBlock = await modules.blocks.loadBlocksFromNetwork(blocks);
+		__private.blocksToSync = lastValidBlock.height;
+
+		return lastValidBlock.id === lastBlock.id;
+	} catch (loadBlocksFromNetworkErr) {
+		if (modules.peers.isPoorConsensus()) {
+			library.logger.debug('Perform chain recovery due to poor consensus');
+			try {
+				await modules.blocks.recoverChain();
+			} catch (recoveryError) {
+				throw new Error(
+					`Failed chain recovery after failing to load blocks while network consensus was low. ${recoveryError}`
+				);
+			}
+			throw new Error(
+				'Failed chain recovery after failing to load blocks while network consensus was low.'
+			);
+		}
+		library.logger.error(
+			'Failed to process block from network',
+			loadBlocksFromNetworkErr
+		);
+		throw new Error(
+			`Failed to load blocks from the network. ${loadBlocksFromNetworkErr}`
+		);
+	}
+};
+/**
+ * Loads blocks from network.
+ *
+ * @private
+ * @returns {Promise} void
+ * @todo Add description for the params
+ */
+__private.loadBlocksFromNetwork = async () => {
 	// Number of failed attempts to load from the network.
 	let failedAttemptsToLoad = 0;
 	// If True, own node's db contains all the blocks from the last block request.
 	let loaded = false;
-
-	async.whilst(
-		() => !loaded && failedAttemptsToLoad < 5,
-		whilstCb => {
-			async.waterfall(
-				[
-					async function getBlocksFromNetwork() {
-						const lastBlock = modules.blocks.lastBlock;
-						// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
-						// TODO: Rename procedure to include target module name. E.g. chain:blocks
-						let data;
-						try {
-							const response = await library.channel.invoke('network:request', {
-								procedure: 'blocks',
-								data: {
-									lastBlockId: lastBlock.id,
-								},
-							});
-							data = response.data;
-						} catch (p2pError) {
-							library.logger.error(
-								'Failed to load block from network',
-								p2pError
-							);
-							return [];
-						}
-
-						if (!data) {
-							throw new Error(
-								'Received an invalid blocks response from the network'
-							);
-						}
-						// Check for strict equality for backwards compatibility reasons.
-						// The misspelled data.sucess is required to support v1 nodes.
-						// TODO: Remove the misspelled data.sucess === false condition once enough nodes have migrated to v2.
-						if (data.success === false || data.sucess === false) {
-							throw new Error(
-								`Peer did not have a matching lastBlockId. ${data.message}`
-							);
-						}
-						return data.blocks;
-					},
-					function validateBlocks(blocks, waterCb) {
-						const report = library.schema.validate(
-							blocks,
-							definitions.WSBlocksList
-						);
-
-						if (!report) {
-							return setImmediate(
-								waterCb,
-								new Error('Received invalid blocks data')
-							);
-						}
-						return setImmediate(waterCb, null, blocks);
-					},
-					async function loadBlocksFromNetwork(blocks) {
-						const lastBlock = modules.blocks.lastBlock;
-						try {
-							const lastValidBlock = await modules.blocks.loadBlocksFromNetwork(
-								blocks
-							);
-							__private.blocksToSync = lastValidBlock.height;
-							loaded = lastValidBlock.id === lastBlock.id;
-							// Reset counter after a batch of blocks was successfully loaded from the network
-							failedAttemptsToLoad = 0;
-						} catch (loadBlocksFromNetworkErr) {
-							if (modules.peers.isPoorConsensus()) {
-								library.logger.debug(
-									'Perform chain recovery due to poor consensus'
-								);
-								try {
-									await modules.blocks.recoverChain();
-								} catch (recoveryError) {
-									throw new Error(
-										`Failed chain recovery after failing to load blocks while network consensus was low. ${recoveryError}`
-									);
-								}
-								throw new Error(
-									'Failed chain recovery after failing to load blocks while network consensus was low.'
-								);
-							}
-							library.logger.error(
-								'Failed to process block from network',
-								loadBlocksFromNetworkErr
-							);
-							throw new Error(
-								`Failed to load blocks from the network. ${loadBlocksFromNetworkErr}`
-							);
-						}
-					},
-				],
-				waterErr => {
-					if (waterErr) {
-						failedAttemptsToLoad += 1;
-						library.logger.error(convertErrorsToString(waterErr));
-					}
-					whilstCb();
-				}
+	while (!loaded && failedAttemptsToLoad < 5) {
+		try {
+			// eslint-disable-next-line no-await-in-loop
+			const blocksFromNetwork = await __private.getBlocksFromNetwork();
+			// eslint-disable-next-line no-await-in-loop
+			const blocksAfterValidate = await __private.validateBlocks(
+				blocksFromNetwork
 			);
-		},
-		() => setImmediate(cb)
-	);
+			// eslint-disable-next-line no-await-in-loop
+			loaded = await __private.getValidatedBlocksFromNetwork(
+				blocksAfterValidate
+			);
+			// Reset counter after a batch of blocks was successfully loaded from the network
+			failedAttemptsToLoad = 0;
+		} catch (err) {
+			if (err) {
+				failedAttemptsToLoad += 1;
+				library.logger.error(convertErrorsToString(err));
+			}
+		}
+	}
 };
 
 // Export
