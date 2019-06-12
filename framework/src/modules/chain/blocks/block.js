@@ -403,7 +403,7 @@ const createV2 = ({
 	}
 
 	const block = {
-		version: blockVersion.getBlockVersion(nextHeight), // Was blockVersion.currentBlockVersion + 1 before
+		version: blockVersion.getBlockVersion(nextHeight),
 		totalAmount,
 		totalFee,
 		reward,

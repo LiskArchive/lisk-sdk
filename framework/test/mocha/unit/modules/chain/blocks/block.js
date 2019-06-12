@@ -85,7 +85,35 @@ describe('block', () => {
 			transactions: [],
 			blockSignature:
 				'8a727cc77864b6fc81755a1f4eb4796b68f4a943d69c74a043b5ca422f3b05608a22da4a916ca7b721d096129938b6eb3381d75f1a116484d1ce2be4904d9a0e',
-			height: 69,
+			height: 6,
+			id: '3920300554926889269',
+			relays: 1,
+		},
+		transactions: [],
+	};
+
+	const validDataForBlockv2 = {
+		maxPayloadLength,
+		blockReward,
+		keypair: validKeypair,
+		timestamp: 41898500,
+		previousBlock: {
+			version: 2,
+			totalAmount: '0',
+			totalFee: '0',
+			reward: '0',
+			payloadHash:
+				'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+			timestamp: 41898490,
+			numberOfTransactions: 0,
+			payloadLength: 0,
+			previousBlock: '1087874036928524397',
+			generatorPublicKey:
+				'1cc68fa0b12521158e09779fd5978ccc0ac26bf99320e00a9549b542dd9ada16',
+			transactions: [],
+			blockSignature:
+				'8a727cc77864b6fc81755a1f4eb4796b68f4a943d69c74a043b5ca422f3b05608a22da4a916ca7b721d096129938b6eb3381d75f1a116484d1ce2be4904d9a0e',
+			height: 99,
 			id: '3920300554926889269',
 			relays: 1,
 		},
@@ -291,6 +319,38 @@ describe('block', () => {
 	});
 
 	describe('create', () => {
+		describe('createV1', () => {
+			it("shouldn't have maxHeightPreviouslyForged and prevotedConfirmedUptoHeight properties", async () => {
+				const generatedBlock = block.create({
+					...data,
+					height: 99,
+					transactions,
+					version: 2,
+				});
+
+				expect(generatedBlock).to.not.have.property(
+					'maxHeightPreviouslyForged'
+				);
+				return expect(generatedBlock).to.not.have.property(
+					'prevotedConfirmedUptoHeight'
+				);
+			});
+		});
+
+		describe('createV2', () => {
+			it('should have maxHeightPreviouslyForged and prevotedConfirmedUptoHeight properties', async () => {
+				const generatedBlock = block.create({
+					..._.cloneDeep(validDataForBlockv2),
+					transactions,
+					version: 2,
+					maxHeightPreviouslyForged: 1,
+					prevotedConfirmedUptoHeight: 1,
+				});
+				expect(generatedBlock.maxHeightPreviouslyForged).to.eql(1);
+				return expect(generatedBlock.prevotedConfirmedUptoHeight).to.eql(1);
+			});
+		});
+
 		describe('when each of all supported', () => {
 			let generatedBlock;
 			let transactionsOrder;
@@ -300,6 +360,7 @@ describe('block', () => {
 				generatedBlock = block.create({
 					...data,
 					transactions,
+					version: 1,
 				});
 				transactionsOrder = generatedBlock.transactions.map(trs => trs.type);
 				done();
@@ -328,6 +389,7 @@ describe('block', () => {
 					generatedBlock = block.create({
 						...data,
 						transactions: multipleMultisigTx.concat(transactions),
+						version: 1,
 					});
 					transactionsOrder = generatedBlock.transactions.map(trs => trs.type);
 				});
@@ -356,6 +418,7 @@ describe('block', () => {
 					generatedBlock = block.create({
 						...data,
 						transactions,
+						version: 1,
 					});
 					transactionsOrder = generatedBlock.transactions.map(trs => trs.type);
 				});
@@ -382,6 +445,7 @@ describe('block', () => {
 					generatedBlock = block.create({
 						...data,
 						transactions: transactions.concat(multipleMultisigTx),
+						version: 1,
 					});
 					transactionsOrder = generatedBlock.transactions.map(trs => trs.type);
 				});
@@ -409,6 +473,7 @@ describe('block', () => {
 					generatedBlock = block.create({
 						...data,
 						transactions: _.shuffle(transactions.concat(multipleMultisigTx)),
+						version: 1,
 					});
 					transactionsOrder = generatedBlock.transactions.map(trs => trs.type);
 				});
@@ -633,7 +698,7 @@ describe('block', () => {
 					b_transactions: [],
 					b_blockSignature:
 						'8a727cc77864b6fc81755a1f4eb4796b68f4a943d69c74a043b5ca422f3b05608a22da4a916ca7b721d096129938b6eb3381d75f1a116484d1ce2be4904d9a0e',
-					b_height: 69,
+					b_height: 6,
 					b_id: '3920300554926889269',
 					b_relays: 1,
 					b_confirmations: 0,
@@ -683,7 +748,7 @@ describe('block', () => {
 					b_transactions: [],
 					b_blockSignature:
 						'8a727cc77864b6fc81755a1f4eb4796b68f4a943d69c74a043b5ca422f3b05608a22da4a916ca7b721d096129938b6eb3381d75f1a116484d1ce2be4904d9a0e',
-					b_height: 69,
+					b_height: 6,
 					b_maxHeightPreviouslyForged: 1,
 					b_prevotedConfirmedUptoHeight: 1,
 					b_id: '3920300554926889269',

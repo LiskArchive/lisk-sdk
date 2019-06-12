@@ -25,10 +25,10 @@ const exceptions = {
 	blockVersions: {
 		'1': {
 			start: 1,
-			end: 4,
+			end: 7,
 		},
 		'2': {
-			start: 5,
+			start: 8,
 			end: 6901027,
 		},
 	},
