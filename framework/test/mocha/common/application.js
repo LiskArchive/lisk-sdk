@@ -25,7 +25,6 @@ const Sequence = require('../../../src/modules/chain/helpers/sequence');
 const { BlockSlots } = require('../../../src/modules/chain/blocks/block_slots');
 const { createCacheComponent } = require('../../../src/components/cache');
 const { StorageSandbox } = require('./storage_sandbox');
-const { ZSchema } = require('../../../src/controller/validator');
 const initSteps = require('../../../src/modules/chain/init_steps');
 
 let currentAppScope;
@@ -131,7 +130,6 @@ async function __init(sandbox, initScope) {
 				config,
 				genesisBlock: { block: __testContext.config.genesisBlock },
 				registeredTransactions,
-				schema: new ZSchema(),
 				sequence: new Sequence({
 					onWarning(current) {
 						logger.warn('Main queue', current);
@@ -263,7 +261,6 @@ const initStepsForTest = {
 			},
 			bus: scope.bus,
 			slots: scope.slots,
-			schema: scope.schema,
 			config: {
 				exceptions: __testContext.config.modules.chain.exceptions,
 				constants: {
@@ -332,7 +329,6 @@ const initStepsForTest = {
 			cache: scope.components.cache,
 			genesisBlock: __testContext.config.genesisBlock,
 			balancesSequence: scope.balancesSequence,
-			schema: scope.schema,
 			transactionPoolModule: modules.transactionPool,
 			blocksModule: modules.blocks,
 			peersModule: modules.peers,
@@ -375,7 +371,6 @@ const initStepsForTest = {
 			storage: scope.components.storage,
 			applicationState: scope.applicationState,
 			balancesSequence: scope.balancesSequence,
-			schema: scope.schema,
 			exceptions: __testContext.config.exceptions,
 			transactionPoolModule: modules.transactionPool,
 			blocksModule: modules.blocks,
@@ -383,7 +378,7 @@ const initStepsForTest = {
 			interfaceAdapters: modules.interfaceAdapters,
 			nonce: __testContext.config.app.nonce,
 			forgingForce: __testContext.config.modules.chain.forging.force,
-			broadcastsActive: __testContext.config.modules.chain.broadcasts.active,
+			broadcasts: __testContext.config.modules.chain.broadcasts.active,
 			maxSharedTransactions:
 				__testContext.config.constants.MAX_SHARED_TRANSACTIONS,
 		});
