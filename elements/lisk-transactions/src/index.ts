@@ -31,11 +31,10 @@ import {
 	StateStorePrepare,
 } from './base_transaction';
 import * as constants from './constants';
+import { createSendable } from './create_sendable';
 import { createSignatureObject } from './create_signature_object';
 import { convertToAssetError, TransactionError } from './errors';
 import { Status, TransactionResponse } from './response';
-
-import * as createSendable from './create_sendable';
 
 import { TransactionJSON } from './transaction_types';
 import {
@@ -113,6 +112,7 @@ export {
 	registerMultisignature,
 	DappTransaction,
 	createDapp,
+	createSendable,
 	createSignatureObject,
 	Status,
 	TransactionResponse,
@@ -120,6 +120,5 @@ export {
 	TransactionError,
 	convertToAssetError,
 	constants,
-	createSendable,
 	exposedUtils as utils,
 };
