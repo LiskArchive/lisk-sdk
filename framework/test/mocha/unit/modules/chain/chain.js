@@ -235,7 +235,6 @@ describe('Chain', () => {
 
 		it('should initialize scope object with valid structure', async () => {
 			// @todo write a snapshot tests after migrated this test to jest.
-			expect(chain.scope).to.have.property('ed');
 			expect(chain.scope).to.have.property('config');
 			expect(chain.scope).to.have.nested.property('genesisBlock.block');
 			expect(chain.scope).to.have.property('schema');

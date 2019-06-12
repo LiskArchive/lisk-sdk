@@ -20,7 +20,6 @@ const async = require('async');
 const Sequence = require('../../../src/modules/chain/helpers/sequence');
 const { createLoggerComponent } = require('../../../src/components/logger');
 const { ZSchema } = require('../../../src/controller/validator');
-const ed = require('../../../src/modules/chain/helpers/ed');
 const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
 const Account = require('../../../src/modules/chain/rounds/account');
 
@@ -44,7 +43,6 @@ const modulesLoader = new function() {
 			},
 		},
 		schema: new ZSchema(),
-		ed,
 		bus: {
 			argsMessages: [],
 			message(...args) {

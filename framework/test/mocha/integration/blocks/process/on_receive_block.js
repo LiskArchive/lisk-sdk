@@ -14,12 +14,14 @@
 
 'use strict';
 
-const crypto = require('crypto');
 const expect = require('chai').expect;
 const async = require('async');
 const _ = require('lodash');
 const Promise = require('bluebird');
 const PQ = require('pg-promise').ParameterizedQuery;
+const {
+	getPrivateAndPublicKeyBytesFromPassphrase,
+} = require('@liskhq/lisk-cryptography');
 const accountFixtures = require('../../../fixtures/accounts');
 const { BlockSlots } = require('../../../../../src/modules/chain/blocks');
 const blocksUtils = require('../../../../../src/modules/chain/blocks/block');
@@ -59,7 +61,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 
 	after(application.cleanup);
 
-	afterEach(done => {
+	afterEach(async () =>
 		storage.entities.Block.begin(t => {
 			return t.batch([
 				storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
@@ -68,13 +70,11 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 		})
 			.then(() => {
 				library.modules.blocks._lastBlock = __testContext.config.genesisBlock;
-				done();
 			})
 			.catch(err => {
 				__testContext.debug(err.stack);
-				done();
-			});
-	});
+			})
+	);
 
 	function createBlock(
 		transactions,
@@ -187,12 +187,15 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 	}
 
 	function getKeypair(passphrase) {
-		return library.ed.makeKeypair(
-			crypto
-				.createHash('sha256')
-				.update(passphrase, 'utf8')
-				.digest()
-		);
+		const {
+			publicKeyBytes: publicKey,
+			privateKeyBytes: privateKey,
+		} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
+
+		return {
+			publicKey,
+			privateKey,
+		};
 	}
 
 	function getValidKeypairForSlot(slot) {

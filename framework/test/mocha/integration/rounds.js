@@ -25,7 +25,7 @@ const {
 const BigNum = require('@liskhq/bignum');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const Promise = require('bluebird');
-const ed = require('../../../src/modules/chain/helpers/ed');
+const { hexToBuffer } = require('@liskhq/lisk-cryptography');
 const { BlockSlots } = require('../../../src/modules/chain/blocks');
 const accountsFixtures = require('../fixtures/accounts');
 const randomUtil = require('../common/utils/random');
@@ -87,7 +87,7 @@ describe('rounds', () => {
 
 		// Update last block forger account
 		const found = _.find(accounts, {
-			publicKey: ed.hexToBuffer(lastBlock.generatorPublicKey),
+			publicKey: hexToBuffer(lastBlock.generatorPublicKey),
 		});
 		if (found) {
 			found.producedBlocks += 1;
@@ -151,7 +151,7 @@ describe('rounds', () => {
 		const expectedRewards = getExpectedRoundRewards(blocks);
 		_.each(expectedRewards, reward => {
 			const found = _.find(accounts, {
-				publicKey: ed.hexToBuffer(reward.publicKey),
+				publicKey: hexToBuffer(reward.publicKey),
 			});
 			if (found) {
 				found.fees = new BigNum(found.fees)
@@ -182,7 +182,7 @@ describe('rounds', () => {
 		_.each(voters, delegate => {
 			let votes = '0';
 			const found = _.find(accounts, {
-				publicKey: ed.hexToBuffer(delegate.dependentId),
+				publicKey: hexToBuffer(delegate.dependentId),
 			});
 
 			_.each(delegate.array_agg, voter => {
@@ -269,7 +269,7 @@ describe('rounds', () => {
 		// Increase missed blocks counter for every outsider
 		roundOutsidersList.forEach(publicKey => {
 			const account = _.find(accounts, {
-				publicKey: ed.hexToBuffer(publicKey),
+				publicKey: hexToBuffer(publicKey),
 			});
 			account.missedBlocks += 1;
 		});
