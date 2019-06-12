@@ -24,7 +24,7 @@ const {
 const BigNum = require('@liskhq/bignum');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const Promise = require('bluebird');
-const ed = require('../../../src/modules/chain/helpers/ed');
+const ed = require('../../../src/modules/chain/utils/ed');
 const { BlockSlots } = require('../../../src/modules/chain/blocks');
 const accountsFixtures = require('../fixtures/accounts');
 const randomUtil = require('../common/utils/random');

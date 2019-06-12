@@ -28,7 +28,7 @@ let library;
  * @memberof logic
  * @see Parent: {@link logic}
  * @requires lodash
- * @requires helpers/jobs_queue
+ * @requires utils/jobs_queue
  * @param {Object} broadcasts
  * @param {boolean} force
  * @param {Transaction} transaction - Transaction instance

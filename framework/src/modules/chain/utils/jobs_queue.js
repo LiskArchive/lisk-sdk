@@ -29,7 +29,7 @@ const util = require('util');
  * Description of the namespace.
  *
  * @namespace jobsQueue
- * @memberof module:helpers/jobs_queue
+ * @memberof module:utils/jobs_queue
  * @see Parent: {@link helpers~jobsQueue}
  */
 const jobsQueue = {
