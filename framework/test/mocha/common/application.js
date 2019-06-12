@@ -19,7 +19,6 @@ const rewire = require('rewire');
 const async = require('async');
 const _ = require('lodash');
 const { registeredTransactions } = require('./registered_transactions');
-const ed = require('../../../src/modules/chain/helpers/ed');
 const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
 const Sequence = require('../../../src/modules/chain/helpers/sequence');
 const { BlockSlots } = require('../../../src/modules/chain/blocks/block_slots');
@@ -126,7 +125,6 @@ async function __init(sandbox, initScope) {
 		const scope = _.merge(
 			{
 				lastCommit: '',
-				ed,
 				build: '',
 				config,
 				genesisBlock: { block: __testContext.config.genesisBlock },

@@ -872,9 +872,6 @@ describe('transport', () => {
 					describe('when query is undefined', () => {
 						it('should send back empty blocks', async () => {
 							query = undefined;
-							transportModule.blocksModule.loadBlocksData = sinonSandbox
-								.stub()
-								.callsArgWith(1, null, []);
 
 							const response = await transportModule.blocks(query);
 							return expect(response).to.eql({
@@ -885,7 +882,7 @@ describe('transport', () => {
 					});
 
 					describe('when query is defined', () => {
-						it('should call modules.blocks.utils.loadBlocksData with { limit: 34, lastId: query.lastBlockId }', async () => {
+						it('should call modules.blocks.utils.loadBlocksDataWS with { limit: 34, lastId: query.lastBlockId }', async () => {
 							query = {
 								lastBlockId: '6258354802676165798',
 							};
@@ -900,7 +897,7 @@ describe('transport', () => {
 						});
 					});
 
-					describe('when modules.blocks.utils.loadBlocksData fails', () => {
+					describe('when modules.blocks.utils.loadBlocksDataWS fails', () => {
 						it('should resolve with result = { blocks: [] }', async () => {
 							query = {
 								lastBlockId: '6258354802676165798',
