@@ -39,7 +39,7 @@ const isDuplicateBlock = (lastBlock, currentBlock) =>
  * Determine if Case 3 fulfills
  * @param lastBlock
  * @param currentBlock
- * @return {*|boolean}
+ * @return {boolean}
  * @private
  */
 const isDoubleForging = (lastBlock, currentBlock) =>
@@ -53,7 +53,7 @@ const isDoubleForging = (lastBlock, currentBlock) =>
  * @param currentBlock
  * @param lastReceivedAt
  * @param currentReceivedAt
- * @return {*|boolean}
+ * @return {boolean}
  * @private
  */
 const isTieBreak = ({

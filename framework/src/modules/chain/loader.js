@@ -399,7 +399,7 @@ __private.getValidatedBlocksFromNetwork = async blocks => {
 		if (modules.peers.isPoorConsensus()) {
 			library.logger.debug('Perform chain recovery due to poor consensus');
 			try {
-				await modules.blocks.recoverChain();
+				await modules.blocks.deleteLastBlockAndGet();
 			} catch (recoveryError) {
 				throw new Error(
 					`Failed chain recovery after failing to load blocks while network consensus was low. ${recoveryError}`

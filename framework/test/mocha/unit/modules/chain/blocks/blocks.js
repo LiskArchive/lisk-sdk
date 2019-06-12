@@ -37,9 +37,6 @@ const {
 	BlockSlots,
 } = require('../../../../../../src/modules/chain/blocks/block_slots');
 const blocksUtils = require('../../../../../../src/modules/chain/blocks/utils');
-const {
-	convertErrorsToString,
-} = require('../../../../../../src/modules/chain/helpers/error_handlers');
 
 describe('blocks', () => {
 	const interfaceAdapters = {
@@ -691,8 +688,8 @@ describe('blocks', () => {
 					errors: [],
 				});
 
-			stubs.recoverChain = sinonSandbox
-				.stub(blocksInstance, 'recoverChain')
+			stubs.deleteLastBlockAndGet = sinonSandbox
+				.stub(blocksInstance, 'deleteLastBlockAndGet')
 				.resolves();
 
 			stubs.processReceivedBlock = sinonSandbox
@@ -717,16 +714,16 @@ describe('blocks', () => {
 			try {
 				await blocksInstance._handleDoubleForgingTieBreak(newBlock, lastBlock);
 			} catch (e) {
-				expect(e).to.equal(
-					convertErrorsToString(normalizeAndVerifyReturn.errors)
+				expect(e.message).to.equal(
+					'Fork Choice Case 4 recovery failed because block 2 verification and normalization failed'
 				);
 			}
 
 			expect(loggerStub.error).to.be.calledWith(
+				normalizeAndVerifyReturn.errors,
 				`Fork Choice Case 4 recovery failed because block ${
 					newBlock.id
-				} verification and normalization failed`,
-				convertErrorsToString(normalizeAndVerifyReturn.errors)
+				} verification and normalization failed`
 			);
 		});
 
@@ -743,7 +740,7 @@ describe('blocks', () => {
 		it('should delete the last block, process the new one', async () => {
 			await blocksInstance._handleDoubleForgingTieBreak(newBlock, lastBlock);
 
-			expect(stubs.recoverChain).to.be.called;
+			expect(stubs.deleteLastBlockAndGet).to.be.called;
 			expect(stubs.processReceivedBlock).to.be.calledWith(newBlock);
 		});
 
@@ -767,7 +764,7 @@ describe('blocks', () => {
 			stubs.processReceivedBlock.withArgs(previousLastBlock).resolves();
 			await blocksInstance._handleDoubleForgingTieBreak(newBlock, lastBlock);
 
-			expect(stubs.recoverChain).to.be.called;
+			expect(stubs.deleteLastBlockAndGet).to.be.called;
 			expect(stubs.processReceivedBlock.getCall(0)).to.be.calledWith(newBlock);
 			expect(stubs.processReceivedBlock.getCall(1)).to.be.calledWith(
 				previousLastBlock
@@ -871,15 +868,14 @@ describe('blocks', () => {
 				await blocksInstance._processReceivedBlock(block);
 			} catch (e) {
 				expect(loggerStub.error).to.be.calledWith(
+					error,
 					`Failed to apply new received block id: ${block.id} height: ${
 						block.height
 					} round: ${blocksInstance.slots.calcRound(
 						block.height
 					)} slot: ${blocksInstance.slots.getSlotNumber(
 						block.timestamp
-					)} reward: ${block.reward} version: ${
-						block.version
-					} with error: ${error}`
+					)} reward: ${block.reward} version: ${block.version}`
 				);
 				expect(blocksInstance._isActive).to.be.false;
 			}

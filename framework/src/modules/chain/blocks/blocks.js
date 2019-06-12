@@ -17,7 +17,6 @@
 const EventEmitter = require('events');
 const { cloneDeep } = require('lodash');
 const blocksUtils = require('./utils');
-const { convertErrorsToString } = require('../helpers/error_handlers');
 const { BlocksProcess } = require('./process');
 const { BlocksVerify } = require('./verify');
 const { BlocksChain } = require('./chain');
@@ -127,8 +126,8 @@ class Blocks extends EventEmitter {
 		});
 
 		this._receiveBlockImplementations = {
-			1: this._receiveBlockFromNetworkV1.bind(this),
-			2: this._receiveBlockFromNetworkV2.bind(this),
+			1: block => this._receiveBlockFromNetworkV1(block),
+			2: block => this._receiveBlockFromNetworkV2(block),
 		};
 	}
 
@@ -308,7 +307,7 @@ class Blocks extends EventEmitter {
 		this.logger.info('Blockchain ready');
 	}
 
-	async recoverChain() {
+	async deleteLastBlockAndGet() {
 		this._lastBlock = await this.blocksChain.deleteLastBlock(this._lastBlock);
 		return this._lastBlock;
 	}
@@ -471,7 +470,7 @@ class Blocks extends EventEmitter {
 		// Better to do it here rather than in the Sequence so receiving time is more accurate
 		const newBlockReceivedAt = this.slots.getTime();
 
-		// Execute in sequence via sequence
+		// Execute in sequence
 		return this.sequence.add(callback => {
 			try {
 				this._shouldNotBeActive();
@@ -514,13 +513,14 @@ class Blocks extends EventEmitter {
 			this._isActive = false;
 		} catch (error) {
 			this.logger.error(
+				error,
 				`Failed to apply new received block id: ${block.id} height: ${
 					block.height
 				} round: ${this.slots.calcRound(
 					block.height
 				)} slot: ${this.slots.getSlotNumber(block.timestamp)} reward: ${
 					block.reward
-				} version: ${block.version} with error: ${error}`
+				} version: ${block.version}`
 			);
 			throw error;
 		} finally {
@@ -774,16 +774,12 @@ class Blocks extends EventEmitter {
 		);
 
 		if (!check.verified) {
-			const errors = convertErrorsToString(check.errors);
-
-			this.logger.error(
-				`Fork Choice Case 4 recovery failed because block ${
-					block.id
-				} verification and normalization failed`,
-				errors
-			);
+			const errorMessage = `Fork Choice Case 4 recovery failed because block ${
+				block.id
+			} verification and normalization failed`;
+			this.logger.error(check.errors, errorMessage);
 			// Return first error from checks
-			throw errors;
+			throw new Error(errorMessage);
 		}
 
 		// If the new block is correctly validated and verified,
@@ -795,8 +791,8 @@ class Blocks extends EventEmitter {
 		);
 		const previousLastBlock = cloneDeep(this._lastBlock);
 
-		// Deletes last block and assigns new received block to this._lastBlock
-		await this.recoverChain();
+		// Deletes last block and updates this._lastBlock to the previous one
+		await this.deleteLastBlockAndGet();
 
 		try {
 			await this._processReceivedBlock(block);
