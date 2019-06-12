@@ -14,12 +14,10 @@
 
 'use strict';
 
-const {
-	HeadersList,
-} = require('../../../../../../../../src/modules/chain/logic/bft');
+const { HeadersList } = require('../../../../../../../src/modules/chain/bft');
 const {
 	BlockHeader: blockHeaderFixture,
-} = require('../../../../../../../mocha/fixtures/blocks');
+} = require('../../../../../../mocha/fixtures/blocks');
 
 describe('HeadersList', () => {
 	let list;

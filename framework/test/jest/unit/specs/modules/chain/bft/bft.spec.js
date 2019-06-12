@@ -16,14 +16,15 @@
 
 const path = require('path');
 const fs = require('fs');
-const bftModule = require('../../../../../../../../src/modules/chain/logic/bft/bft');
+const { SchemaValidationError } = require('../../../../../../../src/errors');
+const bftModule = require('../../../../../../../src/modules/chain/bft/bft');
 const {
 	BlockHeader: blockHeaderFixture,
-} = require('../../../../../../../mocha/fixtures/blocks');
+} = require('../../../../../../mocha/fixtures/blocks');
 
 const {
 	Account: accountFixture,
-} = require('../../../../../../../mocha/fixtures/accounts');
+} = require('../../../../../../mocha/fixtures/accounts');
 
 const BFT = bftModule.BFT;
 const validateBlockHeader = bftModule.validateBlockHeader;
@@ -428,21 +429,15 @@ describe('bft', () => {
 
 			// Setting non-integer value
 			header = blockHeaderFixture({ height: '1' });
-			expect(() => validateBlockHeader(header)).toThrow(
-				'Schema validation error'
-			);
+			expect(() => validateBlockHeader(header)).toThrow(SchemaValidationError);
 
 			// Setting invalid id
 			header = blockHeaderFixture({ blockId: 'Al123' });
-			expect(() => validateBlockHeader(header)).toThrow(
-				'Schema validation error'
-			);
+			expect(() => validateBlockHeader(header)).toThrow(SchemaValidationError);
 
 			// Setting invalid public key;
 			header = blockHeaderFixture({ delegatePublicKey: 'abdef' });
-			expect(() => validateBlockHeader(header)).toThrow(
-				'Schema validation error'
-			);
+			expect(() => validateBlockHeader(header)).toThrow(SchemaValidationError);
 		});
 	});
 });

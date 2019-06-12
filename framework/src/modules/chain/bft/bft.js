@@ -17,7 +17,7 @@
 const assert = require('assert');
 const { HeadersList } = require('./headers_list');
 const blockHeaderSchema = require('./block_header_schema');
-const { validate } = require('../../../../../src/controller/validator');
+const { validate } = require('../../../../src/controller/validator');
 
 /**
  * Validate schema of block header
