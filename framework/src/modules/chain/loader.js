@@ -45,7 +45,6 @@ class Loader {
 		// Unique requirements
 		genesisBlock,
 		balancesSequence,
-		schema,
 		// Modules
 		transactionPoolModule,
 		blocksModule,
@@ -66,7 +65,6 @@ class Loader {
 		this.storage = storage;
 		// TODO: Remove cache
 		this.cache = cache;
-		this.schema = schema;
 		this.genesisBlock = genesisBlock;
 		this.balancesSequence = balancesSequence;
 
@@ -196,8 +194,14 @@ class Loader {
 			procedure: 'getSignatures',
 		});
 
-		const validate = promisify(this.schema.validate.bind(this.schema));
-		await validate(result, definitions.WSSignaturesResponse);
+		const validate = validator.validate(
+			definitions.WSSignaturesResponse,
+			result
+		);
+
+		if (!validate) {
+			throw validate.errors;
+		}
 
 		const { signatures } = result;
 		const sequenceAdd = promisify(this.sequence.add.bind(this.sequence));
@@ -343,8 +347,9 @@ class Loader {
 	 * @returns {Promise} void
 	 * @todo Add description for the params
 	 */
+	// eslint-disable-next-line class-methods-use-this
 	async _validateBlocks(blocks) {
-		const report = this.schema.validate(blocks, definitions.WSBlocksList);
+		const report = validator.validate(definitions.WSBlocksList, blocks);
 
 		if (!report) {
 			throw new Error('Received invalid blocks data');

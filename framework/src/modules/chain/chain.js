@@ -396,7 +396,6 @@ module.exports = class Chain {
 			cache: this.cache,
 			genesisBlock: this.options.genesisBlock,
 			balancesSequence: this.scope.balancesSequence,
-			schema: this.scope.schema,
 			transactionPoolModule: this.transactionPool,
 			blocksModule: this.blocks,
 			peersModule: this.peers,
