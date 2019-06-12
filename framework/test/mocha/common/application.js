@@ -383,7 +383,7 @@ const initStepsForTest = {
 			interfaceAdapters: modules.interfaceAdapters,
 			nonce: __testContext.config.app.nonce,
 			forgingForce: __testContext.config.modules.chain.forging.force,
-			broadcastsActive: __testContext.config.modules.chain.broadcasts.active,
+			broadcasts: __testContext.config.modules.chain.broadcasts,
 			maxSharedTransactions:
 				__testContext.config.constants.MAX_SHARED_TRANSACTIONS,
 		});
