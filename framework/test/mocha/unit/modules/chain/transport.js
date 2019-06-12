@@ -21,6 +21,7 @@ const {
 } = require('@liskhq/lisk-transactions');
 const BigNum = require('@liskhq/bignum');
 const { transfer, TransactionError } = require('@liskhq/lisk-transactions');
+const { validator } = require('@liskhq/lisk-validator');
 const accountFixtures = require('../../../fixtures/accounts');
 const Block = require('../../../fixtures/blocks').Block;
 const {
@@ -47,7 +48,6 @@ describe('transport', () => {
 
 	let storageStub;
 	let loggerStub;
-	let schemaStub;
 	let channelStub;
 	let balancesSequenceStub;
 	let transportModule;
@@ -143,10 +143,9 @@ describe('transport', () => {
 			trace: sinonSandbox.spy(),
 		};
 
-		schemaStub = {
-			validate: sinonSandbox.stub().returns(true),
-			getLastErrors: sinonSandbox.stub().returns([]),
-		};
+		validator.validate = sinonSandbox.stub().returns(true);
+		validator.errors = [];
+
 		channelStub = {
 			publish: sinonSandbox.stub(),
 			invoke: sinonSandbox.stub(),
@@ -163,7 +162,6 @@ describe('transport', () => {
 			storage: storageStub,
 			applicationState: {},
 			balancesSequence: balancesSequenceStub,
-			schema: schemaStub,
 			exceptions: __testContext.config.modules.chain.exceptions,
 			transactionPoolModule: {
 				getMultisignatureTransactionList: sinonSandbox.stub(),
@@ -202,9 +200,6 @@ describe('transport', () => {
 				expect(transportModule)
 					.to.have.property('logger')
 					.which.is.equal(loggerStub);
-				expect(transportModule)
-					.to.have.property('schema')
-					.which.is.equal(schemaStub);
 				expect(transportModule)
 					.to.have.property('channel')
 					.which.is.equal(channelStub);
@@ -282,19 +277,19 @@ describe('transport', () => {
 				transportModule.transactionPoolModule.getTransactionAndProcessSignature.resolves();
 			});
 
-			describe('when transportModule.schema.validate succeeds', () => {
+			describe('when validator.validate succeeds', () => {
 				describe('when modules.transactionPool.getTransactionAndProcessSignature succeeds', () => {
 					beforeEach(async () => {
 						transportModule.transactionPoolModule.getTransactionAndProcessSignature.resolves();
 						return transportModule._receiveSignature(SAMPLE_SIGNATURE_1);
 					});
 
-					it('should call transportModule.schema.validate with signature', async () => {
-						expect(transportModule.schema.validate.calledOnce).to.be.true;
+					it('should call validator.validate with signature', async () => {
+						expect(validator.validate.calledOnce).to.be.true;
 						return expect(
-							transportModule.schema.validate.calledWith(
-								SAMPLE_SIGNATURE_1,
-								definitions.Signature
+							validator.validate.calledWith(
+								definitions.Signature,
+								SAMPLE_SIGNATURE_1
 							)
 						).to.be.true;
 					});
@@ -324,18 +319,16 @@ describe('transport', () => {
 				});
 			});
 
-			describe('when transportModule.schema.validate fails', () => {
+			describe('when validator.validate fails', () => {
 				it('should reject with error = "Invalid signature body"', async () => {
 					const validateErr = new Error('Signature did not match schema');
 					validateErr.code = 'INVALID_FORMAT';
-					transportModule.schema.validate = sinonSandbox.stub().returns(false);
-					transportModule.schema.getLastErrors = sinonSandbox
-						.stub()
-						.returns(validateErr);
+					validator.validate = sinonSandbox.stub().returns(false);
+					validator.errors = [validateErr];
 
 					return expect(
 						transportModule._receiveSignature(SAMPLE_SIGNATURE_1)
-					).to.be.rejectedWith(validateErr);
+					).to.be.rejectedWith([validateErr]);
 				});
 			});
 		});
@@ -788,12 +781,8 @@ describe('transport', () => {
 							query = undefined;
 							validateErr = new Error('Query did not match schema');
 							validateErr.code = 'INVALID_FORMAT';
-							transportModule.schema.validate = sinonSandbox
-								.stub()
-								.returns(false);
-							transportModule.schema.getLastErrors = sinonSandbox
-								.stub()
-								.returns([validateErr]);
+							validator.validate = sinonSandbox.stub().returns(false);
+							validator.errors = [validateErr];
 
 							return expect(
 								transportModule.blocksCommon(query)
@@ -802,7 +791,7 @@ describe('transport', () => {
 					});
 
 					describe('when query is specified', () => {
-						it('should call transportModule.schema.validate with query and schema.commonBlock', async () => {
+						it('should call validator.validate with query and schema.commonBlock', async () => {
 							query = { ids: '"1","2","3"' };
 
 							try {
@@ -811,25 +800,21 @@ describe('transport', () => {
 								// This err is expected
 							}
 
-							expect(transportModule.schema.validate.calledOnce).to.be.true;
+							expect(validator.validate.calledOnce).to.be.true;
 							return expect(
-								transportModule.schema.validate.calledWith(
-									query,
-									definitions.WSBlocksCommonRequest
+								validator.validate.calledWith(
+									definitions.WSBlocksCommonRequest,
+									query
 								)
 							).to.be.true;
 						});
 
-						describe('when transportModule.schema.validate fails', () => {
+						describe('when validator.validate fails', () => {
 							it('should call transportModule.logger.debug with "Common block request validation failed" and {err: err.toString(), req: query}', async () => {
 								validateErr = new Error('Query did not match schema');
 								validateErr.code = 'INVALID_FORMAT';
-								transportModule.schema.validate = sinonSandbox
-									.stub()
-									.returns(false);
-								transportModule.schema.getLastErrors = sinonSandbox
-									.stub()
-									.returns([validateErr]);
+								validator.validate = sinonSandbox.stub().returns(false);
+								validator.errors = [validateErr];
 
 								expect(transportModule.blocksCommon(query)).to.be.rejectedWith(
 									'Query did not match schema'
@@ -844,13 +829,11 @@ describe('transport', () => {
 							});
 						});
 
-						describe('when transportModule.schema.validate succeeds', () => {
+						describe('when validator.validate succeeds', () => {
 							describe('when escapedIds.length = 0', () => {
 								it('should call transportModule.logger.debug with "Common block request validation failed" and {err: "ESCAPE", req: query.ids}', async () => {
 									query = { ids: '"abc","def","ghi"' };
-									transportModule.schema.validate = sinonSandbox
-										.stub()
-										.returns(true);
+									validator.validate = sinonSandbox.stub().returns(true);
 
 									expect(
 										transportModule.blocksCommon(query)
@@ -941,8 +924,8 @@ describe('transport', () => {
 								)
 							).to.be.true);
 
-						it('should not call transportModule.schema.validate; function should return before', async () =>
-							expect(transportModule.schema.validate.called).to.be.false);
+						it('should not call validator.validate; function should return before', async () =>
+							expect(validator.validate.called).to.be.false);
 					});
 
 					describe('when query is specified', () => {
@@ -1061,11 +1044,11 @@ describe('transport', () => {
 								)
 							).to.be.true);
 
-						it('should not call transportModule.schema.validate; function should return before', async () =>
-							expect(transportModule.schema.validate.called).to.be.false);
+						it('should not call validator.validate; function should return before', async () =>
+							expect(validator.validate.called).to.be.false);
 					});
 
-					describe('when transportModule.schema.validate succeeds', () => {
+					describe('when validator.validate succeeds', () => {
 						beforeEach(async () => {
 							transportModule.constants.broadcasts.active = true;
 							transportModule.postSignatures(query);
@@ -1076,18 +1059,14 @@ describe('transport', () => {
 								transportModule._receiveSignatures.calledWith(query.signatures)
 							).to.be.true);
 					});
-					describe('when transportModule.schema.validate fails', () => {
+					describe('when validator.validate fails', () => {
 						let validateErr;
 
 						it('should call transportModule.logger.debug with "Invalid signatures body" and err as arguments', async () => {
 							validateErr = new Error('Transaction query did not match schema');
 							validateErr.code = 'INVALID_FORMAT';
-							transportModule.schema.validate = sinonSandbox
-								.stub()
-								.returns(false);
-							transportModule.schema.getLastErrors = sinonSandbox
-								.stub()
-								.returns([validateErr]);
+							validator.validate = sinonSandbox.stub().returns(false);
+							validator.errors = [validateErr];
 
 							expect(transportModule.postSignatures(query)).to.be.rejectedWith([
 								validateErr,
@@ -1285,11 +1264,11 @@ describe('transport', () => {
 								)
 							).to.be.true);
 
-						it('should not call transportModule.schema.validate; function should return before', async () =>
-							expect(transportModule.schema.validate.called).to.be.false);
+						it('should not call validator.validate; function should return before', async () =>
+							expect(validator.validate.called).to.be.false);
 					});
 
-					describe('when transportModule.schema.validate succeeds', () => {
+					describe('when validator.validate succeeds', () => {
 						beforeEach(async () => {
 							query = {
 								transactions: transactionsList,
@@ -1307,18 +1286,14 @@ describe('transport', () => {
 							).to.be.true);
 					});
 
-					describe('when transportModule.schema.validate fails', () => {
+					describe('when validator.validate fails', () => {
 						it('should resolve with error = null and result = {success: false, message: message}', async () => {
 							const validateErr = new Error(
 								'Transaction query did not match schema'
 							);
 							validateErr.code = 'INVALID_FORMAT';
-							transportModule.schema.validate = sinonSandbox
-								.stub()
-								.returns(false);
-							transportModule.schema.getLastErrors = sinonSandbox
-								.stub()
-								.returns([validateErr]);
+							validator.validate = sinonSandbox.stub().returns(false);
+							validator.errors = [validateErr];
 
 							return expect(
 								transportModule.postTransactions(query)
