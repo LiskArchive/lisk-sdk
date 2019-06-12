@@ -56,8 +56,7 @@ class Transport {
 		interfaceAdapters,
 		// Constants
 		nonce,
-		forgingForce,
-		broadcastsActive,
+		broadcasts,
 		maxSharedTransactions,
 	}) {
 		this.message = {};
@@ -71,8 +70,7 @@ class Transport {
 
 		this.constants = {
 			nonce,
-			forgingForce,
-			broadcastsActive,
+			broadcasts,
 			maxSharedTransactions,
 		};
 
@@ -83,8 +81,7 @@ class Transport {
 
 		this.broadcaster = new Broadcaster(
 			this.constants.nonce,
-			this.constants.broadcastsActive,
-			this.constants.forgingForce,
+			this.constants.broadcasts,
 			this.transactionPoolModule,
 			this.logger,
 			this.channel,
@@ -342,7 +339,7 @@ class Transport {
 	 * @todo Add description of the function
 	 */
 	async postBlock(query) {
-		if (!this.constants.broadcastsActive) {
+		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving blocks disabled by user through config.json'
 			);
@@ -438,7 +435,7 @@ class Transport {
 	 * @todo Add description of the function
 	 */
 	async postSignatures(query) {
-		if (!this.constants.broadcastsActive) {
+		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving signatures disabled by user through config.json'
 			);
@@ -533,7 +530,7 @@ class Transport {
 	 * @todo Add description of the function
 	 */
 	async postTransactions(query) {
-		if (!this.constants.broadcastsActive) {
+		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving transactions disabled by user through config.json'
 			);
