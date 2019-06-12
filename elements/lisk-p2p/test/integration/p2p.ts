@@ -1337,6 +1337,7 @@ describe('Integration tests for P2P library', () => {
 						populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
 						maxOutboundConnections: TEN_CONNECTIONS,
 						maxInboundConnections: TEN_CONNECTIONS,
+						evictionProtectionEnabled: false,
 						nodeInfo: {
 							wsPort: nodePort,
 							nethash:

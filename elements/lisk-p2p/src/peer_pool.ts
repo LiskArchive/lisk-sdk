@@ -96,6 +96,8 @@ interface PeerPoolConfig {
 	readonly maxOutboundConnections: number;
 	readonly maxInboundConnections: number;
 	readonly outboundShuffleInterval?: number;
+	readonly evictionProtectionEnabled?: boolean;
+	readonly peerProtectionRatio?: number;
 }
 
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
@@ -343,7 +345,11 @@ export class PeerPool extends EventEmitter {
 	): Peer {
 		const inboundPeers = this.getPeers(InboundPeer);
 		if (inboundPeers.length >= this._maxInboundConnections) {
-			this._evictPeer(InboundPeer);
+			if (!this._peerPoolConfig.evictionProtectionEnabled) {
+				this.removePeer(shuffle(inboundPeers)[0].id);
+			} else {
+				this._evictPeer(InboundPeer);
+			}
 		}
 
 		const peerConfig = {
@@ -490,6 +496,27 @@ export class PeerPool extends EventEmitter {
 		})();
 	}
 
+	// TODO: Filter by peer netgroups and peer useful work
+	private _selectPeersForEviction(peers: Peer[]): Peer[] {
+		// Cannot manipulate without physically moving nodes closer to the target
+		const LATENCY_PERCENTAGE = 0.04;
+		const PROXIMAL_PEER_COUNT =
+			(this._peerPoolConfig.peerProtectionRatio as number) *
+			LATENCY_PERCENTAGE *
+			peers.length;
+		const filteredPeersByLatency = peers
+			.sort((a, b) => (a._latency > b._latency ? -1 : 1))
+			.slice(Math.max(PROXIMAL_PEER_COUNT, 1), peers.length);
+		// Protect remaining half of peers by longevity, precludes attacks that start later
+		const LONGEVITY_PERCENTAGE = 0.5;
+		const STEADY_PEER_COUNT = filteredPeersByLatency.length * LONGEVITY_PERCENTAGE;
+		const filteredPeersByConnectTime = peers
+			.sort((a, b) => (a._connectTime > b._connectTime ? -1 : 1))
+			.slice(Math.max(STEADY_PEER_COUNT, 1), filteredPeersByLatency.length);
+
+		return filteredPeersByConnectTime;
+	}
+
 	private _evictPeer(kind: typeof InboundPeer | typeof OutboundPeer): void {
 		const peers = this.getPeers(kind);
 		if (peers.length === 0) {
@@ -499,6 +526,11 @@ export class PeerPool extends EventEmitter {
 		if (kind === OutboundPeer) {
 			const peerIdToRemove = constructPeerIdFromPeerInfo(shuffle(peers)[0]);
 			this.removePeer(peerIdToRemove);
+		}
+
+		if (kind === InboundPeer) {
+			const evictionCandidates = this._selectPeersForEviction([...peers]);
+			this.removePeer(shuffle(evictionCandidates)[0].id);
 		}
 	}
 

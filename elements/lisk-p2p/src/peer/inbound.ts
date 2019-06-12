@@ -57,8 +57,8 @@ export class InboundPeer extends Peer {
 				reason,
 			});
 		};
-		this._handlePong = (startTime: number) => {
-			const latency = Date.now() - startTime;
+		this._handlePong = (responseTime: number) => {
+			const latency = Date.now() - responseTime;
 			this._latency = latency;
 		};
 		this._socket = peerSocket;

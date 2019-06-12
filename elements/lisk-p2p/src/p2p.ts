@@ -334,6 +334,7 @@ export class P2P extends EventEmitter {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
+
 		this._peerPool = new PeerPool({
 			connectTimeout: config.connectTimeout,
 			ackTimeout: config.ackTimeout,
@@ -362,6 +363,8 @@ export class P2P extends EventEmitter {
 			outboundShuffleInterval: config.outboundShuffleInterval
 				? config.outboundShuffleInterval
 				: DEFAULT_OUTBOUND_SHUFFLE_INTERVAL,
+			evictionProtectionEnabled: config.evictionProtectionEnabled === false ? false : true,
+			peerProtectionRatio: config.peerProtectionRatio ? config.peerProtectionRatio : 0.58,
 		});
 
 		this._bindHandlersToPeerPool(this._peerPool);

@@ -130,7 +130,7 @@ export class Peer extends EventEmitter {
 	private readonly _height: number;
 	public _reputation: number;
 	public _latency: number;
-	protected _connectTime: number;
+	public _connectTime: number;
 	private _callCounter: Map<string, number>;
 	private readonly _counterResetInterval: NodeJS.Timer;
 	protected _peerInfo: P2PPeerInfo;
