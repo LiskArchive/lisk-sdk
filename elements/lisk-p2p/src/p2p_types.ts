@@ -100,6 +100,7 @@ export interface P2PConfig {
 	readonly peerHandshakeCheck?: P2PCheckPeerCompatibility;
 	readonly peerBanTime?: number;
 	readonly sendPeerLimit?: number;
+	readonly outboundShuffleInterval?: number;
 }
 
 // Network info exposed by the P2P library.
