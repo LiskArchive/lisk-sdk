@@ -22,7 +22,6 @@ const Broadcaster = rewire(
 
 describe('Broadcaster', () => {
 	const nonce = 'sYHEDBKcScaAAAYg';
-	const force = true;
 	const params = { limit: 10, broadhash: '123' };
 	const options = {
 		data: { peer: {}, block: {} },
@@ -76,7 +75,6 @@ describe('Broadcaster', () => {
 		broadcaster = new Broadcaster(
 			nonce,
 			broadcasts,
-			force,
 			transactionPoolStub,
 			loggerStub,
 			channelStub,
