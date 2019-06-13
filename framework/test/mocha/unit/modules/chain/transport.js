@@ -36,7 +36,7 @@ const definitions = require('../../../../../src/modules/chain/schema/definitions
 const {
 	Transport: TransportModule,
 } = require('../../../../../src/modules/chain/transport');
-const jobsQueue = require('../../../../../src/modules/chain/helpers/jobs_queue');
+const jobsQueue = require('../../../../../src/modules/chain/utils/jobs_queue');
 
 const expect = chai.expect;
 
