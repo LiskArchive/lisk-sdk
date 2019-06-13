@@ -134,10 +134,10 @@ const getBytesV2 = block => {
 	const capacity =
 		4 + // version (int)
 		4 + // timestamp (int)
+		8 + // previousBlock
 		4 + // height (int)
 		4 + // maxHeightPreviouslyForged (int)
 		4 + // prevotedConfirmedUptoHeight (int)
-		8 + // previousBlock
 		4 + // numberOfTransactions (int)
 		8 + // totalAmount (long)
 		8 + // totalFee (long)
