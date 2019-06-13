@@ -91,7 +91,7 @@ module.exports = class Network {
 		}
 
 		// Load peers from the database that were tried or connected the last time node was running
-		const triedPeers = await this.storage.entities.Peer.get(
+		const previousPeers = await this.storage.entities.Peer.get(
 			{},
 			{ limit: null }
 		);
@@ -135,7 +135,7 @@ module.exports = class Network {
 				ipAddress: peer.ip,
 				wsPort: peer.wsPort,
 			})),
-			triedPeers: triedPeers.map(peer => {
+			previousPeers: previousPeers.map(peer => {
 				const { ip, ...peerWithoutIp } = peer;
 
 				return {
@@ -344,7 +344,7 @@ module.exports = class Network {
 
 	async cleanup() {
 		// TODO: Unsubscribe 'app:state:updated' from channel.
-		// TODO: In phase 2, only triedPeers will be saved to database
+		// TODO: In phase 2, only previousPeers will be saved to database
 		this.logger.info('Cleaning network...');
 
 		const peersToSave = this.p2p.getNetworkStatus().connectedPeers.map(peer => {

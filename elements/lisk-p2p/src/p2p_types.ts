@@ -86,10 +86,10 @@ export interface P2PConfig {
 	readonly seedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly fixedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly whiteListedPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly previousPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
 	readonly hostAddress?: string;
-	readonly triedPeers?: ReadonlyArray<P2PDiscoveredPeerInfo>;
 	readonly nodeInfo: P2PNodeInfo;
 	readonly wsEngine?: string;
 	readonly discoveryInterval?: number;
