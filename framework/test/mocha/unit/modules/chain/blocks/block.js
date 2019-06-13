@@ -98,6 +98,18 @@ describe('block', () => {
 			relays: 1,
 		},
 		transactions: [],
+		exceptions: {
+			blockVersions: {
+				1: {
+					start: 1,
+					end: 7,
+				},
+				2: {
+					start: 8,
+					end: 6901027,
+				},
+			},
+		},
 	};
 
 	const validDataForBlockv2 = {
@@ -126,6 +138,18 @@ describe('block', () => {
 			relays: 1,
 		},
 		transactions: [],
+		exceptions: {
+			blockVersions: {
+				1: {
+					start: 1,
+					end: 7,
+				},
+				2: {
+					start: 8,
+					end: 6901027,
+				},
+			},
+		},
 	};
 
 	const invalidBlock = {
@@ -331,7 +355,6 @@ describe('block', () => {
 			it("shouldn't have maxHeightPreviouslyForged and prevotedConfirmedUptoHeight properties", async () => {
 				const generatedBlock = block.create({
 					...data,
-					height: 99,
 					transactions,
 					version: 2,
 				});

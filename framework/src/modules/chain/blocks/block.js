@@ -305,7 +305,7 @@ const createV1 = ({
 	}
 
 	const block = {
-		version: blockVersion.getBlockVersion(nextHeight),
+		version: blockVersion.getBlockVersion(nextHeight, exceptions),
 		totalAmount,
 		totalFee,
 		reward,
@@ -377,7 +377,7 @@ const createV2 = ({
 
 	const nextHeight = previousBlock ? previousBlock.height + 1 : 1;
 
-	const reward = blockReward.calcReward(nextHeight);
+	const reward = blockReward.calculateReward(nextHeight);
 	let totalFee = new BigNum(0);
 	let totalAmount = new BigNum(0);
 	let size = 0;
@@ -403,7 +403,7 @@ const createV2 = ({
 	}
 
 	const block = {
-		version: blockVersion.getBlockVersion(nextHeight),
+		version: blockVersion.getBlockVersion(nextHeight, exceptions),
 		totalAmount,
 		totalFee,
 		reward,

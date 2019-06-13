@@ -21,19 +21,6 @@
  */
 const currentBlockVersion = 2;
 
-const exceptions = {
-	blockVersions: {
-		'1': {
-			start: 1,
-			end: 7,
-		},
-		'2': {
-			start: 8,
-			end: 6901027,
-		},
-	},
-}; // TODO BFT: define strategy to inject this variable from chain config
-
 /**
  * Checks if block version is valid - if match current version or there is an exception for provided block height.
  *
@@ -62,9 +49,9 @@ const isValid = (version, height, exceptions = {}) => {
 	return Number(exceptionVersion) === version;
 };
 
-const getBlockVersion = height => {
-	if (!exceptions.blockVersions) {
-		return -1;
+const getBlockVersion = (height, exceptions = {}) => {
+	if (height === undefined || Object.entries(exceptions).length === 0) {
+		return currentBlockVersion;
 	}
 
 	const exceptionVersion = Object.keys(exceptions.blockVersions).find(

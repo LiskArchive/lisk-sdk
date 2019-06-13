@@ -41,7 +41,6 @@ describe('block_version', () => {
 		});
 
 		describe('when exceptions present', () => {
-			// Two tests fail because currently exceptions are hardcoded
 			beforeEach(async () => {
 				exceptions = {
 					blockVersions: {
@@ -55,27 +54,33 @@ describe('block_version', () => {
 			it('should return 2 for height = undefined', async () => {
 				const height = undefined;
 
-				return expect(blockVersion.getBlockVersion(height)).to.equal(2);
+				return expect(
+					blockVersion.getBlockVersion(height, exceptions)
+				).to.equal(2);
 			});
 
-			// eslint-disable-next-line
-			it.skip('should return 0 for height = 1', async () => {
+			it('should return 0 for height = 1', async () => {
 				const height = 1;
 
-				return expect(blockVersion.getBlockVersion(height)).to.equal(0);
+				return expect(
+					blockVersion.getBlockVersion(height, exceptions)
+				).to.equal(0);
 			});
 
-			// eslint-disable-next-line
-			it.skip('should return 1 for height = 102', async () => {
+			it('should return 1 for height = 102', async () => {
 				const height = 102;
 
-				return expect(blockVersion.getBlockVersion(height)).to.equal(1);
+				return expect(
+					blockVersion.getBlockVersion(height, exceptions)
+				).to.equal(1);
 			});
 
 			it('should return 2 for height = 999999', async () => {
 				const height = 999999;
 
-				return expect(blockVersion.getBlockVersion(height)).to.equal(2);
+				return expect(
+					blockVersion.getBlockVersion(height, exceptions)
+				).to.equal(2);
 			});
 		});
 	});

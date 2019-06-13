@@ -92,7 +92,10 @@ class BlocksProcess {
 		const context = {
 			blockTimestamp: timestamp,
 			blockHeight: lastBlock.height + 1,
-			blockVersion: blockVersion.getBlockVersion(lastBlock.height + 1),
+			blockVersion: blockVersion.getBlockVersion(
+				lastBlock.height + 1,
+				this.exceptions
+			),
 		};
 
 		const allowedTransactionsIds = transactionsModule
