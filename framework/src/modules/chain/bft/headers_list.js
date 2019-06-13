@@ -66,7 +66,9 @@ class HeadersList {
 				blockHeader.height === last.height + 1 ||
 					blockHeader.height === first.height - 1,
 				`Block header with height ${last.height + 1} or ${first.height -
-					1} can be added at the moment`
+					1} can only be added at the moment, you provided ${
+					blockHeader.height
+				} height`
 			);
 		}
 
@@ -87,6 +89,11 @@ class HeadersList {
 	}
 
 	remove({ aboveHeight } = {}) {
+		// If list is empty just return
+		if (this.length === 0) {
+			return undefined;
+		}
+
 		if (!aboveHeight) {
 			aboveHeight = this.last.height - 1;
 		}
@@ -101,6 +108,12 @@ class HeadersList {
 			this.items.length - removeItemsCount,
 			removeItemsCount
 		);
+	}
+
+	top(size) {
+		assert(size, 'Please provide the size');
+
+		return this.items.slice(this.length - size, this.length + 1);
 	}
 
 	empty() {
