@@ -25,6 +25,8 @@ import {
 	P2PPeerSelectionForRequestInput,
 	P2PPeerSelectionForConnectionInput,
 } from '../../src/p2p_types';
+import { SCServerSocket } from 'socketcluster-server';
+import * as url from 'url';
 
 describe('Integration tests for P2P library', () => {
 	before(() => {
@@ -1418,14 +1420,19 @@ describe('Integration tests for P2P library', () => {
 	});
 
 	describe('Network with list of blacklisted/fixed/whitelisted peers', () => {
+		const serverSocketPrototype = SCServerSocket.prototype as any;
+		const realResetPongTimeoutFunction =
+			serverSocketPrototype._resetPongTimeout;
+		serverSocketPrototype._resetPongTimeout = function() {
+			const queryObject = url.parse(this.request.url, true).query as any;
+			let ipSuffix = queryObject.wsPort - 5000 + 10;
+			this.remoteAddress = `127.0.0.${ipSuffix}`;
+			return realResetPongTimeoutFunction.apply(this, arguments);
+		};
 		const FIVE_CONNECTIONS = 5;
 		const DISCOVERY_INTERVAL_WITH_LIMIT = 10;
 		const POPULATOR_INTERVAL_WITH_LIMIT = 10;
 		const blacklistedPeers = [
-			{
-				ipAddress: '127.0.0.12',
-				wsPort: NETWORK_START_PORT + 2,
-			},
 			{
 				ipAddress: '127.0.0.15',
 				wsPort: NETWORK_START_PORT + 5,
@@ -1446,8 +1453,8 @@ describe('Integration tests for P2P library', () => {
 					connectTimeout: 5000,
 					ackTimeout: 5000,
 					seedPeers,
-					fixedPeers: [],
-					whiteListedPeers: [],
+					fixedPeers: blacklistedPeers,
+					whiteListedPeers: blacklistedPeers,
 					blacklistedPeers,
 					wsEngine: 'ws',
 					discoveryInterval: DISCOVERY_INTERVAL_WITH_LIMIT,
@@ -1487,16 +1494,34 @@ describe('Integration tests for P2P library', () => {
 		});
 
 		describe('Peer discovery and connections', () => {
-			it('should not discover or connect to any blacklisted peer', () => {
+			it('should not add any blacklisted peer to newPeers', () => {
 				p2pNodeList.forEach(p2p => {
-					const {
-						newPeers,
-						triedPeers,
-						connectedPeers,
-					} = p2p.getNetworkStatus();
-					expect(newPeers).not.to.include.members(blacklistedPeers);
-					expect(triedPeers).not.to.include.members(blacklistedPeers);
-					expect(connectedPeers).not.to.include.members(blacklistedPeers);
+					const { newPeers } = p2p.getNetworkStatus();
+					const newPeersIPWS = newPeers.map(peer => {
+						return { ipAddress: peer.ipAddress, wsPort: peer.wsPort };
+					});
+					expect(newPeersIPWS).not.to.deep.include.members(blacklistedPeers);
+				});
+			});
+			it('should not add any blacklisted peer to triedPeers', () => {
+				p2pNodeList.forEach(p2p => {
+					const { triedPeers } = p2p.getNetworkStatus();
+					const triedPeersIPWS = triedPeers.map(peer => {
+						return { ipAddress: peer.ipAddress, wsPort: peer.wsPort };
+					});
+					console.log(p2p['_config'].hostIp);
+					expect(triedPeersIPWS).not.to.deep.include.members(blacklistedPeers);
+				});
+			});
+			it('should not connect to any blacklisted peer', () => {
+				p2pNodeList.forEach(p2p => {
+					const { connectedPeers } = p2p.getNetworkStatus();
+					const connectedPeersIPWS = connectedPeers.map(peer => {
+						return { ipAddress: peer.ipAddress, wsPort: peer.wsPort };
+					});
+					expect(connectedPeersIPWS).not.to.deep.include.members(
+						blacklistedPeers,
+					);
 				});
 			});
 		});
