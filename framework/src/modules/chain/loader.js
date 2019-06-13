@@ -200,7 +200,7 @@ class Loader {
 		);
 
 		if (validator.errors) {
-			throw validate.errors;
+			throw validator.errors;
 		}
 
 		const { signatures } = result;
