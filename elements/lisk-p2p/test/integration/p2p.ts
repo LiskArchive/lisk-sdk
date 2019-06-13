@@ -27,6 +27,7 @@ import {
 } from '../../src/p2p_types';
 import { SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
+import _ = require('lodash');
 
 describe('Integration tests for P2P library', () => {
 	before(() => {
@@ -1426,15 +1427,6 @@ describe('Integration tests for P2P library', () => {
 	});
 
 	describe('Network with list of blacklisted/fixed/whitelisted peers', () => {
-		const serverSocketPrototype = SCServerSocket.prototype as any;
-		const realResetPongTimeoutFunction =
-			serverSocketPrototype._resetPongTimeout;
-		serverSocketPrototype._resetPongTimeout = function() {
-			const queryObject = url.parse(this.request.url, true).query as any;
-			let ipSuffix = queryObject.wsPort - 5000 + 10;
-			this.remoteAddress = `127.0.0.${ipSuffix}`;
-			return realResetPongTimeoutFunction.apply(this, arguments);
-		};
 		const FIVE_CONNECTIONS = 5;
 		const DISCOVERY_INTERVAL_WITH_LIMIT = 10;
 		const POPULATOR_INTERVAL_WITH_LIMIT = 10;
@@ -1448,6 +1440,20 @@ describe('Integration tests for P2P library', () => {
 				number: undefined,
 			},
 		];
+		const serverSocketPrototypeBackup = _.cloneDeep(SCServerSocket.prototype);
+
+		before(async () => {
+			const serverSocketPrototype = SCServerSocket.prototype as any;
+			const realResetPongTimeoutFunction =
+				serverSocketPrototype._resetPongTimeout;
+			serverSocketPrototype._resetPongTimeout = function() {
+				const queryObject = url.parse(this.request.url, true).query as any;
+				let ipSuffix = queryObject.wsPort - 5000 + 10;
+				this.remoteAddress = `127.0.0.${ipSuffix}`;
+				return realResetPongTimeoutFunction.apply(this, arguments);
+			};
+		});
+
 		beforeEach(async () => {
 			p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				// Each node will have the previous node in the sequence as a seed peer except the first node.
@@ -1503,6 +1509,10 @@ describe('Integration tests for P2P library', () => {
 					.map(async p2p => await p2p.stop()),
 			);
 			await wait(100);
+		});
+
+		after(async () => {
+			SCServerSocket.prototype = serverSocketPrototypeBackup;
 		});
 
 		it('should not add any blacklisted peer to newPeers', () => {
