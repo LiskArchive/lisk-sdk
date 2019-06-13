@@ -42,11 +42,10 @@ class Peers {
 	}
 
 	/**
-	 * Returns consensus stored by calculateConsensus.
+	 * Returns consensus calculated by calculateConsensus.
 	 *
 	 * @returns {number|undefined} Last calculated consensus or null if wasn't calculated yet
 	 */
-	// eslint-disable-next-line class-methods-use-this
 	async getLastConsensus(broadhash) {
 		return this.calculateConsensus(broadhash);
 	}
@@ -56,7 +55,6 @@ class Peers {
 	 *
 	 * @returns {Promise.<number, Error>} Consensus or undefined if config.forging.force = true
 	 */
-	// eslint-disable-next-line class-methods-use-this
 	async calculateConsensus(broadhash) {
 		const activeCount = Math.min(
 			await this.channel.invoke('network:getPeersCountByFilter', {
@@ -85,7 +83,6 @@ class Peers {
 	 * @returns {boolean}
 	 * @todo Add description for the return value
 	 */
-	// eslint-disable-next-line class-methods-use-this
 	async isPoorConsensus(broadhash) {
 		if (this.config.forging.force) {
 			return false;
