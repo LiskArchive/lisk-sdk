@@ -294,8 +294,8 @@ const initStepsForTest = {
 			blockSlotWindow: __testContext.config.constants.BLOCK_SLOT_WINDOW,
 		});
 		scope.modules = modules;
-		const RewiredPeers = rewire('../../../src/modules/chain/helpers/peers');
-		scope.peers = new RewiredPeers(scope);
+		const { Peers } = rewire('../../../src/modules/chain/peers');
+		scope.peers = new Peers(scope);
 		const { TransactionPool: RewiredTransactionPool } = rewire(
 			'../../../src/modules/chain/transaction_pool'
 		);

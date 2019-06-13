@@ -23,7 +23,6 @@ const MAX_PEERS = 100;
  * @class
  * @memberof modules
  * @see Parent: {@link chain}
- * @requires helpers/jobs_queue
  * @param {scope} scope - App instance
  */
 class Peers {
