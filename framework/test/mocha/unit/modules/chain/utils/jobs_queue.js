@@ -14,10 +14,7 @@
 
 'use strict';
 
-const rewire = require('rewire');
 const jobsQueue = require('../../../../../../src/modules/chain/utils/jobs_queue');
-
-const peers = rewire('../../../../../../src/modules/chain/peers');
 
 // These tests are breaking other tests (relying on setTimeout) running on the same process because of a time stubbing
 describe('helpers/jobsQueue', () => {
@@ -185,23 +182,6 @@ describe('helpers/jobsQueue', () => {
 				return expect(() => {
 					jobsQueue.register('job4', dummyFunction, recallInterval);
 				}).to.throw('Synchronous job job4 already registered');
-			});
-
-			it('should use same instance when required in different module (because of modules cache)', async () => {
-				const jobsQueuePeers = peers.__get__('jobsQueue');
-				// Instances should be the same
-				expect(jobsQueuePeers).to.equal(jobsQueue);
-
-				// Register new job in peers module
-				const name = 'job5';
-				const spy = sinonSandbox.spy(dummyFunction);
-				const job = jobsQueuePeers.register(name, spy, recallInterval);
-				expect(Object.keys(jobsQueuePeers.jobs))
-					.to.be.an('array')
-					.and.lengthOf(5);
-				testExecution(job, name, spy);
-				// Instances still should be the same
-				return expect(jobsQueuePeers).to.equal(jobsQueue);
 			});
 		});
 	});
