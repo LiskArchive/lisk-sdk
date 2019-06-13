@@ -213,7 +213,6 @@ class Loader {
 	 * - Calls processUnconfirmedTransaction for each transaction.
 	 *
 	 * @private
-	 * @param {function} cb
 	 * @returns {setImmediateCallback} cb, err
 	 * @todo Add description for the params
 	 * @todo Missing error propagation when calling balancesSequence.add
