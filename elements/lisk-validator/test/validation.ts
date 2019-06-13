@@ -42,6 +42,7 @@ import {
 	isStringBufferLessThan,
 	hasNoDuplicate,
 	isUsername,
+	isCsv,
 } from '../src/validation';
 
 describe('validation', () => {
@@ -597,6 +598,23 @@ describe('validation', () => {
 			invalidStrings.forEach(input => {
 				expect(isNullCharacterIncluded(input)).to.be.true;
 			});
+		});
+	});
+
+	describe.only('isCsv', () => {
+		it('should return true when the value is a CSV string', () => {
+			const csvString = '64,9,77,23,12,26,29,28,2008';
+			return expect(isCsv(csvString)).to.be.true;
+		});
+
+		it('should return false when the value is not a CSV string', () => {
+			const csvString = 0 as any;
+			return expect(isCsv(csvString)).to.be.false;
+		});
+
+		it('should return false when CSV string would yield more than 1000 items', () => {
+			const csvString = new Array(1001).fill('0').join(',');
+			return expect(isCsv(csvString)).to.be.false;
 		});
 	});
 });
