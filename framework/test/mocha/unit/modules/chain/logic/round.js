@@ -79,6 +79,10 @@ describe('round', () => {
 				warn: sinonSandbox.spy(),
 				error: sinonSandbox.spy(),
 			},
+			constants: {
+				activeDelegates: 101,
+			},
+			exceptions: __testContext.config.modules.chain.exceptions,
 		},
 		block: {
 			generatorPublicKey: genesisBlock.generatorPublicKey,
@@ -113,7 +117,25 @@ describe('round', () => {
 			it('should return Round instance', async () =>
 				expect(round).to.be.instanceof(Round));
 
-			it('should set scope', async () => expect(round.scope).to.be.eql(scope));
+			it('should set scope', async () => {
+				expect(round.scope.backwards).to.be.eql(scope.backwards);
+				expect(round.scope.round).to.be.eql(scope.round);
+				expect(round.scope.roundOutsiders).to.be.eql(scope.roundOutsiders);
+				expect(round.scope.roundDelegates).to.be.eql(scope.roundDelegates);
+				expect(round.scope.roundFees).to.be.eql(scope.roundFees);
+				expect(round.scope.roundRewards).to.be.eql(scope.roundRewards);
+				expect(round.scope.library.account).to.be.eql(scope.library.account);
+				expect(round.scope.library.logger).to.be.eql(scope.library.logger);
+				expect(round.scope.library.storage).to.be.eql(scope.library.storage);
+				expect(round.scope.block.generatorPublicKey).to.be.eql(
+					scope.block.generatorPublicKey
+				);
+				expect(round.scope.block.id).to.be.eql(scope.block.id);
+				expect(round.scope.block.height).to.be.eql(scope.block.height);
+				expect(round.scope.block.timestamp).to.be.eql(scope.block.timestamp);
+				expect(round.scope.constants).to.be.eql(scope.library.constants);
+				expect(round.scope.exceptions).to.be.eql(scope.library.exceptions);
+			});
 
 			it('should set t', async () => expect(round.t).to.be.eql(task));
 		});

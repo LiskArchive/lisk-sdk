@@ -42,13 +42,8 @@ describe('forge', () => {
 			},
 		},
 	};
-	const mockModules = {
-		blocks: {},
-		peers: {},
-		transactions: {},
-		delegates: {},
-	};
 	const testDelegate = genesisDelegates.delegates[0];
+	const numOfActiveDelegates = 101;
 
 	let forgeModule;
 	let defaultPassword;
@@ -59,19 +54,16 @@ describe('forge', () => {
 		beforeEach(async () => {
 			forgeModule = new Forger({
 				channel: mockChannel,
-				components: {
-					logger: mockLogger,
-					storage: mockStorage,
-				},
-				config: {
-					forging: {
-						delegates: genesisDelegates.delegates,
-						force: false,
-						defaultPassword: testDelegate.password,
-					},
-				},
+				logger: mockLogger,
+				storage: mockStorage,
+				forgingDelegates: genesisDelegates.delegates,
+				forgingForce: false,
+				forgingDefaultPassword: testDelegate.password,
+				roundsModule: {},
+				transactionPoolModule: {},
+				blocksModule: {},
+				peersModule: {},
 			});
-			forgeModule.onBind({ modules: mockModules });
 		});
 
 		describe('updateForgingStatus', () => {
@@ -833,7 +825,8 @@ describe('forge', () => {
 					delegatesModuleStub,
 					forgeModule.keypairs,
 					currentSlot,
-					round
+					round,
+					numOfActiveDelegates
 				);
 				expect(publicKey).to.deep.equal(genesis1Keypair.publicKey);
 				expect(privateKey).to.deep.equal(genesis1Keypair.privateKey);
@@ -855,7 +848,8 @@ describe('forge', () => {
 					delegatesModuleStub,
 					forgeModule.keypairs,
 					currentSlot,
-					round
+					round,
+					numOfActiveDelegates
 				);
 				expect(publicKey).to.deep.equal(genesis2Keypair.publicKey);
 				expect(privateKey).to.deep.equal(genesis2Keypair.privateKey);
@@ -877,7 +871,8 @@ describe('forge', () => {
 					delegatesModuleStub,
 					forgeModule.keypairs,
 					currentSlot,
-					round
+					round,
+					numOfActiveDelegates
 				);
 				expect(publicKey).to.deep.equal(genesis3Keypair.publicKey);
 				expect(privateKey).to.deep.equal(genesis3Keypair.privateKey);
@@ -897,7 +892,8 @@ describe('forge', () => {
 					delegatesModuleStub,
 					forgeModule.keypairs,
 					currentSlot,
-					round
+					round,
+					numOfActiveDelegates
 				);
 				expect(keyPair).to.be.null;
 			});
@@ -915,7 +911,8 @@ describe('forge', () => {
 						delegatesModuleStub,
 						forgeModule.keypairs,
 						currentSlot,
-						round
+						round,
+						numOfActiveDelegates
 					);
 				} catch (error) {
 					expect(error).to.equal(expectedError);
