@@ -18,9 +18,9 @@
  * Converts array of errors into string
  *
  * @class
- * @memberof helpers
+ * @memberof utils
  * @param {array | object} errors
- * @see Parent: {@link helpers}
+ * @see Parent: {@link utils}
  * @todo Add description for the params
  */
 // TODO: Move this functionality to logger component
