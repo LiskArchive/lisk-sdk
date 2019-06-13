@@ -62,9 +62,6 @@ const getBytesV2 = block => {
 	const byteBuffer = new ByteBuffer(capacity, true);
 	byteBuffer.writeInt(block.version);
 	byteBuffer.writeInt(block.timestamp);
-	byteBuffer.writeInt(block.height);
-	byteBuffer.writeInt(block.maxHeightPreviouslyForged);
-	byteBuffer.writeInt(block.prevotedConfirmedUptoHeight);
 
 	if (block.previousBlock) {
 		const pb = new BigNum(block.previousBlock).toBuffer({ size: '8' });
@@ -78,6 +75,9 @@ const getBytesV2 = block => {
 		}
 	}
 
+	byteBuffer.writeInt(block.height);
+	byteBuffer.writeInt(block.maxHeightPreviouslyForged);
+	byteBuffer.writeInt(block.prevotedConfirmedUptoHeight);
 	byteBuffer.writeInt(block.numberOfTransactions);
 	byteBuffer.writeLong(block.totalAmount.toString());
 	byteBuffer.writeLong(block.totalFee.toString());

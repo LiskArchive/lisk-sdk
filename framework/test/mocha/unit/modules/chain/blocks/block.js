@@ -356,7 +356,7 @@ describe('block', () => {
 				const generatedBlock = block.create({
 					...data,
 					transactions,
-					version: 2,
+					version: 1,
 				});
 
 				expect(generatedBlock).to.not.have.property(
