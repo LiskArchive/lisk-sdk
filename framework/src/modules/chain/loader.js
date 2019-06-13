@@ -171,7 +171,6 @@ class Loader {
 	 * Processes each signature from the network.
 	 *
 	 * @private
-	 * @param {function} cb
 	 * @returns {setImmediateCallback} cb, err
 	 * @todo Add description for the params
 	 */
