@@ -26,7 +26,7 @@ const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
 const { createBus, bootstrapStorage, bootstrapCache } = require('./init_steps');
 const jobQueue = require('./utils/jobs_queue');
-const Peers = require('./submodules/peers');
+const { Peers } = require('./peers');
 const { TransactionInterfaceAdapter } = require('./interface_adapters');
 const { TransactionPool } = require('./transaction_pool');
 const { Rounds } = require('./rounds');
@@ -484,19 +484,18 @@ module.exports = class Chain {
 		/**
 		 * Periodically calculate consensus
 		 */
-		this.logger.trace('Peers ready');
-		const calculateConsensus = async () => {
-			const consensus = await this.scope.peers.calculateConsensus(
-				this.blocks.broadhash
-			);
-			return this.logger.debug(`Broadhash consensus: ${consensus} %`);
-		};
-
 		jobQueue.register(
 			'calculateConsensus',
-			calculateConsensus,
-			this.scope.peers.broadhashConsensusCalculationInterval
+			this._calculateConsensus,
+			this.peers.broadhashConsensusCalculationInterval
 		);
+	}
+
+	async _calculateConsensus() {
+		const consensus = await this.peers.calculateConsensus(
+			this.blocks.broadhash
+		);
+		return this.logger.debug(`Broadhash consensus: ${consensus} %`);
 	}
 
 	async _startForging() {
