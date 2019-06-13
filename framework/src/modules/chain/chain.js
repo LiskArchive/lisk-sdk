@@ -486,15 +486,13 @@ module.exports = class Chain {
 		 */
 		jobQueue.register(
 			'calculateConsensus',
-			this._calculateConsensus,
+			async () => this._calculateConsensus(this.peers),
 			this.peers.broadhashConsensusCalculationInterval
 		);
 	}
 
-	async _calculateConsensus() {
-		const consensus = await this.peers.calculateConsensus(
-			this.blocks.broadhash
-		);
+	async _calculateConsensus(peers) {
+		const consensus = await peers.calculateConsensus(this.blocks.broadhash);
 		return this.logger.debug(`Broadhash consensus: ${consensus} %`);
 	}
 
