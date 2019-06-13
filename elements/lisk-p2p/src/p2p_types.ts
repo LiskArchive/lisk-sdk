@@ -118,7 +118,7 @@ export interface P2PPeerSelectionForSendInput {
 }
 
 export type P2PPeerSelectionForSendFunction = (
-	input: P2PPeerSelectionForSendInput
+	input: P2PPeerSelectionForSendInput,
 ) => ReadonlyArray<P2PDiscoveredPeerInfo>;
 
 export interface P2PPeerSelectionForRequestInput {
@@ -129,7 +129,7 @@ export interface P2PPeerSelectionForRequestInput {
 }
 
 export type P2PPeerSelectionForRequestFunction = (
-	input: P2PPeerSelectionForRequestInput
+	input: P2PPeerSelectionForRequestInput,
 ) => ReadonlyArray<P2PDiscoveredPeerInfo>;
 
 export interface P2PPeerSelectionForConnectionInput {
@@ -138,7 +138,7 @@ export interface P2PPeerSelectionForConnectionInput {
 }
 
 export type P2PPeerSelectionForConnectionFunction = (
-	input: P2PPeerSelectionForConnectionInput
+	input: P2PPeerSelectionForConnectionInput,
 ) => ReadonlyArray<P2PDiscoveredPeerInfo>;
 
 export interface P2PCompatibilityCheckReturnType {

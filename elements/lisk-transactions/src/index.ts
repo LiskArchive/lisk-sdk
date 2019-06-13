@@ -31,9 +31,11 @@ import {
 	StateStorePrepare,
 } from './base_transaction';
 import * as constants from './constants';
+import { createSendable } from './create_sendable';
 import { createSignatureObject } from './create_signature_object';
 import { convertToAssetError, TransactionError } from './errors';
 import { Status, TransactionResponse } from './response';
+
 import { TransactionJSON } from './transaction_types';
 import {
 	checkPublicKeysForDuplicates,
@@ -110,6 +112,7 @@ export {
 	registerMultisignature,
 	DappTransaction,
 	createDapp,
+	createSendable,
 	createSignatureObject,
 	Status,
 	TransactionResponse,

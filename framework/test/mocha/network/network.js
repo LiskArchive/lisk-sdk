@@ -25,7 +25,10 @@ const WAIT_BEFORE_CONNECT_MS = 20000;
 const getPeersStatus = peers => {
 	return Promise.all(
 		peers.map(peer => {
-			return utils.http.getNodeStatus(peer.httpPort, peer.ip);
+			return utils.http.getNodeStatus({
+				port: peer.httpPort,
+				ip: peer.ip,
+			});
 		})
 	);
 };
@@ -338,10 +341,10 @@ class Network {
 			configuration.modules.chain.forging.delegates
 				.filter(() => !configuration.modules.chain.forging.force)
 				.map(keys => {
-					const enableForgingPromise = utils.http.enableForging(
+					const enableForgingPromise = utils.http.enableForging({
 						keys,
-						configuration.modules.http_api.httpPort
-					);
+						port: configuration.modules.http_api.httpPort,
+					});
 					return enableForgingPromises.push(enableForgingPromise);
 				});
 		});
@@ -424,7 +427,7 @@ class Network {
 	// eslint-disable-next-line class-methods-use-this
 	stopNode(nodeName) {
 		return new Promise((resolve, reject) => {
-			childProcess.exec(`node_modules/.bin/pm2 stop ${nodeName}`, err => {
+			childProcess.exec(`npx pm2 stop ${nodeName}`, err => {
 				if (err) {
 					return reject(
 						new Error(`Failed to stop node ${nodeName}: ${err.message || err}`)
@@ -437,7 +440,7 @@ class Network {
 
 	startNode(nodeName, waitForSync) {
 		let startPromise = new Promise((resolve, reject) => {
-			childProcess.exec(`node_modules/.bin/pm2 start ${nodeName}`, err => {
+			childProcess.exec(`npx pm2 start ${nodeName}`, err => {
 				if (err) {
 					return reject(
 						new Error(`Failed to start node ${nodeName}: ${err.message || err}`)
@@ -476,7 +479,7 @@ class Network {
 
 		await new Promise((resolve, reject) => {
 			childProcess.exec(
-				`node_modules/.bin/pm2 reload test/mocha/network/pm2.network.json --only ${nodeName}${update}`,
+				`npx pm2 reload test/mocha/network/pm2.network.json --only ${nodeName}${update}`,
 				err => {
 					if (err) {
 						return reject(
@@ -523,6 +526,18 @@ class Network {
 				};
 				return status;
 			});
+	}
+
+	async wait(number) {
+		this.logger.info(
+			`Waiting ${number /
+				(60 * 1000)} minute to check how many blocks are forged`
+		);
+		return new Promise(resolve => {
+			setTimeout(() => {
+				resolve();
+			}, number);
+		});
 	}
 }
 

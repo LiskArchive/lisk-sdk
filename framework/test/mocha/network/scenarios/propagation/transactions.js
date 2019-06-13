@@ -15,27 +15,29 @@
 'use strict';
 
 const Promise = require('bluebird');
+const utils = require('../../utils');
 
 module.exports = function(configurations, network) {
-	const genesisBlockId = __testContext.config.genesisBlock.id;
 	describe('@propagation : transactions', () => {
-		let nodesTransactions = [];
+		const genesisBlockId = __testContext.config.genesisBlock.id;
+		let nodesTransactions;
 
 		before(() => {
-			return Promise.all(
-				network.sockets.map(socket => {
-					return socket.call('blocks', {
-						lastBlockId: genesisBlockId,
-					});
+			return network
+				.waitForBlocksOnAllNodes(1)
+				.then(() => {
+					return Promise.all(
+						configurations.map(configuration => {
+							return utils.http.getTransactionsFromBlock({
+								blockId: genesisBlockId,
+								port: configuration.modules.http_api.httpPort,
+							});
+						})
+					);
 				})
-			).then(results => {
-				nodesTransactions = results.map(res => {
-					return res.blocks;
+				.then(transactionsResults => {
+					nodesTransactions = transactionsResults;
 				});
-				return expect(nodesTransactions).to.have.lengthOf(
-					configurations.length
-				);
-			});
 		});
 
 		it('should contain non empty transactions', async () => {

@@ -29,8 +29,7 @@ _.range(TOTAL_PEERS).map(index => {
 	return WSPORTS.push(5000 + index);
 });
 
-// eslint-disable-next-line
-describe.skip(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS ports 500[0-9] and HTTP ports 400[0-9] using separate databases`, () => {
+describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS ports 500[0-9] and HTTP ports 400[0-9] using separate databases`, () => {
 	const configurations = setup.config.generateLiskConfigs(TOTAL_PEERS);
 	const network = new Network(configurations);
 	const suiteFolder = 'test/mocha/network/scenarios/';
