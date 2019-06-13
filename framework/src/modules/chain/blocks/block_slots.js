@@ -27,7 +27,7 @@ class BlockSlots {
 	 * @module
 	 * @property {number} interval - Slot time interval in seconds
 	 * @property {number} delegates - Active delegates from constants
-	 * @see Parent: {@link helpers}
+	 * @see Parent: {@link blocks}
 	 * @todo Add description for the module
 	 */
 	getEpochTime(time) {

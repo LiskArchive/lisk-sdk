@@ -17,7 +17,7 @@
 const { TransactionError } = require('@liskhq/lisk-transactions');
 const { promisify } = require('util');
 const _ = require('lodash');
-const { convertErrorsToString } = require('./helpers/error_handlers');
+const { convertErrorsToString } = require('./utils/error_handlers');
 // eslint-disable-next-line prefer-const
 let Broadcaster = require('./logic/broadcaster');
 const definitions = require('./schema/definitions');

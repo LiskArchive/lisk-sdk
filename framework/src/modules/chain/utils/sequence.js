@@ -21,10 +21,10 @@ const util = require('util');
  * Calls __tick with 3
  *
  * @class
- * @memberof helpers
+ * @memberof utils
  * @requires util
  * @param {string} config
- * @see Parent: {@link helpers}
+ * @see Parent: {@link utils}
  * @todo Add description for the params
  */
 class Sequence {
