@@ -188,6 +188,7 @@ export class P2P extends EventEmitter {
 			blacklistedPeers: config.blacklistedPeers,
 			fixedPeers: config.fixedPeers,
 			whitelisted: config.whiteListedPeers,
+			previousPeers: config.previousPeers,
 		});
 		this._config = config;
 		this._isActive = false;
@@ -391,8 +392,8 @@ export class P2P extends EventEmitter {
 
 		this._bindHandlersToPeerPool(this._peerPool);
 		// Add peers to tried peers if want to re-use previously tried peers
-		if (config.triedPeers) {
-			config.triedPeers.forEach(peerInfo => {
+		if (this._peerListsWithoutConflicts.previousPeers) {
+			this._peerListsWithoutConflicts.previousPeers.forEach(peerInfo => {
 				const peerId = constructPeerIdFromPeerInfo(peerInfo);
 				if (!this._triedPeers.has(peerId)) {
 					this._triedPeers.set(peerId, peerInfo);

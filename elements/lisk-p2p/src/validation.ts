@@ -200,6 +200,7 @@ export interface PeerLists {
 	readonly seedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly fixedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly whitelisted: ReadonlyArray<P2PPeerInfo>;
+	readonly previousPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 }
 
 export const handlePeerListsConflicts = (lists: PeerLists): PeerLists => {
@@ -217,11 +218,16 @@ export const handlePeerListsConflicts = (lists: PeerLists): PeerLists => {
 				// Fixed takes preference over whitelisted
 				!lists.fixedPeers.includes(peer),
 		);
+	const previousPeers = lists.previousPeers
+		.filter(peer => !lists.blacklistedPeers.includes(peer))
+		.filter(peer => !lists.seedPeers.includes(peer))
+		.filter(peer => !lists.fixedPeers.includes(peer));
 
 	return {
 		blacklistedPeers: lists.blacklistedPeers,
 		seedPeers,
 		fixedPeers,
 		whitelisted,
+		previousPeers,
 	};
 };
