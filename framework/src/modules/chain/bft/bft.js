@@ -228,10 +228,13 @@ class BFT {
 			throw new Error('Wrong prevotedConfirmedHeight in blockHeader.');
 		}
 
-		const delegateLastBlock = this.headers.getBlockHeaderForDelegate(
-			blockHeader.delegatePublicKey,
-			{ fromTop: this.PROCESSING_THRESHOLD }
-		);
+		// Find top most block forged by same delegate
+		const delegateLastBlock = this.headers
+			.top(this.PROCESSING_THRESHOLD)
+			.reverse()
+			.find(
+				header => header.delegatePublicKey === blockHeader.delegatePublicKey
+			);
 
 		if (!delegateLastBlock) {
 			return true;

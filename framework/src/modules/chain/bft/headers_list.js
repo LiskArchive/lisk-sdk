@@ -116,15 +116,6 @@ class HeadersList {
 		return this.items.slice(this.length - size, this.length + 1);
 	}
 
-	getBlockHeaderForDelegate(publicKey, { fromTop } = {}) {
-		assert(publicKey, 'Please provide the public key for delegate');
-		assert(fromTop, 'Please "fromTop" range to look for blocks');
-
-		return this.top(fromTop).find(
-			header => header.delegatePublicKey === publicKey
-		);
-	}
-
 	empty() {
 		const items = [...this.items];
 		this._items = [];

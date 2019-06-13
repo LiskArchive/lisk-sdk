@@ -109,7 +109,7 @@ describe('bft', () => {
 
 		beforeEach(async () => {
 			bft = new BFT({ finalizedHeight, activeDelegates });
-			jest.spyOn(bft.headers, 'getBlockHeaderForDelegate');
+			jest.spyOn(bft.headers, 'top');
 		});
 
 		describe('constructor', () => {
@@ -165,23 +165,26 @@ describe('bft', () => {
 
 			it("should return true if delegate didn't forge any block previously", async () => {
 				const header = blockHeaderFixture();
-				bft.headers.getBlockHeaderForDelegate.mockReturnValue(null);
+				bft.headers.top.mockReturnValue([]);
 
 				expect(bft.verifyBlockHeaders(header)).toBeTruthy();
 			});
 
-			it('should throw error if delegate forged block on different height', async () => {
+			it('should throw error if same delegate forged block on different height', async () => {
 				const maxHeightPreviouslyForged = 10;
+				const delegateAccount = accountFixture();
 				const lastBlock = blockHeaderFixture({
+					delegatePublicKey: delegateAccount.publicKey,
 					maxHeightPreviouslyForged,
 					height: 10,
 				});
 				const currentBlock = blockHeaderFixture({
+					delegatePublicKey: delegateAccount.publicKey,
 					maxHeightPreviouslyForged,
 					height: 9,
 				});
 
-				bft.headers.getBlockHeaderForDelegate.mockReturnValue(lastBlock);
+				bft.headers.top.mockReturnValue([lastBlock]);
 
 				expect(() => bft.verifyBlockHeaders(currentBlock)).toThrow(
 					'Violation of fork choice rule, delegate moved to a different chain'
@@ -190,16 +193,19 @@ describe('bft', () => {
 
 			it('should throw error if delegate forged block on same height', async () => {
 				const maxHeightPreviouslyForged = 10;
+				const delegateAccount = accountFixture();
 				const lastBlock = blockHeaderFixture({
+					delegatePublicKey: delegateAccount.publicKey,
 					maxHeightPreviouslyForged,
 					height: 10,
 				});
 				const currentBlock = blockHeaderFixture({
+					delegatePublicKey: delegateAccount.publicKey,
 					maxHeightPreviouslyForged,
 					height: 10,
 				});
 
-				bft.headers.getBlockHeaderForDelegate.mockReturnValue(lastBlock);
+				bft.headers.top.mockReturnValue([lastBlock]);
 
 				expect(() => bft.verifyBlockHeaders(currentBlock)).toThrow(
 					'Violation of fork choice rule, delegate moved to a different chain'
@@ -207,14 +213,17 @@ describe('bft', () => {
 			});
 
 			it('should throw error if maxHeightPreviouslyForged has wrong value', async () => {
+				const delegateAccount = accountFixture();
 				const lastBlock = blockHeaderFixture({
+					delegatePublicKey: delegateAccount.publicKey,
 					height: 10,
 				});
 				const currentBlock = blockHeaderFixture({
+					delegatePublicKey: delegateAccount.publicKey,
 					maxHeightPreviouslyForged: 9,
 				});
 
-				bft.headers.getBlockHeaderForDelegate.mockReturnValue(lastBlock);
+				bft.headers.top.mockReturnValue([lastBlock]);
 
 				expect(() => bft.verifyBlockHeaders(currentBlock)).toThrow(
 					'Violates disjointness condition'
@@ -222,17 +231,20 @@ describe('bft', () => {
 			});
 
 			it('should throw error if prevotedConfirmedUptoHeight has wrong value', async () => {
+				const delegateAccount = accountFixture();
 				const lastBlock = blockHeaderFixture({
+					delegatePublicKey: delegateAccount.publicKey,
 					prevotedConfirmedUptoHeight: 10,
 					height: 9,
 				});
 				const currentBlock = blockHeaderFixture({
+					delegatePublicKey: delegateAccount.publicKey,
 					prevotedConfirmedUptoHeight: 9,
 					maxHeightPreviouslyForged: 9,
 					height: 10,
 				});
 
-				bft.headers.getBlockHeaderForDelegate.mockReturnValue(lastBlock);
+				bft.headers.top.mockReturnValue([lastBlock]);
 
 				expect(() => bft.verifyBlockHeaders(currentBlock)).toThrow(
 					'Violates that delegate chooses branch with largest prevotedConfirmedUptoHeight'
@@ -241,7 +253,7 @@ describe('bft', () => {
 
 			it('should return true if headers are valid', async () => {
 				const [lastBlock, currentBlock] = generateValidHeaders(2);
-				bft.headers.getBlockHeaderForDelegate.mockReturnValue(lastBlock);
+				bft.headers.top.mockReturnValue([lastBlock]);
 
 				expect(bft.verifyBlockHeaders(currentBlock)).toBeTruthy();
 			});
