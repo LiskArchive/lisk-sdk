@@ -27,16 +27,20 @@ const MAX_PEERS = 100;
  * @param {scope} scope - App instance
  */
 class Peers {
-	constructor(scope) {
-		this.logger = scope.components.logger;
+	constructor({
+		components: { logger },
+		channel,
+		config: { forging, constants },
+	}) {
+		this.logger = logger;
 		this.config = {
 			forging: {
-				force: scope.config.forging.force,
+				force: forging.force,
 			},
 		};
-		this.channel = scope.channel;
+		this.channel = channel;
 		this.constants = {
-			minBroadhashConsensus: scope.config.constants.MIN_BROADHASH_CONSENSUS,
+			minBroadhashConsensus: constants.MIN_BROADHASH_CONSENSUS,
 		};
 		this.broadhashConsensusCalculationInterval = 5000;
 	}
@@ -93,4 +97,6 @@ class Peers {
 }
 
 // Export
-module.exports = Peers;
+module.exports = {
+	Peers,
+};
