@@ -316,9 +316,9 @@ describe('blocks/verify', () => {
 	describe('verifyVersion', () => {
 		describe('when there are no exceptions for block versions', () => {
 			describe('when block height provided', () => {
-				it('should return no error when block version = 1', async () => {
+				it('should return no error when block version = 2', async () => {
 					const verifyVersion = blocksVerifyModule.verifyVersion(
-						{ version: 1, height: 1 },
+						{ version: 2, height: 1 },
 						{},
 						{ errors: [] }
 					);
@@ -336,9 +336,9 @@ describe('blocks/verify', () => {
 					);
 				});
 
-				it('should return error when block version 2', async () => {
+				it('should return error when block version 1', async () => {
 					const verifyVersion = blocksVerifyModule.verifyVersion(
-						{ version: 2, height: 1 },
+						{ version: 1, height: 1 },
 						{},
 						{ errors: [] }
 					);
@@ -349,18 +349,18 @@ describe('blocks/verify', () => {
 			});
 
 			describe('when block height is missing', () => {
-				it('should return no error when block version = 1', async () => {
+				it('should return no error when block version = 2', async () => {
 					const verifyVersion = blocksVerifyModule.verifyVersion(
-						{ version: 1 },
+						{ version: 2 },
 						{},
 						{ errors: [] }
 					);
 					return expect(verifyVersion.errors.length).to.equal(0);
 				});
 
-				it('should return error when block version = 2', async () => {
+				it('should return error when block version = 1', async () => {
 					const verifyVersion = blocksVerifyModule.verifyVersion(
-						{ version: 2 },
+						{ version: 1 },
 						{},
 						{ errors: [] }
 					);
@@ -425,7 +425,7 @@ describe('blocks/verify', () => {
 			describe('when block height is missing', () => {
 				it('should return no error when block version = 1', async () => {
 					const verifyVersion = blocksVerifyModule.verifyVersion(
-						{ version: 1 },
+						{ version: 2 },
 						blocksVersionException,
 						{ errors: [] }
 					);
@@ -434,7 +434,7 @@ describe('blocks/verify', () => {
 
 				it('should return error when block version = 2', async () => {
 					const verifyVersion = blocksVerifyModule.verifyVersion(
-						{ version: 2 },
+						{ version: 1 },
 						blocksVersionException,
 						{ errors: [] }
 					);

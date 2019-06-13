@@ -31,6 +31,7 @@ describe('Block', () => {
 	let invalidFilter;
 	let validFilter;
 	let validBlock;
+	let validReturnedBlock;
 	let invalidBlock;
 	let storage;
 
@@ -55,6 +56,27 @@ describe('Block', () => {
 		validBlock = {
 			id: '7807109686729042739',
 			height: 1,
+			blockSignature:
+				'a47d07d3a8d8024eb44672bc6d07cdcd1cd03803d9612b7b10c10d5a844fb8f6ed11fab5159b6d9826b7302c3d3f5d7d29d13b40e6fe59c9374f4ec94af4eb0f',
+			generatorPublicKey:
+				'73ec4adbd8f99f0d46794aeda3c3d86b245bd9d27be2b282cdd38ad21988556b',
+			payloadHash:
+				'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+			payloadLength: 19619,
+			numberOfTransactions: 103,
+			previousBlockId: null,
+			timestamp: 0,
+			totalAmount: '10000000000000000',
+			totalFee: '0',
+			reward: '0',
+			version: '0',
+		};
+
+		validReturnedBlock = {
+			id: '7807109686729042739',
+			height: 1,
+			maxHeightPreviouslyForged: null,
+			prevotedConfirmedUptoHeight: null,
 			blockSignature:
 				'a47d07d3a8d8024eb44672bc6d07cdcd1cd03803d9612b7b10c10d5a844fb8f6ed11fab5159b6d9826b7302c3d3f5d7d29d13b40e6fe59c9374f4ec94af4eb0f',
 			generatorPublicKey:
@@ -143,7 +165,7 @@ describe('Block', () => {
 			const block = new Block(localAdapter);
 			block.getValuesSet = sinonSandbox.stub();
 			block.create(validBlock);
-			expect(block.getValuesSet.calledWith([validBlock])).to.be.true;
+			expect(block.getValuesSet.calledWith([validReturnedBlock])).to.be.true;
 		});
 
 		it('should create a block object successfully', async () => {
@@ -152,7 +174,7 @@ describe('Block', () => {
 				id: validBlock.id,
 			});
 			expect(result).to.be.eql({
-				...validBlock,
+				...validReturnedBlock,
 				confirmations: 1,
 			});
 		});
