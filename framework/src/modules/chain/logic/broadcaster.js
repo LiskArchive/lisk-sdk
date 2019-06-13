@@ -15,7 +15,7 @@
 'use strict';
 
 const _ = require('lodash');
-const jobsQueue = require('../helpers/jobs_queue');
+const jobsQueue = require('../utils/jobs_queue');
 
 /**
  * Main Broadcaster logic.
@@ -26,7 +26,7 @@ const jobsQueue = require('../helpers/jobs_queue');
  * @memberof logic
  * @see Parent: {@link logic}
  * @requires lodash
- * @requires helpers/jobs_queue
+ * @requires utils/jobs_queue
  * @param {Object} broadcasts
  * @param {boolean} force
  * @param {Transaction} transaction - Transaction instance

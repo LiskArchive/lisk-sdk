@@ -17,9 +17,9 @@
 const express = require('express');
 const randomstring = require('randomstring');
 const async = require('async');
-const Sequence = require('../../../src/modules/chain/helpers/sequence');
+const Sequence = require('../../../src/modules/chain/utils/sequence');
 const { createLoggerComponent } = require('../../../src/components/logger');
-const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
+const jobsQueue = require('../../../src/modules/chain/utils/jobs_queue');
 const Account = require('../../../src/modules/chain/rounds/account');
 
 // TODO: Remove this file
