@@ -86,18 +86,7 @@ class Loader {
 	 *
 	 * @returns {boolean} True if syncIntervalId has value
 	 */
-	// eslint-disable-next-line class-methods-use-this
 	syncing() {
-		return !!this.isActive;
-	}
-
-	/**
-	 * Checks private constant active.
-	 *
-	 * @returns {boolean} False if not loaded
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	isActive() {
 		return !!this.isActive;
 	}
 
@@ -146,7 +135,6 @@ class Loader {
 	 * @todo Check err actions
 	 * @todo Add description for the params
 	 */
-	// eslint-disable-next-line class-methods-use-this
 	async sync() {
 		this.logger.info('Starting sync');
 		if (this.cache.ready) {
