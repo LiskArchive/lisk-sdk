@@ -25,10 +25,9 @@ const { ACTIVE_DELEGATES } = global.constants;
  * Validates required scope properties.
  *
  * @class
- * @memberof logic
- * @see Parent: {@link logic}
+ * @memberof rounds
+ * @see Parent: {@link rounds}
  * @requires bluebird
- * @requires helpers/round_changes
  * @param {Object} scope
  * @param {Task} t
  * @todo Add description for the params
