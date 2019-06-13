@@ -51,7 +51,8 @@ const generatePeerHeader = function(headers = {}) {
 			ipAddress: v.ip,
 			wsPort: v.wsPort,
 		})),
-		ackTimeout: 20000,
+		ackTimeout: 40000,
+		connectTimeout: 20000,
 		nodeInfo,
 	};
 };
