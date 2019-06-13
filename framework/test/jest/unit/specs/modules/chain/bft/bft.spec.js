@@ -102,8 +102,8 @@ describe('bft', () => {
 		let bft;
 		const finalizedHeight = 0;
 		const activeDelegates = 101;
-		const prevoteThreshold = 68;
-		const precommitThreshold = 68;
+		const preVoteThreshold = 68;
+		const preCommitThreshold = 68;
 		const processingThreshold = 302;
 		const maxHeaders = 505;
 
@@ -115,11 +115,11 @@ describe('bft', () => {
 		describe('constructor', () => {
 			it('should initialize the object correctly', async () => {
 				expect(bft).toBeInstanceOf(BFT);
-				expect(bft.ACTIVE_DELEGATES).toEqual(activeDelegates);
-				expect(bft.PRE_VOTE_THRESHOLD).toEqual(prevoteThreshold);
-				expect(bft.PRE_COMMIT_THRESHOLD).toEqual(precommitThreshold);
-				expect(bft.PROCESSING_THRESHOLD).toEqual(processingThreshold);
-				expect(bft.MAX_HEADERS).toEqual(maxHeaders);
+				expect(bft.activeDelegates).toEqual(activeDelegates);
+				expect(bft.preVoteThreshold).toEqual(preVoteThreshold);
+				expect(bft.preCommitThreshold).toEqual(preCommitThreshold);
+				expect(bft.processingThreshold).toEqual(processingThreshold);
+				expect(bft.maxHeaders).toEqual(maxHeaders);
 			});
 
 			it('should throw error if finalizedHeight is not provided', async () => {
@@ -142,7 +142,7 @@ describe('bft', () => {
 		describe('verifyBlockHeaders', () => {
 			it('should throw error if prevotedConfirmedUptoHeight is not accurate', async () => {
 				// Add the header directly to list so verifyBlockHeaders can be validated against it
-				generateValidHeaders(bft.PROCESSING_THRESHOLD + 1).forEach(header => {
+				generateValidHeaders(bft.processingThreshold + 1).forEach(header => {
 					bft.headers.add(header);
 				});
 				const header = blockHeaderFixture({ prevotedConfirmedUptoHeight: 10 });
@@ -154,7 +154,7 @@ describe('bft', () => {
 
 			it('should not throw error if prevotedConfirmedUptoHeight is accurate', async () => {
 				// Add the header directly to list so verifyBlockHeaders can be validated against it
-				generateValidHeaders(bft.PROCESSING_THRESHOLD + 1).forEach(header => {
+				generateValidHeaders(bft.processingThreshold + 1).forEach(header => {
 					bft.headers.add(header);
 				});
 				const header = blockHeaderFixture({ prevotedConfirmedUptoHeight: 10 });
@@ -326,7 +326,7 @@ describe('bft', () => {
 						} forge block at height = ${headerData.height}`, async () => {
 							const blockData = generateHeaderInformation(
 								headerData,
-								myBft.PRE_COMMIT_THRESHOLD,
+								myBft.preCommitThreshold,
 								data[index - 1]
 							);
 
@@ -364,7 +364,7 @@ describe('bft', () => {
 						} forge block at height = ${headerData.height}`, async () => {
 							const blockData = generateHeaderInformation(
 								headerData,
-								myBft.PRE_COMMIT_THRESHOLD,
+								myBft.preCommitThreshold,
 								data[index - 1]
 							);
 
@@ -402,7 +402,7 @@ describe('bft', () => {
 				data.forEach((headerData, index) => {
 					blockData = generateHeaderInformation(
 						headerData,
-						myBft.PRE_COMMIT_THRESHOLD,
+						myBft.preCommitThreshold,
 						data[index - 1]
 					);
 					myBft.addBlockHeader(blockData.header);

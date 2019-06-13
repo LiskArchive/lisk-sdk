@@ -45,21 +45,21 @@ class BFT {
 		assert(activeDelegates > 0, 'Must provide a positive activeDelegates');
 
 		// Set constants
-		this.ACTIVE_DELEGATES = activeDelegates;
+		this.activeDelegates = activeDelegates;
 
-		// Threshold to consider a block prevoted
-		this.PRE_VOTE_THRESHOLD = Math.ceil((this.ACTIVE_DELEGATES * 2) / 3);
+		// Threshold to consider a block pre-voted
+		this.preVoteThreshold = Math.ceil((this.activeDelegates * 2) / 3);
 
 		// Threshold to consider a block pre-committed (or finalized)
-		this.PRE_COMMIT_THRESHOLD = Math.ceil((this.ACTIVE_DELEGATES * 2) / 3);
+		this.preCommitThreshold = Math.ceil((this.activeDelegates * 2) / 3);
 
 		// Limit to of blocks to must have to make any prevote-precommit verification on blocks (1 block less than 3 rounds)
-		this.PROCESSING_THRESHOLD = this.ACTIVE_DELEGATES * 3 - 1;
+		this.processingThreshold = this.activeDelegates * 3 - 1;
 
 		// Maximum headers to store (5 rounds)
-		this.MAX_HEADERS = this.ACTIVE_DELEGATES * 5;
+		this.maxHeaders = this.activeDelegates * 5;
 
-		this.headers = new HeadersList({ size: this.MAX_HEADERS });
+		this.headers = new HeadersList({ size: this.maxHeaders });
 
 		// Height up to which blocks are finalized
 		this.finalizedHeight = finalizedHeight || 0;
@@ -126,7 +126,7 @@ class BFT {
 
 		// Get first block of the round when delegate was active
 		const delegateMinHeightActive =
-			(header.activeSinceRound - 1) * this.ACTIVE_DELEGATES + 1;
+			(header.activeSinceRound - 1) * this.activeDelegates + 1;
 
 		// If delegate is new then first block of the round will be considered
 		// if it forged before then we probably have the last commit height
@@ -141,7 +141,7 @@ class BFT {
 
 		for (let j = minPreCommit; j <= maxPreCommitHeight; j++) {
 			// Add pre-commit if threshold is reached
-			if (this.preVotes[j] >= this.PRE_VOTE_THRESHOLD) {
+			if (this.preVotes[j] >= this.preVoteThreshold) {
 				// Increase the pre-commit for particular height
 				this.preCommits[j] = (this.preCommits[j] || 0) + 1;
 
@@ -158,7 +158,7 @@ class BFT {
 			delegateMinHeightActive,
 			header.maxHeightPreviouslyForged + 1,
 			delegateState.maxPreVoteHeight + 1,
-			header.height - this.PROCESSING_THRESHOLD
+			header.height - this.processingThreshold
 		);
 		// Pre-vote upto current block height
 		const maxPreVoteHeight = header.height;
@@ -182,7 +182,7 @@ class BFT {
 
 		const higherPairVoted = Object.entries(this.preVotes)
 			.reverse()
-			.find(pair => pair[1] >= this.PRE_VOTE_THRESHOLD);
+			.find(pair => pair[1] >= this.preVoteThreshold);
 
 		this.prevotedConfirmedHeight = higherPairVoted
 			? parseInt(higherPairVoted[0])
@@ -190,7 +190,7 @@ class BFT {
 
 		const higherPairCommitted = Object.entries(this.preCommits)
 			.reverse()
-			.find(pair => pair[1] >= this.PRE_COMMIT_THRESHOLD);
+			.find(pair => pair[1] >= this.preCommitThreshold);
 
 		this.finalizedHeight = higherPairCommitted
 			? parseInt(higherPairCommitted[0])
@@ -219,10 +219,10 @@ class BFT {
 	 * @param {BlockHeader} blockHeader
 	 */
 	verifyBlockHeaders(blockHeader) {
-		// We need minimum PROCESSING_THRESHOLD to decide
+		// We need minimum processingThreshold to decide
 		// if prevotedConfirmedUptoHeight is correct
 		if (
-			this.headers.length >= this.PROCESSING_THRESHOLD &&
+			this.headers.length >= this.processingThreshold &&
 			blockHeader.prevotedConfirmedUptoHeight !== this.prevotedConfirmedHeight
 		) {
 			throw new Error('Wrong prevotedConfirmedHeight in blockHeader.');
@@ -230,7 +230,7 @@ class BFT {
 
 		// Find top most block forged by same delegate
 		const delegateLastBlock = this.headers
-			.top(this.PROCESSING_THRESHOLD)
+			.top(this.processingThreshold)
 			.reverse()
 			.find(
 				header => header.delegatePublicKey === blockHeader.delegatePublicKey
