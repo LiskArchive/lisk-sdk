@@ -99,14 +99,18 @@ module.exports = {
 			type: 'object',
 		},
 	},
-	WSBlocksCommonRequest: {
-		id: 'WSBlocksCommonRequest',
+	WSGetCommonBlocksRequest: {
+		id: 'WSGetCommonBlocksRequest',
 		type: 'object',
 		required: ['ids'],
 		properties: {
 			ids: {
-				type: 'string',
-				format: 'csv',
+				type: 'array',
+				items: {
+					type: 'string',
+				},
+				uniqueItems: true,
+				minItems: 1,
 			},
 		},
 	},

@@ -205,7 +205,7 @@ class Transport {
 	}
 
 	/**
-	 * @property {function} blocksCommon
+	 * @property {function} getCommonBlocks
 	 * @property {function} blocks
 	 * @property {function} postBlock
 	 * @property {function} list
@@ -223,80 +223,35 @@ class Transport {
 	attachSharedMethods() {
 		return {
 			/**
-			 * Description of blocksCommon.
-			 *
-			 * @todo Add @param tags
-			 * @todo Add @returns tag
-			 * @todo Add description of the function
+			 * Returns the common blocks between query.ids and the database blocks table
+			 * @param query
+			 * @param query.ids
+			 * @return {Promise<Array<String>>}
 			 */
-			async blocksCommon(query) {
-				query = query || {};
-
+			async getCommonBlocks(query) {
 				const valid = library.schema.validate(
 					query,
-					definitions.WSBlocksCommonRequest
+					definitions.WSGetCommonBlocksRequest
 				);
 
 				if (!valid) {
 					const err = library.schema.getLastErrors();
 					const error = `${err[0].message}: ${err[0].path}`;
 					library.logger.debug('Common block request validation failed', {
-						err: error.toString(),
+						err: error,
 						req: query,
 					});
 					throw new Error(error);
 				}
 
-				const escapedIds = query.ids
-					// Remove quotes
-					.replace(/['"]+/g, '')
-					// Separate by comma into an array
-					.split(',')
-					// Reject any non-numeric values
-					.filter(id => /^[0-9]+$/.test(id));
-
-				if (!escapedIds.length) {
-					library.logger.debug('Common block request validation failed', {
-						err: 'ESCAPE',
-						req: query.ids,
-					});
-
-					throw new Error('Invalid block id sequence');
-				}
-
 				try {
-					const row = await library.storage.entities.Block.get({
-						id: escapedIds[0],
-					});
-
-					if (!row.length > 0) {
-						return {
-							success: true,
-							common: null,
-						};
-					}
-
-					const {
-						height,
-						id,
-						previousBlockId: previousBlock,
-						timestamp,
-					} = row[0];
-
-					const parsedRow = {
-						id,
-						height,
-						previousBlock,
-						timestamp,
-					};
-
-					return {
-						success: true,
-						common: parsedRow,
-					};
-				} catch (error) {
-					library.logger.error(error.stack);
-					throw new Error('Failed to get common block');
+					return (await library.storage.entities.Block.get({
+						id_in: query.ids,
+					})).map(commonRawBlock => commonRawBlock.id);
+				} catch (e) {
+					const errMessage = 'Failed to read common blocks from storage';
+					library.logger.error(e, errMessage);
+					throw new Error(errMessage);
 				}
 			},
 

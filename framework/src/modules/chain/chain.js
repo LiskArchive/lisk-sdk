@@ -268,8 +268,10 @@ module.exports = class Chain {
 			}),
 			blocks: async action =>
 				this.scope.modules.transport.shared.blocks(action.params || {}),
-			blocksCommon: async action =>
-				this.scope.modules.transport.shared.blocksCommon(action.params || {}),
+			getCommonBlocks: async action =>
+				this.scope.modules.transport.shared.getCommonBlocks(
+					action.params || {}
+				),
 		};
 	}
 

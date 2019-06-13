@@ -126,8 +126,8 @@ module.exports = class ChainModule extends BaseModule {
 				handler: async action => this.chain.actions.blocks(action),
 				isPublic: true,
 			},
-			blocksCommon: {
-				handler: async action => this.chain.actions.blocksCommon(action),
+			getCommonBlocks: {
+				handler: async action => this.chain.actions.getCommonBlocks(action),
 				isPublic: true,
 			},
 		};
