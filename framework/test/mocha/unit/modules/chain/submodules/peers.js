@@ -63,6 +63,12 @@ describe('peers', () => {
 			channel: channelMock,
 			applicationState: {},
 			modules: { blocks: blocksStub },
+			config: {
+				...modulesLoader.scope.config,
+				constants: {
+					minBroadhashConsensus: 51,
+				},
+			},
 		});
 		peers = new PeersRewired(scope);
 	});
@@ -96,8 +102,9 @@ describe('peers', () => {
 					isPoorConsensusResult = await peers.isPoorConsensus();
 				});
 
-				it('should return true', async () =>
-					expect(isPoorConsensusResult).to.be.true);
+				it('should return true', async () => {
+					expect(isPoorConsensusResult).to.be.true;
+				});
 			});
 
 			describe('when consensus >= MIN_BROADHASH_CONSENSUS', () => {

@@ -14,7 +14,7 @@
 
 'use strict';
 
-const regexpTester = require('../../../../../../src/modules/chain/helpers/regexp_tester');
+const regexpTester = require('../../../../../../src/modules/chain/utils/regexp_tester');
 
 describe('isNullByteIncluded', () => {
 	const validStrings = [
