@@ -66,6 +66,7 @@ const asJSON = (transaction: Partial<TransactionJSON>): string =>
 const skipUndefined = (
 	transaction: Partial<TransactionJSON>,
 ): Partial<TransactionJSON> =>
+	// tslint:disable-next-line
 	Object.entries(transaction).reduce(
 		(transactionWithValues: object, [property, value]) => {
 			if (value !== undefined) {
