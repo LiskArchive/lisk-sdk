@@ -85,18 +85,7 @@ class Loader {
 	 *
 	 * @returns {boolean} True if syncIntervalId has value
 	 */
-	// eslint-disable-next-line class-methods-use-this
 	syncing() {
-		return !!this.isActive;
-	}
-
-	/**
-	 * Checks private constant active.
-	 *
-	 * @returns {boolean} False if not loaded
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	isActive() {
 		return !!this.isActive;
 	}
 
@@ -145,7 +134,6 @@ class Loader {
 	 * @todo Check err actions
 	 * @todo Add description for the params
 	 */
-	// eslint-disable-next-line class-methods-use-this
 	async sync() {
 		this.logger.info('Starting sync');
 		if (this.cache.ready) {
@@ -182,7 +170,6 @@ class Loader {
 	 * Processes each signature from the network.
 	 *
 	 * @private
-	 * @param {function} cb
 	 * @returns {setImmediateCallback} cb, err
 	 * @todo Add description for the params
 	 */
@@ -194,10 +181,7 @@ class Loader {
 			procedure: 'getSignatures',
 		});
 
-		const validate = validator.validate(
-			definitions.WSSignaturesResponse,
-			result
-		);
+		validator.validate(definitions.WSSignaturesResponse, result);
 
 		if (validator.errors) {
 			throw validator.errors;
@@ -231,7 +215,6 @@ class Loader {
 	 * - Calls processUnconfirmedTransaction for each transaction.
 	 *
 	 * @private
-	 * @param {function} cb
 	 * @returns {setImmediateCallback} cb, err
 	 * @todo Add description for the params
 	 * @todo Missing error propagation when calling balancesSequence.add
