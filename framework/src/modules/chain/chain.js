@@ -181,10 +181,6 @@ module.exports = class Chain {
 				await this._startForging();
 			});
 
-			this.channel.once('network:bootstrap', () => {
-				this.scope.peers.onNetworkReady(this.blocks.broadhash);
-			});
-
 			// Avoid receiving blocks/transactions from the network during snapshotting process
 			if (!this.options.loading.rebuildUpToRound) {
 				this.channel.subscribe('network:event', ({ data: { event, data } }) => {
@@ -483,6 +479,23 @@ module.exports = class Chain {
 				}
 			},
 			syncInterval
+		);
+
+		/**
+		 * Periodically calculate consensus
+		 */
+		this.logger.trace('Peers ready');
+		const calculateConsensus = async () => {
+			const consensus = await this.scope.peers.calculateConsensus(
+				this.blocks.broadhash
+			);
+			return this.logger.debug(`Broadhash consensus: ${consensus} %`);
+		};
+
+		jobQueue.register(
+			'calculateConsensus',
+			calculateConsensus,
+			this.scope.peers.broadhashConsensusCalculationInterval
 		);
 	}
 

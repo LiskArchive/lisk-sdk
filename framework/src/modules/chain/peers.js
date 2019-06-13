@@ -14,8 +14,6 @@
 
 'use strict';
 
-const jobsQueue = require('./utils/jobs_queue');
-
 const PEER_STATE_CONNECTED = 2;
 const MAX_PEERS = 100;
 
@@ -94,24 +92,6 @@ class Peers {
 		}
 		const consensus = await this.calculateConsensus(broadhash);
 		return consensus < this.constants.minBroadhashConsensus;
-	}
-
-	/**
-	 * Periodically calculate consensus
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	onNetworkReady(broadhash) {
-		this.logger.trace('Peers ready');
-		const calculateConsensus = async () => {
-			const consensus = await this.calculateConsensus(broadhash);
-			return this.logger.debug(`Broadhash consensus: ${consensus} %`);
-		};
-
-		jobsQueue.register(
-			'calculateConsensus',
-			calculateConsensus,
-			this.broadhashConsensusCalculationInterval
-		);
 	}
 }
 
