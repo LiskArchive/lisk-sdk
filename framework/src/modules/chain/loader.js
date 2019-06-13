@@ -199,7 +199,7 @@ class Loader {
 			result
 		);
 
-		if (!validate) {
+		if (validator.errors) {
 			throw validate.errors;
 		}
 
