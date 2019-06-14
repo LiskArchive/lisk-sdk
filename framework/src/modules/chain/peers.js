@@ -26,21 +26,11 @@ const MAX_PEERS = 100;
  * @param {scope} scope - App instance
  */
 class Peers {
-	constructor({
-		components: { logger },
-		channel,
-		config: { forging, constants },
-	}) {
+	constructor({ logger, channel, forgingForce, minBroadhashConsensus }) {
 		this.logger = logger;
-		this.config = {
-			forging: {
-				force: forging.force,
-			},
-		};
+		this.forgingForce = forgingForce;
 		this.channel = channel;
-		this.constants = {
-			minBroadhashConsensus: constants.MIN_BROADHASH_CONSENSUS,
-		};
+		this.minBroadhashConsensus = minBroadhashConsensus;
 		this.broadhashConsensusCalculationInterval = 5000;
 	}
 
@@ -87,11 +77,11 @@ class Peers {
 	 * @todo Add description for the return value
 	 */
 	async isPoorConsensus(broadhash) {
-		if (this.config.forging.force) {
+		if (this.forgingForce) {
 			return false;
 		}
 		const consensus = await this.calculateConsensus(broadhash);
-		return consensus < this.constants.minBroadhashConsensus;
+		return consensus < this.minBroadhashConsensus;
 	}
 }
 

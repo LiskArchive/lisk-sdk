@@ -377,18 +377,8 @@ module.exports = class Chain {
 				logger: this.logger,
 				storage: this.storage,
 			},
-			modules: {
-				blocks: this.blocks,
-			},
-			config: {
-				version: this.options.version,
-				forging: {
-					force: this.options.forging.force,
-				},
-				constants: {
-					minBroadhashConsensus: this.options.constants.MIN_BROADHASH_CONSENSUS,
-				},
-			},
+			forgingForce: this.options.forging.force,
+			minBroadhashConsensus: this.options.constants.MIN_BROADHASH_CONSENSUS,
 		});
 		this.scope.modules.peers = this.peers;
 		this.loader = new Loader({
