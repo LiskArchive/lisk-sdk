@@ -27,7 +27,7 @@ import {
 } from '../../src/p2p_types';
 import { SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
-import _ = require('lodash');
+import { cloneDeep } from 'lodash';
 
 describe('Integration tests for P2P library', () => {
 	before(() => {
@@ -1434,13 +1434,18 @@ describe('Integration tests for P2P library', () => {
 			{
 				ipAddress: '127.0.0.15',
 				wsPort: NETWORK_START_PORT + 5,
+			},
+		];
+		const previousPeersBlacklisted = [
+			{
+				...blacklistedPeers[0],
 				height: 10,
 				version: '1.0',
 				protocolVersion: '1.0',
 				number: undefined,
 			},
 		];
-		const serverSocketPrototypeBackup = _.cloneDeep(SCServerSocket.prototype);
+		const serverSocketPrototypeBackup = cloneDeep(SCServerSocket.prototype);
 
 		before(async () => {
 			const serverSocketPrototype = SCServerSocket.prototype as any;
@@ -1462,18 +1467,17 @@ describe('Integration tests for P2P library', () => {
 						ipAddress: '127.0.0.' + (((index + 1) % NETWORK_PEER_COUNT) + 10),
 						wsPort: NETWORK_START_PORT + ((index + 1) % NETWORK_PEER_COUNT),
 					},
-					blacklistedPeers[0],
 				];
 				const nodePort = NETWORK_START_PORT + index;
 				return new P2P({
 					hostIp: '127.0.0.' + (index + 10),
 					connectTimeout: 5000,
 					ackTimeout: 5000,
-					blacklistedPeers,
-					seedPeers,
+					blacklistedPeers: blacklistedPeers,
+					seedPeers: seedPeers,
 					fixedPeers: blacklistedPeers,
 					whiteListedPeers: blacklistedPeers,
-					previousPeers: blacklistedPeers,
+					previousPeers: previousPeersBlacklisted,
 					wsEngine: 'ws',
 					discoveryInterval: DISCOVERY_INTERVAL_WITH_LIMIT,
 					populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
