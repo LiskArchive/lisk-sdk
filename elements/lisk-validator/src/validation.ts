@@ -244,14 +244,13 @@ export const validateFee = (data: string): boolean =>
 	!isGreaterThanMaxTransactionAmount(new BigNum(data));
 
 export const isCsv = (data: string): boolean => {
-	const maxItemCount = 1000;
 	if (typeof data !== 'string') {
 		return false;
 	}
 
 	const csvAsArray = data.split(',');
 
-	if (csvAsArray.length > 0 && csvAsArray.length <= maxItemCount) {
+	if (csvAsArray.length > 0) {
 		return true;
 	}
 
