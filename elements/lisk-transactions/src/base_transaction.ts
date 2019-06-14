@@ -526,7 +526,8 @@ export abstract class BaseTransaction {
 	}
 
 	protected assetToBytes(): Buffer {
-		return Buffer.from(JSON.stringify(this.asset), 'utf-8');
+		// Sort the content to obtain the same asset's signature, despite on the properties or values order.
+		return Buffer.from(JSON.stringify(this.asset).split('').sort().toString(), 'utf-8');
 	}
 
 	private _verify(sender: Account): ReadonlyArray<TransactionError> {
