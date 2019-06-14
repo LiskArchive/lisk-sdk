@@ -183,6 +183,22 @@ class ChainBlock extends BlockEntity {
 			{}
 		);
 	}
+
+	/**
+	 * Get the matching highest block for the providen array of block ids
+	 * @param {Array} blockIds - An array of block ids
+	 * @return {Promise<BasicBlock>}
+	 */
+	async getMatchingHighestBlock(blockIds) {
+		const [matchingBlock] = await this.get(
+			{
+				id_in: blockIds,
+			},
+			{ sort: 'height:desc', limit: 1 }
+		);
+
+		return matchingBlock;
+	}
 }
 
 module.exports = ChainBlock;

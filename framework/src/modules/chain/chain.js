@@ -21,6 +21,7 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 const { convertErrorsToString } = require('./helpers/error_handlers');
 const Sequence = require('./helpers/sequence');
 const ed = require('./helpers/ed');
+const definitions = require('./schema/definitions');
 const { ZSchema } = require('../../controller/validator');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
@@ -268,10 +269,32 @@ module.exports = class Chain {
 			}),
 			blocks: async action =>
 				this.scope.modules.transport.shared.blocks(action.params || {}),
-			getHighestCommonBlockId: async action =>
-				this.scope.modules.transport.shared.getHighestCommonBlockId(
-					action.params || {}
-				),
+
+			getHighestCommonBlockId: async action => {
+				const valid = this.scope.schema.validate(
+					action.params,
+					definitions.getHighestCommonBlockIdRequest
+				);
+
+				if (!valid) {
+					const err = this.scope.schema.getLastErrors();
+					const error = `${err[0].message}: ${err[0].path}`;
+					this.logger.debug(
+						'getHighestCommonBlockId request validation failed',
+						{
+							err: error,
+							req: action.params,
+						}
+					);
+					throw new Error(error);
+				}
+
+				const commonBlock = await this.scope.modules.blocks.getHighestCommonBlock(
+					action.params.ids
+				);
+
+				return commonBlock ? commonBlock.id : null;
+			},
 		};
 	}
 
