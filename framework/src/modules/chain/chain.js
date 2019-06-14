@@ -179,6 +179,7 @@ module.exports = class Chain {
 			this.channel.subscribe('network:bootstrap', async () => {
 				this._startLoader();
 				await this._startForging();
+				await this._calculateConsensus();
 			});
 
 			// Avoid receiving blocks/transactions from the network during snapshotting process
@@ -480,20 +481,19 @@ module.exports = class Chain {
 			},
 			syncInterval
 		);
-
-		/**
-		 * Periodically calculate consensus
-		 */
-		jobQueue.register(
-			'calculateConsensus',
-			async () => this._calculateConsensus(this.peers),
-			this.peers.broadhashConsensusCalculationInterval
-		);
 	}
 
-	async _calculateConsensus(peers) {
-		const consensus = await peers.calculateConsensus(this.blocks.broadhash);
-		return this.logger.debug(`Broadhash consensus: ${consensus} %`);
+	async _calculateConsensus() {
+		jobQueue.register(
+			'calculateConsensus',
+			async () => {
+				const consensus = await this.peers.calculateConsensus(
+					this.blocks.broadhash
+				);
+				return this.logger.debug(`Broadhash consensus: ${consensus} %`);
+			},
+			this.peers.broadhashConsensusCalculationInterval
+		);
 	}
 
 	async _startForging() {
