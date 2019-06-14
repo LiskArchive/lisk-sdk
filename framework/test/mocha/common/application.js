@@ -295,7 +295,12 @@ const initStepsForTest = {
 		});
 		scope.modules = modules;
 		const { Peers } = rewire('../../../src/modules/chain/peers');
-		scope.peers = new Peers(scope);
+		scope.peers = new Peers({
+			channel: scope.channel,
+			minBroadhashConsensus:
+				__testContext.config.constants.MIN_BROADHASH_CONSENSUS,
+			forgingForce: __testContext.config.modules.chain.forging.force,
+		});
 		const { TransactionPool: RewiredTransactionPool } = rewire(
 			'../../../src/modules/chain/transaction_pool'
 		);

@@ -373,10 +373,6 @@ module.exports = class Chain {
 		// TODO: Remove - Temporal write to modules for blocks circular dependency
 		this.peers = new Peers({
 			channel: this.channel,
-			components: {
-				logger: this.logger,
-				storage: this.storage,
-			},
 			forgingForce: this.options.forging.force,
 			minBroadhashConsensus: this.options.constants.MIN_BROADHASH_CONSENSUS,
 		});

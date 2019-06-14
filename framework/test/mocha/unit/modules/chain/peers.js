@@ -24,16 +24,8 @@ describe('peers', () => {
 		once: sinonSandbox.stub(),
 	};
 
-	const mockLogger = {
-		debug: sinonSandbox.stub(),
-		info: sinonSandbox.stub(),
-		warn: sinonSandbox.stub(),
-		error: sinonSandbox.stub(),
-	};
-
 	const scope = {
 		channel: channelMock,
-		logger: mockLogger,
 		forgingForce: true,
 		minBroadhashConsensus: global.constants.MIN_BROADHASH_CONSENSUS,
 	};

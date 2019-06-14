@@ -26,8 +26,7 @@ const MAX_PEERS = 100;
  * @param {scope} scope - App instance
  */
 class Peers {
-	constructor({ logger, channel, forgingForce, minBroadhashConsensus }) {
-		this.logger = logger;
+	constructor({ channel, forgingForce, minBroadhashConsensus }) {
 		this.forgingForce = forgingForce;
 		this.channel = channel;
 		this.minBroadhashConsensus = minBroadhashConsensus;
