@@ -222,6 +222,10 @@ class Transport {
 
 		const valid = validator.validate(definitions.WSBlocksCommonRequest, query);
 
+		if (query.ids && query.ids.split(',').length > 1000) {
+			throw new Error('ids property contains more than 1000 values');
+		}
+
 		if (!valid) {
 			const err = validator.errors;
 			const error = `${err[0].message}: ${err[0].path}`;
