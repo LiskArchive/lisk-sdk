@@ -14,61 +14,42 @@
 
 'use strict';
 
-const randomstring = require('randomstring');
 const prefixedPeer = require('../../../fixtures/peers').randomNormalizedPeer;
-const modulesLoader = require('../../../common/modules_loader');
 const { Peers } = require('../../../../../src/modules/chain/peers');
 
 describe('peers', () => {
 	const PEER_STATE_CONNECTED = 2;
-	const NONCE = randomstring.generate(16);
+	const channelMock = {
+		invoke: sinonSandbox.stub(),
+		once: sinonSandbox.stub(),
+	};
 
-	let storageMock;
-	let peers;
-	let blocksStub;
+	const mockLogger = {
+		debug: sinonSandbox.stub(),
+		info: sinonSandbox.stub(),
+		warn: sinonSandbox.stub(),
+		error: sinonSandbox.stub(),
+	};
 
-	let scope;
-	let channelMock;
+	const scope = {
+		channel: channelMock,
+		logger: mockLogger,
+		forgingForce: true,
+		minBroadhashConsensus: global.constants.MIN_BROADHASH_CONSENSUS,
+	};
+
+	let peersModule;
 
 	before(async () => {
-		storageMock = {
-			entities: {
-				Peer: {
-					get: sinonSandbox.stub().resolves(),
-				},
-			},
-		};
-
-		channelMock = {
-			invoke: sinonSandbox.stub(),
-			once: sinonSandbox.stub(),
-		};
-
-		blocksStub = {
-			broadhash: prefixedPeer.broadhash,
-		};
-
-		scope = _.cloneDeep({
-			...modulesLoader.scope,
-			nonce: NONCE,
-			components: {
-				storage: storageMock,
-				...modulesLoader.scope.components,
-			},
-			channel: channelMock,
-			applicationState: {},
-			modules: { blocks: blocksStub },
-		});
-		peers = new Peers(scope);
+		peersModule = new Peers(scope);
 	});
 
 	describe('isPoorConsensus', () => {
 		let isPoorConsensusResult;
-
-		describe('when library.config.forging.force is true', () => {
+		describe('when forgingForce is true', () => {
 			beforeEach(async () => {
-				isPoorConsensusResult = await peers.isPoorConsensus(
-					blocksStub.broadhash
+				isPoorConsensusResult = await peersModule.isPoorConsensus(
+					prefixedPeer.broadhash
 				);
 			});
 
@@ -76,22 +57,22 @@ describe('peers', () => {
 				expect(isPoorConsensusResult).to.be.false);
 		});
 
-		describe('when library.config.forging.force is false', () => {
+		describe('when forgingForce is false', () => {
 			beforeEach(async () => {
-				scope.config.forging.force = false;
-				peers = new Peers(scope);
+				scope.forgingForce = false;
+				peersModule = new Peers(scope);
 			});
 
 			afterEach(async () => {
-				scope.config.forging.force = true;
-				peers = new Peers(scope);
+				scope.forgingForce = true;
+				peersModule = new Peers(scope);
 			});
 
 			describe('when consensus < MIN_BROADHASH_CONSENSUS', () => {
 				beforeEach(async () => {
-					peers.calculateConsensus = sinonSandbox.stub().returns(50);
-					isPoorConsensusResult = await peers.isPoorConsensus(
-						blocksStub.broadhash
+					peersModule.calculateConsensus = sinonSandbox.stub().returns(50);
+					isPoorConsensusResult = await peersModule.isPoorConsensus(
+						prefixedPeer.broadhash
 					);
 				});
 
@@ -101,9 +82,9 @@ describe('peers', () => {
 
 			describe('when consensus >= MIN_BROADHASH_CONSENSUS', () => {
 				beforeEach(async () => {
-					peers.calculateConsensus = sinonSandbox.stub().returns(51);
-					isPoorConsensusResult = await peers.isPoorConsensus(
-						blocksStub.broadhash
+					peersModule.calculateConsensus = sinonSandbox.stub().returns(51);
+					isPoorConsensusResult = await peersModule.isPoorConsensus(
+						prefixedPeer.broadhash
 					);
 				});
 
@@ -119,9 +100,11 @@ describe('peers', () => {
 
 		beforeEach(async () => {
 			calculateConsensusStub = sinonSandbox
-				.stub(peers, 'calculateConsensus')
+				.stub(peersModule, 'calculateConsensus')
 				.returns(50);
-			lastConsensus = await peers.getLastConsensus(blocksStub.broadhash);
+			lastConsensus = await peersModule.getLastConsensus(
+				prefixedPeer.broadhash
+			);
 		});
 
 		afterEach(async () => {
@@ -137,18 +120,8 @@ describe('peers', () => {
 		let calculateConsensusResult;
 
 		beforeEach(async () => {
-			Object.assign(scope.applicationState, {
-				broadhash: prefixedPeer.broadhash,
-				height: prefixedPeer.height,
-				httpPort: 'anHttpHeight',
-				nonce: 'aNonce',
-				os: 'anOs',
-				version: '1.0.0',
-				minVersion: '1.0.0-beta.0',
-				protocolVersion: '1.0',
-			});
-			calculateConsensusResult = await peers.calculateConsensus(
-				blocksStub.broadhash
+			calculateConsensusResult = await peersModule.calculateConsensus(
+				prefixedPeer.broadhash
 			);
 		});
 
