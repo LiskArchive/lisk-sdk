@@ -168,7 +168,7 @@ describe('WS transport blocks', () => {
 					JSON.stringify(res)
 				);
 				expect(err.response.message).to.equal(
-					'Missing required property: ids: #/'
+					'Expected type object but found type null: #/'
 				);
 				expect(res).to.be.undefined;
 			}
