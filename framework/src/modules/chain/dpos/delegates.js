@@ -14,7 +14,7 @@
 
 const { hash } = require('@liskhq/lisk-cryptography');
 
-const shuffleActiveDelegateList = (round, list) => {
+const shuffleDelegateListForRound = (round, list) => {
 	const seedSource = round.toString();
 	const delegateList = [...list];
 	let currentSeed = hash(seedSource, 'utf8');
@@ -42,7 +42,7 @@ class Delegates {
 
 	async getRoundDelegates(round) {
 		const list = await this.generateActiveDelegateList(round);
-		return shuffleActiveDelegateList(round, list);
+		return shuffleDelegateListForRound(round, list);
 	}
 
 	async getDelegatePublicKeysSortedByVote() {
@@ -60,7 +60,7 @@ class Delegates {
 			return this.delegateListCache[round];
 		}
 
-		let delegatePublicKeys = await this.storage.entities.RoundDelegates.get(
+		let delegatePublicKeys = await this.storage.entities.RoundDelegates.getRoundDelegates(
 			round
 		);
 
@@ -85,5 +85,5 @@ class Delegates {
 
 module.exports = {
 	Delegates,
-	shuffleActiveDelegateList,
+	shuffleDelegateListForRound,
 };

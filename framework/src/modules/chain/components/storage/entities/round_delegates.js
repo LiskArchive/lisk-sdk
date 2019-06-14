@@ -71,7 +71,7 @@ class RoundDelegates extends BaseEntity {
 		this.SQLs = this.loadSQLFiles('dpos', sqlFiles, this.sqlDirectory);
 	}
 
-	async get(round) {
+	async getRoundDelegates(round) {
 		const result = await this.adapter.executeFile(this.SQLs.getRoundDelegates, {
 			round,
 		});
@@ -88,16 +88,14 @@ class RoundDelegates extends BaseEntity {
 	 */
 	// eslint-disable-next-line no-unused-vars
 	create({ round, delegatePublicKeys }, _options = {}, tx = null) {
-		assert(round, 'Round must be an object');
+		assert(round && Number.isInteger(round), 'Round must be a number');
 		assert(
 			Array.isArray(delegatePublicKeys),
 			'delegatePublicKeys must be an array of strings'
 		);
 
-		const attributes = Object.keys(this.fields).filter(
-			fieldname => fieldname !== 'id'
-		);
-		const fields = attributes
+		const attributes = Object.keys(this.fields);
+		const fields = Object.keys(this.fields)
 			.map(k => `"${this.fields[k].fieldName}"`)
 			.join(',');
 
