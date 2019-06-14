@@ -63,7 +63,7 @@ const modulesToInstrument = {
 	'../submodules/transport': {
 		identifier: 'modules.chain.submodules.transport',
 		callbackMethods: [
-			'shared.getCommonBlocks',
+			'shared.getHighestCommonBlockId',
 			'shared.blocks',
 			'shared.postSignature',
 			'shared.getSignatures',

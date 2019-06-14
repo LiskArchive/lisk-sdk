@@ -99,8 +99,8 @@ module.exports = {
 			type: 'object',
 		},
 	},
-	WSGetCommonBlocksRequest: {
-		id: 'WSGetCommonBlocksRequest',
+	getHighestCommonBlockIdRequest: {
+		id: 'getHighestCommonBlockIdRequest',
 		type: 'object',
 		required: ['ids'],
 		properties: {

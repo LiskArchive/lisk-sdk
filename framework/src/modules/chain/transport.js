@@ -223,15 +223,15 @@ class Transport {
 	attachSharedMethods() {
 		return {
 			/**
-			 * Returns the common blocks between query.ids and the database blocks table
+			 * Returns the largest common block between query.ids and the database blocks table
 			 * @param query
 			 * @param query.ids
 			 * @return {Promise<Array<String>>}
 			 */
-			async getCommonBlocks(query) {
+			async getHighestCommonBlockId(query) {
 				const valid = library.schema.validate(
 					query,
-					definitions.WSGetCommonBlocksRequest
+					definitions.getHighestCommonBlockIdRequest
 				);
 
 				if (!valid) {
@@ -245,9 +245,14 @@ class Transport {
 				}
 
 				try {
-					return (await library.storage.entities.Block.get({
-						id_in: query.ids,
-					})).map(commonRawBlock => commonRawBlock.id);
+					const [commonBlock] = await library.storage.entities.Block.get(
+						{
+							id_in: query.ids,
+						},
+						{ sort: 'height:desc', limit: 1 }
+					);
+
+					return commonBlock ? commonBlock.id : null;
 				} catch (e) {
 					const errMessage = 'Failed to read common blocks from storage';
 					library.logger.error(e, errMessage);

@@ -268,8 +268,8 @@ module.exports = class Chain {
 			}),
 			blocks: async action =>
 				this.scope.modules.transport.shared.blocks(action.params || {}),
-			getCommonBlocks: async action =>
-				this.scope.modules.transport.shared.getCommonBlocks(
+			getHighestCommonBlockId: async action =>
+				this.scope.modules.transport.shared.getHighestCommonBlockId(
 					action.params || {}
 				),
 		};
