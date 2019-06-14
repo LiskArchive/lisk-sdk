@@ -14,8 +14,7 @@
  */
 import * as BigNum from '@liskhq/bignum';
 import * as Ajv from 'ajv';
-// tslint:disable-next-line no-require-imports
-import addKeywords = require('ajv-merge-patch');
+
 import {
 	isCsv,
 	isGreaterThanMaxTransactionId,
@@ -36,8 +35,6 @@ export const validator = new Ajv({
 	schemaId: 'auto',
 	useDefaults: false,
 });
-
-addKeywords(validator);
 
 validator.addFormat('signature', isSignature);
 
