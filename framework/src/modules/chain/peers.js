@@ -45,7 +45,7 @@ class Peers {
 	/**
 	 * Calculates consensus for as a ratio active to matched peers.
 	 *
-	 * @returns {Promise.<number, Error>} Consensus or undefined if config.forging.force = true
+	 * @returns {Promise.<number, Error>} Consensus or undefined if forgingForce = true
 	 */
 	async calculateConsensus(broadhash) {
 		const activeCount = Math.min(
@@ -70,7 +70,7 @@ class Peers {
 	// Public methods
 	/**
 	 * Returns true if application consensus is less than MIN_BROADHASH_CONSENSUS.
-	 * Returns false if library.config.forging.force is true.
+	 * Returns false if forgingForce is true.
 	 *
 	 * @returns {boolean}
 	 * @todo Add description for the return value
