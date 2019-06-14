@@ -1548,6 +1548,19 @@ describe('Integration tests for P2P library', () => {
 				);
 			});
 		});
+
+		it('should isolated the blacklisted peer', () => {
+			p2pNodeList.map(p2p => {
+				if (
+					p2p['_nodeInfo'].wsPort === blacklistedPeers[0].wsPort &&
+					p2p['_config'].hostIp === blacklistedPeers[0].ipAddress
+				) {
+					const counts = p2p['_peerPool'].getPeersCountPerKind();
+					expect(counts.inbound).to.equal(0);
+					expect(counts.outbound).to.equal(0);
+				}
+			});
+		});
 	});
 
 	describe('Network with frequent peer shuffling', () => {
