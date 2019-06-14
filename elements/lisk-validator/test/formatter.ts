@@ -18,9 +18,10 @@ import { ValidateFunction } from 'ajv';
 
 describe('validator', () => {
 	const baseSchemaId = 'test/schema';
+	let baseSchema: object;
 
 	before(async () => {
-		const baseSchema = {
+		baseSchema = {
 			$id: baseSchemaId,
 			type: 'object',
 		};
@@ -30,10 +31,10 @@ describe('validator', () => {
 	describe('signature', () => {
 		let validate: ValidateFunction;
 		beforeEach(async () => {
-			validate = validator.compile({
-				$merge: {
-					source: { $ref: baseSchemaId },
-					with: {
+			const signatureSchema = {
+				allOf: [
+					baseSchema,
+					{
 						properties: {
 							target: {
 								type: 'string',
@@ -41,8 +42,9 @@ describe('validator', () => {
 							},
 						},
 					},
-				},
-			});
+				],
+			};
+			validate = validator.compile(signatureSchema);
 		});
 
 		it('should validate to true when valid signature is provided', async () => {
@@ -85,10 +87,10 @@ describe('validator', () => {
 	describe('id', () => {
 		let validate: ValidateFunction;
 		beforeEach(async () => {
-			validate = validator.compile({
-				$merge: {
-					source: { $ref: baseSchemaId },
-					with: {
+			const idSchema = {
+				allOf: [
+					baseSchema,
+					{
 						properties: {
 							target: {
 								type: 'string',
@@ -96,8 +98,9 @@ describe('validator', () => {
 							},
 						},
 					},
-				},
-			});
+				],
+			};
+			validate = validator.compile(idSchema);
 		});
 
 		it('should validate to true when valid id is provided', async () => {
@@ -124,10 +127,10 @@ describe('validator', () => {
 	describe('address', () => {
 		let validate: ValidateFunction;
 		beforeEach(async () => {
-			validate = validator.compile({
-				$merge: {
-					source: { $ref: baseSchemaId },
-					with: {
+			const addressSchema = {
+				allOf: [
+					baseSchema,
+					{
 						properties: {
 							target: {
 								type: 'string',
@@ -135,8 +138,9 @@ describe('validator', () => {
 							},
 						},
 					},
-				},
-			});
+				],
+			};
+			validate = validator.compile(addressSchema);
 		});
 
 		it('should validate to true when valid address is provided', async () => {
@@ -175,10 +179,10 @@ describe('validator', () => {
 	describe('non-transfer amount', () => {
 		let validate: ValidateFunction;
 		beforeEach(async () => {
-			validate = validator.compile({
-				$merge: {
-					source: { $ref: baseSchemaId },
-					with: {
+			const nonTransferAmountSchema = {
+				allOf: [
+					baseSchema,
+					{
 						properties: {
 							target: {
 								type: 'string',
@@ -186,8 +190,9 @@ describe('validator', () => {
 							},
 						},
 					},
-				},
-			});
+				],
+			};
+			validate = validator.compile(nonTransferAmountSchema);
 		});
 
 		it('should validate to true when valid amount is provided', async () => {
@@ -218,10 +223,10 @@ describe('validator', () => {
 	describe('transfer amount', () => {
 		let validate: ValidateFunction;
 		beforeEach(async () => {
-			validate = validator.compile({
-				$merge: {
-					source: { $ref: baseSchemaId },
-					with: {
+			const transferAmountSchema = {
+				allOf: [
+					baseSchema,
+					{
 						properties: {
 							target: {
 								type: 'string',
@@ -229,8 +234,9 @@ describe('validator', () => {
 							},
 						},
 					},
-				},
-			});
+				],
+			};
+			validate = validator.compile(transferAmountSchema);
 		});
 
 		it('should validate to true when valid amount is provided', async () => {
@@ -265,10 +271,10 @@ describe('validator', () => {
 	describe('fee', () => {
 		let validate: ValidateFunction;
 		beforeEach(async () => {
-			validate = validator.compile({
-				$merge: {
-					source: { $ref: baseSchemaId },
-					with: {
+			const feeSchema = {
+				allOf: [
+					baseSchema,
+					{
 						properties: {
 							target: {
 								type: 'string',
@@ -276,8 +282,9 @@ describe('validator', () => {
 							},
 						},
 					},
-				},
-			});
+				],
+			};
+			validate = validator.compile(feeSchema);
 		});
 
 		it('should validate to true when valid fee is provided', async () => {
@@ -312,10 +319,10 @@ describe('validator', () => {
 	describe('emptyOrPublicKey', () => {
 		let validate: ValidateFunction;
 		beforeEach(async () => {
-			validate = validator.compile({
-				$merge: {
-					source: { $ref: baseSchemaId },
-					with: {
+			const emptyOrPublicKeySchema = {
+				allOf: [
+					baseSchema,
+					{
 						properties: {
 							target: {
 								type: ['string', 'null'],
@@ -323,8 +330,9 @@ describe('validator', () => {
 							},
 						},
 					},
-				},
-			});
+				],
+			};
+			validate = validator.compile(emptyOrPublicKeySchema);
 		});
 
 		it('should validate to true when valid publicKey is provided', async () => {
@@ -373,10 +381,10 @@ describe('validator', () => {
 	describe('publicKey', () => {
 		let validate: ValidateFunction;
 		beforeEach(async () => {
-			validate = validator.compile({
-				$merge: {
-					source: { $ref: baseSchemaId },
-					with: {
+			const publicKeySchema = {
+				allOf: [
+					baseSchema,
+					{
 						properties: {
 							target: {
 								type: 'string',
@@ -384,8 +392,9 @@ describe('validator', () => {
 							},
 						},
 					},
-				},
-			});
+				],
+			};
+			validate = validator.compile(publicKeySchema);
 		});
 
 		it('should validate to true when valid publicKey is provided', async () => {
@@ -441,10 +450,10 @@ describe('validator', () => {
 	describe('signedPublicKey', () => {
 		let validate: ValidateFunction;
 		beforeEach(async () => {
-			validate = validator.compile({
-				$merge: {
-					source: { $ref: baseSchemaId },
-					with: {
+			const signedPublicKeySchema = {
+				allOf: [
+					baseSchema,
+					{
 						properties: {
 							target: {
 								type: 'string',
@@ -452,8 +461,9 @@ describe('validator', () => {
 							},
 						},
 					},
-				},
-			});
+				],
+			};
+			validate = validator.compile(signedPublicKeySchema);
 		});
 
 		it('should validate to true when valid + and publicKey is provided', async () => {
@@ -518,10 +528,10 @@ describe('validator', () => {
 	describe('additionPublicKey', () => {
 		let validate: ValidateFunction;
 		beforeEach(async () => {
-			validate = validator.compile({
-				$merge: {
-					source: { $ref: baseSchemaId },
-					with: {
+			const additionPublicKeySchema = {
+				allOf: [
+					baseSchema,
+					{
 						properties: {
 							target: {
 								type: 'string',
@@ -529,8 +539,9 @@ describe('validator', () => {
 							},
 						},
 					},
-				},
-			});
+				],
+			};
+			validate = validator.compile(additionPublicKeySchema);
 		});
 
 		it('should validate to true when valid + and publicKey is provided', async () => {
@@ -595,10 +606,10 @@ describe('validator', () => {
 	describe('uniqueSignedPublicKeys', () => {
 		let validate: ValidateFunction;
 		beforeEach(async () => {
-			validate = validator.compile({
-				$merge: {
-					source: { $ref: baseSchemaId },
-					with: {
+			const uniqueSignedPublicKeysSchema = {
+				allOf: [
+					baseSchema,
+					{
 						properties: {
 							target: {
 								type: 'array',
@@ -606,8 +617,9 @@ describe('validator', () => {
 							},
 						},
 					},
-				},
-			});
+				],
+			};
+			validate = validator.compile(uniqueSignedPublicKeysSchema);
 		});
 
 		it('should validate to true when unique signedPublicKey is provided', async () => {
@@ -647,10 +659,10 @@ describe('validator', () => {
 	describe('noNullCharacter', () => {
 		let validate: ValidateFunction;
 		beforeEach(async () => {
-			validate = validator.compile({
-				$merge: {
-					source: { $ref: baseSchemaId },
-					with: {
+			const noNullCharacterSchema = {
+				allOf: [
+					baseSchema,
+					{
 						properties: {
 							target: {
 								type: 'string',
@@ -658,8 +670,9 @@ describe('validator', () => {
 							},
 						},
 					},
-				},
-			});
+				],
+			};
+			validate = validator.compile(noNullCharacterSchema);
 		});
 
 		it('should validate to true when valid string is provided', async () => {
