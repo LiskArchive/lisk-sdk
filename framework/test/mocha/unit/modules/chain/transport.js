@@ -1016,7 +1016,7 @@ describe('transport', () => {
 								.returns([validateErr]);
 
 							return expect(
-								transportInstance.shared.getCommonBlocks(query)
+								transportInstance.shared.getHighestCommonBlockId(query)
 							).to.be.rejectedWith('Query did not match schema: undefined');
 						});
 					});
@@ -1025,13 +1025,13 @@ describe('transport', () => {
 						it('should call library.schema.validate with query and definitions.WSGetCommonBlocksRequest', async () => {
 							query = { ids: ['1', '2', '3'] };
 
-							await transportInstance.shared.getCommonBlocks(query);
+							await transportInstance.shared.getHighestCommonBlockId(query);
 
 							expect(library.schema.validate.calledOnce).to.be.true;
 							return expect(
 								library.schema.validate.calledWith(
 									query,
-									definitions.WSGetCommonBlocksRequest
+									definitions.getHighestCommonBlockIdRequest
 								)
 							).to.be.true;
 						});
@@ -1046,7 +1046,7 @@ describe('transport', () => {
 									.returns([validateErr]);
 
 								expect(
-									transportInstance.shared.getCommonBlocks(query)
+									transportInstance.shared.getHighestCommonBlockId(query)
 								).to.be.rejectedWith('Query did not match schema');
 								expect(library.logger.debug.calledOnce).to.be.true;
 								return expect(
@@ -1059,12 +1059,46 @@ describe('transport', () => {
 						});
 
 						describe('when library.schema.validate succeeds', () => {
-							it('should call storage.entities.Block.get with id_in filter set to query.ids', async () => {
-								await transportInstance.shared.getCommonBlocks(query);
+							it('should call storage.entities.Block.get with id_in filter set to query.ids, ordered height:desc and limit 1', async () => {
+								await transportInstance.shared.getHighestCommonBlockId(query);
 
-								expect(library.storage.entities.Block.get).to.be.calledWith({
-									id_in: query.ids,
-								});
+								expect(library.storage.entities.Block.get).to.be.calledWith(
+									{
+										id_in: query.ids,
+									},
+									{ sort: 'height:desc', limit: 1 }
+								);
+							});
+						});
+
+						describe('when common block is found', () => {
+							it('should return the id of the common block', async () => {
+								const expectedResult = '123456';
+								library.storage.entities.Block.get.resolves([
+									{
+										id: expectedResult,
+										height: '3',
+									},
+								]);
+
+								const response = await transportInstance.shared.getHighestCommonBlockId(
+									query
+								);
+
+								expect(response).to.equal('123456');
+							});
+						});
+
+						describe('when common block is not found', () => {
+							it('should return null', async () => {
+								// Storage returns empty array if no entity is found
+								library.storage.entities.Block.get.resolves([]);
+
+								const response = await transportInstance.shared.getHighestCommonBlockId(
+									query
+								);
+
+								expect(response).to.be.null;
 							});
 						});
 
@@ -1074,7 +1108,7 @@ describe('transport', () => {
 								library.storage.entities.Block.get.rejects(getError);
 
 								try {
-									await transportInstance.shared.getCommonBlocks(query);
+									await transportInstance.shared.getHighestCommonBlockId(query);
 								} catch (e) {
 									expect(e.message).to.equal(
 										'Failed to read common blocks from storage'
