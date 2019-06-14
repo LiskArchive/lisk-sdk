@@ -20,7 +20,7 @@
 
 import { EventEmitter } from 'events';
 // tslint:disable-next-line no-require-imports
-import shuffle = require('lodash.shuffle');
+import { shuffle } from 'lodash';
 import { SCServerSocket } from 'socketcluster-server';
 import { RequestFailError, SendFailError } from './errors';
 import { P2PRequest } from './p2p_request';

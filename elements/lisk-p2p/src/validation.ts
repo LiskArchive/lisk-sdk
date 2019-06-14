@@ -21,6 +21,7 @@ import {
 	InvalidRPCResponseError,
 } from './errors';
 
+import { differenceBy, differenceWith, isEqual } from 'lodash';
 import {
 	INCOMPATIBLE_NETWORK_REASON,
 	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
@@ -205,23 +206,32 @@ export interface PeerLists {
 
 export const handlePeerListsConflicts = (lists: PeerLists): PeerLists => {
 	// Blacklist takes preference above all
-	const seedPeers = lists.seedPeers.filter(
-		peer => !lists.blacklistedPeers.includes(peer),
-	);
-	const fixedPeers = lists.fixedPeers.filter(
-		peer => !lists.blacklistedPeers.includes(peer),
-	);
-	const whitelisted = lists.whitelisted
-		.filter(peer => !lists.blacklistedPeers.includes(peer))
-		.filter(
-			peer =>
-				// Fixed takes preference over whitelisted
-				!lists.fixedPeers.includes(peer),
-		);
-	const previousPeers = lists.previousPeers
-		.filter(peer => !lists.blacklistedPeers.includes(peer))
-		.filter(peer => !lists.seedPeers.includes(peer))
-		.filter(peer => !lists.fixedPeers.includes(peer));
+	const seedPeers = differenceWith(
+		lists.seedPeers,
+		lists.blacklistedPeers,
+		isEqual,
+	) as ReadonlyArray<P2PPeerInfo>;
+	const fixedPeers = differenceWith(
+		lists.fixedPeers,
+		lists.blacklistedPeers,
+		isEqual,
+	) as ReadonlyArray<P2PPeerInfo>;
+	const whitelistedWithoutBlacklisted = differenceWith(
+		lists.whitelisted,
+		lists.blacklistedPeers,
+		isEqual,
+	) as ReadonlyArray<P2PPeerInfo>;
+	// Fixed takes preference over whitelisted
+	const whitelisted = differenceWith(
+		whitelistedWithoutBlacklisted,
+		lists.fixedPeers,
+		isEqual,
+	) as ReadonlyArray<P2PPeerInfo>;
+	const previousPeers = differenceBy(
+		lists.previousPeers,
+		lists.blacklistedPeers,
+		'ipAddress',
+	) as ReadonlyArray<P2PDiscoveredPeerInfo>;
 
 	return {
 		blacklistedPeers: lists.blacklistedPeers,
