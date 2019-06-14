@@ -33,7 +33,6 @@ import {
 
 export const validator = new Ajv({
 	allErrors: true,
-	removeAdditional: 'all',
 	schemaId: 'auto',
 	useDefaults: false,
 });
