@@ -14,9 +14,9 @@
 
 'use strict';
 
-const crypto = require('crypto');
 const BigNum = require('@liskhq/bignum');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const { hash } = require('@liskhq/lisk-cryptography');
 const blockVersion = require('./block_version');
 const blocksLogic = require('./block');
 const blocksUtils = require('./utils');
@@ -454,14 +454,14 @@ const verifyPayload = (
 
 	let totalAmount = new BigNum(0);
 	let totalFee = new BigNum(0);
-	const payloadHash = crypto.createHash('sha256');
+	const transactionsBytesArray = [];
 	const appliedTransactions = {};
 
 	block.transactions.forEach(transaction => {
-		let bytes;
+		let transactionBytes;
 
 		try {
-			bytes = transaction.getBytes();
+			transactionBytes = transaction.getBytes();
 		} catch (e) {
 			result.errors.push(e.toString());
 		}
@@ -473,14 +473,17 @@ const verifyPayload = (
 		}
 
 		appliedTransactions[transaction.id] = transaction;
-		if (bytes) {
-			payloadHash.update(bytes);
+		if (transactionBytes) {
+			transactionsBytesArray.push(transactionBytes);
 		}
 		totalAmount = totalAmount.plus(transaction.amount);
 		totalFee = totalFee.plus(transaction.fee);
 	});
 
-	if (payloadHash.digest().toString('hex') !== block.payloadHash) {
+	const transactionsBuffer = Buffer.concat(transactionsBytesArray);
+	const payloadHash = hash(transactionsBuffer).toString('hex');
+
+	if (payloadHash !== block.payloadHash) {
 		result.errors.push(new Error('Invalid payload hash'));
 	}
 
