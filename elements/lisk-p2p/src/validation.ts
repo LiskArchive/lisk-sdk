@@ -204,7 +204,10 @@ export interface PeerLists {
 	readonly previousPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 }
 
-export const handlePeerListsConflicts = (lists: PeerLists): PeerLists => {
+export const handlePeerListsConflicts = (
+	lists: PeerLists,
+	nodeInfo: P2PPeerInfo,
+): PeerLists => {
 	// Blacklist takes preference above all
 	const seedPeers = differenceWith(
 		lists.seedPeers,
@@ -239,11 +242,39 @@ export const handlePeerListsConflicts = (lists: PeerLists): PeerLists => {
 		'ipAddress',
 	) as ReadonlyArray<P2PDiscoveredPeerInfo>;
 
-	return {
-		blacklistedPeers: lists.blacklistedPeers,
+	// Removing myself from the peers lists
+	const blacklistedWithoutMyself = differenceWith(
+		lists.blacklistedPeers,
+		[nodeInfo],
+		isEqual,
+	) as ReadonlyArray<P2PPeerInfo>;
+
+	const seedsWithoutMyself = differenceWith(
 		seedPeers,
+		[nodeInfo],
+		isEqual,
+	) as ReadonlyArray<P2PPeerInfo>;
+	const fixedWithoutMyself = differenceWith(
 		fixedPeers,
+		[nodeInfo],
+		isEqual,
+	) as ReadonlyArray<P2PPeerInfo>;
+	const whitelistedWithoutMyself = differenceWith(
 		whitelisted,
+		[nodeInfo],
+		isEqual,
+	) as ReadonlyArray<P2PPeerInfo>;
+	const previousWithoutMyself = differenceBy(
 		previousPeers,
+		[(nodeInfo as unknown) as P2PDiscoveredPeerInfo],
+		'ipAddress',
+	) as ReadonlyArray<P2PDiscoveredPeerInfo>;
+
+	return {
+		blacklistedPeers: blacklistedWithoutMyself,
+		seedPeers: seedsWithoutMyself,
+		fixedPeers: fixedWithoutMyself,
+		whitelisted: whitelistedWithoutMyself,
+		previousPeers: previousWithoutMyself,
 	};
 };

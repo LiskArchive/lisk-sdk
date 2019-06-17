@@ -1571,8 +1571,8 @@ describe('Integration tests for P2P library', () => {
 		describe('fixed peers', () => {
 			const fixedPeers = [
 				{
-					ipAddress: '127.0.0.16',
-					wsPort: NETWORK_START_PORT + 6,
+					ipAddress: '127.0.0.10',
+					wsPort: NETWORK_START_PORT,
 				},
 			];
 			beforeEach(async () => {
@@ -1621,13 +1621,15 @@ describe('Integration tests for P2P library', () => {
 				await wait(100);
 			});
 
-			it('everyone should have a permanent connection to the fixed peer', () => {
-				p2pNodeList.forEach(p2p => {
-					const { connectedPeers } = p2p.getNetworkStatus();
-					const connectedPeersIPWS = connectedPeers.map(peer => {
-						return { ipAddress: peer.ipAddress, wsPort: peer.wsPort };
-					});
-					expect(connectedPeersIPWS).to.deep.include.members(fixedPeers);
+			it('everyone but itself should have a permanent connection to the fixed peer', () => {
+				p2pNodeList.forEach((p2p, index) => {
+					if (index != 0) {
+						const { connectedPeers } = p2p.getNetworkStatus();
+						const connectedPeersIPWS = connectedPeers.map(peer => {
+							return { ipAddress: peer.ipAddress, wsPort: peer.wsPort };
+						});
+						expect(connectedPeersIPWS).to.deep.include.members(fixedPeers);
+					}
 				});
 			});
 		});

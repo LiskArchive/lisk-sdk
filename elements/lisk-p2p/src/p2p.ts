@@ -183,13 +183,19 @@ export class P2P extends EventEmitter {
 
 	public constructor(config: P2PConfig) {
 		super();
-		this._peerListsWithoutConflicts = handlePeerListsConflicts({
-			seedPeers: config.seedPeers,
-			blacklistedPeers: config.blacklistedPeers,
-			fixedPeers: config.fixedPeers,
-			whitelisted: config.whitelistedPeers,
-			previousPeers: config.previousPeers,
-		});
+		this._peerListsWithoutConflicts = handlePeerListsConflicts(
+			{
+				seedPeers: config.seedPeers,
+				blacklistedPeers: config.blacklistedPeers,
+				fixedPeers: config.fixedPeers,
+				whitelisted: config.whitelistedPeers,
+				previousPeers: config.previousPeers,
+			},
+			{
+				ipAddress: config.hostIp || DEFAULT_NODE_HOST_IP,
+				wsPort: config.nodeInfo.wsPort,
+			},
+		);
 		this._config = config;
 		this._isActive = false;
 		this._newPeers = new Map();
