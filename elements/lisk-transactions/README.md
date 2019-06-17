@@ -28,10 +28,10 @@ Check out the Lisk SDK [Example Apps](https://github.com/LiskHQ/lisk-sdk-test-ap
 
 ### Lifecycle
 
-The lifecycle of a transaction in general in Lisk SDK can be summarized as follows:
+The lifecycle of a transaction in Lisk SDK can be summarized as follows:
 
 1. A transaction is created and signed (off-chain). The script to do it is in `src/create_and_sign.ts`.
-2. The transaction is sent to a network. This can be done by a third party tool (like `curl` or `Postman`), but also using Lisk Commander.
+2. The transaction is sent to a network. This can be done by a third party tool (like `curl` or `Postman`), but also using Lisk Commander (`lisk transaction:broadcast`).
    To send the default transactions for the protocol network, you can rely on the wallet Lisk UI tools - Lisk Hub and Mobile. All of the tools need to be authorized to access an HTTP API of a network node.
 3. A network node receives a transaction and after a lightweight schema validation, adds it to a transaction pool.
 4. In the transaction pool, the transactions are firstly `validated`. In this step, only static checks are performed. These include schema validation and signature validation.
