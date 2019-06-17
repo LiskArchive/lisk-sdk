@@ -98,20 +98,22 @@ const getBytes = block => {
 	);
 	bufferArray.push(numTransactionsBuffer);
 
-	const totalAmountBuffer = Buffer.alloc(TOTAL_AMOUNT_LENGTH);
-	totalAmountBuffer.writeUInt32LE(
+	const totalAmountBuffer = bigNumberToBuffer(
 		block.totalAmount.toString(),
-		0,
 		TOTAL_AMOUNT_LENGTH
 	);
 	bufferArray.push(totalAmountBuffer);
 
-	const totalFeeBuffer = Buffer.alloc(TOTAL_FEE_LENGTH);
-	totalFeeBuffer.writeUInt32LE(block.totalFee.toString(), 0, TOTAL_FEE_LENGTH);
+	const totalFeeBuffer = bigNumberToBuffer(
+		block.totalFee.toString(),
+		TOTAL_FEE_LENGTH
+	);
 	bufferArray.push(totalFeeBuffer);
 
-	const rewardBuffer = Buffer.alloc(REWARD_LENGTH);
-	rewardBuffer.writeUInt32LE(block.reward.toString(), 0, REWARD_LENGTH);
+	const rewardBuffer = bigNumberToBuffer(
+		block.reward.toString(),
+		REWARD_LENGTH
+	);
 	bufferArray.push(rewardBuffer);
 
 	const payloadLengthBuffer = Buffer.alloc(PAYLOAD_LENGTH_LENGTH);
