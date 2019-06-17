@@ -16,13 +16,19 @@
 
 const blockV1 = require('./block_v1');
 const blockV2 = require('./block_v2');
+const { getBlockVersion } = require('./block_version');
 
 const createFunc = {
 	0: blockV1.create,
 	1: blockV1.create,
 	2: blockV2.create,
 };
-const create = data => createFunc[data.version](data);
+const create = data => {
+	const version =
+		data.version ||
+		getBlockVersion(data.previousBlock.height + 1, data.exceptions);
+	return createFunc[version](data);
+};
 
 const getBytesFunc = {
 	0: blockV1.getBytes,
