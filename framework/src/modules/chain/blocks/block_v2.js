@@ -22,7 +22,7 @@ const {
 	hash,
 	verifyData,
 } = require('@liskhq/lisk-cryptography');
-const _ = require('lodash');
+const { omitBy, isNull } = require('lodash');
 const crypto = require('crypto');
 const ByteBuffer = require('bytebuffer');
 const BigNum = require('@liskhq/bignum');
@@ -275,7 +275,7 @@ const storageRead = raw => {
 	if (raw.transactions) {
 		block.transactions = raw.transactions
 			.filter(tx => !!tx.id)
-			.map(tx => _.omitBy(tx, _.isNull));
+			.map(tx => omitBy(tx, isNull));
 	}
 
 	block.totalForged = block.totalFee.plus(block.reward).toString();
