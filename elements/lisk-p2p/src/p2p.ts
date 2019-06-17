@@ -70,13 +70,14 @@ import {
 } from './peer_selection';
 
 import {
+	connectAndFetchPeerInfo,
 	EVENT_BAN_PEER,
 	EVENT_CLOSE_INBOUND,
 	EVENT_CLOSE_OUTBOUND,
 	EVENT_CONNECT_ABORT_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_DISCOVERED_PEER,
-	EVENT_FAILED_PEER_INFO_UPDATE,
+	EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
 	EVENT_FAILED_TO_PUSH_NODE_INFO,
 	EVENT_INBOUND_SOCKET_ERROR,
@@ -96,14 +97,14 @@ export {
 	EVENT_CONNECT_ABORT_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_DISCOVERED_PEER,
-	EVENT_FAILED_TO_FETCH_PEER_INFO,
 	EVENT_FAILED_TO_PUSH_NODE_INFO,
 	EVENT_REQUEST_RECEIVED,
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_OUTBOUND_SOCKET_ERROR,
 	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_UPDATED_PEER_INFO,
-	EVENT_FAILED_PEER_INFO_UPDATE,
+	EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
+	EVENT_FAILED_TO_FETCH_PEER_INFO,
 	EVENT_BAN_PEER,
 	EVENT_UNBAN_PEER,
 };
@@ -135,8 +136,6 @@ export class P2P extends EventEmitter {
 	private readonly _newPeers: Map<string, P2PDiscoveredPeerInfo>;
 	private readonly _triedPeers: Map<string, P2PDiscoveredPeerInfo>;
 	private readonly _bannedPeers: Set<string>;
-	private readonly _discoveryInterval: number;
-	private _discoveryIntervalId: NodeJS.Timer | undefined;
 	private readonly _populatorInterval: number;
 	private _populatorIntervalId: NodeJS.Timer | undefined;
 
@@ -150,7 +149,6 @@ export class P2P extends EventEmitter {
 		discoveredPeerInfo: P2PDiscoveredPeerInfo,
 	) => void;
 	private readonly _handleFailedToPushNodeInfo: (error: Error) => void;
-	private readonly _handleFailedToFetchPeerInfo: (error: Error) => void;
 	private readonly _handleOutboundPeerConnect: (
 		peerInfo: P2PDiscoveredPeerInfo,
 	) => void;
@@ -167,6 +165,7 @@ export class P2P extends EventEmitter {
 		peerInfo: P2PDiscoveredPeerInfo,
 	) => void;
 	private readonly _handleFailedPeerInfoUpdate: (error: Error) => void;
+	private readonly _handleFailedToCollectPeerDetails: (error: Error) => void;
 	private readonly _handleBanPeer: (peerId: string) => void;
 	private readonly _handleUnbanPeer: (peerId: string) => void;
 	private readonly _handleOutboundSocketError: (error: Error) => void;
@@ -269,7 +268,12 @@ export class P2P extends EventEmitter {
 
 		this._handleFailedPeerInfoUpdate = (error: Error) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
-			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
+			this.emit(EVENT_FAILED_TO_FETCH_PEER_INFO, error);
+		};
+
+		this._handleFailedToCollectPeerDetails = (error: Error) => {
+			// Re-emit the message to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT, error);
 		};
 
 		this._handleBanPeer = (peerId: string) => {
@@ -316,11 +320,6 @@ export class P2P extends EventEmitter {
 		this._handleFailedToPushNodeInfo = (error: Error) => {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
-		};
-
-		this._handleFailedToFetchPeerInfo = (error: Error) => {
-			// Re-emit the error to allow it to bubble up the class hierarchy.
-			this.emit(EVENT_FAILED_TO_FETCH_PEER_INFO, error);
 		};
 
 		this._handleOutboundSocketError = (error: Error) => {
@@ -375,10 +374,6 @@ export class P2P extends EventEmitter {
 
 		this._nodeInfo = config.nodeInfo;
 		this.applyNodeInfo(this._nodeInfo);
-
-		this._discoveryInterval = config.discoveryInterval
-			? config.discoveryInterval
-			: DEFAULT_DISCOVERY_INTERVAL;
 
 		this._populatorInterval = config.populatorInterval
 			? config.populatorInterval
@@ -640,57 +635,6 @@ export class P2P extends EventEmitter {
 	private async _stopPeerServer(): Promise<void> {
 		await this._stopWSServer();
 		await this._stopHTTPServer();
-		this._isActive = false;
-	}
-
-	private async _discoverPeers(
-		knownPeers: ReadonlyArray<P2PDiscoveredPeerInfo> = [],
-	): Promise<void> {
-		// Make sure that we do not try to connect to peers if the P2P node is no longer active.
-		if (!this._isActive) {
-			return;
-		}
-
-		const discoveredPeers = await this._peerPool.runDiscovery(
-			knownPeers,
-			this._config.blacklistedPeers || [],
-		);
-
-		// Stop discovery if node is no longer active. That way we don't try to connect to peers.
-		// We need to check again because of the previous asynchronous await statement.
-		if (!this._isActive) {
-			return;
-		}
-
-		discoveredPeers.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
-			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			// Check for value of nonce, if its same then its our own info
-			if (
-				!this._triedPeers.has(peerId) &&
-				!this._newPeers.has(peerId) &&
-				peerInfo.nonce !== this._nodeInfo.nonce
-			) {
-				this._newPeers.set(peerId, peerInfo);
-			}
-		});
-	}
-
-	private async _startDiscovery(): Promise<void> {
-		if (this._discoveryIntervalId) {
-			throw new Error('Discovery is already running');
-		}
-		this._discoveryIntervalId = setInterval(async () => {
-			await this._discoverPeers([...this._triedPeers.values()]);
-		}, this._discoveryInterval);
-
-		await this._discoverPeers([...this._triedPeers.values()]);
-	}
-
-	private _stopDiscovery(): void {
-		if (!this._discoveryIntervalId) {
-			throw new Error('Discovery is not running');
-		}
-		clearInterval(this._discoveryIntervalId);
 	}
 
 	private _startPopulator(): void {
@@ -711,10 +655,9 @@ export class P2P extends EventEmitter {
 	}
 
 	private _stopPopulator(): void {
-		if (!this._populatorIntervalId) {
-			throw new Error('Populator is not running');
+		if (this._populatorIntervalId) {
+			clearInterval(this._populatorIntervalId);
 		}
-		clearInterval(this._populatorIntervalId);
 	}
 
 	private async _fetchSeedPeerStatus(
@@ -724,13 +667,26 @@ export class P2P extends EventEmitter {
 			ackTimeout: this._config.ackTimeout,
 			connectTimeout: this._config.connectTimeout,
 		};
-		const seedPeerUpdatedInfos = await this._peerPool.fetchStatusAndCreatePeers(
-			seedPeers,
-			this._nodeInfo,
-			peerConfig,
+
+		const seedPeerUpdatedInfos = await Promise.all(
+			seedPeers.map(async peerInfo => {
+				try {
+					return await connectAndFetchPeerInfo(
+						peerInfo,
+						this._nodeInfo,
+						peerConfig,
+					);
+				} catch (error) {
+					this.emit(EVENT_FAILED_TO_FETCH_PEER_INFO, error);
+
+					return undefined;
+				}
+			}),
 		);
 
-		return seedPeerUpdatedInfos;
+		return seedPeerUpdatedInfos.filter(
+			peerInfo => peerInfo !== undefined,
+		) as ReadonlyArray<P2PDiscoveredPeerInfo>;
 	}
 
 	private _pickRandomDiscoveredPeers(
@@ -800,15 +756,16 @@ export class P2P extends EventEmitter {
 			}
 		});
 
-		await this._startDiscovery();
-		this._startPopulator();
+		if (this._isActive) {
+			this._startPopulator();
+		}
 	}
 
 	public async stop(): Promise<void> {
 		if (!this._isActive) {
 			throw new Error('Cannot stop the node because it is not active');
 		}
-		this._stopDiscovery();
+		this._isActive = false;
 		this._stopPopulator();
 		this._peerPool.removeAllPeers();
 		await this._stopPeerServer();
@@ -826,17 +783,17 @@ export class P2P extends EventEmitter {
 		peerPool.on(EVENT_CLOSE_OUTBOUND, this._handlePeerCloseOutbound);
 		peerPool.on(EVENT_UPDATED_PEER_INFO, this._handlePeerInfoUpdate);
 		peerPool.on(
-			EVENT_FAILED_PEER_INFO_UPDATE,
+			EVENT_FAILED_TO_FETCH_PEER_INFO,
 			this._handleFailedPeerInfoUpdate,
+		);
+		peerPool.on(
+			EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
+			this._handleFailedToCollectPeerDetails,
 		);
 		peerPool.on(EVENT_DISCOVERED_PEER, this._handleDiscoveredPeer);
 		peerPool.on(
 			EVENT_FAILED_TO_PUSH_NODE_INFO,
 			this._handleFailedToPushNodeInfo,
-		);
-		peerPool.on(
-			EVENT_FAILED_TO_FETCH_PEER_INFO,
-			this._handleFailedToFetchPeerInfo,
 		);
 		peerPool.on(EVENT_OUTBOUND_SOCKET_ERROR, this._handleOutboundSocketError);
 		peerPool.on(EVENT_INBOUND_SOCKET_ERROR, this._handleInboundSocketError);
