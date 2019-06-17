@@ -31,7 +31,7 @@ import {
 } from './validation';
 
 class LiskValidator {
-	private validator: Ajv.Ajv;
+	private readonly validator: Ajv.Ajv;
 	public constructor() {
 		this.validator = new Ajv({
 			allErrors: true,
