@@ -138,10 +138,10 @@ class LiskValidator {
 		this.validator.addFormat('csv', isCsv);
 	}
 
-	public validate(schema: object, data: object): T[] {
+	public validate(schema: object, data: object): [] {
 		const valid = this.validator.validate(schema, data);
 		if (!valid) {
-			return this.validator.errors;
+			return this.validator.errors as [];
 		}
 
 		return [];
