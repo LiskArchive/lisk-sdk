@@ -139,8 +139,7 @@ class LiskValidator {
 	}
 
 	public validate(schema: object, data: object): [] {
-		const valid = this.validator.validate(schema, data);
-		if (!valid) {
+		if (!this.validator.validate(schema, data)) {
 			return this.validator.errors as [];
 		}
 
