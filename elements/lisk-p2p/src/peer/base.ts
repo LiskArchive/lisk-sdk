@@ -64,15 +64,16 @@ export type SCServerSocketUpdated = {
 type SCClientSocket = socketClusterClient.SCClientSocket;
 
 // Local emitted events.
-export const EVENT_UPDATED_PEER_INFO = 'updatedPeerInfo';
-export const EVENT_FAILED_PEER_INFO_UPDATE = 'failedPeerInfoUpdate';
 export const EVENT_REQUEST_RECEIVED = 'requestReceived';
 export const EVENT_INVALID_REQUEST_RECEIVED = 'invalidRequestReceived';
 export const EVENT_MESSAGE_RECEIVED = 'messageReceived';
 export const EVENT_INVALID_MESSAGE_RECEIVED = 'invalidMessageReceived';
 export const EVENT_BAN_PEER = 'banPeer';
-export const EVENT_UNBAN_PEER = 'banPeer';
 export const EVENT_DISCOVERED_PEER = 'discoveredPeer';
+export const EVENT_UNBAN_PEER = 'banPeer';
+export const EVENT_UPDATED_PEER_INFO = 'updatedPeerInfo';
+export const EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT =
+	'failedToCollectPeerDetailsOnConnect';
 export const EVENT_FAILED_TO_FETCH_PEER_INFO = 'failedToFetchPeerInfo';
 export const EVENT_FAILED_TO_PUSH_NODE_INFO = 'failedToPushNodeInfo';
 
@@ -118,11 +119,6 @@ export const convertNodeInfoToLegacyFormat = (
 export interface PeerConfig {
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
-}
-
-export interface ConnectAndFetchResponse {
-	readonly responsePacket: P2PResponsePacket;
-	readonly socket: SCClientSocket;
 }
 
 export class Peer extends EventEmitter {
@@ -405,6 +401,15 @@ export class Peer extends EventEmitter {
 		}
 	}
 
+	public async discoverPeers(): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> {
+		const discoveredPeerInfoList = await this.fetchPeers();
+		discoveredPeerInfoList.forEach(peerInfo => {
+			this.emit(EVENT_DISCOVERED_PEER, peerInfo);
+		});
+
+		return discoveredPeerInfoList;
+	}
+
 	public async fetchStatus(): Promise<P2PDiscoveredPeerInfo> {
 		try {
 			const response: P2PResponsePacket = await this.request({
@@ -413,7 +418,7 @@ export class Peer extends EventEmitter {
 
 			this._updateFromProtocolPeerInfo(response.data);
 		} catch (error) {
-			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
+			this.emit(EVENT_FAILED_TO_FETCH_PEER_INFO, error);
 
 			throw new RPCResponseError(
 				'Failed to fetch peer info of peer',
@@ -438,7 +443,7 @@ export class Peer extends EventEmitter {
 		try {
 			this._updateFromProtocolPeerInfo(request.data);
 		} catch (error) {
-			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
+			this.emit(EVENT_FAILED_TO_FETCH_PEER_INFO, error);
 			request.error(error);
 
 			return;
