@@ -61,6 +61,7 @@ describe('blocks', () => {
 		storageStub = {
 			entities: {
 				Block: {
+					getMatchingHighestBlock: sinonSandbox.stub().resolves(),
 					isPersisted: sinonSandbox.stub().resolves(true),
 					get: sinonSandbox.stub().resolves([]),
 					begin: sinonSandbox.stub().resolves(true),
@@ -190,6 +191,36 @@ describe('blocks', () => {
 					await blocksInstance.cleanup();
 					expect(loggerStub.info.callCount).to.equal(2);
 				});
+			});
+		});
+	});
+
+	describe('getHighestCommonBlock', () => {
+		const ids = ['1,2,3,4'];
+
+		it('should call storage.entities.Block.getMatchingHighestBlock with the provided ids', async () => {
+			await blocksInstance.getHighestCommonBlock(ids);
+			expect(
+				storageStub.entities.Block.getMatchingHighestBlock
+			).to.be.calledWith(ids);
+		});
+
+		describe('when reading from storage fails', () => {
+			it('should error log it and throw the error', async () => {
+				const getError = new Error('Storage error');
+				storageStub.entities.Block.getMatchingHighestBlock.rejects(getError);
+
+				try {
+					await blocksInstance.getHighestCommonBlock(ids);
+				} catch (e) {
+					expect(e.message).to.equal(
+						'Failed to read common blocks from storage'
+					);
+					expect(loggerStub.error).to.be.calledWith(
+						getError,
+						'Failed to read common blocks from storage'
+					);
+				}
 			});
 		});
 	});
