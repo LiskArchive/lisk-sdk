@@ -78,11 +78,11 @@ const getBytes = block => {
 	const bufferArray = [];
 
 	const blockVersionBuffer = Buffer.alloc(BLOCK_VERSION_LENGTH);
-	blockVersionBuffer.writeUIntLE(block.version, 0, BLOCK_VERSION_LENGTH);
+	blockVersionBuffer.writeIntLE(block.version, 0, BLOCK_VERSION_LENGTH);
 	bufferArray.push(blockVersionBuffer);
 
 	const timestampBuffer = Buffer.alloc(TIMESTAMP_LENGTH);
-	timestampBuffer.writeUIntLE(block.timestamp, 0, TIMESTAMP_LENGTH);
+	timestampBuffer.writeIntLE(block.timestamp, 0, TIMESTAMP_LENGTH);
 	bufferArray.push(timestampBuffer);
 
 	const previousBlockBuffer = block.previousBlock
@@ -91,7 +91,7 @@ const getBytes = block => {
 	bufferArray.push(previousBlockBuffer);
 
 	const numTransactionsBuffer = Buffer.alloc(NUMBERS_OF_TRANSACTIONS_LENGTH);
-	numTransactionsBuffer.writeUIntLE(
+	numTransactionsBuffer.writeIntLE(
 		block.numberOfTransactions,
 		0,
 		NUMBERS_OF_TRANSACTIONS_LENGTH
