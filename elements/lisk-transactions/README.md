@@ -89,6 +89,9 @@ To increase your application's performance, you should override the following fu
 
 The BaseTransaction provides the default implementation of the methods revolving around the signatures. As your application matures you can provide the custom ways of how your a transaction's signature is derived: `sign`, `getBytes`, `assetToBytes`.
 
+You can find the complete documentation of the BaseTransaction API, as well as all of the default transactions extending it
+on the auto-generated documentation hosted on [liskhq.github.io/lisk-sdk](https://liskhq.github.io/lisk-sdk/). With the next releases, we will be enriching the BaseTransaction's methods descriptions.
+
 ## Installation
 
 ```sh
