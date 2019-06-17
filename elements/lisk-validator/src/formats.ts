@@ -16,8 +16,7 @@ import {
 
 // tslint:disable-next-line: no-any
 export const formats: any = {
-	// tslint:disable-next-line: no-any
-	address: (data: any) => {
+	address: (data: string): boolean => {
 		try {
 			validateAddress(data);
 
@@ -26,8 +25,7 @@ export const formats: any = {
 			return false;
 		}
 	},
-	// tslint:disable-next-line: no-any
-	additionPublicKey: (data: any) => {
+	additionPublicKey: (data: string): boolean => {
 		const action = data[0];
 		if (action !== '+') {
 			return false;
@@ -43,8 +41,7 @@ export const formats: any = {
 	},
 	amount: isNumberString,
 	csv: isCsv,
-	// tslint:disable-next-line: no-any
-	emptyOrPublicKey: (data: any) => {
+	emptyOrPublicKey: (data: string): boolean => {
 		if (data === null || data === '') {
 			return true;
 		}
@@ -59,14 +56,11 @@ export const formats: any = {
 	},
 	fee: validateFee,
 	hex: isHexString,
-	// tslint:disable-next-line: no-any
-	id: (data: any) =>
+	id: (data: string): boolean =>
 		isNumberString(data) && !isGreaterThanMaxTransactionId(new BigNum(data)),
 	nonTransferAmount: validateNonTransferAmount,
-	// tslint:disable-next-line: no-any
-	noNullCharacter: (data: any) => !isNullCharacterIncluded(data),
-	// tslint:disable-next-line: no-any
-	publicKey: (data: any) => {
+	noNullCharacter: (data: string): boolean => !isNullCharacterIncluded(data),
+	publicKey: (data: string): boolean => {
 		try {
 			validatePublicKey(data);
 
@@ -76,8 +70,7 @@ export const formats: any = {
 		}
 	},
 	signature: isSignature,
-	// tslint:disable-next-line: no-any
-	signedPublicKey: (data: any) => {
+	signedPublicKey: (data: string): boolean => {
 		try {
 			const action = data[0];
 			if (action !== '+' && action !== '-') {
