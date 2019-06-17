@@ -32,12 +32,23 @@ export class P2PRequest {
 		data: unknown,
 		peerId: string,
 		rate: number,
+		productivity: {
+			// tslint:disable-next-line: readonly-keyword
+			requestCounter: number;
+			// tslint:disable-next-line: readonly-keyword
+			responseCounter: number;
+			// tslint:disable-next-line: readonly-keyword
+			responseRate: number;
+			// tslint:disable-next-line: readonly-keyword
+			lastResponded: number;
+		},
 		respondCallback: (responseError?: Error, responseData?: unknown) => void,
 	) {
 		this._procedure = procedure;
 		this._data = data;
 		this._peerId = peerId;
 		this._rate = rate;
+		productivity.requestCounter += 1;
 		this._respondCallback = (
 			responseError?: Error,
 			responsePacket?: P2PResponsePacket,
@@ -48,10 +59,16 @@ export class P2PRequest {
 				);
 			}
 			this._wasResponseSent = true;
+			// We assume peer performed useful work and update peer response rate
+			if (!responseError && responsePacket) {
+				productivity.lastResponded = Date.now();
+				productivity.responseCounter += 1;
+				productivity.responseRate =
+					productivity.responseCounter / productivity.requestCounter;
+			}
 			respondCallback(responseError, responsePacket);
 		};
 		this._wasResponseSent = false;
-		this._peerId = peerId;
 	}
 
 	public get procedure(): string {

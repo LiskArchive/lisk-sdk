@@ -91,6 +91,13 @@ export const DEFAULT_CONNECT_TIMEOUT = 2000;
 export const DEFAULT_ACK_TIMEOUT = 2000;
 export const DEFAULT_REPUTATION_SCORE = 100;
 export const DEFAULT_RATE_INTERVAL = 1000;
+export const DEFAULT_PRODUCTIVITY_RESET_INTERVAL = 3600000;
+export const DEFAULT_PRODUCTIVITY = {
+	requestCounter: 0,
+	responseCounter: 0,
+	responseRate: 0,
+	lastResponded: 0,
+};
 
 export enum ConnectionState {
 	CONNECTING = 'connecting',
@@ -128,12 +135,19 @@ export class Peer extends EventEmitter {
 	protected readonly _ipAddress: string;
 	protected readonly _wsPort: number;
 	private readonly _height: number;
-	public _reputation: number;
-	public _latency: number;
-	public _connectTime: number;
+	public reputation: number;
+	public latency: number;
+	public connectTime: number;
+	public productivity: {
+		requestCounter: number;
+		responseCounter: number;
+		responseRate: number;
+		lastResponded: number;
+	};
 	private _callCounter: Map<string, number>;
 	private readonly _counterResetInterval: NodeJS.Timer;
 	protected _peerInfo: P2PPeerInfo;
+	private readonly _productivityResetInterval: NodeJS.Timer;
 	protected readonly _peerConfig: PeerConfig;
 	protected _nodeInfo: P2PNodeInfo | undefined;
 	protected readonly _handleRawRPC: (
@@ -160,13 +174,20 @@ export class Peer extends EventEmitter {
 		this._wsPort = peerInfo.wsPort;
 		this._id = constructPeerId(this._ipAddress, this._wsPort);
 		this._height = peerInfo.height ? (peerInfo.height as number) : 0;
-		this._reputation = DEFAULT_REPUTATION_SCORE;
-		this._latency = 0;
-		this._connectTime = Date.now();
+		this.reputation = DEFAULT_REPUTATION_SCORE;
+		this.latency = 0;
+		this.connectTime = Date.now();
 		this._callCounter = new Map();
 		this._counterResetInterval = setInterval(() => {
 			this._callCounter = new Map();
 		}, DEFAULT_RATE_INTERVAL);
+		this._productivityResetInterval = setInterval(() => {
+			// If peer has not responded within an hour, reset productivity to 0
+			if(this.productivity.lastResponded < (Date.now() - DEFAULT_PRODUCTIVITY_RESET_INTERVAL)) {
+				this.productivity = DEFAULT_PRODUCTIVITY;
+			}
+		}, DEFAULT_PRODUCTIVITY_RESET_INTERVAL);
+		this.productivity = DEFAULT_PRODUCTIVITY;
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawRPC = (
@@ -188,11 +209,13 @@ export class Peer extends EventEmitter {
 			}
 
 			const rate = this._getPeerRate(packet as P2PRequestPacket);
+
 			const request = new P2PRequest(
 				rawRequest.procedure,
 				rawRequest.data,
 				this._id,
 				rate,
+				this.productivity,
 				respond,
 			);
 
@@ -281,8 +304,8 @@ export class Peer extends EventEmitter {
 	}
 
 	public applyPenalty(penalty: number): void {
-		this._reputation -= penalty;
-		if (this._reputation <= 0) {
+		this.reputation -= penalty;
+		if (this.reputation <= 0) {
 			this._banPeer();
 		}
 	}
@@ -328,6 +351,7 @@ export class Peer extends EventEmitter {
 
 	public disconnect(code: number = 1000, reason?: string): void {
 		clearInterval(this._counterResetInterval);
+		clearInterval(this._productivityResetInterval);
 		if (this._socket) {
 			this._socket.destroy(code, reason);
 		}

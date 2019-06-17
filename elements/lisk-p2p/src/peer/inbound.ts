@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 import {
 	Peer,
 	PeerConfig,
@@ -27,7 +26,7 @@ import { SCServerSocket } from 'socketcluster-server';
 
 export const EVENT_CLOSE_INBOUND = 'closeInbound';
 export const EVENT_INBOUND_SOCKET_ERROR = 'inboundSocketError';
-const DEFAULT_PING_INTERVAL = 1000;
+const DEFAULT_PING_INTERVAL = 500;
 export class InboundPeer extends Peer {
 	protected _socket: SCServerSocketUpdated;
 	protected readonly _handleInboundSocketError: (error: Error) => void;
@@ -59,7 +58,7 @@ export class InboundPeer extends Peer {
 		};
 		this._handlePong = (responseTime: number) => {
 			const latency = Date.now() - responseTime;
-			this._latency = latency;
+			this.latency = latency;
 		};
 		this._socket = peerSocket;
 		this._pingIntervalId = setInterval(() => {
