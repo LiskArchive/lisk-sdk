@@ -24,6 +24,9 @@ const {
 	ChainMeta,
 } = require('../../../../../../../../src/modules/chain/components/storage/entities');
 
+const getAllMeta = async adapter =>
+	adapter.execute('select * from chain_meta;');
+
 describe('ChainMeta', () => {
 	let adapter;
 	let storage;
@@ -98,6 +101,77 @@ describe('ChainMeta', () => {
 
 		it('should setup specific filters', async () => {
 			expect(ChainMetaEntity.getFilters()).to.be.eql(validFilters);
+		});
+	});
+
+	describe('create', () => {
+		it('should create a key value pair', async () => {
+			const data = { key: 'myKey', value: 'myValue' };
+			await ChainMetaEntity.create(data);
+			const result = await getAllMeta(ChainMetaEntity.adapter);
+
+			expect(result).to.be.eql([data]);
+		});
+
+		it('should be rejected if key already exists', async () => {
+			const data = { key: 'myKey', value: 'myValue' };
+			await ChainMetaEntity.create(data);
+
+			expect(ChainMetaEntity.create(data)).to.be.rejectedWith(
+				'error: duplicate key value violates unique constraint "chain_meta_pkey"'
+			);
+		});
+	});
+
+	describe('update', () => {
+		it('should update a value if key exists', async () => {
+			const data = { key: 'myKey', value: 'myValue' };
+			// First create the value
+			await ChainMetaEntity.create(data);
+
+			// Verify its created
+			const result = await getAllMeta(ChainMetaEntity.adapter);
+			expect(result).to.be.eql([data]);
+
+			// Now update the value
+			const dataToUpdate = {
+				key: 'myKey',
+				value: 'updatedValue',
+			};
+			await ChainMetaEntity.update(dataToUpdate);
+
+			// Verify if its updated
+			const result2 = await getAllMeta(ChainMetaEntity.adapter);
+			expect(result2).to.be.eql([dataToUpdate]);
+		});
+
+		it('should not be rejected if key does not exists', async () => {
+			const data = { key: 'myKey', value: 'myValue' };
+
+			// Update the data without creating it first
+			expect(ChainMetaEntity.update(data)).to.not.be.rejected;
+		});
+	});
+
+	describe('upsert', () => {
+		it('should create key value pair if not exists', async () => {
+			const data = { key: 'myKey', value: 'myValue' };
+			await ChainMetaEntity.upsert(data);
+
+			const result = await getAllMeta(ChainMetaEntity.adapter);
+
+			expect(result).to.be.eql([data]);
+		});
+
+		it('should update the value if key already exists', async () => {
+			const data = { key: 'myKey', value: 'myValue' };
+			await ChainMetaEntity.create(data);
+
+			const data2 = { key: 'myKey', value: 'myUpdatedValue' };
+			await ChainMetaEntity.upsert(data2);
+
+			const result = await getAllMeta(ChainMetaEntity.adapter);
+			expect(result).to.be.eql([data2]);
 		});
 	});
 });

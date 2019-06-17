@@ -13,9 +13,8 @@
  */
 
 
-INSERT INTO chain_meta ("key", "value")
+INSERT INTO "chain_meta" ("key", "value")
 VALUES(${key},${value})
-ON CONFLICT ("key")
+ON CONFLICT ON CONSTRAINT chain_meta_pkey
 DO
-	UPDATE
-     SET "value" = ${value} WHERE "key" = ${key};
+	UPDATE SET "value" = ${value};
