@@ -222,9 +222,15 @@ export const handlePeerListsConflicts = (lists: PeerLists): PeerLists => {
 		isEqual,
 	) as ReadonlyArray<P2PPeerInfo>;
 	// Fixed takes preference over whitelisted
-	const whitelisted = differenceWith(
+	const whitelistedWithoutSeeds = differenceWith(
 		whitelistedWithoutBlacklisted,
-		lists.fixedPeers,
+		fixedPeers,
+		isEqual,
+	) as ReadonlyArray<P2PPeerInfo>;
+	// // Seeds also takes preference over whitelisted
+	const whitelisted = differenceWith(
+		whitelistedWithoutSeeds,
+		seedPeers,
 		isEqual,
 	) as ReadonlyArray<P2PPeerInfo>;
 	const previousPeers = differenceBy(

@@ -1450,14 +1450,7 @@ describe('Integration tests for P2P library', () => {
 			await Promise.all(
 				p2pNodeList
 					.filter(p2p => p2p.isActive)
-					.map(async p2p => {
-						try {
-							await p2p.stop();
-						} catch (e) {
-							console.log(p2p['_nodeInfo'].wsPort);
-							throw e;
-						}
-					}),
+					.map(async p2p => await p2p.stop()),
 			);
 			await wait(200);
 		});
@@ -1625,7 +1618,7 @@ describe('Integration tests for P2P library', () => {
 					p2p => p2p.start(),
 				);
 				await Promise.all(peerStartPromises);
-				await wait(1000);
+				await wait(100);
 			});
 
 			it('everyone should have a permanent connection to the fixed peer', () => {
@@ -1666,8 +1659,8 @@ describe('Integration tests for P2P library', () => {
 						whitelistedPeers,
 						previousPeers: [],
 						wsEngine: 'ws',
-						discoveryInterval: 100,
-						populatorInterval: 100,
+						discoveryInterval: DISCOVERY_INTERVAL_WITH_LIMIT,
+						populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
 						maxOutboundConnections: FIVE_CONNECTIONS,
 						maxInboundConnections: FIVE_CONNECTIONS,
 						nodeInfo: {
@@ -1689,7 +1682,7 @@ describe('Integration tests for P2P library', () => {
 					p2p => p2p.start(),
 				);
 				await Promise.all(peerStartPromises);
-				await wait(1000);
+				await wait(100);
 			});
 
 			it('should add every whitelisted peer to triedPeers', () => {
