@@ -1426,7 +1426,7 @@ describe('Integration tests for P2P library', () => {
 		});
 	});
 
-	describe.only('Network with different lists of blacklisted/fixed/whitelisted peers', () => {
+	describe('Network with different lists of blacklisted/fixed/whitelisted peers', () => {
 		const FIVE_CONNECTIONS = 5;
 		const DISCOVERY_INTERVAL_WITH_LIMIT = 10;
 		const POPULATOR_INTERVAL_WITH_LIMIT = 10;
@@ -1636,6 +1636,83 @@ describe('Integration tests for P2P library', () => {
 						return { ipAddress: peer.ipAddress, wsPort: peer.wsPort };
 					});
 					expect(connectedPeersIPWS).to.deep.include.members(fixedPeers);
+				});
+			});
+		});
+
+		describe('whitelisted peers', () => {
+			const whiteListedPeers = [
+				{
+					ipAddress: '127.0.0.10',
+					wsPort: NETWORK_START_PORT,
+				},
+			];
+			beforeEach(async () => {
+				p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
+					// Each node will have the previous node in the sequence as a seed peer except the first node.
+					const seedPeers = [
+						{
+							ipAddress: '127.0.0.' + (((index + 1) % NETWORK_PEER_COUNT) + 10),
+							wsPort: NETWORK_START_PORT + ((index + 1) % NETWORK_PEER_COUNT),
+						},
+					];
+					const nodePort = NETWORK_START_PORT + index;
+					return new P2P({
+						hostIp: '127.0.0.' + (index + 10),
+						connectTimeout: 5000,
+						ackTimeout: 5000,
+						blacklistedPeers: [],
+						seedPeers: seedPeers,
+						fixedPeers: [],
+						whiteListedPeers,
+						previousPeers: [],
+						wsEngine: 'ws',
+						discoveryInterval: DISCOVERY_INTERVAL_WITH_LIMIT,
+						populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
+						maxOutboundConnections: FIVE_CONNECTIONS,
+						maxInboundConnections: FIVE_CONNECTIONS,
+						nodeInfo: {
+							wsPort: nodePort,
+							nethash:
+								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+							version: '1.0.1',
+							protocolVersion: '1.0.1',
+							minVersion: '1.0.0',
+							os: platform(),
+							height: 0,
+							broadhash:
+								'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+							nonce: `O2wTkjqplHII${nodePort}`,
+						},
+					});
+				});
+
+				// Launch nodes one at a time with a delay between each launch.
+				for (const p2p of p2pNodeList) {
+					p2p.start();
+				}
+				await wait(1000);
+			});
+
+			it('should not be possible to ban them', () => {
+				const peerPenalty = {
+					peerId: `${whiteListedPeers[0].ipAddress}:${
+						whiteListedPeers[0].wsPort
+					}`,
+					penalty: 100,
+				};
+
+				p2pNodeList.forEach((p2p, index) => {
+					if (index != 0) {
+						p2p.applyPenalty(peerPenalty);
+						const { connectedPeers } = p2p.getNetworkStatus();
+						const connectedPeersIPWS = connectedPeers.map(peer => {
+							return { ipAddress: peer.ipAddress, wsPort: peer.wsPort };
+						});
+						expect(connectedPeersIPWS).to.deep.include.members(
+							whiteListedPeers,
+						);
+					}
 				});
 			});
 		});
