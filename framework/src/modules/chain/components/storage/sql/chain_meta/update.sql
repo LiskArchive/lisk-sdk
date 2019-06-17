@@ -12,12 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-module.exports = {
-	Account: require('./account'),
-	Block: require('./block'),
-	Round: require('./round'),
-	Transaction: require('./transaction'),
-	ChainMeta: require('./chain_meta'),
-};
+UPDATE "chain_meta" SET "value" = ${value} WHERE "key" = ${key};

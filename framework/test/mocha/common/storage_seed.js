@@ -144,6 +144,7 @@ class StorageSeed {
 			'rounds_rewards',
 			'peers',
 			'trs',
+			'chain_meta',
 		];
 
 		return storage.adapter
