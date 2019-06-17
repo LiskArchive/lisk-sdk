@@ -323,8 +323,7 @@ describe('transport', () => {
 				it('should reject with error = "Invalid signature body"', async () => {
 					const validateErr = new Error('Signature did not match schema');
 					validateErr.code = 'INVALID_FORMAT';
-					validator.validate = sinonSandbox.stub().returns(false);
-					validator.errors = [validateErr];
+					validator.validate = sinonSandbox.stub().returns([validateErr]);
 
 					return expect(
 						transportModule._receiveSignature(SAMPLE_SIGNATURE_1)
@@ -781,8 +780,7 @@ describe('transport', () => {
 							query = undefined;
 							validateErr = new Error('Query did not match schema');
 							validateErr.code = 'INVALID_FORMAT';
-							validator.validate = sinonSandbox.stub().returns(false);
-							validator.errors = [validateErr];
+							validator.validate = sinonSandbox.stub().returns([validateErr]);
 
 							return expect(
 								transportModule.blocksCommon(query)
@@ -813,8 +811,7 @@ describe('transport', () => {
 							it('should call transportModule.logger.debug with "Common block request validation failed" and {err: err.toString(), req: query}', async () => {
 								validateErr = new Error('Query did not match schema');
 								validateErr.code = 'INVALID_FORMAT';
-								validator.validate = sinonSandbox.stub().returns(false);
-								validator.errors = [validateErr];
+								validator.validate = sinonSandbox.stub().returns([validateErr]);
 
 								expect(transportModule.blocksCommon(query)).to.be.rejectedWith(
 									'Query did not match schema'
@@ -833,7 +830,7 @@ describe('transport', () => {
 							describe('when escapedIds.length = 0', () => {
 								it('should call transportModule.logger.debug with "Common block request validation failed" and {err: "ESCAPE", req: query.ids}', async () => {
 									query = { ids: '"abc","def","ghi"' };
-									validator.validate = sinonSandbox.stub().returns(true);
+									validator.validate = sinonSandbox.stub().returns([]);
 
 									expect(
 										transportModule.blocksCommon(query)
@@ -1062,8 +1059,7 @@ describe('transport', () => {
 						it('should call transportModule.logger.debug with "Invalid signatures body" and err as arguments', async () => {
 							validateErr = new Error('Transaction query did not match schema');
 							validateErr.code = 'INVALID_FORMAT';
-							validator.validate = sinonSandbox.stub().returns(false);
-							validator.errors = [validateErr];
+							validator.validate = sinonSandbox.stub().returns([validateErr]);
 
 							expect(transportModule.postSignatures(query)).to.be.rejectedWith([
 								validateErr,
@@ -1289,8 +1285,7 @@ describe('transport', () => {
 								'Transaction query did not match schema'
 							);
 							validateErr.code = 'INVALID_FORMAT';
-							validator.validate = sinonSandbox.stub().returns(false);
-							validator.errors = [validateErr];
+							validator.validate = sinonSandbox.stub().returns([validateErr]);
 
 							return expect(
 								transportModule.postTransactions(query)
