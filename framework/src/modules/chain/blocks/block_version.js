@@ -50,7 +50,7 @@ const isValid = (version, height, exceptions = {}) => {
 };
 
 const getBlockVersion = (height, exceptions = {}) => {
-	if (height === undefined || Object.entries(exceptions).length === 0) {
+	if (height === undefined || !Object.keys(exceptions).length) {
 		return currentBlockVersion;
 	}
 
