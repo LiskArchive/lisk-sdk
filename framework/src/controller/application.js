@@ -116,7 +116,7 @@ class Application {
 	 */
 	constructor(genesisBlock, config = {}) {
 		const errors = liskValidator.validate(genesisBlockSchema, genesisBlock);
-		if (errors) {
+		if (errors.length) {
 			throw errors;
 		}
 

@@ -182,7 +182,7 @@ class Loader {
 		});
 
 		const errors = validator.validate(definitions.WSSignaturesResponse, result);
-		if (errors) {
+		if (errors.length) {
 			throw errors;
 		}
 
@@ -230,7 +230,7 @@ class Loader {
 			definitions.WSSignaturesResponse,
 			result
 		);
-		if (validatorErrors) {
+		if (validatorErrors.length) {
 			throw validatorErrors;
 		}
 
@@ -335,7 +335,7 @@ class Loader {
 	async _validateBlocks(blocks) {
 		const errors = validator.validate(definitions.WSBlocksList, blocks);
 
-		if (errors) {
+		if (errors.length) {
 			throw new Error('Received invalid blocks data');
 		}
 

@@ -117,7 +117,7 @@ class Account {
 			}
 
 			const errors = validator.validate({ format: 'hex' }, publicKey);
-			if (errors) {
+			if (errors.length) {
 				throw new Error('Invalid public key, must be a hex string');
 			}
 		}

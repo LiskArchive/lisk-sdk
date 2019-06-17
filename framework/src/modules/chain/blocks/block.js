@@ -135,7 +135,7 @@ const objectNormalize = (block, exceptions = {}) => {
 	});
 
 	const errors = validator.validate(blockSchema, block);
-	if (errors) {
+	if (errors.length) {
 		throw errors;
 	}
 

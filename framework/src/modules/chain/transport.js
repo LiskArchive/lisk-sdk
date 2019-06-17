@@ -226,7 +226,7 @@ class Transport {
 
 		const errors = validator.validate(definitions.WSBlocksCommonRequest, query);
 
-		if (errors) {
+		if (errors.length) {
 			const error = `${errors[0].message}: ${errors[0].path}`;
 			this.logger.debug('Common block request validation failed', {
 				err: error.toString(),
@@ -351,7 +351,7 @@ class Transport {
 
 		const errors = validator.validate(definitions.WSBlocksBroadcast, query);
 
-		if (errors) {
+		if (errors.length) {
 			this.logger.debug(
 				'Received post block broadcast request in unexpected format',
 				{
@@ -405,7 +405,7 @@ class Transport {
 	async postSignature(query) {
 		const errors = validator.validate(definitions.Signature, query.signature);
 
-		if (errors) {
+		if (errors.length) {
 			const error = new TransactionError(errors[0].message);
 			return {
 				success: false,
@@ -444,7 +444,7 @@ class Transport {
 
 		const errors = validator.validate(definitions.WSSignaturesList, query);
 
-		if (errors) {
+		if (errors.length) {
 			this.logger.debug('Invalid signatures body', errors);
 			throw errors;
 		}
@@ -538,7 +538,7 @@ class Transport {
 
 		const errors = validator.validate(definitions.WSTransactionsRequest, query);
 
-		if (errors) {
+		if (errors.length) {
 			this.logger.debug('Invalid transactions body', errors);
 			throw errors;
 		}
@@ -578,7 +578,7 @@ class Transport {
 	async _receiveSignature(signature) {
 		const errors = validator.validate(definitions.Signature, signature);
 
-		if (errors) {
+		if (errors.length) {
 			throw errors;
 		}
 
