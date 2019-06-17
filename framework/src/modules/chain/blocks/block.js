@@ -14,57 +14,45 @@
 
 'use strict';
 
-const {
-	createV1,
-	getBytesV0,
-	getBytesV1,
-	dbReadV0,
-	dbReadV1,
-	storageReadV0,
-	storageReadV1,
-	verifySignature,
-	getId,
-	getHash,
-	objectNormalize,
-	sign,
-} = require('./blockV1');
-const { createV2, getBytesV2, dbReadV2, storageReadV2 } = require('./blockV2');
+const blockV1 = require('./block_v1');
+const blockV2 = require('./block_v2');
 
 const createFunc = {
-	1: createV1,
-	2: createV2,
+	0: blockV1.create,
+	1: blockV1.create,
+	2: blockV2.create,
 };
 const create = data => createFunc[data.version](data);
 
 const getBytesFunc = {
-	0: getBytesV0,
-	1: getBytesV1,
-	2: getBytesV2,
+	0: blockV1.getBytes,
+	1: blockV1.getBytes,
+	2: blockV2.getBytes,
 };
 const getBytes = block => getBytesFunc[block.version](block);
 
 const dbReadFunc = {
-	0: dbReadV0,
-	1: dbReadV1,
-	2: dbReadV2,
+	0: blockV1.dbRead,
+	1: blockV1.dbRead,
+	2: blockV2.dbRead,
 };
 const dbRead = raw => dbReadFunc[raw.b_version](raw);
 
 const storageReadFunc = {
-	0: storageReadV0,
-	1: storageReadV1,
-	2: storageReadV2,
+	0: blockV1.storageRead,
+	1: blockV1.storageRead,
+	2: blockV2.storageRead,
 };
 const storageRead = raw => storageReadFunc[raw.version](raw);
 
 module.exports = {
-	sign,
-	getHash,
-	getId,
+	sign: blockV1.sign,
+	getHash: blockV1.getHash,
+	getId: blockV1.getId,
 	create,
 	dbRead,
 	storageRead,
 	getBytes,
-	verifySignature,
-	objectNormalize,
+	verifySignature: blockV1.verifySignature,
+	objectNormalize: blockV1.objectNormalize,
 };

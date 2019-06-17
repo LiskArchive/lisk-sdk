@@ -41,11 +41,14 @@ const TRANSACTION_TYPES_MULTI = 4;
  * @returns {!Array} Contents as an ArrayBuffer
  * @todo Add description for the function and the params
  */
-const getBytesV0 = block => {
+const getBytes = block => {
 	const capacity =
 		4 + // version (int)
 		4 + // timestamp (int)
 		8 + // previousBlock
+		4 + // height (int)
+		4 + // maxHeightPreviouslyForged (int)
+		4 + // prevotedConfirmedUptoHeight (int)
 		4 + // numberOfTransactions (int)
 		8 + // totalAmount (long)
 		8 + // totalFee (long)
@@ -72,6 +75,9 @@ const getBytesV0 = block => {
 		}
 	}
 
+	byteBuffer.writeInt(block.height);
+	byteBuffer.writeInt(block.maxHeightPreviouslyForged);
+	byteBuffer.writeInt(block.prevotedConfirmedUptoHeight);
 	byteBuffer.writeInt(block.numberOfTransactions);
 	byteBuffer.writeLong(block.totalAmount.toString());
 	byteBuffer.writeLong(block.totalFee.toString());
@@ -100,8 +106,6 @@ const getBytesV0 = block => {
 	return byteBuffer.toBuffer();
 };
 
-const getBytesV1 = block => getBytesV0(block);
-
 /**
  * Sorts input data transactions.
  * Calculates reward based on previous block data.
@@ -111,13 +115,15 @@ const getBytesV1 = block => getBytesV0(block);
  * @returns {block} block
  * @todo Add description for the params
  */
-const createV1 = ({
+const create = ({
 	blockReward,
 	transactions,
 	previousBlock,
 	keypair,
 	timestamp,
 	maxPayloadLength,
+	maxHeightPreviouslyForged,
+	prevotedConfirmedUptoHeight,
 	exceptions,
 }) => {
 	// TODO: move to transactions module logic
@@ -192,6 +198,9 @@ const createV1 = ({
 		previousBlock: previousBlock.id,
 		generatorPublicKey: keypair.publicKey.toString('hex'),
 		transactions: blockTransactions,
+		height: nextHeight,
+		maxHeightPreviouslyForged,
+		prevotedConfirmedUptoHeight,
 	};
 
 	block.blockSignature = sign(block, keypair);
@@ -205,7 +214,7 @@ const createV1 = ({
  * @returns {null|block} Block object
  * @todo Add description for the params
  */
-const dbReadV0 = raw => {
+const dbRead = raw => {
 	if (!raw.b_id) {
 		return null;
 	}
@@ -214,6 +223,8 @@ const dbReadV0 = raw => {
 		version: parseInt(raw.b_version),
 		timestamp: parseInt(raw.b_timestamp),
 		height: parseInt(raw.b_height),
+		maxHeightPreviouslyForged: parseInt(raw.b_maxHeightPreviouslyForged),
+		prevotedConfirmedUptoHeight: parseInt(raw.b_prevotedConfirmedUptoHeight),
 		previousBlock: raw.b_previousBlock,
 		numberOfTransactions: parseInt(raw.b_numberOfTransactions),
 		totalAmount: new BigNum(raw.b_totalAmount),
@@ -230,15 +241,13 @@ const dbReadV0 = raw => {
 	return block;
 };
 
-const dbReadV1 = raw => dbReadV0(raw);
-
 /**
  * Creates block object based on raw database block data.
  *
  * @param {Object} raw Raw database data block object
  * @returns {null|block} Block object
  */
-const storageReadV0 = raw => {
+const storageRead = raw => {
 	if (!raw.id) {
 		return null;
 	}
@@ -248,6 +257,8 @@ const storageReadV0 = raw => {
 		version: parseInt(raw.version),
 		timestamp: parseInt(raw.timestamp),
 		height: parseInt(raw.height),
+		maxHeightPreviouslyForged: parseInt(raw.maxHeightPreviouslyForged),
+		prevotedConfirmedUptoHeight: parseInt(raw.prevotedConfirmedUptoHeight),
 		previousBlock: raw.previousBlockId,
 		numberOfTransactions: parseInt(raw.numberOfTransactions),
 		totalAmount: new BigNum(raw.totalAmount),
@@ -272,8 +283,6 @@ const storageReadV0 = raw => {
 	return block;
 };
 
-const storageReadV1 = raw => storageReadV0(raw);
-
 /**
  * Creates a block signature.
  *
@@ -283,7 +292,7 @@ const storageReadV1 = raw => storageReadV0(raw);
  * @todo Add description for the params
  */
 const sign = (block, keypair) =>
-	signDataWithPrivateKey(hash(getBytesV1(block)), keypair.privateKey);
+	signDataWithPrivateKey(hash(getBytes(block)), keypair.privateKey);
 
 /**
  * Creates hash based on block bytes.
@@ -292,7 +301,7 @@ const sign = (block, keypair) =>
  * @returns {Buffer} SHA256 hash
  * @todo Add description for the params
  */
-const getHash = block => hash(getBytesV1(block));
+const getHash = block => hash(getBytes(block));
 
 /**
  * Description of the function.
@@ -335,7 +344,7 @@ const objectNormalize = (block, exceptions = {}) => {
  */
 const verifySignature = block => {
 	const signatureLength = 64;
-	const data = getBytesV1(block);
+	const data = getBytes(block);
 	const dataWithoutSignature = Buffer.alloc(data.length - signatureLength);
 
 	for (let i = 0; i < dataWithoutSignature.length; i++) {
@@ -357,7 +366,7 @@ const verifySignature = block => {
  * @todo Add description for the params
  */
 const getId = block => {
-	const hashedBlock = hash(getBytesV1(block));
+	const hashedBlock = hash(getBytes(block));
 	const temp = Buffer.alloc(8);
 	for (let i = 0; i < 8; i++) {
 		temp[i] = hashedBlock[7 - i];
@@ -450,13 +459,10 @@ const blockSchema = {
 };
 
 module.exports = {
-	getBytesV0,
-	getBytesV1,
-	createV1,
-	dbReadV0,
-	dbReadV1,
-	storageReadV0,
-	storageReadV1,
+	getBytes,
+	create,
+	dbRead,
+	storageRead,
 	verifySignature,
 	getId,
 	getHash,
