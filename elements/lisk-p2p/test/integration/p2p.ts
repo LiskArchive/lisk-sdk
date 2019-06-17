@@ -55,7 +55,7 @@ describe('Integration tests for P2P library', () => {
 					connectTimeout: 100,
 					seedPeers: [],
 					fixedPeers: [],
-					whiteListedPeers: [],
+					whitelistedPeers: [],
 					blacklistedPeers: [],
 					previousPeers: [],
 					wsEngine: 'ws',
@@ -127,7 +127,7 @@ describe('Integration tests for P2P library', () => {
 				return new P2P({
 					seedPeers,
 					fixedPeers: [],
-					whiteListedPeers: [],
+					whitelistedPeers: [],
 					blacklistedPeers: [],
 					previousPeers: [],
 					wsEngine: 'ws',
@@ -432,7 +432,7 @@ describe('Integration tests for P2P library', () => {
 					ackTimeout: 200,
 					seedPeers,
 					fixedPeers: [],
-					whiteListedPeers: [],
+					whitelistedPeers: [],
 					blacklistedPeers: [],
 					previousPeers: [],
 					wsEngine: 'ws',
@@ -1077,7 +1077,7 @@ describe('Integration tests for P2P library', () => {
 					peerSelectionForConnection,
 					seedPeers,
 					fixedPeers: [],
-					whiteListedPeers: [],
+					whitelistedPeers: [],
 					blacklistedPeers: [],
 					previousPeers: [],
 					wsEngine: 'ws',
@@ -1236,7 +1236,7 @@ describe('Integration tests for P2P library', () => {
 				return new P2P({
 					seedPeers,
 					fixedPeers: [],
-					whiteListedPeers: [],
+					whitelistedPeers: [],
 					blacklistedPeers: [],
 					previousPeers: [],
 					wsEngine: 'ws',
@@ -1357,7 +1357,7 @@ describe('Integration tests for P2P library', () => {
 						ackTimeout: 200,
 						seedPeers,
 						fixedPeers: [],
-						whiteListedPeers: [],
+						whitelistedPeers: [],
 						blacklistedPeers: [],
 						previousPeers: [],
 						wsEngine: 'ws',
@@ -1458,9 +1458,16 @@ describe('Integration tests for P2P library', () => {
 			await Promise.all(
 				p2pNodeList
 					.filter(p2p => p2p.isActive)
-					.map(async p2p => await p2p.stop()),
+					.map(async p2p => {
+						try {
+							await p2p.stop();
+						} catch (e) {
+							console.log(p2p['_nodeInfo'].wsPort);
+							throw e;
+						}
+					}),
 			);
-			await wait(100);
+			await wait(200);
 		});
 
 		after(async () => {
@@ -1501,7 +1508,7 @@ describe('Integration tests for P2P library', () => {
 						blacklistedPeers: blacklistedPeers,
 						seedPeers: seedPeers,
 						fixedPeers: blacklistedPeers,
-						whiteListedPeers: blacklistedPeers,
+						whitelistedPeers: blacklistedPeers,
 						previousPeers: previousPeersBlacklisted,
 						wsEngine: 'ws',
 						discoveryInterval: DISCOVERY_INTERVAL_WITH_LIMIT,
@@ -1540,6 +1547,7 @@ describe('Integration tests for P2P library', () => {
 					expect(newPeersIPWS).not.to.deep.include.members(blacklistedPeers);
 				});
 			});
+
 			it('should not add any blacklisted peer to triedPeers', () => {
 				p2pNodeList.forEach(p2p => {
 					const { triedPeers } = p2p.getNetworkStatus();
@@ -1549,6 +1557,7 @@ describe('Integration tests for P2P library', () => {
 					expect(triedPeersIPWS).not.to.deep.include.members(blacklistedPeers);
 				});
 			});
+
 			it('should not connect to any blacklisted peer', () => {
 				p2pNodeList.forEach(p2p => {
 					const { connectedPeers } = p2p.getNetworkStatus();
@@ -1599,7 +1608,7 @@ describe('Integration tests for P2P library', () => {
 						blacklistedPeers: [],
 						seedPeers: seedPeers,
 						fixedPeers,
-						whiteListedPeers: [],
+						whitelistedPeers: [],
 						previousPeers,
 						wsEngine: 'ws',
 						discoveryInterval: DISCOVERY_INTERVAL_WITH_LIMIT,
@@ -1641,7 +1650,7 @@ describe('Integration tests for P2P library', () => {
 		});
 
 		describe('whitelisted peers', () => {
-			const whiteListedPeers = [
+			const whitelistedPeers = [
 				{
 					ipAddress: '127.0.0.10',
 					wsPort: NETWORK_START_PORT,
@@ -1664,7 +1673,7 @@ describe('Integration tests for P2P library', () => {
 						blacklistedPeers: [],
 						seedPeers: seedPeers,
 						fixedPeers: [],
-						whiteListedPeers,
+						whitelistedPeers,
 						previousPeers: [],
 						wsEngine: 'ws',
 						discoveryInterval: DISCOVERY_INTERVAL_WITH_LIMIT,
@@ -1690,27 +1699,40 @@ describe('Integration tests for P2P library', () => {
 				// Launch nodes one at a time with a delay between each launch.
 				for (const p2p of p2pNodeList) {
 					p2p.start();
+					await wait(100);
 				}
-				await wait(1000);
+				await wait(400);
+			});
+
+			it('should add every whitelisted peer to triedPeers', () => {
+				p2pNodeList.forEach((p2p, index) => {
+					if (![0, 9].includes(index)) {
+						const { triedPeers } = p2p.getNetworkStatus();
+						const triedPeersIPWS = triedPeers.map(peer => {
+							return { ipAddress: peer.ipAddress, wsPort: peer.wsPort };
+						});
+						expect(triedPeersIPWS).to.deep.include.members(whitelistedPeers);
+					}
+				});
 			});
 
 			it('should not be possible to ban them', () => {
 				const peerPenalty = {
-					peerId: `${whiteListedPeers[0].ipAddress}:${
-						whiteListedPeers[0].wsPort
+					peerId: `${whitelistedPeers[0].ipAddress}:${
+						whitelistedPeers[0].wsPort
 					}`,
 					penalty: 100,
 				};
 
 				p2pNodeList.forEach((p2p, index) => {
-					if (index != 0) {
+					if (![0, 9].includes(index)) {
 						p2p.applyPenalty(peerPenalty);
 						const { connectedPeers } = p2p.getNetworkStatus();
 						const connectedPeersIPWS = connectedPeers.map(peer => {
 							return { ipAddress: peer.ipAddress, wsPort: peer.wsPort };
 						});
 						expect(connectedPeersIPWS).to.deep.include.members(
-							whiteListedPeers,
+							whitelistedPeers,
 						);
 					}
 				});
@@ -1740,6 +1762,9 @@ describe('Integration tests for P2P library', () => {
 						connectTimeout: 200,
 						ackTimeout: 200,
 						seedPeers,
+						blacklistedPeers: [],
+						fixedPeers: [],
+						whitelistedPeers: [],
 						wsEngine: 'ws',
 						populatorInterval: POPULATOR_INTERVAL_SHUFFLING,
 						maxOutboundConnections: Math.round(
@@ -1768,7 +1793,7 @@ describe('Integration tests for P2P library', () => {
 				p2p => p2p.start(),
 			);
 			await Promise.all(peerStartPromises);
-			await wait(200);
+			await wait(1000);
 		});
 
 		afterEach(async () => {

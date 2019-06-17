@@ -85,7 +85,7 @@ export interface P2PConfig {
 	readonly blacklistedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly seedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly fixedPeers: ReadonlyArray<P2PPeerInfo>;
-	readonly whiteListedPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly whitelistedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly previousPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;

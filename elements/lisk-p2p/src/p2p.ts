@@ -187,7 +187,7 @@ export class P2P extends EventEmitter {
 			seedPeers: config.seedPeers,
 			blacklistedPeers: config.blacklistedPeers,
 			fixedPeers: config.fixedPeers,
-			whitelisted: config.whiteListedPeers,
+			whitelisted: config.whitelistedPeers,
 			previousPeers: config.previousPeers,
 		});
 		this._config = config;
@@ -745,13 +745,11 @@ export class P2P extends EventEmitter {
 			throw new Error('Cannot start the node because it is already active');
 		}
 
-		// Fetch status of all the seed peers and then start the discovery
-		const seedPeerInfos = this._peerListsWithoutConflicts.seedPeers;
-
-		seedPeerInfos.forEach(seedInfo => {
-			const peerId = constructPeerIdFromPeerInfo(seedInfo);
+		const newPeersToAdd = this._peerListsWithoutConflicts.seedPeers.concat(this._peerListsWithoutConflicts.whitelisted);
+		newPeersToAdd.forEach(newPeerInfo => {
+			const peerId = constructPeerIdFromPeerInfo(newPeerInfo);
 			if (!this._newPeers.has(peerId)) {
-				this._newPeers.set(peerId, seedInfo);
+				this._newPeers.set(peerId, newPeerInfo);
 			}
 		});
 
