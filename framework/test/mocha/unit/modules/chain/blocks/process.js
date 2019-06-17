@@ -460,8 +460,6 @@ describe('blocks/process', () => {
 				];
 				const state = {
 					blockTimestamp: timestamp,
-					blockHeight: lastBlock.height + 1,
-					blockVersion: blockVersion.currentBlockVersion,
 				};
 
 				checkAllowedTransactionsStub.returns({

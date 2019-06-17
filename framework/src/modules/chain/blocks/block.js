@@ -45,14 +45,50 @@ const storageReadFunc = {
 };
 const storageRead = raw => storageReadFunc[raw.version](raw);
 
+const signFunc = {
+	0: blockV1.sign,
+	1: blockV1.sign,
+	2: blockV2.sign,
+};
+const sign = (block, keypair) => signFunc[block.version](block, keypair);
+
+const getHashFunc = {
+	0: blockV1.getHash,
+	1: blockV1.getHash,
+	2: blockV1.getHash,
+};
+const getHash = block => getHashFunc[block.version](block);
+
+const getIdFunc = {
+	0: blockV1.getId,
+	1: blockV1.getId,
+	2: blockV2.getId,
+};
+const getId = block => getIdFunc[block.version](block);
+
+const verifySignatureFunc = {
+	0: blockV1.verifySignature,
+	1: blockV1.verifySignature,
+	2: blockV2.verifySignature,
+};
+const verifySignature = block => verifySignatureFunc[block.version](block);
+
+const objectNormalizeFunc = {
+	0: blockV1.objectNormalize,
+	1: blockV1.objectNormalize,
+	2: blockV2.objectNormalize,
+};
+const objectNormalize = (block, exceptions) =>
+	objectNormalizeFunc[block.version](block, exceptions);
+
 module.exports = {
-	sign: blockV1.sign,
-	getHash: blockV1.getHash,
-	getId: blockV1.getId,
+	sign,
+	getHash,
+	getId,
 	create,
 	dbRead,
 	storageRead,
 	getBytes,
-	verifySignature: blockV1.verifySignature,
-	objectNormalize: blockV1.objectNormalize,
+	verifySignature,
+	objectNormalize,
 };
