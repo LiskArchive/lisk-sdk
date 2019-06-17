@@ -117,8 +117,8 @@ describe('ChainMeta', () => {
 			const data = { key: 'myKey', value: 'myValue' };
 			await ChainMetaEntity.create(data);
 
-			expect(ChainMetaEntity.create(data)).to.be.rejectedWith(
-				'error: duplicate key value violates unique constraint "chain_meta_pkey"'
+			await expect(ChainMetaEntity.create(data)).to.be.rejectedWith(
+				'duplicate key value violates unique constraint "chain_meta_pkey"'
 			);
 		});
 	});
@@ -172,6 +172,77 @@ describe('ChainMeta', () => {
 
 			const result = await getAllMeta(ChainMetaEntity.adapter);
 			expect(result).to.be.eql([data2]);
+		});
+	});
+
+	describe('get', () => {
+		const data1 = { key: 'myKey1', value: 'myValue' };
+		const data2 = { key: 'myKey2', value: 'myValue' };
+
+		beforeEach(async () => {
+			await ChainMetaEntity.create(data1);
+			await ChainMetaEntity.create(data2);
+		});
+
+		it('should return the all key value pairs without filters', async () => {
+			const result = await getAllMeta(ChainMetaEntity.adapter);
+			expect(await ChainMetaEntity.get()).to.be.eql(result);
+		});
+
+		it('should return matching result with provided filters', async () => {
+			expect(await ChainMetaEntity.get({ key: data1.key })).to.be.eql([data1]);
+		});
+
+		it('should return empty array if no matching result found', async () => {
+			expect(await ChainMetaEntity.get({ key: 'custom-key' })).to.be.eql([]);
+		});
+	});
+
+	describe('getOne', () => {
+		const data1 = { key: 'myKey1', value: 'myValue' };
+		const data2 = { key: 'myKey2', value: 'myValue' };
+
+		beforeEach(async () => {
+			await ChainMetaEntity.create(data1);
+			await ChainMetaEntity.create(data2);
+		});
+
+		it('should reject with error if provided without filters', async () => {
+			await expect(ChainMetaEntity.getOne()).to.be.rejectedWith(
+				'Multiple rows were not expected.'
+			);
+		});
+
+		it('should return matching result with provided filters', async () => {
+			expect(await ChainMetaEntity.getOne({ key: data1.key })).to.be.eql(data1);
+		});
+
+		it('should reject with error if provided filter does not match', async () => {
+			await expect(
+				ChainMetaEntity.getOne({ key: 'custom-key' })
+			).to.be.rejectedWith('No data returned from the query.');
+		});
+	});
+
+	describe('fetch', () => {
+		const data1 = { key: 'myKey1', value: 'myValue' };
+		const data2 = { key: 'myKey2', value: 'myValue' };
+
+		beforeEach(async () => {
+			await ChainMetaEntity.create(data1);
+			await ChainMetaEntity.create(data2);
+		});
+
+		it('should resolve with null if invoked without key', async () => {
+			expect(await ChainMetaEntity.fetch()).to.be.null;
+		});
+
+		it('should return matching result value with provided filters', async () => {
+			expect(await ChainMetaEntity.fetch(data1.key)).to.be.eql(data1.value);
+		});
+
+		it('should resolve with null if provided filter does not match', async () => {
+			expect(await ChainMetaEntity.fetch('custom-key')).to.be.null;
 		});
 	});
 });
