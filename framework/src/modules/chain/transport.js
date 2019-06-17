@@ -220,15 +220,14 @@ class Transport {
 	async blocksCommon(query) {
 		query = query || {};
 
-		const valid = validator.validate(definitions.WSBlocksCommonRequest, query);
-
 		if (query.ids && query.ids.split(',').length > 1000) {
 			throw new Error('ids property contains more than 1000 values');
 		}
 
-		if (!valid) {
-			const err = validator.errors;
-			const error = `${err[0].message}: ${err[0].path}`;
+		const errors = validator.validate(definitions.WSBlocksCommonRequest, query);
+
+		if (errors) {
+			const error = `${errors[0].message}: ${errors[0].path}`;
 			this.logger.debug('Common block request validation failed', {
 				err: error.toString(),
 				req: query,
@@ -350,19 +349,18 @@ class Transport {
 		}
 		query = query || {};
 
-		const valid = validator.validate(definitions.WSBlocksBroadcast, query);
+		const errors = validator.validate(definitions.WSBlocksBroadcast, query);
 
-		if (!valid) {
-			const err = validator.errors;
+		if (errors) {
 			this.logger.debug(
 				'Received post block broadcast request in unexpected format',
 				{
-					err,
+					errors,
 					module: 'transport',
 					query,
 				}
 			);
-			throw new Error(err);
+			throw new Error(errors);
 		}
 
 		let block;
@@ -405,11 +403,10 @@ class Transport {
 	 * @todo Add description of the function
 	 */
 	async postSignature(query) {
-		const valid = validator.validate(definitions.Signature, query.signature);
+		const errors = validator.validate(definitions.Signature, query.signature);
 
-		if (!valid) {
-			const err = validator.errors;
-			const error = new TransactionError(err[0].message);
+		if (errors) {
+			const error = new TransactionError(errors[0].message);
 			return {
 				success: false,
 				code: 400,
@@ -445,12 +442,11 @@ class Transport {
 			);
 		}
 
-		const valid = validator.validate(definitions.WSSignaturesList, query);
+		const errors = validator.validate(definitions.WSSignaturesList, query);
 
-		if (!valid) {
-			const err = validator.errors;
-			this.logger.debug('Invalid signatures body', err);
-			throw err;
+		if (errors) {
+			this.logger.debug('Invalid signatures body', errors);
+			throw errors;
 		}
 
 		return this._receiveSignatures(query.signatures);
@@ -540,12 +536,11 @@ class Transport {
 			);
 		}
 
-		const valid = validator.validate(definitions.WSTransactionsRequest, query);
+		const errors = validator.validate(definitions.WSTransactionsRequest, query);
 
-		if (!valid) {
-			const err = validator.errors;
-			this.logger.debug('Invalid transactions body', err);
-			throw err;
+		if (errors) {
+			this.logger.debug('Invalid transactions body', errors);
+			throw errors;
 		}
 
 		return this._receiveTransactions(query.transactions);
@@ -581,11 +576,10 @@ class Transport {
 	 * @todo Add description for the params
 	 */
 	async _receiveSignature(signature) {
-		const valid = validator.validate(definitions.Signature, signature);
+		const errors = validator.validate(definitions.Signature, signature);
 
-		if (!valid) {
-			const err = validator.errors;
-			throw err;
+		if (errors) {
+			throw errors;
 		}
 
 		return this.transactionPoolModule.getTransactionAndProcessSignature(

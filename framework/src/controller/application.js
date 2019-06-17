@@ -115,9 +115,9 @@ class Application {
 	 * @throws Framework.errors.SchemaValidationError
 	 */
 	constructor(genesisBlock, config = {}) {
-		liskValidator.validate(genesisBlockSchema, genesisBlock);
-		if (liskValidator.errors) {
-			throw liskValidator.errors;
+		const errors = liskValidator.validate(genesisBlockSchema, genesisBlock);
+		if (errors) {
+			throw errors;
 		}
 
 		// Don't change the object parameters provided

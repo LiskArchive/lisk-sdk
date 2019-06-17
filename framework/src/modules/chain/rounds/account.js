@@ -116,7 +116,8 @@ class Account {
 				throw new Error('Invalid public key, must be 64 characters long');
 			}
 
-			if (!validator.validate({ format: 'hex' }, publicKey)) {
+			const errors = validator.validate({ format: 'hex' }, publicKey);
+			if (errors) {
 				throw new Error('Invalid public key, must be a hex string');
 			}
 		}

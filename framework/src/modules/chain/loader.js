@@ -181,10 +181,9 @@ class Loader {
 			procedure: 'getSignatures',
 		});
 
-		validator.validate(definitions.WSSignaturesResponse, result);
-
-		if (validator.errors) {
-			throw validator.errors;
+		const errors = validator.validate(definitions.WSSignaturesResponse, result);
+		if (errors) {
+			throw errors;
 		}
 
 		const { signatures } = result;
@@ -227,10 +226,12 @@ class Loader {
 			procedure: 'getTransactions',
 		});
 
-		validator.validate(definitions.WSSignaturesResponse, result);
-
-		if (validator.errors) {
-			throw validator.errors;
+		const validatorErrors = validator.validate(
+			definitions.WSSignaturesResponse,
+			result
+		);
+		if (validatorErrors) {
+			throw validatorErrors;
 		}
 
 		const transactions = result.transactions.map(tx =>
@@ -332,9 +333,9 @@ class Loader {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	async _validateBlocks(blocks) {
-		const report = validator.validate(definitions.WSBlocksList, blocks);
+		const errors = validator.validate(definitions.WSBlocksList, blocks);
 
-		if (!report) {
+		if (errors) {
 			throw new Error('Received invalid blocks data');
 		}
 

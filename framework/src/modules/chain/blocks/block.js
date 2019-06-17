@@ -134,11 +134,11 @@ const objectNormalize = (block, exceptions = {}) => {
 		}
 	});
 
-	validator.validate(blockSchema, block);
-
-	if (validator.errors) {
-		throw validator.errors;
+	const errors = validator.validate(blockSchema, block);
+	if (errors) {
+		throw errors;
 	}
+
 	const { transactionsResponses } = validateTransactions(exceptions)(
 		block.transactions
 	);
