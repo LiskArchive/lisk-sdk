@@ -92,7 +92,6 @@ export interface P2PConfig {
 	readonly hostAddress?: string;
 	readonly nodeInfo: P2PNodeInfo;
 	readonly wsEngine?: string;
-	readonly discoveryInterval?: number;
 	readonly populatorInterval?: number;
 	readonly maxOutboundConnections: number;
 	readonly maxInboundConnections: number;

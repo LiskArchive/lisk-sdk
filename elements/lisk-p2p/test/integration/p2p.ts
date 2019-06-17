@@ -36,7 +36,6 @@ describe('Integration tests for P2P library', () => {
 	});
 
 	const NETWORK_START_PORT = 5000;
-
 	const NETWORK_PEER_COUNT = 10;
 	const POPULATOR_INTERVAL = 50;
 	const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
@@ -744,7 +743,7 @@ describe('Integration tests for P2P library', () => {
 					options: firstP2PNode.nodeInfo.options,
 				});
 
-				await wait(100);
+				await wait(200);
 
 				// Each peer of firstP2PNode should receive a message.
 				expect(collectedMessages.length).to.equal(9);
@@ -1418,9 +1417,89 @@ describe('Integration tests for P2P library', () => {
 		});
 	});
 
+	describe('Network with frequent peer shuffling', () => {
+		const NETWORK_PEER_COUNT_SHUFFLING = 10;
+		const POPULATOR_INTERVAL_SHUFFLING = 10000;
+		const OUTBOUND_SHUFFLE_INTERVAL = 500;
+		beforeEach(async () => {
+			p2pNodeList = [...new Array(NETWORK_PEER_COUNT_SHUFFLING).keys()].map(
+				index => {
+					const nodePort = NETWORK_START_PORT + index;
+
+					const seedPeers = [...new Array(NETWORK_PEER_COUNT_SHUFFLING).keys()]
+						.map(index => ({
+							ipAddress: '127.0.0.1',
+							wsPort:
+								NETWORK_START_PORT +
+								((index + 1) % NETWORK_PEER_COUNT_SHUFFLING),
+						}))
+						.filter(seedPeer => seedPeer.wsPort !== nodePort);
+
+					return new P2P({
+						connectTimeout: 200,
+						ackTimeout: 200,
+						blacklistedPeers: [],
+						seedPeers,
+						fixedPeers: [],
+						whitelistedPeers: [],
+						previousPeers: [],
+						wsEngine: 'ws',
+						populatorInterval: POPULATOR_INTERVAL_SHUFFLING,
+						maxOutboundConnections: Math.round(
+							NETWORK_PEER_COUNT_SHUFFLING / 2,
+						),
+						maxInboundConnections: Math.round(NETWORK_PEER_COUNT_SHUFFLING / 2),
+						outboundShuffleInterval: OUTBOUND_SHUFFLE_INTERVAL,
+						nodeInfo: {
+							wsPort: nodePort,
+							nethash:
+								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+							version: '1.0.1',
+							protocolVersion: '1.0.1',
+							minVersion: '1.0.0',
+							os: platform(),
+							height: 0,
+							broadhash:
+								'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+							nonce: `O2wTkjqplHII${nodePort}`,
+						},
+					});
+				},
+			);
+
+			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
+				p2p => p2p.start(),
+			);
+			await Promise.all(peerStartPromises);
+			await wait(200);
+		});
+
+		afterEach(async () => {
+			await Promise.all(
+				p2pNodeList
+					.filter(p2p => p2p.isActive)
+					.map(async p2p => await p2p.stop()),
+			);
+			await wait(100);
+		});
+
+		describe('Peer outbound shuffling', () => {
+			it('should shuffle outbound peers in an interval', async () => {
+				const p2pNode = p2pNodeList[0];
+				const { outbound } = p2pNode['_peerPool'].getPeersCountPerKind();
+				// Wait for periodic shuffling
+				await wait(500);
+				const { outbound: updatedOutbound } = p2pNode[
+					'_peerPool'
+				].getPeersCountPerKind();
+
+				expect(updatedOutbound).to.equal(outbound - 1);
+			});
+		});
+	});
+
 	describe('Network with different lists of blacklisted/fixed/whitelisted peers', () => {
 		const FIVE_CONNECTIONS = 5;
-		const DISCOVERY_INTERVAL_WITH_LIMIT = 10;
 		const POPULATOR_INTERVAL_WITH_LIMIT = 10;
 		const previousPeers = [
 			{
@@ -1488,15 +1567,14 @@ describe('Integration tests for P2P library', () => {
 					const nodePort = NETWORK_START_PORT + index;
 					return new P2P({
 						hostIp: '127.0.0.' + (index + 10),
-						connectTimeout: 5000,
-						ackTimeout: 5000,
+						connectTimeout: 100,
+						ackTimeout: 200,
 						blacklistedPeers: blacklistedPeers,
 						seedPeers: seedPeers,
 						fixedPeers: blacklistedPeers,
 						whitelistedPeers: blacklistedPeers,
 						previousPeers: previousPeersBlacklisted,
 						wsEngine: 'ws',
-						discoveryInterval: DISCOVERY_INTERVAL_WITH_LIMIT,
 						populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
 						maxOutboundConnections: FIVE_CONNECTIONS,
 						maxInboundConnections: FIVE_CONNECTIONS,
@@ -1587,15 +1665,14 @@ describe('Integration tests for P2P library', () => {
 					const nodePort = NETWORK_START_PORT + index;
 					return new P2P({
 						hostIp: '127.0.0.' + (index + 10),
-						connectTimeout: 5000,
-						ackTimeout: 5000,
+						connectTimeout: 100,
+						ackTimeout: 200,
 						blacklistedPeers: [],
 						seedPeers: seedPeers,
 						fixedPeers,
 						whitelistedPeers: [],
 						previousPeers,
 						wsEngine: 'ws',
-						discoveryInterval: DISCOVERY_INTERVAL_WITH_LIMIT,
 						populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
 						maxOutboundConnections: FIVE_CONNECTIONS,
 						maxInboundConnections: FIVE_CONNECTIONS,
@@ -1653,15 +1730,14 @@ describe('Integration tests for P2P library', () => {
 					const nodePort = NETWORK_START_PORT + index;
 					return new P2P({
 						hostIp: '127.0.0.' + (index + 10),
-						connectTimeout: 5000,
-						ackTimeout: 5000,
+						connectTimeout: 100,
+						ackTimeout: 200,
 						blacklistedPeers: [],
 						seedPeers: seedPeers,
 						fixedPeers: [],
 						whitelistedPeers,
 						previousPeers: [],
 						wsEngine: 'ws',
-						discoveryInterval: DISCOVERY_INTERVAL_WITH_LIMIT,
 						populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
 						maxOutboundConnections: FIVE_CONNECTIONS,
 						maxInboundConnections: FIVE_CONNECTIONS,
@@ -1719,86 +1795,6 @@ describe('Integration tests for P2P library', () => {
 						);
 					}
 				});
-			});
-		});
-	});
-
-	describe('Network with frequent peer shuffling', () => {
-		const NETWORK_PEER_COUNT_SHUFFLING = 10;
-		const POPULATOR_INTERVAL_SHUFFLING = 10000;
-		const OUTBOUND_SHUFFLE_INTERVAL = 500;
-		beforeEach(async () => {
-			p2pNodeList = [...new Array(NETWORK_PEER_COUNT_SHUFFLING).keys()].map(
-				index => {
-					const nodePort = NETWORK_START_PORT + index;
-
-					const seedPeers = [...new Array(NETWORK_PEER_COUNT_SHUFFLING).keys()]
-						.map(index => ({
-							ipAddress: '127.0.0.1',
-							wsPort:
-								NETWORK_START_PORT +
-								((index + 1) % NETWORK_PEER_COUNT_SHUFFLING),
-						}))
-						.filter(seedPeer => seedPeer.wsPort !== nodePort);
-
-					return new P2P({
-						connectTimeout: 200,
-						ackTimeout: 200,
-						seedPeers,
-						blacklistedPeers: [],
-						fixedPeers: [],
-						whitelistedPeers: [],
-						wsEngine: 'ws',
-						populatorInterval: POPULATOR_INTERVAL_SHUFFLING,
-						maxOutboundConnections: Math.round(
-							NETWORK_PEER_COUNT_SHUFFLING / 2,
-						),
-						maxInboundConnections: Math.round(NETWORK_PEER_COUNT_SHUFFLING / 2),
-						outboundShuffleInterval: OUTBOUND_SHUFFLE_INTERVAL,
-						nodeInfo: {
-							wsPort: nodePort,
-							nethash:
-								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-							version: '1.0.1',
-							protocolVersion: '1.0.1',
-							minVersion: '1.0.0',
-							os: platform(),
-							height: 0,
-							broadhash:
-								'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
-							nonce: `O2wTkjqplHII${nodePort}`,
-						},
-					});
-				},
-			);
-
-			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
-				p2p => p2p.start(),
-			);
-			await Promise.all(peerStartPromises);
-			await wait(1000);
-		});
-
-		afterEach(async () => {
-			await Promise.all(
-				p2pNodeList
-					.filter(p2p => p2p.isActive)
-					.map(async p2p => await p2p.stop()),
-			);
-			await wait(100);
-		});
-
-		describe('Peer outbound shuffling', () => {
-			it('should shuffle outbound peers in an interval', async () => {
-				const p2pNode = p2pNodeList[0];
-				const { outbound } = p2pNode['_peerPool'].getPeersCountPerKind();
-				// Wait for periodic shuffling
-				await wait(500);
-				const { outbound: updatedOutbound } = p2pNode[
-					'_peerPool'
-				].getPeersCountPerKind();
-
-				expect(updatedOutbound).to.equal(outbound - 1);
 			});
 		});
 	});

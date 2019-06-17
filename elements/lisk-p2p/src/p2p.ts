@@ -341,7 +341,7 @@ export class P2P extends EventEmitter {
 				if (blacklist.includes(detailedPeerInfo.ipAddress)) {
 					return;
 				}
-			}			 
+			}
 			const peerId = constructPeerIdFromPeerInfo(detailedPeerInfo);
 
 			if (!this._triedPeers.has(peerId) && !this._newPeers.has(peerId)) {
