@@ -57,6 +57,19 @@ All of the abstract methods and properties on the base transaction's interface a
 
 The hallmark of a transaction. Override this static parameter with any number, keeping in mind that the first 10 types (0-9) are reserved for the default transactions.
 
+##### prepare
+
+> prepare(store: StateStorePrepare): Promise<void>
+
+Prepare the relevant information about the accounts, which will be accessible in the later steps during the `apply` and `undo` steps.
+
+##### validateAsset
+
+> validateAsset(): ReadonlyArray<TransactionError>
+
+Before a transaction reaches the apply step it gets validated. Check the transaction's asset correctness from the schema perspective (no access to StateStore here).
+Invalidate the transaction by pushing an error into the result array.
+
 ##### applyAsset
 
 > applyAsset(store: StateStore): ReadonlyArray<TransactionError>
@@ -69,19 +82,6 @@ Invalidate the transaction by pushing an error into the result array.
 > undoAsset(store: StateStore): ReadonlyArray<TransactionError>
 
 The invert of `applyAsset`. Roll-back all of the changes to the accounts done in the `applyAsset` step.
-
-##### validateAsset
-
-> validateAsset(): ReadonlyArray<TransactionError>
-
-Before a transaction reaches the apply step it gets validated. Check the transaction's asset correctness from the schema perspective (no access to StateStore here).
-Invalidate the transaction by pushing an error into the result array.
-
-##### prepare
-
-> prepare(store: StateStorePrepare): Promise<void>
-
-Prepare the relevant information about the accounts, which will be accessible in the later steps during the `apply` and `undo` steps.
 
 #### Additional methods
 
