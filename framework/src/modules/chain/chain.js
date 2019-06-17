@@ -179,7 +179,7 @@ module.exports = class Chain {
 			this.channel.subscribe('network:bootstrap', async () => {
 				this._startLoader();
 				await this._startForging();
-				await this._calculateConsensus();
+				this._calculateConsensus();
 			});
 
 			// Avoid receiving blocks/transactions from the network during snapshotting process
@@ -249,9 +249,7 @@ module.exports = class Chain {
 					: this.slots.getSlotNumber(),
 			calcSlotRound: async action => this.slots.calcRound(action.params.height),
 			getNodeStatus: async () => ({
-				consensus: await this.scope.peers.getLastConsensus(
-					this.blocks.broadhash
-				),
+				consensus: await this.peers.getLastConsensus(this.blocks.broadhash),
 				loaded: true,
 				syncing: this.loader.syncing(),
 				unconfirmedTransactions: this.transactionPool.getCount(),
@@ -469,7 +467,7 @@ module.exports = class Chain {
 		);
 	}
 
-	async _calculateConsensus() {
+	_calculateConsensus() {
 		jobQueue.register(
 			'calculateConsensus',
 			async () => {
