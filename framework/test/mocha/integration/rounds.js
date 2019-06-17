@@ -411,8 +411,8 @@ describe('rounds', () => {
 				return expect(tick.after.block.id).to.not.equal(tick.before.block.id);
 			});
 
-			it('block version should be 1', async () => {
-				return expect(tick.after.block.version).to.equal(1);
+			it('block version should be 2', async () => {
+				return expect(tick.after.block.version).to.equal(2);
 			});
 
 			it('height should be greather by 1', async () => {
