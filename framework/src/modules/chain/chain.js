@@ -178,8 +178,8 @@ module.exports = class Chain {
 
 			this.channel.subscribe('network:bootstrap', async () => {
 				this._startLoader();
-				await this._startForging();
 				this._calculateConsensus();
+				await this._startForging();
 			});
 
 			// Avoid receiving blocks/transactions from the network during snapshotting process
