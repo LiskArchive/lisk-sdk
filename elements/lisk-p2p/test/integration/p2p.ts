@@ -77,7 +77,6 @@ describe('Integration tests for P2P library', () => {
 					},
 				});
 			});
-
 			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
 				p2p => p2p.start(),
 			);
@@ -152,11 +151,9 @@ describe('Integration tests for P2P library', () => {
 					},
 				});
 			});
-
 			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
 				p2p => p2p.start(),
 			);
-
 			await Promise.all(peerStartPromises);
 			await wait(200);
 		});
@@ -454,7 +451,6 @@ describe('Integration tests for P2P library', () => {
 					},
 				});
 			});
-
 			// Launch nodes one at a time with a delay between each launch.
 			for (const p2p of p2pNodeList) {
 				await p2p.start();
@@ -1099,13 +1095,11 @@ describe('Integration tests for P2P library', () => {
 					},
 				});
 			});
-
-			// Launch nodes one at a time with a delay between each launch.
-			for (const p2p of p2pNodeList) {
-				await p2p.start();
-				await wait(100);
-			}
-			await wait(100);
+			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
+				p2p => p2p.start(),
+			);
+			await Promise.all(peerStartPromises);
+			await wait(1000);
 		});
 
 		afterEach(async () => {
@@ -1265,12 +1259,11 @@ describe('Integration tests for P2P library', () => {
 					},
 				});
 			});
-
 			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
 				p2p => p2p.start(),
 			);
 			await Promise.all(peerStartPromises);
-			await wait(100);
+			await wait(1000);
 		});
 
 		afterEach(async () => {
@@ -1380,11 +1373,10 @@ describe('Integration tests for P2P library', () => {
 					});
 				},
 			);
-
-			// Launch nodes one at a time with a delay between each launch.
-			for (const p2p of p2pNodeList) {
-				p2p.start();
-			}
+			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
+				p2p => p2p.start(),
+			);
+			await Promise.all(peerStartPromises);
 			await wait(1000);
 		});
 
@@ -1530,11 +1522,10 @@ describe('Integration tests for P2P library', () => {
 						},
 					});
 				});
-
-				// Launch nodes one at a time with a delay between each launch.
-				for (const p2p of p2pNodeList) {
-					p2p.start();
-				}
+				const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
+					p2p => p2p.start(),
+				);
+				await Promise.all(peerStartPromises);
 				await wait(1000);
 			});
 
@@ -1630,11 +1621,10 @@ describe('Integration tests for P2P library', () => {
 						},
 					});
 				});
-
-				// Launch nodes one at a time with a delay between each launch.
-				for (const p2p of p2pNodeList) {
-					p2p.start();
-				}
+				const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
+					p2p => p2p.start(),
+				);
+				await Promise.all(peerStartPromises);
 				await wait(1000);
 			});
 
@@ -1676,8 +1666,8 @@ describe('Integration tests for P2P library', () => {
 						whitelistedPeers,
 						previousPeers: [],
 						wsEngine: 'ws',
-						discoveryInterval: DISCOVERY_INTERVAL_WITH_LIMIT,
-						populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
+						discoveryInterval: 100,
+						populatorInterval: 100,
 						maxOutboundConnections: FIVE_CONNECTIONS,
 						maxInboundConnections: FIVE_CONNECTIONS,
 						nodeInfo: {
@@ -1695,13 +1685,11 @@ describe('Integration tests for P2P library', () => {
 						},
 					});
 				});
-
-				// Launch nodes one at a time with a delay between each launch.
-				for (const p2p of p2pNodeList) {
-					p2p.start();
-					await wait(100);
-				}
-				await wait(400);
+				const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
+					p2p => p2p.start(),
+				);
+				await Promise.all(peerStartPromises);
+				await wait(1000);
 			});
 
 			it('should add every whitelisted peer to triedPeers', () => {
