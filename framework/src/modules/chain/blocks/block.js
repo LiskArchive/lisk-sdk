@@ -16,6 +16,7 @@
 
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const {
+	bigNumberToBuffer,
 	getAddressFromPublicKey,
 	hexToBuffer,
 	signDataWithPrivateKey,
@@ -23,7 +24,6 @@ const {
 	verifyData,
 } = require('@liskhq/lisk-cryptography');
 const _ = require('lodash');
-const ByteBuffer = require('bytebuffer');
 const BigNum = require('@liskhq/bignum');
 const validator = require('../../../controller/validator');
 const { validateTransactions } = require('../transactions');
@@ -31,6 +31,20 @@ const blockVersion = require('./block_version');
 
 // TODO: remove type constraints
 const TRANSACTION_TYPES_MULTI = 4;
+
+// Block attribute buffer sizes
+const BLOCK_VERSION_LENGTH = 4;
+const TIMESTAMP_LENGTH = 4;
+const PREVIOUS_BLOCK_LENGTH = 8;
+const NUMBERS_OF_TRANSACTIONS_LENGTH = 4;
+const TOTAL_AMOUNT_LENGTH = 8;
+const TOTAL_FEE_LENGTH = 8;
+const REWARD_LENGTH = 8;
+const PAYLOAD_LENGTH_LENGTH = 4;
+// const PAYLOAD_HASH_LENGTH = 32;
+// const GENERATOR_PUBLIC_KEY_LENGTH = 32;
+// const BLOCK_SIGNATURE_LENGTH = 64;
+// const UNUSED_LENGTH = 4;
 
 /**
  * Creates a block signature.
@@ -61,62 +75,65 @@ const getHash = block => hash(getBytes(block));
  * @todo Add description for the function and the params
  */
 const getBytes = block => {
-	const capacity =
-		4 + // version (int)
-		4 + // timestamp (int)
-		8 + // previousBlock
-		4 + // numberOfTransactions (int)
-		8 + // totalAmount (long)
-		8 + // totalFee (long)
-		8 + // reward (long)
-		4 + // payloadLength (int)
-		32 + // payloadHash
-		32 + // generatorPublicKey
-		64 + // blockSignature or unused
-		4; // unused
+	const bufferArray = [];
 
-	const byteBuffer = new ByteBuffer(capacity, true);
-	byteBuffer.writeInt(block.version);
-	byteBuffer.writeInt(block.timestamp);
+	const blockVersionBuffer = Buffer.alloc(BLOCK_VERSION_LENGTH);
+	blockVersionBuffer.writeUIntLE(block.version, 0, BLOCK_VERSION_LENGTH);
+	bufferArray.push(blockVersionBuffer);
 
-	if (block.previousBlock) {
-		const pb = new BigNum(block.previousBlock).toBuffer({ size: '8' });
+	const timestampBuffer = Buffer.alloc(TIMESTAMP_LENGTH);
+	timestampBuffer.writeUIntLE(block.timestamp, 0, TIMESTAMP_LENGTH);
+	bufferArray.push(timestampBuffer);
 
-		for (let i = 0; i < 8; i++) {
-			byteBuffer.writeByte(pb[i]);
-		}
-	} else {
-		for (let i = 0; i < 8; i++) {
-			byteBuffer.writeByte(0);
-		}
-	}
+	const previousBlockBuffer = block.previousBlock
+		? bigNumberToBuffer(block.previousBlock, PREVIOUS_BLOCK_LENGTH)
+		: Buffer.alloc(PREVIOUS_BLOCK_LENGTH);
+	bufferArray.push(previousBlockBuffer);
 
-	byteBuffer.writeInt(block.numberOfTransactions);
-	byteBuffer.writeLong(block.totalAmount.toString());
-	byteBuffer.writeLong(block.totalFee.toString());
-	byteBuffer.writeLong(block.reward.toString());
+	const numTransactionsBuffer = Buffer.alloc(NUMBERS_OF_TRANSACTIONS_LENGTH);
+	numTransactionsBuffer.writeUIntLE(
+		block.numberOfTransactions,
+		0,
+		NUMBERS_OF_TRANSACTIONS_LENGTH
+	);
+	bufferArray.push(numTransactionsBuffer);
 
-	byteBuffer.writeInt(block.payloadLength);
+	const totalAmountBuffer = Buffer.alloc(TOTAL_AMOUNT_LENGTH);
+	totalAmountBuffer.writeUInt32LE(
+		block.totalAmount.toString(),
+		0,
+		TOTAL_AMOUNT_LENGTH
+	);
+	bufferArray.push(totalAmountBuffer);
+
+	const totalFeeBuffer = Buffer.alloc(TOTAL_FEE_LENGTH);
+	totalFeeBuffer.writeUInt32LE(block.totalFee.toString(), 0, TOTAL_FEE_LENGTH);
+	bufferArray.push(totalFeeBuffer);
+
+	const rewardBuffer = Buffer.alloc(REWARD_LENGTH);
+	rewardBuffer.writeUInt32LE(block.reward.toString(), 0, REWARD_LENGTH);
+	bufferArray.push(rewardBuffer);
+
+	const payloadLengthBuffer = Buffer.alloc(PAYLOAD_LENGTH_LENGTH);
+	payloadLengthBuffer.writeUIntLE(
+		block.payloadLength,
+		0,
+		PAYLOAD_LENGTH_LENGTH
+	);
+	bufferArray.push(payloadLengthBuffer);
 
 	const payloadHashBuffer = hexToBuffer(block.payloadHash);
-	for (let i = 0; i < payloadHashBuffer.length; i++) {
-		byteBuffer.writeByte(payloadHashBuffer[i]);
-	}
+	bufferArray.push(payloadHashBuffer);
 
 	const generatorPublicKeyBuffer = hexToBuffer(block.generatorPublicKey);
-	for (let i = 0; i < generatorPublicKeyBuffer.length; i++) {
-		byteBuffer.writeByte(generatorPublicKeyBuffer[i]);
-	}
+	bufferArray.push(generatorPublicKeyBuffer);
 
-	if (block.blockSignature) {
-		const blockSignatureBuffer = hexToBuffer(block.blockSignature);
-		for (let i = 0; i < blockSignatureBuffer.length; i++) {
-			byteBuffer.writeByte(blockSignatureBuffer[i]);
-		}
-	}
+	const blockSignatureBuffer = block.blockSignature
+		? hexToBuffer(block.blockSignature)
+		: Buffer.alloc(0);
+	bufferArray.push(blockSignatureBuffer);
 
-	byteBuffer.flip();
-	return byteBuffer.toBuffer();
+	return Buffer.concat(bufferArray);
 };
 
 /**
