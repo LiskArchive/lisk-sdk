@@ -11,14 +11,15 @@ The application-specific business logic for custom transaction types is defined 
 
 All of the default transaction types of the Lisk SDK transactions implement the abstract interface of the base transaction, and therefore can be used as a role model for custom transactions.
 It's also possible to inherit from one of the default transaction types, in order to extent or modify them.
+It's also possible to inherit from one of the default transaction types, in order to extent or modify them.
 
 The default transaction types each implement a different use-case of the Lisk network, i.e:
 
-0. Balance transfer (type 0),
-1. Second signature registration (type 1)
-1. Delegate registration (type 2)
-1. Delegate vote (type 3)
-1. Multisignature account registration (type 4)
+1. Balance transfer (type 0)
+2. Second signature registration (type 1)
+3. Delegate registration (type 2)
+4. Delegate vote (type 3)
+5. Multisignature account registration (type 4)
 
 > The first 10 transaction types are reserved for the [Lisk protocol](https://lisk.io/documentation/lisk-protocol), don't use them to register custom transactions.
 
@@ -37,7 +38,7 @@ The lifecycle of a transaction in Lisk SDK can be summarized as follows:
 4. In the transaction pool, the transactions are firstly `validated`. In this step, only static checks are performed. These include schema validation and signature validation.
 5. `prepare` function implemented in the transaction definition is then executed for validated transactions, which loads blockchain data necessary for verifying and executing the transaction. This data is cached in memory. It is called state store which has the interface defined here: <should have a some details about the state store>
 6. After prepare function, transactions are executed in memory by performing `apply` and `applyAsset` functions. These functions verify the transactions against the blockchain data and perform the effect of the transaction on the blockchain state in memory.
-6a. Based on workflow executing `apply` and `applyAsset` functions, the state in memory is either saved to the blockchain or discarded. For instance, if the transaction is being executed within the process of saving new a block in the blockchain, the changes in the memory are saved in the database. In the other case, when the transaction is executed within the domain of the transaction pool, the changes of state in memory are discarded.
+   6a. Based on workflow executing `apply` and `applyAsset` functions, the state in memory is either saved to the blockchain or discarded. For instance, if the transaction is being executed within the process of saving new a block in the blockchain, the changes in the memory are saved in the database. In the other case, when the transaction is executed within the domain of the transaction pool, the changes of state in memory are discarded.
 7. It is probable, especially shortly after a block is applied, that due to the decentralized network conditions a node does the `undo` step and the block containing all of the included transactions get reverted in favour of a competing block.
 
 While implementing a custom transaction, it is necessary to implement some of the mentioned steps. For most of them, a base transaction implements a default behaviour. As you feel more confident in using Lisk SDK, it is more likely for developers to override most of the base transaction methods, so the implementation is well-tailored and implemented with the best possible performance to the application's use case.
