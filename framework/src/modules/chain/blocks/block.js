@@ -34,19 +34,24 @@ const blockVersion = require('./block_version');
 // TODO: remove type constraints
 const TRANSACTION_TYPES_MULTI = 4;
 
-// Block attribute buffer sizes
-const BLOCK_VERSION_LENGTH = 4;
-const TIMESTAMP_LENGTH = 4;
-const PREVIOUS_BLOCK_LENGTH = 8;
-const NUMBERS_OF_TRANSACTIONS_LENGTH = 4;
-const TOTAL_AMOUNT_LENGTH = 8;
-const TOTAL_FEE_LENGTH = 8;
-const REWARD_LENGTH = 8;
-const PAYLOAD_LENGTH_LENGTH = 4;
-// const PAYLOAD_HASH_LENGTH = 32;
-// const GENERATOR_PUBLIC_KEY_LENGTH = 32;
-// const BLOCK_SIGNATURE_LENGTH = 64;
-// const UNUSED_LENGTH = 4;
+/**
+ * Block headers buffer size
+ *
+ * BLOCK_VERSION_LENGTH = 4;
+ * TIMESTAMP_LENGTH = 4;
+ * PREVIOUS_BLOCK_LENGTH = 8;
+ * NUMBERS_OF_TRANSACTIONS_LENGTH = 4;
+ * TOTAL_AMOUNT_LENGTH = 8;
+ * TOTAL_FEE_LENGTH = 8;
+ * REWARD_LENGTH = 8;
+ * PAYLOAD_LENGTH_LENGTH = 4;
+ * PAYLOAD_HASH_LENGTH = 32;
+ * GENERATOR_PUBLIC_KEY_LENGTH = 32;
+ * BLOCK_SIGNATURE_LENGTH = 64;
+ * UNUSED_LENGTH = 4;
+ */
+const SIZE_INT32 = 4;
+const SIZE_INT64 = 8;
 
 /**
  * Creates a block signature.
@@ -79,54 +84,46 @@ const getHash = block => hash(getBytes(block));
 const getBytes = block => {
 	const bufferArray = [];
 
-	const blockVersionBuffer = Buffer.alloc(BLOCK_VERSION_LENGTH);
-	blockVersionBuffer.writeIntLE(block.version, 0, BLOCK_VERSION_LENGTH);
+	const blockVersionBuffer = Buffer.alloc(SIZE_INT32);
+	blockVersionBuffer.writeInt32LE(block.version);
 	bufferArray.push(blockVersionBuffer);
 
-	const timestampBuffer = Buffer.alloc(TIMESTAMP_LENGTH);
-	timestampBuffer.writeIntLE(block.timestamp, 0, TIMESTAMP_LENGTH);
+	const timestampBuffer = Buffer.alloc(SIZE_INT32);
+	timestampBuffer.writeInt32LE(block.timestamp);
 	bufferArray.push(timestampBuffer);
 
 	const previousBlockBuffer = block.previousBlock
-		? bigNumberToBuffer(block.previousBlock, PREVIOUS_BLOCK_LENGTH, BIG_ENDIAN)
-		: Buffer.alloc(PREVIOUS_BLOCK_LENGTH);
+		? bigNumberToBuffer(block.previousBlock, SIZE_INT64, BIG_ENDIAN)
+		: Buffer.alloc(SIZE_INT64);
 	bufferArray.push(previousBlockBuffer);
 
-	const numTransactionsBuffer = Buffer.alloc(NUMBERS_OF_TRANSACTIONS_LENGTH);
-	numTransactionsBuffer.writeIntLE(
-		block.numberOfTransactions,
-		0,
-		NUMBERS_OF_TRANSACTIONS_LENGTH
-	);
+	const numTransactionsBuffer = Buffer.alloc(SIZE_INT32);
+	numTransactionsBuffer.writeInt32LE(block.numberOfTransactions);
 	bufferArray.push(numTransactionsBuffer);
 
 	const totalAmountBuffer = bigNumberToBuffer(
 		block.totalAmount.toString(),
-		TOTAL_AMOUNT_LENGTH,
+		SIZE_INT64,
 		LITTLE_ENDIAN
 	);
 	bufferArray.push(totalAmountBuffer);
 
 	const totalFeeBuffer = bigNumberToBuffer(
 		block.totalFee.toString(),
-		TOTAL_FEE_LENGTH,
+		SIZE_INT64,
 		LITTLE_ENDIAN
 	);
 	bufferArray.push(totalFeeBuffer);
 
 	const rewardBuffer = bigNumberToBuffer(
 		block.reward.toString(),
-		REWARD_LENGTH,
+		SIZE_INT64,
 		LITTLE_ENDIAN
 	);
 	bufferArray.push(rewardBuffer);
 
-	const payloadLengthBuffer = Buffer.alloc(PAYLOAD_LENGTH_LENGTH);
-	payloadLengthBuffer.writeUIntLE(
-		block.payloadLength,
-		0,
-		PAYLOAD_LENGTH_LENGTH
-	);
+	const payloadLengthBuffer = Buffer.alloc(SIZE_INT32);
+	payloadLengthBuffer.writeInt32LE(block.payloadLength);
 	bufferArray.push(payloadLengthBuffer);
 
 	const payloadHashBuffer = hexToBuffer(block.payloadHash);
