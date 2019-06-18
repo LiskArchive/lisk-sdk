@@ -16,11 +16,13 @@
 
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const {
+	BIG_ENDIAN,
 	bigNumberToBuffer,
 	getAddressFromPublicKey,
-	hexToBuffer,
-	signDataWithPrivateKey,
 	hash,
+	hexToBuffer,
+	LITTLE_ENDIAN,
+	signDataWithPrivateKey,
 	verifyData,
 } = require('@liskhq/lisk-cryptography');
 const _ = require('lodash');
@@ -86,7 +88,7 @@ const getBytes = block => {
 	bufferArray.push(timestampBuffer);
 
 	const previousBlockBuffer = block.previousBlock
-		? bigNumberToBuffer(block.previousBlock, PREVIOUS_BLOCK_LENGTH)
+		? bigNumberToBuffer(block.previousBlock, PREVIOUS_BLOCK_LENGTH, BIG_ENDIAN)
 		: Buffer.alloc(PREVIOUS_BLOCK_LENGTH);
 	bufferArray.push(previousBlockBuffer);
 
@@ -100,19 +102,22 @@ const getBytes = block => {
 
 	const totalAmountBuffer = bigNumberToBuffer(
 		block.totalAmount.toString(),
-		TOTAL_AMOUNT_LENGTH
+		TOTAL_AMOUNT_LENGTH,
+		LITTLE_ENDIAN
 	);
 	bufferArray.push(totalAmountBuffer);
 
 	const totalFeeBuffer = bigNumberToBuffer(
 		block.totalFee.toString(),
-		TOTAL_FEE_LENGTH
+		TOTAL_FEE_LENGTH,
+		LITTLE_ENDIAN
 	);
 	bufferArray.push(totalFeeBuffer);
 
 	const rewardBuffer = bigNumberToBuffer(
 		block.reward.toString(),
-		REWARD_LENGTH
+		REWARD_LENGTH,
+		LITTLE_ENDIAN
 	);
 	bufferArray.push(rewardBuffer);
 
