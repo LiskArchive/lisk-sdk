@@ -13,7 +13,7 @@
  *
  */
 
-import { P2PDiscoveredPeerInfo, P2PPeerInfo } from './p2p_types';
+import { P2PPeerInfo } from './p2p_types';
 import { constructPeerIdFromPeerInfo, Peer } from './peer';
 // For Lips, this will be used for fixed and white lists
 export interface FilterPeerOptions {
