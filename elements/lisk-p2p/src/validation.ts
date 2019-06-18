@@ -223,7 +223,7 @@ export const handlePeerListsConflicts = (
 		fixedPeers,
 		isEqual,
 	) as ReadonlyArray<P2PPeerInfo>;
-	// // Seeds also takes preference over whitelisted
+	// Seeds also takes preference over whitelisted
 	const whitelisted = differenceWith(
 		whitelistedWithoutSeeds,
 		seedPeers,
@@ -241,7 +241,6 @@ export const handlePeerListsConflicts = (
 		[nodeInfo],
 		isEqual,
 	) as ReadonlyArray<P2PPeerInfo>;
-
 	const seedsWithoutMyself = differenceWith(
 		seedPeers,
 		[nodeInfo],
@@ -259,7 +258,7 @@ export const handlePeerListsConflicts = (
 	) as ReadonlyArray<P2PPeerInfo>;
 	const previousWithoutMyself = differenceBy(
 		previousPeers,
-		[(nodeInfo as unknown) as P2PDiscoveredPeerInfo],
+		[nodeInfo],
 		'ipAddress',
 	) as ReadonlyArray<P2PDiscoveredPeerInfo>;
 
