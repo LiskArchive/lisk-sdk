@@ -162,7 +162,6 @@ function setMatcherAndRegisterTx(scope, transactionClass, matcher) {
 describe('matcher', () => {
 	let scope;
 	let transactionPool;
-	let receiveTransaction;
 	const randomAccount = randomUtil.account();
 	const genesisAccount = {
 		passphrase: accountFixtures.genesis.passphrase,
@@ -197,9 +196,6 @@ describe('matcher', () => {
 		registered transactions map so the CustomTransaction can be added with that
 		id. Type 7 is not used anyways. */
 		scope.modules.interfaceAdapters.transactions.transactionClassMap.delete(7);
-		receiveTransaction = scope.rewiredModules.transport.__get__(
-			'__private.receiveTransaction'
-		);
 		transactionPool = scope.modules.transactionPool;
 
 		// Define matcher property to be configurable so it can be overriden in the tests
@@ -247,7 +243,7 @@ describe('matcher', () => {
 
 			try {
 				// Act: simulate receiving transactions from another peer
-				await receiveTransaction(rawTransaction);
+				await scope.modules.transport._receiveTransaction(rawTransaction);
 
 				// Forces the test to fail if `receiveTransaction` doesn't throw
 				throw [new Error('receiveTransaction was not rejected')];
@@ -268,7 +264,7 @@ describe('matcher', () => {
 			setMatcherAndRegisterTx(scope, CustomTransationClass, () => true);
 			const jsonTransaction = createRawCustomTransaction(commonTransactionData);
 			// Act
-			await receiveTransaction(jsonTransaction);
+			await scope.modules.transport._receiveTransaction(jsonTransaction);
 
 			// Assert
 			expect(

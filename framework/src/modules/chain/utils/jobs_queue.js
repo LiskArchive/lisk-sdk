@@ -15,10 +15,10 @@
 'use strict';
 
 /**
- * Helper module for creating a jobs queue
+ * Util module for creating a jobs queue
  *
  * @module
- * @see Parent: {@link helpers}
+ * @see Parent: {@link utils}
  * @requires child_process
  */
 
@@ -29,8 +29,8 @@ const util = require('util');
  * Description of the namespace.
  *
  * @namespace jobsQueue
- * @memberof module:helpers/jobs_queue
- * @see Parent: {@link helpers~jobsQueue}
+ * @memberof module:utils/jobs_queue
+ * @see Parent: {@link utils~jobsQueue}
  */
 const jobsQueue = {
 	jobs: {},

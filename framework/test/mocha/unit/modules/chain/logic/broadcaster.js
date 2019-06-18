@@ -22,7 +22,6 @@ const Broadcaster = rewire(
 
 describe('Broadcaster', () => {
 	const nonce = 'sYHEDBKcScaAAAYg';
-	const force = true;
 	const params = { limit: 10, broadhash: '123' };
 	const options = {
 		data: { peer: {}, block: {} },
@@ -34,7 +33,6 @@ describe('Broadcaster', () => {
 	let transactionPoolStub;
 	let loggerStub;
 	let jobsQueue;
-	let library;
 	let channelStub;
 
 	beforeEach(async () => {
@@ -77,14 +75,11 @@ describe('Broadcaster', () => {
 		broadcaster = new Broadcaster(
 			nonce,
 			broadcasts,
-			force,
 			transactionPoolStub,
 			loggerStub,
 			channelStub,
 			storageStub
 		);
-
-		library = Broadcaster.__get__('library');
 	});
 
 	afterEach(() => {
@@ -98,11 +93,7 @@ describe('Broadcaster', () => {
 			}).to.throw());
 
 		it('should load libraries', async () => {
-			expect(library.logger).to.deep.equal(loggerStub);
-			expect(library.config).to.deep.equal({
-				broadcasts,
-				forging: { force: true },
-			});
+			expect(broadcaster.logger).to.deep.equal(loggerStub);
 		});
 
 		it('should return Broadcaster instance', async () => {
@@ -274,7 +265,7 @@ describe('Broadcaster', () => {
 				});
 				describe('when [validTransaction] is confirmed', () => {
 					beforeEach(async () => {
-						library.storage.entities.Transaction.isPersisted.resolves(true);
+						broadcaster.storage.entities.Transaction.isPersisted.resolves(true);
 					});
 					it('should set an empty broadcaster.queue and skip the broadcast', async () => {
 						await broadcaster.filterQueue();
@@ -285,7 +276,9 @@ describe('Broadcaster', () => {
 				});
 				describe('when [validTransaction] is not confirmed', () => {
 					beforeEach(async () => {
-						library.storage.entities.Transaction.isPersisted.resolves(false);
+						broadcaster.storage.entities.Transaction.isPersisted.resolves(
+							false
+						);
 					});
 					it('should leave [broadcast] in broadcaster.queue', async () => {
 						broadcaster.filterQueue(() => {
@@ -297,7 +290,7 @@ describe('Broadcaster', () => {
 				});
 				describe('when error occurs while checking if [validTransaction] is confirmed', () => {
 					beforeEach(async () => {
-						library.storage.entities.Transaction.isPersisted.rejects([]);
+						broadcaster.storage.entities.Transaction.isPersisted.rejects([]);
 					});
 					it('should set an empty broadcaster.queue and skip the broadcast', async () => {
 						await broadcaster.filterQueue();

@@ -17,7 +17,7 @@
 const { cloneDeep } = require('lodash');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const transactionsModule = require('../transactions');
-const { loadSecondLastBlock } = require('./utils');
+const { storageRead } = require('./block');
 
 const TRANSACTION_TYPES_VOTE = 3;
 
@@ -417,22 +417,28 @@ const popLastBlock = async (
 	slots,
 	oldLastBlock,
 	exceptions
-) => {
-	let secondLastBlock;
-	await storage.entities.Block.begin('Chain:deleteBlock', async tx => {
-		secondLastBlock = await loadSecondLastBlock(
-			storage,
-			interfaceAdapters,
-			genesisBlock,
-			oldLastBlock.previousBlock,
+) =>
+	storage.entities.Block.begin('Chain:deleteBlock', async tx => {
+		const [storageResult] = await storage.entities.Block.get(
+			{ id: oldLastBlock.previousBlock },
+			{ extended: true },
 			tx
 		);
+
+		if (!storageResult) {
+			throw new Error('PreviousBlock is null');
+		}
+
+		const secondLastBlock = storageRead(storageResult);
+		secondLastBlock.transactions = interfaceAdapters.transactions.fromBlock(
+			secondLastBlock
+		);
+
 		await undoConfirmedStep(storage, slots, oldLastBlock, exceptions, tx);
 		await backwardTickStep(roundsModule, oldLastBlock, secondLastBlock, tx);
 		await deleteBlock(storage, oldLastBlock.id, tx);
+		return secondLastBlock;
 	});
-	return secondLastBlock;
-};
 
 module.exports = {
 	BlocksChain,
