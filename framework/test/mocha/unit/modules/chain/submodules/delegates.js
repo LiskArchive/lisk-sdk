@@ -15,18 +15,12 @@
 'use strict';
 
 const {
-	getPrivateAndPublicKeyBytesFromPassphrase,
-} = require('@liskhq/lisk-cryptography');
-const {
 	Delegates,
 	validateBlockSlot,
 	getKeysSortByVote,
 	getDelegatesFromPreviousRound,
 } = require('../../../../../../src/modules/chain/rounds/delegates');
-const delegatesRoundsList = require('../../../../data/delegates_rounds_list.json');
 const { BlockSlots } = require('../../../../../../src/modules/chain/blocks');
-
-const exceptions = global.exceptions;
 
 describe('delegates', () => {
 	const slots = new BlockSlots({
@@ -64,11 +58,27 @@ describe('delegates', () => {
 		});
 	});
 
+	const exceptions = __testContext.config.modules.chain.exceptions;
+	const activeDelegates = __testContext.config.constants.ACTIVE_DELEGATES;
+
 	afterEach(async () => {
 		sinonSandbox.restore();
 	});
 
 	describe('#Delegate', () => {
+		beforeEach(async () => {
+			delegatesModule = new Delegates({
+				channel: mockChannel,
+				logger: mockLogger,
+				storage: mockStorage,
+				slots,
+				constants: {
+					activeDelegates,
+				},
+				exceptions: __testContext.config.modules.chain.exceptions,
+			});
+		});
+
 		describe('fork', () => {
 			const cause = 'aCause';
 			const dummyBlock = {
@@ -317,7 +327,7 @@ describe('delegates', () => {
 
 		it('should call Account.get with expected options', async () => {
 			// Act
-			await getKeysSortByVote(mockStorage, mockTX);
+			await getKeysSortByVote(mockStorage, activeDelegates, mockTX);
 			// Assert
 			expect(mockStorage.entities.Account.get).to.be.calledWithExactly(
 				{ isDelegate: true },
@@ -331,7 +341,11 @@ describe('delegates', () => {
 
 		it('should return publicKeys which obtained from storage account', async () => {
 			// Act
-			const publicKeys = await getKeysSortByVote(mockStorage, mockTX);
+			const publicKeys = await getKeysSortByVote(
+				mockStorage,
+				activeDelegates,
+				mockTX
+			);
 			expect(publicKeys).to.eql(['pk1', 'pk2']);
 		});
 	});
@@ -353,7 +367,7 @@ describe('delegates', () => {
 
 		it('should call Rounds.getDelegatesSnapshot with expected options', async () => {
 			// Act
-			await getDelegatesFromPreviousRound(mockStorage, mockTX);
+			await getDelegatesFromPreviousRound(mockStorage, activeDelegates, mockTX);
 			// Assert
 			expect(
 				mockStorage.entities.Round.getDelegatesSnapshot
@@ -364,6 +378,7 @@ describe('delegates', () => {
 			// Act
 			const publicKeys = await getDelegatesFromPreviousRound(
 				mockStorage,
+				activeDelegates,
 				mockTX
 			);
 			expect(publicKeys).to.eql(['pk1', 'pk2']);
@@ -380,7 +395,12 @@ describe('delegates', () => {
 				generatorPublicKey: 'pk_1',
 			};
 			// Act
-			const result = validateBlockSlot(mockBlock, slots, mockDelegateList);
+			const result = validateBlockSlot(
+				mockBlock,
+				slots,
+				mockDelegateList,
+				activeDelegates
+			);
 			// Assert
 			expect(result).to.be.true;
 		});
@@ -393,169 +413,14 @@ describe('delegates', () => {
 			};
 			// Act
 			expect(
-				validateBlockSlot.bind(null, mockBlock, slots, mockDelegateList)
+				validateBlockSlot.bind(
+					null,
+					mockBlock,
+					slots,
+					mockDelegateList,
+					activeDelegates
+				)
 			).to.throw('Failed to verify slot: 2');
-		});
-	});
-
-	describe('#getDelegateKeypairForCurrentSlot', () => {
-		const genesis1 = {
-			passphrase:
-				'robust swift grocery peasant forget share enable convince deputy road keep cheap',
-			publicKey:
-				'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
-		};
-
-		const genesis2 = {
-			passphrase:
-				'weapon van trap again sustain write useless great pottery urge month nominee',
-			publicKey:
-				'141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
-		};
-
-		const genesis3 = {
-			passphrase:
-				'course genuine appear elite library fabric armed chat pipe scissors mask novel',
-			publicKey:
-				'3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
-		};
-
-		let genesis1Keypair;
-		let genesis2Keypair;
-		let genesis3Keypair;
-		let keypairs;
-
-		beforeEach(async () => {
-			const genesis1KeypairBuffer = getPrivateAndPublicKeyBytesFromPassphrase(
-				genesis1.passphrase
-			);
-			genesis1Keypair = {
-				publicKey: genesis1KeypairBuffer.publicKeyBytes,
-				privateKey: genesis1KeypairBuffer.privateKeyBytes,
-			};
-			const genesis2KeypairBuffer = getPrivateAndPublicKeyBytesFromPassphrase(
-				genesis2.passphrase
-			);
-			genesis2Keypair = {
-				publicKey: genesis2KeypairBuffer.publicKeyBytes,
-				privateKey: genesis2KeypairBuffer.privateKeyBytes,
-			};
-			const genesis3KeypairBuffer = getPrivateAndPublicKeyBytesFromPassphrase(
-				genesis3.passphrase
-			);
-			genesis3Keypair = {
-				publicKey: genesis3KeypairBuffer.publicKeyBytes,
-				privateKey: genesis3KeypairBuffer.privateKeyBytes,
-			};
-
-			keypairs = {
-				[genesis1.publicKey]: genesis1Keypair,
-				[genesis2.publicKey]: genesis2Keypair,
-				[genesis3.publicKey]: genesis3Keypair,
-			};
-		});
-
-		it('should return genesis_1 keypair for slot N where (N % 101 === 35) in the first round', async () => {
-			// For round 1, delegates genesis_1, genesis_2 and genesis_3 should forge for slots 35, 53 and 16 respectively.
-			const currentSlot = 35;
-			const round = 1;
-
-			sinonSandbox
-				.stub(delegatesModule, 'generateDelegateList')
-				.withArgs(round)
-				.resolves(delegatesRoundsList[round]);
-
-			const {
-				publicKey,
-				privateKey,
-			} = await delegatesModule.getDelegateKeypairForCurrentSlot(
-				keypairs,
-				currentSlot,
-				round
-			);
-			expect(publicKey).to.deep.equal(genesis1Keypair.publicKey);
-			expect(privateKey).to.deep.equal(genesis1Keypair.privateKey);
-		});
-
-		it('should return genesis_2 keypair for slot N where (N % 101 === 73) in the second round', async () => {
-			// For round 2, delegates genesis_1, genesis_2 and genesis_3 should forge for slots 50, 73 and 100 respectively.
-			const currentSlot = 578;
-			const round = 2;
-
-			sinonSandbox
-				.stub(delegatesModule, 'generateDelegateList')
-				.resolves(delegatesRoundsList[round]);
-
-			const {
-				publicKey,
-				privateKey,
-			} = await delegatesModule.getDelegateKeypairForCurrentSlot(
-				keypairs,
-				currentSlot,
-				round
-			);
-			expect(publicKey).to.deep.equal(genesis2Keypair.publicKey);
-			expect(privateKey).to.deep.equal(genesis2Keypair.privateKey);
-		});
-
-		it('should return genesis_3 keypair for slot N where (N % 101 === 41) in the third round', async () => {
-			// For round 3, delegates genesis_1, genesis_2 and genesis_3 should forge for slots 12, 16 and 41 respectively.
-			const currentSlot = 1051;
-			const round = 3;
-
-			sinonSandbox
-				.stub(delegatesModule, 'generateDelegateList')
-				.resolves(delegatesRoundsList[round]);
-
-			const {
-				publicKey,
-				privateKey,
-			} = await delegatesModule.getDelegateKeypairForCurrentSlot(
-				keypairs,
-				currentSlot,
-				round
-			);
-			expect(publicKey).to.deep.equal(genesis3Keypair.publicKey);
-			expect(privateKey).to.deep.equal(genesis3Keypair.privateKey);
-		});
-
-		it('should return null when the slot does not belong to a public key set in keypairs', async () => {
-			// For round 4, delegates genesis_1, genesis_2 and genesis_3 should forge for slots 93, 68 and 87 respectively.
-			// Any other slot should return null as genesis_1, genesis_2 and genesis_3 are the only one forging delegates set for this test
-			const currentSlot = 1;
-			const round = 4;
-
-			sinonSandbox
-				.stub(delegatesModule, 'generateDelegateList')
-				.resolves(delegatesRoundsList[round]);
-
-			const keyPair = await delegatesModule.getDelegateKeypairForCurrentSlot(
-				keypairs,
-				currentSlot,
-				round
-			);
-			expect(keyPair).to.be.null;
-		});
-
-		it('should return error when `generateDelegateList` fails', async () => {
-			const currentSlot = 1;
-			const round = 4;
-
-			const expectedError = new Error('generateDelegateList error');
-
-			sinonSandbox
-				.stub(delegatesModule, 'generateDelegateList')
-				.rejects(expectedError);
-
-			try {
-				await delegatesModule.getDelegateKeypairForCurrentSlot(
-					keypairs,
-					currentSlot,
-					round
-				);
-			} catch (error) {
-				expect(error).to.equal(expectedError);
-			}
 		});
 	});
 });

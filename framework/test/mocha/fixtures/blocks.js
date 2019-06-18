@@ -18,7 +18,10 @@ const randomstring = require('randomstring');
 const stampit = require('stampit');
 const faker = require('faker');
 
-const genesisBlock = __testContext.config.genesisBlock;
+// As we are using this file in the Jest as well, so have to hack this check
+const genesisBlock = global.__testContext
+	? __testContext.config.genesisBlock
+	: {};
 
 const Block = stampit({
 	props: {
@@ -83,12 +86,25 @@ const BlockHeader = stampit({
 		activeSinceRound: 3,
 		delegatePublicKey: '',
 	},
-	init({ height }) {
-		this.blockId = randomstring.generate({ charset: 'numeric', length: 20 });
+	init({
+		height,
+		blockId,
+		delegatePublicKey,
+		activeSinceRound,
+		maxHeightPreviouslyForged,
+		prevotedConfirmedUptoHeight,
+	}) {
+		this.blockId =
+			blockId || randomstring.generate({ charset: 'numeric', length: 20 });
 		this.height = height || Math.floor(Math.random() * Math.floor(5000));
-		this.delegatePublicKey = randomstring
-			.generate({ charset: '0123456789ABCDE', length: 32 })
-			.toLowerCase();
+		this.delegatePublicKey =
+			delegatePublicKey ||
+			randomstring
+				.generate({ charset: '0123456789ABCDE', length: 64 })
+				.toLowerCase();
+		this.activeSinceRound = activeSinceRound || 1;
+		this.maxHeightPreviouslyForged = maxHeightPreviouslyForged || 0;
+		this.prevotedConfirmedUptoHeight = prevotedConfirmedUptoHeight || 0;
 	},
 });
 

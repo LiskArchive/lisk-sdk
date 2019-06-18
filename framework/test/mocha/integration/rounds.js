@@ -16,6 +16,7 @@
 
 const async = require('async');
 const _ = require('lodash');
+const { promisify } = require('util');
 const {
 	transfer,
 	castVotes,
@@ -24,7 +25,7 @@ const {
 const BigNum = require('@liskhq/bignum');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const Promise = require('bluebird');
-const ed = require('../../../src/modules/chain/helpers/ed');
+const { hexToBuffer } = require('@liskhq/lisk-cryptography');
 const { BlockSlots } = require('../../../src/modules/chain/blocks');
 const accountsFixtures = require('../fixtures/accounts');
 const randomUtil = require('../common/utils/random');
@@ -86,7 +87,7 @@ describe('rounds', () => {
 
 		// Update last block forger account
 		const found = _.find(accounts, {
-			publicKey: ed.hexToBuffer(lastBlock.generatorPublicKey),
+			publicKey: hexToBuffer(lastBlock.generatorPublicKey),
 		});
 		if (found) {
 			found.producedBlocks += 1;
@@ -150,7 +151,7 @@ describe('rounds', () => {
 		const expectedRewards = getExpectedRoundRewards(blocks);
 		_.each(expectedRewards, reward => {
 			const found = _.find(accounts, {
-				publicKey: ed.hexToBuffer(reward.publicKey),
+				publicKey: hexToBuffer(reward.publicKey),
 			});
 			if (found) {
 				found.fees = new BigNum(found.fees)
@@ -181,7 +182,7 @@ describe('rounds', () => {
 		_.each(voters, delegate => {
 			let votes = '0';
 			const found = _.find(accounts, {
-				publicKey: ed.hexToBuffer(delegate.dependentId),
+				publicKey: hexToBuffer(delegate.dependentId),
 			});
 
 			_.each(delegate.array_agg, voter => {
@@ -268,7 +269,7 @@ describe('rounds', () => {
 		// Increase missed blocks counter for every outsider
 		roundOutsidersList.forEach(publicKey => {
 			const account = _.find(accounts, {
-				publicKey: ed.hexToBuffer(publicKey),
+				publicKey: hexToBuffer(publicKey),
 			});
 			account.missedBlocks += 1;
 		});
@@ -816,27 +817,25 @@ describe('rounds', () => {
 			let lastBlockForger;
 			const transactions = [];
 
-			before(done => {
+			before(async () => {
 				// Set last block forger
-				localCommon.getNextForger(library, null, (err, delegatePublicKey) => {
-					lastBlockForger = delegatePublicKey;
+				const promisifiedGetNextForger = promisify(localCommon.getNextForger);
+				const delegatePublicKey = await promisifiedGetNextForger(library, null);
+				lastBlockForger = delegatePublicKey;
 
-					// Create unvote transaction
-					const transaction = castVotes({
-						passphrase: accountsFixtures.genesis.passphrase,
-						unvotes: [lastBlockForger],
-					});
-					transactions.push(transaction);
-
-					lastBlock = library.modules.blocks.lastBlock;
-					// Delete one block more
-					return library.modules.blocks.blocksChain
-						.deleteLastBlock(lastBlock)
-						.then(newLastBlock => {
-							library.modules.blocks._lastBlock = newLastBlock;
-							done();
-						});
+				// Create unvote transaction
+				const transaction = castVotes({
+					passphrase: accountsFixtures.genesis.passphrase,
+					unvotes: [lastBlockForger],
 				});
+				transactions.push(transaction);
+
+				lastBlock = library.modules.blocks.lastBlock;
+				// Delete one block more
+				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+					lastBlock
+				);
+				library.modules.blocks._lastBlock = newLastBlock;
 			});
 
 			it('last block height should be at height 99 after deleting one more block', async () => {
