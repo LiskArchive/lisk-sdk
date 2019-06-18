@@ -19,9 +19,8 @@ const rewire = require('rewire');
 const async = require('async');
 const _ = require('lodash');
 const { registeredTransactions } = require('./registered_transactions');
-const ed = require('../../../src/modules/chain/helpers/ed');
-const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
-const Sequence = require('../../../src/modules/chain/helpers/sequence');
+const jobsQueue = require('../../../src/modules/chain/utils/jobs_queue');
+const Sequence = require('../../../src/modules/chain/utils/sequence');
 const { BlockSlots } = require('../../../src/modules/chain/blocks/block_slots');
 const { createCacheComponent } = require('../../../src/components/cache');
 const { StorageSandbox } = require('./storage_sandbox');
@@ -126,7 +125,6 @@ async function __init(sandbox, initScope) {
 		const scope = _.merge(
 			{
 				lastCommit: '',
-				ed,
 				build: '',
 				config,
 				genesisBlock: { block: __testContext.config.genesisBlock },
@@ -255,7 +253,22 @@ const initStepsForTest = {
 		const {
 			Rounds: RewiredRounds,
 		} = require('../../../src/modules/chain/rounds');
-		modules.rounds = new RewiredRounds(scope);
+		modules.rounds = new RewiredRounds({
+			channel: scope.channel,
+			components: {
+				logger: scope.components.logger,
+				storage: scope.components.storage,
+			},
+			bus: scope.bus,
+			slots: scope.slots,
+			schema: scope.schema,
+			config: {
+				exceptions: __testContext.config.modules.chain.exceptions,
+				constants: {
+					activeDelegates: __testContext.config.constants.ACTIVE_DELEGATES,
+				},
+			},
+		});
 		const { Blocks: RewiredBlocks } = rewire(
 			'../../../src/modules/chain/blocks'
 		);
@@ -306,18 +319,74 @@ const initStepsForTest = {
 				__testContext.config.modules.chain.broadcasts.broadcastInterval,
 			releaseLimit: __testContext.config.modules.chain.broadcasts.releaseLimit,
 		});
-		// TODO: remove rewiring
-		const RewiredLoader = rewire('../../../src/modules/chain/loader');
+		const { Loader: RewiredLoader } = rewire(
+			'../../../src/modules/chain/loader'
+		);
 		scope.rewiredModules.loader = RewiredLoader;
-		modules.loader = new RewiredLoader(scope);
+		modules.loader = new RewiredLoader({
+			channel: scope.channel,
+			logger: scope.components.logger,
+			storage: scope.components.storage,
+			cache: scope.components.cache,
+			genesisBlock: __testContext.config.genesisBlock,
+			balancesSequence: scope.balancesSequence,
+			schema: scope.schema,
+			transactionPoolModule: modules.transactionPool,
+			blocksModule: modules.blocks,
+			peersModule: modules.peers,
+			interfaceAdapters: modules.interfaceAdapters,
+			loadPerIteration:
+				__testContext.config.modules.chain.loading.loadPerIteration,
+			rebuildUpToRound:
+				__testContext.config.modules.chain.loading.rebuildUpToRound,
+			syncingActive: __testContext.config.modules.chain.syncing.active,
+		});
 		const { Forger: RewiredForge } = rewire(
 			'../../../src/modules/chain/forger'
 		);
 		scope.rewiredModules.forger = RewiredForge;
-		modules.forger = new RewiredForge(scope);
-		const RewiredTransport = rewire('../../../src/modules/chain/transport');
+		modules.forger = new RewiredForge({
+			channel: scope.channel,
+			logger: scope.components.logger,
+			storage: scope.components.storage,
+			sequence: scope.sequence,
+			slots: scope.slots,
+			roundsModule: modules.rounds,
+			transactionPoolModule: modules.transactionPool,
+			blocksModule: modules.blocks,
+			peersModule: modules.peers,
+			activeDelegates: __testContext.config.constants.ACTIVE_DELEGATES,
+			maxTransactionsPerBlock:
+				__testContext.config.constants.MAX_TRANSACTIONS_PER_BLOCK,
+			forgingDelegates: __testContext.config.modules.chain.forging.delegates,
+			forgingForce: __testContext.config.modules.chain.forging.force,
+			forgingDefaultPassword:
+				__testContext.config.modules.chain.forging.defaultPassword,
+			forgingWaitThreshold:
+				__testContext.config.modules.chain.forging.waitThreshold,
+		});
+		const { Transport: RewiredTransport } = rewire(
+			'../../../src/modules/chain/transport'
+		);
 		scope.rewiredModules.transport = RewiredTransport;
-		modules.transport = new RewiredTransport(scope);
+		modules.transport = new RewiredTransport({
+			channel: scope.channel,
+			logger: scope.components.logger,
+			storage: scope.components.storage,
+			applicationState: scope.applicationState,
+			balancesSequence: scope.balancesSequence,
+			schema: scope.schema,
+			exceptions: __testContext.config.exceptions,
+			transactionPoolModule: modules.transactionPool,
+			blocksModule: modules.blocks,
+			loaderModule: modules.loader,
+			interfaceAdapters: modules.interfaceAdapters,
+			nonce: __testContext.config.app.nonce,
+			forgingForce: __testContext.config.modules.chain.forging.force,
+			broadcasts: __testContext.config.modules.chain.broadcasts,
+			maxSharedTransactions:
+				__testContext.config.constants.MAX_SHARED_TRANSACTIONS,
+		});
 
 		scope.bus.registerModules(modules);
 

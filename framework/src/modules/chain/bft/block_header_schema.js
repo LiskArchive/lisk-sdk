@@ -14,12 +14,36 @@
 
 'use strict';
 
-const dapp = require('./dapp');
-const multisignature = require('./multisignature');
-const out_transfer = require('./out_transfer');
-
 module.exports = {
-	dapp,
-	multisignature,
-	out_transfer,
+	type: 'object',
+	properties: {
+		blockId: {
+			type: 'string',
+			format: 'id',
+		},
+		height: {
+			type: 'integer',
+		},
+		maxHeightPreviouslyForged: {
+			type: 'integer',
+		},
+		prevotedConfirmedUptoHeight: {
+			type: 'integer',
+		},
+		activeSinceRound: {
+			type: 'integer',
+		},
+		delegatePublicKey: {
+			type: 'string',
+			format: 'publicKey',
+		},
+	},
+	required: [
+		'blockId',
+		'height',
+		'maxHeightPreviouslyForged',
+		'prevotedConfirmedUptoHeight',
+		'activeSinceRound',
+		'delegatePublicKey',
+	],
 };

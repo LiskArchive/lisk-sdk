@@ -21,6 +21,7 @@
 class FrameworkError extends Error {
 	constructor(...args) {
 		super(...args);
+		this.name = this.constructor.name;
 		Error.captureStackTrace(this, FrameworkError);
 	}
 }
@@ -36,10 +37,8 @@ class SchemaValidationError extends FrameworkError {
 	 * @param {Array.<Object>} errors - Array of schema validation errors
 	 */
 	constructor(errors) {
-		super('Schema validation error');
-		this.message = JSON.stringify(errors, null, 2);
+		super(JSON.stringify(errors, null, 2));
 		this.errors = errors;
-		this.message = JSON.stringify(errors, null, 2);
 	}
 }
 
