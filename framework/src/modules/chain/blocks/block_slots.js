@@ -116,6 +116,16 @@ class BlockSlots {
 	}
 
 	/**
+	 * Check if timestamp is contained within a slot time window
+	 * @param slot
+	 * @param time
+	 * @returns {boolean}
+	 */
+	isWithinTimeslot(slot, time) {
+		return this.getSlotNumber(time) === slot;
+	}
+
+	/**
 	 * Calculates round number from the given height.
 	 *
 	 * @param {number} height - Height from which round is calculated

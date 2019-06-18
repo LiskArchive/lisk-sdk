@@ -355,7 +355,7 @@ class Loader {
 			if (this.peersModule.isPoorConsensus()) {
 				this.logger.debug('Perform chain recovery due to poor consensus');
 				try {
-					await this.blocksModule.recoverChain();
+					await this.blocksModule.deleteLastBlockAndGet();
 				} catch (recoveryError) {
 					throw new Error(
 						`Failed chain recovery after failing to load blocks while network consensus was low. ${recoveryError}`
