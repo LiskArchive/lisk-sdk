@@ -50,8 +50,8 @@ export interface P2PPeerInfo {
 }
 
 export interface P2PPeersCount {
-	readonly outbound: number;
-	readonly inbound: number;
+	readonly outboundCount: number;
+	readonly inboundCount: number;
 }
 
 export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {

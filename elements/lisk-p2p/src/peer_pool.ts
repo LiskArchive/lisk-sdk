@@ -327,7 +327,7 @@ export class PeerPool extends EventEmitter {
 				!this._peerMap.has(constructPeerIdFromPeerInfo(peer)) ||
 				!fixedPeers.includes(peer),
 		);
-		const { outbound } = this.getPeersCountPerKind();
+		const { outboundCount } = this.getPeersCountPerKind();
 		const disconnectedFixedPeers = fixedPeers
 			.filter(peer => !this._peerMap.has(constructPeerIdFromPeerInfo(peer)))
 			.map(peer2Convert => peer2Convert as P2PDiscoveredPeerInfo);
@@ -335,7 +335,9 @@ export class PeerPool extends EventEmitter {
 		// Trigger new connections only if the maximum of outbound connections has not been reached
 		// If the node is not yet connected to any of the fixed peers, enough slots should be saved for them
 		const peerLimit =
-			this._maxOutboundConnections - disconnectedFixedPeers.length - outbound;
+			this._maxOutboundConnections -
+			disconnectedFixedPeers.length -
+			outboundCount;
 		const peersToConnect = this._peerSelectForConnection({
 			peers: disconnectedPeers,
 			peerLimit,
@@ -408,18 +410,18 @@ export class PeerPool extends EventEmitter {
 			(prev, peer) => {
 				if (peer instanceof OutboundPeer) {
 					return {
-						outbound: prev.outbound + 1,
-						inbound: prev.inbound,
+						outboundCount: prev.outboundCount + 1,
+						inboundCount: prev.inboundCount,
 					};
 				} else if (peer instanceof InboundPeer) {
 					return {
-						outbound: prev.outbound,
-						inbound: prev.inbound + 1,
+						outboundCount: prev.outboundCount,
+						inboundCount: prev.inboundCount + 1,
 					};
 				}
 				throw new Error('A non-identified peer exists in the pool.');
 			},
-			{ outbound: 0, inbound: 0 },
+			{ outboundCount: 0, inboundCount: 0 },
 		);
 	}
 

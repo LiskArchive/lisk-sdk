@@ -1391,15 +1391,15 @@ describe('Integration tests for P2P library', () => {
 		describe('Peer discovery and connections', () => {
 			it(`should not create more than ${TEN_CONNECTIONS} outbound connections`, async () => {
 				p2pNodeList.forEach(p2p => {
-					const { outbound } = p2p['_peerPool'].getPeersCountPerKind();
-					expect(outbound).to.be.at.most(TEN_CONNECTIONS);
+					const { outboundCount } = p2p['_peerPool'].getPeersCountPerKind();
+					expect(outboundCount).to.be.at.most(TEN_CONNECTIONS);
 				});
 			});
 
 			it(`should not create more than ${TEN_CONNECTIONS} inbound connections`, async () => {
 				p2pNodeList.forEach(p2p => {
-					const { inbound } = p2p['_peerPool'].getPeersCountPerKind();
-					expect(inbound).to.be.at.most(TEN_CONNECTIONS);
+					const { inboundCount } = p2p['_peerPool'].getPeersCountPerKind();
+					expect(inboundCount).to.be.at.most(TEN_CONNECTIONS);
 				});
 			});
 
@@ -1486,14 +1486,14 @@ describe('Integration tests for P2P library', () => {
 		describe('Peer outbound shuffling', () => {
 			it('should shuffle outbound peers in an interval', async () => {
 				const p2pNode = p2pNodeList[0];
-				const { outbound } = p2pNode['_peerPool'].getPeersCountPerKind();
+				const { outboundCount } = p2pNode['_peerPool'].getPeersCountPerKind();
 				// Wait for periodic shuffling
 				await wait(500);
-				const { outbound: updatedOutbound } = p2pNode[
+				const { outboundCount: updatedOutbound } = p2pNode[
 					'_peerPool'
 				].getPeersCountPerKind();
 
-				expect(updatedOutbound).to.equal(outbound - 1);
+				expect(updatedOutbound).to.equal(outboundCount - 1);
 			});
 		});
 	});
@@ -1639,8 +1639,8 @@ describe('Integration tests for P2P library', () => {
 						p2p['_config'].hostIp === blacklistedPeers[0].ipAddress
 					) {
 						const counts = p2p['_peerPool'].getPeersCountPerKind();
-						expect(counts.inbound).to.equal(0);
-						expect(counts.outbound).to.equal(0);
+						expect(counts.inboundCount).to.equal(0);
+						expect(counts.outboundCount).to.equal(0);
 					}
 				});
 			});
