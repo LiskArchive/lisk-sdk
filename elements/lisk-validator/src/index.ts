@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { validator } from './formatter';
+import { validator } from './lisk_validator';
 
 export * from './validation';
 export { validator };

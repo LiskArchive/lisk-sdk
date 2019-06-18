@@ -237,7 +237,6 @@ describe('Chain', () => {
 			// @todo write a snapshot tests after migrated this test to jest.
 			expect(chain.scope).to.have.property('config');
 			expect(chain.scope).to.have.nested.property('genesisBlock.block');
-			expect(chain.scope).to.have.property('schema');
 			expect(chain.scope).to.have.property('sequence');
 			expect(chain.scope).to.have.property('balancesSequence');
 			expect(chain.scope).to.have.nested.property('components.storage');

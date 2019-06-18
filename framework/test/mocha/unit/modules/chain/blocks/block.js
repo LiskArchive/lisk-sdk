@@ -17,6 +17,7 @@
 const {
 	getPrivateAndPublicKeyBytesFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
+const { validator } = require('@liskhq/lisk-validator');
 const {
 	registeredTransactions,
 } = require('../../../../common/registered_transactions');
@@ -24,7 +25,6 @@ const {
 	TransactionInterfaceAdapter,
 } = require('../../../../../../src/modules/chain/interface_adapters');
 const block = require('../../../../../../src/modules/chain/blocks/block');
-const validator = require('../../../../../../src/controller/validator');
 const {
 	calculateSupply,
 	calculateReward,
@@ -321,13 +321,14 @@ describe('block', () => {
 				let transactionsOrder;
 
 				beforeEach(async () => {
-					sinonSandbox.stub(validator, 'validate');
+					sinonSandbox.stub(validator, 'validate').returns(true);
 					// Create 6 multisignature transactions
 					multipleMultisigTx = Array(...Array(5)).map(() =>
 						interfaceAdapters.transactions.fromJson(
 							transactionsByTypes[TRANSACTION_TYPES_MULTI]
 						)
 					);
+
 					generatedBlock = block.create({
 						...data,
 						transactions: multipleMultisigTx.concat(transactions),

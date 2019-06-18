@@ -20,7 +20,6 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 
 const { convertErrorsToString } = require('./utils/error_handlers');
 const Sequence = require('./utils/sequence');
-const { ZSchema } = require('../../controller/validator');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
@@ -130,7 +129,6 @@ module.exports = class Chain {
 				config: self.options,
 				genesisBlock: { block: self.options.genesisBlock },
 				registeredTransactions: self.options.registeredTransactions,
-				schema: new ZSchema(),
 				sequence: new Sequence({
 					onWarning(current) {
 						self.logger.warn('Main queue', current);
@@ -260,16 +258,11 @@ module.exports = class Chain {
 		};
 	}
 
-	async cleanup(code, error) {
+	async cleanup(error) {
 		this._unsubscribeToEvents();
 		const { modules, components } = this.scope;
 		if (error) {
 			this.logger.fatal(error.toString());
-			if (code === undefined) {
-				code = 1;
-			}
-		} else if (code === undefined || code === null) {
-			code = 0;
 		}
 		this.logger.info('Cleaning chain...');
 
@@ -319,7 +312,6 @@ module.exports = class Chain {
 			},
 			bus: this.scope.bus,
 			slots: this.slots,
-			schema: this.scope.schema,
 			config: {
 				exceptions: this.options.exceptions,
 				constants: {
@@ -394,7 +386,6 @@ module.exports = class Chain {
 			cache: this.cache,
 			genesisBlock: this.options.genesisBlock,
 			balancesSequence: this.scope.balancesSequence,
-			schema: this.scope.schema,
 			transactionPoolModule: this.transactionPool,
 			blocksModule: this.blocks,
 			peersModule: this.peers,
@@ -426,7 +417,6 @@ module.exports = class Chain {
 			storage: this.storage,
 			applicationState: this.applicationState,
 			balancesSequence: this.scope.balancesSequence,
-			schema: this.scope.schema,
 			exceptions: this.options.exceptions,
 			transactionPoolModule: this.transactionPool,
 			blocksModule: this.blocks,

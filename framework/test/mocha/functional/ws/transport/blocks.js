@@ -166,7 +166,7 @@ describe('WS transport blocks', () => {
 					JSON.stringify(res)
 				);
 				expect(err.response.message).to.equal(
-					'Missing required property: ids: #/'
+					"should have required property 'ids': undefined"
 				);
 				expect(res).to.be.undefined;
 			}

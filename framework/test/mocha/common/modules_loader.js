@@ -19,7 +19,6 @@ const randomstring = require('randomstring');
 const async = require('async');
 const Sequence = require('../../../src/modules/chain/utils/sequence');
 const { createLoggerComponent } = require('../../../src/components/logger');
-const { ZSchema } = require('../../../src/controller/validator');
 const jobsQueue = require('../../../src/modules/chain/utils/jobs_queue');
 const Account = require('../../../src/modules/chain/rounds/account');
 
@@ -42,7 +41,6 @@ const modulesLoader = new function() {
 				sockets: express(),
 			},
 		},
-		schema: new ZSchema(),
 		bus: {
 			argsMessages: [],
 			message(...args) {
@@ -97,7 +95,6 @@ const modulesLoader = new function() {
 			case 'Account':
 				new Logic(
 					scope.components.storage,
-					scope.schema,
 					scope.components.logger,
 					scope.modules.rounds
 				);
@@ -106,17 +103,13 @@ const modulesLoader = new function() {
 				async.waterfall(
 					[
 						function(waterCb) {
-							new Account(
-								scope.components.storage,
-								scope.schema,
-								scope.components.logger
-							);
+							new Account(scope.components.storage, scope.components.logger);
 
 							return waterCb();
 						},
 					],
 					() => {
-						new Logic(scope.ed, scope.schema, this.transactions, cb);
+						new Logic(scope.ed, this.transactions, cb);
 					}
 				);
 				break;

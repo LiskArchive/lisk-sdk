@@ -27,7 +27,7 @@ const {
 } = require('@liskhq/lisk-cryptography');
 const _ = require('lodash');
 const BigNum = require('@liskhq/bignum');
-const validator = require('../../../controller/validator');
+const { validator } = require('@liskhq/lisk-validator');
 const { validateTransactions } = require('../transactions');
 const blockVersion = require('./block_version');
 
@@ -154,11 +154,12 @@ const objectNormalize = (block, exceptions = {}) => {
 			delete block[key];
 		}
 	});
-	try {
-		validator.validate(blockSchema, block);
-	} catch (schemaError) {
-		throw schemaError.errors;
+
+	const errors = validator.validate(blockSchema, block);
+	if (errors.length) {
+		throw errors;
 	}
+
 	const { transactionsResponses } = validateTransactions(exceptions)(
 		block.transactions
 	);
