@@ -260,16 +260,11 @@ module.exports = class Chain {
 		};
 	}
 
-	async cleanup(code, error) {
+	async cleanup(error) {
 		this._unsubscribeToEvents();
 		const { modules, components } = this.scope;
 		if (error) {
 			this.logger.fatal(error.toString());
-			if (code === undefined) {
-				code = 1;
-			}
-		} else if (code === undefined || code === null) {
-			code = 0;
 		}
 		this.logger.info('Cleaning chain...');
 
