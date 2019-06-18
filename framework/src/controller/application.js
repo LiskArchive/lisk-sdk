@@ -23,6 +23,7 @@ const {
 	VoteTransaction,
 	MultisignatureTransaction,
 } = require('@liskhq/lisk-transactions');
+const { validator: liskValidator } = require('@liskhq/lisk-validator');
 const randomstring = require('randomstring');
 const _ = require('lodash');
 const Controller = require('./controller');
@@ -114,7 +115,10 @@ class Application {
 	 * @throws Framework.errors.SchemaValidationError
 	 */
 	constructor(genesisBlock, config = {}) {
-		validator.validate(genesisBlockSchema, genesisBlock);
+		const errors = liskValidator.validate(genesisBlockSchema, genesisBlock);
+		if (errors.length) {
+			throw errors;
+		}
 
 		// Don't change the object parameters provided
 		let appConfig = _.cloneDeep(config);
