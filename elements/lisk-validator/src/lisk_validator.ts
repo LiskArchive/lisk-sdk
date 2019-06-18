@@ -12,8 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
 import * as Ajv from 'ajv';
-import { formats } from './formats';
+import * as formats from './formats';
 
 class LiskValidator {
 	private readonly validator: Ajv.Ajv;
@@ -25,7 +26,10 @@ class LiskValidator {
 		});
 
 		for (const formatName of Object.keys(formats)) {
-			this.validator.addFormat(formatName, formats[formatName]);
+			this.validator.addFormat(
+				formatName,
+				formats[formatName as keyof typeof formats],
+			);
 		}
 
 		this.validator.addKeyword('uniqueSignedPublicKeys', {
