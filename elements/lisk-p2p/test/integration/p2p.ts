@@ -1760,7 +1760,7 @@ describe('Integration tests for P2P library', () => {
 					p2p => p2p.start(),
 				);
 				await Promise.all(peerStartPromises);
-				await wait(100);
+				await wait(1000);
 			});
 
 			it('should add every whitelisted peer to triedPeers', () => {
