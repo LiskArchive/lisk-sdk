@@ -213,12 +213,10 @@ describe('blocks', () => {
 				try {
 					await blocksInstance.getHighestCommonBlock(ids);
 				} catch (e) {
-					expect(e.message).to.equal(
-						'Failed to read common blocks from storage'
-					);
+					expect(e.message).to.equal('Failed to access storage layer');
 					expect(loggerStub.error).to.be.calledWith(
 						getError,
-						'Failed to read common blocks from storage'
+						'Failed to access storage layer'
 					);
 				}
 			});

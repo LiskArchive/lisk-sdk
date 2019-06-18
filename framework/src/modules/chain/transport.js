@@ -205,7 +205,6 @@ class Transport {
 	}
 
 	/**
-	 * @property {function} getCommonBlocks
 	 * @property {function} blocks
 	 * @property {function} postBlock
 	 * @property {function} list

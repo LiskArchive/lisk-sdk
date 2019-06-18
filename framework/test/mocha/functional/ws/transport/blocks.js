@@ -212,6 +212,25 @@ describe('WS transport blocks', () => {
 			}
 		});
 
+		it('should fail when using invalid id format', async () => {
+			let res;
+			try {
+				res = await p2p.request({
+					procedure: 'getHighestCommonBlockId',
+					data: { ids: ['abcde', '1'] },
+				});
+			} catch (err) {
+				__testContext.debug(
+					'> Error / Response:'.grey,
+					JSON.stringify(err.response),
+					JSON.stringify(res)
+				);
+				expect(err.response.message).to.equal(
+					"Object didn't pass validation for format id: abcde: #/ids/0"
+				);
+			}
+		});
+
 		it('not using an array should fail', async () => {
 			let res;
 			try {

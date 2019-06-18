@@ -494,7 +494,7 @@ class Blocks extends EventEmitter {
 	}
 
 	/**
-	 * Returns the largest common block between ids.ids and the database blocks table
+	 * Returns the highest common block between ids and the database blocks table
 	 * @param {Array<String>} ids - An array of block ids
 	 * @return {Promise<BasicBlock|undefined>}
 	 */
@@ -505,7 +505,7 @@ class Blocks extends EventEmitter {
 			);
 			return block;
 		} catch (e) {
-			const errMessage = 'Failed to read common blocks from storage';
+			const errMessage = 'Failed to access storage layer';
 			this.logger.error(e, errMessage);
 			throw new Error(errMessage);
 		}
