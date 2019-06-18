@@ -14,103 +14,70 @@
 
 'use strict';
 
-const rewire = require('rewire');
-const randomstring = require('randomstring');
-const prefixedPeer = require('../../../../fixtures/peers').randomNormalizedPeer;
-const modulesLoader = require('../../../../common/modules_loader');
+const prefixedPeer = require('../../../fixtures/peers').randomNormalizedPeer;
+const { Peers } = require('../../../../../src/modules/chain/peers');
 
 describe('peers', () => {
 	const PEER_STATE_CONNECTED = 2;
-	const NONCE = randomstring.generate(16);
+	const channelMock = {
+		invoke: sinonSandbox.stub(),
+		once: sinonSandbox.stub(),
+	};
 
-	let storageMock;
-	let peers;
-	let PeersRewired;
-	let blocksStub;
+	const scope = {
+		channel: channelMock,
+		forgingForce: true,
+		minBroadhashConsensus: global.constants.MIN_BROADHASH_CONSENSUS,
+	};
 
-	let scope;
-	let channelMock;
+	let peersModule;
 
 	before(async () => {
-		storageMock = {
-			entities: {
-				Peer: {
-					get: sinonSandbox.stub().resolves(),
-				},
-			},
-		};
-
-		channelMock = {
-			invoke: sinonSandbox.stub(),
-			once: sinonSandbox.stub(),
-		};
-
-		PeersRewired = rewire(
-			'../../../../../../src/modules/chain/submodules/peers'
-		);
-
-		blocksStub = {
-			broadhash: prefixedPeer.broadhash,
-		};
-
-		scope = _.cloneDeep({
-			...modulesLoader.scope,
-			nonce: NONCE,
-			components: {
-				storage: storageMock,
-				...modulesLoader.scope.components,
-			},
-			channel: channelMock,
-			applicationState: {},
-			modules: { blocks: blocksStub },
-			config: {
-				...modulesLoader.scope.config,
-				constants: {
-					minBroadhashConsensus: 51,
-				},
-			},
-		});
-		peers = new PeersRewired(scope);
+		peersModule = new Peers(scope);
 	});
 
 	describe('isPoorConsensus', () => {
 		let isPoorConsensusResult;
-
-		describe('when library.config.forging.force is true', () => {
+		describe('when forgingForce is true', () => {
 			beforeEach(async () => {
-				isPoorConsensusResult = await peers.isPoorConsensus();
+				isPoorConsensusResult = await peersModule.isPoorConsensus(
+					prefixedPeer.broadhash
+				);
 			});
 
 			it('should return false', async () =>
 				expect(isPoorConsensusResult).to.be.false);
 		});
 
-		describe('when library.config.forging.force is false', () => {
+		describe('when forgingForce is false', () => {
 			beforeEach(async () => {
-				scope.config.forging.force = false;
-				peers = new PeersRewired(scope);
+				scope.forgingForce = false;
+				peersModule = new Peers(scope);
 			});
 
 			afterEach(async () => {
-				scope.config.forging.force = true;
-				peers = new PeersRewired(scope);
+				scope.forgingForce = true;
+				peersModule = new Peers(scope);
 			});
 
 			describe('when consensus < MIN_BROADHASH_CONSENSUS', () => {
 				beforeEach(async () => {
-					peers.calculateConsensus = sinonSandbox.stub().returns(50);
-					isPoorConsensusResult = await peers.isPoorConsensus();
+					peersModule.calculateConsensus = sinonSandbox.stub().returns(50);
+					isPoorConsensusResult = await peersModule.isPoorConsensus(
+						prefixedPeer.broadhash
+					);
 				});
 
-				it('should return true', async () => {
-					expect(isPoorConsensusResult).to.be.true;
-				});
+				it('should return true', async () =>
+					expect(isPoorConsensusResult).to.be.true);
 			});
 
 			describe('when consensus >= MIN_BROADHASH_CONSENSUS', () => {
 				beforeEach(async () => {
-					peers.calculateConsensus = sinonSandbox.stub().returns(51);
-					isPoorConsensusResult = await peers.isPoorConsensus();
+					peersModule.calculateConsensus = sinonSandbox.stub().returns(51);
+					isPoorConsensusResult = await peersModule.isPoorConsensus(
+						prefixedPeer.broadhash
+					);
 				});
 
 				it('should return false', async () =>
@@ -120,27 +87,34 @@ describe('peers', () => {
 	});
 
 	describe('getLastConsensus', () => {
-		it('should return self.consensus value', async () =>
-			expect(peers.getLastConsensus()).equal(
-				PeersRewired.__get__('self.consensus')
-			));
+		let lastConsensus;
+		let calculateConsensusStub;
+
+		beforeEach(async () => {
+			calculateConsensusStub = sinonSandbox
+				.stub(peersModule, 'calculateConsensus')
+				.returns(50);
+			lastConsensus = await peersModule.getLastConsensus(
+				prefixedPeer.broadhash
+			);
+		});
+
+		afterEach(async () => {
+			calculateConsensusStub.restore();
+		});
+
+		it('should return last consensus value value', async () => {
+			expect(lastConsensus).equal(50);
+		});
 	});
 
 	describe('calculateConsensus', () => {
 		let calculateConsensusResult;
 
 		beforeEach(async () => {
-			Object.assign(scope.applicationState, {
-				broadhash: prefixedPeer.broadhash,
-				height: prefixedPeer.height,
-				httpPort: 'anHttpHeight',
-				nonce: 'aNonce',
-				os: 'anOs',
-				version: '1.0.0',
-				minVersion: '1.0.0-beta.0',
-				protocolVersion: '1.0',
-			});
-			calculateConsensusResult = await peers.calculateConsensus();
+			calculateConsensusResult = await peersModule.calculateConsensus(
+				prefixedPeer.broadhash
+			);
 		});
 
 		afterEach(async () => {
@@ -165,11 +139,6 @@ describe('peers', () => {
 					})
 					.returns(2);
 			});
-
-			it('should set self.consensus value', async () =>
-				expect(PeersRewired.__get__('self.consensus')).to.equal(
-					calculateConsensusResult
-				));
 
 			it('should call channel invoke twice', async () =>
 				expect(channelMock.invoke.calledTwice).to.be.true);

@@ -291,9 +291,13 @@ const initStepsForTest = {
 			blockSlotWindow: __testContext.config.constants.BLOCK_SLOT_WINDOW,
 		});
 		scope.modules = modules;
-		const RewiredPeers = rewire('../../../src/modules/chain/submodules/peers');
-		scope.rewiredModules.peers = RewiredPeers;
-		modules.peers = new RewiredPeers(scope);
+		const { Peers } = rewire('../../../src/modules/chain/peers');
+		scope.peers = new Peers({
+			channel: scope.channel,
+			minBroadhashConsensus:
+				__testContext.config.constants.MIN_BROADHASH_CONSENSUS,
+			forgingForce: __testContext.config.modules.chain.forging.force,
+		});
 		const { TransactionPool: RewiredTransactionPool } = rewire(
 			'../../../src/modules/chain/transaction_pool'
 		);
