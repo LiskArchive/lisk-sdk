@@ -25,6 +25,17 @@ export class VotesResource extends APIResource {
 	public constructor(apiClient: APIClient) {
 		super(apiClient);
 		this.path = '/votes';
+
+		/**
+		 * Returns all votes placed by an account.
+		 *
+		 * ```ts
+		 * client.accounts.get({ address: '15434119221255134066L' })
+		 *   .then(res => {
+		 *     console.log(res.data);
+		 * });
+		 * ```
+		 */
 		this.get = apiMethod({
 			method: GET,
 		}).bind(this);

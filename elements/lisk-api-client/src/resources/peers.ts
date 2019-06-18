@@ -26,6 +26,16 @@ export class PeersResource extends APIResource {
 		super(apiClient);
 		this.path = '/peers';
 
+		/**
+		 * Searches for specified peers.
+		 *
+		 * ```ts
+		 * client.accounts.get({ height: 5509963 })
+		 *   .then(res => {
+		 *     console.log(res.data);
+		 * });
+		 * ```
+		 */
 		this.get = apiMethod({
 			method: GET,
 		}).bind(this);

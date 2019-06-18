@@ -26,6 +26,16 @@ export class VotersResource extends APIResource {
 		super(apiClient);
 		this.path = '/voters';
 
+		/**
+		 * Returns all votes received by a delegate.
+		 *
+		 * ```ts
+		 * client.accounts.get({ username: 'oliver' })
+		 *   .then(res => {
+		 *     console.log(res.data);
+		 * });
+		 * ```
+		 */
 		this.get = apiMethod({
 			method: GET,
 		}).bind(this);

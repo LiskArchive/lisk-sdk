@@ -26,6 +26,16 @@ export class BlocksResource extends APIResource {
 		super(apiClient);
 		this.path = '/blocks';
 
+		/**
+		 * Searches for a specified block in the system.
+		 *
+		 * ```ts
+		 * client.accounts.get({ blockId: '17572751491778765213' })
+		 *   .then(res => {
+		 *     console.log(res.data);
+		 * });
+		 * ```
+		 */
 		this.get = apiMethod({
 			method: GET,
 		}).bind(this);

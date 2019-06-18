@@ -26,6 +26,16 @@ export class DappsResource extends APIResource {
 		super(apiClient);
 		this.path = '/dapps';
 
+		/**
+		 * Searches for a specified dapp in the system.
+		 *
+		 * ```ts
+		 * client.accounts.get({ name: 'LiskKitties' })
+		 *   .then(res => {
+		 *     console.log(res.data);
+		 * });
+		 * ```
+		 */
 		this.get = apiMethod({
 			method: GET,
 		}).bind(this);
