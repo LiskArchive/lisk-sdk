@@ -15,14 +15,18 @@
 
 'use strict';
 
-const { StorageSandbox } = require('../../../../../../common/storage_sandbox');
-const seeder = require('../../../../../../common/storage_seed');
+const {
+	StorageSandbox,
+} = require('../../../../../../../../mocha/common/storage_sandbox');
+const seeder = require('../../../../../../../../mocha/common/storage_seed');
 const {
 	entities: { BaseEntity },
-} = require('../../../../../../../../src/components/storage');
+} = require('../../../../../../../../../src/components/storage');
 const {
 	ChainMeta,
-} = require('../../../../../../../../src/modules/chain/components/storage/entities');
+} = require('../../../../../../../../../src/modules/chain/components/storage/entities');
+
+const testConfig = require('../../../../../../../../fixtures/config/devnet/config');
 
 const getAllMeta = async adapter =>
 	adapter.execute('select * from chain_meta;');
@@ -32,15 +36,15 @@ describe('ChainMeta', () => {
 	let storage;
 	let ChainMetaEntity;
 
-	const validSQLs = ['create', 'update', 'upsert'];
+	const validSQLs = ['create', 'update', 'upsert', 'get'];
 
 	const validFields = ['key', 'value'];
 
 	const validFilters = ['key', 'key_eql', 'key_ne'];
 
-	before(async () => {
+	beforeAll(async () => {
 		storage = new StorageSandbox(
-			__testContext.config.components.storage,
+			testConfig.components.storage,
 			'lisk_test_storage_custom_round_chain_module'
 		);
 		await storage.bootstrap();
@@ -49,58 +53,57 @@ describe('ChainMeta', () => {
 		ChainMetaEntity = storage.entities.ChainMeta;
 	});
 
-	afterEach(() => {
-		sinonSandbox.restore();
-		return seeder.reset(storage);
+	afterEach(async () => {
+		await seeder.reset(storage);
 	});
 
 	it('should be a constructable function', async () => {
-		expect(ChainMeta.prototype.constructor).not.to.be.null;
-		expect(ChainMeta.prototype.constructor.name).to.be.eql('ChainMeta');
+		expect(ChainMeta.prototype.constructor).not.toBeNull();
+		expect(ChainMeta.prototype.constructor.name).toEqual('ChainMeta');
 	});
 
 	it('should extend BaseEntity', async () => {
-		expect(ChainMeta.prototype instanceof BaseEntity).to.be.true;
+		expect(ChainMeta.prototype instanceof BaseEntity).toBeTruthy();
 	});
 
 	describe('constructor()', () => {
 		it('should accept only one mandatory parameter', async () => {
-			expect(ChainMeta.prototype.constructor.length).to.be.eql(1);
+			expect(ChainMeta.prototype.constructor.length).toEqual(1);
 		});
 
 		it('should have called super', async () => {
 			// The reasoning here is that if the parent's contstructor was called
 			// the properties from the parent are present in the extending object
-			expect(typeof ChainMetaEntity.parseFilters).to.be.eql('function');
-			expect(typeof ChainMetaEntity.addFilter).to.be.eql('function');
-			expect(typeof ChainMetaEntity.addField).to.be.eql('function');
-			expect(typeof ChainMetaEntity.getFilters).to.be.eql('function');
-			expect(typeof ChainMetaEntity.getUpdateSet).to.be.eql('function');
-			expect(typeof ChainMetaEntity.getValuesSet).to.be.eql('function');
-			expect(typeof ChainMetaEntity.begin).to.be.eql('function');
-			expect(typeof ChainMetaEntity.validateFilters).to.be.eql('function');
-			expect(typeof ChainMetaEntity.validateOptions).to.be.eql('function');
+			expect(typeof ChainMetaEntity.parseFilters).toEqual('function');
+			expect(typeof ChainMetaEntity.addFilter).toEqual('function');
+			expect(typeof ChainMetaEntity.addField).toEqual('function');
+			expect(typeof ChainMetaEntity.getFilters).toEqual('function');
+			expect(typeof ChainMetaEntity.getUpdateSet).toEqual('function');
+			expect(typeof ChainMetaEntity.getValuesSet).toEqual('function');
+			expect(typeof ChainMetaEntity.begin).toEqual('function');
+			expect(typeof ChainMetaEntity.validateFilters).toEqual('function');
+			expect(typeof ChainMetaEntity.validateOptions).toEqual('function');
 		});
 
 		it('should assign proper sql', async () => {
-			expect(ChainMetaEntity.SQLs).to.include.all.keys(validSQLs);
+			expect(Object.keys(ChainMetaEntity.SQLs)).toEqual(validSQLs);
 		});
 
 		it('should call addField the exact number of times', async () => {
-			const addFieldSpy = sinonSandbox.spy(ChainMeta.prototype, 'addField');
+			jest.spyOn(ChainMeta.prototype, 'addField');
 			new ChainMeta(adapter);
 
-			expect(addFieldSpy.callCount).to.eql(
+			expect(ChainMeta.prototype.addField).toHaveBeenCalledTimes(
 				Object.keys(ChainMetaEntity.fields).length
 			);
 		});
 
 		it('should setup correct fields', async () => {
-			expect(ChainMetaEntity.fields).to.include.all.keys(validFields);
+			expect(Object.keys(ChainMetaEntity.fields)).toEqual(validFields);
 		});
 
 		it('should setup specific filters', async () => {
-			expect(ChainMetaEntity.getFilters()).to.be.eql(validFilters);
+			expect(ChainMetaEntity.getFilters()).toEqual(validFilters);
 		});
 	});
 
@@ -110,14 +113,14 @@ describe('ChainMeta', () => {
 			await ChainMetaEntity.create(data);
 			const result = await getAllMeta(ChainMetaEntity.adapter);
 
-			expect(result).to.be.eql([data]);
+			expect(result).toEqual([data]);
 		});
 
 		it('should be rejected if key already exists', async () => {
 			const data = { key: 'myKey', value: 'myValue' };
 			await ChainMetaEntity.create(data);
 
-			await expect(ChainMetaEntity.create(data)).to.be.rejectedWith(
+			await expect(ChainMetaEntity.create(data)).rejects.toThrow(
 				'duplicate key value violates unique constraint "chain_meta_pkey"'
 			);
 		});
@@ -131,7 +134,7 @@ describe('ChainMeta', () => {
 
 			// Verify its created
 			const result = await getAllMeta(ChainMetaEntity.adapter);
-			expect(result).to.be.eql([data]);
+			expect(result).toEqual([data]);
 
 			// Now update the value
 			const dataToUpdate = {
@@ -142,14 +145,14 @@ describe('ChainMeta', () => {
 
 			// Verify if its updated
 			const result2 = await getAllMeta(ChainMetaEntity.adapter);
-			expect(result2).to.be.eql([dataToUpdate]);
+			expect(result2).toEqual([dataToUpdate]);
 		});
 
 		it('should not be rejected if key does not exists', async () => {
 			const data = { key: 'myKey', value: 'myValue' };
 
 			// Update the data without creating it first
-			expect(ChainMetaEntity.update(data)).to.not.be.rejected;
+			expect(ChainMetaEntity.update(data)).rejects.toThrow();
 		});
 	});
 
@@ -160,7 +163,7 @@ describe('ChainMeta', () => {
 
 			const result = await getAllMeta(ChainMetaEntity.adapter);
 
-			expect(result).to.be.eql([data]);
+			expect(result).toEqual([data]);
 		});
 
 		it('should update the value if key already exists', async () => {
@@ -171,7 +174,7 @@ describe('ChainMeta', () => {
 			await ChainMetaEntity.upsert(data2);
 
 			const result = await getAllMeta(ChainMetaEntity.adapter);
-			expect(result).to.be.eql([data2]);
+			expect(result).toEqual([data2]);
 		});
 	});
 
@@ -186,15 +189,15 @@ describe('ChainMeta', () => {
 
 		it('should return the all key value pairs without filters', async () => {
 			const result = await getAllMeta(ChainMetaEntity.adapter);
-			expect(await ChainMetaEntity.get()).to.be.eql(result);
+			expect(await ChainMetaEntity.get()).toEqual(result);
 		});
 
 		it('should return matching result with provided filters', async () => {
-			expect(await ChainMetaEntity.get({ key: data1.key })).to.be.eql([data1]);
+			expect(await ChainMetaEntity.get({ key: data1.key })).toEqual([data1]);
 		});
 
 		it('should return empty array if no matching result found', async () => {
-			expect(await ChainMetaEntity.get({ key: 'custom-key' })).to.be.eql([]);
+			expect(await ChainMetaEntity.get({ key: 'custom-key' })).toEqual([]);
 		});
 	});
 
@@ -208,19 +211,19 @@ describe('ChainMeta', () => {
 		});
 
 		it('should reject with error if provided without filters', async () => {
-			await expect(ChainMetaEntity.getOne()).to.be.rejectedWith(
+			await expect(ChainMetaEntity.getOne()).rejects.toThrow(
 				'Multiple rows were not expected.'
 			);
 		});
 
 		it('should return matching result with provided filters', async () => {
-			expect(await ChainMetaEntity.getOne({ key: data1.key })).to.be.eql(data1);
+			expect(await ChainMetaEntity.getOne({ key: data1.key })).toEqual(data1);
 		});
 
 		it('should reject with error if provided filter does not match', async () => {
 			await expect(
 				ChainMetaEntity.getOne({ key: 'custom-key' })
-			).to.be.rejectedWith('No data returned from the query.');
+			).rejects.toThrow('No data returned from the query.');
 		});
 	});
 
@@ -234,15 +237,15 @@ describe('ChainMeta', () => {
 		});
 
 		it('should resolve with null if invoked without key', async () => {
-			expect(await ChainMetaEntity.fetch()).to.be.null;
+			expect(await ChainMetaEntity.fetch()).toBeNull();
 		});
 
 		it('should return matching result value with provided filters', async () => {
-			expect(await ChainMetaEntity.fetch(data1.key)).to.be.eql(data1.value);
+			expect(await ChainMetaEntity.fetch(data1.key)).toEqual(data1.value);
 		});
 
 		it('should resolve with null if provided filter does not match', async () => {
-			expect(await ChainMetaEntity.fetch('custom-key')).to.be.null;
+			expect(await ChainMetaEntity.fetch('custom-key')).toBeNull();
 		});
 	});
 });
