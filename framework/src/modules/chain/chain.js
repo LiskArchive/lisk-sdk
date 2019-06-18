@@ -19,7 +19,7 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 }
 
 const { convertErrorsToString } = require('./utils/error_handlers');
-const Sequence = require('./utils/sequence');
+const { Sequence } = require('./utils/sequence');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
@@ -133,11 +133,6 @@ module.exports = class Chain {
 				sequence: new Sequence({
 					onWarning(current) {
 						self.logger.warn('Main queue', current);
-					},
-				}),
-				balancesSequence: new Sequence({
-					onWarning(current) {
-						self.logger.warn('Balance queue', current);
 					},
 				}),
 				components: {
@@ -373,7 +368,6 @@ module.exports = class Chain {
 			storage: this.storage,
 			cache: this.cache,
 			genesisBlock: this.options.genesisBlock,
-			balancesSequence: this.scope.balancesSequence,
 			transactionPoolModule: this.transactionPool,
 			blocksModule: this.blocks,
 			peersModule: this.peers,
@@ -404,7 +398,6 @@ module.exports = class Chain {
 			logger: this.logger,
 			storage: this.storage,
 			applicationState: this.applicationState,
-			balancesSequence: this.scope.balancesSequence,
 			exceptions: this.options.exceptions,
 			transactionPoolModule: this.transactionPool,
 			blocksModule: this.blocks,
@@ -427,7 +420,7 @@ module.exports = class Chain {
 		}
 		jobQueue.register(
 			'nextSync',
-			cb => {
+			() => {
 				this.logger.info(
 					{
 						syncing: this.loader.syncing(),
@@ -436,21 +429,13 @@ module.exports = class Chain {
 					'Sync time triggered'
 				);
 				if (!this.loader.syncing() && this.blocks.isStale()) {
-					this.scope.sequence.add(
-						sequenceCB => {
-							this.loader
-								.sync()
-								.then(() => sequenceCB())
-								.catch(err => sequenceCB(err));
-						},
-						syncError => {
-							if (syncError) {
-								this.logger.error('Sync timer', syncError);
-								return cb(syncError);
-							}
-							return cb();
+					this.scope.sequence.add(async () => {
+						try {
+							await this.loader.sync();
+						} catch (error) {
+							this.logger.error(error, 'Sync timer');
 						}
-					);
+					});
 				}
 			},
 			syncInterval
