@@ -47,7 +47,7 @@
 		"enableLocalIPs": "sudo ./scripts/enableTestLocalIPs.sh 10 19"
 	},
 	"dependencies": {
-		"lodash": "4.2.0",
+		"lodash": "4.17.11",
 		"semver": "5.6.0",
 		"socketcluster-client": "14.2.1",
 		"socketcluster-server": "14.4.0",
