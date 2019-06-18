@@ -57,6 +57,7 @@ import {
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
+	PeerLists,
 	ProtocolPeerInfo,
 	ProtocolPeerInfoList,
 } from './p2p_types';
@@ -90,11 +91,7 @@ import {
 	MAX_PEER_LIST_BATCH_SIZE,
 	PeerPool,
 } from './peer_pool';
-import {
-	checkPeerCompatibility,
-	handlePeerListsConflicts,
-	PeerLists,
-} from './validation';
+import { checkPeerCompatibility, handlePeerListsConflicts } from './validation';
 
 export {
 	EVENT_CLOSE_INBOUND,

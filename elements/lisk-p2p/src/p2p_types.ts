@@ -204,3 +204,11 @@ export interface ProtocolMessagePacket {
 	readonly data: unknown;
 	readonly event: string;
 }
+
+export interface PeerLists {
+	readonly blacklistedPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly seedPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly fixedPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly whitelisted: ReadonlyArray<P2PPeerInfo>;
+	readonly previousPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
+}

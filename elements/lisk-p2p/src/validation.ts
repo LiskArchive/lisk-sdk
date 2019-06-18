@@ -31,6 +31,7 @@ import {
 	P2PDiscoveredPeerInfo,
 	P2PNodeInfo,
 	P2PPeerInfo,
+	PeerLists,
 	ProtocolMessagePacket,
 	ProtocolPeerInfo,
 	ProtocolRPCRequestPacket,
@@ -195,14 +196,6 @@ export const checkPeerCompatibility = (
 		success: true,
 	};
 };
-
-export interface PeerLists {
-	readonly blacklistedPeers: ReadonlyArray<P2PPeerInfo>;
-	readonly seedPeers: ReadonlyArray<P2PPeerInfo>;
-	readonly fixedPeers: ReadonlyArray<P2PPeerInfo>;
-	readonly whitelisted: ReadonlyArray<P2PPeerInfo>;
-	readonly previousPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
-}
 
 export const handlePeerListsConflicts = (
 	lists: PeerLists,
