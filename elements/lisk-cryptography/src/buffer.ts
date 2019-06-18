@@ -14,8 +14,14 @@
  */
 import * as BigNum from '@liskhq/bignum';
 
-export const bigNumberToBuffer = (bignumber: string, size: number) =>
-	new BigNum(bignumber).toBuffer({ size, endian: 'big' });
+export const BIG_ENDIAN = 'big';
+export const LITTLE_ENDIAN = 'little';
+
+export const bigNumberToBuffer = (
+	bignumber: string,
+	size: number,
+	endian: string = BIG_ENDIAN,
+) => new BigNum(bignumber).toBuffer({ size, endian });
 
 export const bufferToBigNumberString = (bigNumberBuffer: Buffer): string =>
 	BigNum.fromBuffer(bigNumberBuffer).toString();
