@@ -39,6 +39,7 @@ import {
 	P2PResponsePacket,
 } from './p2p_types';
 import {
+	ConnectionState,
 	constructPeerIdFromPeerInfo,
 	EVENT_BAN_PEER,
 	EVENT_CLOSE_INBOUND,
@@ -403,8 +404,8 @@ export class PeerPool extends EventEmitter {
 		});
 	}
 
-	public getAllPeerInfos(): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		return this.getPeers().map(peer => peer.peerInfo as P2PDiscoveredPeerInfo);
+	public getAllPeerInfos(): ReadonlyArray<P2PPeerInfo> {
+		return this.getPeers().map(peer => peer.peerInfo);
 	}
 
 	public getPeers(
@@ -416,6 +417,23 @@ export class PeerPool extends EventEmitter {
 		}
 
 		return peers;
+	}
+
+	public getAllConnectedPeerInfos(): ReadonlyArray<P2PDiscoveredPeerInfo> {
+		return this.getConnectedPeers().map(
+			peer => peer.peerInfo as P2PDiscoveredPeerInfo,
+		);
+	}
+
+	public getConnectedPeers(
+		kind?: typeof OutboundPeer | typeof InboundPeer,
+	): ReadonlyArray<Peer> {
+		const peers = [...this._peerMap.values()];
+		if (kind) {
+			return peers.filter(peer => peer instanceof kind);
+		}
+
+		return peers.filter(peer => peer.state === ConnectionState.OPEN);
 	}
 
 	public getPeer(peerId: string): Peer | undefined {
