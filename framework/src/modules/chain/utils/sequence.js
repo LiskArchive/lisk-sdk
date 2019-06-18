@@ -16,8 +16,15 @@
 
 const util = require('util');
 
+const defaultConfig = {
+	onWarning: null,
+	warningLimit: 50,
+};
+
+const defaultTickInterval = 3;
+
 /**
- * Creates a FIFO sequence array and default settings with config values.
+ * Creates a FIFO queue array and default settings with config values.
  * Calls __tick with 3
  *
  * @class
@@ -28,81 +35,76 @@ const util = require('util');
  * @todo Add description for the params
  */
 class Sequence {
-	constructor(config) {
-		let _default = {
-			onWarning: null,
-			warningLimit: 50,
+	constructor({ onWarning, warningLimit } = defaultConfig) {
+		this.queue = [];
+		this.config = {
+			onWarning,
+			warningLimit,
 		};
-		_default = Object.assign(_default, config);
-		const self = this;
-		this.sequence = [];
 
-		setImmediate(function nextSequenceTick() {
-			if (_default.onWarning && self.sequence.length >= _default.warningLimit) {
-				_default.onWarning(self.sequence.length, _default.warningLimit);
+		const nextSequence = async () => {
+			if (
+				this.config.onWarning &&
+				this.queue.length >= this.config.warningLimit
+			) {
+				this.config.onWarning(this.queue.length, this.config.warningLimit);
 			}
-			self.__tick(() => {
-				setTimeout(nextSequenceTick, 3);
-			});
-		});
+			await this._tick();
+			setTimeout(nextSequence, defaultTickInterval);
+		};
+
+		nextSequence();
 	}
 
 	/**
-	 * Removes the first task from sequence and execute it with args.
+	 * Removes the first task from queue and execute it with args.
 	 *
 	 * @param {function} cb
 	 * @returns {setImmediateCallback} With cb or task.done
 	 * @todo Add description for the params
 	 */
-	__tick(cb) {
-		const task = this.sequence.shift();
+	async _tick() {
+		const task = this.queue.shift();
 		if (!task) {
-			return setImmediate(cb);
+			return;
 		}
-		let args = [
-			function(err, res) {
-				if (task.done) {
-					setImmediate(task.done, err, res);
-				}
-				setImmediate(cb);
-			},
-		];
-		if (task.args) {
-			args = args.concat(task.args);
+		try {
+			const result = await task.worker();
+			task.done.resolve(result);
+		} catch (error) {
+			task.done.reject(error);
 		}
-		return task.worker.apply(task.worker, args);
 	}
 
 	/**
-	 * Adds a new task to sequence.
+	 * Adds a new task to queue.
 	 *
 	 * @param {function} worker
 	 * @param {Array} args
 	 * @param {function} done
 	 * @todo Add description for the params
 	 */
-	add(worker, args, done) {
-		if (!done && args && typeof args === 'function') {
-			done = args;
-			args = undefined;
+	add(worker) {
+		if (!util.types.isAsyncFunction(worker)) {
+			throw new Error('Worker must be an async function.');
 		}
-		if (worker && typeof worker === 'function') {
-			const task = { worker, done };
-			if (util.isArray(args)) {
-				task.args = args;
-			}
-			this.sequence.push(task);
-		}
+		let done;
+		const workerPromise = new Promise((resolve, reject) => {
+			done = { resolve, reject };
+		});
+		const task = { worker, done };
+		this.queue.push(task);
+		return workerPromise;
 	}
 
 	/**
-	 * Gets pending task in sequence.
+	 * Gets pending task in queue.
 	 *
 	 * @returns {number} Sequence length
 	 */
 	count() {
-		return this.sequence.length;
+		return this.queue.length;
 	}
 }
 
-module.exports = Sequence;
+module.exports = { Sequence };
