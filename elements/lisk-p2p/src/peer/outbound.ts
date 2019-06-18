@@ -61,7 +61,7 @@ export interface PeerInfoAndOutboundConnection {
 export class OutboundPeer extends Peer {
 	protected _socket: SCClientSocket | undefined;
 
-	public constructor(peerInfo: P2PDiscoveredPeerInfo, peerConfig?: PeerConfig) {
+	public constructor(peerInfo: P2PPeerInfo, peerConfig?: PeerConfig) {
 		super(peerInfo, peerConfig);
 	}
 
@@ -306,7 +306,7 @@ export const connectAndFetchPeerInfo = async (
 	basicPeerInfo: P2PPeerInfo,
 	nodeInfo?: P2PNodeInfo,
 	peerConfig?: PeerConfig,
-): Promise<P2PDiscoveredPeerInfo> => {
+): Promise<P2PPeerInfo> => {
 	try {
 		const responsePacket = await connectAndRequest(
 			basicPeerInfo,

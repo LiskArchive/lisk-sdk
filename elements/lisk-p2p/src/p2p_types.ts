@@ -45,6 +45,8 @@ export interface P2PInfoOptions {
 export interface P2PPeerInfo {
 	readonly ipAddress: string;
 	readonly wsPort: number;
+	// tslint:disable-next-line: no-mixed-interface
+	readonly [key: string]: unknown;
 }
 
 export interface P2PPeersCount {
@@ -58,8 +60,6 @@ export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
 	readonly os?: string;
 	readonly version: string;
 	readonly protocolVersion: string;
-	// tslint:disable-next-line: no-mixed-interface
-	readonly [key: string]: unknown;
 }
 
 // P2PPeerInfo and P2PNodeInfo are related.
@@ -105,7 +105,7 @@ export interface P2PConfig {
 
 // Network info exposed by the P2P library.
 export interface P2PNetworkStatus {
-	readonly newPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
+	readonly newPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly triedPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 	readonly connectedPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 }
@@ -148,14 +148,14 @@ export type P2PPeerSelectionForRequestFunction = (
 ) => ReadonlyArray<P2PDiscoveredPeerInfo>;
 
 export interface P2PPeerSelectionForConnectionInput {
-	readonly peers: ReadonlyArray<P2PDiscoveredPeerInfo>;
+	readonly peers: ReadonlyArray<P2PPeerInfo>;
 	readonly nodeInfo?: P2PNodeInfo;
 	readonly peerLimit?: number;
 }
 
 export type P2PPeerSelectionForConnectionFunction = (
 	input: P2PPeerSelectionForConnectionInput,
-) => ReadonlyArray<P2PDiscoveredPeerInfo>;
+) => ReadonlyArray<P2PPeerInfo>;
 
 export interface P2PCompatibilityCheckReturnType {
 	readonly success: boolean;
@@ -171,13 +171,13 @@ export type P2PCheckPeerCompatibility = (
 // TODO later: Switch to LIP protocol format.
 export interface ProtocolPeerInfo {
 	readonly ip: string;
-	readonly broadhash: string;
-	readonly height: number;
-	readonly nonce: string;
-	readonly os?: string;
-	readonly version: string;
-	readonly protocolVersion: string;
 	readonly wsPort: number;
+	readonly broadhash?: string;
+	readonly height?: number;
+	readonly nonce?: string;
+	readonly os?: string;
+	readonly version?: string;
+	readonly protocolVersion?: string;
 	readonly httpPort?: number;
 	// tslint:disable-next-line: no-mixed-interface
 	readonly [key: string]: unknown;

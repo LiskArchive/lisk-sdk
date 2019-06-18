@@ -129,7 +129,7 @@ export class Peer extends EventEmitter {
 	private _reputation: number;
 	private _callCounter: Map<string, number>;
 	private readonly _counterResetInterval: NodeJS.Timer;
-	protected _peerInfo: P2PDiscoveredPeerInfo;
+	protected _peerInfo: P2PPeerInfo;
 	protected readonly _peerConfig: PeerConfig;
 	protected _nodeInfo: P2PNodeInfo | undefined;
 	protected readonly _handleRawRPC: (
@@ -148,14 +148,14 @@ export class Peer extends EventEmitter {
 	) => void;
 	protected _socket: SCServerSocketUpdated | SCClientSocket | undefined;
 
-	public constructor(peerInfo: P2PDiscoveredPeerInfo, peerConfig?: PeerConfig) {
+	public constructor(peerInfo: P2PPeerInfo, peerConfig?: PeerConfig) {
 		super();
 		this._peerInfo = peerInfo;
 		this._peerConfig = peerConfig ? peerConfig : {};
 		this._ipAddress = peerInfo.ipAddress;
 		this._wsPort = peerInfo.wsPort;
 		this._id = constructPeerId(this._ipAddress, this._wsPort);
-		this._height = peerInfo.height ? peerInfo.height : 0;
+		this._height = peerInfo.height ? (peerInfo.height as number) : 0;
 		this._reputation = DEFAULT_REPUTATION_SCORE;
 		this._callCounter = new Map();
 		this._counterResetInterval = setInterval(() => {
@@ -270,7 +270,7 @@ export class Peer extends EventEmitter {
 		};
 	}
 
-	public get peerInfo(): P2PDiscoveredPeerInfo {
+	public get peerInfo(): P2PPeerInfo {
 		return this._peerInfo;
 	}
 
@@ -386,7 +386,7 @@ export class Peer extends EventEmitter {
 		);
 	}
 
-	public async fetchPeers(): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> {
+	public async fetchPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
 		try {
 			const response: P2PResponsePacket = await this.request({
 				procedure: REMOTE_RPC_GET_ALL_PEERS_LIST,
@@ -401,7 +401,7 @@ export class Peer extends EventEmitter {
 		}
 	}
 
-	public async discoverPeers(): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> {
+	public async discoverPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
 		const discoveredPeerInfoList = await this.fetchPeers();
 		discoveredPeerInfoList.forEach(peerInfo => {
 			this.emit(EVENT_DISCOVERED_PEER, peerInfo);
@@ -410,7 +410,7 @@ export class Peer extends EventEmitter {
 		return discoveredPeerInfoList;
 	}
 
-	public async fetchStatus(): Promise<P2PDiscoveredPeerInfo> {
+	public async fetchStatus(): Promise<P2PPeerInfo> {
 		try {
 			const response: P2PResponsePacket = await this.request({
 				procedure: REMOTE_RPC_GET_NODE_INFO,
@@ -434,7 +434,9 @@ export class Peer extends EventEmitter {
 
 	private _updateFromProtocolPeerInfo(rawPeerInfo: unknown): void {
 		const protocolPeerInfo = { ...rawPeerInfo, ip: this._ipAddress };
-		const newPeerInfo = validatePeerInfo(protocolPeerInfo);
+		const newPeerInfo = validatePeerInfo(
+			protocolPeerInfo,
+		) as P2PDiscoveredPeerInfo;
 		this.updatePeerInfo(newPeerInfo);
 	}
 

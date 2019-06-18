@@ -70,7 +70,6 @@ import {
 } from './peer_selection';
 
 import {
-	connectAndFetchPeerInfo,
 	EVENT_BAN_PEER,
 	EVENT_CLOSE_INBOUND,
 	EVENT_CLOSE_OUTBOUND,
@@ -125,15 +124,15 @@ const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
 const DEFAULT_OUTBOUND_SHUFFLE_INTERVAL = 300000;
 
 const selectRandomPeerSample = (
-	peerList: ReadonlyArray<P2PDiscoveredPeerInfo>,
+	peerList: ReadonlyArray<P2PPeerInfo>,
 	count: number,
-): ReadonlyArray<P2PDiscoveredPeerInfo> => shuffle(peerList).slice(0, count);
+): ReadonlyArray<P2PPeerInfo> => shuffle(peerList).slice(0, count);
 
 export class P2P extends EventEmitter {
 	private readonly _config: P2PConfig;
 	private readonly _httpServer: http.Server;
 	private _isActive: boolean;
-	private readonly _newPeers: Map<string, P2PDiscoveredPeerInfo>;
+	private readonly _newPeers: Map<string, P2PPeerInfo>;
 	private readonly _triedPeers: Map<string, P2PDiscoveredPeerInfo>;
 	private readonly _bannedPeers: Set<string>;
 	private readonly _populatorInterval: number;
@@ -295,26 +294,16 @@ export class P2P extends EventEmitter {
 		};
 
 		// When peer is fetched for status after connection then update the peerinfo in triedPeer list
-		this._handleDiscoveredPeer = (detailedPeerInfo: P2PDiscoveredPeerInfo) => {
+		this._handleDiscoveredPeer = (detailedPeerInfo: P2PPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(detailedPeerInfo);
-			const foundTriedPeer = this._triedPeers.get(peerId);
 			// Remove the discovered peer from newPeer list on successful connect and discovery
-			if (this._newPeers.has(peerId)) {
-				this._newPeers.delete(peerId);
-			}
 
-			if (!foundTriedPeer) {
-				this._triedPeers.set(peerId, detailedPeerInfo);
-			} else {
-				const updatedPeerInfo = {
-					...detailedPeerInfo,
-					ipAddress: foundTriedPeer.ipAddress,
-					wsPort: foundTriedPeer.wsPort,
-				};
-				this._triedPeers.set(peerId, updatedPeerInfo);
+			if (!this._triedPeers.has(peerId) && !this._newPeers.has(peerId)) {
+				this._newPeers.set(peerId, detailedPeerInfo);
+
+				// Re-emit the message to allow it to bubble up the class hierarchy.
+				this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
 			}
-			// Re-emit the message to allow it to bubble up the class hierarchy.
-			this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
 		};
 
 		this._handleFailedToPushNodeInfo = (error: Error) => {
@@ -660,62 +649,25 @@ export class P2P extends EventEmitter {
 		}
 	}
 
-	private async _fetchSeedPeerStatus(
-		seedPeers: ReadonlyArray<P2PPeerInfo>,
-	): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> {
-		const peerConfig = {
-			ackTimeout: this._config.ackTimeout,
-			connectTimeout: this._config.connectTimeout,
-		};
-
-		const seedPeerUpdatedInfos = await Promise.all(
-			seedPeers.map(async peerInfo => {
-				try {
-					return await connectAndFetchPeerInfo(
-						peerInfo,
-						this._nodeInfo,
-						peerConfig,
-					);
-				} catch (error) {
-					this.emit(EVENT_FAILED_TO_FETCH_PEER_INFO, error);
-
-					return undefined;
-				}
-			}),
-		);
-
-		return seedPeerUpdatedInfos.filter(
-			peerInfo => peerInfo !== undefined,
-		) as ReadonlyArray<P2PDiscoveredPeerInfo>;
-	}
-
-	private _pickRandomDiscoveredPeers(
-		count: number,
-	): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		const discoveredPeerList: ReadonlyArray<P2PDiscoveredPeerInfo> = [
+	private _pickRandomPeers(count: number): ReadonlyArray<P2PPeerInfo> {
+		const peerList: ReadonlyArray<P2PPeerInfo> = [
 			...this._newPeers.values(),
 			...this._triedPeers.values(),
 		]; // Peers whose values has been updated atleast once.
 
-		return selectRandomPeerSample(discoveredPeerList, count);
+		return selectRandomPeerSample(peerList, count);
 	}
 
 	private _handleGetPeersRequest(request: P2PRequest): void {
 		// TODO later: Remove fields that are specific to the current Lisk protocol.
-		const peers = this._pickRandomDiscoveredPeers(MAX_PEER_LIST_BATCH_SIZE).map(
-			(peerInfo: P2PDiscoveredPeerInfo): ProtocolPeerInfo => {
+		const peers = this._pickRandomPeers(MAX_PEER_LIST_BATCH_SIZE).map(
+			(peerInfo: P2PPeerInfo): ProtocolPeerInfo => {
 				const { ipAddress, ...peerInfoWithoutIp } = peerInfo;
 
 				// The options property is not read by the current legacy protocol but it should be added anyway for future compatibility.
 				return {
 					...peerInfoWithoutIp,
 					ip: ipAddress,
-					broadhash: peerInfoWithoutIp.broadhash
-						? (peerInfoWithoutIp.broadhash as string)
-						: '',
-					nonce: peerInfoWithoutIp.nonce
-						? (peerInfoWithoutIp.nonce as string)
-						: '',
 				};
 			},
 		);
@@ -741,20 +693,19 @@ export class P2P extends EventEmitter {
 		if (this._isActive) {
 			throw new Error('Cannot start the node because it is already active');
 		}
-		await this._startPeerServer();
 
 		// Fetch status of all the seed peers and then start the discovery
-		const seedPeerInfos = await this._fetchSeedPeerStatus(
-			this._config.seedPeers,
-		);
+		const seedPeerInfos = this._config.seedPeers;
 
 		// Add seed's peerinfos in tried peer as we already tried them to fetch status
 		seedPeerInfos.forEach(seedInfo => {
 			const peerId = constructPeerIdFromPeerInfo(seedInfo);
-			if (!this._triedPeers.has(peerId)) {
-				this._triedPeers.set(peerId, seedInfo);
+			if (!this._newPeers.has(peerId)) {
+				this._newPeers.set(peerId, seedInfo);
 			}
 		});
+
+		await this._startPeerServer();
 
 		if (this._isActive) {
 			this._startPopulator();

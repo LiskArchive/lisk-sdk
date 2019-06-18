@@ -59,7 +59,6 @@ import {
 	OutboundPeer,
 	Peer,
 } from './peer';
-import { discoverPeers } from './peer_discovery';
 
 export {
 	EVENT_CLOSE_INBOUND,
@@ -96,11 +95,6 @@ interface PeerPoolConfig {
 
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
 export const MAX_PEER_DISCOVERY_PROBE_SAMPLE_SIZE = 100;
-
-const selectRandomPeerSample = (
-	peerList: ReadonlyArray<Peer>,
-	count: number,
-): ReadonlyArray<Peer> => shuffle(peerList).slice(0, count);
 
 export class PeerPool extends EventEmitter {
 	private readonly _peerMap: Map<string, Peer>;
@@ -248,7 +242,7 @@ export class PeerPool extends EventEmitter {
 
 	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
 		const listOfPeerInfo = [...this._peerMap.values()].map(
-			(peer: Peer) => peer.peerInfo,
+			(peer: Peer) => peer.peerInfo as P2PDiscoveredPeerInfo,
 		);
 		const selectedPeers = this._peerSelectForRequest({
 			peers: listOfPeerInfo,
@@ -269,7 +263,7 @@ export class PeerPool extends EventEmitter {
 
 	public send(message: P2PMessagePacket): void {
 		const listOfPeerInfo = [...this._peerMap.values()].map(
-			(peer: Peer) => peer.peerInfo,
+			(peer: Peer) => peer.peerInfo as P2PDiscoveredPeerInfo,
 		);
 		const selectedPeers = this._peerSelectForSend({
 			peers: listOfPeerInfo,
@@ -308,34 +302,7 @@ export class PeerPool extends EventEmitter {
 		peer.send(message);
 	}
 
-	public async runDiscovery(
-		knownPeers: ReadonlyArray<P2PDiscoveredPeerInfo>,
-		blacklist: ReadonlyArray<P2PPeerInfo>,
-	): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> {
-		const peersForDiscovery = knownPeers.map(peerInfo => {
-			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			const existingPeer = this.getPeer(peerId);
-
-			return existingPeer
-				? existingPeer
-				: this.addOutboundPeer(peerId, peerInfo);
-		});
-
-		const peerSampleToProbe = selectRandomPeerSample(
-			peersForDiscovery,
-			MAX_PEER_DISCOVERY_PROBE_SAMPLE_SIZE,
-		);
-
-		const discoveredPeers = await discoverPeers(peerSampleToProbe, {
-			blacklist: blacklist.map(peer => peer.ipAddress),
-		});
-
-		return discoveredPeers;
-	}
-
-	public triggerNewConnections(
-		peers: ReadonlyArray<P2PDiscoveredPeerInfo>,
-	): void {
+	public triggerNewConnections(peers: ReadonlyArray<P2PPeerInfo>): void {
 		const disconnectedPeers = peers.filter(
 			peer => !this._peerMap.has(constructPeerIdFromPeerInfo(peer)),
 		);
@@ -345,7 +312,7 @@ export class PeerPool extends EventEmitter {
 			peers: disconnectedPeers,
 			peerLimit: this._maxOutboundConnections - outbound,
 		});
-		peersToConnect.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
+		peersToConnect.forEach((peerInfo: P2PPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
 			const existingPeer = this.getPeer(peerId);
 
@@ -383,10 +350,7 @@ export class PeerPool extends EventEmitter {
 		return peer;
 	}
 
-	public addOutboundPeer(
-		peerId: string,
-		peerInfo: P2PDiscoveredPeerInfo,
-	): Peer {
+	public addOutboundPeer(peerId: string, peerInfo: P2PPeerInfo): Peer {
 		const existingPeer = this.getPeer(peerId);
 		if (existingPeer) {
 			return existingPeer;
@@ -440,7 +404,7 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public getAllPeerInfos(): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		return this.getPeers().map(peer => peer.peerInfo);
+		return this.getPeers().map(peer => peer.peerInfo as P2PDiscoveredPeerInfo);
 	}
 
 	public getPeers(
