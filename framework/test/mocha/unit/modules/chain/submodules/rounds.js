@@ -95,6 +95,12 @@ describe('rounds', () => {
 			publish: sinonSandbox.stub(),
 		},
 		slots,
+		config: {
+			exceptions: __testContext.config.modules.chain.exceptions,
+			constants: {
+				activeDelegates: __testContext.config.constants.ACTIVE_DELEGATES,
+			},
+		},
 	};
 
 	function get(variable) {
