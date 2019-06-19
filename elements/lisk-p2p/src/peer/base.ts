@@ -72,8 +72,10 @@ export const EVENT_BAN_PEER = 'banPeer';
 export const EVENT_DISCOVERED_PEER = 'discoveredPeer';
 export const EVENT_UNBAN_PEER = 'unbanPeer';
 export const EVENT_UPDATED_PEER_INFO = 'updatedPeerInfo';
+export const EVENT_FAILED_PEER_INFO_UPDATE = 'failedPeerInfoUpdate';
 export const EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT =
 	'failedToCollectPeerDetailsOnConnect';
+export const EVENT_FAILED_TO_FETCH_PEERS = 'failedToFetchPeers';
 export const EVENT_FAILED_TO_FETCH_PEER_INFO = 'failedToFetchPeerInfo';
 export const EVENT_FAILED_TO_PUSH_NODE_INFO = 'failedToPushNodeInfo';
 
@@ -394,6 +396,8 @@ export class Peer extends EventEmitter {
 
 			return validatePeerInfoList(response.data);
 		} catch (error) {
+			this.emit(EVENT_FAILED_TO_FETCH_PEERS, error);
+
 			throw new RPCResponseError(
 				'Failed to fetch peer list of peer',
 				this.ipAddress,
@@ -411,17 +415,27 @@ export class Peer extends EventEmitter {
 	}
 
 	public async fetchStatus(): Promise<P2PPeerInfo> {
+		// tslint:disable-next-line:no-let
+		let response: P2PResponsePacket;
 		try {
-			const response: P2PResponsePacket = await this.request({
+			response = await this.request({
 				procedure: REMOTE_RPC_GET_NODE_INFO,
 			});
-
-			this._updateFromProtocolPeerInfo(response.data);
 		} catch (error) {
 			this.emit(EVENT_FAILED_TO_FETCH_PEER_INFO, error);
 
 			throw new RPCResponseError(
 				'Failed to fetch peer info of peer',
+				`${this.ipAddress}:${this.wsPort}`,
+			);
+		}
+		try {
+			this._updateFromProtocolPeerInfo(response.data);
+		} catch (error) {
+			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
+
+			throw new RPCResponseError(
+				'Failed to update peer info of peer as part of fetch operation',
 				`${this.ipAddress}:${this.wsPort}`,
 			);
 		}
@@ -445,7 +459,7 @@ export class Peer extends EventEmitter {
 		try {
 			this._updateFromProtocolPeerInfo(request.data);
 		} catch (error) {
-			this.emit(EVENT_FAILED_TO_FETCH_PEER_INFO, error);
+			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
 			request.error(error);
 
 			return;

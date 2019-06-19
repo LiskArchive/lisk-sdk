@@ -76,8 +76,10 @@ import {
 	EVENT_CONNECT_ABORT_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_DISCOVERED_PEER,
+	EVENT_FAILED_PEER_INFO_UPDATE,
 	EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
+	EVENT_FAILED_TO_FETCH_PEERS,
 	EVENT_FAILED_TO_PUSH_NODE_INFO,
 	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_MESSAGE_RECEIVED,
@@ -102,6 +104,7 @@ export {
 	EVENT_OUTBOUND_SOCKET_ERROR,
 	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_UPDATED_PEER_INFO,
+	EVENT_FAILED_PEER_INFO_UPDATE,
 	EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
 	EVENT_BAN_PEER,
@@ -163,6 +166,8 @@ export class P2P extends EventEmitter {
 	private readonly _handlePeerInfoUpdate: (
 		peerInfo: P2PDiscoveredPeerInfo,
 	) => void;
+	private readonly _handleFailedToFetchPeerInfo: (error: Error) => void;
+	private readonly _handleFailedToFetchPeers: (error: Error) => void;
 	private readonly _handleFailedPeerInfoUpdate: (error: Error) => void;
 	private readonly _handleFailedToCollectPeerDetails: (error: Error) => void;
 	private readonly _handleBanPeer: (peerId: string) => void;
@@ -267,7 +272,17 @@ export class P2P extends EventEmitter {
 
 		this._handleFailedPeerInfoUpdate = (error: Error) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
+		};
+
+		this._handleFailedToFetchPeerInfo = (error: Error) => {
+			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_TO_FETCH_PEER_INFO, error);
+		};
+
+		this._handleFailedToFetchPeers = (error: Error) => {
+			// Re-emit the message to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_FAILED_TO_FETCH_PEERS, error);
 		};
 
 		this._handleFailedToCollectPeerDetails = (error: Error) => {
@@ -653,7 +668,7 @@ export class P2P extends EventEmitter {
 		const peerList: ReadonlyArray<P2PPeerInfo> = [
 			...this._newPeers.values(),
 			...this._triedPeers.values(),
-		]; // Peers whose values has been updated atleast once.
+		]; // Peers whose values has been updated at least once.
 
 		return selectRandomPeerSample(peerList, count);
 	}
@@ -734,9 +749,14 @@ export class P2P extends EventEmitter {
 		peerPool.on(EVENT_CLOSE_OUTBOUND, this._handlePeerCloseOutbound);
 		peerPool.on(EVENT_UPDATED_PEER_INFO, this._handlePeerInfoUpdate);
 		peerPool.on(
-			EVENT_FAILED_TO_FETCH_PEER_INFO,
+			EVENT_FAILED_PEER_INFO_UPDATE,
 			this._handleFailedPeerInfoUpdate,
 		);
+		peerPool.on(
+			EVENT_FAILED_TO_FETCH_PEER_INFO,
+			this._handleFailedToFetchPeerInfo,
+		);
+		peerPool.on(EVENT_FAILED_TO_FETCH_PEERS, this._handleFailedToFetchPeers);
 		peerPool.on(
 			EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
 			this._handleFailedToCollectPeerDetails,

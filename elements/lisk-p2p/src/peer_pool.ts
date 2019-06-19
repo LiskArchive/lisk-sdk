@@ -47,8 +47,10 @@ import {
 	EVENT_CONNECT_ABORT_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_DISCOVERED_PEER,
+	EVENT_FAILED_PEER_INFO_UPDATE,
 	EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
+	EVENT_FAILED_TO_FETCH_PEERS,
 	EVENT_FAILED_TO_PUSH_NODE_INFO,
 	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_MESSAGE_RECEIVED,
@@ -73,8 +75,10 @@ export {
 	EVENT_UPDATED_PEER_INFO,
 	EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
+	EVENT_FAILED_TO_FETCH_PEERS,
 	EVENT_BAN_PEER,
 	EVENT_UNBAN_PEER,
+	EVENT_FAILED_PEER_INFO_UPDATE,
 	EVENT_FAILED_TO_PUSH_NODE_INFO,
 	EVENT_DISCOVERED_PEER,
 };
@@ -123,6 +127,8 @@ export class PeerPool extends EventEmitter {
 		peerInfo: P2PDiscoveredPeerInfo,
 	) => void;
 	private readonly _handleFailedPeerInfoUpdate: (error: Error) => void;
+	private readonly _handleFailedToFetchPeerInfo: (error: Error) => void;
+	private readonly _handleFailedToFetchPeers: (error: Error) => void;
 	private readonly _handleFailedToCollectPeerDetails: (error: Error) => void;
 	private readonly _handleBanPeer: (peerId: string) => void;
 	private readonly _handleUnbanPeer: (peerId: string) => void;
@@ -208,7 +214,15 @@ export class PeerPool extends EventEmitter {
 		};
 		this._handleFailedPeerInfoUpdate = (error: Error) => {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
+		};
+		this._handleFailedToFetchPeerInfo = (error: Error) => {
+			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_TO_FETCH_PEER_INFO, error);
+		};
+		this._handleFailedToFetchPeers = (error: Error) => {
+			// Re-emit the error to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_FAILED_TO_FETCH_PEERS, error);
 		};
 		this._handleFailedToCollectPeerDetails = (error: Error) => {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
@@ -498,7 +512,9 @@ export class PeerPool extends EventEmitter {
 		peer.on(EVENT_OUTBOUND_SOCKET_ERROR, this._handlePeerOutboundSocketError);
 		peer.on(EVENT_INBOUND_SOCKET_ERROR, this._handlePeerInboundSocketError);
 		peer.on(EVENT_UPDATED_PEER_INFO, this._handlePeerInfoUpdate);
-		peer.on(EVENT_FAILED_TO_FETCH_PEER_INFO, this._handleFailedPeerInfoUpdate);
+		peer.on(EVENT_FAILED_PEER_INFO_UPDATE, this._handleFailedPeerInfoUpdate);
+		peer.on(EVENT_FAILED_TO_FETCH_PEER_INFO, this._handleFailedToFetchPeerInfo);
+		peer.on(EVENT_FAILED_TO_FETCH_PEERS, this._handleFailedToFetchPeers);
 		peer.on(
 			EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
 			this._handleFailedToCollectPeerDetails,
@@ -524,6 +540,14 @@ export class PeerPool extends EventEmitter {
 		peer.removeListener(EVENT_UPDATED_PEER_INFO, this._handlePeerInfoUpdate);
 		peer.removeListener(
 			EVENT_FAILED_TO_FETCH_PEER_INFO,
+			this._handleFailedToFetchPeerInfo,
+		);
+		peer.removeListener(
+			EVENT_FAILED_TO_FETCH_PEERS,
+			this._handleFailedToFetchPeers,
+		);
+		peer.removeListener(
+			EVENT_FAILED_PEER_INFO_UPDATE,
 			this._handleFailedPeerInfoUpdate,
 		);
 		peer.removeListener(
