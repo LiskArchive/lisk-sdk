@@ -722,6 +722,7 @@ export class P2P extends EventEmitter {
 
 		await this._startPeerServer();
 
+		// We need this check this._isActive in case the P2P library is shut down while it was in the middle of starting up.
 		if (this._isActive) {
 			this._startPopulator();
 		}
