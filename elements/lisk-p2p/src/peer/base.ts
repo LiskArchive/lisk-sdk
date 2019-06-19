@@ -91,7 +91,7 @@ export const DEFAULT_CONNECT_TIMEOUT = 2000;
 export const DEFAULT_ACK_TIMEOUT = 2000;
 export const DEFAULT_REPUTATION_SCORE = 100;
 export const DEFAULT_RATE_INTERVAL = 1000;
-export const DEFAULT_PRODUCTIVITY_RESET_INTERVAL = 3600000;
+export const DEFAULT_PRODUCTIVITY_RESET_INTERVAL = 2000;
 export const DEFAULT_PRODUCTIVITY = {
 	requestCounter: 0,
 	responseCounter: 0,
@@ -182,8 +182,11 @@ export class Peer extends EventEmitter {
 			this._callCounter = new Map();
 		}, DEFAULT_RATE_INTERVAL);
 		this._productivityResetInterval = setInterval(() => {
-			// If peer has not responded within an hour, reset productivity to 0
-			if(this.productivity.lastResponded < (Date.now() - DEFAULT_PRODUCTIVITY_RESET_INTERVAL)) {
+			// If peer has not recently responded, reset productivity to 0
+			if (
+				this.productivity.lastResponded <
+				Date.now() - DEFAULT_PRODUCTIVITY_RESET_INTERVAL
+			) {
 				this.productivity = DEFAULT_PRODUCTIVITY;
 			}
 		}, DEFAULT_PRODUCTIVITY_RESET_INTERVAL);
