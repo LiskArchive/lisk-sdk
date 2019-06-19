@@ -90,7 +90,6 @@ describe('rounds', () => {
 
 	const validScope = {
 		components: { logger, storage },
-		bus: { message: sinon.spy() },
 		channel: {
 			publish: sinonSandbox.stub(),
 		},
@@ -149,7 +148,6 @@ describe('rounds', () => {
 
 			expect(library.logger).to.eql(validScope.components.logger);
 			expect(library.storage).to.eql(validScope.components.storage);
-			expect(library.bus).to.eql(validScope.bus);
 			expect(library.channel).to.eql(validScope.channel);
 		});
 	});

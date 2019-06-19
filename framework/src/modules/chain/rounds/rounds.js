@@ -46,7 +46,6 @@ class Rounds {
 		library = {
 			channel: scope.channel,
 			logger: scope.components.logger,
-			bus: scope.bus,
 			storage: scope.components.storage,
 			slots: scope.slots,
 			exceptions: scope.config.exceptions,
