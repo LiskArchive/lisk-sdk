@@ -311,7 +311,6 @@ export class P2P extends EventEmitter {
 		// When peer is fetched for status after connection then update the peerinfo in triedPeer list
 		this._handleDiscoveredPeer = (detailedPeerInfo: P2PPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(detailedPeerInfo);
-			// Remove the discovered peer from newPeer list on successful connect and discovery
 
 			if (!this._triedPeers.has(peerId) && !this._newPeers.has(peerId)) {
 				this._newPeers.set(peerId, detailedPeerInfo);
@@ -709,10 +708,8 @@ export class P2P extends EventEmitter {
 			throw new Error('Cannot start the node because it is already active');
 		}
 
-		// Fetch status of all the seed peers and then start the discovery
 		const seedPeerInfos = this._config.seedPeers;
 
-		// Add seed's peerinfos in tried peer as we already tried them to fetch status
 		seedPeerInfos.forEach(seedInfo => {
 			const peerId = constructPeerIdFromPeerInfo(seedInfo);
 			if (!this._newPeers.has(peerId)) {
