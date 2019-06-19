@@ -88,15 +88,11 @@ describe('account', () => {
 
 			accountLogic = new Account(
 				storageStub,
-				modulesLoader.scope.schema,
 				modulesLoader.scope.components.logger
 			);
 
 			library = Account.__get__('library');
 		});
-
-		it('should attach schema to scope variable', async () =>
-			expect(accountLogic.scope.schema).to.eql(modulesLoader.scope.schema));
 
 		it('should attach storage to scope variable', async () =>
 			expect(accountLogic.scope.storage).to.eql(storageStub));

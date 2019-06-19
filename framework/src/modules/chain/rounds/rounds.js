@@ -49,19 +49,13 @@ class Rounds {
 			bus: scope.bus,
 			storage: scope.components.storage,
 			slots: scope.slots,
-			schema: scope.schema,
 			exceptions: scope.config.exceptions,
 			constants: {
 				activeDelegates: scope.config.constants.activeDelegates,
 			},
 		};
 		library.delegates = new Delegates(library);
-		library.account = new Account(
-			library.storage,
-			library.schema,
-			library.logger,
-			this
-		);
+		library.account = new Account(library.storage, library.logger, this);
 	}
 
 	/**

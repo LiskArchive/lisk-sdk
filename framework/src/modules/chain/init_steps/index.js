@@ -17,11 +17,9 @@
 const createBus = require('./create_bus');
 const bootstrapStorage = require('./bootstrap_storage');
 const bootstrapCache = require('./bootstrap_cache');
-const initModules = require('./init_modules');
 
 module.exports = {
 	createBus,
 	bootstrapStorage,
 	bootstrapCache,
-	initModules,
 };
