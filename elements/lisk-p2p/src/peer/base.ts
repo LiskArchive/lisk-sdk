@@ -70,7 +70,7 @@ export const EVENT_MESSAGE_RECEIVED = 'messageReceived';
 export const EVENT_INVALID_MESSAGE_RECEIVED = 'invalidMessageReceived';
 export const EVENT_BAN_PEER = 'banPeer';
 export const EVENT_DISCOVERED_PEER = 'discoveredPeer';
-export const EVENT_UNBAN_PEER = 'banPeer';
+export const EVENT_UNBAN_PEER = 'unbanPeer';
 export const EVENT_UPDATED_PEER_INFO = 'updatedPeerInfo';
 export const EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT =
 	'failedToCollectPeerDetailsOnConnect';
