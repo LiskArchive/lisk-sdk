@@ -1603,21 +1603,20 @@ describe('Integration tests for P2P library', () => {
 				});
 			});
 
-			it('should isolated the blacklisted peer', () => {
+			it('should isolate the blacklisted peer', () => {
 				p2pNodeList.map(p2p => {
 					if (
 						p2p['_nodeInfo'].wsPort === blacklistedPeers[0].wsPort &&
 						p2p['_config'].hostIp === blacklistedPeers[0].ipAddress
 					) {
-						const counts = p2p['_peerPool'].getPeersCountPerKind();
-						expect(counts.inboundCount).to.equal(0);
-						expect(counts.outboundCount).to.equal(0);
+						const connectedPeers = p2p['_peerPool'].getConnectedPeers();
+						expect(connectedPeers.length).to.equal(0);
 					}
 				});
 			});
 		});
 
-		describe('fixed peers', () => {
+		describe('fixed', () => {
 			const fixedPeers = [
 				{
 					ipAddress: '127.0.0.10',
@@ -1680,7 +1679,7 @@ describe('Integration tests for P2P library', () => {
 			});
 		});
 
-		describe('whitelisted peers', () => {
+		describe('whitelisting', () => {
 			const whitelistedPeers = [
 				{
 					ipAddress: '127.0.0.10',
