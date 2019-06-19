@@ -49,7 +49,6 @@ describe('transport', () => {
 	let storageStub;
 	let loggerStub;
 	let channelStub;
-	let balancesSequenceStub;
 	let transportModule;
 	let transaction;
 	let block;
@@ -150,9 +149,6 @@ describe('transport', () => {
 			publish: sinonSandbox.stub(),
 			invoke: sinonSandbox.stub(),
 		};
-		balancesSequenceStub = {
-			add: async () => {},
-		};
 
 		sinonSandbox.stub(jobsQueue, 'register');
 
@@ -161,7 +157,6 @@ describe('transport', () => {
 			logger: loggerStub,
 			storage: storageStub,
 			applicationState: {},
-			balancesSequence: balancesSequenceStub,
 			exceptions: __testContext.config.modules.chain.exceptions,
 			transactionPoolModule: {
 				getMultisignatureTransactionList: sinonSandbox.stub(),
@@ -203,9 +198,6 @@ describe('transport', () => {
 				expect(transportModule)
 					.to.have.property('channel')
 					.which.is.equal(channelStub);
-				expect(transportModule)
-					.to.have.property('balancesSequence')
-					.which.is.equal(balancesSequenceStub);
 				expect(transportModule).to.have.property('broadcaster');
 			});
 		});
@@ -398,14 +390,6 @@ describe('transport', () => {
 
 		describe('receiveTransaction', () => {
 			beforeEach(async () => {
-				sinonSandbox
-					.stub(balancesSequenceStub, 'add')
-					.callsFake((callback, doneCallback) => {
-						callback(doneCallback);
-					});
-
-				transportModule.balancesSequence = balancesSequenceStub;
-
 				transportModule.transactionPoolModule.processUnconfirmedTransaction.resolves();
 			});
 

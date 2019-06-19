@@ -218,22 +218,15 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 	}
 
 	function getBlocks(cb) {
-		library.sequence.add(
-			sequenceCb => {
-				storage.adapter.db
-					.query(
-						new PQ('SELECT "id" FROM blocks ORDER BY "height" DESC LIMIT 10;')
-					)
-					.then(rows => sequenceCb(null, rows))
-					.catch(err => sequenceCb(err, []));
-			},
-			(err, rows) => {
-				if (err) {
-					__testContext.debug(err.stack);
-				}
-				cb(err, _.map(rows, 'id'));
-			}
-		);
+		library.sequence
+			.add(async () => {
+				const rows = storage.adapter.db.query(
+					new PQ('SELECT "id" FROM blocks ORDER BY "height" DESC LIMIT 10;')
+				);
+				return rows.map(r => r.id);
+			})
+			.then(ids => cb(null, ids))
+			.catch(err => __testContext.debug(err.stack));
 	}
 
 	function verifyForkStat(blockId, cause) {
