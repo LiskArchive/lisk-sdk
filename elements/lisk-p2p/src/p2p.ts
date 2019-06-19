@@ -16,7 +16,7 @@
 import { EventEmitter } from 'events';
 import * as http from 'http';
 // tslint:disable-next-line no-require-imports
-import { shuffle } from 'lodash';
+import shuffle = require('lodash.shuffle');
 import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
 
@@ -751,7 +751,9 @@ export class P2P extends EventEmitter {
 			throw new Error('Cannot start the node because it is already active');
 		}
 
-		const newPeersToAdd = this._peerListsWithoutConflicts.seedPeers.concat(this._peerListsWithoutConflicts.whitelisted);
+		const newPeersToAdd = this._peerListsWithoutConflicts.seedPeers.concat(
+			this._peerListsWithoutConflicts.whitelisted,
+		);
 		newPeersToAdd.forEach(newPeerInfo => {
 			const peerId = constructPeerIdFromPeerInfo(newPeerInfo);
 			if (!this._newPeers.has(peerId)) {

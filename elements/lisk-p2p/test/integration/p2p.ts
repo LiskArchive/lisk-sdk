@@ -27,7 +27,7 @@ import {
 } from '../../src/p2p_types';
 import { SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
-import { cloneDeep } from 'lodash';
+import cloneDeep = require('lodash.clonedeep');
 
 describe('Integration tests for P2P library', () => {
 	before(() => {

@@ -13,7 +13,7 @@
  *
  */
 // tslint:disable-next-line no-require-imports
-import { shuffle } from 'lodash';
+import shuffle = require('lodash.shuffle');
 import {
 	P2PDiscoveredPeerInfo,
 	P2PPeerInfo,
