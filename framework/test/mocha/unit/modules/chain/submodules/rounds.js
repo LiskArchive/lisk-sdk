@@ -188,31 +188,6 @@ describe('rounds', () => {
 		});
 	});
 
-	describe('onFinishRound', () => {
-		beforeEach(async () => {
-			validScope.channel.publish.resetHistory();
-		});
-
-		it('should call components.cache.removeByPattern once if cache is enabled', async () => {
-			const round = 123;
-			rounds.onFinishRound(round);
-
-			expect(validScope.channel.publish.called).to.be.true;
-		});
-
-		it('should call library.channel.publish once, with proper params', async () => {
-			const round = 124;
-			rounds.onFinishRound(round);
-
-			expect(validScope.channel.publish).to.be.calledWith(
-				'chain:rounds:change',
-				{
-					number: round,
-				}
-			);
-		});
-	});
-
 	describe('cleanup', () => {
 		it('should set __private.loaded = false and call a callback', done => {
 			const variable = '__private.loaded ';
@@ -544,11 +519,11 @@ describe('rounds', () => {
 		});
 
 		describe('scope.finishRound', () => {
-			let bus;
+			let channelPublish;
 
 			beforeEach(() => {
-				bus = get('library.bus.message');
-				return bus.resetHistory();
+				channelPublish = get('library.channel.publish');
+				return channelPublish.resetHistory();
 			});
 
 			describe('when true', () => {
@@ -562,7 +537,7 @@ describe('rounds', () => {
 					});
 				});
 
-				afterEach(() => bus.resetHistory());
+				afterEach(() => channelPublish.resetHistory());
 
 				it('scope.mergeBlockGenerator should be called once', async () =>
 					expect(mergeBlockGenerator_stub.calledOnce).to.be.true);
@@ -576,11 +551,11 @@ describe('rounds', () => {
 				it('scope.getOutsiders should be called once', async () =>
 					expect(getOutsiders_stub.calledOnce).to.be.true);
 
-				it('library.bus.message should be called once with proper params', async () => {
-					const busMessage = get('library.bus.message');
-					expect(busMessage.calledOnce).to.be.true;
-					return expect(busMessage.calledWith('finishRound', roundScope.round))
-						.to.be.true;
+				it('should call library.channel.publish once, with proper params', async () => {
+					expect(channelPublish.calledOnce).to.be.true;
+					expect(channelPublish).to.be.calledWith('chain:rounds:change', {
+						number: roundScope.round,
+					});
 				});
 			});
 
@@ -594,7 +569,7 @@ describe('rounds', () => {
 					});
 				});
 
-				after(() => bus.resetHistory());
+				after(() => channelPublish.resetHistory());
 
 				it('scope.mergeBlockGenerator should be called once', async () =>
 					expect(mergeBlockGenerator_stub.calledOnce).to.be.true);
@@ -608,9 +583,8 @@ describe('rounds', () => {
 				it('scope.getOutsiders should be not called', async () =>
 					expect(getOutsiders_stub.called).to.be.false);
 
-				it('library.bus.message should be not called', async () => {
-					const busMessage = get('library.bus.message');
-					return expect(busMessage.called).to.be.false;
+				it('library.channel.publish should be not called', async () => {
+					return expect(channelPublish.called).to.be.false;
 				});
 			});
 		});
