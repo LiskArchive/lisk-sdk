@@ -12,12 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+ /*
+  DESCRIPTION: Creates `round_delegates` table to store unshuffled
+	delegate lists which were created at the beginning of the round.
+   PARAMETERS: None
+*/
 
-module.exports = {
-	Account: require('./account'),
-	Block: require('./block'),
-	RoundDelegates: require('./round_delegates'),
-	Round: require('./round'),
-	Transaction: require('./transaction'),
-};
+/* Table */
+CREATE TABLE IF NOT EXISTS "round_delegates" (
+  "round" BIGINT NOT NULL PRIMARY KEY,
+  "delegatePublicKeys" JSON NOT NULL
+);

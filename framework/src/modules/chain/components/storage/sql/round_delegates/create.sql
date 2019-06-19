@@ -12,12 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-module.exports = {
-	Account: require('./account'),
-	Block: require('./block'),
-	RoundDelegates: require('./round_delegates'),
-	Round: require('./round'),
-	Transaction: require('./transaction'),
-};
+INSERT INTO round_delegates (
+	${fields:raw}
+) VALUES
+	${createSet:raw}
+;
