@@ -217,7 +217,9 @@ describe('blocks', () => {
 						errors: [],
 					});
 				sinonSandbox.stub(blocksInstance.blocksChain, 'deleteLastBlock');
-				sequenceStub.add.resolves();
+				sequenceStub.add.callsFake(async fn => {
+					await fn();
+				});
 			});
 
 			describe('when block.previousBlock === lastBlock.id && lastBlock.height + 1 === block.height', () => {
