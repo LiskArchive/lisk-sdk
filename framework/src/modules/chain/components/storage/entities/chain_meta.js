@@ -27,6 +27,7 @@ const {
 const sqlFiles = {
 	upsert: 'chain_meta/upsert.sql',
 	get: 'chain_meta/get.sql',
+	delete: 'chain_meta/delete.sql',
 };
 
 /**
@@ -125,6 +126,29 @@ class ChainMeta extends BaseEntity {
 			{ expectedResultCount },
 			tx
 		);
+	}
+
+	/**
+	 * Delete the keys with following conditions
+	 *
+	 * @param {filters.ChainMeta} filters
+	 * @param {Object} [options]
+	 * @param {Object} [tx]
+	 * @returns {Promise.<boolean, Error>}
+	 */
+	delete(filters, _options, tx = null) {
+		this.validateFilters(filters);
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
+
+		return this.adapter
+			.executeFile(
+				this.SQLs.delete,
+				{ parsedFilters },
+				{ expectedResultCount: 0 },
+				tx
+			)
+			.then(result => result);
 	}
 
 	_getResults(filters, options, tx, expectedResultCount = undefined) {

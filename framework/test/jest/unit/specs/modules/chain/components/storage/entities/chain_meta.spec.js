@@ -39,7 +39,7 @@ describe('ChainMeta', () => {
 	let adapter;
 	let ChainMetaEntity;
 
-	const validSQLs = ['upsert', 'get'];
+	const validSQLs = ['upsert', 'get', 'delete'];
 
 	const validFields = ['key', 'value'];
 
@@ -216,6 +216,33 @@ describe('ChainMeta', () => {
 
 			const result = await getAllMeta(ChainMetaEntity.adapter);
 			expect(result).toEqual([{ key, value: updatedValue }]);
+		});
+	});
+
+	describe('delete', () => {
+		const data1 = { key: 'myKey1', value: 'myValue' };
+		const data2 = { key: 'myKey2', value: 'myValue' };
+
+		beforeEach(async () => {
+			await ChainMetaEntity.setKey(data1.key, data1.value);
+			await ChainMetaEntity.setKey(data2.key, data2.value);
+		});
+
+		it('should delete the matching key record from database', async () => {
+			// Before delete verify they exists
+			expect(await getAllMeta(ChainMetaEntity.adapter)).toEqual([data1, data2]);
+
+			await ChainMetaEntity.delete({ key: data1.key });
+
+			expect(await getAllMeta(ChainMetaEntity.adapter)).toEqual([data2]);
+		});
+
+		it('should not throw error if no matching record found', async () => {
+			const nonExistingKey = 'nonExistingKey';
+
+			await expect(
+				ChainMetaEntity.delete({ key: nonExistingKey })
+			).resolves.toBeNull();
 		});
 	});
 });
