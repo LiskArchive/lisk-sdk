@@ -21,7 +21,6 @@ import {
 	InvalidRPCResponseError,
 } from './errors';
 
-import { differenceBy, differenceWith, isEqual } from 'lodash';
 import {
 	INCOMPATIBLE_NETWORK_REASON,
 	INCOMPATIBLE_PROTOCOL_VERSION_REASON,
@@ -36,6 +35,7 @@ import {
 	ProtocolPeerInfo,
 	ProtocolRPCRequestPacket,
 } from './p2p_types';
+import { constructPeerIdFromPeerInfo } from './peer';
 
 const IPV4_NUMBER = 4;
 const IPV6_NUMBER = 6;
@@ -201,72 +201,85 @@ export const handlePeerListsConflicts = (
 	lists: PeerLists,
 	nodeInfo: P2PPeerInfo,
 ): PeerLists => {
-	// Blacklist takes preference above all
-	const seedPeers = differenceWith(
-		lists.seedPeers,
-		lists.blacklistedPeers,
-		isEqual,
-	) as ReadonlyArray<P2PPeerInfo>;
-	const fixedPeers = differenceWith(
-		lists.fixedPeers,
-		lists.blacklistedPeers,
-		isEqual,
-	) as ReadonlyArray<P2PPeerInfo>;
-	const whitelistedWithoutBlacklisted = differenceWith(
-		lists.whitelisted,
-		lists.blacklistedPeers,
-		isEqual,
-	) as ReadonlyArray<P2PPeerInfo>;
-	// Fixed takes preference over whitelisted
-	const whitelistedWithoutSeeds = differenceWith(
-		whitelistedWithoutBlacklisted,
-		fixedPeers,
-		isEqual,
-	) as ReadonlyArray<P2PPeerInfo>;
-	// Seeds also takes preference over whitelisted
-	const whitelisted = differenceWith(
-		whitelistedWithoutSeeds,
-		seedPeers,
-		isEqual,
-	) as ReadonlyArray<P2PPeerInfo>;
-	const previousPeers = differenceBy(
-		lists.previousPeers,
-		lists.blacklistedPeers,
-		'ipAddress',
-	) as ReadonlyArray<P2PDiscoveredPeerInfo>;
+	const blacklistedPeers = lists.blacklistedPeers.filter(peerInfo => {
+		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
+			return false;
+		}
 
-	// Removing myself from the peers lists
-	const blacklistedWithoutMyself = differenceWith(
-		lists.blacklistedPeers,
-		[nodeInfo],
-		isEqual,
-	) as ReadonlyArray<P2PPeerInfo>;
-	const seedsWithoutMyself = differenceWith(
-		seedPeers,
-		[nodeInfo],
-		isEqual,
-	) as ReadonlyArray<P2PPeerInfo>;
-	const fixedWithoutMyself = differenceWith(
-		fixedPeers,
-		[nodeInfo],
-		isEqual,
-	) as ReadonlyArray<P2PPeerInfo>;
-	const whitelistedWithoutMyself = differenceWith(
-		whitelisted,
-		[nodeInfo],
-		isEqual,
-	) as ReadonlyArray<P2PPeerInfo>;
-	const previousWithoutMyself = differenceBy(
-		previousPeers,
-		[nodeInfo],
-		'ipAddress',
-	) as ReadonlyArray<P2PDiscoveredPeerInfo>;
+		return true;
+	});
+
+	const blacklistedIPs = blacklistedPeers.map(peerInfo => peerInfo.ipAddress);
+
+	const seedPeers = lists.seedPeers.filter(peerInfo => {
+		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
+			return false;
+		}
+
+		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
+			return false;
+		}
+
+		return true;
+	});
+
+	const fixedPeers = lists.fixedPeers.filter(peerInfo => {
+		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
+			return false;
+		}
+
+		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
+			return false;
+		}
+
+		return true;
+	});
+
+	const whitelisted = lists.whitelisted.filter(peerInfo => {
+		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
+			return false;
+		}
+
+		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
+			return false;
+		}
+
+		if (
+			fixedPeers
+				.map(constructPeerIdFromPeerInfo)
+				.includes(constructPeerIdFromPeerInfo(peerInfo))
+		) {
+			return false;
+		}
+
+		if (
+			seedPeers
+				.map(constructPeerIdFromPeerInfo)
+				.includes(constructPeerIdFromPeerInfo(peerInfo))
+		) {
+			return false;
+		}
+
+		return true;
+	});
+
+	const previousPeers = lists.previousPeers.filter(peerInfo => {
+		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
+			return false;
+		}
+
+		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
+			return false;
+		}
+
+		return true;
+	});
 
 	return {
-		blacklistedPeers: blacklistedWithoutMyself,
-		seedPeers: seedsWithoutMyself,
-		fixedPeers: fixedWithoutMyself,
-		whitelisted: whitelistedWithoutMyself,
-		previousPeers: previousWithoutMyself,
+		blacklistedPeers,
+		seedPeers,
+		fixedPeers,
+		whitelisted,
+		previousPeers,
 	};
 };
