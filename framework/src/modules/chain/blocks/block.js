@@ -61,7 +61,7 @@ const sign = (block, keypair) => signFunc[block.version](block, keypair);
 const getHashFunc = {
 	0: blockV1.getHash,
 	1: blockV1.getHash,
-	2: blockV1.getHash,
+	2: blockV2.getHash,
 };
 const getHash = block => getHashFunc[block.version](block);
 

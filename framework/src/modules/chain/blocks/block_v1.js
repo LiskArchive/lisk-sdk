@@ -39,7 +39,6 @@ const TRANSACTION_TYPES_MULTI = 4;
  * @param {block} block
  * @throws {Error}
  * @returns {!Array} Contents as an ArrayBuffer
- * @todo Add description for the function and the params
  */
 const getBytes = block => {
 	const capacity =

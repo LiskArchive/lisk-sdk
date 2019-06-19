@@ -78,46 +78,6 @@ describe('block', () => {
 		keypair: validKeypair,
 		timestamp: 41898500,
 		previousBlock: {
-			version: 0,
-			totalAmount: '0',
-			totalFee: '0',
-			reward: '0',
-			payloadHash:
-				'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-			timestamp: 41898490,
-			numberOfTransactions: 0,
-			payloadLength: 0,
-			previousBlock: '1087874036928524397',
-			generatorPublicKey:
-				'1cc68fa0b12521158e09779fd5978ccc0ac26bf99320e00a9549b542dd9ada16',
-			transactions: [],
-			blockSignature:
-				'8a727cc77864b6fc81755a1f4eb4796b68f4a943d69c74a043b5ca422f3b05608a22da4a916ca7b721d096129938b6eb3381d75f1a116484d1ce2be4904d9a0e',
-			height: 6,
-			id: '3920300554926889269',
-			relays: 1,
-		},
-		transactions: [],
-		exceptions: {
-			blockVersions: {
-				1: {
-					start: 1,
-					end: 7,
-				},
-				2: {
-					start: 8,
-					end: 6901027,
-				},
-			},
-		},
-	};
-
-	const validDataForBlockv2 = {
-		maxPayloadLength,
-		blockReward,
-		keypair: validKeypair,
-		timestamp: 41898500,
-		previousBlock: {
 			version: 2,
 			totalAmount: '0',
 			totalFee: '0',
@@ -132,11 +92,15 @@ describe('block', () => {
 				'1cc68fa0b12521158e09779fd5978ccc0ac26bf99320e00a9549b542dd9ada16',
 			transactions: [],
 			blockSignature:
-				'8a727cc77864b6fc81755a1f4eb4796b68f4a943d69c74a043b5ca422f3b05608a22da4a916ca7b721d096129938b6eb3381d75f1a116484d1ce2be4904d9a0e',
+				'056b613a45589241b7e5c61e10b0f387a1fe9a4d7fe7c93ed9a8710725801c055f850b83e2b1484c61e42ac55d3f7c6ec7ec3ceb5e90ed44a9d8aaa8f334130c',
 			height: 99,
-			id: '3920300554926889269',
+			id: '3956936115999704352',
 			relays: 1,
+			maxHeightPreviouslyForged: 1,
+			prevotedConfirmedUptoHeight: 1,
 		},
+		maxHeightPreviouslyForged: 1,
+		prevotedConfirmedUptoHeight: 1,
 		transactions: [],
 		exceptions: {
 			blockVersions: {
@@ -153,17 +117,14 @@ describe('block', () => {
 	};
 
 	const invalidBlock = {
-		version: '0',
+		version: '2',
 		totalAmount: 'qwer',
 		totalFee: 'sd#$%',
 		reward: '0',
 	};
 
-	const blockData = validDataForBlock.previousBlock;
-	const blockDataV2 = {
-		...blockData,
-		maxHeightPreviouslyForged: 1,
-		prevotedConfirmedUptoHeight: 1,
+	const blockData = {
+		...validDataForBlock.previousBlock,
 	};
 
 	const transactionsByTypes = {};
@@ -351,35 +312,15 @@ describe('block', () => {
 	});
 
 	describe('create', () => {
-		describe('createV1', () => {
-			it("shouldn't have maxHeightPreviouslyForged and prevotedConfirmedUptoHeight properties", async () => {
-				const generatedBlock = block.create({
-					...data,
-					transactions,
-					version: 1,
-				});
-
-				expect(generatedBlock).to.not.have.property(
-					'maxHeightPreviouslyForged'
-				);
-				return expect(generatedBlock).to.not.have.property(
-					'prevotedConfirmedUptoHeight'
-				);
+		it('should have maxHeightPreviouslyForged and prevotedConfirmedUptoHeight properties', async () => {
+			const generatedBlock = block.create({
+				..._.cloneDeep(validDataForBlock),
+				transactions,
+				version: 2,
 			});
-		});
 
-		describe('createV2', () => {
-			it('should have maxHeightPreviouslyForged and prevotedConfirmedUptoHeight properties', async () => {
-				const generatedBlock = block.create({
-					..._.cloneDeep(validDataForBlockv2),
-					transactions,
-					version: 2,
-					maxHeightPreviouslyForged: 1,
-					prevotedConfirmedUptoHeight: 1,
-				});
-				expect(generatedBlock.maxHeightPreviouslyForged).to.eql(1);
-				return expect(generatedBlock.prevotedConfirmedUptoHeight).to.eql(1);
-			});
+			expect(generatedBlock.maxHeightPreviouslyForged).to.eql(1);
+			return expect(generatedBlock.prevotedConfirmedUptoHeight).to.eql(1);
 		});
 
 		describe('when each of all supported', () => {
@@ -391,7 +332,7 @@ describe('block', () => {
 				generatedBlock = block.create({
 					...data,
 					transactions,
-					version: 1,
+					version: 2,
 				});
 				transactionsOrder = generatedBlock.transactions.map(trs => trs.type);
 				done();
@@ -420,7 +361,7 @@ describe('block', () => {
 					generatedBlock = block.create({
 						...data,
 						transactions: multipleMultisigTx.concat(transactions),
-						version: 1,
+						version: 2,
 					});
 					transactionsOrder = generatedBlock.transactions.map(trs => trs.type);
 				});
@@ -449,7 +390,7 @@ describe('block', () => {
 					generatedBlock = block.create({
 						...data,
 						transactions,
-						version: 1,
+						version: 2,
 					});
 					transactionsOrder = generatedBlock.transactions.map(trs => trs.type);
 				});
@@ -476,7 +417,7 @@ describe('block', () => {
 					generatedBlock = block.create({
 						...data,
 						transactions: transactions.concat(multipleMultisigTx),
-						version: 1,
+						version: 2,
 					});
 					transactionsOrder = generatedBlock.transactions.map(trs => trs.type);
 				});
@@ -504,7 +445,7 @@ describe('block', () => {
 					generatedBlock = block.create({
 						...data,
 						transactions: _.shuffle(transactions.concat(multipleMultisigTx)),
-						version: 1,
+						version: 2,
 					});
 					transactionsOrder = generatedBlock.transactions.map(trs => trs.type);
 				});
@@ -532,7 +473,7 @@ describe('block', () => {
 
 		it('should throw error for a block with unknown fields', async () => {
 			const unknownBlock = {
-				verson: 0,
+				verson: 2,
 				totlFee: '&**&^&',
 				rewrd: 'g@n!a',
 			};
@@ -550,57 +491,28 @@ describe('block', () => {
 	});
 
 	describe('getBytes', () => {
-		describe('getBytesV0-1', () => {
-			it('should throw error for invalid block', async () =>
-				expect(() => {
-					block.getBytes(invalidBlock);
-				}).to.throw());
+		it('should throw error for invalid block', async () =>
+			expect(() => {
+				block.getBytes(invalidBlock);
+			}).to.throw());
 
-			it('should return a buffer for a given block', async () =>
-				expect(block.getBytes(blockData)).to.be.an.instanceof(Buffer));
+		it('should return a buffer for a given block', async () =>
+			expect(block.getBytes(blockData)).to.be.an.instanceof(Buffer));
 
-			it('should return same bytes for a given block', async () => {
-				const bytes1 = block.getBytes(blockData);
-				const bytes2 = block.getBytes(blockData);
-				return expect(bytes1).to.deep.equal(bytes2);
-			});
-
-			it('should return different bytes for different blocks', async () => {
-				const bytes1 = block.getBytes(blockData);
-				const blockDataCopy = Object.assign({}, blockData);
-				blockDataCopy.height = 100;
-				blockDataCopy.generatorPublicKey =
-					'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc';
-				const bytes2 = block.getBytes(blockDataCopy);
-				return expect(bytes1).to.not.deep.equal(bytes2);
-			});
+		it('should return same bytes for a given block', async () => {
+			const bytes1 = block.getBytes(blockData);
+			const bytes2 = block.getBytes(blockData);
+			return expect(bytes1).to.deep.equal(bytes2);
 		});
 
-		describe('getBytesV2', () => {
-			it('should throw error for invalid block', async () =>
-				expect(() => {
-					const invalidBlockV2 = { ...invalidBlock, version: 2 };
-					block.getBytes(invalidBlockV2);
-				}).to.throw());
-
-			it('should return a buffer for a given block', async () =>
-				expect(block.getBytes(blockDataV2)).to.be.an.instanceof(Buffer));
-
-			it('should return same bytes for a given block', async () => {
-				const bytes1 = block.getBytes(blockDataV2);
-				const bytes2 = block.getBytes(blockDataV2);
-				return expect(bytes1).to.deep.equal(bytes2);
-			});
-
-			it('should return different bytes for different blocks', async () => {
-				const bytes1 = block.getBytes(blockDataV2);
-				const blockDataCopy = Object.assign({}, blockDataV2);
-				blockDataCopy.height = 100;
-				blockDataCopy.generatorPublicKey =
-					'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc';
-				const bytes2 = block.getBytes(blockDataCopy);
-				return expect(bytes1).to.not.deep.equal(bytes2);
-			});
+		it('should return different bytes for different blocks', async () => {
+			const bytes1 = block.getBytes(blockData);
+			const blockDataCopy = Object.assign({}, blockData);
+			blockDataCopy.height = 100;
+			blockDataCopy.generatorPublicKey =
+				'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc';
+			const bytes2 = block.getBytes(blockDataCopy);
+			return expect(bytes1).to.not.deep.equal(bytes2);
 		});
 	});
 
@@ -612,12 +524,6 @@ describe('block', () => {
 
 		it('should return true for a good block', async () =>
 			expect(block.verifySignature(blockData)).to.be.true);
-
-		it('should return false for a block with modified version', async () => {
-			const blockCopy = Object.assign({}, blockData);
-			blockCopy.version += 1;
-			return expect(block.verifySignature(blockCopy)).to.be.false;
-		});
 
 		it('should return false for a block with modified timestamp', async () => {
 			const blockCopy = Object.assign({}, blockData);
@@ -706,108 +612,56 @@ describe('block', () => {
 	});
 
 	describe('dbRead', () => {
-		describe('dbRead V1', () => {
-			it('should throw error for null values', async () =>
-				expect(() => {
-					block.dbRead(null);
-				}).to.throw("Cannot read property 'b_version' of null"));
+		it('should throw error for null values', async () =>
+			expect(() => {
+				block.dbRead(null);
+			}).to.throw("Cannot read property 'b_version' of null"));
 
-			it('should return raw block data', async () => {
-				const rawBlock = {
-					b_version: 0,
-					b_totalAmount: 0,
-					b_totalFee: 0,
-					b_reward: 0,
-					b_payloadHash:
-						'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-					b_timestamp: 41898490,
-					b_numberOfTransactions: 0,
-					b_payloadLength: 0,
-					b_previousBlock: '1087874036928524397',
-					b_generatorPublicKey:
-						'1cc68fa0b12521158e09779fd5978ccc0ac26bf99320e00a9549b542dd9ada16',
-					b_transactions: [],
-					b_blockSignature:
-						'8a727cc77864b6fc81755a1f4eb4796b68f4a943d69c74a043b5ca422f3b05608a22da4a916ca7b721d096129938b6eb3381d75f1a116484d1ce2be4904d9a0e',
-					b_height: 6,
-					b_id: '3920300554926889269',
-					b_relays: 1,
-					b_confirmations: 0,
-				};
+		it('should return raw block data', async () => {
+			const rawBlock = {
+				b_version: 2,
+				b_totalAmount: 0,
+				b_totalFee: 0,
+				b_reward: 0,
+				b_payloadHash:
+					'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+				b_timestamp: 41898490,
+				b_numberOfTransactions: 0,
+				b_payloadLength: 0,
+				b_previousBlock: '1087874036928524397',
+				b_generatorPublicKey:
+					'1cc68fa0b12521158e09779fd5978ccc0ac26bf99320e00a9549b542dd9ada16',
+				b_transactions: [],
+				b_blockSignature:
+					'8a727cc77864b6fc81755a1f4eb4796b68f4a943d69c74a043b5ca422f3b05608a22da4a916ca7b721d096129938b6eb3381d75f1a116484d1ce2be4904d9a0e',
+				b_height: 6,
+				b_maxHeightPreviouslyForged: 1,
+				b_prevotedConfirmedUptoHeight: 1,
+				b_id: '3920300554926889269',
+				b_relays: 1,
+				b_confirmations: 0,
+			};
 
-				return expect(block.dbRead(rawBlock)).to.contain.keys(
-					'id',
-					'version',
-					'timestamp',
-					'height',
-					'previousBlock',
-					'numberOfTransactions',
-					'totalAmount',
-					'totalFee',
-					'reward',
-					'payloadLength',
-					'payloadHash',
-					'generatorPublicKey',
-					'generatorId',
-					'blockSignature',
-					'confirmations',
-					'totalForged'
-				);
-			});
-		});
-
-		describe('dbRead V2', () => {
-			it('should throw error for null values', async () =>
-				expect(() => {
-					block.dbRead(null);
-				}).to.throw("Cannot read property 'b_version' of null"));
-
-			it('should return raw block data', async () => {
-				const rawBlock = {
-					b_version: 2,
-					b_totalAmount: 0,
-					b_totalFee: 0,
-					b_reward: 0,
-					b_payloadHash:
-						'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-					b_timestamp: 41898490,
-					b_numberOfTransactions: 0,
-					b_payloadLength: 0,
-					b_previousBlock: '1087874036928524397',
-					b_generatorPublicKey:
-						'1cc68fa0b12521158e09779fd5978ccc0ac26bf99320e00a9549b542dd9ada16',
-					b_transactions: [],
-					b_blockSignature:
-						'8a727cc77864b6fc81755a1f4eb4796b68f4a943d69c74a043b5ca422f3b05608a22da4a916ca7b721d096129938b6eb3381d75f1a116484d1ce2be4904d9a0e',
-					b_height: 6,
-					b_maxHeightPreviouslyForged: 1,
-					b_prevotedConfirmedUptoHeight: 1,
-					b_id: '3920300554926889269',
-					b_relays: 1,
-					b_confirmations: 0,
-				};
-
-				return expect(block.dbRead(rawBlock)).to.contain.keys(
-					'id',
-					'version',
-					'timestamp',
-					'height',
-					'maxHeightPreviouslyForged',
-					'prevotedConfirmedUptoHeight',
-					'previousBlock',
-					'numberOfTransactions',
-					'totalAmount',
-					'totalFee',
-					'reward',
-					'payloadLength',
-					'payloadHash',
-					'generatorPublicKey',
-					'generatorId',
-					'blockSignature',
-					'confirmations',
-					'totalForged'
-				);
-			});
+			return expect(block.dbRead(rawBlock)).to.contain.keys(
+				'id',
+				'version',
+				'timestamp',
+				'height',
+				'maxHeightPreviouslyForged',
+				'prevotedConfirmedUptoHeight',
+				'previousBlock',
+				'numberOfTransactions',
+				'totalAmount',
+				'totalFee',
+				'reward',
+				'payloadLength',
+				'payloadHash',
+				'generatorPublicKey',
+				'generatorId',
+				'blockSignature',
+				'confirmations',
+				'totalForged'
+			);
 		});
 	});
 });
