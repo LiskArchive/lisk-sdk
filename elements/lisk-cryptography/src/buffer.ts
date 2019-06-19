@@ -17,6 +17,45 @@ import * as BigNum from '@liskhq/bignum';
 export const BIG_ENDIAN = 'big';
 export const LITTLE_ENDIAN = 'little';
 
+export const intToBuffer = (
+	value: number,
+	size: number = 4,
+	endian: string = BIG_ENDIAN,
+) => {
+	const buf = Buffer.alloc(size);
+	switch (endian) {
+		case BIG_ENDIAN:
+			buf.writeIntBE(value, 0, size);
+			break;
+
+		case LITTLE_ENDIAN:
+			buf.writeIntLE(value, 0, size);
+			break;
+
+		default:
+			throw new Error('Endianness must be either big or little');
+	}
+
+	return buf;
+};
+
+export const bufferToInt = (
+	buffer: Buffer,
+	size: number = 4,
+	endian: string = BIG_ENDIAN,
+): number => {
+	switch (endian) {
+		case BIG_ENDIAN:
+			return buffer.readIntBE(0, size);
+
+		case LITTLE_ENDIAN:
+			return buffer.readIntLE(0, size);
+
+		default:
+			throw new Error('Endianness must be either big or little');
+	}
+};
+
 export const bigNumberToBuffer = (
 	bignumber: string,
 	size: number,
