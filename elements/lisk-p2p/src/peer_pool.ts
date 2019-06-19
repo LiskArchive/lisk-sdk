@@ -318,7 +318,7 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public triggerNewConnections(
-		knownPeers: ReadonlyArray<P2PDiscoveredPeerInfo>,
+		knownPeers: ReadonlyArray<P2PPeerInfo>,
 		fixedPeers: ReadonlyArray<P2PPeerInfo>,
 	): void {
 		// Try to connect to disconnected peers avoiding the fixed ones
