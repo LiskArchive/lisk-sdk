@@ -15,6 +15,7 @@
 'use strict';
 
 const path = require('path');
+const assert = require('assert');
 const { defaults, pick } = require('lodash');
 const {
 	entities: { BaseEntity },
@@ -24,8 +25,6 @@ const {
 } = require('../../../../../components/storage');
 
 const sqlFiles = {
-	create: 'chain_meta/create.sql',
-	update: 'chain_meta/update.sql',
 	upsert: 'chain_meta/upsert.sql',
 	get: 'chain_meta/get.sql',
 };
@@ -54,66 +53,6 @@ class ChainMeta extends BaseEntity {
 
 		this.sqlDirectory = path.join(path.dirname(__filename), '../sql');
 		this.SQLs = this.loadSQLFiles('chain_meta', sqlFiles, this.sqlDirectory);
-	}
-
-	/**
-	 * Update the key value pair
-	 *
-	 * @param {Object} data
-	 * @param {string} data.key
-	 * @param {string} data.value
-	 * @param {Object} [tx] - Database transaction object
-	 * @return {Promise.<null, Error>}
-	 */
-	update({ key, value }, tx) {
-		const expectedResultCount = 0;
-
-		return this.adapter.executeFile(
-			this.SQLs.update,
-			{ key, value },
-			{ expectedResultCount },
-			tx
-		);
-	}
-
-	/**
-	 * Create the key value pair
-	 *
-	 * @param {Object} data
-	 * @param {string} data.key
-	 * @param {string} data.value
-	 * @param {Object} [tx] - Database transaction object
-	 * @return {Promise.<null, Error>}
-	 */
-	create({ key, value }, tx) {
-		const expectedResultCount = 0;
-
-		return this.adapter.executeFile(
-			this.SQLs.create,
-			{ key, value },
-			{ expectedResultCount },
-			tx
-		);
-	}
-
-	/**
-	 * Update or create the key value pair
-	 *
-	 * @param {Object} data
-	 * @param {string} data.key
-	 * @param {string} data.value
-	 * @param {Object} [tx] - Database transaction object
-	 * @return {Promise.<null, Error>}
-	 */
-	upsert({ key, value }, tx) {
-		const expectedResultCount = 0;
-
-		return this.adapter.executeFile(
-			this.SQLs.upsert,
-			{ key, value },
-			{ expectedResultCount },
-			tx
-		);
 	}
 
 	/**
@@ -152,7 +91,9 @@ class ChainMeta extends BaseEntity {
 	 * @param {Object} [tx] - Database transaction object
 	 * @return {Promise<{key: string, value: string} | {}>}
 	 */
-	fetch(key, tx) {
+	async getKey(key, tx) {
+		assert(key, 'Must provide the key to get');
+
 		return this.getOne({ key }, {}, tx)
 			.then(data => data.value)
 			.catch(error => {
@@ -162,6 +103,28 @@ class ChainMeta extends BaseEntity {
 
 				throw error;
 			});
+	}
+
+	/**
+	 * Update or create the key value pair
+	 *
+	 * @param {string} key
+	 * @param {string} value
+	 * @param {Object} [tx] - Database transaction object
+	 * @return {Promise.<null, Error>}
+	 */
+	async setKey(key, value, tx) {
+		assert(key, 'Must provide the key to set');
+		assert(value, 'Must provide the value to set');
+
+		const expectedResultCount = 0;
+
+		return this.adapter.executeFile(
+			this.SQLs.upsert,
+			{ key, value },
+			{ expectedResultCount },
+			tx
+		);
 	}
 
 	_getResults(filters, options, tx, expectedResultCount = undefined) {

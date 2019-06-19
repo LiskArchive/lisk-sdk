@@ -32,21 +32,20 @@ const getAllMeta = async adapter =>
 	adapter.execute('select * from chain_meta;');
 
 describe('ChainMeta', () => {
+	const storage = new StorageSandbox(
+		testConfig.components.storage,
+		'lisk_test_chain_module_storage_chain_meta'
+	);
 	let adapter;
-	let storage;
 	let ChainMetaEntity;
 
-	const validSQLs = ['create', 'update', 'upsert', 'get'];
+	const validSQLs = ['upsert', 'get'];
 
 	const validFields = ['key', 'value'];
 
 	const validFilters = ['key', 'key_eql', 'key_ne'];
 
 	beforeAll(async () => {
-		storage = new StorageSandbox(
-			testConfig.components.storage,
-			'lisk_test_storage_custom_round_chain_module'
-		);
 		await storage.bootstrap();
 
 		adapter = storage.adapter;
@@ -111,84 +110,13 @@ describe('ChainMeta', () => {
 		});
 	});
 
-	describe('create', () => {
-		it('should create a key value pair', async () => {
-			const data = { key: 'myKey', value: 'myValue' };
-			await ChainMetaEntity.create(data);
-			const result = await getAllMeta(ChainMetaEntity.adapter);
-
-			expect(result).toEqual([data]);
-		});
-
-		it('should be rejected if key already exists', async () => {
-			const data = { key: 'myKey', value: 'myValue' };
-			await ChainMetaEntity.create(data);
-
-			await expect(ChainMetaEntity.create(data)).rejects.toThrow(
-				'duplicate key value violates unique constraint "chain_meta_pkey"'
-			);
-		});
-	});
-
-	describe('update', () => {
-		it('should update a value if key exists', async () => {
-			const data = { key: 'myKey', value: 'myValue' };
-			// First create the value
-			await ChainMetaEntity.create(data);
-
-			// Verify its created
-			const result = await getAllMeta(ChainMetaEntity.adapter);
-			expect(result).toEqual([data]);
-
-			// Now update the value
-			const dataToUpdate = {
-				key: 'myKey',
-				value: 'updatedValue',
-			};
-			await ChainMetaEntity.update(dataToUpdate);
-
-			// Verify if its updated
-			const result2 = await getAllMeta(ChainMetaEntity.adapter);
-			expect(result2).toEqual([dataToUpdate]);
-		});
-
-		it('should not be rejected if key does not exists', async () => {
-			const data = { key: 'myKey', value: 'myValue' };
-
-			// Update the data without creating it first
-			expect(ChainMetaEntity.update(data)).rejects.toThrow();
-		});
-	});
-
-	describe('upsert', () => {
-		it('should create key value pair if not exists', async () => {
-			const data = { key: 'myKey', value: 'myValue' };
-			await ChainMetaEntity.upsert(data);
-
-			const result = await getAllMeta(ChainMetaEntity.adapter);
-
-			expect(result).toEqual([data]);
-		});
-
-		it('should update the value if key already exists', async () => {
-			const data = { key: 'myKey', value: 'myValue' };
-			await ChainMetaEntity.create(data);
-
-			const data2 = { key: 'myKey', value: 'myUpdatedValue' };
-			await ChainMetaEntity.upsert(data2);
-
-			const result = await getAllMeta(ChainMetaEntity.adapter);
-			expect(result).toEqual([data2]);
-		});
-	});
-
 	describe('get', () => {
 		const data1 = { key: 'myKey1', value: 'myValue' };
 		const data2 = { key: 'myKey2', value: 'myValue' };
 
 		beforeEach(async () => {
-			await ChainMetaEntity.create(data1);
-			await ChainMetaEntity.create(data2);
+			await ChainMetaEntity.setKey(data1.key, data1.value);
+			await ChainMetaEntity.setKey(data2.key, data2.value);
 		});
 
 		it('should return the all key value pairs without filters', async () => {
@@ -210,8 +138,8 @@ describe('ChainMeta', () => {
 		const data2 = { key: 'myKey2', value: 'myValue' };
 
 		beforeEach(async () => {
-			await ChainMetaEntity.create(data1);
-			await ChainMetaEntity.create(data2);
+			await ChainMetaEntity.setKey(data1.key, data1.value);
+			await ChainMetaEntity.setKey(data2.key, data2.value);
 		});
 
 		it('should reject with error if provided without filters', async () => {
@@ -231,25 +159,63 @@ describe('ChainMeta', () => {
 		});
 	});
 
-	describe('fetch', () => {
+	describe('getKey', () => {
 		const data1 = { key: 'myKey1', value: 'myValue' };
 		const data2 = { key: 'myKey2', value: 'myValue' };
 
 		beforeEach(async () => {
-			await ChainMetaEntity.create(data1);
-			await ChainMetaEntity.create(data2);
+			await ChainMetaEntity.setKey(data1.key, data1.value);
+			await ChainMetaEntity.setKey(data2.key, data2.value);
 		});
 
-		it('should resolve with null if invoked without key', async () => {
-			expect(await ChainMetaEntity.fetch()).toBeNull();
+		it('should resolve with error when invoked without key', async () => {
+			expect(ChainMetaEntity.getKey()).rejects.toThrow(
+				'Must provide the key to get'
+			);
 		});
 
 		it('should return matching result value with provided filters', async () => {
-			expect(await ChainMetaEntity.fetch(data1.key)).toEqual(data1.value);
+			expect(await ChainMetaEntity.getKey(data1.key)).toEqual(data1.value);
 		});
 
 		it('should resolve with null if provided filter does not match', async () => {
-			expect(await ChainMetaEntity.fetch('custom-key')).toBeNull();
+			expect(await ChainMetaEntity.getKey('custom-key')).toBeNull();
+		});
+	});
+
+	describe('setKey', () => {
+		it('should resolve with error when invoked without key', async () => {
+			expect(ChainMetaEntity.setKey()).rejects.toThrow(
+				'Must provide the key to set'
+			);
+		});
+
+		it('should resolve with error when invoked without value', async () => {
+			expect(ChainMetaEntity.setKey('myKey')).rejects.toThrow(
+				'Must provide the value to set'
+			);
+		});
+
+		it('should create key value pair if not exists', async () => {
+			const key = 'myKey';
+			const value = 'myValue';
+			await ChainMetaEntity.setKey(key, value);
+
+			const result = await getAllMeta(ChainMetaEntity.adapter);
+
+			expect(result).toEqual([{ key, value }]);
+		});
+
+		it('should update the value if key already exists', async () => {
+			const key = 'myKey';
+			const value = 'myValue';
+			const updatedValue = 'myUpdatedValue';
+
+			await ChainMetaEntity.setKey(key, value);
+			await ChainMetaEntity.setKey(key, updatedValue);
+
+			const result = await getAllMeta(ChainMetaEntity.adapter);
+			expect(result).toEqual([{ key, value: updatedValue }]);
 		});
 	});
 });
