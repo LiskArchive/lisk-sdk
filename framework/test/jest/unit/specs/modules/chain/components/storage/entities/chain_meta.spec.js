@@ -53,6 +53,10 @@ describe('ChainMeta', () => {
 		ChainMetaEntity = storage.entities.ChainMeta;
 	});
 
+	afterAll(async () => {
+		storage.cleanup();
+	});
+
 	afterEach(async () => {
 		await seeder.reset(storage);
 	});
