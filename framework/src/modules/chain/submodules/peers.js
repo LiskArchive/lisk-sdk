@@ -14,7 +14,7 @@
 
 'use strict';
 
-const jobsQueue = require('../helpers/jobs_queue');
+const jobsQueue = require('../utils/jobs_queue');
 
 // Private fields
 let library;
@@ -35,7 +35,7 @@ const MAX_PEERS = 100;
  * @requires pg-promise
  * @requires semver
  * @requires api/ws/rpc/failure_codes
- * @requires helpers/jobs_queue
+ * @requires utils/jobs_queue
  * @requires logic/peer
  * @param {function} cb - Callback function
  * @param {scope} scope - App instance
@@ -55,7 +55,7 @@ class Peers {
 			channel: scope.channel,
 			blocks: scope.modules.blocks,
 			constants: {
-				minBroadhashConsensus: scope.config.constants.MIN_BROADHASH_CONSENSUS,
+				minBroadhashConsensus: scope.config.constants.minBroadhashConsensus,
 			},
 		};
 		self = this;
