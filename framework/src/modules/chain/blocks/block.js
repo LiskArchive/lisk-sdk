@@ -21,6 +21,7 @@ const {
 	getAddressFromPublicKey,
 	hash,
 	hexToBuffer,
+	intToBuffer,
 	LITTLE_ENDIAN,
 	signDataWithPrivateKey,
 	verifyData,
@@ -84,12 +85,18 @@ const getHash = block => hash(getBytes(block));
 const getBytes = block => {
 	const bufferArray = [];
 
-	const blockVersionBuffer = Buffer.alloc(SIZE_INT32);
-	blockVersionBuffer.writeInt32LE(block.version);
+	const blockVersionBuffer = intToBuffer(
+		block.version,
+		SIZE_INT32,
+		LITTLE_ENDIAN
+	);
 	bufferArray.push(blockVersionBuffer);
 
-	const timestampBuffer = Buffer.alloc(SIZE_INT32);
-	timestampBuffer.writeInt32LE(block.timestamp);
+	const timestampBuffer = intToBuffer(
+		block.timestamp,
+		SIZE_INT32,
+		LITTLE_ENDIAN
+	);
 	bufferArray.push(timestampBuffer);
 
 	const previousBlockBuffer = block.previousBlock
@@ -97,8 +104,11 @@ const getBytes = block => {
 		: Buffer.alloc(SIZE_INT64);
 	bufferArray.push(previousBlockBuffer);
 
-	const numTransactionsBuffer = Buffer.alloc(SIZE_INT32);
-	numTransactionsBuffer.writeInt32LE(block.numberOfTransactions);
+	const numTransactionsBuffer = intToBuffer(
+		block.numberOfTransactions,
+		SIZE_INT32,
+		LITTLE_ENDIAN
+	);
 	bufferArray.push(numTransactionsBuffer);
 
 	const totalAmountBuffer = bigNumberToBuffer(
@@ -122,8 +132,11 @@ const getBytes = block => {
 	);
 	bufferArray.push(rewardBuffer);
 
-	const payloadLengthBuffer = Buffer.alloc(SIZE_INT32);
-	payloadLengthBuffer.writeInt32LE(block.payloadLength);
+	const payloadLengthBuffer = intToBuffer(
+		block.payloadLength,
+		SIZE_INT32,
+		LITTLE_ENDIAN
+	);
 	bufferArray.push(payloadLengthBuffer);
 
 	const payloadHashBuffer = hexToBuffer(block.payloadHash);
