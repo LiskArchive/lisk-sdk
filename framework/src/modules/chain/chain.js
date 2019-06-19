@@ -420,7 +420,7 @@ module.exports = class Chain {
 		}
 		jobQueue.register(
 			'nextSync',
-			() => {
+			async () => {
 				this.logger.info(
 					{
 						syncing: this.loader.syncing(),
