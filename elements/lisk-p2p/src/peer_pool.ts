@@ -92,12 +92,12 @@ interface PeerPoolConfig {
 	readonly peerSelectionForRequest: P2PPeerSelectionForRequestFunction;
 	readonly peerSelectionForConnection: P2PPeerSelectionForConnectionFunction;
 	readonly sendPeerLimit: number;
-	readonly peerBanTime?: number;
+	readonly peerBanTime: number;
 	readonly maxOutboundConnections: number;
 	readonly maxInboundConnections: number;
-	readonly outboundShuffleInterval?: number;
-	readonly evictionProtectionEnabled?: boolean;
-	readonly evictionProtectionRatio?: number;
+	readonly outboundShuffleInterval: number;
+	readonly evictionProtectionEnabled: boolean;
+	readonly evictionProtectionRatio: number;
 }
 
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
@@ -153,12 +153,9 @@ export class PeerPool extends EventEmitter {
 		this._maxOutboundConnections = peerPoolConfig.maxOutboundConnections;
 		this._maxInboundConnections = peerPoolConfig.maxInboundConnections;
 		this._sendPeerLimit = peerPoolConfig.sendPeerLimit;
-		this._outboundShuffleIntervalId = setInterval(
-			() => {
-				this._evictPeer(OutboundPeer);
-			},
-			peerPoolConfig.outboundShuffleInterval as number,
-		);
+		this._outboundShuffleIntervalId = setInterval(() => {
+			this._evictPeer(OutboundPeer);
+		}, peerPoolConfig.outboundShuffleInterval);
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerRPC = (request: P2PRequest) => {
@@ -496,17 +493,17 @@ export class PeerPool extends EventEmitter {
 		})();
 	}
 
+	// TODO: Protect peers by netgroup
 	private _selectPeersForEviction(peers: Peer[]): Peer[] {
-		const PEER_PROTECTION_PERCENTAGE = 0.08;
+		const evictionProtectionRatio = this._peerPoolConfig
+			.evictionProtectionRatio;
+		const PEER_PROTECTION_PERCENTAGE_PER_CATEGORY = 0.068;
 
 		// Cannot manipulate without physically moving nodes closer to the target.
-		const LATENCY_PERCENTAGE =
-			(this._peerPoolConfig.evictionProtectionRatio as number) *
-			PEER_PROTECTION_PERCENTAGE;
+		const LATENCY_CATEGORY_PERCENTAGE =
+			evictionProtectionRatio * PEER_PROTECTION_PERCENTAGE_PER_CATEGORY;
 		const PROXIMAL_PEER_COUNT = Math.ceil(
-			(this._peerPoolConfig.evictionProtectionRatio as number) *
-				LATENCY_PERCENTAGE *
-				peers.length,
+			evictionProtectionRatio * LATENCY_CATEGORY_PERCENTAGE * peers.length,
 		);
 		const filteredPeersByLatency = peers
 			.sort((a, b) => (a.latency > b.latency ? 1 : -1))
@@ -517,12 +514,11 @@ export class PeerPool extends EventEmitter {
 		}
 
 		// Cannot manipulate this metric without performing useful work.
-		const RESPONSIVENESS_PERCENTAGE =
-			(this._peerPoolConfig.evictionProtectionRatio as number) *
-			PEER_PROTECTION_PERCENTAGE;
+		const RESPONSIVENESS_CATEGORY_PERCENTAGE =
+			evictionProtectionRatio * PEER_PROTECTION_PERCENTAGE_PER_CATEGORY;
 		const RESPONSIVE_PEER_COUNT = Math.ceil(
-			(this._peerPoolConfig.evictionProtectionRatio as number) *
-				RESPONSIVENESS_PERCENTAGE *
+			evictionProtectionRatio *
+				RESPONSIVENESS_CATEGORY_PERCENTAGE *
 				filteredPeersByLatency.length,
 		);
 		const filteredPeersByResponsiveness = filteredPeersByLatency
@@ -536,9 +532,9 @@ export class PeerPool extends EventEmitter {
 		}
 
 		// Protect remaining half of peers by longevity, precludes attacks that start later.
-		const LONGEVITY_PERCENTAGE = 0.5;
+		const LONGEVITY_CATEGORY_PERCENTAGE = 0.5;
 		const STEADY_PEER_COUNT =
-			filteredPeersByResponsiveness.length * LONGEVITY_PERCENTAGE;
+			filteredPeersByResponsiveness.length * LONGEVITY_CATEGORY_PERCENTAGE;
 		const filteredPeersByConnectTime = filteredPeersByResponsiveness
 			.sort((a, b) => (a.connectTime > b.connectTime ? 1 : -1))
 			.slice(

@@ -26,7 +26,10 @@ import { SCServerSocket } from 'socketcluster-server';
 
 export const EVENT_CLOSE_INBOUND = 'closeInbound';
 export const EVENT_INBOUND_SOCKET_ERROR = 'inboundSocketError';
-const DEFAULT_PING_INTERVAL = 500;
+export const EVENT_PING = 'ping';
+export const EVENT_PONG = 'pong';
+
+const DEFAULT_PING_INTERVAL = 60000;
 export class InboundPeer extends Peer {
 	protected _socket: SCServerSocketUpdated;
 	protected readonly _handleInboundSocketError: (error: Error) => void;
@@ -35,7 +38,8 @@ export class InboundPeer extends Peer {
 		reason: string,
 	) => void;
 	protected readonly _handlePong: (pingTime: number) => void;
-	private readonly _pingIntervalId: NodeJS.Timer | undefined;
+	private readonly _pingIntervalId: NodeJS.Timer;
+	private _pingStart: number;
 
 	public constructor(
 		peerInfo: P2PDiscoveredPeerInfo,
@@ -56,13 +60,15 @@ export class InboundPeer extends Peer {
 				reason,
 			});
 		};
-		this._handlePong = (responseTime: number) => {
-			const latency = Date.now() - responseTime;
-			this.latency = latency;
+		this._pingStart = Date.now();
+		this._handlePong = () => {
+			const latency = this._pingStart - Date.now();
+			this._latency = latency;
 		};
 		this._socket = peerSocket;
 		this._pingIntervalId = setInterval(() => {
-			this._socket.emit('ping', Date.now());
+			this._pingStart = Date.now();
+			this._socket.emit(EVENT_PING);
 		}, DEFAULT_PING_INTERVAL);
 		this._bindHandlersToInboundSocket(this._socket);
 	}
@@ -97,7 +103,7 @@ export class InboundPeer extends Peer {
 			'postTransactions',
 			this._handleRawLegacyMessagePostTransactions,
 		);
-		inboundSocket.on('pong', this._handlePong);
+		inboundSocket.on(EVENT_PONG, this._handlePong);
 	}
 
 	// All event handlers for the inbound socket should be unbound in this method.

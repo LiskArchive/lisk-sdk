@@ -135,9 +135,9 @@ export class Peer extends EventEmitter {
 	protected readonly _ipAddress: string;
 	protected readonly _wsPort: number;
 	private readonly _height: number;
-	public reputation: number;
-	public latency: number;
-	public connectTime: number;
+	protected _reputation: number;
+	protected _latency: number;
+	protected _connectTime: number;
 	public productivity: {
 		requestCounter: number;
 		responseCounter: number;
@@ -174,9 +174,9 @@ export class Peer extends EventEmitter {
 		this._wsPort = peerInfo.wsPort;
 		this._id = constructPeerId(this._ipAddress, this._wsPort);
 		this._height = peerInfo.height ? (peerInfo.height as number) : 0;
-		this.reputation = DEFAULT_REPUTATION_SCORE;
-		this.latency = 0;
-		this.connectTime = Date.now();
+		this._reputation = DEFAULT_REPUTATION_SCORE;
+		this._latency = 0;
+		this._connectTime = Date.now();
 		this._callCounter = new Map();
 		this._counterResetInterval = setInterval(() => {
 			this._callCounter = new Map();
@@ -293,6 +293,18 @@ export class Peer extends EventEmitter {
 		return this._ipAddress;
 	}
 
+	public get reputation(): number {
+		return this._reputation;
+	}
+
+	public get latency(): number {
+		return this._latency;
+	}
+
+	public get connectTime(): number {
+		return this._connectTime;
+	}
+
 	public updatePeerInfo(newPeerInfo: P2PDiscoveredPeerInfo): void {
 		// The ipAddress and wsPort properties cannot be updated after the initial discovery.
 		this._peerInfo = {
@@ -307,8 +319,8 @@ export class Peer extends EventEmitter {
 	}
 
 	public applyPenalty(penalty: number): void {
-		this.reputation -= penalty;
-		if (this.reputation <= 0) {
+		this._reputation -= penalty;
+		if (this._reputation <= 0) {
 			this._banPeer();
 		}
 	}
