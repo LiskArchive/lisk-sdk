@@ -102,18 +102,6 @@ describe('block', () => {
 		maxHeightPreviouslyForged: 1,
 		prevotedConfirmedUptoHeight: 1,
 		transactions: [],
-		exceptions: {
-			blockVersions: {
-				1: {
-					start: 1,
-					end: 7,
-				},
-				2: {
-					start: 8,
-					end: 6901027,
-				},
-			},
-		},
 	};
 
 	const invalidBlock = {

@@ -173,7 +173,7 @@ describe('block_version', () => {
 		});
 
 		describe('when 1 exception present', () => {
-			// When 1 exception is present current version (1) should be valid only if height is not
+			// When 1 exception is present current version (2) should be valid only if height is not
 			// in exception's range, exception's version should be valid for its height range
 			beforeEach(async () => {
 				exceptions = {

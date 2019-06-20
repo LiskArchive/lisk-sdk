@@ -23,8 +23,8 @@ const {
 } = require('../../../../../components/storage');
 
 const defaultCreateValues = {
-	maxHeightPreviouslyForged: null,
-	prevotedConfirmedUptoHeight: null,
+	maxHeightPreviouslyForged: 0,
+	prevotedConfirmedUptoHeight: 0,
 };
 const createFields = [
 	'id',

@@ -93,23 +93,11 @@ describe('block', () => {
 			transactions: [],
 			blockSignature:
 				'8a727cc77864b6fc81755a1f4eb4796b68f4a943d69c74a043b5ca422f3b05608a22da4a916ca7b721d096129938b6eb3381d75f1a116484d1ce2be4904d9a0e',
-			height: 6,
+			height: 69,
 			id: '3920300554926889269',
 			relays: 1,
 		},
 		transactions: [],
-		exceptions: {
-			blockVersions: {
-				1: {
-					start: 1,
-					end: 7,
-				},
-				2: {
-					start: 8,
-					end: 6901027,
-				},
-			},
-		},
 	};
 
 	const invalidBlock = {
@@ -636,7 +624,7 @@ describe('block', () => {
 				b_transactions: [],
 				b_blockSignature:
 					'8a727cc77864b6fc81755a1f4eb4796b68f4a943d69c74a043b5ca422f3b05608a22da4a916ca7b721d096129938b6eb3381d75f1a116484d1ce2be4904d9a0e',
-				b_height: 6,
+				b_height: 69,
 				b_id: '3920300554926889269',
 				b_relays: 1,
 				b_confirmations: 0,
