@@ -26,14 +26,14 @@ const {
 	ChainMeta,
 } = require('../../../../../../../../../src/modules/chain/components/storage/entities');
 
-const testConfig = require('../../../../../../../../fixtures/config/devnet/config');
+const { config } = require('../../shared');
 
 const getAllMeta = async adapter =>
 	adapter.execute('select * from chain_meta;');
 
 describe('ChainMeta', () => {
 	const storage = new StorageSandbox(
-		testConfig.components.storage,
+		config.components.storage,
 		'lisk_test_chain_module_storage_chain_meta'
 	);
 	let adapter;
