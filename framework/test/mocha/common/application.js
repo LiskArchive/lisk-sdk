@@ -324,6 +324,7 @@ const initStepsForTest = {
 			logger: scope.components.logger,
 			storage: scope.components.storage,
 			cache: scope.components.cache,
+			sequence: scope.sequence,
 			genesisBlock: __testContext.config.genesisBlock,
 			transactionPoolModule: modules.transactionPool,
 			blocksModule: modules.blocks,

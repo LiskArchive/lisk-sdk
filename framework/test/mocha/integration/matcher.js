@@ -278,16 +278,20 @@ describe('matcher', () => {
 			// Arrange
 			setMatcherAndRegisterTx(scope, CustomTransationClass, () => false);
 			const jsonTransaction = createRawCustomTransaction(commonTransactionData);
-			createRawBlock(scope, [jsonTransaction], async (err, rawBlock) => {
-				if (err) {
-					throw err;
-				}
-
-				// Act: Simulate receiving a block from a peer
-				scope.modules.blocks.receiveBlockFromNetwork(rawBlock);
-				await scope.sequence._tick();
-				expect(scope.modules.blocks.lastBlock.height).to.equal(1);
+			const rawBlock = await new Promise((resolve, reject) => {
+				createRawBlock(scope, [jsonTransaction], (err, block) => {
+					if (err) {
+						return reject(err);
+					}
+					return resolve(block);
+				});
 			});
+			try {
+				await scope.modules.blocks.receiveBlockFromNetwork(rawBlock);
+			} catch (err) {
+				// Expected err
+			}
+			expect(scope.modules.blocks.lastBlock.height).to.equal(1);
 		});
 
 		it('should accept the block if it contains allowed transactions for the given block context', async () => {
@@ -296,17 +300,16 @@ describe('matcher', () => {
 			const jsonTransaction = createRawCustomTransaction(commonTransactionData);
 
 			// TODO: Actually create
-
-			createBlock(scope, [jsonTransaction], async (err, block) => {
-				if (err) {
-					throw err;
-				}
-
-				// Act: Simulate receiving a block from a peer
-				scope.modules.blocks.receiveBlockFromNetwork(block);
-				await scope.sequence._tick();
-				expect(scope.modules.blocks.lastBlock.height).to.equal(2);
+			const newBlock = await new Promise((resolve, reject) => {
+				createBlock(scope, [jsonTransaction], (err, block) => {
+					if (err) {
+						return reject(err);
+					}
+					return resolve(block);
+				});
 			});
+			await scope.modules.blocks.receiveBlockFromNetwork(newBlock);
+			expect(scope.modules.blocks.lastBlock.height).to.equal(2);
 		});
 	});
 
