@@ -61,7 +61,7 @@ const createLogger = ({ fileLogLevel, consoleLogLevel, logFileName }) => {
 		name: 'lisk-framework',
 		streams,
 		src: consoleSrc || fileSrc,
-		serializers: {err: bunyan.stdSerializers.err},
+		serializers: { err: bunyan.stdSerializers.err },
 	});
 };
 
