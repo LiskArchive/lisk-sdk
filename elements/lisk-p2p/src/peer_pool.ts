@@ -321,7 +321,7 @@ export class PeerPool extends EventEmitter {
 		knownPeers: ReadonlyArray<P2PPeerInfo>,
 		fixedPeers: ReadonlyArray<P2PPeerInfo>,
 	): void {
-		// Try to connect to disconnected peers avoiding the fixed ones
+		// Try to connect to disconnected peers without including the fixed ones which are specially treated thereafter
 		const disconnectedPeers = knownPeers.filter(
 			peer =>
 				!this._peerMap.has(constructPeerIdFromPeerInfo(peer)) ||

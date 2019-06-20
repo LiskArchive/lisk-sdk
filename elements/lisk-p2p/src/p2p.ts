@@ -239,10 +239,10 @@ export class P2P extends EventEmitter {
 
 		this._handleOutboundPeerConnectAbort = (peerInfo: P2PPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			const isWhiteListed = this._peerListsWithoutConflicts.whitelisted.find(
+			const isWhitelisted = this._peerListsWithoutConflicts.whitelisted.find(
 				peer => constructPeerIdFromPeerInfo(peer) === peerId,
 			);
-			if (this._triedPeers.has(peerId) && !isWhiteListed) {
+			if (this._triedPeers.has(peerId) && !isWhitelisted) {
 				this._triedPeers.delete(peerId);
 			}
 
@@ -309,10 +309,10 @@ export class P2P extends EventEmitter {
 
 		this._handleBanPeer = (peerId: string) => {
 			this._bannedPeers.add(peerId.split(':')[0]);
-			const isWhiteListed = this._peerListsWithoutConflicts.whitelisted.find(
+			const isWhitelisted = this._peerListsWithoutConflicts.whitelisted.find(
 				peer => constructPeerIdFromPeerInfo(peer) === peerId,
 			);
-			if (this._triedPeers.has(peerId) && !isWhiteListed) {
+			if (this._triedPeers.has(peerId) && !isWhitelisted) {
 				this._triedPeers.delete(peerId);
 			}
 			if (this._newPeers.has(peerId)) {
@@ -330,18 +330,17 @@ export class P2P extends EventEmitter {
 
 		// When peer is fetched for status after connection then update the peerinfo in triedPeer list
 		this._handleDiscoveredPeer = (detailedPeerInfo: P2PPeerInfo) => {
-			// Check blacklist to avoid incoming connections from backlisted ips
-			if (this._peerListsWithoutConflicts.blacklistedPeers) {
-				const blacklist = this._peerListsWithoutConflicts.blacklistedPeers.map(
-					peer => peer.ipAddress,
-				);
-				if (blacklist.includes(detailedPeerInfo.ipAddress)) {
-					return;
-				}
-			}
 			const peerId = constructPeerIdFromPeerInfo(detailedPeerInfo);
+			// Check blacklist to avoid incoming connections from backlisted ips
+			const isBlacklisted = this._peerListsWithoutConflicts.blacklistedPeers.find(
+				peer => constructPeerIdFromPeerInfo(peer) === peerId,
+			);
 
-			if (!this._triedPeers.has(peerId) && !this._newPeers.has(peerId)) {
+			if (
+				!this._triedPeers.has(peerId) &&
+				!this._newPeers.has(peerId) &&
+				!isBlacklisted
+			) {
 				this._newPeers.set(peerId, detailedPeerInfo);
 
 				// Re-emit the message to allow it to bubble up the class hierarchy.
@@ -623,10 +622,10 @@ export class P2P extends EventEmitter {
 					this.emit(EVENT_NEW_PEER, incomingPeerInfo);
 				}
 
-				const isWhiteListed = this._peerListsWithoutConflicts.whitelisted.find(
+				const isWhitelisted = this._peerListsWithoutConflicts.whitelisted.find(
 					peer => constructPeerIdFromPeerInfo(peer) === peerId,
 				);
-				if (this._triedPeers.has(peerId) && !isWhiteListed) {
+				if (this._triedPeers.has(peerId) && !isWhitelisted) {
 					this._triedPeers.delete(peerId);
 				}
 				if (!this._newPeers.has(peerId)) {
@@ -732,7 +731,7 @@ export class P2P extends EventEmitter {
 				peerId === constructPeerId(seedPeer.ipAddress, seedPeer.wsPort),
 		);
 
-		const isWhiteListed = this._peerListsWithoutConflicts.whitelisted.find(
+		const isWhitelisted = this._peerListsWithoutConflicts.whitelisted.find(
 			peer => constructPeerIdFromPeerInfo(peer) === peerId,
 		);
 
@@ -740,7 +739,7 @@ export class P2P extends EventEmitter {
 			peer => constructPeerIdFromPeerInfo(peer) === peerId,
 		);
 
-		return !!isSeed || !!isWhiteListed || !!isFixed;
+		return !!isSeed || !!isWhitelisted || !!isFixed;
 	}
 
 	public async start(): Promise<void> {
