@@ -91,6 +91,8 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 			transactions,
 			blockReward,
 			maxPayloadLength,
+			maxHeightPreviouslyForged: 0,
+			prevotedConfirmedUptoHeight: 0,
 		});
 
 		block.id = blocksUtils.getId(block);

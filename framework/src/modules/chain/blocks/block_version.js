@@ -42,7 +42,7 @@ const isValid = (version, height, exceptions = {}) => {
 
 	if (exceptionVersion === undefined) {
 		// If there is no exception for provided height - check against current block version
-		return version === currentBlockVersion;
+		return version === blockVersionInterface.currentBlockVersion;
 	}
 
 	// If there is an exception - check if version match
@@ -50,8 +50,8 @@ const isValid = (version, height, exceptions = {}) => {
 };
 
 const getBlockVersion = (height, exceptions = {}) => {
-	if (height === undefined || !Object.keys(exceptions).length) {
-		return currentBlockVersion;
+	if (height === undefined || !exceptions.blockVersions) {
+		return blockVersionInterface.currentBlockVersion;
 	}
 
 	const exceptionVersion = Object.keys(exceptions.blockVersions).find(
@@ -67,14 +67,16 @@ const getBlockVersion = (height, exceptions = {}) => {
 
 	if (exceptionVersion === undefined) {
 		// If there is no exception for provided height return currentBlockVersion
-		return currentBlockVersion;
+		return blockVersionInterface.currentBlockVersion;
 	}
 
 	return Number(exceptionVersion);
 };
 
-module.exports = {
+const blockVersionInterface = {
 	isValid,
 	currentBlockVersion,
 	getBlockVersion,
 };
+
+module.exports = blockVersionInterface;
