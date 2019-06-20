@@ -380,7 +380,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							library.modules.blocks.blockReward,
 							library.modules.blocks.constants.maxPayloadLength
 						);
-						library.modules.blocks.receiveBlockFromNetwork(
+						return library.modules.blocks.receiveBlockFromNetwork(
 							blockWithGreaterTimestamp
 						);
 					});
@@ -451,13 +451,17 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 				describe('when received block is from previous round (101 blocks back)', () => {
 					let blockFromPreviousRound;
 
-					beforeEach(() => {
+					beforeEach(async () => {
 						blockFromPreviousRound =
 							forgedBlocks[forgedBlocks.length - ACTIVE_DELEGATES];
 						blockFromPreviousRound.height = mutatedHeight;
-						return library.modules.blocks.receiveBlockFromNetwork(
-							blockFromPreviousRound
-						);
+						try {
+							await library.modules.blocks.receiveBlockFromNetwork(
+								blockFromPreviousRound
+							);
+						} catch (err) {
+							// expected error
+						}
 					});
 
 					it('should reject received block', done => {
@@ -477,13 +481,17 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 					1} slots in the past`, () => {
 					let inSlotsWindowBlock;
 
-					beforeEach(() => {
+					beforeEach(async () => {
 						inSlotsWindowBlock =
 							forgedBlocks[forgedBlocks.length - (BLOCK_SLOT_WINDOW - 1)];
 						inSlotsWindowBlock.height = mutatedHeight;
-						return library.modules.blocks.receiveBlockFromNetwork(
-							inSlotsWindowBlock
-						);
+						try {
+							await library.modules.blocks.receiveBlockFromNetwork(
+								inSlotsWindowBlock
+							);
+						} catch (err) {
+							// expected error
+						}
 					});
 
 					it('should reject received block', done => {
@@ -502,13 +510,17 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 				describe(`when received block is from same round and greater than ${BLOCK_SLOT_WINDOW} slots in the past`, () => {
 					let outOfSlotWindowBlock;
 
-					beforeEach(() => {
+					beforeEach(async () => {
 						outOfSlotWindowBlock =
 							forgedBlocks[forgedBlocks.length - (BLOCK_SLOT_WINDOW + 2)];
 						outOfSlotWindowBlock.height = mutatedHeight;
-						return library.modules.blocks.receiveBlockFromNetwork(
-							outOfSlotWindowBlock
-						);
+						try {
+							await library.modules.blocks.receiveBlockFromNetwork(
+								outOfSlotWindowBlock
+							);
+						} catch (err) {
+							// expected error
+						}
 					});
 
 					it('should reject received block', done => {
@@ -527,25 +539,32 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 				describe('when received block is from a future slot', () => {
 					let blockFromFutureSlot;
 
-					beforeEach(() => {
+					beforeEach(async () => {
 						const slot = slots.getSlotNumber() + 1;
-						return getValidKeypairForSlot(slot).then(keypair => {
-							const dummyBlock = {
-								id: '0',
-								height: mutatedHeight - 1,
-							};
-							blockFromFutureSlot = createBlock(
-								[],
-								slots.getSlotTime(slot),
-								keypair,
-								dummyBlock,
-								library.modules.blocks.blockReward,
-								library.modules.blocks.constants.maxPayloadLength
-							);
-							library.modules.blocks.receiveBlockFromNetwork(
+						blockFromFutureSlot = await getValidKeypairForSlot(slot).then(
+							keypair => {
+								const dummyBlock = {
+									id: '0',
+									height: mutatedHeight - 1,
+								};
+								const block = createBlock(
+									[],
+									slots.getSlotTime(slot),
+									keypair,
+									dummyBlock,
+									library.modules.blocks.blockReward,
+									library.modules.blocks.constants.maxPayloadLength
+								);
+								return block;
+							}
+						);
+						try {
+							await library.modules.blocks.receiveBlockFromNetwork(
 								blockFromFutureSlot
 							);
-						});
+						} catch (error) {
+							// expected error
+						}
 					});
 
 					it('should reject received block', done => {
@@ -786,9 +805,13 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 									library.modules.blocks.blockReward,
 									library.modules.blocks.constants.maxPayloadLength
 								);
-								await library.modules.blocks.receiveBlockFromNetwork(
-									blockWithDifferentKeyAndTimestamp
-								);
+								try {
+									await library.modules.blocks.receiveBlockFromNetwork(
+										blockWithDifferentKeyAndTimestamp
+									);
+								} catch (error) {
+									// expected error
+								}
 								const blockIds = await new Promise((resolve, reject) => {
 									getBlocks((err, res) => {
 										if (err) {

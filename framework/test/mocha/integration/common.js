@@ -232,7 +232,7 @@ function addTransaction(library, transaction, cb) {
 	library.modules.transactionPool
 		.processUnconfirmedTransaction(transaction)
 		.then(() => cb(null, transaction.id))
-		.catch(error => cb(error));
+		.catch(error => cb(error.toString()));
 }
 
 function addTransactionToUnconfirmedQueue(library, transaction, cb) {

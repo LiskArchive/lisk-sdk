@@ -120,7 +120,10 @@ describe('integration test (type 1) - second signature transactions from pool an
 				describe('confirmed state', () => {
 					it('should update confirmed columns related to signature', async () => {
 						const account = await library.sequence.add(async () => {
-							localCommon.getAccountFromDb(library, signatureAccount.address);
+							return localCommon.getAccountFromDb(
+								library,
+								signatureAccount.address
+							);
 						});
 						expect(account).to.exist;
 						expect(account.mem_accounts.secondSignature).to.equal(1);
@@ -151,7 +154,11 @@ describe('integration test (type 1) - second signature transactions from pool an
 						signatureTransaction3,
 						signatureTransaction4,
 					]);
-					return library.modules.blocks.receiveBlockFromNetwork(block);
+					try {
+						await library.modules.blocks.receiveBlockFromNetwork(block);
+					} catch (err) {
+						// expected error
+					}
 				});
 
 				describe('should reject block', () => {
