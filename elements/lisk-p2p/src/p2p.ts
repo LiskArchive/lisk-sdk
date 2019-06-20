@@ -182,14 +182,11 @@ export class P2P extends EventEmitter {
 		super();
 		this._peerListsWithoutConflicts = handlePeerListsConflicts(
 			{
-				seedPeers: config.seedPeers || ([] as ReadonlyArray<P2PPeerInfo>),
-				blacklistedPeers:
-					config.blacklistedPeers || ([] as ReadonlyArray<P2PPeerInfo>),
-				fixedPeers: config.fixedPeers || ([] as ReadonlyArray<P2PPeerInfo>),
-				whitelisted:
-					config.whitelistedPeers || ([] as ReadonlyArray<P2PPeerInfo>),
-				previousPeers:
-					config.previousPeers || ([] as ReadonlyArray<P2PDiscoveredPeerInfo>),
+				seedPeers: config.seedPeers || [],
+				blacklistedPeers: config.blacklistedPeers || [],
+				fixedPeers: config.fixedPeers || [],
+				whitelisted: config.whitelistedPeers || [],
+				previousPeers: config.previousPeers || [],
 			},
 			{
 				ipAddress: config.hostIp || DEFAULT_NODE_HOST_IP,
