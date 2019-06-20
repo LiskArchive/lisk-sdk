@@ -354,7 +354,13 @@ class Application {
 			{
 				components: this.config.components,
 				ipc: this.config.app.ipc,
-				initialState: this.config.initialState,
+				version: this.config.app.version,
+				minVersion: this.config.app.minVersion,
+				protocolVersion: this.config.app.protocolVersion,
+				nonce: randomstring.generate(16),
+				nethash: this.genesisBlock.payloadHash,
+				wsPort: this.config.modules.network.wsPort,
+				httpPort: this.config.modules.http_api.httpPort,
 			},
 			this.logger
 		);
@@ -383,9 +389,6 @@ class Application {
 	_compileAndValidateConfigurations() {
 		const modules = this.getModules();
 
-		this.config.app.nonce = randomstring.generate(16);
-		this.config.app.nethash = this.genesisBlock.payloadHash;
-
 		const appConfigToShareWithModules = {
 			version: this.config.app.version,
 			minVersion: this.config.app.minVersion,
@@ -409,16 +412,6 @@ class Application {
 			});
 			this.overrideModuleOptions(alias, appConfigToShareWithModules);
 		});
-
-		this.config.initialState = {
-			version: this.config.app.version,
-			minVersion: this.config.app.minVersion,
-			protocolVersion: this.config.app.protocolVersion,
-			nonce: this.config.app.nonce,
-			nethash: this.config.app.nethash,
-			wsPort: this.config.modules.network.wsPort,
-			httpPort: this.config.modules.http_api.httpPort,
-		};
 
 		this.logger.trace('Compiled configurations', this.config);
 	}
