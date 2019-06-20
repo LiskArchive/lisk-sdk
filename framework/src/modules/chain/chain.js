@@ -23,7 +23,7 @@ const { Sequence } = require('./utils/sequence');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
-const { createBus, bootstrapStorage, bootstrapCache } = require('./init_steps');
+const { bootstrapStorage, bootstrapCache } = require('./init_steps');
 const jobQueue = require('./utils/jobs_queue');
 const { Peers } = require('./peers');
 const { TransactionInterfaceAdapter } = require('./interface_adapters');
@@ -147,18 +147,11 @@ module.exports = class Chain {
 			await bootstrapStorage(this.scope, global.constants.ACTIVE_DELEGATES);
 			await bootstrapCache(this.scope);
 
-			this.scope.bus = await createBus();
-
 			await this._initModules();
-
-			this.scope.bus.registerModules(this.scope.modules);
 
 			this.channel.subscribe('app:state:updated', event => {
 				Object.assign(this.scope.applicationState, event.data);
 			});
-
-			// Fire onBind event in every module
-			this.scope.bus.message('bind', this.scope);
 
 			this.logger.info('Modules ready and launched');
 			// After binding, it should immediately load blockchain
@@ -307,7 +300,6 @@ module.exports = class Chain {
 				logger: this.logger,
 				storage: this.storage,
 			},
-			bus: this.scope.bus,
 			slots: this.slots,
 			config: {
 				exceptions: this.options.exceptions,
