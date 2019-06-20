@@ -21,12 +21,10 @@ import {
 
 import {
 	ClientOptionsUpdated,
-	ConnectAndFetchResponse,
 	convertNodeInfoToLegacyFormat,
 	DEFAULT_ACK_TIMEOUT,
 	DEFAULT_CONNECT_TIMEOUT,
-	EVENT_DISCOVERED_PEER,
-	EVENT_FAILED_TO_FETCH_PEER_INFO,
+	EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
 	Peer,
 	PeerConfig,
 	REMOTE_EVENT_MESSAGE,
@@ -49,6 +47,7 @@ import { validatePeerInfo } from '../validation';
 
 type SCClientSocket = socketClusterClient.SCClientSocket;
 
+export const EVENT_DISCOVERED_PEER = 'discoveredPeer';
 export const EVENT_CONNECT_OUTBOUND = 'connectOutbound';
 export const EVENT_CONNECT_ABORT_OUTBOUND = 'connectAbortOutbound';
 export const EVENT_CLOSE_OUTBOUND = 'closeOutbound';
@@ -62,16 +61,8 @@ export interface PeerInfoAndOutboundConnection {
 export class OutboundPeer extends Peer {
 	protected _socket: SCClientSocket | undefined;
 
-	public constructor(
-		peerInfo: P2PDiscoveredPeerInfo,
-		peerSocket?: SCClientSocket,
-		peerConfig?: PeerConfig,
-	) {
+	public constructor(peerInfo: P2PPeerInfo, peerConfig?: PeerConfig) {
 		super(peerInfo, peerConfig);
-		this._socket = peerSocket ? peerSocket : undefined;
-		if (this._socket) {
-			this._bindHandlersToOutboundSocket(this._socket);
-		}
 	}
 
 	public set socket(scClientSocket: SCClientSocket) {
@@ -147,19 +138,6 @@ export class OutboundPeer extends Peer {
 		}
 	}
 
-	private async _updatePeerOnConnect(): Promise<void> {
-		// tslint:disable-next-line no-let
-		let detailedPeerInfo;
-		try {
-			detailedPeerInfo = await this.fetchStatus();
-		} catch (error) {
-			this.emit(EVENT_FAILED_TO_FETCH_PEER_INFO, error);
-
-			return;
-		}
-		this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
-	}
-
 	// All event handlers for the outbound socket should be bound in this method.
 	private _bindHandlersToOutboundSocket(outboundSocket: SCClientSocket): void {
 		outboundSocket.on('error', (error: Error) => {
@@ -168,7 +146,11 @@ export class OutboundPeer extends Peer {
 
 		outboundSocket.on('connect', async () => {
 			this.emit(EVENT_CONNECT_OUTBOUND, this._peerInfo);
-			await this._updatePeerOnConnect();
+			try {
+				await Promise.all([this.fetchStatus(), this.discoverPeers()]);
+			} catch (error) {
+				this.emit(EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT, error);
+			}
 		});
 
 		outboundSocket.on('connectAbort', () => {
@@ -228,8 +210,8 @@ export const connectAndRequest = async (
 	procedure: string,
 	nodeInfo?: P2PNodeInfo,
 	peerConfig?: PeerConfig,
-): Promise<ConnectAndFetchResponse> =>
-	new Promise<ConnectAndFetchResponse>(
+): Promise<P2PResponsePacket> =>
+	new Promise<P2PResponsePacket>(
 		(resolve, reject): void => {
 			const legacyNodeInfo = nodeInfo
 				? convertNodeInfoToLegacyFormat(nodeInfo)
@@ -286,6 +268,7 @@ export const connectAndRequest = async (
 				},
 				(err: Error | undefined, responseData: unknown) => {
 					outboundSocket.off('close', closeHandler);
+					outboundSocket.disconnect();
 					if (err) {
 						const isFailedConnection =
 							disconnectReason &&
@@ -301,10 +284,7 @@ export const connectAndRequest = async (
 					}
 					if (responseData) {
 						const responsePacket = responseData as P2PResponsePacket;
-						resolve({
-							responsePacket,
-							socket: outboundSocket,
-						});
+						resolve(responsePacket);
 
 						return;
 					}
@@ -326,9 +306,9 @@ export const connectAndFetchPeerInfo = async (
 	basicPeerInfo: P2PPeerInfo,
 	nodeInfo?: P2PNodeInfo,
 	peerConfig?: PeerConfig,
-): Promise<PeerInfoAndOutboundConnection> => {
+): Promise<P2PPeerInfo> => {
 	try {
-		const { responsePacket, socket } = await connectAndRequest(
+		const responsePacket = await connectAndRequest(
 			basicPeerInfo,
 			REMOTE_RPC_GET_NODE_INFO,
 			nodeInfo,
@@ -341,9 +321,8 @@ export const connectAndFetchPeerInfo = async (
 			ip: basicPeerInfo.ipAddress,
 			wsPort: basicPeerInfo.wsPort,
 		};
-		const peerInfo = validatePeerInfo(rawPeerInfo);
 
-		return { peerInfo, socket };
+		return validatePeerInfo(rawPeerInfo);
 	} catch (error) {
 		throw new FetchPeerStatusError(
 			`Error occurred while fetching information from ${

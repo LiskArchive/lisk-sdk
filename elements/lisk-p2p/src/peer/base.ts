@@ -64,15 +64,18 @@ export type SCServerSocketUpdated = {
 type SCClientSocket = socketClusterClient.SCClientSocket;
 
 // Local emitted events.
-export const EVENT_UPDATED_PEER_INFO = 'updatedPeerInfo';
-export const EVENT_FAILED_PEER_INFO_UPDATE = 'failedPeerInfoUpdate';
 export const EVENT_REQUEST_RECEIVED = 'requestReceived';
 export const EVENT_INVALID_REQUEST_RECEIVED = 'invalidRequestReceived';
 export const EVENT_MESSAGE_RECEIVED = 'messageReceived';
 export const EVENT_INVALID_MESSAGE_RECEIVED = 'invalidMessageReceived';
 export const EVENT_BAN_PEER = 'banPeer';
-export const EVENT_UNBAN_PEER = 'banPeer';
 export const EVENT_DISCOVERED_PEER = 'discoveredPeer';
+export const EVENT_UNBAN_PEER = 'unbanPeer';
+export const EVENT_UPDATED_PEER_INFO = 'updatedPeerInfo';
+export const EVENT_FAILED_PEER_INFO_UPDATE = 'failedPeerInfoUpdate';
+export const EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT =
+	'failedToCollectPeerDetailsOnConnect';
+export const EVENT_FAILED_TO_FETCH_PEERS = 'failedToFetchPeers';
 export const EVENT_FAILED_TO_FETCH_PEER_INFO = 'failedToFetchPeerInfo';
 export const EVENT_FAILED_TO_PUSH_NODE_INFO = 'failedToPushNodeInfo';
 
@@ -120,11 +123,6 @@ export interface PeerConfig {
 	readonly ackTimeout?: number;
 }
 
-export interface ConnectAndFetchResponse {
-	readonly responsePacket: P2PResponsePacket;
-	readonly socket: SCClientSocket;
-}
-
 export class Peer extends EventEmitter {
 	private readonly _id: string;
 	protected readonly _ipAddress: string;
@@ -133,7 +131,7 @@ export class Peer extends EventEmitter {
 	private _reputation: number;
 	private _callCounter: Map<string, number>;
 	private readonly _counterResetInterval: NodeJS.Timer;
-	protected _peerInfo: P2PDiscoveredPeerInfo;
+	protected _peerInfo: P2PPeerInfo;
 	protected readonly _peerConfig: PeerConfig;
 	protected _nodeInfo: P2PNodeInfo | undefined;
 	protected readonly _handleRawRPC: (
@@ -152,14 +150,14 @@ export class Peer extends EventEmitter {
 	) => void;
 	protected _socket: SCServerSocketUpdated | SCClientSocket | undefined;
 
-	public constructor(peerInfo: P2PDiscoveredPeerInfo, peerConfig?: PeerConfig) {
+	public constructor(peerInfo: P2PPeerInfo, peerConfig?: PeerConfig) {
 		super();
 		this._peerInfo = peerInfo;
 		this._peerConfig = peerConfig ? peerConfig : {};
 		this._ipAddress = peerInfo.ipAddress;
 		this._wsPort = peerInfo.wsPort;
 		this._id = constructPeerId(this._ipAddress, this._wsPort);
-		this._height = peerInfo.height ? peerInfo.height : 0;
+		this._height = peerInfo.height ? (peerInfo.height as number) : 0;
 		this._reputation = DEFAULT_REPUTATION_SCORE;
 		this._callCounter = new Map();
 		this._counterResetInterval = setInterval(() => {
@@ -274,7 +272,7 @@ export class Peer extends EventEmitter {
 		};
 	}
 
-	public get peerInfo(): P2PDiscoveredPeerInfo {
+	public get peerInfo(): P2PPeerInfo {
 		return this._peerInfo;
 	}
 
@@ -390,7 +388,7 @@ export class Peer extends EventEmitter {
 		);
 	}
 
-	public async fetchPeers(): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> {
+	public async fetchPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
 		try {
 			const response: P2PResponsePacket = await this.request({
 				procedure: REMOTE_RPC_GET_ALL_PEERS_LIST,
@@ -398,6 +396,8 @@ export class Peer extends EventEmitter {
 
 			return validatePeerInfoList(response.data);
 		} catch (error) {
+			this.emit(EVENT_FAILED_TO_FETCH_PEERS, error);
+
 			throw new RPCResponseError(
 				'Failed to fetch peer list of peer',
 				this.ipAddress,
@@ -405,18 +405,37 @@ export class Peer extends EventEmitter {
 		}
 	}
 
-	public async fetchStatus(): Promise<P2PDiscoveredPeerInfo> {
+	public async discoverPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
+		const discoveredPeerInfoList = await this.fetchPeers();
+		discoveredPeerInfoList.forEach(peerInfo => {
+			this.emit(EVENT_DISCOVERED_PEER, peerInfo);
+		});
+
+		return discoveredPeerInfoList;
+	}
+
+	public async fetchStatus(): Promise<P2PPeerInfo> {
+		// tslint:disable-next-line:no-let
+		let response: P2PResponsePacket;
 		try {
-			const response: P2PResponsePacket = await this.request({
+			response = await this.request({
 				procedure: REMOTE_RPC_GET_NODE_INFO,
 			});
+		} catch (error) {
+			this.emit(EVENT_FAILED_TO_FETCH_PEER_INFO, error);
 
+			throw new RPCResponseError(
+				'Failed to fetch peer info of peer',
+				`${this.ipAddress}:${this.wsPort}`,
+			);
+		}
+		try {
 			this._updateFromProtocolPeerInfo(response.data);
 		} catch (error) {
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
 
 			throw new RPCResponseError(
-				'Failed to fetch peer info of peer',
+				'Failed to update peer info of peer as part of fetch operation',
 				`${this.ipAddress}:${this.wsPort}`,
 			);
 		}
@@ -429,7 +448,9 @@ export class Peer extends EventEmitter {
 
 	private _updateFromProtocolPeerInfo(rawPeerInfo: unknown): void {
 		const protocolPeerInfo = { ...rawPeerInfo, ip: this._ipAddress };
-		const newPeerInfo = validatePeerInfo(protocolPeerInfo);
+		const newPeerInfo = validatePeerInfo(
+			protocolPeerInfo,
+		) as P2PDiscoveredPeerInfo;
 		this.updatePeerInfo(newPeerInfo);
 	}
 

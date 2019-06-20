@@ -35,8 +35,7 @@ describe('Integration tests for P2P library', () => {
 	const NETWORK_START_PORT = 5000;
 
 	const NETWORK_PEER_COUNT = 10;
-	const DISCOVERY_INTERVAL = 200;
-	const POPULATOR_INTERVAL = 1000;
+	const POPULATOR_INTERVAL = 50;
 	const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
 	const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
 	const ALL_NODE_PORTS: ReadonlyArray<number> = [
@@ -50,7 +49,7 @@ describe('Integration tests for P2P library', () => {
 		beforeEach(async () => {
 			p2pNodeList = ALL_NODE_PORTS.map(nodePort => {
 				return new P2P({
-					connectTimeout: 5000,
+					connectTimeout: 100,
 					seedPeers: [],
 					wsEngine: 'ws',
 					populatorInterval: POPULATOR_INTERVAL,
@@ -121,10 +120,8 @@ describe('Integration tests for P2P library', () => {
 				return new P2P({
 					seedPeers,
 					wsEngine: 'ws',
-					connectTimeout: 5000,
-					ackTimeout: 5000,
-					// Set a different discoveryInterval for each node; that way they don't keep trying to discover each other at the same time.
-					discoveryInterval: DISCOVERY_INTERVAL + index * 11,
+					connectTimeout: 100,
+					ackTimeout: 200,
 					peerBanTime: 100,
 					populatorInterval: POPULATOR_INTERVAL,
 					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
@@ -150,7 +147,7 @@ describe('Integration tests for P2P library', () => {
 			);
 
 			await Promise.all(peerStartPromises);
-			await wait(100);
+			await wait(200);
 		});
 
 		afterEach(async () => {
@@ -164,7 +161,7 @@ describe('Integration tests for P2P library', () => {
 		describe('Peer discovery', () => {
 			it('should discover all peers in the network after a few cycles of discovery', async () => {
 				// Wait for a few cycles of discovery.
-				await wait(DISCOVERY_INTERVAL * 7);
+				await wait(POPULATOR_INTERVAL * 10);
 
 				p2pNodeList.forEach(p2p => {
 					const { connectedPeers } = p2p.getNetworkStatus();
@@ -254,7 +251,7 @@ describe('Integration tests for P2P library', () => {
 					});
 				});
 
-				it('should send messages to subset of peers within the network; should reach multiple peers with even distribution', async () => {
+				it('should send messages to peers within the network; should reach multiple peers with even distribution', async () => {
 					const TOTAL_SENDS = 100;
 					const randomPeerIndex = Math.floor(
 						Math.random() * NETWORK_PEER_COUNT,
@@ -314,7 +311,7 @@ describe('Integration tests for P2P library', () => {
 					});
 				});
 
-				it('should send messages to subset of peers within the network with updated heights; should reach multiple peers with even distribution', async () => {
+				it('should send messages to peers within the network with updated heights; should reach multiple peers with even distribution', async () => {
 					const TOTAL_SENDS = 100;
 					const nodePortToMessagesMap: any = {};
 
@@ -368,77 +365,6 @@ describe('Integration tests for P2P library', () => {
 			});
 		});
 
-		describe('P2P.applyNodeInfo', () => {
-			it('should send the node info to a subset of peers within the network. It should update itself and reflect new values', async () => {
-				const firstP2PNode = p2pNodeList[0];
-
-				firstP2PNode.applyNodeInfo({
-					os: platform(),
-					nethash:
-						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-					version: firstP2PNode.nodeInfo.version,
-					protocolVersion: '1.1',
-					wsPort: firstP2PNode.nodeInfo.wsPort,
-					height: 10,
-					options: firstP2PNode.nodeInfo.options,
-				});
-
-				await wait(100);
-
-				// For each peer of firstP2PNode, check that the firstP2PNode's P2PPeerInfo was updated with the new height.
-				p2pNodeList.slice(1).forEach(p2pNode => {
-					const networkStatus = p2pNode.getNetworkStatus();
-					const firstNodeInConnectedPeer = networkStatus.connectedPeers.find(
-						peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
-					);
-
-					const firstNodeInNewPeer = networkStatus.newPeers.find(
-						peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
-					);
-
-					const firstNodeInTriedPeer = networkStatus.triedPeers.find(
-						peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
-					);
-
-					// Check if the peerinfo is updated in new peer list
-					if (firstNodeInNewPeer) {
-						expect(firstNodeInNewPeer)
-							.to.have.property('height')
-							.which.equals(10);
-						expect(firstNodeInNewPeer)
-							.to.have.property('nethash')
-							.which.equals(
-								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-							);
-					}
-
-					// Check if the peerinfo is updated in tried peer list
-					if (firstNodeInTriedPeer) {
-						expect(firstNodeInTriedPeer)
-							.to.have.property('height')
-							.which.equals(10);
-						expect(firstNodeInTriedPeer)
-							.to.have.property('nethash')
-							.which.equals(
-								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-							);
-					}
-
-					// Check if the peerinfo is updated in connected peer list
-					if (firstNodeInConnectedPeer) {
-						expect(firstNodeInConnectedPeer)
-							.to.have.property('height')
-							.which.equals(10);
-						expect(firstNodeInConnectedPeer)
-							.to.have.property('nethash')
-							.which.equals(
-								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-							);
-					}
-				});
-			});
-		});
-
 		describe('When half of the nodes crash', () => {
 			it('should get network status with all unresponsive nodes removed', async () => {
 				const firstP2PNode = p2pNodeList[0];
@@ -485,15 +411,14 @@ describe('Integration tests for P2P library', () => {
 						: [
 								{
 									ipAddress: '127.0.0.1',
-									wsPort:
-										NETWORK_START_PORT + ((index - 1) % NETWORK_PEER_COUNT),
+									wsPort: NETWORK_START_PORT + index - 1,
 								},
 						  ];
 
 				const nodePort = NETWORK_START_PORT + index;
 				return new P2P({
-					connectTimeout: 5000,
-					ackTimeout: 5000,
+					connectTimeout: 100,
+					ackTimeout: 200,
 					seedPeers,
 					wsEngine: 'ws',
 					populatorInterval: POPULATOR_INTERVAL,
@@ -518,9 +443,9 @@ describe('Integration tests for P2P library', () => {
 			// Launch nodes one at a time with a delay between each launch.
 			for (const p2p of p2pNodeList) {
 				await p2p.start();
-				await wait(100);
+				await wait(50);
 			}
-			await wait(100);
+			await wait(200);
 		});
 
 		afterEach(async () => {
@@ -720,7 +645,7 @@ describe('Integration tests for P2P library', () => {
 				});
 			});
 
-			it('should send a message to a subset of peers within the network; should reach multiple peers with even distribution', async () => {
+			it('should send a message to a peers; should reach peers with even distribution', async () => {
 				const TOTAL_SENDS = 100;
 				const firstP2PNode = p2pNodeList[0];
 				const nodePortToMessagesMap: any = {};
@@ -793,7 +718,7 @@ describe('Integration tests for P2P library', () => {
 				});
 			});
 
-			it('should send the node info to a subset of peers within the network', async () => {
+			it('should send the node info to peers', async () => {
 				const firstP2PNode = p2pNodeList[0];
 				const nodePortToMessagesMap: any = {};
 
@@ -848,6 +773,75 @@ describe('Integration tests for P2P library', () => {
 					expect(firstP2PNodePeerInfo)
 						.to.have.property('height')
 						.which.equals(10);
+				});
+			});
+
+			it('should update itself and reflect new node info', async () => {
+				const firstP2PNode = p2pNodeList[0];
+
+				firstP2PNode.applyNodeInfo({
+					os: platform(),
+					nethash:
+						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+					version: firstP2PNode.nodeInfo.version,
+					protocolVersion: '1.1',
+					wsPort: firstP2PNode.nodeInfo.wsPort,
+					height: 10,
+					options: firstP2PNode.nodeInfo.options,
+				});
+
+				await wait(200);
+
+				// For each peer of firstP2PNode, check that the firstP2PNode's P2PPeerInfo was updated with the new height.
+				p2pNodeList.slice(1).forEach(p2pNode => {
+					const networkStatus = p2pNode.getNetworkStatus();
+					const firstNodeInConnectedPeer = networkStatus.connectedPeers.find(
+						peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
+					);
+
+					const firstNodeInNewPeer = networkStatus.newPeers.find(
+						peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
+					);
+
+					const firstNodeInTriedPeer = networkStatus.triedPeers.find(
+						peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
+					);
+
+					// Check if the peerinfo is updated in new peer list
+					if (firstNodeInNewPeer) {
+						expect(firstNodeInNewPeer)
+							.to.have.property('height')
+							.which.equals(10);
+						expect(firstNodeInNewPeer)
+							.to.have.property('nethash')
+							.which.equals(
+								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+							);
+					}
+
+					// Check if the peerinfo is updated in tried peer list
+					if (firstNodeInTriedPeer) {
+						expect(firstNodeInTriedPeer)
+							.to.have.property('height')
+							.which.equals(10);
+						expect(firstNodeInTriedPeer)
+							.to.have.property('nethash')
+							.which.equals(
+								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+							);
+					}
+
+					// Check if the peerinfo is updated in connected peer list
+					if (firstNodeInConnectedPeer) {
+						expect(firstNodeInConnectedPeer)
+							.to.have.property('height')
+							.which.equals(10);
+						expect(firstNodeInConnectedPeer)
+							.to.have.property('nethash')
+							.which.equals(
+								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+							);
+					}
 				});
 			});
 		});
@@ -1061,8 +1055,8 @@ describe('Integration tests for P2P library', () => {
 				const nodePort = NETWORK_START_PORT + index;
 
 				return new P2P({
-					connectTimeout: 5000,
-					ackTimeout: 5000,
+					connectTimeout: 100,
+					ackTimeout: 200,
 					peerSelectionForSend: peerSelectionForSendRequest as P2PPeerSelectionForSendFunction,
 					peerSelectionForRequest: peerSelectionForSendRequest as P2PPeerSelectionForRequestFunction,
 					peerSelectionForConnection,
@@ -1168,7 +1162,7 @@ describe('Integration tests for P2P library', () => {
 				});
 			});
 
-			it('should send a message to a subset of peers within the network; should reach multiple peers with even distribution', async () => {
+			it('should send a message to peers; should reach multiple peers with even distribution', async () => {
 				const TOTAL_SENDS = 100;
 				const firstP2PNode = p2pNodeList[0];
 				const nodePortToMessagesMap: any = {};
@@ -1224,10 +1218,8 @@ describe('Integration tests for P2P library', () => {
 					seedPeers,
 					wsEngine: 'ws',
 					// A short connectTimeout and ackTimeout will make the node to give up on discovery quicker for our test.
-					connectTimeout: 1000,
-					ackTimeout: 1000,
-					// Set a different discoveryInterval for each node; that way they don't keep trying to discover each other at the same time.
-					discoveryInterval: DISCOVERY_INTERVAL + index * 11,
+					connectTimeout: 100,
+					ackTimeout: 200,
 					populatorInterval: POPULATOR_INTERVAL,
 					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 					maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
@@ -1321,7 +1313,6 @@ describe('Integration tests for P2P library', () => {
 		const ALL_NODE_PORTS_WITH_LIMIT: ReadonlyArray<number> = [
 			...new Array(NETWORK_PEER_COUNT_WITH_LIMIT).keys(),
 		].map(index => NETWORK_START_PORT + index);
-		const DISCOVERY_INTERVAL_WITH_LIMIT = 10;
 		const POPULATOR_INTERVAL_WITH_LIMIT = 10;
 
 		beforeEach(async () => {
@@ -1339,11 +1330,10 @@ describe('Integration tests for P2P library', () => {
 
 					const nodePort = NETWORK_START_PORT + index;
 					return new P2P({
-						connectTimeout: 5000,
-						ackTimeout: 5000,
+						connectTimeout: 200,
+						ackTimeout: 200,
 						seedPeers,
 						wsEngine: 'ws',
-						discoveryInterval: DISCOVERY_INTERVAL_WITH_LIMIT,
 						populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
 						maxOutboundConnections: TEN_CONNECTIONS,
 						maxInboundConnections: TEN_CONNECTIONS,
@@ -1410,34 +1400,33 @@ describe('Integration tests for P2P library', () => {
 	});
 
 	describe('Network with frequent peer shuffling', () => {
-		const NETWORK_PEER_COUNT_WITH_LIMIT = 30;
-		const TEN_CONNECTIONS = 10;
-		const DISCOVERY_INTERVAL_WITH_LIMIT = 1000;
-		const POPULATOR_INTERVAL_WITH_LIMIT = 10000;
+		const NETWORK_PEER_COUNT_SHUFFLING = 10;
+		const POPULATOR_INTERVAL_SHUFFLING = 10000;
 		const OUTBOUND_SHUFFLE_INTERVAL = 500;
 		beforeEach(async () => {
-			p2pNodeList = [...new Array(NETWORK_PEER_COUNT_WITH_LIMIT).keys()].map(
+			p2pNodeList = [...new Array(NETWORK_PEER_COUNT_SHUFFLING).keys()].map(
 				index => {
-					// Each node will have the previous node in the sequence as a seed peer except the first node.
-					const seedPeers = [
-						{
+					const nodePort = NETWORK_START_PORT + index;
+
+					const seedPeers = [...new Array(NETWORK_PEER_COUNT_SHUFFLING).keys()]
+						.map(index => ({
 							ipAddress: '127.0.0.1',
 							wsPort:
 								NETWORK_START_PORT +
-								((index + 1) % NETWORK_PEER_COUNT_WITH_LIMIT),
-						},
-					];
+								((index + 1) % NETWORK_PEER_COUNT_SHUFFLING),
+						}))
+						.filter(seedPeer => seedPeer.wsPort !== nodePort);
 
-					const nodePort = NETWORK_START_PORT + index;
 					return new P2P({
-						connectTimeout: 5000,
-						ackTimeout: 5000,
+						connectTimeout: 200,
+						ackTimeout: 200,
 						seedPeers,
 						wsEngine: 'ws',
-						discoveryInterval: DISCOVERY_INTERVAL_WITH_LIMIT,
-						populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
-						maxOutboundConnections: TEN_CONNECTIONS,
-						maxInboundConnections: TEN_CONNECTIONS,
+						populatorInterval: POPULATOR_INTERVAL_SHUFFLING,
+						maxOutboundConnections: Math.round(
+							NETWORK_PEER_COUNT_SHUFFLING / 2,
+						),
+						maxInboundConnections: Math.round(NETWORK_PEER_COUNT_SHUFFLING / 2),
 						outboundShuffleInterval: OUTBOUND_SHUFFLE_INTERVAL,
 						nodeInfo: {
 							wsPort: nodePort,
@@ -1460,7 +1449,7 @@ describe('Integration tests for P2P library', () => {
 				p2p => p2p.start(),
 			);
 			await Promise.all(peerStartPromises);
-			await wait(1000);
+			await wait(200);
 		});
 
 		afterEach(async () => {
