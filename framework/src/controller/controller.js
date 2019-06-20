@@ -50,9 +50,10 @@ class Controller {
 	 * @param {Object} config - Controller configurations
 	 * @param {component.Logger} logger - Logger component responsible for writing all logs to output
 	 */
-	constructor(appLabel, config, logger) {
+	constructor(appLabel, config, initialState, logger) {
 		this.logger = logger;
 		this.appLabel = appLabel;
+		this.initialState = initialState;
 		this.logger.info('Initializing controller');
 
 		const dirs = systemDirs(this.appLabel);
