@@ -1301,12 +1301,12 @@ describe('Integration tests for P2P library', () => {
 	});
 
 	describe('Network with a maximum number of outbound/inbound connections', () => {
-		const NETWORK_PEER_COUNT_WITH_LIMIT = 30;
-		const TEN_CONNECTIONS = 10;
+		const NETWORK_PEER_COUNT_WITH_LIMIT = 10;
+		const FIVE_CONNECTIONS = 5;
 		const ALL_NODE_PORTS_WITH_LIMIT: ReadonlyArray<number> = [
 			...new Array(NETWORK_PEER_COUNT_WITH_LIMIT).keys(),
 		].map(index => NETWORK_START_PORT + index);
-		const POPULATOR_INTERVAL_WITH_LIMIT = 10;
+		const POPULATOR_INTERVAL_WITH_LIMIT = 100;
 
 		beforeEach(async () => {
 			p2pNodeList = [...new Array(NETWORK_PEER_COUNT_WITH_LIMIT).keys()].map(
@@ -1324,15 +1324,15 @@ describe('Integration tests for P2P library', () => {
 					const nodePort = NETWORK_START_PORT + index;
 					return new P2P({
 						connectTimeout: 200,
-						ackTimeout: 200,
+						ackTimeout: 100,
 						seedPeers,
 						wsEngine: 'ws',
 						populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
-						maxOutboundConnections: TEN_CONNECTIONS,
-						maxInboundConnections: TEN_CONNECTIONS,
 						latencyProtectionRatio: 0,
 						productivityProtectionRatio: 0,
 						longevityProtectionRatio: 0,
+						maxOutboundConnections: FIVE_CONNECTIONS,
+						maxInboundConnections: FIVE_CONNECTIONS,
 						nodeInfo: {
 							wsPort: nodePort,
 							nethash:
@@ -1353,7 +1353,7 @@ describe('Integration tests for P2P library', () => {
 				p2p => p2p.start(),
 			);
 			await Promise.all(peerStartPromises);
-			await wait(1000);
+			await wait(1800);
 		});
 
 		afterEach(async () => {
@@ -1366,30 +1366,175 @@ describe('Integration tests for P2P library', () => {
 		});
 
 		describe('Peer discovery and connections', () => {
-			it(`should not create more than ${TEN_CONNECTIONS} outbound connections`, async () => {
+			it(`should not create more than ${FIVE_CONNECTIONS} outbound connections`, async () => {
 				p2pNodeList.forEach(p2p => {
 					const { outboundCount } = p2p['_peerPool'].getPeersCountPerKind();
-					expect(outboundCount).to.be.at.most(TEN_CONNECTIONS);
+					expect(outboundCount).to.be.at.most(FIVE_CONNECTIONS);
 				});
 			});
 
-			it(`should not create more than ${TEN_CONNECTIONS} inbound connections`, async () => {
+			it(`should not create more than ${FIVE_CONNECTIONS} inbound connections`, async () => {
 				p2pNodeList.forEach(p2p => {
 					const { inboundCount } = p2p['_peerPool'].getPeersCountPerKind();
-					expect(inboundCount).to.be.at.most(TEN_CONNECTIONS);
+					expect(inboundCount).to.be.at.most(FIVE_CONNECTIONS);
 				});
 			});
 
 			it('should discover peers and add them to the peer lists within each node', () => {
 				p2pNodeList.forEach(p2p => {
 					const { newPeers, triedPeers } = p2p.getNetworkStatus();
-
 					const peerPorts = [...newPeers, ...triedPeers].map(
 						peerInfo => peerInfo.wsPort,
 					);
 
 					expect(ALL_NODE_PORTS_WITH_LIMIT).to.include.members(peerPorts);
 				});
+			});
+		});
+
+		describe('P2P.request', () => {
+			beforeEach(async () => {
+				p2pNodeList.forEach(p2p => {
+					// Collect port numbers to check which peer handled which request.
+					p2p.on('requestReceived', request => {
+						request.end({
+							nodePort: p2p.nodeInfo.wsPort,
+							requestProcedure: request.procedure,
+							requestData: request.data,
+							requestPeerId: request.peerId,
+						});
+					});
+				});
+			});
+
+			it('should make request to the network; it should reach a single peer', async () => {
+				const firstP2PNode = p2pNodeList[0];
+				const response = await firstP2PNode.request({
+					procedure: 'foo',
+					data: 'bar',
+				});
+				expect(response).to.have.property('data');
+				expect(response.data)
+					.to.have.property('nodePort')
+					.which.is.a('number');
+				expect(response.data)
+					.to.have.property('requestProcedure')
+					.which.is.a('string');
+				expect(response.data)
+					.to.have.property('requestData')
+					.which.is.equal('bar');
+				expect(response.data)
+					.to.have.property('requestPeerId')
+					.which.is.equal(`127.0.0.1:${firstP2PNode.nodeInfo.wsPort}`);
+			});
+
+			// Check for even distribution of requests across the network. Account for an error margin.
+			it('requests made to the network should be distributed randomly', async () => {
+				const TOTAL_REQUESTS = 1000;
+				const firstP2PNode = p2pNodeList[0];
+				const nodePortToResponsesMap: any = {};
+
+				const expectedAverageRequestsPerNode =
+					TOTAL_REQUESTS / NETWORK_PEER_COUNT_WITH_LIMIT;
+				const expectedRequestsLowerBound = expectedAverageRequestsPerNode * 0.5;
+				const expectedRequestsUpperBound = expectedAverageRequestsPerNode * 1.5;
+
+				for (let i = 0; i < TOTAL_REQUESTS; i++) {
+					const response = await firstP2PNode.request({
+						procedure: 'foo',
+						data: i,
+					});
+					let resultData = response.data as any;
+					if (!nodePortToResponsesMap[resultData.nodePort]) {
+						nodePortToResponsesMap[resultData.nodePort] = [];
+					}
+					nodePortToResponsesMap[resultData.nodePort].push(resultData);
+				}
+
+				Object.values(nodePortToResponsesMap).forEach(
+					(requestsHandled: any) => {
+						expect(requestsHandled).to.be.an('array');
+						expect(requestsHandled.length).to.be.greaterThan(
+							expectedRequestsLowerBound,
+						);
+						expect(requestsHandled.length).to.be.lessThan(
+							expectedRequestsUpperBound,
+						);
+					},
+				);
+			});
+		});
+
+		describe('P2P.send', () => {
+			let collectedMessages: Array<any> = [];
+
+			beforeEach(async () => {
+				collectedMessages = [];
+				p2pNodeList.forEach(p2p => {
+					p2p.on('messageReceived', message => {
+						collectedMessages.push({
+							nodePort: p2p.nodeInfo.wsPort,
+							message,
+						});
+					});
+				});
+			});
+
+			it('should send a message to a peers; should reach peers with even distribution', async () => {
+				const TOTAL_SENDS = 100;
+				const firstP2PNode = p2pNodeList[0];
+				const nodePortToMessagesMap: any = {};
+
+				const expectedAverageMessagesPerNode = TOTAL_SENDS;
+				const expectedMessagesLowerBound = expectedAverageMessagesPerNode * 0.5;
+				const expectedMessagesUpperBound = expectedAverageMessagesPerNode * 1.5;
+
+				for (let i = 0; i < TOTAL_SENDS; i++) {
+					firstP2PNode.send({ event: 'bar', data: i });
+				}
+
+				await wait(100);
+
+				collectedMessages.forEach((receivedMessageData: any) => {
+					if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
+						nodePortToMessagesMap[receivedMessageData.nodePort] = [];
+					}
+					nodePortToMessagesMap[receivedMessageData.nodePort].push(
+						receivedMessageData,
+					);
+				});
+
+				Object.values(nodePortToMessagesMap).forEach(
+					(receivedMessages: any) => {
+						expect(receivedMessages).to.be.an('array');
+						expect(receivedMessages.length).to.be.greaterThan(
+							expectedMessagesLowerBound,
+						);
+						expect(receivedMessages.length).to.be.lessThan(
+							expectedMessagesUpperBound,
+						);
+					},
+				);
+			});
+
+			it('should receive a message in the correct format', async () => {
+				const firstP2PNode = p2pNodeList[0];
+				firstP2PNode.send({ event: 'bar', data: 'test' });
+
+				await wait(100);
+
+				expect(collectedMessages).to.be.an('array');
+				expect(collectedMessages.length).to.be.eql(9);
+				expect(collectedMessages[0]).to.have.property('message');
+				expect(collectedMessages[0].message)
+					.to.have.property('event')
+					.which.is.equal('bar');
+				expect(collectedMessages[0].message)
+					.to.have.property('data')
+					.which.is.equal('test');
+				expect(collectedMessages[0].message)
+					.to.have.property('peerId')
+					.which.is.equal(`127.0.0.1:${NETWORK_START_PORT}`);
 			});
 		});
 	});
