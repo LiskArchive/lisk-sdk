@@ -11,7 +11,6 @@ The application-specific business logic for custom transaction types is defined 
 
 All of the default transaction types of the Lisk SDK transactions implement the abstract interface of the base transaction, and therefore can be used as a role model for custom transactions.
 It's also possible to inherit from one of the default transaction types, in order to extent or modify them.
-It's also possible to inherit from one of the default transaction types, in order to extent or modify them.
 
 The default transaction types each implement a different use-case of the Lisk network, i.e:
 
