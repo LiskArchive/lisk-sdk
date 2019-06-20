@@ -141,7 +141,15 @@ class Controller {
 	 */
 	async _initState() {
 		this.applicationState = new ApplicationState({
-			initialState: this.config.initialState,
+			initialState: {
+				version: this.config.version,
+				minVersion: this.config.minVersion,
+				protocolVersion: this.config.protocolVersion,
+				nonce: this.config.nonce,
+				nethash: this.config.nethash,
+				wsPort: this.config.wsPort,
+				httpPort: this.config.httpPort,
+			},
 			logger: this.logger,
 		});
 	}
