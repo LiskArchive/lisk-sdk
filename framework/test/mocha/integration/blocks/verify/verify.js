@@ -321,8 +321,6 @@ describe('blocks/verify', () => {
 					expect(block1.payloadLength).to.equal(0);
 					expect(block1.transactions).to.deep.equal([]);
 					expect(block1.previousBlock).to.equal(genesisBlock.id);
-					expect(block1.maxHeightPreviouslyForged).to.equal(1);
-					expect(block1.prevotedConfirmedUptoHeight).to.equal(1);
 					done();
 				})
 				.catch(err => {
