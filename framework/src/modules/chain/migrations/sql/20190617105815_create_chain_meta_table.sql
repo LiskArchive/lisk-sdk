@@ -20,6 +20,6 @@
 */
 
 CREATE TABLE IF NOT EXISTS "chain_meta" (
-  "key" VARCHAR(40) UNIQUE NOT NULL PRIMARY KEY,
+  "key" VARCHAR(40) PRIMARY KEY,
   "value" TEXT NOT NULL
 );
