@@ -197,7 +197,7 @@ export const checkPeerCompatibility = (
 	};
 };
 
-export const handlePeerListsConflicts = (
+export const sanitizePeerLists = (
 	lists: PeerLists,
 	nodeInfo: P2PPeerInfo,
 ): PeerLists => {

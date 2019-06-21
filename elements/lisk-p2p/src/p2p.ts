@@ -91,7 +91,7 @@ import {
 	MAX_PEER_LIST_BATCH_SIZE,
 	PeerPool,
 } from './peer_pool';
-import { checkPeerCompatibility, handlePeerListsConflicts } from './validation';
+import { checkPeerCompatibility, sanitizePeerLists } from './validation';
 
 export {
 	EVENT_CLOSE_INBOUND,
@@ -134,7 +134,7 @@ const selectRandomPeerSample = (
 
 export class P2P extends EventEmitter {
 	private readonly _config: P2PConfig;
-	private readonly _peerListsWithoutConflicts: PeerLists;
+	private readonly _sanitizedPeerLists: PeerLists;
 	private readonly _httpServer: http.Server;
 	private _isActive: boolean;
 	private readonly _newPeers: Map<string, P2PPeerInfo>;
@@ -180,7 +180,7 @@ export class P2P extends EventEmitter {
 
 	public constructor(config: P2PConfig) {
 		super();
-		this._peerListsWithoutConflicts = handlePeerListsConflicts(
+		this._sanitizedPeerLists = sanitizePeerLists(
 			{
 				seedPeers: config.seedPeers || [],
 				blacklistedPeers: config.blacklistedPeers || [],
@@ -239,7 +239,7 @@ export class P2P extends EventEmitter {
 
 		this._handleOutboundPeerConnectAbort = (peerInfo: P2PPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			const isWhitelisted = this._peerListsWithoutConflicts.whitelisted.find(
+			const isWhitelisted = this._sanitizedPeerLists.whitelisted.find(
 				peer => constructPeerIdFromPeerInfo(peer) === peerId,
 			);
 			if (this._triedPeers.has(peerId) && !isWhitelisted) {
@@ -309,7 +309,7 @@ export class P2P extends EventEmitter {
 
 		this._handleBanPeer = (peerId: string) => {
 			this._bannedPeers.add(peerId.split(':')[0]);
-			const isWhitelisted = this._peerListsWithoutConflicts.whitelisted.find(
+			const isWhitelisted = this._sanitizedPeerLists.whitelisted.find(
 				peer => constructPeerIdFromPeerInfo(peer) === peerId,
 			);
 			if (this._triedPeers.has(peerId) && !isWhitelisted) {
@@ -332,7 +332,7 @@ export class P2P extends EventEmitter {
 		this._handleDiscoveredPeer = (detailedPeerInfo: P2PPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(detailedPeerInfo);
 			// Check blacklist to avoid incoming connections from backlisted ips
-			const isBlacklisted = this._peerListsWithoutConflicts.blacklistedPeers.find(
+			const isBlacklisted = this._sanitizedPeerLists.blacklistedPeers.find(
 				peer => constructPeerIdFromPeerInfo(peer) === peerId,
 			);
 
@@ -394,8 +394,8 @@ export class P2P extends EventEmitter {
 
 		this._bindHandlersToPeerPool(this._peerPool);
 		// Add peers to tried peers if want to re-use previously tried peers
-		if (this._peerListsWithoutConflicts.previousPeers) {
-			this._peerListsWithoutConflicts.previousPeers.forEach(peerInfo => {
+		if (this._sanitizedPeerLists.previousPeers) {
+			this._sanitizedPeerLists.previousPeers.forEach(peerInfo => {
 				const peerId = constructPeerIdFromPeerInfo(peerInfo);
 				if (!this._triedPeers.has(peerId)) {
 					this._triedPeers.set(peerId, peerInfo);
@@ -495,8 +495,8 @@ export class P2P extends EventEmitter {
 			'connection',
 			(socket: SCServerSocket): void => {
 				// Check blacklist to avoid incoming connections from backlisted ips
-				if (this._peerListsWithoutConflicts.blacklistedPeers) {
-					const blacklist = this._peerListsWithoutConflicts.blacklistedPeers.map(
+				if (this._sanitizedPeerLists.blacklistedPeers) {
+					const blacklist = this._sanitizedPeerLists.blacklistedPeers.map(
 						peer => peer.ipAddress,
 					);
 					if (blacklist.includes(socket.remoteAddress)) {
@@ -622,7 +622,7 @@ export class P2P extends EventEmitter {
 					this.emit(EVENT_NEW_PEER, incomingPeerInfo);
 				}
 
-				const isWhitelisted = this._peerListsWithoutConflicts.whitelisted.find(
+				const isWhitelisted = this._sanitizedPeerLists.whitelisted.find(
 					peer => constructPeerIdFromPeerInfo(peer) === peerId,
 				);
 				if (this._triedPeers.has(peerId) && !isWhitelisted) {
@@ -680,12 +680,12 @@ export class P2P extends EventEmitter {
 		this._populatorIntervalId = setInterval(() => {
 			this._peerPool.triggerNewConnections(
 				[...this._newPeers.values(), ...this._triedPeers.values()],
-				this._peerListsWithoutConflicts.fixedPeers || [],
+				this._sanitizedPeerLists.fixedPeers || [],
 			);
 		}, this._populatorInterval);
 		this._peerPool.triggerNewConnections(
 			[...this._newPeers.values(), ...this._triedPeers.values()],
-			this._peerListsWithoutConflicts.fixedPeers || [],
+			this._sanitizedPeerLists.fixedPeers || [],
 		);
 	}
 
@@ -726,16 +726,16 @@ export class P2P extends EventEmitter {
 	}
 
 	private _isTrustedPeer(peerId: string): boolean {
-		const isSeed = this._peerListsWithoutConflicts.seedPeers.find(
+		const isSeed = this._sanitizedPeerLists.seedPeers.find(
 			seedPeer =>
 				peerId === constructPeerId(seedPeer.ipAddress, seedPeer.wsPort),
 		);
 
-		const isWhitelisted = this._peerListsWithoutConflicts.whitelisted.find(
+		const isWhitelisted = this._sanitizedPeerLists.whitelisted.find(
 			peer => constructPeerIdFromPeerInfo(peer) === peerId,
 		);
 
-		const isFixed = this._peerListsWithoutConflicts.fixedPeers.find(
+		const isFixed = this._sanitizedPeerLists.fixedPeers.find(
 			peer => constructPeerIdFromPeerInfo(peer) === peerId,
 		);
 
@@ -747,8 +747,8 @@ export class P2P extends EventEmitter {
 			throw new Error('Cannot start the node because it is already active');
 		}
 
-		const newPeersToAdd = this._peerListsWithoutConflicts.seedPeers.concat(
-			this._peerListsWithoutConflicts.whitelisted,
+		const newPeersToAdd = this._sanitizedPeerLists.seedPeers.concat(
+			this._sanitizedPeerLists.whitelisted,
 		);
 		newPeersToAdd.forEach(newPeerInfo => {
 			const peerId = constructPeerIdFromPeerInfo(newPeerInfo);
