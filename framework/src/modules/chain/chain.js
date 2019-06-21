@@ -39,7 +39,7 @@ const {
 } = require('./blocks');
 const { Loader } = require('./loader');
 const { Forger } = require('./forger');
-const { Transport } = require('./transport');
+const { Transport } = require('./transport/transport');
 
 const syncInterval = 10000;
 const forgeInterval = 1000;
