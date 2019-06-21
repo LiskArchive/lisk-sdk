@@ -1479,7 +1479,6 @@ describe('Integration tests for P2P library', () => {
 	describe('Network with peer inbound eviction protection enabled', () => {
 		const NETWORK_PEER_COUNT_WITH_LIMIT = 10;
 		const MAX_INBOUND_CONNECTIONS = 5;
-		const DISCOVERY_INTERVAL_WITH_LIMIT = 5;
 		const POPULATOR_INTERVAL_WITH_LIMIT = 10;
 		beforeEach(async () => {
 			p2pNodeList = [...new Array(NETWORK_PEER_COUNT_WITH_LIMIT).keys()].map(
@@ -1496,11 +1495,10 @@ describe('Integration tests for P2P library', () => {
 
 					const nodePort = NETWORK_START_PORT + index;
 					return new P2P({
-						connectTimeout: 5000,
+						connectTimeout: 300,
 						ackTimeout: 5000,
 						seedPeers,
 						wsEngine: 'ws',
-						discoveryInterval: DISCOVERY_INTERVAL_WITH_LIMIT,
 						populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
 						maxOutboundConnections: MAX_INBOUND_CONNECTIONS,
 						maxInboundConnections: 5,

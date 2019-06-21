@@ -55,6 +55,13 @@ export interface ClientOptionsUpdated {
 	readonly connectTimeout?: number;
 }
 
+export interface Productivity {
+	readonly requestCounter: number;
+	readonly responseCounter: number;
+	readonly responseRate: number;
+	readonly lastResponded: number;
+}
+
 export type SCServerSocketUpdated = {
 	destroy(code?: number, data?: string | object): void;
 	on(event: string | unknown, listener: (packet?: unknown) => void): void;
@@ -138,7 +145,7 @@ export class Peer extends EventEmitter {
 	protected _reputation: number;
 	protected _latency: number;
 	protected _connectTime: number;
-	public productivity: {
+	protected _productivity: {
 		requestCounter: number;
 		responseCounter: number;
 		responseRate: number;
@@ -184,13 +191,13 @@ export class Peer extends EventEmitter {
 		this._productivityResetInterval = setInterval(() => {
 			// If peer has not recently responded, reset productivity to 0
 			if (
-				this.productivity.lastResponded <
+				this._productivity.lastResponded <
 				Date.now() - DEFAULT_PRODUCTIVITY_RESET_INTERVAL
 			) {
-				this.productivity = DEFAULT_PRODUCTIVITY;
+				this._productivity = DEFAULT_PRODUCTIVITY;
 			}
 		}, DEFAULT_PRODUCTIVITY_RESET_INTERVAL);
-		this.productivity = DEFAULT_PRODUCTIVITY;
+		this._productivity = DEFAULT_PRODUCTIVITY;
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawRPC = (
@@ -218,7 +225,7 @@ export class Peer extends EventEmitter {
 				rawRequest.data,
 				this._id,
 				rate,
-				this.productivity,
+				this._productivity,
 				respond,
 			);
 
@@ -303,6 +310,10 @@ export class Peer extends EventEmitter {
 
 	public get connectTime(): number {
 		return this._connectTime;
+	}
+
+	public get productivity(): Productivity {
+		return { ...this._productivity };
 	}
 
 	public updatePeerInfo(newPeerInfo: P2PDiscoveredPeerInfo): void {

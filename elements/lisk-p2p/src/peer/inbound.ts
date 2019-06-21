@@ -27,9 +27,9 @@ import { SCServerSocket } from 'socketcluster-server';
 export const EVENT_CLOSE_INBOUND = 'closeInbound';
 export const EVENT_INBOUND_SOCKET_ERROR = 'inboundSocketError';
 export const EVENT_PING = 'ping';
-export const EVENT_PONG = 'pong';
 
-const DEFAULT_PING_INTERVAL = 60000;
+const DEFAULT_PING_INTERVAL_MAX = 60000;
+const DEFAULT_PING_INTERVAL_MIN = 20000;
 export class InboundPeer extends Peer {
 	protected _socket: SCServerSocketUpdated;
 	protected readonly _handleInboundSocketError: (error: Error) => void;
@@ -37,7 +37,7 @@ export class InboundPeer extends Peer {
 		code: number,
 		reason: string,
 	) => void;
-	protected readonly _handlePong: (pingTime: number) => void;
+	protected readonly _handlePong: (error: Error, _: unknown) => void;
 	private readonly _pingIntervalId: NodeJS.Timer;
 	private _pingStart: number;
 
@@ -61,15 +61,17 @@ export class InboundPeer extends Peer {
 			});
 		};
 		this._pingStart = Date.now();
-		this._handlePong = () => {
-			const latency = this._pingStart - Date.now();
-			this._latency = latency;
+		this._handlePong = (err: Error, responseData: unknown) => {
+			if (!err && responseData) {
+				const latency = Date.now() - this._pingStart;
+				this._latency = latency;
+			}
 		};
 		this._socket = peerSocket;
 		this._pingIntervalId = setInterval(() => {
 			this._pingStart = Date.now();
-			this._socket.emit(EVENT_PING);
-		}, DEFAULT_PING_INTERVAL);
+			this._socket.emit(EVENT_PING, undefined, this._handlePong);
+		}, Math.random() * (DEFAULT_PING_INTERVAL_MAX - DEFAULT_PING_INTERVAL_MIN) + DEFAULT_PING_INTERVAL_MIN);
 		this._bindHandlersToInboundSocket(this._socket);
 	}
 
@@ -103,7 +105,6 @@ export class InboundPeer extends Peer {
 			'postTransactions',
 			this._handleRawLegacyMessagePostTransactions,
 		);
-		inboundSocket.on(EVENT_PONG, this._handlePong);
 	}
 
 	// All event handlers for the inbound socket should be unbound in this method.
@@ -124,6 +125,5 @@ export class InboundPeer extends Peer {
 			'postTransactions',
 			this._handleRawLegacyMessagePostTransactions,
 		);
-		inboundSocket.off('pong', this._handlePong);
 	}
 }

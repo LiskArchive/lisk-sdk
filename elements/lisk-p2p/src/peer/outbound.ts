@@ -32,7 +32,7 @@ import {
 	REMOTE_RPC_GET_NODE_INFO,
 } from './base';
 
-import { EVENT_PING, EVENT_PONG } from './inbound';
+import { EVENT_PING } from './inbound';
 
 import {
 	P2PDiscoveredPeerInfo,
@@ -167,9 +167,12 @@ export class OutboundPeer extends Peer {
 			});
 		});
 
-		outboundSocket.on(EVENT_PING, () => {
-			this.emit(EVENT_PONG);
-		});
+		outboundSocket.on(
+			EVENT_PING,
+			(_: undefined, res: (_: undefined, data: string) => void) => {
+				res(undefined, 'pong');
+			},
+		);
 
 		// Bind RPC and remote event handlers
 		outboundSocket.on(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
@@ -255,9 +258,12 @@ export const connectAndRequest = async (
 			// Bind an error handler immediately after creating the socket; otherwise errors may crash the process
 			// tslint:disable-next-line no-empty
 			outboundSocket.on('error', () => {});
-			outboundSocket.on(EVENT_PING as any, () => {
-				outboundSocket.emit(EVENT_PONG, Date.now());
-			});
+			outboundSocket.on(
+				EVENT_PING,
+				(_: undefined, res: (_: undefined, data: string) => void) => {
+					res(undefined, 'pong');
+				},
+			);
 
 			// tslint:disable-next-line no-let
 			let disconnectStatusCode: number;
