@@ -19,17 +19,18 @@ export const LITTLE_ENDIAN = 'little';
 
 export const intToBuffer = (
 	value: number,
-	size: number = 4,
+	byteLength: number = 4,
 	endian: string = BIG_ENDIAN,
 ) => {
-	const buf = Buffer.alloc(size);
+	const buf = Buffer.alloc(byteLength);
+	const offset = 0;
 	switch (endian) {
 		case BIG_ENDIAN:
-			buf.writeIntBE(value, 0, size);
+			buf.writeIntBE(value, offset, byteLength);
 			break;
 
 		case LITTLE_ENDIAN:
-			buf.writeIntLE(value, 0, size);
+			buf.writeIntLE(value, offset, byteLength);
 			break;
 
 		default:
@@ -41,15 +42,16 @@ export const intToBuffer = (
 
 export const bufferToInt = (
 	buffer: Buffer,
-	size: number = 4,
+	byteLength: number = 4,
 	endian: string = BIG_ENDIAN,
 ): number => {
+	const offset = 0;
 	switch (endian) {
 		case BIG_ENDIAN:
-			return buffer.readIntBE(0, size);
+			return buffer.readIntBE(offset, byteLength);
 
 		case LITTLE_ENDIAN:
-			return buffer.readIntLE(0, size);
+			return buffer.readIntLE(offset, byteLength);
 
 		default:
 			throw new Error('Endianness must be either big or little');
