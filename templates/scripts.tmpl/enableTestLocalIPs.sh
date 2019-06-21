@@ -15,8 +15,7 @@
 #
 #
 
-read -r -p $'\e[96mDo you want to build library first? [y/N]\e[0m ' should_build
-if [[ $should_build =~ ^[Yy]$ ]]
-then
-	npm run build:node
-fi
+for i in $( seq $1 $2 ); 
+do 
+   sudo ifconfig lo0 alias "127.0.0.$i";
+done

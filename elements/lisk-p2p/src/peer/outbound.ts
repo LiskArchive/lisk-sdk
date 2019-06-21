@@ -321,7 +321,7 @@ export const connectAndFetchPeerInfo = async (
 			ip: basicPeerInfo.ipAddress,
 			wsPort: basicPeerInfo.wsPort,
 		};
-
+		
 		return validatePeerInfo(rawPeerInfo);
 	} catch (error) {
 		throw new FetchPeerStatusError(

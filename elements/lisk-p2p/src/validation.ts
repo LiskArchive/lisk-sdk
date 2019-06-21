@@ -30,10 +30,12 @@ import {
 	P2PDiscoveredPeerInfo,
 	P2PNodeInfo,
 	P2PPeerInfo,
+	PeerLists,
 	ProtocolMessagePacket,
 	ProtocolPeerInfo,
 	ProtocolRPCRequestPacket,
 } from './p2p_types';
+import { constructPeerIdFromPeerInfo } from './peer';
 
 const IPV4_NUMBER = 4;
 const IPV6_NUMBER = 6;
@@ -192,5 +194,92 @@ export const checkPeerCompatibility = (
 
 	return {
 		success: true,
+	};
+};
+
+export const sanitizePeerLists = (
+	lists: PeerLists,
+	nodeInfo: P2PPeerInfo,
+): PeerLists => {
+	const blacklistedPeers = lists.blacklistedPeers.filter(peerInfo => {
+		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
+			return false;
+		}
+
+		return true;
+	});
+
+	const blacklistedIPs = blacklistedPeers.map(peerInfo => peerInfo.ipAddress);
+
+	const seedPeers = lists.seedPeers.filter(peerInfo => {
+		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
+			return false;
+		}
+
+		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
+			return false;
+		}
+
+		return true;
+	});
+
+	const fixedPeers = lists.fixedPeers.filter(peerInfo => {
+		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
+			return false;
+		}
+
+		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
+			return false;
+		}
+
+		return true;
+	});
+
+	const whitelisted = lists.whitelisted.filter(peerInfo => {
+		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
+			return false;
+		}
+
+		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
+			return false;
+		}
+
+		if (
+			fixedPeers
+				.map(constructPeerIdFromPeerInfo)
+				.includes(constructPeerIdFromPeerInfo(peerInfo))
+		) {
+			return false;
+		}
+
+		if (
+			seedPeers
+				.map(constructPeerIdFromPeerInfo)
+				.includes(constructPeerIdFromPeerInfo(peerInfo))
+		) {
+			return false;
+		}
+
+		return true;
+	});
+
+	const previousPeers = lists.previousPeers.filter(peerInfo => {
+		if (peerInfo.ipAddress === nodeInfo.ipAddress) {
+			return false;
+		}
+
+		if (blacklistedIPs.includes(peerInfo.ipAddress)) {
+			return false;
+		}
+
+		return true;
+	});
+
+	return {
+		blacklistedPeers,
+		seedPeers,
+		fixedPeers,
+		whitelisted,
+		previousPeers,
 	};
 };
