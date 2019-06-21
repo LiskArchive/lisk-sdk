@@ -90,20 +90,18 @@ class ChainMeta extends BaseEntity {
 	 *
 	 * @param {string} key - Key to fetch
 	 * @param {Object} [tx] - Database transaction object
-	 * @return {Promise<{key: string, value: string} | {}>}
+	 * @return {Promise<{key: string, value: string} | null>}
 	 */
 	async getKey(key, tx) {
 		assert(key, 'Must provide the key to get');
 
-		return this.getOne({ key }, {}, tx)
-			.then(data => data.value)
-			.catch(error => {
-				if (error.message === 'No data returned from the query.') {
-					return null;
-				}
+		return this.get({ key }, {}, tx).then(data => {
+			if (data.length === 0) {
+				return null;
+			}
 
-				throw error;
-			});
+			return data[0].value;
+		});
 	}
 
 	/**

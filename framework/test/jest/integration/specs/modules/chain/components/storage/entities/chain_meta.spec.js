@@ -36,14 +36,12 @@ describe('ChainMeta', () => {
 		config.components.storage,
 		'lisk_test_chain_module_storage_chain_meta'
 	);
+	const validSQLs = ['upsert', 'get', 'delete'];
+	const validFields = ['key', 'value'];
+	const validFilters = ['key', 'key_eql', 'key_ne'];
+
 	let adapter;
 	let ChainMetaEntity;
-
-	const validSQLs = ['upsert', 'get', 'delete'];
-
-	const validFields = ['key', 'value'];
-
-	const validFilters = ['key', 'key_eql', 'key_ne'];
 
 	beforeAll(async () => {
 		await storage.bootstrap();
