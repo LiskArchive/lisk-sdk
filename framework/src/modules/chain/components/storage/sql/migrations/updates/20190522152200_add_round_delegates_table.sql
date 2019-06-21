@@ -12,12 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+ /*
+  DESCRIPTION: Creates `round_delegates` table to store unshuffled
+	delegate lists which were created at the beginning of the round.
+   PARAMETERS: None
+*/
 
-const bootstrapStorage = require('./bootstrap_storage');
-const bootstrapCache = require('./bootstrap_cache');
-
-module.exports = {
-	bootstrapStorage,
-	bootstrapCache,
-};
+/* Table */
+CREATE TABLE IF NOT EXISTS "round_delegates" (
+  "round" BIGINT NOT NULL PRIMARY KEY,
+  "delegatePublicKeys" JSON NOT NULL
+);

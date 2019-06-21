@@ -24,8 +24,6 @@ const Sequence = require('../../../src/modules/chain/utils/sequence');
 const { BlockSlots } = require('../../../src/modules/chain/blocks/block_slots');
 const { createCacheComponent } = require('../../../src/components/cache');
 const { StorageSandbox } = require('./storage_sandbox');
-const { ZSchema } = require('../../../src/controller/validator');
-const initSteps = require('../../../src/modules/chain/init_steps');
 
 let currentAppScope;
 
@@ -129,7 +127,6 @@ async function __init(sandbox, initScope) {
 				config,
 				genesisBlock: { block: __testContext.config.genesisBlock },
 				registeredTransactions,
-				schema: new ZSchema(),
 				sequence: new Sequence({
 					onWarning(current) {
 						logger.warn('Main queue', current);
@@ -164,11 +161,7 @@ async function __init(sandbox, initScope) {
 		await startStorage();
 		await cache.bootstrap();
 
-		scope.bus = await initSteps.createBus();
 		scope.modules = await initStepsForTest.initModules(scope);
-
-		// Fire onBind event in every module
-		scope.bus.message('bind', scope);
 
 		// Listen to websockets
 		// await scope.webSocket.listen();
@@ -184,8 +177,7 @@ async function __init(sandbox, initScope) {
 			return false;
 		};
 
-		// If bus is overridden, then we just return the scope, without waiting for genesisBlock
-		if (!initScope.waitForGenesisBlock || initScope.bus) {
+		if (!initScope.waitForGenesisBlock) {
 			scope.modules.delegates.onBlockchainReady = function() {};
 			return scope;
 		}
@@ -259,9 +251,7 @@ const initStepsForTest = {
 				logger: scope.components.logger,
 				storage: scope.components.storage,
 			},
-			bus: scope.bus,
 			slots: scope.slots,
-			schema: scope.schema,
 			config: {
 				exceptions: __testContext.config.modules.chain.exceptions,
 				constants: {
@@ -294,9 +284,13 @@ const initStepsForTest = {
 			blockSlotWindow: __testContext.config.constants.BLOCK_SLOT_WINDOW,
 		});
 		scope.modules = modules;
-		const RewiredPeers = rewire('../../../src/modules/chain/submodules/peers');
-		scope.rewiredModules.peers = RewiredPeers;
-		modules.peers = new RewiredPeers(scope);
+		const { Peers } = rewire('../../../src/modules/chain/peers');
+		scope.peers = new Peers({
+			channel: scope.channel,
+			minBroadhashConsensus:
+				__testContext.config.constants.MIN_BROADHASH_CONSENSUS,
+			forgingForce: __testContext.config.modules.chain.forging.force,
+		});
 		const { TransactionPool: RewiredTransactionPool } = rewire(
 			'../../../src/modules/chain/transaction_pool'
 		);
@@ -330,7 +324,6 @@ const initStepsForTest = {
 			cache: scope.components.cache,
 			genesisBlock: __testContext.config.genesisBlock,
 			balancesSequence: scope.balancesSequence,
-			schema: scope.schema,
 			transactionPoolModule: modules.transactionPool,
 			blocksModule: modules.blocks,
 			peersModule: modules.peers,
@@ -375,7 +368,6 @@ const initStepsForTest = {
 			storage: scope.components.storage,
 			applicationState: scope.applicationState,
 			balancesSequence: scope.balancesSequence,
-			schema: scope.schema,
 			exceptions: __testContext.config.exceptions,
 			transactionPoolModule: modules.transactionPool,
 			blocksModule: modules.blocks,
@@ -387,8 +379,6 @@ const initStepsForTest = {
 			maxSharedTransactions:
 				__testContext.config.constants.MAX_SHARED_TRANSACTIONS,
 		});
-
-		scope.bus.registerModules(modules);
 
 		return modules;
 	},

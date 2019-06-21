@@ -15,6 +15,7 @@
 'use strict';
 
 const { TransactionError } = require('@liskhq/lisk-transactions');
+const { validator } = require('@liskhq/lisk-validator');
 const { promisify } = require('util');
 const _ = require('lodash');
 const { convertErrorsToString } = require('./utils/error_handlers');
@@ -47,7 +48,6 @@ class Transport {
 		// Unique requirements
 		applicationState,
 		balancesSequence,
-		schema,
 		exceptions,
 		// Modules
 		transactionPoolModule,
@@ -64,7 +64,6 @@ class Transport {
 		this.channel = channel;
 		this.logger = logger;
 		this.storage = storage;
-		this.schema = schema;
 		this.balancesSequence = balancesSequence;
 		this.applicationState = applicationState;
 		this.exceptions = exceptions;
@@ -277,19 +276,18 @@ class Transport {
 		}
 		query = query || {};
 
-		const valid = this.schema.validate(query, definitions.WSBlocksBroadcast);
+		const errors = validator.validate(definitions.WSBlocksBroadcast, query);
 
-		if (!valid) {
-			const err = this.schema.getLastErrors();
+		if (errors.length) {
 			this.logger.debug(
 				'Received post block broadcast request in unexpected format',
 				{
-					err,
+					errors,
 					module: 'transport',
 					query,
 				}
 			);
-			throw new Error(err);
+			throw new Error(errors);
 		}
 
 		let block;
@@ -332,11 +330,10 @@ class Transport {
 	 * @todo Add description of the function
 	 */
 	async postSignature(query) {
-		const valid = this.schema.validate(query.signature, definitions.Signature);
+		const errors = validator.validate(definitions.Signature, query.signature);
 
-		if (!valid) {
-			const err = this.schema.getLastErrors();
-			const error = new TransactionError(err[0].message);
+		if (errors.length) {
+			const error = new TransactionError(errors[0].message);
 			return {
 				success: false,
 				code: 400,
@@ -372,12 +369,11 @@ class Transport {
 			);
 		}
 
-		const valid = this.schema.validate(query, definitions.WSSignaturesList);
+		const errors = validator.validate(definitions.WSSignaturesList, query);
 
-		if (!valid) {
-			const err = this.schema.getLastErrors();
-			this.logger.debug('Invalid signatures body', err);
-			throw err;
+		if (errors.length) {
+			this.logger.debug('Invalid signatures body', errors);
+			throw errors;
 		}
 
 		return this._receiveSignatures(query.signatures);
@@ -467,15 +463,11 @@ class Transport {
 			);
 		}
 
-		const valid = this.schema.validate(
-			query,
-			definitions.WSTransactionsRequest
-		);
+		const errors = validator.validate(definitions.WSTransactionsRequest, query);
 
-		if (!valid) {
-			const err = this.schema.getLastErrors();
-			this.logger.debug('Invalid transactions body', err);
-			throw err;
+		if (errors.length) {
+			this.logger.debug('Invalid transactions body', errors);
+			throw errors;
 		}
 
 		return this._receiveTransactions(query.transactions);
@@ -511,11 +503,10 @@ class Transport {
 	 * @todo Add description for the params
 	 */
 	async _receiveSignature(signature) {
-		const valid = this.schema.validate(signature, definitions.Signature);
+		const errors = validator.validate(definitions.Signature, signature);
 
-		if (!valid) {
-			const err = this.schema.getLastErrors();
-			throw err;
+		if (errors.length) {
+			throw errors;
 		}
 
 		return this.transactionPoolModule.getTransactionAndProcessSignature(
@@ -527,7 +518,6 @@ class Transport {
 	 * Validates transactions with schema and calls receiveTransaction for each transaction.
 	 *
 	 * @private
-	 * @implements {this.schema.validate}
 	 * @implements {__private.receiveTransaction}
 	 * @param {Array} transactions - Array of transactions
 	 */

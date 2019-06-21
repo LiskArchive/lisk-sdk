@@ -141,6 +141,6 @@ module.exports = class ChainModule extends BaseModule {
 	}
 
 	async unload() {
-		return this.chain.cleanup(0);
+		return this.chain.cleanup();
 	}
 };
