@@ -24,7 +24,6 @@ const Sequence = require('../../../src/modules/chain/utils/sequence');
 const { BlockSlots } = require('../../../src/modules/chain/blocks/block_slots');
 const { createCacheComponent } = require('../../../src/components/cache');
 const { StorageSandbox } = require('./storage_sandbox');
-const initSteps = require('../../../src/modules/chain/init_steps');
 
 let currentAppScope;
 
@@ -162,11 +161,7 @@ async function __init(sandbox, initScope) {
 		await startStorage();
 		await cache.bootstrap();
 
-		scope.bus = await initSteps.createBus();
 		scope.modules = await initStepsForTest.initModules(scope);
-
-		// Fire onBind event in every module
-		scope.bus.message('bind', scope);
 
 		// Listen to websockets
 		// await scope.webSocket.listen();
@@ -182,8 +177,7 @@ async function __init(sandbox, initScope) {
 			return false;
 		};
 
-		// If bus is overridden, then we just return the scope, without waiting for genesisBlock
-		if (!initScope.waitForGenesisBlock || initScope.bus) {
+		if (!initScope.waitForGenesisBlock) {
 			scope.modules.delegates.onBlockchainReady = function() {};
 			return scope;
 		}
@@ -257,7 +251,6 @@ const initStepsForTest = {
 				logger: scope.components.logger,
 				storage: scope.components.storage,
 			},
-			bus: scope.bus,
 			slots: scope.slots,
 			config: {
 				exceptions: __testContext.config.modules.chain.exceptions,
@@ -291,9 +284,13 @@ const initStepsForTest = {
 			blockSlotWindow: __testContext.config.constants.BLOCK_SLOT_WINDOW,
 		});
 		scope.modules = modules;
-		const RewiredPeers = rewire('../../../src/modules/chain/submodules/peers');
-		scope.rewiredModules.peers = RewiredPeers;
-		modules.peers = new RewiredPeers(scope);
+		const { Peers } = rewire('../../../src/modules/chain/peers');
+		scope.peers = new Peers({
+			channel: scope.channel,
+			minBroadhashConsensus:
+				__testContext.config.constants.MIN_BROADHASH_CONSENSUS,
+			forgingForce: __testContext.config.modules.chain.forging.force,
+		});
 		const { TransactionPool: RewiredTransactionPool } = rewire(
 			'../../../src/modules/chain/transaction_pool'
 		);
@@ -380,8 +377,6 @@ const initStepsForTest = {
 			maxSharedTransactions:
 				__testContext.config.constants.MAX_SHARED_TRANSACTIONS,
 		});
-
-		scope.bus.registerModules(modules);
 
 		return modules;
 	},

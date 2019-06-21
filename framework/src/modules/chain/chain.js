@@ -23,9 +23,9 @@ const Sequence = require('./utils/sequence');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
-const { createBus, bootstrapStorage, bootstrapCache } = require('./init_steps');
+const { bootstrapStorage, bootstrapCache } = require('./init_steps');
 const jobQueue = require('./utils/jobs_queue');
-const Peers = require('./submodules/peers');
+const { Peers } = require('./peers');
 const { TransactionInterfaceAdapter } = require('./interface_adapters');
 const { TransactionPool } = require('./transaction_pool');
 const { Rounds } = require('./rounds');
@@ -127,6 +127,7 @@ module.exports = class Chain {
 			const self = this;
 			this.scope = {
 				config: self.options,
+				peers: this.peers,
 				genesisBlock: { block: self.options.genesisBlock },
 				registeredTransactions: self.options.registeredTransactions,
 				sequence: new Sequence({
@@ -151,18 +152,11 @@ module.exports = class Chain {
 			await bootstrapStorage(this.scope, global.constants.ACTIVE_DELEGATES);
 			await bootstrapCache(this.scope);
 
-			this.scope.bus = await createBus();
-
 			await this._initModules();
-
-			this.scope.bus.registerModules(this.scope.modules);
 
 			this.channel.subscribe('app:state:updated', event => {
 				Object.assign(this.scope.applicationState, event.data);
 			});
-
-			// Fire onBind event in every module
-			this.scope.bus.message('bind', this.scope);
 
 			this.logger.info('Modules ready and launched');
 			// After binding, it should immediately load blockchain
@@ -175,6 +169,7 @@ module.exports = class Chain {
 
 			this.channel.subscribe('network:bootstrap', async () => {
 				this._startLoader();
+				this._calculateConsensus();
 				await this._startForging();
 			});
 
@@ -245,7 +240,7 @@ module.exports = class Chain {
 					: this.slots.getSlotNumber(),
 			calcSlotRound: async action => this.slots.calcRound(action.params.height),
 			getNodeStatus: async () => ({
-				consensus: this.peers.getLastConsensus(),
+				consensus: await this.peers.getLastConsensus(this.blocks.broadhash),
 				loaded: true,
 				syncing: this.loader.syncing(),
 				unconfirmedTransactions: this.transactionPool.getCount(),
@@ -310,7 +305,6 @@ module.exports = class Chain {
 				logger: this.logger,
 				storage: this.storage,
 			},
-			bus: this.scope.bus,
 			slots: this.slots,
 			config: {
 				exceptions: this.options.exceptions,
@@ -361,22 +355,8 @@ module.exports = class Chain {
 		// TODO: Remove - Temporal write to modules for blocks circular dependency
 		this.peers = new Peers({
 			channel: this.channel,
-			components: {
-				logger: this.logger,
-				storage: this.storage,
-			},
-			modules: {
-				blocks: this.blocks,
-			},
-			config: {
-				version: this.options.version,
-				forging: {
-					force: this.options.forging.force,
-				},
-				constants: {
-					minBroadhashConsensus: this.options.constants.MIN_BROADHASH_CONSENSUS,
-				},
-			},
+			forgingForce: this.options.forging.force,
+			minBroadhashConsensus: this.options.constants.MIN_BROADHASH_CONSENSUS,
 		});
 		this.scope.modules.peers = this.peers;
 		this.loader = new Loader({
@@ -466,6 +446,19 @@ module.exports = class Chain {
 				}
 			},
 			syncInterval
+		);
+	}
+
+	_calculateConsensus() {
+		jobQueue.register(
+			'calculateConsensus',
+			async () => {
+				const consensus = await this.peers.calculateConsensus(
+					this.blocks.broadhash
+				);
+				return this.logger.debug(`Broadhash consensus: ${consensus} %`);
+			},
+			this.peers.broadhashConsensusCalculationInterval
 		);
 	}
 

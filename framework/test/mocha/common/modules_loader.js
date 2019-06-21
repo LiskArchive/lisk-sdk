@@ -209,7 +209,6 @@ const modulesLoader = new function() {
 					delegates: require('../../../src/modules/chain/rounds/delegates'),
 				},
 				{ loader: require('../../../src/modules/chain/loader') },
-				{ peers: require('../../../src/modules/chain/submodules/peers') },
 				{ rounds: require('../../../src/modules/chain/rounds/rounds') },
 				{
 					transport: require('../../../src/modules/chain/transport'),

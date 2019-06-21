@@ -142,7 +142,9 @@ class Loader {
 
 		this.isActive = true;
 
-		const consensusBefore = await this.peersModule.calculateConsensus();
+		const consensusBefore = await this.peersModule.calculateConsensus(
+			this.blocksModule.broadhash
+		);
 
 		this.logger.debug(
 			`Establishing broadhash consensus before sync: ${consensusBefore} %`
@@ -150,7 +152,9 @@ class Loader {
 
 		await this._loadBlocksFromNetwork();
 
-		const consensusAfter = await this.peersModule.calculateConsensus();
+		const consensusAfter = await this.peersModule.calculateConsensus(
+			this.blocksModule.broadhash
+		);
 
 		this.logger.debug(
 			`Establishing broadhash consensus after sync: ${consensusAfter} %`
@@ -359,7 +363,7 @@ class Loader {
 
 			return lastValidBlock.id === lastBlock.id;
 		} catch (loadBlocksFromNetworkErr) {
-			if (this.peersModule.isPoorConsensus()) {
+			if (this.peersModule.isPoorConsensus(this.blocksModule.broadhash)) {
 				this.logger.debug('Perform chain recovery due to poor consensus');
 				try {
 					await this.blocksModule.recoverChain();
