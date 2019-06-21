@@ -327,12 +327,11 @@ class Blocks extends EventEmitter {
 					await this._updateBroadhash();
 					this._lastBlock = newBlock;
 					this._isActive = false;
-					return;
 				} catch (error) {
 					this._isActive = false;
 					this.logger.error(error);
-					throw error;
 				}
+				return;
 			}
 			if (this.blocksVerify.isForkOne(block, this._lastBlock)) {
 				this.roundsModule.fork(block, 1);
@@ -371,12 +370,11 @@ class Blocks extends EventEmitter {
 						newLastBlock: cloneDeep(this._lastBlock),
 					});
 					this._isActive = false;
-					return;
 				} catch (error) {
 					this._isActive = false;
 					this.logger.error(error);
-					throw error;
 				}
+				return;
 			}
 			if (this.blocksVerify.isForkFive(block, this._lastBlock)) {
 				this.roundsModule.fork(block, 5);
@@ -420,12 +418,11 @@ class Blocks extends EventEmitter {
 					);
 					await this._updateBroadhash();
 					this._isActive = false;
-					return;
 				} catch (error) {
 					this.logger.error(error);
 					this._isActive = false;
-					throw error;
 				}
+				return;
 			}
 			if (block.id === this._lastBlock.id) {
 				this.logger.debug({ blockId: block.id }, 'Block already processed');

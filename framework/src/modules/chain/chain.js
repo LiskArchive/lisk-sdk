@@ -429,7 +429,7 @@ module.exports = class Chain {
 					'Sync time triggered'
 				);
 				if (!this.loader.syncing() && this.blocks.isStale()) {
-					this.scope.sequence.add(async () => {
+					await this.scope.sequence.add(async () => {
 						try {
 							await this.loader.sync();
 						} catch (error) {
