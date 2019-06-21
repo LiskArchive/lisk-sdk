@@ -239,9 +239,7 @@ describe('WS transport', () => {
 						JSON.stringify(err.response),
 						JSON.stringify(res)
 					);
-					expect(err.response.message).to.equal(
-						'Expected type object but found type null: #/'
-					);
+					expect(err.response.message).to.equal('should be object: undefined');
 					expect(res).to.be.undefined;
 				}
 			});
@@ -260,7 +258,7 @@ describe('WS transport', () => {
 						JSON.stringify(res)
 					);
 					expect(err.response.message).to.equal(
-						'Array items are not unique (indexes 1 and 2): #/ids'
+						'should NOT have duplicate items (items ## 2 and 1 are identical): undefined'
 					);
 				}
 			});
@@ -279,7 +277,7 @@ describe('WS transport', () => {
 						JSON.stringify(res)
 					);
 					expect(err.response.message).to.equal(
-						'Array is too short (0), minimum 1: #/ids'
+						'should NOT have fewer than 1 items: undefined'
 					);
 				}
 			});
@@ -298,7 +296,7 @@ describe('WS transport', () => {
 						JSON.stringify(res)
 					);
 					expect(err.response.message).to.equal(
-						"Object didn't pass validation for format id: abcde: #/ids/0"
+						'should match format "id": undefined'
 					);
 				}
 			});
@@ -316,9 +314,7 @@ describe('WS transport', () => {
 						JSON.stringify(err.response),
 						JSON.stringify(res)
 					);
-					expect(err.response.message).to.equal(
-						'Expected type array but found type string: #/ids'
-					);
+					expect(err.response.message).to.equal('should be array: undefined');
 				}
 			});
 

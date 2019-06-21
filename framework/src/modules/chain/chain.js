@@ -18,6 +18,7 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 	require('./utils/newrelic_lisk');
 }
 
+const { validator } = require('@liskhq/lisk-validator');
 const { convertErrorsToString } = require('./utils/error_handlers');
 const Sequence = require('./utils/sequence');
 const definitions = require('./schema/definitions');
@@ -262,13 +263,13 @@ module.exports = class Chain {
 			}),
 			blocks: async action => this.transport.blocks(action.params || {}),
 			getHighestCommonBlockId: async action => {
-				const valid = this.scope.schema.validate(
-					action.params,
-					definitions.getHighestCommonBlockIdRequest
+				const valid = validator.validate(
+					definitions.getHighestCommonBlockIdRequest,
+					action.params
 				);
 
-				if (!valid) {
-					const err = this.scope.schema.getLastErrors();
+				if (valid.length) {
+					const err = valid;
 					const error = `${err[0].message}: ${err[0].path}`;
 					this.logger.debug(
 						'getHighestCommonBlockId request validation failed',
