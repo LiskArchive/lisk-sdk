@@ -18,10 +18,7 @@
  * @namespace BFT
  */
 
-const HeadersList = require('./headers_list');
-const BFT = require('./bft');
-
 module.exports = {
-	...HeadersList,
-	...BFT,
+	...require('./headers_list'),
+	...require('./finality_manager'),
 };

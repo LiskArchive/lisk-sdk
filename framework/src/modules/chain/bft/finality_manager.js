@@ -38,7 +38,7 @@ const validateBlockHeader = blockHeader =>
  * @property {string} delegatePublicKey
  */
 
-class BFT {
+class FinalityManager {
 	constructor({ finalizedHeight, activeDelegates } = {}) {
 		assert(finalizedHeight !== undefined, 'Must provide finalizedHeight');
 		assert(activeDelegates !== undefined, 'Must provide activeDelegates');
@@ -73,10 +73,10 @@ class BFT {
 	}
 
 	/**
-	 * Add block header to BFT
+	 * Add block header to BlockHeaderManager
 	 *
 	 * @param {BlockHeader} blockHeader
-	 * @return {BFT}
+	 * @return {Block_headers_manager}
 	 */
 	addBlockHeader(blockHeader) {
 		// Validate the schema of the header
@@ -118,7 +118,7 @@ class BFT {
 		// Get delegate public key
 		const delegatePublicKey = header.delegatePublicKey;
 
-		// Load or initialize delegate state in reference to current BFT block headers
+		// Load or initialize delegate state in reference to current BlockHeaderManager block headers
 		const delegateState = this.state[delegatePublicKey] || {
 			maxPreVoteHeight: 0,
 			maxPreCommitHeight: 0,
@@ -279,7 +279,7 @@ class BFT {
 }
 
 const exportedInterface = {
-	BFT,
+	FinalityManager,
 	validateBlockHeader,
 };
 

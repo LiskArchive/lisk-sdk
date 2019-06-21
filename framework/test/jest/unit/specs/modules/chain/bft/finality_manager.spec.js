@@ -17,7 +17,7 @@
 const path = require('path');
 const fs = require('fs');
 const { SchemaValidationError } = require('../../../../../../../src/errors');
-const bftModule = require('../../../../../../../src/modules/chain/bft/bft');
+const finalityManagerModule = require('../../../../../../../src/modules/chain/bft/finality_manager');
 const {
 	BlockHeader: blockHeaderFixture,
 } = require('../../../../../../mocha/fixtures/blocks');
@@ -26,8 +26,8 @@ const {
 	Account: accountFixture,
 } = require('../../../../../../mocha/fixtures/accounts');
 
-const BFT = bftModule.BFT;
-const validateBlockHeader = bftModule.validateBlockHeader;
+const FinalityManager = finalityManagerModule.FinalityManager;
+const validateBlockHeader = finalityManagerModule.validateBlockHeader;
 
 const generateValidHeaders = count => {
 	return [...Array(count)].map((_, index) => {
@@ -97,8 +97,8 @@ const generateHeaderInformation = (data, threshold, lastBlockData) => {
 	};
 };
 
-describe('bft', () => {
-	describe('BFT', () => {
+describe('finality_manager', () => {
+	describe('FinalityManager', () => {
 		let bft;
 		const finalizedHeight = 0;
 		const activeDelegates = 101;
@@ -108,13 +108,13 @@ describe('bft', () => {
 		const maxHeaders = 505;
 
 		beforeEach(async () => {
-			bft = new BFT({ finalizedHeight, activeDelegates });
+			bft = new FinalityManager({ finalizedHeight, activeDelegates });
 			jest.spyOn(bft.headers, 'top');
 		});
 
 		describe('constructor', () => {
 			it('should initialize the object correctly', async () => {
-				expect(bft).toBeInstanceOf(BFT);
+				expect(bft).toBeInstanceOf(FinalityManager);
 				expect(bft.activeDelegates).toEqual(activeDelegates);
 				expect(bft.preVoteThreshold).toEqual(preVoteThreshold);
 				expect(bft.preCommitThreshold).toEqual(preCommitThreshold);
@@ -123,19 +123,21 @@ describe('bft', () => {
 			});
 
 			it('should throw error if finalizedHeight is not provided', async () => {
-				expect(() => new BFT()).toThrow('Must provide finalizedHeight');
+				expect(() => new FinalityManager()).toThrow(
+					'Must provide finalizedHeight'
+				);
 			});
 
 			it('should throw error if activeDelegates is not provided', async () => {
-				expect(() => new BFT({ finalizedHeight })).toThrow(
+				expect(() => new FinalityManager({ finalizedHeight })).toThrow(
 					'Must provide activeDelegates'
 				);
 			});
 
 			it('should throw error if activeDelegates is not positive', async () => {
-				expect(() => new BFT({ finalizedHeight, activeDelegates: 0 })).toThrow(
-					'Must provide a positive activeDelegates'
-				);
+				expect(
+					() => new FinalityManager({ finalizedHeight, activeDelegates: 0 })
+				).toThrow('Must provide a positive activeDelegates');
 			});
 		});
 
@@ -265,11 +267,15 @@ describe('bft', () => {
 					height: 1,
 					maxHeightPreviouslyForged: 0,
 				});
-				jest.spyOn(bftModule, 'validateBlockHeader');
+				jest.spyOn(finalityManagerModule, 'validateBlockHeader');
 				bft.addBlockHeader(header1);
 
-				expect(bftModule.validateBlockHeader).toHaveBeenCalledTimes(1);
-				expect(bftModule.validateBlockHeader).toHaveBeenCalledWith(header1);
+				expect(finalityManagerModule.validateBlockHeader).toHaveBeenCalledTimes(
+					1
+				);
+				expect(finalityManagerModule.validateBlockHeader).toHaveBeenCalledWith(
+					header1
+				);
 			});
 
 			it('should call verifyBlockHeaders with the provided header', async () => {
@@ -277,11 +283,15 @@ describe('bft', () => {
 					height: 1,
 					maxHeightPreviouslyForged: 0,
 				});
-				jest.spyOn(bftModule, 'validateBlockHeader');
+				jest.spyOn(finalityManagerModule, 'validateBlockHeader');
 				bft.addBlockHeader(header1);
 
-				expect(bftModule.validateBlockHeader).toHaveBeenCalledTimes(1);
-				expect(bftModule.validateBlockHeader).toHaveBeenCalledWith(header1);
+				expect(finalityManagerModule.validateBlockHeader).toHaveBeenCalledTimes(
+					1
+				);
+				expect(finalityManagerModule.validateBlockHeader).toHaveBeenCalledWith(
+					header1
+				);
 			});
 
 			it('should add headers to list', async () => {
@@ -315,7 +325,7 @@ describe('bft', () => {
 					const data = loadCSVSimulationData(
 						path.join(__dirname, './scenarios/11_delegates.csv')
 					);
-					const myBft = new BFT({
+					const myBft = new FinalityManager({
 						finalizedHeight: 0,
 						activeDelegates: 11,
 					});
@@ -353,7 +363,7 @@ describe('bft', () => {
 							'./scenarios/5_delegates_switched_completely.csv'
 						)
 					);
-					const myBft = new BFT({
+					const myBft = new FinalityManager({
 						finalizedHeight: 0,
 						activeDelegates: 5,
 					});
@@ -394,7 +404,7 @@ describe('bft', () => {
 					path.join(__dirname, './scenarios/11_delegates.csv')
 				);
 				let blockData;
-				const myBft = new BFT({
+				const myBft = new FinalityManager({
 					finalizedHeight: 0,
 					activeDelegates: 11,
 				});
