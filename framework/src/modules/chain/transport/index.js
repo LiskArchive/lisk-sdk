@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { Broadcaster } = require('./broadcaster');
+const Broadcaster = require('./broadcaster');
 const { Transport } = require('./transport');
 
 module.exports = {

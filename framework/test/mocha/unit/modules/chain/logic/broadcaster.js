@@ -17,7 +17,7 @@
 const rewire = require('rewire');
 
 const Broadcaster = rewire(
-	'../../../../../../src/modules/chain/logic/broadcaster'
+	'../../../../../../src/modules/chain/transport/broadcaster'
 );
 
 describe('Broadcaster', () => {
