@@ -14,12 +14,10 @@
 
 'use strict';
 
-const createBus = require('./create_bus');
 const bootstrapStorage = require('./bootstrap_storage');
 const bootstrapCache = require('./bootstrap_cache');
 
 module.exports = {
-	createBus,
 	bootstrapStorage,
 	bootstrapCache,
 };

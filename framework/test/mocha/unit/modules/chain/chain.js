@@ -49,11 +49,6 @@ describe('Chain', () => {
 		stubs.storage = {
 			cleanup: sinonSandbox.stub(),
 		};
-		stubs.bus = {
-			message: sinonSandbox.stub(),
-			registerModules: sinonSandbox.stub(),
-		};
-
 		stubs.modules = {
 			module1: {
 				cleanup: sinonSandbox.stub().resolves('module1cleanup'),
@@ -91,7 +86,6 @@ describe('Chain', () => {
 		stubs.createStorageComponent = sinonSandbox.stub().returns(stubs.storage);
 
 		stubs.initSteps = {
-			createBus: sinonSandbox.stub().resolves(stubs.bus),
 			bootstrapStorage: sinonSandbox.stub(),
 			bootstrapCache: sinonSandbox.stub(),
 		};
@@ -101,7 +95,6 @@ describe('Chain', () => {
 		Chain.__set__('createLoggerComponent', stubs.createLoggerComponent);
 		Chain.__set__('createCacheComponent', stubs.createCacheComponent);
 		Chain.__set__('createStorageComponent', stubs.createStorageComponent);
-		Chain.__set__('createBus', stubs.initSteps.createBus);
 		Chain.__set__('bootstrapStorage', stubs.initSteps.bootstrapStorage);
 		Chain.__set__('bootstrapCache', stubs.initSteps.bootstrapCache);
 
@@ -257,21 +250,10 @@ describe('Chain', () => {
 				chain.scope
 			);
 		});
-		it('should create bus object and assign to scope.bus', () => {
-			expect(stubs.initSteps.createBus).to.have.been.called;
-			return expect(chain.scope.bus).to.be.equal(stubs.bus);
-		});
 
 		it('should subscribe to "app:state:updated" event', () => {
 			return expect(chain.channel.subscribe).to.have.been.calledWith(
 				'app:state:updated'
-			);
-		});
-
-		it('should send bind message on the bus', () => {
-			return expect(chain.scope.bus.message).to.have.been.calledWith(
-				'bind',
-				chain.scope
 			);
 		});
 

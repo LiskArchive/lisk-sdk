@@ -24,7 +24,6 @@ const { Sequence } = require('../../../src/modules/chain/utils/sequence');
 const { BlockSlots } = require('../../../src/modules/chain/blocks/block_slots');
 const { createCacheComponent } = require('../../../src/components/cache');
 const { StorageSandbox } = require('./storage_sandbox');
-const initSteps = require('../../../src/modules/chain/init_steps');
 
 let currentAppScope;
 
@@ -157,11 +156,7 @@ async function __init(sandbox, initScope) {
 		await startStorage();
 		await cache.bootstrap();
 
-		scope.bus = await initSteps.createBus();
 		scope.modules = await initStepsForTest.initModules(scope);
-
-		// Fire onBind event in every module
-		scope.bus.message('bind', scope);
 
 		// Listen to websockets
 		// await scope.webSocket.listen();
@@ -177,8 +172,7 @@ async function __init(sandbox, initScope) {
 			return false;
 		};
 
-		// If bus is overridden, then we just return the scope, without waiting for genesisBlock
-		if (!initScope.waitForGenesisBlock || initScope.bus) {
+		if (!initScope.waitForGenesisBlock) {
 			scope.modules.delegates.onBlockchainReady = function() {};
 			return scope;
 		}
@@ -252,7 +246,6 @@ const initStepsForTest = {
 				logger: scope.components.logger,
 				storage: scope.components.storage,
 			},
-			bus: scope.bus,
 			slots: scope.slots,
 			config: {
 				exceptions: __testContext.config.modules.chain.exceptions,
@@ -377,8 +370,6 @@ const initStepsForTest = {
 			maxSharedTransactions:
 				__testContext.config.constants.MAX_SHARED_TRANSACTIONS,
 		});
-
-		scope.bus.registerModules(modules);
 
 		return modules;
 	},
