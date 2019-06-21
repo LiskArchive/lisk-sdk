@@ -595,10 +595,7 @@ const verifyReceipt = ({
 	lastNBlockIds,
 	exceptions,
 	block,
-	lastBlock,
 }) => {
-	block = blocksUtils.setHeight(block, lastBlock);
-
 	let result = { verified: false, errors: [] };
 
 	result = verifySignature(block, result);

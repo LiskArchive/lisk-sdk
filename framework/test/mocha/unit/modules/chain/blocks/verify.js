@@ -389,6 +389,14 @@ describe('blocks/verify', () => {
 				},
 			};
 
+			const blocksVersionExceptionExtended = {
+				blockVersions: {
+					0: { start: 1, end: 101 },
+					1: { start: 102, end: 202 },
+					2: { start: 203, end: 303 },
+				},
+			};
+
 			describe('when block height provided', () => {
 				it('should return no error when block version = 0', async () => {
 					const verifyVersion = blocksVerifyModule.verifyVersion(
@@ -397,6 +405,37 @@ describe('blocks/verify', () => {
 						{ errors: [] }
 					);
 					return expect(verifyVersion.errors.length).to.equal(0);
+				});
+
+				it('should return no error when block version = 0 with extended exceptions', async () => {
+					const verifyVersion = blocksVerifyModule.verifyVersion(
+						{ version: 0, height: 1 },
+						blocksVersionExceptionExtended,
+						{ errors: [] }
+					);
+					return expect(verifyVersion.errors.length).to.equal(0);
+				});
+
+				it('should return error when block version = 1 and height = 1 with extended exceptions', async () => {
+					const verifyVersion = blocksVerifyModule.verifyVersion(
+						{ version: 1, height: 1 },
+						blocksVersionExceptionExtended,
+						{ errors: [] }
+					);
+					return expect(verifyVersion.errors[0].message).to.equal(
+						'Invalid block version'
+					);
+				});
+
+				it('should return error when block version = 2 and height = 1 with extended exceptions', async () => {
+					const verifyVersion = blocksVerifyModule.verifyVersion(
+						{ version: 2, height: 1 },
+						blocksVersionExceptionExtended,
+						{ errors: [] }
+					);
+					return expect(verifyVersion.errors[0].message).to.equal(
+						'Invalid block version'
+					);
 				});
 
 				it('should return error when block version = 1', async () => {
@@ -447,6 +486,37 @@ describe('blocks/verify', () => {
 					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 3 },
 						blocksVersionException,
+						{ errors: [] }
+					);
+					return expect(verifyVersion.errors[0].message).to.equal(
+						'Invalid block version'
+					);
+				});
+
+				it('should return no error when block version = 2 with extended exceptions', async () => {
+					const verifyVersion = blocksVerifyModule.verifyVersion(
+						{ version: 2 },
+						blocksVersionExceptionExtended,
+						{ errors: [] }
+					);
+					return expect(verifyVersion.errors.length).to.equal(0);
+				});
+
+				it('should return error when block version = 1 with extended exceptions', async () => {
+					const verifyVersion = blocksVerifyModule.verifyVersion(
+						{ version: 1 },
+						blocksVersionExceptionExtended,
+						{ errors: [] }
+					);
+					return expect(verifyVersion.errors[0].message).to.equal(
+						'Invalid block version'
+					);
+				});
+
+				it('should return error when block version = 3 with extended exceptions', async () => {
+					const verifyVersion = blocksVerifyModule.verifyVersion(
+						{ version: 3 },
+						blocksVersionExceptionExtended,
 						{ errors: [] }
 					);
 					return expect(verifyVersion.errors[0].message).to.equal(
