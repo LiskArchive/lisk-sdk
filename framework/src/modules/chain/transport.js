@@ -20,7 +20,7 @@ const { promisify } = require('util');
 const _ = require('lodash');
 const { convertErrorsToString } = require('./utils/error_handlers');
 // eslint-disable-next-line prefer-const
-let Broadcaster = require('./logic/broadcaster');
+let Broadcaster = require('./transport/broadcaster');
 const definitions = require('./schema/definitions');
 const blocksUtils = require('./blocks');
 const transactionsModule = require('./transactions');
