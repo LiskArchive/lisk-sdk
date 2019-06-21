@@ -83,74 +83,73 @@ const getHash = block => hash(getBytes(block));
  * @todo Add description for the function and the params
  */
 const getBytes = block => {
-	const bufferArray = [];
-
 	const blockVersionBuffer = intToBuffer(
 		block.version,
 		SIZE_INT32,
 		LITTLE_ENDIAN
 	);
-	bufferArray.push(blockVersionBuffer);
 
 	const timestampBuffer = intToBuffer(
 		block.timestamp,
 		SIZE_INT32,
 		LITTLE_ENDIAN
 	);
-	bufferArray.push(timestampBuffer);
 
 	const previousBlockBuffer = block.previousBlock
 		? bigNumberToBuffer(block.previousBlock, SIZE_INT64, BIG_ENDIAN)
 		: Buffer.alloc(SIZE_INT64);
-	bufferArray.push(previousBlockBuffer);
 
 	const numTransactionsBuffer = intToBuffer(
 		block.numberOfTransactions,
 		SIZE_INT32,
 		LITTLE_ENDIAN
 	);
-	bufferArray.push(numTransactionsBuffer);
 
 	const totalAmountBuffer = bigNumberToBuffer(
 		block.totalAmount.toString(),
 		SIZE_INT64,
 		LITTLE_ENDIAN
 	);
-	bufferArray.push(totalAmountBuffer);
 
 	const totalFeeBuffer = bigNumberToBuffer(
 		block.totalFee.toString(),
 		SIZE_INT64,
 		LITTLE_ENDIAN
 	);
-	bufferArray.push(totalFeeBuffer);
 
 	const rewardBuffer = bigNumberToBuffer(
 		block.reward.toString(),
 		SIZE_INT64,
 		LITTLE_ENDIAN
 	);
-	bufferArray.push(rewardBuffer);
 
 	const payloadLengthBuffer = intToBuffer(
 		block.payloadLength,
 		SIZE_INT32,
 		LITTLE_ENDIAN
 	);
-	bufferArray.push(payloadLengthBuffer);
 
 	const payloadHashBuffer = hexToBuffer(block.payloadHash);
-	bufferArray.push(payloadHashBuffer);
 
 	const generatorPublicKeyBuffer = hexToBuffer(block.generatorPublicKey);
-	bufferArray.push(generatorPublicKeyBuffer);
 
 	const blockSignatureBuffer = block.blockSignature
 		? hexToBuffer(block.blockSignature)
 		: Buffer.alloc(0);
-	bufferArray.push(blockSignatureBuffer);
 
-	return Buffer.concat(bufferArray);
+	return Buffer.concat([
+		blockVersionBuffer,
+		timestampBuffer,
+		previousBlockBuffer,
+		numTransactionsBuffer,
+		totalAmountBuffer,
+		totalFeeBuffer,
+		rewardBuffer,
+		payloadLengthBuffer,
+		payloadHashBuffer,
+		generatorPublicKeyBuffer,
+		blockSignatureBuffer,
+	]);
 };
 
 /**
