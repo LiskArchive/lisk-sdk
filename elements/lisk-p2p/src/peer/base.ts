@@ -194,10 +194,10 @@ export class Peer extends EventEmitter {
 				this._productivity.lastResponded <
 				Date.now() - DEFAULT_PRODUCTIVITY_RESET_INTERVAL
 			) {
-				this._productivity = DEFAULT_PRODUCTIVITY;
+				this._productivity = { ...DEFAULT_PRODUCTIVITY };
 			}
 		}, DEFAULT_PRODUCTIVITY_RESET_INTERVAL);
-		this._productivity = DEFAULT_PRODUCTIVITY;
+		this._productivity = { ...DEFAULT_PRODUCTIVITY };
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawRPC = (
