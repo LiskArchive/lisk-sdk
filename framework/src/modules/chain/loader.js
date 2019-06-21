@@ -17,6 +17,7 @@
 const async = require('async');
 const { promisify } = require('util');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const { validator } = require('@liskhq/lisk-validator');
 const { validateTransactions } = require('./transactions');
 const { convertErrorsToString } = require('./utils/error_handlers');
 const definitions = require('./schema/definitions');
@@ -44,7 +45,6 @@ class Loader {
 		// Unique requirements
 		genesisBlock,
 		balancesSequence,
-		schema,
 		// Modules
 		transactionPoolModule,
 		blocksModule,
@@ -65,7 +65,6 @@ class Loader {
 		this.storage = storage;
 		// TODO: Remove cache
 		this.cache = cache;
-		this.schema = schema;
 		this.genesisBlock = genesisBlock;
 		this.balancesSequence = balancesSequence;
 
@@ -143,7 +142,9 @@ class Loader {
 
 		this.isActive = true;
 
-		const consensusBefore = await this.peersModule.calculateConsensus();
+		const consensusBefore = await this.peersModule.calculateConsensus(
+			this.blocksModule.broadhash
+		);
 
 		this.logger.debug(
 			`Establishing broadhash consensus before sync: ${consensusBefore} %`
@@ -151,7 +152,9 @@ class Loader {
 
 		await this._loadBlocksFromNetwork();
 
-		const consensusAfter = await this.peersModule.calculateConsensus();
+		const consensusAfter = await this.peersModule.calculateConsensus(
+			this.blocksModule.broadhash
+		);
 
 		this.logger.debug(
 			`Establishing broadhash consensus after sync: ${consensusAfter} %`
@@ -182,8 +185,10 @@ class Loader {
 			procedure: 'getSignatures',
 		});
 
-		const validate = promisify(this.schema.validate.bind(this.schema));
-		await validate(result, definitions.WSSignaturesResponse);
+		const errors = validator.validate(definitions.WSSignaturesResponse, result);
+		if (errors.length) {
+			throw errors;
+		}
 
 		const { signatures } = result;
 		const sequenceAdd = promisify(this.sequence.add.bind(this.sequence));
@@ -225,8 +230,13 @@ class Loader {
 			procedure: 'getTransactions',
 		});
 
-		const validate = promisify(this.schema.validate.bind(this.schema));
-		await validate(result, definitions.WSTransactionsResponse);
+		const validatorErrors = validator.validate(
+			definitions.WSSignaturesResponse,
+			result
+		);
+		if (validatorErrors.length) {
+			throw validatorErrors;
+		}
 
 		const transactions = result.transactions.map(tx =>
 			this.interfaceAdapters.transactions.fromJson(tx)
@@ -325,10 +335,11 @@ class Loader {
 	 * @returns {Promise} void
 	 * @todo Add description for the params
 	 */
+	// eslint-disable-next-line class-methods-use-this
 	async _validateBlocks(blocks) {
-		const report = this.schema.validate(blocks, definitions.WSBlocksList);
+		const errors = validator.validate(definitions.WSBlocksList, blocks);
 
-		if (!report) {
+		if (errors.length) {
 			throw new Error('Received invalid blocks data');
 		}
 
@@ -352,7 +363,7 @@ class Loader {
 
 			return lastValidBlock.id === lastBlock.id;
 		} catch (loadBlocksFromNetworkErr) {
-			if (this.peersModule.isPoorConsensus()) {
+			if (this.peersModule.isPoorConsensus(this.blocksModule.broadhash)) {
 				this.logger.debug('Perform chain recovery due to poor consensus');
 				try {
 					await this.blocksModule.recoverChain();
