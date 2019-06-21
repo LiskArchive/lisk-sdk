@@ -32,6 +32,7 @@ const defaultAccount = {
 	nameExist: false,
 	multiMin: 0,
 	multiLifetime: 0,
+	asset: {},
 };
 
 class AccountStore {

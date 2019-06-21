@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-cryptography",
-	"version": "2.1.0-alpha.1",
+	"version": "2.1.0-alpha.2",
 	"description": "General cryptographic functions for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
@@ -77,7 +77,7 @@
 		"cypress": "3.1.5",
 		"http-server": "0.11.1",
 		"mocha": "5.2.0",
-		"nyc": "13.2.0",
+		"nyc": "14.1.1",
 		"prettier": "1.16.4",
 		"sinon": "7.2.3",
 		"sodium-native": "2.2.1",

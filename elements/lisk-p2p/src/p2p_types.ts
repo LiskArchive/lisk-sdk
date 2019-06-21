@@ -49,6 +49,7 @@ export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
 	readonly updatedAt?: Date;
 	readonly os?: string;
 	readonly version: string;
+	readonly protocolVersion: string;
 	// tslint:disable-next-line: no-mixed-interface
 	readonly [key: string]: unknown;
 }
@@ -58,6 +59,7 @@ export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
 export interface P2PNodeInfo {
 	readonly os: string;
 	readonly version: string;
+	readonly protocolVersion: string;
 	readonly nethash: string;
 	readonly wsPort: number;
 	readonly height: number;
@@ -118,7 +120,7 @@ export interface P2PPeerSelectionForSendInput {
 }
 
 export type P2PPeerSelectionForSendFunction = (
-	input: P2PPeerSelectionForSendInput
+	input: P2PPeerSelectionForSendInput,
 ) => ReadonlyArray<P2PDiscoveredPeerInfo>;
 
 export interface P2PPeerSelectionForRequestInput {
@@ -129,7 +131,7 @@ export interface P2PPeerSelectionForRequestInput {
 }
 
 export type P2PPeerSelectionForRequestFunction = (
-	input: P2PPeerSelectionForRequestInput
+	input: P2PPeerSelectionForRequestInput,
 ) => ReadonlyArray<P2PDiscoveredPeerInfo>;
 
 export interface P2PPeerSelectionForConnectionInput {
@@ -138,7 +140,7 @@ export interface P2PPeerSelectionForConnectionInput {
 }
 
 export type P2PPeerSelectionForConnectionFunction = (
-	input: P2PPeerSelectionForConnectionInput
+	input: P2PPeerSelectionForConnectionInput,
 ) => ReadonlyArray<P2PDiscoveredPeerInfo>;
 
 export interface P2PCompatibilityCheckReturnType {
@@ -160,6 +162,7 @@ export interface ProtocolPeerInfo {
 	readonly nonce: string;
 	readonly os?: string;
 	readonly version: string;
+	readonly protocolVersion: string;
 	readonly wsPort: number;
 	readonly httpPort?: number;
 	// tslint:disable-next-line: no-mixed-interface

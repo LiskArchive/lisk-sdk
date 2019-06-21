@@ -293,4 +293,20 @@ describe('GET /peers', () => {
 			expect(res.body.data).to.not.empty;
 		});
 	});
+
+	describe('node does not connect to itself', () => {
+		it('should not contain itself in its peer list', async () => {
+			return peersEndpoint.makeRequest({}, 200).then(res => {
+				const responseData = res.body.data;
+
+				expect(responseData).is.an('array');
+
+				responseData.forEach(peer => {
+					expect(peer.wsPort).to.not.be.eql(
+						__testContext.config.modules.network.wsPort
+					);
+				});
+			});
+		});
+	});
 });

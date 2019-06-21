@@ -35,6 +35,7 @@ describe('response handlers', () => {
 				os: 'darwin',
 				height: 23232,
 				version: '1.1.2',
+				protocolVersion: '1.1',
 				broadhash: '92hdbcwsdjcosi',
 				nonce: '89wsufhucsdociuds',
 				httpPort: 2000,
@@ -46,6 +47,7 @@ describe('response handlers', () => {
 				os: '778',
 				height: '2323wqdqd2',
 				version: '3.4.5-alpha.9',
+				protocolVersion: '1.1',
 				broadhash: '92hdbcwsdjcosi',
 				nonce: '89wsufhucsdociuds',
 				httpPort: 2000,
@@ -60,6 +62,7 @@ describe('response handlers', () => {
 						height: 23232,
 						os: 'darwin',
 						version: '1.1.2',
+						protocolVersion: '1.1',
 						broadhash: '92hdbcwsdjcosi',
 						httpPort: 2000,
 						nonce: '89wsufhucsdociuds',
@@ -75,6 +78,7 @@ describe('response handlers', () => {
 						height: 0,
 						os: '778',
 						version: '3.4.5-alpha.9',
+						protocolVersion: '1.1',
 						broadhash: '92hdbcwsdjcosi',
 						httpPort: 2000,
 						nonce: '89wsufhucsdociuds',
@@ -113,6 +117,7 @@ describe('response handlers', () => {
 					os: 'darwin',
 					height: '23232',
 					version: '1222.22',
+					protocolVersion: '1.1',
 				};
 
 				expect(validatePeerInfo.bind(null, peerInvalid)).to.throw(
@@ -173,6 +178,7 @@ describe('response handlers', () => {
 			wsPort: 5001,
 			height: '545776',
 			version: '1.0.1',
+			protocolVersion: '1.1',
 			os: 'darwin',
 		};
 
@@ -181,6 +187,7 @@ describe('response handlers', () => {
 			wsPort: 5002,
 			height: '545981',
 			version: '1.0.1',
+			protocolVersion: '1.1',
 			os: 'darwin',
 		};
 		const peerList = [peer1, peer2];
@@ -220,6 +227,7 @@ describe('response handlers', () => {
 						wsPort: NaN,
 						height: '545981',
 						version: '1.0.1',
+						protocolVersion: '1.1',
 						os: 'darwin',
 					},
 				],

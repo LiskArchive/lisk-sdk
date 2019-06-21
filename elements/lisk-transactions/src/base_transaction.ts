@@ -114,6 +114,8 @@ export abstract class BaseTransaction {
 	public readonly fee: BigNum;
 	public receivedAt?: Date;
 
+	public static TYPE: number;
+
 	protected _id?: string;
 	protected _signature?: string;
 	protected _signSignature?: string;
@@ -121,7 +123,6 @@ export abstract class BaseTransaction {
 		MultisignatureStatus.UNKNOWN;
 
 	public abstract assetToJSON(): object;
-	public abstract prepare(store: StateStorePrepare): Promise<void>;
 	protected abstract assetToBytes(): Buffer;
 	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
 	protected abstract applyAsset(
@@ -264,6 +265,18 @@ export abstract class BaseTransaction {
 			errors.push(idError);
 		}
 
+		if (this.type !== (this.constructor as typeof BaseTransaction).TYPE) {
+			errors.push(
+				new TransactionError(
+					`Invalid type`,
+					this.id,
+					'.type',
+					this.type,
+					(this.constructor as typeof BaseTransaction).TYPE,
+				),
+			);
+		}
+
 		return createResponse(this.id, errors);
 	}
 
@@ -335,6 +348,14 @@ export abstract class BaseTransaction {
 		errors.push(...assetErrors);
 
 		return createResponse(this.id, errors);
+	}
+
+	public async prepare(store: StateStorePrepare): Promise<void> {
+		await store.account.cache([
+			{
+				address: this.senderId,
+			},
+		]);
 	}
 
 	public addMultisignature(
