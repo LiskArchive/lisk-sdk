@@ -44,8 +44,11 @@ const { Transport } = require('./transport');
 const syncInterval = 10000;
 const forgeInterval = 1000;
 
-// Begin reading from stdin
-process.stdin.resume();
+// TODO: https://github.com/LiskHQ/lisk-sdk/issues/3839
+// Don't read from stdin in test environment
+if (process.env.NODE_ENV !== 'test') {
+	process.stdin.resume();
+}
 
 if (typeof gc !== 'undefined') {
 	setInterval(() => {
