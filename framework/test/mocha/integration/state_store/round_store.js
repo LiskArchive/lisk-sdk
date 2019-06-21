@@ -16,7 +16,7 @@
 
 const BigNum = require('@liskhq/bignum');
 const localCommon = require('../common');
-const RoundStore = require('../../../../src/modules/chain/logic/state_store/round_store.js');
+const RoundStore = require('../../../../src/modules/chain/state_store/round_store.js');
 
 describe('system test - round store', () => {
 	let library;
