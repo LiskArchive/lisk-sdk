@@ -26,14 +26,22 @@ export const intToBuffer = (
 export const bufferToIntAsString = (buffer: Buffer): string =>
 	BigNum.fromBuffer(buffer).toString();
 
+/**
+ * @deprecated Use intToBuffer instead
+ */
+// tslint:disable-next-line no-unnecessary-callback-wrapper
 export const bigNumberToBuffer = (
 	bignumber: string,
 	size: number,
 	endian: string = BIG_ENDIAN,
-) => new BigNum(bignumber).toBuffer({ size, endian });
+) => intToBuffer(bignumber, size, endian);
 
+/**
+ * @deprecated Use bufferToIntAsString instead
+ */
+// tslint:disable-next-line no-unnecessary-callback-wrapper
 export const bufferToBigNumberString = (bigNumberBuffer: Buffer): string =>
-	BigNum.fromBuffer(bigNumberBuffer).toString();
+	bufferToIntAsString(bigNumberBuffer);
 
 export const bufferToHex = (buffer: Buffer): string =>
 	Buffer.from(buffer).toString('hex');
