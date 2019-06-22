@@ -108,56 +108,6 @@ Object {
           ],
           "type": "object",
         },
-        "initialState": Object {
-          "id": "#/app/initialState",
-          "properties": Object {
-            "httpPort": Object {
-              "description": "The port the peer node uses for HTTP requests, e.g. API calls.",
-              "example": 8000,
-              "maximum": 65535,
-              "minimum": 1,
-              "type": "integer",
-            },
-            "minVersion": Object {
-              "format": "version",
-              "type": "string",
-            },
-            "nethash": Object {
-              "format": "hex",
-              "maxLength": 64,
-              "minLength": 64,
-              "type": "string",
-            },
-            "nonce": Object {
-              "description": "Unique Identifier for the peer.
-Random string.",
-              "example": "sYHEDBKcScaAAAYg",
-              "maxLength": 16,
-              "minLength": 16,
-              "type": "string",
-            },
-            "protocolVersion": Object {
-              "description": "The protocol version of Lisk Core that the peer node runs on.",
-              "example": 1,
-              "format": "protocolVersion",
-              "type": "string",
-            },
-            "version": Object {
-              "description": "The version of Lisk Core that the peer node runs on.",
-              "example": "1.6.0-rc.3",
-              "format": "version",
-              "type": "string",
-            },
-            "wsPort": Object {
-              "description": "The port the peer node uses for Websocket Connections, e.g. P2P broadcasts.",
-              "example": 8001,
-              "maximum": 65535,
-              "minimum": 1,
-              "type": "integer",
-            },
-          },
-          "type": "object",
-        },
         "ipc": Object {
           "properties": Object {
             "enabled": Object {
