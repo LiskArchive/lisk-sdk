@@ -28,6 +28,8 @@ const jobQueue = require('./utils/jobs_queue');
 const { Peers } = require('./peers');
 const { TransactionInterfaceAdapter } = require('./interface_adapters');
 const { TransactionPool } = require('./transaction_pool');
+const { Dpos } = require('./dpos');
+const { EVENT_BLOCK_FINALIZED } = require('./bft');
 const { Rounds } = require('./rounds');
 const {
 	BlockSlots,
@@ -325,6 +327,11 @@ module.exports = class Chain {
 				},
 			},
 		});
+		this.dpos = new Dpos({
+			storage: this.storage,
+			logger: this.logger,
+			slots: this.slots,
+		});
 		this.scope.modules.rounds = this.rounds;
 		this.blocks = new Blocks({
 			logger: this.logger,
@@ -530,10 +537,15 @@ module.exports = class Chain {
 				);
 			}
 			this.channel.publish('chain:blocks:change', block);
+			this.dpos.onNewBlock(block);
 		});
 
 		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {
 			this.channel.invoke('app:updateApplicationState', { broadhash, height });
+		});
+
+		this.bft.on(EVENT_BLOCK_FINALIZED, ({ height }) => {
+			this.dpos.onBlockFinalized({ height });
 		});
 	}
 
@@ -542,5 +554,6 @@ module.exports = class Chain {
 		this.blocks.removeAllListeners(EVENT_DELETE_BLOCK);
 		this.blocks.removeAllListeners(EVENT_NEW_BLOCK);
 		this.blocks.removeAllListeners(EVENT_NEW_BROADHASH);
+		this.bft.removeAllListeners(EVENT_BLOCK_FINALIZED);
 	}
 };

@@ -13,6 +13,8 @@
  */
 
 const { hash } = require('@liskhq/lisk-cryptography');
+// Will be fired once a round is finished
+const EVENT_ROUND_FINISHED = 'EVENT_ROUND_FINISHED';
 
 const shuffleDelegateListForRound = (round, list) => {
 	const seedSource = round.toString();
@@ -81,9 +83,16 @@ class Delegates {
 
 		return delegatePublicKeys;
 	}
+
+	async deleteDelegateListUntilRound(round) {
+		await this.storage.entities.RoundDelegates.delete({
+			round_lt: round,
+		});
+	}
 }
 
 module.exports = {
 	Delegates,
+	EVENT_ROUND_FINISHED,
 	shuffleDelegateListForRound,
 };
