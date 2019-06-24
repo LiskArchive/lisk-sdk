@@ -279,7 +279,10 @@ const defaultConfig = {
 			votes: [],
 			inertTransactions: [],
 			rounds: {},
-			precedent: { disableDappTransfer: 0, disableDappTransaction: 0 },
+			precedent: {
+				disableDappTransfer: 0,
+				disableDappTransaction: 0,
+			},
 			ignoreDelegateListCacheForRounds: [],
 			blockVersions: {},
 			roundVotes: [],

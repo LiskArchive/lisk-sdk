@@ -294,6 +294,19 @@ describe('block', () => {
 	});
 
 	describe('create', () => {
+		it("shouldn't have maxHeightPreviouslyForged and prevotedConfirmedUptoHeight properties", async () => {
+			const generatedBlock = block.create({
+				...data,
+				transactions,
+				version: 1,
+			});
+
+			expect(generatedBlock).to.not.have.property('maxHeightPreviouslyForged');
+			return expect(generatedBlock).to.not.have.property(
+				'prevotedConfirmedUptoHeight'
+			);
+		});
+
 		describe('when each of all supported', () => {
 			let generatedBlock;
 			let transactionsOrder;
@@ -303,6 +316,7 @@ describe('block', () => {
 				generatedBlock = block.create({
 					...data,
 					transactions,
+					version: 1,
 				});
 				transactionsOrder = generatedBlock.transactions.map(trs => trs.type);
 				done();
@@ -332,6 +346,7 @@ describe('block', () => {
 					generatedBlock = block.create({
 						...data,
 						transactions: multipleMultisigTx.concat(transactions),
+						version: 1,
 					});
 					transactionsOrder = generatedBlock.transactions.map(trs => trs.type);
 				});
@@ -360,6 +375,7 @@ describe('block', () => {
 					generatedBlock = block.create({
 						...data,
 						transactions,
+						version: 1,
 					});
 					transactionsOrder = generatedBlock.transactions.map(trs => trs.type);
 				});
@@ -386,6 +402,7 @@ describe('block', () => {
 					generatedBlock = block.create({
 						...data,
 						transactions: transactions.concat(multipleMultisigTx),
+						version: 1,
 					});
 					transactionsOrder = generatedBlock.transactions.map(trs => trs.type);
 				});
@@ -413,6 +430,7 @@ describe('block', () => {
 					generatedBlock = block.create({
 						...data,
 						transactions: _.shuffle(transactions.concat(multipleMultisigTx)),
+						version: 1,
 					});
 					transactionsOrder = generatedBlock.transactions.map(trs => trs.type);
 				});
@@ -588,7 +606,7 @@ describe('block', () => {
 		it('should throw error for null values', async () =>
 			expect(() => {
 				block.dbRead(null);
-			}).to.throw());
+			}).to.throw("Cannot read property 'b_version' of null"));
 
 		it('should return raw block data', async () => {
 			const rawBlock = {

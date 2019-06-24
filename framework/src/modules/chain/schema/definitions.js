@@ -197,6 +197,16 @@ module.exports = {
 						example: 123,
 						minimum: 1,
 					},
+					prevotedConfirmedUptoHeight: {
+						type: 'integer',
+						example: 123,
+						minimum: 0,
+					},
+					maxHeightPreviouslyForged: {
+						type: 'integer',
+						example: 123,
+						minimum: 0,
+					},
 					timestamp: {
 						description: 'Unix Timestamp',
 						type: 'integer',

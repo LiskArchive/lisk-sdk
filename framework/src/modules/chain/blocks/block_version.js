@@ -19,7 +19,7 @@
  *
  * @property {number} currentBlockVersion - Current block version used for forging and verify
  */
-const currentBlockVersion = 1;
+const currentBlockVersion = 2;
 
 /**
  * Checks if block version is valid - if match current version or there is an exception for provided block height.
@@ -42,14 +42,41 @@ const isValid = (version, height, exceptions = {}) => {
 
 	if (exceptionVersion === undefined) {
 		// If there is no exception for provided height - check against current block version
-		return version === currentBlockVersion;
+		return version === blockVersionInterface.currentBlockVersion;
 	}
 
 	// If there is an exception - check if version match
 	return Number(exceptionVersion) === version;
 };
 
-module.exports = {
+const getBlockVersion = (height, exceptions = {}) => {
+	if (height === undefined || !exceptions.blockVersions) {
+		return blockVersionInterface.currentBlockVersion;
+	}
+
+	const exceptionVersion = Object.keys(exceptions.blockVersions).find(
+		exception => {
+			// Get height range of current exceptions
+			const heightsRange = exceptions.blockVersions[exception];
+			// Check if provided height is between the range boundaries
+			return height >= heightsRange.start && height <= heightsRange.end
+				? exception
+				: false;
+		}
+	);
+
+	if (exceptionVersion === undefined) {
+		// If there is no exception for provided height return currentBlockVersion
+		return blockVersionInterface.currentBlockVersion;
+	}
+
+	return Number(exceptionVersion);
+};
+
+const blockVersionInterface = {
 	isValid,
 	currentBlockVersion,
+	getBlockVersion,
 };
+
+module.exports = blockVersionInterface;

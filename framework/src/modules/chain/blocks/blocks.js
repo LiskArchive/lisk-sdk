@@ -19,6 +19,7 @@ const { cloneDeep } = require('lodash');
 const blocksUtils = require('./utils');
 const { BlocksProcess } = require('./process');
 const { BlocksVerify } = require('./verify');
+const blockVersion = require('./block_version');
 const { BlocksChain } = require('./chain');
 const {
 	calculateSupply,
@@ -126,6 +127,7 @@ class Blocks extends EventEmitter {
 		});
 
 		this._receiveBlockImplementations = {
+			0: block => this._receiveBlockFromNetworkV1(block),
 			1: block => this._receiveBlockFromNetworkV1(block),
 			2: block => this._receiveBlockFromNetworkV2(block),
 		};
@@ -328,8 +330,9 @@ class Blocks extends EventEmitter {
 			} version: ${block.version}`
 		);
 
-		// TODO: Use block_version.js#getBlockVersion when https://github.com/LiskHQ/lisk-sdk/pull/3722 is merged
-		return this._receiveBlockImplementations[block.version](block);
+		return this._receiveBlockImplementations[
+			blockVersion.getBlockVersion(block.height, this.exceptions)
+		](block);
 	}
 
 	async _receiveBlockFromNetworkV1(block) {

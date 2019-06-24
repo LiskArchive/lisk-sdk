@@ -36,6 +36,7 @@ describe('blocks/utils', () => {
 			b_totalAmount: 100,
 			b_totalFee: 10,
 			b_reward: 1,
+			b_version: 1,
 		},
 		{
 			b_id: '13068833527549895884',
@@ -47,6 +48,7 @@ describe('blocks/utils', () => {
 			b_totalAmount: 100,
 			b_totalFee: 10,
 			b_reward: 1,
+			b_version: 1,
 		},
 		{
 			b_id: '7018883617995376402',
@@ -58,6 +60,7 @@ describe('blocks/utils', () => {
 			b_totalAmount: 100,
 			b_totalFee: 10,
 			b_reward: 1,
+			b_version: 1,
 		},
 		{
 			b_id: '7018883617995376402',
@@ -69,6 +72,7 @@ describe('blocks/utils', () => {
 			b_totalAmount: 100,
 			b_totalFee: 10,
 			b_reward: 1,
+			b_version: 1,
 		},
 	];
 
@@ -256,6 +260,7 @@ describe('blocks/utils', () => {
 					b_totalAmount: 100,
 					b_totalFee: 10,
 					b_reward: 1,
+					b_version: 1,
 				},
 				{
 					b_id: '6524861224470851795',
@@ -267,6 +272,7 @@ describe('blocks/utils', () => {
 					b_totalAmount: 100,
 					b_totalFee: 10,
 					b_reward: 1,
+					b_version: 1,
 				},
 			];
 
