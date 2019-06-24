@@ -38,7 +38,7 @@ const validateBlockHeader = blockHeader =>
  * @property {string} delegatePublicKey
  */
 
-class FinalityManager {
+class ConsensusManager {
 	constructor({ finalizedHeight, activeDelegates } = {}) {
 		assert(finalizedHeight !== undefined, 'Must provide finalizedHeight');
 		assert(activeDelegates !== undefined, 'Must provide activeDelegates');
@@ -279,7 +279,7 @@ class FinalityManager {
 }
 
 const exportedInterface = {
-	FinalityManager,
+	ConsensusManager,
 	validateBlockHeader,
 };
 

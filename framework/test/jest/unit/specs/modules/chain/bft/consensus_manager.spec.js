@@ -17,7 +17,7 @@
 const path = require('path');
 const fs = require('fs');
 const { SchemaValidationError } = require('../../../../../../../src/errors');
-const finalityManagerModule = require('../../../../../../../src/modules/chain/bft/finality_manager');
+const ConsensusManagerModule = require('../../../../../../../src/modules/chain/bft/consensus_manager');
 const {
 	BlockHeader: blockHeaderFixture,
 } = require('../../../../../../mocha/fixtures/blocks');
@@ -26,8 +26,8 @@ const {
 	Account: accountFixture,
 } = require('../../../../../../mocha/fixtures/accounts');
 
-const FinalityManager = finalityManagerModule.FinalityManager;
-const validateBlockHeader = finalityManagerModule.validateBlockHeader;
+const ConsensusManager = ConsensusManagerModule.ConsensusManager;
+const validateBlockHeader = ConsensusManagerModule.validateBlockHeader;
 
 const generateValidHeaders = count => {
 	return [...Array(count)].map((_, index) => {
@@ -97,8 +97,8 @@ const generateHeaderInformation = (data, threshold, lastBlockData) => {
 	};
 };
 
-describe('finality_manager', () => {
-	describe('FinalityManager', () => {
+describe('consensus_manager', () => {
+	describe('ConsensusManager', () => {
 		let bft;
 		const finalizedHeight = 0;
 		const activeDelegates = 101;
@@ -108,13 +108,13 @@ describe('finality_manager', () => {
 		const maxHeaders = 505;
 
 		beforeEach(async () => {
-			bft = new FinalityManager({ finalizedHeight, activeDelegates });
+			bft = new ConsensusManager({ finalizedHeight, activeDelegates });
 			jest.spyOn(bft.headers, 'top');
 		});
 
 		describe('constructor', () => {
 			it('should initialize the object correctly', async () => {
-				expect(bft).toBeInstanceOf(FinalityManager);
+				expect(bft).toBeInstanceOf(ConsensusManager);
 				expect(bft.activeDelegates).toEqual(activeDelegates);
 				expect(bft.preVoteThreshold).toEqual(preVoteThreshold);
 				expect(bft.preCommitThreshold).toEqual(preCommitThreshold);
@@ -123,20 +123,20 @@ describe('finality_manager', () => {
 			});
 
 			it('should throw error if finalizedHeight is not provided', async () => {
-				expect(() => new FinalityManager()).toThrow(
+				expect(() => new ConsensusManager()).toThrow(
 					'Must provide finalizedHeight'
 				);
 			});
 
 			it('should throw error if activeDelegates is not provided', async () => {
-				expect(() => new FinalityManager({ finalizedHeight })).toThrow(
+				expect(() => new ConsensusManager({ finalizedHeight })).toThrow(
 					'Must provide activeDelegates'
 				);
 			});
 
 			it('should throw error if activeDelegates is not positive', async () => {
 				expect(
-					() => new FinalityManager({ finalizedHeight, activeDelegates: 0 })
+					() => new ConsensusManager({ finalizedHeight, activeDelegates: 0 })
 				).toThrow('Must provide a positive activeDelegates');
 			});
 		});
@@ -267,13 +267,13 @@ describe('finality_manager', () => {
 					height: 1,
 					maxHeightPreviouslyForged: 0,
 				});
-				jest.spyOn(finalityManagerModule, 'validateBlockHeader');
+				jest.spyOn(ConsensusManagerModule, 'validateBlockHeader');
 				bft.addBlockHeader(header1);
 
-				expect(finalityManagerModule.validateBlockHeader).toHaveBeenCalledTimes(
-					1
-				);
-				expect(finalityManagerModule.validateBlockHeader).toHaveBeenCalledWith(
+				expect(
+					ConsensusManagerModule.validateBlockHeader
+				).toHaveBeenCalledTimes(1);
+				expect(ConsensusManagerModule.validateBlockHeader).toHaveBeenCalledWith(
 					header1
 				);
 			});
@@ -283,13 +283,13 @@ describe('finality_manager', () => {
 					height: 1,
 					maxHeightPreviouslyForged: 0,
 				});
-				jest.spyOn(finalityManagerModule, 'validateBlockHeader');
+				jest.spyOn(ConsensusManagerModule, 'validateBlockHeader');
 				bft.addBlockHeader(header1);
 
-				expect(finalityManagerModule.validateBlockHeader).toHaveBeenCalledTimes(
-					1
-				);
-				expect(finalityManagerModule.validateBlockHeader).toHaveBeenCalledWith(
+				expect(
+					ConsensusManagerModule.validateBlockHeader
+				).toHaveBeenCalledTimes(1);
+				expect(ConsensusManagerModule.validateBlockHeader).toHaveBeenCalledWith(
 					header1
 				);
 			});
@@ -325,7 +325,7 @@ describe('finality_manager', () => {
 					const data = loadCSVSimulationData(
 						path.join(__dirname, './scenarios/11_delegates.csv')
 					);
-					const myBft = new FinalityManager({
+					const myBft = new ConsensusManager({
 						finalizedHeight: 0,
 						activeDelegates: 11,
 					});
@@ -363,7 +363,7 @@ describe('finality_manager', () => {
 							'./scenarios/5_delegates_switched_completely.csv'
 						)
 					);
-					const myBft = new FinalityManager({
+					const myBft = new ConsensusManager({
 						finalizedHeight: 0,
 						activeDelegates: 5,
 					});
@@ -404,7 +404,7 @@ describe('finality_manager', () => {
 					path.join(__dirname, './scenarios/11_delegates.csv')
 				);
 				let blockData;
-				const myBft = new FinalityManager({
+				const myBft = new ConsensusManager({
 					finalizedHeight: 0,
 					activeDelegates: 11,
 				});

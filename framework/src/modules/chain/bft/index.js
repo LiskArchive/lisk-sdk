@@ -20,5 +20,5 @@
 
 module.exports = {
 	...require('./headers_list'),
-	...require('./finality_manager'),
+	...require('./consensus_manager'),
 };

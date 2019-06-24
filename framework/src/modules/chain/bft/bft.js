@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { FinalityManager } = require('./finality_manager');
+const { ConsensusManager } = require('./consensus_manager');
 
 const KEYS = {
 	FINALIZED_HEIGHT: 'BFT.finalizedHeight',
@@ -39,7 +39,7 @@ const extractBlockHeaderFromBlock = block => {
 
 class BFT {
 	constructor({ storage, logger, activeDelegates, startingHeight }) {
-		this._finalityManager = null;
+		this.consensusManager = null;
 
 		this.logger = logger;
 		this.storage = storage;
@@ -70,7 +70,7 @@ class BFT {
 				bftMigrationHeight
 			);
 
-			this._finalityManager = new FinalityManager({
+			this.consensusManager = new ConsensusManager({
 				finalizedHeight,
 				activeDelegates: this.constants.activeDelegates,
 			});
