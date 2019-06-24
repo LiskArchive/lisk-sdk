@@ -99,14 +99,19 @@ module.exports = {
 			type: 'object',
 		},
 	},
-	WSBlocksCommonRequest: {
-		id: 'WSBlocksCommonRequest',
+	getHighestCommonBlockIdRequest: {
+		id: 'getHighestCommonBlockIdRequest',
 		type: 'object',
 		required: ['ids'],
 		properties: {
 			ids: {
-				type: 'string',
-				format: 'csv',
+				type: 'array',
+				items: {
+					type: 'string',
+					format: 'id',
+				},
+				uniqueItems: true,
+				minItems: 1,
 			},
 		},
 	},

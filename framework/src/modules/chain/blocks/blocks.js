@@ -615,6 +615,27 @@ class Blocks extends EventEmitter {
 		}
 	}
 
+	/**
+	 * Returns the highest common block between ids and the database blocks table
+	 * @param {Array<String>} ids - An array of block ids
+	 * @return {Promise<BasicBlock|undefined>}
+	 */
+	async getHighestCommonBlock(ids) {
+		try {
+			const [block] = await this.storage.entities.Block.get(
+				{
+					id_in: ids,
+				},
+				{ sort: 'height:desc', limit: 1 }
+			);
+			return block;
+		} catch (e) {
+			const errMessage = 'Failed to access storage layer';
+			this.logger.error(e, errMessage);
+			throw new Error(errMessage);
+		}
+	}
+
 	// Generate a block for forging
 	async generateBlock(keypair, timestamp, transactions = []) {
 		this._shouldNotBeActive();

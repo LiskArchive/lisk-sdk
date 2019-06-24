@@ -18,8 +18,10 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 	require('./utils/newrelic_lisk');
 }
 
+const { validator } = require('@liskhq/lisk-validator');
 const { convertErrorsToString } = require('./utils/error_handlers');
 const Sequence = require('./utils/sequence');
+const definitions = require('./schema/definitions');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
@@ -263,8 +265,31 @@ module.exports = class Chain {
 				lastBlock: this.blocks.lastBlock,
 			}),
 			blocks: async action => this.transport.blocks(action.params || {}),
-			blocksCommon: async action =>
-				this.transport.blocksCommon(action.params || {}),
+			getHighestCommonBlockId: async action => {
+				const valid = validator.validate(
+					definitions.getHighestCommonBlockIdRequest,
+					action.params
+				);
+
+				if (valid.length) {
+					const err = valid;
+					const error = `${err[0].message}: ${err[0].path}`;
+					this.logger.debug(
+						'getHighestCommonBlockId request validation failed',
+						{
+							err: error,
+							req: action.params,
+						}
+					);
+					throw new Error(error);
+				}
+
+				const commonBlock = await this.scope.modules.blocks.getHighestCommonBlock(
+					action.params.ids
+				);
+
+				return commonBlock ? commonBlock.id : null;
+			},
 		};
 	}
 

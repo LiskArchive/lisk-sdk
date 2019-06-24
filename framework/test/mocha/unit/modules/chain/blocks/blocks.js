@@ -63,6 +63,7 @@ describe('blocks', () => {
 		storageStub = {
 			entities: {
 				Block: {
+					getMatchingHighestBlock: sinonSandbox.stub().resolves(),
 					isPersisted: sinonSandbox.stub().resolves(true),
 					get: sinonSandbox.stub().resolves([]),
 					begin: sinonSandbox.stub().resolves(true),
@@ -192,6 +193,37 @@ describe('blocks', () => {
 					await blocksInstance.cleanup();
 					expect(loggerStub.info.callCount).to.equal(2);
 				});
+			});
+		});
+	});
+
+	describe('getHighestCommonBlock', () => {
+		const ids = ['1,2,3,4'];
+
+		it('should call storage.entities.Block.get with the provided ids', async () => {
+			await blocksInstance.getHighestCommonBlock(ids);
+			expect(storageStub.entities.Block.get).to.be.calledWith(
+				{
+					id_in: ids,
+				},
+				{ sort: 'height:desc', limit: 1 }
+			);
+		});
+
+		describe('when reading from storage fails', () => {
+			it('should error log it and throw the error', async () => {
+				const getError = new Error('Storage error');
+				storageStub.entities.Block.getMatchingHighestBlock.rejects(getError);
+
+				try {
+					await blocksInstance.getHighestCommonBlock(ids);
+				} catch (e) {
+					expect(e.message).to.equal('Failed to access storage layer');
+					expect(loggerStub.error).to.be.calledWith(
+						getError,
+						'Failed to access storage layer'
+					);
+				}
 			});
 		});
 	});
