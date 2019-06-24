@@ -34,6 +34,7 @@ COMMANDS
   account      Commands relating to Lisk accounts.
   block        Commands relating to Lisk blocks.
   config       Manages Lisk Commander configuration.
+  core         Install and Manages Lisk Core instances.
   copyright    Displays copyright notice.
   delegate     Commands relating to Lisk delegates.
   help         Displays help.

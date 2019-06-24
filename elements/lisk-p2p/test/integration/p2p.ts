@@ -3,12 +3,12 @@ import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
 import {
-	P2PPeerSelectionForSendRequest,
-	P2PPeerSelectionForSend,
-	P2PPeerSelectionForRequest,
-	P2PNodeInfo,
-	P2PDiscoveredPeerInfo,
-	P2PPeerSelectionForConnection,
+	P2PPeerSelectionForSendFunction,
+	P2PPeerSelectionForRequestFunction,
+	P2PPeerSelectionForConnectionFunction,
+	P2PPeerSelectionForSendInput,
+	P2PPeerSelectionForRequestInput,
+	P2PPeerSelectionForConnectionInput,
 } from '../../src/p2p_types';
 
 describe('Integration tests for P2P library', () => {
@@ -34,7 +34,7 @@ describe('Integration tests for P2P library', () => {
 						nethash:
 							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 						version: '1.0.1',
-						protocolVersion: '1.0.1',
+						protocolVersion: '1.1',
 						minVersion: '1.0.0',
 						os: platform(),
 						height: 0,
@@ -107,7 +107,7 @@ describe('Integration tests for P2P library', () => {
 							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 						minVersion: '1.0.1',
 						version: '1.0.1',
-						protocolVersion: '1.0.1',
+						protocolVersion: '1.1',
 						os: platform(),
 						height: 0,
 						broadhash:
@@ -239,6 +239,7 @@ describe('Integration tests for P2P library', () => {
 							nethash:
 								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 							version: p2p.nodeInfo.version,
+							protocolVersion: '1.1',
 							wsPort: p2p.nodeInfo.wsPort,
 							height: 1000 + (p2p.nodeInfo.wsPort % NETWORK_START_PORT),
 							options: p2p.nodeInfo.options,
@@ -278,6 +279,77 @@ describe('Integration tests for P2P library', () => {
 							);
 						},
 					);
+				});
+			});
+		});
+
+		describe('P2P.applyNodeInfo', () => {
+			it('should send the node info to a subset of peers within the network. It should update itself and reflect new values', async () => {
+				const firstP2PNode = p2pNodeList[0];
+
+				firstP2PNode.applyNodeInfo({
+					os: platform(),
+					nethash:
+						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+					version: firstP2PNode.nodeInfo.version,
+					protocolVersion: '1.1',
+					wsPort: firstP2PNode.nodeInfo.wsPort,
+					height: 10,
+					options: firstP2PNode.nodeInfo.options,
+				});
+
+				await wait(100);
+
+				// For each peer of firstP2PNode, check that the firstP2PNode's P2PPeerInfo was updated with the new height.
+				p2pNodeList.slice(1).forEach(p2pNode => {
+					const networkStatus = p2pNode.getNetworkStatus();
+					const firstNodeInConnectedPeer = networkStatus.connectedPeers.find(
+						peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
+					);
+
+					const firstNodeInNewPeer = networkStatus.newPeers.find(
+						peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
+					);
+
+					const firstNodeInTriedPeer = networkStatus.triedPeers.find(
+						peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
+					);
+
+					// Check if the peerinfo is updated in new peer list
+					if (firstNodeInNewPeer) {
+						expect(firstNodeInNewPeer)
+							.to.have.property('height')
+							.which.equals(10);
+						expect(firstNodeInNewPeer)
+							.to.have.property('nethash')
+							.which.equals(
+								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+							);
+					}
+
+					// Check if the peerinfo is updated in tried peer list
+					if (firstNodeInTriedPeer) {
+						expect(firstNodeInTriedPeer)
+							.to.have.property('height')
+							.which.equals(10);
+						expect(firstNodeInTriedPeer)
+							.to.have.property('nethash')
+							.which.equals(
+								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+							);
+					}
+
+					// Check if the peerinfo is updated in connected peer list
+					if (firstNodeInConnectedPeer) {
+						expect(firstNodeInConnectedPeer)
+							.to.have.property('height')
+							.which.equals(10);
+						expect(firstNodeInConnectedPeer)
+							.to.have.property('nethash')
+							.which.equals(
+								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+							);
+					}
 				});
 			});
 		});
@@ -346,7 +418,7 @@ describe('Integration tests for P2P library', () => {
 						nethash:
 							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 						version: '1.0.1',
-						protocolVersion: '1.0.1',
+						protocolVersion: '1.1',
 						minVersion: '1.0.0',
 						os: platform(),
 						height: 0,
@@ -392,14 +464,13 @@ describe('Integration tests for P2P library', () => {
 				});
 			});
 
-			it('should discover all peers and add them to the newPeers list within each node', () => {
+			it('should discover all peers and connect to all the peers so there should be no peer in newPeers list', () => {
 				p2pNodeList.forEach(p2p => {
 					const { newPeers } = p2p.getNetworkStatus();
 
 					const peerPorts = newPeers.map(peerInfo => peerInfo.wsPort).sort();
 
-					// TODO ASAP: Make better assertions.
-					expect(peerPorts).to.be.an.instanceOf(Array);
+					expect(peerPorts).to.be.eql([]);
 				});
 			});
 
@@ -415,6 +486,30 @@ describe('Integration tests for P2P library', () => {
 					});
 
 					expect(peerPorts).to.be.eql(expectedPeerPorts);
+				});
+			});
+
+			it('should not contain itself in any of its peer list', async () => {
+				p2pNodeList.forEach(p2p => {
+					const {
+						triedPeers,
+						connectedPeers,
+						newPeers,
+					} = p2p.getNetworkStatus();
+
+					const triedPeerPorts = triedPeers
+						.map(peerInfo => peerInfo.wsPort)
+						.sort();
+					const newPeerPorts = newPeers.map(peerInfo => peerInfo.wsPort).sort();
+					const connectedPeerPorts = connectedPeers
+						.map(peerInfo => peerInfo.wsPort)
+						.sort();
+
+					expect([
+						...triedPeerPorts,
+						...newPeerPorts,
+						...connectedPeerPorts,
+					]).to.not.contain.members([p2p.nodeInfo.wsPort]);
 				});
 			});
 		});
@@ -597,6 +692,7 @@ describe('Integration tests for P2P library', () => {
 					nethash:
 						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 					version: firstP2PNode.nodeInfo.version,
+					protocolVersion: '1.1',
 					wsPort: firstP2PNode.nodeInfo.wsPort,
 					height: 10,
 					options: firstP2PNode.nodeInfo.options,
@@ -685,11 +781,13 @@ describe('Integration tests for P2P library', () => {
 
 	describe('Connected network: User custom selection algorithm is passed to each node', () => {
 		// Custom selection function that finds peers having common values for modules field for example.
-		const peerSelectionForSendRequest: P2PPeerSelectionForSendRequest = (
-			peersList: ReadonlyArray<P2PDiscoveredPeerInfo>,
-			nodeInfo?: P2PNodeInfo,
-			_numOfPeer?: number,
+		const peerSelectionForSendRequest:
+			| P2PPeerSelectionForSendFunction
+			| P2PPeerSelectionForRequestFunction = (
+			input: P2PPeerSelectionForSendInput | P2PPeerSelectionForRequestInput,
 		) => {
+			const { peers: peersList, nodeInfo } = input;
+
 			const filteredPeers = peersList.filter(peer => {
 				if (nodeInfo && nodeInfo.height <= peer.height) {
 					const nodesModules = nodeInfo.modules
@@ -724,9 +822,9 @@ describe('Integration tests for P2P library', () => {
 			return filteredPeers;
 		};
 		// Custom Peer selection for connection that returns all the peers
-		const peerSelectionForConnection: P2PPeerSelectionForConnection = (
-			peersList: ReadonlyArray<P2PDiscoveredPeerInfo>,
-		) => peersList;
+		const peerSelectionForConnection: P2PPeerSelectionForConnectionFunction = (
+			input: P2PPeerSelectionForConnectionInput,
+		) => input.peers;
 
 		beforeEach(async () => {
 			p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
@@ -748,8 +846,8 @@ describe('Integration tests for P2P library', () => {
 					blacklistedPeers: [],
 					connectTimeout: 5000,
 					ackTimeout: 5000,
-					peerSelectionForSend: peerSelectionForSendRequest as P2PPeerSelectionForSend,
-					peerSelectionForRequest: peerSelectionForSendRequest as P2PPeerSelectionForRequest,
+					peerSelectionForSend: peerSelectionForSendRequest as P2PPeerSelectionForSendFunction,
+					peerSelectionForRequest: peerSelectionForSendRequest as P2PPeerSelectionForRequestFunction,
 					peerSelectionForConnection,
 					seedPeers,
 					wsEngine: 'ws',
@@ -758,7 +856,7 @@ describe('Integration tests for P2P library', () => {
 						nethash:
 							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 						version: '1.0.1',
-						protocolVersion: '1.0.1',
+						protocolVersion: '1.1',
 						os: platform(),
 						height: 1000 + index,
 						broadhash:
@@ -919,7 +1017,7 @@ describe('Integration tests for P2P library', () => {
 						nethash:
 							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 						version: '1.0.1',
-						protocolVersion: '1.0.1',
+						protocolVersion: '1.1',
 						minVersion: '1.0.0',
 						os: platform(),
 						height: 0,

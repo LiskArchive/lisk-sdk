@@ -129,6 +129,7 @@ module.exports = class Network {
 					...peerWithoutIp,
 				};
 			}),
+			sendPeerLimit: this.options.emitPeerLimit,
 		};
 
 		this.p2p = new P2P(p2pConfig);
@@ -179,7 +180,7 @@ module.exports = class Network {
 		});
 
 		this.p2p.on(EVENT_FAILED_TO_PUSH_NODE_INFO, error => {
-			this.logger.error(error.message || error);
+			this.logger.trace(error.message || error);
 		});
 
 		this.p2p.on(EVENT_OUTBOUND_SOCKET_ERROR, error => {

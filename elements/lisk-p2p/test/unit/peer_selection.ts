@@ -14,17 +14,21 @@
  */
 import { expect } from 'chai';
 import { initializePeerInfoList } from '../utils/peers';
-import { selectForConnection, selectPeers } from '../../src/peer_selection';
+import {
+	selectPeersForConnection,
+	selectPeersForRequest,
+} from '../../src/peer_selection';
 import { P2PNodeInfo } from '../../src/p2p_types';
 
 describe('peer selector', () => {
-	describe('#selectPeer', () => {
+	describe('#selectPeersForRequest', () => {
 		let peerList = initializePeerInfoList();
 		const nodeInfo: P2PNodeInfo = {
 			height: 545777,
 			nethash: '73458irc3yb7rg37r7326dbt7236',
 			os: 'linux',
 			version: '1.1.1',
+			protocolVersion: '1.1',
 			wsPort: 5000,
 		};
 
@@ -34,62 +38,57 @@ describe('peer selector', () => {
 			});
 
 			it('should return an array without optional arguments', () => {
-				return expect(selectPeers(peerList)).to.be.an('array');
+				return expect(selectPeersForRequest({ peers: peerList })).to.be.an(
+					'array',
+				);
 			});
 
 			it('should return an array', () => {
-				return expect(selectPeers(peerList, nodeInfo)).to.be.an('array');
+				return expect(
+					selectPeersForRequest({ peers: peerList, nodeInfo }),
+				).to.be.an('array');
 			});
 
 			it('returned array should contain good peers according to algorithm', () => {
-				return expect(selectPeers(peerList, nodeInfo))
+				return expect(selectPeersForRequest({ peers: peerList, nodeInfo }))
 					.and.be.an('array')
 					.and.of.length(3);
 			});
 
 			it('return empty peer list for no peers as an argument', () => {
-				return expect(selectPeers([], nodeInfo))
+				return expect(selectPeersForRequest({ peers: [], nodeInfo }))
 					.and.be.an('array')
 					.and.to.be.eql([]);
 			});
 
 			it('should return an array having one good peer', () => {
-				return expect(selectPeers(peerList, nodeInfo, 1))
+				return expect(
+					selectPeersForRequest({ peers: peerList, nodeInfo, peerLimit: 1 }),
+				)
 					.and.be.an('array')
 					.and.of.length(1);
 			});
 
 			it('should return an array having 2 good peers', () => {
-				return expect(selectPeers(peerList, nodeInfo, 2))
+				return expect(
+					selectPeersForRequest({ peers: peerList, nodeInfo, peerLimit: 2 }),
+				)
 					.and.be.an('array')
 					.and.of.length(2);
 			});
 
 			it('should return an array having all good peers', () => {
-				return expect(selectPeers(peerList, nodeInfo, 0))
-					.and.be.an('array')
-					.and.of.length(3);
-			});
-
-			it('should return an array having all good peers ignoring requested negative number of peers', () => {
-				return expect(selectPeers(peerList, nodeInfo, -1))
+				return expect(selectPeersForRequest({ peers: peerList, nodeInfo }))
 					.and.be.an('array')
 					.and.of.length(3);
 			});
 
 			it('should return an array of equal length equal to requested number of peers', () => {
-				return expect(selectPeers(peerList, nodeInfo, 3))
+				return expect(
+					selectPeersForRequest({ peers: peerList, nodeInfo, peerLimit: 3 }),
+				)
 					.and.be.an('array')
 					.and.of.length(3);
-			});
-
-			it('should throw an error when requested peers are greater than available good peers', () => {
-				return expect(selectPeers.bind(selectPeers, peerList, nodeInfo, 4))
-					.to.throw(
-						`Requested number of peers: '4' is more than the available number of good peers: '3'`,
-					)
-					.to.have.property('name')
-					.eql('NotEnoughPeersError');
 			});
 		});
 
@@ -102,20 +101,26 @@ describe('peer selector', () => {
 			);
 
 			it('should return an array with 0 good peers', () => {
-				return expect(selectPeers(lowHeightPeers, nodeInfo, 2))
+				return expect(
+					selectPeersForRequest({
+						peers: lowHeightPeers,
+						nodeInfo,
+						peerLimit: 2,
+					}),
+				)
 					.and.be.an('array')
 					.and.of.length(0);
 			});
 		});
 	});
 
-	describe('#selectForConnection', () => {
+	describe('#selectPeersForConnection', () => {
 		const peerList = initializePeerInfoList();
 		const numberOfPeers = peerList.length;
 
 		describe('get all the peers for selection', () => {
 			it('should return all the peers given as argument for connection', () => {
-				return expect(selectForConnection(peerList))
+				return expect(selectPeersForConnection({ peers: peerList }))
 					.be.an('array')
 					.and.is.eql(peerList)
 					.of.length(numberOfPeers);

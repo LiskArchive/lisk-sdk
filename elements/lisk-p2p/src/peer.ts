@@ -18,6 +18,7 @@ import * as querystring from 'querystring';
 import {
 	FetchPeerStatusError,
 	PeerOutboundConnectionError,
+	RequestFailError,
 	RPCResponseError,
 } from './errors';
 
@@ -69,7 +70,9 @@ export const EVENT_CONNECT_ABORT_OUTBOUND = 'connectAbortOutbound';
 export const EVENT_CLOSE_OUTBOUND = 'closeOutbound';
 export const EVENT_OUTBOUND_SOCKET_ERROR = 'outboundSocketError';
 export const EVENT_INBOUND_SOCKET_ERROR = 'inboundSocketError';
-
+export const EVENT_DISCOVERED_PEER = 'discoveredPeer';
+export const EVENT_FAILED_TO_FETCH_PEER_INFO = 'failedToFetchPeerInfo';
+export const EVENT_FAILED_TO_PUSH_NODE_INFO = 'failedToPushNodeInfo';
 // Remote event or RPC names sent to or received from peers.
 export const REMOTE_EVENT_RPC_REQUEST = 'rpc-request';
 export const REMOTE_EVENT_MESSAGE = 'remote-message';
@@ -391,7 +394,15 @@ export class Peer extends EventEmitter {
 					},
 					(err: Error | undefined, responseData: unknown) => {
 						if (err) {
-							reject(err);
+							// Wrap response error within the a new custom error and add peer id and version info
+							reject(
+								new RequestFailError(
+									err instanceof Error ? err.message : err,
+									err,
+									constructPeerIdFromPeerInfo(this._peerInfo),
+									this._peerInfo.version,
+								),
+							);
 
 							return;
 						}
@@ -405,8 +416,7 @@ export class Peer extends EventEmitter {
 						reject(
 							new RPCResponseError(
 								`Failed to handle response for procedure ${packet.procedure}`,
-								this.ipAddress,
-								this.wsPort,
+								constructPeerIdFromPeerInfo(this._peerInfo),
 							),
 						);
 					},
@@ -425,8 +435,7 @@ export class Peer extends EventEmitter {
 		} catch (error) {
 			throw new RPCResponseError(
 				'Failed to fetch peer list of peer',
-				this.ipAddress,
-				this.wsPort,
+				constructPeerIdFromPeerInfo(this._peerInfo),
 			);
 		}
 	}
@@ -443,8 +452,7 @@ export class Peer extends EventEmitter {
 
 			throw new RPCResponseError(
 				'Failed to fetch peer info of peer',
-				this.ipAddress,
-				this.wsPort,
+				constructPeerIdFromPeerInfo(this._peerInfo),
 			);
 		}
 
@@ -489,14 +497,29 @@ export class Peer extends EventEmitter {
 		return outboundSocket;
 	}
 
+	private async _updatePeerOnConnect(): Promise<void> {
+		// tslint:disable-next-line no-let
+		let detailedPeerInfo;
+		try {
+			detailedPeerInfo = await this.fetchStatus();
+		} catch (error) {
+			this.emit(EVENT_FAILED_TO_FETCH_PEER_INFO, error);
+
+			return;
+		}
+		this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
+	}
+
 	// All event handlers for the outbound socket should be bound in this method.
 	private _bindHandlersToOutboundSocket(outboundSocket: SCClientSocket): void {
 		outboundSocket.on('error', (error: Error) => {
 			this.emit(EVENT_OUTBOUND_SOCKET_ERROR, error);
 		});
 
-		outboundSocket.on('connect', () => {
+		outboundSocket.on('connect', async () => {
 			this.emit(EVENT_CONNECT_OUTBOUND, this._peerInfo);
+
+			await this._updatePeerOnConnect();
 		});
 
 		outboundSocket.on('connectAbort', () => {
@@ -555,7 +578,7 @@ export class Peer extends EventEmitter {
 		inboundSocket: SCServerSocketUpdated,
 	): void {
 		inboundSocket.on('error', this._handleInboundSocketError);
-		
+
 		// Bind RPC and remote event handlers
 		inboundSocket.on(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
 		inboundSocket.on(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
@@ -589,7 +612,11 @@ export class Peer extends EventEmitter {
 	}
 
 	private _updateFromProtocolPeerInfo(rawPeerInfo: unknown): void {
-		const protocolPeerInfo = { ...rawPeerInfo, ip: this._ipAddress };
+		const protocolPeerInfo = {
+			...rawPeerInfo,
+			ip: this._ipAddress,
+			wsPort: this._wsPort,
+		};
 		const newPeerInfo = validatePeerInfo(protocolPeerInfo);
 		this.updatePeerInfo(newPeerInfo);
 	}
@@ -718,8 +745,7 @@ export const connectAndRequest = async (
 							`Failed to handle response for procedure ${
 								requestPacket.procedure
 							}`,
-							basicPeerInfo.ipAddress,
-							basicPeerInfo.wsPort,
+							constructPeerIdFromPeerInfo(basicPeerInfo),
 						),
 					);
 				},

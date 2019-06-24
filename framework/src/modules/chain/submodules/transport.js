@@ -122,6 +122,9 @@ __private.receiveSignature = function(signature, cb) {
 		if (err) {
 			return setImmediate(cb, [new TransactionError(err[0].message)], 400);
 		}
+		library.logger.debug(
+			`Received signature for transaction ${signature.transactionId}`
+		);
 
 		return modules.multisignatures.getTransactionAndProcessSignature(
 			signature,
@@ -142,19 +145,14 @@ __private.receiveSignature = function(signature, cb) {
  * @implements {library.schema.validate}
  * @implements {__private.receiveTransaction}
  * @param {Array} transactions - Array of transactions
- * @param {string} nonce - Peer's nonce
  * @param {string} extraLogMessage - Extra log message
  */
-__private.receiveTransactions = function(
-	transactions = [],
-	nonce,
-	extraLogMessage
-) {
+__private.receiveTransactions = function(transactions = [], extraLogMessage) {
 	transactions.forEach(transaction => {
 		if (transaction) {
 			transaction.bundled = true;
 		}
-		__private.receiveTransaction(transaction, nonce, extraLogMessage, err => {
+		__private.receiveTransaction(transaction, extraLogMessage, err => {
 			if (err) {
 				library.logger.debug(convertErrorsToString(err), transaction);
 			}
@@ -169,7 +167,6 @@ __private.receiveTransactions = function(
  *
  * @private
  * @param {transaction} transaction
- * @param {string} nonce
  * @param {string} extraLogMessage - Extra log message
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, err
@@ -177,7 +174,6 @@ __private.receiveTransactions = function(
  */
 __private.receiveTransaction = async function(
 	transactionJSON,
-	nonce,
 	extraLogMessage,
 	cb
 ) {
@@ -210,34 +206,23 @@ __private.receiveTransaction = async function(
 
 		return setImmediate(cb, errors);
 	}
+	library.logger.debug(`Received transaction ${transaction.id}`);
 
-	return library.balancesSequence.add(balancesSequenceCb => {
-		if (!nonce) {
-			library.logger.debug(
-				`Received transaction ${transaction.id} from public client`
-			);
-		} else {
-			library.logger.debug(
-				`Received transaction ${transaction.id} from network`
-			);
-		}
-
-		modules.transactions.processUnconfirmedTransaction(
-			transaction,
-			true,
-			err => {
-				if (err) {
-					library.logger.debug(`Transaction ${id}`, convertErrorsToString(err));
-					if (transaction) {
-						library.logger.debug('Transaction', transaction);
-					}
-					return setImmediate(balancesSequenceCb, err);
+	return modules.transactions.processUnconfirmedTransaction(
+		transaction,
+		true,
+		err => {
+			if (err) {
+				library.logger.debug(`Transaction ${id}`, convertErrorsToString(err));
+				if (transaction) {
+					library.logger.debug('Transaction', transaction);
 				}
-
-				return setImmediate(balancesSequenceCb, null, transaction.id);
+				return setImmediate(cb, err);
 			}
-		);
-	}, cb);
+
+			return setImmediate(cb, null, transaction.id);
+		}
+	);
 };
 
 // Events
@@ -703,13 +688,12 @@ Transport.prototype.shared = {
 	postTransaction(query, cb) {
 		__private.receiveTransaction(
 			query.transaction,
-			query.nonce,
 			query.extraLogMessage,
 			(err, id) => {
 				if (err) {
 					return setImmediate(cb, null, {
 						success: false,
-						message: err.message || 'Invalid transaction body',
+						message: err.message || 'Transaction was rejected with errors',
 						errors: err,
 					});
 				}
@@ -744,7 +728,6 @@ Transport.prototype.shared = {
 				}
 				return __private.receiveTransactions(
 					query.transactions,
-					query.nonce,
 					query.extraLogMessage
 				);
 			}

@@ -31,8 +31,6 @@ import { createResponse, Status, TransactionResponse } from './response';
 import { TransactionJSON } from './transaction_types';
 import { validateMultisignatures, validateSignature, validator } from './utils';
 
-const TRANSACTION_MULTISIGNATURE_TYPE = 4;
-
 export const multisignatureAssetFormatSchema = {
 	type: 'object',
 	required: ['multisignature'],
@@ -94,8 +92,10 @@ export interface MultiSignatureAsset {
 
 export class MultisignatureTransaction extends BaseTransaction {
 	public readonly asset: MultiSignatureAsset;
+	public static TYPE = 4;
 	protected _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.PENDING;
+
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
@@ -154,18 +154,6 @@ export class MultisignatureTransaction extends BaseTransaction {
 			this.id,
 			validator.errors,
 		) as TransactionError[];
-
-		if (this.type !== TRANSACTION_MULTISIGNATURE_TYPE) {
-			errors.push(
-				new TransactionError(
-					'Invalid type',
-					this.id,
-					'.type',
-					this.type,
-					TRANSACTION_MULTISIGNATURE_TYPE,
-				),
-			);
-		}
 
 		if (!this.amount.eq(0)) {
 			errors.push(
