@@ -101,7 +101,6 @@ export interface P2PConfig {
 	readonly peerBanTime?: number;
 	readonly sendPeerLimit?: number;
 	readonly outboundShuffleInterval?: number;
-	readonly evictionProtectionEnabled?: boolean;
 	readonly latencyProtectionRatio?: number;
 	readonly productivityProtectionRatio?: number;
 	readonly longevityProtectionRatio?: number;
