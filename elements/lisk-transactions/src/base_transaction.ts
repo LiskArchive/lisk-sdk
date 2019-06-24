@@ -547,14 +547,14 @@ export abstract class BaseTransaction {
 	}
 
 	protected assetToBytes(): Buffer {
-		// Sort the content to obtain the same asset's signature, despite on the properties or values order.
-		return Buffer.from(
-			JSON.stringify(this.asset)
-				.split('')
-				.sort()
-				.toString(),
-			'utf-8',
-		);
+		/**
+		 * FixMe: The following method is not sufficient enough for more sophisticated cases,
+		 * i.e. properties in the asset object need to be sent always in the same right order to produce a deterministic signature.
+		 *
+		 * We are currently conducting a research to specify an optimal generic way of changing asset to bytes.
+		 * You can expect this enhanced implementation to be included in the next releases.
+		 */
+		return Buffer.from(JSON.stringify(this.asset), 'utf-8');
 	}
 
 	private _verify(sender: Account): ReadonlyArray<TransactionError> {
