@@ -17,7 +17,9 @@ import {
 	bigNumberToBuffer,
 	bufferToBigNumberString,
 	bufferToHex,
+	bufferToIntAsString,
 	hexToBuffer,
+	intToBuffer,
 } from '../src/buffer';
 
 describe('buffer', () => {
@@ -121,6 +123,153 @@ describe('buffer', () => {
 			const bigNumber = '58191285901858109';
 			const buffer = Buffer.from('00cebcaa8d34153d', 'hex');
 			return expect(bufferToBigNumberString(buffer)).to.be.equal(bigNumber);
+		});
+	});
+
+	describe('#intToBuffer', () => {
+		it('should convert a integer to a 1 byte buffer when size=1, endian=big', () => {
+			const value = 127;
+			const size = 1;
+			const endian = 'big';
+
+			const expectedBuffer = Buffer.alloc(size);
+			expectedBuffer.writeInt8(value, 0);
+
+			return expect(intToBuffer(value, size, endian)).to.be.eql(expectedBuffer);
+		});
+
+		it('should convert a integer to a 1 byte buffer when size=1, endian=little', () => {
+			const value = 127;
+			const size = 1;
+			const endian = 'little';
+
+			const expectedBuffer = Buffer.alloc(size);
+			expectedBuffer.writeInt8(value, 0);
+
+			return expect(intToBuffer(value, size, endian)).to.be.eql(expectedBuffer);
+		});
+
+		it('should convert a integer to a 2 bytes big endian buffer when size=2, endian=big', () => {
+			const value = 32767;
+			const size = 2;
+			const endian = 'big';
+
+			const expectedBuffer = Buffer.alloc(size);
+			expectedBuffer.writeInt16BE(value, 0);
+
+			return expect(intToBuffer(value, size, endian)).to.be.eql(expectedBuffer);
+		});
+
+		it('should convert a integer to a 2 bytes little endian buffer when size=2, endian=little', () => {
+			const value = 3276;
+			const size = 2;
+			const endian = 'little';
+
+			const expectedBuffer = Buffer.alloc(size);
+			expectedBuffer.writeInt16LE(value, 0);
+
+			return expect(intToBuffer(value, size, endian)).to.be.eql(expectedBuffer);
+		});
+
+		it('should convert a integer to a 4 bytes big endian buffer when size=4, endian=big', () => {
+			const value = 2147483647;
+			const size = 4;
+			const endian = 'big';
+
+			const expectedBuffer = Buffer.alloc(size);
+			expectedBuffer.writeInt32BE(value, 0);
+
+			return expect(intToBuffer(value, size, endian)).to.be.eql(expectedBuffer);
+		});
+
+		it('should convert a integer to a 4 bytes little endian buffer when size=4, endian=little', () => {
+			const value = 2147483647;
+			const size = 4;
+			const endian = 'little';
+
+			const expectedBuffer = Buffer.alloc(size);
+			expectedBuffer.writeInt32LE(value, 0);
+
+			return expect(intToBuffer(value, size, endian)).to.be.eql(expectedBuffer);
+		});
+
+		it('should convert a integer to a 4 bytes big endian buffer when no size or endian is given', () => {
+			const value = 2147483647;
+			const size = 4;
+
+			const expectedBuffer = Buffer.alloc(size);
+			expectedBuffer.writeInt32BE(value, 0);
+
+			return expect(intToBuffer(value, size)).to.be.eql(expectedBuffer);
+		});
+
+		it('should convert a integer to a 8 bytes big endian buffer when size=8, endian=big', () => {
+			const value = '58191285901858109';
+			const size = 8;
+			const endian = 'big';
+
+			const expectedBuffer = Buffer.from('00cebcaa8d34153d', 'hex');
+
+			return expect(intToBuffer(value, size, endian)).to.be.eql(expectedBuffer);
+		});
+
+		it('should convert a integer to a 8 bytes little endian buffer when size=8, endian=little', () => {
+			const value = '58191285901858109';
+			const size = 8;
+			const endian = 'little';
+
+			const expectedBuffer = Buffer.from('3d15348daabcce00', 'hex');
+
+			return expect(intToBuffer(value, size, endian)).to.be.eql(expectedBuffer);
+		});
+
+		it('should convert a integer to a 8 bytes big endian buffer when size=8 and endian is not given', () => {
+			const value = '58191285901858109';
+			const size = 8;
+
+			const expectedBuffer = Buffer.from('00cebcaa8d34153d', 'hex');
+
+			return expect(intToBuffer(value, size)).to.be.eql(expectedBuffer);
+		});
+	});
+
+	describe('#bufferToIntAsString', () => {
+		it('should convert a 1 byte buffer to a integer as string', () => {
+			const value = 127;
+
+			const size = 1;
+			const buffer = Buffer.alloc(size);
+			buffer.writeInt8(value, 0);
+
+			return expect(bufferToIntAsString(buffer)).to.be.equal(value.toString());
+		});
+
+		it('should convert a 2 bytes buffer to a integer as string', () => {
+			const value = 32767;
+
+			const size = 2;
+			const buffer = Buffer.alloc(size);
+			buffer.writeInt16BE(value, 0);
+
+			return expect(bufferToIntAsString(buffer)).to.be.equal(value.toString());
+		});
+
+		it('should convert a 4 bytes buffer to a integer as string', () => {
+			const value = 2147483647;
+
+			const size = 4;
+			const buffer = Buffer.alloc(size);
+			buffer.writeInt32BE(value, 0);
+
+			return expect(bufferToIntAsString(buffer)).to.be.equal(value.toString());
+		});
+
+		it('should convert a 8 bytes buffer to a integer as string', () => {
+			const value = '58191285901858109';
+
+			const buffer = Buffer.from('00cebcaa8d34153d', 'hex');
+
+			return expect(bufferToIntAsString(buffer)).to.be.equal(value);
 		});
 	});
 });
