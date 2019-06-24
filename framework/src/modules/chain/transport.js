@@ -108,7 +108,9 @@ class Transport {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	onSignature(signature, broadcast) {
-		if (broadcast && !__private.broadcaster.maxRelays(signature)) {
+		if (broadcast) {
+			// TODO: Remove the relays property as part of the next hard fork. This needs to be set to a fixed value for backwards compatibility.
+			signature.relays = 1;
 			__private.broadcaster.enqueue(
 				{},
 				{
@@ -132,7 +134,9 @@ class Transport {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	onUnconfirmedTransaction(transaction, broadcast) {
-		if (broadcast && !__private.broadcaster.maxRelays(transaction)) {
+		if (broadcast) {
+			// TODO: Remove the relays property as part of the next hard fork. This needs to be set to a fixed value for backwards compatibility.
+			transaction.relays = 1;
 			const transactionJSON = transaction.toJSON();
 			__private.broadcaster.enqueue(
 				{},
@@ -160,13 +164,9 @@ class Transport {
 		// Exit immediately when 'broadcast' flag is not set
 		if (!broadcast) return null;
 
-		// Check if we are free to broadcast
-		if (__private.broadcaster.maxRelays(block)) {
-			library.logger.debug(
-				'Transport->onBroadcastBlock: Aborted - max block relays exhausted'
-			);
-			return null;
-		}
+		// TODO: Remove the relays property as part of the next hard fork. This needs to be set to a fixed value for backwards compatibility.
+		block.relays = 1;
+
 		if (modules.loader.syncing()) {
 			library.logger.debug(
 				'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress'
