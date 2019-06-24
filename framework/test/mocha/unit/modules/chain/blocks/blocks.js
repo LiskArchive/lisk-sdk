@@ -49,10 +49,8 @@ describe('blocks', () => {
 	let sequenceStub;
 	let roundsModuleStub;
 	let slots;
-	let exceptions;
 
 	beforeEach(async () => {
-		exceptions = __testContext.config.modules.chain.exceptions;
 		loggerStub = {
 			trace: sinonSandbox.stub(),
 			info: sinonSandbox.stub(),
@@ -95,7 +93,18 @@ describe('blocks', () => {
 			// Unique requirements
 			genesisBlock: __testContext.config.genesisBlock,
 			slots,
-			exceptions,
+			exceptions: {
+				blockVersions: {
+					1: {
+						start: 0,
+						end: 101,
+					},
+					2: {
+						start: 102,
+						end: 202,
+					},
+				},
+			},
 			// Modules
 			roundsModule: roundsModuleStub,
 			interfaceAdapters,
@@ -240,6 +249,7 @@ describe('blocks', () => {
 		it('should call _receiveBlockFromNetworkV2 when block version is 2', async () => {
 			const blockv2 = {
 				...block,
+				height: 102,
 				version: 2,
 			};
 
