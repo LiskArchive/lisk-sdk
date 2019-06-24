@@ -14,10 +14,10 @@
  */
 import * as BigNum from '@liskhq/bignum';
 import {
-	bigNumberToBuffer,
 	getAddressFromPublicKey,
 	hash,
 	hexToBuffer,
+	intToBuffer,
 	signData,
 } from '@liskhq/lisk-cryptography';
 import {
@@ -521,7 +521,7 @@ export abstract class BaseTransaction {
 		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
 
 		const transactionRecipientID = this.recipientId
-			? bigNumberToBuffer(
+			? intToBuffer(
 					this.recipientId.slice(0, -1),
 					BYTESIZES.RECIPIENT_ID,
 			  ).slice(0, BYTESIZES.RECIPIENT_ID)
