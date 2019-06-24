@@ -31,6 +31,8 @@ const {
 	calculateMilestone,
 } = require('../../../../../../src/modules/chain/blocks/block_reward');
 
+const BLOCK_BUFFER_MAX_CAPACITY = 180;
+
 describe('block', () => {
 	const interfaceAdapters = {
 		transactions: new TransactionInterfaceAdapter(registeredTransactions),
@@ -498,6 +500,11 @@ describe('block', () => {
 				'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc';
 			const bytes2 = block.getBytes(blockDataCopy);
 			return expect(bytes1).to.not.deep.equal(bytes2);
+		});
+
+		it('should return buffer length not greater than max capacity', async () => {
+			const bytes = block.getBytes(blockData);
+			return expect(bytes.length).to.not.greaterThan(BLOCK_BUFFER_MAX_CAPACITY);
 		});
 	});
 
