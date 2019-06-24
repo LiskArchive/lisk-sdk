@@ -1336,7 +1336,9 @@ describe('Integration tests for P2P library', () => {
 						populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
 						maxOutboundConnections: TEN_CONNECTIONS,
 						maxInboundConnections: TEN_CONNECTIONS,
-						evictionProtectionEnabled: false,
+						latencyProtectionRatio: 0,
+						productivityProtectionRatio: 0,
+						longevityProtectionRatio: 0,
 						nodeInfo: {
 							wsPort: nodePort,
 							nethash:
@@ -1476,10 +1478,10 @@ describe('Integration tests for P2P library', () => {
 		});
 	});
 
-	describe('Network with peer inbound eviction protection enabled', () => {
+	describe('Network with peer inbound eviction protection for connectTime enabled', () => {
 		const NETWORK_PEER_COUNT_WITH_LIMIT = 10;
-		const MAX_INBOUND_CONNECTIONS = 5;
-		const POPULATOR_INTERVAL_WITH_LIMIT = 10;
+		const MAX_INBOUND_CONNECTIONS = 3;
+		const POPULATOR_INTERVAL_WITH_LIMIT = 400;
 		beforeEach(async () => {
 			p2pNodeList = [...new Array(NETWORK_PEER_COUNT_WITH_LIMIT).keys()].map(
 				index => {
@@ -1495,14 +1497,16 @@ describe('Integration tests for P2P library', () => {
 
 					const nodePort = NETWORK_START_PORT + index;
 					return new P2P({
-						connectTimeout: 300,
+						connectTimeout: 100,
 						ackTimeout: 5000,
 						seedPeers,
 						wsEngine: 'ws',
 						populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
 						maxOutboundConnections: MAX_INBOUND_CONNECTIONS,
-						maxInboundConnections: 5,
-						evictionProtectionEnabled: true,
+						maxInboundConnections: MAX_INBOUND_CONNECTIONS,
+						latencyProtectionRatio: 0,
+						productivityProtectionRatio: 0,
+						longevityProtectionRatio: 0.5,
 						nodeInfo: {
 							wsPort: nodePort,
 							nethash:
@@ -1522,10 +1526,10 @@ describe('Integration tests for P2P library', () => {
 
 			// Start nodes incrementally to make inbound eviction behavior predictable
 			p2pNodeList.forEach(async p2p => {
-				await wait(600);
+				await wait(500);
 				p2p.start();
 			});
-			await wait(1000);
+			await wait(1500);
 		});
 
 		afterEach(async () => {
@@ -1539,17 +1543,12 @@ describe('Integration tests for P2P library', () => {
 
 		describe('Inbound peer evictions', () => {
 			it('should evict inbound peer which connected the latest', async () => {
-				p2pNodeList.forEach(async (p2p, i) => {
-					// Disregard early peers who may be re-discovered by already evicted peers
-					if (i <= 3) {
-						return;
-					}
-					const inboundPeers = p2p['_peerPool']
-						.getPeers(InboundPeer)
-						.map(peer => peer.wsPort);
-					const lastPeerPort = 5009;
-					expect(inboundPeers).to.not.include(lastPeerPort);
-				});
+				const firstNode = p2pNodeList[0];
+				const inboundPeers = firstNode['_peerPool']
+					.getPeers(InboundPeer)
+					.map(peer => peer.wsPort);
+				await wait(200);
+				expect(inboundPeers).not.to.include(5000);
 			});
 		});
 	});

@@ -96,14 +96,36 @@ interface PeerPoolConfig {
 	readonly maxOutboundConnections: number;
 	readonly maxInboundConnections: number;
 	readonly outboundShuffleInterval: number;
-	readonly evictionProtectionEnabled: boolean;
-	readonly evictionProtectionRatio: number;
+	readonly latencyProtectionRatio: number;
+	readonly productivityProtectionRatio: number;
+	readonly longevityProtectionRatio: number;
 }
 
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
 export const MAX_PEER_DISCOVERY_PROBE_SAMPLE_SIZE = 100;
-export const PEER_PROTECTION_PERCENTAGE_PER_CATEGORY = 0.068;
-export const LONGEVITY_CATEGORY_PERCENTAGE = 0.5;
+
+interface FilterPeersOptions {
+	readonly category: string;
+	readonly percentage: number;
+	readonly asc: boolean;
+}
+const filterPeersByCategory = (
+	peers: Peer[],
+	options: FilterPeersOptions,
+): Peer[] => {
+	// tslint:disable-next-line no-magic-numbers
+	if (options.percentage > 1 || options.percentage < 0) {
+		return peers;
+	}
+	const peerCount = Math.ceil(peers.length * options.percentage);
+	const sign = !!options.asc ? 1 : -1;
+
+	return peers
+		.sort((a: any, b: any) =>
+			a[options.category] > b[options.category] ? sign : sign * -1,
+		)
+		.slice(peerCount, peers.length);
+};
 
 export class PeerPool extends EventEmitter {
 	private readonly _peerMap: Map<string, Peer>;
@@ -344,11 +366,7 @@ export class PeerPool extends EventEmitter {
 	): Peer {
 		const inboundPeers = this.getPeers(InboundPeer);
 		if (inboundPeers.length >= this._maxInboundConnections) {
-			if (!this._peerPoolConfig.evictionProtectionEnabled) {
-				this.removePeer(shuffle(inboundPeers)[0].id);
-			} else {
-				this._evictPeer(InboundPeer);
-			}
+			this._evictPeer(InboundPeer);
 		}
 
 		const peerConfig = {
@@ -496,48 +514,43 @@ export class PeerPool extends EventEmitter {
 	}
 
 	// TODO: Protect peers by netgroup
-	private _selectPeersForEviction(peers: Peer[]): Peer[] {
-		const evictionProtectionRatio = this._peerPoolConfig
-			.evictionProtectionRatio;
-		// Cannot manipulate without physically moving nodes closer to the target.
-		const LATENCY_CATEGORY_PERCENTAGE =
-			evictionProtectionRatio * PEER_PROTECTION_PERCENTAGE_PER_CATEGORY;
-		const PROXIMAL_PEER_COUNT = Math.ceil(
-			evictionProtectionRatio * LATENCY_CATEGORY_PERCENTAGE * peers.length,
-		);
-		const filteredPeersByLatency = peers
-			.sort((a, b) => (a.latency > b.latency ? 1 : -1))
-			.slice(PROXIMAL_PEER_COUNT, peers.length);
+	private _selectPeersForEviction(): Peer[] {
+		const peers = [...this.getPeers(InboundPeer)];
 
+		// Cannot manipulate without physically moving nodes closer to the target.
+		const filteredPeersByLatency = this._peerPoolConfig.latencyProtectionRatio
+			? filterPeersByCategory(peers, {
+					category: 'latency',
+					percentage: this._peerPoolConfig.latencyProtectionRatio,
+					asc: true,
+			  })
+			: peers;
 		if (filteredPeersByLatency.length <= 1) {
 			return filteredPeersByLatency;
 		}
-		// Cannot manipulate this metric without performing useful work.
-		const RESPONSIVENESS_CATEGORY_PERCENTAGE =
-			evictionProtectionRatio * PEER_PROTECTION_PERCENTAGE_PER_CATEGORY;
-		const RESPONSIVE_PEER_COUNT = Math.ceil(
-			evictionProtectionRatio *
-				RESPONSIVENESS_CATEGORY_PERCENTAGE *
-				filteredPeersByLatency.length,
-		);
-		const filteredPeersByResponsiveness = filteredPeersByLatency
-			.sort((a, b) =>
-				a.productivity.responseRate > b.productivity.responseRate ? -1 : 1,
-			)
-			.slice(RESPONSIVE_PEER_COUNT, filteredPeersByLatency.length);
 
-		if (filteredPeersByResponsiveness.length <= 1) {
-			return filteredPeersByResponsiveness;
+		// Cannot manipulate this metric without performing useful work.
+		const filteredPeersByResponseRate = this._peerPoolConfig
+			.productivityProtectionRatio
+			? filterPeersByCategory(filteredPeersByLatency, {
+					category: 'responseRate',
+					percentage: this._peerPoolConfig.productivityProtectionRatio,
+					asc: false,
+			  })
+			: filteredPeersByLatency;
+		if (filteredPeersByResponseRate.length <= 1) {
+			return filteredPeersByResponseRate;
 		}
+
 		// Protect remaining half of peers by longevity, precludes attacks that start later.
-		const STEADY_PEER_COUNT =
-			filteredPeersByResponsiveness.length * LONGEVITY_CATEGORY_PERCENTAGE;
-		const filteredPeersByConnectTime = filteredPeersByResponsiveness
-			.sort((a, b) => (a.connectTime > b.connectTime ? 1 : -1))
-			.slice(
-				Math.ceil(STEADY_PEER_COUNT),
-				filteredPeersByResponsiveness.length,
-			);
+		const filteredPeersByConnectTime = this._peerPoolConfig
+			.longevityProtectionRatio
+			? filterPeersByCategory(filteredPeersByResponseRate, {
+					category: 'connectTime',
+					percentage: this._peerPoolConfig.longevityProtectionRatio,
+					asc: true,
+			  })
+			: filteredPeersByResponseRate;
 
 		return filteredPeersByConnectTime;
 	}
@@ -549,12 +562,11 @@ export class PeerPool extends EventEmitter {
 		}
 
 		if (kind === OutboundPeer) {
-			const peerIdToRemove = constructPeerIdFromPeerInfo(shuffle(peers)[0]);
-			this.removePeer(peerIdToRemove);
+			this.removePeer(shuffle(peers)[0].id);
 		}
 
 		if (kind === InboundPeer) {
-			const evictionCandidates = this._selectPeersForEviction([...peers]);
+			const evictionCandidates = this._selectPeersForEviction();
 			const peerToEvict = shuffle(evictionCandidates)[0];
 			this.removePeer(peerToEvict.id);
 		}

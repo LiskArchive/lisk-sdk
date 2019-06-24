@@ -312,6 +312,10 @@ export class Peer extends EventEmitter {
 		return this._connectTime;
 	}
 
+	public get responseRate(): number {
+		return this._productivity.responseRate;
+	}
+
 	public get productivity(): Productivity {
 		return { ...this._productivity };
 	}
