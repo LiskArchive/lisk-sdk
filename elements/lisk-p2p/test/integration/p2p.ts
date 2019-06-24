@@ -1393,7 +1393,7 @@ describe('Integration tests for P2P library', () => {
 		});
 
 		describe('P2P.request', () => {
-			beforeEach(async () => {
+			beforeEach(() => {
 				p2pNodeList.forEach(p2p => {
 					// Collect port numbers to check which peer handled which request.
 					p2p.on('requestReceived', request => {
@@ -1468,7 +1468,7 @@ describe('Integration tests for P2P library', () => {
 		describe('P2P.send', () => {
 			let collectedMessages: Array<any> = [];
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				collectedMessages = [];
 				p2pNodeList.forEach(p2p => {
 					p2p.on('messageReceived', message => {
