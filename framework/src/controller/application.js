@@ -354,8 +354,8 @@ class Application {
 			{
 				components: this.config.components,
 				ipc: this.config.app.ipc,
-				initialState: this.config.initialState,
 			},
+			this.initialState,
 			this.logger
 		);
 		return this.controller.load(
@@ -410,7 +410,7 @@ class Application {
 			this.overrideModuleOptions(alias, appConfigToShareWithModules);
 		});
 
-		this.config.initialState = {
+		this.initialState = {
 			version: this.config.app.version,
 			minVersion: this.config.app.minVersion,
 			protocolVersion: this.config.app.protocolVersion,

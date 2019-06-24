@@ -97,7 +97,7 @@ To contribute in `lisk-sdk` or `framework` or `elements`, first clone the `lisk-
 
 2. Now install all the dependencies and build,
    1. `npm ci`
-   2. `npm run boostrap`
+   2. `npm run bootstrap`
    3. `npm run build`
 
 ### Test local changes of `lisk-sdk/framework`
