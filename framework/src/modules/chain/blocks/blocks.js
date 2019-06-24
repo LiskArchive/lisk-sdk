@@ -622,8 +622,11 @@ class Blocks extends EventEmitter {
 	 */
 	async getHighestCommonBlock(ids) {
 		try {
-			const block = await this.storage.entities.Block.getMatchingHighestBlock(
-				ids
+			const [block] = await this.storage.entities.Block.get(
+				{
+					id_in: ids,
+				},
+				{ sort: 'height:desc', limit: 1 }
 			);
 			return block;
 		} catch (e) {
