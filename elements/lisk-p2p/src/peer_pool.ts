@@ -340,24 +340,42 @@ export class PeerPool extends EventEmitter {
 		peer.send(message);
 	}
 
-	public triggerNewConnections(peers: ReadonlyArray<P2PPeerInfo>): void {
-		const disconnectedPeers = peers.filter(
-			peer => !this._peerMap.has(constructPeerIdFromPeerInfo(peer)),
+	public triggerNewConnections(
+		knownPeers: ReadonlyArray<P2PPeerInfo>,
+		fixedPeers: ReadonlyArray<P2PPeerInfo>,
+	): void {
+		// Try to connect to disconnected peers without including the fixed ones which are specially treated thereafter
+		const disconnectedPeers = knownPeers.filter(
+			peer =>
+				!this._peerMap.has(constructPeerIdFromPeerInfo(peer)) ||
+				!fixedPeers.includes(peer),
 		);
-		const { outbound } = this.getPeersCountPerKind();
+		const { outboundCount } = this.getPeersCountPerKind();
+		const disconnectedFixedPeers = fixedPeers
+			.filter(peer => !this._peerMap.has(constructPeerIdFromPeerInfo(peer)))
+			.map(peer2Convert => peer2Convert as P2PDiscoveredPeerInfo);
+
 		// Trigger new connections only if the maximum of outbound connections has not been reached
+		// If the node is not yet connected to any of the fixed peers, enough slots should be saved for them
+		const peerLimit =
+			this._maxOutboundConnections -
+			disconnectedFixedPeers.length -
+			outboundCount;
 		const peersToConnect = this._peerSelectForConnection({
 			peers: disconnectedPeers,
-			peerLimit: this._maxOutboundConnections - outbound,
+			peerLimit,
 		});
-		peersToConnect.forEach((peerInfo: P2PPeerInfo) => {
-			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			const existingPeer = this.getPeer(peerId);
 
-			return existingPeer
-				? existingPeer
-				: this.addOutboundPeer(peerId, peerInfo);
-		});
+		[...peersToConnect, ...disconnectedFixedPeers].forEach(
+			(peerInfo: P2PPeerInfo) => {
+				const peerId = constructPeerIdFromPeerInfo(peerInfo);
+				const existingPeer = this.getPeer(peerId);
+
+				return existingPeer
+					? existingPeer
+					: this.addOutboundPeer(peerId, peerInfo);
+			},
+		);
 	}
 
 	public addInboundPeer(
@@ -415,18 +433,18 @@ export class PeerPool extends EventEmitter {
 			(prev, peer) => {
 				if (peer instanceof OutboundPeer) {
 					return {
-						outbound: prev.outbound + 1,
-						inbound: prev.inbound,
+						outboundCount: prev.outboundCount + 1,
+						inboundCount: prev.inboundCount,
 					};
 				} else if (peer instanceof InboundPeer) {
 					return {
-						outbound: prev.outbound,
-						inbound: prev.inbound + 1,
+						outboundCount: prev.outboundCount,
+						inboundCount: prev.inboundCount + 1,
 					};
 				}
 				throw new Error('A non-identified peer exists in the pool.');
 			},
-			{ outbound: 0, inbound: 0 },
+			{ outboundCount: 0, inboundCount: 0 },
 		);
 	}
 

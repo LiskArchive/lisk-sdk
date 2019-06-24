@@ -43,7 +43,8 @@
 		"prebuild": "npm run prebuild:node",
 		"build": "npm run build:node",
 		"build:check": "node -e \"require('./dist-node')\"",
-		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
+		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check",
+		"enableLocalIPs": "sudo ./scripts/enableTestLocalIPs.sh 10 19"
 	},
 	"dependencies": {
 		"lodash.shuffle": "4.2.0",
@@ -60,6 +61,7 @@
 		"@types/jquery": "3.3.29",
 		"@types/jsonwebtoken": "8.3.0",
 		"@types/lodash.shuffle": "4.2.6",
+		"@types/lodash.clonedeep": "4.5.0",
 		"@types/mocha": "5.2.5",
 		"@types/node": "10.12.21",
 		"@types/semver": "5.5.0",

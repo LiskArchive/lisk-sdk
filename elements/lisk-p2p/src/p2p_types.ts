@@ -50,8 +50,8 @@ export interface P2PPeerInfo {
 }
 
 export interface P2PPeersCount {
-	readonly outbound: number;
-	readonly inbound: number;
+	readonly outboundCount: number;
+	readonly inboundCount: number;
 }
 
 export interface P2PDiscoveredPeerInfo extends P2PPeerInfo {
@@ -83,14 +83,15 @@ export interface P2PClosePacket {
 
 export interface P2PConfig {
 	readonly blacklistedPeers?: ReadonlyArray<P2PPeerInfo>;
+	readonly seedPeers?: ReadonlyArray<P2PPeerInfo>;
+	readonly fixedPeers?: ReadonlyArray<P2PPeerInfo>;
+	readonly whitelistedPeers?: ReadonlyArray<P2PPeerInfo>;
+	readonly previousPeers?: ReadonlyArray<P2PDiscoveredPeerInfo>;
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
 	readonly hostAddress?: string;
-	readonly seedPeers: ReadonlyArray<P2PPeerInfo>;
-	readonly triedPeers?: ReadonlyArray<P2PDiscoveredPeerInfo>;
 	readonly nodeInfo: P2PNodeInfo;
 	readonly wsEngine?: string;
-	readonly discoveryInterval?: number;
 	readonly populatorInterval?: number;
 	readonly maxOutboundConnections: number;
 	readonly maxInboundConnections: number;
@@ -104,6 +105,7 @@ export interface P2PConfig {
 	readonly latencyProtectionRatio?: number;
 	readonly productivityProtectionRatio?: number;
 	readonly longevityProtectionRatio?: number;
+	readonly hostIp?: string;
 }
 
 // Network info exposed by the P2P library.
@@ -204,4 +206,12 @@ export interface ProtocolRPCRequestPacket {
 export interface ProtocolMessagePacket {
 	readonly data: unknown;
 	readonly event: string;
+}
+
+export interface PeerLists {
+	readonly blacklistedPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly seedPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly fixedPeers: ReadonlyArray<P2PPeerInfo>;
+	readonly whitelisted: ReadonlyArray<P2PPeerInfo>;
+	readonly previousPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 }

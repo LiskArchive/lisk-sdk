@@ -26,6 +26,9 @@ import {
 	P2PPeerSelectionForConnectionInput,
 } from '../../src/p2p_types';
 import { InboundPeer } from '../../src/peer';
+import { SCServerSocket } from 'socketcluster-server';
+import * as url from 'url';
+import cloneDeep = require('lodash.clonedeep');
 
 describe('Integration tests for P2P library', () => {
 	before(() => {
@@ -34,7 +37,6 @@ describe('Integration tests for P2P library', () => {
 	});
 
 	const NETWORK_START_PORT = 5000;
-
 	const NETWORK_PEER_COUNT = 10;
 	const POPULATOR_INTERVAL = 50;
 	const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
@@ -51,7 +53,6 @@ describe('Integration tests for P2P library', () => {
 			p2pNodeList = ALL_NODE_PORTS.map(nodePort => {
 				return new P2P({
 					connectTimeout: 100,
-					seedPeers: [],
 					wsEngine: 'ws',
 					populatorInterval: POPULATOR_INTERVAL,
 					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
@@ -71,7 +72,6 @@ describe('Integration tests for P2P library', () => {
 					},
 				});
 			});
-
 			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
 				p2p => p2p.start(),
 			);
@@ -142,11 +142,9 @@ describe('Integration tests for P2P library', () => {
 					},
 				});
 			});
-
 			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
 				p2p => p2p.start(),
 			);
-
 			await Promise.all(peerStartPromises);
 			await wait(200);
 		});
@@ -439,7 +437,6 @@ describe('Integration tests for P2P library', () => {
 					},
 				});
 			});
-
 			// Launch nodes one at a time with a delay between each launch.
 			for (const p2p of p2pNodeList) {
 				await p2p.start();
@@ -732,7 +729,7 @@ describe('Integration tests for P2P library', () => {
 					options: firstP2PNode.nodeInfo.options,
 				} as any);
 
-				await wait(100);
+				await wait(200);
 
 				// Each peer of firstP2PNode should receive a message.
 				expect(collectedMessages.length).to.equal(9);
@@ -1079,13 +1076,11 @@ describe('Integration tests for P2P library', () => {
 					},
 				});
 			});
-
-			// Launch nodes one at a time with a delay between each launch.
-			for (const p2p of p2pNodeList) {
-				await p2p.start();
-				await wait(100);
-			}
-			await wait(100);
+			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
+				p2p => p2p.start(),
+			);
+			await Promise.all(peerStartPromises);
+			await wait(1000);
 		});
 
 		afterEach(async () => {
@@ -1241,12 +1236,11 @@ describe('Integration tests for P2P library', () => {
 					},
 				});
 			});
-
 			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
 				p2p => p2p.start(),
 			);
 			await Promise.all(peerStartPromises);
-			await wait(100);
+			await wait(1000);
 		});
 
 		afterEach(async () => {
@@ -1355,11 +1349,10 @@ describe('Integration tests for P2P library', () => {
 					});
 				},
 			);
-
-			// Launch nodes one at a time with a delay between each launch.
-			for (const p2p of p2pNodeList) {
-				p2p.start();
-			}
+			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
+				p2p => p2p.start(),
+			);
+			await Promise.all(peerStartPromises);
 			await wait(1000);
 		});
 
@@ -1375,15 +1368,15 @@ describe('Integration tests for P2P library', () => {
 		describe('Peer discovery and connections', () => {
 			it(`should not create more than ${TEN_CONNECTIONS} outbound connections`, async () => {
 				p2pNodeList.forEach(p2p => {
-					const { outbound } = p2p['_peerPool'].getPeersCountPerKind();
-					expect(outbound).to.be.at.most(TEN_CONNECTIONS);
+					const { outboundCount } = p2p['_peerPool'].getPeersCountPerKind();
+					expect(outboundCount).to.be.at.most(TEN_CONNECTIONS);
 				});
 			});
 
 			it(`should not create more than ${TEN_CONNECTIONS} inbound connections`, async () => {
 				p2pNodeList.forEach(p2p => {
-					const { inbound } = p2p['_peerPool'].getPeersCountPerKind();
-					expect(inbound).to.be.at.most(TEN_CONNECTIONS);
+					const { inboundCount } = p2p['_peerPool'].getPeersCountPerKind();
+					expect(inboundCount).to.be.at.most(TEN_CONNECTIONS);
 				});
 			});
 
@@ -1466,14 +1459,309 @@ describe('Integration tests for P2P library', () => {
 		describe('Peer outbound shuffling', () => {
 			it('should shuffle outbound peers in an interval', async () => {
 				const p2pNode = p2pNodeList[0];
-				const { outbound } = p2pNode['_peerPool'].getPeersCountPerKind();
+				const { outboundCount } = p2pNode['_peerPool'].getPeersCountPerKind();
 				// Wait for periodic shuffling
 				await wait(500);
-				const { outbound: updatedOutbound } = p2pNode[
+				const { outboundCount: updatedOutbound } = p2pNode[
 					'_peerPool'
 				].getPeersCountPerKind();
 
-				expect(updatedOutbound).to.equal(outbound - 1);
+				expect(updatedOutbound).to.equal(outboundCount - 1);
+			});
+		});
+	});
+
+	describe('Network with different lists of blacklisted/fixed/whitelisted peers', () => {
+		const FIVE_CONNECTIONS = 5;
+		const POPULATOR_INTERVAL_WITH_LIMIT = 10;
+		const previousPeers = [
+			{
+				ipAddress: '127.0.0.15',
+				wsPort: NETWORK_START_PORT + 5,
+				height: 10,
+				version: '1.0',
+				protocolVersion: '1.0',
+				number: undefined,
+			},
+		];
+		const serverSocketPrototypeBackup = cloneDeep(SCServerSocket.prototype);
+
+		before(async () => {
+			const serverSocketPrototype = SCServerSocket.prototype as any;
+			const realResetPongTimeoutFunction =
+				serverSocketPrototype._resetPongTimeout;
+			serverSocketPrototype._resetPongTimeout = function() {
+				const queryObject = url.parse(this.request.url, true).query as any;
+				let ipSuffix = queryObject.wsPort - 5000 + 10;
+				this.remoteAddress = `127.0.0.${ipSuffix}`;
+				return realResetPongTimeoutFunction.apply(this, arguments);
+			};
+		});
+
+		afterEach(async () => {
+			await Promise.all(
+				p2pNodeList
+					.filter(p2p => p2p.isActive)
+					.map(async p2p => await p2p.stop()),
+			);
+			await wait(200);
+		});
+
+		after(async () => {
+			SCServerSocket.prototype = serverSocketPrototypeBackup;
+		});
+
+		describe('blacklisting', () => {
+			const blacklistedPeers = [
+				{
+					ipAddress: '127.0.0.15',
+					wsPort: NETWORK_START_PORT + 5,
+				},
+			];
+			const previousPeersBlacklisted = [
+				{
+					ipAddress: '127.0.0.15',
+					wsPort: NETWORK_START_PORT + 5,
+					height: 10,
+					version: '1.0',
+					protocolVersion: '1.0',
+					number: undefined,
+				},
+			];
+			beforeEach(async () => {
+				p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
+					// Each node will have the previous node in the sequence as a seed peer except the first node.
+					const seedPeers = [
+						{
+							ipAddress: '127.0.0.' + (((index + 1) % NETWORK_PEER_COUNT) + 10),
+							wsPort: NETWORK_START_PORT + ((index + 1) % NETWORK_PEER_COUNT),
+						},
+					];
+					const nodePort = NETWORK_START_PORT + index;
+					return new P2P({
+						hostIp: '127.0.0.' + (index + 10),
+						connectTimeout: 100,
+						ackTimeout: 200,
+						blacklistedPeers: blacklistedPeers,
+						seedPeers: seedPeers,
+						fixedPeers: blacklistedPeers,
+						whitelistedPeers: blacklistedPeers,
+						previousPeers: previousPeersBlacklisted,
+						wsEngine: 'ws',
+						populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
+						maxOutboundConnections: FIVE_CONNECTIONS,
+						maxInboundConnections: FIVE_CONNECTIONS,
+						nodeInfo: {
+							wsPort: nodePort,
+							nethash:
+								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+							version: '1.0.1',
+							protocolVersion: '1.0.1',
+							minVersion: '1.0.0',
+							os: platform(),
+							height: 0,
+							broadhash:
+								'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+							nonce: `O2wTkjqplHII${nodePort}`,
+						},
+					});
+				});
+				const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
+					p2p => p2p.start(),
+				);
+				await Promise.all(peerStartPromises);
+				await wait(1000);
+			});
+
+			it('should not add any blacklisted peer to newPeers', () => {
+				p2pNodeList.forEach(p2p => {
+					const { newPeers } = p2p.getNetworkStatus();
+					const newPeersIPWS = newPeers.map(peer => {
+						return { ipAddress: peer.ipAddress, wsPort: peer.wsPort };
+					});
+					expect(newPeersIPWS).not.to.deep.include.members(blacklistedPeers);
+				});
+			});
+
+			it('should not add any blacklisted peer to triedPeers', () => {
+				p2pNodeList.forEach(p2p => {
+					const { triedPeers } = p2p.getNetworkStatus();
+					const triedPeersIPWS = triedPeers.map(peer => {
+						return { ipAddress: peer.ipAddress, wsPort: peer.wsPort };
+					});
+					expect(triedPeersIPWS).not.to.deep.include.members(blacklistedPeers);
+				});
+			});
+
+			it('should not connect to any blacklisted peer', () => {
+				p2pNodeList.forEach(p2p => {
+					const { connectedPeers } = p2p.getNetworkStatus();
+					const connectedPeersIPWS = connectedPeers.map(peer => {
+						return { ipAddress: peer.ipAddress, wsPort: peer.wsPort };
+					});
+					expect(connectedPeersIPWS).not.to.deep.include.members(
+						blacklistedPeers,
+					);
+				});
+			});
+
+			it('should isolate the blacklisted peer', () => {
+				p2pNodeList.map(p2p => {
+					if (
+						p2p['_nodeInfo'].wsPort === blacklistedPeers[0].wsPort &&
+						p2p['_config'].hostIp === blacklistedPeers[0].ipAddress
+					) {
+						const connectedPeers = p2p['_peerPool'].getConnectedPeers();
+						expect(connectedPeers.length).to.equal(0);
+					}
+				});
+			});
+		});
+
+		describe('fixed', () => {
+			const fixedPeers = [
+				{
+					ipAddress: '127.0.0.10',
+					wsPort: NETWORK_START_PORT,
+				},
+			];
+			beforeEach(async () => {
+				p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
+					// Each node will have the previous node in the sequence as a seed peer except the first node.
+					const seedPeers = [
+						{
+							ipAddress: '127.0.0.' + (((index + 1) % NETWORK_PEER_COUNT) + 10),
+							wsPort: NETWORK_START_PORT + ((index + 1) % NETWORK_PEER_COUNT),
+						},
+					];
+					const nodePort = NETWORK_START_PORT + index;
+					return new P2P({
+						hostIp: '127.0.0.' + (index + 10),
+						connectTimeout: 100,
+						ackTimeout: 200,
+						seedPeers: seedPeers,
+						fixedPeers,
+						previousPeers,
+						wsEngine: 'ws',
+						populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
+						maxOutboundConnections: FIVE_CONNECTIONS,
+						maxInboundConnections: FIVE_CONNECTIONS,
+						nodeInfo: {
+							wsPort: nodePort,
+							nethash:
+								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+							version: '1.0.1',
+							protocolVersion: '1.0.1',
+							minVersion: '1.0.0',
+							os: platform(),
+							height: 0,
+							broadhash:
+								'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+							nonce: `O2wTkjqplHII${nodePort}`,
+						},
+					});
+				});
+				const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
+					p2p => p2p.start(),
+				);
+				await Promise.all(peerStartPromises);
+				await wait(1000);
+			});
+
+			it('everyone but itself should have a permanent connection to the fixed peer', () => {
+				p2pNodeList.forEach((p2p, index) => {
+					if (index != 0) {
+						const { connectedPeers } = p2p.getNetworkStatus();
+						const connectedPeersIPWS = connectedPeers.map(peer => {
+							return { ipAddress: peer.ipAddress, wsPort: peer.wsPort };
+						});
+						expect(connectedPeersIPWS).to.deep.include.members(fixedPeers);
+					}
+				});
+			});
+		});
+
+		describe('whitelisting', () => {
+			const whitelistedPeers = [
+				{
+					ipAddress: '127.0.0.10',
+					wsPort: NETWORK_START_PORT,
+				},
+			];
+			beforeEach(async () => {
+				p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
+					// Each node will have the previous node in the sequence as a seed peer except the first node.
+					const seedPeers = [
+						{
+							ipAddress: '127.0.0.' + (((index + 1) % NETWORK_PEER_COUNT) + 10),
+							wsPort: NETWORK_START_PORT + ((index + 1) % NETWORK_PEER_COUNT),
+						},
+					];
+					const nodePort = NETWORK_START_PORT + index;
+					return new P2P({
+						hostIp: '127.0.0.' + (index + 10),
+						connectTimeout: 100,
+						ackTimeout: 200,
+						seedPeers,
+						whitelistedPeers,
+						wsEngine: 'ws',
+						populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
+						maxOutboundConnections: FIVE_CONNECTIONS,
+						maxInboundConnections: FIVE_CONNECTIONS,
+						nodeInfo: {
+							wsPort: nodePort,
+							nethash:
+								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+							version: '1.0.1',
+							protocolVersion: '1.0.1',
+							minVersion: '1.0.0',
+							os: platform(),
+							height: 0,
+							broadhash:
+								'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+							nonce: `O2wTkjqplHII${nodePort}`,
+						},
+					});
+				});
+				const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
+					p2p => p2p.start(),
+				);
+				await Promise.all(peerStartPromises);
+				await wait(1000);
+			});
+
+			it('should add every whitelisted peer to triedPeers', () => {
+				p2pNodeList.forEach((p2p, index) => {
+					if (![0, 9].includes(index)) {
+						const { triedPeers } = p2p.getNetworkStatus();
+						const triedPeersIPWS = triedPeers.map(peer => {
+							return { ipAddress: peer.ipAddress, wsPort: peer.wsPort };
+						});
+						expect(triedPeersIPWS).to.deep.include.members(whitelistedPeers);
+					}
+				});
+			});
+
+			it('should not be possible to ban them', () => {
+				const peerPenalty = {
+					peerId: `${whitelistedPeers[0].ipAddress}:${
+						whitelistedPeers[0].wsPort
+					}`,
+					penalty: 100,
+				};
+
+				p2pNodeList.forEach((p2p, index) => {
+					if (![0, 9].includes(index)) {
+						p2p.applyPenalty(peerPenalty);
+						const { connectedPeers } = p2p.getNetworkStatus();
+						const connectedPeersIPWS = connectedPeers.map(peer => {
+							return { ipAddress: peer.ipAddress, wsPort: peer.wsPort };
+						});
+						expect(connectedPeersIPWS).to.deep.include.members(
+							whitelistedPeers,
+						);
+					}
+				});
 			});
 		});
 	});
