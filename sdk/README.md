@@ -89,49 +89,56 @@ node index.js
 
 More usage examples and configuration samples will be made available during the alpha phase on the official Lisk [documentation portal](http://docs.lisk.io).
 
-## Contribution
+## Get Involved
 
-To contribute in `lisk-sdk` or `framework` or `elements`, first clone the `lisk-sdk` repo,
+| Reason                           | How                                                                                            |
+| -------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Want to chat with our community  | [Reach them on Lisk.chat](https://lisk.chat)                                                   |
+| Want to chat with our developers | [Reach them on Gitter](https://gitter.im/LiskHQ/lisk)                                          |
+| Found a bug                      | [Open a new issue](https://github.com/LiskHQ/lisk/issues/new)                                  |
+| Found a security issue           | [See our bounty program](https://blog.lisk.io/announcing-lisk-bug-bounty-program-5895bdd46ed4) |
+| Want to share your research      | [Propose your research](https://research.lisk.io)                                              |
+| Want to develop with us          | [Create a fork](https://github.com/LiskHQ/lisk/fork)                                           |
 
-1. `git clone https://github.com/LiskHQ/lisk-sdk.git`
+## How to Contribute
 
-2. Now install all the dependencies and build,
+To contribute to `lisk-sdk`, `framework` or `elements`:
+
+1. Clone the repository: `git clone https://github.com/LiskHQ/lisk-sdk.git`
+
+2. Install dependencies and build:
    1. `npm ci`
    2. `npm run bootstrap`
    3. `npm run build`
 
-### Test local changes of `lisk-sdk/framework`
+### Testing local changes to `lisk-sdk/framework`
 
-In order to test local changes of `lisk-sdk/framework`, follow the above steps of installation/building of dependencies and then run,
+Before testing local changes to `lisk-sdk/framework`, follow the above steps for installation/building of dependencies and then run:
 
-1. `npx lerna link`.
+1. `npx lerna link`
 
-### Test local changes of `lisk-sdk/elements`
+### Testing local changes to `lisk-sdk/elements`
 
-In order to test local changes of `lisk-sdk/elements`, follow the above steps of installation/building of dependencies and then run,
+Before testing local changes to `lisk-sdk/elements`, follow the above steps for installation/building of dependencies and then run:
 
-1. `npm run build`
-2. `npx lerna link`
+1. `npx lerna link`
 
-Once you have linked your local repo, everytime you can make changes in `lisk-sdk/elements`, you only run `npm run build` everytime to test the local changes.
+2. Once you have linked your local repo, everytime you make changes in `lisk-sdk/elements` you must build packages before testing:
+
+   a. To build all packages: `npm run build`
+
+   b. To build specific package: `lerna run build --scope <package name>`
+   Example: `lerna run build --scope @liskhq/lisk-p2p`
+
+   c. To build packages that have been modified in your branch: `lerna run build --since <branch name>`
+   Example:`lerna run build --since development`
 
 **Note:** In case you face any issues during the installation make sure you have the right version of `npm` and `node` and try to install from scratch by running,
 `npm run clean:node_modules && rm -rf ./node_modules`.
 
 ### Testing your local `lisk-sdk` in your application.
 
-In order to link your local lisk-sdk repository and test your application based on `lisk-sdk`, simply follow the steps above in your local `lisk-sdk` repository and run `npm link lisk-sdk` in the root of your application.
-
-## Get Involved
-
-| Reason                           | How                                                                                            |
-| -------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Want to chat with our community  | [Chat with them on Lisk.chat](http://lisk.chat)                                                |
-| Want to chat with our developers | [Chat with them on Gitter](https://gitter.im/LiskHQ/lisk)                                      |
-| Found a bug                      | [Open a new issue](https://github.com/LiskHQ/lisk/issues/new)                                  |
-| Found a security issue           | [See our bounty program](https://blog.lisk.io/announcing-lisk-bug-bounty-program-5895bdd46ed4) |
-| Want to share your research      | [Propose your research](https://research.lisk.io)                                              |
-| Want to develop with us          | [Create a fork](https://github.com/LiskHQ/lisk/fork)                                           |
+In order to link your local lisk-sdk repository and test your application which uses `lisk-sdk`, simply follow the steps above in your local `lisk-sdk` repository and run `npm link lisk-sdk` in the root of your application.
 
 ## Contributors
 

@@ -326,7 +326,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 						return getValidKeypairForSlot(slot - 1).then(keypair => {
 							block = createBlock(
 								[],
-								slots.getTime(slot),
+								slots.getTime(),
 								keypair,
 								lastBlock,
 								library.modules.blocks.blockReward,
