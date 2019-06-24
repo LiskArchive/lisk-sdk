@@ -123,7 +123,6 @@ export abstract class BaseTransaction {
 	protected _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.UNKNOWN;
 
-	public abstract prepare(store: StateStorePrepare): Promise<void>;
 	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
 	protected abstract applyAsset(
 		store: StateStore,
@@ -351,6 +350,14 @@ export abstract class BaseTransaction {
 		return createResponse(this.id, errors);
 	}
 
+	public async prepare(store: StateStorePrepare): Promise<void> {
+		await store.account.cache([
+			{
+				address: this.senderId,
+			},
+		]);
+	}
+
 	public addMultisignature(
 		store: StateStore,
 		signatureObject: SignatureObject,
@@ -541,7 +548,13 @@ export abstract class BaseTransaction {
 
 	protected assetToBytes(): Buffer {
 		// Sort the content to obtain the same asset's signature, despite on the properties or values order.
-		return Buffer.from(JSON.stringify(this.asset).split('').sort().toString(), 'utf-8');
+		return Buffer.from(
+			JSON.stringify(this.asset)
+				.split('')
+				.sort()
+				.toString(),
+			'utf-8',
+		);
 	}
 
 	private _verify(sender: Account): ReadonlyArray<TransactionError> {
