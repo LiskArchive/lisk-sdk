@@ -123,7 +123,6 @@ export abstract class BaseTransaction {
 		MultisignatureStatus.UNKNOWN;
 
 	public abstract assetToJSON(): object;
-	public abstract prepare(store: StateStorePrepare): Promise<void>;
 	protected abstract assetToBytes(): Buffer;
 	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
 	protected abstract applyAsset(
@@ -349,6 +348,14 @@ export abstract class BaseTransaction {
 		errors.push(...assetErrors);
 
 		return createResponse(this.id, errors);
+	}
+
+	public async prepare(store: StateStorePrepare): Promise<void> {
+		await store.account.cache([
+			{
+				address: this.senderId,
+			},
+		]);
 	}
 
 	public addMultisignature(
