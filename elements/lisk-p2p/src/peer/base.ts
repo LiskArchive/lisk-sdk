@@ -221,11 +221,13 @@ export class Peer extends EventEmitter {
 			const rate = this._getPeerRate(packet as P2PRequestPacket);
 
 			const request = new P2PRequest(
-				rawRequest.procedure,
-				rawRequest.data,
-				this._id,
-				rate,
-				this._productivity,
+				{
+					procedure: rawRequest.procedure,
+					data: rawRequest.data,
+					id: this._id,
+					rate,
+					productivity: this._productivity,
+				},
 				respond,
 			);
 

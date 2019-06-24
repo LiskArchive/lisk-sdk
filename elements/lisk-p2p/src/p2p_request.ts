@@ -16,6 +16,23 @@
 import { RPCResponseAlreadySentError } from './errors';
 import { P2PResponsePacket } from './p2p_types';
 
+interface RequestOptions {
+	readonly procedure: string;
+	readonly data: unknown;
+	readonly id: string;
+	readonly rate: number;
+	productivity: {
+		// tslint:disable-next-line: readonly-keyword
+		requestCounter: number;
+		// tslint:disable-next-line: readonly-keyword
+		responseCounter: number;
+		// tslint:disable-next-line: readonly-keyword
+		responseRate: number;
+		// tslint:disable-next-line: readonly-keyword
+		lastResponded: number;
+	};
+}
+
 export class P2PRequest {
 	private readonly _procedure: string;
 	private readonly _data: unknown;
@@ -28,27 +45,14 @@ export class P2PRequest {
 	private readonly _rate: number;
 
 	public constructor(
-		procedure: string,
-		data: unknown,
-		peerId: string,
-		rate: number,
-		productivity: {
-			// tslint:disable-next-line: readonly-keyword
-			requestCounter: number;
-			// tslint:disable-next-line: readonly-keyword
-			responseCounter: number;
-			// tslint:disable-next-line: readonly-keyword
-			responseRate: number;
-			// tslint:disable-next-line: readonly-keyword
-			lastResponded: number;
-		},
+		options: RequestOptions,
 		respondCallback: (responseError?: Error, responseData?: unknown) => void,
 	) {
-		this._procedure = procedure;
-		this._data = data;
-		this._peerId = peerId;
-		this._rate = rate;
-		productivity.requestCounter += 1;
+		this._procedure = options.procedure;
+		this._data = options.data;
+		this._peerId = options.id;
+		this._rate = options.rate;
+		options.productivity.requestCounter += 1;
 		this._respondCallback = (
 			responseError?: Error,
 			responsePacket?: P2PResponsePacket,
@@ -61,10 +65,11 @@ export class P2PRequest {
 			this._wasResponseSent = true;
 			// We assume peer performed useful work and update peer response rate
 			if (!responseError && responsePacket) {
-				productivity.lastResponded = Date.now();
-				productivity.responseCounter += 1;
-				productivity.responseRate =
-					productivity.responseCounter / productivity.requestCounter;
+				options.productivity.lastResponded = Date.now();
+				options.productivity.responseCounter += 1;
+				options.productivity.responseRate =
+					options.productivity.responseCounter /
+					options.productivity.requestCounter;
 			}
 			respondCallback(responseError, responsePacket);
 		};
