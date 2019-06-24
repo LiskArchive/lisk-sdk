@@ -48,6 +48,15 @@ describe('Integration tests for P2P library', () => {
 
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
+	afterEach(async () => {
+		await Promise.all(
+			p2pNodeList
+				.filter(p2p => p2p.isActive)
+				.map(async p2p => await p2p.stop()),
+		);
+		await wait(1000);
+	});
+
 	describe('Disconnected network: All nodes launch at the same time. Each node has an empty seedPeers list', () => {
 		beforeEach(async () => {
 			p2pNodeList = ALL_NODE_PORTS.map(nodePort => {
@@ -72,18 +81,8 @@ describe('Integration tests for P2P library', () => {
 					},
 				});
 			});
-			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
-				p2p => p2p.start(),
-			);
-			await Promise.all(peerStartPromises);
-		});
-
-		afterEach(async () => {
-			await Promise.all(
-				p2pNodeList
-					.filter(p2p => p2p.isActive)
-					.map(async p2p => await p2p.stop()),
-			);
+			await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
+			await wait(100);
 		});
 
 		it('should set the isActive property to true for all nodes', () => {
@@ -142,19 +141,8 @@ describe('Integration tests for P2P library', () => {
 					},
 				});
 			});
-			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
-				p2p => p2p.start(),
-			);
-			await Promise.all(peerStartPromises);
+			await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
 			await wait(200);
-		});
-
-		afterEach(async () => {
-			await Promise.all(
-				p2pNodeList
-					.filter(p2p => p2p.isActive)
-					.map(async p2p => await p2p.stop()),
-			);
 		});
 
 		describe('Peer discovery', () => {
@@ -437,21 +425,8 @@ describe('Integration tests for P2P library', () => {
 					},
 				});
 			});
-			// Launch nodes one at a time with a delay between each launch.
-			for (const p2p of p2pNodeList) {
-				await p2p.start();
-				await wait(50);
-			}
-			await wait(200);
-		});
-
-		afterEach(async () => {
-			await Promise.all(
-				p2pNodeList
-					.filter(p2p => p2p.isActive)
-					.map(async p2p => await p2p.stop()),
-			);
-			await wait(100);
+			await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
+			await wait(1000);
 		});
 
 		describe('Peer discovery', () => {
@@ -1076,19 +1051,8 @@ describe('Integration tests for P2P library', () => {
 					},
 				});
 			});
-			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
-				p2p => p2p.start(),
-			);
-			await Promise.all(peerStartPromises);
+			await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
 			await wait(1000);
-		});
-
-		afterEach(async () => {
-			await Promise.all(
-				p2pNodeList
-					.filter(p2p => p2p.isActive)
-					.map(async p2p => await p2p.stop()),
-			);
 		});
 
 		it('should start all the nodes with custom selection functions without fail', async () => {
@@ -1236,19 +1200,8 @@ describe('Integration tests for P2P library', () => {
 					},
 				});
 			});
-			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
-				p2p => p2p.start(),
-			);
-			await Promise.all(peerStartPromises);
+			await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
 			await wait(1000);
-		});
-
-		afterEach(async () => {
-			await Promise.all(
-				p2pNodeList
-					.filter(p2p => p2p.isActive)
-					.map(async p2p => await p2p.stop()),
-			);
 		});
 
 		describe('all the nodes should be able to communicate and receive custom fields passed in nodeinfo', () => {
@@ -1349,20 +1302,8 @@ describe('Integration tests for P2P library', () => {
 					});
 				},
 			);
-			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
-				p2p => p2p.start(),
-			);
-			await Promise.all(peerStartPromises);
-			await wait(1800);
-		});
-
-		afterEach(async () => {
-			await Promise.all(
-				p2pNodeList
-					.filter(p2p => p2p.isActive)
-					.map(async p2p => await p2p.stop()),
-			);
-			await wait(100);
+			await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
+			await wait(1000);
 		});
 
 		describe('Peer discovery and connections', () => {
@@ -1584,21 +1525,8 @@ describe('Integration tests for P2P library', () => {
 					});
 				},
 			);
-
-			const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
-				p2p => p2p.start(),
-			);
-			await Promise.all(peerStartPromises);
+			await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
 			await wait(200);
-		});
-
-		afterEach(async () => {
-			await Promise.all(
-				p2pNodeList
-					.filter(p2p => p2p.isActive)
-					.map(async p2p => await p2p.stop()),
-			);
-			await wait(100);
 		});
 
 		describe('Peer outbound shuffling', () => {
@@ -1641,15 +1569,6 @@ describe('Integration tests for P2P library', () => {
 				this.remoteAddress = `127.0.0.${ipSuffix}`;
 				return realResetPongTimeoutFunction.apply(this, arguments);
 			};
-		});
-
-		afterEach(async () => {
-			await Promise.all(
-				p2pNodeList
-					.filter(p2p => p2p.isActive)
-					.map(async p2p => await p2p.stop()),
-			);
-			await wait(200);
 		});
 
 		after(async () => {
@@ -1711,10 +1630,7 @@ describe('Integration tests for P2P library', () => {
 						},
 					});
 				});
-				const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
-					p2p => p2p.start(),
-				);
-				await Promise.all(peerStartPromises);
+				await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
 				await wait(1000);
 			});
 
@@ -1806,10 +1722,7 @@ describe('Integration tests for P2P library', () => {
 						},
 					});
 				});
-				const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
-					p2p => p2p.start(),
-				);
-				await Promise.all(peerStartPromises);
+				await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
 				await wait(1000);
 			});
 
@@ -1868,10 +1781,7 @@ describe('Integration tests for P2P library', () => {
 						},
 					});
 				});
-				const peerStartPromises: ReadonlyArray<Promise<void>> = p2pNodeList.map(
-					p2p => p2p.start(),
-				);
-				await Promise.all(peerStartPromises);
+				await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
 				await wait(1000);
 			});
 
