@@ -16,8 +16,13 @@
 
 const path = require('path');
 const fs = require('fs');
-const { SchemaValidationError } = require('../../../../../../../src/errors');
-const ConsensusManagerModule = require('../../../../../../../src/modules/chain/bft/consensus_manager');
+const bftModule = require('../../../../../../../src/modules/chain/bft/bft');
+const {
+	ConsensusManager,
+} = require('../../../../../../../src/modules/chain/bft/consensus_manager');
+
+jest.mock('../../../../../../../src/modules/chain/bft/bft');
+
 const {
 	BlockHeader: blockHeaderFixture,
 } = require('../../../../../../mocha/fixtures/blocks');
@@ -25,9 +30,6 @@ const {
 const {
 	Account: accountFixture,
 } = require('../../../../../../mocha/fixtures/accounts');
-
-const ConsensusManager = ConsensusManagerModule.ConsensusManager;
-const validateBlockHeader = ConsensusManagerModule.validateBlockHeader;
 
 const generateValidHeaders = count => {
 	return [...Array(count)].map((_, index) => {
@@ -110,6 +112,11 @@ describe('consensus_manager', () => {
 		beforeEach(async () => {
 			bft = new ConsensusManager({ finalizedHeight, activeDelegates });
 			jest.spyOn(bft.headers, 'top');
+		});
+
+		afterEach(() => {
+			// TODO: Investigate why jest-config is not clearing the mock for modules
+			jest.clearAllMocks();
 		});
 
 		describe('constructor', () => {
@@ -267,15 +274,11 @@ describe('consensus_manager', () => {
 					height: 1,
 					maxHeightPreviouslyForged: 0,
 				});
-				jest.spyOn(ConsensusManagerModule, 'validateBlockHeader');
+				// jest.spyOn(bftModule, 'validateBlockHeader');
 				bft.addBlockHeader(header1);
 
-				expect(
-					ConsensusManagerModule.validateBlockHeader
-				).toHaveBeenCalledTimes(1);
-				expect(ConsensusManagerModule.validateBlockHeader).toHaveBeenCalledWith(
-					header1
-				);
+				expect(bftModule.validateBlockHeader).toHaveBeenCalledTimes(1);
+				expect(bftModule.validateBlockHeader).toHaveBeenCalledWith(header1);
 			});
 
 			it('should call verifyBlockHeaders with the provided header', async () => {
@@ -283,15 +286,11 @@ describe('consensus_manager', () => {
 					height: 1,
 					maxHeightPreviouslyForged: 0,
 				});
-				jest.spyOn(ConsensusManagerModule, 'validateBlockHeader');
+				// jest.spyOn(bftModule, 'validateBlockHeader');
 				bft.addBlockHeader(header1);
 
-				expect(
-					ConsensusManagerModule.validateBlockHeader
-				).toHaveBeenCalledTimes(1);
-				expect(ConsensusManagerModule.validateBlockHeader).toHaveBeenCalledWith(
-					header1
-				);
+				expect(bftModule.validateBlockHeader).toHaveBeenCalledTimes(1);
+				expect(bftModule.validateBlockHeader).toHaveBeenCalledWith(header1);
 			});
 
 			it('should add headers to list', async () => {
@@ -437,29 +436,6 @@ describe('consensus_manager', () => {
 					blockData.preVotedConfirmedHeight
 				);
 			});
-		});
-	});
-
-	describe('validateBlockHeader', () => {
-		it('should be ok for valid headers', async () => {
-			const header = blockHeaderFixture();
-			expect(validateBlockHeader(header)).toBeTruthy();
-		});
-
-		it('should throw error if any header is not valid format', async () => {
-			let header;
-
-			// Setting non-integer value
-			header = blockHeaderFixture({ height: '1' });
-			expect(() => validateBlockHeader(header)).toThrow(SchemaValidationError);
-
-			// Setting invalid id
-			header = blockHeaderFixture({ blockId: 'Al123' });
-			expect(() => validateBlockHeader(header)).toThrow(SchemaValidationError);
-
-			// Setting invalid public key;
-			header = blockHeaderFixture({ delegatePublicKey: 'abdef' });
-			expect(() => validateBlockHeader(header)).toThrow(SchemaValidationError);
 		});
 	});
 });

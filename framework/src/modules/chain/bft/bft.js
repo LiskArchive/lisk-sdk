@@ -16,6 +16,18 @@
 
 const { ConsensusManager } = require('./consensus_manager');
 
+const blockHeaderSchema = require('./block_header_schema');
+const { validate } = require('../../../../src/controller/validator');
+
+/**
+ * Validate schema of block header
+ *
+ * @param {BlockHeader} blockHeader
+ * @return {boolean}
+ */
+const validateBlockHeader = blockHeader =>
+	validate(blockHeaderSchema, blockHeader);
+
 const KEYS = {
 	FINALIZED_HEIGHT: 'BFT.finalizedHeight',
 };
@@ -103,6 +115,7 @@ class BFT {
 }
 
 const exportedInterface = {
+	validateBlockHeader,
 	extractBlockHeaderFromBlock,
 	BFT,
 };

@@ -16,17 +16,7 @@
 
 const assert = require('assert');
 const { HeadersList } = require('./headers_list');
-const blockHeaderSchema = require('./block_header_schema');
-const { validate } = require('../../../../src/controller/validator');
-
-/**
- * Validate schema of block header
- *
- * @param {BlockHeader} blockHeader
- * @return {boolean}
- */
-const validateBlockHeader = blockHeader =>
-	validate(blockHeaderSchema, blockHeader);
+const { validateBlockHeader } = require('./bft');
 
 /**
  * @typedef {Object} BlockHeader
@@ -81,7 +71,7 @@ class ConsensusManager {
 	addBlockHeader(blockHeader) {
 		// Validate the schema of the header
 		// To spy exported function in same module we have to call it as this
-		exportedInterface.validateBlockHeader(blockHeader);
+		validateBlockHeader(blockHeader);
 
 		// Verify the integrity of the header with chain
 		this.verifyBlockHeaders(blockHeader);
@@ -278,9 +268,6 @@ class ConsensusManager {
 	}
 }
 
-const exportedInterface = {
+module.exports = {
 	ConsensusManager,
-	validateBlockHeader,
 };
-
-module.exports = exportedInterface;
