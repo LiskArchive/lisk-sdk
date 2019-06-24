@@ -102,6 +102,8 @@ interface PeerPoolConfig {
 
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
 export const MAX_PEER_DISCOVERY_PROBE_SAMPLE_SIZE = 100;
+export const PEER_PROTECTION_PERCENTAGE_PER_CATEGORY = 0.068;
+export const LONGEVITY_CATEGORY_PERCENTAGE = 0.5;
 
 export class PeerPool extends EventEmitter {
 	private readonly _peerMap: Map<string, Peer>;
@@ -497,8 +499,6 @@ export class PeerPool extends EventEmitter {
 	private _selectPeersForEviction(peers: Peer[]): Peer[] {
 		const evictionProtectionRatio = this._peerPoolConfig
 			.evictionProtectionRatio;
-		const PEER_PROTECTION_PERCENTAGE_PER_CATEGORY = 0.068;
-
 		// Cannot manipulate without physically moving nodes closer to the target.
 		const LATENCY_CATEGORY_PERCENTAGE =
 			evictionProtectionRatio * PEER_PROTECTION_PERCENTAGE_PER_CATEGORY;
@@ -512,7 +512,6 @@ export class PeerPool extends EventEmitter {
 		if (filteredPeersByLatency.length <= 1) {
 			return filteredPeersByLatency;
 		}
-
 		// Cannot manipulate this metric without performing useful work.
 		const RESPONSIVENESS_CATEGORY_PERCENTAGE =
 			evictionProtectionRatio * PEER_PROTECTION_PERCENTAGE_PER_CATEGORY;
@@ -530,9 +529,7 @@ export class PeerPool extends EventEmitter {
 		if (filteredPeersByResponsiveness.length <= 1) {
 			return filteredPeersByResponsiveness;
 		}
-
 		// Protect remaining half of peers by longevity, precludes attacks that start later.
-		const LONGEVITY_CATEGORY_PERCENTAGE = 0.5;
 		const STEADY_PEER_COUNT =
 			filteredPeersByResponsiveness.length * LONGEVITY_CATEGORY_PERCENTAGE;
 		const filteredPeersByConnectTime = filteredPeersByResponsiveness

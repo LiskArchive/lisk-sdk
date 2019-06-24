@@ -30,6 +30,11 @@ export const EVENT_PING = 'ping';
 
 const DEFAULT_PING_INTERVAL_MAX = 60000;
 const DEFAULT_PING_INTERVAL_MIN = 20000;
+
+const getRandomPingDelay = () =>
+	Math.random() * (DEFAULT_PING_INTERVAL_MAX - DEFAULT_PING_INTERVAL_MIN) +
+	DEFAULT_PING_INTERVAL_MIN;
+
 export class InboundPeer extends Peer {
 	protected _socket: SCServerSocketUpdated;
 	protected readonly _handleInboundSocketError: (error: Error) => void;
@@ -37,8 +42,8 @@ export class InboundPeer extends Peer {
 		code: number,
 		reason: string,
 	) => void;
-	protected readonly _handlePong: (error: Error, _: unknown) => void;
-	private readonly _pingIntervalId: NodeJS.Timer;
+	private readonly _sendPing: () => void;
+	private _pingTimeoutId: NodeJS.Timer;
 	private _pingStart: number;
 
 	public constructor(
@@ -51,8 +56,8 @@ export class InboundPeer extends Peer {
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
 		this._handleInboundSocketClose = (code, reason) => {
-			if (this._pingIntervalId) {
-				clearInterval(this._pingIntervalId);
+			if (this._pingTimeoutId) {
+				clearTimeout(this._pingTimeoutId);
 			}
 			this.emit(EVENT_CLOSE_INBOUND, {
 				peerInfo,
@@ -61,17 +66,16 @@ export class InboundPeer extends Peer {
 			});
 		};
 		this._pingStart = Date.now();
-		this._handlePong = (err: Error, responseData: unknown) => {
-			if (!err && responseData) {
-				const latency = Date.now() - this._pingStart;
-				this._latency = latency;
-			}
-		};
-		this._socket = peerSocket;
-		this._pingIntervalId = setInterval(() => {
+		this._sendPing = () => {
+			clearTimeout(this._pingTimeoutId);
 			this._pingStart = Date.now();
-			this._socket.emit(EVENT_PING, undefined, this._handlePong);
-		}, Math.random() * (DEFAULT_PING_INTERVAL_MAX - DEFAULT_PING_INTERVAL_MIN) + DEFAULT_PING_INTERVAL_MIN);
+			this._socket.emit(EVENT_PING, undefined, (_: Error, __: unknown) => {
+				this._latency = Date.now() - this._pingStart;
+				this._pingTimeoutId = setTimeout(this._sendPing, getRandomPingDelay());
+			});
+		};
+		this._pingTimeoutId = setTimeout(this._sendPing, getRandomPingDelay());
+		this._socket = peerSocket;
 		this._bindHandlersToInboundSocket(this._socket);
 	}
 

@@ -98,7 +98,7 @@ export const DEFAULT_CONNECT_TIMEOUT = 2000;
 export const DEFAULT_ACK_TIMEOUT = 2000;
 export const DEFAULT_REPUTATION_SCORE = 100;
 export const DEFAULT_RATE_INTERVAL = 1000;
-export const DEFAULT_PRODUCTIVITY_RESET_INTERVAL = 2000;
+export const DEFAULT_PRODUCTIVITY_RESET_INTERVAL = 20000;
 export const DEFAULT_PRODUCTIVITY = {
 	requestCounter: 0,
 	responseCounter: 0,
