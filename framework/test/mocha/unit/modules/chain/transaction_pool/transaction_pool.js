@@ -475,6 +475,17 @@ describe('transactionPool', () => {
 			expect(addVerifiedTransactionStub).to.be.calledWith(transaction);
 		});
 
+		it('should add transaction to the received queue if the bundled property = true', done => {
+			transaction.bundled = true;
+			const addBundledTransactionStub = sinonSandbox
+				.stub(transactionPool, 'addBundledTransaction')
+				.callsArg(1);
+			transactionPool.processUnconfirmedTransaction(transaction, false, () => {
+				expect(addBundledTransactionStub).to.be.calledWith(transaction);
+				done();
+			});
+		});
+
 		it('should add transaction to pending when status is PENDING', async () => {
 			transactionPool.verifyTransactions.resolves({
 				transactionsResponses: [

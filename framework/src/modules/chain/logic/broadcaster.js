@@ -135,49 +135,71 @@ class Broadcaster {
 	async filterQueue() {
 		this.logger.debug(`Broadcasts before filtering: ${this.queue.length}`);
 
-		this.queue = await this.queue.reduce(async (prev, broadcast) => {
-			const filteredBroadcast = await prev;
+		const transactionIdsNotInPool = [];
+		this.queue = this.queue.filter(broadcast => {
 			if (broadcast.options.immediate) {
-				return filteredBroadcast;
+				return false;
 			}
 
 			if (broadcast.options.data) {
 				let transactionId;
 				if (broadcast.options.data.transaction) {
-					// Look for a transaction of a given "id" when broadcasting transactions
+					// Look for a transaction of a given "id"
 					transactionId = broadcast.options.data.transaction.id;
 				} else if (broadcast.options.data.signature) {
-					// Look for a corresponding "transactionId" of a given signature when broadcasting signatures
+					// Look for a corresponding "transactionId" of a given signature
 					transactionId = broadcast.options.data.signature.transactionId;
 				}
 				if (!transactionId) {
-					return filteredBroadcast;
+					return false;
 				}
 				// Broadcast if transaction is in transaction pool
-				if (this.transactionPool.transactionInPool(transactionId)) {
-					filteredBroadcast.push(broadcast);
-					return filteredBroadcast;
+				if (!this.transactionPool.transactionInPool(transactionId)) {
+					transactionIdsNotInPool.push(transactionId);
 				}
-				// Don't broadcast if transaction is already confirmed
+				return true;
+			}
+			return true;
+		});
+
+		const persistedTransactionIds = (await Promise.all(
+			transactionIdsNotInPool.map(async transactionId => {
 				try {
 					const isPersisted = await this.storage.entities.Transaction.isPersisted(
 						{
 							id: transactionId,
 						}
 					);
-					if (!isPersisted) {
-						filteredBroadcast.push(broadcast);
-					}
-					return filteredBroadcast;
-				} catch (err) {
-					return filteredBroadcast;
+					return {
+						transactionId,
+						isPersisted,
+					};
+				} catch (e) {
+					// if there is an error for transaction id then remove it from the broadcasts
+					return {
+						transactionId,
+						isPersisted: true,
+					};
 				}
+			})
+		))
+			.filter(({ isPersisted }) => isPersisted)
+			.map(({ transactionId }) => transactionId);
+
+		this.queue = this.queue.filter(broadcast => {
+			if (broadcast.options.data) {
+				let transactionId;
+				if (broadcast.options.data.transaction) {
+					// Look for a transaction of a given "id"
+					transactionId = broadcast.options.data.transaction.id;
+				} else if (broadcast.options.data.signature) {
+					// Look for a corresponding "transactionId" of a given signature
+					transactionId = broadcast.options.data.signature.transactionId;
+				}
+				return !persistedTransactionIds.includes(transactionId);
 			}
-
-			filteredBroadcast.push(broadcast);
-
-			return filteredBroadcast;
-		}, []);
+			return true;
+		});
 
 		this.logger.debug(`Broadcasts after filtering: ${this.queue.length}`);
 
