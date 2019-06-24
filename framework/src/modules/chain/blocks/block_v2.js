@@ -23,10 +23,9 @@ const {
 	verifyData,
 } = require('@liskhq/lisk-cryptography');
 const { omitBy, isNull } = require('lodash');
-const crypto = require('crypto');
 const ByteBuffer = require('bytebuffer');
 const BigNum = require('@liskhq/bignum');
-const validator = require('../../../controller/validator');
+const { validator } = require('@liskhq/lisk-validator');
 const { validateTransactions } = require('../transactions');
 const blockVersion = require('./block_version');
 
@@ -166,31 +165,34 @@ const create = ({
 	let size = 0;
 
 	const blockTransactions = [];
-	const payloadHash = crypto.createHash('sha256');
+	const transactionsBytesArray = [];
 
 	for (let i = 0; i < sortedTransactions.length; i++) {
 		const transaction = sortedTransactions[i];
-		const bytes = transaction.getBytes(transaction);
+		const transactionBytes = transaction.getBytes(transaction);
 
-		if (size + bytes.length > maxPayloadLength) {
+		if (size + transactionBytes.length > maxPayloadLength) {
 			break;
 		}
 
-		size += bytes.length;
+		size += transactionBytes.length;
 
 		totalFee = totalFee.plus(transaction.fee);
 		totalAmount = totalAmount.plus(transaction.amount);
 
 		blockTransactions.push(transaction);
-		payloadHash.update(bytes);
+		transactionsBytesArray.push(transactionBytes);
 	}
+
+	const transactionsBuffer = Buffer.concat(transactionsBytesArray);
+	const payloadHash = hash(transactionsBuffer).toString('hex');
 
 	const block = {
 		version: blockVersion.getBlockVersion(nextHeight, exceptions),
 		totalAmount,
 		totalFee,
 		reward,
-		payloadHash: payloadHash.digest().toString('hex'),
+		payloadHash,
 		timestamp,
 		numberOfTransactions: blockTransactions.length,
 		payloadLength: size,
@@ -316,11 +318,12 @@ const objectNormalize = (block, exceptions = {}) => {
 			delete block[key];
 		}
 	});
-	try {
-		validator.validate(blockSchema, block);
-	} catch (schemaError) {
-		throw schemaError.errors;
+
+	const errors = validator.validate(blockSchema, block);
+	if (errors.length) {
+		throw errors;
 	}
+
 	const { transactionsResponses } = validateTransactions(exceptions)(
 		block.transactions
 	);

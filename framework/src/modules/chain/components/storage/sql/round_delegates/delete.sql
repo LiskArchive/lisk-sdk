@@ -12,12 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-const bootstrapStorage = require('./bootstrap_storage');
-const bootstrapCache = require('./bootstrap_cache');
-
-module.exports = {
-	bootstrapStorage,
-	bootstrapCache,
-};
+DELETE FROM round_delegates ${parsedFilters:raw}

@@ -46,22 +46,15 @@ class Rounds {
 		library = {
 			channel: scope.channel,
 			logger: scope.components.logger,
-			bus: scope.bus,
 			storage: scope.components.storage,
 			slots: scope.slots,
-			schema: scope.schema,
 			exceptions: scope.config.exceptions,
 			constants: {
 				activeDelegates: scope.config.constants.activeDelegates,
 			},
 		};
 		library.delegates = new Delegates(library);
-		library.account = new Account(
-			library.storage,
-			library.schema,
-			library.logger,
-			this
-		);
+		library.account = new Account(library.storage, library.logger, this);
 	}
 
 	/**
@@ -220,7 +213,7 @@ class Rounds {
 				.then(() => {
 					if (scope.finishRound) {
 						return promised.land().then(() => {
-							library.bus.message('finishRound', round);
+							library.channel.publish('chain:rounds:change', { number: round });
 						});
 					}
 					return true;
@@ -351,18 +344,6 @@ class Rounds {
 				return library.storage.entities.Round.create(roundData, {}, tx);
 			}
 		);
-	}
-
-	/**
-	 * Clear all cache entries related to delegate and emits a 'rounds/change' socket message.
-	 *
-	 * @param {number} round
-	 * @emits rounds/change
-	 * @todo Add description for the params
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	async onFinishRound(round) {
-		return library.channel.publish('chain:rounds:change', { number: round });
 	}
 
 	/**

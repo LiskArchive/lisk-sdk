@@ -19,12 +19,14 @@ const { cloneDeep } = require('lodash');
 const blocksUtils = require('./utils');
 const { BlocksProcess } = require('./process');
 const { BlocksVerify } = require('./verify');
+const blockVersion = require('./block_version');
 const { BlocksChain } = require('./chain');
 const {
 	calculateSupply,
 	calculateReward,
 	calculateMilestone,
 } = require('./block_reward');
+const forkChoiceRule = require('./fork_choice_rule');
 
 const EVENT_NEW_BLOCK = 'EVENT_NEW_BLOCK';
 const EVENT_DELETE_BLOCK = 'EVENT_DELETE_BLOCK';
@@ -123,6 +125,12 @@ class Blocks extends EventEmitter {
 			blockReward: this.blockReward,
 			constants: this.constants,
 		});
+
+		this._receiveBlockImplementations = {
+			0: block => this._receiveBlockFromNetworkV1(block),
+			1: block => this._receiveBlockFromNetworkV1(block),
+			2: block => this._receiveBlockFromNetworkV2(block),
+		};
 	}
 
 	get lastBlock() {
@@ -301,7 +309,7 @@ class Blocks extends EventEmitter {
 		this.logger.info('Blockchain ready');
 	}
 
-	async recoverChain() {
+	async deleteLastBlockAndGet() {
 		this._lastBlock = await this.blocksChain.deleteLastBlock(this._lastBlock);
 		return this._lastBlock;
 	}
@@ -312,6 +320,22 @@ class Blocks extends EventEmitter {
 
 	// Process a block from the P2P
 	async receiveBlockFromNetwork(block) {
+		this.logger.debug(
+			`Received new block from network with id: ${block.id} height: ${
+				block.height
+			} round: ${this.slots.calcRound(
+				block.height
+			)} slot: ${this.slots.getSlotNumber(block.timestamp)} reward: ${
+				block.reward
+			} version: ${block.version}`
+		);
+
+		return this._receiveBlockImplementations[
+			blockVersion.getBlockVersion(block.height, this.exceptions)
+		](block);
+	}
+
+	async _receiveBlockFromNetworkV1(block) {
 		return this.sequence.add(async cb => {
 			try {
 				this._shouldNotBeActive();
@@ -322,22 +346,13 @@ class Blocks extends EventEmitter {
 			this._isActive = true;
 			// set active to true
 			if (this.blocksVerify.isSaneBlock(block, this._lastBlock)) {
-				this._updateLastReceipt();
 				try {
-					const newBlock = await this.blocksProcess.processBlock(
-						block,
-						this._lastBlock,
-						validBlock => this.broadcast(validBlock)
-					);
-					await this._updateBroadhash();
-					this._lastBlock = newBlock;
-					this._isActive = false;
-					setImmediate(cb);
+					await this._processReceivedBlock(block);
 				} catch (error) {
-					this._isActive = false;
-					this.logger.error(error);
 					setImmediate(cb, error);
+					return;
 				}
+				setImmediate(cb);
 				return;
 			}
 			if (this.blocksVerify.isForkOne(block, this._lastBlock)) {
@@ -401,7 +416,6 @@ class Blocks extends EventEmitter {
 					this._isActive = false;
 					return;
 				}
-				this._updateLastReceipt();
 				try {
 					const {
 						verified,
@@ -422,14 +436,9 @@ class Blocks extends EventEmitter {
 						block: deletingBlock,
 						newLastBlock: cloneDeep(this._lastBlock),
 					});
-					// emit event
-					this._lastBlock = await this.blocksProcess.processBlock(
-						block,
-						this._lastBlock,
-						validBlock => this.broadcast(validBlock)
-					);
-					await this._updateBroadhash();
-					this._isActive = false;
+
+					await this._processReceivedBlock(block);
+
 					setImmediate(cb);
 					return;
 				} catch (error) {
@@ -457,6 +466,122 @@ class Blocks extends EventEmitter {
 			this._isActive = false;
 			setImmediate(cb);
 		});
+	}
+
+	async _receiveBlockFromNetworkV2(block) {
+		// Current time since Lisk Epoch
+		// Better to do it here rather than in the Sequence so receiving time is more accurate
+		const newBlockReceivedAt = this.slots.getTime();
+
+		// Execute in sequence
+		return this.sequence.add(callback => {
+			try {
+				this._shouldNotBeActive();
+			} catch (error) {
+				callback(error);
+				return;
+			}
+			this._isActive = true;
+			this._forkChoiceTask(block, newBlockReceivedAt)
+				.then(result => callback(null, result))
+				.catch(error => callback(error))
+				.finally(() => {
+					this._isActive = false;
+				});
+		});
+	}
+
+	// PRE: Block has been validated and verified before
+	async _processReceivedBlock(block) {
+		this._updateLastReceipt();
+		try {
+			const newBlock = await this.blocksProcess.processBlock(
+				block,
+				this._lastBlock,
+				validBlock => this.broadcast(validBlock)
+			);
+
+			this.logger.debug(
+				`Successfully applied new received block id: ${block.id} height: ${
+					block.height
+				} round: ${this.slots.calcRound(
+					block.height
+				)} slot: ${this.slots.getSlotNumber(block.timestamp)} reward: ${
+					block.reward
+				} version: ${block.version}`
+			);
+
+			await this._updateBroadhash();
+			this._lastBlock = newBlock;
+			this._isActive = false;
+		} catch (error) {
+			this.logger.error(
+				error,
+				`Failed to apply new received block id: ${block.id} height: ${
+					block.height
+				} round: ${this.slots.calcRound(
+					block.height
+				)} slot: ${this.slots.getSlotNumber(block.timestamp)} reward: ${
+					block.reward
+				} version: ${block.version}`
+			);
+			throw error;
+		} finally {
+			this._isActive = false;
+		}
+	}
+
+	/**
+	 * Wrap of fork choice rule logic so it can be added to Sequence and properly tested
+	 * @param block
+	 * @param newBlockReceivedAt - Time when the new block was received since Lisk Epoch
+	 * @return {Promise}
+	 * @private
+	 */
+	async _forkChoiceTask(block, newBlockReceivedAt) {
+		// Cases are numbered following LIP-0014 Fork choice rule.
+		// See: https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#applying-blocks-according-to-fork-choice-rule
+		// Case 2 and 1 have flipped execution order for better readability. Behavior is still the same
+
+		if (forkChoiceRule.isValidBlock(this._lastBlock, block)) {
+			// Case 2: correct block received
+			return this._handleValidBlock(block);
+		}
+
+		if (forkChoiceRule.isIdenticalBlock(this._lastBlock, block)) {
+			// Case 1: same block received twice
+			return this._handleSameBlockReceived(block);
+		}
+
+		if (forkChoiceRule.isDoubleForging(this._lastBlock, block)) {
+			// Delegates are the same
+			// Case 3: double forging different blocks in the same slot.
+			// Last Block stands.
+			return this._handleDoubleForging(block, this._lastBlock);
+		}
+
+		if (
+			forkChoiceRule.isTieBreak({
+				slots: this.slots,
+				lastBlock: this._lastBlock,
+				currentBlock: block,
+				lastReceivedAt: this._lastReceipt || this._lastBlock.timestamp,
+				currentReceivedAt: newBlockReceivedAt,
+			})
+		) {
+			// Two competing blocks by different delegates at the same height.
+			// Case 4: Tie break
+			return this._handleDoubleForgingTieBreak(block, this._lastBlock);
+		}
+
+		if (forkChoiceRule.isDifferentChain(this._lastBlock, block)) {
+			// Case 5: received block has priority. Move to a different chain.
+			// TODO: Move to a different chain
+			return this._handleMovingToDifferentChain();
+		}
+
+		// Discard newly received block
+		return this._handleDiscardedBlock(block);
 	}
 
 	// Process a block from syncing
@@ -592,6 +717,126 @@ class Blocks extends EventEmitter {
 					'Rebuilding block'
 				);
 			}
+		);
+	}
+
+	/**
+	 * Block IDs are the same ~ Blocks are equal
+	 * @param block
+	 * @returns {*}
+	 * @private
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	_handleSameBlockReceived(block) {
+		this.logger.debug('Block already processed', block.id);
+	}
+
+	/**
+	 * Block received is correct
+	 * @param block
+	 * @returns {Promise}
+	 * @private
+	 */
+	async _handleValidBlock(block) {
+		return this._processReceivedBlock(block);
+	}
+
+	/**
+	 * Double forging. Last block stands
+	 * @param block
+	 * @param lastBlock
+	 * @returns {*}
+	 * @private
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	_handleDoubleForging(block, lastBlock) {
+		this.logger.debug(
+			'Delegate forging on multiple nodes',
+			block.generatorPublicKey
+		);
+		this.logger.debug(
+			`Last block ${lastBlock.id} stands, new block ${block.id} is discarded`
+		);
+		// TODO: Implement Proof of Misbehavior
+	}
+
+	/**
+	 * Tie break: two competing blocks by different delegates at the same height.
+	 * @param lastBlock
+	 * @param newBlock
+	 * @returns {Promise}
+	 * @private
+	 */
+	async _handleDoubleForgingTieBreak(newBlock, lastBlock) {
+		const block = cloneDeep(newBlock);
+		// It mutates the argument
+		const check = await this.blocksVerify.normalizeAndVerify(
+			block,
+			lastBlock,
+			this._lastNBlockIds
+		);
+
+		if (!check.verified) {
+			const errorMessage = `Fork Choice Case 4 recovery failed because block ${
+				block.id
+			} verification and normalization failed`;
+			this.logger.error(check.errors, errorMessage);
+			// Return first error from checks
+			throw new Error(errorMessage);
+		}
+
+		// If the new block is correctly validated and verified,
+		// last block is deleted and new block is added to the tip of the chain
+		this.logger.debug(
+			`Deleting last block with id: ${
+				lastBlock.id
+			} due to Fork Choice Rule Case 4`
+		);
+		const previousLastBlock = cloneDeep(this._lastBlock);
+
+		// Deletes last block and updates this._lastBlock to the previous one
+		await this.deleteLastBlockAndGet();
+
+		try {
+			await this._processReceivedBlock(block);
+		} catch (error) {
+			this.logger.error(
+				`Failed to apply newly received block with id: ${
+					block.id
+				}, restoring previous block ${previousLastBlock.id}`
+			);
+
+			await this._processReceivedBlock(previousLastBlock);
+		}
+	}
+
+	/**
+	 * Move to a different chain
+	 * @private
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	_handleMovingToDifferentChain() {
+		// TODO: Move to a different chain.
+		// Determine which method to use to move to a different chain: Block Sync Mechanism or Fast Chain Switching Mechanism
+	}
+
+	/**
+	 * Handle discarded block determined by the fork choice rule
+	 * @param block
+	 * @return {*}
+	 * @private
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	_handleDiscardedBlock(block) {
+		// Discard newly received block
+		this.logger.debug(
+			`Discarded block that does not match with current chain: ${
+				block.id
+			} height: ${block.height} round: ${this.slots.calcRound(
+				block.height
+			)} slot: ${this.slots.getSlotNumber(block.timestamp)} generator: ${
+				block.generatorPublicKey
+			}`
 		);
 	}
 }

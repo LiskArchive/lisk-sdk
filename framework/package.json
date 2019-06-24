@@ -53,6 +53,7 @@
 		"@liskhq/lisk-p2p": "0.1.0-alpha.14",
 		"@liskhq/lisk-transaction-pool": "0.1.0-alpha.3",
 		"@liskhq/lisk-transactions": "2.1.0-alpha.13",
+		"@liskhq/lisk-validator": "0.1.0-alpha.2",
 		"ajv": "6.7.0",
 		"async": "2.6.1",
 		"bignumber.js": "8.0.2",

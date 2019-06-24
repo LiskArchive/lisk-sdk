@@ -181,7 +181,7 @@ class PgpAdapter extends BaseAdapter {
 
 		if (qf.error) {
 			this.logger.error(qf.error); // Something is wrong with our query file
-			throw qf.error; // throw pg-promisse QueryFileError error
+			throw qf.error; // throw pg-promise QueryFileError error
 		}
 
 		_private.queryFiles[fullPath] = qf;

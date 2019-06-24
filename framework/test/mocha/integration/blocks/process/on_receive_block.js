@@ -25,6 +25,7 @@ const {
 const accountFixtures = require('../../../fixtures/accounts');
 const { BlockSlots } = require('../../../../../src/modules/chain/blocks');
 const blocksUtils = require('../../../../../src/modules/chain/blocks/block');
+const blockVersion = require('../../../../../src/modules/chain/blocks/block_version');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
 const application = require('../../../common/application');
@@ -45,6 +46,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 	let storage;
 
 	before(done => {
+		blockVersion.currentBlockVersion = 1; // TODO: Add tests for v2 when _receiveBlockFromNetworkV2 is completed
 		application.init(
 			{
 				sandbox: {
@@ -54,12 +56,16 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 			(err, scope) => {
 				library = scope;
 				storage = scope.components.storage;
+
 				setTimeout(done, 5000);
 			}
 		);
 	});
 
-	after(application.cleanup);
+	after(done => {
+		blockVersion.currentBlockVersion = 1;
+		application.cleanup(done);
+	});
 
 	afterEach(async () =>
 		storage.entities.Block.begin(t => {
@@ -133,7 +139,8 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 					const keypair = getKeypair(delegate.passphrase);
 
 					__testContext.debug(
-						`Last block height: ${last_block.height}
+						`Last block version: ${last_block.version}
+						Last block height: ${last_block.height}
 						Last block ID: ${last_block.id}
 						Last block timestamp: ${last_block.timestamp}
 						Next slot: ${slot}

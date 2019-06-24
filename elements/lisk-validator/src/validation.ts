@@ -242,3 +242,17 @@ export const validateFee = (data: string): boolean =>
 	isNumberString(data) &&
 	isGreaterThanZero(new BigNum(data)) &&
 	!isGreaterThanMaxTransactionAmount(new BigNum(data));
+
+export const isCsv = (data: string): boolean => {
+	if (typeof data !== 'string') {
+		return false;
+	}
+
+	const csvAsArray = data.split(',');
+
+	if (csvAsArray.length > 0) {
+		return true;
+	}
+
+	return false;
+};
