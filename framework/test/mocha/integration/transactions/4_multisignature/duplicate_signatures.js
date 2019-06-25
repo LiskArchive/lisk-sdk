@@ -172,11 +172,6 @@ describe('duplicate_signatures', () => {
 				});
 
 				it('should accept all signatures', done => {
-					// Block balancesSequence for 2 seconds
-					library.balancesSequence.add(cb => {
-						setTimeout(cb, 2000);
-					});
-
 					// Make node receive 2 different signatures in parallel
 					async.parallel(
 						async.reflectAll([
@@ -282,11 +277,6 @@ describe('duplicate_signatures', () => {
 				});
 
 				it('should accept all signatures', done => {
-					// Block balancesSequence for 2 seconds
-					library.balancesSequence.add(cb => {
-						setTimeout(cb, 2000);
-					});
-
 					// Make node receive 2 different signatures in parallel
 					async.parallel(
 						async.reflectAll([
@@ -379,11 +369,6 @@ describe('duplicate_signatures', () => {
 				});
 
 				it('should reject duplicated signature', done => {
-					// Block balancesSequence for 2 seconds
-					library.balancesSequence.add(cb => {
-						setTimeout(cb, 2000);
-					});
-
 					// Make node receive 3 signatures in parallel (1 duplicated)
 					async.parallel(
 						async.reflectAll([
@@ -498,11 +483,6 @@ describe('duplicate_signatures', () => {
 				});
 
 				it('should reject duplicated signature', done => {
-					// Block balancesSequence for 2 seconds
-					library.balancesSequence.add(cb => {
-						setTimeout(cb, 2000);
-					});
-
 					// Make node receive 3 signatures in parallel (1 duplicated)
 					async.parallel(
 						async.reflectAll([

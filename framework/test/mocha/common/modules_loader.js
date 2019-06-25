@@ -17,7 +17,7 @@
 const express = require('express');
 const randomstring = require('randomstring');
 const async = require('async');
-const Sequence = require('../../../src/modules/chain/utils/sequence');
+const { Sequence } = require('../../../src/modules/chain/utils/sequence');
 const { createLoggerComponent } = require('../../../src/components/logger');
 const jobsQueue = require('../../../src/modules/chain/utils/jobs_queue');
 const Account = require('../../../src/modules/chain/rounds/account');
@@ -57,11 +57,6 @@ const modulesLoader = new function() {
 		sequence: new Sequence({
 			onWarning(current) {
 				this.logger.warn('Main queue', current);
-			},
-		}),
-		balancesSequence: new Sequence({
-			onWarning(current) {
-				this.logger.warn('Balance queue', current);
 			},
 		}),
 		channel: {

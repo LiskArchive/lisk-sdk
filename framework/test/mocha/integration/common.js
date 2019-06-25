@@ -131,18 +131,18 @@ function createValidBlock(library, transactions, cb) {
 }
 
 function getBlocks(library, cb) {
-	library.sequence.add(sequenceCb => {
-		library.components.storage.adapter.db
-			.query('SELECT "id" FROM blocks ORDER BY "height" DESC LIMIT 10;')
-			.then(rows => {
-				sequenceCb();
-				cb(null, _.map(rows, 'id'));
-			})
-			.catch(err => {
-				__testContext.debug(err.stack);
-				cb(err);
-			});
-	});
+	library.sequence
+		.add(async () => {
+			const rows = await library.components.storage.adapter.db.query(
+				'SELECT "id" FROM blocks ORDER BY "height" DESC LIMIT 10;'
+			);
+			return rows.map(r => r.id);
+		})
+		.then(ids => cb(null, ids))
+		.catch(err => {
+			__testContext.debug(err.stack);
+			cb(err);
+		});
 }
 
 function getNextForger(library, offset, cb) {
@@ -229,16 +229,10 @@ function addTransaction(library, transaction, cb) {
 	transaction = library.modules.interfaceAdapters.transactions.fromJson(
 		transaction
 	);
-	library.balancesSequence.add(async sequenceCb => {
-		try {
-			await library.modules.transactionPool.processUnconfirmedTransaction(
-				transaction
-			);
-			setImmediate(sequenceCb, null, transaction.id);
-		} catch (err) {
-			setImmediate(sequenceCb, err.toString());
-		}
-	}, cb);
+	library.modules.transactionPool
+		.processUnconfirmedTransaction(transaction)
+		.then(() => cb(null, transaction.id))
+		.catch(error => cb(error.toString()));
 }
 
 function addTransactionToUnconfirmedQueue(library, transaction, cb) {
