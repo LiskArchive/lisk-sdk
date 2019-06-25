@@ -63,6 +63,7 @@ class ApplicationState {
 			minVersion,
 			protocolVersion,
 			height: 1,
+			prevotedConfirmedUptoHeight: 0,
 			nethash,
 			nonce,
 		});
@@ -86,10 +87,6 @@ class ApplicationState {
 	 */
 	async update({ height, prevotedConfirmedUptoHeight = 0 }) {
 		assert(height, 'height is required to update application state.');
-		assert(
-			prevotedConfirmedUptoHeight,
-			'prevotedConfirmedUptoHeight is required to update application state.'
-		);
 		try {
 			const newState = this.state;
 			newState.prevotedConfirmedUptoHeight = prevotedConfirmedUptoHeight;

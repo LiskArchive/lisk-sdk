@@ -39,7 +39,7 @@ describe('Application State', () => {
 		minVersion: '1.0.0-beta.0',
 		protocolVersion: '1.0',
 		nethash: 'test broadhash',
-		broadhash: 'test broadhash',
+		prevotedConfirmedUptoHeight: 0,
 		height: 1,
 		nonce: 'test nonce',
 	};
@@ -93,7 +93,7 @@ describe('Application State', () => {
 		describe('when there is an error', () => {
 			// Arrange
 			const newState = {
-				broadhash: 'xxx',
+				prevotedConfirmedUptoHeight: 0,
 				height: '10',
 			};
 			const errorMessage = new Error('Publish failure');
@@ -125,53 +125,13 @@ describe('Application State', () => {
 
 		describe('when wrong parameters are passed', () => {
 			let newState;
-			const broadhashErrorMessage =
-				'broadhash is required to update application state.';
 			const heightErrorMessage =
 				'height is required to update application state.';
-
-			it('should throw AssertionError if broadhash undefined', async () => {
-				// Arrange
-				newState = {
-					broadhash: undefined,
-					height: '10',
-				};
-				const broadhashAssertionError = new AssertionError({
-					message: broadhashErrorMessage,
-					operator: '==',
-					expected: true,
-					actual: undefined,
-				});
-
-				// Act && Assert
-				await expect(applicationState.update(newState)).rejects.toThrow(
-					broadhashAssertionError
-				);
-			});
-
-			it('should throw AssertionError if broadhash is null', async () => {
-				// Arrange
-				newState = {
-					broadhash: null,
-					height: '10',
-				};
-				const broadhashAssertionError = new AssertionError({
-					message: broadhashErrorMessage,
-					operator: '==',
-					expected: true,
-					actual: null,
-				});
-
-				// Act && Assert
-				await expect(applicationState.update(newState)).rejects.toThrow(
-					broadhashAssertionError
-				);
-			});
 
 			it('should throw AssertionError if height undefined', async () => {
 				// Arrange
 				newState = {
-					broadhash: 'newBroadhash',
+					prevotedConfirmedUptoHeight: 0,
 					height: undefined,
 				};
 				const heightAssertionError = new AssertionError({
@@ -190,7 +150,7 @@ describe('Application State', () => {
 			it('should throw AssertionError if height is null', async () => {
 				// Arrange
 				newState = {
-					broadhash: 'newBroadhash',
+					prevotedConfirmedUptoHeight: 0,
 					height: null,
 				};
 				const heightAssertionError = new AssertionError({
@@ -216,7 +176,7 @@ describe('Application State', () => {
 			beforeEach(async () => {
 				// Arrange
 				newState = {
-					broadhash: 'newBroadhash',
+					prevotedConfirmedUptoHeight: 1,
 					height: '10',
 				};
 				applicationState.channel = channel;
@@ -234,9 +194,11 @@ describe('Application State', () => {
 				expect(spies.get).toHaveBeenCalledTimes(4);
 			});
 
-			it('should update broadhash', async () => {
+			it('should update prevotedConfirmedUptoHeight', async () => {
 				// Assert
-				expect(updatedState.broadhash).toBe(newState.broadhash);
+				expect(updatedState.prevotedConfirmedUptoHeight).toBe(
+					newState.prevotedConfirmedUptoHeight
+				);
 			});
 
 			it('should update height', async () => {
