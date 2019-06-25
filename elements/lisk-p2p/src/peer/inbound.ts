@@ -44,7 +44,6 @@ export class InboundPeer extends Peer {
 	) => void;
 	private readonly _sendPing: () => void;
 	private _pingTimeoutId: NodeJS.Timer;
-	private _pingStart: number;
 
 	public constructor(
 		peerInfo: P2PDiscoveredPeerInfo,
@@ -65,12 +64,10 @@ export class InboundPeer extends Peer {
 				reason,
 			});
 		};
-		this._pingStart = Date.now();
 		this._sendPing = () => {
-			clearTimeout(this._pingTimeoutId);
-			this._pingStart = Date.now();
+			const pingStart = Date.now();
 			this._socket.emit(EVENT_PING, undefined, (_: Error, __: unknown) => {
-				this._latency = Date.now() - this._pingStart;
+				this._latency = Date.now() - pingStart;
 				this._pingTimeoutId = setTimeout(this._sendPing, getRandomPingDelay());
 			});
 		};

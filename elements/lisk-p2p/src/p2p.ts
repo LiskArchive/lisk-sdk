@@ -126,7 +126,8 @@ const BASE_10_RADIX = 10;
 const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
 const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
 const DEFAULT_OUTBOUND_SHUFFLE_INTERVAL = 300000;
-const DEFAULT_PEER_PROTECTION_FOR_LATENCY_AND_USEFULNESS = 0.068;
+const DEFAULT_PEER_PROTECTION_FOR_LATENCY = 0.068;
+const DEFAULT_PEER_PROTECTION_FOR_USEFULNESS = 0.068;
 const DEFAULT_PEER_PROTECTION_FOR_LONGEVITY = 0.5;
 
 const selectRandomPeerSample = (
@@ -397,11 +398,11 @@ export class P2P extends EventEmitter {
 			latencyProtectionRatio:
 				typeof config.latencyProtectionRatio === 'number'
 					? config.latencyProtectionRatio
-					: DEFAULT_PEER_PROTECTION_FOR_LATENCY_AND_USEFULNESS,
+					: DEFAULT_PEER_PROTECTION_FOR_LATENCY,
 			productivityProtectionRatio:
 				typeof config.productivityProtectionRatio === 'number'
 					? config.productivityProtectionRatio
-					: DEFAULT_PEER_PROTECTION_FOR_LATENCY_AND_USEFULNESS,
+					: DEFAULT_PEER_PROTECTION_FOR_USEFULNESS,
 			longevityProtectionRatio:
 				typeof config.longevityProtectionRatio === 'number'
 					? config.longevityProtectionRatio
