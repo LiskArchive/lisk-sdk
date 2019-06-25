@@ -39,6 +39,10 @@ const {
 	EVENT_BROADCAST_BLOCK,
 	EVENT_NEW_BROADHASH,
 } = require('./blocks');
+const {
+	getBlockVersion,
+	currentBlockVersion,
+} = require('./blocks/block_version');
 const { Loader } = require('./loader');
 const { Forger } = require('./forger');
 const { Transport } = require('./transport');
@@ -558,6 +562,18 @@ module.exports = class Chain {
 				);
 			}
 			this.channel.publish('chain:blocks:change', block);
+
+			// If block version is 2
+			if (
+				getBlockVersion(block.height, this.options.exceptions) ===
+					currentBlockVersion &&
+				this.loader.syncing()
+			) {
+				this.channel.invoke('app:updateApplicationState', {
+					height: block.height,
+					heightPrevoted: block.heightPrevoted,
+				});
+			}
 		});
 
 		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {
