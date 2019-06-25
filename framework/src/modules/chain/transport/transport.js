@@ -661,7 +661,7 @@ class Transport {
 			if (transaction) {
 				this.logger.debug('Transaction', transaction);
 			}
-			return undefined;
+			throw err;
 		}
 	}
 }
