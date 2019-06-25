@@ -1832,7 +1832,7 @@ describe('Integration tests for P2P library', () => {
 		describe('Inbound peer evictions', () => {
 			// Due to randomization from shuffling and timing of the nodes
 			// This test may experience some instability and not always evict.
-			it('should  not evict earliest connected peers', async () => {
+			it('should not evict earliest connected peers', async () => {
 				// We watch middle node for more predictable connection behavior
 				const middleNode = p2pNodeList[5];
 				const inboundPeers = middleNode['_peerPool']

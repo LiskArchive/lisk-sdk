@@ -54,6 +54,7 @@ export const EVENT_CONNECT_OUTBOUND = 'connectOutbound';
 export const EVENT_CONNECT_ABORT_OUTBOUND = 'connectAbortOutbound';
 export const EVENT_CLOSE_OUTBOUND = 'closeOutbound';
 export const EVENT_OUTBOUND_SOCKET_ERROR = 'outboundSocketError';
+export const RESPONSE_PONG = 'pong';
 
 export interface PeerInfoAndOutboundConnection {
 	readonly peerInfo: P2PDiscoveredPeerInfo;
@@ -170,7 +171,7 @@ export class OutboundPeer extends Peer {
 		outboundSocket.on(
 			EVENT_PING,
 			(_: undefined, res: (_: undefined, data: string) => void) => {
-				res(undefined, 'pong');
+				res(undefined, RESPONSE_PONG);
 			},
 		);
 
@@ -261,7 +262,7 @@ export const connectAndRequest = async (
 			outboundSocket.on(
 				EVENT_PING,
 				(_: undefined, res: (_: undefined, data: string) => void) => {
-					res(undefined, 'pong');
+					res(undefined, RESPONSE_PONG);
 				},
 			);
 

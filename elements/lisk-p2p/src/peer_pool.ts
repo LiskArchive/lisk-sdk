@@ -104,10 +104,20 @@ interface PeerPoolConfig {
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
 export const MAX_PEER_DISCOVERY_PROBE_SAMPLE_SIZE = 100;
 
+export enum PROTECTION_CATEGORY {
+	LATENCY = 'latency',
+	RESPONSE_RATE = 'responseRate',
+	CONNECT_TIME = 'connectTime',
+}
+
 interface FilterPeersOptions {
-	readonly category: string;
+	readonly category: PROTECTION_CATEGORY;
 	readonly percentage: number;
 	readonly asc: boolean;
+}
+
+interface IndexablePeer {
+	readonly [key: string]: number;
 }
 const filterPeersByCategory = (
 	peers: Peer[],
@@ -121,7 +131,7 @@ const filterPeersByCategory = (
 	const sign = !!options.asc ? 1 : -1;
 
 	return peers
-		.sort((a: any, b: any) =>
+		.sort((a: IndexablePeer | Peer, b: IndexablePeer | Peer) =>
 			a[options.category] > b[options.category] ? sign : sign * -1,
 		)
 		.slice(peerCount, peers.length);
@@ -538,7 +548,7 @@ export class PeerPool extends EventEmitter {
 		// Cannot manipulate without physically moving nodes closer to the target.
 		const filteredPeersByLatency = this._peerPoolConfig.latencyProtectionRatio
 			? filterPeersByCategory(peers, {
-					category: 'latency',
+					category: PROTECTION_CATEGORY.LATENCY,
 					percentage: this._peerPoolConfig.latencyProtectionRatio,
 					asc: true,
 			  })
@@ -551,7 +561,7 @@ export class PeerPool extends EventEmitter {
 		const filteredPeersByResponseRate = this._peerPoolConfig
 			.productivityProtectionRatio
 			? filterPeersByCategory(filteredPeersByLatency, {
-					category: 'responseRate',
+					category: PROTECTION_CATEGORY.RESPONSE_RATE,
 					percentage: this._peerPoolConfig.productivityProtectionRatio,
 					asc: false,
 			  })
@@ -564,7 +574,7 @@ export class PeerPool extends EventEmitter {
 		const filteredPeersByConnectTime = this._peerPoolConfig
 			.longevityProtectionRatio
 			? filterPeersByCategory(filteredPeersByResponseRate, {
-					category: 'connectTime',
+					category: PROTECTION_CATEGORY.CONNECT_TIME,
 					percentage: this._peerPoolConfig.longevityProtectionRatio,
 					asc: true,
 			  })
