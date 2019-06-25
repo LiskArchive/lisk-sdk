@@ -28,7 +28,7 @@ const exceptions = global.exceptions;
 const { MAX_SHARED_TRANSACTIONS } = global.constants;
 
 function incrementRelays(packet) {
-	if (!packet.relays) {
+	if (!Number.isInteger(packet.relays)) {
 		packet.relays = 0;
 	}
 	packet.relays++;
