@@ -421,6 +421,20 @@ describe('Broadcaster', () => {
 						.to.eql(auxBroadcasts);
 				});
 			});
+
+			describe('when all transactions are confirmed', () => {
+				beforeEach(async () => {
+					modulesStub.transactions.transactionInPool.returns(false);
+					library.storage.entities.Transaction.isPersisted.resolves(true);
+				});
+
+				it('should remove all of them from broadcaster.queue', async () => {
+					await broadcaster.filterQueue();
+					expect(broadcaster.queue)
+						.to.be.an('Array')
+						.to.eql([]);
+				});
+			});
 		});
 	});
 

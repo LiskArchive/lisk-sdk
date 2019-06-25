@@ -366,6 +366,10 @@ class TransactionPool {
 			]);
 		}
 
+		if (transaction.bundled) {
+			return this.addBundledTransaction(transaction, cb);
+		}
+
 		return this.verifyTransactions([transaction]).then(
 			({ transactionsResponses }) => {
 				if (transactionsResponses[0].status === TransactionStatus.OK) {

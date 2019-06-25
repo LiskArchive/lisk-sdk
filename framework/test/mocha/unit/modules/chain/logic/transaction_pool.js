@@ -400,6 +400,17 @@ describe('transactionPool', () => {
 			});
 		});
 
+		it('should add transaction to the received queue if the bundled property = true', done => {
+			transaction.bundled = true;
+			const addBundledTransactionStub = sinonSandbox
+				.stub(transactionPool, 'addBundledTransaction')
+				.callsArg(1);
+			transactionPool.processUnconfirmedTransaction(transaction, false, () => {
+				expect(addBundledTransactionStub).to.be.calledWith(transaction);
+				done();
+			});
+		});
+
 		it('should add transaction to the verified queue when status is OK', done => {
 			const transactionsResponses = [
 				{

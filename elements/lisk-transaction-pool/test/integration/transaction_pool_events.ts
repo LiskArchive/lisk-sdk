@@ -2,6 +2,7 @@ import {
 	TransactionPool,
 	TransactionPoolConfiguration,
 	Transaction,
+	EVENT_VERIFIED_TRANSACTION_ONCE,
 } from '../../src/transaction_pool';
 import {
 	fakeCheckFunctionGenerator,
@@ -315,6 +316,50 @@ describe('transaction pool events', () => {
 					expect(transactionPool.queues.validated.exists(transaction.id)).to.be
 						.true;
 				});
+			});
+		});
+
+		describe('on adding transactions to transaction pool', () => {
+			it('should not fire event EVENT_VERIFIED_TRANSACTION_ONCE if transaction unable to add to the pending queue', done => {
+				transactionPool.addPendingTransaction(transactions[0]);
+				transactionPool.on(EVENT_VERIFIED_TRANSACTION_ONCE, () => {
+					done('should not be called');
+				});
+				const { alreadyExists } = transactionPool.addPendingTransaction(
+					transactions[0],
+				);
+				expect(alreadyExists).to.equal(true);
+				// wait 1 second to ensure that event is not called for transaction
+				setTimeout(done, 1000);
+			});
+
+			it('should fire event EVENT_VERIFIED_TRANSACTION_ONCE if transaction is added to the pending queue after adding transaction', done => {
+				transactionPool.on(EVENT_VERIFIED_TRANSACTION_ONCE, ({ payload }) => {
+					expect(payload[0]).to.eql(transactions[0]);
+					done();
+				});
+				transactionPool.addPendingTransaction(transactions[0]);
+			});
+
+			it('should not fire event EVENT_VERIFIED_TRANSACTION_ONCE if transaction unable to add to the verified queue', done => {
+				transactionPool.addVerifiedTransaction(transactions[0]);
+				transactionPool.on(EVENT_VERIFIED_TRANSACTION_ONCE, () => {
+					done('should not be called');
+				});
+				const { alreadyExists } = transactionPool.addVerifiedTransaction(
+					transactions[0],
+				);
+				expect(alreadyExists).to.equal(true);
+				// wait 1 second to ensure that event is not called for transaction
+				setTimeout(done, 1000);
+			});
+
+			it('should fire event EVENT_VERIFIED_TRANSACTION_ONCE if transaction is added to the verified queue after adding transaction', done => {
+				transactionPool.on(EVENT_VERIFIED_TRANSACTION_ONCE, ({ payload }) => {
+					expect(payload[0]).to.eql(transactions[0]);
+					done();
+				});
+				transactionPool.addVerifiedTransaction(transactions[0]);
 			});
 		});
 	});
