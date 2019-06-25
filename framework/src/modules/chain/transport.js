@@ -27,6 +27,13 @@ const transactionsModule = require('./transactions');
 const exceptions = global.exceptions;
 const { MAX_SHARED_TRANSACTIONS } = global.constants;
 
+function incrementRelays(packet) {
+	if (!packet.relays) {
+		packet.relays = 0;
+	}
+	packet.relays++;
+}
+
 // Private fields
 let modules;
 let library;
@@ -109,8 +116,8 @@ class Transport {
 	// eslint-disable-next-line class-methods-use-this
 	onSignature(signature, broadcast) {
 		if (broadcast) {
-			// TODO: Remove the relays property as part of the next hard fork. This needs to be set to a fixed value for backwards compatibility.
-			signature.relays = 1;
+			// TODO: Remove the relays property as part of the next hard fork. This needs to be set for backwards compatibility.
+			incrementRelays(signature);
 			__private.broadcaster.enqueue(
 				{},
 				{
@@ -135,8 +142,8 @@ class Transport {
 	// eslint-disable-next-line class-methods-use-this
 	onUnconfirmedTransaction(transaction, broadcast) {
 		if (broadcast) {
-			// TODO: Remove the relays property as part of the next hard fork. This needs to be set to a fixed value for backwards compatibility.
-			transaction.relays = 1;
+			// TODO: Remove the relays property as part of the next hard fork. This needs to be set for backwards compatibility.
+			incrementRelays(transaction);
 			const transactionJSON = transaction.toJSON();
 			__private.broadcaster.enqueue(
 				{},
@@ -164,8 +171,8 @@ class Transport {
 		// Exit immediately when 'broadcast' flag is not set
 		if (!broadcast) return null;
 
-		// TODO: Remove the relays property as part of the next hard fork. This needs to be set to a fixed value for backwards compatibility.
-		block.relays = 1;
+		// TODO: Remove the relays property as part of the next hard fork. This needs to be set for backwards compatibility.
+		incrementRelays(block);
 
 		if (modules.loader.syncing()) {
 			library.logger.debug(
