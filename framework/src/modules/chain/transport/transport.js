@@ -16,7 +16,6 @@
 
 const { TransactionError } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
-const { promisify } = require('util');
 const _ = require('lodash');
 const { convertErrorsToString } = require('../utils/error_handlers');
 const Broadcaster = require('./broadcaster');
@@ -46,7 +45,6 @@ class Transport {
 		storage,
 		// Unique requirements
 		applicationState,
-		balancesSequence,
 		exceptions,
 		// Modules
 		transactionPoolModule,
@@ -63,7 +61,6 @@ class Transport {
 		this.channel = channel;
 		this.logger = logger;
 		this.storage = storage;
-		this.balancesSequence = balancesSequence;
 		this.applicationState = applicationState;
 		this.exceptions = exceptions;
 
@@ -610,7 +607,6 @@ class Transport {
 
 	/**
 	 * Normalizes transaction
-	 * Calls balancesSequence.add to receive transaction and
 	 * processUnconfirmedTransaction to confirm it.
 	 *
 	 * @private
@@ -652,27 +648,21 @@ class Transport {
 			throw errors;
 		}
 
-		const balancesSequenceAdd = promisify(
-			this.balancesSequence.add.bind(this.balancesSequence)
-		);
+		this.logger.debug(`Received transaction ${transaction.id}`);
 
-		return balancesSequenceAdd(async addSequenceCb => {
-			this.logger.debug(`Received transaction ${transaction.id}`);
-
-			try {
-				await this.transactionPoolModule.processUnconfirmedTransaction(
-					transaction,
-					true
-				);
-				return setImmediate(addSequenceCb, null, transaction.id);
-			} catch (err) {
-				this.logger.debug(`Transaction ${id}`, convertErrorsToString(err));
-				if (transaction) {
-					this.logger.debug('Transaction', transaction);
-				}
-				return setImmediate(addSequenceCb, err);
+		try {
+			await this.transactionPoolModule.processUnconfirmedTransaction(
+				transaction,
+				true
+			);
+			return transaction.id;
+		} catch (err) {
+			this.logger.debug(`Transaction ${id}`, convertErrorsToString(err));
+			if (transaction) {
+				this.logger.debug('Transaction', transaction);
 			}
-		});
+			throw err;
+		}
 	}
 }
 

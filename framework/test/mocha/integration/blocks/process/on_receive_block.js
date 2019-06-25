@@ -218,22 +218,18 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 	}
 
 	function getBlocks(cb) {
-		library.sequence.add(
-			sequenceCb => {
-				storage.adapter.db
-					.query(
-						new PQ('SELECT "id" FROM blocks ORDER BY "height" DESC LIMIT 10;')
-					)
-					.then(rows => sequenceCb(null, rows))
-					.catch(err => sequenceCb(err, []));
-			},
-			(err, rows) => {
-				if (err) {
-					__testContext.debug(err.stack);
-				}
-				cb(err, _.map(rows, 'id'));
-			}
-		);
+		library.sequence
+			.add(async () => {
+				const rows = storage.adapter.db.query(
+					new PQ('SELECT "id" FROM blocks ORDER BY "height" DESC LIMIT 10;')
+				);
+				return rows.map(r => r.id);
+			})
+			.then(ids => cb(null, ids))
+			.catch(err => {
+				__testContext.debug(err.stack);
+				cb(err);
+			});
 	}
 
 	function verifyForkStat(blockId, cause) {
@@ -387,7 +383,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							library.modules.blocks.blockReward,
 							library.modules.blocks.constants.maxPayloadLength
 						);
-						library.modules.blocks.receiveBlockFromNetwork(
+						return library.modules.blocks.receiveBlockFromNetwork(
 							blockWithGreaterTimestamp
 						);
 					});
@@ -458,7 +454,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 				describe('when received block is from previous round (101 blocks back)', () => {
 					let blockFromPreviousRound;
 
-					beforeEach(() => {
+					beforeEach(async () => {
 						blockFromPreviousRound =
 							forgedBlocks[forgedBlocks.length - ACTIVE_DELEGATES];
 						blockFromPreviousRound.height = mutatedHeight;
