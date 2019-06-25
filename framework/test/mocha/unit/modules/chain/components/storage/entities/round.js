@@ -15,7 +15,7 @@
 
 'use strict';
 
-const BigNumber = require('bignumber.js');
+const BigNum = require('@liskhq/bignum');
 const {
 	entities: { BaseEntity },
 	errors: { NonSupportedFilterTypeError, NonSupportedOptionError },
@@ -509,7 +509,7 @@ describe('Round', () => {
 			expect(result[0]).to.be.have.all.keys('delegate', 'amount');
 			return expect(result[0]).to.be.eql({
 				delegate: account.publicKey,
-				amount: new BigNumber(round1.amount).plus(round2.amount).toString(),
+				amount: new BigNum(round1.amount).plus(round2.amount).toString(),
 			});
 		});
 
@@ -549,7 +549,7 @@ describe('Round', () => {
 			expect(result[0].rewards).to.be.an('array');
 			expect(result[0].delegates).to.be.an('array');
 			expect(result[0].fees).to.be.eql(
-				new BigNumber(computedBlocks[0].totalFee)
+				new BigNum(computedBlocks[0].totalFee)
 					.plus(computedBlocks[1].totalFee)
 					.toString()
 			);

@@ -19,7 +19,7 @@ const {
 	registerSecondPassphrase,
 	utils: transactionUtils,
 } = require('@liskhq/lisk-transactions');
-const BigNumber = require('bignumber.js');
+const BigNum = require('@liskhq/bignum');
 const accountFixtures = require('../fixtures/accounts');
 const randomUtil = require('./utils/random');
 
@@ -54,7 +54,7 @@ function Multisig(options) {
 		transaction: {
 			type: 4,
 			amount: '0',
-			fee: new BigNumber(FEES.MULTISIGNATURE)
+			fee: new BigNum(FEES.MULTISIGNATURE)
 				.times(this.keysgroup.length + 1)
 				.toString(),
 			asset: {
@@ -74,7 +74,7 @@ function Multisig(options) {
 			transaction: {
 				type: 4,
 				amount: '0',
-				fee: new BigNumber(FEES.MULTISIGNATURE)
+				fee: new BigNum(FEES.MULTISIGNATURE)
 					.times(this.keysgroup.length + 1)
 					.toString(),
 				asset: {
