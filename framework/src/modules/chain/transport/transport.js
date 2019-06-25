@@ -18,12 +18,11 @@ const { TransactionError } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
 const { promisify } = require('util');
 const _ = require('lodash');
-const { convertErrorsToString } = require('./utils/error_handlers');
-// eslint-disable-next-line prefer-const
-let Broadcaster = require('./logic/broadcaster');
-const definitions = require('./schema/definitions');
-const blocksUtils = require('./blocks');
-const transactionsModule = require('./transactions');
+const { convertErrorsToString } = require('../utils/error_handlers');
+const Broadcaster = require('./broadcaster');
+const definitions = require('../schema/definitions');
+const blocksUtils = require('../blocks');
+const transactionsModule = require('../transactions');
 
 /**
  * Main transport methods. Initializes library with scope content and generates a Broadcaster instance.
