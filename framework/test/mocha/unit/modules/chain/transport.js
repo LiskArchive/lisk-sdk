@@ -847,7 +847,6 @@ describe('transport', () => {
 					__private.broadcaster = {
 						enqueue: sinonSandbox.stub(),
 					};
-					transportInstance.onUnconfirmedTransaction(transaction, true);
 				});
 
 				describe('when broadcast is defined', () => {
