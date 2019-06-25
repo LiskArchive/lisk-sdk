@@ -27,7 +27,6 @@ const {
 	EVENT_NEW_BLOCK,
 	EVENT_DELETE_BLOCK,
 	EVENT_BROADCAST_BLOCK,
-	EVENT_NEW_BROADHASH,
 } = require('./blocks');
 
 module.exports = {
@@ -39,7 +38,6 @@ module.exports = {
 	EVENT_NEW_BLOCK,
 	EVENT_DELETE_BLOCK,
 	EVENT_BROADCAST_BLOCK,
-	EVENT_NEW_BROADHASH,
 	objectNormalize,
 	addBlockProperties,
 };
