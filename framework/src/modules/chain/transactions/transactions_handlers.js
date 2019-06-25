@@ -22,7 +22,7 @@ const votes = require('./votes');
 const {
 	updateTransactionResponseForExceptionTransactions,
 } = require('./exceptions_handlers');
-const StateStore = require('../logic/state_store');
+const StateStore = require('../state_store');
 
 const validateTransactions = exceptions => transactions => {
 	const transactionsResponses = transactions.map(transaction =>
