@@ -134,8 +134,6 @@ describe('node/api', () => {
 		const now = Date.now();
 
 		const expectedStatus = {
-			broadhash:
-				'176caf53295f73a5a67a1fb56f31445392a3b8e8f11ed6167f323813001eb73b',
 			consensus: 100,
 			secondsSinceEpoch: 89742345,
 			height: 1187,
