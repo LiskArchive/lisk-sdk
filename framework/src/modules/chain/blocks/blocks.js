@@ -64,7 +64,27 @@ class Blocks extends EventEmitter {
 		this._lastNBlockIds = [];
 		this._lastBlock = {};
 		this._isActive = false;
-		this._lastReceipt = null;
+
+		/**
+		 * Represents the receipt time of the last block that was received _PASSIVELY_
+		 * from the network and applied _SUCCESSFULLY_
+		 * @type {{receivedTime: number, id: string}}
+		 * @private
+		 */
+		this._lastReceivedAndAppliedBlock = {
+			receivedTime: null,
+			id: null,
+		};
+
+		/**
+		 * Represents the receipt time of the last block that was received _PASSIVELY_
+		 * from the network.
+		 * Doesn't necessarily mean that it was applied.
+		 * @type {number}
+		 * @private
+		 */
+		this._lastReceipt = null; // For compatibility purposes.
+
 		this._cleaning = false;
 
 		this.logger = logger;
@@ -130,6 +150,12 @@ class Blocks extends EventEmitter {
 			0: block => this._receiveBlockFromNetworkV1(block),
 			1: block => this._receiveBlockFromNetworkV1(block),
 			2: block => this._receiveBlockFromNetworkV2(block),
+		};
+
+		this._processReceivedBlock = {
+			0: block => this._processReceivedBlockV1(block),
+			1: block => this._processReceivedBlockV1(block),
+			2: block => this._processReceivedBlockV2(block),
 		};
 	}
 
@@ -470,8 +496,7 @@ class Blocks extends EventEmitter {
 
 	async _receiveBlockFromNetworkV2(block) {
 		// Current time since Lisk Epoch
-		// Better to do it here rather than in the Sequence so receiving time is more accurate
-		const newBlockReceivedAt = this.slots.getTime();
+		this._lastReceipt = Math.floor(this.slots.getTime() / 1000);
 
 		// Execute in sequence
 		return this.sequence.add(callback => {
@@ -482,7 +507,7 @@ class Blocks extends EventEmitter {
 				return;
 			}
 			this._isActive = true;
-			this._forkChoiceTask(block, newBlockReceivedAt)
+			this._forkChoiceTask(block)
 				.then(result => callback(null, result))
 				.catch(error => callback(error))
 				.finally(() => {
@@ -492,7 +517,7 @@ class Blocks extends EventEmitter {
 	}
 
 	// PRE: Block has been validated and verified before
-	async _processReceivedBlock(block) {
+	async _processReceivedBlockV1(block) {
 		this._updateLastReceipt();
 		try {
 			const newBlock = await this.blocksProcess.processBlock(
@@ -531,6 +556,45 @@ class Blocks extends EventEmitter {
 		}
 	}
 
+	// PRE: Block has been validated and verified before
+	async _processReceivedBlockV2(block) {
+		try {
+			const newBlock = await this.blocksProcess.processBlock(
+				block,
+				this._lastBlock,
+				validBlock => this.broadcast(validBlock)
+			);
+
+			this.logger.debug(
+				`Successfully applied new received block id: ${block.id} height: ${
+					block.height
+				} round: ${this.slots.calcRound(
+					block.height
+				)} slot: ${this.slots.getSlotNumber(block.timestamp)} reward: ${
+					block.reward
+				} version: ${block.version}`
+			);
+			this._lastReceivedAndAppliedBlock.receivedTime = this._lastReceipt;
+			this._lastReceivedAndAppliedBlock.id = block.id;
+			this._lastBlock = newBlock;
+			this._isActive = false;
+		} catch (error) {
+			this.logger.error(
+				error,
+				`Failed to apply new received block id: ${block.id} height: ${
+					block.height
+				} round: ${this.slots.calcRound(
+					block.height
+				)} slot: ${this.slots.getSlotNumber(block.timestamp)} reward: ${
+					block.reward
+				} version: ${block.version}`
+			);
+			throw error;
+		} finally {
+			this._isActive = false;
+		}
+	}
+
 	/**
 	 * Wrap of fork choice rule logic so it can be added to Sequence and properly tested
 	 * @param block
@@ -538,7 +602,7 @@ class Blocks extends EventEmitter {
 	 * @return {Promise}
 	 * @private
 	 */
-	async _forkChoiceTask(block, newBlockReceivedAt) {
+	async _forkChoiceTask(block) {
 		// Cases are numbered following LIP-0014 Fork choice rule.
 		// See: https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#applying-blocks-according-to-fork-choice-rule
 		// Case 2 and 1 have flipped execution order for better readability. Behavior is still the same
@@ -566,7 +630,7 @@ class Blocks extends EventEmitter {
 				lastBlock: this._lastBlock,
 				currentBlock: block,
 				lastReceivedAt: this._lastReceipt || this._lastBlock.timestamp,
-				currentReceivedAt: newBlockReceivedAt,
+				currentReceivedAt: this._lastReceipt,
 			})
 		) {
 			// Two competing blocks by different delegates at the same height.
