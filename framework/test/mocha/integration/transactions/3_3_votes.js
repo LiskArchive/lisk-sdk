@@ -81,8 +81,10 @@ describe('integration test (type 3) - voting with duplicate submissions', () => 
 
 			describe('after forging one block', () => {
 				before(done => {
-					localCommon.forge(library, async () => {
-						done();
+					localCommon.fillPool(library, () => {
+						localCommon.forge(library, async () => {
+							done();
+						});
 					});
 				});
 
@@ -151,8 +153,10 @@ describe('integration test (type 3) - voting with duplicate submissions', () => 
 
 				describe('after forging a second block', () => {
 					before(done => {
-						localCommon.forge(library, async () => {
-							done();
+						localCommon.fillPool(library, () => {
+							localCommon.forge(library, async () => {
+								done();
+							});
 						});
 					});
 
