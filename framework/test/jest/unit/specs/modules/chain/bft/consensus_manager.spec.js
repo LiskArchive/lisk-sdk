@@ -16,12 +16,18 @@
 
 const path = require('path');
 const fs = require('fs');
-const bftModule = require('../../../../../../../src/modules/chain/bft/bft');
+const {
+	BFTChainDisjointError,
+	BFTLowerChainBranchError,
+	BFTForkChoiceRuleError,
+	BFTInvalidAttributeError,
+} = require('../../../../../../../src/modules/chain/bft/errors');
+const utils = require('../../../../../../../src/modules/chain/bft/utils');
 const {
 	ConsensusManager,
 } = require('../../../../../../../src/modules/chain/bft/consensus_manager');
 
-jest.mock('../../../../../../../src/modules/chain/bft/bft');
+jest.mock('../../../../../../../src/modules/chain/bft/utils');
 
 const {
 	BlockHeader: blockHeaderFixture,
@@ -157,6 +163,7 @@ describe('consensus_manager', () => {
 				const header = blockHeaderFixture({ prevotedConfirmedUptoHeight: 10 });
 
 				expect(() => bft.verifyBlockHeaders(header)).toThrow(
+					BFTInvalidAttributeError,
 					'Wrong prevotedConfirmedHeight in blockHeader.'
 				);
 			});
@@ -196,7 +203,7 @@ describe('consensus_manager', () => {
 				bft.headers.top.mockReturnValue([lastBlock]);
 
 				expect(() => bft.verifyBlockHeaders(currentBlock)).toThrow(
-					'Violation of fork choice rule, delegate moved to a different chain'
+					BFTForkChoiceRuleError
 				);
 			});
 
@@ -217,7 +224,7 @@ describe('consensus_manager', () => {
 				bft.headers.top.mockReturnValue([lastBlock]);
 
 				expect(() => bft.verifyBlockHeaders(currentBlock)).toThrow(
-					'Violation of fork choice rule, delegate moved to a different chain'
+					BFTForkChoiceRuleError
 				);
 			});
 
@@ -235,7 +242,7 @@ describe('consensus_manager', () => {
 				bft.headers.top.mockReturnValue([lastBlock]);
 
 				expect(() => bft.verifyBlockHeaders(currentBlock)).toThrow(
-					'Violates disjointness condition'
+					BFTChainDisjointError
 				);
 			});
 
@@ -256,7 +263,7 @@ describe('consensus_manager', () => {
 				bft.headers.top.mockReturnValue([lastBlock]);
 
 				expect(() => bft.verifyBlockHeaders(currentBlock)).toThrow(
-					'Violates that delegate chooses branch with largest prevotedConfirmedUptoHeight'
+					BFTLowerChainBranchError
 				);
 			});
 
@@ -277,8 +284,8 @@ describe('consensus_manager', () => {
 				// jest.spyOn(bftModule, 'validateBlockHeader');
 				bft.addBlockHeader(header1);
 
-				expect(bftModule.validateBlockHeader).toHaveBeenCalledTimes(1);
-				expect(bftModule.validateBlockHeader).toHaveBeenCalledWith(header1);
+				expect(utils.validateBlockHeader).toHaveBeenCalledTimes(1);
+				expect(utils.validateBlockHeader).toHaveBeenCalledWith(header1);
 			});
 
 			it('should call verifyBlockHeaders with the provided header', async () => {
@@ -289,8 +296,8 @@ describe('consensus_manager', () => {
 				// jest.spyOn(bftModule, 'validateBlockHeader');
 				bft.addBlockHeader(header1);
 
-				expect(bftModule.validateBlockHeader).toHaveBeenCalledTimes(1);
-				expect(bftModule.validateBlockHeader).toHaveBeenCalledWith(header1);
+				expect(utils.validateBlockHeader).toHaveBeenCalledTimes(1);
+				expect(utils.validateBlockHeader).toHaveBeenCalledWith(header1);
 			});
 
 			it('should add headers to list', async () => {

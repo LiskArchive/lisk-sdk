@@ -15,8 +15,15 @@
 'use strict';
 
 const assert = require('assert');
+const debug = require('debug')('lisk:bft:consensus_manager');
 const { HeadersList } = require('./headers_list');
 const { validateBlockHeader } = require('./utils');
+const {
+	BFTChainDisjointError,
+	BFTLowerChainBranchError,
+	BFTForkChoiceRuleError,
+	BFTInvalidAttributeError,
+} = require('./errors');
 
 /**
  * @typedef {Object} BlockHeader
@@ -69,12 +76,22 @@ class ConsensusManager {
 	 * @return {Block_headers_manager}
 	 */
 	addBlockHeader(blockHeader) {
+		debug('addBlockHeader invoked');
+		debug('validateBlockHeader invoked');
 		// Validate the schema of the header
 		// To spy exported function in same module we have to call it as this
 		validateBlockHeader(blockHeader);
 
 		// Verify the integrity of the header with chain
-		this.verifyBlockHeaders(blockHeader);
+		try {
+			this.verifyBlockHeaders(blockHeader);
+		} catch (error) {
+			// TODO: Remove hardcoded value of maxHeightPreviouslyForged to avoid this
+			// https://github.com/LiskHQ/lisk-sdk/blob/fa1bb6907955c12297336f80f59951ba4754da7f/framework/src/modules/chain/blocks/process.js#L125-L126
+			if (!(error instanceof BFTChainDisjointError)) {
+				throw error;
+			}
+		}
 
 		// Add the header to the list
 		this.headers.add(blockHeader);
@@ -85,6 +102,12 @@ class ConsensusManager {
 		// Update the pre-voted confirmed and finalized height
 		this.updatePreVotedAndFinalizedHeight();
 
+		debug('after adding block header', {
+			finalizedHeight: this.finalizedHeight,
+			prevotedConfirmedHeight: this.prevotedConfirmedHeight,
+			minHeight: this.minHeight,
+			maxHeight: this.maxHeight,
+		});
 		return this;
 	}
 
@@ -95,6 +118,7 @@ class ConsensusManager {
 	 * @return {undefined}
 	 */
 	updatePreVotesPreCommits(lastBlockHeader) {
+		debug('updatePreVotesPreCommits invoked');
 		// Update applies particularly in reference to last block header in the list
 		const header = lastBlockHeader || this.headers.last;
 
@@ -166,6 +190,7 @@ class ConsensusManager {
 	 * Update the pre-voted confirmed and finalized height
 	 */
 	updatePreVotedAndFinalizedHeight() {
+		debug('updatePreVotedAndFinalizedHeight invoked');
 		if (this.headers.length === 0) {
 			return;
 		}
@@ -209,13 +234,16 @@ class ConsensusManager {
 	 * @param {BlockHeader} blockHeader
 	 */
 	verifyBlockHeaders(blockHeader) {
+		debug('verifyBlockHeaders invoked');
 		// We need minimum processingThreshold to decide
 		// if prevotedConfirmedUptoHeight is correct
 		if (
 			this.headers.length >= this.processingThreshold &&
 			blockHeader.prevotedConfirmedUptoHeight !== this.prevotedConfirmedHeight
 		) {
-			throw new Error('Wrong prevotedConfirmedHeight in blockHeader.');
+			throw new BFTInvalidAttributeError(
+				'Wrong prevotedConfirmedHeight in blockHeader.'
+			);
 		}
 
 		// Find top most block forged by same delegate
@@ -238,22 +266,18 @@ class ConsensusManager {
 			// Violation of the fork choice rule as delegate moved to different chain
 			// without strictly larger maxHeightPreviouslyForged or larger height as
 			// justification. This in particular happens, if a delegate is double forging.
-			throw new Error(
-				'Violation of fork choice rule, delegate moved to a different chain'
-			);
+			throw new BFTForkChoiceRuleError();
 		}
 
 		if (delegateLastBlock.height > blockHeader.maxHeightPreviouslyForged) {
-			throw new Error('Violates disjointness condition');
+			throw new BFTChainDisjointError();
 		}
 
 		if (
 			delegateLastBlock.prevotedConfirmedUptoHeight >
 			blockHeader.prevotedConfirmedUptoHeight
 		) {
-			throw new Error(
-				'Violates that delegate chooses branch with largest prevotedConfirmedUptoHeight'
-			);
+			throw new BFTLowerChainBranchError();
 		}
 
 		return true;

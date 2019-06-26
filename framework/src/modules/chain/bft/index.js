@@ -21,10 +21,12 @@
 const { HeadersList } = require('./headers_list');
 const { ConsensusManager } = require('./consensus_manager');
 const { extractBFTBlockHeaderFromBlock, BFT } = require('./bft');
+const BFTErrors = require('./errors');
 
 module.exports = {
 	HeadersList,
 	ConsensusManager,
 	extractBFTBlockHeaderFromBlock,
 	BFT,
+	...BFTErrors,
 };
