@@ -85,11 +85,12 @@ class ApplicationState {
 	 * @returns {Promise.<boolean, Error>}
 	 * @throws assert.AssertionError
 	 */
-	async update({ height, prevotedConfirmedUptoHeight = 0 }) {
+	async update({ height, prevotedConfirmedUptoHeight }) {
 		assert(height, 'height is required to update application state.');
 		try {
 			const newState = this.state;
-			newState.prevotedConfirmedUptoHeight = prevotedConfirmedUptoHeight;
+			newState.prevotedConfirmedUptoHeight =
+				prevotedConfirmedUptoHeight || this.state.prevotedConfirmedUptoHeight;
 			newState.height = height;
 			__private.state.set(this, newState);
 			this.logger.debug('Application state', this.state);
