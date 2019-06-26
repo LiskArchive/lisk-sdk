@@ -32,6 +32,8 @@ import {
 	REMOTE_RPC_GET_NODE_INFO,
 } from './base';
 
+import { EVENT_PING } from './inbound';
+
 import {
 	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
@@ -52,6 +54,7 @@ export const EVENT_CONNECT_OUTBOUND = 'connectOutbound';
 export const EVENT_CONNECT_ABORT_OUTBOUND = 'connectAbortOutbound';
 export const EVENT_CLOSE_OUTBOUND = 'closeOutbound';
 export const EVENT_OUTBOUND_SOCKET_ERROR = 'outboundSocketError';
+export const RESPONSE_PONG = 'pong';
 
 export interface PeerInfoAndOutboundConnection {
 	readonly peerInfo: P2PDiscoveredPeerInfo;
@@ -165,6 +168,13 @@ export class OutboundPeer extends Peer {
 			});
 		});
 
+		outboundSocket.on(
+			EVENT_PING,
+			(_: undefined, res: (_: undefined, data: string) => void) => {
+				res(undefined, RESPONSE_PONG);
+			},
+		);
+
 		// Bind RPC and remote event handlers
 		outboundSocket.on(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
 		outboundSocket.on(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
@@ -202,6 +212,7 @@ export class OutboundPeer extends Peer {
 			'postTransactions',
 			this._handleRawLegacyMessagePostTransactions,
 		);
+		outboundSocket.off(EVENT_PING);
 	}
 }
 
@@ -248,6 +259,12 @@ export const connectAndRequest = async (
 			// Bind an error handler immediately after creating the socket; otherwise errors may crash the process
 			// tslint:disable-next-line no-empty
 			outboundSocket.on('error', () => {});
+			outboundSocket.on(
+				EVENT_PING,
+				(_: undefined, res: (_: undefined, data: string) => void) => {
+					res(undefined, RESPONSE_PONG);
+				},
+			);
 
 			// tslint:disable-next-line no-let
 			let disconnectStatusCode: number;
@@ -321,7 +338,7 @@ export const connectAndFetchPeerInfo = async (
 			ip: basicPeerInfo.ipAddress,
 			wsPort: basicPeerInfo.wsPort,
 		};
-		
+
 		return validatePeerInfo(rawPeerInfo);
 	} catch (error) {
 		throw new FetchPeerStatusError(

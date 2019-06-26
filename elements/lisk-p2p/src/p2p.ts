@@ -126,6 +126,9 @@ const BASE_10_RADIX = 10;
 const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
 const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
 const DEFAULT_OUTBOUND_SHUFFLE_INTERVAL = 300000;
+const DEFAULT_PEER_PROTECTION_FOR_LATENCY = 0.068;
+const DEFAULT_PEER_PROTECTION_FOR_USEFULNESS = 0.068;
+const DEFAULT_PEER_PROTECTION_FOR_LONGEVITY = 0.5;
 
 const selectRandomPeerSample = (
 	peerList: ReadonlyArray<P2PPeerInfo>,
@@ -178,6 +181,7 @@ export class P2P extends EventEmitter {
 	private readonly _handleInboundSocketError: (error: Error) => void;
 	private readonly _peerHandshakeCheck: P2PCheckPeerCompatibility;
 
+	// tslint:disable-next-line: cyclomatic-complexity
 	public constructor(config: P2PConfig) {
 		super();
 		this._sanitizedPeerLists = sanitizePeerLists(
@@ -362,6 +366,7 @@ export class P2P extends EventEmitter {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
+
 		this._peerPool = new PeerPool({
 			connectTimeout: config.connectTimeout,
 			ackTimeout: config.ackTimeout,
@@ -390,6 +395,18 @@ export class P2P extends EventEmitter {
 			outboundShuffleInterval: config.outboundShuffleInterval
 				? config.outboundShuffleInterval
 				: DEFAULT_OUTBOUND_SHUFFLE_INTERVAL,
+			latencyProtectionRatio:
+				typeof config.latencyProtectionRatio === 'number'
+					? config.latencyProtectionRatio
+					: DEFAULT_PEER_PROTECTION_FOR_LATENCY,
+			productivityProtectionRatio:
+				typeof config.productivityProtectionRatio === 'number'
+					? config.productivityProtectionRatio
+					: DEFAULT_PEER_PROTECTION_FOR_USEFULNESS,
+			longevityProtectionRatio:
+				typeof config.longevityProtectionRatio === 'number'
+					? config.longevityProtectionRatio
+					: DEFAULT_PEER_PROTECTION_FOR_LONGEVITY,
 		});
 
 		this._bindHandlersToPeerPool(this._peerPool);

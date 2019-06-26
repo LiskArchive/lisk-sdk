@@ -55,6 +55,13 @@ export interface ClientOptionsUpdated {
 	readonly connectTimeout?: number;
 }
 
+export interface Productivity {
+	readonly requestCounter: number;
+	readonly responseCounter: number;
+	readonly responseRate: number;
+	readonly lastResponded: number;
+}
+
 export type SCServerSocketUpdated = {
 	destroy(code?: number, data?: string | object): void;
 	on(event: string | unknown, listener: (packet?: unknown) => void): void;
@@ -91,6 +98,13 @@ export const DEFAULT_CONNECT_TIMEOUT = 2000;
 export const DEFAULT_ACK_TIMEOUT = 2000;
 export const DEFAULT_REPUTATION_SCORE = 100;
 export const DEFAULT_RATE_INTERVAL = 1000;
+export const DEFAULT_PRODUCTIVITY_RESET_INTERVAL = 20000;
+export const DEFAULT_PRODUCTIVITY = {
+	requestCounter: 0,
+	responseCounter: 0,
+	responseRate: 0,
+	lastResponded: 0,
+};
 
 export enum ConnectionState {
 	CONNECTING = 'connecting',
@@ -128,10 +142,19 @@ export class Peer extends EventEmitter {
 	protected readonly _ipAddress: string;
 	protected readonly _wsPort: number;
 	private readonly _height: number;
-	private _reputation: number;
+	protected _reputation: number;
+	protected _latency: number;
+	protected _connectTime: number;
+	protected _productivity: {
+		requestCounter: number;
+		responseCounter: number;
+		responseRate: number;
+		lastResponded: number;
+	};
 	private _callCounter: Map<string, number>;
 	private readonly _counterResetInterval: NodeJS.Timer;
 	protected _peerInfo: P2PPeerInfo;
+	private readonly _productivityResetInterval: NodeJS.Timer;
 	protected readonly _peerConfig: PeerConfig;
 	protected _nodeInfo: P2PNodeInfo | undefined;
 	protected readonly _handleRawRPC: (
@@ -159,10 +182,22 @@ export class Peer extends EventEmitter {
 		this._id = constructPeerId(this._ipAddress, this._wsPort);
 		this._height = peerInfo.height ? (peerInfo.height as number) : 0;
 		this._reputation = DEFAULT_REPUTATION_SCORE;
+		this._latency = 0;
+		this._connectTime = Date.now();
 		this._callCounter = new Map();
 		this._counterResetInterval = setInterval(() => {
 			this._callCounter = new Map();
 		}, DEFAULT_RATE_INTERVAL);
+		this._productivityResetInterval = setInterval(() => {
+			// If peer has not recently responded, reset productivity to 0
+			if (
+				this._productivity.lastResponded <
+				Date.now() - DEFAULT_PRODUCTIVITY_RESET_INTERVAL
+			) {
+				this._productivity = { ...DEFAULT_PRODUCTIVITY };
+			}
+		}, DEFAULT_PRODUCTIVITY_RESET_INTERVAL);
+		this._productivity = { ...DEFAULT_PRODUCTIVITY };
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawRPC = (
@@ -184,11 +219,15 @@ export class Peer extends EventEmitter {
 			}
 
 			const rate = this._getPeerRate(packet as P2PRequestPacket);
+
 			const request = new P2PRequest(
-				rawRequest.procedure,
-				rawRequest.data,
-				this._id,
-				rate,
+				{
+					procedure: rawRequest.procedure,
+					data: rawRequest.data,
+					id: this._id,
+					rate,
+					productivity: this._productivity,
+				},
 				respond,
 			);
 
@@ -263,6 +302,26 @@ export class Peer extends EventEmitter {
 		return this._ipAddress;
 	}
 
+	public get reputation(): number {
+		return this._reputation;
+	}
+
+	public get latency(): number {
+		return this._latency;
+	}
+
+	public get connectTime(): number {
+		return this._connectTime;
+	}
+
+	public get responseRate(): number {
+		return this._productivity.responseRate;
+	}
+
+	public get productivity(): Productivity {
+		return { ...this._productivity };
+	}
+
 	public updatePeerInfo(newPeerInfo: P2PDiscoveredPeerInfo): void {
 		// The ipAddress and wsPort properties cannot be updated after the initial discovery.
 		this._peerInfo = {
@@ -324,6 +383,7 @@ export class Peer extends EventEmitter {
 
 	public disconnect(code: number = 1000, reason?: string): void {
 		clearInterval(this._counterResetInterval);
+		clearInterval(this._productivityResetInterval);
 		if (this._socket) {
 			this._socket.destroy(code, reason);
 		}

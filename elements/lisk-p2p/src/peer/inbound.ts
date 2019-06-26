@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 import {
 	Peer,
 	PeerConfig,
@@ -27,6 +26,14 @@ import { SCServerSocket } from 'socketcluster-server';
 
 export const EVENT_CLOSE_INBOUND = 'closeInbound';
 export const EVENT_INBOUND_SOCKET_ERROR = 'inboundSocketError';
+export const EVENT_PING = 'ping';
+
+const DEFAULT_PING_INTERVAL_MAX = 60000;
+const DEFAULT_PING_INTERVAL_MIN = 20000;
+
+const getRandomPingDelay = () =>
+	Math.random() * (DEFAULT_PING_INTERVAL_MAX - DEFAULT_PING_INTERVAL_MIN) +
+	DEFAULT_PING_INTERVAL_MIN;
 
 export class InboundPeer extends Peer {
 	protected _socket: SCServerSocketUpdated;
@@ -35,6 +42,8 @@ export class InboundPeer extends Peer {
 		code: number,
 		reason: string,
 	) => void;
+	private readonly _sendPing: () => void;
+	private _pingTimeoutId: NodeJS.Timer;
 
 	public constructor(
 		peerInfo: P2PDiscoveredPeerInfo,
@@ -46,12 +55,23 @@ export class InboundPeer extends Peer {
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
 		this._handleInboundSocketClose = (code, reason) => {
+			if (this._pingTimeoutId) {
+				clearTimeout(this._pingTimeoutId);
+			}
 			this.emit(EVENT_CLOSE_INBOUND, {
 				peerInfo,
 				code,
 				reason,
 			});
 		};
+		this._sendPing = () => {
+			const pingStart = Date.now();
+			this._socket.emit(EVENT_PING, undefined, (_: Error, __: unknown) => {
+				this._latency = Date.now() - pingStart;
+				this._pingTimeoutId = setTimeout(this._sendPing, getRandomPingDelay());
+			});
+		};
+		this._pingTimeoutId = setTimeout(this._sendPing, getRandomPingDelay());
 		this._socket = peerSocket;
 		this._bindHandlersToInboundSocket(this._socket);
 	}
