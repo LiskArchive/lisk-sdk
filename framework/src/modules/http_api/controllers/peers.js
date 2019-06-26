@@ -56,6 +56,7 @@ PeersController.getPeers = async function(context, next) {
 		os: params.os.value,
 		version: params.version.value,
 		protocolVersion: params.protocolVersion.value,
+		broadhash: params.broadhash.value,
 		height: params.height.value,
 		limit: params.limit.value,
 		offset: params.offset.value,
