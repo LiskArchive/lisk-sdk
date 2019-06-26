@@ -229,5 +229,29 @@ describe('Application State', () => {
 				expect(result).toBe(true);
 			});
 		});
+
+		describe('when a parameter is not passed', () => {
+			let newState;
+			let updatedState;
+
+			beforeEach(async () => {
+				// Arrange
+				newState = {
+					height: '10',
+				};
+				applicationState.channel = channel;
+
+				// Act
+				await applicationState.update(newState);
+				updatedState = applicationState.state;
+			});
+
+			it('should remain with the same value', async () => {
+				// Assert
+				expect(updatedState.prevotedConfirmedUptoHeight).toBe(
+					mockedState.prevotedConfirmedUptoHeight
+				);
+			});
+		});
 	});
 });
