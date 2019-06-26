@@ -16,7 +16,7 @@
 
 const assert = require('assert');
 const { HeadersList } = require('./headers_list');
-const { validateBlockHeader } = require('./bft');
+const { validateBlockHeader } = require('./utils');
 
 /**
  * @typedef {Object} BlockHeader
