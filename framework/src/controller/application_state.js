@@ -33,6 +33,7 @@ const __private = {
  * - height
  * - nethash
  * - prevotedConfirmedUptoHeight
+ * - broadhash
  * - nonce
  *
  * @class
@@ -65,6 +66,7 @@ class ApplicationState {
 			height: 1,
 			prevotedConfirmedUptoHeight: 0,
 			nethash,
+			broadhash: nethash,
 			nonce,
 		});
 	}
@@ -78,17 +80,19 @@ class ApplicationState {
 	}
 
 	/**
-	 * Updates prevotedConfirmedUptoHeight and height values.
+	 * Updates the application state.
 	 *
-	 * @param {prevotedConfirmedUptoHeight, height} parameters - prevotedConfirmedUptoHeight and height to update
-	 *
-	 * @returns {Promise.<boolean, Error>}
+	 * @param height
+	 * @param prevotedConfirmedUptoHeight
+	 * @param broadhash
+	 * @return {Promise<boolean, Error>}
 	 * @throws assert.AssertionError
 	 */
-	async update({ height, prevotedConfirmedUptoHeight }) {
+	async update({ height, prevotedConfirmedUptoHeight, broadhash }) {
 		assert(height, 'height is required to update application state.');
 		try {
 			const newState = this.state;
+			newState.broadhash = broadhash || this.state.broadhash;
 			newState.prevotedConfirmedUptoHeight =
 				prevotedConfirmedUptoHeight || this.state.prevotedConfirmedUptoHeight;
 			newState.height = height;

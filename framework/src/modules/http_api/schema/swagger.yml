@@ -37,9 +37,9 @@ info:
     The responses for each API request have a common basic structure:
     ```javascript
     {
-    	"data": {}, //Contains the requested data
-    	"meta": {}, //Contains additional metadata, e.g. the values of `limit` and `offset`
-    	"links": {} //Will contain links to connected API calls from here, e.g. pagination links
+        "data": {}, //Contains the requested data
+        "meta": {}, //Contains additional metadata, e.g. the values of `limit` and `offset`
+        "links": {} //Will contain links to connected API calls from here, e.g. pagination links
     }
     ```
 
@@ -353,7 +353,7 @@ paths:
         - Node
       summary: Requests status data
       operationId: getStatus
-      description: Returns all current status data of the node, e.g. height.
+      description: Returns all current status data of the node, e.g. height and broadhash.
       produces:
         - application/json
       responses:
@@ -2254,6 +2254,7 @@ definitions:
   NodeStatus:
     type: object
     required:
+      - broadhash
       - consensus
       - currentTime
       - height
@@ -2263,6 +2264,15 @@ definitions:
       - syncing
       - transactions
     properties:
+      broadhash:
+        type: string
+        example: 258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea
+        minLength: 64
+        maxLength: 64
+        description: |
+          Broadhash is established as an aggregated rolling hash of the past five blocks present in the database.
+          Broadhash consensus serves a vital function for the Lisk network in order to prevent forks.
+          It ensures that a majority of available peers agree that it is acceptable to forge.
       consensus:
         type: integer
         example: 95

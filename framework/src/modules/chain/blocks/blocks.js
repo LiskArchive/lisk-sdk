@@ -31,6 +31,7 @@ const forkChoiceRule = require('./fork_choice_rule');
 const EVENT_NEW_BLOCK = 'EVENT_NEW_BLOCK';
 const EVENT_DELETE_BLOCK = 'EVENT_DELETE_BLOCK';
 const EVENT_BROADCAST_BLOCK = 'EVENT_BROADCAST_BLOCK';
+const EVENT_NEW_BROADHASH = 'EVENT_NEW_BROADHASH';
 
 class Blocks extends EventEmitter {
 	constructor({
@@ -712,12 +713,13 @@ class Blocks extends EventEmitter {
 	}
 
 	async _updateBroadhash() {
-		const { broadhash } = await blocksUtils.calculateNewBroadhash(
+		const { broadhash, height } = await blocksUtils.calculateNewBroadhash(
 			this.storage,
 			this._broadhash,
 			this._lastBlock.height
 		);
 		this._broadhash = broadhash;
+		this.emit(EVENT_NEW_BROADHASH, { broadhash, height });
 	}
 
 	_shouldNotBeActive() {
@@ -866,4 +868,5 @@ module.exports = {
 	EVENT_NEW_BLOCK,
 	EVENT_DELETE_BLOCK,
 	EVENT_BROADCAST_BLOCK,
+	EVENT_NEW_BROADHASH,
 };

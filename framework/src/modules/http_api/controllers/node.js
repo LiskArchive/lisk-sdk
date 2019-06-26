@@ -141,6 +141,7 @@ NodeController.getStatus = async (context, next) => {
 			);
 
 		const data = {
+			broadhash: library.applicationState.broadhash,
 			consensus: consensus || 0,
 			currentTime: Date.now(),
 			secondsSinceEpoch,
