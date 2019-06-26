@@ -15,7 +15,6 @@
 import * as BigNum from '@liskhq/bignum';
 import {
 	bigNumberToBuffer,
-	getAddressFromPublicKey,
 	hash,
 	hexToBuffer,
 	signData,
@@ -35,6 +34,8 @@ import {
 import { createResponse, Status } from './response';
 import { Account, TransactionJSON } from './transaction_types';
 import {
+	decideOnRecipientId,
+	decideOnSenderId,
 	getId,
 	isValidNumber,
 	validateSenderIdAndPublicKey,
@@ -150,16 +151,13 @@ export abstract class BaseTransaction {
 		);
 
 		this._id = tx.id;
-		this.recipientId = tx.recipientId || '';
+		this.recipientId = decideOnRecipientId(
+			tx.recipientId,
+			tx.recipientPublicKey,
+		);
 		this.recipientPublicKey = tx.recipientPublicKey || undefined;
 		this.senderPublicKey = tx.senderPublicKey || '';
-		try {
-			this.senderId = tx.senderId
-				? tx.senderId
-				: getAddressFromPublicKey(this.senderPublicKey);
-		} catch (error) {
-			this.senderId = '';
-		}
+		this.senderId = decideOnSenderId(tx.senderId, this.senderPublicKey);
 
 		this._signature = tx.signature;
 		this.signatures = (tx.signatures as string[]) || [];

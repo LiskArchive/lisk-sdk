@@ -13,6 +13,7 @@
  *
  */
 export * from './address';
+export * from './constructor';
 export * from './create_base_transaction';
 export * from './get_transaction_bytes';
 export * from './get_transaction_hash';
