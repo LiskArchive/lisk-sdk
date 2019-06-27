@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { verifyChecksum } from '@liskhq/lisk-cryptography';
 import * as axios from 'axios';
 import fs from 'fs-extra';
 import { dateDiff, getDownloadedFileInfo } from './core/commons';
@@ -51,23 +52,6 @@ export const download = async (
 	});
 };
 
-export const validateChecksum = async (
-	url: string,
-	cacheDir: string,
-): Promise<void> => {
-	const { fileName, fileDir } = getDownloadedFileInfo(url, cacheDir);
-
-	const { stderr }: ExecResult = await exec(`shasum -c ${fileName}`, {
-		cwd: fileDir,
-	});
-
-	if (!stderr) {
-		return;
-	}
-
-	throw new Error(`Checksum validation failed with error: ${stderr}`);
-};
-
 export const extract = async (
 	filePath: string,
 	fileName: string,
@@ -88,5 +72,13 @@ export const extract = async (
 export const downloadAndValidate = async (url: string, cacheDir: string) => {
 	await download(url, cacheDir);
 	await download(`${url}.SHA256`, cacheDir);
-	await validateChecksum(`${url}.SHA256`, cacheDir);
+
+	const { fileName, fileDir } = getDownloadedFileInfo(url, cacheDir);
+	const dataBuffer = fs.readFileSync(`${fileDir}/${fileName}`);
+	const content = fs.readFileSync(`${fileDir}/${fileName}.SHA256`, 'utf8');
+	const checksum = content.split(' ')[0];
+
+	if (!verifyChecksum(dataBuffer, checksum)) {
+		throw new Error(`Checksum did not match`);
+	}
 };

@@ -1,6 +1,8 @@
+import * as liskCrypto from '@liskhq/lisk-cryptography';
 import { expect } from 'chai';
 import fs from 'fs-extra';
 import * as axios from 'axios';
+import * as commons from '../../src/utils/core/commons';
 import * as downloadUtil from '../../src/utils/download';
 import * as workerProcess from '../../src/utils/worker-process';
 import { SinonStub } from 'sinon';
@@ -34,20 +36,6 @@ describe('download utils', () => {
 		});
 	});
 
-	describe('#validateChecksum', () => {
-		it('should throw an error when it fails to validate checksum', () => {
-			execStub.resolves({ stdout: 'error', stderr: 'invalid checksum' });
-			return expect(downloadUtil.validateChecksum(url, outDir)).to.rejectedWith(
-				'Checksum validation failed with error: invalid checksum',
-			);
-		});
-
-		it('should successfully validate checksum', () => {
-			execStub.resolves({ stdout: 'OK' });
-			return expect(downloadUtil.validateChecksum(url, outDir)).to.not.throw;
-		});
-	});
-
 	describe('#extract', () => {
 		it('should throw an error when it fails to extract', () => {
 			execStub.resolves({ stderr: 'invalid filepath' });
@@ -69,15 +57,46 @@ describe('download utils', () => {
 	});
 
 	describe('#downloadLiskAndValidate', () => {
+		let verifyChecksumStub: SinonStub;
+		let readFileSyncStub: SinonStub;
+
 		beforeEach(() => {
 			sandbox.stub(downloadUtil, 'download');
-			sandbox.stub(downloadUtil, 'validateChecksum');
+			sandbox.stub(commons, 'getDownloadedFileInfo').returns({
+				fileName: 'lisk-v2.2.0-darwin-x64.tar.gz',
+				fileDir: '/home/lisk',
+			});
+			readFileSyncStub = sandbox.stub(fs, 'readFileSync');
+			verifyChecksumStub = sandbox.stub(liskCrypto, 'verifyChecksum');
 		});
 
 		it('should download lisk and validate release', async () => {
+			readFileSyncStub.onCall(0).returns(new Buffer.from('text123*'));
+			readFileSyncStub
+				.onCall(1)
+				.returns(
+					'7607d6792843d6003c12495b54e34517a508d2a8622526aff1884422c5478971 tar filename here',
+				);
+			verifyChecksumStub.returns(true);
+
 			await downloadUtil.downloadAndValidate(url, outDir);
 			expect(downloadUtil.download).to.be.calledTwice;
-			return expect(downloadUtil.validateChecksum).to.be.calledOnce;
+			expect(commons.getDownloadedFileInfo).to.be.calledOnce;
+			return expect(verifyChecksumStub).to.be.calledOnce;
+		});
+
+		it('should throw error when validation fails', async () => {
+			readFileSyncStub.onCall(0).returns(new Buffer.from('text123*'));
+			readFileSyncStub
+				.onCall(1)
+				.returns(
+					'9897d6792843d6003c12495b54e34517a508d2a8622526aff1884422c5478971 tar filename here',
+				);
+			verifyChecksumStub.returns(false);
+
+			return expect(
+				downloadUtil.downloadAndValidate(url, outDir),
+			).to.rejectedWith('Checksum did not match');
 		});
 	});
 });
