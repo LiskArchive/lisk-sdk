@@ -259,6 +259,14 @@ const initStepsForTest = {
 				},
 			},
 		});
+
+		const { Dpos } = require('../../../src/modules/chain/dpos');
+		modules.dpos = new Dpos({
+			logger: scope.components.logger,
+			slots: scope.slots,
+			storage: scope.components.storage,
+		});
+
 		const { Blocks: RewiredBlocks } = rewire(
 			'../../../src/modules/chain/blocks'
 		);
