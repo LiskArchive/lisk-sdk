@@ -45,7 +45,7 @@ const __private = {
 
 const getBasePrototype = instance => {
 	const proto = Object.getPrototypeOf(instance);
-	if (proto.name !== '') {
+	if (proto && proto.name !== '') {
 		return getBasePrototype(proto);
 	}
 	return instance;
@@ -252,14 +252,16 @@ class Application {
 		);
 
 		assert(
-			!Object.keys(this.getTransactions()).includes(Transaction.TYPE),
+			!Object.keys(this.getTransactions()).includes(
+				Transaction.TYPE.toString()
+			),
 			`A transaction type "${Transaction.TYPE}" is already registered.`
 		);
 
 		const Base = getBasePrototype(Transaction);
 
 		assert(
-			Base.name !== BaseTransaction.name,
+			Base.name === BaseTransaction.name,
 			'Transaction must extend BaseTransaction.'
 		);
 
@@ -269,7 +271,7 @@ class Application {
 		);
 
 		assert(
-			!publicPropertiesOfBaseTransaction.every(prop =>
+			publicPropertiesOfBaseTransaction.every(prop =>
 				publicPropertiesOfBase.includes(prop)
 			),
 			'Transaction must use compatible BaseTransaction.'
