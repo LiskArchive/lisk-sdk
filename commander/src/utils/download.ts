@@ -13,11 +13,35 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { verifyChecksum } from '@liskhq/lisk-cryptography';
 import * as axios from 'axios';
+import * as crypto from 'crypto';
 import fs from 'fs-extra';
 import { dateDiff, getDownloadedFileInfo } from './core/commons';
 import { exec, ExecResult } from './worker-process';
+
+export const verifyChecksum = async (
+	filePath: string,
+	expectedChecksum: string,
+): Promise<boolean> => {
+	const shasum = crypto.createHash('sha256');
+	const fileStream = fs.createReadStream(filePath);
+
+	return new Promise((resolve, reject) => {
+		fileStream.on('data', (d: Buffer) => {
+			shasum.update(d);
+		});
+		fileStream.on('end', () => {
+			const fileChecksum = shasum.digest('hex');
+			if (fileChecksum === expectedChecksum) {
+				return resolve(true);
+			}
+
+			return reject(
+				`file checksum: ${fileChecksum} mismatched with expected checksum: ${expectedChecksum}`,
+			);
+		});
+	});
+};
 
 export const download = async (
 	url: string,
@@ -73,12 +97,9 @@ export const downloadAndValidate = async (url: string, cacheDir: string) => {
 	await download(url, cacheDir);
 	await download(`${url}.SHA256`, cacheDir);
 
-	const { fileName, fileDir } = getDownloadedFileInfo(url, cacheDir);
-	const dataBuffer = fs.readFileSync(`${fileDir}/${fileName}`);
-	const content = fs.readFileSync(`${fileDir}/${fileName}.SHA256`, 'utf8');
+	const { filePath } = getDownloadedFileInfo(url, cacheDir);
+	const content = fs.readFileSync(`${filePath}.SHA256`, 'utf8');
 	const checksum = content.split(' ')[0];
 
-	if (!verifyChecksum(dataBuffer, checksum)) {
-		throw new Error(`Checksum did not match`);
-	}
+	await verifyChecksum(filePath, checksum);
 };

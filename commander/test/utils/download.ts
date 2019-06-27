@@ -1,4 +1,3 @@
-import * as liskCrypto from '@liskhq/lisk-cryptography';
 import { expect } from 'chai';
 import fs from 'fs-extra';
 import * as axios from 'axios';
@@ -57,42 +56,37 @@ describe('download utils', () => {
 	});
 
 	describe('#downloadLiskAndValidate', () => {
-		let verifyChecksumStub: SinonStub;
 		let readFileSyncStub: SinonStub;
+		let verifyChecksumStub: SinonStub;
 
 		beforeEach(() => {
 			sandbox.stub(downloadUtil, 'download');
-			sandbox.stub(commons, 'getDownloadedFileInfo').returns({
-				fileName: 'lisk-v2.2.0-darwin-x64.tar.gz',
-				fileDir: '/home/lisk',
-			});
+			verifyChecksumStub = sandbox.stub(downloadUtil, 'verifyChecksum');
+			sandbox
+				.stub(commons, 'getDownloadedFileInfo')
+				.returns({ fileDir: '', fileName: '', filePath: '' });
 			readFileSyncStub = sandbox.stub(fs, 'readFileSync');
-			verifyChecksumStub = sandbox.stub(liskCrypto, 'verifyChecksum');
 		});
 
 		it('should download lisk and validate release', async () => {
-			readFileSyncStub.onCall(0).returns(new Buffer.from('text123*'));
 			readFileSyncStub
-				.onCall(1)
+				.onCall(0)
 				.returns(
 					'7607d6792843d6003c12495b54e34517a508d2a8622526aff1884422c5478971 tar filename here',
 				);
-			verifyChecksumStub.returns(true);
 
 			await downloadUtil.downloadAndValidate(url, outDir);
 			expect(downloadUtil.download).to.be.calledTwice;
-			expect(commons.getDownloadedFileInfo).to.be.calledOnce;
-			return expect(verifyChecksumStub).to.be.calledOnce;
+			return expect(commons.getDownloadedFileInfo).to.be.calledOnce;
 		});
 
 		it('should throw error when validation fails', async () => {
-			readFileSyncStub.onCall(0).returns(new Buffer.from('text123*'));
 			readFileSyncStub
-				.onCall(1)
+				.onCall(0)
 				.returns(
 					'9897d6792843d6003c12495b54e34517a508d2a8622526aff1884422c5478971 tar filename here',
 				);
-			verifyChecksumStub.returns(false);
+			verifyChecksumStub.rejects(new Error('Checksum did not match'));
 
 			return expect(
 				downloadUtil.downloadAndValidate(url, outDir),
