@@ -16,6 +16,7 @@
 
 const assert = require('assert');
 const {
+	BaseTransaction,
 	TransferTransaction,
 	SecondSignatureTransaction,
 	DelegateTransaction,
@@ -40,6 +41,24 @@ const NetworkModule = require('../modules/network');
 const __private = {
 	modules: new WeakMap(),
 	transactions: new WeakMap(),
+};
+
+const getBasePrototype = instance => {
+	const proto = Object.getPrototypeOf(instance);
+	if (proto.name !== '') {
+		return getBasePrototype(proto);
+	}
+	return instance;
+};
+
+const getPublicProperties = Instance => {
+	const methods = Object.getOwnPropertyNames(Instance.prototype).filter(
+		p => !p.startsWith('_')
+	);
+	const props = Object.getOwnPropertyNames(new Instance()).filter(
+		p => !p.startsWith('_')
+	);
+	return [...methods, ...props];
 };
 
 const registerProcessHooks = app => {
@@ -235,6 +254,25 @@ class Application {
 		assert(
 			!Object.keys(this.getTransactions()).includes(Transaction.TYPE),
 			`A transaction type "${Transaction.TYPE}" is already registered.`
+		);
+
+		const Base = getBasePrototype(Transaction);
+
+		assert(
+			Base.name !== BaseTransaction.name,
+			'Transaction must extend BaseTransaction.'
+		);
+
+		const publicPropertiesOfBase = getPublicProperties(Base);
+		const publicPropertiesOfBaseTransaction = getPublicProperties(
+			BaseTransaction
+		);
+
+		assert(
+			!publicPropertiesOfBaseTransaction.every(prop =>
+				publicPropertiesOfBase.includes(prop)
+			),
+			'Transaction must use compatible BaseTransaction.'
 		);
 
 		if (matcher) {
