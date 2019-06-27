@@ -167,7 +167,10 @@ export abstract class BaseTransaction {
 		this._signSignature = tx.signSignature;
 		// Infinity is invalid for these types
 		this.timestamp = typeof tx.timestamp === 'number' ? tx.timestamp : Infinity;
-		this.type = typeof tx.type === 'number' ? tx.type : Infinity;
+		this.type =
+			typeof tx.type === 'number'
+				? tx.type
+				: (this.constructor as typeof BaseTransaction).TYPE;
 
 		// Additional data not related to the protocol
 		this.confirmations = tx.confirmations;
