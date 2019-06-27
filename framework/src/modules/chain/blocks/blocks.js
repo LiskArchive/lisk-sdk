@@ -66,8 +66,18 @@ class Blocks extends EventEmitter {
 		this._isActive = false;
 
 		/**
-		 * Represents the receipt time of the last block that was received _PASSIVELY_
+		 * Represents the receipt time of the last block that was received
 		 * from the network and applied _SUCCESSFULLY_
+		 *
+		 * The property receivedTime gets updated with the value stored in `this._lastReceipt`
+		 * if the block received from the network is applied successfully
+		 *
+		 * The `id` property, represents the ID of the received and applied block.
+		 * This is taken into account when comparing the last block applied in the database
+		 * with this block. If the IDs are different it means the last block applied
+		 * was synced or forged but not received from the network (this value is not
+		 * updated in those scenarios)
+		 *
 		 * @type {{receivedTime: number, id: string}}
 		 * @private
 		 */
@@ -77,13 +87,13 @@ class Blocks extends EventEmitter {
 		};
 
 		/**
-		 * Represents the receipt time of the last block that was received _PASSIVELY_
+		 * Represents the receipt time of the last block that was received
 		 * from the network.
 		 * Doesn't necessarily mean that it was applied.
 		 * @type {number}
 		 * @private
 		 */
-		this._lastReceipt = null; // For compatibility purposes.
+		this._lastReceipt = null;
 
 		this._cleaning = false;
 
@@ -373,7 +383,7 @@ class Blocks extends EventEmitter {
 			// set active to true
 			if (this.blocksVerify.isSaneBlock(block, this._lastBlock)) {
 				try {
-					await this._processReceivedBlock(block);
+					await this._processReceivedBlock[block.version](block);
 				} catch (error) {
 					setImmediate(cb, error);
 					return;
@@ -463,7 +473,7 @@ class Blocks extends EventEmitter {
 						newLastBlock: cloneDeep(this._lastBlock),
 					});
 
-					await this._processReceivedBlock(block);
+					await this._processReceivedBlock[block.version](block);
 
 					setImmediate(cb);
 					return;
@@ -627,10 +637,10 @@ class Blocks extends EventEmitter {
 		if (
 			forkChoiceRule.isTieBreak({
 				slots: this.slots,
-				lastBlock: this._lastBlock,
-				currentBlock: block,
-				lastReceivedAt: this._lastReceipt || this._lastBlock.timestamp,
-				currentReceivedAt: this._lastReceipt,
+				lastAppliedBlock: this._lastBlock,
+				receivedBlock: block,
+				receivedBlockReceiptTime: this._lastReceipt,
+				lastReceivedAndAppliedBlock: this._lastReceivedAndAppliedBlock,
 			})
 		) {
 			// Two competing blocks by different delegates at the same height.
@@ -823,7 +833,7 @@ class Blocks extends EventEmitter {
 	 * @private
 	 */
 	async _handleValidBlock(block) {
-		return this._processReceivedBlock(block);
+		return this._processReceivedBlock[block.version](block);
 	}
 
 	/**
@@ -883,7 +893,7 @@ class Blocks extends EventEmitter {
 		await this.deleteLastBlockAndGet();
 
 		try {
-			await this._processReceivedBlock(block);
+			await this._processReceivedBlock[block.version](block);
 		} catch (error) {
 			this.logger.error(
 				`Failed to apply newly received block with id: ${
@@ -891,7 +901,9 @@ class Blocks extends EventEmitter {
 				}, restoring previous block ${previousLastBlock.id}`
 			);
 
-			await this._processReceivedBlock(previousLastBlock);
+			await this._processReceivedBlock[previousLastBlock.version](
+				previousLastBlock
+			);
 		}
 	}
 
