@@ -16,40 +16,31 @@
 
 const { ConsensusManager } = require('./consensus_manager');
 
-const blockHeaderSchema = require('./block_header_schema');
-const { validate } = require('../../../../src/controller/validator');
-
-/**
- * Validate schema of block header
- *
- * @param {BlockHeader} blockHeader
- * @return {boolean}
- */
-const validateBlockHeader = blockHeader =>
-	validate(blockHeaderSchema, blockHeader);
-
 const KEYS = {
 	FINALIZED_HEIGHT: 'BFT.finalizedHeight',
 };
 
-const TWO_ROUNDS = 101 * 2;
+const extractBFTBlockHeaderFromBlock = block => ({
+	blockId: block.id,
+	height: block.height,
+	maxHeightPreviouslyForged: block.maxHeightPreviouslyForged,
+	prevotedConfirmedUptoHeight: block.prevotedConfirmedUptoHeight,
+	delegatePublicKey: block.generatorPublicKey,
+	activeSinceRound: 0, // TODO: Link the new DPOS with BFT here
+});
 
-const extractBlockHeaderFromBlock = block => {
-	if (block.version !== 2) {
-		return null;
-	}
-
-	return {
-		blockId: block.id,
-		height: block.height,
-		maxHeightPreviouslyForged: block.maxHeightPreviouslyForged,
-		prevotedConfirmedUptoHeight: block.prevotedConfirmedUptoHeight,
-		delegatePublicKey: block.generatorPublicKey,
-		activeSinceRound: 0, // TODO: Link the new DPOS with BFT here
-	};
-};
-
+/**
+ * BFT class responsible to hold integration logic for consensus manager with the framework
+ */
 class BFT {
+	/**
+	 * Initialize the BFT module
+	 *
+	 * @param {Object} storage - Storage component instance
+	 * @param {Object} logger - Logger component instance
+	 * @param {integer} activeDelegates - Number of delegates
+	 * @param {integer} startingHeight - The height at which BFT consensus initialize
+	 */
 	constructor({ storage, logger, activeDelegates, startingHeight }) {
 		this.consensusManager = null;
 
@@ -59,64 +50,99 @@ class BFT {
 			activeDelegates,
 			startingHeight,
 		};
+
+		this.BlockEntity = this.storage.entities.Block;
+		this.ChainMetaEntity = this.storage.entities.ChainMeta;
 	}
 
+	/**
+	 * Initialize the BFT module
+	 *
+	 * @return {Promise<void>}
+	 */
 	async init() {
-		try {
-			// Initialize the finality manager
-			// =====================================
+		const finalizedHeight = await this._initConsensusManager();
+		const lastBlockHeight = await this._getLastBlockHeight();
 
-			// Check what finalized height was stored last time
-			const finalizedHeightStored =
-				parseInt(
-					await this.storage.entities.ChainMeta.getKey(KEYS.FINALIZED_HEIGHT)
-				) || 0;
+		const loadFromHeight = Math.max(
+			finalizedHeight,
+			lastBlockHeight - this.constants.activeDelegates * 2,
+			this.constants.startingHeight
+		);
 
-			// Check BFT migration height
-			// https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#backwards-compatibility
-			const bftMigrationHeight = this.constants.startingHeight - TWO_ROUNDS;
+		await this.loadBlocks({
+			fromHeight: loadFromHeight,
+			tillHeight: lastBlockHeight,
+		});
+	}
 
-			// Choose
-			const finalizedHeight = Math.max(
-				finalizedHeightStored,
-				bftMigrationHeight
+	/**
+	 * Initialize the consensus manager and return the finalize height
+	 *
+	 * @return {Promise<number>} - Return the finalize height
+	 * @private
+	 */
+	async _initConsensusManager() {
+		// Check what finalized height was stored last time
+		const finalizedHeightStored =
+			parseInt(await this.ChainMetaEntity.getKey(KEYS.FINALIZED_HEIGHT)) || 0;
+
+		// Check BFT migration height
+		// https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#backwards-compatibility
+		const bftMigrationHeight =
+			this.constants.startingHeight - this.constants.activeDelegates * 2;
+
+		// Choose max between stored finalized height or migration height
+		const finalizedHeight = Math.max(finalizedHeightStored, bftMigrationHeight);
+
+		// Initialize consensus manager
+		this.consensusManager = new ConsensusManager({
+			finalizedHeight,
+			activeDelegates: this.constants.activeDelegates,
+		});
+
+		return finalizedHeight;
+	}
+
+	/**
+	 * Get the last block height from storage
+	 *
+	 * @return {Promise<number>}
+	 * @private
+	 */
+	async _getLastBlockHeight() {
+		const lastBlock = await this.BlockEntity.get(
+			{},
+			{ limit: 1, sort: 'height:desc' }
+		);
+		return lastBlock.length ? lastBlock[0].height : 0;
+	}
+
+	/**
+	 * Load blocks into consensus manager fetching from storage
+	 *
+	 * @param {integer} fromHeight - The start height to fetch and load
+	 * @param {integer} tillHeight - The end height to fetch and load
+	 * @return {Promise<void>}
+	 */
+	async loadBlocks({ fromHeight, tillHeight }) {
+		const rows = await this.BlockEntity.get(
+			{ height_gte: fromHeight, height_lte: tillHeight },
+			{ limit: null, sort: 'height:asc' }
+		);
+
+		rows.forEach(row => {
+			if (row.version !== '2') return;
+
+			this.consensusManager.addBlockHeader(
+				exportedInterface.extractBFTBlockHeaderFromBlock(row)
 			);
-
-			this.consensusManager = new ConsensusManager({
-				finalizedHeight,
-				activeDelegates: this.constants.activeDelegates,
-			});
-
-			const lastBlock = await this.storage.entities.Block.get(
-				{},
-				{ limit: 1, sort: 'height:desc' }
-			);
-			const lastBlockHeight = lastBlock.length ? lastBlock[0].height : 0;
-
-			const loadUptoHeight = Math.max(
-				lastBlockHeight - TWO_ROUNDS,
-				finalizedHeight
-			);
-
-			const rows = await this.storage.entities.Block.get(
-				{ height_gte: loadUptoHeight },
-				{ limit: 1, sort: 'height:asc' }
-			);
-
-			rows.map(row =>
-				this._finalityManager.addBlockHeader(
-					exportedInterface.extractBlockHeaderFromBlock(row)
-				)
-			);
-		} catch (error) {
-			this.logger.error(error, 'Unable to init BFT module');
-		}
+		});
 	}
 }
 
 const exportedInterface = {
-	validateBlockHeader,
-	extractBlockHeaderFromBlock,
+	extractBFTBlockHeaderFromBlock,
 	BFT,
 };
 
