@@ -88,7 +88,6 @@ import {
 	EVENT_REQUEST_RECEIVED,
 	EVENT_UNBAN_PEER,
 	EVENT_UPDATED_PEER_INFO,
-	MAX_PEER_LIST_BATCH_SIZE,
 	PeerPool,
 } from './peer_pool';
 import { checkPeerCompatibility, sanitizePeerLists } from './validation';
@@ -722,8 +721,20 @@ export class P2P extends EventEmitter {
 	}
 
 	private _handleGetPeersRequest(request: P2PRequest): void {
-		// TODO later: Remove fields that are specific to the current Lisk protocol.
-		const peers = this._pickRandomPeers(MAX_PEER_LIST_BATCH_SIZE).map(
+		// TODO: Get this from peerbook
+		const knownPeers = [
+			...this._newPeers.values(),
+			...this._triedPeers.values(),
+		];
+		/* tslint:disable no-magic-numbers*/
+		const min = Math.ceil(Math.min(1000, knownPeers.length * 0.25));
+		const max = Math.floor(Math.min(1000, knownPeers.length * 0.5));
+		const random = Math.floor(Math.random() * (max - min + 1) + min);
+		const randomPeerCount = Math.max(random, Math.min(100, knownPeers.length));
+		/* tslint:enable no-magic-numbers*/
+
+		// TODO: Remove fields that are specific to the current Lisk protocol.
+		const peers = this._pickRandomPeers(randomPeerCount).map(
 			(peerInfo: P2PPeerInfo): ProtocolPeerInfo => {
 				const { ipAddress, ...peerInfoWithoutIp } = peerInfo;
 
