@@ -13,7 +13,7 @@
  *
  */
 import * as crypto from 'crypto';
-import { bufferToHex, hexToBuffer } from './buffer';
+import { hexToBuffer } from './buffer';
 
 const cryptoHashSha256 = (data: Buffer): Buffer => {
 	const dataHash = crypto.createHash('sha256');
@@ -42,14 +42,4 @@ export const hash = (data: Buffer | string, format?: string): Buffer => {
 	throw new Error(
 		'Unsupported data format. Currently only Buffers or `hex` and `utf8` strings are supported.',
 	);
-};
-
-export const verifyChecksum = (
-	data: Buffer | string,
-	checksum: string,
-): boolean => {
-	const dataHash = hash(data);
-	const hex = bufferToHex(dataHash);
-
-	return hex === checksum;
 };
