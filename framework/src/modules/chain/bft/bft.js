@@ -14,6 +14,7 @@
 
 'use strict';
 
+const EventEmitter = require('events');
 const assert = require('assert');
 const { HeadersList } = require('./headers_list');
 const blockHeaderSchema = require('./block_header_schema');
@@ -39,8 +40,9 @@ const EVENT_BLOCK_FINALIZED = 'EVENT_BLOCK_FINALIZED';
  * @property {string} delegatePublicKey
  */
 
-class BFT {
+class BFT extends EventEmitter {
 	constructor({ finalizedHeight, activeDelegates } = {}) {
+		super();
 		assert(finalizedHeight !== undefined, 'Must provide finalizedHeight');
 		assert(activeDelegates !== undefined, 'Must provide activeDelegates');
 		assert(activeDelegates > 0, 'Must provide a positive activeDelegates');
