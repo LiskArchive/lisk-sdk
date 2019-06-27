@@ -29,7 +29,7 @@ const { Peers } = require('./peers');
 const { TransactionInterfaceAdapter } = require('./interface_adapters');
 const { TransactionPool } = require('./transaction_pool');
 const { Dpos } = require('./dpos');
-const { EVENT_BLOCK_FINALIZED } = require('./bft');
+const { EVENT_BLOCK_FINALIZED, BFT } = require('./bft');
 const { Rounds } = require('./rounds');
 const {
 	BlockSlots,
@@ -332,6 +332,10 @@ module.exports = class Chain {
 			logger: this.logger,
 			slots: this.slots,
 		});
+		this.bft = new BFT({
+			finalizedHeight: 1,
+			activeDelegates: 101,
+		});
 		this.scope.modules.rounds = this.rounds;
 		this.blocks = new Blocks({
 			logger: this.logger,
@@ -537,7 +541,6 @@ module.exports = class Chain {
 				);
 			}
 			this.channel.publish('chain:blocks:change', block);
-			this.dpos.onNewBlock(block);
 		});
 
 		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {
