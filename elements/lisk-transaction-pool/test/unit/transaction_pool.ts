@@ -299,9 +299,14 @@ describe('transaction pool', () => {
 		const checkForTransactionUnprocessableTransactionId = sandbox.stub();
 		const checkForTransactionProcessableTransactionId = sandbox.stub();
 
-		const checkTransactionsResponse: checkTransactions.CheckTransactionsResponseWithPassAndFail = {
+		const checkTransactionsResponseWithFailedTransactions: checkTransactions.CheckTransactionsResponseWithPassAndFail = {
 			passedTransactions: processableTransactions,
 			failedTransactions: unprocessableTransactions,
+		};
+
+		const checkTransactionsResponseWithOnlyPassedTransactions: checkTransactions.CheckTransactionsResponseWithPassAndFail = {
+			passedTransactions: processableTransactions,
+			failedTransactions: [],
 		};
 
 		beforeEach(async () => {
@@ -330,10 +335,12 @@ describe('transaction pool', () => {
 			processVerifiedTransactions = (transactionPool as any)[
 				'processVerifiedTransactions'
 			].bind(transactionPool);
-			checkTransactionsWithPassAndFailStub.resolves(checkTransactionsResponse);
 		});
 
 		it('should not call checkTransactionsWithPassAndFail if the size of the ready queue is bigger than verifiedTransactionsLimitPerProcessing', async () => {
+			checkTransactionsWithPassAndFailStub.resolves(
+				checkTransactionsResponseWithOnlyPassedTransactions,
+			);
 			(transactionPool.queues.ready.size as sinon.SinonStub).returns(
 				verifiedTransactionsLimitPerProcessing + 1,
 			);
@@ -342,6 +349,9 @@ describe('transaction pool', () => {
 		});
 
 		it('should not call checkTransactionsWithPassAndFail if verified and pending queues are empty', async () => {
+			checkTransactionsWithPassAndFailStub.resolves(
+				checkTransactionsResponseWithOnlyPassedTransactions,
+			);
 			(transactionPool.queues.verified.size as sinon.SinonStub).returns(0);
 			(transactionPool.queues.pending.sizeBy as sinon.SinonStub).returns(0);
 			await processVerifiedTransactions();
@@ -349,6 +359,9 @@ describe('transaction pool', () => {
 		});
 
 		it('should return empty passedTransactions, failedTransactions arrays if checkTransactionsWithPassAndFail is not called', async () => {
+			checkTransactionsWithPassAndFailStub.resolves(
+				checkTransactionsResponseWithOnlyPassedTransactions,
+			);
 			(transactionPool.queues.ready.size as sinon.SinonStub).returns(
 				verifiedTransactionsLimitPerProcessing + 1,
 			);
@@ -361,6 +374,9 @@ describe('transaction pool', () => {
 		});
 
 		it('should remove unprocessable transactions from the verified, pending and ready queues', async () => {
+			checkTransactionsWithPassAndFailStub.resolves(
+				checkTransactionsResponseWithFailedTransactions,
+			);
 			checkerStubs.checkTransactionForId
 				.onCall(0)
 				.returns(checkForTransactionUnprocessableTransactionId);
@@ -386,6 +402,9 @@ describe('transaction pool', () => {
 		});
 
 		it('should call checkTransactionsWithPassAndFail with transactions and processTransactionsStub', async () => {
+			checkTransactionsWithPassAndFailStub.resolves(
+				checkTransactionsResponseWithOnlyPassedTransactions,
+			);
 			await processVerifiedTransactions();
 			expect(checkTransactionsWithPassAndFailStub.getCall(0)).to.be.calledWith(
 				transactionsToProcess,
@@ -393,7 +412,42 @@ describe('transaction pool', () => {
 			);
 		});
 
-		it('should move processable transactions to the ready queue', async () => {
+		it('should not move transactions to the ready queue in case some transaction failed', async () => {
+			checkTransactionsWithPassAndFailStub.resolves(
+				checkTransactionsResponseWithFailedTransactions,
+			);
+			checkerStubs.checkTransactionForId
+				.onCall(1)
+				.returns(checkForTransactionProcessableTransactionId);
+			checkerStubs.checkTransactionForId
+				.onCall(2)
+				.returns(checkForTransactionProcessableTransactionId);
+			checkerStubs.checkTransactionForId
+				.onCall(3)
+				.returns(checkForTransactionProcessableTransactionId);
+			(transactionPool.queues.verified.removeFor as sinon.SinonStub)
+				.onCall(1)
+				.returns(processableTransactions);
+			(transactionPool.queues.pending.removeFor as sinon.SinonStub)
+				.onCall(1)
+				.returns(processableTransactions);
+			(transactionPool.queues.ready.removeFor as sinon.SinonStub)
+				.onCall(1)
+				.returns(processableTransactions);
+			await processVerifiedTransactions();
+			expect(transactionPool.queues.verified.removeFor as sinon.SinonStub).to.be
+				.calledOnce;
+			expect(transactionPool.queues.pending.removeFor as sinon.SinonStub).to.be
+				.calledOnce;
+			expect(transactionPool.queues.ready.removeFor as sinon.SinonStub).to.be
+				.calledOnce;
+			expect(transactionPool.queues.ready.enqueueMany).to.not.be.called;
+		});
+
+		it('should move transactions to the ready queue if all transaction passed', async () => {
+			checkTransactionsWithPassAndFailStub.resolves(
+				checkTransactionsResponseWithOnlyPassedTransactions,
+			);
 			checkerStubs.checkTransactionForId
 				.onCall(1)
 				.returns(checkForTransactionProcessableTransactionId);
@@ -441,6 +495,9 @@ describe('transaction pool', () => {
 		});
 
 		it('should not move processable transactions to the ready queue which no longer exist in the ready or verified queue', async () => {
+			checkTransactionsWithPassAndFailStub.resolves(
+				checkTransactionsResponseWithOnlyPassedTransactions,
+			);
 			const processableTransactionsExistingInVerifiedQueue = processableTransactions.slice(
 				1,
 			);
@@ -457,8 +514,11 @@ describe('transaction pool', () => {
 		});
 
 		it('should return passed and failed transactions', async () => {
+			checkTransactionsWithPassAndFailStub.resolves(
+				checkTransactionsResponseWithFailedTransactions,
+			);
 			expect(await processVerifiedTransactions()).to.deep.equal(
-				checkTransactionsResponse,
+				checkTransactionsResponseWithFailedTransactions,
 			);
 		});
 	});

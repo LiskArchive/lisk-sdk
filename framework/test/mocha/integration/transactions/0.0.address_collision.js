@@ -113,10 +113,12 @@ describe('integration test (type 0) - address collision', () => {
 
 		describe('after forging one block', () => {
 			before(done => {
-				localCommon.forge(library, (err, res) => {
-					expect(err).to.be.null;
-					expect(res).to.be.undefined;
-					done();
+				localCommon.fillPool(library, () => {
+					localCommon.forge(library, (err, res) => {
+						expect(err).to.be.null;
+						expect(res).to.be.undefined;
+						done();
+					});
 				});
 			});
 
