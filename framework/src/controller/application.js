@@ -16,7 +16,6 @@
 
 const assert = require('assert');
 const {
-	BaseTransaction,
 	TransferTransaction,
 	SecondSignatureTransaction,
 	DelegateTransaction,
@@ -236,11 +235,6 @@ class Application {
 	 */
 	registerTransaction(Transaction, { matcher } = {}) {
 		assert(Transaction, 'Transaction implementation is required');
-
-		assert(
-			Transaction.prototype instanceof BaseTransaction,
-			'Transaction must extend BaseTransaction.'
-		);
 
 		assert(
 			Number.isInteger(Transaction.TYPE),
