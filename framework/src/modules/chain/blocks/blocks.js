@@ -27,6 +27,7 @@ const {
 	calculateMilestone,
 } = require('./block_reward');
 const forkChoiceRule = require('./fork_choice_rule');
+const { CHAIN_SWITCH_MODES } = require('../bft/bft');
 
 const EVENT_NEW_BLOCK = 'EVENT_NEW_BLOCK';
 const EVENT_DELETE_BLOCK = 'EVENT_DELETE_BLOCK';
@@ -42,6 +43,7 @@ class Blocks extends EventEmitter {
 		// Unique requirements
 		genesisBlock,
 		slots,
+		bft,
 		exceptions,
 		// Modules
 		roundsModule,
@@ -74,6 +76,7 @@ class Blocks extends EventEmitter {
 		this.genesisBlock = genesisBlock;
 		this.interfaceAdapters = interfaceAdapters;
 		this.slots = slots;
+		this.bft = bft;
 		this.sequence = sequence;
 		this.blockRewardArgs = {
 			distance: rewardDistance,
@@ -551,7 +554,7 @@ class Blocks extends EventEmitter {
 		if (forkChoiceRule.isDifferentChain(this._lastBlock, block)) {
 			// Case 5: received block has priority. Move to a different chain.
 			// TODO: Move to a different chain
-			return this._handleMovingToDifferentChain();
+			return this._handleMovingToDifferentChain(this._lastBlock, block);
 		}
 
 		// Discard newly received block
@@ -809,10 +812,29 @@ class Blocks extends EventEmitter {
 	 * Move to a different chain
 	 * @private
 	 */
-	// eslint-disable-next-line class-methods-use-this
-	_handleMovingToDifferentChain() {
-		// TODO: Move to a different chain.
-		// Determine which method to use to move to a different chain: Block Sync Mechanism or Fast Chain Switching Mechanism
+	async _handleMovingToDifferentChain(lastBlock, block) {
+		try {
+			const result = this.bft.getChainSwitchingMode(lastBlock, block);
+			if (result === CHAIN_SWITCH_MODES.NO) {
+				return this._handleDiscardedBlock(block);
+			}
+
+			if (result === CHAIN_SWITCH_MODES.FAST) {
+				return this._handleFastChainSwitching(lastBlock, block);
+			}
+
+			if (result === CHAIN_SWITCH_MODES.SYNC) {
+				return this._handleChainSwitchingViaSync(lastBlock, block);
+			}
+
+			return true;
+		} catch (error) {
+			// 1. Step: Validate new tip of chain\
+			// If any check fails, the peer that sent block B is banned and the node aborts the process of moving to a different chain.
+
+			// TODO: Ban peer
+			throw error;
+		}
 	}
 
 	/**
@@ -834,6 +856,27 @@ class Blocks extends EventEmitter {
 			}`
 		);
 	}
+
+	/**
+	 * Handle the fast switching mechanism
+	 *
+	 * @param lastBlock
+	 * @param block
+	 * @return {Promise<void>}
+	 * @private
+	 */
+	// eslint-disable-next-line no-unused-vars, class-methods-use-this, no-empty-function
+	async _handleFastChainSwitching(lastBlock, block) {}
+
+	/**
+	 * Handle chain switching via sync
+	 * @param lastBlock
+	 * @param block
+	 * @return {Promise<void>}
+	 * @private
+	 */
+	// eslint-disable-next-line no-unused-vars, class-methods-use-this, no-empty-function
+	async _handleChainSwitchingViaSync(lastBlock, block) {}
 }
 
 module.exports = {
