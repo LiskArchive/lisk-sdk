@@ -240,6 +240,10 @@ export abstract class BaseTransaction {
 		return transaction;
 	}
 
+	public stringify(): string {
+		return JSON.stringify(this.toJSON());
+	}
+
 	public isReady(): boolean {
 		return (
 			this._multisignatureStatus === MultisignatureStatus.READY ||
