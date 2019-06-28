@@ -48,6 +48,7 @@ export const transferAssetFormatSchema = {
 export class TransferTransaction extends BaseTransaction {
 	public readonly asset: TransferAsset;
 	public static TYPE = 0;
+	public static FEE = new BigNum(TRANSFER_FEE);
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
@@ -104,14 +105,14 @@ export class TransferTransaction extends BaseTransaction {
 			);
 		}
 
-		if (!this.fee.eq(TRANSFER_FEE)) {
+		if (!this.fee.eq(TransferTransaction.FEE)) {
 			errors.push(
 				new TransactionError(
-					`Fee must be equal to ${TRANSFER_FEE}`,
+					`Fee must be equal to ${TransferTransaction.FEE}`,
 					this.id,
 					'.fee',
 					this.fee.toString(),
-					TRANSFER_FEE,
+					TransferTransaction.FEE.toString(),
 				),
 			);
 		}
