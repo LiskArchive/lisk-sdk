@@ -19,11 +19,11 @@ const {
 } = require('../../../../../../mocha/fixtures/blocks');
 
 const {
-	ConsensusManager,
-} = require('../../../../../../../src/modules/chain/bft/consensus_manager');
+	FinalityManager,
+} = require('../../../../../../../src/modules/chain/bft/finality_manager');
 const bftModule = require('../../../../../../../src/modules/chain/bft/bft');
 
-jest.mock('../../../../../../../src/modules/chain/bft/consensus_manager');
+jest.mock('../../../../../../../src/modules/chain/bft/finality_manager');
 
 const { BFT, extractBFTBlockHeaderFromBlock } = bftModule;
 
@@ -88,7 +88,7 @@ describe('bft', () => {
 			it('should assign all parameters correctly', async () => {
 				const bft = new BFT(bftParams);
 
-				expect(bft.consensusManager).toBeNull();
+				expect(bft.finalityManager).toBeNull();
 				expect(bft.storage).toBe(storageMock);
 				expect(bft.logger).toBe(loggerMock);
 				expect(bft.constants).toEqual({ activeDelegates, startingHeight });
@@ -104,7 +104,7 @@ describe('bft', () => {
 				bft = new BFT(bftParams);
 
 				jest
-					.spyOn(bft, '_initConsensusManager')
+					.spyOn(bft, '_initFinalityManager')
 					.mockImplementation(() => jest.fn());
 
 				jest
@@ -114,10 +114,10 @@ describe('bft', () => {
 				jest.spyOn(bft, 'loadBlocks').mockImplementation(() => jest.fn());
 			});
 
-			it('should invoke _initConsensusManager()', async () => {
+			it('should invoke _initFinalityManager()', async () => {
 				await bft.init();
 
-				expect(bft._initConsensusManager).toHaveBeenCalledTimes(1);
+				expect(bft._initFinalityManager).toHaveBeenCalledTimes(1);
 			});
 
 			it('should invoke _getLastBlockHeight()', async () => {
@@ -131,7 +131,7 @@ describe('bft', () => {
 				const finalizedHeight = 500;
 				const lastBlockHeight = 600;
 
-				bft._initConsensusManager.mockReturnValue({ finalizedHeight });
+				bft._initFinalityManager.mockReturnValue({ finalizedHeight });
 				bft._getLastBlockHeight.mockReturnValue(lastBlockHeight);
 
 				await bft.init();
@@ -148,7 +148,7 @@ describe('bft', () => {
 				const finalizedHeight = 200;
 				const lastBlockHeight = 600;
 
-				bft._initConsensusManager.mockReturnValue({ finalizedHeight });
+				bft._initFinalityManager.mockReturnValue({ finalizedHeight });
 				bft._getLastBlockHeight.mockReturnValue(lastBlockHeight);
 
 				await bft.init();
@@ -165,7 +165,7 @@ describe('bft', () => {
 				const finalizedHeight = 200;
 				const lastBlockHeight = 600;
 
-				bft._initConsensusManager.mockReturnValue({ finalizedHeight });
+				bft._initFinalityManager.mockReturnValue({ finalizedHeight });
 				bft._getLastBlockHeight.mockReturnValue(lastBlockHeight);
 
 				await bft.init();
@@ -178,19 +178,19 @@ describe('bft', () => {
 			});
 		});
 
-		describe('_initConsensusManager()', () => {
+		describe('_initFinalityManager()', () => {
 			it('should call ChainMetaEntity.getKey to get stored finalized height', async () => {
 				const bft = new BFT(bftParams);
-				const result = await bft._initConsensusManager();
+				const result = await bft._initFinalityManager();
 
 				expect(storageMock.entities.ChainMeta.getKey).toHaveBeenCalledTimes(1);
 				expect(storageMock.entities.ChainMeta.getKey).toHaveBeenCalledWith(
 					'BFT.finalizedHeight'
 				);
-				expect(result).toBeInstanceOf(ConsensusManager);
+				expect(result).toBeInstanceOf(FinalityManager);
 			});
 
-			it('should initialize consensusManager with stored FINALIZED_HEIGHT if its highest', async () => {
+			it('should initialize finalityManager with stored FINALIZED_HEIGHT if its highest', async () => {
 				const finalizedHeight = 500;
 				const startingHeightLower = 300;
 				storageMock.entities.ChainMeta.getKey.mockReturnValue(finalizedHeight);
@@ -200,17 +200,17 @@ describe('bft', () => {
 					...{ startingHeight: startingHeightLower },
 				});
 
-				const result = await bft._initConsensusManager();
+				const result = await bft._initFinalityManager();
 
-				expect(ConsensusManager).toHaveBeenCalledTimes(1);
-				expect(ConsensusManager).toHaveBeenCalledWith({
+				expect(FinalityManager).toHaveBeenCalledTimes(1);
+				expect(FinalityManager).toHaveBeenCalledWith({
 					activeDelegates,
 					finalizedHeight,
 				});
-				expect(result).toBeInstanceOf(ConsensusManager);
+				expect(result).toBeInstanceOf(FinalityManager);
 			});
 
-			it('should initialize consensusManager with stored startingHeight - TWO_ROUNDS if its highest', async () => {
+			it('should initialize finalityManager with stored startingHeight - TWO_ROUNDS if its highest', async () => {
 				const finalizedHeight = 500;
 				const startingHeightHigher = 800;
 				storageMock.entities.ChainMeta.getKey.mockReturnValue(finalizedHeight);
@@ -220,14 +220,14 @@ describe('bft', () => {
 					...{ startingHeight: startingHeightHigher },
 				});
 
-				const result = await bft._initConsensusManager();
+				const result = await bft._initFinalityManager();
 
-				expect(ConsensusManager).toHaveBeenCalledTimes(1);
-				expect(ConsensusManager).toHaveBeenCalledWith({
+				expect(FinalityManager).toHaveBeenCalledTimes(1);
+				expect(FinalityManager).toHaveBeenCalledWith({
 					activeDelegates,
 					finalizedHeight: startingHeightHigher - activeDelegates * 2,
 				});
-				expect(result).toBeInstanceOf(ConsensusManager);
+				expect(result).toBeInstanceOf(FinalityManager);
 			});
 		});
 
@@ -334,7 +334,7 @@ describe('bft', () => {
 				});
 			});
 
-			it('should call consensusManager.addBlockHeader for every header', async () => {
+			it('should call finalityManager.addBlockHeader for every header', async () => {
 				const blocks = [
 					blockFixture({ version: '2', height: 8, id: '12345acf' }),
 				];
@@ -344,8 +344,8 @@ describe('bft', () => {
 
 				await bft.loadBlocks({ fromHeight, tillHeight });
 
-				expect(bft.consensusManager.addBlockHeader).toHaveBeenCalledTimes(1);
-				expect(bft.consensusManager.addBlockHeader).toHaveBeenCalledWith(
+				expect(bft.finalityManager.addBlockHeader).toHaveBeenCalledTimes(1);
+				expect(bft.finalityManager.addBlockHeader).toHaveBeenCalledWith(
 					blockHeader
 				);
 			});

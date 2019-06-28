@@ -24,8 +24,8 @@ const {
 } = require('../../../../../../../src/modules/chain/bft/errors');
 const utils = require('../../../../../../../src/modules/chain/bft/utils');
 const {
-	ConsensusManager,
-} = require('../../../../../../../src/modules/chain/bft/consensus_manager');
+	FinalityManager,
+} = require('../../../../../../../src/modules/chain/bft/finality_manager');
 
 jest.mock('../../../../../../../src/modules/chain/bft/utils');
 
@@ -105,8 +105,8 @@ const generateHeaderInformation = (data, threshold, lastBlockData) => {
 	};
 };
 
-describe('consensus_manager', () => {
-	describe('ConsensusManager', () => {
+describe('finality_manager', () => {
+	describe('FinalityManager', () => {
 		let bft;
 		const finalizedHeight = 0;
 		const activeDelegates = 101;
@@ -116,7 +116,7 @@ describe('consensus_manager', () => {
 		const maxHeaders = 505;
 
 		beforeEach(async () => {
-			bft = new ConsensusManager({ finalizedHeight, activeDelegates });
+			bft = new FinalityManager({ finalizedHeight, activeDelegates });
 			jest.spyOn(bft.headers, 'top');
 		});
 
@@ -127,7 +127,7 @@ describe('consensus_manager', () => {
 
 		describe('constructor', () => {
 			it('should initialize the object correctly', async () => {
-				expect(bft).toBeInstanceOf(ConsensusManager);
+				expect(bft).toBeInstanceOf(FinalityManager);
 				expect(bft.activeDelegates).toEqual(activeDelegates);
 				expect(bft.preVoteThreshold).toEqual(preVoteThreshold);
 				expect(bft.preCommitThreshold).toEqual(preCommitThreshold);
@@ -136,20 +136,20 @@ describe('consensus_manager', () => {
 			});
 
 			it('should throw error if finalizedHeight is not provided', async () => {
-				expect(() => new ConsensusManager()).toThrow(
+				expect(() => new FinalityManager()).toThrow(
 					'Must provide finalizedHeight'
 				);
 			});
 
 			it('should throw error if activeDelegates is not provided', async () => {
-				expect(() => new ConsensusManager({ finalizedHeight })).toThrow(
+				expect(() => new FinalityManager({ finalizedHeight })).toThrow(
 					'Must provide activeDelegates'
 				);
 			});
 
 			it('should throw error if activeDelegates is not positive', async () => {
 				expect(
-					() => new ConsensusManager({ finalizedHeight, activeDelegates: 0 })
+					() => new FinalityManager({ finalizedHeight, activeDelegates: 0 })
 				).toThrow('Must provide a positive activeDelegates');
 			});
 		});
@@ -331,7 +331,7 @@ describe('consensus_manager', () => {
 					const data = loadCSVSimulationData(
 						path.join(__dirname, './scenarios/11_delegates.csv')
 					);
-					const myBft = new ConsensusManager({
+					const myBft = new FinalityManager({
 						finalizedHeight: 0,
 						activeDelegates: 11,
 					});
@@ -369,7 +369,7 @@ describe('consensus_manager', () => {
 							'./scenarios/5_delegates_switched_completely.csv'
 						)
 					);
-					const myBft = new ConsensusManager({
+					const myBft = new FinalityManager({
 						finalizedHeight: 0,
 						activeDelegates: 5,
 					});
@@ -410,7 +410,7 @@ describe('consensus_manager', () => {
 					path.join(__dirname, './scenarios/11_delegates.csv')
 				);
 				let blockData;
-				const myBft = new ConsensusManager({
+				const myBft = new FinalityManager({
 					finalizedHeight: 0,
 					activeDelegates: 11,
 				});

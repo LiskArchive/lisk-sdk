@@ -35,7 +35,7 @@ const {
  * @property {string} delegatePublicKey
  */
 
-class ConsensusManager {
+class FinalityManager {
 	constructor({ finalizedHeight, activeDelegates } = {}) {
 		assert(finalizedHeight !== undefined, 'Must provide finalizedHeight');
 		assert(activeDelegates !== undefined, 'Must provide activeDelegates');
@@ -293,5 +293,5 @@ class ConsensusManager {
 }
 
 module.exports = {
-	ConsensusManager,
+	FinalityManager,
 };

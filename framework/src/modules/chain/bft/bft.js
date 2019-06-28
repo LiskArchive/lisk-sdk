@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { ConsensusManager } = require('./consensus_manager');
+const { FinalityManager } = require('./finality_manager');
 
 const KEYS = {
 	FINALIZED_HEIGHT: 'BFT.finalizedHeight',
@@ -42,7 +42,7 @@ class BFT {
 	 * @param {integer} startingHeight - The height at which BFT consensus initialize
 	 */
 	constructor({ storage, logger, activeDelegates, startingHeight }) {
-		this.consensusManager = null;
+		this.finalityManager = null;
 
 		this.logger = logger;
 		this.storage = storage;
@@ -61,8 +61,8 @@ class BFT {
 	 * @return {Promise<void>}
 	 */
 	async init() {
-		this.consensusManager = await this._initConsensusManager();
-		const finalizedHeight = this.consensusManager.finalizedHeight;
+		this.finalityManager = await this._initFinalityManager();
+		const finalizedHeight = this.finalityManager.finalizedHeight;
 		const lastBlockHeight = await this._getLastBlockHeight();
 
 		const loadFromHeight = Math.max(
@@ -83,7 +83,7 @@ class BFT {
 	 * @return {Promise<number>} - Return the finalize height
 	 * @private
 	 */
-	async _initConsensusManager() {
+	async _initFinalityManager() {
 		// Check what finalized height was stored last time
 		const finalizedHeightStored =
 			parseInt(await this.ChainMetaEntity.getKey(KEYS.FINALIZED_HEIGHT)) || 0;
@@ -97,7 +97,7 @@ class BFT {
 		const finalizedHeight = Math.max(finalizedHeightStored, bftMigrationHeight);
 
 		// Initialize consensus manager
-		return new ConsensusManager({
+		return new FinalityManager({
 			finalizedHeight,
 			activeDelegates: this.constants.activeDelegates,
 		});
@@ -133,7 +133,7 @@ class BFT {
 		rows.forEach(row => {
 			if (row.version !== '2') return;
 
-			this.consensusManager.addBlockHeader(
+			this.finalityManager.addBlockHeader(
 				exportedInterface.extractBFTBlockHeaderFromBlock(row)
 			);
 		});
