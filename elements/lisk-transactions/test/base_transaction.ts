@@ -47,6 +47,7 @@ describe('Base transaction class', () => {
 	);
 
 	let validTestTransaction: BaseTransaction;
+	let transactionWithDefaultValues: BaseTransaction;
 	let validSecondSignatureTestTransaction: BaseTransaction;
 	let validMultisignatureTestTransaction: BaseTransaction;
 	let storeAccountGetStub: sinon.SinonStub;
@@ -54,6 +55,7 @@ describe('Base transaction class', () => {
 
 	beforeEach(async () => {
 		validTestTransaction = new TestTransaction(defaultTransaction);
+		transactionWithDefaultValues = new TestTransaction({});
 		validSecondSignatureTestTransaction = new TestTransaction(
 			defaultSecondSignatureTransaction,
 		);
@@ -73,6 +75,33 @@ describe('Base transaction class', () => {
 			expect(validTestTransaction)
 				.to.be.an('object')
 				.and.be.instanceof(BaseTransaction);
+		});
+
+		it('should set default values', async () => {
+			expect(transactionWithDefaultValues.amount.toString()).to.be.eql('0');
+			expect(transactionWithDefaultValues.fee.toString()).to.be.eql('0');
+			expect(transactionWithDefaultValues.recipientId).to.be.eql('');
+			expect(transactionWithDefaultValues.recipientPublicKey).to.be.undefined;
+			expect(transactionWithDefaultValues.timestamp).to.be.eql(0);
+			expect(transactionWithDefaultValues.type).to.be.eql(0);
+			expect(transactionWithDefaultValues.confirmations).to.be.undefined;
+			expect(transactionWithDefaultValues.blockId).to.be.undefined;
+			expect(transactionWithDefaultValues.height).to.be.undefined;
+			expect(transactionWithDefaultValues.receivedAt).to.be.undefined;
+			expect(transactionWithDefaultValues.relays).to.be.undefined;
+			expect(transactionWithDefaultValues.signSignature).to.be.undefined;
+			expect(() => transactionWithDefaultValues.id).to.throw(
+				'id is required to be set before use',
+			);
+			expect(() => transactionWithDefaultValues.senderId).to.throw(
+				'senderId is required to be set before use',
+			);
+			expect(() => transactionWithDefaultValues.senderPublicKey).to.throw(
+				'senderPublicKey is required to be set before use',
+			);
+			expect(() => transactionWithDefaultValues.signature).to.throw(
+				'signature is required to be set before use',
+			);
 		});
 
 		it('should have amount of type BigNum', async () => {
@@ -861,19 +890,29 @@ describe('Base transaction class', () => {
 
 		describe('when sign is called with passphrase', () => {
 			beforeEach(async () => {
-				validTestTransaction.sign(defaultPassphrase);
+				transactionWithDefaultValues.sign(defaultPassphrase);
 			});
 
 			it('should set signature property', async () => {
-				expect(validTestTransaction.signature).to.equal(defaultSignature);
+				expect(transactionWithDefaultValues.signature).to.equal(
+					defaultSignature,
+				);
 			});
 
 			it('should not set signSignature property', async () => {
-				expect(validTestTransaction.signSignature).to.be.undefined;
+				expect(transactionWithDefaultValues.signSignature).to.be.undefined;
 			});
 
 			it('should set id property', async () => {
-				expect(validTestTransaction.id).not.to.be.empty;
+				expect(transactionWithDefaultValues.id).not.to.be.empty;
+			});
+
+			it('should set senderId property', async () => {
+				expect(transactionWithDefaultValues.senderId).not.to.be.empty;
+			});
+
+			it('should set senderPublicKey property', async () => {
+				expect(transactionWithDefaultValues.senderPublicKey).not.to.be.empty;
 			});
 
 			it('should call signData with the hash result and the passphrase', async () => {
@@ -886,21 +925,34 @@ describe('Base transaction class', () => {
 
 		describe('when sign is called with passphrase and second passphrase', () => {
 			beforeEach(async () => {
-				validTestTransaction.sign(defaultPassphrase, defaultSecondPassphrase);
+				transactionWithDefaultValues.sign(
+					defaultPassphrase,
+					defaultSecondPassphrase,
+				);
 			});
 
 			it('should set signature property', async () => {
-				expect(validTestTransaction.signature).to.equal(defaultSignature);
+				expect(transactionWithDefaultValues.signature).to.equal(
+					defaultSignature,
+				);
 			});
 
 			it('should set signSignature property', async () => {
-				expect(validTestTransaction.signSignature).to.equal(
+				expect(transactionWithDefaultValues.signSignature).to.equal(
 					defaultSecondSignature,
 				);
 			});
 
 			it('should set id property', async () => {
-				expect(validTestTransaction.id).not.to.be.empty;
+				expect(transactionWithDefaultValues.id).not.to.be.empty;
+			});
+
+			it('should set senderId property', async () => {
+				expect(transactionWithDefaultValues.senderId).not.to.be.empty;
+			});
+
+			it('should set senderPublicKey property', async () => {
+				expect(transactionWithDefaultValues.senderPublicKey).not.to.be.empty;
 			});
 
 			it('should call signData with the hash result and the passphrase', async () => {
