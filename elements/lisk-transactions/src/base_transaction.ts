@@ -112,6 +112,7 @@ export abstract class BaseTransaction {
 	public readonly type: number;
 	public readonly containsUniqueData?: boolean;
 	public readonly fee: BigNum;
+	public readonly asset: object;
 	public receivedAt?: Date;
 
 	public static TYPE: number;
@@ -122,8 +123,6 @@ export abstract class BaseTransaction {
 	protected _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.UNKNOWN;
 
-	public abstract assetToJSON(): object;
-	protected abstract assetToBytes(): Buffer;
 	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
 	protected abstract applyAsset(
 		store: StateStore,
@@ -174,6 +173,7 @@ export abstract class BaseTransaction {
 		this.height = tx.height;
 		this.receivedAt = tx.receivedAt ? new Date(tx.receivedAt) : undefined;
 		this.relays = typeof tx.relays === 'number' ? tx.relays : undefined;
+		this.asset = tx.asset || {};
 	}
 
 	public get id(): string {
@@ -540,6 +540,21 @@ export abstract class BaseTransaction {
 			transactionAmount,
 			this.assetToBytes(),
 		]);
+	}
+
+	public assetToJSON(): object {
+		return this.asset;
+	}
+
+	protected assetToBytes(): Buffer {
+		/**
+		 * FixMe: The following method is not sufficient enough for more sophisticated cases,
+		 * i.e. properties in the asset object need to be sent always in the same right order to produce a deterministic signature.
+		 *
+		 * We are currently conducting a research to specify an optimal generic way of changing asset to bytes.
+		 * You can expect this enhanced implementation to be included in the next releases.
+		 */
+		return Buffer.from(JSON.stringify(this.asset), 'utf-8');
 	}
 
 	private _verify(sender: Account): ReadonlyArray<TransactionError> {

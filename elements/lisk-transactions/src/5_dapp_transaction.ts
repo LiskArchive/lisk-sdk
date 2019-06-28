@@ -143,10 +143,6 @@ export class DappTransaction extends BaseTransaction {
 		]);
 	}
 
-	public assetToJSON(): object {
-		return this.asset;
-	}
-
 	public async prepare(store: StateStorePrepare): Promise<void> {
 		await store.account.cache([
 			{

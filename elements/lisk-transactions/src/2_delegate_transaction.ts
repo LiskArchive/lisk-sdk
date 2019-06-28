@@ -69,10 +69,6 @@ export class DelegateTransaction extends BaseTransaction {
 		return Buffer.from(username, 'utf8');
 	}
 
-	public assetToJSON(): DelegateAsset {
-		return this.asset;
-	}
-
 	public async prepare(store: StateStorePrepare): Promise<void> {
 		await store.account.cache([
 			{
