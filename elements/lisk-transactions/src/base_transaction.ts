@@ -115,6 +115,7 @@ export abstract class BaseTransaction {
 	public receivedAt?: Date;
 
 	public static TYPE: number;
+	public static FEE: string;
 
 	protected _id?: string;
 	protected _signature?: string;
@@ -273,6 +274,18 @@ export abstract class BaseTransaction {
 					'.type',
 					this.type,
 					(this.constructor as typeof BaseTransaction).TYPE,
+				),
+			);
+		}
+
+		if (!this.fee.eq((this.constructor as typeof BaseTransaction).FEE)) {
+			errors.push(
+				new TransactionError(
+					`Invalid fee`,
+					this.id,
+					'.fee',
+					this.fee.toString(),
+					(this.constructor as typeof BaseTransaction).FEE.toString(),
 				),
 			);
 		}
