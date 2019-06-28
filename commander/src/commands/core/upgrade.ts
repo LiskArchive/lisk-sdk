@@ -17,7 +17,6 @@ import { flags as flagParser } from '@oclif/command';
 import * as fsExtra from 'fs-extra';
 import Listr from 'listr';
 import semver from 'semver';
-import * as tar from 'tar';
 import BaseCommand from '../../base';
 import { isCacheRunning, startCache, stopCache } from '../../utils/core/cache';
 import {
@@ -38,7 +37,7 @@ import {
 	unRegisterApplication,
 } from '../../utils/core/pm2';
 import { getReleaseInfo } from '../../utils/core/release';
-import { downloadAndValidate } from '../../utils/download';
+import { downloadAndValidate, extract } from '../../utils/download';
 import { flags as commonFlags } from '../../utils/flags';
 
 interface Flags {
@@ -175,11 +174,7 @@ export default class UpgradeCommand extends BaseCommand {
 									cacheDir,
 								);
 
-								await tar.x({
-									file: `${fileDir}/${fileName}`,
-									cwd: installationPath,
-									strip: 1,
-								});
+								await extract(fileDir, fileName, installationPath);
 							},
 						},
 					]),

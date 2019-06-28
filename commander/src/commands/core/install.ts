@@ -17,7 +17,6 @@ import { flags as flagParser } from '@oclif/command';
 import * as fsExtra from 'fs-extra';
 import Listr from 'listr';
 import * as os from 'os';
-import * as tar from 'tar';
 import BaseCommand from '../../base';
 import { NETWORK, SNAPSHOT_URL } from '../../utils/constants';
 import {
@@ -43,7 +42,7 @@ import {
 } from '../../utils/core/database';
 import { describeApplication, registerApplication } from '../../utils/core/pm2';
 import { getReleaseInfo } from '../../utils/core/release';
-import { download, downloadAndValidate } from '../../utils/download';
+import { download, downloadAndValidate, extract } from '../../utils/download';
 import { flags as commonFlags } from '../../utils/flags';
 import StartCommand from './start';
 
@@ -256,11 +255,7 @@ export default class InstallCommand extends BaseCommand {
 								);
 
 								createDirectory(installDir);
-								await tar.x({
-									file: `${fileDir}/${fileName}`,
-									cwd: installDir,
-									strip: 1,
-								});
+								await extract(fileDir, fileName, installDir);
 							},
 						},
 						{
