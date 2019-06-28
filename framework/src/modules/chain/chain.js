@@ -558,6 +558,13 @@ module.exports = class Chain {
 				);
 			}
 			this.channel.publish('chain:blocks:change', block);
+
+			if (!this.loader.syncing()) {
+				this.channel.invoke('app:updateApplicationState', {
+					height: block.height,
+					prevotedConfirmedUptoHeight: block.prevotedConfirmedUptoHeight,
+				});
+			}
 		});
 
 		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {
@@ -569,6 +576,5 @@ module.exports = class Chain {
 		this.blocks.removeAllListeners(EVENT_BROADCAST_BLOCK);
 		this.blocks.removeAllListeners(EVENT_DELETE_BLOCK);
 		this.blocks.removeAllListeners(EVENT_NEW_BLOCK);
-		this.blocks.removeAllListeners(EVENT_NEW_BROADHASH);
 	}
 };
