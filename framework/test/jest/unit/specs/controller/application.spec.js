@@ -23,6 +23,7 @@ const _ = require('lodash');
 const Application = require('../../../../../src/controller/application');
 const validator = require('../../../../../src/controller/validator');
 const {
+	SchemaValidationError,
 	genesisBlockSchema,
 	constantsSchema,
 } = require('../../../../../src/controller/schema');
@@ -59,7 +60,7 @@ describe('Application', () => {
 			new Application(genesisBlock, config);
 
 			// Assert
-			expect(validateSpy).toHaveBeenCalledTimes(1);
+			expect(validateSpy).toHaveBeenCalled();
 			expect(validateSpy).toHaveBeenCalledWith(
 				genesisBlockSchema,
 				genesisBlock
@@ -165,7 +166,7 @@ describe('Application', () => {
 			);
 		});
 
-		it('should throw error when transaction does not extend BaseTransaction.', () => {
+		it('should throw error when transaction does satisify TransactionInterface.', () => {
 			// Arrange
 			const app = new Application(genesisBlock, config);
 
@@ -176,22 +177,7 @@ describe('Application', () => {
 
 			// Act && Assert
 			expect(() => app.registerTransaction(TransactionWithoutBase)).toThrow(
-				'Transaction must extend BaseTransaction.'
-			);
-		});
-
-		it('should throw error when transaction does not satisfy BaseTransaction methods.', () => {
-			// Arrange
-			const app = new Application(genesisBlock, config);
-
-			class BaseTransaction {}
-
-			class Sample extends BaseTransaction {}
-			Sample.TYPE = 10;
-
-			// Act && Assert
-			expect(() => app.registerTransaction(Sample)).toThrow(
-				'Transaction must use compatible BaseTransaction.'
+				SchemaValidationError
 			);
 		});
 
