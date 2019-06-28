@@ -50,7 +50,7 @@ class ConsensusManager {
 		// Threshold to consider a block pre-committed (or finalized)
 		this.preCommitThreshold = Math.ceil((this.activeDelegates * 2) / 3);
 
-		// Limit to of blocks to must have to make any prevote-precommit verification on blocks (1 block less than 3 rounds)
+		// Limit for blocks to make perform verification or pre-vote/pre-commit (1 block less than 3 rounds)
 		this.processingThreshold = this.activeDelegates * 3 - 1;
 
 		// Maximum headers to store (5 rounds)
@@ -59,7 +59,7 @@ class ConsensusManager {
 		this.headers = new HeadersList({ size: this.maxHeaders });
 
 		// Height up to which blocks are finalized
-		this.finalizedHeight = finalizedHeight || 0;
+		this.finalizedHeight = finalizedHeight;
 
 		// Height up to which blocks have pre-voted
 		this.prevotedConfirmedHeight = 0;
@@ -144,7 +144,7 @@ class ConsensusManager {
 
 		// If delegate is new then first block of the round will be considered
 		// if it forged before then we probably have the last commit height
-		// delegate can't pre-commit and block before above mentioned conditions
+		// delegate can't pre-commit a block before the above mentioned conditions
 		const minPreCommit = Math.max(
 			delegateMinHeightActive,
 			delegateState.maxPreCommitHeight + 1

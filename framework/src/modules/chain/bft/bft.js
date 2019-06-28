@@ -61,7 +61,8 @@ class BFT {
 	 * @return {Promise<void>}
 	 */
 	async init() {
-		const finalizedHeight = await this._initConsensusManager();
+		this.consensusManager = await this._initConsensusManager();
+		const finalizedHeight = this.consensusManager.finalizedHeight;
 		const lastBlockHeight = await this._getLastBlockHeight();
 
 		const loadFromHeight = Math.max(
@@ -96,12 +97,10 @@ class BFT {
 		const finalizedHeight = Math.max(finalizedHeightStored, bftMigrationHeight);
 
 		// Initialize consensus manager
-		this.consensusManager = new ConsensusManager({
+		return new ConsensusManager({
 			finalizedHeight,
 			activeDelegates: this.constants.activeDelegates,
 		});
-
-		return finalizedHeight;
 	}
 
 	/**

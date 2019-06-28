@@ -131,7 +131,7 @@ describe('bft', () => {
 				const finalizedHeight = 500;
 				const lastBlockHeight = 600;
 
-				bft._initConsensusManager.mockReturnValue(finalizedHeight);
+				bft._initConsensusManager.mockReturnValue({ finalizedHeight });
 				bft._getLastBlockHeight.mockReturnValue(lastBlockHeight);
 
 				await bft.init();
@@ -148,7 +148,7 @@ describe('bft', () => {
 				const finalizedHeight = 200;
 				const lastBlockHeight = 600;
 
-				bft._initConsensusManager.mockReturnValue(finalizedHeight);
+				bft._initConsensusManager.mockReturnValue({ finalizedHeight });
 				bft._getLastBlockHeight.mockReturnValue(lastBlockHeight);
 
 				await bft.init();
@@ -165,7 +165,7 @@ describe('bft', () => {
 				const finalizedHeight = 200;
 				const lastBlockHeight = 600;
 
-				bft._initConsensusManager.mockReturnValue(finalizedHeight);
+				bft._initConsensusManager.mockReturnValue({ finalizedHeight });
 				bft._getLastBlockHeight.mockReturnValue(lastBlockHeight);
 
 				await bft.init();
@@ -181,12 +181,13 @@ describe('bft', () => {
 		describe('_initConsensusManager()', () => {
 			it('should call ChainMetaEntity.getKey to get stored finalized height', async () => {
 				const bft = new BFT(bftParams);
-				await bft._initConsensusManager();
+				const result = await bft._initConsensusManager();
 
 				expect(storageMock.entities.ChainMeta.getKey).toHaveBeenCalledTimes(1);
 				expect(storageMock.entities.ChainMeta.getKey).toHaveBeenCalledWith(
 					'BFT.finalizedHeight'
 				);
+				expect(result).toBeInstanceOf(ConsensusManager);
 			});
 
 			it('should initialize consensusManager with stored FINALIZED_HEIGHT if its highest', async () => {
@@ -206,8 +207,7 @@ describe('bft', () => {
 					activeDelegates,
 					finalizedHeight,
 				});
-				expect(bft.consensusManager).toBeInstanceOf(ConsensusManager);
-				expect(result).toEqual(finalizedHeight);
+				expect(result).toBeInstanceOf(ConsensusManager);
 			});
 
 			it('should initialize consensusManager with stored startingHeight - TWO_ROUNDS if its highest', async () => {
@@ -227,8 +227,7 @@ describe('bft', () => {
 					activeDelegates,
 					finalizedHeight: startingHeightHigher - activeDelegates * 2,
 				});
-				expect(bft.consensusManager).toBeInstanceOf(ConsensusManager);
-				expect(result).toEqual(startingHeightHigher - activeDelegates * 2);
+				expect(result).toBeInstanceOf(ConsensusManager);
 			});
 		});
 
@@ -280,11 +279,13 @@ describe('bft', () => {
 
 			beforeEach(async () => {
 				bft = new BFT(bftParams);
-				await bft._initConsensusManager();
+				storageMock.entities.Block.get.mockReturnValue([]);
 				jest.spyOn(bftModule, 'extractBFTBlockHeaderFromBlock');
+				await bft.init();
 			});
 
 			it('should call BlockEntity.get with particular parameters', async () => {
+				storageMock.entities.Block.get.mockReset();
 				storageMock.entities.Block.get.mockReturnValue([]);
 
 				await bft.loadBlocks({ fromHeight, tillHeight });
