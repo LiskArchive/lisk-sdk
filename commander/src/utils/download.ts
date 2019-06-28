@@ -13,8 +13,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { bufferToHex, hash } from '@liskhq/lisk-cryptography';
 import * as axios from 'axios';
-import crypto from 'crypto';
 import fs from 'fs-extra';
 import * as tar from 'tar';
 import { dateDiff, getDownloadedFileInfo } from './core/commons';
@@ -22,25 +22,28 @@ import { dateDiff, getDownloadedFileInfo } from './core/commons';
 export const verifyChecksum = async (
 	filePath: string,
 	expectedChecksum: string,
-): Promise<boolean> => {
-	const shasum = crypto.createHash('sha256');
+): Promise<void> => {
 	const fileStream = fs.createReadStream(filePath);
 
-	return new Promise((resolve, reject) => {
+	const fileBuffer = await new Promise<Buffer>((resolve, reject) => {
+		const bufferArray: Buffer[] = [];
 		fileStream.on('data', (d: Buffer) => {
-			shasum.update(d);
+			bufferArray.push(d);
+		});
+		fileStream.on('error', error => {
+			reject(error);
 		});
 		fileStream.on('end', () => {
-			const fileChecksum = shasum.digest('hex');
-			if (fileChecksum === expectedChecksum) {
-				resolve(true);
-			}
-
-			reject(
-				`file checksum: ${fileChecksum} mismatched with expected checksum: ${expectedChecksum}`,
-			);
+			resolve(Buffer.concat(bufferArray));
 		});
 	});
+
+	const fileChecksum = bufferToHex(hash(fileBuffer));
+	if (fileChecksum !== expectedChecksum) {
+		throw new Error(
+			`file checksum: ${fileChecksum} mismatched with expected checksum: ${expectedChecksum}`,
+		);
+	}
 };
 
 export const download = async (
