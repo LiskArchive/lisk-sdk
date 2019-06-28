@@ -165,8 +165,7 @@ export abstract class BaseTransaction {
 		this._signature = tx.signature;
 		this.signatures = (tx.signatures as string[]) || [];
 		this._signSignature = tx.signSignature;
-		// Infinity is invalid for these types
-		this.timestamp = typeof tx.timestamp === 'number' ? tx.timestamp : Infinity;
+		this.timestamp = typeof tx.timestamp === 'number' ? tx.timestamp : 0;
 		this.type =
 			typeof tx.type === 'number'
 				? tx.type
