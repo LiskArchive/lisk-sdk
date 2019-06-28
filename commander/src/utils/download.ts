@@ -33,10 +33,10 @@ export const verifyChecksum = async (
 		fileStream.on('end', () => {
 			const fileChecksum = shasum.digest('hex');
 			if (fileChecksum === expectedChecksum) {
-				return resolve(true);
+				resolve(true);
 			}
 
-			return reject(
+			reject(
 				`file checksum: ${fileChecksum} mismatched with expected checksum: ${expectedChecksum}`,
 			);
 		});
