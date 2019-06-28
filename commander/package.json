@@ -119,6 +119,7 @@
 		"pm2": "3.5.0",
 		"semver": "5.6.0",
 		"strip-ansi": "4.0.0",
+		"tar": "^4.4.10",
 		"tslib": "1.9.3"
 	},
 	"devDependencies": {
@@ -139,6 +140,7 @@
 		"@types/sinon": "7.0.5",
 		"@types/sinon-chai": "3.2.2",
 		"@types/strip-ansi": "3.0.0",
+		"@types/tar": "^4.0.1",
 		"chai": "4.2.0",
 		"chai-as-promised": "7.1.1",
 		"coveralls": "3.0.2",

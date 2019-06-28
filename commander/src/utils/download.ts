@@ -14,10 +14,10 @@
  *
  */
 import * as axios from 'axios';
-import * as crypto from 'crypto';
+import crypto from 'crypto';
 import fs from 'fs-extra';
+import * as tar from 'tar';
 import { dateDiff, getDownloadedFileInfo } from './core/commons';
-import { exec, ExecResult } from './worker-process';
 
 export const verifyChecksum = async (
 	filePath: string,
@@ -80,18 +80,12 @@ export const extract = async (
 	filePath: string,
 	fileName: string,
 	outDir: string,
-): Promise<string> => {
-	const { stdout, stderr }: ExecResult = await exec(
-		`tar xf ${fileName} -C ${outDir} --strip-component=1;`,
-		{ cwd: filePath },
-	);
-
-	if (stderr) {
-		throw new Error(`Extraction failed with error: ${stderr}`);
-	}
-
-	return stdout;
-};
+): Promise<void> =>
+	tar.x({
+		file: `${filePath}/${fileName}`,
+		cwd: outDir,
+		strip: 1,
+	});
 
 export const downloadAndValidate = async (url: string, cacheDir: string) => {
 	await download(url, cacheDir);
