@@ -27,6 +27,7 @@ describe('node/api', () => {
 	let storageStub;
 	let configStub;
 	let getStatus;
+	let getNetworkHeight;
 
 	before(async () => {
 		channelStub = {
@@ -57,6 +58,7 @@ describe('node/api', () => {
 
 		privateLibrary = NodeController.__get__('library');
 		getStatus = NodeController.getStatus;
+		getNetworkHeight = NodeController.__get__('_getNetworkHeight');
 	});
 
 	afterEach(() => {
@@ -191,6 +193,53 @@ describe('node/api', () => {
 					expect(err).to.be.null;
 					expect(response).to.deep.equal(expectedStatusWithoutSomeParameters);
 				}));
+		});
+	});
+
+	describe('_networkHeight', () => {
+		const MAJORITY_HEIGHT = 456;
+
+		let networkHeight;
+		describe('When there are set of majority peers with same height', () => {
+			beforeEach(async () => {
+				const defaultPeers = [
+					{
+						height: MAJORITY_HEIGHT,
+					},
+					{
+						height: 457,
+					},
+					{
+						height: MAJORITY_HEIGHT,
+					},
+					{
+						height: 453,
+					},
+					{
+						height: MAJORITY_HEIGHT,
+					},
+					{
+						height: 438,
+					},
+				];
+				channelStub.invoke.withArgs('network:getPeers').returns(defaultPeers);
+				networkHeight = await getNetworkHeight();
+			});
+
+			it('should return correct networkHeight based on majority', async () => {
+				expect(networkHeight).to.be.eql(MAJORITY_HEIGHT);
+			});
+		});
+
+		describe('When network:getPeers returns a blank list of peers', () => {
+			beforeEach(async () => {
+				channelStub.invoke.withArgs('network:getPeers').returns([]);
+				networkHeight = await getNetworkHeight();
+			});
+
+			it('should return correct networkHeight based on majority', async () => {
+				expect(networkHeight).to.be.eql(0);
+			});
 		});
 	});
 
