@@ -20,6 +20,7 @@ const apiCodes = require('../api_codes');
 const swaggerHelper = require('../helpers/swagger');
 
 const { EPOCH_TIME, FEES } = global.constants;
+const PEER_CONNECTED_STATE = 2;
 
 // Private Fields
 let library;
@@ -296,6 +297,7 @@ async function _getForgingStatus(publicKey) {
 async function _getNetworkHeight() {
 	const peers = await library.channel.invoke('network:getPeers', {
 		limit: 100,
+		state: PEER_CONNECTED_STATE,
 	});
 	if (!peers || !peers.length) {
 		return 0;
