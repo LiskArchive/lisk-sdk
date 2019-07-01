@@ -20,7 +20,7 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 
 const { validator } = require('@liskhq/lisk-validator');
 const { convertErrorsToString } = require('./utils/error_handlers');
-const Sequence = require('./utils/sequence');
+const { Sequence } = require('./utils/sequence');
 const definitions = require('./schema/definitions');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
