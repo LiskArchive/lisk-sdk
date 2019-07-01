@@ -456,20 +456,12 @@ class Blocks extends EventEmitter {
 		const newBlockReceivedAt = this.slots.getTime();
 
 		// Execute in sequence
-		return this.sequence.add(callback => {
-			try {
-				this._shouldNotBeActive();
-			} catch (error) {
-				callback(error);
-				return;
-			}
+		return this.sequence.add(async () => {
+			this._shouldNotBeActive();
 			this._isActive = true;
-			this._forkChoiceTask(block, newBlockReceivedAt)
-				.then(result => callback(null, result))
-				.catch(error => callback(error))
-				.finally(() => {
-					this._isActive = false;
-				});
+			const result = await this._forkChoiceTask(block, newBlockReceivedAt);
+			this._isActive = false;
+			return result;
 		});
 	}
 
