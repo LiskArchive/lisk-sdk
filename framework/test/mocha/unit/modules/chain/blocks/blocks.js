@@ -14,7 +14,6 @@
 
 'use strict';
 
-const { promisify } = require('util');
 const { cloneDeep } = require('lodash');
 const forkChoiceRule = require('../../../../../../src/modules/chain/blocks/fork_choice_rule');
 const {
@@ -246,8 +245,7 @@ describe('blocks', () => {
 		};
 
 		beforeEach(async () => {
-			sequenceStub.add.callsFake(async cb => {
-				const fn = promisify(cb);
+			sequenceStub.add.callsFake(async fn => {
 				await fn();
 			});
 			sinonSandbox
@@ -309,8 +307,7 @@ describe('blocks', () => {
 				...defaultLastBlock,
 			};
 
-			sequenceStub.add.callsFake(async cb => {
-				const fn = promisify(cb);
+			sequenceStub.add.callsFake(async fn => {
 				await fn();
 			});
 
@@ -454,8 +451,7 @@ describe('blocks', () => {
 
 		beforeEach(async () => {
 			sinonSandbox.stub(blocksInstance, '_forkChoiceTask').resolves();
-			sequenceStub.add.callsFake(async cb => {
-				const fn = promisify(cb);
+			sequenceStub.add.callsFake(async fn => {
 				await fn();
 			});
 		});

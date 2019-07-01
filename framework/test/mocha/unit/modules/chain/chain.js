@@ -19,6 +19,7 @@ const rewire = require('rewire');
 
 const Chain = rewire('../../../../../src/modules/chain/chain');
 const { Blocks } = require('../../../../../src/modules/chain/blocks');
+const { BFT } = require('../../../../../src/modules/chain/bft');
 const {
 	loggerConfig,
 	cacheConfig,
@@ -34,6 +35,7 @@ describe('Chain', () => {
 		// Arrange
 
 		sinonSandbox.stub(Blocks.prototype, 'loadBlockChain').resolves();
+		sinonSandbox.stub(BFT.prototype, 'init').resolves();
 
 		/* Arranging Stubs start */
 		stubs.logger = {
@@ -48,6 +50,10 @@ describe('Chain', () => {
 		};
 		stubs.storage = {
 			cleanup: sinonSandbox.stub(),
+			entities: {
+				Block: { get: sinonSandbox.stub().resolves([]) },
+				ChainMeta: { getKey: sinonSandbox.stub() },
+			},
 		};
 		stubs.modules = {
 			module1: {
@@ -343,7 +349,6 @@ describe('Chain', () => {
 			expect(chain.scope).to.have.property('config');
 			expect(chain.scope).to.have.nested.property('genesisBlock.block');
 			expect(chain.scope).to.have.property('sequence');
-			expect(chain.scope).to.have.property('balancesSequence');
 			expect(chain.scope).to.have.nested.property('components.storage');
 			expect(chain.scope).to.have.nested.property('components.cache');
 			expect(chain.scope).to.have.nested.property('components.logger');
@@ -362,6 +367,24 @@ describe('Chain', () => {
 			return expect(stubs.initSteps.bootstrapCache).to.have.been.calledWith(
 				chain.scope
 			);
+		});
+
+		describe('_initModules', () => {
+			it('should initialize bft module', async () => {
+				expect(chain.bft).to.be.instanceOf(BFT);
+				expect(chain.scope.modules.bft).to.be.instanceOf(BFT);
+			});
+		});
+
+		it('should invoke blocks.loadBlockChain', async () => {
+			expect(chain.blocks.loadBlockChain).to.have.been.calledOnce;
+			expect(chain.blocks.loadBlockChain).to.have.been.calledWith(
+				chain.options.loading.rebuildUpToRound
+			);
+		});
+
+		it('should invoke bft.init', async () => {
+			expect(chain.bft.init).to.have.been.calledOnce;
 		});
 
 		it('should subscribe to "app:state:updated" event', () => {

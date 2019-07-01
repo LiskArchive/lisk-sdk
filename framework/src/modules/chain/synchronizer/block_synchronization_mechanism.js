@@ -47,7 +47,8 @@ class BlockSynchronizationMechanism {
 			largestSubset,
 			peer => peer.height
 		);
-		// Group peers by their block Id: {'blockId':[peers], 'anotherBlockId': [peers]}
+		// Group peers by their block Id
+		// Output: {{'blockId':[peers], 'anotherBlockId': [peers]}
 		largestSubset = groupBy(largestSubset, peer => peer.blockId);
 
 		const blockIds = Object.keys(largestSubset);

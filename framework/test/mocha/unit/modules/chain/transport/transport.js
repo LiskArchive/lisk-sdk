@@ -22,21 +22,21 @@ const {
 const BigNum = require('@liskhq/bignum');
 const { transfer, TransactionError } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
-const accountFixtures = require('../../../fixtures/accounts');
-const Block = require('../../../fixtures/blocks').Block;
+const accountFixtures = require('../../../../fixtures/accounts');
+const Block = require('../../../../fixtures/blocks').Block;
 const {
 	registeredTransactions,
-} = require('../../../common/registered_transactions');
-const transactionsModule = require('../../../../../src/modules/chain/transactions');
+} = require('../../../../common/registered_transactions');
+const transactionsModule = require('../../../../../../src/modules/chain/transactions');
 const {
 	TransactionInterfaceAdapter,
-} = require('../../../../../src/modules/chain/interface_adapters');
-const blocksModule = require('../../../../../src/modules/chain/blocks');
-const definitions = require('../../../../../src/modules/chain/schema/definitions');
+} = require('../../../../../../src/modules/chain/interface_adapters');
+const blocksModule = require('../../../../../../src/modules/chain/blocks');
+const definitions = require('../../../../../../src/modules/chain/schema/definitions');
 const {
 	Transport: TransportModule,
-} = require('../../../../../src/modules/chain/transport');
-const jobsQueue = require('../../../../../src/modules/chain/utils/jobs_queue');
+} = require('../../../../../../src/modules/chain/transport');
+const jobsQueue = require('../../../../../../src/modules/chain/utils/jobs_queue');
 
 const expect = chai.expect;
 
@@ -49,7 +49,6 @@ describe('transport', () => {
 	let storageStub;
 	let loggerStub;
 	let channelStub;
-	let balancesSequenceStub;
 	let transportModule;
 	let transaction;
 	let block;
@@ -156,9 +155,6 @@ describe('transport', () => {
 			publish: sinonSandbox.stub(),
 			invoke: sinonSandbox.stub(),
 		};
-		balancesSequenceStub = {
-			add: async () => {},
-		};
 
 		sinonSandbox.stub(jobsQueue, 'register');
 
@@ -167,7 +163,6 @@ describe('transport', () => {
 			logger: loggerStub,
 			storage: storageStub,
 			applicationState: {},
-			balancesSequence: balancesSequenceStub,
 			exceptions: __testContext.config.modules.chain.exceptions,
 			transactionPoolModule: {
 				getMultisignatureTransactionList: sinonSandbox.stub(),
@@ -209,9 +204,6 @@ describe('transport', () => {
 				expect(transportModule)
 					.to.have.property('channel')
 					.which.is.equal(channelStub);
-				expect(transportModule)
-					.to.have.property('balancesSequence')
-					.which.is.equal(balancesSequenceStub);
 				expect(transportModule).to.have.property('broadcaster');
 			});
 		});
@@ -404,14 +396,6 @@ describe('transport', () => {
 
 		describe('receiveTransaction', () => {
 			beforeEach(async () => {
-				sinonSandbox
-					.stub(balancesSequenceStub, 'add')
-					.callsFake((callback, doneCallback) => {
-						callback(doneCallback);
-					});
-
-				transportModule.balancesSequence = balancesSequenceStub;
-
 				transportModule.transactionPoolModule.processUnconfirmedTransaction.resolves();
 			});
 

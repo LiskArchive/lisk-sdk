@@ -6,7 +6,6 @@ class Synchronizer {
 
 	/**
 	 * Start the syncing mechanism
-	 * @param {Object} args
 	 * @return {*}
 	 */
 	run() {
@@ -32,7 +31,7 @@ class Synchronizer {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	_determineStrategy() {
-		// Return blockSynchronizationMechanism or fastChainSwitchingMechanism depending on
+		// TODO: Return blockSynchronizationMechanism or fastChainSwitchingMechanism depending on
 		// Moving to a Different Chain conditions defined in LIP-0014
 	}
 

@@ -41,7 +41,7 @@ const Block = stampit({
 		totalFee: '0',
 		version: 0,
 	},
-	init({ id, previousBlockId, generatorPublicKey, height }) {
+	init({ id, previousBlockId, generatorPublicKey, height, version }) {
 		// Must to provide
 		this.previousBlockId = previousBlockId;
 
@@ -58,6 +58,7 @@ const Block = stampit({
 		this.totalAmount = faker.random
 			.number({ min: 1000, max: 10000 })
 			.toString();
+		this.version = version || 0;
 	},
 });
 
