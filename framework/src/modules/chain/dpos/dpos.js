@@ -19,6 +19,7 @@ module.exports = class Dpos {
 	}
 
 	async onRoundFinish() {
+		// TODO use the configuration variable to set the value of this variable
 		const delegateListOffsetForRound = 2;
 		const disposableDelegateList =
 			this.finalizedBlockRound - delegateListOffsetForRound;
