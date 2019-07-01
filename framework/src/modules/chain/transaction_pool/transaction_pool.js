@@ -377,7 +377,6 @@ class TransactionPool extends EventEmitter {
 			this.pool.addTransaction(transaction),
 			transaction
 		);
-		// Register to braodcaster
 	}
 
 	addVerifiedTransaction(transaction) {
@@ -385,7 +384,6 @@ class TransactionPool extends EventEmitter {
 			this.pool.addVerifiedTransaction(transaction),
 			transaction
 		);
-		// Register to braodcaster
 	}
 
 	addMultisignatureTransaction(transaction) {
@@ -393,7 +391,6 @@ class TransactionPool extends EventEmitter {
 			this.pool.addPendingTransaction(transaction),
 			transaction
 		);
-		// Register to braodcaster
 	}
 
 	async processUnconfirmedTransaction(transaction) {
@@ -420,6 +417,9 @@ class TransactionPool extends EventEmitter {
 			];
 		}
 
+		if (transaction.bundled) {
+			return this.addBundledTransaction(transaction);
+		}
 		const { transactionsResponses } = await this.verifyTransactions([
 			transaction,
 		]);

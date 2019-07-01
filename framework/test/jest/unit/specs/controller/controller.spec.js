@@ -32,7 +32,15 @@ describe('Controller Class', () => {
 	};
 	const config = {
 		components: '#CONFIG',
-		initialState: '#CONFIG',
+	};
+	const initialState = {
+		version: '1.0.0-beta.3',
+		wsPort: '3001',
+		httpPort: '3000',
+		minVersion: '1.0.0-beta.0',
+		protocolVersion: '1.0',
+		nethash: 'test broadhash',
+		nonce: 'test nonce',
 	};
 	const rootDir = process.cwd();
 	const systemDirs = {
@@ -56,7 +64,7 @@ describe('Controller Class', () => {
 
 	beforeEach(() => {
 		// Act
-		controller = new Controller(appLabel, config, logger);
+		controller = new Controller(appLabel, config, initialState, logger);
 	});
 
 	afterEach(async () => {

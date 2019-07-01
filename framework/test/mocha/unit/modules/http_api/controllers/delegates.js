@@ -15,7 +15,7 @@
 'use strict';
 
 const rewire = require('rewire');
-const Bignumber = require('bignumber.js');
+const BigNum = require('@liskhq/bignum');
 
 const DelegatesController = rewire(
 	'../../../../../../src/modules/http_api/controllers/delegates'
@@ -38,8 +38,8 @@ describe('delegates/api', () => {
 	const expectedForgingStatisticsResult = {
 		...blocksRewardReturnStub,
 		...{
-			forged: new Bignumber(blocksRewardReturnStub.fees)
-				.plus(new Bignumber(blocksRewardReturnStub.rewards))
+			forged: new BigNum(blocksRewardReturnStub.fees)
+				.plus(new BigNum(blocksRewardReturnStub.rewards))
 				.toString(),
 		},
 	};
@@ -293,9 +293,9 @@ describe('delegates/api', () => {
 			expect(data).to.deep.equal({
 				rewards: getAccountResponse.rewards,
 				fees: getAccountResponse.fees,
-				count: new Bignumber(getAccountResponse.producedBlocks).toString(),
-				forged: new Bignumber(getAccountResponse.rewards)
-					.plus(new Bignumber(getAccountResponse.fees))
+				count: new BigNum(getAccountResponse.producedBlocks).toString(),
+				forged: new BigNum(getAccountResponse.rewards)
+					.plus(new BigNum(getAccountResponse.fees))
 					.toString(),
 			});
 			expect(aggregateBlocksRewardStub).to.not.have.been.called;

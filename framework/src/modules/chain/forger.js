@@ -68,7 +68,6 @@ class Forger {
 		channel,
 		logger,
 		storage,
-		sequence,
 		// Unique requirements
 		slots,
 		// Modules
@@ -89,7 +88,6 @@ class Forger {
 		this.logger = logger;
 		this.storage = storage;
 		this.slots = slots;
-		this.sequence = sequence;
 		this.config = {
 			forging: {
 				delegates: forgingDelegates,

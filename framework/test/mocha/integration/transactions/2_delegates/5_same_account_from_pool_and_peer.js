@@ -90,18 +90,16 @@ describe('delegate', () => {
 				});
 
 				describe('confirmed state', () => {
-					it('should update confirmed columns related to delegate', done => {
-						library.sequence.add(async seqCb => {
-							localCommon
-								.getAccountFromDb(library, delegateAccount.address)
-								.then(account => {
-									expect(account).to.exist;
-									expect(account.mem_accounts.username).to.equal(username);
-									expect(account.mem_accounts.isDelegate).to.equal(1);
-									seqCb();
-									done();
-								});
+					it('should update confirmed columns related to delegate', async () => {
+						const account = await library.sequence.add(async () => {
+							return localCommon.getAccountFromDb(
+								library,
+								delegateAccount.address
+							);
 						});
+						expect(account).to.exist;
+						expect(account.mem_accounts.username).to.equal(username);
+						expect(account.mem_accounts.isDelegate).to.equal(1);
 					});
 				});
 			});
@@ -128,18 +126,16 @@ describe('delegate', () => {
 				});
 
 				describe('confirmed state', () => {
-					it('should update confirmed columns related to delegate', done => {
-						library.sequence.add(seqCb => {
-							localCommon
-								.getAccountFromDb(library, delegateAccount.address)
-								.then(account => {
-									expect(account).to.exist;
-									expect(account.mem_accounts.username).to.equal(username2);
-									expect(account.mem_accounts.isDelegate).to.equal(1);
-									seqCb();
-									done();
-								});
+					it('should update confirmed columns related to delegate', async () => {
+						const account = await library.sequence.add(async () => {
+							return localCommon.getAccountFromDb(
+								library,
+								delegateAccount.address
+							);
 						});
+						expect(account).to.exist;
+						expect(account.mem_accounts.username).to.equal(username2);
+						expect(account.mem_accounts.isDelegate).to.equal(1);
 					});
 				});
 			});
