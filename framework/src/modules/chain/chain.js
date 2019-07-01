@@ -39,6 +39,10 @@ const {
 	EVENT_BROADCAST_BLOCK,
 	EVENT_NEW_BROADHASH,
 } = require('./blocks');
+const {
+	Synchronizer,
+	BlockSynchronizationMechanism,
+} = require('./synchronizer');
 const { Loader } = require('./loader');
 const { Forger } = require('./forger');
 const { Transport } = require('./transport');
@@ -374,7 +378,15 @@ module.exports = class Chain {
 			rewardMileStones: this.options.constants.REWARDS.MILESTONES,
 			totalAmount: this.options.constants.TOTAL_AMOUNT,
 			blockSlotWindow: this.options.constants.BLOCK_SLOT_WINDOW,
+			synchronizer: new Synchronizer(),
 		});
+
+		this.blocks.synchronizer.addStrategy(
+			new BlockSynchronizationMechanism({
+				channel: this.channel,
+				modules: { blocks: this.blocks },
+			})
+		);
 		this.scope.modules.blocks = this.blocks;
 		this.transactionPool = new TransactionPool({
 			logger: this.logger,

@@ -1,22 +1,18 @@
-const BlockSynchronizationMechanism = require('./block_synchronization_mechanism');
-const FastChainSwitchingMechanism = require('./fast_chain_switching_mechanism');
-
 class Synchronizer {
 	constructor() {
 		this.currentStrategy = null;
-		this.blockSynchronizationMechanism = new BlockSynchronizationMechanism();
-		this.fastChainSwitchingMechanism = new FastChainSwitchingMechanism();
+		this.strategies = {};
 	}
 
 	/**
 	 * Start the syncing mechanism
+	 * @param {Object} args
 	 * @return {*}
 	 */
 	run() {
 		if (this.currentStrategy && this.currentStrategy.isActive()) {
-			throw new Error('Blocks Sychronizer is already running');
+			throw new Error('Synchronizer is already running');
 		}
-
 		this.currentStrategy = this._determineStrategy();
 
 		return this.currentStrategy.run();
@@ -38,6 +34,14 @@ class Synchronizer {
 	_determineStrategy() {
 		// Return blockSynchronizationMechanism or fastChainSwitchingMechanism depending on
 		// Moving to a Different Chain conditions defined in LIP-0014
+	}
+
+	/**
+	 * Add a synchronization mechanism strategy to the list
+	 * @param implementation
+	 */
+	addStrategy(implementation) {
+		this.strategies[implementation.constructor.name] = implementation;
 	}
 }
 
