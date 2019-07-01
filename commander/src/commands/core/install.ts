@@ -239,7 +239,11 @@ export default class InstallCommand extends BaseCommand {
 							task: async ctx => {
 								const { liskTarUrl }: Options = ctx.options;
 
-								if (!noSnapshot) {
+								if (
+									!noSnapshot ||
+									network.toLowerCase() in ['testnet', 'mainnet'] ||
+									snapshotUrl
+								) {
 									await download(snapshotURL, cacheDir);
 								}
 								await downloadAndValidate(liskTarUrl, cacheDir);
