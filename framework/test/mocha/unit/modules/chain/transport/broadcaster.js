@@ -17,7 +17,7 @@
 const rewire = require('rewire');
 
 const Broadcaster = rewire(
-	'../../../../../../src/modules/chain/logic/broadcaster'
+	'../../../../../../src/modules/chain/transport/broadcaster'
 );
 
 describe('Broadcaster', () => {
@@ -406,6 +406,20 @@ describe('Broadcaster', () => {
 					expect(broadcaster.queue)
 						.to.be.an('Array')
 						.to.eql(auxBroadcasts);
+				});
+			});
+
+			describe('when all transactions are confirmed', () => {
+				beforeEach(async () => {
+					transactionPoolStub.transactionInPool.returns(false);
+					broadcaster.storage.entities.Transaction.isPersisted.resolves(true);
+				});
+
+				it('should remove all of them from broadcaster.queue', async () => {
+					await broadcaster.filterQueue();
+					expect(broadcaster.queue)
+						.to.be.an('Array')
+						.to.eql([]);
 				});
 			});
 		});

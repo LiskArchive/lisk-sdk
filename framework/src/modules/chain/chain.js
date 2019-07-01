@@ -153,11 +153,6 @@ module.exports = class Chain {
 						self.logger.warn('Main queue', current);
 					},
 				}),
-				balancesSequence: new Sequence({
-					onWarning(current) {
-						self.logger.warn('Balance queue', current);
-					},
-				}),
 				components: {
 					storage: this.storage,
 					cache: this.cache,
@@ -414,7 +409,6 @@ module.exports = class Chain {
 			storage: this.storage,
 			cache: this.cache,
 			genesisBlock: this.options.genesisBlock,
-			balancesSequence: this.scope.balancesSequence,
 			transactionPoolModule: this.transactionPool,
 			blocksModule: this.blocks,
 			peersModule: this.peers,
@@ -446,7 +440,6 @@ module.exports = class Chain {
 			logger: this.logger,
 			storage: this.storage,
 			applicationState: this.applicationState,
-			balancesSequence: this.scope.balancesSequence,
 			exceptions: this.options.exceptions,
 			transactionPoolModule: this.transactionPool,
 			blocksModule: this.blocks,
@@ -470,7 +463,7 @@ module.exports = class Chain {
 		}
 		jobQueue.register(
 			'nextSync',
-			cb => {
+			async () => {
 				this.logger.info(
 					{
 						syncing: this.loader.syncing(),
@@ -479,21 +472,13 @@ module.exports = class Chain {
 					'Sync time triggered'
 				);
 				if (!this.loader.syncing() && this.blocks.isStale()) {
-					this.scope.sequence.add(
-						sequenceCB => {
-							this.loader
-								.sync()
-								.then(() => sequenceCB())
-								.catch(err => sequenceCB(err));
-						},
-						syncError => {
-							if (syncError) {
-								this.logger.error('Sync timer', syncError);
-								return cb(syncError);
-							}
-							return cb();
+					await this.scope.sequence.add(async () => {
+						try {
+							await this.loader.sync();
+						} catch (error) {
+							this.logger.error(error, 'Sync timer');
 						}
-					);
+					});
 				}
 			},
 			syncInterval
@@ -568,6 +553,13 @@ module.exports = class Chain {
 				);
 			}
 			this.channel.publish('chain:blocks:change', block);
+
+			if (!this.loader.syncing()) {
+				this.channel.invoke('app:updateApplicationState', {
+					height: block.height,
+					prevotedConfirmedUptoHeight: block.prevotedConfirmedUptoHeight,
+				});
+			}
 		});
 
 		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {
@@ -579,6 +571,5 @@ module.exports = class Chain {
 		this.blocks.removeAllListeners(EVENT_BROADCAST_BLOCK);
 		this.blocks.removeAllListeners(EVENT_DELETE_BLOCK);
 		this.blocks.removeAllListeners(EVENT_NEW_BLOCK);
-		this.blocks.removeAllListeners(EVENT_NEW_BROADHASH);
 	}
 };

@@ -31,6 +31,8 @@ const {
 	calculateMilestone,
 } = require('../../../../../../src/modules/chain/blocks/block_reward');
 
+const BLOCK_BUFFER_MAX_CAPACITY = 180;
+
 describe('block', () => {
 	const interfaceAdapters = {
 		transactions: new TransactionInterfaceAdapter(registeredTransactions),
@@ -490,6 +492,24 @@ describe('block', () => {
 			return expect(bytes1).to.deep.equal(bytes2);
 		});
 
+		it('should accept BigNum value (grater than 4294967295) for total amount as string', async () => {
+			const blockDataCopy = Object.assign({}, blockData);
+			blockDataCopy.totalAmount = '11110000000';
+			return expect(block.getBytes(blockDataCopy)).to.be.an.instanceof(Buffer);
+		});
+
+		it('should accept BigNum value (grater than 4294967295) for total fee as string', async () => {
+			const blockDataCopy = Object.assign({}, blockData);
+			blockDataCopy.totalFee = '11110000000';
+			return expect(block.getBytes(blockDataCopy)).to.be.an.instanceof(Buffer);
+		});
+
+		it('should accept BigNum value (grater than 4294967295) for reward as string', async () => {
+			const blockDataCopy = Object.assign({}, blockData);
+			blockDataCopy.reward = '11110000000';
+			return expect(block.getBytes(blockDataCopy)).to.be.an.instanceof(Buffer);
+		});
+
 		it('should return different bytes for different blocks', async () => {
 			const bytes1 = block.getBytes(blockData);
 			const blockDataCopy = Object.assign({}, blockData);
@@ -498,6 +518,11 @@ describe('block', () => {
 				'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc';
 			const bytes2 = block.getBytes(blockDataCopy);
 			return expect(bytes1).to.not.deep.equal(bytes2);
+		});
+
+		it('should return buffer length not greater than max capacity', async () => {
+			const bytes = block.getBytes(blockData);
+			return expect(bytes.length).to.not.greaterThan(BLOCK_BUFFER_MAX_CAPACITY);
 		});
 	});
 

@@ -23,6 +23,7 @@ const createFunc = {
 	1: blockV1.create,
 	2: blockV2.create,
 };
+
 const create = data => {
 	const version =
 		data.version ||

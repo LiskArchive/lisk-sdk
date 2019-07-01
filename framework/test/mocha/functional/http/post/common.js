@@ -22,7 +22,7 @@ const {
 	createDapp,
 	utils: transactionUtils,
 } = require('@liskhq/lisk-transactions');
-const BigNumber = require('bignumber.js');
+const BigNum = require('@liskhq/bignum');
 const typesRepresentatives = require('../../../fixtures/types_representatives');
 const accountFixtures = require('../../../fixtures/accounts');
 const apiHelpers = require('../../../common/helpers/api');
@@ -62,7 +62,7 @@ function invalidAssets(option, badTransactions) {
 						transaction: {
 							type: 4,
 							amount: '0',
-							fee: new BigNumber(FEES.MULTISIGNATURE).times(2).toString(),
+							fee: new BigNum(FEES.MULTISIGNATURE).times(2).toString(),
 							asset: {
 								multisignature: {
 									keysgroup: [`+${accountFixtures.existingDelegate.publicKey}`],

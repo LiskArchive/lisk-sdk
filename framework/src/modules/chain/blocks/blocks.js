@@ -336,23 +336,16 @@ class Blocks extends EventEmitter {
 	}
 
 	async _receiveBlockFromNetworkV1(block) {
-		return this.sequence.add(async cb => {
-			try {
-				this._shouldNotBeActive();
-			} catch (error) {
-				setImmediate(cb, error);
-				return;
-			}
+		return this.sequence.add(async () => {
+			this._shouldNotBeActive();
 			this._isActive = true;
 			// set active to true
 			if (this.blocksVerify.isSaneBlock(block, this._lastBlock)) {
 				try {
 					await this._processReceivedBlock(block);
 				} catch (error) {
-					setImmediate(cb, error);
-					return;
+					this.logger.error(error);
 				}
-				setImmediate(cb);
 				return;
 			}
 			if (this.blocksVerify.isForkOne(block, this._lastBlock)) {
@@ -360,7 +353,6 @@ class Blocks extends EventEmitter {
 				if (this.blocksVerify.shouldDiscardForkOne(block, this._lastBlock)) {
 					this.logger.info('Last block stands');
 					this._isActive = false;
-					setImmediate(cb);
 					return;
 				}
 				try {
@@ -393,14 +385,11 @@ class Blocks extends EventEmitter {
 						newLastBlock: cloneDeep(this._lastBlock),
 					});
 					this._isActive = false;
-					setImmediate(cb);
-					return;
 				} catch (error) {
 					this._isActive = false;
 					this.logger.error(error);
-					setImmediate(cb, error);
-					return;
 				}
+				return;
 			}
 			if (this.blocksVerify.isForkFive(block, this._lastBlock)) {
 				this.roundsModule.fork(block, 5);
@@ -412,7 +401,6 @@ class Blocks extends EventEmitter {
 				}
 				if (this.blocksVerify.shouldDiscardForkFive(block, this._lastBlock)) {
 					this.logger.info('Last block stands');
-					setImmediate(cb);
 					this._isActive = false;
 					return;
 				}
@@ -436,17 +424,11 @@ class Blocks extends EventEmitter {
 						block: deletingBlock,
 						newLastBlock: cloneDeep(this._lastBlock),
 					});
-
 					await this._processReceivedBlock(block);
-
-					setImmediate(cb);
-					return;
 				} catch (error) {
 					this.logger.error(error);
-					this._isActive = false;
-					setImmediate(cb, error);
-					return;
 				}
+				return;
 			}
 			if (block.id === this._lastBlock.id) {
 				this.logger.debug({ blockId: block.id }, 'Block already processed');
@@ -464,7 +446,6 @@ class Blocks extends EventEmitter {
 			}
 			// Discard received block
 			this._isActive = false;
-			setImmediate(cb);
 		});
 	}
 
@@ -512,8 +493,8 @@ class Blocks extends EventEmitter {
 			);
 
 			await this._updateBroadhash();
+			this.emit(EVENT_NEW_BLOCK, { block: cloneDeep(block) });
 			this._lastBlock = newBlock;
-			this._isActive = false;
 		} catch (error) {
 			this.logger.error(
 				error,
