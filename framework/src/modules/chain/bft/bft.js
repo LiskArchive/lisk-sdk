@@ -34,7 +34,7 @@ const extractBFTBlockHeaderFromBlock = block => ({
  */
 class BFT {
 	/**
-	 * Initialize the BFT module
+	 * Create BFT module instance
 	 *
 	 * @param {Object} storage - Storage component instance
 	 * @param {Object} logger - Logger component instance
@@ -62,7 +62,7 @@ class BFT {
 	 */
 	async init() {
 		this.finalityManager = await this._initFinalityManager();
-		const finalizedHeight = this.finalityManager.finalizedHeight;
+		const { finalizedHeight } = this.finalityManager;
 		const lastBlockHeight = await this._getLastBlockHeight();
 
 		const loadFromHeight = Math.max(

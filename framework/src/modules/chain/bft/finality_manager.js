@@ -115,7 +115,7 @@ class FinalityManager {
 	 * Update pre-votes and pre-commits in reference to particular block header
 	 *
 	 * @param {BlockHeader} lastBlockHeader
-	 * @return {undefined}
+	 * @return {Boolean}
 	 */
 	updatePreVotesPreCommits(lastBlockHeader) {
 		debug('updatePreVotesPreCommits invoked');
@@ -126,7 +126,7 @@ class FinalityManager {
 		// that means he is forging on other chain and we don't count any
 		// pre-votes and pre-commits from him
 		if (header.maxHeightPreviouslyForged >= header.height) {
-			return;
+			return false;
 		}
 
 		// Get delegate public key
@@ -184,15 +184,18 @@ class FinalityManager {
 
 		// Set the delegate state
 		this.state[delegatePublicKey] = delegateState;
+
+		return true;
 	}
 
 	/**
 	 * Update the pre-voted confirmed and finalized height
+	 * @return {boolean}
 	 */
 	updatePreVotedAndFinalizedHeight() {
 		debug('updatePreVotedAndFinalizedHeight invoked');
 		if (this.headers.length === 0) {
-			return;
+			return false;
 		}
 
 		const higherPairVoted = Object.entries(this.preVotes)
@@ -210,6 +213,8 @@ class FinalityManager {
 		this.finalizedHeight = higherPairCommitted
 			? parseInt(higherPairCommitted[0])
 			: this.finalizedHeight;
+
+		return true;
 	}
 
 	/**
