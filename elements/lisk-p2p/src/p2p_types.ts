@@ -62,6 +62,8 @@ export interface P2PNodeInfo {
 	readonly protocolVersion: string;
 	readonly nethash: string;
 	readonly wsPort: number;
+	readonly blockId: string;
+	readonly prevotedConfirmedUptoHeight: number;
 	readonly height: number;
 	// tslint:disable-next-line: no-mixed-interface
 	readonly [key: string]: unknown;
