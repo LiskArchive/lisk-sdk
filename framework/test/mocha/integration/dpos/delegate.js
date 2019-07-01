@@ -18,12 +18,12 @@ describe('delegates', () => {
 				const randomDelegateList = new Array(101)
 					.fill(0)
 					.map(() => new accountFixtures.Account().publicKey);
-				// Act
 				library.components.storage.entities.RoundDelegates.create({
 					round: index + 1,
 					delegatePublicKeys: randomDelegateList,
 				});
 			});
+			// Act
 			await library.modules.dpos.delegate.deleteDelegateListUntilRound(5);
 		});
 
