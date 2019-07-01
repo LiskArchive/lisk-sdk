@@ -78,10 +78,6 @@ export class VoteTransaction extends BaseTransaction {
 		return Buffer.from(this.asset.votes.join(''), 'utf8');
 	}
 
-	public assetToJSON(): object {
-		return this.asset;
-	}
-
 	public async prepare(store: StateStorePrepare): Promise<void> {
 		const publicKeyObjectArray = this.asset.votes.map(pkWithAction => {
 			const publicKey = pkWithAction.slice(1);

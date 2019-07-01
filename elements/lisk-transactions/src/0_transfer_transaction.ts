@@ -65,10 +65,6 @@ export class TransferTransaction extends BaseTransaction {
 		return data ? Buffer.from(data, 'utf8') : Buffer.alloc(0);
 	}
 
-	public assetToJSON(): TransferAsset {
-		return this.asset;
-	}
-
 	public async prepare(store: StateStorePrepare): Promise<void> {
 		await store.account.cache([
 			{

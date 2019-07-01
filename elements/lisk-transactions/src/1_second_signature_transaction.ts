@@ -68,10 +68,6 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		return hexToBuffer(publicKey);
 	}
 
-	public assetToJSON(): object {
-		return this.asset;
-	}
-
 	public async prepare(store: StateStorePrepare): Promise<void> {
 		await store.account.cache([
 			{
