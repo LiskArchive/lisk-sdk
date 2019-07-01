@@ -289,8 +289,8 @@ describe('validation', () => {
 	});
 
 	describe('#validateFee', () => {
-		it('should return false is amount is 0', () => {
-			return expect(validateFee('0')).to.be.false;
+		it('should return true if amount is 0', () => {
+			return expect(validateFee('0')).to.be.true;
 		});
 
 		it('should return true when amount is a number greater than 0 and less than maximum transaction amount', () => {
