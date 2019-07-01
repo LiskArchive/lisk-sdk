@@ -428,6 +428,7 @@ class Blocks extends EventEmitter {
 				} catch (error) {
 					this.logger.error(error);
 				}
+				this._isActive = false;
 				return;
 			}
 			if (block.id === this._lastBlock.id) {
