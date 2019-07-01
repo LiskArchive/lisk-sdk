@@ -14,15 +14,8 @@
 
 'use strict';
 
-/**
- * @namespace BFT
- */
-
-const { extractBFTBlockHeaderFromBlock, BFT } = require('./bft');
-const BFTErrors = require('./errors');
+const { Transport } = require('./transport');
 
 module.exports = {
-	extractBFTBlockHeaderFromBlock,
-	BFT,
-	...BFTErrors,
+	Transport,
 };

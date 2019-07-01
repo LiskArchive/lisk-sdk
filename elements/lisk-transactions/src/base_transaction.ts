@@ -14,10 +14,10 @@
  */
 import * as BigNum from '@liskhq/bignum';
 import {
-	bigNumberToBuffer,
 	getAddressFromPublicKey,
 	hash,
 	hexToBuffer,
+	intToBuffer,
 	signData,
 } from '@liskhq/lisk-cryptography';
 import {
@@ -123,7 +123,6 @@ export abstract class BaseTransaction {
 		MultisignatureStatus.UNKNOWN;
 
 	public abstract assetToJSON(): object;
-	public abstract prepare(store: StateStorePrepare): Promise<void>;
 	protected abstract assetToBytes(): Buffer;
 	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
 	protected abstract applyAsset(
@@ -351,6 +350,14 @@ export abstract class BaseTransaction {
 		return createResponse(this.id, errors);
 	}
 
+	public async prepare(store: StateStorePrepare): Promise<void> {
+		await store.account.cache([
+			{
+				address: this.senderId,
+			},
+		]);
+	}
+
 	public addMultisignature(
 		store: StateStore,
 		signatureObject: SignatureObject,
@@ -514,7 +521,7 @@ export abstract class BaseTransaction {
 		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
 
 		const transactionRecipientID = this.recipientId
-			? bigNumberToBuffer(
+			? intToBuffer(
 					this.recipientId.slice(0, -1),
 					BYTESIZES.RECIPIENT_ID,
 			  ).slice(0, BYTESIZES.RECIPIENT_ID)

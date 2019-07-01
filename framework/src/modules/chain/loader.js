@@ -15,7 +15,6 @@
 'use strict';
 
 const async = require('async');
-const { promisify } = require('util');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
 const { validateTransactions } = require('./transactions');
@@ -44,7 +43,6 @@ class Loader {
 		cache,
 		// Unique requirements
 		genesisBlock,
-		balancesSequence,
 		// Modules
 		transactionPoolModule,
 		blocksModule,
@@ -66,7 +64,6 @@ class Loader {
 		// TODO: Remove cache
 		this.cache = cache;
 		this.genesisBlock = genesisBlock;
-		this.balancesSequence = balancesSequence;
 
 		this.constants = {
 			loadPerIteration,
@@ -191,9 +188,8 @@ class Loader {
 		}
 
 		const { signatures } = result;
-		const sequenceAdd = promisify(this.sequence.add.bind(this.sequence));
 
-		await sequenceAdd(async addSequenceCb => {
+		await this.sequence.add(async () => {
 			const signatureCount = signatures.length;
 			for (let i = 0; i < signatureCount; i++) {
 				const signaturePacket = signatures[i];
@@ -208,7 +204,6 @@ class Loader {
 					});
 				}
 			}
-			addSequenceCb();
 		});
 	}
 
@@ -220,7 +215,6 @@ class Loader {
 	 * @private
 	 * @returns {setImmediateCallback} cb, err
 	 * @todo Add description for the params
-	 * @todo Missing error propagation when calling balancesSequence.add
 	 */
 	async _getTransactionsFromNetwork() {
 		this.logger.info('Loading transactions from the network');
@@ -266,22 +260,13 @@ class Loader {
 		for (let i = 0; i < transactionCount; i++) {
 			const transaction = transactions[i];
 
-			const balancesSequenceAdd = promisify(
-				this.balancesSequence.add.bind(this.balancesSequence)
-			);
 			try {
 				/* eslint-disable-next-line */
-				await balancesSequenceAdd(async addSequenceCb => {
-					transaction.bundled = true;
-					try {
-						await this.transactionPoolModule.processUnconfirmedTransaction(
-							transaction
-						);
-						setImmediate(addSequenceCb);
-					} catch (err) {
-						setImmediate(addSequenceCb, err);
-					}
-				});
+				transaction.bundled = true;
+				// eslint-disable-next-line no-await-in-loop
+				await this.transactionPoolModule.processUnconfirmedTransaction(
+					transaction
+				);
 			} catch (error) {
 				this.logger.error(error);
 				throw error;

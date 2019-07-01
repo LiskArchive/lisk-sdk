@@ -20,7 +20,7 @@ const async = require('async');
 const _ = require('lodash');
 const { registeredTransactions } = require('./registered_transactions');
 const jobsQueue = require('../../../src/modules/chain/utils/jobs_queue');
-const Sequence = require('../../../src/modules/chain/utils/sequence');
+const { Sequence } = require('../../../src/modules/chain/utils/sequence');
 const { BlockSlots } = require('../../../src/modules/chain/blocks/block_slots');
 const { createCacheComponent } = require('../../../src/components/cache');
 const { StorageSandbox } = require('./storage_sandbox');
@@ -130,11 +130,6 @@ async function __init(sandbox, initScope) {
 				sequence: new Sequence({
 					onWarning(current) {
 						logger.warn('Main queue', current);
-					},
-				}),
-				balancesSequence: new Sequence({
-					onWarning(current) {
-						logger.warn('Balance queue', current);
 					},
 				}),
 				channel: {
@@ -322,8 +317,8 @@ const initStepsForTest = {
 			logger: scope.components.logger,
 			storage: scope.components.storage,
 			cache: scope.components.cache,
+			sequence: scope.sequence,
 			genesisBlock: __testContext.config.genesisBlock,
-			balancesSequence: scope.balancesSequence,
 			transactionPoolModule: modules.transactionPool,
 			blocksModule: modules.blocks,
 			peersModule: modules.peers,
@@ -342,7 +337,6 @@ const initStepsForTest = {
 			channel: scope.channel,
 			logger: scope.components.logger,
 			storage: scope.components.storage,
-			sequence: scope.sequence,
 			slots: scope.slots,
 			roundsModule: modules.rounds,
 			transactionPoolModule: modules.transactionPool,
@@ -367,7 +361,6 @@ const initStepsForTest = {
 			logger: scope.components.logger,
 			storage: scope.components.storage,
 			applicationState: scope.applicationState,
-			balancesSequence: scope.balancesSequence,
 			exceptions: __testContext.config.exceptions,
 			transactionPoolModule: modules.transactionPool,
 			blocksModule: modules.blocks,
