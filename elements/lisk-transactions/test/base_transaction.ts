@@ -253,8 +253,8 @@ describe('Base transaction class', () => {
 	describe('#stringify', () => {
 		it('should return the transaction stringified', async () => {
 			expect(
-				(validTestTransaction as TestTransaction).stringify(),
-			).to.be.an.instanceOf(String);
+				typeof (validTestTransaction as TestTransaction).stringify(),
+			).to.be.eq('string');
 		});
 	});
 
