@@ -432,7 +432,7 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public getConnectedPeers(): ReadonlyArray<Peer> {
-		const peers = [...this._peerMap.values()];
+		const peers = this.getAllPeers();
 
 		return peers.filter(
 			peer =>
