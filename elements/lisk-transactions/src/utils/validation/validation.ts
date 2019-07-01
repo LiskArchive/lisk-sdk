@@ -164,9 +164,7 @@ export const isValidTransferData = (data: string): boolean =>
 	Buffer.byteLength(data, 'utf8') <= MAX_TRANSFER_ASSET_DATA_LENGTH;
 
 export const validateFee = (data: string) =>
-	isNumberString(data) &&
-	isGreaterThanZero(new BigNum(data)) &&
-	!isGreaterThanMaxTransactionAmount(new BigNum(data));
+	isNumberString(data) && !isGreaterThanMaxTransactionAmount(new BigNum(data));
 
 export const isValidInteger = (num: unknown) =>
 	typeof num === 'number' ? Math.floor(num) === num : false;
