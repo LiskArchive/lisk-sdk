@@ -250,6 +250,14 @@ describe('Base transaction class', () => {
 		});
 	});
 
+	describe('#stringify', () => {
+		it('should return the transaction stringified', async () => {
+			expect(
+				(validTestTransaction as TestTransaction).stringify(),
+			).to.be.an.instanceOf(String);
+		});
+	});
+
 	describe('#isReady', async () => {
 		it('should return false on initialization of unknown transaction', async () => {
 			expect(validTestTransaction.isReady()).to.be.false;
