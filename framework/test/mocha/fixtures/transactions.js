@@ -19,8 +19,6 @@ const faker = require('faker');
 const stampit = require('stampit');
 const Dapps = require('./dapps');
 
-const { TRANSACTION_TYPES } = global.constants;
-
 const Transaction = stampit({
 	props: {
 		id: '',
@@ -56,11 +54,13 @@ const Transaction = stampit({
 		this.type = type || 0;
 
 		switch (this.type) {
-			case TRANSACTION_TYPES.SEND:
+			// SEND
+			case 0:
 				this.asset.data = randomstring.generate({ length: 64 });
 				break;
 
-			case TRANSACTION_TYPES.SIGNATURE:
+			// SIGNATURE
+			case 1:
 				this.asset.signature = {
 					publicKey: randomstring.generate({
 						charset: 'hex',
@@ -70,7 +70,8 @@ const Transaction = stampit({
 				};
 				break;
 
-			case TRANSACTION_TYPES.DELEGATE:
+			// DELEGATE
+			case 2:
 				this.asset.delegate = {
 					username:
 						delegateName ||
@@ -78,7 +79,8 @@ const Transaction = stampit({
 				};
 				break;
 
-			case TRANSACTION_TYPES.VOTE:
+			// VOTE
+			case 3:
 				this.asset.votes = votes || [
 					randomstring.generate({
 						charset: 'hex',
@@ -93,7 +95,8 @@ const Transaction = stampit({
 				];
 				break;
 
-			case TRANSACTION_TYPES.MULTI:
+			// MULTI
+			case 4:
 				this.asset.multisignature = {
 					min: faker.random.number({ min: 2 }),
 					lifetime: +(new Date() / 1000).toFixed(),
@@ -112,11 +115,13 @@ const Transaction = stampit({
 				};
 				break;
 
-			case TRANSACTION_TYPES.DAPP:
+			// DAPP
+			case 5:
 				this.asset.dapp = new Dapps.Dapp({ transactionId: this.id });
 				break;
 
-			case TRANSACTION_TYPES.IN_TRANSFER:
+			// IN_TRANSFER
+			case 6:
 				this.asset.inTransfer = new Dapps.OutTransfer({
 					dappId: dapp
 						? dapp.id
@@ -125,7 +130,8 @@ const Transaction = stampit({
 				});
 				break;
 
-			case TRANSACTION_TYPES.OUT_TRANSFER:
+			// OUT_TRANSFER
+			case 7:
 				this.asset.outTransfer = new Dapps.OutTransfer({
 					dappId: dapp
 						? dapp.id

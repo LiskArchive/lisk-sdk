@@ -136,6 +136,8 @@ function createRawBlock(library, rawTransactions, callback) {
 			transactions,
 			maxTransactionPerBlock:
 				library.modules.blocks.constants.maxTransactionPerBlock,
+			maxHeightPreviouslyForged: 1,
+			prevotedConfirmedUptoHeight: 1,
 		});
 
 		block.id = blocksLogic.getId(block);

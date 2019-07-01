@@ -225,11 +225,13 @@ describe('WS transport', () => {
 			});
 		});
 
-		describe('blocksCommon', () => {
+		describe('getHighestCommonBlockId', () => {
 			it('using no params should fail', async () => {
 				let res;
 				try {
-					const { data } = await p2p.request({ procedure: 'blocksCommon' });
+					const { data } = await p2p.request({
+						procedure: 'getHighestCommonBlockId',
+					});
 					res = data;
 				} catch (err) {
 					__testContext.debug(
@@ -237,19 +239,17 @@ describe('WS transport', () => {
 						JSON.stringify(err.response),
 						JSON.stringify(res)
 					);
-					expect(err.response.message).to.equal(
-						"should have required property 'ids': undefined"
-					);
+					expect(err.response.message).to.equal('should be object: undefined');
 					expect(res).to.be.undefined;
 				}
 			});
 
-			it('using ids == "";"";"" should fail', async () => {
+			it('using non unique ids should fail', async () => {
 				let res;
 				try {
 					res = await p2p.request({
-						procedure: 'blocksCommon',
-						data: { ids: '"";"";""' },
+						procedure: 'getHighestCommonBlockId',
+						data: { ids: ['1', '2', '2'] },
 					});
 				} catch (err) {
 					__testContext.debug(
@@ -257,16 +257,18 @@ describe('WS transport', () => {
 						JSON.stringify(err.response),
 						JSON.stringify(res)
 					);
-					expect(err.response.message).to.equal('Invalid block id sequence');
+					expect(err.response.message).to.equal(
+						'should NOT have duplicate items (items ## 2 and 1 are identical): undefined'
+					);
 				}
 			});
 
-			it("using ids == '','','' should fail", async () => {
+			it('using an empty array should fail', async () => {
 				let res;
 				try {
 					res = await p2p.request({
-						procedure: 'blocksCommon',
-						data: { ids: "'','',''" },
+						procedure: 'getHighestCommonBlockId',
+						data: { ids: [] },
 					});
 				} catch (err) {
 					__testContext.debug(
@@ -274,16 +276,18 @@ describe('WS transport', () => {
 						JSON.stringify(err.response),
 						JSON.stringify(res)
 					);
-					expect(err.response.message).to.equal('Invalid block id sequence');
+					expect(err.response.message).to.equal(
+						'should NOT have fewer than 1 items: undefined'
+					);
 				}
 			});
 
-			it('using ids == "","","" should fail', async () => {
+			it('should fail when using invalid id format', async () => {
 				let res;
 				try {
 					res = await p2p.request({
-						procedure: 'blocksCommon',
-						data: { ids: '"","",""' },
+						procedure: 'getHighestCommonBlockId',
+						data: { ids: ['abcde', '1'] },
 					});
 				} catch (err) {
 					__testContext.debug(
@@ -291,16 +295,18 @@ describe('WS transport', () => {
 						JSON.stringify(err.response),
 						JSON.stringify(res)
 					);
-					expect(err.response.message).to.equal('Invalid block id sequence');
+					expect(err.response.message).to.equal(
+						'should match format "id": undefined'
+					);
 				}
 			});
 
-			it('using ids == one,two,three should fail', async () => {
+			it('not using an array should fail', async () => {
 				let res;
 				try {
 					res = await p2p.request({
-						procedure: 'blocksCommon',
-						data: { ids: 'one,two,three' },
+						procedure: 'getHighestCommonBlockId',
+						data: { ids: '1,2,3,4,5,6' },
 					});
 				} catch (err) {
 					__testContext.debug(
@@ -308,65 +314,30 @@ describe('WS transport', () => {
 						JSON.stringify(err.response),
 						JSON.stringify(res)
 					);
-					expect(err.response.message).to.equal('Invalid block id sequence');
+					expect(err.response.message).to.equal('should be array: undefined');
 				}
-			});
-
-			it('using ids == "1","2","3" should be ok and return null common block', async () => {
-				const { data } = await p2p.request({
-					procedure: 'blocksCommon',
-					data: { ids: '"1","2","3"' },
-				});
-				__testContext.debug('> Error / Response:'.grey, JSON.stringify(data));
-				expect(data).to.have.property('common').to.be.null;
-			});
-
-			it("using ids == '1','2','3' should be ok and return null common block", async () => {
-				const { data } = await p2p.request({
-					procedure: 'blocksCommon',
-					data: { ids: "'1','2','3'" },
-				});
-				__testContext.debug('> Error / Response:'.grey, JSON.stringify(data));
-
-				expect(data).to.have.property('common').to.be.null;
-			});
-
-			it('using ids == 1,2,3 should be ok and return null common block', async () => {
-				const { data } = await p2p.request({
-					procedure: 'blocksCommon',
-					data: { ids: '1,2,3' },
-				});
-				__testContext.debug('> Error / Response:'.grey, JSON.stringify(data));
-
-				expect(data).to.have.property('common').to.be.null;
 			});
 
 			it('using ids which include genesisBlock.id should be ok', async () => {
 				const { data } = await p2p.request({
-					procedure: 'blocksCommon',
+					procedure: 'getHighestCommonBlockId',
 					data: {
-						ids: [
-							__testContext.config.genesisBlock.id.toString(),
-							'2',
-							'3',
-						].join(),
+						ids: [__testContext.config.genesisBlock.id.toString(), '2', '3'],
 					},
 				});
 				__testContext.debug('> Error / Response:'.grey, JSON.stringify(data));
+				expect(data).to.equal(__testContext.config.genesisBlock.id.toString());
+			});
 
-				expect(data)
-					.to.have.property('common')
-					.to.be.an('object');
-				expect(data.common)
-					.to.have.property('height')
-					.that.is.a('number');
-				expect(data.common)
-					.to.have.property('id')
-					.that.is.a('string');
-				expect(data.common).to.have.property('previousBlock').that.is.null;
-				expect(data.common)
-					.to.have.property('timestamp')
-					.that.is.equal(0);
+			it('using ["1","2","3"] should return an empty array (no common blocks)', async () => {
+				const { data } = await p2p.request({
+					procedure: 'getHighestCommonBlockId',
+					data: {
+						ids: ['1', '2', '3'],
+					},
+				});
+				__testContext.debug('> Error / Response:'.grey, JSON.stringify(data));
+				expect(data).to.be.null;
 			});
 		});
 

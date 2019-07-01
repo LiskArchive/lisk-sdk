@@ -120,6 +120,68 @@ describe('Chain', () => {
 		});
 	});
 
+	describe('actions', () => {
+		beforeEach(async () => {
+			chain.scope = {
+				modules: {
+					blocks: {
+						getHighestCommonBlock: sinonSandbox.stub(),
+					},
+				},
+			};
+			chain.logger = {
+				debug: sinonSandbox.stub(),
+			};
+		});
+
+		describe('getHighestCommonBlockId', () => {
+			const actionQuery = {
+				params: { ids: ['1', '1'] },
+			};
+
+			it('should validate the request and return a validation error and debug log it if it fails', async () => {
+				try {
+					await chain.actions.getHighestCommonBlockId(actionQuery);
+				} catch (error) {
+					expect(error.message).to.equal(
+						'should NOT have duplicate items (items ## 1 and 0 are identical): undefined'
+					);
+					expect(chain.logger.debug).to.be.calledWith(
+						'getHighestCommonBlockId request validation failed',
+						{
+							err:
+								'should NOT have duplicate items (items ## 1 and 0 are identical): undefined',
+							req: actionQuery.params,
+						}
+					);
+				}
+			});
+
+			it('should return null if commonBlock has not been found', async () => {
+				chain.scope.modules.blocks.getHighestCommonBlock.returns(undefined);
+				const response = await chain.actions.getHighestCommonBlockId({
+					params: {
+						ids: ['1', '2'],
+					},
+				});
+				expect(response).to.be.null;
+			});
+
+			it('should return the block id if commonBlock has been found', async () => {
+				chain.scope.modules.blocks.getHighestCommonBlock.returns({
+					id: '123',
+					height: '1',
+				});
+				const response = await chain.actions.getHighestCommonBlockId({
+					params: { ids: ['1', '2'] },
+				});
+				expect(response).to.equal('123');
+			});
+
+			it('should call blocks.getHighestCommonBlock with proper arguments', async () => {});
+		});
+	});
+
 	describe('bootstrap', () => {
 		beforeEach(async () => {
 			// Act

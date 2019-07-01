@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,13 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-module.exports = {
-	Account: require('./account'),
-	Block: require('./block'),
-	RoundDelegates: require('./round_delegates'),
-	Round: require('./round'),
-	Transaction: require('./transaction'),
-	ChainMeta: require('./chain_meta'),
-};
+ /*
+   DESCRIPTION: Add maxHeightPreviouslyForged and prevotedConfirmedUptoHeight field for blocks column. Both columns are of type 32-bit unsigned integer
+   PARAMETERS: None
+*/
+
+  -- Add to blocks column
+ALTER TABLE "blocks" ADD COLUMN IF NOT EXISTS "maxHeightPreviouslyForged" INT;
+ALTER TABLE "blocks" ADD COLUMN IF NOT EXISTS "prevotedConfirmedUptoHeight" INT;

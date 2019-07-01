@@ -301,6 +301,10 @@ describe('blocks/process', () => {
 						maxPayloadLength: constants.maxPayloadLength,
 						keypair,
 						timestamp,
+						version: blockVersion.getBlockVersion(lastBlock.height + 1),
+						maxHeightPreviouslyForged: 1,
+						prevotedConfirmedUptoHeight: 1,
+						height: lastBlock.height + 1,
 					});
 				});
 			});
@@ -372,6 +376,10 @@ describe('blocks/process', () => {
 								maxPayloadLength: constants.maxPayloadLength,
 								keypair,
 								timestamp,
+								version: blockVersion.getBlockVersion(lastBlock.height + 1),
+								maxHeightPreviouslyForged: 1,
+								prevotedConfirmedUptoHeight: 1,
+								height: lastBlock.height + 1,
 							});
 							expect(block).to.equal(dummyBlock);
 						});
@@ -401,6 +409,10 @@ describe('blocks/process', () => {
 								maxPayloadLength: constants.maxPayloadLength,
 								keypair,
 								timestamp,
+								version: blockVersion.getBlockVersion(lastBlock.height + 1),
+								maxHeightPreviouslyForged: 1,
+								prevotedConfirmedUptoHeight: 1,
+								height: lastBlock.height + 1,
 							});
 							expect(block).to.equal(dummyBlock);
 						});
@@ -427,6 +439,10 @@ describe('blocks/process', () => {
 								maxPayloadLength: constants.maxPayloadLength,
 								keypair,
 								timestamp,
+								version: blockVersion.getBlockVersion(lastBlock.height + 1),
+								maxHeightPreviouslyForged: 1,
+								prevotedConfirmedUptoHeight: 1,
+								height: lastBlock.height + 1,
 							});
 							expect(block).to.equal(dummyBlock);
 						});
@@ -444,8 +460,6 @@ describe('blocks/process', () => {
 				];
 				const state = {
 					blockTimestamp: timestamp,
-					blockHeight: lastBlock.height + 1,
-					blockVersion: blockVersion.currentBlockVersion,
 				};
 
 				checkAllowedTransactionsStub.returns({

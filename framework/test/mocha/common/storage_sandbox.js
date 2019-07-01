@@ -28,6 +28,7 @@ const {
 	Round,
 	Transaction,
 	RoundDelegates,
+	ChainMeta,
 } = require('../../../src/modules/chain/components/storage/entities');
 
 const {
@@ -109,6 +110,7 @@ class StorageSandbox extends Storage {
 		this.registerEntity('Migration', Migration);
 		this.registerEntity('Peer', Peer);
 		this.registerEntity('Round', Round);
+		this.registerEntity('ChainMeta', ChainMeta);
 
 		await this._createSchema();
 		return true;
@@ -117,6 +119,20 @@ class StorageSandbox extends Storage {
 	cleanup() {
 		this.options.database = this.originalDbName;
 		super.cleanup();
+
+		// Add physical termination of postgres connection on cleanup.
+		// While writing storage test in jest, found out that test hangs even after
+		// successful execution, due to connection pool.
+		//
+		// Pg-promise internally use the connection-pool which keeps the reference to
+		// physical connections. We can't end the pool on storage.cleanup() as that
+		// cleanup can be triggered by individual module and ending the connection pool
+		// will cause exceptions to other modules which are still running
+		//
+		// On exiting application, we use process.exit() at very end, that leads to
+		// terminating the physical connections in any case. So no effect in
+		// normal execution of the application.
+		this.adapter.db.$pool.end();
 	}
 
 	_dropDB() {

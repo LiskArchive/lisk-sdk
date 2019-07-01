@@ -75,6 +75,7 @@ function createBlock(
 	transactions = transactions.map(transaction =>
 		library.modules.interfaceAdapters.transactions.fromJson(transaction)
 	);
+	// TODO Remove hardcoded values and use from BFT class
 	const block = blocksLogic.create({
 		blockReward: library.modules.blocks.blockReward,
 		keypair,
@@ -83,6 +84,8 @@ function createBlock(
 		transactions,
 		maxPayloadLength: __testContext.config.constants.MAX_PAYLOAD_LENGTH,
 		exceptions,
+		maxHeightPreviouslyForged: 1,
+		prevotedConfirmedUptoHeight: 1,
 	});
 
 	block.id = blocksLogic.getId(block);

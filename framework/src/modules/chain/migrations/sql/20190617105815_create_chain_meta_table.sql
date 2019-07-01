@@ -12,13 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-module.exports = {
-	Account: require('./account'),
-	Block: require('./block'),
-	RoundDelegates: require('./round_delegates'),
-	Round: require('./round'),
-	Transaction: require('./transaction'),
-	ChainMeta: require('./chain_meta'),
-};
+/*
+  DESCRIPTION: Creates meta table for BFT.
+
+  PARAMETERS: None
+*/
+
+CREATE TABLE IF NOT EXISTS "chain_meta" (
+  "key" VARCHAR(40) PRIMARY KEY,
+  "value" TEXT NOT NULL
+);

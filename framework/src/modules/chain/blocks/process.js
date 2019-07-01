@@ -91,8 +91,6 @@ class BlocksProcess {
 	async generateBlock(lastBlock, keypair, timestamp, transactions) {
 		const context = {
 			blockTimestamp: timestamp,
-			blockHeight: lastBlock.height + 1,
-			blockVersion: blockVersion.currentBlockVersion,
 		};
 
 		const allowedTransactionsIds = transactionsModule
@@ -124,6 +122,10 @@ class BlocksProcess {
 			maxPayloadLength: this.constants.maxPayloadLength,
 			keypair,
 			timestamp,
+			prevotedConfirmedUptoHeight: 1,
+			maxHeightPreviouslyForged: 1,
+			height: lastBlock.height + 1,
+			version: blockVersion.getBlockVersion(lastBlock.height + 1),
 		});
 	}
 

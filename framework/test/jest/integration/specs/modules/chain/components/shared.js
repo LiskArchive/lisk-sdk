@@ -1,3 +1,4 @@
+/* eslint-disable mocha/no-pending-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -14,11 +15,13 @@
 
 'use strict';
 
+const { configurator } = require('../../../../../../../src');
+
+const devConfig = require('../../../../../../fixtures/config/devnet/config');
+
+// To compile and have one unified config along with defaults
+configurator.loadConfig(devConfig);
+
 module.exports = {
-	Account: require('./account'),
-	Block: require('./block'),
-	RoundDelegates: require('./round_delegates'),
-	Round: require('./round'),
-	Transaction: require('./transaction'),
-	ChainMeta: require('./chain_meta'),
+	config: configurator.getConfig({}, { failOnInvalidArg: false }),
 };

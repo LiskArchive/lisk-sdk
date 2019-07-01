@@ -12,13 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-module.exports = {
-	Account: require('./account'),
-	Block: require('./block'),
-	RoundDelegates: require('./round_delegates'),
-	Round: require('./round'),
-	Transaction: require('./transaction'),
-	ChainMeta: require('./chain_meta'),
-};
+DELETE FROM chain_meta ${parsedFilters:raw}

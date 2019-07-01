@@ -18,8 +18,10 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 	require('./utils/newrelic_lisk');
 }
 
+const { validator } = require('@liskhq/lisk-validator');
 const { convertErrorsToString } = require('./utils/error_handlers');
 const Sequence = require('./utils/sequence');
+const definitions = require('./schema/definitions');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
@@ -46,8 +48,11 @@ const { Transport } = require('./transport');
 const syncInterval = 10000;
 const forgeInterval = 1000;
 
-// Begin reading from stdin
-process.stdin.resume();
+// TODO: https://github.com/LiskHQ/lisk-sdk/issues/3839
+// Don't read from stdin in test environment
+if (process.env.NODE_ENV !== 'test') {
+	process.stdin.resume();
+}
 
 if (typeof gc !== 'undefined') {
 	setInterval(() => {
@@ -262,8 +267,31 @@ module.exports = class Chain {
 				lastBlock: this.blocks.lastBlock,
 			}),
 			blocks: async action => this.transport.blocks(action.params || {}),
-			blocksCommon: async action =>
-				this.transport.blocksCommon(action.params || {}),
+			getHighestCommonBlockId: async action => {
+				const valid = validator.validate(
+					definitions.getHighestCommonBlockIdRequest,
+					action.params
+				);
+
+				if (valid.length) {
+					const err = valid;
+					const error = `${err[0].message}: ${err[0].path}`;
+					this.logger.debug(
+						'getHighestCommonBlockId request validation failed',
+						{
+							err: error,
+							req: action.params,
+						}
+					);
+					throw new Error(error);
+				}
+
+				const commonBlock = await this.scope.modules.blocks.getHighestCommonBlock(
+					action.params.ids
+				);
+
+				return commonBlock ? commonBlock.id : null;
+			},
 		};
 	}
 
@@ -541,6 +569,13 @@ module.exports = class Chain {
 				);
 			}
 			this.channel.publish('chain:blocks:change', block);
+
+			if (!this.loader.syncing()) {
+				this.channel.invoke('app:updateApplicationState', {
+					height: block.height,
+					prevotedConfirmedUptoHeight: block.prevotedConfirmedUptoHeight,
+				});
+			}
 		});
 
 		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {
@@ -556,7 +591,6 @@ module.exports = class Chain {
 		this.blocks.removeAllListeners(EVENT_BROADCAST_BLOCK);
 		this.blocks.removeAllListeners(EVENT_DELETE_BLOCK);
 		this.blocks.removeAllListeners(EVENT_NEW_BLOCK);
-		this.blocks.removeAllListeners(EVENT_NEW_BROADHASH);
 		this.bft.removeAllListeners(EVENT_BLOCK_FINALIZED);
 	}
 };

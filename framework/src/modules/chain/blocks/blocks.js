@@ -19,6 +19,7 @@ const { cloneDeep } = require('lodash');
 const blocksUtils = require('./utils');
 const { BlocksProcess } = require('./process');
 const { BlocksVerify } = require('./verify');
+const blockVersion = require('./block_version');
 const { BlocksChain } = require('./chain');
 const {
 	calculateSupply,
@@ -126,6 +127,7 @@ class Blocks extends EventEmitter {
 		});
 
 		this._receiveBlockImplementations = {
+			0: block => this._receiveBlockFromNetworkV1(block),
 			1: block => this._receiveBlockFromNetworkV1(block),
 			2: block => this._receiveBlockFromNetworkV2(block),
 		};
@@ -328,8 +330,9 @@ class Blocks extends EventEmitter {
 			} version: ${block.version}`
 		);
 
-		// TODO: Use block_version.js#getBlockVersion when https://github.com/LiskHQ/lisk-sdk/pull/3722 is merged
-		return this._receiveBlockImplementations[block.version](block);
+		return this._receiveBlockImplementations[
+			blockVersion.getBlockVersion(block.height, this.exceptions)
+		](block);
 	}
 
 	async _receiveBlockFromNetworkV1(block) {
@@ -509,6 +512,7 @@ class Blocks extends EventEmitter {
 			);
 
 			await this._updateBroadhash();
+			this.emit(EVENT_NEW_BLOCK, { block: cloneDeep(block) });
 			this._lastBlock = newBlock;
 			this._isActive = false;
 		} catch (error) {
@@ -612,6 +616,27 @@ class Blocks extends EventEmitter {
 		} catch (error) {
 			this._isActive = false;
 			throw error;
+		}
+	}
+
+	/**
+	 * Returns the highest common block between ids and the database blocks table
+	 * @param {Array<String>} ids - An array of block ids
+	 * @return {Promise<BasicBlock|undefined>}
+	 */
+	async getHighestCommonBlock(ids) {
+		try {
+			const [block] = await this.storage.entities.Block.get(
+				{
+					id_in: ids,
+				},
+				{ sort: 'height:desc', limit: 1 }
+			);
+			return block;
+		} catch (e) {
+			const errMessage = 'Failed to access storage layer';
+			this.logger.error(e, errMessage);
+			throw new Error(errMessage);
 		}
 	}
 

@@ -196,7 +196,6 @@ class Transport {
 	}
 
 	/**
-	 * @property {function} blocksCommon
 	 * @property {function} blocks
 	 * @property {function} postBlock
 	 * @property {function} list
@@ -210,78 +209,6 @@ class Transport {
 	 * @todo Implement API comments with apidoc.
 	 * @see {@link http://apidocjs.com/}
 	 */
-	/**
-	 * Description of blocksCommon.
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
-	async blocksCommon(query) {
-		query = query || {};
-
-		if (query.ids && query.ids.split(',').length > 1000) {
-			throw new Error('ids property contains more than 1000 values');
-		}
-
-		const errors = validator.validate(definitions.WSBlocksCommonRequest, query);
-
-		if (errors.length) {
-			const error = `${errors[0].message}: ${errors[0].path}`;
-			this.logger.debug('Common block request validation failed', {
-				err: error.toString(),
-				req: query,
-			});
-			throw new Error(error);
-		}
-
-		const escapedIds = query.ids
-			// Remove quotes
-			.replace(/['"]+/g, '')
-			// Separate by comma into an array
-			.split(',')
-			// Reject any non-numeric values
-			.filter(id => /^[0-9]+$/.test(id));
-
-		if (!escapedIds.length) {
-			this.logger.debug('Common block request validation failed', {
-				err: 'ESCAPE',
-				req: query.ids,
-			});
-
-			throw new Error('Invalid block id sequence');
-		}
-
-		try {
-			const row = await this.storage.entities.Block.get({
-				id: escapedIds[0],
-			});
-
-			if (!row.length > 0) {
-				return {
-					success: true,
-					common: null,
-				};
-			}
-
-			const { height, id, previousBlockId: previousBlock, timestamp } = row[0];
-
-			const parsedRow = {
-				id,
-				height,
-				previousBlock,
-				timestamp,
-			};
-
-			return {
-				success: true,
-				common: parsedRow,
-			};
-		} catch (error) {
-			this.logger.error(error.stack);
-			throw new Error('Failed to get common block');
-		}
-	}
 
 	/**
 	 * Description of blocks.

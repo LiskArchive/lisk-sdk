@@ -78,6 +78,8 @@ function createBlock(
 		previousBlock: blocksModule.lastBlock,
 		transactions,
 		maxTransactionPerBlock: blocksModule.constants.maxTransactionPerBlock,
+		maxHeightPreviouslyForged: 1,
+		prevotedConfirmedUptoHeight: 1,
 	});
 
 	newBlock.id = blocksLogic.getId(newBlock);

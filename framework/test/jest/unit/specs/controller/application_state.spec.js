@@ -40,6 +40,7 @@ describe('Application State', () => {
 		protocolVersion: '1.0',
 		nethash: 'test broadhash',
 		broadhash: 'test broadhash',
+		prevotedConfirmedUptoHeight: 0,
 		height: 1,
 		nonce: 'test nonce',
 	};
@@ -94,6 +95,7 @@ describe('Application State', () => {
 			// Arrange
 			const newState = {
 				broadhash: 'xxx',
+				prevotedConfirmedUptoHeight: 0,
 				height: '10',
 			};
 			const errorMessage = new Error('Publish failure');
@@ -125,52 +127,13 @@ describe('Application State', () => {
 
 		describe('when wrong parameters are passed', () => {
 			let newState;
-			const broadhashErrorMessage =
-				'broadhash is required to update application state.';
 			const heightErrorMessage =
 				'height is required to update application state.';
-
-			it('should throw AssertionError if broadhash undefined', async () => {
-				// Arrange
-				newState = {
-					broadhash: undefined,
-					height: '10',
-				};
-				const broadhashAssertionError = new AssertionError({
-					message: broadhashErrorMessage,
-					operator: '==',
-					expected: true,
-					actual: undefined,
-				});
-
-				// Act && Assert
-				await expect(applicationState.update(newState)).rejects.toThrow(
-					broadhashAssertionError
-				);
-			});
-
-			it('should throw AssertionError if broadhash is null', async () => {
-				// Arrange
-				newState = {
-					broadhash: null,
-					height: '10',
-				};
-				const broadhashAssertionError = new AssertionError({
-					message: broadhashErrorMessage,
-					operator: '==',
-					expected: true,
-					actual: null,
-				});
-
-				// Act && Assert
-				await expect(applicationState.update(newState)).rejects.toThrow(
-					broadhashAssertionError
-				);
-			});
 
 			it('should throw AssertionError if height undefined', async () => {
 				// Arrange
 				newState = {
+					prevotedConfirmedUptoHeight: 0,
 					broadhash: 'newBroadhash',
 					height: undefined,
 				};
@@ -190,6 +153,7 @@ describe('Application State', () => {
 			it('should throw AssertionError if height is null', async () => {
 				// Arrange
 				newState = {
+					prevotedConfirmedUptoHeight: 0,
 					broadhash: 'newBroadhash',
 					height: null,
 				};
@@ -216,6 +180,7 @@ describe('Application State', () => {
 			beforeEach(async () => {
 				// Arrange
 				newState = {
+					prevotedConfirmedUptoHeight: 1,
 					broadhash: 'newBroadhash',
 					height: '10',
 				};
@@ -237,6 +202,13 @@ describe('Application State', () => {
 			it('should update broadhash', async () => {
 				// Assert
 				expect(updatedState.broadhash).toBe(newState.broadhash);
+			});
+
+			it('should update prevotedConfirmedUptoHeight', async () => {
+				// Assert
+				expect(updatedState.prevotedConfirmedUptoHeight).toBe(
+					newState.prevotedConfirmedUptoHeight
+				);
 			});
 
 			it('should update height', async () => {
@@ -265,6 +237,30 @@ describe('Application State', () => {
 			it('should return true', async () => {
 				// Assert
 				expect(result).toBe(true);
+			});
+		});
+
+		describe('when a parameter is not passed', () => {
+			let newState;
+			let updatedState;
+
+			beforeEach(async () => {
+				// Arrange
+				newState = {
+					height: '10',
+				};
+				applicationState.channel = channel;
+
+				// Act
+				await applicationState.update(newState);
+				updatedState = applicationState.state;
+			});
+
+			it('should remain with the same value', async () => {
+				// Assert
+				expect(updatedState.prevotedConfirmedUptoHeight).toBe(
+					mockedState.prevotedConfirmedUptoHeight
+				);
 			});
 		});
 	});
