@@ -14,15 +14,18 @@
 
 'use strict';
 
-/**
- * @namespace BFT
- */
+const blockHeaderSchema = require('./block_header_schema');
+const { validate } = require('../../../../src/controller/validator');
 
-const { extractBFTBlockHeaderFromBlock, BFT } = require('./bft');
-const BFTErrors = require('./errors');
+/**
+ * Validate schema of block header
+ *
+ * @param {BlockHeader} blockHeader
+ * @return {boolean}
+ */
+const validateBlockHeader = blockHeader =>
+	validate(blockHeaderSchema, blockHeader);
 
 module.exports = {
-	extractBFTBlockHeaderFromBlock,
-	BFT,
-	...BFTErrors,
+	validateBlockHeader,
 };

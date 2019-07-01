@@ -14,273 +14,135 @@
 
 'use strict';
 
-const assert = require('assert');
-const { HeadersList } = require('./headers_list');
-const blockHeaderSchema = require('./block_header_schema');
-const { validate } = require('../../../../src/controller/validator');
+const { FinalityManager } = require('./finality_manager');
+
+const KEYS = {
+	FINALIZED_HEIGHT: 'BFT.finalizedHeight',
+};
+
+const extractBFTBlockHeaderFromBlock = block => ({
+	blockId: block.id,
+	height: block.height,
+	maxHeightPreviouslyForged: block.maxHeightPreviouslyForged,
+	prevotedConfirmedUptoHeight: block.prevotedConfirmedUptoHeight,
+	delegatePublicKey: block.generatorPublicKey,
+	activeSinceRound: 0, // TODO: Link the new DPOS with BFT here
+});
 
 /**
- * Validate schema of block header
- *
- * @param {BlockHeader} blockHeader
- * @return {boolean}
+ * BFT class responsible to hold integration logic for consensus manager with the framework
  */
-const validateBlockHeader = blockHeader =>
-	validate(blockHeaderSchema, blockHeader);
-
-/**
- * @typedef {Object} BlockHeader
- * @property {string} blockId
- * @property {int} height
- * @property {int} maxHeightPreviouslyForged
- * @property {int} prevotedConfirmedUptoHeight
- * @property {int} activeSinceRound
- * @property {string} delegatePublicKey
- */
-
 class BFT {
-	constructor({ finalizedHeight, activeDelegates } = {}) {
-		assert(finalizedHeight !== undefined, 'Must provide finalizedHeight');
-		assert(activeDelegates !== undefined, 'Must provide activeDelegates');
-		assert(activeDelegates > 0, 'Must provide a positive activeDelegates');
-
-		// Set constants
-		this.activeDelegates = activeDelegates;
-
-		// Threshold to consider a block pre-voted
-		this.preVoteThreshold = Math.ceil((this.activeDelegates * 2) / 3);
-
-		// Threshold to consider a block pre-committed (or finalized)
-		this.preCommitThreshold = Math.ceil((this.activeDelegates * 2) / 3);
-
-		// Limit to of blocks to must have to make any prevote-precommit verification on blocks (1 block less than 3 rounds)
-		this.processingThreshold = this.activeDelegates * 3 - 1;
-
-		// Maximum headers to store (5 rounds)
-		this.maxHeaders = this.activeDelegates * 5;
-
-		this.headers = new HeadersList({ size: this.maxHeaders });
-
-		// Height up to which blocks are finalized
-		this.finalizedHeight = finalizedHeight || 0;
-
-		// Height up to which blocks have pre-voted
-		this.prevotedConfirmedHeight = 0;
-
-		this.state = {};
-		this.preVotes = {};
-		this.preCommits = {};
-	}
-
 	/**
-	 * Add block header to BFT
+	 * Create BFT module instance
 	 *
-	 * @param {BlockHeader} blockHeader
-	 * @return {BFT}
+	 * @param {Object} storage - Storage component instance
+	 * @param {Object} logger - Logger component instance
+	 * @param {integer} activeDelegates - Number of delegates
+	 * @param {integer} startingHeight - The height at which BFT consensus initialize
 	 */
-	addBlockHeader(blockHeader) {
-		// Validate the schema of the header
-		// To spy exported function in same module we have to call it as this
-		exportedInterface.validateBlockHeader(blockHeader);
+	constructor({ storage, logger, activeDelegates, startingHeight }) {
+		this.finalityManager = null;
 
-		// Verify the integrity of the header with chain
-		this.verifyBlockHeaders(blockHeader);
-
-		// Add the header to the list
-		this.headers.add(blockHeader);
-
-		// Update the pre-votes and pre-commits
-		this.updatePreVotesPreCommits(blockHeader);
-
-		// Update the pre-voted confirmed and finalized height
-		this.updatePreVotedAndFinalizedHeight();
-
-		return this;
-	}
-
-	/**
-	 * Update pre-votes and pre-commits in reference to particular block header
-	 *
-	 * @param {BlockHeader} lastBlockHeader
-	 * @return {undefined}
-	 */
-	updatePreVotesPreCommits(lastBlockHeader) {
-		// Update applies particularly in reference to last block header in the list
-		const header = lastBlockHeader || this.headers.last;
-
-		// If delegate forged a block with higher or same height previously
-		// that means he is forging on other chain and we don't count any
-		// pre-votes and pre-commits from him
-		if (header.maxHeightPreviouslyForged >= header.height) {
-			return;
-		}
-
-		// Get delegate public key
-		const delegatePublicKey = header.delegatePublicKey;
-
-		// Load or initialize delegate state in reference to current BFT block headers
-		const delegateState = this.state[delegatePublicKey] || {
-			maxPreVoteHeight: 0,
-			maxPreCommitHeight: 0,
+		this.logger = logger;
+		this.storage = storage;
+		this.constants = {
+			activeDelegates,
+			startingHeight,
 		};
 
-		// Get first block of the round when delegate was active
-		const delegateMinHeightActive =
-			(header.activeSinceRound - 1) * this.activeDelegates + 1;
-
-		// If delegate is new then first block of the round will be considered
-		// if it forged before then we probably have the last commit height
-		// delegate can't pre-commit and block before above mentioned conditions
-		const minPreCommit = Math.max(
-			delegateMinHeightActive,
-			delegateState.maxPreCommitHeight + 1
-		);
-
-		// Delegate can't pre-commit the blocks on tip of the chain
-		const maxPreCommitHeight = header.height - 1;
-
-		for (let j = minPreCommit; j <= maxPreCommitHeight; j++) {
-			// Add pre-commit if threshold is reached
-			if (this.preVotes[j] >= this.preVoteThreshold) {
-				// Increase the pre-commit for particular height
-				this.preCommits[j] = (this.preCommits[j] || 0) + 1;
-
-				// Keep track of the last pre-commit point
-				delegateState.maxPreCommitHeight = j;
-			}
-		}
-
-		// Check between height of first block of the round when delegate was active
-		// Or one step ahead where it forged the last block
-		// Or one step ahead where it left the last pre-vote
-		// Or maximum 3 rounds backward
-		const minPreVoteHeight = Math.max(
-			delegateMinHeightActive,
-			header.maxHeightPreviouslyForged + 1,
-			delegateState.maxPreVoteHeight + 1,
-			header.height - this.processingThreshold
-		);
-		// Pre-vote upto current block height
-		const maxPreVoteHeight = header.height;
-		for (let j = minPreVoteHeight; j <= maxPreVoteHeight; j++) {
-			this.preVotes[j] = (this.preVotes[j] || 0) + 1;
-		}
-		// Update delegate state
-		delegateState.maxPreVoteHeight = maxPreVoteHeight;
-
-		// Set the delegate state
-		this.state[delegatePublicKey] = delegateState;
+		this.BlockEntity = this.storage.entities.Block;
+		this.ChainMetaEntity = this.storage.entities.ChainMeta;
 	}
 
 	/**
-	 * Update the pre-voted confirmed and finalized height
+	 * Initialize the BFT module
+	 *
+	 * @return {Promise<void>}
 	 */
-	updatePreVotedAndFinalizedHeight() {
-		if (this.headers.length === 0) {
-			return;
-		}
+	async init() {
+		this.finalityManager = await this._initFinalityManager();
+		const { finalizedHeight } = this.finalityManager;
+		const lastBlockHeight = await this._getLastBlockHeight();
 
-		const higherPairVoted = Object.entries(this.preVotes)
-			.reverse()
-			.find(pair => pair[1] >= this.preVoteThreshold);
+		const loadFromHeight = Math.max(
+			finalizedHeight,
+			lastBlockHeight - this.constants.activeDelegates * 2,
+			this.constants.startingHeight
+		);
 
-		this.prevotedConfirmedHeight = higherPairVoted
-			? parseInt(higherPairVoted[0])
-			: this.prevotedConfirmedHeight;
-
-		const higherPairCommitted = Object.entries(this.preCommits)
-			.reverse()
-			.find(pair => pair[1] >= this.preCommitThreshold);
-
-		this.finalizedHeight = higherPairCommitted
-			? parseInt(higherPairCommitted[0])
-			: this.finalizedHeight;
-	}
-
-	/**
-	 * Use existing block headers and re-compute all information
-	 */
-	recompute() {
-		this.state = {};
-		this.finalizedHeight = 0;
-		this.prevotedConfirmedHeight = 0;
-		this.preVotes = {};
-		this.preCommits = {};
-
-		this.headers.items.forEach(header => {
-			this.updatePreVotesPreCommits(header);
-			this.updatePreVotedAndFinalizedHeight();
+		await this.loadBlocks({
+			fromHeight: loadFromHeight,
+			tillHeight: lastBlockHeight,
 		});
 	}
 
 	/**
-	 * Verify if the block header is good for current chain
+	 * Initialize the consensus manager and return the finalize height
 	 *
-	 * @param {BlockHeader} blockHeader
+	 * @return {Promise<number>} - Return the finalize height
+	 * @private
 	 */
-	verifyBlockHeaders(blockHeader) {
-		// We need minimum processingThreshold to decide
-		// if prevotedConfirmedUptoHeight is correct
-		if (
-			this.headers.length >= this.processingThreshold &&
-			blockHeader.prevotedConfirmedUptoHeight !== this.prevotedConfirmedHeight
-		) {
-			throw new Error('Wrong prevotedConfirmedHeight in blockHeader.');
-		}
+	async _initFinalityManager() {
+		// Check what finalized height was stored last time
+		const finalizedHeightStored =
+			parseInt(await this.ChainMetaEntity.getKey(KEYS.FINALIZED_HEIGHT)) || 0;
 
-		// Find top most block forged by same delegate
-		const delegateLastBlock = this.headers
-			.top(this.processingThreshold)
-			.reverse()
-			.find(
-				header => header.delegatePublicKey === blockHeader.delegatePublicKey
-			);
+		// Check BFT migration height
+		// https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#backwards-compatibility
+		const bftMigrationHeight =
+			this.constants.startingHeight - this.constants.activeDelegates * 2;
 
-		if (!delegateLastBlock) {
-			return true;
-		}
+		// Choose max between stored finalized height or migration height
+		const finalizedHeight = Math.max(finalizedHeightStored, bftMigrationHeight);
 
-		if (
-			delegateLastBlock.maxHeightPreviouslyForged ===
-				blockHeader.maxHeightPreviouslyForged &&
-			delegateLastBlock.height >= blockHeader.height
-		) {
-			// Violation of the fork choice rule as delegate moved to different chain
-			// without strictly larger maxHeightPreviouslyForged or larger height as
-			// justification. This in particular happens, if a delegate is double forging.
-			throw new Error(
-				'Violation of fork choice rule, delegate moved to a different chain'
-			);
-		}
-
-		if (delegateLastBlock.height > blockHeader.maxHeightPreviouslyForged) {
-			throw new Error('Violates disjointness condition');
-		}
-
-		if (
-			delegateLastBlock.prevotedConfirmedUptoHeight >
-			blockHeader.prevotedConfirmedUptoHeight
-		) {
-			throw new Error(
-				'Violates that delegate chooses branch with largest prevotedConfirmedUptoHeight'
-			);
-		}
-
-		return true;
+		// Initialize consensus manager
+		return new FinalityManager({
+			finalizedHeight,
+			activeDelegates: this.constants.activeDelegates,
+		});
 	}
 
-	get minHeight() {
-		return this.headers.first.height;
+	/**
+	 * Get the last block height from storage
+	 *
+	 * @return {Promise<number>}
+	 * @private
+	 */
+	async _getLastBlockHeight() {
+		const lastBlock = await this.BlockEntity.get(
+			{},
+			{ limit: 1, sort: 'height:desc' }
+		);
+		return lastBlock.length ? lastBlock[0].height : 0;
 	}
 
-	get maxHeight() {
-		return this.headers.last.height;
+	/**
+	 * Load blocks into consensus manager fetching from storage
+	 *
+	 * @param {integer} fromHeight - The start height to fetch and load
+	 * @param {integer} tillHeight - The end height to fetch and load
+	 * @return {Promise<void>}
+	 */
+	async loadBlocks({ fromHeight, tillHeight }) {
+		const rows = await this.BlockEntity.get(
+			{ height_gte: fromHeight, height_lte: tillHeight },
+			{ limit: null, sort: 'height:asc' }
+		);
+
+		rows.forEach(row => {
+			if (row.version !== '2') return;
+
+			this.finalityManager.addBlockHeader(
+				exportedInterface.extractBFTBlockHeaderFromBlock(row)
+			);
+		});
 	}
 }
 
 const exportedInterface = {
+	extractBFTBlockHeaderFromBlock,
 	BFT,
-	validateBlockHeader,
 };
 
 module.exports = exportedInterface;
