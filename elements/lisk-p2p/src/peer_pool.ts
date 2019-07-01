@@ -427,6 +427,20 @@ export class PeerPool extends EventEmitter {
 		});
 	}
 
+	public getAllConnectedPeerInfos(): ReadonlyArray<P2PDiscoveredPeerInfo> {
+		return this.getConnectedPeers().map(peer => peer.peerInfo);
+	}
+
+	public getConnectedPeers(): ReadonlyArray<Peer> {
+		const peers = [...this._peerMap.values()];
+
+		return peers.filter(
+			peer =>
+				peer.state.outbound === ConnectionState.CONNECTED ||
+				peer.state.inbound === ConnectionState.CONNECTED,
+		);
+	}
+
 	public getAllPeerInfos(): ReadonlyArray<P2PDiscoveredPeerInfo> {
 		return this.getAllPeers().map(peer => peer.peerInfo);
 	}
