@@ -31,7 +31,7 @@ const { Peers } = require('./peers');
 const { TransactionInterfaceAdapter } = require('./interface_adapters');
 const { TransactionPool } = require('./transaction_pool');
 const { Dpos } = require('./dpos');
-const { EVENT_BLOCK_FINALIZED, BFT } = require('./bft');
+const { EVENT_BFT_BLOCK_FINALIZED, BFT } = require('./bft');
 const { Rounds } = require('./rounds');
 const {
 	BlockSlots,
@@ -582,7 +582,7 @@ module.exports = class Chain {
 			this.channel.invoke('app:updateApplicationState', { broadhash, height });
 		});
 
-		this.bft.on(EVENT_BLOCK_FINALIZED, ({ height }) => {
+		this.bft.on(EVENT_BFT_BLOCK_FINALIZED, ({ height }) => {
 			this.dpos.onBlockFinalized({ height });
 		});
 	}
@@ -591,6 +591,6 @@ module.exports = class Chain {
 		this.blocks.removeAllListeners(EVENT_BROADCAST_BLOCK);
 		this.blocks.removeAllListeners(EVENT_DELETE_BLOCK);
 		this.blocks.removeAllListeners(EVENT_NEW_BLOCK);
-		this.bft.removeAllListeners(EVENT_BLOCK_FINALIZED);
+		this.bft.removeAllListeners(EVENT_BFT_BLOCK_FINALIZED);
 	}
 };

@@ -28,7 +28,7 @@ const { validate } = require('../../../../src/controller/validator');
  */
 const validateBlockHeader = blockHeader =>
 	validate(blockHeaderSchema, blockHeader);
-const EVENT_BLOCK_FINALIZED = 'EVENT_BLOCK_FINALIZED';
+const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
 
 /**
  * @typedef {Object} BlockHeader
@@ -284,7 +284,7 @@ class BFT extends EventEmitter {
 const exportedInterface = {
 	BFT,
 	validateBlockHeader,
-	EVENT_BLOCK_FINALIZED,
+	EVENT_BFT_BLOCK_FINALIZED,
 };
 
 module.exports = exportedInterface;
