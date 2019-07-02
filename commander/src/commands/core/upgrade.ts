@@ -120,12 +120,12 @@ export default class UpgradeCommand extends BaseCommand {
 			{
 				title: 'Validate Version Input',
 				task: async () => {
-					await validateVersion(releaseUrl, upgradeVersion);
 					if (semver.lte(upgradeVersion, currentVersion)) {
 						throw new Error(
 							`Upgrade version:${upgradeVersion} should be greater than current version: ${currentVersion}`,
 						);
 					}
+					await validateVersion(releaseUrl, upgradeVersion);
 				},
 			},
 			{
