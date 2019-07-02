@@ -239,7 +239,7 @@ NodeController.getPooledTransactions = async function(context, next) {
 			filters: _.clone(filters),
 		});
 
-		const transactions = data.transactions.map(_parseTransaction);
+		const transactions = data.transactions.map(_normalizeTransactionOutput);
 
 		return next(null, {
 			data: transactions,
@@ -323,7 +323,7 @@ async function _getNetworkHeight() {
  * @returns Object
  * @private
  */
-function _parseTransaction(transaction) {
+function _normalizeTransactionOutput(transaction) {
 	return {
 		id: transaction.id,
 		type: transaction.type,
