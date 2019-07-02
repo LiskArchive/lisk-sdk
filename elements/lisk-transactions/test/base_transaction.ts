@@ -573,9 +573,11 @@ describe('Base transaction class', () => {
 				invalidTransaction as any,
 			);
 
-			const validFee = invalidTestTransaction.validateFee();
+			const feeError = invalidTestTransaction.validateFee();
 
-			expect(validFee).to.be.instanceOf(TransactionError);
+			expect(feeError)
+				.to.be.instanceof(TransactionError)
+				.and.to.have.property('message', 'Invalid fee');
 		});
 	});
 
