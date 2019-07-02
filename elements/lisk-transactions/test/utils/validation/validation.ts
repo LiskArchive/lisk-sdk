@@ -323,6 +323,10 @@ describe('validation', () => {
 				),
 			).to.be.true;
 		});
+
+		it('should return false when amount is less than 0', () => {
+			return expect(isGreaterThanOrEqualToZero(new BigNum('-1'))).to.be.false;
+		});
 	});
 
 	describe('#isGreaterThanMaxTransactionAmount', () => {
