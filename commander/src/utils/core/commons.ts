@@ -23,6 +23,7 @@ import {
 	POSTGRES_PORT,
 	REDIS_PORT,
 	RELEASE_URL,
+	SNAPSHOT_URL,
 	WS_PORTS,
 } from '../constants';
 import { exec, ExecResult } from '../worker-process';
@@ -53,6 +54,13 @@ export const liskLatestUrl = (url: string, network: NETWORK) =>
 	`${url}/${network}/latest.txt`;
 
 export const liskSnapshotUrl = (url: string, network: NETWORK): string => {
+	if (
+		!['testnet', 'mainnet'].includes(network.toLowerCase()) &&
+		url === SNAPSHOT_URL
+	) {
+		return '';
+	}
+
 	if (url && url.search(RELEASE_URL) >= 0 && url.search('db.gz') >= 0) {
 		return `${RELEASE_URL}/${network}/blockchain.db.gz`;
 	}

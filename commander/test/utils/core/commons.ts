@@ -24,7 +24,11 @@ import {
 	getDownloadedFileInfo,
 	dateDiff,
 } from '../../../src/utils/core/commons';
-import { NETWORK, RELEASE_URL } from '../../../src/utils/constants';
+import {
+	NETWORK,
+	RELEASE_URL,
+	SNAPSHOT_URL,
+} from '../../../src/utils/constants';
 import { defaultLiskInstancePath } from '../../../src/utils/core/config';
 import * as release from '../../../src/utils/core/release';
 import * as workerProcess from '../../../src/utils/worker-process';
@@ -116,6 +120,24 @@ describe('commons core utils', () => {
 			const url: string =
 				'http://snapshots.lisk.io.s3-eu-west-1.amazonaws.com/lisk/mainnet/blockchain.db.gz';
 			return expect(liskSnapshotUrl(url, NETWORK.MAINNET)).to.equal(url);
+		});
+
+		it('should return empty string if network is not testnet or mainnet', () => {
+			return [NETWORK.ALPHANET, NETWORK.BETANET, NETWORK.DEVNET].map(
+				network => {
+					expect(liskSnapshotUrl(SNAPSHOT_URL, network)).to.equal('');
+				},
+			);
+		});
+
+		it('should return custom snapshot url for dev/alpha/beta net if specified', () => {
+			const url: string =
+				'http://snapshots.lisk.io.s3-eu-west-1.amazonaws.com/lisk/mainnet/blockchain.db.gz';
+			return [NETWORK.ALPHANET, NETWORK.BETANET, NETWORK.DEVNET].map(
+				network => {
+					expect(liskSnapshotUrl(url, network)).to.equal(url);
+				},
+			);
 		});
 	});
 
@@ -300,6 +322,9 @@ describe('commons core utils', () => {
 
 	describe('#getSemver', () => {
 		it('should extract version from url', () => {
+			expect(
+				getSemver('http://localhost/lisk-2.0.0-rc.1-Linux-x86_64.tar.gz'),
+			).to.equal('2.0.0-rc.1');
 			return expect(getSemver(url)).to.equal('1.6.0-rc.4');
 		});
 	});
