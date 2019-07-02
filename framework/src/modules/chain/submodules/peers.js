@@ -83,7 +83,7 @@ Peers.prototype.getLastConsensus = function() {
 Peers.prototype.calculateConsensus = async function() {
 	const { broadhash } = library.applicationState;
 	const activeCount = Math.min(
-		await library.channel.invoke('network:getConnectedPeersCountByFilter'),
+		await library.channel.invoke('network:getConnectedPeersCountByFilter', {}),
 		MAX_PEERS
 	);
 
