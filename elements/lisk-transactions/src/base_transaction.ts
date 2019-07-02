@@ -94,8 +94,6 @@ export enum MultisignatureStatus {
 	FAIL = 4,
 }
 
-const MULTISIGNATURE_TYPE = 4;
-
 export const ENTITY_ACCOUNT = 'account';
 export const ENTITY_TRANSACTION = 'transaction';
 
@@ -280,23 +278,25 @@ export abstract class BaseTransaction {
 			);
 		}
 
-		// Skip for type 4 due to dynamic nature of fee for multi-signature. Validation happens on multisignature class.
-		if (
-			this.type !== MULTISIGNATURE_TYPE &&
-			!this.fee.eq((this.constructor as typeof BaseTransaction).FEE)
-		) {
-			errors.push(
-				new TransactionError(
+		const feeError = this.validateFee();
+
+		if (feeError) {
+			errors.push(feeError);
+		}
+
+		return createResponse(this.id, errors);
+	}
+
+	public validateFee(): TransactionError | undefined {
+		return !this.fee.eq((this.constructor as typeof BaseTransaction).FEE)
+			? new TransactionError(
 					`Invalid fee`,
 					this.id,
 					'.fee',
 					this.fee.toString(),
 					(this.constructor as typeof BaseTransaction).FEE.toString(),
-				),
-			);
-		}
-
-		return createResponse(this.id, errors);
+			  )
+			: undefined;
 	}
 
 	public verifyAgainstOtherTransactions(
