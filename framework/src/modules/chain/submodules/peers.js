@@ -21,7 +21,6 @@ let library;
 let self;
 const { MIN_BROADHASH_CONSENSUS } = global.constants;
 
-const PEER_STATE_CONNECTED = 2;
 const MAX_PEERS = 100;
 
 /**
@@ -84,16 +83,13 @@ Peers.prototype.getLastConsensus = function() {
 Peers.prototype.calculateConsensus = async function() {
 	const { broadhash } = library.applicationState;
 	const activeCount = Math.min(
-		await library.channel.invoke('network:getPeersCountByFilter', {
-			state: PEER_STATE_CONNECTED,
-		}),
+		await library.channel.invoke('network:getConnectedPeersCountByFilter'),
 		MAX_PEERS
 	);
 
 	const matchedCount = Math.min(
-		await library.channel.invoke('network:getPeersCountByFilter', {
+		await library.channel.invoke('network:getConnectedPeersCountByFilter', {
 			broadhash,
-			state: PEER_STATE_CONNECTED,
 		}),
 		MAX_PEERS
 	);
