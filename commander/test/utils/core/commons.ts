@@ -239,7 +239,7 @@ describe('commons core utils', () => {
 	describe('#backupLisk', () => {
 		let moveSyncStub: SinonStub;
 		beforeEach(() => {
-			sandbox.stub(fsExtra, 'emptyDirSync').returns();
+			sandbox.stub(fsExtra, 'removeSync').returns();
 			moveSyncStub = sandbox.stub(fsExtra, 'moveSync');
 		});
 
