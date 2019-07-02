@@ -94,7 +94,7 @@ export enum MultisignatureStatus {
 	FAIL = 4,
 }
 
-const typeMultiSignature = 4;
+const MULTISIGNATURE_TYPE = 4;
 
 export const ENTITY_ACCOUNT = 'account';
 export const ENTITY_TRANSACTION = 'transaction';
@@ -282,7 +282,7 @@ export abstract class BaseTransaction {
 
 		// Skip for type 4 due to dynamic nature of fee for multi-signature. Validation happens on multisignature class.
 		if (
-			this.type !== typeMultiSignature &&
+			this.type !== MULTISIGNATURE_TYPE &&
 			!this.fee.eq((this.constructor as typeof BaseTransaction).FEE)
 		) {
 			errors.push(
