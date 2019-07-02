@@ -43,6 +43,7 @@ const { Loader } = require('./loader');
 const { Forger } = require('./forger');
 const { Transport } = require('./transport');
 const { BFT } = require('./bft');
+const { Synchronizer } = require('./synchronizer');
 
 const syncInterval = 10000;
 const forgeInterval = 1000;
@@ -337,6 +338,19 @@ module.exports = class Chain {
 			blocksPerRound: this.options.constants.ACTIVE_DELEGATES,
 		});
 		this.scope.slots = this.slots;
+		this.bft = new BFT({
+			storage: this.storage,
+			logger: this.logger,
+			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+			startingHeight: 0, // TODO: Pass exception precedent from config or height for block version 2
+		});
+		this.synchronizer = new Synchronizer({
+			storage: this.storage,
+			logger: this.logger,
+			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+			bft: this.bft,
+			dpos: {}, // TODO: Pass the instance of DPOS module
+		});
 		this.rounds = new Rounds({
 			channel: this.channel,
 			components: {
@@ -390,12 +404,6 @@ module.exports = class Chain {
 			releaseLimit: this.options.broadcasts.releaseLimit,
 		});
 		this.scope.modules.transactionPool = this.transactionPool;
-		this.bft = new BFT({
-			storage: this.storage,
-			logger: this.logger,
-			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
-			startingHeight: 0, // TODO: Pass exception precedent from config or height for block version 2
-		});
 		// TODO: Remove - Temporal write to modules for blocks circular dependency
 		this.peers = new Peers({
 			channel: this.channel,
@@ -454,6 +462,7 @@ module.exports = class Chain {
 		this.scope.modules.forger = this.forger;
 		this.scope.modules.transport = this.transport;
 		this.scope.modules.bft = this.bft;
+		this.scope.modules.synchronizer = this.synchronizer;
 	}
 
 	_startLoader() {

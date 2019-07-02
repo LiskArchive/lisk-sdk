@@ -27,7 +27,6 @@ const {
 	calculateMilestone,
 } = require('./block_reward');
 const forkChoiceRule = require('./fork_choice_rule');
-const { CHAIN_SWITCH_MODES } = require('../bft/bft');
 
 const EVENT_NEW_BLOCK = 'EVENT_NEW_BLOCK';
 const EVENT_DELETE_BLOCK = 'EVENT_DELETE_BLOCK';
@@ -43,7 +42,7 @@ class Blocks extends EventEmitter {
 		// Unique requirements
 		genesisBlock,
 		slots,
-		bft,
+		synchronizer,
 		exceptions,
 		// Modules
 		roundsModule,
@@ -76,7 +75,7 @@ class Blocks extends EventEmitter {
 		this.genesisBlock = genesisBlock;
 		this.interfaceAdapters = interfaceAdapters;
 		this.slots = slots;
-		this.bft = bft;
+		this.synchronizer = synchronizer;
 		this.sequence = sequence;
 		this.blockRewardArgs = {
 			distance: rewardDistance,
@@ -553,7 +552,6 @@ class Blocks extends EventEmitter {
 
 		if (forkChoiceRule.isDifferentChain(this._lastBlock, block)) {
 			// Case 5: received block has priority. Move to a different chain.
-			// TODO: Move to a different chain
 			return this._handleMovingToDifferentChain(this._lastBlock, block);
 		}
 
@@ -813,28 +811,7 @@ class Blocks extends EventEmitter {
 	 * @private
 	 */
 	async _handleMovingToDifferentChain(lastBlock, block) {
-		try {
-			const result = this.bft.getChainSwitchingMode(lastBlock, block);
-			if (result === CHAIN_SWITCH_MODES.NO) {
-				return this._handleDiscardedBlock(block);
-			}
-
-			if (result === CHAIN_SWITCH_MODES.FAST) {
-				return this._handleFastChainSwitching(lastBlock, block);
-			}
-
-			if (result === CHAIN_SWITCH_MODES.SYNC) {
-				return this._handleChainSwitchingViaSync(lastBlock, block);
-			}
-
-			return true;
-		} catch (error) {
-			// 1. Step: Validate new tip of chain\
-			// If any check fails, the peer that sent block B is banned and the node aborts the process of moving to a different chain.
-
-			// TODO: Ban peer
-			throw error;
-		}
+		return this.synchronizer.run(block);
 	}
 
 	/**
