@@ -357,10 +357,6 @@ module.exports = class Chain {
 			logger: this.logger,
 			slots: this.slots,
 		});
-		this.bft = new BFT({
-			finalizedHeight: 1,
-			activeDelegates: 101,
-		});
 		this.scope.modules.rounds = this.rounds;
 		this.blocks = new Blocks({
 			logger: this.logger,
