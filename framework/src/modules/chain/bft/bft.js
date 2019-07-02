@@ -15,16 +15,9 @@
 'use strict';
 
 const { FinalityManager } = require('./finality_manager');
-const { verifyBlockForChainSwitching } = require('./utils');
 
 const META_KEYS = {
 	FINALIZED_HEIGHT: 'BFT.finalizedHeight',
-};
-
-const CHAIN_SWITCH_MODES = {
-	NO: Symbol('CHAIN_SWITCH_MODE_NO'),
-	FAST: Symbol('CHAIN_SWITCH_MODE_FAST'),
-	SYNC: Symbol('CHAIN_SWITCH_MODE_SYNC'),
 };
 
 const extractBFTBlockHeaderFromBlock = block => ({
@@ -37,7 +30,7 @@ const extractBFTBlockHeaderFromBlock = block => ({
 });
 
 /**
- * BFT class responsible to hold integration logic for consensus manager with the framework
+ * BFT class responsible to hold integration logic for finality manager with the framework
  */
 class BFT {
 	/**
@@ -45,23 +38,16 @@ class BFT {
 	 *
 	 * @param {Object} storage - Storage component instance
 	 * @param {Object} logger - Logger component instance
+	 * @param {slots} slots - Slots object
 	 * @param {integer} activeDelegates - Number of delegates
-	 * @param {integer} startingHeight - The height at which BFT consensus initialize
+	 * @param {integer} startingHeight - The height at which BFT finalization manager initialize
 	 */
-	constructor({
-		storage,
-		logger,
-		slots,
-		dpos,
-		activeDelegates,
-		startingHeight,
-	}) {
+	constructor({ storage, logger, slots, activeDelegates, startingHeight }) {
 		this.finalityManager = null;
 
 		this.logger = logger;
 		this.storage = storage;
 		this.slots = slots;
-		this.dpos = dpos;
 		this.constants = {
 			activeDelegates,
 			startingHeight,
@@ -156,57 +142,14 @@ class BFT {
 		});
 	}
 
-	/**
-	 * Get the mode to switch the chain
-	 *
-	 * @param {Object} lastBlock
-	 * @param {Object} block
-	 * @return {Promise<'CHAIN_SWITCH_MODE_SYNC'|'CHAIN_SWITCH_MODE_FAST'|'CHAIN_SWITCH_MODE_NO'>}
-	 */
-	async getChainSwitchingMode(lastBlock, block) {
-		// Moving to a Different Chain
-		// 1. Step: Validate new tip of chain
-		const result = verifyBlockForChainSwitching(lastBlock, block);
-		if (!result.verified) {
-			throw Error(
-				`Block verification for chain switching failed with errors: ${result.errors.join()}`
-			);
-		}
-
-		// 2. Step: Check whether current chain justifies triggering the block synchronization mechanism
-		const finalizedBlock = await this.BlockEntity.getOne({
-			height_eq: this.consensusManager.finalizedHeight,
-		});
-		const finalizedBlockSlot = this.slots.getSlotNumber(
-			finalizedBlock.timestamp
-		);
-		const currentBlockSLot = this.slots.getSlotNumber();
-		const THREE_ROUNDS = this.constants.activeDelegates * 3;
-
-		if (finalizedBlockSlot < currentBlockSLot - THREE_ROUNDS) {
-			return CHAIN_SWITCH_MODES.SYNC;
-		}
-
-		// 3. Step: Check whether B justifies fast chain switching mechanism
-		const TWO_ROUNDS = this.constants.activeDelegates * 2;
-		if (Math.abs(block.height - lastBlock.height) > TWO_ROUNDS) {
-			return CHAIN_SWITCH_MODES.NO;
-		}
-
-		const blockRound = this.slots.calcRound(block.height);
-		const delegateList = await this.dpos.getRoundDelegates(blockRound);
-		if (delegateList.includes(block.generatorPublicKey)) {
-			return CHAIN_SWITCH_MODES.FAST;
-		}
-
-		return CHAIN_SWITCH_MODES.NO;
+	get finalizedHeight() {
+		return this.finalityManager.finalizedHeight;
 	}
 }
 
 const exportedInterface = {
 	extractBFTBlockHeaderFromBlock,
 	BFT,
-	CHAIN_SWITCH_MODES,
 };
 
 module.exports = exportedInterface;
