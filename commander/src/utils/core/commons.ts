@@ -113,7 +113,7 @@ export const validURL = (url: string): void => {
 
 export const getSemver = (str: string): string => {
 	const exp = new RegExp(
-		/(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:[1-9]\d*|[\da-z-]*[a-z-][\da-z-]*)(?:\.(?:[1-9]\d*|[\da-z-]*[a-z-][\da-z-]*))*)?\.?(?:0|[1-9]\d*)?/,
+		/(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:[1-9]\d*|[\da-z-]*[a-z-][\da-z-]*)(?:\.(?:[1-9]\d*|[\da-z-]*[a-z][\da-z]*))*)?\.?(?:0|[1-9]\d*)?/,
 	);
 	const result = exp.exec(str) as ReadonlyArray<string>;
 
