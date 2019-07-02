@@ -38,16 +38,14 @@ class BFT {
 	 *
 	 * @param {Object} storage - Storage component instance
 	 * @param {Object} logger - Logger component instance
-	 * @param {slots} slots - Slots object
 	 * @param {integer} activeDelegates - Number of delegates
 	 * @param {integer} startingHeight - The height at which BFT finalization manager initialize
 	 */
-	constructor({ storage, logger, slots, activeDelegates, startingHeight }) {
+	constructor({ storage, logger, activeDelegates, startingHeight }) {
 		this.finalityManager = null;
 
 		this.logger = logger;
 		this.storage = storage;
-		this.slots = slots;
 		this.constants = {
 			activeDelegates,
 			startingHeight,
