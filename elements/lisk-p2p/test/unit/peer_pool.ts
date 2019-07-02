@@ -23,7 +23,7 @@ import { Peer, ConnectionState } from '../../src/peer';
 import { initializePeerList } from '../utils/peers';
 import { P2PDiscoveredPeerInfo } from '../../src/p2p_types';
 
-describe.only('peerPool', () => {
+describe('peerPool', () => {
 	const peerPool = new PeerPool({
 		peerSelectionForConnection: selectPeersForConnection,
 		peerSelectionForRequest: selectPeersForRequest,
