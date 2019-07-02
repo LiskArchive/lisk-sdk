@@ -20,7 +20,7 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 
 const { validator } = require('@liskhq/lisk-validator');
 const { convertErrorsToString } = require('./utils/error_handlers');
-const Sequence = require('./utils/sequence');
+const { Sequence } = require('./utils/sequence');
 const definitions = require('./schema/definitions');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
@@ -154,11 +154,6 @@ module.exports = class Chain {
 						self.logger.warn('Main queue', current);
 					},
 				}),
-				balancesSequence: new Sequence({
-					onWarning(current) {
-						self.logger.warn('Balance queue', current);
-					},
-				}),
 				components: {
 					storage: this.storage,
 					cache: this.cache,
@@ -180,6 +175,8 @@ module.exports = class Chain {
 			this.logger.info('Modules ready and launched');
 			// After binding, it should immediately load blockchain
 			await this.blocks.loadBlockChain(this.options.loading.rebuildUpToRound);
+			await this.bft.init();
+
 			if (this.options.loading.rebuildUpToRound) {
 				process.emit('cleanup');
 				return;
@@ -403,6 +400,12 @@ module.exports = class Chain {
 			releaseLimit: this.options.broadcasts.releaseLimit,
 		});
 		this.scope.modules.transactionPool = this.transactionPool;
+		this.bft = new BFT({
+			storage: this.storage,
+			logger: this.logger,
+			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+			startingHeight: 0, // TODO: Pass exception precedent from config or height for block version 2
+		});
 		// TODO: Remove - Temporal write to modules for blocks circular dependency
 		this.peers = new Peers({
 			channel: this.channel,
@@ -416,7 +419,6 @@ module.exports = class Chain {
 			storage: this.storage,
 			cache: this.cache,
 			genesisBlock: this.options.genesisBlock,
-			balancesSequence: this.scope.balancesSequence,
 			transactionPoolModule: this.transactionPool,
 			blocksModule: this.blocks,
 			peersModule: this.peers,
@@ -448,7 +450,6 @@ module.exports = class Chain {
 			logger: this.logger,
 			storage: this.storage,
 			applicationState: this.applicationState,
-			balancesSequence: this.scope.balancesSequence,
 			exceptions: this.options.exceptions,
 			transactionPoolModule: this.transactionPool,
 			blocksModule: this.blocks,
@@ -462,6 +463,7 @@ module.exports = class Chain {
 		this.scope.modules.loader = this.loader;
 		this.scope.modules.forger = this.forger;
 		this.scope.modules.transport = this.transport;
+		this.scope.modules.bft = this.bft;
 	}
 
 	_startLoader() {
@@ -471,7 +473,7 @@ module.exports = class Chain {
 		}
 		jobQueue.register(
 			'nextSync',
-			cb => {
+			async () => {
 				this.logger.info(
 					{
 						syncing: this.loader.syncing(),
@@ -480,21 +482,13 @@ module.exports = class Chain {
 					'Sync time triggered'
 				);
 				if (!this.loader.syncing() && this.blocks.isStale()) {
-					this.scope.sequence.add(
-						sequenceCB => {
-							this.loader
-								.sync()
-								.then(() => sequenceCB())
-								.catch(err => sequenceCB(err));
-						},
-						syncError => {
-							if (syncError) {
-								this.logger.error('Sync timer', syncError);
-								return cb(syncError);
-							}
-							return cb();
+					await this.scope.sequence.add(async () => {
+						try {
+							await this.loader.sync();
+						} catch (error) {
+							this.logger.error(error, 'Sync timer');
 						}
-					);
+					});
 				}
 			},
 			syncInterval
