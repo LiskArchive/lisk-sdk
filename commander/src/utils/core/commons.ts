@@ -175,22 +175,19 @@ export const upgradeLisk = async (
 };
 
 export const validateVersion = async (
-	network: NETWORK,
+	releaseUrl: string,
 	version: string,
 ): Promise<void> => {
 	if (!semver.valid(version)) {
-		throw new Error(
-			`Upgrade version: ${version} has invalid format, Please refer version from release url: ${RELEASE_URL}/${network}`,
-		);
+		throw new Error(`Upgrade version: ${version} has invalid semver format`);
 	}
 
-	const url = `${RELEASE_URL}/${network}/${version}`;
 	try {
-		await getLatestVersion(url);
+		await getLatestVersion(releaseUrl);
 	} catch (error) {
 		if (error.message === 'Request failed with status code 404') {
 			throw new Error(
-				`Upgrade version: ${version} doesn't exists in ${RELEASE_URL}/${network}`,
+				`Upgrade version: ${version} doesn't exists in ${RELEASE_URL}`,
 			);
 		}
 		throw new Error(error.message);

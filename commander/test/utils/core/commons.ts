@@ -289,34 +289,30 @@ describe('commons core utils', () => {
 
 		it('should throw if version is invalid', () => {
 			const invalidVersion = 'rc.1.0.0';
-			return expect(
-				validateVersion(NETWORK.MAINNET, invalidVersion),
-			).to.rejectedWith(
-				`Upgrade version: ${invalidVersion} has invalid format, Please refer version from release url: https://downloads.lisk.io/lisk/mainnet`,
+			return expect(validateVersion(url, invalidVersion)).to.rejectedWith(
+				`Upgrade version: ${invalidVersion} has invalid semver format`,
 			);
 		});
 
 		it('should throw if the requested version does not exists', () => {
 			releaseStub.rejects(new Error('Request failed with status code 404'));
 			const invalidVersion = '9.9.9';
-			return expect(
-				validateVersion(NETWORK.MAINNET, invalidVersion),
-			).to.rejectedWith(
-				`Upgrade version: ${invalidVersion} doesn't exists in https://downloads.lisk.io/lisk/mainnet`,
+			return expect(validateVersion(url, invalidVersion)).to.rejectedWith(
+				`Upgrade version: ${invalidVersion} doesn't exists in ${RELEASE_URL}`,
 			);
 		});
 
 		it('should throw if failed to get version', () => {
 			releaseStub.rejects(new Error('failed to get version'));
 			const invalidVersion = '9.9.9';
-			return expect(
-				validateVersion(NETWORK.MAINNET, invalidVersion),
-			).to.rejectedWith('failed to get version');
+			return expect(validateVersion(url, invalidVersion)).to.rejectedWith(
+				'failed to get version',
+			);
 		});
 
 		it('should successed for valid version', () => {
 			releaseStub.resolves('1.0.0');
-			return expect(validateVersion(NETWORK.MAINNET, '1.0.0')).not.to.throw;
+			return expect(validateVersion(url, '1.0.0')).not.to.throw;
 		});
 	});
 

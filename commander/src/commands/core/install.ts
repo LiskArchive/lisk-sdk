@@ -225,11 +225,12 @@ export default class InstallCommand extends BaseCommand {
 						{
 							title: 'Validate root user, flags, prerequisites',
 							task: async ctx => {
+								const { installDir, releaseUrl } = ctx.options;
 								validateNotARootUser();
 								validateFlags(flags as Flags);
-								validatePrerequisite(ctx.options.installDir);
+								validatePrerequisite(installDir);
 								if (liskVersion) {
-									await validateVersion(network, liskVersion);
+									await validateVersion(releaseUrl, liskVersion);
 									ctx.options.version = liskVersion;
 								}
 							},
