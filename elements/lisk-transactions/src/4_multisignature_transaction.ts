@@ -93,6 +93,7 @@ export interface MultiSignatureAsset {
 export class MultisignatureTransaction extends BaseTransaction {
 	public readonly asset: MultiSignatureAsset;
 	public static TYPE = 4;
+	public static FEE = MULTISIGNATURE_FEE.toString();
 	protected _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.PENDING;
 
@@ -171,7 +172,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 			return errors;
 		}
 
-		const expectedFee = new BigNum(MULTISIGNATURE_FEE).mul(
+		const expectedFee = new BigNum(MultisignatureTransaction.FEE).mul(
 			this.asset.multisignature.keysgroup.length + 1,
 		);
 		if (!this.fee.eq(expectedFee)) {
