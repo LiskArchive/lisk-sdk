@@ -806,7 +806,7 @@ describe('transport', () => {
 						transportInstance.onSignature(SAMPLE_SIGNATURE_1, true);
 					});
 
-					it('should call __private.broadcaster.enqueue with {} and {api: "postSignatures", data: {signature: signature}} as arguments', async () => {
+					it('should call __private.broadcaster.enqueue with {} and {api: "postSignatures", data: {signature: signature}} as arguments', () => {
 						expect(__private.broadcaster.enqueue.calledOnce).to.be.true;
 						return expect(
 							__private.broadcaster.enqueue.calledWith(
@@ -819,9 +819,9 @@ describe('transport', () => {
 						).to.be.true;
 					});
 
-					it('should call library.channel.publish with "chain:signature:change" and signature', async () => {
+					it('should call library.channel.publish with "chain:signature:change" and signature', () => {
 						expect(library.channel.publish).to.be.calledOnce;
-						expect(library.channel.publish).to.be.calledWith(
+						return expect(library.channel.publish).to.be.calledWith(
 							'chain:signature:change',
 							SAMPLE_SIGNATURE_1
 						);
@@ -863,7 +863,7 @@ describe('transport', () => {
 						transportInstance.onUnconfirmedTransaction(transaction, true);
 					});
 
-					it('should call __private.broadcaster.enqueue with {} and {api: "postTransactions", data: {transaction}}', async () => {
+					it('should call __private.broadcaster.enqueue with {} and {api: "postTransactions", data: {transaction}}', () => {
 						expect(__private.broadcaster.enqueue.calledOnce).to.be.true;
 						return expect(
 							__private.broadcaster.enqueue.calledWith(
@@ -876,9 +876,9 @@ describe('transport', () => {
 						).to.be.true;
 					});
 
-					it('should call library.channel.publish with "chain:transactions:change" and transaction as arguments', async () => {
+					it('should call library.channel.publish with "chain:transactions:change" and transaction as arguments', () => {
 						expect(library.channel.publish).to.be.calledOnce;
-						expect(library.channel.publish).to.be.calledWith(
+						return expect(library.channel.publish).to.be.calledWith(
 							'chain:transactions:change',
 							transaction.toJSON()
 						);
@@ -912,9 +912,9 @@ describe('transport', () => {
 						return transportInstance.onBroadcastBlock(block, true);
 					});
 
-					it('should call __private.broadcaster.broadcast', async () => {
+					it('should call __private.broadcaster.broadcast', () => {
 						expect(__private.broadcaster.broadcast.calledOnce).to.be.true;
-						expect(__private.broadcaster.broadcast).to.be.calledWith(
+						return expect(__private.broadcaster.broadcast).to.be.calledWith(
 							{
 								broadhash:
 									'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
@@ -929,17 +929,18 @@ describe('transport', () => {
 					});
 
 					describe('when modules.loader.syncing = true', () => {
-						beforeEach(async () => {
+						beforeEach(() => {
 							modules.loader.syncing = sinonSandbox.stub().returns(true);
-							transportInstance.onBroadcastBlock(block, true);
+							return transportInstance.onBroadcastBlock(block, true);
 						});
 
-						it('should call library.logger.debug with proper error message', async () =>
-							expect(
+						it('should call library.logger.debug with proper error message', () => {
+							return expect(
 								library.logger.debug.calledWith(
 									'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress'
 								)
-							).to.be.true);
+							).to.be.true;
+						});
 					});
 				});
 			});
