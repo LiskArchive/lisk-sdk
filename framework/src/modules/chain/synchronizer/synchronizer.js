@@ -119,11 +119,7 @@ class Synchronizer {
 	}
 
 	async lastBlock() {
-		const lastBlock = await this.storage.entities.get(
-			{},
-			{ limit: 1, sort: 'height:desc' }
-		);
-		return lastBlock.length ? lastBlock[0] : 0;
+		return this.storage.entities.getOne({}, { limit: 1, sort: 'height:desc' });
 	}
 }
 
