@@ -45,7 +45,6 @@ describe('Broadcaster', () => {
 			releaseLimit: 10,
 			parallelLimit: 10,
 			relayLimit: 10,
-			broadcastLimit: 10,
 		};
 
 		loggerStub = {
