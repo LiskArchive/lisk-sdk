@@ -139,6 +139,9 @@ export const validateAddress = (address: string): boolean => {
 
 export const isGreaterThanZero = (amount: BigNum) => amount.cmp(0) > 0;
 
+export const isGreaterThanOrEqualToZero = (amount: BigNum) =>
+	amount.cmp(0) >= 0;
+
 export const isGreaterThanMaxTransactionAmount = (amount: BigNum) =>
 	amount.cmp(MAX_TRANSACTION_AMOUNT) > 0;
 
@@ -164,7 +167,9 @@ export const isValidTransferData = (data: string): boolean =>
 	Buffer.byteLength(data, 'utf8') <= MAX_TRANSFER_ASSET_DATA_LENGTH;
 
 export const validateFee = (data: string) =>
-	isNumberString(data) && !isGreaterThanMaxTransactionAmount(new BigNum(data));
+	isNumberString(data) &&
+	isGreaterThanOrEqualToZero(new BigNum(data)) &&
+	!isGreaterThanMaxTransactionAmount(new BigNum(data));
 
 export const isValidInteger = (num: unknown) =>
 	typeof num === 'number' ? Math.floor(num) === num : false;

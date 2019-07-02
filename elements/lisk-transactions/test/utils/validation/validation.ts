@@ -26,6 +26,7 @@ import {
 	validateFee,
 	isGreaterThanMaxTransactionAmount,
 	isGreaterThanZero,
+	isGreaterThanOrEqualToZero,
 	isGreaterThanMaxTransactionId,
 	isNumberString,
 	isValidInteger,
@@ -306,6 +307,20 @@ describe('validation', () => {
 		it('should return true when amount is greater than 0', () => {
 			return expect(
 				isGreaterThanZero(new BigNum('9223372036854775808987234289782357')),
+			).to.be.true;
+		});
+	});
+
+	describe('#isGreaterThanOrEqualToZero', () => {
+		it('should return true when amount is 0', () => {
+			return expect(isGreaterThanOrEqualToZero(new BigNum('0'))).to.be.true;
+		});
+
+		it('should return true when amount is greater than 0', () => {
+			return expect(
+				isGreaterThanOrEqualToZero(
+					new BigNum('9223372036854775808987234289782357'),
+				),
 			).to.be.true;
 		});
 	});
