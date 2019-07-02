@@ -169,7 +169,8 @@ describe('peers', () => {
 			it('should call channel invoke with action network:getConnectedPeersCountByFilter', async () =>
 				expect(
 					channelMock.invoke.calledWithExactly(
-						'network:getConnectedPeersCountByFilter'
+						'network:getConnectedPeersCountByFilter',
+						{}
 					)
 				).to.be.true);
 
