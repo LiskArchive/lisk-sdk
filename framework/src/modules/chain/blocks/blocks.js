@@ -67,29 +67,8 @@ class Blocks extends EventEmitter {
 
 		/**
 		 * Represents the receipt time of the last block that was received
-		 * from the network and applied _SUCCESSFULLY_
-		 *
-		 * The property receivedTime gets updated with the value stored in `this._lastReceipt`
-		 * if the block received from the network is applied successfully
-		 *
-		 * The `id` property, represents the ID of the received and applied block.
-		 * This is taken into account when comparing the last block applied in the database
-		 * with this block. If the IDs are different it means the last block applied
-		 * was synced or forged but not received from the network (this value is not
-		 * updated in those scenarios)
-		 *
-		 * @type {{receivedTime: number, id: string}}
-		 * @private
-		 */
-		this._lastReceivedAndAppliedBlock = {
-			receivedTime: null,
-			id: null,
-		};
-
-		/**
-		 * Represents the receipt time of the last block that was received
 		 * from the network.
-		 * Doesn't necessarily mean that it was applied.
+		 * TODO: Remove after fork.
 		 * @type {number}
 		 * @private
 		 */
@@ -161,22 +140,19 @@ class Blocks extends EventEmitter {
 			1: block => this._receiveBlockFromNetworkV1(block),
 			2: block => this._receiveBlockFromNetworkV2(block),
 		};
-
-		this._processReceivedBlock = {
-			0: block => this._processReceivedBlockV1(block),
-			1: block => this._processReceivedBlockV1(block),
-			2: block => this._processReceivedBlockV2(block),
-		};
 	}
 
 	get lastBlock() {
-		return this._lastBlock;
+		// Remove receivedAt property..
+		const { receivedAt, ...block } = this._lastBlock;
+		return block;
 	}
 
 	get isActive() {
 		return this._isActive;
 	}
 
+	// TODO: Remove after fork
 	get lastReceipt() {
 		return this._lastReceipt;
 	}
@@ -378,7 +354,7 @@ class Blocks extends EventEmitter {
 			// set active to true
 			if (this.blocksVerify.isSaneBlock(block, this._lastBlock)) {
 				try {
-					await this._processReceivedBlock[block.version](block);
+					await this._processReceivedBlock(block);
 				} catch (error) {
 					this.logger.error(error);
 				}
@@ -460,7 +436,7 @@ class Blocks extends EventEmitter {
 						block: deletingBlock,
 						newLastBlock: cloneDeep(this._lastBlock),
 					});
-					await this._processReceivedBlock[block.version](block);
+					await this._processReceivedBlock(block);
 				} catch (error) {
 					this.logger.error(error);
 				}
@@ -488,22 +464,27 @@ class Blocks extends EventEmitter {
 
 	async _receiveBlockFromNetworkV2(block) {
 		// Current time since Lisk Epoch
-		this._lastReceipt = Math.floor(this.slots.getTime() / 1000);
+		block.receivedAt = this.slots.getSlotTime(this.slots.getSlotNumber());
 
 		// Execute in sequence
 		return this.sequence.add(async () => {
 			this._shouldNotBeActive();
 			this._isActive = true;
-			const result = await this._forkChoiceTask(block);
-			this._isActive = false;
-			return result;
+			try {
+				await this._forkChoiceTask(block);
+			} catch (e) {
+				this.logger.error(e);
+			} finally {
+				this._isActive = false;
+			}
 		});
 	}
 
 	// PRE: Block has been validated and verified before
-	async _processReceivedBlockV1(block) {
-		this._updateLastReceipt();
+	async _processReceivedBlock(block) {
+		this._updateLastReceipt(); // TODO: Remove after fork
 		try {
+			delete block.receivedAt;
 			const newBlock = await this.blocksProcess.processBlock(
 				block,
 				this._lastBlock,
@@ -519,49 +500,9 @@ class Blocks extends EventEmitter {
 					block.reward
 				} version: ${block.version}`
 			);
-
-			await this._updateBroadhash();
+			await this._updateBroadhash(); // TODO: Remove after fork
 			this.emit(EVENT_NEW_BLOCK, { block: cloneDeep(block) });
 			this._lastBlock = newBlock;
-		} catch (error) {
-			this.logger.error(
-				error,
-				`Failed to apply new received block id: ${block.id} height: ${
-					block.height
-				} round: ${this.slots.calcRound(
-					block.height
-				)} slot: ${this.slots.getSlotNumber(block.timestamp)} reward: ${
-					block.reward
-				} version: ${block.version}`
-			);
-			throw error;
-		} finally {
-			this._isActive = false;
-		}
-	}
-
-	// PRE: Block has been validated and verified before
-	async _processReceivedBlockV2(block) {
-		try {
-			const newBlock = await this.blocksProcess.processBlock(
-				block,
-				this._lastBlock,
-				validBlock => this.broadcast(validBlock)
-			);
-
-			this.logger.debug(
-				`Successfully applied new received block id: ${block.id} height: ${
-					block.height
-				} round: ${this.slots.calcRound(
-					block.height
-				)} slot: ${this.slots.getSlotNumber(block.timestamp)} reward: ${
-					block.reward
-				} version: ${block.version}`
-			);
-			this._lastReceivedAndAppliedBlock.receivedTime = this._lastReceipt;
-			this._lastReceivedAndAppliedBlock.id = block.id;
-			this._lastBlock = newBlock;
-			this._isActive = false;
 		} catch (error) {
 			this.logger.error(
 				error,
@@ -582,7 +523,6 @@ class Blocks extends EventEmitter {
 	/**
 	 * Wrap of fork choice rule logic so it can be added to Sequence and properly tested
 	 * @param block
-	 * @param newBlockReceivedAt - Time when the new block was received since Lisk Epoch
 	 * @return {Promise}
 	 * @private
 	 */
@@ -613,8 +553,6 @@ class Blocks extends EventEmitter {
 				slots: this.slots,
 				lastAppliedBlock: this._lastBlock,
 				receivedBlock: block,
-				receivedBlockReceiptTime: this._lastReceipt,
-				lastReceivedAndAppliedBlock: this._lastReceivedAndAppliedBlock,
 			})
 		) {
 			// Two competing blocks by different delegates at the same height.
@@ -807,7 +745,7 @@ class Blocks extends EventEmitter {
 	 * @private
 	 */
 	async _handleValidBlock(block) {
-		return this._processReceivedBlock[block.version](block);
+		return this._processReceivedBlock(block);
 	}
 
 	/**
@@ -867,7 +805,7 @@ class Blocks extends EventEmitter {
 		await this.deleteLastBlockAndGet();
 
 		try {
-			await this._processReceivedBlock[block.version](block);
+			await this._processReceivedBlock(block);
 		} catch (error) {
 			this.logger.error(
 				`Failed to apply newly received block with id: ${
@@ -875,9 +813,7 @@ class Blocks extends EventEmitter {
 				}, restoring previous block ${previousLastBlock.id}`
 			);
 
-			await this._processReceivedBlock[previousLastBlock.version](
-				previousLastBlock
-			);
+			await this._processReceivedBlock(previousLastBlock);
 		}
 	}
 

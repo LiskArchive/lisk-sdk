@@ -19,21 +19,17 @@ const forgingSlot = (slots, block) => slots.getSlotNumber(block.timestamp);
  * This is evaluated in the first line.
  * @param slots
  * @param lastAppliedBlock
- * @param lastReceivedAndAppliedBlock
  * @return {boolean}
  */
-const islastAppliedBlockReceivedWithinForgingSlot = (
+const isLastAppliedBlockReceivedWithinForgingSlot = (
 	slots,
-	lastAppliedBlock,
-	lastReceivedAndAppliedBlock
+	lastAppliedBlock
 ) => {
-	if (lastAppliedBlock.id !== lastReceivedAndAppliedBlock.id) return true;
+	// If the block doesn't have the property `receivedAt` it meants it was forged
+	// or synced, therefore we assume it was "received in the correct slot"
+	if (!lastAppliedBlock.receivedAt) return true;
 
-	return isBlockReceivedWithinForgingSlot(
-		slots,
-		lastAppliedBlock,
-		lastReceivedAndAppliedBlock.timestamp
-	);
+	return isBlockReceivedWithinForgingSlot(slots, lastAppliedBlock);
 };
 
 /**
@@ -41,14 +37,10 @@ const islastAppliedBlockReceivedWithinForgingSlot = (
  * forging slot.
  * @param slots
  * @param receivedBlock
- * @param receivedTime
  * @return {boolean}
  */
-const isBlockReceivedWithinForgingSlot = (slots, receivedBlock, receivedTime) =>
-	slots.isWithinTimeslot(
-		slots.getSlotNumber(receivedBlock.timestamp),
-		receivedTime
-	);
+const isBlockReceivedWithinForgingSlot = (slots, { timestamp, receivedAt }) =>
+	slots.isWithinTimeslot(slots.getSlotNumber(timestamp), receivedAt);
 
 /**
  * Fork Choice Rules
@@ -112,25 +104,11 @@ const isDoubleForging = (lastBlock, currentBlock) =>
  * @param lastReceivedAndAppliedBlock
  * @return {boolean}
  */
-const isTieBreak = ({
-	slots,
-	lastAppliedBlock,
-	receivedBlock,
-	receivedBlockReceiptTime,
-	lastReceivedAndAppliedBlock,
-}) =>
+const isTieBreak = ({ slots, lastAppliedBlock, receivedBlock }) =>
 	isDuplicateBlock(lastAppliedBlock, receivedBlock) &&
 	forgingSlot(slots, lastAppliedBlock) < forgingSlot(slots, receivedBlock) &&
-	!islastAppliedBlockReceivedWithinForgingSlot(
-		slots,
-		lastAppliedBlock,
-		lastReceivedAndAppliedBlock
-	) &&
-	isBlockReceivedWithinForgingSlot(
-		slots,
-		receivedBlock,
-		receivedBlockReceiptTime
-	);
+	!isLastAppliedBlockReceivedWithinForgingSlot(slots, lastAppliedBlock) &&
+	isBlockReceivedWithinForgingSlot(slots, receivedBlock);
 
 /**
  * Determine if Case 5 fulfills

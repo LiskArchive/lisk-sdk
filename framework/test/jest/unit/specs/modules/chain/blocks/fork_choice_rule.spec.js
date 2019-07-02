@@ -116,7 +116,6 @@ describe('Fork Choice Rule', () => {
 				receivedTime: 100000,
 				id: '1',
 			};
-			const receivedBlockReceiptTime = 200000;
 
 			const lastAppliedBlock = {
 				height: 1,
@@ -125,15 +124,14 @@ describe('Fork Choice Rule', () => {
 				id: '1',
 				timestamp: lastReceivedAndAppliedBlock.receivedTime,
 				generatorPublicKey: 'abc',
+				receivedAt: 300000,
 			};
+
 			const receivedBlock = {
-				height: lastAppliedBlock.height,
-				prevotedConfirmedUptoHeight:
-					lastAppliedBlock.prevotedConfirmedUptoHeight,
-				previousBlock: lastAppliedBlock.previousBlock,
+				...lastAppliedBlock,
 				id: '2',
-				timestamp: receivedBlockReceiptTime,
-				generatorPublicKey: lastAppliedBlock.generatorPublicKey,
+				timestamp: 200000,
+				receivedAt: 200000,
 			};
 
 			expect(
@@ -141,8 +139,6 @@ describe('Fork Choice Rule', () => {
 					slots: blockSlots,
 					lastAppliedBlock,
 					receivedBlock,
-					receivedBlockReceiptTime,
-					lastReceivedAndAppliedBlock,
 				})
 			).toBeTruthy();
 		});
