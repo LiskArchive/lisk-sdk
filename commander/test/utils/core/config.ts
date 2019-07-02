@@ -33,7 +33,7 @@ describe('config core utils', () => {
 
 	it('should return defaultBackupPath constant', () => {
 		return expect(defaultBackupPath).to.equal(
-			path.join(`${defaultLiskInstancePath}/backup`),
+			path.join(`${defaultLiskPath}/backup`),
 		);
 	});
 

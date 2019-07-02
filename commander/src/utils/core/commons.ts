@@ -139,13 +139,13 @@ export const getVersionToInstall = async (
 	return version;
 };
 
-export const backupLisk = async (installDir: string): Promise<void> => {
-	fsExtra.emptyDirSync(defaultBackupPath);
-	const { stderr }: ExecResult = await exec(
-		`mv -f ${installDir} ${defaultBackupPath}`,
-	);
-	if (stderr) {
-		throw new Error(stderr);
+export const backupLisk = (installDir: string, instanceName: string): void => {
+	try {
+		const backupPath = `${defaultBackupPath}/${instanceName}`;
+		fsExtra.emptyDirSync(backupPath);
+		fsExtra.moveSync(installDir, backupPath);
+	} catch (error) {
+		throw new Error(error);
 	}
 };
 
@@ -170,8 +170,6 @@ export const upgradeLisk = async (
 	if (stderr) {
 		throw new Error(stderr);
 	}
-
-	fsExtra.emptyDirSync(defaultBackupPath);
 };
 
 export const validateVersion = async (

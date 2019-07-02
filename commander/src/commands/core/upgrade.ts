@@ -156,9 +156,7 @@ export default class UpgradeCommand extends BaseCommand {
 						},
 						{
 							title: `Backup Lisk Core: ${currentVersion} installed as ${name}`,
-							task: async () => {
-								await backupLisk(installationPath);
-							},
+							task: () => backupLisk(installationPath, name),
 						},
 						{
 							title: `Install Lisk Core: ${upgradeVersion}`,

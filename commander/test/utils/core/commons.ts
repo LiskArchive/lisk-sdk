@@ -202,7 +202,7 @@ describe('commons core utils', () => {
 
 		it('should create directory if it does not exists', () => {
 			pathExistsSyncStub.returns(false);
-			ensureDirSync.returns();
+			ensureDirSync.returns(true);
 			return expect(createDirectory(defaultLiskInstancePath)).not.to.throw;
 		});
 	});
@@ -237,21 +237,21 @@ describe('commons core utils', () => {
 	});
 
 	describe('#backupLisk', () => {
-		let execStub: SinonStub;
+		let moveSyncStub: SinonStub;
 		beforeEach(() => {
 			sandbox.stub(fsExtra, 'emptyDirSync').returns();
-			execStub = sandbox.stub(workerProcess, 'exec');
+			moveSyncStub = sandbox.stub(fsExtra, 'moveSync');
 		});
 
 		it('should backup the lisk installation', () => {
-			execStub.resolves({ stdout: '', stderr: null });
-			return expect(backupLisk(defaultLiskInstancePath)).not.to.throw;
+			moveSyncStub.returns(true);
+			return expect(backupLisk(defaultLiskInstancePath, 'test')).not.to.throw;
 		});
 
-		it('should throw error of failed to backup', () => {
-			execStub.resolves({ stdout: null, stderr: 'failed to move' });
-			return expect(backupLisk(defaultLiskInstancePath)).rejectedWith(
-				'failed to move',
+		it('should throw error if failed to backup', () => {
+			moveSyncStub.throws('Directory does not exists');
+			return expect(() => backupLisk(defaultLiskInstancePath, 'test')).to.throw(
+				'Directory does not exists',
 			);
 		});
 	});
@@ -316,7 +316,7 @@ describe('commons core utils', () => {
 		});
 	});
 
-	describe.only('#getSemver', () => {
+	describe('#getSemver', () => {
 		it('should extract version from url', () => {
 			expect(
 				getSemver(
