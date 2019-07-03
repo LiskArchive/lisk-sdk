@@ -15,6 +15,7 @@
 import * as BigNum from '@liskhq/bignum';
 import {
 	bigNumberToBuffer,
+	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPublicKey,
 	hash,
 	hexToBuffer,
@@ -105,8 +106,6 @@ export abstract class BaseTransaction {
 	public readonly relays?: number;
 	public readonly confirmations?: number;
 	public readonly recipientPublicKey?: string;
-	public readonly senderId: string;
-	public readonly senderPublicKey: string;
 	public readonly signatures: string[];
 	public readonly timestamp: number;
 	public readonly type: number;
@@ -119,6 +118,8 @@ export abstract class BaseTransaction {
 	public static FEE: string;
 
 	protected _id?: string;
+	protected _senderId?: string;
+	protected _senderPublicKey?: string;
 	protected _signature?: string;
 	protected _signSignature?: string;
 	protected _multisignatureStatus: MultisignatureStatus =
@@ -152,21 +153,23 @@ export abstract class BaseTransaction {
 		this._id = tx.id;
 		this.recipientId = tx.recipientId || '';
 		this.recipientPublicKey = tx.recipientPublicKey || undefined;
-		this.senderPublicKey = tx.senderPublicKey || '';
+		this._senderPublicKey = tx.senderPublicKey || '';
 		try {
-			this.senderId = tx.senderId
+			this._senderId = tx.senderId
 				? tx.senderId
 				: getAddressFromPublicKey(this.senderPublicKey);
 		} catch (error) {
-			this.senderId = '';
+			this._senderId = '';
 		}
 
 		this._signature = tx.signature;
 		this.signatures = (tx.signatures as string[]) || [];
 		this._signSignature = tx.signSignature;
-		// Infinity is invalid for these types
-		this.timestamp = typeof tx.timestamp === 'number' ? tx.timestamp : Infinity;
-		this.type = typeof tx.type === 'number' ? tx.type : Infinity;
+		this.timestamp = typeof tx.timestamp === 'number' ? tx.timestamp : 0;
+		this.type =
+			typeof tx.type === 'number'
+				? tx.type
+				: (this.constructor as typeof BaseTransaction).TYPE;
 
 		// Additional data not related to the protocol
 		this.confirmations = tx.confirmations;
@@ -183,6 +186,22 @@ export abstract class BaseTransaction {
 		}
 
 		return this._id;
+	}
+
+	public get senderId(): string {
+		if (!this._senderId) {
+			throw new Error('senderId is required to be set before use');
+		}
+
+		return this._senderId;
+	}
+
+	public get senderPublicKey(): string {
+		if (!this._senderPublicKey) {
+			throw new Error('senderPublicKey is required to be set before use');
+		}
+
+		return this._senderPublicKey;
 	}
 
 	public get signature(): string {
@@ -220,6 +239,10 @@ export abstract class BaseTransaction {
 		};
 
 		return transaction;
+	}
+
+	public stringify(): string {
+		return JSON.stringify(this.toJSON());
 	}
 
 	public isReady(): boolean {
@@ -490,6 +513,25 @@ export abstract class BaseTransaction {
 	}
 
 	public sign(passphrase: string, secondPassphrase?: string): void {
+		const { address, publicKey } = getAddressAndPublicKeyFromPassphrase(
+			passphrase,
+		);
+
+		if (this._senderId !== '' && this._senderId !== address) {
+			throw new Error(
+				'Transaction senderId does not match address from passphrase',
+			);
+		}
+
+		if (this._senderPublicKey !== '' && this._senderPublicKey !== publicKey) {
+			throw new Error(
+				'Transaction senderPublicKey does not match public key from passphrase',
+			);
+		}
+
+		this._senderId = address;
+		this._senderPublicKey = publicKey;
+
 		this._signature = undefined;
 		this._signSignature = undefined;
 		this._signature = signData(hash(this.getBytes()), passphrase);
