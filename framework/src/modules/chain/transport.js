@@ -27,6 +27,13 @@ const transactionsModule = require('./transactions');
 const exceptions = global.exceptions;
 const { MAX_SHARED_TRANSACTIONS } = global.constants;
 
+function incrementRelays(packet) {
+	if (!Number.isInteger(packet.relays)) {
+		packet.relays = 0;
+	}
+	packet.relays++;
+}
+
 // Private fields
 let modules;
 let library;
@@ -108,7 +115,9 @@ class Transport {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	onSignature(signature, broadcast) {
-		if (broadcast && !__private.broadcaster.maxRelays(signature)) {
+		if (broadcast) {
+			// TODO: Remove the relays property as part of the next hard fork. This needs to be set for backwards compatibility.
+			incrementRelays(signature);
 			__private.broadcaster.enqueue(
 				{},
 				{
@@ -132,7 +141,9 @@ class Transport {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	onUnconfirmedTransaction(transaction, broadcast) {
-		if (broadcast && !__private.broadcaster.maxRelays(transaction)) {
+		if (broadcast) {
+			// TODO: Remove the relays property as part of the next hard fork. This needs to be set for backwards compatibility.
+			incrementRelays(transaction);
 			const transactionJSON = transaction.toJSON();
 			__private.broadcaster.enqueue(
 				{},
@@ -160,13 +171,9 @@ class Transport {
 		// Exit immediately when 'broadcast' flag is not set
 		if (!broadcast) return null;
 
-		// Check if we are free to broadcast
-		if (__private.broadcaster.maxRelays(block)) {
-			library.logger.debug(
-				'Transport->onBroadcastBlock: Aborted - max block relays exhausted'
-			);
-			return null;
-		}
+		// TODO: Remove the relays property as part of the next hard fork. This needs to be set for backwards compatibility.
+		incrementRelays(block);
+
 		if (modules.loader.syncing()) {
 			library.logger.debug(
 				'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress'

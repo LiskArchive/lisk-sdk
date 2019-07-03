@@ -64,7 +64,6 @@ Object {
         "broadcastInterval": 5000,
         "broadcastLimit": 25,
         "parallelLimit": 20,
-        "relayLimit": 3,
         "releaseLimit": 25,
       },
       "exceptions": Object {

@@ -801,40 +801,30 @@ describe('transport', () => {
 				describe('when broadcast is defined', () => {
 					beforeEach(async () => {
 						__private.broadcaster = {
-							maxRelays: sinonSandbox.stub().returns(false),
 							enqueue: sinonSandbox.stub(),
 						};
 						transportInstance.onSignature(SAMPLE_SIGNATURE_1, true);
 					});
 
-					it('should call __private.broadcaster.maxRelays with signature', async () => {
-						expect(__private.broadcaster.maxRelays.calledOnce).to.be.true;
+					it('should call __private.broadcaster.enqueue with {} and {api: "postSignatures", data: {signature: signature}} as arguments', () => {
+						expect(__private.broadcaster.enqueue.calledOnce).to.be.true;
 						return expect(
-							__private.broadcaster.maxRelays.calledWith(SAMPLE_SIGNATURE_1)
+							__private.broadcaster.enqueue.calledWith(
+								{},
+								{
+									api: 'postSignatures',
+									data: { signature: SAMPLE_SIGNATURE_1 },
+								}
+							)
 						).to.be.true;
 					});
 
-					describe('when result of __private.broadcaster.maxRelays is false', () => {
-						it('should call __private.broadcaster.enqueue with {} and {api: "postSignatures", data: {signature: signature}} as arguments', async () => {
-							expect(__private.broadcaster.enqueue.calledOnce).to.be.true;
-							return expect(
-								__private.broadcaster.enqueue.calledWith(
-									{},
-									{
-										api: 'postSignatures',
-										data: { signature: SAMPLE_SIGNATURE_1 },
-									}
-								)
-							).to.be.true;
-						});
-
-						it('should call library.channel.publish with "chain:signature:change" and signature', async () => {
-							expect(library.channel.publish).to.be.calledOnce;
-							expect(library.channel.publish).to.be.calledWith(
-								'chain:signature:change',
-								SAMPLE_SIGNATURE_1
-							);
-						});
+					it('should call library.channel.publish with "chain:signature:change" and signature', () => {
+						expect(library.channel.publish).to.be.calledOnce;
+						return expect(library.channel.publish).to.be.calledWith(
+							'chain:signature:change',
+							SAMPLE_SIGNATURE_1
+						);
 					});
 				});
 			});
@@ -855,55 +845,43 @@ describe('transport', () => {
 							'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
 					});
 					__private.broadcaster = {
-						maxRelays: sinonSandbox.stub().returns(true),
 						enqueue: sinonSandbox.stub(),
 					};
-					transportInstance.onUnconfirmedTransaction(transaction, true);
 				});
 
 				describe('when broadcast is defined', () => {
-					it('should call __private.broadcaster.maxRelays with transaction', async () => {
-						expect(__private.broadcaster.maxRelays.calledOnce).to.be.true;
-						return expect(__private.broadcaster.maxRelays).to.be.calledWith(
-							transaction
-						);
+					beforeEach(async () => {
+						__private.broadcaster = {
+							enqueue: sinonSandbox.stub(),
+						};
+						library.channel.invokeSync
+							.withArgs('lisk:getApplicationState')
+							.returns({
+								broadhash:
+									'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
+							});
+						transportInstance.onUnconfirmedTransaction(transaction, true);
 					});
 
-					describe('when result of __private.broadcaster.maxRelays is false', () => {
-						beforeEach(async () => {
-							__private.broadcaster = {
-								maxRelays: sinonSandbox.stub().returns(false),
-								enqueue: sinonSandbox.stub(),
-							};
-							library.channel.invokeSync
-								.withArgs('lisk:getApplicationState')
-								.returns({
-									broadhash:
-										'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
-								});
-							transportInstance.onUnconfirmedTransaction(transaction, true);
-						});
+					it('should call __private.broadcaster.enqueue with {} and {api: "postTransactions", data: {transaction}}', () => {
+						expect(__private.broadcaster.enqueue.calledOnce).to.be.true;
+						return expect(
+							__private.broadcaster.enqueue.calledWith(
+								{},
+								{
+									api: 'postTransactions',
+									data: { transaction: transaction.toJSON() },
+								}
+							)
+						).to.be.true;
+					});
 
-						it('should call __private.broadcaster.enqueue with {} and {api: "postTransactions", data: {transaction}}', async () => {
-							expect(__private.broadcaster.enqueue.calledOnce).to.be.true;
-							return expect(
-								__private.broadcaster.enqueue.calledWith(
-									{},
-									{
-										api: 'postTransactions',
-										data: { transaction: transaction.toJSON() },
-									}
-								)
-							).to.be.true;
-						});
-
-						it('should call library.channel.publish with "chain:transactions:change" and transaction as arguments', async () => {
-							expect(library.channel.publish).to.be.calledOnce;
-							expect(library.channel.publish).to.be.calledWith(
-								'chain:transactions:change',
-								transaction.toJSON()
-							);
-						});
+					it('should call library.channel.publish with "chain:transactions:change" and transaction as arguments', () => {
+						expect(library.channel.publish).to.be.calledOnce;
+						return expect(library.channel.publish).to.be.calledWith(
+							'chain:transactions:change',
+							transaction.toJSON()
+						);
 					});
 				});
 			});
@@ -924,7 +902,6 @@ describe('transport', () => {
 							totalForged: '65000000',
 						};
 						__private.broadcaster = {
-							maxRelays: sinonSandbox.stub().returns(false),
 							enqueue: sinonSandbox.stub(),
 							broadcast: sinonSandbox.stub(),
 						};
@@ -935,15 +912,9 @@ describe('transport', () => {
 						return transportInstance.onBroadcastBlock(block, true);
 					});
 
-					it('should call __private.broadcaster.maxRelays with block', async () => {
-						expect(__private.broadcaster.maxRelays.calledOnce).to.be.true;
-						return expect(__private.broadcaster.maxRelays.calledWith(block)).to
-							.be.true;
-					});
-
-					it('should call __private.broadcaster.broadcast', async () => {
+					it('should call __private.broadcaster.broadcast', () => {
 						expect(__private.broadcaster.broadcast.calledOnce).to.be.true;
-						expect(__private.broadcaster.broadcast).to.be.calledWith(
+						return expect(__private.broadcaster.broadcast).to.be.calledWith(
 							{
 								broadhash:
 									'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
@@ -957,34 +928,19 @@ describe('transport', () => {
 						);
 					});
 
-					describe('when __private.broadcaster.maxRelays returns true', () => {
-						beforeEach(async () => {
-							__private.broadcaster.maxRelays = sinonSandbox
-								.stub()
-								.returns(true);
-							transportInstance.onBroadcastBlock(block, true);
-						});
-
-						it('should call library.logger.debug with proper error message', async () =>
-							expect(
-								library.logger.debug.calledWith(
-									'Transport->onBroadcastBlock: Aborted - max block relays exhausted'
-								)
-							).to.be.true);
-					});
-
 					describe('when modules.loader.syncing = true', () => {
-						beforeEach(async () => {
+						beforeEach(() => {
 							modules.loader.syncing = sinonSandbox.stub().returns(true);
-							transportInstance.onBroadcastBlock(block, true);
+							return transportInstance.onBroadcastBlock(block, true);
 						});
 
-						it('should call library.logger.debug with proper error message', async () =>
-							expect(
+						it('should call library.logger.debug with proper error message', () => {
+							return expect(
 								library.logger.debug.calledWith(
 									'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress'
 								)
-							).to.be.true);
+							).to.be.true;
+						});
 					});
 				});
 			});
