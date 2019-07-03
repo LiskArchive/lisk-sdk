@@ -862,6 +862,43 @@ describe('Base transaction class', () => {
 		});
 	});
 
+	describe('create, sign and stringify transaction', () => {
+		const passphrase = 'secret';
+		const secondPassphrase = 'second secret';
+		const senderId = '18160565574430594874L';
+		const senderPublicKey =
+			'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
+		const signature =
+			'0c4acc37ca1e8235134f03cd8aa9e60cc237f9cec0e26cdd1502eea75ee6a5f319d0080e78646166e18fde9ae26b41f91d7a33d56a06d04109c48d2e13e8850b';
+		const secondSignature =
+			'afe8b0cd830c25f116eae8a9ec8d4b2e19748e663c3ad41bfa205c0cc29d1c1b44b48a77cd908eff33cecef8c3a75c7e20ce96ac2c5625df2ab067c76cf92108';
+
+		it('should return correct senderId/senderPublicKey when sign with passphrase', () => {
+			const newTransaction = new TestTransaction({});
+			newTransaction.sign(passphrase);
+
+			const stringifiedTransaction = newTransaction.stringify();
+			const parsedResponse = JSON.parse(stringifiedTransaction);
+
+			expect(parsedResponse.senderId).to.be.eql(senderId);
+			expect(parsedResponse.senderPublicKey).to.be.eql(senderPublicKey);
+			expect(parsedResponse.signature).to.be.eql(signature);
+		});
+
+		it('should return correct senderId/senderPublicKey when sign with passphrase and secondPassphrase', () => {
+			const newTransaction = new TestTransaction({});
+			newTransaction.sign(passphrase, secondPassphrase);
+
+			const stringifiedTransaction = newTransaction.stringify();
+			const parsedResponse = JSON.parse(stringifiedTransaction);
+
+			expect(parsedResponse.senderId).to.be.eql(senderId);
+			expect(parsedResponse.senderPublicKey).to.be.eql(senderPublicKey);
+			expect(parsedResponse.signature).to.be.eql(signature);
+			expect(parsedResponse.signSignature).to.be.eql(secondSignature);
+		});
+	});
+
 	describe('#sign', () => {
 		const defaultPassphrase = 'passphrase';
 		const defaultSecondPassphrase = 'second-passphrase';
