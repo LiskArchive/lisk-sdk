@@ -1259,9 +1259,9 @@ describe('Integration tests for P2P library', () => {
 		});
 	});
 
-	describe('Network with a maximum number of outbound/inbound connections', () => {
+	describe('Network with a limited number of outbound/inbound connections', () => {
 		const NETWORK_PEER_COUNT_WITH_LIMIT = 30;
-		const TEN_CONNECTIONS = 10;
+		const LIMITED_CONNECTIONS = 5;
 		const ALL_NODE_PORTS_WITH_LIMIT: ReadonlyArray<number> = [
 			...new Array(NETWORK_PEER_COUNT_WITH_LIMIT).keys(),
 		].map(index => NETWORK_START_PORT + index);
@@ -1290,8 +1290,8 @@ describe('Integration tests for P2P library', () => {
 						latencyProtectionRatio: 0,
 						productivityProtectionRatio: 0,
 						longevityProtectionRatio: 0,
-						maxOutboundConnections: TEN_CONNECTIONS,
-						maxInboundConnections: TEN_CONNECTIONS,
+						maxOutboundConnections: LIMITED_CONNECTIONS,
+						maxInboundConnections: LIMITED_CONNECTIONS,
 						nodeInfo: {
 							wsPort: nodePort,
 							nethash:
@@ -1317,17 +1317,17 @@ describe('Integration tests for P2P library', () => {
 		});
 
 		describe('Peer discovery and connections', () => {
-			it(`should not create more than ${TEN_CONNECTIONS} outbound connections`, () => {
+			it(`should not create more than ${LIMITED_CONNECTIONS} outbound connections`, () => {
 				for (let p2p of p2pNodeList) {
 					const { outboundCount } = p2p['_peerPool'].getPeersCountPerKind();
-					expect(outboundCount).to.be.at.most(TEN_CONNECTIONS);
+					expect(outboundCount).to.be.at.most(LIMITED_CONNECTIONS);
 				}
 			});
 
-			it(`should not create more than ${TEN_CONNECTIONS} inbound connections`, () => {
+			it(`should not create more than ${LIMITED_CONNECTIONS} inbound connections`, () => {
 				for (let p2p of p2pNodeList) {
 					const { inboundCount } = p2p['_peerPool'].getPeersCountPerKind();
-					expect(inboundCount).to.be.at.most(TEN_CONNECTIONS);
+					expect(inboundCount).to.be.at.most(LIMITED_CONNECTIONS);
 				}
 			});
 
@@ -1382,15 +1382,15 @@ describe('Integration tests for P2P library', () => {
 			});
 
 			// Check for even distribution of requests across the network. Account for an error margin.
-			it('requests made to the network should be distributed randomly', async () => {
-				const TOTAL_REQUESTS = 1000;
+			it('requests made to our peers should be distributed randomly', async () => {
+				const TOTAL_REQUESTS = 300;
 				const firstP2PNode = p2pNodeList[0];
 				const nodePortToResponsesMap: any = {};
 
 				const expectedAverageRequestsPerNode =
-					TOTAL_REQUESTS / NETWORK_PEER_COUNT_WITH_LIMIT;
-				const expectedRequestsLowerBound = expectedAverageRequestsPerNode * 0.4;
-				const expectedRequestsUpperBound = expectedAverageRequestsPerNode * 1.6;
+					TOTAL_REQUESTS / (LIMITED_CONNECTIONS * 2);
+				const expectedRequestsLowerBound = expectedAverageRequestsPerNode * 0.5;
+				const expectedRequestsUpperBound = expectedAverageRequestsPerNode * 1.5;
 
 				for (let i = 0; i < TOTAL_REQUESTS; i++) {
 					const response = await firstP2PNode.request({
@@ -1441,14 +1441,14 @@ describe('Integration tests for P2P library', () => {
 				const firstP2PNode = p2pNodeList[0];
 				firstP2PNode.send({ event: 'propagate', data: 0 });
 
-				await wait(200);
+				await wait(50);
 
 				expect(propagatedMessages.size).to.be.eql(30);
 				for (var value of propagatedMessages.values()) {
 					expect(value).to.have.property('event');
 					expect(value.event).to.be.equal('propagate');
 					expect(value).to.have.property('data');
-					expect(value.data).to.be.within(0, 1);
+					expect(value.data).to.be.within(0, 2);
 				}
 			});
 		});
