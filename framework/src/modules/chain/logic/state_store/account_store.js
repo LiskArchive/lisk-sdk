@@ -111,7 +111,7 @@ class AccountStore {
 
 		const updatedKeys = Object.entries(updatedElement).reduce(
 			(existingUpdatedKeys, [key, value]) => {
-				if (value !== this.data[elementIndex][key]) {
+				if (!_.isEqual(value, this.data[elementIndex][key])) {
 					existingUpdatedKeys.push(key);
 				}
 
