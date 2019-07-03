@@ -239,16 +239,7 @@ NodeController.getPooledTransactions = async function(context, next) {
 			filters: _.clone(filters),
 		});
 
-		const transactions = _.map(_.cloneDeep(data.transactions), transaction => {
-			transaction.senderId = transaction.senderId || '';
-			transaction.recipientId = transaction.recipientId || '';
-			transaction.recipientPublicKey = transaction.recipientPublicKey || '';
-
-			transaction.amount = transaction.amount.toString();
-			transaction.fee = transaction.fee.toString();
-
-			return transaction;
-		});
+		const transactions = data.transactions.map(_normalizeTransactionOutput);
 
 		return next(null, {
 			data: transactions,
@@ -324,6 +315,29 @@ async function _getNetworkHeight() {
 	);
 
 	return parseInt(networkHeight);
+}
+
+/**
+ * Parse transaction instance to raw data
+ *
+ * @returns Object
+ * @private
+ */
+function _normalizeTransactionOutput(transaction) {
+	return {
+		id: transaction.id,
+		type: transaction.type,
+		amount: transaction.amount.toString(),
+		fee: transaction.fee.toString(),
+		timestamp: transaction.timestamp,
+		senderPublicKey: transaction.senderPublicKey,
+		senderId: transaction.senderId || '',
+		signature: transaction.signature,
+		signatures: transaction.signatures,
+		recipientPublicKey: transaction.recipientPublicKey || '',
+		recipientId: transaction.recipientId || '',
+		asset: transaction.asset,
+	};
 }
 
 module.exports = NodeController;
