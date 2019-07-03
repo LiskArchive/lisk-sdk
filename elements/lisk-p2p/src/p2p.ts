@@ -128,6 +128,8 @@ const DEFAULT_OUTBOUND_SHUFFLE_INTERVAL = 300000;
 const DEFAULT_PEER_PROTECTION_FOR_LATENCY = 0.068;
 const DEFAULT_PEER_PROTECTION_FOR_USEFULNESS = 0.068;
 const DEFAULT_PEER_PROTECTION_FOR_LONGEVITY = 0.5;
+const DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD = 100;
+const DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_SIZE = 1000;
 
 const selectRandomPeerSample = (
 	peerList: ReadonlyArray<P2PPeerInfo>,
@@ -721,16 +723,32 @@ export class P2P extends EventEmitter {
 	}
 
 	private _handleGetPeersRequest(request: P2PRequest): void {
+		const minimumPeerDiscoveryThreshold = this._config
+			.minimumPeerDiscoveryThreshold
+			? this._config.minimumPeerDiscoveryThreshold
+			: DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD;
+		const maximumPeerDiscoveryResponseSize = this._config
+			.maximumPeerDiscoveryResponseSize
+			? this._config.maximumPeerDiscoveryResponseSize
+			: DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_SIZE;
+
 		// TODO: Get this from peerbook
 		const knownPeers = [
 			...this._newPeers.values(),
 			...this._triedPeers.values(),
 		];
 		/* tslint:disable no-magic-numbers*/
-		const min = Math.ceil(Math.min(1000, knownPeers.length * 0.25));
-		const max = Math.floor(Math.min(1000, knownPeers.length * 0.5));
+		const min = Math.ceil(
+			Math.min(maximumPeerDiscoveryResponseSize, knownPeers.length * 0.25),
+		);
+		const max = Math.floor(
+			Math.min(maximumPeerDiscoveryResponseSize, knownPeers.length * 0.5),
+		);
 		const random = Math.floor(Math.random() * (max - min + 1) + min);
-		const randomPeerCount = Math.max(random, Math.min(100, knownPeers.length));
+		const randomPeerCount = Math.max(
+			random,
+			Math.min(minimumPeerDiscoveryThreshold, knownPeers.length),
+		);
 		/* tslint:enable no-magic-numbers*/
 
 		// TODO: Remove fields that are specific to the current Lisk protocol.
