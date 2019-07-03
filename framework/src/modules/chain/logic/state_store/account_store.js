@@ -51,12 +51,12 @@ class AccountStore {
 	async cache(filter) {
 		const result = await this.account.get(filter, { extended: true }, this.tx);
 		this.data = _.uniqBy([...this.data, ...result], this.primaryKey);
-		return result;
+		return _.cloneDeep(this.data);
 	}
 
 	createSnapshot() {
-		this.originalData = _.clone(this.data);
-		this.updatedKeys = _.clone(this.updatedKeys);
+		this.originalData = _.cloneDeep(this.data);
+		this.updatedKeys = _.cloneDeep(this.updatedKeys);
 	}
 
 	restoreSnapshot() {
@@ -73,7 +73,7 @@ class AccountStore {
 				`${this.name} with ${this.primaryKey} = ${primaryValue} does not exist`
 			);
 		}
-		return element;
+		return _.cloneDeep(element);
 	}
 
 	getOrDefault(primaryValue) {
@@ -91,7 +91,7 @@ class AccountStore {
 		const newElementIndex = this.data.push(defaultElement) - 1;
 		this.updatedKeys[newElementIndex] = Object.keys(defaultElement);
 
-		return defaultElement;
+		return _.cloneDeep(defaultElement);
 	}
 
 	find(fn) {
