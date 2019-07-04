@@ -36,6 +36,7 @@ import { P2PRequest } from './p2p_request';
 
 import * as socketClusterClient from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
+import { DEFAULT_WS_MAX_PAYLOAD } from './p2p';
 import {
 	validatePeerInfo,
 	validatePeerInfoList,
@@ -43,7 +44,21 @@ import {
 	validateRPCRequest,
 } from './validation';
 
-type ClientOptions = socketClusterClient.SCClientSocket.ClientOptions;
+// This interface is needed because pingTimeoutDisabled is missing from ClientOptions in socketcluster-client.
+interface ClientOptionsUpdated {
+	readonly hostname: string;
+	readonly port: number;
+	readonly query: string;
+	readonly autoConnect: boolean;
+	readonly autoReconnect: boolean;
+	readonly multiplex: boolean;
+	readonly ackTimeout?: number;
+	readonly connectTimeout?: number;
+	readonly wsEngineServerOptions: {
+		readonly maxPayload: number;
+	};
+}
+
 type SCClientSocket = socketClusterClient.SCClientSocket;
 
 // Local emitted events.
@@ -463,7 +478,7 @@ export class Peer extends EventEmitter {
 			: DEFAULT_ACK_TIMEOUT;
 
 		// Ideally, we should JSON-serialize the whole NodeInfo object but this cannot be done for compatibility reasons, so instead we put it inside an options property.
-		const clientOptions: ClientOptions = {
+		const clientOptions: ClientOptionsUpdated = {
 			hostname: this._ipAddress,
 			port: this._wsPort,
 			query: querystring.stringify({
@@ -475,6 +490,9 @@ export class Peer extends EventEmitter {
 			multiplex: false,
 			autoConnect: false,
 			autoReconnect: false,
+			wsEngineServerOptions: {
+				maxPayload: DEFAULT_WS_MAX_PAYLOAD,
+			},
 		};
 
 		const outboundSocket = socketClusterClient.create(clientOptions);
@@ -657,7 +675,7 @@ export const connectAndRequest = async (
 				procedure,
 			};
 			// Ideally, we should JSON-serialize the whole NodeInfo object but this cannot be done for compatibility reasons, so instead we put it inside an options property.
-			const clientOptions: ClientOptions = {
+			const clientOptions: ClientOptionsUpdated = {
 				hostname: basicPeerInfo.ipAddress,
 				port: basicPeerInfo.wsPort,
 				query: querystring.stringify({
@@ -677,6 +695,9 @@ export const connectAndRequest = async (
 				multiplex: false,
 				autoConnect: false,
 				autoReconnect: false,
+				wsEngineServerOptions: {
+					maxPayload: DEFAULT_WS_MAX_PAYLOAD,
+				},
 			};
 
 			const outboundSocket = socketClusterClient.create(clientOptions);
