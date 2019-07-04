@@ -78,11 +78,14 @@ class Synchronizer {
 	// eslint-disable-next-line class-methods-use-this, no-unused-vars
 	async _determineSyncMechanism(receivedBlock) {
 		// Get last block from the persistence layer
-		const lastBlock = this.lastBlock();
+		const lastBlock = this._lastBlock();
 
 		// Moving to a Different Chain
 		// 1. Step: Validate new tip of chain
-		const result = verifyBlockBeforeChainSync(lastBlock, receivedBlock);
+		const result = exportedInterface.verifyBlockBeforeChainSync(
+			lastBlock,
+			receivedBlock
+		);
 		if (!result.verified) {
 			throw Error(
 				`Block verification for chain synchronization failed with errors: ${result.errors.join()}`
@@ -90,16 +93,16 @@ class Synchronizer {
 		}
 
 		// 2. Step: Check whether current chain justifies triggering the block synchronization mechanism
-		const finalizedBlock = await this.storage.getOne({
+		const finalizedBlock = await this.storage.entities.Block.getOne({
 			height_eq: this.bft.finalizedHeight,
 		});
 		const finalizedBlockSlot = this.slots.getSlotNumber(
 			finalizedBlock.timestamp
 		);
-		const currentBlockSLot = this.slots.getSlotNumber();
+		const currentBlockSlot = this.slots.getSlotNumber();
 		const THREE_ROUNDS = this.constants.activeDelegates * 3;
 
-		if (finalizedBlockSlot < currentBlockSLot - THREE_ROUNDS) {
+		if (finalizedBlockSlot < currentBlockSlot - THREE_ROUNDS) {
 			return this.blockSynchronizationMechanism;
 		}
 
@@ -118,8 +121,17 @@ class Synchronizer {
 		return null;
 	}
 
-	async lastBlock() {
-		return this.storage.entities.getOne({}, { limit: 1, sort: 'height:desc' });
+	/**
+	 * Return the last block from storage
+	 *
+	 * @return {Promise<*>}
+	 * @private
+	 */
+	async _lastBlock() {
+		return this.storage.entities.Block.getOne(
+			{},
+			{ limit: 1, sort: 'height:desc' }
+		);
 	}
 }
 
@@ -159,4 +171,9 @@ const verifyBlockBeforeChainSync = (lastBlock, receivedBlock) => {
 	return result;
 };
 
-module.exports = { Synchronizer, verifyBlockBeforeChainSync };
+const exportedInterface = {
+	Synchronizer,
+	verifyBlockBeforeChainSync,
+};
+
+module.exports = exportedInterface;
