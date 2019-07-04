@@ -819,8 +819,13 @@ __private.loadBlocksFromNetwork = function(cb) {
 											'Perform chain recovery due to poor consensus'
 										);
 										return modules.blocks.chain.recoverChain(recoveryError => {
+											if (recoveryError) {
+												waterCb(
+													`Failed chain recovery after failing to load blocks while network consensus was low. ${recoveryError}`
+												);
+											}
 											waterCb(
-												`Failed chain recovery after failing to load blocks while network consensus was low. ${recoveryError}`
+												`Failed chain recovery after failing to load blocks. ${loadBlocksFromNetworkErr}`
 											);
 										});
 									}
