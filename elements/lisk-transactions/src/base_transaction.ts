@@ -115,6 +115,7 @@ export abstract class BaseTransaction {
 	public receivedAt?: Date;
 
 	public static TYPE: number;
+	public static FEE: string;
 
 	protected _id?: string;
 	protected _senderId?: string;
@@ -300,7 +301,25 @@ export abstract class BaseTransaction {
 			);
 		}
 
+		const feeError = this.validateFee();
+
+		if (feeError) {
+			errors.push(feeError);
+		}
+
 		return createResponse(this.id, errors);
+	}
+
+	public validateFee(): TransactionError | undefined {
+		return !this.fee.eq((this.constructor as typeof BaseTransaction).FEE)
+			? new TransactionError(
+					`Invalid fee`,
+					this.id,
+					'.fee',
+					this.fee.toString(),
+					(this.constructor as typeof BaseTransaction).FEE.toString(),
+			  )
+			: undefined;
 	}
 
 	public verifyAgainstOtherTransactions(
