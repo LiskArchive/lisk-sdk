@@ -140,13 +140,9 @@ export const getVersionToInstall = async (
 };
 
 export const backupLisk = (installDir: string, instanceName: string): void => {
-	try {
-		const backupPath = `${defaultBackupPath}/${instanceName}`;
-		fsExtra.removeSync(backupPath);
-		fsExtra.moveSync(installDir, backupPath);
-	} catch (error) {
-		throw new Error(error);
-	}
+	const backupPath = `${defaultBackupPath}/${instanceName}`;
+	fsExtra.removeSync(backupPath);
+	fsExtra.moveSync(installDir, backupPath);
 };
 
 export const upgradeLisk = async (
