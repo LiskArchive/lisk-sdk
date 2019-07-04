@@ -813,6 +813,12 @@ __private.loadBlocksFromNetwork = function(cb) {
 						modules.blocks.process.loadBlocksFromNetwork(
 							(loadBlocksFromNetworkErr, lastValidBlock) => {
 								if (loadBlocksFromNetworkErr) {
+									library.logger.error(
+										loadBlocksFromNetworkErr instanceof Error
+											? loadBlocksFromNetworkErr
+											: new Error(loadBlocksFromNetworkErr),
+										'Failed chain recovery after failing to load blocks'
+									);
 									// If comparison failed and current consensus is low - perform chain recovery
 									if (modules.peers.isPoorConsensus()) {
 										library.logger.debug(
@@ -829,10 +835,6 @@ __private.loadBlocksFromNetwork = function(cb) {
 											);
 										});
 									}
-									library.logger.error(
-										'Failed to process block from network',
-										loadBlocksFromNetworkErr
-									);
 									return waterCb(
 										`Failed to load blocks from the network. ${loadBlocksFromNetworkErr}`
 									);
