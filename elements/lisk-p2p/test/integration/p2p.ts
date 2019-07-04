@@ -1849,8 +1849,10 @@ describe('Integration tests for P2P library', () => {
 	});
 
 	describe('Peer selection response to fetch peers RPC', () => {
-		describe('Connected network: MINIMUM_PEER_DISCOVERY_THRESHOLD set in configurations', () => {
-			const MINIMUM_PEER_DISCOVERY_THRESHOLD = 1;
+		const MINIMUM_PEER_DISCOVERY_THRESHOLD = 1;
+		const MAXIMUM_PEER_DISCOVERY_RESPONSE_SIZE = 3;
+
+		describe(`When minimum peer discovery threshold is set to ${MINIMUM_PEER_DISCOVERY_THRESHOLD}`, () => {
 			beforeEach(async () => {
 				p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
 					// Each node will have the previous node in the sequence as a seed peer except the first node.
@@ -1913,8 +1915,7 @@ describe('Integration tests for P2P library', () => {
 			});
 		});
 
-		describe('Connected network: MAXIMUM_PEER_DISCOVERY_RESPONSE_SIZE set in configurations', () => {
-			const MAXIMUM_PEER_DISCOVERY_RESPONSE_SIZE = 3;
+		describe(`When maximum peer discovery response size is set to ${MAXIMUM_PEER_DISCOVERY_RESPONSE_SIZE}`, () => {
 			beforeEach(async () => {
 				p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
 					// Each node will have the previous node in the sequence as a seed peer except the first node.
