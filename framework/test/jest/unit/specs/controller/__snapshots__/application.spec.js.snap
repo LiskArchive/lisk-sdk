@@ -62,7 +62,6 @@ Object {
       "broadcasts": Object {
         "active": true,
         "broadcastInterval": 5000,
-        "broadcastLimit": 25,
         "parallelLimit": 20,
         "relayLimit": 3,
         "releaseLimit": 25,
@@ -505,6 +504,7 @@ Object {
         },
         "address": "0.0.0.0",
         "enabled": true,
+        "emitPeerLimit": 25,
         "list": Array [
           Object {
             "ip": "127.0.0.1",
