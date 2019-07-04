@@ -159,12 +159,19 @@ export const checkProtocolVersionCompatibility = (
 	peerInfo: P2PDiscoveredPeerInfo,
 	nodeInfo: P2PNodeInfo,
 ): boolean => {
+	if (typeof nodeInfo.protocolVersion !== 'string') {
+		return false;
+	}
+	// Backwards compatibility for older peers which do not have a protocolVersion field.
 	if (!peerInfo.protocolVersion) {
 		try {
 			return isVersionGTE(peerInfo.version, nodeInfo.minVersion as string);
 		} catch (error) {
 			return false;
 		}
+	}
+	if (typeof peerInfo.protocolVersion !== 'string') {
+		return false;
 	}
 
 	const peerHardForks = parseInt(peerInfo.protocolVersion.split('.')[0], 10);
