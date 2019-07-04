@@ -205,6 +205,18 @@ describe('Application', () => {
 			);
 		});
 
+		it('should throw error when transaction interface does not match.', () => {
+			// Arrange
+			const app = new Application(genesisBlock, config);
+
+			class Sample extends Base {}
+			Sample.TYPE = 10;
+			Sample.prototype.apply = 'not a function';
+
+			// Act && Assert
+			expect(() => app.registerTransaction(Sample)).toThrow();
+		});
+
 		it('should throw error when transaction type is already registered.', () => {
 			// Arrange
 			const app = new Application(genesisBlock, config);
