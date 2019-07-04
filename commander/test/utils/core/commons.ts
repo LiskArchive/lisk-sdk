@@ -247,13 +247,6 @@ describe('commons core utils', () => {
 			moveSyncStub.returns(true);
 			return expect(backupLisk(defaultLiskInstancePath, 'test')).not.to.throw;
 		});
-
-		it('should throw error if failed to backup', () => {
-			moveSyncStub.throws('Directory does not exists');
-			return expect(() => backupLisk(defaultLiskInstancePath, 'test')).to.throw(
-				'Directory does not exists',
-			);
-		});
 	});
 
 	describe('#upgradeLisk', () => {
