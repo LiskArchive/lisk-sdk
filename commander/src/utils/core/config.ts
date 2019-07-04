@@ -48,7 +48,7 @@ export interface LiskConfig {
 export const defaultLiskPath = path.join(os.homedir(), '.lisk');
 export const defaultLiskPm2Path = `${defaultLiskPath}/pm2`;
 export const defaultLiskInstancePath = `${defaultLiskPath}/instances`;
-export const defaultBackupPath = `${defaultLiskPath}/backup`;
+export const defaultBackupPath = `${defaultLiskPath}/backups`;
 const NODE_BIN = './bin/node';
 
 export const getLiskConfig = async (
