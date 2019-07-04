@@ -344,13 +344,6 @@ module.exports = class Chain {
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			startingHeight: 0, // TODO: Pass exception precedent from config or height for block version 2
 		});
-		this.synchronizer = new Synchronizer({
-			storage: this.storage,
-			logger: this.logger,
-			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
-			bft: this.bft,
-			dpos: {}, // TODO: Pass the instance of DPOS module
-		});
 		this.rounds = new Rounds({
 			channel: this.channel,
 			components: {
@@ -386,6 +379,19 @@ module.exports = class Chain {
 			rewardMileStones: this.options.constants.REWARDS.MILESTONES,
 			totalAmount: this.options.constants.TOTAL_AMOUNT,
 			blockSlotWindow: this.options.constants.BLOCK_SLOT_WINDOW,
+		});
+		this.synchronizer = new Synchronizer({
+			storage: this.storage,
+			logger: this.logger,
+			slots: this.slots,
+			dpos: {}, // TODO: Pass the instance of DPOS module\
+			bft: this.bft,
+			blockReward: this.blocks.blockReward,
+			exceptions: this.options.exceptions,
+			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+			maxTransactionsPerBlock: this.options.constants
+				.MAX_TRANSACTIONS_PER_BLOCK,
+			maxPayloadLength: this.options.constants.MAX_PAYLOAD_LENGTH,
 		});
 		this.scope.modules.blocks = this.blocks;
 		this.transactionPool = new TransactionPool({
