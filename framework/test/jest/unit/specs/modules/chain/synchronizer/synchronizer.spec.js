@@ -14,10 +14,14 @@
 
 'use strict';
 
-const synchronizerModule = require('../../../../../../../src/modules/chain/synchronizer/synchronizer');
+const {
+	Synchronizer,
+} = require('../../../../../../../src/modules/chain/synchronizer/synchronizer');
 
 const BlockSynchronizationMechanism = require('../../../../../../../src/modules/chain/synchronizer/block_synchronization_mechanism');
 const FastChainSwitchingMechanism = require('../../../../../../../src/modules/chain/synchronizer/fast_chain_switching_mechanism');
+
+const blocksVerify = require('../../../../../../../src/modules/chain/blocks/verify');
 
 const {
 	Block: blockFixture,
@@ -29,10 +33,11 @@ jest.mock(
 jest.mock(
 	'../../../../../../../src/modules/chain/synchronizer/fast_chain_switching_mechanism'
 );
-
-const { Synchronizer } = synchronizerModule;
+jest.mock('../../../../../../../src/modules/chain/blocks/verify');
 
 const activeDelegates = 101;
+const maxPayloadLength = 10000;
+const maxTransactionsPerBlock = 25;
 
 const storageMock = {
 	entities: {
@@ -56,10 +61,14 @@ const bftMock = {};
 const syncParameters = {
 	storage: storageMock,
 	logger: {},
+	exceptions: {},
+	blockReward: {},
 	slots: slotsMock,
 	dpos: dposMock,
 	bft: bftMock,
 	activeDelegates,
+	maxTransactionsPerBlock,
+	maxPayloadLength,
 };
 
 describe('synchronizer', () => {
@@ -85,7 +94,13 @@ describe('synchronizer', () => {
 				expect(sync.dpos).toBe(syncParameters.dpos);
 				expect(sync.bft).toBe(syncParameters.bft);
 				expect(sync.slots).toBe(syncParameters.slots);
-				expect(sync.constants).toEqual({ activeDelegates });
+				expect(sync.blockReward).toBe(syncParameters.blockReward);
+				expect(sync.exceptions).toBe(syncParameters.exceptions);
+				expect(sync.constants).toEqual({
+					activeDelegates,
+					maxTransactionsPerBlock,
+					maxPayloadLength,
+				});
 				expect(sync.activeMechanism).toBeNull();
 			});
 
@@ -133,7 +148,7 @@ describe('synchronizer', () => {
 			beforeEach(async () => {
 				jest.spyOn(sync, '_lastBlock').mockReturnValue(lastBlock);
 				jest
-					.spyOn(synchronizerModule, 'verifyBlockBeforeChainSync')
+					.spyOn(sync, '_verifyBlockBeforeChainSync')
 					.mockReturnValue({ verified: true });
 				sync.bft.finalizedHeight = finalizedBlockHeight;
 
@@ -151,16 +166,15 @@ describe('synchronizer', () => {
 				const receivedBlock = blockFixture({ height: lastBlockHeight + 1 });
 				await sync._determineSyncMechanism(receivedBlock);
 
-				expect(
-					synchronizerModule.verifyBlockBeforeChainSync
-				).toHaveBeenCalledTimes(1);
-				expect(
-					synchronizerModule.verifyBlockBeforeChainSync
-				).toHaveBeenCalledWith(lastBlock, receivedBlock);
+				expect(sync._verifyBlockBeforeChainSync).toHaveBeenCalledTimes(1);
+				expect(sync._verifyBlockBeforeChainSync).toHaveBeenCalledWith(
+					lastBlock,
+					receivedBlock
+				);
 			});
 
 			it('should throw error if verifyBlockBeforeChainSync failed', async () => {
-				synchronizerModule.verifyBlockBeforeChainSync.mockReturnValue({
+				sync._verifyBlockBeforeChainSync.mockReturnValue({
 					verified: false,
 					errors: ['Error 1', 'Error 2'],
 				});
@@ -269,6 +283,104 @@ describe('synchronizer', () => {
 				const result = await sync._determineSyncMechanism(receivedBlock);
 
 				expect(result).toBeNull();
+			});
+		});
+
+		describe('verifyBlockBeforeChainSync', () => {
+			const lastBlock = blockFixture();
+			const receivedBlock = blockFixture();
+			const verifyResult = {
+				errors: [],
+				verified: true,
+			};
+
+			beforeEach(async () => {
+				blocksVerify.verifySignature.mockReturnValue(verifyResult);
+				blocksVerify.verifyVersion.mockReturnValue(verifyResult);
+				blocksVerify.verifyReward.mockReturnValue(verifyResult);
+				blocksVerify.verifyId.mockReturnValue(verifyResult);
+				blocksVerify.verifyPayload.mockReturnValue(verifyResult);
+			});
+
+			it('should call verifySignature', async () => {
+				sync._verifyBlockBeforeChainSync(lastBlock, receivedBlock);
+
+				expect(blocksVerify.verifySignature).toHaveBeenCalledTimes(1);
+				expect(blocksVerify.verifySignature).toHaveBeenCalledWith(
+					receivedBlock,
+					verifyResult
+				);
+			});
+
+			it('should call verifyVersion', async () => {
+				sync._verifyBlockBeforeChainSync(lastBlock, receivedBlock);
+
+				expect(blocksVerify.verifyVersion).toHaveBeenCalledTimes(1);
+				expect(blocksVerify.verifyVersion).toHaveBeenCalledWith(
+					receivedBlock,
+					syncParameters.exceptions,
+					verifyResult
+				);
+			});
+
+			it('should call verifyReward', async () => {
+				sync._verifyBlockBeforeChainSync(lastBlock, receivedBlock);
+
+				expect(blocksVerify.verifyReward).toHaveBeenCalledTimes(1);
+				expect(blocksVerify.verifyReward).toHaveBeenCalledWith(
+					syncParameters.blockReward,
+					receivedBlock,
+					syncParameters.exceptions,
+					verifyResult
+				);
+			});
+
+			it('should call verifyId', async () => {
+				sync._verifyBlockBeforeChainSync(lastBlock, receivedBlock);
+
+				expect(blocksVerify.verifyId).toHaveBeenCalledTimes(1);
+				expect(blocksVerify.verifyId).toHaveBeenCalledWith(
+					receivedBlock,
+					verifyResult
+				);
+			});
+
+			it('should call verifyPayload', async () => {
+				sync._verifyBlockBeforeChainSync(lastBlock, receivedBlock);
+
+				expect(blocksVerify.verifyPayload).toHaveBeenCalledTimes(1);
+				expect(blocksVerify.verifyPayload).toHaveBeenCalledWith(
+					receivedBlock,
+					syncParameters.maxTransactionsPerBlock,
+					syncParameters.maxPayloadLength,
+					verifyResult
+				);
+			});
+
+			it('should return verified = false and errors if any of verify steps fail', async () => {
+				blocksVerify.verifyPayload.mockReturnValue({
+					verified: false,
+					errors: ['Error 1', 'Error 2'],
+				});
+
+				const result = sync._verifyBlockBeforeChainSync(
+					lastBlock,
+					receivedBlock
+				);
+
+				expect(result).toEqual({
+					verified: false,
+					errors: ['Error 2', 'Error 1'],
+				});
+			});
+
+			it('should return verified = true if all steps passes', async () => {
+				const result = sync._verifyBlockBeforeChainSync(
+					lastBlock,
+					receivedBlock
+				);
+
+				expect(result).toEqual({ verified: true, errors: [] });
 			});
 		});
 	});

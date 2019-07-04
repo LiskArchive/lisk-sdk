@@ -7,20 +7,33 @@ const {
 	verifyReward,
 	verifyId,
 	verifyPayload,
-	verifyForkOne,
-	verifyBlockSlot,
 } = require('../blocks/verify');
 
 class Synchronizer {
-	constructor({ storage, logger, slots, dpos, bft, activeDelegates }) {
+	constructor({
+		storage,
+		logger,
+		slots,
+		dpos,
+		bft,
+		blockReward,
+		exceptions,
+		activeDelegates,
+		maxTransactionsPerBlock,
+		maxPayloadLength,
+	}) {
 		this.storage = storage;
 		this.logger = logger;
 		this.dpos = dpos;
 		this.bft = bft;
 		this.slots = slots;
+		this.blockReward = blockReward;
+		this.exceptions = exceptions;
 
 		this.constants = {
 			activeDelegates,
+			maxPayloadLength,
+			maxTransactionsPerBlock,
 		};
 
 		this.activeMechanism = null;
@@ -33,12 +46,6 @@ class Synchronizer {
 			logger,
 		});
 	}
-
-	/**
-	 * Start the syncing mechanism
-	 *
-	 * @return {*}
-	 */
 
 	/**
 	 * Start the syncing mechanism
@@ -82,10 +89,7 @@ class Synchronizer {
 
 		// Moving to a Different Chain
 		// 1. Step: Validate new tip of chain
-		const result = exportedInterface.verifyBlockBeforeChainSync(
-			lastBlock,
-			receivedBlock
-		);
+		const result = this._verifyBlockBeforeChainSync(lastBlock, receivedBlock);
 		if (!result.verified) {
 			throw Error(
 				`Block verification for chain synchronization failed with errors: ${result.errors.join()}`
@@ -133,47 +137,40 @@ class Synchronizer {
 			{ limit: 1, sort: 'height:desc' }
 		);
 	}
+
+	/**
+	 * Perform all checks outlined in Step 1 of the section "Processing Blocks" except for checking height, parentBlockID and delegate slot (block B may be in the future and assume different delegates that are not active in the round of block A). If any check fails, the peer that sent block B is banned and the node aborts the process of moving to a different chain.
+	 *
+	 * https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#moving-to-a-different-chain
+	 *
+	 * @param lastBlock
+	 * @param receivedBlock
+	 * @private
+	 */
+	_verifyBlockBeforeChainSync(lastBlock, receivedBlock) {
+		let result = { verified: true, errors: [] };
+
+		result = verifySignature(receivedBlock, result);
+		result = verifyVersion(receivedBlock, this.exceptions, result);
+		result = verifyReward(
+			this.blockReward,
+			receivedBlock,
+			this.exceptions,
+			result
+		);
+		result = verifyId(receivedBlock, result);
+		result = verifyPayload(
+			receivedBlock,
+			this.constants.maxTransactionsPerBlock,
+			this.constants.maxPayloadLength,
+			result
+		);
+
+		result.verified = result.errors.length === 0;
+		result.errors.reverse();
+
+		return result;
+	}
 }
 
-/**
- * Perform all checks outlined in Step 1 of the section "Processing Blocks" except for checking height, parentBlockID and delegate slot (block B may be in the future and assume different delegates that are not active in the round of block A). If any check fails, the peer that sent block B is banned and the node aborts the process of moving to a different chain.
- *
- * https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#moving-to-a-different-chain
- *
- * @param lastBlock
- * @param receivedBlock
- */
-const verifyBlockBeforeChainSync = (lastBlock, receivedBlock) => {
-	let result = { verified: false, errors: [] };
-
-	result = verifySignature(receivedBlock, result);
-	result = verifyVersion(receivedBlock, this.exceptions, result);
-	result = verifyReward(
-		this.blockReward,
-		receivedBlock,
-		this.exceptions,
-		result
-	);
-	result = verifyId(receivedBlock, result);
-	result = verifyPayload(
-		receivedBlock,
-		this.constants.maxTransactionsPerBlock,
-		this.constants.maxPayloadLength,
-		result
-	);
-
-	result = verifyForkOne(this.roundsModule, receivedBlock, lastBlock, result);
-	result = verifyBlockSlot(this.slots, receivedBlock, lastBlock, result);
-
-	result.verified = result.errors.length === 0;
-	result.errors.reverse();
-
-	return result;
-};
-
-const exportedInterface = {
-	Synchronizer,
-	verifyBlockBeforeChainSync,
-};
-
-module.exports = exportedInterface;
+module.exports = { Synchronizer };
