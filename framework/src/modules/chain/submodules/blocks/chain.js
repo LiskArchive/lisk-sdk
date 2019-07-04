@@ -317,9 +317,9 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 __private.applyTransactions = function(transactions, cb) {
 	modules.processTransactions
 		.applyTransactions(transactions)
-		.then(({ stateStore }) => {
+		.then(async ({ stateStore }) => {
 			// TODO: Need to add logic for handling exceptions for genesis block transactions
-			stateStore.account.finalize();
+			await stateStore.account.finalize();
 			return stateStore;
 		})
 		.then(stateStore => {
