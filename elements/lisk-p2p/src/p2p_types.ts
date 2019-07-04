@@ -77,6 +77,7 @@ export interface P2PConfig {
 	readonly triedPeers?: ReadonlyArray<P2PDiscoveredPeerInfo>;
 	readonly nodeInfo: P2PNodeInfo;
 	readonly wsEngine?: string;
+	readonly wsMaxPayload?: number;
 	readonly discoveryInterval?: number;
 	readonly peerSelectionForSend?: P2PPeerSelectionForSendFunction;
 	readonly peerSelectionForRequest?: P2PPeerSelectionForRequestFunction;

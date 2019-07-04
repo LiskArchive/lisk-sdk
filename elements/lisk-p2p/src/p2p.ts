@@ -163,7 +163,11 @@ export class P2P extends EventEmitter {
 
 		this._httpServer = http.createServer();
 		this._scServer = attach(this._httpServer, {
-			wsEngineServerOptions: { maxPayload: DEFAULT_WS_MAX_PAYLOAD },
+			wsEngineServerOptions: {
+				maxPayload: config.wsMaxPayload
+					? config.wsMaxPayload
+					: DEFAULT_WS_MAX_PAYLOAD,
+			},
 		}) as SCServerUpdated;
 
 		// This needs to be an arrow function so that it can be used as a listener.
