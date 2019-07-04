@@ -15,6 +15,7 @@
 import * as BigNum from '@liskhq/bignum';
 import {
 	bigNumberToBuffer,
+	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPublicKey,
 	hash,
 	hexToBuffer,
@@ -105,25 +106,24 @@ export abstract class BaseTransaction {
 	public readonly relays?: number;
 	public readonly confirmations?: number;
 	public readonly recipientPublicKey?: string;
-	public readonly senderId: string;
-	public readonly senderPublicKey: string;
 	public readonly signatures: string[];
 	public readonly timestamp: number;
 	public readonly type: number;
 	public readonly containsUniqueData?: boolean;
 	public readonly fee: BigNum;
+	public readonly asset: object;
 	public receivedAt?: Date;
 
 	public static TYPE: number;
 
 	protected _id?: string;
+	protected _senderId?: string;
+	protected _senderPublicKey?: string;
 	protected _signature?: string;
 	protected _signSignature?: string;
 	protected _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.UNKNOWN;
 
-	public abstract assetToJSON(): object;
-	protected abstract assetToBytes(): Buffer;
 	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
 	protected abstract applyAsset(
 		store: StateStore,
@@ -152,21 +152,23 @@ export abstract class BaseTransaction {
 		this._id = tx.id;
 		this.recipientId = tx.recipientId || '';
 		this.recipientPublicKey = tx.recipientPublicKey || undefined;
-		this.senderPublicKey = tx.senderPublicKey || '';
+		this._senderPublicKey = tx.senderPublicKey || '';
 		try {
-			this.senderId = tx.senderId
+			this._senderId = tx.senderId
 				? tx.senderId
 				: getAddressFromPublicKey(this.senderPublicKey);
 		} catch (error) {
-			this.senderId = '';
+			this._senderId = '';
 		}
 
 		this._signature = tx.signature;
 		this.signatures = (tx.signatures as string[]) || [];
 		this._signSignature = tx.signSignature;
-		// Infinity is invalid for these types
-		this.timestamp = typeof tx.timestamp === 'number' ? tx.timestamp : Infinity;
-		this.type = typeof tx.type === 'number' ? tx.type : Infinity;
+		this.timestamp = typeof tx.timestamp === 'number' ? tx.timestamp : 0;
+		this.type =
+			typeof tx.type === 'number'
+				? tx.type
+				: (this.constructor as typeof BaseTransaction).TYPE;
 
 		// Additional data not related to the protocol
 		this.confirmations = tx.confirmations;
@@ -174,6 +176,7 @@ export abstract class BaseTransaction {
 		this.height = tx.height;
 		this.receivedAt = tx.receivedAt ? new Date(tx.receivedAt) : undefined;
 		this.relays = typeof tx.relays === 'number' ? tx.relays : undefined;
+		this.asset = tx.asset || {};
 	}
 
 	public get id(): string {
@@ -182,6 +185,22 @@ export abstract class BaseTransaction {
 		}
 
 		return this._id;
+	}
+
+	public get senderId(): string {
+		if (!this._senderId) {
+			throw new Error('senderId is required to be set before use');
+		}
+
+		return this._senderId;
+	}
+
+	public get senderPublicKey(): string {
+		if (!this._senderPublicKey) {
+			throw new Error('senderPublicKey is required to be set before use');
+		}
+
+		return this._senderPublicKey;
 	}
 
 	public get signature(): string {
@@ -219,6 +238,10 @@ export abstract class BaseTransaction {
 		};
 
 		return transaction;
+	}
+
+	public stringify(): string {
+		return JSON.stringify(this.toJSON());
 	}
 
 	public isReady(): boolean {
@@ -471,6 +494,25 @@ export abstract class BaseTransaction {
 	}
 
 	public sign(passphrase: string, secondPassphrase?: string): void {
+		const { address, publicKey } = getAddressAndPublicKeyFromPassphrase(
+			passphrase,
+		);
+
+		if (this._senderId !== '' && this._senderId !== address) {
+			throw new Error(
+				'Transaction senderId does not match address from passphrase',
+			);
+		}
+
+		if (this._senderPublicKey !== '' && this._senderPublicKey !== publicKey) {
+			throw new Error(
+				'Transaction senderPublicKey does not match public key from passphrase',
+			);
+		}
+
+		this._senderId = address;
+		this._senderPublicKey = publicKey;
+
 		this._signature = undefined;
 		this._signSignature = undefined;
 		this._signature = signData(hash(this.getBytes()), passphrase);
@@ -540,6 +582,21 @@ export abstract class BaseTransaction {
 			transactionAmount,
 			this.assetToBytes(),
 		]);
+	}
+
+	public assetToJSON(): object {
+		return this.asset;
+	}
+
+	protected assetToBytes(): Buffer {
+		/**
+		 * FixMe: The following method is not sufficient enough for more sophisticated cases,
+		 * i.e. properties in the asset object need to be sent always in the same right order to produce a deterministic signature.
+		 *
+		 * We are currently conducting a research to specify an optimal generic way of changing asset to bytes.
+		 * You can expect this enhanced implementation to be included in the next releases.
+		 */
+		return Buffer.from(JSON.stringify(this.asset), 'utf-8');
 	}
 
 	private _verify(sender: Account): ReadonlyArray<TransactionError> {
