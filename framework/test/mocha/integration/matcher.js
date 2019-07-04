@@ -49,6 +49,10 @@ class CustomTransationClass extends BaseTransaction {
 		return 7;
 	}
 
+	static get FEE() {
+		return TransferTransaction.FEE;
+	}
+
 	assetToJSON() {
 		return this.asset;
 	}
