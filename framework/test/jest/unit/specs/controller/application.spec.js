@@ -166,7 +166,7 @@ describe('Application', () => {
 			);
 		});
 
-		it('should throw error when transaction does satisify TransactionInterface.', () => {
+		it('should throw error when transaction does not satisfy TransactionInterface.', () => {
 			// Arrange
 			const app = new Application(genesisBlock, config);
 
