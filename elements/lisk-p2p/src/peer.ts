@@ -43,19 +43,7 @@ import {
 	validateRPCRequest,
 } from './validation';
 
-// This interface is needed because pingTimeoutDisabled is missing from ClientOptions in socketcluster-client.
-interface ClientOptionsUpdated {
-	readonly hostname: string;
-	readonly port: number;
-	readonly query: string;
-	readonly autoConnect: boolean;
-	readonly autoReconnect: boolean;
-	readonly pingTimeoutDisabled: boolean;
-	readonly multiplex: boolean;
-	readonly ackTimeout?: number;
-	readonly connectTimeout?: number;
-}
-
+type ClientOptions = socketClusterClient.SCClientSocket.ClientOptions;
 type SCClientSocket = socketClusterClient.SCClientSocket;
 
 // Local emitted events.
@@ -475,7 +463,7 @@ export class Peer extends EventEmitter {
 			: DEFAULT_ACK_TIMEOUT;
 
 		// Ideally, we should JSON-serialize the whole NodeInfo object but this cannot be done for compatibility reasons, so instead we put it inside an options property.
-		const clientOptions: ClientOptionsUpdated = {
+		const clientOptions: ClientOptions = {
 			hostname: this._ipAddress,
 			port: this._wsPort,
 			query: querystring.stringify({
@@ -487,7 +475,6 @@ export class Peer extends EventEmitter {
 			multiplex: false,
 			autoConnect: false,
 			autoReconnect: false,
-			pingTimeoutDisabled: true,
 		};
 
 		const outboundSocket = socketClusterClient.create(clientOptions);
@@ -670,7 +657,7 @@ export const connectAndRequest = async (
 				procedure,
 			};
 			// Ideally, we should JSON-serialize the whole NodeInfo object but this cannot be done for compatibility reasons, so instead we put it inside an options property.
-			const clientOptions: ClientOptionsUpdated = {
+			const clientOptions: ClientOptions = {
 				hostname: basicPeerInfo.ipAddress,
 				port: basicPeerInfo.wsPort,
 				query: querystring.stringify({
@@ -690,7 +677,6 @@ export const connectAndRequest = async (
 				multiplex: false,
 				autoConnect: false,
 				autoReconnect: false,
-				pingTimeoutDisabled: true,
 			};
 
 			const outboundSocket = socketClusterClient.create(clientOptions);
