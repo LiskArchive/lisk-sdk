@@ -120,12 +120,12 @@ export default class UpgradeCommand extends BaseCommand {
 			{
 				title: 'Validate Version Input',
 				task: async () => {
-					await validateVersion(network, upgradeVersion);
 					if (semver.lte(upgradeVersion, currentVersion)) {
 						throw new Error(
 							`Upgrade version:${upgradeVersion} should be greater than current version: ${currentVersion}`,
 						);
 					}
+					await validateVersion(releaseUrl, upgradeVersion);
 				},
 			},
 			{
@@ -156,8 +156,8 @@ export default class UpgradeCommand extends BaseCommand {
 						},
 						{
 							title: `Backup Lisk Core: ${currentVersion} installed as ${name}`,
-							task: async () => {
-								await backupLisk(installationPath);
+							task: () => {
+								backupLisk(installationPath, name);
 							},
 						},
 						{
