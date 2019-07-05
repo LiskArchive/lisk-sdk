@@ -15,9 +15,11 @@
 import { BaseTransaction } from '../../src/base_transaction';
 import { TransactionJSON } from '../../src/transaction_types';
 import { TransactionError } from '../../src/errors';
+import { TRANSFER_FEE } from '../../src/constants';
 
 export class TestTransaction extends BaseTransaction {
 	public static TYPE = 0;
+	public static FEE = TRANSFER_FEE.toString();
 
 	public assetToJSON(): object {
 		return {};

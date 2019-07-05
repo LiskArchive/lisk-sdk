@@ -63,6 +63,7 @@ export class VoteTransaction extends BaseTransaction {
 	public readonly containsUniqueData: boolean;
 	public readonly asset: VoteAsset;
 	public static TYPE = 3;
+	public static FEE = VOTE_FEE.toString();
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
@@ -169,18 +170,6 @@ export class VoteTransaction extends BaseTransaction {
 					'recipientId does not match recipientPublicKey.',
 					this.id,
 					'.recipientId',
-				),
-			);
-		}
-
-		if (!this.fee.eq(VOTE_FEE)) {
-			errors.push(
-				new TransactionError(
-					`Fee must be equal to ${VOTE_FEE}`,
-					this.id,
-					'.fee',
-					this.fee.toString(),
-					VOTE_FEE,
 				),
 			);
 		}

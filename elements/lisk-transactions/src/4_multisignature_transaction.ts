@@ -93,6 +93,7 @@ export interface MultiSignatureAsset {
 export class MultisignatureTransaction extends BaseTransaction {
 	public readonly asset: MultiSignatureAsset;
 	public static TYPE = 4;
+	public static FEE = MULTISIGNATURE_FEE.toString();
 	protected _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.PENDING;
 
@@ -171,21 +172,6 @@ export class MultisignatureTransaction extends BaseTransaction {
 			return errors;
 		}
 
-		const expectedFee = new BigNum(MULTISIGNATURE_FEE).mul(
-			this.asset.multisignature.keysgroup.length + 1,
-		);
-		if (!this.fee.eq(expectedFee)) {
-			errors.push(
-				new TransactionError(
-					`Fee must be equal to ${expectedFee.toString()}`,
-					this.id,
-					'.fee',
-					this.fee.toString(),
-					expectedFee.toString(),
-				),
-			);
-		}
-
 		if (
 			this.asset.multisignature.min > this.asset.multisignature.keysgroup.length
 		) {
@@ -222,6 +208,22 @@ export class MultisignatureTransaction extends BaseTransaction {
 		}
 
 		return errors;
+	}
+
+	public validateFee(): TransactionError | undefined {
+		const expectedFee = new BigNum(MultisignatureTransaction.FEE).mul(
+			this.asset.multisignature.keysgroup.length + 1,
+		);
+
+		return !this.fee.eq(expectedFee)
+			? new TransactionError(
+					`Fee must be equal to ${expectedFee.toString()}`,
+					this.id,
+					'.fee',
+					this.fee.toString(),
+					expectedFee.toString(),
+			  )
+			: undefined;
 	}
 
 	public processMultisignatures(_: StateStore): TransactionResponse {
