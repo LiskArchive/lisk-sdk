@@ -109,7 +109,7 @@ export const EVENT_NEW_PEER = 'newPeer';
 export const NODE_HOST_IP = '0.0.0.0';
 export const DEFAULT_DISCOVERY_INTERVAL = 30000;
 export const DEFAULT_SEND_PEER_LIMIT = 25;
-export const DEFAULT_WS_MAX_PAYLOAD = 51200; // Payload in bytes
+export const DEFAULT_WS_MAX_PAYLOAD = 1048576; // Payload in bytes
 
 const BASE_10_RADIX = 10;
 
