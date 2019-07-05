@@ -14,6 +14,7 @@
 
 'use strict';
 
+const util = require('util');
 const crypto = require('crypto');
 const { transfer } = require('@liskhq/lisk-transactions');
 const _ = require('lodash');
@@ -954,15 +955,84 @@ describe('blocks/verify', () => {
 	});
 
 	describe('processBlock for invalid block {broadcast: true, saveBlock: true}', () => {
-		beforeEach(done => {
-			blocksVerify.processBlock(block1, true, true, done);
+		it('should fail when processing block 1 multiple times', done => {
+			blocksVerify.processBlock(block1, true, true, () => {
+				blocksVerify.processBlock(block1, true, true, err => {
+					expect(err).to.equal('Invalid block timestamp');
+					done();
+				});
+			});
 		});
 
-		it('should fail when processing block 1 multiple times', done => {
-			blocksVerify.processBlock(block1, true, true, err => {
-				expect(err).to.equal('Invalid block timestamp');
-				done();
+		it('should fail when block contains transactions in order to make total spending more than balance', async () => {
+			const promisifyProcessBlock = util.promisify(blocksVerify.processBlock);
+			const currentSlot = slots.getSlotNumber();
+
+			// Create a random account
+			const account = random.account();
+
+			// Transfer 1 Lisk to that account...
+			const block = createBlock(
+				blocks,
+				blockLogic,
+				await getValidKeypairForSlot(library, currentSlot - 1),
+				slots.getSlotTime(currentSlot - 1),
+				[
+					transfer({
+						amount: new Bignum(NORMALIZER).multipliedBy(1).toString(),
+						recipientId: account.address,
+						passphrase: accountFixtures.genesis.passphrase,
+					}),
+				],
+				genesisBlock
+			);
+			// Process the block so account have 1 LSK
+			await promisifyProcessBlock(block, true, true);
+
+			// Transfer 0.5 LSK to a random account - The account balance would be 0.4
+			const trs_05_1 = transfer({
+				amount: new Bignum(NORMALIZER).multipliedBy(0.5).toString(),
+				recipientId: random.account().address,
+				passphrase: account.passphrase,
 			});
+
+			// Transfer 0.5 LSK to a random account - The account balance would be -0.2
+			const trs_05_2 = transfer({
+				amount: new Bignum(NORMALIZER).multipliedBy(0.5).toString(),
+				recipientId: random.account().address,
+				passphrase: account.passphrase,
+			});
+
+			// Transfer 0.3 LSK to that account - The account balance would be 0.1
+			const trs_03 = transfer({
+				amount: new Bignum(NORMALIZER).multipliedBy(0.3).toString(),
+				recipientId: account.address,
+				passphrase: accountFixtures.genesis.passphrase,
+			});
+
+			const transactions = [trs_05_1, trs_05_2, trs_03];
+
+			const invalidBlock = createBlock(
+				blocks,
+				blockLogic,
+				await getValidKeypairForSlot(library, currentSlot),
+				slots.getSlotTime(currentSlot),
+				transactions,
+				block
+			);
+
+			let errors;
+			try {
+				await promisifyProcessBlock(invalidBlock, true, true);
+			} catch (err) {
+				errors = err;
+			}
+
+			expect(errors).to.lengthOf(1);
+			expect(errors[0].message).to.be.equal(
+				'Account does not have enough LSK for total spending. balance: 100000000, spending: 120000000'
+			);
+			expect(errors[0].id).to.be.equal(trs_05_2.id);
 		});
 	});
 
