@@ -44,16 +44,8 @@ import {
 	validateRPCRequest,
 } from './validation';
 
-// This interface is needed because pingTimeoutDisabled is missing from ClientOptions in socketcluster-client.
-interface ClientOptionsUpdated {
-	readonly hostname: string;
-	readonly port: number;
-	readonly query: string;
-	readonly autoConnect: boolean;
-	readonly autoReconnect: boolean;
-	readonly multiplex: boolean;
-	readonly ackTimeout?: number;
-	readonly connectTimeout?: number;
+interface ClientOptionsUpdated
+	extends socketClusterClient.SCClientSocket.ClientOptions {
 	readonly wsEngineServerOptions: {
 		readonly maxPayload: number;
 	};
