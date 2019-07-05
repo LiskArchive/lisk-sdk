@@ -45,9 +45,7 @@ import {
 
 interface ClientOptionsUpdated
 	extends socketClusterClient.SCClientSocket.ClientOptions {
-	readonly wsEngineServerOptions: {
-		readonly maxPayload?: number;
-	};
+	readonly maxPayload?: number;
 }
 
 type SCClientSocket = socketClusterClient.SCClientSocket;
@@ -482,9 +480,7 @@ export class Peer extends EventEmitter {
 			multiplex: false,
 			autoConnect: false,
 			autoReconnect: false,
-			wsEngineServerOptions: {
-				maxPayload: this._peerConfig.wsMaxPayload,
-			},
+			maxPayload: this._peerConfig.wsMaxPayload,
 		};
 
 		const outboundSocket = socketClusterClient.create(clientOptions);
@@ -687,9 +683,7 @@ export const connectAndRequest = async (
 				multiplex: false,
 				autoConnect: false,
 				autoReconnect: false,
-				wsEngineServerOptions: {
-					maxPayload: peerConfig.wsMaxPayload,
-				},
+				maxPayload: peerConfig.wsMaxPayload,
 			};
 
 			const outboundSocket = socketClusterClient.create(clientOptions);
