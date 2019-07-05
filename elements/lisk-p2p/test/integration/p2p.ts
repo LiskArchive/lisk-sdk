@@ -188,6 +188,7 @@ describe('Integration tests for P2P library', () => {
 					}
 					await wait(100);
 
+					expect(collectedMessages).to.not.to.be.empty;
 					collectedMessages.forEach((receivedMessageData: any) => {
 						if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 							nodePortToMessagesMap[receivedMessageData.nodePort] = [];
@@ -197,6 +198,7 @@ describe('Integration tests for P2P library', () => {
 						);
 					});
 
+					expect(nodePortToMessagesMap).to.not.to.be.empty;
 					Object.values(nodePortToMessagesMap).forEach(
 						(receivedMessages: any) => {
 							expect(receivedMessages).to.be.an('array');
@@ -259,6 +261,7 @@ describe('Integration tests for P2P library', () => {
 					}
 					await wait(100);
 
+					expect(collectedMessages).to.not.to.be.empty;
 					collectedMessages.forEach((receivedMessageData: any) => {
 						if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 							nodePortToMessagesMap[receivedMessageData.nodePort] = [];
@@ -268,6 +271,7 @@ describe('Integration tests for P2P library', () => {
 						);
 					});
 
+					expect(nodePortToMessagesMap).to.not.to.be.empty;
 					Object.values(nodePortToMessagesMap).forEach(
 						(receivedMessages: any) => {
 							expect(receivedMessages).to.be.an('array');
@@ -645,6 +649,7 @@ describe('Integration tests for P2P library', () => {
 
 				await wait(100);
 
+				expect(collectedMessages).to.not.to.be.empty;
 				collectedMessages.forEach((receivedMessageData: any) => {
 					if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 						nodePortToMessagesMap[receivedMessageData.nodePort] = [];
@@ -654,6 +659,7 @@ describe('Integration tests for P2P library', () => {
 					);
 				});
 
+				expect(nodePortToMessagesMap).to.not.to.be.empty;
 				Object.values(nodePortToMessagesMap).forEach(
 					(receivedMessages: any) => {
 						expect(receivedMessages).to.be.an('array');
@@ -964,6 +970,7 @@ describe('Integration tests for P2P library', () => {
 
 				await wait(100);
 
+				expect(collectedMessages).to.not.to.be.empty;
 				collectedMessages.forEach((receivedMessageData: any) => {
 					if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 						nodePortToMessagesMap[receivedMessageData.nodePort] = [];
@@ -973,6 +980,7 @@ describe('Integration tests for P2P library', () => {
 					);
 				});
 
+				expect(nodePortToMessagesMap).to.not.to.be.empty;
 				Object.values(nodePortToMessagesMap).forEach(
 					(receivedMessages: any) => {
 						expect(receivedMessages).to.be.an('array');
@@ -1181,7 +1189,7 @@ describe('Integration tests for P2P library', () => {
 			await wait(100);
 		});
 
-		describe.only('P2P.send', () => {
+		describe('P2P.send', () => {
 			let collectedMessages: Array<any> = [];
 
 			beforeEach(() => {
