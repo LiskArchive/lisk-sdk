@@ -817,7 +817,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 										loadBlocksFromNetworkErr instanceof Error
 											? loadBlocksFromNetworkErr
 											: new Error(loadBlocksFromNetworkErr),
-										'Failed chain recovery after failing to load blocks'
+										'Chain recovery failed after failing to load blocks from the network'
 									);
 									// If comparison failed and current consensus is low - perform chain recovery
 									if (modules.peers.isPoorConsensus()) {
@@ -827,11 +827,11 @@ __private.loadBlocksFromNetwork = function(cb) {
 										return modules.blocks.chain.recoverChain(recoveryError => {
 											if (recoveryError) {
 												waterCb(
-													`Failed chain recovery after failing to load blocks while network consensus was low. ${recoveryError}`
+													`Chain recovery failed after failing to load blocks while network consensus was low. ${recoveryError}`
 												);
 											}
 											waterCb(
-												`Failed chain recovery after failing to load blocks. ${loadBlocksFromNetworkErr}`
+												`Chain recovery failed chain recovery after failing to load blocks ${loadBlocksFromNetworkErr}`
 											);
 										});
 									}
