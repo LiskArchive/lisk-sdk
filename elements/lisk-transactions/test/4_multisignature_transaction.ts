@@ -595,6 +595,17 @@ describe('Multisignature transaction class', () => {
 			expect(multisigAsset).to.be.undefined;
 		});
 
+		it('should return undefined when m_keysgroup is null', async () => {
+			// act
+			const multisigAsset = (validTestTransaction as any).assetFromSync({
+				...assetFromSync,
+				m_keysgroup: null,
+			});
+
+			// assert
+			expect(multisigAsset).to.be.undefined;
+		});
+
 		it('should return keygroup as array when m_keysgroup is csv string', async () => {
 			// act
 			const multisigAsset = (validTestTransaction as any).assetFromSync(
@@ -616,6 +627,7 @@ describe('Multisignature transaction class', () => {
 					'+542fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33cf',
 				],
 			};
+
 			// act
 			const multisigAsset = (validTestTransaction as any).assetFromSync(
 				assetInput,
