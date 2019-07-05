@@ -36,7 +36,6 @@ import { P2PRequest } from './p2p_request';
 
 import * as socketClusterClient from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
-import { DEFAULT_WS_MAX_PAYLOAD } from './p2p';
 import {
 	validatePeerInfo,
 	validatePeerInfoList,
@@ -47,7 +46,7 @@ import {
 interface ClientOptionsUpdated
 	extends socketClusterClient.SCClientSocket.ClientOptions {
 	readonly wsEngineServerOptions: {
-		readonly maxPayload: number;
+		readonly maxPayload?: number;
 	};
 }
 
@@ -469,9 +468,6 @@ export class Peer extends EventEmitter {
 		const ackTimeout = this._peerConfig.ackTimeout
 			? this._peerConfig.ackTimeout
 			: DEFAULT_ACK_TIMEOUT;
-		const maxPayload = this._peerConfig.wsMaxPayload
-			? this._peerConfig.wsMaxPayload
-			: DEFAULT_WS_MAX_PAYLOAD;
 
 		// Ideally, we should JSON-serialize the whole NodeInfo object but this cannot be done for compatibility reasons, so instead we put it inside an options property.
 		const clientOptions: ClientOptionsUpdated = {
@@ -487,7 +483,7 @@ export class Peer extends EventEmitter {
 			autoConnect: false,
 			autoReconnect: false,
 			wsEngineServerOptions: {
-				maxPayload,
+				maxPayload: this._peerConfig.wsMaxPayload,
 			},
 		};
 
@@ -658,8 +654,8 @@ export interface PeerInfoAndOutboundConnection {
 export const connectAndRequest = async (
 	basicPeerInfo: P2PPeerInfo,
 	procedure: string,
-	nodeInfo?: P2PNodeInfo,
-	peerConfig?: PeerConfig,
+	nodeInfo: P2PNodeInfo,
+	peerConfig: PeerConfig,
 ): Promise<ConnectAndFetchResponse> =>
 	new Promise<ConnectAndFetchResponse>(
 		(resolve, reject): void => {
@@ -692,7 +688,7 @@ export const connectAndRequest = async (
 				autoConnect: false,
 				autoReconnect: false,
 				wsEngineServerOptions: {
-					maxPayload: DEFAULT_WS_MAX_PAYLOAD,
+					maxPayload: peerConfig.wsMaxPayload,
 				},
 			};
 
@@ -758,8 +754,8 @@ export const connectAndRequest = async (
 
 export const connectAndFetchPeerInfo = async (
 	basicPeerInfo: P2PPeerInfo,
-	nodeInfo?: P2PNodeInfo,
-	peerConfig?: PeerConfig,
+	nodeInfo: P2PNodeInfo,
+	peerConfig: PeerConfig,
 ): Promise<PeerInfoAndOutboundConnection> => {
 	try {
 		const { responsePacket, socket } = await connectAndRequest(

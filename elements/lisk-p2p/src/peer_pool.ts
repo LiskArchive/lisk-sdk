@@ -74,13 +74,13 @@ export {
 };
 
 interface PeerPoolConfig {
-	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
+	readonly connectTimeout?: number;
+	readonly wsMaxPayload?: number;
 	readonly peerSelectionForSend: P2PPeerSelectionForSendFunction;
 	readonly peerSelectionForRequest: P2PPeerSelectionForRequestFunction;
 	readonly peerSelectionForConnection: P2PPeerSelectionForConnectionFunction;
 	readonly sendPeerLimit: number;
-	readonly wsMaxPayload: number;
 }
 
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
