@@ -18,6 +18,7 @@ const {
 	Status: TransactionStatus,
 	TransactionError,
 } = require('@liskhq/lisk-transactions');
+const BigNum = require('bignumber.js');
 const roundInformation = require('../logic/rounds_information');
 const StateStore = require('../logic/state_store');
 const slots = require('../helpers/slots');
@@ -253,8 +254,17 @@ class ProcessTransactions {
 			transactions
 		);
 
+		// Verify total spending of per account accumulative
+		const totalSpendingResponses = this._verifyTotalSpending(
+			transactions,
+			stateStore
+		);
+
 		return {
-			transactionsResponses,
+			transactionsResponses: [
+				...transactionsResponses,
+				...totalSpendingResponses,
+			],
 		};
 	}
 
@@ -274,6 +284,71 @@ class ProcessTransactions {
 		library.modules = {
 			blocks: scope.modules.blocks,
 		};
+	}
+
+	/**
+	 * Verify user total spending
+	 *
+	 * One user can't spend more than its balance even thought if block contains
+	 * credit transactions settling the balance. In one block total speding must be
+	 * less than the total balance
+	 *
+	 * @param {Array.<Object>} transactions - List of transactions in a block
+	 * @param {StateStore} stateStore - State store instance with prepared account
+	 * @return {Array}
+	 * @private
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	_verifyTotalSpending(transactions, stateStore) {
+		const spendingErrors = [];
+
+		// Group the transactions per senderId to calculate total spending
+		const senderTransactions = transactions.reduce((rv, x) => {
+			(rv[x.senderId] = rv[x.senderId] || []).push(x);
+			return rv;
+		}, {});
+
+		// We need to get the transaction id which cause exceeding the sufficient balance
+		// So we can't sum up all transactions together at once
+		const senderSpending = {};
+		Object.keys(senderTransactions).forEach(senderId => {
+			// We don't need to perform spending check if account have only one transaction
+			// Its balance check will be performed by transaction processing
+			if (senderTransactions[senderId].length < 2) {
+				return;
+			}
+
+			// Grab the user balance
+			const senderBalance = new BigNum(
+				stateStore.account.get(senderId).balance
+			);
+
+			// Initialize the user spending by zero
+			senderSpending[senderId] = new BigNum(0);
+
+			senderTransactions[senderId].forEach(transaction => {
+				senderSpending[senderId] = senderSpending[senderId]
+					.plus(transaction.amount)
+					.plus(transaction.fee);
+
+				if (senderBalance.lt(senderSpending[senderId])) {
+					spendingErrors.push({
+						status: TransactionStatus.FatalError,
+						errors: [
+							new TransactionError(
+								`Account does not have enough LSK for total spending. balance: ${senderBalance.toString()}, spending: ${senderSpending[
+									senderId
+								].toString()}`,
+								transaction.id,
+								'.amount'
+							),
+						],
+					});
+				}
+			});
+		});
+
+		return spendingErrors;
 	}
 
 	/**
