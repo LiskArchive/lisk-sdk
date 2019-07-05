@@ -30,6 +30,8 @@ const jobQueue = require('./utils/jobs_queue');
 const { Peers } = require('./peers');
 const { TransactionInterfaceAdapter } = require('./interface_adapters');
 const { TransactionPool } = require('./transaction_pool');
+const { Dpos } = require('./dpos');
+const { EVENT_BFT_BLOCK_FINALIZED, BFT } = require('./bft');
 const { Rounds } = require('./rounds');
 const {
 	BlockSlots,
@@ -42,7 +44,6 @@ const {
 const { Loader } = require('./loader');
 const { Forger } = require('./forger');
 const { Transport } = require('./transport');
-const { BFT } = require('./bft');
 
 const syncInterval = 10000;
 const forgeInterval = 1000;
@@ -351,6 +352,11 @@ module.exports = class Chain {
 				},
 			},
 		});
+		this.dpos = new Dpos({
+			storage: this.storage,
+			logger: this.logger,
+			slots: this.slots,
+		});
 		this.scope.modules.rounds = this.rounds;
 		this.blocks = new Blocks({
 			logger: this.logger,
@@ -565,11 +571,16 @@ module.exports = class Chain {
 		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {
 			this.channel.invoke('app:updateApplicationState', { broadhash, height });
 		});
+
+		this.bft.on(EVENT_BFT_BLOCK_FINALIZED, ({ height }) => {
+			this.dpos.onBlockFinalized({ height });
+		});
 	}
 
 	_unsubscribeToEvents() {
 		this.blocks.removeAllListeners(EVENT_BROADCAST_BLOCK);
 		this.blocks.removeAllListeners(EVENT_DELETE_BLOCK);
 		this.blocks.removeAllListeners(EVENT_NEW_BLOCK);
+		this.bft.removeAllListeners(EVENT_BFT_BLOCK_FINALIZED);
 	}
 };
