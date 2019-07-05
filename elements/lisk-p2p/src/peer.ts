@@ -127,6 +127,7 @@ const convertNodeInfoToLegacyFormat = (
 export interface PeerConfig {
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
+	readonly wsMaxPayload?: number;
 }
 export interface PeerSockets {
 	readonly outbound?: SCClientSocket;
@@ -476,6 +477,9 @@ export class Peer extends EventEmitter {
 		const ackTimeout = this._peerConfig.ackTimeout
 			? this._peerConfig.ackTimeout
 			: DEFAULT_ACK_TIMEOUT;
+		const maxPayload = this._peerConfig.wsMaxPayload
+			? this._peerConfig.wsMaxPayload
+			: DEFAULT_WS_MAX_PAYLOAD;
 
 		// Ideally, we should JSON-serialize the whole NodeInfo object but this cannot be done for compatibility reasons, so instead we put it inside an options property.
 		const clientOptions: ClientOptionsUpdated = {
@@ -491,7 +495,7 @@ export class Peer extends EventEmitter {
 			autoConnect: false,
 			autoReconnect: false,
 			wsEngineServerOptions: {
-				maxPayload: DEFAULT_WS_MAX_PAYLOAD,
+				maxPayload,
 			},
 		};
 

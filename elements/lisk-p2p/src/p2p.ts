@@ -298,6 +298,9 @@ export class P2P extends EventEmitter {
 		this._peerPool = new PeerPool({
 			connectTimeout: config.connectTimeout,
 			ackTimeout: config.ackTimeout,
+			wsMaxPayload: config.wsMaxPayload
+				? config.wsMaxPayload
+				: DEFAULT_WS_MAX_PAYLOAD,
 			peerSelectionForSend: config.peerSelectionForSend
 				? config.peerSelectionForSend
 				: selectPeersForSend,

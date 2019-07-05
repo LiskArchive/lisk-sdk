@@ -80,6 +80,7 @@ interface PeerPoolConfig {
 	readonly peerSelectionForRequest: P2PPeerSelectionForRequestFunction;
 	readonly peerSelectionForConnection: P2PPeerSelectionForConnectionFunction;
 	readonly sendPeerLimit: number;
+	readonly wsMaxPayload: number;
 }
 
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
@@ -409,6 +410,7 @@ export class PeerPool extends EventEmitter {
 		const peerConfig = {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
+			wsMaxPayload: this._peerPoolConfig.wsMaxPayload,
 		};
 		const peer = new Peer(peerInfo, peerConfig, { outbound: socket });
 
