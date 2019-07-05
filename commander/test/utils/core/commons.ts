@@ -313,7 +313,7 @@ describe('commons core utils', () => {
 		it('should extract version from url', () => {
 			expect(
 				getSemver(
-					'https://lisk-releases.ams3.digitaloceanspaces.com/lisk-core/lisk-2.0.0-rc.1-Linux-x86_64.tar.gz',
+					'https://localhost/lisk-core/lisk-2.0.0-rc.1-Linux-x86_64.tar.gz',
 				),
 			).to.equal('2.0.0-rc.1');
 			return expect(getSemver(url)).to.equal('1.6.0-rc.4');
