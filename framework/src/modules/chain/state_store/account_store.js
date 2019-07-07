@@ -29,6 +29,7 @@ const defaultAccount = {
 	fees: '0',
 	rewards: '0',
 	vote: '0',
+	vote_new: '0',
 	nameExist: false,
 	multiMin: 0,
 	multiLifetime: 0,

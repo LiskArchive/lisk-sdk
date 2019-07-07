@@ -60,31 +60,12 @@ class BlocksProcess {
 		}
 		if (typeof broadcast === 'function') {
 			broadcast(normalizedBlock);
+			await this.blocksVerify.checkExists(normalizedBlock);
 		}
-		await this.blocksVerify.checkExists(normalizedBlock);
 		await this.blocksVerify.validateBlockSlot(normalizedBlock);
 		await this.blocksVerify.checkTransactions(normalizedBlock);
 		await this.blocksChain.applyBlock(normalizedBlock, true);
 
-		return normalizedBlock;
-	}
-
-	async applyBlock(block, lastBlock) {
-		const enhancedBlock = blocksUtils.addBlockProperties(block);
-		const normalizedBlock = blocksLogic.objectNormalize(
-			enhancedBlock,
-			this.exceptions
-		);
-		const { verified, errors } = this.blocksVerify.verifyBlock(
-			normalizedBlock,
-			lastBlock
-		);
-		if (!verified) {
-			throw errors;
-		}
-		await this.blocksVerify.validateBlockSlot(normalizedBlock);
-		await this.blocksVerify.checkTransactions(normalizedBlock);
-		await this.blocksChain.applyBlock(normalizedBlock, false);
 		return normalizedBlock;
 	}
 
@@ -188,7 +169,7 @@ class BlocksProcess {
 				continue;
 			}
 			// eslint-disable-next-line no-await-in-loop
-			lastBlock = await this.applyBlock(block, lastBlock);
+			lastBlock = await this.processBlock(block, lastBlock);
 			onProgress(lastBlock);
 		}
 		const nextCurrentHeight = lastBlock.height + 1;

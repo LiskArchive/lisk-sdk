@@ -19,6 +19,7 @@ const {
 	TransactionError,
 } = require('@liskhq/lisk-transactions');
 const votes = require('./votes');
+const votesNew = require('./votes_new');
 const {
 	updateTransactionResponseForExceptionTransactions,
 } = require('./exceptions_handlers');
@@ -51,10 +52,12 @@ const applyTransactions = (storage, exceptions) => async (transactions, tx) => {
 	});
 
 	await Promise.all(transactions.map(t => t.prepare(stateStore)));
+	await Promise.all(transactions.map(t => votesNew.prepare(t, stateStore)));
 
 	const transactionsResponses = transactions.map(transaction => {
 		const transactionResponse = transaction.apply(stateStore);
 		votes.apply(stateStore, transaction, this.exceptions);
+		votesNew.apply(stateStore, transaction, this.exceptions);
 		stateStore.transaction.add(transaction);
 		return transactionResponse;
 	});
@@ -150,10 +153,12 @@ const undoTransactions = (storage, exceptions) => async (
 	});
 
 	await Promise.all(transactions.map(t => t.prepare(stateStore)));
+	await Promise.all(transactions.map(t => votesNew.prepare(t, stateStore)));
 
 	const transactionsResponses = transactions.map(transaction => {
 		const transactionResponse = transaction.undo(stateStore);
 		votes.undo(stateStore, transaction, this.exceptions);
+		votesNew.undo(stateStore, transaction, this.exceptions);
 		return transactionResponse;
 	});
 
