@@ -195,6 +195,42 @@ describe('loader', () => {
 				});
 			});
 		});
+
+		describe('when modules.blocks.chain.recoverChain throws an error', () => {
+			const chainRecoveryErrorMessage =
+				'Chain recovery failed after failing to load blocks while network consensus was low.';
+			const recoverChainError = new Error('Error While Recovery');
+			let loadBlocksFromNetworkBlocksModule;
+			let recoverChainStub;
+			let lastBlockGetStub;
+
+			beforeEach(async () => {
+				lastBlockGetStub = sinonSandbox
+					.stub(library.modules.blocks.lastBlock, 'get')
+					.resolves({});
+				loadBlocksFromNetworkBlocksModule = sinonSandbox
+					.stub(library.modules.blocks.process, 'loadBlocksFromNetwork')
+					.callsArgWith(0, loadBlockModulesError, {});
+				recoverChainStub = sinonSandbox
+					.stub(library.modules.blocks.chain, 'recoverChain')
+					.callsArgWith(0, recoverChainError);
+			});
+
+			afterEach(async () => {
+				loadBlocksFromNetworkBlocksModule.restore();
+				recoverChainStub.restore();
+				lastBlockGetStub.restore();
+			});
+
+			it('should throw error returned by modules.blocks.chain.recoverChain', done => {
+				__private.loadBlocksFromNetwork(() => {
+					expect(loggerStub.error).to.be.calledWith(
+						`${chainRecoveryErrorMessage} Error: ${recoverChainError.message}`
+					);
+					done();
+				});
+			});
+		});
 	});
 
 	describe('__private.rebuildAccounts', () => {
