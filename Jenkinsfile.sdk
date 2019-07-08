@@ -45,7 +45,30 @@ pipeline {
 	}
 	post {
 		always {
-			sh 'rm -rf */node_modules'
+			script {
+				sh '''
+					rm -rf .nyc_output; mkdir -p .nyc_output
+					rm -rf coverage; mkdir -p coverage
+					for d in elements/*; do
+						if [ -d $d  ] && [ -d $d/.nyc_output  ]; then
+							cp -r $d/.nyc_output/* ./.nyc_output
+						fi
+					done
+					cp -r ./commander/.nyc_output/* ./.nyc_output
+				'''
+				try {
+					nvm(getNodejsVersion()) {
+						sh '''
+						npx nyc merge ./.nyc_output coverage/coverage.json
+						npx nyc report --report-dir coverage --reporter=text --reporter=cobertura
+						'''
+					}
+					cobertura coberturaReportFile: 'coverage/cobertura-coverage.xml'
+				} catch(err) {
+					println "Could not report coverage statistics:\n${err}"
+				}
+				sh 'rm -rf */node_modules'
+			}
 		}
 	}
 }

@@ -58,13 +58,8 @@ def teardown_mocha(test_name) {
 		nvm(getNodejsVersion()) {
 			dir('framework') {
 				sh """
-				rm -rf coverage_mocha_${test_name}; mkdir -p coverage_mocha_${test_name}
-				npx istanbul report --root framework/test/mocha/.coverage-unit/ --dir framework/test/mocha/.coverage-unit/
-				cp framework/test/mocha/.coverage-unit/lcov.info coverage_mocha_${test_name}/ || true
-				npx istanbul report cobertura --root framework/test/mocha/.coverage-unit/ --dir framework/test/mocha/.coverage-unit/
-				cp framework/test/mocha/.coverage-unit/cobertura-coverage.xml coverage_mocha_${test_name}/ || true
-				curl http://localhost:4000/coverage/download --output functional-coverage.zip
-				unzip functional-coverage.zip lcov.info -d coverage_mocha_${test_name}/functional/
+				mkdir -p coverage_mocha_${test_name}
+				cp test/mocha/.coverage-${test_name}/* coverage_mocha_${test_name}/ || true
 				"""
 			}
 		}
@@ -72,7 +67,7 @@ def teardown_mocha(test_name) {
 		println "Could gather coverage statistics from mocha:\n${err}"
 	}
 	dir('framework') {
-		stash name: "coverage_mocha_${test_name}", includes: "coverage_mocha_${test_name}/"
+		stash name: "coverage_mocha_${test_name}", includes: "coverage_mocha_${test_name}/", allowEmpty: true
 	}
 	timeout(1) {
 		sh 'killall --verbose --wait node || true'
@@ -91,21 +86,16 @@ def teardown_mocha(test_name) {
 def teardown_jest(test_name) {
 	// teardown_mocha() gets called in post actions and so we don't want it to fail
 	try {
-		dir('framework') {
-			nvm(getNodejsVersion()) {
-				sh """
-				rm -rf coverage_jest_${test_name}; mkdir -p coverage_jest_${test_name}
-				cp .coverage/${test_name}/lcov.info coverage_jest_${test_name}/ || echo "Jest lcov coverage not found"
-				cp .coverage/${test_name}/cobertura-coverage.xml coverage_jest_${test_name}/ || echo "Jest cobertura coverage not found"
-				"""
-			}
+		nvm(getNodejsVersion()) {
+			sh """
+			rm -rf coverage_jest_${test_name}; mkdir -p coverage_jest_${test_name}
+			cp .coverage/${test_name}/coverage-final.json coverage_jest_${test_name}/ || echo "Jest lcov coverage not found"
+			"""
 		}
 	} catch(err) {
 		println "Could gather coverage statistics from jest:\n${err}"
 	}
-	dir('framework') {
-		stash name: "coverage_jest_${test_name}", includes: "coverage_jest_${test_name}/", allowEmpty: true
-	}
+	stash name: "coverage_jest_${test_name}", includes: "coverage_jest_${test_name}/", allowEmpty: true
 	timeout(1) {
 		sh 'killall --verbose --wait node || true'
 	}
@@ -284,40 +274,31 @@ pipeline {
 			sh 'rm -rf coverage; mkdir -p coverage'
 			script {
 				dir('coverage') {
-					['get', 'post', 'put', 'ws', 'unit', 'integration'].each {
-						// some test stages might have failed and have no coverage data
 						try {
-							unstash "coverage_mocha_${it}"
+							unstash "coverage_mocha_unit"
 						} catch(err) {
-							println "Could not unstash mocha_${it}. Continuing."
+							println "Could not unstash mocha_unit. Continuing."
 						}
-					}
-					['functional', 'unit', 'integration'].each {
-						// some test stages might have failed and have no coverage data
 						try {
-							unstash "coverage_jest_${it}"
+							unstash "coverage_jest_unit"
 						} catch(err) {
-							println "Could not unstash jest_${it}. Continuing."
+							println "Could not unstash jest_unit. Continuing."
 						}
-					}
 				}
 				// it won't do to fail in a post action
 				try {
 					nvm(getNodejsVersion()) {
 						sh '''
-						find coverage/ -name lcov.info |sed 's/^/-a /' |xargs lcov -o coverage/merged.lcov
-						sed -i -r -e "s#$WORKSPACE/#./#g" coverage/merged.lcov
-						cp ~/.core_coveralls.yml .coveralls.yml
-						npx coveralls <coverage/merged.lcov
-						# remove prefix from package names
-						sed -i -r -e "s/${WORKSPACE##*/}\\.//" coverage/coverage_*/cobertura-coverage.xml
+						mkdir -p .nyc_output
+						cp -r coverage/coverage_mocha_unit/* ./.nyc_output
+						cp coverage/coverage_jest_unit/coverage-final.json ./.nyc_output/coverage-framework-unit.json
+						npx nyc merge ./.nyc_output coverage/coverage.json
+						npx nyc report --report-dir coverage --reporter=text --reporter=cobertura
 						'''
 					}
-					cobertura coberturaReportFile: 'coverage_*/cobertura-coverage.xml'
+					cobertura coberturaReportFile: 'coverage/cobertura-coverage.xml'
 				} catch(err) {
 					println "Could not report coverage statistics:\n${err}"
-				} finally {
-					sh 'rm -f .coveralls.yml'
 				}
 			}
 		}
