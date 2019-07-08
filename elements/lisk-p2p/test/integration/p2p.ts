@@ -1173,10 +1173,7 @@ describe('Integration tests for P2P library', () => {
 				});
 			});
 
-			// Launch nodes one at a time with a delay between each launch.
-			for (const p2p of p2pNodeList) {
-				await p2p.start();
-			}
+			await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
 			await wait(100);
 		});
 
@@ -1227,11 +1224,10 @@ describe('Integration tests for P2P library', () => {
 
 				for (const p2pNode of p2pNodeList) {
 					if (p2pNode.nodeInfo.wsPort === 5000) {
-						expect(p2pNodeList[0].getNetworkStatus().connectedPeers).to.be
-							.empty;
+						expect(p2pNode.getNetworkStatus().connectedPeers).to.be.empty;
+					} else {
+						expect(p2pNode.getNetworkStatus().connectedPeers).to.be.not.empty;
 					}
-					expect(p2pNodeList[1].getNetworkStatus().connectedPeers).to.be.not
-						.empty;
 				}
 			});
 		});
