@@ -22,6 +22,7 @@ import {
 import { Peer, ConnectionState } from '../../src/peer';
 import { initializePeerList } from '../utils/peers';
 import { P2PDiscoveredPeerInfo } from '../../src/p2p_types';
+import { DEFAULT_WS_MAX_PAYLOAD } from '../../src/p2p';
 
 describe('peerPool', () => {
 	const peerPool = new PeerPool({
@@ -29,6 +30,7 @@ describe('peerPool', () => {
 		peerSelectionForRequest: selectPeersForRequest,
 		peerSelectionForSend: selectPeersForSend,
 		sendPeerLimit: 25,
+		wsMaxPayload: DEFAULT_WS_MAX_PAYLOAD,
 	});
 
 	describe('#constructor', () => {

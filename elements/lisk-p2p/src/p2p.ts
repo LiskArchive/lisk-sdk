@@ -109,6 +109,7 @@ export const EVENT_NEW_PEER = 'newPeer';
 export const NODE_HOST_IP = '0.0.0.0';
 export const DEFAULT_DISCOVERY_INTERVAL = 30000;
 export const DEFAULT_SEND_PEER_LIMIT = 25;
+export const DEFAULT_WS_MAX_PAYLOAD = 1048576; // Payload in bytes
 
 const BASE_10_RADIX = 10;
 
@@ -161,7 +162,13 @@ export class P2P extends EventEmitter {
 		this._triedPeers = new Map();
 
 		this._httpServer = http.createServer();
-		this._scServer = attach(this._httpServer) as SCServerUpdated;
+		this._scServer = attach(this._httpServer, {
+			wsEngineServerOptions: {
+				maxPayload: config.wsMaxPayload
+					? config.wsMaxPayload
+					: DEFAULT_WS_MAX_PAYLOAD,
+			},
+		}) as SCServerUpdated;
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest) => {
@@ -291,6 +298,9 @@ export class P2P extends EventEmitter {
 		this._peerPool = new PeerPool({
 			connectTimeout: config.connectTimeout,
 			ackTimeout: config.ackTimeout,
+			wsMaxPayload: config.wsMaxPayload
+				? config.wsMaxPayload
+				: DEFAULT_WS_MAX_PAYLOAD,
 			peerSelectionForSend: config.peerSelectionForSend
 				? config.peerSelectionForSend
 				: selectPeersForSend,

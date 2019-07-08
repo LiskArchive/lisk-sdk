@@ -43,7 +43,11 @@ import {
 	validateRPCRequest,
 } from './validation';
 
-type ClientOptions = socketClusterClient.SCClientSocket.ClientOptions;
+interface ClientOptionsUpdated
+	extends socketClusterClient.SCClientSocket.ClientOptions {
+	readonly maxPayload?: number;
+}
+
 type SCClientSocket = socketClusterClient.SCClientSocket;
 
 // Local emitted events.
@@ -112,6 +116,7 @@ const convertNodeInfoToLegacyFormat = (
 export interface PeerConfig {
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
+	readonly wsMaxPayload?: number;
 }
 export interface PeerSockets {
 	readonly outbound?: SCClientSocket;
@@ -463,7 +468,7 @@ export class Peer extends EventEmitter {
 			: DEFAULT_ACK_TIMEOUT;
 
 		// Ideally, we should JSON-serialize the whole NodeInfo object but this cannot be done for compatibility reasons, so instead we put it inside an options property.
-		const clientOptions: ClientOptions = {
+		const clientOptions: ClientOptionsUpdated = {
 			hostname: this._ipAddress,
 			port: this._wsPort,
 			query: querystring.stringify({
@@ -475,6 +480,7 @@ export class Peer extends EventEmitter {
 			multiplex: false,
 			autoConnect: false,
 			autoReconnect: false,
+			maxPayload: this._peerConfig.wsMaxPayload,
 		};
 
 		const outboundSocket = socketClusterClient.create(clientOptions);
@@ -644,8 +650,8 @@ export interface PeerInfoAndOutboundConnection {
 export const connectAndRequest = async (
 	basicPeerInfo: P2PPeerInfo,
 	procedure: string,
-	nodeInfo?: P2PNodeInfo,
-	peerConfig?: PeerConfig,
+	nodeInfo: P2PNodeInfo,
+	peerConfig: PeerConfig,
 ): Promise<ConnectAndFetchResponse> =>
 	new Promise<ConnectAndFetchResponse>(
 		(resolve, reject): void => {
@@ -657,7 +663,7 @@ export const connectAndRequest = async (
 				procedure,
 			};
 			// Ideally, we should JSON-serialize the whole NodeInfo object but this cannot be done for compatibility reasons, so instead we put it inside an options property.
-			const clientOptions: ClientOptions = {
+			const clientOptions: ClientOptionsUpdated = {
 				hostname: basicPeerInfo.ipAddress,
 				port: basicPeerInfo.wsPort,
 				query: querystring.stringify({
@@ -677,6 +683,7 @@ export const connectAndRequest = async (
 				multiplex: false,
 				autoConnect: false,
 				autoReconnect: false,
+				maxPayload: peerConfig.wsMaxPayload,
 			};
 
 			const outboundSocket = socketClusterClient.create(clientOptions);
@@ -741,8 +748,8 @@ export const connectAndRequest = async (
 
 export const connectAndFetchPeerInfo = async (
 	basicPeerInfo: P2PPeerInfo,
-	nodeInfo?: P2PNodeInfo,
-	peerConfig?: PeerConfig,
+	nodeInfo: P2PNodeInfo,
+	peerConfig: PeerConfig,
 ): Promise<PeerInfoAndOutboundConnection> => {
 	try {
 		const { responsePacket, socket } = await connectAndRequest(
