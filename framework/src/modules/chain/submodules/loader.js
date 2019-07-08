@@ -813,7 +813,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 						modules.blocks.process.loadBlocksFromNetwork(
 							(loadBlocksFromNetworkErr, lastValidBlock) => {
 								if (loadBlocksFromNetworkErr) {
-									library.logger.error(
+									library.logger.debug(
 										loadBlocksFromNetworkErr instanceof Error
 											? loadBlocksFromNetworkErr
 											: new Error(loadBlocksFromNetworkErr),
