@@ -315,17 +315,15 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
  * @returns {Object} cb.err - Error if occurred
  */
 __private.applyTransactions = function(transactions, cb) {
+	// TODO: Need to add logic for handling exceptions for genesis block transactions
 	modules.processTransactions
 		.applyTransactions(transactions)
-		.then(({ stateStore }) => {
-			// TODO: Need to add logic for handling exceptions for genesis block transactions
-			stateStore.account.finalize();
-			return stateStore;
-		})
-		.then(stateStore => {
-			stateStore.round.setRoundForData(slots.calcRound(1));
-			return stateStore.round.finalize();
-		})
+		.then(({ stateStore }) =>
+			stateStore.account.finalize().then(() => {
+				stateStore.round.setRoundForData(slots.calcRound(1));
+				return stateStore.round.finalize();
+			})
+		)
 		.then(() => cb())
 		.catch(cb);
 };
