@@ -85,7 +85,7 @@ class ApplicationState {
 	 * @param height
 	 * @param prevotedConfirmedUptoHeight
 	 * @param broadhash
-	 * @param blockId
+	 * @param lastBlockId
 	 * @return {Promise<boolean, Error>}
 	 * @throws assert.AssertionError
 	 */
@@ -93,14 +93,14 @@ class ApplicationState {
 		height,
 		prevotedConfirmedUptoHeight = this.state.prevotedConfirmedUptoHeight,
 		broadhash = this.state.broadhash,
-		blockId = this.state.blockId,
+		lastBlockId = this.state.lastBlockId,
 	}) {
 		assert(height, 'height is required to update application state.');
 		try {
 			const newState = this.state;
 			newState.broadhash = broadhash;
 			newState.prevotedConfirmedUptoHeight = prevotedConfirmedUptoHeight;
-			newState.blockId = blockId;
+			newState.lastBlockId = lastBlockId;
 			newState.height = height;
 			__private.state.set(this, newState);
 			this.logger.debug('Application state', this.state);

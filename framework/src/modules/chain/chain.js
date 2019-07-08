@@ -557,7 +557,7 @@ module.exports = class Chain {
 			if (!this.loader.syncing()) {
 				this.channel.invoke('app:updateApplicationState', {
 					height: block.height,
-					blockId: block.id,
+					lastBlockId: block.id,
 					prevotedConfirmedUptoHeight: block.prevotedConfirmedUptoHeight,
 				});
 			}
