@@ -55,62 +55,141 @@ describe('delegates (forge)', () => {
 		application.cleanup(done);
 	});
 
+	function createDebitTransaction(account, amount) {
+		return transfer({
+			amount: new Bignum(NORMALIZER).multipliedBy(amount).toString(),
+			recipientId: random.account().address,
+			passphrase: account.passphrase,
+		});
+	}
+
+	function createCreditTransaction(account, amount) {
+		return transfer({
+			amount: new Bignum(NORMALIZER).multipliedBy(amount).toString(),
+			recipientId: account.address,
+			passphrase: accountFixtures.genesis.passphrase,
+		});
+	}
+
 	describe('forge', () => {
 		describe('total spending', () => {
-			it('should not include transactions which exceed total spending per account balance', async () => {
-				// Transfer 1LSK to account
-				const account = random.account();
-				const transaction = transfer({
-					amount: new Bignum(NORMALIZER).multipliedBy(1).toString(),
-					recipientId: account.address,
-					passphrase: accountFixtures.genesis.passphrase,
+			describe('should not include transactions which exceed total spending per account balance', async () => {
+				it('when we debit the account first', async () => {
+					// Credit the account with 1 LSK and forge a block
+					const account = random.account();
+					const transaction = createCreditTransaction(account, 1);
+					await addTransactionsAndForge(library, [transaction], 0);
+
+					// Create credit and debit transactions
+					const credit03 = createCreditTransaction(account,0.3);
+					const debit06 = createDebitTransaction(account,0.6);
+					const debit04 = createDebitTransaction(account,0.4);
+					const debit01 = createDebitTransaction(account,0.1);
+
+					// Add transactions to the transaction pool
+					await addTransaction(library, debit06); // Account balance after: 0.3 LSK
+					await addTransaction(library, debit04); // Account balance after: -0.2 LSK (invalid transaction)
+					await addTransaction(library, credit03); // Account balance after: 0.3 LSK
+					await addTransaction(library, debit01); // Account balance after: 0.1 LSK
+
+					// Forge a block
+					await fillPool(library);
+					await forge(library);
+
+					// Get the last forged block
+					const transactionsInLastBlock = library.modules.blocks.lastBlock
+						.get()
+						.transactions
+						.map(t => t.id);
+
+					// Last block should contain only 3 transactions
+					// The smallest first as we sort transactions by amount while forging
+					expect(transactionsInLastBlock)
+						.to
+						.eql([debit01.id, credit03.id, debit06.id]);
+
+					// Un-applied transaction must be deleted from the pool
+					expect(transactionInPool(library, debit04.id)).to.be.false;
 				});
-				await addTransactionsAndForge(library, [transaction], 0);
 
-				// Transfer 0.5 LSK to a random account - The account balance would be 0.4
-				const spend_06 = transfer({
-					amount: new Bignum(NORMALIZER).multipliedBy(0.6).toString(),
-					recipientId: random.account().address,
-					passphrase: account.passphrase,
+				it('when we credit the account first', async () => {
+					// Credit the account with 1 LSK and forge a block
+					const account = random.account();
+					const transaction = createCreditTransaction(account, 1);
+					await addTransactionsAndForge(library, [transaction], 0);
+
+					// Create credit and debit transactions
+					const credit03 = createCreditTransaction(account,0.3);
+					const debit06 = createDebitTransaction(account,0.6);
+					const debit04 = createDebitTransaction(account,0.4);
+					const debit01 = createDebitTransaction(account,0.1);
+
+					// Add transactions to the transaction pool
+					await addTransaction(library, credit03); // Account balance after: 1 LSK
+					await addTransaction(library, debit06); // Account balance after: 0.3 LSK
+					await addTransaction(library, debit04); // Account balance after: -0.2 LSK (invalid transaction)
+					await addTransaction(library, debit01); // Account balance after: 0.1 LSK
+
+					// Forge a block
+					await fillPool(library);
+					await forge(library);
+
+					// Get the last forged block
+					const transactionsInLastBlock = library.modules.blocks.lastBlock
+						.get()
+						.transactions
+						.map(t => t.id);
+
+					// Last block should contain only 3 transactions
+					// The smallest first as we sort transactions by amount while forging
+					expect(transactionsInLastBlock)
+						.to
+						.eql([debit01.id, credit03.id, debit06.id]);
+
+					// Un-applied transaction must be deleted from the pool
+					expect(transactionInPool(library, debit04.id)).to.be.false;
 				});
 
-				// Transfer 0.5 LSK to a random account - The account balance would be -0.2
-				const spend_04 = transfer({
-					amount: new Bignum(NORMALIZER).multipliedBy(0.4).toString(),
-					recipientId: random.account().address,
-					passphrase: account.passphrase,
+				it('when we try to spend entire balance and transaction fee makes balance to go negative', async () => {
+					// Credit the account with 1 LSK and forge a block
+					const account = random.account();
+					const transaction = createCreditTransaction(account, 1);
+					await addTransactionsAndForge(library, [transaction], 0);
+
+					// Create credit and debit transactions
+					const credit03 = createCreditTransaction(account,0.3);
+					const debit06 = createDebitTransaction(account,0.6);
+					const debit04 = createDebitTransaction(account,0.4);
+					const debit01 = createDebitTransaction(account,0.1);
+					const debit01a = createDebitTransaction(account,0.1);
+
+					// Add transactions to the transaction pool
+					await addTransaction(library, credit03); // Account balance after: 1 LSK
+					await addTransaction(library, debit06); // Account balance after: 0.3 LSK
+					await addTransaction(library, debit04); // Account balance after: -0.2 LSK (invalid transaction)
+					await addTransaction(library, debit01); // Account balance after: 0.1 LSK
+					await addTransaction(library, debit01a); // Account balance after: -0.1 LSK (invalid transaction)
+
+					// Forge a block
+					await fillPool(library);
+					await forge(library);
+
+					// Get the last forged block
+					const transactionsInLastBlock = library.modules.blocks.lastBlock
+						.get()
+						.transactions
+						.map(t => t.id);
+
+					// Last block should contain only 3 transactions
+					// The smallest first as we sort transactions by amount while forging
+					expect(transactionsInLastBlock)
+						.to
+						.eql([debit01.id, credit03.id, debit06.id]);
+
+					// Un-applied transaction must be deleted from the pool
+					expect(transactionInPool(library, debit04.id)).to.be.false;
+					expect(transactionInPool(library, debit01a.id)).to.be.false;
 				});
-
-				// Transfer 0.3 LSK to that account - The account balance would be 0.1
-				const credit_03 = transfer({
-					amount: new Bignum(NORMALIZER).multipliedBy(0.3).toString(),
-					recipientId: account.address,
-					passphrase: accountFixtures.genesis.passphrase,
-				});
-
-				// Add the transactions to pool and forge
-				await addTransaction(library, credit_03);
-				await addTransaction(library, spend_06);
-				await addTransaction(library, spend_04);
-				// await fillPool(library);
-				await forge(library);
-
-				// Get the last forged block
-				const transactionsInLastBlock = library.modules.blocks.lastBlock
-					.get()
-					.transactions.map(t => t.id);
-
-				// Last block should contain only 2 transactions
-				// The smallest first as we sort transactions by amount while forging
-				expect(transactionsInLastBlock).to.be.eql([credit_03.id, spend_04.id]);
-
-				// Un-applied transaction must be deleted from the pool
-				expect(transactionInPool(library, spend_06.id)).to.be.false;
-
-				// To verify that transaction was removed from the pool
-				await forge(library);
-				const lastBlock = library.modules.blocks.lastBlock.get();
-				expect(lastBlock.transactions).to.lengthOf(0);
 			});
 		});
 	});
