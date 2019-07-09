@@ -135,12 +135,13 @@ module.exports = {
 						},
 						BLOCK_TIME: {
 							type: 'number',
-							min: 1,
+							minimum: 2,
 							description: 'Slot time interval in seconds',
 						},
 						MAX_TRANSACTIONS_PER_BLOCK: {
 							type: 'integer',
-							min: 1,
+							minimum: 1,
+							maximum: 150,
 							description: 'Maximum number of transactions allowed per block',
 						},
 						REWARDS: {
@@ -159,12 +160,12 @@ module.exports = {
 								},
 								OFFSET: {
 									type: 'integer',
-									min: 1,
+									minimum: 1,
 									description: 'Start rewards at block (n)',
 								},
 								DISTANCE: {
 									type: 'integer',
-									min: 1,
+									minimum: 1,
 									description: 'Distance between each milestone',
 								},
 							},
