@@ -30,6 +30,9 @@ const addTransactionsAndForge = util.promisify(
 	localCommon.addTransactionsAndForge
 );
 const transactionInPool = localCommon.transactionInPool;
+const addTransaction = util.promisify(localCommon.addTransaction);
+const fillPool = util.promisify(localCommon.fillPool);
+const forge = util.promisify(localCommon.forge);
 
 let library;
 
@@ -84,15 +87,15 @@ describe('delegates (forge)', () => {
 					const debit04 = createDebitTransaction(account, 0.4);
 					const debit01 = createDebitTransaction(account, 0.1);
 
-					// Prepare transactions, they will be processed in reverse order (bottom to top)
-					const transactions = [];
-					transactions.push(debit01); // Account balance after: 0.1 LSK
-					transactions.push(credit03); // Account balance after: 0.3 LSK
-					transactions.push(debit04); // Account balance after: -0.2 LSK (invalid transaction)
-					transactions.push(debit06); // Account balance after: 0.3 LSK
+					// Add transactions to the transaction pool
+					await addTransaction(library, debit06); // Account balance after: 0.3 LSK
+					await addTransaction(library, debit04); // Account balance after: -0.2 LSK (invalid transaction)
+					await addTransaction(library, credit03); // Account balance after: 0.3 LSK
+					await addTransaction(library, debit01); // Account balance after: 0.1 LSK
 
-					// Add transactions to the transaction pool and forge a block
-					await addTransactionsAndForge(library, transactions, 0);
+					// Forge a block
+					await fillPool(library);
+					await forge(library);
 
 					// Get the last forged block
 					const transactionsInLastBlock = library.modules.blocks.lastBlock
@@ -121,15 +124,15 @@ describe('delegates (forge)', () => {
 					const debit04 = createDebitTransaction(account, 0.4);
 					const debit01 = createDebitTransaction(account, 0.1);
 
-					// Prepare transactions, they will be processed in reverse order (bottom to top)
-					const transactions = [];
-					transactions.push(debit01); // Account balance after: 0.1 LSK
-					transactions.push(debit04); // Account balance after: -0.2 LSK (invalid transaction)
-					transactions.push(debit06); // Account balance after: 0.3 LSK
-					transactions.push(credit03); // Account balance after: 1 LSK
+					// Add transactions to the transaction pool
+					await addTransaction(library, credit03); // Account balance after: 1 LSK
+					await addTransaction(library, debit06); // Account balance after: 0.3 LSK
+					await addTransaction(library, debit04); // Account balance after: -0.2 LSK (invalid transaction)
+					await addTransaction(library, debit01); // Account balance after: 0.1 LSK
 
-					// Add transactions to the transaction pool and forge a block
-					await addTransactionsAndForge(library, transactions, 0);
+					// Forge a block
+					await fillPool(library);
+					await forge(library);
 
 					// Get the last forged block
 					const transactionsInLastBlock = library.modules.blocks.lastBlock
@@ -153,22 +156,22 @@ describe('delegates (forge)', () => {
 					await addTransactionsAndForge(library, [transaction], 0);
 
 					// Create credit and debit transactions
-					const credit03 = createCreditTransaction(account,0.3);
-					const debit06 = createDebitTransaction(account,0.6);
-					const debit04 = createDebitTransaction(account,0.4);
-					const debit01 = createDebitTransaction(account,0.1);
-					const debit01a = createDebitTransaction(account,0.1);
+					const credit03 = createCreditTransaction(account, 0.3);
+					const debit06 = createDebitTransaction(account, 0.6);
+					const debit04 = createDebitTransaction(account, 0.4);
+					const debit01 = createDebitTransaction(account, 0.1);
+					const debit01a = createDebitTransaction(account, 0.1);
 
-					// Prepare transactions, they will be processed in reverse order (bottom to top)
-					const transactions = [];
-					transactions.push(debit01a); // Account balance after: -0.1 LSK (invalid transaction)
-					transactions.push(debit01); // Account balance after: 0.1 LSK
-					transactions.push(debit04); // Account balance after: -0.2 LSK (invalid transaction)
-					transactions.push(debit06); // Account balance after: 0.3 LSK
-					transactions.push(credit03); // Account balance after: 1 LSK
+					// Add transactions to the transaction pool
+					await addTransaction(library, credit03); // Account balance after: 1 LSK
+					await addTransaction(library, debit06); // Account balance after: 0.3 LSK
+					await addTransaction(library, debit04); // Account balance after: 0.3 LSK
+					await addTransaction(library, debit01); // Account balance after: 0.3 LSK
+					await addTransaction(library, debit01a); // Account balance after: -0.1 LSK (invalid transaction)
 
-					// Add transactions to the transaction pool and forge a block
-					await addTransactionsAndForge(library, transactions, 0);
+					// Forge a block
+					await fillPool(library);
+					await forge(library);
 
 					// Get the last forged block
 					const transactionsInLastBlock = library.modules.blocks.lastBlock
@@ -193,22 +196,22 @@ describe('delegates (forge)', () => {
 					await addTransactionsAndForge(library, [transaction], 0);
 
 					// Create credit and debit transactions
-					const credit03 = createCreditTransaction(account, 0.3);
-					const debit06 = createDebitTransaction(account,0.6);
-					const debit04 = createDebitTransaction(account, 0.4);
-					const debit01 = createDebitTransaction(account, 0.1);
-					const debit03 = createDebitTransaction(account, 0.3);
+					const credit03 = createCreditTransaction(account,  0.3);
+					const debit06 = createDebitTransaction(account, 0.6);
+					const debit04 = createDebitTransaction(account,  0.4);
+					const debit01 = createDebitTransaction(account,  0.1);
+					const debit03 = createDebitTransaction(account,  0.3);
 
-					// Prepare transactions, they will be processed in reverse order (bottom to top)
-					const transactions = [];
-					transactions.push(debit06); // Account balance after: -1 LSK (invalid transaction)
-					transactions.push(debit04); // Account balance after: -0.3 (invalid transaction)
-					transactions.push(debit01); // Account balance after: 0.2 LSK
-					transactions.push(debit03); // Account balance after: 0.6 LSK
-					transactions.push(credit03); // Account balance after: 1 LSK
+					// Add transactions to the transaction pool
+					await addTransaction(library, credit03); // Account balance after: 1 LSK
+					await addTransaction(library, debit03); // Account balance after: 0.6 LSK
+					await addTransaction(library, debit01); // Account balance after: 0.2 LSK
+					await addTransaction(library, debit04); // Account balance after: -0.3 (invalid transaction)
+					await addTransaction(library, debit06); // Account balance after: -1 LSK (invalid transaction)
 
-					// Add transactions to the transaction pool and forge a block
-					await addTransactionsAndForge(library, transactions, 0);
+					// Forge a block
+					await fillPool(library);
+					await forge(library);
 
 					// Get the last forged block
 					const transactionsInLastBlock = library.modules.blocks.lastBlock
@@ -219,8 +222,8 @@ describe('delegates (forge)', () => {
 					// The smallest first as we sort transactions by amount while forging
 					expect(transactionsInLastBlock).to.eql([
 						debit01.id,
-						credit03.id,
 						debit03.id,
+						credit03.id,
 					]);
 
 					// Un-applied transaction must be deleted from the pool
