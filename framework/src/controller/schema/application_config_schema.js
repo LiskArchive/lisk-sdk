@@ -133,11 +133,15 @@ module.exports = {
 							description:
 								'Timestamp indicating the start of Lisk Core (`Date.toISOString()`)',
 						},
+						// NOTICE: BLOCK_TIME and MAX_TRANSACTIONS_PER_BLOCK are related and it's values
+						// need to be changed togeter as per recommendations noted in https://github.com/LiskHQ/lisk-sdk/issues/3151
 						BLOCK_TIME: {
 							type: 'number',
 							minimum: 2,
 							description: 'Slot time interval in seconds',
 						},
+						// NOTICE: BLOCK_TIME and MAX_TRANSACTIONS_PER_BLOCK are related and it's values
+						// need to be changed togeter as per recommendations noted in https://github.com/LiskHQ/lisk-sdk/issues/3151
 						MAX_TRANSACTIONS_PER_BLOCK: {
 							type: 'integer',
 							minimum: 1,
