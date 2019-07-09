@@ -324,12 +324,12 @@ class ProcessTransactions {
 				return;
 			}
 
-			// Grab the user balance
+			// Grab the sender balance
 			const senderBalance = new BigNum(
 				stateStore.account.get(senderId).balance
 			);
 
-			// Initialize the user spending by zero
+			// Initialize the sender spending with zero
 			senderSpending[senderId] = new BigNum(0);
 
 			senderTransactions[senderId].forEach(transaction => {
