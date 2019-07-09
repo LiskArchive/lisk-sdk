@@ -73,7 +73,7 @@ describe('delegates (forge)', () => {
 
 	describe('forge', () => {
 		describe('total spending', () => {
-			describe('should not include transactions which exceed total spending per account balance', async () => {
+			describe('should not include transactions which exceed total spending per account balance', () => {
 				it('when we debit the account first', async () => {
 					// Credit the account with 1 LSK and forge a block
 					const account = random.account();
@@ -81,10 +81,10 @@ describe('delegates (forge)', () => {
 					await addTransactionsAndForge(library, [transaction], 0);
 
 					// Create credit and debit transactions
-					const credit03 = createCreditTransaction(account,0.3);
-					const debit06 = createDebitTransaction(account,0.6);
-					const debit04 = createDebitTransaction(account,0.4);
-					const debit01 = createDebitTransaction(account,0.1);
+					const credit03 = createCreditTransaction(account, 0.3);
+					const debit06 = createDebitTransaction(account, 0.6);
+					const debit04 = createDebitTransaction(account, 0.4);
+					const debit01 = createDebitTransaction(account, 0.1);
 
 					// Add transactions to the transaction pool
 					await addTransaction(library, debit06); // Account balance after: 0.3 LSK
@@ -93,23 +93,23 @@ describe('delegates (forge)', () => {
 					await addTransaction(library, debit01); // Account balance after: 0.1 LSK
 
 					// Forge a block
-					await fillPool(library);
 					await forge(library);
 
 					// Get the last forged block
 					const transactionsInLastBlock = library.modules.blocks.lastBlock
 						.get()
-						.transactions
-						.map(t => t.id);
+						.transactions.map(t => t.id);
 
 					// Last block should contain only 3 transactions
 					// The smallest first as we sort transactions by amount while forging
-					expect(transactionsInLastBlock)
-						.to
-						.eql([debit01.id, credit03.id, debit06.id]);
+					expect(transactionsInLastBlock).to.eql([
+						debit01.id,
+						credit03.id,
+						debit04.id,
+					]);
 
 					// Un-applied transaction must be deleted from the pool
-					expect(transactionInPool(library, debit04.id)).to.be.false;
+					expect(await transactionInPool(library, debit06.id)).to.be.false;
 				});
 
 				it('when we credit the account first', async () => {
@@ -119,10 +119,10 @@ describe('delegates (forge)', () => {
 					await addTransactionsAndForge(library, [transaction], 0);
 
 					// Create credit and debit transactions
-					const credit03 = createCreditTransaction(account,0.3);
-					const debit06 = createDebitTransaction(account,0.6);
-					const debit04 = createDebitTransaction(account,0.4);
-					const debit01 = createDebitTransaction(account,0.1);
+					const credit03 = createCreditTransaction(account, 0.3);
+					const debit06 = createDebitTransaction(account, 0.6);
+					const debit04 = createDebitTransaction(account, 0.4);
+					const debit01 = createDebitTransaction(account, 0.1);
 
 					// Add transactions to the transaction pool
 					await addTransaction(library, credit03); // Account balance after: 1 LSK
@@ -131,23 +131,23 @@ describe('delegates (forge)', () => {
 					await addTransaction(library, debit01); // Account balance after: 0.1 LSK
 
 					// Forge a block
-					await fillPool(library);
 					await forge(library);
 
 					// Get the last forged block
 					const transactionsInLastBlock = library.modules.blocks.lastBlock
 						.get()
-						.transactions
-						.map(t => t.id);
+						.transactions.map(t => t.id);
 
 					// Last block should contain only 3 transactions
 					// The smallest first as we sort transactions by amount while forging
-					expect(transactionsInLastBlock)
-						.to
-						.eql([debit01.id, credit03.id, debit06.id]);
+					expect(transactionsInLastBlock).to.eql([
+						debit01.id,
+						credit03.id,
+						debit04.id,
+					]);
 
 					// Un-applied transaction must be deleted from the pool
-					expect(transactionInPool(library, debit04.id)).to.be.false;
+					expect(await transactionInPool(library, debit06.id)).to.be.false;
 				});
 
 				it('when we try to spend entire balance and transaction fee makes balance to go negative', async () => {
@@ -157,11 +157,11 @@ describe('delegates (forge)', () => {
 					await addTransactionsAndForge(library, [transaction], 0);
 
 					// Create credit and debit transactions
-					const credit03 = createCreditTransaction(account,0.3);
-					const debit06 = createDebitTransaction(account,0.6);
-					const debit04 = createDebitTransaction(account,0.4);
-					const debit01 = createDebitTransaction(account,0.1);
-					const debit01a = createDebitTransaction(account,0.1);
+					const credit03 = createCreditTransaction(account, 0.3);
+					const debit06 = createDebitTransaction(account, 0.6);
+					const debit04 = createDebitTransaction(account, 0.4);
+					const debit01 = createDebitTransaction(account, 0.1);
+					const debit01a = createDebitTransaction(account, 0.1);
 
 					// Add transactions to the transaction pool
 					await addTransaction(library, credit03); // Account balance after: 1 LSK
@@ -171,24 +171,24 @@ describe('delegates (forge)', () => {
 					await addTransaction(library, debit01a); // Account balance after: -0.1 LSK (invalid transaction)
 
 					// Forge a block
-					await fillPool(library);
 					await forge(library);
 
 					// Get the last forged block
 					const transactionsInLastBlock = library.modules.blocks.lastBlock
 						.get()
-						.transactions
-						.map(t => t.id);
+						.transactions.map(t => t.id);
 
 					// Last block should contain only 3 transactions
 					// The smallest first as we sort transactions by amount while forging
-					expect(transactionsInLastBlock)
-						.to
-						.eql([debit01.id, credit03.id, debit06.id]);
+					expect(transactionsInLastBlock).to.eql([
+						debit01a.id,
+						debit01.id,
+						credit03.id,
+						debit04.id,
+					]);
 
 					// Un-applied transaction must be deleted from the pool
-					expect(transactionInPool(library, debit04.id)).to.be.false;
-					expect(transactionInPool(library, debit01a.id)).to.be.false;
+					expect(transactionInPool(library, debit06.id)).to.be.false;
 				});
 			});
 		});
