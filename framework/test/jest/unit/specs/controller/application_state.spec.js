@@ -196,7 +196,7 @@ describe('Application State', () => {
 
 			it('should call get four times', async () => {
 				// Assert
-				expect(spies.get).toHaveBeenCalledTimes(4);
+				expect(spies.get).toHaveBeenCalledTimes(5);
 			});
 
 			it('should update broadhash', async () => {

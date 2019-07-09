@@ -48,8 +48,8 @@ class BlockSynchronizationMechanism {
 			peer => peer.height
 		);
 		// Group peers by their block Id
-		// Output: {{'blockId':[peers], 'anotherBlockId': [peers]}
-		largestSubset = groupBy(largestSubset, peer => peer.blockId);
+		// Output: {{'lastBlockId':[peers], 'anotherBlockId': [peers]}
+		largestSubset = groupBy(largestSubset, peer => peer.lastBlockId);
 
 		const blockIds = Object.keys(largestSubset);
 		let maxNumberOfPeersInSet = 0;
@@ -76,7 +76,9 @@ class BlockSynchronizationMechanism {
 			height: peers[0].height,
 		};
 
-		if (!ForkChoiceRule.isDifferentChain(this.blocks.lastBlock, peersTip)) {
+		if (
+			!ForkChoiceRule.isDifferentChain(this.modules.blocks.lastBlock, peersTip)
+		) {
 			throw new Error('Violation of fork choice rule');
 		}
 
