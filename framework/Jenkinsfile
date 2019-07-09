@@ -58,7 +58,7 @@ def teardown_mocha(test_name) {
 		nvm(getNodejsVersion()) {
 			dir('framework') {
 				sh """
-				mkdir -p coverage_mocha_${test_name}
+				rm -rf coverage_mocha_${test_name}; mkdir -p coverage_mocha_${test_name}
 				cp test/mocha/.coverage-${test_name}/* coverage_mocha_${test_name}/ || true
 				"""
 			}
