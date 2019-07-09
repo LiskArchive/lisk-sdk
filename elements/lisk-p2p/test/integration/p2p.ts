@@ -38,6 +38,8 @@ describe('Integration tests for P2P library', () => {
 						minVersion: '1.0.0',
 						os: platform(),
 						height: 0,
+						lastBlockId: '1234',
+						prevotedConfirmedUptoHeight: 0,
 						broadhash:
 							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
 						nonce: `O2wTkjqplHII${nodePort}`,
@@ -110,6 +112,8 @@ describe('Integration tests for P2P library', () => {
 						protocolVersion: '1.1',
 						os: platform(),
 						height: 0,
+						lastBlockId: '1234',
+						prevotedConfirmedUptoHeight: 0,
 						broadhash:
 							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
 						nonce: `O2wTkjqplHII${nodePort}`,
@@ -242,6 +246,8 @@ describe('Integration tests for P2P library', () => {
 							protocolVersion: '1.1',
 							wsPort: p2p.nodeInfo.wsPort,
 							height: 1000 + (p2p.nodeInfo.wsPort % NETWORK_START_PORT),
+							lastBlockId: '1234',
+							prevotedConfirmedUptoHeight: 0,
 							options: p2p.nodeInfo.options,
 						});
 					});
@@ -295,6 +301,8 @@ describe('Integration tests for P2P library', () => {
 					protocolVersion: '1.1',
 					wsPort: firstP2PNode.nodeInfo.wsPort,
 					height: 10,
+					lastBlockId: '1234',
+					prevotedConfirmedUptoHeight: 0,
 					options: firstP2PNode.nodeInfo.options,
 				});
 
@@ -321,6 +329,12 @@ describe('Integration tests for P2P library', () => {
 							.to.have.property('height')
 							.which.equals(10);
 						expect(firstNodeInNewPeer)
+							.to.have.property('prevotedConfirmedUptoHeight')
+							.which.equals(0);
+						expect(firstNodeInNewPeer)
+							.to.have.property('lastBlockId')
+							.which.equals('1234');
+						expect(firstNodeInNewPeer)
 							.to.have.property('nethash')
 							.which.equals(
 								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
@@ -333,6 +347,12 @@ describe('Integration tests for P2P library', () => {
 							.to.have.property('height')
 							.which.equals(10);
 						expect(firstNodeInTriedPeer)
+							.to.have.property('prevotedConfirmedUptoHeight')
+							.which.equals(0);
+						expect(firstNodeInTriedPeer)
+							.to.have.property('lastBlockId')
+							.which.equals('1234');
+						expect(firstNodeInTriedPeer)
 							.to.have.property('nethash')
 							.which.equals(
 								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
@@ -344,6 +364,12 @@ describe('Integration tests for P2P library', () => {
 						expect(firstNodeInConnectedPeer)
 							.to.have.property('height')
 							.which.equals(10);
+						expect(firstNodeInConnectedPeer)
+							.to.have.property('prevotedConfirmedUptoHeight')
+							.which.equals(0);
+						expect(firstNodeInConnectedPeer)
+							.to.have.property('lastBlockId')
+							.which.equals('1234');
 						expect(firstNodeInConnectedPeer)
 							.to.have.property('nethash')
 							.which.equals(
@@ -422,6 +448,8 @@ describe('Integration tests for P2P library', () => {
 						minVersion: '1.0.0',
 						os: platform(),
 						height: 0,
+						lastBlockId: '1234',
+						prevotedConfirmedUptoHeight: 0,
 						broadhash:
 							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
 						nonce: `O2wTkjqplHII${nodePort}`,
@@ -695,6 +723,8 @@ describe('Integration tests for P2P library', () => {
 					protocolVersion: '1.1',
 					wsPort: firstP2PNode.nodeInfo.wsPort,
 					height: 10,
+					lastBlockId: '1234',
+					prevotedConfirmedUptoHeight: 0,
 					options: firstP2PNode.nodeInfo.options,
 				});
 
@@ -726,6 +756,12 @@ describe('Integration tests for P2P library', () => {
 						expect(receivedMessages[0].request.data)
 							.to.have.property('height')
 							.which.equals(10);
+						expect(receivedMessages[0].request.data)
+							.to.have.property('lastBlockId')
+							.which.equals('1234');
+						expect(receivedMessages[0].request.data)
+							.to.have.property('prevotedConfirmedUptoHeight')
+							.which.equals(0);
 					});
 
 				// For each peer of firstP2PNode, check that the firstP2PNode's P2PPeerInfo was updated with the new height.
@@ -738,6 +774,12 @@ describe('Integration tests for P2P library', () => {
 					expect(firstP2PNodePeerInfo)
 						.to.have.property('height')
 						.which.equals(10);
+					expect(firstP2PNodePeerInfo)
+						.to.have.property('lastBlockId')
+						.which.equals('1234');
+					expect(firstP2PNodePeerInfo)
+						.to.have.property('prevotedConfirmedUptoHeight')
+						.which.equals(0);
 				});
 			});
 		});
@@ -859,6 +901,8 @@ describe('Integration tests for P2P library', () => {
 						protocolVersion: '1.1',
 						os: platform(),
 						height: 1000 + index,
+						lastBlockId: '1234',
+						prevotedConfirmedUptoHeight: 0,
 						broadhash:
 							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
 						nonce: `O2wTkjqplHII${nodePort}`,
@@ -1021,6 +1065,8 @@ describe('Integration tests for P2P library', () => {
 						minVersion: '1.0.0',
 						os: platform(),
 						height: 0,
+						lastBlockId: '1234',
+						prevotedConfirmedUptoHeight: 0,
 						broadhash:
 							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
 						nonce: `O2wTkjqplHII${nodePort}`,

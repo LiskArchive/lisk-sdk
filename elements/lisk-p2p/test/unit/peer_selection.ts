@@ -25,6 +25,8 @@ describe('peer selector', () => {
 		let peerList = initializePeerInfoList();
 		const nodeInfo: P2PNodeInfo = {
 			height: 545777,
+			lastBlockId: '1234',
+			prevotedConfirmedUptoHeight: 0,
 			nethash: '73458irc3yb7rg37r7326dbt7236',
 			os: 'linux',
 			version: '1.1.1',
