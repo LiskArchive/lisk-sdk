@@ -271,7 +271,7 @@ class ProcessTransactions {
 			];
 		});
 
-		return transactionsResponses;
+		return { transactionsResponses };
 	}
 
 	// eslint-disable-next-line class-methods-use-this
