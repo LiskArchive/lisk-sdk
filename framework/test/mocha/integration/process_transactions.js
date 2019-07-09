@@ -283,7 +283,9 @@ describe('processTransactions', () => {
 				let applyTransactions;
 				beforeEach(async () => {
 					applyTransactions =
-						library.modules.processTransactions.applyTransactions;
+						library.modules.processTransactions.applyTransactions.bind(
+							library.modules.processTransactions
+						);
 				});
 
 				it('should return stateStore', async () => {
