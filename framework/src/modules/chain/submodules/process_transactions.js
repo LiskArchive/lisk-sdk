@@ -351,6 +351,11 @@ class ProcessTransactions {
 							),
 						],
 					});
+
+					// Remove transaction amount and fee from total spending, as we rejecting this transaction
+					senderSpending[senderId] = senderSpending[senderId]
+						.minus(transaction.amount)
+						.minus(transaction.fee);
 				}
 			});
 		});
