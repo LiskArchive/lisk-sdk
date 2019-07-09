@@ -254,23 +254,6 @@ class ProcessTransactions {
 			transactions
 		);
 
-		// Verify total spending of per account accumulative
-		const totalSpendingResponses = this._verifyTotalSpending(
-			transactions,
-			stateStore
-		);
-
-		totalSpendingResponses.forEach(spendingResponse => {
-			const transactionsResponse = transactionsResponses.find(
-				r => r.id === spendingResponse.id
-			);
-			transactionsResponse.status = TransactionStatus.FAIL;
-			transactionsResponse.errors = [
-				...transactionsResponse.errors,
-				...spendingResponse.errors,
-			];
-		});
-
 		return { transactionsResponses };
 	}
 
