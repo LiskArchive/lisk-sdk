@@ -260,12 +260,18 @@ class ProcessTransactions {
 			stateStore
 		);
 
-		return {
-			transactionsResponses: [
-				...transactionsResponses,
-				...totalSpendingResponses,
-			],
-		};
+		totalSpendingResponses.forEach(spendingResponse => {
+			const transactionsResponse = transactionsResponses.find(
+				r => r.id === spendingResponse.id
+			);
+			transactionsResponse.status = TransactionStatus.FAIL;
+			transactionsResponse.errors = [
+				...transactionsResponse.errors,
+				...spendingResponse.errors,
+			];
+		});
+
+		return transactionsResponses;
 	}
 
 	// eslint-disable-next-line class-methods-use-this
@@ -333,7 +339,8 @@ class ProcessTransactions {
 
 				if (senderBalance.lt(senderSpending[senderId])) {
 					spendingErrors.push({
-						status: TransactionStatus.FatalError,
+						id: transaction.id,
+						status: TransactionStatus.FAIL,
 						errors: [
 							new TransactionError(
 								`Account does not have enough LSK for total spending. balance: ${senderBalance.toString()}, spending: ${senderSpending[

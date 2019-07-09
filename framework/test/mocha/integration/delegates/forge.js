@@ -31,7 +31,6 @@ const addTransactionsAndForge = util.promisify(
 );
 const transactionInPool = localCommon.transactionInPool;
 const addTransaction = util.promisify(localCommon.addTransaction);
-const fillPool = util.promisify(localCommon.fillPool);
 const forge = util.promisify(localCommon.forge);
 
 let library;
@@ -69,31 +68,31 @@ describe('delegates (forge)', () => {
 				await addTransactionsAndForge(library, [transaction], 0);
 
 				// Transfer 0.5 LSK to a random account - The account balance would be 0.4
-				const trs_06 = transfer({
+				const spend_06 = transfer({
 					amount: new Bignum(NORMALIZER).multipliedBy(0.6).toString(),
 					recipientId: random.account().address,
 					passphrase: account.passphrase,
 				});
 
 				// Transfer 0.5 LSK to a random account - The account balance would be -0.2
-				const trs_04 = transfer({
+				const spend_04 = transfer({
 					amount: new Bignum(NORMALIZER).multipliedBy(0.4).toString(),
 					recipientId: random.account().address,
 					passphrase: account.passphrase,
 				});
 
 				// Transfer 0.3 LSK to that account - The account balance would be 0.1
-				const trs_03 = transfer({
+				const credit_03 = transfer({
 					amount: new Bignum(NORMALIZER).multipliedBy(0.3).toString(),
 					recipientId: account.address,
 					passphrase: accountFixtures.genesis.passphrase,
 				});
 
 				// Add the transactions to pool and forge
-				await addTransaction(library, trs_06);
-				await addTransaction(library, trs_04);
-				await addTransaction(library, trs_03);
-				await fillPool(library);
+				await addTransaction(library, credit_03);
+				await addTransaction(library, spend_06);
+				await addTransaction(library, spend_04);
+				// await fillPool(library);
 				await forge(library);
 
 				// Get the last forged block
@@ -103,10 +102,15 @@ describe('delegates (forge)', () => {
 
 				// Last block should contain only 2 transactions
 				// The smallest first as we sort transactions by amount while forging
-				expect(transactionsInLastBlock).to.be.eql([trs_03.id, trs_06.id]);
+				expect(transactionsInLastBlock).to.be.eql([credit_03.id, spend_04.id]);
 
 				// Un-applied transaction must be deleted from the pool
-				expect(transactionInPool(library, trs_04.id)).to.be.false;
+				expect(transactionInPool(library, spend_06.id)).to.be.false;
+
+				// To verify that transaction was removed from the pool
+				await forge(library);
+				const lastBlock = library.modules.blocks.lastBlock.get();
+				expect(lastBlock.transactions).to.lengthOf(0);
 			});
 		});
 	});
