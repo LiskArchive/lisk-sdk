@@ -196,11 +196,11 @@ describe('delegates (forge)', () => {
 					await addTransactionsAndForge(library, [transaction], 0);
 
 					// Create credit and debit transactions
-					const credit03 = createCreditTransaction(account,  0.3);
+					const credit03 = createCreditTransaction(account, 0.3);
 					const debit06 = createDebitTransaction(account, 0.6);
-					const debit04 = createDebitTransaction(account,  0.4);
-					const debit01 = createDebitTransaction(account,  0.1);
-					const debit03 = createDebitTransaction(account,  0.3);
+					const debit04 = createDebitTransaction(account, 0.4);
+					const debit01 = createDebitTransaction(account, 0.1);
+					const debit03 = createDebitTransaction(account, 0.3);
 
 					// Add transactions to the transaction pool
 					await addTransaction(library, credit03); // Account balance after: 1 LSK
