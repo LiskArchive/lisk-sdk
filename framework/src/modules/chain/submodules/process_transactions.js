@@ -138,7 +138,18 @@ class ProcessTransactions {
 
 		await Promise.all(transactions.map(t => t.prepare(stateStore)));
 
-		const transactionsResponses = transactions.map(transaction => {
+		// Verify total spending of per account accumulative
+		const transactionsResponseWithSpendingErrors = this._verifyTotalSpending(
+			transactions,
+			stateStore
+		);
+
+		const transactionsWithoutSpendingErrors = transactions.filter(
+			transaction =>
+				!transactionsResponseWithSpendingErrors.map(({ id }) => id).includes(transaction.id)
+		);
+
+		const transactionsResponses = transactionsWithoutSpendingErrors.map(transaction => {
 			const transactionResponse = transaction.apply(stateStore);
 			roundInformation.apply(stateStore, transaction);
 			stateStore.transaction.add(transaction);
@@ -155,7 +166,10 @@ class ProcessTransactions {
 		);
 
 		return {
-			transactionsResponses,
+			transactionsResponses: [
+				...transactionsResponses,
+				...transactionsResponseWithSpendingErrors,
+			],
 			stateStore,
 		};
 	}
