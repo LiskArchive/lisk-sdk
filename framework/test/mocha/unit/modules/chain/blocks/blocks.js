@@ -330,6 +330,7 @@ describe('blocks', () => {
 					id: '5',
 					previousBlock: '2',
 					height: 3,
+					version: 1,
 				};
 				await blocksInstance._receiveBlockFromNetworkV1(block);
 				expect(blocksInstance._processReceivedBlock).to.be.calledWith(block);
@@ -342,6 +343,7 @@ describe('blocks', () => {
 					id: '5',
 					previousBlock: '3',
 					height: 3,
+					version: 1,
 				};
 				await blocksInstance._receiveBlockFromNetworkV1(forkOneBlock);
 				expect(roundsModuleStub.fork).to.be.calledWith(forkOneBlock, 1);
@@ -355,6 +357,7 @@ describe('blocks', () => {
 					previousBlock: '3',
 					height: 3,
 					timestamp: '200',
+					version: 1,
 				};
 				await blocksInstance._receiveBlockFromNetworkV1(forkOneBlock);
 				expect(roundsModuleStub.fork).to.be.calledWith(forkOneBlock, 1);
@@ -368,6 +371,7 @@ describe('blocks', () => {
 					previousBlock: '3',
 					height: 3,
 					timestamp: '100',
+					version: 1,
 				};
 				await blocksInstance._receiveBlockFromNetworkV1(forkOneBlock);
 				expect(roundsModuleStub.fork).to.be.calledWith(forkOneBlock, 1);
@@ -382,6 +386,7 @@ describe('blocks', () => {
 					id: '5',
 					previousBlock: '1',
 					height: 2,
+					version: 1,
 				};
 				await blocksInstance._receiveBlockFromNetworkV1(forkFiveBlock);
 				expect(blocksInstance.blocksChain.deleteLastBlock).to.be.calledOnce;
@@ -395,6 +400,7 @@ describe('blocks', () => {
 					previousBlock: '1',
 					height: 2,
 					timestamp: 1000,
+					version: 1,
 				};
 				await blocksInstance._receiveBlockFromNetworkV1(forkFiveBlock);
 				expect(roundsModuleStub.fork).to.be.calledWith(forkFiveBlock, 5);
@@ -409,6 +415,7 @@ describe('blocks', () => {
 					generatorPublicKey: 'a',
 					previousBlock: '1',
 					height: 2,
+					version: 1,
 				};
 				await blocksInstance._receiveBlockFromNetworkV1(forkFiveBlock);
 				expect(roundsModuleStub.fork).to.be.calledWith(forkFiveBlock, 5);
@@ -457,11 +464,8 @@ describe('blocks', () => {
 		});
 
 		it('should call _forkChoiceTask with proper arguments', async () => {
-			const aTime = 23445;
-			sinonSandbox.stub(blocksInstance.slots, 'getTime').returns(aTime);
-
 			await blocksInstance._receiveBlockFromNetworkV2(block);
-			expect(blocksInstance._forkChoiceTask).to.be.calledWith(block, aTime);
+			expect(blocksInstance._forkChoiceTask).to.be.calledWith(block);
 		});
 
 		it('should abort if _isActive is true and throw an exception', async () => {
@@ -584,7 +588,7 @@ describe('blocks', () => {
 			});
 
 			it('should call _handleDoubleForgingTieBreak if _isTieBreak evaluates to true', async () => {
-				const aTime = Date.now();
+				const aTime = blocksInstance.slots.getTime();
 				const handleDoubleForgingTieBreak = sinonSandbox.stub(
 					blocksInstance,
 					'_handleDoubleForgingTieBreak'
@@ -592,6 +596,10 @@ describe('blocks', () => {
 				stubs.isTieBreak.returns(true);
 
 				blocksInstance._lastReceipt = aTime;
+				blocksInstance._lastReceivedAndAppliedBlock = {
+					id: defaults.lastBlock.id,
+					receivedTime: defaults.lastBlock.timestamp,
+				};
 
 				await blocksInstance._forkChoiceTask(
 					defaults.newBlock,
@@ -599,10 +607,8 @@ describe('blocks', () => {
 				);
 				expect(stubs.isTieBreak).to.be.calledWith({
 					slots: blocksInstance.slots,
-					lastBlock: defaults.lastBlock,
-					currentBlock: defaults.newBlock,
-					lastReceivedAt: aTime,
-					currentReceivedAt: newBlockReceivedAt,
+					lastAppliedBlock: defaults.lastBlock,
+					receivedBlock: defaults.newBlock,
 				});
 				expect(handleDoubleForgingTieBreak).to.be.calledWith(
 					defaults.newBlock,
@@ -660,6 +666,7 @@ describe('blocks', () => {
 		it('should call _processReceivedBlock with the given block', async () => {
 			const block = {
 				id: '1',
+				version: 2,
 			};
 
 			const _processBlock = sinonSandbox.spy(
@@ -708,12 +715,14 @@ describe('blocks', () => {
 			height: 1,
 			id: '1',
 			generatorPublicKey: 'abcde',
+			version: 1,
 		};
 
 		const newBlock = {
 			height: lastBlock.height,
 			id: '2',
 			generatorPublicKey: lastBlock.generatorPublicKey,
+			version: 2,
 		};
 
 		const stubs = {};
@@ -733,6 +742,11 @@ describe('blocks', () => {
 			stubs.processReceivedBlock = sinonSandbox
 				.stub(blocksInstance, '_processReceivedBlock')
 				.resolves();
+
+			blocksInstance._lastBlock = {
+				version: 1,
+				id: '0',
+			};
 		});
 
 		it('should call normalizeAndVerify with the new block', async () => {
@@ -840,7 +854,7 @@ describe('blocks', () => {
 	describe('_processReceivedBlock', () => {
 		const stubs = {};
 		const block = {
-			version: 2,
+			version: 1,
 			height: 1,
 			id: '2',
 			timestamp: Date.now(),
@@ -868,23 +882,23 @@ describe('blocks', () => {
 			expect(stubs.updateLastReceipt).to.be.called;
 		});
 
-		it('should call processBlock with the new block', async () => {
+		it('should call processBlock with the new block without receivedAt property', async () => {
 			await blocksInstance._processReceivedBlock(block);
-			expect(stubs.processBlock).to.be.called;
+			const { receivedAt, ...blockWithoutReceivedAt } = block;
+			expect(stubs.processBlock).to.be.calledWith(blockWithoutReceivedAt);
 		});
 
 		it('should debug log that the block has been successfully applied if so', async () => {
+			const expectedErrorMessage = `Successfully applied new received block id: ${
+				block.id
+			} height: ${block.height} round: ${blocksInstance.slots.calcRound(
+				block.height
+			)} slot: ${blocksInstance.slots.getSlotNumber(block.timestamp)} reward: ${
+				block.reward
+			} version: ${block.version}`;
 			await blocksInstance._processReceivedBlock(block);
 
-			expect(loggerStub.debug).to.be.calledWith(
-				`Successfully applied new received block id: ${block.id} height: ${
-					block.height
-				} round: ${blocksInstance.slots.calcRound(
-					block.height
-				)} slot: ${blocksInstance.slots.getSlotNumber(
-					block.timestamp
-				)} reward: ${block.reward} version: ${block.version}`
-			);
+			expect(loggerStub.debug).to.be.calledWith(expectedErrorMessage);
 		});
 
 		it('should update the broadhash', async () => {
@@ -899,22 +913,23 @@ describe('blocks', () => {
 		});
 
 		it('should error log that apply the new received block failed with the error', async () => {
+			// Arrange
 			const error = new Error('This is an error');
+			const expectedErrorMessage = `Failed to apply new received block id: ${
+				block.id
+			} height: ${block.height} round: ${blocksInstance.slots.calcRound(
+				block.height
+			)} slot: ${blocksInstance.slots.getSlotNumber(block.timestamp)} reward: ${
+				block.reward
+			} version: ${block.version}`;
 			stubs.processBlock.rejects(error);
 
 			try {
+				// Act
 				await blocksInstance._processReceivedBlock(block);
 			} catch (e) {
-				expect(loggerStub.error).to.be.calledWith(
-					error,
-					`Failed to apply new received block id: ${block.id} height: ${
-						block.height
-					} round: ${blocksInstance.slots.calcRound(
-						block.height
-					)} slot: ${blocksInstance.slots.getSlotNumber(
-						block.timestamp
-					)} reward: ${block.reward} version: ${block.version}`
-				);
+				// Assert
+				expect(loggerStub.error).to.be.calledWith(error, expectedErrorMessage);
 				expect(blocksInstance._isActive).to.be.false;
 			}
 		});

@@ -5,10 +5,10 @@ const {
 	isDuplicateBlock,
 	isTieBreak,
 	isValidBlock,
-} = require('../../../../../../../../src/modules/chain/blocks/fork_choice_rule');
+} = require('../../../../../../../src/modules/chain/blocks/fork_choice_rule');
 const {
 	BlockSlots,
-} = require('../../../../../../../../src/modules/chain/blocks/block_slots');
+} = require('../../../../../../../src/modules/chain/blocks/block_slots');
 
 const EPOCH_TIME = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString();
 const BLOCK_TIME = 10;
@@ -89,35 +89,56 @@ describe('Fork Choice Rule', () => {
 		});
 	});
 
-	describe('_isTieBreak', () => {
-		it('should return true if this._isDuplicateBlock(last, current) && slots.getSlotNumber(last.timestamp) < slots.getSlotNumber(current.timestamp) && !slots.isWithinTimeslot(slots.getSlotNumber(lastBlock.timestamp),lastReceivedAt) && slots.isWithinTimeslot(slots.getSlotNumber(currentBlock.timestamp), currentReceivedAt)', async () => {
-			const lastReceivedAt = 100000;
-			const currentReceivedAt = 200000;
+	/**
+	 *
+	 * Determine if Case 4 fulfills
+	 * @param slots
+	 * @param lastAppliedBlock
+	 * @param receivedBlock
+	 * @param receivedBlockReceiptTime
+	 * @param lastReceivedAndAppliedBlock
+	 * @return {boolean}
+	 */
 
-			const last = {
+	describe('_isTieBreak', () => {
+		/**
+		 * Explanation:
+		 *
+		 * It should return true if (AND):
+		 *
+		 * - The current tip of the chain and the received block are duplicate
+		 * - The current tip of the chain was forged first
+		 * - The the last block that was received from the network and then applied
+		 *   was not received within its designated forging slot but the new received block is.
+		 */
+		it('should return true if it matches the conditions described in _isTieBreak', async () => {
+			const lastReceivedAndAppliedBlock = {
+				receivedTime: 100000,
+				id: '1',
+			};
+
+			const lastAppliedBlock = {
 				height: 1,
 				prevotedConfirmedUptoHeight: 0,
 				previousBlock: 0,
 				id: '1',
-				timestamp: 5000,
+				timestamp: lastReceivedAndAppliedBlock.receivedTime,
 				generatorPublicKey: 'abc',
+				receivedAt: 300000,
 			};
-			const current = {
-				height: last.height,
-				prevotedConfirmedUptoHeight: last.prevotedConfirmedUptoHeight,
-				previousBlock: last.previousBlock,
+
+			const receivedBlock = {
+				...lastAppliedBlock,
 				id: '2',
-				timestamp: currentReceivedAt,
-				generatorPublicKey: last.generatorPublicKey,
+				timestamp: 200000,
+				receivedAt: 200000,
 			};
 
 			expect(
 				isTieBreak({
 					slots: blockSlots,
-					lastBlock: last,
-					currentBlock: current,
-					lastReceivedAt,
-					currentReceivedAt,
+					lastAppliedBlock,
+					receivedBlock,
 				})
 			).toBeTruthy();
 		});
