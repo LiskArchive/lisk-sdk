@@ -21,6 +21,7 @@ const {
 	DelegateTransaction,
 	VoteTransaction,
 	MultisignatureTransaction,
+	transactionInterface,
 } = require('@liskhq/lisk-transactions');
 const randomstring = require('randomstring');
 const _ = require('lodash');
@@ -233,9 +234,13 @@ class Application {
 		);
 
 		assert(
-			!Object.keys(this.getTransactions()).includes(Transaction.TYPE),
+			!Object.keys(this.getTransactions()).includes(
+				Transaction.TYPE.toString()
+			),
 			`A transaction type "${Transaction.TYPE}" is already registered.`
 		);
+
+		validator.validate(transactionInterface, Transaction.prototype);
 
 		if (matcher) {
 			Object.defineProperty(Transaction.prototype, 'matcher', {

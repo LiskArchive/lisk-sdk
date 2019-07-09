@@ -53,6 +53,7 @@
 		"@liskhq/lisk-transaction-pool": "0.1.0",
 		"@liskhq/lisk-transactions": "2.1.0",
 		"ajv": "6.7.0",
+		"ajv-keywords": "3.4.0",
 		"async": "2.6.1",
 		"bignumber.js": "8.0.2",
 		"bluebird": "3.5.3",
