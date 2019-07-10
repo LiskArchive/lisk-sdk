@@ -15,7 +15,7 @@
 'use strict';
 
 const localCommon = require('./../common');
-const BAT = require('../../common/utils/blocksAndTransactionsHelper');
+const BAT = require('../../common/utils/blocks_and_transactions_helper');
 
 describe('blocks processing & transactions pool consistency', () => {
 	let library;
@@ -43,7 +43,9 @@ describe('blocks processing & transactions pool consistency', () => {
 
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
-				expect(bat.getLastBlockTransactions()).to.deep.equal(bat.getValidTransactionsSorted());
+				expect(bat.getLastBlockTransactions()).to.deep.equal(
+					bat.getValidTransactionsSorted()
+				);
 
 				// There should be no transactions in transaction pool
 				expect(bat.getTransactionsInPool()).to.instanceof(Array);
@@ -59,8 +61,9 @@ describe('blocks processing & transactions pool consistency', () => {
 
 				// We expecting the block to fail at processing
 				expect(errors).to.have.lengthOf(1);
-				expect(errors[0].message).to.be.equal(`Account does not have enough LSK for total spending. balance: 100000000, spending: ${bat.getTotalSpending()}`
-					);
+				expect(errors[0].message).to.be.equal(
+					`Account does not have enough LSK for total spending. balance: 100000000, spending: ${bat.getTotalSpending()}`
+				);
 				expect(errors[0].id).to.be.equal(bat.getAllTransactions()[0].id);
 
 				// Credit new random account with 1 LSK and forge a block
@@ -76,7 +79,9 @@ describe('blocks processing & transactions pool consistency', () => {
 				expect(errors).to.be.undefined;
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
-				expect(bat.getLastBlockTransactions()).to.deep.equal(bat.getValidTransactionsSorted());
+				expect(bat.getLastBlockTransactions()).to.deep.equal(
+					bat.getValidTransactionsSorted()
+				);
 			});
 
 			it('when we credit the account first', async () => {
@@ -96,7 +101,9 @@ describe('blocks processing & transactions pool consistency', () => {
 
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
-				expect(bat.getLastBlockTransactions()).to.deep.equal(bat.getValidTransactionsSorted());
+				expect(bat.getLastBlockTransactions()).to.deep.equal(
+					bat.getValidTransactionsSorted()
+				);
 
 				// There should be no transactions in transaction pool
 				expect(bat.getTransactionsInPool()).to.instanceof(Array);
@@ -113,8 +120,8 @@ describe('blocks processing & transactions pool consistency', () => {
 				// We expecting the block to fail at processing
 				expect(errors).to.have.lengthOf(1);
 				expect(errors[0].message).to.be.equal(
-						`Account does not have enough LSK for total spending. balance: 100000000, spending: ${bat.getTotalSpending()}`
-					);
+					`Account does not have enough LSK for total spending. balance: 100000000, spending: ${bat.getTotalSpending()}`
+				);
 				expect(errors[0].id).to.be.equal(bat.getAllTransactions()[1].id);
 
 				// Credit new random account with 1 LSK and forge a block
@@ -130,7 +137,9 @@ describe('blocks processing & transactions pool consistency', () => {
 				expect(errors).to.be.undefined;
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
-				expect(bat.getLastBlockTransactions()).to.deep.equal(bat.getValidTransactionsSorted());
+				expect(bat.getLastBlockTransactions()).to.deep.equal(
+					bat.getValidTransactionsSorted()
+				);
 			});
 
 			it('when we try to spend entire balance and transaction fee makes balance to go negative', async () => {
@@ -151,7 +160,9 @@ describe('blocks processing & transactions pool consistency', () => {
 
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
-				expect(bat.getLastBlockTransactions()).to.deep.equal(bat.getValidTransactionsSorted());
+				expect(bat.getLastBlockTransactions()).to.deep.equal(
+					bat.getValidTransactionsSorted()
+				);
 
 				// There should be no transactions in transaction pool
 				expect(bat.getTransactionsInPool()).to.instanceof(Array);
@@ -168,8 +179,8 @@ describe('blocks processing & transactions pool consistency', () => {
 				// We expecting the block to fail at processing
 				expect(errors).to.have.lengthOf(1);
 				expect(errors[0].message).to.be.equal(
-						`Account does not have enough LSK for total spending. balance: 100000000, spending: ${bat.getTotalSpending()}`
-					);
+					`Account does not have enough LSK for total spending. balance: 100000000, spending: ${bat.getTotalSpending()}`
+				);
 				expect(errors[0].id).to.be.equal(bat.getAllTransactions()[1].id);
 
 				// Credit new random account with 1 LSK and forge a block
@@ -185,7 +196,9 @@ describe('blocks processing & transactions pool consistency', () => {
 				expect(errors).to.be.undefined;
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
-				expect(bat.getLastBlockTransactions()).to.deep.equal(bat.getValidTransactionsSorted());
+				expect(bat.getLastBlockTransactions()).to.deep.equal(
+					bat.getValidTransactionsSorted()
+				);
 			});
 
 			it('when we credit the account first, overspend last', async () => {
@@ -225,8 +238,8 @@ describe('blocks processing & transactions pool consistency', () => {
 				expect(errors).to.have.lengthOf(1);
 				// TODO: We can't use ${bat.getTotalSpending() here, investigate why actual is 110000000 instead of expected 180000000
 				expect(errors[0].message).to.be.equal(
-						'Account does not have enough LSK for total spending. balance: 100000000, spending: 110000000'
-					);
+					'Account does not have enough LSK for total spending. balance: 100000000, spending: 110000000'
+				);
 				expect(errors[0].id).to.be.equal(bat.getAllTransactions()[3].id);
 
 				// Credit new random account with 1 LSK and forge a block
@@ -242,7 +255,9 @@ describe('blocks processing & transactions pool consistency', () => {
 				expect(errors).to.be.undefined;
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
-				expect(bat.getLastBlockTransactions()).to.deep.equal(bat.getValidTransactionsSorted());
+				expect(bat.getLastBlockTransactions()).to.deep.equal(
+					bat.getValidTransactionsSorted()
+				);
 			});
 		});
 
@@ -260,7 +275,11 @@ describe('blocks processing & transactions pool consistency', () => {
 				let errors = await bat.enqueueTransactionsAndForge();
 				// We expecting the block to fail at processing
 				expect(errors).to.be.equal(
-					`Transaction: ${bat.getAllTransactions()[0].id} failed at .balance: Account does not have enough LSK: ${bat.getAllTransactions()[0].senderId}, balance: 1`
+					`Transaction: ${
+						bat.getAllTransactions()[0].id
+					} failed at .balance: Account does not have enough LSK: ${
+						bat.getAllTransactions()[0].senderId
+					}, balance: 1`
 				);
 
 				// There should be no transactions in transaction pool
@@ -277,7 +296,11 @@ describe('blocks processing & transactions pool consistency', () => {
 
 				// We expecting the block to fail at processing
 				expect(errors).to.have.lengthOf(1);
-				expect(errors[0].message).to.be.equal(`Account does not have enough LSK: ${bat.getAllTransactions()[0].senderId}, balance: 1`);
+				expect(errors[0].message).to.be.equal(
+					`Account does not have enough LSK: ${
+						bat.getAllTransactions()[0].senderId
+					}, balance: 1`
+				);
 				expect(errors[0].id).to.be.equal(bat.getAllTransactions()[0].id);
 
 				// Credit new random account with 1 LSK and forge a block
@@ -293,7 +316,9 @@ describe('blocks processing & transactions pool consistency', () => {
 				expect(errors).to.be.undefined;
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
-				expect(bat.getLastBlockTransactions()).to.deep.equal(bat.getValidTransactionsSorted());
+				expect(bat.getLastBlockTransactions()).to.deep.equal(
+					bat.getValidTransactionsSorted()
+				);
 			});
 
 			it('send 1 valid tx and 1000 invalid', async () => {
@@ -312,11 +337,15 @@ describe('blocks processing & transactions pool consistency', () => {
 
 				// Enqueue transactions and forge a block
 				// FIXME: Here we have to call fillPool few times for next block to not be empty
-				await bat.enqueueTransactionsAndForge(Math.floor(transactionsCount / 25) + 1);
+				await bat.enqueueTransactionsAndForge(
+					Math.floor(transactionsCount / 25) + 1
+				);
 
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
-				expect(bat.getLastBlockTransactions()).to.deep.equal(bat.getValidTransactionsSorted());
+				expect(bat.getLastBlockTransactions()).to.deep.equal(
+					bat.getValidTransactionsSorted()
+				);
 
 				// There should be no transactions in transaction pool
 				expect(bat.getTransactionsInPool()).to.instanceof(Array);
@@ -331,7 +360,9 @@ describe('blocks processing & transactions pool consistency', () => {
 				let errors = await bat.createAndProcessBlock();
 
 				// We expecting the block to fail at processing
-				expect(errors).to.be.equal('Number of transactions exceeds maximum per block');
+				expect(errors).to.be.equal(
+					'Number of transactions exceeds maximum per block'
+				);
 
 				// Credit new random account with 1 LSK and forge a block
 				await bat.creditRandomAccountAndForge(1);
@@ -346,7 +377,9 @@ describe('blocks processing & transactions pool consistency', () => {
 				expect(errors).to.be.undefined;
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
-				expect(bat.getLastBlockTransactions()).to.deep.equal(bat.getValidTransactionsSorted());
+				expect(bat.getLastBlockTransactions()).to.deep.equal(
+					bat.getValidTransactionsSorted()
+				);
 			});
 		});
 	});

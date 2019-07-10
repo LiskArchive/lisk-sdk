@@ -23,7 +23,9 @@ const localCommon = require('../../integration/common');
 const BlockLogic = require('../../../../src/modules/chain/logic/block');
 const accountFixtures = require('../../fixtures/accounts');
 const slots = require('../../../../src/modules/chain/helpers/slots');
-const { registeredTransactions } = require('../../common/registered_transactions');
+const {
+	registeredTransactions,
+} = require('../../common/registered_transactions');
 const InitTransaction = require('../../../../src/modules/chain/logic/init_transaction');
 
 const initTransaction = new InitTransaction({ registeredTransactions });
@@ -63,7 +65,10 @@ function createCreditTransaction(account, amount) {
 	});
 }
 
-class BlocksAndTransactionsHelper {
+/**
+ * Blocks and Transactions Helper
+ */
+class BAT {
 	constructor(library) {
 		this._library = library;
 		this._transactions = [];
@@ -109,7 +114,12 @@ class BlocksAndTransactionsHelper {
 		const lastBlock = this._library.modules.blocks.lastBlock.get();
 
 		// We return only transaction ID, amount (in string format), sender and recipient
-		return lastBlock.transactions.map(t => ({ id: t.id, amount: t.amount.toFixed(), sender: t.senderId, recipient: t.recipientId }));
+		return lastBlock.transactions.map(t => ({
+			id: t.id,
+			amount: t.amount.toFixed(),
+			sender: t.senderId,
+			recipient: t.recipientId,
+		}));
 	}
 
 	getValidTransactionsSorted() {
@@ -123,25 +133,41 @@ class BlocksAndTransactionsHelper {
 		validTransactions = BlockLogic.sortTransactions(validTransactions);
 
 		// We return only transaction ID, amount (in string format), sender and recipient
-		return validTransactions.map(t => ({ id: t.id, amount: t.amount.toFixed(), sender: t.senderId, recipient: t.recipientId }));
+		return validTransactions.map(t => ({
+			id: t.id,
+			amount: t.amount.toFixed(),
+			sender: t.senderId,
+			recipient: t.recipientId,
+		}));
 	}
 
 	getTransactionsInPool() {
 		// Get only transactions that exists in transaction pool
-		const transactionsInPool = this._transactions.filter(t => transactionInPool(this._library, t.data.id));
+		const transactionsInPool = this._transactions.filter(t =>
+			transactionInPool(this._library, t.data.id)
+		);
 
 		// We return only transaction ID, amount (in string format), sender and recipient
-		return transactionsInPool.map(({ data: t }) => ({ id: t.id, amount: t.amount.toFixed(), sender: t.senderId, recipient: t.recipientId }));
+		return transactionsInPool.map(({ data: t }) => ({
+			id: t.id,
+			amount: t.amount.toFixed(),
+			sender: t.senderId,
+			recipient: t.recipientId,
+		}));
 	}
 
 	async enqueueTransactions() {
-		return Promise.mapSeries(this._transactions, t => addTransaction(this._library, t.data));
+		return Promise.mapSeries(this._transactions, t =>
+			addTransaction(this._library, t.data)
+		);
 	}
 
 	async enqueueTransactionsAndForge(fillPoolCalls = 1) {
 		try {
 			await this.enqueueTransactions();
-			await Promise.mapSeries(new Array(fillPoolCalls).fill(0), () => fillPool(this._library));
+			await Promise.mapSeries(new Array(fillPoolCalls).fill(0), () =>
+				fillPool(this._library)
+			);
 			return await forge(this._library);
 		} catch (err) {
 			return err;
@@ -156,10 +182,12 @@ class BlocksAndTransactionsHelper {
 	}
 
 	recreateOnlyValidTransactions() {
-		this._transactions = this._transactions.filter(t => t.expect).map(t => {
-			t.data = t.type(this._account, t.amount);
-			return t;
-		});
+		this._transactions = this._transactions
+			.filter(t => t.expect)
+			.map(t => {
+				t.data = t.type(this._account, t.amount);
+				return t;
+			});
 	}
 
 	async createBlock() {
@@ -172,7 +200,9 @@ class BlocksAndTransactionsHelper {
 		const keypair = keypairs[delegate];
 		const timestamp = slots.getSlotTime(lastBlockSlot + 1);
 
-		const transactions = this._transactions.map(t => initTransaction.fromJson(t.data));
+		const transactions = this._transactions.map(t =>
+			initTransaction.fromJson(t.data)
+		);
 
 		this._block = this._library.logic.block.create({
 			keypair,
@@ -183,7 +213,9 @@ class BlocksAndTransactionsHelper {
 	}
 
 	async createAndProcessBlock() {
-		const promisifyProcessBlock = util.promisify(this._library.modules.blocks.verify.processBlock);
+		const promisifyProcessBlock = util.promisify(
+			this._library.modules.blocks.verify.processBlock
+		);
 
 		try {
 			await this.createBlock();
@@ -194,11 +226,13 @@ class BlocksAndTransactionsHelper {
 	}
 
 	getTotalSpending() {
-		const totalSpending = this._transactions.filter(t => t.type === TYPE.DEBIT).reduce((total, t) => {
-			return total.plus(t.data.amount).plus(t.data.fee);
-		}, new Bignum(0));
+		const totalSpending = this._transactions
+			.filter(t => t.type === TYPE.DEBIT)
+			.reduce((total, t) => {
+				return total.plus(t.data.amount).plus(t.data.fee);
+			}, new Bignum(0));
 		return totalSpending.toFixed();
 	}
 }
 
-module.exports = BlocksAndTransactionsHelper;
+module.exports = BAT;
