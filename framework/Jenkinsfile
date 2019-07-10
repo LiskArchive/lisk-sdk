@@ -271,30 +271,26 @@ pipeline {
 		always {
 			// teardown_*() should have run cleanWs()
 			// but it can't hurt to make sure no old coverage files remain
-			sh 'rm -rf coverage; mkdir -p coverage'
 			script {
-				dir('coverage') {
-						try {
-							unstash "coverage_mocha_unit"
-						} catch(err) {
-							println "Could not unstash mocha_unit. Continuing."
-						}
-						try {
-							unstash "coverage_jest_unit"
-						} catch(err) {
-							println "Could not unstash jest_unit. Continuing."
-						}
+				try {
+					unstash "coverage_mocha_unit"
+				} catch(err) {
+					println "Could not unstash mocha_unit. Continuing."
+				}
+				try {
+					unstash "coverage_jest_unit"
+				} catch(err) {
+					println "Could not unstash jest_unit. Continuing."
 				}
 				// it won't do to fail in a post action
 				try {
 					nvm(getNodejsVersion()) {
 						sh '''
-						rm -rf ./.nyc_output; mkdir -p ./.nyc_output
-						rm -rf ci_nyc_output; mkdir -p ci_nyc_output
+						rm -rf .nyc_output; mkdir -p .nyc_output
 						rm -rf ci_coverage; mkdir -p ci_coverage
-						cp -r coverage/coverage_mocha_unit/* ./ci_nyc_output
-						cp coverage/coverage_jest_unit/coverage-final.json ./ci_nyc_output/coverage-framework-unit.json
-						npx nyc merge ./ci_nyc_output ci_coverage/coverage.json
+						cp -r coverage_mocha_unit/* ./.nyc_output
+						cp coverage_jest_unit/coverage-final.json ./.nyc_output/coverage-framework-unit.json
+						npx nyc merge ./.nyc_output ci_coverage/coverage.json
 						npx nyc report --report-dir=ci_coverage --reporter=text --reporter=cobertura
 						'''
 					}
