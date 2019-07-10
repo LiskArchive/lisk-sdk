@@ -51,6 +51,9 @@ describe('blocks processing & transactions pool consistency', () => {
 					bat.getValidSortedTransactions()
 				);
 
+				// 1.0 - (0.1 + 0.1) + 0.3 - (0.6 + 0.1)
+				expect(await bat.getAccountBalance()).to.be.eql('0.4');
+
 				// There should be no transactions in transaction pool
 				expect(bat.getTransactionsInPool()).to.instanceof(Array);
 				expect(bat.getTransactionsInPool()).to.lengthOf(0);
@@ -86,6 +89,8 @@ describe('blocks processing & transactions pool consistency', () => {
 				expect(bat.getTransactionsInLastBlock()).to.deep.equal(
 					bat.getValidSortedTransactions()
 				);
+				// 1.0 - (0.1 + 0.1) + 0.3 - (0.6 + 0.1)
+				expect(await bat.getAccountBalance()).to.be.eql('0.4');
 			});
 
 			it('when we credit the account first', async () => {
@@ -108,6 +113,8 @@ describe('blocks processing & transactions pool consistency', () => {
 				expect(bat.getTransactionsInLastBlock()).to.deep.equal(
 					bat.getValidSortedTransactions()
 				);
+				// 1.0 - (0.1 + 0.1) + 0.3 - (0.6 + 0.1)
+				expect(await bat.getAccountBalance()).to.be.eql('0.4');
 
 				// There should be no transactions in transaction pool
 				expect(bat.getTransactionsInPool()).to.instanceof(Array);
@@ -144,6 +151,8 @@ describe('blocks processing & transactions pool consistency', () => {
 				expect(bat.getTransactionsInLastBlock()).to.deep.equal(
 					bat.getValidSortedTransactions()
 				);
+				// 1.0 - (0.1 + 0.1) + 0.3 - (0.6 + 0.1)
+				expect(await bat.getAccountBalance()).to.be.eql('0.4');
 			});
 
 			it('when we try to spend entire balance and transaction fee makes balance to go negative', async () => {
@@ -167,6 +176,8 @@ describe('blocks processing & transactions pool consistency', () => {
 				expect(bat.getTransactionsInLastBlock()).to.deep.equal(
 					bat.getValidSortedTransactions()
 				);
+				// 1.0 - (0.1 + 0.1) + 0.3 - (0.6 + 0.1)
+				expect(await bat.getAccountBalance()).to.be.eql('0.4');
 
 				// There should be no transactions in transaction pool
 				expect(bat.getTransactionsInPool()).to.instanceof(Array);

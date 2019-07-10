@@ -213,6 +213,16 @@ class BAT {
 			}, new Bignum(0));
 		return totalSpending.toFixed();
 	}
+
+	async getAccountBalance() {
+		const account = await this._library.components.storage.entities.Account.getOne(
+			{
+				address: this._account.address,
+			}
+		);
+
+		return new Bignum(account.balance).dividedBy(NORMALIZER).toString();
+	}
 }
 
 module.exports = {
