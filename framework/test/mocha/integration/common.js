@@ -30,6 +30,7 @@ const randomUtil = require('../common/utils/random');
 const accountFixtures = require('../fixtures/accounts');
 
 const { ACTIVE_DELEGATES } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 
 function getDelegateForSlot(library, slot, cb) {
 	const lastBlock = library.modules.blocks.lastBlock.get();
@@ -179,8 +180,11 @@ function fillPool(library, cb) {
 function addTransaction(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
-	__testContext.debug(`	Add transaction ID: ${transaction.id}`);
+
 	transaction = library.logic.initTransaction.fromJson(transaction);
+	const amountNormalized = transaction.amount.dividedBy(NORMALIZER).toFixed();
+	const feeNormalized = transaction.fee.dividedBy(NORMALIZER).toFixed();
+	__testContext.debug(`Enqueue transaction ID: ${transaction.id}, Amount: ${amountNormalized}, Fee: ${feeNormalized}, Sender: ${transaction.senderId}, Recipient: ${transaction.recipientId}`);
 	library.balancesSequence.add(sequenceCb => {
 		library.modules.transactions.processUnconfirmedTransaction(
 			transaction,
