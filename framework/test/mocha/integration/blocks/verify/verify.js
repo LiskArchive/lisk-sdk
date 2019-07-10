@@ -14,7 +14,6 @@
 
 'use strict';
 
-const util = require('util');
 const crypto = require('crypto');
 const { transfer } = require('@liskhq/lisk-transactions');
 const _ = require('lodash');
