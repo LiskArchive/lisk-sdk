@@ -4,9 +4,9 @@ exports[`Application #constructor should set internal variables 1`] = `
 Object {
   "app": Object {
     "genesisConfig": Object {
-      "BLOCK_TIME": 2,
+      "BLOCK_TIME": 10,
       "EPOCH_TIME": "2016-05-24T17:00:00.000Z",
-      "MAX_TRANSACTIONS_PER_BLOCK": 150,
+      "MAX_TRANSACTIONS_PER_BLOCK": 25,
       "REWARDS": Object {
         "DISTANCE": 3000000,
         "MILESTONES": Array [
