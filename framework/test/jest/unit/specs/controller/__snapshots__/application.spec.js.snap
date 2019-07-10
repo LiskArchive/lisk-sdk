@@ -4,9 +4,9 @@ exports[`Application #constructor should set internal variables 1`] = `
 Object {
   "app": Object {
     "genesisConfig": Object {
-      "BLOCK_TIME": 10,
+      "BLOCK_TIME": 2,
       "EPOCH_TIME": "2016-05-24T17:00:00.000Z",
-      "MAX_TRANSACTIONS_PER_BLOCK": 25,
+      "MAX_TRANSACTIONS_PER_BLOCK": 150,
       "REWARDS": Object {
         "DISTANCE": 3000000,
         "MILESTONES": Array [
@@ -20,12 +20,12 @@ Object {
       },
     },
     "ipc": Object {
-      "enabled": false,
+      "enabled": true,
     },
-    "label": "jest-unit",
+    "label": "devnet",
     "minVersion": "1.0.0",
-    "protocolVersion": "1.0",
-    "version": "1.6.0",
+    "protocolVersion": "1.1",
+    "version": "2.1.0",
   },
   "components": Object {
     "cache": Object {
