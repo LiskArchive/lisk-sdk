@@ -15,7 +15,11 @@
 'use strict';
 
 const localCommon = require('./../common');
-const BAT = require('../../common/utils/blocks_and_transactions_helper');
+const {
+	BAT,
+	TYPE,
+	EXPECT,
+} = require('../../common/utils/blocks_and_transactions_helper');
 
 describe('blocks processing & transactions pool consistency', () => {
 	let library;
@@ -30,29 +34,29 @@ describe('blocks processing & transactions pool consistency', () => {
 				const bat = new BAT(library);
 
 				// Credit random account with 1 LSK and forge a block
-				await bat.creditRandomAccountAndForge(1);
+				await bat.initAccountAndCredit({ amount: 1 });
 
 				// Prepare transactions and expectations
-				bat.add(0.6, BAT.TYPE.DEBIT, BAT.EXPECT.OK); // Account balance after: 0.3 LSK
-				bat.add(0.4, BAT.TYPE.DEBIT, BAT.EXPECT.FAIL); // Account balance after: -0.2 LSK
-				bat.add(0.3, BAT.TYPE.CREDIT, BAT.EXPECT.OK); // Account balance after: 0.3 LSK
-				bat.add(0.1, BAT.TYPE.DEBIT, BAT.EXPECT.OK); // Account balance after: 0.1 LSK
+				bat.add(0.6, TYPE.SPEND, EXPECT.OK); // Account balance after: 0.3 LSK
+				bat.add(0.4, TYPE.SPEND, EXPECT.FAIL); // Account balance after: -0.2 LSK
+				bat.add(0.3, TYPE.RECEIVED, EXPECT.OK); // Account balance after: 0.3 LSK
+				bat.add(0.1, TYPE.SPEND, EXPECT.OK); // Account balance after: 0.1 LSK
 
 				// Enqueue transactions and forge a block
-				await bat.enqueueTransactionsAndForge();
+				await bat.enqueueAllTransactionsAndForge();
 
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
-				expect(bat.getLastBlockTransactions()).to.deep.equal(
-					bat.getValidTransactionsSorted()
+				expect(bat.getTransactionsInLastBlock()).to.deep.equal(
+					bat.getValidSortedTransactions()
 				);
 
 				// There should be no transactions in transaction pool
 				expect(bat.getTransactionsInPool()).to.instanceof(Array);
-				expect(bat.getTransactionsInPool().length).to.eql(0);
+				expect(bat.getTransactionsInPool()).to.lengthOf(0);
 
 				// Credit new random account with 1 LSK and forge a block
-				await bat.creditRandomAccountAndForge(1);
+				await bat.initAccountAndCredit({ amount: 1 });
 				// Recreate existing transactions (new ID, same amount, TYPE, EXPECT)
 				bat.recreateTransactions();
 
@@ -67,7 +71,7 @@ describe('blocks processing & transactions pool consistency', () => {
 				expect(errors[0].id).to.be.equal(bat.getAllTransactions()[0].id);
 
 				// Credit new random account with 1 LSK and forge a block
-				await bat.creditRandomAccountAndForge(1);
+				await bat.initAccountAndCredit({ amount: 1 });
 				// Recreate existing transactions (new ID, same amount, TYPE, EXPECT)
 				// Only those with EXPECT.OK, transactions marked as EXPECT.FAIL are removed permanently
 				bat.recreateOnlyValidTransactions();
@@ -79,8 +83,8 @@ describe('blocks processing & transactions pool consistency', () => {
 				expect(errors).to.be.undefined;
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
-				expect(bat.getLastBlockTransactions()).to.deep.equal(
-					bat.getValidTransactionsSorted()
+				expect(bat.getTransactionsInLastBlock()).to.deep.equal(
+					bat.getValidSortedTransactions()
 				);
 			});
 
@@ -88,29 +92,29 @@ describe('blocks processing & transactions pool consistency', () => {
 				const bat = new BAT(library);
 
 				// Credit random account with 1 LSK and forge a block
-				await bat.creditRandomAccountAndForge(1);
+				await bat.initAccountAndCredit({ amount: 1 });
 
 				// Prepare transactions and expectations
-				bat.add(0.3, BAT.TYPE.CREDIT, BAT.EXPECT.OK); // Account balance after: 1 LSK
-				bat.add(0.6, BAT.TYPE.DEBIT, BAT.EXPECT.OK); // Account balance after: 0.3 LSK
-				bat.add(0.4, BAT.TYPE.DEBIT, BAT.EXPECT.FAIL); // Account balance after: -0.2 LSK
-				bat.add(0.1, BAT.TYPE.DEBIT, BAT.EXPECT.OK); // Account balance after: 0.1 LSK
+				bat.add(0.3, TYPE.RECEIVED, EXPECT.OK); // Account balance after: 1 LSK
+				bat.add(0.6, TYPE.SPEND, EXPECT.OK); // Account balance after: 0.3 LSK
+				bat.add(0.4, TYPE.SPEND, EXPECT.FAIL); // Account balance after: -0.2 LSK
+				bat.add(0.1, TYPE.SPEND, EXPECT.OK); // Account balance after: 0.1 LSK
 
 				// Enqueue transactions and forge a block
-				await bat.enqueueTransactionsAndForge();
+				await bat.enqueueAllTransactionsAndForge();
 
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
-				expect(bat.getLastBlockTransactions()).to.deep.equal(
-					bat.getValidTransactionsSorted()
+				expect(bat.getTransactionsInLastBlock()).to.deep.equal(
+					bat.getValidSortedTransactions()
 				);
 
 				// There should be no transactions in transaction pool
 				expect(bat.getTransactionsInPool()).to.instanceof(Array);
-				expect(bat.getTransactionsInPool().length).to.eql(0);
+				expect(bat.getTransactionsInPool()).to.lengthOf(0);
 
 				// Credit new random account with 1 LSK and forge a block
-				await bat.creditRandomAccountAndForge(1);
+				await bat.initAccountAndCredit({ amount: 1 });
 				// Recreate existing transactions (new ID, same amount, TYPE, EXPECT)
 				bat.recreateTransactions();
 
@@ -125,7 +129,7 @@ describe('blocks processing & transactions pool consistency', () => {
 				expect(errors[0].id).to.be.equal(bat.getAllTransactions()[1].id);
 
 				// Credit new random account with 1 LSK and forge a block
-				await bat.creditRandomAccountAndForge(1);
+				await bat.initAccountAndCredit({ amount: 1 });
 				// Recreate existing transactions (new ID, same amount, TYPE, EXPECT)
 				// Only those with EXPECT.OK, transactions marked as EXPECT.FAIL are removed permanently
 				bat.recreateOnlyValidTransactions();
@@ -137,8 +141,8 @@ describe('blocks processing & transactions pool consistency', () => {
 				expect(errors).to.be.undefined;
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
-				expect(bat.getLastBlockTransactions()).to.deep.equal(
-					bat.getValidTransactionsSorted()
+				expect(bat.getTransactionsInLastBlock()).to.deep.equal(
+					bat.getValidSortedTransactions()
 				);
 			});
 
@@ -146,30 +150,30 @@ describe('blocks processing & transactions pool consistency', () => {
 				const bat = new BAT(library);
 
 				// Credit random account with 1 LSK and forge a block
-				await bat.creditRandomAccountAndForge(1);
+				await bat.initAccountAndCredit({ amount: 1 });
 
 				// Prepare transactions and expectations
-				bat.add(0.3, BAT.TYPE.CREDIT, BAT.EXPECT.OK); // Account balance after: 1 LSK
-				bat.add(0.6, BAT.TYPE.DEBIT, BAT.EXPECT.OK); // Account balance after: 0.3 LSK
-				bat.add(0.4, BAT.TYPE.DEBIT, BAT.EXPECT.FAIL); // Account balance after: -0.2 LSK
-				bat.add(0.1, BAT.TYPE.DEBIT, BAT.EXPECT.OK); // Account balance after: 0.1 LSK
-				bat.add(0.1, BAT.TYPE.DEBIT, BAT.EXPECT.FAIL); // Account balance after: -0.1 LSK
+				bat.add(0.3, TYPE.RECEIVED, EXPECT.OK); // Account balance after: 1 LSK
+				bat.add(0.6, TYPE.SPEND, EXPECT.OK); // Account balance after: 0.3 LSK
+				bat.add(0.4, TYPE.SPEND, EXPECT.FAIL); // Account balance after: -0.2 LSK
+				bat.add(0.1, TYPE.SPEND, EXPECT.OK); // Account balance after: 0.1 LSK
+				bat.add(0.1, TYPE.SPEND, EXPECT.FAIL); // Account balance after: -0.1 LSK
 
 				// Enqueue transactions and forge a block
-				await bat.enqueueTransactionsAndForge();
+				await bat.enqueueAllTransactionsAndForge();
 
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
-				expect(bat.getLastBlockTransactions()).to.deep.equal(
-					bat.getValidTransactionsSorted()
+				expect(bat.getTransactionsInLastBlock()).to.deep.equal(
+					bat.getValidSortedTransactions()
 				);
 
 				// There should be no transactions in transaction pool
 				expect(bat.getTransactionsInPool()).to.instanceof(Array);
-				expect(bat.getTransactionsInPool().length).to.eql(0);
+				expect(bat.getTransactionsInPool()).to.lengthOf(0);
 
 				// Credit new random account with 1 LSK and forge a block
-				await bat.creditRandomAccountAndForge(1);
+				await bat.initAccountAndCredit({ amount: 1 });
 				// Recreate existing transactions (new ID, same amount, TYPE, EXPECT)
 				bat.recreateTransactions();
 
@@ -184,7 +188,7 @@ describe('blocks processing & transactions pool consistency', () => {
 				expect(errors[0].id).to.be.equal(bat.getAllTransactions()[1].id);
 
 				// Credit new random account with 1 LSK and forge a block
-				await bat.creditRandomAccountAndForge(1);
+				await bat.initAccountAndCredit({ amount: 1 });
 				// Recreate existing transactions (new ID, same amount, TYPE, EXPECT)
 				// Only those with EXPECT.OK, transactions marked as EXPECT.FAIL are removed permanently
 				bat.recreateOnlyValidTransactions();
@@ -196,8 +200,8 @@ describe('blocks processing & transactions pool consistency', () => {
 				expect(errors).to.be.undefined;
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
-				expect(bat.getLastBlockTransactions()).to.deep.equal(
-					bat.getValidTransactionsSorted()
+				expect(bat.getTransactionsInLastBlock()).to.deep.equal(
+					bat.getValidSortedTransactions()
 				);
 			});
 
@@ -205,17 +209,17 @@ describe('blocks processing & transactions pool consistency', () => {
 				const bat = new BAT(library);
 
 				// Credit random account with 1 LSK and forge a block
-				await bat.creditRandomAccountAndForge(1);
+				await bat.initAccountAndCredit({ amount: 1 });
 
 				// Prepare transactions and expectations
-				bat.add(0.3, BAT.TYPE.CREDIT, BAT.EXPECT.OK); // Account balance after: 1 LSK
-				bat.add(0.3, BAT.TYPE.DEBIT, BAT.EXPECT.OK); // Account balance after: 0.6 LSK
-				bat.add(0.1, BAT.TYPE.DEBIT, BAT.EXPECT.OK); // Account balance after: 0.2 LSK
-				bat.add(0.4, BAT.TYPE.DEBIT, BAT.EXPECT.FAIL); // Account balance after: -0.3
-				bat.add(0.6, BAT.TYPE.DEBIT, BAT.EXPECT.FAIL); // Account balance after: -1 LSK
+				bat.add(0.3, TYPE.RECEIVED, EXPECT.OK); // Account balance after: 1 LSK
+				bat.add(0.3, TYPE.SPEND, EXPECT.OK); // Account balance after: 0.6 LSK
+				bat.add(0.1, TYPE.SPEND, EXPECT.OK); // Account balance after: 0.2 LSK
+				bat.add(0.4, TYPE.SPEND, EXPECT.FAIL); // Account balance after: -0.3
+				bat.add(0.6, TYPE.SPEND, EXPECT.FAIL); // Account balance after: -1 LSK
 
 				// Enqueue transactions and forge a block
-				await bat.enqueueTransactionsAndForge();
+				await bat.enqueueAllTransactionsAndForge();
 
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
@@ -224,10 +228,10 @@ describe('blocks processing & transactions pool consistency', () => {
 
 				// There should be no transactions in transaction pool
 				expect(bat.getTransactionsInPool()).to.instanceof(Array);
-				expect(bat.getTransactionsInPool().length).to.eql(0);
+				expect(bat.getTransactionsInPool()).to.lengthOf(0);
 
 				// Credit new random account with 1 LSK and forge a block
-				await bat.creditRandomAccountAndForge(1);
+				await bat.initAccountAndCredit({ amount: 1 });
 				// Recreate existing transactions (new ID, same amount, TYPE, EXPECT)
 				bat.recreateTransactions();
 
@@ -243,7 +247,7 @@ describe('blocks processing & transactions pool consistency', () => {
 				expect(errors[0].id).to.be.equal(bat.getAllTransactions()[3].id);
 
 				// Credit new random account with 1 LSK and forge a block
-				await bat.creditRandomAccountAndForge(1);
+				await bat.initAccountAndCredit({ amount: 1 });
 				// Recreate existing transactions (new ID, same amount, TYPE, EXPECT)
 				// Only those with EXPECT.OK, transactions marked as EXPECT.FAIL are removed permanently
 				bat.recreateOnlyValidTransactions();
@@ -255,8 +259,8 @@ describe('blocks processing & transactions pool consistency', () => {
 				expect(errors).to.be.undefined;
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
-				expect(bat.getLastBlockTransactions()).to.deep.equal(
-					bat.getValidTransactionsSorted()
+				expect(bat.getTransactionsInLastBlock()).to.deep.equal(
+					bat.getValidSortedTransactions()
 				);
 			});
 		});
@@ -266,13 +270,13 @@ describe('blocks processing & transactions pool consistency', () => {
 				const bat = new BAT(library);
 
 				// Credit random account with 1 LSK and forge a block
-				await bat.creditRandomAccountAndForge(1);
+				await bat.initAccountAndCredit({ amount: 1 });
 
 				// Prepare transactions and expectations
-				bat.add(1, BAT.TYPE.DEBIT, BAT.EXPECT.FAIL); // Account balance after: -0.1 LSK
+				bat.add(1, TYPE.SPEND, EXPECT.FAIL); // Account balance after: -0.1 LSK
 
 				// Enqueue transactions and forge a block
-				let errors = await bat.enqueueTransactionsAndForge();
+				let errors = await bat.enqueueAllTransactionsAndForge();
 				// We expecting the block to fail at processing
 				expect(errors).to.be.equal(
 					`Transaction: ${
@@ -284,10 +288,10 @@ describe('blocks processing & transactions pool consistency', () => {
 
 				// There should be no transactions in transaction pool
 				expect(bat.getTransactionsInPool()).to.instanceof(Array);
-				expect(bat.getTransactionsInPool().length).to.eql(0);
+				expect(bat.getTransactionsInPool()).to.lengthOf(0);
 
 				// Credit new random account with 1 LSK and forge a block
-				await bat.creditRandomAccountAndForge(1);
+				await bat.initAccountAndCredit({ amount: 1 });
 				// Recreate existing transactions (new ID, same amount, TYPE, EXPECT)
 				bat.recreateTransactions();
 
@@ -304,7 +308,7 @@ describe('blocks processing & transactions pool consistency', () => {
 				expect(errors[0].id).to.be.equal(bat.getAllTransactions()[0].id);
 
 				// Credit new random account with 1 LSK and forge a block
-				await bat.creditRandomAccountAndForge(1);
+				await bat.initAccountAndCredit({ amount: 1 });
 				// Recreate existing transactions (new ID, same amount, TYPE, EXPECT)
 				// Only those with EXPECT.OK, transactions marked as EXPECT.FAIL are removed permanently
 				bat.recreateOnlyValidTransactions();
@@ -316,8 +320,8 @@ describe('blocks processing & transactions pool consistency', () => {
 				expect(errors).to.be.undefined;
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
-				expect(bat.getLastBlockTransactions()).to.deep.equal(
-					bat.getValidTransactionsSorted()
+				expect(bat.getTransactionsInLastBlock()).to.deep.equal(
+					bat.getValidSortedTransactions()
 				);
 			});
 
@@ -325,34 +329,34 @@ describe('blocks processing & transactions pool consistency', () => {
 				const bat = new BAT(library);
 
 				// Credit random account with 1 LSK and forge a block
-				await bat.creditRandomAccountAndForge(1);
+				await bat.initAccountAndCredit({ amount: 1 });
 
 				// Prepare transactions and expectations
-				bat.add(0.5, BAT.TYPE.DEBIT, BAT.EXPECT.OK); // Account balance after: 0.5 LSK
+				bat.add(0.5, TYPE.SPEND, EXPECT.OK); // Account balance after: 0.5 LSK
 				// Add some more transactions
 				const transactionsCount = 1000;
 				for (let i = 0; i < transactionsCount; i++) {
-					bat.add(0.5, BAT.TYPE.DEBIT, BAT.EXPECT.FAIL); // Account balance after: -0.1 LSK
+					bat.add(0.5, TYPE.SPEND, EXPECT.FAIL); // Account balance after: -0.1 LSK
 				}
 
 				// Enqueue transactions and forge a block
 				// FIXME: Here we have to call fillPool few times for next block to not be empty
-				await bat.enqueueTransactionsAndForge(
+				await bat.enqueueAllTransactionsAndForge(
 					Math.floor(transactionsCount / 25) + 1
 				);
 
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
-				expect(bat.getLastBlockTransactions()).to.deep.equal(
-					bat.getValidTransactionsSorted()
+				expect(bat.getTransactionsInLastBlock()).to.deep.equal(
+					bat.getValidSortedTransactions()
 				);
 
 				// There should be no transactions in transaction pool
 				expect(bat.getTransactionsInPool()).to.instanceof(Array);
-				expect(bat.getTransactionsInPool().length).to.eql(0);
+				expect(bat.getTransactionsInPool()).to.lengthOf(0);
 
 				// Credit new random account with 1 LSK and forge a block
-				await bat.creditRandomAccountAndForge(1);
+				await bat.initAccountAndCredit({ amount: 1 });
 				// Recreate existing transactions (new ID, same amount, TYPE, EXPECT)
 				bat.recreateTransactions();
 
@@ -365,7 +369,7 @@ describe('blocks processing & transactions pool consistency', () => {
 				);
 
 				// Credit new random account with 1 LSK and forge a block
-				await bat.creditRandomAccountAndForge(1);
+				await bat.initAccountAndCredit({ amount: 1 });
 				// Recreate existing transactions (new ID, same amount, TYPE, EXPECT)
 				// Only those with EXPECT.OK, transactions marked as EXPECT.FAIL are removed permanently
 				bat.recreateOnlyValidTransactions();
@@ -377,8 +381,8 @@ describe('blocks processing & transactions pool consistency', () => {
 				expect(errors).to.be.undefined;
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
-				expect(bat.getLastBlockTransactions()).to.deep.equal(
-					bat.getValidTransactionsSorted()
+				expect(bat.getTransactionsInLastBlock()).to.deep.equal(
+					bat.getValidSortedTransactions()
 				);
 			});
 		});

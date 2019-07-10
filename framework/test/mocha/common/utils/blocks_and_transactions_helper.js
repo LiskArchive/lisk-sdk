@@ -33,15 +33,15 @@ const { NORMALIZER } = global.__testContext.config;
 const addTransaction = util.promisify(localCommon.addTransaction);
 const fillPool = util.promisify(localCommon.fillPool);
 const forge = util.promisify(localCommon.forge);
-const transactionInPool = localCommon.transactionInPool;
+const isTransactionInPool = localCommon.transactionInPool;
 
 const addTransactionsAndForge = util.promisify(
 	localCommon.addTransactionsAndForge
 );
 
 const TYPE = {
-	CREDIT: createCreditTransaction,
-	DEBIT: createDebitTransaction,
+	RECEIVED: createCreditTransaction, // CREDIT
+	SPEND: createDebitTransaction, // DEBIT
 };
 
 const EXPECT = {
@@ -65,6 +65,13 @@ function createCreditTransaction(account, amount) {
 	});
 }
 
+const formatTransaction = t => ({
+	id: t.id,
+	amount: t.amount.toFixed(),
+	senderId: t.senderId,
+	recipientId: t.recipientId,
+});
+
 /**
  * Blocks and Transactions Helper
  */
@@ -72,22 +79,14 @@ class BAT {
 	constructor(library) {
 		this._library = library;
 		this._transactions = [];
+
+		this.promisifyProcessBlock = util.promisify(
+			this._library.modules.blocks.verify.processBlock
+		);
 	}
 
-	static get TYPE() {
-		return TYPE;
-	}
-
-	static get EXPECT() {
-		return EXPECT;
-	}
-
-	async creditRandomAccountAndForge(amount, account) {
-		if (account) {
-			this._account = account;
-		} else {
-			this._account = random.account();
-		}
+	async initAccountAndCredit({ amount, account }) {
+		this._account = account || random.account();
 		const transaction = createCreditTransaction(this._account, amount);
 		await addTransactionsAndForge(this._library, [transaction], 0);
 	}
@@ -110,50 +109,35 @@ class BAT {
 		return this._transactions.map(t => t.data);
 	}
 
-	getLastBlockTransactions() {
+	getTransactionsInLastBlock() {
 		const lastBlock = this._library.modules.blocks.lastBlock.get();
 
 		// We return only transaction ID, amount (in string format), sender and recipient
-		return lastBlock.transactions.map(t => ({
-			id: t.id,
-			amount: t.amount.toFixed(),
-			sender: t.senderId,
-			recipient: t.recipientId,
-		}));
+		return lastBlock.transactions.map(formatTransaction);
 	}
 
-	getValidTransactionsSorted() {
-		let validTransactions = this._transactions
+	getValidSortedTransactions() {
+		const validTransactions = this._transactions
 			// Get only transactions marked as valid
-			.filter(t => t.expect)
+			.filter(t => t.expect === EXPECT.OK)
 			// Amounts have to be instances of Bignum for sorting
 			.map(t => initTransaction.fromJson(t.data));
 
 		// Sort transactions the same way as they are sorted in a block
-		validTransactions = BlockLogic.sortTransactions(validTransactions);
+		const sortedTransactions = BlockLogic.sortTransactions(validTransactions);
 
 		// We return only transaction ID, amount (in string format), sender and recipient
-		return validTransactions.map(t => ({
-			id: t.id,
-			amount: t.amount.toFixed(),
-			sender: t.senderId,
-			recipient: t.recipientId,
-		}));
+		return sortedTransactions.map(formatTransaction);
 	}
 
 	getTransactionsInPool() {
 		// Get only transactions that exists in transaction pool
-		const transactionsInPool = this._transactions.filter(t =>
-			transactionInPool(this._library, t.data.id)
-		);
+		const transactionsInPool = this._transactions
+			.filter(t => isTransactionInPool(this._library, t.data.id))
+			.map(t => t.data);
 
 		// We return only transaction ID, amount (in string format), sender and recipient
-		return transactionsInPool.map(({ data: t }) => ({
-			id: t.id,
-			amount: t.amount.toFixed(),
-			sender: t.senderId,
-			recipient: t.recipientId,
-		}));
+		return transactionsInPool.map(formatTransaction);
 	}
 
 	async enqueueTransactions() {
@@ -162,7 +146,7 @@ class BAT {
 		);
 	}
 
-	async enqueueTransactionsAndForge(fillPoolCalls = 1) {
+	async enqueueAllTransactionsAndForge(fillPoolCalls = 1) {
 		try {
 			await this.enqueueTransactions();
 			await Promise.mapSeries(new Array(fillPoolCalls).fill(0), () =>
@@ -213,13 +197,9 @@ class BAT {
 	}
 
 	async createAndProcessBlock() {
-		const promisifyProcessBlock = util.promisify(
-			this._library.modules.blocks.verify.processBlock
-		);
-
 		try {
 			await this.createBlock();
-			return await promisifyProcessBlock(this._block, true, true);
+			return await this.promisifyProcessBlock(this._block, true, true);
 		} catch (err) {
 			return err;
 		}
@@ -227,7 +207,7 @@ class BAT {
 
 	getTotalSpending() {
 		const totalSpending = this._transactions
-			.filter(t => t.type === TYPE.DEBIT)
+			.filter(t => t.type === TYPE.SPEND)
 			.reduce((total, t) => {
 				return total.plus(t.data.amount).plus(t.data.fee);
 			}, new Bignum(0));
@@ -235,4 +215,10 @@ class BAT {
 	}
 }
 
-module.exports = BAT;
+module.exports = {
+	BAT,
+	TYPE,
+	EXPECT,
+	createCreditTransaction,
+	createDebitTransaction,
+};
