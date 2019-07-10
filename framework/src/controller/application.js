@@ -29,11 +29,7 @@ const Controller = require('./controller');
 const version = require('../version');
 const validator = require('./validator');
 const configurator = require('./default_configurator');
-const {
-	genesisBlockSchema,
-	constantsSchema,
-	applicationConfigSchema,
-} = require('./schema');
+const { genesisBlockSchema, constantsSchema } = require('./schema');
 
 const { createLoggerComponent } = require('../components/logger');
 
@@ -118,8 +114,6 @@ class Application {
 	 */
 	constructor(genesisBlock, config = {}) {
 		validator.validate(genesisBlockSchema, genesisBlock);
-
-		validator.validate(applicationConfigSchema, config);
 
 		// Don't change the object parameters provided
 		let appConfig = _.cloneDeep(config);

@@ -26,7 +26,6 @@ const {
 	SchemaValidationError,
 	genesisBlockSchema,
 	constantsSchema,
-	applicationConfigSchema,
 } = require('../../../../../src/controller/schema');
 
 jest.mock('../../../../../src/components/logger');
@@ -58,18 +57,6 @@ describe('Application', () => {
 				1,
 				genesisBlockSchema,
 				genesisBlock
-			);
-		});
-
-		it('should validate appConfig', () => {
-			// Act
-			const validateSpy = jest.spyOn(validator, 'validate');
-			new Application(genesisBlock, config);
-			// Assert
-			expect(validateSpy).toHaveBeenNthCalledWith(
-				2,
-				applicationConfigSchema,
-				config
 			);
 		});
 
