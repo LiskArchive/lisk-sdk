@@ -289,6 +289,7 @@ pipeline {
 				try {
 					nvm(getNodejsVersion()) {
 						sh '''
+						rm -rf ./.nyc_output; mkdir -p ./.nyc_output
 						rm -rf ci_nyc_output; mkdir -p ci_nyc_output
 						rm -rf ci_coverage; mkdir -p ci_coverage
 						cp -r coverage/coverage_mocha_unit/* ./ci_nyc_output

@@ -47,6 +47,7 @@ pipeline {
 		always {
 			script {
 				sh '''
+					rm -rf ./.nyc_output; mkdir -p ./.nyc_output
 					rm -rf ci_nyc_output; mkdir -p ci_nyc_output
 					rm -rf ci_coverage; mkdir -p ci_coverage
 					for d in elements/*; do
