@@ -323,7 +323,8 @@ describe('Integration tests for P2P library', () => {
 							wsPort: p2p.nodeInfo.wsPort,
 							height: 1000 + (p2p.nodeInfo.wsPort % NETWORK_START_PORT),
 							options: p2p.nodeInfo.options,
-						} as any);
+							protocolVersion: '1.1',
+						});
 					});
 
 					await wait(200);
