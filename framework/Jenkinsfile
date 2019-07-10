@@ -295,7 +295,7 @@ pipeline {
 						cp -r coverage/coverage_mocha_unit/* ./ci_nyc_output
 						cp coverage/coverage_jest_unit/coverage-final.json ./ci_nyc_output/coverage-framework-unit.json
 						npx nyc merge ./ci_nyc_output ci_coverage/coverage.json
-						npx nyc report --report-dir ci_coverage --reporter=text --reporter=cobertura
+						npx nyc report --report-dir=ci_coverage --reporter=text --reporter=cobertura
 						'''
 					}
 					cobertura coberturaReportFile: 'ci_coverage/cobertura-coverage.xml'
