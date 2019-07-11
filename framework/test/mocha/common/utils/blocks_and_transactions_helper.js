@@ -31,7 +31,6 @@ const InitTransaction = require('../../../../src/modules/chain/logic/init_transa
 const initTransaction = new InitTransaction({ registeredTransactions });
 const { NORMALIZER } = global.__testContext.config;
 const addTransaction = util.promisify(localCommon.addTransaction);
-const fillPool = util.promisify(localCommon.fillPool);
 const forge = util.promisify(localCommon.forge);
 const isTransactionInPool = localCommon.transactionInPool;
 
@@ -67,7 +66,7 @@ function createCreditTransaction(account, amount) {
 
 const formatTransaction = t => ({
 	id: t.id,
-	amount: t.amount.toFixed(),
+	amount: new Bignum(t.amount).toFixed(),
 	senderId: t.senderId,
 	recipientId: t.recipientId,
 });
@@ -82,6 +81,10 @@ class BAT {
 
 		this.promisifyProcessBlock = util.promisify(
 			this._library.modules.blocks.verify.processBlock
+		);
+
+		this.txPool = this._library.rewiredModules.transactions.__get__(
+			'__private.transactionPool'
 		);
 	}
 
@@ -109,6 +112,10 @@ class BAT {
 		return this._transactions.map(t => t.data);
 	}
 
+	cleanTransactions() {
+		this._transactions = [];
+	}
+
 	getTransactionsInLastBlock() {
 		const lastBlock = this._library.modules.blocks.lastBlock.get();
 
@@ -130,6 +137,14 @@ class BAT {
 		return sortedTransactions.map(formatTransaction);
 	}
 
+	isValidTransactionInPool() {
+		return (
+			this._transactions
+				.filter(t => t.expect === EXPECT.OK)
+				.filter(t => isTransactionInPool(this._library, t.data.id)).length > 0
+		);
+	}
+
 	getTransactionsInPool() {
 		// Get only transactions that exists in transaction pool
 		const transactionsInPool = this._transactions
@@ -146,16 +161,17 @@ class BAT {
 		);
 	}
 
-	async enqueueAllTransactionsAndForge(fillPoolCalls = 1) {
+	async enqueueAllTransactionsAndForge() {
 		try {
 			await this.enqueueTransactions();
-			await Promise.mapSeries(new Array(fillPoolCalls).fill(0), () =>
-				fillPool(this._library)
-			);
 			return await forge(this._library);
 		} catch (err) {
 			return err;
 		}
+	}
+
+	async forge() {
+		return forge(this._library);
 	}
 
 	recreateTransactions() {
