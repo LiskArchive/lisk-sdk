@@ -127,6 +127,10 @@ describe('peers', () => {
 		describe('when all CONNECTED peers match our broadhash', () => {
 			before(async () => {
 				channelMock.invoke
+					.withArgs('app:getApplicationState')
+					.returns({ broadhash: prefixedPeer.broadhash });
+
+				channelMock.invoke
 					.withArgs('network:getConnectedPeersCountByFilter')
 					.returns(2);
 				channelMock.invoke
@@ -136,8 +140,8 @@ describe('peers', () => {
 					.returns(2);
 			});
 
-			it('should call channel invoke twice', async () =>
-				expect(channelMock.invoke.calledTwice).to.be.true);
+			it('should call channel invoke thrice', async () =>
+				expect(channelMock.invoke.calledThrice).to.be.true);
 
 			it('should call channel invoke with action network:getConnectedPeersCountByFilter', async () =>
 				expect(
