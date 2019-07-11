@@ -148,8 +148,10 @@ describe('integration test (type 5) - dapp registrations with repeated values', 
 
 	describe('after forging one block', () => {
 		before(done => {
-			localCommon.forge(library, async () => {
-				done();
+			localCommon.fillPool(library, () => {
+				localCommon.forge(library, async () => {
+					done();
+				});
 			});
 		});
 

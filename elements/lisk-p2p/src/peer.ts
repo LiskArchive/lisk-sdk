@@ -43,17 +43,9 @@ import {
 	validateRPCRequest,
 } from './validation';
 
-// This interface is needed because pingTimeoutDisabled is missing from ClientOptions in socketcluster-client.
-interface ClientOptionsUpdated {
-	readonly hostname: string;
-	readonly port: number;
-	readonly query: string;
-	readonly autoConnect: boolean;
-	readonly autoReconnect: boolean;
-	readonly pingTimeoutDisabled: boolean;
-	readonly multiplex: boolean;
-	readonly ackTimeout?: number;
-	readonly connectTimeout?: number;
+interface ClientOptionsUpdated
+	extends socketClusterClient.SCClientSocket.ClientOptions {
+	readonly maxPayload?: number;
 }
 
 type SCClientSocket = socketClusterClient.SCClientSocket;
@@ -124,6 +116,7 @@ const convertNodeInfoToLegacyFormat = (
 export interface PeerConfig {
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
+	readonly wsMaxPayload?: number;
 }
 export interface PeerSockets {
 	readonly outbound?: SCClientSocket;
@@ -487,7 +480,7 @@ export class Peer extends EventEmitter {
 			multiplex: false,
 			autoConnect: false,
 			autoReconnect: false,
-			pingTimeoutDisabled: true,
+			maxPayload: this._peerConfig.wsMaxPayload,
 		};
 
 		const outboundSocket = socketClusterClient.create(clientOptions);
@@ -657,8 +650,8 @@ export interface PeerInfoAndOutboundConnection {
 export const connectAndRequest = async (
 	basicPeerInfo: P2PPeerInfo,
 	procedure: string,
-	nodeInfo?: P2PNodeInfo,
-	peerConfig?: PeerConfig,
+	nodeInfo: P2PNodeInfo,
+	peerConfig: PeerConfig,
 ): Promise<ConnectAndFetchResponse> =>
 	new Promise<ConnectAndFetchResponse>(
 		(resolve, reject): void => {
@@ -690,7 +683,7 @@ export const connectAndRequest = async (
 				multiplex: false,
 				autoConnect: false,
 				autoReconnect: false,
-				pingTimeoutDisabled: true,
+				maxPayload: peerConfig.wsMaxPayload,
 			};
 
 			const outboundSocket = socketClusterClient.create(clientOptions);
@@ -755,8 +748,8 @@ export const connectAndRequest = async (
 
 export const connectAndFetchPeerInfo = async (
 	basicPeerInfo: P2PPeerInfo,
-	nodeInfo?: P2PNodeInfo,
-	peerConfig?: PeerConfig,
+	nodeInfo: P2PNodeInfo,
+	peerConfig: PeerConfig,
 ): Promise<PeerInfoAndOutboundConnection> => {
 	try {
 		const { responsePacket, socket } = await connectAndRequest(

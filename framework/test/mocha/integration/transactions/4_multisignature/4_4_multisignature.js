@@ -92,8 +92,10 @@ describe('integration test (type 4) - double multisignature registrations', () =
 
 	describe('after forging one block', () => {
 		before(done => {
-			localCommon.forge(library, async () => {
-				done();
+			localCommon.fillPool(library, () => {
+				localCommon.forge(library, async () => {
+					done();
+				});
 			});
 		});
 

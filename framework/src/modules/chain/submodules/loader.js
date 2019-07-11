@@ -813,21 +813,28 @@ __private.loadBlocksFromNetwork = function(cb) {
 						modules.blocks.process.loadBlocksFromNetwork(
 							(loadBlocksFromNetworkErr, lastValidBlock) => {
 								if (loadBlocksFromNetworkErr) {
+									library.logger.debug(
+										loadBlocksFromNetworkErr instanceof Error
+											? loadBlocksFromNetworkErr
+											: new Error(loadBlocksFromNetworkErr),
+										'Chain recovery failed after failing to load blocks from the network'
+									);
 									// If comparison failed and current consensus is low - perform chain recovery
 									if (modules.peers.isPoorConsensus()) {
 										library.logger.debug(
 											'Perform chain recovery due to poor consensus'
 										);
 										return modules.blocks.chain.recoverChain(recoveryError => {
-											waterCb(
-												`Failed chain recovery after failing to load blocks while network consensus was low. ${recoveryError}`
+											if (recoveryError) {
+												return waterCb(
+													`Chain recovery failed after failing to load blocks while network consensus was low. ${recoveryError}`
+												);
+											}
+											return waterCb(
+												`Chain recovery failed chain recovery after failing to load blocks ${loadBlocksFromNetworkErr}`
 											);
 										});
 									}
-									library.logger.error(
-										'Failed to process block from network',
-										loadBlocksFromNetworkErr
-									);
 									return waterCb(
 										`Failed to load blocks from the network. ${loadBlocksFromNetworkErr}`
 									);

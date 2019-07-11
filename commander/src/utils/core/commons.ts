@@ -23,6 +23,7 @@ import {
 	POSTGRES_PORT,
 	REDIS_PORT,
 	RELEASE_URL,
+	SNAPSHOT_URL,
 	WS_PORTS,
 } from '../constants';
 import { exec, ExecResult } from '../worker-process';
@@ -53,6 +54,13 @@ export const liskLatestUrl = (url: string, network: NETWORK) =>
 	`${url}/${network}/latest.txt`;
 
 export const liskSnapshotUrl = (url: string, network: NETWORK): string => {
+	if (
+		!['testnet', 'mainnet'].includes(network.toLowerCase()) &&
+		url === SNAPSHOT_URL
+	) {
+		return '';
+	}
+
 	if (url && url.search(RELEASE_URL) >= 0 && url.search('db.gz') >= 0) {
 		return `${RELEASE_URL}/${network}/blockchain.db.gz`;
 	}
@@ -105,7 +113,7 @@ export const validURL = (url: string): void => {
 
 export const getSemver = (str: string): string => {
 	const exp = new RegExp(
-		/(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:[1-9]\d*|[\da-z-]*[a-z-][\da-z-]*)(?:\.(?:[1-9]\d*|[\da-z-]*[a-z-][\da-z-]*))*)?\.?(?:0|[1-9]\d*)?/,
+		/(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:[1-9]\d*|[\da-z-]*[a-z-][\da-z-]*)(?:\.(?:[1-9]\d*|[\da-z-]*[a-z][\da-z]*))*)?\.?(?:0|[1-9]\d*)?/,
 	);
 	const result = exp.exec(str) as ReadonlyArray<string>;
 
@@ -131,14 +139,10 @@ export const getVersionToInstall = async (
 	return version;
 };
 
-export const backupLisk = async (installDir: string): Promise<void> => {
-	fsExtra.emptyDirSync(defaultBackupPath);
-	const { stderr }: ExecResult = await exec(
-		`mv -f ${installDir} ${defaultBackupPath}`,
-	);
-	if (stderr) {
-		throw new Error(stderr);
-	}
+export const backupLisk = (installDir: string, instanceName: string): void => {
+	const backupPath = `${defaultBackupPath}/${instanceName}`;
+	fsExtra.removeSync(backupPath);
+	fsExtra.moveSync(installDir, backupPath);
 };
 
 export const upgradeLisk = async (
@@ -162,27 +166,22 @@ export const upgradeLisk = async (
 	if (stderr) {
 		throw new Error(stderr);
 	}
-
-	fsExtra.emptyDirSync(defaultBackupPath);
 };
 
 export const validateVersion = async (
-	network: NETWORK,
+	releaseUrl: string,
 	version: string,
 ): Promise<void> => {
 	if (!semver.valid(version)) {
-		throw new Error(
-			`Upgrade version: ${version} has invalid format, Please refer version from release url: ${RELEASE_URL}/${network}`,
-		);
+		throw new Error(`Upgrade version: ${version} has invalid semver format`);
 	}
 
-	const url = `${RELEASE_URL}/${network}/${version}`;
 	try {
-		await getLatestVersion(url);
+		await getLatestVersion(releaseUrl);
 	} catch (error) {
 		if (error.message === 'Request failed with status code 404') {
 			throw new Error(
-				`Upgrade version: ${version} doesn't exists in ${RELEASE_URL}/${network}`,
+				`Upgrade version: ${version} doesn't exists in ${RELEASE_URL}`,
 			);
 		}
 		throw new Error(error.message);
