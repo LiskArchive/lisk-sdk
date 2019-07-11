@@ -16,13 +16,13 @@
 
 const assert = require('assert');
 const {
-	BaseTransaction,
 	TransferTransaction,
 	SecondSignatureTransaction,
 	DelegateTransaction,
 	VoteTransaction,
 	MultisignatureTransaction,
 } = require('@liskhq/lisk-transactions');
+const { validator: liskValidator } = require('@liskhq/lisk-validator');
 const randomstring = require('randomstring');
 const _ = require('lodash');
 const Controller = require('./controller');
@@ -114,7 +114,10 @@ class Application {
 	 * @throws Framework.errors.SchemaValidationError
 	 */
 	constructor(genesisBlock, config = {}) {
-		validator.validate(genesisBlockSchema, genesisBlock);
+		const errors = liskValidator.validate(genesisBlockSchema, genesisBlock);
+		if (errors.length) {
+			throw errors;
+		}
 
 		// Don't change the object parameters provided
 		let appConfig = _.cloneDeep(config);
@@ -234,11 +237,6 @@ class Application {
 		assert(Transaction, 'Transaction implementation is required');
 
 		assert(
-			Transaction.prototype instanceof BaseTransaction,
-			'Transaction must extend BaseTransaction.'
-		);
-
-		assert(
 			Number.isInteger(Transaction.TYPE),
 			'Transaction type is required as an integer'
 		);
@@ -350,8 +348,8 @@ class Application {
 			{
 				components: this.config.components,
 				ipc: this.config.app.ipc,
-				initialState: this.config.initialState,
 			},
+			this.initialState,
 			this.logger
 		);
 		return this.controller.load(
@@ -406,7 +404,7 @@ class Application {
 			this.overrideModuleOptions(alias, appConfigToShareWithModules);
 		});
 
-		this.config.initialState = {
+		this.initialState = {
 			version: this.config.app.version,
 			minVersion: this.config.app.minVersion,
 			protocolVersion: this.config.app.protocolVersion,

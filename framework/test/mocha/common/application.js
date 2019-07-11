@@ -19,14 +19,11 @@ const rewire = require('rewire');
 const async = require('async');
 const _ = require('lodash');
 const { registeredTransactions } = require('./registered_transactions');
-const ed = require('../../../src/modules/chain/helpers/ed');
-const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
-const Sequence = require('../../../src/modules/chain/helpers/sequence');
+const jobsQueue = require('../../../src/modules/chain/utils/jobs_queue');
+const { Sequence } = require('../../../src/modules/chain/utils/sequence');
 const { BlockSlots } = require('../../../src/modules/chain/blocks/block_slots');
 const { createCacheComponent } = require('../../../src/components/cache');
 const { StorageSandbox } = require('./storage_sandbox');
-const { ZSchema } = require('../../../src/controller/validator');
-const initSteps = require('../../../src/modules/chain/init_steps');
 
 let currentAppScope;
 
@@ -126,20 +123,13 @@ async function __init(sandbox, initScope) {
 		const scope = _.merge(
 			{
 				lastCommit: '',
-				ed,
 				build: '',
 				config,
 				genesisBlock: { block: __testContext.config.genesisBlock },
 				registeredTransactions,
-				schema: new ZSchema(),
 				sequence: new Sequence({
 					onWarning(current) {
 						logger.warn('Main queue', current);
-					},
-				}),
-				balancesSequence: new Sequence({
-					onWarning(current) {
-						logger.warn('Balance queue', current);
 					},
 				}),
 				channel: {
@@ -166,11 +156,7 @@ async function __init(sandbox, initScope) {
 		await startStorage();
 		await cache.bootstrap();
 
-		scope.bus = await initSteps.createBus();
 		scope.modules = await initStepsForTest.initModules(scope);
-
-		// Fire onBind event in every module
-		scope.bus.message('bind', scope);
 
 		// Listen to websockets
 		// await scope.webSocket.listen();
@@ -186,8 +172,7 @@ async function __init(sandbox, initScope) {
 			return false;
 		};
 
-		// If bus is overridden, then we just return the scope, without waiting for genesisBlock
-		if (!initScope.waitForGenesisBlock || initScope.bus) {
+		if (!initScope.waitForGenesisBlock) {
 			scope.modules.delegates.onBlockchainReady = function() {};
 			return scope;
 		}
@@ -255,7 +240,20 @@ const initStepsForTest = {
 		const {
 			Rounds: RewiredRounds,
 		} = require('../../../src/modules/chain/rounds');
-		modules.rounds = new RewiredRounds(scope);
+		modules.rounds = new RewiredRounds({
+			channel: scope.channel,
+			components: {
+				logger: scope.components.logger,
+				storage: scope.components.storage,
+			},
+			slots: scope.slots,
+			config: {
+				exceptions: __testContext.config.modules.chain.exceptions,
+				constants: {
+					activeDelegates: __testContext.config.constants.ACTIVE_DELEGATES,
+				},
+			},
+		});
 		const { Blocks: RewiredBlocks } = rewire(
 			'../../../src/modules/chain/blocks'
 		);
@@ -281,9 +279,13 @@ const initStepsForTest = {
 			blockSlotWindow: __testContext.config.constants.BLOCK_SLOT_WINDOW,
 		});
 		scope.modules = modules;
-		const RewiredPeers = rewire('../../../src/modules/chain/submodules/peers');
-		scope.rewiredModules.peers = RewiredPeers;
-		modules.peers = new RewiredPeers(scope);
+		const { Peers } = rewire('../../../src/modules/chain/peers');
+		scope.peers = new Peers({
+			channel: scope.channel,
+			minBroadhashConsensus:
+				__testContext.config.constants.MIN_BROADHASH_CONSENSUS,
+			forgingForce: __testContext.config.modules.chain.forging.force,
+		});
 		const { TransactionPool: RewiredTransactionPool } = rewire(
 			'../../../src/modules/chain/transaction_pool'
 		);
@@ -306,20 +308,68 @@ const initStepsForTest = {
 				__testContext.config.modules.chain.broadcasts.broadcastInterval,
 			releaseLimit: __testContext.config.modules.chain.broadcasts.releaseLimit,
 		});
-		// TODO: remove rewiring
-		const RewiredLoader = rewire('../../../src/modules/chain/loader');
+		const { Loader: RewiredLoader } = rewire(
+			'../../../src/modules/chain/loader'
+		);
 		scope.rewiredModules.loader = RewiredLoader;
-		modules.loader = new RewiredLoader(scope);
+		modules.loader = new RewiredLoader({
+			channel: scope.channel,
+			logger: scope.components.logger,
+			storage: scope.components.storage,
+			cache: scope.components.cache,
+			sequence: scope.sequence,
+			genesisBlock: __testContext.config.genesisBlock,
+			transactionPoolModule: modules.transactionPool,
+			blocksModule: modules.blocks,
+			peersModule: modules.peers,
+			interfaceAdapters: modules.interfaceAdapters,
+			loadPerIteration:
+				__testContext.config.modules.chain.loading.loadPerIteration,
+			rebuildUpToRound:
+				__testContext.config.modules.chain.loading.rebuildUpToRound,
+			syncingActive: __testContext.config.modules.chain.syncing.active,
+		});
 		const { Forger: RewiredForge } = rewire(
 			'../../../src/modules/chain/forger'
 		);
 		scope.rewiredModules.forger = RewiredForge;
-		modules.forger = new RewiredForge(scope);
-		const RewiredTransport = rewire('../../../src/modules/chain/transport');
+		modules.forger = new RewiredForge({
+			channel: scope.channel,
+			logger: scope.components.logger,
+			storage: scope.components.storage,
+			slots: scope.slots,
+			roundsModule: modules.rounds,
+			transactionPoolModule: modules.transactionPool,
+			blocksModule: modules.blocks,
+			peersModule: modules.peers,
+			activeDelegates: __testContext.config.constants.ACTIVE_DELEGATES,
+			maxTransactionsPerBlock:
+				__testContext.config.constants.MAX_TRANSACTIONS_PER_BLOCK,
+			forgingDelegates: __testContext.config.modules.chain.forging.delegates,
+			forgingForce: __testContext.config.modules.chain.forging.force,
+			forgingDefaultPassword:
+				__testContext.config.modules.chain.forging.defaultPassword,
+		});
+		const { Transport: RewiredTransport } = rewire(
+			'../../../src/modules/chain/transport'
+		);
 		scope.rewiredModules.transport = RewiredTransport;
-		modules.transport = new RewiredTransport(scope);
-
-		scope.bus.registerModules(modules);
+		modules.transport = new RewiredTransport({
+			channel: scope.channel,
+			logger: scope.components.logger,
+			storage: scope.components.storage,
+			applicationState: scope.applicationState,
+			exceptions: __testContext.config.exceptions,
+			transactionPoolModule: modules.transactionPool,
+			blocksModule: modules.blocks,
+			loaderModule: modules.loader,
+			interfaceAdapters: modules.interfaceAdapters,
+			nonce: __testContext.config.app.nonce,
+			forgingForce: __testContext.config.modules.chain.forging.force,
+			broadcasts: __testContext.config.modules.chain.broadcasts,
+			maxSharedTransactions:
+				__testContext.config.constants.MAX_SHARED_TRANSACTIONS,
+		});
 
 		return modules;
 	},

@@ -162,7 +162,6 @@ function setMatcherAndRegisterTx(scope, transactionClass, matcher) {
 describe('matcher', () => {
 	let scope;
 	let transactionPool;
-	let receiveTransaction;
 	const randomAccount = randomUtil.account();
 	const genesisAccount = {
 		passphrase: accountFixtures.genesis.passphrase,
@@ -197,9 +196,6 @@ describe('matcher', () => {
 		registered transactions map so the CustomTransaction can be added with that
 		id. Type 7 is not used anyways. */
 		scope.modules.interfaceAdapters.transactions.transactionClassMap.delete(7);
-		receiveTransaction = scope.rewiredModules.transport.__get__(
-			'__private.receiveTransaction'
-		);
 		transactionPool = scope.modules.transactionPool;
 
 		// Define matcher property to be configurable so it can be overriden in the tests
@@ -247,7 +243,7 @@ describe('matcher', () => {
 
 			try {
 				// Act: simulate receiving transactions from another peer
-				await receiveTransaction(rawTransaction);
+				await scope.modules.transport._receiveTransaction(rawTransaction);
 
 				// Forces the test to fail if `receiveTransaction` doesn't throw
 				throw [new Error('receiveTransaction was not rejected')];
@@ -268,7 +264,7 @@ describe('matcher', () => {
 			setMatcherAndRegisterTx(scope, CustomTransationClass, () => true);
 			const jsonTransaction = createRawCustomTransaction(commonTransactionData);
 			// Act
-			await receiveTransaction(jsonTransaction);
+			await scope.modules.transport._receiveTransaction(jsonTransaction);
 
 			// Assert
 			expect(
@@ -278,54 +274,42 @@ describe('matcher', () => {
 	});
 
 	describe('when receiving a block from another peer', () => {
-		it('should reject the block if it contains disallowed transactions for the given block context', done => {
+		it('should reject the block if it contains disallowed transactions for the given block context', async () => {
 			// Arrange
 			setMatcherAndRegisterTx(scope, CustomTransationClass, () => false);
 			const jsonTransaction = createRawCustomTransaction(commonTransactionData);
-			createRawBlock(scope, [jsonTransaction], (err, rawBlock) => {
-				if (err) {
-					return done(err);
-				}
-
-				// Act: Simulate receiving a block from a peer
-				scope.modules.blocks.receiveBlockFromNetwork(rawBlock);
-				return scope.sequence.__tick(tickErr => {
-					if (tickErr) {
-						return done(tickErr);
+			const rawBlock = await new Promise((resolve, reject) => {
+				createRawBlock(scope, [jsonTransaction], (err, block) => {
+					if (err) {
+						return reject(err);
 					}
-					// Assert: received block should be accepted and set as the last block
-					expect(scope.modules.blocks.lastBlock.height).to.equal(1);
-
-					return done();
+					return resolve(block);
 				});
 			});
+			try {
+				await scope.modules.blocks.receiveBlockFromNetwork(rawBlock);
+			} catch (err) {
+				// Expected err
+			}
+			expect(scope.modules.blocks.lastBlock.height).to.equal(1);
 		});
 
-		it('should accept the block if it contains allowed transactions for the given block context', done => {
+		it('should accept the block if it contains allowed transactions for the given block context', async () => {
 			// Arrange
 			setMatcherAndRegisterTx(scope, CustomTransationClass, () => true);
 			const jsonTransaction = createRawCustomTransaction(commonTransactionData);
 
 			// TODO: Actually create
-
-			createBlock(scope, [jsonTransaction], (err, block) => {
-				if (err) {
-					return done(err);
-				}
-
-				// Act: Simulate receiving a block from a peer
-				scope.modules.blocks.receiveBlockFromNetwork(block);
-				return scope.sequence.__tick(tickErr => {
-					if (tickErr) {
-						return done(tickErr);
+			const newBlock = await new Promise((resolve, reject) => {
+				createBlock(scope, [jsonTransaction], (err, block) => {
+					if (err) {
+						return reject(err);
 					}
-
-					// Assert: received block should be accepted and set as the last block
-					expect(scope.modules.blocks.lastBlock.height).to.equal(2);
-
-					return done();
+					return resolve(block);
 				});
 			});
+			await scope.modules.blocks.receiveBlockFromNetwork(newBlock);
+			expect(scope.modules.blocks.lastBlock.height).to.equal(2);
 		});
 	});
 

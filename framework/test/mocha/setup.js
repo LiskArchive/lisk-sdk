@@ -14,7 +14,6 @@
 
 'use strict';
 
-require('colors');
 const mocha = require('mocha');
 const coMocha = require('co-mocha');
 const chai = require('chai');

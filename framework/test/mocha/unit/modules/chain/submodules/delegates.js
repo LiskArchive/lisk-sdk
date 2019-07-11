@@ -22,8 +22,6 @@ const {
 } = require('../../../../../../src/modules/chain/rounds/delegates');
 const { BlockSlots } = require('../../../../../../src/modules/chain/blocks');
 
-const exceptions = global.exceptions;
-
 describe('delegates', () => {
 	const slots = new BlockSlots({
 		epochTime: __testContext.config.constants.EPOCH_TIME,
@@ -50,6 +48,9 @@ describe('delegates', () => {
 		},
 	};
 
+	const exceptions = __testContext.config.modules.chain.exceptions;
+	const activeDelegates = __testContext.config.constants.ACTIVE_DELEGATES;
+
 	afterEach(async () => {
 		sinonSandbox.restore();
 	});
@@ -63,6 +64,10 @@ describe('delegates', () => {
 				logger: mockLogger,
 				storage: mockStorage,
 				slots,
+				constants: {
+					activeDelegates,
+				},
+				exceptions: __testContext.config.modules.chain.exceptions,
 			});
 		});
 
@@ -314,7 +319,7 @@ describe('delegates', () => {
 
 		it('should call Account.get with expected options', async () => {
 			// Act
-			await getKeysSortByVote(mockStorage, mockTX);
+			await getKeysSortByVote(mockStorage, activeDelegates, mockTX);
 			// Assert
 			expect(mockStorage.entities.Account.get).to.be.calledWithExactly(
 				{ isDelegate: true },
@@ -328,7 +333,11 @@ describe('delegates', () => {
 
 		it('should return publicKeys which obtained from storage account', async () => {
 			// Act
-			const publicKeys = await getKeysSortByVote(mockStorage, mockTX);
+			const publicKeys = await getKeysSortByVote(
+				mockStorage,
+				activeDelegates,
+				mockTX
+			);
 			expect(publicKeys).to.eql(['pk1', 'pk2']);
 		});
 	});
@@ -350,7 +359,7 @@ describe('delegates', () => {
 
 		it('should call Rounds.getDelegatesSnapshot with expected options', async () => {
 			// Act
-			await getDelegatesFromPreviousRound(mockStorage, mockTX);
+			await getDelegatesFromPreviousRound(mockStorage, activeDelegates, mockTX);
 			// Assert
 			expect(
 				mockStorage.entities.Round.getDelegatesSnapshot
@@ -361,6 +370,7 @@ describe('delegates', () => {
 			// Act
 			const publicKeys = await getDelegatesFromPreviousRound(
 				mockStorage,
+				activeDelegates,
 				mockTX
 			);
 			expect(publicKeys).to.eql(['pk1', 'pk2']);
@@ -377,7 +387,12 @@ describe('delegates', () => {
 				generatorPublicKey: 'pk_1',
 			};
 			// Act
-			const result = validateBlockSlot(mockBlock, slots, mockDelegateList);
+			const result = validateBlockSlot(
+				mockBlock,
+				slots,
+				mockDelegateList,
+				activeDelegates
+			);
 			// Assert
 			expect(result).to.be.true;
 		});
@@ -390,7 +405,13 @@ describe('delegates', () => {
 			};
 			// Act
 			expect(
-				validateBlockSlot.bind(null, mockBlock, slots, mockDelegateList)
+				validateBlockSlot.bind(
+					null,
+					mockBlock,
+					slots,
+					mockDelegateList,
+					activeDelegates
+				)
 			).to.throw('Failed to verify slot: 2');
 		});
 	});

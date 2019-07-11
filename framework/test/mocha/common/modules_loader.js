@@ -17,11 +17,9 @@
 const express = require('express');
 const randomstring = require('randomstring');
 const async = require('async');
-const Sequence = require('../../../src/modules/chain/helpers/sequence');
+const { Sequence } = require('../../../src/modules/chain/utils/sequence');
 const { createLoggerComponent } = require('../../../src/components/logger');
-const { ZSchema } = require('../../../src/controller/validator');
-const ed = require('../../../src/modules/chain/helpers/ed');
-const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
+const jobsQueue = require('../../../src/modules/chain/utils/jobs_queue');
 const Account = require('../../../src/modules/chain/rounds/account');
 
 // TODO: Remove this file
@@ -43,8 +41,6 @@ const modulesLoader = new function() {
 				sockets: express(),
 			},
 		},
-		schema: new ZSchema(),
-		ed,
 		bus: {
 			argsMessages: [],
 			message(...args) {
@@ -61,11 +57,6 @@ const modulesLoader = new function() {
 		sequence: new Sequence({
 			onWarning(current) {
 				this.logger.warn('Main queue', current);
-			},
-		}),
-		balancesSequence: new Sequence({
-			onWarning(current) {
-				this.logger.warn('Balance queue', current);
 			},
 		}),
 		channel: {
@@ -99,7 +90,6 @@ const modulesLoader = new function() {
 			case 'Account':
 				new Logic(
 					scope.components.storage,
-					scope.schema,
 					scope.components.logger,
 					scope.modules.rounds
 				);
@@ -108,17 +98,13 @@ const modulesLoader = new function() {
 				async.waterfall(
 					[
 						function(waterCb) {
-							new Account(
-								scope.components.storage,
-								scope.schema,
-								scope.components.logger
-							);
+							new Account(scope.components.storage, scope.components.logger);
 
 							return waterCb();
 						},
 					],
 					() => {
-						new Logic(scope.ed, scope.schema, this.transactions, cb);
+						new Logic(scope.ed, this.transactions, cb);
 					}
 				);
 				break;
@@ -218,7 +204,6 @@ const modulesLoader = new function() {
 					delegates: require('../../../src/modules/chain/rounds/delegates'),
 				},
 				{ loader: require('../../../src/modules/chain/loader') },
-				{ peers: require('../../../src/modules/chain/submodules/peers') },
 				{ rounds: require('../../../src/modules/chain/rounds/rounds') },
 				{
 					transport: require('../../../src/modules/chain/transport'),

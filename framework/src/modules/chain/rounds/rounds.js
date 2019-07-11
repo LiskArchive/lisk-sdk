@@ -24,7 +24,6 @@ const Round = require('./round');
 
 // Private fields
 let library;
-const { ACTIVE_DELEGATES } = global.constants;
 const __private = {};
 
 __private.loaded = false;
@@ -37,7 +36,6 @@ __private.ticking = false;
  * @memberof modules
  * @see Parent: {@link modules}
  * @requires async
- * @requires logic/round
  * @param {function} cb - Callback function
  * @param {scope} scope - App instance
  * @returns {setImmediateCallback} cb, null, self
@@ -48,19 +46,15 @@ class Rounds {
 		library = {
 			channel: scope.channel,
 			logger: scope.components.logger,
-			logic: scope.logic,
-			bus: scope.bus,
 			storage: scope.components.storage,
 			slots: scope.slots,
-			schema: scope.schema,
+			exceptions: scope.config.exceptions,
+			constants: {
+				activeDelegates: scope.config.constants.activeDelegates,
+			},
 		};
 		library.delegates = new Delegates(library);
-		library.account = new Account(
-			library.storage,
-			library.schema,
-			library.logger,
-			this
-		);
+		library.account = new Account(library.storage, library.logger, this);
 	}
 
 	/**
@@ -219,14 +213,14 @@ class Rounds {
 				.then(() => {
 					if (scope.finishRound) {
 						return promised.land().then(() => {
-							library.bus.message('finishRound', round);
+							library.channel.publish('chain:rounds:change', { number: round });
 						});
 					}
 					return true;
 				})
 				.then(() => {
 					// Check if we are one block before last block of round, if yes - perform round snapshot
-					if ((block.height + 1) % ACTIVE_DELEGATES === 0) {
+					if ((block.height + 1) % library.constants.activeDelegates === 0) {
 						library.logger.debug('Performing round snapshot...');
 
 						return t
@@ -353,18 +347,6 @@ class Rounds {
 	}
 
 	/**
-	 * Clear all cache entries related to delegate and emits a 'rounds/change' socket message.
-	 *
-	 * @param {number} round
-	 * @emits rounds/change
-	 * @todo Add description for the params
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	async onFinishRound(round) {
-		return library.channel.publish('chain:rounds:change', { number: round });
-	}
-
-	/**
 	 * Sets private constant loaded to true.
 	 *
 	 * @listens module:loader~event:blockchainReady
@@ -477,7 +459,7 @@ __private.sumRound = function(scope, cb, tx) {
 
 	return library.storage.entities.Round.summedRound(
 		scope.round,
-		ACTIVE_DELEGATES,
+		library.constants.activeDelegates,
 		tx
 	)
 		.then(rows => {

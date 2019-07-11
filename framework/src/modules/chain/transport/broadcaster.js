@@ -15,9 +15,7 @@
 'use strict';
 
 const _ = require('lodash');
-const jobsQueue = require('../helpers/jobs_queue');
-
-let library;
+const jobsQueue = require('../utils/jobs_queue');
 
 /**
  * Main Broadcaster logic.
@@ -28,7 +26,7 @@ let library;
  * @memberof logic
  * @see Parent: {@link logic}
  * @requires lodash
- * @requires helpers/jobs_queue
+ * @requires utils/jobs_queue
  * @param {Object} broadcasts
  * @param {boolean} force
  * @param {Transaction} transaction - Transaction instance
@@ -36,33 +34,15 @@ let library;
  * @todo Add description for the params
  */
 class Broadcaster {
-	constructor(
-		nonce,
-		broadcasts,
-		force,
-		transactionPool,
-		logger,
-		channel,
-		storage
-	) {
-		library = {
-			logger,
-			logic: {
-				transactionPool,
-			},
-			config: {
-				broadcasts,
-				forging: {
-					force,
-				},
-			},
-			storage,
-		};
-
+	constructor(nonce, broadcasts, transactionPool, logger, channel, storage) {
+		this.logger = logger;
+		this.transactionPool = transactionPool;
+		this.config = broadcasts;
+		this.channel = channel;
 		this.nonce = nonce;
+		this.storage = storage;
 
 		this.queue = [];
-		this.config = library.config.broadcasts;
 
 		// Broadcast routes
 		this.routes = [
@@ -78,16 +58,14 @@ class Broadcaster {
 			},
 		];
 
-		this.channel = channel;
-
-		if (broadcasts.active) {
+		if (this.config.active) {
 			jobsQueue.register(
 				'broadcasterReleaseQueue',
 				async () => this.releaseQueue(),
 				this.config.broadcastInterval
 			);
 		} else {
-			library.logger.info(
+			this.logger.info(
 				'Broadcasting data disabled by user through config.json'
 			);
 		}
@@ -135,53 +113,75 @@ class Broadcaster {
 	 * @todo Add description for the params
 	 */
 	async filterQueue() {
-		library.logger.debug(`Broadcasts before filtering: ${this.queue.length}`);
+		this.logger.debug(`Broadcasts before filtering: ${this.queue.length}`);
 
-		this.queue = await this.queue.reduce(async (prev, broadcast) => {
-			const filteredBroadcast = await prev;
+		const transactionIdsNotInPool = [];
+		this.queue = this.queue.filter(broadcast => {
 			if (broadcast.options.immediate) {
-				return filteredBroadcast;
+				return false;
 			}
 
 			if (broadcast.options.data) {
 				let transactionId;
 				if (broadcast.options.data.transaction) {
-					// Look for a transaction of a given "id" when broadcasting transactions
+					// Look for a transaction of a given "id"
 					transactionId = broadcast.options.data.transaction.id;
 				} else if (broadcast.options.data.signature) {
-					// Look for a corresponding "transactionId" of a given signature when broadcasting signatures
+					// Look for a corresponding "transactionId" of a given signature
 					transactionId = broadcast.options.data.signature.transactionId;
 				}
 				if (!transactionId) {
-					return filteredBroadcast;
+					return false;
 				}
 				// Broadcast if transaction is in transaction pool
-				if (library.logic.transactionPool.transactionInPool(transactionId)) {
-					filteredBroadcast.push(broadcast);
-					return filteredBroadcast;
+				if (!this.transactionPool.transactionInPool(transactionId)) {
+					transactionIdsNotInPool.push(transactionId);
 				}
-				// Don't broadcast if transaction is already confirmed
+				return true;
+			}
+			return true;
+		});
+
+		const persistedTransactionIds = (await Promise.all(
+			transactionIdsNotInPool.map(async transactionId => {
 				try {
-					const isPersisted = await library.storage.entities.Transaction.isPersisted(
+					const isPersisted = await this.storage.entities.Transaction.isPersisted(
 						{
 							id: transactionId,
 						}
 					);
-					if (!isPersisted) {
-						filteredBroadcast.push(broadcast);
-					}
-					return filteredBroadcast;
-				} catch (err) {
-					return filteredBroadcast;
+					return {
+						transactionId,
+						isPersisted,
+					};
+				} catch (e) {
+					// if there is an error for transaction id then remove it from the broadcasts
+					return {
+						transactionId,
+						isPersisted: true,
+					};
 				}
+			})
+		))
+			.filter(({ isPersisted }) => isPersisted)
+			.map(({ transactionId }) => transactionId);
+
+		this.queue = this.queue.filter(broadcast => {
+			if (broadcast.options.data) {
+				let transactionId;
+				if (broadcast.options.data.transaction) {
+					// Look for a transaction of a given "id"
+					transactionId = broadcast.options.data.transaction.id;
+				} else if (broadcast.options.data.signature) {
+					// Look for a corresponding "transactionId" of a given signature
+					transactionId = broadcast.options.data.signature.transactionId;
+				}
+				return !persistedTransactionIds.includes(transactionId);
 			}
+			return true;
+		});
 
-			filteredBroadcast.push(broadcast);
-
-			return filteredBroadcast;
-		}, []);
-
-		library.logger.debug(`Broadcasts after filtering: ${this.queue.length}`);
+		this.logger.debug(`Broadcasts after filtering: ${this.queue.length}`);
 
 		return null;
 	}
@@ -229,15 +229,15 @@ class Broadcaster {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	async releaseQueue() {
-		library.logger.trace('Releasing enqueued broadcasts');
+		this.logger.trace('Releasing enqueued broadcasts');
 
 		if (!this.queue.length) {
-			library.logger.trace('Queue empty');
+			this.logger.trace('Queue empty');
 			return null;
 		}
 		try {
 			await this.filterQueue();
-			const broadcasts = this.queue.splice(0, this.config.releaseLimit);
+			const broadcasts = this.queue.splice(0, this.broadcasts.releaseLimit);
 			const squashedBroadcasts = this.squashQueue(broadcasts);
 
 			await Promise.all(
@@ -246,11 +246,11 @@ class Broadcaster {
 				)
 			);
 
-			return library.logger.info(
+			return this.logger.info(
 				`Broadcasts released: ${squashedBroadcasts.length}`
 			);
 		} catch (err) {
-			library.logger.error('Failed to release broadcast queue', err);
+			this.logger.error('Failed to release broadcast queue', err);
 			throw err;
 		}
 	}
