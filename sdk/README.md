@@ -89,7 +89,7 @@ node index.js
 
 ### Configure your blockchain parameters
 
-You can also define your blockchain application parameters such as `block time`, `epoch time`, `max transactions per block` and more with an optional configurations object.
+You can also define your blockchain application parameters such as `BLOCK_TIME`, `EPOCH_TIME`, `MAX_TRANSACTIONS_PER_BLOCK` and more with an optional configurations object.
 
 ```js
 const app = new Application(genesisBlockDevnet, {
@@ -131,32 +131,6 @@ app
 ```
 
 For information on creating your own custom transaction, see the [lisk-docs repo](https://github.com/LiskHQ/lisk-docs/blob/development/start/custom-transactions.md) or [follow the tutorials](https://github.com/LiskHQ/lisk-docs/blob/development/start/tutorials/hello-world.md).
-
-### Registering a custom module
-
-You can [design and build custom modules with Lisk-SDK](https://github.com/LiskHQ/lisk-docs/blob/master/lisk-core/introduction.md#custom-modules).
-
-Add your own custom module to your blockchain application by registering it to the application instance:
-
-```js
-const { Application, genesisBlockDevnet } = require('lisk-sdk');
-
-const MyModule = require('./my_module');
-
-const app = new Application(genesisBlockDevnet);
-
-app.registerModule(MyModule); // register the custom module
-
-app
-	.run()
-	.then(() => app.logger.info('App started...'))
-	.catch(error => {
-		console.error('Faced error in application', error);
-		process.exit(1);
-	});
-```
-
-For information on creating your own custom module, see the [lisk-docs repo](https://github.com/LiskHQ/lisk-docs/blob/master/lisk-core/introduction.md#custom-modules).
 
 ## Get Involved
 
