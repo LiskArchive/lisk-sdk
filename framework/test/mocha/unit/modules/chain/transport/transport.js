@@ -618,6 +618,10 @@ describe('transport', () => {
 					transportModule.broadcaster = {
 						enqueue: sinonSandbox.stub(),
 					};
+					transportModule.channel = {
+						invoke: sinonSandbox.stub(),
+						publish: sinonSandbox.stub(),
+					};
 					transportModule.onUnconfirmedTransaction(transaction, true);
 				});
 
@@ -625,6 +629,10 @@ describe('transport', () => {
 					beforeEach(async () => {
 						transportModule.broadcaster = {
 							enqueue: sinonSandbox.stub(),
+						};
+						transportModule.channel = {
+							invoke: sinonSandbox.stub(),
+							publish: sinonSandbox.stub(),
 						};
 						transportModule.channel.invoke
 							.withArgs('lisk:getApplicationState')
