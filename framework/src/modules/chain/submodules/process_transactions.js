@@ -159,7 +159,7 @@ class ProcessTransactions {
 		await Promise.all(transactions.map(t => t.prepare(stateStore)));
 
 		// Verify total spending of per account accumulative
-		const transactionsResponseWithSpendingErrors = this._verifyTotalSpending(
+		const transactionsResponseWithSpendingErrors = ProcessTransactions.verifyTotalSpending(
 			transactions,
 			stateStore
 		);
@@ -329,10 +329,10 @@ class ProcessTransactions {
 	 * @param {Array.<Object>} transactions - List of transactions in a block
 	 * @param {StateStore} stateStore - State store instance with prepared account
 	 * @return {Array}
-	 * @private
+	 * @static
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	_verifyTotalSpending(transactions, stateStore) {
+	static verifyTotalSpending(transactions, stateStore) {
 		const spendingErrors = [];
 
 		// Group the transactions per senderId to calculate total spending
