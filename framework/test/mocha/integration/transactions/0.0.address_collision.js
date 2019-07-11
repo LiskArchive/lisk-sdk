@@ -115,7 +115,7 @@ describe('integration test (type 0) - address collision', () => {
 			before(done => {
 				localCommon.fillPool(library, () => {
 					localCommon.forge(library, (err, res) => {
-						expect(err).to.be.null;
+						expect(err).to.be.undefined;
 						expect(res).to.be.undefined;
 						done();
 					});
