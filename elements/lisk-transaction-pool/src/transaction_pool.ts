@@ -560,35 +560,32 @@ export class TransactionPool extends EventEmitter {
 			queueCheckers.checkTransactionForId(failedTransactions),
 		);
 
-		// Empty failed transactions list gurantees that all transactions can be processed together
-		// So move all passed transactions to the ready queue
-		if (failedTransactions.length === 0) {
-			// Keep transactions in the ready queue which still exist
-			this._queues.ready.enqueueMany(
-				this._queues.ready.removeFor(
-					queueCheckers.checkTransactionForId(passedTransactions),
-				),
-			);
+		// Move all passed transactions to the ready queue
+		// Keep transactions in the ready queue which still exist
+		this._queues.ready.enqueueMany(
+			this._queues.ready.removeFor(
+				queueCheckers.checkTransactionForId(passedTransactions),
+			),
+		);
 
-			// Move processeable transactions from the verified queue to the ready queue
-			this._queues.ready.enqueueMany(
-				this._queues.verified.removeFor(
-					queueCheckers.checkTransactionForId(passedTransactions),
-				),
-			);
+		// Move processeable transactions from the verified queue to the ready queue
+		this._queues.ready.enqueueMany(
+			this._queues.verified.removeFor(
+				queueCheckers.checkTransactionForId(passedTransactions),
+			),
+		);
 
-			// Move processable transactions from the pending queue to the ready queue
-			this._queues.ready.enqueueMany(
-				this._queues.pending.removeFor(
-					queueCheckers.checkTransactionForId(passedTransactions),
-				),
-			);
+		// Move processable transactions from the pending queue to the ready queue
+		this._queues.ready.enqueueMany(
+			this._queues.pending.removeFor(
+				queueCheckers.checkTransactionForId(passedTransactions),
+			),
+		);
 
-			this.emit(EVENT_REMOVED_TRANSACTIONS, {
-				action: ACTION_PROCESS_VERIFIED_TRANSACTIONS,
-				payload: removedTransactions,
-			});
-		}
+		this.emit(EVENT_REMOVED_TRANSACTIONS, {
+			action: ACTION_PROCESS_VERIFIED_TRANSACTIONS,
+			payload: removedTransactions,
+		});
 
 		return {
 			passedTransactions,
