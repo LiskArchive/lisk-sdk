@@ -134,6 +134,105 @@ describe('loader', () => {
 		});
 	});
 
+	describe('__private.loadBlocksFromNetwork', () => {
+		let loggerStub;
+		let poorConsensusStub;
+		let restoreLogger;
+		const loadBlockModulesError = new Error(
+			'Error occurred while loading blocks'
+		);
+		const chainRecoveryFailError =
+			'Chain recovery failed chain recovery after failing to load blocks';
+
+		beforeEach(async () => {
+			loggerStub = {
+				error: sinonSandbox.stub(),
+				debug: sinonSandbox.stub(),
+			};
+			poorConsensusStub = sinonSandbox
+				.stub(library.modules.peers, 'isPoorConsensus')
+				.resolves(true);
+			restoreLogger = library.rewiredModules.loader.__set__(
+				'library.logger',
+				loggerStub
+			);
+		});
+
+		afterEach(async () => {
+			poorConsensusStub.restore();
+			restoreLogger();
+		});
+
+		describe('when modules.blocks.process.loadBlocksFromNetwork throws an error', () => {
+			let loadBlocksFromNetworkBlocksModule;
+			let recoverChainStub;
+			let lastBlockGetStub;
+
+			beforeEach(async () => {
+				lastBlockGetStub = sinonSandbox
+					.stub(library.modules.blocks.lastBlock, 'get')
+					.resolves({});
+				loadBlocksFromNetworkBlocksModule = sinonSandbox
+					.stub(library.modules.blocks.process, 'loadBlocksFromNetwork')
+					.callsArgWith(0, loadBlockModulesError, {});
+				recoverChainStub = sinonSandbox
+					.stub(library.modules.blocks.chain, 'recoverChain')
+					.callsArgWith(0, null, true);
+			});
+
+			afterEach(async () => {
+				loadBlocksFromNetworkBlocksModule.restore();
+				recoverChainStub.restore();
+				lastBlockGetStub.restore();
+			});
+
+			it('should throw error when modules.blocks.process.loadBlocksFromNetwork fails and logs it', done => {
+				__private.loadBlocksFromNetwork(() => {
+					expect(loggerStub.error).to.be.calledWith(
+						`${chainRecoveryFailError} Error: ${loadBlockModulesError.message}`
+					);
+					done();
+				});
+			});
+		});
+
+		describe('when modules.blocks.chain.recoverChain throws an error', () => {
+			const chainRecoveryErrorMessage =
+				'Chain recovery failed after failing to load blocks while network consensus was low.';
+			const recoverChainError = new Error('Error While Recovery');
+			let loadBlocksFromNetworkBlocksModule;
+			let recoverChainStub;
+			let lastBlockGetStub;
+
+			beforeEach(async () => {
+				lastBlockGetStub = sinonSandbox
+					.stub(library.modules.blocks.lastBlock, 'get')
+					.resolves({});
+				loadBlocksFromNetworkBlocksModule = sinonSandbox
+					.stub(library.modules.blocks.process, 'loadBlocksFromNetwork')
+					.callsArgWith(0, loadBlockModulesError, {});
+				recoverChainStub = sinonSandbox
+					.stub(library.modules.blocks.chain, 'recoverChain')
+					.callsArgWith(0, recoverChainError);
+			});
+
+			afterEach(async () => {
+				loadBlocksFromNetworkBlocksModule.restore();
+				recoverChainStub.restore();
+				lastBlockGetStub.restore();
+			});
+
+			it('should throw error returned by modules.blocks.chain.recoverChain', done => {
+				__private.loadBlocksFromNetwork(() => {
+					expect(loggerStub.error).to.be.calledWith(
+						`${chainRecoveryErrorMessage} Error: ${recoverChainError.message}`
+					);
+					done();
+				});
+			});
+		});
+	});
+
 	describe('__private.rebuildAccounts', () => {
 		let __privateVar;
 		let libraryVar;
