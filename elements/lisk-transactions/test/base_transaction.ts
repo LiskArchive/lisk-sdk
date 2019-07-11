@@ -119,6 +119,12 @@ describe('Base transaction class', () => {
 				.and.be.instanceof(BigNum);
 		});
 
+		it('should have default fee if fee param is invalid', async () => {
+			const transactionWithInvalidFee = new TestTransaction({ fee: 'invalid' });
+
+			expect(transactionWithInvalidFee.fee.toString()).to.be.eql('10000000');
+		});
+
 		it('should have id string', async () => {
 			expect(validTestTransaction)
 				.to.have.property('id')
