@@ -53,11 +53,38 @@ describe('blocks/chain', () => {
 	const blockWithTransactions = {
 		id: 3,
 		height: 3,
+		version: 1,
+		totalAmount: 0,
+		totalFee: 10,
+		reward: 100,
+		generatorPublicKey:
+		'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
 		transactions: transactionsForBlock.map(transaction =>
 			interfaceAdapters.transactions.fromJson(transaction)
 		),
 	};
 
+	const block1 = {
+		id: 2,
+		height: 2,
+		version: 1,
+		totalAmount: 0,
+		totalFee: 10,
+		reward: 100,
+		generatorPublicKey:
+		'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
+	};
+
+	const block2 = {
+		id: 3,
+		height: 3,
+		version: 1,
+		totalAmount: 0,
+		totalFee: 10,
+		reward: 100,
+		generatorPublicKey:
+		'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a9',
+	};
 	const transactionsForGenesisBlock = [
 		new Transaction({ type: 3 }),
 		new Transaction({ type: 2 }),
@@ -68,8 +95,8 @@ describe('blocks/chain', () => {
 		id: 1,
 		height: 1,
 		transactions: transactionsForGenesisBlock.map(transaction =>
-			interfaceAdapters.transactions.fromJson(transaction)
-		),
+		interfaceAdapters.transactions.fromJson(transaction)
+	),
 	};
 
 	beforeEach(async () => {
@@ -84,6 +111,9 @@ describe('blocks/chain', () => {
 					isPersisted: sinonSandbox.stub(),
 					create: sinonSandbox.stub(),
 					delete: sinonSandbox.stub(),
+				},
+				BlockTemp: {
+					create: sinonSandbox.stub(),
 				},
 				Transaction: {
 					create: sinonSandbox.stub(),
@@ -649,28 +679,6 @@ describe('blocks/chain', () => {
 	});
 
 	describe('popLastBlock', () => {
-		describe('when storageStub.entities.Block.begin fails', () => {
-			beforeEach(async () => {
-				storageStub.entities.Block.begin.rejects(new Error('db-tx_ERR'));
-			});
-
-			it('should call a callback with proper error message', async () => {
-				try {
-					await blocksChainModule.popLastBlock(
-						storageStub,
-						interfaceAdapters,
-						genesisBlockWithTransactions,
-						roundsModuleStub,
-						slots,
-						blockWithTransactions,
-						exceptions
-					);
-				} catch (error) {
-					expect(error.message).to.eql('db-tx_ERR');
-				}
-			});
-		});
-
 		describe('when storageStub.entities.Block.begin passes', () => {
 			let stateStoreStub;
 
@@ -695,18 +703,7 @@ describe('blocks/chain', () => {
 				storageStub.entities.Block.begin.resolves(true);
 				storageStub.entities.Block.begin.resolves('savedBlock');
 				storageStub.entities.Block.get.resolves([
-					{
-						id: 2,
-						height: 2,
-						generatorPublicKey:
-							'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
-					},
-					{
-						id: 3,
-						height: 3,
-						generatorPublicKey:
-							'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a9',
-					},
+					block1, block2
 				]);
 			});
 
@@ -724,6 +721,39 @@ describe('blocks/chain', () => {
 		});
 	});
 
+	describe('deleteLastBlockAndStoreInTemp', () => {
+		it('should throw with "Cannot delete genesis block"', async () => {
+			try {
+				await blocksChain.deleteLastBlockAndStoreInTemp(genesisBlockWithTransactions);
+			} catch (err) {
+				expect(err.message).to.equal('Cannot delete genesis block');
+			}
+		});
+
+		it('should not create entry in the block_temp table in case of error', async () => {
+			try {
+				await blocksChain.deleteLastBlockAndStoreInTemp(genesisBlockWithTransactions);
+			} catch (err) {
+				expect(storageStub.entities.BlockTemp.create).to.not.be.called;
+			}
+		});
+
+		describe('when pop succeeds', () => {
+			beforeEach(async () => {
+				sinonSandbox.stub(blocksChain, 'deleteLastBlock').returns(blockWithTransactions);
+			});
+
+			it('call BlockTemp with correct params', async () => {
+				await blocksChain.deleteLastBlockAndStoreInTemp(block1);
+				expect(storageStub.entities.BlockTemp.create).to.be.calledWith({
+					height: block1.height,
+					id: block1.id,
+					fullBlock: block1,
+				});
+			});
+		});
+	});
+
 	describe('deleteLastBlock', () => {
 		describe('when lastBlock.height = 1', () => {
 			it('should call a callback with error "Cannot delete genesis block', async () => {
@@ -737,7 +767,6 @@ describe('blocks/chain', () => {
 
 		describe('when lastBlock.height != 1', () => {
 			let stateStoreStub;
-
 			beforeEach(async () => {
 				stateStoreStub = {
 					account: {
@@ -763,31 +792,25 @@ describe('blocks/chain', () => {
 						id: 2,
 						height: 2,
 						generatorPublicKey:
-							'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
+						'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
 					},
 					{
 						id: 3,
 						height: 3,
 						generatorPublicKey:
-							'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a9',
+						'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a9',
 					},
 				]);
 			});
 
 			describe('when popLastBlock fails', () => {
-				beforeEach(async () => {
-					storageStub.entities.Block.begin.rejects(
-						new Error('popLastBlock-ERR')
-					);
-				});
-
 				it('should rejects with the error', async () => {
 					try {
 						await blocksChain.deleteLastBlock({
 							id: 3,
 							height: 3,
 							generatorPublicKey:
-								'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a9',
+							'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a9',
 						});
 					} catch (err) {
 						expect(err.message).to.equal('popLastBlock-ERR');
@@ -795,7 +818,6 @@ describe('blocks/chain', () => {
 				});
 			});
 
-			// TODO: add new tests once improve_transaction_eficiency is done
 			describe('when popLastBlock succeeds', () => {
 				/* eslint-disable mocha/no-pending-tests */
 				it('should return previousBlock');

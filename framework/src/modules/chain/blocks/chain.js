@@ -141,16 +141,47 @@ class BlocksChain {
 		if (lastBlock.height === 1) {
 			throw new Error('Cannot delete genesis block');
 		}
-		const previousBlock = await popLastBlock(
-			this.storage,
-			this.interfaceAdapters,
-			this.genesisBlock,
-			this.roundsModule,
-			this.slots,
-			lastBlock,
-			this.exceptions
-		);
-		return previousBlock;
+		return this.storage.entities.Block.begin('Chain:deleteBlock', async tx => {
+			const previousBlock = await popLastBlock(
+				this.storage,
+				this.interfaceAdapters,
+				this.genesisBlock,
+				this.roundsModule,
+				this.slots,
+				lastBlock,
+				this.exceptions,
+				tx
+			);
+			return previousBlock;
+		});
+	}
+
+	async deleteLastBlockAndStoreInTemp(lastBlock) {
+		if (lastBlock.height === 1) {
+			throw new Error('Cannot delete genesis block');
+		}
+		return this.storage.entities.Block.begin('Chain:deleteBlockAndStoreInTemp', async tx => {
+			const previousBlock = await popLastBlock(
+				this.storage,
+				this.interfaceAdapters,
+				this.genesisBlock,
+				this.roundsModule,
+				this.slots,
+				lastBlock,
+				this.exceptions,
+				tx
+			);
+			const parsedDeletedBlock = parseBlockToJson(lastBlock);
+			const blockTempEntry = {
+				id: parsedDeletedBlock.id,
+				height: parsedDeletedBlock.height,
+				fullBlock: parsedDeletedBlock,
+			};
+			console.log('deleteLastBlockAndStoreInTemp');
+			console.log(blockTempEntry);
+			await this.storage.entities.BlockTemp.create(blockTempEntry, {}, tx);
+			return previousBlock;
+		});
 	}
 }
 
@@ -162,7 +193,7 @@ const saveBlockBatch = async (storage, parsedBlock, saveBlockBatchTx) => {
 	if (parsedBlock.transactions.length) {
 		promises.push(
 			storage.entities.Transaction.create(
-				parsedBlock.transactions.map(transaction => transaction.toJSON()),
+				parsedBlock.transactions,
 				{},
 				saveBlockBatchTx
 			)
@@ -173,15 +204,12 @@ const saveBlockBatch = async (storage, parsedBlock, saveBlockBatchTx) => {
 };
 
 /**
- * Save block with transactions to database.
- *
- * @param {Object} block - Full normalized block
- * @param {function} cb - Callback function
- * @returns {Function|afterSave} cb - If SQL transaction was OK - returns safterSave execution, if not returns callback function from params (through setImmediate)
- * @returns {string} cb.err - Error if occurred
+ * Parse the JS object of block into a json object
+ * @param {Object} block - Full block
+ * @param {Object} jsonBlock - Full normalized block
  */
-const saveBlock = async (storage, block, tx) => {
-	// Parse block data to storage module
+const parseBlockToJson = block => {
+	// Parse block data to json
 	const parsedBlock = cloneDeep(block);
 	if (parsedBlock.reward) {
 		parsedBlock.reward = parsedBlock.reward.toString();
@@ -195,10 +223,27 @@ const saveBlock = async (storage, block, tx) => {
 	parsedBlock.previousBlockId = parsedBlock.previousBlock;
 	delete parsedBlock.previousBlock;
 
-	parsedBlock.transactions.map(transaction => {
+	parsedBlock.transactions.forEach(transaction => {
 		transaction.blockId = parsedBlock.id;
 		return transaction;
 	});
+
+	parsedBlock.transactions = parsedBlock.transactions.map(transaction => transaction.toJSON());
+
+	return parsedBlock;
+};
+
+
+/**
+ * Save block with transactions to database.
+ *
+ * @param {Object} block - Full normalized block
+ * @param {function} cb - Callback function
+ * @returns {Function|afterSave} cb - If SQL transaction was OK - returns safterSave execution, if not returns callback function from params (through setImmediate)
+ * @returns {string} cb.err - Error if occurred
+ */
+const saveBlock = async (storage, block, tx) => {
+	const parsedBlock = parseBlockToJson(block);
 
 	// If there is already a running transaction use it
 	if (tx) {
@@ -416,29 +461,29 @@ const popLastBlock = async (
 	roundsModule,
 	slots,
 	oldLastBlock,
-	exceptions
-) =>
-	storage.entities.Block.begin('Chain:deleteBlock', async tx => {
-		const [storageResult] = await storage.entities.Block.get(
-			{ id: oldLastBlock.previousBlock },
-			{ extended: true },
-			tx
-		);
+	exceptions,
+	tx
+) => {
+	const [storageResult] = await storage.entities.Block.get(
+		{ id: oldLastBlock.previousBlock },
+		{ extended: true },
+		tx
+	);
 
-		if (!storageResult) {
-			throw new Error('PreviousBlock is null');
-		}
+	if (!storageResult) {
+		throw new Error('PreviousBlock is null');
+	}
 
-		const secondLastBlock = storageRead(storageResult);
-		secondLastBlock.transactions = interfaceAdapters.transactions.fromBlock(
-			secondLastBlock
-		);
+	const secondLastBlock = storageRead(storageResult);
+	secondLastBlock.transactions = interfaceAdapters.transactions.fromBlock(
+		secondLastBlock
+	);
 
-		await undoConfirmedStep(storage, slots, oldLastBlock, exceptions, tx);
-		await backwardTickStep(roundsModule, oldLastBlock, secondLastBlock, tx);
-		await deleteBlock(storage, oldLastBlock.id, tx);
-		return secondLastBlock;
-	});
+	await undoConfirmedStep(storage, slots, oldLastBlock, exceptions, tx);
+	await backwardTickStep(roundsModule, oldLastBlock, secondLastBlock, tx);
+	await deleteBlock(storage, oldLastBlock.id, tx);
+	return secondLastBlock;
+};
 
 module.exports = {
 	BlocksChain,
