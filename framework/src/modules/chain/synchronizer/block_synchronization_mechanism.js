@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const { maxBy, groupBy } = require('lodash');
 const ForkChoiceRule = require('../blocks/fork_choice_rule');
 
@@ -15,7 +31,9 @@ class BlockSynchronizationMechanism {
 		const { connectedPeers: peers } = await this.channel.invoke(
 			'network:getNetworkStatus'
 		);
-		if (!peers.length) throw new Error('Connected peers list is empty');
+		if (!peers.length) {
+			throw new Error('Connected peers list is empty');
+		}
 		// eslint-disable-next-line no-unused-vars
 		const bestPeer = this._computeBestPeer(peers);
 		// TODO: handle bestPeer and move on to step 2 defined in
@@ -38,27 +56,30 @@ class BlockSynchronizationMechanism {
 	 */
 	_computeBestPeer(peers) {
 		// Largest subset of peers with largest prevotedConfirmedUptoHeight
-		let largestSubset = this._computeLargestSubsetMaxBy(
+		const largestSubsetByPrevotedConfirmedUptoHeight = this._computeLargestSubsetMaxBy(
 			peers,
 			peer => peer.prevotedConfirmedUptoHeight
 		);
 		// Largest subset of peers with largest height
-		largestSubset = this._computeLargestSubsetMaxBy(
-			largestSubset,
+		const largestSubsetByHeight = this._computeLargestSubsetMaxBy(
+			largestSubsetByPrevotedConfirmedUptoHeight,
 			peer => peer.height
 		);
 		// Group peers by their block Id
 		// Output: {{'lastBlockId':[peers], 'anotherBlockId': [peers]}
-		largestSubset = groupBy(largestSubset, peer => peer.lastBlockId);
+		const peersGroupedByBlockId = groupBy(
+			largestSubsetByHeight,
+			peer => peer.lastBlockId
+		);
 
-		const blockIds = Object.keys(largestSubset);
+		const blockIds = Object.keys(peersGroupedByBlockId);
 		let maxNumberOfPeersInSet = 0;
 		let selectedPeers = [];
 		let selectedBlockId = blockIds[0];
 		// Find the largest subset
 		// eslint-disable-next-line no-restricted-syntax
 		for (const blockId of blockIds) {
-			const peersByBlockId = largestSubset[blockId];
+			const peersByBlockId = peersGroupedByBlockId[blockId];
 			const numberOfPeersInSet = peersByBlockId.length;
 			if (
 				numberOfPeersInSet > maxNumberOfPeersInSet ||
@@ -90,22 +111,25 @@ class BlockSynchronizationMechanism {
 	 * value of the property returned in `condition` function
 	 *
 	 * @param {Array<Object>} arrayOfObjects
-	 * @param {Function} condition
+	 * @param {Function} propertySelectorFunc
 	 * @return {Array<Object>}
 	 * @private
 	 *
 	 * @example
 	 *
-	 * Input: [{id: 1, height: 2}, {id: 2, height: 3}, {id: 3, height: 3}]
-	 * Output: [{id: 2, height: 3}, {id: 3, height: 3}]
+	 * const input = [{id: 1, height: 2}, {id: 2, height: 3}, {id: 3, height: 3}]
+	 * const output = _computeLargestSubsetMaxBy(input, item => item.height);
+	 *
+	 * `output` equals to: [{id: 2, height: 3}, {id: 3, height: 3}]
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	_computeLargestSubsetMaxBy(arrayOfObjects, condition) {
-		const absoluteMax = condition(maxBy(arrayOfObjects, condition));
+	_computeLargestSubsetMaxBy(arrayOfObjects, propertySelectorFunc) {
+		const maximumBy = maxBy(arrayOfObjects, propertySelectorFunc);
+		const absoluteMax = propertySelectorFunc(maximumBy);
 		const largestSubset = [];
 		// eslint-disable-next-line no-restricted-syntax
 		for (const item of arrayOfObjects) {
-			if (condition(item) === absoluteMax) {
+			if (propertySelectorFunc(item) === absoluteMax) {
 				largestSubset.push(item);
 			}
 		}

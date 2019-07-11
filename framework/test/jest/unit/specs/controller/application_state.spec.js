@@ -194,7 +194,7 @@ describe('Application State', () => {
 				updatedState = applicationState.state;
 			});
 
-			it('should call get four times', async () => {
+			it('should call get five times', async () => {
 				// Assert
 				expect(spies.get).toHaveBeenCalledTimes(5);
 			});
