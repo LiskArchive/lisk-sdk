@@ -174,7 +174,6 @@ describe('Application State', () => {
 		describe('when correct parameters are passed', () => {
 			let newState;
 			let result;
-			let spies;
 			let updatedState;
 
 			beforeEach(async () => {
@@ -185,18 +184,10 @@ describe('Application State', () => {
 					height: '10',
 				};
 				applicationState.channel = channel;
-				spies = {
-					get: jest.spyOn(applicationState, 'state', 'get'),
-				};
 
 				// Act
 				result = await applicationState.update(newState);
 				updatedState = applicationState.state;
-			});
-
-			it('should call get five times', async () => {
-				// Assert
-				expect(spies.get).toHaveBeenCalledTimes(5);
 			});
 
 			it('should update broadhash', async () => {
