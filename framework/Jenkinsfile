@@ -298,7 +298,10 @@ pipeline {
 				} catch(err) {
 					println "Could not report coverage statistics:\n${err}"
 				}
+				currentBuild.result = 'SUCCESS'
 			}
+			step([$class: 'MasterCoverageAction', scmVars: [GIT_URL: env.GIT_URL]])
+			step([$class: 'CompareCoverageAction', publishResultAs: 'statusCheck', scmVars: [GIT_URL: env.GIT_URL]])
 		}
 		cleanup {
 			cleanWs()
