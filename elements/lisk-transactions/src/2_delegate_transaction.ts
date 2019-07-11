@@ -51,6 +51,7 @@ export class DelegateTransaction extends BaseTransaction {
 	public readonly asset: DelegateAsset;
 	public readonly containsUniqueData: boolean;
 	public static TYPE = 2;
+	public static FEE = DELEGATE_FEE.toString();
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
@@ -67,10 +68,6 @@ export class DelegateTransaction extends BaseTransaction {
 		} = this.asset;
 
 		return Buffer.from(username, 'utf8');
-	}
-
-	public assetToJSON(): DelegateAsset {
-		return this.asset;
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {
@@ -117,18 +114,6 @@ export class DelegateTransaction extends BaseTransaction {
 					'.amount',
 					this.amount.toString(),
 					'0',
-				),
-			);
-		}
-
-		if (!this.fee.eq(DELEGATE_FEE)) {
-			errors.push(
-				new TransactionError(
-					`Fee must be equal to ${DELEGATE_FEE}`,
-					this.id,
-					'.fee',
-					this.fee.toString(),
-					DELEGATE_FEE,
 				),
 			);
 		}

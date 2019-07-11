@@ -14,7 +14,6 @@
 
 'use strict';
 
-const PEER_STATE_CONNECTED = 2;
 const MAX_PEERS = 100;
 
 /**
@@ -47,18 +46,18 @@ class Peers {
 	 *
 	 * @returns {Promise.<number, Error>} Consensus or undefined if forgingForce = true
 	 */
-	async calculateConsensus(broadhash) {
+	// eslint-disable-next-line class-methods-use-this
+	async calculateConsensus() {
+		const { broadhash } = await this.channel.invoke('app:getApplicationState');
+
 		const activeCount = Math.min(
-			await this.channel.invoke('network:getPeersCountByFilter', {
-				state: PEER_STATE_CONNECTED,
-			}),
+			this.channel.invoke('network:getConnectedPeersCountByFilter', {}),
 			MAX_PEERS
 		);
 
 		const matchedCount = Math.min(
-			await this.channel.invoke('network:getPeersCountByFilter', {
+			this.channel.invoke('network:getConnectedPeersCountByFilter', {
 				broadhash,
-				state: PEER_STATE_CONNECTED,
 			}),
 			MAX_PEERS
 		);
