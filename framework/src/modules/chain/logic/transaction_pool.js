@@ -85,13 +85,13 @@ class TransactionPool {
 	bind(processTransactions) {
 		this.validateTransactions = processTransactions.validateTransactions;
 		this.verifyTransactions = processTransactionLogic.composeTransactionSteps(
-			processTransactions.checkAllowedTransactions.bind(processTransactions),
-			processTransactions.checkPersistedTransactions.bind(processTransactions),
-			processTransactions.verifyTransactions.bind(processTransactions)
+			processTransactions.checkAllowedTransactions,
+			processTransactions.checkPersistedTransactions,
+			processTransactions.verifyTransactions
 		);
 		this.processTransactions = processTransactionLogic.composeTransactionSteps(
-			processTransactions.checkPersistedTransactions.bind(processTransactions),
-			processTransactions.applyTransactions.bind(processTransactions)
+			processTransactions.checkPersistedTransactions,
+			processTransactions.applyTransactions
 		);
 
 		const poolConfig = {

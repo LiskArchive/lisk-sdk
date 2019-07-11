@@ -191,9 +191,7 @@ describe('processTransactions', () => {
 				let verifyTransactions;
 
 				beforeEach(async () => {
-					verifyTransactions = library.modules.processTransactions.verifyTransactions.bind(
-						library.modules.processTransactions
-					);
+					verifyTransactions = library.modules.processTransactions.verifyTransactions;
 				});
 
 				it('should return transactionsResponses with status OK for verified transactions', async () => {
@@ -283,9 +281,7 @@ describe('processTransactions', () => {
 				let applyTransactions;
 				beforeEach(async () => {
 					applyTransactions =
-						library.modules.processTransactions.applyTransactions.bind(
-							library.modules.processTransactions
-						);
+						library.modules.processTransactions.applyTransactions;
 				});
 
 				it('should return stateStore', async () => {

@@ -183,12 +183,8 @@ __private.receiveTransaction = async function(
 		transaction = library.logic.initTransaction.fromJson(transactionJSON);
 
 		const composedTransactionsCheck = processTransactionLogic.composeTransactionSteps(
-			modules.processTransactions.checkAllowedTransactions.bind(
-				modules.processTransactions
-			),
-			modules.processTransactions.validateTransactions.bind(
-				modules.processTransactions
-			)
+			modules.processTransactions.checkAllowedTransactions,
+			modules.processTransactions.validateTransactions
 		);
 
 		const { transactionsResponses } = await composedTransactionsCheck([
