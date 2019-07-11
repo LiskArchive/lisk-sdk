@@ -25,6 +25,7 @@ import {
 	addTransactionFields,
 	MockStateStore as store,
 	TestTransaction,
+	TestTransactionBasicImpl,
 } from './helpers';
 import {
 	validAccount as defaultSenderAccount,
@@ -48,6 +49,7 @@ describe('Base transaction class', () => {
 
 	let validTestTransaction: BaseTransaction;
 	let transactionWithDefaultValues: BaseTransaction;
+	let transactionWithBasicImpl: BaseTransaction;
 	let validSecondSignatureTestTransaction: BaseTransaction;
 	let validMultisignatureTestTransaction: BaseTransaction;
 	let storeAccountGetStub: sinon.SinonStub;
@@ -56,6 +58,7 @@ describe('Base transaction class', () => {
 	beforeEach(async () => {
 		validTestTransaction = new TestTransaction(defaultTransaction);
 		transactionWithDefaultValues = new TestTransaction({});
+		transactionWithBasicImpl = new TestTransactionBasicImpl({});
 		validSecondSignatureTestTransaction = new TestTransaction(
 			defaultSecondSignatureTransaction,
 		);
@@ -79,7 +82,7 @@ describe('Base transaction class', () => {
 
 		it('should set default values', async () => {
 			expect(transactionWithDefaultValues.amount.toString()).to.be.eql('0');
-			expect(transactionWithDefaultValues.fee.toString()).to.be.eql('0');
+			expect(transactionWithDefaultValues.fee.toString()).to.be.eql('10000000');
 			expect(transactionWithDefaultValues.recipientId).to.be.eql('');
 			expect(transactionWithDefaultValues.recipientPublicKey).to.be.undefined;
 			expect(transactionWithDefaultValues.timestamp).to.be.eql(0);
@@ -497,6 +500,15 @@ describe('Base transaction class', () => {
 			const { id, status, errors } = validTestTransaction.validate();
 
 			expect(id).to.be.eql(validTestTransaction.id);
+			expect(errors).to.be.empty;
+			expect(status).to.eql(Status.OK);
+		});
+
+		it('should return a successful transaction response with a valid transaction with basic impl', async () => {
+			transactionWithBasicImpl.sign('passphrase');
+			const { id, status, errors } = transactionWithBasicImpl.validate();
+
+			expect(id).to.be.eql(transactionWithBasicImpl.id);
 			expect(errors).to.be.empty;
 			expect(status).to.eql(Status.OK);
 		});
