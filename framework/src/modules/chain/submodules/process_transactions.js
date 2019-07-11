@@ -129,6 +129,26 @@ class ProcessTransactions {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
+	async applyGenesisTransactions(transactions, tx = undefined) {
+		// Get data required for verifying transactions
+		const stateStore = new StateStore(library.storage, {
+			mutate: true,
+			tx,
+		});
+
+		await Promise.all(transactions.map(t => t.prepare(stateStore)));
+
+		return {
+			transactionsResponses: transactions.map(transaction => {
+				const transactionResponse = transaction.apply(stateStore);
+				transactionResponse.status = TransactionStatus.OK;
+				return transactionResponse;
+			}),
+			stateStore,
+		};
+	}
+
+	// eslint-disable-next-line class-methods-use-this
 	async applyTransactions(transactions, tx = undefined) {
 		// Get data required for verifying transactions
 		const stateStore = new StateStore(library.storage, {
