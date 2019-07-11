@@ -211,6 +211,17 @@ describe('blocks/chain', () => {
 							},
 						},
 					}),
+					applyGenesisTransactions: sinonSandbox.stub().resolves({
+						stateStore: {
+							account: {
+								finalize: sinonSandbox.stub().resolves(),
+							},
+							round: {
+								setRoundForData: sinonSandbox.stub().resolves(),
+								finalize: sinonSandbox.stub().resolves(),
+							},
+						},
+					}),
 				},
 			},
 		};
@@ -539,13 +550,13 @@ describe('blocks/chain', () => {
 
 		beforeEach(done => {
 			modules.rounds.tick.callsArgWith(1, null, true);
-			applyTransactionTemp = __private.applyTransactions;
-			__private.applyTransactions = sinonSandbox.stub();
+			applyTransactionTemp = __private.applyGenesisTransactions;
+			__private.applyGenesisTransactions = sinonSandbox.stub();
 			done();
 		});
 
 		afterEach(done => {
-			__private.applyTransactions = applyTransactionTemp;
+			__private.applyGenesisTransactions = applyTransactionTemp;
 			done();
 		});
 
@@ -553,14 +564,16 @@ describe('blocks/chain', () => {
 			describe('when modules.accounts.setAccountAndGet succeeds', () => {
 				describe('when __private.applyTransactions succeeds', () => {
 					beforeEach(() =>
-						__private.applyTransactions.callsArgWith(1, null, true)
+						__private.applyGenesisTransactions.callsArgWith(1, null, true)
 					);
 
 					it('modules.rouds.tick should call a callback', done => {
 						blocksChainModule.applyGenesisBlock(
 							blockWithTransactions,
 							async () => {
-								expect(__private.applyTransactions.callCount).to.equal(1);
+								expect(__private.applyGenesisTransactions.callCount).to.equal(
+									1
+								);
 								expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
 								expect(modules.blocks.lastBlock.set.args[0][0]).to.deep.equal(
 									blockWithTransactions
