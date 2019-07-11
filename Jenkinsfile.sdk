@@ -68,10 +68,7 @@ pipeline {
 					println "Could not report coverage statistics:\n${err}"
 				}
 				sh 'rm -rf */node_modules'
-				currentBuild.result = 'SUCCESS'
 			}
-			step([$class: 'MasterCoverageAction', scmVars: [GIT_URL: env.GIT_URL]])
-			step([$class: 'CompareCoverageAction', publishResultAs: 'statusCheck', scmVars: [GIT_URL: env.GIT_URL]])
 		}
 	}
 }
