@@ -488,7 +488,7 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 	modules.processTransactions
 		.applyTransactions(allowedTransactions)
 		.then(({ transactionsResponses: responses }) => {
-			const readyTransactions = transactions.filter(transaction =>
+			const readyTransactions = allowedTransactions.filter(transaction =>
 				responses
 					.filter(response => response.status === TransactionStatus.OK)
 					.map(response => response.id)

@@ -146,23 +146,33 @@ class ProcessTransactions {
 
 		const transactionsWithoutSpendingErrors = transactions.filter(
 			transaction =>
-				!transactionsResponseWithSpendingErrors.map(({ id }) => id).includes(transaction.id)
+				!transactionsResponseWithSpendingErrors
+					.map(({ id }) => id)
+					.includes(transaction.id)
 		);
 
-		const transactionsResponses = transactionsWithoutSpendingErrors.map(transaction => {
-			const transactionResponse = transaction.apply(stateStore);
-			roundInformation.apply(stateStore, transaction);
-			stateStore.transaction.add(transaction);
-			return transactionResponse;
-		});
+		const transactionsResponses = transactionsWithoutSpendingErrors.map(
+			transaction => {
+				stateStore.account.createSnapshot();
+				const transactionResponse = transaction.apply(stateStore);
+				if (transactionResponse.status !== TransactionStatus.OK) {
+					// update transaction response mutates the transaction response object
+					updateTransactionResponseForExceptionTransactions(
+						[transactionResponse],
+						transactionsWithoutSpendingErrors
+					);
+				}
+				if (transactionResponse.status === TransactionStatus.OK) {
+					roundInformation.apply(stateStore, transaction);
+					stateStore.transaction.add(transaction);
+				}
 
-		const unappliableTransactionsResponse = transactionsResponses.filter(
-			transactionResponse => transactionResponse.status !== TransactionStatus.OK
-		);
+				if (transactionResponse.status !== TransactionStatus.OK) {
+					stateStore.account.restoreSnapshot();
+				}
 
-		updateTransactionResponseForExceptionTransactions(
-			unappliableTransactionsResponse,
-			transactions
+				return transactionResponse;
+			}
 		);
 
 		return {
