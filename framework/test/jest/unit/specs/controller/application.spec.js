@@ -43,7 +43,7 @@ const config = {
 	},
 };
 // eslint-disable-next-line
-describe('Application', () => {
+describe.skip('Application', () => {
 	// Arrange
 	const frameworkTxTypes = ['0', '1', '2', '3', '4'];
 
