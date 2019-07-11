@@ -87,7 +87,76 @@ After that you can start the application by:
 node index.js
 ```
 
-More usage examples and configuration samples will be made available during the alpha phase on the official Lisk [documentation portal](http://docs.lisk.io).
+### Configure your blockchain parameters
+
+You can also define your blockchain application parameters such as `block time`, `epoch time`, `max transactions per block` and more with an optional configurations object.
+
+```js
+const app = new Application(genesisBlockDevnet, {
+    app: {
+        label: 'my-blockchain-application',
+        genesisConfig: {
+            EPOCH_TIME: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
+            BLOCK_TIME: 10,
+            MAX_TRANSACTIONS_PER_BLOCK: 25,
+        },
+        ...
+});
+```
+
+For a complete list of configuration options see the [lisk-docs repo](https://github.com/LiskHQ/lisk-docs/blob/development/lisk-sdk/configuration.md).
+
+### Registering a custom transaction
+
+You can [define your own transaction types](https://github.com/LiskHQ/lisk-docs/blob/development/start/custom-transactions.md) with Lisk-SDK. This is where the custom logic for your blockchain application lives.
+
+Add your custom transaction type to your blockchain application by registering it to the application instance:
+
+```js
+const { Application, genesisBlockDevnet } = require('lisk-sdk');
+
+const MyTransaction = require('./my_transaction');
+
+const app = new Application(genesisBlockDevnet);
+
+app.registerTransaction(MyTransaction); // register the custom transaction
+
+app
+	.run()
+	.then(() => app.logger.info('App started...'))
+	.catch(error => {
+		console.error('Faced error in application', error);
+		process.exit(1);
+	});
+```
+
+For information on creating your own custom transaction, see the [lisk-docs repo](https://github.com/LiskHQ/lisk-docs/blob/development/start/custom-transactions.md) or [follow the tutorials](https://github.com/LiskHQ/lisk-docs/blob/development/start/tutorials/hello-world.md).
+
+### Registering a custom module
+
+You can [design and build custom modules with Lisk-SDK](https://github.com/LiskHQ/lisk-docs/blob/master/lisk-core/introduction.md#custom-modules).
+
+Add your own custom module to your blockchain application by registering it to the application instance:
+
+```js
+const { Application, genesisBlockDevnet } = require('lisk-sdk');
+
+const MyModule = require('./my_module');
+
+const app = new Application(genesisBlockDevnet);
+
+app.registerModule(MyModule); // register the custom module
+
+app
+	.run()
+	.then(() => app.logger.info('App started...'))
+	.catch(error => {
+		console.error('Faced error in application', error);
+		process.exit(1);
+	});
+```
+
+For information on creating your own custom module, see the [lisk-docs repo](https://github.com/LiskHQ/lisk-docs/blob/master/lisk-core/introduction.md#custom-modules).
 
 ## Get Involved
 
