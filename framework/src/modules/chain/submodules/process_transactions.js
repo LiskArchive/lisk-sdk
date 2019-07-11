@@ -141,6 +141,10 @@ class ProcessTransactions {
 		return {
 			transactionsResponses: transactions.map(transaction => {
 				const transactionResponse = transaction.apply(stateStore);
+
+				roundInformation.apply(stateStore, transaction);
+				stateStore.transaction.add(transaction);
+
 				transactionResponse.status = TransactionStatus.OK;
 				return transactionResponse;
 			}),
