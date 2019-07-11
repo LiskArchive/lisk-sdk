@@ -412,41 +412,9 @@ describe('transaction pool', () => {
 			);
 		});
 
-		it('should not move transactions to the ready queue in case some transaction failed', async () => {
+		it('should move passed transactions to the ready queue', async () => {
 			checkTransactionsWithPassAndFailStub.resolves(
 				checkTransactionsResponseWithFailedTransactions,
-			);
-			checkerStubs.checkTransactionForId
-				.onCall(1)
-				.returns(checkForTransactionProcessableTransactionId);
-			checkerStubs.checkTransactionForId
-				.onCall(2)
-				.returns(checkForTransactionProcessableTransactionId);
-			checkerStubs.checkTransactionForId
-				.onCall(3)
-				.returns(checkForTransactionProcessableTransactionId);
-			(transactionPool.queues.verified.removeFor as sinon.SinonStub)
-				.onCall(1)
-				.returns(processableTransactions);
-			(transactionPool.queues.pending.removeFor as sinon.SinonStub)
-				.onCall(1)
-				.returns(processableTransactions);
-			(transactionPool.queues.ready.removeFor as sinon.SinonStub)
-				.onCall(1)
-				.returns(processableTransactions);
-			await processVerifiedTransactions();
-			expect(transactionPool.queues.verified.removeFor as sinon.SinonStub).to.be
-				.calledOnce;
-			expect(transactionPool.queues.pending.removeFor as sinon.SinonStub).to.be
-				.calledOnce;
-			expect(transactionPool.queues.ready.removeFor as sinon.SinonStub).to.be
-				.calledOnce;
-			expect(transactionPool.queues.ready.enqueueMany).to.not.be.called;
-		});
-
-		it('should move transactions to the ready queue if all transaction passed', async () => {
-			checkTransactionsWithPassAndFailStub.resolves(
-				checkTransactionsResponseWithOnlyPassedTransactions,
 			);
 			checkerStubs.checkTransactionForId
 				.onCall(1)
