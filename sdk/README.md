@@ -17,29 +17,15 @@ Please be advised we cannot guarantee blockchains created with the alpha release
 
 We hope you enjoy building your proof-of-concept blockchain applications using the Lisk SDK, and shall look forward to receiving your feedback and contributions during the alpha phase.
 
-## What is the Lisk SDK
+## What is the Lisk SDK?
 
 The Lisk SDK aims to provide an easy and reliable software development kit for building blockchain applications which are compatible with the [Lisk Protocol](https://lisk.io/documentation/lisk-protocol). The architecture of the Lisk SDK has been designed so that it can be extended to meet the requirements of a wide variety of blockchain application use-cases. The codebase is written entirely in JavaScript, which means for a majority of developers, no significant change of tools or mindset is required to get started. The Lisk SDK makes every effort to allow developers to focus simply and purely on writing the code that matters to their own blockchain application, and nothing more.
 
-### Architecture Overview
+## Usage 
 
-The Lisk SDK operates on the NodeJS runtime and consists primarily of an application framework (Lisk Framework), a collection of libraries providing blockchain application functionalities (Lisk Elements), and a powerful command-line tool (Lisk Commander) allowing developers to manage a Lisk node instance and interact with a Lisk compatible network. The diagram below provides a high-level overview of the architecture:
+#### Dependencies
 
-![Diagram](./docs/assets/diagram_sdk.png)
-
-## Package Directories
-
-| Directory                | Description                                                                                                                                          |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Framework](./framework) | An application framework responsible for establishing and maintaining the interactions between the modules of a Lisk blockchain application.         |
-| [Elements](./elements)   | A collection of libraries, each of them implementing some form of blockchain application functionality such as cryptography, transactions, p2p, etc. |
-| [Commander](./commander) | A command line tool allowing developers to manage a Lisk node instance and interact with a Lisk compatible network.                                  |
-
-## Installation
-
-### Dependencies
-
-The following dependencies need to be installed in order to run applications created with the Lisk SDK:
+Before running Lisk SDK, the following dependencies need to be installed in order to run applications created with the Lisk SDK:
 
 | Dependencies     | Version |
 | ---------------- | ------- |
@@ -51,15 +37,17 @@ You can find further details on installing these dependencies in our [pre-instal
 
 Mind, that you need to create a database before. The default database name is `lisk_dev`, so for the development purposes, a command `createdb lisk_dev` will set you up.
 
-### Installation of Lisk Framework
+### Installation
 
-To start using the Lisk SDK you need to install one npm package - `lisk-sdk`:
+The installation of Lisk Alpha SDK is straightforward and limited to getting a single NPM package to your Node.js project - `lisk-sdk`:
 
 ```
 npm install lisk-sdk@alpha
 ```
 
-## Usage
+Lisk SDK is all-in-one package that provides you with tools to create, run and maintain blockchain applications in JavaScript.
+
+### Set up new a blockchain application
 
 To start, create the project structure of your blockchain application. There are no special requirements here, you can create the basic Node.js project folder structure with `npm init`.
 
@@ -106,7 +94,7 @@ const app = new Application(genesisBlockDevnet, {
 
 For a complete list of configuration options see the [lisk-docs repo](https://github.com/LiskHQ/lisk-docs/blob/development/lisk-sdk/configuration.md).
 
-### Registering a custom transaction
+### Register a custom transaction
 
 You can [define your own transaction types](https://github.com/LiskHQ/lisk-docs/blob/development/start/custom-transactions.md) with Lisk-SDK. This is where the custom logic for your blockchain application lives.
 
@@ -131,6 +119,21 @@ app
 ```
 
 For information on creating your own custom transaction, see the [lisk-docs repo](https://github.com/LiskHQ/lisk-docs/blob/development/start/custom-transactions.md) or [follow the tutorials](https://github.com/LiskHQ/lisk-docs/blob/development/start/tutorials/hello-world.md).
+
+## Architecture Overview
+
+The Lisk SDK operates on the NodeJS runtime and consists primarily of an application framework (Lisk Framework), a collection of libraries providing blockchain application functionalities (Lisk Elements), and a powerful command-line tool (Lisk Commander) allowing developers to manage a Lisk node instance and interact with a Lisk compatible network. The diagram below provides a high-level overview of the architecture:
+
+![Diagram](./docs/assets/diagram_sdk.png)
+
+### Packages
+
+| Directory                | Description                                                                                                                                          |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Framework](./framework) | An application framework responsible for establishing and maintaining the interactions between the modules of a Lisk blockchain application.         |
+| [Elements](./elements)   | A collection of libraries, each of them implementing some form of blockchain application functionality such as cryptography, transactions, p2p, etc. |
+| [Commander](./commander) | A command line tool allowing developers to manage a Lisk node instance and interact with a Lisk compatible network.                                  |
+
 
 ## Get Involved
 
