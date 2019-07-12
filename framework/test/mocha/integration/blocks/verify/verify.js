@@ -954,14 +954,12 @@ describe('blocks/verify', () => {
 	});
 
 	describe('processBlock for invalid block {broadcast: true, saveBlock: true}', () => {
-		beforeEach(done => {
-			blocksVerify.processBlock(block1, true, true, done);
-		});
-
-		it('should fail when processing block 1 multiple times', done => {
-			blocksVerify.processBlock(block1, true, true, err => {
-				expect(err).to.equal('Invalid block timestamp');
-				done();
+		it('should fail to process the same block multiple', done => {
+			blocksVerify.processBlock(block1, true, true, () => {
+				blocksVerify.processBlock(block1, true, true, err => {
+					expect(err).to.equal('Invalid block timestamp');
+					done();
+				});
 			});
 		});
 	});
