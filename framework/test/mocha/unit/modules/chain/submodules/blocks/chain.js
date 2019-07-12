@@ -15,11 +15,13 @@
 'use strict';
 
 const rewire = require('rewire');
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const {
 	registeredTransactions,
 } = require('../../../../../common/registered_transactions');
 const InitTransaction = require('../../../../../../../src/modules/chain/logic/init_transaction');
 const { Transaction } = require('../../../../../fixtures/transactions');
+const slots = require('../../../../../../../src/modules/chain/helpers/slots');
 
 const BlocksChain = rewire(
 	'../../../../../../../src/modules/chain/submodules/blocks/chain'
@@ -73,8 +75,10 @@ describe('blocks/chain', () => {
 			initTransaction.fromJson(transaction)
 		),
 	};
+
 	const blockReduced = { id: 3, height: 3 };
 	let channelMock;
+	let processTransactionMethodResponse;
 
 	beforeEach(done => {
 		// Logic
@@ -193,6 +197,18 @@ describe('blocks/chain', () => {
 			onDeletedTransactions: sinonSandbox.stub(),
 		};
 
+		processTransactionMethodResponse = {
+			stateStore: {
+				account: {
+					finalize: sinonSandbox.stub().resolves(),
+				},
+				round: {
+					setRoundForData: sinonSandbox.stub().resolves(),
+					finalize: sinonSandbox.stub().resolves(),
+				},
+			},
+		};
+
 		bindingsStub = {
 			modules: {
 				accounts: modulesAccountsStub,
@@ -200,16 +216,15 @@ describe('blocks/chain', () => {
 				rounds: modulesRoundsStub,
 				transactions: modulesTransactionsStub,
 				processTransactions: {
-					applyTransactions: sinonSandbox.stub().resolves({
-						stateStore: {
-							account: {
-								finalize: sinonSandbox.stub().resolves(),
-							},
-							round: {
-								setRoundForData: sinonSandbox.stub().resolves(),
-								finalize: sinonSandbox.stub().resolves(),
-							},
-						},
+					applyTransactions: sinonSandbox
+						.stub()
+						.resolves(processTransactionMethodResponse),
+					undoTransactions: sinonSandbox.stub().resolves({
+						...processTransactionMethodResponse,
+						transactionsResponses: [
+							{ status: TransactionStatus.OK },
+							{ status: TransactionStatus.OK },
+						],
 					}),
 					applyGenesisTransactions: sinonSandbox.stub().resolves({
 						stateStore: {
@@ -889,19 +904,94 @@ describe('blocks/chain', () => {
 
 	// TODO: add new tests once improve_transaction_eficiency is done
 	describe('__private.undoConfirmedStep', () => {
-		/* eslint-disable mocha/no-pending-tests */
-		it('should return when block.transactions includes no transactions');
+		// Arrange
+		const filledBlock = {
+			id: 1,
+			height: 1,
+			transactions: [{ id: 21 }, { id: 22 }],
+		};
 
-		it('should call modules.processTransactions.undoTransactions');
+		it('should return when block.transactions includes no transactions', async () => {
+			// Arrange
+			const emptyBlock = {
+				id: 1,
+				height: 1,
+				transactions: [],
+			};
+			// Act && Assert
+			return expect(__private.undoConfirmedStep(emptyBlock)).to.eventually.be
+				.undefined;
+		});
 
-		it('should throw error when errors exist in unappliedTransactionResponse');
+		it('should call modules.processTransactions.undoTransactions', async () => {
+			// Arrange
+			const originalInertTransactions = global.exceptions.inertTransactions;
+			global.exceptions.inertTransactions = [filledBlock.transactions[0].id];
+			const dummyTx = {};
 
-		it('should call stateStore.account.finalize');
+			// Act
+			await __private.undoConfirmedStep(filledBlock, dummyTx);
 
-		it('should call stateStore.round.setRoundForData with correct parameters');
+			// Cleanup
+			global.exceptions.inertTransactions = originalInertTransactions;
 
-		it('should call tateStore.round.finalize');
-		/* eslint-enable mocha/no-pending-tests */
+			// Assert
+			return expect(
+				modules.processTransactions.undoTransactions
+			).to.have.been.calledWith([filledBlock.transactions[1]], dummyTx);
+		});
+
+		it('should throw error when errors exist in unappliedTransactionResponse', async () => {
+			// Arrange
+			const errors = [new Error('#Test Error')];
+			modules.processTransactions.undoTransactions.resolves({
+				...processTransactionMethodResponse,
+				transactionsResponses: [
+					{ status: TransactionStatus.OK },
+					{ status: TransactionStatus.FAIL, errors },
+				],
+			});
+
+			try {
+				// Act
+				await __private.undoConfirmedStep(filledBlock);
+			} catch (err) {
+				// Assert
+				expect(err).to.be.equal(errors);
+			}
+		});
+
+		it('should call stateStore.account.finalize', async () => {
+			// Act
+			await __private.undoConfirmedStep(filledBlock);
+
+			// Assert
+			return expect(
+				processTransactionMethodResponse.stateStore.account.finalize.calledOnce
+			).to.be.true;
+		});
+
+		it('should call stateStore.round.setRoundForData with correct parameters', async () => {
+			// Arrange
+			const round = slots.calcRound(filledBlock.height);
+			// Act
+			await __private.undoConfirmedStep(filledBlock);
+
+			// Assert
+			return expect(
+				processTransactionMethodResponse.stateStore.round.setRoundForData
+			).to.have.been.calledWith(round);
+		});
+
+		it('should call tateStore.round.finalize', async () => {
+			// Act
+			await __private.undoConfirmedStep(filledBlock);
+
+			// Assert
+			return expect(
+				processTransactionMethodResponse.stateStore.round.finalize.calledOnce
+			).to.be.true;
+		});
 	});
 
 	describe('__private.backwardTickStep', () => {
