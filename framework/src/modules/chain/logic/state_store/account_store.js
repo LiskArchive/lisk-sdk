@@ -56,12 +56,14 @@ class AccountStore {
 
 	createSnapshot() {
 		this.originalData = _.clone(this.data);
-		this.updatedKeys = _.clone(this.updatedKeys);
+		this.originalUpdatedKeys = _.clone(this.updatedKeys);
 	}
 
 	restoreSnapshot() {
 		this.data = this.originalData;
-		this.updatedKeys = {};
+		this.updatedKeys = this.originalUpdatedKeys;
+		this.originalKeys = {};
+		this.originalUpdatedKeys = [];
 	}
 
 	get(primaryValue) {
