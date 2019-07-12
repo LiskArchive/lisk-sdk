@@ -677,7 +677,7 @@ describe('blocks/chain', () => {
 			).to.have.been.calledWith(round);
 		});
 
-		it('should call tateStore.round.finalize', async () => {
+		it('should call stateStore.round.finalize', async () => {
 			// Act
 			await __private.applyConfirmedStep(filledBlock);
 
@@ -1050,7 +1050,7 @@ describe('blocks/chain', () => {
 			).to.have.been.calledWith(round);
 		});
 
-		it('should call tateStore.round.finalize', async () => {
+		it('should call stateStore.round.finalize', async () => {
 			// Act
 			await __private.undoConfirmedStep(filledBlock);
 
