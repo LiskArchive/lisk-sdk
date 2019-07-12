@@ -65,7 +65,7 @@ describe('ProcessTransactions', () => {
 		it('should assign parameters correctly', async () => {
 			const library = ProcessTransactions.__get__('library');
 
-			expect(library.storage).to.be.equal(paramScope.components.storage);
+			expect(library.storage).to.be.eql(paramScope.components.storage);
 		});
 
 		it('should invoke the callback', done => {
@@ -75,6 +75,14 @@ describe('ProcessTransactions', () => {
 				done();
 			};
 			new ProcessTransactions(cb, paramScope);
+		});
+	});
+
+	describe('onBind()', () => {
+		it('should assign params correctly to library', async () => {
+			const library = ProcessTransactions.__get__('library');
+
+			expect(library.modules.blocks).to.be.eql(paramScope.modules.blocks);
 		});
 	});
 
