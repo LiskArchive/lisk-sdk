@@ -23,13 +23,23 @@ const ProcessTransactions = rewire(
 
 describe('ProcessTransactions', () => {
 	let processTransactions;
-	const dummyTransactions = [
+
+	const trs1 = [
 		{
 			id: 'aTransactionId',
 			matcher: () => true,
 			type: 0,
 		},
 	];
+
+	const trs2 = [
+		{
+			id: 'aTransactionId',
+			matcher: () => true,
+			type: 0,
+		},
+	];
+
 	const dummyState = {
 		version: 1,
 		height: 1,
@@ -86,6 +96,47 @@ describe('ProcessTransactions', () => {
 		});
 	});
 
+	describe('validateTransactions()', () => {
+		const validateResponse = { status: TransactionStatus.OK };
+		const invalidResponse = { status: TransactionStatus.FAIL };
+
+		beforeEach(async () => {
+			trs1.validate = sinonSandbox.stub().returns(validateResponse);
+			trs2.validate = sinonSandbox.stub().returns(invalidResponse);
+		});
+
+		it('should invoke validate() on each transaction', async () => {
+			processTransactions.validateTransactions([trs1, trs2]);
+
+			expect(trs1.validate).to.be.calledOnce;
+			expect(trs2.validate).to.be.calledOnce;
+		});
+
+		it('should update responses for exceptions for invalid responses', async () => {
+			const exceptionStub = sinonSandbox.stub();
+			ProcessTransactions.__set__(
+				'updateTransactionResponseForExceptionTransactions',
+				exceptionStub
+			);
+
+			processTransactions.validateTransactions([trs1, trs2]);
+
+			expect(exceptionStub).to.be.calledOnce;
+			expect(exceptionStub).to.be.calledWithExactly(
+				[invalidResponse],
+				[trs1, trs2]
+			);
+		});
+
+		it('should return transaction responses', async () => {
+			const result = processTransactions.validateTransactions([trs1, trs2]);
+
+			expect(result).to.be.eql({
+				transactionsResponses: [validateResponse, invalidResponse],
+			});
+		});
+	});
+
 	describe('checkAllowedTransactions', () => {
 		let checkAllowedTransactionsSpy;
 
@@ -99,14 +150,11 @@ describe('ProcessTransactions', () => {
 
 		it('should accept two exact arguments with proper data', async () => {
 			// Act
-			processTransactions.checkAllowedTransactions(
-				dummyTransactions,
-				dummyState
-			);
+			processTransactions.checkAllowedTransactions(trs1, dummyState);
 
 			// Assert
 			expect(checkAllowedTransactionsSpy).to.have.been.calledWithExactly(
-				dummyTransactions,
+				trs1,
 				dummyState
 			);
 		});
@@ -114,7 +162,7 @@ describe('ProcessTransactions', () => {
 		it('should return a proper response format', async () => {
 			// Act
 			const response = processTransactions.checkAllowedTransactions(
-				dummyTransactions,
+				trs1,
 				dummyState
 			);
 
@@ -131,7 +179,7 @@ describe('ProcessTransactions', () => {
 		it('in case of non allowed transactions, it should return responses with TransactionStatus.FAIL and proper error message', async () => {
 			// Arrange
 			const disallowedTransaction = {
-				...dummyTransactions[0],
+				...trs1[0],
 				matcher: () => false,
 			};
 
@@ -164,10 +212,7 @@ describe('ProcessTransactions', () => {
 
 		it('should report a transaction as allowed if it does not implement matcher', async () => {
 			// Arrange
-			const {
-				matcher,
-				...transactionWithoutMatcherImpl
-			} = dummyTransactions[0];
+			const { matcher, ...transactionWithoutMatcherImpl } = trs1[0];
 
 			// Act
 			const response = processTransactions.checkAllowedTransactions(
@@ -191,7 +236,7 @@ describe('ProcessTransactions', () => {
 		it('in case of allowed transactions, it should return responses with TransactionStatus.OK and no errors', async () => {
 			// Arrange
 			const allowedTransaction = {
-				...dummyTransactions[0],
+				...trs1[0],
 				matcher: () => true,
 			};
 
@@ -217,9 +262,9 @@ describe('ProcessTransactions', () => {
 		it('should return a mix of responses including allowed and disallowed transactions', async () => {
 			// Arrange
 			const transactions = [
-				dummyTransactions[0], // Allowed
+				trs1[0], // Allowed
 				{
-					...dummyTransactions[0],
+					...trs1[0],
 					matcher: () => false, // Disallowed
 				},
 			];
