@@ -76,6 +76,27 @@ describe('Application', () => {
 			expect(app.config.app.label).toBe(config.app.label);
 		});
 
+		it('should set default tmpPath if not provided', () => {
+			// Arrange
+			const tmpPath = '/tmp';
+			const configWithoutTmpPath = _.cloneDeep(config);
+			delete configWithoutTmpPath.app.tmpPath;
+
+			// Act
+			const app = new Application(genesisBlock, configWithoutTmpPath);
+
+			expect(app.config.app.tmpPath).toBe(tmpPath);
+		});
+
+		it('should set tmpPath if provided', () => {
+			const customTmpPath = '/my-lisk-folder';
+			const configWithCustomTmpPath = _.cloneDeep(config);
+			configWithCustomTmpPath.app.tmpPath = customTmpPath;
+			const app = new Application(genesisBlock, configWithCustomTmpPath);
+
+			expect(app.config.app.tmpPath).toBe(customTmpPath);
+		});
+
 		it('should set filename for logger if logger component was not provided', () => {
 			// Arrange
 			const configWithoutLogger = _.cloneDeep(config);

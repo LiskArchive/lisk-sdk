@@ -316,6 +316,7 @@ class Application {
 			{
 				components: this.config.components,
 				ipc: this.config.app.ipc,
+				tmpPath: this.config.app.tmpPath,
 				initialState: this.config.initialState,
 			},
 			this.logger

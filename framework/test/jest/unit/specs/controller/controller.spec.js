@@ -34,12 +34,11 @@ describe('Controller Class', () => {
 		components: '#CONFIG',
 		initialState: '#CONFIG',
 	};
-	const rootDir = process.cwd();
 	const systemDirs = {
-		root: rootDir,
-		temp: `${rootDir}/tmp/${appLabel}/`,
-		sockets: `${rootDir}/tmp/${appLabel}/sockets`,
-		pids: `${rootDir}/tmp/${appLabel}/pids`,
+		root: process.cwd(),
+		temp: `/tmp/${appLabel}/`,
+		sockets: `/tmp/${appLabel}/sockets`,
+		pids: `/tmp/${appLabel}/pids`,
 	};
 	const configController = {
 		...config,

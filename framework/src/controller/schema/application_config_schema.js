@@ -56,6 +56,15 @@ module.exports = {
 					example: '968d7b5b97a5bfad8f77614dc8a9918de49f6c6e',
 					description: 'The version of Lisk Core that the peer node runs on.',
 				},
+				tmpPath: {
+					type: 'string',
+					format: 'path',
+					minLength: 1,
+					maxLength: 60,
+					example: '/home/lisk/tmp',
+					description:
+						'The root path for storing temporary pid and socket file.',
+				},
 				ipc: {
 					type: 'object',
 					properties: {
@@ -215,6 +224,7 @@ module.exports = {
 			version: '0.0.0',
 			minVersion: '0.0.0',
 			protocolVersion: '1.1',
+			tmpPath: '/tmp',
 			ipc: {
 				enabled: false,
 			},
