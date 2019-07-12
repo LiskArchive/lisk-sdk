@@ -57,3 +57,31 @@ export class TestTransaction extends BaseTransaction {
 		return { data: raw };
 	}
 }
+
+export class TestTransactionBasicImpl extends BaseTransaction {
+	public static TYPE = 1;
+
+	public validateAsset() {
+		return [];
+	}
+
+	public applyAsset() {
+		return [];
+	}
+
+	public undoAsset() {
+		return [];
+	}
+
+	public verifyAgainstTransactions(
+		transactions: ReadonlyArray<TransactionJSON>,
+	): ReadonlyArray<TransactionError> {
+		transactions.forEach(() => true);
+
+		return [];
+	}
+
+	public assetFromSync(raw: any) {
+		return { data: raw };
+	}
+}
