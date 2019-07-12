@@ -138,16 +138,19 @@ class ProcessTransactions {
 
 		await Promise.all(transactions.map(t => t.prepare(stateStore)));
 
+		const transactionsResponses = transactions.map(transaction => {
+			const transactionResponse = transaction.apply(stateStore);
+
+			roundInformation.apply(stateStore, transaction);
+			stateStore.transaction.add(transaction);
+
+			// We are overriding the status of transaction because it's from genesis block
+			transactionResponse.status = TransactionStatus.OK;
+			return transactionResponse;
+		});
+
 		return {
-			transactionsResponses: transactions.map(transaction => {
-				const transactionResponse = transaction.apply(stateStore);
-
-				roundInformation.apply(stateStore, transaction);
-				stateStore.transaction.add(transaction);
-
-				transactionResponse.status = TransactionStatus.OK;
-				return transactionResponse;
-			}),
+			transactionsResponses,
 			stateStore,
 		};
 	}
@@ -364,29 +367,24 @@ class ProcessTransactions {
 			senderSpending[senderId] = new BigNum(0);
 
 			senderTransactions[senderId].forEach(transaction => {
-				senderSpending[senderId] = senderSpending[senderId]
+				const senderTotalSpending = senderSpending[senderId]
 					.plus(transaction.amount)
 					.plus(transaction.fee);
 
-				if (senderBalance.lt(senderSpending[senderId])) {
+				if (senderBalance.lt(senderTotalSpending)) {
 					spendingErrors.push({
 						id: transaction.id,
 						status: TransactionStatus.FAIL,
 						errors: [
 							new TransactionError(
-								`Account does not have enough LSK for total spending. balance: ${senderBalance.toString()}, spending: ${senderSpending[
-									senderId
-								].toString()}`,
+								`Account does not have enough LSK for total spending. balance: ${senderBalance.toString()}, spending: ${senderTotalSpending.toString()}`,
 								transaction.id,
 								'.amount'
 							),
 						],
 					});
-
-					// Remove transaction amount and fee from total spending, as we rejecting this transaction
-					senderSpending[senderId] = senderSpending[senderId]
-						.minus(transaction.amount)
-						.minus(transaction.fee);
+				} else {
+					senderSpending[senderId] = senderTotalSpending;
 				}
 			});
 		});

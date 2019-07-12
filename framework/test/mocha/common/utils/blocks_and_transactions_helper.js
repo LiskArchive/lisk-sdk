@@ -31,6 +31,7 @@ const InitTransaction = require('../../../../src/modules/chain/logic/init_transa
 const initTransaction = new InitTransaction({ registeredTransactions });
 const { NORMALIZER } = global.__testContext.config;
 const addTransaction = util.promisify(localCommon.addTransaction);
+const promisifyGetNextForger = util.promisify(localCommon.getNextForger);
 const forge = util.promisify(localCommon.forge);
 const isTransactionInPool = localCommon.transactionInPool;
 
@@ -74,7 +75,7 @@ const formatTransaction = t => ({
 /**
  * Blocks and Transactions Helper
  */
-class BAT {
+class BlocksTransactionsHelper {
 	constructor(library) {
 		this._library = library;
 		this._transactions = [];
@@ -191,7 +192,6 @@ class BAT {
 	}
 
 	async createBlock() {
-		const promisifyGetNextForger = util.promisify(localCommon.getNextForger);
 		const keypairs = this._library.modules.delegates.getForgersKeyPairs();
 		const delegate = await promisifyGetNextForger(this._library, null);
 
@@ -242,7 +242,7 @@ class BAT {
 }
 
 module.exports = {
-	BAT,
+	BlocksTransactionsHelper,
 	TYPE,
 	EXPECT,
 	createCreditTransaction,

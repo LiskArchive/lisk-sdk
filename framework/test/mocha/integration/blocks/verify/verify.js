@@ -954,12 +954,10 @@ describe('blocks/verify', () => {
 	});
 
 	describe('processBlock for invalid block {broadcast: true, saveBlock: true}', () => {
-		it('should fail when processing block 1 multiple times', done => {
+		it('should fail to process the same block multiple', done => {
 			blocksVerify.processBlock(block1, true, true, () => {
 				blocksVerify.processBlock(block1, true, true, err => {
-					expect(err)
-						.to
-						.equal('Invalid block timestamp');
+					expect(err).to.equal('Invalid block timestamp');
 					done();
 				});
 			});

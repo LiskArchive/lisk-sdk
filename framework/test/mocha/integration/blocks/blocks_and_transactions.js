@@ -16,7 +16,7 @@
 
 const localCommon = require('./../common');
 const {
-	BAT,
+	BlocksTransactionsHelper,
 	TYPE,
 	EXPECT,
 } = require('../../common/utils/blocks_and_transactions_helper');
@@ -29,9 +29,9 @@ describe('blocks processing & transactions pool consistency', () => {
 	});
 
 	describe('total spending', () => {
-		describe('should not include transactions which exceed total spending per account balance', () => {
-			it('when we debit the account first', async () => {
-				const bat = new BAT(library);
+		describe('when debit the account first', () => {
+			it('should not include transactions which exceed total spending per account balance', async () => {
+				const bat = new BlocksTransactionsHelper(library);
 
 				// Credit random account with 1 LSK and forge a block
 				await bat.initAccountAndCredit({ amount: 1 });
@@ -92,9 +92,11 @@ describe('blocks processing & transactions pool consistency', () => {
 				// 1.0 - (0.1 + 0.1) + 0.3 - (0.6 + 0.1)
 				expect(await bat.getAccountBalance()).to.be.eql('0.4');
 			});
+		});
 
-			it('when we credit the account first', async () => {
-				const bat = new BAT(library);
+		describe('when we credit the account first', () => {
+			it('should not include transactions which exceed total spending per account balance', async () => {
+				const bat = new BlocksTransactionsHelper(library);
 
 				// Credit random account with 1 LSK and forge a block
 				await bat.initAccountAndCredit({ amount: 1 });
@@ -154,9 +156,11 @@ describe('blocks processing & transactions pool consistency', () => {
 				// 1.0 - (0.1 + 0.1) + 0.3 - (0.6 + 0.1)
 				expect(await bat.getAccountBalance()).to.be.eql('0.4');
 			});
+		});
 
-			it('when we try to spend entire balance and transaction fee makes balance to go negative', async () => {
-				const bat = new BAT(library);
+		describe('when we try to spend entire balance and transaction fee makes balance to go negative', () => {
+			it('should not include transactions which exceed total spending per account balance', async () => {
+				const bat = new BlocksTransactionsHelper(library);
 
 				// Credit random account with 1 LSK and forge a block
 				await bat.initAccountAndCredit({ amount: 1 });
@@ -215,9 +219,11 @@ describe('blocks processing & transactions pool consistency', () => {
 					bat.getValidSortedTransactions()
 				);
 			});
+		});
 
-			it('when we credit the account first, overspend last', async () => {
-				const bat = new BAT(library);
+		describe('when we credit the account first, overspend last', () => {
+			it('should not include transactions which exceed total spending per account balance', async () => {
+				const bat = new BlocksTransactionsHelper(library);
 
 				// Credit random account with 1 LSK and forge a block
 				await bat.initAccountAndCredit({ amount: 1 });
@@ -276,9 +282,9 @@ describe('blocks processing & transactions pool consistency', () => {
 			});
 		});
 
-		describe('other cases', () => {
-			it('when try to spend entire balance in single transaction and transaction fee makes balance go negative', async () => {
-				const bat = new BAT(library);
+		describe('when try to spend entire balance in single transaction and transaction fee makes balance go negative', () => {
+			it('should not include transactions which exceed total spending per account balance', async () => {
+				const bat = new BlocksTransactionsHelper(library);
 
 				// Credit random account with 1 LSK and forge a block
 				await bat.initAccountAndCredit({ amount: 1 });
@@ -335,9 +341,11 @@ describe('blocks processing & transactions pool consistency', () => {
 					bat.getValidSortedTransactions()
 				);
 			});
+		});
 
-			it('send 1 valid tx and 999 invalid', async () => {
-				const bat = new BAT(library);
+		describe('when there is 1 valid tx and 99 invalid', () => {
+			it('should forge block with only valid transactions', async () => {
+				const bat = new BlocksTransactionsHelper(library);
 
 				// Credit random account with 1 LSK and forge a block
 				await bat.initAccountAndCredit({ amount: 1 });
