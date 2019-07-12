@@ -15,7 +15,11 @@
 'use strict';
 
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
-const ProcessTransactions = require('../../../../../../src/modules/chain/submodules/process_transactions');
+const rewire = require('rewire');
+
+const ProcessTransactions = rewire(
+	'../../../../../../src/modules/chain/submodules/process_transactions'
+);
 
 describe('ProcessTransactions', () => {
 	let processTransactions;
@@ -31,7 +35,11 @@ describe('ProcessTransactions', () => {
 		height: 1,
 		timestamp: 'aTimestamp',
 	};
-	const scope = {
+
+	const paramScope = {
+		components: {
+			storage: {},
+		},
 		modules: {
 			blocks: {
 				lastBlock: {
@@ -41,16 +49,36 @@ describe('ProcessTransactions', () => {
 		},
 	};
 
-	beforeEach(async () => {
+	beforeEach(done => {
 		// Act
-		processTransactions = new ProcessTransactions(() => {}, {
-			components: {},
-			logic: {},
-		});
-		processTransactions.onBind(scope);
+		processTransactions = new ProcessTransactions(() => {
+			processTransactions.onBind(paramScope);
+			done();
+		}, paramScope);
 	});
 
-	describe('#checkAllowedTransactions', () => {
+	describe('constructor()', () => {
+		it('should create instance of module', async () => {
+			expect(processTransactions).to.be.instanceOf(ProcessTransactions);
+		});
+
+		it('should assign parameters correctly', async () => {
+			const library = ProcessTransactions.__get__('library');
+
+			expect(library.storage).to.be.equal(paramScope.components.storage);
+		});
+
+		it('should invoke the callback', done => {
+			const cb = (error, object) => {
+				expect(error).to.be.null;
+				expect(object).to.be.instanceOf(ProcessTransactions);
+				done();
+			};
+			new ProcessTransactions(cb, paramScope);
+		});
+	});
+
+	describe('checkAllowedTransactions', () => {
 		let checkAllowedTransactionsSpy;
 
 		beforeEach(async () => {
@@ -226,7 +254,7 @@ describe('ProcessTransactions', () => {
 		});
 	});
 
-	describe('#_getCurrentContext', () => {
+	describe('_getCurrentContext', () => {
 		let result;
 
 		beforeEach(async () => {
@@ -236,7 +264,7 @@ describe('ProcessTransactions', () => {
 
 		it('should call lastBlock.get', async () => {
 			// Assert
-			expect(scope.modules.blocks.lastBlock.get).to.have.been.called;
+			expect(paramScope.modules.blocks.lastBlock.get).to.have.been.called;
 		});
 
 		it('should return version, height and timestamp wrapped in an object', async () => {
