@@ -313,12 +313,7 @@ class Blocks extends EventEmitter {
 	// Process a block from the P2P
 	async receiveBlockFromNetwork(block) {
 		return this.sequence.add(async () => {
-			if (this._isActive) {
-				this.logger.info(
-					'Ignoring received block from network, node is syncing or forging'
-				);
-				return;
-			}
+			this._shouldNotBeActive();
 			this._isActive = true;
 			// set active to true
 			if (this.blocksVerify.isSaneBlock(block, this._lastBlock)) {

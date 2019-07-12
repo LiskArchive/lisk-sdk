@@ -340,29 +340,6 @@ describe('blocks', () => {
 				});
 			});
 		});
-		describe('client not ready to receive block', () => {
-			beforeEach(async () => {
-				sinonSandbox.stub(blocksInstance.blocksVerify, 'isSaneBlock');
-				sequenceStub.add.callsFake(async fn => {
-					await fn();
-				});
-			});
-
-			it('should not process the received block and info log it', async () => {
-				blocksInstance._isActive = true;
-				await blocksInstance.receiveBlockFromNetwork({
-					id: '2',
-					previousBlock: '1',
-					height: 2,
-				});
-
-				expect(loggerStub.info).to.be.calledWith(
-					'Ignoring received block from network, node is syncing or forging'
-				);
-				expect(blocksInstance._isActive).to.be.true; // Value shouldn't be altered.
-				expect(blocksInstance.blocksVerify.isSaneBlock).to.not.be.called;
-			});
-		});
 	});
 
 	describe('_rebuildMode', () => {
