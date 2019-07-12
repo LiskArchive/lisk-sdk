@@ -173,7 +173,7 @@ describe('blocks/chain', () => {
 			isActive: {
 				set: sinonSandbox.stub(),
 			},
-			calculateNewBroadhash: sinonSandbox.stub(),
+			calculateNewBroadhash: sinonSandbox.stub().resolves({}),
 		};
 
 		const modulesRoundsStub = {
@@ -1065,11 +1065,23 @@ describe('blocks/chain', () => {
 				});
 			});
 
-			// TODO: add new tests once improve_transaction_eficiency is done
 			describe('when __private.popLastBlock succeeds', () => {
-				/* eslint-disable mocha/no-pending-tests */
-				it('should return previousBlock');
-				/* eslint-enable mocha/no-pending-tests */
+				it('should return previousBlock', done => {
+					// Arrange
+					const previousBlock = { id: 5, height: 5 };
+					__private.popLastBlock.callsArgWith(1, null, previousBlock);
+					modules.blocks.lastBlock.set.returns(previousBlock);
+
+					// Act
+					blocksChainModule.deleteLastBlock((err, block) => {
+						expect(err).to.equal(null);
+						expect(modules.blocks.lastBlock.set).to.be.calledWith(
+							previousBlock
+						);
+						expect(block).to.equal(previousBlock);
+						done();
+					});
+				});
 			});
 		});
 	});
