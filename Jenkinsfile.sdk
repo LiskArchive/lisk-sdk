@@ -67,7 +67,7 @@ def teardown_mocha(test_name) {
 		println "Could gather coverage statistics from mocha:\n${err}"
 	}
 	dir('framework') {
-		stash name: "coverage_mocha_${test_name}", includes: "coverage_mocha_${test_name}/", allowEmpty: true
+		stash name: "coverage_mocha_${test_name}", includes: "coverage_mocha_${test_name}/*", allowEmpty: true
 	}
 	timeout(1) {
 		sh 'killall --verbose --wait node || true'
@@ -95,7 +95,7 @@ def teardown_jest(test_name) {
 	} catch(err) {
 		println "Could gather coverage statistics from jest:\n${err}"
 	}
-	stash name: "coverage_jest_${test_name}", includes: "coverage_jest_${test_name}/", allowEmpty: true
+	stash name: "coverage_jest_${test_name}", includes: "coverage_jest_${test_name}/*", allowEmpty: true
 	timeout(1) {
 		sh 'killall --verbose --wait node || true'
 	}
@@ -181,15 +181,14 @@ pipeline {
 						cleanup {
 							// Save all the test results
 							sh '''
-								rm -rf .nyc_output; mkdir -p .nyc_output
-								rm -rf ci_coverage; mkdir -p ci_coverage
+								rm -rf coverage_elements; mkdir -p coverage_elements
 								for d in elements/*; do
 									if [ -d $d  ] && [ -d $d/.nyc_output  ]; then
-										cp -r $d/.nyc_output/* ./.nyc_output
+										cp -r $d/.nyc_output/* ./coverage_elements
 									fi
 								done
 							'''
-							stash name: "coverage_elements", includes: ".nyc_output/", allowEmpty: true
+							stash name: "coverage_elements", includes: "coverage_elements/*", allowEmpty: true
 						}
 					}
 				}
@@ -200,9 +199,11 @@ pipeline {
 						nvm(getNodejsVersion()) {
 							dir('commander') {
 								sh '''
+								rm -rf coverage_commander; mkdir -p coverage_commander
 								LISK_COMMANDER_CONFIG_DIR=$WORKSPACE/.lisk npm test
+								cp -r .nyc_output/* ./coverage_commander
 								'''
-								stash name: "coverage_commander", includes: ".nyc_output/", allowEmpty: true
+								stash name: "coverage_commander", includes: "coverage_commander/*", allowEmpty: true
 							}
 						}
 					}
