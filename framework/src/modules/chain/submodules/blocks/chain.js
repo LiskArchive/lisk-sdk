@@ -289,7 +289,7 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 		return 0;
 	});
 
-	__private.applyTransactions(block.transactions, err => {
+	__private.applyGenesisTransactions(block.transactions, err => {
 		if (err) {
 			// If genesis block is invalid, kill the node...
 			process.emit('cleanup', err.message);
@@ -314,10 +314,9 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  */
-__private.applyTransactions = function(transactions, cb) {
-	// TODO: Need to add logic for handling exceptions for genesis block transactions
+__private.applyGenesisTransactions = function(transactions, cb) {
 	modules.processTransactions
-		.applyTransactions(transactions)
+		.applyGenesisTransactions(transactions)
 		.then(({ stateStore }) =>
 			stateStore.account.finalize().then(() => {
 				stateStore.round.setRoundForData(slots.calcRound(1));

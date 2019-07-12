@@ -192,7 +192,7 @@ describe('blocks/process', () => {
 		};
 
 		const modulesProcessTransactionsStub = {
-			verifyTransactions: sinonSandbox.stub(),
+			applyTransactions: sinonSandbox.stub(),
 			checkAllowedTransactions: sinonSandbox.stub(),
 		};
 
@@ -1151,7 +1151,7 @@ describe('blocks/process', () => {
 			describe('when query returns empty array', () => {
 				beforeEach(async () => {
 					modules.transactions.getUnconfirmedTransactionList.returns([]);
-					modules.processTransactions.verifyTransactions.resolves({
+					modules.processTransactions.applyTransactions.resolves({
 						transactionsResponses: [],
 					});
 					modules.processTransactions.checkAllowedTransactions.returns({
@@ -1186,7 +1186,7 @@ describe('blocks/process', () => {
 					modules.processTransactions.checkAllowedTransactions.returns({
 						transactionsResponses: [],
 					});
-					modules.processTransactions.verifyTransactions.resolves({
+					modules.processTransactions.applyTransactions.resolves({
 						transactionsResponses: [],
 					});
 					modules.blocks.verify.processBlock.callsArgWith(
@@ -1239,10 +1239,10 @@ describe('blocks/process', () => {
 					);
 				});
 
-				describe('modules.processTransactions.verifyTransactions', () => {
+				describe('modules.processTransactions.applyTransactions', () => {
 					describe('when transaction initializations fail', () => {
 						beforeEach(async () =>
-							modules.processTransactions.verifyTransactions.rejects(
+							modules.processTransactions.applyTransactions.rejects(
 								new Error('Invalid field types')
 							)
 						);
@@ -1260,7 +1260,7 @@ describe('blocks/process', () => {
 
 					describe('when transactions verification fails', () => {
 						beforeEach(async () =>
-							modules.processTransactions.verifyTransactions.resolves({
+							modules.processTransactions.applyTransactions.resolves({
 								transactionsResponses: [
 									{ id: 1, status: 0, errors: [] },
 									{ id: 2, status: 0, errors: [] },
@@ -1286,7 +1286,7 @@ describe('blocks/process', () => {
 
 					describe('when transactions verification succeeds', () => {
 						beforeEach(async () => {
-							modules.processTransactions.verifyTransactions.resolves({
+							modules.processTransactions.applyTransactions.resolves({
 								transactionsResponses: [
 									{ id: 1, status: 1, errors: [] },
 									{ id: 2, status: 1, errors: [] },
@@ -1312,7 +1312,7 @@ describe('blocks/process', () => {
 
 					describe('when transactions pending', () => {
 						beforeEach(async () =>
-							modules.processTransactions.verifyTransactions.resolves({
+							modules.processTransactions.applyTransactions.resolves({
 								transactionsResponses: [{ id: 1, status: 2, errors: [] }],
 							})
 						);
@@ -1336,7 +1336,7 @@ describe('blocks/process', () => {
 
 				describe('library.logic.block.create', () => {
 					beforeEach(async () => {
-						modules.processTransactions.verifyTransactions.resolves({
+						modules.processTransactions.applyTransactions.resolves({
 							transactionsResponses: [
 								{ id: 1, status: 1, errors: [] },
 								{ id: 2, status: 1, errors: [] },
@@ -1440,7 +1440,7 @@ describe('blocks/process', () => {
 					},
 				],
 			});
-			modules.processTransactions.verifyTransactions.resolves({
+			modules.processTransactions.applyTransactions.resolves({
 				transactionsResponses: [
 					{
 						id: sampleTransactons[0],
