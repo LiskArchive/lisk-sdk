@@ -207,6 +207,10 @@ describe('blocks/chain', () => {
 					finalize: sinonSandbox.stub().resolves(),
 				},
 			},
+			transactionsResponses: [
+				{ status: TransactionStatus.OK },
+				{ status: TransactionStatus.OK },
+			],
 		};
 
 		bindingsStub = {
@@ -219,24 +223,12 @@ describe('blocks/chain', () => {
 					applyTransactions: sinonSandbox
 						.stub()
 						.resolves(processTransactionMethodResponse),
-					undoTransactions: sinonSandbox.stub().resolves({
-						...processTransactionMethodResponse,
-						transactionsResponses: [
-							{ status: TransactionStatus.OK },
-							{ status: TransactionStatus.OK },
-						],
-					}),
-					applyGenesisTransactions: sinonSandbox.stub().resolves({
-						stateStore: {
-							account: {
-								finalize: sinonSandbox.stub().resolves(),
-							},
-							round: {
-								setRoundForData: sinonSandbox.stub().resolves(),
-								finalize: sinonSandbox.stub().resolves(),
-							},
-						},
-					}),
+					undoTransactions: sinonSandbox
+						.stub()
+						.resolves(processTransactionMethodResponse),
+					applyGenesisTransactions: sinonSandbox
+						.stub()
+						.resolves(processTransactionMethodResponse),
 				},
 			},
 		};
@@ -606,19 +598,94 @@ describe('blocks/chain', () => {
 	});
 
 	describe('__private.applyConfirmedStep', () => {
-		/* eslint-disable mocha/no-pending-tests */
-		it('should return when block.transactions includes no transactions');
+		// Arrange
+		const filledBlock = {
+			id: 1,
+			height: 1,
+			transactions: [{ id: 21 }, { id: 22 }],
+		};
 
-		it('should call modules.processTransactions.undoTransactions');
+		it('should return when block.transactions includes no transactions', async () => {
+			// Arrange
+			const emptyBlock = {
+				id: 1,
+				height: 1,
+				transactions: [],
+			};
+			// Act && Assert
+			return expect(__private.applyConfirmedStep(emptyBlock)).to.eventually.be
+				.undefined;
+		});
 
-		it('should throw error when errors exist in unappliedTransactionResponse');
+		it('should call modules.processTransactions.applyConfirmedStep', async () => {
+			// Arrange
+			const originalInertTransactions = global.exceptions.inertTransactions;
+			global.exceptions.inertTransactions = [filledBlock.transactions[0].id];
+			const dummyTx = {};
 
-		it('should call stateStore.account.finalize');
+			// Act
+			await __private.applyConfirmedStep(filledBlock, dummyTx);
 
-		it('should call stateStore.round.setRoundForData with correct parameters');
+			// Cleanup
+			global.exceptions.inertTransactions = originalInertTransactions;
 
-		it('should call tateStore.round.finalize');
-		/* eslint-enable mocha/no-pending-tests */
+			// Assert
+			return expect(
+				modules.processTransactions.applyTransactions
+			).to.have.been.calledWith([filledBlock.transactions[1]], dummyTx);
+		});
+
+		it('should throw error when errors exist in unappliedTransactionResponse', async () => {
+			// Arrange
+			const errors = [new Error('#Test Error')];
+			modules.processTransactions.applyTransactions.resolves({
+				...processTransactionMethodResponse,
+				transactionsResponses: [
+					{ status: TransactionStatus.OK },
+					{ status: TransactionStatus.FAIL, errors },
+				],
+			});
+
+			try {
+				// Act
+				await __private.applyConfirmedStep(filledBlock);
+			} catch (err) {
+				// Assert
+				expect(err).to.be.equal(errors);
+			}
+		});
+
+		it('should call stateStore.account.finalize', async () => {
+			// Act
+			await __private.applyConfirmedStep(filledBlock);
+
+			// Assert
+			return expect(
+				processTransactionMethodResponse.stateStore.account.finalize.calledOnce
+			).to.be.true;
+		});
+
+		it('should call stateStore.round.setRoundForData with correct parameters', async () => {
+			// Arrange
+			const round = slots.calcRound(filledBlock.height);
+			// Act
+			await __private.applyConfirmedStep(filledBlock);
+
+			// Assert
+			return expect(
+				processTransactionMethodResponse.stateStore.round.setRoundForData
+			).to.have.been.calledWith(round);
+		});
+
+		it('should call tateStore.round.finalize', async () => {
+			// Act
+			await __private.applyConfirmedStep(filledBlock);
+
+			// Assert
+			return expect(
+				processTransactionMethodResponse.stateStore.round.finalize.calledOnce
+			).to.be.true;
+		});
 	});
 
 	describe('__private.saveBlockStep', () => {
