@@ -2,6 +2,26 @@
 	"app": {
 		"ipc": {
 			"enabled": false
+		},
+		"version": "2.1.0",
+		"minVersion": "1.0.0",
+		"protocolVersion": "1.1",
+		"label": "devnet",
+		"genesisConfig": {
+			"EPOCH_TIME": "2016-05-24T17:00:00.000Z",
+			"BLOCK_TIME": 10,
+			"MAX_TRANSACTIONS_PER_BLOCK": 25,
+			"REWARDS": {
+				"MILESTONES": [
+					"500000000",
+					"400000000",
+					"300000000",
+					"200000000",
+					"100000000"
+				],
+				"OFFSET": 2160,
+				"DISTANCE": 3000000
+			}
 		}
 	},
 	"components": {

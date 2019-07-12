@@ -35,12 +35,6 @@ const genesisBlock = require('../../../../fixtures/config/devnet/genesis_block')
 
 const config = {
 	...networkConfig,
-	app: {
-		label: 'jest-unit',
-		version: '1.6.0',
-		minVersion: '1.0.0',
-		protocolVersion: '1.0',
-	},
 };
 // eslint-disable-next-line
 describe.skip('Application', () => {
@@ -58,10 +52,9 @@ describe.skip('Application', () => {
 			// Act
 			const validateSpy = jest.spyOn(validator, 'validate');
 			new Application(genesisBlock, config);
-
 			// Assert
-			expect(validateSpy).toHaveBeenCalled();
-			expect(validateSpy).toHaveBeenCalledWith(
+			expect(validateSpy).toHaveBeenNthCalledWith(
+				1,
 				genesisBlockSchema,
 				genesisBlock
 			);
@@ -86,7 +79,7 @@ describe.skip('Application', () => {
 		it('should set filename for logger if logger component was not provided', () => {
 			// Arrange
 			const configWithoutLogger = _.cloneDeep(config);
-			delete configWithoutLogger.components.logger;
+			configWithoutLogger.components.logger = {};
 
 			// Act
 			const app = new Application(genesisBlock, configWithoutLogger);
@@ -115,6 +108,19 @@ describe.skip('Application', () => {
 
 			customConfig.app.genesisConfig = {
 				MAX_TRANSACTIONS_PER_BLOCK: 11,
+				EPOCH_TIME: '2016-05-24T17:00:00.000Z',
+				BLOCK_TIME: 2,
+				REWARDS: {
+					MILESTONES: [
+						'500000000',
+						'400000000',
+						'300000000',
+						'200000000',
+						'100000000',
+					],
+					OFFSET: 2160,
+					DISTANCE: 3000000,
+				},
 			};
 
 			const app = new Application(genesisBlock, customConfig);
