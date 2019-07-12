@@ -62,8 +62,8 @@ class AccountStore {
 	restoreSnapshot() {
 		this.data = this.originalData;
 		this.updatedKeys = this.originalUpdatedKeys;
-		this.originalKeys = {};
-		this.originalUpdatedKeys = [];
+		this.originalData = [];
+		this.originalUpdatedKeys = {};
 	}
 
 	get(primaryValue) {
