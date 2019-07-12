@@ -39,7 +39,7 @@ Mind, that you need to create a database before. The default database name is `l
 
 ### Installation
 
-The installation of Lisk Alpha SDK is straightforward and limited to getting a single NPM package to your Node.js project - `lisk-sdk`:
+The installation of Lisk Alpha SDK is straightforward and limited to getting a single NPM package, `lisk-sdk`, to your Node.js project:
 
 ```
 npm install lisk-sdk@alpha
