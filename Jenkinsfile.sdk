@@ -374,8 +374,10 @@ pipeline {
 					println "Could not report coverage statistics:\n${err}"
 				}
 				currentBuild.result = 'SUCCESS'
+				if (env.BRANCH_NAME == 'master') {
+					step([$class: 'MasterCoverageAction', scmVars: [GIT_URL: env.GIT_URL]])
+				}
 			}
-			step([$class: 'MasterCoverageAction', scmVars: [GIT_URL: env.GIT_URL]])
 			step([$class: 'CompareCoverageAction', publishResultAs: 'statusCheck', scmVars: [GIT_URL: env.GIT_URL]])
 		}
 		cleanup {
