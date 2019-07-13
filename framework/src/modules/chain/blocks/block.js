@@ -489,6 +489,7 @@ module.exports = {
 	create,
 	dbRead,
 	storageRead,
+	sortTransactions,
 	getBytes,
 	verifySignature,
 	objectNormalize,
