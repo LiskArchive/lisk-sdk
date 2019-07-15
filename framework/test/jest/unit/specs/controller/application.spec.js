@@ -85,15 +85,20 @@ describe('Application', () => {
 			// Act
 			const app = new Application(genesisBlock, configWithoutTmpPath);
 
+			// Assert
 			expect(app.config.app.tmpPath).toBe(tmpPath);
 		});
 
 		it('should set tmpPath if provided', () => {
+			// Arragne
 			const customTmpPath = '/my-lisk-folder';
 			const configWithCustomTmpPath = _.cloneDeep(config);
 			configWithCustomTmpPath.app.tmpPath = customTmpPath;
+
+			// Act
 			const app = new Application(genesisBlock, configWithCustomTmpPath);
 
+			// Assert
 			expect(app.config.app.tmpPath).toBe(customTmpPath);
 		});
 
@@ -105,6 +110,7 @@ describe('Application', () => {
 			// Act
 			const app = new Application(genesisBlock, configWithoutLogger);
 
+			// Assert
 			expect(app.config.components.logger.logFileName).toBe(
 				`${process.cwd()}/logs/${config.app.label}/lisk.log`
 			);

@@ -37,9 +37,9 @@ describe('Controller Class', () => {
 	};
 	const systemDirs = {
 		root: process.cwd(),
-		temp: `/tmp/${appLabel}/`,
-		sockets: `/tmp/${appLabel}/sockets`,
-		pids: `/tmp/${appLabel}/pids`,
+		temp: `${config.tmpPath}/${appLabel}/`,
+		sockets: `${config.tmpPath}/${appLabel}/sockets`,
+		pids: `${config.tmpPath}/${appLabel}/pids`,
 	};
 	const configController = {
 		...config,
