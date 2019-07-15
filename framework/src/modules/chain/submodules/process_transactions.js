@@ -101,11 +101,11 @@ class ProcessTransactions {
 		const persistedTransactions = transactions.filter(transaction =>
 			persistedTransactionIds.includes(transaction.id)
 		);
-		const unpersistedTransactions = transactions.filter(
+		const nonPersistedTransactions = transactions.filter(
 			transaction => !persistedTransactionIds.includes(transaction.id)
 		);
 		const transactionsResponses = [
-			...unpersistedTransactions.map(transaction => ({
+			...nonPersistedTransactions.map(transaction => ({
 				id: transaction.id,
 				status: TransactionStatus.OK,
 				errors: [],

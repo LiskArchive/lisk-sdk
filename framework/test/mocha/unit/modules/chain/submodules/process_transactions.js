@@ -16,6 +16,9 @@
 
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const rewire = require('rewire');
+const {
+	Transaction: transactionFxiture,
+} = require('../../../../fixtures/transactions');
 
 const ProcessTransactions = rewire(
 	'../../../../../../src/modules/chain/submodules/process_transactions'
@@ -24,21 +27,11 @@ const ProcessTransactions = rewire(
 describe('ProcessTransactions', () => {
 	let processTransactions;
 
-	const trs1 = [
-		{
-			id: 'aTransactionId',
-			matcher: () => true,
-			type: 0,
-		},
-	];
+	const trs1 = transactionFxiture();
+	trs1.matcher = () => true;
 
-	const trs2 = [
-		{
-			id: 'aTransactionId',
-			matcher: () => true,
-			type: 0,
-		},
-	];
+	const trs2 = transactionFxiture();
+	trs2.matcher = () => true;
 
 	const dummyState = {
 		version: 1,
@@ -46,9 +39,17 @@ describe('ProcessTransactions', () => {
 		timestamp: 'aTimestamp',
 	};
 
+	const storageMock = {
+		entities: {
+			Transaction: {
+				get: sinonSandbox.stub(),
+			},
+		},
+	};
+
 	const paramScope = {
 		components: {
-			storage: {},
+			storage: storageMock,
 		},
 		modules: {
 			blocks: {
@@ -97,11 +98,11 @@ describe('ProcessTransactions', () => {
 	});
 
 	describe('validateTransactions()', () => {
-		const validateResponse = { status: TransactionStatus.OK };
-		const invalidResponse = { status: TransactionStatus.FAIL };
+		const validResponse = { status: TransactionStatus.OK, id: trs1.id };
+		const invalidResponse = { status: TransactionStatus.FAIL, id: trs2.id };
 
 		beforeEach(async () => {
-			trs1.validate = sinonSandbox.stub().returns(validateResponse);
+			trs1.validate = sinonSandbox.stub().returns(validResponse);
 			trs2.validate = sinonSandbox.stub().returns(invalidResponse);
 		});
 
@@ -132,8 +133,63 @@ describe('ProcessTransactions', () => {
 			const result = processTransactions.validateTransactions([trs1, trs2]);
 
 			expect(result).to.be.eql({
-				transactionsResponses: [validateResponse, invalidResponse],
+				transactionsResponses: [validResponse, invalidResponse],
 			});
+		});
+	});
+
+	describe('checkPersistedTransactions()', () => {
+		it('should resolve in empty response if called with empty array', async () => {
+			const result = await processTransactions.checkPersistedTransactions([]);
+
+			expect(result).to.be.eql({ transactionsResponses: [] });
+		});
+		it('should invoke entities.Transaction to check persistence of transactions', async () => {
+			storageMock.entities.Transaction.get.resolves([trs1, trs2]);
+
+			await processTransactions.checkPersistedTransactions([trs1, trs2]);
+
+			expect(storageMock.entities.Transaction.get).to.be.calledOnce;
+			expect(storageMock.entities.Transaction.get).to.be.calledWithExactly({
+				id_in: [trs1.id, trs2.id],
+			});
+		});
+
+		it('should return TransactionStatus.OK for non-persisted transactions', async () => {
+			// Treat trs1 as persisted transaction
+			storageMock.entities.Transaction.get.resolves([trs1]);
+
+			const result = await processTransactions.checkPersistedTransactions([
+				trs1,
+				trs2,
+			]);
+
+			const transactionResponse = result.transactionsResponses.find(
+				({ id }) => id === trs2.id
+			);
+
+			expect(transactionResponse.status).to.be.eql(TransactionStatus.OK);
+			expect(transactionResponse.errors).to.be.eql([]);
+		});
+
+		it('should return TransactionStatus.FAIL for persisted transactions', async () => {
+			// Treat trs1 as persisted transaction
+			storageMock.entities.Transaction.get.resolves([trs1]);
+
+			const result = await processTransactions.checkPersistedTransactions([
+				trs1,
+				trs2,
+			]);
+
+			const transactionResponse = result.transactionsResponses.find(
+				({ id }) => id === trs1.id
+			);
+
+			expect(transactionResponse.status).to.be.eql(TransactionStatus.FAIL);
+			expect(transactionResponse.errors).have.lengthOf(1);
+			expect(transactionResponse.errors[0].message).to.be.eql(
+				`Transaction is already confirmed: ${trs1.id}`
+			);
 		});
 	});
 
@@ -150,11 +206,11 @@ describe('ProcessTransactions', () => {
 
 		it('should accept two exact arguments with proper data', async () => {
 			// Act
-			processTransactions.checkAllowedTransactions(trs1, dummyState);
+			processTransactions.checkAllowedTransactions([trs1], dummyState);
 
 			// Assert
 			expect(checkAllowedTransactionsSpy).to.have.been.calledWithExactly(
-				trs1,
+				[trs1],
 				dummyState
 			);
 		});
@@ -162,14 +218,14 @@ describe('ProcessTransactions', () => {
 		it('should return a proper response format', async () => {
 			// Act
 			const response = processTransactions.checkAllowedTransactions(
-				trs1,
+				[trs1],
 				dummyState
 			);
 
 			// Assert
 			expect(response).to.have.deep.property('transactionsResponses', [
 				{
-					id: 'aTransactionId',
+					id: trs1.id,
 					status: 1,
 					errors: [],
 				},
@@ -212,7 +268,7 @@ describe('ProcessTransactions', () => {
 
 		it('should report a transaction as allowed if it does not implement matcher', async () => {
 			// Arrange
-			const { matcher, ...transactionWithoutMatcherImpl } = trs1[0];
+			const { matcher, ...transactionWithoutMatcherImpl } = trs1;
 
 			// Act
 			const response = processTransactions.checkAllowedTransactions(
@@ -262,9 +318,9 @@ describe('ProcessTransactions', () => {
 		it('should return a mix of responses including allowed and disallowed transactions', async () => {
 			// Arrange
 			const transactions = [
-				trs1[0], // Allowed
+				trs1, // Allowed
 				{
-					...trs1[0],
+					...trs1,
 					matcher: () => false, // Disallowed
 				},
 			];
