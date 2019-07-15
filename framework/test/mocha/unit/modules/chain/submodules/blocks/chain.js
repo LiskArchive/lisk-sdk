@@ -653,13 +653,10 @@ describe('blocks/chain', () => {
 				],
 			});
 
-			try {
-				// Act
-				await __private.applyConfirmedStep(filledBlock);
-			} catch (err) {
-				// Assert
-				expect(err).to.be.equal(errors);
-			}
+			// Act && Assert
+			await expect(
+				__private.applyConfirmedStep(filledBlock)
+			).to.eventually.be.rejected.and.deep.equal(errors);
 		});
 
 		it('should call stateStore.account.finalize', async () => {
@@ -1033,13 +1030,10 @@ describe('blocks/chain', () => {
 				],
 			});
 
-			try {
-				// Act
-				await __private.undoConfirmedStep(filledBlock);
-			} catch (err) {
-				// Assert
-				expect(err).to.be.equal(errors);
-			}
+			// Act && Assert
+			await expect(
+				__private.undoConfirmedStep(filledBlock)
+			).to.eventually.be.rejected.and.deep.equal(errors);
 		});
 
 		it('should call stateStore.account.finalize', async () => {
