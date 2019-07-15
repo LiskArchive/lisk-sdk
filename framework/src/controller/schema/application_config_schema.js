@@ -34,6 +34,8 @@ module.exports = {
 					pattern: '^[a-zA-Z][0-9a-zA-Z\\_\\-]*$',
 					minLength: 1,
 					maxLength: 30,
+					description:
+						'Restricted length due to unix domain socket path length limitations.',
 				},
 				version: {
 					type: 'string',
