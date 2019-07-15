@@ -255,12 +255,12 @@ class ProcessTransactions {
 			return transactionResponse;
 		});
 
-		const unundoableTransactionsResponse = transactionsResponses.filter(
+		const nonUndoableTransactionsResponse = transactionsResponses.filter(
 			transactionResponse => transactionResponse.status !== TransactionStatus.OK
 		);
 
 		updateTransactionResponseForExceptionTransactions(
-			unundoableTransactionsResponse,
+			nonUndoableTransactionsResponse,
 			transactions
 		);
 

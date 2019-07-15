@@ -59,6 +59,7 @@ describe('ProcessTransactions', () => {
 
 	const roundInformationMock = {
 		apply: sinonSandbox.stub(),
+		undo: sinonSandbox.stub(),
 	};
 
 	const paramScope = {
@@ -88,14 +89,12 @@ describe('ProcessTransactions', () => {
 			trs2.prepare = sinonSandbox.stub();
 
 			// Add apply steps to transactions
-			trs1.apply = sinonSandbox.stub().returns({
-				status: TransactionStatus.OK,
-				id: trs1.id,
-			});
-			trs2.apply = sinonSandbox.stub().returns({
-				status: TransactionStatus.OK,
-				id: trs2.id,
-			});
+			trs1.apply = sinonSandbox.stub();
+			trs2.apply = sinonSandbox.stub();
+
+			// Add undo steps to transactions
+			trs1.undo = sinonSandbox.stub();
+			trs2.undo = sinonSandbox.stub();
 
 			ProcessTransactions.__set__('StateStore', StateStoreStub);
 			ProcessTransactions.__set__('roundInformation', roundInformationMock);
@@ -109,6 +108,8 @@ describe('ProcessTransactions', () => {
 		sinonSandbox.reset();
 
 		roundInformationMock.apply.reset();
+		roundInformationMock.undo.reset();
+
 		StateStoreStub.resetHistory();
 		stateStoreMock.account.restoreSnapshot.reset();
 		stateStoreMock.account.createSnapshot.reset();
@@ -667,6 +668,100 @@ describe('ProcessTransactions', () => {
 			expect(response.transactionsResponses[1].errors[0].message).to.equal(
 				`Transaction type ${transactions[1].type} is currently not allowed.`
 			);
+		});
+	});
+
+	describe('undoTransactions', () => {
+		const tx = {};
+		let trs1Response;
+		let trs2Response;
+		let updateTransactionResponseForExceptionTransactionsStub;
+
+		beforeEach(async () => {
+			trs1Response = {
+				status: TransactionStatus.OK,
+				id: trs1.id,
+			};
+			trs2Response = {
+				status: TransactionStatus.OK,
+				id: trs2.id,
+			};
+
+			trs1.undo.returns(trs1Response);
+			trs2.undo.returns(trs2Response);
+
+			updateTransactionResponseForExceptionTransactionsStub = sinonSandbox.stub();
+			ProcessTransactions.__set__(
+				'updateTransactionResponseForExceptionTransactions',
+				updateTransactionResponseForExceptionTransactionsStub
+			);
+		});
+
+		it('should initialize the state store', async () => {
+			await processTransactions.undoTransactions([trs1, trs2], tx);
+
+			expect(StateStoreStub).to.be.calledOnce;
+			expect(StateStoreStub).to.be.calledWithExactly(storageMock, {
+				mutate: true,
+				tx,
+			});
+		});
+
+		it('should prepare all transactions', async () => {
+			await processTransactions.undoTransactions([trs1, trs2]);
+
+			expect(trs1.prepare).to.be.calledOnce;
+			expect(trs1.prepare).to.be.calledWithExactly(stateStoreMock);
+
+			expect(trs2.prepare).to.be.calledOnce;
+			expect(trs2.prepare).to.be.calledWithExactly(stateStoreMock);
+		});
+
+		it('should undo for every transaction', async () => {
+			await processTransactions.undoTransactions([trs1, trs2]);
+
+			expect(trs1.undo).to.be.calledOnce;
+			expect(trs1.undo).to.be.calledWithExactly(stateStoreMock);
+
+			expect(trs2.undo).to.be.calledOnce;
+			expect(trs2.undo).to.be.calledWithExactly(stateStoreMock);
+		});
+
+		it('should undo round information for every transaction', async () => {
+			await processTransactions.undoTransactions([trs1, trs2]);
+
+			expect(roundInformationMock.undo).to.be.calledTwice;
+			expect(roundInformationMock.undo.firstCall.args).to.be.eql([
+				stateStoreMock,
+				trs1,
+			]);
+			expect(roundInformationMock.undo.secondCall.args).to.be.eql([
+				stateStoreMock,
+				trs2,
+			]);
+		});
+
+		it('should update exceptions for responses which are not OK', async () => {
+			trs1Response.status = TransactionStatus.FAIL;
+			trs1.undo.returns(trs1Response);
+
+			await processTransactions.undoTransactions([trs1, trs2]);
+
+			expect(updateTransactionResponseForExceptionTransactionsStub).to.be
+				.calledOnce;
+			expect(
+				updateTransactionResponseForExceptionTransactionsStub
+			).to.be.calledWithExactly([trs1Response], [trs1, trs2]);
+		});
+
+		it('should return transaction responses and state store', async () => {
+			const result = await processTransactions.undoTransactions([trs1, trs2]);
+
+			expect(result.stateStore).to.be.eql(stateStoreMock);
+			expect(result.transactionsResponses).to.be.eql([
+				trs1Response,
+				trs2Response,
+			]);
 		});
 	});
 
