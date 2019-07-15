@@ -560,6 +560,7 @@ export class TransactionPool extends EventEmitter {
 			queueCheckers.checkTransactionForId(failedTransactions),
 		);
 
+		// Move all passed transactions to the ready queue
 		// Keep transactions in the ready queue which still exist
 		this._queues.ready.enqueueMany(
 			this._queues.ready.removeFor(

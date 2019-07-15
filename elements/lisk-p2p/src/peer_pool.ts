@@ -74,8 +74,9 @@ export {
 };
 
 interface PeerPoolConfig {
-	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
+	readonly connectTimeout?: number;
+	readonly wsMaxPayload?: number;
 	readonly peerSelectionForSend: P2PPeerSelectionForSendFunction;
 	readonly peerSelectionForRequest: P2PPeerSelectionForRequestFunction;
 	readonly peerSelectionForConnection: P2PPeerSelectionForConnectionFunction;
@@ -409,6 +410,7 @@ export class PeerPool extends EventEmitter {
 		const peerConfig = {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
+			wsMaxPayload: this._peerPoolConfig.wsMaxPayload,
 		};
 		const peer = new Peer(peerInfo, peerConfig, { outbound: socket });
 
@@ -425,6 +427,20 @@ export class PeerPool extends EventEmitter {
 		this._peerMap.forEach((peer: Peer) => {
 			this.removePeer(peer.id);
 		});
+	}
+
+	public getAllConnectedPeerInfos(): ReadonlyArray<P2PDiscoveredPeerInfo> {
+		return this.getConnectedPeers().map(peer => peer.peerInfo);
+	}
+
+	public getConnectedPeers(): ReadonlyArray<Peer> {
+		const peers = this.getAllPeers();
+
+		return peers.filter(
+			peer =>
+				peer.state.outbound === ConnectionState.CONNECTED ||
+				peer.state.inbound === ConnectionState.CONNECTED,
+		);
 	}
 
 	public getAllPeerInfos(): ReadonlyArray<P2PDiscoveredPeerInfo> {
