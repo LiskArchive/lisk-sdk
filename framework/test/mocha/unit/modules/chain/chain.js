@@ -336,52 +336,25 @@ describe('Chain', () => {
 		});
 	});
 
-	describe('#_startLoader', () => {
+	describe('#_syncTask', () => {
 		beforeEach(async () => {
 			await chain.bootstrap();
-			sinonSandbox.stub(chain.loader, 'loadTransactionsAndSignatures');
 			sinonSandbox.stub(chain.loader, 'sync').resolves();
+			sinonSandbox.stub(chain.loader, 'syncing').returns(false);
+			sinonSandbox.stub(chain.blocks, 'isStale').returns(false);
 			sinonSandbox.stub(chain.scope.sequence, 'add').callsFake(async fn => {
 				await fn();
 			});
-			sinonSandbox.stub(chain.loader, 'syncing').returns(false);
-			sinonSandbox.stub(chain.blocks, 'isStale').returns(false);
 		});
 
-		it('should return if syncing.active in config is set to false', async () => {
-			chain.options.syncing.active = false;
-			chain._startLoader();
-			chain.options.syncing.active = true;
-			expect(stubs.jobsQueue.register).to.not.be.called;
-		});
-
-		it('should load transactions and signatures', async () => {
-			chain._startLoader();
-			expect(chain.loader.loadTransactionsAndSignatures).to.be.called;
-		});
-
-		it('should register a task in Jobs Queue named "nextSync" with a designated interval', async () => {
-			chain._startLoader();
-			expect(stubs.jobsQueue.register).to.be.calledWith('nextSync');
-		});
-
-		it('should info log every time this task is registered', async () => {
+		it('should info log every time this task is triggered', async () => {
+			// Arrange
 			chain.loader.syncing.returns(true); // To avoid triggering extra logic irrelevant for this scenario
 
-			let done;
-			const workerPromise = new Promise((resolve, reject) => {
-				done = { resolve, reject };
-			});
+			// Act
+			await chain._syncTask();
 
-			stubs.jobsQueue.register = (name, job) => {
-				job()
-					.then(done.resolve)
-					.catch(done.reject);
-			};
-
-			chain._startLoader();
-			await workerPromise;
-
+			// Assert
 			expect(stubs.logger.info).to.be.calledWith(
 				{
 					syncing: chain.loader.syncing(),
@@ -392,23 +365,14 @@ describe('Chain', () => {
 		});
 
 		it('should use the Sequence if blocks.isStale and the node is not syncing', async () => {
+			// Arrange
 			chain.loader.syncing.returns(false);
 			chain.blocks.isStale.returns(true);
 
-			let done;
-			const workerPromise = new Promise((resolve, reject) => {
-				done = { resolve, reject };
-			});
+			// Act
+			await chain._syncTask();
 
-			stubs.jobsQueue.register = (name, job) => {
-				job()
-					.then(done.resolve)
-					.catch(done.reject);
-			};
-
-			chain._startLoader();
-			await workerPromise;
-
+			// Assert
 			expect(chain.scope.sequence.add).to.be.called;
 		});
 
@@ -419,41 +383,19 @@ describe('Chain', () => {
 			});
 
 			it('should call loader.sync', async () => {
-				let done;
-				const workerPromise = new Promise((resolve, reject) => {
-					done = { resolve, reject };
-				});
-
-				stubs.jobsQueue.register = (name, job) => {
-					job()
-						.then(done.resolve)
-						.catch(done.reject);
-				};
-
-				chain._startLoader();
-				await workerPromise;
-
+				await chain._syncTask();
 				expect(chain.loader.sync).to.be.called;
 			});
 
 			it('should catch and log the error if the above fails', async () => {
+				// Arrange
 				const expectedError = new Error('an error');
 				chain.loader.sync.rejects(expectedError);
 
-				let done;
-				const workerPromise = new Promise((resolve, reject) => {
-					done = { resolve, reject };
-				});
+				// Act
+				await chain._syncTask();
 
-				stubs.jobsQueue.register = (name, job) => {
-					job()
-						.then(done.resolve)
-						.catch(done.reject);
-				};
-
-				chain._startLoader();
-				await workerPromise;
-
+				// Assert
 				expect(stubs.logger.error).to.be.calledWith(
 					expectedError,
 					'Sync timer'
@@ -462,10 +404,42 @@ describe('Chain', () => {
 		});
 	});
 
-	describe('#_startForging', () => {
+	describe('#_startLoader', () => {
 		beforeEach(async () => {
 			await chain.bootstrap();
-			sinonSandbox.stub(chain.forger, 'loadDelegates');
+			sinonSandbox.stub(chain.loader, 'loadTransactionsAndSignatures');
+			sinonSandbox.stub(chain, '_syncTask');
+		});
+
+		it('should return if syncing.active in config is set to false', async () => {
+			// Arrange
+			chain.options.syncing.active = false;
+
+			// Act
+			chain._startLoader();
+
+			// Assert
+			expect(stubs.jobsQueue.register).to.not.be.called;
+		});
+
+		it('should load transactions and signatures', async () => {
+			chain._startLoader();
+			expect(chain.loader.loadTransactionsAndSignatures).to.be.called;
+		});
+
+		it('should register a task in Jobs Queue named "nextSync" with a designated interval', async () => {
+			chain._startLoader();
+			expect(stubs.jobsQueue.register).to.be.calledWith(
+				'nextSync',
+				chain._syncTask,
+				Chain.__get__('syncInterval')
+			);
+		});
+	});
+
+	describe('#_forgingTask', () => {
+		beforeEach(async () => {
+			await chain.bootstrap();
 			sinonSandbox.stub(chain.forger, 'delegatesEnabled').returns(true);
 			sinonSandbox.stub(chain.forger, 'forge');
 			sinonSandbox.stub(chain.loader, 'syncing').returns(false);
@@ -475,6 +449,64 @@ describe('Chain', () => {
 			});
 		});
 
+		it('should halt if no delegates are enabled', async () => {
+			// Arrange
+			chain.forger.delegatesEnabled.returns(false);
+
+			// Act
+			await chain._forgingTask();
+
+			// Assert
+			expect(stubs.logger.debug.getCall(2)).to.be.calledWith(
+				'No delegates are enabled'
+			);
+			expect(chain.scope.sequence.add).to.be.called;
+			expect(chain.forger.forge).to.not.be.called;
+		});
+
+		it('should halt if the client is not ready to forge (is syncing)', async () => {
+			// Arrange
+			chain.loader.syncing.returns(true);
+
+			// Act
+			await chain._forgingTask();
+
+			// Assert
+			expect(stubs.logger.debug.getCall(2)).to.be.calledWith(
+				'Client not ready to forge'
+			);
+			expect(chain.scope.sequence.add).to.be.called;
+			expect(chain.forger.forge).to.not.be.called;
+		});
+
+		it('should halt if the client is not ready to forge (rounds is ticking)', async () => {
+			// Arrange
+			chain.rounds.ticking.returns(true);
+
+			// Act
+			await chain._forgingTask();
+
+			// Assert
+			expect(stubs.logger.debug.getCall(2)).to.be.calledWith(
+				'Client not ready to forge'
+			);
+			expect(chain.forger.forge).to.not.be.called;
+		});
+
+		it('should execute forger.forge otherwise', async () => {
+			await chain._forgingTask();
+
+			expect(chain.scope.sequence.add).to.be.called;
+			expect(chain.forger.forge).to.be.called;
+		});
+	});
+
+	describe('#_startForging', () => {
+		beforeEach(async () => {
+			await chain.bootstrap();
+			sinonSandbox.stub(chain.forger, 'loadDelegates');
+		});
+
 		it('should load the delegates', async () => {
 			await chain._startForging();
 			expect(chain.forger.loadDelegates).to.be.called;
@@ -482,96 +514,11 @@ describe('Chain', () => {
 
 		it('should register a task in Jobs Queue named "nextForge" with a designated interval', async () => {
 			await chain._startForging();
-			expect(stubs.jobsQueue.register).to.be.calledWith('nextForge');
-		});
-
-		describe('in sequence', () => {
-			it('should halt if no delegates are enabled', async () => {
-				chain.forger.delegatesEnabled.returns(false);
-				let done;
-				const workerPromise = new Promise((resolve, reject) => {
-					done = { resolve, reject };
-				});
-
-				stubs.jobsQueue.register = (name, job) => {
-					job()
-						.then(done.resolve)
-						.catch(done.reject);
-				};
-
-				chain._startForging();
-				await workerPromise;
-
-				expect(stubs.logger.debug.getCall(2)).to.be.calledWith(
-					'No delegates are enabled'
-				);
-				expect(chain.scope.sequence.add).to.be.called;
-				expect(chain.forger.forge).to.not.be.called;
-			});
-
-			it('should halt if the client is not ready to forge (is syncing)', async () => {
-				chain.loader.syncing.returns(true);
-				let done;
-				const workerPromise = new Promise((resolve, reject) => {
-					done = { resolve, reject };
-				});
-
-				stubs.jobsQueue.register = (name, job) => {
-					job()
-						.then(done.resolve)
-						.catch(done.reject);
-				};
-
-				chain._startForging();
-				await workerPromise;
-
-				expect(stubs.logger.debug.getCall(2)).to.be.calledWith(
-					'Client not ready to forge'
-				);
-				expect(chain.scope.sequence.add).to.be.called;
-				expect(chain.forger.forge).to.not.be.called;
-			});
-
-			it('should halt if the client is not ready to forge (rounds is ticking)', async () => {
-				chain.rounds.ticking.returns(true);
-				let done;
-				const workerPromise = new Promise((resolve, reject) => {
-					done = { resolve, reject };
-				});
-
-				stubs.jobsQueue.register = async (name, job) => {
-					job()
-						.then(done.resolve)
-						.catch(done.reject);
-				};
-
-				chain._startForging();
-				await workerPromise;
-
-				expect(stubs.logger.debug.getCall(2)).to.be.calledWith(
-					'Client not ready to forge'
-				);
-				expect(chain.forger.forge).to.not.be.called;
-			});
-
-			it('should execute forger.forge otherwise', async () => {
-				let done;
-				const workerPromise = new Promise((resolve, reject) => {
-					done = { resolve, reject };
-				});
-
-				stubs.jobsQueue.register = (name, job) => {
-					job()
-						.then(done.resolve)
-						.catch(done.reject);
-				};
-
-				chain._startForging();
-				await workerPromise;
-
-				expect(chain.scope.sequence.add).to.be.called;
-				expect(chain.forger.forge).to.be.called;
-			});
+			expect(stubs.jobsQueue.register).to.be.calledWith(
+				'nextForge',
+				chain._forgingTask(),
+				Chain.__get__('forgeInterval')
+			);
 		});
 	});
 });
