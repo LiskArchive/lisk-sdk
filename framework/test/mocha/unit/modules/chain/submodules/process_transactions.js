@@ -878,6 +878,43 @@ describe('ProcessTransactions', () => {
 		});
 	});
 
+	describe('processSignature()', () => {
+		const signature = '12356677';
+		let addMultisignatureStub;
+
+		beforeEach(async () => {
+			addMultisignatureStub = sinonSandbox.stub();
+
+			trs1.addMultisignature = addMultisignatureStub;
+		});
+
+		it('should initialize the state store', async () => {
+			await processTransactions.processSignature(trs1, signature);
+
+			expect(StateStoreStub).to.be.calledOnce;
+			expect(StateStoreStub).to.be.calledWithExactly(storageMock, {
+				mutate: false,
+			});
+		});
+
+		it('should prepare transaction', async () => {
+			await processTransactions.processSignature(trs1, signature);
+
+			expect(trs1.prepare).to.be.calledOnce;
+			expect(trs1.prepare).to.be.calledWithExactly(stateStoreMock);
+		});
+
+		it('should add signature to transaction', async () => {
+			await processTransactions.processSignature(trs1, signature);
+
+			expect(addMultisignatureStub).to.be.calledOnce;
+			expect(addMultisignatureStub).to.be.calledWithExactly(
+				stateStoreMock,
+				signature
+			);
+		});
+	});
+
 	describe('_getCurrentContext', () => {
 		let result;
 
