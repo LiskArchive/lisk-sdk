@@ -51,12 +51,12 @@ class Peers {
 		const { broadhash } = await this.channel.invoke('app:getApplicationState');
 
 		const activeCount = Math.min(
-			this.channel.invoke('network:getConnectedPeersCountByFilter', {}),
+			await this.channel.invoke('network:getConnectedPeersCountByFilter', {}),
 			MAX_PEERS
 		);
 
 		const matchedCount = Math.min(
-			this.channel.invoke('network:getConnectedPeersCountByFilter', {
+			await this.channel.invoke('network:getConnectedPeersCountByFilter', {
 				broadhash,
 			}),
 			MAX_PEERS
