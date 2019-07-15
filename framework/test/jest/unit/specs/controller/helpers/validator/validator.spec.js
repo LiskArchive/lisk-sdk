@@ -31,6 +31,7 @@ const {
 const { SchemaValidationError } = require('../../../../../../../src/errors');
 
 jest.mock('ajv');
+jest.mock('ajv-keywords');
 
 describe('validator.js', () => {
 	describe('Ajv instance', () => {

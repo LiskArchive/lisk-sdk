@@ -13,10 +13,38 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { bufferToHex, hash } from '@liskhq/lisk-cryptography';
 import * as axios from 'axios';
 import fs from 'fs-extra';
+import * as tar from 'tar';
 import { dateDiff, getDownloadedFileInfo } from './core/commons';
-import { exec, ExecResult } from './worker-process';
+
+export const verifyChecksum = async (
+	filePath: string,
+	expectedChecksum: string,
+): Promise<void> => {
+	const fileStream = fs.createReadStream(filePath);
+
+	const fileBuffer = await new Promise<Buffer>((resolve, reject) => {
+		const bufferArray: Buffer[] = [];
+		fileStream.on('data', (d: Buffer) => {
+			bufferArray.push(d);
+		});
+		fileStream.on('error', error => {
+			reject(error);
+		});
+		fileStream.on('end', () => {
+			resolve(Buffer.concat(bufferArray));
+		});
+	});
+
+	const fileChecksum = bufferToHex(hash(fileBuffer));
+	if (fileChecksum !== expectedChecksum) {
+		throw new Error(
+			`file checksum: ${fileChecksum} mismatched with expected checksum: ${expectedChecksum}`,
+		);
+	}
+};
 
 export const download = async (
 	url: string,
@@ -51,42 +79,24 @@ export const download = async (
 	});
 };
 
-export const validateChecksum = async (
-	url: string,
-	cacheDir: string,
-): Promise<void> => {
-	const { fileName, fileDir } = getDownloadedFileInfo(url, cacheDir);
-
-	const { stderr }: ExecResult = await exec(`shasum -c ${fileName}`, {
-		cwd: fileDir,
-	});
-
-	if (!stderr) {
-		return;
-	}
-
-	throw new Error(`Checksum validation failed with error: ${stderr}`);
-};
-
 export const extract = async (
 	filePath: string,
 	fileName: string,
 	outDir: string,
-): Promise<string> => {
-	const { stdout, stderr }: ExecResult = await exec(
-		`tar xf ${fileName} -C ${outDir} --strip-component=1;`,
-		{ cwd: filePath },
-	);
-
-	if (stderr) {
-		throw new Error(`Extraction failed with error: ${stderr}`);
-	}
-
-	return stdout;
-};
+): Promise<void> =>
+	tar.x({
+		file: `${filePath}/${fileName}`,
+		cwd: outDir,
+		strip: 1,
+	});
 
 export const downloadAndValidate = async (url: string, cacheDir: string) => {
 	await download(url, cacheDir);
 	await download(`${url}.SHA256`, cacheDir);
-	await validateChecksum(`${url}.SHA256`, cacheDir);
+
+	const { filePath } = getDownloadedFileInfo(url, cacheDir);
+	const content = fs.readFileSync(`${filePath}.SHA256`, 'utf8');
+	const checksum = content.split(' ')[0];
+
+	await verifyChecksum(filePath, checksum);
 };
