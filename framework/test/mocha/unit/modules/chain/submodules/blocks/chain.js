@@ -604,6 +604,17 @@ describe('blocks/chain', () => {
 			height: 1,
 			transactions: [{ id: 21 }, { id: 22 }],
 		};
+		let originalInertTransactions;
+
+		beforeEach(async () => {
+			// Arrange (Backup)
+			originalInertTransactions = global.exceptions.inertTransactions;
+		});
+
+		afterEach(async () => {
+			// Restore
+			global.exceptions.inertTransactions = originalInertTransactions;
+		});
 
 		it('should return when block.transactions includes no transactions', async () => {
 			// Arrange
@@ -619,15 +630,11 @@ describe('blocks/chain', () => {
 
 		it('should call modules.processTransactions.applyConfirmedStep', async () => {
 			// Arrange
-			const originalInertTransactions = global.exceptions.inertTransactions;
 			global.exceptions.inertTransactions = [filledBlock.transactions[0].id];
 			const dummyTx = {};
 
 			// Act
 			await __private.applyConfirmedStep(filledBlock, dummyTx);
-
-			// Cleanup
-			global.exceptions.inertTransactions = originalInertTransactions;
 
 			// Assert
 			return expect(
@@ -977,6 +984,18 @@ describe('blocks/chain', () => {
 			transactions: [{ id: 21 }, { id: 22 }],
 		};
 
+		let originalInertTransactions;
+
+		beforeEach(async () => {
+			// Arrange (Backup)
+			originalInertTransactions = global.exceptions.inertTransactions;
+		});
+
+		afterEach(async () => {
+			// Restore
+			global.exceptions.inertTransactions = originalInertTransactions;
+		});
+
 		it('should return when block.transactions includes no transactions', async () => {
 			// Arrange
 			const emptyBlock = {
@@ -991,15 +1010,11 @@ describe('blocks/chain', () => {
 
 		it('should call modules.processTransactions.undoTransactions', async () => {
 			// Arrange
-			const originalInertTransactions = global.exceptions.inertTransactions;
 			global.exceptions.inertTransactions = [filledBlock.transactions[0].id];
 			const dummyTx = {};
 
 			// Act
 			await __private.undoConfirmedStep(filledBlock, dummyTx);
-
-			// Cleanup
-			global.exceptions.inertTransactions = originalInertTransactions;
 
 			// Assert
 			return expect(
