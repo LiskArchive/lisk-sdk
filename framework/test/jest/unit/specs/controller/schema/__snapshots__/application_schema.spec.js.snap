@@ -27,6 +27,7 @@ Object {
       "label": "alpha-sdk-app",
       "minVersion": "0.0.0",
       "protocolVersion": "1.1",
+      "tmpPath": "/tmp",
       "version": "0.0.0",
     },
     "components": Object {
@@ -185,6 +186,14 @@ Random string.",
         },
         "protocolVersion": Object {
           "format": "protocolVersion",
+          "type": "string",
+        },
+        "tmpPath": Object {
+          "description": "The root path for storing temporary pid and socket file.",
+          "example": "/home/lisk/tmp",
+          "format": "path",
+          "maxLength": 60,
+          "minLength": 1,
           "type": "string",
         },
         "version": Object {

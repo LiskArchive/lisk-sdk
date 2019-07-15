@@ -20,17 +20,17 @@ describe('systemDirs', () => {
 	it('Should return directories configuration with given app label.', () => {
 		// Arrange
 		const appLabel = 'LABEL';
-		const rootDir = process.cwd();
+		const tmpPath = '/tmp';
 
 		// Act
-		const dirsObj = systemDirs(appLabel);
+		const dirsObj = systemDirs(appLabel, tmpPath);
 
 		// Assert
 		expect(dirsObj).toEqual({
-			root: rootDir,
-			temp: `${rootDir}/tmp/${appLabel}/`,
-			sockets: `${rootDir}/tmp/${appLabel}/sockets`,
-			pids: `${rootDir}/tmp/${appLabel}/pids`,
+			root: process.cwd(),
+			temp: `${tmpPath}/${appLabel}/`,
+			sockets: `${tmpPath}/${appLabel}/sockets`,
+			pids: `${tmpPath}/${appLabel}/pids`,
 		});
 	});
 });

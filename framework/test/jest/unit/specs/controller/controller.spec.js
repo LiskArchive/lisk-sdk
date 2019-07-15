@@ -33,6 +33,7 @@ describe('Controller Class', () => {
 	const config = {
 		components: '#CONFIG',
 		initialState: '#CONFIG',
+		tmpPath: '/tmp',
 	};
 	const systemDirs = {
 		root: process.cwd(),
