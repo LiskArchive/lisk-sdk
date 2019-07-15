@@ -57,16 +57,14 @@ class Block {
 	}
 
 	/**
-	 * Sorts input data transactions.
-	 * Calculates reward based on previous block data.
-	 * Generates new block.
+	 * Sorts transactions for later including in the block.
 	 *
-	 * @param {Object} data
-	 * @returns {block} block
-	 * @todo Add description for the params
+	 * @param {Array} transactions Unsorted collection of transactions
+	 * @returns {Array} transactions Sorted collection of transactions
+	 * @static
 	 */
-	create(data) {
-		const transactions = data.transactions.sort((a, b) => {
+	static sortTransactions(transactions) {
+		return transactions.sort((a, b) => {
 			// Place MULTI transaction after all other transaction types
 			if (
 				a.type === TRANSACTION_TYPES.MULTI &&
@@ -97,6 +95,19 @@ class Block {
 			}
 			return 0;
 		});
+	}
+
+	/**
+	 * Sorts input data transactions.
+	 * Calculates reward based on previous block data.
+	 * Generates new block.
+	 *
+	 * @param {Object} data
+	 * @returns {block} block
+	 * @todo Add description for the params
+	 */
+	create(data) {
+		const transactions = Block.sortTransactions(data.transactions);
 
 		const nextHeight = data.previousBlock ? data.previousBlock.height + 1 : 1;
 

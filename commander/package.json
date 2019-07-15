@@ -1,6 +1,6 @@
 {
 	"name": "lisk-commander",
-	"version": "2.2.0",
+	"version": "2.2.1-alpha.0",
 	"description": "A command line interface for Lisk",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",

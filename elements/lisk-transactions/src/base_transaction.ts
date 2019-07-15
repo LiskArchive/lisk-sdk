@@ -115,7 +115,7 @@ export abstract class BaseTransaction {
 	public receivedAt?: Date;
 
 	public static TYPE: number;
-	public static FEE: string;
+	public static FEE = '0';
 
 	protected _id?: string;
 	protected _senderId?: string;
@@ -143,12 +143,21 @@ export abstract class BaseTransaction {
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
+
 		this.amount = new BigNum(
 			isValidNumber(tx.amount) ? (tx.amount as string | number) : '0',
 		);
+
 		this.fee = new BigNum(
-			isValidNumber(tx.fee) ? (tx.fee as string | number) : '0',
+			isValidNumber(tx.fee)
+				? (tx.fee as string | number)
+				: (this.constructor as typeof BaseTransaction).FEE,
 		);
+
+		this.type =
+			typeof tx.type === 'number'
+				? tx.type
+				: (this.constructor as typeof BaseTransaction).TYPE;
 
 		this._id = tx.id;
 		this.recipientId = tx.recipientId || '';
@@ -166,10 +175,6 @@ export abstract class BaseTransaction {
 		this.signatures = (tx.signatures as string[]) || [];
 		this._signSignature = tx.signSignature;
 		this.timestamp = typeof tx.timestamp === 'number' ? tx.timestamp : 0;
-		this.type =
-			typeof tx.type === 'number'
-				? tx.type
-				: (this.constructor as typeof BaseTransaction).TYPE;
 
 		// Additional data not related to the protocol
 		this.confirmations = tx.confirmations;

@@ -592,7 +592,7 @@ describe('transport', () => {
 				__private.receiveTransaction(
 					transaction,
 					'This is a log message',
-					async () => {
+					() => {
 						expect(
 							processTransactionLogic.composeTransactionSteps
 						).to.have.been.calledWith(

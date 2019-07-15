@@ -55,7 +55,7 @@ Object {
           "properties": Object {
             "BLOCK_TIME": Object {
               "description": "Slot time interval in seconds",
-              "min": 1,
+              "minimum": 2,
               "type": "number",
             },
             "EPOCH_TIME": Object {
@@ -65,7 +65,8 @@ Object {
             },
             "MAX_TRANSACTIONS_PER_BLOCK": Object {
               "description": "Maximum number of transactions allowed per block",
-              "min": 1,
+              "maximum": 150,
+              "minimum": 1,
               "type": "integer",
             },
             "REWARDS": Object {
@@ -75,7 +76,7 @@ Object {
               "properties": Object {
                 "DISTANCE": Object {
                   "description": "Distance between each milestone",
-                  "min": 1,
+                  "minimum": 1,
                   "type": "integer",
                 },
                 "MILESTONES": Object {
@@ -88,7 +89,7 @@ Object {
                 },
                 "OFFSET": Object {
                   "description": "Start rewards at block (n)",
-                  "min": 1,
+                  "minimum": 1,
                   "type": "integer",
                 },
               },
