@@ -50,6 +50,10 @@ describe('ProcessTransactions', () => {
 		transaction: {
 			add: sinonSandbox.stub(),
 		},
+		account: {
+			createSnapshot: sinonSandbox.stub(),
+			restoreSnapshot: sinonSandbox.stub(),
+		},
 	};
 	const StateStoreStub = sinonSandbox.stub().returns(stateStoreMock);
 
@@ -105,6 +109,9 @@ describe('ProcessTransactions', () => {
 		sinonSandbox.reset();
 
 		roundInformationMock.apply.reset();
+		StateStoreStub.resetHistory();
+		stateStoreMock.account.restoreSnapshot.reset();
+		stateStoreMock.account.createSnapshot.reset();
 		stateStoreMock.transaction.add.reset();
 	});
 
@@ -319,6 +326,171 @@ describe('ProcessTransactions', () => {
 				trs1,
 				trs2,
 			]);
+
+			expect(result.stateStore).to.be.eql(stateStoreMock);
+			expect(result.transactionsResponses).to.be.eql([
+				trs1Response,
+				trs2Response,
+			]);
+		});
+	});
+
+	describe('applyTransactions()', () => {
+		const tx = {};
+		let trs1Response;
+		let trs2Response;
+		let updateTransactionResponseForExceptionTransactionsStub;
+
+		beforeEach(async () => {
+			trs1Response = {
+				status: TransactionStatus.OK,
+				id: trs1.id,
+			};
+			trs2Response = {
+				status: TransactionStatus.OK,
+				id: trs2.id,
+			};
+
+			trs1.apply.returns(trs1Response);
+			trs2.apply.returns(trs2Response);
+
+			sinonSandbox
+				.stub(ProcessTransactions, 'verifyTotalSpending')
+				.returns([trs1Response, trs2Response]);
+
+			updateTransactionResponseForExceptionTransactionsStub = sinonSandbox.stub();
+			ProcessTransactions.__set__(
+				'updateTransactionResponseForExceptionTransactions',
+				updateTransactionResponseForExceptionTransactionsStub
+			);
+		});
+
+		it('should initialize the state store', async () => {
+			await processTransactions.applyTransactions([trs1, trs2], tx);
+
+			expect(StateStoreStub).to.be.calledOnce;
+			expect(StateStoreStub).to.be.calledWithExactly(storageMock, {
+				mutate: true,
+				tx,
+			});
+		});
+
+		it('should prepare all transactions', async () => {
+			await processTransactions.applyTransactions([trs1, trs2]);
+
+			expect(trs1.prepare).to.be.calledOnce;
+			expect(trs1.prepare).to.be.calledWithExactly(stateStoreMock);
+
+			expect(trs2.prepare).to.be.calledOnce;
+			expect(trs2.prepare).to.be.calledWithExactly(stateStoreMock);
+		});
+
+		it('should verify total spending', async () => {
+			await processTransactions.applyTransactions([trs1, trs2]);
+
+			expect(ProcessTransactions.verifyTotalSpending).to.be.calledOnce;
+			expect(ProcessTransactions.verifyTotalSpending).to.be.calledWithExactly(
+				[trs1, trs2],
+				stateStoreMock
+			);
+		});
+
+		describe('for every transaction which passes verify total spending step', () => {
+			beforeEach(async () => {
+				// Only trs1 passes verifyTotalSpending and trs2 failed
+				ProcessTransactions.verifyTotalSpending.returns([trs2Response]);
+			});
+
+			it('should create snapshot before apply', async () => {
+				await processTransactions.applyTransactions([trs1, trs2]);
+
+				expect(stateStoreMock.account.createSnapshot).to.be.calledOnce;
+			});
+
+			it('should apply transaction', async () => {
+				await processTransactions.applyTransactions([trs1, trs2]);
+
+				expect(trs2.apply).to.not.be.called;
+				expect(trs1.apply).to.be.calledOnce;
+				expect(trs1.apply).to.be.calledWithExactly(stateStoreMock);
+			});
+
+			it('should update response for exceptions if response is not OK', async () => {
+				trs1Response.status = TransactionStatus.FAIL;
+				trs1.apply.returns(trs1Response);
+
+				await processTransactions.applyTransactions([trs1, trs2]);
+
+				expect(updateTransactionResponseForExceptionTransactionsStub).to.be
+					.calledOnce;
+				expect(
+					updateTransactionResponseForExceptionTransactionsStub
+				).to.be.calledWithExactly([trs1Response], [trs1]);
+			});
+
+			it('should not update response for exceptions if response is OK', async () => {
+				trs1Response.status = TransactionStatus.OK;
+				trs1.apply.returns(trs1Response);
+
+				await processTransactions.applyTransactions([trs1, trs2]);
+
+				expect(updateTransactionResponseForExceptionTransactionsStub).to.not.be
+					.called;
+			});
+
+			it('should add to roundInformation if transaction response is OK', async () => {
+				await processTransactions.applyTransactions([trs1, trs2]);
+
+				expect(roundInformationMock.apply).to.be.calledOnce;
+				expect(roundInformationMock.apply).to.be.calledWithExactly(
+					stateStoreMock,
+					trs1
+				);
+			});
+
+			it('should not add to roundInformation if transaction response is not OK', async () => {
+				trs1Response.status = TransactionStatus.FAIL;
+				trs1.apply.returns(trs1Response);
+
+				await processTransactions.applyTransactions([trs1, trs2]);
+
+				expect(roundInformationMock.apply).to.not.be.called;
+			});
+
+			it('should add to state store if transaction response is OK', async () => {
+				await processTransactions.applyTransactions([trs1, trs2]);
+
+				expect(stateStoreMock.transaction.add).to.be.calledOnce;
+				expect(stateStoreMock.transaction.add).to.be.calledWithExactly(trs1);
+			});
+
+			it('should not add to state store if transaction response is not OK', async () => {
+				trs1Response.status = TransactionStatus.FAIL;
+				trs1.apply.returns(trs1Response);
+
+				await processTransactions.applyTransactions([trs1, trs2]);
+
+				expect(stateStoreMock.transaction.add).to.not.be.called;
+			});
+
+			it('should not restore snapshot if transaction response is Ok', async () => {
+				await processTransactions.applyTransactions([trs1, trs2]);
+
+				expect(stateStoreMock.account.restoreSnapshot).to.not.be.called;
+			});
+
+			it('should restore snapshot if transaction response is not Ok', async () => {
+				trs1Response.status = TransactionStatus.FAIL;
+				trs1.apply.returns(trs1Response);
+
+				await processTransactions.applyTransactions([trs1, trs2]);
+
+				expect(stateStoreMock.account.restoreSnapshot).to.be.calledOnce;
+			});
+		});
+
+		it('should return transaction responses and state store', async () => {
+			const result = await processTransactions.applyTransactions([trs1, trs2]);
 
 			expect(result.stateStore).to.be.eql(stateStoreMock);
 			expect(result.transactionsResponses).to.be.eql([
