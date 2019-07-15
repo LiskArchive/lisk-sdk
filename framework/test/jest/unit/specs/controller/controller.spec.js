@@ -33,13 +33,12 @@ describe('Controller Class', () => {
 	const config = {
 		components: '#CONFIG',
 		initialState: '#CONFIG',
+		tempPath: '/tmp/lisk',
 	};
-	const rootDir = process.cwd();
 	const systemDirs = {
-		root: rootDir,
-		temp: `${rootDir}/tmp/${appLabel}/`,
-		sockets: `${rootDir}/tmp/${appLabel}/sockets`,
-		pids: `${rootDir}/tmp/${appLabel}/pids`,
+		temp: `${config.tempPath}/${appLabel}/`,
+		sockets: `${config.tempPath}/${appLabel}/sockets`,
+		pids: `${config.tempPath}/${appLabel}/pids`,
 	};
 	const configController = {
 		...config,

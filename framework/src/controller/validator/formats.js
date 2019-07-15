@@ -44,6 +44,7 @@ const ADDITIONAL_DATA = {
  * - queryList
  * - delegatesList
  * - parsedInt
+ * - path
  * - ip
  * - ipOrFQDN
  * - os
@@ -246,6 +247,18 @@ const validationFormats = {
 		value = parseInt(value);
 		return true;
 	},
+
+	/**
+	 * Check if value is a valid file system path.
+	 *
+	 * @param {string} str
+	 * @returns {boolean}
+	 */
+	path(str) {
+		const pathRegExp = new RegExp('^(/[^/]+)+$');
+		return pathRegExp.test(str);
+	},
+
 	/**
 	 * Description of the function.
 	 *

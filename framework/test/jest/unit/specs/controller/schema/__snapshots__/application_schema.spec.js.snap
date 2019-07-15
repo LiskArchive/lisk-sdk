@@ -27,6 +27,7 @@ Object {
       "label": "alpha-sdk-app",
       "minVersion": "0.0.0",
       "protocolVersion": "1.1",
+      "tempPath": "/tmp/lisk",
       "version": "0.0.0",
     },
     "components": Object {
@@ -168,6 +169,9 @@ Random string.",
           "type": "object",
         },
         "label": Object {
+          "description": "Restricted length due to unix domain socket path length limitations.",
+          "maxLength": 30,
+          "minLength": 1,
           "pattern": "^[a-zA-Z][0-9a-zA-Z\\\\_\\\\-]*$",
           "type": "string",
         },
@@ -185,6 +189,14 @@ Random string.",
         },
         "protocolVersion": Object {
           "format": "protocolVersion",
+          "type": "string",
+        },
+        "tempPath": Object {
+          "description": "The root path for storing temporary pid and socket file. Restricted length due to unix domain socket path length limitations.",
+          "example": "/tmp/lisk",
+          "format": "path",
+          "maxLength": 50,
+          "minLength": 1,
           "type": "string",
         },
         "version": Object {
