@@ -15,7 +15,6 @@
 'use strict';
 
 const systemDirs = (appLabel, tempPath) => ({
-	root: process.cwd(),
 	temp: `${tempPath}/${appLabel}/`,
 	sockets: `${tempPath}/${appLabel}/sockets`,
 	pids: `${tempPath}/${appLabel}/pids`,

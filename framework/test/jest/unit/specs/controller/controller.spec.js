@@ -36,7 +36,6 @@ describe('Controller Class', () => {
 		tempPath: '/tmp/lisk',
 	};
 	const systemDirs = {
-		root: process.cwd(),
 		temp: `${config.tempPath}/${appLabel}/`,
 		sockets: `${config.tempPath}/${appLabel}/sockets`,
 		pids: `${config.tempPath}/${appLabel}/pids`,

@@ -27,7 +27,6 @@ describe('systemDirs', () => {
 
 		// Assert
 		expect(dirsObj).toEqual({
-			root: process.cwd(),
 			temp: `${tempPath}/${appLabel}/`,
 			sockets: `${tempPath}/${appLabel}/sockets`,
 			pids: `${tempPath}/${appLabel}/pids`,
