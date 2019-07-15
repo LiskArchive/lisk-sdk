@@ -403,7 +403,7 @@ describe('blocks/chain', () => {
 					blocksChainModule.saveBlock(
 						blockWithTransactions,
 						async () => {
-							expect(__private.afterSave.calledOnce).to.be.true;
+							expect(__private.afterSave).to.be.calledOnce;
 							done();
 						},
 						txStub
@@ -449,7 +449,7 @@ describe('blocks/chain', () => {
 
 				it('should call __private.afterSave', done => {
 					blocksChainModule.saveBlock(blockWithTransactions, async () => {
-						expect(__private.afterSave.calledOnce).to.be.true;
+						expect(__private.afterSave).to.be.calledOnce;
 						done();
 					});
 				});
@@ -461,7 +461,7 @@ describe('blocks/chain', () => {
 		it('should call afterSave for all transactions', done => {
 			const spy = sinonSandbox.spy();
 			__private.afterSave(blockWithTransactions, spy);
-			expect(spy.calledOnce).to.be.true;
+			expect(spy).to.be.calledOnce;
 			done();
 		});
 	});
@@ -581,7 +581,7 @@ describe('blocks/chain', () => {
 								expect(__private.applyGenesisTransactions.callCount).to.equal(
 									1
 								);
-								expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
+								expect(modules.blocks.lastBlock.set).to.be.calledOnce;
 								expect(modules.blocks.lastBlock.set.args[0][0]).to.deep.equal(
 									blockWithTransactions
 								);
@@ -661,8 +661,8 @@ describe('blocks/chain', () => {
 
 			// Assert
 			return expect(
-				processTransactionMethodResponse.stateStore.account.finalize.calledOnce
-			).to.be.true;
+				processTransactionMethodResponse.stateStore.account.finalize
+			).to.be.calledOnce;
 		});
 
 		it('should call stateStore.round.setRoundForData with correct parameters', async () => {
@@ -682,9 +682,8 @@ describe('blocks/chain', () => {
 			await __private.applyConfirmedStep(filledBlock);
 
 			// Assert
-			return expect(
-				processTransactionMethodResponse.stateStore.round.finalize.calledOnce
-			).to.be.true;
+			return expect(processTransactionMethodResponse.stateStore.round.finalize)
+				.to.be.calledOnce;
 		});
 	});
 
@@ -734,7 +733,7 @@ describe('blocks/chain', () => {
 							expect(blocksChainModule.saveBlock.args[0][0]).to.deep.equal(
 								blockWithTransactions
 							);
-							expect(modules.blocks.lastBlock.set.calledOnce).to.be.false;
+							expect(modules.blocks.lastBlock.set).to.not.be.called;
 							done();
 						});
 				});
@@ -768,7 +767,7 @@ describe('blocks/chain', () => {
 							)
 							.catch(err => {
 								expect(err).to.equal('tick-ERR');
-								expect(library.bus.message.calledOnce).to.be.false;
+								expect(library.bus.message).to.not.be.called;
 								done();
 							});
 					});
@@ -786,7 +785,7 @@ describe('blocks/chain', () => {
 							)
 							.then(resolve => {
 								expect(resolve).to.be.undefined;
-								expect(library.bus.message.calledOnce).to.be.true;
+								expect(library.bus.message).to.be.calledOnce;
 								expect(library.bus.message.args[0][0]).to.deep.equal(
 									'newBlock'
 								);
@@ -813,7 +812,7 @@ describe('blocks/chain', () => {
 						)
 						.catch(err => {
 							expect(err).to.equal('tick-ERR');
-							expect(library.bus.message.calledOnce).to.be.false;
+							expect(library.bus.message).to.not.be.called;
 							done();
 						});
 				});
@@ -831,7 +830,7 @@ describe('blocks/chain', () => {
 						)
 						.then(resolve => {
 							expect(resolve).to.be.undefined;
-							expect(library.bus.message.calledOnce).to.be.true;
+							expect(library.bus.message).to.be.calledOnce;
 							expect(library.bus.message.args[0][0]).to.deep.equal('newBlock');
 							expect(library.bus.message.args[0][1]).to.deep.equal(
 								blockWithTransactions
@@ -918,7 +917,7 @@ describe('blocks/chain', () => {
 	describe('broadcastReducedBlock', () => {
 		it('should call library.bus.message with reducedBlock and broadcast', async () => {
 			blocksChainModule.broadcastReducedBlock(blockReduced, true);
-			expect(library.bus.message.calledOnce).to.be.true;
+			expect(library.bus.message).to.be.calledOnce;
 			expect(library.bus.message.args[0][0]).to.equal('broadcastBlock');
 			expect(library.bus.message.args[0][1]).to.deep.equal(blockReduced);
 			return expect(library.bus.message.args[0][2]).to.be.true;
@@ -1034,8 +1033,8 @@ describe('blocks/chain', () => {
 
 			// Assert
 			return expect(
-				processTransactionMethodResponse.stateStore.account.finalize.calledOnce
-			).to.be.true;
+				processTransactionMethodResponse.stateStore.account.finalize
+			).to.be.calledOnce;
 		});
 
 		it('should call stateStore.round.setRoundForData with correct parameters', async () => {
@@ -1055,9 +1054,8 @@ describe('blocks/chain', () => {
 			await __private.undoConfirmedStep(filledBlock);
 
 			// Assert
-			return expect(
-				processTransactionMethodResponse.stateStore.round.finalize.calledOnce
-			).to.be.true;
+			return expect(processTransactionMethodResponse.stateStore.round.finalize)
+				.to.be.calledOnce;
 		});
 	});
 
@@ -1176,7 +1174,7 @@ describe('blocks/chain', () => {
 
 		afterEach(done => {
 			__private.popLastBlock = popLastBlockTemp;
-			expect(modules.blocks.lastBlock.get.calledOnce).to.be.true;
+			expect(modules.blocks.lastBlock.get).to.be.calledOnce;
 			expect(loggerStub.warn.args[0][0]).to.equal('Deleting last block');
 			done();
 		});
