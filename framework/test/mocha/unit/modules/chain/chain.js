@@ -408,7 +408,6 @@ describe('Chain', () => {
 		beforeEach(async () => {
 			await chain.bootstrap();
 			sinonSandbox.stub(chain.loader, 'loadTransactionsAndSignatures');
-			sinonSandbox.stub(chain, '_syncTask');
 		});
 
 		it('should return if syncing.active in config is set to false', async () => {
@@ -428,7 +427,13 @@ describe('Chain', () => {
 		});
 
 		it('should register a task in Jobs Queue named "nextSync" with a designated interval', async () => {
+			// Arrange
+			chain.options.syncing.active = true;
+
+			// Act
 			chain._startLoader();
+
+			// Assert
 			expect(stubs.jobsQueue.register).to.be.calledWith(
 				'nextSync',
 				chain._syncTask,
@@ -516,7 +521,7 @@ describe('Chain', () => {
 			await chain._startForging();
 			expect(stubs.jobsQueue.register).to.be.calledWith(
 				'nextForge',
-				chain._forgingTask(),
+				chain._forgingTask,
 				Chain.__get__('forgeInterval')
 			);
 		});

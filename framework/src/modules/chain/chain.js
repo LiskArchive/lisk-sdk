@@ -470,7 +470,7 @@ module.exports = class Chain {
 		} catch (err) {
 			this.logger.error(err, 'Failed to load delegates');
 		}
-		jobQueue.register('nextForge', this._forgingTask(), forgeInterval);
+		jobQueue.register('nextForge', this._forgingTask, forgeInterval);
 	}
 
 	_subscribeToEvents() {

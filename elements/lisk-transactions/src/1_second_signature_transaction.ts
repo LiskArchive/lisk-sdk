@@ -49,6 +49,7 @@ export const secondSignatureAssetFormatSchema = {
 export class SecondSignatureTransaction extends BaseTransaction {
 	public readonly asset: SecondSignatureAsset;
 	public static TYPE = 1;
+	public static FEE = SIGNATURE_FEE.toString();
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
@@ -65,10 +66,6 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		} = this.asset;
 
 		return hexToBuffer(publicKey);
-	}
-
-	public assetToJSON(): object {
-		return this.asset;
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {
@@ -112,18 +109,6 @@ export class SecondSignatureTransaction extends BaseTransaction {
 					'.amount',
 					this.amount.toString(),
 					'0',
-				),
-			);
-		}
-
-		if (!this.fee.eq(SIGNATURE_FEE)) {
-			errors.push(
-				new TransactionError(
-					`Fee must be equal to ${SIGNATURE_FEE}`,
-					this.id,
-					'.fee',
-					this.fee.toString(),
-					SIGNATURE_FEE,
 				),
 			);
 		}
