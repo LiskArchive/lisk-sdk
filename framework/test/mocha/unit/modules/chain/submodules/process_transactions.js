@@ -21,6 +21,7 @@ const slots = require('../../../../../../src/modules/chain/helpers/slots');
 const {
 	Transaction: transactionFixture,
 } = require('../../../../fixtures/transactions');
+const { Account: accountFixture } = require('../../../../fixtures/accounts');
 
 const ProcessTransactions = rewire(
 	'../../../../../../src/modules/chain/submodules/process_transactions'
@@ -912,6 +913,126 @@ describe('ProcessTransactions', () => {
 				stateStoreMock,
 				signature
 			);
+		});
+	});
+
+	describe('verifyTotalSpending()', () => {
+		it('should not perform any check if there is only one transaction per sender', async () => {
+			const account1 = accountFixture();
+			const account2 = accountFixture();
+			trs1.senderId = account1.address;
+			trs2.senderId = account2.address;
+
+			const result = ProcessTransactions.verifyTotalSpending(
+				[trs1, trs2],
+				stateStoreMock
+			);
+
+			expect(result).to.be.eql([]);
+		});
+
+		it('should return error response if total spending is more than account balance', async () => {
+			const accountBalance = '6';
+
+			const account = accountFixture({ balance: accountBalance });
+			stateStoreMock.account.get.withArgs(account.address).returns(account);
+
+			const validTransaction = transactionFixture();
+			validTransaction.senderId = account.address;
+			validTransaction.amount = '3';
+			validTransaction.fee = '2';
+
+			const inValidTransaction1 = transactionFixture();
+			inValidTransaction1.senderId = account.address;
+			inValidTransaction1.amount = '3';
+			inValidTransaction1.fee = '2';
+
+			const inValidTransaction2 = transactionFixture();
+			inValidTransaction2.senderId = account.address;
+			inValidTransaction2.amount = '1';
+			inValidTransaction2.fee = '1';
+
+			// First transaction is valid, while second and third exceed the balance
+			const transactions = [
+				validTransaction, //   Valid: Spend 5 while balance is 6
+				inValidTransaction1, // Invalid: Spend 5 + 5 = 10 while balance is 6
+				inValidTransaction2, // Invalid: Spend 5 + 2 = 7 while balance is 6
+			];
+
+			const result = ProcessTransactions.verifyTotalSpending(
+				transactions,
+				stateStoreMock
+			);
+
+			expect(result).to.be.lengthOf(2);
+
+			expect(result[0].id).to.be.eql(inValidTransaction1.id);
+			expect(result[0].status).to.be.eql(TransactionStatus.FAIL);
+			expect(result[0].errors[0].message).to.be.eql(
+				`Account does not have enough LSK for total spending. balance: ${accountBalance}, spending: 10`
+			);
+
+			expect(result[1].id).to.be.eql(inValidTransaction2.id);
+			expect(result[1].status).to.be.eql(TransactionStatus.FAIL);
+			expect(result[1].errors[0].message).to.be.eql(
+				`Account does not have enough LSK for total spending. balance: ${accountBalance}, spending: 7`
+			);
+		});
+
+		it('should not return error response if total spending equal to account balance', async () => {
+			const accountBalance = '8';
+
+			const account = accountFixture({ balance: accountBalance });
+			stateStoreMock.account.get.withArgs(account.address).returns(account);
+
+			const validTransaction1 = transactionFixture();
+			validTransaction1.senderId = account.address;
+			validTransaction1.amount = '2';
+			validTransaction1.fee = '2';
+
+			const validTransaction2 = transactionFixture();
+			validTransaction2.senderId = account.address;
+			validTransaction2.amount = '2';
+			validTransaction2.fee = '2';
+
+			const transactions = [
+				validTransaction1, // Valid: Spend 4 while balance 8
+				validTransaction2, // Valid: Spend 4 + 4 while balance 8
+			];
+			const result = ProcessTransactions.verifyTotalSpending(
+				transactions,
+				stateStoreMock
+			);
+
+			expect(result).to.be.eql([]);
+		});
+
+		it('should not return error response if total spending is less than account balance', async () => {
+			const accountBalance = '10';
+
+			const account = accountFixture({ balance: accountBalance });
+			stateStoreMock.account.get.withArgs(account.address).returns(account);
+
+			const validTransaction1 = transactionFixture();
+			validTransaction1.senderId = account.address;
+			validTransaction1.amount = '2';
+			validTransaction1.fee = '2';
+
+			const validTransaction2 = transactionFixture();
+			validTransaction2.senderId = account.address;
+			validTransaction2.amount = '2';
+			validTransaction2.fee = '2';
+
+			const transactions = [
+				validTransaction1, // Valid: Spend 4 while balance 10
+				validTransaction2, // Valid: Spend 4 + 4 while balance 10
+			];
+			const result = ProcessTransactions.verifyTotalSpending(
+				transactions,
+				stateStoreMock
+			);
+
+			expect(result).to.be.eql([]);
 		});
 	});
 
