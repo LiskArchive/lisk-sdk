@@ -192,7 +192,7 @@ Random string.",
           "type": "string",
         },
         "tempPath": Object {
-          "description": "The root path for storing temporary pid and socket file.",
+          "description": "The root path for storing temporary pid and socket file. Restricted length due to unix domain socket path length limitations.",
           "example": "/tmp/lisk",
           "format": "path",
           "maxLength": 50,

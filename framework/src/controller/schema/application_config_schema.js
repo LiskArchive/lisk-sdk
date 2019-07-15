@@ -70,7 +70,7 @@ module.exports = {
 					maxLength: 50,
 					example: '/tmp/lisk',
 					description:
-						'The root path for storing temporary pid and socket file.',
+						'The root path for storing temporary pid and socket file. Restricted length due to unix domain socket path length limitations.',
 				},
 				ipc: {
 					type: 'object',
