@@ -61,7 +61,7 @@ describe('Application', () => {
 		});
 
 		it('should set app label with the genesis block payload hash prefixed with `lisk-` if label not provided', () => {
-			const label = `lisk-${genesisBlock.payloadHash}`;
+			const label = `lisk-${genesisBlock.payloadHash.slice(0, 7)}`;
 			const configWithoutLabel = _.cloneDeep(config);
 			delete configWithoutLabel.app.label;
 
@@ -76,30 +76,30 @@ describe('Application', () => {
 			expect(app.config.app.label).toBe(config.app.label);
 		});
 
-		it('should set default tmpPath if not provided', () => {
+		it('should set default tempPath if not provided', () => {
 			// Arrange
-			const tmpPath = '/tmp';
-			const configWithoutTmpPath = _.cloneDeep(config);
-			delete configWithoutTmpPath.app.tmpPath;
+			const tempPath = '/tmp/lisk';
+			const configWithoutTempPath = _.cloneDeep(config);
+			delete configWithoutTempPath.app.tempPath;
 
 			// Act
-			const app = new Application(genesisBlock, configWithoutTmpPath);
+			const app = new Application(genesisBlock, configWithoutTempPath);
 
 			// Assert
-			expect(app.config.app.tmpPath).toBe(tmpPath);
+			expect(app.config.app.tempPath).toBe(tempPath);
 		});
 
-		it('should set tmpPath if provided', () => {
+		it('should set tempPath if provided', () => {
 			// Arragne
-			const customTmpPath = '/my-lisk-folder';
-			const configWithCustomTmpPath = _.cloneDeep(config);
-			configWithCustomTmpPath.app.tmpPath = customTmpPath;
+			const customTempPath = '/my-lisk-folder';
+			const configWithCustomTempPath = _.cloneDeep(config);
+			configWithCustomTempPath.app.tempPath = customTempPath;
 
 			// Act
-			const app = new Application(genesisBlock, configWithCustomTmpPath);
+			const app = new Application(genesisBlock, configWithCustomTempPath);
 
 			// Assert
-			expect(app.config.app.tmpPath).toBe(customTmpPath);
+			expect(app.config.app.tempPath).toBe(customTempPath);
 		});
 
 		it('should set filename for logger if logger component was not provided', () => {

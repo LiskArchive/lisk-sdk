@@ -14,11 +14,11 @@
 
 'use strict';
 
-const systemDirs = (appLabel, tmpPath) => ({
+const systemDirs = (appLabel, tempPath) => ({
 	root: process.cwd(),
-	temp: `${tmpPath}/${appLabel}/`,
-	sockets: `${tmpPath}/${appLabel}/sockets`,
-	pids: `${tmpPath}/${appLabel}/pids`,
+	temp: `${tempPath}/${appLabel}/`,
+	sockets: `${tempPath}/${appLabel}/sockets`,
+	pids: `${tempPath}/${appLabel}/pids`,
 });
 
 module.exports = systemDirs;
