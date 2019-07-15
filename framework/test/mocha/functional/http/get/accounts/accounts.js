@@ -35,6 +35,16 @@ describe('GET /accounts', () => {
 	const constantsEndPoint = new SwaggerEndpoint('GET /node/constants 200');
 
 	describe('?', () => {
+		describe('asset', () => {
+			it('should return asset field for account', async () => {
+				const res = await accountsEndpoint.makeRequest(
+					{ address: accountFixtures.genesis.address },
+					200
+				);
+				expect(res.body.data[0].asset).to.be.eql({});
+			});
+		});
+
 		describe('address', () => {
 			it('using known address should be ok', async () => {
 				return accountsEndpoint.makeRequest(

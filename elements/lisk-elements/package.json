@@ -63,7 +63,7 @@
 		"@liskhq/lisk-constants": "1.2.1",
 		"@liskhq/lisk-cryptography": "2.1.0",
 		"@liskhq/lisk-passphrase": "2.0.1",
-		"@liskhq/lisk-transactions": "2.1.0",
+		"@liskhq/lisk-transactions": "2.2.0-pre-alpha.2",
 		"@types/node": "10.12.21"
 	},
 	"devDependencies": {

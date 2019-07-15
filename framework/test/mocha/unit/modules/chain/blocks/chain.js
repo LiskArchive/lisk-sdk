@@ -377,21 +377,23 @@ describe('blocks/chain', () => {
 		});
 
 		describe('when block.transactions is not empty', () => {
-			describe('when applyTransactions succeeds', () => {
+			describe('when applyGenesisTransactions succeeds', () => {
 				beforeEach(async () => {
-					sinonSandbox.stub(transactionsModule, 'applyTransactions').returns(
-						sinonSandbox.stub().returns({
-							stateStore: {
-								account: {
-									finalize: sinonSandbox.stub(),
+					sinonSandbox
+						.stub(transactionsModule, 'applyGenesisTransactions')
+						.returns(
+							sinonSandbox.stub().returns({
+								stateStore: {
+									account: {
+										finalize: sinonSandbox.stub(),
+									},
+									round: {
+										finalize: sinonSandbox.stub(),
+										setRoundForData: sinonSandbox.stub(),
+									},
 								},
-								round: {
-									finalize: sinonSandbox.stub(),
-									setRoundForData: sinonSandbox.stub(),
-								},
-							},
-						})
-					);
+							})
+						);
 				});
 
 				it('modules.rouds.tick should call a callback', async () => {

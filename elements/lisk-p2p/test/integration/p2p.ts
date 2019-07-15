@@ -188,6 +188,7 @@ describe('Integration tests for P2P library', () => {
 					}
 					await wait(100);
 
+					expect(collectedMessages).to.not.to.be.empty;
 					collectedMessages.forEach((receivedMessageData: any) => {
 						if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 							nodePortToMessagesMap[receivedMessageData.nodePort] = [];
@@ -197,6 +198,7 @@ describe('Integration tests for P2P library', () => {
 						);
 					});
 
+					expect(nodePortToMessagesMap).to.not.to.be.empty;
 					Object.values(nodePortToMessagesMap).forEach(
 						(receivedMessages: any) => {
 							expect(receivedMessages).to.be.an('array');
@@ -259,6 +261,7 @@ describe('Integration tests for P2P library', () => {
 					}
 					await wait(100);
 
+					expect(collectedMessages).to.not.to.be.empty;
 					collectedMessages.forEach((receivedMessageData: any) => {
 						if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 							nodePortToMessagesMap[receivedMessageData.nodePort] = [];
@@ -268,6 +271,7 @@ describe('Integration tests for P2P library', () => {
 						);
 					});
 
+					expect(nodePortToMessagesMap).to.not.to.be.empty;
 					Object.values(nodePortToMessagesMap).forEach(
 						(receivedMessages: any) => {
 							expect(receivedMessages).to.be.an('array');
@@ -645,6 +649,7 @@ describe('Integration tests for P2P library', () => {
 
 				await wait(100);
 
+				expect(collectedMessages).to.not.to.be.empty;
 				collectedMessages.forEach((receivedMessageData: any) => {
 					if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 						nodePortToMessagesMap[receivedMessageData.nodePort] = [];
@@ -654,6 +659,7 @@ describe('Integration tests for P2P library', () => {
 					);
 				});
 
+				expect(nodePortToMessagesMap).to.not.to.be.empty;
 				Object.values(nodePortToMessagesMap).forEach(
 					(receivedMessages: any) => {
 						expect(receivedMessages).to.be.an('array');
@@ -964,6 +970,7 @@ describe('Integration tests for P2P library', () => {
 
 				await wait(100);
 
+				expect(collectedMessages).to.not.to.be.empty;
 				collectedMessages.forEach((receivedMessageData: any) => {
 					if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 						nodePortToMessagesMap[receivedMessageData.nodePort] = [];
@@ -973,6 +980,7 @@ describe('Integration tests for P2P library', () => {
 					);
 				});
 
+				expect(nodePortToMessagesMap).to.not.to.be.empty;
 				Object.values(nodePortToMessagesMap).forEach(
 					(receivedMessages: any) => {
 						expect(receivedMessages).to.be.an('array');
@@ -1092,6 +1100,135 @@ describe('Integration tests for P2P library', () => {
 							.is.a('boolean');
 					});
 				});
+			});
+		});
+	});
+
+	describe('Fully connected network with a custom maximum payload', () => {
+		const dataLargerThanMaxPayload = [
+			{
+				ip: '100.100.100.100',
+				os: 'linux4.18.0-20-generic',
+				version: '2.0.0-rc.0',
+				wsPort: 7001,
+				httpPort: 7000,
+				protocolVersion: '1.1',
+				height: 8691420,
+				broadhash:
+					'65b4ad0583d0222db11619ec86bd4ba154e0bf8bfd72a4b9ad38dbc26da65249',
+				nonce: 'V2IrG8mpOGx6LDuE',
+				state: 2,
+			},
+			{
+				ip: '100.100.100.100',
+				os: 'linux4.15.0-54-generic',
+				version: '2.0.0-rc.0',
+				wsPort: 7001,
+				httpPort: 7000,
+				protocolVersion: '1.1',
+				height: 8691420,
+				broadhash:
+					'65b4ad0583d0222db11619ec86bd4ba154e0bf8bfd72a4b9ad38dbc26da65249',
+				nonce: 'rbEj3J36NblYDEyd',
+				state: 2,
+			},
+		];
+
+		beforeEach(async () => {
+			p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
+				// Each node will have the previous node in the sequence as a seed peer except the first node.
+				const seedPeers =
+					index === 0
+						? []
+						: [
+								{
+									ipAddress: '127.0.0.1',
+									wsPort:
+										NETWORK_START_PORT + ((index - 1) % NETWORK_PEER_COUNT),
+								},
+						  ];
+
+				const nodePort = NETWORK_START_PORT + index;
+
+				return new P2P({
+					blacklistedPeers: [],
+					connectTimeout: 5000,
+					ackTimeout: 5000,
+					seedPeers,
+					wsEngine: 'ws',
+					nodeInfo: {
+						wsPort: nodePort,
+						nethash:
+							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+						version: '1.0.1',
+						protocolVersion: '1.1',
+						minVersion: '1.0.0',
+						os: platform(),
+						height: 0,
+						broadhash:
+							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+						nonce: `O2wTkjqplHII${nodePort}`,
+					},
+					wsMaxPayload: 500,
+				});
+			});
+
+			await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
+			await wait(100);
+		});
+
+		afterEach(async () => {
+			await Promise.all(
+				p2pNodeList
+					.filter(p2p => p2p.isActive)
+					.map(async p2p => await p2p.stop()),
+			);
+			await wait(100);
+		});
+
+		describe('P2P.send', () => {
+			let collectedMessages: Array<any> = [];
+
+			beforeEach(() => {
+				collectedMessages = [];
+				p2pNodeList.forEach(p2p => {
+					p2p.on('messageReceived', message => {
+						collectedMessages.push({
+							nodePort: p2p.nodeInfo.wsPort,
+							message,
+						});
+					});
+				});
+			});
+
+			it('should not send a package larger than the ws max payload', async () => {
+				const firstP2PNode = p2pNodeList[0];
+
+				firstP2PNode.send({
+					event: 'maxPayload',
+					data: dataLargerThanMaxPayload,
+				});
+				await wait(100);
+
+				expect(collectedMessages).to.be.empty;
+			});
+
+			it('should disconnect the peer which has sent the message', async () => {
+				const firstP2PNode = p2pNodeList[0];
+
+				firstP2PNode.send({
+					event: 'maxPayload',
+					data: dataLargerThanMaxPayload,
+				});
+				await wait(100);
+
+				for (const p2pNode of p2pNodeList) {
+					if (p2pNode.nodeInfo.wsPort === 5000) {
+						expect(p2pNode.getNetworkStatus().connectedPeers).to.be.empty;
+					} else {
+						expect(p2pNode.getNetworkStatus().connectedPeers).to.be.not.empty;
+					}
+				}
 			});
 		});
 	});
