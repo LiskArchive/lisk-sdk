@@ -14,10 +14,11 @@
 
 'use strict';
 
-const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const rewire = require('rewire');
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+
 const {
-	Transaction: transactionFxiture,
+	Transaction: transactionFixture,
 } = require('../../../../fixtures/transactions');
 
 const ProcessTransactions = rewire(
@@ -27,11 +28,9 @@ const ProcessTransactions = rewire(
 describe('ProcessTransactions', () => {
 	let processTransactions;
 
-	const trs1 = transactionFxiture();
-	trs1.matcher = () => true;
+	const trs1 = transactionFixture();
 
-	const trs2 = transactionFxiture();
-	trs2.matcher = () => true;
+	const trs2 = transactionFixture();
 
 	const dummyState = {
 		version: 1,
@@ -45,6 +44,17 @@ describe('ProcessTransactions', () => {
 				get: sinonSandbox.stub(),
 			},
 		},
+	};
+
+	const stateStoreMock = {
+		transaction: {
+			add: sinonSandbox.stub(),
+		},
+	};
+	const StateStoreStub = sinonSandbox.stub().returns(stateStoreMock);
+
+	const roundInformationMock = {
+		apply: sinonSandbox.stub(),
 	};
 
 	const paramScope = {
@@ -64,8 +74,38 @@ describe('ProcessTransactions', () => {
 		// Act
 		processTransactions = new ProcessTransactions(() => {
 			processTransactions.onBind(paramScope);
+
+			// Add matcher to transactions
+			trs1.matcher = () => true;
+			trs2.matcher = () => true;
+
+			// Add prepare steps to transactions
+			trs1.prepare = sinonSandbox.stub();
+			trs2.prepare = sinonSandbox.stub();
+
+			// Add apply steps to transactions
+			trs1.apply = sinonSandbox.stub().returns({
+				status: TransactionStatus.OK,
+				id: trs1.id,
+			});
+			trs2.apply = sinonSandbox.stub().returns({
+				status: TransactionStatus.OK,
+				id: trs2.id,
+			});
+
+			ProcessTransactions.__set__('StateStore', StateStoreStub);
+			ProcessTransactions.__set__('roundInformation', roundInformationMock);
+
 			done();
 		}, paramScope);
+	});
+
+	afterEach(async () => {
+		sinonSandbox.restore();
+		sinonSandbox.reset();
+
+		roundInformationMock.apply.reset();
+		stateStoreMock.transaction.add.reset();
 	});
 
 	describe('constructor()', () => {
@@ -190,6 +230,101 @@ describe('ProcessTransactions', () => {
 			expect(transactionResponse.errors[0].message).to.be.eql(
 				`Transaction is already confirmed: ${trs1.id}`
 			);
+		});
+	});
+
+	describe('applyGenesisTransactions()', () => {
+		const tx = {};
+		const trs1Response = {
+			status: TransactionStatus.OK,
+			id: trs1.id,
+		};
+		const trs2Response = {
+			status: TransactionStatus.OK,
+			id: trs2.id,
+		};
+
+		beforeEach(async () => {
+			trs1.apply.returns(trs1Response);
+			trs2.apply.returns(trs2Response);
+		});
+
+		it('should initialize the state store', async () => {
+			await processTransactions.applyGenesisTransactions([trs1, trs2], tx);
+
+			expect(StateStoreStub).to.be.calledOnce;
+			expect(StateStoreStub).to.be.calledWithExactly(storageMock, {
+				mutate: true,
+				tx,
+			});
+		});
+
+		it('should prepare all transactions', async () => {
+			await processTransactions.applyGenesisTransactions([trs1, trs2]);
+
+			expect(trs1.prepare).to.be.calledOnce;
+			expect(trs1.prepare).to.be.calledWithExactly(stateStoreMock);
+
+			expect(trs2.prepare).to.be.calledOnce;
+			expect(trs2.prepare).to.be.calledWithExactly(stateStoreMock);
+		});
+
+		it('should apply all transactions', async () => {
+			await processTransactions.applyGenesisTransactions([trs1, trs2]);
+
+			expect(trs1.apply).to.be.calledOnce;
+			expect(trs1.apply).to.be.calledWithExactly(stateStoreMock);
+
+			expect(trs2.apply).to.be.calledOnce;
+			expect(trs2.apply).to.be.calledWithExactly(stateStoreMock);
+		});
+
+		it('should add transaction to roundInformation', async () => {
+			await processTransactions.applyGenesisTransactions([trs1, trs2]);
+
+			expect(roundInformationMock.apply).to.be.calledTwice;
+			expect(roundInformationMock.apply.firstCall.args).to.be.eql([
+				stateStoreMock,
+				trs1,
+			]);
+			expect(roundInformationMock.apply.secondCall.args).to.be.eql([
+				stateStoreMock,
+				trs2,
+			]);
+		});
+
+		it('should add transaction to state store', async () => {
+			await processTransactions.applyGenesisTransactions([trs1, trs2]);
+
+			expect(stateStoreMock.transaction.add).to.be.calledTwice;
+			expect(stateStoreMock.transaction.add.firstCall.args).to.be.eql([trs1]);
+			expect(stateStoreMock.transaction.add.secondCall.args).to.be.eql([trs2]);
+		});
+
+		it('should override the status of transaction to TransactionStatus.OK', async () => {
+			trs1.apply.returns({
+				status: TransactionStatus.FAIL,
+				id: trs1.id,
+			});
+
+			const result = await processTransactions.applyGenesisTransactions([trs1]);
+
+			expect(result.transactionsResponses[0].status).to.be.eql(
+				TransactionStatus.OK
+			);
+		});
+
+		it('should return transaction responses and state store', async () => {
+			const result = await processTransactions.applyGenesisTransactions([
+				trs1,
+				trs2,
+			]);
+
+			expect(result.stateStore).to.be.eql(stateStoreMock);
+			expect(result.transactionsResponses).to.be.eql([
+				trs1Response,
+				trs2Response,
+			]);
 		});
 	});
 
