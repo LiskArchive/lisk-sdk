@@ -16,6 +16,7 @@
 
 const rewire = require('rewire');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const slots = require('../../../../../../src/modules/chain/helpers/slots');
 
 const {
 	Transaction: transactionFixture,
@@ -47,10 +48,13 @@ describe('ProcessTransactions', () => {
 	};
 
 	const stateStoreMock = {
+		createSnapshot: sinonSandbox.stub(),
+		restoreSnapshot: sinonSandbox.stub(),
 		transaction: {
 			add: sinonSandbox.stub(),
 		},
 		account: {
+			get: sinonSandbox.stub(),
 			createSnapshot: sinonSandbox.stub(),
 			restoreSnapshot: sinonSandbox.stub(),
 		},
@@ -111,6 +115,8 @@ describe('ProcessTransactions', () => {
 		roundInformationMock.undo.reset();
 
 		StateStoreStub.resetHistory();
+		stateStoreMock.restoreSnapshot.reset();
+		stateStoreMock.createSnapshot.reset();
 		stateStoreMock.account.restoreSnapshot.reset();
 		stateStoreMock.account.createSnapshot.reset();
 		stateStoreMock.transaction.add.reset();
@@ -758,6 +764,113 @@ describe('ProcessTransactions', () => {
 			const result = await processTransactions.undoTransactions([trs1, trs2]);
 
 			expect(result.stateStore).to.be.eql(stateStoreMock);
+			expect(result.transactionsResponses).to.be.eql([
+				trs1Response,
+				trs2Response,
+			]);
+		});
+	});
+
+	describe('verifyTransactions()', () => {
+		let trs1Response;
+		let trs2Response;
+		let updateTransactionResponseForExceptionTransactionsStub;
+
+		beforeEach(async () => {
+			trs1Response = {
+				status: TransactionStatus.OK,
+				id: trs1.id,
+				errors: [],
+			};
+			trs2Response = {
+				status: TransactionStatus.OK,
+				id: trs2.id,
+				errors: [],
+			};
+
+			trs1.apply.returns(trs1Response);
+			trs2.apply.returns(trs2Response);
+
+			updateTransactionResponseForExceptionTransactionsStub = sinonSandbox.stub();
+			ProcessTransactions.__set__(
+				'updateTransactionResponseForExceptionTransactions',
+				updateTransactionResponseForExceptionTransactionsStub
+			);
+		});
+
+		it('should initialize the state store', async () => {
+			await processTransactions.verifyTransactions([trs1, trs2]);
+
+			expect(StateStoreStub).to.be.calledOnce;
+			expect(StateStoreStub).to.be.calledWithExactly(storageMock, {
+				mutate: false,
+			});
+		});
+
+		it('should prepare all transactions', async () => {
+			await processTransactions.verifyTransactions([trs1, trs2]);
+
+			expect(trs1.prepare).to.be.calledOnce;
+			expect(trs1.prepare).to.be.calledWithExactly(stateStoreMock);
+
+			expect(trs2.prepare).to.be.calledOnce;
+			expect(trs2.prepare).to.be.calledWithExactly(stateStoreMock);
+		});
+
+		it('should create snapshot for every transaction', async () => {
+			await processTransactions.verifyTransactions([trs1, trs2]);
+
+			expect(stateStoreMock.createSnapshot).to.be.calledTwice;
+		});
+
+		it('should apply all transaction', async () => {
+			await processTransactions.verifyTransactions([trs1, trs2]);
+
+			expect(trs1.apply).to.be.calledOnce;
+			expect(trs1.apply).to.be.calledWithExactly(stateStoreMock);
+
+			expect(trs2.apply).to.be.calledOnce;
+			expect(trs2.apply).to.be.calledWithExactly(stateStoreMock);
+		});
+
+		it('should override response if transaction is in future', async () => {
+			// const futureDate = new Date() + 3600;
+			const futureEpochTime = slots.getSlotTime(slots.getSlotNumber() + 20);
+			trs1.timestamp = futureEpochTime;
+
+			const result = await processTransactions.verifyTransactions([trs1]);
+
+			expect(result.transactionsResponses).to.lengthOf(1);
+			expect(result.transactionsResponses[0].status).to.be.eql(
+				TransactionStatus.FAIL
+			);
+			expect(result.transactionsResponses[0].errors[0].message).to.be.eql(
+				'Invalid transaction timestamp. Timestamp is in the future'
+			);
+		});
+
+		it('should restore snapshot for every transaction', async () => {
+			await processTransactions.verifyTransactions([trs1, trs2]);
+
+			expect(stateStoreMock.restoreSnapshot).to.be.calledTwice;
+		});
+
+		it('should update response for exceptions if response is not OK', async () => {
+			trs1Response.status = TransactionStatus.FAIL;
+			trs1.apply.returns(trs1Response);
+
+			await processTransactions.verifyTransactions([trs1, trs2]);
+
+			expect(updateTransactionResponseForExceptionTransactionsStub).to.be
+				.calledOnce;
+			expect(
+				updateTransactionResponseForExceptionTransactionsStub
+			).to.be.calledWithExactly([trs1Response], [trs1, trs2]);
+		});
+
+		it('should return transaction responses', async () => {
+			const result = await processTransactions.verifyTransactions([trs1, trs2]);
+
 			expect(result.transactionsResponses).to.be.eql([
 				trs1Response,
 				trs2Response,

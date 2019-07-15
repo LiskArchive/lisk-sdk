@@ -283,7 +283,7 @@ class ProcessTransactions {
 			stateStore.createSnapshot();
 			const transactionResponse = transaction.apply(stateStore);
 			if (slots.getSlotNumber(transaction.timestamp) > slots.getSlotNumber()) {
-				transactionResponse.status = 0;
+				transactionResponse.status = TransactionStatus.FAIL;
 				transactionResponse.errors.push(
 					new TransactionError(
 						'Invalid transaction timestamp. Timestamp is in the future',
