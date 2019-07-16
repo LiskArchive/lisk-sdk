@@ -40,7 +40,10 @@ const {
 const { Loader } = require('./loader');
 const { Forger } = require('./forger');
 const { Transport } = require('./transport');
-const { EVENT_UNCONFIRMED_TRANSACTION } = require('./transactions');
+const {
+	EVENT_MULTISIGNATURE_SIGNATURE,
+	EVENT_UNCONFIRMED_TRANSACTION,
+} = require('./transactions');
 
 const syncInterval = 10000;
 const forgeInterval = 1000;
@@ -513,6 +516,11 @@ module.exports = class Chain {
 
 		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {
 			this.channel.invoke('app:updateApplicationState', { broadhash, height });
+		});
+
+		this.transactionPool.on(EVENT_MULTISIGNATURE_SIGNATURE, signature => {
+			this.logger.debug('Broadcasting signature ', signature);
+			this.transport.onSignature(signature, true);
 		});
 	}
 

@@ -28,6 +28,7 @@ const {
 } = require('./transactions_handlers');
 
 const EVENT_UNCONFIRMED_TRANSACTION = 'unconfirmedTransaction';
+const EVENT_MULTISIGNATURE_SIGNATURE = 'multisignature';
 
 module.exports = {
 	composeTransactionSteps,
@@ -41,4 +42,5 @@ module.exports = {
 	verifyTransactions,
 	processSignature,
 	EVENT_UNCONFIRMED_TRANSACTION,
+	EVENT_MULTISIGNATURE_SIGNATURE,
 };

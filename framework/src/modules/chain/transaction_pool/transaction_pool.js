@@ -227,6 +227,8 @@ class TransactionPool extends EventEmitter {
 			this.logger.error(message, { signature });
 			throw transactionResponse.errors;
 		}
+
+		this.emit(transactionsModule.EVENT_MULTISIGNATURE_SIGNATURE, signature);
 		return transactionResponse;
 	}
 
