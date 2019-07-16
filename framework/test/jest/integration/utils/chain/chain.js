@@ -36,7 +36,7 @@ const createDefaultChainModule = async databaseName => {
 			return {};
 		}),
 		subscribe: jest.fn((event, listener) => {
-			listener({});
+			listener({ data: {} });
 		}),
 	};
 

@@ -14,6 +14,7 @@
 
 'use strict';
 
+const child_process = require('child_process');
 const { Storage } = require('../../../../src/components/storage');
 
 // Custom entitties
@@ -52,7 +53,7 @@ const clearDatabaseTable = async (storageInstance, table) =>
 	storageInstance.adapter.db.query(`DELETE FROM ${table}`);
 
 class StorageSandbox extends Storage {
-	constructor(dbConfig, dbName) {
+	constructor(dbConfig) {
 		if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'test') {
 			throw new Error(
 				`storage_sandbox is meant to be run in test environment only. NODE_ENV is: ${
@@ -60,12 +61,7 @@ class StorageSandbox extends Storage {
 				}`
 			);
 		}
-		super(dbConfig, console);
-
-		this.dbName = dbName;
-
-		dbConfig.database = dbName;
-		dbConfig.max = process.env.LISK_TEST_DB_MAX_CONNECTIONS || 2;
+		super(dbConfig, {});
 
 		process.on('exit', async () => {
 			await this._dropDB();
@@ -73,9 +69,9 @@ class StorageSandbox extends Storage {
 	}
 
 	async bootstrap() {
-		await super.bootstrap();
 		await this._dropDB();
 		await this._createDB();
+		await super.bootstrap();
 
 		this.registerEntity('Account', Account);
 		this.registerEntity('Block', Block);
@@ -95,12 +91,21 @@ class StorageSandbox extends Storage {
 		await this._dropDB();
 	}
 
-	async _dropDB() {
-		await this.adapter.db.none(`DROP DATABASE ${this.dbName}`);
+	_dropDB() {
+		return new Promise(resolve => {
+			child_process.exec(`dropdb ${this.options.database}`, () => resolve());
+		});
 	}
 
-	async _createDB() {
-		await this.adapter.db.none(`CREATE DATABASE ${this.dbName}`);
+	_createDB() {
+		return new Promise((resolve, reject) => {
+			child_process.exec(`createdb ${this.options.database}`, error => {
+				if (error) {
+					return reject(error);
+				}
+				return resolve();
+			});
+		});
 	}
 
 	async _createSchema() {

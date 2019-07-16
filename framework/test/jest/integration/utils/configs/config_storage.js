@@ -21,7 +21,7 @@ const storageConfig = (database, user, password) => ({
 	user: user || 'lisk',
 	password: password || 'password',
 	min: 10,
-	max: 95,
+	max: process.env.LISK_TEST_DB_MAX_CONNECTIONS || 2,
 	poolIdleTimeout: 30000,
 	reapIntervalMillis: 1000,
 	logEvents: ['error'],
