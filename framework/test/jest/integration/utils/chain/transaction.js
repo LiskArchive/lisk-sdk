@@ -91,7 +91,7 @@ const createMultiSignatureTransaction = (
 };
 
 const getTransaction = async (storage, id) =>
-	storage.transactions.getOne({ id }, { extended: true });
+	storage.entities.Transaction.getOne({ id }, { extended: true });
 
 module.exports = {
 	createTransferTransaction,
