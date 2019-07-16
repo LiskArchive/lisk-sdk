@@ -527,6 +527,15 @@ export class Peer extends EventEmitter {
 			});
 		});
 
+		// This is needed for backwards compatibility with older 1.x nodes.
+		// TODO: Remove this from versions 2.3 and above.
+		outboundSocket.on('message', () => {
+			const transport = (outboundSocket as any).transport;
+			if (transport) {
+				transport._resetPingTimeout();
+			}
+		});
+
 		// Bind RPC and remote event handlers
 		outboundSocket.on(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
 		outboundSocket.on(REMOTE_EVENT_MESSAGE, this._handleRawMessage);
@@ -551,6 +560,8 @@ export class Peer extends EventEmitter {
 		outboundSocket.off('connect');
 		outboundSocket.off('connectAbort');
 		outboundSocket.off('close');
+
+		outboundSocket.off('message');
 
 		// Unbind RPC and remote event handlers
 		outboundSocket.off(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
