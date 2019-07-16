@@ -1,0 +1,14 @@
+{
+	"feature": "Balance transfer transaction included in a block",
+	"setup": [{}],
+	"scenario": [
+		{
+			"input": {},
+			"output": {
+				"accounts": {},
+				"lastBlock": {},
+				"delegateList": []
+			}
+		}
+	]
+}
