@@ -327,6 +327,7 @@ class Blocks extends EventEmitter {
 					await this._updateBroadhash();
 					this._lastBlock = newBlock;
 					this._isActive = false;
+					this.emit(EVENT_NEW_BLOCK, { block: cloneDeep(this._lastBlock) });
 				} catch (error) {
 					this._isActive = false;
 					this.logger.error(error);
