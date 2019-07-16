@@ -28,7 +28,7 @@ describe('genesis block', () => {
 	let chainModule;
 
 	beforeAll(async () => {
-		storage = new StorageSandbox(storageConfig(), dbName);
+		storage = new StorageSandbox(storageConfig(dbName));
 		await storage.bootstrap();
 		chainModule = await createDefaultChainModule(dbName);
 	});
@@ -42,7 +42,8 @@ describe('genesis block', () => {
 		describe('when chain module is bootstrapped', () => {
 			it('should save genesis block to the database', async () => {
 				const block = await getBlock(storage, genesisBlock.id);
-				expect(block).not.to.beEmpty;
+				expect(block.id).toEqual(genesisBlock.id);
+				expect(block.height).toEqual(1);
 			});
 
 			it.todo('should save correct amount of transactions');
