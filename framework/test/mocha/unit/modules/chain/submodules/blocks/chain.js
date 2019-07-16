@@ -15,11 +15,13 @@
 'use strict';
 
 const rewire = require('rewire');
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const {
 	registeredTransactions,
 } = require('../../../../../common/registered_transactions');
 const InitTransaction = require('../../../../../../../src/modules/chain/logic/init_transaction');
 const { Transaction } = require('../../../../../fixtures/transactions');
+const slots = require('../../../../../../../src/modules/chain/helpers/slots');
 
 const BlocksChain = rewire(
 	'../../../../../../../src/modules/chain/submodules/blocks/chain'
@@ -73,8 +75,10 @@ describe('blocks/chain', () => {
 			initTransaction.fromJson(transaction)
 		),
 	};
+
 	const blockReduced = { id: 3, height: 3 };
 	let channelMock;
+	let processTransactionMethodResponse;
 
 	beforeEach(done => {
 		// Logic
@@ -173,7 +177,7 @@ describe('blocks/chain', () => {
 			isActive: {
 				set: sinonSandbox.stub(),
 			},
-			calculateNewBroadhash: sinonSandbox.stub(),
+			calculateNewBroadhash: sinonSandbox.stub().resolves({}),
 		};
 
 		const modulesRoundsStub = {
@@ -193,6 +197,22 @@ describe('blocks/chain', () => {
 			onDeletedTransactions: sinonSandbox.stub(),
 		};
 
+		processTransactionMethodResponse = {
+			stateStore: {
+				account: {
+					finalize: sinonSandbox.stub().resolves(),
+				},
+				round: {
+					setRoundForData: sinonSandbox.stub().resolves(),
+					finalize: sinonSandbox.stub().resolves(),
+				},
+			},
+			transactionsResponses: [
+				{ status: TransactionStatus.OK },
+				{ status: TransactionStatus.OK },
+			],
+		};
+
 		bindingsStub = {
 			modules: {
 				accounts: modulesAccountsStub,
@@ -200,28 +220,15 @@ describe('blocks/chain', () => {
 				rounds: modulesRoundsStub,
 				transactions: modulesTransactionsStub,
 				processTransactions: {
-					applyTransactions: sinonSandbox.stub().resolves({
-						stateStore: {
-							account: {
-								finalize: sinonSandbox.stub().resolves(),
-							},
-							round: {
-								setRoundForData: sinonSandbox.stub().resolves(),
-								finalize: sinonSandbox.stub().resolves(),
-							},
-						},
-					}),
-					applyGenesisTransactions: sinonSandbox.stub().resolves({
-						stateStore: {
-							account: {
-								finalize: sinonSandbox.stub().resolves(),
-							},
-							round: {
-								setRoundForData: sinonSandbox.stub().resolves(),
-								finalize: sinonSandbox.stub().resolves(),
-							},
-						},
-					}),
+					applyTransactions: sinonSandbox
+						.stub()
+						.resolves(processTransactionMethodResponse),
+					undoTransactions: sinonSandbox
+						.stub()
+						.resolves(processTransactionMethodResponse),
+					applyGenesisTransactions: sinonSandbox
+						.stub()
+						.resolves(processTransactionMethodResponse),
 				},
 			},
 		};
@@ -396,7 +403,7 @@ describe('blocks/chain', () => {
 					blocksChainModule.saveBlock(
 						blockWithTransactions,
 						async () => {
-							expect(__private.afterSave.calledOnce).to.be.true;
+							expect(__private.afterSave).to.be.calledOnce;
 							done();
 						},
 						txStub
@@ -442,7 +449,7 @@ describe('blocks/chain', () => {
 
 				it('should call __private.afterSave', done => {
 					blocksChainModule.saveBlock(blockWithTransactions, async () => {
-						expect(__private.afterSave.calledOnce).to.be.true;
+						expect(__private.afterSave).to.be.calledOnce;
 						done();
 					});
 				});
@@ -454,7 +461,7 @@ describe('blocks/chain', () => {
 		it('should call afterSave for all transactions', done => {
 			const spy = sinonSandbox.spy();
 			__private.afterSave(blockWithTransactions, spy);
-			expect(spy.calledOnce).to.be.true;
+			expect(spy).to.be.calledOnce;
 			done();
 		});
 	});
@@ -574,7 +581,7 @@ describe('blocks/chain', () => {
 								expect(__private.applyGenesisTransactions.callCount).to.equal(
 									1
 								);
-								expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
+								expect(modules.blocks.lastBlock.set).to.be.calledOnce;
 								expect(modules.blocks.lastBlock.set.args[0][0]).to.deep.equal(
 									blockWithTransactions
 								);
@@ -591,19 +598,97 @@ describe('blocks/chain', () => {
 	});
 
 	describe('__private.applyConfirmedStep', () => {
-		/* eslint-disable mocha/no-pending-tests */
-		it('should return when block.transactions includes no transactions');
+		// Arrange
+		const filledBlock = {
+			id: 1,
+			height: 1,
+			transactions: [{ id: 21 }, { id: 22 }],
+		};
+		let originalInertTransactions;
 
-		it('should call modules.processTransactions.undoTransactions');
+		beforeEach(async () => {
+			// Arrange (Backup)
+			originalInertTransactions = global.exceptions.inertTransactions;
+		});
 
-		it('should throw error when errors exist in unappliedTransactionResponse');
+		afterEach(async () => {
+			// Restore
+			global.exceptions.inertTransactions = originalInertTransactions;
+		});
 
-		it('should call stateStore.account.finalize');
+		it('should return when block.transactions includes no transactions', async () => {
+			// Arrange
+			const emptyBlock = {
+				id: 1,
+				height: 1,
+				transactions: [],
+			};
+			// Act && Assert
+			return expect(__private.applyConfirmedStep(emptyBlock)).to.eventually.be
+				.undefined;
+		});
 
-		it('should call stateStore.round.setRoundForData with correct parameters');
+		it('should call modules.processTransactions.applyConfirmedStep', async () => {
+			// Arrange
+			global.exceptions.inertTransactions = [filledBlock.transactions[0].id];
+			const dummyTx = {};
 
-		it('should call tateStore.round.finalize');
-		/* eslint-enable mocha/no-pending-tests */
+			// Act
+			await __private.applyConfirmedStep(filledBlock, dummyTx);
+
+			// Assert
+			return expect(
+				modules.processTransactions.applyTransactions
+			).to.have.been.calledWith([filledBlock.transactions[1]], dummyTx);
+		});
+
+		it('should throw error when errors exist in unappliedTransactionResponse', async () => {
+			// Arrange
+			const errors = [new Error('#Test Error')];
+			modules.processTransactions.applyTransactions.resolves({
+				...processTransactionMethodResponse,
+				transactionsResponses: [
+					{ status: TransactionStatus.OK },
+					{ status: TransactionStatus.FAIL, errors },
+				],
+			});
+
+			// Act && Assert
+			await expect(
+				__private.applyConfirmedStep(filledBlock)
+			).to.eventually.be.rejected.and.deep.equal(errors);
+		});
+
+		it('should call stateStore.account.finalize', async () => {
+			// Act
+			await __private.applyConfirmedStep(filledBlock);
+
+			// Assert
+			return expect(
+				processTransactionMethodResponse.stateStore.account.finalize
+			).to.be.calledOnce;
+		});
+
+		it('should call stateStore.round.setRoundForData with correct parameters', async () => {
+			// Arrange
+			const round = slots.calcRound(filledBlock.height);
+			// Act
+			await __private.applyConfirmedStep(filledBlock);
+
+			// Assert
+			return expect(
+				processTransactionMethodResponse.stateStore.round.setRoundForData
+			).to.have.been.calledWith(round);
+		});
+
+		it('should call stateStore.round.finalize', async () => {
+			// Act
+			await __private.applyConfirmedStep(filledBlock);
+
+			// Assert
+			return expect(processTransactionMethodResponse.stateStore.round.finalize)
+				.to.be.calledOnce;
+		});
 	});
 
 	describe('__private.saveBlockStep', () => {
@@ -652,7 +737,7 @@ describe('blocks/chain', () => {
 							expect(blocksChainModule.saveBlock.args[0][0]).to.deep.equal(
 								blockWithTransactions
 							);
-							expect(modules.blocks.lastBlock.set.calledOnce).to.be.false;
+							expect(modules.blocks.lastBlock.set).to.not.be.called;
 							done();
 						});
 				});
@@ -686,7 +771,7 @@ describe('blocks/chain', () => {
 							)
 							.catch(err => {
 								expect(err).to.equal('tick-ERR');
-								expect(library.bus.message.calledOnce).to.be.false;
+								expect(library.bus.message).to.not.be.called;
 								done();
 							});
 					});
@@ -704,7 +789,7 @@ describe('blocks/chain', () => {
 							)
 							.then(resolve => {
 								expect(resolve).to.be.undefined;
-								expect(library.bus.message.calledOnce).to.be.true;
+								expect(library.bus.message).to.be.calledOnce;
 								expect(library.bus.message.args[0][0]).to.deep.equal(
 									'newBlock'
 								);
@@ -731,7 +816,7 @@ describe('blocks/chain', () => {
 						)
 						.catch(err => {
 							expect(err).to.equal('tick-ERR');
-							expect(library.bus.message.calledOnce).to.be.false;
+							expect(library.bus.message).to.not.be.called;
 							done();
 						});
 				});
@@ -749,7 +834,7 @@ describe('blocks/chain', () => {
 						)
 						.then(resolve => {
 							expect(resolve).to.be.undefined;
-							expect(library.bus.message.calledOnce).to.be.true;
+							expect(library.bus.message).to.be.calledOnce;
 							expect(library.bus.message.args[0][0]).to.deep.equal('newBlock');
 							expect(library.bus.message.args[0][1]).to.deep.equal(
 								blockWithTransactions
@@ -836,7 +921,7 @@ describe('blocks/chain', () => {
 	describe('broadcastReducedBlock', () => {
 		it('should call library.bus.message with reducedBlock and broadcast', async () => {
 			blocksChainModule.broadcastReducedBlock(blockReduced, true);
-			expect(library.bus.message.calledOnce).to.be.true;
+			expect(library.bus.message).to.be.calledOnce;
 			expect(library.bus.message.args[0][0]).to.equal('broadcastBlock');
 			expect(library.bus.message.args[0][1]).to.deep.equal(blockReduced);
 			return expect(library.bus.message.args[0][2]).to.be.true;
@@ -889,19 +974,98 @@ describe('blocks/chain', () => {
 
 	// TODO: add new tests once improve_transaction_eficiency is done
 	describe('__private.undoConfirmedStep', () => {
-		/* eslint-disable mocha/no-pending-tests */
-		it('should return when block.transactions includes no transactions');
+		// Arrange
+		const filledBlock = {
+			id: 1,
+			height: 1,
+			transactions: [{ id: 21 }, { id: 22 }],
+		};
 
-		it('should call modules.processTransactions.undoTransactions');
+		let originalInertTransactions;
 
-		it('should throw error when errors exist in unappliedTransactionResponse');
+		beforeEach(async () => {
+			// Arrange (Backup)
+			originalInertTransactions = global.exceptions.inertTransactions;
+		});
 
-		it('should call stateStore.account.finalize');
+		afterEach(async () => {
+			// Restore
+			global.exceptions.inertTransactions = originalInertTransactions;
+		});
 
-		it('should call stateStore.round.setRoundForData with correct parameters');
+		it('should return when block.transactions includes no transactions', async () => {
+			// Arrange
+			const emptyBlock = {
+				id: 1,
+				height: 1,
+				transactions: [],
+			};
+			// Act && Assert
+			return expect(__private.undoConfirmedStep(emptyBlock)).to.eventually.be
+				.undefined;
+		});
 
-		it('should call tateStore.round.finalize');
-		/* eslint-enable mocha/no-pending-tests */
+		it('should call modules.processTransactions.undoTransactions', async () => {
+			// Arrange
+			global.exceptions.inertTransactions = [filledBlock.transactions[0].id];
+			const dummyTx = {};
+
+			// Act
+			await __private.undoConfirmedStep(filledBlock, dummyTx);
+
+			// Assert
+			return expect(
+				modules.processTransactions.undoTransactions
+			).to.have.been.calledWith([filledBlock.transactions[1]], dummyTx);
+		});
+
+		it('should throw error when errors exist in unappliedTransactionResponse', async () => {
+			// Arrange
+			const errors = [new Error('#Test Error')];
+			modules.processTransactions.undoTransactions.resolves({
+				...processTransactionMethodResponse,
+				transactionsResponses: [
+					{ status: TransactionStatus.OK },
+					{ status: TransactionStatus.FAIL, errors },
+				],
+			});
+
+			// Act && Assert
+			await expect(
+				__private.undoConfirmedStep(filledBlock)
+			).to.eventually.be.rejected.and.deep.equal(errors);
+		});
+
+		it('should call stateStore.account.finalize', async () => {
+			// Act
+			await __private.undoConfirmedStep(filledBlock);
+
+			// Assert
+			return expect(
+				processTransactionMethodResponse.stateStore.account.finalize
+			).to.be.calledOnce;
+		});
+
+		it('should call stateStore.round.setRoundForData with correct parameters', async () => {
+			// Arrange
+			const round = slots.calcRound(filledBlock.height);
+			// Act
+			await __private.undoConfirmedStep(filledBlock);
+
+			// Assert
+			return expect(
+				processTransactionMethodResponse.stateStore.round.setRoundForData
+			).to.have.been.calledWith(round);
+		});
+
+		it('should call stateStore.round.finalize', async () => {
+			// Act
+			await __private.undoConfirmedStep(filledBlock);
+
+			// Assert
+			return expect(processTransactionMethodResponse.stateStore.round.finalize)
+				.to.be.calledOnce;
+		});
 	});
 
 	describe('__private.backwardTickStep', () => {
@@ -1019,7 +1183,7 @@ describe('blocks/chain', () => {
 
 		afterEach(done => {
 			__private.popLastBlock = popLastBlockTemp;
-			expect(modules.blocks.lastBlock.get.calledOnce).to.be.true;
+			expect(modules.blocks.lastBlock.get).to.be.calledOnce;
 			expect(loggerStub.warn.args[0][0]).to.equal('Deleting last block');
 			done();
 		});
@@ -1065,11 +1229,23 @@ describe('blocks/chain', () => {
 				});
 			});
 
-			// TODO: add new tests once improve_transaction_eficiency is done
 			describe('when __private.popLastBlock succeeds', () => {
-				/* eslint-disable mocha/no-pending-tests */
-				it('should return previousBlock');
-				/* eslint-enable mocha/no-pending-tests */
+				it('should return previousBlock', done => {
+					// Arrange
+					const previousBlock = { id: 5, height: 5 };
+					__private.popLastBlock.callsArgWith(1, null, previousBlock);
+					modules.blocks.lastBlock.set.returns(previousBlock);
+
+					// Act
+					blocksChainModule.deleteLastBlock((err, block) => {
+						expect(err).to.equal(null);
+						expect(modules.blocks.lastBlock.set).to.be.calledWith(
+							previousBlock
+						);
+						expect(block).to.equal(previousBlock);
+						done();
+					});
+				});
 			});
 		});
 	});

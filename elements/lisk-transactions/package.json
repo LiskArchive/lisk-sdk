@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-transactions",
-	"version": "2.1.0",
+	"version": "2.1.1-alpha.0",
 	"description": "Everything related to transactions according to the Lisk protocol",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
