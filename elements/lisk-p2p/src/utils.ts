@@ -20,17 +20,22 @@ const NETWORK_BUFFER_LENGTH = 1;
 const PREFIX_BUFFER_LENGTH = 1;
 const MOD_4 = 4;
 const MOD_64 = 64;
-const EMPTY_BUFFER = Buffer.alloc(0);
 
 export enum NETWORK {
 	NET_IPV4 = 0,
 	NET_PRIVATE,
 	NET_LOCAL,
+	NET_OTHER,
 }
 
 /* tslint:disable no-magic-numbers */
-export const getByte = (address: string, n: number) =>
-	parseInt(address.split('.')[n], 10);
+export const getByte = (address: string, n: number): number | undefined => {
+	if (n > 3) {
+		return undefined;
+	}
+
+	return parseInt(address.split('.')[n], 10);
+};
 
 export const isPrivate = (address: string) => getByte(address, 0) === 10;
 
@@ -47,35 +52,32 @@ export const getNetwork = (address: string): NETWORK => {
 		return NETWORK.NET_PRIVATE;
 	}
 
-	return NETWORK.NET_IPV4;
+	if (isIPv4(address)) {
+		return NETWORK.NET_IPV4;
+	}
+
+	return NETWORK.NET_OTHER;
 };
 
 interface HashBytes {
-	readonly secretBytes: Buffer;
 	readonly networkBytes: Buffer;
-	readonly groupABytes?: Buffer;
-	readonly groupBBytes?: Buffer;
+	readonly secretBytes: Buffer;
+	readonly groupABytes: Buffer;
+	readonly groupBBytes: Buffer;
 }
 
-export const getHashBytes = (address: string, secret: number): HashBytes => {
-	const secretBytes = Buffer.alloc(SECRET_BUFFER_LENGTH);
-	secretBytes.writeUInt32BE(secret, 0);
+export const getBytes = (address: string, secret: number): HashBytes => {
 	const network = getNetwork(address);
 	const networkBytes = Buffer.alloc(NETWORK_BUFFER_LENGTH);
 	networkBytes.writeUInt8(network, 0);
-
-	// If local or private network, do not write group bytes
-	if(network !== NETWORK.NET_IPV4) {
-		return {
-			secretBytes,
-			networkBytes,
-		}
-	}
-
+	const secretBytes = Buffer.alloc(SECRET_BUFFER_LENGTH);
+	secretBytes.writeUInt32BE(secret, 0);
 	const groupABytes = Buffer.alloc(PREFIX_BUFFER_LENGTH);
-		groupABytes.writeUInt8(getByte(address, 0), 0);
-		const groupBBytes = Buffer.alloc(PREFIX_BUFFER_LENGTH);
-		groupBBytes.writeUInt8(getByte(address, 1), 0);
+	const groupA = getByte(address, 0) || 0;
+	groupABytes.writeUInt8(groupA, 0);
+	const groupBBytes = Buffer.alloc(PREFIX_BUFFER_LENGTH);
+	const groupB = getByte(address, 1) || 0;
+	groupBBytes.writeUInt8(groupB, 0);
 
 	return {
 		secretBytes,
@@ -93,10 +95,15 @@ export const getNetgroup = (
 	if (!isIPv4(address)) {
 		return undefined;
 	}
-	const { secretBytes, networkBytes, groupABytes = EMPTY_BUFFER, groupBBytes = EMPTY_BUFFER } = getHashBytes(
+
+	const { networkBytes, secretBytes, groupABytes, groupBBytes } = getBytes(
 		address,
 		secret,
 	);
+
+	if (getNetwork(address) !== NETWORK.NET_IPV4) {
+		return hash(networkBytes).readUInt32BE(0);
+	}
 
 	const netgroupBytes = Buffer.concat([
 		secretBytes,
@@ -105,11 +112,7 @@ export const getNetgroup = (
 		groupBBytes,
 	]);
 
-	try {
-		return hash(netgroupBytes).readUInt32BE(0);
-	} catch(err) {
-		throw err
-	}
+	return hash(netgroupBytes).readUInt32BE(0);
 };
 
 export const getBucket = (
@@ -119,33 +122,25 @@ export const getBucket = (
 	if (!isIPv4(address)) {
 		return undefined;
 	}
-	const { secretBytes, networkBytes, groupABytes = EMPTY_BUFFER, groupBBytes = EMPTY_BUFFER } = getHashBytes(
+	const { networkBytes, secretBytes, groupABytes, groupBBytes } = getBytes(
 		address,
 		secret,
 	);
 
-	const addressBytes = Buffer.from(address, 'utf8');
-	// tslint:disable no-let
-	let k;
-	try {
-		k =
-		hash(Buffer.concat([secretBytes, addressBytes])).readUInt32BE(0) % MOD_4;
-	}  catch(err) {
-		throw err
+	if (getNetwork(address) !== NETWORK.NET_IPV4) {
+		return hash(networkBytes).readUInt32BE(0) % MOD_64;
 	}
+	const addressBytes = Buffer.from(address, 'utf8');
+	const k =
+		hash(Buffer.concat([secretBytes, addressBytes])).readUInt32BE(0) % MOD_4;
 	const kBytes = Buffer.alloc(SECRET_BUFFER_LENGTH);
 	kBytes.writeUInt32BE(k, 0);
 	const bucketBytes = Buffer.concat([
-		secretBytes,
 		networkBytes,
 		groupABytes,
 		groupBBytes,
 		kBytes,
 	]);
 
-	try {
-		return hash(bucketBytes).readUInt32BE(0) % MOD_64;
-	} catch(err) {
-		throw err
-	}
+	return hash(bucketBytes).readUInt32BE(0) % MOD_64;
 };
