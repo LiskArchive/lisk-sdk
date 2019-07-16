@@ -40,6 +40,7 @@ const {
 const { Loader } = require('./loader');
 const { Forger } = require('./forger');
 const { Transport } = require('./transport');
+const { EVENT_UNCONFIRMED_TRANSACTION } = require('./transactions');
 
 const syncInterval = 10000;
 const forgeInterval = 1000;
@@ -503,6 +504,11 @@ module.exports = class Chain {
 				);
 			}
 			this.channel.publish('chain:blocks:change', block);
+		});
+
+		this.transactionPool.on(EVENT_UNCONFIRMED_TRANSACTION, transaction => {
+			this.logger.debug(`Broadcasting transaction ${transaction.id}`);
+			this.transport.onUnconfirmedTransaction(transaction, true);
 		});
 
 		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {

@@ -27,6 +27,8 @@ const {
 	applyGenesisTransactions,
 } = require('./transactions_handlers');
 
+const EVENT_UNCONFIRMED_TRANSACTION = 'unconfirmedTransaction';
+
 module.exports = {
 	composeTransactionSteps,
 	checkIfTransactionIsInert,
@@ -38,4 +40,5 @@ module.exports = {
 	undoTransactions,
 	verifyTransactions,
 	processSignature,
+	EVENT_UNCONFIRMED_TRANSACTION,
 };

@@ -257,7 +257,7 @@ class Broadcaster {
 		}
 		try {
 			await this.filterQueue();
-			const broadcasts = this.queue.splice(0, this.broadcasts.releaseLimit);
+			const broadcasts = this.queue.splice(0, this.config.releaseLimit);
 			const squashedBroadcasts = this.squashQueue(broadcasts);
 
 			await Promise.all(

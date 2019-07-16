@@ -160,7 +160,10 @@ class TransactionPool extends EventEmitter {
 		this.pool.on(pool.EVENT_VERIFIED_TRANSACTION_ONCE, ({ payload }) => {
 			if (payload.length > 0) {
 				payload.forEach(aTransaction =>
-					this.emit('unconfirmedTransaction', aTransaction)
+					this.emit(
+						transactionsModule.EVENT_UNCONFIRMED_TRANSACTION,
+						aTransaction
+					)
 				);
 			}
 		});
