@@ -39,7 +39,7 @@ const processBlock = async (chainModule, block) =>
 const deleteLastBlock = async chainModule => chainModule.blocks.recoverChain();
 
 const getBlock = async (storage, blockId) =>
-	storage.blocks.getOne({ id: blockId }, { extended: true });
+	storage.entities.Block.getOne({ id: blockId }, { extended: true });
 
 module.exports = {
 	createBlock,

@@ -18,7 +18,9 @@ const {
 	createDefaultChainModule,
 	StorageSandbox,
 	storageConfig,
+	getBlock,
 } = require('../../../utils');
+const genesisBlock = require('../../../../../fixtures/config/devnet/genesis_block');
 
 describe('genesis block', () => {
 	const dbName = 'genesis_block';
@@ -38,7 +40,11 @@ describe('genesis block', () => {
 
 	describe('given the application has not been initialized', () => {
 		describe('when chain module is bootstrapped', () => {
-			it.todo('should save genesis block to the database');
+			it('should save genesis block to the database', async () => {
+				const block = await getBlock(storage, genesisBlock.id);
+				expect(block).not.to.beEmpty;
+			});
+
 			it.todo('should save correct amount of transactions');
 			it.todo(
 				'should save create an account for the registered genesis delegates'
@@ -47,6 +53,7 @@ describe('genesis block', () => {
 			it.todo('should have correct delegate list');
 		});
 	});
+
 	describe('given the application has been initialized', () => {
 		describe('when chain module is bootstrapped', () => {
 			it.todo('should have genesis block in the database');

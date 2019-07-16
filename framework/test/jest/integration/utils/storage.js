@@ -93,7 +93,6 @@ class StorageSandbox extends Storage {
 	async cleanup() {
 		super.cleanup();
 		await this._dropDB();
-		this.options.database = this.originalDbName;
 	}
 
 	async _dropDB() {

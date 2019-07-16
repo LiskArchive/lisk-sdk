@@ -40,7 +40,7 @@ const createAccounts = (numberOfAccounts = 1) => {
 };
 
 const getAccount = async (storage, address) =>
-	storage.accounts.getOne({ address }, { extended: true });
+	storage.entities.Account.getOne({ address }, { extended: true });
 
 module.exports = {
 	createAccount,
