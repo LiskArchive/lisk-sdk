@@ -436,7 +436,7 @@ describe('Chain', () => {
 			// Assert
 			expect(stubs.jobsQueue.register).to.be.calledWith(
 				'nextSync',
-				chain._syncTask,
+				sinonSandbox.match.func,
 				Chain.__get__('syncInterval')
 			);
 		});
@@ -519,9 +519,10 @@ describe('Chain', () => {
 
 		it('should register a task in Jobs Queue named "nextForge" with a designated interval', async () => {
 			await chain._startForging();
+
 			expect(stubs.jobsQueue.register).to.be.calledWith(
 				'nextForge',
-				chain._forgingTask,
+				sinonSandbox.match.func,
 				Chain.__get__('forgeInterval')
 			);
 		});

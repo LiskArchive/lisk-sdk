@@ -429,7 +429,7 @@ module.exports = class Chain {
 		if (!this.options.syncing.active) {
 			return;
 		}
-		jobQueue.register('nextSync', this._syncTask, syncInterval);
+		jobQueue.register('nextSync', async () => this._syncTask(), syncInterval);
 	}
 
 	_calculateConsensus() {
@@ -470,7 +470,11 @@ module.exports = class Chain {
 		} catch (err) {
 			this.logger.error(err, 'Failed to load delegates');
 		}
-		jobQueue.register('nextForge', this._forgingTask, forgeInterval);
+		jobQueue.register(
+			'nextForge',
+			async () => this._forgingTask(),
+			forgeInterval
+		);
 	}
 
 	_subscribeToEvents() {

@@ -29,7 +29,14 @@ module.exports = {
 				'genesisConfig',
 			],
 			properties: {
-				label: { type: 'string', pattern: '^[a-zA-Z][0-9a-zA-Z\\_\\-]*$' },
+				label: {
+					type: 'string',
+					pattern: '^[a-zA-Z][0-9a-zA-Z\\_\\-]*$',
+					minLength: 1,
+					maxLength: 30,
+					description:
+						'Restricted length due to unix domain socket path length limitations.',
+				},
 				version: {
 					type: 'string',
 					format: 'version',
@@ -55,6 +62,15 @@ module.exports = {
 					maxLength: 40,
 					example: '968d7b5b97a5bfad8f77614dc8a9918de49f6c6e',
 					description: 'The version of Lisk Core that the peer node runs on.',
+				},
+				tempPath: {
+					type: 'string',
+					format: 'path',
+					minLength: 1,
+					maxLength: 50,
+					example: '/tmp/lisk',
+					description:
+						'The root path for storing temporary pid and socket file. Restricted length due to unix domain socket path length limitations.',
 				},
 				ipc: {
 					type: 'object',
@@ -162,6 +178,7 @@ module.exports = {
 			version: '0.0.0',
 			minVersion: '0.0.0',
 			protocolVersion: '1.1',
+			tempPath: '/tmp/lisk',
 			ipc: {
 				enabled: false,
 			},
