@@ -1794,8 +1794,8 @@ describe('blocks/verify', () => {
 					});
 
 					it('should throw error when transaction is already confirmed', async () => {
-						expect(__private.checkTransactions(dummyBlock, true)).to.eventually
-							.rejected;
+						return expect(__private.checkTransactions(dummyBlock, true)).to
+							.eventually.rejected;
 					});
 				});
 
@@ -1835,8 +1835,8 @@ describe('blocks/verify', () => {
 						modules.processTransactions.verifyTransactions.resolves(
 							invalidTransactionsResponse
 						);
-						expect(__private.checkTransactions(dummyBlock, true)).to.eventually
-							.throw;
+						return expect(__private.checkTransactions(dummyBlock, true)).to
+							.eventually.throw;
 					});
 				});
 			});
@@ -1859,8 +1859,8 @@ describe('blocks/verify', () => {
 					],
 				});
 
-				expect(__private.checkTransactions(dummyBlock, false)).to.eventually.be
-					.rejected;
+				return expect(__private.checkTransactions(dummyBlock, false)).to
+					.eventually.be.rejected;
 			});
 		});
 	});

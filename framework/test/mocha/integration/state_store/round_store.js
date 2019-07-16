@@ -63,7 +63,7 @@ describe('system test - round store', () => {
 
 	describe('cache', () => {
 		it('should throw ', async () => {
-			expect(roundStore.cache()).to.eventually.throw(
+			return expect(roundStore.cache()).to.eventually.throw(
 				'cache cannot be called for round'
 			);
 		});

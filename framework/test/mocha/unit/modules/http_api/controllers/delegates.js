@@ -237,7 +237,7 @@ describe('delegates/api', () => {
 				isDelegate: true,
 			});
 
-			expect(
+			return expect(
 				__private.getForgingStatistics({ address: 'aValidAddress' })
 			).to.eventually.have.keys('count', 'rewards', 'fees', 'forged');
 		});
