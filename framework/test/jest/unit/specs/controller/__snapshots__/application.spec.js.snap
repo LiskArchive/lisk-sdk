@@ -20,7 +20,7 @@ Object {
       },
     },
     "ipc": Object {
-      "enabled": true,
+      "enabled": false,
     },
     "label": "devnet",
     "minVersion": "1.0.0",
