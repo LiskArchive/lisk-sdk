@@ -17,7 +17,7 @@
 module.exports = {
 	verbose: true,
 	collectCoverage: true,
-	coverageReporters: ['lcov', 'cobertura'],
+	coverageReporters: ['json', 'lcov', 'cobertura'],
 	rootDir: '../../../../',
 	setupFilesAfterEnv: ['<rootDir>/framework/test/jest/config/setup.js'],
 	/**
