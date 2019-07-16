@@ -10,50 +10,107 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
 
 'use strict';
 
+const { Storage } = require('../../../../src/components/storage');
+
+// Custom entitties
 const {
-	adapters: { PgpAdapter },
-} = require('../../../../src/components/storage');
+	Account,
+	Block,
+	Round,
+	Transaction,
+} = require('../../../../src/modules/chain/components/storage/entities');
 
-const startDatabase = async (database, host, port, user, password) => {
-	const db = new PgpAdapter({
-		inTest: true,
-		host: host || 'localhost',
-		port: port || 5432,
-		user: user || 'lisk',
-		password: password || 'password',
-		logger: {
-			debug: jest.fn(),
-		},
-	});
-	await db.connect();
-	await db.execute(`DROP DATABASE ${database}`);
-	await db.execute(`CREATE DATABASE ${database}`);
-	return db;
+const {
+	Peer,
+} = require('../../../../src/modules/network/components/storage/entities');
+
+const {
+	MigrationEntity: Migration,
+} = require('../../../../src/controller/migrations');
+
+const ChainModule = require('../../../../src/modules/chain');
+const NetworkModule = require('../../../../src/modules/network');
+const HttpAPIModule = require('../../../../src/modules/http_api');
+
+const modulesMigrations = {
+	[ChainModule.alias]: ChainModule.migrations,
+	[NetworkModule.alias]: NetworkModule.migrations,
+	[HttpAPIModule.alias]: HttpAPIModule.migrations,
 };
 
-const closeDatabase = async (db, database) => {
-	await db.execute(`DROP DATABASE ${database}`);
-	await db.disconnect();
-};
+/**
+ * @param {string} table
+ * @param {Logger} logger
+ * @param {Object} storage
+ * @param {function} cb
+ */
+const clearDatabaseTable = async (storageInstance, table) =>
+	storageInstance.adapter.db.query(`DELETE FROM ${table}`);
 
-const resetTable = async (db, tableName) => {
-	await db.execute(`DELETE FROM ${tableName}`);
-};
+class StorageSandbox extends Storage {
+	constructor(dbConfig, dbName) {
+		if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'test') {
+			throw new Error(
+				`storage_sandbox is meant to be run in test environment only. NODE_ENV is: ${
+					process.env.NODE_ENV
+				}`
+			);
+		}
+		super(dbConfig, console);
 
-const resetTables = async (db, tableNames) => {
-	await Promise.all(
-		tableNames.map(tableName => db.execute(`DELETE FROM ${tableName}`))
-	);
-};
+		this.dbName = dbName;
+
+		dbConfig.database = dbName;
+		dbConfig.max = process.env.LISK_TEST_DB_MAX_CONNECTIONS || 2;
+
+		process.on('exit', async () => {
+			await this._dropDB();
+		});
+	}
+
+	async bootstrap() {
+		await super.bootstrap();
+		await this._dropDB();
+		await this._createDB();
+
+		this.registerEntity('Account', Account);
+		this.registerEntity('Block', Block);
+		this.registerEntity('Transaction', Transaction);
+
+		// Custom entitties
+		this.registerEntity('Migration', Migration);
+		this.registerEntity('Peer', Peer);
+		this.registerEntity('Round', Round);
+
+		await this._createSchema();
+		return true;
+	}
+
+	async cleanup() {
+		super.cleanup();
+		await this._dropDB();
+		this.options.database = this.originalDbName;
+	}
+
+	async _dropDB() {
+		await this.adapter.db.none(`DROP DATABASE ${this.dbName}`);
+	}
+
+	async _createDB() {
+		await this.adapter.db.none(`CREATE DATABASE ${this.dbName}`);
+	}
+
+	async _createSchema() {
+		await this.entities.Migration.defineSchema();
+		await this.entities.Migration.applyAll(modulesMigrations);
+	}
+}
 
 module.exports = {
-	startDatabase,
-	closeDatabase,
-	resetTable,
-	resetTables,
+	clearDatabaseTable,
+	StorageSandbox,
 };

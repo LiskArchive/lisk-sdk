@@ -15,11 +15,13 @@
 'use strict';
 
 const { defaultTransactions } = require('./default_transactions');
-const storage = require('./storage');
+const storageUtils = require('./storage');
+const configUtils = require('./configs');
 const chainUtils = require('./chain');
 
 module.exports = {
 	defaultTransactions,
-	...storage,
+	...storageUtils,
 	...chainUtils,
+	...configUtils,
 };
