@@ -14,7 +14,8 @@
 
 'use strict';
 
-const BlockSynchronizationMechanism = require('../../../../../../../src/modules/chain/synchronizer/block_synchronization_mechanism');
+const BlockSynchronizationMechanism = require('../../../../../../../../src/modules/chain/synchronizer/block_synchronization_mechanism');
+const peersList = require('./peers');
 
 describe('BlockSynchronizationMechanism', () => {
 	const stubs = {
@@ -40,7 +41,7 @@ describe('BlockSynchronizationMechanism', () => {
 
 	describe('#_computeBestPeer', () => {
 		it('should accept an array of peers as input', () => {
-			expect(blockSynchronizationMechanism._computeBestPeer.length).toEqual(1);
+			expect(blockSynchronizationMechanism._computeBestPeer).toHaveLength(1);
 		});
 
 		it('should return a peer object', () => {
@@ -82,65 +83,8 @@ describe('BlockSynchronizationMechanism', () => {
 					prevotedConfirmedUptoHeight: 0,
 				}; // So ForkChoiceRule.isDifferentChain returns is TRUTHY
 
-				const peers = [
-					{
-						lastBlockId: '12343245',
-						prevotedConfirmedUptoHeight: 1,
-						height: 66,
-						ip: '127.0.0.2',
-					},
-					{
-						lastBlockId: '12343245',
-						prevotedConfirmedUptoHeight: 1,
-						height: 67,
-						ip: '127.0.0.3',
-					},
-					{
-						lastBlockId: '12343245',
-						prevotedConfirmedUptoHeight: 2,
-						height: 68,
-						ip: '127.0.0.3',
-					},
-					{
-						lastBlockId: '12343245',
-						prevotedConfirmedUptoHeight: 2,
-						height: 69,
-						ip: '127.0.0.4',
-					},
-					{
-						lastBlockId: '12343245',
-						prevotedConfirmedUptoHeight: 2,
-						height: 69,
-						ip: '127.0.0.5',
-					},
-					{
-						lastBlockId: '12343245',
-						prevotedConfirmedUptoHeight: 2,
-						height: 69,
-						ip: '127.0.0.6',
-					},
-					{
-						lastBlockId: '12343246',
-						prevotedConfirmedUptoHeight: 2,
-						height: 69,
-						ip: '127.0.0.7',
-					},
-					{
-						lastBlockId: '12343246',
-						prevotedConfirmedUptoHeight: 2,
-						height: 69,
-						ip: '127.0.0.8',
-					},
-					{
-						lastBlockId: '12343246',
-						prevotedConfirmedUptoHeight: 2,
-						height: 69,
-						ip: '127.0.0.9',
-					},
-				];
-
 				const selectedPeer = blockSynchronizationMechanism._computeBestPeer(
-					peers
+					peersList
 				);
 
 				// selectedPeers should be one of peers[3 - 5] ends included.
@@ -148,7 +92,7 @@ describe('BlockSynchronizationMechanism', () => {
 				expect(selectedPeer.lastBlockId).toEqual('12343245');
 				expect(selectedPeer.prevotedConfirmedUptoHeight).toEqual(2);
 				expect(selectedPeer.height).toEqual(69);
-				expect([peers[3].ip, peers[4].ip, peers[5].ip]).toContain(
+				expect([peersList[3].ip, peersList[4].ip, peersList[5].ip]).toContain(
 					selectedPeer.ip
 				);
 			});
