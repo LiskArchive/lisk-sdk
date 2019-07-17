@@ -208,11 +208,11 @@ const checkPersistedTransactions = storage => async transactions => {
 	const persistedTransactions = transactions.filter(transaction =>
 		persistedTransactionIds.includes(transaction.id)
 	);
-	const unpersistedTransactions = transactions.filter(
+	const nonPersistedTransactions = transactions.filter(
 		transaction => !persistedTransactionIds.includes(transaction.id)
 	);
 	const transactionsResponses = [
-		...unpersistedTransactions.map(transaction => ({
+		...nonPersistedTransactions.map(transaction => ({
 			id: transaction.id,
 			status: TransactionStatus.OK,
 			errors: [],
@@ -273,12 +273,12 @@ const undoTransactions = (storage, exceptions) => async (
 		return transactionResponse;
 	});
 
-	const unundoableTransactionsResponse = transactionsResponses.filter(
+	const nonUndoableTransactionsResponse = transactionsResponses.filter(
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK
 	);
 
 	updateTransactionResponseForExceptionTransactions(
-		unundoableTransactionsResponse,
+		nonUndoableTransactionsResponse,
 		transactions,
 		exceptions
 	);
@@ -305,7 +305,7 @@ const verifyTransactions = (
 		stateStore.createSnapshot();
 		const transactionResponse = transaction.apply(stateStore);
 		if (slots.getSlotNumber(transaction.timestamp) > slots.getSlotNumber()) {
-			transactionResponse.status = 0;
+			transactionResponse.status = TransactionStatus.FAIL;
 			transactionResponse.errors.push(
 				new TransactionError(
 					'Invalid transaction timestamp. Timestamp is in the future',
