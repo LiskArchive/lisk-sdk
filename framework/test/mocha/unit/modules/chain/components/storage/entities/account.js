@@ -178,7 +178,9 @@ describe('ChainAccount', () => {
 		it('should create an account object successfully', async () => {
 			const account = new accountFixtures.Account();
 
-			await expect(AccountEntity.create(account)).to.eventually.be.fulfilled;
+			await expect(
+				AccountEntity.create(account)
+			).to.eventually.be.fulfilled.and.deep.equal([]);
 
 			const accountResult = await AccountEntity.getOne(
 				{
@@ -197,7 +199,9 @@ describe('ChainAccount', () => {
 			const account = new accountFixtures.Account();
 			account.asset = { lisk: 'test-asset' };
 
-			await expect(AccountEntity.create(account)).to.eventually.be.fulfilled;
+			await expect(
+				AccountEntity.create(account)
+			).to.eventually.be.fulfilled.and.deep.equal([]);
 
 			const accountResult = await AccountEntity.getOne(
 				{
@@ -219,9 +223,11 @@ describe('ChainAccount', () => {
 				new accountFixtures.Account(),
 			];
 
-			await expect(AccountEntity.create(accounts)).to.eventually.be.fulfilled;
+			await expect(
+				AccountEntity.create(accounts)
+			).to.eventually.be.fulfilled.and.deep.equal([]);
 
-			accounts.forEach(async account => {
+			return accounts.map(async account => {
 				const accountResult = await AccountEntity.getOne(
 					{
 						address: account.address,
@@ -232,7 +238,7 @@ describe('ChainAccount', () => {
 				);
 				const mergedObject = Object.assign({}, defaultCreateValues, account);
 
-				expect(mergedObject).to.be.eql(accountResult);
+				return expect(mergedObject).to.be.eql(accountResult);
 			});
 		});
 
@@ -336,7 +342,7 @@ describe('ChainAccount', () => {
 					},
 					account
 				)
-			).to.eventually.be.fulfilled;
+			).to.eventually.be.fulfilled.and.deep.equal([]);
 		});
 
 		it('should call mergeFilters with proper params', async () => {
@@ -496,7 +502,7 @@ describe('ChainAccount', () => {
 					},
 					{}
 				)
-			).to.eventually.be.fulfilled;
+			).to.eventually.be.fulfilled.and.equal(false);
 		});
 
 		it('should be rejected if any invalid attribute is provided', async () => {
@@ -574,7 +580,7 @@ describe('ChainAccount', () => {
 					},
 					account
 				)
-			).to.eventually.be.fulfilled;
+			).to.eventually.be.fulfilled.and.deep.equal([]);
 		});
 
 		it('should insert account if matching filters not found', async () => {

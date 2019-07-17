@@ -411,7 +411,9 @@ describe('Block', () => {
 	describe('_getResults()', () => {
 		it('should accept only valid filters', async () => {
 			const block = new Block(adapter);
-			return expect(block.get(validFilter)).to.eventually.be.fulfilled;
+			return expect(
+				block.get(validFilter)
+			).to.eventually.be.fulfilled.and.deep.equal([]);
 		});
 
 		it('should throw error for invalid filters', async () => {
@@ -423,7 +425,9 @@ describe('Block', () => {
 
 		it('should accept only valid options', async () => {
 			const block = new Block(adapter);
-			return expect(block.get({}, validOptions)).to.eventually.be.fulfilled;
+			return expect(
+				block.get({}, validOptions)
+			).to.eventually.be.fulfilled.and.deep.equal([]);
 		});
 
 		it('should throw error for invalid options', async () => {

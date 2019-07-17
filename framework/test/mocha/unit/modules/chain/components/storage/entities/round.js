@@ -514,13 +514,15 @@ describe('Round', () => {
 		});
 
 		it('should resolve without any error if no filter is provided', async () => {
-			return expect(RoundEntity.getTotalVotedAmount({})).to.eventually.be
-				.fulfilled;
+			return expect(
+				RoundEntity.getTotalVotedAmount({})
+			).to.eventually.be.fulfilled.and.deep.equal([]);
 		});
 
 		it('should resolve without any error if unnown round number is provided', async () => {
-			return expect(RoundEntity.getTotalVotedAmount({ round: 1234 })).to
-				.eventually.be.fulfilled;
+			return expect(
+				RoundEntity.getTotalVotedAmount({ round: 1234 })
+			).to.eventually.be.fulfilled.and.deep.equal([]);
 		});
 	});
 

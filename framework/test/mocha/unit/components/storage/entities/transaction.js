@@ -300,7 +300,9 @@ describe('Transaction', () => {
 
 		it('should accept only valid options', async () => {
 			const transaction = new Transaction(adapter);
-			return expect(transaction.get({}, validOptions)).to.eventually.fulfilled;
+			return expect(
+				transaction.get({}, validOptions)
+			).to.eventually.fulfilled.and.deep.equal([]);
 		});
 
 		it('should throw error for invalid options', async () => {
