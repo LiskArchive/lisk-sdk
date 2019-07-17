@@ -37,7 +37,11 @@ export const getByte = (address: string, n: number): number | undefined => {
 	return parseInt(address.split('.')[n], 10);
 };
 
-export const isPrivate = (address: string) => getByte(address, 0) === 10;
+export const isPrivate = (address: string) =>
+	getByte(address, 0) === 10 ||
+	(getByte(address, 0) === 172 &&
+		((getByte(address, 1) as number) >= 16 ||
+			(getByte(address, 1) as number) <= 31));
 
 export const isLocal = (address: string) =>
 	getByte(address, 0) === 127 || getByte(address, 0) === 0;
