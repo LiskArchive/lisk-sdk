@@ -405,33 +405,31 @@ module.exports = class Chain {
 		this.scope.modules.transport = this.transport;
 	}
 
+	async _syncTask() {
+		this.logger.info(
+			{
+				syncing: this.loader.syncing(),
+				lastReceipt: this.blocks.lastReceipt,
+			},
+			'Sync time triggered'
+		);
+		if (!this.loader.syncing() && this.blocks.isStale()) {
+			await this.scope.sequence.add(async () => {
+				try {
+					await this.loader.sync();
+				} catch (error) {
+					this.logger.error(error, 'Sync timer');
+				}
+			});
+		}
+	}
+
 	_startLoader() {
 		this.loader.loadTransactionsAndSignatures();
 		if (!this.options.syncing.active) {
 			return;
 		}
-		jobQueue.register(
-			'nextSync',
-			async () => {
-				this.logger.info(
-					{
-						syncing: this.loader.syncing(),
-						lastReceipt: this.blocks.lastReceipt,
-					},
-					'Sync time triggered'
-				);
-				if (!this.loader.syncing() && this.blocks.isStale()) {
-					await this.scope.sequence.add(async () => {
-						try {
-							await this.loader.sync();
-						} catch (error) {
-							this.logger.error(error, 'Sync timer');
-						}
-					});
-				}
-			},
-			syncInterval
-		);
+		jobQueue.register('nextSync', async () => this._syncTask(), syncInterval);
 	}
 
 	_calculateConsensus() {
@@ -447,6 +445,25 @@ module.exports = class Chain {
 		);
 	}
 
+	async _forgingTask() {
+		return this.scope.sequence.add(async () => {
+			try {
+				await this.forger.beforeForge();
+				if (!this.forger.delegatesEnabled()) {
+					this.logger.debug('No delegates are enabled');
+					return;
+				}
+				if (this.loader.syncing() || this.rounds.ticking()) {
+					this.logger.debug('Client not ready to forge');
+					return;
+				}
+				await this.forger.forge();
+			} catch (error) {
+				this.logger.error(error);
+			}
+		});
+	}
+
 	async _startForging() {
 		try {
 			await this.forger.loadDelegates();
@@ -455,24 +472,7 @@ module.exports = class Chain {
 		}
 		jobQueue.register(
 			'nextForge',
-			async () => {
-				await this.scope.sequence.add(async () => {
-					try {
-						await this.forger.beforeForge();
-						if (!this.forger.delegatesEnabled()) {
-							this.logger.debug('No delegates are enabled');
-							return;
-						}
-						if (this.loader.syncing() || this.rounds.ticking()) {
-							this.logger.debug('Client not ready to forge');
-							return;
-						}
-						await this.forger.forge();
-					} catch (error) {
-						this.logger.error(error);
-					}
-				});
-			},
+			async () => this._forgingTask(),
 			forgeInterval
 		);
 	}
