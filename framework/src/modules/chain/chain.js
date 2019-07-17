@@ -511,9 +511,8 @@ module.exports = class Chain {
 
 		this.transactionPool.on(EVENT_UNCONFIRMED_TRANSACTION, transaction => {
 			this.logger.trace(
-				`Received EVENT_UNCONFIRMED_TRANSACTION for transaction ${
-					transaction.id
-				}`
+				{ transactionId: transaction.id },
+				'Received EVENT_UNCONFIRMED_TRANSACTION'
 			);
 			this.transport.onUnconfirmedTransaction(transaction, true);
 		});
@@ -524,8 +523,8 @@ module.exports = class Chain {
 
 		this.transactionPool.on(EVENT_MULTISIGNATURE_SIGNATURE, signature => {
 			this.logger.trace(
-				'Received EVENT_MULTISIGNATURE_SIGNATURE for signature ',
-				signature
+				{ signature },
+				'Received EVENT_MULTISIGNATURE_SIGNATURE'
 			);
 			this.transport.onSignature(signature, true);
 		});
