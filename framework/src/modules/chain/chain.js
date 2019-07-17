@@ -27,7 +27,11 @@ const { bootstrapStorage, bootstrapCache } = require('./init_steps');
 const jobQueue = require('./utils/jobs_queue');
 const { Peers } = require('./peers');
 const { TransactionInterfaceAdapter } = require('./interface_adapters');
-const { TransactionPool } = require('./transaction_pool');
+const {
+	TransactionPool,
+	EVENT_MULTISIGNATURE_SIGNATURE,
+	EVENT_UNCONFIRMED_TRANSACTION,
+} = require('./transaction_pool');
 const { Rounds } = require('./rounds');
 const {
 	BlockSlots,
@@ -40,10 +44,6 @@ const {
 const { Loader } = require('./loader');
 const { Forger } = require('./forger');
 const { Transport } = require('./transport');
-const {
-	EVENT_MULTISIGNATURE_SIGNATURE,
-	EVENT_UNCONFIRMED_TRANSACTION,
-} = require('./transactions');
 
 const syncInterval = 10000;
 const forgeInterval = 1000;
@@ -510,7 +510,11 @@ module.exports = class Chain {
 		});
 
 		this.transactionPool.on(EVENT_UNCONFIRMED_TRANSACTION, transaction => {
-			this.logger.debug(`Broadcasting transaction ${transaction.id}`);
+			this.logger.trace(
+				`Received EVENT_UNCONFIRMED_TRANSACTION for transaction ${
+					transaction.id
+				}`
+			);
 			this.transport.onUnconfirmedTransaction(transaction, true);
 		});
 
@@ -519,7 +523,10 @@ module.exports = class Chain {
 		});
 
 		this.transactionPool.on(EVENT_MULTISIGNATURE_SIGNATURE, signature => {
-			this.logger.debug('Broadcasting signature ', signature);
+			this.logger.trace(
+				'Received EVENT_MULTISIGNATURE_SIGNATURE for signature ',
+				signature
+			);
 			this.transport.onSignature(signature, true);
 		});
 	}

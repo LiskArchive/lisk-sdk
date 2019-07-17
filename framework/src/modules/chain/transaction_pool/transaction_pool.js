@@ -25,6 +25,9 @@ const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const { sortBy } = require('./sort');
 const transactionsModule = require('../transactions');
 
+const EVENT_UNCONFIRMED_TRANSACTION = 'EVENT_UNCONFIRMED_TRANSACTION';
+const EVENT_MULTISIGNATURE_SIGNATURE = 'EVENT_MULTISIGNATURE_SIGNATURE';
+
 const handleAddTransactionResponse = (addTransactionResponse, transaction) => {
 	if (addTransactionResponse.isFull) {
 		throw new Error('Transaction pool is full');
@@ -160,10 +163,7 @@ class TransactionPool extends EventEmitter {
 		this.pool.on(pool.EVENT_VERIFIED_TRANSACTION_ONCE, ({ payload }) => {
 			if (payload.length > 0) {
 				payload.forEach(aTransaction =>
-					this.emit(
-						transactionsModule.EVENT_UNCONFIRMED_TRANSACTION,
-						aTransaction
-					)
+					this.emit(EVENT_UNCONFIRMED_TRANSACTION, aTransaction)
 				);
 			}
 		});
@@ -228,7 +228,7 @@ class TransactionPool extends EventEmitter {
 			throw transactionResponse.errors;
 		}
 
-		this.emit(transactionsModule.EVENT_MULTISIGNATURE_SIGNATURE, signature);
+		this.emit(EVENT_MULTISIGNATURE_SIGNATURE, signature);
 		return transactionResponse;
 	}
 
@@ -518,4 +518,8 @@ class TransactionPool extends EventEmitter {
 	}
 }
 
-module.exports = { TransactionPool };
+module.exports = {
+	TransactionPool,
+	EVENT_UNCONFIRMED_TRANSACTION,
+	EVENT_MULTISIGNATURE_SIGNATURE,
+};
