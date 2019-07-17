@@ -1803,6 +1803,7 @@ describe('blocks/verify', () => {
 				});
 
 				describe('when Transaction.get returns empty array', () => {
+					const invalidTransactionResponseErrors = [new Error('Dummy Error')];
 					beforeEach(async () => {
 						validTransactionsResponse = dummyBlock.transactions.map(
 							transaction => ({
@@ -1816,7 +1817,7 @@ describe('blocks/verify', () => {
 							transaction => ({
 								id: transaction.id,
 								status: transactionStatus.FAIL,
-								errors: [new Error()],
+								errors: invalidTransactionResponseErrors,
 							})
 						);
 
@@ -1835,11 +1836,14 @@ describe('blocks/verify', () => {
 					});
 
 					it('should throw if the verifyTransaction returns transaction response with Status != OK', async () => {
-						modules.processTransactions.verifyTransactions.resolves(
-							invalidTransactionsResponse
+						modules.processTransactions.verifyTransactions.resolves({
+							transactionsResponses: invalidTransactionsResponse,
+						});
+						return expect(
+							__private.checkTransactions(dummyBlock, true)
+						).to.eventually.rejected.and.deep.equal(
+							invalidTransactionResponseErrors
 						);
-						return expect(__private.checkTransactions(dummyBlock, true)).to
-							.eventually.throw;
 					});
 				});
 			});

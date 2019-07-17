@@ -484,7 +484,7 @@ describe('Broadcaster', () => {
 			broadcaster.filterQueue = filterQueueStub;
 			broadcaster.enqueue(params, options);
 			return expect(broadcaster.releaseQueue()).to.eventually.be.rejectedWith(
-				'failed to broadcast2'
+				'failed to broadcast'
 			);
 		});
 	});

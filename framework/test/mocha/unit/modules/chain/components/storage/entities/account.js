@@ -227,19 +227,21 @@ describe('ChainAccount', () => {
 				AccountEntity.create(accounts)
 			).to.eventually.be.fulfilled.and.deep.equal([]);
 
-			return accounts.map(async account => {
-				const accountResult = await AccountEntity.getOne(
-					{
-						address: account.address,
-					},
-					{
-						extended: true,
-					}
-				);
-				const mergedObject = Object.assign({}, defaultCreateValues, account);
+			return Promise.all(
+				accounts.map(async account => {
+					const accountResult = await AccountEntity.getOne(
+						{
+							address: account.address,
+						},
+						{
+							extended: true,
+						}
+					);
+					const mergedObject = Object.assign({}, defaultCreateValues, account);
 
-				return expect(mergedObject).to.be.eql(accountResult);
-			});
+					return expect(mergedObject).to.be.eql(accountResult);
+				})
+			);
 		});
 
 		it('should reject with invalid data provided', async () => {
