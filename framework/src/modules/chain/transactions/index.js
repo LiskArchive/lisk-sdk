@@ -27,7 +27,7 @@ const {
 	applyGenesisTransactions,
 } = require('./transactions_handlers');
 
-const EVENT_UNCONFIRMED_TRANSACTION = 'unconfirmedTransaction';
+const EVENT_UNCONFIRMED_TRANSACTION = 'EVENT_UNCONFIRMED_TRANSACTION';
 const EVENT_MULTISIGNATURE_SIGNATURE = 'multisignature';
 
 module.exports = {
