@@ -232,6 +232,22 @@ describe('blocks', () => {
 
 					expect(blocksInstance.blocksProcess.processBlock).to.be.calledOnce;
 				});
+
+				it('should emit EVENT_NEW_BLOCK with block', async () => {
+					const emitSpy = sinonSandbox.spy(blocksInstance, 'emit');
+					const fakeBlock = {
+						id: '5',
+						previousBlock: '2',
+						height: 3,
+					};
+					await blocksInstance.receiveBlockFromNetwork(fakeBlock);
+
+					expect(blocksInstance.blocksProcess.processBlock).to.be.calledOnce;
+					expect(emitSpy.secondCall.args).to.be.eql([
+						'EVENT_NEW_BLOCK',
+						{ block: fakeBlock },
+					]);
+				});
 			});
 
 			describe('when block.previousBlock !== lastBlock.id && lastBlock.height + 1 === block.height', () => {
@@ -313,6 +329,23 @@ describe('blocks', () => {
 					expect(roundsModuleStub.fork).to.be.calledWith(forkFiveBlock, 5);
 					expect(blocksInstance._isActive).to.be.false;
 					expect(loggerStub.warn).to.be.calledOnce;
+				});
+
+				it('should emit EVENT_NEW_BLOCK with block', async () => {
+					const emitSpy = sinonSandbox.spy(blocksInstance, 'emit');
+					const forkFiveBlock = {
+						id: '5',
+						generatorPublicKey: 'a',
+						previousBlock: '1',
+						height: 2,
+					};
+					await blocksInstance.receiveBlockFromNetwork(forkFiveBlock);
+
+					expect(blocksInstance.blocksProcess.processBlock).to.be.calledOnce;
+					expect(emitSpy.thirdCall.args).to.be.eql([
+						'EVENT_NEW_BLOCK',
+						{ block: forkFiveBlock },
+					]);
 				});
 			});
 

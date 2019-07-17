@@ -14,8 +14,14 @@
 
 'use strict';
 
-const { TransactionPool } = require('./transaction_pool');
+const {
+	TransactionPool,
+	EVENT_UNCONFIRMED_TRANSACTION,
+	EVENT_MULTISIGNATURE_SIGNATURE,
+} = require('./transaction_pool');
 
 module.exports = {
 	TransactionPool,
+	EVENT_UNCONFIRMED_TRANSACTION,
+	EVENT_MULTISIGNATURE_SIGNATURE,
 };
