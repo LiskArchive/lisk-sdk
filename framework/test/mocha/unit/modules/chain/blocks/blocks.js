@@ -330,6 +330,23 @@ describe('blocks', () => {
 					expect(blocksInstance._isActive).to.be.false;
 					expect(loggerStub.warn).to.be.calledOnce;
 				});
+
+				it('should emit EVENT_NEW_BLOCK with block', async () => {
+					const emitSpy = sinonSandbox.spy(blocksInstance, 'emit');
+					const forkFiveBlock = {
+						id: '5',
+						generatorPublicKey: 'a',
+						previousBlock: '1',
+						height: 2,
+					};
+					await blocksInstance.receiveBlockFromNetwork(forkFiveBlock);
+
+					expect(blocksInstance.blocksProcess.processBlock).to.be.calledOnce;
+					expect(emitSpy.thirdCall.args).to.be.eql([
+						'EVENT_NEW_BLOCK',
+						{ block: forkFiveBlock },
+					]);
+				});
 			});
 
 			describe('when block.id === lastBlock.id', () => {
