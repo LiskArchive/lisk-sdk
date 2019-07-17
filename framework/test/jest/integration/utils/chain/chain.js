@@ -20,7 +20,19 @@ const { defaultTransactions } = require('../default_transactions');
 const ChainModule = require('../../../../../src/modules/chain');
 const genesisBlock = require('../../../../fixtures/config/devnet/genesis_block');
 
-const createDefaultChainModule = async databaseName => {
+const createDefaultChainModule = async () => {
+	const options = {
+		...ChainModule.defaults.default,
+		constants: genesisConfig(),
+		genesisBlock,
+		registeredTransactions: defaultTransactions(),
+	};
+	const chainModule = new ChainModule(options);
+
+	return chainModule;
+};
+
+const createMockChannel = databaseName => {
 	const channel = {
 		publish: jest.fn(),
 		once: jest.fn(),
@@ -39,20 +51,17 @@ const createDefaultChainModule = async databaseName => {
 			listener({ data: {} });
 		}),
 	};
+	return channel;
+};
 
-	const options = {
-		...ChainModule.defaults.default,
-		constants: genesisConfig(),
-		genesisBlock,
-		registeredTransactions: defaultTransactions(),
-	};
-	const chainModule = new ChainModule(options);
-
-	await chainModule.load(channel);
-
-	return chainModule;
+const createDefaultLoadedChainModule = async databaseName => {
+	const chainModule = await createDefaultChainModule();
+	await chainModule.load(createMockChannel(databaseName));
+	return chainModule.chain;
 };
 
 module.exports = {
+	createMockChannel,
 	createDefaultChainModule,
+	createDefaultLoadedChainModule,
 };
