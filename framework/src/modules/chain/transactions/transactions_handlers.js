@@ -20,9 +20,7 @@ const {
 	TransactionError,
 } = require('@liskhq/lisk-transactions');
 const votes = require('./votes');
-const {
-	updateTransactionResponseForExceptionTransactions,
-} = require('./exceptions_handlers');
+const exceptionsHandlers = require('./exceptions_handlers');
 const StateStore = require('../state_store');
 
 const validateTransactions = exceptions => transactions => {
@@ -33,7 +31,7 @@ const validateTransactions = exceptions => transactions => {
 	const invalidTransactionResponses = transactionsResponses.filter(
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK
 	);
-	updateTransactionResponseForExceptionTransactions(
+	exceptionsHandlers.updateTransactionResponseForExceptionTransactions(
 		invalidTransactionResponses,
 		transactions,
 		exceptions
@@ -163,7 +161,7 @@ const applyTransactions = (storage, exceptions) => async (transactions, tx) => {
 			const transactionResponse = transaction.apply(stateStore);
 			if (transactionResponse.status !== TransactionStatus.OK) {
 				// update transaction response mutates the transaction response object
-				updateTransactionResponseForExceptionTransactions(
+				exceptionsHandlers.updateTransactionResponseForExceptionTransactions(
 					[transactionResponse],
 					transactionsWithoutSpendingErrors,
 					exceptions
@@ -277,7 +275,7 @@ const undoTransactions = (storage, exceptions) => async (
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK
 	);
 
-	updateTransactionResponseForExceptionTransactions(
+	exceptionsHandlers.updateTransactionResponseForExceptionTransactions(
 		nonUndoableTransactionsResponse,
 		transactions,
 		exceptions
@@ -322,7 +320,7 @@ const verifyTransactions = (
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK
 	);
 
-	updateTransactionResponseForExceptionTransactions(
+	exceptionsHandlers.updateTransactionResponseForExceptionTransactions(
 		unverifiableTransactionsResponse,
 		transactions,
 		exceptions
@@ -352,4 +350,5 @@ module.exports = {
 	verifyTransactions,
 	processSignature,
 	applyGenesisTransactions,
+	verifyTotalSpending,
 };
