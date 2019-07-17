@@ -15,7 +15,7 @@
 'use strict';
 
 const {
-	createDefaultChainModule,
+	createDefaultLoadedChainModule,
 	StorageSandbox,
 	storageConfig,
 	getBlock,
@@ -30,7 +30,6 @@ describe('genesis block', () => {
 	beforeAll(async () => {
 		storage = new StorageSandbox(storageConfig(dbName));
 		await storage.bootstrap();
-		chainModule = await createDefaultChainModule(dbName);
 	});
 
 	afterAll(async () => {
@@ -40,13 +39,26 @@ describe('genesis block', () => {
 
 	describe('given the application has not been initialized', () => {
 		describe('when chain module is bootstrapped', () => {
+			beforeAll(async () => {
+				chainModule = await createDefaultLoadedChainModule(dbName);
+			});
+
 			it('should save genesis block to the database', async () => {
 				const block = await getBlock(storage, genesisBlock.id);
 				expect(block.id).toEqual(genesisBlock.id);
 				expect(block.height).toEqual(1);
 			});
 
-			it.todo('should save correct amount of transactions');
+			it('should have genesis transactions in database', async () => {
+				const block = await getBlock(storage, genesisBlock.id);
+				const ids = genesisBlock.transactions.map(t => t.id);
+				const allExist = ids.every(id =>
+					block.transactions.map(tx => tx.id).includes(id)
+				);
+
+				expect(allExist).toEqual(true);
+			});
+
 			it.todo(
 				'should save create an account for the registered genesis delegates'
 			);
@@ -55,10 +67,20 @@ describe('genesis block', () => {
 		});
 	});
 
-	describe('given the application has been initialized', () => {
+	describe('given the application has been initialized already', () => {
 		describe('when chain module is bootstrapped', () => {
-			it.todo('should have genesis block in the database');
+			beforeAll(async () => {
+				chainModule = await createDefaultLoadedChainModule(dbName);
+			});
+
+			it('should have genesis block in the database', async () => {
+				const block = await getBlock(storage, genesisBlock.id);
+				expect(block.id).toEqual(genesisBlock.id);
+				expect(block.height).toEqual(1);
+			});
+
 			it.todo('should save correct amount of transactions');
+
 			it.todo(
 				'should save create an account for the registered genesis delegates'
 			);

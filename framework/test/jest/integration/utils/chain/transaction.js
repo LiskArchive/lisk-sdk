@@ -93,6 +93,9 @@ const createMultiSignatureTransaction = (
 const getTransaction = async (storage, id) =>
 	storage.entities.Transaction.getOne({ id }, { extended: true });
 
+const getTransactions = async (storage, filter) =>
+	storage.entities.Transaction.get(filter, { extended: true });
+
 module.exports = {
 	createTransferTransaction,
 	createSecondSignatureTransaction,
@@ -100,4 +103,5 @@ module.exports = {
 	createVoteTransaction,
 	createMultiSignatureTransaction,
 	getTransaction,
+	getTransactions,
 };
