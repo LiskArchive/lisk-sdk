@@ -654,7 +654,7 @@ describe('blocks/chain', () => {
 			});
 
 			// Act && Assert
-			await expect(
+			return expect(
 				__private.applyConfirmedStep(filledBlock)
 			).to.eventually.be.rejected.and.deep.equal(errors);
 		});
@@ -1031,7 +1031,7 @@ describe('blocks/chain', () => {
 			});
 
 			// Act && Assert
-			await expect(
+			return expect(
 				__private.undoConfirmedStep(filledBlock)
 			).to.eventually.be.rejected.and.deep.equal(errors);
 		});

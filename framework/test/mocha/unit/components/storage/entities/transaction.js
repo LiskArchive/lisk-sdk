@@ -300,9 +300,7 @@ describe('Transaction', () => {
 
 		it('should accept only valid options', async () => {
 			const transaction = new Transaction(adapter);
-			return expect(transaction.get({}, validOptions)).to.not.be.rejectedWith(
-				NonSupportedOptionError
-			);
+			return expect(transaction.get({}, validOptions)).to.eventually.fulfilled;
 		});
 
 		it('should throw error for invalid options', async () => {
@@ -613,13 +611,13 @@ describe('Transaction', () => {
 				}),
 			];
 			await storage.entities.Transaction.create(transactions);
-			// Act
-			expect(
+
+			// Act && Assert
+			return expect(
 				transaction.getOne({
 					blockId: transactions[0].blockId,
 				})
-			).to.be.rejected;
-			// Assert
+			).to.eventually.be.rejectedWith('Multiple rows were not expected.');
 		});
 
 		describe('filters', () => {

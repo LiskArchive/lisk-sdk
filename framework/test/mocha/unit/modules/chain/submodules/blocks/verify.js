@@ -1794,8 +1794,11 @@ describe('blocks/verify', () => {
 					});
 
 					it('should throw error when transaction is already confirmed', async () => {
-						return expect(__private.checkTransactions(dummyBlock, true)).to
-							.eventually.rejected;
+						return expect(
+							__private.checkTransactions(dummyBlock, true)
+						).to.eventually.be.rejectedWith(
+							'modules.transactions.onConfirmedTransactions is not a function'
+						);
 					});
 				});
 
@@ -1849,18 +1852,20 @@ describe('blocks/verify', () => {
 			});
 
 			it('should throw an array of errors if transactions are not allowed', async () => {
+				const errors = [new Error('anError')];
 				modules.processTransactions.checkAllowedTransactions.returns({
 					transactionsResponses: [
 						{
 							id: 1,
 							status: transactionStatus.FAIL,
-							errors: [new Error('anError')],
+							errors,
 						},
 					],
 				});
 
-				return expect(__private.checkTransactions(dummyBlock, false)).to
-					.eventually.be.rejected;
+				return expect(
+					__private.checkTransactions(dummyBlock, false)
+				).to.eventually.be.rejected.and.deep.equal(errors);
 			});
 		});
 	});

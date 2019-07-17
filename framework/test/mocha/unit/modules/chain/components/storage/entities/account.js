@@ -174,10 +174,11 @@ describe('ChainAccount', () => {
 			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(SQLs.create);
 		});
 
+		// @todo review this file and move these tests to integration.
 		it('should create an account object successfully', async () => {
 			const account = new accountFixtures.Account();
 
-			await expect(AccountEntity.create(account)).to.be.fulfilled;
+			await expect(AccountEntity.create(account)).to.eventually.be.fulfilled;
 
 			const accountResult = await AccountEntity.getOne(
 				{
@@ -196,7 +197,7 @@ describe('ChainAccount', () => {
 			const account = new accountFixtures.Account();
 			account.asset = { lisk: 'test-asset' };
 
-			await expect(AccountEntity.create(account)).to.be.fulfilled;
+			await expect(AccountEntity.create(account)).to.eventually.be.fulfilled;
 
 			const accountResult = await AccountEntity.getOne(
 				{
@@ -218,7 +219,7 @@ describe('ChainAccount', () => {
 				new accountFixtures.Account(),
 			];
 
-			expect(AccountEntity.create(accounts)).to.be.fulfilled;
+			await expect(AccountEntity.create(accounts)).to.eventually.be.fulfilled;
 
 			accounts.forEach(async account => {
 				const accountResult = await AccountEntity.getOne(
@@ -236,7 +237,7 @@ describe('ChainAccount', () => {
 		});
 
 		it('should reject with invalid data provided', async () => {
-			expect(
+			return expect(
 				AccountEntity.create(
 					{
 						missedBlocks: 'FOO-BAR',
@@ -244,7 +245,9 @@ describe('ChainAccount', () => {
 					},
 					validOptions
 				)
-			).to.be.rejected;
+			).to.eventually.be.rejectedWith(
+				'invalid input syntax for integer: "FOO-BAR"'
+			);
 		});
 
 		it('should populate account object with default values', async () => {
@@ -305,17 +308,17 @@ describe('ChainAccount', () => {
 				foo: 'bar',
 			};
 			// Act & Assert
-			expect(AccountEntity.update(invalidFilter, {})).to.be.rejectedWith(
-				NonSupportedFilterTypeError
-			);
+			return expect(
+				AccountEntity.update(invalidFilter, {})
+			).to.eventually.be.rejectedWith(NonSupportedFilterTypeError);
 		});
 
 		it('should throw error for in-valid filters', async () => {
 			const account = new accountFixtures.Account();
 
-			expect(
+			return expect(
 				AccountEntity.update({ myAddress: '123' }, account)
-			).to.be.rejectedWith(
+			).to.eventually.be.rejectedWith(
 				NonSupportedFilterTypeError,
 				'One or more filters are not supported.'
 			);
@@ -326,14 +329,14 @@ describe('ChainAccount', () => {
 
 			await AccountEntity.create(account);
 
-			expect(
+			return expect(
 				AccountEntity.update(
 					{
 						address: account.address,
 					},
 					account
 				)
-			).to.be.fulfilled;
+			).to.eventually.be.fulfilled;
 		});
 
 		it('should call mergeFilters with proper params', async () => {
@@ -486,18 +489,18 @@ describe('ChainAccount', () => {
 		});
 
 		it('should resolve promise without any error if no data is passed', async () => {
-			expect(
+			return expect(
 				AccountEntity.update(
 					{
 						address: '123L',
 					},
 					{}
 				)
-			).to.be.fulfilled;
+			).to.eventually.be.fulfilled;
 		});
 
 		it('should be rejected if any invalid attribute is provided', async () => {
-			expect(
+			return expect(
 				AccountEntity.update(
 					{
 						address: '123L',
@@ -506,7 +509,7 @@ describe('ChainAccount', () => {
 						invalid: true,
 					}
 				)
-			).to.be.rejected;
+			).to.eventually.be.rejectedWith('syntax error at or near "WHERE"');
 		});
 
 		it('should not throw error if no matching record found', async () => {
@@ -554,7 +557,9 @@ describe('ChainAccount', () => {
 	describe('upsert', () => {
 		it('should throw error if no filter specified', async () => {
 			const account = new accountFixtures.Account();
-			expect(AccountEntity.upsert({}, account)).to.be.rejectedWith(
+			return expect(
+				AccountEntity.upsert({}, account)
+			).to.eventually.be.rejectedWith(
 				NonSupportedFilterTypeError,
 				'One or more filters are required for this operation.'
 			);
@@ -562,14 +567,14 @@ describe('ChainAccount', () => {
 
 		it('should succeed updating or insert object', async () => {
 			const account = new accountFixtures.Account();
-			expect(
+			return expect(
 				AccountEntity.upsert(
 					{
 						address: account.address,
 					},
 					account
 				)
-			).to.be.fulfilled;
+			).to.eventually.be.fulfilled;
 		});
 
 		it('should insert account if matching filters not found', async () => {
@@ -758,8 +763,9 @@ describe('ChainAccount', () => {
 			// Arrange
 			const randomAccount = new accountFixtures.Account();
 			await AccountEntity.create(randomAccount);
+
 			// Act & Assert
-			expect(
+			return expect(
 				AccountEntity.updateOne(
 					{
 						address: randomAccount.address,
@@ -768,7 +774,9 @@ describe('ChainAccount', () => {
 						username: 'AN_INVALID_LONG_USERNAME',
 					}
 				)
-			).to.be.rejected;
+			).to.eventually.be.rejectedWith(
+				'value too long for type character varying(20)'
+			);
 		});
 
 		it('should not throw error if no matching record found', async () => {
@@ -827,14 +835,15 @@ describe('ChainAccount', () => {
 			expect(adapter.executeFile).to.be.calledOnce;
 		});
 
-		it('should throw error if invalid public key is passed', async () =>
-			expect(
+		it('should throw error if invalid public key is passed', async () => {
+			return expect(
 				AccountEntity.delegateBlocksRewards({
 					generatorPublicKey: 'xxxxxxxxx',
 					start: (+new Date() / 1000).toFixed(),
 					end: (+new Date() / 1000).toFixed(),
 				})
-			).to.be.rejectedWith('invalid hexadecimal digit: "x"'));
+			).to.eventually.be.rejectedWith('invalid hexadecimal digit: "x"');
+		});
 
 		it('should return empty data set if a valid but non existant key is passed', async () => {
 			const account = new accountFixtures.Account();
@@ -1318,10 +1327,11 @@ describe('ChainAccount', () => {
 			const params = Object.assign({}, fork);
 			delete params[attr];
 
-			it(`should be rejected with error if param "${attr}" is missing`, async () =>
-				expect(AccountEntity.insertFork(params)).to.be.eventually.rejectedWith(
-					`Property '${attr}' doesn't exist.`
-				));
+			it(`should be rejected with error if param "${attr}" is missing`, async () => {
+				return expect(
+					AccountEntity.insertFork(params)
+				).to.be.eventually.rejectedWith(`Property '${attr}' doesn't exist.`);
+			});
 		});
 	});
 
