@@ -535,5 +535,7 @@ module.exports = class Chain {
 		this.blocks.removeAllListeners(EVENT_DELETE_BLOCK);
 		this.blocks.removeAllListeners(EVENT_NEW_BLOCK);
 		this.blocks.removeAllListeners(EVENT_NEW_BROADHASH);
+		this.blocks.removeAllListeners(EVENT_UNCONFIRMED_TRANSACTION);
+		this.blocks.removeAllListeners(EVENT_MULTISIGNATURE_SIGNATURE);
 	}
 };

@@ -232,6 +232,22 @@ describe('blocks', () => {
 
 					expect(blocksInstance.blocksProcess.processBlock).to.be.calledOnce;
 				});
+
+				it('should emit EVENT_NEW_BLOCK with block', async () => {
+					const emitSpy = sinonSandbox.spy(blocksInstance, 'emit');
+					const fakeBlock = {
+						id: '5',
+						previousBlock: '2',
+						height: 3,
+					};
+					await blocksInstance.receiveBlockFromNetwork(fakeBlock);
+
+					expect(blocksInstance.blocksProcess.processBlock).to.be.calledOnce;
+					expect(emitSpy.secondCall.args).to.be.eql([
+						'EVENT_NEW_BLOCK',
+						{ block: fakeBlock },
+					]);
+				});
 			});
 
 			describe('when block.previousBlock !== lastBlock.id && lastBlock.height + 1 === block.height', () => {
