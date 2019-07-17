@@ -189,22 +189,20 @@ class Loader {
 
 		const { signatures } = result;
 
-		await this.sequence.add(async () => {
-			const signatureCount = signatures.length;
-			for (let i = 0; i < signatureCount; i++) {
-				const signaturePacket = signatures[i];
-				const subSignatureCount = signaturePacket.signatures.length;
-				for (let j = 0; j < subSignatureCount; j++) {
-					const signature = signaturePacket.signatures[j];
+		const signatureCount = signatures.length;
+		for (let i = 0; i < signatureCount; i++) {
+			const signaturePacket = signatures[i];
+			const subSignatureCount = signaturePacket.signatures.length;
+			for (let j = 0; j < subSignatureCount; j++) {
+				const signature = signaturePacket.signatures[j];
 
-					// eslint-disable-next-line no-await-in-loop
-					await this.transactionPoolModule.getTransactionAndProcessSignature({
-						signature,
-						transactionId: signature.transactionId,
-					});
-				}
+				// eslint-disable-next-line no-await-in-loop
+				await this.transactionPoolModule.getTransactionAndProcessSignature({
+					signature,
+					transactionId: signature.transactionId,
+				});
 			}
-		});
+		}
 	}
 
 	/**
