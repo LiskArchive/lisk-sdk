@@ -378,7 +378,9 @@ describe('Account', () => {
 		});
 
 		it('should reject with error if matched with multiple records for provided filters', async () => {
-			expect(AccountEntity.getOne({})).to.be.rejected;
+			return expect(AccountEntity.getOne({})).to.eventually.be.rejectedWith(
+				'Multiple rows were not expected.'
+			);
 		});
 
 		it('should not change any of the provided parameter');
@@ -395,7 +397,17 @@ describe('Account', () => {
 
 	describe('get()', () => {
 		it('should return data without any error', async () => {
-			expect(AccountEntity.get()).to.be.fulfilled;
+			// Act
+			const data = await AccountEntity.get();
+
+			// Assert
+			expect(data)
+				.to.be.an('array')
+				.and.have.lengthOf(5);
+			// Just to make sure it's returning account objects
+			expect(data[0]).to.have.property('address');
+			expect(data[0]).to.have.property('publicKey');
+			expect(data[0]).to.have.property('username');
 		});
 
 		it('should call _getResults with proper param for extended=false', async () => {

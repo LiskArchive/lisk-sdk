@@ -411,30 +411,30 @@ describe('Block', () => {
 	describe('_getResults()', () => {
 		it('should accept only valid filters', async () => {
 			const block = new Block(adapter);
-			return expect(block.get(validFilter)).to.not.be.rejectedWith(
-				NonSupportedFilterTypeError
-			);
+			return expect(
+				block.get(validFilter)
+			).to.eventually.be.fulfilled.and.deep.equal([]);
 		});
 
 		it('should throw error for invalid filters', async () => {
 			const block = new Block(adapter);
-			return expect(block.get(invalidFilter)).to.be.rejectedWith(
+			return expect(block.get(invalidFilter)).to.eventually.be.rejectedWith(
 				NonSupportedFilterTypeError
 			);
 		});
 
 		it('should accept only valid options', async () => {
 			const block = new Block(adapter);
-			return expect(block.get({}, validOptions)).to.not.be.rejectedWith(
-				NonSupportedOptionError
-			);
+			return expect(
+				block.get({}, validOptions)
+			).to.eventually.be.fulfilled.and.deep.equal([]);
 		});
 
 		it('should throw error for invalid options', async () => {
 			const block = new Block(adapter);
-			return expect(block.get({}, invalidOptions)).to.be.rejectedWith(
-				NonSupportedOptionError
-			);
+			return expect(
+				block.get({}, invalidOptions)
+			).to.eventually.be.rejectedWith(NonSupportedOptionError);
 		});
 
 		it('should accept "tx" as last parameter and pass to adapter.executeFile', async () => {
