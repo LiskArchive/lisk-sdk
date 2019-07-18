@@ -35,7 +35,7 @@ describe('transaction movement between queues', () => {
 
 	const validateTransactionFunction = fakeCheckFunctionGenerator(['1']);
 	const verifyTransactionFunction = fakeCheckFunctionGenerator(['2']);
-	const processTransactionsFunction = fakeCheckFunctionGenerator(['3']);
+	const processTransactionsFunction = fakeCheckFunctionGenerator(['-1']);
 
 	const dependencies = {
 		processTransactions: fakeCheckerFunctionGenerator(
@@ -199,6 +199,8 @@ describe('transaction movement between queues', () => {
 				});
 
 				it('should remove unverfied transactions from the transaction pool', async () => {
+					(transactionsToProcess[0].id as any) =
+						'-1' + transactionsToProcess[0].id;
 					await wrapExpectationInNextTick(() => {
 						unprocessableTransactions.forEach(transaction => {
 							expect(transactionPool.existsInTransactionPool(transaction.id)).to

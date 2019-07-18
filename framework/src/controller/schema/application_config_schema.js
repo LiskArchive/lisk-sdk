@@ -29,7 +29,14 @@ module.exports = {
 				'genesisConfig',
 			],
 			properties: {
-				label: { type: 'string', pattern: '^[a-zA-Z][0-9a-zA-Z\\_\\-]*$' },
+				label: {
+					type: 'string',
+					pattern: '^[a-zA-Z][0-9a-zA-Z\\_\\-]*$',
+					minLength: 1,
+					maxLength: 30,
+					description:
+						'Restricted length due to unix domain socket path length limitations.',
+				},
 				version: {
 					type: 'string',
 					format: 'version',
@@ -56,6 +63,15 @@ module.exports = {
 					example: '968d7b5b97a5bfad8f77614dc8a9918de49f6c6e',
 					description: 'The version of Lisk Core that the peer node runs on.',
 				},
+				tempPath: {
+					type: 'string',
+					format: 'path',
+					minLength: 1,
+					maxLength: 50,
+					example: '/tmp/lisk',
+					description:
+						'The root path for storing temporary pid and socket file. Restricted length due to unix domain socket path length limitations.',
+				},
 				ipc: {
 					type: 'object',
 					properties: {
@@ -80,14 +96,19 @@ module.exports = {
 							description:
 								'Timestamp indicating the start of Lisk Core (`Date.toISOString()`)',
 						},
+						// NOTICE: BLOCK_TIME and MAX_TRANSACTIONS_PER_BLOCK are related and it's values
+						// need to be changed togeter as per recommendations noted in https://github.com/LiskHQ/lisk-sdk/issues/3151
 						BLOCK_TIME: {
 							type: 'number',
-							min: 1,
+							minimum: 2,
 							description: 'Slot time interval in seconds',
 						},
+						// NOTICE: BLOCK_TIME and MAX_TRANSACTIONS_PER_BLOCK are related and it's values
+						// need to be changed togeter as per recommendations noted in https://github.com/LiskHQ/lisk-sdk/issues/3151
 						MAX_TRANSACTIONS_PER_BLOCK: {
 							type: 'integer',
-							min: 1,
+							minimum: 1,
+							maximum: 150,
 							description: 'Maximum number of transactions allowed per block',
 						},
 						REWARDS: {
@@ -106,12 +127,12 @@ module.exports = {
 								},
 								OFFSET: {
 									type: 'integer',
-									min: 1,
+									minimum: 1,
 									description: 'Start rewards at block (n)',
 								},
 								DISTANCE: {
 									type: 'integer',
-									min: 1,
+									minimum: 1,
 									description: 'Distance between each milestone',
 								},
 							},
@@ -157,6 +178,7 @@ module.exports = {
 			version: '0.0.0',
 			minVersion: '0.0.0',
 			protocolVersion: '1.1',
+			tempPath: '/tmp/lisk',
 			ipc: {
 				enabled: false,
 			},

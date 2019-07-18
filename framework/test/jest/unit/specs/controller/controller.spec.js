@@ -32,6 +32,7 @@ describe('Controller Class', () => {
 	};
 	const config = {
 		components: '#CONFIG',
+		tempPath: '/tmp/lisk',
 	};
 	const initialState = {
 		version: '1.0.0-beta.3',
@@ -42,12 +43,10 @@ describe('Controller Class', () => {
 		nethash: 'test broadhash',
 		nonce: 'test nonce',
 	};
-	const rootDir = process.cwd();
 	const systemDirs = {
-		root: rootDir,
-		temp: `${rootDir}/tmp/${appLabel}/`,
-		sockets: `${rootDir}/tmp/${appLabel}/sockets`,
-		pids: `${rootDir}/tmp/${appLabel}/pids`,
+		temp: `${config.tempPath}/${appLabel}/`,
+		sockets: `${config.tempPath}/${appLabel}/sockets`,
+		pids: `${config.tempPath}/${appLabel}/pids`,
 	};
 	const configController = {
 		...config,

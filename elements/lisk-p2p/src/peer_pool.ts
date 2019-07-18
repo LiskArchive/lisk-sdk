@@ -83,11 +83,10 @@ export {
 	EVENT_DISCOVERED_PEER,
 };
 
-export { connectAndFetchPeerInfo } from './peer';
-
 interface PeerPoolConfig {
-	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
+	readonly connectTimeout?: number;
+	readonly wsMaxPayload?: number;
 	readonly peerSelectionForSend: P2PPeerSelectionForSendFunction;
 	readonly peerSelectionForRequest: P2PPeerSelectionForRequestFunction;
 	readonly peerSelectionForConnection: P2PPeerSelectionForConnectionFunction;
@@ -426,6 +425,7 @@ export class PeerPool extends EventEmitter {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
 			banTime: this._peerPoolConfig.peerBanTime,
+			wsMaxPayload: this._peerPoolConfig.wsMaxPayload,
 		};
 		const peer = new OutboundPeer(peerInfo, peerConfig);
 

@@ -254,15 +254,9 @@ const deleteFromBlockId = async (storage, blockId) => {
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  */
-const applyGenesisBlockTransactions = async (
-	storage,
-	slots,
-	transactions,
-	exceptions
-) => {
-	const { stateStore } = await transactionsModule.applyTransactions(
-		storage,
-		exceptions
+const applyGenesisBlockTransactions = async (storage, slots, transactions) => {
+	const { stateStore } = await transactionsModule.applyGenesisTransactions(
+		storage
 	)(transactions);
 	await stateStore.account.finalize();
 	stateStore.round.setRoundForData(slots.calcRound(1));

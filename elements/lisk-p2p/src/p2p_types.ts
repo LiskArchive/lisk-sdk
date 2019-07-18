@@ -37,11 +37,6 @@ export interface P2PPenalty {
 	readonly penalty: number;
 }
 
-// Allows the user to provide custom fields.
-export interface P2PInfoOptions {
-	readonly [key: string]: unknown;
-}
-
 export interface P2PPeerInfo {
 	readonly ipAddress: string;
 	readonly wsPort: number;
@@ -95,6 +90,7 @@ export interface P2PConfig {
 	readonly populatorInterval?: number;
 	readonly maxOutboundConnections: number;
 	readonly maxInboundConnections: number;
+	readonly wsMaxPayload?: number;
 	readonly peerSelectionForSend?: P2PPeerSelectionForSendFunction;
 	readonly peerSelectionForRequest?: P2PPeerSelectionForRequestFunction;
 	readonly peerSelectionForConnection?: P2PPeerSelectionForConnectionFunction;

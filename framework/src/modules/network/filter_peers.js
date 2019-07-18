@@ -168,8 +168,11 @@ const getCountByFilter = (peers, filter) => {
  * @returns {int} count
  * @todo Add description for the params
  */
-const getConsolidatedPeersList = networkStatus => {
-	const { connectedPeers, newPeers, triedPeers } = networkStatus;
+const getConsolidatedPeersList = ({
+	connectedPeers,
+	newPeers = [],
+	triedPeers = [],
+}) => {
 	// Assign state 2 to the connected peers
 	const connectedList = connectedPeers.map(peer => {
 		const { ipAddress, options, minVersion, nethash, ...peerWithoutIp } = peer;

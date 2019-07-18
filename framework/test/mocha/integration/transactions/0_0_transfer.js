@@ -80,8 +80,10 @@ describe('integration test (type 0) - double transfers', () => {
 
 			describe('after forging one block', () => {
 				before(done => {
-					localCommon.forge(library, async () => {
-						done();
+					localCommon.fillPool(library, () => {
+						localCommon.forge(library, async () => {
+							done();
+						});
 					});
 				});
 

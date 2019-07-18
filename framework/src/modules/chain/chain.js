@@ -456,21 +456,22 @@ module.exports = class Chain {
 		jobQueue.register(
 			'nextForge',
 			async () => {
-				await this.forger.beforeForge();
-				if (!this.forger.delegatesEnabled()) {
-					this.logger.debug('No delegates are enabled');
-					return;
-				}
-				if (this.loader.syncing() || this.rounds.ticking()) {
-					this.logger.debug('Client not ready to forge');
-					return;
-				}
-				try {
-					await this.forger.forge();
-				} catch (error) {
-					this.logger.error(error);
-					throw error;
-				}
+				await this.scope.sequence.add(async () => {
+					try {
+						await this.forger.beforeForge();
+						if (!this.forger.delegatesEnabled()) {
+							this.logger.debug('No delegates are enabled');
+							return;
+						}
+						if (this.loader.syncing() || this.rounds.ticking()) {
+							this.logger.debug('Client not ready to forge');
+							return;
+						}
+						await this.forger.forge();
+					} catch (error) {
+						this.logger.error(error);
+					}
+				});
 			},
 			forgeInterval
 		);

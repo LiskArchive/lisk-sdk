@@ -24,6 +24,7 @@ const {
 	undoTransactions,
 	verifyTransactions,
 	processSignature,
+	applyGenesisTransactions,
 } = require('./transactions_handlers');
 
 module.exports = {
@@ -31,6 +32,7 @@ module.exports = {
 	checkIfTransactionIsInert,
 	validateTransactions,
 	applyTransactions,
+	applyGenesisTransactions,
 	checkPersistedTransactions,
 	checkAllowedTransactions,
 	undoTransactions,
