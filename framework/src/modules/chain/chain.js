@@ -27,7 +27,11 @@ const { bootstrapStorage, bootstrapCache } = require('./init_steps');
 const jobQueue = require('./utils/jobs_queue');
 const { Peers } = require('./peers');
 const { TransactionInterfaceAdapter } = require('./interface_adapters');
-const { TransactionPool } = require('./transaction_pool');
+const {
+	TransactionPool,
+	EVENT_MULTISIGNATURE_SIGNATURE,
+	EVENT_UNCONFIRMED_TRANSACTION,
+} = require('./transaction_pool');
 const { Rounds } = require('./rounds');
 const {
 	BlockSlots,
@@ -505,8 +509,24 @@ module.exports = class Chain {
 			this.channel.publish('chain:blocks:change', block);
 		});
 
+		this.transactionPool.on(EVENT_UNCONFIRMED_TRANSACTION, transaction => {
+			this.logger.trace(
+				{ transactionId: transaction.id },
+				'Received EVENT_UNCONFIRMED_TRANSACTION'
+			);
+			this.transport.onUnconfirmedTransaction(transaction, true);
+		});
+
 		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {
 			this.channel.invoke('app:updateApplicationState', { broadhash, height });
+		});
+
+		this.transactionPool.on(EVENT_MULTISIGNATURE_SIGNATURE, signature => {
+			this.logger.trace(
+				{ signature },
+				'Received EVENT_MULTISIGNATURE_SIGNATURE'
+			);
+			this.transport.onSignature(signature, true);
 		});
 	}
 
@@ -515,5 +535,7 @@ module.exports = class Chain {
 		this.blocks.removeAllListeners(EVENT_DELETE_BLOCK);
 		this.blocks.removeAllListeners(EVENT_NEW_BLOCK);
 		this.blocks.removeAllListeners(EVENT_NEW_BROADHASH);
+		this.blocks.removeAllListeners(EVENT_UNCONFIRMED_TRANSACTION);
+		this.blocks.removeAllListeners(EVENT_MULTISIGNATURE_SIGNATURE);
 	}
 };
