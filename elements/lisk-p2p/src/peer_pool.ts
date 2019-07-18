@@ -495,7 +495,9 @@ export class PeerPool extends EventEmitter {
 	): ReadonlyArray<Peer> {
 		const peers = [...this._peerMap.values()];
 		if (kind) {
-			return peers.filter(peer => peer instanceof kind);
+			return peers.filter(
+				peer => peer instanceof kind && peer.state === ConnectionState.OPEN,
+			);
 		}
 
 		return peers.filter(peer => peer.state === ConnectionState.OPEN);
