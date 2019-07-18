@@ -14,7 +14,7 @@
  */
 
 import { expect } from 'chai';
-import { P2P } from '../../src/index';
+import { P2P, EVENT_REMOVE_PEER } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
 import {
@@ -406,6 +406,7 @@ describe('Integration tests for P2P library', () => {
 				return new P2P({
 					connectTimeout: 100,
 					ackTimeout: 200,
+					rateCalculationInterval: 10000,
 					seedPeers,
 					wsEngine: 'ws',
 					populatorInterval: POPULATOR_INTERVAL,
@@ -427,6 +428,7 @@ describe('Integration tests for P2P library', () => {
 				});
 			});
 			await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
+
 			await wait(1000);
 		});
 
@@ -827,10 +829,10 @@ describe('Integration tests for P2P library', () => {
 			beforeEach(() => {
 				collectedMessages = [];
 				for (let p2p of p2pNodeList) {
-					p2p.on('messageReceived', request => {
+					p2p.on('messageReceived', message => {
 						collectedMessages.push({
 							nodePort: p2p.nodeInfo.wsPort,
-							request,
+							message,
 						});
 					});
 				}
@@ -856,11 +858,11 @@ describe('Integration tests for P2P library', () => {
 				expect(collectedMessages[0])
 					.to.have.property('nodePort')
 					.which.is.equal(targetPeerPort);
-				expect(collectedMessages[0]).to.have.property('request');
-				expect(collectedMessages[0].request)
+				expect(collectedMessages[0]).to.have.property('message');
+				expect(collectedMessages[0].message)
 					.to.have.property('event')
 					.which.is.equal('foo');
-				expect(collectedMessages[0].request)
+				expect(collectedMessages[0].message)
 					.to.have.property('data')
 					.which.is.equal(123);
 			});
@@ -964,6 +966,194 @@ describe('Integration tests for P2P library', () => {
 				expect(peerPortsAfterPeerCrash).to.be.eql(
 					expectedPeerPortsAfterPeerCrash,
 				);
+			});
+		});
+	});
+
+	describe('Fully connected network: Message rate checks', () => {
+		beforeEach(async () => {
+			p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
+				// Each node will have the previous node in the sequence as a seed peer except the first node.
+				const seedPeers =
+					index === 0
+						? []
+						: [
+								{
+									ipAddress: '127.0.0.1',
+									wsPort: NETWORK_START_PORT + index - 1,
+								},
+						  ];
+
+				const nodePort = NETWORK_START_PORT + index;
+				return new P2P({
+					connectTimeout: 100,
+					ackTimeout: 200,
+					seedPeers,
+					wsEngine: 'ws',
+					populatorInterval: POPULATOR_INTERVAL,
+					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
+					maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
+					rateCalculationInterval: 100,
+					wsMaxMessageRate: 110,
+					nodeInfo: {
+						wsPort: nodePort,
+						nethash:
+							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+						version: '1.0.1',
+						protocolVersion: '1.1',
+						minVersion: '1.0.0',
+						os: platform(),
+						height: 0,
+						broadhash:
+							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+						nonce: `O2wTkjqplHII${nodePort}`,
+					},
+				});
+			});
+			await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
+
+			await wait(1000);
+		});
+
+		describe('P2P.sendToPeer', () => {
+			let collectedMessages: Array<any> = [];
+			let messageRates: Map<number, Array<number>> = new Map();
+
+			beforeEach(() => {
+				collectedMessages = [];
+				messageRates = new Map();
+				for (let p2p of p2pNodeList) {
+					p2p.on('messageReceived', message => {
+						collectedMessages.push({
+							nodePort: p2p.nodeInfo.wsPort,
+							message,
+						});
+						let peerRates = messageRates.get(p2p.nodeInfo.wsPort) || [];
+						peerRates.push(message.rate);
+						messageRates.set(p2p.nodeInfo.wsPort, peerRates);
+					});
+				}
+			});
+
+			it('should track the message rate correctly when receiving messages', async () => {
+				const TOTAL_SENDS = 100;
+				const firstP2PNode = p2pNodeList[0];
+				const ratePerSecondLowerBound = 70;
+				const ratePerSecondUpperBound = 130;
+
+				const targetPeerPort = NETWORK_START_PORT + 3;
+				const targetPeerId = `127.0.0.1:${targetPeerPort}`;
+
+				for (let i = 0; i < TOTAL_SENDS; i++) {
+					await wait(10);
+					firstP2PNode.sendToPeer(
+						{
+							event: 'foo',
+							data: i,
+						},
+						targetPeerId,
+					);
+				}
+
+				await wait(50);
+				const secondPeerRates = messageRates.get(targetPeerPort) || [];
+				const lastRate = secondPeerRates[secondPeerRates.length - 1];
+
+				expect(lastRate).to.be.gt(ratePerSecondLowerBound);
+				expect(lastRate).to.be.lt(ratePerSecondUpperBound);
+			});
+
+			it('should disconnect the peer if it tries to send messages at a rate above wsMaxMessageRate', async () => {
+				const TOTAL_SENDS = 300;
+				const firstP2PNode = p2pNodeList[0];
+				const secondP2PNode = p2pNodeList[1];
+
+				const removedPeers: Array<string> = [];
+
+				secondP2PNode.on(EVENT_REMOVE_PEER, peerId => {
+					removedPeers.push(peerId);
+				});
+
+				const targetPeerId = `127.0.0.1:${secondP2PNode.nodeInfo.wsPort}`;
+				const failedToSendErrors: Array<Error> = [];
+
+				for (let i = 0; i < TOTAL_SENDS; i++) {
+					await wait(1);
+					try {
+						firstP2PNode.sendToPeer(
+							{
+								event: 'foo',
+								data: i,
+							},
+							targetPeerId,
+						);
+					} catch (error) {
+						failedToSendErrors.push(error);
+					}
+				}
+
+				await wait(100);
+
+				expect(removedPeers).to.contain('127.0.0.1:5000');
+				expect(failedToSendErrors).to.not.be.empty;
+			});
+		});
+
+		describe('P2P.requestFromPeer', () => {
+			let collectedMessages: Array<any> = [];
+			let requestRates: Map<number, Array<number>> = new Map();
+
+			beforeEach(() => {
+				collectedMessages = [];
+				requestRates = new Map();
+				for (let p2p of p2pNodeList) {
+					p2p.on('requestReceived', request => {
+						collectedMessages.push({
+							nodePort: p2p.nodeInfo.wsPort,
+							request,
+						});
+						if (request.procedure === 'getGreeting') {
+							request.end(
+								`Hello ${request.data} from peer ${p2p.nodeInfo.wsPort}`,
+							);
+						} else {
+							if (!request.wasResponseSent) {
+								request.end(456);
+							}
+						}
+						let peerRates = requestRates.get(p2p.nodeInfo.wsPort) || [];
+						peerRates.push(request.rate);
+						requestRates.set(p2p.nodeInfo.wsPort, peerRates);
+					});
+				}
+			});
+
+			it('should track the request rate correctly when receiving requests', async () => {
+				const TOTAL_SENDS = 100;
+				const firstP2PNode = p2pNodeList[0];
+				const ratePerSecondLowerBound = 70;
+				const ratePerSecondUpperBound = 130;
+
+				const targetPeerPort = NETWORK_START_PORT + 3;
+				const targetPeerId = `127.0.0.1:${targetPeerPort}`;
+
+				for (let i = 0; i < TOTAL_SENDS; i++) {
+					await wait(10);
+					firstP2PNode.requestFromPeer(
+						{
+							procedure: 'proc',
+							data: 123456,
+						},
+						targetPeerId,
+					);
+				}
+
+				await wait(50);
+				const secondPeerRates = requestRates.get(targetPeerPort) || [];
+				const lastRate = secondPeerRates[secondPeerRates.length - 1];
+
+				expect(lastRate).to.be.gt(ratePerSecondLowerBound);
+				expect(lastRate).to.be.lt(ratePerSecondUpperBound);
 			});
 		});
 	});
