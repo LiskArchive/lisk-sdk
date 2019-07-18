@@ -64,7 +64,7 @@ export interface PeerInfoAndOutboundConnection {
 export class OutboundPeer extends Peer {
 	protected _socket: SCClientSocket | undefined;
 
-	public constructor(peerInfo: P2PPeerInfo, peerConfig?: PeerConfig) {
+	public constructor(peerInfo: P2PPeerInfo, peerConfig: PeerConfig) {
 		super(peerInfo, peerConfig);
 	}
 
@@ -168,6 +168,8 @@ export class OutboundPeer extends Peer {
 			});
 		});
 
+		outboundSocket.on('message', this._handleWSMessage);
+
 		outboundSocket.on(
 			EVENT_PING,
 			(_: undefined, res: (_: undefined, data: string) => void) => {
@@ -199,6 +201,7 @@ export class OutboundPeer extends Peer {
 		outboundSocket.off('connect');
 		outboundSocket.off('connectAbort');
 		outboundSocket.off('close');
+		outboundSocket.off('message', this._handleWSMessage);
 
 		// Unbind RPC and remote event handlers
 		outboundSocket.off(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
