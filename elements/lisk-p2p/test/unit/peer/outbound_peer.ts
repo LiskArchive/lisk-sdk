@@ -28,7 +28,10 @@ describe('outbound_peer', () => {
 		protocolVersion: '1.1',
 	};
 
-	const defaultPeer = new OutboundPeer(defaultPeerInfo);
+	const defaultPeer = new OutboundPeer(defaultPeerInfo, {
+		rateCalculationInterval: 1000,
+		wsMaxMessageRate: 1000,
+	});
 
 	describe('#constructor', () => {
 		it('should be an object', () => {
