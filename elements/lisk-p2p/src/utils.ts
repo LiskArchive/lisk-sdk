@@ -18,8 +18,12 @@ import { isIPv4 } from 'net';
 const SECRET_BUFFER_LENGTH = 4;
 const NETWORK_BUFFER_LENGTH = 1;
 const PREFIX_BUFFER_LENGTH = 1;
-const MOD_4 = 4;
-const MOD_64 = 64;
+const BYTES_4 = 4;
+const BYTES_16 = 16;
+const BYTES_64 = 64;
+const BYTES_128 = 128;
+const NEW_PEERS = 'new';
+const TRIED_PEERS = 'tried';
 
 export enum NETWORK {
 	NET_IPV4 = 0,
@@ -29,22 +33,56 @@ export enum NETWORK {
 }
 
 /* tslint:disable no-magic-numbers */
-export const getByte = (address: string, n: number): number | undefined => {
-	if (n > 3) {
+export const getGroup = (
+	address: string,
+	groupNumber: number,
+): number | undefined => {
+	if (groupNumber > 3) {
 		return undefined;
 	}
 
-	return parseInt(address.split('.')[n], 10);
+	const group = parseInt(address.split('.')[groupNumber], 10);
+
+	if (!Number.isInteger(group)) {
+		return undefined;
+	}
+
+	return group;
+};
+
+interface AddressBytes {
+	readonly aBytes: Buffer;
+	readonly bBytes: Buffer;
+	readonly cBytes: Buffer;
+	readonly dBytes: Buffer;
+}
+
+export const getAddressBytes = (address: string): AddressBytes => {
+	const aBytes = Buffer.alloc(PREFIX_BUFFER_LENGTH);
+	aBytes.writeUInt8(getGroup(address, 0) as number, 0);
+	const bBytes = Buffer.alloc(PREFIX_BUFFER_LENGTH);
+	bBytes.writeUInt8(getGroup(address, 1) as number, 0);
+	const cBytes = Buffer.alloc(PREFIX_BUFFER_LENGTH);
+	cBytes.writeUInt8(getGroup(address, 2) as number, 0);
+	const dBytes = Buffer.alloc(PREFIX_BUFFER_LENGTH);
+	dBytes.writeUInt8(getGroup(address, 3) as number, 0);
+
+	return {
+		aBytes,
+		bBytes,
+		cBytes,
+		dBytes,
+	};
 };
 
 export const isPrivate = (address: string) =>
-	getByte(address, 0) === 10 ||
-	(getByte(address, 0) === 172 &&
-		((getByte(address, 1) as number) >= 16 ||
-			(getByte(address, 1) as number) <= 31));
+	getGroup(address, 0) === 10 ||
+	(getGroup(address, 0) === 172 &&
+		((getGroup(address, 1) as number) >= 16 ||
+			(getGroup(address, 1) as number) <= 31));
 
 export const isLocal = (address: string) =>
-	getByte(address, 0) === 127 || getByte(address, 0) === 0;
+	getGroup(address, 0) === 127 || getGroup(address, 0) === 0;
 /* tslint:enable no-magic-numbers */
 
 export const getNetwork = (address: string): NETWORK => {
@@ -63,35 +101,67 @@ export const getNetwork = (address: string): NETWORK => {
 	return NETWORK.NET_OTHER;
 };
 
-interface HashBytes {
-	readonly networkBytes: Buffer;
+interface GroupBytes {
 	readonly secretBytes: Buffer;
-	readonly groupABytes: Buffer;
-	readonly groupBBytes: Buffer;
+	readonly networkBytes: Buffer;
+	readonly targetABytes: Buffer;
+	readonly targetBBytes: Buffer;
+	readonly targetCBytes: Buffer;
+	readonly targetDBytes: Buffer;
+	readonly sourceABytes?: Buffer;
+	readonly sourceBBytes?: Buffer;
 }
 
-export const getBytes = (address: string, secret: number): HashBytes => {
-	const network = getNetwork(address);
-	const networkBytes = Buffer.alloc(NETWORK_BUFFER_LENGTH);
-	networkBytes.writeUInt8(network, 0);
+export const getGroupBytes = (options: {
+	readonly secret: number;
+	readonly targetAddress: string;
+	readonly sourceAddress?: string;
+}): GroupBytes => {
+	const { secret, targetAddress, sourceAddress } = options;
+	const peerListType = sourceAddress ? NEW_PEERS : TRIED_PEERS;
 	const secretBytes = Buffer.alloc(SECRET_BUFFER_LENGTH);
 	secretBytes.writeUInt32BE(secret, 0);
-	const groupABytes = Buffer.alloc(PREFIX_BUFFER_LENGTH);
-	const groupA = getByte(address, 0) || 0;
-	groupABytes.writeUInt8(groupA, 0);
-	const groupBBytes = Buffer.alloc(PREFIX_BUFFER_LENGTH);
-	const groupB = getByte(address, 1) || 0;
-	groupBBytes.writeUInt8(groupB, 0);
+	const network = getNetwork(targetAddress);
+	const networkBytes = Buffer.alloc(NETWORK_BUFFER_LENGTH);
+	networkBytes.writeUInt8(network, 0);
+
+	// Full bytes of ip address to bucket
+	const {
+		aBytes: targetABytes,
+		bBytes: targetBBytes,
+		cBytes: targetCBytes,
+		dBytes: targetDBytes,
+	} = getAddressBytes(targetAddress);
+
+	// No need to return source ip address bytes for tried peers bucket
+	if (peerListType === TRIED_PEERS) {
+		return {
+			secretBytes,
+			networkBytes,
+			targetABytes,
+			targetBBytes,
+			targetCBytes,
+			targetDBytes,
+		};
+	}
+
+	// Prefix bytes of peer's ip address from which peer list was received
+	const { aBytes: sourceABytes, bBytes: sourceBBytes } = getAddressBytes(
+		sourceAddress as string,
+	);
 
 	return {
 		secretBytes,
 		networkBytes,
-		groupABytes,
-		groupBBytes,
+		targetABytes,
+		targetBBytes,
+		targetCBytes,
+		targetDBytes,
+		sourceABytes,
+		sourceBBytes,
 	};
 };
 
-// TODO: Generate random 32-bit entropy secret upon node start-up in framework layer
 export const getNetgroup = (
 	address: string,
 	secret: number,
@@ -100,51 +170,118 @@ export const getNetgroup = (
 		return undefined;
 	}
 
-	const { networkBytes, secretBytes, groupABytes, groupBBytes } = getBytes(
-		address,
-		secret,
-	);
+	const {
+		secretBytes,
+		networkBytes,
+		targetABytes,
+		targetBBytes,
+	} = getGroupBytes({ secret, targetAddress: address });
 
+	// Check if ip address is unsupported network type
+	if (getNetwork(address) === NETWORK.NET_OTHER) {
+		return undefined;
+	}
+
+	// Seperate buckets for local and private addresses
 	if (getNetwork(address) !== NETWORK.NET_IPV4) {
-		return hash(networkBytes).readUInt32BE(0);
+		return hash(Buffer.concat([secretBytes, networkBytes])).readUInt32BE(0);
 	}
 
 	const netgroupBytes = Buffer.concat([
 		secretBytes,
 		networkBytes,
-		groupABytes,
-		groupBBytes,
+		targetABytes,
+		targetBBytes,
 	]);
 
 	return hash(netgroupBytes).readUInt32BE(0);
 };
 
-export const getBucket = (
-	address: string,
-	secret: number,
-): number | undefined => {
-	if (!isIPv4(address)) {
+// For new peer buckets, provide the source IP address from which the peer list was received
+export const getBucket = (options: {
+	readonly secret: number;
+	readonly targetAddress: string;
+	readonly sourceAddress?: string;
+}): number | undefined => {
+	const { secret, targetAddress, sourceAddress } = options;
+	const peerListType = sourceAddress ? NEW_PEERS : TRIED_PEERS;
+	const firstMod = peerListType === NEW_PEERS ? BYTES_16 : BYTES_4;
+	const secondMod = peerListType === NEW_PEERS ? BYTES_128 : BYTES_64;
+
+	if (!isIPv4(targetAddress) || (sourceAddress && !isIPv4(sourceAddress))) {
 		return undefined;
 	}
-	const { networkBytes, secretBytes, groupABytes, groupBBytes } = getBytes(
-		address,
-		secret,
-	);
 
-	if (getNetwork(address) !== NETWORK.NET_IPV4) {
-		return hash(networkBytes).readUInt32BE(0) % MOD_64;
-	}
-	const addressBytes = Buffer.from(address, 'utf8');
-	const k =
-		hash(Buffer.concat([secretBytes, addressBytes])).readUInt32BE(0) % MOD_4;
-	const kBytes = Buffer.alloc(SECRET_BUFFER_LENGTH);
-	kBytes.writeUInt32BE(k, 0);
-	const bucketBytes = Buffer.concat([
+	const {
+		secretBytes,
 		networkBytes,
-		groupABytes,
-		groupBBytes,
-		kBytes,
+		targetABytes,
+		targetBBytes,
+		targetCBytes,
+		targetDBytes,
+		sourceABytes = Buffer.alloc(0),
+		sourceBBytes = Buffer.alloc(0),
+	} = getGroupBytes({ secret, targetAddress, sourceAddress });
+
+	// Check if ip address is unsupported network type
+	if (getNetwork(targetAddress) === NETWORK.NET_OTHER) {
+		return undefined;
+	}
+
+	// Seperate buckets for local and private addresses
+	if (getNetwork(targetAddress) !== NETWORK.NET_IPV4) {
+		return (
+			hash(Buffer.concat([secretBytes, networkBytes])).readUInt32BE(0) %
+			secondMod
+		);
+	}
+
+	const addressBytes = Buffer.concat([
+		targetABytes,
+		targetBBytes,
+		targetCBytes,
+		targetDBytes,
 	]);
 
-	return hash(bucketBytes).readUInt32BE(0) % MOD_64;
+	// New peers: k = Hash(random_secret, source_group, group) % 16
+	// Tried peers: k = Hash(random_secret, IP) % 4
+	const kBytes = Buffer.alloc(firstMod);
+	const k =
+		peerListType === NEW_PEERS
+			? hash(
+					Buffer.concat([
+						secretBytes,
+						networkBytes,
+						sourceABytes,
+						sourceBBytes,
+						targetABytes,
+						targetBBytes,
+					]),
+			  ).readUInt32BE(0) % firstMod
+			: hash(
+					Buffer.concat([secretBytes, networkBytes, addressBytes]),
+			  ).readUInt32BE(0) % firstMod;
+
+	kBytes.writeUInt32BE(k, 0);
+
+	// New peers: b = Hash(random_secret, source_group, k) % 128
+	// Tried peers: b = Hash(random_secret, group, k) % 64
+	const bucketBytes =
+		peerListType === NEW_PEERS
+			? Buffer.concat([
+					secretBytes,
+					networkBytes,
+					sourceABytes,
+					sourceBBytes,
+					kBytes,
+			  ])
+			: Buffer.concat([
+					secretBytes,
+					networkBytes,
+					targetABytes,
+					targetBBytes,
+					kBytes,
+			  ]);
+
+	return hash(bucketBytes).readUInt32BE(0) % secondMod;
 };
