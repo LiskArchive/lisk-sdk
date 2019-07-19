@@ -14,7 +14,6 @@
 
 'use strict';
 
-const { promisify } = require('util');
 const {
 	registeredTransactions,
 } = require('../../../../common/registered_transactions');
@@ -218,8 +217,7 @@ describe('blocks', () => {
 						errors: [],
 					});
 				sinonSandbox.stub(blocksInstance.blocksChain, 'deleteLastBlock');
-				sequenceStub.add.callsFake(async cb => {
-					const fn = promisify(cb);
+				sequenceStub.add.callsFake(async fn => {
 					await fn();
 				});
 			});

@@ -16,22 +16,42 @@
 
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const {
+	BIG_ENDIAN,
 	getAddressFromPublicKey,
-	hexToBuffer,
-	signDataWithPrivateKey,
 	hash,
+	hexToBuffer,
+	intToBuffer,
+	LITTLE_ENDIAN,
+	signDataWithPrivateKey,
 	verifyData,
 } = require('@liskhq/lisk-cryptography');
 const _ = require('lodash');
-const crypto = require('crypto');
-const ByteBuffer = require('bytebuffer');
 const BigNum = require('@liskhq/bignum');
-const validator = require('../../../controller/validator');
+const { validator } = require('@liskhq/lisk-validator');
 const { validateTransactions } = require('../transactions');
 const blockVersion = require('./block_version');
 
 // TODO: remove type constraints
 const TRANSACTION_TYPES_MULTI = 4;
+
+/**
+ * Block headers buffer size and endianness
+ *
+ * BLOCK_VERSION_LENGTH = 4 (LITTLE_ENDIAN);
+ * TIMESTAMP_LENGTH = 4 (LITTLE_ENDIAN);
+ * PREVIOUS_BLOCK_LENGTH = 8 (BIG_ENDIAN);
+ * NUMBERS_OF_TRANSACTIONS_LENGTH = 4 (LITTLE_ENDIAN);
+ * TOTAL_AMOUNT_LENGTH = 8 (LITTLE_ENDIAN);
+ * TOTAL_FEE_LENGTH = 8 (LITTLE_ENDIAN);
+ * REWARD_LENGTH = 8 (LITTLE_ENDIAN);
+ * PAYLOAD_LENGTH_LENGTH = 4 (LITTLE_ENDIAN);
+ * PAYLOAD_HASH_LENGTH = 32 (BIG_ENDIAN);
+ * GENERATOR_PUBLIC_KEY_LENGTH = 32 (BIG_ENDIAN);
+ * BLOCK_SIGNATURE_LENGTH = 64 (BIG_ENDIAN);
+ * UNUSED_LENGTH = 4;
+ */
+const SIZE_INT32 = 4;
+const SIZE_INT64 = 8;
 
 /**
  * Creates a block signature.
@@ -62,62 +82,73 @@ const getHash = block => hash(getBytes(block));
  * @todo Add description for the function and the params
  */
 const getBytes = block => {
-	const capacity =
-		4 + // version (int)
-		4 + // timestamp (int)
-		8 + // previousBlock
-		4 + // numberOfTransactions (int)
-		8 + // totalAmount (long)
-		8 + // totalFee (long)
-		8 + // reward (long)
-		4 + // payloadLength (int)
-		32 + // payloadHash
-		32 + // generatorPublicKey
-		64 + // blockSignature or unused
-		4; // unused
+	const blockVersionBuffer = intToBuffer(
+		block.version,
+		SIZE_INT32,
+		LITTLE_ENDIAN
+	);
 
-	const byteBuffer = new ByteBuffer(capacity, true);
-	byteBuffer.writeInt(block.version);
-	byteBuffer.writeInt(block.timestamp);
+	const timestampBuffer = intToBuffer(
+		block.timestamp,
+		SIZE_INT32,
+		LITTLE_ENDIAN
+	);
 
-	if (block.previousBlock) {
-		const pb = new BigNum(block.previousBlock).toBuffer({ size: '8' });
+	const previousBlockBuffer = block.previousBlock
+		? intToBuffer(block.previousBlock, SIZE_INT64, BIG_ENDIAN)
+		: Buffer.alloc(SIZE_INT64);
 
-		for (let i = 0; i < 8; i++) {
-			byteBuffer.writeByte(pb[i]);
-		}
-	} else {
-		for (let i = 0; i < 8; i++) {
-			byteBuffer.writeByte(0);
-		}
-	}
+	const numTransactionsBuffer = intToBuffer(
+		block.numberOfTransactions,
+		SIZE_INT32,
+		LITTLE_ENDIAN
+	);
 
-	byteBuffer.writeInt(block.numberOfTransactions);
-	byteBuffer.writeLong(block.totalAmount.toString());
-	byteBuffer.writeLong(block.totalFee.toString());
-	byteBuffer.writeLong(block.reward.toString());
+	const totalAmountBuffer = intToBuffer(
+		block.totalAmount.toString(),
+		SIZE_INT64,
+		LITTLE_ENDIAN
+	);
 
-	byteBuffer.writeInt(block.payloadLength);
+	const totalFeeBuffer = intToBuffer(
+		block.totalFee.toString(),
+		SIZE_INT64,
+		LITTLE_ENDIAN
+	);
+
+	const rewardBuffer = intToBuffer(
+		block.reward.toString(),
+		SIZE_INT64,
+		LITTLE_ENDIAN
+	);
+
+	const payloadLengthBuffer = intToBuffer(
+		block.payloadLength,
+		SIZE_INT32,
+		LITTLE_ENDIAN
+	);
 
 	const payloadHashBuffer = hexToBuffer(block.payloadHash);
-	for (let i = 0; i < payloadHashBuffer.length; i++) {
-		byteBuffer.writeByte(payloadHashBuffer[i]);
-	}
 
 	const generatorPublicKeyBuffer = hexToBuffer(block.generatorPublicKey);
-	for (let i = 0; i < generatorPublicKeyBuffer.length; i++) {
-		byteBuffer.writeByte(generatorPublicKeyBuffer[i]);
-	}
 
-	if (block.blockSignature) {
-		const blockSignatureBuffer = hexToBuffer(block.blockSignature);
-		for (let i = 0; i < blockSignatureBuffer.length; i++) {
-			byteBuffer.writeByte(blockSignatureBuffer[i]);
-		}
-	}
+	const blockSignatureBuffer = block.blockSignature
+		? hexToBuffer(block.blockSignature)
+		: Buffer.alloc(0);
 
-	byteBuffer.flip();
-	return byteBuffer.toBuffer();
+	return Buffer.concat([
+		blockVersionBuffer,
+		timestampBuffer,
+		previousBlockBuffer,
+		numTransactionsBuffer,
+		totalAmountBuffer,
+		totalFeeBuffer,
+		rewardBuffer,
+		payloadLengthBuffer,
+		payloadHashBuffer,
+		generatorPublicKeyBuffer,
+		blockSignatureBuffer,
+	]);
 };
 
 /**
@@ -134,11 +165,12 @@ const objectNormalize = (block, exceptions = {}) => {
 			delete block[key];
 		}
 	});
-	try {
-		validator.validate(blockSchema, block);
-	} catch (schemaError) {
-		throw schemaError.errors;
+
+	const errors = validator.validate(blockSchema, block);
+	if (errors.length) {
+		throw errors;
 	}
+
 	const { transactionsResponses } = validateTransactions(exceptions)(
 		block.transactions
 	);
@@ -210,31 +242,34 @@ const create = ({
 	let size = 0;
 
 	const blockTransactions = [];
-	const payloadHash = crypto.createHash('sha256');
+	const transactionsBytesArray = [];
 
 	for (let i = 0; i < sortedTransactions.length; i++) {
 		const transaction = sortedTransactions[i];
-		const bytes = transaction.getBytes(transaction);
+		const transactionBytes = transaction.getBytes(transaction);
 
-		if (size + bytes.length > maxPayloadLength) {
+		if (size + transactionBytes.length > maxPayloadLength) {
 			break;
 		}
 
-		size += bytes.length;
+		size += transactionBytes.length;
 
 		totalFee = totalFee.plus(transaction.fee);
 		totalAmount = totalAmount.plus(transaction.amount);
 
 		blockTransactions.push(transaction);
-		payloadHash.update(bytes);
+		transactionsBytesArray.push(transactionBytes);
 	}
+
+	const transactionsBuffer = Buffer.concat(transactionsBytesArray);
+	const payloadHash = hash(transactionsBuffer).toString('hex');
 
 	const block = {
 		version: blockVersion.currentBlockVersion,
 		totalAmount,
 		totalFee,
 		reward,
-		payloadHash: payloadHash.digest().toString('hex'),
+		payloadHash,
 		timestamp,
 		numberOfTransactions: blockTransactions.length,
 		payloadLength: size,

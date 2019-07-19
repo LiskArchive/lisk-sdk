@@ -3,7 +3,7 @@
 const expect = require('chai').expect;
 const Rx = require('rx');
 const localCommon = require('../common');
-const jobsQueue = require('../../../../src/modules/chain/helpers/jobs_queue');
+const jobsQueue = require('../../../../src/modules/chain/utils/jobs_queue');
 
 // TODO: move to Jest and revert
 // eslint-disable-next-line mocha/no-skipped-tests

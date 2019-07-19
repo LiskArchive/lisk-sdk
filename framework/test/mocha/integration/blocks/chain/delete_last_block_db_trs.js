@@ -68,10 +68,9 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 	describe('popLastBlock', () => {
 		describe('when popLastBlock fails', () => {
 			describe('when loadBlockSecondLastBlockStep fails', () => {
-				beforeEach(done => {
+				beforeEach(async () => {
 					block.previousBlock = null;
 					library.modules.blocks._lastBlock = block;
-					return done();
 				});
 
 				it('should fail with proper error', async () => {

@@ -14,12 +14,8 @@
 
 'use strict';
 
-const dapp = require('./dapp');
-const multisignature = require('./multisignature');
-const out_transfer = require('./out_transfer');
+const { Transport } = require('./transport');
 
 module.exports = {
-	dapp,
-	multisignature,
-	out_transfer,
+	Transport,
 };

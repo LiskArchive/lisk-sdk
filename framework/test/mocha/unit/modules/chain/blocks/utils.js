@@ -285,46 +285,6 @@ describe('blocks/utils', () => {
 		});
 	});
 
-	describe('loadBlocksPart', () => {
-		it('should return error when library.storage.entities.Block.get fails', async () => {
-			const expectedError = new Error('An error');
-			storageStub.entities.Block.get
-				.onCall(0)
-				.resolves(['1'])
-				.onCall(1)
-				.throws(expectedError);
-
-			try {
-				await blocksUtils.loadBlocksPart(
-					storageStub,
-					interfaceAdaptersMock,
-					genesisBlock,
-					{}
-				);
-			} catch (err) {
-				expect(err).to.equal(expectedError);
-			}
-		});
-
-		it('should return an array of blocks', async () => {
-			storageStub.entities.Block.get
-				.onCall(0)
-				.resolves(['1'])
-				.onCall(1)
-				.resolves([...storageBlocksListRows]);
-
-			const blocks = await blocksUtils.loadBlocksPart(
-				storageStub,
-				interfaceAdaptersMock,
-				genesisBlock,
-				{}
-			);
-			expect(blocks).to.be.an('array');
-			expect(blocks[0]).to.be.an('object');
-			expect(blocks[0].id).to.equal('13068833527549895884');
-		});
-	});
-
 	describe('loadLastBlock', () => {
 		it('should return error when library.storage.entities.Block.get fails', async () => {
 			storageStub.entities.Block.get.resolves(null);
@@ -514,7 +474,7 @@ describe('blocks/utils', () => {
 		});
 	});
 
-	describe('loadBlocksData', () => {
+	describe('loadBlocksDataWS', () => {
 		it('should return error when storage.entities.Block.get fails', async () => {
 			storageStub.entities.Block.get
 				.onCall(0)
@@ -523,7 +483,7 @@ describe('blocks/utils', () => {
 				.resolves(null);
 
 			try {
-				await blocksUtils.loadBlocksData(storageStub, { id: '1' });
+				await blocksUtils.loadBlocksDataWS(storageStub, { id: '1' });
 			} catch (err) {
 				expect(err.message).to.equal("Cannot read property 'forEach' of null");
 			}
@@ -533,7 +493,7 @@ describe('blocks/utils', () => {
 			storageStub.entities.Block.get.resolves(['1']);
 
 			try {
-				await blocksUtils.loadBlocksData(storageStub, { id: '1' });
+				await blocksUtils.loadBlocksDataWS(storageStub, { id: '1' });
 			} catch (err) {
 				expect(err.message).to.equal(
 					'Invalid filter: Received both id and lastId'
@@ -548,7 +508,9 @@ describe('blocks/utils', () => {
 				.onCall(1)
 				.resolves([]);
 
-			const blocks = await blocksUtils.loadBlocksData(storageStub, { id: '1' });
+			const blocks = await blocksUtils.loadBlocksDataWS(storageStub, {
+				id: '1',
+			});
 			expect(blocks).to.an('array').that.is.empty;
 		});
 
@@ -559,7 +521,7 @@ describe('blocks/utils', () => {
 				.onCall(1)
 				.resolves([...storageBlocksListRows]);
 
-			const blocks = await blocksUtils.loadBlocksData(storageStub, {
+			const blocks = await blocksUtils.loadBlocksDataWS(storageStub, {
 				id: '13068833527549895884',
 			});
 			expect(blocks).to.be.an('array');
@@ -835,80 +797,6 @@ describe('blocks/utils', () => {
 					dummyBlockCompleted
 				);
 				return dummyBlockReduced;
-			});
-		});
-	});
-
-	describe('loadSecondLastBlock', () => {
-		describe('when utils.loadBlocksPart fails', () => {
-			describe('if should reject with an error', () => {
-				it('should call a callback with returned error', async () => {
-					storageStub.entities.Block.get.rejects(new Error('Block Error'));
-					try {
-						await blocksUtils.loadSecondLastBlock(
-							storageStub,
-							interfaceAdaptersMock,
-							genesisBlock,
-							1
-						);
-					} catch (error) {
-						expect(error.message).to.eql('Block Error');
-					}
-				});
-			});
-
-			describe('if returns empty', () => {
-				beforeEach(async () => {
-					storageStub.entities.Block.get.resolves([]);
-				});
-
-				it('should call a callback with error "previousBlock is null"', async () => {
-					try {
-						await blocksUtils.loadSecondLastBlock(
-							storageStub,
-							interfaceAdaptersMock,
-							genesisBlock,
-							1
-						);
-					} catch (error) {
-						expect(error.message).to.equal('PreviousBlock is null');
-					}
-				});
-			});
-		});
-
-		describe('when modules.blocks.utils.loadBlocksPart succeeds', () => {
-			beforeEach(async () => {
-				storageStub.entities.Block.get.resolves([
-					{
-						id: 2,
-						height: 2,
-						generatorPublicKey:
-							'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
-						totalAmount: 100,
-						totalFee: 10,
-						reward: 1,
-					},
-					{
-						id: 3,
-						height: 3,
-						generatorPublicKey:
-							'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a9',
-						totalAmount: 100,
-						totalFee: 10,
-						reward: 1,
-					},
-				]);
-			});
-
-			it('returns the fist block', async () => {
-				const block = await blocksUtils.loadSecondLastBlock(
-					storageStub,
-					interfaceAdaptersMock,
-					genesisBlock,
-					1
-				);
-				expect(block.id).to.equal(2);
 			});
 		});
 	});
