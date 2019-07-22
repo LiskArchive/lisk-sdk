@@ -108,6 +108,8 @@ export interface P2PConfig {
 	readonly hostIp?: string;
 	readonly wsMaxMessageRate?: number;
 	readonly rateCalculationInterval?: number;
+	readonly minimumPeerDiscoveryThreshold?: number;
+	readonly maximumPeerDiscoveryResponseSize?: number;
 }
 
 // Network info exposed by the P2P library.
