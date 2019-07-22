@@ -1943,7 +1943,8 @@ describe('Integration tests for P2P library', () => {
 		});
 	});
 
-	describe('Fully connected network with a custom maximum payload', () => {
+	// TODO: #3335
+	describe.skip('Fully connected network with a custom maximum payload', () => {
 		const dataLargerThanMaxPayload = [
 			{
 				ip: '100.100.100.100',
@@ -1987,8 +1988,8 @@ describe('Integration tests for P2P library', () => {
 
 				return new P2P({
 					blacklistedPeers: [],
-					connectTimeout: 5000,
-					ackTimeout: 5000,
+					connectTimeout: 100,
+					ackTimeout: 200,
 					seedPeers,
 					populatorInterval: POPULATOR_INTERVAL,
 					maxOutboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
