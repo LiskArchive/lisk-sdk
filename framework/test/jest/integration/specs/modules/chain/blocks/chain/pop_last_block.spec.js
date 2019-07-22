@@ -15,8 +15,6 @@
 'use strict';
 
 describe('integration test (blocks) - chain/popLastBlock', () => {
-	beforeEach('send funds to accounts');
-
 	describe('popLastBlock', () => {
 		describe('when popLastBlock fails', () => {
 			describe('when loadBlockSecondLastBlockStep fails', () => {

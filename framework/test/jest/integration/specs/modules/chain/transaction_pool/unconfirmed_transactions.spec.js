@@ -14,7 +14,7 @@
 
 'use strict';
 
-describe('integration test - get unconfirmed transactions', () => {
+describe('integration test (transaction_pool) - get unconfirmed transactions', () => {
 	it.todo('using no params should be ok');
 
 	describe('id', () => {

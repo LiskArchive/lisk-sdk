@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-describe('integration test (blocks) - process receiveBlockFromNetwork()', () => {
+describe('integration test (blocks) - receiveBlockFromNetwork()', () => {
 	describe('receiveBlockFromNetwork (empty transactions)', () => {
 		describe('for valid block', () => {
 			it.todo('should add block to blockchain');
