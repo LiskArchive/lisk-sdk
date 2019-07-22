@@ -102,6 +102,8 @@ export interface P2PConfig {
 	readonly productivityProtectionRatio?: number;
 	readonly longevityProtectionRatio?: number;
 	readonly hostIp?: string;
+	readonly minimumPeerDiscoveryThreshold?: number;
+	readonly maximumPeerDiscoveryResponseSize?: number;
 }
 
 // Network info exposed by the P2P library.
