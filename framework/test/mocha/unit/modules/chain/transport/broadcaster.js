@@ -40,8 +40,6 @@ describe('Broadcaster', () => {
 			active: true,
 			broadcastInterval: 10000,
 			releaseLimit: 10,
-			parallelLimit: 10,
-			broadcastLimit: 10,
 		};
 
 		loggerStub = {

@@ -109,10 +109,10 @@ class BlocksProcess {
 		);
 		const {
 			transactionsResponses: responses,
-		} = await transactionsModule.verifyTransactions(this.storage, this.slots)(
+		} = await transactionsModule.applyTransactions(this.storage, this.slots)(
 			allowedTransactions
 		);
-		const readyTransactions = transactions.filter(transaction =>
+		const readyTransactions = allowedTransactions.filter(transaction =>
 			responses
 				.filter(response => response.status === TransactionStatus.OK)
 				.map(response => response.id)

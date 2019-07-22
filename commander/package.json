@@ -1,6 +1,6 @@
 {
 	"name": "lisk-commander",
-	"version": "2.2.0",
+	"version": "2.2.1-alpha.0",
 	"description": "A command line interface for Lisk",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
@@ -38,7 +38,7 @@
 		"cover": "if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
 		"cover:base": "NODE_ENV=test nyc report",
 		"cover:local": "npm run cover:base -- --reporter=html --reporter=text mocha",
-		"cover:ci": "npm run cover:base -- --reporter=text-lcov mocha | coveralls -v",
+		"cover:ci": "npm run cover:base -- --reporter=text-lcov mocha",
 		"cover:test": "NODE_ENV=test nyc --include \"test/**\" --exclude \"**/node_modules/** coverage/**\" mocha test",
 		"prebuild": "if test -d dist; then rm -r dist; fi",
 		"build": "tsc",
@@ -101,9 +101,9 @@
 	"dependencies": {
 		"@liskhq/lisk-api-client": "2.0.1",
 		"@liskhq/lisk-constants": "1.2.1",
-		"@liskhq/lisk-cryptography": "2.1.0",
+		"@liskhq/lisk-cryptography": "2.2.0-alpha.0",
 		"@liskhq/lisk-passphrase": "2.0.1",
-		"@liskhq/lisk-transactions": "2.1.0",
+		"@liskhq/lisk-transactions": "2.3.0-alpha.0",
 		"@oclif/command": "1.5.6",
 		"@oclif/config": "1.9.0",
 		"@oclif/errors": "1.2.2",
@@ -119,6 +119,7 @@
 		"pm2": "3.5.0",
 		"semver": "5.6.0",
 		"strip-ansi": "4.0.0",
+		"tar": "4.4.10",
 		"tslib": "1.9.3"
 	},
 	"devDependencies": {
@@ -139,9 +140,9 @@
 		"@types/sinon": "7.0.5",
 		"@types/sinon-chai": "3.2.2",
 		"@types/strip-ansi": "3.0.0",
+		"@types/tar": "4.0.1",
 		"chai": "4.2.0",
 		"chai-as-promised": "7.1.1",
-		"coveralls": "3.0.2",
 		"mocha": "5.2.0",
 		"nyc": "14.1.1",
 		"prettier": "1.16.4",
