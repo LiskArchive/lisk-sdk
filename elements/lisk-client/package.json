@@ -3,7 +3,7 @@
 	"version": "2.3.0-alpha.0",
 	"description": "A default set of Elements for use by clients of the Lisk network",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
-	"license": "GPL-3.0",
+	"license": "Apache-2.0",
 	"keywords": [
 		"lisk",
 		"blockchain"
@@ -59,10 +59,10 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-api-client": "2.0.1",
-		"@liskhq/lisk-constants": "1.2.1",
+		"@liskhq/lisk-api-client": "2.0.2",
+		"@liskhq/lisk-constants": "1.2.2",
 		"@liskhq/lisk-cryptography": "2.2.0-alpha.0",
-		"@liskhq/lisk-passphrase": "2.0.1",
+		"@liskhq/lisk-passphrase": "2.0.2",
 		"@liskhq/lisk-transactions": "2.3.0-alpha.0",
 		"@types/node": "10.12.21"
 	},
