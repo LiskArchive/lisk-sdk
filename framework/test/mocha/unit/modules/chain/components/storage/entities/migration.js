@@ -15,6 +15,7 @@
 
 'use strict';
 
+const path = require('path');
 const {
 	entities: { BaseEntity },
 	errors: {
@@ -376,7 +377,9 @@ describe('Migration', () => {
 			savedMigrations = Object.keys(modulesMigrations).reduce(
 				(prev, namespace) => {
 					const curr = modulesMigrations[namespace].map(migrationFile => {
-						const migration = migrationFile.match(/(\d+)_(.+).sql/);
+						const migration = path
+							.basename(migrationFile)
+							.match(/(\d+)_(.+).sql/);
 						return (
 							migration && {
 								id: migration[1],
