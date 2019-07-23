@@ -160,12 +160,12 @@ export const getBucket = (options: {
 	);
 
 	// Check if ip address is unsupported network type
-	if (getNetwork(targetAddress) === NETWORK.NET_OTHER) {
+	if (network === NETWORK.NET_OTHER) {
 		throw Error('IP address is unsupported.');
 	}
 
 	// Seperate buckets for local and private addresses
-	if (getNetwork(targetAddress) !== NETWORK.NET_IPV4) {
+	if (network !== NETWORK.NET_IPV4) {
 		return (
 			cryptoHashSha256(Buffer.concat([secretBytes, networkBytes])).readUInt32BE(
 				0,
