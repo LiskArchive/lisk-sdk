@@ -98,10 +98,7 @@ export const getNetwork = (address: string): NETWORK => {
 	return NETWORK.NET_OTHER;
 };
 
-export const getNetgroup = (
-	address: string,
-	secret: number,
-): number | undefined => {
+export const getNetgroup = (address: string, secret: number): number => {
 	const secretBytes = Buffer.alloc(SECRET_BUFFER_LENGTH);
 	secretBytes.writeUInt32BE(secret, 0);
 	const network = getNetwork(address);
@@ -113,7 +110,7 @@ export const getNetgroup = (
 
 	// Check if ip address is unsupported network type
 	if (network === NETWORK.NET_OTHER) {
-		return undefined;
+		throw Error('IP address is unsupported.');
 	}
 
 	// Seperate buckets for local and private addresses
@@ -164,7 +161,7 @@ export const getBucket = (options: {
 
 	// Check if ip address is unsupported network type
 	if (getNetwork(targetAddress) === NETWORK.NET_OTHER) {
-		throw Error('IP address is an unsupported network.');
+		throw Error('IP address is unsupported.');
 	}
 
 	// Seperate buckets for local and private addresses
