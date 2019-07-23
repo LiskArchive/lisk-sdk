@@ -24,23 +24,23 @@ describe('app', () => {
 			it('should contain transactions');
 		});
 
-		describe('after insert to database', () => {
+		describe('after inserting to database', () => {
 			describe('database block at height 1', () => {
-				it('ID should match genesis block ID');
+				it('should match the genesis block ID');
 
 				it('should contain transactions');
 
 				it(
-					'number of transactions should match genesis number of transactions in block'
+					'should match the number of transactions present in the genesis block'
 				);
 
-				it('all transactions IDs should be present in genesis block');
+				it('should contain all the transactions IDs present in the genesis block');
 			});
 
-			describe('mem_accounts (delegates)', () => {
+			describe('mem_accounts table (delegates)', () => {
 				it('should be populated');
 
-				it('count should match delegates created in genesis block');
+				it('should match the number of delegates created in genesis block');
 
 				describe('delegates rows', () => {
 					it('should have proper fields');
@@ -57,19 +57,19 @@ describe('app', () => {
 				});
 			});
 
-			describe('mem_accounts (other accounts)', () => {
+			describe('mem_accounts table (other accounts)', () => {
 				it('should be populated');
 
-				it('count should match accounts created in genesis block');
+				it('should match the number of accounts created in genesis block');
 
 				describe('accounts rows', () => {
 					it('should have proper fields');
 
 					describe('values', () => {
 						describe('genesis account', () => {
-							it('should exists');
+							it('should exist');
 
-							it('balance should be negative');
+							it('should have negative balance');
 
 							it(
 								'fields address, balance, publicKey should match genesis block transaction'
@@ -77,7 +77,7 @@ describe('app', () => {
 						});
 
 						describe('all accounts', () => {
-							it('balances should be valid against blockchain balances');
+							it('should have valid balances against blockchain balances');
 						});
 					});
 				});
@@ -100,9 +100,9 @@ describe('app', () => {
 			describe('__private.keypairs', () => {
 				it('should not be empty');
 
-				it('length should match delegates length from config file');
+				it('should match the delegates length from config file');
 
-				it('every keypairs property should match contained object public key');
+				it('should match contained object public key for every property');
 			});
 		});
 	});

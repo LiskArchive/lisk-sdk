@@ -18,10 +18,10 @@ describe('integration test (type 4) - checking registered multisignature transac
 	it.todo('adding to pool multisignature registration should be ok');
 
 	describe('after forging one block', () => {
-		it.todo('transaction should be included');
+		it.todo('should include the transaction');
 
 		it.todo(
-			'adding to pool multisignature registration for same account should fail'
+			'should fail when adding a multisig registration for the same account to the pool'
 		);
 
 		describe('adding to pool other transaction types from the same account', () => {

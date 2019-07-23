@@ -17,23 +17,23 @@
 describe('integration test (type 2) - double delegate registrations', () => {
 	describe('executing 30 times', () => {
 		describe('with two different accounts using same username', () => {
-			it.todo('adding to pool delegate registration should be ok');
+			it.todo('should be ok adding to the pool a delegate registration');
 
 			it.todo(
-				'adding to pool delegate registration from different account and same username should be ok'
+				'should be ok adding to the pool a delegate registration from a different account and the same username'
 			);
 
 			describe('after forging one block', () => {
-				it.todo('first delegate registration to arrive should be included');
+				it.todo('should include the first delegate registration to arrive');
 
-				it.todo('last delegate registration to arrive should not be included');
+				it.todo('should not include the last delegate registration to arrive');
 
 				it.todo(
-					'adding to pool delegate registration with already registered username should fail'
+					'should fail adding to the pool a delegate registration with an already registered username'
 				);
 
 				it.todo(
-					'adding to pool delegate registration from same account should fail'
+					'should fail adding to the pool a delegate registration from the same account'
 				);
 			});
 		});

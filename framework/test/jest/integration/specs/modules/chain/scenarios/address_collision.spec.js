@@ -15,20 +15,20 @@
 'use strict';
 
 describe('integration test (type 0) - address collision', () => {
-	it.todo('both passphrases should have the same address');
+	it.todo('should generate the same address for both passphrases');
 
 	describe('when two passphrases collide into the same address', () => {
-		it.todo('adding to pool transfer should be ok for passphrase one');
+		it.todo('should be ok to add transfer to the pool for passphrase one');
 
-		it.todo('adding to pool transfer should be ok for passphrase two');
+		it.todo('should be ok to add transfer to the pool for passphrase two');
 
 		describe('after forging one block', () => {
-			it.todo('first transaction to arrive should be included');
+			it.todo('should include the first transaction to arrive');
 
-			it.todo('last transaction to arrive should not be included');
+			it.todo('should not include the last transaction to arrive');
 
 			it.todo(
-				'publicKey from the first passphrase should be cemented and not the second one'
+				'should cement the public key from the first passphrase and not the second one'
 			);
 		});
 	});

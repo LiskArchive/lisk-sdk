@@ -19,7 +19,7 @@ describe('expire transactions', () => {
 		it.todo('should be able to add transaction to unconfirmed queue');
 
 		it.todo(
-			'once expire transaction interval has passed, the transaction should be removed from the queue'
+			'should remove the transaction from the queue once expire transaction interval has passed'
 		);
 	});
 

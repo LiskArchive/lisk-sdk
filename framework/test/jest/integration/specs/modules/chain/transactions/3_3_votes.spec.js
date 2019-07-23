@@ -16,36 +16,36 @@
 
 describe('integration test (type 3) - voting with duplicate submissions', () => {
 	describe('executing 30 times', () => {
-		it.todo('adding to pool upvoting transaction should be ok');
+		it.todo('should be ok adding an upvoting transaction to the pool');
 
 		it.todo(
-			'adding to pool upvoting transaction for same delegate from same account with different id should be ok'
+			'should be ok adding to the pool an upvoting transaction for the same delegate from eh same account but with different id'
 		);
 
 		describe('after forging one block', () => {
-			it.todo('first upvoting transaction to arrive should be included');
+			it.todo('should include the first upvoting transaction to arrive');
 
-			it.todo('last upvoting transaction to arrive should not be included');
+			it.todo('should not include the last upvoting transaction to arrive');
 
 			it.todo(
-				'adding to pool upvoting transaction to same delegate from same account should fail'
+				'should fail adding to the pool an upvoting transaction for the same delegate from the same account'
 			);
 
 			it.todo(
-				'adding to pool downvoting transaction to same delegate from same account should be ok'
+				'should be ok adding to the pool a downvoting transaction for the same delegate from the same account'
 			);
 
 			it.todo(
-				'adding to pool downvoting transaction to same delegate from same account with different id should be ok'
+				'should be ok adding to the pool a down voting transaction for the same delegate from the same account but with different id'
 			);
 
 			describe('after forging a second block', () => {
-				it.todo('first downvoting transaction to arrive should be included');
+				it.todo('should include the first downvoting transaction to arrive');
 
-				it.todo('last downvoting transaction to arrive should not be included');
+				it.todo('should not include the last downvoting transaction to arrive');
 
 				it.todo(
-					'adding to pool downvoting transaction to same delegate from same account should fail'
+					'should fail adding to the pool a downvoting transaction for the same delegate from the same account'
 				);
 			});
 		});

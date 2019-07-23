@@ -6,11 +6,11 @@ describe('integration test (delegates) - synchronous tasks', () => {
 			describe('when "blockchain synchronization" synchronous task runs every 100 ms and takes 101 ms', () => {
 				describe('within 5000 ms', () => {
 					it.todo(
-						'"attempt to forge" task should never start when "blockchain synchronization" task is running'
+						'should never execute "attempt to forge" task when "blockchain synchronization" task is running'
 					);
 
 					it.todo(
-						'"blockchain synchronization" task should never start when "attempt to forge" task is running'
+						'should never execute "blockchain synchronization" task when "attempt to forge" task is already running'
 					);
 				});
 			});

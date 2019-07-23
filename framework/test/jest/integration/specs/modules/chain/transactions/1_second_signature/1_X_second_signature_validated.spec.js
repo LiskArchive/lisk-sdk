@@ -15,13 +15,13 @@
 'use strict';
 
 describe('integration test (type 1) - checking validated second signature registrations against other transaction types', () => {
-	it.todo('adding to pool second signature registration should be ok');
+	it.todo('should be ok adding to the pool a second signature registration');
 
 	describe('after forging one block', () => {
-		it.todo('transaction should be included');
+		it.todo('should include the transaction');
 
 		it.todo(
-			'adding to pool second signature registration for same account should fail'
+			'should fail adding to the pool a second signature registration for the same account'
 		);
 
 		describe('adding to pool other transaction types from the same account', () => {

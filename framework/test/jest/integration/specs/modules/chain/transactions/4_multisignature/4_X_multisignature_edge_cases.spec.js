@@ -16,14 +16,14 @@
 
 describe('integration test - multi signature edge cases', () => {
 	describe('try to register more dapps than balance will allow from a multisignature account', () => {
-		it.todo('all transactions should have been added to the pool');
+		it.todo('should include all the transactions in the pool');
 
 		it.todo(
-			'once account balance is not enough transactions should be removed from the queue'
+			'should remove the transactions from the queue  if the account balance is not enough'
 		);
 
-		it.todo('invalid transaction should not be confirmed');
+		it.todo('should not confirm an invalid transaction');
 
-		it.todo('valid transactions should be confirmed');
+		it.todo('should confirm a valid transaction');
 	});
 });

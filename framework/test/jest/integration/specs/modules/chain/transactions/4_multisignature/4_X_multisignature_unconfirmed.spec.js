@@ -15,7 +15,7 @@
 'use strict';
 
 describe('integration test (type 4) - sending transactions on top of unconfirmed multisignature registration', () => {
-	it.todo('adding to pool multisig registration should be ok');
+	it.todo('should be ok to add a multisig registration to the pool');
 
 	describe('adding to pool other transactions from same account', () => {
 		describe('multisignature transactions', () => {

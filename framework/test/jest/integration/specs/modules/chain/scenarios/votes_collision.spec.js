@@ -16,14 +16,14 @@
 
 describe('integration test (type 0) - votes collision', () => {
 	describe('register delegate from collision account', () => {
-		it.todo('transaction should be confirmed');
+		it.todo('should confirm the transaction');
 
 		describe('when voting for account with collision publicKey', () => {
-			it.todo('transaction should not be confirmed');
+			it.todo('should not confirm the transaction');
 		});
 
 		describe('voting for account using registered publicKey', () => {
-			it.todo('transaction should be confirmed');
+			it.todo('should confirm the transaction');
 		});
 	});
 });

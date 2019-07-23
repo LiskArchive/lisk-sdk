@@ -15,19 +15,19 @@
 'use strict';
 
 describe('integration test (type 4) - double multisignature registrations', () => {
-	it.todo('adding to pool multisig registration should be ok');
+	it.todo('should be ok to add a multisig registration to the pool');
 
 	it.todo(
-		'adding to pool same transaction with different timestamp should be ok'
+		'should be ok adding the same transaction with different timestamp to the pool'
 	);
 
 	describe('after forging one block', () => {
-		it.todo('first transaction to arrive should be included');
+		it.todo('should include the first transaction to arrive');
 
-		it.todo('last transaction to arrive should not be included');
+		it.todo('should not include the last transaction to arrive');
 
 		it.todo(
-			'adding to pool multisignature registration for same account should fail'
+			'should fail when adding a multisig registration for the same account to the pool'
 		);
 	});
 });

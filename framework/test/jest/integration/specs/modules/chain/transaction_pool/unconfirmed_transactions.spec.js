@@ -15,11 +15,11 @@
 'use strict';
 
 describe('integration test (transaction_pool) - get unconfirmed transactions', () => {
-	it.todo('using no params should be ok');
+	it.todo('should be ok using no params');
 
 	describe('id', () => {
-		it.todo('using valid but unknown id should be ok');
+		it.todo('should be ok using a valid but unknown id');
 
-		it.todo('using known id should be ok');
+		it.todo('should be ok using a known id');
 	});
 });

@@ -16,28 +16,28 @@
 
 describe('block_version', () => {
 	describe('forge first round of blocks (101 blocks) with version 0', () => {
-		it.todo('blockchain should be at height 101');
+		it.todo('should have latest height of 101');
 
-		it.todo('blocks of round 1 should have version = 0');
+		it.todo('should have blocks with version = 0 on round 1');
 	});
 
 	describe('forge second round of blocks (101 blocks) with version 1', () => {
-		it.todo('blockchain should be at height 202');
+		it.todo('should have latest height of 202');
 
-		it.todo('blocks of round 2 should have version = 1');
+		it.todo('should have blocks with version = 1 on round 2');
 	});
 
 	describe('forge third round of blocks (101 blocks) with version 2', () => {
-		it.todo('blockchain should be at height 303');
+		it.todo('should have latest height of 303');
 
-		it.todo('blocks of round 3 should have version = 2');
+		it.todo('should have blocks with version = 2 on round 3');
 	});
 
 	describe('when there are no exceptions for blocks versions', () => {
-		it.todo('rebuilding should fail');
+		it.todo('should fail when rebuilding');
 	});
 
 	describe('when there are proper exceptions for blocks versions', () => {
-		it.todo('rebuilding should succeed');
+		it.todo('should rebuild successfully');
 	});
 });

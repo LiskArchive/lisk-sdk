@@ -16,18 +16,18 @@
 
 describe('integration test (type 0) - double transfers', () => {
 	describe('executing 30 times', () => {
-		it.todo('adding to pool transfer should be ok');
+		it.todo('should ok adding a transfer to the pool');
 
 		it.todo(
-			'adding to pool same transfer with different timestamp should be ok'
+			'should be ok adding to the pool the same transfer trs with different timestamp'
 		);
 
 		describe('after forging one block', () => {
-			it.todo('first transaction to arrive should be included');
+			it.todo('should include the first transfer transaction to arrive');
 
-			it.todo('last transaction to arrive should not be included');
+			it.todo('should not include the last transfer transaction to arrive');
 
-			it.todo('adding to pool transfer for same account should fail');
+			it.todo('should fail adding to the pool a transfer transaction for the same account');
 		});
 	});
 });
