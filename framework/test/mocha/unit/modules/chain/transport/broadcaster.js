@@ -470,7 +470,9 @@ describe('Broadcaster', () => {
 				.rejects(new Error('failed to broadcast'));
 			broadcaster.filterQueue = filterQueueStub;
 			broadcaster.enqueue(params, options);
-			expect(broadcaster.releaseQueue()).rejectedWith('failed to broadcast');
+			return expect(broadcaster.releaseQueue()).to.eventually.be.rejectedWith(
+				'failed to broadcast'
+			);
 		});
 	});
 });

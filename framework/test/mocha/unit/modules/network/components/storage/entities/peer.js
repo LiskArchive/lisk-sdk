@@ -318,8 +318,13 @@ describe('Peer', () => {
 
 		it('should skip if any invalid attribute is provided');
 
-		it('should reject with invalid data provided', async () =>
-			expect(storage.entities.Peer.create(invalidPeer)).to.be.rejected);
+		it('should reject with invalid data provided', async () => {
+			return expect(
+				storage.entities.Peer.create(invalidPeer)
+			).to.eventually.be.rejectedWith(
+				'invalid input syntax for type inet: "a.b.c.d"'
+			);
+		});
 
 		it('should create multiple objects successfully', async () => {
 			// Arrange
@@ -425,9 +430,11 @@ describe('Peer', () => {
 
 		it('should skip if any invalid attribute is provided');
 
-		it('should not throw error if no matching record found', async () =>
-			expect(storage.entities.Peer.update({ ip: '1.1.1.1' }, { ip: '2.2.2.2' }))
-				.not.to.be.rejected);
+		it('should not throw error if no matching record found', async () => {
+			return expect(
+				storage.entities.Peer.update({ ip: '1.1.1.1' }, { ip: '2.2.2.2' })
+			).to.eventually.be.fulfilled.and.equal(null);
+		});
 	});
 
 	describe('updateOne()', () => {
@@ -527,10 +534,11 @@ describe('Peer', () => {
 
 		it('should skip if any invalid attribute is provided');
 
-		it('should not throw error if no matching record found', async () =>
-			expect(
+		it('should not throw error if no matching record found', async () => {
+			return expect(
 				storage.entities.Peer.updateOne({ ip: '1.1.1.1' }, { ip: '2.2.2.2' })
-			).not.to.be.rejected);
+			).to.eventually.be.fulfilled.and.equal(null);
+		});
 	});
 
 	describe('isPersisted()', () => {

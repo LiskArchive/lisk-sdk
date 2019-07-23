@@ -159,8 +159,11 @@ describe('Block', () => {
 
 		it('should skip if any invalid attribute is provided');
 
-		it('should reject with invalid data provided', async () =>
-			expect(storage.entities.Block.create(invalidBlock)).to.be.rejected);
+		it('should reject with invalid data provided', async () => {
+			return expect(
+				storage.entities.Block.create(invalidBlock)
+			).to.eventually.be.rejectedWith('invalid input syntax for integer: ""');
+		});
 
 		it('should create multiple objects successfully', async () => {
 			// Arrange

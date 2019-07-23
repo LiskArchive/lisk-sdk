@@ -160,7 +160,7 @@ describe('Transaction', () => {
 
 			return expect(
 				storage.entities.Transaction.create(transaction)
-			).to.be.rejectedWith('invalid hexadecimal digit: "G"');
+			).to.eventually.be.rejectedWith('invalid hexadecimal digit: "G"');
 		});
 
 		it('should populate asset field with "transfer" json for type 0 transactions', async () => {
