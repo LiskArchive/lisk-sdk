@@ -1,5 +1,5 @@
 ####################################################################################
-# Copyright © 2018 Lisk Foundation
+# Copyright © 2019 Lisk Foundation
 #
 # See the LICENSE file at the top-level directory of this distribution
 # for licensing information.
@@ -61,8 +61,8 @@ info:
   contact:
     email: admin@lisk.io
   license:
-    name: GPL v3.0
-    url: https://www.gnu.org/licenses/gpl-3.0.en.html
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0
 
 # All paths relative to specified basePath
 basePath: /api
