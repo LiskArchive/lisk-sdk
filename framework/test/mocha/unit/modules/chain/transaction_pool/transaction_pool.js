@@ -22,6 +22,8 @@ const {
 const { expect } = require('chai');
 const {
 	TransactionPool,
+	EVENT_UNCONFIRMED_TRANSACTION,
+	EVENT_MULTISIGNATURE_SIGNATURE,
 } = require('../../../../../../src/modules/chain/transaction_pool/transaction_pool');
 const transactionsModule = require('../../../../../../src/modules/chain/transactions');
 const { transactions: transactionsFixtures } = require('../../../../fixtures');
@@ -76,6 +78,10 @@ describe('transactionPool', () => {
 			maxTransactionsPerQueue,
 			maxTransactionsPerBlock,
 		});
+
+		// Stubs for event emitters
+		sinonSandbox.stub(transactionPool.pool, 'on');
+		sinonSandbox.stub(transactionPool, 'emit');
 
 		dummyTransactions = [{ id: 1 }, { id: 2 }, { id: 3 }];
 	});
@@ -435,6 +441,30 @@ describe('transactionPool', () => {
 				}
 			});
 		});
+
+		describe('events', () => {
+			beforeEach(async () => {
+				sinonSandbox.stub(transactionsModule, 'processSignature').returns(
+					sinonSandbox.stub().resolves({
+						...transactionResponse,
+						status: 2,
+						errors: [],
+					})
+				);
+			});
+
+			it('should emit EVENT_MULTISIGNATURE_SIGNATURE', async () => {
+				// Act
+				await transactionPool.getTransactionAndProcessSignature(
+					signatureObject
+				);
+				// Assert
+				expect(transactionPool.emit).to.be.calledWith(
+					EVENT_MULTISIGNATURE_SIGNATURE,
+					signatureObject
+				);
+			});
+		});
 	});
 
 	describe('processUnconfirmedTransaction', () => {
@@ -517,6 +547,38 @@ describe('transactionPool', () => {
 				expect(err).to.be.an('array');
 				expect(err[0]).to.eql(responses[0].errors[0]);
 			}
+		});
+	});
+
+	describe('#Events', () => {
+		it('it should subscribe to EVENT_VERIFIED_TRANSACTION_ONCE, EVENT_ADDED_TRANSACTIONS, EVENT_REMOVED_TRANSACTIONS', async () => {
+			// Act
+			transactionPool.subscribeEvents();
+			// Assert
+			expect(transactionPool.pool.on.firstCall).to.be.calledWith(
+				'transactionVerifiedOnce'
+			);
+			expect(transactionPool.pool.on.secondCall).to.be.calledWith(
+				'transactionsAdded'
+			);
+			expect(transactionPool.pool.on.thirdCall).to.be.calledWith(
+				'transactionsRemoved'
+			);
+		});
+
+		it('should emit EVENT_UNCONFIRMED_TRANSACTION on EVENT_VERIFIED_TRANSACTION_ONCE', async () => {
+			// Arrange
+			const eventData = {
+				action: 'transactionVerifiedOnce',
+				payload: [dummyTransactions[0]],
+			};
+			// Act
+			transactionPool.pool.emit('transactionVerifiedOnce', eventData);
+			// Assert
+			expect(transactionPool.emit).to.be.calledWith(
+				EVENT_UNCONFIRMED_TRANSACTION,
+				dummyTransactions[0]
+			);
 		});
 	});
 });

@@ -20,6 +20,7 @@ const {
 } = require('@liskhq/lisk-transactions');
 
 const _ = require('lodash');
+const { validator: liskValidator } = require('@liskhq/lisk-validator');
 const Application = require('../../../../../src/controller/application');
 const validator = require('../../../../../src/controller/validator');
 const {
@@ -28,16 +29,24 @@ const {
 	constantsSchema,
 } = require('../../../../../src/controller/schema');
 
-jest.mock('../../../../../src/components/logger');
-
 const networkConfig = require('../../../../fixtures/config/devnet/config');
 const genesisBlock = require('../../../../fixtures/config/devnet/genesis_block');
 
 const config = {
 	...networkConfig,
 };
+
+jest.mock('../../../../../src/components/logger');
+jest.mock('@liskhq/lisk-validator', () => ({
+	validator: {
+		validate: jest.fn().mockImplementation(() => {
+			return [];
+		}),
+	},
+}));
+
 // eslint-disable-next-line
-describe.skip('Application', () => {
+describe('Application', () => {
 	// Arrange
 	const frameworkTxTypes = ['0', '1', '2', '3', '4'];
 
@@ -50,10 +59,10 @@ describe.skip('Application', () => {
 	describe('#constructor', () => {
 		it('should validate genesisBlock', () => {
 			// Act
-			const validateSpy = jest.spyOn(validator, 'validate');
+
 			new Application(genesisBlock, config);
 			// Assert
-			expect(validateSpy).toHaveBeenNthCalledWith(
+			expect(liskValidator.validate).toHaveBeenNthCalledWith(
 				1,
 				genesisBlockSchema,
 				genesisBlock
@@ -175,7 +184,7 @@ describe.skip('Application', () => {
 
 		// Skipped because `new Application` is mutating params.config making the other tests to fail
 		// eslint-disable-next-line jest/no-disabled-tests
-		it.skip('[feature/improve_transactions_processing_efficiency] should throw validation error if constants are overriden by the user', () => {
+		it('should throw validation error if constants are overriden by the user', () => {
 			const customConfig = _.cloneDeep(config);
 
 			customConfig.app.genesisConfig = {
@@ -184,7 +193,7 @@ describe.skip('Application', () => {
 
 			expect(() => {
 				new Application(genesisBlock, customConfig);
-			}).toThrow('Schema validation error');
+			}).toThrow('should NOT have additional properties');
 		});
 	});
 
