@@ -14,11 +14,11 @@
  */
 import { expect } from 'chai';
 import {
-	getByte,
+	getIPGroup,
 	isPrivate,
 	isLocal,
 	getNetwork,
-	getBytes,
+	getIPBytes,
 	getNetgroup,
 	getBucket,
 	NETWORK,
@@ -26,20 +26,23 @@ import {
 
 describe('utils', () => {
 	const IPv4Address = '1.160.10.240';
+	const IPv4SourceAddress = '62.13.1.10';
 	const privateAddress = '10.0.0.0';
 	const localAddress = '127.0.0.1';
-	const IPv6Address = '2001:0db8:85a3:0000:0000:8a2e:0370:7334';
 	const secret = 123456;
 
-	describe('#getByte', () => {
+	describe('#getIPGroup', () => {
 		it('should return first group when passing 0 in second argument', () => {
-			const byte = getByte(IPv4Address, 0);
+			const byte = getIPGroup(IPv4Address, 0);
 			return expect(byte).to.eql(1);
 		});
 
-		it('should return undefined for second argument greater than 3', () => {
-			const byte = getByte(IPv4Address, 4);
-			return expect(byte).to.equal(undefined);
+		it('should throw an error for second argument greater than 3', () => {
+			try {
+				getIPGroup(IPv4Address, 4);
+			} catch (err) {
+				expect(err).to.have.property('message', 'Invalid IP group.');
+			}
 		});
 	});
 
@@ -69,39 +72,27 @@ describe('utils', () => {
 		});
 	});
 
-	describe('#getBytes', () => {
-		it('should return an object with property secretBytes', () => {
-			return expect(getBytes(IPv4Address, secret)).to.have.property(
-				'secretBytes',
-			);
-		});
-
-		it('should return an object with property networkBytes', () => {
-			return expect(getBytes(IPv4Address, secret)).to.have.property(
-				'networkBytes',
-			);
-		});
-
+	describe('#getIPBytes', () => {
 		it('should return an object with property groupABytes', () => {
-			return expect(getBytes(IPv4Address, secret)).to.have.property(
-				'groupABytes',
-			);
+			return expect(getIPBytes(IPv4Address)).to.have.property('aBytes');
 		});
 
 		it('should return an object with property groupBBytes', () => {
-			return expect(getBytes(IPv4Address, secret)).to.have.property(
-				'groupBBytes',
-			);
+			return expect(getIPBytes(IPv4Address)).to.have.property('bBytes');
+		});
+
+		it('should return an object with property groupBBytes', () => {
+			return expect(getIPBytes(IPv4Address)).to.have.property('cBytes');
+		});
+
+		it('should return an object with property groupBBytes', () => {
+			return expect(getIPBytes(IPv4Address)).to.have.property('dBytes');
 		});
 	});
 
 	describe('#getNetgroup', () => {
 		it('should return a number netgroup', () => {
 			return expect(getNetgroup(IPv4Address, secret)).to.be.a('number');
-		});
-
-		it('should return undefined for invalid IPv4 address', () => {
-			return expect(getNetgroup(IPv6Address, secret)).to.be.undefined;
 		});
 
 		it('should return different netgroup for different addresses', () => {
@@ -138,40 +129,110 @@ describe('utils', () => {
 
 	describe('#getBucket', () => {
 		it('should return a bucket number', () => {
-			return expect(getBucket(IPv4Address, secret)).to.be.a('number');
+			return expect(getBucket({ secret, targetAddress: IPv4Address })).to.be.a(
+				'number',
+			);
 		});
 
-		it('should return undefined for invalid IPv4 address', () => {
-			return expect(getBucket(IPv6Address, secret)).to.be.undefined;
-		});
-
-		it('should return different buckets for different addresses', () => {
+		it('should return different buckets for different target addresses', () => {
 			const secondIPv4Address = '1.161.10.240';
-			const firstBucket = getBucket(IPv4Address, secret);
-			const secondBucket = getBucket(secondIPv4Address, secret);
+			const firstBucket = getBucket({ secret, targetAddress: IPv4Address });
+			const secondBucket = getBucket({
+				secret,
+				targetAddress: secondIPv4Address,
+			});
 
 			return expect(firstBucket).to.not.eql(secondBucket);
 		});
 
-		it('should return same bucket for unique local addresses', () => {
-			const firstBucket = getBucket(localAddress, secret);
+		it('should return same bucket for unique local target addresses', () => {
+			const firstBucket = getBucket({ secret, targetAddress: localAddress });
 			const secondLocalAddress = '127.0.1.1';
-			const secondBucket = getBucket(secondLocalAddress, secret);
+			const secondBucket = getBucket({
+				secret,
+				targetAddress: secondLocalAddress,
+			});
 
 			return expect(firstBucket).to.eql(secondBucket);
 		});
 
-		it('should return same bucket for unique private addresses', () => {
-			const firstBucket = getBucket(privateAddress, secret);
+		it('should return same bucket for unique private target addresses', () => {
+			const firstBucket = getBucket({ secret, targetAddress: privateAddress });
 			const secondPrivateAddress = '10.0.0.1';
-			const secondBucket = getBucket(secondPrivateAddress, secret);
+			const secondBucket = getBucket({
+				secret,
+				targetAddress: secondPrivateAddress,
+			});
 
 			return expect(firstBucket).to.eql(secondBucket);
 		});
 
-		it('should return different buckets for local and private addresses', () => {
-			const firstBucket = getBucket(localAddress, secret);
-			const secondBucket = getBucket(privateAddress, secret);
+		it('should return different buckets for local and private target addresses', () => {
+			const firstBucket = getBucket({ secret, targetAddress: localAddress });
+			const secondBucket = getBucket({ secret, targetAddress: privateAddress });
+
+			return expect(firstBucket).to.not.eql(secondBucket);
+		});
+
+		it('should return different buckets for different target addresses given a source address', () => {
+			const secondIPv4Address = '1.161.10.240';
+			const firstBucket = getBucket({
+				secret,
+				targetAddress: IPv4Address,
+				sourceAddress: IPv4SourceAddress,
+			});
+			const secondBucket = getBucket({
+				secret,
+				targetAddress: secondIPv4Address,
+				sourceAddress: IPv4SourceAddress,
+			});
+
+			return expect(firstBucket).to.not.eql(secondBucket);
+		});
+
+		it('should return same bucket for unique local target addresses given a source address', () => {
+			const firstBucket = getBucket({
+				secret,
+				targetAddress: localAddress,
+				sourceAddress: IPv4SourceAddress,
+			});
+			const secondLocalAddress = '127.0.1.1';
+			const secondBucket = getBucket({
+				secret,
+				targetAddress: secondLocalAddress,
+				sourceAddress: IPv4SourceAddress,
+			});
+
+			return expect(firstBucket).to.eql(secondBucket);
+		});
+
+		it('should return same bucket for unique private target addresses given a source address', () => {
+			const firstBucket = getBucket({
+				secret,
+				targetAddress: privateAddress,
+				sourceAddress: IPv4SourceAddress,
+			});
+			const secondPrivateAddress = '10.0.0.1';
+			const secondBucket = getBucket({
+				secret,
+				targetAddress: secondPrivateAddress,
+				sourceAddress: IPv4SourceAddress,
+			});
+
+			return expect(firstBucket).to.eql(secondBucket);
+		});
+
+		it('should return different buckets for local and private target addresses given a source address', () => {
+			const firstBucket = getBucket({
+				secret,
+				targetAddress: localAddress,
+				sourceAddress: IPv4SourceAddress,
+			});
+			const secondBucket = getBucket({
+				secret,
+				targetAddress: privateAddress,
+				sourceAddress: IPv4SourceAddress,
+			});
 
 			return expect(firstBucket).to.not.eql(secondBucket);
 		});
