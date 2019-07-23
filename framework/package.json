@@ -3,7 +3,7 @@
 	"version": "0.1.1",
 	"description": "Lisk blockchain application platform",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
-	"license": "GPL-3.0",
+	"license": "Apache-2.0",
 	"keywords": [
 		"cryptocurrency",
 		"blockchain",

@@ -3,7 +3,7 @@
 	"version": "0.1.0",
 	"description": "Validation library according to the Lisk protocol",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
-	"license": "GPL-3.0",
+	"license": "Apache-2.0",
 	"keywords": [
 		"lisk",
 		"blockchain",

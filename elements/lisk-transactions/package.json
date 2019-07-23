@@ -3,7 +3,7 @@
 	"version": "2.1.1",
 	"description": "Everything related to transactions according to the Lisk protocol",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
-	"license": "GPL-3.0",
+	"license": "Apache-2.0",
 	"keywords": [
 		"lisk",
 		"blockchain"

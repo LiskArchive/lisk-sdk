@@ -3,7 +3,7 @@
 	"version": "2.0.1",
 	"description": "An API client for the Lisk network",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
-	"license": "GPL-3.0",
+	"license": "Apache-2.0",
 	"keywords": [
 		"lisk",
 		"blockchain"
