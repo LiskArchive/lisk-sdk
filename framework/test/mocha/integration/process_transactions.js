@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -191,7 +191,8 @@ describe('processTransactions', () => {
 				let verifyTransactions;
 
 				beforeEach(async () => {
-					verifyTransactions = library.modules.processTransactions.verifyTransactions;
+					verifyTransactions =
+						library.modules.processTransactions.verifyTransactions;
 				});
 
 				it('should return transactionsResponses with status OK for verified transactions', async () => {
