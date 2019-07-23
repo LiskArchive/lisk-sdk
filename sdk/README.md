@@ -162,8 +162,6 @@ limitations under the License.
 
 ---
 
-This program also incorporates work previously released with lisk `1.6.0` (and earlier till `0.9.12`) versions under the [GPL v3](https://www.gnu.org/licenses/gpl-3.0.en.html) and work previously released with lisk `0.9.11` (and earlier) versions under the [MIT License](https://opensource.org/licenses/MIT). To comply with the requirements of that license, the following permission notice, applicable to those parts of the code only, is included below:
-
 Copyright © 2016-2019 Lisk Foundation
 
 Copyright © 2015 Crypti

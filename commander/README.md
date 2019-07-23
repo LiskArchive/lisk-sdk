@@ -83,8 +83,6 @@ limitations under the License.
 
 ---
 
-This program also incorporates work previously released with lisk-commander `2.1.0` (and earlier) versions under the [GPL v3](https://www.gnu.org/licenses/gpl-3.0.en.html). To comply with the requirements of that license, the following permission notice, applicable to those parts of the code only, is included below:
-
 [bugs]: https://github.com/LiskHQ/lisk-commander/issues
 [contribution guidelines]: docs/CONTRIBUTING.md
 [gitter]: https://gitter.im/LiskHQ/lisk
