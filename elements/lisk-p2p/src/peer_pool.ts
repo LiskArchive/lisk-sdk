@@ -592,13 +592,18 @@ export class PeerPool extends EventEmitter {
 		}
 
 		if (kind === OutboundPeer) {
-			this.removePeer(shuffle(peers)[0].id);
+			const selectedPeer = shuffle(peers)[0];
+			if (selectedPeer) {
+				this.removePeer(selectedPeer.id);
+			}
 		}
 
 		if (kind === InboundPeer) {
 			const evictionCandidates = this._selectPeersForEviction();
 			const peerToEvict = shuffle(evictionCandidates)[0];
-			this.removePeer(peerToEvict.id);
+			if (peerToEvict) {
+				this.removePeer(peerToEvict.id);
+			}
 		}
 	}
 

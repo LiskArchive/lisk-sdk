@@ -1943,38 +1943,14 @@ describe('Integration tests for P2P library', () => {
 		});
 	});
 
-	// TODO: #3335
-	describe.skip('Fully connected network with a custom maximum payload', () => {
-		const dataLargerThanMaxPayload = [
-			{
-				ip: '100.100.100.100',
-				os: 'linux4.18.0-20-generic',
-				version: '2.0.0-rc.0',
-				wsPort: 7001,
-				httpPort: 7000,
-				protocolVersion: '1.1',
-				height: 8691420,
-				broadhash:
-					'65b4ad0583d0222db11619ec86bd4ba154e0bf8bfd72a4b9ad38dbc26da65249',
-				nonce: 'V2IrG8mpOGx6LDuE',
-				state: 2,
-			},
-			{
-				ip: '100.100.100.100',
-				os: 'linux4.15.0-54-generic',
-				version: '2.0.0-rc.0',
-				wsPort: 7001,
-				httpPort: 7000,
-				protocolVersion: '1.1',
-				height: 8691420,
-				broadhash:
-					'65b4ad0583d0222db11619ec86bd4ba154e0bf8bfd72a4b9ad38dbc26da65249',
-				nonce: 'rbEj3J36NblYDEyd',
-				state: 2,
-			},
-		];
+	describe('Fully connected network with a custom maximum payload', () => {
+		let dataLargerThanMaxPayload: Array<string>;
 
 		beforeEach(async () => {
+			dataLargerThanMaxPayload = [];
+			for (let i = 0; i < 6000; i++) {
+				dataLargerThanMaxPayload.push(`message${i}`);
+			}
 			p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				// Each node will have the previous node in the sequence as a seed peer except the first node.
 				const seedPeers = [
@@ -1988,12 +1964,12 @@ describe('Integration tests for P2P library', () => {
 
 				return new P2P({
 					blacklistedPeers: [],
-					connectTimeout: 100,
+					connectTimeout: 200,
 					ackTimeout: 200,
 					seedPeers,
-					populatorInterval: POPULATOR_INTERVAL,
-					maxOutboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
-					maxInboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
+					populatorInterval: 30,
+					maxOutboundConnections: 10,
+					maxInboundConnections: 30,
 					wsEngine: 'ws',
 					nodeInfo: {
 						wsPort: nodePort,
@@ -2008,12 +1984,12 @@ describe('Integration tests for P2P library', () => {
 							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
 						nonce: `O2wTkjqplHII${nodePort}`,
 					},
-					wsMaxPayload: 500,
+					wsMaxPayload: 5000,
 				});
 			});
 
 			await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
-			await wait(100);
+			await wait(300);
 		});
 
 		afterEach(async () => {
@@ -2027,15 +2003,35 @@ describe('Integration tests for P2P library', () => {
 
 		describe('P2P.send', () => {
 			let collectedMessages: Array<any> = [];
+			let closedPeers: Map<number, any>;
 
 			beforeEach(() => {
 				collectedMessages = [];
+				closedPeers = new Map();
 				p2pNodeList.forEach(p2p => {
 					p2p.on('messageReceived', message => {
 						collectedMessages.push({
 							nodePort: p2p.nodeInfo.wsPort,
 							message,
 						});
+					});
+
+					p2p.on('closeInbound', packet => {
+						let peers = [];
+						if (closedPeers.has(p2p.nodeInfo.wsPort)) {
+							peers = closedPeers.get(p2p.nodeInfo.wsPort);
+						}
+						peers.push(packet.peerInfo);
+						closedPeers.set(p2p.nodeInfo.wsPort, peers);
+					});
+
+					p2p.on('closeOutbound', packet => {
+						let peers = [];
+						if (closedPeers.has(p2p.nodeInfo.wsPort)) {
+							peers = closedPeers.get(p2p.nodeInfo.wsPort);
+						}
+						peers.push(packet.peerInfo);
+						closedPeers.set(p2p.nodeInfo.wsPort, peers);
 					});
 				});
 			});
@@ -2054,18 +2050,29 @@ describe('Integration tests for P2P library', () => {
 
 			it('should disconnect the peer which has sent the message', async () => {
 				const firstP2PNode = p2pNodeList[0];
-
 				firstP2PNode.send({
 					event: 'maxPayload',
 					data: dataLargerThanMaxPayload,
 				});
-				await wait(100);
 
+				await wait(300);
+
+				const firstPeerDisconnectedList =
+					closedPeers.get(firstP2PNode.nodeInfo.wsPort) || [];
 				for (const p2pNode of p2pNodeList) {
+					const disconnectedList =
+						closedPeers.get(p2pNode.nodeInfo.wsPort) || [];
+					const wasFirstPeerDisconnected =
+						disconnectedList.some(
+							(peerInfo: any) => peerInfo.wsPort === 5000,
+						) ||
+						firstPeerDisconnectedList.some(
+							(peerInfo: any) => peerInfo.wsPort === p2pNode.nodeInfo.wsPort,
+						);
 					if (p2pNode.nodeInfo.wsPort === 5000) {
-						expect(p2pNode.getNetworkStatus().connectedPeers).to.be.empty;
+						expect(disconnectedList.length).to.be.gte(9);
 					} else {
-						expect(p2pNode.getNetworkStatus().connectedPeers).to.be.not.empty;
+						expect(wasFirstPeerDisconnected).to.be.true;
 					}
 				}
 			});
