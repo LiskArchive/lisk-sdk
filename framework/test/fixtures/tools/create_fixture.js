@@ -22,22 +22,20 @@ const {
 	getPrivateAndPublicKeyBytesFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
 const BigNum = require('@liskhq/bignum');
-const genesisBlock = require('./genesis_block');
+const genesisBlock = require('../config/devnet/genesis_block');
 const {
 	app: { genesisConfig },
 	modules: {
 		chain: { forging },
 	},
-} = require('./config');
-const blocksLogic = require('../../../../src/modules/chain/blocks/block');
-const {
-	BlockSlots,
-} = require('../../../../src/modules/chain/blocks/block_slots');
+} = require('../config/devnet/config');
+const blocksLogic = require('../../../src/modules/chain/blocks/block');
+const { BlockSlots } = require('../../../src/modules/chain/blocks/block_slots');
 const {
 	calculateMilestone,
 	calculateReward,
 	calculateSupply,
-} = require('../../../../src/modules/chain/blocks/block_reward');
+} = require('../../../src/modules/chain/blocks/block_reward');
 
 const NUMBER_OF_DELEGATE = 101;
 const TOTAL_AMOUNT = '10000000000000000';
