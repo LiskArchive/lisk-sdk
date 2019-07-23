@@ -4,7 +4,7 @@
 
 Lisk Commander is a command line tool which allows you to manage a Lisk node instance and interact with a Lisk compatible network.
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
 ## Installation
 
