@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -26,12 +26,15 @@ const apiHelpers = require('../../../common/helpers/api');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const common = require('./common');
 
-const { FEES, NORMALIZER } = global.constants;
+const { FEES } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 // FIXME: this function was used from transactions library, but it doesn't exist
 const createInTransfer = () => {};
 
-describe('POST /api/transactions (type 6) inTransfer dapp', () => {
+// Dapp InTransfer Transaction is not part of framework and can't be tested using test_app
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('POST /api/transactions (type 6) inTransfer dapp', () => {
 	let transaction;
 	const transactionsToWaitFor = [];
 	const badTransactions = [];
@@ -96,8 +99,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 			});
 	});
 
-	/* eslint-disable mocha/no-skipped-tests */
-
+	// eslint-disable-next-line
 	describe.skip('schema validations', () => {
 		common.invalidAssets('inTransfer', badTransactions);
 
@@ -280,7 +282,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 			});
 		});
 	});
-
+	// eslint-disable-next-line
 	describe.skip('transactions processing', () => {
 		it('using unknown dapp id should fail', async () => {
 			const unknownDappId = '1';
@@ -380,7 +382,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 			});
 		});
 	});
-
+	// eslint-disable-next-line
 	describe.skip('confirmation', () => {
 		phases.confirmation(goodTransactions, badTransactions);
 	});
@@ -407,8 +409,10 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal(
-					`Transaction type ${transaction.type} is frozen`
+				expect(res.body.message).to.eql('Invalid transaction body');
+				expect(res.body.code).to.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
+					'Transaction type 6 is currently not allowed.'
 				);
 			});
 		});

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -16,6 +16,7 @@
 
 // Init tests dependencies
 const rewire = require('rewire');
+
 // Instantiate test subject
 const Rounds = rewire('../../../../../../src/modules/chain/submodules/rounds');
 const Round = rewire('../../../../../../src/modules/chain/logic/round'); // eslint-disable-line no-unused-vars
@@ -60,9 +61,15 @@ describe('rounds', () => {
 			clearVotesSnapshot: sinon.stub(),
 			performVotesSnapshot: sinon.stub(),
 		},
+		Transaction: {
+			getOne: sinon.stub(),
+		},
 	};
 
-	const storage = new TestStorageSandbox(__testContext.config.db, storageStubs);
+	const storage = new TestStorageSandbox(
+		__testContext.config.components.storage,
+		storageStubs
+	);
 
 	const bindings = {
 		components: {
@@ -202,6 +209,7 @@ describe('rounds', () => {
 
 	describe('onFinishRound', () => {
 		beforeEach(() => {
+			validScope.channel.publish.resetHistory();
 			components.cache.isReady.returns(true);
 			return components.cache.removeByPattern.resetHistory();
 		});
@@ -235,11 +243,10 @@ describe('rounds', () => {
 			const backup = get(variable);
 			const value = true;
 			set(variable, value);
-			rounds.cleanup(() => {
-				expect(get(variable)).to.equal(false);
-				set(variable, backup);
-				done();
-			});
+			rounds.cleanup();
+			expect(get(variable)).to.equal(false);
+			set(variable, backup);
+			done();
 		});
 	});
 
@@ -842,6 +849,7 @@ describe('rounds', () => {
 		const backwardLand_stub = sinon.stub().resolves();
 		const sumRound_stub = sinon.stub().callsArg(1);
 		const getOutsiders_stub = sinon.stub().callsArg(1);
+		const updateRoundInformationForTransactionsStub = sinon.stub().callsArg(4);
 
 		beforeEach(async () => {
 			// Init fake round logic
@@ -855,6 +863,10 @@ describe('rounds', () => {
 			// Set more stubs
 			set('__private.sumRound', sumRound_stub);
 			set('__private.getOutsiders', getOutsiders_stub);
+			set(
+				'__private.updateRoundInformationForTransactions',
+				updateRoundInformationForTransactionsStub
+			);
 		});
 
 		afterEach(async () => {

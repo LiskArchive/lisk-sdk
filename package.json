@@ -1,119 +1,51 @@
 {
-	"name": "lisk",
-	"version": "1.6.0",
-	"description": "Lisk blockchain application platform",
-	"author":
-		"Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
-	"license": "GPL-3.0",
+	"name": "lisk-sdk-mono-repo",
 	"private": true,
-	"keywords": ["cryptocurrency", "blockchain", "lisk", "nodejs", "javascript"],
-	"homepage": "https://github.com/LiskHQ/lisk#readme",
+	"version": "0.1.0",
+	"description": "Reusable packages for use with the Lisk ecosystem",
+	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
+	"license": "Apache-2.0",
+	"keywords": [
+		"lisk",
+		"blockchain"
+	],
+	"homepage": "https://github.com/LiskHQ/lisk-sdk#readme",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/LiskHQ/lisk.git"
+		"url": "git+https://github.com/LiskHQ/lisk-sdk.git"
 	},
 	"bugs": {
-		"url": "https://github.com/LiskHQ/lisk/issues"
+		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
 	},
 	"engines": {
-		"node": "10.15.3",
-		"npm": "6.4.1"
+		"node": ">=8.10 <=10",
+		"npm": ">=3 <=6"
 	},
-	"main": "src/index.js",
 	"scripts": {
-		"start": "node src/index.js",
-		"console": "node scripts/console.js",
-		"lint": "eslint .",
-		"lint:fix": "eslint --fix .",
-		"format":
-			"prettier --write \"./*.{js,json,md}\" \"{api,config,docs,helpers,logic,modules,schema,scripts,storage,tasks,test,framework}{,/**}/*.{js,json,md}\"",
-		"test": "node framework/test/mocha/common/lisk-mocha-runner",
-		"mocha": "mocha",
-		"jest:unit":
-			"jest --config=./framework/test/jest/config/unit/jest.config.js",
-		"jest:integration":
-			"jest --config=./framework/test/jest/config/integration/jest.config.js",
-		"jest:functional":
-			"jest --config=./framework/test/jest/config/functional/jest.config.js --passWithNoTests",
-		"mocha:unit": "node framework/test/mocha/common/lisk-mocha-runner unit",
-		"mocha:integration":
-			"node framework/test/mocha/common/lisk-mocha-runner integration",
-		"mocha:functional":
-			"node framework/test/mocha/common/lisk-mocha-runner functional",
-		"mocha:functional:ws":
-			"node framework/test/mocha/common/lisk-mocha-runner functional:ws",
-		"mocha:functional:get":
-			"node framework/test/mocha/common/lisk-mocha-runner functional:get",
-		"mocha:functional:post":
-			"node framework/test/mocha/common/lisk-mocha-runner functional:post",
-		"mocha:functional:put":
-			"node framework/test/mocha/common/lisk-mocha-runner functional:put",
-		"mocha:network":
-			"node framework/test/mocha/common/lisk-mocha-runner network",
-		"docs:build": "jsdoc -c docs/conf.json --verbose --pedantic",
-		"docs:serve": "http-server docs/jsdoc/",
-		"check:dependencies": "snyk protect",
-		"prepublishOnly": "npm run check:dependencies"
+		"bootstrap": "lerna bootstrap --hoist",
+		"clean": "lerna run clean",
+		"clean:node_modules": "lerna clean --yes",
+		"format": "npm run format:root && lerna run format",
+		"format:root": "prettier --write types/**/*.ts",
+		"lint": "npm run lint:root && lerna run lint",
+		"lint:fix": "npm run lint:root -- --fix && lerna run lint:fix",
+		"lint:root": "tslint -p tsconfig.json types/**/*.ts",
+		"test": "lerna run test",
+		"test:node": "lerna run test:node",
+		"test:browser": "lerna run test:browser",
+		"build": "lerna run build",
+		"build:browsertest": "lerna run build:browsertest",
+		"cover": "lerna run cover",
+		"init": "./scripts/init.sh"
 	},
-	"dependencies": {
-		"ajv": "6.7.0",
-		"async": "2.6.1",
-		"pm2-axon": "3.3.0",
-		"pm2-axon-rpc": "0.5.1",
-		"bignumber.js": "8.0.2",
-		"bluebird": "3.5.3",
-		"body-parser": "1.18.3",
-		"bytebuffer": "5.0.1",
-		"change-case": "3.1.0",
-		"colors": "1.3.3",
-		"commander": "2.19.0",
-		"compression": "1.7.3",
-		"cors": "2.8.5",
-		"debug": "4.1.1",
-		"deep-diff": "1.0.2",
-		"eventemitter2": "=5.0.1",
-		"express": "4.16.4",
-		"express-domain-middleware": "0.1.0",
-		"express-query-int": "3.0.0",
-		"express-rate-limit": "2.8.0",
-		"fs-extra": "7.0.1",
-		"ip": "1.1.5",
-		"js-yaml": "3.12.1",
-		"json-refs": "3.0.12",
-		"lisk-commander": "2.0.0",
-		"@liskhq/lisk-transactions": "2.0.0",
-		"@liskhq/lisk-cryptography": "2.0.0",
-		"lisk-newrelic": "LiskHQ/lisk-newrelic#b3dadc5",
-		"lodash": "4.17.11",
-		"method-override": "3.0.0",
-		"newrelic": "5.0.0",
-		"pg-monitor": "1.1.0",
-		"pg-promise": "8.5.4",
-		"pm2": "3.2.8",
-		"popsicle": "9.1.0",
-		"ps-list": "6.1.0",
-		"randomstring": "1.1.5",
-		"redis": "2.8.0",
-		"rimraf": "2.6.3",
-		"semver": "5.6.0",
-		"socket.io": "2.2.0",
-		"socketcluster": "14.3.3",
-		"socketcluster-client": "14.2.1",
-		"sodium-native": "2.2.4",
-		"strftime": "0.10.0",
-		"swagger-node-runner": "0.7.3",
-		"sway": "2.0.5",
-		"tempy": "0.2.1",
-		"valid-url": "1.0.9",
-		"wamp-socket-cluster": "2.0.0-beta.4",
-		"z-schema": "3.24.2"
+	"husky": {
+		"hooks": {
+			"pre-commit": "lint-staged"
+		}
 	},
 	"devDependencies": {
-		"browserify-bignum": "1.3.0-2",
-		"chai": "4.2.0",
-		"chai-as-promised": "7.1.1",
-		"co-mocha": "1.2.2",
-		"coveralls": "3.0.2",
+		"@types/node": "10.12.21",
+		"@types/sinon": "7.0.5",
 		"eslint": "5.12.0",
 		"eslint-config-airbnb-base": "13.1.0",
 		"eslint-config-lisk-base": "1.1.0",
@@ -121,38 +53,14 @@
 		"eslint-plugin-import": "2.14.0",
 		"eslint-plugin-jest": "22.3.0",
 		"eslint-plugin-mocha": "5.3.0",
-		"faker": "4.1.0",
-		"find": "0.2.9",
-		"http-server": "0.11.1",
 		"husky": "1.3.1",
-		"istanbul": "1.1.0-alpha.1",
-		"istanbul-middleware": "0.2.2",
-		"jest": "24.5.0",
-		"jest-extended": "0.11.1",
-		"jsdoc": "3.5.5",
-		"jsdox": "0.4.10",
-		"lint-staged": "8.1.0",
-		"mocha": "5.2.0",
-		"moment": "2.23.0",
-		"node-mocks-http": "^1.7.3",
-		"prettier": "1.10.2",
-		"rewire": "4.0.1",
-		"rx": "4.1.0",
-		"sinon": "7.2.2",
-		"sinon-chai": "3.3.0",
-		"snyk": "^1.122.0",
-		"stampit": "4.2.0",
-		"supertest": "3.3.0"
+		"lerna": "3.14.1",
+		"lint-staged": "8.1.3",
+		"prettier": "1.16.4",
+		"tslint": "5.12.1",
+		"tslint-config-prettier": "1.18.0",
+		"tslint-immutable": "5.1.2",
+		"typescript": "3.3.1"
 	},
-	"snyk": true,
-	"lisk": {
-		"minVersion": "1.0.0",
-		"protocolVersion": "1.0"
-	},
-	"husky": {
-		"hooks": {
-			"pre-commit": "lint-staged",
-			"pre-push": "eslint $(git ls-files '*.js') && npm run check:dependencies"
-		}
-	}
+	"dependencies": {}
 }

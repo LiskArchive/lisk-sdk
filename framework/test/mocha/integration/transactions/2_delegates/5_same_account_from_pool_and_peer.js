@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -19,15 +19,14 @@ const expect = require('chai').expect;
 const accountFixtures = require('../../../fixtures/accounts');
 const localCommon = require('../../common');
 const randomUtil = require('../../../common/utils/random');
-const Bignum = require('../../../../../src/modules/chain/helpers/bignum');
 
-const { NORMALIZER } = global.constants;
-
+const { NORMALIZER } = global.__testContext.config;
+// eslint-disable-next-line
 describe('delegate', () => {
 	let library;
 	let storage;
 
-	localCommon.beforeBlock('system_2_2_delegates_5', lib => {
+	localCommon.beforeBlock('2_2_delegates_5', lib => {
 		library = lib;
 		storage = lib.components.storage;
 	});
@@ -38,7 +37,7 @@ describe('delegate', () => {
 				storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
 				storage.adapter.db.none('DELETE FROM forks_stat;'),
 			]);
-		}).then(() => {
+		}).then(async () => {
 			library.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
 			done();
 		});
@@ -54,7 +53,13 @@ describe('delegate', () => {
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: delegateAccount.address,
 			});
-			localCommon.addTransactionsAndForge(library, [sendTransaction], done);
+			localCommon.addTransactionsAndForge(
+				library,
+				[sendTransaction],
+				async () => {
+					library.logic.account.get({ address: delegateAccount.address }, done);
+				}
+			);
 		});
 
 		describe('with delegate transaction in unconfirmed state', () => {
@@ -68,12 +73,12 @@ describe('delegate', () => {
 					passphrase: delegateAccount.passphrase,
 					username,
 				});
-				delegateTransaction.amount = new Bignum(delegateTransaction.amount);
-				delegateTransaction.fee = new Bignum(delegateTransaction.fee);
 				localCommon.addTransactionToUnconfirmedQueue(
 					library,
 					delegateTransaction,
-					done
+					async () => {
+						done();
+					}
 				);
 			});
 
@@ -90,25 +95,9 @@ describe('delegate', () => {
 					);
 				});
 
-				describe('unconfirmed state', () => {
-					it('should update unconfirmed columns related to delegate', done => {
-						library.sequence.add(seqCb => {
-							localCommon
-								.getAccountFromDb(library, delegateAccount.address)
-								.then(account => {
-									expect(account).to.exist;
-									expect(account.mem_accounts.u_username).to.equal(username);
-									expect(account.mem_accounts.u_isDelegate).to.equal(1);
-									seqCb();
-									done();
-								});
-						});
-					});
-				});
-
 				describe('confirmed state', () => {
 					it('should update confirmed columns related to delegate', done => {
-						library.sequence.add(seqCb => {
+						library.sequence.add(async seqCb => {
 							localCommon
 								.getAccountFromDb(library, delegateAccount.address)
 								.then(account => {
@@ -133,9 +122,6 @@ describe('delegate', () => {
 						passphrase: delegateAccount.passphrase,
 						username: username2,
 					});
-					delegateTransaction2.senderId = delegateAccount.address;
-					delegateTransaction2.amount = new Bignum(delegateTransaction2.amount);
-					delegateTransaction2.fee = new Bignum(delegateTransaction2.fee);
 					localCommon.createValidBlock(
 						library,
 						[delegateTransaction2],
@@ -145,22 +131,6 @@ describe('delegate', () => {
 							done();
 						}
 					);
-				});
-
-				describe('unconfirmed state', () => {
-					it('should update unconfirmed columns related to delegate', done => {
-						library.sequence.add(seqCb => {
-							localCommon
-								.getAccountFromDb(library, delegateAccount.address)
-								.then(account => {
-									expect(account).to.exist;
-									expect(account.mem_accounts.u_username).to.equal(username2);
-									expect(account.mem_accounts.u_isDelegate).to.equal(1);
-									seqCb();
-									done();
-								});
-						});
-					});
 				});
 
 				describe('confirmed state', () => {

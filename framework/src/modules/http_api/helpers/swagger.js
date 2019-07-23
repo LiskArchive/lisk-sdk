@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -20,7 +20,7 @@ const jsonRefs = require('json-refs');
 const _ = require('lodash');
 const YAML = require('js-yaml');
 const SwayHelpers = require('sway/lib/helpers');
-const { ZSchema } = require('../../../controller/helpers/validator');
+const { formats } = require('../../../controller/validator');
 
 // Used as private member to cache the spec resolution process
 let resolvedSwaggerSpec = null;
@@ -49,12 +49,9 @@ function getValidator() {
 	const validator = SwayHelpers.getJSONSchemaValidator();
 
 	// Register lisk formats with swagger
-	Object.keys(ZSchema.formatsCache).forEach(formatName => {
+	Object.keys(formats).forEach(formatName => {
 		// Extend swagger validator with our formats
-		validator.constructor.registerFormat(
-			formatName,
-			ZSchema.formatsCache[formatName]
-		);
+		validator.constructor.registerFormat(formatName, formats[formatName]);
 	});
 
 	return validator;

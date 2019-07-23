@@ -1,5 +1,5 @@
 ####################################################################################
-# Copyright © 2018 Lisk Foundation
+# Copyright © 2019 Lisk Foundation
 #
 # See the LICENSE file at the top-level directory of this distribution
 # for licensing information.
@@ -15,15 +15,13 @@
 
 # values in the swagger hash are system configuration for swagger-node
 swagger:
-
-  fittingsDirs: [ ./fittings ]
+  fittingsDirs: [./fittings]
   defaultPipe: null
-  swaggerControllerPipe: swagger_controllers  # defines the standard processing pipe for controllers
+  swaggerControllerPipe: swagger_controllers # defines the standard processing pipe for controllers
 
   # values defined in the bagpipes key are the bagpipes pipes and fittings definitions
   # (see https://github.com/apigee-127/bagpipes)
   bagpipes:
-
     _request_limit:
       name: lisk_request_limit
 
@@ -37,8 +35,8 @@ swagger:
     _router:
       name: swagger_router
       mockMode: false
-      mockControllersDirs: [ ./mocks ]
-      controllersDirs: [ ./controllers ]
+      mockControllersDirs: [./mocks]
+      controllersDirs: [./controllers]
       controllersInterface: pipe
 
     _swagger_validate:
@@ -53,7 +51,7 @@ swagger:
       multerOptions:
         inMemory: true
       textOptions:
-        type: "*/*"
+        type: '*/*'
 
     _json_error_handler:
       name: lisk_error_handler

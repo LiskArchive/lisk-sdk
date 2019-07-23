@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -21,7 +21,7 @@ const {
 const Scenarios = require('../../../common/scenarios');
 const localCommon = require('../../common');
 
-describe('system test (type 4) - double multisignature registrations', () => {
+describe('integration test (type 4) - double multisignature registrations', () => {
 	let library;
 
 	const scenarios = {
@@ -54,7 +54,7 @@ describe('system test (type 4) - double multisignature registrations', () => {
 		return scenarios.regular.multiSigTransaction.signatures.push(signature);
 	});
 
-	localCommon.beforeBlock('system_4_4_multisig', lib => {
+	localCommon.beforeBlock('4_4_multisig', lib => {
 		library = lib;
 	});
 
@@ -71,17 +71,6 @@ describe('system test (type 4) - double multisignature registrations', () => {
 	it('adding to pool multisig registration should be ok', done => {
 		localCommon.addTransaction(
 			library,
-			transactionToBeNotConfirmed,
-			(err, res) => {
-				expect(res).to.equal(transactionToBeNotConfirmed.id);
-				done();
-			}
-		);
-	});
-
-	it('adding to pool same transaction with different timestamp should be ok', done => {
-		localCommon.addTransaction(
-			library,
 			scenarios.regular.multiSigTransaction,
 			(err, res) => {
 				expect(res).to.equal(scenarios.regular.multiSigTransaction.id);
@@ -90,28 +79,27 @@ describe('system test (type 4) - double multisignature registrations', () => {
 		);
 	});
 
+	it('adding to pool same transaction with different timestamp should be ok', done => {
+		localCommon.addTransaction(
+			library,
+			transactionToBeNotConfirmed,
+			(err, res) => {
+				expect(res).to.equal(transactionToBeNotConfirmed.id);
+				done();
+			}
+		);
+	});
+
 	describe('after forging one block', () => {
 		before(done => {
-			localCommon.forge(library, async () => {
-				done();
+			localCommon.fillPool(library, () => {
+				localCommon.forge(library, async () => {
+					done();
+				});
 			});
 		});
 
-		it('first transaction to arrive should not be included', done => {
-			const filter = {
-				id: transactionToBeNotConfirmed.id,
-			};
-			localCommon.getTransactionFromModule(library, filter, (err, res) => {
-				expect(err).to.be.null;
-				expect(res)
-					.to.have.property('transactions')
-					.which.is.an('Array');
-				expect(res.transactions.length).to.equal(0);
-				done();
-			});
-		});
-
-		it('last transaction to arrive should be included', done => {
+		it('first transaction to arrive should be included', done => {
 			const filter = {
 				id: scenarios.regular.multiSigTransaction.id,
 			};
@@ -128,6 +116,20 @@ describe('system test (type 4) - double multisignature registrations', () => {
 			});
 		});
 
+		it('last transaction to arrive should not be included', done => {
+			const filter = {
+				id: transactionToBeNotConfirmed.id,
+			};
+			localCommon.getTransactionFromModule(library, filter, (err, res) => {
+				expect(err).to.be.null;
+				expect(res)
+					.to.have.property('transactions')
+					.which.is.an('Array');
+				expect(res.transactions.length).to.equal(0);
+				done();
+			});
+		});
+
 		it('adding to pool multisignature registration for same account should fail', done => {
 			const multiSignatureToSameAccount = registerMultisignature({
 				passphrase: scenarios.regular.account.passphrase,
@@ -137,7 +139,15 @@ describe('system test (type 4) - double multisignature registrations', () => {
 				timeOffset: -10000,
 			});
 			localCommon.addTransaction(library, multiSignatureToSameAccount, err => {
-				expect(err).to.equal('Account already has multisignatures enabled');
+				const expectedErrors = [
+					`Transaction: ${
+						multiSignatureToSameAccount.id
+					} failed at .signatures: Missing signatures `,
+					`Transaction: ${
+						multiSignatureToSameAccount.id
+					} failed at .signatures: Register multisignature only allowed once per account.`,
+				];
+				expect(err).to.equal(expectedErrors.join(','));
 				done();
 			});
 		});

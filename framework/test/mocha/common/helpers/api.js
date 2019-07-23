@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -149,48 +149,48 @@ function getTransactions(params, cb) {
 
 function getUnconfirmedTransaction(transaction, cb) {
 	http.get(
-		`/api/node/transactions/unconfirmed?id=${transaction}`,
+		`/api/node/transactions/ready?id=${transaction}`,
 		httpResponseCallbackHelper.bind(null, cb)
 	);
 }
 
 function getUnconfirmedTransactions(cb) {
 	http.get(
-		'/api/node/transactions/unconfirmed',
+		'/api/node/transactions/ready',
 		httpResponseCallbackHelper.bind(null, cb)
 	);
 }
 
 function getQueuedTransaction(transaction, cb) {
 	http.get(
-		`/api/node/transactions/unprocessed?id=${transaction}`,
+		`/api/node/transactions/verified?id=${transaction}`,
 		httpResponseCallbackHelper.bind(null, cb)
 	);
 }
 
 function getQueuedTransactions(cb) {
 	http.get(
-		'/api/node/transactions/unprocessed',
+		'/api/node/transactions/verified',
 		httpResponseCallbackHelper.bind(null, cb)
 	);
 }
 
 function getMultisignaturesTransaction(transaction, cb) {
 	http.get(
-		`/api/node/transactions/unsigned?id=${transaction}`,
+		`/api/node/transactions/pending?id=${transaction}`,
 		httpResponseCallbackHelper.bind(null, cb)
 	);
 }
 
 function getMultisignaturesTransactions(cb) {
 	http.get(
-		'/api/node/transactions/unsigned',
+		'/api/node/transactions/pending',
 		httpResponseCallbackHelper.bind(null, cb)
 	);
 }
 
 function getPendingMultisignatures(params, cb) {
-	let url = '/api/node/transactions/unsigned';
+	let url = '/api/node/transactions/pending';
 	url = paramsHelper(url, params);
 
 	http.get(url, httpResponseCallbackHelper.bind(null, cb));

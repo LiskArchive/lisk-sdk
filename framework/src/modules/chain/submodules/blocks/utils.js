@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -38,18 +38,17 @@ let self;
  * @todo Add description for the params
  */
 class Utils {
-	constructor(logger, account, block, transaction, storage, genesisBlock) {
+	constructor(logger, account, block, initTransaction, storage, genesisBlock) {
 		library = {
 			logger,
 			account,
 			block,
-			transaction,
 			storage,
 			genesisBlock,
 			logic: {
 				account,
 				block,
-				transaction,
+				initTransaction,
 			},
 		};
 		self = this;
@@ -88,7 +87,8 @@ Utils.prototype.readDbRows = function(rows) {
 			}
 
 			// Normalize transaction
-			const transaction = library.logic.transaction.dbRead(rows[i]);
+			const transaction = library.logic.initTransaction.dbRead(rows[i]);
+
 			// Set empty object if there are no transactions in block
 			blocks[block.id].transactions = blocks[block.id].transactions || {};
 
@@ -132,9 +132,7 @@ Utils.prototype.readStorageRows = function(rows) {
 
 			// Normalize transaction
 			if (block.transactions) {
-				block.transactions = block.transactions.map(
-					library.logic.transaction.storageRead
-				);
+				block.transactions = library.logic.initTransaction.fromBlock(block);
 			}
 		}
 		return block;
@@ -160,7 +158,6 @@ Utils.prototype.loadBlocksPart = function(filter, cb, tx) {
 		filter,
 		(err, rows) => {
 			let blocks;
-
 			if (!err) {
 				// Normalize list of blocks
 				blocks = self.readDbRows(rows);
@@ -306,7 +303,6 @@ Utils.prototype.loadBlockByHeight = function(height, cb, tx) {
  */
 Utils.prototype.loadBlocksData = function(filter, cb, tx) {
 	const params = { limit: filter.limit || 1 };
-
 	// FIXME: filter.id is not used
 	if (filter.id && filter.lastId) {
 		return setImmediate(cb, 'Invalid filter: Received both id and lastId');
@@ -346,7 +342,6 @@ Utils.prototype.loadBlocksData = function(filter, cb, tx) {
 				queryFilters.height_gt = mergedParams.height;
 				queryFilters.height_lt = mergedParams.limit;
 			}
-
 			// Retrieve blocks from database
 			return library.storage.entities.Block.get(
 				queryFilters,
@@ -515,7 +510,10 @@ Utils.prototype._parseStorageObjToLegacyObj = function(block) {
 			v_votes: t.asset && t.asset.votes ? t.asset.votes.join(',') : null,
 			m_min: _.get(t, 'asset.multisignature.min', null),
 			m_lifetime: _.get(t, 'asset.multisignature.lifetime', null),
-			m_keysgroup: _.get(t, 'asset.multisignature.keysgroup', null),
+			m_keysgroup:
+				t.asset && t.asset.multisignature && t.asset.multisignature.keysgroup
+					? t.asset.multisignature.keysgroup.join(',')
+					: null,
 			dapp_name: _.get(t, 'asset.dapp.name', null),
 			dapp_description: _.get(t, 'asset.dapp.description', null),
 			dapp_tags: _.get(t, 'asset.dapp.tags', null),
@@ -595,7 +593,7 @@ Utils.prototype.getBlockProgressLogger = function(
 		this.log = function() {
 			library.logger.info(
 				loggerMsg,
-				`${(this.applied / this.target * 100).toPrecision(4)} %: applied ${
+				`${((this.applied / this.target) * 100).toPrecision(4)} %: applied ${
 					this.applied
 				} of ${this.target} transactions`
 			);

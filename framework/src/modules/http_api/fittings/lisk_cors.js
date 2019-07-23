@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -36,8 +36,8 @@ module.exports = function create(fittingDef) {
 	const config = modules.getConfig();
 
 	const middleware = new CORS({
-		origin: config.api.options.cors.origin,
-		methods: config.api.options.cors.methods,
+		origin: config.options.cors.origin,
+		methods: config.options.cors.methods,
 	});
 
 	/**

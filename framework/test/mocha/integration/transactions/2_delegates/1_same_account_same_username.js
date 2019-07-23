@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -19,11 +19,11 @@ const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
 
-const { NORMALIZER } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 
-describe('system test (type 2) - double delegate registrations', () => {
+describe('integration test (type 2) - double delegate registrations', () => {
 	let library;
-	localCommon.beforeBlock('system_2_2_delegates_1', lib => {
+	localCommon.beforeBlock('2_2_delegates_1', lib => {
 		library = lib;
 	});
 
@@ -79,14 +79,35 @@ describe('system test (type 2) - double delegate registrations', () => {
 
 				describe('after forging one block', () => {
 					before(done => {
-						localCommon.forge(library, async () => {
-							done();
+						localCommon.fillPool(library, () => {
+							localCommon.forge(library, async () => {
+								done();
+							});
 						});
 					});
 
-					it('first delegate registration to arrive should not be included', done => {
+					it('first delegate registration to arrive should be included', done => {
 						const filter = {
 							id: transaction1.id,
+						};
+						localCommon.getTransactionFromModule(
+							library,
+							filter,
+							(err, res) => {
+								expect(err).to.be.null;
+								expect(res)
+									.to.have.property('transactions')
+									.which.is.an('Array');
+								expect(res.transactions.length).to.equal(1);
+								expect(res.transactions[0].id).to.equal(transaction1.id);
+								done();
+							}
+						);
+					});
+
+					it('last delegate registration to arrive should not be included', done => {
+						const filter = {
+							id: transaction2.id,
 						};
 						localCommon.getTransactionFromModule(
 							library,
@@ -102,32 +123,17 @@ describe('system test (type 2) - double delegate registrations', () => {
 						);
 					});
 
-					it('last delegate registration to arrive should be included', done => {
-						const filter = {
-							id: transaction2.id,
-						};
-						localCommon.getTransactionFromModule(
-							library,
-							filter,
-							(err, res) => {
-								expect(err).to.be.null;
-								expect(res)
-									.to.have.property('transactions')
-									.which.is.an('Array');
-								expect(res.transactions.length).to.equal(1);
-								expect(res.transactions[0].id).to.equal(transaction2.id);
-								done();
-							}
-						);
-					});
-
 					it('adding to pool delegate registration from same account should fail', done => {
 						transaction2 = registerDelegate({
 							passphrase: account.passphrase,
 							username: randomUtil.delegateName(),
 						});
 						localCommon.addTransaction(library, transaction2, err => {
-							expect(err).to.equal('Account is already a delegate');
+							expect(err).to.equal(
+								`Transaction: ${
+									transaction2.id
+								} failed at .asset.delegate.username: Account is already a delegate`
+							);
 							done();
 						});
 					});

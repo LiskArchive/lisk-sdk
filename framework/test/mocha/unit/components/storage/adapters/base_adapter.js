@@ -1,6 +1,6 @@
 /* eslint-disable mocha/no-pending-tests */
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -80,6 +80,11 @@ describe('BaseAdapter', () => {
 		});
 
 		describe('loadSQLFile', () => {
+			it('should throw error', async () =>
+				expect(adapter.connect).to.throw(ImplementationPendingError));
+		});
+
+		describe('loadSQLFiles', () => {
 			it('should throw error', async () =>
 				expect(adapter.connect).to.throw(ImplementationPendingError));
 		});

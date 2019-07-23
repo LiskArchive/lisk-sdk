@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -55,13 +55,12 @@ describe('signatures/api', () => {
 	});
 
 	describe('postSignature', () => {
-		describe('when err.message = "Error processing signature"', () => {
+		describe('when data.code = "PROCESSING_ERROR', () => {
 			beforeEach(async () => {
 				channelStub = SignaturesController.__set__('channel', {
 					invoke: sinonSandbox.stub().resolves({
 						success: false,
-						message:
-							'Error processing signature: Unable to process signature, corresponding transaction not found',
+						code: apiCodes.PROCESSING_ERROR,
 					}),
 				});
 			});
@@ -72,17 +71,17 @@ describe('signatures/api', () => {
 				));
 
 			it('should call callback with ApiError containing code = 409', async () =>
-				postSignature(contextStub, err =>
-					expect(err.code).to.equal(apiCodes.PROCESSING_ERROR)
-				));
+				postSignature(contextStub, err => {
+					expect(err.code).to.equal(apiCodes.PROCESSING_ERROR);
+				}));
 		});
 
-		describe('when err.message = "Invalid signature body"', () => {
+		describe('when data.code = "BAD_REQUEST', () => {
 			beforeEach(async () => {
 				channelStub = SignaturesController.__set__('channel', {
 					invoke: sinonSandbox
 						.stub()
-						.resolves({ success: false, message: 'Invalid signature body' }),
+						.resolves({ success: false, code: apiCodes.BAD_REQUEST }),
 				});
 			});
 
@@ -97,7 +96,7 @@ describe('signatures/api', () => {
 				channelStub = SignaturesController.__set__('channel', {
 					invoke: sinonSandbox
 						.stub()
-						.resolves({ success: false, message: 'Bad stuff happened' }),
+						.resolves({ success: false, code: apiCodes.INTERNAL_SERVER_ERROR }),
 				});
 			});
 

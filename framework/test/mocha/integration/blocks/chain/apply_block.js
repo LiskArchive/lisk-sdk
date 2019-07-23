@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -16,21 +16,24 @@
 
 const async = require('async');
 const expect = require('chai').expect;
+const { transfer, registerDelegate } = require('@liskhq/lisk-transactions');
 const {
-	transfer,
-	registerSecondPassphrase,
-	registerDelegate,
-} = require('@liskhq/lisk-transactions');
+	registeredTransactions,
+} = require('../../../common/registered_transactions');
+const InitTransaction = require('../../../../../src/modules/chain/logic/init_transaction.js');
+
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
 
-describe('system test (blocks) - chain/applyBlock', () => {
+const initTransaction = new InitTransaction({ registeredTransactions });
+
+describe('integration test (blocks) - chain/applyBlock', () => {
 	const transferAmount = (100000000 * 100).toString();
 	let library;
 	let storage;
 
-	localCommon.beforeBlock('system_blocks_chain_apply_block', lib => {
+	localCommon.beforeBlock('blocks_chain_apply_block', lib => {
 		library = lib;
 		storage = library.components.storage;
 	});
@@ -116,8 +119,7 @@ describe('system test (blocks) - chain/applyBlock', () => {
 				passphrase: blockAccount2.passphrase,
 				username: blockAccount2.username,
 			});
-			blockTransaction1.senderId = blockAccount1.address;
-			blockTransaction2.senderId = blockAccount2.address;
+
 			localCommon.createValidBlock(
 				library,
 				[blockTransaction1, blockTransaction2],
@@ -126,144 +128,6 @@ describe('system test (blocks) - chain/applyBlock', () => {
 					done(err);
 				}
 			);
-		});
-
-		describe('undoUnconfirmedList', () => {
-			let transaction3;
-			let transaction4;
-
-			beforeEach('with transactions in unconfirmed queue', done => {
-				transaction3 = registerSecondPassphrase({
-					passphrase: poolAccount3.passphrase,
-					secondPassphrase: poolAccount3.secondPassphrase,
-				});
-
-				transaction4 = registerSecondPassphrase({
-					passphrase: poolAccount4.passphrase,
-					secondPassphrase: poolAccount4.secondPassphrase,
-				});
-
-				transaction3.senderId = poolAccount3.address;
-				transaction4.senderId = poolAccount4.address;
-
-				async.map(
-					[transaction3, transaction4],
-					(transaction, eachCb) => {
-						localCommon.addTransaction(library, transaction, err => {
-							expect(err).to.not.exist;
-							eachCb();
-						});
-					},
-					err => {
-						expect(err).to.not.exist;
-						localCommon.fillPool(library, done);
-					}
-				);
-			});
-
-			it('should have transactions from pool in unconfirmed state', done => {
-				async.forEach(
-					[poolAccount3, poolAccount4],
-					(account, eachCb) => {
-						localCommon
-							.getAccountFromDb(library, account.address)
-							.then(accountRow => {
-								expect(1).to.equal(accountRow.mem_accounts.u_secondSignature);
-								eachCb();
-							});
-					},
-					done
-				);
-			});
-
-			describe('after applying a new block', () => {
-				beforeEach(done => {
-					library.modules.blocks.chain.applyBlock(block, true, done);
-				});
-
-				it('should undo unconfirmed transactions', done => {
-					async.forEach(
-						[poolAccount3, poolAccount4],
-						(account, eachCb) => {
-							localCommon
-								.getAccountFromDb(library, account.address)
-								.then(accountRow => {
-									expect(0).to.equal(accountRow.mem_accounts.u_secondSignature);
-									eachCb();
-								});
-						},
-						done
-					);
-				});
-			});
-		});
-
-		describe('applyUnconfirmedStep', () => {
-			describe('after applying new block fails on applyUnconfirmedStep', () => {
-				beforeEach(done => {
-					// Making block invalid
-					block.transactions[0].asset.delegate.username =
-						block.transactions[1].asset.delegate.username;
-					library.modules.blocks.chain.applyBlock(block, true, async () =>
-						done()
-					);
-				});
-
-				it('should have pooled transactions in queued state', done => {
-					async.forEach(
-						[poolAccount3, poolAccount4],
-						(account, eachCb) => {
-							localCommon
-								.getAccountFromDb(library, account.address)
-								.then(accountRow => {
-									expect(0).to.equal(accountRow.mem_accounts.u_secondSignature);
-									eachCb();
-								});
-						},
-						done
-					);
-				});
-
-				it('should not applyUnconfirmedStep on block transactions', done => {
-					async.forEach(
-						[blockAccount1, blockAccount2],
-						(account, eachCb) => {
-							localCommon
-								.getAccountFromDb(library, account.address)
-								.then(accountRow => {
-									expect(accountRow.mem_accounts.u_username).to.eql(null);
-									expect(accountRow.mem_accounts.u_isDelegate).to.equal(0);
-									eachCb();
-								});
-						},
-						done
-					);
-				});
-			});
-
-			describe('after applying new block passes', () => {
-				beforeEach(done => {
-					library.modules.blocks.chain.applyBlock(block, true, done);
-				});
-
-				it('should applyUnconfirmedStep for block transactions', done => {
-					async.forEach(
-						[blockAccount1, blockAccount2],
-						(account, eachCb) => {
-							localCommon
-								.getAccountFromDb(library, account.address)
-								.then(accountRow => {
-									expect(accountRow.mem_accounts.u_username).to.equal(
-										account.username
-									);
-									expect(accountRow.mem_accounts.u_isDelegate).to.equal(1);
-									eachCb();
-								});
-						},
-						done
-					);
-				});
-			});
 		});
 
 		describe('applyConfirmedStep', () => {
@@ -294,9 +158,10 @@ describe('system test (blocks) - chain/applyBlock', () => {
 							localCommon
 								.getAccountFromDb(library, account.address)
 								.then(accountRow => {
-									expect(0).to.equal(accountRow.mem_accounts.u_secondSignature);
+									expect(0).to.equal(accountRow.mem_accounts.secondSignature);
 									eachCb();
-								});
+								})
+								.catch(err => eachCb(err));
 						},
 						done
 					);
@@ -321,9 +186,6 @@ describe('system test (blocks) - chain/applyBlock', () => {
 										expect(accountRow.mem_accounts.username).to.eql(null);
 										expect(accountRow.mem_accounts.isDelegate).to.equal(0);
 									}
-
-									expect(accountRow.mem_accounts.u_username).to.equal(null);
-									expect(accountRow.mem_accounts.u_isDelegate).to.equal(0);
 									eachCb();
 								});
 						},
@@ -377,7 +239,7 @@ describe('system test (blocks) - chain/applyBlock', () => {
 					transactions: [
 						{
 							type: 0,
-							amount: 10000000000000000,
+							amount: '10000000000000000',
 							fee: 0,
 							timestamp: -3704634000,
 							recipientId: '16313739661670634666L',
@@ -388,7 +250,7 @@ describe('system test (blocks) - chain/applyBlock', () => {
 								'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05',
 							id: '1465651642158264048',
 						},
-					],
+					].map(transaction => initTransaction.fromJson(transaction)),
 					version: 0,
 					id: '884740302254229983',
 				};
@@ -450,9 +312,10 @@ describe('system test (blocks) - chain/applyBlock', () => {
 							localCommon
 								.getAccountFromDb(library, account.address)
 								.then(accountRow => {
-									expect(0).to.equal(accountRow.mem_accounts.u_secondSignature);
+									expect(0).to.equal(accountRow.mem_accounts.secondSignature);
 									eachCb();
-								});
+								})
+								.catch(err => eachCb(err));
 						},
 						done
 					);

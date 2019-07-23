@@ -1,4 +1,21 @@
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const assert = require('assert');
+
 const { eventWithModuleNameReg } = require('./channels/base/constants');
 
 /**
@@ -65,10 +82,17 @@ class Event {
 	 * @return {module.Event}
 	 */
 	static deserialize(data) {
-		let object = null;
-		if (typeof data === 'string') object = JSON.parse(data);
-		else object = data;
-		return new Event(`${object.module}:${object.name}`, object.data);
+		let parsedEvent = null;
+		if (typeof data === 'string') {
+			parsedEvent = JSON.parse(data);
+		} else {
+			parsedEvent = data;
+		}
+
+		return new Event(
+			`${parsedEvent.module}:${parsedEvent.name}`,
+			parsedEvent.data
+		);
 	}
 }
 

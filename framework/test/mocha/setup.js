@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -23,28 +23,16 @@ const sinonChai = require('sinon-chai');
 const chaiAsPromised = require('chai-as-promised');
 const supertest = require('supertest');
 const _ = require('lodash');
-const AppConfig = require('../../src/modules/chain/helpers/config');
-const packageJson = require('../../../package.json');
-const Bignum = require('../../src/modules/chain/helpers/bignum');
+const app = require('../test_app/app');
 
-coMocha(mocha);
+app._compileAndValidateConfigurations();
 
 process.env.NODE_ENV = 'test';
-
+coMocha(mocha);
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
 const testContext = {};
-
-testContext.config = new AppConfig(packageJson, false);
-
-const genesisBlock = testContext.config.genesisBlock;
-
-genesisBlock.totalAmount = new Bignum(genesisBlock.totalAmount);
-genesisBlock.totalFee = new Bignum(genesisBlock.totalFee);
-genesisBlock.reward = new Bignum(genesisBlock.reward);
-
-testContext.config.genesisBlock = genesisBlock;
 
 if (process.env.SILENT === 'true') {
 	testContext.debug = function() {};
@@ -52,8 +40,10 @@ if (process.env.SILENT === 'true') {
 	testContext.debug = console.info;
 }
 
+const config = _.cloneDeep(app.config);
+
 if (process.env.LOG_DB_EVENTS === 'true') {
-	testContext.config.db.logEvents = [
+	config.components.storage.logEvents = [
 		'connect',
 		'disconnect',
 		'query',
@@ -62,14 +52,38 @@ if (process.env.LOG_DB_EVENTS === 'true') {
 		'error',
 	];
 } else {
-	testContext.config.db.logEvents = ['error'];
+	config.components.storage.logEvents = ['error'];
 }
 
-testContext.consoleLogLevel =
-	process.env.LOG_LEVEL || testContext.consoleLogLevel;
+testContext.config = config;
+testContext.config.constants = _.cloneDeep(app.constants);
+testContext.config.NORMALIZER = '100000000';
+testContext.config.ADDITIONAL_DATA = {
+	MIN_LENGTH: 1,
+	MAX_LENGTH: 64,
+};
+testContext.config.MAX_VOTES_PER_TRANSACTION = 33;
+testContext.config.MULTISIG_CONSTRAINTS = {
+	MIN: {
+		MINIMUM: 1,
+		MAXIMUM: 15,
+	},
+	LIFETIME: {
+		MINIMUM: 1,
+		MAXIMUM: 72,
+	},
+	KEYSGROUP: {
+		MIN_ITEMS: 1,
+		MAX_ITEMS: 15,
+	},
+};
 
-testContext.baseUrl = `http://${testContext.config.address}:${
-	testContext.config.httpPort
+testContext.config.genesisBlock = _.cloneDeep(app.genesisBlock);
+testContext.consoleLogLevel =
+	process.env.LOG_LEVEL || config.components.logger.consoleLogLevel;
+
+testContext.baseUrl = `http://${config.modules.http_api.address}:${
+	config.modules.http_api.httpPort
 }`;
 testContext.api = supertest(testContext.baseUrl);
 
@@ -90,7 +104,7 @@ _.mixin(
 					return sortFactor * -1;
 				}
 
-				// If second element is empty pull it upward
+				// If second element is empty pull it upwardå
 				if (_.isEmpty(a) && !_.isEmpty(b)) {
 					return sortFactor * 1;
 				}
@@ -147,10 +161,9 @@ _.mixin(
 );
 
 // Cloning the constants object to remove immutability
-testContext.config.constants = _.cloneDeep(testContext.config.constants);
 global.expect = chai.expect;
 global.sinonSandbox = sinon.createSandbox();
 global.__testContext = testContext;
-global.constants = testContext.config.constants;
-global.exceptions = testContext.config.exceptions;
+global.constants = _.cloneDeep(app.constants);
+global.exceptions = _.cloneDeep(config.modules.chain.exceptions);
 global._ = _;

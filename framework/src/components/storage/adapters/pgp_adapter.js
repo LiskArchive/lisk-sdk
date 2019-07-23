@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -21,6 +21,18 @@ const pgpLib = require('pg-promise');
 const QueryFile = require('pg-promise').QueryFile;
 const BaseAdapter = require('./base_adapter');
 
+const pgpOptions = {
+	capSQL: true,
+	promiseLib: Promise,
+	noLocking: false,
+};
+
+const pgp = pgpLib(pgpOptions);
+
+const _private = {
+	queryFiles: {},
+};
+
 class PgpAdapter extends BaseAdapter {
 	/**
 	 *
@@ -39,23 +51,9 @@ class PgpAdapter extends BaseAdapter {
 		this.logger = options.logger;
 		this.sqlDirectory = options.sqlDirectory;
 
-		this.pgpOptions = {
-			capSQL: true,
-			promiseLib: Promise,
-			noLocking: options.inTest,
-			connect: () => {
-				this.emit(this.EVENT_CONNECT);
-			},
-			error: () => {
-				this.emit(this.EVENT_ERROR);
-			},
-			disconnect: () => {
-				this.emit(this.EVENT_DISCONNECT);
-			},
-		};
-
-		this.pgp = pgpLib(this.pgpOptions);
+		this.pgp = pgp;
 		this.db = undefined;
+		this.SQLs = {};
 	}
 
 	/**
@@ -66,8 +64,10 @@ class PgpAdapter extends BaseAdapter {
 			monitor.detach();
 		}
 
+		pgpOptions.noLocking = this.inTest;
 		const monitorOptions = {
 			error: (error, e) => {
+				this.emit(this.EVENT_ERROR);
 				this.logger.error(error);
 
 				// e.cn corresponds to an object, which exists only when there is a connection related error.
@@ -76,23 +76,26 @@ class PgpAdapter extends BaseAdapter {
 					process.emit('cleanup', new Error('DB Connection Error'));
 				}
 			},
+			connect: () => {
+				this.emit(this.EVENT_CONNECT);
+			},
+			disconnect: () => {
+				this.emit(this.EVENT_DISCONNECT);
+			},
 		};
 
 		// Have to keep the same options object to make sure monitor works for the connection
-		Object.assign(this.pgpOptions, monitorOptions);
-
-		monitor.attach(this.pgpOptions, this.options.logEvents);
+		Object.assign(pgpOptions, monitorOptions);
+		monitor.attach(pgpOptions, this.options.logEvents);
 		monitor.setLog((msg, info) => {
-			this.logger.log(info.event, info.text);
+			this.logger.debug(info.event, info.text);
 			info.display = false;
 		});
 		monitor.setTheme('matrix');
 
 		this.options.user = this.options.user || process.env.USER;
 
-		// this.pgp.end();
-
-		this.db = this.pgp(this.options);
+		this.db = pgp(this.options);
 
 		// As of the nature of pg-promise the connection is acquired either a query is started to execute.
 		// So to actually verify the connection works fine
@@ -166,6 +169,10 @@ class PgpAdapter extends BaseAdapter {
 	loadSQLFile(filePath, sqlDirectory = this.sqlDirectory) {
 		const fullPath = path.join(sqlDirectory, filePath); // Generating full path;
 
+		if (_private.queryFiles[fullPath]) {
+			return _private.queryFiles[fullPath];
+		}
+
 		const options = {
 			minify: true, // Minifies the SQL
 		};
@@ -177,11 +184,27 @@ class PgpAdapter extends BaseAdapter {
 			throw qf.error; // throw pg-promisse QueryFileError error
 		}
 
+		_private.queryFiles[fullPath] = qf;
+
 		return qf;
 	}
 
+	loadSQLFiles(entityLabel, sqlFiles, sqlDirectory) {
+		this.SQLs[entityLabel] = this.SQLs[entityLabel] || {};
+		Object.keys(sqlFiles).forEach(fileKey => {
+			if (!this.SQLs[entityLabel][fileKey]) {
+				this.SQLs[entityLabel][fileKey] = this.loadSQLFile(
+					sqlFiles[fileKey],
+					sqlDirectory
+				);
+			}
+		});
+		return this.SQLs[entityLabel];
+	}
+
+	// eslint-disable-next-line class-methods-use-this
 	parseQueryComponent(query, params) {
-		return this.pgp.as.format(query, params);
+		return pgp.as.format(query, params);
 	}
 
 	_getExecutionContext(tx, expectedResultCount) {

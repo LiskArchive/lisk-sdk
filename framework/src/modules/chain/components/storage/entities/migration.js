@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -20,7 +20,9 @@ const { defaults, pick } = require('lodash');
 const {
 	entities: { BaseEntity },
 	errors: { NonSupportedOperationError },
-	utils: { filterTypes: { TEXT } },
+	utils: {
+		filterTypes: { TEXT },
+	},
 } = require('../../../../../components/storage');
 
 const defaultCreateValues = {};
@@ -29,7 +31,6 @@ const sqlFiles = {
 	select: 'migrations/get.sql',
 	isPersisted: 'migrations/is_persisted.sql',
 	create: 'migrations/create.sql',
-	applyRunTime: 'migrations/runtime.sql',
 };
 
 /**
@@ -210,22 +211,6 @@ class Migration extends BaseEntity {
 				tx
 			)
 			.then(result => result.exists);
-	}
-
-	/**
-	 * Executes 'migrations/runtime.sql' file to set state to 1.
-	 *
-	 * @returns {Promise<null>} Promise object that resolves with `null`.
-	 */
-	applyRunTime() {
-		const execute = tx =>
-			this.adapter.executeFile(
-				this.SQLs.applyRunTime,
-				{},
-				{ expectedResultCount: 0 },
-				tx
-			);
-		return this.begin('migrations:Runtime', execute);
 	}
 
 	/**

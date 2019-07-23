@@ -1,0 +1,78 @@
+[
+	{
+		"id": "2897056580360618798",
+		"type": 7,
+		"timestamp": 63897154,
+		"senderPublicKey": "e65b98c217bfcab6d57293056cf4ad78bf45253ab56bc384aff1665cf3611fe9",
+		"senderId": "18237045742439723234L",
+		"recipientId": "18237045742439723234L",
+		"recipientPublicKey": "e65b98c217bfcab6d57293056cf4ad78bf45253ab56bc384aff1665cf3611fe9",
+		"amount": "100000000",
+		"fee": "10000000",
+		"signature": "286934295859e8f196f00e216f5763cfa3313cc3023e4a34e9da559a96cfb7d7f1e950513b77ace49f56cab1b56b21b05e3183f04d4f389b0355e5b8e9072c08",
+		"signatures": [],
+		"asset": {
+			"outTransfer": {
+				"dappId": "16337394785118081960",
+				"transactionId": "12345678909876543213"
+			}
+		}
+	},
+	{
+		"id": "7297225435992500205",
+		"type": 7,
+		"timestamp": 59722128,
+		"senderPublicKey": "305b4897abc230c1cc9d0aa3bf0c75747bfa42f32f83f5a92348edea528850ad",
+		"senderId": "13155556493249255133L",
+		"recipientId": "13155556493249255133L",
+		"recipientPublicKey": "305b4897abc230c1cc9d0aa3bf0c75747bfa42f32f83f5a92348edea528850ad",
+		"amount": "500",
+		"fee": "10000000",
+		"signature": "a85f18853aa209da756f82799b072530b0028db48619141025df0ede96fd0e172b1625650a12fb872a1f13070ce5bf4494fdca3c7cb2ad36a779fc0dacdcdb09",
+		"signatures": [],
+		"asset": {
+			"outTransfer": {
+				"dappId": "13227044664082109069",
+				"transactionId": "13227044664082109069"
+			}
+		}
+	},
+	{
+		"id": "954328122073089358",
+		"type": 7,
+		"timestamp": 59722412,
+		"senderPublicKey": "305b4897abc230c1cc9d0aa3bf0c75747bfa42f32f83f5a92348edea528850ad",
+		"senderId": "13155556493249255133L",
+		"recipientId": "13155556493249255134L",
+		"recipientPublicKey": "",
+		"amount": "500000000000",
+		"fee": "10000000",
+		"signature": "d097cb3a2b4b235214d8ae7d99059a62899fd4f974c1963f8fe700f69785228b5264062740809a7c5a356018c41cfd4128e1a66396a7bae47c47f507e39c580d",
+		"signatures": [],
+		"asset": {
+			"outTransfer": {
+				"dappId": "13227044664082109069",
+				"transactionId": "13227044664082109072"
+			}
+		}
+	},
+	{
+		"id": "7297225435992500205",
+		"type": 7,
+		"timestamp": 59722128,
+		"senderPublicKey": "305b4897abc230c1cc9d0aa3bf0c75747bfa42f32f83f5a92348edea528850ad",
+		"senderId": "13155556493249255133L",
+		"recipientId": "13155556493249255133L",
+		"recipientPublicKey": "305b4897abc230c1cc9d0aa3bf0c75747bfa42f32f83f5a92348edea528850ad",
+		"amount": "500",
+		"fee": "10000000",
+		"signature": "a85f18853aa209da756f82799b072530b0028db48619141025df0ede96fd0e172b1625650a12fb872a1f13070ce5bf4494fdca3c7cb2ad36a779fc0dacdcdb09",
+		"signatures": [],
+		"asset": {
+			"outTransfer": {
+				"dappId": "13227044664082109069",
+				"transactionId": "13227044664082109069"
+			}
+		}
+	}
+]

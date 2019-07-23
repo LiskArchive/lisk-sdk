@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -14,11 +14,13 @@
 
 'use strict';
 
+const crypto = require('crypto');
+
 const { BLOCK_RECEIPT_TIMEOUT, EPOCH_TIME } = global.constants;
 const {
 	CACHE_KEYS_BLOCKS,
 	CACHE_KEYS_TRANSACTIONS,
-} = require('../../../../../framework/src/components/cache');
+} = require('../../../components/cache');
 // Submodules
 const BlocksVerify = require('./blocks/verify');
 const BlocksProcess = require('./blocks/process');
@@ -59,6 +61,8 @@ class Blocks {
 		library = {
 			channel: scope.channel,
 			logger: scope.components.logger,
+			storage: scope.components.storage,
+			applicationState: scope.applicationState,
 		};
 
 		// Initialize submodules with library content
@@ -66,36 +70,38 @@ class Blocks {
 			verify: new BlocksVerify(
 				scope.components.logger,
 				scope.logic.block,
-				scope.logic.transaction,
 				scope.components.storage,
-				scope.config
+				scope.config,
+				scope.channel
 			),
 			process: new BlocksProcess(
 				scope.components.logger,
 				scope.logic.block,
 				scope.logic.peers,
-				scope.logic.transaction,
 				scope.schema,
 				scope.components.storage,
 				scope.sequence,
-				scope.genesisBlock
+				scope.genesisBlock,
+				scope.channel,
+				scope.logic.initTransaction
 			),
 			utils: new BlocksUtils(
 				scope.components.logger,
 				scope.logic.account,
 				scope.logic.block,
-				scope.logic.transaction,
+				scope.logic.initTransaction,
 				scope.components.storage,
 				scope.genesisBlock
 			),
 			chain: new BlocksChain(
 				scope.components.logger,
 				scope.logic.block,
-				scope.logic.transaction,
+				scope.logic.initTransaction,
 				scope.components.storage,
 				scope.genesisBlock,
 				scope.bus,
-				scope.balancesSequence
+				scope.balancesSequence,
+				scope.channel
 			),
 		};
 
@@ -104,7 +110,6 @@ class Blocks {
 		this.process = this.submodules.process;
 		this.utils = this.submodules.utils;
 		this.chain = this.submodules.chain;
-
 		self = this;
 
 		this.submodules.chain.saveGenesisBlock(err => setImmediate(cb, err, self));
@@ -230,7 +235,6 @@ Blocks.prototype.onBind = function(scope) {
 	components = {
 		cache: scope.components ? scope.components.cache : undefined,
 	};
-
 	// Set module as loaded
 	__private.loaded = true;
 };
@@ -273,24 +277,33 @@ Blocks.prototype.onNewBlock = async function(block) {
  *
  * @listens module:app~event:cleanup
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb
+ * @returns {Promise} - Promise<void>
  */
-Blocks.prototype.cleanup = function(cb) {
+Blocks.prototype.cleanup = async function() {
 	__private.loaded = false;
 	__private.cleanup = true;
 
 	if (!__private.isActive) {
 		// Module ready for shutdown
-		return setImmediate(cb);
+		return;
 	}
+
+	const waitFor = () =>
+		new Promise(resolve => {
+			setTimeout(resolve, 10000);
+		});
 	// Module is not ready, repeat
-	return setImmediate(function nextWatch() {
+	const nextWatch = async () => {
 		if (__private.isActive) {
 			library.logger.info('Waiting for block processing to finish...');
-			return setTimeout(nextWatch, 10000); // 10 sec
+			await waitFor();
+			await nextWatch();
 		}
-		return setImmediate(cb);
-	});
+
+		return null;
+	};
+
+	await nextWatch();
 };
 
 /**
@@ -301,6 +314,43 @@ Blocks.prototype.cleanup = function(cb) {
 Blocks.prototype.isLoaded = function() {
 	// Return 'true' if 'modules' are present
 	return __private.loaded;
+};
+
+/**
+ * Calculate broadhash getting the last 5 blocks from the database
+ *
+ * @returns {height, broadhash} broadhash and height
+ */
+Blocks.prototype.calculateNewBroadhash = async function() {
+	try {
+		const state = library.applicationState;
+		let broadhash;
+		let height;
+		const blocks = await library.storage.entities.Block.get(
+			{},
+			{
+				limit: 5,
+				sort: 'height:desc',
+			}
+		);
+
+		if (blocks.length <= 1) {
+			broadhash = state.nethash;
+			height = state.height;
+		} else {
+			const seed = blocks.map(row => row.id).join('');
+			broadhash = crypto
+				.createHash('sha256')
+				.update(seed, 'utf8')
+				.digest()
+				.toString('hex');
+			height = blocks[0].height;
+		}
+		return { broadhash, height };
+	} catch (err) {
+		library.logger.error(err.stack);
+		return err;
+	}
 };
 
 // Export

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -29,11 +29,13 @@ const SwaggerEndpoint = require('../../../common/swagger_spec');
 const slots = require('../../../../../src/modules/chain/helpers/slots');
 const Scenarios = require('../../../common/scenarios');
 
-const { NORMALIZER, TRANSACTION_TYPES, FEES } = global.constants;
+const { TRANSACTION_TYPES, FEES } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('GET /api/transactions', () => {
+	const signatureEndpoint = new SwaggerEndpoint('POST /signatures');
 	const transactionsEndpoint = new SwaggerEndpoint('GET /transactions');
 	const transactionList = [];
 
@@ -85,6 +87,10 @@ describe('GET /api/transactions', () => {
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: transactionType4.multiSigTransaction.senderId,
 		data: 'fund acc for multisig',
+	});
+	const transactionSecondPassphrase = registerSecondPassphrase({
+		passphrase: accountSecondPass.passphrase,
+		secondPassphrase: accountSecondPass.secondPassphrase,
 	});
 	const transactionType5 = {
 		amount: '0',
@@ -166,6 +172,7 @@ describe('GET /api/transactions', () => {
 					Promise.all([
 						apiHelpers.sendTransactionPromise(transaction3),
 						apiHelpers.sendTransactionPromise(transactionType3),
+						apiHelpers.sendTransactionPromise(transactionSecondPassphrase),
 						apiHelpers.sendTransactionPromise(
 							transactionType4.multiSigTransaction
 						),
@@ -174,7 +181,12 @@ describe('GET /api/transactions', () => {
 				.then(() => {
 					transactionList.push(transaction3);
 					transactionList.push(transactionType3);
-					return waitFor.confirmations([transaction3.id, transactionType3.id]);
+					transactionList.push(transactionSecondPassphrase);
+					return waitFor.confirmations([
+						transaction3.id,
+						transactionType3.id,
+						transactionSecondPassphrase.id,
+					]);
 				});
 		});
 	});
@@ -351,7 +363,7 @@ describe('GET /api/transactions', () => {
 
 		describe('type', () => {
 			it('using invalid type should fail', async () => {
-				const res = await transactionsEndpoint.makeRequest({ type: 8 }, 400);
+				const res = await transactionsEndpoint.makeRequest({ type: 'a' }, 400);
 				expectSwaggerParamError(res, 'type');
 			});
 
@@ -427,6 +439,22 @@ describe('GET /api/transactions', () => {
 				});
 
 				it('using type 4 should return asset field with correct properties', async () => {
+					const signatureRequests = transactionType4.members.map(member => {
+						return {
+							signature: apiHelpers.createSignatureObject(
+								transactionType4.multiSigTransaction,
+								member
+							),
+						};
+					});
+
+					await signatureEndpoint.makeRequests(signatureRequests, 200);
+
+					// Wait for multi-signature registration to succeed
+					await waitFor.confirmations([
+						transactionType4.multiSigTransaction.id,
+					]);
+
 					const res = await transactionsEndpoint.makeRequest(
 						{ type: TRANSACTION_TYPES.MULTI },
 						200
@@ -447,8 +475,8 @@ describe('GET /api/transactions', () => {
 							.empty;
 					});
 				});
-
-				it('using type 5 should return asset field with correct properties', async () => {
+				// eslint-disable-next-line
+				it.skip('using type 5 should return asset field with correct properties', async () => {
 					const res = await transactionsEndpoint.makeRequest(
 						{ type: TRANSACTION_TYPES.DAPP },
 						200
@@ -692,7 +720,11 @@ describe('GET /api/transactions', () => {
 			});
 
 			it('should filter transactions for a given height', async () => {
-				const { body: { data: [tx] } } = await transactionsEndpoint.makeRequest(
+				const {
+					body: {
+						data: [tx],
+					},
+				} = await transactionsEndpoint.makeRequest(
 					{ id: transaction1.id },
 					200
 				);
@@ -1161,15 +1193,6 @@ describe('GET /api/transactions', () => {
 
 		describe('signature', () => {
 			it('should not show signSignature when empty upon registering second passphrase', async () => {
-				// Prepare
-				const transaction = registerSecondPassphrase({
-					passphrase: accountSecondPass.passphrase,
-					secondPassphrase: accountSecondPass.secondPassphrase,
-				});
-
-				await apiHelpers.sendTransactionPromise(transaction, 200);
-				await waitFor.confirmations([transaction.id]);
-
 				// Act
 				const {
 					body: { data: transactions },

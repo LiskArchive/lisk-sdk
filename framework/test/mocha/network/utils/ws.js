@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -16,11 +16,14 @@
 
 const scClient = require('socketcluster-client');
 const WAMPClient = require('wamp-socket-cluster/WAMPClient');
-const WSServerMaster = require('../../common/ws/server_master');
+const { generatePeerHeader } = require('../../common/generatePeerHeader');
 
 module.exports = {
 	establishWSConnectionsToNodes(configurations, cb) {
-		const firstConfiguration = configurations[0];
+		const firstConfig = configurations[0];
+		const httpPort = firstConfig.modules.http_api.httpPort;
+		const wsPort = firstConfig.modules.network.wsPort;
+		const { nodeInfo } = generatePeerHeader({ wsPort, httpPort });
 
 		const wampClient = new WAMPClient();
 		const sockets = [];
@@ -36,16 +39,13 @@ module.exports = {
 			// Since we are running a multiple nodes on a single machine, we
 			// need to give nodes a lot of time to respond.
 			ackTimeout: 2000,
-			query: WSServerMaster.generatePeerHeaders({
-				wsPort: firstConfiguration.wsPort,
-				httpPort: firstConfiguration.httpPort,
-			}),
+			query: nodeInfo,
 		};
 
 		let connectedTo = 0;
 
 		configurations.forEach(configuration => {
-			monitorWSClient.port = configuration.wsPort;
+			monitorWSClient.port = configuration.modules.network.wsPort;
 			const socket = scClient.connect(monitorWSClient);
 			wampClient.upgradeToWAMP(socket);
 			sockets.push(socket);

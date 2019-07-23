@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -26,17 +26,14 @@ describe('validateOwnChain', () => {
 	let Queries;
 	let addTransactionsAndForgePromise;
 
-	localCommon.beforeBlock(
-		'lisk_functional_validate_own_chain_more_than_two_rounds',
-		lib => {
-			library = lib;
-			Queries = new QueriesHelper(lib, lib.components.storage);
+	localCommon.beforeBlock('validate_own_chain_more_than_two_rounds', lib => {
+		library = lib;
+		Queries = new QueriesHelper(lib, lib.components.storage);
 
-			addTransactionsAndForgePromise = Promise.promisify(
-				localCommon.addTransactionsAndForge
-			);
-		}
-	);
+		addTransactionsAndForgePromise = Promise.promisify(
+			localCommon.addTransactionsAndForge
+		);
+	});
 
 	describe('forge 3 rounds (303 blocks) with version = 0', () => {
 		before(() => {
@@ -91,7 +88,7 @@ describe('validateOwnChain', () => {
 					"There are more than 202 invalid blocks. Can't delete those to recover the chain."
 				);
 				return expect(validateOwnChainError.message).to.be.eql(
-					'Your block chain is invalid. Please rebuild from snapshot.'
+					'Your block chain is invalid. Please rebuild using rebuilding mode.'
 				);
 			});
 		});

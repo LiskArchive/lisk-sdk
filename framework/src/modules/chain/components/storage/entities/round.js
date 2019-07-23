@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -19,7 +19,9 @@ const assert = require('assert');
 const { defaults, omit, pick } = require('lodash');
 const {
 	entities: { BaseEntity },
-	utils: { filterTypes: { NUMBER, TEXT } },
+	utils: {
+		filterTypes: { NUMBER, TEXT },
+	},
 } = require('../../../../../components/storage');
 
 const defaultCreateValues = {};

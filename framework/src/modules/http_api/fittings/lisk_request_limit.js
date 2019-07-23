@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -47,7 +47,7 @@ module.exports = function create(fittingDef) {
 	let overrideLimits = {};
 
 	if (config) {
-		appConfigLimits = config.api.options.limits;
+		appConfigLimits = config.options.limits;
 	} else {
 		appConfigLimits = {};
 	}

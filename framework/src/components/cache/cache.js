@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -68,6 +68,7 @@ class Cache {
 		this.flushdbAsync = promisify(this.client.flushdb).bind(this.client);
 		this.quitAsync = promisify(this.client.quit).bind(this.client);
 		this.enable();
+
 		this.client.on('error', err => {
 			// Log Cache errors before and after server was connected
 			this.logger.info('Cache:', err);

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -27,6 +27,7 @@ describe('node/api', () => {
 	let storageStub;
 	let configStub;
 	let getStatus;
+	let getNetworkHeight;
 
 	before(async () => {
 		channelStub = {
@@ -47,12 +48,17 @@ describe('node/api', () => {
 			},
 			config: configStub,
 			channel: channelStub,
+			applicationState: {
+				broadhash:
+					'176caf53295f73a5a67a1fb56f31445392a3b8e8f11ed6167f323813001eb73b',
+			},
 		};
 
 		new NodeController(library);
 
 		privateLibrary = NodeController.__get__('library');
 		getStatus = NodeController.getStatus;
+		getNetworkHeight = NodeController.__get__('_getNetworkHeight');
 	});
 
 	afterEach(() => {
@@ -81,6 +87,13 @@ describe('node/api', () => {
 					library.channel
 				);
 			});
+
+			it('should assign applicationState', () => {
+				return expect(privateLibrary).to.have.property(
+					'applicationState',
+					library.applicationState
+				);
+			});
 		});
 	});
 
@@ -88,15 +101,12 @@ describe('node/api', () => {
 
 	describe('getStatus', () => {
 		const status = {
-			broadhash:
-				'176caf53295f73a5a67a1fb56f31445392a3b8e8f11ed6167f323813001eb73b',
 			consensus: 100,
 			secondsSinceEpoch: 89742345,
 			lastBlock: {
 				height: 1187,
 			},
 			loaded: true,
-			networkHeight: 456,
 			syncing: false,
 			transactions: {
 				confirmed: 10,
@@ -128,6 +138,21 @@ describe('node/api', () => {
 			currentTime: now,
 		};
 
+		const defaultPeers = [
+			{
+				height: 456,
+			},
+			{
+				height: 457,
+			},
+			{
+				height: 456,
+			},
+			{
+				height: 453,
+			},
+		];
+
 		beforeEach(async () => {
 			sinonSandbox.stub(Date, 'now').returns(now);
 		});
@@ -135,6 +160,9 @@ describe('node/api', () => {
 		describe('when chain:getNodeStatus answers with all parameters', () => {
 			beforeEach(async () => {
 				channelStub.invoke.withArgs('chain:getNodeStatus').returns(status);
+				channelStub.invoke
+					.withArgs('network:getConnectedPeers')
+					.returns(defaultPeers);
 			});
 
 			it('should return an object status with all properties', async () =>
@@ -156,10 +184,12 @@ describe('node/api', () => {
 				expectedStatusWithoutSomeParameters = _.cloneDeep(expectedStatus);
 				expectedStatusWithoutSomeParameters.consensus = 0;
 				expectedStatusWithoutSomeParameters.height = 0;
-				expectedStatusWithoutSomeParameters.networkHeight = 0;
 				channelStub.invoke
 					.withArgs('chain:getNodeStatus')
 					.returns(statusWithoutSomeParameters);
+				channelStub.invoke
+					.withArgs('network:getConnectedPeers')
+					.returns(defaultPeers);
 			});
 
 			it('should return an object status with some properties to 0', async () =>
@@ -167,6 +197,214 @@ describe('node/api', () => {
 					expect(err).to.be.null;
 					expect(response).to.deep.equal(expectedStatusWithoutSomeParameters);
 				}));
+		});
+	});
+
+	describe('_networkHeight', () => {
+		const MAJORITY_HEIGHT = 456;
+
+		let networkHeight;
+		describe('When there are set of majority peers with same height', () => {
+			beforeEach(async () => {
+				const defaultPeers = [
+					{
+						height: MAJORITY_HEIGHT,
+					},
+					{
+						height: 457,
+					},
+					{
+						height: MAJORITY_HEIGHT,
+					},
+					{
+						height: 453,
+					},
+					{
+						height: MAJORITY_HEIGHT,
+					},
+					{
+						height: 438,
+					},
+				];
+				channelStub.invoke
+					.withArgs('network:getConnectedPeers')
+					.returns(defaultPeers);
+				networkHeight = await getNetworkHeight();
+			});
+
+			it('should return correct networkHeight based on majority', async () => {
+				expect(networkHeight).to.be.eql(MAJORITY_HEIGHT);
+			});
+		});
+
+		describe('When network:getConnectedPeers returns a blank list of peers', () => {
+			beforeEach(async () => {
+				channelStub.invoke.withArgs('network:getConnectedPeers').returns([]);
+				networkHeight = await getNetworkHeight();
+			});
+
+			it('should return zero when there are no peers with height', async () => {
+				expect(networkHeight).to.be.eql(0);
+			});
+		});
+
+		describe('When network:getConnectedPeers returns a list of peers with 2 different equal set of peers height', () => {
+			beforeEach(async () => {
+				const defaultPeers = [
+					{
+						height: MAJORITY_HEIGHT + 1,
+					},
+					{
+						height: MAJORITY_HEIGHT + 1,
+					},
+					{
+						height: MAJORITY_HEIGHT + 1,
+					},
+					{
+						height: MAJORITY_HEIGHT,
+					},
+					{
+						height: MAJORITY_HEIGHT,
+					},
+					{
+						height: MAJORITY_HEIGHT,
+					},
+				];
+				channelStub.invoke
+					.withArgs('network:getConnectedPeers')
+					.returns(defaultPeers);
+				networkHeight = await getNetworkHeight();
+			});
+
+			it('should return height of majority with lower height', async () => {
+				expect(networkHeight).to.be.eql(MAJORITY_HEIGHT);
+			});
+		});
+
+		describe('When network:getConnectedPeers returns a list of peers with 3 different equal set of peers height', () => {
+			beforeEach(async () => {
+				const defaultPeers = [
+					{
+						height: MAJORITY_HEIGHT + 2,
+					},
+					{
+						height: MAJORITY_HEIGHT + 2,
+					},
+					{
+						height: MAJORITY_HEIGHT + 2,
+					},
+					{
+						height: MAJORITY_HEIGHT + 1,
+					},
+					{
+						height: MAJORITY_HEIGHT + 1,
+					},
+					{
+						height: MAJORITY_HEIGHT + 1,
+					},
+					{
+						height: MAJORITY_HEIGHT,
+					},
+					{
+						height: MAJORITY_HEIGHT,
+					},
+					{
+						height: MAJORITY_HEIGHT,
+					},
+				];
+				channelStub.invoke
+					.withArgs('network:getConnectedPeers')
+					.returns(defaultPeers);
+				networkHeight = await getNetworkHeight();
+			});
+
+			it('should return height of majority with lower height', async () => {
+				expect(networkHeight).to.be.eql(MAJORITY_HEIGHT);
+			});
+		});
+
+		describe('When network:getConnectedPeers returns a list of peers with 2 different unequal set of peers height', () => {
+			beforeEach(async () => {
+				const defaultPeers = [
+					{
+						height: MAJORITY_HEIGHT,
+					},
+					{
+						height: MAJORITY_HEIGHT,
+					},
+					{
+						height: MAJORITY_HEIGHT + 1,
+					},
+					{
+						height: MAJORITY_HEIGHT + 1,
+					},
+					{
+						height: MAJORITY_HEIGHT + 1,
+					},
+					{
+						height: MAJORITY_HEIGHT + 1,
+					},
+				];
+				channelStub.invoke
+					.withArgs('network:getConnectedPeers')
+					.returns(defaultPeers);
+				networkHeight = await getNetworkHeight();
+			});
+
+			it('should return height of majority', async () => {
+				expect(networkHeight).to.be.eql(MAJORITY_HEIGHT + 1);
+			});
+		});
+
+		describe('When network:getConnectedPeers returns only one peer', () => {
+			beforeEach(async () => {
+				const defaultPeers = [
+					{
+						height: MAJORITY_HEIGHT,
+					},
+				];
+				channelStub.invoke
+					.withArgs('network:getConnectedPeers')
+					.returns(defaultPeers);
+				networkHeight = await getNetworkHeight();
+			});
+
+			it('should return height of one peer', async () => {
+				expect(networkHeight).to.be.eql(MAJORITY_HEIGHT);
+			});
+		});
+
+		describe('When network:getConnectedPeers returns majority of peers with very low height compared to others', () => {
+			beforeEach(async () => {
+				const defaultPeers = [
+					{
+						height: MAJORITY_HEIGHT,
+					},
+					{
+						height: MAJORITY_HEIGHT,
+					},
+					{
+						height: 1,
+					},
+					{
+						height: 1,
+					},
+					{
+						height: 1,
+					},
+					{
+						height: 1,
+					},
+				];
+				channelStub.invoke
+					.withArgs('network:getConnectedPeers')
+					.returns(defaultPeers);
+				networkHeight = await getNetworkHeight();
+			});
+
+			it('should return height of the majority even though its very low compared to others', async () => {
+				expect(networkHeight).to.be.eql(1);
+			});
 		});
 	});
 

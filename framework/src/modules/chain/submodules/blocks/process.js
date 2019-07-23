@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -16,8 +16,11 @@
 
 const _ = require('lodash');
 const async = require('async');
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const { convertErrorsToString } = require('../../helpers/error_handlers');
 const slots = require('../../helpers/slots');
 const definitions = require('../../schema/definitions');
+const blockVersion = require('../../logic/block_version');
 
 const { MAX_TRANSACTIONS_PER_BLOCK, ACTIVE_DELEGATES } = global.constants;
 
@@ -39,7 +42,6 @@ let self;
  * @param {Object} logger
  * @param {Block} block
  * @param {Peers} peers
- * @param {Transaction} transaction
  * @param {ZSchema} schema
  * @param {Storage} storage
  * @param {Sequence} sequence
@@ -51,13 +53,15 @@ class Process {
 		logger,
 		block,
 		peers,
-		transaction,
 		schema,
 		storage,
 		sequence,
-		genesisBlock
+		genesisBlock,
+		channel,
+		initTransaction
 	) {
 		library = {
+			channel,
 			logger,
 			schema,
 			storage,
@@ -66,7 +70,7 @@ class Process {
 			logic: {
 				block,
 				peers,
-				transaction,
+				initTransaction,
 			},
 		};
 		self = this;
@@ -108,7 +112,7 @@ __private.receiveBlock = function(block, cb) {
  * @param {function} cb - Callback function
  */
 __private.receiveForkOne = function(block, lastBlock, cb) {
-	let tmp_block = _.clone(block);
+	let tmpBlock = _.clone(block);
 
 	// Fork: Consecutive height but different previous block id
 	modules.delegates.fork(block, 1);
@@ -125,7 +129,7 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 		[
 			function(seriesCb) {
 				try {
-					tmp_block = library.logic.block.objectNormalize(tmp_block);
+					tmpBlock = library.logic.block.objectNormalize(tmpBlock);
 				} catch (err) {
 					return setImmediate(seriesCb, err);
 				}
@@ -133,15 +137,15 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 			},
 			// Check valid slot
 			function(seriesCb) {
-				__private.validateBlockSlot(tmp_block, lastBlock, seriesCb);
+				__private.validateBlockSlot(tmpBlock, lastBlock, seriesCb);
 			},
 			// Check received block before any deletion
 			function(seriesCb) {
-				const check = modules.blocks.verify.verifyReceipt(tmp_block);
+				const check = modules.blocks.verify.verifyReceipt(tmpBlock);
 
 				if (!check.verified) {
 					library.logger.error(
-						`Block ${tmp_block.id} verification failed`,
+						`Block ${tmpBlock.id} verification failed`,
 						check.errors.join(', ')
 					);
 					// Return first error from checks
@@ -156,7 +160,10 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 		],
 		err => {
 			if (err) {
-				library.logger.error('Fork recovery failed', err);
+				library.logger.error(
+					'Fork recovery failed',
+					convertErrorsToString(err)
+				);
 			}
 			return setImmediate(cb, err);
 		}
@@ -173,7 +180,6 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
  */
 __private.receiveForkFive = function(block, lastBlock, cb) {
 	let tmpBlock = _.clone(block);
-
 	// Fork: Same height and previous block id, but different block id
 	modules.delegates.fork(block, 5);
 
@@ -233,111 +239,12 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
 		],
 		err => {
 			if (err) {
-				library.logger.error('Fork recovery failed', err);
+				library.logger.error(
+					'Fork recovery failed',
+					convertErrorsToString(err)
+				);
 			}
 			return setImmediate(cb, err);
-		}
-	);
-};
-
-/**
- * Performs chain comparison with remote peer.
- * WARNING: Can trigger chain recovery.
- *
- * @param {Peer} peer - Peer to perform chain comparison with
- * @param {number} height - Block height
- * @param {function} cb - Callback function
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object} cb.err - Error if occurred
- * @returns {Object} cb.res - Result object
- */
-Process.prototype.getCommonBlock = function(peer, height, cb) {
-	let comparisonFailed = false;
-
-	return async.waterfall(
-		[
-			function(waterCb) {
-				// Get IDs sequence (comma separated list)
-				modules.blocks.utils.getIdSequence(height, (err, res) =>
-					setImmediate(waterCb, err, res)
-				);
-			},
-			function(res, waterCb) {
-				const ids = res.ids;
-				// Perform request to supplied remote peer
-				peer = library.logic.peers.create(peer);
-				peer.rpc.blocksCommon({ ids }, (err, blocksCommonRes) => {
-					if (err) {
-						modules.peers.remove(peer);
-						return setImmediate(waterCb, err);
-					}
-
-					if (!blocksCommonRes.common) {
-						// FIXME: Need better checking here, is base on 'common' property enough?
-						comparisonFailed = true;
-						return setImmediate(
-							waterCb,
-							`Chain comparison failed with peer: ${
-								peer.string
-							} using ids: ${ids}`
-						);
-					}
-
-					return setImmediate(waterCb, null, blocksCommonRes.common);
-				});
-			},
-			function(common, waterCb) {
-				// Check if we received genesis block - before response validation, as genesis block have previousBlock = null
-				if (common && common.height === 1) {
-					comparisonFailed = true;
-					return setImmediate(
-						waterCb,
-						'Comparison failed - received genesis as common block'
-					);
-				}
-				// Validate remote peer response via schema
-				return library.schema.validate(common, definitions.CommonBlock, err => {
-					if (err) {
-						return setImmediate(waterCb, err[0].message);
-					}
-					return setImmediate(waterCb, null, common);
-				});
-			},
-			function(common, waterCb) {
-				// Check that block with ID, previousBlock and height exists in database
-				library.storage.entities.Block.isPersisted({
-					id: common.id,
-					previousBlockId: common.previousBlock,
-					height: common.height,
-				})
-					.then(isPersisted => {
-						if (isPersisted) {
-							// Block exists - it's common between our node and remote peer
-							return setImmediate(waterCb, null, common);
-						}
-
-						// Block doesn't exists - comparison failed
-						comparisonFailed = true;
-						return setImmediate(
-							waterCb,
-							`Chain comparison failed with peer: ${
-								peer.string
-							} using block: ${JSON.stringify(common)}`
-						);
-					})
-					.catch(err => {
-						// SQL error occurred
-						library.logger.error(err.stack);
-						return setImmediate(waterCb, 'Blocks#getCommonBlock error');
-					});
-			},
-		],
-		(err, res) => {
-			// If comparison failed and current consensus is low - perform chain recovery
-			if (comparisonFailed && modules.transport.poorConsensus()) {
-				return modules.blocks.chain.recoverChain(cb);
-			}
-			return setImmediate(cb, err, res);
 		}
 	);
 };
@@ -423,44 +330,63 @@ Process.prototype.loadBlocksOffset = function(
 		})
 		.catch(err => {
 			library.logger.error(err);
-			return setImmediate(cb, `Blocks#loadBlocksOffset error: ${err}`);
+			return setImmediate(
+				cb,
+				new Error(`Blocks#loadBlocksOffset error: ${err}`)
+			);
 		});
 };
 
 /**
- * Ask remote peer for blocks and process them.
+ * Ask the network for blocks and process them.
  *
- * @param {Peer} peer - Peer to perform chain comparison with
  * @param {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  * @returns {Object} cb.lastValidBlock - Normalized new last block
  */
-Process.prototype.loadBlocksFromPeer = function(peer, cb) {
+Process.prototype.loadBlocksFromNetwork = function(cb) {
 	let lastValidBlock = modules.blocks.lastBlock.get();
 
-	peer = library.logic.peers.create(peer);
-	library.logger.info(`Loading blocks from: ${peer.string}`);
+	library.logger.debug('Loading blocks from the network');
 
-	function getFromPeer(seriesCb) {
-		peer.rpc.blocks(
-			{ lastBlockId: lastValidBlock.id, peer: library.logic.peers.me() },
-			(err, res) => {
-				err = err || res.error;
-				if (err) {
-					modules.peers.remove(peer);
-					return setImmediate(seriesCb, err);
-				}
-				return setImmediate(seriesCb, null, res.blocks);
-			}
-		);
+	async function getBlocksFromNetwork() {
+		// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
+		// TODO: Rename procedure to include target module name. E.g. chain:blocks
+		let data;
+		try {
+			const response = await library.channel.invoke('network:request', {
+				procedure: 'blocks',
+				data: {
+					lastBlockId: lastValidBlock.id,
+				},
+			});
+			data = response.data;
+		} catch (p2pError) {
+			library.logger.error('Failed to load block from network', p2pError);
+			return [];
+		}
+
+		if (!data) {
+			throw new Error('Received an invalid blocks response from the network');
+		}
+		// Check for strict equality for backwards compatibility reasons.
+		// The misspelled data.sucess is required to support v1 nodes.
+		// TODO: Remove the misspelled data.sucess === false condition once enough nodes have migrated to v2.
+		if (data.success === false || data.sucess === false) {
+			throw new Error(
+				`Peer did not have a matching lastBlockId. ${data.message}`
+			);
+		}
+
+		return data.blocks;
 	}
 
 	function validateBlocks(blocks, seriesCb) {
 		const report = library.schema.validate(blocks, definitions.WSBlocksList);
 
 		if (!report) {
-			return setImmediate(seriesCb, 'Received invalid blocks data');
+			return setImmediate(seriesCb, new Error('Received invalid blocks data'));
 		}
 		return setImmediate(seriesCb, null, blocks);
 	}
@@ -479,14 +405,8 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 					return setImmediate(eachSeriesCb);
 				}
 				// ...then process block
-				return processBlock(block, err => {
-					// Ban a peer if block validation fails
-					// Invalid peers won't get chosen in the next sync attempt
-					if (err) {
-						library.logic.peers.ban(peer);
-					}
-					return eachSeriesCb(err);
-				});
+				// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
+				return processBlock(block, err => eachSeriesCb(err));
 			},
 			err => setImmediate(seriesCb, err)
 		);
@@ -499,7 +419,7 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 				// Update last valid block
 				lastValidBlock = block;
 				library.logger.info(
-					`Block ${block.id} loaded from: ${peer.string}`,
+					`Block ${block.id} loaded from the network`,
 					`height: ${block.height}`
 				);
 			} else {
@@ -516,16 +436,19 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 		});
 	}
 
-	async.waterfall([getFromPeer, validateBlocks, processBlocks], err => {
-		if (err) {
-			return setImmediate(
-				cb,
-				`Error loading blocks: ${err.message || err}`,
-				lastValidBlock
-			);
+	async.waterfall(
+		[getBlocksFromNetwork, validateBlocks, processBlocks],
+		err => {
+			if (err) {
+				return setImmediate(
+					cb,
+					`Error loading blocks: ${err.message || err}`,
+					lastValidBlock
+				);
+			}
+			return setImmediate(cb, null, lastValidBlock);
 		}
-		return setImmediate(cb, null, lastValidBlock);
-	});
+	);
 };
 
 /**
@@ -539,66 +462,53 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
  */
 Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 	// Get transactions that will be included in block
-	const transactions = modules.transactions.getUnconfirmedTransactionList(
-		false,
-		MAX_TRANSACTIONS_PER_BLOCK
+	const transactions =
+		modules.transactions.getUnconfirmedTransactionList(
+			false,
+			MAX_TRANSACTIONS_PER_BLOCK
+		) || [];
+
+	const context = {
+		blockTimestamp: timestamp,
+		blockHeight: modules.blocks.lastBlock.get().height + 1,
+		blockVersion: blockVersion.currentBlockVersion,
+	};
+
+	const allowedTransactionsIds = modules.processTransactions
+		.checkAllowedTransactions(transactions, context)
+		.transactionsResponses.filter(
+			transactionResponse => transactionResponse.status === TransactionStatus.OK
+		)
+		.map(transactionReponse => transactionReponse.id);
+
+	const allowedTransactions = transactions.filter(transaction =>
+		allowedTransactionsIds.includes(transaction.id)
 	);
-	const ready = [];
 
-	async.eachSeries(
-		transactions,
-		(transaction, eachSeriesCb) => {
-			modules.accounts.getAccount(
-				{ publicKey: transaction.senderPublicKey },
-				(err, sender) => {
-					if (err || !sender) {
-						return setImmediate(eachSeriesCb, 'Sender not found');
-					}
-
-					// Check transaction depends on type
-					if (library.logic.transaction.ready(transaction, sender)) {
-						// Verify transaction
-						return library.logic.transaction.verify(
-							transaction,
-							sender,
-							null,
-							true,
-							verifyErr => {
-								if (!verifyErr) {
-									ready.push(transaction);
-								}
-								return setImmediate(eachSeriesCb);
-							},
-							null
-						);
-					}
-					return setImmediate(eachSeriesCb);
-				}
+	modules.processTransactions
+		.applyTransactions(allowedTransactions)
+		.then(({ transactionsResponses: responses }) => {
+			const readyTransactions = allowedTransactions.filter(transaction =>
+				responses
+					.filter(response => response.status === TransactionStatus.OK)
+					.map(response => response.id)
+					.includes(transaction.id)
 			);
-		},
-		err => {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-			let block;
 
-			try {
-				// Create a block
-				block = library.logic.block.create({
-					keypair,
-					timestamp,
-					previousBlock: modules.blocks.lastBlock.get(),
-					transactions: ready,
-				});
-			} catch (e) {
-				library.logger.error(e.stack);
-				return setImmediate(cb, e);
-			}
-
+			// Create a block
+			const block = library.logic.block.create({
+				keypair,
+				timestamp,
+				previousBlock: modules.blocks.lastBlock.get(),
+				transactions: readyTransactions,
+			});
 			// Start block processing - broadcast: true, saveBlock: true
 			return modules.blocks.verify.processBlock(block, true, true, cb);
-		}
-	);
+		})
+		.catch(e => {
+			library.logger.error(e.stack);
+			return setImmediate(cb, e);
+		});
 };
 
 /**
@@ -727,6 +637,7 @@ Process.prototype.onBind = function(scope) {
 		rounds: scope.modules.rounds,
 		transactions: scope.modules.transactions,
 		transport: scope.modules.transport,
+		processTransactions: scope.modules.processTransactions,
 	};
 
 	// Set module as loaded

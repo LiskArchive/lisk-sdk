@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -26,10 +26,13 @@ const apiHelpers = require('../../../common/helpers/api');
 const apiCodes = require('../../../../../src/modules/http_api/api_codes');
 const common = require('./common');
 
-const { FEES, NORMALIZER } = global.constants;
+const { FEES } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
-describe('POST /api/transactions (type 5) register dapp', () => {
+// Dapp Transaction is not part of framework and can't be tested using test_app
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('POST /api/transactions (type 5) register dapp', () => {
 	let transaction;
 	const transactionsToWaitFor = [];
 	const badTransactions = [];
@@ -108,8 +111,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.match(
-						/Missing required property: category$/
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						"'.dapp' should have required property 'category'"
 					);
 					badTransactions.push(transaction);
 				});
@@ -127,7 +134,11 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Invalid transaction body - Failed to validate dapp schema: Expected type integer but found type string'
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						"'.dapp.category' should be integer"
 					);
 					badTransactions.push(transaction);
 				});
@@ -144,7 +155,13 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.match(/Value -1 is less than minimum 0$/);
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						"'.dapp.category' should be >= 0"
+					);
 					badTransactions.push(transaction);
 				});
 			});
@@ -160,8 +177,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.match(
-						/Value 9 is greater than maximum 8$/
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						"'.dapp.category' should be <= 8"
 					);
 					badTransactions.push(transaction);
 				});
@@ -208,8 +229,10 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Invalid transaction body - Failed to validate dapp schema: Expected type string but found type integer'
+						'Transaction was rejected with errors'
 					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors).to.not.be.empty;
 					badTransactions.push(transaction);
 				});
 			});
@@ -243,8 +266,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.match(
-						/String is too long \(161 chars\), maximum 160$/
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						"'.dapp.description' should NOT be longer than 160 characters"
 					);
 					badTransactions.push(transaction);
 				});
@@ -278,8 +305,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.equal(
-						'Application description has invalid character. Null character is not allowed.'
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						'\'.dapp.description\' should match format "noNullByte"'
 					);
 					badTransactions.push(transaction);
 				});
@@ -298,8 +329,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.equal(
-						'Application description has invalid character. Null character is not allowed.'
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						'\'.dapp.description\' should match format "noNullByte"'
 					);
 					badTransactions.push(transaction);
 				});
@@ -318,8 +353,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.equal(
-						'Application description has invalid character. Null character is not allowed.'
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						'\'.dapp.description\' should match format "noNullByte"'
 					);
 					badTransactions.push(transaction);
 				});
@@ -338,8 +377,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.equal(
-						'Application description has invalid character. Null character is not allowed.'
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						'\'.dapp.description\' should match format "noNullByte"'
 					);
 					badTransactions.push(transaction);
 				});
@@ -373,9 +416,11 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.equal(
-						'Invalid transaction body - Failed to validate dapp schema: Expected type string but found type integer'
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
 					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors).to.not.be.empty;
 					badTransactions.push(transaction);
 				});
 			});
@@ -393,7 +438,13 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.equal('Invalid application icon link');
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						'\'.dapp.icon\' should match format "uri"'
+					);
 					badTransactions.push(transaction);
 				});
 			});
@@ -411,8 +462,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.equal(
-						'Invalid application icon file type'
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						'Dapp icon must have suffix of one of .png,.jpeg,.jpg'
 					);
 					badTransactions.push(transaction);
 				});
@@ -433,7 +488,13 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.equal('Invalid application link');
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						'\'.dapp.link\' should match format "uri"'
+					);
 					badTransactions.push(transaction);
 				});
 			});
@@ -449,8 +510,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.equal(
-						'Invalid transaction body - Failed to validate dapp schema: Expected type string but found type integer'
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						"'.dapp.link' should be string"
 					);
 					badTransactions.push(transaction);
 				});
@@ -469,7 +534,13 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.equal('Invalid application file type');
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						'Dapp icon must have suffix .zip'
+					);
 					badTransactions.push(transaction);
 				});
 			});
@@ -487,7 +558,13 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.match(/Missing required property: name$/);
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						"'.dapp' should have required property 'name'"
+					);
 					badTransactions.push(transaction);
 				});
 			});
@@ -503,8 +580,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.equal(
-						'Invalid transaction body - Failed to validate dapp schema: Expected type string but found type integer'
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						"'.dapp.name' should be string"
 					);
 					badTransactions.push(transaction);
 				});
@@ -521,8 +602,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.match(
-						/String is too short \(0 chars\), minimum 1$/
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						"'.dapp.name' should NOT be shorter than 1 characters"
 					);
 					badTransactions.push(transaction);
 				});
@@ -542,8 +627,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.match(
-						/String is too long \(33 chars\), maximum 32$/
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						"'.dapp.name' should NOT be longer than 32 characters"
 					);
 					badTransactions.push(transaction);
 				});
@@ -578,8 +667,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.equal(
-						'Application name has invalid character. Null character is not allowed.'
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						'\'.dapp.name\' should match format "noNullByte"'
 					);
 					badTransactions.push(transaction);
 				});
@@ -598,8 +691,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.equal(
-						'Application name has invalid character. Null character is not allowed.'
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						'\'.dapp.name\' should match format "noNullByte"'
 					);
 					badTransactions.push(transaction);
 				});
@@ -618,8 +715,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.equal(
-						'Application name has invalid character. Null character is not allowed.'
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						'\'.dapp.name\' should match format "noNullByte"'
 					);
 					badTransactions.push(transaction);
 				});
@@ -638,8 +739,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.equal(
-						'Application name has invalid character. Null character is not allowed.'
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						'\'.dapp.name\' should match format "noNullByte"'
 					);
 					badTransactions.push(transaction);
 				});
@@ -673,9 +778,11 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.equal(
-						'Invalid transaction body - Failed to validate dapp schema: Expected type string but found type integer'
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
 					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors).to.not.be.empty;
 					badTransactions.push(transaction);
 				});
 			});
@@ -709,8 +816,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.match(
-						/String is too long \(161 chars\), maximum 160$/
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						"'.dapp.tags' should NOT be longer than 160 characters"
 					);
 					badTransactions.push(transaction);
 				});
@@ -745,8 +856,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.equal(
-						`Encountered duplicate tag: ${tag} in application`
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						'Dapp tags must have unique set'
 					);
 					badTransactions.push(transaction);
 				});
@@ -780,8 +895,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.equal(
-						'Application tags has invalid character. Null character is not allowed.'
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						'\'.dapp.tags\' should match format "noNullByte"'
 					);
 					badTransactions.push(transaction);
 				});
@@ -800,8 +919,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.equal(
-						'Application tags has invalid character. Null character is not allowed.'
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						'\'.dapp.tags\' should match format "noNullByte"'
 					);
 					badTransactions.push(transaction);
 				});
@@ -820,8 +943,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.equal(
-						'Application tags has invalid character. Null character is not allowed.'
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						'\'.dapp.tags\' should match format "noNullByte"'
 					);
 					badTransactions.push(transaction);
 				});
@@ -840,8 +967,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.equal(
-						'Application tags has invalid character. Null character is not allowed.'
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						'\'.dapp.tags\' should match format "noNullByte"'
 					);
 					badTransactions.push(transaction);
 				});
@@ -860,7 +991,13 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.match(/Missing required property: type$/);
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						"'.dapp' should have required property 'type'"
+					);
 					badTransactions.push(transaction);
 				});
 			});
@@ -876,7 +1013,13 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.match(/Value -1 is less than minimum 0$/);
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						"'.dapp.type' should be >= 0"
+					);
 					badTransactions.push(transaction);
 				});
 			});
@@ -892,7 +1035,13 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.match(/Value -1 is less than minimum 0$/);
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						"'.dapp.type' should be >= 0"
+					);
 					badTransactions.push(transaction);
 				});
 			});
@@ -909,7 +1058,13 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.equal('Invalid application type');
+					expect(res.body.message).to.be.equal(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						"'.dapp.type' should be <= 1"
+					);
 					badTransactions.push(transaction);
 				});
 			});
@@ -929,8 +1084,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.equal(
-					`Application name already exists: ${dapp.name}`
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
+					`Application name already exists: ${randomUtil.guestbookDapp.name}`
 				);
 				badTransactions.push(transaction);
 			});
@@ -948,8 +1107,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.equal(
-					`Application link already exists: ${dapp.link}`
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
+					`Application link already exists: ${randomUtil.guestbookDapp.link}`
 				);
 				badTransactions.push(transaction);
 			});
@@ -965,10 +1128,14 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.equal(
+				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
 					`Account does not have enough LSK: ${
 						accountNoFunds.address
-					} balance: 0`
+					}, balance: 0`
 				);
 				badTransactions.push(transaction);
 			});

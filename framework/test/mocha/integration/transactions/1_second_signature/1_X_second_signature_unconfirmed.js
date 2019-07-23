@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -23,9 +23,10 @@ const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
 
-const { NORMALIZER, TRANSACTION_TYPES } = global.constants;
+const { TRANSACTION_TYPES } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 
-describe('system test (type 1) - sending transactions on top of unconfirmed second signature', () => {
+describe('integration test (type 1) - sending transactions on top of unconfirmed second signature', () => {
 	let library;
 
 	const account = randomUtil.account();
@@ -46,7 +47,7 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 		secondPassphrase: account.secondPassphrase,
 	});
 
-	localCommon.beforeBlock('system_1_X_second_sign_unconfirmed', lib => {
+	localCommon.beforeBlock('1_X_second_sign_unconfirmed', lib => {
 		library = lib;
 	});
 
@@ -86,7 +87,9 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 							transactionSecondSignature,
 							err => {
 								expect(err).to.equal(
-									`Transaction is already processed: ${
+									`Transaction: ${
+										transactionSecondSignature.id
+									} failed at .id: Transaction is already processed: ${
 										transactionSecondSignature.id
 									}`
 								);
@@ -106,6 +109,32 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 							done();
 						});
 					});
+				} else if (key === 'MULTI') {
+					it(`type ${index}: ${key} should fail`, done => {
+						localCommon.loadTransactionType(
+							key,
+							account,
+							dapp,
+							null,
+							loadedTransaction => {
+								localCommon.addTransaction(library, loadedTransaction, err => {
+									const expectedErrors = [
+										`Transaction: ${
+											loadedTransaction.id
+										} failed at .signSignature: Sender does not have a secondPublicKey`,
+										`Transaction: ${
+											loadedTransaction.id
+										} failed at .signatures: Missing signatures `,
+									];
+									expect(err).to.equal(
+										expectedErrors.join(',')
+										// `Transaction: ${loadedTransaction.id} failed at .signSignature: Sender does not have a secondPublicKey`
+									);
+									done();
+								});
+							}
+						);
+					});
 				} else {
 					it(`type ${index}: ${key} should fail`, done => {
 						localCommon.loadTransactionType(
@@ -116,7 +145,9 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 							loadedTransaction => {
 								localCommon.addTransaction(library, loadedTransaction, err => {
 									expect(err).to.equal(
-										'Sender does not have a second signature'
+										`Transaction: ${
+											loadedTransaction.id
+										} failed at .signSignature: Sender does not have a secondPublicKey`
 									);
 									done();
 								});

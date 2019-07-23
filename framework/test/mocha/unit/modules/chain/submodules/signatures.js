@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -15,8 +15,6 @@
 'use strict';
 
 const application = require('../../../../common/application');
-
-const { TRANSACTION_TYPES } = global.constants;
 
 /* eslint-disable mocha/no-pending-tests */
 describe('signatures', () => {
@@ -86,25 +84,6 @@ describe('signatures', () => {
 					'transport',
 					library.modules.transport
 				));
-		});
-
-		describe('assetTypes', () => {
-			let signatureLogicSpy;
-
-			before(done => {
-				signatureLogicSpy = sinonSandbox.spy(
-					library.rewiredModules.signatures.__get__('__private').assetTypes[
-						TRANSACTION_TYPES.SIGNATURE
-					],
-					'bind'
-				);
-				done();
-			});
-
-			after(() => signatureLogicSpy.restore());
-
-			it('should call bind on signature logic with scope.accounts', async () =>
-				expect(signatureLogicSpy).to.be.calledWith(library.modules.accounts));
 		});
 	});
 

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -14,12 +14,20 @@
 
 'use strict';
 
-const Logger = require('./logger');
+const { createLogger } = require('./logger');
+const { config: defaultConfig } = require('./defaults');
+const validator = require('../../controller/validator');
 
-function createLoggerComponent(config = {}) {
-	return new Logger(config).bootstrap();
+function createLoggerComponent(options = {}) {
+	const optionsWithDefaults = validator.parseEnvArgAndValidate(
+		defaultConfig,
+		options
+	);
+
+	return createLogger(optionsWithDefaults);
 }
 
 module.exports = {
+	defaults: defaultConfig,
 	createLoggerComponent,
 };

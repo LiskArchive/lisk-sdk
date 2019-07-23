@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const Event = require('../event');
 const Action = require('../action');
 const { INTERNAL_EVENTS, eventWithModuleNameReg } = require('./base/constants');
@@ -87,6 +103,14 @@ class BaseChannel {
 	// Specified as moduleName:actionName
 	// eslint-disable-next-line no-unused-vars, class-methods-use-this
 	async invoke(actionName, params) {
+		throw new TypeError('This method must be implemented in child classes. ');
+	}
+
+	// Call action of any moduleAlias through controller
+	// Specified as moduleName:actionName
+	// Specified action must be defined as publicly callable
+	// eslint-disable-next-line no-unused-vars, class-methods-use-this
+	async invokePublic(actionName, params) {
 		throw new TypeError('This method must be implemented in child classes. ');
 	}
 

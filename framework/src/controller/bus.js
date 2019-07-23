@@ -1,9 +1,25 @@
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const axon = require('pm2-axon');
 const { Server: RPCServer, Client: RPCClient } = require('pm2-axon-rpc');
 const { EventEmitter2 } = require('eventemitter2');
 const Action = require('./action');
 
-const CONTROLLER_IDENTIFIER = 'lisk';
+const CONTROLLER_IDENTIFIER = 'app';
 const SOCKET_TIMEOUT_TIME = 2000;
 
 /**
@@ -71,6 +87,12 @@ class Bus extends EventEmitter2 {
 				.catch(error => cb(error));
 		});
 
+		this.rpcServer.expose('invokePublic', (action, cb) => {
+			this.invokePublic(action)
+				.then(data => cb(null, data))
+				.catch(error => cb(error));
+		});
+
 		return Promise.race([
 			this._resolveWhenAllSocketsBound(),
 			this._rejectWhenAnySocketFailsToBind(),
@@ -107,14 +129,16 @@ class Bus extends EventEmitter2 {
 			this.events[eventFullName] = true;
 		});
 
-		actions.forEach(actionName => {
+		Object.keys(actions).forEach(actionName => {
 			const actionFullName = `${moduleAlias}:${actionName}`;
+
 			if (this.actions[actionFullName]) {
 				throw new Error(
 					`Action "${actionFullName}" already registered with bus.`
 				);
 			}
-			this.actions[actionFullName] = true;
+
+			this.actions[actionFullName] = actions[actionName];
 		});
 
 		let channel = options.channel;
@@ -141,7 +165,7 @@ class Bus extends EventEmitter2 {
 	 *
 	 * @throws {Error} If action is not registered to bus.
 	 */
-	invoke(actionData) {
+	async invoke(actionData) {
 		const action = Action.deserialize(actionData);
 
 		if (!this.actions[action.key()]) {
@@ -171,6 +195,26 @@ class Bus extends EventEmitter2 {
 	}
 
 	/**
+	 * Invoke public defined action on bus.
+	 *
+	 * @param {Object|string} actionData - Object or stringified object containing action data like name, module, souce, and params.
+	 *
+	 * @throws {Error} If action is not registered to bus.
+	 */
+	async invokePublic(actionData) {
+		const action = Action.deserialize(actionData);
+
+		// Check if action is public
+		if (!this.actions[action.key()].isPublic) {
+			throw new Error(
+				`Action ${action.key()} is not allowed because it's not public.`
+			);
+		}
+
+		return this.invoke(actionData);
+	}
+
+	/**
 	 * Emit event with its data on bus.
 	 *
 	 * @param {string} eventName - Name of the event
@@ -182,7 +226,6 @@ class Bus extends EventEmitter2 {
 		if (!this.getEvents().includes(eventName)) {
 			throw new Error(`Event ${eventName} is not registered to bus.`);
 		}
-
 		// Communicate through event emitter
 		this.emit(eventName, eventValue);
 

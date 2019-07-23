@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -32,9 +32,9 @@ const localCommon = require('../../common');
 const transferIntoDapp = () => {};
 const transferOutOfDapp = () => {};
 
-describe('system test (blocks) - chain/deleteLastBlock', () => {
+describe('integration test (blocks) - chain/deleteLastBlock', () => {
 	let library;
-	localCommon.beforeBlock('system_blocks_chain', lib => {
+	localCommon.beforeBlock('blocks_chain', lib => {
 		library = lib;
 	});
 
@@ -70,7 +70,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 			describe('(type 0) transfer funds', () => {
 				before('create account with funds', done => {
 					createAccountWithFunds(done);
-					fieldsToCompare = ['balance', 'u_balance', 'publicKey'];
+					fieldsToCompare = ['balance', 'publicKey'];
 				});
 
 				it('should validate account data from sender after account creation', done => {
@@ -137,7 +137,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						fieldsToCompare,
 						(err, res) => {
 							expect(res.balance).to.equal(testAccountData.balance);
-							expect(res.u_balance).to.equal(testAccountData.u_balance);
 							// CHECKME: publicKey should be null
 							done();
 						}
@@ -150,7 +149,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						fieldsToCompare,
 						(err, res) => {
 							expect(res.balance).to.equal('0');
-							expect(res.u_balance).to.equal('0');
 							// FIXME: Maybe this address should not be inserted into mem_accounts
 							done();
 						}
@@ -167,9 +165,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						fieldsToCompare,
 						(err, res) => {
 							expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
-							expect(res.u_balance).to.equal(
-								testAccountDataAfterBlock.u_balance
-							);
 							expect(res.publicKey).to.equal(
 								testAccountDataAfterBlock.publicKey
 							);
@@ -184,7 +179,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						fieldsToCompare,
 						(err, res) => {
 							expect(res.balance).to.equal(testReceiptData.balance);
-							expect(res.u_balance).to.equal(testReceiptData.u_balance);
 							done();
 						}
 					);
@@ -196,11 +190,9 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					createAccountWithFunds(done);
 					fieldsToCompare = [
 						'balance',
-						'u_balance',
 						'publicKey',
 						'secondPublicKey',
 						'secondSignature',
-						'u_secondSignature',
 					];
 				});
 
@@ -213,7 +205,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							expect(res.publicKey).to.be.null;
 							expect(res.secondPublicKey).to.be.null;
 							expect(res.secondSignature).to.equal(false);
-							expect(res.u_secondSignature).to.equal(false);
 							done();
 						}
 					);
@@ -240,7 +231,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							expect(res.publicKey).to.not.be.null;
 							expect(res.secondPublicKey).to.not.be.null;
 							expect(res.secondSignature).to.equal(true);
-							expect(res.u_secondSignature).to.equal(true);
 							done();
 						}
 					);
@@ -260,10 +250,8 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						fieldsToCompare,
 						(err, res) => {
 							expect(res.balance).to.equal(testAccountData.balance);
-							expect(res.u_balance).to.equal(testAccountData.u_balance);
 							expect(res.secondPublicKey).to.be.null;
 							expect(res.secondSignature).to.equal(false);
-							expect(res.u_secondSignature).to.equal(false);
 							// CHECKME: publicKey should be null
 							done();
 						}
@@ -280,9 +268,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						fieldsToCompare,
 						(err, res) => {
 							expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
-							expect(res.u_balance).to.equal(
-								testAccountDataAfterBlock.u_balance
-							);
 							expect(res.publicKey).to.equal(
 								testAccountDataAfterBlock.publicKey
 							);
@@ -301,12 +286,9 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					createAccountWithFunds(done);
 					fieldsToCompare = [
 						'balance',
-						'u_balance',
 						'publicKey',
 						'isDelegate',
-						'u_isDelegate',
 						'username',
-						'u_username',
 						'missedBlocks',
 						'producedBlocks',
 						'rank',
@@ -324,9 +306,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							testAccountData = res;
 							expect(res.publicKey).to.be.null;
 							expect(res.isDelegate).to.equal(false);
-							expect(res.u_isDelegate).to.equal(false);
 							expect(res.username).to.be.null;
-							expect(res.u_username).to.be.null;
 							expect(res.missedBlocks).to.equal(0);
 							expect(res.producedBlocks).to.equal(0);
 							expect(res.rank).to.be.null;
@@ -357,9 +337,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							testAccountDataAfterBlock = res;
 							expect(res.publicKey).to.not.be.null;
 							expect(res.isDelegate).to.equal(true);
-							expect(res.u_isDelegate).to.equal(true);
 							expect(res.username).to.be.equal(testAccount.username);
-							expect(res.u_username).to.be.equal(testAccount.username);
 							expect(res.missedBlocks).to.equal(0);
 							expect(res.producedBlocks).to.equal(0);
 							expect(res.rank).to.equal(null);
@@ -384,11 +362,8 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						fieldsToCompare,
 						(err, res) => {
 							expect(res.balance).to.equal(testAccountData.balance);
-							expect(res.u_balance).to.equal(testAccountData.u_balance);
 							expect(res.isDelegate).to.equal(false);
-							expect(res.u_isDelegate).to.equal(false);
 							expect(res.username).to.be.null;
-							expect(res.u_username).to.be.null;
 							expect(res.missedBlocks).to.equal(0);
 							expect(res.producedBlocks).to.equal(0);
 							expect(res.rank).to.be.null;
@@ -410,18 +385,11 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						fieldsToCompare,
 						(err, res) => {
 							expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
-							expect(res.u_balance).to.equal(
-								testAccountDataAfterBlock.u_balance
-							);
 							expect(res.publicKey).to.equal(
 								testAccountDataAfterBlock.publicKey
 							);
 							expect(res.isDelegate).to.equal(true);
-							expect(res.u_isDelegate).to.equal(true);
 							expect(res.username).to.be.equal(
-								testAccountDataAfterBlock.username
-							);
-							expect(res.u_username).to.be.equal(
 								testAccountDataAfterBlock.username
 							);
 							expect(res.missedBlocks).to.equal(0);
@@ -440,10 +408,8 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					createAccountWithFunds(done);
 					fieldsToCompare = [
 						'balance',
-						'u_balance',
 						'publicKey',
 						'votedDelegatesPublicKeys',
-						'u_votedDelegatesPublicKeys',
 					];
 				});
 
@@ -455,7 +421,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							testAccountData = res;
 							expect(res.publicKey).to.be.null;
 							expect(res.votedDelegatesPublicKeys).to.be.null;
-							expect(res.u_votedDelegatesPublicKeys).to.be.null;
 							done();
 						}
 					);
@@ -479,9 +444,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							expect(res.votedDelegatesPublicKeys[0]).to.equal(
 								accountFixtures.existingDelegate.publicKey
 							);
-							expect(res.u_votedDelegatesPublicKeys[0]).to.equal(
-								accountFixtures.existingDelegate.publicKey
-							);
 							done();
 						}
 					);
@@ -501,9 +463,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						fieldsToCompare,
 						(err, res) => {
 							expect(res.balance).to.equal(testAccountData.balance);
-							expect(res.u_balance).to.equal(testAccountData.u_balance);
 							expect(res.votedDelegatesPublicKeys).to.be.null;
-							expect(res.u_votedDelegatesPublicKeys).to.be.null;
 							// CHECKME: publicKey should be null
 							done();
 						}
@@ -520,16 +480,10 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						fieldsToCompare,
 						(err, res) => {
 							expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
-							expect(res.u_balance).to.equal(
-								testAccountDataAfterBlock.u_balance
-							);
 							expect(res.publicKey).to.equal(
 								testAccountDataAfterBlock.publicKey
 							);
 							expect(res.votedDelegatesPublicKeys[0]).to.equal(
-								accountFixtures.existingDelegate.publicKey
-							);
-							expect(res.u_votedDelegatesPublicKeys[0]).to.equal(
 								accountFixtures.existingDelegate.publicKey
 							);
 							done();
@@ -543,14 +497,10 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					createAccountWithFunds(done);
 					fieldsToCompare = [
 						'balance',
-						'u_balance',
 						'publicKey',
 						'multiLifetime',
-						'u_multiLifetime',
 						'multiMin',
-						'u_multiMin',
 						'membersPublicKeys',
-						'u_membersPublicKeys',
 					];
 				});
 
@@ -562,11 +512,8 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							testAccountData = res;
 							expect(res.publicKey).to.be.null;
 							expect(res.multiLifetime).to.equal(0);
-							expect(res.u_multiLifetime).to.equal(0);
 							expect(res.multiMin).to.equal(0);
-							expect(res.u_multiMin).to.equal(0);
 							expect(res.membersPublicKeys).to.be.null;
-							expect(res.u_membersPublicKeys).to.be.null;
 							done();
 						}
 					);
@@ -601,13 +548,8 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							testAccountDataAfterBlock = res;
 							expect(res.publicKey).to.not.be.null;
 							expect(res.multiLifetime).to.equal(1);
-							expect(res.u_multiLifetime).to.equal(1);
 							expect(res.multiMin).to.equal(1);
-							expect(res.u_multiMin).to.equal(1);
 							expect(res.membersPublicKeys[0]).to.equal(
-								accountFixtures.existingDelegate.publicKey
-							);
-							expect(res.u_membersPublicKeys[0]).to.equal(
 								accountFixtures.existingDelegate.publicKey
 							);
 							done();
@@ -629,13 +571,9 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						fieldsToCompare,
 						(err, res) => {
 							expect(res.balance).to.equal(testAccountData.balance);
-							expect(res.u_balance).to.equal(testAccountData.u_balance);
 							expect(res.multiLifetime).to.equal(0);
-							expect(res.u_multiLifetime).to.equal(0);
 							expect(res.multiMin).to.equal(0);
-							expect(res.u_multiMin).to.equal(0);
 							expect(res.membersPublicKeys).to.be.null;
-							expect(res.u_membersPublicKeys).to.be.null;
 							// CHECKME: publicKey should be null
 							done();
 						}
@@ -646,26 +584,20 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					localCommon.addTransactionsAndForge(library, [], done);
 				});
 
-				it('should validate account data from sender after forging a block with transaction pool', done => {
+				// This test will only start working after we remove the fillPool mechanism from the application
+				// eslint-disable-next-line mocha/no-skipped-tests
+				it.skip('[UNCONFIRMED STATE REMOVAL] should validate account data from sender after forging a block with transaction pool', done => {
 					library.logic.account.get(
 						{ address: testAccount.address },
 						fieldsToCompare,
 						(err, res) => {
 							expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
-							expect(res.u_balance).to.equal(
-								testAccountDataAfterBlock.u_balance
-							);
 							expect(res.publicKey).to.equal(
 								testAccountDataAfterBlock.publicKey
 							);
 							expect(res.multiLifetime).to.equal(1);
-							expect(res.u_multiLifetime).to.equal(1);
 							expect(res.multiMin).to.equal(1);
-							expect(res.u_multiMin).to.equal(1);
 							expect(res.membersPublicKeys[0]).to.equal(
-								accountFixtures.existingDelegate.publicKey
-							);
-							expect(res.u_membersPublicKeys[0]).to.equal(
 								accountFixtures.existingDelegate.publicKey
 							);
 							done();
@@ -677,7 +609,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 			describe('dapps', () => {
 				before('create account with funds', done => {
 					createAccountWithFunds(done);
-					fieldsToCompare = ['balance', 'u_balance', 'publicKey'];
+					fieldsToCompare = ['balance', 'publicKey'];
 				});
 
 				describe('(type 5) register dapp', () => {
@@ -732,7 +664,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							fieldsToCompare,
 							(err, res) => {
 								expect(res.balance).to.equal(testAccountData.balance);
-								expect(res.u_balance).to.equal(testAccountData.u_balance);
 								// CHECKME: publicKey should be null
 								done();
 							}
@@ -749,9 +680,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							fieldsToCompare,
 							(err, res) => {
 								expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
-								expect(res.u_balance).to.equal(
-									testAccountDataAfterBlock.u_balance
-								);
 								expect(res.publicKey).to.equal(
 									testAccountDataAfterBlock.publicKey
 								);
@@ -814,7 +742,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							fieldsToCompare,
 							(err, res) => {
 								expect(res.balance).to.equal(testAccountData.balance);
-								expect(res.u_balance).to.equal(testAccountData.u_balance);
 								// CHECKME: publicKey should be null
 								done();
 							}
@@ -831,9 +758,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							fieldsToCompare,
 							(err, res) => {
 								expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
-								expect(res.u_balance).to.equal(
-									testAccountDataAfterBlock.u_balance
-								);
 								expect(res.publicKey).to.equal(
 									testAccountDataAfterBlock.publicKey
 								);
@@ -900,7 +824,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							fieldsToCompare,
 							(err, res) => {
 								expect(res.balance).to.equal(testAccountData.balance);
-								expect(res.u_balance).to.equal(testAccountData.u_balance);
 								// CHECKME: publicKey should be null
 								done();
 							}
@@ -917,9 +840,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							fieldsToCompare,
 							(err, res) => {
 								expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
-								expect(res.u_balance).to.equal(
-									testAccountDataAfterBlock.u_balance
-								);
 								expect(res.publicKey).to.equal(
 									testAccountDataAfterBlock.publicKey
 								);

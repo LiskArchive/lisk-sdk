@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>Browser tests</title>
+		<link
+			rel="stylesheet"
+			media="all"
+			href="https://cdnjs.cloudflare.com/ajax/libs/mocha/3.2.0/mocha.min.css"
+		/>
+	</head>
+
+	<body>
+		<div id="mocha"></div>
+		<div id="messages"></div>
+		<div id="fixtures"></div>
+		<div id="done" style="display: none"></div>
+		<div id="failures" style="display: none"></div>
+
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/mocha/3.2.0/mocha.min.js"></script>
+		<script src="./setup.js"></script>
+		<script src="../browsertest.build/browsertest.min.js"></script>
+		<script src="./run_tests.js"></script>
+	</body>
+</html>

@@ -37,7 +37,7 @@ describe('inert transactions', () => {
 		delegateInertTransaction.id,
 	];
 
-	localCommon.beforeBlock('system_inert_transactions', lib => {
+	localCommon.beforeBlock('inert_transactions', lib => {
 		library = lib;
 	});
 
@@ -122,21 +122,9 @@ describe('inert transactions', () => {
 						);
 					});
 
-					it('should not update u_balance field of sender account', async () => {
-						return expect(beforeBlockSenderMemAccount.u_balance).to.equal(
-							afterBlockSenderMemAccount.u_balance
-						);
-					});
-
 					it('should not update balance field of sender account', async () => {
 						return expect(beforeBlockSenderMemAccount.balance).to.equal(
 							afterBlockSenderMemAccount.balance
-						);
-					});
-
-					it('should not update u_balance field of recipient account', async () => {
-						return expect(beforeBlockRecipientMemAccount.u_balance).to.equal(
-							afterBlockRecipientMemAccount.u_balance
 						);
 					});
 
@@ -207,21 +195,9 @@ describe('inert transactions', () => {
 							);
 						});
 
-						it('should not update u_balance field of sender account', async () => {
-							return expect(afterDeleteSenderMemAccount.u_balance).to.equal(
-								beforeBlockSenderMemAccount.u_balance
-							);
-						});
-
 						it('should not update balance field of sender account', async () => {
 							return expect(afterDeleteSenderMemAccount.balance).to.equal(
 								beforeBlockSenderMemAccount.balance
-							);
-						});
-
-						it('should not update u_balance field of recipient account', async () => {
-							return expect(afterDeleteRecipientMemAccount.u_balance).to.equal(
-								beforeBlockRecipientMemAccount.u_balance
 							);
 						});
 
@@ -395,6 +371,7 @@ describe('inert transactions', () => {
 					});
 				});
 			});
+
 			describe('when forging block with inert type 3 transaction', () => {
 				const inertTransaction = voteInertTransaction;
 
@@ -416,12 +393,6 @@ describe('inert transactions', () => {
 								afterBlockRecipientMemAccount = res;
 								done();
 							}
-						);
-					});
-
-					it('should not update u_balance field of recipient account', async () => {
-						return expect(beforeBlockRecipientMemAccount.u_balance).to.equal(
-							afterBlockRecipientMemAccount.u_balance
 						);
 					});
 

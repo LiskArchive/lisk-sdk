@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -24,6 +24,7 @@ const SwaggerEndpoint = require('../../../../common/swagger_spec');
 const randomUtil = require('../../../../common/utils/random');
 const waitFor = require('../../../../common/utils/wait_for');
 const apiHelpers = require('../../../../common/helpers/api');
+const Bignum = require('../../../../../../src/modules/chain/helpers/bignum');
 
 const { FEES } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
@@ -300,27 +301,45 @@ describe('GET /accounts', () => {
 				return accountsEndpoint.makeRequest({ sort: 'invalid' }, 400);
 			});
 
-			it('using no sort return accounts sorted by balance in asending order as default behavior', async () => {
-				return accountsEndpoint
-					.makeRequest({ sort: 'balance:asc' }, 200)
-					.then(res => {
-						const balances = _(res.body.data)
-							.map('balance')
-							.value();
-						expect(_.clone(balances).sort()).to.be.eql(balances);
-					});
+			it('using no sort return accounts sorted by both balance and address in asending order as default behavior', async () => {
+				return accountsEndpoint.makeRequest({}, 200).then(res => {
+					const balances = _.cloneDeep(res.body.data);
+					expect(
+						balances.sort((a, b) => {
+							const aBignumBalance = new Bignum(a.balance);
+
+							if (aBignumBalance.gt(b.balance)) {
+								return 1;
+							}
+							if (aBignumBalance.lt(b.balance)) {
+								return -1;
+							}
+
+							return a.address.localeCompare(b.address);
+						})
+					).to.be.eql(res.body.data);
+				});
 			});
 
 			it('using sort = balance:asc should return accounts in ascending order by balance', async () => {
 				return accountsEndpoint
 					.makeRequest({ sort: 'balance:asc' }, 200)
 					.then(res => {
-						const balances = _.map(res.body.data, 'balance');
+						const balances = _.cloneDeep(res.body.data);
 						expect(
-							_(res.body.data)
-								.map('balance')
-								.sortNumbers()
-						).to.be.eql(balances);
+							balances.sort((a, b) => {
+								const aBignumBalance = new Bignum(a.balance);
+
+								if (aBignumBalance.gt(b.balance)) {
+									return 1;
+								}
+								if (aBignumBalance.lt(b.balance)) {
+									return -1;
+								}
+
+								return a.address.localeCompare(b.address);
+							})
+						).to.be.eql(res.body.data);
 					});
 			});
 
@@ -328,12 +347,21 @@ describe('GET /accounts', () => {
 				return accountsEndpoint
 					.makeRequest({ sort: 'balance:desc' }, 200)
 					.then(res => {
-						const balances = _.map(res.body.data, 'balance');
+						const balances = _.cloneDeep(res.body.data);
 						expect(
-							_(res.body.data)
-								.map('balance')
-								.sortNumbers('desc')
-						).to.be.eql(balances);
+							balances.sort((a, b) => {
+								const aBignumBalance = new Bignum(a.balance);
+
+								if (aBignumBalance.gt(b.balance)) {
+									return -1;
+								}
+								if (aBignumBalance.lt(b.balance)) {
+									return 1;
+								}
+
+								return a.address.localeCompare(b.address);
+							})
+						).to.be.eql(res.body.data);
 					});
 			});
 		});
@@ -407,8 +435,14 @@ describe('GET /accounts', () => {
 			];
 
 			const [
-				{ body: { data: constansts } },
-				{ body: { data: [{ delegate }] } },
+				{
+					body: { data: constansts },
+				},
+				{
+					body: {
+						data: [{ delegate }],
+					},
+				},
 			] = await Promise.all(promises);
 
 			const calculatedApproval = apiHelpers.calculateApproval(

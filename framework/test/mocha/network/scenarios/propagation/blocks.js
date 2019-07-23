@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -27,7 +27,9 @@ module.exports = function(configurations, network) {
 				.then(() => {
 					return Promise.all(
 						configurations.map(configuration => {
-							return utils.http.getBlocks(configuration.httpPort);
+							return utils.http.getBlocks({
+								port: configuration.modules.http_api.httpPort,
+							});
 						})
 					);
 				})
@@ -37,11 +39,11 @@ module.exports = function(configurations, network) {
 		});
 
 		it('should be able to get blocks list from every peer', async () => {
-			return expect(nodesBlocks).to.have.lengthOf(configurations.length);
+			expect(nodesBlocks).to.have.lengthOf(configurations.length);
 		});
 
 		it('should contain non empty blocks', async () => {
-			return nodesBlocks.map(blocks => {
+			nodesBlocks.map(blocks => {
 				return expect(blocks).to.be.an('array').and.not.to.be.empty;
 			});
 		});
@@ -51,16 +53,28 @@ module.exports = function(configurations, network) {
 				.map('length')
 				.uniq()
 				.value();
-			return expect(uniquePeersHeights).to.have.lengthOf.at.least(1);
+			expect(uniquePeersHeights).to.have.lengthOf.at.least(1);
 		});
 
 		it('should have all blocks the same at all peers', async () => {
 			const blocksFromOtherNodes = nodesBlocks.splice(1);
 			const blocksFromNode0 = nodesBlocks[0];
 
-			return blocksFromOtherNodes.map(blocksFromNode => {
+			blocksFromOtherNodes.map(blocksFromNode => {
 				return expect(blocksFromNode).to.include.deep.members(blocksFromNode0);
 			});
+		});
+
+		it('should forge 6 blocks within 1 minute', async () => {
+			const currentHeight = await utils.http.getHeight({
+				port: configurations[0].modules.http_api.httpPort,
+			});
+			const expectedHeight = currentHeight + 6;
+			await network.wait(60000);
+			const futureHeight = await utils.http.getHeight({
+				port: configurations[0].modules.http_api.httpPort,
+			});
+			expect(futureHeight).to.eql(expectedHeight);
 		});
 	});
 };

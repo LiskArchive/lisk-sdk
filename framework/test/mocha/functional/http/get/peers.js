@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -15,7 +15,8 @@
 'use strict';
 
 require('../../functional');
-const WSServer = require('../../../common/ws/server_master');
+const { P2P } = require('@liskhq/lisk-p2p');
+const { generatePeerHeader } = require('../../../common/generatePeerHeader');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const apiHelpers = require('../../../common/helpers/api');
 
@@ -23,26 +24,22 @@ const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /peers', () => {
 	const peersEndpoint = new SwaggerEndpoint('GET /peers');
-	const wsServer1 = new WSServer();
-	const wsServer2 = new WSServer();
-	const validHeaders = wsServer1.headers;
+	const peerSetting = generatePeerHeader();
+	const validHeaders = peerSetting.nodeInfo;
+	let p2p1;
+	let p2p2;
 
-	before(() => {
-		return wsServer1
-			.start()
-			.then(() => {
-				return wsServer2.start().catch(() => {
-					wsServer2.stop();
-				});
-			})
-			.catch(() => {
-				wsServer1.stop();
-			});
+	before(async () => {
+		p2p1 = new P2P(peerSetting);
+		p2p2 = new P2P(generatePeerHeader());
+
+		await p2p1.start();
+		await p2p2.start();
 	});
 
-	after(() => {
-		wsServer1.stop();
-		return wsServer2.stop();
+	after(async () => {
+		await p2p1.stop();
+		await p2p2.stop();
 	});
 
 	const paramSet = {
@@ -77,7 +74,7 @@ describe('GET /peers', () => {
 			checkResponse: true,
 		},
 		broadhash: {
-			valid: [__testContext.config.nethash],
+			valid: [__testContext.config.app.nethash],
 			invalid: ['invalid'],
 			checkResponse: true,
 		},
@@ -94,7 +91,9 @@ describe('GET /peers', () => {
 			invalid: ['alpha'],
 		},
 	};
-
+	/**
+	 * Skipping this GET /api/peers tests as of now because we are using new p2p library and it needs a different apporach to setup the functional test
+	 */
 	Object.keys(paramSet).forEach(param => {
 		// Describe each param
 		describe(param, () => {
@@ -292,6 +291,22 @@ describe('GET /peers', () => {
 	it('using no params should be ok', async () => {
 		return peersEndpoint.makeRequest({}, 200).then(res => {
 			expect(res.body.data).to.not.empty;
+		});
+	});
+
+	describe('node does not connect to itself', () => {
+		it('should not contain itself in its peer list', async () => {
+			return peersEndpoint.makeRequest({}, 200).then(res => {
+				const responseData = res.body.data;
+
+				expect(responseData).is.an('array');
+
+				responseData.forEach(peer => {
+					expect(peer.wsPort).to.not.be.eql(
+						__testContext.config.modules.network.wsPort
+					);
+				});
+			});
 		});
 	});
 });

@@ -1,14 +1,40 @@
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const assert = require('assert');
+const {
+	TransferTransaction,
+	SecondSignatureTransaction,
+	DelegateTransaction,
+	VoteTransaction,
+	MultisignatureTransaction,
+} = require('@liskhq/lisk-transactions');
+const randomstring = require('randomstring');
+const _ = require('lodash');
 const Controller = require('./controller');
-const defaults = require('./defaults');
 const version = require('../version');
-const validator = require('./helpers/validator');
-const applicationSchema = require('./schema/application');
-const constantsSchema = require('./schema/constants');
+const validator = require('./validator');
+const configurator = require('./default_configurator');
+const { genesisBlockSchema, constantsSchema } = require('./schema');
+
 const { createLoggerComponent } = require('../components/logger');
 
 const ChainModule = require('../modules/chain');
 const HttpAPIModule = require('../modules/http_api');
+const NetworkModule = require('../modules/network');
 
 // Private __private used because private keyword is restricted
 const __private = {
@@ -17,7 +43,7 @@ const __private = {
 };
 
 const registerProcessHooks = app => {
-	process.title = `${app.label}`;
+	process.title = `${app.config.app.label}(${app.config.app.version})`;
 
 	process.on('uncaughtException', err => {
 		// Handle error safely
@@ -54,78 +80,99 @@ const registerProcessHooks = app => {
  * @requires assert
  * @requires Controller
  * @requires module.defaults
- * @requires helpers/validator
+ * @requires validator
  * @requires schema/application
  * @requires components/logger
+ * @requires components/storage
  */
 class Application {
 	/**
 	 * Create the application object
 	 *
 	 * @example
-	 *    const app = new Application('my-app-devnet', myGenesisBlock)
+	 *    const app = new Application(myGenesisBlock)
 	 * @example
-	 *    const app = new Application('my-app-devnet', myGenesisBlock, myConstants)
+	 *    const app = new Application(myGenesisBlock, {app: {label: 'myApp'}})
 	 *
-	 * @param {string|function} label - Application label used in logs. Useful if you have multiple networks for same application.
 	 * @param {Object} genesisBlock - Genesis block object
-	 * @param {Object} [constants] - Override constants
 	 * @param {Object} [config] - Main configuration object
+	 * @param {string} [config.app.label] - Label of the application
+	 * @param {Object} [config.app.genesisConfig] - Configuration for applicationState
+	 * @param {string} [config.app.version] - Version of the application
+	 * @param {string} [config.app.minVersion] - Minimum compatible version on the network
+	 * @param {string} [config.app.protocolVersion] - Compatible protocol version application is using
+	 * @param {string} [config.app.lastCommitId] - Last commit id coming from application repository
+	 * @param {string} [config.app.buildVersion] - Build version of the application
 	 * @param {Object} [config.components] - Configurations for components
 	 * @param {Object} [config.components.logger] - Configuration for logger component
+	 * @param {Object} [config.components.cache] - Configuration for cache component
+	 * @param {Object} [config.components.storage] - Configuration for storage component
 	 * @param {Object} [config.modules] - Configurations for modules
-	 * @param {string} [config.version] - Version of the application
-	 * @param {string} [config.minVersion] - Minimum compatible version on the network
-	 * @param {string} [config.protocolVersion] - Compatible protocol version application is using
 	 *
 	 * @throws Framework.errors.SchemaValidationError
 	 */
-	constructor(
-		label,
-		genesisBlock,
-		constants = {},
-		config = { components: { logger: null } }
-	) {
-		if (typeof label === 'function') {
-			label = label.call();
+	constructor(genesisBlock, config = {}) {
+		validator.validate(genesisBlockSchema, genesisBlock);
+
+		// Don't change the object parameters provided
+		let appConfig = _.cloneDeep(config);
+
+		if (!_.has(appConfig, 'app.label')) {
+			_.set(appConfig, 'app.label', `lisk-${genesisBlock.payloadHash}`);
 		}
 
-		if (!config.components.logger) {
-			config.components.logger = {
-				filename: `~/.lisk/${label}/lisk.log`,
-			};
+		if (!_.has(appConfig, 'components.logger.logFileName')) {
+			_.set(
+				appConfig,
+				'components.logger.logFileName',
+				`${process.cwd()}/logs/${appConfig.app.label}/lisk.log`
+			);
 		}
 
-		// Provide global constants for controller used by z_schema
-		global.constants = constants;
+		appConfig = configurator.getConfig(appConfig, {
+			failOnInvalidArg: process.env.NODE_ENV !== 'test',
+		});
 
-		validator.loadSchema(applicationSchema);
-		validator.loadSchema(constantsSchema);
-		validator.validate(applicationSchema.appLabel, label);
-		validator.validate(constantsSchema.constants, constants);
-		validator.validate(applicationSchema.config, config);
-		validator.validate(applicationSchema.genesisBlock, genesisBlock);
+		// These constants are readonly we are loading up their default values
+		// In additional validating those values so any wrongly changed value
+		// by us can be catch on application startup
+		const constants = validator.parseEnvArgAndValidate(constantsSchema, {});
 
-		// TODO: Validate schema for genesis block, constants, exceptions
+		// app.genesisConfig are actually old constants
+		// we are merging these here to refactor the underlying code in other iteration
+		this.constants = { ...constants, ...appConfig.app.genesisConfig };
 		this.genesisBlock = genesisBlock;
-		this.constants = Object.assign({}, defaults.constants, constants);
-		this.label = label;
-		this.banner = `${label || 'LiskApp'} - Lisk Framework(${version})`;
-		this.config = config;
+		this.config = appConfig;
 		this.controller = null;
+
+		// TODO: This should be removed after https://github.com/LiskHQ/lisk/pull/2980
+		global.constants = this.constants;
 
 		this.logger = createLoggerComponent(this.config.components.logger);
 
 		__private.modules.set(this, {});
 		__private.transactions.set(this, {});
 
-		this.registerModule(ChainModule, {
-			genesisBlock: this.genesisBlock,
-			constants: this.constants,
-		});
+		const { TRANSACTION_TYPES } = constants;
 
-		this.registerModule(HttpAPIModule, {
-			constants: this.constants,
+		this.registerTransaction(TRANSACTION_TYPES.SEND, TransferTransaction);
+		this.registerTransaction(
+			TRANSACTION_TYPES.SIGNATURE,
+			SecondSignatureTransaction
+		);
+		this.registerTransaction(TRANSACTION_TYPES.DELEGATE, DelegateTransaction);
+		this.registerTransaction(TRANSACTION_TYPES.VOTE, VoteTransaction);
+		this.registerTransaction(
+			TRANSACTION_TYPES.MULTI,
+			MultisignatureTransaction
+		);
+
+		this.registerModule(ChainModule, {
+			registeredTransactions: this.getTransactions(),
+		});
+		this.registerModule(NetworkModule);
+		this.registerModule(HttpAPIModule);
+		this.overrideModuleOptions(HttpAPIModule.alias, {
 			loadAsChildProcess: true,
 		});
 	}
@@ -152,10 +199,11 @@ class Application {
 		);
 
 		const modules = this.getModules();
-		modules[moduleAlias] = {
-			klass: moduleKlass,
-			options: options || {},
-		};
+		modules[moduleAlias] = moduleKlass;
+		this.config.modules[moduleAlias] = Object.assign(
+			this.config.modules[moduleAlias] || {},
+			options
+		);
 		__private.modules.set(this, modules);
 	}
 
@@ -171,31 +219,39 @@ class Application {
 			Object.keys(modules).includes(alias),
 			`No module ${alias} is registered`
 		);
-		modules[alias].options = Object.assign({}, modules[alias].options, options);
-		__private.modules.set(this, modules);
+		this.config.modules[alias] = Object.assign(
+			{},
+			this.config.modules[alias],
+			options
+		);
 	}
 
 	/**
 	 * Register a transaction
 	 *
-	 * @param {constructor} Transaction - Transaction class
-	 * @param {string} alias - Will use this alias or fallback to `Transaction.alias`
+	 * @param {number} transactionType - Unique integer that identifies the transaction type
+	 * @param {constructor} Transaction - Implementation of @liskhq/lisk-transactions/base_transaction
 	 */
-	registerTransaction(Transaction, alias) {
-		assert(Transaction, 'Transaction is required');
-		assert(alias, 'Transaction is required');
-		assert(
-			typeof Transaction === 'function',
-			'Transaction should be constructor'
-		);
+	registerTransaction(transactionType, Transaction, options = {}) {
 		// TODO: Validate the transaction is properly inherited from base class
 		assert(
-			!Object.keys(this.getTransactions()).includes(alias),
-			`A transaction with alias "${alias}" already registered.`
+			Number.isInteger(transactionType),
+			'Transaction type is required as an integer'
 		);
+		assert(
+			!Object.keys(this.getTransactions()).includes(transactionType.toString()),
+			`A transaction type "${transactionType}" is already registered.`
+		);
+		assert(Transaction, 'Transaction implementation is required');
+
+		if (options.matcher) {
+			Object.defineProperty(Transaction.prototype, 'matcher', {
+				get: () => options.matcher,
+			});
+		}
 
 		const transactions = this.getTransactions();
-		transactions[alias] = Object.freeze(Transaction);
+		transactions[transactionType] = Object.freeze(Transaction);
 		__private.transactions.set(this, transactions);
 	}
 
@@ -209,13 +265,13 @@ class Application {
 	}
 
 	/**
-	 * Get one transaction for provided alias
+	 * Get one transaction for provided type
 	 *
-	 * @param {string} alias - Alias for transaction used during registration
+	 * @param {number} transactionType - Unique integer that identifies the transaction type
 	 * @return {constructor|undefined}
 	 */
-	getTransaction(alias) {
-		return __private.transactions.get(this)[alias];
+	getTransaction(transactionType) {
+		return __private.transactions.get(this)[transactionType];
 	}
 
 	/**
@@ -244,17 +300,29 @@ class Application {
 	 * @return {Promise.<void>}
 	 */
 	async run() {
-		this.logger.info(`Starting the app - ${this.banner}`);
+		this.logger.info(`Booting the application with Lisk Framework(${version})`);
+
 		// Freeze every module and configuration so it would not interrupt the app execution
+		this._compileAndValidateConfigurations();
+
 		Object.freeze(this.genesisBlock);
 		Object.freeze(this.constants);
-		Object.freeze(this.label);
 		Object.freeze(this.config);
+
+		this.logger.info(`Starting the app - ${this.config.app.label}`);
 
 		registerProcessHooks(this);
 
-		this.controller = new Controller(this.label, this.config, this.logger);
-		return this.controller.load(this.getModules());
+		this.controller = new Controller(
+			this.config.app.label,
+			{
+				components: this.config.components,
+				ipc: this.config.app.ipc,
+				initialState: this.config.initialState,
+			},
+			this.logger
+		);
+		return this.controller.load(this.getModules(), this.config.modules);
 	}
 
 	/**
@@ -268,8 +336,51 @@ class Application {
 		if (this.controller) {
 			await this.controller.cleanup(errorCode, message);
 		}
-		this.logger.log(`Shutting down with error code ${errorCode}: ${message}`);
+		this.logger.info(`Shutting down with error code ${errorCode}: ${message}`);
 		process.exit(errorCode);
+	}
+
+	_compileAndValidateConfigurations() {
+		const modules = this.getModules();
+
+		this.config.app.nonce = randomstring.generate(16);
+		this.config.app.nethash = this.genesisBlock.payloadHash;
+
+		const appConfigToShareWithModules = {
+			version: this.config.app.version,
+			minVersion: this.config.app.minVersion,
+			protocolVersion: this.config.app.protocolVersion,
+			nethash: this.config.app.nethash,
+			nonce: this.config.app.nonce,
+			genesisBlock: this.genesisBlock,
+			constants: this.constants,
+			lastCommitId: this.config.app.lastCommitId,
+			buildVersion: this.config.app.buildVersion,
+		};
+
+		// TODO: move this configuration to module especific config file
+		const childProcessModules = process.env.LISK_CHILD_PROCESS_MODULES
+			? process.env.LISK_CHILD_PROCESS_MODULES.split(',')
+			: [];
+
+		Object.keys(modules).forEach(alias => {
+			this.overrideModuleOptions(alias, {
+				loadAsChildProcess: childProcessModules.includes(alias),
+			});
+			this.overrideModuleOptions(alias, appConfigToShareWithModules);
+		});
+
+		this.config.initialState = {
+			version: this.config.app.version,
+			minVersion: this.config.app.minVersion,
+			protocolVersion: this.config.app.protocolVersion,
+			nonce: this.config.app.nonce,
+			nethash: this.config.app.nethash,
+			wsPort: this.config.modules.network.wsPort,
+			httpPort: this.config.modules.http_api.httpPort,
+		};
+
+		this.logger.trace('Compiled configurations', this.config);
 	}
 }
 

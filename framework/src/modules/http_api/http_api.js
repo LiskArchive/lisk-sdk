@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 if (process.env.NEW_RELIC_LICENSE_KEY) {
 	require('./helpers/newrelic_lisk');
 }
@@ -16,7 +32,7 @@ const {
 
 module.exports = class HttpApi {
 	constructor(channel, options) {
-		options.config.root = __dirname; // TODO: See wy root comes defined for the chain module.
+		options.root = __dirname; // TODO: See wy root comes defined for the chain module.
 		this.channel = channel;
 		this.options = options;
 		this.logger = null;
@@ -28,7 +44,7 @@ module.exports = class HttpApi {
 
 		// Logger
 		const loggerConfig = await this.channel.invoke(
-			'lisk:getComponentConfig',
+			'app:getComponentConfig',
 			'logger'
 		);
 		this.logger = createLoggerComponent(loggerConfig);
@@ -36,7 +52,7 @@ module.exports = class HttpApi {
 		// Cache
 		this.logger.debug('Initiating cache...');
 		const cacheConfig = await this.channel.invoke(
-			'lisk:getComponentConfig',
+			'app:getComponentConfig',
 			'cache'
 		);
 		const cache = createCacheComponent(cacheConfig, this.logger);
@@ -44,7 +60,7 @@ module.exports = class HttpApi {
 		// Storage
 		this.logger.debug('Initiating storage...');
 		const storageConfig = await this.channel.invoke(
-			'lisk:getComponentConfig',
+			'app:getComponentConfig',
 			'storage'
 		);
 		const dbLogger =
@@ -55,11 +71,13 @@ module.exports = class HttpApi {
 						Object.assign({}, loggerConfig, {
 							logFileName: storageConfig.logFileName,
 						})
-					);
+				  );
 		const storage = createStorageComponent(storageConfig, dbLogger);
 
-		// System
-		this.logger.debug('Initiating system...');
+		const applicationState = await this.channel.invoke(
+			'app:getApplicationState'
+		);
+
 		// Setup scope
 		this.scope = {
 			components: {
@@ -68,8 +86,16 @@ module.exports = class HttpApi {
 				storage,
 			},
 			channel: this.channel,
-			config: this.options.config,
+			config: this.options,
+			lastCommitId: this.options.lastCommitId,
+			buildVersion: this.options.buildVersion,
+			applicationState,
 		};
+
+		this.channel.subscribe('app:state:updated', event => {
+			Object.assign(this.scope.applicationState, event.data);
+		});
+
 		// Bootstrap Cache component
 		await bootstrapCache(this.scope);
 		// Bootstrap Storage component
@@ -80,14 +106,13 @@ module.exports = class HttpApi {
 			httpServer,
 			httpsServer,
 			wsServer,
-			wssServer,
 		} = await setupServers(this.scope);
 		// Bootstrap Swagger and attaches it to Express app
 		await bootstrapSwagger(this.scope, expressApp);
 		// Start listening for HTTP(s) requests
 		await startListening(this.scope, { httpServer, httpsServer });
-		// Subsribe to channel events
-		subscribeToEvents(this.scope, { wsServer, wssServer });
+		// Subscribe to channel events
+		subscribeToEvents(this.scope, { wsServer });
 	}
 
 	async cleanup(code, error) {

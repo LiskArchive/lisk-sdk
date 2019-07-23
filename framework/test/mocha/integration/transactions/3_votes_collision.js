@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -22,11 +22,11 @@ const {
 const localCommon = require('../common');
 const accountFixtures = require('../../fixtures/accounts');
 
-const { NORMALIZER } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 
-describe('system test (type 0) - votes collision', () => {
+describe('integration test (type 0) - votes collision', () => {
 	let library;
-	localCommon.beforeBlock('system_3_votes_collision', lib => {
+	localCommon.beforeBlock('3_votes_collision', lib => {
 		library = lib;
 	});
 

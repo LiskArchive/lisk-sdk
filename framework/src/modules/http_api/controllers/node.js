@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -45,6 +45,9 @@ function NodeController(scope) {
 		},
 		config: scope.config,
 		channel: scope.channel,
+		applicationState: scope.applicationState,
+		lastCommitId: scope.lastCommitId,
+		buildVersion: scope.buildVersion,
 	};
 }
 
@@ -63,24 +66,18 @@ NodeController.getConstants = async (context, next) => {
 	}
 
 	try {
-		const [lastBlock] = await library.components.storage.entities.Block.get(
-			{},
-			{ sort: 'height:desc', limit: 1 }
-		);
-		const { height } = lastBlock;
-
+		const { lastBlock } = await library.channel.invoke('chain:getNodeStatus');
 		const milestone = await library.channel.invoke('chain:calculateMilestone', {
-			height,
+			height: lastBlock.height,
 		});
 		const reward = await library.channel.invoke('chain:calculateReward', {
-			height,
+			height: lastBlock.height,
 		});
 		const supply = await library.channel.invoke('chain:calculateSupply', {
-			height,
+			height: lastBlock.height,
 		});
 
-		const build = await library.channel.invoke('chain:getBuild');
-		const commit = await library.channel.invoke('chain:getLastCommit');
+		const { buildVersion: build, lastCommitId: commit } = library;
 
 		return next(null, {
 			build,
@@ -119,24 +116,24 @@ NodeController.getConstants = async (context, next) => {
 NodeController.getStatus = async (context, next) => {
 	try {
 		const {
-			broadhash,
 			consensus,
 			secondsSinceEpoch,
 			loaded,
-			networkHeight,
 			syncing,
 			transactions,
 			lastBlock,
 		} = await library.channel.invoke('chain:getNodeStatus');
 
+		const networkHeight = await _getNetworkHeight();
+
 		const data = {
-			broadhash,
+			broadhash: library.applicationState.broadhash,
 			consensus: consensus || 0,
 			currentTime: Date.now(),
 			secondsSinceEpoch,
 			height: lastBlock.height || 0,
 			loaded,
-			networkHeight: networkHeight || 0,
+			networkHeight,
 			syncing,
 			transactions,
 		};
@@ -274,39 +271,59 @@ NodeController.getPooledTransactions = async function(context, next) {
  * @private
  */
 async function _getForgingStatus(publicKey) {
-	const keyPairs = await library.channel.invoke('chain:getForgersPublicKeys');
-	const forgingDelegates = library.config.forging.delegates;
-	const forgersPublicKeys = {};
-
-	Object.keys(keyPairs).forEach(key => {
-		// Convert publicKey to buffer when received as object (ie.: { type: 'Buffer', data: [] })
-		// TODO: consider always returning as string
-		if (keyPairs[key].publicKey.type === 'Buffer') {
-			keyPairs[key].publicKey = Buffer.from(keyPairs[key].publicKey);
-		}
-
-		forgersPublicKeys[keyPairs[key].publicKey.toString('hex')] = true;
-	});
-
-	const fullList = forgingDelegates.map(forger => ({
-		forging: !!forgersPublicKeys[forger.publicKey],
-		publicKey: forger.publicKey,
-	}));
+	const fullList = await library.channel.invoke(
+		'chain:getForgingStatusForAllDelegates'
+	);
 
 	if (publicKey && !_.find(fullList, { publicKey })) {
 		return [];
 	}
 
-	if (_.find(fullList, { publicKey })) {
-		return [
-			{
-				publicKey,
-				forging: !!forgersPublicKeys[publicKey],
-			},
-		];
+	const result = _.find(fullList, { publicKey });
+	if (result) {
+		return [result];
 	}
 
 	return fullList;
+}
+
+/**
+ * Get the network height
+ *
+ * @returns Number
+ * @private
+ */
+async function _getNetworkHeight() {
+	const peers = await library.channel.invoke('network:getConnectedPeers', {
+		limit: 100,
+	});
+	if (!peers || !peers.length) {
+		return 0;
+	}
+	const networkHeightCount = peers.reduce((previous, { height }) => {
+		const heightCount = previous[height] || 0;
+		previous[height] = heightCount + 1;
+		return previous;
+	}, {});
+	const heightCountPairs = Object.entries(networkHeightCount);
+	const [defaultHeight, defaultCount] = heightCountPairs[0];
+	const { height: networkHeight } = heightCountPairs.reduce(
+		(prev, [height, count]) => {
+			if (count > prev.count) {
+				return {
+					height,
+					count,
+				};
+			}
+			return prev;
+		},
+		{
+			height: defaultHeight,
+			count: defaultCount,
+		}
+	);
+
+	return parseInt(networkHeight);
 }
 
 module.exports = NodeController;

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -141,7 +141,7 @@ if (testPathPattern && testPathPattern.indexOf('-') === 0) {
 	testPathPattern = null;
 }
 
-mochaCliOptions.unshift('--', '--opts', 'framework/test/mocha/mocha.opts');
+mochaCliOptions.unshift('--', '--opts', 'test/mocha/mocha.opts');
 
 // Execute lisk mocha runner
 executeTests(testType, testPathPattern, mochaCliOptions)

@@ -1,12 +1,29 @@
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const fs = require('fs-extra');
 const path = require('path');
 const child_process = require('child_process');
 const psList = require('ps-list');
-const systemDirs = require('./config/dirs');
+const systemDirs = require('./system_dirs');
 const { InMemoryChannel } = require('./channels');
 const Bus = require('./bus');
 const { DuplicateAppInstanceError } = require('../errors');
-const { validateModuleSpec } = require('./helpers/validator');
+const { validateModuleSpec } = require('./validator');
+const ApplicationState = require('./application_state');
 
 const isPidRunning = async pid =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -19,7 +36,7 @@ const isPidRunning = async pid =>
  * @requires assert
  * @requires bluebird
  * @requires fs-extra
- * @requires helpers/config
+ * @requires config
  * @requires channels/event_emitter
  * @requires module.Bus
  */
@@ -56,22 +73,23 @@ class Controller {
 
 	/**
 	 * Load the initial state and start listening for events or triggering actions.
-	 * Publishes 'lisk:ready' state on the bus.
+	 * Publishes 'app:ready' state on the bus.
 	 *
 	 * @param modules
 	 * @async
 	 */
-	async load(modules) {
+	async load(modules, moduleOptions) {
 		this.logger.info('Loading controller');
 		await this._setupDirectories();
 		await this._validatePidFile();
+		await this._initState();
 		await this._setupBus();
-		await this._loadModules(modules);
+		await this._loadModules(modules, moduleOptions);
 
 		this.logger.info('Bus listening to events', this.bus.getEvents());
 		this.logger.info('Bus ready for actions', this.bus.getActions());
 
-		this.channel.publish('lisk:ready');
+		this.channel.publish('app:ready');
 	}
 
 	/**
@@ -110,6 +128,18 @@ class Controller {
 	}
 
 	/**
+	 * Initiate application state
+	 *
+	 * @async
+	 */
+	async _initState() {
+		this.applicationState = new ApplicationState({
+			initialState: this.config.initialState,
+			logger: this.logger,
+		});
+	}
+
+	/**
 	 * Initialize bus
 	 *
 	 * @async
@@ -128,32 +158,40 @@ class Controller {
 		await this.bus.setup();
 
 		this.channel = new InMemoryChannel(
-			'lisk',
-			['ready'],
+			'app',
+			['ready', 'state:updated'],
 			{
-				getComponentConfig: action => this.config.components[action.params],
+				getComponentConfig: {
+					handler: action => this.config.components[action.params],
+				},
+				getApplicationState: {
+					handler: () => this.applicationState.state,
+				},
+				updateApplicationState: {
+					handler: action => this.applicationState.update(action.params),
+				},
 			},
 			{ skipInternalEvents: true }
 		);
 
 		await this.channel.registerToBus(this.bus);
 
+		this.applicationState.channel = this.channel;
+
 		// If log level is greater than info
 		if (this.logger.level && this.logger.level() < 30) {
 			this.bus.onAny((name, event) => {
-				this.logger.debug(
-					`MONITOR: ${event.source} -> ${event.module}:${event.name}`,
-					event.data
-				);
+				this.logger.trace(`MONITOR: ${event.module}:${event.name}`, event.data);
 			});
 		}
 	}
 
-	async _loadModules(modules) {
+	async _loadModules(modules, moduleOptions) {
 		// To perform operations in sequence and not using bluebird
 		// eslint-disable-next-line no-restricted-syntax
 		for (const alias of Object.keys(modules)) {
-			const { klass, options } = modules[alias];
+			const klass = modules[alias];
+			const options = moduleOptions[alias];
 
 			if (options.loadAsChildProcess) {
 				if (this.config.ipc.enabled) {
@@ -174,11 +212,11 @@ class Controller {
 	}
 
 	async _loadInMemoryModule(alias, Klass, options) {
+		const moduleAlias = alias || Klass.alias;
+		const { name, version } = Klass.info;
+
 		const module = new Klass(options);
 		validateModuleSpec(module);
-
-		const moduleAlias = alias || module.constructor.alias;
-		const { name, version } = module.constructor.info;
 
 		this.logger.info(
 			`Loading module ${name}:${version} with alias "${moduleAlias}"`
@@ -227,7 +265,19 @@ class Controller {
 
 		const parameters = [modulePath];
 
-		const child = child_process.fork(program, parameters);
+		// Avoid child processes and the main process sharing the same debugging ports causing a conflict
+		const forkedProcessOptions = {};
+		const maxPort = 20000;
+		const minPort = 10000;
+		process.env.NODE_DEBUG
+			? (forkedProcessOptions.execArgv = [
+					`--inspect=${Math.floor(
+						Math.random() * (maxPort - minPort) + minPort
+					)}`,
+			  ])
+			: [];
+
+		const child = child_process.fork(program, parameters, forkedProcessOptions);
 
 		// TODO: Check which config and options are actually required to avoid sending large data
 		child.send({
@@ -242,7 +292,6 @@ class Controller {
 			this.logger.error(
 				`Module ${moduleAlias}(${name}:${version}) exited with code: ${code} and signal: ${signal}`
 			);
-
 			// Exits the main process with a failure code
 			process.exit(1);
 		});

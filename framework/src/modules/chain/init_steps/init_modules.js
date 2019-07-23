@@ -1,9 +1,24 @@
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const domain = require('domain');
 
 const modulesList = {
 	accounts: '../submodules/accounts',
 	blocks: '../submodules/blocks',
-	dapps: '../submodules/dapps',
 	delegates: '../submodules/delegates',
 	rounds: '../submodules/rounds',
 	loader: '../submodules/loader',
@@ -12,6 +27,7 @@ const modulesList = {
 	signatures: '../submodules/signatures',
 	transactions: '../submodules/transactions',
 	transport: '../submodules/transport',
+	processTransactions: '../submodules/process_transactions',
 };
 
 module.exports = async scope => {

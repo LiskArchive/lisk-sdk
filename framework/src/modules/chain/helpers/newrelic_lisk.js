@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -27,17 +27,13 @@ newrelicLisk.instrumentBackgroundJobs();
 // TOFIX: fix callbackMethods converted to async in #2579
 // callBackMethods array only support one level of nesting
 const modulesToInstrument = {
-	'./sequence': {
+	'./helpers/sequence.js': {
 		identifier: 'helpers.sequence',
 		callbackMethods: ['add'],
 	},
 	'../submodules/blocks': {
 		identifier: 'modules.chain.submodules.blocks',
 		callbackMethods: ['shared.getBlocks'],
-	},
-	'../submodules/dapps': {
-		identifier: 'modules.chain.submodules.dapps',
-		callbackMethods: ['getDapps'],
 	},
 	'../submodules/delegates': {
 		identifier: 'modules.chain.submodules.delegates',
@@ -71,17 +67,12 @@ const modulesToInstrument = {
 	'../submodules/transport': {
 		identifier: 'modules.chain.submodules.transport',
 		callbackMethods: [
-			'broadcastHeaders',
 			'shared.blocksCommon',
 			'shared.blocks',
-			'shared.list',
-			'shared.height',
-			'shared.status',
 			'shared.postSignature',
 			'shared.getSignatures',
 			'shared.getTransactions',
 			'shared.postTransaction',
-			'internal.updatePeer',
 		],
 	},
 };

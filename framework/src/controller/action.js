@@ -1,7 +1,23 @@
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const assert = require('assert');
 
-const moduleNameReg = /^[a-zA-Z][a-zA-Z0-9]*$/;
-const actionWithModuleNameReg = /^[a-zA-Z][a-zA-Z0-9]*:[a-zA-Z][a-zA-Z0-9]*$/;
+const moduleNameReg = /^[a-zA-Z][a-zA-Z0-9_]*$/;
+const actionWithModuleNameReg = /^[a-zA-Z][a-zA-Z0-9_]*:[a-zA-Z][a-zA-Z0-9]*$/;
 
 /**
  * An action class which instance will be received by every event listener
@@ -56,11 +72,11 @@ class Action {
 	 * @return {module.Action}
 	 */
 	static deserialize(data) {
-		const object = typeof data === 'string' ? JSON.parse(data) : data;
+		const parsedAction = typeof data === 'string' ? JSON.parse(data) : data;
 		return new Action(
-			`${object.module}:${object.name}`,
-			object.params,
-			object.source
+			`${parsedAction.module}:${parsedAction.name}`,
+			parsedAction.params,
+			parsedAction.source
 		);
 	}
 

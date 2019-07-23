@@ -1,0 +1,161 @@
+{
+	"name": "lisk-commander",
+	"version": "2.2.1",
+	"description": "A command line interface for Lisk",
+	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
+	"license": "Apache-2.0",
+	"keywords": [
+		"lisk",
+		"blockchain",
+		"command-line",
+		"nodejs",
+		"javascript"
+	],
+	"homepage": "https://github.com/LiskHQ/lisk-sdk/tree/master/commander#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/LiskHQ/lisk-sdk.git"
+	},
+	"bugs": {
+		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
+	},
+	"engines": {
+		"node": ">=8.3.0",
+		"npm": ">=5.3.0"
+	},
+	"main": "dist/index.js",
+	"bin": {
+		"lisk": "./bin/run"
+	},
+	"scripts": {
+		"start": "ts-node src/index.js",
+		"format": "prettier --write '**/*'",
+		"lint": "tslint --config tslint.json --format codeFrame --project .",
+		"lint:fix": "npm run lint -- --fix",
+		"test": "TS_NODE_TRANSPILE_ONLY=true TS_NODE_FILES=true TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/{,/**/,/**/**/,/**/**/**/}/*.ts",
+		"test:watch": "npm run test:local -- --watch",
+		"test:watch:min": "npm run test:watch -- --reporter=min",
+		"cover": "if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
+		"cover:base": "NODE_ENV=test nyc report",
+		"cover:local": "npm run cover:base -- --reporter=html --reporter=text mocha",
+		"cover:ci": "npm run cover:base -- --reporter=text-lcov mocha | coveralls -v",
+		"cover:test": "NODE_ENV=test nyc --include \"test/**\" --exclude \"**/node_modules/** coverage/**\" mocha test",
+		"prebuild": "if test -d dist; then rm -r dist; fi",
+		"build": "tsc",
+		"postpack": "rm -f oclif.manifest.json",
+		"prepack": "oclif-dev manifest && npm shrinkwrap",
+		"prepublishOnly": "rm -r ./node_modules && npm install && npm run lint && npm run build"
+	},
+	"oclif": {
+		"commands": "./dist/commands",
+		"bin": "lisk",
+		"plugins": [
+			"@oclif/plugin-help"
+		],
+		"topics": {
+			"account": {
+				"description": "Commands relating to Lisk accounts."
+			},
+			"block": {
+				"description": "Commands relating to Lisk blocks."
+			},
+			"config": {
+				"description": "Manages Lisk Commander configuration."
+			},
+			"copyright": {
+				"description": "Displays copyright notice."
+			},
+			"delegate": {
+				"description": "Commands relating to Lisk delegates."
+			},
+			"node": {
+				"description": "Commands relating to Lisk node."
+			},
+			"help": {
+				"description": "Displays help."
+			},
+			"message": {
+				"description": "Commands relating to user messages."
+			},
+			"passphrase": {
+				"description": "Commands relating to Lisk passphrases."
+			},
+			"signature": {
+				"description": "Commands relating to signatures for Lisk transactions from multisignature accounts."
+			},
+			"transaction": {
+				"description": "Commands relating to Lisk transactions."
+			},
+			"warranty": {
+				"description": "Displays warranty notice."
+			}
+		}
+	},
+	"files": [
+		"/bin",
+		"/npm-shrinkwrap.json",
+		"/oclif.manifest.json",
+		"/dist",
+		"/docs"
+	],
+	"dependencies": {
+		"@liskhq/lisk-api-client": "2.0.1",
+		"@liskhq/lisk-constants": "1.2.1",
+		"@liskhq/lisk-cryptography": "2.1.0",
+		"@liskhq/lisk-passphrase": "2.0.1",
+		"@liskhq/lisk-transactions": "2.1.1",
+		"@oclif/command": "1.5.6",
+		"@oclif/config": "1.9.0",
+		"@oclif/errors": "1.2.2",
+		"@oclif/plugin-help": "2.1.1",
+		"axios": "0.19.0",
+		"bip39": "2.5.0",
+		"chalk": "2.4.1",
+		"cli-table3": "0.5.0",
+		"fs-extra": "7.0.1",
+		"inquirer": "6.2.0",
+		"listr": "0.14.3",
+		"lockfile": "1.0.4",
+		"pm2": "3.5.0",
+		"semver": "5.6.0",
+		"strip-ansi": "4.0.0",
+		"tar": "4.4.10",
+		"tslib": "1.9.3"
+	},
+	"devDependencies": {
+		"@oclif/dev-cli": "1.19.5",
+		"@oclif/test": "1.2.2",
+		"@types/bip39": "2.4.1",
+		"@types/chai": "4.1.7",
+		"@types/chai-as-promised": "7.1.0",
+		"@types/expect": "1.20.3",
+		"@types/fs-extra": "5.0.5",
+		"@types/inquirer": "0.0.43",
+		"@types/jquery": "3.3.29",
+		"@types/listr": "0.13.0",
+		"@types/lockfile": "1.0.0",
+		"@types/mocha": "5.2.5",
+		"@types/node": "10.12.21",
+		"@types/semver": "5.5.0",
+		"@types/sinon": "7.0.5",
+		"@types/sinon-chai": "3.2.2",
+		"@types/strip-ansi": "3.0.0",
+		"@types/tar": "4.0.1",
+		"chai": "4.2.0",
+		"chai-as-promised": "7.1.1",
+		"coveralls": "3.0.2",
+		"mocha": "5.2.0",
+		"nyc": "14.1.1",
+		"prettier": "1.16.4",
+		"rxjs-compat": "6.3.3",
+		"sinon": "7.2.3",
+		"sinon-chai": "3.3.0",
+		"source-map-support": "0.5.10",
+		"ts-node": "8.0.2",
+		"tsconfig-paths": "3.8.0",
+		"tslint": "5.12.1",
+		"tslint-config-prettier": "1.18.0",
+		"tslint-immutable": "5.1.2",
+		"typescript": "3.3.1"
+	}
+}

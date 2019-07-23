@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -65,7 +65,6 @@ describe('delegates', () => {
 			sinonSandbox
 				.stub(library.components.storage.entities.Account, 'insertFork')
 				.resolves();
-			sinonSandbox.stub(library.channel, 'publish').resolves();
 			library.modules.delegates.fork(dummyBlock, cause);
 		});
 

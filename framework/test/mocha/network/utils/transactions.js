@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -21,7 +21,10 @@ module.exports = {
 		return Promise.all(
 			_.flatMap(configurations, configuration => {
 				return transactions.map(transaction => {
-					return getTransaction(transaction.id, configuration.httpPort);
+					return getTransaction({
+						id: transaction.id,
+						port: configuration.modules.http_api.httpPort,
+					});
 				});
 			})
 		).then(results => {

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -14,6 +14,8 @@
 
 'use strict';
 
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const _ = require('lodash');
 const crypto = require('crypto');
 const ByteBuffer = require('bytebuffer');
 const Bignum = require('../helpers/bignum');
@@ -22,6 +24,7 @@ const BlockReward = require('./block_reward');
 
 const { MAX_PAYLOAD_LENGTH, FEES, TRANSACTION_TYPES } = global.constants;
 const __private = {};
+let modules;
 
 /**
  * Main Block logic.
@@ -54,16 +57,14 @@ class Block {
 	}
 
 	/**
-	 * Sorts input data transactions.
-	 * Calculates reward based on previous block data.
-	 * Generates new block.
+	 * Sorts transactions for later including in the block.
 	 *
-	 * @param {Object} data
-	 * @returns {block} block
-	 * @todo Add description for the params
+	 * @param {Array} transactions Unsorted collection of transactions
+	 * @returns {Array} transactions Sorted collection of transactions
+	 * @static
 	 */
-	create(data) {
-		const transactions = data.transactions.sort((a, b) => {
+	static sortTransactions(transactions) {
+		return transactions.sort((a, b) => {
 			// Place MULTI transaction after all other transaction types
 			if (
 				a.type === TRANSACTION_TYPES.MULTI &&
@@ -86,14 +87,27 @@ class Block {
 				return 1;
 			}
 			// Place depending on amount (lower first)
-			if (a.amount.isLessThan(b.amount)) {
+			if (a.amount.lt(b.amount)) {
 				return -1;
 			}
-			if (a.amount.isGreaterThan(b.amount)) {
+			if (a.amount.gt(b.amount)) {
 				return 1;
 			}
 			return 0;
 		});
+	}
+
+	/**
+	 * Sorts input data transactions.
+	 * Calculates reward based on previous block data.
+	 * Generates new block.
+	 *
+	 * @param {Object} data
+	 * @returns {block} block
+	 * @todo Add description for the params
+	 */
+	create(data) {
+		const transactions = Block.sortTransactions(data.transactions);
 
 		const nextHeight = data.previousBlock ? data.previousBlock.height + 1 : 1;
 
@@ -107,7 +121,7 @@ class Block {
 
 		for (let i = 0; i < transactions.length; i++) {
 			const transaction = transactions[i];
-			const bytes = this.scope.transaction.getBytes(transaction);
+			const bytes = transaction.getBytes(transaction);
 
 			if (size + bytes.length > MAX_PAYLOAD_LENGTH) {
 				break;
@@ -230,24 +244,23 @@ class Block {
 				delete block[key];
 			}
 		});
-
 		const report = this.scope.schema.validate(block, Block.prototype.schema);
-
 		if (!report) {
-			throw `Failed to validate block schema: ${this.scope.schema
-				.getLastErrors()
-				.map(err => err.message)
-				.join(', ')}`;
+			throw new Error(
+				`Failed to validate block schema: ${this.scope.schema
+					.getLastErrors()
+					.map(err => err.message)
+					.join(', ')}`
+			);
 		}
-
-		try {
-			for (let i = 0; i < block.transactions.length; i++) {
-				block.transactions[i] = this.scope.transaction.objectNormalize(
-					block.transactions[i]
-				);
-			}
-		} catch (e) {
-			throw e;
+		const {
+			transactionsResponses,
+		} = modules.processTransactions.validateTransactions(block.transactions);
+		const invalidTransactionResponse = transactionsResponses.find(
+			transactionResponse => transactionResponse.status !== TransactionStatus.OK
+		);
+		if (invalidTransactionResponse) {
+			throw invalidTransactionResponse.errors;
 		}
 
 		return block;
@@ -279,6 +292,14 @@ __private.getAddressByPublicKey = function(publicKey) {
 
 // TODO: The below functions should be converted into static functions,
 // however, this will lead to incompatibility with modules and tests implementation.
+/**
+ * Binds scope.modules to private variable modules.
+ */
+Block.prototype.bindModules = function(__modules) {
+	modules = {
+		processTransactions: __modules.processTransactions,
+	};
+};
 /**
  * @typedef {Object} block
  * @property {string} id - Between 1 and 20 chars
@@ -493,6 +514,9 @@ Block.prototype.dbRead = function(raw) {
 	if (!raw.b_id) {
 		return null;
 	}
+
+	const confirmations = parseInt(raw.b_confirmations);
+
 	const block = {
 		id: raw.b_id,
 		version: parseInt(raw.b_version),
@@ -508,7 +532,7 @@ Block.prototype.dbRead = function(raw) {
 		generatorPublicKey: raw.b_generatorPublicKey,
 		generatorId: __private.getAddressByPublicKey(raw.b_generatorPublicKey),
 		blockSignature: raw.b_blockSignature,
-		confirmations: parseInt(raw.b_confirmations),
+		confirmations: !Number.isNaN(confirmations) ? confirmations : 0,
 	};
 	block.totalForged = block.totalFee.plus(block.reward).toString();
 	return block;
@@ -525,6 +549,8 @@ Block.prototype.storageRead = function(raw) {
 		return null;
 	}
 
+	const confirmations = parseInt(raw.confirmations);
+
 	const block = {
 		id: raw.id,
 		version: parseInt(raw.version),
@@ -540,15 +566,16 @@ Block.prototype.storageRead = function(raw) {
 		generatorPublicKey: raw.generatorPublicKey,
 		generatorId: __private.getAddressByPublicKey(raw.generatorPublicKey),
 		blockSignature: raw.blockSignature,
-		confirmations: parseInt(raw.confirmations),
+		confirmations: !Number.isNaN(confirmations) ? confirmations : 0,
 	};
 
 	if (raw.transactions) {
-		block.transactions = raw.transactions;
+		block.transactions = raw.transactions
+			.filter(tx => !!tx.id)
+			.map(tx => _.omitBy(tx, _.isNull));
 	}
 
 	block.totalForged = block.totalFee.plus(block.reward).toString();
-
 	return block;
 };
 

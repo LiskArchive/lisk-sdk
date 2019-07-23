@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -108,14 +108,14 @@ random.guestbookDapp = random.application();
 random.blockDataDapp = random.application();
 
 // Returns a basic random account
-random.account = function() {
+random.account = function(nonDelegate) {
 	const account = {
 		balance: '0',
 	};
 
 	account.passphrase = random.password();
 	account.secondPassphrase = random.password();
-	account.username = random.delegateName();
+	account.username = nonDelegate ? '' : random.delegateName();
 	account.publicKey = getKeys(account.passphrase).publicKey;
 	account.address = getAddressFromPublicKey(account.publicKey);
 	account.secondPublicKey = getKeys(account.secondPassphrase).publicKey;

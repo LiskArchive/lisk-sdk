@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -18,13 +18,14 @@
 const util = require('util');
 const rewire = require('rewire');
 const async = require('async');
+const _ = require('lodash');
+const { registeredTransactions } = require('./registered_transactions');
 const ed = require('../../../src/modules/chain/helpers/ed');
 const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
 const Sequence = require('../../../src/modules/chain/helpers/sequence');
 const { createCacheComponent } = require('../../../src/components/cache');
-const { createSystemComponent } = require('../../../src/components/system');
 const { StorageSandbox } = require('./storage_sandbox');
-const { ZSchema } = require('../../../src/controller/helpers/validator');
+const { ZSchema } = require('../../../src/controller/validator');
 const initSteps = require('../../../src/modules/chain/init_steps');
 
 const promisifyParallel = util.promisify(async.parallel);
@@ -33,7 +34,6 @@ let currentAppScope;
 const modulesInit = {
 	accounts: '../../../src/modules/chain/submodules/accounts',
 	blocks: '../../../src/modules/chain/submodules/blocks',
-	dapps: '../../../src/modules/chain/submodules/dapps',
 	delegates: '../../../src/modules/chain/submodules/delegates',
 	loader: '../../../src/modules/chain/submodules/loader',
 	multisignatures: '../../../src/modules/chain/submodules/multisignatures',
@@ -42,6 +42,8 @@ const modulesInit = {
 	signatures: '../../../src/modules/chain/submodules/signatures',
 	transactions: '../../../src/modules/chain/submodules/transactions',
 	transport: '../../../src/modules/chain/submodules/transport',
+	processTransactions:
+		'../../../src/modules/chain/submodules/process_transactions.js',
 };
 
 function init(options, cb) {
@@ -63,14 +65,14 @@ async function __init(sandbox, initScope) {
 
 	jobsQueue.jobs = {};
 
-	__testContext.config.syncing.active = false;
-	__testContext.config.broadcasts.active = false;
+	__testContext.config.modules.chain.syncing.active = false;
+	__testContext.config.modules.chain.broadcasts.active = false;
 	__testContext.config = Object.assign(
 		__testContext.config,
 		initScope.config || {}
 	);
 
-	const config = __testContext.config;
+	const config = __testContext.config.modules.chain;
 	let storage;
 	if (!initScope.components) {
 		initScope.components = {};
@@ -78,10 +80,14 @@ async function __init(sandbox, initScope) {
 
 	try {
 		if (sandbox && !initScope.components.storage) {
-			storage = new StorageSandbox(sandbox.config || config.db, sandbox.name);
+			storage = new StorageSandbox(
+				sandbox.config || __testContext.config.components.storage,
+				sandbox.name
+			);
 		} else {
-			config.db.user = config.db.user || process.env.USER;
-			storage = new StorageSandbox(config.db);
+			__testContext.config.components.storage.user =
+				__testContext.config.components.storage.user || process.env.USER;
+			storage = new StorageSandbox(__testContext.config.components.storage);
 		}
 
 		__testContext.debug(
@@ -111,7 +117,6 @@ async function __init(sandbox, initScope) {
 				.then(async status => {
 					if (status) {
 						await storage.entities.Migration.applyAll();
-						await storage.entities.Migration.applyRunTime();
 					}
 				});
 
@@ -124,14 +129,14 @@ async function __init(sandbox, initScope) {
 			error: sinonSandbox.spy(),
 		};
 
-		const scope = Object.assign(
-			{},
+		const scope = _.merge(
 			{
 				lastCommit: '',
 				ed,
 				build: '',
-				config: __testContext.config,
+				config,
 				genesisBlock: { block: __testContext.config.genesisBlock },
+				registeredTransactions,
 				schema: new ZSchema(),
 				sequence: new Sequence({
 					onWarning(current) {
@@ -144,38 +149,35 @@ async function __init(sandbox, initScope) {
 					},
 				}),
 				channel: {
-					invoke() {},
-					publish() {},
-					subscribe() {},
+					invoke: sinonSandbox.stub(),
+					publish: sinonSandbox.stub(),
+					suscribe: sinonSandbox.stub(),
+					once: sinonSandbox.stub().callsArg(1),
 				},
+				applicationState: __testContext.config.initialState,
 			},
 			initScope
 		);
-
-		const cache = createCacheComponent(scope.config.redis, logger);
-		const system = createSystemComponent(scope.config, logger, storage);
+		const cache = createCacheComponent(
+			__testContext.config.components.cache,
+			logger
+		);
 
 		scope.components = {
 			logger,
 			storage,
 			cache,
-			system,
 		};
 
 		await startStorage();
 		await cache.bootstrap();
 
-		scope.config.peers.list = await initSteps.lookupPeerIPs(
-			scope.config.peers.list,
-			scope.config.peers.enabled
-		);
 		scope.bus = await initSteps.createBus();
-		scope.webSocket = await initStepsForTest.createSocketCluster(scope);
 		scope.logic = await initSteps.initLogicStructure(scope);
 		scope.modules = await initStepsForTest.initModules(scope);
 
 		// Ready to bind modules
-		scope.logic.peers.bindModules(scope.modules);
+		scope.logic.block.bindModules(scope.modules);
 
 		// Fire onBind event in every module
 		scope.bus.message('bind', scope);
@@ -223,7 +225,7 @@ async function __init(sandbox, initScope) {
 
 					const delegatesCount = Object.keys(keypairs).length;
 					expect(delegatesCount).to.equal(
-						__testContext.config.forging.delegates.length
+						scope.config.forging.delegates.length
 					);
 
 					__testContext.debug(
@@ -246,14 +248,18 @@ async function __init(sandbox, initScope) {
 }
 
 function cleanup(done) {
-	if (currentAppScope.components !== undefined) {
+	if (
+		Object.prototype.hasOwnProperty.call(currentAppScope, 'components') &&
+		currentAppScope.components !== undefined
+	) {
 		currentAppScope.components.cache.cleanup();
 	}
 	async.eachSeries(
 		currentAppScope.modules,
 		(module, cb) => {
 			if (typeof module.cleanup === 'function') {
-				return module.cleanup(cb);
+				module.cleanup();
+				return cb();
 			}
 			return cb();
 		},
@@ -273,24 +279,6 @@ function cleanup(done) {
 }
 
 const initStepsForTest = {
-	createSocketCluster: async () => {
-		const MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
-		const wsRPC = require('../../../src/modules/chain/api/ws/rpc/ws_rpc').wsRPC;
-		const transport = require('../../../src/modules/chain/api/ws/transport');
-
-		wsRPC.clientsConnectionsMap = {};
-
-		const socketClusterMock = {
-			on: sinonSandbox.spy(),
-		};
-
-		wsRPC.setServer(new MasterWAMPServer(socketClusterMock));
-
-		// Register RPC
-		const transportModuleMock = { internal: {}, shared: {} };
-		transport(transportModuleMock);
-		return wsRPC;
-	},
 	initModules: async scope => {
 		const tasks = {};
 		scope.rewiredModules = {};

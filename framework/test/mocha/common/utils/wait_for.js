@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -36,11 +36,15 @@ function blockchainReady(retries, timeout, baseUrl, doNotLogRetries, cb) {
 		timeout = 1000;
 	}
 
+	process.on('SIGINT', () => {
+		console.info('SIGINT received, pid: ', process.pid);
+		process.exit(1);
+	});
+
 	const totalRetries = retries;
 
-	baseUrl =
-		baseUrl ||
-		`http://${__testContext.config.address}:${__testContext.config.httpPort}`;
+	baseUrl = baseUrl || __testContext.baseUrl;
+
 	(function fetchBlockchainStatus() {
 		popsicle
 			.get(`${baseUrl}/api/node/status`)

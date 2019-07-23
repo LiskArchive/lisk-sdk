@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -14,6 +14,8 @@
 
 'use strict';
 
+const { config: defaultConfig } = require('./defaults');
+const validator = require('../../controller/validator');
 const Storage = require('./storage');
 const adapters = require('./adapters');
 const entities = require('./entities');
@@ -32,6 +34,8 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 }
 
 function createStorageComponent(options, logger) {
+	options = validator.parseEnvArgAndValidate(defaultConfig, options);
+
 	const storage = new Storage(options, logger);
 
 	storage.registerEntity('Account', entities.Account);
@@ -42,6 +46,7 @@ function createStorageComponent(options, logger) {
 }
 
 module.exports = {
+	defaults: defaultConfig,
 	createStorageComponent,
 	adapters,
 	entities,

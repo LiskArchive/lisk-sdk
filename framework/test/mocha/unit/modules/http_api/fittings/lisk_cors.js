@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -29,7 +29,7 @@ describe('lisk_cors', () => {
 			response: httpMocks.createResponse(),
 		};
 		swaggerModuleRegistry.bind({
-			config: __testContext.config,
+			config: __testContext.config.modules.http_api,
 			modules: {
 				cache: null,
 			},
@@ -77,8 +77,9 @@ describe('lisk_cors', () => {
 	});
 
 	it('should enable requests for test.com when provided origin = test.com', done => {
-		const originalOrigin = __testContext.config.api.options.cors.origin;
-		__testContext.config.api.options.cors.origin = 'test.com';
+		const originalOrigin =
+			__testContext.config.modules.http_api.options.cors.origin;
+		__testContext.config.modules.http_api.options.cors.origin = 'test.com';
 		cors_fititng = fitting();
 		context.request.method = 'OPTIONS';
 
@@ -93,13 +94,14 @@ describe('lisk_cors', () => {
 			context.response.getHeader('Access-Control-Allow-Methods')
 		).to.be.equal('GET,POST,PUT');
 
-		__testContext.config.api.options.cors.origin = originalOrigin;
+		__testContext.config.modules.http_api.options.cors.origin = originalOrigin;
 		done();
 	});
 
 	it('should return actual request origin if cors origin set to true', done => {
-		const originalOrigin = __testContext.config.api.options.cors.origin;
-		__testContext.config.api.options.cors.origin = true;
+		const originalOrigin =
+			__testContext.config.modules.http_api.options.cors.origin;
+		__testContext.config.modules.http_api.options.cors.origin = true;
 		cors_fititng = fitting();
 		context.request.headers.origin = 'my-custom-origin.com';
 		context.request.method = 'OPTIONS';
@@ -114,13 +116,14 @@ describe('lisk_cors', () => {
 			context.response.getHeader('Access-Control-Allow-Methods')
 		).to.be.equal('GET,POST,PUT');
 
-		__testContext.config.api.options.cors.origin = originalOrigin;
+		__testContext.config.modules.http_api.options.cors.origin = originalOrigin;
 		done();
 	});
 
 	it('should disable cors request completely if cors origin set to false', done => {
-		const originalOrigin = __testContext.config.api.options.cors.origin;
-		__testContext.config.api.options.cors.origin = false;
+		const originalOrigin =
+			__testContext.config.modules.http_api.options.cors.origin;
+		__testContext.config.modules.http_api.options.cors.origin = false;
 		cors_fititng = fitting();
 		context.request.headers.origin = 'my-custom-origin.com';
 		context.request.method = 'OPTIONS';
@@ -135,13 +138,17 @@ describe('lisk_cors', () => {
 			context.response.getHeader('Access-Control-Allow-Methods')
 		).to.be.equal(undefined);
 
-		__testContext.config.api.options.cors.origin = originalOrigin;
+		__testContext.config.modules.http_api.options.cors.origin = originalOrigin;
 		done();
 	});
 
 	it('should enable requests for GET, POST when provided methods = GET POST', done => {
-		const originalMethods = __testContext.config.api.options.cors.methods;
-		__testContext.config.api.options.cors.methods = ['GET', 'POST'];
+		const originalMethods =
+			__testContext.config.modules.http_api.options.cors.methods;
+		__testContext.config.modules.http_api.options.cors.methods = [
+			'GET',
+			'POST',
+		];
 		cors_fititng = fitting();
 		context.request.method = 'OPTIONS';
 
@@ -155,7 +162,7 @@ describe('lisk_cors', () => {
 		expect(
 			context.response.getHeader('Access-Control-Allow-Methods')
 		).to.be.equal('GET,POST');
-		__testContext.config.api.options.cors.methods = originalMethods;
+		__testContext.config.modules.http_api.options.cors.methods = originalMethods;
 		done();
 	});
 });

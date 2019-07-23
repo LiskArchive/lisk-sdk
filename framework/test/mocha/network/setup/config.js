@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -16,7 +16,6 @@
 
 const fs = require('fs');
 const utils = require('../utils');
-
 /**
  * SYNC_MODES allow us to choose the network topology to use when
  * executing network tests.
@@ -43,6 +42,8 @@ const SYNC_MODE_DEFAULT_ARGS = {
 	},
 };
 
+const DEFAULT_PEER_IP = '127.0.0.1';
+
 const devConfig = __testContext.config;
 
 const config = {
@@ -52,34 +53,65 @@ const config = {
 		// Generate config objects
 		const configurations = _.range(TOTAL_PEERS).map(index => {
 			const devConfigCopy = _.cloneDeep(devConfig);
-			devConfigCopy.ip = '127.0.0.1';
-			devConfigCopy.wsPort = 5000 + index;
-			devConfigCopy.httpPort = 4000 + index;
-			devConfigCopy.logFileName = `../logs/lisk_node_${index}.log`;
+
+			// Remove dynamic added items in the configuration for tests
+			delete devConfigCopy.nethash;
+			delete devConfigCopy.genesisBlock;
+			delete devConfigCopy.constants;
+			delete devConfigCopy.modules.chain.genesisBlock;
+			delete devConfigCopy.modules.chain.constants;
+			delete devConfigCopy.modules.http_api.genesisBlock;
+			delete devConfigCopy.modules.http_api.constants;
+			delete devConfigCopy.initialState;
+			delete devConfigCopy.modules.network.loadAsChildProcess;
+			delete devConfigCopy.modules.network.version;
+			delete devConfigCopy.modules.network.minVersion;
+			delete devConfigCopy.modules.network.protocolVersion;
+			delete devConfigCopy.modules.network.nethash;
+			delete devConfigCopy.modules.network.nonce;
+			delete devConfigCopy.modules.network.genesisBlock;
+			delete devConfigCopy.modules.network.constants;
+			delete devConfigCopy.modules.network.lastCommitId;
+			delete devConfigCopy.modules.network.buildVersion;
+			delete devConfigCopy.modules.network.access;
+			delete devConfigCopy.modules.network.list;
+			delete devConfigCopy.NORMALIZER;
+			delete devConfigCopy.ADDITIONAL_DATA;
+			delete devConfigCopy.MAX_VOTES_PER_TRANSACTION;
+			delete devConfigCopy.MULTISIG_CONSTRAINTS;
+
+			const wsPort = 5000 + index;
+			// TODO: Remove when p2p library automatically removes itself
+			devConfigCopy.modules.network.wsPort = wsPort;
+
+			devConfigCopy.modules.http_api.httpPort = 4000 + index;
+			devConfigCopy.app.label = `lisk-devnet-${4000 + index}`;
+			devConfigCopy.components.logger.logFileName = `../logs/lisk_node_${index}.log`;
 			return devConfigCopy;
 		});
 
 		// Generate peers for each node
 		configurations.forEach(configuration => {
-			configuration.peers.list = config.generatePeers(
+			configuration.modules.network.seedPeers = config.generatePeers(
 				configurations,
 				config.SYNC_MODES.ALL_TO_GROUP,
 				{
 					indices: _.range(10),
 				},
-				configuration.wsPort
+				configuration.modules.network.wsPort
 			);
 		});
 
 		// Configuring nodes to forge with force or without
 		const delegatesMaxLength = Math.ceil(
-			devConfig.forging.delegates.length / (configurations.length - 1)
+			devConfig.modules.chain.forging.delegates.length /
+				(configurations.length - 1)
 		);
-		const delegates = _.clone(devConfig.forging.delegates);
+		const delegates = _.clone(devConfig.modules.chain.forging.delegates);
 
 		configurations.forEach((configuration, index) => {
-			configuration.forging.force = false;
-			configuration.forging.delegates = delegates.slice(
+			configuration.modules.chain.forging.force = false;
+			configuration.modules.chain.forging.delegates = delegates.slice(
 				index * delegatesMaxLength,
 				(index + 1) * delegatesMaxLength
 			);
@@ -90,7 +122,9 @@ const config = {
 	generatePM2Configs(configurations, callback) {
 		const configReducer = (pm2Config, configuration) => {
 			const index = pm2Config.apps.length;
-			configuration.db.database = `${configuration.db.database}_${index}`;
+			configuration.components.storage.database = `${
+				configuration.components.storage.database
+			}_${index}`;
 			try {
 				if (!fs.existsSync(`${__dirname}/../configs/`)) {
 					fs.mkdirSync(`${__dirname}/../configs/`);
@@ -109,14 +143,13 @@ const config = {
 
 			pm2Config.apps.push({
 				exec_mode: 'fork',
-				script: 'src/index.js',
+				script: 'test/test_app/index.js',
 				name: `node_${index}`,
-				args: ` -c framework/test/mocha/network/configs/config.node-${index}.json`,
+				args: ` -c test/mocha/network/configs/config.node-${index}.json`,
 				env: {
 					NODE_ENV: 'test',
+					CUSTOM_CONFIG_FILE: `test/mocha/network/configs/config.node-${index}.json`,
 				},
-				error_file: `framework/test/mocha/network/logs/lisk-test-node-${index}.err.log`,
-				out_file: `framework/test/mocha/network/logs/lisk-test-node-${index}.out.log`,
 				configuration,
 			});
 			return pm2Config;
@@ -158,10 +191,10 @@ const config = {
 				}
 				configurations.forEach(configuration => {
 					if (isPickedWithProbability(syncModeArgs.probability)) {
-						if (!(configuration.wsPort === currentPeer)) {
+						if (!(configuration.modules.network.wsPort === currentPeer)) {
 							peersList.push({
-								ip: configuration.ip,
-								wsPort: configuration.wsPort,
+								ip: DEFAULT_PEER_IP,
+								wsPort: configuration.modules.network.wsPort,
 							});
 						}
 					}
@@ -174,8 +207,8 @@ const config = {
 				}
 				peersList = [
 					{
-						ip: configurations[0].ip,
-						wsPort: configurations[0].wsPort,
+						ip: DEFAULT_PEER_IP,
+						wsPort: configurations[0].modules.network.wsPort,
 					},
 				];
 				break;
@@ -187,8 +220,8 @@ const config = {
 				configurations.forEach((configuration, index) => {
 					if (syncModeArgs.indices.indexOf(index) !== -1) {
 						peersList.push({
-							ip: configuration.ip,
-							wsPort: configuration.wsPort,
+							ip: DEFAULT_PEER_IP,
+							wsPort: configuration.modules.network.wsPort,
 						});
 					}
 				});

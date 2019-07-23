@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -14,21 +14,12 @@
 
 'use strict';
 
-const Signature = require('../logic/signature');
-
-const { TRANSACTION_TYPES } = global.constants;
-
 // Private fields
 let modules;
-let library;
 let self;
-const __private = {};
-
-__private.assetTypes = {};
 
 /**
  * Main signatures methods. Initializes library with scope content and generates a Signature instance.
- * Calls logic.transaction.attachAssetType().
  *
  * @class
  * @memberof modules
@@ -39,29 +30,8 @@ __private.assetTypes = {};
  * @returns {setImmediateCallback} cb, null, self
  */
 class Signatures {
-	constructor(cb, scope) {
-		library = {
-			schema: scope.schema,
-			ed: scope.ed,
-			balancesSequence: scope.balancesSequence,
-			logic: {
-				transaction: scope.logic.transaction,
-			},
-		};
+	constructor(cb) {
 		self = this;
-
-		__private.assetTypes[
-			TRANSACTION_TYPES.SIGNATURE
-		] = library.logic.transaction.attachAssetType(
-			TRANSACTION_TYPES.SIGNATURE,
-			new Signature({
-				components: {
-					logger: scope.components.logger,
-				},
-				schema: scope.schema,
-			})
-		);
-
 		setImmediate(cb, null, self);
 	}
 }
@@ -88,10 +58,6 @@ Signatures.prototype.onBind = function(scope) {
 		transactions: scope.modules.transactions,
 		transport: scope.modules.transport,
 	};
-
-	__private.assetTypes[TRANSACTION_TYPES.SIGNATURE].bind(
-		scope.modules.accounts
-	);
 };
 
 // Shared API

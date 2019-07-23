@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -15,44 +15,40 @@
 'use strict';
 
 require('../../functional');
+const { P2P } = require('@liskhq/lisk-p2p');
 const { transfer } = require('@liskhq/lisk-transactions');
-const WAMPServer = require('wamp-socket-cluster/WAMPServer');
 const phases = require('../../../common/phases');
 const randomUtil = require('../../../common/utils/random');
-const wsRPC = require('../../../../../src/modules/chain/api/ws/rpc/ws_rpc')
-	.wsRPC;
-const WsTestClient = require('../../../common/ws/client');
+const { generatePeerHeader } = require('../../../common/generatePeerHeader');
 
 describe('Posting transaction (type 0)', () => {
 	let transaction;
 	const goodTransactions = [];
 	const badTransactions = [];
 	const account = randomUtil.account();
-	let wsTestClient;
+	let p2p;
 
 	function postTransaction(transactionToPost) {
-		wsTestClient.client.rpc.postTransactions({
-			transactions: [transactionToPost],
+		p2p.send({
+			event: 'postTransactions',
+			data: {
+				nonce: 'sYHEDBKcScaAAAYg',
+				transactions: [transactionToPost],
+			},
 		});
 	}
 
-	before('establish client WS connection to server', done => {
-		// Setup stub for post transactions endpoint
-		const wampServer = new WAMPServer();
-		wampServer.registerEventEndpoints({
-			postTransactions: async () => {},
-			updateMyself: async () => {},
-		});
-		wsRPC.setServer(wampServer);
-		// Register client
-		wsTestClient = new WsTestClient();
-		wsTestClient.start();
-		done();
+	before('establish client WS connection to server', async () => {
+		p2p = new P2P(generatePeerHeader());
+		await p2p.start();
 	});
 
-	beforeEach(done => {
+	after(async () => {
+		await p2p.stop();
+	});
+
+	beforeEach(async () => {
 		transaction = randomUtil.transaction();
-		done();
 	});
 
 	describe('transaction processing', () => {

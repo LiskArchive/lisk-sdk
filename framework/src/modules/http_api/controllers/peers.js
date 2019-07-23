@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -16,7 +16,6 @@
 
 const _ = require('lodash');
 const swaggerHelper = require('../helpers/swagger');
-
 // Private Fields
 let channel;
 
@@ -68,25 +67,17 @@ PeersController.getPeers = async function(context, next) {
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	try {
-		const data = await channel.invoke('chain:getPeers', {
-			parameters: filters,
-		});
-
-		const clonedData = _.cloneDeep(data);
-		const filteredData = clonedData.map(peer => {
-			const { updated, ...filtered } = peer;
-			return filtered;
-		});
-
-		const peersCount = await channel.invoke('chain:getPeersCountByFilter', {
-			parameters: _.cloneDeep(filters),
-		});
+		const peersByFilters = await channel.invoke('network:getPeers', filters);
+		const peersCount = await channel.invoke(
+			'network:getPeersCountByFilter',
+			filters
+		);
 
 		return next(null, {
-			data: filteredData,
+			data: peersByFilters,
 			meta: {
-				offset: filters.offset,
-				limit: filters.limit,
+				offset: params.offset.value,
+				limit: params.limit.value,
 				count: peersCount,
 			},
 		});

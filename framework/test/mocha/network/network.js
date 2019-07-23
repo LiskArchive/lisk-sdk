@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -25,7 +25,10 @@ const WAIT_BEFORE_CONNECT_MS = 20000;
 const getPeersStatus = peers => {
 	return Promise.all(
 		peers.map(peer => {
-			return utils.http.getNodeStatus(peer.httpPort, peer.ip);
+			return utils.http.getNodeStatus({
+				port: peer.httpPort,
+				ip: peer.ip,
+			});
 		})
 	);
 };
@@ -132,7 +135,7 @@ class Network {
 			.then(() => {
 				// TODO: Check all the client socket 'connect' events instead.
 				return new Promise((resolve, reject) => {
-					this.logger.log(
+					this.logger.info(
 						`Waiting ${WAIT_BEFORE_CONNECT_MS /
 							1000} seconds for nodes to establish connections`
 					);
@@ -148,7 +151,7 @@ class Network {
 
 	generatePM2Configs() {
 		return new Promise((resolve, reject) => {
-			this.logger.log('Generating PM2 configuration');
+			this.logger.info('Generating PM2 configuration');
 			config.generatePM2Configs(this.configurations, (err, pm2Configs) => {
 				if (err) {
 					return reject(
@@ -165,7 +168,7 @@ class Network {
 
 	recreateDatabases() {
 		return new Promise((resolve, reject) => {
-			this.logger.log('Recreating databases');
+			this.logger.info('Recreating databases');
 			shell.recreateDatabases(this.configurations, err => {
 				if (err) {
 					return reject(
@@ -181,7 +184,7 @@ class Network {
 
 	clearAllLogs() {
 		return new Promise((resolve, reject) => {
-			this.logger.log('Clearing existing logs');
+			this.logger.info('Clearing existing logs');
 			shell.clearLogs(err => {
 				if (err) {
 					return reject(
@@ -197,7 +200,7 @@ class Network {
 
 	launchTestNodes() {
 		return new Promise((resolve, reject) => {
-			this.logger.log('Launching network');
+			this.logger.info('Launching network');
 			shell.launchTestNodes(err => {
 				if (err) {
 					return reject(
@@ -215,7 +218,7 @@ class Network {
 		return Promise.resolve()
 			.then(() => {
 				return new Promise((resolve, reject) => {
-					this.logger.log('Shutting down network');
+					this.logger.info('Shutting down network');
 					shell.killTestNodes(err => {
 						if (err) {
 							return reject(err);
@@ -244,7 +247,9 @@ class Network {
 			waitFor.blockchainReady(
 				retries,
 				timeout,
-				`http://${configuration.ip}:${configuration.httpPort}`,
+				`http://${configuration.modules.http_api.address}:${
+					configuration.modules.http_api.httpPort
+				}`,
 				!logRetries,
 				err => {
 					if (err) {
@@ -262,7 +267,7 @@ class Network {
 	}
 
 	waitForNodesToBeReady(nodeNames, logRetries) {
-		this.logger.log(
+		this.logger.info(
 			`Waiting for nodes ${nodeNames.join(', ')} to load the blockchain`
 		);
 
@@ -274,7 +279,7 @@ class Network {
 	}
 
 	waitForAllNodesToBeReady(logRetries) {
-		this.logger.log('Waiting for all nodes to load the blockchain');
+		this.logger.info('Waiting for all nodes to load the blockchain');
 
 		const nodeNames = Object.keys(this.pm2ConfigMap);
 
@@ -293,7 +298,9 @@ class Network {
 		return new Promise((resolve, reject) => {
 			waitFor.blocks(
 				blocksToWait,
-				`http://${configuration.ip}:${configuration.httpPort}`,
+				`http://${configuration.modules.http_api.address}:${
+					configuration.modules.http_api.httpPort
+				}`,
 				err => {
 					if (err) {
 						return reject(
@@ -310,7 +317,7 @@ class Network {
 	}
 
 	waitForBlocksOnNodes(nodeNames, blocksToWait) {
-		this.logger.log(`Waiting for blocks on nodes ${nodeNames.join(', ')}`);
+		this.logger.info(`Waiting for blocks on nodes ${nodeNames.join(', ')}`);
 
 		const nodeBlocksPromises = nodeNames.map(nodeName => {
 			return this.waitForBlocksOnNode(nodeName, blocksToWait);
@@ -320,24 +327,24 @@ class Network {
 	}
 
 	waitForBlocksOnAllNodes(blocksToWait) {
-		this.logger.log('Waiting for blocks on all nodes');
+		this.logger.info('Waiting for blocks on all nodes');
 
 		const nodeNames = Object.keys(this.pm2ConfigMap);
 		return this.waitForBlocksOnNodes(nodeNames, blocksToWait);
 	}
 
 	enableForgingForDelegates() {
-		this.logger.log('Enabling forging with registered delegates');
+		this.logger.info('Enabling forging with registered delegates');
 
 		const enableForgingPromises = [];
 		this.configurations.forEach(configuration => {
-			configuration.forging.delegates
-				.filter(() => !configuration.forging.force)
+			configuration.modules.chain.forging.delegates
+				.filter(() => !configuration.modules.chain.forging.force)
 				.map(keys => {
-					const enableForgingPromise = utils.http.enableForging(
+					const enableForgingPromise = utils.http.enableForging({
 						keys,
-						configuration.httpPort
-					);
+						port: configuration.modules.http_api.httpPort,
+					});
 					return enableForgingPromises.push(enableForgingPromise);
 				});
 		});
@@ -401,7 +408,7 @@ class Network {
 			// log files manually. Currently pm2 flush clears the logs for all nodes.
 			const sanitizedNodeName = nodeName.replace(/_/g, '-');
 			childProcess.exec(
-				`rm -rf framework/test/mocha/network/logs/lisk-test-${sanitizedNodeName}.*`,
+				`rm -rf test/mocha/network/logs/lisk-test-${sanitizedNodeName}.*`,
 				err => {
 					if (err) {
 						return reject(
@@ -420,7 +427,7 @@ class Network {
 	// eslint-disable-next-line class-methods-use-this
 	stopNode(nodeName) {
 		return new Promise((resolve, reject) => {
-			childProcess.exec(`node_modules/.bin/pm2 stop ${nodeName}`, err => {
+			childProcess.exec(`npx pm2 stop ${nodeName}`, err => {
 				if (err) {
 					return reject(
 						new Error(`Failed to stop node ${nodeName}: ${err.message || err}`)
@@ -433,7 +440,7 @@ class Network {
 
 	startNode(nodeName, waitForSync) {
 		let startPromise = new Promise((resolve, reject) => {
-			childProcess.exec(`node_modules/.bin/pm2 start ${nodeName}`, err => {
+			childProcess.exec(`npx pm2 start ${nodeName}`, err => {
 				if (err) {
 					return reject(
 						new Error(`Failed to start node ${nodeName}: ${err.message || err}`)
@@ -472,7 +479,7 @@ class Network {
 
 		await new Promise((resolve, reject) => {
 			childProcess.exec(
-				`node_modules/.bin/pm2 reload framework/test/mocha/network/pm2.network.json --only ${nodeName}${update}`,
+				`npx pm2 reload test/mocha/network/pm2.network.json --only ${nodeName}${update}`,
 				err => {
 					if (err) {
 						return reject(
@@ -519,6 +526,18 @@ class Network {
 				};
 				return status;
 			});
+	}
+
+	async wait(number) {
+		this.logger.info(
+			`Waiting ${number /
+				(60 * 1000)} minute to check how many blocks are forged`
+		);
+		return new Promise(resolve => {
+			setTimeout(() => {
+				resolve();
+			}, number);
+		});
 	}
 }
 

@@ -1,0 +1,241 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`schema/application_config_schema.js application config schema must match to the snapshot. 1`] = `
+Object {
+  "additionalProperties": false,
+  "default": Object {
+    "app": Object {
+      "genesisConfig": Object {
+        "BLOCK_TIME": 10,
+        "EPOCH_TIME": "2016-05-24T17:00:00.000Z",
+        "MAX_TRANSACTIONS_PER_BLOCK": 25,
+        "REWARDS": Object {
+          "DISTANCE": 3000000,
+          "MILESTONES": Array [
+            "500000000",
+            "400000000",
+            "300000000",
+            "200000000",
+            "100000000",
+          ],
+          "OFFSET": 2160,
+        },
+      },
+      "ipc": Object {
+        "enabled": false,
+      },
+    },
+    "components": Object {
+      "cache": Object {},
+      "logger": Object {},
+      "storage": Object {},
+      "system": Object {},
+    },
+    "modules": Object {
+      "chain": Object {},
+      "http_api": Object {},
+    },
+  },
+  "id": "#/app/config",
+  "properties": Object {
+    "app": Object {
+      "properties": Object {
+        "buildVersion": Object {
+          "description": "The build number. Consists of \`v\` + the date and time of the build of the node.",
+          "example": "v09:54:35 12/04/2017",
+          "type": "string",
+        },
+        "genesisConfig": Object {
+          "additionalProperties": false,
+          "id": "#/app/genesisConfig",
+          "properties": Object {
+            "BLOCK_TIME": Object {
+              "description": "Slot time interval in seconds",
+              "min": 1,
+              "type": "number",
+            },
+            "EPOCH_TIME": Object {
+              "description": "Timestamp indicating the start of Lisk Core (\`Date.toISOString()\`)",
+              "format": "date-time",
+              "type": "string",
+            },
+            "MAX_TRANSACTIONS_PER_BLOCK": Object {
+              "description": "Maximum number of transactions allowed per block",
+              "min": 1,
+              "type": "integer",
+            },
+            "REWARDS": Object {
+              "additionalProperties": false,
+              "description": "Object representing LSK rewards milestone",
+              "id": "rewards",
+              "properties": Object {
+                "DISTANCE": Object {
+                  "description": "Distance between each milestone",
+                  "min": 1,
+                  "type": "integer",
+                },
+                "MILESTONES": Object {
+                  "description": "Initial 5, and decreasing until 1",
+                  "items": Object {
+                    "format": "amount",
+                    "type": "string",
+                  },
+                  "type": "array",
+                },
+                "OFFSET": Object {
+                  "description": "Start rewards at block (n)",
+                  "min": 1,
+                  "type": "integer",
+                },
+              },
+              "required": Array [
+                "MILESTONES",
+                "OFFSET",
+                "DISTANCE",
+              ],
+              "type": "object",
+            },
+          },
+          "required": Array [
+            "EPOCH_TIME",
+            "BLOCK_TIME",
+            "MAX_TRANSACTIONS_PER_BLOCK",
+            "REWARDS",
+          ],
+          "type": "object",
+        },
+        "initialState": Object {
+          "id": "#/app/initialState",
+          "properties": Object {
+            "httpPort": Object {
+              "description": "The port the peer node uses for HTTP requests, e.g. API calls.",
+              "example": 8000,
+              "maximum": 65535,
+              "minimum": 1,
+              "type": "integer",
+            },
+            "minVersion": Object {
+              "format": "version",
+              "type": "string",
+            },
+            "nethash": Object {
+              "format": "hex",
+              "maxLength": 64,
+              "minLength": 64,
+              "type": "string",
+            },
+            "nonce": Object {
+              "description": "Unique Identifier for the peer.
+Random string.",
+              "example": "sYHEDBKcScaAAAYg",
+              "maxLength": 16,
+              "minLength": 16,
+              "type": "string",
+            },
+            "protocolVersion": Object {
+              "description": "The protocol version of Lisk Core that the peer node runs on.",
+              "example": 1,
+              "format": "protocolVersion",
+              "type": "string",
+            },
+            "version": Object {
+              "description": "The version of Lisk Core that the peer node runs on.",
+              "example": "1.6.0-rc.3",
+              "format": "version",
+              "type": "string",
+            },
+            "wsPort": Object {
+              "description": "The port the peer node uses for Websocket Connections, e.g. P2P broadcasts.",
+              "example": 8001,
+              "maximum": 65535,
+              "minimum": 1,
+              "type": "integer",
+            },
+          },
+          "type": "object",
+        },
+        "ipc": Object {
+          "properties": Object {
+            "enabled": Object {
+              "type": "boolean",
+            },
+          },
+          "type": "object",
+        },
+        "label": Object {
+          "pattern": "^[a-zA-Z][0-9a-zA-Z\\\\_\\\\-]*$",
+          "type": "string",
+        },
+        "lastCommitId": Object {
+          "description": "The version of Lisk Core that the peer node runs on.",
+          "example": "968d7b5b97a5bfad8f77614dc8a9918de49f6c6e",
+          "format": "hex",
+          "maxLength": 40,
+          "minLength": 40,
+          "type": "string",
+        },
+        "minVersion": Object {
+          "format": "version",
+          "type": "string",
+        },
+        "protocolVersion": Object {
+          "format": "protocolVersion",
+          "type": "string",
+        },
+        "version": Object {
+          "format": "version",
+          "type": "string",
+        },
+      },
+      "required": Array [
+        "version",
+        "minVersion",
+        "protocolVersion",
+        "ipc",
+        "genesisConfig",
+      ],
+      "type": "object",
+    },
+    "components": Object {
+      "properties": Object {
+        "cache": Object {
+          "type": "object",
+        },
+        "logger": Object {
+          "type": "object",
+        },
+        "storage": Object {
+          "type": "object",
+        },
+      },
+      "required": Array [
+        "logger",
+        "cache",
+        "storage",
+      ],
+      "type": "object",
+    },
+    "modules": Object {
+      "properties": Object {
+        "chain": Object {
+          "type": "object",
+        },
+        "http_api": Object {
+          "type": "object",
+        },
+      },
+      "required": Array [
+        "chain",
+        "http_api",
+      ],
+      "type": "object",
+    },
+  },
+  "required": Array [
+    "app",
+    "components",
+    "modules",
+  ],
+  "type": "object",
+}
+`;

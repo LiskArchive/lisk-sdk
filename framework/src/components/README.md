@@ -22,8 +22,13 @@ It exposes an interface with specific features for getting or setting particular
 
 Find more details about the storage component in the dedicated [LIP](https://github.com/LiskHQ/lips/blob/master/proposals/lip-0011.md).
 
-### System
+## Configuration
 
-The system component provides per-module system information. Each module is responsible for keeping the information up-to-date.
+Configuration options for each component are located in `framework/src/component/<component-name>/defaults/config.js`.
 
-It holds the variables and constants critical for the whole application, possibly affecting other modules. For now, those are: "os", "version", "wsPort", "httpPort", "minVersion", "protocolVersion", "height", "nethash", "broadhash" and "nonce".
+Each `config.js` file consists of 2 parts:
+
+1. JSON-schema specification for all available config options.
+2. Default values for the available config options for this specific compoment.
+
+Please don't change the default values in these files directly as they will be overwritten on software updates, instead define the custom configuration options inside your blockchain application.

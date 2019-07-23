@@ -1,0 +1,6 @@
+{
+	"rules": {
+		"arrow-return-shorthand": "off",
+		"no-expression-statement": "off"
+	}
+}

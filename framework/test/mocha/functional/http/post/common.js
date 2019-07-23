@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -89,7 +89,6 @@ function invalidAssets(option, badTransactions) {
 			typesRepresentatives.allTypes.forEach(test => {
 				it(`using ${test.description} should fail`, async () => {
 					transaction.asset = test.input;
-
 					const expectedResponse =
 						test.expectation === 'object' && test.description !== 'date'
 							? apiCodes.PROCESSING_ERROR

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -18,7 +18,6 @@ const {
 	Account,
 	Block,
 	Migration,
-	Peer,
 	Round,
 	Transaction,
 } = require('../components/storage/entities');
@@ -32,7 +31,6 @@ module.exports = async ({ components: { storage, logger } }, accountLimit) => {
 			replaceExisting: true,
 		});
 		storage.registerEntity('Migration', Migration);
-		storage.registerEntity('Peer', Peer);
 		storage.registerEntity('Round', Round);
 		storage.registerEntity('Transaction', Transaction, {
 			replaceExisting: true,
@@ -45,7 +43,6 @@ module.exports = async ({ components: { storage, logger } }, accountLimit) => {
 			limit: accountLimit,
 		});
 		await storage.entities.Migration.applyAll();
-		await storage.entities.Migration.applyRunTime();
 	} catch (err) {
 		logger.error(err);
 		throw err;

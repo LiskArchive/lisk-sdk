@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 module.exports = {
 	Signature: {
 		id: 'Signature',
@@ -55,256 +71,10 @@ module.exports = {
 			},
 		},
 	},
-	Peer: {
-		id: 'Peer',
-		type: 'object',
-		required: ['wsPort', 'state'],
-		properties: {
-			ip: {
-				type: 'string',
-				example: '127.0.0.1',
-				format: 'ip',
-				description: 'IPv4 address of the peer node.',
-			},
-			httpPort: {
-				type: 'integer',
-				example: 8000,
-				minimum: 1,
-				maximum: 65535,
-				description:
-					'The port the peer node uses for HTTP requests, e.g. API calls.',
-			},
-			wsPort: {
-				type: 'integer',
-				example: 8001,
-				minimum: 1,
-				maximum: 65535,
-				description:
-					'The port the peer node uses for Websocket Connections, e.g. P2P broadcasts.',
-			},
-			os: {
-				type: 'string',
-				example: 'debian',
-				description: 'The Operating System, that the peer node runs on.',
-			},
-			version: {
-				type: 'string',
-				example: 'v0.8.0',
-				format: 'version',
-				description: 'The version of Lisk Core that the peer node runs on.',
-			},
-			protocolVersion: {
-				type: 'string',
-				example: 1,
-				format: 'protocolVersion',
-				description:
-					'The protocol version of Lisk Core that the peer node runs on.',
-			},
-			state: {
-				type: 'integer',
-				example: 2,
-				minimum: 0,
-				maximum: 2,
-				description:
-					'The state of the Peer.\nAvailable values: Connected, Disconnected, Banned\n',
-			},
-			height: {
-				type: 'integer',
-				example: 123,
-				description:
-					'Network height on the peer node.\nRepresents the current number of blocks in the chain on the peer node.\n',
-			},
-			broadhash: {
-				type: 'string',
-				example:
-					'258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea',
-				format: 'hex',
-				description:
-					'Broadhash on the peer node.\nBroadhash is established as an aggregated rolling hash of the past five blocks present in the database.\n',
-			},
-			nonce: {
-				type: 'string',
-				example: 'sYHEDBKcScaAAAYg',
-				minLength: 1,
-				description: 'Unique Identifier for the peer.\nRandom string.\n',
-			},
-		},
-	},
-	PeersList: {
-		id: 'PeersList',
-		type: 'object',
-		required: ['peers'],
-		properties: {
-			peers: {
-				type: 'array',
-				items: {
-					type: 'object',
-					required: ['wsPort', 'state'],
-					properties: {
-						ip: {
-							type: 'string',
-							example: '127.0.0.1',
-							format: 'ip',
-							description: 'IPv4 address of the peer node.',
-						},
-						httpPort: {
-							type: 'integer',
-							example: 8000,
-							minimum: 1,
-							maximum: 65535,
-							description:
-								'The port the peer node uses for HTTP requests, e.g. API calls.',
-						},
-						wsPort: {
-							type: 'integer',
-							example: 8001,
-							minimum: 1,
-							maximum: 65535,
-							description:
-								'The port the peer node uses for Websocket Connections, e.g. P2P broadcasts.',
-						},
-						os: {
-							type: 'string',
-							example: 'debian',
-							description: 'The Operating System, that the peer node runs on.',
-						},
-						version: {
-							type: 'string',
-							example: 'v0.8.0',
-							format: 'version',
-							description:
-								'The version of Lisk Core that the peer node runs on.',
-						},
-						protocolVersion: {
-							type: 'string',
-							example: 1,
-							format: 'protocolVersion',
-							description:
-								'The protocol version of Lisk Core that the peer node runs on.',
-						},
-						state: {
-							type: 'integer',
-							example: 2,
-							minimum: 0,
-							maximum: 2,
-							description:
-								'The state of the Peer.\nAvailable values: Connected, Disconnected, Banned\n',
-						},
-						height: {
-							type: 'integer',
-							example: 123,
-							description:
-								'Network height on the peer node.\nRepresents the current number of blocks in the chain on the peer node.\n',
-						},
-						broadhash: {
-							type: 'string',
-							example:
-								'258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea',
-							format: 'hex',
-							description:
-								'Broadhash on the peer node.\nBroadhash is established as an aggregated rolling hash of the past five blocks present in the database.\n',
-						},
-						nonce: {
-							type: 'string',
-							example: 'sYHEDBKcScaAAAYg',
-							minLength: 1,
-							description: 'Unique Identifier for the peer.\nRandom string.\n',
-						},
-					},
-				},
-			},
-		},
-	},
-	WSPeerHeaders: {
-		id: 'WSPeerHeaders',
-		type: 'object',
-		required: ['httpPort', 'wsPort', 'version', 'nethash', 'nonce'],
-		properties: {
-			httpPort: {
-				type: 'integer',
-				example: 8000,
-				minimum: 1,
-				maximum: 65535,
-			},
-			wsPort: {
-				type: 'integer',
-				example: 8001,
-				minimum: 1,
-				maximum: 65535,
-			},
-			os: {
-				type: 'string',
-				example: 'debian',
-			},
-			version: {
-				type: 'string',
-				example: 'v0.8.0',
-				format: 'version',
-			},
-			protocolVersion: {
-				type: 'string',
-				example: 1,
-				format: 'protocolVersion',
-			},
-			height: {
-				type: 'integer',
-				example: 123,
-			},
-			nethash: {
-				type: 'string',
-				maxLength: 64,
-			},
-			broadhash: {
-				type: 'string',
-				example:
-					'258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea',
-				format: 'hex',
-			},
-			nonce: {
-				type: 'string',
-				example: 'sYHEDBKcScaAAAYg',
-				minLength: 16,
-				maxLength: 16,
-			},
-		},
-	},
-	WSPeerUpdateRequest: {
-		id: 'WSPeerUpdateRequest',
-		type: 'object',
-		required: ['data', 'socketId'],
-		properties: {
-			data: {
-				type: 'object',
-				required: ['nonce'],
-				properties: {
-					nethash: {
-						type: 'string',
-						maxLength: 64,
-					},
-					broadhash: {
-						type: 'string',
-						format: 'hex',
-					},
-					height: {
-						type: 'integer',
-						minimum: 1,
-					},
-					nonce: {
-						type: 'string',
-						minLength: 16,
-						maxLength: 16,
-					},
-				},
-			},
-			socketId: {
-				type: 'string',
-			},
-		},
-	},
 	WSSignaturesList: {
 		id: 'WSSignaturesList',
 		type: 'object',
-		required: ['nonce', 'signatures'],
+		required: ['signatures'],
 		properties: {
 			nonce: {
 				type: 'string',
@@ -343,7 +113,7 @@ module.exports = {
 	WSTransactionsRequest: {
 		id: 'WSTransactionsRequest',
 		type: 'object',
-		required: ['nonce', 'transactions'],
+		required: ['transactions'],
 		properties: {
 			nonce: {
 				type: 'string',
@@ -358,95 +128,6 @@ module.exports = {
 				},
 				minItems: 1,
 				maxItems: 25,
-			},
-		},
-	},
-	WSAccessObject: {
-		id: 'WSAccessObject',
-		type: 'object',
-		required: ['peer', 'authKey', 'updateType'],
-		properties: {
-			peer: {
-				type: 'object',
-				required: ['wsPort', 'state'],
-				properties: {
-					ip: {
-						type: 'string',
-						example: '127.0.0.1',
-						format: 'ip',
-						description: 'IPv4 address of the peer node.',
-					},
-					httpPort: {
-						type: 'integer',
-						example: 8000,
-						minimum: 1,
-						maximum: 65535,
-						description:
-							'The port the peer node uses for HTTP requests, e.g. API calls.',
-					},
-					wsPort: {
-						type: 'integer',
-						example: 8001,
-						minimum: 1,
-						maximum: 65535,
-						description:
-							'The port the peer node uses for Websocket Connections, e.g. P2P broadcasts.',
-					},
-					os: {
-						type: 'string',
-						example: 'debian',
-						description: 'The Operating System, that the peer node runs on.',
-					},
-					version: {
-						type: 'string',
-						example: 'v0.8.0',
-						format: 'version',
-						description: 'The version of Lisk Core that the peer node runs on.',
-					},
-					protocolVersion: {
-						type: 'string',
-						example: 1,
-						format: 'protocolVersion',
-						description:
-							'The protocol version of Lisk Core that the peer node runs on.',
-					},
-					state: {
-						type: 'integer',
-						example: 2,
-						minimum: 0,
-						maximum: 2,
-						description:
-							'The state of the Peer.\nAvailable values: Connected, Disconnected, Banned\n',
-					},
-					height: {
-						type: 'integer',
-						example: 123,
-						description:
-							'Network height on the peer node.\nRepresents the current number of blocks in the chain on the peer node.\n',
-					},
-					broadhash: {
-						type: 'string',
-						example:
-							'258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea',
-						format: 'hex',
-						description:
-							'Broadhash on the peer node.\nBroadhash is established as an aggregated rolling hash of the past five blocks present in the database.\n',
-					},
-					nonce: {
-						type: 'string',
-						example: 'sYHEDBKcScaAAAYg',
-						minLength: 1,
-						description: 'Unique Identifier for the peer.\nRandom string.\n',
-					},
-				},
-			},
-			authKey: {
-				type: 'string',
-			},
-			updateType: {
-				type: 'integer',
-				minimum: 0,
-				maximum: 1,
 			},
 		},
 	},
@@ -482,7 +163,7 @@ module.exports = {
 	WSBlocksBroadcast: {
 		id: 'WSBlocksBroadcast',
 		type: 'object',
-		required: ['block', 'nonce'],
+		required: ['block'],
 		properties: {
 			nonce: {
 				type: 'string',

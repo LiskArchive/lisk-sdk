@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -20,10 +20,17 @@ const MOCHA_PATH = process.env.MOCHA_PATH || 'node_modules/.bin/_mocha';
 const ISTANBUL_PATH = process.env.MOCHA_PATH || 'node_modules/.bin/istanbul';
 
 const children = {};
+const currentTests = {};
 
 const promisifyChildExit = child => {
 	let error = null;
 	child.once('error', err => {
+		console.info(
+			`Child process '${currentTests[child.pid]}(pid: ${
+				child.pid
+			})' exit with error: `
+		);
+		console.info(err);
 		error = err;
 		return child.kill('SIGTERM');
 	});
@@ -32,6 +39,10 @@ const promisifyChildExit = child => {
 		child.once('exit', code => {
 			// We need to delete the child process from the queue once it exists.
 			delete children[child.pid];
+			console.info(`TEST '${currentTests[child.pid]}' FINISHED.`);
+			delete currentTests[child.pid];
+			console.info('PENDING TESTS:');
+			console.info(currentTests);
 			if (code === 0) {
 				return resolve();
 			}
@@ -45,7 +56,7 @@ const getIstanbulOptions = (testFile, mochaCliOptions) => {
 	return [
 		'cover',
 		'--dir',
-		'framework/test/mocha/.coverage-unit',
+		'test/mocha/.coverage-unit',
 		'--include-pid',
 		'--print',
 		'none',
@@ -59,12 +70,13 @@ const spawn = (testFile, mochaCliOptions) => {
 	const istanbulOptions = getIstanbulOptions(testFile, mochaCliOptions);
 
 	const child = child_process.spawn(ISTANBUL_PATH, istanbulOptions, {
-		cwd: `${__dirname}/../../../../..`,
+		cwd: `${__dirname}/../../../..`,
 		detached: true,
 		stdio: 'inherit',
 	});
 
 	children[child.pid] = child;
+	currentTests[child.pid] = `${istanbulOptions[7]}`;
 	const istanbulOptionsStr = istanbulOptions.map(v => `"${v}"`).join(' ');
 	console.info(`(${child.pid}) ${ISTANBUL_PATH} ${istanbulOptionsStr}`);
 

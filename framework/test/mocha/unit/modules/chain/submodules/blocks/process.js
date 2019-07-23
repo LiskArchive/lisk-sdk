@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -14,9 +14,11 @@
 
 'use strict';
 
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const rewire = require('rewire');
 const Promise = require('bluebird');
 const Bignum = require('../../../../../../../src/modules/chain/helpers/bignum');
+const blockVersion = require('../../../../../../../src/modules/chain/logic/block_version');
 
 const BlocksProcess = rewire(
 	'../../../../../../../src/modules/chain/submodules/blocks/process'
@@ -32,10 +34,10 @@ describe('blocks/process', () => {
 	let dummyBlock;
 	let dummyCommonBlock;
 	let blockStub;
-	let transactionStub;
 	let peersStub;
 	let schemaStub;
 	let sequenceStub;
+	let channelStub;
 	let genesisBlockStub;
 	let bindingsStub;
 
@@ -107,11 +109,6 @@ describe('blocks/process', () => {
 			unban: sinonSandbox.stub(),
 		};
 
-		transactionStub = {
-			ready: sinonSandbox.stub(),
-			verify: sinonSandbox.stub(),
-		};
-
 		loggerStub = {
 			trace: sinonSandbox.spy(),
 			info: sinonSandbox.spy(),
@@ -128,15 +125,23 @@ describe('blocks/process', () => {
 			add: sinonSandbox.stub(),
 		};
 
+		channelStub = {
+			invoke: sinonSandbox.stub(),
+		};
+
+		const InitTransaction = require('../../../../../../../src/modules/chain/logic/init_transaction');
+		const initTrs = new InitTransaction({});
+
 		blocksProcessModule = new BlocksProcess(
 			loggerStub,
 			blockStub,
 			peersStub,
-			transactionStub,
 			schemaStub,
 			storageStub,
 			sequenceStub,
-			genesisBlockStub
+			genesisBlockStub,
+			channelStub,
+			initTrs
 		);
 
 		library = BlocksProcess.__get__('library');
@@ -148,6 +153,7 @@ describe('blocks/process', () => {
 			height: 4,
 			timestamp: 41287231,
 			reward: new Bignum(100),
+			transactions: [],
 		};
 
 		const modulesAccountsStub = {
@@ -185,6 +191,11 @@ describe('blocks/process', () => {
 			},
 		};
 
+		const modulesProcessTransactionsStub = {
+			applyTransactions: sinonSandbox.stub(),
+			checkAllowedTransactions: sinonSandbox.stub(),
+		};
+
 		const modulesDelegatesStub = {
 			fork: sinonSandbox.stub(),
 			validateBlockSlotAgainstPreviousRound: sinonSandbox.stub(),
@@ -203,10 +214,6 @@ describe('blocks/process', () => {
 			getUnconfirmedTransactionList: sinonSandbox.stub(),
 		};
 
-		const modulesTransportStub = {
-			poorConsensus: sinonSandbox.stub(),
-		};
-
 		const modulesPeersStub = {
 			remove: sinonSandbox.spy(),
 		};
@@ -218,9 +225,9 @@ describe('blocks/process', () => {
 				delegates: modulesDelegatesStub,
 				loader: modulesLoaderStub,
 				peers: modulesPeersStub,
+				processTransactions: modulesProcessTransactionsStub,
 				rounds: modulesRoundsStub,
 				transactions: modulesTransactionsStub,
-				transport: modulesTransportStub,
 			},
 		};
 
@@ -243,7 +250,6 @@ describe('blocks/process', () => {
 			expect(library.genesisBlock).to.eql(genesisBlockStub);
 			expect(library.logic.block).to.eql(blockStub);
 			expect(library.logic.peers).to.eql(peersStub);
-			return expect(library.logic.transaction).to.eql(transactionStub);
 		});
 
 		it('should call library.logger.trace with "Blocks->Process: Submodule initialized."', async () =>
@@ -253,9 +259,8 @@ describe('blocks/process', () => {
 
 		it('should return self', async () => {
 			expect(blocksProcessModule).to.be.an('object');
-			expect(blocksProcessModule.getCommonBlock).to.be.a('function');
 			expect(blocksProcessModule.loadBlocksOffset).to.be.a('function');
-			expect(blocksProcessModule.loadBlocksFromPeer).to.be.a('function');
+			expect(blocksProcessModule.loadBlocksFromNetwork).to.be.a('function');
 			expect(blocksProcessModule.generateBlock).to.be.a('function');
 			expect(blocksProcessModule.onReceiveBlock).to.be.a('function');
 			return expect(blocksProcessModule.onBind).to.be.a('function');
@@ -306,7 +311,7 @@ describe('blocks/process', () => {
 			});
 
 			it('should return when block.timestamp > lastBlock.timestamp', done => {
-				const block = { timestamp: 2 };
+				const block = { timestamp: 2, transactions: [] };
 				const lastBlock = { timestamp: 1 };
 				__private.receiveForkOne(block, lastBlock, err => {
 					expect(err).to.be.undefined;
@@ -315,7 +320,7 @@ describe('blocks/process', () => {
 			});
 
 			it('should return when timestamps are equal and block.id > lastBlock.id', done => {
-				const block = { timestamp: 1, id: 2 };
+				const block = { timestamp: 1, id: 2, transactions: [] };
 				const lastBlock = { timestamp: 1, id: 1 };
 				__private.receiveForkOne(block, lastBlock, err => {
 					expect(err).to.be.undefined;
@@ -347,14 +352,14 @@ describe('blocks/process', () => {
 					);
 
 					it('should call a callback with error', done => {
-						const block = { timestamp: 1, id: 2 };
-						const lastBlock = { timestamp: 2, id: 1 };
+						const block = { timestamp: 1, id: 2, transactions: [] };
+						const lastBlock = { timestamp: 2, id: 1, transactions: [] };
 						__private.receiveForkOne(block, lastBlock, err => {
 							expect(err.name).to.equal('objectNormalize-ERR');
 							expect(loggerStub.error.args[0][0]).to.equal(
 								'Fork recovery failed'
 							);
-							expect(loggerStub.error.args[0][1].name).to.equal(
+							expect(loggerStub.error.args[0][1]).to.equal(
 								'objectNormalize-ERR'
 							);
 							done();
@@ -378,8 +383,8 @@ describe('blocks/process', () => {
 							});
 
 							it('should call a callback with error', done => {
-								const block = { timestamp: 1, id: 2 };
-								const lastBlock = { timestamp: 2, id: 1 };
+								const block = { timestamp: 1, id: 2, transactions: [] };
+								const lastBlock = { timestamp: 2, id: 1, transactions: [] };
 								__private.receiveForkOne(block, lastBlock, err => {
 									expect(err).to.equal('validateBlockSlot-ERR');
 									expect(loggerStub.error.args[0][0]).to.equal(
@@ -409,8 +414,12 @@ describe('blocks/process', () => {
 									});
 
 									it('should call a callback with error', done => {
-										const block = { timestamp: 10, id: 2 };
-										const lastBlock = { timestamp: 20, id: 1 };
+										const block = { timestamp: 10, id: 2, transactions: [] };
+										const lastBlock = {
+											timestamp: 20,
+											id: 1,
+											transactions: [],
+										};
 										__private.receiveForkOne(block, lastBlock, err => {
 											expect(err).to.equal('verifyReceipt-ERR');
 											expect(loggerStub.error.args[0][0]).to.equal(
@@ -455,8 +464,16 @@ describe('blocks/process', () => {
 											});
 
 											it('should call a callback with error', done => {
-												const block = { timestamp: 10, id: 2 };
-												const lastBlock = { timestamp: 20, id: 1 };
+												const block = {
+													timestamp: 10,
+													id: 2,
+													transactions: [],
+												};
+												const lastBlock = {
+													timestamp: 20,
+													id: 1,
+													transactions: [],
+												};
 												__private.receiveForkOne(block, lastBlock, err => {
 													expect(err).to.equal('deleteLastBlock-ERR-call-1');
 													expect(loggerStub.error.args[0][0]).to.equal(
@@ -498,8 +515,16 @@ describe('blocks/process', () => {
 													});
 
 													it('should call a callback with error', done => {
-														const block = { timestamp: 10, id: 2 };
-														const lastBlock = { timestamp: 20, id: 1 };
+														const block = {
+															timestamp: 10,
+															id: 2,
+															transactions: [],
+														};
+														const lastBlock = {
+															timestamp: 20,
+															id: 1,
+															transactions: [],
+														};
 														__private.receiveForkOne(block, lastBlock, err => {
 															expect(err).to.equal(
 																'deleteLastBlock-ERR-call-2'
@@ -537,8 +562,16 @@ describe('blocks/process', () => {
 													});
 
 													it('should return no error', done => {
-														const block = { timestamp: 10, id: 2 };
-														const lastBlock = { timestamp: 20, id: 1 };
+														const block = {
+															timestamp: 10,
+															id: 2,
+															transactions: [],
+														};
+														const lastBlock = {
+															timestamp: 20,
+															id: 1,
+															transactions: [],
+														};
 														__private.receiveForkOne(block, lastBlock, err => {
 															expect(err).to.be.null;
 															done();
@@ -572,8 +605,8 @@ describe('blocks/process', () => {
 		describe('delegate forging on multiple nodes', () => {
 			it('should log warning when generatorPublicKey is the same for block and lastBlock', done => {
 				__private.receiveForkFive(
-					{ timestamp: 1, id: 2, generatorPublicKey: '1a' },
-					{ timestamp: 1, id: 1, generatorPublicKey: '1a' },
+					{ timestamp: 1, id: 2, generatorPublicKey: '1a', transactions: [] },
+					{ timestamp: 1, id: 1, generatorPublicKey: '1a', transactions: [] },
 					err => {
 						expect(err).to.be.undefined;
 						expect(loggerStub.warn.args[0][0]).to.equal(
@@ -587,8 +620,8 @@ describe('blocks/process', () => {
 
 			it('should not log warning when generatorPublicKey is different for block and lastBlock', done => {
 				__private.receiveForkFive(
-					{ timestamp: 1, id: 2, generatorPublicKey: '2a' },
-					{ timestamp: 1, id: 1, generatorPublicKey: '1a' },
+					{ timestamp: 1, id: 2, generatorPublicKey: '2a', transactions: [] },
+					{ timestamp: 1, id: 1, generatorPublicKey: '1a', transactions: [] },
 					err => {
 						expect(err).to.be.undefined;
 						expect(loggerStub.warn.args.length).to.equal(0);
@@ -607,8 +640,8 @@ describe('blocks/process', () => {
 			});
 
 			it('should call a callback with no error when block.timestamp > lastBlock.timestamp', done => {
-				const block = { timestamp: 2 };
-				const lastBlock = { timestamp: 1 };
+				const block = { timestamp: 2, transactions: [] };
+				const lastBlock = { timestamp: 1, transactions: [] };
 				__private.receiveForkFive(block, lastBlock, err => {
 					expect(err).to.be.undefined;
 					done();
@@ -616,8 +649,8 @@ describe('blocks/process', () => {
 			});
 
 			it('should call a callback with no error when timestamps are equal and block.id > lastBlock.id', done => {
-				const block = { timestamp: 1, id: 2 };
-				const lastBlock = { timestamp: 1, id: 1 };
+				const block = { timestamp: 1, id: 2, transactions: [] };
+				const lastBlock = { timestamp: 1, id: 1, transactions: [] };
 				__private.receiveForkFive(block, lastBlock, err => {
 					expect(err).to.be.undefined;
 					done();
@@ -649,14 +682,14 @@ describe('blocks/process', () => {
 					);
 
 					it('should call a callback with error', done => {
-						const block = { timestamp: 1, id: 2 };
-						const lastBlock = { timestamp: 2, id: 1 };
+						const block = { timestamp: 1, id: 2, transactions: [] };
+						const lastBlock = { timestamp: 2, id: 1, transactions: [] };
 						__private.receiveForkFive(block, lastBlock, err => {
 							expect(err.name).to.equal('objectNormalize-ERR');
 							expect(loggerStub.error.args[0][0]).to.equal(
 								'Fork recovery failed'
 							);
-							expect(loggerStub.error.args[0][1].name).to.equal(
+							expect(loggerStub.error.args[0][1]).to.equal(
 								'objectNormalize-ERR'
 							);
 							done();
@@ -683,8 +716,8 @@ describe('blocks/process', () => {
 							);
 
 							it('should call a callback with error', done => {
-								const block = { timestamp: 1, id: 2 };
-								const lastBlock = { timestamp: 2, id: 1 };
+								const block = { timestamp: 1, id: 2, transactions: [] };
+								const lastBlock = { timestamp: 2, id: 1, transactions: [] };
 								__private.receiveForkFive(block, lastBlock, err => {
 									expect(err).to.equal('validateBlockSlot-ERR');
 									expect(loggerStub.error.args[0][0]).to.equal(
@@ -713,8 +746,12 @@ describe('blocks/process', () => {
 									);
 
 									it('should call a callback with error', done => {
-										const block = { timestamp: 10, id: 2 };
-										const lastBlock = { timestamp: 20, id: 1 };
+										const block = { timestamp: 10, id: 2, transactions: [] };
+										const lastBlock = {
+											timestamp: 20,
+											id: 1,
+											transactions: [],
+										};
 										__private.receiveForkFive(block, lastBlock, err => {
 											expect(err).to.equal('verifyReceipt-ERR');
 											expect(loggerStub.error.args[0][0]).to.equal(
@@ -758,8 +795,16 @@ describe('blocks/process', () => {
 											);
 
 											it('should call a callback with error', done => {
-												const block = { timestamp: 10, id: 2 };
-												const lastBlock = { timestamp: 20, id: 1 };
+												const block = {
+													timestamp: 10,
+													id: 2,
+													transactions: [],
+												};
+												const lastBlock = {
+													timestamp: 20,
+													id: 1,
+													transactions: [],
+												};
 												__private.receiveForkFive(block, lastBlock, err => {
 													expect(err).to.equal('deleteLastBlock-ERR');
 													expect(loggerStub.error.args[0][0]).to.equal(
@@ -793,8 +838,16 @@ describe('blocks/process', () => {
 													);
 
 													it('should call a callback with error', done => {
-														const block = { timestamp: 10, id: 2 };
-														const lastBlock = { timestamp: 20, id: 1 };
+														const block = {
+															timestamp: 10,
+															id: 2,
+															transactions: [],
+														};
+														const lastBlock = {
+															timestamp: 20,
+															id: 1,
+															transactions: [],
+														};
 														__private.receiveForkFive(block, lastBlock, err => {
 															expect(err).to.equal('receiveBlock-ERR');
 															expect(loggerStub.error.args[0][0]).to.equal(
@@ -818,8 +871,16 @@ describe('blocks/process', () => {
 													);
 
 													it('should call a callback with no error', done => {
-														const block = { timestamp: 10, id: 2 };
-														const lastBlock = { timestamp: 20, id: 1 };
+														const block = {
+															timestamp: 10,
+															id: 2,
+															transactions: [],
+														};
+														const lastBlock = {
+															timestamp: 20,
+															id: 1,
+															transactions: [],
+														};
 														__private.receiveForkFive(block, lastBlock, err => {
 															expect(err).to.be.null;
 															done();
@@ -827,316 +888,6 @@ describe('blocks/process', () => {
 													});
 												});
 											});
-										});
-									});
-								});
-							});
-						});
-					});
-				});
-			});
-		});
-	});
-
-	describe('getCommonBlock', () => {
-		describe('modules.blocks.utils.getIdSequence', () => {
-			describe('when fails', () => {
-				beforeEach(() =>
-					modules.blocks.utils.getIdSequence.callsArgWith(
-						1,
-						'getIdSequence-ERR',
-						undefined
-					)
-				);
-
-				it('should call a callback with error', done => {
-					blocksProcessModule.getCommonBlock(
-						{ ip: 1, wsPort: 2 },
-						10,
-						(err, block) => {
-							expect(err).to.equal('getIdSequence-ERR');
-							expect(block).to.be.undefined;
-							done();
-						}
-					);
-				});
-			});
-
-			describe('when succeeds', () => {
-				describe('peer.rpc.blocksCommon', () => {
-					describe('when fails', () => {
-						beforeEach(() =>
-							modules.blocks.utils.getIdSequence.callsArgWith(1, null, {
-								ids: 'ERR',
-							})
-						);
-
-						it('should call a callback with error', done => {
-							blocksProcessModule.getCommonBlock(
-								{ ip: 1, wsPort: 2 },
-								10,
-								(err, block) => {
-									expect(err).to.equal('rpc.blocksCommon-ERR');
-									expect(block).to.be.undefined;
-									done();
-								}
-							);
-						});
-
-						it('should call peers.remove', done => {
-							blocksProcessModule.getCommonBlock(
-								{ ip: 1, wsPort: 2 },
-								10,
-								async () => {
-									expect(modules.peers.remove).to.have.been.calledOnce;
-									done();
-								}
-							);
-						});
-					});
-
-					describe('when comparison failed because of receiving genesis block', () => {
-						beforeEach(() => {
-							modules.blocks.utils.getIdSequence.callsArgWith(1, null, {
-								ids: 'rpc.blocksCommon-Genesis',
-							});
-							return modules.blocks.chain.recoverChain.callsArgWith(
-								0,
-								null,
-								true
-							);
-						});
-
-						describe('when consensus is low', () => {
-							beforeEach(() => modules.transport.poorConsensus.returns(true));
-
-							it('should perform chain recovery', done => {
-								blocksProcessModule.getCommonBlock(
-									{ ip: 1, wsPort: 2 },
-									10,
-									(err, block) => {
-										expect(library.logic.peers.applyHeaders.calledOnce).to.be
-											.false;
-										expect(err).to.be.null;
-										expect(block).to.be.true;
-										expect(modules.blocks.chain.recoverChain.calledOnce).to.be
-											.true;
-										done();
-									}
-								);
-							});
-						});
-
-						describe('when consensus is high', () => {
-							beforeEach(() => modules.transport.poorConsensus.returns(false));
-
-							it('should call a callback with error ', done => {
-								blocksProcessModule.getCommonBlock(
-									{ ip: 1, wsPort: 2 },
-									10,
-									(err, block) => {
-										expect(library.logic.peers.applyHeaders.calledOnce).to.be
-											.false;
-										expect(err).to.equal(
-											'Comparison failed - received genesis as common block'
-										);
-										expect(block).to.be.undefined;
-										expect(modules.blocks.chain.recoverChain.calledOnce).to.be
-											.false;
-										done();
-									}
-								);
-							});
-						});
-					});
-
-					describe('when comparison failed', () => {
-						beforeEach(() => {
-							modules.blocks.utils.getIdSequence.callsArgWith(1, null, {
-								ids: 'rpc.blocksCommon-Empty',
-							});
-							return modules.blocks.chain.recoverChain.callsArgWith(
-								0,
-								null,
-								true
-							);
-						});
-
-						describe('when consensus is low', () => {
-							beforeEach(() => modules.transport.poorConsensus.returns(true));
-
-							it('should perform chain recovery', done => {
-								blocksProcessModule.getCommonBlock(
-									{ ip: 1, wsPort: 2 },
-									10,
-									(err, block) => {
-										expect(library.logic.peers.applyHeaders.calledOnce).to.be
-											.false;
-										expect(err).to.be.null;
-										expect(block).to.be.true;
-										expect(modules.blocks.chain.recoverChain.calledOnce).to.be
-											.true;
-										done();
-									}
-								);
-							});
-						});
-
-						describe('when consensus is high', () => {
-							beforeEach(() => modules.transport.poorConsensus.returns(false));
-
-							it('should call a callback with error ', done => {
-								blocksProcessModule.getCommonBlock(
-									{ ip: 1, wsPort: 2 },
-									10,
-									(err, block) => {
-										expect(library.logic.peers.applyHeaders.calledOnce).to.be
-											.false;
-										expect(err).to.equal(
-											'Chain comparison failed with peer: ip:wsPort using ids: rpc.blocksCommon-Empty'
-										);
-										expect(block).to.be.undefined;
-										expect(modules.blocks.chain.recoverChain.calledOnce).to.be
-											.false;
-										done();
-									}
-								);
-							});
-						});
-					});
-
-					describe('when succeeds', () => {
-						beforeEach(() =>
-							modules.blocks.utils.getIdSequence.callsArgWith(1, null, {
-								ids: 'OK',
-							})
-						);
-
-						describe('library.schema.validate', () => {
-							describe('when fails', () => {
-								beforeEach(() =>
-									library.schema.validate.callsArgWith(
-										2,
-										[{ message: 'schema.validate-ERR' }],
-										undefined
-									)
-								);
-
-								it('should call a callback with error', done => {
-									blocksProcessModule.getCommonBlock(
-										{ ip: 1, wsPort: 2 },
-										10,
-										(err, block) => {
-											expect(err).to.equal('schema.validate-ERR');
-											expect(block).to.be.undefined;
-											done();
-										}
-									);
-								});
-							});
-
-							describe('when succeeds', () => {
-								beforeEach(() =>
-									library.schema.validate.callsArgWith(2, null, {
-										ip: 1,
-										wsPort: 2,
-									})
-								);
-
-								describe('library.storage.entities.Block.isPersisted', () => {
-									describe('when fails', () => {
-										beforeEach(() =>
-											library.storage.entities.Block.isPersisted.rejects(
-												new Error('blocks.getCommonBlock-REJECTS')
-											)
-										);
-
-										it('should call a callback with error', done => {
-											blocksProcessModule.getCommonBlock(
-												{ ip: 1, wsPort: 2 },
-												10,
-												(err, block) => {
-													expect(err).to.equal('Blocks#getCommonBlock error');
-													expect(block).to.be.undefined;
-													expect(loggerStub.error.args[0][0]).to.contains(
-														'Error: blocks.getCommonBlock-REJECTS'
-													);
-													done();
-												}
-											);
-										});
-									});
-
-									describe('when comparison failed', () => {
-										beforeEach(() => {
-											library.storage.entities.Block.isPersisted.resolves(
-												false
-											);
-											return modules.blocks.chain.recoverChain.callsArgWith(
-												0,
-												null,
-												true
-											);
-										});
-
-										describe('when consensus is low', () => {
-											beforeEach(() =>
-												modules.transport.poorConsensus.returns(true)
-											);
-
-											it('should perform chain recovery', done => {
-												blocksProcessModule.getCommonBlock(
-													{ ip: 1, wsPort: 2 },
-													10,
-													(err, block) => {
-														expect(err).to.be.null;
-														expect(block).to.be.true;
-														expect(modules.blocks.chain.recoverChain.calledOnce)
-															.to.be.true;
-														done();
-													}
-												);
-											});
-										});
-
-										describe('when consensus is high', () => {
-											beforeEach(() =>
-												modules.transport.poorConsensus.returns(false)
-											);
-
-											it('should call a callback with error ', done => {
-												blocksProcessModule.getCommonBlock(
-													{ ip: 1, wsPort: 2 },
-													10,
-													(err, block) => {
-														expect(err).to.equal(
-															`Chain comparison failed with peer: ip:wsPort using block: ${JSON.stringify(
-																dummyCommonBlock
-															)}`
-														);
-														expect(block).to.be.undefined;
-														done();
-													}
-												);
-											});
-										});
-									});
-
-									describe('when succeeds', () => {
-										beforeEach(() =>
-											library.storage.entities.Block.isPersisted.resolves(true)
-										);
-
-										it('should return common block', done => {
-											blocksProcessModule.getCommonBlock(
-												{ ip: 1, wsPort: 2 },
-												10,
-												(err, block) => {
-													expect(err).to.be.null;
-													expect(block).to.deep.equal(dummyCommonBlock);
-													done();
-												}
-											);
 										});
 									});
 								});
@@ -1163,7 +914,7 @@ describe('blocks/process', () => {
 
 				it('should call a callback with error', done => {
 					blocksProcessModule.loadBlocksOffset(100, 0, (err, lastBlock) => {
-						expect(err).to.equal(
+						expect(err.message).to.equal(
 							'Blocks#loadBlocksOffset error: blocks.loadBlocksOffset-REJECTS'
 						);
 						expect(lastBlock).to.be.undefined;
@@ -1263,7 +1014,7 @@ describe('blocks/process', () => {
 										beforeEach(() =>
 											modules.blocks.chain.applyGenesisBlock.callsArgWith(
 												1,
-												'chain.applyGenesisBlock-ERR',
+												new Error('chain.applyGenesisBlock-ERR'),
 												null
 											)
 										);
@@ -1273,7 +1024,9 @@ describe('blocks/process', () => {
 												100,
 												0,
 												(err, lastBlock) => {
-													expect(err).to.equal('chain.applyGenesisBlock-ERR');
+													expect(err.message).to.equal(
+														'chain.applyGenesisBlock-ERR'
+													);
 													expect(lastBlock).to.deep.equal({
 														id: '2',
 														height: 2,
@@ -1387,278 +1140,24 @@ describe('blocks/process', () => {
 		});
 	});
 
-	describe('loadBlocksFromPeer', () => {
-		afterEach(() => {
-			expect(modules.blocks.lastBlock.get.calledOnce).to.be.true;
-			return expect(loggerStub.info.args[0][0]).to.equal(
-				'Loading blocks from: ip:wsPort'
-			);
-		});
-
-		describe('getFromPeer', () => {
-			describe('peer.rpc.blocks', () => {
-				describe('when blocks.lastBlock.get fails', () => {
-					describe('err parameter', () => {
-						beforeEach(() =>
-							modules.blocks.lastBlock.get.returns({
-								id: 'ERR',
-								peer: 'me',
-							})
-						);
-
-						it('should call a callback with error', done => {
-							blocksProcessModule.loadBlocksFromPeer(
-								{ id: 1, string: 'test' },
-								(err, lastBlock) => {
-									expect(err).to.equal('Error loading blocks: rpc.blocks-ERR');
-									expect(lastBlock).to.deep.equal({ id: 'ERR', peer: 'me' });
-									done();
-								}
-							);
-						});
-
-						it('should call modules.peers.remove', done => {
-							blocksProcessModule.loadBlocksFromPeer(
-								{ id: 1, string: 'test' },
-								async () => {
-									expect(modules.peers.remove).to.have.been.calledOnce;
-									done();
-								}
-							);
-						});
-					});
-
-					describe('cb parameter', () => {
-						beforeEach(() =>
-							modules.blocks.lastBlock.get.returns({
-								id: 'cb-ERR',
-								peer: 'me',
-							})
-						);
-
-						it('should call a callback with error', done => {
-							blocksProcessModule.loadBlocksFromPeer(
-								{ id: 1, string: 'test' },
-								(err, lastBlock) => {
-									expect(err).to.equal(
-										'Error loading blocks: rpc.blocks-cb-ERR'
-									);
-									expect(lastBlock).to.deep.equal({ id: 'cb-ERR', peer: 'me' });
-									done();
-								}
-							);
-						});
-					});
-				});
-
-				describe('when succeeds', () => {
-					beforeEach(() =>
-						modules.blocks.lastBlock.get.returns({
-							id: '3',
-							peer: 'me',
-						})
-					);
-
-					describe('validateBlocks', () => {
-						describe('library.schema.validate', () => {
-							describe('when fails', () => {
-								beforeEach(() => library.schema.validate.returns(false));
-
-								it('should call a callback with error', done => {
-									blocksProcessModule.loadBlocksFromPeer(
-										{ id: 1, string: 'test' },
-										(err, lastBlock) => {
-											expect(err).to.equal(
-												'Error loading blocks: Received invalid blocks data'
-											);
-											expect(lastBlock).to.deep.equal({ id: '3', peer: 'me' });
-											done();
-										}
-									);
-								});
-							});
-
-							describe('when succeeds', () => {
-								beforeEach(() => library.schema.validate.returns(true));
-
-								describe('processBlocks', () => {
-									describe('when receives no block', () => {
-										beforeEach(() =>
-											modules.blocks.lastBlock.get.returns({
-												id: 'empty',
-												peer: 'me',
-											})
-										);
-
-										it('should break processing and call a callback with no error', done => {
-											blocksProcessModule.loadBlocksFromPeer(
-												{ id: 1, string: 'test' },
-												(err, lastBlock) => {
-													expect(err).to.be.null;
-													expect(lastBlock).to.deep.equal({
-														id: 'empty',
-														peer: 'me',
-													});
-													done();
-												}
-											);
-										});
-									});
-
-									describe('when receives blocks', () => {
-										describe('modules.blocks.utils.readDbRows', () => {
-											describe('when fails', () => {
-												beforeEach(() =>
-													modules.blocks.utils.readDbRows.returns(
-														new Error('readDbRows err')
-													)
-												);
-
-												it('should break processing and call a callback with no error', done => {
-													blocksProcessModule.loadBlocksFromPeer(
-														{ id: 1, string: 'test' },
-														(err, lastBlock) => {
-															expect(err).to.be.null;
-															expect(lastBlock).to.deep.equal({
-																id: '3',
-																peer: 'me',
-															});
-															expect(modules.blocks.isCleaning.get.calledOnce)
-																.to.be.false;
-															done();
-														}
-													);
-												});
-											});
-
-											describe('when succeeds', () => {
-												beforeEach(() =>
-													modules.blocks.utils.readDbRows.returns([dummyBlock])
-												);
-
-												describe('modules.blocks.isCleaning.get', () => {
-													afterEach(
-														async () =>
-															expect(modules.blocks.isCleaning.get.calledOnce)
-																.to.be.true
-													);
-
-													describe('when returns true, node shutdown is requested', () => {
-														beforeEach(() =>
-															modules.blocks.isCleaning.get.returns(true)
-														);
-
-														it('should return immediate', done => {
-															blocksProcessModule.loadBlocksFromPeer(
-																{ id: 1, string: 'test' },
-																(err, lastBlock) => {
-																	expect(err).to.be.null;
-																	expect(lastBlock).to.deep.equal({
-																		id: '3',
-																		peer: 'me',
-																	});
-																	done();
-																}
-															);
-														});
-													});
-
-													describe('when returns false', () => {
-														beforeEach(() =>
-															modules.blocks.isCleaning.get.returns(false)
-														);
-
-														describe('processBlock', () => {
-															describe('modules.blocks.verify.processBlock', () => {
-																describe('when fails', () => {
-																	beforeEach(() =>
-																		modules.blocks.verify.processBlock.callsArgWith(
-																			3,
-																			'verify.processBlock-ERR',
-																			null
-																		)
-																	);
-
-																	it('should call a callback with error', done => {
-																		blocksProcessModule.loadBlocksFromPeer(
-																			{ id: 1, string: 'test' },
-																			(err, lastBlock) => {
-																				expect(err).to.equal(
-																					'Error loading blocks: verify.processBlock-ERR'
-																				);
-																				expect(lastBlock).to.deep.equal({
-																					id: '3',
-																					peer: 'me',
-																				});
-																				expect(
-																					loggerStub.debug.args[0][0]
-																				).to.equal('Block processing failed');
-																				expect(
-																					loggerStub.debug.args[0][1]
-																				).to.deep.equal({
-																					block: dummyBlock,
-																					err: 'verify.processBlock-ERR',
-																					id: '4',
-																					module: 'blocks',
-																				});
-																				done();
-																			}
-																		);
-																	});
-																});
-
-																describe('when succeeds', () => {
-																	beforeEach(() =>
-																		modules.blocks.verify.processBlock.callsArgWith(
-																			3,
-																			null,
-																			true
-																		)
-																	);
-
-																	it('should return last valid block and no error', done => {
-																		blocksProcessModule.loadBlocksFromPeer(
-																			{ id: 1, string: 'test' },
-																			(err, lastBlock) => {
-																				expect(err).to.be.null;
-																				expect(lastBlock).to.deep.equal(
-																					dummyBlock
-																				);
-																				expect(
-																					loggerStub.info.args[1][0]
-																				).to.equal(
-																					'Block 4 loaded from: ip:wsPort'
-																				);
-																				expect(
-																					loggerStub.info.args[1][1]
-																				).to.equal('height: 4');
-																				done();
-																			}
-																		);
-																	});
-																});
-															});
-														});
-													});
-												});
-											});
-										});
-									});
-								});
-							});
-						});
-					});
-				});
-			});
-		});
-	});
-
 	describe('generateBlock', () => {
+		const timestamp = 41287231;
+
+		afterEach(async () => {
+			sinonSandbox.restore();
+		});
+
 		describe('modules.transactions.getUnconfirmedTransactionList', () => {
 			describe('when query returns empty array', () => {
-				beforeEach(() => {
+				beforeEach(async () => {
 					modules.transactions.getUnconfirmedTransactionList.returns([]);
-					return modules.blocks.verify.processBlock.callsArgWith(
+					modules.processTransactions.applyTransactions.resolves({
+						transactionsResponses: [],
+					});
+					modules.processTransactions.checkAllowedTransactions.returns({
+						transactionsResponses: [],
+					});
+					modules.blocks.verify.processBlock.callsArgWith(
 						3,
 						null,
 						modules.blocks.verify.processBlock.args
@@ -1671,7 +1170,6 @@ describe('blocks/process', () => {
 						41287231,
 						err => {
 							expect(err).to.be.null;
-							expect(library.logic.transaction.verify.calledOnce).to.be.false;
 							expect(
 								modules.blocks.verify.processBlock.args[0][0].transactions
 									.length
@@ -1683,9 +1181,15 @@ describe('blocks/process', () => {
 			});
 
 			describe('when query returns undefined', () => {
-				beforeEach(() => {
+				beforeEach(async () => {
 					modules.transactions.getUnconfirmedTransactionList.returns(undefined);
-					return modules.blocks.verify.processBlock.callsArgWith(
+					modules.processTransactions.checkAllowedTransactions.returns({
+						transactionsResponses: [],
+					});
+					modules.processTransactions.applyTransactions.resolves({
+						transactionsResponses: [],
+					});
+					modules.blocks.verify.processBlock.callsArgWith(
 						3,
 						null,
 						modules.blocks.verify.processBlock.args
@@ -1695,10 +1199,9 @@ describe('blocks/process', () => {
 				it('should generate block without transactions', done => {
 					blocksProcessModule.generateBlock(
 						{ publicKey: '123abc', privateKey: 'aaa' },
-						41287231,
+						timestamp,
 						err => {
 							expect(err).to.be.null;
-							expect(library.logic.transaction.verify.calledOnce).to.be.false;
 							expect(
 								modules.blocks.verify.processBlock.args[0][0].transactions
 									.length
@@ -1710,144 +1213,141 @@ describe('blocks/process', () => {
 			});
 
 			describe('when query returns transactions', () => {
-				beforeEach(() => {
+				beforeEach(async () => {
 					modules.transactions.getUnconfirmedTransactionList.returns([
-						{ id: 1, type: 0 },
-						{ id: 2, type: 1 },
+						{ id: 1, type: 0, matcher: () => true },
+						{ id: 2, type: 1, matcher: () => true },
 					]);
-					return modules.blocks.verify.processBlock.callsArgWith(
+					modules.processTransactions.checkAllowedTransactions.returns({
+						transactionsResponses: [
+							{
+								id: 1,
+								status: TransactionStatus.OK,
+								errors: [],
+							},
+							{
+								id: 2,
+								status: TransactionStatus.OK,
+								errors: [],
+							},
+						],
+					});
+					modules.blocks.verify.processBlock.callsArgWith(
 						3,
 						null,
 						modules.blocks.verify.processBlock.args
 					);
 				});
 
-				describe('modules.accounts.getAccount', () => {
-					describe('when fails', () => {
-						beforeEach(() =>
-							modules.accounts.getAccount.callsArgWith(
-								1,
-								'accounts.getAccount-ERR',
-								null
+				describe('modules.processTransactions.applyTransactions', () => {
+					describe('when transaction initializations fail', () => {
+						beforeEach(async () =>
+							modules.processTransactions.applyTransactions.rejects(
+								new Error('Invalid field types')
 							)
 						);
 
-						it('should call a callback with error', done => {
+						it('should call a callback with error', async () => {
 							blocksProcessModule.generateBlock(
 								{ publicKey: '123abc', privateKey: 'aaa' },
 								41287231,
 								err => {
-									expect(err).to.equal('Sender not found');
+									expect(err.message).to.eql('Invalid field types');
+								}
+							);
+						});
+					});
+
+					describe('when transactions verification fails', () => {
+						beforeEach(async () =>
+							modules.processTransactions.applyTransactions.resolves({
+								transactionsResponses: [
+									{ id: 1, status: 0, errors: [] },
+									{ id: 2, status: 0, errors: [] },
+								],
+							})
+						);
+
+						it('should generate block without transactions', done => {
+							blocksProcessModule.generateBlock(
+								{ publicKey: '123abc', privateKey: 'aaa' },
+								41287231,
+								err => {
+									expect(err).to.be.null;
+									expect(
+										modules.blocks.verify.processBlock.args[0][0].transactions
+											.length
+									).to.equal(0);
 									done();
 								}
 							);
 						});
 					});
 
-					describe('when succeeds', () => {
-						beforeEach(() =>
-							modules.accounts.getAccount.callsArgWith(1, null, true)
-						);
-						afterEach(
-							async () =>
-								expect(modules.blocks.verify.processBlock.calledOnce).to.be.true
-						);
-
-						describe('library.logic.transaction.ready', () => {
-							describe('when returns false', () => {
-								beforeEach(() =>
-									library.logic.transaction.ready.returns(false)
-								);
-
-								it('should generate block without transactions', done => {
-									blocksProcessModule.generateBlock(
-										{ publicKey: '123abc', privateKey: 'aaa' },
-										41287231,
-										err => {
-											expect(err).to.be.null;
-											expect(library.logic.transaction.verify.calledOnce).to.be
-												.false;
-											expect(
-												modules.blocks.verify.processBlock.args[0][0]
-													.transactions.length
-											).to.equal(0);
-											done();
-										}
-									);
-								});
+					describe('when transactions verification succeeds', () => {
+						beforeEach(async () => {
+							modules.processTransactions.applyTransactions.resolves({
+								transactionsResponses: [
+									{ id: 1, status: 1, errors: [] },
+									{ id: 2, status: 1, errors: [] },
+								],
 							});
+						});
 
-							describe('when returns true', () => {
-								beforeEach(() => library.logic.transaction.ready.returns(true));
+						it('should generate block with transactions', done => {
+							blocksProcessModule.generateBlock(
+								{ publicKey: '123abc', privateKey: 'aaa' },
+								41287231,
+								err => {
+									expect(err).to.be.null;
+									expect(
+										modules.blocks.verify.processBlock.args[0][0].transactions
+											.length
+									).to.equal(2);
+									done();
+								}
+							);
+						});
+					});
 
-								describe('library.logic.transaction.verify', () => {
-									describe('when fails', () => {
-										beforeEach(() =>
-											library.logic.transaction.verify.callsArgWith(
-												4,
-												'transaction.verify-ERR',
-												null
-											)
-										);
+					describe('when transactions pending', () => {
+						beforeEach(async () =>
+							modules.processTransactions.applyTransactions.resolves({
+								transactionsResponses: [{ id: 1, status: 2, errors: [] }],
+							})
+						);
 
-										it('should generate block without transactions', done => {
-											blocksProcessModule.generateBlock(
-												{ publicKey: '123abc', privateKey: 'aaa' },
-												41287231,
-												err => {
-													expect(err).to.be.null;
-													expect(
-														modules.blocks.verify.processBlock.args[0][0]
-															.transactions.length
-													).to.equal(0);
-													done();
-												}
-											);
-										});
-									});
-
-									describe('when succeeds', () => {
-										beforeEach(() =>
-											library.logic.transaction.verify.callsArgWith(
-												4,
-												null,
-												true
-											)
-										);
-
-										it('should generate block with transactions', done => {
-											blocksProcessModule.generateBlock(
-												{ publicKey: '123abc', privateKey: 'aaa' },
-												41287231,
-												err => {
-													expect(err).to.be.null;
-													expect(
-														modules.blocks.verify.processBlock.args[0][0]
-															.transactions.length
-													).to.equal(2);
-													done();
-												}
-											);
-										});
-									});
-								});
-							});
+						it('should generate block without pending transactions', done => {
+							blocksProcessModule.generateBlock(
+								{ publicKey: '123abc', privateKey: 'aaa' },
+								41287231,
+								err => {
+									expect(err).to.be.null;
+									expect(
+										modules.blocks.verify.processBlock.args[0][0].transactions
+											.length
+									).to.equal(0);
+									done();
+								}
+							);
 						});
 					});
 				});
 
 				describe('library.logic.block.create', () => {
-					beforeEach(() => {
-						modules.accounts.getAccount.callsArgWith(1, null, true);
-						library.logic.transaction.ready.returns(true);
-						return library.logic.transaction.verify.callsArgWith(4, null, true);
+					beforeEach(async () => {
+						modules.processTransactions.applyTransactions.resolves({
+							transactionsResponses: [
+								{ id: 1, status: 1, errors: [] },
+								{ id: 2, status: 1, errors: [] },
+							],
+						});
 					});
 
 					describe('when fails', () => {
-						beforeEach(done => {
+						beforeEach(async () => {
 							library.logic.block.create = sinonSandbox.stub();
 							library.logic.block.create.throws('block-create-ERR');
-							done();
 						});
 
 						it('should call a callback with error', done => {
@@ -1910,6 +1410,56 @@ describe('blocks/process', () => {
 					});
 				});
 			});
+		});
+		it('should call checkAllowedTransactions with proper arguments', done => {
+			const sampleTransactons = [
+				{
+					id: 'aTransactionId',
+					matcher: () => true,
+					type: 0,
+				},
+			];
+			const lastBlock = {
+				height: 3,
+			};
+			const state = {
+				blockTimestamp: timestamp,
+				blockHeight: lastBlock.height + 1,
+				blockVersion: blockVersion.currentBlockVersion,
+			};
+
+			modules.transactions.getUnconfirmedTransactionList.returns(
+				sampleTransactons
+			);
+			modules.blocks.lastBlock.get.returns(lastBlock);
+			modules.processTransactions.checkAllowedTransactions.returns({
+				transactionsResponses: [
+					{
+						id: sampleTransactons[0],
+						status: TransactionStatus.OK,
+					},
+				],
+			});
+			modules.processTransactions.applyTransactions.resolves({
+				transactionsResponses: [
+					{
+						id: sampleTransactons[0],
+						status: TransactionStatus.OK,
+					},
+				],
+			});
+			modules.blocks.verify.processBlock.callsArgWith(3, null);
+
+			blocksProcessModule.generateBlock(
+				{ publicKey: '123abc', privateKey: 'aaa' },
+				timestamp,
+				() => {
+					expect(
+						modules.processTransactions.checkAllowedTransactions
+					).to.have.been.calledWith(sampleTransactons, state);
+					done();
+				}
+			);
 		});
 	});
 

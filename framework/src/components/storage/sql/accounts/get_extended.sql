@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -20,6 +20,7 @@ SELECT
 	"isDelegate"::int::boolean,
 	"secondSignature"::int::boolean,
 	"balance",
+	"asset",
 	"multimin" as "multiMin",
 	"multilifetime" as "multiLifetime",
 	"nameexist"::int::boolean as "nameExist",
@@ -29,13 +30,6 @@ SELECT
 	"fees",
 	"rewards",
 	"vote",
-	"u_username",
-	"u_isDelegate"::int::boolean,
-	"u_secondSignature"::int::boolean,
-	"u_nameexist"::int::boolean as "u_nameExist",
-	"u_multimin" as "u_multiMin",
-	"u_multilifetime" as "u_multiLifetime",
-	"u_balance",
 	case
     when
     	"producedBlocks" + "missedBlocks" = 0 then 0
@@ -47,17 +41,9 @@ SELECT
 		WHERE "accountId" = mem_accounts.address
 	) as "votedDelegatesPublicKeys",
 	(SELECT array_agg("dependentId")
-		FROM mem_accounts2u_delegates
-		WHERE "accountId" = mem_accounts.address
-	) as "u_votedDelegatesPublicKeys",
-	(SELECT array_agg("dependentId")
   		FROM mem_accounts2multisignatures
   		WHERE "accountId" = mem_accounts.address
-	) as "membersPublicKeys",
-	(SELECT array_agg("dependentId")
-  		FROM mem_accounts2u_multisignatures
-  		WHERE "accountId" = mem_accounts.address
-	) as "u_membersPublicKeys"
+	) as "membersPublicKeys"
 FROM
 	mem_accounts
 

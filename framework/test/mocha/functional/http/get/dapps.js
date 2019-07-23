@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -23,10 +23,10 @@ const waitFor = require('../../../common/utils/wait_for');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const apiHelpers = require('../../../common/helpers/api');
 
-const { NORMALIZER } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
-
-describe('GET /dapps', () => {
+// eslint-disable-next-line
+describe.skip('GET /dapps', () => {
 	const dappsEndpoint = new SwaggerEndpoint('GET /dapps');
 
 	let transactionsToWaitFor = [];

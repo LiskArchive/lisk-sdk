@@ -1,13 +1,11 @@
 {
-	"extends": ["../../../.eslintrc.json", "plugin:jest/recommended"],
+	"extends": ["plugin:jest/recommended"],
 	"plugins": ["jest"],
 	"env": {
 		"jest/globals": true
 	},
 	"rules": {
 		"import/no-extraneous-dependencies": ["error", { "devDependencies": true }],
-
-		// Disable mocha related lisk-base rules
 		"mocha/handle-done-callback": "off",
 		"mocha/max-top-level-suites": "off",
 		"mocha/no-async-describe": "off",
@@ -20,6 +18,7 @@
 		"mocha/no-sibling-hooks": "off",
 		"mocha/no-skipped-tests": "off",
 		"mocha/no-synchronous-tests": "off",
-		"mocha/no-top-level-hooks": "off"
+		"mocha/no-top-level-hooks": "off",
+		"arrow-body-style": "off"
 	}
 }

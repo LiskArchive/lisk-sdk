@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -79,7 +79,7 @@ class Round {
 		// Iterate over requiredProperties, checking for undefined scope properties
 		requiredProperties.forEach(property => {
 			if (scope[property] === undefined) {
-				throw `Missing required scope property: ${property}`;
+				throw new Error(`Missing required scope property: ${property}`);
 			}
 		});
 	}
@@ -306,18 +306,22 @@ class Round {
 		const roundRewards = [...this.scope.roundRewards] || [];
 
 		// Apply exception for round if required
-		if (exceptions.rounds[this.scope.round]) {
+		if (exceptions.rounds[this.scope.round.toString()]) {
 			// Apply rewards factor
 			roundRewards.forEach((reward, subIndex) => {
 				roundRewards[subIndex] = new Bignum(reward.toPrecision(15))
-					.multipliedBy(exceptions.rounds[this.scope.round].rewards_factor)
+					.multipliedBy(
+						exceptions.rounds[this.scope.round.toString()].rewards_factor
+					)
 					.integerValue(Bignum.ROUND_FLOOR);
 			});
 
 			// Apply fees factor and bonus
 			roundFees = new Bignum(roundFees.toPrecision(15))
-				.multipliedBy(exceptions.rounds[this.scope.round].fees_factor)
-				.plus(exceptions.rounds[this.scope.round].fees_bonus)
+				.multipliedBy(
+					exceptions.rounds[this.scope.round.toString()].fees_factor
+				)
+				.plus(exceptions.rounds[this.scope.round.toString()].fees_bonus)
 				.integerValue(Bignum.ROUND_FLOOR);
 		}
 
@@ -376,7 +380,6 @@ class Round {
 			const accountData = {
 				publicKey: delegate,
 				balance: self.scope.backwards ? -changes.balance : changes.balance,
-				u_balance: self.scope.backwards ? -changes.balance : changes.balance,
 				round: self.scope.round,
 				fees: self.scope.backwards ? -changes.fees : changes.fees,
 				rewards: self.scope.backwards ? -changes.rewards : changes.rewards,
@@ -434,7 +437,6 @@ class Round {
 					{
 						publicKey: remainderDelegate,
 						balance: feesRemaining,
-						u_balance: feesRemaining,
 						round: self.scope.round,
 						fees: feesRemaining,
 					},

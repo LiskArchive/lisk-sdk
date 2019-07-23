@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -15,6 +15,9 @@
 'use strict';
 
 const async = require('async');
+const { promisify } = require('util');
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const { convertErrorsToString } = require('../helpers/error_handlers');
 const jobsQueue = require('../helpers/jobs_queue');
 const slots = require('../helpers/slots');
 const definitions = require('../schema/definitions');
@@ -25,7 +28,7 @@ let components;
 let modules;
 let library;
 let self;
-const { ACTIVE_DELEGATES, MAX_PEERS } = global.constants;
+const { ACTIVE_DELEGATES } = global.constants;
 const __private = {};
 
 __private.loaded = false;
@@ -66,14 +69,14 @@ class Loader {
 			genesisBlock: scope.genesisBlock,
 			balancesSequence: scope.balancesSequence,
 			logic: {
-				transaction: scope.logic.transaction,
 				account: scope.logic.account,
 				peers: scope.logic.peers,
+				initTransaction: scope.logic.initTransaction,
 			},
 			config: {
 				loading: {
 					loadPerIteration: scope.config.loading.loadPerIteration,
-					snapshotRound: scope.config.loading.snapshotRound,
+					rebuildUpToRound: scope.config.loading.rebuildUpToRound,
 				},
 				syncing: {
 					active: scope.config.syncing.active,
@@ -85,6 +88,11 @@ class Loader {
 		__private.initialize();
 		__private.lastBlock = library.genesisBlock;
 		__private.genesisBlock = library.genesisBlock;
+
+		// On App Ready
+		library.channel.once('network:bootstrap', () => {
+			self.onNetworkReady();
+		});
 
 		setImmediate(cb, null, self);
 	}
@@ -183,70 +191,55 @@ __private.syncTimer = function() {
 };
 
 /**
- * Gets a random peer and loads signatures from network.
- * Processes each signature from peer.
+ * Loads signatures from network.
+ * Processes each signature from the network.
  *
  * @private
  * @param {function} cb
  * @returns {setImmediateCallback} cb, err
  * @todo Add description for the params
  */
-__private.loadSignatures = function(cb) {
-	async.waterfall(
-		[
-			function(waterCb) {
-				self.getRandomPeerFromNetwork((getRandomPeerFromNetworkErr, peer) => {
-					if (getRandomPeerFromNetworkErr) {
-						return setImmediate(waterCb, getRandomPeerFromNetworkErr);
-					}
-					return setImmediate(waterCb, null, peer);
+__private.getSignaturesFromNetwork = async function() {
+	library.logger.info('Loading signatures from the network');
+
+	// TODO: Add target module to procedure name. E.g. chain:getSignatures
+	const { data: result } = await library.channel.invoke('network:request', {
+		procedure: 'getSignatures',
+	});
+
+	const validate = promisify(library.schema.validate.bind(library.schema));
+	await validate(result, definitions.WSSignaturesResponse);
+
+	const { signatures } = result;
+	const sequenceAdd = promisify(library.sequence.add.bind(library.sequence));
+
+	await sequenceAdd(async addSequenceCb => {
+		const signatureCount = signatures.length;
+		for (let i = 0; i < signatureCount; i++) {
+			const signaturePacket = signatures[i];
+			const subSignatureCount = signaturePacket.signatures.length;
+			for (let j = 0; j < subSignatureCount; j++) {
+				const signature = signaturePacket.signatures[j];
+
+				const processSignature = promisify(
+					modules.multisignatures.getTransactionAndProcessSignature.bind(
+						modules.multisignatures
+					)
+				);
+				// eslint-disable-next-line no-await-in-loop
+				await processSignature({
+					signature,
+					transactionId: signature.transactionId,
 				});
-			},
-			function(peer, waterCb) {
-				library.logger.info(`Loading signatures from: ${peer.string}`);
-				peer.rpc.getSignatures((err, res) => {
-					if (err) {
-						modules.peers.remove(peer);
-						return setImmediate(waterCb, err);
-					}
-					return library.schema.validate(
-						res,
-						definitions.WSSignaturesResponse,
-						validateErr => setImmediate(waterCb, validateErr, res.signatures)
-					);
-				});
-			},
-			function(signatures, waterCb) {
-				library.sequence.add(addSequenceCb => {
-					async.eachSeries(
-						signatures,
-						(signature, eachSeriesCb) => {
-							async.eachSeries(
-								signature.signatures,
-								(s, secondEachSeriesCb) => {
-									modules.multisignatures.processSignature(
-										{
-											signature: s,
-											transactionId: signature.transactionId,
-										},
-										err => setImmediate(secondEachSeriesCb, err)
-									);
-								},
-								eachSeriesCb
-							);
-						},
-						addSequenceCb
-					);
-				}, waterCb);
-			},
-		],
-		err => setImmediate(cb, err)
-	);
+			}
+		}
+		addSequenceCb();
+	});
 };
 
 /**
- * Gets a random peer and loads transactions from network:
- * - Validates each transaction from peer and remove peer if invalid.
+ * Loads transactions from the network:
+ * - Validates each transaction from the network and applies a penalty if invalid.
  * - Calls processUnconfirmedTransaction for each transaction.
  *
  * @private
@@ -255,96 +248,64 @@ __private.loadSignatures = function(cb) {
  * @todo Add description for the params
  * @todo Missing error propagation when calling balancesSequence.add
  */
-__private.loadTransactions = function(cb) {
-	async.waterfall(
-		[
-			function(waterCb) {
-				self.getRandomPeerFromNetwork((getRandomPeerFromNetworkErr, peer) => {
-					if (getRandomPeerFromNetworkErr) {
-						return setImmediate(waterCb, getRandomPeerFromNetworkErr);
-					}
-					return setImmediate(waterCb, null, peer);
-				});
-			},
-			function(peer, waterCb) {
-				library.logger.info(`Loading transactions from: ${peer.string}`);
-				peer.rpc.getTransactions((err, res) => {
-					if (err) {
-						modules.peers.remove(peer);
-						return setImmediate(waterCb, err);
-					}
-					return library.schema.validate(
-						res,
-						definitions.WSTransactionsResponse,
-						validateErr => {
-							if (validateErr) {
-								return setImmediate(waterCb, validateErr[0].message);
-							}
-							return setImmediate(waterCb, null, peer, res.transactions);
-						}
-					);
-				});
-			},
-			function(peer, transactions, waterCb) {
-				async.eachSeries(
-					transactions,
-					(transaction, eachSeriesCb) => {
-						const id = transaction ? transactions.id : 'null';
+__private.getTransactionsFromNetwork = async function() {
+	library.logger.info('Loading transactions from the network');
 
-						try {
-							transaction = library.logic.transaction.objectNormalize(
-								transaction
-							);
-						} catch (e) {
-							library.logger.debug('Transaction normalization failed', {
-								id,
-								err: e.toString(),
-								module: 'loader',
-								transaction,
-							});
+	// TODO: Add target module to procedure name. E.g. chain:getTransactions
+	const { data: result } = await library.channel.invoke('network:request', {
+		procedure: 'getTransactions',
+	});
 
-							library.logger.warn(
-								`Transaction ${id} is not valid, peer removed`,
-								peer.string
-							);
-							modules.peers.remove(peer);
+	const validate = promisify(library.schema.validate.bind(library.schema));
+	await validate(result, definitions.WSTransactionsResponse);
 
-							return setImmediate(eachSeriesCb, e);
-						}
-
-						return setImmediate(eachSeriesCb);
-					},
-					err => setImmediate(waterCb, err, transactions)
-				);
-			},
-			function(transactions, waterCb) {
-				async.eachSeries(
-					transactions,
-					(transaction, eachSeriesCb) => {
-						library.balancesSequence.add(
-							addSequenceCb => {
-								transaction.bundled = true;
-								modules.transactions.processUnconfirmedTransaction(
-									transaction,
-									false,
-									addSequenceCb
-								);
-							},
-							err => {
-								if (err) {
-									// TODO: Validate if error propagation required
-									library.logger.debug(err);
-								}
-								return setImmediate(eachSeriesCb);
-							}
-						);
-					},
-					waterCb
-				);
-			},
-		],
-		err => setImmediate(cb, err)
+	const transactions = result.transactions.map(tx =>
+		library.logic.initTransaction.fromJson(tx)
 	);
+
+	try {
+		const {
+			transactionsResponses,
+		} = modules.processTransactions.validateTransactions(transactions);
+		const invalidTransactionResponse = transactionsResponses.find(
+			transactionResponse => transactionResponse.status !== TransactionStatus.OK
+		);
+		if (invalidTransactionResponse) {
+			throw invalidTransactionResponse.errors;
+		}
+	} catch (errors) {
+		const error =
+			Array.isArray(errors) && errors.length > 0 ? errors[0] : errors;
+		library.logger.debug('Transaction normalization failed', {
+			id: error.id,
+			err: error.toString(),
+			module: 'loader',
+		});
+		throw error;
+	}
+
+	const transactionCount = transactions.length;
+	for (let i = 0; i < transactionCount; i++) {
+		const transaction = transactions[i];
+
+		const balancesSequenceAdd = promisify(
+			library.balancesSequence.add.bind(library.balancesSequence)
+		);
+		try {
+			/* eslint-disable-next-line */
+			await balancesSequenceAdd(addSequenceCb => {
+				transaction.bundled = true;
+				modules.transactions.processUnconfirmedTransaction(
+					transaction,
+					false,
+					addSequenceCb
+				);
+			});
+		} catch (error) {
+			library.logger.error(error);
+			throw error;
+		}
+	}
 };
 
 /**
@@ -355,7 +316,7 @@ __private.loadTransactions = function(cb) {
  * - count accounts from `mem_accounts` table by block id
  * - get rounds from `mem_round`
  * 2. Matches genesis block with database.
- * 3. Verifies snapshot mode.
+ * 3. Verifies rebuild mode.
  * 4. Recreates memory tables when neccesary:
  *  - Calls logic.account to resetMemTables
  *  - Calls block to load block. When blockchain ready emits a bus message.
@@ -420,7 +381,7 @@ __private.loadBlockChain = function() {
 			},
 			err => {
 				if (err) {
-					library.logger.error(err);
+					library.logger.error(convertErrorsToString(err));
 					if (err.block) {
 						library.logger.error(`Blockchain failed at: ${err.block.height}`);
 						modules.blocks.chain.deleteFromBlockId(err.block.id, () => {
@@ -484,7 +445,7 @@ __private.loadBlockChain = function() {
 			if (matched) {
 				library.logger.info('Genesis block matched with database');
 			} else {
-				throw 'Failed to match genesis block with database';
+				throw new Error('Failed to match genesis block with database');
 			}
 		}
 	}
@@ -503,8 +464,8 @@ __private.loadBlockChain = function() {
 
 			matchGenesisBlock(getGenesisBlock);
 
-			if (library.config.loading.snapshotRound) {
-				return __private.createSnapshot(blocksCount);
+			if (library.config.loading.rebuildUpToRound !== null) {
+				return __private.rebuildAccounts(blocksCount);
 			}
 
 			const unapplied = getMemRounds.filter(row => row.round !== round);
@@ -519,7 +480,6 @@ __private.loadBlockChain = function() {
 				return reload(blocksCount, 'Detected unapplied rounds in mem_round');
 			}
 
-			await library.storage.entities.Account.resetUnconfirmedState();
 			const delegatesPublicKeys = await library.storage.entities.Account.get(
 				{ isDelegate: true },
 				{ limit: null }
@@ -672,7 +632,7 @@ __private.validateOwnChain = cb => {
 						return setImmediate(
 							validateStartBlockCb,
 							new Error(
-								'Your block chain is invalid. Please rebuild from snapshot.'
+								'Your block chain is invalid. Please rebuild using rebuilding mode.'
 							)
 						);
 					}
@@ -705,7 +665,7 @@ __private.validateOwnChain = cb => {
 					return setImmediate(
 						deleteInvalidBlocksCb,
 						new Error(
-							"Your block chain can't be recovered. Please rebuild from snapshot."
+							"Your block chain can't be recovered. Please rebuild using rebuilding mode."
 						)
 					);
 				}
@@ -738,31 +698,42 @@ __private.validateOwnChain = cb => {
 };
 
 /**
- * Snapshot creation - performs rebuild of accounts states from blockchain data
+ * Rebuilding mode - performs rebuild of accounts states from blockchain data
  *
  * @private
- * @emits snapshotFinished
+ * @emits rebuildFinished
  * @throws {Error} When blockchain is shorter than one round of blocks
  */
-__private.createSnapshot = height => {
-	library.logger.info('Snapshot mode enabled');
+__private.rebuildAccounts = height => {
+	library.logger.info('Rebuild mode enabled');
 
 	// Single round contains amount of blocks equal to number of active delegates
 	if (height < ACTIVE_DELEGATES) {
 		throw new Error(
-			'Unable to create snapshot, blockchain should contain at least one round of blocks'
+			'Unable to rebuild, blockchain should contain at least one round of blocks'
 		);
 	}
 
-	const snapshotRound = library.config.loading.snapshotRound;
+	const rebuildUpToRound = library.config.loading.rebuildUpToRound;
+	// Negative number not possible as `commander` does not recognize this as valid flag (throws error)
+	if (
+		Number.isNaN(parseInt(rebuildUpToRound)) ||
+		parseInt(rebuildUpToRound) < 0
+	) {
+		throw new Error(
+			'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero'
+		);
+	}
+
 	const totalRounds = Math.floor(height / ACTIVE_DELEGATES);
-	const targetRound = Number.isNaN(parseInt(snapshotRound))
-		? totalRounds
-		: Math.min(totalRounds, snapshotRound);
+	const targetRound =
+		parseInt(rebuildUpToRound) === 0
+			? totalRounds
+			: Math.min(totalRounds, parseInt(rebuildUpToRound));
 	const targetHeight = targetRound * ACTIVE_DELEGATES;
 
 	library.logger.info(
-		`Snapshotting to end of round: ${targetRound}, height: ${targetHeight}`
+		`Rebuilding to end of round: ${targetRound}, height: ${targetHeight}`
 	);
 
 	let currentHeight = 1;
@@ -798,22 +769,22 @@ __private.createSnapshot = height => {
 					.catch(err => setImmediate(seriesCb, err));
 			},
 		},
-		__private.snapshotFinished
+		__private.rebuildFinished
 	);
 };
 
 /**
- * Executed when snapshot creation is complete.
+ * Executed when rebuild process is complete.
  *
  * @private
  * @param {err} Error if any
  * @emits cleanup
  */
-__private.snapshotFinished = err => {
+__private.rebuildFinished = err => {
 	if (err) {
-		library.logger.error('Snapshot creation failed', err);
+		library.logger.error('Rebuilding failed', err);
 	} else {
-		library.logger.info('Snapshot creation finished');
+		library.logger.info('Rebuilding finished');
 	}
 	process.emit('cleanup', err);
 };
@@ -827,9 +798,9 @@ __private.snapshotFinished = err => {
  * @todo Add description for the params
  */
 __private.loadBlocksFromNetwork = function(cb) {
-	// Number of failed attempts to load from peers.
+	// Number of failed attempts to load from the network.
 	let failedAttemptsToLoad = 0;
-	// If True, own node's db contains same number of blocks than the asked peer.
+	// If True, own node's db contains all the blocks from the last block request.
 	let loaded = false;
 
 	async.whilst(
@@ -837,55 +808,40 @@ __private.loadBlocksFromNetwork = function(cb) {
 		whilstCb => {
 			async.waterfall(
 				[
-					function getRandomPeerFromNetwork(waterCb) {
-						self.getRandomPeerFromNetwork(
-							(getRandomPeerFromNetworkErr, peer) => {
-								if (getRandomPeerFromNetworkErr) {
-									return waterCb('Failed to get random peer from network');
-								}
-								__private.blocksToSync = peer.height;
-								const lastBlock = modules.blocks.lastBlock.get();
-								return waterCb(null, peer, lastBlock);
-							}
-						);
-					},
-					function getCommonBlock(peer, lastBlock, waterCb) {
-						// No need to call getCommonBlock if height is Genesis block
-						if (lastBlock.height === 1) {
-							return waterCb(null, peer, lastBlock);
-						}
-
-						library.logger.info(
-							`Looking for common block with: ${peer.string}`
-						);
-						return modules.blocks.process.getCommonBlock(
-							peer,
-							lastBlock.height,
-							(getCommonBlockErr, commonBlock) => {
-								if (getCommonBlockErr) {
-									return waterCb(getCommonBlockErr.toString());
-								}
-								if (!commonBlock) {
+					function loadBlocksFromNetwork(waterCb) {
+						const lastBlock = modules.blocks.lastBlock.get();
+						modules.blocks.process.loadBlocksFromNetwork(
+							(loadBlocksFromNetworkErr, lastValidBlock) => {
+								if (loadBlocksFromNetworkErr) {
+									library.logger.debug(
+										loadBlocksFromNetworkErr instanceof Error
+											? loadBlocksFromNetworkErr
+											: new Error(loadBlocksFromNetworkErr),
+										'Chain recovery failed after failing to load blocks from the network'
+									);
+									// If comparison failed and current consensus is low - perform chain recovery
+									if (modules.peers.isPoorConsensus()) {
+										library.logger.debug(
+											'Perform chain recovery due to poor consensus'
+										);
+										return modules.blocks.chain.recoverChain(recoveryError => {
+											if (recoveryError) {
+												return waterCb(
+													`Chain recovery failed after failing to load blocks while network consensus was low. ${recoveryError}`
+												);
+											}
+											return waterCb(
+												`Chain recovery failed chain recovery after failing to load blocks ${loadBlocksFromNetworkErr}`
+											);
+										});
+									}
 									return waterCb(
-										`Failed to find common block with: ${peer.string}`
+										`Failed to load blocks from the network. ${loadBlocksFromNetworkErr}`
 									);
 								}
-								library.logger.info(
-									`Found common block: ${commonBlock.id} with: ${peer.string}`
-								);
-								return waterCb(null, peer, lastBlock);
-							}
-						);
-					},
-					function loadBlocksFromPeer(peer, lastBlock, waterCb) {
-						modules.blocks.process.loadBlocksFromPeer(
-							peer,
-							(loadBlocksFromPeerErr, lastValidBlock) => {
-								if (loadBlocksFromPeerErr) {
-									return waterCb(`Failed to load blocks from: ${peer.string}`);
-								}
+								__private.blocksToSync = lastValidBlock.height;
 								loaded = lastValidBlock.id === lastBlock.id;
-								// Reset counter after a batch of blocks was successfully loaded from a peer
+								// Reset counter after a batch of blocks was successfully loaded from the network
 								failedAttemptsToLoad = 0;
 								return waterCb();
 							}
@@ -895,7 +851,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 				waterErr => {
 					if (waterErr) {
 						failedAttemptsToLoad += 1;
-						library.logger.error(waterErr);
+						library.logger.error(convertErrorsToString(waterErr));
 					}
 					whilstCb();
 				}
@@ -922,7 +878,7 @@ __private.loadBlocksFromNetwork = function(cb) {
  */
 __private.sync = function(cb) {
 	library.logger.info('Starting sync');
-	if (components.cache) {
+	if (components.cache.options.enabled) {
 		components.cache.disable();
 	}
 
@@ -931,31 +887,37 @@ __private.sync = function(cb) {
 
 	async.series(
 		{
-			calculateConsensusBefore(seriesCb) {
-				library.logger.debug(
-					`Establishing broadhash consensus before sync: ${modules.peers.calculateConsensus()} %`
+			async calculateConsensusBefore() {
+				const consensus = await modules.peers.calculateConsensus();
+				return library.logger.debug(
+					`Establishing broadhash consensus before sync: ${consensus} %`
 				);
-				return seriesCb();
 			},
 			loadBlocksFromNetwork(seriesCb) {
 				return __private.loadBlocksFromNetwork(seriesCb);
 			},
-			updateSystemHeaders(seriesCb) {
-				// Update our own headers: broadhash and height
-				return components.system
-					.update()
-					.then(() => seriesCb())
+			updateApplicationState(seriesCb) {
+				return modules.blocks
+					.calculateNewBroadhash()
+					.then(({ broadhash, height }) => {
+						// Listen for the update of step to move to next step
+						library.channel.once('app:state:updated', () => {
+							seriesCb();
+						});
+
+						// Update our application state: broadhash and height
+						return library.channel.invoke('app:updateApplicationState', {
+							broadhash,
+							height,
+						});
+					})
 					.catch(seriesCb);
 			},
-			broadcastHeaders(seriesCb) {
-				// Notify all remote peers about our new headers
-				modules.transport.broadcastHeaders(seriesCb);
-			},
-			calculateConsensusAfter(seriesCb) {
-				library.logger.debug(
-					`Establishing broadhash consensus after sync: ${modules.peers.calculateConsensus()} %`
+			async calculateConsensusAfter() {
+				const consensus = await modules.peers.calculateConsensus();
+				return library.logger.debug(
+					`Establishing broadhash consensus after sync: ${consensus} %`
 				);
-				return seriesCb();
 			},
 		},
 		err => {
@@ -964,7 +926,7 @@ __private.sync = function(cb) {
 			__private.blocksToSync = 0;
 
 			library.logger.info('Finished sync');
-			if (components.cache) {
+			if (components.cache.options.enabled) {
 				components.cache.enable();
 			}
 			return setImmediate(cb, err);
@@ -972,90 +934,7 @@ __private.sync = function(cb) {
 	);
 };
 
-/**
- * Establishes a list of "good" peers.
- *
- * @private
- * @param {array<Peer>} peers
- * @returns {Object} height number, peers array
- * @todo Add description for the params
- */
-Loader.prototype.findGoodPeers = function(peers) {
-	const lastBlockHeight = modules.blocks.lastBlock.get().height;
-	library.logger.trace('Good peers - received', { count: peers.length });
-
-	peers = peers.filter(
-		item =>
-			// Remove unreachable peers or heights below last block height
-			item && item.height >= lastBlockHeight
-	);
-
-	library.logger.trace('Good peers - filtered', { count: peers.length });
-
-	// No peers found
-	if (peers.length === 0) {
-		return { height: 0, peers: [] };
-	}
-	// Order peers by descending height
-	peers = peers.sort((a, b) => b.height - a.height);
-
-	const histogram = {};
-	let max = 0;
-	let height;
-
-	// Aggregate height by 2. TODO: To be changed if node latency increases?
-	const aggregation = 2;
-
-	// Perform histogram calculation, together with histogram maximum
-	Object.keys(peers).forEach(key => {
-		const val = parseInt(peers[key].height / aggregation) * aggregation;
-		histogram[val] = (histogram[val] ? histogram[val] : 0) + 1;
-
-		if (histogram[val] > max) {
-			max = histogram[val];
-			height = val;
-		}
-	});
-
-	// Perform histogram cut of peers too far from histogram maximum
-	peers = peers
-		.filter(item => item && Math.abs(height - item.height) < aggregation + 1)
-		.map(item => library.logic.peers.create(item));
-
-	library.logger.trace('Good peers - accepted', { count: peers.length });
-	library.logger.debug(
-		'Good peers',
-		peers.map(peer => `${peer.ip}.${peer.wsPort}`)
-	);
-
-	return { height, peers };
-};
-
 // Public methods
-/**
- * Gets a "good" randomPeer from network.
- *
- * @param {function} cb
- * @returns {setImmediateCallback} cb, err, good randomPeer
- * @todo Add description for the params
- */
-Loader.prototype.getRandomPeerFromNetwork = function(cb) {
-	const peers = library.logic.peers.listRandomConnected({
-		limit: MAX_PEERS,
-	});
-	__private.network = self.findGoodPeers(peers);
-
-	if (!__private.network.peers.length) {
-		return setImmediate(cb, 'Failed to find enough good peers');
-	}
-
-	const randomPeer =
-		__private.network.peers[
-			Math.floor(Math.random() * __private.network.peers.length)
-		];
-
-	return setImmediate(cb, null, randomPeer);
-};
 
 /**
  * Checks if private constant syncIntervalId has value.
@@ -1090,7 +969,7 @@ Loader.prototype.loaded = function() {
  *
  * @returns {function} Calling __private.syncTimer()
  */
-Loader.prototype.onPeersReady = function() {
+Loader.prototype.onNetworkReady = function() {
 	library.logger.trace('Peers ready', { module: 'loader' });
 	// Enforce sync early
 	if (library.config.syncing.active) {
@@ -1104,7 +983,7 @@ Loader.prototype.onPeersReady = function() {
 					if (__private.loaded) {
 						return async.retry(
 							__private.retries,
-							__private.loadTransactions,
+							__private.getTransactionsFromNetwork,
 							err => {
 								if (err) {
 									library.logger.error('Unconfirmed transactions loader', err);
@@ -1120,7 +999,7 @@ Loader.prototype.onPeersReady = function() {
 					if (__private.loaded) {
 						return async.retry(
 							__private.retries,
-							__private.loadSignatures,
+							__private.getSignaturesFromNetwork,
 							err => {
 								if (err) {
 									library.logger.error('Signatures loader', err);
@@ -1141,16 +1020,15 @@ Loader.prototype.onPeersReady = function() {
 };
 
 /**
- * Assigns needed modules and components from scope to private constants.
+ * It assigns components & modules from scope to private constants.
  *
- * @param {modules} scope
+ * @param {components, modules} scope modules & components
  * @returns {function} Calling __private.loadBlockChain
  * @todo Add description for the params
  */
 Loader.prototype.onBind = function(scope) {
 	components = {
 		cache: scope.components ? scope.components.cache : undefined,
-		system: scope.components.system,
 	};
 
 	modules = {
@@ -1158,8 +1036,8 @@ Loader.prototype.onBind = function(scope) {
 		blocks: scope.modules.blocks,
 		peers: scope.modules.peers,
 		rounds: scope.modules.rounds,
-		transport: scope.modules.transport,
 		multisignatures: scope.modules.multisignatures,
+		processTransactions: scope.modules.processTransactions,
 	};
 
 	__private.loadBlockChain();
@@ -1176,12 +1054,10 @@ Loader.prototype.onBlockchainReady = function() {
  * Sets private constant loaded to false.
  *
  * @param {function} cb
- * @returns {setImmediateCallback} cb
  * @todo Add description for the params
  */
-Loader.prototype.cleanup = function(cb) {
+Loader.prototype.cleanup = function() {
 	__private.loaded = false;
-	return setImmediate(cb);
 };
 
 // Export

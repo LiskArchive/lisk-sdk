@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -15,26 +15,29 @@
 'use strict';
 
 const Promise = require('bluebird');
+const utils = require('../../utils');
 
 module.exports = function(configurations, network) {
 	describe('@propagation : transactions', () => {
-		let nodesTransactions = [];
+		const genesisBlockId = __testContext.config.genesisBlock.id;
+		let nodesTransactions;
 
 		before(() => {
-			return Promise.all(
-				network.sockets.map(socket => {
-					return socket.call('blocks', {
-						lastBlockId: configurations[0].genesisBlock.id,
-					});
+			return network
+				.waitForBlocksOnAllNodes(1)
+				.then(() => {
+					return Promise.all(
+						configurations.map(configuration => {
+							return utils.http.getTransactionsFromBlock({
+								blockId: genesisBlockId,
+								port: configuration.modules.http_api.httpPort,
+							});
+						})
+					);
 				})
-			).then(results => {
-				nodesTransactions = results.map(res => {
-					return res.blocks;
+				.then(transactionsResults => {
+					nodesTransactions = transactionsResults;
 				});
-				return expect(nodesTransactions).to.have.lengthOf(
-					configurations.length
-				);
-			});
 		});
 
 		it('should contain non empty transactions', async () => {

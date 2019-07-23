@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -139,9 +139,7 @@ class StorageSeed {
 			'forks_stat',
 			'mem_accounts',
 			'mem_accounts2multisignatures',
-			'mem_accounts2u_multisignatures',
 			'mem_accounts2delegates',
-			'mem_accounts2u_delegates',
 			'mem_round',
 			'rounds_rewards',
 			'peers',

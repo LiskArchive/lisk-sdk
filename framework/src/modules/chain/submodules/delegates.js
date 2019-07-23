@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -22,21 +22,19 @@ const {
 	decryptPassphraseWithPassword,
 	parseEncryptedPassphrase,
 } = require('@liskhq/lisk-cryptography');
-const BlockReward = require('../logic/block_reward');
-const jobsQueue = require('../helpers/jobs_queue');
-const Delegate = require('../logic/delegate');
-const slots = require('../helpers/slots');
+const BlockReward = require('../logic/block_reward.js');
+const jobsQueue = require('../helpers/jobs_queue.js');
+const slots = require('../helpers/slots.js');
 
 // Private fields
 let modules;
 let library;
 let self;
 
-const { ACTIVE_DELEGATES, TRANSACTION_TYPES } = global.constants;
+const { ACTIVE_DELEGATES } = global.constants;
 const exceptions = global.exceptions;
 const __private = {};
 
-__private.assetTypes = {};
 __private.loaded = false;
 __private.keypairs = {};
 __private.tmpKeypairs = {};
@@ -45,7 +43,6 @@ __private.delegatesListCache = {};
 
 /**
  * Main delegates methods. Initializes library with scope content and generates a Delegate instance.
- * Calls logic.transaction.attachAssetType().
  *
  * @class
  * @memberof modules
@@ -72,30 +69,16 @@ class Delegates {
 			network: scope.network,
 			schema: scope.schema,
 			balancesSequence: scope.balancesSequence,
-			logic: {
-				transaction: scope.logic.transaction,
-			},
 			config: {
 				forging: {
 					delegates: scope.config.forging.delegates,
 					force: scope.config.forging.force,
 					defaultPassword: scope.config.forging.defaultPassword,
-					access: {
-						whiteList: scope.config.forging.access.whiteList,
-					},
 				},
 			},
 		};
 		self = this;
 		__private.blockReward = new BlockReward();
-		__private.assetTypes[
-			TRANSACTION_TYPES.DELEGATE
-		] = library.logic.transaction.attachAssetType(
-			TRANSACTION_TYPES.DELEGATE,
-			new Delegate({
-				schema: scope.schema,
-			})
-		);
 
 		setImmediate(cb, null, self);
 	}
@@ -274,7 +257,7 @@ __private.forge = function(cb) {
 	const lastBlock = modules.blocks.lastBlock.get();
 
 	if (currentSlot === slots.getSlotNumber(lastBlock.timestamp)) {
-		library.logger.debug('Block already forged for the current slot');
+		library.logger.trace('Block already forged for the current slot');
 		return setImmediate(cb);
 	}
 
@@ -284,7 +267,7 @@ __private.forge = function(cb) {
 	return __private.getDelegateKeypairForCurrentSlot(
 		currentSlot,
 		round,
-		(getDelegateKeypairForCurrentSlotError, delegateKeypair) => {
+		async (getDelegateKeypairForCurrentSlotError, delegateKeypair) => {
 			if (getDelegateKeypairForCurrentSlotError) {
 				library.logger.error(
 					'Skipping delegate slot',
@@ -299,8 +282,8 @@ __private.forge = function(cb) {
 				});
 				return setImmediate(cb);
 			}
-
-			if (modules.transport.poorConsensus()) {
+			const isPoorConsensus = await modules.peers.isPoorConsensus();
+			if (isPoorConsensus) {
 				const consensusErr = `Inadequate broadhash consensus before forging a block: ${modules.peers.getLastConsensus()} %`;
 				library.logger.error(
 					'Failed to generate block within delegate slot',
@@ -360,172 +343,6 @@ __private.decryptPassphrase = function(encryptedPassphrase, password) {
 	return decryptPassphraseWithPassword(
 		parseEncryptedPassphrase(encryptedPassphrase),
 		password
-	);
-};
-
-/**
- * Checks each vote integrity and controls total votes don't exceed active delegates.
- * Calls modules.accounts.getAccount() to validate delegate account and votes accounts.
- *
- * @private
- * @param {publicKey} publicKey
- * @param {Array} votes
- * @param {string} state - 'confirmed' to delegates, otherwise u_delegates
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, err
- * @todo Add description for the params
- */
-__private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
-	if (!Array.isArray(votes)) {
-		return setImmediate(cb, 'Votes must be an array');
-	}
-
-	let votesWithAction;
-
-	try {
-		// TODO: Use Hashmap to improve performance further.
-		votesWithAction = votes.map(vote => {
-			const action = vote[0];
-
-			if (action !== '+' && action !== '-') {
-				throw 'Invalid math operator';
-			}
-			const votePublicKey = vote.slice(1);
-
-			return {
-				action,
-				publicKey: votePublicKey,
-			};
-		});
-	} catch (e) {
-		library.logger.error(e.stack);
-		return setImmediate(cb, e);
-	}
-
-	return async.waterfall(
-		[
-			// get all  public keys of delegates sender has voted for. Confirmed or unconfirmed based on state parameter.
-			function getExistingVotedPublicKeys(waterfallCb) {
-				modules.accounts.getAccount(
-					{ publicKey: senderPublicKey },
-					(err, account) => {
-						if (err) {
-							return setImmediate(waterfallCb, err);
-						}
-
-						if (!account) {
-							return setImmediate(waterfallCb, 'Account not found');
-						}
-
-						const delegates =
-							state === 'confirmed'
-								? account.votedDelegatesPublicKeys
-								: account.u_votedDelegatesPublicKeys;
-						const existingVotedPublicKeys = Array.isArray(delegates)
-							? delegates
-							: [];
-
-						return setImmediate(waterfallCb, null, existingVotedPublicKeys);
-					},
-					tx
-				);
-			},
-			// Validate votes in the transaction by checking that sender is not voting for an account already, and also that sender is not unvoting an account it did not vote before.
-			function validateVotes(existingVotedPublicKeys, waterfallCb) {
-				modules.accounts.getAccounts(
-					{
-						publicKey_in: votesWithAction.map(({ publicKey }) => publicKey),
-						isDelegate: true,
-						sort: 'address:desc',
-					},
-					(err, votesAccounts) => {
-						if (err) {
-							return setImmediate(waterfallCb, err);
-						}
-
-						if (
-							!votesAccounts ||
-							votesAccounts.length < votesWithAction.length
-						) {
-							library.logger.error(
-								'Delegates with addresses not found',
-								_.differenceWith(
-									votesWithAction,
-									votesAccounts,
-									(
-										{ publicKey: publicKeyFromTransaction },
-										{ publicKey: publicKeyFromAccount }
-									) => publicKeyFromTransaction === publicKeyFromAccount
-								).map(({ publicKey }) => publicKey)
-							);
-							return setImmediate(waterfallCb, 'Delegate not found');
-						}
-						const upvoteAccounts = votesAccounts.filter(voteAccount =>
-							votesWithAction.find(
-								({ action, publicKey }) =>
-									action === '+' && publicKey === voteAccount.publicKey
-							)
-						);
-						const downvoteAccounts = votesAccounts.filter(voteAccount =>
-							votesWithAction.find(
-								({ action, publicKey }) =>
-									action === '-' && publicKey === voteAccount.publicKey
-							)
-						);
-
-						const invalidUpvoteAccounts = _.intersectionWith(
-							upvoteAccounts,
-							existingVotedPublicKeys,
-							({ publicKey: upvoteAccountPublicKey }, existingVotedPublicKey) =>
-								upvoteAccountPublicKey === existingVotedPublicKey
-						);
-
-						if (invalidUpvoteAccounts.length > 0) {
-							return setImmediate(
-								waterfallCb,
-								`Failed to add vote, delegate "${
-									invalidUpvoteAccounts[0].username
-								}" already voted for`
-							);
-						}
-
-						const invalidDownvoteAccounts = _.differenceWith(
-							downvoteAccounts,
-							existingVotedPublicKeys,
-							(
-								{ publicKey: downvoteAccountPubicKey },
-								existingVotedPublicKey
-							) => downvoteAccountPubicKey === existingVotedPublicKey
-						);
-						if (invalidDownvoteAccounts.length > 0) {
-							return setImmediate(
-								waterfallCb,
-								`Failed to remove vote, delegate "${
-									invalidDownvoteAccounts[0].username
-								}" was not voted for`
-							);
-						}
-
-						const existingVotes = existingVotedPublicKeys.length;
-						const upvotes = upvoteAccounts.length;
-						const downvotes = downvoteAccounts.length;
-						const totalVotes = existingVotes + upvotes - downvotes;
-
-						if (totalVotes > ACTIVE_DELEGATES) {
-							const exceeded = totalVotes - ACTIVE_DELEGATES;
-
-							return setImmediate(
-								waterfallCb,
-								`Maximum number of ${ACTIVE_DELEGATES} votes exceeded (${exceeded} too many)`
-							);
-						}
-						return setImmediate(waterfallCb);
-					},
-					tx
-				);
-			},
-		],
-		cb
 	);
 };
 
@@ -789,7 +606,7 @@ Delegates.prototype.validateBlockSlotAgainstPreviousRound = function(
  */
 Delegates.prototype.getDelegates = function(query, cb) {
 	if (!_.isObject(query)) {
-		throw 'Invalid query argument, expected object';
+		throw new Error('Invalid query argument, expected object');
 	}
 	if (query.search) {
 		query.username_like = `%${query.search}%`;
@@ -813,42 +630,6 @@ Delegates.prototype.getDelegates = function(query, cb) {
 		],
 		(err, delegates) => setImmediate(cb, err, delegates)
 	);
-};
-
-/**
- * Description of checkConfirmedDelegates.
- *
- * @param {publicKey} publicKey
- * @param {Array} votes
- * @param {function} cb
- * @returns {function} Calls checkDelegates() with 'confirmed' state
- * @todo Add description for the params
- */
-Delegates.prototype.checkConfirmedDelegates = function(
-	publicKey,
-	votes,
-	cb,
-	tx
-) {
-	return __private.checkDelegates(publicKey, votes, 'confirmed', cb, tx);
-};
-
-/**
- * Description of checkUnconfirmedDelegates.
- *
- * @param {publicKey} publicKey
- * @param {Array} votes
- * @param {function} cb
- * @returns {function} Calls checkDelegates() with 'unconfirmed' state
- * @todo Add description for the params
- */
-Delegates.prototype.checkUnconfirmedDelegates = function(
-	publicKey,
-	votes,
-	cb,
-	tx
-) {
-	return __private.checkDelegates(publicKey, votes, 'unconfirmed', cb, tx);
 };
 
 /**
@@ -893,6 +674,23 @@ Delegates.prototype.getForgersKeyPairs = function() {
 	return __private.keypairs;
 };
 
+Delegates.prototype.getForgingStatusForAllDelegates = function() {
+	const keyPairs = __private.keypairs;
+	const forgingDelegates = library.config.forging.delegates;
+	const forgersPublicKeys = {};
+
+	Object.keys(keyPairs).forEach(key => {
+		forgersPublicKeys[keyPairs[key].publicKey.toString('hex')] = true;
+	});
+
+	const fullList = forgingDelegates.map(forger => ({
+		forging: !!forgersPublicKeys[forger.publicKey],
+		publicKey: forger.publicKey,
+	}));
+
+	return fullList;
+};
+
 // Events
 /**
  * Calls Delegate.bind() with scope.
@@ -910,8 +708,6 @@ Delegates.prototype.onBind = function(scope) {
 		transactions: scope.modules.transactions,
 		transport: scope.modules.transport,
 	};
-
-	__private.assetTypes[TRANSACTION_TYPES.DELEGATE].bind(scope.modules.accounts);
 };
 
 /**
@@ -952,11 +748,9 @@ Delegates.prototype.onBlockchainReady = function() {
  * Sets loaded to false.
  *
  * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb
  */
-Delegates.prototype.cleanup = function(cb) {
+Delegates.prototype.cleanup = function() {
 	__private.loaded = false;
-	return setImmediate(cb);
 };
 
 /**

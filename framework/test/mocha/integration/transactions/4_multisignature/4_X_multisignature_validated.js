@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -25,7 +25,7 @@ const localCommon = require('../../common');
 
 const { TRANSACTION_TYPES } = global.constants;
 
-describe('system test (type 4) - checking registered multisignature transaction against other transaction types', () => {
+describe('integration test (type 4) - checking registered multisignature transaction against other transaction types', () => {
 	let library;
 
 	const scenarios = {
@@ -50,7 +50,7 @@ describe('system test (type 4) - checking registered multisignature transaction 
 		return scenarios.regular.multiSigTransaction.signatures.push(signature);
 	});
 
-	localCommon.beforeBlock('system_4_X_multisig_validated', lib => {
+	localCommon.beforeBlock('4_X_multisig_validated', lib => {
 		library = lib;
 	});
 
@@ -114,7 +114,15 @@ describe('system test (type 4) - checking registered multisignature transaction 
 				timeOffset: -10000,
 			});
 			localCommon.addTransaction(library, multiSignatureToSameAccount, err => {
-				expect(err).to.equal('Account already has multisignatures enabled');
+				const expectedErrors = [
+					`Transaction: ${
+						multiSignatureToSameAccount.id
+					} failed at .signatures: Missing signatures `,
+					`Transaction: ${
+						multiSignatureToSameAccount.id
+					} failed at .signatures: Register multisignature only allowed once per account.`,
+				];
+				expect(err).to.equal(expectedErrors.join(','));
 				done();
 			});
 		});

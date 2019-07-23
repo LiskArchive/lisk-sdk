@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -26,10 +26,13 @@ const {
 	Account,
 	Block,
 	Migration,
-	Peer,
 	Round,
 	Transaction,
 } = require('../../../src/modules/chain/components/storage/entities');
+
+const {
+	Peer,
+} = require('../../../src/modules/network/components/storage/entities');
 
 const dbNames = [];
 
@@ -63,6 +66,7 @@ class StorageSandbox extends Storage {
 
 		dbNames.push(dbName);
 		dbConfig.database = dbName;
+		dbConfig.max = process.env.LISK_TEST_DB_MAX_CONNECTIONS || 2;
 
 		const dropCreatedDatabases = function() {
 			dbNames.forEach(aDbName => {
@@ -121,7 +125,6 @@ class StorageSandbox extends Storage {
 	async _createSchema() {
 		try {
 			await this.entities.Migration.applyAll();
-			await this.entities.Migration.applyRunTime();
 		} catch (err) {
 			Promise.reject(err);
 		}
@@ -142,6 +145,7 @@ class TestAdapter extends PgpAdapter {
 		};
 
 		this.pgp = pgpLib(this.pgpOptions);
+		options.max = process.env.LISK_TEST_DB_MAX_CONNECTIONS || 2;
 		this.db = this.pgp(options);
 	}
 }

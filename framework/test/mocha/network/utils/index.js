@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -23,7 +23,7 @@ module.exports = {
 	ws: require('./ws'),
 	transactions: require('./transactions'),
 	logger: createLoggerComponent({
-		filename: 'framework/test/mocha/network/networkTestsLogger.logs',
+		filename: 'test/mocha/network/networkTestsLogger.logs',
 		echo: 'log',
 	}),
 	async getListeningConnections(ports) {

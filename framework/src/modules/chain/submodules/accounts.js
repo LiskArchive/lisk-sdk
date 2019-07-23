@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -16,11 +16,8 @@
 
 const crypto = require('crypto');
 const async = require('async');
-const Bignum = require('../helpers/bignum');
-const BlockReward = require('../logic/block_reward');
-const Vote = require('../logic/vote');
-
-const { TRANSACTION_TYPES } = global.constants;
+const Bignum = require('../helpers/bignum.js');
+const BlockReward = require('../logic/block_reward.js');
 
 // Private fields
 let modules;
@@ -32,7 +29,6 @@ __private.assetTypes = {};
 
 /**
  * Main accounts methods. Initializes library with scope content and generates a Vote instance.
- * Calls logic.transaction.attachAssetType().
  *
  * @class
  * @memberof modules
@@ -40,7 +36,6 @@ __private.assetTypes = {};
  * @requires crypto
  * @requires helpers/bignum
  * @requires logic/block_reward
- * @requires logic/vote
  * @param {scope} scope - App instance
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, null, self
@@ -56,26 +51,10 @@ class Accounts {
 			balancesSequence: scope.balancesSequence,
 			logic: {
 				account: scope.logic.account,
-				transaction: scope.logic.transaction,
 			},
 		};
 		self = this;
 		__private.blockReward = new BlockReward();
-		__private.assetTypes[
-			TRANSACTION_TYPES.VOTE
-		] = library.logic.transaction.attachAssetType(
-			TRANSACTION_TYPES.VOTE,
-			new Vote({
-				components: {
-					logger: scope.components.logger,
-				},
-				schema: library.schema,
-				logic: {
-					account: library.logic.account,
-					transaction: library.logic.transaction,
-				},
-			})
-		);
 
 		setImmediate(cb, null, self);
 	}
@@ -102,7 +81,7 @@ Accounts.prototype.generateAddressByPublicKey = function(publicKey) {
 	const address = `${Bignum.fromBuffer(temp).toString()}L`;
 
 	if (!address) {
-		throw `Invalid public key: ${publicKey}`;
+		throw new Error(`Invalid public key: ${publicKey}`);
 	}
 
 	return address;
@@ -153,12 +132,12 @@ Accounts.prototype.setAccountAndGet = function(data, cb, tx) {
 		if (data.publicKey) {
 			address = self.generateAddressByPublicKey(data.publicKey);
 		} else {
-			err = 'Missing address or public key';
+			err = new Error('Missing address or public key');
 		}
 	}
 
 	if (!address) {
-		err = 'Invalid public key';
+		err = new Error('Invalid public key');
 	}
 
 	if (err) {
@@ -242,12 +221,12 @@ Accounts.prototype.mergeAccountAndGet = function(data, cb, tx) {
 		if (data.publicKey) {
 			address = self.generateAddressByPublicKey(data.publicKey);
 		} else {
-			err = 'Missing address or public key';
+			err = new Error('Missing address or public key');
 		}
 	}
 
 	if (!address) {
-		err = 'Invalid public key';
+		err = new Error('Invalid public key');
 	}
 
 	if (err) {
@@ -272,8 +251,6 @@ Accounts.prototype.onBind = function(scope) {
 		blocks: scope.modules.blocks,
 		rounds: scope.modules.rounds,
 	};
-
-	__private.assetTypes[TRANSACTION_TYPES.VOTE].bind(scope.modules.delegates);
 
 	library.logic.account.bind(modules);
 };

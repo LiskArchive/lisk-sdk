@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -39,20 +39,39 @@ describe('helpers/jobsQueue', () => {
 				done();
 			});
 
-			it('should throw an error when trying to pass job that is not a function', async () =>
-				expect(() => {
-					jobsQueue.register('test_job', 'test', recallInterval);
-				}).to.throw('Syntax error - invalid parameters supplied'));
-
 			it('should throw an error when trying to pass name that is not a string', async () =>
 				expect(() => {
 					jobsQueue.register(123, validFunction, recallInterval);
-				}).to.throw('Syntax error - invalid parameters supplied'));
+				}).to.throw('Name argument must be a string'));
 
 			it('should throw an error when trying to pass time that is not integer', async () =>
 				expect(() => {
 					jobsQueue.register('test_job', validFunction, 0.22);
-				}).to.throw('Syntax error - invalid parameters supplied'));
+				}).to.throw('Time argument must be integer'));
+
+			it('should throw an error when trying to pass job as null', async () =>
+				expect(() => {
+					jobsQueue.register('test', null, recallInterval);
+				}).to.throw('Job must be an instance of Function'));
+
+			it('should throw an error when trying to pass job that is not an instance of Function', async () =>
+				expect(() => {
+					jobsQueue.register('test', 'test_job', recallInterval);
+				}).to.throw('Job must be an instance of Function'));
+
+			it('should throw an error when trying to pass job that is a function with more than 1 parameter', async () => {
+				const myFuncWithTwoParams = (x = 1, cb) => cb(x);
+				expect(() => {
+					jobsQueue.register('test', myFuncWithTwoParams, recallInterval);
+				}).to.throw('Job function should have callback argument');
+			});
+
+			it('should throw an error when trying to pass job that is an async function with 1 parameter', async () => {
+				const myFuncWithTwoParams = async x => x;
+				expect(() => {
+					jobsQueue.register('test', myFuncWithTwoParams, recallInterval);
+				}).to.throw('Job async function should not have arguments');
+			});
 		});
 
 		describe('should register', () => {

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -20,11 +20,11 @@ const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
 
-const { NORMALIZER } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 
-describe('system test (type 2) - double delegate registrations', () => {
+describe('integration test (type 2) - double delegate registrations', () => {
 	let library;
-	localCommon.beforeBlock('system_2_2_delegates_4', lib => {
+	localCommon.beforeBlock('2_2_delegates_4', lib => {
 		library = lib;
 	});
 
@@ -140,19 +140,15 @@ describe('system test (type 2) - double delegate registrations', () => {
 							timeOffset: -10000,
 						});
 						localCommon.addTransaction(library, transaction3, err => {
-							expect(err).to.equal('Account is already a delegate');
-							done();
-						});
-					});
-
-					it('adding to pool delegate registration from same account should fail', done => {
-						const transaction4 = registerDelegate({
-							passphrase: account2.passphrase,
-							username: account2.username,
-							timeOffset: -10000,
-						});
-						localCommon.addTransaction(library, transaction4, err => {
-							expect(err).to.equal('Account is already a delegate');
+							const expectedErrors = [
+								`Transaction: ${
+									transaction3.id
+								} failed at .asset.delegate.username: Username is not unique.`,
+								`Transaction: ${
+									transaction3.id
+								} failed at .asset.delegate.username: Account is already a delegate`,
+							];
+							expect(err).to.equal(expectedErrors.join(','));
 							done();
 						});
 					});

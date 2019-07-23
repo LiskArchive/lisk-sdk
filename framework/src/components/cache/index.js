@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -32,17 +32,24 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 
 const constants = require('./constants');
 const Cache = require('./cache');
+const { config: defaultConfig } = require('./defaults');
+const validator = require('../../controller/validator');
 
 function createCacheComponent(options, logger) {
+	const optionsWithDefaults = validator.parseEnvArgAndValidate(
+		defaultConfig,
+		options
+	);
+
 	// delete password key if it's value is null
-	const cacheConfigParam = { ...options };
-	if (cacheConfigParam.password === null) {
-		delete cacheConfigParam.password;
+	if (optionsWithDefaults.password === null) {
+		delete optionsWithDefaults.password;
 	}
-	return new Cache(cacheConfigParam, logger);
+	return new Cache(optionsWithDefaults, logger);
 }
 
 module.exports = {
+	defaults: defaultConfig,
 	...constants,
 	createCacheComponent,
 };

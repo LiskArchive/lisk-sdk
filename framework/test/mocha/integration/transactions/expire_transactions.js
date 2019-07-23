@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -17,6 +17,7 @@
 const {
 	transfer,
 	registerMultisignature,
+	constants: transactionConstants,
 } = require('@liskhq/lisk-transactions');
 const Promise = require('bluebird');
 const randomUtil = require('../../common/utils/random');
@@ -35,16 +36,21 @@ const addTransactionToUnconfirmedQueuePromise = Promise.promisify(
 describe('expire transactions', () => {
 	let library;
 	let queries;
+	let transactionPool;
 
 	const {
 		EXPIRY_INTERVAL,
 		UNCONFIRMED_TRANSACTION_TIME_OUT,
-		NORMALIZER,
 	} = global.constants;
+
+	const { NORMALIZER } = global.__testContext.config;
 
 	// Override transaction expire interval to every 1 second
 	global.constants.EXPIRY_INTERVAL = 1000;
 	global.constants.UNCONFIRMED_TRANSACTION_TIMEOUT = 0;
+
+	transactionConstants.UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT = 2;
+	transactionConstants.UNCONFIRMED_TRANSACTION_TIMEOUT = 2;
 
 	const getSenderAddress = transaction =>
 		transaction.senderId ||
@@ -94,14 +100,14 @@ describe('expire transactions', () => {
 		);
 	};
 
-	localCommon.beforeBlock('lisk_functional_expire_transactions', lib => {
+	localCommon.beforeBlock('expire_transactions', lib => {
 		library = lib;
-		const transactionPool = library.rewiredModules.transactions.__get__(
+		transactionPool = library.rewiredModules.transactions.__get__(
 			'__private.transactionPool'
 		);
 
 		// Set hourInSeconds to zero to test multi-signature transaction expiry
-		transactionPool.hourInSeconds = 0;
+		transactionPool.hourInSeconds = 1;
 		queries = new QueriesHelper(lib, lib.components.storage);
 	});
 
@@ -113,23 +119,16 @@ describe('expire transactions', () => {
 
 	describe('from unconfirmed queue', () => {
 		let transaction;
-		let address;
-		let memAccountBefore;
 
 		const amount = randomUtil.number(100000000, 1000000000);
 		const recipientId = randomUtil.account().address;
 
-		before(() => {
+		before(async () => {
 			// override unconfirmedTransactionTimeOut
 			// to test undo unConfirmed expired transactions
 			// setUnconfirmedTransactionTimeOut(0);
 
 			transaction = createTransaction(amount, recipientId);
-			address = getSenderAddress(transaction);
-
-			return queries.getAccount(address).then(account => {
-				memAccountBefore = account;
-			});
 		});
 
 		it('should be able to add transaction to unconfirmed queue', done => {
@@ -147,25 +146,7 @@ describe('expire transactions', () => {
 			);
 		});
 
-		it('validate mem account balance and u_balance before transaction expiry', async () => {
-			return queries.getAccount(address).then(memAccountAfter => {
-				expect(
-					new Bignum(memAccountAfter[0].u_balance)
-						.plus(amount)
-						.plus(transaction.fee)
-						.isEqualTo(memAccountBefore[0].u_balance)
-				).to.be.true;
-
-				// Balance will not be confirmed unless the block is forged
-				expect(
-					new Bignum(memAccountBefore[0].balance).isEqualTo(
-						memAccountAfter[0].balance
-					)
-				).to.be.true;
-			});
-		});
-
-		it('once transaction is expired the mem account u_balance should be restored', done => {
+		it('once expire transaction interval has passed, the transaction should be removed from the queue', done => {
 			// Expiry interval is set to 1 second
 			// and unconfirmed transaction timeout is set to 0
 			// so waiting 5 seconds to ensure the transaction is expired and
@@ -174,20 +155,7 @@ describe('expire transactions', () => {
 				checkUnconfirmedQueue(transaction, res => {
 					expect(res.transactions.length).to.equal(0);
 					expect(res.count).to.equal(0);
-					queries.getAccount(address).then(memAccountAfter => {
-						expect(
-							new Bignum(memAccountBefore[0].u_balance).isEqualTo(
-								memAccountAfter[0].u_balance
-							)
-						).to.be.true;
-
-						expect(
-							new Bignum(memAccountBefore[0].balance).isEqualTo(
-								memAccountAfter[0].balance
-							)
-						).to.be.true;
-						done();
-					});
+					done();
 				});
 			}, 5000);
 		});
@@ -195,8 +163,6 @@ describe('expire transactions', () => {
 
 	describe('multi-signature', () => {
 		let transaction;
-		let address;
-		let memAccountBefore;
 		let multiSigTransaction;
 
 		const amount = 1000 * NORMALIZER;
@@ -208,36 +174,9 @@ describe('expire transactions', () => {
 
 		before(() => {
 			transaction = createTransaction(amount, recipientId);
-			address = getSenderAddress(transaction);
-
-			return queries.getAccount(address).then(gotAccount => {
-				memAccountBefore = gotAccount;
-				// Transfer balance to multi-signature account
-				// so that multi-signature account can be registered
-				return addTransactionsAndForgePromise(library, [transaction], 0);
-			});
-		});
-
-		it('account should be transfer and updated with balance and u_balance', done => {
-			queries
-				.getAccount(address)
-				.then(memAccountAfter => {
-					expect(
-						new Bignum(memAccountAfter[0].u_balance)
-							.plus(amount)
-							.plus(transaction.fee)
-							.isEqualTo(memAccountBefore[0].u_balance)
-					).to.be.true;
-
-					expect(
-						new Bignum(memAccountAfter[0].balance)
-							.plus(amount)
-							.plus(transaction.fee)
-							.isEqualTo(memAccountBefore[0].balance)
-					).to.be.true;
-					done();
-				})
-				.catch(done);
+			// Transfer balance to multi-signature account
+			// so that multi-signature account can be registered
+			return addTransactionsAndForgePromise(library, [transaction], 0);
 		});
 
 		it('should be able to add multi-signature transaction to unconfirmed queue', done => {

@@ -1,0 +1,84 @@
+{
+	"name": "@liskhq/lisk-constants",
+	"version": "1.2.1",
+	"description": "General constants for use with Lisk-related software",
+	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
+	"license": "Apache-2.0",
+	"keywords": [
+		"lisk",
+		"blockchain"
+	],
+	"homepage": "https://github.com/LiskHQ/lisk-sdk/tree/master/elements/lisk-constants#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/LiskHQ/lisk-sdk.git"
+	},
+	"bugs": {
+		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
+	},
+	"engines": {
+		"node": ">=8.10 <=10",
+		"npm": ">=5"
+	},
+	"main": "dist-node/index.js",
+	"scripts": {
+		"transpile": "tsc",
+		"transpile:browsertest": "tsc -p tsconfig.browsertest.json",
+		"browserify": "browserify ./dist-node/index.js -o ./dist-browser/index.js -s liskConstants",
+		"browserify:browsertest": "browserify ./browsertest.build/test/*.js -o ./browsertest.build/browsertest.js -s liskConstants",
+		"uglify": "uglifyjs -nm -o ./dist-browser/index.min.js ./dist-browser/index.js",
+		"uglify:browsertest": "uglifyjs -o ./browsertest.build/browsertest.min.js ./browsertest.build/browsertest.js",
+		"clean": "./scripts/clean.sh",
+		"format": "prettier --write '**/*'",
+		"lint": "tslint --format verbose --project .",
+		"lint:fix": "npm run lint -- --fix",
+		"test": "TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/**/*.ts",
+		"test:watch": "npm test -- --watch",
+		"test:watch:min": "npm run test:watch -- --reporter=min",
+		"test:node": "npm run build:check",
+		"serve:start": "http-server -p 11542 ./browsertest &",
+		"serve:stop": "kill $(lsof -t -i:11542) || true",
+		"pretest:browser": "npm run serve:stop && npm run build:browsertest && npm run serve:start",
+		"test:browser": "wait-on http://localhost:11542 && cypress run --config baseUrl=http://localhost:11542 --env ROOT_DIR=\"${PWD##*/}\"",
+		"posttest:browser": "npm run serve:stop",
+		"cover": "if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
+		"cover:base": "nyc report",
+		"cover:local": "npm run cover:base -- --reporter=html --reporter=text",
+		"cover:ci": "npm run cover:base -- --reporter=text",
+		"build:browsertest": "npm run transpile:browsertest && npm run browserify:browsertest && npm run uglify:browsertest",
+		"postbuild:browsertest": "rm -r browsertest.build/src browsertest.build/test",
+		"prebuild:node": "rm -r dist-node/* || mkdir dist-node || true",
+		"build:node": "npm run transpile",
+		"prebuild:browser": "rm ./dist-browser/index.js ./dist-browser/index.min.js || true",
+		"build:browser": "npm run build:node && npm run browserify && npm run uglify",
+		"prebuild": "npm run prebuild:browser",
+		"build": "npm run build:browser",
+		"build:check": "node -e \"require('./dist-node')\"",
+		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
+	},
+	"dependencies": {
+		"@types/node": "10.12.21"
+	},
+	"devDependencies": {
+		"@types/chai": "4.1.7",
+		"@types/expect": "1.20.3",
+		"@types/jquery": "3.3.29",
+		"@types/mocha": "5.2.5",
+		"browserify": "16.2.3",
+		"chai": "4.2.0",
+		"cypress": "3.1.5",
+		"http-server": "0.11.1",
+		"mocha": "5.2.0",
+		"nyc": "14.1.1",
+		"prettier": "1.16.4",
+		"source-map-support": "0.5.10",
+		"ts-node": "8.0.2",
+		"tsconfig-paths": "3.8.0",
+		"tslint": "5.12.1",
+		"tslint-config-prettier": "1.18.0",
+		"tslint-immutable": "5.1.2",
+		"typescript": "3.3.1",
+		"uglify-es": "3.3.9",
+		"wait-on": "3.2.0"
+	}
+}

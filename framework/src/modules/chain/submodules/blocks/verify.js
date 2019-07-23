@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -16,12 +16,13 @@
 
 const crypto = require('crypto');
 const async = require('async');
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const BlockReward = require('../../logic/block_reward');
 const slots = require('../../helpers/slots');
 const blockVersion = require('../../logic/block_version');
+const checkTransactionExceptions = require('../../logic/check_transaction_against_exceptions.js');
 const Bignum = require('../../helpers/bignum');
 
-let components;
 let modules;
 let library;
 let self;
@@ -50,19 +51,19 @@ __private.lastNBlockIds = [];
  * @todo Add description for the class
  */
 class Verify {
-	constructor(logger, block, transaction, storage, config) {
+	constructor(logger, block, storage, config, channel) {
 		library = {
 			logger,
 			storage,
 			logic: {
 				block,
-				transaction,
 			},
 			config: {
 				loading: {
-					snapshotRound: config.loading.snapshotRound,
+					rebuildUpToRound: config.loading.rebuildUpToRound,
 				},
 			},
+			channel,
 		};
 		self = this;
 		__private.blockReward = new BlockReward();
@@ -72,11 +73,11 @@ class Verify {
 }
 
 /**
- * Check transaction - perform transaction validation when processing block.
+ * Check transactions - perform transactions validation when processing block.
  * FIXME: Some checks are probably redundant, see: logic.transactionPool
  *
  * @private
- * @func checkTransaction
+ * @func checkTransactions
  * @param {Object} block - Block object
  * @param {Object} transaction - Transaction object
  * @param  {boolean} checkExists - Check if transaction already exists in database
@@ -84,59 +85,61 @@ class Verify {
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  */
-__private.checkTransaction = function(block, transaction, checkExists, cb) {
-	async.waterfall(
-		[
-			function getTransactionId(waterCb) {
-				try {
-					// Calculate transaction ID
-					// FIXME: Can have poor performance, because of hash calculation
-					transaction.id = library.logic.transaction.getId(transaction);
-				} catch (e) {
-					return setImmediate(waterCb, e.toString());
-				}
-				// Apply block ID to transaction
-				transaction.blockId = block.id;
-				return setImmediate(waterCb);
-			},
-			function getAccount(waterCb) {
-				// Get account from database if any (otherwise cold wallet)
-				// DATABASE: read only
-				modules.accounts.getAccount(
-					{ publicKey: transaction.senderPublicKey },
-					waterCb
-				);
-			},
-			function verifyTransaction(sender, waterCb) {
-				// Check if transaction id valid against database state (mem_* tables)
-				// DATABASE: read only
-				library.logic.transaction.verify(
-					transaction,
-					sender,
-					null,
-					checkExists,
-					waterCb,
-					null
-				);
-			},
-		],
-		waterCbErr => {
-			if (waterCbErr && waterCbErr.match(/Transaction is already confirmed/)) {
-				// Fork: Transaction already confirmed.
-				modules.delegates.fork(block, 2);
-				// Undo the offending transaction.
-				// DATABASE: write
-				return modules.transactions.undoUnconfirmed(
-					transaction,
-					undoUnconfirmedErr => {
-						modules.transactions.removeUnconfirmedTransaction(transaction.id);
-						return setImmediate(cb, undoUnconfirmedErr || waterCbErr);
-					}
-				);
+__private.checkTransactions = async (block, checkExists) => {
+	const { version, height, timestamp, transactions } = block;
+	const context = {
+		blockVersion: version,
+		blockHeight: height,
+		blockTimestamp: timestamp,
+	};
+
+	if (transactions.length === 0) {
+		return;
+	}
+
+	if (checkExists) {
+		const persistedTransactions = await library.storage.entities.Transaction.get(
+			{
+				id_in: transactions.map(transaction => transaction.id),
 			}
-			return setImmediate(cb, waterCbErr);
+		);
+
+		if (persistedTransactions.length > 0) {
+			modules.transactions.onConfirmedTransactions([persistedTransactions[0]]);
+			throw new Error(
+				`Transaction is already confirmed: ${persistedTransactions[0].id}`
+			);
 		}
+	}
+
+	const nonInertTransactions = transactions.filter(
+		transaction =>
+			!checkTransactionExceptions.checkIfTransactionIsInert(transaction)
 	);
+
+	const nonAllowedTxResponses = modules.processTransactions
+		.checkAllowedTransactions(nonInertTransactions, context)
+		.transactionsResponses.find(
+			transactionResponse => transactionResponse.status !== TransactionStatus.OK
+		);
+
+	if (nonAllowedTxResponses) {
+		throw nonAllowedTxResponses.errors;
+	}
+
+	const {
+		transactionsResponses,
+	} = await modules.processTransactions.verifyTransactions(
+		nonInertTransactions
+	);
+
+	const unverifiableTransactionsResponse = transactionsResponses.filter(
+		transactionResponse => transactionResponse.status !== TransactionStatus.OK
+	);
+
+	if (unverifiableTransactionsResponse.length > 0) {
+		throw unverifiableTransactionsResponse[0].errors;
+	}
 };
 
 /**
@@ -320,7 +323,7 @@ __private.verifyPayload = function(block, result) {
 		let bytes;
 
 		try {
-			bytes = library.logic.transaction.getBytes(transaction);
+			bytes = transaction.getBytes();
 		} catch (e) {
 			result.errors.push(e.toString());
 		}
@@ -638,8 +641,8 @@ __private.addBlockProperties = function(block, broadcast, cb) {
 __private.normalizeBlock = function(block, cb) {
 	try {
 		block = library.logic.block.objectNormalize(block);
-	} catch (err) {
-		return setImmediate(cb, err);
+	} catch (error) {
+		return setImmediate(cb, error);
 	}
 
 	return setImmediate(cb);
@@ -746,28 +749,6 @@ __private.validateBlockSlot = function(block, cb) {
 };
 
 /**
- * Checks transactions in block.
- *
- * @private
- * @func checkTransactions
- * @param {Object} block - Full block
- * @param  {boolean} checkExists - Check if transactions already exists in database
- * @param {function} cb - Callback function
- * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object} cb.err - Error if occurred
- */
-__private.checkTransactions = function(block, checkExists, cb) {
-	// Check against the mem_* tables that we can perform the transactions included in the block
-	async.eachSeries(
-		block.transactions,
-		(transaction, eachSeriesCb) => {
-			__private.checkTransaction(block, transaction, checkExists, eachSeriesCb);
-		},
-		err => setImmediate(cb, err)
-	);
-};
-
-/**
  * Main function to process a block:
  * - Verify the block looks ok
  * - Verify the block is compatible with database state (DATABASE readonly)
@@ -820,7 +801,10 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 			checkTransactions(seriesCb) {
 				// checkTransactions should check for transactions to exists in database
 				// only if the block needed to be saved to database
-				__private.checkTransactions(block, saveBlock, seriesCb);
+				__private
+					.checkTransactions(block, saveBlock)
+					.then(seriesCb)
+					.catch(seriesCb);
 			},
 			applyBlock(seriesCb) {
 				// The block and the transactions are OK i.e:
@@ -830,22 +814,28 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 				// Also that function set new block as our last block
 				modules.blocks.chain.applyBlock(block, saveBlock, seriesCb);
 			},
-			// Perform next two steps only when 'broadcast' flag is set, it can be:
+			// Perform the next step only when 'broadcast' flag is set, it can be:
 			// 'true' if block comes from generation or receiving process
-			// 'false' if block comes from chain synchronisation process
-			updateSystemHeaders(seriesCb) {
-				// Update our own headers: broadhash and height
-				if (!library.config.loading.snapshotRound) {
-					return components.system
-						.update()
-						.then(() => seriesCb())
+			// 'false' if block comes from chain synchronization process
+			updateApplicationState(seriesCb) {
+				if (!library.config.loading.rebuildUpToRound && broadcast) {
+					return modules.blocks
+						.calculateNewBroadhash()
+						.then(({ broadhash, height }) => {
+							// Listen for the update of step to move to next step
+							library.channel.once('app:state:updated', () => {
+								seriesCb();
+							});
+
+							// Update our application state: broadhash and height
+							return library.channel.invoke('app:updateApplicationState', {
+								broadhash,
+								height,
+							});
+						})
 						.catch(seriesCb);
 				}
 				return seriesCb();
-			},
-			broadcastHeaders(seriesCb) {
-				// Notify all remote peers about our new headers
-				broadcast ? modules.transport.broadcastHeaders(seriesCb) : seriesCb();
 			},
 		},
 		err => setImmediate(cb, err)
@@ -853,22 +843,19 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 };
 
 /**
- * Handle modules initialization & components
+ * It assigns modules to private constants.
  *
- * @param {Object} scope - Exposed modules
+ * @param {modules} scope - Exposed modules
  */
 Verify.prototype.onBind = function(scope) {
 	library.logger.trace('Blocks->Verify: Shared modules bind.');
-	components = {
-		system: scope.components.system,
-	};
 
 	modules = {
 		accounts: scope.modules.accounts,
 		blocks: scope.modules.blocks,
 		delegates: scope.modules.delegates,
 		transactions: scope.modules.transactions,
-		transport: scope.modules.transport,
+		processTransactions: scope.modules.processTransactions,
 	};
 
 	// Set module as loaded

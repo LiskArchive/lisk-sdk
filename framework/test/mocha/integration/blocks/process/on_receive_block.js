@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -28,13 +28,17 @@ const application = require('../../../common/application');
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
 
-describe('system test (blocks) - process onReceiveBlock()', () => {
+describe('integration test (blocks) - process onReceiveBlock()', () => {
 	let library;
 	let storage;
 
 	before(done => {
 		application.init(
-			{ sandbox: { name: 'system_blocks_process_on_receive_block' } },
+			{
+				sandbox: {
+					name: 'blocks_process_on_receive_block',
+				},
+			},
 			(err, scope) => {
 				library = scope;
 				storage = scope.components.storage;
@@ -96,13 +100,9 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 			);
 		}
 
-		const transactionPool = library.rewiredModules.transactions.__get__(
-			'__private.transactionPool'
-		);
-
 		async.waterfall(
 			[
-				transactionPool.fillPool,
+				library.modules.transactions.fillPool,
 				function(waterFallCb) {
 					getNextForger(null, delegatePublicKey => {
 						waterFallCb(null, delegatePublicKey);

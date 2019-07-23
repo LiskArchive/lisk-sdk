@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -14,8 +14,17 @@
 
 'use strict';
 
+const crypto = require('crypto');
 const rewire = require('rewire');
+const transactionStatus = require('@liskhq/lisk-transactions').Status;
 const Bignum = require('../../../../../../../src/modules/chain/helpers/bignum');
+const {
+	registeredTransactions,
+} = require('../../../../../common/registered_transactions');
+const InitTransaction = require('../../../../../../../src/modules/chain/logic/init_transaction');
+const { Transaction } = require('../../../../../fixtures/transactions');
+
+const initTransaction = new InitTransaction({ registeredTransactions });
 
 const BlocksVerify = rewire(
 	'../../../../../../../src/modules/chain/submodules/blocks/verify'
@@ -29,12 +38,11 @@ describe('blocks/verify', () => {
 	let loggerStub;
 	let storageStub;
 	let logicBlockStub;
-	let logicTransactionStub;
 	let configMock;
 	let blocksVerifyModule;
 	let bindingsStub;
 	let modules;
-	let components;
+	let channelMock;
 
 	beforeEach(done => {
 		// Logic
@@ -52,6 +60,9 @@ describe('blocks/verify', () => {
 					get: sinonSandbox.stub(),
 					isPersisted: sinonSandbox.stub(),
 				},
+				Transaction: {
+					get: sinonSandbox.stub(),
+				},
 			},
 		};
 
@@ -61,25 +72,29 @@ describe('blocks/verify', () => {
 			objectNormalize: sinonSandbox.stub(),
 		};
 
-		logicTransactionStub = {
-			getId: sinonSandbox.stub(),
-			checkConfirmed: sinonSandbox.stub(),
-			verify: sinonSandbox.stub(),
-			getBytes: sinonSandbox.stub(),
-		};
-
 		configMock = {
 			loading: {
-				snapshotRound: null,
+				rebuildUpToRound: null,
 			},
+		};
+
+		channelMock = {
+			invoke: sinonSandbox
+				.stub()
+				.withArgs('app:updateApplicationState')
+				.returns(true),
+			once: sinonSandbox
+				.stub()
+				.withArgs('app:state:updated')
+				.callsArg(1),
 		};
 
 		blocksVerifyModule = new BlocksVerify(
 			loggerStub,
 			logicBlockStub,
-			logicTransactionStub,
 			storageStub,
-			configMock
+			configMock,
+			channelMock
 		);
 
 		library = BlocksVerify.__get__('library');
@@ -101,10 +116,6 @@ describe('blocks/verify', () => {
 			removeUnconfirmedTransaction: sinonSandbox.stub(),
 		};
 
-		const modulesTransportStub = {
-			broadcastHeaders: sinonSandbox.stub(),
-		};
-
 		const modulesBlocksStub = {
 			lastBlock: {
 				get: sinonSandbox.stub(),
@@ -116,10 +127,14 @@ describe('blocks/verify', () => {
 				broadcastReducedBlock: sinonSandbox.stub(),
 				applyBlock: sinonSandbox.stub(),
 			},
+			calculateNewBroadhash: sinonSandbox.stub(),
 		};
 
-		const componentsSystemStub = {
-			update: sinonSandbox.stub(),
+		const modulesProcessTransactionsStub = {
+			verifyTransactions: sinonSandbox.stub(),
+			checkAllowedTransactions: sinonSandbox.stub().returns({
+				transactionsResponses: [],
+			}),
 		};
 
 		bindingsStub = {
@@ -128,17 +143,12 @@ describe('blocks/verify', () => {
 				blocks: modulesBlocksStub,
 				delegates: modulesDelegatesStub,
 				transactions: modulesTransactionsStub,
-				transport: modulesTransportStub,
-			},
-
-			components: {
-				system: componentsSystemStub,
+				processTransactions: modulesProcessTransactionsStub,
 			},
 		};
 
 		blocksVerifyModule.onBind(bindingsStub);
 		modules = BlocksVerify.__get__('modules');
-		components = BlocksVerify.__get__('components');
 		done();
 	});
 
@@ -150,7 +160,6 @@ describe('blocks/verify', () => {
 			expect(library.storage).to.eql(storageStub);
 			expect(library.logic.block).to.eql(logicBlockStub);
 			expect(library.config).to.eql(configMock);
-			return expect(library.logic.transaction).to.eql(logicTransactionStub);
 		});
 
 		it('should initialize __private.blockReward', async () => {
@@ -173,137 +182,6 @@ describe('blocks/verify', () => {
 			expect(blocksVerifyModule.deleteBlockProperties).to.be.a('function');
 			expect(blocksVerifyModule.processBlock).to.be.a('function');
 			return expect(blocksVerifyModule.onBind).to.be.a('function');
-		});
-	});
-
-	describe('__private.checkTransaction', () => {
-		const dummyBlock = { id: '5', height: 5 };
-		const dummyTransaction = { id: '5', type: 0 };
-
-		describe('when library.logic.transaction.getId fails', () => {
-			beforeEach(() => library.logic.transaction.getId.throws('getId-ERR'));
-
-			it('should call a callback with error', done => {
-				__private.checkTransaction(dummyBlock, dummyTransaction, true, err => {
-					expect(err).to.equal('getId-ERR');
-					done();
-				});
-			});
-		});
-
-		describe('when library.logic.transaction.getId succeeds', () => {
-			beforeEach(() => library.logic.transaction.getId.returns('4'));
-
-			describe('when modules.accounts.getAccount fails', () => {
-				beforeEach(() =>
-					modules.accounts.getAccount.callsArgWith(1, 'getAccount-ERR', null)
-				);
-
-				it('should call a callback with error', done => {
-					__private.checkTransaction(
-						dummyBlock,
-						dummyTransaction,
-						true,
-						err => {
-							expect(err).to.equal('getAccount-ERR');
-							done();
-						}
-					);
-				});
-			});
-
-			describe('when modules.accounts.getAccount succeeds', () => {
-				beforeEach(() =>
-					modules.accounts.getAccount.callsArgWith(1, null, true)
-				);
-
-				describe('when library.logic.transaction.verify succeeds', () => {
-					beforeEach(() =>
-						library.logic.transaction.verify.callsArgWith(4, null, true)
-					);
-
-					it('should call a callback with no error', done => {
-						__private.checkTransaction(
-							dummyBlock,
-							dummyTransaction,
-							true,
-							err => {
-								expect(err).to.be.null;
-								done();
-							}
-						);
-					});
-				});
-
-				describe('when library.logic.transaction.verify fails', () => {
-					beforeEach(() =>
-						library.logic.transaction.verify.callsArgWith(4, 'verify-ERR', null)
-					);
-
-					it('should call a callback with error', done => {
-						__private.checkTransaction(
-							dummyBlock,
-							dummyTransaction,
-							true,
-							err => {
-								expect(err).to.equal('verify-ERR');
-								done();
-							}
-						);
-					});
-
-					describe('when failure is related to fork 2', () => {
-						beforeEach(() => {
-							library.logic.transaction.verify.callsArgWith(
-								4,
-								'Transaction is already confirmed',
-								null
-							);
-							modules.delegates.fork.returns();
-							modules.transactions.removeUnconfirmedTransaction.returns();
-							return modules.transactions.undoUnconfirmed.callsArgWith(1, null);
-						});
-
-						it('should log the fork 2 entry', done => {
-							__private.checkTransaction(
-								dummyBlock,
-								dummyTransaction,
-								true,
-								err => {
-									expect(err).to.equal('Transaction is already confirmed');
-									expect(modules.delegates.fork).to.be.calledOnce;
-									expect(modules.delegates.fork).to.be.calledWithExactly(
-										dummyBlock,
-										2
-									);
-									done();
-								}
-							);
-						});
-
-						it('should undo unconfirmed state for that transaction', done => {
-							__private.checkTransaction(
-								dummyBlock,
-								dummyTransaction,
-								true,
-								err => {
-									expect(err).to.equal('Transaction is already confirmed');
-									expect(modules.transactions.undoUnconfirmed).to.be.calledOnce;
-									expect(
-										modules.transactions.undoUnconfirmed.firstCall.args[0]
-									).to.be.eql(dummyTransaction);
-									expect(modules.transactions.removeUnconfirmedTransaction).to
-										.be.calledOnce;
-									expect(
-										modules.transactions.removeUnconfirmedTransaction
-									).to.be.calledWithExactly(dummyTransaction.id);
-									done();
-								}
-							);
-						});
-					});
-				});
-			});
 		});
 	});
 
@@ -735,34 +613,37 @@ describe('blocks/verify', () => {
 
 	describe('__private.verifyPayload', () => {
 		let verifyPayload;
+
+		const payloadHash = crypto.createHash('sha256');
+		const transactionOne = initTransaction.fromJson(
+			new Transaction({ type: 0 })
+		);
+		const transactionTwo = initTransaction.fromJson(
+			new Transaction({ type: 0 })
+		);
+		const transactions = [transactionOne, transactionTwo];
+		let totalAmount = new Bignum(0);
+		let totalFee = new Bignum(0);
+
+		for (let i = 0; i < transactions.length; i++) {
+			const transaction = transactions[i];
+			const bytes = transaction.getBytes(transaction);
+
+			totalFee = totalFee.plus(transaction.fee);
+			totalAmount = totalAmount.plus(transaction.amount);
+
+			payloadHash.update(bytes);
+		}
+
 		const dummyBlock = {
-			payloadLength: 2,
-			numberOfTransactions: 2,
-			payloadHash:
-				'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-			totalAmount: 10,
-			totalFee: 2,
-			transactions: [
-				{
-					amount: 5,
-					fee: 1,
-					id: 1,
-				},
-				{
-					amount: 5,
-					fee: 1,
-					id: 2,
-				},
-			],
+			totalAmount,
+			totalFee,
+			payloadHash: payloadHash.digest().toString('hex'),
+			numberOfTransactions: transactions.length,
+			transactions,
 		};
 
 		describe('when __private.verifyPayload fails', () => {
-			afterEach(() =>
-				expect(verifyPayload.errors)
-					.to.be.an('array')
-					.with.lengthOf(1)
-			);
-
 			describe('when payload lenght is too long', () => {
 				it('should return error', async () => {
 					const dummyBlockERR = _.cloneDeep(dummyBlock);
@@ -805,43 +686,16 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe('library.logic.transaction.getBytes fails', () => {
-				describe('when throws error', () => {
-					beforeEach(() =>
-						library.logic.transaction.getBytes
-							.onCall(0)
-							.throws('getBytes-ERR')
-							.onCall(1)
-							.returns(0)
-					);
-
-					it('should return error', async () => {
-						verifyPayload = __private.verifyPayload(dummyBlock, { errors: [] });
-						return expect(verifyPayload.errors[0]).to.equal('getBytes-ERR');
-					});
-				});
-
-				describe('when returns invalid bytes', () => {
-					beforeEach(() => library.logic.transaction.getBytes.returns('abc'));
-
-					it('should return error', async () => {
-						verifyPayload = __private.verifyPayload(dummyBlock, { errors: [] });
-						return expect(verifyPayload.errors[0]).to.equal(
-							'Invalid payload hash'
-						);
-					});
-				});
-			});
-
 			describe('when encountered duplicate transaction', () => {
 				it('should return error', async () => {
 					const dummyBlockERR = _.cloneDeep(dummyBlock);
-					dummyBlockERR.transactions[1].id = 1;
+					dummyBlockERR.transactions.pop();
+					dummyBlockERR.transactions.push(transactionOne);
 					verifyPayload = __private.verifyPayload(dummyBlockERR, {
 						errors: [],
 					});
 					return expect(verifyPayload.errors[0]).to.equal(
-						'Encountered duplicate transaction: 1'
+						`Encountered duplicate transaction: ${transactionOne.id}`
 					);
 				});
 			});
@@ -1907,69 +1761,106 @@ describe('blocks/verify', () => {
 	});
 
 	describe('__private.checkTransactions', () => {
-		let checkTransactionTemp;
 		let dummyBlock;
+		let validTransactionsResponse;
+		let invalidTransactionsResponse;
 
-		beforeEach(done => {
-			checkTransactionTemp = __private.checkTransaction;
-			__private.checkTransaction = sinonSandbox.stub();
-			done();
-		});
-
-		afterEach(done => {
-			__private.checkTransaction = checkTransactionTemp;
-			done();
+		beforeEach(async () => {
+			dummyBlock = {
+				id: 1,
+				transactions: [
+					{
+						id: '123',
+					},
+				],
+			};
 		});
 
 		describe('when block.transactions is empty', () => {
-			afterEach(
-				async () => expect(__private.checkTransaction.called).to.be.false
-			);
-
-			it('should call a callback with no error', done => {
+			it('should not throw', async () => {
 				dummyBlock = { id: 1, transactions: [] };
-				__private.checkTransactions(dummyBlock, true, err => {
-					expect(err).to.be.null;
-					done();
-				});
+				expect(__private.checkTransactions.bind(__private, dummyBlock, true)).to
+					.not.throw;
 			});
 		});
 
 		describe('when block.transactions is not empty', () => {
-			afterEach(
-				async () => expect(__private.checkTransaction.called).to.be.true
-			);
+			describe('when checkExists is set to true', () => {
+				describe('when Transaction.get returns confirmed transactions', () => {
+					beforeEach(async () => {
+						storageStub.entities.Transaction.get.resolves(
+							dummyBlock.transactions
+						);
+					});
 
-			describe('when __private.checkTransaction fails', () => {
-				beforeEach(() =>
-					__private.checkTransaction.callsArgWith(
-						2,
-						'checkTransaction-ERR',
-						null
-					)
-				);
+					it('should throw error when transaction is already confirmed', async () => {
+						expect(__private.checkTransactions(dummyBlock, true)).to.eventually
+							.rejected;
+					});
+				});
 
-				it('should call a callback with error', done => {
-					dummyBlock = { id: 1, transactions: [{ id: 1 }] };
-					__private.checkTransactions(dummyBlock, err => {
-						expect(err).to.equal('checkTransaction-ERR');
-						done();
+				describe('when Transaction.get returns empty array', () => {
+					beforeEach(async () => {
+						validTransactionsResponse = dummyBlock.transactions.map(
+							transaction => ({
+								id: transaction.id,
+								status: transactionStatus.OK,
+								errors: [],
+							})
+						);
+
+						invalidTransactionsResponse = dummyBlock.transactions.map(
+							transaction => ({
+								id: transaction.id,
+								status: transactionStatus.FAIL,
+								errors: [new Error()],
+							})
+						);
+
+						storageStub.entities.Transaction.get.resolves([]);
+					});
+
+					// TODO: slight behaviour changed in method check
+					// eslint-disable-next-line
+					it.skip('should not throw if the verifyTransaction returns transaction response with Status = OK', async () => {
+						modules.processTransactions.verifyTransactions.resolves(
+							validTransactionsResponse
+						);
+						await __private.checkTransactions(dummyBlock, true);
+						expect(modules.processTransactions.verifyTransactions).to.be
+							.calledOnce;
+					});
+
+					it('should throw if the verifyTransaction returns transaction response with Status != OK', async () => {
+						modules.processTransactions.verifyTransactions.resolves(
+							invalidTransactionsResponse
+						);
+						expect(__private.checkTransactions(dummyBlock, true)).to.eventually
+							.throw;
 					});
 				});
 			});
 
-			describe('when __private.checkTransaction succeeds', () => {
-				beforeEach(() =>
-					__private.checkTransaction.callsArgWith(2, null, true)
-				);
+			it('should call modules.processTransactions.checkAllowedTransactions', async () => {
+				__private.checkTransactions(dummyBlock, false);
 
-				it('should call a callback with no error', done => {
-					dummyBlock = { id: 1, transactions: [{ id: 1 }] };
-					__private.checkTransactions(dummyBlock, err => {
-						expect(err).to.be.null;
-						done();
-					});
+				expect(modules.processTransactions.checkAllowedTransactions).to.have
+					.been.called;
+			});
+
+			it('should throw an array of errors if transactions are not allowed', async () => {
+				modules.processTransactions.checkAllowedTransactions.returns({
+					transactionsResponses: [
+						{
+							id: 1,
+							status: transactionStatus.FAIL,
+							errors: [new Error('anError')],
+						},
+					],
 				});
+
+				expect(__private.checkTransactions(dummyBlock, false)).to.eventually.be
+					.rejected;
 			});
 		});
 	});
@@ -1993,15 +1884,11 @@ describe('blocks/verify', () => {
 			__private.validateBlockSlot = sinonSandbox
 				.stub()
 				.callsArgWith(1, null, true);
-			__private.checkTransactions = sinonSandbox
-				.stub()
-				.callsArgWith(2, null, true);
+			__private.checkTransactions = sinonSandbox.stub().resolves();
 			modules.blocks.chain.applyBlock.callsArgWith(2, null, true);
 			__private.broadcastBlock = sinonSandbox
 				.stub()
 				.callsArgWith(2, null, true);
-			components.system.update.resolves();
-			modules.transport.broadcastHeaders.callsArgWith(0, null, true);
 			done();
 		});
 
@@ -2027,38 +1914,26 @@ describe('blocks/verify', () => {
 			done();
 		});
 
-		describe('system update', () => {
-			it('should be called if snapshotting was not activated', done => {
+		describe('applicationState update', () => {
+			beforeEach(() =>
+				modules.blocks.calculateNewBroadhash.resolves({
+					broadhash: 'xx',
+					height: 1,
+				})
+			);
+
+			afterEach(() => channelMock.invoke.resetHistory());
+
+			it('should be called if snapshotting was not activated and broadcast is true', done => {
+				broadcast = true;
 				blocksVerifyModule.processBlock(
 					dummyBlock,
 					broadcast,
 					saveBlock,
 					err => {
 						expect(err).to.be.null;
-						expect(components.system.update.calledOnce).to.be.true;
-						done();
-					}
-				);
-			});
-
-			it('should not be called if snapshotting was activated', done => {
-				const blocksVerifyAuxModule = new BlocksVerify(
-					loggerStub,
-					logicBlockStub,
-					logicTransactionStub,
-					storageStub,
-					{
-						loading: { snapshotRound: 123 },
-					}
-				);
-
-				blocksVerifyAuxModule.processBlock(
-					dummyBlock,
-					broadcast,
-					saveBlock,
-					err => {
-						expect(err).to.be.null;
-						expect(components.system.update.calledOnce).to.be.false;
+						expect(channelMock.once).to.be.calledOnce;
+						expect(channelMock.invoke).to.be.calledOnce;
 						done();
 					}
 				);
@@ -2066,6 +1941,13 @@ describe('blocks/verify', () => {
 		});
 
 		describe('when broadcast = true', () => {
+			beforeEach(() =>
+				modules.blocks.calculateNewBroadhash.resolves({
+					broadhash: 'xx',
+					height: 1,
+				})
+			);
+
 			describe('when saveBlock = true', () => {
 				it('should call private functions with correct parameters', done => {
 					broadcast = true;
@@ -2076,7 +1958,6 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
-							expect(modules.transport.broadcastHeaders.calledOnce).to.be.true;
 							expect(__private.checkExists).to.have.been.calledWith(dummyBlock);
 							done();
 						}
@@ -2094,7 +1975,6 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
-							expect(modules.transport.broadcastHeaders.calledOnce).to.be.true;
 							expect(__private.checkExists).to.not.called;
 							done();
 						}
@@ -2104,6 +1984,13 @@ describe('blocks/verify', () => {
 		});
 
 		describe('when broadcast = false', () => {
+			beforeEach(() =>
+				modules.blocks.calculateNewBroadhash.resolves({
+					broadhash: 'xx',
+					height: 1,
+				})
+			);
+
 			describe('when saveBlock = true', () => {
 				it('should call private functions with correct parameters', done => {
 					broadcast = false;
@@ -2114,7 +2001,6 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
-							expect(modules.transport.broadcastHeaders.calledOnce).to.be.false;
 							expect(__private.checkExists).to.have.been.calledWith(dummyBlock);
 							done();
 						}
@@ -2132,7 +2018,6 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
-							expect(modules.transport.broadcastHeaders.calledOnce).to.be.false;
 							expect(__private.checkExists).to.not.called;
 							done();
 						}
@@ -2160,8 +2045,8 @@ describe('blocks/verify', () => {
 								__private.validateBlockSlot,
 								__private.checkTransactions,
 								modules.blocks.chain.applyBlock,
-								components.system.update,
-								modules.transport.broadcastHeaders
+
+								channelMock.invoke
 							);
 
 							done();
@@ -2190,8 +2075,6 @@ describe('blocks/verify', () => {
 			expect(modules.blocks).to.equal(bindingsStub.modules.blocks);
 			expect(modules.delegates).to.equal(bindingsStub.modules.delegates);
 			expect(modules.transactions).to.equal(bindingsStub.modules.transactions);
-			expect(components.system).to.equal(bindingsStub.components.system);
-			expect(modules.transport).to.equal(bindingsStub.modules.transport);
 			done();
 		});
 

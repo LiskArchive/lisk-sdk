@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -231,15 +231,15 @@ class Transaction extends BaseEntity {
 		});
 
 		this.addField('dapp_name', 'string', {
-			fieldName: "asset->'dapp'->>'name'",
+			fieldName: "trs.asset->'dapp'->>'name'",
 			filter: filterTypes.CUSTOM,
 			filterCondition:
-				'asset @> \'{ "dapp": { "name": "${dapp_name:value}" } }\'::jsonb',
+				'trs.asset @> \'{ "dapp": { "name": "${dapp_name:value}" } }\'::jsonb',
 		});
 
 		this.addFilter('dapp_link', filterTypes.CUSTOM, {
 			condition:
-				'asset @> \'{ "dapp": { "link": "${dapp_link:value}" } }\'::jsonb',
+				'trs.asset @> \'{ "dapp": { "link": "${dapp_link:value}" } }\'::jsonb',
 		});
 
 		this.SQLs = this.loadSQLFiles('transaction', sqlFiles);
@@ -403,7 +403,10 @@ class Transaction extends BaseEntity {
 
 		// TODO: improve this logic
 		parsedSort = parsedSort.replace('"rowId"', 'trs."rowId"');
-		parsedSort = parsedSort.replace('"dapp_name"', "asset->'dapp'->>'name'");
+		parsedSort = parsedSort.replace(
+			'"dapp_name"',
+			"trs.asset->'dapp'->>'name'"
+		);
 
 		const params = {
 			limit: parsedOptions.limit,

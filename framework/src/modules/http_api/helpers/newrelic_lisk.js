@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -38,9 +38,8 @@ const controllerMethodExtractor = (shim, controller) =>
 		shim.isFunction(controller[name])
 	);
 
-fs
-	.readdirSync(newrelicLisk.config.rootPath + controllerFolder)
-	.forEach(file => {
+fs.readdirSync(newrelicLisk.config.rootPath + controllerFolder).forEach(
+	file => {
 		if (path.basename(file) !== 'index.js') {
 			const controllerPath = `${
 				newrelicLisk.config.rootPath
@@ -57,4 +56,5 @@ fs
 				controllerMethodExtractor
 			);
 		}
-	});
+	}
+);

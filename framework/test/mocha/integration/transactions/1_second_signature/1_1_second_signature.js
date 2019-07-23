@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -22,9 +22,9 @@ const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
 
-const { NORMALIZER } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 
-describe('system test (type 1) - double second signature registrations', () => {
+describe('integration test (type 1) - double second signature registrations', () => {
 	let library;
 
 	const account = randomUtil.account();
@@ -36,7 +36,7 @@ describe('system test (type 1) - double second signature registrations', () => {
 	let transaction1;
 	let transaction2;
 
-	localCommon.beforeBlock('system_1_1_second_sign', lib => {
+	localCommon.beforeBlock('1_1_second_sign', lib => {
 		library = lib;
 	});
 
@@ -71,14 +71,31 @@ describe('system test (type 1) - double second signature registrations', () => {
 
 	describe('after forging one block', () => {
 		before(done => {
-			localCommon.forge(library, async () => {
+			localCommon.fillPool(library, () => {
+				localCommon.forge(library, async () => {
+					done();
+				});
+			});
+		});
+
+		it('first transaction to arrive should be included', done => {
+			const filter = {
+				id: transaction1.id,
+			};
+			localCommon.getTransactionFromModule(library, filter, (err, res) => {
+				expect(err).to.be.null;
+				expect(res)
+					.to.have.property('transactions')
+					.which.is.an('Array');
+				expect(res.transactions.length).to.equal(1);
+				expect(res.transactions[0].id).to.equal(transaction1.id);
 				done();
 			});
 		});
 
-		it('first transaction to arrive should not be included', done => {
+		it('last transaction to arrive should not be included', done => {
 			const filter = {
-				id: transaction1.id,
+				id: transaction2.id,
 			};
 			localCommon.getTransactionFromModule(library, filter, (err, res) => {
 				expect(err).to.be.null;
@@ -90,24 +107,17 @@ describe('system test (type 1) - double second signature registrations', () => {
 			});
 		});
 
-		it('last transaction to arrive should be included', done => {
-			const filter = {
-				id: transaction2.id,
-			};
-			localCommon.getTransactionFromModule(library, filter, (err, res) => {
-				expect(err).to.be.null;
-				expect(res)
-					.to.have.property('transactions')
-					.which.is.an('Array');
-				expect(res.transactions.length).to.equal(1);
-				expect(res.transactions[0].id).to.equal(transaction2.id);
-				done();
-			});
-		});
-
 		it('adding to pool second signature registration for same account should fail', done => {
-			localCommon.addTransaction(library, transaction1, err => {
-				expect(err).to.equal('Sender already has second signature enabled');
+			localCommon.addTransaction(library, transaction2, err => {
+				const expectedErrors = [
+					`Transaction: ${
+						transaction2.id
+					} failed at .signSignature: Missing signSignature`,
+					`Transaction: ${
+						transaction2.id
+					} failed at .secondPublicKey: Register second signature only allowed once per account.`,
+				];
+				expect(err).to.equal(expectedErrors.join(','));
 				done();
 			});
 		});

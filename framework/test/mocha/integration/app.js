@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -28,11 +28,14 @@ describe('app', () => {
 
 	describe('init', () => {
 		it('should init successfully without any error', done => {
-			application.init({ sandbox: { name: 'lisk_test_app' } }, (err, lib) => {
-				library = lib;
-				Queries = new QueriesHelper(lib, library.components.storage);
-				done(err);
-			});
+			application.init(
+				{ sandbox: { name: 'lisk_integration_test_app' } },
+				(err, lib) => {
+					library = lib;
+					Queries = new QueriesHelper(lib, library.components.storage);
+					done(err);
+				}
+			);
 		});
 	});
 
@@ -130,9 +133,6 @@ describe('app', () => {
 								expect(delegate.username).to.equal(
 									found.asset.delegate.username
 								);
-								expect(delegate.u_username).to.equal(
-									found.asset.delegate.username
-								);
 								expect(delegate.address).to.equal(found.senderId);
 								expect(delegate.publicKey.toString('hex')).to.equal(
 									found.senderPublicKey
@@ -185,7 +185,6 @@ describe('app', () => {
 								expect(delegate.producedBlocks).to.equal(0);
 								expect(delegate.missedBlocks).to.equal(0);
 								expect(delegate.isDelegate).to.equal(1);
-								expect(delegate.u_isDelegate).to.equal(1);
 							});
 							done();
 						});
@@ -276,7 +275,6 @@ describe('app', () => {
 								);
 
 								expect(genesisAccount.balance).to.be.equal(balance);
-								expect(genesisAccount.u_balance).to.be.equal(balance);
 								expect(genesisAccount.publicKey.toString('hex')).to.equal(
 									genesisAccountTransaction.senderPublicKey
 								);
@@ -362,7 +360,7 @@ describe('app', () => {
 
 				it('length should match delegates length from config file', async () => {
 					return expect(Object.keys(keypairs).length).to.equal(
-						__testContext.config.forging.delegates.length
+						__testContext.config.modules.chain.forging.delegates.length
 					);
 				});
 

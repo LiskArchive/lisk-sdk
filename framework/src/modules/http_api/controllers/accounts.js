@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -40,18 +40,15 @@ function AccountsController(scope) {
 }
 
 function accountFormatter(totalSupply, account) {
-	const object = _.pick(account, [
+	const formattedAccount = _.pick(account, [
 		'address',
 		'publicKey',
 		'balance',
-		'u_balance',
 		'secondPublicKey',
 	]);
-	object.unconfirmedBalance = object.u_balance;
-	delete object.u_balance;
 
 	if (account.isDelegate) {
-		object.delegate = _.pick(account, [
+		formattedAccount.delegate = _.pick(account, [
 			'username',
 			'vote',
 			'rewards',
@@ -61,19 +58,19 @@ function accountFormatter(totalSupply, account) {
 			'productivity',
 		]);
 
-		object.delegate.rank = parseInt(object.delegate.rank);
+		formattedAccount.delegate.rank = parseInt(formattedAccount.delegate.rank);
 
 		// Computed fields
-		object.delegate.approval = calculateApproval(
-			object.delegate.vote,
+		formattedAccount.delegate.approval = calculateApproval(
+			formattedAccount.delegate.vote,
 			totalSupply
 		);
 	}
 
-	object.publicKey = object.publicKey || '';
-	object.secondPublicKey = object.secondPublicKey || '';
+	formattedAccount.publicKey = formattedAccount.publicKey || '';
+	formattedAccount.secondPublicKey = formattedAccount.secondPublicKey || '';
 
-	return object;
+	return formattedAccount;
 }
 
 /**
@@ -103,25 +100,21 @@ AccountsController.getAccounts = async function(context, next) {
 		limit: params.limit.value,
 		offset: params.offset.value,
 		sort: params.sort.value,
+		extended: false,
 	};
 
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	try {
-		let lastBlock = await storage.entities.Block.get(
-			{},
-			{ sort: 'height:desc', limit: 1 }
-		);
-		lastBlock = lastBlock[0];
-
+		const { lastBlock } = await channel.invoke('chain:getNodeStatus');
 		const data = await storage.entities.Account.get(filters, options).map(
 			accountFormatter.bind(
 				null,
 				lastBlock.height
 					? await channel.invoke('chain:calculateSupply', {
 							height: lastBlock.height,
-						})
+					  })
 					: 0
 			)
 		);
@@ -147,7 +140,6 @@ async function multiSigAccountFormatter(account) {
 	]);
 	result.min = account.multiMin;
 	result.lifetime = account.multiLifetime;
-	result.unconfirmedBalance = account.u_balance;
 
 	if (result.secondPublicKey === null) {
 		result.secondPublicKey = '';

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -70,7 +70,11 @@ describe('POST /api/transactions (general)', () => {
 				transaction,
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.be.equal(
+				expect(res.body.message).to.be.eql(
+					'Transaction was rejected with errors'
+				);
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
 					`Transaction is already confirmed: ${transaction.id}`
 				);
 			});

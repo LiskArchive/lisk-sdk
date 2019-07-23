@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -17,7 +17,7 @@
 const faker = require('faker');
 const difference = require('lodash').difference;
 
-const { ADDITIONAL_DATA } = __testContext.config.constants;
+const { ADDITIONAL_DATA } = global.__testContext.config;
 
 const arrays = [
 	{

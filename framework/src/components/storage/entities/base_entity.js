@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -214,17 +214,7 @@ class BaseEntity {
 	 * @return {Object}
 	 */
 	loadSQLFiles(entityLabel, sqlFiles, sqlDirectory) {
-		this.adapter.SQLs = this.adapter.SQLs || {};
-		this.adapter.SQLs[entityLabel] = this.adapter.SQLs[entityLabel] || {};
-		Object.keys(sqlFiles).forEach(key => {
-			if (!this.adapter.SQLs[entityLabel][key]) {
-				this.adapter.SQLs[entityLabel][key] = this.adapter.loadSQLFile(
-					sqlFiles[key],
-					sqlDirectory
-				);
-			}
-		});
-		return this.adapter.SQLs[entityLabel];
+		return this.adapter.loadSQLFiles(entityLabel, sqlFiles, sqlDirectory);
 	}
 
 	/**

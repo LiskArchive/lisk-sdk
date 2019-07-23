@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -16,6 +16,7 @@
 
 const chai = require('chai');
 const supertest = require('supertest');
+const _ = require('lodash');
 const Promise = require('bluebird');
 const swaggerHelper = require('../../../src/modules/http_api/helpers/swagger');
 

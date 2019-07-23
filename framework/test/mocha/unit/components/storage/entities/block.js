@@ -1,6 +1,6 @@
 /* eslint-disable mocha/no-pending-tests */
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -44,7 +44,7 @@ describe('Block', () => {
 
 	before(async () => {
 		storage = new storageSandbox.StorageSandbox(
-			__testContext.config.db,
+			__testContext.config.components.storage,
 			'lisk_test_blocks'
 		);
 		await storage.bootstrap();
@@ -464,6 +464,18 @@ describe('Block', () => {
 	});
 
 	describe('isPersisted()', () => {
+		let localAdapter;
+		const isPersistedSqlFile = 'isPersisted SQL File';
+		beforeEach(async () => {
+			localAdapter = {
+				loadSQLFiles: sinonSandbox.stub().returns({
+					isPersisted: isPersistedSqlFile,
+				}),
+				executeFile: sinonSandbox.stub().resolves([validBlock]),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+		});
+
 		afterEach(async () => {
 			await storageSandbox.clearDatabaseTable(
 				storage,
@@ -487,11 +499,6 @@ describe('Block', () => {
 		});
 
 		it('should call mergeFilters with proper params', async () => {
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([validBlock]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const block = new Block(localAdapter);
 			block.mergeFilters = sinonSandbox.stub();
 			block.parseFilters = sinonSandbox.stub();
@@ -500,11 +507,6 @@ describe('Block', () => {
 		});
 
 		it('should call parseFilters with proper params', async () => {
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
-				executeFile: sinonSandbox.stub().resolves([validBlock]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const block = new Block(localAdapter);
 			block.mergeFilters = sinonSandbox.stub().returns(validFilter);
 			block.parseFilters = sinonSandbox.stub();
@@ -513,11 +515,6 @@ describe('Block', () => {
 		});
 
 		it('should call adapter.executeFile with proper params', async () => {
-			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile response'),
-				executeFile: sinonSandbox.stub().resolves([validBlock]),
-				parseQueryComponent: sinonSandbox.stub(),
-			};
 			const block = new Block(localAdapter);
 			block.mergeFilters = sinonSandbox.stub();
 			block.parseFilters = sinonSandbox
@@ -526,7 +523,7 @@ describe('Block', () => {
 			block.isPersisted(validFilter);
 			expect(
 				localAdapter.executeFile.calledWith(
-					'loadSQLFile response',
+					isPersistedSqlFile,
 					{
 						parsedFilters: 'parsedFilters response',
 					},

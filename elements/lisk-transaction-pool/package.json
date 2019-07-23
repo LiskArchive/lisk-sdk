@@ -1,0 +1,66 @@
+{
+	"name": "@liskhq/lisk-transaction-pool",
+	"version": "0.1.1",
+	"description": "Transaction pool library for use with Lisk-related software",
+	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
+	"license": "Apache-2.0",
+	"keywords": [
+		"lisk",
+		"blockchain"
+	],
+	"homepage": "https://github.com/LiskHQ/lisk-sdk/tree/master/elements/lisk-transaction-pool#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/LiskHQ/lisk-sdk.git"
+	},
+	"bugs": {
+		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
+	},
+	"engines": {
+		"node": ">=8.10 <=10",
+		"npm": ">=3 <=6"
+	},
+	"main": "dist-node/index.js",
+	"typings": "dist-node/index.d.ts",
+	"scripts": {
+		"transpile": "tsc",
+		"clean": "./scripts/clean.sh",
+		"format": "prettier --write '**/*'",
+		"lint": "tslint --format verbose --project .",
+		"lint:fix": "npm run lint -- --fix",
+		"test": "TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/{,/**/}/*.ts",
+		"test:watch": "npm test -- --watch",
+		"test:watch:min": "npm run test:watch -- --reporter=min",
+		"test:node": "npm run build:check",
+		"cover": "if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
+		"cover:base": "nyc report",
+		"cover:local": "npm run cover:base -- --reporter=html --reporter=text",
+		"cover:ci": "npm run cover:base -- --reporter=text",
+		"prebuild:node": "rm -r dist-node/* || mkdir dist-node || true",
+		"build:node": "npm run transpile",
+		"prebuild": "npm run prebuild:node",
+		"build": "npm run build:node",
+		"build:check": "node -e \"require('./dist-node')\"",
+		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
+	},
+	"devDependencies": {
+		"@types/chai": "4.1.7",
+		"@types/expect": "1.20.3",
+		"@types/mocha": "5.2.5",
+		"@types/node": "10.12.21",
+		"@types/sinon-chai": "3.2.2",
+		"chai": "4.2.0",
+		"mocha": "5.2.0",
+		"nyc": "14.1.1",
+		"prettier": "1.16.4",
+		"sinon": "7.2.3",
+		"sinon-chai": "3.3.0",
+		"source-map-support": "0.5.10",
+		"ts-node": "8.0.2",
+		"tsconfig-paths": "3.8.0",
+		"tslint": "5.12.1",
+		"tslint-config-prettier": "1.18.0",
+		"tslint-immutable": "5.1.2",
+		"typescript": "3.3.1"
+	}
+}

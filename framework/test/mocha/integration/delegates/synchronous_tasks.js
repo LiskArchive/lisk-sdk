@@ -5,10 +5,10 @@ const Rx = require('rx');
 const localCommon = require('../common');
 const jobsQueue = require('../../../../src/modules/chain/helpers/jobs_queue');
 
-describe('system test (delegates) - synchronous tasks', () => {
+describe('integration test (delegates) - synchronous tasks', () => {
 	let library;
 
-	localCommon.beforeBlock('system_delegates_synchronous_tasks', lib => {
+	localCommon.beforeBlock('delegates_synchronous_tasks', lib => {
 		library = lib;
 	});
 
@@ -70,7 +70,7 @@ describe('system test (delegates) - synchronous tasks', () => {
 					const originalLoaderSyncTimerJob = jobsQueue.jobs.loaderSyncTimer;
 					clearTimeout(originalLoaderSyncTimerJob); // Terminate original job
 					delete jobsQueue.jobs.loaderSyncTimer; // Remove original job
-					library.modules.loader.onPeersReady(); // Execute the mocked blockchain synchronization process
+					library.modules.loader.onNetworkReady(); // Execute the mocked blockchain synchronization process
 					done();
 				});
 

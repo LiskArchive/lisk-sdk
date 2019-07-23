@@ -1,6 +1,6 @@
 /* eslint-disable mocha/no-pending-tests */
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -15,7 +15,6 @@
 
 'use strict';
 
-const Promise = require('bluebird');
 const {
 	adapters: { BaseAdapter, PgpAdapter },
 } = require('../../../../../../src/components/storage');
@@ -23,6 +22,7 @@ const {
 const loggerStub = {
 	info: sinonSandbox.stub(),
 	log: sinonSandbox.stub(),
+	error: sinonSandbox.stub(),
 };
 
 const validOptions = {
@@ -57,10 +57,6 @@ describe('PgpAdapter', () => {
 			expect(adapter.options).to.be.eql(validOptions);
 			expect(adapter.logger).to.be.eql(loggerStub);
 			expect(adapter.sqlDirectory).to.be.eql(validOptions.sqlDirectory);
-			expect(adapter.pgpOptions).to.be.an('Object');
-			expect(adapter.pgpOptions.noLocking).to.be.eql(true);
-			expect(adapter.pgpOptions.capSQL).to.be.eql(true);
-			expect(adapter.pgpOptions.promiseLib).to.be.eql(Promise);
 			expect(adapter.pgp).to.be.a('function');
 			return expect(adapter.db).to.be.undefined;
 		});
@@ -124,6 +120,98 @@ describe('PgpAdapter', () => {
 		it('should throw error if sql file path does not exists');
 		it('should exit the process if there is any error loading the sql file');
 		it('should return a file object');
+		it('should return cached QueryFile object when the same file loaded twice');
+	});
+
+	describe('loadSQLFiles()', () => {
+		let adapter;
+		let entityLabel;
+		let sqlFiles;
+		let customEntitiesPath;
+		let loadSQLFileStub;
+
+		beforeEach(async () => {
+			adapter = new PgpAdapter(validOptions);
+			loadSQLFileStub = sinonSandbox
+				.stub(adapter, 'loadSQLFile')
+				.returns('loadSQLFile');
+			entityLabel = 'baseEntity';
+			sqlFiles = {
+				get: 'path/to/get.sql',
+				save: 'path/to/save.sql',
+				update: 'path/to/update.sql',
+			};
+			customEntitiesPath = '../my/path/';
+		});
+
+		afterEach(async () => {
+			sinonSandbox.reset();
+		});
+
+		it('should initialize adapter.SQLs as object', async () => {
+			adapter.loadSQLFiles(entityLabel, {});
+			expect(typeof adapter.SQLs).to.be.eql('object');
+		});
+
+		it('should initialize adapter.SQLs[entityLabel] as object', async () => {
+			adapter.loadSQLFiles(entityLabel, {});
+			expect(typeof adapter.SQLs[entityLabel]).to.be.eql('object');
+		});
+
+		it('should return expected object', async () => {
+			const SQLs = adapter.loadSQLFiles(entityLabel, sqlFiles);
+			expect(SQLs).to.include.all.keys(Object.keys(sqlFiles));
+		});
+
+		it('should call adapter.loadSQLFile 3 times', async () => {
+			adapter.loadSQLFiles(entityLabel, sqlFiles);
+			expect(loadSQLFileStub.callCount).to.eql(Object.keys(sqlFiles).length);
+		});
+
+		it('should not call adapter.loadSQLFile again when using same arguments', async () => {
+			adapter.loadSQLFiles(entityLabel, sqlFiles);
+			adapter.loadSQLFiles(entityLabel, sqlFiles);
+			expect(loadSQLFileStub.callCount).to.eql(Object.keys(sqlFiles).length);
+		});
+
+		describe('given custom entities', () => {
+			it('should initialize adapter.SQLs as object', async () => {
+				adapter.loadSQLFiles(entityLabel, {}, customEntitiesPath);
+				expect(typeof adapter.SQLs).to.be.eql('object');
+			});
+
+			it('should initialize adapter.SQLs[entityLabel] as object', async () => {
+				adapter.loadSQLFiles(entityLabel, {}, customEntitiesPath);
+				expect(typeof adapter.SQLs[entityLabel]).to.be.eql('object');
+			});
+
+			it('should return expected object', async () => {
+				const SQLs = adapter.loadSQLFiles(
+					entityLabel,
+					sqlFiles,
+					customEntitiesPath
+				);
+				expect(SQLs).to.include.all.keys(Object.keys(sqlFiles));
+			});
+
+			it('should call adapter.loadSQLFile 3 times', async () => {
+				adapter.loadSQLFiles(entityLabel, sqlFiles, customEntitiesPath);
+				expect(loadSQLFileStub.callCount).to.eql(Object.keys(sqlFiles).length);
+			});
+
+			it('should call adapter.loadSQLFile with a second parameter', async () => {
+				adapter.loadSQLFiles(entityLabel, sqlFiles, customEntitiesPath);
+				loadSQLFileStub.args.forEach(arg => {
+					expect(arg).to.include(customEntitiesPath);
+				});
+			});
+
+			it('should not call adapter.loadSQLFile again when using same arguments', async () => {
+				adapter.loadSQLFiles(entityLabel, sqlFiles, customEntitiesPath);
+				adapter.loadSQLFiles(entityLabel, sqlFiles, customEntitiesPath);
+				expect(loadSQLFileStub.callCount).to.eql(Object.keys(sqlFiles).length);
+			});
+		});
 	});
 
 	describe('parseQueryComponent()', () => {

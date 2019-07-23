@@ -1,6 +1,6 @@
 /* eslint-disable mocha/no-pending-tests */
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -43,7 +43,7 @@ describe('Account', () => {
 
 	before(async () => {
 		storage = new storageSandbox.StorageSandbox(
-			__testContext.config.db,
+			__testContext.config.components.storage,
 			'lisk_test_storage_accounts'
 		);
 		await storage.bootstrap();
@@ -60,19 +60,12 @@ describe('Account', () => {
 			'publicKey',
 			'secondPublicKey',
 			'username',
-			'u_username',
 			'isDelegate',
-			'u_isDelegate',
 			'secondSignature',
-			'u_secondSignature',
 			'balance',
-			'u_balance',
 			'multiMin',
-			'u_multiMin',
 			'multiLifetime',
-			'u_multiLifetime',
 			'nameExist',
-			'u_nameExist',
 			'fees',
 			'rewards',
 			'producedBlocks',
@@ -98,18 +91,10 @@ describe('Account', () => {
 			'fees',
 			'rewards',
 			'vote',
-			'u_username',
-			'u_isDelegate',
-			'u_secondSignature',
-			'u_nameExist',
-			'u_multiMin',
-			'u_multiLifetime',
-			'u_balance',
 			'productivity',
 			'votedDelegatesPublicKeys',
-			'u_votedDelegatesPublicKeys',
 			'membersPublicKeys',
-			'u_membersPublicKeys',
+			'asset',
 		];
 
 		validSimpleObjectFields = [
@@ -129,13 +114,6 @@ describe('Account', () => {
 			'fees',
 			'rewards',
 			'vote',
-			'u_username',
-			'u_isDelegate',
-			'u_secondSignature',
-			'u_nameExist',
-			'u_multiMin',
-			'u_multiLifetime',
-			'u_balance',
 			'productivity',
 		];
 
@@ -160,23 +138,12 @@ describe('Account', () => {
 			'username_ne',
 			'username_in',
 			'username_like',
-			'u_username',
-			'u_username_eql',
-			'u_username_ne',
-			'u_username_in',
-			'u_username_like',
 			'isDelegate',
 			'isDelegate_eql',
 			'isDelegate_ne',
-			'u_isDelegate',
-			'u_isDelegate_eql',
-			'u_isDelegate_ne',
 			'secondSignature',
 			'secondSignature_eql',
 			'secondSignature_ne',
-			'u_secondSignature',
-			'u_secondSignature_eql',
-			'u_secondSignature_ne',
 			'balance',
 			'balance_eql',
 			'balance_ne',
@@ -253,9 +220,7 @@ describe('Account', () => {
 			'vote_lte',
 			'vote_in',
 			'votedDelegatesPublicKeys_in',
-			'u_votedDelegatesPublicKeys_in',
 			'membersPublicKeys_in',
-			'u_membersPublicKeys_in',
 		];
 
 		validOptions = {
@@ -493,21 +458,6 @@ describe('Account', () => {
 				);
 			});
 
-			it('should fetch "u_votedDelegatesPublicKeys" with correct query', async () => {
-				const accounts = await AccountEntity.get({}, { extended: true });
-
-				await Promise.all(
-					accounts.map(async account => {
-						const keys = await adapter.execute(
-							`SELECT (ARRAY_AGG("dependentId")) AS "keys" FROM mem_accounts2u_delegates WHERE "accountId" = '${
-								account.address
-							}'`
-						);
-						expect(account.u_votedDelegatesPublicKeys).to.be.eql(keys[0].keys);
-					})
-				);
-			});
-
 			it('should fetch "membersPublicKeys" with correct query', async () => {
 				const accounts = await AccountEntity.get({}, { extended: true });
 
@@ -519,21 +469,6 @@ describe('Account', () => {
 							}'`
 						);
 						expect(account.membersPublicKeys).to.be.eql(keys[0].keys);
-					})
-				);
-			});
-
-			it('should fetch "u_membersPublicKeys" with correct query', async () => {
-				const accounts = await AccountEntity.get({}, { extended: true });
-
-				await Promise.all(
-					accounts.map(async account => {
-						const keys = await adapter.execute(
-							`SELECT (ARRAY_AGG("dependentId")) AS "keys" FROM mem_accounts2u_multisignatures WHERE "accountId" = '${
-								account.address
-							}'`
-						);
-						expect(account.u_membersPublicKeys).to.be.eql(keys[0].keys);
 					})
 				);
 			});
@@ -602,19 +537,9 @@ describe('Account', () => {
 				expect(data[0].isDelegate).to.be.a('boolean');
 			});
 
-			it('should return "u_isDelegate" as "boolean"', async () => {
-				const data = await AccountEntity.get(filters, options);
-				expect(data[0].u_isDelegate).to.be.a('boolean');
-			});
-
 			it('should return "secondSignature" as "boolean"', async () => {
 				const data = await AccountEntity.get(filters, options);
 				expect(data[0].secondSignature).to.be.a('boolean');
-			});
-
-			it('should return "u_secondSignature" as "boolean"', async () => {
-				const data = await AccountEntity.get(filters, options);
-				expect(data[0].u_secondSignature).to.be.a('boolean');
 			});
 
 			it('should return "rank" as null', async () => {
@@ -881,7 +806,9 @@ describe('Account', () => {
 			// Arrange
 			const randAccount = new accountFixtures.Account();
 			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns(),
+				loadSQLFiles: sinonSandbox.stub().returns({
+					isPersisted: 'isPersisted SQL file',
+				}),
 				executeFile: sinonSandbox.stub().resolves([randAccount]),
 				parseQueryComponent: sinonSandbox.stub(),
 			};
@@ -901,7 +828,9 @@ describe('Account', () => {
 			// Arrange
 			const randAccount = new accountFixtures.Account();
 			const localAdapter = {
-				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				loadSQLFiles: sinonSandbox.stub().returns({
+					isPersisted: 'isPersisted SQL file',
+				}),
 				executeFile: sinonSandbox.stub().resolves([randAccount]),
 				parseQueryComponent: sinonSandbox.stub(),
 			};

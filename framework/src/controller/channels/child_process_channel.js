@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const { EventEmitter2 } = require('eventemitter2');
 const axon = require('pm2-axon');
 const { Server: RPCServer, Client: RPCClient } = require('pm2-axon-rpc');
@@ -57,6 +73,12 @@ class ChildProcessChannel extends BaseChannel {
 					.then(data => cb(null, data))
 					.catch(error => cb(error));
 			});
+
+			this.rpcServer.expose('invokePublic', (action, cb) => {
+				this.invokePublic(action)
+					.then(data => cb(null, data))
+					.catch(error => cb(error));
+			});
 		}
 
 		return this.setupSockets();
@@ -113,17 +135,22 @@ class ChildProcessChannel extends BaseChannel {
 		}
 	}
 
+	/**
+	 * Invoke specific action.
+	 *
+	 * @async
+	 * @param {string} actionName - Name of action to invoke
+	 * @param {array} params - Params associated with the action
+	 * @return {Promise<string>} Data returned by bus.
+	 */
 	async invoke(actionName, params) {
 		const action =
 			typeof actionName === 'string'
 				? new Action(actionName, params, this.moduleAlias)
 				: actionName;
 
-		if (
-			action.module === this.moduleAlias &&
-			typeof this.actions[action.name] === 'function'
-		) {
-			return this.actions[action.name](action);
+		if (action.module === this.moduleAlias) {
+			return this.actions[action.name].handler(action);
 		}
 
 		return new Promise((resolve, reject) => {
@@ -134,6 +161,45 @@ class ChildProcessChannel extends BaseChannel {
 
 				return resolve(data);
 			});
+		});
+	}
+
+	/**
+	 * Invoke specific public defined action.
+	 *
+	 * @async
+	 * @param {string} actionName - Name of action to invoke
+	 * @param {array} params - Params associated with the action
+	 * @return {Promise<string>} Data returned by bus.
+	 */
+	async invokePublic(actionName, params) {
+		const action =
+			typeof actionName === 'string'
+				? new Action(actionName, params, this.moduleAlias)
+				: actionName;
+
+		if (action.module === this.moduleAlias) {
+			if (!this.actions[action.name].isPublic) {
+				throw new Error(
+					`Action ${action.name} is not allowed because it's not public.`
+				);
+			}
+
+			return this.actions[action.name].handler(action);
+		}
+
+		return new Promise((resolve, reject) => {
+			this.busRpcClient.call(
+				'invokePublic',
+				action.serialize(),
+				(err, data) => {
+					if (err) {
+						return reject(err);
+					}
+
+					return resolve(data);
+				}
+			);
 		});
 	}
 

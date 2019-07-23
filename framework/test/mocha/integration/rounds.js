@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -15,6 +15,7 @@
 'use strict';
 
 const async = require('async');
+const _ = require('lodash');
 const {
 	transfer,
 	castVotes,
@@ -41,7 +42,7 @@ describe('rounds', () => {
 	// Set rewards start at 150-th block
 	REWARDS.OFFSET = 150;
 
-	localCommon.beforeBlock('lisk_functional_rounds', lib => {
+	localCommon.beforeBlock('rounds', lib => {
 		library = lib;
 		Queries = new QueriesHelper(lib, lib.components.storage);
 
@@ -63,13 +64,9 @@ describe('rounds', () => {
 			const accounts = {};
 			_.map(rows, acc => {
 				acc.nameExist = acc.nameexist;
-				acc.u_nameExist = acc.u_nameexist;
 				acc.multiLifetime = acc.multilifetime;
-				acc.u_multiLifetime = acc.u_multilifetime;
 				delete acc.nameexist;
-				delete acc.u_nameexist;
 				delete acc.multilifetime;
-				delete acc.u_multilifetime;
 
 				accounts[acc.address] = acc;
 			});
@@ -117,11 +114,6 @@ describe('rounds', () => {
 						new Bignum(transaction.fee).plus(new Bignum(transaction.amount))
 					)
 					.toString();
-				accounts[address].u_balance = new Bignum(accounts[address].u_balance)
-					.minus(
-						new Bignum(transaction.fee).plus(new Bignum(transaction.amount))
-					)
-					.toString();
 
 				// Set public key if not present
 				if (!accounts[address].publicKey) {
@@ -134,9 +126,7 @@ describe('rounds', () => {
 				// Apply register delegate transaction
 				if (transaction.type === 2) {
 					accounts[address].username = transaction.asset.delegate.username;
-					accounts[address].u_username = accounts[address].username;
 					accounts[address].isDelegate = 1;
-					accounts[address].u_isDelegate = 1;
 				}
 			}
 
@@ -148,9 +138,6 @@ describe('rounds', () => {
 				if (accounts[address]) {
 					// Update recipient
 					accounts[address].balance = new Bignum(accounts[address].balance)
-						.plus(new Bignum(transaction.amount))
-						.toString();
-					accounts[address].u_balance = new Bignum(accounts[address].u_balance)
 						.plus(new Bignum(transaction.amount))
 						.toString();
 				} else {
@@ -180,10 +167,6 @@ describe('rounds', () => {
 					.plus(new Bignum(reward.rewards))
 					.toString();
 				found.balance = new Bignum(found.balance)
-					.plus(new Bignum(reward.fees))
-					.plus(new Bignum(reward.rewards))
-					.toString();
-				found.u_balance = new Bignum(found.u_balance)
 					.plus(new Bignum(reward.fees))
 					.plus(new Bignum(reward.rewards))
 					.toString();
@@ -449,13 +432,6 @@ describe('rounds', () => {
 				return expect(transactions.map(t => t.id).sort()).to.be.deep.equal(
 					tick.after.block.transactions.map(t => t.id).sort()
 				);
-			});
-
-			it('unconfirmed account balances should match confirmed account balances', done => {
-				_.each(tick.after.accounts, account => {
-					expect(account.u_balance).to.be.equal(account.balance);
-				});
-				done();
 			});
 
 			describe('mem_accounts table', () => {
@@ -773,12 +749,8 @@ describe('rounds', () => {
 					expect(transactionPool.transactionInPool(transaction.id)).to.equal(
 						true
 					);
-					// Transaction should be present in queued list
-					expect(transactionPool.queued.index[transaction.id]).to.be.a(
-						'number'
-					);
 					// Remove transaction from pool
-					transactionPool.removeUnconfirmedTransaction(transaction.id);
+					transactionPool.onConfirmedTransactions([transaction]);
 				});
 				done();
 			});
@@ -879,12 +851,8 @@ describe('rounds', () => {
 					expect(transactionPool.transactionInPool(transaction.id)).to.equal(
 						true
 					);
-					// Transaction should be present in queued list
-					expect(transactionPool.queued.index[transaction.id]).to.be.a(
-						'number'
-					);
 					// Remove transaction from pool
-					transactionPool.removeUnconfirmedTransaction(transaction.id);
+					transactionPool.onConfirmedTransactions([transaction]);
 				});
 				done();
 			});
@@ -1013,18 +981,14 @@ describe('rounds', () => {
 						.then(() => {
 							_.each(lastBlock.transactions, eachTransaction => {
 								// Remove transaction from pool
-								transactionPool.removeUnconfirmedTransaction(
-									eachTransaction.id
-								);
+								transactionPool.onConfirmedTransactions([eachTransaction]);
 							});
 							lastBlock = library.modules.blocks.lastBlock.get();
 							deleteLastBlockPromise()
 								.then(() => {
 									_.each(lastBlock.transactions, eachTransaction => {
 										// Remove transaction from pool
-										transactionPool.removeUnconfirmedTransaction(
-											eachTransaction.id
-										);
+										transactionPool.onConfirmedTransactions([eachTransaction]);
 									});
 									done();
 								})
@@ -1151,7 +1115,7 @@ describe('rounds', () => {
 					const transactionPool = library.rewiredModules.transactions.__get__(
 						'__private.transactionPool'
 					);
-					transactionPool.queued.transactions = [];
+					transactionPool.resetPool();
 
 					// Set expected reward per block
 					expectedRewardsPerBlock = 0;
@@ -1207,7 +1171,7 @@ describe('rounds', () => {
 					const transactionPool = library.rewiredModules.transactions.__get__(
 						'__private.transactionPool'
 					);
-					transactionPool.queued.transactions = [];
+					transactionPool.resetPool();
 
 					// Set expected reward per block as first milestone
 					expectedRewardsPerBlock = REWARDS.MILESTONES[0];

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -389,7 +389,6 @@ describe('blocks/utils', () => {
 			expect(library.storage).to.eql(storageStub);
 			expect(library.logic.account).to.eql(accountMock);
 			expect(library.logic.block).to.eql(blockMock);
-			return expect(library.logic.transaction).to.eql(transactionMock);
 		});
 
 		it('should call library.logger.trace with "Blocks->Utils: Submodule initialized."', async () =>
@@ -412,18 +411,6 @@ describe('blocks/utils', () => {
 			fullBlocksListRows.forEach(block => {
 				expect(library.logic.block.dbRead).to.have.callCount(4);
 				expect(library.logic.block.dbRead).to.have.been.calledWith(block);
-			});
-			done();
-		});
-
-		it('should call library.logic.transaction.dbRead with each block', done => {
-			library.logic.transaction.dbRead = sinonSandbox.spy();
-
-			blocksUtilsModule.readDbRows(fullBlocksListRows);
-
-			fullBlocksListRows.forEach(block => {
-				expect(library.logic.transaction.dbRead).to.have.callCount(4);
-				expect(library.logic.transaction.dbRead).to.have.been.calledWith(block);
 			});
 			done();
 		});

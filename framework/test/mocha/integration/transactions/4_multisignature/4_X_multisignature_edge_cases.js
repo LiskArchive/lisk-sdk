@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -24,9 +24,9 @@ const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
 
-const { NORMALIZER } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 
-describe('system test - multi signature edge cases', () => {
+describe('integration test - multi signature edge cases', () => {
 	let library;
 	const multisigAccount = randomUtil.account();
 	let multisigTransaction;
@@ -38,7 +38,7 @@ describe('system test - multi signature edge cases', () => {
 	const signer1 = randomUtil.account();
 	const signer2 = randomUtil.account();
 
-	localCommon.beforeBlock('system_multisignature_edge_cases', lib => {
+	localCommon.beforeBlock('multisignature_edge_cases', lib => {
 		library = lib;
 	});
 
@@ -117,51 +117,56 @@ describe('system test - multi signature edge cases', () => {
 		});
 
 		it('once account balance is not enough transactions should be removed from the queue', async () => {
-			return localCommon.forge(library, async () => {
-				localCommon.getMultisignatureTransactions(
-					library,
-					{},
-					(err, queueStatusRes) => {
-						return expect(queueStatusRes.count).to.eql(0);
-					}
-				);
+			return localCommon.fillPool(library, () => {
+				return localCommon.forge(library, async () => {
+					localCommon.getMultisignatureTransactions(
+						library,
+						{},
+						(err, queueStatusRes) => {
+							return expect(queueStatusRes.count).to.eql(0);
+						}
+					);
+				});
 			});
 		});
 
-		it('invalid transaction should not be confirmed', async () => {
-			/* 	First transaction in the array is the one that gets rejected in this scenario
+		it('invalid transaction should not be confirmed', done => {
+			/* First transaction in the array is the one that gets rejected in this scenario
 				the reason why this is valid is that the transaction pool gets pooled
 				transaction in the reverse order */
-			return localCommon.getTransactionFromModule(
+			localCommon.getTransactionFromModule(
 				library,
-				{ id: transactionIds[0] },
+				{ id: transactionIds[2] },
 				(err, res) => {
-					return expect(res.transactions.lenght > 0).to.be.false;
+					expect(res.transactions).to.be.empty;
+					done();
 				}
 			);
 		});
 
 		it('valid transactions should be confirmed', done => {
-			localCommon.forge(library, async () => {
-				const found = [];
-				const validTransactions = transactionIds.slice(1);
-				async.map(
-					validTransactions,
-					(transactionId, eachCb) => {
-						localCommon.getTransactionFromModule(
-							library,
-							{ id: transactionId },
-							(err, res) => {
-								found.push(res.transactions[0].id);
-								eachCb();
-							}
-						);
-					},
-					async () => {
-						expect(found).to.have.members(validTransactions);
-						done();
-					}
-				);
+			localCommon.fillPool(library, () => {
+				localCommon.forge(library, async () => {
+					const found = [];
+					const validTransactions = transactionIds.slice(0, 2);
+					async.map(
+						validTransactions,
+						(transactionId, eachCb) => {
+							localCommon.getTransactionFromModule(
+								library,
+								{ id: transactionId },
+								(err, res) => {
+									found.push(res.transactions[0].id);
+									eachCb();
+								}
+							);
+						},
+						async () => {
+							expect(found).to.have.members(validTransactions);
+							done();
+						}
+					);
+				});
 			});
 		});
 	});

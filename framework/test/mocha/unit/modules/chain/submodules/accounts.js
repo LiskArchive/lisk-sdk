@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -151,7 +151,7 @@ describe('accounts', () => {
 			delete account.publicKey;
 
 			accounts.setAccountAndGet(account, (error, data) => {
-				expect(error).to.be.eql('Invalid public key');
+				expect(error.message).to.be.eql('Invalid public key');
 				expect(data).to.be.undefined;
 				done();
 			});

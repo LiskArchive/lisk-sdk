@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -22,7 +22,5 @@
 DELETE FROM mem_accounts;
 DELETE FROM mem_round;
 DELETE FROM mem_accounts2delegates;
-DELETE FROM mem_accounts2u_delegates;
 DELETE FROM mem_accounts2multisignatures;
-DELETE FROM mem_accounts2u_multisignatures;
 DELETE FROM rounds_rewards;

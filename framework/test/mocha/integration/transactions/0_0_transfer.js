@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -19,11 +19,11 @@ const accountFixtures = require('../../fixtures/accounts');
 const randomUtil = require('../../common/utils/random');
 const localCommon = require('../common');
 
-const { NORMALIZER } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 
-describe('system test (type 0) - double transfers', () => {
+describe('integration test (type 0) - double transfers', () => {
 	let library;
-	localCommon.beforeBlock('system_0_0_transfer', lib => {
+	localCommon.beforeBlock('0_0_transfer', lib => {
 		library = lib;
 	});
 
@@ -80,14 +80,30 @@ describe('system test (type 0) - double transfers', () => {
 
 			describe('after forging one block', () => {
 				before(done => {
-					localCommon.forge(library, async () => {
+					localCommon.fillPool(library, () => {
+						localCommon.forge(library, async () => {
+							done();
+						});
+					});
+				});
+
+				it('first transaction to arrive should be included', done => {
+					const filter = {
+						id: transaction1.id,
+					};
+					localCommon.getTransactionFromModule(library, filter, (err, res) => {
+						expect(err).to.be.null;
+						expect(res)
+							.to.have.property('transactions')
+							.which.is.an('Array');
+						expect(res.transactions.length).to.equal(1);
 						done();
 					});
 				});
 
-				it('first transaction to arrive should not be included', done => {
+				it('last transaction to arrive should not be included', done => {
 					const filter = {
-						id: transaction1.id,
+						id: transaction2.id,
 					};
 					localCommon.getTransactionFromModule(library, filter, (err, res) => {
 						expect(err).to.be.null;
@@ -99,24 +115,15 @@ describe('system test (type 0) - double transfers', () => {
 					});
 				});
 
-				it('last transaction to arrive should be included', done => {
-					const filter = {
-						id: transaction2.id,
-					};
-					localCommon.getTransactionFromModule(library, filter, (err, res) => {
-						expect(err).to.be.null;
-						expect(res)
-							.to.have.property('transactions')
-							.which.is.an('Array');
-						expect(res.transactions.length).to.equal(1);
-						expect(res.transactions[0].id).to.equal(transaction2.id);
-						done();
-					});
-				});
-
 				it('adding to pool transfer for same account should fail', done => {
-					localCommon.addTransaction(library, transaction1, err => {
-						expect(err).to.match(/^Account does not have enough LSK: /);
+					localCommon.addTransaction(library, transaction2, err => {
+						expect(err).to.be.equal(
+							`Transaction: ${
+								transaction2.id
+							} failed at .balance: Account does not have enough LSK: ${
+								account.address
+							}, balance: 99.9`
+						);
 						done();
 					});
 				});

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -30,9 +30,9 @@ const {
 	createInvalidRegisterMultisignatureTransaction,
 } = require('../../../common/utils/elements');
 
-const { FEES, MULTISIG_CONSTRAINTS } = global.constants;
+const { FEES } = global.constants;
+const { MULTISIG_CONSTRAINTS } = __testContext.config;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
-
 describe('POST /api/transactions (type 4) register multisignature', () => {
 	const scenarios = {
 		no_funds: new Scenarios.Multisig({
@@ -106,10 +106,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.equal(
-						`Invalid transaction body - Failed to validate multisignature schema: Array is too short (0), minimum ${
-							MULTISIG_CONSTRAINTS.KEYSGROUP.MIN_ITEMS
-						}`
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						"'.multisignature.keysgroup' should NOT have fewer than 1 items"
 					);
 					badTransactions.push(transaction);
 				});
@@ -139,7 +141,13 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.equal('Invalid member in keysgroup');
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						"'.multisignature.keysgroup[3]' should be string"
+					);
 					badTransactions.push(transaction);
 				});
 			});
@@ -161,7 +169,11 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.equal(
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[1].message).to.be.equal(
 						'Invalid multisignature keysgroup. Can not contain sender'
 					);
 					badTransactions.push(transaction);
@@ -194,8 +206,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.equal(
-						'Encountered duplicate public key in multisignature keysgroup'
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						"'.multisignature.keysgroup' should NOT have duplicate items (items ## 1 and 0 are identical)"
 					);
 					badTransactions.push(transaction);
 				});
@@ -227,8 +243,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.equal(
-						'Invalid public key in multisignature keysgroup'
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						'\'.multisignature.keysgroup[1]\' should match format "additionPublicKey"'
 					);
 					badTransactions.push(transaction);
 				});
@@ -261,8 +281,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.equal(
-						'Invalid math operator in multisignature keysgroup'
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						'\'.multisignature.keysgroup[0]\' should match format "additionPublicKey"'
 					);
 					badTransactions.push(transaction);
 				});
@@ -291,8 +315,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.equal(
-						'Invalid public key in multisignature keysgroup'
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						'\'.multisignature.keysgroup[0]\' should match format "additionPublicKey"'
 					);
 					badTransactions.push(transaction);
 				});
@@ -325,8 +353,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.equal(
-						'Invalid math operator in multisignature keysgroup'
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						'\'.multisignature.keysgroup[0]\' should match format "additionPublicKey"'
 					);
 					badTransactions.push(transaction);
 				});
@@ -359,8 +391,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.equal(
-						'Invalid public key in multisignature keysgroup'
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						'\'.multisignature.keysgroup[0]\' should match format "additionPublicKey"'
 					);
 					badTransactions.push(transaction);
 				});
@@ -380,11 +416,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.equal(
-						`Invalid transaction body - Failed to validate multisignature schema: Array is too long (${MULTISIG_CONSTRAINTS
-							.KEYSGROUP.MAX_ITEMS + 1}), maximum ${
-							MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS
-						}`
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						"'.multisignature.keysgroup' should NOT have more than 15 items"
 					);
 					badTransactions.push(transaction);
 				});
@@ -405,7 +442,11 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.equal(
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
 						'Invalid multisignature min. Must be less than or equal to keysgroup size'
 					);
 					badTransactions.push(transaction);
@@ -427,11 +468,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.equal(
-						`Invalid transaction body - Failed to validate multisignature schema: Value ${MULTISIG_CONSTRAINTS
-							.MIN.MAXIMUM + 1} is greater than maximum ${
-							MULTISIG_CONSTRAINTS.MIN.MAXIMUM
-						}`
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						"'.multisignature.min' should be <= 15"
 					);
 					badTransactions.push(transaction);
 				});
@@ -452,11 +494,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.equal(
-						`Invalid transaction body - Failed to validate multisignature schema: Value ${MULTISIG_CONSTRAINTS
-							.MIN.MINIMUM - 1} is less than minimum ${
-							MULTISIG_CONSTRAINTS.MIN.MINIMUM
-						}`
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						"'.multisignature.min' should be >= 1"
 					);
 					badTransactions.push(transaction);
 				});
@@ -479,11 +522,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.equal(
-						`Invalid transaction body - Failed to validate multisignature schema: Value ${MULTISIG_CONSTRAINTS
-							.LIFETIME.MAXIMUM + 1} is greater than maximum ${
-							MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM
-						}`
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						"'.multisignature.lifetime' should be <= 72"
 					);
 					badTransactions.push(transaction);
 				});
@@ -504,11 +548,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					transaction,
 					apiCodes.PROCESSING_ERROR
 				).then(res => {
-					expect(res.body.message).to.be.equal(
-						`Invalid transaction body - Failed to validate multisignature schema: Value ${MULTISIG_CONSTRAINTS
-							.LIFETIME.MINIMUM - 1} is less than minimum ${
-							MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM
-						}`
+					expect(res.body.message).to.be.eql(
+						'Transaction was rejected with errors'
+					);
+					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+					expect(res.body.errors[0].message).to.be.equal(
+						"'.multisignature.lifetime' should be >= 1"
 					);
 					badTransactions.push(transaction);
 				});
@@ -525,9 +570,13 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				apiCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
+					'Transaction was rejected with errors'
+				);
+				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+				expect(res.body.errors[0].message).to.be.equal(
 					`Account does not have enough LSK: ${
 						scenarios.no_funds.account.address
-					} balance: 0`
+					}, balance: 0`
 				);
 				badTransactions.push(scenario.multiSigTransaction);
 			});
@@ -709,28 +758,29 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 						);
 					})
 					.then(res => {
-						expect(res)
-							.to.have.nested.property('body.message')
-							.to.equal(
-								'Error processing signature: Unable to process signature, signature already exists'
-							);
+						expect(res.body.message).to.be.equal('Error processing signature');
+						expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+						expect(res.body.errors[0].message).to.be.equal(
+							'Encountered duplicate signature in transaction'
+						);
 					});
 			});
 
 			it('with not requested account should fail', async () => {
+				const account = randomUtil.account();
 				const signature = apiHelpers.createSignatureObject(
 					scenarios.unsigned.multiSigTransaction,
-					randomUtil.account()
+					account
 				);
 
 				return signatureEndpoint
 					.makeRequest({ signature }, apiCodes.PROCESSING_ERROR)
 					.then(res => {
-						expect(res)
-							.to.have.nested.property('body.message')
-							.to.equal(
-								'Error processing signature: Unable to process signature, verification failed'
-							);
+						expect(res.body.message).to.be.equal('Error processing signature');
+						expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
+						expect(res.body.errors[0].message).to.be.equal(
+							`Public Key '${signature.publicKey}' is not a member.`
+						);
 					});
 			});
 		});

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -147,9 +147,13 @@ TransactionsController.postTransaction = async function(context, next) {
 			});
 		}
 
-		error = new ApiError(data.message, apiCodes.PROCESSING_ERROR);
+		error = new ApiError(data.message, apiCodes.PROCESSING_ERROR, data.errors);
 	} catch (err) {
-		error = new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR);
+		error = new ApiError(
+			'Internal server error',
+			apiCodes.INTERNAL_SERVER_ERROR,
+			[err]
+		);
 	}
 
 	context.statusCode = error.code;

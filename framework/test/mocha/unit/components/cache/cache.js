@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -23,15 +23,19 @@ describe('components: cache', () => {
 	let cache;
 
 	before(async () => {
-		__testContext.config.cacheEnabled = true;
-		this.logger = createLoggerComponent({
-			echo: null,
-			errorLevel: __testContext.config.fileLogLevel,
-			filename: __testContext.config.logFileName,
-		});
-		cache = createCacheComponent(__testContext.config.redis, this.logger);
+		__testContext.config.components.cache.enabeled = true;
+
+		this.logger = createLoggerComponent(__testContext.config.components.logger);
+		cache = createCacheComponent(
+			__testContext.config.components.cache,
+			this.logger
+		);
 		await cache.bootstrap();
 		return expect(cache).to.be.an('object');
+	});
+
+	beforeEach(async () => {
+		cache.enable();
 	});
 
 	afterEach(async () => {

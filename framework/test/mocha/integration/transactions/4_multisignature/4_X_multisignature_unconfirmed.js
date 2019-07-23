@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -21,7 +21,7 @@ const localCommon = require('../../common');
 
 const { TRANSACTION_TYPES } = global.constants;
 
-describe('system test (type 4) - sending transactions on top of unconfirmed multisignature registration', () => {
+describe('integration test (type 4) - sending transactions on top of unconfirmed multisignature registration', () => {
 	let library;
 
 	const scenarios = {
@@ -35,7 +35,7 @@ describe('system test (type 4) - sending transactions on top of unconfirmed mult
 	});
 	scenarios.regular.dapp.id = dappTransaction.id;
 
-	localCommon.beforeBlock('system_4_X_multisig_unconfirmed', lib => {
+	localCommon.beforeBlock('4_X_multisig_unconfirmed', lib => {
 		library = lib;
 	});
 

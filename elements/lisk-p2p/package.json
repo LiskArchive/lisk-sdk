@@ -1,0 +1,89 @@
+{
+	"name": "@liskhq/lisk-p2p",
+	"version": "0.1.1",
+	"description": "Unstructured P2P library for use with Lisk-related software",
+	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
+	"license": "Apache-2.0",
+	"keywords": [
+		"lisk",
+		"blockchain",
+		"p2p"
+	],
+	"homepage": "https://github.com/LiskHQ/lisk-sdk/tree/master/elements/lisk-p2p#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/LiskHQ/lisk-sdk.git"
+	},
+	"bugs": {
+		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
+	},
+	"engines": {
+		"node": ">=8.10 <=10",
+		"npm": ">=3 <=6"
+	},
+	"main": "dist-node/index.js",
+	"scripts": {
+		"transpile": "tsc",
+		"clean": "./scripts/clean.sh",
+		"format": "prettier --write '**/*'",
+		"lint": "tslint --format verbose --project .",
+		"lint:fix": "npm run lint -- --fix",
+		"test": "TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/{,/**/}/*.ts",
+		"test:integration": "USE_REAL_TIMERS=true TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/integration/*.ts",
+		"test:watch": "npm test -- --watch",
+		"test:watch:min": "npm run test:watch -- --reporter=min",
+		"test:node": "npm run build:check",
+		"cover": "if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
+		"cover:base": "nyc report",
+		"cover:local": "npm run cover:base -- --reporter=html --reporter=text",
+		"cover:ci": "npm run cover:base -- --reporter=text",
+		"prebuild:node": "rm -r dist-node/* || mkdir dist-node || true",
+		"build:node": "npm run transpile",
+		"prebuild": "npm run prebuild:node",
+		"build": "npm run build:node",
+		"build:check": "node -e \"require('./dist-node')\"",
+		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
+	},
+	"dependencies": {
+		"lodash.shuffle": "4.2.0",
+		"semver": "5.6.0",
+		"socketcluster-client": "14.2.1",
+		"socketcluster-server": "14.4.0",
+		"validator": "10.11.0"
+	},
+	"devDependencies": {
+		"@types/chai": "4.1.7",
+		"@types/chai-as-promised": "7.1.0",
+		"@types/component-emitter": "1.2.7",
+		"@types/expect": "1.20.3",
+		"@types/jquery": "3.3.29",
+		"@types/jsonwebtoken": "8.3.0",
+		"@types/lodash.shuffle": "4.2.6",
+		"@types/mocha": "5.2.5",
+		"@types/node": "10.12.21",
+		"@types/semver": "5.5.0",
+		"@types/sinon": "7.0.5",
+		"@types/sinon-chai": "3.2.2",
+		"@types/socketcluster-client": "13.0.0",
+		"@types/socketcluster-server": "14.2.2",
+		"@types/validator": "10.9.0",
+		"@types/ws": "6.0.1",
+		"browserify": "16.2.3",
+		"chai": "4.2.0",
+		"chai-as-promised": "7.1.1",
+		"mocha": "5.2.0",
+		"nyc": "14.1.1",
+		"prettier": "1.16.4",
+		"sinon": "7.2.3",
+		"sinon-chai": "3.3.0",
+		"source-map-support": "0.5.10",
+		"ts-node": "8.0.2",
+		"tsconfig-paths": "3.8.0",
+		"tslint": "5.12.1",
+		"tslint-config-prettier": "1.18.0",
+		"tslint-immutable": "5.1.2",
+		"typescript": "3.3.1",
+		"uglify-es": "3.3.9",
+		"wait-on": "3.2.0"
+	}
+}

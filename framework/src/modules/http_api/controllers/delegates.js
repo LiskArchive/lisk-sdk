@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -164,15 +164,12 @@ async function _getDelegates(filters, options) {
 		options
 	);
 
-	const [lastBlock] = await storage.entities.Block.get(
-		{},
-		{ sort: 'height:desc', limit: 1 }
-	);
+	const { lastBlock } = await channel.invoke('chain:getNodeStatus');
 
 	const supply = lastBlock.height
 		? await channel.invoke('chain:calculateSupply', {
-			height: lastBlock.height,
-		})
+				height: lastBlock.height,
+		  })
 		: 0;
 
 	return delegates.map(delegate => delegateFormatter(supply, delegate));
@@ -188,10 +185,8 @@ async function _getDelegates(filters, options) {
  * @private
  */
 async function _getForgers(filters) {
-	const [lastBlock] = await storage.entities.Block.get(
-		{},
-		{ sort: 'height:desc', limit: 1 }
-	);
+	const { lastBlock } = await channel.invoke('chain:getNodeStatus');
+
 	const lastBlockSlot = await channel.invoke('chain:getSlotNumber', {
 		epochTime: lastBlock.timestamp,
 	});

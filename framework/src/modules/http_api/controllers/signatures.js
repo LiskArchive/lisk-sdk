@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -55,20 +55,30 @@ SignaturesController.postSignature = async function(context, next) {
 			});
 		}
 
-		// TODO: Need to improve error handling so that we don't
-		// need to parse the error message to determine the error type.
-		const processingError = /^Error processing signature/;
-		const badRequestBodyError = /^Invalid signature body/;
-
-		if (processingError.test(data.message)) {
-			error = new ApiError(data.message, apiCodes.PROCESSING_ERROR);
-		} else if (badRequestBodyError.test(data.message)) {
-			error = new ApiError(data.message, apiCodes.BAD_REQUEST);
+		if (data.code === apiCodes.PROCESSING_ERROR) {
+			error = new ApiError(
+				'Error processing signature',
+				apiCodes.PROCESSING_ERROR,
+				data.errors
+			);
+		} else if (data.code === apiCodes.BAD_REQUEST) {
+			error = new ApiError(
+				'Invalid signature body',
+				apiCodes.BAD_REQUEST,
+				data.errors
+			);
 		} else {
-			error = new ApiError(data.message, apiCodes.INTERNAL_SERVER_ERROR);
+			error = new ApiError(
+				'Internal server error',
+				apiCodes.INTERNAL_SERVER_ERROR,
+				[]
+			);
 		}
 	} catch (err) {
-		error = new ApiError(err, apiCodes.INTERNAL_SERVER_ERROR);
+		error = new ApiError(
+			'Internal server error',
+			apiCodes.INTERNAL_SERVER_ERROR
+		);
 	}
 
 	context.statusCode = error.code;
