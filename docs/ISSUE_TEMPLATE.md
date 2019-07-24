@@ -1,7 +1,9 @@
-### Expected behavior
+---
+title: 'Feature request'
+---
 
-### Actual behavior
+### Motivation
 
-### Steps to reproduce
+### Acceptance Criteria
 
-### Which version(s) does this affect? (Environment, OS, etc...)
+### Additional Information
