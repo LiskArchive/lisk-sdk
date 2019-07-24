@@ -17,6 +17,8 @@ import { constructPeerIdFromPeerInfo, getBucket } from '../utils';
 
 const NEW_PEER_LIST_SIZE = 64;
 const NEW_PEER_BUCKET_SIZE = 32;
+const MILLISECONDS_IN_ONE_DAY = 86400000; // Formula hours*minutes*seconds*milliseconds;
+const ELIGIBLE_DAYS_FOREVICTION = 30;
 
 interface NewPeerInfo {
 	readonly peerInfo: P2PPeerInfo;
@@ -93,7 +95,11 @@ export class NewPeers {
 				dateAdded: new Date(),
 			};
 
-			const bucketNumber = getBucket(peerInfo.ipAddress, Math.random());
+			const bucketNumber = getBucket(
+				peerInfo.ipAddress,
+				Math.random(),
+				NEW_PEER_LIST_SIZE,
+			);
 			if (bucketNumber) {
 				const bucketList = this._newPeerMap.get(bucketNumber);
 				if (bucketList) {
@@ -136,14 +142,67 @@ export class NewPeers {
 		return evictPeer;
 	}
 
-	private _evictPeer(bucketNumber: number): void {
-		const peerList = this._newPeerMap.get(bucketNumber);
+	private _evictPeer(bucketId: number): NewPeerInfo | undefined {
+		const peerList = this._newPeerMap.get(bucketId);
 
-		if (peerList) {
-			const randomPeerIndex = Math.floor(Math.random() * NEW_PEER_BUCKET_SIZE);
-			const randomPeer = Array.from(peerList.keys())[randomPeerIndex];
-			peerList.delete(randomPeer);
-			this._newPeerMap.set(bucketNumber, peerList);
+		if (!peerList) {
+			throw new Error(`No Peer list for bucket Id: ${bucketId}`);
 		}
+
+		// First eviction strategy
+		const evictedPeerBasedOnTime = this._evictionBasedOnTimeInBucket(
+			bucketId,
+			peerList,
+		);
+
+		if (evictedPeerBasedOnTime) {
+			return evictedPeerBasedOnTime;
+		}
+
+		// Second eviction strategy
+		return this._evictionRandom(bucketId, peerList);
+	}
+
+	private _evictionBasedOnTimeInBucket(
+		bucketId: number,
+		peerList: Map<string, NewPeerInfo>,
+	): NewPeerInfo | undefined {
+		// tslint:disable-next-line:no-let
+		let evictedPeer: NewPeerInfo | undefined;
+
+		[...this._newPeerMap.values()].forEach(peersMap => {
+			[...peersMap.keys()].forEach(peerId => {
+				const peer = peersMap.get(peerId);
+				if (peer) {
+					const diffDays = Math.round(
+						Math.abs(
+							(peer.dateAdded.getTime() - new Date().getTime()) /
+								MILLISECONDS_IN_ONE_DAY,
+						),
+					);
+					if (diffDays >= ELIGIBLE_DAYS_FOREVICTION) {
+						peerList.delete(peerId);
+						this._newPeerMap.set(bucketId, peerList);
+						evictedPeer = peer;
+					}
+				}
+			});
+		});
+
+		return evictedPeer;
+	}
+
+	private _evictionRandom(
+		bucketId: number,
+		peerList: Map<string, NewPeerInfo>,
+	): NewPeerInfo | undefined {
+		// Second eviction strategy
+		const randomPeerIndex = Math.floor(Math.random() * NEW_PEER_BUCKET_SIZE);
+		const randomPeerId = Array.from(peerList.keys())[randomPeerIndex];
+		peerList.delete(randomPeerId);
+		this._newPeerMap.set(bucketId, peerList);
+		const evictedPeer = peerList.get(randomPeerId);
+
+		return evictedPeer;
 	}
 }
