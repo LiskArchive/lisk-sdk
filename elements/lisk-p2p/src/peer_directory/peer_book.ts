@@ -111,10 +111,6 @@ export class PeerBook {
 		return ifExists;
 	}
 
-	public addToNewPeers(peerInfo: P2PPeerInfo): void {}
-
-	public addToTriedPeers(peerInfo: P2PDiscoveredPeerInfo): void {}
-
 	public updateTriedPeer(peerInfo: P2PDiscoveredPeerInfo): boolean {
 		// tslint:disable-next-line:no-let
 		let ifExists = false;
