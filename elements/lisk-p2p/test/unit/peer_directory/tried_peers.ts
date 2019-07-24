@@ -13,25 +13,53 @@
  *
  */
 import { expect } from 'chai';
-import { TriedPeers } from '../../../src/peer_directory/triedPeers';
+import { TriedPeers } from '../../../src/peer_directory/tried_peers';
+import { initializePeerInfoList } from '../../utils/peers';
 
 describe.only('triedPeer', () => {
 	describe('#constructor', () => {
+		let triedPeersList: TriedPeers;
 		const triedPeerConfig = {
 			maxReconnectTries: 3,
 			triedPeerBucketSize: 32,
 			triedPeerListSize: 32,
 		};
 
-		const triedPeers = new TriedPeers(triedPeerConfig);
+		beforeEach(async () => {
+			triedPeersList = new TriedPeers(triedPeerConfig);
+		});
 
 		it('should set properties correctly and create a map of 32 size with 32 buckets each', async () => {
-			expect(triedPeers.triedPeerConfig).to.be.eql(triedPeerConfig);
-			expect(triedPeers.triedPeerMap.size).to.be.equal(32);
+			expect(triedPeersList.triedPeerConfig).to.be.eql(triedPeerConfig);
+			expect(triedPeersList.triedPeerMap.size).to.be.equal(32);
 
-			let bucketSize = Array.of([...triedPeers.triedPeerMap.values()])[0]
+			let bucketSize = Array.of([...triedPeersList.triedPeerMap.values()])[0]
 				.length;
 			expect(bucketSize).to.be.equal(32);
 		});
+	});
+
+	describe('#addPeer', () => {
+		let triedPeersList: TriedPeers;
+		const samplePeers = initializePeerInfoList();
+
+		beforeEach(async () => {
+			const triedPeerConfig = {
+				maxReconnectTries: 3,
+				triedPeerBucketSize: 32,
+				triedPeerListSize: 32,
+			};
+
+			triedPeersList = new TriedPeers(triedPeerConfig);
+			triedPeersList.addPeer(samplePeers[0]);
+		});
+
+		it('should add the incoming peer if it does not exist already', async () => {
+			expect(triedPeersList.findPeer(samplePeers[0])).to.be.true;
+		});
+
+		// it('should not add the incoming peer if it exists', async () => {
+		// 	expect(triedPeersList.addPeer(samplePeers[0])).to.be.undefined;
+		// });
 	});
 });
