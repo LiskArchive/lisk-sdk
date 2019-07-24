@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -27,7 +27,11 @@ const { bootstrapStorage, bootstrapCache } = require('./init_steps');
 const jobQueue = require('./utils/jobs_queue');
 const { Peers } = require('./peers');
 const { TransactionInterfaceAdapter } = require('./interface_adapters');
-const { TransactionPool } = require('./transaction_pool');
+const {
+	TransactionPool,
+	EVENT_MULTISIGNATURE_SIGNATURE,
+	EVENT_UNCONFIRMED_TRANSACTION,
+} = require('./transaction_pool');
 const { Rounds } = require('./rounds');
 const {
 	BlockSlots,
@@ -405,33 +409,31 @@ module.exports = class Chain {
 		this.scope.modules.transport = this.transport;
 	}
 
+	async _syncTask() {
+		this.logger.info(
+			{
+				syncing: this.loader.syncing(),
+				lastReceipt: this.blocks.lastReceipt,
+			},
+			'Sync time triggered'
+		);
+		if (!this.loader.syncing() && this.blocks.isStale()) {
+			await this.scope.sequence.add(async () => {
+				try {
+					await this.loader.sync();
+				} catch (error) {
+					this.logger.error(error, 'Sync timer');
+				}
+			});
+		}
+	}
+
 	_startLoader() {
 		this.loader.loadTransactionsAndSignatures();
 		if (!this.options.syncing.active) {
 			return;
 		}
-		jobQueue.register(
-			'nextSync',
-			async () => {
-				this.logger.info(
-					{
-						syncing: this.loader.syncing(),
-						lastReceipt: this.blocks.lastReceipt,
-					},
-					'Sync time triggered'
-				);
-				if (!this.loader.syncing() && this.blocks.isStale()) {
-					await this.scope.sequence.add(async () => {
-						try {
-							await this.loader.sync();
-						} catch (error) {
-							this.logger.error(error, 'Sync timer');
-						}
-					});
-				}
-			},
-			syncInterval
-		);
+		jobQueue.register('nextSync', async () => this._syncTask(), syncInterval);
 	}
 
 	_calculateConsensus() {
@@ -447,6 +449,25 @@ module.exports = class Chain {
 		);
 	}
 
+	async _forgingTask() {
+		return this.scope.sequence.add(async () => {
+			try {
+				await this.forger.beforeForge();
+				if (!this.forger.delegatesEnabled()) {
+					this.logger.debug('No delegates are enabled');
+					return;
+				}
+				if (this.loader.syncing() || this.rounds.ticking()) {
+					this.logger.debug('Client not ready to forge');
+					return;
+				}
+				await this.forger.forge();
+			} catch (error) {
+				this.logger.error(error);
+			}
+		});
+	}
+
 	async _startForging() {
 		try {
 			await this.forger.loadDelegates();
@@ -455,24 +476,7 @@ module.exports = class Chain {
 		}
 		jobQueue.register(
 			'nextForge',
-			async () => {
-				await this.scope.sequence.add(async () => {
-					try {
-						await this.forger.beforeForge();
-						if (!this.forger.delegatesEnabled()) {
-							this.logger.debug('No delegates are enabled');
-							return;
-						}
-						if (this.loader.syncing() || this.rounds.ticking()) {
-							this.logger.debug('Client not ready to forge');
-							return;
-						}
-						await this.forger.forge();
-					} catch (error) {
-						this.logger.error(error);
-					}
-				});
-			},
+			async () => this._forgingTask(),
 			forgeInterval
 		);
 	}
@@ -505,8 +509,24 @@ module.exports = class Chain {
 			this.channel.publish('chain:blocks:change', block);
 		});
 
+		this.transactionPool.on(EVENT_UNCONFIRMED_TRANSACTION, transaction => {
+			this.logger.trace(
+				{ transactionId: transaction.id },
+				'Received EVENT_UNCONFIRMED_TRANSACTION'
+			);
+			this.transport.onUnconfirmedTransaction(transaction, true);
+		});
+
 		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {
 			this.channel.invoke('app:updateApplicationState', { broadhash, height });
+		});
+
+		this.transactionPool.on(EVENT_MULTISIGNATURE_SIGNATURE, signature => {
+			this.logger.trace(
+				{ signature },
+				'Received EVENT_MULTISIGNATURE_SIGNATURE'
+			);
+			this.transport.onSignature(signature, true);
 		});
 	}
 
@@ -515,5 +535,7 @@ module.exports = class Chain {
 		this.blocks.removeAllListeners(EVENT_DELETE_BLOCK);
 		this.blocks.removeAllListeners(EVENT_NEW_BLOCK);
 		this.blocks.removeAllListeners(EVENT_NEW_BROADHASH);
+		this.blocks.removeAllListeners(EVENT_UNCONFIRMED_TRANSACTION);
+		this.blocks.removeAllListeners(EVENT_MULTISIGNATURE_SIGNATURE);
 	}
 };

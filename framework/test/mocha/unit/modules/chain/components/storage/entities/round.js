@@ -1,6 +1,6 @@
 /* eslint-disable mocha/no-pending-tests */
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -514,11 +514,16 @@ describe('Round', () => {
 		});
 
 		it('should resolve without any error if no filter is provided', async () => {
-			expect(RoundEntity.getTotalVotedAmount({})).to.be.fulfilled;
+			return expect(
+				RoundEntity.getTotalVotedAmount({})
+			).to.eventually.be.fulfilled.and.deep.equal([]);
 		});
 
-		it('should resolve without any error if unnown round number is provided', async () =>
-			expect(RoundEntity.getTotalVotedAmount({ round: 1234 })).to.be.fulfilled);
+		it('should resolve without any error if unnown round number is provided', async () => {
+			return expect(
+				RoundEntity.getTotalVotedAmount({ round: 1234 })
+			).to.eventually.be.fulfilled.and.deep.equal([]);
+		});
 	});
 
 	describe('summedRound()', () => {
@@ -719,7 +724,9 @@ describe('Round', () => {
 		it('should be rejected with error if snapshot table already exists', async () => {
 			await RoundEntity.performRoundSnapshot();
 
-			expect(RoundEntity.performRoundSnapshot()).to.be.rejectedWith(
+			return expect(
+				RoundEntity.performRoundSnapshot()
+			).to.eventually.be.rejectedWith(
 				'relation "mem_round_snapshot" already exists'
 			);
 		});
@@ -791,10 +798,13 @@ describe('Round', () => {
 			expect(result).to.be.eql(null);
 		});
 
-		it('should reject with error if called without performing the snapshot', async () =>
-			expect(RoundEntity.checkSnapshotAvailability(1)).to.be.rejectedWith(
+		it('should reject with error if called without performing the snapshot', async () => {
+			return expect(
+				RoundEntity.checkSnapshotAvailability(1)
+			).to.eventually.be.rejectedWith(
 				'relation "mem_round_snapshot" does not exist'
-			));
+			);
+		});
 	});
 
 	describe('countRoundSnapshot()', () => {
@@ -846,19 +856,25 @@ describe('Round', () => {
 			expect(count).to.be.eql(0);
 		});
 
-		it('should reject with error if called without performing the snapshot', async () =>
-			expect(RoundEntity.countRoundSnapshot()).to.be.rejectedWith(
+		it('should reject with error if called without performing the snapshot', async () => {
+			return expect(
+				RoundEntity.countRoundSnapshot()
+			).to.eventually.be.rejectedWith(
 				'relation "mem_round_snapshot" does not exist'
-			));
+			);
+		});
 	});
 
 	describe('getDelegatesSnapshot()', () => {
 		beforeEach('performVotesSnapshot', () => RoundEntity.clearVotesSnapshot());
 
-		it('should reject with error if the called without performing the snapshot', async () =>
-			expect(RoundEntity.getDelegatesSnapshot(10)).to.be.rejectedWith(
+		it('should reject with error if the called without performing the snapshot', async () => {
+			return expect(
+				RoundEntity.getDelegatesSnapshot(10)
+			).to.eventually.be.rejectedWith(
 				'relation "mem_votes_snapshot" does not exist'
-			));
+			);
+		});
 
 		it('should use the correct SQL file with one parameter', async () => {
 			// Perform the snapshot first
@@ -1033,7 +1049,9 @@ describe('Round', () => {
 		it('should be rejected with error if snapshot table already exists', async () => {
 			await RoundEntity.performVotesSnapshot();
 
-			return expect(RoundEntity.performVotesSnapshot()).to.be.rejectedWith(
+			return expect(
+				RoundEntity.performVotesSnapshot()
+			).to.eventually.be.rejectedWith(
 				'relation "mem_votes_snapshot" already exists'
 			);
 		});
@@ -1042,10 +1060,13 @@ describe('Round', () => {
 	describe('restoreRoundSnapshot()', () => {
 		beforeEach('restoreRoundSnapshot', () => RoundEntity.clearRoundSnapshot());
 
-		it('should reject with error if the called without performing the snapshot', async () =>
-			expect(RoundEntity.restoreRoundSnapshot()).to.be.rejectedWith(
+		it('should reject with error if the called without performing the snapshot', async () => {
+			return expect(
+				RoundEntity.restoreRoundSnapshot()
+			).to.eventually.be.rejectedWith(
 				'relation "mem_round_snapshot" does not exist'
-			));
+			);
+		});
 
 		it('should use the correct SQL file with no parameters', async () => {
 			// Perform the snapshot first
@@ -1098,10 +1119,13 @@ describe('Round', () => {
 	describe('restoreVotesSnapshot()', () => {
 		beforeEach('restoreVotesSnapshot', () => RoundEntity.clearVotesSnapshot());
 
-		it('should reject with error if the called without performing the snapshot', async () =>
-			expect(RoundEntity.restoreVotesSnapshot()).to.be.rejectedWith(
+		it('should reject with error if the called without performing the snapshot', async () => {
+			return expect(
+				RoundEntity.restoreVotesSnapshot()
+			).to.eventually.be.rejectedWith(
 				'relation "mem_votes_snapshot" does not exist'
-			));
+			);
+		});
 
 		it('should use the correct SQL file with no parameters', async () => {
 			// Perform the snapshot first
