@@ -2110,9 +2110,6 @@ describe('Integration tests for P2P library', () => {
 					(n: Number[]) => n.includes(5003) || n.includes(5004),
 				);
 			});
-
-			it.skip('should not evict peers with low latency', async () => {});
-			it.skip('should not evict peers with high responseRate', async () => {});
 		});
 	});
 

@@ -96,12 +96,14 @@ interface PeerPoolConfig {
 	readonly maxOutboundConnections: number;
 	readonly maxInboundConnections: number;
 	readonly outboundShuffleInterval: number;
+	readonly netgroupProtectionRatio: number;
 	readonly latencyProtectionRatio: number;
 	readonly productivityProtectionRatio: number;
 	readonly longevityProtectionRatio: number;
 	readonly wsMaxMessageRate: number;
 	readonly wsMaxMessageRatePenalty: number;
 	readonly rateCalculationInterval: number;
+	readonly secret: number;
 }
 
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
@@ -109,6 +111,7 @@ export const MAX_PEER_DISCOVERY_PROBE_SAMPLE_SIZE = 100;
 export const EVENT_REMOVE_PEER = 'removePeer';
 
 export enum PROTECTION_CATEGORY {
+	NET_GROUP = 'netgroup',
 	LATENCY = 'latency',
 	RESPONSE_RATE = 'responseRate',
 	CONNECT_TIME = 'connectTime',
@@ -415,6 +418,7 @@ export class PeerPool extends EventEmitter {
 			wsMaxMessageRate: this._peerPoolConfig.wsMaxMessageRate,
 			wsMaxMessageRatePenalty: this._peerPoolConfig.wsMaxMessageRatePenalty,
 			rateCalculationInterval: this._peerPoolConfig.rateCalculationInterval,
+			secret: this._peerPoolConfig.secret,
 		};
 		const peer = new InboundPeer(peerInfo, socket, peerConfig);
 
@@ -566,9 +570,20 @@ export class PeerPool extends EventEmitter {
 		})();
 	}
 
-	// TODO: Protect peers by netgroup
 	private _selectPeersForEviction(): Peer[] {
 		const peers = [...this.getPeers(InboundPeer)];
+
+		// Cannot predict which netgroups will be protected
+		const filteredPeersByNetgroup = this._peerPoolConfig.netgroupProtectionRatio
+			? filterPeersByCategory(peers, {
+					category: PROTECTION_CATEGORY.NET_GROUP,
+					percentage: this._peerPoolConfig.netgroupProtectionRatio,
+					asc: false,
+			  })
+			: peers;
+		if (filteredPeersByNetgroup.length <= 1) {
+			return filteredPeersByNetgroup;
+		}
 
 		// Cannot manipulate without physically moving nodes closer to the target.
 		const filteredPeersByLatency = this._peerPoolConfig.latencyProtectionRatio
