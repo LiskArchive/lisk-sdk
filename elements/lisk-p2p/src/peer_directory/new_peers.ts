@@ -15,11 +15,15 @@
 import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
 import { constructPeerIdFromPeerInfo, getBucket } from '../utils';
 
-const NEW_PEER_LIST_SIZE = 64;
-const NEW_PEER_BUCKET_SIZE = 32;
+const DEFAULT_NEW_PEER_LIST_SIZE = 64;
+const DEFAULT_NEW_PEER_BUCKET_SIZE = 32;
 const MILLISECONDS_IN_ONE_DAY = 86400000; // Formula hours*minutes*seconds*milliseconds;
 const ELIGIBLE_DAYS_FOREVICTION = 30;
 
+export interface NewPeerConfig {
+	readonly newPeerListSize?: number;
+	readonly newPeerBucketSize?: number;
+}
 interface NewPeerInfo {
 	readonly peerInfo: P2PPeerInfo;
 	readonly dateAdded: Date;
@@ -27,11 +31,19 @@ interface NewPeerInfo {
 
 export class NewPeers {
 	private readonly _newPeerMap: Map<number, Map<string, NewPeerInfo>>;
+	private readonly _newPeerListSize: number;
+	private readonly _newPeerBucketSize: number;
 
-	public constructor() {
+	public constructor(newPeerConfig: NewPeerConfig) {
+		this._newPeerBucketSize = newPeerConfig.newPeerBucketSize
+			? newPeerConfig.newPeerBucketSize
+			: DEFAULT_NEW_PEER_BUCKET_SIZE;
+		this._newPeerListSize = newPeerConfig.newPeerListSize
+			? newPeerConfig.newPeerListSize
+			: DEFAULT_NEW_PEER_LIST_SIZE;
 		// Initialize the Map with all the buckets
 		this._newPeerMap = new Map();
-		[...Array(NEW_PEER_LIST_SIZE).keys()]
+		[...Array(this._newPeerListSize).keys()]
 			.map(x => x + 1)
 			.forEach(bucketNumber => {
 				this._newPeerMap.set(bucketNumber, new Map<string, NewPeerInfo>());
@@ -98,12 +110,12 @@ export class NewPeers {
 			const bucketNumber = getBucket(
 				peerInfo.ipAddress,
 				Math.random(),
-				NEW_PEER_LIST_SIZE,
+				this._newPeerListSize,
 			);
 			if (bucketNumber) {
 				const bucketList = this._newPeerMap.get(bucketNumber);
 				if (bucketList) {
-					if (bucketList.size < NEW_PEER_BUCKET_SIZE) {
+					if (bucketList.size < this._newPeerBucketSize) {
 						bucketList.set(
 							constructPeerIdFromPeerInfo(peerInfo),
 							newTriedPeerInfo,
@@ -197,7 +209,7 @@ export class NewPeers {
 		peerList: Map<string, NewPeerInfo>,
 	): NewPeerInfo | undefined {
 		// Second eviction strategy
-		const randomPeerIndex = Math.floor(Math.random() * NEW_PEER_BUCKET_SIZE);
+		const randomPeerIndex = Math.floor(Math.random() * this._newPeerBucketSize);
 		const randomPeerId = Array.from(peerList.keys())[randomPeerIndex];
 		peerList.delete(randomPeerId);
 		this._newPeerMap.set(bucketId, peerList);
