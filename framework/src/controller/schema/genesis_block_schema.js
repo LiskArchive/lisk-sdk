@@ -53,15 +53,15 @@ module.exports = {
 		},
 		timestamp: {
 			type: 'integer',
-			min: 0,
+			minimum: 0,
 		},
 		numberOfTransactions: {
 			type: 'integer',
-			min: 0,
+			minimum: 0,
 		},
 		payloadLength: {
 			type: 'integer',
-			min: 0,
+			minimum: 0,
 		},
 		previousBlock: {
 			type: ['null', 'string'],
@@ -133,7 +133,7 @@ module.exports = {
 		},
 		height: {
 			type: 'integer',
-			min: 1,
+			minimum: 1,
 		},
 		blockSignature: {
 			type: 'string',

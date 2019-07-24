@@ -1,12 +1,12 @@
 {
 	"app": {
+		"label": "devnet-alpha-sdk",
+		"minVersion": "0.0.0",
+		"version": "0.0.0",
+		"protocolVersion": "1.1",
 		"ipc": {
 			"enabled": true
 		},
-		"version": "2.1.0",
-		"minVersion": "1.0.0",
-		"protocolVersion": "1.1",
-		"label": "devnet",
 		"genesisConfig": {
 			"EPOCH_TIME": "2016-05-24T17:00:00.000Z",
 			"BLOCK_TIME": 10,
@@ -31,19 +31,63 @@
 			"consoleLogLevel": "info"
 		},
 		"storage": {
+			"logFileName": "logs/devnet/lisk_db.log",
+			"host": "localhost",
+			"port": 5432,
 			"database": "lisk_dev",
-			"min": 1,
-			"max": 10,
-			"logFileName": "logs/devnet/lisk_db.log"
+			"user": "lisk",
+			"password": "password",
+			"min": 10,
+			"max": 95,
+			"poolIdleTimeout": 30000,
+			"reapIntervalMillis": 1000,
+			"logEvents": ["error"]
 		},
 		"cache": {
-			"enabled": true
+			"enabled": false,
+			"host": "127.0.0.1",
+			"port": 6380,
+			"db": 0,
+			"password": null
 		}
 	},
 	"modules": {
 		"http_api": {
+			"enabled": true,
+			"httpPort": 4000,
+			"address": "0.0.0.0",
+			"trustProxy": false,
 			"access": {
-				"public": true
+				"public": false,
+				"whiteList": ["127.0.0.1"]
+			},
+			"ssl": {
+				"enabled": false,
+				"options": {
+					"port": 443,
+					"address": "0.0.0.0",
+					"key": "./ssl/lisk.key",
+					"cert": "./ssl/lisk.crt"
+				}
+			},
+			"options": {
+				"limits": {
+					"max": 0,
+					"delayMs": 0,
+					"delayAfter": 0,
+					"windowMs": 60000,
+					"headersTimeout": 5000,
+					"serverSetTimeout": 20000
+				},
+				"cors": {
+					"origin": "*",
+					"methods": ["GET", "POST", "PUT"]
+				}
+			},
+			"forging": {
+				"access": {
+					"whiteList": ["127.0.0.1"]
+				}
 			}
 		},
 		"chain": {
@@ -456,15 +500,60 @@
 					}
 				],
 				"defaultPassword": "elephant tree paris dragon chair galaxy"
+			},
+			"broadcasts": {
+				"active": true,
+				"broadcastInterval": 5000,
+				"releaseLimit": 25,
+				"relayLimit": 3
+			},
+			"transactions": {
+				"maxTransactionsPerQueue": 1000
+			},
+			"syncing": {
+				"active": true
+			},
+			"loading": {
+				"loadPerIteration": 5000,
+				"rebuildUpToRound": null
+			},
+			"exceptions": {
+				"blockRewards": [],
+				"senderPublicKey": [],
+				"signatures": [],
+				"signSignature": [],
+				"multisignatures": [],
+				"votes": [],
+				"inertTransactions": [],
+				"rounds": {},
+				"precedent": {
+					"disableDappTransfer": 0,
+					"disableDappTransaction": 0
+				},
+				"ignoreDelegateListCacheForRounds": [],
+				"blockVersions": {},
+				"roundVotes": [],
+				"recipientLeadingZero": {},
+				"recipientExceedingUint64": {},
+				"duplicatedSignatures": {},
+				"transactionWithNullByte": []
 			}
 		},
 		"network": {
+			"wsPort": 5000,
+			"address": "0.0.0.0",
+			"discoveryInterval": 30000,
 			"seedPeers": [
 				{
 					"ip": "127.0.0.1",
 					"wsPort": 5000
 				}
-			]
+			],
+			"blacklistedPeers": [],
+			"ackTimeout": 20000,
+			"connectTimeout": 5000,
+			"wsEngine": "ws",
+			"emitPeerLimit": 25
 		}
 	}
 }

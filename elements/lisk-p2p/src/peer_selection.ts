@@ -35,7 +35,7 @@ interface HistogramValues {
 export const selectPeersForRequest = (
 	input: P2PPeerSelectionForRequestInput,
 ): ReadonlyArray<P2PDiscoveredPeerInfo> => {
-	const {peers, nodeInfo} = input;
+	const { peers, nodeInfo } = input;
 	const peerLimit = input.peerLimit;
 	const nodeHeight = nodeInfo ? nodeInfo.height : 0;
 	const filteredPeers = peers.filter(

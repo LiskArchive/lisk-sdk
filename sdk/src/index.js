@@ -24,7 +24,7 @@ const {
 	configurator,
 } = require('lisk-framework');
 
-const { genesisBlockDevnet } = require('./samples');
+const samples = require('./samples');
 
 module.exports = {
 	Application,
@@ -32,7 +32,7 @@ module.exports = {
 	systemDirs,
 	configurator,
 	BigNum,
-	genesisBlockDevnet,
 	cryptography,
 	transactions,
+	...samples,
 };

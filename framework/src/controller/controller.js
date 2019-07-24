@@ -53,7 +53,7 @@ class Controller {
 		this.appLabel = appLabel;
 		this.logger.info('Initializing controller');
 
-		const dirs = systemDirs(this.appLabel);
+		const dirs = systemDirs(this.appLabel, config.tempPath);
 		this.config = {
 			...config,
 			dirs,

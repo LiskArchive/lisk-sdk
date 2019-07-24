@@ -65,6 +65,64 @@ export const transaction = {
 	},
 };
 
+export const transactionInterface = {
+	required: [
+		'toJSON',
+		'isReady',
+		'getBytes',
+		'validate',
+		'verifyAgainstOtherTransactions',
+		'apply',
+		'undo',
+		'prepare',
+		'addMultisignature',
+		'addVerifiedMultisignature',
+		'isExpired',
+		'fromSync',
+	],
+	properties: {
+		toJSON: {
+			typeof: 'function',
+		},
+		isReady: {
+			typeof: 'function',
+		},
+		getBytes: {
+			typeof: 'function',
+		},
+		validate: {
+			typeof: 'function',
+		},
+		verifyAgainstOtherTransactions: {
+			typeof: 'function',
+		},
+		apply: {
+			typeof: 'function',
+		},
+		undo: {
+			typeof: 'function',
+		},
+		prepare: {
+			typeof: 'function',
+		},
+		addMultisignature: {
+			typeof: 'function',
+		},
+		addVerifiedMultisignature: {
+			typeof: 'function',
+		},
+		processMultisignatures: {
+			typeof: 'function',
+		},
+		isExpired: {
+			typeof: 'function',
+		},
+		fromSync: {
+			typeof: 'function',
+		},
+	},
+};
+
 // TODO: Add senderId and recipientId to required once deprecated functions relying on this schema are removed
 export const baseTransaction = {
 	$id: 'lisk/base-transaction',

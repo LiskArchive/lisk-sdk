@@ -1794,12 +1794,16 @@ describe('blocks/verify', () => {
 					});
 
 					it('should throw error when transaction is already confirmed', async () => {
-						expect(__private.checkTransactions(dummyBlock, true)).to.eventually
-							.rejected;
+						return expect(
+							__private.checkTransactions(dummyBlock, true)
+						).to.eventually.be.rejectedWith(
+							'modules.transactions.onConfirmedTransactions is not a function'
+						);
 					});
 				});
 
 				describe('when Transaction.get returns empty array', () => {
+					const invalidTransactionResponseErrors = [new Error('Dummy Error')];
 					beforeEach(async () => {
 						validTransactionsResponse = dummyBlock.transactions.map(
 							transaction => ({
@@ -1813,7 +1817,7 @@ describe('blocks/verify', () => {
 							transaction => ({
 								id: transaction.id,
 								status: transactionStatus.FAIL,
-								errors: [new Error()],
+								errors: invalidTransactionResponseErrors,
 							})
 						);
 
@@ -1832,11 +1836,14 @@ describe('blocks/verify', () => {
 					});
 
 					it('should throw if the verifyTransaction returns transaction response with Status != OK', async () => {
-						modules.processTransactions.verifyTransactions.resolves(
-							invalidTransactionsResponse
+						modules.processTransactions.verifyTransactions.resolves({
+							transactionsResponses: invalidTransactionsResponse,
+						});
+						return expect(
+							__private.checkTransactions(dummyBlock, true)
+						).to.eventually.rejected.and.deep.equal(
+							invalidTransactionResponseErrors
 						);
-						expect(__private.checkTransactions(dummyBlock, true)).to.eventually
-							.throw;
 					});
 				});
 			});
@@ -1849,18 +1856,20 @@ describe('blocks/verify', () => {
 			});
 
 			it('should throw an array of errors if transactions are not allowed', async () => {
+				const errors = [new Error('anError')];
 				modules.processTransactions.checkAllowedTransactions.returns({
 					transactionsResponses: [
 						{
 							id: 1,
 							status: transactionStatus.FAIL,
-							errors: [new Error('anError')],
+							errors,
 						},
 					],
 				});
 
-				expect(__private.checkTransactions(dummyBlock, false)).to.eventually.be
-					.rejected;
+				return expect(
+					__private.checkTransactions(dummyBlock, false)
+				).to.eventually.be.rejected.and.deep.equal(errors);
 			});
 		});
 	});

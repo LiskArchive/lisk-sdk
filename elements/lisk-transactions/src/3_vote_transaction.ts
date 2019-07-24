@@ -30,7 +30,6 @@ const PREFIX_UNVOTE = '-';
 const MAX_VOTE_PER_ACCOUNT = 101;
 const MIN_VOTE_PER_TX = 1;
 const MAX_VOTE_PER_TX = 33;
-const TRANSACTION_VOTE_TYPE = 3;
 
 export interface VoteAsset {
 	readonly votes: ReadonlyArray<string>;
@@ -63,6 +62,8 @@ export const voteAssetFormatSchema = {
 export class VoteTransaction extends BaseTransaction {
 	public readonly containsUniqueData: boolean;
 	public readonly asset: VoteAsset;
+	public static TYPE = 3;
+	public static FEE = VOTE_FEE.toString();
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
@@ -75,10 +76,6 @@ export class VoteTransaction extends BaseTransaction {
 
 	protected assetToBytes(): Buffer {
 		return Buffer.from(this.asset.votes.join(''), 'utf8');
-	}
-
-	public assetToJSON(): object {
-		return this.asset;
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {
@@ -151,18 +148,6 @@ export class VoteTransaction extends BaseTransaction {
 			);
 		}
 
-		if (this.type !== TRANSACTION_VOTE_TYPE) {
-			errors.push(
-				new TransactionError(
-					'Invalid type',
-					this.id,
-					'.type',
-					this.type,
-					TRANSACTION_VOTE_TYPE,
-				),
-			);
-		}
-
 		try {
 			validateAddress(this.recipientId);
 		} catch (err) {
@@ -185,18 +170,6 @@ export class VoteTransaction extends BaseTransaction {
 					'recipientId does not match recipientPublicKey.',
 					this.id,
 					'.recipientId',
-				),
-			);
-		}
-
-		if (!this.fee.eq(VOTE_FEE)) {
-			errors.push(
-				new TransactionError(
-					`Fee must be equal to ${VOTE_FEE}`,
-					this.id,
-					'.fee',
-					this.fee.toString(),
-					VOTE_FEE,
 				),
 			);
 		}

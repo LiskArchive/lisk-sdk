@@ -1042,10 +1042,12 @@ describe('blocks/verify', () => {
 				delete block2.transactions[0].type;
 				blocksVerify.processBlock(block2, false, true, err => {
 					if (err) {
+						expect(err)
+							.to.be.an('array')
+							.to.have.a.lengthOf(1);
 						expect(err[0].message).equal(
 							"'' should have required property 'type'"
 						);
-						expect(err[1].message).equal('Invalid type');
 						block2.transactions[0].type = transactionType;
 						done();
 					}

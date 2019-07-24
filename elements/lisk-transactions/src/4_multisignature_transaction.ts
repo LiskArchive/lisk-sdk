@@ -31,8 +31,6 @@ import { createResponse, Status, TransactionResponse } from './response';
 import { TransactionJSON } from './transaction_types';
 import { validateMultisignatures, validateSignature, validator } from './utils';
 
-const TRANSACTION_MULTISIGNATURE_TYPE = 4;
-
 export const multisignatureAssetFormatSchema = {
 	type: 'object',
 	required: ['multisignature'],
@@ -94,8 +92,11 @@ export interface MultiSignatureAsset {
 
 export class MultisignatureTransaction extends BaseTransaction {
 	public readonly asset: MultiSignatureAsset;
+	public static TYPE = 4;
+	public static FEE = MULTISIGNATURE_FEE.toString();
 	protected _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.PENDING;
+
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
@@ -113,10 +114,6 @@ export class MultisignatureTransaction extends BaseTransaction {
 		const keysgroupBuffer = Buffer.from(keysgroup.join(''), 'utf8');
 
 		return Buffer.concat([minBuffer, lifetimeBuffer, keysgroupBuffer]);
-	}
-
-	public assetToJSON(): MultiSignatureAsset {
-		return this.asset;
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {
@@ -159,18 +156,6 @@ export class MultisignatureTransaction extends BaseTransaction {
 			validator.errors,
 		) as TransactionError[];
 
-		if (this.type !== TRANSACTION_MULTISIGNATURE_TYPE) {
-			errors.push(
-				new TransactionError(
-					'Invalid type',
-					this.id,
-					'.type',
-					this.type,
-					TRANSACTION_MULTISIGNATURE_TYPE,
-				),
-			);
-		}
-
 		if (!this.amount.eq(0)) {
 			errors.push(
 				new TransactionError(
@@ -185,21 +170,6 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 		if (errors.length > 0) {
 			return errors;
-		}
-
-		const expectedFee = new BigNum(MULTISIGNATURE_FEE).mul(
-			this.asset.multisignature.keysgroup.length + 1,
-		);
-		if (!this.fee.eq(expectedFee)) {
-			errors.push(
-				new TransactionError(
-					`Fee must be equal to ${expectedFee.toString()}`,
-					this.id,
-					'.fee',
-					this.fee.toString(),
-					expectedFee.toString(),
-				),
-			);
 		}
 
 		if (
@@ -238,6 +208,22 @@ export class MultisignatureTransaction extends BaseTransaction {
 		}
 
 		return errors;
+	}
+
+	public validateFee(): TransactionError | undefined {
+		const expectedFee = new BigNum(MultisignatureTransaction.FEE).mul(
+			this.asset.multisignature.keysgroup.length + 1,
+		);
+
+		return !this.fee.eq(expectedFee)
+			? new TransactionError(
+					`Fee must be equal to ${expectedFee.toString()}`,
+					this.id,
+					'.fee',
+					this.fee.toString(),
+					expectedFee.toString(),
+			  )
+			: undefined;
 	}
 
 	public processMultisignatures(_: StateStore): TransactionResponse {

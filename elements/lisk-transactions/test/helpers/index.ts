@@ -13,6 +13,14 @@
  *
  */
 import { addTransactionFields } from './add_transaction_fields';
-import { TestTransaction } from './test_transaction_class';
+import {
+	TestTransaction,
+	TestTransactionBasicImpl,
+} from './test_transaction_class';
 import { MockStateStore } from './state_store';
-export { addTransactionFields, MockStateStore, TestTransaction };
+export {
+	addTransactionFields,
+	MockStateStore,
+	TestTransaction,
+	TestTransactionBasicImpl,
+};

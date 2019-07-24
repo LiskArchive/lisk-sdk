@@ -37,7 +37,7 @@ const defaultCreateValues = {
 	nameExist: false,
 	multiMin: 0,
 	multiLifetime: 0,
-	asset: null,
+	asset: {},
 };
 
 const readOnlyFields = ['address'];
@@ -164,8 +164,6 @@ class ChainAccount extends AccountEntity {
 
 		accounts = accounts.map(account => {
 			const parsedAccount = _.defaults(account, defaultCreateValues);
-			parsedAccount.asset = parsedAccount.asset ? parsedAccount.asset : null;
-
 			return parsedAccount;
 		});
 

@@ -184,7 +184,13 @@ function addTransaction(library, transaction, cb) {
 	transaction = library.logic.initTransaction.fromJson(transaction);
 	const amountNormalized = transaction.amount.dividedBy(NORMALIZER).toFixed();
 	const feeNormalized = transaction.fee.dividedBy(NORMALIZER).toFixed();
-	__testContext.debug(`Enqueue transaction ID: ${transaction.id}, Amount: ${amountNormalized}, Fee: ${feeNormalized}, Sender: ${transaction.senderId}, Recipient: ${transaction.recipientId}`);
+	__testContext.debug(
+		`Enqueue transaction ID: ${
+			transaction.id
+		}, Amount: ${amountNormalized}, Fee: ${feeNormalized}, Sender: ${
+			transaction.senderId
+		}, Recipient: ${transaction.recipientId}`
+	);
 	library.balancesSequence.add(sequenceCb => {
 		library.modules.transactions.processUnconfirmedTransaction(
 			transaction,

@@ -42,25 +42,19 @@ const CUSTOM_TRANSACTION_TYPE = 7;
 class CustomTransationClass extends BaseTransaction {
 	constructor(input) {
 		super(input);
-		this.type = CUSTOM_TRANSACTION_TYPE;
 		this.asset = input.asset;
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	assetToJSON() {
-		return this.asset;
+	static get TYPE() {
+		return 7;
 	}
 
-	// eslint-disable-next-line class-methods-use-this,no-empty-function
-	async prepare(store) {
-		await store.account.cache([
-			{
-				address: this.senderId,
-			},
-			{
-				address: this.recipientId,
-			},
-		]);
+	static get FEE() {
+		return TransferTransaction.FEE;
+	}
+
+	assetToJSON() {
+		return this.asset;
 	}
 
 	// eslint-disable-next-line class-methods-use-this
@@ -74,19 +68,21 @@ class CustomTransationClass extends BaseTransaction {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	validateAsset() {
-		return [];
-	}
-
-	// eslint-disable-next-line class-methods-use-this
 	undoAsset() {
 		return [];
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	verifyAgainstTransactions(transactions) {
-		transactions.forEach(() => true);
+	validateAsset() {
 		return [];
+	}
+
+	async prepare(store) {
+		await store.account.cache([
+			{
+				address: this.senderId,
+			},
+		]);
 	}
 }
 
@@ -100,6 +96,7 @@ class CustomTransationClass extends BaseTransaction {
  */
 function createRawCustomTransaction({ passphrase, senderId, senderPublicKey }) {
 	const aCustomTransation = new CustomTransationClass({
+		type: 7,
 		senderId,
 		senderPublicKey,
 		asset: {
@@ -262,7 +259,6 @@ describe('matcher', () => {
 			setMatcherAndRegisterTx(scope, CustomTransationClass, () => true);
 
 			const jsonTransaction = createRawCustomTransaction(commonTransactionData);
-
 			// Act
 			receiveTransaction(jsonTransaction, null, err => {
 				// Assert
@@ -279,7 +275,6 @@ describe('matcher', () => {
 			// Arrange
 			setMatcherAndRegisterTx(scope, CustomTransationClass, () => false);
 			const jsonTransaction = createRawCustomTransaction(commonTransactionData);
-
 			createRawBlock(scope, [jsonTransaction], (err, rawBlock) => {
 				if (err) {
 					return done(err);
@@ -291,7 +286,6 @@ describe('matcher', () => {
 					if (tickErr) {
 						return done(tickErr);
 					}
-
 					// Assert: received block should be accepted and set as the last block
 					expect(scope.modules.blocks.lastBlock.get().height).to.equal(1);
 

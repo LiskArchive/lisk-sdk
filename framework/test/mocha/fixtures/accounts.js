@@ -84,7 +84,7 @@ const Account = stampit({
 		votedDelegatesPublicKeys: null,
 		membersPublicKeys: null,
 		productivity: 0,
-		asset: null,
+		asset: {},
 	},
 	init({
 		isDelegate,
@@ -138,7 +138,7 @@ const dbAccount = stampit({
 		secondSignature: 0,
 		username: null,
 		vote: '0',
-		asset: null,
+		asset: {},
 	},
 	init({ address, balance }) {
 		this.address = address || this.address;

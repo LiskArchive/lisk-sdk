@@ -12,12 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-const systemDirs = (appLabel, tempPath) => ({
-	temp: `${tempPath}/${appLabel}/`,
-	sockets: `${tempPath}/${appLabel}/sockets`,
-	pids: `${tempPath}/${appLabel}/pids`,
-});
+/*
+   DESCRIPTION: Alter null value to empty JSON object {} for asset field for mem_accounts column
+   PARAMETERS: None
+*/
 
-module.exports = systemDirs;
+ -- Alter asset field to empty JSON
+UPDATE mem_accounts SET asset = '{}'::json WHERE asset IS NULL;

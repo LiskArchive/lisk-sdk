@@ -20,12 +20,13 @@ Object {
       },
     },
     "ipc": Object {
-      "enabled": false,
+      "enabled": true,
     },
-    "label": "jest-unit",
+    "label": "devnet",
     "minVersion": "1.0.0",
-    "protocolVersion": "1.0",
-    "version": "1.6.0",
+    "protocolVersion": "1.1",
+    "tempPath": "/tmp/lisk",
+    "version": "2.1.0",
   },
   "components": Object {
     "cache": Object {
@@ -62,7 +63,6 @@ Object {
       "broadcasts": Object {
         "active": true,
         "broadcastInterval": 5000,
-        "parallelLimit": 20,
         "relayLimit": 3,
         "releaseLimit": 25,
       },
@@ -74,12 +74,15 @@ Object {
         "inertTransactions": Array [],
         "multisignatures": Array [],
         "precedent": Object {
+          "disableDappTransaction": 0,
           "disableDappTransfer": 0,
         },
         "recipientExceedingUint64": Object {},
         "recipientLeadingZero": Object {},
+        "roundVotes": Array [],
         "rounds": Object {},
         "senderPublicKey": Array [],
+        "signSignature": Array [],
         "signatures": Array [],
         "transactionWithNullByte": Array [],
         "votes": Array [],
@@ -496,29 +499,14 @@ Object {
       },
       "loading": Object {
         "loadPerIteration": 5000,
-        "rebuildUpToRound": 0,
+        "rebuildUpToRound": null,
       },
-      "network": Object {
-        "access": Object {
-          "blackList": Array [],
-        },
-        "address": "0.0.0.0",
-        "enabled": true,
-        "emitPeerLimit": 25,
-        "list": Array [
-          Object {
-            "ip": "127.0.0.1",
-            "wsPort": 5000,
-          },
-        ],
-        "options": Object {
-          "broadhashConsensusCalculationInterval": 5000,
-          "httpHeadersTimeout": 5000,
-          "httpServerSetTimeout": 20000,
-          "timeout": 5000,
-          "wsEngine": "ws",
-        },
-        "wsPort": 5000,
+      "registeredTransactions": Object {
+        "0": [Function],
+        "1": [Function],
+        "2": [Function],
+        "3": [Function],
+        "4": [Function],
       },
       "syncing": Object {
         "active": true,
@@ -573,6 +561,22 @@ Object {
         },
       },
       "trustProxy": false,
+    },
+    "network": Object {
+      "ackTimeout": 20000,
+      "address": "0.0.0.0",
+      "blacklistedPeers": Array [],
+      "connectTimeout": 5000,
+      "discoveryInterval": 30000,
+      "emitPeerLimit": 25,
+      "seedPeers": Array [
+        Object {
+          "ip": "127.0.0.1",
+          "wsPort": 5000,
+        },
+      ],
+      "wsEngine": "ws",
+      "wsPort": 5000,
     },
   },
 }

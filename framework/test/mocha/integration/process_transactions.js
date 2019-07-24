@@ -191,7 +191,8 @@ describe('processTransactions', () => {
 				let verifyTransactions;
 
 				beforeEach(async () => {
-					verifyTransactions = library.modules.processTransactions.verifyTransactions;
+					verifyTransactions =
+						library.modules.processTransactions.verifyTransactions;
 				});
 
 				it('should return transactionsResponses with status OK for verified transactions', async () => {

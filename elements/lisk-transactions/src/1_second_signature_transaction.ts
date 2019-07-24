@@ -23,8 +23,6 @@ import { convertToAssetError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
 import { getId, validator } from './utils';
 
-const TRANSACTION_SIGNATURE_TYPE = 1;
-
 export interface SecondSignatureAsset {
 	readonly signature: {
 		readonly publicKey: string;
@@ -50,6 +48,9 @@ export const secondSignatureAssetFormatSchema = {
 
 export class SecondSignatureTransaction extends BaseTransaction {
 	public readonly asset: SecondSignatureAsset;
+	public static TYPE = 1;
+	public static FEE = SIGNATURE_FEE.toString();
+
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
@@ -65,10 +66,6 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		} = this.asset;
 
 		return hexToBuffer(publicKey);
-	}
-
-	public assetToJSON(): object {
-		return this.asset;
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {
@@ -104,18 +101,6 @@ export class SecondSignatureTransaction extends BaseTransaction {
 			validator.errors,
 		) as TransactionError[];
 
-		if (this.type !== TRANSACTION_SIGNATURE_TYPE) {
-			errors.push(
-				new TransactionError(
-					'Invalid type',
-					this.id,
-					'.type',
-					this.type,
-					TRANSACTION_SIGNATURE_TYPE,
-				),
-			);
-		}
-
 		if (!this.amount.eq(0)) {
 			errors.push(
 				new TransactionError(
@@ -124,18 +109,6 @@ export class SecondSignatureTransaction extends BaseTransaction {
 					'.amount',
 					this.amount.toString(),
 					'0',
-				),
-			);
-		}
-
-		if (!this.fee.eq(SIGNATURE_FEE)) {
-			errors.push(
-				new TransactionError(
-					`Fee must be equal to ${SIGNATURE_FEE}`,
-					this.id,
-					'.fee',
-					this.fee.toString(),
-					SIGNATURE_FEE,
 				),
 			);
 		}

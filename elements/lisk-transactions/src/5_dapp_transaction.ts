@@ -22,8 +22,6 @@ import { convertToAssetError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
 import { stringEndsWith, validator } from './utils/validation';
 
-const TRANSACTION_DAPP_TYPE = 5;
-
 export interface DappAsset {
 	readonly dapp: {
 		readonly category: number;
@@ -92,6 +90,8 @@ export const dappAssetFormatSchema = {
 export class DappTransaction extends BaseTransaction {
 	public readonly containsUniqueData: boolean;
 	public readonly asset: DappAsset;
+	public static TYPE = 5;
+	public static FEE = DAPP_FEE.toString();
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
@@ -142,10 +142,6 @@ export class DappTransaction extends BaseTransaction {
 			typeBuffer,
 			categoryBuffer,
 		]);
-	}
-
-	public assetToJSON(): object {
-		return this.asset;
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {
@@ -213,18 +209,6 @@ export class DappTransaction extends BaseTransaction {
 			validator.errors,
 		) as TransactionError[];
 
-		if (this.type !== TRANSACTION_DAPP_TYPE) {
-			errors.push(
-				new TransactionError(
-					'Invalid type',
-					this.id,
-					'.type',
-					this.type,
-					TRANSACTION_DAPP_TYPE,
-				),
-			);
-		}
-
 		if (!this.amount.eq(0)) {
 			errors.push(
 				new TransactionError(
@@ -247,17 +231,6 @@ export class DappTransaction extends BaseTransaction {
 			);
 		}
 
-		if (!this.fee.eq(DAPP_FEE)) {
-			errors.push(
-				new TransactionError(
-					`Fee must be equal to ${DAPP_FEE}`,
-					this.id,
-					'.fee',
-					this.fee.toString(),
-					DAPP_FEE,
-				),
-			);
-		}
 		const validLinkSuffix = ['.zip'];
 
 		if (errors.length > 0) {
@@ -317,7 +290,7 @@ export class DappTransaction extends BaseTransaction {
 		const errors: TransactionError[] = [];
 		const nameExists = store.transaction.find(
 			(transaction: TransactionJSON) =>
-				transaction.type === TRANSACTION_DAPP_TYPE &&
+				transaction.type === DappTransaction.TYPE &&
 				transaction.id !== this.id &&
 				(transaction.asset as DappAsset).dapp &&
 				(transaction.asset as DappAsset).dapp.name === this.asset.dapp.name,
@@ -335,7 +308,7 @@ export class DappTransaction extends BaseTransaction {
 
 		const linkExists = store.transaction.find(
 			(transaction: TransactionJSON) =>
-				transaction.type === TRANSACTION_DAPP_TYPE &&
+				transaction.type === DappTransaction.TYPE &&
 				transaction.id !== this.id &&
 				(transaction.asset as DappAsset).dapp &&
 				(transaction.asset as DappAsset).dapp.link === this.asset.dapp.link,
