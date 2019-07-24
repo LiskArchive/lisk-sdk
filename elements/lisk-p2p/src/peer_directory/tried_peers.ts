@@ -86,19 +86,25 @@ export class TriedPeers {
 	}
 
 	public updatePeer(peerInfo: P2PDiscoveredPeerInfo): void {
-		[...this._triedPeerMap.values()].map(peersMap => {
-			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			const triedPeer = peersMap.get(peerId);
-			if (triedPeer) {
-				const updatedTriedPeerInfo: TriedPeerInfo = {
-					peerInfo: { ...triedPeer, ...peerInfo },
-					dateAdded: triedPeer.dateAdded,
-					numOfConnectionFailures: triedPeer.numOfConnectionFailures,
-				};
-				peersMap.set(peerId, updatedTriedPeerInfo);
-			}
+		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
 
-			return peersMap;
+		[...this._triedPeerMap.entries()].forEach(([bucketId, peerMap]) => {
+			[...peerMap.entries()].forEach(([peerId, triedPeerInfo]) => {
+				if (incomingPeerId === peerId) {
+					const updatedTriedPeerInfo: TriedPeerInfo = {
+						peerInfo: { ...triedPeerInfo, ...peerInfo },
+						dateAdded: triedPeerInfo.dateAdded,
+						numOfConnectionFailures: triedPeerInfo.numOfConnectionFailures,
+					};
+					// Set the updated peer in the peerMap of the peer bucket
+					this._triedPeerMap.set(
+						bucketId,
+						peerMap.set(peerId, updatedTriedPeerInfo),
+					);
+
+					return;
+				}
+			});
 		});
 	}
 
