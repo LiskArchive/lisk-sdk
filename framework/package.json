@@ -1,6 +1,6 @@
 {
 	"name": "lisk-framework",
-	"version": "0.2.0-alpha.0",
+	"version": "0.2.0",
 	"description": "Lisk blockchain application platform",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -51,7 +51,7 @@
 		"@liskhq/lisk-cryptography": "2.1.1",
 		"@liskhq/lisk-p2p": "0.1.2",
 		"@liskhq/lisk-transaction-pool": "0.1.2",
-		"@liskhq/lisk-transactions": "2.2.0-alpha.0",
+		"@liskhq/lisk-transactions": "2.2.0",
 		"ajv": "6.7.0",
 		"ajv-keywords": "3.4.0",
 		"async": "2.6.1",
