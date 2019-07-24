@@ -55,6 +55,7 @@ interface AddressBytes {
 	readonly dBytes: Buffer;
 }
 
+// Each byte represents the corresponding subsection of the IP address e.g. AAA.BBB.CCC.DDD
 export const getIPBytes = (address: string): AddressBytes => {
 	const aBytes = Buffer.alloc(PREFIX_BUFFER_LENGTH);
 	aBytes.writeUInt8(getIPGroup(address, 0), 0);
