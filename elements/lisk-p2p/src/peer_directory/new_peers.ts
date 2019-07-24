@@ -66,12 +66,19 @@ export class NewPeers {
 		return ifExists;
 	}
 
-	public updatePeer(peerInfo: P2PDiscoveredPeerInfo): void {
-		[...this._newPeerMap.values()].forEach(peersMap => {
+	public updatePeer(peerInfo: P2PPeerInfo): void {
+		[...this._newPeerMap.values()].map(peersMap => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			if (peersMap.has(peerId)) {
-				return;
+			const newPeer = peersMap.get(peerId);
+			if (newPeer) {
+				const updatedNewPeerInfo: NewPeerInfo = {
+					peerInfo: { ...newPeer, ...peerInfo },
+					dateAdded: newPeer.dateAdded,
+				};
+				peersMap.set(peerId, updatedNewPeerInfo);
 			}
+
+			return peersMap;
 		});
 	}
 
