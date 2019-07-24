@@ -213,7 +213,5 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				);
 			});
 		});
-
-		describe('multiple transactions scenarios: create transactions, forge, delete block, forge again', () => {});
 	});
 });

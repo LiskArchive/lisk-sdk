@@ -13,23 +13,21 @@
  */
 describe('integration test (blocks) - receiveBlockFromNetwork()', () => {
 	describe('receiveBlockFromNetwork (empty transactions)', () => {
-		describe('for valid block', () => {
-			it.todo('should add block to blockchain');
-		});
+		it.todo('should add a valid block block to chain');
 
-		describe('forkThree', () => {
+		describe('when a block causes a fork 3', () => {
 			describe('validate block slot', () => {
-				describe('when generator is not a delegate', () => {
-					it.todo('should not add block to blockchain');
-				});
+				it.todo(
+					'should not add block to chain when generator is not a delegate'
+				);
 
-				describe('when block generator has incorrect slot', () => {
-					it.todo('should not add block to blockchain');
-				});
+				it.todo(
+					'should not add block to chain when block generator has incorrect slot'
+				);
 			});
 		});
 
-		describe('forkOne', () => {
+		describe('when a block causes a fork 1', () => {
 			beforeEach('forge 300 blocks');
 
 			describe('when received block timestamp is greater than previous block', () => {
@@ -65,7 +63,7 @@ describe('integration test (blocks) - receiveBlockFromNetwork()', () => {
 			});
 		});
 
-		describe('forkFive', () => {
+		describe('when a block causes a fork 5', () => {
 			describe('with 5 blocks forged', () => {
 				describe('when timestamp is greater than last block', () => {
 					it.todo('should reject received block');
