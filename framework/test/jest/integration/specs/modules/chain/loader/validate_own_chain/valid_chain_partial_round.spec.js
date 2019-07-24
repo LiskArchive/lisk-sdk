@@ -16,21 +16,21 @@
 
 describe('validateOwnChain', () => {
 	describe('forge 150 blocks with version = 0', () => {
-		it.todo('blockchain should be at height 150');
+		it.todo('should have a largest height of 150');
 
-		it.todo('all blocks should have version = 0');
+		it.todo('should have all blocks with version = 0');
 
 		describe('increase block version = 1 and exceptions for height = 150', () => {
-			it.todo('there should be no error during chain validation');
+			it.todo('should present no error during chain validation');
 
-			it.todo('blockchain should be at height 150');
+			it.todo('should have a largest height of 150');
 
-			it.todo('remaining blocks have version = 0');
+			it.todo('should have remaining blocks with version = 0');
 
 			describe('forge 5 more blocks', () => {
-				it.todo('blockchain should be at height 155');
+				it.todo('should have a largest height of 155');
 
-				it.todo('last 5 blocks should have version = 1');
+				it.todo('should have the last 5 blocks with version = 1');
 			});
 		});
 	});

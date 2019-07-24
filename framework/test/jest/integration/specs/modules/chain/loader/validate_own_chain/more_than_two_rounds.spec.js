@@ -16,9 +16,9 @@
 
 describe('validateOwnChain', () => {
 	describe('forge 3 rounds (303 blocks) with version = 0', () => {
-		it.todo('blockchain should be at height 303');
+		it.todo('should have a largest height of 303');
 
-		it.todo('all blocks should have version = 0');
+		it.todo('should have all blocks with version = 0');
 
 		// Setting exception to height 50 will cause chain to delete 303 - 50 = 253 blocks
 		// which is more than 2 rounds (202 blocks) so system should be stopped with error
