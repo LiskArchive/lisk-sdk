@@ -101,7 +101,7 @@ export class NewPeers {
 		let success = false;
 
 		if (!this.findPeer(peerInfo)) {
-			const newTriedPeerInfo = {
+			const newPeerInfo = {
 				peerInfo,
 				numOfConnectionFailures: 0,
 				dateAdded: new Date(),
@@ -116,18 +116,12 @@ export class NewPeers {
 				const bucketList = this._newPeerMap.get(bucketNumber);
 				if (bucketList) {
 					if (bucketList.size < this._newPeerBucketSize) {
-						bucketList.set(
-							constructPeerIdFromPeerInfo(peerInfo),
-							newTriedPeerInfo,
-						);
+						bucketList.set(constructPeerIdFromPeerInfo(peerInfo), newPeerInfo);
 						this._newPeerMap.set(bucketNumber, bucketList);
 						success = true;
 					} else {
 						this._evictPeer(bucketNumber);
-						bucketList.set(
-							constructPeerIdFromPeerInfo(peerInfo),
-							newTriedPeerInfo,
-						);
+						bucketList.set(constructPeerIdFromPeerInfo(peerInfo), newPeerInfo);
 						this._newPeerMap.set(bucketNumber, bucketList);
 						success = true;
 					}
