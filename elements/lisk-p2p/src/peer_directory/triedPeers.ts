@@ -15,9 +15,15 @@
 import { P2PDiscoveredPeerInfo } from '../p2p_types';
 import { constructPeerIdFromPeerInfo, getBucket } from '../utils';
 
-const TRIED_PEER_LIST_SIZE = 64;
-const TRIED_PEER_BUCKET_SIZE = 32;
-const MAX_RECONNECTIONS = 3;
+export const DEFAULT_TRIED_PEER_LIST_SIZE = 64;
+export const DEFAULT_TRIED_PEER_BUCKET_SIZE = 32;
+export const DEFAULT_MAX_RECONNECT_TRIES = 3;
+
+export interface TriedPeerConfig {
+	readonly triedPeerListSize?: number;
+	readonly triedPeerBucketSize?: number;
+	readonly maxReconnectTries?: number;
+}
 
 interface TriedPeerInfo {
 	readonly peerInfo: P2PDiscoveredPeerInfo;
@@ -28,15 +34,39 @@ interface TriedPeerInfo {
 
 export class TriedPeers {
 	private readonly _triedPeerMap: Map<number, Map<string, TriedPeerInfo>>;
+	private readonly _triedPeerListSize: number;
+	private readonly _triedPeerBucketSize: number;
+	private readonly _maxReconnectTries: number;
 
-	public constructor() {
+	public constructor(triedPeerConfig: TriedPeerConfig) {
+		this._triedPeerListSize = triedPeerConfig.triedPeerListSize
+			? triedPeerConfig.triedPeerListSize
+			: DEFAULT_TRIED_PEER_LIST_SIZE;
+		this._triedPeerBucketSize = triedPeerConfig.triedPeerBucketSize
+			? triedPeerConfig.triedPeerBucketSize
+			: DEFAULT_TRIED_PEER_BUCKET_SIZE;
+		this._maxReconnectTries = triedPeerConfig.maxReconnectTries
+			? triedPeerConfig.maxReconnectTries
+			: DEFAULT_MAX_RECONNECT_TRIES;
 		// Initialize the Map with all the buckets
 		this._triedPeerMap = new Map();
-		[...Array(TRIED_PEER_LIST_SIZE).keys()]
+		[...Array(this._triedPeerListSize).keys()]
 			.map(x => x + 1)
 			.forEach(bucketNumber => {
 				this._triedPeerMap.set(bucketNumber, new Map<string, TriedPeerInfo>());
 			});
+	}
+
+	public get triedPeerConfig(): TriedPeerConfig {
+		return {
+			maxReconnectTries: this._maxReconnectTries,
+			triedPeerBucketSize: this._triedPeerBucketSize,
+			triedPeerListSize: this._triedPeerListSize,
+		};
+	}
+
+	public get triedPeerMap(): Map<number, Map<string, TriedPeerInfo>> {
+		return this._triedPeerMap;
 	}
 
 	public findPeer(peerInfo: P2PDiscoveredPeerInfo): boolean {
@@ -56,18 +86,28 @@ export class TriedPeers {
 	}
 
 	public updatePeer(peerInfo: P2PDiscoveredPeerInfo): void {
-		[...this._triedPeerMap.values()].forEach(peersMap => {
+		[...this._triedPeerMap.values()].map(peersMap => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			if (peersMap.has(peerId)) {
-				return;
+			const triedPeer = peersMap.get(peerId);
+			if (triedPeer) {
+				const updatedTriedPeerInfo: TriedPeerInfo = {
+					peerInfo: { ...triedPeer, ...peerInfo },
+					dateAdded: triedPeer.dateAdded,
+					numOfConnectionFailures: triedPeer.numOfConnectionFailures,
+				};
+				peersMap.set(peerId, updatedTriedPeerInfo);
 			}
+
+			return peersMap;
 		});
 	}
 
 	public removePeer(peerInfo: P2PDiscoveredPeerInfo): void {
-		[...this._triedPeerMap.values()].forEach(peersMap => {
+		[...this._triedPeerMap.values()].map(peersMap => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
 			peersMap.delete(peerId);
+
+			return peersMap;
 		});
 	}
 
@@ -87,9 +127,11 @@ export class TriedPeers {
 		return peer ? peer.peerInfo : undefined;
 	}
 
-	public addPeer(peerInfo: P2PDiscoveredPeerInfo): boolean {
+	public addPeer(
+		peerInfo: P2PDiscoveredPeerInfo,
+	): P2PDiscoveredPeerInfo | undefined {
 		// tslint:disable-next-line:no-let
-		let success = false;
+		let evictedPeer;
 
 		if (!this.findPeer(peerInfo)) {
 			const newTriedPeerInfo = {
@@ -97,32 +139,34 @@ export class TriedPeers {
 				numOfConnectionFailures: 0,
 				dateAdded: new Date(),
 			};
-
-			const bucketNumber = getBucket(peerInfo.ipAddress, Math.random());
+			// TODO: Second argument of getBucket function should come from a field in peerInfo of 32 entropy
+			const bucketNumber = getBucket(
+				peerInfo.ipAddress,
+				peerInfo.secret as number,
+				this._triedPeerListSize,
+			);
 			if (bucketNumber) {
 				const bucketList = this._triedPeerMap.get(bucketNumber);
 				if (bucketList) {
-					if (bucketList.size < TRIED_PEER_BUCKET_SIZE) {
+					if (bucketList.size < this._triedPeerBucketSize) {
 						bucketList.set(
 							constructPeerIdFromPeerInfo(peerInfo),
 							newTriedPeerInfo,
 						);
 						this._triedPeerMap.set(bucketNumber, bucketList);
-						success = true;
 					} else {
-						this._evictPeer(bucketNumber);
+						evictedPeer = this._evictPeer(bucketNumber);
 						bucketList.set(
 							constructPeerIdFromPeerInfo(peerInfo),
 							newTriedPeerInfo,
 						);
 						this._triedPeerMap.set(bucketNumber, bucketList);
-						success = true;
 					}
 				}
 			}
 		}
 
-		return success;
+		return evictedPeer ? evictedPeer.peerInfo : undefined;
 	}
 
 	public failedConnectionAction(
@@ -136,7 +180,7 @@ export class TriedPeers {
 			const peer = peersMap.get(peerId);
 			if (peer) {
 				const { peerInfo, numOfConnectionFailures, dateAdded } = peer;
-				if (numOfConnectionFailures + 1 >= MAX_RECONNECTIONS) {
+				if (numOfConnectionFailures + 1 >= this._maxReconnectTries) {
 					peersMap.delete(peerId);
 					evictPeer = true;
 
@@ -157,16 +201,20 @@ export class TriedPeers {
 		return evictPeer;
 	}
 
-	private _evictPeer(bucketNumber: number): void {
-		const peerList = this._triedPeerMap.get(bucketNumber);
-
-		if (peerList) {
-			const randomPeerIndex = Math.floor(
-				Math.random() * TRIED_PEER_BUCKET_SIZE,
-			);
-			const randomPeer = Array.from(peerList.keys())[randomPeerIndex];
-			peerList.delete(randomPeer);
-			this._triedPeerMap.set(bucketNumber, peerList);
+	private _evictPeer(bucketId: number): TriedPeerInfo {
+		const peerList = this._triedPeerMap.get(bucketId);
+		if (!peerList) {
+			throw new Error(`No Peers exist for bucket Id: ${bucketId}`);
 		}
+
+		const randomPeerIndex = Math.floor(
+			Math.random() * this._triedPeerBucketSize,
+		);
+		const randomPeerId = Array.from(peerList.keys())[randomPeerIndex];
+		const randomPeer = Array.from(peerList.values())[randomPeerIndex];
+		peerList.delete(randomPeerId);
+		this._triedPeerMap.set(bucketId, peerList);
+
+		return randomPeer;
 	}
 }
