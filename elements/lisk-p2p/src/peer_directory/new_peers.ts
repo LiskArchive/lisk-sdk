@@ -50,6 +50,17 @@ export class NewPeers {
 			});
 	}
 
+	public get newPeerConfig(): NewPeerConfig {
+		return {
+			newPeerBucketSize: this._newPeerBucketSize,
+			newPeerListSize: this._newPeerListSize,
+		};
+	}
+
+	public get triedPeerMap(): Map<number, Map<string, NewPeerInfo>> {
+		return this._newPeerMap;
+	}
+
 	public findPeer(peerInfo: P2PPeerInfo): boolean {
 		// tslint:disable-next-line:no-let
 		let ifExists = false;
@@ -83,7 +94,7 @@ export class NewPeers {
 	}
 
 	public removePeer(peerInfo: P2PDiscoveredPeerInfo): void {
-		[...this._newPeerMap.values()].forEach(peersMap => {
+		[...this._newPeerMap.values()].map(peersMap => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
 			peersMap.delete(peerId);
 		});
