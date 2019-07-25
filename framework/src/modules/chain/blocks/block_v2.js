@@ -30,6 +30,9 @@ const BigNum = require('@liskhq/bignum');
 const { validator } = require('@liskhq/lisk-validator');
 const { validateTransactions } = require('../transactions');
 const blockVersion = require('./block_version');
+
+// TODO: Due to UNKNOWN issue the require for utils returned empty object
+delete require.cache[require.resolve('./utils')];
 const { sortTransactions } = require('./utils');
 
 /**
@@ -482,5 +485,4 @@ module.exports = {
 	getHash,
 	objectNormalize,
 	sign,
-	sortTransactions,
 };
