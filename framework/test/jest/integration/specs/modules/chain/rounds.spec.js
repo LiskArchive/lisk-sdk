@@ -273,37 +273,37 @@ describe('rounds', () => {
 				it.todo('should have last block height = 101');
 
 				it.todo(
-					'after finishing round, should unvote expected forger of last block of round and vote new delegate (block data)'
+					'should unvote the expected forger of the last block of the round and vote the new delegate, after finishing the round (block data)'
 				);
 
 				it.todo(
-					'delegates list should be different than one generated at the beginning of round 1'
+					'should compute a different delegates list than the one generated at the beginning of round 1'
 				);
 
-				it.todo('unvoted delegate should not be on list');
+				it.todo('should not include in the list the unvoted delegate');
 
-				it.todo('delegate who replaced unvoted one should be on list');
+				it.todo('should include the delegate who replaced the unvoiced one in the list');
 
-				it.todo('forger of last block of previous round should have vote = 0');
+				it.todo('should compute vote = 0 for the forget of the last block of the previous round');
 
 				it.todo(
-					'delegate who replaced last block forger should have proper votes'
+					'should compute proper votes for the delegate who replaced last block forger'
 				);
 			});
 
 			describe('after last block of round is deleted', () => {
 				it.todo(
-					'delegates list should be equal to one generated at the beginning of round 1'
+					'should have the same delegates list to the one generated at the beginning of round 1'
 				);
 
-				it.todo('last block height should be at height 100');
+				it.todo('should have last block with height = 100');
 
 				it.todo(
-					'expected forger of last block of round should have proper votes again'
+					'should have proper votes again for the expected forger of the last block of the round'
 				);
 
 				it.todo(
-					'delegate who replaced last block forger should have vote, producedBlocks, missedBlocks = 0'
+					'should have a delegate who replaced last block forger with vote, producedBlocks and missedBlocks = 0'
 				);
 			});
 		});
@@ -313,46 +313,46 @@ describe('rounds', () => {
 		describe('rounds rewards consistency', () => {
 			describe('should forge 49 blocks with 1 TRANSFER transaction each to random account', () => {
 				describe('new block', () => {
-					it.todo('ID should be different than last block ID');
-					it.todo('block version should be 1');
-					it.todo('height should be greather by 1');
+					it.todo('should have different ID than the last block');
+					it.todo('should have version = 1');
+					it.todo('should have height greater than 1');
 					it.todo('should contain all expected transactions');
 					describe('mem_accounts table', () => {
 						it.todo(
 							'if block contains at least one transaction states before and after block should be different'
 						);
 						it.todo(
-							'delegates with highest weight used for generating list should be the same for same round'
+							'should have the same delegates with highest weight used for generating the list for the same round'
 						);
-						it.todo('delegates list should be the same for same round');
-						it.todo('accounts table states should match expected states');
-						it.todo('balances should be valid against blockchain balances');
+						it.todo('should have the same delegates list for the same round');
+						it.todo('should match accounts table states with expected states');
+						it.todo('should have valid balances against blockchain balances');
 					});
 				});
 			});
 
 			describe('before rewards start', () => {
-				it.todo('last block height should be at height 149');
+				it.todo('should have last block height = 149');
 
-				it.todo('block just before rewards start should have reward = 0');
+				it.todo('should have the block just before rewards started to have reward = 0');
 			});
 
 			describe('after rewards start', () => {
 				describe('new block', () => {
-					it.todo('ID should be different than last block ID');
-					it.todo('block version should be 1');
-					it.todo('height should be greather by 1');
+					it.todo('should have different ID than the last block');
+					it.todo('should have block version = 1');
+					it.todo('should have height greater than 1');
 					it.todo('should contain all expected transactions');
 					describe('mem_accounts table', () => {
 						it.todo(
 							'if block contains at least one transaction states before and after block should be different'
 						);
 						it.todo(
-							'delegates with highest weight used for generating list should be the same for same round'
+							'should have the same delegates with highest weight use for generating the list for the same round'
 						);
-						it.todo('delegates list should be the same for same round');
-						it.todo('accounts table states should match expected states');
-						it.todo('balances should be valid against blockchain balances');
+						it.todo('should have the same delegates list for the same round');
+						it.todo('should match accounts table states with expected states');
+						it.todo('should have valid balances against blockchain balances');
 					});
 				});
 			});
