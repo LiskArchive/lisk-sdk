@@ -101,13 +101,14 @@ describe.only('triedPeer', () => {
 			triedPeersList.addPeer(samplePeers[0]);
 			triedPeersList.addPeer(samplePeers[1]);
 		});
-
-		it('should get the peer from the incoming peerId', async () => {
-			expect(
-				triedPeersList.getPeer(constructPeerIdFromPeerInfo(samplePeers[0])),
-			)
-				.to.be.an('object')
-				.and.eql(samplePeers[0]);
+		describe('when peer exists in the triedPeers peerMap', () => {
+			it('should get the peer from the incoming peerId', async () => {
+				expect(
+					triedPeersList.getPeer(constructPeerIdFromPeerInfo(samplePeers[0])),
+				)
+					.to.be.an('object')
+					.and.eql(samplePeers[0]);
+			});
 		});
 
 		describe('when peer does not exist in the triedPeers peerMap', () => {
@@ -115,6 +116,50 @@ describe.only('triedPeer', () => {
 			it('should return undefined for the given peer that does not exist in peerMap', async () => {
 				expect(triedPeersList.getPeer(constructPeerIdFromPeerInfo(randomPeer)))
 					.to.be.undefined;
+			});
+		});
+	});
+
+	describe('#updatePeer', () => {
+		let triedPeersList: TriedPeers;
+		const samplePeers = initializePeerInfoList();
+
+		beforeEach(async () => {
+			const triedPeerConfig = {
+				maxReconnectTries: 3,
+				triedPeerBucketSize: 32,
+				triedPeerListSize: 32,
+			};
+
+			triedPeersList = new TriedPeers(triedPeerConfig);
+			triedPeersList.addPeer(samplePeers[0]);
+			triedPeersList.addPeer(samplePeers[1]);
+		});
+
+		it('should update the peer from the incoming peerInfo', async () => {
+			let updatedPeer = {
+				...samplePeers[0],
+				height: 0,
+				version: '1.2.3',
+			};
+
+			const success = triedPeersList.updatePeer(updatedPeer);
+			expect(success).to.be.true;
+			expect(
+				triedPeersList.getPeer(constructPeerIdFromPeerInfo(samplePeers[0])),
+			).to.be.eql(updatedPeer);
+		});
+
+		describe('when trying to update a peer that does not exist', () => {
+			it('should return false when the peer does not exist', () => {
+				let updatedPeer = {
+					...samplePeers[2],
+					height: 0,
+					version: '1.2.3',
+				};
+
+				const success = triedPeersList.updatePeer(updatedPeer);
+				expect(success).to.be.false;
 			});
 		});
 	});

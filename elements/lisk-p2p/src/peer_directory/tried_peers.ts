@@ -85,14 +85,16 @@ export class TriedPeers {
 		return ifExists;
 	}
 
-	public updatePeer(peerInfo: P2PDiscoveredPeerInfo): void {
+	public updatePeer(peerInfo: P2PDiscoveredPeerInfo): boolean {
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
+		// tslint:disable-next-line:no-let
+		let updateSuccess = false;
 
 		[...this._triedPeerMap.entries()].forEach(([bucketId, peerMap]) => {
 			[...peerMap.entries()].forEach(([peerId, triedPeerInfo]) => {
 				if (incomingPeerId === peerId) {
 					const updatedTriedPeerInfo: TriedPeerInfo = {
-						peerInfo: { ...triedPeerInfo, ...peerInfo },
+						peerInfo: { ...triedPeerInfo.peerInfo, ...peerInfo },
 						dateAdded: triedPeerInfo.dateAdded,
 						numOfConnectionFailures: triedPeerInfo.numOfConnectionFailures,
 					};
@@ -101,11 +103,14 @@ export class TriedPeers {
 						bucketId,
 						peerMap.set(peerId, updatedTriedPeerInfo),
 					);
+					updateSuccess = true;
 
 					return;
 				}
 			});
 		});
+
+		return updateSuccess;
 	}
 
 	public removePeer(peerInfo: P2PDiscoveredPeerInfo): void {
