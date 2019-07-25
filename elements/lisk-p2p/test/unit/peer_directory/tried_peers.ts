@@ -135,7 +135,7 @@ describe.only('triedPeer', () => {
 			triedPeersList.addPeer(samplePeers[0]);
 			triedPeersList.addPeer(samplePeers[1]);
 		});
-		describe('when trying to update a peer that does not exist', () => {
+		describe('when trying to update a peer that exist', () => {
 			it('should update the peer from the incoming peerInfo', async () => {
 				let updatedPeer = {
 					...samplePeers[0],
@@ -152,7 +152,7 @@ describe.only('triedPeer', () => {
 		});
 
 		describe('when trying to update a peer that does not exist', () => {
-			it('should return false when the peer does not exist', () => {
+			it('should return false when the peer does not exist', async () => {
 				let updatedPeer = {
 					...samplePeers[2],
 					height: 0,
@@ -160,6 +160,36 @@ describe.only('triedPeer', () => {
 				};
 
 				const success = triedPeersList.updatePeer(updatedPeer);
+				expect(success).to.be.false;
+			});
+		});
+	});
+
+	describe('#findPeer', () => {
+		let triedPeersList: TriedPeers;
+		const samplePeers = initializePeerInfoList();
+
+		beforeEach(async () => {
+			const triedPeerConfig = {
+				maxReconnectTries: 3,
+				triedPeerBucketSize: 32,
+				triedPeerListSize: 32,
+			};
+
+			triedPeersList = new TriedPeers(triedPeerConfig);
+			triedPeersList.addPeer(samplePeers[0]);
+			triedPeersList.addPeer(samplePeers[1]);
+		});
+		describe('when the peer exist', () => {
+			it('should find the peer from the incoming peerInfo', async () => {
+				const success = triedPeersList.findPeer(samplePeers[0]);
+				expect(success).to.be.true;
+			});
+		});
+
+		describe('when the peer does not exist', () => {
+			it('should return false when the peer does not exist', async () => {
+				const success = triedPeersList.updatePeer(samplePeers[2]);
 				expect(success).to.be.false;
 			});
 		});
