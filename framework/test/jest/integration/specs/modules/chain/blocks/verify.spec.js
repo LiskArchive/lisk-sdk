@@ -15,138 +15,132 @@
 'use strict';
 
 describe('blocks/verify', () => {
-	describe('__private', () => {
-		describe('verifySignature', () => {
-			it.todo('should fail when blockSignature property is not a hex string');
+	describe('when blockSignature property is not a hex string and verifySignature is called', () => {
+		it.todo('should fail');
+	});
 
-			it.todo(
-				'should fail when blockSignature property is an invalid hex string'
-			);
+	describe('when blockSignature property is an invalid hex string and verifySignature is called', () => {
+		it.todo('should fail');
+	});
 
-			it.todo(
-				'should fail when generatorPublicKey property is not a hex string'
-			);
+	describe('when generatorPublicKey property is not a hex string and verifySignature is called', () => {
+		it.todo('should fail');
+	});
 
-			it.todo(
-				'should fail when generatorPublicKey property is an invalid hex string'
-			);
+	describe('when generatorPublicKey property is an invalid hex string and verifySignature is called', () => {
+		it.todo('should fail');
+	});
+
+	describe('when previousBlock property is missing and verifyPreviousBlock is called', () => {
+		it.todo('should fail');
+	});
+
+	describe('when block version is not 0 and verifyVersion is called', () => {
+		it.todo('should fail');
+	});
+
+	describe('when block reward = 99 instead of 0 and verifyReward is called', () => {
+		it.todo('should fail');
+	});
+
+	describe('when block id is an invalid alpha-numeric string value and verifyId is called', () => {
+		it.todo('should reset block id');
+	});
+
+	describe('when block id is an invalid numeric string value and verifyId is called', () => {
+		it.todo('should reset block id');
+	});
+
+	describe('when block id is an invalid integer value and verifyId is called', () => {
+		it.todo('should reset block id');
+	});
+
+	describe('when block id is a valid integer value and verifyId is called', () => {
+		it.todo('should reset block id');
+	});
+
+	describe('verifyPayload', () => {
+		it.todo(
+			'should fail when payload length greater than MAX_PAYLOAD_LENGTH constant value'
+		);
+
+		it.todo(
+			'should fail when transactions length != numberOfTransactions property'
+		);
+
+		it.todo(
+			'should fail when transactions length > maxTransactionsPerBlock constant value'
+		);
+
+		it.todo('should fail when a transaction is of an unknown type');
+
+		it.todo('should fail when a transaction is duplicated');
+
+		it.todo('should fail when payload hash is invalid');
+
+		it.todo(
+			'should fail when summed transaction amounts do not match totalAmount property'
+		);
+
+		it.todo(
+			'should fail when summed transaction fees do not match totalFee property'
+		);
+	});
+
+	describe('verifyForkOne', () => {
+		it.todo('should fail when previousBlock value is invalid');
+	});
+
+	describe('verifyBlockSlot', () => {
+		it.todo('should fail when block timestamp < than previousBlock timestamp');
+	});
+
+	describe('verifyBlockSlotWindow', () => {
+		describe('for current slot number', () => {
+			it.todo('should return empty result.errors array');
 		});
 
-		describe('verifyPreviousBlock', () => {
-			it.todo('should fail when previousBlock property is missing');
+		describe('for slot number BLOCK_SLOT_WINDOW slots in the past', () => {
+			it.todo('should return empty result.errors array');
 		});
 
-		describe('verifyVersion', () => {
-			it.todo('should fail when block version != 0');
+		describe('for slot number in the future', () => {
+			it.todo('should call callback with error = Block slot is in the future ');
 		});
 
-		describe('verifyReward', () => {
-			it.todo('should fail when block reward = 99 instead of 0');
+		describe('for slot number BLOCK_SLOT_WINDOW + 1 slots in the past', () => {
+			it.todo('should call callback with error = Block slot is too old');
 		});
+	});
 
-		describe('verifyId', () => {
-			it.todo(
-				'should reset block id when block id is an invalid alpha-numeric string value'
-			);
-
-			it.todo(
-				'should reset block id when block id is an invalid numeric string value'
-			);
-
-			it.todo(
-				'should reset block id when block id is an invalid integer value'
-			);
-
-			it.todo('should reset block id when block id is a valid integer value');
-		});
-
-		describe('verifyPayload', () => {
-			it.todo(
-				'should fail when payload length greater than MAX_PAYLOAD_LENGTH constant value'
-			);
-
-			it.todo(
-				'should fail when transactions length != numberOfTransactions property'
-			);
-
-			it.todo(
-				'should fail when transactions length > maxTransactionsPerBlock constant value'
-			);
-
-			it.todo('should fail when a transaction is of an unknown type');
-
-			it.todo('should fail when a transaction is duplicated');
-
-			it.todo('should fail when payload hash is invalid');
-
-			it.todo(
-				'should fail when summed transaction amounts do not match totalAmount property'
-			);
-
-			it.todo(
-				'should fail when summed transaction fees do not match totalFee property'
-			);
-		});
-
-		describe('verifyForkOne', () => {
-			it.todo('should fail when previousBlock value is invalid');
-		});
-
-		describe('verifyBlockSlot', () => {
-			it.todo(
-				'should fail when block timestamp < than previousBlock timestamp'
-			);
-		});
-
-		describe('verifyBlockSlotWindow', () => {
-			describe('for current slot number', () => {
-				it.todo('should return empty result.errors array');
+	describe('onNewBlock', () => {
+		describe('with lastNBlockIds', () => {
+			describe('when onNewBlock function is called once', () => {
+				it.todo('should include block in lastNBlockIds queue');
 			});
 
-			describe('for slot number BLOCK_SLOT_WINDOW slots in the past', () => {
-				it.todo('should return empty result.errors array');
+			describe('when onNewBlock function is called BLOCK_SLOT_WINDOW times', () => {
+				it.todo('should include blockId in lastNBlockIds queue');
 			});
 
-			describe('for slot number in the future', () => {
+			describe('when onNewBlock function is called BLOCK_SLOT_WINDOW * 2 times', () => {
 				it.todo(
-					'should call callback with error = Block slot is in the future '
+					'should maintain last BLOCK_SLOT_WINDOW blockIds in lastNBlockIds queue'
+				);
+			});
+		});
+	});
+
+	describe('verifyAgainstLastNBlockIds', () => {
+		describe('when __private.lastNBlockIds', () => {
+			describe('contains block id', () => {
+				it.todo(
+					'should return result with error = Block already exists in chain'
 				);
 			});
 
-			describe('for slot number BLOCK_SLOT_WINDOW + 1 slots in the past', () => {
-				it.todo('should call callback with error = Block slot is too old');
-			});
-		});
-
-		describe('onNewBlock', () => {
-			describe('with lastNBlockIds', () => {
-				describe('when onNewBlock function is called once', () => {
-					it.todo('should include block in lastNBlockIds queue');
-				});
-
-				describe('when onNewBlock function is called BLOCK_SLOT_WINDOW times', () => {
-					it.todo('should include blockId in lastNBlockIds queue');
-				});
-
-				describe('when onNewBlock function is called BLOCK_SLOT_WINDOW * 2 times', () => {
-					it.todo(
-						'should maintain last BLOCK_SLOT_WINDOW blockIds in lastNBlockIds queue'
-					);
-				});
-			});
-		});
-
-		describe('verifyAgainstLastNBlockIds', () => {
-			describe('when __private.lastNBlockIds', () => {
-				describe('contains block id', () => {
-					it.todo(
-						'should return result with error = Block already exists in chain'
-					);
-				});
-
-				describe('does not contain block id', () => {
-					it.todo('should return result with no errors');
-				});
+			describe('does not contain block id', () => {
+				it.todo('should return result with no errors');
 			});
 		});
 	});

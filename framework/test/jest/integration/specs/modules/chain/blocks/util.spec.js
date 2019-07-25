@@ -14,25 +14,40 @@
 
 'use strict';
 
-describe('integration test (blocks) - process', () => {
-	describe('loadBlocksWithOffset() - no errors', () => {
-		it.todo('should load block 2 from db: block without transactions');
-
-		it.todo('should load block 3 from db: block with transactions');
+describe('block processing with loadBlocksWithOffset', () => {
+	describe('when block does not contain transactions', () => {
+		it.todo('should load block without error');
 	});
 
-	describe('loadBlocksOffset() - block/transaction errors', () => {
-		it.todo('should load block 4 from db and return blockSignature error');
-		it.todo('should load block 5 from db and return payloadHash error');
-		it.todo('should load block 6 from db and return block timestamp error');
-		it.todo(
-			'should load block 7 from db and return unknown transaction type error'
-		);
-		it.todo('should load block 8 from db and return block version error');
-		it.todo(
-			'should load block 9 from db and return previousBlock error (fork:1)'
-		);
+	describe('when block contain valid transactions', () => {
+		it.todo('should load block without error');
+	});
 
-		it.todo('should load block 10 from db and return duplicated votes error');
+	describe('when block header contains invalid block signature', () => {
+		it.todo('should throw an error');
+	});
+
+	describe('when block header contains invalid payloadHash', () => {
+		it.todo('should throw an error');
+	});
+
+	describe('when block header contains invalid block timestamp', () => {
+		it.todo('should throw an error');
+	});
+
+	describe('when block contains transaction type which is not registered', () => {
+		it.todo('should throw an error');
+	});
+
+	describe('when block header contains invalid block version', () => {
+		it.todo('should throw an error');
+	});
+
+	describe('when block header contains invalid previous block (fork:1)', () => {
+		it.todo('should throw an error');
+	});
+
+	describe('when block contains transaction with duplicate votes', () => {
+		it.todo('should throw an error');
 	});
 });

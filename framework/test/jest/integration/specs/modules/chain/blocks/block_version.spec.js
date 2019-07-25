@@ -15,25 +15,25 @@
 'use strict';
 
 describe('block_version', () => {
-	describe('forge first round of blocks (101 blocks) with version 0', () => {
+	describe('when forge first round of blocks (101 blocks) with version 0', () => {
 		it.todo('should have latest height of 101');
 
 		it.todo('should have blocks with version = 0 on round 1');
 	});
 
-	describe('forge second round of blocks (101 blocks) with version 1', () => {
+	describe('when forge second round of blocks (101 blocks) with version 1', () => {
 		it.todo('should have latest height of 202');
 
 		it.todo('should have blocks with version = 1 on round 2');
 	});
 
-	describe('forge third round of blocks (101 blocks) with version 2', () => {
+	describe('when forge third round of blocks (101 blocks) with version 2', () => {
 		it.todo('should have latest height of 303');
 
 		it.todo('should have blocks with version = 2 on round 3');
 	});
 
-	describe('when there are no exceptions for blocks versions', () => {
+	describe('when when there are no exceptions for blocks versions', () => {
 		it.todo('should fail when rebuilding');
 	});
 
