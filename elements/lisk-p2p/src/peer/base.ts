@@ -53,6 +53,7 @@ export interface ClientOptionsUpdated {
 	readonly multiplex: boolean;
 	readonly ackTimeout?: number;
 	readonly connectTimeout?: number;
+	readonly maxPayload?: number;
 }
 
 export interface Productivity {
@@ -135,6 +136,7 @@ export const convertNodeInfoToLegacyFormat = (
 export interface PeerConfig {
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
+	readonly wsMaxPayload?: number;
 }
 
 export class Peer extends EventEmitter {
