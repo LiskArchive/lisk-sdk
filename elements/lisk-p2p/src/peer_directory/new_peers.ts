@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
+import { P2PPeerInfo } from '../p2p_types';
 import { constructPeerIdFromPeerInfo, getBucket } from '../utils';
 
 const DEFAULT_NEW_PEER_LIST_SIZE = 64;
@@ -77,38 +77,63 @@ export class NewPeers {
 		return ifExists;
 	}
 
-	public updatePeer(peerInfo: P2PPeerInfo): void {
-		[...this._newPeerMap.values()].map(peersMap => {
-			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			const newPeer = peersMap.get(peerId);
-			if (newPeer) {
-				const updatedNewPeerInfo: NewPeerInfo = {
-					peerInfo: { ...newPeer, ...peerInfo },
-					dateAdded: newPeer.dateAdded,
-				};
-				peersMap.set(peerId, updatedNewPeerInfo);
-			}
+	public updatePeer(peerInfo: P2PPeerInfo): boolean {
+		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
+		// tslint:disable-next-line:no-let
+		let updateSuccess = false;
 
-			return peersMap;
+		[...this._newPeerMap.entries()].forEach(([bucketId, peerMap]) => {
+			[...peerMap.entries()].forEach(([peerId, triedPeerInfo]) => {
+				if (incomingPeerId === peerId) {
+					const updatedTriedPeerInfo: NewPeerInfo = {
+						peerInfo: { ...triedPeerInfo.peerInfo, ...peerInfo },
+						dateAdded: triedPeerInfo.dateAdded,
+					};
+					// Set the updated peer in the peerMap of the peer bucket
+					this._newPeerMap.set(
+						bucketId,
+						peerMap.set(peerId, updatedTriedPeerInfo),
+					);
+					updateSuccess = true;
+
+					return;
+				}
+			});
 		});
+
+		return updateSuccess;
 	}
 
-	public removePeer(peerInfo: P2PDiscoveredPeerInfo): void {
-		[...this._newPeerMap.values()].map(peersMap => {
-			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			peersMap.delete(peerId);
+	public removePeer(peerInfo: P2PPeerInfo): boolean {
+		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
+		// tslint:disable-next-line:no-let
+		let success = false;
+
+		[...this._newPeerMap.entries()].forEach(([bucketId, peerMap]) => {
+			[...peerMap.keys()].forEach(peerId => {
+				if (incomingPeerId === peerId) {
+					peerMap.delete(peerId);
+					this._newPeerMap.set(bucketId, peerMap);
+					success = true;
+
+					return;
+				}
+			});
 		});
+
+		return success;
 	}
 
-	public getPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
+	public getPeer(incomingPeerId: string): P2PPeerInfo | undefined {
 		// tslint:disable-next-line:no-let
 		let peer: NewPeerInfo | undefined;
 
-		[...this._newPeerMap.values()].forEach(peersMap => {
-			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			peer = peersMap.get(peerId);
-
-			return;
+		[...this._newPeerMap.values()].forEach(peerMap => {
+			[...peerMap.entries()].forEach(([peerId, triedPeerInfo]) => {
+				if (peerId === incomingPeerId) {
+					peer = triedPeerInfo;
+				}
+			});
 		});
 
 		return peer ? peer.peerInfo : undefined;
@@ -125,22 +150,22 @@ export class NewPeers {
 				dateAdded: new Date(),
 			};
 
-			const bucketNumber = getBucket(
+			const bucketId = getBucket(
 				peerInfo.ipAddress,
 				Math.random(),
 				this._newPeerListSize,
 			);
-			if (bucketNumber) {
-				const bucketList = this._newPeerMap.get(bucketNumber);
+			if (bucketId) {
+				const bucketList = this._newPeerMap.get(bucketId);
 				if (bucketList) {
 					if (bucketList.size < this._newPeerBucketSize) {
 						bucketList.set(constructPeerIdFromPeerInfo(peerInfo), newPeerInfo);
-						this._newPeerMap.set(bucketNumber, bucketList);
+						this._newPeerMap.set(bucketId, bucketList);
 						success = true;
 					} else {
-						this._evictPeer(bucketNumber);
+						this._evictPeer(bucketId);
 						bucketList.set(constructPeerIdFromPeerInfo(peerInfo), newPeerInfo);
-						this._newPeerMap.set(bucketNumber, bucketList);
+						this._newPeerMap.set(bucketId, bucketList);
 						success = true;
 					}
 				}
@@ -150,20 +175,10 @@ export class NewPeers {
 		return success;
 	}
 
-	public failedConnectionAction(
-		incomingPeerInfo: P2PDiscoveredPeerInfo,
-	): boolean {
-		// tslint:disable-next-line:no-let
-		let evictPeer = false;
+	public failedConnectionAction(incomingPeerInfo: P2PPeerInfo): boolean {
+		const success = this.removePeer(incomingPeerInfo);
 
-		[...this._newPeerMap.values()].forEach((peersMap, index) => {
-			const peerId = constructPeerIdFromPeerInfo(incomingPeerInfo);
-			peersMap.delete(peerId);
-			this._newPeerMap.set(index, peersMap);
-			evictPeer = true;
-		});
-
-		return evictPeer;
+		return success;
 	}
 
 	private _evictPeer(bucketId: number): NewPeerInfo | undefined {

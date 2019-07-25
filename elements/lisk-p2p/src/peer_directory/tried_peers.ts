@@ -113,19 +113,24 @@ export class TriedPeers {
 		return updateSuccess;
 	}
 
-	public removePeer(peerInfo: P2PDiscoveredPeerInfo): void {
+	public removePeer(peerInfo: P2PDiscoveredPeerInfo): boolean {
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
+		// tslint:disable-next-line:no-let
+		let success = false;
 
 		[...this._triedPeerMap.entries()].forEach(([bucketId, peerMap]) => {
 			[...peerMap.keys()].forEach(peerId => {
 				if (incomingPeerId === peerId) {
 					peerMap.delete(peerId);
 					this._triedPeerMap.set(bucketId, peerMap);
+					success = true;
 
 					return;
 				}
 			});
 		});
+
+		return success;
 	}
 
 	public getPeer(incomingPeerId: string): P2PDiscoveredPeerInfo | undefined {
