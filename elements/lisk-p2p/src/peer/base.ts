@@ -93,7 +93,7 @@ export const REMOTE_EVENT_MESSAGE = 'remote-message';
 
 export const REMOTE_RPC_UPDATE_PEER_INFO = 'updateMyself';
 export const REMOTE_RPC_GET_NODE_INFO = 'status';
-export const REMOTE_RPC_GET_ALL_PEERS_LIST = 'list';
+export const REMOTE_RPC_GET_MINIMAL_PEERS_LIST = 'minimalList';
 
 export const DEFAULT_CONNECT_TIMEOUT = 2000;
 export const DEFAULT_ACK_TIMEOUT = 2000;
@@ -450,10 +450,12 @@ export class Peer extends EventEmitter {
 		);
 	}
 
-	public async fetchPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
+	public async fetchPeers(
+		procedure: string,
+	): Promise<ReadonlyArray<P2PPeerInfo>> {
 		try {
 			const response: P2PResponsePacket = await this.request({
-				procedure: REMOTE_RPC_GET_ALL_PEERS_LIST,
+				procedure,
 			});
 
 			return validatePeerInfoList(response.data);
@@ -468,7 +470,9 @@ export class Peer extends EventEmitter {
 	}
 
 	public async discoverPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
-		const discoveredPeerInfoList = await this.fetchPeers();
+		const discoveredPeerInfoList = await this.fetchPeers(
+			REMOTE_RPC_GET_MINIMAL_PEERS_LIST,
+		);
 		discoveredPeerInfoList.forEach(peerInfo => {
 			this.emit(EVENT_DISCOVERED_PEER, peerInfo);
 		});

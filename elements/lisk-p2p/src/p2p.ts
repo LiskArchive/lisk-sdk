@@ -27,7 +27,7 @@ interface SCServerUpdated extends SCServer {
 import {
 	constructPeerId,
 	constructPeerIdFromPeerInfo,
-	REMOTE_RPC_GET_ALL_PEERS_LIST,
+	REMOTE_RPC_GET_MINIMAL_PEERS_LIST,
 } from './peer';
 
 import {
@@ -114,6 +114,7 @@ export {
 export const EVENT_NEW_INBOUND_PEER = 'newInboundPeer';
 export const EVENT_FAILED_TO_ADD_INBOUND_PEER = 'failedToAddInboundPeer';
 export const EVENT_NEW_PEER = 'newPeer';
+export const EVENT_GET_ALL_PEERS_LIST = 'list';
 
 export const DEFAULT_NODE_HOST_IP = '0.0.0.0';
 export const DEFAULT_DISCOVERY_INTERVAL = 30000;
@@ -215,7 +216,10 @@ export class P2P extends EventEmitter {
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest) => {
-			if (request.procedure === REMOTE_RPC_GET_ALL_PEERS_LIST) {
+			if (
+				request.procedure === EVENT_GET_ALL_PEERS_LIST ||
+				request.procedure === REMOTE_RPC_GET_MINIMAL_PEERS_LIST
+			) {
 				this._handleGetPeersRequest(request);
 			}
 			// Re-emit the request for external use.
@@ -764,6 +768,13 @@ export class P2P extends EventEmitter {
 		// TODO: Remove fields that are specific to the current Lisk protocol.
 		const peers = this._pickRandomPeers(randomPeerCount).map(
 			(peerInfo: P2PPeerInfo): ProtocolPeerInfo => {
+				// Discovery process only require minmal peers data
+				if (request.procedure === REMOTE_RPC_GET_MINIMAL_PEERS_LIST) {
+					return {
+						ip: peerInfo.ipAddress,
+						wsPort: peerInfo.wsPort,
+					};
+				}
 				const { ipAddress, ...peerInfoWithoutIp } = peerInfo;
 
 				// The options property is not read by the current legacy protocol but it should be added anyway for future compatibility.
