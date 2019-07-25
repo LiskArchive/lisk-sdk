@@ -57,7 +57,7 @@ export class NewPeers {
 		};
 	}
 
-	public get triedPeerMap(): Map<number, Map<string, NewPeerInfo>> {
+	public get newPeerMap(): Map<number, Map<string, NewPeerInfo>> {
 		return this._newPeerMap;
 	}
 
