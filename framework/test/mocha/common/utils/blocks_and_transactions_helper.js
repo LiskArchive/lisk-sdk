@@ -22,6 +22,9 @@ const random = require('../../common/utils/random');
 const localCommon = require('../../integration/common');
 const blocksLogic = require('../../../../src/modules/chain/blocks/block');
 const accountFixtures = require('../../fixtures/accounts');
+const {
+	sortTransactions,
+} = require('../../../../src/modules/chain/blocks/utils');
 
 const {
 	registeredTransactions,
@@ -144,7 +147,7 @@ class BlocksTransactionsHelper {
 			.map(t => transactionInterfaceAdapter.fromJson(t.data));
 
 		// Sort transactions the same way as they are sorted in a block
-		const sortedTransactions = blocksLogic.sortTransactions(validTransactions);
+		const sortedTransactions = sortTransactions(validTransactions);
 
 		// We return only transaction ID, amount (in string format), sender and recipient
 		return sortedTransactions.map(formatTransaction);
