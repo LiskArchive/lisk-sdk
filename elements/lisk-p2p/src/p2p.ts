@@ -51,6 +51,7 @@ import {
 	P2PConfig,
 	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
+	P2PMinimalPeerInfoList,
 	P2PNetworkStatus,
 	P2PNodeInfo,
 	P2PPeerInfo,
@@ -763,33 +764,40 @@ export class P2P extends EventEmitter {
 			random,
 			Math.min(minimumPeerDiscoveryThreshold, knownPeers.length),
 		);
-		/* tslint:enable no-magic-numbers*/
 
-		// TODO: Remove fields that are specific to the current Lisk protocol.
-		const peers = this._pickRandomPeers(randomPeerCount).map(
-			(peerInfo: P2PPeerInfo): ProtocolPeerInfo => {
-				// Discovery process only require minmal peers data
-				if (request.procedure === REMOTE_RPC_GET_MINIMAL_PEERS_LIST) {
-					return {
-						ip: peerInfo.ipAddress,
+		if (request.procedure === REMOTE_RPC_GET_MINIMAL_PEERS_LIST) {
+			const minimalPeers = this._pickRandomPeers(randomPeerCount).map(
+				(peerInfo: P2PPeerInfo): P2PPeerInfo =>
+					// Discovery process only require minmal peers data
+					({
+						ipAddress: peerInfo.ipAddress,
 						wsPort: peerInfo.wsPort,
+					}),
+			);
+			const peerInfoList: P2PMinimalPeerInfoList = {
+				success: true,
+				peers: minimalPeers,
+			};
+			request.end(peerInfoList);
+		} else {
+			// TODO: Remove fields that are specific to the current Lisk protocol.
+			const peers = this._pickRandomPeers(randomPeerCount).map(
+				(peerInfo: P2PPeerInfo): ProtocolPeerInfo => {
+					const { ipAddress, ...peerInfoWithoutIp } = peerInfo;
+
+					// The options property is not read by the current legacy protocol but it should be added anyway for future compatibility.
+					return {
+						...peerInfoWithoutIp,
+						ip: ipAddress,
 					};
-				}
-				const { ipAddress, ...peerInfoWithoutIp } = peerInfo;
-
-				// The options property is not read by the current legacy protocol but it should be added anyway for future compatibility.
-				return {
-					...peerInfoWithoutIp,
-					ip: ipAddress,
-				};
-			},
-		);
-		const protocolPeerInfoList: ProtocolPeerInfoList = {
-			success: true,
-			peers,
-		};
-
-		request.end(protocolPeerInfoList);
+				},
+			);
+			const protocolPeerInfoList: ProtocolPeerInfoList = {
+				success: true,
+				peers,
+			};
+			request.end(protocolPeerInfoList);
+		}
 	}
 
 	private _isTrustedPeer(peerId: string): boolean {

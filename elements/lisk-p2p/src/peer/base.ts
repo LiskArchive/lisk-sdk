@@ -37,7 +37,7 @@ import * as socketClusterClient from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
 import {
 	validatePeerInfo,
-	validatePeerInfoList,
+	validatePeerMinimalInfoList,
 	validateProtocolMessage,
 	validateRPCRequest,
 } from '../validation';
@@ -450,15 +450,13 @@ export class Peer extends EventEmitter {
 		);
 	}
 
-	public async fetchPeers(
-		procedure: string,
-	): Promise<ReadonlyArray<P2PPeerInfo>> {
+	public async fetchPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
 		try {
 			const response: P2PResponsePacket = await this.request({
-				procedure,
+				procedure: REMOTE_RPC_GET_MINIMAL_PEERS_LIST,
 			});
 
-			return validatePeerInfoList(response.data);
+			return validatePeerMinimalInfoList(response.data);
 		} catch (error) {
 			this.emit(EVENT_FAILED_TO_FETCH_PEERS, error);
 
@@ -470,9 +468,7 @@ export class Peer extends EventEmitter {
 	}
 
 	public async discoverPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
-		const discoveredPeerInfoList = await this.fetchPeers(
-			REMOTE_RPC_GET_MINIMAL_PEERS_LIST,
-		);
+		const discoveredPeerInfoList = await this.fetchPeers();
 		discoveredPeerInfoList.forEach(peerInfo => {
 			this.emit(EVENT_DISCOVERED_PEER, peerInfo);
 		});

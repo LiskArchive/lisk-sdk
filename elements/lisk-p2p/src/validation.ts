@@ -98,6 +98,23 @@ export const validatePeerInfo = (rawPeerInfo: unknown): P2PPeerInfo => {
 	return peerInfoUpdated;
 };
 
+export const validatePeerMinimalInfo = (rawPeerInfo: unknown): P2PPeerInfo => {
+	if (!rawPeerInfo) {
+		throw new InvalidPeerError(`Invalid peer object`);
+	}
+
+	const peerInfo = rawPeerInfo as P2PPeerInfo;
+	if (
+		!peerInfo.ipAddress ||
+		!peerInfo.wsPort ||
+		!validatePeerAddress(peerInfo.ipAddress, peerInfo.wsPort)
+	) {
+		throw new InvalidPeerError(`Invalid peer ip or port`);
+	}
+
+	return peerInfo;
+};
+
 export const validatePeerInfoList = (
 	rawPeerInfoList: unknown,
 ): ReadonlyArray<P2PPeerInfo> => {
@@ -108,6 +125,23 @@ export const validatePeerInfoList = (
 
 	if (Array.isArray(peers)) {
 		const peerList = peers.map<P2PPeerInfo>(validatePeerInfo);
+
+		return peerList;
+	} else {
+		throw new InvalidRPCResponseError('Invalid response type');
+	}
+};
+
+export const validatePeerMinimalInfoList = (
+	rawPeerMinimalInfoList: unknown,
+): ReadonlyArray<P2PPeerInfo> => {
+	if (!rawPeerMinimalInfoList) {
+		throw new InvalidRPCResponseError('Invalid response type');
+	}
+	const { peers } = rawPeerMinimalInfoList as RPCPeerListResponse;
+
+	if (Array.isArray(peers)) {
+		const peerList = peers.map<P2PPeerInfo>(validatePeerMinimalInfo);
 
 		return peerList;
 	} else {

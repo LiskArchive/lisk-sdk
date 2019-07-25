@@ -193,6 +193,11 @@ export interface ProtocolPeerInfoList {
 	readonly success: boolean;
 }
 
+export interface P2PMinimalPeerInfoList {
+	readonly peers: ReadonlyArray<P2PPeerInfo>;
+	readonly success: boolean;
+}
+
 // TODO later: Switch to LIP protocol format.
 export interface ProtocolRPCRequestPacket {
 	readonly data: unknown;
