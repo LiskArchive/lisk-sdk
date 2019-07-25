@@ -140,6 +140,7 @@ export interface PeerConfig {
 	readonly ackTimeout?: number;
 	readonly rateCalculationInterval: number;
 	readonly wsMaxMessageRate: number;
+	readonly wsMaxMessageRatePenalty: number;
 	readonly wsMaxPayload?: number;
 }
 
@@ -211,6 +212,7 @@ export class Peer extends EventEmitter {
 
 			if (this._wsMessageRate > this._peerConfig.wsMaxMessageRate) {
 				this.disconnect(FORBIDDEN_CONNECTION, FORBIDDEN_CONNECTION_REASON);
+				this.applyPenalty(this._peerConfig.wsMaxMessageRatePenalty);
 
 				return;
 			}
@@ -255,6 +257,7 @@ export class Peer extends EventEmitter {
 			try {
 				rawRequest = validateRPCRequest(packet);
 			} catch (err) {
+				respond(err);
 				this.emit(EVENT_INVALID_REQUEST_RECEIVED, {
 					packet,
 					peerId: this._id,
@@ -579,9 +582,8 @@ export class Peer extends EventEmitter {
 
 			return;
 		}
-
-		this.emit(EVENT_UPDATED_PEER_INFO, this._peerInfo);
 		request.end();
+		this.emit(EVENT_UPDATED_PEER_INFO, this._peerInfo);
 	}
 
 	private _handleGetNodeInfo(request: P2PRequest): void {

@@ -124,6 +124,7 @@ export const DEFAULT_POPULATOR_INTERVAL = 10000;
 export const DEFAULT_SEND_PEER_LIMIT = 25;
 // Max rate of WebSocket messages per second per peer.
 export const DEFAULT_WS_MAX_MESSAGE_RATE = 100;
+export const DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY = 10;
 export const DEFAULT_RATE_CALCULATION_INTERVAL = 1000;
 export const DEFAULT_WS_MAX_PAYLOAD = 1048576; // Payload in bytes
 
@@ -433,6 +434,10 @@ export class P2P extends EventEmitter {
 				typeof config.wsMaxMessageRate === 'number'
 					? config.wsMaxMessageRate
 					: DEFAULT_WS_MAX_MESSAGE_RATE,
+			wsMaxMessageRatePenalty:
+				typeof config.wsMaxMessageRatePenalty === 'number'
+					? config.wsMaxMessageRatePenalty
+					: DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY,
 			rateCalculationInterval:
 				typeof config.rateCalculationInterval === 'number'
 					? config.rateCalculationInterval
