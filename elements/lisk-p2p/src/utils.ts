@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { createHash } from 'crypto';
+import { hash } from '@liskhq/lisk-cryptography';
 import { isIPv4 } from 'net';
 
 const SECRET_BUFFER_LENGTH = 4;
@@ -31,13 +31,6 @@ export enum NETWORK {
 	NET_LOCAL,
 	NET_OTHER,
 }
-
-export const cryptoHashSha256 = (data: Buffer): Buffer => {
-	const dataHash = createHash('sha256');
-	dataHash.update(data);
-
-	return dataHash.digest();
-};
 
 /* tslint:disable no-magic-numbers */
 export const getIPGroup = (address: string, groupNumber: number): number => {
@@ -116,9 +109,7 @@ export const getNetgroup = (address: string, secret: number): number => {
 
 	// Seperate buckets for local and private addresses
 	if (network !== NETWORK.NET_IPV4) {
-		return cryptoHashSha256(
-			Buffer.concat([secretBytes, networkBytes]),
-		).readUInt32BE(0);
+		return hash(Buffer.concat([secretBytes, networkBytes])).readUInt32BE(0);
 	}
 
 	const netgroupBytes = Buffer.concat([
@@ -128,7 +119,7 @@ export const getNetgroup = (address: string, secret: number): number => {
 		bBytes,
 	]);
 
-	return cryptoHashSha256(netgroupBytes).readUInt32BE(0);
+	return hash(netgroupBytes).readUInt32BE(0);
 };
 
 // For new peer buckets, provide the source IP address from which the peer list was received
@@ -168,9 +159,8 @@ export const getBucket = (options: {
 	// Seperate buckets for local and private addresses
 	if (network !== NETWORK.NET_IPV4) {
 		return (
-			cryptoHashSha256(Buffer.concat([secretBytes, networkBytes])).readUInt32BE(
-				0,
-			) % secondMod
+			hash(Buffer.concat([secretBytes, networkBytes])).readUInt32BE(0) %
+			secondMod
 		);
 	}
 
@@ -186,7 +176,7 @@ export const getBucket = (options: {
 	const kBytes = Buffer.alloc(firstMod);
 	const k =
 		peerListType === NEW_PEERS
-			? cryptoHashSha256(
+			? hash(
 					Buffer.concat([
 						secretBytes,
 						networkBytes,
@@ -196,7 +186,7 @@ export const getBucket = (options: {
 						targetBBytes,
 					]),
 			  ).readUInt32BE(0) % firstMod
-			: cryptoHashSha256(
+			: hash(
 					Buffer.concat([secretBytes, networkBytes, addressBytes]),
 			  ).readUInt32BE(0) % firstMod;
 
@@ -221,5 +211,5 @@ export const getBucket = (options: {
 					kBytes,
 			  ]);
 
-	return cryptoHashSha256(bucketBytes).readUInt32BE(0) % secondMod;
+	return hash(bucketBytes).readUInt32BE(0) % secondMod;
 };
