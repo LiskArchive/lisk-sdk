@@ -626,7 +626,7 @@ describe('Integration tests for P2P library', () => {
 				}
 			});
 
-			it('should send a message to a peers; should reach peers with even distribution', async () => {
+			it('should send a message to peers; should reach peers with even distribution', async () => {
 				const TOTAL_SENDS = 100;
 				const firstP2PNode = p2pNodeList[0];
 				const nodePortToMessagesMap: any = {};
