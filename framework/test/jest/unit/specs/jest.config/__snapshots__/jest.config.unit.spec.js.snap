@@ -8,6 +8,7 @@ Object {
   ],
   "coverageDirectory": ".coverage/unit",
   "coverageReporters": Array [
+    "json",
     "lcov",
     "cobertura",
   ],

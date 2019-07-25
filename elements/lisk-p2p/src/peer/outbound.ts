@@ -118,6 +118,7 @@ export class OutboundPeer extends Peer {
 			autoConnect: false,
 			autoReconnect: false,
 			pingTimeoutDisabled: true,
+			maxPayload: this._peerConfig.wsMaxPayload,
 		};
 
 		const outboundSocket = socketClusterClient.create(clientOptions);
@@ -256,6 +257,7 @@ export const connectAndRequest = async (
 				autoConnect: false,
 				autoReconnect: false,
 				pingTimeoutDisabled: true,
+				maxPayload: peerConfig ? peerConfig.wsMaxPayload : undefined,
 			};
 
 			const outboundSocket = socketClusterClient.create(clientOptions);

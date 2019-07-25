@@ -83,11 +83,10 @@ export {
 	EVENT_DISCOVERED_PEER,
 };
 
-export { connectAndFetchPeerInfo } from './peer';
-
 interface PeerPoolConfig {
-	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
+	readonly connectTimeout?: number;
+	readonly wsMaxPayload?: number;
 	readonly peerSelectionForSend: P2PPeerSelectionForSendFunction;
 	readonly peerSelectionForRequest: P2PPeerSelectionForRequestFunction;
 	readonly peerSelectionForConnection: P2PPeerSelectionForConnectionFunction;
@@ -433,6 +432,7 @@ export class PeerPool extends EventEmitter {
 			banTime: this._peerPoolConfig.peerBanTime,
 			wsMaxMessageRate: this._peerPoolConfig.wsMaxMessageRate,
 			rateCalculationInterval: this._peerPoolConfig.rateCalculationInterval,
+			wsMaxPayload: this._peerPoolConfig.wsMaxPayload,
 		};
 		const peer = new OutboundPeer(peerInfo, peerConfig);
 
@@ -502,7 +502,9 @@ export class PeerPool extends EventEmitter {
 	): ReadonlyArray<Peer> {
 		const peers = [...this._peerMap.values()];
 		if (kind) {
-			return peers.filter(peer => peer instanceof kind);
+			return peers.filter(
+				peer => peer instanceof kind && peer.state === ConnectionState.OPEN,
+			);
 		}
 
 		return peers.filter(peer => peer.state === ConnectionState.OPEN);
@@ -599,13 +601,18 @@ export class PeerPool extends EventEmitter {
 		}
 
 		if (kind === OutboundPeer) {
-			this.removePeer(shuffle(peers)[0].id);
+			const selectedPeer = shuffle(peers)[0];
+			if (selectedPeer) {
+				this.removePeer(selectedPeer.id);
+			}
 		}
 
 		if (kind === InboundPeer) {
 			const evictionCandidates = this._selectPeersForEviction();
 			const peerToEvict = shuffle(evictionCandidates)[0];
-			this.removePeer(peerToEvict.id);
+			if (peerToEvict) {
+				this.removePeer(peerToEvict.id);
+			}
 		}
 	}
 

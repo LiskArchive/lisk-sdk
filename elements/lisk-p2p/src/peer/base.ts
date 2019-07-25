@@ -53,6 +53,7 @@ export interface ClientOptionsUpdated {
 	readonly multiplex: boolean;
 	readonly ackTimeout?: number;
 	readonly connectTimeout?: number;
+	readonly maxPayload?: number;
 }
 
 export interface Productivity {
@@ -139,6 +140,7 @@ export interface PeerConfig {
 	readonly ackTimeout?: number;
 	readonly rateCalculationInterval: number;
 	readonly wsMaxMessageRate: number;
+	readonly wsMaxPayload?: number;
 }
 
 export class Peer extends EventEmitter {
@@ -156,7 +158,7 @@ export class Peer extends EventEmitter {
 		lastResponded: number;
 	};
 	private _rpcCounter: Map<string, number>;
-	private _rpcRates: Map<any, number>;
+	private _rpcRates: Map<string, number>;
 	private _messageCounter: Map<string, number>;
 	private _messageRates: Map<string, number>;
 	private readonly _counterResetInterval: NodeJS.Timer;
