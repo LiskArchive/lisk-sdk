@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -311,7 +311,8 @@ describe('blocks', () => {
 				await fn();
 			});
 
-			sinonSandbox.stub(blocksInstance, '_processReceivedBlock');
+			sinonSandbox.stub(blocksInstance, '_updateBroadhash');
+			sinonSandbox.spy(blocksInstance, '_processReceivedBlock');
 			sinonSandbox
 				.stub(blocksInstance.blocksProcess, 'processBlock')
 				.callsFake(input => input);
@@ -334,6 +335,23 @@ describe('blocks', () => {
 				};
 				await blocksInstance._receiveBlockFromNetworkV1(block);
 				expect(blocksInstance._processReceivedBlock).to.be.calledWith(block);
+			});
+
+			it('should emit EVENT_NEW_BLOCK with block', async () => {
+				const emitSpy = sinonSandbox.spy(blocksInstance, 'emit');
+				const fakeBlock = {
+					id: '5',
+					previousBlock: '2',
+					height: 3,
+				};
+				await blocksInstance._receiveBlockFromNetworkV1(fakeBlock);
+
+				expect(blocksInstance._processReceivedBlock).to.be.calledOnce;
+				expect(emitSpy).to.be.calledOnce;
+				expect(emitSpy.firstCall.args).to.be.eql([
+					'EVENT_NEW_BLOCK',
+					{ block: fakeBlock },
+				]);
 			});
 		});
 
@@ -363,6 +381,7 @@ describe('blocks', () => {
 				expect(roundsModuleStub.fork).to.be.calledWith(forkOneBlock, 1);
 				expect(blocksInstance.blocksChain.deleteLastBlock).not.to.be.called;
 				expect(blocksInstance._isActive).to.be.false;
+				expect(blocksInstance._processReceivedBlock).to.be.not.called;
 			});
 
 			it('should delete 2 blocks if timestamp is the same id is less', async () => {
@@ -420,6 +439,24 @@ describe('blocks', () => {
 				await blocksInstance._receiveBlockFromNetworkV1(forkFiveBlock);
 				expect(roundsModuleStub.fork).to.be.calledWith(forkFiveBlock, 5);
 				expect(loggerStub.warn).to.be.calledOnce;
+			});
+
+			it('should emit EVENT_NEW_BLOCK with block', async () => {
+				const emitSpy = sinonSandbox.spy(blocksInstance, 'emit');
+				const forkFiveBlock = {
+					id: '5',
+					generatorPublicKey: 'a',
+					previousBlock: '1',
+					height: 2,
+				};
+				await blocksInstance._receiveBlockFromNetworkV1(forkFiveBlock);
+
+				expect(blocksInstance._processReceivedBlock).to.be.calledOnce;
+				expect(emitSpy).to.be.calledTwice;
+				expect(emitSpy.secondCall.args).to.be.eql([
+					'EVENT_NEW_BLOCK',
+					{ block: forkFiveBlock },
+				]);
 			});
 		});
 
@@ -669,12 +706,12 @@ describe('blocks', () => {
 				version: 2,
 			};
 
-			const _processBlock = sinonSandbox.spy(
+			const _processBlock = sinonSandbox.stub(
 				blocksInstance,
 				'_processReceivedBlock'
 			);
 
-			blocksInstance._handleValidBlock(block);
+			await blocksInstance._handleValidBlock(block);
 			expect(_processBlock).to.be.calledWith(block);
 		});
 	});

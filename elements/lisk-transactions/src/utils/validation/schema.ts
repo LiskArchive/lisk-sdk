@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -61,6 +61,64 @@ export const transaction = {
 		},
 		receivedAt: {
 			type: 'string',
+		},
+	},
+};
+
+export const transactionInterface = {
+	required: [
+		'toJSON',
+		'isReady',
+		'getBytes',
+		'validate',
+		'verifyAgainstOtherTransactions',
+		'apply',
+		'undo',
+		'prepare',
+		'addMultisignature',
+		'addVerifiedMultisignature',
+		'isExpired',
+		'fromSync',
+	],
+	properties: {
+		toJSON: {
+			typeof: 'function',
+		},
+		isReady: {
+			typeof: 'function',
+		},
+		getBytes: {
+			typeof: 'function',
+		},
+		validate: {
+			typeof: 'function',
+		},
+		verifyAgainstOtherTransactions: {
+			typeof: 'function',
+		},
+		apply: {
+			typeof: 'function',
+		},
+		undo: {
+			typeof: 'function',
+		},
+		prepare: {
+			typeof: 'function',
+		},
+		addMultisignature: {
+			typeof: 'function',
+		},
+		addVerifiedMultisignature: {
+			typeof: 'function',
+		},
+		processMultisignatures: {
+			typeof: 'function',
+		},
+		isExpired: {
+			typeof: 'function',
+		},
+		fromSync: {
+			typeof: 'function',
 		},
 	},
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -88,6 +88,14 @@ const objectNormalizeFunc = {
 const objectNormalize = (block, exceptions) =>
 	objectNormalizeFunc[block.version](block, exceptions);
 
+const sortTransactionsFunc = {
+	0: blockV1.sortTransactions,
+	1: blockV1.sortTransactions,
+	2: blockV2.sortTransactions,
+};
+const sortTransactions = (block, transactions) =>
+	sortTransactionsFunc[block.version](transactions);
+
 module.exports = {
 	sign,
 	getHash,
@@ -98,4 +106,5 @@ module.exports = {
 	getBytes,
 	verifySignature,
 	objectNormalize,
+	sortTransactions,
 };

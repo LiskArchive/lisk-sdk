@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -18,6 +18,7 @@ import {
 	constants,
 	cryptography,
 	passphrase,
+	transactions,
 	transaction,
 } from '../src';
 
@@ -36,6 +37,10 @@ describe('lisk-elements', () => {
 
 	it('passphrase should be an object', () => {
 		return expect(passphrase).to.be.an('object');
+	});
+
+	it('transactions should be an object', () => {
+		return expect(transactions).to.be.an('object');
 	});
 
 	it('transaction should be an object', () => {

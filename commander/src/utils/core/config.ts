@@ -1,6 +1,6 @@
 /*
  * LiskHQ/lisk-commander
- * Copyright © 2017–2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -48,7 +48,7 @@ export interface LiskConfig {
 export const defaultLiskPath = path.join(os.homedir(), '.lisk');
 export const defaultLiskPm2Path = `${defaultLiskPath}/pm2`;
 export const defaultLiskInstancePath = `${defaultLiskPath}/instances`;
-export const defaultBackupPath = `${defaultLiskInstancePath}/backup`;
+export const defaultBackupPath = `${defaultLiskPath}/backups`;
 const NODE_BIN = './bin/node';
 
 export const getLiskConfig = async (
