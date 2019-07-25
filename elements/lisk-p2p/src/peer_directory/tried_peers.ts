@@ -109,11 +109,17 @@ export class TriedPeers {
 	}
 
 	public removePeer(peerInfo: P2PDiscoveredPeerInfo): void {
-		[...this._triedPeerMap.values()].map(peersMap => {
-			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			peersMap.delete(peerId);
+		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
 
-			return peersMap;
+		[...this._triedPeerMap.entries()].forEach(([bucketId, peerMap]) => {
+			[...peerMap.keys()].forEach(([peerId]) => {
+				if (incomingPeerId === peerId) {
+					peerMap.delete(peerId);
+					this._triedPeerMap.set(bucketId, peerMap);
+
+					return;
+				}
+			});
 		});
 	}
 
