@@ -15,6 +15,7 @@
 import { expect } from 'chai';
 import { TriedPeers } from '../../../src/peer_directory/tried_peers';
 import { initializePeerInfoList } from '../../utils/peers';
+import { constructPeerIdFromPeerInfo } from '../../../src/utils';
 
 describe.only('triedPeer', () => {
 	describe('#constructor', () => {
@@ -58,8 +59,63 @@ describe.only('triedPeer', () => {
 			expect(triedPeersList.findPeer(samplePeers[0])).to.be.true;
 		});
 
-		// it('should not add the incoming peer if it exists', async () => {
-		// 	expect(triedPeersList.addPeer(samplePeers[0])).to.be.undefined;
-		// });
+		it('should not add the incoming peer if it exists', async () => {
+			expect(triedPeersList.addPeer(samplePeers[0])).to.be.undefined;
+		});
+	});
+
+	describe('#removePeer', () => {
+		let triedPeersList: TriedPeers;
+		const samplePeers = initializePeerInfoList();
+
+		beforeEach(async () => {
+			const triedPeerConfig = {
+				maxReconnectTries: 3,
+				triedPeerBucketSize: 32,
+				triedPeerListSize: 32,
+			};
+
+			triedPeersList = new TriedPeers(triedPeerConfig);
+			triedPeersList.addPeer(samplePeers[0]);
+			triedPeersList.addPeer(samplePeers[1]);
+		});
+
+		it('should remove the peer from the incoming peerInfo', async () => {
+			triedPeersList.removePeer(samplePeers[0]);
+			expect(triedPeersList.findPeer(samplePeers[0])).to.be.false;
+		});
+	});
+
+	describe('#getPeer', () => {
+		let triedPeersList: TriedPeers;
+		const samplePeers = initializePeerInfoList();
+
+		beforeEach(async () => {
+			const triedPeerConfig = {
+				maxReconnectTries: 3,
+				triedPeerBucketSize: 32,
+				triedPeerListSize: 32,
+			};
+
+			triedPeersList = new TriedPeers(triedPeerConfig);
+			triedPeersList.addPeer(samplePeers[0]);
+			triedPeersList.addPeer(samplePeers[1]);
+		});
+
+		it('should get the peer from the incoming peerId', async () => {
+			expect(
+				triedPeersList.getPeer(constructPeerIdFromPeerInfo(samplePeers[0])),
+			)
+				.to.be.an('object')
+				.and.eql(samplePeers[0]);
+		});
+
+		describe('when peer does not exist in the triedPeers peerMap', () => {
+			const randomPeer = initializePeerInfoList()[2];
+			it('should return undefined for the given peer that does not exist in peerMap', async () => {
+				expect(triedPeersList.getPeer(constructPeerIdFromPeerInfo(randomPeer)))
+					.to.be.undefined;
+			});
+		});
 	});
 });

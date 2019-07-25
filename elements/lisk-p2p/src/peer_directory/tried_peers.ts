@@ -112,7 +112,7 @@ export class TriedPeers {
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
 
 		[...this._triedPeerMap.entries()].forEach(([bucketId, peerMap]) => {
-			[...peerMap.keys()].forEach(([peerId]) => {
+			[...peerMap.keys()].forEach(peerId => {
 				if (incomingPeerId === peerId) {
 					peerMap.delete(peerId);
 					this._triedPeerMap.set(bucketId, peerMap);
@@ -123,17 +123,16 @@ export class TriedPeers {
 		});
 	}
 
-	public getPeer(
-		peerInfo: P2PDiscoveredPeerInfo,
-	): P2PDiscoveredPeerInfo | undefined {
+	public getPeer(incomingPeerId: string): P2PDiscoveredPeerInfo | undefined {
 		// tslint:disable-next-line:no-let
 		let peer: TriedPeerInfo | undefined;
 
-		[...this._triedPeerMap.values()].forEach(peersMap => {
-			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			peer = peersMap.get(peerId);
-
-			return;
+		[...this._triedPeerMap.values()].forEach(peerMap => {
+			[...peerMap.entries()].forEach(([peerId, triedPeerInfo]) => {
+				if (peerId === incomingPeerId) {
+					peer = triedPeerInfo;
+				}
+			});
 		});
 
 		return peer ? peer.peerInfo : undefined;
