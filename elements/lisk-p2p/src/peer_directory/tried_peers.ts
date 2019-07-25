@@ -52,8 +52,8 @@ export class TriedPeers {
 		this._triedPeerMap = new Map();
 		[...Array(this._triedPeerListSize).keys()]
 			.map(x => x + 1)
-			.forEach(bucketNumber => {
-				this._triedPeerMap.set(bucketNumber, new Map<string, TriedPeerInfo>());
+			.forEach(bucketId => {
+				this._triedPeerMap.set(bucketId, new Map<string, TriedPeerInfo>());
 			});
 	}
 
@@ -146,27 +146,27 @@ export class TriedPeers {
 				dateAdded: new Date(),
 			};
 			// TODO: Second argument of getBucket function should come from a field in peerInfo of 32 entropy
-			const bucketNumber = getBucket(
+			const bucketId = getBucket(
 				peerInfo.ipAddress,
 				peerInfo.secret as number,
 				this._triedPeerListSize,
 			);
-			if (bucketNumber) {
-				const bucketList = this._triedPeerMap.get(bucketNumber);
+			if (bucketId) {
+				const bucketList = this._triedPeerMap.get(bucketId);
 				if (bucketList) {
 					if (bucketList.size < this._triedPeerBucketSize) {
 						bucketList.set(
 							constructPeerIdFromPeerInfo(peerInfo),
 							newTriedPeerInfo,
 						);
-						this._triedPeerMap.set(bucketNumber, bucketList);
+						this._triedPeerMap.set(bucketId, bucketList);
 					} else {
-						evictedPeer = this._evictPeer(bucketNumber);
+						evictedPeer = this._evictPeer(bucketId);
 						bucketList.set(
 							constructPeerIdFromPeerInfo(peerInfo),
 							newTriedPeerInfo,
 						);
-						this._triedPeerMap.set(bucketNumber, bucketList);
+						this._triedPeerMap.set(bucketId, bucketList);
 					}
 				}
 			}
