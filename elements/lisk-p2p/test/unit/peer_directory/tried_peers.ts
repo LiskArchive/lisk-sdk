@@ -135,19 +135,20 @@ describe.only('triedPeer', () => {
 			triedPeersList.addPeer(samplePeers[0]);
 			triedPeersList.addPeer(samplePeers[1]);
 		});
+		describe('when trying to update a peer that does not exist', () => {
+			it('should update the peer from the incoming peerInfo', async () => {
+				let updatedPeer = {
+					...samplePeers[0],
+					height: 0,
+					version: '1.2.3',
+				};
 
-		it('should update the peer from the incoming peerInfo', async () => {
-			let updatedPeer = {
-				...samplePeers[0],
-				height: 0,
-				version: '1.2.3',
-			};
-
-			const success = triedPeersList.updatePeer(updatedPeer);
-			expect(success).to.be.true;
-			expect(
-				triedPeersList.getPeer(constructPeerIdFromPeerInfo(samplePeers[0])),
-			).to.be.eql(updatedPeer);
+				const success = triedPeersList.updatePeer(updatedPeer);
+				expect(success).to.be.true;
+				expect(
+					triedPeersList.getPeer(constructPeerIdFromPeerInfo(samplePeers[0])),
+				).to.be.eql(updatedPeer);
+			});
 		});
 
 		describe('when trying to update a peer that does not exist', () => {
@@ -160,6 +161,59 @@ describe.only('triedPeer', () => {
 
 				const success = triedPeersList.updatePeer(updatedPeer);
 				expect(success).to.be.false;
+			});
+		});
+	});
+
+	describe('#failedConnectionAction', () => {
+		let triedPeersList: TriedPeers;
+		const samplePeers = initializePeerInfoList();
+
+		describe('when maxReconnectTries is 1', () => {
+			beforeEach(async () => {
+				const triedPeerConfig = {
+					maxReconnectTries: 1,
+					triedPeerBucketSize: 32,
+					triedPeerListSize: 32,
+				};
+
+				triedPeersList = new TriedPeers(triedPeerConfig);
+				triedPeersList.addPeer(samplePeers[0]);
+			});
+
+			it('should remove the peer from the triedPeerList', async () => {
+				const success = triedPeersList.failedConnectionAction(samplePeers[0]);
+				expect(success).to.be.true;
+				expect(
+					triedPeersList.getPeer(constructPeerIdFromPeerInfo(samplePeers[0])),
+				).to.be.undefined;
+			});
+		});
+
+		describe('when maxReconnectTries is 2', () => {
+			beforeEach(async () => {
+				const triedPeerConfig = {
+					maxReconnectTries: 2,
+					triedPeerBucketSize: 32,
+					triedPeerListSize: 32,
+				};
+
+				triedPeersList = new TriedPeers(triedPeerConfig);
+				triedPeersList.addPeer(samplePeers[0]);
+			});
+
+			it('should not remove the peer after the first call and remove it after second failed connection', async () => {
+				const success1 = triedPeersList.failedConnectionAction(samplePeers[0]);
+				expect(success1).to.be.false;
+				expect(
+					triedPeersList.getPeer(constructPeerIdFromPeerInfo(samplePeers[0])),
+				).to.be.eql(samplePeers[0]);
+
+				const success2 = triedPeersList.failedConnectionAction(samplePeers[0]);
+				expect(success2).to.be.true;
+				expect(
+					triedPeersList.getPeer(constructPeerIdFromPeerInfo(samplePeers[0])),
+				).to.be.undefined;
 			});
 		});
 	});
