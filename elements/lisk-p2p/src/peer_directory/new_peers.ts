@@ -65,6 +65,17 @@ export class NewPeers {
 		return this._newPeerMap;
 	}
 
+	public getNewPeersList(): ReadonlyArray<P2PPeerInfo> {
+		const peers = [...this._newPeerMap.values()].map(newPeerMap =>
+			[...newPeerMap.values()].map(newPeerInfo => newPeerInfo.peerInfo),
+		);
+
+		return peers.reduce(
+			(flattenedPeerList, peerList) => [...peerList, ...flattenedPeerList],
+			[],
+		);
+	}
+
 	public findPeer(peerInfo: P2PPeerInfo): boolean {
 		// tslint:disable-next-line:no-let
 		let ifExists = false;

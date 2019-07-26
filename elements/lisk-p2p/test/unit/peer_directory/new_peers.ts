@@ -16,6 +16,7 @@ import { expect } from 'chai';
 import { NewPeers } from '../../../src/peer_directory/new_peers';
 import { initializePeerInfoList } from '../../utils/peers';
 import { constructPeerIdFromPeerInfo } from '../../../src/utils';
+import { P2PPeerInfo } from '../../../src/p2p_types';
 
 describe.only('newPeer', () => {
 	const newPeerConfig = {
@@ -54,6 +55,29 @@ describe.only('newPeer', () => {
 
 		it('should not add the incoming peer if it exists', async () => {
 			expect(newPeersList.addPeer(samplePeers[0])).to.be.undefined;
+		});
+	});
+
+	describe('#getNewPeersList', () => {
+		const samplePeers = initializePeerInfoList();
+		let newPeersList: NewPeers;
+		let newPeersArray: ReadonlyArray<P2PPeerInfo>;
+
+		beforeEach(async () => {
+			newPeersList = new NewPeers(newPeerConfig);
+			newPeersList.addPeer(samplePeers[0]);
+			newPeersList.addPeer(samplePeers[1]);
+			newPeersList.addPeer(samplePeers[2]);
+			newPeersArray = newPeersList.getNewPeersList();
+		});
+
+		it('should return new peers list', async () => {
+			const expectedNewPeersArray = [
+				samplePeers[0],
+				samplePeers[1],
+				samplePeers[2],
+			];
+			expect(newPeersArray).to.have.members(expectedNewPeersArray);
 		});
 	});
 
