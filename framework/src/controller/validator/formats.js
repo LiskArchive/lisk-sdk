@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -44,6 +44,7 @@ const ADDITIONAL_DATA = {
  * - queryList
  * - delegatesList
  * - parsedInt
+ * - path
  * - ip
  * - ipOrFQDN
  * - os
@@ -246,6 +247,18 @@ const validationFormats = {
 		value = parseInt(value);
 		return true;
 	},
+
+	/**
+	 * Check if value is a valid file system path.
+	 *
+	 * @param {string} str
+	 * @returns {boolean}
+	 */
+	path(str) {
+		const pathRegExp = new RegExp('^(/[^/]+)+$');
+		return pathRegExp.test(str);
+	},
+
 	/**
 	 * Description of the function.
 	 *

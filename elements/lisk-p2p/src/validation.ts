@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -159,12 +159,16 @@ export const checkProtocolVersionCompatibility = (
 	peerInfo: P2PDiscoveredPeerInfo,
 	nodeInfo: P2PNodeInfo,
 ): boolean => {
+	// Backwards compatibility for older peers which do not have a protocolVersion field.
 	if (!peerInfo.protocolVersion) {
 		try {
 			return isVersionGTE(peerInfo.version, nodeInfo.minVersion as string);
 		} catch (error) {
 			return false;
 		}
+	}
+	if (typeof peerInfo.protocolVersion !== 'string') {
+		return false;
 	}
 
 	const peerHardForks = parseInt(peerInfo.protocolVersion.split('.')[0], 10);

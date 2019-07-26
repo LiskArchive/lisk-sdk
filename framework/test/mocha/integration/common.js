@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -37,6 +37,7 @@ const slots = new BlockSlots({
 });
 
 const { ACTIVE_DELEGATES } = global.constants;
+const { NORMALIZER } = global.__testContext.config;
 
 function getDelegateForSlot(library, slot, cb) {
 	const lastBlock = library.modules.blocks.lastBlock;
@@ -231,6 +232,15 @@ function addTransaction(library, transaction, cb) {
 	__testContext.debug(`	Add transaction ID: ${transaction.id}`);
 	transaction = library.modules.interfaceAdapters.transactions.fromJson(
 		transaction
+	);
+	const amountNormalized = transaction.amount.dividedBy(NORMALIZER).toFixed();
+	const feeNormalized = transaction.fee.dividedBy(NORMALIZER).toFixed();
+	__testContext.debug(
+		`Enqueue transaction ID: ${
+			transaction.id
+		}, Amount: ${amountNormalized}, Fee: ${feeNormalized}, Sender: ${
+			transaction.senderId
+		}, Recipient: ${transaction.recipientId}`
 	);
 	library.modules.transactionPool
 		.processUnconfirmedTransaction(transaction)

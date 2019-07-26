@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -91,6 +91,7 @@ export class DappTransaction extends BaseTransaction {
 	public readonly containsUniqueData: boolean;
 	public readonly asset: DappAsset;
 	public static TYPE = 5;
+	public static FEE = DAPP_FEE.toString();
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
@@ -141,10 +142,6 @@ export class DappTransaction extends BaseTransaction {
 			typeBuffer,
 			categoryBuffer,
 		]);
-	}
-
-	public assetToJSON(): object {
-		return this.asset;
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {
@@ -234,17 +231,6 @@ export class DappTransaction extends BaseTransaction {
 			);
 		}
 
-		if (!this.fee.eq(DAPP_FEE)) {
-			errors.push(
-				new TransactionError(
-					`Fee must be equal to ${DAPP_FEE}`,
-					this.id,
-					'.fee',
-					this.fee.toString(),
-					DAPP_FEE,
-				),
-			);
-		}
 		const validLinkSuffix = ['.zip'];
 
 		if (errors.length > 0) {

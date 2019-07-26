@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -80,8 +80,10 @@ describe('integration test (type 0) - double transfers', () => {
 
 			describe('after forging one block', () => {
 				before(done => {
-					localCommon.forge(library, async () => {
-						done();
+					localCommon.fillPool(library, () => {
+						localCommon.forge(library, async () => {
+							done();
+						});
 					});
 				});
 

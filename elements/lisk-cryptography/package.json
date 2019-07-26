@@ -1,9 +1,9 @@
 {
 	"name": "@liskhq/lisk-cryptography",
-	"version": "2.1.0",
+	"version": "2.2.0-alpha.0",
 	"description": "General cryptographic functions for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
-	"license": "GPL-3.0",
+	"license": "Apache-2.0",
 	"keywords": [
 		"lisk",
 		"blockchain"
