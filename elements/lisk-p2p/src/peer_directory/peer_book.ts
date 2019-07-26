@@ -15,157 +15,119 @@
 
 import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
 import { constructPeerIdFromPeerInfo } from '../utils';
+import { NewPeerConfig, NewPeers } from './new_peers';
+import { TriedPeerConfig, TriedPeers } from './tried_peers';
 
-export interface TriedPeerInfo {
-	readonly peerInfo: P2PDiscoveredPeerInfo;
-	readonly failedConnectionAttempts: number;
-	readonly dateAdded: Date;
-}
-
-export interface NewPeerInfo {
-	readonly peerInfo: P2PPeerInfo;
-	readonly dateAdded: Date;
+export interface PeerBookConfig {
+	readonly newPeerConfig?: NewPeerConfig;
+	readonly triedPeerConfig?: TriedPeerConfig;
+	readonly secret: number;
 }
 
 export class PeerBook {
 	private readonly _bannedPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
-	private readonly _newPeers: Map<number, Map<string, P2PPeerInfo>>;
-	private readonly _triedPeers: Map<number, Map<string, P2PDiscoveredPeerInfo>>;
-	public constructor() {
-		this._newPeers = new Map();
-		this._triedPeers = new Map();
+	private readonly _newPeers: NewPeers;
+	private readonly _triedPeers: TriedPeers;
+	public constructor(peerBookConfig: PeerBookConfig) {
+		this._newPeers = new NewPeers(
+			peerBookConfig.newPeerConfig
+				? peerBookConfig.newPeerConfig
+				: { secret: peerBookConfig.secret },
+		);
+		this._triedPeers = new TriedPeers(
+			peerBookConfig.triedPeerConfig
+				? peerBookConfig.triedPeerConfig
+				: { secret: peerBookConfig.secret },
+		);
 		this._bannedPeers = [];
 	}
 
 	public get newPeers(): ReadonlyArray<P2PPeerInfo> {
-		const newPeersList = [...this._newPeers.values()].reduce(
-			(peers, peerList) => [...peers, ...peerList.values()],
-			[] as P2PPeerInfo[],
-		);
-
-		return newPeersList;
+		return this._newPeers.getNewPeersList();
 	}
 
 	public get triedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		const triedPeersList = [...this._triedPeers.values()].reduce(
-			(peers, peerList) => [...peers, ...peerList.values()],
-			[] as P2PDiscoveredPeerInfo[],
-		);
-
-		return triedPeersList;
+		return this._triedPeers.getTriedPeersList();
 	}
 
 	public get bannedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
 		return this._bannedPeers;
 	}
 
-	public downgradePeer(peerInfo: P2PDiscoveredPeerInfo): boolean {
-		if (this._ifExistInNew(peerInfo)) {
-			this.removeFromNewPeers(peerInfo);
+	// If the peer is completed deleted then return true
+	public downgradePeer(peerInfo: P2PPeerInfo): boolean {
+		if (this._newPeers.findPeer(peerInfo)) {
+			if (this._newPeers.failedConnectionAction(peerInfo)) {
+				return true;
+			}
+		}
+
+		if (this._triedPeers.findPeer(peerInfo)) {
+			this._triedPeers.failedConnectionAction(peerInfo);
+		}
+
+		return false;
+	}
+
+	public upgradePeer(peerInfo: P2PPeerInfo): boolean {
+		if (this._triedPeers.findPeer(peerInfo)) {
+			return true;
+		}
+
+		if (this._newPeers.findPeer(peerInfo)) {
+			this._newPeers.removePeer(peerInfo);
+			this._triedPeers.addPeer(peerInfo as P2PDiscoveredPeerInfo);
 
 			return true;
 		}
-		if (this._ifExistInTried(peerInfo)) {
-			[...this._triedPeers.values()].forEach(peersMap => {
-				const peerId = constructPeerIdFromPeerInfo(peerInfo);
-				if (peersMap.has(peerId)) {
-					peersMap.set(peerId, peerInfo);
 
-					return;
-				}
-			});
+		return false;
+	}
+
+	public addPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
+		if (
+			this._triedPeers.findPeer(peerInfo) ||
+			this._newPeers.findPeer(peerInfo)
+		) {
+			return undefined;
 		}
+
+		return this._newPeers.addPeer(peerInfo);
 	}
 
-	public upgradePeer(peerInfo: P2PDiscoveredPeerInfo): void {}
+	public removePeer(peerInfo: P2PPeerInfo): boolean {
+		if (this._triedPeers.findPeer(peerInfo)) {
+			return this._triedPeers.removePeer(peerInfo);
+		}
 
-	public _ifExistInTried(peerInfo: P2PDiscoveredPeerInfo): boolean {
-		// tslint:disable-next-line:no-let
-		let ifExists = false;
+		if (this._newPeers.findPeer(peerInfo)) {
+			return this._newPeers.removePeer(peerInfo);
+		}
 
-		[...this._triedPeers.values()].forEach(peersMap => {
-			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			if (peersMap.has(peerId)) {
-				ifExists = true;
-
-				return;
-			}
-		});
-
-		return ifExists;
+		return false;
 	}
 
-	public _ifExistInNew(peerInfo: P2PPeerInfo): boolean {
-		// tslint:disable-next-line:no-let
-		let ifExists = false;
+	public getPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
+		if (this._triedPeers.findPeer(peerInfo)) {
+			return this._triedPeers.getPeer(constructPeerIdFromPeerInfo(peerInfo));
+		}
 
-		[...this._newPeers.values()].forEach(peersMap => {
-			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			if (peersMap.has(peerId)) {
-				ifExists = true;
+		if (this._newPeers.findPeer(peerInfo)) {
+			return this._newPeers.getPeer(constructPeerIdFromPeerInfo(peerInfo));
+		}
 
-				return;
-			}
-		});
-
-		return ifExists;
+		return undefined;
 	}
 
-	public updateTriedPeer(peerInfo: P2PDiscoveredPeerInfo): boolean {
-		// tslint:disable-next-line:no-let
-		let ifExists = false;
+	public updatePeer(peerInfo: P2PPeerInfo): boolean {
+		if (this._triedPeers.findPeer(peerInfo)) {
+			return this._triedPeers.updatePeer(peerInfo as P2PDiscoveredPeerInfo);
+		}
 
-		[...this._triedPeers.values()].forEach(peersMap => {
-			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			if (peersMap.has(peerId)) {
-				peersMap.set(peerId, peerInfo);
-				ifExists = true;
+		if (this._newPeers.findPeer(peerInfo)) {
+			return this._newPeers.updatePeer(peerInfo);
+		}
 
-				return;
-			}
-		});
-
-		return ifExists;
-	}
-
-	public updateNewPeer(peerInfo: P2PPeerInfo): boolean {
-		// tslint:disable-next-line:no-let
-		let ifExists = false;
-
-		[...this._newPeers.values()].forEach(peersMap => {
-			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			if (peersMap.has(peerId)) {
-				peersMap.set(peerId, peerInfo);
-				ifExists = true;
-
-				return;
-			}
-		});
-
-		return ifExists;
-	}
-
-	public removeFromNewPeers(peerInfo: P2PPeerInfo): void {
-		[...this._newPeers.values()].forEach(peersMap => {
-			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			peersMap.delete(peerId);
-		});
-	}
-
-	public removeFromTriedPeers(peerInfo: P2PDiscoveredPeerInfo): void {
-		[...this._triedPeers.values()].forEach(peersMap => {
-			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			peersMap.delete(peerId);
-		});
-	}
-
-	public moveToNewPeers(peerInfo: P2PDiscoveredPeerInfo): void {
-		this.removeFromTriedPeers(peerInfo);
-		this.addToNewPeers(peerInfo);
-	}
-
-	public moveToTriedPeers(peerInfo: P2PDiscoveredPeerInfo): void {
-		this.removeFromNewPeers(peerInfo);
-		this.addToTriedPeers(peerInfo);
+		return false;
 	}
 }

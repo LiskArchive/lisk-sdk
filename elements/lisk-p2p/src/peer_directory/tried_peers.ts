@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { P2PDiscoveredPeerInfo } from '../p2p_types';
+import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
 import { constructPeerIdFromPeerInfo, getBucket } from '../utils';
 
 export const DEFAULT_TRIED_PEER_LIST_SIZE = 64;
@@ -84,7 +84,7 @@ export class TriedPeers {
 		);
 	}
 
-	public findPeer(peerInfo: P2PDiscoveredPeerInfo): boolean {
+	public findPeer(peerInfo: P2PPeerInfo): boolean {
 		// tslint:disable-next-line:no-let
 		let ifExists = false;
 
@@ -128,7 +128,7 @@ export class TriedPeers {
 		return updateSuccess;
 	}
 
-	public removePeer(peerInfo: P2PDiscoveredPeerInfo): boolean {
+	public removePeer(peerInfo: P2PPeerInfo): boolean {
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
 		// tslint:disable-next-line:no-let
 		let success = false;
@@ -205,9 +205,7 @@ export class TriedPeers {
 		return evictedPeer ? evictedPeer.peerInfo : undefined;
 	}
 
-	public failedConnectionAction(
-		incomingPeerInfo: P2PDiscoveredPeerInfo,
-	): boolean {
+	public failedConnectionAction(incomingPeerInfo: P2PPeerInfo): boolean {
 		// tslint:disable-next-line:no-let
 		let evictPeer = false;
 
