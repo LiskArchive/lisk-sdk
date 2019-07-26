@@ -1,4 +1,54 @@
 /**
+ * Utility functions only required in this file.
+ */
+
+/**
+ * Wrapper for readability. Returns the forging slot of a block
+ * @param slots
+ * @param block
+ * @return {number}
+ */
+const forgingSlot = (slots, block) => slots.getSlotNumber(block.timestamp);
+
+/**
+ * Returns whether the last block applied (tip of the chain) was received withing its
+ * designated forging slot.
+ *
+ * IMPORTANT: If the last block applied on the chain was not received from the network
+ * but instead it was explicitly synced or forged, the return value of this function is true
+ * This is evaluated in the first line.
+ * @param slots
+ * @param lastAppliedBlock
+ * @return {boolean}
+ */
+const isLastAppliedBlockReceivedWithinForgingSlot = (
+	slots,
+	lastAppliedBlock
+) => {
+	// If the block doesn't have the property `receivedAt` it meants it was forged
+	// or synced, therefore we assume it was "received in the correct slot"
+	if (!lastAppliedBlock.receivedAt) {
+		return true;
+	}
+
+	return isBlockReceivedWithinForgingSlot(slots, lastAppliedBlock);
+};
+
+/**
+ * Wrapper for readability. Returns whether a block was received in its designated
+ * forging slot.
+ * @param slots
+ * @param receivedBlock
+ * @return {boolean}
+ */
+const isBlockReceivedWithinForgingSlot = (slots, { timestamp, receivedAt }) =>
+	slots.isWithinTimeslot(slots.getSlotNumber(timestamp), receivedAt);
+
+/**
+ * Fork Choice Rules
+ */
+
+/**
  * Determine if Case 2 fulfills
  * @param lastBlock
  * @param currentBlock
@@ -47,33 +97,20 @@ const isDoubleForging = (lastBlock, currentBlock) =>
 	lastBlock.generatorPublicKey === currentBlock.generatorPublicKey;
 
 /**
+ *
  * Determine if Case 4 fulfills
  * @param slots
- * @param lastBlock
- * @param currentBlock
- * @param lastReceivedAt
- * @param currentReceivedAt
+ * @param lastAppliedBlock
+ * @param receivedBlock
+ * @param receivedBlockReceiptTime
+ * @param lastReceivedAndAppliedBlock
  * @return {boolean}
- * @private
  */
-const isTieBreak = ({
-	slots,
-	lastBlock,
-	currentBlock,
-	lastReceivedAt,
-	currentReceivedAt,
-}) =>
-	isDuplicateBlock(lastBlock, currentBlock) &&
-	slots.getSlotNumber(lastBlock.timestamp) <
-		slots.getSlotNumber(currentBlock.timestamp) &&
-	!slots.isWithinTimeslot(
-		slots.getSlotNumber(lastBlock.timestamp),
-		lastReceivedAt
-	) &&
-	slots.isWithinTimeslot(
-		slots.getSlotNumber(currentBlock.timestamp),
-		currentReceivedAt
-	);
+const isTieBreak = ({ slots, lastAppliedBlock, receivedBlock }) =>
+	isDuplicateBlock(lastAppliedBlock, receivedBlock) &&
+	forgingSlot(slots, lastAppliedBlock) < forgingSlot(slots, receivedBlock) &&
+	!isLastAppliedBlockReceivedWithinForgingSlot(slots, lastAppliedBlock) &&
+	isBlockReceivedWithinForgingSlot(slots, receivedBlock);
 
 /**
  * Determine if Case 5 fulfills

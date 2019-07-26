@@ -64,7 +64,16 @@ class Blocks extends EventEmitter {
 		this._lastNBlockIds = [];
 		this._lastBlock = {};
 		this._isActive = false;
+
+		/**
+		 * Represents the receipt time of the last block that was received
+		 * from the network.
+		 * TODO: Remove after fork.
+		 * @type {number}
+		 * @private
+		 */
 		this._lastReceipt = null;
+
 		this._cleaning = false;
 
 		this.logger = logger;
@@ -134,13 +143,16 @@ class Blocks extends EventEmitter {
 	}
 
 	get lastBlock() {
-		return this._lastBlock;
+		// Remove receivedAt property..
+		const { receivedAt, ...block } = this._lastBlock;
+		return block;
 	}
 
 	get isActive() {
 		return this._isActive;
 	}
 
+	// TODO: Remove after fork
 	get lastReceipt() {
 		return this._lastReceipt;
 	}
@@ -452,23 +464,27 @@ class Blocks extends EventEmitter {
 
 	async _receiveBlockFromNetworkV2(block) {
 		// Current time since Lisk Epoch
-		// Better to do it here rather than in the Sequence so receiving time is more accurate
-		const newBlockReceivedAt = this.slots.getTime();
+		block.receivedAt = this.slots.getTime();
 
 		// Execute in sequence
 		return this.sequence.add(async () => {
 			this._shouldNotBeActive();
 			this._isActive = true;
-			const result = await this._forkChoiceTask(block, newBlockReceivedAt);
-			this._isActive = false;
-			return result;
+			try {
+				await this._forkChoiceTask(block);
+			} catch (e) {
+				this.logger.error(e);
+			} finally {
+				this._isActive = false;
+			}
 		});
 	}
 
 	// PRE: Block has been validated and verified before
 	async _processReceivedBlock(block) {
-		this._updateLastReceipt();
+		this._updateLastReceipt(); // TODO: Remove after fork
 		try {
+			delete block.receivedAt;
 			const newBlock = await this.blocksProcess.processBlock(
 				block,
 				this._lastBlock,
@@ -484,8 +500,7 @@ class Blocks extends EventEmitter {
 					block.reward
 				} version: ${block.version}`
 			);
-
-			await this._updateBroadhash();
+			await this._updateBroadhash(); // TODO: Remove after fork
 			this.emit(EVENT_NEW_BLOCK, { block: cloneDeep(block) });
 			this._lastBlock = newBlock;
 		} catch (error) {
@@ -508,11 +523,10 @@ class Blocks extends EventEmitter {
 	/**
 	 * Wrap of fork choice rule logic so it can be added to Sequence and properly tested
 	 * @param block
-	 * @param newBlockReceivedAt - Time when the new block was received since Lisk Epoch
 	 * @return {Promise}
 	 * @private
 	 */
-	async _forkChoiceTask(block, newBlockReceivedAt) {
+	async _forkChoiceTask(block) {
 		// Cases are numbered following LIP-0014 Fork choice rule.
 		// See: https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#applying-blocks-according-to-fork-choice-rule
 		// Case 2 and 1 have flipped execution order for better readability. Behavior is still the same
@@ -537,10 +551,8 @@ class Blocks extends EventEmitter {
 		if (
 			forkChoiceRule.isTieBreak({
 				slots: this.slots,
-				lastBlock: this._lastBlock,
-				currentBlock: block,
-				lastReceivedAt: this._lastReceipt || this._lastBlock.timestamp,
-				currentReceivedAt: newBlockReceivedAt,
+				lastAppliedBlock: this._lastBlock,
+				receivedBlock: block,
 			})
 		) {
 			// Two competing blocks by different delegates at the same height.
