@@ -12,6 +12,6 @@ Please describe why it is needed
 
 ### Acceptance Criteria
 
-Please describe in what conditions this issue will be closed
+Please describe the conditions which must be met for this issue to close
 
 ### Additional Information
