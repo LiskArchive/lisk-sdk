@@ -53,7 +53,7 @@ describe.only('newPeer', () => {
 		});
 
 		it('should not add the incoming peer if it exists', async () => {
-			expect(newPeersList.addPeer(samplePeers[0])).to.be.false;
+			expect(newPeersList.addPeer(samplePeers[0])).to.be.undefined;
 		});
 	});
 
@@ -178,7 +178,7 @@ describe.only('newPeer', () => {
 		});
 
 		describe('when the peer exist and applied failedConnectionAction', () => {
-			it('should delete the peer', async () => {
+			it('should delete the peer and for the second call it should return false', async () => {
 				const success1 = newPeersList.failedConnectionAction(samplePeers[0]);
 				expect(success1).to.be.true;
 				const success2 = newPeersList.failedConnectionAction(samplePeers[0]);

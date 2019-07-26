@@ -143,9 +143,9 @@ export class NewPeers {
 		return peer ? peer.peerInfo : undefined;
 	}
 
-	public addPeer(peerInfo: P2PPeerInfo): boolean {
+	public addPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
 		// tslint:disable-next-line:no-let
-		let success = false;
+		let evictedPeer: P2PPeerInfo | undefined;
 
 		if (!this.findPeer(peerInfo)) {
 			const newPeerInfo = {
@@ -165,18 +165,16 @@ export class NewPeers {
 					if (bucketList.size < this._newPeerBucketSize) {
 						bucketList.set(constructPeerIdFromPeerInfo(peerInfo), newPeerInfo);
 						this._newPeerMap.set(bucketId, bucketList);
-						success = true;
 					} else {
-						this._evictPeer(bucketId);
+						evictedPeer = this._evictPeer(bucketId);
 						bucketList.set(constructPeerIdFromPeerInfo(peerInfo), newPeerInfo);
 						this._newPeerMap.set(bucketId, bucketList);
-						success = true;
 					}
 				}
 			}
 		}
 
-		return success;
+		return evictedPeer;
 	}
 
 	public failedConnectionAction(incomingPeerInfo: P2PPeerInfo): boolean {
@@ -185,7 +183,7 @@ export class NewPeers {
 		return success;
 	}
 
-	private _evictPeer(bucketId: number): NewPeerInfo | undefined {
+	private _evictPeer(bucketId: number): P2PPeerInfo | undefined {
 		const peerList = this._newPeerMap.get(bucketId);
 
 		if (!peerList) {
@@ -199,11 +197,11 @@ export class NewPeers {
 		);
 
 		if (evictedPeerBasedOnTime) {
-			return evictedPeerBasedOnTime;
+			return evictedPeerBasedOnTime.peerInfo;
 		}
 
 		// Second eviction strategy
-		return this._evictionRandom(bucketId, peerList);
+		return this._evictionRandom(bucketId);
 	}
 
 	private _evictionBasedOnTimeInBucket(
@@ -235,17 +233,18 @@ export class NewPeers {
 		return evictedPeer;
 	}
 
-	private _evictionRandom(
-		bucketId: number,
-		peerList: Map<string, NewPeerInfo>,
-	): NewPeerInfo | undefined {
-		// Second eviction strategy
+	private _evictionRandom(bucketId: number): P2PPeerInfo {
+		const peerList = this._newPeerMap.get(bucketId);
+		if (!peerList) {
+			throw new Error(`No Peers exist for bucket Id: ${bucketId}`);
+		}
+
 		const randomPeerIndex = Math.floor(Math.random() * this._newPeerBucketSize);
 		const randomPeerId = Array.from(peerList.keys())[randomPeerIndex];
+		const randomPeer = Array.from(peerList.values())[randomPeerIndex];
 		peerList.delete(randomPeerId);
 		this._newPeerMap.set(bucketId, peerList);
-		const evictedPeer = peerList.get(randomPeerId);
 
-		return evictedPeer;
+		return randomPeer.peerInfo;
 	}
 }
