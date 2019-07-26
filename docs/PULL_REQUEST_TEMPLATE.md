@@ -1,6 +1,6 @@
 ### What was the problem?
 
-### How did I solve?
+### How did I solve it?
 
 ### How to manually test it?
 
