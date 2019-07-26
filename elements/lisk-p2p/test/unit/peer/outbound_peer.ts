@@ -31,6 +31,7 @@ describe('outbound_peer', () => {
 	const defaultPeer = new OutboundPeer(defaultPeerInfo, {
 		rateCalculationInterval: 1000,
 		wsMaxMessageRate: 1000,
+		wsMaxMessageRatePenalty: 10,
 	});
 
 	describe('#constructor', () => {

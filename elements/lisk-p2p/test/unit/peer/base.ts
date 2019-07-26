@@ -31,6 +31,7 @@ describe('peer', () => {
 	const defaultPeer = new Peer(defaultPeerInfo, {
 		rateCalculationInterval: 1000,
 		wsMaxMessageRate: 1000,
+		wsMaxMessageRatePenalty: 10,
 	});
 
 	describe('#constructor', () => {

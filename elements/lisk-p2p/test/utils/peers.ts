@@ -73,5 +73,6 @@ export const initializePeerList = (): ReadonlyArray<Peer> =>
 			new Peer(peerInfo, {
 				rateCalculationInterval: 1000,
 				wsMaxMessageRate: 1000,
+				wsMaxMessageRatePenalty: 10,
 			}),
 	);

@@ -35,6 +35,7 @@ describe('inbound_peer', () => {
 	const defaultPeer = new InboundPeer(defaultPeerInfo, socket, {
 		rateCalculationInterval: 1000,
 		wsMaxMessageRate: 1000,
+		wsMaxMessageRatePenalty: 10,
 	});
 
 	describe('#constructor', () => {
