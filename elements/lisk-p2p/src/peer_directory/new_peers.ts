@@ -15,7 +15,7 @@
 import { P2PPeerInfo } from '../p2p_types';
 import { constructPeerIdFromPeerInfo, getBucket } from '../utils';
 
-const DEFAULT_NEW_PEER_LIST_SIZE = 64;
+const DEFAULT_NEW_PEER_LIST_SIZE = 128;
 const DEFAULT_NEW_PEER_BUCKET_SIZE = 32;
 const MILLISECONDS_IN_ONE_DAY = 86400000; // Formula hours*minutes*seconds*milliseconds;
 const ELIGIBLE_DAYS_FOREVICTION = 30;

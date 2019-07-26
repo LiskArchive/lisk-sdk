@@ -23,20 +23,19 @@ describe.only('triedPeer', () => {
 		const triedPeerConfig = {
 			maxReconnectTries: 3,
 			triedPeerBucketSize: 32,
-			triedPeerListSize: 32,
+			triedPeerListSize: 64,
 		};
 
 		beforeEach(async () => {
 			triedPeersList = new TriedPeers(triedPeerConfig);
 		});
 
-		it('should set properties correctly and create a map of 32 size with 32 buckets each', async () => {
+		it('should set properties correctly and create a map of 64 size with 32 buckets each', async () => {
 			expect(triedPeersList.triedPeerConfig).to.be.eql(triedPeerConfig);
-			expect(triedPeersList.triedPeerMap.size).to.be.equal(32);
-
-			let bucketSize = Array.of([...triedPeersList.triedPeerMap.values()])[0]
-				.length;
-			expect(bucketSize).to.be.equal(32);
+			expect(triedPeersList.triedPeerMap.size).to.be.equal(64);
+			expect(triedPeersList.triedPeerConfig.triedPeerBucketSize).to.be.equal(
+				32,
+			);
 		});
 	});
 
@@ -48,7 +47,7 @@ describe.only('triedPeer', () => {
 			const triedPeerConfig = {
 				maxReconnectTries: 3,
 				triedPeerBucketSize: 32,
-				triedPeerListSize: 32,
+				triedPeerListSize: 64,
 			};
 
 			triedPeersList = new TriedPeers(triedPeerConfig);
@@ -72,7 +71,7 @@ describe.only('triedPeer', () => {
 			const triedPeerConfig = {
 				maxReconnectTries: 3,
 				triedPeerBucketSize: 32,
-				triedPeerListSize: 32,
+				triedPeerListSize: 64,
 			};
 
 			triedPeersList = new TriedPeers(triedPeerConfig);
@@ -94,7 +93,7 @@ describe.only('triedPeer', () => {
 			const triedPeerConfig = {
 				maxReconnectTries: 3,
 				triedPeerBucketSize: 32,
-				triedPeerListSize: 32,
+				triedPeerListSize: 64,
 			};
 
 			triedPeersList = new TriedPeers(triedPeerConfig);
@@ -128,7 +127,7 @@ describe.only('triedPeer', () => {
 			const triedPeerConfig = {
 				maxReconnectTries: 3,
 				triedPeerBucketSize: 32,
-				triedPeerListSize: 32,
+				triedPeerListSize: 64,
 			};
 
 			triedPeersList = new TriedPeers(triedPeerConfig);
@@ -173,7 +172,7 @@ describe.only('triedPeer', () => {
 			const triedPeerConfig = {
 				maxReconnectTries: 3,
 				triedPeerBucketSize: 32,
-				triedPeerListSize: 32,
+				triedPeerListSize: 64,
 			};
 
 			triedPeersList = new TriedPeers(triedPeerConfig);
@@ -204,7 +203,7 @@ describe.only('triedPeer', () => {
 				const triedPeerConfig = {
 					maxReconnectTries: 1,
 					triedPeerBucketSize: 32,
-					triedPeerListSize: 32,
+					triedPeerListSize: 64,
 				};
 
 				triedPeersList = new TriedPeers(triedPeerConfig);
@@ -225,7 +224,7 @@ describe.only('triedPeer', () => {
 				const triedPeerConfig = {
 					maxReconnectTries: 2,
 					triedPeerBucketSize: 32,
-					triedPeerListSize: 32,
+					triedPeerListSize: 64,
 				};
 
 				triedPeersList = new TriedPeers(triedPeerConfig);
