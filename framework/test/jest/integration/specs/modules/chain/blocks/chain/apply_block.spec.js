@@ -39,18 +39,18 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 		});
 
 		describe('saveBlockStep', () => {
-			describe('after applying new block fails', () => {
+			describe('when applying new block fails', () => {
 				it.todo('should have pooled transactions in queued state');
 
-				it.todo('should not save block in the blocks table');
+				it.todo('should not save block');
 
-				it.todo('should not save transactions in the trs table');
+				it.todo('should not save transactions');
 			});
 
-			describe('after applying a new block', () => {
-				it.todo('should save block in the blocks table');
+			describe('when applying a new block', () => {
+				it.todo('should save block');
 
-				it.todo('should save transactions in the trs table');
+				it.todo('should save transactions');
 			});
 		});
 	});

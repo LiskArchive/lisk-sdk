@@ -14,88 +14,74 @@
 
 describe('rounds', () => {
 	describe('round 1', () => {
-		describe('forge block with 1 TRANSFER transaction to random account', () => {
-			describe('new block', () => {
-				it.todo('should have a different ID than the last block');
-				it.todo('should have version = 1');
-				it.todo('should have height greater than 1.');
-				it.todo('should contain all expected transactions');
-				describe('mem_accounts table', () => {
-					it.todo(
-						'if block contains at least one transaction states before and after block should be different'
-					);
-					it.todo(
-						'should have the same delegates with highest weight used for generating the delegate list for the same round'
-					);
-					it.todo('should have the same delegate list for the same round');
-					it.todo('should match expected states for accounts table states');
-					it.todo('should have valid balances against blockchain balances');
-				});
+		describe('when forging a block with 1 TRANSFER transaction to random account.', () => {
+			it.todo('should have a different ID than the last block');
+			it.todo('should have version = 1');
+			it.todo('should have height greater than 1.');
+			it.todo('should contain all expected transactions');
+			describe('Account(s) state(s)', () => {
+				it.todo('should be updated');
+				it.todo(
+					'should have the same delegates with highest weight used for generating the delegate list for the same round'
+				);
+				it.todo('should have the same delegate list for the same round');
+				it.todo('should match expected states for accounts table states');
+				it.todo('should have valid balances against blockchain balances');
 			});
 		});
 
-		describe('forge block with 25 TRANSFER transactions to random accounts', () => {
-			describe('new block', () => {
-				it.todo('should have different ID than last block ID');
-				it.todo('should have block version = 1');
-				it.todo('should have height greater than 1');
-				it.todo('should contain all expected transactions');
-				describe('mem_accounts table', () => {
-					it.todo(
-						'if block contains at least one transaction states before and after block should be different'
-					);
-					it.todo(
-						'delegates with highest weight used for generating list should be the same for same round'
-					);
-					it.todo('should have the same delegates list for the same round');
-					it.todo('should match expected states for accounts table states');
-					it.todo('should have valid balances against blockchain balances');
-				});
+		describe('when forging a block with 25 TRANSFER transactions to random accounts', () => {
+			it.todo('should have different ID than last block ID');
+			it.todo('should have block version = 1');
+			it.todo('should have height greater than 1');
+			it.todo('should contain all expected transactions');
+			describe('Account(s) state(s)', () => {
+				it.todo('should be updated');
+				it.todo(
+					'delegates with highest weight used for generating list should be the same for same round'
+				);
+				it.todo('should have the same delegates list for the same round');
+				it.todo('should match expected states for accounts table states');
+				it.todo('should have valid balances against blockchain balances');
 			});
 		});
 
-		describe('should forge 97 blocks with 1 TRANSFER transaction each to random account', () => {
-			describe('new block', () => {
-				it.todo('should have different ID than last block ID');
-				it.todo('should have block version = 1');
-				it.todo('should have height greater than 1');
-				it.todo('should contain all expected transactions');
-				describe('mem_accounts table', () => {
-					it.todo(
-						'if block contains at least one transaction states before and after block should be different'
-					);
-					it.todo(
-						'delegates with highest weight used for generating list should be the same for same round'
-					);
-					it.todo('should have the same delegate list for the same round');
-					it.todo('should match accounts table states with expected states');
-					it.todo('should have valid balances against blockchain balances');
-				});
+		describe('when forging 97 blocks with 1 TRANSFER transaction each to random account', () => {
+			it.todo('should have different ID than last block ID');
+			it.todo('should have block version = 1');
+			it.todo('should have height greater than 1');
+			it.todo('should contain all expected transactions');
+			describe('Account(s) state(s)', () => {
+				it.todo('should be updated');
+				it.todo(
+					'delegates with highest weight used for generating list should be the same for same round'
+				);
+				it.todo('should have the same delegate list for the same round');
+				it.todo('should match accounts table states with expected states');
+				it.todo('should have valid balances against blockchain balances');
 			});
 		});
 
-		describe('forge block with 1 TRANSFER transaction to random account (last block of round)', () => {
-			describe('new block', () => {
-				it.todo('should have different ID than the last block ID');
-				it.todo('should have block version = 1');
-				it.todo('should have height greater than 1');
-				it.todo('should contain all expected transactions');
-				describe('mem_accounts table', () => {
-					it.todo(
-						'if block contains at least one transaction states before and after block should be different'
-					);
-					it.todo(
-						'delegates with highest weight used for generating list should be the same for same round'
-					);
-					it.todo('should have the same delegates list for the same round');
-					it.todo('should have accounts table states match expected states');
-					it.todo('should have valid balances against blockchain balances');
-				});
+		describe('when forging a block with 1 TRANSFER transaction to random account (last block of round)', () => {
+			it.todo('should have different ID than the last block ID');
+			it.todo('should have block version = 1');
+			it.todo('should have height greater than 1');
+			it.todo('should contain all expected transactions');
+			describe('Account(s) state(s)', () => {
+				it.todo('should be updated');
+				it.todo(
+					'delegates with highest weight used for generating list should be the same for same round'
+				);
+				it.todo('should have the same delegates list for the same round');
+				it.todo('should have accounts table states match expected states');
+				it.todo('should have valid balances against blockchain balances');
 			});
 		});
 
-		describe('after round 1 is finished', () => {
-			it.todo('should have the last block height equal to the active delegates count');
+		describe('when round 1 is finished', () => {
+			it.todo(
+				'should have the last block height equal to the active delegates count'
+			);
 
 			it.todo(
 				'should calculate rewards for round 1 correctly - all should be the same (calculated, rounds_rewards, mem_accounts)'
@@ -106,7 +92,7 @@ describe('rounds', () => {
 			);
 		});
 
-		describe('delete last block of round 1, block contains 1 transaction type SEND', () => {
+		describe('when last block of round 1 is deleted and block contains 1 TRANSFER transaction', () => {
 			it.todo(
 				'should add back transactions from deleted block to the transaction pool'
 			);
@@ -124,7 +110,7 @@ describe('rounds', () => {
 			);
 		});
 
-		describe('deleting last block of round twice in a row', () => {
+		describe('when deleting last block of round twice in a row', () => {
 			it.todo('should be able to delete last block of round again');
 
 			it.todo(
@@ -154,7 +140,7 @@ describe('rounds', () => {
 				it.todo('should have block version = 1');
 				it.todo('should have height greater than 1');
 				it.todo('should contain all expected transactions');
-				describe('mem_accounts table', () => {
+				describe('Account(s) state(s) (mem_accounts table)', () => {
 					it.todo(
 						'if block contains at least one transaction states before and after block should be different'
 					);
@@ -182,7 +168,7 @@ describe('rounds', () => {
 				it.todo('should have block version  = 1');
 				it.todo('should have height greater than 1');
 				it.todo('should contain all expected transactions');
-				describe('mem_accounts table', () => {
+				describe('Account(s) state(s) (mem_accounts table)', () => {
 					it.todo(
 						'if block contains at least one transaction states before and after block should be different'
 					);
@@ -200,7 +186,9 @@ describe('rounds', () => {
 					'should have different delegates list than the one generated at the beginning of round 1'
 				);
 
-				it.todo('should have vote = 0 for the forget of the last block of the previous round');
+				it.todo(
+					'should have vote = 0 for the forget of the last block of the previous round'
+				);
 			});
 
 			describe('after last block of round is deleted', () => {
@@ -245,7 +233,9 @@ describe('rounds', () => {
 					it.todo(
 						'should have delegates with highest weight used for generating the list to be the same for the same round'
 					);
-					it.todo('should have the same delegates list to be the same for the same round');
+					it.todo(
+						'should have the same delegates list to be the same for the same round'
+					);
 					it.todo('should match accounts table states with expected states');
 					it.todo('should have valid balances against blockchain balances');
 				});
@@ -282,9 +272,13 @@ describe('rounds', () => {
 
 				it.todo('should not include in the list the unvoted delegate');
 
-				it.todo('should include the delegate who replaced the unvoiced one in the list');
+				it.todo(
+					'should include the delegate who replaced the unvoiced one in the list'
+				);
 
-				it.todo('should compute vote = 0 for the forget of the last block of the previous round');
+				it.todo(
+					'should compute vote = 0 for the forget of the last block of the previous round'
+				);
 
 				it.todo(
 					'should compute proper votes for the delegate who replaced last block forger'
@@ -317,7 +311,7 @@ describe('rounds', () => {
 					it.todo('should have version = 1');
 					it.todo('should have height greater than 1');
 					it.todo('should contain all expected transactions');
-					describe('mem_accounts table', () => {
+					describe('Account(s) state(s) (mem_accounts table)', () => {
 						it.todo(
 							'if block contains at least one transaction states before and after block should be different'
 						);
@@ -334,7 +328,9 @@ describe('rounds', () => {
 			describe('before rewards start', () => {
 				it.todo('should have last block height = 149');
 
-				it.todo('should have the block just before rewards started to have reward = 0');
+				it.todo(
+					'should have the block just before rewards started to have reward = 0'
+				);
 			});
 
 			describe('after rewards start', () => {
@@ -343,7 +339,7 @@ describe('rounds', () => {
 					it.todo('should have block version = 1');
 					it.todo('should have height greater than 1');
 					it.todo('should contain all expected transactions');
-					describe('mem_accounts table', () => {
+					describe('Account(s) state(s) (mem_accounts table)', () => {
 						it.todo(
 							'if block contains at least one transaction states before and after block should be different'
 						);
