@@ -283,19 +283,12 @@ class Loader {
 		const lastBlock = this.blocksModule.lastBlock;
 		// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 		// TODO: Rename procedure to include target module name. E.g. chain:blocks
-		let data;
-		try {
-			const response = await this.channel.invoke('network:request', {
-				procedure: 'blocks',
-				data: {
-					lastBlockId: lastBlock.id,
-				},
-			});
-			data = response.data;
-		} catch (p2pError) {
-			this.logger.error('Failed to load block from network', p2pError);
-			return [];
-		}
+		const { data } = await this.channel.invoke('network:request', {
+			procedure: 'blocks',
+			data: {
+				lastBlockId: lastBlock.id,
+			},
+		});
 
 		if (!data) {
 			throw new Error('Received an invalid blocks response from the network');
