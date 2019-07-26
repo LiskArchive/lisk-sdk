@@ -76,12 +76,11 @@ export class NewPeers {
 		);
 	}
 
-	public findPeer(peerInfo: P2PPeerInfo): boolean {
+	public findPeer(peerId: string): boolean {
 		// tslint:disable-next-line:no-let
 		let ifExists = false;
 
 		[...this._newPeerMap.values()].forEach(peersMap => {
-			const peerId = constructPeerIdFromPeerInfo(peerInfo);
 			if (peersMap.has(peerId)) {
 				ifExists = true;
 
@@ -158,7 +157,7 @@ export class NewPeers {
 		// tslint:disable-next-line:no-let
 		let evictedPeer: P2PPeerInfo | undefined;
 
-		if (!this.findPeer(peerInfo)) {
+		if (!this.findPeer(constructPeerIdFromPeerInfo(peerInfo))) {
 			const newPeerInfo = {
 				peerInfo,
 				numOfConnectionFailures: 0,

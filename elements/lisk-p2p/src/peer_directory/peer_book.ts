@@ -56,13 +56,13 @@ export class PeerBook {
 
 	// If the peer is completed deleted then return true
 	public downgradePeer(peerInfo: P2PPeerInfo): boolean {
-		if (this._newPeers.findPeer(peerInfo)) {
+		if (this._newPeers.findPeer(constructPeerIdFromPeerInfo(peerInfo))) {
 			if (this._newPeers.failedConnectionAction(peerInfo)) {
 				return true;
 			}
 		}
 
-		if (this._triedPeers.findPeer(peerInfo)) {
+		if (this._triedPeers.findPeer(constructPeerIdFromPeerInfo(peerInfo))) {
 			this._triedPeers.failedConnectionAction(peerInfo);
 		}
 
@@ -70,11 +70,11 @@ export class PeerBook {
 	}
 
 	public upgradePeer(peerInfo: P2PPeerInfo): boolean {
-		if (this._triedPeers.findPeer(peerInfo)) {
+		if (this._triedPeers.findPeer(constructPeerIdFromPeerInfo(peerInfo))) {
 			return true;
 		}
 
-		if (this._newPeers.findPeer(peerInfo)) {
+		if (this._newPeers.findPeer(constructPeerIdFromPeerInfo(peerInfo))) {
 			this._newPeers.removePeer(peerInfo);
 			this._triedPeers.addPeer(peerInfo as P2PDiscoveredPeerInfo);
 
@@ -83,48 +83,48 @@ export class PeerBook {
 
 		return false;
 	}
-
+	// It will return evicted peer in some cases
 	public addPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
 		if (
-			this._triedPeers.findPeer(peerInfo) ||
-			this._newPeers.findPeer(peerInfo)
+			this._triedPeers.findPeer(constructPeerIdFromPeerInfo(peerInfo)) ||
+			this._newPeers.findPeer(constructPeerIdFromPeerInfo(peerInfo))
 		) {
-			return undefined;
+			throw new Error('Peer already exists');
 		}
 
 		return this._newPeers.addPeer(peerInfo);
 	}
 
 	public removePeer(peerInfo: P2PPeerInfo): boolean {
-		if (this._triedPeers.findPeer(peerInfo)) {
+		if (this._triedPeers.findPeer(constructPeerIdFromPeerInfo(peerInfo))) {
 			return this._triedPeers.removePeer(peerInfo);
 		}
 
-		if (this._newPeers.findPeer(peerInfo)) {
+		if (this._newPeers.findPeer(constructPeerIdFromPeerInfo(peerInfo))) {
 			return this._newPeers.removePeer(peerInfo);
 		}
 
 		return false;
 	}
 
-	public getPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
-		if (this._triedPeers.findPeer(peerInfo)) {
-			return this._triedPeers.getPeer(constructPeerIdFromPeerInfo(peerInfo));
+	public getPeer(peerId: string): P2PPeerInfo | undefined {
+		if (this._triedPeers.findPeer(peerId)) {
+			return this._triedPeers.getPeer(peerId);
 		}
 
-		if (this._newPeers.findPeer(peerInfo)) {
-			return this._newPeers.getPeer(constructPeerIdFromPeerInfo(peerInfo));
+		if (this._newPeers.findPeer(peerId)) {
+			return this._newPeers.getPeer(peerId);
 		}
 
 		return undefined;
 	}
 
 	public updatePeer(peerInfo: P2PPeerInfo): boolean {
-		if (this._triedPeers.findPeer(peerInfo)) {
+		if (this._triedPeers.findPeer(constructPeerIdFromPeerInfo(peerInfo))) {
 			return this._triedPeers.updatePeer(peerInfo as P2PDiscoveredPeerInfo);
 		}
 
-		if (this._newPeers.findPeer(peerInfo)) {
+		if (this._newPeers.findPeer(constructPeerIdFromPeerInfo(peerInfo))) {
 			return this._newPeers.updatePeer(peerInfo);
 		}
 
