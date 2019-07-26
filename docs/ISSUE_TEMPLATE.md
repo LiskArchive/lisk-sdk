@@ -1,7 +1,17 @@
-### Expected behavior
+---
+title: 'Feature request'
+---
 
-### Actual behavior
+### Description
 
-### Steps to reproduce
+Please describe what functionality is needed
 
-### Which version(s) does this affect? (Environment, OS, etc...)
+### Motivation
+
+Please describe why it is needed
+
+### Acceptance Criteria
+
+Please describe the conditions which must be met for this issue to close
+
+### Additional Information
