@@ -73,6 +73,17 @@ export class TriedPeers {
 		return this._triedPeerMap;
 	}
 
+	public getTriedPeersList(): ReadonlyArray<P2PDiscoveredPeerInfo> {
+		const peers = [...this._triedPeerMap.values()].map(triedPeerMap =>
+			[...triedPeerMap.values()].map(triedPeerInfo => triedPeerInfo.peerInfo),
+		);
+
+		return peers.reduce(
+			(flattenedPeerList, peerList) => [...peerList, ...flattenedPeerList],
+			[],
+		);
+	}
+
 	public findPeer(peerInfo: P2PDiscoveredPeerInfo): boolean {
 		// tslint:disable-next-line:no-let
 		let ifExists = false;
