@@ -151,6 +151,7 @@ describe.only('newPeer', () => {
 			newPeersList.addPeer(samplePeers[0]);
 			newPeersList.addPeer(samplePeers[1]);
 		});
+
 		describe('when the peer exist', () => {
 			it('should find the peer from the incoming peerInfo', async () => {
 				const success = newPeersList.findPeer(samplePeers[0]);
@@ -162,6 +163,26 @@ describe.only('newPeer', () => {
 			it('should return false when the peer does not exist', async () => {
 				const success = newPeersList.updatePeer(samplePeers[2]);
 				expect(success).to.be.false;
+			});
+		});
+	});
+
+	describe('#failedConnectionAction', () => {
+		let newPeersList: NewPeers;
+		const samplePeers = initializePeerInfoList();
+
+		beforeEach(async () => {
+			newPeersList = new NewPeers(newPeerConfig);
+			newPeersList.addPeer(samplePeers[0]);
+			newPeersList.addPeer(samplePeers[1]);
+		});
+
+		describe('when the peer exist and applied failedConnectionAction', () => {
+			it('should delete the peer', async () => {
+				const success1 = newPeersList.failedConnectionAction(samplePeers[0]);
+				expect(success1).to.be.true;
+				const success2 = newPeersList.failedConnectionAction(samplePeers[0]);
+				expect(success2).to.be.false;
 			});
 		});
 	});
