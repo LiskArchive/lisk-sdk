@@ -14,24 +14,24 @@
 
 'use strict';
 
-describe('integration test (type 1) - checking validated second signature registrations against other transaction types', () => {
+describe('checking validated second signature registrations against other transaction types', () => {
 	it.todo('should be ok adding to the pool a second signature registration');
 
-	describe('after forging one block', () => {
+	describe('when after forging one block', () => {
 		it.todo('should include the transaction');
 
 		it.todo(
 			'should fail adding to the pool a second signature registration for the same account'
 		);
+	});
 
-		describe('adding to pool other transaction types from the same account', () => {
-			describe('transactions excluding signature, dapp, in_transfer, out_transfer', () => {
-				it.todo('should fail without second signature');
-				it.todo(
-					'should fail registering second signature without matching passphrase'
-				);
-				it.todo('should be ok with correct second signature');
-			});
-		});
+	describe('when adding transactions excluding signature, dapp, in_transfer, out_transfer from the same account to the pool', () => {
+		it.todo('should fail without second signature');
+
+		it.todo(
+			'should fail registering second signature without matching passphrase'
+		);
+
+		it.todo('should be ok with correct second signature');
 	});
 });

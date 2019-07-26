@@ -14,25 +14,23 @@
 
 'use strict';
 
-describe('integration test (type 1) - sending transactions on top of unconfirmed second signature', () => {
-	it.todo('adding to pool second signature registration should be ok');
+describe('sending transactions on top of unconfirmed second signature', () => {
+	describe('when adding to pool second signature registration', () => {
+		it.todo('should accept');
+	});
 
-	describe('validating unconfirmed status while adding to pool other transaction types from same account', () => {
-		describe('with second signature', () => {
-			describe('type "signature"', () => {
-				it.todo('should fail');
-				it.todo('should be ok with different timestamp');
-			});
-
-			describe('other types excluding dapp, in_transfer, out_transfer', () => {
-				it.todo('should fail');
-			});
+	describe('given second signature registration in the pool', () => {
+		describe('when type signagure with second signature is added to the pool', () => {
+			it.todo('should fail with the same timestamp');
+			it.todo('should be ok with different timestamp');
 		});
 
-		describe('without second signature', () => {
-			describe('types excluding signature, dapp, in_transfer, out_transfer', () => {
-				it.todo('should be ok');
-			});
+		describe('when types excluding signature, dapp, in_transfer, out_transfer with second signature is added to the pool', () => {
+			it.todo('should fail');
+		});
+
+		describe('when types excluding signature, dapp, in_transfer, out_transfer without second signature is added to the pool', () => {
+			it.todo('should be ok');
 		});
 	});
 });

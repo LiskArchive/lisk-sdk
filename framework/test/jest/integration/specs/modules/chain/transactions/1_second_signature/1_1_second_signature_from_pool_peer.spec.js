@@ -14,32 +14,22 @@
 
 'use strict';
 
-describe('integration test (type 1) - second signature transactions from pool and peer', () => {
-	describe('with funds inside account', () => {
+describe('second signature transactions from pool and peer', () => {
+	describe('given funds inside account and the signature transaction in the pool', () => {
 		beforeEach('send funds to signature account');
 
-		describe('with signature transaction in unconfirmed state', () => {
-			describe('when receiving block with same transaction', () => {
-				describe('confirmed state', () => {
-					it.todo('should update confirmed columns related to signature');
-				});
+		describe('when receiving block with same transaction', () => {
+			it.todo('should update confirmed columns related to signature');
+		});
 
-				describe('when receiving block with signature transaction with different id', () => {
-					describe('confirmed state', () => {
-						it.todo('should update confirmed columns related to signature');
-					});
-				});
+		describe('when receiving block with signature transaction with different id', () => {
+			it.todo('should update confirmed columns related to signature');
+		});
 
-				describe('when receiving block with multiple signature transaction with different id for same account', () => {
-					describe('should reject block', () => {
-						it.todo('should not save block to the database');
-					});
+		describe('when receiving block with multiple signature transaction with different id for same account', () => {
+			it.todo('should not save block to the database');
 
-					describe('confirmed state', () => {
-						it.todo('should not update confirmed columns related to signature');
-					});
-				});
-			});
+			it.todo('should not update confirmed columns related to signature');
 		});
 	});
 });

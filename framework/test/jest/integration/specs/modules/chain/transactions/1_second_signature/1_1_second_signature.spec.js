@@ -14,20 +14,20 @@
 
 'use strict';
 
-describe('integration test (type 1) - double second signature registrations', () => {
-	it.todo('adding to pool second signature registration should be ok');
+describe('double second signature registrations', () => {
+	it.todo('should be sccepted to adding to pool second signature registration');
 
 	it.todo(
-		'adding to pool same second signature registration with different timestamp should be ok'
+		'should be accepted for adding to pool same second signature registration with different timestamp'
 	);
 
-	describe('after forging one block', () => {
-		it.todo('first transaction to arrive should be included');
+	describe('when after forging one block', () => {
+		it.todo('should include the first transaction arrived');
 
-		it.todo('last transaction to arrive should not be included');
+		it.todo('should not include the last transaction to arrived');
 
 		it.todo(
-			'adding to pool second signature registration for same account should fail'
+			'should fail to add to the pool second signature registration for same account'
 		);
 	});
 });
