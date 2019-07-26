@@ -14,22 +14,23 @@
 
 'use strict';
 
-describe('integration test (type 0) - address collision', () => {
+describe('address collision with type 0', () => {
+	// This should be unit test
 	it.todo('should generate the same address for both passphrases');
 
 	describe('when two passphrases collide into the same address', () => {
 		it.todo('should be ok to add transfer to the pool for passphrase one');
 
 		it.todo('should be ok to add transfer to the pool for passphrase two');
+	});
 
-		describe('after forging one block', () => {
-			it.todo('should include the first transaction to arrive');
+	describe('when after forging one block', () => {
+		it.todo('should include the first transaction to arrive');
 
-			it.todo('should not include the last transaction to arrive');
+		it.todo('should not include the last transaction to arrive');
 
-			it.todo(
-				'should cement the public key from the first passphrase and not the second one'
-			);
-		});
+		it.todo(
+			'should cement the public key from the first passphrase and not the second one'
+		);
 	});
 });

@@ -15,49 +15,47 @@
 'use strict';
 
 describe('duplicate_signatures', () => {
-	describe('process multiple signatures for the same transaction', () => {
-		describe('when signatures are unique', () => {
-			describe('during multisignature account registration', () => {
-				beforeEach('credit new account');
+	describe('given signatures are unique', () => {
+		describe('ehwn multisignature account registration', () => {
+			beforeEach('credit new account');
 
-				it.todo('should add transaction to transaction pool');
+			it.todo('should add transaction to transaction pool');
 
-				it.todo('should accept all signatures');
+			it.todo('should accept all signatures');
 
-				it.todo('should forge a block');
-			});
-
-			describe('during spend from multisignature account', () => {
-				beforeEach('create multisignature account');
-
-				it.todo('should add transaction to transaction pool');
-
-				it.todo('should accept all signatures');
-
-				it.todo('should forge a block');
-			});
+			it.todo('should forge a block');
 		});
 
-		describe('when signatures contains duplicate', () => {
-			describe('during multisignature account registration', () => {
-				beforeEach('credit new account');
+		describe('when spend from multisignature account', () => {
+			beforeEach('create multisignature account');
 
-				it.todo('should add transaction to transaction pool');
+			it.todo('should add transaction to transaction pool');
 
-				it.todo('should reject duplicated signature');
+			it.todo('should accept all signatures');
 
-				it.todo('should forge a block');
-			});
+			it.todo('should forge a block');
+		});
+	});
 
-			describe('during spend from multisignature account', () => {
-				beforeEach('create multisignature account');
+	describe('given signatures contains duplicate', () => {
+		describe('when multisignature account registration', () => {
+			beforeEach('credit new account');
 
-				it.todo('should add transaction to transaction pool');
+			it.todo('should add transaction to transaction pool');
 
-				it.todo('should reject duplicated signature');
+			it.todo('should reject duplicated signature');
 
-				it.todo('should forge a block');
-			});
+			it.todo('should forge a block');
+		});
+
+		describe('when spend from multisignature account', () => {
+			beforeEach('create multisignature account');
+
+			it.todo('should add transaction to transaction pool');
+
+			it.todo('should reject duplicated signature');
+
+			it.todo('should forge a block');
 		});
 	});
 });

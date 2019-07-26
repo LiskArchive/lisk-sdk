@@ -14,6 +14,7 @@
 
 'use strict';
 
+// This test should be unit test
 describe('blocks/verify', () => {
 	describe('when blockSignature property is not a hex string and verifySignature is called', () => {
 		it.todo('should fail');

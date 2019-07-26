@@ -15,21 +15,21 @@
 'use strict';
 
 describe('validateOwnChain', () => {
-	describe('forge 3 rounds (303 blocks) with version = 0', () => {
+	describe('given forge 3 rounds (303 blocks) with version = 0', () => {
 		it.todo('should have largest height of 303');
 
-		describe('increase block version = 1 and exceptions for height = 101', () => {
+		describe('when increase block version = 1 and exceptions for height = 101', () => {
 			it.todo('should not present any error during chain validation');
 
 			it.todo('should have a largest height of 101');
 
 			it.todo('should have remaining blocks with version = 0');
+		});
 
-			describe('forge 5 more blocks', () => {
-				it.todo('should have a largest height of 106');
+		describe('when forge 5 more blocks', () => {
+			it.todo('should have a largest height of 106');
 
-				it.todo('should have the last 5 blocks with version = 1');
-			});
+			it.todo('should have the last 5 blocks with version = 1');
 		});
 	});
 });

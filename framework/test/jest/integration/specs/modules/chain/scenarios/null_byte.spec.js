@@ -15,27 +15,15 @@
 'use strict';
 
 describe('exceptions for null byte transaction', () => {
-	describe('send funds to account', () => {
-		describe('details of the accounts', () => {
-			describe('when forging block with transaction with leading zero recipientId', () => {
-				describe('details of the accounts', () => {
-					it.todo('should deduct balance from the sender account');
-				});
+	describe('when forging block with transaction with leading zero recipientId', () => {
+		it.todo('should deduct balance from the sender account');
 
-				describe('transactions table', () => {
-					it.todo('should save transaction in the database');
-				});
+		it.todo('should save transaction in the database');
+	});
 
-				describe('after deleting block', () => {
-					describe('details of the account', () => {
-						it.todo('should update balance field of sender account');
-					});
+	describe('when after deleting the block', () => {
+		it.todo('should update balance field of sender account');
 
-					describe('transactions table', () => {
-						it.todo('should delete transaction from the database');
-					});
-				});
-			});
-		});
+		it.todo('should delete transaction from the database');
 	});
 });
