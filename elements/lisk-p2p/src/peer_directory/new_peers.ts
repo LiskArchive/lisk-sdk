@@ -23,6 +23,7 @@ const ELIGIBLE_DAYS_FOREVICTION = 30;
 export interface NewPeerConfig {
 	readonly newPeerListSize?: number;
 	readonly newPeerBucketSize?: number;
+	readonly secret: number;
 }
 interface NewPeerInfo {
 	readonly peerInfo: P2PPeerInfo;
@@ -33,6 +34,7 @@ export class NewPeers {
 	private readonly _newPeerMap: Map<number, Map<string, NewPeerInfo>>;
 	private readonly _newPeerListSize: number;
 	private readonly _newPeerBucketSize: number;
+	private readonly _secret: number;
 
 	public constructor(newPeerConfig: NewPeerConfig) {
 		this._newPeerBucketSize = newPeerConfig.newPeerBucketSize
@@ -41,6 +43,7 @@ export class NewPeers {
 		this._newPeerListSize = newPeerConfig.newPeerListSize
 			? newPeerConfig.newPeerListSize
 			: DEFAULT_NEW_PEER_LIST_SIZE;
+		this._secret = newPeerConfig.secret;
 		// Initialize the Map with all the buckets
 		this._newPeerMap = new Map();
 		[...Array(this._newPeerListSize).keys()]
@@ -54,6 +57,7 @@ export class NewPeers {
 		return {
 			newPeerBucketSize: this._newPeerBucketSize,
 			newPeerListSize: this._newPeerListSize,
+			secret: this._secret,
 		};
 	}
 
@@ -152,7 +156,7 @@ export class NewPeers {
 
 			const bucketId = getBucket(
 				peerInfo.ipAddress,
-				Math.random(),
+				this._secret,
 				this._newPeerListSize,
 			);
 			if (bucketId) {

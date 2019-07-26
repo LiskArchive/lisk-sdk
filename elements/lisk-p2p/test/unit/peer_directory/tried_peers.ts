@@ -18,13 +18,15 @@ import { initializePeerInfoList } from '../../utils/peers';
 import { constructPeerIdFromPeerInfo } from '../../../src/utils';
 
 describe.only('triedPeer', () => {
+	const triedPeerConfig = {
+		maxReconnectTries: 3,
+		triedPeerBucketSize: 32,
+		triedPeerListSize: 64,
+		secret: 58638728739254950123165830275813,
+	};
+
 	describe('#constructor', () => {
 		let triedPeersList: TriedPeers;
-		const triedPeerConfig = {
-			maxReconnectTries: 3,
-			triedPeerBucketSize: 32,
-			triedPeerListSize: 64,
-		};
 
 		beforeEach(async () => {
 			triedPeersList = new TriedPeers(triedPeerConfig);
@@ -44,12 +46,6 @@ describe.only('triedPeer', () => {
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			const triedPeerConfig = {
-				maxReconnectTries: 3,
-				triedPeerBucketSize: 32,
-				triedPeerListSize: 64,
-			};
-
 			triedPeersList = new TriedPeers(triedPeerConfig);
 			triedPeersList.addPeer(samplePeers[0]);
 		});
@@ -68,12 +64,6 @@ describe.only('triedPeer', () => {
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			const triedPeerConfig = {
-				maxReconnectTries: 3,
-				triedPeerBucketSize: 32,
-				triedPeerListSize: 64,
-			};
-
 			triedPeersList = new TriedPeers(triedPeerConfig);
 			triedPeersList.addPeer(samplePeers[0]);
 			triedPeersList.addPeer(samplePeers[1]);
@@ -90,16 +80,11 @@ describe.only('triedPeer', () => {
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			const triedPeerConfig = {
-				maxReconnectTries: 3,
-				triedPeerBucketSize: 32,
-				triedPeerListSize: 64,
-			};
-
 			triedPeersList = new TriedPeers(triedPeerConfig);
 			triedPeersList.addPeer(samplePeers[0]);
 			triedPeersList.addPeer(samplePeers[1]);
 		});
+
 		describe('when peer exists in the triedPeers peerMap', () => {
 			it('should get the peer from the incoming peerId', async () => {
 				expect(
@@ -124,16 +109,11 @@ describe.only('triedPeer', () => {
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			const triedPeerConfig = {
-				maxReconnectTries: 3,
-				triedPeerBucketSize: 32,
-				triedPeerListSize: 64,
-			};
-
 			triedPeersList = new TriedPeers(triedPeerConfig);
 			triedPeersList.addPeer(samplePeers[0]);
 			triedPeersList.addPeer(samplePeers[1]);
 		});
+
 		describe('when trying to update a peer that exist', () => {
 			it('should update the peer from the incoming peerInfo', async () => {
 				let updatedPeer = {
@@ -169,12 +149,6 @@ describe.only('triedPeer', () => {
 		const samplePeers = initializePeerInfoList();
 
 		beforeEach(async () => {
-			const triedPeerConfig = {
-				maxReconnectTries: 3,
-				triedPeerBucketSize: 32,
-				triedPeerListSize: 64,
-			};
-
 			triedPeersList = new TriedPeers(triedPeerConfig);
 			triedPeersList.addPeer(samplePeers[0]);
 			triedPeersList.addPeer(samplePeers[1]);
@@ -204,8 +178,8 @@ describe.only('triedPeer', () => {
 					maxReconnectTries: 1,
 					triedPeerBucketSize: 32,
 					triedPeerListSize: 64,
+					secret: 58638728739254950123165830275813,
 				};
-
 				triedPeersList = new TriedPeers(triedPeerConfig);
 				triedPeersList.addPeer(samplePeers[0]);
 			});
@@ -225,8 +199,8 @@ describe.only('triedPeer', () => {
 					maxReconnectTries: 2,
 					triedPeerBucketSize: 32,
 					triedPeerListSize: 64,
+					secret: 58638728739254950123165830275813,
 				};
-
 				triedPeersList = new TriedPeers(triedPeerConfig);
 				triedPeersList.addPeer(samplePeers[0]);
 			});

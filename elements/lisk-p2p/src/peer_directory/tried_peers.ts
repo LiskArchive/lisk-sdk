@@ -23,6 +23,7 @@ export interface TriedPeerConfig {
 	readonly triedPeerListSize?: number;
 	readonly triedPeerBucketSize?: number;
 	readonly maxReconnectTries?: number;
+	readonly secret: number;
 }
 
 interface TriedPeerInfo {
@@ -37,6 +38,7 @@ export class TriedPeers {
 	private readonly _triedPeerListSize: number;
 	private readonly _triedPeerBucketSize: number;
 	private readonly _maxReconnectTries: number;
+	private readonly _secret: number;
 
 	public constructor(triedPeerConfig: TriedPeerConfig) {
 		this._triedPeerListSize = triedPeerConfig.triedPeerListSize
@@ -48,6 +50,7 @@ export class TriedPeers {
 		this._maxReconnectTries = triedPeerConfig.maxReconnectTries
 			? triedPeerConfig.maxReconnectTries
 			: DEFAULT_MAX_RECONNECT_TRIES;
+		this._secret = triedPeerConfig.secret;
 		// Initialize the Map with all the buckets
 		this._triedPeerMap = new Map();
 		[...Array(this._triedPeerListSize).keys()]
@@ -62,6 +65,7 @@ export class TriedPeers {
 			maxReconnectTries: this._maxReconnectTries,
 			triedPeerBucketSize: this._triedPeerBucketSize,
 			triedPeerListSize: this._triedPeerListSize,
+			secret: this._secret,
 		};
 	}
 
@@ -163,7 +167,7 @@ export class TriedPeers {
 			// TODO: Second argument of getBucket function should come from a field in peerInfo of 32 entropy
 			const bucketId = getBucket(
 				peerInfo.ipAddress,
-				peerInfo.secret as number,
+				this._secret,
 				this._triedPeerListSize,
 			);
 			if (bucketId) {
