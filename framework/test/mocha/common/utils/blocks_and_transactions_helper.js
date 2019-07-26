@@ -229,6 +229,8 @@ class BlocksTransactionsHelper {
 			transactions,
 			maxPayloadLength: constants.MAX_PAYLOAD_LENGTH,
 			exceptions,
+			maxHeightPreviouslyForged: 0,
+			prevotedConfirmedUptoHeight: 0,
 		});
 	}
 
