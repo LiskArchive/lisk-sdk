@@ -28,8 +28,6 @@ describe('integration test (blocks) - receiveBlockFromNetwork()', () => {
 		});
 
 		describe('when a block causes a fork 1', () => {
-			beforeEach('forge 300 blocks');
-
 			describe('when received block timestamp is greater than previous block', () => {
 				it.todo('should reject received block');
 				it.todo('should generate valid fork stats');

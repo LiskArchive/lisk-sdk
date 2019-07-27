@@ -16,8 +16,6 @@
 
 describe('second signature transactions from pool and peer', () => {
 	describe('given funds inside account and the signature transaction in the pool', () => {
-		beforeEach('send funds to signature account');
-
 		describe('when receiving block with same transaction', () => {
 			it.todo('should update confirmed columns related to signature');
 		});

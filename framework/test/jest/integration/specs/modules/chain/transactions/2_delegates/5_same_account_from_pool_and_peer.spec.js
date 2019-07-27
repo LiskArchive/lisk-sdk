@@ -16,8 +16,6 @@
 
 describe('delegate', () => {
 	describe('with funds inside account', () => {
-		beforeEach('send funds to delegate account');
-
 		describe('with delegate transaction in unconfirmed state', () => {
 			describe('when receiving block with same transaction', () => {
 				describe('confirmed state', () => {

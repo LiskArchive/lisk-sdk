@@ -17,8 +17,6 @@
 describe('duplicate_signatures', () => {
 	describe('given signatures are unique', () => {
 		describe('ehwn multisignature account registration', () => {
-			beforeEach('credit new account');
-
 			it.todo('should add transaction to transaction pool');
 
 			it.todo('should accept all signatures');
@@ -27,8 +25,6 @@ describe('duplicate_signatures', () => {
 		});
 
 		describe('when spend from multisignature account', () => {
-			beforeEach('create multisignature account');
-
 			it.todo('should add transaction to transaction pool');
 
 			it.todo('should accept all signatures');
@@ -39,8 +35,6 @@ describe('duplicate_signatures', () => {
 
 	describe('given signatures contains duplicate', () => {
 		describe('when multisignature account registration', () => {
-			beforeEach('credit new account');
-
 			it.todo('should add transaction to transaction pool');
 
 			it.todo('should reject duplicated signature');
@@ -49,8 +43,6 @@ describe('duplicate_signatures', () => {
 		});
 
 		describe('when spend from multisignature account', () => {
-			beforeEach('create multisignature account');
-
 			it.todo('should add transaction to transaction pool');
 
 			it.todo('should reject duplicated signature');

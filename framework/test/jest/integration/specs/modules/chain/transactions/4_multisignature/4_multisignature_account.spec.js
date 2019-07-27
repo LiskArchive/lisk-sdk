@@ -16,8 +16,6 @@
 
 describe('integration test (type 4) - effect of multisignature registration on memory tables', () => {
 	describe('forge block with multisignature transaction', () => {
-		beforeEach('forge block with multisignature transaction');
-
 		describe('check sender db rows', () => {
 			it.todo('should include rows in mem_accounts2multisignatures');
 
@@ -32,8 +30,6 @@ describe('integration test (type 4) - effect of multisignature registration on m
 			});
 
 			describe('after deleting block', () => {
-				beforeEach('delete last block');
-
 				describe('sender db rows', () => {
 					it.todo('should have no rows in mem_accounts2multisignatures');
 

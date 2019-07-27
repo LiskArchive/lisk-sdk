@@ -21,8 +21,6 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 		});
 
 		describe('single transaction scenarios: create transaction, forge, delete block, forge again', () => {
-			beforeEach('create account with funds');
-
 			describe('(type 0) transfer funds', () => {
 				it.todo(
 					'should validate account data from sender after account creation'
