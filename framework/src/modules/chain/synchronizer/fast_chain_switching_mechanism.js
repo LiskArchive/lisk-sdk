@@ -46,7 +46,7 @@ class FastChainSwitchingMechanism {
 		// 3. Step: Check whether B justifies fast chain switching mechanism
 		const TWO_ROUNDS = this.constants.activeDelegates * 2;
 		if (Math.abs(receivedBlock.height - lastBlock.height) > TWO_ROUNDS) {
-			return null;
+			return false;
 		}
 
 		const blockRound = this.slots.calcRound(receivedBlock.height);
