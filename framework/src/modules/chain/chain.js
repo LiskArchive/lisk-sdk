@@ -48,7 +48,11 @@ const {
 const { Loader } = require('./loader');
 const { Forger } = require('./forger');
 const { Transport } = require('./transport');
-const { Synchronizer } = require('./synchronizer');
+const {
+	Synchronizer,
+	BlockSynchronizationMechanism,
+	FastChainSwitchingMechanism,
+} = require('./synchronizer');
 
 const syncInterval = 10000;
 const forgeInterval = 1000;
@@ -390,19 +394,35 @@ module.exports = class Chain {
 			totalAmount: this.options.constants.TOTAL_AMOUNT,
 			blockSlotWindow: this.options.constants.BLOCK_SLOT_WINDOW,
 		});
-		this.synchronizer = new Synchronizer({
+
+		const blockSyncMechanism = new BlockSynchronizationMechanism({
+			storage: this.storage,
+			logger: this.logger,
+			bft: this.bft,
+			slots: this.slots,
+			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+		});
+
+		const fastChainSwitchMechanism = new FastChainSwitchingMechanism({
 			storage: this.storage,
 			logger: this.logger,
 			slots: this.slots,
-			dpos: {}, // TODO: Pass the instance of DPOS module\
-			bft: this.bft,
+			dpos: {},
+			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+		});
+
+		this.synchronizer = new Synchronizer({
+			storage: this.storage,
+			logger: this.logger,
 			blockReward: this.blocks.blockReward,
 			exceptions: this.options.exceptions,
-			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			maxTransactionsPerBlock: this.options.constants
 				.MAX_TRANSACTIONS_PER_BLOCK,
 			maxPayloadLength: this.options.constants.MAX_PAYLOAD_LENGTH,
 		});
+		this.synchronizer.register(blockSyncMechanism);
+		this.synchronizer.register(fastChainSwitchMechanism);
+
 		this.scope.modules.blocks = this.blocks;
 		this.transactionPool = new TransactionPool({
 			logger: this.logger,

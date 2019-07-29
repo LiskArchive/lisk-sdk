@@ -1,5 +1,20 @@
-const BlockSynchronizationMechanism = require('./block_synchronization_mechanism');
-const FastChainSwitchingMechanism = require('./fast_chain_switching_mechanism');
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
+const assert = require('assert');
 
 const {
 	verifySignature,
@@ -13,38 +28,45 @@ class Synchronizer {
 	constructor({
 		storage,
 		logger,
-		slots,
-		dpos,
-		bft,
 		blockReward,
 		exceptions,
-		activeDelegates,
 		maxTransactionsPerBlock,
 		maxPayloadLength,
 	}) {
 		this.storage = storage;
 		this.logger = logger;
-		this.dpos = dpos;
-		this.bft = bft;
-		this.slots = slots;
 		this.blockReward = blockReward;
 		this.exceptions = exceptions;
 
 		this.constants = {
-			activeDelegates,
 			maxPayloadLength,
 			maxTransactionsPerBlock,
 		};
 
-		this.activeMechanism = null;
-		this.blockSynchronizationMechanism = new BlockSynchronizationMechanism({
-			storage,
-			logger,
-		});
-		this.fastChainSwitchingMechanism = new FastChainSwitchingMechanism({
-			storage,
-			logger,
-		});
+		this.mechanisms = [];
+	}
+
+	/**
+	 * Register a sync mechanism with synchronizer
+	 * It must have "isValidFor" and "run" interface to call upon
+	 *
+	 * "isValidFor" must return true/false to match the sync mechanism
+	 * "isValidFor" can throw error to abort the synchronization
+	 *
+	 * "run" must initiate the synchronization
+	 * "run" must keep track of its state internally
+	 *
+	 * @param {Object} mechanism - Mechanism to register
+	 */
+	register(mechanism) {
+		assert(
+			mechanism.isValidFor,
+			'Sync mechanism must have "isValidFor" interface'
+		);
+		assert(mechanism.run, 'Sync mechanism must have "run" interface');
+		assert(mechanism.isActive, 'Sync mechanism must have "isActive" interface');
+
+		this.mechanisms.push(mechanism);
 	}
 
 	/**
@@ -53,21 +75,36 @@ class Synchronizer {
 	 * @return {*}
 	 */
 	async run(receivedBlock) {
-		if (this.activeMechanism && this.activeMechanism.isActive) {
-			throw new Error('Blocks Sychronizer is already running');
+		if (this.activeMechanism) {
+			throw new Error(
+				`Blocks Sychronizer with ${
+					this.activeMechanism.constructor.name
+				} is already running`
+			);
+		}
+
+		const lastBlock = await this.storage.entities.Block.getLastBlock();
+
+		// Moving to a Different Chain
+		// 1. Step: Validate new tip of chain
+		const result = this._verifyBlockBeforeSync(lastBlock, receivedBlock);
+		if (!result.verified) {
+			throw Error(
+				`Block verification for chain synchronization failed with errors: ${result.errors.join()}`
+			);
 		}
 
 		// Choose the right mechanism to sync
-		this.activeMechanism = this._determineSyncMechanism(receivedBlock);
+		const validMechanism = await this._determineSyncMechanism(receivedBlock);
 
-		if (!this.activeMechanism) {
+		if (!validMechanism) {
 			return this.logger.info(
 				"Can't determine sync mechanism at the moment for block",
 				receivedBlock
 			);
 		}
 
-		return this.activeMechanism.run(receivedBlock);
+		return validMechanism.run(receivedBlock);
 	}
 
 	/**
@@ -79,63 +116,28 @@ class Synchronizer {
 	}
 
 	/**
+	 * Return active mechanism
+	 * @return {Object}
+	 */
+	get activeMechanism() {
+		return this.mechanisms.find(mechanism => mechanism.isActive);
+	}
+
+	/**
 	 * Determine and return the syncing mechanism strategy to follow
 	 * @private
 	 */
 	// eslint-disable-next-line class-methods-use-this, no-unused-vars
 	async _determineSyncMechanism(receivedBlock) {
-		// Get last block from the persistence layer
-		const lastBlock = this._lastBlock();
-
-		// Moving to a Different Chain
-		// 1. Step: Validate new tip of chain
-		const result = this._verifyBlockBeforeChainSync(lastBlock, receivedBlock);
-		if (!result.verified) {
-			throw Error(
-				`Block verification for chain synchronization failed with errors: ${result.errors.join()}`
+		try {
+			// Loop through to find first mechanism which return true for isValidFor(receivedBlock)
+			return await this.mechanisms.find(async mechanism =>
+				mechanism.isValidFor(receivedBlock)
 			);
-		}
-
-		// 2. Step: Check whether current chain justifies triggering the block synchronization mechanism
-		const finalizedBlock = await this.storage.entities.Block.getOne({
-			height_eq: this.bft.finalizedHeight,
-		});
-		const finalizedBlockSlot = this.slots.getSlotNumber(
-			finalizedBlock.timestamp
-		);
-		const currentBlockSlot = this.slots.getSlotNumber();
-		const THREE_ROUNDS = this.constants.activeDelegates * 3;
-
-		if (finalizedBlockSlot < currentBlockSlot - THREE_ROUNDS) {
-			return this.blockSynchronizationMechanism;
-		}
-
-		// 3. Step: Check whether B justifies fast chain switching mechanism
-		const TWO_ROUNDS = this.constants.activeDelegates * 2;
-		if (Math.abs(receivedBlock.height - lastBlock.height) > TWO_ROUNDS) {
+		} catch (error) {
+			this.logger.error('Error during determining valid sync mechanism', error);
 			return null;
 		}
-
-		const blockRound = this.slots.calcRound(receivedBlock.height);
-		const delegateList = await this.dpos.getRoundDelegates(blockRound);
-		if (delegateList.includes(receivedBlock.generatorPublicKey)) {
-			return this.fastChainSwitchingMechanism;
-		}
-
-		return null;
-	}
-
-	/**
-	 * Return the last block from storage
-	 *
-	 * @return {Promise<*>}
-	 * @private
-	 */
-	async _lastBlock() {
-		return this.storage.entities.Block.getOne(
-			{},
-			{ limit: 1, sort: 'height:desc' }
-		);
 	}
 
 	/**
@@ -147,7 +149,7 @@ class Synchronizer {
 	 * @param receivedBlock
 	 * @private
 	 */
-	_verifyBlockBeforeChainSync(lastBlock, receivedBlock) {
+	_verifyBlockBeforeSync(lastBlock, receivedBlock) {
 		let result = { verified: true, errors: [] };
 
 		result = verifySignature(receivedBlock, result);
