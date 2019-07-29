@@ -707,12 +707,14 @@ export class P2P extends EventEmitter {
 		}
 		this._populatorIntervalId = setInterval(() => {
 			this._peerPool.triggerNewConnections(
-				[...this._newPeers.values(), ...this._triedPeers.values()],
+				[...this._newPeers.values()],
+				[...this._triedPeers.values()],
 				this._sanitizedPeerLists.fixedPeers || [],
 			);
 		}, this._populatorInterval);
 		this._peerPool.triggerNewConnections(
-			[...this._newPeers.values(), ...this._triedPeers.values()],
+			[...this._newPeers.values()],
+			[...this._triedPeers.values()],
 			this._sanitizedPeerLists.fixedPeers || [],
 		);
 	}
