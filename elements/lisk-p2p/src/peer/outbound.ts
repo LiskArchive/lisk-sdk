@@ -117,7 +117,6 @@ export class OutboundPeer extends Peer {
 			multiplex: false,
 			autoConnect: false,
 			autoReconnect: false,
-			pingTimeoutDisabled: true,
 			maxPayload: this._peerConfig.wsMaxPayload,
 		};
 
@@ -253,7 +252,6 @@ export const connectAndRequest = async (
 				multiplex: false,
 				autoConnect: false,
 				autoReconnect: false,
-				pingTimeoutDisabled: true,
 				maxPayload: peerConfig ? peerConfig.wsMaxPayload : undefined,
 			};
 
