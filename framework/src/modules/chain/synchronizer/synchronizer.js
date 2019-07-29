@@ -138,15 +138,16 @@ class Synchronizer {
 	 */
 	// eslint-disable-next-line class-methods-use-this, no-unused-vars
 	async _determineSyncMechanism(receivedBlock) {
-		try {
-			// Loop through to find first mechanism which return true for isValidFor(receivedBlock)
-			return await this.mechanisms.find(async mechanism =>
-				mechanism.isValidFor(receivedBlock)
-			);
-		} catch (error) {
-			this.logger.error('Error during determining valid sync mechanism', error);
-			return null;
+		// Loop through to find first mechanism which return true for isValidFor(receivedBlock)
+
+		// eslint-disable-next-line no-restricted-syntax
+		for await (const mechanism of this.mechanisms) {
+			if (await mechanism.isValidFor(receivedBlock)) {
+				return mechanism;
+			}
 		}
+
+		return undefined;
 	}
 
 	/**

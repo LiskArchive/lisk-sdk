@@ -32,14 +32,18 @@ const maxTransactionsPerBlock = 25;
 const storageMock = {
 	entities: {
 		Block: {
-			getOne: jest.fn(),
+			getLastBlock: jest.fn(),
 		},
 	},
 };
 
+const loggerMock = {
+	info: jest.fn(),
+};
+
 const syncParameters = {
 	storage: storageMock,
-	logger: {},
+	logger: loggerMock,
 	exceptions: {},
 	blockReward: {},
 	maxTransactionsPerBlock,
@@ -87,7 +91,7 @@ describe('synchronizer', () => {
 					maxTransactionsPerBlock,
 					maxPayloadLength,
 				});
-				expect(sync.mechanisms).toEqual([]);
+				expect(sync.mechanisms).toEqual([sync1, sync2]);
 			});
 		});
 
@@ -125,16 +129,9 @@ describe('synchronizer', () => {
 					run: async () => {},
 					isActive: false,
 				};
-				const syncMechanism2 = {
-					isValidFor: async () => {},
-					run: async () => {},
-					isActive: false,
-				};
-
 				sync.register(syncMechanism1);
-				sync.register(syncMechanism2);
 
-				expect(sync.mechanisms).toEqual([syncMechanism1, syncMechanism2]);
+				expect(sync.mechanisms).toEqual([sync1, sync2, syncMechanism1]);
 			});
 		});
 
@@ -178,11 +175,13 @@ describe('synchronizer', () => {
 		describe('async _determineSyncMechanism()', () => {
 			it('should return sync1 if sync1.isValidFor return true', async () => {
 				jest.spyOn(sync1, 'isValidFor').mockReturnValue(true);
+				jest.spyOn(sync2, 'isValidFor').mockReturnValue(false);
 
 				expect(await sync._determineSyncMechanism()).toBe(sync1);
 			});
 
 			it('should return sync2 if sync2.isValidFor return true', async () => {
+				jest.spyOn(sync1, 'isValidFor').mockReturnValue(false);
 				jest.spyOn(sync2, 'isValidFor').mockReturnValue(true);
 
 				expect(await sync._determineSyncMechanism()).toBe(sync2);
@@ -278,6 +277,99 @@ describe('synchronizer', () => {
 				const result = sync._verifyBlockBeforeSync(lastBlock, receivedBlock);
 
 				expect(result).toEqual({ verified: true, errors: [] });
+			});
+		});
+
+		describe('async run()', () => {
+			let receivedBlock;
+			let lastBlock;
+
+			beforeEach(async () => {
+				receivedBlock = blockFixture();
+
+				storageMock.entities.Block.getLastBlock.mockReturnValue(lastBlock);
+				jest
+					.spyOn(sync, '_verifyBlockBeforeSync')
+					.mockReturnValue({ verified: true });
+				jest.spyOn(sync, '_determineSyncMechanism').mockReturnValue(undefined);
+			});
+
+			it('should reject with error if there is already an active mechanism', async () => {
+				// Make the sync1 as active
+				sync1.isActive = true;
+
+				await expect(sync.run()).rejects.toThrow(
+					'Blocks Sychronizer with Object is already running'
+				);
+			});
+
+			it('should get the last block from database', async () => {
+				await sync.run(receivedBlock);
+
+				expect(storageMock.entities.Block.getLastBlock).toHaveBeenCalledTimes(
+					1
+				);
+			});
+
+			it('should verify the block before sync', async () => {
+				await sync.run(receivedBlock);
+
+				expect(sync._verifyBlockBeforeSync).toHaveBeenCalledTimes(1);
+				expect(sync._verifyBlockBeforeSync).toHaveBeenCalledWith(
+					lastBlock,
+					receivedBlock
+				);
+			});
+
+			it('should reject with error if block verification failed', async () => {
+				const validationError = 'Block verifyError';
+				sync._verifyBlockBeforeSync.mockReturnValue({
+					verified: false,
+					errors: [validationError],
+				});
+
+				await expect(sync.run()).rejects.toThrow(
+					`Block verification for chain synchronization failed with errors: ${validationError}`
+				);
+			});
+
+			it('should determine the sync mechanism for received block', async () => {
+				await sync.run(receivedBlock);
+
+				expect(sync._determineSyncMechanism).toHaveBeenCalledTimes(1);
+				expect(sync._determineSyncMechanism).toHaveBeenCalledWith(
+					receivedBlock
+				);
+			});
+
+			it('should log message if unable to determine sync mechanism', async () => {
+				await sync.run(receivedBlock);
+
+				expect(loggerMock.info).toHaveBeenCalledTimes(1);
+				expect(loggerMock.info).toHaveBeenCalledWith(
+					"Can't determine sync mechanism at the moment for block",
+					receivedBlock
+				);
+			});
+
+			it('should run the determined mechanism', async () => {
+				const syncMechanism = { run: jest.fn() };
+				sync._determineSyncMechanism.mockReturnValue(syncMechanism);
+
+				await sync.run(receivedBlock);
+
+				expect(syncMechanism.run).toHaveBeenCalledTimes(1);
+				expect(syncMechanism.run).toHaveBeenCalledWith(receivedBlock);
+			});
+
+			it('should return the run function from determined mechanism', async () => {
+				const run = jest.fn().mockReturnValue('sync run return');
+				const syncMechanism = { run };
+				sync._determineSyncMechanism.mockReturnValue(syncMechanism);
+
+				const result = await sync.run(receivedBlock);
+
+				expect(result).toBe('sync run return');
 			});
 		});
 	});
