@@ -400,6 +400,8 @@ module.exports = class Chain {
 			logger: this.logger,
 			bft: this.bft,
 			slots: this.slots,
+			channel: this.channel,
+			modules: { blocks: this.blocks },
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 		});
 
@@ -603,6 +605,7 @@ module.exports = class Chain {
 			if (!this.loader.syncing()) {
 				this.channel.invoke('app:updateApplicationState', {
 					height: block.height,
+					lastBlockId: block.id,
 					prevotedConfirmedUptoHeight: block.prevotedConfirmedUptoHeight,
 				});
 			}

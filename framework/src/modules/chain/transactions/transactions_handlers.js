@@ -168,7 +168,7 @@ const applyTransactions = (storage, exceptions) => async (transactions, tx) => {
 				);
 			}
 			if (transactionResponse.status === TransactionStatus.OK) {
-				votes.apply(stateStore, transaction);
+				votes.apply(stateStore, transaction, exceptions);
 				stateStore.transaction.add(transaction);
 			}
 

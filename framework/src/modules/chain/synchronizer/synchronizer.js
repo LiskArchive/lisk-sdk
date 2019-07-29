@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
  * Copyright © 2019 Lisk Foundation
+=======
+ * Copyright © 2018 Lisk Foundation
+>>>>>>> feature/introduce_bft_consensus
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
