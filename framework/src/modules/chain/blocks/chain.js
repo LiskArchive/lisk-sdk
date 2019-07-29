@@ -160,28 +160,29 @@ class BlocksChain {
 		if (lastBlock.height === 1) {
 			throw new Error('Cannot delete genesis block');
 		}
-		return this.storage.entities.Block.begin('Chain:deleteBlockAndStoreInTemp', async tx => {
-			const previousBlock = await popLastBlock(
-				this.storage,
-				this.interfaceAdapters,
-				this.genesisBlock,
-				this.roundsModule,
-				this.slots,
-				lastBlock,
-				this.exceptions,
-				tx
-			);
-			const parsedDeletedBlock = parseBlockToJson(lastBlock);
-			const blockTempEntry = {
-				id: parsedDeletedBlock.id,
-				height: parsedDeletedBlock.height,
-				fullBlock: parsedDeletedBlock,
-			};
-			console.log('deleteLastBlockAndStoreInTemp');
-			console.log(blockTempEntry);
-			await this.storage.entities.BlockTemp.create(blockTempEntry, {}, tx);
-			return previousBlock;
-		});
+		return this.storage.entities.Block.begin(
+			'Chain:deleteBlockAndStoreInTemp',
+			async tx => {
+				const previousBlock = await popLastBlock(
+					this.storage,
+					this.interfaceAdapters,
+					this.genesisBlock,
+					this.roundsModule,
+					this.slots,
+					lastBlock,
+					this.exceptions,
+					tx
+				);
+				const parsedDeletedBlock = parseBlockToJson(lastBlock);
+				const blockTempEntry = {
+					id: parsedDeletedBlock.id,
+					height: parsedDeletedBlock.height,
+					fullBlock: parsedDeletedBlock,
+				};
+				await this.storage.entities.BlockTemp.create(blockTempEntry, {}, tx);
+				return previousBlock;
+			}
+		);
 	}
 }
 
@@ -228,11 +229,12 @@ const parseBlockToJson = block => {
 		return transaction;
 	});
 
-	parsedBlock.transactions = parsedBlock.transactions.map(transaction => transaction.toJSON());
+	parsedBlock.transactions = parsedBlock.transactions.map(transaction =>
+		transaction.toJSON()
+	);
 
 	return parsedBlock;
 };
-
 
 /**
  * Save block with transactions to database.
