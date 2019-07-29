@@ -1,9 +1,5 @@
 /*
-<<<<<<< HEAD
  * Copyright © 2019 Lisk Foundation
-=======
- * Copyright © 2018 Lisk Foundation
->>>>>>> feature/introduce_bft_consensus
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -18,6 +14,7 @@
 
 'use strict';
 
+const util = require('util');
 const assert = require('assert');
 
 const {
@@ -64,11 +61,19 @@ class Synchronizer {
 	 */
 	register(mechanism) {
 		assert(
-			mechanism.isValidFor,
-			'Sync mechanism must have "isValidFor" interface'
+			util.types.isAsyncFunction(mechanism.isValidFor),
+			'Sync mechanism must have "isValidFor" async interface'
 		);
-		assert(mechanism.run, 'Sync mechanism must have "run" interface');
-		assert(mechanism.isActive, 'Sync mechanism must have "isActive" interface');
+		assert(
+			util.types.isAsyncFunction(mechanism.run),
+			'Sync mechanism must have "run" async interface'
+		);
+
+		// Check the property isActive, it can be own property or a getter
+		assert(
+			mechanism.isActive !== undefined,
+			'Sync mechanism must have "isActive" interface'
+		);
 
 		this.mechanisms.push(mechanism);
 	}

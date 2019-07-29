@@ -56,4 +56,4 @@ class FastChainSwitchingMechanism {
 	}
 }
 
-module.exports = FastChainSwitchingMechanism;
+module.exports = { FastChainSwitchingMechanism };

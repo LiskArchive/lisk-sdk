@@ -174,4 +174,4 @@ class BlockSynchronizationMechanism {
 	}
 }
 
-module.exports = BlockSynchronizationMechanism;
+module.exports = { BlockSynchronizationMechanism };
