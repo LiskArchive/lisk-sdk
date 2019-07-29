@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -174,7 +174,6 @@ describe('Application State', () => {
 		describe('when correct parameters are passed', () => {
 			let newState;
 			let result;
-			let spies;
 			let updatedState;
 
 			beforeEach(async () => {
@@ -185,18 +184,10 @@ describe('Application State', () => {
 					height: '10',
 				};
 				applicationState.channel = channel;
-				spies = {
-					get: jest.spyOn(applicationState, 'state', 'get'),
-				};
 
 				// Act
 				result = await applicationState.update(newState);
 				updatedState = applicationState.state;
-			});
-
-			it('should call get four times', async () => {
-				// Assert
-				expect(spies.get).toHaveBeenCalledTimes(4);
 			});
 
 			it('should update broadhash', async () => {

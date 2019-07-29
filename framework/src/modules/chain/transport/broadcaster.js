@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -257,7 +257,7 @@ class Broadcaster {
 		}
 		try {
 			await this.filterQueue();
-			const broadcasts = this.queue.splice(0, this.broadcasts.releaseLimit);
+			const broadcasts = this.queue.splice(0, this.config.releaseLimit);
 			const squashedBroadcasts = this.squashQueue(broadcasts);
 
 			await Promise.all(

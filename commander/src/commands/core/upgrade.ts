@@ -1,6 +1,6 @@
 /*
  * LiskHQ/lisk-commander
- * Copyright © 2017–2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -64,7 +64,7 @@ export default class UpgradeCommand extends BaseCommand {
 	static examples = [
 		'core:upgrade lisk-mainnet',
 		'core:upgrade --lisk-version=2.0.0 lisk-mainnet',
-		'core:upgrade --release-url=https://lisk-releases.ams3.digitaloceanspaces.com/lisk-core/lisk-1.6.0-rc.4-Linux-x86_64.tar.gz lisk-mainnet',
+		'core:upgrade --release-url=https://downloads.lisk.io/lisk/mainnet/2.1.0/lisk-2.1.0-Linux-x86_64.tar.gz lisk-mainnet',
 	];
 
 	static flags = {
@@ -120,12 +120,12 @@ export default class UpgradeCommand extends BaseCommand {
 			{
 				title: 'Validate Version Input',
 				task: async () => {
-					await validateVersion(network, upgradeVersion);
 					if (semver.lte(upgradeVersion, currentVersion)) {
 						throw new Error(
 							`Upgrade version:${upgradeVersion} should be greater than current version: ${currentVersion}`,
 						);
 					}
+					await validateVersion(releaseUrl, upgradeVersion);
 				},
 			},
 			{
@@ -156,8 +156,8 @@ export default class UpgradeCommand extends BaseCommand {
 						},
 						{
 							title: `Backup Lisk Core: ${currentVersion} installed as ${name}`,
-							task: async () => {
-								await backupLisk(installationPath);
+							task: () => {
+								backupLisk(installationPath, name);
 							},
 						},
 						{

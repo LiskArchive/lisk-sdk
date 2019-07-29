@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -13,6 +13,14 @@
  *
  */
 import { addTransactionFields } from './add_transaction_fields';
-import { TestTransaction } from './test_transaction_class';
+import {
+	TestTransaction,
+	TestTransactionBasicImpl,
+} from './test_transaction_class';
 import { MockStateStore } from './state_store';
-export { addTransactionFields, MockStateStore, TestTransaction };
+export {
+	addTransactionFields,
+	MockStateStore,
+	TestTransaction,
+	TestTransactionBasicImpl,
+};
