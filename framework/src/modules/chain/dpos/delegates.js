@@ -12,7 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+const EventEmitter = require('events');
 const { hash } = require('@liskhq/lisk-cryptography');
+// Will be fired once a round is finished
+const EVENT_ROUND_FINISHED = 'EVENT_ROUND_FINISHED';
 
 const shuffleDelegateListForRound = (round, list) => {
 	const seedSource = round.toString();
@@ -32,8 +35,9 @@ const shuffleDelegateListForRound = (round, list) => {
 	return delegateList;
 };
 
-class Delegates {
+class Delegates extends EventEmitter {
 	constructor({ storage, activeDelegates, exceptions }) {
+		super();
 		this.delegateListCache = {};
 		this.storage = storage;
 		this.activeDelegates = activeDelegates;
@@ -81,9 +85,16 @@ class Delegates {
 
 		return delegatePublicKeys;
 	}
+
+	async deleteDelegateListUntilRound(round) {
+		await this.storage.entities.RoundDelegates.delete({
+			round_lt: round,
+		});
+	}
 }
 
 module.exports = {
 	Delegates,
+	EVENT_ROUND_FINISHED,
 	shuffleDelegateListForRound,
 };

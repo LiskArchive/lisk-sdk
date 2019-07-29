@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -27,6 +27,7 @@ const {
 	Block,
 	Round,
 	Transaction,
+	RoundDelegates,
 	ChainMeta,
 } = require('../../../src/modules/chain/components/storage/entities');
 
@@ -103,6 +104,7 @@ class StorageSandbox extends Storage {
 		this.registerEntity('Account', Account);
 		this.registerEntity('Block', Block);
 		this.registerEntity('Transaction', Transaction);
+		this.registerEntity('RoundDelegates', RoundDelegates);
 
 		// Custom entitties
 		this.registerEntity('Migration', Migration);

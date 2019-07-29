@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -63,7 +63,7 @@ describe('system test - round store', () => {
 
 	describe('cache', () => {
 		it('should throw ', async () => {
-			expect(roundStore.cache()).to.eventually.throw(
+			return expect(roundStore.cache()).to.eventually.rejectedWith(
 				'cache cannot be called for round'
 			);
 		});

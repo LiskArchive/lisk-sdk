@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -257,16 +257,7 @@ NodeController.getPooledTransactions = async function(context, next) {
 			filters: _.clone(filters),
 		});
 
-		const transactions = _.map(_.cloneDeep(data.transactions), transaction => {
-			transaction.senderId = transaction.senderId || '';
-			transaction.recipientId = transaction.recipientId || '';
-			transaction.recipientPublicKey = transaction.recipientPublicKey || '';
-
-			transaction.amount = transaction.amount.toString();
-			transaction.fee = transaction.fee.toString();
-
-			return transaction;
-		});
+		const transactions = data.transactions.map(_normalizeTransactionOutput);
 
 		return next(null, {
 			data: transactions,
@@ -312,7 +303,7 @@ async function _getForgingStatus(publicKey) {
  * @private
  */
 async function _getNetworkHeight() {
-	const peers = await library.channel.invoke('network:getPeers', {
+	const peers = await library.channel.invoke('network:getConnectedPeers', {
 		limit: 100,
 	});
 	if (!peers || !peers.length) {
@@ -383,6 +374,29 @@ async function _getConfirmedTransactionCount() {
 		}
 	}
 	return confirmed;
+}
+
+/**
+ * Parse transaction instance to raw data
+ *
+ * @returns Object
+ * @private
+ */
+function _normalizeTransactionOutput(transaction) {
+	return {
+		id: transaction.id,
+		type: transaction.type,
+		amount: transaction.amount.toString(),
+		fee: transaction.fee.toString(),
+		timestamp: transaction.timestamp,
+		senderPublicKey: transaction.senderPublicKey,
+		senderId: transaction.senderId || '',
+		signature: transaction.signature,
+		signatures: transaction.signatures,
+		recipientPublicKey: transaction.recipientPublicKey || '',
+		recipientId: transaction.recipientId || '',
+		asset: transaction.asset,
+	};
 }
 
 module.exports = NodeController;

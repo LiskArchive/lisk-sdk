@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -42,7 +42,6 @@ describe('Broadcaster', () => {
 			releaseLimit: 10,
 			parallelLimit: 10,
 			relayLimit: 10,
-			broadcastLimit: 10,
 		};
 
 		loggerStub = {
@@ -471,7 +470,9 @@ describe('Broadcaster', () => {
 				.rejects(new Error('failed to broadcast'));
 			broadcaster.filterQueue = filterQueueStub;
 			broadcaster.enqueue(params, options);
-			expect(broadcaster.releaseQueue()).rejectedWith('failed to broadcast');
+			return expect(broadcaster.releaseQueue()).to.eventually.be.rejectedWith(
+				'failed to broadcast'
+			);
 		});
 	});
 });

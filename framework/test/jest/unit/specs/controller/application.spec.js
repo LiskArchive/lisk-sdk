@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -14,39 +14,41 @@
 
 'use strict';
 
-const { DappTransaction } = require('@liskhq/lisk-transactions');
+const {
+	BaseTransaction: Base,
+	DappTransaction,
+} = require('@liskhq/lisk-transactions');
 
 const _ = require('lodash');
+const { validator: liskValidator } = require('@liskhq/lisk-validator');
 const Application = require('../../../../../src/controller/application');
 const validator = require('../../../../../src/controller/validator');
 const {
+	SchemaValidationError,
 	genesisBlockSchema,
 	constantsSchema,
 } = require('../../../../../src/controller/schema');
-
-jest.mock('../../../../../src/components/logger');
 
 const networkConfig = require('../../../../fixtures/config/devnet/config');
 const genesisBlock = require('../../../../fixtures/config/devnet/genesis_block');
 
 const config = {
 	...networkConfig,
-	app: {
-		label: 'jest-unit',
-		version: '1.6.0',
-		minVersion: '1.0.0',
-		protocolVersion: '1.0',
-	},
 };
+
+jest.mock('../../../../../src/components/logger');
+jest.mock('@liskhq/lisk-validator', () => ({
+	validator: {
+		validate: jest.fn().mockImplementation(() => {
+			return [];
+		}),
+	},
+}));
+
 // eslint-disable-next-line
-describe.skip('Application', () => {
+describe('Application', () => {
 	// Arrange
 	const frameworkTxTypes = ['0', '1', '2', '3', '4'];
-	const params = {
-		label: 'jest-unit',
-		genesisBlock,
-		config: [networkConfig, config],
-	};
 
 	afterEach(() => {
 		// So we can start a fresh schema each time Application is instantiated
@@ -57,19 +59,18 @@ describe.skip('Application', () => {
 	describe('#constructor', () => {
 		it('should validate genesisBlock', () => {
 			// Act
-			const validateSpy = jest.spyOn(validator, 'validate');
-			new Application(genesisBlock, config);
 
+			new Application(genesisBlock, config);
 			// Assert
-			expect(validateSpy).toHaveBeenCalledTimes(1);
-			expect(validateSpy).toHaveBeenCalledWith(
+			expect(liskValidator.validate).toHaveBeenNthCalledWith(
+				1,
 				genesisBlockSchema,
 				genesisBlock
 			);
 		});
 
 		it('should set app label with the genesis block payload hash prefixed with `lisk-` if label not provided', () => {
-			const label = `lisk-${genesisBlock.payloadHash}`;
+			const label = `lisk-${genesisBlock.payloadHash.slice(0, 7)}`;
 			const configWithoutLabel = _.cloneDeep(config);
 			delete configWithoutLabel.app.label;
 
@@ -84,14 +85,41 @@ describe.skip('Application', () => {
 			expect(app.config.app.label).toBe(config.app.label);
 		});
 
+		it('should set default tempPath if not provided', () => {
+			// Arrange
+			const tempPath = '/tmp/lisk';
+			const configWithoutTempPath = _.cloneDeep(config);
+			delete configWithoutTempPath.app.tempPath;
+
+			// Act
+			const app = new Application(genesisBlock, configWithoutTempPath);
+
+			// Assert
+			expect(app.config.app.tempPath).toBe(tempPath);
+		});
+
+		it('should set tempPath if provided', () => {
+			// Arragne
+			const customTempPath = '/my-lisk-folder';
+			const configWithCustomTempPath = _.cloneDeep(config);
+			configWithCustomTempPath.app.tempPath = customTempPath;
+
+			// Act
+			const app = new Application(genesisBlock, configWithCustomTempPath);
+
+			// Assert
+			expect(app.config.app.tempPath).toBe(customTempPath);
+		});
+
 		it('should set filename for logger if logger component was not provided', () => {
 			// Arrange
 			const configWithoutLogger = _.cloneDeep(config);
-			delete configWithoutLogger.components.logger;
+			configWithoutLogger.components.logger = {};
 
 			// Act
 			const app = new Application(genesisBlock, configWithoutLogger);
 
+			// Assert
 			expect(app.config.components.logger.logFileName).toBe(
 				`${process.cwd()}/logs/${config.app.label}/lisk.log`
 			);
@@ -116,6 +144,19 @@ describe.skip('Application', () => {
 
 			customConfig.app.genesisConfig = {
 				MAX_TRANSACTIONS_PER_BLOCK: 11,
+				EPOCH_TIME: '2016-05-24T17:00:00.000Z',
+				BLOCK_TIME: 2,
+				REWARDS: {
+					MILESTONES: [
+						'500000000',
+						'400000000',
+						'300000000',
+						'200000000',
+						'100000000',
+					],
+					OFFSET: 2160,
+					DISTANCE: 3000000,
+				},
 			};
 
 			const app = new Application(genesisBlock, customConfig);
@@ -135,11 +176,7 @@ describe.skip('Application', () => {
 
 		it('should contain all framework related transactions.', () => {
 			// Act
-			const app = new Application(
-				params.label,
-				params.genesisBlock,
-				params.config
-			);
+			const app = new Application(genesisBlock, config);
 
 			// Assert
 			expect(Object.keys(app.getTransactions())).toEqual(frameworkTxTypes);
@@ -147,7 +184,7 @@ describe.skip('Application', () => {
 
 		// Skipped because `new Application` is mutating params.config making the other tests to fail
 		// eslint-disable-next-line jest/no-disabled-tests
-		it.skip('[feature/improve_transactions_processing_efficiency] should throw validation error if constants are overriden by the user', () => {
+		it('should throw validation error if constants are overriden by the user', () => {
 			const customConfig = _.cloneDeep(config);
 
 			customConfig.app.genesisConfig = {
@@ -156,18 +193,14 @@ describe.skip('Application', () => {
 
 			expect(() => {
 				new Application(genesisBlock, customConfig);
-			}).toThrow('Schema validation error');
+			}).toThrow('should NOT have additional properties');
 		});
 	});
 
 	describe('#registerTransaction', () => {
 		it('should throw error when transaction class is missing.', () => {
 			// Arrange
-			const app = new Application(
-				params.label,
-				params.genesisBlock,
-				params.config
-			);
+			const app = new Application(genesisBlock, config);
 
 			// Act && Assert
 			expect(() => app.registerTransaction()).toThrow(
@@ -175,13 +208,9 @@ describe.skip('Application', () => {
 			);
 		});
 
-		it('should throw error when transaction does not extend BaseTransaction.', () => {
+		it('should throw error when transaction does not satisfy TransactionInterface.', () => {
 			// Arrange
-			const app = new Application(
-				params.label,
-				params.genesisBlock,
-				params.config
-			);
+			const app = new Application(genesisBlock, config);
 
 			const TransactionWithoutBase = Object.assign(
 				{ prototype: {} },
@@ -190,71 +219,62 @@ describe.skip('Application', () => {
 
 			// Act && Assert
 			expect(() => app.registerTransaction(TransactionWithoutBase)).toThrow(
-				'Transaction must extend BaseTransaction.'
+				SchemaValidationError
 			);
 		});
 
 		it('should throw error when transaction type is missing.', () => {
 			// Arrange
-			const app = new Application(
-				params.label,
-				params.genesisBlock,
-				params.config
-			);
-
-			const TransactionWithoutType = Object.assign(
-				{ TYPE: undefined },
-				DappTransaction
-			);
+			const app = new Application(genesisBlock, config);
+			class Sample extends Base {}
 
 			// Act && Assert
-			expect(() => app.registerTransaction(TransactionWithoutType)).toThrow(
+			expect(() => app.registerTransaction(Sample)).toThrow(
 				'Transaction type is required as an integer'
 			);
 		});
 
 		it('should throw error when transaction type is not integer.', () => {
 			// Arrange
-			const app = new Application(
-				params.label,
-				params.genesisBlock,
-				params.config
-			);
+			const app = new Application(genesisBlock, config);
 
-			const TransactionWithStringType = Object.assign(
-				{ TYPE: '5' },
-				DappTransaction
-			);
+			class Sample extends Base {}
+			Sample.TYPE = 'abc';
 
 			// Act && Assert
-			expect(() => app.registerTransaction(TransactionWithStringType)).toThrow(
+			expect(() => app.registerTransaction(Sample)).toThrow(
 				'Transaction type is required as an integer'
 			);
 		});
 
-		it('should throw error when transaction type is already registered.', () => {
+		it('should throw error when transaction interface does not match.', () => {
 			// Arrange
-			const app = new Application(
-				params.label,
-				params.genesisBlock,
-				params.config
-			);
+			const app = new Application(genesisBlock, config);
 
-			const TransactionRegistered = Object.assign({ TYPE: 1 }, DappTransaction);
+			class Sample extends Base {}
+			Sample.TYPE = 10;
+			Sample.prototype.apply = 'not a function';
 
 			// Act && Assert
-			expect(() => app.registerTransaction(TransactionRegistered)).toThrow(
+			expect(() => app.registerTransaction(Sample)).toThrow();
+		});
+
+		it('should throw error when transaction type is already registered.', () => {
+			// Arrange
+			const app = new Application(genesisBlock, config);
+
+			class Sample extends Base {}
+			Sample.TYPE = 1;
+
+			// Act && Assert
+			expect(() => app.registerTransaction(Sample)).toThrow(
 				'A transaction type "1" is already registered.'
 			);
 		});
 
 		it('should register transaction when passing a new transaction type and a transaction implementation.', () => {
 			// Arrange
-			const app = new Application(
-				params.label,
-				params.genesisBlock,
-				params.config
-			);
+			const app = new Application(genesisBlock, config);
 
 			// Act
 			app.registerTransaction(DappTransaction);

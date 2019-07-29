@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -26,6 +26,7 @@ import {
 	validateFee,
 	isGreaterThanMaxTransactionAmount,
 	isGreaterThanZero,
+	isGreaterThanOrEqualToZero,
 	isGreaterThanMaxTransactionId,
 	isNumberString,
 	isValidInteger,
@@ -289,8 +290,8 @@ describe('validation', () => {
 	});
 
 	describe('#validateFee', () => {
-		it('should return false is amount is 0', () => {
-			return expect(validateFee('0')).to.be.false;
+		it('should return true if amount is 0', () => {
+			return expect(validateFee('0')).to.be.true;
 		});
 
 		it('should return true when amount is a number greater than 0 and less than maximum transaction amount', () => {
@@ -307,6 +308,24 @@ describe('validation', () => {
 			return expect(
 				isGreaterThanZero(new BigNum('9223372036854775808987234289782357')),
 			).to.be.true;
+		});
+	});
+
+	describe('#isGreaterThanOrEqualToZero', () => {
+		it('should return true when amount is 0', () => {
+			return expect(isGreaterThanOrEqualToZero(new BigNum('0'))).to.be.true;
+		});
+
+		it('should return true when amount is greater than 0', () => {
+			return expect(
+				isGreaterThanOrEqualToZero(
+					new BigNum('9223372036854775808987234289782357'),
+				),
+			).to.be.true;
+		});
+
+		it('should return false when amount is less than 0', () => {
+			return expect(isGreaterThanOrEqualToZero(new BigNum('-1'))).to.be.false;
 		});
 	});
 

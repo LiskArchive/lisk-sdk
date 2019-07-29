@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -93,6 +93,7 @@ export interface MultiSignatureAsset {
 export class MultisignatureTransaction extends BaseTransaction {
 	public readonly asset: MultiSignatureAsset;
 	public static TYPE = 4;
+	public static FEE = MULTISIGNATURE_FEE.toString();
 	protected _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.PENDING;
 
@@ -113,10 +114,6 @@ export class MultisignatureTransaction extends BaseTransaction {
 		const keysgroupBuffer = Buffer.from(keysgroup.join(''), 'utf8');
 
 		return Buffer.concat([minBuffer, lifetimeBuffer, keysgroupBuffer]);
-	}
-
-	public assetToJSON(): MultiSignatureAsset {
-		return this.asset;
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {
@@ -175,21 +172,6 @@ export class MultisignatureTransaction extends BaseTransaction {
 			return errors;
 		}
 
-		const expectedFee = new BigNum(MULTISIGNATURE_FEE).mul(
-			this.asset.multisignature.keysgroup.length + 1,
-		);
-		if (!this.fee.eq(expectedFee)) {
-			errors.push(
-				new TransactionError(
-					`Fee must be equal to ${expectedFee.toString()}`,
-					this.id,
-					'.fee',
-					this.fee.toString(),
-					expectedFee.toString(),
-				),
-			);
-		}
-
 		if (
 			this.asset.multisignature.min > this.asset.multisignature.keysgroup.length
 		) {
@@ -226,6 +208,22 @@ export class MultisignatureTransaction extends BaseTransaction {
 		}
 
 		return errors;
+	}
+
+	public validateFee(): TransactionError | undefined {
+		const expectedFee = new BigNum(MultisignatureTransaction.FEE).mul(
+			this.asset.multisignature.keysgroup.length + 1,
+		);
+
+		return !this.fee.eq(expectedFee)
+			? new TransactionError(
+					`Fee must be equal to ${expectedFee.toString()}`,
+					this.id,
+					'.fee',
+					this.fee.toString(),
+					expectedFee.toString(),
+			  )
+			: undefined;
 	}
 
 	public processMultisignatures(_: StateStore): TransactionResponse {
@@ -382,15 +380,17 @@ export class MultisignatureTransaction extends BaseTransaction {
 		if (!raw.m_keysgroup) {
 			return undefined;
 		}
+
+		// When syncing, nodes should receive `m_keysgroup` as csv string and then split the values into an array
+		// Due to the issue https://github.com/LiskHQ/lisk-sdk/issues/3612, v1.6 nodes will send `m_keysgroup` as an array thus skipping the array convertion
 		const multisignature = {
 			min: raw.m_min,
 			lifetime: raw.m_lifetime,
-			keysgroup: [],
+			keysgroup:
+				typeof raw.m_keysgroup === 'string'
+					? raw.m_keysgroup.split(',')
+					: raw.m_keysgroup,
 		};
-
-		if (typeof raw.m_keysgroup === 'string') {
-			multisignature.keysgroup = raw.m_keysgroup.split(',');
-		}
 
 		return { multisignature };
 	}

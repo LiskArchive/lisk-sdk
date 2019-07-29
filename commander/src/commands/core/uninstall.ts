@@ -1,6 +1,6 @@
 /*
  * LiskHQ/lisk-commander
- * Copyright © 2017–2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -17,6 +17,7 @@ import { flags as flagParser } from '@oclif/command';
 import * as fsExtra from 'fs-extra';
 import Listr from 'listr';
 import BaseCommand from '../../base';
+import { defaultBackupPath } from '../../utils/core/config';
 import {
 	describeApplication,
 	PM2ProcessInstance,
@@ -77,6 +78,12 @@ export default class UnInstallCommand extends BaseCommand {
 					task: async () => {
 						await unRegisterApplication(name);
 						fsExtra.removeSync(installationPath);
+					},
+				},
+				{
+					title: `Remove ${name} backup`,
+					task: () => {
+						fsExtra.removeSync(`${defaultBackupPath}/${name}`);
 					},
 				},
 			]);

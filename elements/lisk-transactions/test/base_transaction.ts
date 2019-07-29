@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -25,6 +25,7 @@ import {
 	addTransactionFields,
 	MockStateStore as store,
 	TestTransaction,
+	TestTransactionBasicImpl,
 } from './helpers';
 import {
 	validAccount as defaultSenderAccount,
@@ -47,6 +48,8 @@ describe('Base transaction class', () => {
 	);
 
 	let validTestTransaction: BaseTransaction;
+	let transactionWithDefaultValues: BaseTransaction;
+	let transactionWithBasicImpl: BaseTransaction;
 	let validSecondSignatureTestTransaction: BaseTransaction;
 	let validMultisignatureTestTransaction: BaseTransaction;
 	let storeAccountGetStub: sinon.SinonStub;
@@ -54,6 +57,8 @@ describe('Base transaction class', () => {
 
 	beforeEach(async () => {
 		validTestTransaction = new TestTransaction(defaultTransaction);
+		transactionWithDefaultValues = new TestTransaction({});
+		transactionWithBasicImpl = new TestTransactionBasicImpl({});
 		validSecondSignatureTestTransaction = new TestTransaction(
 			defaultSecondSignatureTransaction,
 		);
@@ -75,6 +80,33 @@ describe('Base transaction class', () => {
 				.and.be.instanceof(BaseTransaction);
 		});
 
+		it('should set default values', async () => {
+			expect(transactionWithDefaultValues.amount.toString()).to.be.eql('0');
+			expect(transactionWithDefaultValues.fee.toString()).to.be.eql('10000000');
+			expect(transactionWithDefaultValues.recipientId).to.be.eql('');
+			expect(transactionWithDefaultValues.recipientPublicKey).to.be.undefined;
+			expect(transactionWithDefaultValues.timestamp).to.be.eql(0);
+			expect(transactionWithDefaultValues.type).to.be.eql(0);
+			expect(transactionWithDefaultValues.confirmations).to.be.undefined;
+			expect(transactionWithDefaultValues.blockId).to.be.undefined;
+			expect(transactionWithDefaultValues.height).to.be.undefined;
+			expect(transactionWithDefaultValues.receivedAt).to.be.undefined;
+			expect(transactionWithDefaultValues.relays).to.be.undefined;
+			expect(transactionWithDefaultValues.signSignature).to.be.undefined;
+			expect(() => transactionWithDefaultValues.id).to.throw(
+				'id is required to be set before use',
+			);
+			expect(() => transactionWithDefaultValues.senderId).to.throw(
+				'senderId is required to be set before use',
+			);
+			expect(() => transactionWithDefaultValues.senderPublicKey).to.throw(
+				'senderPublicKey is required to be set before use',
+			);
+			expect(() => transactionWithDefaultValues.signature).to.throw(
+				'signature is required to be set before use',
+			);
+		});
+
 		it('should have amount of type BigNum', async () => {
 			expect(validTestTransaction)
 				.to.have.property('amount')
@@ -85,6 +117,12 @@ describe('Base transaction class', () => {
 			expect(validTestTransaction)
 				.to.have.property('fee')
 				.and.be.instanceof(BigNum);
+		});
+
+		it('should have default fee if fee param is invalid', async () => {
+			const transactionWithInvalidFee = new TestTransaction({ fee: 'invalid' });
+
+			expect(transactionWithInvalidFee.fee.toString()).to.be.eql('10000000');
 		});
 
 		it('should have id string', async () => {
@@ -218,6 +256,14 @@ describe('Base transaction class', () => {
 			expect(
 				(validTestTransaction as TestTransaction).assetToBytes(),
 			).to.be.an.instanceOf(Buffer);
+		});
+	});
+
+	describe('#stringify', () => {
+		it('should return the transaction stringified', async () => {
+			expect(
+				typeof (validTestTransaction as TestTransaction).stringify(),
+			).to.be.eq('string');
 		});
 	});
 
@@ -464,6 +510,15 @@ describe('Base transaction class', () => {
 			expect(status).to.eql(Status.OK);
 		});
 
+		it('should return a successful transaction response with a valid transaction with basic impl', async () => {
+			transactionWithBasicImpl.sign('passphrase');
+			const { id, status, errors } = transactionWithBasicImpl.validate();
+
+			expect(id).to.be.eql(transactionWithBasicImpl.id);
+			expect(errors).to.be.empty;
+			expect(status).to.eql(Status.OK);
+		});
+
 		it('should call getBasicBytes', async () => {
 			const getBasicBytesStub = sandbox
 				.stub(validTestTransaction as any, 'getBasicBytes')
@@ -491,6 +546,13 @@ describe('Base transaction class', () => {
 				),
 				validTestTransaction.id,
 			);
+		});
+
+		it('should call validateFee', async () => {
+			sandbox.spy(validTestTransaction, 'validateFee');
+			validTestTransaction.validate();
+
+			expect(validTestTransaction.validateFee).to.be.called;
 		});
 
 		it('should return a failed transaction response with invalid signature', async () => {
@@ -539,6 +601,38 @@ describe('Base transaction class', () => {
 				.to.be.instanceof(TransactionError)
 				.and.to.have.property('dataPath', '.signatures');
 			expect(status).to.eql(Status.FAIL);
+		});
+	});
+
+	describe('#validateFee', () => {
+		it('should return undefined if fee is valid', async () => {
+			const validFee = validTestTransaction.validateFee();
+
+			expect(validFee).to.be.undefined;
+		});
+
+		it('should return transactionError if fee is invalid', async () => {
+			const invalidTransaction = {
+				type: 0,
+				amount: '00001',
+				fee: '0000',
+				recipientId: '',
+				senderPublicKey: '11111111',
+				senderId: '11111111',
+				timestamp: 79289378,
+				asset: {},
+				signature: '1111111111',
+				id: '1',
+			};
+			const invalidTestTransaction = new TestTransaction(
+				invalidTransaction as any,
+			);
+
+			const feeError = invalidTestTransaction.validateFee();
+
+			expect(feeError)
+				.to.be.instanceof(TransactionError)
+				.and.to.have.property('message', 'Invalid fee');
 		});
 	});
 
@@ -825,6 +919,43 @@ describe('Base transaction class', () => {
 		});
 	});
 
+	describe('create, sign and stringify transaction', () => {
+		const passphrase = 'secret';
+		const secondPassphrase = 'second secret';
+		const senderId = '18160565574430594874L';
+		const senderPublicKey =
+			'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
+		const signature =
+			'0c4acc37ca1e8235134f03cd8aa9e60cc237f9cec0e26cdd1502eea75ee6a5f319d0080e78646166e18fde9ae26b41f91d7a33d56a06d04109c48d2e13e8850b';
+		const secondSignature =
+			'afe8b0cd830c25f116eae8a9ec8d4b2e19748e663c3ad41bfa205c0cc29d1c1b44b48a77cd908eff33cecef8c3a75c7e20ce96ac2c5625df2ab067c76cf92108';
+
+		it('should return correct senderId/senderPublicKey when sign with passphrase', () => {
+			const newTransaction = new TestTransaction({});
+			newTransaction.sign(passphrase);
+
+			const stringifiedTransaction = newTransaction.stringify();
+			const parsedResponse = JSON.parse(stringifiedTransaction);
+
+			expect(parsedResponse.senderId).to.be.eql(senderId);
+			expect(parsedResponse.senderPublicKey).to.be.eql(senderPublicKey);
+			expect(parsedResponse.signature).to.be.eql(signature);
+		});
+
+		it('should return correct senderId/senderPublicKey when sign with passphrase and secondPassphrase', () => {
+			const newTransaction = new TestTransaction({});
+			newTransaction.sign(passphrase, secondPassphrase);
+
+			const stringifiedTransaction = newTransaction.stringify();
+			const parsedResponse = JSON.parse(stringifiedTransaction);
+
+			expect(parsedResponse.senderId).to.be.eql(senderId);
+			expect(parsedResponse.senderPublicKey).to.be.eql(senderPublicKey);
+			expect(parsedResponse.signature).to.be.eql(signature);
+			expect(parsedResponse.signSignature).to.be.eql(secondSignature);
+		});
+	});
+
 	describe('#sign', () => {
 		const defaultPassphrase = 'passphrase';
 		const defaultSecondPassphrase = 'second-passphrase';
@@ -861,19 +992,29 @@ describe('Base transaction class', () => {
 
 		describe('when sign is called with passphrase', () => {
 			beforeEach(async () => {
-				validTestTransaction.sign(defaultPassphrase);
+				transactionWithDefaultValues.sign(defaultPassphrase);
 			});
 
 			it('should set signature property', async () => {
-				expect(validTestTransaction.signature).to.equal(defaultSignature);
+				expect(transactionWithDefaultValues.signature).to.equal(
+					defaultSignature,
+				);
 			});
 
 			it('should not set signSignature property', async () => {
-				expect(validTestTransaction.signSignature).to.be.undefined;
+				expect(transactionWithDefaultValues.signSignature).to.be.undefined;
 			});
 
 			it('should set id property', async () => {
-				expect(validTestTransaction.id).not.to.be.empty;
+				expect(transactionWithDefaultValues.id).not.to.be.empty;
+			});
+
+			it('should set senderId property', async () => {
+				expect(transactionWithDefaultValues.senderId).not.to.be.empty;
+			});
+
+			it('should set senderPublicKey property', async () => {
+				expect(transactionWithDefaultValues.senderPublicKey).not.to.be.empty;
 			});
 
 			it('should call signData with the hash result and the passphrase', async () => {
@@ -886,21 +1027,34 @@ describe('Base transaction class', () => {
 
 		describe('when sign is called with passphrase and second passphrase', () => {
 			beforeEach(async () => {
-				validTestTransaction.sign(defaultPassphrase, defaultSecondPassphrase);
+				transactionWithDefaultValues.sign(
+					defaultPassphrase,
+					defaultSecondPassphrase,
+				);
 			});
 
 			it('should set signature property', async () => {
-				expect(validTestTransaction.signature).to.equal(defaultSignature);
+				expect(transactionWithDefaultValues.signature).to.equal(
+					defaultSignature,
+				);
 			});
 
 			it('should set signSignature property', async () => {
-				expect(validTestTransaction.signSignature).to.equal(
+				expect(transactionWithDefaultValues.signSignature).to.equal(
 					defaultSecondSignature,
 				);
 			});
 
 			it('should set id property', async () => {
-				expect(validTestTransaction.id).not.to.be.empty;
+				expect(transactionWithDefaultValues.id).not.to.be.empty;
+			});
+
+			it('should set senderId property', async () => {
+				expect(transactionWithDefaultValues.senderId).not.to.be.empty;
+			});
+
+			it('should set senderPublicKey property', async () => {
+				expect(transactionWithDefaultValues.senderPublicKey).not.to.be.empty;
 			});
 
 			it('should call signData with the hash result and the passphrase', async () => {

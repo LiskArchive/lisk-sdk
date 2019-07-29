@@ -54,23 +54,27 @@ Or minified:
 | [@liskhq/lisk-constants](../lisk-constants)              |  [![](https://img.shields.io/badge/npm-v1.2.1-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-constants)   | General constants for use with Lisk-related software               |
 | [@liskhq/lisk-cryptography](../lisk-cryptography)        | [![](https://img.shields.io/badge/npm-v2.1.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-cryptography) | General cryptographic functions for use with Lisk-related software |
 | [@liskhq/lisk-passphrase](../lisk-passphrase)            |  [![](https://img.shields.io/badge/npm-v2.0.1-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-passphrase)  | Mnemonic passphrase helpers for use with Lisk-related software     |
-| [@liskhq/lisk-transactions](/packages/lisk-transactions) | [![](https://img.shields.io/badge/npm-v2.1.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-transactions) | Everything related to transactions according to the Lisk protocol  |
+| [@liskhq/lisk-transactions](/packages/lisk-transactions) | [![](https://img.shields.io/badge/npm-v2.1.1-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-transactions) | Everything related to transactions according to the Lisk protocol  |
 
 ## License
 
-Copyright © 2016-2018 Lisk Foundation
+Copyright 2016-2019 Lisk Foundation
 
-This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+http://www.apache.org/licenses/LICENSE-2.0
 
-You should have received a copy of the [GNU General Public License](https://github.com/LiskHQ/lisk-elements/tree/master/LICENSE) along with this program. If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
 ---
 
-This program also incorporates work previously released with lisk-js `v0.5.2` (and earlier) versions under the [MIT License](https://opensource.org/licenses/MIT). To comply with the requirements of that license, the following permission notice, applicable to those parts of the code only, is included below:
-
-Copyright © 2016-2017 Lisk Foundation
+Copyright © 2016-2019 Lisk Foundation
 
 Copyright © 2015 Crypti
 

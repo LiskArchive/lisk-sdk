@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -560,6 +560,7 @@ export class TransactionPool extends EventEmitter {
 			queueCheckers.checkTransactionForId(failedTransactions),
 		);
 
+		// Move all passed transactions to the ready queue
 		// Keep transactions in the ready queue which still exist
 		this._queues.ready.enqueueMany(
 			this._queues.ready.removeFor(

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -254,6 +254,14 @@ const initStepsForTest = {
 				},
 			},
 		});
+
+		const { Dpos } = require('../../../src/modules/chain/dpos');
+		modules.dpos = new Dpos({
+			logger: scope.components.logger,
+			slots: scope.slots,
+			storage: scope.components.storage,
+		});
+
 		const { Blocks: RewiredBlocks } = rewire(
 			'../../../src/modules/chain/blocks'
 		);
