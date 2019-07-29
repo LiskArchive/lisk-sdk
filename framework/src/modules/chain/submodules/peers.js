@@ -23,6 +23,37 @@ const { MIN_BROADHASH_CONSENSUS } = global.constants;
 
 const MAX_PEERS = 100;
 
+// Since this function is only specific to broadhash calculation we keep it here and will be obselete with broadhash consensus
+const consolidateConnectedPeersBasedOnPort = peerList => {
+	const duplicateIps = {};
+
+	// Make a list of duplicate IPs and capture there ports corresponding to their height
+	peerList.forEach(peer => {
+		if (duplicateIps[peer.ipAddress]) {
+			duplicateIps[peer.ipAddress].count += 1;
+			// Replace the peer port with higher height
+			if (peer.height > duplicateIps[peer.ipAddress].height) {
+				duplicateIps[peer.ipAddress].port = peer.wsPort;
+				duplicateIps[peer.ipAddress].height = peer.height;
+			}
+		} else {
+			duplicateIps[peer.ipAddress] = {
+				port: peer.wsPort,
+				height: peer.height,
+				count: 1,
+			};
+		}
+	});
+
+	return peerList.filter(peer => {
+		const peerPortInfo = duplicateIps[peer.ipAddress];
+		if (peerPortInfo.count > 1 && peerPortInfo.height !== peer.height) {
+			return false;
+		}
+
+		return true;
+	});
+};
 /**
  * Main peers methods. Initializes library with scope content.
  *
@@ -82,17 +113,21 @@ Peers.prototype.getLastConsensus = function() {
  */
 Peers.prototype.calculateConsensus = async function() {
 	const { broadhash } = library.applicationState;
-	const activeCount = Math.min(
-		await library.channel.invoke('network:getConnectedPeersCountByFilter', {}),
-		MAX_PEERS
+	const connectedPeers = await library.channel.invoke(
+		'network:getConnectedPeers',
+		{}
+	);
+	const consolidatedPeers = consolidateConnectedPeersBasedOnPort(
+		connectedPeers
+	);
+	const activeCount = Math.min(consolidatedPeers.length, MAX_PEERS);
+
+	// Filter by broadhash from the consolidated peer list
+	const filteredConnectedPeers = consolidatedPeers.filter(
+		peer => peer.broadhash === broadhash
 	);
 
-	const matchedCount = Math.min(
-		await library.channel.invoke('network:getConnectedPeersCountByFilter', {
-			broadhash,
-		}),
-		MAX_PEERS
-	);
+	const matchedCount = Math.min(filteredConnectedPeers.length, MAX_PEERS);
 
 	const consensus = +((matchedCount / activeCount) * 100).toPrecision(2);
 	self.consensus = Number.isNaN(consensus) ? 0 : consensus;
