@@ -188,6 +188,16 @@ class ChainBlock extends BlockEntity {
 			{}
 		);
 	}
+
+	/**
+	 * Get the last block from storage
+	 *
+	 * @param {Object} [tx] - Transaction Object
+	 * @return {Promise<BasicBlock|ExtendedBlock, NonSupportedFilterTypeError|NonSupportedOptionError>}
+	 */
+	getLastBlock(tx) {
+		return this.getOne({}, { limit: 1, sort: 'height:desc' }, tx);
+	}
 }
 
 module.exports = ChainBlock;
