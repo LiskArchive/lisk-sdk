@@ -63,7 +63,22 @@ describe('fast_chain_switching_mechanism', () => {
 			syncMechanism = new FastChainSwitchingMechanism(syncParams);
 		});
 
-		describe('#constructor', () => {});
+		describe('#constructor', () => {
+			it('should create instance of FastChainSwitchingMechanism', async () => {
+				expect(syncMechanism).toBeInstanceOf(FastChainSwitchingMechanism);
+			});
+
+			it('should assign dependencies', async () => {
+				expect(syncMechanism.storage).toBe(syncParams.storage);
+				expect(syncMechanism.logger).toBe(syncParams.logger);
+				expect(syncMechanism.slots).toBe(syncParams.slots);
+				expect(syncMechanism.dpos).toBe(syncParams.dpos);
+				expect(syncMechanism.constants).toEqual({
+					activeDelegates,
+				});
+				expect(syncMechanism.active).toBeFalsy();
+			});
+		});
 
 		describe('async isValidFor()', () => {
 			const lastBlockHeight = 200;
