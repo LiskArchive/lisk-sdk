@@ -22,11 +22,11 @@ import {
 	getNetgroup,
 	getBucket,
 	NETWORK,
+	PEER_TYPE,
 } from '../../src/utils';
 
 describe('utils', () => {
 	const IPv4Address = '1.160.10.240';
-	const IPv4SourceAddress = '62.13.1.10';
 	const privateAddress = '10.0.0.0';
 	const localAddress = '127.0.0.1';
 	const secret = 123456;
@@ -129,109 +129,73 @@ describe('utils', () => {
 
 	describe('#getBucket', () => {
 		it('should return a bucket number', () => {
-			return expect(getBucket({ secret, targetAddress: IPv4Address })).to.be.a(
-				'number',
-			);
+			return expect(
+				getBucket({
+					secret,
+					targetAddress: IPv4Address,
+					peerType: PEER_TYPE.NEW_PEER,
+				}),
+			).to.be.a('number');
 		});
 
 		it('should return different buckets for different target addresses', () => {
 			const secondIPv4Address = '1.161.10.240';
-			const firstBucket = getBucket({ secret, targetAddress: IPv4Address });
+			const firstBucket = getBucket({
+				secret,
+				targetAddress: IPv4Address,
+				peerType: PEER_TYPE.NEW_PEER,
+			});
 			const secondBucket = getBucket({
 				secret,
 				targetAddress: secondIPv4Address,
+				peerType: PEER_TYPE.NEW_PEER,
 			});
 
 			return expect(firstBucket).to.not.eql(secondBucket);
 		});
 
 		it('should return same bucket for unique local target addresses', () => {
-			const firstBucket = getBucket({ secret, targetAddress: localAddress });
+			const firstBucket = getBucket({
+				secret,
+				targetAddress: localAddress,
+				peerType: PEER_TYPE.NEW_PEER,
+			});
 			const secondLocalAddress = '127.0.1.1';
 			const secondBucket = getBucket({
 				secret,
 				targetAddress: secondLocalAddress,
+				peerType: PEER_TYPE.NEW_PEER,
 			});
 
 			return expect(firstBucket).to.eql(secondBucket);
 		});
 
 		it('should return same bucket for unique private target addresses', () => {
-			const firstBucket = getBucket({ secret, targetAddress: privateAddress });
+			const firstBucket = getBucket({
+				secret,
+				targetAddress: privateAddress,
+				peerType: PEER_TYPE.NEW_PEER,
+			});
 			const secondPrivateAddress = '10.0.0.1';
 			const secondBucket = getBucket({
 				secret,
 				targetAddress: secondPrivateAddress,
+				peerType: PEER_TYPE.NEW_PEER,
 			});
 
 			return expect(firstBucket).to.eql(secondBucket);
 		});
 
 		it('should return different buckets for local and private target addresses', () => {
-			const firstBucket = getBucket({ secret, targetAddress: localAddress });
-			const secondBucket = getBucket({ secret, targetAddress: privateAddress });
-
-			return expect(firstBucket).to.not.eql(secondBucket);
-		});
-
-		it('should return different buckets for different target addresses given a source address', () => {
-			const secondIPv4Address = '1.161.10.240';
-			const firstBucket = getBucket({
-				secret,
-				targetAddress: IPv4Address,
-				sourceAddress: IPv4SourceAddress,
-			});
-			const secondBucket = getBucket({
-				secret,
-				targetAddress: secondIPv4Address,
-				sourceAddress: IPv4SourceAddress,
-			});
-
-			return expect(firstBucket).to.not.eql(secondBucket);
-		});
-
-		it('should return same bucket for unique local target addresses given a source address', () => {
 			const firstBucket = getBucket({
 				secret,
 				targetAddress: localAddress,
-				sourceAddress: IPv4SourceAddress,
-			});
-			const secondLocalAddress = '127.0.1.1';
-			const secondBucket = getBucket({
-				secret,
-				targetAddress: secondLocalAddress,
-				sourceAddress: IPv4SourceAddress,
-			});
-
-			return expect(firstBucket).to.eql(secondBucket);
-		});
-
-		it('should return same bucket for unique private target addresses given a source address', () => {
-			const firstBucket = getBucket({
-				secret,
-				targetAddress: privateAddress,
-				sourceAddress: IPv4SourceAddress,
-			});
-			const secondPrivateAddress = '10.0.0.1';
-			const secondBucket = getBucket({
-				secret,
-				targetAddress: secondPrivateAddress,
-				sourceAddress: IPv4SourceAddress,
-			});
-
-			return expect(firstBucket).to.eql(secondBucket);
-		});
-
-		it('should return different buckets for local and private target addresses given a source address', () => {
-			const firstBucket = getBucket({
-				secret,
-				targetAddress: localAddress,
-				sourceAddress: IPv4SourceAddress,
+				peerType: PEER_TYPE.NEW_PEER,
 			});
 			const secondBucket = getBucket({
 				secret,
 				targetAddress: privateAddress,
-				sourceAddress: IPv4SourceAddress,
+				peerType: PEER_TYPE.NEW_PEER,
 			});
 
 			return expect(firstBucket).to.not.eql(secondBucket);

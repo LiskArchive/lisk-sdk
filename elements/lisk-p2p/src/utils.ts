@@ -22,14 +22,17 @@ const BYTES_4 = 4;
 const BYTES_16 = 16;
 const BYTES_64 = 64;
 const BYTES_128 = 128;
-const NEW_PEERS = 'new';
-const TRIED_PEERS = 'tried';
 
 export enum NETWORK {
 	NET_IPV4 = 0,
 	NET_PRIVATE,
 	NET_LOCAL,
 	NET_OTHER,
+}
+
+export enum PEER_TYPE {
+	NEW_PEER = 'newPeer',
+	TRIED_PEER = 'triedPeer',
 }
 
 /* tslint:disable no-magic-numbers */
@@ -122,16 +125,15 @@ export const getNetgroup = (address: string, secret: number): number => {
 	return hash(netgroupBytes).readUInt32BE(0);
 };
 
-// For new peer buckets, provide the source IP address from which the peer list was received
+// TODO: Source address to be included in hash for later version
 export const getBucket = (options: {
 	readonly secret: number;
+	readonly peerType: PEER_TYPE;
 	readonly targetAddress: string;
-	readonly sourceAddress?: string;
 }): number => {
-	const { secret, targetAddress, sourceAddress } = options;
-	const peerListType = sourceAddress ? NEW_PEERS : TRIED_PEERS;
-	const firstMod = peerListType === NEW_PEERS ? BYTES_16 : BYTES_4;
-	const secondMod = peerListType === NEW_PEERS ? BYTES_128 : BYTES_64;
+	const { secret, targetAddress, peerType } = options;
+	const firstMod = peerType === PEER_TYPE.NEW_PEER ? BYTES_16 : BYTES_4;
+	const secondMod = peerType === PEER_TYPE.NEW_PEER ? BYTES_128 : BYTES_64;
 	const secretBytes = Buffer.alloc(SECRET_BUFFER_LENGTH);
 	secretBytes.writeUInt32BE(secret, 0);
 	const network = getNetwork(targetAddress);
@@ -145,11 +147,6 @@ export const getBucket = (options: {
 		cBytes: targetCBytes,
 		dBytes: targetDBytes,
 	} = getIPBytes(targetAddress);
-
-	// Get prefix bytes of source address from which peer list is received
-	const { aBytes: sourceABytes, bBytes: sourceBBytes } = getIPBytes(
-		targetAddress,
-	);
 
 	// Check if ip address is unsupported network type
 	if (network === NETWORK.NET_OTHER) {
@@ -174,14 +171,13 @@ export const getBucket = (options: {
 	// New peers: k = Hash(random_secret, source_group, group) % 16
 	// Tried peers: k = Hash(random_secret, IP) % 4
 	const kBytes = Buffer.alloc(firstMod);
+
 	const k =
-		peerListType === NEW_PEERS
+		peerType === PEER_TYPE.NEW_PEER
 			? hash(
 					Buffer.concat([
 						secretBytes,
 						networkBytes,
-						sourceABytes,
-						sourceBBytes,
 						targetABytes,
 						targetBBytes,
 					]),
@@ -195,14 +191,8 @@ export const getBucket = (options: {
 	// New peers: b = Hash(random_secret, source_group, k) % 128
 	// Tried peers: b = Hash(random_secret, group, k) % 64
 	const bucketBytes =
-		peerListType === NEW_PEERS
-			? Buffer.concat([
-					secretBytes,
-					networkBytes,
-					sourceABytes,
-					sourceBBytes,
-					kBytes,
-			  ])
+		peerType === PEER_TYPE.NEW_PEER
+			? Buffer.concat([secretBytes, networkBytes, kBytes])
 			: Buffer.concat([
 					secretBytes,
 					networkBytes,
