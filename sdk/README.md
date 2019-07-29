@@ -139,7 +139,7 @@ The Lisk SDK operates on the NodeJS runtime and consists primarily of an applica
 | Reason                           | How                                                                                            |
 | -------------------------------- | ---------------------------------------------------------------------------------------------- |
 | Want to chat with our community  | [Reach them on Lisk.chat](https://lisk.chat)                                                   |
-| Want to chat with our developers | [Reach them on Gitter](https://gitter.im/LiskHQ/lisk)                                          |
+| Want to chat with our developers | [Reach them on Gitter](https://gitter.im/LiskHQ/lisk-sdk)                                      |
 | Found a bug                      | [Open a new issue](https://github.com/LiskHQ/lisk/issues/new)                                  |
 | Found a security issue           | [See our bounty program](https://blog.lisk.io/announcing-lisk-bug-bounty-program-5895bdd46ed4) |
 | Want to share your research      | [Propose your research](https://research.lisk.io)                                              |
