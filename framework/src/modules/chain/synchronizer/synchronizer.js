@@ -120,7 +120,7 @@ class Synchronizer {
 	 * Check if the current syncing mechanism is active
 	 * @return {*|never|boolean}
 	 */
-	isActive() {
+	get isActive() {
 		return this.activeMechanism ? this.activeMechanism.isActive : false;
 	}
 
