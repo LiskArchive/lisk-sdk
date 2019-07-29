@@ -36,6 +36,7 @@ import {
 
 const IPV4_NUMBER = 4;
 const IPV6_NUMBER = 6;
+const DEFAULT_MAX_PEER_LIST_SIZE = 100;
 
 interface RPCPeerListResponse {
 	readonly peers: ReadonlyArray<object>;
@@ -99,13 +100,20 @@ export const validatePeerInfo = (
 
 export const validatePeerInfoList = (
 	rawPeerInfoList: unknown,
+	maxPeerListSize?: number,
 ): ReadonlyArray<P2PDiscoveredPeerInfo> => {
 	if (!rawPeerInfoList) {
 		throw new InvalidRPCResponseError('Invalid response type');
 	}
 	const { peers } = rawPeerInfoList as RPCPeerListResponse;
-
 	if (Array.isArray(peers)) {
+		const maxListSize =
+			maxPeerListSize === undefined
+				? DEFAULT_MAX_PEER_LIST_SIZE
+				: maxPeerListSize;
+		if (peers.length > maxListSize) {
+			throw new InvalidRPCResponseError('Peer list was too long');
+		}
 		const peerList = peers.map<P2PDiscoveredPeerInfo>(validatePeerInfo);
 
 		return peerList;

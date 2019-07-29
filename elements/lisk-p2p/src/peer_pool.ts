@@ -328,6 +328,7 @@ export class PeerPool extends EventEmitter {
 		const peerConfig = {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
+			maxPeerListSize: MAX_PEER_LIST_BATCH_SIZE,
 		};
 		const peer = new Peer(peerInfo, peerConfig, { inbound: inboundSocket });
 
@@ -352,6 +353,7 @@ export class PeerPool extends EventEmitter {
 		const peerConfig = {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
+			maxPeerListSize: MAX_PEER_LIST_BATCH_SIZE,
 		};
 		const peer = new Peer(detailedPeerInfo, peerConfig, {
 			inbound: inboundSocket,
@@ -411,6 +413,7 @@ export class PeerPool extends EventEmitter {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
 			wsMaxPayload: this._peerPoolConfig.wsMaxPayload,
+			maxPeerListSize: MAX_PEER_LIST_BATCH_SIZE,
 		};
 		const peer = new Peer(peerInfo, peerConfig, { outbound: socket });
 
