@@ -208,6 +208,9 @@ export class P2P extends EventEmitter {
 
 		this._handlePeerConnectAbort = (peerInfo: P2PPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
+			if (this._newPeers.has(peerId)) {
+				this._newPeers.delete(peerId);
+			}
 			if (this._triedPeers.has(peerId)) {
 				this._triedPeers.delete(peerId);
 			}
