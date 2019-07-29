@@ -75,7 +75,7 @@ class RoundDelegates extends BaseEntity {
 		const result = await this.adapter.executeFile(this.SQLs.getRoundDelegates, {
 			round,
 		});
-		return result[0].delegatePublicKeys;
+		return result[0] ? result[0].delegatePublicKeys : [];
 	}
 
 	/**
@@ -99,8 +99,9 @@ class RoundDelegates extends BaseEntity {
 			.map(k => `"${this.fields[k].fieldName}"`)
 			.join(',');
 
-		const values = [{ round, delegatePublicKeys }];
-
+		const values = [
+			{ round, delegatePublicKeys: JSON.stringify(delegatePublicKeys) },
+		];
 		const createSet = this.getValuesSet(values, attributes);
 
 		return this.adapter.executeFile(

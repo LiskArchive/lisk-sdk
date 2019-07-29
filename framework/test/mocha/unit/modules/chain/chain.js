@@ -39,6 +39,7 @@ describe('Chain', () => {
 
 		/* Arranging Stubs start */
 		stubs.logger = {
+			error: sinonSandbox.stub(),
 			debug: sinonSandbox.stub(),
 			fatal: sinonSandbox.stub(),
 			info: sinonSandbox.stub(),
@@ -76,6 +77,10 @@ describe('Chain', () => {
 			once: sinonSandbox.stub(),
 		};
 
+		stubs.jobsQueue = {
+			register: sinonSandbox.stub(),
+		};
+
 		stubs.channel.invoke
 			.withArgs('app:getComponentConfig', 'logger')
 			.resolves(loggerConfig);
@@ -103,6 +108,7 @@ describe('Chain', () => {
 		Chain.__set__('createStorageComponent', stubs.createStorageComponent);
 		Chain.__set__('bootstrapStorage', stubs.initSteps.bootstrapStorage);
 		Chain.__set__('bootstrapCache', stubs.initSteps.bootstrapCache);
+		Chain.__set__('jobQueue', stubs.jobsQueue);
 
 		// Act
 		chain = new Chain(stubs.channel, chainOptions);
@@ -463,6 +469,198 @@ describe('Chain', () => {
 			// Assert
 			expect(stubs.modules.module1.cleanup).to.have.been.called;
 			return expect(stubs.modules.module2.cleanup).to.have.been.called;
+		});
+	});
+
+	describe('#_syncTask', () => {
+		beforeEach(async () => {
+			await chain.bootstrap();
+			sinonSandbox.stub(chain.loader, 'sync').resolves();
+			sinonSandbox.stub(chain.loader, 'syncing').returns(false);
+			sinonSandbox.stub(chain.blocks, 'isStale').returns(false);
+			sinonSandbox.stub(chain.scope.sequence, 'add').callsFake(async fn => {
+				await fn();
+			});
+		});
+
+		it('should info log every time this task is triggered', async () => {
+			// Arrange
+			chain.loader.syncing.returns(true); // To avoid triggering extra logic irrelevant for this scenario
+
+			// Act
+			await chain._syncTask();
+
+			// Assert
+			expect(stubs.logger.info).to.be.calledWith(
+				{
+					syncing: chain.loader.syncing(),
+					lastReceipt: chain.blocks.lastReceipt,
+				},
+				'Sync time triggered'
+			);
+		});
+
+		it('should use the Sequence if blocks.isStale and the node is not syncing', async () => {
+			// Arrange
+			chain.loader.syncing.returns(false);
+			chain.blocks.isStale.returns(true);
+
+			// Act
+			await chain._syncTask();
+
+			// Assert
+			expect(chain.scope.sequence.add).to.be.called;
+		});
+
+		describe('in sequence', () => {
+			beforeEach(async () => {
+				chain.loader.syncing.returns(false);
+				chain.blocks.isStale.returns(true);
+			});
+
+			it('should call loader.sync', async () => {
+				await chain._syncTask();
+				expect(chain.loader.sync).to.be.called;
+			});
+
+			it('should catch and log the error if the above fails', async () => {
+				// Arrange
+				const expectedError = new Error('an error');
+				chain.loader.sync.rejects(expectedError);
+
+				// Act
+				await chain._syncTask();
+
+				// Assert
+				expect(stubs.logger.error).to.be.calledWith(
+					expectedError,
+					'Sync timer'
+				);
+			});
+		});
+	});
+
+	describe('#_startLoader', () => {
+		beforeEach(async () => {
+			await chain.bootstrap();
+			sinonSandbox.stub(chain.loader, 'loadTransactionsAndSignatures');
+		});
+
+		it('should return if syncing.active in config is set to false', async () => {
+			// Arrange
+			chain.options.syncing.active = false;
+
+			// Act
+			chain._startLoader();
+
+			// Assert
+			expect(stubs.jobsQueue.register).to.not.be.called;
+		});
+
+		it('should load transactions and signatures', async () => {
+			chain._startLoader();
+			expect(chain.loader.loadTransactionsAndSignatures).to.be.called;
+		});
+
+		it('should register a task in Jobs Queue named "nextSync" with a designated interval', async () => {
+			// Arrange
+			chain.options.syncing.active = true;
+
+			// Act
+			chain._startLoader();
+
+			// Assert
+			expect(stubs.jobsQueue.register).to.be.calledWith(
+				'nextSync',
+				sinonSandbox.match.func,
+				Chain.__get__('syncInterval')
+			);
+		});
+	});
+
+	describe('#_forgingTask', () => {
+		beforeEach(async () => {
+			await chain.bootstrap();
+			sinonSandbox.stub(chain.forger, 'delegatesEnabled').returns(true);
+			sinonSandbox.stub(chain.forger, 'forge');
+			sinonSandbox.stub(chain.loader, 'syncing').returns(false);
+			sinonSandbox.stub(chain.rounds, 'ticking').returns(false);
+			sinonSandbox.stub(chain.scope.sequence, 'add').callsFake(async fn => {
+				await fn();
+			});
+		});
+
+		it('should halt if no delegates are enabled', async () => {
+			// Arrange
+			chain.forger.delegatesEnabled.returns(false);
+
+			// Act
+			await chain._forgingTask();
+
+			// Assert
+			expect(stubs.logger.debug.getCall(2)).to.be.calledWith(
+				'No delegates are enabled'
+			);
+			expect(chain.scope.sequence.add).to.be.called;
+			expect(chain.forger.forge).to.not.be.called;
+		});
+
+		it('should halt if the client is not ready to forge (is syncing)', async () => {
+			// Arrange
+			chain.loader.syncing.returns(true);
+
+			// Act
+			await chain._forgingTask();
+
+			// Assert
+			expect(stubs.logger.debug.getCall(2)).to.be.calledWith(
+				'Client not ready to forge'
+			);
+			expect(chain.scope.sequence.add).to.be.called;
+			expect(chain.forger.forge).to.not.be.called;
+		});
+
+		it('should halt if the client is not ready to forge (rounds is ticking)', async () => {
+			// Arrange
+			chain.rounds.ticking.returns(true);
+
+			// Act
+			await chain._forgingTask();
+
+			// Assert
+			expect(stubs.logger.debug.getCall(2)).to.be.calledWith(
+				'Client not ready to forge'
+			);
+			expect(chain.forger.forge).to.not.be.called;
+		});
+
+		it('should execute forger.forge otherwise', async () => {
+			await chain._forgingTask();
+
+			expect(chain.scope.sequence.add).to.be.called;
+			expect(chain.forger.forge).to.be.called;
+		});
+	});
+
+	describe('#_startForging', () => {
+		beforeEach(async () => {
+			await chain.bootstrap();
+			sinonSandbox.stub(chain.forger, 'loadDelegates');
+		});
+
+		it('should load the delegates', async () => {
+			await chain._startForging();
+			expect(chain.forger.loadDelegates).to.be.called;
+		});
+
+		it('should register a task in Jobs Queue named "nextForge" with a designated interval', async () => {
+			await chain._startForging();
+
+			expect(stubs.jobsQueue.register).to.be.calledWith(
+				'nextForge',
+				sinonSandbox.match.func,
+				Chain.__get__('forgeInterval')
+			);
 		});
 	});
 });

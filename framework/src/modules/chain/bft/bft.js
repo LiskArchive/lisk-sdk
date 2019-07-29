@@ -14,11 +14,13 @@
 
 'use strict';
 
+const EventEmitter = require('events');
 const { FinalityManager } = require('./finality_manager');
 
 const META_KEYS = {
 	FINALIZED_HEIGHT: 'BFT.finalizedHeight',
 };
+const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
 
 const extractBFTBlockHeaderFromBlock = block => ({
 	blockId: block.id,
@@ -32,7 +34,7 @@ const extractBFTBlockHeaderFromBlock = block => ({
 /**
  * BFT class responsible to hold integration logic for finality manager with the framework
  */
-class BFT {
+class BFT extends EventEmitter {
 	/**
 	 * Create BFT module instance
 	 *
@@ -42,6 +44,7 @@ class BFT {
 	 * @param {integer} startingHeight - The height at which BFT finalization manager initialize
 	 */
 	constructor({ storage, logger, activeDelegates, startingHeight }) {
+		super();
 		this.finalityManager = null;
 
 		this.logger = logger;
@@ -148,6 +151,7 @@ class BFT {
 const exportedInterface = {
 	extractBFTBlockHeaderFromBlock,
 	BFT,
+	EVENT_BFT_BLOCK_FINALIZED,
 };
 
 module.exports = exportedInterface;

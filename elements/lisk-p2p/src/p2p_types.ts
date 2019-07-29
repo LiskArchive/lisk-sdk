@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -33,11 +33,6 @@ export interface P2PMessagePacket extends P2PPacket {
 }
 
 export interface P2PPenalty {}
-
-// Allows the user to provide custom fields.
-export interface P2PInfoOptions {
-	readonly [key: string]: unknown;
-}
 
 export interface P2PPeerInfo {
 	readonly ipAddress: string;
@@ -82,6 +77,7 @@ export interface P2PConfig {
 	readonly triedPeers?: ReadonlyArray<P2PDiscoveredPeerInfo>;
 	readonly nodeInfo: P2PNodeInfo;
 	readonly wsEngine?: string;
+	readonly wsMaxPayload?: number;
 	readonly discoveryInterval?: number;
 	readonly peerSelectionForSend?: P2PPeerSelectionForSendFunction;
 	readonly peerSelectionForRequest?: P2PPeerSelectionForRequestFunction;

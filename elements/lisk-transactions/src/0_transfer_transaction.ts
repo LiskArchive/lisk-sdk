@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -48,6 +48,7 @@ export const transferAssetFormatSchema = {
 export class TransferTransaction extends BaseTransaction {
 	public readonly asset: TransferAsset;
 	public static TYPE = 0;
+	public static FEE = TRANSFER_FEE.toString();
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
@@ -62,10 +63,6 @@ export class TransferTransaction extends BaseTransaction {
 		const { data } = this.asset;
 
 		return data ? Buffer.from(data, 'utf8') : Buffer.alloc(0);
-	}
-
-	public assetToJSON(): TransferAsset {
-		return this.asset;
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {
@@ -100,18 +97,6 @@ export class TransferTransaction extends BaseTransaction {
 					this.id,
 					'.amount',
 					this.amount.toString(),
-				),
-			);
-		}
-
-		if (!this.fee.eq(TRANSFER_FEE)) {
-			errors.push(
-				new TransactionError(
-					`Fee must be equal to ${TRANSFER_FEE}`,
-					this.id,
-					'.fee',
-					this.fee.toString(),
-					TRANSFER_FEE,
 				),
 			);
 		}

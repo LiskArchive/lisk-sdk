@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -45,6 +45,7 @@ function accountFormatter(totalSupply, account) {
 		'publicKey',
 		'balance',
 		'secondPublicKey',
+		'asset',
 	]);
 
 	if (account.isDelegate) {
@@ -100,7 +101,7 @@ AccountsController.getAccounts = async function(context, next) {
 		limit: params.limit.value,
 		offset: params.offset.value,
 		sort: params.sort.value,
-		extended: false,
+		extended: true,
 	};
 
 	// Remove filters with null values

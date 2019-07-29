@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -20,17 +20,16 @@ describe('systemDirs', () => {
 	it('Should return directories configuration with given app label.', () => {
 		// Arrange
 		const appLabel = 'LABEL';
-		const rootDir = process.cwd();
+		const tempPath = '/tmp/lisk';
 
 		// Act
-		const dirsObj = systemDirs(appLabel);
+		const dirsObj = systemDirs(appLabel, tempPath);
 
 		// Assert
 		expect(dirsObj).toEqual({
-			root: rootDir,
-			temp: `${rootDir}/tmp/${appLabel}/`,
-			sockets: `${rootDir}/tmp/${appLabel}/sockets`,
-			pids: `${rootDir}/tmp/${appLabel}/pids`,
+			temp: `${tempPath}/${appLabel}/`,
+			sockets: `${tempPath}/${appLabel}/sockets`,
+			pids: `${tempPath}/${appLabel}/pids`,
 		});
 	});
 });

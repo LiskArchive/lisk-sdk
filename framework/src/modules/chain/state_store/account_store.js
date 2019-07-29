@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -51,17 +51,19 @@ class AccountStore {
 	async cache(filter) {
 		const result = await this.account.get(filter, { extended: true }, this.tx);
 		this.data = _.uniqBy([...this.data, ...result], this.primaryKey);
-		return result;
+		return _.cloneDeep(this.data);
 	}
 
 	createSnapshot() {
-		this.originalData = _.clone(this.data);
-		this.updatedKeys = _.clone(this.updatedKeys);
+		this.originalData = _.cloneDeep(this.data);
+		this.updatedKeys = _.cloneDeep(this.updatedKeys);
 	}
 
 	restoreSnapshot() {
 		this.data = this.originalData;
-		this.updatedKeys = {};
+		this.updatedKeys = this.originalUpdatedKeys;
+		this.originalData = [];
+		this.originalUpdatedKeys = {};
 	}
 
 	get(primaryValue) {
@@ -73,7 +75,7 @@ class AccountStore {
 				`${this.name} with ${this.primaryKey} = ${primaryValue} does not exist`
 			);
 		}
-		return element;
+		return _.cloneDeep(element);
 	}
 
 	getOrDefault(primaryValue) {
@@ -91,7 +93,7 @@ class AccountStore {
 		const newElementIndex = this.data.push(defaultElement) - 1;
 		this.updatedKeys[newElementIndex] = Object.keys(defaultElement);
 
-		return defaultElement;
+		return _.cloneDeep(defaultElement);
 	}
 
 	find(fn) {
@@ -111,7 +113,7 @@ class AccountStore {
 
 		const updatedKeys = Object.entries(updatedElement).reduce(
 			(existingUpdatedKeys, [key, value]) => {
-				if (value !== this.data[elementIndex][key]) {
+				if (!_.isEqual(value, this.data[elementIndex][key])) {
 					existingUpdatedKeys.push(key);
 				}
 

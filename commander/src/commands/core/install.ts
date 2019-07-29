@@ -1,6 +1,6 @@
 /*
  * LiskHQ/lisk-commander
- * Copyright © 2017–2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -225,11 +225,12 @@ export default class InstallCommand extends BaseCommand {
 						{
 							title: 'Validate root user, flags, prerequisites',
 							task: async ctx => {
+								const { installDir, releaseUrl } = ctx.options;
 								validateNotARootUser();
 								validateFlags(flags as Flags);
-								validatePrerequisite(ctx.options.installDir);
+								validatePrerequisite(installDir);
 								if (liskVersion) {
-									await validateVersion(network, liskVersion);
+									await validateVersion(releaseUrl, liskVersion);
 									ctx.options.version = liskVersion;
 								}
 							},
@@ -239,7 +240,7 @@ export default class InstallCommand extends BaseCommand {
 							task: async ctx => {
 								const { liskTarUrl }: Options = ctx.options;
 
-								if (!noSnapshot) {
+								if (!noSnapshot && snapshotURL.trim() !== '') {
 									await download(snapshotURL, cacheDir);
 								}
 								await downloadAndValidate(liskTarUrl, cacheDir);

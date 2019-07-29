@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -56,7 +56,7 @@ class Controller {
 		this.initialState = initialState;
 		this.logger.info('Initializing controller');
 
-		const dirs = systemDirs(this.appLabel);
+		const dirs = systemDirs(this.appLabel, config.tempPath);
 		this.config = {
 			...config,
 			dirs,

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -29,7 +29,13 @@ const { bootstrapStorage, bootstrapCache } = require('./init_steps');
 const jobQueue = require('./utils/jobs_queue');
 const { Peers } = require('./peers');
 const { TransactionInterfaceAdapter } = require('./interface_adapters');
-const { TransactionPool } = require('./transaction_pool');
+const {
+	TransactionPool,
+	EVENT_MULTISIGNATURE_SIGNATURE,
+	EVENT_UNCONFIRMED_TRANSACTION,
+} = require('./transaction_pool');
+const { Dpos } = require('./dpos');
+const { EVENT_BFT_BLOCK_FINALIZED, BFT } = require('./bft');
 const { Rounds } = require('./rounds');
 const {
 	BlockSlots,
@@ -42,7 +48,6 @@ const {
 const { Loader } = require('./loader');
 const { Forger } = require('./forger');
 const { Transport } = require('./transport');
-const { BFT } = require('./bft');
 const { Synchronizer } = require('./synchronizer');
 
 const syncInterval = 10000;
@@ -358,6 +363,11 @@ module.exports = class Chain {
 				},
 			},
 		});
+		this.dpos = new Dpos({
+			storage: this.storage,
+			logger: this.logger,
+			slots: this.slots,
+		});
 		this.scope.modules.rounds = this.rounds;
 		this.blocks = new Blocks({
 			logger: this.logger,
@@ -471,33 +481,31 @@ module.exports = class Chain {
 		this.scope.modules.synchronizer = this.synchronizer;
 	}
 
+	async _syncTask() {
+		this.logger.info(
+			{
+				syncing: this.loader.syncing(),
+				lastReceipt: this.blocks.lastReceipt,
+			},
+			'Sync time triggered'
+		);
+		if (!this.loader.syncing() && this.blocks.isStale()) {
+			await this.scope.sequence.add(async () => {
+				try {
+					await this.loader.sync();
+				} catch (error) {
+					this.logger.error(error, 'Sync timer');
+				}
+			});
+		}
+	}
+
 	_startLoader() {
 		this.loader.loadTransactionsAndSignatures();
 		if (!this.options.syncing.active) {
 			return;
 		}
-		jobQueue.register(
-			'nextSync',
-			async () => {
-				this.logger.info(
-					{
-						syncing: this.loader.syncing(),
-						lastReceipt: this.blocks.lastReceipt,
-					},
-					'Sync time triggered'
-				);
-				if (!this.loader.syncing() && this.blocks.isStale()) {
-					await this.scope.sequence.add(async () => {
-						try {
-							await this.loader.sync();
-						} catch (error) {
-							this.logger.error(error, 'Sync timer');
-						}
-					});
-				}
-			},
-			syncInterval
-		);
+		jobQueue.register('nextSync', async () => this._syncTask(), syncInterval);
 	}
 
 	_calculateConsensus() {
@@ -513,15 +521,9 @@ module.exports = class Chain {
 		);
 	}
 
-	async _startForging() {
-		try {
-			await this.forger.loadDelegates();
-		} catch (err) {
-			this.logger.error(err, 'Failed to load delegates');
-		}
-		jobQueue.register(
-			'nextForge',
-			async () => {
+	async _forgingTask() {
+		return this.scope.sequence.add(async () => {
+			try {
 				await this.forger.beforeForge();
 				if (!this.forger.delegatesEnabled()) {
 					this.logger.debug('No delegates are enabled');
@@ -531,13 +533,22 @@ module.exports = class Chain {
 					this.logger.debug('Client not ready to forge');
 					return;
 				}
-				try {
-					await this.forger.forge();
-				} catch (error) {
-					this.logger.error(error);
-					throw error;
-				}
-			},
+				await this.forger.forge();
+			} catch (error) {
+				this.logger.error(error);
+			}
+		});
+	}
+
+	async _startForging() {
+		try {
+			await this.forger.loadDelegates();
+		} catch (err) {
+			this.logger.error(err, 'Failed to load delegates');
+		}
+		jobQueue.register(
+			'nextForge',
+			async () => this._forgingTask(),
 			forgeInterval
 		);
 	}
@@ -577,8 +588,28 @@ module.exports = class Chain {
 			}
 		});
 
+		this.transactionPool.on(EVENT_UNCONFIRMED_TRANSACTION, transaction => {
+			this.logger.trace(
+				{ transactionId: transaction.id },
+				'Received EVENT_UNCONFIRMED_TRANSACTION'
+			);
+			this.transport.onUnconfirmedTransaction(transaction, true);
+		});
+
 		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {
 			this.channel.invoke('app:updateApplicationState', { broadhash, height });
+		});
+
+		this.bft.on(EVENT_BFT_BLOCK_FINALIZED, ({ height }) => {
+			this.dpos.onBlockFinalized({ height });
+		});
+
+		this.transactionPool.on(EVENT_MULTISIGNATURE_SIGNATURE, signature => {
+			this.logger.trace(
+				{ signature },
+				'Received EVENT_MULTISIGNATURE_SIGNATURE'
+			);
+			this.transport.onSignature(signature, true);
 		});
 	}
 
@@ -586,5 +617,9 @@ module.exports = class Chain {
 		this.blocks.removeAllListeners(EVENT_BROADCAST_BLOCK);
 		this.blocks.removeAllListeners(EVENT_DELETE_BLOCK);
 		this.blocks.removeAllListeners(EVENT_NEW_BLOCK);
+		this.bft.removeAllListeners(EVENT_BFT_BLOCK_FINALIZED);
+		this.blocks.removeAllListeners(EVENT_NEW_BROADHASH);
+		this.blocks.removeAllListeners(EVENT_UNCONFIRMED_TRANSACTION);
+		this.blocks.removeAllListeners(EVENT_MULTISIGNATURE_SIGNATURE);
 	}
 };

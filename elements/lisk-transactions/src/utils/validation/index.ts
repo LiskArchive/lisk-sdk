@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -33,3 +33,4 @@ export {
 } from './validation';
 export { validateTransaction } from './validate_transaction';
 export { validator } from './validator';
+export { transactionInterface } from './schema';
