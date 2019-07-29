@@ -1,5 +1,6 @@
 ---
-title: 'Feature request'
+title: Feature request
+about: Propose an idea for new improvements/features
 ---
 
 ### Description
