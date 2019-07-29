@@ -348,17 +348,23 @@ class Loader {
 
 			return lastValidBlock.id === lastBlock.id;
 		} catch (loadBlocksFromNetworkErr) {
+			this.logger.debug(
+				loadBlocksFromNetworkErr instanceof Error
+					? loadBlocksFromNetworkErr
+					: new Error(loadBlocksFromNetworkErr),
+				'Chain recovery failed after failing to load blocks from the network'
+			);
 			if (this.peersModule.isPoorConsensus(this.blocksModule.broadhash)) {
 				this.logger.debug('Perform chain recovery due to poor consensus');
 				try {
 					await this.blocksModule.recoverChain();
 				} catch (recoveryError) {
 					throw new Error(
-						`Failed chain recovery after failing to load blocks while network consensus was low. ${recoveryError}`
+						`Chain recovery failed after failing to load blocks while network consensus was low. ${recoveryError}`
 					);
 				}
 				throw new Error(
-					'Failed chain recovery after failing to load blocks while network consensus was low.'
+					`Chain recovery failed chain recovery after failing to load blocks ${loadBlocksFromNetworkErr}`
 				);
 			}
 			this.logger.error(

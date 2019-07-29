@@ -71,8 +71,10 @@ describe('integration test (type 1) - double second signature registrations', ()
 
 	describe('after forging one block', () => {
 		before(done => {
-			localCommon.forge(library, async () => {
-				done();
+			localCommon.fillPool(library, () => {
+				localCommon.forge(library, async () => {
+					done();
+				});
 			});
 		});
 

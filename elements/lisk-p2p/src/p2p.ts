@@ -88,7 +88,6 @@ import {
 	EVENT_REQUEST_RECEIVED,
 	EVENT_UNBAN_PEER,
 	EVENT_UPDATED_PEER_INFO,
-	MAX_PEER_LIST_BATCH_SIZE,
 	PeerPool,
 } from './peer_pool';
 import { checkPeerCompatibility, sanitizePeerLists } from './validation';
@@ -121,14 +120,17 @@ export const DEFAULT_DISCOVERY_INTERVAL = 30000;
 export const DEFAULT_BAN_TIME = 86400;
 export const DEFAULT_POPULATOR_INTERVAL = 10000;
 export const DEFAULT_SEND_PEER_LIMIT = 25;
+export const DEFAULT_WS_MAX_PAYLOAD = 1048576; // Payload in bytes
 
 const BASE_10_RADIX = 10;
-const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
-const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
-const DEFAULT_OUTBOUND_SHUFFLE_INTERVAL = 300000;
-const DEFAULT_PEER_PROTECTION_FOR_LATENCY = 0.068;
-const DEFAULT_PEER_PROTECTION_FOR_USEFULNESS = 0.068;
-const DEFAULT_PEER_PROTECTION_FOR_LONGEVITY = 0.5;
+export const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
+export const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
+export const DEFAULT_OUTBOUND_SHUFFLE_INTERVAL = 300000;
+export const DEFAULT_PEER_PROTECTION_FOR_LATENCY = 0.068;
+export const DEFAULT_PEER_PROTECTION_FOR_USEFULNESS = 0.068;
+export const DEFAULT_PEER_PROTECTION_FOR_LONGEVITY = 0.5;
+export const DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD = 100;
+export const DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_SIZE = 1000;
 
 const selectRandomPeerSample = (
 	peerList: ReadonlyArray<P2PPeerInfo>,
@@ -203,7 +205,13 @@ export class P2P extends EventEmitter {
 		this._triedPeers = new Map();
 		this._bannedPeers = new Set();
 		this._httpServer = http.createServer();
-		this._scServer = attach(this._httpServer) as SCServerUpdated;
+		this._scServer = attach(this._httpServer, {
+			wsEngineServerOptions: {
+				maxPayload: config.wsMaxPayload
+					? config.wsMaxPayload
+					: DEFAULT_WS_MAX_PAYLOAD,
+			},
+		}) as SCServerUpdated;
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest) => {
@@ -370,6 +378,9 @@ export class P2P extends EventEmitter {
 		this._peerPool = new PeerPool({
 			connectTimeout: config.connectTimeout,
 			ackTimeout: config.ackTimeout,
+			wsMaxPayload: config.wsMaxPayload
+				? config.wsMaxPayload
+				: DEFAULT_WS_MAX_PAYLOAD,
 			peerSelectionForSend: config.peerSelectionForSend
 				? config.peerSelectionForSend
 				: selectPeersForSend,
@@ -722,8 +733,36 @@ export class P2P extends EventEmitter {
 	}
 
 	private _handleGetPeersRequest(request: P2PRequest): void {
-		// TODO later: Remove fields that are specific to the current Lisk protocol.
-		const peers = this._pickRandomPeers(MAX_PEER_LIST_BATCH_SIZE).map(
+		const minimumPeerDiscoveryThreshold = this._config
+			.minimumPeerDiscoveryThreshold
+			? this._config.minimumPeerDiscoveryThreshold
+			: DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD;
+		const maximumPeerDiscoveryResponseSize = this._config
+			.maximumPeerDiscoveryResponseSize
+			? this._config.maximumPeerDiscoveryResponseSize
+			: DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_SIZE;
+
+		// TODO: Get this from peerbook
+		const knownPeers = [
+			...this._newPeers.values(),
+			...this._triedPeers.values(),
+		];
+		/* tslint:disable no-magic-numbers*/
+		const min = Math.ceil(
+			Math.min(maximumPeerDiscoveryResponseSize, knownPeers.length * 0.25),
+		);
+		const max = Math.floor(
+			Math.min(maximumPeerDiscoveryResponseSize, knownPeers.length * 0.5),
+		);
+		const random = Math.floor(Math.random() * (max - min + 1) + min);
+		const randomPeerCount = Math.max(
+			random,
+			Math.min(minimumPeerDiscoveryThreshold, knownPeers.length),
+		);
+		/* tslint:enable no-magic-numbers*/
+
+		// TODO: Remove fields that are specific to the current Lisk protocol.
+		const peers = this._pickRandomPeers(randomPeerCount).map(
 			(peerInfo: P2PPeerInfo): ProtocolPeerInfo => {
 				const { ipAddress, ...peerInfoWithoutIp } = peerInfo;
 

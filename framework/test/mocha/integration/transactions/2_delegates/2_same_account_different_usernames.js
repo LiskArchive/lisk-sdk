@@ -79,8 +79,10 @@ describe('integration test (type 2) - double delegate registrations', () => {
 
 				describe('after forging one block', () => {
 					before(done => {
-						localCommon.forge(library, async () => {
-							done();
+						localCommon.fillPool(library, () => {
+							localCommon.forge(library, async () => {
+								done();
+							});
 						});
 					});
 

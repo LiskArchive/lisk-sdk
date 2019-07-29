@@ -24,7 +24,11 @@ import {
 	getDownloadedFileInfo,
 	dateDiff,
 } from '../../../src/utils/core/commons';
-import { NETWORK, RELEASE_URL } from '../../../src/utils/constants';
+import {
+	NETWORK,
+	RELEASE_URL,
+	SNAPSHOT_URL,
+} from '../../../src/utils/constants';
 import { defaultLiskInstancePath } from '../../../src/utils/core/config';
 import * as release from '../../../src/utils/core/release';
 import * as workerProcess from '../../../src/utils/worker-process';
@@ -117,6 +121,24 @@ describe('commons core utils', () => {
 				'http://snapshots.lisk.io.s3-eu-west-1.amazonaws.com/lisk/mainnet/blockchain.db.gz';
 			return expect(liskSnapshotUrl(url, NETWORK.MAINNET)).to.equal(url);
 		});
+
+		it('should return empty string if network is not testnet or mainnet', () => {
+			return [NETWORK.ALPHANET, NETWORK.BETANET, NETWORK.DEVNET].map(
+				network => {
+					expect(liskSnapshotUrl(SNAPSHOT_URL, network)).to.equal('');
+				},
+			);
+		});
+
+		it('should return custom snapshot url for dev/alpha/beta net if specified', () => {
+			const url: string =
+				'http://snapshots.lisk.io.s3-eu-west-1.amazonaws.com/lisk/mainnet/blockchain.db.gz';
+			return [NETWORK.ALPHANET, NETWORK.BETANET, NETWORK.DEVNET].map(
+				network => {
+					expect(liskSnapshotUrl(url, network)).to.equal(url);
+				},
+			);
+		});
 	});
 
 	describe('#logsDir', () => {
@@ -180,7 +202,7 @@ describe('commons core utils', () => {
 
 		it('should create directory if it does not exists', () => {
 			pathExistsSyncStub.returns(false);
-			ensureDirSync.returns();
+			ensureDirSync.returns(true);
 			return expect(createDirectory(defaultLiskInstancePath)).not.to.throw;
 		});
 	});
@@ -215,22 +237,15 @@ describe('commons core utils', () => {
 	});
 
 	describe('#backupLisk', () => {
-		let execStub: SinonStub;
+		let moveSyncStub: SinonStub;
 		beforeEach(() => {
-			sandbox.stub(fsExtra, 'emptyDirSync').returns();
-			execStub = sandbox.stub(workerProcess, 'exec');
+			sandbox.stub(fsExtra, 'removeSync').returns();
+			moveSyncStub = sandbox.stub(fsExtra, 'moveSync');
 		});
 
 		it('should backup the lisk installation', () => {
-			execStub.resolves({ stdout: '', stderr: null });
-			return expect(backupLisk(defaultLiskInstancePath)).not.to.throw;
-		});
-
-		it('should throw error of failed to backup', () => {
-			execStub.resolves({ stdout: null, stderr: 'failed to move' });
-			return expect(backupLisk(defaultLiskInstancePath)).rejectedWith(
-				'failed to move',
-			);
+			moveSyncStub.returns(true);
+			return expect(backupLisk(defaultLiskInstancePath, 'test')).not.to.throw;
 		});
 	});
 
@@ -267,39 +282,40 @@ describe('commons core utils', () => {
 
 		it('should throw if version is invalid', () => {
 			const invalidVersion = 'rc.1.0.0';
-			return expect(
-				validateVersion(NETWORK.MAINNET, invalidVersion),
-			).to.rejectedWith(
-				`Upgrade version: ${invalidVersion} has invalid format, Please refer version from release url: https://downloads.lisk.io/lisk/mainnet`,
+			return expect(validateVersion(url, invalidVersion)).to.rejectedWith(
+				`Upgrade version: ${invalidVersion} has invalid semver format`,
 			);
 		});
 
 		it('should throw if the requested version does not exists', () => {
 			releaseStub.rejects(new Error('Request failed with status code 404'));
 			const invalidVersion = '9.9.9';
-			return expect(
-				validateVersion(NETWORK.MAINNET, invalidVersion),
-			).to.rejectedWith(
-				`Upgrade version: ${invalidVersion} doesn't exists in https://downloads.lisk.io/lisk/mainnet`,
+			return expect(validateVersion(url, invalidVersion)).to.rejectedWith(
+				`Upgrade version: ${invalidVersion} doesn't exists in ${RELEASE_URL}`,
 			);
 		});
 
 		it('should throw if failed to get version', () => {
 			releaseStub.rejects(new Error('failed to get version'));
 			const invalidVersion = '9.9.9';
-			return expect(
-				validateVersion(NETWORK.MAINNET, invalidVersion),
-			).to.rejectedWith('failed to get version');
+			return expect(validateVersion(url, invalidVersion)).to.rejectedWith(
+				'failed to get version',
+			);
 		});
 
 		it('should successed for valid version', () => {
 			releaseStub.resolves('1.0.0');
-			return expect(validateVersion(NETWORK.MAINNET, '1.0.0')).not.to.throw;
+			return expect(validateVersion(url, '1.0.0')).not.to.throw;
 		});
 	});
 
 	describe('#getSemver', () => {
 		it('should extract version from url', () => {
+			expect(
+				getSemver(
+					'https://localhost/lisk-core/lisk-2.0.0-rc.1-Linux-x86_64.tar.gz',
+				),
+			).to.equal('2.0.0-rc.1');
 			return expect(getSemver(url)).to.equal('1.6.0-rc.4');
 		});
 	});

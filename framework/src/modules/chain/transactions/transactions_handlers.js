@@ -14,6 +14,7 @@
 
 'use strict';
 
+const BigNum = require('@liskhq/bignum');
 const {
 	Status: TransactionStatus,
 	TransactionError,
@@ -43,7 +44,72 @@ const validateTransactions = exceptions => transactions => {
 	};
 };
 
-const applyTransactions = (storage, exceptions) => async (transactions, tx) => {
+/**
+ * Verify user total spending
+ *
+ * One user can't spend more than its balance even thought if block contains
+ * credit transactions settling the balance. In one block total speding must be
+ * less than the total balance
+ *
+ * @param {Array.<Object>} transactions - List of transactions in a block
+ * @param {StateStore} stateStore - State store instance with prepared account
+ * @return {Array}
+ */
+const verifyTotalSpending = (transactions, stateStore) => {
+	const spendingErrors = [];
+
+	// Group the transactions per senderId to calculate total spending
+	const senderTransactions = transactions.reduce((rv, x) => {
+		(rv[x.senderId] = rv[x.senderId] || []).push(x);
+		return rv;
+	}, {});
+
+	// We need to get the transaction id which cause exceeding the sufficient balance
+	// So we can't sum up all transactions together at once
+	const senderSpending = {};
+	Object.keys(senderTransactions).forEach(senderId => {
+		// We don't need to perform spending check if account have only one transaction
+		// Its balance check will be performed by transaction processing
+		if (senderTransactions[senderId].length < 2) {
+			return;
+		}
+
+		// Grab the sender balance
+		const senderBalance = new BigNum(stateStore.account.get(senderId).balance);
+
+		// Initialize the sender spending with zero
+		senderSpending[senderId] = new BigNum(0);
+
+		senderTransactions[senderId].forEach(transaction => {
+			const senderTotalSpending = senderSpending[senderId]
+				.plus(transaction.amount)
+				.plus(transaction.fee);
+
+			if (senderBalance.lt(senderTotalSpending)) {
+				spendingErrors.push({
+					id: transaction.id,
+					status: TransactionStatus.FAIL,
+					errors: [
+						new TransactionError(
+							`Account does not have enough LSK for total spending. balance: ${senderBalance.toString()}, spending: ${senderTotalSpending.toString()}`,
+							transaction.id,
+							'.amount'
+						),
+					],
+				});
+			} else {
+				senderSpending[senderId] = senderTotalSpending;
+			}
+		});
+	});
+
+	return spendingErrors;
+};
+
+const applyGenesisTransactions = storage => async (
+	transactions,
+	tx = undefined
+) => {
 	// Get data required for verifying transactions
 	const stateStore = new StateStore(storage, {
 		mutate: true,
@@ -54,23 +120,73 @@ const applyTransactions = (storage, exceptions) => async (transactions, tx) => {
 
 	const transactionsResponses = transactions.map(transaction => {
 		const transactionResponse = transaction.apply(stateStore);
-		votes.apply(stateStore, transaction, this.exceptions);
+
+		votes.apply(stateStore, transaction);
 		stateStore.transaction.add(transaction);
+
+		// We are overriding the status of transaction because it's from genesis block
+		transactionResponse.status = TransactionStatus.OK;
 		return transactionResponse;
 	});
 
-	const unappliableTransactionsResponse = transactionsResponses.filter(
-		transactionResponse => transactionResponse.status !== TransactionStatus.OK
+	return {
+		transactionsResponses,
+		stateStore,
+	};
+};
+
+const applyTransactions = (storage, exceptions) => async (transactions, tx) => {
+	// Get data required for verifying transactions
+	const stateStore = new StateStore(storage, {
+		mutate: true,
+		tx,
+	});
+
+	await Promise.all(transactions.map(t => t.prepare(stateStore)));
+
+	// Verify total spending of per account accumulative
+	const transactionsResponseWithSpendingErrors = verifyTotalSpending(
+		transactions,
+		stateStore
 	);
 
-	updateTransactionResponseForExceptionTransactions(
-		unappliableTransactionsResponse,
-		transactions,
-		exceptions
+	const transactionsWithoutSpendingErrors = transactions.filter(
+		transaction =>
+			!transactionsResponseWithSpendingErrors
+				.map(({ id }) => id)
+				.includes(transaction.id)
+	);
+
+	const transactionsResponses = transactionsWithoutSpendingErrors.map(
+		transaction => {
+			stateStore.account.createSnapshot();
+			const transactionResponse = transaction.apply(stateStore);
+			if (transactionResponse.status !== TransactionStatus.OK) {
+				// update transaction response mutates the transaction response object
+				updateTransactionResponseForExceptionTransactions(
+					[transactionResponse],
+					transactionsWithoutSpendingErrors,
+					exceptions
+				);
+			}
+			if (transactionResponse.status === TransactionStatus.OK) {
+				votes.apply(stateStore, transaction);
+				stateStore.transaction.add(transaction);
+			}
+
+			if (transactionResponse.status !== TransactionStatus.OK) {
+				stateStore.account.restoreSnapshot();
+			}
+
+			return transactionResponse;
+		}
 	);
 
 	return {
-		transactionsResponses,
+		transactionsResponses: [
+			...transactionsResponses,
+			...transactionsResponseWithSpendingErrors,
+		],
 		stateStore,
 	};
 };
@@ -235,4 +351,5 @@ module.exports = {
 	undoTransactions,
 	verifyTransactions,
 	processSignature,
+	applyGenesisTransactions,
 };

@@ -257,6 +257,7 @@ describe('Integration tests for P2P library', () => {
 					}
 					await wait(100);
 
+					expect(collectedMessages).to.not.to.be.empty;
 					for (let receivedMessageData of collectedMessages) {
 						if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 							nodePortToMessagesMap[receivedMessageData.nodePort] = [];
@@ -266,6 +267,7 @@ describe('Integration tests for P2P library', () => {
 						);
 					}
 
+					expect(nodePortToMessagesMap).to.not.to.be.empty;
 					for (let receivedMessages of Object.values(
 						nodePortToMessagesMap,
 					) as any) {
@@ -328,6 +330,7 @@ describe('Integration tests for P2P library', () => {
 					}
 					await wait(100);
 
+					expect(collectedMessages).to.not.to.be.empty;
 					for (let receivedMessageData of collectedMessages) {
 						if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 							nodePortToMessagesMap[receivedMessageData.nodePort] = [];
@@ -337,6 +340,7 @@ describe('Integration tests for P2P library', () => {
 						);
 					}
 
+					expect(nodePortToMessagesMap).to.not.to.be.empty;
 					for (let receivedMessages of Object.values(
 						nodePortToMessagesMap,
 					) as any) {
@@ -347,6 +351,62 @@ describe('Integration tests for P2P library', () => {
 						expect(receivedMessages.length).to.be.lessThan(
 							expectedMessagesUpperBound,
 						);
+					}
+				});
+			});
+		});
+
+		describe('P2P.applyNodeInfo', () => {
+			it('should send the node info to a subset of peers within the network. It should update itself and reflect new values', async () => {
+				const firstP2PNode = p2pNodeList[0];
+
+				firstP2PNode.applyNodeInfo({
+					os: platform(),
+					nethash:
+						'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+					version: firstP2PNode.nodeInfo.version,
+					protocolVersion: '1.1',
+					wsPort: firstP2PNode.nodeInfo.wsPort,
+					height: 10,
+					options: firstP2PNode.nodeInfo.options,
+				});
+
+				await wait(100);
+
+				// For each peer of firstP2PNode, check that the firstP2PNode's P2PPeerInfo was updated with the new height.
+				p2pNodeList.slice(1).forEach(p2pNode => {
+					const networkStatus = p2pNode.getNetworkStatus();
+
+					const firstNodeInNewPeer = networkStatus.newPeers.find(
+						peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
+					);
+
+					const firstNodeInTriedPeer = networkStatus.triedPeers.find(
+						peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort,
+					);
+
+					// Check if the peerinfo is updated in new peer list
+					if (firstNodeInNewPeer) {
+						expect(firstNodeInNewPeer)
+							.to.have.property('height')
+							.which.equals(10);
+						expect(firstNodeInNewPeer)
+							.to.have.property('nethash')
+							.which.equals(
+								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+							);
+					}
+
+					// Check if the peerinfo is updated in tried peer list
+					if (firstNodeInTriedPeer) {
+						expect(firstNodeInTriedPeer)
+							.to.have.property('height')
+							.which.equals(10);
+						expect(firstNodeInTriedPeer)
+							.to.have.property('nethash')
+							.which.equals(
+								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+							);
 					}
 				});
 			});
@@ -635,6 +695,7 @@ describe('Integration tests for P2P library', () => {
 
 				await wait(100);
 
+				expect(collectedMessages).to.not.to.be.empty;
 				for (let receivedMessageData of collectedMessages) {
 					if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 						nodePortToMessagesMap[receivedMessageData.nodePort] = [];
@@ -644,6 +705,7 @@ describe('Integration tests for P2P library', () => {
 					);
 				}
 
+				expect(nodePortToMessagesMap).to.not.to.be.empty;
 				for (let receivedMessages of Object.values(
 					nodePortToMessagesMap,
 				) as any) {
@@ -1143,6 +1205,7 @@ describe('Integration tests for P2P library', () => {
 
 				await wait(100);
 
+				expect(collectedMessages).to.not.to.be.empty;
 				for (let receivedMessageData of collectedMessages) {
 					if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 						nodePortToMessagesMap[receivedMessageData.nodePort] = [];
@@ -1152,6 +1215,7 @@ describe('Integration tests for P2P library', () => {
 					);
 				}
 
+				expect(nodePortToMessagesMap).to.not.to.be.empty;
 				for (let receivedMessages of Object.values(
 					nodePortToMessagesMap,
 				) as any) {
@@ -1876,6 +1940,275 @@ describe('Integration tests for P2P library', () => {
 
 			it.skip('should not evict peers with low latency', async () => {});
 			it.skip('should not evict peers with high responseRate', async () => {});
+		});
+	});
+
+	describe('Fully connected network with a custom maximum payload', () => {
+		let dataLargerThanMaxPayload: Array<string>;
+
+		beforeEach(async () => {
+			dataLargerThanMaxPayload = [];
+			for (let i = 0; i < 6000; i++) {
+				dataLargerThanMaxPayload.push(`message${i}`);
+			}
+			p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
+				// Each node will have the previous node in the sequence as a seed peer except the first node.
+				const seedPeers = [
+					{
+						ipAddress: '127.0.0.1',
+						wsPort: NETWORK_START_PORT + ((index + 1) % NETWORK_PEER_COUNT),
+					},
+				];
+
+				const nodePort = NETWORK_START_PORT + index;
+
+				return new P2P({
+					blacklistedPeers: [],
+					connectTimeout: 200,
+					ackTimeout: 200,
+					seedPeers,
+					populatorInterval: 30,
+					maxOutboundConnections: 10,
+					maxInboundConnections: 30,
+					wsEngine: 'ws',
+					nodeInfo: {
+						wsPort: nodePort,
+						nethash:
+							'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+						version: '1.0.1',
+						protocolVersion: '1.1',
+						minVersion: '1.0.0',
+						os: platform(),
+						height: 0,
+						broadhash:
+							'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+						nonce: `O2wTkjqplHII${nodePort}`,
+					},
+					wsMaxPayload: 5000,
+				});
+			});
+
+			await Promise.all(p2pNodeList.map(async p2p => await p2p.start()));
+			await wait(300);
+		});
+
+		afterEach(async () => {
+			await Promise.all(
+				p2pNodeList
+					.filter(p2p => p2p.isActive)
+					.map(async p2p => await p2p.stop()),
+			);
+			await wait(100);
+		});
+
+		describe('P2P.send', () => {
+			let collectedMessages: Array<any> = [];
+			let closedPeers: Map<number, any>;
+
+			beforeEach(() => {
+				collectedMessages = [];
+				closedPeers = new Map();
+				p2pNodeList.forEach(p2p => {
+					p2p.on('messageReceived', message => {
+						collectedMessages.push({
+							nodePort: p2p.nodeInfo.wsPort,
+							message,
+						});
+					});
+
+					p2p.on('closeInbound', packet => {
+						let peers = [];
+						if (closedPeers.has(p2p.nodeInfo.wsPort)) {
+							peers = closedPeers.get(p2p.nodeInfo.wsPort);
+						}
+						peers.push(packet.peerInfo);
+						closedPeers.set(p2p.nodeInfo.wsPort, peers);
+					});
+
+					p2p.on('closeOutbound', packet => {
+						let peers = [];
+						if (closedPeers.has(p2p.nodeInfo.wsPort)) {
+							peers = closedPeers.get(p2p.nodeInfo.wsPort);
+						}
+						peers.push(packet.peerInfo);
+						closedPeers.set(p2p.nodeInfo.wsPort, peers);
+					});
+				});
+			});
+
+			it('should not send a package larger than the ws max payload', async () => {
+				const firstP2PNode = p2pNodeList[0];
+
+				firstP2PNode.send({
+					event: 'maxPayload',
+					data: dataLargerThanMaxPayload,
+				});
+				await wait(100);
+
+				expect(collectedMessages).to.be.empty;
+			});
+
+			it('should disconnect the peer which has sent the message', async () => {
+				const firstP2PNode = p2pNodeList[0];
+				firstP2PNode.send({
+					event: 'maxPayload',
+					data: dataLargerThanMaxPayload,
+				});
+
+				await wait(300);
+
+				const firstPeerDisconnectedList =
+					closedPeers.get(firstP2PNode.nodeInfo.wsPort) || [];
+				for (const p2pNode of p2pNodeList) {
+					const disconnectedList =
+						closedPeers.get(p2pNode.nodeInfo.wsPort) || [];
+					const wasFirstPeerDisconnected =
+						disconnectedList.some(
+							(peerInfo: any) => peerInfo.wsPort === 5000,
+						) ||
+						firstPeerDisconnectedList.some(
+							(peerInfo: any) => peerInfo.wsPort === p2pNode.nodeInfo.wsPort,
+						);
+					if (p2pNode.nodeInfo.wsPort === 5000) {
+						expect(disconnectedList.length).to.be.gte(9);
+					} else {
+						expect(wasFirstPeerDisconnected).to.be.true;
+					}
+				}
+			});
+		});
+	});
+
+	describe('Peer selection response to fetch peers RPC', () => {
+		const MINIMUM_PEER_DISCOVERY_THRESHOLD = 1;
+		const MAXIMUM_PEER_DISCOVERY_RESPONSE_SIZE = 3;
+
+		describe(`When minimum peer discovery threshold is set to ${MINIMUM_PEER_DISCOVERY_THRESHOLD}`, () => {
+			beforeEach(async () => {
+				p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
+					// Each node will have the previous node in the sequence as a seed peer except the first node.
+					const seedPeers =
+						index === 0
+							? []
+							: [
+									{
+										ipAddress: '127.0.0.1',
+										wsPort: NETWORK_START_PORT + index - 1,
+									},
+							  ];
+
+					const nodePort = NETWORK_START_PORT + index;
+
+					return new P2P({
+						connectTimeout: 10000,
+						ackTimeout: 200,
+						seedPeers,
+						wsEngine: 'ws',
+						populatorInterval: 10000,
+						maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
+						maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
+						minimumPeerDiscoveryThreshold: MINIMUM_PEER_DISCOVERY_THRESHOLD,
+						nodeInfo: {
+							wsPort: nodePort,
+							nethash:
+								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+							version: '1.0.1',
+							protocolVersion: '1.1',
+							minVersion: '1.0.0',
+							os: platform(),
+							height: 0,
+							broadhash:
+								'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+							nonce: `O2wTkjqplHII${nodePort}`,
+						},
+					});
+				});
+				// Launch nodes one at a time with a delay between each launch.
+				for (const p2p of p2pNodeList) {
+					await p2p.start();
+				}
+				await wait(200);
+			});
+
+			afterEach(async () => {
+				await Promise.all(
+					p2pNodeList
+						.filter(p2p => p2p.isActive)
+						.map(async p2p => await p2p.stop()),
+				);
+				await wait(100);
+			});
+
+			it('should return list of peers with at most the minimum discovery threshold', async () => {
+				const firstP2PNode = p2pNodeList[0];
+				const { newPeers } = firstP2PNode.getNetworkStatus();
+				expect(newPeers.length).to.be.at.most(MINIMUM_PEER_DISCOVERY_THRESHOLD);
+			});
+		});
+
+		describe(`When maximum peer discovery response size is set to ${MAXIMUM_PEER_DISCOVERY_RESPONSE_SIZE}`, () => {
+			beforeEach(async () => {
+				p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {
+					// Each node will have the previous node in the sequence as a seed peer except the first node.
+					const seedPeers =
+						index === 0
+							? []
+							: [
+									{
+										ipAddress: '127.0.0.1',
+										wsPort: NETWORK_START_PORT + index - 1,
+									},
+							  ];
+
+					const nodePort = NETWORK_START_PORT + index;
+
+					return new P2P({
+						connectTimeout: 10000,
+						ackTimeout: 200,
+						seedPeers,
+						wsEngine: 'ws',
+						populatorInterval: 10000,
+						maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
+						maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
+						maximumPeerDiscoveryResponseSize: MAXIMUM_PEER_DISCOVERY_RESPONSE_SIZE,
+						nodeInfo: {
+							wsPort: nodePort,
+							nethash:
+								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+							version: '1.0.1',
+							protocolVersion: '1.1',
+							minVersion: '1.0.0',
+							os: platform(),
+							height: 0,
+							broadhash:
+								'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+							nonce: `O2wTkjqplHII${nodePort}`,
+						},
+					});
+				});
+				// Launch nodes one at a time with a delay between each launch.
+				for (const p2p of p2pNodeList) {
+					await p2p.start();
+				}
+				await wait(200);
+			});
+
+			afterEach(async () => {
+				await Promise.all(
+					p2pNodeList
+						.filter(p2p => p2p.isActive)
+						.map(async p2p => await p2p.stop()),
+				);
+				await wait(100);
+			});
+
+			it('should return list of peers with less than maximum discovery response size', async () => {
+				const firstP2PNode = p2pNodeList[0];
+				const { newPeers } = firstP2PNode.getNetworkStatus();
+				expect(newPeers.length).to.be.lessThan(
+					MAXIMUM_PEER_DISCOVERY_RESPONSE_SIZE,
+				);
+			});
 		});
 	});
 });

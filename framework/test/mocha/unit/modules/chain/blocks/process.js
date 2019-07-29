@@ -49,7 +49,7 @@ describe('blocks/process', () => {
 	let dummyBlock;
 	let blocksVerifyStub;
 	let blocksChainStub;
-	let verifyTransactionsStub;
+	let applyTransactionsStub;
 	let checkAllowedTransactionsStub;
 	let exceptions;
 	let slots;
@@ -107,10 +107,10 @@ describe('blocks/process', () => {
 		sinonSandbox.stub(blocksLogic, 'objectNormalize').callsFake(input => input);
 		sinonSandbox.stub(blocksLogic, 'create').returns(dummyBlock);
 
-		verifyTransactionsStub = sinonSandbox.stub();
+		applyTransactionsStub = sinonSandbox.stub();
 		sinonSandbox
-			.stub(transactionsModule, 'verifyTransactions')
-			.returns(verifyTransactionsStub);
+			.stub(transactionsModule, 'applyTransactions')
+			.returns(applyTransactionsStub);
 		checkAllowedTransactionsStub = sinonSandbox.stub();
 		sinonSandbox
 			.stub(transactionsModule, 'checkAllowedTransactions')
@@ -284,7 +284,7 @@ describe('blocks/process', () => {
 		describe('when transaction is an empty array', () => {
 			describe('when query returns empty array', () => {
 				beforeEach(async () => {
-					verifyTransactionsStub.resolves({
+					applyTransactionsStub.resolves({
 						transactionsResponses: [],
 					});
 					checkAllowedTransactionsStub.returns({
@@ -328,10 +328,10 @@ describe('blocks/process', () => {
 					});
 				});
 
-				describe('transactions.verifyTransactions', () => {
+				describe('transactions.applyTransactions', () => {
 					describe('when transaction initializations fail', () => {
 						beforeEach(async () =>
-							verifyTransactionsStub.rejects(new Error('Invalid field types'))
+							applyTransactionsStub.rejects(new Error('Invalid field types'))
 						);
 
 						it('should call a callback with error', async () => {
@@ -348,9 +348,9 @@ describe('blocks/process', () => {
 						});
 					});
 
-					describe('when transactions verification fails', () => {
+					describe('when transactions processing fails', () => {
 						beforeEach(async () =>
-							verifyTransactionsStub.resolves({
+							applyTransactionsStub.resolves({
 								transactionsResponses: [
 									{ id: 1, status: 0, errors: [] },
 									{ id: 2, status: 0, errors: [] },
@@ -377,9 +377,9 @@ describe('blocks/process', () => {
 						});
 					});
 
-					describe('when transactions verification succeeds', () => {
+					describe('when transactions processing succeeds', () => {
 						beforeEach(async () => {
-							verifyTransactionsStub.resolves({
+							applyTransactionsStub.resolves({
 								transactionsResponses: [
 									{ id: 1, status: 1, errors: [] },
 									{ id: 2, status: 1, errors: [] },
@@ -408,7 +408,7 @@ describe('blocks/process', () => {
 
 					describe('when transactions pending', () => {
 						beforeEach(async () =>
-							verifyTransactionsStub.resolves({
+							applyTransactionsStub.resolves({
 								transactionsResponses: [{ id: 1, status: 2, errors: [] }],
 							})
 						);
@@ -456,7 +456,7 @@ describe('blocks/process', () => {
 						},
 					],
 				});
-				verifyTransactionsStub.resolves({
+				applyTransactionsStub.resolves({
 					transactionsResponses: [
 						{
 							id: sampleTransactons[0],
