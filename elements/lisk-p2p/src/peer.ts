@@ -425,10 +425,9 @@ export class Peer extends EventEmitter {
 				procedure: REMOTE_RPC_GET_ALL_PEERS_LIST,
 			});
 
-			return validatePeerInfoList(
-				response.data,
-				this._peerConfig.maxPeerListSize,
-			);
+			const fullPeerList = validatePeerInfoList(response.data);
+
+			return fullPeerList.slice(0, this._peerConfig.maxPeerListSize);
 		} catch (error) {
 			throw new RPCResponseError(
 				'Failed to fetch peer list of peer',
