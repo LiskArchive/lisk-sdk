@@ -3,7 +3,7 @@
 # Lisk SDK
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
-[![Join the chat at https://gitter.im/LiskHQ/lisk](https://badges.gitter.im/LiskHQ/lisk-sdk.svg)](https://gitter.im/LiskHQ/lisk-sdk?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://gitter.im/LiskHQ/lisk-sdk](https://badges.gitter.im/LiskHQ/lisk-sdk.svg)](https://gitter.im/LiskHQ/lisk-sdk?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Disclaimer - Mostly Harmless
 
