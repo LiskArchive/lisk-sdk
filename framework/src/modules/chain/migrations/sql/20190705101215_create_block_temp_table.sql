@@ -20,7 +20,7 @@
 */
 
 CREATE TABLE IF NOT EXISTS "block_temp" (
-	"id" character varying(20) NOT NULL,
-  "height" integer NOT NULL,
+	"id" VARCHAR(20) PRIMARY KEY,
+  "height" INT NOT NULL,
 	"fullBlock" jsonb NOT NULL
 );

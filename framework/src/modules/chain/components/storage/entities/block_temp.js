@@ -35,7 +35,7 @@ const sqlFiles = {
  * @typedef {Object} block_temp
  * @property {string} id
  * @property {number} height
- * @property {json} block
+ * @property {json} fullBlock
  */
 
 /**
