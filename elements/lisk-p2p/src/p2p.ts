@@ -27,7 +27,7 @@ interface SCServerUpdated extends SCServer {
 import {
 	constructPeerId,
 	constructPeerIdFromPeerInfo,
-	REMOTE_RPC_GET_MINIMAL_PEERS_LIST,
+	REMOTE_RPC_GET_BASIC_PEERS_LIST,
 } from './peer';
 
 import {
@@ -46,12 +46,12 @@ import {
 import { PeerInboundHandshakeError } from './errors';
 
 import {
+	P2PBasicPeerInfoList,
 	P2PCheckPeerCompatibility,
 	P2PClosePacket,
 	P2PConfig,
 	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
-	P2PMinimalPeerInfoList,
 	P2PNetworkStatus,
 	P2PNodeInfo,
 	P2PPeerInfo,
@@ -219,7 +219,7 @@ export class P2P extends EventEmitter {
 		this._handlePeerPoolRPC = (request: P2PRequest) => {
 			if (
 				request.procedure === REMOTE_RPC_GET_ALL_PEERS_LIST ||
-				request.procedure === REMOTE_RPC_GET_MINIMAL_PEERS_LIST
+				request.procedure === REMOTE_RPC_GET_BASIC_PEERS_LIST
 			) {
 				this._handleGetPeersRequest(request);
 			}
@@ -765,8 +765,8 @@ export class P2P extends EventEmitter {
 			Math.min(minimumPeerDiscoveryThreshold, knownPeers.length),
 		);
 
-		if (request.procedure === REMOTE_RPC_GET_MINIMAL_PEERS_LIST) {
-			const minimalPeers = this._pickRandomPeers(randomPeerCount).map(
+		if (request.procedure === REMOTE_RPC_GET_BASIC_PEERS_LIST) {
+			const basicPeers = this._pickRandomPeers(randomPeerCount).map(
 				(peerInfo: P2PPeerInfo): P2PPeerInfo =>
 					// Discovery process only require minmal peers data
 					({
@@ -774,9 +774,9 @@ export class P2P extends EventEmitter {
 						wsPort: peerInfo.wsPort,
 					}),
 			);
-			const peerInfoList: P2PMinimalPeerInfoList = {
+			const peerInfoList: P2PBasicPeerInfoList = {
 				success: true,
-				peers: minimalPeers,
+				peers: basicPeers,
 			};
 			request.end(peerInfoList);
 		} else {

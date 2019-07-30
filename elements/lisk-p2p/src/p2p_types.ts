@@ -193,7 +193,7 @@ export interface ProtocolPeerInfoList {
 	readonly success: boolean;
 }
 
-export interface P2PMinimalPeerInfoList {
+export interface P2PBasicPeerInfoList {
 	readonly peers: ReadonlyArray<P2PPeerInfo>;
 	readonly success: boolean;
 }
