@@ -57,6 +57,7 @@ import {
 	PeerConfig,
 } from './peer';
 import { discoverPeers } from './peer_discovery';
+import { getUniquePeersbyIp } from './peer_selection';
 
 export {
 	EVENT_CLOSE_OUTBOUND,
@@ -198,7 +199,7 @@ export class PeerPool extends EventEmitter {
 			(peer: Peer) => peer.peerInfo,
 		);
 		const selectedPeers = this._peerSelectForRequest({
-			peers: listOfPeerInfo,
+			peers: getUniquePeersbyIp(listOfPeerInfo),
 			nodeInfo: this._nodeInfo,
 			peerLimit: 1,
 			requestPacket: packet,
@@ -444,6 +445,10 @@ export class PeerPool extends EventEmitter {
 				peer.state.outbound === ConnectionState.CONNECTED ||
 				peer.state.inbound === ConnectionState.CONNECTED,
 		);
+	}
+
+	public getUniqueConnectedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
+		return getUniquePeersbyIp(this.getAllConnectedPeerInfos());
 	}
 
 	public getAllPeerInfos(): ReadonlyArray<P2PDiscoveredPeerInfo> {

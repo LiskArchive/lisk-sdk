@@ -375,6 +375,7 @@ export class P2P extends EventEmitter {
 			newPeers: [...this._newPeers.values()],
 			triedPeers: [...this._triedPeers.values()],
 			connectedPeers: this._peerPool.getAllConnectedPeerInfos(),
+			connectedUniquePeers: this._peerPool.getUniqueConnectedPeers(),
 		};
 	}
 
