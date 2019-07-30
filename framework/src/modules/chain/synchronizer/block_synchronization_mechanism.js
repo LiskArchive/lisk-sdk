@@ -78,9 +78,9 @@ class BlockSynchronizationMechanism {
 			finalizedBlock.timestamp
 		);
 		const currentBlockSlot = this.slots.getSlotNumber();
-		const THREE_ROUNDS = this.constants.activeDelegates * 3;
+		const threeRounds = this.constants.activeDelegates * 3;
 
-		return finalizedBlockSlot < currentBlockSlot - THREE_ROUNDS;
+		return finalizedBlockSlot < currentBlockSlot - threeRounds;
 	}
 
 	/**

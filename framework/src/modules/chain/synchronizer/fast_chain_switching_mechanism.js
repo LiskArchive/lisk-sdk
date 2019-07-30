@@ -44,8 +44,8 @@ class FastChainSwitchingMechanism {
 		const lastBlock = await this.storage.entities.Block.getLastBlock();
 
 		// 3. Step: Check whether B justifies fast chain switching mechanism
-		const TWO_ROUNDS = this.constants.activeDelegates * 2;
-		if (Math.abs(receivedBlock.height - lastBlock.height) > TWO_ROUNDS) {
+		const twoRounds = this.constants.activeDelegates * 2;
+		if (Math.abs(receivedBlock.height - lastBlock.height) > twoRounds) {
 			return false;
 		}
 

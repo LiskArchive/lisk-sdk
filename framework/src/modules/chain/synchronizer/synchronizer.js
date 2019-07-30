@@ -108,7 +108,7 @@ class Synchronizer {
 
 		if (!validMechanism) {
 			return this.logger.info(
-				"Can't determine sync mechanism at the moment for block",
+				'Sync mechanism could not be determined for the given block',
 				receivedBlock
 			);
 		}
