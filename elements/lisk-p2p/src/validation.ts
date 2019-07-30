@@ -104,7 +104,6 @@ export const validatePeerInfoList = (
 		throw new InvalidRPCResponseError('Invalid response type');
 	}
 	const { peers } = rawPeerInfoList as RPCPeerListResponse;
-
 	if (Array.isArray(peers)) {
 		const peerList = peers.map<P2PDiscoveredPeerInfo>(validatePeerInfo);
 
