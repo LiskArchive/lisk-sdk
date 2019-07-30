@@ -22,15 +22,15 @@ const {
 	entities: { BaseEntity },
 } = require('../../../../../../../../../src/components/storage');
 const {
-	BlockTemp,
+	TempBlock,
 } = require('../../../../../../../../../src/modules/chain/components/storage/entities');
 
 const { config } = require('../../shared');
 
-describe('BlockTemp', () => {
+describe('TempBlock', () => {
 	const storage = new StorageSandbox(
 		config.components.storage,
-		'lisk_test_chain_module_storage_block_temp'
+		'lisk_test_chain_module_storage_temp_block'
 	);
 	const validSQLs = ['create', 'delete', 'get'];
 	const validFields = ['id', 'height', 'fullBlock'];
@@ -51,7 +51,7 @@ describe('BlockTemp', () => {
 	];
 
 	let adapter;
-	let BlockTempEntity;
+	let TempBlockEntity;
 
 	const row1 = {
 		id: '6524861224470851795',
@@ -118,7 +118,7 @@ describe('BlockTemp', () => {
 		await storage.bootstrap();
 
 		adapter = storage.adapter;
-		BlockTempEntity = storage.entities.BlockTemp;
+		TempBlockEntity = storage.entities.TempBlock;
 	});
 
 	afterAll(async () => {
@@ -126,8 +126,8 @@ describe('BlockTemp', () => {
 	});
 
 	beforeEach(async () => {
-		await BlockTempEntity.create(row1);
-		await BlockTempEntity.create(row2);
+		await TempBlockEntity.create(row1);
+		await TempBlockEntity.create(row2);
 	});
 
 	afterEach(async () => {
@@ -135,52 +135,52 @@ describe('BlockTemp', () => {
 	});
 
 	it('should be a constructable function', async () => {
-		expect(BlockTemp.prototype.constructor).not.toBeNull();
-		expect(BlockTemp.prototype.constructor.name).toEqual('BlockTemp');
+		expect(TempBlock.prototype.constructor).not.toBeNull();
+		expect(TempBlock.prototype.constructor.name).toEqual('TempBlock');
 	});
 
 	it('should extend BaseEntity', async () => {
-		expect(BlockTemp.prototype instanceof BaseEntity).toBeTruthy();
+		expect(TempBlock.prototype instanceof BaseEntity).toBeTruthy();
 	});
 
 	describe('constructor()', () => {
 		it('should accept only one mandatory parameter', async () => {
-			expect(BlockTemp.prototype.constructor.length).toEqual(1);
+			expect(TempBlock.prototype.constructor.length).toEqual(1);
 		});
 
 		it('should have called super', async () => {
 			// The reasoning here is that if the parent's contstructor was called
 			// the properties from the parent are present in the extending object
-			expect(typeof BlockTempEntity.parseFilters).toEqual('function');
-			expect(typeof BlockTempEntity.addFilter).toEqual('function');
-			expect(typeof BlockTempEntity.addField).toEqual('function');
-			expect(typeof BlockTempEntity.getFilters).toEqual('function');
-			expect(typeof BlockTempEntity.getUpdateSet).toEqual('function');
-			expect(typeof BlockTempEntity.getValuesSet).toEqual('function');
-			expect(typeof BlockTempEntity.begin).toEqual('function');
-			expect(typeof BlockTempEntity.validateFilters).toEqual('function');
-			expect(typeof BlockTempEntity.validateOptions).toEqual('function');
+			expect(typeof TempBlockEntity.parseFilters).toEqual('function');
+			expect(typeof TempBlockEntity.addFilter).toEqual('function');
+			expect(typeof TempBlockEntity.addField).toEqual('function');
+			expect(typeof TempBlockEntity.getFilters).toEqual('function');
+			expect(typeof TempBlockEntity.getUpdateSet).toEqual('function');
+			expect(typeof TempBlockEntity.getValuesSet).toEqual('function');
+			expect(typeof TempBlockEntity.begin).toEqual('function');
+			expect(typeof TempBlockEntity.validateFilters).toEqual('function');
+			expect(typeof TempBlockEntity.validateOptions).toEqual('function');
 		});
 
 		it('should assign proper sql', async () => {
-			expect(Object.keys(BlockTempEntity.SQLs)).toEqual(validSQLs);
+			expect(Object.keys(TempBlockEntity.SQLs)).toEqual(validSQLs);
 		});
 
 		it('should call addField the exact number of times', async () => {
-			jest.spyOn(BlockTemp.prototype, 'addField');
-			new BlockTemp(adapter);
+			jest.spyOn(TempBlock.prototype, 'addField');
+			new TempBlock(adapter);
 
-			expect(BlockTemp.prototype.addField).toHaveBeenCalledTimes(
-				Object.keys(BlockTempEntity.fields).length
+			expect(TempBlock.prototype.addField).toHaveBeenCalledTimes(
+				Object.keys(TempBlockEntity.fields).length
 			);
 		});
 
 		it('should setup correct fields', async () => {
-			expect(Object.keys(BlockTempEntity.fields)).toEqual(validFields);
+			expect(Object.keys(TempBlockEntity.fields)).toEqual(validFields);
 		});
 
 		it('should setup specific filters', async () => {
-			expect(BlockTempEntity.getFilters()).toEqual(validFilters);
+			expect(TempBlockEntity.getFilters()).toEqual(validFilters);
 		});
 	});
 
@@ -188,33 +188,33 @@ describe('BlockTemp', () => {
 		const expectedResult = [row1, row2];
 
 		it('should return the all key value pairs without filters', async () => {
-			expect(await BlockTempEntity.get()).toEqual(expectedResult);
+			expect(await TempBlockEntity.get()).toEqual(expectedResult);
 		});
 
 		it('should return matching result with provided filters', async () => {
-			expect(await BlockTempEntity.get({ height: row1.height })).toEqual([
+			expect(await TempBlockEntity.get({ height: row1.height })).toEqual([
 				row1,
 			]);
 		});
 
 		it('should return empty array if no matching result found', async () => {
-			expect(await BlockTempEntity.get({ height: 3 })).toEqual([]);
+			expect(await TempBlockEntity.get({ height: 3 })).toEqual([]);
 		});
 	});
 
 	describe('getOne', () => {
 		it('should reject with error if provided without filters', async () => {
-			await expect(BlockTempEntity.getOne()).rejects.toThrow(
+			await expect(TempBlockEntity.getOne()).rejects.toThrow(
 				'Multiple rows were not expected.'
 			);
 		});
 
 		it('should return matching result with provided filters', async () => {
-			expect(await BlockTempEntity.getOne({ id: row1.id })).toEqual(row1);
+			expect(await TempBlockEntity.getOne({ id: row1.id })).toEqual(row1);
 		});
 
 		it('should reject with error if provided filter does not match', async () => {
-			await expect(BlockTempEntity.getOne({ height: 10 })).rejects.toThrow(
+			await expect(TempBlockEntity.getOne({ height: 10 })).rejects.toThrow(
 				'No data returned from the query.'
 			);
 		});
@@ -222,15 +222,15 @@ describe('BlockTemp', () => {
 
 	describe('delete', () => {
 		it('should delete the matching row from database', async () => {
-			await BlockTempEntity.delete({ height: row2.height });
+			await TempBlockEntity.delete({ height: row2.height });
 
-			expect(await BlockTempEntity.get()).toEqual([row1]);
+			expect(await TempBlockEntity.get()).toEqual([row1]);
 		});
 
 		it('should not throw error if no matching record found', async () => {
 			const height = 5;
 
-			await expect(BlockTempEntity.delete({ height })).resolves.toBeNull();
+			await expect(TempBlockEntity.delete({ height })).resolves.toBeNull();
 		});
 	});
 });

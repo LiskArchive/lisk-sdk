@@ -13,4 +13,4 @@
  */
 
 
-DELETE FROM block_temp ${parsedFilters:raw}
+DELETE FROM temp_block ${parsedFilters:raw}

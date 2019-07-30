@@ -21,7 +21,7 @@ const {
 	Round,
 	Transaction,
 	ChainMeta,
-	BlockTemp,
+	TempBlock,
 } = require('../components/storage/entities');
 
 module.exports = async ({ components: { storage, logger } }, accountLimit) => {
@@ -38,7 +38,7 @@ module.exports = async ({ components: { storage, logger } }, accountLimit) => {
 			replaceExisting: true,
 		});
 		storage.registerEntity('ChainMeta', ChainMeta);
-		storage.registerEntity('BlockTemp', BlockTemp);
+		storage.registerEntity('TempBlock', TempBlock);
 		const status = await storage.bootstrap();
 		if (!status) {
 			throw new Error('Can not bootstrap the storage component');

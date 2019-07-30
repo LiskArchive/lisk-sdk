@@ -118,7 +118,7 @@ describe('blocks/chain', () => {
 					create: sinonSandbox.stub(),
 					delete: sinonSandbox.stub(),
 				},
-				BlockTemp: {
+				TempBlock: {
 					create: sinonSandbox.stub(),
 				},
 				Transaction: {
@@ -738,13 +738,13 @@ describe('blocks/chain', () => {
 			}
 		});
 
-		it('should not create entry in the block_temp table in case of error', async () => {
+		it('should not create entry in the temp_block table in case of error', async () => {
 			try {
 				await blocksChain.deleteLastBlockAndStoreInTemp(
 					genesisBlockWithTransactions
 				);
 			} catch (err) {
-				expect(storageStub.entities.BlockTemp.create).to.not.be.called;
+				expect(storageStub.entities.TempBlock.create).to.not.be.called;
 			}
 		});
 
@@ -805,9 +805,9 @@ describe('blocks/chain', () => {
 			});
 
 			describe('when popLastBlock succeeds', () => {
-				it('call BlockTemp with correct params', async () => {
+				it('call TempBlock with correct params', async () => {
 					await blocksChain.deleteLastBlockAndStoreInTemp(block1);
-					expect(storageStub.entities.BlockTemp.create).to.be.calledWith({
+					expect(storageStub.entities.TempBlock.create).to.be.calledWith({
 						height: block1.height,
 						id: block1.id,
 						fullBlock: block1,

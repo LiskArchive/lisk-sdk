@@ -179,7 +179,7 @@ class BlocksChain {
 					height: parsedDeletedBlock.height,
 					fullBlock: parsedDeletedBlock,
 				};
-				await this.storage.entities.BlockTemp.create(blockTempEntry, {}, tx);
+				await this.storage.entities.TempBlock.create(blockTempEntry, {}, tx);
 				return previousBlock;
 			}
 		);

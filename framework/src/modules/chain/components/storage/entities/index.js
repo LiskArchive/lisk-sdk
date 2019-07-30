@@ -21,5 +21,5 @@ module.exports = {
 	Round: require('./round'),
 	Transaction: require('./transaction'),
 	ChainMeta: require('./chain_meta'),
-	BlockTemp: require('./block_temp.js'),
+	TempBlock: require('./temp_block.js'),
 };

@@ -25,14 +25,14 @@ const {
 } = require('../../../../../components/storage');
 
 const sqlFiles = {
-	create: 'block_temp/create.sql',
-	delete: 'block_temp/delete.sql',
-	get: 'block_temp/get.sql',
+	create: 'temp_block/create.sql',
+	delete: 'temp_block/delete.sql',
+	get: 'temp_block/get.sql',
 };
 
 /**
  * Block temp
- * @typedef {Object} block_temp
+ * @typedef {Object} temp_block
  * @property {string} id
  * @property {number} height
  * @property {json} fullBlock
@@ -56,7 +56,7 @@ const sqlFiles = {
  * @property {number} [height_in]
  */
 
-class BlockTemp extends BaseEntity {
+class TempBlock extends BaseEntity {
 	/**
 	 * Constructor
 	 * @param {BaseAdapter} adapter - Adapter to retrieve the data from
@@ -73,11 +73,11 @@ class BlockTemp extends BaseEntity {
 
 		this.sqlDirectory = path.join(path.dirname(__filename), '../sql');
 
-		this.SQLs = this.loadSQLFiles('block_temp', sqlFiles, this.sqlDirectory);
+		this.SQLs = this.loadSQLFiles('temp_block', sqlFiles, this.sqlDirectory);
 	}
 
 	/**
-	 * Create block_temp row entry
+	 * Create temp_block row entry
 	 *
 	 * @param {Object} data
 	 * @param {Object} [_options]
@@ -167,4 +167,4 @@ class BlockTemp extends BaseEntity {
 	}
 }
 
-module.exports = BlockTemp;
+module.exports = TempBlock;

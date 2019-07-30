@@ -12,8 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-INSERT INTO block_temp (
-	${fields:raw}
-) VALUES
-	${createSet:raw}
-;
+SELECT *  FROM temp_block
+
+${parsedFilters:raw}
+
+${parsedSort:raw}
+
+LIMIT ${limit} OFFSET ${offset}

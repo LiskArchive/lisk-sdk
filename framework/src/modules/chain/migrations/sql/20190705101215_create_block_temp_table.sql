@@ -19,7 +19,7 @@
   PARAMETERS: None
 */
 
-CREATE TABLE IF NOT EXISTS "block_temp" (
+CREATE TABLE IF NOT EXISTS "temp_block" (
 	"id" VARCHAR(20) PRIMARY KEY,
   "height" INT NOT NULL,
 	"fullBlock" jsonb NOT NULL
