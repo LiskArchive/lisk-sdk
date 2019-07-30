@@ -106,7 +106,7 @@ export const selectPeersForConnection = (
 
 	if (
 		input.peerLimit === undefined ||
-		input.peerLimit > input.triedPeers.length + input.newPeers.length
+		input.peerLimit >= input.triedPeers.length + input.newPeers.length
 	) {
 		return [...input.newPeers, ...input.triedPeers];
 	}
@@ -124,7 +124,7 @@ export const selectPeersForConnection = (
 	const shuffledNewPeers = shuffle(input.newPeers);
 
 	return [...Array(input.peerLimit)].map(() => {
-		if (input.triedPeers.length !== 0) {
+		if (shuffledTriedPeers.length !== 0) {
 			if (Math.random() < r) {
 				// With probability r
 				return shuffledTriedPeers.splice(0, 1)[0];

@@ -189,11 +189,11 @@ describe('peer selector', () => {
 				expect(selectedPeers)
 					.to.be.an('array')
 					.of.length(peerList.length);
-				expect(peerList).to.contain.members(selectedPeers);
+				expect(peerList).to.include.members(selectedPeers);
 			});
 		});
 
-		describe('when there is only newPeers', () => {
+		describe('when there are only newPeers', () => {
 			it('should return no undefined peers', () => {
 				const selectedPeers = selectPeersForConnection({
 					triedPeers: [],
@@ -203,11 +203,11 @@ describe('peer selector', () => {
 				expect(selectedPeers)
 					.to.be.an('array')
 					.of.length(3);
-				expect(peerList).to.contain.members(selectedPeers);
+				expect(peerList).to.include.members(selectedPeers);
 			});
 		});
 
-		describe('when there is only triedPeers', () => {
+		describe('when there are only triedPeers', () => {
 			it('should return no duplicates', () => {
 				const selectedPeers = selectPeersForConnection({
 					triedPeers: peerList,
@@ -222,6 +222,36 @@ describe('peer selector', () => {
 					const foundPeers = selectedPeers.filter(x => x === peer);
 					expect(foundPeers).to.have.length(1);
 				}
+			});
+		});
+
+		describe('when there are same number of peers as the limit', () => {
+			it('should return all peers', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: [peerList[0]],
+					newPeers: [peerList[1], peerList[2], peerList[3], peerList[4]],
+					peerLimit: peerList.length,
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
+					.of.length(peerList.length);
+				expect(peerList).to.include.members(selectedPeers);
+			});
+		});
+
+		describe('when there are more new peers than tried', () => {
+			it('should return both kind of peers', () => {
+				const triedPeers = [peerList[0], peerList[1]];
+				const newPeers = [peerList[2], peerList[3], peerList[4]];
+				const selectedPeers = selectPeersForConnection({
+					triedPeers,
+					newPeers,
+					peerLimit: 4,
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
+					.of.length(4);
+				expect(peerList).to.contain.members(selectedPeers);
 			});
 		});
 	});
