@@ -96,7 +96,7 @@ export const getUniquePeersbyIp = (
 ): ReadonlyArray<P2PDiscoveredPeerInfo> => {
 	const peerMap = new Map<string, P2PDiscoveredPeerInfo>();
 
-	peerList.forEach(peer => {
+	for (const peer of peerList) {
 		const tempPeer = peerMap.get(peer.ipAddress);
 		if (tempPeer) {
 			if (peer.height > tempPeer.height) {
@@ -105,7 +105,7 @@ export const getUniquePeersbyIp = (
 		} else {
 			peerMap.set(peer.ipAddress, peer);
 		}
-	});
+	}
 
 	return [...peerMap.values()];
 };
