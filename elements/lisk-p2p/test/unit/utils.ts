@@ -30,6 +30,9 @@ describe('utils', () => {
 	const privateAddress = '10.0.0.0';
 	const localAddress = '127.0.0.1';
 	const secret = 123456;
+	const MAX_GROUP_NUM = 255;
+	const MAX_TRIED_BUCKETS = 64;
+	const MAX_NEW_BUCKETS = 128;
 
 	describe('#getIPGroup', () => {
 		it('should return first group when passing 0 in second argument', () => {
@@ -199,6 +202,66 @@ describe('utils', () => {
 			});
 
 			return expect(firstBucket).to.not.eql(secondBucket);
+		});
+
+		it('should return the same bucket given random ip addresses in the same group for new peers', async () => {
+			const collectedBuckets = new Array(MAX_GROUP_NUM)
+				.fill(0)
+				.map(() => '61.26.254.' + Math.floor(Math.random() * 256))
+				.map(address =>
+					getBucket({
+						secret,
+						targetAddress: address,
+						peerType: PEER_TYPE.NEW_PEER,
+					}),
+				);
+			const firstBucket = collectedBuckets[0];
+			expect(collectedBuckets.every(bucket => bucket === firstBucket)).to.be
+				.true;
+		});
+
+		it('should return an even distribution of buckets given random ip addresses in different groups for new peers', async () => {
+			const expectedBucketLowerBound = MAX_NEW_BUCKETS * 0.5;
+			const expectedBucketUpperBound = MAX_NEW_BUCKETS * 1.5;
+			const collectedBuckets = new Array(MAX_GROUP_NUM)
+				.fill(0)
+				.map(() => `61.${Math.floor(Math.random() * 256)}.254.1`)
+				.map(address =>
+					getBucket({
+						secret,
+						targetAddress: address,
+						peerType: PEER_TYPE.NEW_PEER,
+					}),
+				);
+			const bucketAverage =
+				collectedBuckets.reduce(
+					(previousBucket, currentBucket) => previousBucket + currentBucket,
+					0,
+				) / collectedBuckets.length;
+			expect(bucketAverage).to.be.greaterThan(expectedBucketLowerBound);
+			expect(bucketAverage).to.be.lessThan(expectedBucketUpperBound);
+		});
+
+		it('should return an even distribution of buckets given random ip addresses in different groups for tried peers', async () => {
+			const expectedBucketLowerBound = MAX_TRIED_BUCKETS * 0.5;
+			const expectedBucketUpperBound = MAX_TRIED_BUCKETS * 1.5;
+			const collectedBuckets = new Array(MAX_GROUP_NUM)
+				.fill(0)
+				.map(() => `61.${Math.floor(Math.random() * 256)}.254.1`)
+				.map(address =>
+					getBucket({
+						secret,
+						targetAddress: address,
+						peerType: PEER_TYPE.TRIED_PEER,
+					}),
+				);
+			const bucketAverage =
+				collectedBuckets.reduce(
+					(previousBucket, currentBucket) => previousBucket + currentBucket,
+					0,
+				) / collectedBuckets.length;
+			expect(bucketAverage).to.be.greaterThan(expectedBucketLowerBound);
+			expect(bucketAverage).to.be.lessThan(expectedBucketUpperBound);
 		});
 	});
 });
