@@ -57,6 +57,7 @@ import {
 	PeerConfig,
 } from './peer';
 import { discoverPeers } from './peer_discovery';
+import { getUniquePeersbyIp } from './peer_selection';
 
 export {
 	EVENT_CLOSE_OUTBOUND,
@@ -90,25 +91,6 @@ const selectRandomPeerSample = (
 	peerList: ReadonlyArray<Peer>,
 	count: number,
 ): ReadonlyArray<Peer> => shuffle(peerList).slice(0, count);
-
-export const getUniquePeersbyIp = (
-	peerList: ReadonlyArray<P2PDiscoveredPeerInfo>,
-): ReadonlyArray<P2PDiscoveredPeerInfo> => {
-	const peerMap = new Map<string, P2PDiscoveredPeerInfo>();
-
-	for (const peer of peerList) {
-		const tempPeer = peerMap.get(peer.ipAddress);
-		if (tempPeer) {
-			if (peer.height > tempPeer.height) {
-				peerMap.set(peer.ipAddress, peer);
-			}
-		} else {
-			peerMap.set(peer.ipAddress, peer);
-		}
-	}
-
-	return [...peerMap.values()];
-};
 
 export class PeerPool extends EventEmitter {
 	private readonly _peerMap: Map<string, Peer>;

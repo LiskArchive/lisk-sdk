@@ -31,11 +31,30 @@ interface HistogramValues {
 	max: number;
 }
 
+export const getUniquePeersbyIp = (
+	peerList: ReadonlyArray<P2PDiscoveredPeerInfo>,
+): ReadonlyArray<P2PDiscoveredPeerInfo> => {
+	const peerMap = new Map<string, P2PDiscoveredPeerInfo>();
+
+	for (const peer of peerList) {
+		const tempPeer = peerMap.get(peer.ipAddress);
+		if (tempPeer) {
+			if (peer.height > tempPeer.height) {
+				peerMap.set(peer.ipAddress, peer);
+			}
+		} else {
+			peerMap.set(peer.ipAddress, peer);
+		}
+	}
+
+	return [...peerMap.values()];
+};
+
 /* tslint:enable: readonly-keyword */
 export const selectPeersForRequest = (
 	input: P2PPeerSelectionForRequestInput,
 ): ReadonlyArray<P2PDiscoveredPeerInfo> => {
-	const {peers, nodeInfo} = input;
+	const { peers, nodeInfo } = input;
 	const peerLimit = input.peerLimit;
 	const nodeHeight = nodeInfo ? nodeInfo.height : 0;
 	const filteredPeers = peers.filter(
