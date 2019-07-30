@@ -91,6 +91,35 @@ const selectRandomPeerSample = (
 	count: number,
 ): ReadonlyArray<Peer> => shuffle(peerList).slice(0, count);
 
+export const getUniquePeersbyIp = (
+	peerList: ReadonlyArray<P2PDiscoveredPeerInfo>,
+): ReadonlyArray<P2PDiscoveredPeerInfo> =>
+	peerList.reduce(
+		(
+			uniquePeers: ReadonlyArray<P2PDiscoveredPeerInfo>,
+			peer: P2PDiscoveredPeerInfo,
+		) => {
+			const peerExist = uniquePeers.find(
+				uniquePeer => uniquePeer.ipAddress === peer.ipAddress,
+			);
+
+			if (peerExist) {
+				if (peerExist.height > peer.height) {
+					const filterList = uniquePeers.filter(
+						uniquePeer => uniquePeer.ipAddress !== peer.ipAddress,
+					);
+
+					return [...filterList, peerExist];
+				}
+
+				return uniquePeers;
+			}
+
+			return [...uniquePeers, peer];
+		},
+		[],
+	);
+
 export class PeerPool extends EventEmitter {
 	private readonly _peerMap: Map<string, Peer>;
 	private readonly _peerPoolConfig: PeerPoolConfig;
@@ -198,7 +227,7 @@ export class PeerPool extends EventEmitter {
 			(peer: Peer) => peer.peerInfo,
 		);
 		const selectedPeers = this._peerSelectForRequest({
-			peers: listOfPeerInfo,
+			peers: getUniquePeersbyIp(listOfPeerInfo),
 			nodeInfo: this._nodeInfo,
 			peerLimit: 1,
 			requestPacket: packet,
@@ -441,6 +470,10 @@ export class PeerPool extends EventEmitter {
 				peer.state.outbound === ConnectionState.CONNECTED ||
 				peer.state.inbound === ConnectionState.CONNECTED,
 		);
+	}
+
+	public getUniqueConnectedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
+		return getUniquePeersbyIp(this.getAllConnectedPeerInfos());
 	}
 
 	public getAllPeerInfos(): ReadonlyArray<P2PDiscoveredPeerInfo> {
