@@ -119,13 +119,53 @@ describe('peer selector', () => {
 		const peerList = initializePeerInfoList();
 		const numberOfPeers = peerList.length;
 
-		describe('get all the peers for selection', () => {
-			it('should return all the peers given as argument for connection', () => {
-				const selectedPeers = selectPeersForConnection({ peers: peerList });
+		describe('when peerLimit is undefined', () => {
+			it('should return all peers given as argument for connection', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: peerList,
+					newPeers: [],
+				});
 				expect(selectedPeers)
 					.to.be.an('array')
 					.of.length(numberOfPeers);
-				return expect(peerList).to.have.members(selectedPeers);
+				return expect(peerList).to.deep.eq(selectedPeers);
+			});
+		});
+
+		describe('when peerLimit is zero', () => {
+			it('should not return any peer', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: peerList,
+					newPeers: [],
+					peerLimit: 0,
+				});
+				expect(selectedPeers).to.be.an('array').empty;
+			});
+		});
+
+		describe('when peerLimit is one', () => {
+			it('should return a single peer', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: peerList,
+					newPeers: [],
+					peerLimit: 1,
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
+					.of.length(1);
+			});
+		});
+
+		describe('when peerLimit is more than one', () => {
+			it('should return more than one', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: peerList,
+					newPeers: [],
+					peerLimit: 3,
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
+					.of.length(3);
 			});
 		});
 	});

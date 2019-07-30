@@ -1075,7 +1075,7 @@ describe('Integration tests for P2P library', () => {
 		// Custom Peer selection for connection that returns all the peers
 		const peerSelectionForConnection: P2PPeerSelectionForConnectionFunction = (
 			input: P2PPeerSelectionForConnectionInput,
-		) => input.peers;
+		) => [...input.newPeers, ...input.triedPeers];
 
 		beforeEach(async () => {
 			p2pNodeList = [...new Array(NETWORK_PEER_COUNT).keys()].map(index => {

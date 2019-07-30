@@ -104,5 +104,22 @@ export const selectPeersForConnection = (
 		return [];
 	}
 
-	return shuffle(input.peers).slice(0, input.peerLimit);
+	if (input.peerLimit === undefined) {
+		return [...input.newPeers, ...input.triedPeers];
+	}
+
+	const x =
+		input.triedPeers.length / (input.triedPeers.length + input.newPeers.length);
+	// tslint:disable-next-line: no-magic-numbers
+	const r = Math.max(x, 0.5);
+
+	return [...Array(input.peerLimit)].map(() => {
+		if (Math.random() < r) {
+			// With probability r
+			return shuffle(input.triedPeers)[0];
+		}
+
+		// With probability 1-r
+		return shuffle(input.newPeers)[0];
+	});
 };
