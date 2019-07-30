@@ -206,5 +206,23 @@ describe('peer selector', () => {
 				expect(peerList).to.contain.members(selectedPeers);
 			});
 		});
+
+		describe('when there is only triedPeers', () => {
+			it('should return no duplicates', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: peerList,
+					newPeers: [],
+					peerLimit: 4,
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
+					.of.length(4);
+				expect(peerList).to.contain.members(selectedPeers);
+				for (const peer of selectedPeers) {
+					const foundPeers = selectedPeers.filter(x => x === peer);
+					expect(foundPeers).to.have.length(1);
+				}
+			});
+		});
 	});
 });

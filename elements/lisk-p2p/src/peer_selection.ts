@@ -120,15 +120,18 @@ export const selectPeersForConnection = (
 	// tslint:disable-next-line: no-magic-numbers
 	const r = Math.max(x, 0.5);
 
+	const shuffledTriedPeers = shuffle(input.triedPeers);
+	const shuffledNewPeers = shuffle(input.newPeers);
+
 	return [...Array(input.peerLimit)].map(() => {
 		if (input.triedPeers.length !== 0) {
 			if (Math.random() < r) {
 				// With probability r
-				return shuffle(input.triedPeers)[0];
+				return shuffledTriedPeers.splice(0, 1)[0];
 			}
 		}
 
 		// With probability 1-r
-		return shuffle(input.newPeers)[0];
+		return shuffledNewPeers.splice(0, 1)[0];
 	});
 };
