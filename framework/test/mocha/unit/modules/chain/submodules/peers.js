@@ -254,7 +254,7 @@ describe('peers', () => {
 		});
 	});
 
-	describe('consolidateConnectedPeersBasedOnPort', () => {
+	describe('getUniquePeersbyIp', () => {
 		const samplePeers = [
 			{
 				ipAddress: '127.0.0.1',
@@ -290,14 +290,12 @@ describe('peers', () => {
 			},
 		];
 
-		const consolidateConnectedPeersBasedOnPort = rewire(
+		const getUniquePeersbyIp = rewire(
 			'../../../../../../src/modules/chain/submodules/peers'
-		).__get__('consolidateConnectedPeersBasedOnPort');
+		).__get__('getUniquePeersbyIp');
 
 		it('should return only 3 peers with no duplicates', async () => {
-			const consolidatedPeers = consolidateConnectedPeersBasedOnPort(
-				samplePeers
-			);
+			const consolidatedPeers = getUniquePeersbyIp(samplePeers);
 			const expectedPeers = [
 				{
 					ipAddress: '127.0.0.1',
@@ -323,7 +321,7 @@ describe('peers', () => {
 		});
 
 		it('should return blank array for peer list of zero length', async () => {
-			const consolidatedPeers = consolidateConnectedPeersBasedOnPort([]);
+			const consolidatedPeers = getUniquePeersbyIp([]);
 			expect(consolidatedPeers).to.be.eql([]);
 		});
 	});
