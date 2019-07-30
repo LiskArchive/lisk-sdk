@@ -122,20 +122,6 @@ describe('peers', () => {
 	});
 
 	describe('calculateConsensus', () => {
-		let samplePeers = [
-			{
-				ipAddress: '127.0.0.1',
-				wsPort: 5000,
-				height: 234,
-				broadhash: prefixedPeer.broadhash,
-			},
-			{
-				ipAddress: '127.0.0.2',
-				wsPort: 5000,
-				height: 234,
-				broadhash: prefixedPeer.broadhash,
-			},
-		];
 		let calculateConsensusResult;
 
 		beforeEach(async () => {
@@ -163,8 +149,13 @@ describe('peers', () => {
 		describe('when all CONNECTED peers match our broadhash', () => {
 			before(async () => {
 				channelMock.invoke
-					.withArgs('network:getConnectedPeers')
-					.returns(samplePeers);
+					.withArgs('network:getConnectedPeersCountByFilter')
+					.returns(2);
+				channelMock.invoke
+					.withArgs('network:getConnectedPeersCountByFilter', {
+						broadhash: prefixedPeer.broadhash,
+					})
+					.returns(2);
 			});
 
 			it('should set self.consensus value', async () =>
@@ -172,12 +163,23 @@ describe('peers', () => {
 					calculateConsensusResult
 				));
 
-			it('should call channel invoke only once', async () =>
-				expect(channelMock.invoke.calledOnce).to.be.true);
+			it('should call channel invoke twice', async () =>
+				expect(channelMock.invoke.calledTwice).to.be.true);
 
-			it('should call channel invoke with action network:getConnectedPeers', async () =>
+			it('should call channel invoke with action network:getConnectedPeersCountByFilter', async () =>
 				expect(
-					channelMock.invoke.calledWithExactly('network:getConnectedPeers', {})
+					channelMock.invoke.calledWithExactly(
+						'network:getConnectedPeersCountByFilter',
+						{}
+					)
+				).to.be.true);
+
+			it('should call channel invoke with action network:getConnectedPeersCountByFilter and filter broadhash', async () =>
+				expect(
+					channelMock.invoke.calledWithExactly(
+						'network:getConnectedPeersCountByFilter',
+						{ broadhash: prefixedPeer.broadhash }
+					)
 				).to.be.true);
 
 			it('should return consensus as a number', async () =>
@@ -189,140 +191,18 @@ describe('peers', () => {
 
 		describe('when half of connected peers match our broadhash', () => {
 			before(async () => {
-				samplePeers = [
-					{
-						ipAddress: '127.0.0.1',
-						wsPort: 5000,
-						height: 234,
-						broadhash: prefixedPeer.broadhash,
-					},
-					{
-						ipAddress: '127.0.0.2',
-						wsPort: 5000,
-						height: 234,
-						broadhash:
-							'198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783h',
-					},
-				];
-
 				channelMock.invoke
-					.withArgs('network:getConnectedPeers')
-					.returns(samplePeers);
+					.withArgs('network:getConnectedPeersCountByFilter')
+					.returns(2);
+				channelMock.invoke
+					.withArgs('network:getConnectedPeersCountByFilter', {
+						broadhash: prefixedPeer.broadhash,
+					})
+					.returns(1);
 			});
 
 			it('should return consensus = 50', async () =>
 				expect(calculateConsensusResult).to.equal(50));
-		});
-
-		describe('when there are duplicate ips in connected peers list', () => {
-			before(async () => {
-				samplePeers = [
-					{
-						ipAddress: '127.0.0.1',
-						wsPort: 5000,
-						height: 234,
-						broadhash: prefixedPeer.broadhash,
-					},
-					{
-						ipAddress: '127.0.0.2',
-						wsPort: 5000,
-						height: 234,
-						broadhash: prefixedPeer.broadhash,
-					},
-					{
-						ipAddress: '127.0.0.2',
-						wsPort: 5000,
-						height: 233,
-						broadhash:
-							'198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783h',
-					},
-					{
-						ipAddress: '127.0.0.3',
-						wsPort: 5000,
-						height: 234,
-						broadhash: prefixedPeer.broadhash,
-					},
-				];
-
-				channelMock.invoke
-					.withArgs('network:getConnectedPeers')
-					.returns(samplePeers);
-			});
-
-			it('should return consensus = 50 and only take one ip port with higher height', async () =>
-				expect(calculateConsensusResult).to.equal(100));
-		});
-	});
-
-	describe('getUniquePeersbyIp', () => {
-		const samplePeers = [
-			{
-				ipAddress: '127.0.0.1',
-				wsPort: 5000,
-				height: 234,
-				broadhash: prefixedPeer.broadhash,
-			},
-			{
-				ipAddress: '127.0.0.2',
-				wsPort: 5000,
-				height: 234,
-				broadhash: prefixedPeer.broadhash,
-			},
-			{
-				ipAddress: '127.0.0.2',
-				wsPort: 5000,
-				height: 233,
-				broadhash:
-					'198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783h',
-			},
-			{
-				ipAddress: '127.0.0.2',
-				wsPort: 5000,
-				height: 232,
-				broadhash:
-					'198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783i',
-			},
-			{
-				ipAddress: '127.0.0.3',
-				wsPort: 5000,
-				height: 234,
-				broadhash: prefixedPeer.broadhash,
-			},
-		];
-
-		const getUniquePeersbyIp = rewire(
-			'../../../../../../src/modules/chain/submodules/peers'
-		).__get__('getUniquePeersbyIp');
-
-		it('should return only 3 peers with no duplicates', async () => {
-			const consolidatedPeers = getUniquePeersbyIp(samplePeers);
-			const expectedPeers = [
-				{
-					ipAddress: '127.0.0.1',
-					wsPort: 5000,
-					height: 234,
-					broadhash: prefixedPeer.broadhash,
-				},
-				{
-					ipAddress: '127.0.0.2',
-					wsPort: 5000,
-					height: 234,
-					broadhash: prefixedPeer.broadhash,
-				},
-				{
-					ipAddress: '127.0.0.3',
-					wsPort: 5000,
-					height: 234,
-					broadhash: prefixedPeer.broadhash,
-				},
-			];
-
-			expect(consolidatedPeers).to.be.eql(expectedPeers);
-		});
-
-		it('should return blank array for peer list of zero length', async () => {
-			const consolidatedPeers = getUniquePeersbyIp([]);
-			expect(consolidatedPeers).to.be.eql([]);
 		});
 	});
 });
