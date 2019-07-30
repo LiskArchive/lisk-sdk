@@ -1000,7 +1000,8 @@ describe('Integration tests for P2P library', () => {
 					maxOutboundConnections: DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 					maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
 					rateCalculationInterval: 100,
-					wsMaxMessageRate: 110,
+					// For the third node, make the message rate limit higher.
+					wsMaxMessageRate: index == 2 ? 100000 : 110,
 					nodeInfo: {
 						wsPort: nodePort,
 						nethash:
@@ -1081,7 +1082,6 @@ describe('Integration tests for P2P library', () => {
 				});
 
 				const targetPeerId = `127.0.0.1:${secondP2PNode.nodeInfo.wsPort}`;
-				const failedToSendErrors: Array<Error> = [];
 
 				for (let i = 0; i < TOTAL_SENDS; i++) {
 					await wait(1);
@@ -1093,9 +1093,7 @@ describe('Integration tests for P2P library', () => {
 							},
 							targetPeerId,
 						);
-					} catch (error) {
-						failedToSendErrors.push(error);
-					}
+					} catch (error) {}
 				}
 
 				await wait(100);
@@ -1159,6 +1157,39 @@ describe('Integration tests for P2P library', () => {
 
 				expect(lastRate).to.be.gt(ratePerSecondLowerBound);
 				expect(lastRate).to.be.lt(ratePerSecondUpperBound);
+			});
+
+			it('should disconnect the peer if it tries to send responses at a rate above wsMaxMessageRate', async () => {
+				const TOTAL_SENDS = 300;
+				const firstP2PNode = p2pNodeList[0];
+				const thirdP2PNode = p2pNodeList[2];
+
+				const removedPeers: Array<string> = [];
+
+				firstP2PNode.on(EVENT_REMOVE_PEER, peerId => {
+					removedPeers.push(peerId);
+				});
+
+				const targetPeerId = `127.0.0.1:${thirdP2PNode.nodeInfo.wsPort}`;
+
+				for (let i = 0; i < TOTAL_SENDS; i++) {
+					await wait(1);
+					(async () => {
+						try {
+							await firstP2PNode.requestFromPeer(
+								{
+									procedure: 'proc',
+									data: 123456,
+								},
+								targetPeerId,
+							);
+						} catch (error) {}
+					})();
+				}
+
+				await wait(100);
+
+				expect(removedPeers).to.contain('127.0.0.1:5002');
 			});
 		});
 	});
