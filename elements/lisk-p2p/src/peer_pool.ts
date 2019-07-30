@@ -93,32 +93,22 @@ const selectRandomPeerSample = (
 
 export const getUniquePeersbyIp = (
 	peerList: ReadonlyArray<P2PDiscoveredPeerInfo>,
-): ReadonlyArray<P2PDiscoveredPeerInfo> =>
-	peerList.reduce(
-		(
-			uniquePeers: ReadonlyArray<P2PDiscoveredPeerInfo>,
-			peer: P2PDiscoveredPeerInfo,
-		) => {
-			const peerExist = uniquePeers.find(
-				uniquePeer => uniquePeer.ipAddress === peer.ipAddress,
-			);
+): ReadonlyArray<P2PDiscoveredPeerInfo> => {
+	const peerMap = new Map<string, P2PDiscoveredPeerInfo>();
 
-			if (peerExist) {
-				if (peerExist.height > peer.height) {
-					const filterList = uniquePeers.filter(
-						uniquePeer => uniquePeer.ipAddress !== peer.ipAddress,
-					);
-
-					return [...filterList, peerExist];
-				}
-
-				return uniquePeers;
+	peerList.forEach(peer => {
+		const tempPeer = peerMap.get(peer.ipAddress);
+		if (tempPeer) {
+			if (peer.height > tempPeer.height) {
+				peerMap.set(peer.ipAddress, peer);
 			}
+		} else {
+			peerMap.set(peer.ipAddress, peer);
+		}
+	});
 
-			return [...uniquePeers, peer];
-		},
-		[],
-	);
+	return [...peerMap.values()];
+};
 
 export class PeerPool extends EventEmitter {
 	private readonly _peerMap: Map<string, Peer>;
