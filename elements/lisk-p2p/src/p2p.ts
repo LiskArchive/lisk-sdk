@@ -645,7 +645,6 @@ export class P2P extends EventEmitter {
 		count: number,
 	): ReadonlyArray<P2PDiscoveredPeerInfo> {
 		const discoveredPeerList: ReadonlyArray<P2PDiscoveredPeerInfo> = [
-			...this._newPeers.values(),
 			...this._triedPeers.values(),
 		]; // Peers whose values has been updated atleast once.
 
