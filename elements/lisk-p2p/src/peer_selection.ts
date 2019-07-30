@@ -114,9 +114,11 @@ export const selectPeersForConnection = (
 	const r = Math.max(x, 0.5);
 
 	return [...Array(input.peerLimit)].map(() => {
-		if (Math.random() < r) {
-			// With probability r
-			return shuffle(input.triedPeers)[0];
+		if (input.triedPeers.length !== 0) {
+			if (Math.random() < r) {
+				// With probability r
+				return shuffle(input.triedPeers)[0];
+			}
 		}
 
 		// With probability 1-r

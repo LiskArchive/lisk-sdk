@@ -168,5 +168,19 @@ describe('peer selector', () => {
 					.of.length(3);
 			});
 		});
+
+		describe('when there is only newPeers', () => {
+			it('should return no undefined peers', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: [],
+					newPeers: peerList,
+					peerLimit: 3,
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
+					.of.length(3);
+				expect(peerList).to.contain.members(selectedPeers);
+			});
+		});
 	});
 });
