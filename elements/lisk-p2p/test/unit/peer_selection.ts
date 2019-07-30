@@ -179,6 +179,20 @@ describe('peer selector', () => {
 			});
 		});
 
+		describe('when peerLimit is larger than the number of existing peers', () => {
+			it('should return all peers given as argument for connection', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: peerList,
+					newPeers: [],
+					peerLimit: peerList.length + 1,
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
+					.of.length(peerList.length);
+				expect(peerList).to.contain.members(selectedPeers);
+			});
+		});
+
 		describe('when there is only newPeers', () => {
 			it('should return no undefined peers', () => {
 				const selectedPeers = selectPeersForConnection({

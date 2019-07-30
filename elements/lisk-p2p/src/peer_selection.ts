@@ -104,7 +104,10 @@ export const selectPeersForConnection = (
 		return [];
 	}
 
-	if (input.peerLimit === undefined) {
+	if (
+		input.peerLimit === undefined ||
+		input.peerLimit > input.triedPeers.length + input.newPeers.length
+	) {
 		return [...input.newPeers, ...input.triedPeers];
 	}
 
