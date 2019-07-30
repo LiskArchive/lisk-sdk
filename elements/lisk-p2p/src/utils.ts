@@ -190,16 +190,13 @@ export const getBucket = (options: {
 
 	// New peers: b = Hash(random_secret, source_group, k) % 128
 	// Tried peers: b = Hash(random_secret, group, k) % 64
-	const bucketBytes =
-		peerType === PEER_TYPE.NEW_PEER
-			? Buffer.concat([secretBytes, networkBytes, kBytes])
-			: Buffer.concat([
-					secretBytes,
-					networkBytes,
-					targetABytes,
-					targetBBytes,
-					kBytes,
-			  ]);
+	const bucketBytes = Buffer.concat([
+		secretBytes,
+		networkBytes,
+		targetABytes,
+		targetBBytes,
+		kBytes,
+	]);
 
 	return hash(bucketBytes).readUInt32BE(0) % secondMod;
 };
