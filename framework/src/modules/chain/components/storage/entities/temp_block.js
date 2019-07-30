@@ -35,17 +35,17 @@ const sqlFiles = {
  * @typedef {Object} temp_block
  * @property {string} id
  * @property {number} height
- * @property {json} fullBlock
+ * @property {object} fullBlock
  */
 
 /**
  * Round Filters
  * @typedef {Object} filters.Round
- * @property {number} [id],
- * @property {string} [id_eql],
- * @property {string} [id_ne],
- * @property {string} [id_in],
- * @property {string} [id_like],
+ * @property {number} [id]
+ * @property {string} [id_eql]
+ * @property {string} [id_ne]
+ * @property {string} [id_in]
+ * @property {string} [id_like]
  * @property {number} [height]
  * @property {number} [height_eql]
  * @property {number} [height_ne]
@@ -88,7 +88,7 @@ class TempBlock extends BaseEntity {
 	create({ height, id, fullBlock }, _options = {}, tx = null) {
 		assert(height && Number.isInteger(height), 'height must be a number');
 		assert(id && typeof id === 'string', 'id must be a string');
-		assert(typeof fullBlock === 'object', 'block must be an object');
+		assert(fullBlock instanceof Object, 'block must be an object');
 
 		const attributes = Object.keys(this.fields);
 		const fields = Object.keys(this.fields)
