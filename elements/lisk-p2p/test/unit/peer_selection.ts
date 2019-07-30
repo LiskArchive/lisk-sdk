@@ -119,6 +119,16 @@ describe('peer selector', () => {
 		const peerList = initializePeerInfoList();
 		const numberOfPeers = peerList.length;
 
+		describe('when there are no peers', () => {
+			it('should return empty array', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: [],
+					newPeers: [],
+				});
+				expect(selectedPeers).to.be.an('array').empty;
+			});
+		});
+
 		describe('when peerLimit is undefined', () => {
 			it('should return all peers given as argument for connection', () => {
 				const selectedPeers = selectPeersForConnection({

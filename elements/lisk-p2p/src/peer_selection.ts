@@ -108,6 +108,10 @@ export const selectPeersForConnection = (
 		return [...input.newPeers, ...input.triedPeers];
 	}
 
+	if (input.triedPeers.length === 0 && input.newPeers.length === 0) {
+		return [];
+	}
+
 	const x =
 		input.triedPeers.length / (input.triedPeers.length + input.newPeers.length);
 	// tslint:disable-next-line: no-magic-numbers
