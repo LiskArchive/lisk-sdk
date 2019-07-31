@@ -15,7 +15,6 @@
 import { expect } from 'chai';
 import { NewPeers } from '../../../src/peer_directory/new_peers';
 import { initializePeerInfoList } from '../../utils/peers';
-import { constructPeerIdFromPeerInfo } from '../../../src/utils';
 import { P2PPeerInfo } from '../../../src/p2p_types';
 
 describe.only('newPeer', () => {
@@ -50,8 +49,7 @@ describe.only('newPeer', () => {
 		});
 
 		it('should add the incoming peer when it does not exist already', async () => {
-			expect(newPeersList.findPeer(constructPeerIdFromPeerInfo(samplePeers[0])))
-				.to.be.true;
+			expect(newPeersList.findPeer(samplePeers[0])).to.be.true;
 		});
 
 		it('should not add the incoming peer if it exists', async () => {
@@ -94,8 +92,7 @@ describe.only('newPeer', () => {
 
 		it('should remove the peer from the incoming peerInfo', async () => {
 			newPeersList.removePeer(samplePeers[0]);
-			expect(newPeersList.findPeer(constructPeerIdFromPeerInfo(samplePeers[0])))
-				.to.be.false;
+			expect(newPeersList.findPeer(samplePeers[0])).to.be.false;
 		});
 	});
 
@@ -111,9 +108,7 @@ describe.only('newPeer', () => {
 
 		describe('when peer exists in the triedPeers peerMap', () => {
 			it('should get the peer from the incoming peerId', async () => {
-				expect(
-					newPeersList.getPeer(constructPeerIdFromPeerInfo(samplePeers[0])),
-				)
+				expect(newPeersList.getPeer(samplePeers[0]))
 					.to.be.an('object')
 					.and.eql(samplePeers[0]);
 			});
@@ -122,8 +117,7 @@ describe.only('newPeer', () => {
 		describe('when peer does not exist in the triedPeers peerMap', () => {
 			const randomPeer = initializePeerInfoList()[2];
 			it('should return undefined for the given peer that does not exist in peerMap', async () => {
-				expect(newPeersList.getPeer(constructPeerIdFromPeerInfo(randomPeer))).to
-					.be.undefined;
+				expect(newPeersList.getPeer(randomPeer)).to.be.undefined;
 			});
 		});
 	});
@@ -148,9 +142,7 @@ describe.only('newPeer', () => {
 
 				const success = newPeersList.updatePeer(updatedPeer);
 				expect(success).to.be.true;
-				expect(
-					newPeersList.getPeer(constructPeerIdFromPeerInfo(samplePeers[0])),
-				).to.be.eql(updatedPeer);
+				expect(newPeersList.getPeer(samplePeers[0])).to.be.eql(updatedPeer);
 			});
 		});
 
@@ -180,9 +172,7 @@ describe.only('newPeer', () => {
 
 		describe('when the peer exist', () => {
 			it('should find the peer from the incoming peerInfo', async () => {
-				const success = newPeersList.findPeer(
-					constructPeerIdFromPeerInfo(samplePeers[0]),
-				);
+				const success = newPeersList.findPeer(samplePeers[0]);
 				expect(success).to.be.true;
 			});
 		});

@@ -225,7 +225,7 @@ export class TriedPeers {
 		const bucketId = getBucket({
 			secret: this._secret,
 			peerType: PEER_TYPE.TRIED_PEER,
-			targetAddress: peerInfo.ipAddress,
+			targetAddress: incomingPeerInfo.ipAddress,
 		});
 
 		const bucket = this._triedPeerMap.get(bucketId);
