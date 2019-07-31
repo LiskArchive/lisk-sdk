@@ -32,7 +32,11 @@ describe('inbound_peer', () => {
 		on: sandbox.stub(),
 	} as any);
 
-	const defaultPeer = new InboundPeer(defaultPeerInfo, socket);
+	const defaultPeer = new InboundPeer(defaultPeerInfo, socket, {
+		rateCalculationInterval: 1000,
+		wsMaxMessageRate: 1000,
+		wsMaxMessageRatePenalty: 10,
+	});
 
 	describe('#constructor', () => {
 		it('should be an object', () => {

@@ -69,5 +69,10 @@ export const initializePeerInfoList = (): ReadonlyArray<
 
 export const initializePeerList = (): ReadonlyArray<Peer> =>
 	initializePeerInfoList().map(
-		(peerInfo: P2PDiscoveredPeerInfo) => new Peer(peerInfo),
+		(peerInfo: P2PDiscoveredPeerInfo) =>
+			new Peer(peerInfo, {
+				rateCalculationInterval: 1000,
+				wsMaxMessageRate: 1000,
+				wsMaxMessageRatePenalty: 10,
+			}),
 	);

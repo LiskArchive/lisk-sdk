@@ -48,7 +48,7 @@ export class InboundPeer extends Peer {
 	public constructor(
 		peerInfo: P2PDiscoveredPeerInfo,
 		peerSocket: SCServerSocket,
-		peerConfig?: PeerConfig,
+		peerConfig: PeerConfig,
 	) {
 		super(peerInfo, peerConfig);
 		this._handleInboundSocketError = (error: Error) => {
@@ -93,6 +93,7 @@ export class InboundPeer extends Peer {
 	): void {
 		inboundSocket.on('close', this._handleInboundSocketClose);
 		inboundSocket.on('error', this._handleInboundSocketError);
+		inboundSocket.on('message', this._handleWSMessage);
 
 		// Bind RPC and remote event handlers
 		inboundSocket.on(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);
@@ -113,6 +114,7 @@ export class InboundPeer extends Peer {
 		inboundSocket: SCServerSocket,
 	): void {
 		inboundSocket.off('close', this._handleInboundSocketClose);
+		inboundSocket.off('message', this._handleWSMessage);
 
 		// Unbind RPC and remote event handlers
 		inboundSocket.off(REMOTE_EVENT_RPC_REQUEST, this._handleRawRPC);

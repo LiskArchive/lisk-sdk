@@ -102,6 +102,9 @@ export interface P2PConfig {
 	readonly productivityProtectionRatio?: number;
 	readonly longevityProtectionRatio?: number;
 	readonly hostIp?: string;
+	readonly wsMaxMessageRate?: number;
+	readonly wsMaxMessageRatePenalty?: number;
+	readonly rateCalculationInterval?: number;
 	readonly minimumPeerDiscoveryThreshold?: number;
 	readonly maximumPeerDiscoveryResponseSize?: number;
 }

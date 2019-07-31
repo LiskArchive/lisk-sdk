@@ -28,7 +28,11 @@ describe('peer', () => {
 		protocolVersion: '1.1',
 	};
 
-	const defaultPeer = new Peer(defaultPeerInfo);
+	const defaultPeer = new Peer(defaultPeerInfo, {
+		rateCalculationInterval: 1000,
+		wsMaxMessageRate: 1000,
+		wsMaxMessageRatePenalty: 10,
+	});
 
 	describe('#constructor', () => {
 		it('should be an object', () => {

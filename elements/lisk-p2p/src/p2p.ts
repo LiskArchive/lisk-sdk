@@ -84,6 +84,7 @@ import {
 	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_OUTBOUND_SOCKET_ERROR,
+	EVENT_REMOVE_PEER,
 	EVENT_REQUEST_RECEIVED,
 	EVENT_UNBAN_PEER,
 	EVENT_UPDATED_PEER_INFO,
@@ -98,6 +99,7 @@ export {
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_DISCOVERED_PEER,
 	EVENT_FAILED_TO_PUSH_NODE_INFO,
+	EVENT_REMOVE_PEER,
 	EVENT_REQUEST_RECEIVED,
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_OUTBOUND_SOCKET_ERROR,
@@ -119,6 +121,10 @@ export const DEFAULT_DISCOVERY_INTERVAL = 30000;
 export const DEFAULT_BAN_TIME = 86400;
 export const DEFAULT_POPULATOR_INTERVAL = 10000;
 export const DEFAULT_SEND_PEER_LIMIT = 25;
+// Max rate of WebSocket messages per second per peer.
+export const DEFAULT_WS_MAX_MESSAGE_RATE = 100;
+export const DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY = 10;
+export const DEFAULT_RATE_CALCULATION_INTERVAL = 1000;
 export const DEFAULT_WS_MAX_PAYLOAD = 1048576; // Payload in bytes
 
 const BASE_10_RADIX = 10;
@@ -169,6 +175,7 @@ export class P2P extends EventEmitter {
 	private readonly _handlePeerCloseInbound: (
 		closePacket: P2PClosePacket,
 	) => void;
+	private readonly _handleRemovePeer: (peerId: string) => void;
 	private readonly _handlePeerInfoUpdate: (
 		peerInfo: P2PDiscoveredPeerInfo,
 	) => void;
@@ -269,6 +276,11 @@ export class P2P extends EventEmitter {
 		this._handlePeerCloseInbound = (closePacket: P2PClosePacket) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CLOSE_INBOUND, closePacket);
+		};
+
+		this._handleRemovePeer = (peerId: string) => {
+			// Re-emit the message to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_REMOVE_PEER, peerId);
 		};
 
 		this._handlePeerInfoUpdate = (peerInfo: P2PDiscoveredPeerInfo) => {
@@ -417,6 +429,18 @@ export class P2P extends EventEmitter {
 				typeof config.longevityProtectionRatio === 'number'
 					? config.longevityProtectionRatio
 					: DEFAULT_PEER_PROTECTION_FOR_LONGEVITY,
+			wsMaxMessageRate:
+				typeof config.wsMaxMessageRate === 'number'
+					? config.wsMaxMessageRate
+					: DEFAULT_WS_MAX_MESSAGE_RATE,
+			wsMaxMessageRatePenalty:
+				typeof config.wsMaxMessageRatePenalty === 'number'
+					? config.wsMaxMessageRatePenalty
+					: DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY,
+			rateCalculationInterval:
+				typeof config.rateCalculationInterval === 'number'
+					? config.rateCalculationInterval
+					: DEFAULT_RATE_CALCULATION_INTERVAL,
 		});
 
 		this._bindHandlersToPeerPool(this._peerPool);
@@ -834,6 +858,7 @@ export class P2P extends EventEmitter {
 		);
 		peerPool.on(EVENT_CLOSE_INBOUND, this._handlePeerCloseInbound);
 		peerPool.on(EVENT_CLOSE_OUTBOUND, this._handlePeerCloseOutbound);
+		peerPool.on(EVENT_REMOVE_PEER, this._handleRemovePeer);
 		peerPool.on(EVENT_UPDATED_PEER_INFO, this._handlePeerInfoUpdate);
 		peerPool.on(
 			EVENT_FAILED_PEER_INFO_UPDATE,

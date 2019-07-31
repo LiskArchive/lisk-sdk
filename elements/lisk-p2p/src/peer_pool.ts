@@ -98,10 +98,14 @@ interface PeerPoolConfig {
 	readonly latencyProtectionRatio: number;
 	readonly productivityProtectionRatio: number;
 	readonly longevityProtectionRatio: number;
+	readonly wsMaxMessageRate: number;
+	readonly wsMaxMessageRatePenalty: number;
+	readonly rateCalculationInterval: number;
 }
 
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
 export const MAX_PEER_DISCOVERY_PROBE_SAMPLE_SIZE = 100;
+export const EVENT_REMOVE_PEER = 'removePeer';
 
 export enum PROTECTION_CATEGORY {
 	LATENCY = 'latency',
@@ -399,6 +403,9 @@ export class PeerPool extends EventEmitter {
 		const peerConfig = {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
+			wsMaxMessageRate: this._peerPoolConfig.wsMaxMessageRate,
+			wsMaxMessageRatePenalty: this._peerPoolConfig.wsMaxMessageRatePenalty,
+			rateCalculationInterval: this._peerPoolConfig.rateCalculationInterval,
 		};
 		const peer = new InboundPeer(peerInfo, socket, peerConfig);
 
@@ -425,6 +432,9 @@ export class PeerPool extends EventEmitter {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
 			banTime: this._peerPoolConfig.peerBanTime,
+			wsMaxMessageRate: this._peerPoolConfig.wsMaxMessageRate,
+			wsMaxMessageRatePenalty: this._peerPoolConfig.wsMaxMessageRatePenalty,
+			rateCalculationInterval: this._peerPoolConfig.rateCalculationInterval,
 			wsMaxPayload: this._peerPoolConfig.wsMaxPayload,
 		};
 		const peer = new OutboundPeer(peerInfo, peerConfig);
@@ -517,6 +527,8 @@ export class PeerPool extends EventEmitter {
 			peer.disconnect();
 			this._unbindHandlersFromPeer(peer);
 		}
+
+		this.emit(EVENT_REMOVE_PEER, peerId);
 
 		return this._peerMap.delete(peerId);
 	}
