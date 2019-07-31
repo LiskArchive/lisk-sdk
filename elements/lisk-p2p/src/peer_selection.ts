@@ -131,7 +131,11 @@ export const selectPeersForConnection = (
 			}
 		}
 
-		// With probability 1-r
-		return shuffledNewPeers.splice(0, 1)[0];
+		if (shuffledNewPeers.length !== 0) {
+			// With probability 1-r
+			return shuffledNewPeers.splice(0, 1)[0];
+		}
+
+		return shuffledTriedPeers.splice(0, 1)[0];
 	});
 };

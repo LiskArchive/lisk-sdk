@@ -194,7 +194,7 @@ describe('peer selector', () => {
 		});
 
 		describe('when there are only newPeers', () => {
-			it('should return no undefined peers', () => {
+			it('should not return undefined peers', () => {
 				const selectedPeers = selectPeersForConnection({
 					triedPeers: [],
 					newPeers: peerList,
@@ -252,6 +252,22 @@ describe('peer selector', () => {
 					.to.be.an('array')
 					.of.length(4);
 				expect(peerList).to.contain.members(selectedPeers);
+			});
+		});
+
+		describe('when there are same number of new and tried peers', () => {
+			it('should not return undefined peers', () => {
+				const triedPeers = [peerList[0], peerList[1]];
+				const newPeers = [peerList[2], peerList[3]];
+				const selectedPeers = selectPeersForConnection({
+					triedPeers,
+					newPeers,
+					peerLimit: 3,
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
+					.of.length(3);
+				expect(peerList).to.include.members(selectedPeers);
 			});
 		});
 	});
