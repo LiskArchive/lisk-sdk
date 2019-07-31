@@ -49,7 +49,7 @@
 	},
 	"dependencies": {
 		"@liskhq/lisk-cryptography": "2.1.1",
-		"@liskhq/lisk-p2p": "0.1.2",
+		"@liskhq/lisk-p2p": "0.1.3",
 		"@liskhq/lisk-transaction-pool": "0.1.2",
 		"@liskhq/lisk-transactions": "2.2.0",
 		"ajv": "6.7.0",
