@@ -727,12 +727,12 @@ export class P2P extends EventEmitter {
 		}
 		this._populatorIntervalId = setInterval(() => {
 			this._peerPool.triggerNewConnections(
-				[...this._peerBook.newPeers, ...this._peerBook.triedPeers],
+				this._peerBook.getAllPeers(),
 				this._sanitizedPeerLists.fixedPeers || [],
 			);
 		}, this._populatorInterval);
 		this._peerPool.triggerNewConnections(
-			[...this._peerBook.newPeers, ...this._peerBook.triedPeers],
+			this._peerBook.getAllPeers(),
 			this._sanitizedPeerLists.fixedPeers || [],
 		);
 	}
@@ -744,10 +744,7 @@ export class P2P extends EventEmitter {
 	}
 
 	private _pickRandomPeers(count: number): ReadonlyArray<P2PPeerInfo> {
-		const peerList: ReadonlyArray<P2PPeerInfo> = [
-			...this._peerBook.newPeers,
-			...this._peerBook.triedPeers,
-		]; // Peers whose values has been updated at least once.
+		const peerList: ReadonlyArray<P2PPeerInfo> = this._peerBook.getAllPeers(); // Peers whose values has been updated at least once.
 
 		return selectRandomPeerSample(peerList, count);
 	}
@@ -763,10 +760,7 @@ export class P2P extends EventEmitter {
 			: DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_SIZE;
 
 		// TODO: Get this from peerbook
-		const knownPeers = [
-			...this._peerBook.newPeers,
-			...this._peerBook.triedPeers,
-		];
+		const knownPeers = this._peerBook.getAllPeers();
 		/* tslint:disable no-magic-numbers*/
 		const min = Math.ceil(
 			Math.min(maximumPeerDiscoveryResponseSize, knownPeers.length * 0.25),

@@ -53,6 +53,10 @@ export class PeerBook {
 		return this._bannedPeers;
 	}
 
+	public getAllPeers(): ReadonlyArray<P2PPeerInfo> {
+		return [...this.newPeers, ...this.triedPeers];
+	}
+
 	// If the peer is completed deleted then return true
 	public downgradePeer(peerInfo: P2PPeerInfo): boolean {
 		if (this._newPeers.findPeer(peerInfo)) {
