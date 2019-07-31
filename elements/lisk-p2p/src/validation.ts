@@ -115,23 +115,6 @@ export const validateBasicPeerInfo = (rawPeerInfo: unknown): P2PPeerInfo => {
 	return peerInfo;
 };
 
-export const validatePeerInfoList = (
-	rawPeerInfoList: unknown,
-): ReadonlyArray<P2PPeerInfo> => {
-	if (!rawPeerInfoList) {
-		throw new InvalidRPCResponseError('Invalid response type');
-	}
-	const { peers } = rawPeerInfoList as RPCPeerListResponse;
-
-	if (Array.isArray(peers)) {
-		const peerList = peers.map<P2PPeerInfo>(validatePeerInfo);
-
-		return peerList;
-	} else {
-		throw new InvalidRPCResponseError('Invalid response type');
-	}
-};
-
 export const validateBasicPeersInfoList = (
 	rawBasicPeerInfoList: unknown,
 ): ReadonlyArray<P2PPeerInfo> => {

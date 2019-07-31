@@ -17,11 +17,10 @@ import { expect } from 'chai';
 import {
 	validatePeerAddress,
 	validatePeerInfo,
-	validatePeerInfoList,
 	validateRPCRequest,
 	validateProtocolMessage,
 } from '../../src/validation';
-import { P2PPeerInfo, ProtocolPeerInfo } from '../../src/p2p_types';
+import { ProtocolPeerInfo } from '../../src/p2p_types';
 import {
 	ProtocolRPCRequestPacket,
 	ProtocolMessagePacket,
@@ -170,96 +169,6 @@ describe('response handlers', () => {
 					peerWithIncorrectPort.wsPort,
 				),
 			).to.be.false;
-		});
-	});
-
-	describe('#validatePeerInfoList', () => {
-		const peer1 = {
-			ip: '12.12.12.12',
-			wsPort: 5001,
-			height: '545776',
-			version: '1.0.1',
-			protocolVersion: '1.1',
-			os: 'darwin',
-		};
-
-		const peer2 = {
-			ip: '127.0.0.1',
-			wsPort: 5002,
-			height: '545981',
-			version: '1.0.1',
-			protocolVersion: '1.1',
-			os: 'darwin',
-		};
-		const peerList = [peer1, peer2];
-
-		const rawPeerInfoList: unknown = {
-			success: true,
-			peers: peerList,
-		};
-		let validatedPeerInfoArray: ReadonlyArray<P2PPeerInfo>;
-
-		beforeEach(async () => {
-			validatedPeerInfoArray = validatePeerInfoList(rawPeerInfoList);
-		});
-
-		it('should throw an error for an undefined rawPeerInfoList object', async () => {
-			expect(
-				validatePeerInfoList.bind(validatePeerInfoList, undefined),
-			).to.throw(`Invalid response type`);
-		});
-
-		it('should throw an error for an invalid value of peers property', async () => {
-			const inValidPeerInfoList = {
-				peers: 'random text',
-				success: true,
-			};
-
-			expect(
-				validatePeerInfoList.bind(validatePeerInfoList, inValidPeerInfoList),
-			).to.throw(`Invalid response type`);
-		});
-
-		it('should throw an error for an invalid port number', async () => {
-			const inValidPeerInfoList = {
-				peers: [
-					{
-						ip: '127.0.0.1',
-						wsPort: NaN,
-						height: '545981',
-						version: '1.0.1',
-						protocolVersion: '1.1',
-						os: 'darwin',
-					},
-				],
-				success: true,
-			};
-
-			expect(
-				validatePeerInfoList.bind(validatePeerInfoList, inValidPeerInfoList),
-			).to.throw(`Invalid peer ip or port`);
-		});
-
-		it('should return peer info list array', async () => {
-			expect(validatedPeerInfoArray).to.be.an('array');
-		});
-
-		it('should return peer info list array of length 2', async () => {
-			expect(validatedPeerInfoArray).to.be.of.length(2);
-		});
-
-		it('should return deserialised P2PPeerInfo list', async () => {
-			const sanitizedPeerInfoList = peerList.map((peer: any) => {
-				peer['ipAddress'] = peer.ip;
-				peer.wsPort = +peer.wsPort;
-				peer.height = +peer.height;
-
-				delete peer.ip;
-
-				return peer;
-			});
-
-			expect(validatedPeerInfoArray).to.be.eql(sanitizedPeerInfoList);
 		});
 	});
 
