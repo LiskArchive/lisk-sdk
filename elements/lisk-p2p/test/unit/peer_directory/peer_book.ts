@@ -21,7 +21,7 @@ import {
 	PeerBookConfig,
 } from '../../../src/peer_directory/peer_book';
 
-describe.only('peerBook', () => {
+describe('peerBook', () => {
 	const peerBookConfig: PeerBookConfig = {
 		secret: 123456,
 	};

@@ -299,7 +299,7 @@ export class P2P extends EventEmitter {
 				const isUpdated = this._peerBook.updatePeer(updatedPeerInfo);
 				if (isUpdated) {
 					// If found and updated successfully then upgrade the peer
-					this._peerBook.upgradePeer(peerInfo);
+					this._peerBook.upgradePeer(updatedPeerInfo);
 				}
 			} else {
 				this._peerBook.addPeer(peerInfo);

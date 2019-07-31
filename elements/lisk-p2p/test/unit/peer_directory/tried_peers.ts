@@ -17,7 +17,7 @@ import { TriedPeers } from '../../../src/peer_directory/tried_peers';
 import { initializePeerInfoList } from '../../utils/peers';
 import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 
-describe.only('triedPeer', () => {
+describe('triedPeer', () => {
 	const triedPeerConfig = {
 		maxReconnectTries: 3,
 		triedPeerBucketSize: 32,

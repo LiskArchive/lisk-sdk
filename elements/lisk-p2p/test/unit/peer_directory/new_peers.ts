@@ -17,7 +17,7 @@ import { NewPeers } from '../../../src/peer_directory/new_peers';
 import { initializePeerInfoList } from '../../utils/peers';
 import { P2PPeerInfo } from '../../../src/p2p_types';
 
-describe.only('newPeer', () => {
+describe('newPeer', () => {
 	const newPeerConfig = {
 		newPeerListSize: 128,
 		newPeerBucketSize: 32,
