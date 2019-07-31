@@ -47,9 +47,16 @@ describe('synchronizer', () => {
 			info: jest.fn(),
 		};
 
+		const lastBlockGetterMock = jest.fn();
+		const blocksMock = {};
+		Object.defineProperty(blocksMock, 'lastBlock', {
+			get: lastBlockGetterMock,
+		});
+
 		const syncParameters = {
 			storage: storageMock,
 			logger: loggerMock,
+			blocks: blocksMock,
 			exceptions: {},
 			blockReward: {},
 			maxTransactionsPerBlock,
@@ -85,6 +92,7 @@ describe('synchronizer', () => {
 			it('should assign dependencies', async () => {
 				expect(synchronizer.storage).toBe(syncParameters.storage);
 				expect(synchronizer.logger).toBe(syncParameters.logger);
+				expect(synchronizer.blocks).toBe(syncParameters.blocks);
 				expect(synchronizer.blockReward).toBe(syncParameters.blockReward);
 				expect(synchronizer.exceptions).toBe(syncParameters.exceptions);
 				expect(synchronizer.constants).toEqual({
@@ -324,12 +332,10 @@ describe('synchronizer', () => {
 				);
 			});
 
-			it('should get the last block from database', async () => {
+			it('should get the last block from blocks module', async () => {
 				await synchronizer.run(receivedBlock);
 
-				expect(storageMock.entities.Block.getLastBlock).toHaveBeenCalledTimes(
-					1
-				);
+				expect(lastBlockGetterMock).toHaveBeenCalledTimes(1);
 			});
 
 			it('should verify the block before sync', async () => {

@@ -402,7 +402,7 @@ module.exports = class Chain {
 			bft: this.bft,
 			slots: this.slots,
 			channel: this.channel,
-			modules: { blocks: this.blocks },
+			blocks: this.blocks,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 		});
 
@@ -410,6 +410,7 @@ module.exports = class Chain {
 			storage: this.storage,
 			logger: this.logger,
 			slots: this.slots,
+			blocks: this.blocks,
 			dpos: {},
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 		});
@@ -417,6 +418,7 @@ module.exports = class Chain {
 		this.synchronizer = new Synchronizer({
 			storage: this.storage,
 			logger: this.logger,
+			blocks: this.blocks,
 			blockReward: this.blocks.blockReward,
 			exceptions: this.options.exceptions,
 			maxTransactionsPerBlock: this.options.constants

@@ -30,11 +30,13 @@ describe('block_synchronization_mechanism', () => {
 	describe('BlockSynchronizationMechanism', () => {
 		const activeDelegates = 101;
 		const channelMock = { invoke: jest.fn() };
-		const modulesMock = {
-			blocks: {
-				lastBlock: jest.fn(),
-			},
-		};
+
+		const lastBlockGetterMock = jest.fn();
+		const blocksMock = {};
+		Object.defineProperty(blocksMock, 'lastBlock', {
+			get: lastBlockGetterMock,
+		});
+
 		const storageMock = {
 			entities: {
 				Block: {
@@ -50,7 +52,7 @@ describe('block_synchronization_mechanism', () => {
 		};
 		const syncParams = {
 			channel: channelMock,
-			modules: modulesMock,
+			blocks: blocksMock,
 			storage: storageMock,
 			slots: slotsMock,
 			bft: bftMock,
@@ -74,7 +76,7 @@ describe('block_synchronization_mechanism', () => {
 				expect(syncMechanism.bft).toBe(syncParams.bft);
 				expect(syncMechanism.slots).toBe(syncParams.slots);
 				expect(syncMechanism.channel).toBe(syncParams.channel);
-				expect(syncMechanism.modules.blocks).toBe(syncParams.modules.blocks);
+				expect(syncMechanism.blocks).toBe(syncParams.blocks);
 				expect(syncMechanism.constants).toEqual({
 					activeDelegates,
 				});
@@ -157,10 +159,10 @@ describe('block_synchronization_mechanism', () => {
 			});
 
 			it('should return a peer object', () => {
-				modulesMock.blocks.lastBlock = {
+				lastBlockGetterMock.mockReturnValue({
 					height: 0,
 					prevotedConfirmedUptoHeight: 0,
-				};
+				});
 
 				const peers = [
 					{
@@ -188,10 +190,10 @@ describe('block_synchronization_mechanism', () => {
 				 */
 
 				it('should successfully select the best peer according to the steps defined in LIP-0014', () => {
-					modulesMock.blocks.lastBlock = {
+					lastBlockGetterMock.mockReturnValue({
 						height: 0,
 						prevotedConfirmedUptoHeight: 0,
-					}; // So ForkChoiceRule.isDifferentChain returns is TRUTHY
+					}); // So ForkChoiceRule.isDifferentChain returns is TRUTHY
 
 					const selectedPeer = syncMechanism._computeBestPeer(peersList);
 
@@ -206,10 +208,10 @@ describe('block_synchronization_mechanism', () => {
 				});
 
 				it('should throw an error if the ForkChoiceRule.isDifferentChain evaluates falsy', () => {
-					modulesMock.blocks.lastBlock = {
+					lastBlockGetterMock.mockReturnValue({
 						height: 66,
 						prevotedConfirmedUptoHeight: 0,
-					}; // So ForkChoiceRule.isDifferentChain returns is TRUTHY
+					}); // So ForkChoiceRule.isDifferentChain returns is TRUTHY
 
 					const peers = [
 						{

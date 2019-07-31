@@ -29,6 +29,7 @@ class Synchronizer {
 	constructor({
 		storage,
 		logger,
+		blocks,
 		blockReward,
 		exceptions,
 		maxTransactionsPerBlock,
@@ -36,6 +37,7 @@ class Synchronizer {
 	}) {
 		this.storage = storage;
 		this.logger = logger;
+		this.blocks = blocks;
 		this.blockReward = blockReward;
 		this.exceptions = exceptions;
 
@@ -92,7 +94,7 @@ class Synchronizer {
 			);
 		}
 
-		const lastBlock = await this.storage.entities.Block.getLastBlock();
+		const lastBlock = this.blocks.lastBlock;
 
 		// Moving to a Different Chain
 		// 1. Step: Validate new tip of chain

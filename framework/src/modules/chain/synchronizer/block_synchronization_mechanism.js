@@ -24,7 +24,7 @@ class BlockSynchronizationMechanism {
 		bft,
 		slots,
 		channel,
-		modules: { blocks },
+		blocks,
 		activeDelegates,
 	}) {
 		this.storage = storage;
@@ -32,9 +32,7 @@ class BlockSynchronizationMechanism {
 		this.bft = bft;
 		this.slots = slots;
 		this.channel = channel;
-		this.modules = {
-			blocks,
-		};
+		this.blocks = blocks;
 		this.constants = {
 			activeDelegates,
 		};
@@ -134,9 +132,7 @@ class BlockSynchronizationMechanism {
 			height: peers[0].height,
 		};
 
-		if (
-			!ForkChoiceRule.isDifferentChain(this.modules.blocks.lastBlock, peersTip)
-		) {
+		if (!ForkChoiceRule.isDifferentChain(this.blocks.lastBlock, peersTip)) {
 			throw new Error('Violation of fork choice rule');
 		}
 

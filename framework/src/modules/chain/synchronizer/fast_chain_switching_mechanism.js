@@ -15,11 +15,12 @@
 'use strict';
 
 class FastChainSwitchingMechanism {
-	constructor({ storage, logger, slots, dpos, activeDelegates }) {
+	constructor({ storage, logger, blocks, slots, dpos, activeDelegates }) {
 		this.storage = storage;
 		this.logger = logger;
 		this.slots = slots;
 		this.dpos = dpos;
+		this.blocks = blocks;
 		this.constants = {
 			activeDelegates,
 		};
@@ -41,7 +42,7 @@ class FastChainSwitchingMechanism {
 	 * @throws {Error} - In case want to abort the sync pipeline
 	 */
 	async isValidFor(receivedBlock) {
-		const lastBlock = await this.storage.entities.Block.getLastBlock();
+		const lastBlock = this.blocks.lastBlock;
 
 		// 3. Step: Check whether B justifies fast chain switching mechanism
 		const twoRounds = this.constants.activeDelegates * 2;

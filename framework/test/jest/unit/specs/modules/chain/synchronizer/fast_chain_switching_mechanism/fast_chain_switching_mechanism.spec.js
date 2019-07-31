@@ -29,11 +29,13 @@ describe('fast_chain_switching_mechanism', () => {
 	describe('FastChainSwitchingMechanism', () => {
 		const activeDelegates = 101;
 		const channelMock = { invoke: jest.fn() };
-		const modulesMock = {
-			blocks: {
-				lastBlock: jest.fn(),
-			},
-		};
+
+		const lastBlockGetterMock = jest.fn();
+		const blocksMock = {};
+		Object.defineProperty(blocksMock, 'lastBlock', {
+			get: lastBlockGetterMock,
+		});
+
 		const storageMock = {
 			entities: {
 				Block: {
@@ -50,7 +52,7 @@ describe('fast_chain_switching_mechanism', () => {
 		};
 		const syncParams = {
 			channel: channelMock,
-			modules: modulesMock,
+			blocks: blocksMock,
 			storage: storageMock,
 			slots: slotsMock,
 			dpos: dposMock,
@@ -72,6 +74,7 @@ describe('fast_chain_switching_mechanism', () => {
 				expect(syncMechanism.storage).toBe(syncParams.storage);
 				expect(syncMechanism.logger).toBe(syncParams.logger);
 				expect(syncMechanism.slots).toBe(syncParams.slots);
+				expect(syncMechanism.blocks).toBe(syncParams.blocks);
 				expect(syncMechanism.dpos).toBe(syncParams.dpos);
 				expect(syncMechanism.constants).toEqual({
 					activeDelegates,
@@ -87,16 +90,14 @@ describe('fast_chain_switching_mechanism', () => {
 			const finalizedBlock = blockFixture({ height: finalizedBlockHeight });
 
 			beforeEach(async () => {
-				storageMock.entities.Block.getLastBlock.mockReturnValue(lastBlock);
+				lastBlockGetterMock.mockReturnValue(lastBlock);
 			});
 
-			it('should get the last block', async () => {
+			it('should get the last block from blocks module', async () => {
 				const receivedBlock = blockFixture({ height: lastBlockHeight + 1 });
 				await syncMechanism.isValidFor(receivedBlock);
 
-				expect(storageMock.entities.Block.getLastBlock).toHaveBeenCalledTimes(
-					1
-				);
+				expect(lastBlockGetterMock).toHaveBeenCalledTimes(1);
 			});
 
 			it('should return false if gap between received block and last block is more than two rounds', async () => {
