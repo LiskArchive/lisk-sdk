@@ -289,32 +289,4 @@ describe('Block', () => {
 	describe('getFirstBlockIdOfLastRounds', () => {
 		it('should get first block id of last rounds');
 	});
-
-	describe('getLastBlock', () => {
-		it('should invoke findOne with proper parameters', async () => {
-			const block = new Block(adapter);
-			const tx = {};
-			sinonSandbox.stub(block, 'getOne');
-
-			await block.getLastBlock(tx);
-
-			expect(block.getOne).to.be.calledOnce;
-			expect(block.getOne).to.be.calledWithExactly(
-				{},
-				{ limit: 1, sort: 'height:desc' },
-				tx
-			);
-		});
-
-		it('should get the last block from database by height', async () => {
-			const block = new Block(adapter);
-			const block1 = new blocksFixtures.Block({ height: 2 });
-			const block2 = new blocksFixtures.Block({ height: 3 });
-
-			await block.create([block1, block2]);
-			const result = await block.getLastBlock();
-
-			expect(result.id).to.be.eql(block2.id);
-		});
-	});
 });
