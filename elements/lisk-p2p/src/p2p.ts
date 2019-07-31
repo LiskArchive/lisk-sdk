@@ -780,12 +780,10 @@ export class P2P extends EventEmitter {
 			};
 			request.end(peerInfoList);
 		} else {
-			// TODO: Remove fields that are specific to the current Lisk protocol.
 			const peers = this._pickRandomPeers(randomPeerCount).map(
 				(peerInfo: P2PPeerInfo): ProtocolPeerInfo => {
 					const { ipAddress, ...peerInfoWithoutIp } = peerInfo;
 
-					// The options property is not read by the current legacy protocol but it should be added anyway for future compatibility.
 					return {
 						...peerInfoWithoutIp,
 						ip: ipAddress,
