@@ -32,7 +32,7 @@ const EVENT_NEW_BLOCK = 'EVENT_NEW_BLOCK';
 const EVENT_DELETE_BLOCK = 'EVENT_DELETE_BLOCK';
 const EVENT_BROADCAST_BLOCK = 'EVENT_BROADCAST_BLOCK';
 const EVENT_NEW_BROADHASH = 'EVENT_NEW_BROADHASH';
-const EVENT_FORK_DETECTED = 'EVENT_FORK_DETECTED';
+const EVENT_PRIORITY_CHAIN_DETECTED = 'EVENT_PRIORITY_CHAIN_DETECTED';
 
 class Blocks extends EventEmitter {
 	constructor({
@@ -823,7 +823,7 @@ class Blocks extends EventEmitter {
 	 */
 	_handleMovingToDifferentChain(lastBlock, block) {
 		const cloned = cloneDeep(block);
-		this.emit(EVENT_FORK_DETECTED, { block: cloned });
+		this.emit(EVENT_PRIORITY_CHAIN_DETECTED, { block: cloned });
 	}
 
 	/**
@@ -853,5 +853,5 @@ module.exports = {
 	EVENT_DELETE_BLOCK,
 	EVENT_BROADCAST_BLOCK,
 	EVENT_NEW_BROADHASH,
-	EVENT_FORK_DETECTED,
+	EVENT_PRIORITY_CHAIN_DETECTED,
 };

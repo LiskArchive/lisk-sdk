@@ -44,7 +44,7 @@ const {
 	EVENT_DELETE_BLOCK,
 	EVENT_BROADCAST_BLOCK,
 	EVENT_NEW_BROADHASH,
-	EVENT_FORK_DETECTED,
+	EVENT_PRIORITY_CHAIN_DETECTED,
 } = require('./blocks');
 const { Loader } = require('./loader');
 const { Forger } = require('./forger');
@@ -614,9 +614,9 @@ module.exports = class Chain {
 			}
 		});
 
-		this.blocks.on(EVENT_FORK_DETECTED, ({ block }) => {
+		this.blocks.on(EVENT_PRIORITY_CHAIN_DETECTED, ({ block }) => {
 			this.logger.info(
-				'Received EVENT_FORK_DETECTED. Triggering synchronizer.'
+				'Received EVENT_PRIORITY_CHAIN_DETECTED. Triggering synchronizer.'
 			);
 			this.synchronizer
 				.run(block)
@@ -657,7 +657,7 @@ module.exports = class Chain {
 		this.blocks.removeAllListeners(EVENT_BROADCAST_BLOCK);
 		this.blocks.removeAllListeners(EVENT_DELETE_BLOCK);
 		this.blocks.removeAllListeners(EVENT_NEW_BLOCK);
-		this.blocks.removeAllListeners(EVENT_FORK_DETECTED);
+		this.blocks.removeAllListeners(EVENT_PRIORITY_CHAIN_DETECTED);
 		this.bft.removeAllListeners(EVENT_BFT_BLOCK_FINALIZED);
 		this.blocks.removeAllListeners(EVENT_NEW_BROADHASH);
 		this.blocks.removeAllListeners(EVENT_UNCONFIRMED_TRANSACTION);
