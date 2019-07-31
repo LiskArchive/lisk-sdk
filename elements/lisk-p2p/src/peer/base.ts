@@ -218,19 +218,19 @@ export class Peer extends EventEmitter {
 			}
 
 			this._rpcRates = new Map(
-				[...this._rpcCounter.entries()].map(entry => {
-					const rate = entry[1] / this._rateInterval;
+				[...this._rpcCounter.entries()].map(([key, value]) => {
+					const rate = value / this._rateInterval;
 
-					return [entry[0], rate] as any;
+					return [key, rate] as any;
 				}),
 			);
 			this._rpcCounter = new Map();
 
 			this._messageRates = new Map(
-				[...this._messageCounter.entries()].map(entry => {
-					const rate = entry[1] / this._rateInterval;
+				[...this._messageCounter.entries()].map(([key, value]) => {
+					const rate = value / this._rateInterval;
 
-					return [entry[0], rate] as any;
+					return [key, rate] as any;
 				}),
 			);
 			this._messageCounter = new Map();
