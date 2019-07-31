@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,14 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-module.exports = {
-	Account: require('./account'),
-	Block: require('./block'),
-	RoundDelegates: require('./round_delegates'),
-	Round: require('./round'),
-	Transaction: require('./transaction'),
-	ChainMeta: require('./chain_meta'),
-	TempBlock: require('./temp_block.js'),
-};
+/*
+  DESCRIPTION: Creates meta table for BFT.
+
+  PARAMETERS: None
+*/
+
+CREATE TABLE IF NOT EXISTS "temp_block" (
+	"id" VARCHAR(20) PRIMARY KEY,
+  "height" INT NOT NULL,
+	"fullBlock" jsonb NOT NULL
+);

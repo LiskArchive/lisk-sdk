@@ -145,6 +145,7 @@ class StorageSeed {
 			'peers',
 			'trs',
 			'chain_meta',
+			'temp_block',
 		];
 
 		return storage.adapter

@@ -29,6 +29,7 @@ const {
 	Transaction,
 	RoundDelegates,
 	ChainMeta,
+	TempBlock,
 } = require('../../../src/modules/chain/components/storage/entities');
 
 const {
@@ -111,6 +112,7 @@ class StorageSandbox extends Storage {
 		this.registerEntity('Peer', Peer);
 		this.registerEntity('Round', Round);
 		this.registerEntity('ChainMeta', ChainMeta);
+		this.registerEntity('TempBlock', TempBlock);
 
 		await this._createSchema();
 		return true;
