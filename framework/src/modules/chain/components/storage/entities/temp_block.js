@@ -31,16 +31,16 @@ const sqlFiles = {
 };
 
 /**
- * Block temp
- * @typedef {Object} temp_block
- * @property {string} id
- * @property {number} height
- * @property {object} fullBlock
+ * Temp Block
+ * @typedef {Object} TempBlock
+ * @property {string} id - the id of the block
+ * @property {number} height - the height of the block
+ * @property {object} fullBlock - full block with transactions
  */
 
 /**
- * Round Filters
- * @typedef {Object} filters.Round
+ * Temp Block Filters
+ * @typedef {Object} filters.TempBlock
  * @property {number} [id]
  * @property {string} [id_eql]
  * @property {string} [id_ne]
@@ -60,7 +60,7 @@ class TempBlock extends BaseEntity {
 	/**
 	 * Constructor
 	 * @param {BaseAdapter} adapter - Adapter to retrieve the data from
-	 * @param {filters.Round} defaultFilters - Set of default filters applied on every query
+	 * @param {filters.TempBlock} defaultFilters - Set of default filters applied on every query
 	 */
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
@@ -77,12 +77,12 @@ class TempBlock extends BaseEntity {
 	}
 
 	/**
-	 * Create temp_block row entry
+	 * Create TempBlock entry
 	 *
-	 * @param {Object} data
+	 * @param {TempBlock} tempBlock - temp block entry
 	 * @param {Object} [_options]
 	 * @param {Object} [tx] - Transaction object
-	 * @return {null}
+	 * @return {Promise} Promise object which represents if the entry was created in the database
 	 */
 	// eslint-disable-next-line no-unused-vars
 	create({ height, id, fullBlock }, _options = {}, tx = null) {
@@ -106,15 +106,43 @@ class TempBlock extends BaseEntity {
 		);
 	}
 
+	/**
+	 * Get a list of TempBlock entries
+	 * @param {filters.TempBlock|filters.TempBlock[]} filters
+	 * @param {Object} [options]
+	 * @param {Number} [options.limit=10] - Number of records to fetch
+	 * @param {Number} [options.offset=0] - Offset to start the records
+	 * @param {Object} [tx] - Transaction object
+	 * @return {Promise} Promise object which represents the response returned from the database
+	 */
 	async get(filters = {}, options = {}, tx = null) {
 		return this._getResults(filters, options, tx);
 	}
 
+	/**
+	 * Get one entry of TempBlock
+	 * @param {filters.TempBlock|filters.TempBlock[]} filters
+	 * @param {Object} [options]
+	 * @param {Number} [options.limit=10] - Number of records to fetch
+	 * @param {Number} [options.offset=0] - Offset to start the records
+	 * @param {Object} [tx] - Transaction object
+	 * @return {Promise} Promise object which represents the response returned from the database
+	 */
 	async getOne(filters = {}, options = {}, tx = null) {
 		const expectedResultCount = 1;
 		return this._getResults(filters, options, tx, expectedResultCount);
 	}
 
+	/**
+	 * Get list of temp blocks
+	 *
+	 * @param {filters.TempBlock|filters.TempBlock[]} [filters = {}]
+	 * @param {Object} [options = {}] - Options to filter data
+	 * @param {Number} [options.limit=10] - Number of records to fetch
+	 * @param {Number} [options.offset=0] - Offset to start the records
+	 * @param {Object} [tx] - Database transaction object
+	 * @return {Promise.<TempBlock[], Error>}
+	 */
 	_getResults(filters, options, tx, expectedResultCount = undefined) {
 		this.validateFilters(filters);
 		this.validateOptions(options);
@@ -146,7 +174,7 @@ class TempBlock extends BaseEntity {
 	/**
 	 * Delete records with following conditions
 	 *
-	 * @param {filters.Round} filters
+	 * @param {filters.TempBlock} filters
 	 * @param {Object} [options]
 	 * @param {Object} [tx]
 	 * @returns {Promise.<boolean, Error>}
