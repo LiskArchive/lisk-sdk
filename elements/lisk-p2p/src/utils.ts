@@ -14,6 +14,7 @@
  */
 import { hash } from '@liskhq/lisk-cryptography';
 import { isIPv4 } from 'net';
+import { P2PPeerInfo } from './p2p_types';
 
 const SECRET_BUFFER_LENGTH = 4;
 const NETWORK_BUFFER_LENGTH = 1;
@@ -200,3 +201,6 @@ export const getBucket = (options: {
 
 	return hash(bucketBytes).readUInt32BE(0) % secondMod;
 };
+
+export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
+	`${peerInfo.ipAddress}:${peerInfo.wsPort}`;
