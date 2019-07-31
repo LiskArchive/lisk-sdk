@@ -22,7 +22,7 @@ describe.only('triedPeer', () => {
 		maxReconnectTries: 3,
 		triedPeerBucketSize: 32,
 		triedPeerListSize: 64,
-		secret: 58638728739254950123165830275813,
+		secret: 123456,
 	};
 
 	describe('#constructor', () => {
@@ -55,7 +55,9 @@ describe.only('triedPeer', () => {
 		});
 
 		it('should not add the incoming peer if it exists', async () => {
-			expect(triedPeersList.addPeer(samplePeers[0])).to.be.undefined;
+			expect(triedPeersList.addPeer(samplePeers[0]))
+				.to.be.an('object')
+				.haveOwnProperty('success').to.be.false;
 		});
 	});
 
@@ -196,7 +198,7 @@ describe.only('triedPeer', () => {
 					maxReconnectTries: 1,
 					triedPeerBucketSize: 32,
 					triedPeerListSize: 64,
-					secret: 58638728739254950123165830275813,
+					secret: 123456,
 				};
 				triedPeersList = new TriedPeers(triedPeerConfig);
 				triedPeersList.addPeer(samplePeers[0]);
@@ -215,7 +217,7 @@ describe.only('triedPeer', () => {
 					maxReconnectTries: 2,
 					triedPeerBucketSize: 32,
 					triedPeerListSize: 64,
-					secret: 58638728739254950123165830275813,
+					secret: 123456,
 				};
 				triedPeersList = new TriedPeers(triedPeerConfig);
 				triedPeersList.addPeer(samplePeers[0]);

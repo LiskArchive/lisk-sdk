@@ -20,11 +20,10 @@ import {
 	PeerBook,
 	PeerBookConfig,
 } from '../../../src/peer_directory/peer_book';
-import { constructPeerIdFromPeerInfo } from '../../../src/utils';
 
-describe('peerBook', () => {
+describe.only('peerBook', () => {
 	const peerBookConfig: PeerBookConfig = {
-		secret: 58638728739254950123165830275813,
+		secret: 123456,
 	};
 
 	describe('#constructor', () => {
@@ -52,9 +51,7 @@ describe('peerBook', () => {
 
 		it('should add peer to the new peer list', async () => {
 			expect(peerBook.newPeers).length(1);
-			expect(
-				peerBook.getPeer(constructPeerIdFromPeerInfo(samplePeers[0])),
-			).to.be.eql(samplePeers[0]);
+			expect(peerBook.getPeer(samplePeers[0])).to.be.eql(samplePeers[0]);
 		});
 	});
 
@@ -69,9 +66,7 @@ describe('peerBook', () => {
 
 		it('should add peer to the new peer list', async () => {
 			expect(peerBook.newPeers).length(1);
-			expect(
-				peerBook.getPeer(constructPeerIdFromPeerInfo(samplePeers[0])),
-			).to.be.eql(samplePeers[0]);
+			expect(peerBook.getPeer(samplePeers[0])).to.be.eql(samplePeers[0]);
 		});
 	});
 
@@ -87,9 +82,7 @@ describe('peerBook', () => {
 
 		it('should add peer to the new peer list', async () => {
 			expect(peerBook.triedPeers).length(1);
-			expect(
-				peerBook.getPeer(constructPeerIdFromPeerInfo(samplePeers[0])),
-			).to.be.eql(samplePeers[0]);
+			expect(peerBook.getPeer(samplePeers[0])).to.be.eql(samplePeers[0]);
 		});
 	});
 
@@ -102,14 +95,14 @@ describe('peerBook', () => {
 			peerBook.addPeer(samplePeers[0]);
 		});
 
-		it('should add peer to the new peer list', async () => {
+		it('should add peer to the new peer list when downgraded 3 times', async () => {
 			peerBook.upgradePeer(samplePeers[0]);
 			expect(peerBook.triedPeers).length(1);
 			peerBook.downgradePeer(samplePeers[0]);
+			peerBook.downgradePeer(samplePeers[0]);
+			peerBook.downgradePeer(samplePeers[0]);
 			expect(peerBook.triedPeers).length(0);
-			expect(
-				peerBook.getPeer(constructPeerIdFromPeerInfo(samplePeers[0])),
-			).to.be.eql(samplePeers[0]);
+			expect(peerBook.getPeer(samplePeers[0])).to.be.eql(samplePeers[0]);
 		});
 	});
 
@@ -126,8 +119,7 @@ describe('peerBook', () => {
 		it('should add peer to the new peer list', async () => {
 			expect(peerBook.triedPeers).length(0);
 			expect(peerBook.newPeers).length(0);
-			expect(peerBook.getPeer(constructPeerIdFromPeerInfo(samplePeers[0]))).to
-				.be.undefined;
+			expect(peerBook.getPeer(samplePeers[0])).to.be.undefined;
 		});
 	});
 });

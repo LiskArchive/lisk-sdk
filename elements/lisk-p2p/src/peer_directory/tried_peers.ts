@@ -33,10 +33,10 @@ interface TriedPeerInfo {
 	readonly dateAdded: Date;
 }
 
-interface AddPeerOutcome {
+export interface AddPeerOutcome {
 	readonly success: boolean;
 	readonly evicted: boolean;
-	readonly evictedPeer?: P2PDiscoveredPeerInfo;
+	readonly evictedPeer?: P2PPeerInfo;
 }
 
 export class TriedPeers {

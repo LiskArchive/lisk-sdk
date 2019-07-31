@@ -21,7 +21,7 @@ describe.only('newPeer', () => {
 	const newPeerConfig = {
 		newPeerListSize: 128,
 		newPeerBucketSize: 32,
-		secret: 58638728739254950123165830275813,
+		secret: 123456,
 	};
 
 	describe('#constructor', () => {
@@ -53,7 +53,9 @@ describe.only('newPeer', () => {
 		});
 
 		it('should not add the incoming peer if it exists', async () => {
-			expect(newPeersList.addPeer(samplePeers[0])).to.be.undefined;
+			expect(newPeersList.addPeer(samplePeers[0]))
+				.to.be.an('object')
+				.haveOwnProperty('success').to.be.false;
 		});
 	});
 

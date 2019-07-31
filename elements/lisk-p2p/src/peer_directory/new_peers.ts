@@ -30,7 +30,7 @@ interface NewPeerInfo {
 	readonly dateAdded: Date;
 }
 
-interface AddNewPeerOutcome {
+export interface AddPeerOutcome {
 	readonly success: boolean;
 	readonly evicted: boolean;
 	readonly evictedPeer?: P2PPeerInfo;
@@ -160,7 +160,7 @@ export class NewPeers {
 		return undefined;
 	}
 
-	public addPeer(peerInfo: P2PPeerInfo): AddNewPeerOutcome {
+	public addPeer(peerInfo: P2PPeerInfo): AddPeerOutcome {
 		const bucketId = getBucket({
 			secret: this._secret,
 			peerType: PEER_TYPE.NEW_PEER,
