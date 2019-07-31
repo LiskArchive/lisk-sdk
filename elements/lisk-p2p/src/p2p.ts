@@ -27,7 +27,7 @@ interface SCServerUpdated extends SCServer {
 import {
 	constructPeerId,
 	constructPeerIdFromPeerInfo,
-	REMOTE_RPC_GET_BASIC_PEERS_LIST,
+	REMOTE_RPC_GET_PEERS_LIST,
 } from './peer';
 
 import {
@@ -59,8 +59,6 @@ import {
 	P2PRequestPacket,
 	P2PResponsePacket,
 	PeerLists,
-	ProtocolPeerInfo,
-	ProtocolPeerInfoList,
 } from './p2p_types';
 
 import { P2PRequest } from './p2p_request';
@@ -115,7 +113,6 @@ export {
 export const EVENT_NEW_INBOUND_PEER = 'newInboundPeer';
 export const EVENT_FAILED_TO_ADD_INBOUND_PEER = 'failedToAddInboundPeer';
 export const EVENT_NEW_PEER = 'newPeer';
-export const REMOTE_RPC_GET_ALL_PEERS_LIST = 'list';
 
 export const DEFAULT_NODE_HOST_IP = '0.0.0.0';
 export const DEFAULT_DISCOVERY_INTERVAL = 30000;
@@ -217,10 +214,7 @@ export class P2P extends EventEmitter {
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest) => {
-			if (
-				request.procedure === REMOTE_RPC_GET_ALL_PEERS_LIST ||
-				request.procedure === REMOTE_RPC_GET_BASIC_PEERS_LIST
-			) {
+			if (request.procedure === REMOTE_RPC_GET_PEERS_LIST) {
 				this._handleGetPeersRequest(request);
 			}
 			// Re-emit the request for external use.
@@ -765,37 +759,19 @@ export class P2P extends EventEmitter {
 			Math.min(minimumPeerDiscoveryThreshold, knownPeers.length),
 		);
 
-		if (request.procedure === REMOTE_RPC_GET_BASIC_PEERS_LIST) {
-			const basicPeers = this._pickRandomPeers(randomPeerCount).map(
-				(peerInfo: P2PPeerInfo): P2PPeerInfo =>
-					// Discovery process only require minmal peers data
-					({
-						ipAddress: peerInfo.ipAddress,
-						wsPort: peerInfo.wsPort,
-					}),
-			);
-			const peerInfoList: P2PBasicPeerInfoList = {
-				success: true,
-				peers: basicPeers,
-			};
-			request.end(peerInfoList);
-		} else {
-			const peers = this._pickRandomPeers(randomPeerCount).map(
-				(peerInfo: P2PPeerInfo): ProtocolPeerInfo => {
-					const { ipAddress, ...peerInfoWithoutIp } = peerInfo;
-
-					return {
-						...peerInfoWithoutIp,
-						ip: ipAddress,
-					};
-				},
-			);
-			const protocolPeerInfoList: ProtocolPeerInfoList = {
-				success: true,
-				peers,
-			};
-			request.end(protocolPeerInfoList);
-		}
+		const basicPeers = this._pickRandomPeers(randomPeerCount).map(
+			(peerInfo: P2PPeerInfo): P2PPeerInfo =>
+				// Discovery process only require minmal peers data
+				({
+					ipAddress: peerInfo.ipAddress,
+					wsPort: peerInfo.wsPort,
+				}),
+		);
+		const peerInfoList: P2PBasicPeerInfoList = {
+			success: true,
+			peers: basicPeers,
+		};
+		request.end(peerInfoList);
 	}
 
 	private _isTrustedPeer(peerId: string): boolean {

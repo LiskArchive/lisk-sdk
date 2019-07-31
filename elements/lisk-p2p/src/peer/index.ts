@@ -29,7 +29,7 @@ export {
 	EVENT_UPDATED_PEER_INFO,
 	Peer,
 	PeerConfig,
-	REMOTE_RPC_GET_BASIC_PEERS_LIST,
+	REMOTE_RPC_GET_PEERS_LIST,
 } from './base';
 
 export * from './inbound';
