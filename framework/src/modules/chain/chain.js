@@ -44,6 +44,7 @@ const {
 	EVENT_DELETE_BLOCK,
 	EVENT_BROADCAST_BLOCK,
 	EVENT_NEW_BROADHASH,
+	EVENT_FORK_DETECTED,
 } = require('./blocks');
 const { Loader } = require('./loader');
 const { Forger } = require('./forger');
@@ -611,6 +612,20 @@ module.exports = class Chain {
 			}
 		});
 
+		this.blocks.on(EVENT_FORK_DETECTED, ({ block }) => {
+			this.logger.info(
+				'Received EVENT_FORK_DETECTED. Triggering synchronizer.'
+			);
+			this.synchronizer
+				.run(block)
+				.then(() => {
+					this.logger.info('Synchronization finished.');
+				})
+				.catch(error => {
+					this.logger.error('Error occurred during synchronization.', error);
+				});
+		});
+
 		this.transactionPool.on(EVENT_UNCONFIRMED_TRANSACTION, transaction => {
 			this.logger.trace(
 				{ transactionId: transaction.id },
@@ -640,6 +655,7 @@ module.exports = class Chain {
 		this.blocks.removeAllListeners(EVENT_BROADCAST_BLOCK);
 		this.blocks.removeAllListeners(EVENT_DELETE_BLOCK);
 		this.blocks.removeAllListeners(EVENT_NEW_BLOCK);
+		this.blocks.removeAllListeners(EVENT_FORK_DETECTED);
 		this.bft.removeAllListeners(EVENT_BFT_BLOCK_FINALIZED);
 		this.blocks.removeAllListeners(EVENT_NEW_BROADHASH);
 		this.blocks.removeAllListeners(EVENT_UNCONFIRMED_TRANSACTION);

@@ -32,6 +32,7 @@ const EVENT_NEW_BLOCK = 'EVENT_NEW_BLOCK';
 const EVENT_DELETE_BLOCK = 'EVENT_DELETE_BLOCK';
 const EVENT_BROADCAST_BLOCK = 'EVENT_BROADCAST_BLOCK';
 const EVENT_NEW_BROADHASH = 'EVENT_NEW_BROADHASH';
+const EVENT_FORK_DETECTED = 'EVENT_FORK_DETECTED';
 
 class Blocks extends EventEmitter {
 	constructor({
@@ -42,7 +43,6 @@ class Blocks extends EventEmitter {
 		// Unique requirements
 		genesisBlock,
 		slots,
-		synchronizer,
 		exceptions,
 		// Modules
 		roundsModule,
@@ -84,7 +84,6 @@ class Blocks extends EventEmitter {
 		this.genesisBlock = genesisBlock;
 		this.interfaceAdapters = interfaceAdapters;
 		this.slots = slots;
-		this.synchronizer = synchronizer;
 		this.sequence = sequence;
 		this.blockRewardArgs = {
 			distance: rewardDistance,
@@ -822,8 +821,9 @@ class Blocks extends EventEmitter {
 	 * Move to a different chain
 	 * @private
 	 */
-	async _handleMovingToDifferentChain(lastBlock, block) {
-		return this.synchronizer.run(block);
+	_handleMovingToDifferentChain(lastBlock, block) {
+		const cloned = cloneDeep(block);
+		this.emit(EVENT_FORK_DETECTED, { block: cloned });
 	}
 
 	/**
@@ -845,27 +845,6 @@ class Blocks extends EventEmitter {
 			}`
 		);
 	}
-
-	/**
-	 * Handle the fast switching mechanism
-	 *
-	 * @param lastBlock
-	 * @param block
-	 * @return {Promise<void>}
-	 * @private
-	 */
-	// eslint-disable-next-line no-unused-vars, class-methods-use-this, no-empty-function
-	async _handleFastChainSwitching(lastBlock, block) {}
-
-	/**
-	 * Handle chain switching via sync
-	 * @param lastBlock
-	 * @param block
-	 * @return {Promise<void>}
-	 * @private
-	 */
-	// eslint-disable-next-line no-unused-vars, class-methods-use-this, no-empty-function
-	async _handleChainSwitchingViaSync(lastBlock, block) {}
 }
 
 module.exports = {
@@ -874,4 +853,5 @@ module.exports = {
 	EVENT_DELETE_BLOCK,
 	EVENT_BROADCAST_BLOCK,
 	EVENT_NEW_BROADHASH,
+	EVENT_FORK_DETECTED,
 };
