@@ -98,7 +98,7 @@ class Synchronizer {
 
 		// Moving to a Different Chain
 		// 1. Step: Validate new tip of chain
-		const result = this._verifyBlockBeforeSync(lastBlock, receivedBlock);
+		const result = this._validateBlockBeforeSync(lastBlock, receivedBlock);
 		if (!result.verified) {
 			throw Error(
 				`Block verification for chain synchronization failed with errors: ${result.errors.join()}`
@@ -161,7 +161,7 @@ class Synchronizer {
 	 * @param receivedBlock
 	 * @private
 	 */
-	_verifyBlockBeforeSync(lastBlock, receivedBlock) {
+	_validateBlockBeforeSync(lastBlock, receivedBlock) {
 		let result = { verified: true, errors: [] };
 
 		result = verifySignature(receivedBlock, result);

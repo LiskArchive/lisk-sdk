@@ -209,7 +209,7 @@ describe('synchronizer', () => {
 			});
 		});
 
-		describe('_verifyBlockBeforeSync', () => {
+		describe('_validateBlockBeforeSync', () => {
 			const lastBlock = blockFixture();
 			const receivedBlock = blockFixture();
 			const verifyResult = {
@@ -226,7 +226,7 @@ describe('synchronizer', () => {
 			});
 
 			it('should call verifySignature', async () => {
-				synchronizer._verifyBlockBeforeSync(lastBlock, receivedBlock);
+				synchronizer._validateBlockBeforeSync(lastBlock, receivedBlock);
 
 				expect(blocksVerify.verifySignature).toHaveBeenCalledTimes(1);
 				expect(blocksVerify.verifySignature).toHaveBeenCalledWith(
@@ -236,7 +236,7 @@ describe('synchronizer', () => {
 			});
 
 			it('should call verifyVersion', async () => {
-				synchronizer._verifyBlockBeforeSync(lastBlock, receivedBlock);
+				synchronizer._validateBlockBeforeSync(lastBlock, receivedBlock);
 
 				expect(blocksVerify.verifyVersion).toHaveBeenCalledTimes(1);
 				expect(blocksVerify.verifyVersion).toHaveBeenCalledWith(
@@ -247,7 +247,7 @@ describe('synchronizer', () => {
 			});
 
 			it('should call verifyReward', async () => {
-				synchronizer._verifyBlockBeforeSync(lastBlock, receivedBlock);
+				synchronizer._validateBlockBeforeSync(lastBlock, receivedBlock);
 
 				expect(blocksVerify.verifyReward).toHaveBeenCalledTimes(1);
 				expect(blocksVerify.verifyReward).toHaveBeenCalledWith(
@@ -259,7 +259,7 @@ describe('synchronizer', () => {
 			});
 
 			it('should call verifyId', async () => {
-				synchronizer._verifyBlockBeforeSync(lastBlock, receivedBlock);
+				synchronizer._validateBlockBeforeSync(lastBlock, receivedBlock);
 
 				expect(blocksVerify.verifyId).toHaveBeenCalledTimes(1);
 				expect(blocksVerify.verifyId).toHaveBeenCalledWith(
@@ -269,7 +269,7 @@ describe('synchronizer', () => {
 			});
 
 			it('should call verifyPayload', async () => {
-				synchronizer._verifyBlockBeforeSync(lastBlock, receivedBlock);
+				synchronizer._validateBlockBeforeSync(lastBlock, receivedBlock);
 
 				expect(blocksVerify.verifyPayload).toHaveBeenCalledTimes(1);
 				expect(blocksVerify.verifyPayload).toHaveBeenCalledWith(
@@ -286,7 +286,7 @@ describe('synchronizer', () => {
 					errors: ['Error 1', 'Error 2'],
 				});
 
-				const result = synchronizer._verifyBlockBeforeSync(
+				const result = synchronizer._validateBlockBeforeSync(
 					lastBlock,
 					receivedBlock
 				);
@@ -298,7 +298,7 @@ describe('synchronizer', () => {
 			});
 
 			it('should return verified = true if all steps passes', async () => {
-				const result = synchronizer._verifyBlockBeforeSync(
+				const result = synchronizer._validateBlockBeforeSync(
 					lastBlock,
 					receivedBlock
 				);
@@ -314,9 +314,9 @@ describe('synchronizer', () => {
 			beforeEach(async () => {
 				receivedBlock = blockFixture();
 
-				storageMock.entities.Block.getLastBlock.mockReturnValue(lastBlock);
+				lastBlockGetterMock.mockReturnValue(lastBlock);
 				jest
-					.spyOn(synchronizer, '_verifyBlockBeforeSync')
+					.spyOn(synchronizer, '_validateBlockBeforeSync')
 					.mockReturnValue({ verified: true });
 				jest
 					.spyOn(synchronizer, '_determineSyncMechanism')
@@ -341,8 +341,8 @@ describe('synchronizer', () => {
 			it('should verify the block before sync', async () => {
 				await synchronizer.run(receivedBlock);
 
-				expect(synchronizer._verifyBlockBeforeSync).toHaveBeenCalledTimes(1);
-				expect(synchronizer._verifyBlockBeforeSync).toHaveBeenCalledWith(
+				expect(synchronizer._validateBlockBeforeSync).toHaveBeenCalledTimes(1);
+				expect(synchronizer._validateBlockBeforeSync).toHaveBeenCalledWith(
 					lastBlock,
 					receivedBlock
 				);
@@ -350,7 +350,7 @@ describe('synchronizer', () => {
 
 			it('should reject with error if block verification failed', async () => {
 				const validationError = 'Block verifyError';
-				synchronizer._verifyBlockBeforeSync.mockReturnValue({
+				synchronizer._validateBlockBeforeSync.mockReturnValue({
 					verified: false,
 					errors: [validationError],
 				});
