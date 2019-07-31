@@ -1,9 +1,9 @@
 ---
-name: 
+name: Feature request
 about: Propose an idea for new improvements/features
-title: Feature request
-labels: 
-assignees: 
+title: ''
+labels: ''
+assignees: ''
 
 ---
 
