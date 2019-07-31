@@ -13,7 +13,7 @@
  *
  */
 import { P2PDiscoveredPeerInfo, P2PPeerInfo } from '../p2p_types';
-import { constructPeerIdFromPeerInfo, getBucket } from '../utils';
+import { constructPeerIdFromPeerInfo, getBucket, PEER_TYPE } from '../utils';
 
 export const DEFAULT_TRIED_PEER_LIST_SIZE = 64;
 export const DEFAULT_TRIED_PEER_BUCKET_SIZE = 32;
@@ -31,6 +31,12 @@ interface TriedPeerInfo {
 	// tslint:disable-next-line:readonly-keyword
 	numOfConnectionFailures: number;
 	readonly dateAdded: Date;
+}
+
+interface AddPeerOutcome {
+	readonly success: boolean;
+	readonly evicted: boolean;
+	readonly evictedPeer?: P2PDiscoveredPeerInfo;
 }
 
 export class TriedPeers {
@@ -84,154 +90,173 @@ export class TriedPeers {
 		);
 	}
 
-	public findPeer(peerId: string): boolean {
-		// tslint:disable-next-line:no-let
-		let ifExists = false;
-
-		[...this._triedPeerMap.values()].forEach(peersMap => {
-			if (peersMap.has(peerId)) {
-				ifExists = true;
-
-				return;
-			}
+	public findPeer(peerInfo: P2PPeerInfo): boolean {
+		const bucketId = getBucket({
+			secret: this._secret,
+			peerType: PEER_TYPE.TRIED_PEER,
+			targetAddress: peerInfo.ipAddress,
 		});
 
-		return ifExists;
+		const bucket = this._triedPeerMap.get(bucketId);
+		if (bucket && bucket.get(constructPeerIdFromPeerInfo(peerInfo))) {
+			return true;
+		}
+
+		return false;
 	}
 
 	public updatePeer(peerInfo: P2PDiscoveredPeerInfo): boolean {
-		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
-		// tslint:disable-next-line:no-let
-		let updateSuccess = false;
-
-		[...this._triedPeerMap.entries()].forEach(([bucketId, peerMap]) => {
-			[...peerMap.entries()].forEach(([peerId, triedPeerInfo]) => {
-				if (incomingPeerId === peerId) {
-					const updatedTriedPeerInfo: TriedPeerInfo = {
-						peerInfo: { ...triedPeerInfo.peerInfo, ...peerInfo },
-						dateAdded: triedPeerInfo.dateAdded,
-						numOfConnectionFailures: triedPeerInfo.numOfConnectionFailures,
-					};
-					// Set the updated peer in the peerMap of the peer bucket
-					this._triedPeerMap.set(
-						bucketId,
-						peerMap.set(peerId, updatedTriedPeerInfo),
-					);
-					updateSuccess = true;
-
-					return;
-				}
-			});
+		const bucketId = getBucket({
+			secret: this._secret,
+			peerType: PEER_TYPE.TRIED_PEER,
+			targetAddress: peerInfo.ipAddress,
 		});
 
-		return updateSuccess;
+		const bucket = this._triedPeerMap.get(bucketId);
+		if (bucket) {
+			const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
+			const foundPeer = bucket.get(incomingPeerId);
+			if (foundPeer) {
+				const updatedTriedPeerInfo: TriedPeerInfo = {
+					peerInfo: { ...foundPeer.peerInfo, ...peerInfo },
+					dateAdded: foundPeer.dateAdded,
+					numOfConnectionFailures: foundPeer.numOfConnectionFailures,
+				};
+
+				bucket.set(incomingPeerId, updatedTriedPeerInfo);
+				this._triedPeerMap.set(bucketId, bucket);
+
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public removePeer(peerInfo: P2PPeerInfo): boolean {
+		const bucketId = getBucket({
+			secret: this._secret,
+			peerType: PEER_TYPE.TRIED_PEER,
+			targetAddress: peerInfo.ipAddress,
+		});
+
+		const bucket = this._triedPeerMap.get(bucketId);
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
-		// tslint:disable-next-line:no-let
-		let success = false;
+		if (bucket && bucket.get(incomingPeerId)) {
+			const success = bucket.delete(incomingPeerId);
+			this._triedPeerMap.set(bucketId, bucket);
 
-		[...this._triedPeerMap.entries()].forEach(([bucketId, peerMap]) => {
-			[...peerMap.keys()].forEach(peerId => {
-				if (incomingPeerId === peerId) {
-					peerMap.delete(peerId);
-					this._triedPeerMap.set(bucketId, peerMap);
-					success = true;
+			return success;
+		}
 
-					return;
-				}
-			});
-		});
-
-		return success;
+		return false;
 	}
 
-	public getPeer(incomingPeerId: string): P2PDiscoveredPeerInfo | undefined {
-		// tslint:disable-next-line:no-let
-		let peer: TriedPeerInfo | undefined;
-
-		[...this._triedPeerMap.values()].forEach(peerMap => {
-			[...peerMap.entries()].forEach(([peerId, triedPeerInfo]) => {
-				if (peerId === incomingPeerId) {
-					peer = triedPeerInfo;
-				}
-			});
+	public getPeer(peerInfo: P2PPeerInfo): P2PDiscoveredPeerInfo | undefined {
+		const bucketId = getBucket({
+			secret: this._secret,
+			peerType: PEER_TYPE.TRIED_PEER,
+			targetAddress: peerInfo.ipAddress,
 		});
 
-		return peer ? peer.peerInfo : undefined;
+		const bucket = this._triedPeerMap.get(bucketId);
+		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
+		if (bucket) {
+			const triedPeer = bucket.get(incomingPeerId);
+
+			return triedPeer ? triedPeer.peerInfo : undefined;
+		}
+
+		return undefined;
 	}
 
-	public addPeer(
-		peerInfo: P2PDiscoveredPeerInfo,
-	): P2PDiscoveredPeerInfo | undefined {
-		// tslint:disable-next-line:no-let
-		let evictedPeer;
+	public addPeer(peerInfo: P2PDiscoveredPeerInfo): AddPeerOutcome {
+		const bucketId = getBucket({
+			secret: this._secret,
+			peerType: PEER_TYPE.TRIED_PEER,
+			targetAddress: peerInfo.ipAddress,
+		});
+		const bucket = this._triedPeerMap.get(bucketId);
+		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
 
-		if (!this.findPeer(constructPeerIdFromPeerInfo(peerInfo))) {
+		if (bucket && bucket.get(incomingPeerId)) {
+			return {
+				success: false,
+				evicted: false,
+			};
+		}
+
+		if (bucket) {
 			const newTriedPeerInfo = {
 				peerInfo,
 				numOfConnectionFailures: 0,
 				dateAdded: new Date(),
 			};
-			// TODO: Second argument of getBucket function should come from a field in peerInfo of 32 entropy
-			const bucketId = getBucket(
-				peerInfo.ipAddress,
-				this._secret,
-				this._triedPeerListSize,
-			);
-			if (bucketId) {
-				const bucketList = this._triedPeerMap.get(bucketId);
-				if (bucketList) {
-					if (bucketList.size < this._triedPeerBucketSize) {
-						bucketList.set(
-							constructPeerIdFromPeerInfo(peerInfo),
-							newTriedPeerInfo,
-						);
-						this._triedPeerMap.set(bucketId, bucketList);
-					} else {
-						evictedPeer = this._evictPeer(bucketId);
-						bucketList.set(
-							constructPeerIdFromPeerInfo(peerInfo),
-							newTriedPeerInfo,
-						);
-						this._triedPeerMap.set(bucketId, bucketList);
-					}
-				}
+
+			if (bucket.size < this._triedPeerBucketSize) {
+				bucket.set(incomingPeerId, newTriedPeerInfo);
+				this._triedPeerMap.set(bucketId, bucket);
+
+				return {
+					success: true,
+					evicted: false,
+				};
+			} else {
+				const evictedPeer = this._evictPeer(bucketId);
+				bucket.set(incomingPeerId, newTriedPeerInfo);
+				this._triedPeerMap.set(bucketId, bucket);
+
+				return {
+					success: true,
+					evicted: true,
+					evictedPeer: evictedPeer.peerInfo,
+				};
 			}
 		}
 
-		return evictedPeer ? evictedPeer.peerInfo : undefined;
+		return {
+			success: false,
+			evicted: false,
+		};
 	}
 
+	// Should return true if the peer is evicted due to failed connection
 	public failedConnectionAction(incomingPeerInfo: P2PPeerInfo): boolean {
-		// tslint:disable-next-line:no-let
-		let evictPeer = false;
+		const bucketId = getBucket({
+			secret: this._secret,
+			peerType: PEER_TYPE.TRIED_PEER,
+			targetAddress: peerInfo.ipAddress,
+		});
 
-		[...this._triedPeerMap.values()].map(peersMap => {
-			const peerId = constructPeerIdFromPeerInfo(incomingPeerInfo);
-			const peer = peersMap.get(peerId);
-			if (peer) {
-				const { peerInfo, numOfConnectionFailures, dateAdded } = peer;
+		const bucket = this._triedPeerMap.get(bucketId);
+		const incomingPeerId = constructPeerIdFromPeerInfo(incomingPeerInfo);
+
+		if (bucket) {
+			const foundPeer = bucket.get(incomingPeerId);
+
+			if (foundPeer) {
+				const { peerInfo, numOfConnectionFailures, dateAdded } = foundPeer;
 				if (numOfConnectionFailures + 1 >= this._maxReconnectTries) {
-					peersMap.delete(peerId);
-					evictPeer = true;
+					bucket.delete(incomingPeerId);
+					this._triedPeerMap.set(bucketId, bucket);
 
-					return peersMap;
+					return true;
 				}
+
 				const newTriedPeerInfo = {
 					peerInfo,
 					numOfConnectionFailures: numOfConnectionFailures + 1,
 					dateAdded,
 				};
 
-				peersMap.set(peerId, newTriedPeerInfo);
+				bucket.set(incomingPeerId, newTriedPeerInfo);
+				this._triedPeerMap.set(bucketId, bucket);
+
+				return false;
 			}
+		}
 
-			return peersMap;
-		});
-
-		return evictPeer;
+		return false;
 	}
 
 	private _evictPeer(bucketId: number): TriedPeerInfo {

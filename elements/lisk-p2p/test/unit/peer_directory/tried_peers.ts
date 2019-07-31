@@ -15,7 +15,6 @@
 import { expect } from 'chai';
 import { TriedPeers } from '../../../src/peer_directory/tried_peers';
 import { initializePeerInfoList } from '../../utils/peers';
-import { constructPeerIdFromPeerInfo } from '../../../src/utils';
 import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 
 describe.only('triedPeer', () => {
@@ -52,9 +51,7 @@ describe.only('triedPeer', () => {
 		});
 
 		it('should add the incoming peer if it does not exist already', async () => {
-			expect(
-				triedPeersList.findPeer(constructPeerIdFromPeerInfo(samplePeers[0])),
-			).to.be.true;
+			expect(triedPeersList.findPeer(samplePeers[0])).to.be.true;
 		});
 
 		it('should not add the incoming peer if it exists', async () => {
@@ -97,9 +94,7 @@ describe.only('triedPeer', () => {
 
 		it('should remove the peer from the incoming peerInfo', async () => {
 			triedPeersList.removePeer(samplePeers[0]);
-			expect(
-				triedPeersList.findPeer(constructPeerIdFromPeerInfo(samplePeers[0])),
-			).to.be.false;
+			expect(triedPeersList.findPeer(samplePeers[0])).to.be.false;
 		});
 	});
 
@@ -115,9 +110,7 @@ describe.only('triedPeer', () => {
 
 		describe('when peer exists in the triedPeers peerMap', () => {
 			it('should get the peer from the incoming peerId', async () => {
-				expect(
-					triedPeersList.getPeer(constructPeerIdFromPeerInfo(samplePeers[0])),
-				)
+				expect(triedPeersList.getPeer(samplePeers[0]))
 					.to.be.an('object')
 					.and.eql(samplePeers[0]);
 			});
@@ -126,8 +119,7 @@ describe.only('triedPeer', () => {
 		describe('when peer does not exist in the triedPeers peerMap', () => {
 			const randomPeer = initializePeerInfoList()[2];
 			it('should return undefined for the given peer that does not exist in peerMap', async () => {
-				expect(triedPeersList.getPeer(constructPeerIdFromPeerInfo(randomPeer)))
-					.to.be.undefined;
+				expect(triedPeersList.getPeer(randomPeer)).to.be.undefined;
 			});
 		});
 	});
@@ -152,9 +144,7 @@ describe.only('triedPeer', () => {
 
 				const success = triedPeersList.updatePeer(updatedPeer);
 				expect(success).to.be.true;
-				expect(
-					triedPeersList.getPeer(constructPeerIdFromPeerInfo(samplePeers[0])),
-				).to.be.eql(updatedPeer);
+				expect(triedPeersList.getPeer(samplePeers[0])).to.be.eql(updatedPeer);
 			});
 		});
 
@@ -183,9 +173,7 @@ describe.only('triedPeer', () => {
 		});
 		describe('when the peer exist', () => {
 			it('should find the peer from the incoming peerInfo', async () => {
-				const success = triedPeersList.findPeer(
-					constructPeerIdFromPeerInfo(samplePeers[0]),
-				);
+				const success = triedPeersList.findPeer(samplePeers[0]);
 				expect(success).to.be.true;
 			});
 		});
@@ -217,9 +205,7 @@ describe.only('triedPeer', () => {
 			it('should remove the peer from the triedPeerList', async () => {
 				const success = triedPeersList.failedConnectionAction(samplePeers[0]);
 				expect(success).to.be.true;
-				expect(
-					triedPeersList.getPeer(constructPeerIdFromPeerInfo(samplePeers[0])),
-				).to.be.undefined;
+				expect(triedPeersList.getPeer(samplePeers[0])).to.be.undefined;
 			});
 		});
 
@@ -238,15 +224,13 @@ describe.only('triedPeer', () => {
 			it('should not remove the peer after the first call and remove it after second failed connection', async () => {
 				const success1 = triedPeersList.failedConnectionAction(samplePeers[0]);
 				expect(success1).to.be.false;
-				expect(
-					triedPeersList.getPeer(constructPeerIdFromPeerInfo(samplePeers[0])),
-				).to.be.eql(samplePeers[0]);
+				expect(triedPeersList.getPeer(samplePeers[0])).to.be.eql(
+					samplePeers[0],
+				);
 
 				const success2 = triedPeersList.failedConnectionAction(samplePeers[0]);
 				expect(success2).to.be.true;
-				expect(
-					triedPeersList.getPeer(constructPeerIdFromPeerInfo(samplePeers[0])),
-				).to.be.undefined;
+				expect(triedPeersList.getPeer(samplePeers[0])).to.be.undefined;
 			});
 		});
 	});
