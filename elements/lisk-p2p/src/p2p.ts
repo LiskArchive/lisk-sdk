@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
+import { randomBytes } from 'crypto';
 import { EventEmitter } from 'events';
 import * as http from 'http';
 // tslint:disable-next-line no-require-imports
@@ -29,6 +29,8 @@ import {
 	constructPeerIdFromPeerInfo,
 	REMOTE_RPC_GET_PEERS_LIST,
 } from './peer';
+
+import { PeerBook } from './peer_directory';
 
 import {
 	FORBIDDEN_CONNECTION,
@@ -131,11 +133,14 @@ const BASE_10_RADIX = 10;
 export const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
 export const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
 export const DEFAULT_OUTBOUND_SHUFFLE_INTERVAL = 300000;
+export const DEFAULT_PEER_PROTECTION_FOR_NETGROUP = 0.034;
 export const DEFAULT_PEER_PROTECTION_FOR_LATENCY = 0.068;
 export const DEFAULT_PEER_PROTECTION_FOR_USEFULNESS = 0.068;
 export const DEFAULT_PEER_PROTECTION_FOR_LONGEVITY = 0.5;
 export const DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD = 100;
 export const DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_SIZE = 1000;
+export const SECRET_LENGTH = 4;
+export const DEFAULT_SECRET = randomBytes(SECRET_LENGTH).readUInt32BE(0);
 
 const selectRandomPeerSample = (
 	peerList: ReadonlyArray<P2PPeerInfo>,
@@ -149,6 +154,7 @@ export class P2P extends EventEmitter {
 	private _isActive: boolean;
 	private readonly _newPeers: Map<string, P2PPeerInfo>;
 	private readonly _triedPeers: Map<string, P2PDiscoveredPeerInfo>;
+	private readonly _peerBook: PeerBook;
 	private readonly _bannedPeers: Set<string>;
 	private readonly _populatorInterval: number;
 	private _populatorIntervalId: NodeJS.Timer | undefined;
@@ -207,6 +213,9 @@ export class P2P extends EventEmitter {
 		);
 		this._config = config;
 		this._isActive = false;
+		this._peerBook = new PeerBook({
+			secret: config.secret ? config.secret : DEFAULT_SECRET,
+		});
 		this._newPeers = new Map();
 		this._triedPeers = new Map();
 		this._bannedPeers = new Set();

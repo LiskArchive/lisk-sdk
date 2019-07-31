@@ -101,12 +101,14 @@ export interface P2PConfig {
 	readonly latencyProtectionRatio?: number;
 	readonly productivityProtectionRatio?: number;
 	readonly longevityProtectionRatio?: number;
+	readonly netgroupProtectionRatio?: number;
 	readonly hostIp?: string;
 	readonly wsMaxMessageRate?: number;
 	readonly wsMaxMessageRatePenalty?: number;
 	readonly rateCalculationInterval?: number;
 	readonly minimumPeerDiscoveryThreshold?: number;
 	readonly maximumPeerDiscoveryResponseSize?: number;
+	readonly secret?: number;
 }
 
 // Network info exposed by the P2P library.
