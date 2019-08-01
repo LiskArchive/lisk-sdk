@@ -37,20 +37,20 @@ function parseBlockFromDatabase(raw) {
 
 	const block = {
 		id: raw.id,
-		version: parseInt(raw.version),
-		timestamp: parseInt(raw.timestamp),
-		height: parseInt(raw.height),
+		version: parseInt(raw.version, 10),
+		timestamp: parseInt(raw.timestamp, 10),
+		height: parseInt(raw.height, 10),
 		previousBlock: raw.previousBlockId,
-		numberOfTransactions: parseInt(raw.numberOfTransactions),
+		numberOfTransactions: parseInt(raw.numberOfTransactions, 10),
 		totalAmount: new BigNum(raw.totalAmount).toFixed(),
 		totalFee: new BigNum(raw.totalFee).toFixed(),
 		reward: new BigNum(raw.reward).toFixed(),
-		payloadLength: parseInt(raw.payloadLength),
+		payloadLength: parseInt(raw.payloadLength, 10),
 		payloadHash: raw.payloadHash,
 		generatorPublicKey: raw.generatorPublicKey,
 		generatorId: getAddressFromPublicKey(raw.generatorPublicKey),
 		blockSignature: raw.blockSignature,
-		confirmations: parseInt(raw.confirmations),
+		confirmations: parseInt(raw.confirmations, 10),
 		totalForged: new BigNum(raw.totalFee).plus(raw.reward).toFixed(),
 	};
 

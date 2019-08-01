@@ -34,6 +34,7 @@ const Fork = stampit({
 		this.blockId = randomstring.generate({ charset: 'numeric', length: 20 });
 		this.blockHeight = parseInt(
 			randomstring.generate({ charset: 'numeric', length: 2 }),
+			10,
 		);
 		this.previousBlockId = randomstring.generate({
 			charset: 'numeric',
@@ -41,7 +42,7 @@ const Fork = stampit({
 		});
 		this.cause =
 			cause ||
-			parseInt(randomstring.generate({ charset: 'numeric', length: 2 }));
+			parseInt(randomstring.generate({ charset: 'numeric', length: 2 }), 10);
 	},
 });
 

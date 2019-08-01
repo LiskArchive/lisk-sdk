@@ -518,8 +518,8 @@ class Blocks extends EventEmitter {
 			);
 		}
 		if (
-			Number.isNaN(parseInt(rebuildUpToRound)) ||
-			parseInt(rebuildUpToRound) < 0
+			Number.isNaN(parseInt(rebuildUpToRound, 10)) ||
+			parseInt(rebuildUpToRound, 10) < 0
 		) {
 			throw new Error(
 				'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero',
@@ -529,9 +529,9 @@ class Blocks extends EventEmitter {
 			blocksCount / this.constants.activeDelegates,
 		);
 		const targetRound =
-			parseInt(rebuildUpToRound) === 0
+			parseInt(rebuildUpToRound, 10) === 0
 				? totalRounds
-				: Math.min(totalRounds, parseInt(rebuildUpToRound));
+				: Math.min(totalRounds, parseInt(rebuildUpToRound, 10));
 		const targetHeight = targetRound * this.constants.activeDelegates;
 		this._lastBlock = await this._reload(targetHeight);
 		// Remove remaining

@@ -239,12 +239,12 @@ const validationFormats = {
 	parsedInt(value) {
 		if (
 			Number.isNaN(value) ||
-			parseInt(value).toString() !== String(value) ||
+			parseInt(value, 10).toString() !== String(value) ||
 			Number.isNaN(parseInt(value, 10))
 		) {
 			return false;
 		}
-		value = parseInt(value);
+		value = parseInt(value, 10);
 		return true;
 	},
 

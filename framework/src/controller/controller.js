@@ -117,7 +117,7 @@ class Controller {
 		const pidPath = `${this.config.dirs.pids}/controller.pid`;
 		const pidExists = await fs.pathExists(pidPath);
 		if (pidExists) {
-			const pid = parseInt(await fs.readFile(pidPath));
+			const pid = parseInt(await fs.readFile(pidPath), 10);
 			const pidRunning = await isPidRunning(pid);
 
 			this.logger.info(`Old PID: ${pid}`);

@@ -39,13 +39,15 @@ describe('GET /node', () => {
 		});
 
 		it('should return a result containing milestone that is a number <= 500000000', async () => {
-			return expect(parseInt(constantsResponse.milestone)).to.at.most(
+			return expect(parseInt(constantsResponse.milestone, 10)).to.at.most(
 				500000000,
 			);
 		});
 
 		it('should return a result containing reward that is a number <= 500000000', async () => {
-			return expect(parseInt(constantsResponse.reward)).to.at.most(500000000);
+			return expect(parseInt(constantsResponse.reward, 10)).to.at.most(
+				500000000,
+			);
 		});
 
 		it('should return a result containing supply that is a number = 10000000000000000', async () => {

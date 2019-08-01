@@ -695,13 +695,13 @@ describe('GET /delegates', () => {
 					.makeRequest({ address: validDelegate.address }, 200)
 					.then(res => {
 						const group = res.body.data;
-						expect(parseInt(group.fees)).to.be.at.least(0);
-						expect(parseInt(group.rewards)).to.be.at.least(0);
-						expect(parseInt(group.forged)).to.be.at.least(0);
-						expect(parseInt(group.count)).to.be.at.least(0);
+						expect(parseInt(group.fees, 10)).to.be.at.least(0);
+						expect(parseInt(group.rewards, 10)).to.be.at.least(0);
+						expect(parseInt(group.forged, 10)).to.be.at.least(0);
+						expect(parseInt(group.count, 10)).to.be.at.least(0);
 						const meta = res.body.meta;
-						expect(parseInt(meta.fromTimestamp)).to.be.at.least(0);
-						expect(parseInt(meta.toTimestamp)).to.be.at.least(1);
+						expect(parseInt(meta.fromTimestamp, 10)).to.be.at.least(0);
+						expect(parseInt(meta.toTimestamp, 10)).to.be.at.least(1);
 					});
 			});
 
@@ -775,13 +775,13 @@ describe('GET /delegates', () => {
 							)
 							.then(res => {
 								const group = res.body.data;
-								expect(parseInt(group.fees)).to.be.at.least(0);
-								expect(parseInt(group.rewards)).to.be.at.least(0);
-								expect(parseInt(group.forged)).to.be.at.least(0);
-								expect(parseInt(group.count)).to.be.at.least(0);
+								expect(parseInt(group.fees, 10)).to.be.at.least(0);
+								expect(parseInt(group.rewards, 10)).to.be.at.least(0);
+								expect(parseInt(group.forged, 10)).to.be.at.least(0);
+								expect(parseInt(group.count, 10)).to.be.at.least(0);
 								const meta = res.body.meta;
-								expect(parseInt(meta.fromTimestamp)).to.be.at.least(0);
-								expect(parseInt(meta.toTimestamp)).to.be.at.least(1);
+								expect(parseInt(meta.fromTimestamp, 10)).to.be.at.least(0);
+								expect(parseInt(meta.toTimestamp, 10)).to.be.at.least(1);
 							});
 					});
 				});
@@ -809,13 +809,13 @@ describe('GET /delegates', () => {
 							)
 							.then(res => {
 								const group = res.body.data;
-								expect(parseInt(group.fees)).to.be.at.least(0);
-								expect(parseInt(group.rewards)).to.be.at.least(0);
-								expect(parseInt(group.forged)).to.be.at.least(0);
-								expect(parseInt(group.count)).to.be.at.least(0);
+								expect(parseInt(group.fees, 10)).to.be.at.least(0);
+								expect(parseInt(group.rewards, 10)).to.be.at.least(0);
+								expect(parseInt(group.forged, 10)).to.be.at.least(0);
+								expect(parseInt(group.count, 10)).to.be.at.least(0);
 								const meta = res.body.meta;
-								expect(parseInt(meta.fromTimestamp)).to.be.at.least(0);
-								expect(parseInt(meta.toTimestamp)).to.be.at.least(1);
+								expect(parseInt(meta.fromTimestamp, 10)).to.be.at.least(0);
+								expect(parseInt(meta.toTimestamp, 10)).to.be.at.least(1);
 							});
 					});
 				});

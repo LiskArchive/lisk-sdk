@@ -753,7 +753,7 @@ describe('GET /api/transactions', () => {
 					.makeRequest({ minAmount }, 200)
 					.then(res => {
 						res.body.data.map(transaction => {
-							return expect(parseInt(transaction.amount)).to.be.at.least(
+							return expect(parseInt(transaction.amount, 10)).to.be.at.least(
 								minAmount,
 							);
 						});
@@ -767,7 +767,7 @@ describe('GET /api/transactions', () => {
 					.makeRequest({ maxAmount }, 200)
 					.then(res => {
 						res.body.data.map(transaction => {
-							return expect(parseInt(transaction.amount)).to.be.at.most(
+							return expect(parseInt(transaction.amount, 10)).to.be.at.most(
 								maxAmount,
 							);
 						});
@@ -960,7 +960,7 @@ describe('GET /api/transactions', () => {
 						.makeRequest({ sort: 'amount:asc', minAmount: 100 }, 200)
 						.then(res => {
 							const values = _.map(res.body.data, 'amount').map(value => {
-								return parseInt(value);
+								return parseInt(value, 10);
 							});
 
 							expect(_(_.clone(values)).sortNumbers('asc')).to.be.eql(values);
@@ -972,7 +972,7 @@ describe('GET /api/transactions', () => {
 						.makeRequest({ sort: 'amount:desc' }, 200)
 						.then(res => {
 							const values = _.map(res.body.data, 'amount').map(value => {
-								return parseInt(value);
+								return parseInt(value, 10);
 							});
 
 							expect(_(_.clone(values)).sortNumbers('desc')).to.be.eql(values);
@@ -986,7 +986,7 @@ describe('GET /api/transactions', () => {
 						.makeRequest({ sort: 'fee:asc', minAmount: 100 }, 200)
 						.then(res => {
 							const values = _.map(res.body.data, 'fee').map(value => {
-								return parseInt(value);
+								return parseInt(value, 10);
 							});
 
 							expect(_(_.clone(values)).sortNumbers('asc')).to.be.eql(values);
@@ -998,7 +998,7 @@ describe('GET /api/transactions', () => {
 						.makeRequest({ sort: 'fee:desc' }, 200)
 						.then(res => {
 							const values = _.map(res.body.data, 'fee').map(value => {
-								return parseInt(value);
+								return parseInt(value, 10);
 							});
 
 							expect(_(_.clone(values)).sortNumbers('desc')).to.be.eql(values);
@@ -1126,7 +1126,7 @@ describe('GET /api/transactions', () => {
 					)
 					.then(res => {
 						const values = _.map(res.body.data, 'amount').map(value => {
-							return parseInt(value);
+							return parseInt(value, 10);
 						});
 
 						expect(_(_.clone(values)).sortNumbers('asc')).to.be.eql(values);
@@ -1154,7 +1154,7 @@ describe('GET /api/transactions', () => {
 					)
 					.then(res => {
 						const values = _.map(res.body.data, 'amount').map(value => {
-							return parseInt(value);
+							return parseInt(value, 10);
 						});
 						expect(_(_.clone(values)).sortNumbers('asc')).to.be.eql(values);
 

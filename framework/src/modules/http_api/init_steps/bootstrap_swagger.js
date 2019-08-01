@@ -174,13 +174,13 @@ const middleware = {
 
 				if (
 					Number.isNaN(value) ||
-					parseInt(value).toString() !== String(value) ||
+					parseInt(value, 10).toString() !== String(value) ||
 					Number.isNaN(parseInt(value, radix))
 				) {
 					return value;
 				}
 
-				return parseInt(value);
+				return parseInt(value, 10);
 			},
 		});
 	},

@@ -586,7 +586,7 @@ describe('Round', () => {
 
 		it('should insert one record to "round_rewards" table', async () => {
 			const params = {
-				timestamp: parseInt((+new Date() / 1000).toFixed()),
+				timestamp: parseInt((+new Date() / 1000).toFixed(), 10),
 				fees: '123',
 				reward: '123',
 				round: 1,
@@ -618,21 +618,21 @@ describe('Round', () => {
 		it('should delete all round rewards for a particular round', async () => {
 			// Seed some round reward data
 			await RoundEntity.createRoundRewards({
-				timestamp: parseInt((+new Date() / 1000).toFixed()),
+				timestamp: parseInt((+new Date() / 1000).toFixed(), 10),
 				fees: '123',
 				reward: '123',
 				round: 1, // Round 1
 				publicKey: '11111111',
 			});
 			await RoundEntity.createRoundRewards({
-				timestamp: parseInt((+new Date() / 1000).toFixed()),
+				timestamp: parseInt((+new Date() / 1000).toFixed(), 10),
 				fees: '123',
 				reward: '123',
 				round: 1, // Round 1
 				publicKey: '11111111',
 			});
 			await RoundEntity.createRoundRewards({
-				timestamp: parseInt((+new Date() / 1000).toFixed()),
+				timestamp: parseInt((+new Date() / 1000).toFixed(), 10),
 				fees: '123',
 				reward: '123',
 				round: 2, // Round 2

@@ -77,7 +77,7 @@ function SwaggerTestSpec(method, apiPath, responseCode) {
 		this.method = _.trim(specParam[0]).toLowerCase();
 
 		if (specParam.length === 3) {
-			this.responseCode = parseInt(specParam[2]);
+			this.responseCode = parseInt(specParam[2], 10);
 		}
 	} else {
 		throw 'SwaggerTestSpec was created with invalid params';

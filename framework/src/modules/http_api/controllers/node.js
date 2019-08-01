@@ -85,7 +85,7 @@ async function _getNetworkHeight() {
 		},
 	);
 
-	return parseInt(networkHeight);
+	return parseInt(networkHeight, 10);
 }
 
 /**
@@ -391,7 +391,7 @@ NodeController.getPooledTransactions = async function(context, next) {
 			meta: {
 				offset: filters.offset,
 				limit: filters.limit,
-				count: parseInt(data.count),
+				count: parseInt(data.count, 10),
 			},
 		});
 	} catch (err) {

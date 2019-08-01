@@ -59,7 +59,10 @@ function accountFormatter(totalSupply, account) {
 			'productivity',
 		]);
 
-		formattedAccount.delegate.rank = parseInt(formattedAccount.delegate.rank);
+		formattedAccount.delegate.rank = parseInt(
+			formattedAccount.delegate.rank,
+			10,
+		);
 
 		// Computed fields
 		formattedAccount.delegate.approval = calculateApproval(

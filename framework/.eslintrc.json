@@ -8,9 +8,7 @@
 		"no-param-reassign": "off",
 		"no-plusplus": "off",
 		"no-underscore-dangle": "off",
-		"operator-linebreak": "off",
 		"prefer-destructuring": "off",
-		"radix": "off",
 		"require-jsdoc": [
 			"error",
 			{

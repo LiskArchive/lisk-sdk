@@ -133,7 +133,7 @@ const loadBlocksDataWS = async (storage, filter, tx) => {
 
 	const height = rows.length ? rows[0].height : 0;
 	// Calculate max block height for database query
-	const realLimit = height + (parseInt(filter.limit) || 1);
+	const realLimit = height + (parseInt(filter.limit, 10) || 1);
 
 	params.limit = realLimit;
 	params.height = height;

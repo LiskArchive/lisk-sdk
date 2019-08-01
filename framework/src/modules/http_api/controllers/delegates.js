@@ -45,7 +45,7 @@ function delegateFormatter(totalSupply, delegate) {
 
 	result.approval = calculateApproval(result.vote, totalSupply);
 
-	result.rank = parseInt(result.rank);
+	result.rank = parseInt(result.rank, 10);
 
 	return result;
 }

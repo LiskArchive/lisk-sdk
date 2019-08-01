@@ -391,7 +391,7 @@ describe('GET /api/node', () => {
 							expect(res.body.data).to.not.be.empty;
 
 							const values = _.map(res.body.data, 'amount').map(value => {
-								return parseInt(value);
+								return parseInt(value, 10);
 							});
 
 							expect(_(_.clone(values)).sortNumbers('asc')).to.be.eql(values);
@@ -406,7 +406,7 @@ describe('GET /api/node', () => {
 							expect(res.body.data).to.not.be.empty;
 
 							const values = _.map(res.body.data, 'amount').map(value => {
-								return parseInt(value);
+								return parseInt(value, 10);
 							});
 
 							expect(_(_.clone(values)).sortNumbers('desc')).to.be.eql(values);
@@ -421,7 +421,7 @@ describe('GET /api/node', () => {
 								expect(res.body.data).to.not.be.empty;
 
 								const values = _.map(res.body.data, 'fee').map(value => {
-									return parseInt(value);
+									return parseInt(value, 10);
 								});
 
 								expect(_(_.clone(values)).sortNumbers('asc')).to.be.eql(values);
@@ -435,7 +435,7 @@ describe('GET /api/node', () => {
 								expect(res.body.data).to.not.be.empty;
 
 								const values = _.map(res.body.data, 'fee').map(value => {
-									return parseInt(value);
+									return parseInt(value, 10);
 								});
 
 								expect(_(_.clone(values)).sortNumbers('desc')).to.be.eql(
