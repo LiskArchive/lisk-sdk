@@ -146,15 +146,15 @@ export const selectPeersForConnection = (
 		if (shuffledTriedPeers.length !== 0) {
 			if (Math.random() < r) {
 				// With probability r
-				return shuffledTriedPeers.splice(0, 1)[0];
+				return shuffledTriedPeers.pop() as P2PPeerInfo;
 			}
 		}
 
 		if (shuffledNewPeers.length !== 0) {
 			// With probability 1-r
-			return shuffledNewPeers.splice(0, 1)[0];
+			return shuffledNewPeers.pop() as P2PPeerInfo;
 		}
 
-		return shuffledTriedPeers.splice(0, 1)[0];
+		return shuffledTriedPeers.pop() as P2PPeerInfo;
 	});
 };
