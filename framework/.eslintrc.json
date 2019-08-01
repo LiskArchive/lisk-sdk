@@ -1,12 +1,12 @@
 {
 	"extends": ["../.eslintrc.json"],
 	"rules": {
-		"camelcase": "off",
-		"max-len": "off",
-		"no-param-reassign": ["warn"],
-		"no-underscore-dangle": "off",
 		"strict": "off",
-		"no-throw-literal": ["warn"],
-		"space-before-function-paren": "off"
+		"max-len": "off",
+		"no-underscore-dangle": "off",
+		"camelcase": ["warn"],
+		"space-before-function-paren": ["warn"],
+		"no-param-reassign": ["warn"],
+		"no-throw-literal": ["warn"]
 	}
 }

@@ -21,6 +21,7 @@
 		"no-unused-expressions": "off",
 		"chai-expect/missing-assertion": "error",
 		"chai-expect/no-inner-compare": "error",
+		"space-before-function-paren": "off",
 		"import/no-extraneous-dependencies": [
 			"error",
 			{
