@@ -2,7 +2,6 @@
 	"extends": ["../.eslintrc.json"],
 	"rules": {
 		"camelcase": "off",
-		"func-names": "off",
 		"implicit-arrow-linebreak": "off",
 		"max-len": "off",
 		"no-param-reassign": "off",

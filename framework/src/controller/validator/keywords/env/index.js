@@ -33,7 +33,7 @@ const compile = (schema, parentSchema) => {
 					formatter: formatters[schema.formatter] || null,
 			  };
 
-	return function(data, dataPath, object, key) {
+	return (data, dataPath, object, key) => {
 		let variableValue = process.env[envVariable.name];
 
 		// Formatting logic to automatically format the CLI value to the expected type

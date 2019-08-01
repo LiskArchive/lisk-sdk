@@ -22,7 +22,7 @@ const TRANSACTION_TYPES_VOTE = 3;
 const TRANSACTION_TYPES_IN_TRANSFER = 6;
 const TRANSACTION_TYPES_OUT_TRANSFER = 7;
 
-const reverseVotes = function(diff) {
+const reverseVotes = diff => {
 	const copyDiff = diff.slice();
 	for (let i = 0; i < copyDiff.length; i++) {
 		const math = copyDiff[i][0] === '-' ? '+' : '-';
