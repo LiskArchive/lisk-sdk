@@ -2,13 +2,11 @@
 	"extends": ["../.eslintrc.json"],
 	"rules": {
 		"camelcase": "off",
-		"implicit-arrow-linebreak": "off",
 		"max-len": "off",
 		"no-param-reassign": "off",
 		"no-plusplus": "off",
 		"no-underscore-dangle": "off",
 		"strict": "off",
-		"no-restricted-properties": "off",
 		"no-throw-literal": "off",
 		"space-before-function-paren": "off"
 	}
