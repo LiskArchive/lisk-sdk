@@ -18,12 +18,25 @@ const { maxBy, groupBy } = require('lodash');
 const ForkChoiceRule = require('../blocks/fork_choice_rule');
 
 class BlockSynchronizationMechanism {
-	constructor({ channel, modules: { blocks } }) {
+	constructor({
+		storage,
+		logger,
+		bft,
+		slots,
+		channel,
+		blocks,
+		activeDelegates,
+	}) {
+		this.storage = storage;
+		this.logger = logger;
+		this.bft = bft;
+		this.slots = slots;
 		this.channel = channel;
-		this.active = false;
-		this.modules = {
-			blocks,
+		this.blocks = blocks;
+		this.constants = {
+			activeDelegates,
 		};
+		this.active = false;
 	}
 
 	async run() {
@@ -42,8 +55,30 @@ class BlockSynchronizationMechanism {
 		this.active = false;
 	}
 
-	isActive() {
+	get isActive() {
 		return this.active;
+	}
+
+	/**
+	 * Check if this sync mechanism is valid for the received block
+	 *
+	 * @param {object} receivedBlock - The blocked received from the network
+	 * @return {Promise.<Boolean|undefined>} - If the mechanism applied to received block
+	 * @throws {Error} - In case want to abort the sync pipeline
+	 */
+	// eslint-disable-next-line no-unused-vars
+	async isValidFor(receivedBlock) {
+		// 2. Step: Check whether current chain justifies triggering the block synchronization mechanism
+		const finalizedBlock = await this.storage.entities.Block.getOne({
+			height_eq: this.bft.finalizedHeight,
+		});
+		const finalizedBlockSlot = this.slots.getSlotNumber(
+			finalizedBlock.timestamp
+		);
+		const currentBlockSlot = this.slots.getSlotNumber();
+		const threeRounds = this.constants.activeDelegates * 3;
+
+		return finalizedBlockSlot < currentBlockSlot - threeRounds;
 	}
 
 	/**
@@ -97,9 +132,7 @@ class BlockSynchronizationMechanism {
 			height: peers[0].height,
 		};
 
-		if (
-			!ForkChoiceRule.isDifferentChain(this.modules.blocks.lastBlock, peersTip)
-		) {
+		if (!ForkChoiceRule.isDifferentChain(this.blocks.lastBlock, peersTip)) {
 			throw new Error('Violation of fork choice rule');
 		}
 
@@ -137,4 +170,4 @@ class BlockSynchronizationMechanism {
 	}
 }
 
-module.exports = BlockSynchronizationMechanism;
+module.exports = { BlockSynchronizationMechanism };

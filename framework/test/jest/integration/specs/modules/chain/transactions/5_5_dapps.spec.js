@@ -36,12 +36,18 @@ describe('integration test (type 5) - dapp registrations with repeated values', 
 	describe('after forging one block', () => {
 		it.todo('should include first dapp transactions to arrive in the block');
 
-		it.todo('should not include in the block the last dapp transactions to arrive');
+		it.todo(
+			'should not include in the block the last dapp transactions to arrive'
+		);
 
 		it.todo('should fail when adding an already registered dapp to the pool');
 
-		it.todo('should fail when trying to add an already registered dapp name to the pool');
+		it.todo(
+			'should fail when trying to add an already registered dapp name to the pool'
+		);
 
-		it.todo('should fail when adding an already registered dapp link to the pool');
+		it.todo(
+			'should fail when adding an already registered dapp link to the pool'
+		);
 	});
 });

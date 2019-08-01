@@ -17,10 +17,10 @@
 const EventEmitter = require('events');
 const { FinalityManager } = require('./finality_manager');
 
-const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
-const KEYS = {
+const META_KEYS = {
 	FINALIZED_HEIGHT: 'BFT.finalizedHeight',
 };
+const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
 
 const extractBFTBlockHeaderFromBlock = block => ({
 	blockId: block.id,
@@ -32,7 +32,7 @@ const extractBFTBlockHeaderFromBlock = block => ({
 });
 
 /**
- * BFT class responsible to hold integration logic for consensus manager with the framework
+ * BFT class responsible to hold integration logic for finality manager with the framework
  */
 class BFT extends EventEmitter {
 	/**
@@ -41,7 +41,7 @@ class BFT extends EventEmitter {
 	 * @param {Object} storage - Storage component instance
 	 * @param {Object} logger - Logger component instance
 	 * @param {integer} activeDelegates - Number of delegates
-	 * @param {integer} startingHeight - The height at which BFT consensus initialize
+	 * @param {integer} startingHeight - The height at which BFT finalization manager initialize
 	 */
 	constructor({ storage, logger, activeDelegates, startingHeight }) {
 		super();
@@ -89,7 +89,8 @@ class BFT extends EventEmitter {
 	async _initFinalityManager() {
 		// Check what finalized height was stored last time
 		const finalizedHeightStored =
-			parseInt(await this.ChainMetaEntity.getKey(KEYS.FINALIZED_HEIGHT)) || 0;
+			parseInt(await this.ChainMetaEntity.getKey(META_KEYS.FINALIZED_HEIGHT)) ||
+			0;
 
 		// Check BFT migration height
 		// https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#backwards-compatibility
@@ -140,6 +141,10 @@ class BFT extends EventEmitter {
 				exportedInterface.extractBFTBlockHeaderFromBlock(row)
 			);
 		});
+	}
+
+	get finalizedHeight() {
+		return this.finalityManager.finalizedHeight;
 	}
 }
 

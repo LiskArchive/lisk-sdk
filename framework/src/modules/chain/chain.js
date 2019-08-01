@@ -44,10 +44,16 @@ const {
 	EVENT_DELETE_BLOCK,
 	EVENT_BROADCAST_BLOCK,
 	EVENT_NEW_BROADHASH,
+	EVENT_PRIORITY_CHAIN_DETECTED,
 } = require('./blocks');
 const { Loader } = require('./loader');
 const { Forger } = require('./forger');
 const { Transport } = require('./transport');
+const {
+	Synchronizer,
+	BlockSynchronizationMechanism,
+	FastChainSwitchingMechanism,
+} = require('./synchronizer');
 
 const syncInterval = 10000;
 const forgeInterval = 1000;
@@ -342,6 +348,12 @@ module.exports = class Chain {
 			blocksPerRound: this.options.constants.ACTIVE_DELEGATES,
 		});
 		this.scope.slots = this.slots;
+		this.bft = new BFT({
+			storage: this.storage,
+			logger: this.logger,
+			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+			startingHeight: 0, // TODO: Pass exception precedent from config or height for block version 2
+		});
 		this.rounds = new Rounds({
 			channel: this.channel,
 			components: {
@@ -383,6 +395,39 @@ module.exports = class Chain {
 			totalAmount: this.options.constants.TOTAL_AMOUNT,
 			blockSlotWindow: this.options.constants.BLOCK_SLOT_WINDOW,
 		});
+
+		const blockSyncMechanism = new BlockSynchronizationMechanism({
+			storage: this.storage,
+			logger: this.logger,
+			bft: this.bft,
+			slots: this.slots,
+			channel: this.channel,
+			blocks: this.blocks,
+			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+		});
+
+		const fastChainSwitchMechanism = new FastChainSwitchingMechanism({
+			storage: this.storage,
+			logger: this.logger,
+			slots: this.slots,
+			blocks: this.blocks,
+			dpos: {},
+			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+		});
+
+		this.synchronizer = new Synchronizer({
+			storage: this.storage,
+			logger: this.logger,
+			blocks: this.blocks,
+			blockReward: this.blocks.blockReward,
+			exceptions: this.options.exceptions,
+			maxTransactionsPerBlock: this.options.constants
+				.MAX_TRANSACTIONS_PER_BLOCK,
+			maxPayloadLength: this.options.constants.MAX_PAYLOAD_LENGTH,
+		});
+		this.synchronizer.register(blockSyncMechanism);
+		this.synchronizer.register(fastChainSwitchMechanism);
+
 		this.scope.modules.blocks = this.blocks;
 		this.transactionPool = new TransactionPool({
 			logger: this.logger,
@@ -400,12 +445,6 @@ module.exports = class Chain {
 			releaseLimit: this.options.broadcasts.releaseLimit,
 		});
 		this.scope.modules.transactionPool = this.transactionPool;
-		this.bft = new BFT({
-			storage: this.storage,
-			logger: this.logger,
-			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
-			startingHeight: 0, // TODO: Pass exception precedent from config or height for block version 2
-		});
 		// TODO: Remove - Temporal write to modules for blocks circular dependency
 		this.peers = new Peers({
 			channel: this.channel,
@@ -464,6 +503,7 @@ module.exports = class Chain {
 		this.scope.modules.forger = this.forger;
 		this.scope.modules.transport = this.transport;
 		this.scope.modules.bft = this.bft;
+		this.scope.modules.synchronizer = this.synchronizer;
 	}
 
 	async _syncTask() {
@@ -574,6 +614,20 @@ module.exports = class Chain {
 			}
 		});
 
+		this.blocks.on(EVENT_PRIORITY_CHAIN_DETECTED, ({ block }) => {
+			this.logger.info(
+				'Received EVENT_PRIORITY_CHAIN_DETECTED. Triggering synchronizer.'
+			);
+			this.synchronizer
+				.run(block)
+				.then(() => {
+					this.logger.info('Synchronization finished.');
+				})
+				.catch(error => {
+					this.logger.error('Error occurred during synchronization.', error);
+				});
+		});
+
 		this.transactionPool.on(EVENT_UNCONFIRMED_TRANSACTION, transaction => {
 			this.logger.trace(
 				{ transactionId: transaction.id },
@@ -603,6 +657,7 @@ module.exports = class Chain {
 		this.blocks.removeAllListeners(EVENT_BROADCAST_BLOCK);
 		this.blocks.removeAllListeners(EVENT_DELETE_BLOCK);
 		this.blocks.removeAllListeners(EVENT_NEW_BLOCK);
+		this.blocks.removeAllListeners(EVENT_PRIORITY_CHAIN_DETECTED);
 		this.bft.removeAllListeners(EVENT_BFT_BLOCK_FINALIZED);
 		this.blocks.removeAllListeners(EVENT_NEW_BROADHASH);
 		this.blocks.removeAllListeners(EVENT_UNCONFIRMED_TRANSACTION);

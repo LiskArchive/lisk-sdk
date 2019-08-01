@@ -27,7 +27,9 @@ describe('integration test (type 0) - double transfers', () => {
 
 			it.todo('should not include the last transfer transaction to arrive');
 
-			it.todo('should fail adding to the pool a transfer transaction for the same account');
+			it.todo(
+				'should fail adding to the pool a transfer transaction for the same account'
+			);
 		});
 	});
 });

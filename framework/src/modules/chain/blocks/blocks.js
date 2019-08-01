@@ -32,6 +32,7 @@ const EVENT_NEW_BLOCK = 'EVENT_NEW_BLOCK';
 const EVENT_DELETE_BLOCK = 'EVENT_DELETE_BLOCK';
 const EVENT_BROADCAST_BLOCK = 'EVENT_BROADCAST_BLOCK';
 const EVENT_NEW_BROADHASH = 'EVENT_NEW_BROADHASH';
+const EVENT_PRIORITY_CHAIN_DETECTED = 'EVENT_PRIORITY_CHAIN_DETECTED';
 
 class Blocks extends EventEmitter {
 	constructor({
@@ -562,8 +563,7 @@ class Blocks extends EventEmitter {
 
 		if (forkChoiceRule.isDifferentChain(this._lastBlock, block)) {
 			// Case 5: received block has priority. Move to a different chain.
-			// TODO: Move to a different chain
-			return this._handleMovingToDifferentChain();
+			return this._handleMovingToDifferentChain(this._lastBlock, block);
 		}
 
 		// Discard newly received block
@@ -821,10 +821,9 @@ class Blocks extends EventEmitter {
 	 * Move to a different chain
 	 * @private
 	 */
-	// eslint-disable-next-line class-methods-use-this
-	_handleMovingToDifferentChain() {
-		// TODO: Move to a different chain.
-		// Determine which method to use to move to a different chain: Block Sync Mechanism or Fast Chain Switching Mechanism
+	_handleMovingToDifferentChain(lastBlock, block) {
+		const cloned = cloneDeep(block);
+		this.emit(EVENT_PRIORITY_CHAIN_DETECTED, { block: cloned });
 	}
 
 	/**
@@ -854,4 +853,5 @@ module.exports = {
 	EVENT_DELETE_BLOCK,
 	EVENT_BROADCAST_BLOCK,
 	EVENT_NEW_BROADHASH,
+	EVENT_PRIORITY_CHAIN_DETECTED,
 };

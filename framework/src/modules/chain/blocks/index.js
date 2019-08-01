@@ -28,6 +28,7 @@ const {
 	EVENT_DELETE_BLOCK,
 	EVENT_BROADCAST_BLOCK,
 	EVENT_NEW_BROADHASH,
+	EVENT_PRIORITY_CHAIN_DETECTED,
 } = require('./blocks');
 
 module.exports = {
@@ -40,6 +41,7 @@ module.exports = {
 	EVENT_DELETE_BLOCK,
 	EVENT_BROADCAST_BLOCK,
 	EVENT_NEW_BROADHASH,
+	EVENT_PRIORITY_CHAIN_DETECTED,
 	objectNormalize,
 	addBlockProperties,
 };
