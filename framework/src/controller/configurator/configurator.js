@@ -87,7 +87,7 @@ class Configurator {
 	loadConfigFile(configFilePath, destinationPath) {
 		// To allow loading up JS exports and JSON files
 		// we used the dynamic require instead of fs
-		// eslint-disable-next-line import/no-dynamic-require
+		// eslint-disable-next-line import/no-dynamic-require,global-require
 		this.loadConfig(require(configFilePath), destinationPath);
 	}
 

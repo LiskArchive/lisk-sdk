@@ -204,6 +204,7 @@ const middleware = {
  */
 function bootstrapSwagger(app, config, logger, scope, cb) {
 	// Register modules to be used in swagger fittings
+	// eslint-disable-next-line global-require
 	require('../helpers/swagger_module_registry').bind(scope);
 
 	// Register the express middleware(s)
@@ -212,6 +213,7 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 	app.use(middleware.applyAPIAccessRules.bind(null, config));
 
 	// Bind each request/response pair to its own domain
+	// eslint-disable-next-line global-require
 	app.use(require('express-domain-middleware'));
 
 	// Maximum 2mb body size for POST type requests
@@ -269,7 +271,7 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 	const controllerFolder = '/controllers/';
 	fs.readdirSync(config.root + controllerFolder).forEach(file => {
 		if (path.basename(file) !== 'index.js') {
-			// eslint-disable-next-line import/no-dynamic-require
+			// eslint-disable-next-line import/no-dynamic-require,global-require
 			require(config.root + controllerFolder + file)(scope);
 		}
 	});

@@ -14,9 +14,12 @@
 
 'use strict';
 
+const path = require('path');
+
 if (process.env.NEW_RELIC_LICENSE_KEY) {
+	// eslint-disable-next-line global-require
 	const newrelic = require('newrelic');
-	const path = require('path');
+	// eslint-disable-next-line global-require
 	const newrelicLisk = require('lisk-newrelic')(newrelic, {
 		exitOnFailure: true,
 		rootPath: path.dirname(__filename),

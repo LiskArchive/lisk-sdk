@@ -14,10 +14,16 @@
 
 'use strict';
 
+const Field = require('./field');
+const filterTypes = require('./filter_types');
+const filterGenerator = require('./filters');
+const inputSerializers = require('./input_serializers');
+const sortOptions = require('./sort_option');
+
 module.exports = {
-	Field: require('./field'),
-	filterTypes: require('./filter_types'),
-	filterGenerator: require('./filters'),
-	inputSerializers: require('./input_serializers'),
-	sortOptions: require('./sort_option'),
+	Field,
+	filterTypes,
+	filterGenerator,
+	inputSerializers,
+	sortOptions,
 };

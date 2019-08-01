@@ -50,7 +50,7 @@ try {
 	configurator.loadConfigFile(
 		path.resolve(__dirname, `../fixtures/config/${network}/config`),
 	);
-	// eslint-disable-next-line import/no-dynamic-require
+	// eslint-disable-next-line import/no-dynamic-require,global-require
 	const genesisBlock = require(`../fixtures/config/${network}/genesis_block`);
 
 	if (process.env.CUSTOM_CONFIG_FILE) {

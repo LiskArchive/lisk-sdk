@@ -93,7 +93,9 @@ describe('ChildProcessChannel Channel', () => {
 
 			jest.isolateModules(() => {
 				jest.doMock('../../../../../../src/controller/channels/base_channel');
+				// eslint-disable-next-line global-require
 				IsolatedChildProcessChannel = require('../../../../../../src/controller/channels/child_process_channel');
+				// eslint-disable-next-line global-require
 				IsolatedBaseChannel = require('../../../../../../src/controller/channels/base_channel');
 			});
 

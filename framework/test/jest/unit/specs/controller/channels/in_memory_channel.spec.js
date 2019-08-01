@@ -74,7 +74,9 @@ describe('InMemoryChannel Channel', () => {
 			jest.isolateModules(() => {
 				// no need to restore mock since, `restoreMocks` option was set to true in unit test config file.
 				jest.doMock('../../../../../../src/controller/channels/base_channel');
+				// eslint-disable-next-line global-require
 				IsolatedInMemoryChannel = require('../../../../../../src/controller/channels/in_memory_channel');
+				// eslint-disable-next-line global-require
 				IsolatedBaseChannel = require('../../../../../../src/controller/channels/base_channel');
 			});
 

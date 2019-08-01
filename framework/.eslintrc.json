@@ -30,9 +30,6 @@
 				]
 			}
 		],
-		"callback-return": "error",
-		"global-require": "off",
-		"no-console": ["error", { "allow": ["trace", "error", "info", "warn"] }],
 		"no-restricted-properties": "off",
 		"no-template-curly-in-string": "off",
 		"no-throw-literal": "off",

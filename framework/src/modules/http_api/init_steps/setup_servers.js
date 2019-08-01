@@ -25,7 +25,7 @@ module.exports = ({ components: { logger }, config }) => {
 	const expressApp = express();
 
 	if (config.coverage) {
-		// eslint-disable-next-line import/no-extraneous-dependencies
+		// eslint-disable-next-line import/no-extraneous-dependencies,global-require
 		const im = require('istanbul-middleware');
 		logger.debug(
 			'Hook loader for coverage - Do not use in production environment!',

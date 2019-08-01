@@ -12,6 +12,7 @@
 	},
 	"rules": {
 		"no-new": "off",
+		"global-require": "off",
 		"prefer-destructuring": "off",
 		"arrow-body-style": "off",
 		"no-unused-expressions": "off",
