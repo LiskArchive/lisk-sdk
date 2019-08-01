@@ -49,16 +49,6 @@ const addTransactionsAndForge = util.promisify(
 	localCommon.addTransactionsAndForge,
 );
 
-const TYPE = {
-	RECEIVED: createCreditTransaction, // CREDIT
-	SPEND: createDebitTransaction, // DEBIT
-};
-
-const EXPECT = {
-	OK: true,
-	FAIL: false,
-};
-
 function createDebitTransaction(account, amount) {
 	return transfer({
 		amount: new BigNum(NORMALIZER).times(amount).toString(),
@@ -74,6 +64,16 @@ function createCreditTransaction(account, amount) {
 		passphrase: accountFixtures.genesis.passphrase,
 	});
 }
+
+const TYPE = {
+	RECEIVED: createCreditTransaction, // CREDIT
+	SPEND: createDebitTransaction, // DEBIT
+};
+
+const EXPECT = {
+	OK: true,
+	FAIL: false,
+};
 
 const formatTransaction = t => ({
 	id: t.id,

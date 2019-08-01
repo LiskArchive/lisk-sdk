@@ -98,6 +98,18 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 		return block;
 	}
 
+	function getKeypair(passphrase) {
+		const {
+			publicKeyBytes: publicKey,
+			privateKeyBytes: privateKey,
+		} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
+
+		return {
+			publicKey,
+			privateKey,
+		};
+	}
+
 	function forge(forgingSlot, cb) {
 		let last_block = library.modules.blocks.lastBlock;
 		const slot = forgingSlot || slots.getSlotNumber(last_block.timestamp) + 1;
@@ -184,18 +196,6 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 				cb(err, forgedBlocks);
 			},
 		);
-	}
-
-	function getKeypair(passphrase) {
-		const {
-			publicKeyBytes: publicKey,
-			privateKeyBytes: privateKey,
-		} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
-
-		return {
-			publicKey,
-			privateKey,
-		};
 	}
 
 	function getValidKeypairForSlot(slot) {

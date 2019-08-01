@@ -28,6 +28,13 @@ const transactionsModule = require('../transactions');
 const EVENT_UNCONFIRMED_TRANSACTION = 'EVENT_UNCONFIRMED_TRANSACTION';
 const EVENT_MULTISIGNATURE_SIGNATURE = 'EVENT_MULTISIGNATURE_SIGNATURE';
 
+const receivedQueue = 'received';
+// TODO: Need to decide which queue will include transactions in the validated queue
+const pendingQueue = 'pending';
+const verifiedQueue = 'verified';
+const readyQueue = 'ready';
+const validatedQueue = 'validated';
+
 const handleAddTransactionResponse = (addTransactionResponse, transaction) => {
 	if (addTransactionResponse.isFull) {
 		throw new Error('Transaction pool is full');
@@ -40,13 +47,6 @@ const handleAddTransactionResponse = (addTransactionResponse, transaction) => {
 	}
 	return addTransactionResponse;
 };
-
-const receivedQueue = 'received';
-// TODO: Need to decide which queue will include transactions in the validated queue
-const pendingQueue = 'pending';
-const verifiedQueue = 'verified';
-const readyQueue = 'ready';
-const validatedQueue = 'validated';
 
 /**
  * Transaction pool logic. Initializes variables,

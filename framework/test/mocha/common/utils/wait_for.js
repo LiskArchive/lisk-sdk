@@ -94,6 +94,53 @@ function blockchainReady(retries, timeout, baseUrl, doNotLogRetries, cb) {
 	})();
 }
 
+function newBlock(height, blocksToWait, baseUrl, cb) {
+	if (blocksToWait === 0) {
+		return setImmediate(cb, null, height);
+	}
+
+	let counter = 1;
+	const target = height + blocksToWait;
+
+	return async.doWhilst(
+		doWhilstCb => {
+			const request = popsicle.get(
+				`${baseUrl || __testContext.baseUrl}/api/node/status`,
+			);
+
+			request.use(popsicle.plugins.parse(['json']));
+
+			request.then(res => {
+				if (res.status !== 200) {
+					return doWhilstCb(
+						['Received bad response code', res.status, res.url].join(' '),
+					);
+				}
+				__testContext.debug(
+					'Waiting for block:'.grey,
+					'Height:'.grey,
+					res.body.data.height,
+					'Target:'.grey,
+					target,
+					'Second:'.grey,
+					counter++,
+				);
+				height = res.body.data.height;
+				return setTimeout(doWhilstCb, 1000);
+			});
+
+			request.catch(err => doWhilstCb(err));
+		},
+		() => height < target,
+		err => {
+			if (err) {
+				return setImmediate(cb, err);
+			}
+			return setImmediate(cb, null, height);
+		},
+	);
+}
+
 function nodeStatus(baseUrl, cb) {
 	const request = popsicle.get(
 		`${baseUrl || __testContext.baseUrl}/api/node/status`,
@@ -145,52 +192,7 @@ function blocks(blocksToWait, baseUrl, cb) {
 	});
 }
 
-function newBlock(height, blocksToWait, baseUrl, cb) {
-	if (blocksToWait === 0) {
-		return setImmediate(cb, null, height);
-	}
-
-	let counter = 1;
-	const target = height + blocksToWait;
-
-	return async.doWhilst(
-		doWhilstCb => {
-			const request = popsicle.get(
-				`${baseUrl || __testContext.baseUrl}/api/node/status`,
-			);
-
-			request.use(popsicle.plugins.parse(['json']));
-
-			request.then(res => {
-				if (res.status !== 200) {
-					return doWhilstCb(
-						['Received bad response code', res.status, res.url].join(' '),
-					);
-				}
-				__testContext.debug(
-					'Waiting for block:'.grey,
-					'Height:'.grey,
-					res.body.data.height,
-					'Target:'.grey,
-					target,
-					'Second:'.grey,
-					counter++,
-				);
-				height = res.body.data.height;
-				return setTimeout(doWhilstCb, 1000);
-			});
-
-			request.catch(err => doWhilstCb(err));
-		},
-		() => height < target,
-		err => {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-			return setImmediate(cb, null, height);
-		},
-	);
-}
+const blocksPromise = Promise.promisify(blocks);
 
 function confirmations(transactions, limitHeight) {
 	limitHeight = limitHeight || 15;
@@ -223,8 +225,6 @@ function confirmations(transactions, limitHeight) {
 	// Wait a maximum of limitHeight*25 confirmed transactions
 	return waitUntilLimit(limitHeight);
 }
-
-const blocksPromise = Promise.promisify(blocks);
 
 module.exports = {
 	blockchainReady,

@@ -146,6 +146,65 @@ describe('rounds', () => {
 		return accounts;
 	}
 
+	function getExpectedRoundRewards(blocks) {
+		const rewards = {};
+
+		const feesTotal = _.reduce(
+			blocks,
+			(fees, block) => {
+				return new BigNum(fees).plus(block.totalFee);
+			},
+			0,
+		);
+
+		const rewardsTotal = _.reduce(
+			blocks,
+			(reward, block) => {
+				return new BigNum(reward).plus(block.reward);
+			},
+			0,
+		);
+
+		const feesPerDelegate = new BigNum(feesTotal.toPrecision(15))
+			.dividedBy(ACTIVE_DELEGATES)
+			.floor();
+		const feesRemaining = new BigNum(feesTotal.toPrecision(15)).minus(
+			feesPerDelegate.times(ACTIVE_DELEGATES),
+		);
+
+		__testContext.debug(
+			`	Total fees: ${feesTotal} Fees per delegates: ${feesPerDelegate} Remaining fees: ${feesRemaining} Total rewards: ${rewardsTotal}`,
+		);
+
+		_.each(blocks, (block, index) => {
+			const publicKey = block.generatorPublicKey.toString('hex');
+			if (rewards[publicKey]) {
+				rewards[publicKey].fees = rewards[publicKey].fees.plus(feesPerDelegate);
+				rewards[publicKey].rewards = rewards[publicKey].rewards.plus(
+					block.reward,
+				);
+			} else {
+				rewards[publicKey] = {
+					publicKey,
+					fees: new BigNum(feesPerDelegate),
+					rewards: new BigNum(block.reward),
+				};
+			}
+
+			if (index === blocks.length - 1) {
+				// Apply remaining fees to last delegate
+				rewards[publicKey].fees = rewards[publicKey].fees.plus(feesRemaining);
+			}
+		});
+
+		_.each(rewards, delegate => {
+			delegate.fees = delegate.fees.toString();
+			delegate.rewards = delegate.rewards.toString();
+		});
+
+		return rewards;
+	}
+
 	function applyRoundRewards(_accounts, blocks) {
 		const accounts = _.cloneDeep(_accounts);
 		const expectedRewards = getExpectedRoundRewards(blocks);
@@ -275,65 +334,6 @@ describe('rounds', () => {
 		});
 
 		return accounts;
-	}
-
-	function getExpectedRoundRewards(blocks) {
-		const rewards = {};
-
-		const feesTotal = _.reduce(
-			blocks,
-			(fees, block) => {
-				return new BigNum(fees).plus(block.totalFee);
-			},
-			0,
-		);
-
-		const rewardsTotal = _.reduce(
-			blocks,
-			(reward, block) => {
-				return new BigNum(reward).plus(block.reward);
-			},
-			0,
-		);
-
-		const feesPerDelegate = new BigNum(feesTotal.toPrecision(15))
-			.dividedBy(ACTIVE_DELEGATES)
-			.floor();
-		const feesRemaining = new BigNum(feesTotal.toPrecision(15)).minus(
-			feesPerDelegate.times(ACTIVE_DELEGATES),
-		);
-
-		__testContext.debug(
-			`	Total fees: ${feesTotal} Fees per delegates: ${feesPerDelegate} Remaining fees: ${feesRemaining} Total rewards: ${rewardsTotal}`,
-		);
-
-		_.each(blocks, (block, index) => {
-			const publicKey = block.generatorPublicKey.toString('hex');
-			if (rewards[publicKey]) {
-				rewards[publicKey].fees = rewards[publicKey].fees.plus(feesPerDelegate);
-				rewards[publicKey].rewards = rewards[publicKey].rewards.plus(
-					block.reward,
-				);
-			} else {
-				rewards[publicKey] = {
-					publicKey,
-					fees: new BigNum(feesPerDelegate),
-					rewards: new BigNum(block.reward),
-				};
-			}
-
-			if (index === blocks.length - 1) {
-				// Apply remaining fees to last delegate
-				rewards[publicKey].fees = rewards[publicKey].fees.plus(feesRemaining);
-			}
-		});
-
-		_.each(rewards, delegate => {
-			delegate.fees = delegate.fees.toString();
-			delegate.rewards = delegate.rewards.toString();
-		});
-
-		return rewards;
 	}
 
 	function tickAndValidate(transactions) {

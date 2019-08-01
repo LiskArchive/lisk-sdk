@@ -34,6 +34,81 @@ const blockVersion = require('./block_version');
 // TODO: remove type constraints
 const TRANSACTION_TYPES_MULTI = 4;
 
+const blockSchema = {
+	type: 'object',
+	properties: {
+		id: {
+			type: 'string',
+			format: 'id',
+			minLength: 1,
+			maxLength: 20,
+		},
+		height: {
+			type: 'integer',
+		},
+		blockSignature: {
+			type: 'string',
+			format: 'signature',
+		},
+		generatorPublicKey: {
+			type: 'string',
+			format: 'publicKey',
+		},
+		numberOfTransactions: {
+			type: 'integer',
+		},
+		payloadHash: {
+			type: 'string',
+			format: 'hex',
+		},
+		payloadLength: {
+			type: 'integer',
+		},
+		previousBlock: {
+			type: 'string',
+			format: 'id',
+			minLength: 1,
+			maxLength: 20,
+		},
+		timestamp: {
+			type: 'integer',
+		},
+		totalAmount: {
+			type: 'object',
+			format: 'amount',
+		},
+		totalFee: {
+			type: 'object',
+			format: 'amount',
+		},
+		reward: {
+			type: 'object',
+			format: 'amount',
+		},
+		transactions: {
+			type: 'array',
+			uniqueItems: true,
+		},
+		version: {
+			type: 'integer',
+			minimum: 0,
+		},
+	},
+	required: [
+		'blockSignature',
+		'generatorPublicKey',
+		'numberOfTransactions',
+		'payloadHash',
+		'payloadLength',
+		'timestamp',
+		'totalAmount',
+		'totalFee',
+		'reward',
+		'transactions',
+		'version',
+	],
+};
+
 /**
  * Block headers buffer size and endianness
  *
@@ -52,26 +127,6 @@ const TRANSACTION_TYPES_MULTI = 4;
  */
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
-
-/**
- * Creates a block signature.
- *
- * @param {block} block
- * @param {Object} keypair
- * @returns {signature} Block signature
- * @todo Add description for the params
- */
-const sign = (block, keypair) =>
-	signDataWithPrivateKey(hash(getBytes(block)), keypair.privateKey);
-
-/**
- * Creates hash based on block bytes.
- *
- * @param {block} block
- * @returns {Buffer} SHA256 hash
- * @todo Add description for the params
- */
-const getHash = block => hash(getBytes(block));
 
 /**
  * Description of the function.
@@ -150,6 +205,26 @@ const getBytes = block => {
 		blockSignatureBuffer,
 	]);
 };
+
+/**
+ * Creates a block signature.
+ *
+ * @param {block} block
+ * @param {Object} keypair
+ * @returns {signature} Block signature
+ * @todo Add description for the params
+ */
+const sign = (block, keypair) =>
+	signDataWithPrivateKey(hash(getBytes(block)), keypair.privateKey);
+
+/**
+ * Creates hash based on block bytes.
+ *
+ * @param {block} block
+ * @returns {Buffer} SHA256 hash
+ * @todo Add description for the params
+ */
+const getHash = block => hash(getBytes(block));
 
 /**
  * Description of the function.
@@ -405,81 +480,6 @@ const storageRead = raw => {
 	block.totalForged = block.totalFee.plus(block.reward).toString();
 
 	return block;
-};
-
-const blockSchema = {
-	type: 'object',
-	properties: {
-		id: {
-			type: 'string',
-			format: 'id',
-			minLength: 1,
-			maxLength: 20,
-		},
-		height: {
-			type: 'integer',
-		},
-		blockSignature: {
-			type: 'string',
-			format: 'signature',
-		},
-		generatorPublicKey: {
-			type: 'string',
-			format: 'publicKey',
-		},
-		numberOfTransactions: {
-			type: 'integer',
-		},
-		payloadHash: {
-			type: 'string',
-			format: 'hex',
-		},
-		payloadLength: {
-			type: 'integer',
-		},
-		previousBlock: {
-			type: 'string',
-			format: 'id',
-			minLength: 1,
-			maxLength: 20,
-		},
-		timestamp: {
-			type: 'integer',
-		},
-		totalAmount: {
-			type: 'object',
-			format: 'amount',
-		},
-		totalFee: {
-			type: 'object',
-			format: 'amount',
-		},
-		reward: {
-			type: 'object',
-			format: 'amount',
-		},
-		transactions: {
-			type: 'array',
-			uniqueItems: true,
-		},
-		version: {
-			type: 'integer',
-			minimum: 0,
-		},
-	},
-	required: [
-		'blockSignature',
-		'generatorPublicKey',
-		'numberOfTransactions',
-		'payloadHash',
-		'payloadLength',
-		'timestamp',
-		'totalAmount',
-		'totalFee',
-		'reward',
-		'transactions',
-		'version',
-	],
 };
 
 module.exports = {

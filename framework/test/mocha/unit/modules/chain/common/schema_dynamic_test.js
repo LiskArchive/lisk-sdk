@@ -33,21 +33,6 @@ const strings = typesRepresentatives.strings;
 
 let self;
 
-SchemaDynamicTest.TEST_STYLE = {
-	// eslint-disable-next-line object-shorthand
-	ASYNC: function(testFunction, argument, cb) {
-		testFunction(argument, cb);
-	},
-	// eslint-disable-next-line object-shorthand
-	THROWABLE: function(testFunction, argument, cb) {
-		try {
-			return testFunction(argument);
-		} catch (ex) {
-			return cb(ex);
-		}
-	},
-};
-
 function SchemaDynamicTest(config) {
 	this.customArgumentAssertion = config.customArgumentAssertion;
 	this.customPropertyAssertion = config.customPropertyAssertion;
@@ -211,6 +196,21 @@ function SchemaDynamicTest(config) {
 		shouldFailWithoutRequiredProperties: self.testRequired.bind(self),
 	};
 }
+
+SchemaDynamicTest.TEST_STYLE = {
+	// eslint-disable-next-line object-shorthand
+	ASYNC: function(testFunction, argument, cb) {
+		testFunction(argument, cb);
+	},
+	// eslint-disable-next-line object-shorthand
+	THROWABLE: function(testFunction, argument, cb) {
+		try {
+			return testFunction(argument);
+		} catch (ex) {
+			return cb(ex);
+		}
+	},
+};
 
 SchemaDynamicTest.prototype.carpetTesting = function(
 	test,

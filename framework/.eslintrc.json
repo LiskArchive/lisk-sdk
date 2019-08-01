@@ -8,7 +8,6 @@
 		"no-param-reassign": "off",
 		"no-plusplus": "off",
 		"no-underscore-dangle": "off",
-		"no-use-before-define": "off",
 		"operator-linebreak": "off",
 		"prefer-destructuring": "off",
 		"radix": "off",

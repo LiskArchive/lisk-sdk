@@ -58,6 +58,17 @@ function getValidator() {
 }
 
 /**
+ * Get swagger spec in JSON format.
+ *
+ * @returns {Object} JSON object with swagger spec
+ */
+function getSchema() {
+	return YAML.safeLoad(
+		fs.readFileSync(path.join(__dirname, '..', 'schema', 'swagger.yml')),
+	);
+}
+
+/**
  * Get resolved swagger spec in JSON format.
  *
  * @returns {Promise} Resolved promise with content of resolved json spec
@@ -81,17 +92,6 @@ function getSchemaAsJSON() {
 		resolvedSwaggerSpec = results.resolved;
 		return resolvedSwaggerSpec;
 	});
-}
-
-/**
- * Get swagger spec in JSON format.
- *
- * @returns {Object} JSON object with swagger spec
- */
-function getSchema() {
-	return YAML.safeLoad(
-		fs.readFileSync(path.join(__dirname, '..', 'schema', 'swagger.yml')),
-	);
 }
 
 /**

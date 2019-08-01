@@ -21,139 +21,6 @@ const { storageRead } = require('./block');
 
 const TRANSACTION_TYPES_VOTE = 3;
 
-class BlocksChain {
-	constructor({
-		storage,
-		interfaceAdapters,
-		roundsModule,
-		slots,
-		exceptions,
-		genesisBlock,
-	}) {
-		this.storage = storage;
-		this.interfaceAdapters = interfaceAdapters;
-		this.roundsModule = roundsModule;
-		this.slots = slots;
-		this.exceptions = exceptions;
-		this.genesisBlock = genesisBlock;
-	}
-
-	/**
-	 * Save genesis block to database.
-	 *
-	 * @returns {Object} Block genesis block
-	 */
-	async saveGenesisBlock() {
-		// Check if genesis block ID already exists in the database
-		const isPersisted = await this.storage.entities.Block.isPersisted({
-			id: this.genesisBlock.id,
-		});
-		if (isPersisted) {
-			return;
-		}
-
-		// If there is no block with genesis ID - save to database
-		// WARNING: DB_WRITE
-		// FIXME: This will fail if we already have genesis block in database, but with different ID
-		const block = {
-			...this.genesisBlock,
-			transactions: this.interfaceAdapters.transactions.fromBlock(
-				this.genesisBlock,
-			),
-		};
-		await saveBlock(this.storage, block);
-	}
-
-	/**
-	 * Description of the function.
-	 *
-	 * @param {Object} block - Full normalized genesis block
-	 * @param {function} cb - Callback function
-	 * @returns {function} cb - Callback function from params (through setImmediate)
-	 * @returns {Object} cb.err - Error if occurred
-	 * @todo Add description for the function
-	 */
-	async applyBlock(block, shouldSave = true) {
-		await this.storage.entities.Block.begin('Chain:applyBlock', async tx => {
-			await applyConfirmedStep(
-				this.storage,
-				this.slots,
-				block,
-				this.exceptions,
-				tx,
-			);
-			await saveBlockStep(
-				this.storage,
-				this.roundsModule,
-				block,
-				shouldSave,
-				tx,
-			);
-		});
-	}
-
-	/**
-	 * Apply genesis block's transactions to blockchain.
-	 *
-	 * @param {Object} block - Full normalized genesis block
-	 * @param {function} cb - Callback function
-	 * @returns {function} cb - Callback function from params (through setImmediate)
-	 * @returns {Object} cb.err - Error if occurred
-	 */
-	async applyGenesisBlock(block) {
-		// Sort transactions included in block
-		block.transactions = block.transactions.sort(a => {
-			if (a.type === TRANSACTION_TYPES_VOTE) {
-				return 1;
-			}
-			return 0;
-		});
-
-		await applyGenesisBlockTransactions(
-			this.storage,
-			this.slots,
-			block.transactions,
-			this.exceptions,
-		);
-		await new Promise((resolve, reject) => {
-			this.roundsModule.tick(block, tickErr => {
-				if (tickErr) {
-					return reject(tickErr);
-				}
-				return resolve();
-			});
-		});
-		return block;
-	}
-
-	/**
-	 * Deletes last block.
-	 * - Apply the block to database if both verifications are ok
-	 * - Update headers: broadhash and height
-	 * - Put transactions from deleted block back into transaction pool
-	 *
-	 * @param  {function} cb - Callback function
-	 * @returns {function} cb - Callback function from params (through setImmediate)
-	 * @returns {Object} cb.err - Error if occurred
-	 * @returns {Object} cb.obj - New last block
-	 */
-	async deleteLastBlock(lastBlock) {
-		if (lastBlock.height === 1) {
-			throw new Error('Cannot delete genesis block');
-		}
-		const previousBlock = await popLastBlock(
-			this.storage,
-			this.interfaceAdapters,
-			this.genesisBlock,
-			this.roundsModule,
-			this.slots,
-			lastBlock,
-			this.exceptions,
-		);
-		return previousBlock;
-	}
-}
-
 const saveBlockBatch = async (storage, parsedBlock, saveBlockBatchTx) => {
 	const promises = [
 		storage.entities.Block.create(parsedBlock, {}, saveBlockBatchTx),
@@ -433,6 +300,139 @@ const popLastBlock = async (
 		await deleteBlock(storage, oldLastBlock.id, tx);
 		return secondLastBlock;
 	});
+
+class BlocksChain {
+	constructor({
+		storage,
+		interfaceAdapters,
+		roundsModule,
+		slots,
+		exceptions,
+		genesisBlock,
+	}) {
+		this.storage = storage;
+		this.interfaceAdapters = interfaceAdapters;
+		this.roundsModule = roundsModule;
+		this.slots = slots;
+		this.exceptions = exceptions;
+		this.genesisBlock = genesisBlock;
+	}
+
+	/**
+	 * Save genesis block to database.
+	 *
+	 * @returns {Object} Block genesis block
+	 */
+	async saveGenesisBlock() {
+		// Check if genesis block ID already exists in the database
+		const isPersisted = await this.storage.entities.Block.isPersisted({
+			id: this.genesisBlock.id,
+		});
+		if (isPersisted) {
+			return;
+		}
+
+		// If there is no block with genesis ID - save to database
+		// WARNING: DB_WRITE
+		// FIXME: This will fail if we already have genesis block in database, but with different ID
+		const block = {
+			...this.genesisBlock,
+			transactions: this.interfaceAdapters.transactions.fromBlock(
+				this.genesisBlock,
+			),
+		};
+		await saveBlock(this.storage, block);
+	}
+
+	/**
+	 * Description of the function.
+	 *
+	 * @param {Object} block - Full normalized genesis block
+	 * @param {function} cb - Callback function
+	 * @returns {function} cb - Callback function from params (through setImmediate)
+	 * @returns {Object} cb.err - Error if occurred
+	 * @todo Add description for the function
+	 */
+	async applyBlock(block, shouldSave = true) {
+		await this.storage.entities.Block.begin('Chain:applyBlock', async tx => {
+			await applyConfirmedStep(
+				this.storage,
+				this.slots,
+				block,
+				this.exceptions,
+				tx,
+			);
+			await saveBlockStep(
+				this.storage,
+				this.roundsModule,
+				block,
+				shouldSave,
+				tx,
+			);
+		});
+	}
+
+	/**
+	 * Apply genesis block's transactions to blockchain.
+	 *
+	 * @param {Object} block - Full normalized genesis block
+	 * @param {function} cb - Callback function
+	 * @returns {function} cb - Callback function from params (through setImmediate)
+	 * @returns {Object} cb.err - Error if occurred
+	 */
+	async applyGenesisBlock(block) {
+		// Sort transactions included in block
+		block.transactions = block.transactions.sort(a => {
+			if (a.type === TRANSACTION_TYPES_VOTE) {
+				return 1;
+			}
+			return 0;
+		});
+
+		await applyGenesisBlockTransactions(
+			this.storage,
+			this.slots,
+			block.transactions,
+			this.exceptions,
+		);
+		await new Promise((resolve, reject) => {
+			this.roundsModule.tick(block, tickErr => {
+				if (tickErr) {
+					return reject(tickErr);
+				}
+				return resolve();
+			});
+		});
+		return block;
+	}
+
+	/**
+	 * Deletes last block.
+	 * - Apply the block to database if both verifications are ok
+	 * - Update headers: broadhash and height
+	 * - Put transactions from deleted block back into transaction pool
+	 *
+	 * @param  {function} cb - Callback function
+	 * @returns {function} cb - Callback function from params (through setImmediate)
+	 * @returns {Object} cb.err - Error if occurred
+	 * @returns {Object} cb.obj - New last block
+	 */
+	async deleteLastBlock(lastBlock) {
+		if (lastBlock.height === 1) {
+			throw new Error('Cannot delete genesis block');
+		}
+		const previousBlock = await popLastBlock(
+			this.storage,
+			this.interfaceAdapters,
+			this.genesisBlock,
+			this.roundsModule,
+			this.slots,
+			lastBlock,
+			this.exceptions,
+		);
+		return previousBlock;
+	}
+}
 
 module.exports = {
 	BlocksChain,

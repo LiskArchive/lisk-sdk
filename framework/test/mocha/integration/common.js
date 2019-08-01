@@ -154,6 +154,13 @@ function getNextForger(library, offset, cb) {
 	getDelegateForSlot(library, slot + offset, cb);
 }
 
+function fillPool(library, cb) {
+	library.modules.transactionPool
+		.fillPool()
+		.then(() => cb())
+		.catch(err => cb(err));
+}
+
 function forge(library, cb) {
 	const keypairs = library.modules.forger.getForgersKeyPairs();
 
@@ -213,13 +220,6 @@ function deleteLastBlock(library, cb) {
 			library.modules.blocks._lastBlock = newLastBlock;
 			cb();
 		})
-		.catch(err => cb(err));
-}
-
-function fillPool(library, cb) {
-	library.modules.transactionPool
-		.fillPool()
-		.then(() => cb())
 		.catch(err => cb(err));
 }
 

@@ -25,99 +25,6 @@ let library;
 let sortFields;
 
 /**
- * Description of the function.
- *
- * @class
- * @memberof api.controllers
- * @requires lodash
- * @param {Object} scope - App instance
- * @todo Add description of BlocksController
- */
-function BlocksController(scope) {
-	library = {
-		storage: scope.components.storage,
-		logger: scope.components.logger,
-		channel: scope.channel,
-	};
-
-	sortFields = [
-		'id',
-		'timestamp',
-		'height',
-		'previousBlock',
-		'totalAmount',
-		'totalFee',
-		'reward',
-		'numberOfTransactions',
-		'generatorPublicKey',
-	];
-}
-
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
-BlocksController.getBlocks = function(context, next) {
-	const invalidParams = swaggerHelper.invalidParams(context.request);
-
-	if (invalidParams.length) {
-		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
-	}
-
-	const params = context.request.swagger.params;
-
-	let parsedParams = {
-		id: params.blockId.value,
-		height: params.height.value,
-		generatorPublicKey: params.generatorPublicKey.value,
-		fromTimestamp: params.fromTimestamp.value,
-		toTimestamp: params.toTimestamp.value,
-		sort: params.sort.value,
-		limit: params.limit.value,
-		offset: params.offset.value,
-	};
-
-	// Remove params with undefined/null values
-	parsedParams = _.omitBy(
-		parsedParams,
-		value => value === undefined || value === null,
-	);
-
-	return _list(_.clone(parsedParams), (err, data) => {
-		if (err) {
-			return next(err);
-		}
-
-		data = _.cloneDeep(data);
-
-		data = _.map(data, block => {
-			block.totalAmount = block.totalAmount.toString();
-			block.totalFee = block.totalFee.toString();
-			block.reward = block.reward.toString();
-			block.totalForged = block.totalForged.toString();
-			block.generatorAddress = block.generatorId;
-			block.previousBlockId = block.previousBlock || '';
-
-			delete block.previousBlock;
-			delete block.generatorId;
-
-			return block;
-		});
-
-		return next(null, {
-			data,
-			meta: {
-				offset: parsedParams.offset,
-				limit: parsedParams.limit,
-			},
-		});
-	});
-};
-
-/**
  * Parse raw block data from database into expected API response type for blocks
  *
  * @param {Object} raw Raw block data from database
@@ -237,5 +144,98 @@ function _list(params, cb) {
 			})
 	);
 }
+
+/**
+ * Description of the function.
+ *
+ * @class
+ * @memberof api.controllers
+ * @requires lodash
+ * @param {Object} scope - App instance
+ * @todo Add description of BlocksController
+ */
+function BlocksController(scope) {
+	library = {
+		storage: scope.components.storage,
+		logger: scope.components.logger,
+		channel: scope.channel,
+	};
+
+	sortFields = [
+		'id',
+		'timestamp',
+		'height',
+		'previousBlock',
+		'totalAmount',
+		'totalFee',
+		'reward',
+		'numberOfTransactions',
+		'generatorPublicKey',
+	];
+}
+
+/**
+ * Description of the function.
+ *
+ * @param {Object} context
+ * @param {function} next
+ * @todo Add description for the function and the params
+ */
+BlocksController.getBlocks = function(context, next) {
+	const invalidParams = swaggerHelper.invalidParams(context.request);
+
+	if (invalidParams.length) {
+		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
+	}
+
+	const params = context.request.swagger.params;
+
+	let parsedParams = {
+		id: params.blockId.value,
+		height: params.height.value,
+		generatorPublicKey: params.generatorPublicKey.value,
+		fromTimestamp: params.fromTimestamp.value,
+		toTimestamp: params.toTimestamp.value,
+		sort: params.sort.value,
+		limit: params.limit.value,
+		offset: params.offset.value,
+	};
+
+	// Remove params with undefined/null values
+	parsedParams = _.omitBy(
+		parsedParams,
+		value => value === undefined || value === null,
+	);
+
+	return _list(_.clone(parsedParams), (err, data) => {
+		if (err) {
+			return next(err);
+		}
+
+		data = _.cloneDeep(data);
+
+		data = _.map(data, block => {
+			block.totalAmount = block.totalAmount.toString();
+			block.totalFee = block.totalFee.toString();
+			block.reward = block.reward.toString();
+			block.totalForged = block.totalForged.toString();
+			block.generatorAddress = block.generatorId;
+			block.previousBlockId = block.previousBlock || '';
+
+			delete block.previousBlock;
+			delete block.generatorId;
+
+			return block;
+		});
+
+		return next(null, {
+			data,
+			meta: {
+				offset: parsedParams.offset,
+				limit: parsedParams.limit,
+			},
+		});
+	});
+};
 
 module.exports = BlocksController;
