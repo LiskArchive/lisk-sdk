@@ -139,7 +139,7 @@ export interface PeerConfig {
 	readonly wsMaxMessageRate: number;
 	readonly wsMaxMessageRatePenalty: number;
 	readonly wsMaxPayload?: number;
-	readonly secret?: number;
+	readonly secret: number;
 }
 
 export class Peer extends EventEmitter {
@@ -148,7 +148,7 @@ export class Peer extends EventEmitter {
 	protected readonly _wsPort: number;
 	private readonly _height: number;
 	protected _reputation: number;
-	protected _netgroup?: number;
+	protected _netgroup: number;
 	protected _latency: number;
 	protected _connectTime: number;
 	protected _productivity: {
@@ -195,10 +195,7 @@ export class Peer extends EventEmitter {
 		this._id = constructPeerId(this._ipAddress, this._wsPort);
 		this._height = peerInfo.height ? (peerInfo.height as number) : 0;
 		this._reputation = DEFAULT_REPUTATION_SCORE;
-		this._netgroup =
-			peerConfig && peerConfig.secret
-				? getNetgroup(this._ipAddress, peerConfig.secret)
-				: undefined;
+		this._netgroup = getNetgroup(this._ipAddress, peerConfig.secret);
 		this._latency = 0;
 		this._connectTime = Date.now();
 		this._rpcCounter = new Map();

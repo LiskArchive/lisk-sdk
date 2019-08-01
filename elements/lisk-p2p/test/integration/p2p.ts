@@ -26,6 +26,7 @@ import {
 	P2PPeerSelectionForConnectionInput,
 } from '../../src/p2p_types';
 import { InboundPeer } from '../../src/peer';
+import { getNetgroup } from '../../src/utils';
 import { SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
 import cloneDeep = require('lodash.clonedeep');
@@ -2110,6 +2111,84 @@ describe('Integration tests for P2P library', () => {
 					(n: Number[]) => n.includes(5003) || n.includes(5004),
 				);
 			});
+		});
+	});
+
+	describe('Network with peer inbound eviction protection for netgroup enabled', () => {
+		const NETWORK_PEER_COUNT_WITH_LIMIT = 10;
+		const MAX_INBOUND_CONNECTIONS = 3;
+		const POPULATOR_INTERVAL_WITH_LIMIT = 150;
+		const SECRET = 12345;
+		beforeEach(async () => {
+			p2pNodeList = [...new Array(NETWORK_PEER_COUNT_WITH_LIMIT).keys()].map(
+				index => {
+					// Each node will have the previous node in the sequence as a seed peer except the first node.
+					const seedPeers = [
+						{
+							ipAddress: '127.0.0.1',
+							wsPort:
+								NETWORK_START_PORT +
+								((index + 1) % NETWORK_PEER_COUNT_WITH_LIMIT),
+						},
+					];
+
+					const nodePort = NETWORK_START_PORT + index;
+					return new P2P({
+						connectTimeout: 100,
+						ackTimeout: 5000,
+						seedPeers,
+						wsEngine: 'ws',
+						populatorInterval: POPULATOR_INTERVAL_WITH_LIMIT,
+						maxOutboundConnections: MAX_INBOUND_CONNECTIONS,
+						maxInboundConnections: MAX_INBOUND_CONNECTIONS,
+						netgroupProtectionRatio: 0.5,
+						latencyProtectionRatio: 0,
+						productivityProtectionRatio: 0,
+						longevityProtectionRatio: 0,
+						nodeInfo: {
+							wsPort: nodePort,
+							nethash:
+								'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+							version: '1.0.1',
+							protocolVersion: '1.0.1',
+							minVersion: '1.0.0',
+							os: platform(),
+							height: 0,
+							broadhash:
+								'2768b267ae621a9ed3b3034e2e8a1bed40895c621bbb1bbd613d92b9d24e54b5',
+							nonce: `O2wTkjqplHII${nodePort}`,
+							secret: SECRET + index + 1,
+						},
+					});
+				},
+			);
+
+			// Start nodes incrementally to make inbound eviction behavior predictable
+			p2pNodeList.forEach(async p2p => {
+				await wait(500);
+				p2p.start();
+			});
+			await wait(1500);
+		});
+
+		afterEach(async () => {
+			await Promise.all(
+				p2pNodeList
+					.filter(p2p => p2p.isActive)
+					.map(async p2p => await p2p.stop()),
+			);
+			await wait(100);
+		});
+
+		it('should not evict earliest connected peers', async () => {
+			const firstP2PNode = p2pNodeList[0];
+			const removedPeers: Array<string> = [];
+
+			firstP2PNode.on(EVENT_REMOVE_PEER, peerId => {
+				removedPeers.push(peerId);
+			});
+			const targetPeerId = `127.0.0.1:${p2pNodeList[1].nodeInfo.wsPort}`;
+			expect(removedPeers).to.contain(targetPeerId);
 		});
 	});
 

@@ -414,7 +414,6 @@ export class PeerPool extends EventEmitter {
 		const peerConfig = {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
-			maxPeerListSize: MAX_PEER_LIST_BATCH_SIZE,
 			wsMaxMessageRate: this._peerPoolConfig.wsMaxMessageRate,
 			wsMaxMessageRatePenalty: this._peerPoolConfig.wsMaxMessageRatePenalty,
 			rateCalculationInterval: this._peerPoolConfig.rateCalculationInterval,
@@ -450,7 +449,7 @@ export class PeerPool extends EventEmitter {
 			wsMaxMessageRatePenalty: this._peerPoolConfig.wsMaxMessageRatePenalty,
 			rateCalculationInterval: this._peerPoolConfig.rateCalculationInterval,
 			wsMaxPayload: this._peerPoolConfig.wsMaxPayload,
-			maxPeerListSize: MAX_PEER_LIST_BATCH_SIZE,
+			secret: this._peerPoolConfig.secret,
 		};
 		const peer = new OutboundPeer(peerInfo, peerConfig);
 

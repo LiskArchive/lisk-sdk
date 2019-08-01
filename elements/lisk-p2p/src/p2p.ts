@@ -450,6 +450,7 @@ export class P2P extends EventEmitter {
 				typeof config.rateCalculationInterval === 'number'
 					? config.rateCalculationInterval
 					: DEFAULT_RATE_CALCULATION_INTERVAL,
+			secret: config.secret ? config.secret : DEFAULT_SECRET,
 		});
 
 		this._bindHandlersToPeerPool(this._peerPool);
