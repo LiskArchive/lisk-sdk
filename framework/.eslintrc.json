@@ -8,18 +8,6 @@
 		"no-param-reassign": "off",
 		"no-plusplus": "off",
 		"no-underscore-dangle": "off",
-		"require-jsdoc": [
-			"error",
-			{
-				"require": {
-					"FunctionDeclaration": false,
-					"MethodDefinition": false,
-					"ClassDeclaration": false,
-					"ArrowFunctionExpression": false,
-					"FunctionExpression": false
-				}
-			}
-		],
 		"strict": "off",
 		"no-restricted-properties": "off",
 		"no-throw-literal": "off",
