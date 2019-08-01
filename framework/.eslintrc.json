@@ -5,7 +5,6 @@
 		"func-names": "off",
 		"implicit-arrow-linebreak": "off",
 		"max-len": "off",
-		"no-new": "off",
 		"no-param-reassign": "off",
 		"no-plusplus": "off",
 		"no-underscore-dangle": "off",

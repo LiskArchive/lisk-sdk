@@ -60,6 +60,7 @@ describe('Application', () => {
 		it('should validate genesisBlock', () => {
 			// Act
 
+			// eslint-disable-next-line no-new
 			new Application(genesisBlock, config);
 			// Assert
 			expect(liskValidator.validate).toHaveBeenNthCalledWith(
@@ -130,6 +131,8 @@ describe('Application', () => {
 				validator,
 				'parseEnvArgAndValidate',
 			);
+
+			// eslint-disable-next-line no-new
 			new Application(genesisBlock, config);
 
 			expect(parseEnvArgAndValidateSpy).toHaveBeenCalledTimes(1);
@@ -192,6 +195,7 @@ describe('Application', () => {
 			};
 
 			expect(() => {
+				// eslint-disable-next-line no-new
 				new Application(genesisBlock, customConfig);
 			}).toThrow('should NOT have additional properties');
 		});
