@@ -106,26 +106,6 @@ class Broadcaster {
 	}
 
 	/**
-	 * Counts relays and valid limit.
-	 *
-	 * @param {Object} object
-	 * @returns {boolean} true - If broadcast relays exhausted
-	 * @todo Add description for the params
-	 */
-	maxRelays(object) {
-		if (!Number.isInteger(object.relays)) {
-			object.relays = 0; // First broadcast
-		}
-
-		if (Math.abs(object.relays) >= this.config.relayLimit) {
-			this.logger.debug('Broadcast relays exhausted', object);
-			return true;
-		}
-		object.relays++; // Next broadcast
-		return false;
-	}
-
-	/**
 	 * Filters private queue based on broadcasts.
 	 *
 	 * @private

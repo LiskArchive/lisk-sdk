@@ -21,9 +21,8 @@
 import { EventEmitter } from 'events';
 // tslint:disable-next-line no-require-imports
 import shuffle = require('lodash.shuffle');
-import { SCClientSocket } from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
-import { RequestFailError } from './errors';
+import { RequestFailError, SendFailError } from './errors';
 import { P2PRequest } from './p2p_request';
 import {
 	P2PClosePacket,
@@ -31,35 +30,42 @@ import {
 	P2PMessagePacket,
 	P2PNodeInfo,
 	P2PPeerInfo,
+	P2PPeersCount,
 	P2PPeerSelectionForConnectionFunction,
 	P2PPeerSelectionForRequestFunction,
 	P2PPeerSelectionForSendFunction,
+	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
 } from './p2p_types';
 import {
-	connectAndFetchPeerInfo,
 	ConnectionState,
 	constructPeerIdFromPeerInfo,
+	EVENT_BAN_PEER,
+	EVENT_CLOSE_INBOUND,
 	EVENT_CLOSE_OUTBOUND,
 	EVENT_CONNECT_ABORT_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_DISCOVERED_PEER,
 	EVENT_FAILED_PEER_INFO_UPDATE,
+	EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
+	EVENT_FAILED_TO_FETCH_PEERS,
 	EVENT_FAILED_TO_PUSH_NODE_INFO,
 	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_OUTBOUND_SOCKET_ERROR,
 	EVENT_REQUEST_RECEIVED,
+	EVENT_UNBAN_PEER,
 	EVENT_UPDATED_PEER_INFO,
+	InboundPeer,
+	OutboundPeer,
 	Peer,
-	PeerConfig,
 } from './peer';
-import { discoverPeers } from './peer_discovery';
 import { getUniquePeersbyIp } from './peer_selection';
 
 export {
+	EVENT_CLOSE_INBOUND,
 	EVENT_CLOSE_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_CONNECT_ABORT_OUTBOUND,
@@ -68,10 +74,14 @@ export {
 	EVENT_OUTBOUND_SOCKET_ERROR,
 	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_UPDATED_PEER_INFO,
+	EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
+	EVENT_FAILED_TO_FETCH_PEER_INFO,
+	EVENT_FAILED_TO_FETCH_PEERS,
+	EVENT_BAN_PEER,
+	EVENT_UNBAN_PEER,
 	EVENT_FAILED_PEER_INFO_UPDATE,
 	EVENT_FAILED_TO_PUSH_NODE_INFO,
 	EVENT_DISCOVERED_PEER,
-	EVENT_FAILED_TO_FETCH_PEER_INFO,
 };
 
 interface PeerPoolConfig {
@@ -82,42 +92,94 @@ interface PeerPoolConfig {
 	readonly peerSelectionForRequest: P2PPeerSelectionForRequestFunction;
 	readonly peerSelectionForConnection: P2PPeerSelectionForConnectionFunction;
 	readonly sendPeerLimit: number;
+	readonly peerBanTime: number;
+	readonly maxOutboundConnections: number;
+	readonly maxInboundConnections: number;
+	readonly outboundShuffleInterval: number;
+	readonly latencyProtectionRatio: number;
+	readonly productivityProtectionRatio: number;
+	readonly longevityProtectionRatio: number;
+	readonly wsMaxMessageRate: number;
+	readonly wsMaxMessageRatePenalty: number;
+	readonly rateCalculationInterval: number;
 }
 
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
 export const MAX_PEER_DISCOVERY_PROBE_SAMPLE_SIZE = 100;
+export const EVENT_REMOVE_PEER = 'removePeer';
 
-const selectRandomPeerSample = (
-	peerList: ReadonlyArray<Peer>,
-	count: number,
-): ReadonlyArray<Peer> => shuffle(peerList).slice(0, count);
+export enum PROTECTION_CATEGORY {
+	LATENCY = 'latency',
+	RESPONSE_RATE = 'responseRate',
+	CONNECT_TIME = 'connectTime',
+}
+
+interface FilterPeersOptions {
+	readonly category: PROTECTION_CATEGORY;
+	readonly percentage: number;
+	readonly asc: boolean;
+}
+
+interface IndexablePeer {
+	readonly [key: string]: number;
+}
+const filterPeersByCategory = (
+	peers: Peer[],
+	options: FilterPeersOptions,
+): Peer[] => {
+	// tslint:disable-next-line no-magic-numbers
+	if (options.percentage > 1 || options.percentage < 0) {
+		return peers;
+	}
+	const peerCount = Math.ceil(peers.length * options.percentage);
+	const sign = !!options.asc ? 1 : -1;
+
+	return peers
+		.sort((a: IndexablePeer | Peer, b: IndexablePeer | Peer) =>
+			a[options.category] > b[options.category] ? sign : sign * -1,
+		)
+		.slice(peerCount, peers.length);
+};
 
 export class PeerPool extends EventEmitter {
 	private readonly _peerMap: Map<string, Peer>;
 	private readonly _peerPoolConfig: PeerPoolConfig;
 	private readonly _handlePeerRPC: (request: P2PRequest) => void;
 	private readonly _handlePeerMessage: (message: P2PMessagePacket) => void;
-	private readonly _handlePeerConnect: (
+	private readonly _handleOutboundPeerConnect: (
 		peerInfo: P2PDiscoveredPeerInfo,
 	) => void;
 	private readonly _handleDiscoverPeer: (
 		peerInfo: P2PDiscoveredPeerInfo,
 	) => void;
-	private readonly _handlePeerConnectAbort: (
+	private readonly _handleOutboundPeerConnectAbort: (
 		peerInfo: P2PDiscoveredPeerInfo,
 	) => void;
-	private readonly _handlePeerClose: (closePacket: P2PClosePacket) => void;
+	private readonly _handlePeerCloseOutbound: (
+		closePacket: P2PClosePacket,
+	) => void;
+	private readonly _handlePeerCloseInbound: (
+		closePacket: P2PClosePacket,
+	) => void;
 	private readonly _handlePeerOutboundSocketError: (error: Error) => void;
 	private readonly _handlePeerInboundSocketError: (error: Error) => void;
 	private readonly _handlePeerInfoUpdate: (
 		peerInfo: P2PDiscoveredPeerInfo,
 	) => void;
 	private readonly _handleFailedPeerInfoUpdate: (error: Error) => void;
+	private readonly _handleFailedToFetchPeerInfo: (error: Error) => void;
+	private readonly _handleFailedToFetchPeers: (error: Error) => void;
+	private readonly _handleFailedToCollectPeerDetails: (error: Error) => void;
+	private readonly _handleBanPeer: (peerId: string) => void;
+	private readonly _handleUnbanPeer: (peerId: string) => void;
 	private _nodeInfo: P2PNodeInfo | undefined;
+	private readonly _maxOutboundConnections: number;
+	private readonly _maxInboundConnections: number;
 	private readonly _peerSelectForSend: P2PPeerSelectionForSendFunction;
 	private readonly _peerSelectForRequest: P2PPeerSelectionForRequestFunction;
 	private readonly _peerSelectForConnection: P2PPeerSelectionForConnectionFunction;
 	private readonly _sendPeerLimit: number;
+	private readonly _outboundShuffleIntervalId: NodeJS.Timer | undefined;
 
 	public constructor(peerPoolConfig: PeerPoolConfig) {
 		super();
@@ -126,7 +188,12 @@ export class PeerPool extends EventEmitter {
 		this._peerSelectForSend = peerPoolConfig.peerSelectionForSend;
 		this._peerSelectForRequest = peerPoolConfig.peerSelectionForRequest;
 		this._peerSelectForConnection = peerPoolConfig.peerSelectionForConnection;
+		this._maxOutboundConnections = peerPoolConfig.maxOutboundConnections;
+		this._maxInboundConnections = peerPoolConfig.maxInboundConnections;
 		this._sendPeerLimit = peerPoolConfig.sendPeerLimit;
+		this._outboundShuffleIntervalId = setInterval(() => {
+			this._evictPeer(OutboundPeer);
+		}, peerPoolConfig.outboundShuffleInterval);
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerRPC = (request: P2PRequest) => {
@@ -146,21 +213,29 @@ export class PeerPool extends EventEmitter {
 			this.emit(EVENT_DISCOVERED_PEER, peerInfo);
 		};
 
-		this._handlePeerConnect = async (peerInfo: P2PDiscoveredPeerInfo) => {
+		this._handleOutboundPeerConnect = async (
+			peerInfo: P2PDiscoveredPeerInfo,
+		) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CONNECT_OUTBOUND, peerInfo);
 		};
-		this._handlePeerConnectAbort = (peerInfo: P2PDiscoveredPeerInfo) => {
+		this._handleOutboundPeerConnectAbort = (
+			peerInfo: P2PDiscoveredPeerInfo,
+		) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, peerInfo);
 		};
-		this._handlePeerClose = (closePacket: P2PClosePacket) => {
-			// If we disconnect from a peer outbound, we should remove them to conserve our resources (especially in case of a malicious peer).
-			// A peer which was removed may added back later during the next round of discovery.
+		this._handlePeerCloseOutbound = (closePacket: P2PClosePacket) => {
 			const peerId = constructPeerIdFromPeerInfo(closePacket.peerInfo);
 			this.removePeer(peerId);
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CLOSE_OUTBOUND, closePacket);
+		};
+		this._handlePeerCloseInbound = (closePacket: P2PClosePacket) => {
+			const peerId = constructPeerIdFromPeerInfo(closePacket.peerInfo);
+			this.removePeer(peerId);
+			// Re-emit the message to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_CLOSE_INBOUND, closePacket);
 		};
 		this._handlePeerOutboundSocketError = (error: Error) => {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
@@ -178,11 +253,36 @@ export class PeerPool extends EventEmitter {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
 		};
+		this._handleFailedToFetchPeerInfo = (error: Error) => {
+			// Re-emit the error to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_FAILED_TO_FETCH_PEER_INFO, error);
+		};
+		this._handleFailedToFetchPeers = (error: Error) => {
+			// Re-emit the error to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_FAILED_TO_FETCH_PEERS, error);
+		};
+		this._handleFailedToCollectPeerDetails = (error: Error) => {
+			// Re-emit the error to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT, error);
+		};
+		this._handleBanPeer = (peerId: string) => {
+			// Unban peer after peerBanTime
+			setTimeout(
+				this._handleUnbanPeer.bind(this, peerId),
+				this._peerPoolConfig.peerBanTime,
+			);
+			// Re-emit the peerId to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_BAN_PEER, peerId);
+		};
+		this._handleUnbanPeer = (peerId: string) => {
+			// Re-emit the peerId to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_UNBAN_PEER, peerId);
+		};
 	}
 
 	public applyNodeInfo(nodeInfo: P2PNodeInfo): void {
 		this._nodeInfo = nodeInfo;
-		const peerList = this.getAllPeers();
+		const peerList = this.getPeers();
 		peerList.forEach(peer => {
 			this._applyNodeInfoOnPeer(peer, nodeInfo);
 		});
@@ -192,11 +292,9 @@ export class PeerPool extends EventEmitter {
 		return this._nodeInfo;
 	}
 
-	public async requestFromPeer(
-		packet: P2PRequestPacket,
-	): Promise<P2PResponsePacket> {
+	public async request(packet: P2PRequestPacket): Promise<P2PResponsePacket> {
 		const listOfPeerInfo = [...this._peerMap.values()].map(
-			(peer: Peer) => peer.peerInfo,
+			(peer: Peer) => peer.peerInfo as P2PDiscoveredPeerInfo,
 		);
 		const selectedPeers = this._peerSelectForRequest({
 			peers: getUniquePeersbyIp(listOfPeerInfo),
@@ -210,24 +308,14 @@ export class PeerPool extends EventEmitter {
 				'Request failed due to no peers found in peer selection',
 			);
 		}
-
 		const selectedPeerId = constructPeerIdFromPeerInfo(selectedPeers[0]);
-		const selectedPeer = this._peerMap.get(selectedPeerId);
 
-		if (!selectedPeer) {
-			throw new RequestFailError(
-				`No such Peer exist in PeerPool with the selected peer with Id: ${selectedPeerId}`,
-			);
-		}
-
-		const response: P2PResponsePacket = await selectedPeer.request(packet);
-
-		return response;
+		return this.requestFromPeer(packet, selectedPeerId);
 	}
 
-	public sendToPeers(message: P2PMessagePacket): void {
+	public send(message: P2PMessagePacket): void {
 		const listOfPeerInfo = [...this._peerMap.values()].map(
-			(peer: Peer) => peer.peerInfo,
+			(peer: Peer) => peer.peerInfo as P2PDiscoveredPeerInfo,
 		);
 		const selectedPeers = this._peerSelectForSend({
 			peers: listOfPeerInfo,
@@ -238,100 +326,90 @@ export class PeerPool extends EventEmitter {
 
 		selectedPeers.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
 			const selectedPeerId = constructPeerIdFromPeerInfo(peerInfo);
-			const peer = this._peerMap.get(selectedPeerId);
-
-			if (peer) {
-				peer.send(message);
-			}
+			this.sendToPeer(message, selectedPeerId);
 		});
 	}
 
-	public async fetchStatusAndCreatePeers(
-		seedPeers: ReadonlyArray<P2PPeerInfo>,
-		nodeInfo: P2PNodeInfo,
-		peerConfig: PeerConfig,
-	): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> {
-		const listOfPeerInfos = await Promise.all(
-			seedPeers.map(async seedPeer => {
-				try {
-					const seedFetchStatusResponse = await connectAndFetchPeerInfo(
-						seedPeer,
-						nodeInfo,
-						peerConfig,
-					);
-					const peerId = constructPeerIdFromPeerInfo(
-						seedFetchStatusResponse.peerInfo,
-					);
+	public async requestFromPeer(
+		packet: P2PRequestPacket,
+		peerId: string,
+	): Promise<P2PResponsePacket> {
+		const peer = this._peerMap.get(peerId);
+		if (!peer) {
+			throw new RequestFailError(
+				`Request failed because a peer with id ${peerId} could not be found`,
+			);
+		}
 
-					this.addOutboundPeer(
-						peerId,
-						seedFetchStatusResponse.peerInfo,
-						seedFetchStatusResponse.socket,
-					);
+		return peer.request(packet);
+	}
 
-					return seedFetchStatusResponse.peerInfo;
-				} catch (error) {
-					this.emit(EVENT_FAILED_TO_FETCH_PEER_INFO, error);
+	public sendToPeer(message: P2PMessagePacket, peerId: string): void {
+		const peer = this._peerMap.get(peerId);
+		if (!peer) {
+			throw new SendFailError(
+				`Send failed because a peer with id ${peerId} could not be found`,
+			);
+		}
+		peer.send(message);
+	}
 
-					return undefined;
-				}
-			}),
+	public triggerNewConnections(
+		knownPeers: ReadonlyArray<P2PPeerInfo>,
+		fixedPeers: ReadonlyArray<P2PPeerInfo>,
+	): void {
+		// Try to connect to disconnected peers without including the fixed ones which are specially treated thereafter
+		const disconnectedPeers = knownPeers.filter(
+			peer =>
+				!this._peerMap.has(constructPeerIdFromPeerInfo(peer)) ||
+				!fixedPeers.includes(peer),
 		);
-		const filteredListOfPeers = listOfPeerInfos.filter(
-			peerInfo => peerInfo !== undefined,
-		) as ReadonlyArray<P2PDiscoveredPeerInfo>;
+		const { outboundCount } = this.getPeersCountPerKind();
+		const disconnectedFixedPeers = fixedPeers
+			.filter(peer => !this._peerMap.has(constructPeerIdFromPeerInfo(peer)))
+			.map(peer2Convert => peer2Convert as P2PDiscoveredPeerInfo);
 
-		return filteredListOfPeers;
-	}
-
-	public async runDiscovery(
-		knownPeers: ReadonlyArray<P2PDiscoveredPeerInfo>,
-		blacklist: ReadonlyArray<P2PPeerInfo>,
-	): Promise<ReadonlyArray<P2PDiscoveredPeerInfo>> {
-		const peersForDiscovery = knownPeers.map(peerInfo => {
-			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			const existingPeer = this.getPeer(peerId);
-
-			return existingPeer ? existingPeer : this.addPeer(peerInfo);
+		// Trigger new connections only if the maximum of outbound connections has not been reached
+		// If the node is not yet connected to any of the fixed peers, enough slots should be saved for them
+		const peerLimit =
+			this._maxOutboundConnections -
+			disconnectedFixedPeers.length -
+			outboundCount;
+		const peersToConnect = this._peerSelectForConnection({
+			peers: disconnectedPeers,
+			peerLimit,
 		});
 
-		const peerSampleToProbe = selectRandomPeerSample(
-			peersForDiscovery,
-			MAX_PEER_DISCOVERY_PROBE_SAMPLE_SIZE,
+		[...peersToConnect, ...disconnectedFixedPeers].forEach(
+			(peerInfo: P2PPeerInfo) => {
+				const peerId = constructPeerIdFromPeerInfo(peerInfo);
+				const existingPeer = this.getPeer(peerId);
+
+				return existingPeer
+					? existingPeer
+					: this.addOutboundPeer(peerId, peerInfo);
+			},
 		);
-
-		const discoveredPeers = await discoverPeers(peerSampleToProbe, {
-			blacklist: blacklist.map(peer => peer.ipAddress),
-		});
-
-		return discoveredPeers;
 	}
 
-	public selectPeersAndConnect(
-		peers: ReadonlyArray<P2PDiscoveredPeerInfo>,
-	): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		const peersToConnect = this._peerSelectForConnection({ peers });
-
-		peersToConnect.forEach((peerInfo: P2PDiscoveredPeerInfo) => {
-			const peerId = constructPeerIdFromPeerInfo(peerInfo);
-			const existingPeer = this.getPeer(peerId);
-
-			return existingPeer ? existingPeer : this.addPeer(peerInfo);
-		});
-
-		return peersToConnect;
-	}
-
-	public addPeer(
+	public addInboundPeer(
 		peerInfo: P2PDiscoveredPeerInfo,
-		inboundSocket?: SCServerSocket,
+		socket: SCServerSocket,
 	): Peer {
+		const inboundPeers = this.getPeers(InboundPeer);
+		if (inboundPeers.length >= this._maxInboundConnections) {
+			this._evictPeer(InboundPeer);
+		}
+
 		const peerConfig = {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
 			maxPeerListSize: MAX_PEER_LIST_BATCH_SIZE,
+			wsMaxMessageRate: this._peerPoolConfig.wsMaxMessageRate,
+			wsMaxMessageRatePenalty: this._peerPoolConfig.wsMaxMessageRatePenalty,
+			rateCalculationInterval: this._peerPoolConfig.rateCalculationInterval,
 		};
-		const peer = new Peer(peerInfo, peerConfig, { inbound: inboundSocket });
+		const peer = new InboundPeer(peerInfo, socket, peerConfig);
 
 		// Throw an error because adding a peer multiple times is a common developer error which is very difficult to identify and debug.
 		if (this._peerMap.has(peer.id)) {
@@ -347,116 +425,96 @@ export class PeerPool extends EventEmitter {
 		return peer;
 	}
 
-	public addDiscoveredPeer(
-		detailedPeerInfo: P2PDiscoveredPeerInfo,
-		inboundSocket?: SCServerSocket,
-	): Peer {
+	public addOutboundPeer(peerId: string, peerInfo: P2PPeerInfo): Peer {
+		const existingPeer = this.getPeer(peerId);
+		if (existingPeer) {
+			return existingPeer;
+		}
+
 		const peerConfig = {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
+			banTime: this._peerPoolConfig.peerBanTime,
+			wsMaxMessageRate: this._peerPoolConfig.wsMaxMessageRate,
+			wsMaxMessageRatePenalty: this._peerPoolConfig.wsMaxMessageRatePenalty,
+			rateCalculationInterval: this._peerPoolConfig.rateCalculationInterval,
+			wsMaxPayload: this._peerPoolConfig.wsMaxPayload,
 			maxPeerListSize: MAX_PEER_LIST_BATCH_SIZE,
 		};
-		const peer = new Peer(detailedPeerInfo, peerConfig, {
-			inbound: inboundSocket,
-		});
+		const peer = new OutboundPeer(peerInfo, peerConfig);
+
 		this._peerMap.set(peer.id, peer);
 		this._bindHandlersToPeer(peer);
 		if (this._nodeInfo) {
 			this._applyNodeInfoOnPeer(peer, this._nodeInfo);
 		}
-		peer.connect();
 
 		return peer;
 	}
 
-	public addInboundPeer(
-		peerId: string,
-		peerInfo: P2PDiscoveredPeerInfo,
-		socket: SCServerSocket,
-	): boolean {
-		const existingPeer = this.getPeer(peerId);
-
-		if (existingPeer) {
-			// Update the peerInfo from the latest inbound socket.
-			if (existingPeer.state.inbound === ConnectionState.DISCONNECTED) {
-				existingPeer.inboundSocket = socket;
-
-				return false;
-			}
-
-			return false;
-		}
-
-		this.addPeer(peerInfo, socket);
-
-		return true;
-	}
-
-	public addOutboundPeer(
-		peerId: string,
-		peerInfo: P2PDiscoveredPeerInfo,
-		socket: SCClientSocket,
-	): boolean {
-		const existingPeer = this.getPeer(peerId);
-
-		if (existingPeer) {
-			// Update the peerInfo from the latest inbound socket.
-			if (existingPeer.state.outbound === ConnectionState.DISCONNECTED) {
-				existingPeer.outboundSocket = socket;
-
-				return false;
-			}
-
-			return false;
-		}
-
-		const peerConfig = {
-			connectTimeout: this._peerPoolConfig.connectTimeout,
-			ackTimeout: this._peerPoolConfig.ackTimeout,
-			wsMaxPayload: this._peerPoolConfig.wsMaxPayload,
-			maxPeerListSize: MAX_PEER_LIST_BATCH_SIZE,
-		};
-		const peer = new Peer(peerInfo, peerConfig, { outbound: socket });
-
-		this._peerMap.set(peer.id, peer);
-		this._bindHandlersToPeer(peer);
-		if (this._nodeInfo) {
-			this._applyNodeInfoOnPeer(peer, this._nodeInfo);
-		}
-
-		return true;
+	public getPeersCountPerKind(): P2PPeersCount {
+		return [...this._peerMap.values()].reduce(
+			(prev, peer) => {
+				if (peer instanceof OutboundPeer) {
+					return {
+						outboundCount: prev.outboundCount + 1,
+						inboundCount: prev.inboundCount,
+					};
+				} else if (peer instanceof InboundPeer) {
+					return {
+						outboundCount: prev.outboundCount,
+						inboundCount: prev.inboundCount + 1,
+					};
+				}
+				throw new Error('A non-identified peer exists in the pool.');
+			},
+			{ outboundCount: 0, inboundCount: 0 },
+		);
 	}
 
 	public removeAllPeers(): void {
+		// Clear periodic eviction of outbound peers for shuffling
+		if (this._outboundShuffleIntervalId) {
+			clearInterval(this._outboundShuffleIntervalId);
+		}
+
 		this._peerMap.forEach((peer: Peer) => {
 			this.removePeer(peer.id);
 		});
 	}
 
-	public getAllConnectedPeerInfos(): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		return this.getConnectedPeers().map(peer => peer.peerInfo);
-	}
+	public getPeers(
+		kind?: typeof OutboundPeer | typeof InboundPeer,
+	): ReadonlyArray<Peer> {
+		const peers = [...this._peerMap.values()];
+		if (kind) {
+			return peers.filter(peer => peer instanceof kind);
+		}
 
-	public getConnectedPeers(): ReadonlyArray<Peer> {
-		const peers = this.getAllPeers();
-
-		return peers.filter(
-			peer =>
-				peer.state.outbound === ConnectionState.CONNECTED ||
-				peer.state.inbound === ConnectionState.CONNECTED,
-		);
+		return peers;
 	}
 
 	public getUniqueConnectedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
 		return getUniquePeersbyIp(this.getAllConnectedPeerInfos());
 	}
 
-	public getAllPeerInfos(): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		return this.getAllPeers().map(peer => peer.peerInfo);
+	public getAllConnectedPeerInfos(): ReadonlyArray<P2PDiscoveredPeerInfo> {
+		return this.getConnectedPeers().map(
+			peer => peer.peerInfo as P2PDiscoveredPeerInfo,
+		);
 	}
 
-	public getAllPeers(): ReadonlyArray<Peer> {
-		return [...this._peerMap.values()];
+	public getConnectedPeers(
+		kind?: typeof OutboundPeer | typeof InboundPeer,
+	): ReadonlyArray<Peer> {
+		const peers = [...this._peerMap.values()];
+		if (kind) {
+			return peers.filter(
+				peer => peer instanceof kind && peer.state === ConnectionState.OPEN,
+			);
+		}
+
+		return peers.filter(peer => peer.state === ConnectionState.OPEN);
 	}
 
 	public getPeer(peerId: string): Peer | undefined {
@@ -474,7 +532,20 @@ export class PeerPool extends EventEmitter {
 			this._unbindHandlersFromPeer(peer);
 		}
 
+		this.emit(EVENT_REMOVE_PEER, peerId);
+
 		return this._peerMap.delete(peerId);
+	}
+
+	public applyPenalty(peerPenalty: P2PPenalty): void {
+		const peer = this._peerMap.get(peerPenalty.peerId);
+		if (peer) {
+			peer.applyPenalty(peerPenalty.penalty);
+
+			return;
+		}
+
+		throw new Error('Peer not found');
 	}
 
 	private _applyNodeInfoOnPeer(peer: Peer, nodeInfo: P2PNodeInfo): void {
@@ -488,33 +559,124 @@ export class PeerPool extends EventEmitter {
 		})();
 	}
 
+	// TODO: Protect peers by netgroup
+	private _selectPeersForEviction(): Peer[] {
+		const peers = [...this.getPeers(InboundPeer)];
+
+		// Cannot manipulate without physically moving nodes closer to the target.
+		const filteredPeersByLatency = this._peerPoolConfig.latencyProtectionRatio
+			? filterPeersByCategory(peers, {
+					category: PROTECTION_CATEGORY.LATENCY,
+					percentage: this._peerPoolConfig.latencyProtectionRatio,
+					asc: true,
+			  })
+			: peers;
+		if (filteredPeersByLatency.length <= 1) {
+			return filteredPeersByLatency;
+		}
+
+		// Cannot manipulate this metric without performing useful work.
+		const filteredPeersByResponseRate = this._peerPoolConfig
+			.productivityProtectionRatio
+			? filterPeersByCategory(filteredPeersByLatency, {
+					category: PROTECTION_CATEGORY.RESPONSE_RATE,
+					percentage: this._peerPoolConfig.productivityProtectionRatio,
+					asc: false,
+			  })
+			: filteredPeersByLatency;
+		if (filteredPeersByResponseRate.length <= 1) {
+			return filteredPeersByResponseRate;
+		}
+
+		// Protect remaining half of peers by longevity, precludes attacks that start later.
+		const filteredPeersByConnectTime = this._peerPoolConfig
+			.longevityProtectionRatio
+			? filterPeersByCategory(filteredPeersByResponseRate, {
+					category: PROTECTION_CATEGORY.CONNECT_TIME,
+					percentage: this._peerPoolConfig.longevityProtectionRatio,
+					asc: true,
+			  })
+			: filteredPeersByResponseRate;
+
+		return filteredPeersByConnectTime;
+	}
+
+	private _evictPeer(kind: typeof InboundPeer | typeof OutboundPeer): void {
+		const peers = this.getPeers(kind);
+		if (peers.length < 1) {
+			return;
+		}
+
+		if (kind === OutboundPeer) {
+			const selectedPeer = shuffle(peers)[0];
+			if (selectedPeer) {
+				this.removePeer(selectedPeer.id);
+			}
+		}
+
+		if (kind === InboundPeer) {
+			const evictionCandidates = this._selectPeersForEviction();
+			const peerToEvict = shuffle(evictionCandidates)[0];
+			if (peerToEvict) {
+				this.removePeer(peerToEvict.id);
+			}
+		}
+	}
+
 	private _bindHandlersToPeer(peer: Peer): void {
 		peer.on(EVENT_REQUEST_RECEIVED, this._handlePeerRPC);
 		peer.on(EVENT_MESSAGE_RECEIVED, this._handlePeerMessage);
-		peer.on(EVENT_CONNECT_OUTBOUND, this._handlePeerConnect);
-		peer.on(EVENT_CONNECT_ABORT_OUTBOUND, this._handlePeerConnectAbort);
-		peer.on(EVENT_CLOSE_OUTBOUND, this._handlePeerClose);
+		peer.on(EVENT_CONNECT_OUTBOUND, this._handleOutboundPeerConnect);
+		peer.on(EVENT_CONNECT_ABORT_OUTBOUND, this._handleOutboundPeerConnectAbort);
+		peer.on(EVENT_CLOSE_OUTBOUND, this._handlePeerCloseOutbound);
+		peer.on(EVENT_CLOSE_INBOUND, this._handlePeerCloseInbound);
 		peer.on(EVENT_OUTBOUND_SOCKET_ERROR, this._handlePeerOutboundSocketError);
 		peer.on(EVENT_INBOUND_SOCKET_ERROR, this._handlePeerInboundSocketError);
 		peer.on(EVENT_UPDATED_PEER_INFO, this._handlePeerInfoUpdate);
 		peer.on(EVENT_FAILED_PEER_INFO_UPDATE, this._handleFailedPeerInfoUpdate);
+		peer.on(EVENT_FAILED_TO_FETCH_PEER_INFO, this._handleFailedToFetchPeerInfo);
+		peer.on(EVENT_FAILED_TO_FETCH_PEERS, this._handleFailedToFetchPeers);
+		peer.on(
+			EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
+			this._handleFailedToCollectPeerDetails,
+		);
+		peer.on(EVENT_BAN_PEER, this._handleBanPeer);
+		peer.on(EVENT_UNBAN_PEER, this._handleUnbanPeer);
 		peer.on(EVENT_DISCOVERED_PEER, this._handleDiscoverPeer);
 	}
 
 	private _unbindHandlersFromPeer(peer: Peer): void {
 		peer.removeListener(EVENT_REQUEST_RECEIVED, this._handlePeerRPC);
 		peer.removeListener(EVENT_MESSAGE_RECEIVED, this._handlePeerMessage);
-		peer.removeListener(EVENT_CONNECT_OUTBOUND, this._handlePeerConnect);
+		peer.removeListener(
+			EVENT_CONNECT_OUTBOUND,
+			this._handleOutboundPeerConnect,
+		);
 		peer.removeListener(
 			EVENT_CONNECT_ABORT_OUTBOUND,
-			this._handlePeerConnectAbort,
+			this._handleOutboundPeerConnectAbort,
 		);
-		peer.removeListener(EVENT_CLOSE_OUTBOUND, this._handlePeerClose);
+		peer.removeListener(EVENT_CLOSE_OUTBOUND, this._handlePeerCloseOutbound);
+		peer.removeListener(EVENT_CLOSE_INBOUND, this._handlePeerCloseInbound);
 		peer.removeListener(EVENT_UPDATED_PEER_INFO, this._handlePeerInfoUpdate);
+		peer.removeListener(
+			EVENT_FAILED_TO_FETCH_PEER_INFO,
+			this._handleFailedToFetchPeerInfo,
+		);
+		peer.removeListener(
+			EVENT_FAILED_TO_FETCH_PEERS,
+			this._handleFailedToFetchPeers,
+		);
 		peer.removeListener(
 			EVENT_FAILED_PEER_INFO_UPDATE,
 			this._handleFailedPeerInfoUpdate,
 		);
+		peer.removeListener(
+			EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
+			this._handleFailedToCollectPeerDetails,
+		);
+		peer.removeListener(EVENT_BAN_PEER, this._handleBanPeer);
+		peer.removeListener(EVENT_UNBAN_PEER, this._handleUnbanPeer);
 		peer.removeListener(EVENT_DISCOVERED_PEER, this._handleDiscoverPeer);
 	}
 }

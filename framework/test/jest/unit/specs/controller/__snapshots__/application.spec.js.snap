@@ -63,7 +63,6 @@ Object {
       "broadcasts": Object {
         "active": true,
         "broadcastInterval": 5000,
-        "relayLimit": 3,
         "releaseLimit": 25,
       },
       "exceptions": Object {

@@ -16,6 +16,7 @@
 import shuffle = require('lodash.shuffle');
 import {
 	P2PDiscoveredPeerInfo,
+	P2PPeerInfo,
 	P2PPeerSelectionForConnectionInput,
 	P2PPeerSelectionForRequestInput,
 	P2PPeerSelectionForSendInput,
@@ -117,4 +118,10 @@ export const selectPeersForSend = (
 
 export const selectPeersForConnection = (
 	input: P2PPeerSelectionForConnectionInput,
-) => input.peers;
+): ReadonlyArray<P2PPeerInfo> => {
+	if (input.peerLimit && input.peerLimit < 0) {
+		return [];
+	}
+
+	return shuffle(input.peers).slice(0, input.peerLimit);
+};

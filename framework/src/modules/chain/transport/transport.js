@@ -23,6 +23,13 @@ const definitions = require('../schema/definitions');
 const blocksUtils = require('../blocks');
 const transactionsModule = require('../transactions');
 
+function incrementRelays(packet) {
+	if (!Number.isInteger(packet.relays)) {
+		packet.relays = 0;
+	}
+	packet.relays++;
+}
+
 /**
  * Main transport methods. Initializes library with scope content and generates a Broadcaster instance.
  *
@@ -95,7 +102,9 @@ class Transport {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	onSignature(signature, broadcast) {
-		if (broadcast && !this.broadcaster.maxRelays(signature)) {
+		if (broadcast) {
+			// TODO: Remove the relays property as part of the next hard fork. This needs to be set for backwards compatibility.
+			incrementRelays(signature);
 			this.broadcaster.enqueue(
 				{},
 				{
@@ -119,7 +128,9 @@ class Transport {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	onUnconfirmedTransaction(transaction, broadcast) {
-		if (broadcast && !this.broadcaster.maxRelays(transaction)) {
+		if (broadcast) {
+			// TODO: Remove the relays property as part of the next hard fork. This needs to be set for backwards compatibility.
+			incrementRelays(transaction);
 			const transactionJSON = transaction.toJSON();
 			this.broadcaster.enqueue(
 				{},
@@ -147,13 +158,9 @@ class Transport {
 		// Exit immediately when 'broadcast' flag is not set
 		if (!broadcast) return null;
 
-		// Check if we are free to broadcast
-		if (this.broadcaster.maxRelays(block)) {
-			this.logger.debug(
-				'Transport->onBroadcastBlock: Aborted - max block relays exhausted'
-			);
-			return null;
-		}
+		// TODO: Remove the relays property as part of the next hard fork. This needs to be set for backwards compatibility.
+		incrementRelays(block);
+
 		if (this.loaderModule.syncing()) {
 			this.logger.debug(
 				'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress'

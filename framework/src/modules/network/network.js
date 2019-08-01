@@ -17,6 +17,7 @@
 const {
 	P2P,
 	EVENT_NEW_INBOUND_PEER,
+	EVENT_CLOSE_INBOUND,
 	EVENT_CLOSE_OUTBOUND,
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_DISCOVERED_PEER,
@@ -28,6 +29,8 @@ const {
 	EVENT_FAILED_PEER_INFO_UPDATE,
 	EVENT_REQUEST_RECEIVED,
 	EVENT_MESSAGE_RECEIVED,
+	EVENT_BAN_PEER,
+	EVENT_UNBAN_PEER,
 } = require('@liskhq/lisk-p2p');
 const randomstring = require('randomstring');
 const lookupPeersIPs = require('./lookup_peers_ips');
@@ -88,7 +91,7 @@ module.exports = class Network {
 		}
 
 		// Load peers from the database that were tried or connected the last time node was running
-		const triedPeers = await this.storage.entities.Peer.get(
+		const previousPeers = await this.storage.entities.Peer.get(
 			{},
 			{ limit: null }
 		);
@@ -110,18 +113,29 @@ module.exports = class Network {
 		const blacklistedPeers = this.options.blacklistedPeers
 			? this.options.blacklistedPeers.map(peer => ({
 					ipAddress: peer.ip,
-					wsPort: peer.wsPort,
+			  }))
+			: [];
+		const fixedPeers = this.options.fixedPeers
+			? this.options.fixedPeers.map(peer => ({
+					ipAddress: peer.ip,
+			  }))
+			: [];
+		const whitelistedPeers = this.options.whiteListedPeers
+			? this.options.whiteListedPeers.map(peer => ({
+					ipAddress: peer.ip,
 			  }))
 			: [];
 		const p2pConfig = {
 			nodeInfo: initialNodeInfo,
 			hostAddress: this.options.address,
 			blacklistedPeers,
+			fixedPeers,
+			whitelistedPeers,
 			seedPeers: seedPeers.map(peer => ({
 				ipAddress: peer.ip,
 				wsPort: peer.wsPort,
 			})),
-			triedPeers: triedPeers.map(peer => {
+			previousPeers: previousPeers.map(peer => {
 				const { ip, ...peerWithoutIp } = peer;
 
 				return {
@@ -129,6 +143,11 @@ module.exports = class Network {
 					...peerWithoutIp,
 				};
 			}),
+			discoveryInterval: this.options.discoveryInterval,
+			maxOutboundConnections: this.options.maxOutboundConnections,
+			maxInboundConnections: this.options.maxInboundConnections,
+			peerBanTime: this.options.peerBanTime,
+			populatorInterval: this.options.populatorInterval,
 			sendPeerLimit: this.options.emitPeerLimit,
 		};
 
@@ -148,6 +167,16 @@ module.exports = class Network {
 				}:${closePacket.peerInfo.wsPort} was closed with code ${
 					closePacket.code
 				} and reason: ${closePacket.reason}`
+			);
+		});
+
+		this.p2p.on(EVENT_CLOSE_INBOUND, closePacket => {
+			this.logger.debug(
+				`INbound connection of peer ${closePacket.peerInfo.ipAddress}:${
+					closePacket.peerInfo.wsPort
+				} was closed with code ${closePacket.code} and reason: ${
+					closePacket.reason
+				}`
 			);
 		});
 
@@ -248,6 +277,14 @@ module.exports = class Network {
 			this.channel.publish('network:event', packet);
 		});
 
+		this.p2p.on(EVENT_BAN_PEER, peerId => {
+			this.logger.error(`Peer ${peerId} has been temporarily banned.`);
+		});
+
+		this.p2p.on(EVENT_UNBAN_PEER, peerId => {
+			this.logger.error(`Ban on peer ${peerId} has expired.`);
+		});
+
 		// ---- END: Bind event handlers ----
 
 		try {
@@ -273,6 +310,22 @@ module.exports = class Network {
 					event: action.params.event,
 					data: action.params.data,
 				}),
+			requestFromPeer: async action =>
+				this.p2p.requestFromPeer(
+					{
+						procedure: action.params.procedure,
+						data: action.params.data,
+					},
+					action.params.peerId
+				),
+			emitToPeer: action =>
+				this.p2p.sendToPeer(
+					{
+						event: action.params.event,
+						data: action.params.data,
+					},
+					action.params.peerId
+				),
 			getNetworkStatus: () => this.p2p.getNetworkStatus(),
 			getPeers: action => {
 				const peerList = getConsolidatedPeersList(this.p2p.getNetworkStatus());
@@ -298,13 +351,14 @@ module.exports = class Network {
 
 				return getCountByFilter(peerList, action.params);
 			},
-			applyPenalty: action => this.p2p.applyPenalty(action.params),
+			applyPenalty: action =>
+				this.p2p.applyPenalty(action.params.peerId, action.params.penalty),
 		};
 	}
 
 	async cleanup() {
 		// TODO: Unsubscribe 'app:state:updated' from channel.
-		// TODO: In phase 2, only triedPeers will be saved to database
+		// TODO: In phase 2, only previousPeers will be saved to database
 		this.logger.info('Cleaning network...');
 
 		const peersToSave = this.p2p.getNetworkStatus().connectedPeers.map(peer => {

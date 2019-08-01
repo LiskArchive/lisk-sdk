@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,12 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
 import { expect } from 'chai';
 
-import { Peer } from '../../src/peer';
-import { P2PDiscoveredPeerInfo } from '../../src/p2p_types';
+import { OutboundPeer } from '../../../src/peer';
+import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 
-describe('peer', () => {
+describe('outbound_peer', () => {
 	const defaultPeerInfo: P2PDiscoveredPeerInfo = {
 		ipAddress: '12.12.12.12',
 		wsPort: 5001,
@@ -27,7 +28,11 @@ describe('peer', () => {
 		protocolVersion: '1.1',
 	};
 
-	const defaultPeer = new Peer(defaultPeerInfo);
+	const defaultPeer = new OutboundPeer(defaultPeerInfo, {
+		rateCalculationInterval: 1000,
+		wsMaxMessageRate: 1000,
+		wsMaxMessageRatePenalty: 10,
+	});
 
 	describe('#constructor', () => {
 		it('should be an object', () => {
@@ -37,7 +42,7 @@ describe('peer', () => {
 		it('should be an instance of P2P blockchain', () => {
 			return expect(defaultPeer)
 				.to.be.an('object')
-				.and.be.instanceof(Peer);
+				.and.be.instanceof(OutboundPeer);
 		});
 	});
 
@@ -60,8 +65,8 @@ describe('peer', () => {
 				.and.be.eql(5001);
 		});
 
-		it('should get inboundSocket property', () => {
-			return expect(defaultPeer.inboundSocket).to.be.undefined;
+		it('should get socket property', () => {
+			return expect(defaultPeer.socket).to.be.undefined;
 		});
 	});
 });
