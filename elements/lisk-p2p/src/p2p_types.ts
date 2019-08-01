@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -114,6 +114,7 @@ export interface P2PNetworkStatus {
 	readonly newPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly triedPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 	readonly connectedPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
+	readonly connectedUniquePeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 }
 
 // TODO later: Switch to LIP protocol format.

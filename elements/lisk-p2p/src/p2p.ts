@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -260,6 +260,9 @@ export class P2P extends EventEmitter {
 			const isWhitelisted = this._sanitizedPeerLists.whitelisted.find(
 				peer => constructPeerIdFromPeerInfo(peer) === peerId,
 			);
+			if (this._newPeers.has(peerId)) {
+				this._newPeers.delete(peerId);
+			}
 			if (this._triedPeers.has(peerId) && !isWhitelisted) {
 				this._triedPeers.delete(peerId);
 			}
@@ -500,6 +503,7 @@ export class P2P extends EventEmitter {
 			newPeers: [...this._newPeers.values()],
 			triedPeers: [...this._triedPeers.values()],
 			connectedPeers: this._peerPool.getAllConnectedPeerInfos(),
+			connectedUniquePeers: this._peerPool.getUniqueConnectedPeers(),
 		};
 	}
 

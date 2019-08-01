@@ -2,8 +2,8 @@
 
 # Lisk SDK
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
-[![Join the chat at https://gitter.im/LiskHQ/lisk](https://badges.gitter.im/LiskHQ/lisk.svg)](https://gitter.im/LiskHQ/lisk?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
+[![Join the chat at https://gitter.im/LiskHQ/lisk-sdk](https://badges.gitter.im/LiskHQ/lisk-sdk.svg)](https://gitter.im/LiskHQ/lisk-sdk?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Disclaimer - Mostly Harmless
 
@@ -29,7 +29,7 @@ Before running Lisk SDK, the following dependencies need to be installed in orde
 
 | Dependencies     | Version |
 | ---------------- | ------- |
-| NodeJS           | 10.14.3 |
+| NodeJS           | 10.15.3 |
 | PostgreSQL       | 10+     |
 | Redis (optional) | 5+      |
 
@@ -139,7 +139,7 @@ The Lisk SDK operates on the NodeJS runtime and consists primarily of an applica
 | Reason                           | How                                                                                            |
 | -------------------------------- | ---------------------------------------------------------------------------------------------- |
 | Want to chat with our community  | [Reach them on Lisk.chat](https://lisk.chat)                                                   |
-| Want to chat with our developers | [Reach them on Gitter](https://gitter.im/LiskHQ/lisk)                                          |
+| Want to chat with our developers | [Reach them on Gitter](https://gitter.im/LiskHQ/lisk-sdk)                                      |
 | Found a bug                      | [Open a new issue](https://github.com/LiskHQ/lisk/issues/new)                                  |
 | Found a security issue           | [See our bounty program](https://blog.lisk.io/announcing-lisk-bug-bounty-program-5895bdd46ed4) |
 | Want to share your research      | [Propose your research](https://research.lisk.io)                                              |
@@ -191,19 +191,23 @@ https://github.com/LiskHQ/lisk-sdk/graphs/contributors
 
 ## License
 
-Copyright © 2016-2018 Lisk Foundation
+Copyright 2016-2019 Lisk Foundation
 
-This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-You should have received a copy of the [GNU General Public License](https://github.com/LiskHQ/lisk/tree/master/LICENSE) along with this program. If not, see <http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
 ---
 
-This program also incorporates work previously released with lisk `0.9.11` (and earlier) versions under the [MIT License](https://opensource.org/licenses/MIT). To comply with the requirements of that license, the following permission notice, applicable to those parts of the code only, is included below:
-
-Copyright © 2016-2018 Lisk Foundation
+Copyright © 2016-2019 Lisk Foundation
 
 Copyright © 2015 Crypti
 

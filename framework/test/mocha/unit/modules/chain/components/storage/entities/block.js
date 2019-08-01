@@ -1,6 +1,6 @@
 /* eslint-disable mocha/no-pending-tests */
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -159,8 +159,11 @@ describe('Block', () => {
 
 		it('should skip if any invalid attribute is provided');
 
-		it('should reject with invalid data provided', async () =>
-			expect(storage.entities.Block.create(invalidBlock)).to.be.rejected);
+		it('should reject with invalid data provided', async () => {
+			return expect(
+				storage.entities.Block.create(invalidBlock)
+			).to.eventually.be.rejectedWith('invalid input syntax for integer: ""');
+		});
 
 		it('should create multiple objects successfully', async () => {
 			// Arrange

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -18,8 +18,9 @@ import { initializePeerInfoList } from '../utils/peers';
 import {
 	selectPeersForConnection,
 	selectPeersForRequest,
+	getUniquePeersbyIp,
 } from '../../src/peer_selection';
-import { P2PNodeInfo } from '../../src/p2p_types';
+import { P2PNodeInfo, P2PDiscoveredPeerInfo } from '../../src/p2p_types';
 
 describe('peer selector', () => {
 	describe('#selectPeersForRequest', () => {
@@ -126,6 +127,73 @@ describe('peer selector', () => {
 					.to.be.an('array')
 					.of.length(numberOfPeers);
 				return expect(peerList).to.have.members(selectedPeers);
+			});
+		});
+	});
+
+	describe('#getUniquePeersbyIp', () => {
+		const samplePeers = initializePeerInfoList();
+
+		describe('when two peers have same peer infos', () => {
+			let uniquePeerListByIp: ReadonlyArray<P2PDiscoveredPeerInfo>;
+
+			beforeEach(async () => {
+				const duplicatesList = [...samplePeers, samplePeers[0], samplePeers[1]];
+				uniquePeerListByIp = getUniquePeersbyIp(duplicatesList);
+			});
+
+			it('should remove the duplicate peers with the same ips', async () => {
+				expect(uniquePeerListByIp).eql(samplePeers);
+			});
+		});
+
+		describe('when two peers have same IP and different wsPort and height', () => {
+			let uniquePeerListByIp: ReadonlyArray<P2PDiscoveredPeerInfo>;
+
+			beforeEach(async () => {
+				const peer1 = {
+					...samplePeers[0],
+					height: 1212,
+					wsPort: samplePeers[0].wsPort + 1,
+				};
+
+				const peer2 = {
+					...samplePeers[1],
+					height: 1200,
+					wsPort: samplePeers[1].wsPort + 1,
+				};
+
+				const duplicatesList = [...samplePeers, peer1, peer2];
+				uniquePeerListByIp = getUniquePeersbyIp(duplicatesList);
+			});
+
+			it('should remove the duplicate ip and choose the one with higher height', async () => {
+				expect(uniquePeerListByIp).eql(samplePeers);
+			});
+		});
+
+		describe('when two peers have same IP and different wsPort but same height', () => {
+			let uniquePeerListByIp: ReadonlyArray<P2PDiscoveredPeerInfo>;
+
+			beforeEach(async () => {
+				const peer1 = {
+					...samplePeers[0],
+					height: samplePeers[0].height,
+					wsPort: samplePeers[0].wsPort + 1,
+				};
+
+				const peer2 = {
+					...samplePeers[1],
+					height: samplePeers[1].height,
+					wsPort: samplePeers[1].wsPort + 1,
+				};
+
+				const duplicatesList = [...samplePeers, peer1, peer2];
+				uniquePeerListByIp = getUniquePeersbyIp(duplicatesList);
+			});
+
+			it('should remove the duplicate ip and choose one of the peer with same ip in sequence', async () => {
+				expect(uniquePeerListByIp).eql(samplePeers);
 			});
 		});
 	});

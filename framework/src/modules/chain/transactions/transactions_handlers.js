@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -20,9 +20,7 @@ const {
 	TransactionError,
 } = require('@liskhq/lisk-transactions');
 const votes = require('./votes');
-const {
-	updateTransactionResponseForExceptionTransactions,
-} = require('./exceptions_handlers');
+const exceptionsHandlers = require('./exceptions_handlers');
 const StateStore = require('../state_store');
 
 const validateTransactions = exceptions => transactions => {
@@ -33,7 +31,7 @@ const validateTransactions = exceptions => transactions => {
 	const invalidTransactionResponses = transactionsResponses.filter(
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK
 	);
-	updateTransactionResponseForExceptionTransactions(
+	exceptionsHandlers.updateTransactionResponseForExceptionTransactions(
 		invalidTransactionResponses,
 		transactions,
 		exceptions
@@ -163,14 +161,14 @@ const applyTransactions = (storage, exceptions) => async (transactions, tx) => {
 			const transactionResponse = transaction.apply(stateStore);
 			if (transactionResponse.status !== TransactionStatus.OK) {
 				// update transaction response mutates the transaction response object
-				updateTransactionResponseForExceptionTransactions(
+				exceptionsHandlers.updateTransactionResponseForExceptionTransactions(
 					[transactionResponse],
 					transactionsWithoutSpendingErrors,
 					exceptions
 				);
 			}
 			if (transactionResponse.status === TransactionStatus.OK) {
-				votes.apply(stateStore, transaction);
+				votes.apply(stateStore, transaction, exceptions);
 				stateStore.transaction.add(transaction);
 			}
 
@@ -208,11 +206,11 @@ const checkPersistedTransactions = storage => async transactions => {
 	const persistedTransactions = transactions.filter(transaction =>
 		persistedTransactionIds.includes(transaction.id)
 	);
-	const unpersistedTransactions = transactions.filter(
+	const nonPersistedTransactions = transactions.filter(
 		transaction => !persistedTransactionIds.includes(transaction.id)
 	);
 	const transactionsResponses = [
-		...unpersistedTransactions.map(transaction => ({
+		...nonPersistedTransactions.map(transaction => ({
 			id: transaction.id,
 			status: TransactionStatus.OK,
 			errors: [],
@@ -273,12 +271,12 @@ const undoTransactions = (storage, exceptions) => async (
 		return transactionResponse;
 	});
 
-	const unundoableTransactionsResponse = transactionsResponses.filter(
+	const nonUndoableTransactionsResponse = transactionsResponses.filter(
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK
 	);
 
-	updateTransactionResponseForExceptionTransactions(
-		unundoableTransactionsResponse,
+	exceptionsHandlers.updateTransactionResponseForExceptionTransactions(
+		nonUndoableTransactionsResponse,
 		transactions,
 		exceptions
 	);
@@ -305,7 +303,7 @@ const verifyTransactions = (
 		stateStore.createSnapshot();
 		const transactionResponse = transaction.apply(stateStore);
 		if (slots.getSlotNumber(transaction.timestamp) > slots.getSlotNumber()) {
-			transactionResponse.status = 0;
+			transactionResponse.status = TransactionStatus.FAIL;
 			transactionResponse.errors.push(
 				new TransactionError(
 					'Invalid transaction timestamp. Timestamp is in the future',
@@ -322,7 +320,7 @@ const verifyTransactions = (
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK
 	);
 
-	updateTransactionResponseForExceptionTransactions(
+	exceptionsHandlers.updateTransactionResponseForExceptionTransactions(
 		unverifiableTransactionsResponse,
 		transactions,
 		exceptions
@@ -352,4 +350,5 @@ module.exports = {
 	verifyTransactions,
 	processSignature,
 	applyGenesisTransactions,
+	verifyTotalSpending,
 };

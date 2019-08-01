@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -237,7 +237,7 @@ describe('delegates/api', () => {
 				isDelegate: true,
 			});
 
-			expect(
+			return expect(
 				__private.getForgingStatistics({ address: 'aValidAddress' })
 			).to.eventually.have.keys('count', 'rewards', 'fees', 'forged');
 		});
