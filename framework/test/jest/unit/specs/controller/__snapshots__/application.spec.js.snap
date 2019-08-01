@@ -568,12 +568,18 @@ Object {
       "connectTimeout": 5000,
       "discoveryInterval": 30000,
       "emitPeerLimit": 25,
+      "fixedPeers": Array [],
+      "maxInboundConnections": 100,
+      "maxOutboundConnections": 20,
+      "peerBanTime": 86400,
+      "populatorInterval": 10000,
       "seedPeers": Array [
         Object {
           "ip": "127.0.0.1",
           "wsPort": 5000,
         },
       ],
+      "whitelistedPeers": Array [],
       "wsEngine": "ws",
       "wsPort": 5000,
     },
