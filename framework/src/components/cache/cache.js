@@ -182,8 +182,7 @@ class Cache {
 			this.scanAsync(cursor, 'MATCH', pattern).then((res, err) => {
 				if (err) throw err;
 
-				cursor = res[0];
-				keys = res[1];
+				[cursor, keys] = res;
 
 				if (keys.length > 0) {
 					this.delAsync(keys);

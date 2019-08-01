@@ -263,9 +263,10 @@ async function _getForgingStatistics(filters) {
  * @todo Add description of DelegatesController
  */
 function DelegatesController(scope) {
-	storage = scope.components.storage;
-	logger = scope.components.logger;
-	channel = scope.channel;
+	({
+		components: { storage, logger },
+		channel,
+	} = scope);
 }
 
 /**
@@ -282,7 +283,7 @@ DelegatesController.getDelegates = async function(context, next) {
 		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
 	}
 
-	const params = context.request.swagger.params;
+	const { params } = context.request.swagger;
 
 	let filters = {
 		address: params.address.value,
@@ -328,7 +329,7 @@ DelegatesController.getDelegates = async function(context, next) {
  * @todo Add description for the function and the params
  */
 DelegatesController.getForgers = async function(context, next) {
-	const params = context.request.swagger.params;
+	const { params } = context.request.swagger;
 
 	const filters = {
 		limit: params.limit.value,
@@ -344,7 +345,7 @@ DelegatesController.getForgers = async function(context, next) {
 };
 
 DelegatesController.getForgingStatistics = async function(context, next) {
-	const params = context.request.swagger.params;
+	const { params } = context.request.swagger;
 
 	const filters = {
 		address: params.address.value,

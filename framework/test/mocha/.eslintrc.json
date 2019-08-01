@@ -12,6 +12,7 @@
 	},
 	"rules": {
 		"no-new": "off",
+		"prefer-destructuring": "off",
 		"arrow-body-style": "off",
 		"no-unused-expressions": "off",
 		"chai-expect/missing-assertion": "error",

@@ -127,7 +127,7 @@ const sortBy = (sort, options) => {
 	}
 
 	if (!sortMethod) {
-		sortMethod = options.sortMethod;
+		({ sortMethod } = options);
 	}
 
 	return {

@@ -188,7 +188,7 @@ BlocksController.getBlocks = function(context, next) {
 		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
 	}
 
-	const params = context.request.swagger.params;
+	const { params } = context.request.swagger;
 
 	let parsedParams = {
 		id: params.blockId.value,

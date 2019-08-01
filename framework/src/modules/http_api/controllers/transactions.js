@@ -38,8 +38,10 @@ let channel;
  * @todo Add description of TransactionsController
  */
 function TransactionsController(scope) {
-	storage = scope.components.storage;
-	channel = scope.channel;
+	({
+		components: { storage },
+		channel,
+	} = scope);
 }
 
 function transactionFormatter(transaction) {
@@ -71,7 +73,7 @@ TransactionsController.getTransactions = async function(context, next) {
 		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
 	}
 
-	const params = context.request.swagger.params;
+	const { params } = context.request.swagger;
 
 	let filters = {
 		id: params.id.value,

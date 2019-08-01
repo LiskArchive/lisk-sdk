@@ -328,9 +328,9 @@ NodeController.updateForgingStatus = async (context, next) => {
 		return next(new Error('Access Denied'));
 	}
 
-	const publicKey = context.request.swagger.params.data.value.publicKey;
-	const password = context.request.swagger.params.data.value.password;
-	const forging = context.request.swagger.params.data.value.forging;
+	const { publicKey } = context.request.swagger.params.data.value;
+	const { password } = context.request.swagger.params.data.value;
+	const { forging } = context.request.swagger.params.data.value;
 
 	try {
 		const data = await library.channel.invoke('chain:updateForgingStatus', {
@@ -359,7 +359,7 @@ NodeController.getPooledTransactions = async function(context, next) {
 		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
 	}
 
-	const params = context.request.swagger.params;
+	const { params } = context.request.swagger;
 
 	const state = context.request.swagger.params.state.value;
 

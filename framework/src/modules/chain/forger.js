@@ -296,15 +296,17 @@ class Forger {
 	// eslint-disable-next-line class-methods-use-this
 	async forge() {
 		const currentSlot = this.slots.getSlotNumber();
-		const lastBlock = this.blocksModule.lastBlock;
 
-		if (currentSlot === this.slots.getSlotNumber(lastBlock.timestamp)) {
+		if (
+			currentSlot ===
+			this.slots.getSlotNumber(this.blocksModule.lastBlock.timestamp)
+		) {
 			this.logger.debug('Block already forged for the current slot');
 			return;
 		}
 
 		// We calculate round using height + 1, because we want the delegate keypair for next block to be forged
-		const round = this.slots.calcRound(lastBlock.height + 1);
+		const round = this.slots.calcRound(this.blocksModule.lastBlock.height + 1);
 
 		let delegateKeypair;
 		try {

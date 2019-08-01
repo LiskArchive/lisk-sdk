@@ -141,7 +141,7 @@ class Bus extends EventEmitter2 {
 			this.actions[actionFullName] = actions[actionName];
 		});
 
-		let channel = options.channel;
+		let { channel } = options;
 
 		if (options.rpcSocketPath) {
 			const rpcSocket = axon.socket('req');

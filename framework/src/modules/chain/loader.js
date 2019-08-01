@@ -280,7 +280,7 @@ class Loader {
 	 * @todo Add description for the params
 	 */
 	async _getBlocksFromNetwork() {
-		const lastBlock = this.blocksModule.lastBlock;
+		const { lastBlock } = this.blocksModule;
 		// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 		// TODO: Rename procedure to include target module name. E.g. chain:blocks
 		const { data } = await this.channel.invoke('network:request', {
@@ -330,7 +330,7 @@ class Loader {
 	 * @todo Add description for the params
 	 */
 	async _getValidatedBlocksFromNetwork(blocks) {
-		const lastBlock = this.blocksModule.lastBlock;
+		const { lastBlock } = this.blocksModule;
 		try {
 			const lastValidBlock = await this.blocksModule.loadBlocksFromNetwork(
 				blocks,

@@ -33,7 +33,7 @@ const parseStorageObjToLegacyObj = block => {
 	let transactions = [{}];
 
 	if (Array.isArray(block.transactions) && block.transactions.length > 0) {
-		transactions = block.transactions;
+		({ transactions } = block);
 	}
 
 	/* eslint-disable no-restricted-globals */
@@ -220,7 +220,7 @@ const readDbRows = (rows, interfaceAdapters, genesisBlock) => {
 	let blocks = {};
 	const order = [];
 
-	for (let i = 0, length = rows.length; i < length; i++) {
+	for (let i = 0, { length } = rows; i < length; i++) {
 		// Normalize block
 		// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
 		const block = blocksLogic.dbRead(rows[i]);

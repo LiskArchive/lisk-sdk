@@ -148,7 +148,7 @@ class Broadcaster {
 					transactionId = broadcast.options.data.transaction.id;
 				} else if (broadcast.options.data.signature) {
 					// Look for a corresponding "transactionId" of a given signature
-					transactionId = broadcast.options.data.signature.transactionId;
+					({ transactionId } = broadcast.options.data.signature);
 				}
 				if (!transactionId) {
 					return false;
@@ -194,7 +194,7 @@ class Broadcaster {
 					transactionId = broadcast.options.data.transaction.id;
 				} else if (broadcast.options.data.signature) {
 					// Look for a corresponding "transactionId" of a given signature
-					transactionId = broadcast.options.data.signature.transactionId;
+					({ transactionId } = broadcast.options.data.signature);
 				}
 				return !persistedTransactionIds.includes(transactionId);
 			}

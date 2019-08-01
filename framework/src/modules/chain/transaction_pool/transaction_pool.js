@@ -223,7 +223,7 @@ class TransactionPool extends EventEmitter {
 			transactionResponse.status === TransactionStatus.FAIL &&
 			transactionResponse.errors.length > 0
 		) {
-			const message = transactionResponse.errors[0].message;
+			const { message } = transactionResponse.errors[0];
 			this.logger.error(message, { signature });
 			throw transactionResponse.errors;
 		}
@@ -327,7 +327,7 @@ class TransactionPool extends EventEmitter {
 	}
 
 	getTransactionsList(queueName, reverse, limit) {
-		const transactions = this.pool.queues[queueName].transactions;
+		const { transactions } = this.pool.queues[queueName];
 		let transactionList = [...transactions];
 
 		transactionList = reverse ? transactionList.reverse() : transactionList;

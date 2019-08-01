@@ -35,8 +35,8 @@ let channel;
  * @todo Add description of AccountsController
  */
 function AccountsController(scope) {
-	storage = scope.components.storage;
-	channel = scope.channel;
+	({ storage } = scope.components);
+	({ channel } = scope);
 }
 
 function accountFormatter(totalSupply, account) {
@@ -91,7 +91,7 @@ AccountsController.getAccounts = async function(context, next) {
 		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
 	}
 
-	const params = context.request.swagger.params;
+	const { params } = context.request.swagger;
 
 	let filters = {
 		address_eql: params.address.value,

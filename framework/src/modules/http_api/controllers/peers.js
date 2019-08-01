@@ -29,7 +29,7 @@ let channel;
  * @todo Add description of PeersController
  */
 function PeersController(scope) {
-	channel = scope.channel;
+	({ channel } = scope);
 }
 
 /**
@@ -46,7 +46,7 @@ PeersController.getPeers = async function(context, next) {
 		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
 	}
 
-	const params = context.request.swagger.params;
+	const { params } = context.request.swagger;
 
 	let filters = {
 		ip: params.ip.value,

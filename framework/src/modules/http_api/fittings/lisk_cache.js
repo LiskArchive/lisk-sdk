@@ -33,7 +33,7 @@ const modules = require('../helpers/swagger_module_registry');
 module.exports = function create(fittingDef) {
 	const cache = modules.getCache();
 	const logger = modules.getLogger();
-	const mode = fittingDef.mode;
+	const { mode } = fittingDef;
 	const cacheSpecKey = fittingDef.swagger_cache_key;
 
 	debug('create', mode);

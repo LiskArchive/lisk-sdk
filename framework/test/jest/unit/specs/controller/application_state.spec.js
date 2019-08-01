@@ -72,7 +72,7 @@ describe('Application State', () => {
 	describe('#get state', () => {
 		it('should get the sate', () => {
 			// Act
-			const state = applicationState.state;
+			const { state } = applicationState;
 
 			// Assert
 			expect(state).toEqual(mockedState);

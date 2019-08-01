@@ -31,7 +31,7 @@ let channel;
  * @todo Add description of SignaturesController
  */
 function SignaturesController(scope) {
-	channel = scope.channel;
+	({ channel } = scope);
 }
 
 /**

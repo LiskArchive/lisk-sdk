@@ -140,7 +140,7 @@ const updateRecipientRoundInformationWithAmountForTransaction = (
 	}
 
 	const account = stateStore.account.get(address);
-	const amount = transaction.amount;
+	const { amount } = transaction;
 	const amountToUpdate = forwardTick
 		? amount.toString()
 		: amount.mul(-1).toString();
