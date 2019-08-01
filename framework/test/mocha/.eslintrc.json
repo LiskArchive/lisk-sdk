@@ -12,6 +12,7 @@
 	},
 	"rules": {
 		"no-new": "off",
+		"no-template-curly-in-string": "off",
 		"global-require": "off",
 		"prefer-destructuring": "off",
 		"arrow-body-style": "off",

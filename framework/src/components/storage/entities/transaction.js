@@ -227,6 +227,7 @@ class Transaction extends BaseEntity {
 		this.addField('asset', 'string');
 
 		this.addFilter('data_like', filterTypes.CUSTOM, {
+			// eslint-disable-next-line no-template-curly-in-string
 			condition: '"transferData" LIKE ${data_like}',
 		});
 
@@ -234,11 +235,13 @@ class Transaction extends BaseEntity {
 			fieldName: "trs.asset->'dapp'->>'name'",
 			filter: filterTypes.CUSTOM,
 			filterCondition:
+				// eslint-disable-next-line no-template-curly-in-string
 				'trs.asset @> \'{ "dapp": { "name": "${dapp_name:value}" } }\'::jsonb',
 		});
 
 		this.addFilter('dapp_link', filterTypes.CUSTOM, {
 			condition:
+				// eslint-disable-next-line no-template-curly-in-string
 				'trs.asset @> \'{ "dapp": { "link": "${dapp_link:value}" } }\'::jsonb',
 		});
 

@@ -224,10 +224,12 @@ class Account extends BaseEntity {
 
 		this.addFilter('votedDelegatesPublicKeys_in', ft.CUSTOM, {
 			condition:
+				// eslint-disable-next-line no-template-curly-in-string
 				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" IN (${votedDelegatesPublicKeys_in:csv}))',
 		});
 		this.addFilter('membersPublicKeys_in', ft.CUSTOM, {
 			condition:
+				// eslint-disable-next-line no-template-curly-in-string
 				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2multisignatures WHERE "dependentId" IN (${membersPublicKeys_in:csv}))',
 		});
 		const defaultSort = { sort: 'balance:asc' };
