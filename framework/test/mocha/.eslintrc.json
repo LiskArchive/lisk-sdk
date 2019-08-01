@@ -13,6 +13,7 @@
 	"rules": {
 		"no-new": "off",
 		"arrow-body-style": "off",
+		"no-unused-expressions": "off",
 		"chai-expect/missing-assertion": "error",
 		"chai-expect/no-inner-compare": "error",
 		"import/no-extraneous-dependencies": [

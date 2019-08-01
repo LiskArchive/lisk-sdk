@@ -29,7 +29,7 @@ const { config: defaultConfig } = require('./defaults');
 class HttpAPIModule extends BaseModule {
 	constructor(options) {
 		super(options);
-		this.httpApi;
+		this.httpApi = null;
 	}
 
 	static get alias() {

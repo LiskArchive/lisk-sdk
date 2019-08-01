@@ -283,13 +283,13 @@ class Controller {
 		const forkedProcessOptions = {};
 		const maxPort = 20000;
 		const minPort = 10000;
-		process.env.NODE_DEBUG
-			? (forkedProcessOptions.execArgv = [
-					`--inspect=${Math.floor(
-						Math.random() * (maxPort - minPort) + minPort,
-					)}`,
-			  ])
-			: [];
+		if (process.env.NODE_DEBUG) {
+			forkedProcessOptions.execArgv = [
+				`--inspect=${Math.floor(
+					Math.random() * (maxPort - minPort) + minPort,
+				)}`,
+			];
+		}
 
 		const child = child_process.fork(program, parameters, forkedProcessOptions);
 
