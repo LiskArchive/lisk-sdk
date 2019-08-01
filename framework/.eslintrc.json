@@ -21,15 +21,6 @@
 			}
 		],
 		"strict": "off",
-		"import/no-extraneous-dependencies": [
-			"error",
-			{
-				"devDependencies": [
-					"src/modules/chain/tasks/**",
-					"src/modules/chain/scripts/**"
-				]
-			}
-		],
 		"no-restricted-properties": "off",
 		"no-throw-literal": "off",
 		"space-before-function-paren": "off"
