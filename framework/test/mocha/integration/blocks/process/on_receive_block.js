@@ -839,6 +839,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								done();
 							}
 
+							// eslint-disable-next-line wrap-iife
 							(function waitUntilSkippedSlotBlockIsValid() {
 								if (slots.getSlotNumber() < slot + 2) {
 									__testContext.debug(

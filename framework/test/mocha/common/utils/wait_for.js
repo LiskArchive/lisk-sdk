@@ -51,6 +51,7 @@ function blockchainReady(retries, timeout, baseUrl, doNotLogRetries, cb) {
 
 	baseUrl = baseUrl || __testContext.baseUrl;
 
+	// eslint-disable-next-line wrap-iife
 	(function fetchBlockchainStatus() {
 		popsicle
 			.get(`${baseUrl}/api/node/status`)
