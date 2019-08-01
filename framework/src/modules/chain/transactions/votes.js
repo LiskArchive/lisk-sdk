@@ -24,6 +24,7 @@ const TRANSACTION_TYPES_OUT_TRANSFER = 7;
 
 const reverseVotes = diff => {
 	const copyDiff = diff.slice();
+	// eslint-disable-next-line no-plusplus
 	for (let i = 0; i < copyDiff.length; i++) {
 		const math = copyDiff[i][0] === '-' ? '+' : '-';
 		copyDiff[i] = math + copyDiff[i].slice(1);

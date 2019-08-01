@@ -12,6 +12,7 @@
 	},
 	"rules": {
 		"func-names": "off",
+		"no-plusplus": "off",
 		"no-new": "off",
 		"no-template-curly-in-string": "off",
 		"global-require": "off",

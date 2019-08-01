@@ -126,7 +126,9 @@ class Delegates {
 		const seedSource = round.toString();
 		let currentSeed = hash(seedSource, 'utf8');
 
+		// eslint-disable-next-line no-plusplus
 		for (let i = 0, delCount = truncDelegateList.length; i < delCount; i++) {
+			// eslint-disable-next-line no-plusplus
 			for (let x = 0; x < 4 && i < delCount; i++, x++) {
 				const newIndex = currentSeed[x] % delCount;
 				const b = truncDelegateList[newIndex];

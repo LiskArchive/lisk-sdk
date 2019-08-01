@@ -105,6 +105,7 @@ async function _getForgers(filters) {
 	for (
 		let i = filters.offset + 1;
 		i <= ACTIVE_DELEGATES && i <= filters.limit + filters.offset;
+		// eslint-disable-next-line no-plusplus
 		i++
 	) {
 		if (activeDelegates[(currentSlot + i) % ACTIVE_DELEGATES]) {

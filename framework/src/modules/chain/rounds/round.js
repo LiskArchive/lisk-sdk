@@ -361,6 +361,7 @@ class Round {
 		}
 
 		// Apply round changes to each delegate
+		// eslint-disable-next-line no-plusplus
 		for (let i = 0; i < self.scope.roundDelegates.length; i++) {
 			delegate = self.scope.roundDelegates[i];
 			changes = this.rewardsAtRound(i);

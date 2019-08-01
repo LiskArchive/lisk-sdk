@@ -104,6 +104,7 @@ const calculateSupply = (height, blockRewardArgs) => {
 	// Remove offset from height
 	height -= blockRewardArgs.rewardOffset - 1;
 
+	// eslint-disable-next-line no-plusplus
 	for (let i = 0; i < blockRewardArgs.milestones.length; i++) {
 		if (milestone >= i) {
 			multiplier = blockRewardArgs.milestones[i];
@@ -127,6 +128,7 @@ const calculateSupply = (height, blockRewardArgs) => {
 		}
 	}
 
+	// eslint-disable-next-line no-plusplus
 	for (let i = 0; i < rewards.length; i++) {
 		const reward = rewards[i];
 		supply = supply.plus(new BigNum(reward[0]).times(reward[1]));

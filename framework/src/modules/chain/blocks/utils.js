@@ -220,6 +220,7 @@ const readDbRows = (rows, interfaceAdapters, genesisBlock) => {
 	let blocks = {};
 	const order = [];
 
+	// eslint-disable-next-line no-plusplus
 	for (let i = 0, { length } = rows; i < length; i++) {
 		// Normalize block
 		// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block

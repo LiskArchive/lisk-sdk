@@ -4,7 +4,6 @@
 		"camelcase": "off",
 		"max-len": "off",
 		"no-param-reassign": ["warn"],
-		"no-plusplus": "off",
 		"no-underscore-dangle": "off",
 		"strict": "off",
 		"no-throw-literal": ["warn"],

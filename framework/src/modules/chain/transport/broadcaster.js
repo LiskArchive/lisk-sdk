@@ -121,7 +121,7 @@ class Broadcaster {
 			this.logger.debug('Broadcast relays exhausted', object);
 			return true;
 		}
-		object.relays++; // Next broadcast
+		object.relays += 1; // Next broadcast
 		return false;
 	}
 

@@ -329,6 +329,7 @@ const create = ({
 	const blockTransactions = [];
 	const transactionsBytesArray = [];
 
+	// eslint-disable-next-line no-plusplus
 	for (let i = 0; i < sortedTransactions.length; i++) {
 		const transaction = sortedTransactions[i];
 		const transactionBytes = transaction.getBytes(transaction);
@@ -380,6 +381,7 @@ const verifySignature = block => {
 	const data = getBytes(block);
 	const dataWithoutSignature = Buffer.alloc(data.length - signatureLength);
 
+	// eslint-disable-next-line no-plusplus
 	for (let i = 0; i < dataWithoutSignature.length; i++) {
 		dataWithoutSignature[i] = data[i];
 	}
@@ -401,6 +403,7 @@ const verifySignature = block => {
 const getId = block => {
 	const hashedBlock = hash(getBytes(block));
 	const temp = Buffer.alloc(8);
+	// eslint-disable-next-line no-plusplus
 	for (let i = 0; i < 8; i++) {
 		temp[i] = hashedBlock[7 - i];
 	}
