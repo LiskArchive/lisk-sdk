@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -344,8 +344,10 @@ module.exports = class Network {
 				return getCountByFilter(peerList, action.params);
 			},
 			getConnectedPeersCountByFilter: action => {
-				const { connectedPeers } = this.p2p.getNetworkStatus();
-				const peerList = getConsolidatedPeersList({ connectedPeers });
+				const { connectedUniquePeers } = this.p2p.getNetworkStatus();
+				const peerList = getConsolidatedPeersList({
+					connectedPeers: connectedUniquePeers,
+				});
 
 				return getCountByFilter(peerList, action.params);
 			},

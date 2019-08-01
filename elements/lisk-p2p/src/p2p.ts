@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -27,7 +27,7 @@ interface SCServerUpdated extends SCServer {
 import {
 	constructPeerId,
 	constructPeerIdFromPeerInfo,
-	REMOTE_RPC_GET_ALL_PEERS_LIST,
+	REMOTE_RPC_GET_PEERS_LIST,
 } from './peer';
 
 import {
@@ -46,6 +46,7 @@ import {
 import { PeerInboundHandshakeError } from './errors';
 
 import {
+	P2PBasicPeerInfoList,
 	P2PCheckPeerCompatibility,
 	P2PClosePacket,
 	P2PConfig,
@@ -58,8 +59,6 @@ import {
 	P2PRequestPacket,
 	P2PResponsePacket,
 	PeerLists,
-	ProtocolPeerInfo,
-	ProtocolPeerInfoList,
 } from './p2p_types';
 
 import { P2PRequest } from './p2p_request';
@@ -85,6 +84,7 @@ import {
 	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_OUTBOUND_SOCKET_ERROR,
+	EVENT_REMOVE_PEER,
 	EVENT_REQUEST_RECEIVED,
 	EVENT_UNBAN_PEER,
 	EVENT_UPDATED_PEER_INFO,
@@ -99,6 +99,7 @@ export {
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_DISCOVERED_PEER,
 	EVENT_FAILED_TO_PUSH_NODE_INFO,
+	EVENT_REMOVE_PEER,
 	EVENT_REQUEST_RECEIVED,
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_OUTBOUND_SOCKET_ERROR,
@@ -120,6 +121,10 @@ export const DEFAULT_DISCOVERY_INTERVAL = 30000;
 export const DEFAULT_BAN_TIME = 86400;
 export const DEFAULT_POPULATOR_INTERVAL = 10000;
 export const DEFAULT_SEND_PEER_LIMIT = 25;
+// Max rate of WebSocket messages per second per peer.
+export const DEFAULT_WS_MAX_MESSAGE_RATE = 100;
+export const DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY = 10;
+export const DEFAULT_RATE_CALCULATION_INTERVAL = 1000;
 export const DEFAULT_WS_MAX_PAYLOAD = 1048576; // Payload in bytes
 
 const BASE_10_RADIX = 10;
@@ -170,6 +175,7 @@ export class P2P extends EventEmitter {
 	private readonly _handlePeerCloseInbound: (
 		closePacket: P2PClosePacket,
 	) => void;
+	private readonly _handleRemovePeer: (peerId: string) => void;
 	private readonly _handlePeerInfoUpdate: (
 		peerInfo: P2PDiscoveredPeerInfo,
 	) => void;
@@ -215,7 +221,7 @@ export class P2P extends EventEmitter {
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest) => {
-			if (request.procedure === REMOTE_RPC_GET_ALL_PEERS_LIST) {
+			if (request.procedure === REMOTE_RPC_GET_PEERS_LIST) {
 				this._handleGetPeersRequest(request);
 			}
 			// Re-emit the request for external use.
@@ -254,6 +260,9 @@ export class P2P extends EventEmitter {
 			const isWhitelisted = this._sanitizedPeerLists.whitelisted.find(
 				peer => constructPeerIdFromPeerInfo(peer) === peerId,
 			);
+			if (this._newPeers.has(peerId)) {
+				this._newPeers.delete(peerId);
+			}
 			if (this._triedPeers.has(peerId) && !isWhitelisted) {
 				this._triedPeers.delete(peerId);
 			}
@@ -270,6 +279,11 @@ export class P2P extends EventEmitter {
 		this._handlePeerCloseInbound = (closePacket: P2PClosePacket) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CLOSE_INBOUND, closePacket);
+		};
+
+		this._handleRemovePeer = (peerId: string) => {
+			// Re-emit the message to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_REMOVE_PEER, peerId);
 		};
 
 		this._handlePeerInfoUpdate = (peerInfo: P2PDiscoveredPeerInfo) => {
@@ -418,6 +432,18 @@ export class P2P extends EventEmitter {
 				typeof config.longevityProtectionRatio === 'number'
 					? config.longevityProtectionRatio
 					: DEFAULT_PEER_PROTECTION_FOR_LONGEVITY,
+			wsMaxMessageRate:
+				typeof config.wsMaxMessageRate === 'number'
+					? config.wsMaxMessageRate
+					: DEFAULT_WS_MAX_MESSAGE_RATE,
+			wsMaxMessageRatePenalty:
+				typeof config.wsMaxMessageRatePenalty === 'number'
+					? config.wsMaxMessageRatePenalty
+					: DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY,
+			rateCalculationInterval:
+				typeof config.rateCalculationInterval === 'number'
+					? config.rateCalculationInterval
+					: DEFAULT_RATE_CALCULATION_INTERVAL,
 		});
 
 		this._bindHandlersToPeerPool(this._peerPool);
@@ -477,6 +503,7 @@ export class P2P extends EventEmitter {
 			newPeers: [...this._newPeers.values()],
 			triedPeers: [...this._triedPeers.values()],
 			connectedPeers: this._peerPool.getAllConnectedPeerInfos(),
+			connectedUniquePeers: this._peerPool.getUniqueConnectedPeers(),
 		};
 	}
 
@@ -761,26 +788,20 @@ export class P2P extends EventEmitter {
 			random,
 			Math.min(minimumPeerDiscoveryThreshold, knownPeers.length),
 		);
-		/* tslint:enable no-magic-numbers*/
 
-		// TODO: Remove fields that are specific to the current Lisk protocol.
-		const peers = this._pickRandomPeers(randomPeerCount).map(
-			(peerInfo: P2PPeerInfo): ProtocolPeerInfo => {
-				const { ipAddress, ...peerInfoWithoutIp } = peerInfo;
-
-				// The options property is not read by the current legacy protocol but it should be added anyway for future compatibility.
-				return {
-					...peerInfoWithoutIp,
-					ip: ipAddress,
-				};
-			},
+		const basicPeers = this._pickRandomPeers(randomPeerCount).map(
+			(peerInfo: P2PPeerInfo): P2PPeerInfo =>
+				// Discovery process only require minmal peers data
+				({
+					ipAddress: peerInfo.ipAddress,
+					wsPort: peerInfo.wsPort,
+				}),
 		);
-		const protocolPeerInfoList: ProtocolPeerInfoList = {
+		const peerInfoList: P2PBasicPeerInfoList = {
 			success: true,
-			peers,
+			peers: basicPeers,
 		};
-
-		request.end(protocolPeerInfoList);
+		request.end(peerInfoList);
 	}
 
 	private _isTrustedPeer(peerId: string): boolean {
@@ -843,6 +864,7 @@ export class P2P extends EventEmitter {
 		);
 		peerPool.on(EVENT_CLOSE_INBOUND, this._handlePeerCloseInbound);
 		peerPool.on(EVENT_CLOSE_OUTBOUND, this._handlePeerCloseOutbound);
+		peerPool.on(EVENT_REMOVE_PEER, this._handleRemovePeer);
 		peerPool.on(EVENT_UPDATED_PEER_INFO, this._handlePeerInfoUpdate);
 		peerPool.on(
 			EVENT_FAILED_PEER_INFO_UPDATE,

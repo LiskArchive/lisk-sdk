@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -98,16 +98,33 @@ export const validatePeerInfo = (rawPeerInfo: unknown): P2PPeerInfo => {
 	return peerInfoUpdated;
 };
 
-export const validatePeerInfoList = (
-	rawPeerInfoList: unknown,
+export const validateBasicPeerInfo = (rawPeerInfo: unknown): P2PPeerInfo => {
+	if (!rawPeerInfo) {
+		throw new InvalidPeerError(`Invalid peer object`);
+	}
+
+	const peerInfo = rawPeerInfo as P2PPeerInfo;
+	if (
+		!peerInfo.ipAddress ||
+		!peerInfo.wsPort ||
+		!validatePeerAddress(peerInfo.ipAddress, peerInfo.wsPort)
+	) {
+		throw new InvalidPeerError(`Invalid peer ip or port`);
+	}
+
+	return peerInfo;
+};
+
+export const validateBasicPeersInfoList = (
+	rawBasicPeerInfoList: unknown,
 ): ReadonlyArray<P2PPeerInfo> => {
-	if (!rawPeerInfoList) {
+	if (!rawBasicPeerInfoList) {
 		throw new InvalidRPCResponseError('Invalid response type');
 	}
-	const { peers } = rawPeerInfoList as RPCPeerListResponse;
+	const { peers } = rawBasicPeerInfoList as RPCPeerListResponse;
 
 	if (Array.isArray(peers)) {
-		const peerList = peers.map<P2PPeerInfo>(validatePeerInfo);
+		const peerList = peers.map<P2PPeerInfo>(validateBasicPeerInfo);
 
 		return peerList;
 	} else {

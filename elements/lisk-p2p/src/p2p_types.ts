@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -102,6 +102,9 @@ export interface P2PConfig {
 	readonly productivityProtectionRatio?: number;
 	readonly longevityProtectionRatio?: number;
 	readonly hostIp?: string;
+	readonly wsMaxMessageRate?: number;
+	readonly wsMaxMessageRatePenalty?: number;
+	readonly rateCalculationInterval?: number;
 	readonly minimumPeerDiscoveryThreshold?: number;
 	readonly maximumPeerDiscoveryResponseSize?: number;
 }
@@ -111,6 +114,7 @@ export interface P2PNetworkStatus {
 	readonly newPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly triedPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 	readonly connectedPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
+	readonly connectedUniquePeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 }
 
 // TODO later: Switch to LIP protocol format.
@@ -191,6 +195,11 @@ export interface ProtocolPeerInfo {
 // TODO later: Switch to LIP protocol format.
 export interface ProtocolPeerInfoList {
 	readonly peers: ReadonlyArray<ProtocolPeerInfo>;
+	readonly success: boolean;
+}
+
+export interface P2PBasicPeerInfoList {
+	readonly peers: ReadonlyArray<P2PPeerInfo>;
 	readonly success: boolean;
 }
 

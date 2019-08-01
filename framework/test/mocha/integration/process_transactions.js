@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -26,6 +26,7 @@ const transactionsModule = require('../../../src/modules/chain/transactions');
 const {
 	TransactionInterfaceAdapter,
 } = require('../../../src/modules/chain/interface_adapters');
+const votes = require('../../../src/modules/chain/transactions/votes');
 
 const interfaceAdapters = {
 	transactions: new TransactionInterfaceAdapter(registeredTransactions),
@@ -345,6 +346,16 @@ describe('processTransactions', () => {
 							transactionStatus.PENDING
 						);
 					});
+				});
+
+				it('should call votes.apply with correct params', async () => {
+					sinonSandbox.spy(votes, 'apply');
+					const { stateStore } = await applyTransactions(appliableTransactions);
+					expect(votes.apply.firstCall.args).to.be.eql([
+						stateStore,
+						appliableTransactions[0],
+						exceptions,
+					]);
 				});
 			});
 		});

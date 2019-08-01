@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -274,7 +274,7 @@ class Application {
 	 */
 	registerMigrations(namespace, migrations) {
 		assert(namespace, 'Namespace is required');
-		assert(migrations instanceof Array, 'Migrations list should be an array');
+		assert(Array.isArray(migrations), 'Migrations list should be an array');
 		assert(
 			!Object.keys(this.getMigrations()).includes(namespace),
 			`Migrations for "${namespace}" was already registered.`

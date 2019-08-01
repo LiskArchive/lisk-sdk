@@ -36,8 +36,8 @@ import { P2PRequest } from '../p2p_request';
 import * as socketClusterClient from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
 import {
+	validateBasicPeersInfoList,
 	validatePeerInfo,
-	validatePeerInfoList,
 	validateProtocolMessage,
 	validateRPCRequest,
 } from '../validation';
@@ -91,12 +91,11 @@ export const REMOTE_EVENT_MESSAGE = 'remote-message';
 
 export const REMOTE_RPC_UPDATE_PEER_INFO = 'updateMyself';
 export const REMOTE_RPC_GET_NODE_INFO = 'status';
-export const REMOTE_RPC_GET_ALL_PEERS_LIST = 'list';
+export const REMOTE_RPC_GET_PEERS_LIST = 'getPeers';
 
 export const DEFAULT_CONNECT_TIMEOUT = 2000;
 export const DEFAULT_ACK_TIMEOUT = 2000;
 export const DEFAULT_REPUTATION_SCORE = 100;
-export const DEFAULT_RATE_INTERVAL = 1000;
 export const DEFAULT_PRODUCTIVITY_RESET_INTERVAL = 20000;
 export const DEFAULT_PRODUCTIVITY = {
 	requestCounter: 0,
@@ -104,6 +103,9 @@ export const DEFAULT_PRODUCTIVITY = {
 	responseRate: 0,
 	lastResponded: 0,
 };
+
+// Can be used to convert a rate which is based on the rateCalculationInterval into a per-second rate.
+const RATE_NORMALIZATION_FACTOR = 1000;
 
 export enum ConnectionState {
 	CONNECTING = 'connecting',
@@ -134,6 +136,9 @@ export const convertNodeInfoToLegacyFormat = (
 export interface PeerConfig {
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
+	readonly rateCalculationInterval: number;
+	readonly wsMaxMessageRate: number;
+	readonly wsMaxMessageRatePenalty: number;
 	readonly wsMaxPayload?: number;
 }
 
@@ -151,16 +156,23 @@ export class Peer extends EventEmitter {
 		responseRate: number;
 		lastResponded: number;
 	};
-	private _callCounter: Map<string, number>;
+	private _rpcCounter: Map<string, number>;
+	private _rpcRates: Map<string, number>;
+	private _messageCounter: Map<string, number>;
+	private _messageRates: Map<string, number>;
 	private readonly _counterResetInterval: NodeJS.Timer;
 	protected _peerInfo: P2PPeerInfo;
 	private readonly _productivityResetInterval: NodeJS.Timer;
 	protected readonly _peerConfig: PeerConfig;
 	protected _nodeInfo: P2PNodeInfo | undefined;
+	protected _wsMessageCount: number;
+	protected _wsMessageRate: number;
+	protected _rateInterval: number;
 	protected readonly _handleRawRPC: (
 		packet: unknown,
 		respond: (responseError?: Error, responseData?: unknown) => void,
 	) => void;
+	protected readonly _handleWSMessage: (message: string) => void;
 	protected readonly _handleRawMessage: (packet: unknown) => void;
 	protected readonly _handleRawLegacyMessagePostBlock: (
 		packet: unknown,
@@ -173,10 +185,10 @@ export class Peer extends EventEmitter {
 	) => void;
 	protected _socket: SCServerSocketUpdated | SCClientSocket | undefined;
 
-	public constructor(peerInfo: P2PPeerInfo, peerConfig?: PeerConfig) {
+	public constructor(peerInfo: P2PPeerInfo, peerConfig: PeerConfig) {
 		super();
 		this._peerInfo = peerInfo;
-		this._peerConfig = peerConfig ? peerConfig : {};
+		this._peerConfig = peerConfig;
 		this._ipAddress = peerInfo.ipAddress;
 		this._wsPort = peerInfo.wsPort;
 		this._id = constructPeerId(this._ipAddress, this._wsPort);
@@ -184,10 +196,43 @@ export class Peer extends EventEmitter {
 		this._reputation = DEFAULT_REPUTATION_SCORE;
 		this._latency = 0;
 		this._connectTime = Date.now();
-		this._callCounter = new Map();
+		this._rpcCounter = new Map();
+		this._rpcRates = new Map();
+		this._messageCounter = new Map();
+		this._messageRates = new Map();
+		this._wsMessageCount = 0;
+		this._wsMessageRate = 0;
+		this._rateInterval = this._peerConfig.rateCalculationInterval;
 		this._counterResetInterval = setInterval(() => {
-			this._callCounter = new Map();
-		}, DEFAULT_RATE_INTERVAL);
+			this._wsMessageRate =
+				(this._wsMessageCount * RATE_NORMALIZATION_FACTOR) / this._rateInterval;
+			this._wsMessageCount = 0;
+
+			if (this._wsMessageRate > this._peerConfig.wsMaxMessageRate) {
+				this.disconnect(FORBIDDEN_CONNECTION, FORBIDDEN_CONNECTION_REASON);
+				this.applyPenalty(this._peerConfig.wsMaxMessageRatePenalty);
+
+				return;
+			}
+
+			this._rpcRates = new Map(
+				[...this._rpcCounter.entries()].map(([key, value]) => {
+					const rate = value / this._rateInterval;
+
+					return [key, rate] as any;
+				}),
+			);
+			this._rpcCounter = new Map();
+
+			this._messageRates = new Map(
+				[...this._messageCounter.entries()].map(([key, value]) => {
+					const rate = value / this._rateInterval;
+
+					return [key, rate] as any;
+				}),
+			);
+			this._messageCounter = new Map();
+		}, this._rateInterval);
 		this._productivityResetInterval = setInterval(() => {
 			// If peer has not recently responded, reset productivity to 0
 			if (
@@ -210,6 +255,7 @@ export class Peer extends EventEmitter {
 			try {
 				rawRequest = validateRPCRequest(packet);
 			} catch (err) {
+				respond(err);
 				this.emit(EVENT_INVALID_REQUEST_RECEIVED, {
 					packet,
 					peerId: this._id,
@@ -218,7 +264,8 @@ export class Peer extends EventEmitter {
 				return;
 			}
 
-			const rate = this._getPeerRate(packet as P2PRequestPacket);
+			this._updateRPCCounter(rawRequest);
+			const rate = this._getRPCRate(rawRequest);
 
 			const request = new P2PRequest(
 				{
@@ -240,6 +287,10 @@ export class Peer extends EventEmitter {
 			this.emit(EVENT_REQUEST_RECEIVED, request);
 		};
 
+		this._handleWSMessage = () => {
+			this._wsMessageCount += 1;
+		};
+
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawMessage = (packet: unknown) => {
 			// TODO later: Switch to LIP protocol format.
@@ -256,7 +307,8 @@ export class Peer extends EventEmitter {
 				return;
 			}
 
-			const rate = this._getPeerRate(packet as P2PRequestPacket);
+			this._updateMessageCounter(message);
+			const rate = this._getMessageRate(message);
 			const messageWithRateInfo = {
 				...message,
 				peerId: this._id,
@@ -320,6 +372,10 @@ export class Peer extends EventEmitter {
 
 	public get productivity(): Productivity {
 		return { ...this._productivity };
+	}
+
+	public get wsMessageRate(): number {
+		return this._wsMessageRate;
 	}
 
 	public updatePeerInfo(newPeerInfo: P2PDiscoveredPeerInfo): void {
@@ -451,10 +507,10 @@ export class Peer extends EventEmitter {
 	public async fetchPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
 		try {
 			const response: P2PResponsePacket = await this.request({
-				procedure: REMOTE_RPC_GET_ALL_PEERS_LIST,
+				procedure: REMOTE_RPC_GET_PEERS_LIST,
 			});
 
-			return validatePeerInfoList(response.data);
+			return validateBasicPeersInfoList(response.data);
 		} catch (error) {
 			this.emit(EVENT_FAILED_TO_FETCH_PEERS, error);
 
@@ -524,9 +580,8 @@ export class Peer extends EventEmitter {
 
 			return;
 		}
-
-		this.emit(EVENT_UPDATED_PEER_INFO, this._peerInfo);
 		request.end();
+		this.emit(EVENT_UPDATED_PEER_INFO, this._peerInfo);
 	}
 
 	private _handleGetNodeInfo(request: P2PRequest): void {
@@ -541,15 +596,27 @@ export class Peer extends EventEmitter {
 		this.disconnect(FORBIDDEN_CONNECTION, FORBIDDEN_CONNECTION_REASON);
 	}
 
-	private _getPeerRate(packet: unknown): number {
-		const key = (packet as P2PRequestPacket).procedure
-			? (packet as P2PRequestPacket).procedure
-			: (packet as ProtocolMessagePacket).event;
-		if (!this._callCounter.has(key)) {
-			this._callCounter.set(key, 0);
-		}
-		const callCount = (this._callCounter.get(key) as number) + 1;
+	private _updateRPCCounter(packet: P2PRequestPacket): void {
+		const key = packet.procedure;
+		const count = (this._rpcCounter.get(key) || 0) + 1;
+		this._rpcCounter.set(key, count);
+	}
 
-		return callCount / DEFAULT_RATE_INTERVAL;
+	private _getRPCRate(packet: P2PRequestPacket): number {
+		const rate = this._rpcRates.get(packet.procedure) || 0;
+
+		return rate * RATE_NORMALIZATION_FACTOR;
+	}
+
+	private _updateMessageCounter(packet: ProtocolMessagePacket): void {
+		const key = packet.event;
+		const count = (this._messageCounter.get(key) || 0) + 1;
+		this._messageCounter.set(key, count);
+	}
+
+	private _getMessageRate(packet: ProtocolMessagePacket): number {
+		const rate = this._messageRates.get(packet.event) || 0;
+
+		return rate * RATE_NORMALIZATION_FACTOR;
 	}
 }

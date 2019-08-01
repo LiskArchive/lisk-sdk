@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -327,6 +327,7 @@ class Blocks extends EventEmitter {
 					await this._updateBroadhash();
 					this._lastBlock = newBlock;
 					this._isActive = false;
+					this.emit(EVENT_NEW_BLOCK, { block: cloneDeep(this._lastBlock) });
 				} catch (error) {
 					this._isActive = false;
 					this.logger.error(error);
@@ -417,6 +418,7 @@ class Blocks extends EventEmitter {
 						validBlock => this.broadcast(validBlock)
 					);
 					await this._updateBroadhash();
+					this.emit(EVENT_NEW_BLOCK, { block: cloneDeep(this._lastBlock) });
 					this._isActive = false;
 				} catch (error) {
 					this.logger.error(error);

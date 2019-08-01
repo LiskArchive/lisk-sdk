@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -62,6 +62,7 @@ import {
 	OutboundPeer,
 	Peer,
 } from './peer';
+import { getUniquePeersbyIp } from './peer_selection';
 
 export {
 	EVENT_CLOSE_INBOUND,
@@ -98,10 +99,14 @@ interface PeerPoolConfig {
 	readonly latencyProtectionRatio: number;
 	readonly productivityProtectionRatio: number;
 	readonly longevityProtectionRatio: number;
+	readonly wsMaxMessageRate: number;
+	readonly wsMaxMessageRatePenalty: number;
+	readonly rateCalculationInterval: number;
 }
 
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
 export const MAX_PEER_DISCOVERY_PROBE_SAMPLE_SIZE = 100;
+export const EVENT_REMOVE_PEER = 'removePeer';
 
 export enum PROTECTION_CATEGORY {
 	LATENCY = 'latency',
@@ -292,7 +297,7 @@ export class PeerPool extends EventEmitter {
 			(peer: Peer) => peer.peerInfo as P2PDiscoveredPeerInfo,
 		);
 		const selectedPeers = this._peerSelectForRequest({
-			peers: listOfPeerInfo,
+			peers: getUniquePeersbyIp(listOfPeerInfo),
 			nodeInfo: this._nodeInfo,
 			peerLimit: 1,
 			requestPacket: packet,
@@ -406,6 +411,10 @@ export class PeerPool extends EventEmitter {
 		const peerConfig = {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
+			maxPeerListSize: MAX_PEER_LIST_BATCH_SIZE,
+			wsMaxMessageRate: this._peerPoolConfig.wsMaxMessageRate,
+			wsMaxMessageRatePenalty: this._peerPoolConfig.wsMaxMessageRatePenalty,
+			rateCalculationInterval: this._peerPoolConfig.rateCalculationInterval,
 		};
 		const peer = new InboundPeer(peerInfo, socket, peerConfig);
 
@@ -418,6 +427,7 @@ export class PeerPool extends EventEmitter {
 		if (this._nodeInfo) {
 			this._applyNodeInfoOnPeer(peer, this._nodeInfo);
 		}
+		peer.connect();
 
 		return peer;
 	}
@@ -432,7 +442,11 @@ export class PeerPool extends EventEmitter {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
 			banTime: this._peerPoolConfig.peerBanTime,
+			wsMaxMessageRate: this._peerPoolConfig.wsMaxMessageRate,
+			wsMaxMessageRatePenalty: this._peerPoolConfig.wsMaxMessageRatePenalty,
+			rateCalculationInterval: this._peerPoolConfig.rateCalculationInterval,
 			wsMaxPayload: this._peerPoolConfig.wsMaxPayload,
+			maxPeerListSize: MAX_PEER_LIST_BATCH_SIZE,
 		};
 		const peer = new OutboundPeer(peerInfo, peerConfig);
 
@@ -476,10 +490,6 @@ export class PeerPool extends EventEmitter {
 		});
 	}
 
-	public getAllPeerInfos(): ReadonlyArray<P2PPeerInfo> {
-		return this.getPeers().map(peer => peer.peerInfo);
-	}
-
 	public getPeers(
 		kind?: typeof OutboundPeer | typeof InboundPeer,
 	): ReadonlyArray<Peer> {
@@ -489,6 +499,10 @@ export class PeerPool extends EventEmitter {
 		}
 
 		return peers;
+	}
+
+	public getUniqueConnectedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
+		return getUniquePeersbyIp(this.getAllConnectedPeerInfos());
 	}
 
 	public getAllConnectedPeerInfos(): ReadonlyArray<P2PDiscoveredPeerInfo> {
@@ -524,6 +538,8 @@ export class PeerPool extends EventEmitter {
 			peer.disconnect();
 			this._unbindHandlersFromPeer(peer);
 		}
+
+		this.emit(EVENT_REMOVE_PEER, peerId);
 
 		return this._peerMap.delete(peerId);
 	}
