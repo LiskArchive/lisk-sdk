@@ -85,13 +85,13 @@ const getBytes = block => {
 	const blockVersionBuffer = intToBuffer(
 		block.version,
 		SIZE_INT32,
-		LITTLE_ENDIAN
+		LITTLE_ENDIAN,
 	);
 
 	const timestampBuffer = intToBuffer(
 		block.timestamp,
 		SIZE_INT32,
-		LITTLE_ENDIAN
+		LITTLE_ENDIAN,
 	);
 
 	const previousBlockBuffer = block.previousBlock
@@ -101,31 +101,31 @@ const getBytes = block => {
 	const numTransactionsBuffer = intToBuffer(
 		block.numberOfTransactions,
 		SIZE_INT32,
-		LITTLE_ENDIAN
+		LITTLE_ENDIAN,
 	);
 
 	const totalAmountBuffer = intToBuffer(
 		block.totalAmount.toString(),
 		SIZE_INT64,
-		LITTLE_ENDIAN
+		LITTLE_ENDIAN,
 	);
 
 	const totalFeeBuffer = intToBuffer(
 		block.totalFee.toString(),
 		SIZE_INT64,
-		LITTLE_ENDIAN
+		LITTLE_ENDIAN,
 	);
 
 	const rewardBuffer = intToBuffer(
 		block.reward.toString(),
 		SIZE_INT64,
-		LITTLE_ENDIAN
+		LITTLE_ENDIAN,
 	);
 
 	const payloadLengthBuffer = intToBuffer(
 		block.payloadLength,
 		SIZE_INT32,
-		LITTLE_ENDIAN
+		LITTLE_ENDIAN,
 	);
 
 	const payloadHashBuffer = hexToBuffer(block.payloadHash);
@@ -172,10 +172,10 @@ const objectNormalize = (block, exceptions = {}) => {
 	}
 
 	const { transactionsResponses } = validateTransactions(exceptions)(
-		block.transactions
+		block.transactions,
 	);
 	const invalidTransactionResponse = transactionsResponses.find(
-		transactionResponse => transactionResponse.status !== TransactionStatus.OK
+		transactionResponse => transactionResponse.status !== TransactionStatus.OK,
 	);
 	if (invalidTransactionResponse) {
 		throw invalidTransactionResponse.errors;
@@ -312,7 +312,7 @@ const verifySignature = block => {
 	return verifyData(
 		hashedBlock,
 		block.blockSignature,
-		block.generatorPublicKey
+		block.generatorPublicKey,
 	);
 };
 

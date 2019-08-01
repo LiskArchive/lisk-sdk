@@ -62,7 +62,7 @@ describe('GET /delegates', () => {
 
 					return delegatesEndpoint.makeRequest(
 						{ offset: 101, limit: 101 },
-						200
+						200,
 					);
 				})
 				.then(res => {
@@ -79,7 +79,7 @@ describe('GET /delegates', () => {
 						{
 							whatever: accountFixtures.genesis.address,
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'whatever');
@@ -95,7 +95,7 @@ describe('GET /delegates', () => {
 							offset: 'invalid',
 							sort: 'invalid',
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'publicKey');
@@ -114,7 +114,7 @@ describe('GET /delegates', () => {
 							offset: 'invalid',
 							sort: 'invalid',
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'limit');
@@ -147,7 +147,7 @@ describe('GET /delegates', () => {
 					.then(res => {
 						expect(res.body.data).to.have.length(1);
 						expect(res.body.data[0].account.publicKey).to.be.eql(
-							validDelegate.publicKey
+							validDelegate.publicKey,
 						);
 					});
 			});
@@ -182,17 +182,17 @@ describe('GET /delegates', () => {
 
 			before(async () => {
 				const creditRes = await apiHelpers.sendTransactionPromise(
-					creditTransaction
+					creditTransaction,
 				);
 				expect(creditRes.statusCode).to.be.eql(200);
 				await waitFor.confirmations([creditTransaction.id]);
 				const delegateTransactionRes = await apiHelpers.sendTransactionsPromise(
-					[delegateTransaction]
+					[delegateTransaction],
 				);
 				expect(delegateTransactionRes[0].statusCode).to.be.eql(200);
 				await waitFor.confirmations([delegateTransaction.id]);
 				const signatureTransactionRes = await apiHelpers.sendTransactionsPromise(
-					[signatureTransaction]
+					[signatureTransaction],
 				);
 				expect(signatureTransactionRes[0].statusCode).to.be.eql(200);
 				await waitFor.confirmations([signatureTransaction.id]);
@@ -218,12 +218,12 @@ describe('GET /delegates', () => {
 				return delegatesEndpoint
 					.makeRequest(
 						{ secondPublicKey: secondPassphraseAccount.secondPublicKey },
-						200
+						200,
 					)
 					.then(res => {
 						expect(res.body.data).to.have.length(1);
 						expect(res.body.data[0].account.secondPublicKey).to.be.eql(
-							secondPassphraseAccount.secondPublicKey
+							secondPassphraseAccount.secondPublicKey,
 						);
 					});
 			});
@@ -257,7 +257,7 @@ describe('GET /delegates', () => {
 					.makeRequest({ address: validDelegate.address }, 200)
 					.then(res => {
 						expect(res.body.data[0].account.address).to.eql(
-							validDelegate.address
+							validDelegate.address,
 						);
 					});
 			});
@@ -320,10 +320,10 @@ describe('GET /delegates', () => {
 						{
 							search: accountFixtures.genesis.address.slice(
 								0,
-								accountFixtures.genesis.address.length - 1
+								accountFixtures.genesis.address.length - 1,
 							),
 						},
-						200
+						200,
 					)
 					.then(res => {
 						expect(res.body.data).to.have.length.at.least(0);
@@ -336,7 +336,7 @@ describe('GET /delegates', () => {
 						{
 							search: 99,
 						},
-						200
+						200,
 					)
 					.then(res => {
 						expect(res.body.data).to.have.length.at.least(1);
@@ -353,7 +353,7 @@ describe('GET /delegates', () => {
 			it('using search with length=20 should be ok', async () => {
 				return delegatesEndpoint.makeRequest(
 					{ search: 'genesis_123456789012' },
-					200
+					200,
 				);
 			});
 
@@ -420,7 +420,7 @@ describe('GET /delegates', () => {
 					.makeRequest({ sort: 'rank:asc' }, 200)
 					.then(res => {
 						expect(_.map(res.data, 'rank').sort()).to.eql(
-							_.map(res.data, 'rank')
+							_.map(res.data, 'rank'),
 						);
 					});
 			});
@@ -432,7 +432,7 @@ describe('GET /delegates', () => {
 						expect(
 							_.map(res.data, 'rank')
 								.sort()
-								.reverse()
+								.reverse(),
 						).to.eql(_.map(res.data, 'rank'));
 					});
 			});
@@ -444,7 +444,7 @@ describe('GET /delegates', () => {
 						expect(
 							_(res.data)
 								.map('username')
-								.dbSort()
+								.dbSort(),
 						).to.eql(_.map(res.data, 'username'));
 					});
 			});
@@ -456,7 +456,7 @@ describe('GET /delegates', () => {
 						expect(
 							_(res.data)
 								.map('username')
-								.dbSort('desc')
+								.dbSort('desc'),
 						).to.eql(_.map(res.data, 'username'));
 					});
 			});
@@ -466,7 +466,7 @@ describe('GET /delegates', () => {
 					.makeRequest({ sort: 'missedBlocks:asc' }, 200)
 					.then(res => {
 						expect(_.map(res.data, 'missedBlocks').sort()).to.eql(
-							_.map(res.data, 'missedBlocks')
+							_.map(res.data, 'missedBlocks'),
 						);
 					});
 			});
@@ -478,7 +478,7 @@ describe('GET /delegates', () => {
 						expect(
 							_.map(res.data, 'missedBlocks')
 								.sort()
-								.reverse()
+								.reverse(),
 						).to.eql(_.map(res.data, 'missedBlocks'));
 					});
 			});
@@ -488,7 +488,7 @@ describe('GET /delegates', () => {
 					.makeRequest({ sort: 'producedBlocks:asc' }, 200)
 					.then(res => {
 						expect(_.map(res.data, 'producedBlocks').sort()).to.eql(
-							_.map(res.data, 'producedBlocks')
+							_.map(res.data, 'producedBlocks'),
 						);
 					});
 			});
@@ -500,7 +500,7 @@ describe('GET /delegates', () => {
 						expect(
 							_.map(res.data, 'producedBlocks')
 								.sort()
-								.reverse()
+								.reverse(),
 						).to.eql(_.map(res.data, 'producedBlocks'));
 					});
 			});
@@ -510,7 +510,7 @@ describe('GET /delegates', () => {
 					.makeRequest({ sort: 'productivity:asc' }, 200)
 					.then(res => {
 						expect(_.map(res.data, 'productivity').sort()).to.eql(
-							_.map(res.data, 'productivity')
+							_.map(res.data, 'productivity'),
 						);
 					});
 			});
@@ -522,7 +522,7 @@ describe('GET /delegates', () => {
 						expect(
 							_.map(res.data, 'productivity')
 								.sort()
-								.reverse()
+								.reverse(),
 						).to.eql(_.map(res.data, 'productivity'));
 					});
 			});
@@ -541,7 +541,7 @@ describe('GET /delegates', () => {
 							.then(res => {
 								_(_.map(res.data, sortField)).appearsInLast(null);
 							});
-					})
+					}),
 				);
 			});
 		});
@@ -672,7 +672,7 @@ describe('GET /delegates', () => {
 
 			it('lastBlockSlot should be less or equal to currentSlot', async () => {
 				return expect(forgersData.meta.lastBlockSlot).to.be.at.most(
-					forgersData.meta.currentSlot
+					forgersData.meta.currentSlot,
 				);
 			});
 
@@ -686,7 +686,7 @@ describe('GET /delegates', () => {
 
 	describe('GET /{address}/forging_statistics', () => {
 		const forgedEndpoint = new SwaggerEndpoint(
-			'GET /delegates/{address}/forging_statistics'
+			'GET /delegates/{address}/forging_statistics',
 		);
 
 		describe('address', () => {
@@ -724,7 +724,7 @@ describe('GET /delegates', () => {
 							fromTimestamp: fromQueryTime,
 							toTimestamp: toQueryTime,
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'address');
@@ -757,7 +757,7 @@ describe('GET /delegates', () => {
 						return forgedEndpoint
 							.makeRequest(
 								{ address: validDelegate.address, fromTimestamp: -1 },
-								400
+								400,
 							)
 							.then(res => {
 								expectSwaggerParamError(res, 'fromTimestamp');
@@ -771,7 +771,7 @@ describe('GET /delegates', () => {
 						return forgedEndpoint
 							.makeRequest(
 								{ address: validDelegate.address, fromTimestamp: queryTime },
-								200
+								200,
 							)
 							.then(res => {
 								const group = res.body.data;
@@ -791,7 +791,7 @@ describe('GET /delegates', () => {
 						return forgedEndpoint
 							.makeRequest(
 								{ address: validDelegate.address, toTimestamp: 0 },
-								400
+								400,
 							)
 							.then(res => {
 								expectSwaggerParamError(res, 'toTimestamp');
@@ -805,7 +805,7 @@ describe('GET /delegates', () => {
 						return forgedEndpoint
 							.makeRequest(
 								{ address: validDelegate.address, toTimestamp: queryTime },
-								200
+								200,
 							)
 							.then(res => {
 								const group = res.body.data;

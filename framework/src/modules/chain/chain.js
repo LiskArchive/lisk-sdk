@@ -66,20 +66,20 @@ module.exports = class Chain {
 	async bootstrap() {
 		const loggerConfig = await this.channel.invoke(
 			'app:getComponentConfig',
-			'logger'
+			'logger',
 		);
 		const storageConfig = await this.channel.invoke(
 			'app:getComponentConfig',
-			'storage'
+			'storage',
 		);
 
 		const cacheConfig = await this.channel.invoke(
 			'app:getComponentConfig',
-			'cache'
+			'cache',
 		);
 
 		this.applicationState = await this.channel.invoke(
-			'app:getApplicationState'
+			'app:getApplicationState',
 		);
 
 		this.logger = createLoggerComponent(loggerConfig);
@@ -91,7 +91,7 @@ module.exports = class Chain {
 						Object.assign({
 							...loggerConfig,
 							logFileName: storageConfig.logFileName,
-						})
+						}),
 				  );
 
 		global.constants = this.options.constants;
@@ -201,13 +201,13 @@ module.exports = class Chain {
 			generateDelegateList: async action =>
 				this.rounds.generateDelegateList(
 					action.params.round,
-					action.params.source
+					action.params.source,
 				),
 			updateForgingStatus: async action =>
 				this.forger.updateForgingStatus(
 					action.params.publicKey,
 					action.params.password,
-					action.params.forging
+					action.params.forging,
 				),
 			getTransactions: async () => this.transport.getTransactions(),
 			getSignatures: async () => this.transport.getSignatures(),
@@ -222,7 +222,7 @@ module.exports = class Chain {
 			getDelegateBlocksRewards: async action =>
 				this.scope.components.storage.entities.Account.delegateBlocksRewards(
 					action.params.filters,
-					action.params.tx
+					action.params.tx,
 				),
 			getSlotNumber: async action =>
 				action.params
@@ -267,7 +267,7 @@ module.exports = class Chain {
 					return modules[key].cleanup();
 				}
 				return true;
-			})
+			}),
 		).catch(moduleCleanupError => {
 			this.logger.error(convertErrorsToString(moduleCleanupError));
 		});
@@ -279,7 +279,7 @@ module.exports = class Chain {
 		this.scope.modules = {};
 		this.interfaceAdapters = {
 			transactions: new TransactionInterfaceAdapter(
-				this.options.registeredTransactions
+				this.options.registeredTransactions,
 			),
 		};
 		this.scope.modules.interfaceAdapters = this.interfaceAdapters;
@@ -406,7 +406,7 @@ module.exports = class Chain {
 				syncing: this.loader.syncing(),
 				lastReceipt: this.blocks.lastReceipt,
 			},
-			'Sync time triggered'
+			'Sync time triggered',
 		);
 		if (!this.loader.syncing() && this.blocks.isStale()) {
 			await this.scope.sequence.add(async () => {
@@ -432,11 +432,11 @@ module.exports = class Chain {
 			'calculateConsensus',
 			async () => {
 				const consensus = await this.peers.calculateConsensus(
-					this.blocks.broadhash
+					this.blocks.broadhash,
 				);
 				return this.logger.debug(`Broadhash consensus: ${consensus} %`);
 			},
-			this.peers.broadhashConsensusCalculationInterval
+			this.peers.broadhashConsensusCalculationInterval,
 		);
 	}
 
@@ -468,7 +468,7 @@ module.exports = class Chain {
 		jobQueue.register(
 			'nextForge',
 			async () => this._forgingTask(),
-			forgeInterval
+			forgeInterval,
 		);
 	}
 
@@ -483,7 +483,7 @@ module.exports = class Chain {
 				this.transactionPool.onDeletedTransactions(transactions);
 				this.channel.publish(
 					'chain:transactions:confirmed:change',
-					block.transactions
+					block.transactions,
 				);
 			}
 			this.channel.publish('chain:blocks:change', block);
@@ -494,7 +494,7 @@ module.exports = class Chain {
 				this.transactionPool.onConfirmedTransactions(block.transactions);
 				this.channel.publish(
 					'chain:transactions:confirmed:change',
-					block.transactions
+					block.transactions,
 				);
 			}
 			this.channel.publish('chain:blocks:change', block);
@@ -503,7 +503,7 @@ module.exports = class Chain {
 		this.transactionPool.on(EVENT_UNCONFIRMED_TRANSACTION, transaction => {
 			this.logger.trace(
 				{ transactionId: transaction.id },
-				'Received EVENT_UNCONFIRMED_TRANSACTION'
+				'Received EVENT_UNCONFIRMED_TRANSACTION',
 			);
 			this.transport.onUnconfirmedTransaction(transaction, true);
 		});
@@ -515,7 +515,7 @@ module.exports = class Chain {
 		this.transactionPool.on(EVENT_MULTISIGNATURE_SIGNATURE, signature => {
 			this.logger.trace(
 				{ signature },
-				'Received EVENT_MULTISIGNATURE_SIGNATURE'
+				'Received EVENT_MULTISIGNATURE_SIGNATURE',
 			);
 			this.transport.onSignature(signature, true);
 		});

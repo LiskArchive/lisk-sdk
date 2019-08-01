@@ -29,7 +29,7 @@ describe('validateOwnChain', () => {
 		Queries = new QueriesHelper(lib, lib.components.storage);
 
 		addTransactionsAndForgePromise = Promise.promisify(
-			localCommon.addTransactionsAndForge
+			localCommon.addTransactionsAndForge,
 		);
 	});
 
@@ -87,7 +87,7 @@ describe('validateOwnChain', () => {
 
 				try {
 					await library.modules.blocks.blocksVerify.requireBlockRewind(
-						library.modules.blocks.lastBlock
+						library.modules.blocks.lastBlock,
 					);
 				} catch (error) {
 					validateOwnChainError = error;

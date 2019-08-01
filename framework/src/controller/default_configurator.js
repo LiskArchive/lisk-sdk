@@ -38,7 +38,7 @@ yargs.command(
 	() => {
 		console.info(configurator.helpBanner());
 		process.exit();
-	}
+	},
 );
 yargs.help('help', 'Run the "usage" command to see full list of options');
 

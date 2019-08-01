@@ -42,7 +42,8 @@ chai.use((chaiArgument, utils) => {
 
 			errorDetail = _.map(
 				validator.getLastErrors(),
-				object => `${object.code}: ${object.path.join('.')} | ${object.message}`
+				object =>
+					`${object.code}: ${object.path.join('.')} | ${object.message}`,
 			).join('\n');
 		}
 
@@ -223,7 +224,7 @@ SwaggerTestSpec.prototype.makeRequest = function(parameters, responseCode) {
 			__testContext.debug(
 				'> Response:'.grey,
 				res.statusCode,
-				JSON.stringify(res.body)
+				JSON.stringify(res.body),
 			);
 
 			const expectedResponseCode = responseCode || self.responseCode;
@@ -231,7 +232,7 @@ SwaggerTestSpec.prototype.makeRequest = function(parameters, responseCode) {
 			expect(res.statusCode).to.be.eql(expectedResponseCode);
 			expect(res.headers['content-type']).to.match(/json/);
 			expect(res.body).to.be.validResponse(
-				self.getResponseSpecPath(expectedResponseCode)
+				self.getResponseSpecPath(expectedResponseCode),
 			);
 
 			return res;
@@ -239,7 +240,7 @@ SwaggerTestSpec.prototype.makeRequest = function(parameters, responseCode) {
 		.catch(eror => {
 			__testContext.debug(
 				'> Response Error:'.grey,
-				JSON.stringify(validator.getLastErrors())
+				JSON.stringify(validator.getLastErrors()),
 			);
 			throw eror;
 		});

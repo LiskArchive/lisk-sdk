@@ -19,7 +19,7 @@ const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const checkSenderPublicKeyException = (
 	transactionResponse,
 	_,
-	exceptions = {}
+	exceptions = {},
 ) => {
 	if (
 		!exceptions.senderPublicKey ||
@@ -61,7 +61,7 @@ const checkSignature = (transactionResponse, transaction, exceptions = {}) => {
 const checkSignSignature = (
 	transactionResponse,
 	transaction,
-	exceptions = {}
+	exceptions = {},
 ) => {
 	if (
 		!exceptions.signSignature ||
@@ -138,7 +138,7 @@ const checkVotes = (transactionResponse, transaction, exceptions = {}) => {
 const checkVoteTransactionAmount = (
 	transactionResponse,
 	transaction,
-	exceptions = {}
+	exceptions = {},
 ) => {
 	if (!exceptions.votes || !exceptions.votes.includes(transaction.id)) {
 		return false;
@@ -158,7 +158,7 @@ const checkVoteTransactionAmount = (
 const checkRecipientLeadingZero = (
 	transactionResponse,
 	transaction,
-	exceptions = {}
+	exceptions = {},
 ) => {
 	if (
 		!exceptions.recipientLeadingZero ||
@@ -188,7 +188,7 @@ const checkRecipientLeadingZero = (
 const checkRecipientExceedingUint64 = (
 	transactionResponse,
 	transaction,
-	exceptions = {}
+	exceptions = {},
 ) => {
 	if (
 		!exceptions.recipientExceedingUint64 ||
@@ -218,7 +218,7 @@ const checkRecipientExceedingUint64 = (
 const checkDuplicateSignatures = (
 	transactionResponse,
 	transaction,
-	exceptions = {}
+	exceptions = {},
 ) => {
 	if (
 		!exceptions.duplicatedSignatures ||
@@ -240,7 +240,7 @@ const checkDuplicateSignatures = (
 const checkIfTransactionIsException = (
 	transactionResponse,
 	transaction,
-	exceptions = {}
+	exceptions = {},
 ) =>
 	[
 		checkSenderPublicKeyException,
@@ -264,15 +264,15 @@ const checkIfTransactionIsInert = (transaction, exceptions = {}) =>
 const updateTransactionResponseForExceptionTransactions = (
 	unprocessableTransactionResponses,
 	transactions,
-	exceptions
+	exceptions,
 ) => {
 	const unprocessableTransactionAndResponsePairs = unprocessableTransactionResponses.map(
 		unprocessableTransactionResponse => ({
 			transactionResponse: unprocessableTransactionResponse,
 			transaction: transactions.find(
-				transaction => transaction.id === unprocessableTransactionResponse.id
+				transaction => transaction.id === unprocessableTransactionResponse.id,
 			),
-		})
+		}),
 	);
 
 	const exceptionTransactionsAndResponsePairs = unprocessableTransactionAndResponsePairs.filter(
@@ -280,8 +280,8 @@ const updateTransactionResponseForExceptionTransactions = (
 			checkIfTransactionIsException(
 				transactionResponse,
 				transaction,
-				exceptions
-			)
+				exceptions,
+			),
 	);
 
 	// Update the transaction response for exception transactions

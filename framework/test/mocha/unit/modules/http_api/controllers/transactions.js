@@ -19,7 +19,7 @@ const apiCodes = require('../../../../../../src/modules/http_api/api_codes');
 const ApiError = require('../../../../../../src/modules/http_api/api_error');
 
 const TransactionsController = rewire(
-	'../../../../../../src/modules/http_api/controllers/transactions'
+	'../../../../../../src/modules/http_api/controllers/transactions',
 );
 
 describe('transactions/api', () => {
@@ -82,12 +82,12 @@ describe('transactions/api', () => {
 
 			it('should call callback with ApiError', async () =>
 				postTransaction(contextStub, err =>
-					expect(err).to.be.instanceof(ApiError)
+					expect(err).to.be.instanceof(ApiError),
 				));
 
 			it('should call callback with ApiError containing code = 409', async () =>
 				postTransaction(contextStub, err =>
-					expect(err.code).to.equal(apiCodes.PROCESSING_ERROR)
+					expect(err.code).to.equal(apiCodes.PROCESSING_ERROR),
 				));
 		});
 
@@ -100,7 +100,7 @@ describe('transactions/api', () => {
 
 			it('should call callback with ApiError containing code = 500', async () =>
 				postTransaction(contextStub, err =>
-					expect(err.code).to.equal(apiCodes.INTERNAL_SERVER_ERROR)
+					expect(err.code).to.equal(apiCodes.INTERNAL_SERVER_ERROR),
 				));
 		});
 
@@ -113,7 +113,7 @@ describe('transactions/api', () => {
 
 			it('should call callback with success data', async () =>
 				postTransaction(contextStub, (err, resp) =>
-					expect(resp.data.message).to.equal('Transaction(s) accepted')
+					expect(resp.data.message).to.equal('Transaction(s) accepted'),
 				));
 		});
 	});

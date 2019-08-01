@@ -63,7 +63,7 @@ function blockchainReady(retries, timeout, baseUrl, doNotLogRetries, cb) {
 						__testContext.debug(
 							`Retrying ${totalRetries -
 								retries} time loading blockchain in next ${timeout /
-								1000.0} seconds...`
+								1000.0} seconds...`,
 						);
 					}
 					return setTimeout(() => {
@@ -82,7 +82,7 @@ function blockchainReady(retries, timeout, baseUrl, doNotLogRetries, cb) {
 						__testContext.debug(
 							`Retrying ${totalRetries -
 								retries} time loading blockchain in next ${timeout /
-								1000.0} seconds...`
+								1000.0} seconds...`,
 						);
 					}
 					return setTimeout(() => {
@@ -96,7 +96,7 @@ function blockchainReady(retries, timeout, baseUrl, doNotLogRetries, cb) {
 
 function nodeStatus(baseUrl, cb) {
 	const request = popsicle.get(
-		`${baseUrl || __testContext.baseUrl}/api/node/status`
+		`${baseUrl || __testContext.baseUrl}/api/node/status`,
 	);
 
 	request.use(popsicle.plugins.parse(['json']));
@@ -105,7 +105,7 @@ function nodeStatus(baseUrl, cb) {
 		if (res.status !== 200) {
 			return setImmediate(
 				cb,
-				['Received bad response code', res.status, res.url].join(' ')
+				['Received bad response code', res.status, res.url].join(' '),
 			);
 		}
 		return setImmediate(cb, null, res.body.data);
@@ -156,7 +156,7 @@ function newBlock(height, blocksToWait, baseUrl, cb) {
 	return async.doWhilst(
 		doWhilstCb => {
 			const request = popsicle.get(
-				`${baseUrl || __testContext.baseUrl}/api/node/status`
+				`${baseUrl || __testContext.baseUrl}/api/node/status`,
 			);
 
 			request.use(popsicle.plugins.parse(['json']));
@@ -164,7 +164,7 @@ function newBlock(height, blocksToWait, baseUrl, cb) {
 			request.then(res => {
 				if (res.status !== 200) {
 					return doWhilstCb(
-						['Received bad response code', res.status, res.url].join(' ')
+						['Received bad response code', res.status, res.url].join(' '),
 					);
 				}
 				__testContext.debug(
@@ -174,7 +174,7 @@ function newBlock(height, blocksToWait, baseUrl, cb) {
 					'Target:'.grey,
 					target,
 					'Second:'.grey,
-					counter++
+					counter++,
 				);
 				height = res.body.data.height;
 				return setTimeout(doWhilstCb, 1000);
@@ -188,7 +188,7 @@ function newBlock(height, blocksToWait, baseUrl, cb) {
 				return setImmediate(cb, err);
 			}
 			return setImmediate(cb, null, height);
-		}
+		},
 	);
 }
 
@@ -198,14 +198,14 @@ function confirmations(transactions, limitHeight) {
 	function checkConfirmations(transactionsToCheck) {
 		return Promise.all(
 			transactionsToCheck.map(transactionId =>
-				apiHelpers.getTransactionByIdPromise(transactionId)
-			)
+				apiHelpers.getTransactionByIdPromise(transactionId),
+			),
 		).then(res =>
 			Promise.each(res, result => {
 				if (result.body.data.length === 0) {
 					throw Error('Transaction not confirmed');
 				}
-			})
+			}),
 		);
 	}
 

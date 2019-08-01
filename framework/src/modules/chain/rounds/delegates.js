@@ -47,11 +47,11 @@ const getKeysSortByVote = async (storage, numOfActiveDelegates, tx) => {
 const getDelegatesFromPreviousRound = async (
 	storage,
 	numOfActiveDelegates,
-	tx
+	tx,
 ) => {
 	const rows = await storage.entities.Round.getDelegatesSnapshot(
 		numOfActiveDelegates,
-		tx
+		tx,
 	);
 	return rows.map(({ publicKey }) => publicKey);
 };
@@ -69,7 +69,7 @@ const validateBlockSlot = (
 	block,
 	slots,
 	activeDelegates,
-	numOfActiveDelegates
+	numOfActiveDelegates,
 ) => {
 	const currentSlot = slots.getSlotNumber(block.timestamp);
 	const delegateId = activeDelegates[currentSlot % numOfActiveDelegates];
@@ -120,7 +120,7 @@ class Delegates {
 			: await getKeysSortByVote(
 					this.storage,
 					this.constants.activeDelegates,
-					tx
+					tx,
 			  );
 
 		const seedSource = round.toString();
@@ -155,13 +155,13 @@ class Delegates {
 		const round = this.slots.calcRound(block.height);
 		const activeDelegates = await this.generateDelegateList(
 			round,
-			getKeysSortByVote
+			getKeysSortByVote,
 		);
 		validateBlockSlot(
 			block,
 			this.slots,
 			activeDelegates,
-			this.constants.activeDelegates
+			this.constants.activeDelegates,
 		);
 	}
 
@@ -177,13 +177,13 @@ class Delegates {
 		const round = this.slots.calcRound(block.height);
 		const activeDelegates = await this.generateDelegateList(
 			round,
-			getDelegatesFromPreviousRound
+			getDelegatesFromPreviousRound,
 		);
 		validateBlockSlot(
 			block,
 			this.slots,
 			activeDelegates,
-			this.constants.activeDelegates
+			this.constants.activeDelegates,
 		);
 	}
 

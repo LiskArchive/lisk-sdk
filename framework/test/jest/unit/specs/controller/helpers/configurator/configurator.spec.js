@@ -46,7 +46,7 @@ describe('Configurator', () => {
 			expect(conf.registerSchema).toHaveBeenCalledTimes(1);
 			expect(conf.registerSchema).toHaveBeenCalledWith(
 				module.defaults,
-				`modules.${module.alias}`
+				`modules.${module.alias}`,
 			);
 		});
 	});
@@ -62,7 +62,7 @@ describe('Configurator', () => {
 			conf.registerSchema(schema);
 
 			expect(conf.configSchema.properties.myProp).toEqual(
-				schema.properties.myProp
+				schema.properties.myProp,
 			);
 			expect(conf.configSchema.default.myProp).toEqual(schema.default.myProp);
 			expect(conf.extractMetaInformation).toHaveBeenCalledTimes(1);
@@ -80,10 +80,10 @@ describe('Configurator', () => {
 
 			expect(
 				conf.configSchema.properties.parent.properties.parentProp.properties
-					.myProp
+					.myProp,
 			).toEqual(schema.properties.myProp);
 			expect(conf.configSchema.default.parent.parentProp.myProp).toEqual(
-				schema.default.myProp
+				schema.default.myProp,
 			);
 			expect(conf.extractMetaInformation).toHaveBeenCalledTimes(1);
 			expect(conf.extractMetaInformation).toHaveBeenCalledWith();

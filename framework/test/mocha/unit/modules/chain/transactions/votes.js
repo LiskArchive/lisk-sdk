@@ -130,7 +130,7 @@ describe('rounds information', () => {
 		it('should get intransfer transaction from state store when transaction type 6', async () => {
 			Votes.apply(storageStubs, inTransferTransaction);
 			expect(storageStubs.transaction.get).to.be.calledWithExactly(
-				inTransferTransaction.asset.inTransfer.dappId
+				inTransferTransaction.asset.inTransfer.dappId,
 			);
 		});
 
@@ -142,14 +142,14 @@ describe('rounds information', () => {
 		it('should get send transaction recipient account from state store when transaction type 0', async () => {
 			Votes.apply(storageStubs, transferTransaction);
 			expect(storageStubs.account.get).to.have.been.calledWithExactly(
-				transferTransaction.recipientId
+				transferTransaction.recipientId,
 			);
 		});
 
 		it('should get send transaction recipient account from state store when transaction type 7', async () => {
 			Votes.apply(storageStubs, outTransferTransaction);
 			expect(storageStubs.account.get).to.have.been.calledWithExactly(
-				outTransferTransaction.recipientId
+				outTransferTransaction.recipientId,
 			);
 		});
 
@@ -184,7 +184,7 @@ describe('rounds information', () => {
 		it('should get transaction sender account from state store', async () => {
 			Votes.apply(storageStubs, voteTransaction, exceptions);
 			expect(storageStubs.account.get).to.be.calledWithExactly(
-				voteTransaction.senderId
+				voteTransaction.senderId,
 			);
 		});
 
@@ -205,7 +205,7 @@ describe('rounds information', () => {
 						],
 					},
 				},
-				exceptions
+				exceptions,
 			);
 			expect(storageStubs.round.add).to.be.calledWithExactly({
 				address: voteTransaction.senderId,
@@ -268,7 +268,7 @@ describe('rounds information', () => {
 		it('should get transaction sender account from state store', async () => {
 			Votes.apply(storageStubs, voteTransaction);
 			expect(storageStubs.account.get.getCall(1)).to.be.calledWithExactly(
-				voteTransaction.senderId
+				voteTransaction.senderId,
 			);
 		});
 

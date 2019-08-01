@@ -125,7 +125,7 @@ const loadBlocksDataWS = async (storage, filter, tx) => {
 	const rows = await storage.entities.Block.get(
 		{ id: filter.lastId || null },
 		{ limit: params.limit },
-		tx
+		tx,
 	);
 	if (!rows.length) {
 		throw new Error('Invalid lastBlockId requested');
@@ -160,7 +160,7 @@ const loadBlocksDataWS = async (storage, filter, tx) => {
 			limit: null,
 			sort: ['height'],
 		},
-		tx
+		tx,
 	);
 
 	let parsedBlocks = [];
@@ -256,7 +256,7 @@ const readDbRows = (rows, interfaceAdapters, genesisBlock) => {
 	// Reorganize list
 	blocks = order.map(v => {
 		blocks[v].transactions = Object.keys(blocks[v].transactions).map(
-			t => blocks[v].transactions[t]
+			t => blocks[v].transactions[t],
 		);
 		return blocks[v];
 	});
@@ -277,7 +277,7 @@ const loadLastBlock = async (storage, interfaceAdapters, genesisBlock) => {
 	// FIXME: Review SQL order by clause
 	const rows = await storage.entities.Block.get(
 		{},
-		{ sort: 'height:desc', limit: 1, extended: true }
+		{ sort: 'height:desc', limit: 1, extended: true },
 	);
 	if (!rows) {
 		throw new Error('Failed to load last block');
@@ -306,7 +306,7 @@ const getIdSequence = async (
 	height,
 	lastBlock,
 	genesisBlock,
-	numberOfDelegates
+	numberOfDelegates,
 ) => {
 	// Get IDs of first blocks of (n) last rounds, descending order
 	// EXAMPLE: For height 2000000 (round 19802) we will get IDs of blocks at height: 1999902, 1999801, 1999700, 1999599, 1999498
@@ -369,12 +369,12 @@ const loadBlockByHeight = async (
 	height,
 	interfaceAdapters,
 	genesisBlock,
-	tx
+	tx,
 ) => {
 	const row = await storage.entities.Block.getOne(
 		{ height },
 		{ extended: true },
-		tx
+		tx,
 	);
 	return readStorageRows([row], interfaceAdapters, genesisBlock)[0];
 };
@@ -394,7 +394,7 @@ const loadBlocksWithOffset = async (
 	interfaceAdapters,
 	genesisBlock,
 	blocksAmount,
-	fromHeight = 0
+	fromHeight = 0,
 ) => {
 	// Calculate toHeight
 	const toHeight = fromHeight + blocksAmount;
@@ -427,7 +427,7 @@ const calculateNewBroadhash = async (storage, nethash, height) => {
 		{
 			limit: 5,
 			sort: 'height:desc',
-		}
+		},
 	);
 
 	if (blocks.length <= 1) {

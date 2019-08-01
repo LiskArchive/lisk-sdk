@@ -107,7 +107,9 @@ class Cache {
 	 */
 	async getJsonForKey(key) {
 		this.logger.debug(
-			['Cache - Get value for key:', key, '| Status:', this.isReady()].join(' ')
+			['Cache - Get value for key:', key, '| Status:', this.isReady()].join(
+				' ',
+			),
 		);
 		if (!this.isReady()) {
 			throw new Error(errorCacheDisabled);
@@ -126,7 +128,9 @@ class Cache {
 	 */
 	async setJsonForKey(key, value) {
 		this.logger.debug(
-			['Cache - Set value for key:', key, '| Status:', this.isReady()].join(' ')
+			['Cache - Set value for key:', key, '| Status:', this.isReady()].join(
+				' ',
+			),
 		);
 		if (!this.isReady()) {
 			throw new Error(errorCacheDisabled);
@@ -145,8 +149,8 @@ class Cache {
 	async deleteJsonForKey(key) {
 		this.logger.debug(
 			['Cache - Delete value for key:', key, '| Status:', this.isReady()].join(
-				' '
-			)
+				' ',
+			),
 		);
 		if (!this.isReady()) {
 			throw new Error(errorCacheDisabled);
@@ -164,8 +168,8 @@ class Cache {
 	async removeByPattern(pattern) {
 		this.logger.debug(
 			['Cache - removeByPattern', pattern, '| Status:', this.isReady()].join(
-				' '
-			)
+				' ',
+			),
 		);
 
 		if (!this.isReady()) {

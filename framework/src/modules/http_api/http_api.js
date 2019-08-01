@@ -52,7 +52,7 @@ module.exports = class HttpApi {
 		// Logger
 		const loggerConfig = await this.channel.invoke(
 			'app:getComponentConfig',
-			'logger'
+			'logger',
 		);
 		this.logger = createLoggerComponent(loggerConfig);
 
@@ -60,7 +60,7 @@ module.exports = class HttpApi {
 		this.logger.debug('Initiating cache...');
 		const cacheConfig = await this.channel.invoke(
 			'app:getComponentConfig',
-			'cache'
+			'cache',
 		);
 		const cache = createCacheComponent(cacheConfig, this.logger);
 
@@ -68,7 +68,7 @@ module.exports = class HttpApi {
 		this.logger.debug('Initiating storage...');
 		const storageConfig = await this.channel.invoke(
 			'app:getComponentConfig',
-			'storage'
+			'storage',
 		);
 		const dbLogger =
 			storageConfig.logFileName &&
@@ -77,12 +77,12 @@ module.exports = class HttpApi {
 				: createLoggerComponent(
 						Object.assign({}, loggerConfig, {
 							logFileName: storageConfig.logFileName,
-						})
+						}),
 				  );
 		const storage = createStorageComponent(storageConfig, dbLogger);
 
 		const applicationState = await this.channel.invoke(
-			'app:getApplicationState'
+			'app:getApplicationState',
 		);
 
 		// Setup scope
@@ -106,14 +106,14 @@ module.exports = class HttpApi {
 		this.channel.subscribe('chain:blocks:change', async event => {
 			await this.cleanCache(
 				[CACHE_KEYS_BLOCKS, CACHE_KEYS_TRANSACTIONS],
-				`${event.module}:${event.name}`
+				`${event.module}:${event.name}`,
 			);
 		});
 
 		this.channel.subscribe('chain:rounds:change', async event => {
 			await this.cleanCache(
 				[CACHE_KEYS_DELEGATES],
-				`${event.module}:${event.name}`
+				`${event.module}:${event.name}`,
 			);
 		});
 
@@ -126,7 +126,7 @@ module.exports = class HttpApi {
 				// If there was a delegate registration clear delegates cache too
 				const delegateTransaction = transactions.find(
 					transaction =>
-						!!transaction && transaction.type === TRANSACTION_TYPES.DELEGATE
+						!!transaction && transaction.type === TRANSACTION_TYPES.DELEGATE,
 				);
 				if (delegateTransaction) {
 					keysToClear.push(CACHE_KEYS_DELEGATES);
@@ -135,7 +135,7 @@ module.exports = class HttpApi {
 				if (transactions.length) {
 					await this.cleanCache(keysToClear, `${event.module}:${event.name}`);
 				}
-			}
+			},
 		);
 
 		// Bootstrap Cache component
@@ -190,11 +190,11 @@ module.exports = class HttpApi {
 			this.scope.components.cache.isReady()
 		) {
 			const tasks = cacheKeysToClear.map(key =>
-				this.scope.components.cache.removeByPattern(key)
+				this.scope.components.cache.removeByPattern(key),
 			);
 			try {
 				this.logger.info(
-					`Cache - Keys with patterns: '${cacheKeysToClear}' cleared from cache on '${eventInfo}'`
+					`Cache - Keys with patterns: '${cacheKeysToClear}' cleared from cache on '${eventInfo}'`,
 				);
 				await Promise.all(tasks);
 			} catch (error) {

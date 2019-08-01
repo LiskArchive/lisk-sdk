@@ -50,7 +50,7 @@ function init(options, cb) {
 // Init whole application inside tests
 async function __init(sandbox, initScope) {
 	__testContext.debug(
-		'initApplication: Application initialization inside test environment started...'
+		'initApplication: Application initialization inside test environment started...',
 	);
 
 	jobsQueue.jobs = {};
@@ -59,7 +59,7 @@ async function __init(sandbox, initScope) {
 	__testContext.config.modules.chain.broadcasts.active = false;
 	__testContext.config = Object.assign(
 		__testContext.config,
-		initScope.config || {}
+		initScope.config || {},
 	);
 
 	const config = __testContext.config.modules.chain;
@@ -72,7 +72,7 @@ async function __init(sandbox, initScope) {
 		if (sandbox && !initScope.components.storage) {
 			storage = new StorageSandbox(
 				sandbox.config || __testContext.config.components.storage,
-				sandbox.name
+				sandbox.name,
 			);
 		} else {
 			__testContext.config.components.storage.user =
@@ -81,7 +81,7 @@ async function __init(sandbox, initScope) {
 		}
 
 		__testContext.debug(
-			`initApplication: Target database - ${storage.options.database}`
+			`initApplication: Target database - ${storage.options.database}`,
 		);
 
 		const startStorage = async () =>
@@ -97,11 +97,11 @@ async function __init(sandbox, initScope) {
 								'DELETE FROM blocks WHERE height > 1',
 								{},
 								{},
-								t
+								t,
 							),
 							storage.adapter.execute('DELETE FROM blocks', {}, {}, t),
 							storage.adapter.execute('DELETE FROM mem_accounts', {}, {}, t),
-						])
+						]),
 					);
 				})
 				.then(async status => {
@@ -140,11 +140,11 @@ async function __init(sandbox, initScope) {
 				},
 				applicationState: __testContext.config.initialState,
 			},
-			initScope
+			initScope,
 		);
 		const cache = createCacheComponent(
 			__testContext.config.components.cache,
-			logger
+			logger,
 		);
 
 		scope.components = {
@@ -213,7 +213,7 @@ function cleanup(done) {
 				currentAppScope.components.storage.cleanup();
 			}
 			done(err);
-		}
+		},
 	);
 }
 
@@ -235,7 +235,7 @@ const initStepsForTest = {
 		});
 		modules.interfaceAdapters = {};
 		modules.interfaceAdapters.transactions = new RewiredTransactionInterfaceAdapter(
-			__testContext.config.modules.chain.registeredTransactions
+			__testContext.config.modules.chain.registeredTransactions,
 		);
 		const {
 			Rounds: RewiredRounds,
@@ -255,7 +255,7 @@ const initStepsForTest = {
 			},
 		});
 		const { Blocks: RewiredBlocks } = rewire(
-			'../../../src/modules/chain/blocks'
+			'../../../src/modules/chain/blocks',
 		);
 		modules.blocks = new RewiredBlocks({
 			logger: scope.components.logger,
@@ -287,7 +287,7 @@ const initStepsForTest = {
 			forgingForce: __testContext.config.modules.chain.forging.force,
 		});
 		const { TransactionPool: RewiredTransactionPool } = rewire(
-			'../../../src/modules/chain/transaction_pool'
+			'../../../src/modules/chain/transaction_pool',
 		);
 		scope.rewiredModules.transactionPool = RewiredTransactionPool;
 		modules.transactionPool = new RewiredTransactionPool({
@@ -309,7 +309,7 @@ const initStepsForTest = {
 			releaseLimit: __testContext.config.modules.chain.broadcasts.releaseLimit,
 		});
 		const { Loader: RewiredLoader } = rewire(
-			'../../../src/modules/chain/loader'
+			'../../../src/modules/chain/loader',
 		);
 		scope.rewiredModules.loader = RewiredLoader;
 		modules.loader = new RewiredLoader({
@@ -330,7 +330,7 @@ const initStepsForTest = {
 			syncingActive: __testContext.config.modules.chain.syncing.active,
 		});
 		const { Forger: RewiredForge } = rewire(
-			'../../../src/modules/chain/forger'
+			'../../../src/modules/chain/forger',
 		);
 		scope.rewiredModules.forger = RewiredForge;
 		modules.forger = new RewiredForge({
@@ -351,7 +351,7 @@ const initStepsForTest = {
 				__testContext.config.modules.chain.forging.defaultPassword,
 		});
 		const { Transport: RewiredTransport } = rewire(
-			'../../../src/modules/chain/transport'
+			'../../../src/modules/chain/transport',
 		);
 		scope.rewiredModules.transport = RewiredTransport;
 		modules.transport = new RewiredTransport({

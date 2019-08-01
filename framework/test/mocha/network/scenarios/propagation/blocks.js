@@ -30,7 +30,7 @@ module.exports = function(configurations, network) {
 							return utils.http.getBlocks({
 								port: configuration.modules.http_api.httpPort,
 							});
-						})
+						}),
 					);
 				})
 				.then(blocksResults => {

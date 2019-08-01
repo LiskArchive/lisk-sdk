@@ -51,7 +51,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 					[transaction],
 					async () => {
 						done();
-					}
+					},
 				);
 			});
 
@@ -70,7 +70,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 					localCommon.addTransactionsAndForge(
 						library,
 						[transaction1, transaction2],
-						done
+						done,
 					);
 				});
 
@@ -121,15 +121,15 @@ describe('integration test (type 2) - double delegate registrations', () => {
 											.which.is.an('Array');
 										expect(res.transactions.length).to.equal(1);
 										expect(res.transactions[0].id).to.equal(
-											everyTransaction.id
+											everyTransaction.id,
 										);
 										callback(null, !err);
-									}
+									},
 								);
 							},
 							async () => {
 								done();
-							}
+							},
 						);
 					});
 

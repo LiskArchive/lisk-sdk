@@ -32,7 +32,7 @@ module.exports = {
 		const { stdout } = await exec(
 			`lsof ${ports
 				.map(p => `-i :${p}`)
-				.join(' ')} -P -n -s TCP:LISTEN | tail -n +2 | wc -l`
+				.join(' ')} -P -n -s TCP:LISTEN | tail -n +2 | wc -l`,
 		);
 
 		return parseInt(stdout.toString().trim());
@@ -43,7 +43,7 @@ module.exports = {
 		const { stdout } = await exec(
 			`lsof ${ports
 				.map(p => `-i :${p}`)
-				.join(' ')} -P -n -s TCP:ESTABLISHED | tail -n +2 | wc -l`
+				.join(' ')} -P -n -s TCP:ESTABLISHED | tail -n +2 | wc -l`,
 		);
 
 		return parseInt(stdout.toString().trim());

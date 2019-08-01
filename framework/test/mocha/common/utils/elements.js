@@ -21,7 +21,7 @@ const redoSignature = (transaction, passphrase) => {
 	const { signature: discarded, ...transactionWithoutSignature } = transaction;
 	const signature = transactionUtils.signTransaction(
 		transactionWithoutSignature,
-		passphrase
+		passphrase,
 	);
 	const newTransaction = {
 		...transactionWithoutSignature,

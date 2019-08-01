@@ -49,7 +49,7 @@ const compile = (schema, parentSchema) => {
 						throw new Error(
 							`Failed to apply value for option ${
 								envVariable.name
-							}, use "true" or "false"`
+							}, use "true" or "false"`,
 						);
 					}
 

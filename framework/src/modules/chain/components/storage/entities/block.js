@@ -75,7 +75,7 @@ class ChainBlock extends BlockEntity {
 		assert(data, 'Must provide data to create block');
 		assert(
 			typeof data === 'object' || Array.isArray(data),
-			'Data must be an object or array of objects'
+			'Data must be an object or array of objects',
 		);
 
 		let blocks = _.cloneDeep(data);
@@ -101,7 +101,7 @@ class ChainBlock extends BlockEntity {
 			{
 				expectedResultCount: 0,
 			},
-			tx
+			tx,
 		);
 	}
 
@@ -149,7 +149,7 @@ class ChainBlock extends BlockEntity {
 				{
 					expectedResultCount: 0,
 				},
-				tx
+				tx,
 			)
 			.then(result => result);
 	}
@@ -168,7 +168,7 @@ class ChainBlock extends BlockEntity {
 	getFirstBlockIdOfLastRounds(filters) {
 		assert(
 			filters && filters.height && filters.numberOfDelegates,
-			'filters must be an object and contain height and numberOfDelegates'
+			'filters must be an object and contain height and numberOfDelegates',
 		);
 
 		const parseFilters = {
@@ -180,7 +180,7 @@ class ChainBlock extends BlockEntity {
 		return this.adapter.executeFile(
 			this.SQLs.getFirstBlockIdOfLastRounds,
 			parseFilters,
-			{}
+			{},
 		);
 	}
 }

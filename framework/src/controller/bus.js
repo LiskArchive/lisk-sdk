@@ -78,7 +78,7 @@ class Bus extends EventEmitter2 {
 				this.registerChannel(moduleAlias, events, actions, options)
 					.then(() => cb(null))
 					.catch(error => cb(error));
-			}
+			},
 		);
 
 		this.rpcServer.expose('invoke', (action, cb) => {
@@ -117,13 +117,13 @@ class Bus extends EventEmitter2 {
 		moduleAlias,
 		events,
 		actions,
-		options = { type: 'inMemory' }
+		options = { type: 'inMemory' },
 	) {
 		events.forEach(eventName => {
 			const eventFullName = `${moduleAlias}:${eventName}`;
 			if (this.events[eventFullName]) {
 				throw new Error(
-					`Event "${eventFullName}" already registered with bus.`
+					`Event "${eventFullName}" already registered with bus.`,
 				);
 			}
 			this.events[eventFullName] = true;
@@ -134,7 +134,7 @@ class Bus extends EventEmitter2 {
 
 			if (this.actions[actionFullName]) {
 				throw new Error(
-					`Action "${actionFullName}" already registered with bus.`
+					`Action "${actionFullName}" already registered with bus.`,
 				);
 			}
 
@@ -189,7 +189,7 @@ class Bus extends EventEmitter2 {
 						return reject(err);
 					}
 					return resolve(data);
-				}
+				},
 			);
 		});
 	}
@@ -207,7 +207,7 @@ class Bus extends EventEmitter2 {
 		// Check if action is public
 		if (!this.actions[action.key()].isPublic) {
 			throw new Error(
-				`Action ${action.key()} is not allowed because it's not public.`
+				`Action ${action.key()} is not allowed because it's not public.`,
 			);
 		}
 
@@ -238,7 +238,7 @@ class Bus extends EventEmitter2 {
 	subscribe(eventName, cb) {
 		if (!this.getEvents().includes(eventName)) {
 			this.logger.info(
-				`Event ${eventName} was subscribed but not registered to the bus yet.`
+				`Event ${eventName} was subscribed but not registered to the bus yet.`,
 			);
 		}
 
@@ -254,7 +254,7 @@ class Bus extends EventEmitter2 {
 	once(eventName, cb) {
 		if (!this.getEvents().includes(eventName)) {
 			this.logger.info(
-				`Event ${eventName} was subscribed but not registered to the bus yet.`
+				`Event ${eventName} was subscribed but not registered to the bus yet.`,
 			);
 		}
 

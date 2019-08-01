@@ -109,7 +109,7 @@ describe('Application State', () => {
 			it('should throw an error', () => {
 				// Act && Assert
 				return expect(applicationState.update(newState)).rejects.toThrow(
-					errorMessage
+					errorMessage,
 				);
 			});
 
@@ -145,7 +145,7 @@ describe('Application State', () => {
 
 				// Act && Assert
 				await expect(applicationState.update(newState)).rejects.toThrow(
-					broadhashAssertionError
+					broadhashAssertionError,
 				);
 			});
 
@@ -164,7 +164,7 @@ describe('Application State', () => {
 
 				// Act && Assert
 				await expect(applicationState.update(newState)).rejects.toThrow(
-					broadhashAssertionError
+					broadhashAssertionError,
 				);
 			});
 
@@ -183,7 +183,7 @@ describe('Application State', () => {
 
 				// Act && Assert
 				await expect(applicationState.update(newState)).rejects.toThrow(
-					heightAssertionError
+					heightAssertionError,
 				);
 			});
 
@@ -202,7 +202,7 @@ describe('Application State', () => {
 
 				// Act && Assert
 				await expect(applicationState.update(newState)).rejects.toThrow(
-					heightAssertionError
+					heightAssertionError,
 				);
 			});
 		});
@@ -249,7 +249,7 @@ describe('Application State', () => {
 				expect(logger.debug).toHaveBeenCalled();
 				expect(logger.debug).toHaveBeenLastCalledWith(
 					'Application state',
-					updatedState
+					updatedState,
 				);
 			});
 
@@ -258,7 +258,7 @@ describe('Application State', () => {
 				expect(channel.publish).toHaveBeenCalled();
 				expect(channel.publish).toHaveBeenLastCalledWith(
 					'app:state:updated',
-					updatedState
+					updatedState,
 				);
 			});
 

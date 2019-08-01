@@ -70,7 +70,7 @@ PeersController.getPeers = async function(context, next) {
 		const peersByFilters = await channel.invoke('network:getPeers', filters);
 		const peersCount = await channel.invoke(
 			'network:getPeersCountByFilter',
-			filters
+			filters,
 		);
 
 		return next(null, {

@@ -2,16 +2,6 @@
 	"extends": ["../.eslintrc.json"],
 	"rules": {
 		"camelcase": "off",
-		"comma-dangle": [
-			"error",
-			{
-				"arrays": "always-multiline",
-				"objects": "always-multiline",
-				"imports": "always-multiline",
-				"exports": "always-multiline",
-				"functions": "never"
-			}
-		],
 		"func-names": "off",
 		"implicit-arrow-linebreak": "off",
 		"max-len": "off",

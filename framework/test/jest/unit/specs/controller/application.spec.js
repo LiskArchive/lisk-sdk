@@ -65,7 +65,7 @@ describe('Application', () => {
 			expect(liskValidator.validate).toHaveBeenNthCalledWith(
 				1,
 				genesisBlockSchema,
-				genesisBlock
+				genesisBlock,
 			);
 		});
 
@@ -121,21 +121,21 @@ describe('Application', () => {
 
 			// Assert
 			expect(app.config.components.logger.logFileName).toBe(
-				`${process.cwd()}/logs/${config.app.label}/lisk.log`
+				`${process.cwd()}/logs/${config.app.label}/lisk.log`,
 			);
 		});
 
 		it('should validate the constants', () => {
 			const parseEnvArgAndValidateSpy = jest.spyOn(
 				validator,
-				'parseEnvArgAndValidate'
+				'parseEnvArgAndValidate',
 			);
 			new Application(genesisBlock, config);
 
 			expect(parseEnvArgAndValidateSpy).toHaveBeenCalledTimes(1);
 			expect(parseEnvArgAndValidateSpy).toHaveBeenCalledWith(
 				constantsSchema,
-				expect.any(Object)
+				expect.any(Object),
 			);
 		});
 
@@ -204,7 +204,7 @@ describe('Application', () => {
 
 			// Act && Assert
 			expect(() => app.registerTransaction()).toThrow(
-				'Transaction implementation is required'
+				'Transaction implementation is required',
 			);
 		});
 
@@ -214,12 +214,12 @@ describe('Application', () => {
 
 			const TransactionWithoutBase = Object.assign(
 				{ prototype: {} },
-				DappTransaction
+				DappTransaction,
 			);
 
 			// Act && Assert
 			expect(() => app.registerTransaction(TransactionWithoutBase)).toThrow(
-				SchemaValidationError
+				SchemaValidationError,
 			);
 		});
 
@@ -230,7 +230,7 @@ describe('Application', () => {
 
 			// Act && Assert
 			expect(() => app.registerTransaction(Sample)).toThrow(
-				'Transaction type is required as an integer'
+				'Transaction type is required as an integer',
 			);
 		});
 
@@ -243,7 +243,7 @@ describe('Application', () => {
 
 			// Act && Assert
 			expect(() => app.registerTransaction(Sample)).toThrow(
-				'Transaction type is required as an integer'
+				'Transaction type is required as an integer',
 			);
 		});
 
@@ -268,7 +268,7 @@ describe('Application', () => {
 
 			// Act && Assert
 			expect(() => app.registerTransaction(Sample)).toThrow(
-				'A transaction type "1" is already registered.'
+				'A transaction type "1" is already registered.',
 			);
 		});
 

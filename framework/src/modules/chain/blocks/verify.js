@@ -57,7 +57,7 @@ class BlocksVerify {
 			block,
 			this.constants.maxTransactionsPerBlock,
 			this.constants.maxPayloadLength,
-			result
+			result,
 		);
 
 		result = verifyForkOne(this.roundsModule, block, lastBlock, result);
@@ -85,7 +85,7 @@ class BlocksVerify {
 
 		if (persistedTransactions.length > 0) {
 			throw new Error(
-				`Transaction is already confirmed: ${persistedTransactions[0].id}`
+				`Transaction is already confirmed: ${persistedTransactions[0].id}`,
 			);
 		}
 	}
@@ -116,15 +116,15 @@ class BlocksVerify {
 			transaction =>
 				!transactionsModule.checkIfTransactionIsInert(
 					transaction,
-					this.exceptions
-				)
+					this.exceptions,
+				),
 		);
 
 		const nonAllowedTxResponses = transactionsModule
 			.checkAllowedTransactions(context)(nonInertTransactions)
 			.transactionsResponses.find(
 				transactionResponse =>
-					transactionResponse.status !== TransactionStatus.OK
+					transactionResponse.status !== TransactionStatus.OK,
 			);
 
 		if (nonAllowedTxResponses) {
@@ -136,11 +136,12 @@ class BlocksVerify {
 		} = await transactionsModule.verifyTransactions(
 			this.storage,
 			this.slots,
-			this.exceptions
+			this.exceptions,
 		)(nonInertTransactions);
 
 		const unverifiableTransactionsResponse = transactionsResponses.filter(
-			transactionResponse => transactionResponse.status !== TransactionStatus.OK
+			transactionResponse =>
+				transactionResponse.status !== TransactionStatus.OK,
 		);
 
 		if (unverifiableTransactionsResponse.length > 0) {
@@ -164,7 +165,7 @@ class BlocksVerify {
 		}
 		const accounts = await this.storage.entities.Account.get(
 			{ isDelegate: true },
-			{ limit: null }
+			{ limit: null },
 		);
 		const delegatesPublicKeys = accounts.map(account => account.publicKey);
 		if (delegatesPublicKeys.length === 0) {
@@ -182,7 +183,7 @@ class BlocksVerify {
 			this.storage,
 			currentHeight - 1,
 			this.interfaceAdapters,
-			this.genesisBlock
+			this.genesisBlock,
 		);
 		const currentBlockResult = this.verifyBlock(currentBlock, secondLastBlock);
 		if (currentBlockResult.verified) {
@@ -192,19 +193,19 @@ class BlocksVerify {
 			this.storage,
 			validateTillHeight,
 			this.interfaceAdapters,
-			this.genesisBlock
+			this.genesisBlock,
 		);
 		const startBlockLastBlock = await blocksUtils.loadBlockByHeight(
 			this.storage,
 			startBlock.height - 1,
 			this.interfaceAdapters,
-			this.genesisBlock
+			this.genesisBlock,
 		);
 		const startBlockResult = this.verifyBlock(startBlock, startBlockLastBlock);
 		if (!startBlockResult.verified) {
 			throw new Error(
 				`There are more than ${currentHeight -
-					validateTillHeight} invalid blocks. Can't delete those to recover the chain.`
+					validateTillHeight} invalid blocks. Can't delete those to recover the chain.`,
 			);
 		}
 		return true;
@@ -389,8 +390,8 @@ const verifyReward = (blockReward, block, exceptions, result) => {
 	) {
 		result.errors.push(
 			new Error(
-				`Invalid block reward: ${block.reward} expected: ${expectedReward}`
-			)
+				`Invalid block reward: ${block.reward} expected: ${expectedReward}`,
+			),
 		);
 	}
 
@@ -434,7 +435,7 @@ const verifyPayload = (
 	block,
 	maxTransactionsPerBlock,
 	maxPayloadLength,
-	result
+	result,
 ) => {
 	if (block.payloadLength > maxPayloadLength) {
 		result.errors.push(new Error('Payload length is too long'));
@@ -442,13 +443,13 @@ const verifyPayload = (
 
 	if (block.transactions.length !== block.numberOfTransactions) {
 		result.errors.push(
-			new Error('Included transactions do not match block transactions count')
+			new Error('Included transactions do not match block transactions count'),
 		);
 	}
 
 	if (block.transactions.length > maxTransactionsPerBlock) {
 		result.errors.push(
-			new Error('Number of transactions exceeds maximum per block')
+			new Error('Number of transactions exceeds maximum per block'),
 		);
 	}
 
@@ -468,7 +469,7 @@ const verifyPayload = (
 
 		if (appliedTransactions[transaction.id]) {
 			result.errors.push(
-				new Error(`Encountered duplicate transaction: ${transaction.id}`)
+				new Error(`Encountered duplicate transaction: ${transaction.id}`),
 			);
 		}
 
@@ -517,8 +518,8 @@ const verifyForkOne = (roundsModule, block, lastBlock, result) => {
 			new Error(
 				`Invalid previous block: ${block.previousBlock} expected: ${
 					lastBlock.id
-				}`
-			)
+				}`,
+			),
 		);
 	}
 
@@ -612,7 +613,7 @@ const verifyReceipt = ({
 		block,
 		maxTransactionsPerBlock,
 		maxPayloadLength,
-		result
+		result,
 	);
 
 	result.verified = result.errors.length === 0;

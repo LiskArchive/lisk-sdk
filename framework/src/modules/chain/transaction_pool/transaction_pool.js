@@ -87,7 +87,7 @@ class TransactionPool extends EventEmitter {
 		this.bundleLimit = releaseLimit;
 
 		this.validateTransactions = transactionsModule.validateTransactions(
-			this.exceptions
+			this.exceptions,
 		);
 		this.verifyTransactions = transactionsModule.composeTransactionSteps(
 			transactionsModule.checkAllowedTransactions(() => {
@@ -99,11 +99,11 @@ class TransactionPool extends EventEmitter {
 				};
 			}), // TODO: probably wrong
 			transactionsModule.checkPersistedTransactions(storage),
-			transactionsModule.verifyTransactions(storage, slots, exceptions)
+			transactionsModule.verifyTransactions(storage, slots, exceptions),
 		);
 		this.processTransactions = transactionsModule.composeTransactionSteps(
 			transactionsModule.checkPersistedTransactions(storage),
-			transactionsModule.applyTransactions(storage, exceptions)
+			transactionsModule.applyTransactions(storage, exceptions),
 		);
 
 		const poolConfig = {
@@ -163,7 +163,7 @@ class TransactionPool extends EventEmitter {
 		this.pool.on(pool.EVENT_VERIFIED_TRANSACTION_ONCE, ({ payload }) => {
 			if (payload.length > 0) {
 				payload.forEach(aTransaction =>
-					this.emit(EVENT_UNCONFIRMED_TRANSACTION, aTransaction)
+					this.emit(EVENT_UNCONFIRMED_TRANSACTION, aTransaction),
 				);
 			}
 		});
@@ -174,8 +174,8 @@ class TransactionPool extends EventEmitter {
 					`Transaction pool - added transactions ${
 						to ? `to ${to} queue` : ''
 					} on action: ${action} with ID(s): ${payload.map(
-						transaction => transaction.id
-					)}`
+						transaction => transaction.id,
+					)}`,
 				);
 			}
 		});
@@ -184,14 +184,14 @@ class TransactionPool extends EventEmitter {
 			if (payload.length > 0) {
 				this.logger.info(
 					`Transaction pool - removed transactions on action: ${action} with ID(s): ${payload.map(
-						transaction => transaction.id
-					)}`
+						transaction => transaction.id,
+					)}`,
 				);
 			}
 			const queueSizes = Object.keys(this.pool._queues)
 				.map(
 					queueName =>
-						`${queueName} size: ${this.pool._queues[queueName].size()}`
+						`${queueName} size: ${this.pool._queues[queueName].size()}`,
 				)
 				.join(' ');
 			this.logger.info(`Transaction pool - ${queueSizes}`);
@@ -206,7 +206,7 @@ class TransactionPool extends EventEmitter {
 		}
 		// Grab transaction with corresponding ID from transaction pool
 		const transaction = this.getMultisignatureTransaction(
-			signature.transactionId
+			signature.transactionId,
 		);
 
 		if (!transaction) {
@@ -217,7 +217,7 @@ class TransactionPool extends EventEmitter {
 		}
 
 		const transactionResponse = await transactionsModule.processSignature(
-			this.storage
+			this.storage,
 		)(transaction, signature);
 		if (
 			transactionResponse.status === TransactionStatus.FAIL &&
@@ -306,7 +306,7 @@ class TransactionPool extends EventEmitter {
 	getMultisignatureTransactionList(reverse, limit, ready) {
 		if (ready) {
 			return this.getTransactionsList(pendingQueue, reverse).filter(
-				transaction => transaction.ready
+				transaction => transaction.ready,
 			);
 		}
 		return this.getTransactionsList(pendingQueue, reverse, limit);
@@ -355,7 +355,7 @@ class TransactionPool extends EventEmitter {
 	 */
 	getMergedTransactionList(
 		reverse = false,
-		limit = this.maxSharedTransactions
+		limit = this.maxSharedTransactions,
 	) {
 		if (limit > this.maxSharedTransactions) {
 			limit = this.maxSharedTransactions;
@@ -363,12 +363,12 @@ class TransactionPool extends EventEmitter {
 
 		const ready = this.getUnconfirmedTransactionList(
 			reverse,
-			Math.min(this.maxTransactionsPerBlock, limit)
+			Math.min(this.maxTransactionsPerBlock, limit),
 		);
 		limit -= ready.length;
 		const pending = this.getMultisignatureTransactionList(
 			reverse,
-			Math.min(this.maxTransactionsPerBlock, limit)
+			Math.min(this.maxTransactionsPerBlock, limit),
 		);
 		limit -= pending.length;
 		const verified = this.getQueuedTransactionList(reverse, limit);
@@ -380,21 +380,21 @@ class TransactionPool extends EventEmitter {
 	addBundledTransaction(transaction) {
 		return handleAddTransactionResponse(
 			this.pool.addTransaction(transaction),
-			transaction
+			transaction,
 		);
 	}
 
 	addVerifiedTransaction(transaction) {
 		return handleAddTransactionResponse(
 			this.pool.addVerifiedTransaction(transaction),
-			transaction
+			transaction,
 		);
 	}
 
 	addMultisignatureTransaction(transaction) {
 		return handleAddTransactionResponse(
 			this.pool.addPendingTransaction(transaction),
-			transaction
+			transaction,
 		);
 	}
 
@@ -404,7 +404,7 @@ class TransactionPool extends EventEmitter {
 				new TransactionError(
 					`Transaction is already processed: ${transaction.id}`,
 					transaction.id,
-					'.id'
+					'.id',
 				),
 			];
 		}
@@ -417,7 +417,7 @@ class TransactionPool extends EventEmitter {
 				new TransactionError(
 					'Invalid transaction timestamp. Timestamp is in the future',
 					transaction.id,
-					'.timestamp'
+					'.timestamp',
 				),
 			];
 		}
@@ -474,7 +474,7 @@ class TransactionPool extends EventEmitter {
 		) {
 			toSend = _.filter(
 				transactions,
-				_.omit(filters, ['limit', 'offset', 'sort'])
+				_.omit(filters, ['limit', 'offset', 'sort']),
 			);
 		} else {
 			toSend = _.cloneDeep(transactions);
@@ -504,7 +504,7 @@ class TransactionPool extends EventEmitter {
 			toSend = _.orderBy(
 				toSend,
 				[sortAttribute.sortField],
-				[sortAttribute.sortMethod.toLowerCase()]
+				[sortAttribute.sortMethod.toLowerCase()],
 			);
 		}
 

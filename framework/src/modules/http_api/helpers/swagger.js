@@ -90,7 +90,7 @@ function getSchemaAsJSON() {
  */
 function getSchema() {
 	return YAML.safeLoad(
-		fs.readFileSync(path.join(__dirname, '..', 'schema', 'swagger.yml'))
+		fs.readFileSync(path.join(__dirname, '..', 'schema', 'swagger.yml')),
 	);
 }
 

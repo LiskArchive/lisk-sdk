@@ -86,7 +86,7 @@ describe('loader', () => {
 				it('should call library.logger.error');
 
 				it(
-					'should call library.logger.error with "Unconfirmed transactions loader"'
+					'should call library.logger.error with "Unconfirmed transactions loader"',
 				);
 
 				it('should call library.logger.error with error');
@@ -120,7 +120,7 @@ describe('loader', () => {
 		it('should call library.logger.trace after __private.loaded');
 
 		it(
-			'should call library.logger.trace with "Transactions and signatures pulled"'
+			'should call library.logger.trace with "Transactions and signatures pulled"',
 		);
 	});
 

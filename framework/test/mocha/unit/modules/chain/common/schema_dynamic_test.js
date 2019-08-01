@@ -63,24 +63,24 @@ function SchemaDynamicTest(config) {
 				arguments: self.testArgument.bind(
 					self,
 					'array',
-					difference(allTypes, arrays)
+					difference(allTypes, arrays),
 				),
 				property: self.testProperty.bind(
 					self,
 					'array',
-					difference(allTypes, arrays)
+					difference(allTypes, arrays),
 				),
 			},
 			nonBoolean: {
 				arguments: self.testArgument.bind(
 					self,
 					'boolean',
-					difference(allTypes, booleans)
+					difference(allTypes, booleans),
 				),
 				property: self.testProperty.bind(
 					self,
 					'boolean',
-					difference(allTypes, booleans)
+					difference(allTypes, booleans),
 				),
 			},
 			nonInteger: {
@@ -92,8 +92,8 @@ function SchemaDynamicTest(config) {
 						positiveIntegers
 							.concat(negativeIntegers)
 							.concat(positiveNumbers)
-							.concat(negativeNumbers)
-					)
+							.concat(negativeNumbers),
+					),
 				),
 				property: self.testProperty.bind(
 					self,
@@ -103,8 +103,8 @@ function SchemaDynamicTest(config) {
 						positiveIntegers
 							.concat(negativeIntegers)
 							.concat(positiveNumbers)
-							.concat(negativeNumbers)
-					)
+							.concat(negativeNumbers),
+					),
 				),
 			},
 			nonNumber: {
@@ -116,8 +116,8 @@ function SchemaDynamicTest(config) {
 						positiveIntegers
 							.concat(negativeIntegers)
 							.concat(positiveNumbers)
-							.concat(negativeNumbers)
-					)
+							.concat(negativeNumbers),
+					),
 				),
 				property: self.testProperty.bind(
 					self,
@@ -127,32 +127,32 @@ function SchemaDynamicTest(config) {
 						positiveIntegers
 							.concat(negativeIntegers)
 							.concat(positiveNumbers)
-							.concat(negativeNumbers)
-					)
+							.concat(negativeNumbers),
+					),
 				),
 			},
 			nonObject: {
 				arguments: self.testArgument.bind(
 					self,
 					'object',
-					difference(allTypes, objects)
+					difference(allTypes, objects),
 				),
 				property: self.testProperty.bind(
 					self,
 					'object',
-					difference(allTypes, objects)
+					difference(allTypes, objects),
 				),
 			},
 			nonString: {
 				arguments: self.testArgument.bind(
 					self,
 					'string',
-					difference(allTypes, strings)
+					difference(allTypes, strings),
 				),
 				property: self.testProperty.bind(
 					self,
 					'string',
-					difference(allTypes, strings)
+					difference(allTypes, strings),
 				),
 			},
 			positive: {
@@ -160,24 +160,24 @@ function SchemaDynamicTest(config) {
 					arguments: self.testArgument.bind(
 						self,
 						'integer',
-						difference(allTypes, positiveIntegers.concat(positiveNumbers))
+						difference(allTypes, positiveIntegers.concat(positiveNumbers)),
 					),
 					property: self.testProperty.bind(
 						self,
 						'integer',
-						difference(allTypes, positiveIntegers.concat(positiveNumbers))
+						difference(allTypes, positiveIntegers.concat(positiveNumbers)),
 					),
 				},
 				nonNumber: {
 					arguments: self.testArgument.bind(
 						self,
 						'number',
-						difference(allTypes, positiveIntegers.concat(positiveIntegers))
+						difference(allTypes, positiveIntegers.concat(positiveIntegers)),
 					),
 					property: self.testProperty.bind(
 						self,
 						'number',
-						difference(allTypes, positiveIntegers.concat(positiveIntegers))
+						difference(allTypes, positiveIntegers.concat(positiveIntegers)),
 					),
 				},
 			},
@@ -186,24 +186,24 @@ function SchemaDynamicTest(config) {
 					arguments: self.testArgument.bind(
 						self,
 						'integer',
-						difference(allTypes, negativeIntegers.concat(negativeNumbers))
+						difference(allTypes, negativeIntegers.concat(negativeNumbers)),
 					),
 					property: self.testProperty.bind(
 						self,
 						'integer',
-						difference(allTypes, negativeIntegers.concat(negativeNumbers))
+						difference(allTypes, negativeIntegers.concat(negativeNumbers)),
 					),
 				},
 				nonNumber: {
 					arguments: self.testArgument.bind(
 						self,
 						'number',
-						difference(allTypes, negativeNumbers.concat(negativeIntegers))
+						difference(allTypes, negativeNumbers.concat(negativeIntegers)),
 					),
 					property: self.testProperty.bind(
 						self,
 						'number',
-						difference(allTypes, negativeNumbers.concat(negativeIntegers))
+						difference(allTypes, negativeNumbers.concat(negativeIntegers)),
 					),
 				},
 			},
@@ -215,7 +215,7 @@ function SchemaDynamicTest(config) {
 SchemaDynamicTest.prototype.carpetTesting = function(
 	test,
 	inputs,
-	description
+	description,
 ) {
 	inputs.forEach(input => {
 		it(util.format(description, input.description), done => {
@@ -228,7 +228,7 @@ SchemaDynamicTest.prototype.carpetTesting = function(
 SchemaDynamicTest.prototype.standardInvalidArgumentAssertion = function(
 	input,
 	expectedType,
-	err
+	err,
 ) {
 	expect(err)
 		.to.be.an('array')
@@ -240,7 +240,7 @@ SchemaDynamicTest.prototype.standardInvalidPropertyAssertion = function(
 	input,
 	expectedType,
 	property,
-	err
+	err,
 ) {
 	self.standardInvalidArgumentAssertion(input, expectedType, err);
 };
@@ -248,7 +248,7 @@ SchemaDynamicTest.prototype.standardInvalidPropertyAssertion = function(
 SchemaDynamicTest.prototype.testArgument = function(
 	expectedType,
 	invalidInputs,
-	testedFunction
+	testedFunction,
 ) {
 	const assertion =
 		this.customArgumentAssertion || this.standardInvalidArgumentAssertion;
@@ -261,7 +261,7 @@ SchemaDynamicTest.prototype.testArgument = function(
 	this.carpetTesting(
 		test,
 		invalidInputs,
-		'should return an error when invoked with %s'
+		'should return an error when invoked with %s',
 	);
 };
 
@@ -270,7 +270,7 @@ SchemaDynamicTest.prototype.testProperty = function(
 	invalidInputs,
 	testedFunction,
 	validArgument,
-	property
+	property,
 ) {
 	const assertion =
 		this.customPropertyAssertion || this.standardInvalidPropertyAssertion;
@@ -287,13 +287,13 @@ SchemaDynamicTest.prototype.testProperty = function(
 	this.carpetTesting(
 		test,
 		invalidInputs,
-		`should return an error when ${property} is %s`
+		`should return an error when ${property} is %s`,
 	);
 };
 
 SchemaDynamicTest.prototype.standardMissingRequiredPropertiesAssertion = function(
 	property,
-	err
+	err,
 ) {
 	expect(err)
 		.to.be.an('array')
@@ -304,7 +304,7 @@ SchemaDynamicTest.prototype.standardMissingRequiredPropertiesAssertion = functio
 SchemaDynamicTest.prototype.testRequired = function(
 	testedFunction,
 	validArgument,
-	properties
+	properties,
 ) {
 	const assertion =
 		this.customRequiredPropertiesAssertion ||
@@ -323,7 +323,7 @@ SchemaDynamicTest.prototype.testRequired = function(
 	this.carpetTesting(
 		test,
 		missingFieldsDescriptions,
-		'should return an error when invoked without %s'
+		'should return an error when invoked without %s',
 	);
 };
 

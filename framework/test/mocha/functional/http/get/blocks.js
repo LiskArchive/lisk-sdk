@@ -126,7 +126,7 @@ describe('GET /blocks', () => {
 						{
 							fromTimestamp: -1,
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'fromTimestamp');
@@ -142,7 +142,7 @@ describe('GET /blocks', () => {
 						{
 							fromTimestamp: queryTime,
 						},
-						200
+						200,
 					)
 					.then(res => {
 						res.body.data.forEach(transaction => {
@@ -159,7 +159,7 @@ describe('GET /blocks', () => {
 						{
 							toTimestamp: 0,
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'toTimestamp');
@@ -175,7 +175,7 @@ describe('GET /blocks', () => {
 						{
 							toTimestamp: queryTime,
 						},
-						200
+						200,
 					)
 					.then(res => {
 						res.body.data.forEach(transaction => {
@@ -199,7 +199,7 @@ describe('GET /blocks', () => {
 					.makeRequest({ generatorPublicKey: block.generatorPublicKey }, 200)
 					.then(res => {
 						expect(res.body.data[0].generatorPublicKey).to.equal(
-							block.generatorPublicKey
+							block.generatorPublicKey,
 						);
 						expectHeightCheck(res);
 					});
@@ -216,7 +216,7 @@ describe('GET /blocks', () => {
 							expect(
 								_(res.body.data)
 									.map('height')
-									.sortNumbers()
+									.sortNumbers(),
 							).to.be.eql(_.map(res.body.data, 'height'));
 						});
 				});
@@ -229,7 +229,7 @@ describe('GET /blocks', () => {
 							expect(
 								_(res.body.data)
 									.map('height')
-									.sortNumbers('desc')
+									.sortNumbers('desc'),
 							).to.be.eql(_.map(res.body.data, 'height'));
 						});
 				});
@@ -240,7 +240,7 @@ describe('GET /blocks', () => {
 						expect(
 							_(res.body.data)
 								.map('height')
-								.sortNumbers('desc')
+								.sortNumbers('desc'),
 						).to.be.eql(_.map(res.body.data, 'height'));
 					});
 				});
@@ -256,12 +256,12 @@ describe('GET /blocks', () => {
 								_(res.body.data)
 									.map('totalAmount')
 									.map(_.toInteger)
-									.sortNumbers()
+									.sortNumbers(),
 							).to.be.eql(
 								_(res.body.data)
 									.map('totalAmount')
 									.map(_.toInteger)
-									.value()
+									.value(),
 							);
 						});
 				});
@@ -275,12 +275,12 @@ describe('GET /blocks', () => {
 								_(res.body.data)
 									.map('totalAmount')
 									.map(_.toInteger)
-									.sortNumbers('desc')
+									.sortNumbers('desc'),
 							).to.be.eql(
 								_(res.body.data)
 									.map('totalAmount')
 									.map(_.toInteger)
-									.value()
+									.value(),
 							);
 						});
 				});
@@ -296,12 +296,12 @@ describe('GET /blocks', () => {
 								_(res.body.data)
 									.map('totalFee')
 									.map(_.toInteger)
-									.sortNumbers()
+									.sortNumbers(),
 							).to.be.eql(
 								_(res.body.data)
 									.map('totalFee')
 									.map(_.toInteger)
-									.value()
+									.value(),
 							);
 						});
 				});
@@ -315,12 +315,12 @@ describe('GET /blocks', () => {
 								_(res.body.data)
 									.map('totalFee')
 									.map(_.toInteger)
-									.sortNumbers('desc')
+									.sortNumbers('desc'),
 							).to.be.eql(
 								_(res.body.data)
 									.map('totalFee')
 									.map(_.toInteger)
-									.value()
+									.value(),
 							);
 						});
 				});
@@ -335,7 +335,7 @@ describe('GET /blocks', () => {
 							expect(
 								_(res.body.data)
 									.map('timestamp')
-									.sortNumbers()
+									.sortNumbers(),
 							).to.be.eql(_.map(res.body.data, 'timestamp'));
 						});
 				});
@@ -348,7 +348,7 @@ describe('GET /blocks', () => {
 							expect(
 								_(res.body.data)
 									.map('timestamp')
-									.sortNumbers('desc')
+									.sortNumbers('desc'),
 							).to.be.eql(_.map(res.body.data, 'timestamp'));
 						});
 				});
@@ -422,7 +422,7 @@ describe('GET /blocks', () => {
 							blockId: '1',
 							whatever: accountFixtures.genesis.address,
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'whatever');
@@ -435,7 +435,7 @@ describe('GET /blocks', () => {
 						{
 							'and:senderId': accountFixtures.genesis.address,
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'and:senderId');
@@ -448,7 +448,7 @@ describe('GET /blocks', () => {
 						{
 							sort: '',
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'sort');
@@ -464,7 +464,7 @@ describe('GET /blocks', () => {
 							offset: 'invalid',
 							sort: 'invalid',
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'blockId');
@@ -483,7 +483,7 @@ describe('GET /blocks', () => {
 							offset: 'invalid',
 							sort: 'height:desc',
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'blockId');

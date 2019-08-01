@@ -48,7 +48,7 @@ try {
 	// TODO: I would convert config.json to .JS
 	configurator.loadConfig(appConfig);
 	configurator.loadConfigFile(
-		path.resolve(__dirname, `../fixtures/config/${network}/config`)
+		path.resolve(__dirname, `../fixtures/config/${network}/config`),
 	);
 	// eslint-disable-next-line import/no-dynamic-require
 	const genesisBlock = require(`../fixtures/config/${network}/genesis_block`);

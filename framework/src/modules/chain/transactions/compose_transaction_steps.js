@@ -38,7 +38,7 @@ const composeTransactionSteps = (...steps) => async transactions => {
 			failedResponses = [
 				...failedResponses,
 				...previousValueResponse.transactionsResponses.filter(
-					response => response.status === TransactionStatus.FAIL
+					response => response.status === TransactionStatus.FAIL,
 				),
 			];
 
@@ -48,11 +48,11 @@ const composeTransactionSteps = (...steps) => async transactions => {
 					previousValueResponse.transactionsResponses
 						.filter(response => response.status === TransactionStatus.OK)
 						.map(transactionResponse => transactionResponse.id)
-						.includes(transaction.id)
-				)
+						.includes(transaction.id),
+				),
 			);
 		},
-		transactions
+		transactions,
 	);
 
 	return {

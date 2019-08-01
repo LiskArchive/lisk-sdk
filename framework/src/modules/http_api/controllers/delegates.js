@@ -131,7 +131,7 @@ DelegatesController.getForgingStatistics = async function(context, next) {
 	} catch (err) {
 		if (err === 'Account not found' || err === 'Account is not a delegate') {
 			return next(
-				swaggerHelper.generateParamsErrorObject([params.address], [err])
+				swaggerHelper.generateParamsErrorObject([params.address], [err]),
 			);
 		}
 		return next(err);
@@ -161,7 +161,7 @@ DelegatesController.getForgingStatistics = async function(context, next) {
 async function _getDelegates(filters, options) {
 	const delegates = await storage.entities.Account.get(
 		{ isDelegate: true, ...filters },
-		options
+		options,
 	);
 
 	const { lastBlock } = await channel.invoke('chain:getNodeStatus');
@@ -213,7 +213,7 @@ async function _getForgers(filters) {
 
 	const forgers = (await storage.entities.Account.get(
 		{ isDelegate: true, publicKey_in: forgerKeys },
-		{ limit: null }
+		{ limit: null },
 	))
 		.map(({ username, address, publicKey }) => ({
 			username,
@@ -316,14 +316,14 @@ async function _aggregateBlocksReward(filter) {
 
 	if (filter.start !== undefined) {
 		params.fromTimestamp = Math.floor(
-			(filter.start - new Date(EPOCH_TIME).getTime()) / 1000
+			(filter.start - new Date(EPOCH_TIME).getTime()) / 1000,
 		);
 		params.fromTimestamp = params.fromTimestamp.toFixed();
 	}
 
 	if (filter.end !== undefined) {
 		params.toTimestamp = Math.floor(
-			(filter.end - new Date(EPOCH_TIME).getTime()) / 1000
+			(filter.end - new Date(EPOCH_TIME).getTime()) / 1000,
 		);
 		params.toTimestamp = params.toTimestamp.toFixed();
 	}
@@ -333,7 +333,7 @@ async function _aggregateBlocksReward(filter) {
 	try {
 		delegateBlocksRewards = await channel.invoke(
 			'chain:getDelegateBlocksRewards',
-			{ filters: params }
+			{ filters: params },
 		);
 	} catch (err) {
 		logger.error(err.stack);

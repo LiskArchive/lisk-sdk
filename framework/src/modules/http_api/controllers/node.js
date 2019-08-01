@@ -137,7 +137,7 @@ NodeController.getStatus = async (context, next) => {
 			confirmed +
 			Object.values(unconfirmedTransactions).reduce(
 				(prev, current) => prev + current,
-				0
+				0,
 			);
 
 		const data = {
@@ -281,7 +281,7 @@ NodeController.getPooledTransactions = async function(context, next) {
  */
 async function _getForgingStatus(publicKey) {
 	const fullList = await library.channel.invoke(
-		'chain:getForgingStatusForAllDelegates'
+		'chain:getForgingStatusForAllDelegates',
 	);
 
 	if (publicKey && !_.find(fullList, { publicKey })) {
@@ -329,7 +329,7 @@ async function _getNetworkHeight() {
 		{
 			height: defaultHeight,
 			count: defaultCount,
-		}
+		},
 	);
 
 	return parseInt(networkHeight);
@@ -346,11 +346,11 @@ async function _getConfirmedTransactionCount() {
 	if (library.components.cache.ready) {
 		try {
 			const { confirmed } = await library.components.cache.getJsonForKey(
-				CACHE_KEYS_TRANSACTION_COUNT
+				CACHE_KEYS_TRANSACTION_COUNT,
 			);
 			if (confirmed === undefined || confirmed === null) {
 				throw new Error(
-					'Transaction count wasn cached but confirmed did not exist'
+					'Transaction count wasn cached but confirmed did not exist',
 				);
 			}
 			return confirmed;
@@ -366,7 +366,7 @@ async function _getConfirmedTransactionCount() {
 				CACHE_KEYS_TRANSACTION_COUNT,
 				{
 					confirmed,
-				}
+				},
 			);
 		} catch (error) {
 			// Ignore error and just put warn

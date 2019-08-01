@@ -152,7 +152,7 @@ TransactionsController.postTransaction = async function(context, next) {
 		error = new ApiError(
 			'Internal server error',
 			apiCodes.INTERNAL_SERVER_ERROR,
-			[err]
+			[err],
 		);
 	}
 

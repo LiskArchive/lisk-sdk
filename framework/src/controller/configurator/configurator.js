@@ -60,13 +60,13 @@ class Configurator {
 			const diff = _.difference(
 				Object.keys(yargs.argv),
 				[...this.listOfArgs],
-				['_', '$0']
+				['_', '$0'],
 			);
 
 			if (diff.length) {
 				console.error(
 					'Invalid command line arguments specified: ',
-					diff.join()
+					diff.join(),
 				);
 				console.info(this.helpBanner());
 				process.exit(1);
@@ -79,8 +79,8 @@ class Configurator {
 				{},
 				...this.customData,
 				overrideValues,
-				(objValue, srcValue) => (_.isArray(objValue) ? srcValue : undefined)
-			)
+				(objValue, srcValue) => (_.isArray(objValue) ? srcValue : undefined),
+			),
 		);
 	}
 
@@ -93,7 +93,7 @@ class Configurator {
 
 	loadConfig(data, destinationPath) {
 		this.customData.push(
-			destinationPath ? _.set({}, destinationPath, data) : data
+			destinationPath ? _.set({}, destinationPath, data) : data,
 		);
 	}
 
@@ -129,18 +129,18 @@ class Configurator {
 	helpBanner() {
 		const message = [];
 		message.push(
-			'Your can customize the configuration runtime with following env variables and command line options:\n'
+			'Your can customize the configuration runtime with following env variables and command line options:\n',
 		);
 		Object.keys(this.metaInfo).forEach(key => {
 			message.push(
 				`${(this.metaInfo[key].arg || '').padEnd(15)} ${(
 					this.metaInfo[key].env || ''
-				).padEnd(25)} ${key}`
+				).padEnd(25)} ${key}`,
 			);
 		});
 
 		message.push(
-			'\nFor rest of configuration, please modify those directly to your custom config file.\n\n'
+			'\nFor rest of configuration, please modify those directly to your custom config file.\n\n',
 		);
 		return message.join('\n');
 	}
@@ -152,7 +152,7 @@ class Configurator {
 			_.set(
 				this.configSchema,
 				`properties.${key.split('.').join('.properties.')}`,
-				clonedSchema
+				clonedSchema,
 			);
 			_.set(this.configSchema, `default.${key}`, clonedSchema.default);
 			delete clonedSchema.default;

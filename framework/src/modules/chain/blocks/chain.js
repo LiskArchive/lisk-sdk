@@ -58,7 +58,7 @@ class BlocksChain {
 		const block = {
 			...this.genesisBlock,
 			transactions: this.interfaceAdapters.transactions.fromBlock(
-				this.genesisBlock
+				this.genesisBlock,
 			),
 		};
 		await saveBlock(this.storage, block);
@@ -80,14 +80,14 @@ class BlocksChain {
 				this.slots,
 				block,
 				this.exceptions,
-				tx
+				tx,
 			);
 			await saveBlockStep(
 				this.storage,
 				this.roundsModule,
 				block,
 				shouldSave,
-				tx
+				tx,
 			);
 		});
 	}
@@ -113,7 +113,7 @@ class BlocksChain {
 			this.storage,
 			this.slots,
 			block.transactions,
-			this.exceptions
+			this.exceptions,
 		);
 		await new Promise((resolve, reject) => {
 			this.roundsModule.tick(block, tickErr => {
@@ -148,7 +148,7 @@ class BlocksChain {
 			this.roundsModule,
 			this.slots,
 			lastBlock,
-			this.exceptions
+			this.exceptions,
 		);
 		return previousBlock;
 	}
@@ -164,8 +164,8 @@ const saveBlockBatch = async (storage, parsedBlock, saveBlockBatchTx) => {
 			storage.entities.Transaction.create(
 				parsedBlock.transactions.map(transaction => transaction.toJSON()),
 				{},
-				saveBlockBatchTx
-			)
+				saveBlockBatchTx,
+			),
 		);
 	}
 
@@ -256,7 +256,7 @@ const deleteFromBlockId = async (storage, blockId) => {
  */
 const applyGenesisBlockTransactions = async (storage, slots, transactions) => {
 	const { stateStore } = await transactionsModule.applyGenesisTransactions(
-		storage
+		storage,
 	)(transactions);
 	await stateStore.account.finalize();
 	stateStore.round.setRoundForData(slots.calcRound(1));
@@ -277,7 +277,7 @@ const applyConfirmedStep = async (storage, slots, block, exceptions, tx) => {
 	}
 	const nonInertTransactions = block.transactions.filter(
 		transaction =>
-			!transactionsModule.checkIfTransactionIsInert(transaction, exceptions)
+			!transactionsModule.checkIfTransactionIsInert(transaction, exceptions),
 	);
 
 	const {
@@ -285,11 +285,11 @@ const applyConfirmedStep = async (storage, slots, block, exceptions, tx) => {
 		transactionsResponses,
 	} = await transactionsModule.applyTransactions(storage, exceptions)(
 		nonInertTransactions,
-		tx
+		tx,
 	);
 
 	const unappliableTransactionsResponse = transactionsResponses.filter(
-		transactionResponse => transactionResponse.status !== TransactionStatus.OK
+		transactionResponse => transactionResponse.status !== TransactionStatus.OK,
 	);
 
 	if (unappliableTransactionsResponse.length > 0) {
@@ -323,7 +323,7 @@ const saveBlockStep = async (storage, roundsModule, block, shouldSave, tx) => {
 				}
 				return resolve();
 			},
-			tx
+			tx,
 		);
 	});
 };
@@ -341,7 +341,7 @@ const undoConfirmedStep = async (storage, slots, block, exceptions, tx) => {
 	const nonInertTransactions = block.transactions.filter(
 		transaction =>
 			!exceptions.inertTransactions ||
-			!exceptions.inertTransactions.includes(transaction.id)
+			!exceptions.inertTransactions.includes(transaction.id),
 	);
 
 	const {
@@ -349,11 +349,11 @@ const undoConfirmedStep = async (storage, slots, block, exceptions, tx) => {
 		transactionsResponses,
 	} = await transactionsModule.undoTransactions(storage, exceptions)(
 		nonInertTransactions,
-		tx
+		tx,
 	);
 
 	const unappliedTransactionResponse = transactionsResponses.find(
-		transactionResponse => transactionResponse.status !== TransactionStatus.OK
+		transactionResponse => transactionResponse.status !== TransactionStatus.OK,
 	);
 
 	if (unappliedTransactionResponse) {
@@ -377,7 +377,7 @@ const backwardTickStep = async (
 	roundsModule,
 	oldLastBlock,
 	previousBlock,
-	tx
+	tx,
 ) =>
 	new Promise((resolve, reject) => {
 		// Perform backward tick on rounds
@@ -391,7 +391,7 @@ const backwardTickStep = async (
 				}
 				return resolve();
 			},
-			tx
+			tx,
 		);
 	});
 
@@ -410,13 +410,13 @@ const popLastBlock = async (
 	roundsModule,
 	slots,
 	oldLastBlock,
-	exceptions
+	exceptions,
 ) =>
 	storage.entities.Block.begin('Chain:deleteBlock', async tx => {
 		const [storageResult] = await storage.entities.Block.get(
 			{ id: oldLastBlock.previousBlock },
 			{ extended: true },
-			tx
+			tx,
 		);
 
 		if (!storageResult) {
@@ -425,7 +425,7 @@ const popLastBlock = async (
 
 		const secondLastBlock = storageRead(storageResult);
 		secondLastBlock.transactions = interfaceAdapters.transactions.fromBlock(
-			secondLastBlock
+			secondLastBlock,
 		);
 
 		await undoConfirmedStep(storage, slots, oldLastBlock, exceptions, tx);

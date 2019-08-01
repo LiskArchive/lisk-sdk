@@ -58,11 +58,11 @@ describe('integration test (type 4) - effect of multisignature registration on m
 			});
 			const sign1 = transactionUtils.multiSignTransaction(
 				multisigTransaction,
-				signer1.passphrase
+				signer1.passphrase,
 			);
 			const sign2 = transactionUtils.multiSignTransaction(
 				multisigTransaction,
-				signer2.passphrase
+				signer2.passphrase,
 			);
 
 			multisigTransaction.signatures = [sign1, sign2];
@@ -86,23 +86,23 @@ describe('integration test (type 4) - effect of multisignature registration on m
 					accountRow.mem_accounts2multisignatures,
 					row => {
 						return row.dependentId;
-					}
+					},
 				);
 				return expect(signKeysInDb).to.include(
 					signer1.publicKey,
-					signer2.publicKey
+					signer2.publicKey,
 				);
 			});
 
 			it('should set multimin field set on mem_accounts', async () => {
 				return expect(accountRow.mem_accounts.multimin).to.eql(
-					multisigTransaction.asset.multisignature.min
+					multisigTransaction.asset.multisignature.min,
 				);
 			});
 
 			it('should set multilifetime field set on mem_accounts', async () => {
 				return expect(accountRow.mem_accounts.multilifetime).to.eql(
-					multisigTransaction.asset.multisignature.lifetime
+					multisigTransaction.asset.multisignature.lifetime,
 				);
 			});
 		});
@@ -113,26 +113,26 @@ describe('integration test (type 4) - effect of multisignature registration on m
 			before('get multisignature account', async () => {
 				account = await library.components.storage.entities.Account.getOne(
 					{ address: multisigAccount.address },
-					{ extended: true }
+					{ extended: true },
 				);
 			});
 
 			it('should have multisignatures field set on account', async () => {
 				return expect(account.membersPublicKeys).to.include(
 					signer1.publicKey,
-					signer2.publicKey
+					signer2.publicKey,
 				);
 			});
 
 			it('should have multimin field set on account', async () => {
 				return expect(account.multiMin).to.eql(
-					multisigTransaction.asset.multisignature.min
+					multisigTransaction.asset.multisignature.min,
 				);
 			});
 
 			it('should have multilifetime field set on account', async () => {
 				return expect(account.multiLifetime).to.eql(
-					multisigTransaction.asset.multisignature.lifetime
+					multisigTransaction.asset.multisignature.lifetime,
 				);
 			});
 		});
@@ -140,7 +140,7 @@ describe('integration test (type 4) - effect of multisignature registration on m
 		describe('after deleting block', () => {
 			before('delete last block', async () => {
 				return library.modules.blocks.blocksChain.deleteLastBlock(
-					library.modules.blocks.lastBlock
+					library.modules.blocks.lastBlock,
 				);
 			});
 
@@ -174,7 +174,7 @@ describe('integration test (type 4) - effect of multisignature registration on m
 				before('get multisignature account', async () => {
 					account = await library.components.storage.entities.Account.getOne(
 						{ address: multisigAccount.address },
-						{ extended: true }
+						{ extended: true },
 					);
 				});
 

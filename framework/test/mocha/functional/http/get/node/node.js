@@ -34,13 +34,13 @@ describe('GET /node', () => {
 
 		it('should return a result containing nethash = "198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d"', async () => {
 			return expect(constantsResponse.nethash).to.be.equal(
-				'198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d'
+				'198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
 			);
 		});
 
 		it('should return a result containing milestone that is a number <= 500000000', async () => {
 			return expect(parseInt(constantsResponse.milestone)).to.at.most(
-				500000000
+				500000000,
 			);
 		});
 
@@ -56,7 +56,7 @@ describe('GET /node', () => {
 			return expect(constantsResponse)
 				.to.have.property('version')
 				.to.match(
-					/^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})(-(alpha|beta|rc)\.[0-9]{1,3}(\.[0-9]{1,3})?)?$/
+					/^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})(-(alpha|beta|rc)\.[0-9]{1,3}(\.[0-9]{1,3})?)?$/,
 				);
 		});
 
@@ -76,7 +76,7 @@ describe('GET /node', () => {
 
 		it('should return a result containing fees.secondSignature = 500000000', async () => {
 			return expect(constantsResponse.fees.secondSignature).to.be.equal(
-				'500000000'
+				'500000000',
 			);
 		});
 
@@ -86,19 +86,19 @@ describe('GET /node', () => {
 
 		it('should return a result containing fees.multisignature = 500000000', async () => {
 			return expect(constantsResponse.fees.multisignature).to.be.equal(
-				'500000000'
+				'500000000',
 			);
 		});
 
 		it('should return a result containing fees.dappRegistration = 2500000000', async () => {
 			return expect(constantsResponse.fees.dappRegistration).to.be.equal(
-				'2500000000'
+				'2500000000',
 			);
 		});
 
 		it('should return a result containing fees.dappWithdrawal = 10000000', async () => {
 			return expect(constantsResponse.fees.dappWithdrawal).to.be.equal(
-				'10000000'
+				'10000000',
 			);
 		});
 
@@ -125,7 +125,7 @@ describe('GET /node', () => {
 			it('using no params should return full list of internal forgers', async () => {
 				return forgingEndpoint.makeRequest({}, 200).then(res => {
 					expect(res.body.data.length).to.be.eql(
-						__testContext.config.modules.chain.forging.delegates.length
+						__testContext.config.modules.chain.forging.delegates.length,
 					);
 				});
 			});

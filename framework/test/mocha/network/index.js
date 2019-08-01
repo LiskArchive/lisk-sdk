@@ -62,7 +62,7 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 				WSPORTS,
 				TOTAL_PEERS,
 				EXPECTED_TOTAL_CONNECTIONS,
-				NUMBER_OF_MONITORING_CONNECTIONS
+				NUMBER_OF_MONITORING_CONNECTIONS,
 			);
 		});
 	});

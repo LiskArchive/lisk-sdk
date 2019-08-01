@@ -15,4 +15,8 @@ mocha.opts
 *.snap
 
 # project specific paths
-test/.coverage-unit/
+test/mocha/.coverage-unit/
+
+.DS_Store
+.log
+.pid

@@ -115,7 +115,7 @@ const executeTests = async (testType, testPathPattern, mochaCliOptions) => {
 	state.mochaCliOptions = mochaCliOptions;
 	state.queue = [...allTestFiles];
 	return Promise.all(
-		allTestFiles.slice(0, MAX_TASK_LIMIT).map(() => processNext())
+		allTestFiles.slice(0, MAX_TASK_LIMIT).map(() => processNext()),
 	);
 };
 

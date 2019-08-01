@@ -38,7 +38,7 @@ const validator = require('../../controller/validator');
 function createCacheComponent(options, logger) {
 	const optionsWithDefaults = validator.parseEnvArgAndValidate(
 		defaultConfig,
-		options
+		options,
 	);
 
 	// delete password key if it's value is null

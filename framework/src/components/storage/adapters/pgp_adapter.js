@@ -137,7 +137,7 @@ class PgpAdapter extends BaseAdapter {
 	executeFile(file, params = {}, options = {}, tx) {
 		return this._getExecutionContext(tx, options.expectedResultCount)(
 			file,
-			params
+			params,
 		);
 	}
 
@@ -154,7 +154,7 @@ class PgpAdapter extends BaseAdapter {
 	execute(sql, params = {}, options = {}, tx) {
 		return this._getExecutionContext(tx, options.expectedResultCount)(
 			sql,
-			params
+			params,
 		);
 	}
 
@@ -195,7 +195,7 @@ class PgpAdapter extends BaseAdapter {
 			if (!this.SQLs[entityLabel][fileKey]) {
 				this.SQLs[entityLabel][fileKey] = this.loadSQLFile(
 					sqlFiles[fileKey],
-					sqlDirectory
+					sqlDirectory,
 				);
 			}
 		});

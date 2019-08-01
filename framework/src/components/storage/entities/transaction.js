@@ -178,7 +178,7 @@ class Transaction extends BaseEntity {
 				filter: filterTypes.TEXT,
 				format: 'publicKey',
 			},
-			stringToByte
+			stringToByte,
 		);
 
 		this.addField(
@@ -189,7 +189,7 @@ class Transaction extends BaseEntity {
 				format: 'publicKey',
 				fieldName: 'm.publicKey',
 			},
-			stringToByte
+			stringToByte,
 		);
 
 		this.addField(
@@ -199,7 +199,7 @@ class Transaction extends BaseEntity {
 				filter: filterTypes.TEXT,
 				format: 'publicKey',
 			},
-			stringToByte
+			stringToByte,
 		);
 
 		this.addField('senderId', 'string', {
@@ -371,7 +371,7 @@ class Transaction extends BaseEntity {
 				this.SQLs.isPersisted,
 				{ parsedFilters },
 				{ expectedResultCount: 1 },
-				tx
+				tx,
 			)
 			.then(result => result.exists);
 	}
@@ -387,13 +387,13 @@ class Transaction extends BaseEntity {
 		const parsedOptions = _.defaults(
 			{},
 			_.pick(options, ['limit', 'offset', 'sort', 'extended']),
-			_.pick(this.defaultOptions, ['limit', 'offset', 'sort', 'extended'])
+			_.pick(this.defaultOptions, ['limit', 'offset', 'sort', 'extended']),
 		);
 
 		// To have deterministic pagination add extra sorting
 		if (parsedOptions.sort) {
 			parsedOptions.sort = _.flatten([parsedOptions.sort, 'rowId:asc']).filter(
-				Boolean
+				Boolean,
 			);
 		} else {
 			parsedOptions.sort = ['rowId:asc'];
@@ -405,7 +405,7 @@ class Transaction extends BaseEntity {
 		parsedSort = parsedSort.replace('"rowId"', 'trs."rowId"');
 		parsedSort = parsedSort.replace(
 			'"dapp_name"',
-			"trs.asset->'dapp'->>'name'"
+			"trs.asset->'dapp'->>'name'",
 		);
 
 		const params = {
@@ -420,7 +420,7 @@ class Transaction extends BaseEntity {
 				parsedOptions.extended ? this.SQLs.selectExtended : this.SQLs.select,
 				params,
 				{ expectedResultCount },
-				tx
+				tx,
 			)
 			.then(resp => {
 				const parseResponse = transaction => {

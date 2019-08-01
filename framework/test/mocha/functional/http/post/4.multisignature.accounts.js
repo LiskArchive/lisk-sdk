@@ -41,7 +41,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 		// Credit main account for each scenario
 		Object.keys(scenarios).forEach(type =>
-			transactions.push(scenarios[type].creditTransaction)
+			transactions.push(scenarios[type].creditTransaction),
 		);
 		const responses = await apiHelpers.sendTransactionsPromise(transactions);
 
@@ -50,7 +50,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		});
 		// Wait for confirmation of credits
 		const transactionsToWaitFor = transactions.map(
-			transaction => transaction.id
+			transaction => transaction.id,
 		);
 		await waitFor.confirmations(transactionsToWaitFor);
 	});
@@ -61,7 +61,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		const resgisterMultisignature =
 			scenarios.no_members_exists.multiSigTransaction;
 		const response = await apiHelpers.sendTransactionPromise(
-			resgisterMultisignature
+			resgisterMultisignature,
 		);
 		expect(response.statusCode).to.be.equal(200);
 		// Generate signatures
@@ -71,14 +71,14 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				return {
 					signature: apiHelpers.createSignatureObject(
 						resgisterMultisignature,
-						member
+						member,
 					),
 				};
-			}
+			},
 		);
 		const sendSignatures = await signatureEndpoint.makeRequests(
 			signatureRequests,
-			200
+			200,
 		);
 
 		sendSignatures.forEach(res => {
@@ -91,8 +91,8 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		// Check mem_accounts
 		const membersAccounts = await Promise.all(
 			Object.keys(membersPublicKeysByAddress).map(aMemberAddress =>
-				accountsEndpoint.makeRequest({ address: aMemberAddress }, 200)
-			)
+				accountsEndpoint.makeRequest({ address: aMemberAddress }, 200),
+			),
 		);
 		// mem_accounts records should contain accounts
 		membersAccounts.forEach(aMember => {
@@ -100,7 +100,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			const memberAddress = aMembersData.address;
 			const memberPublicKey = aMembersData.publicKey;
 			expect(membersPublicKeysByAddress[memberAddress]).to.be.eql(
-				memberPublicKey
+				memberPublicKey,
 			);
 		});
 	});
@@ -111,7 +111,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		const resgisterMultisignature =
 			scenarios.some_members_exists.multiSigTransaction;
 		const response = await apiHelpers.sendTransactionPromise(
-			resgisterMultisignature
+			resgisterMultisignature,
 		);
 		expect(response.statusCode).to.be.equal(200);
 		// Generate signatures
@@ -121,10 +121,10 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				return {
 					signature: apiHelpers.createSignatureObject(
 						resgisterMultisignature,
-						member
+						member,
 					),
 				};
-			}
+			},
 		);
 
 		// Send credit to first member
@@ -135,13 +135,13 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		});
 
 		const creditMemberOne = await apiHelpers.sendTransactionPromise(
-			creditMemberTransfer
+			creditMemberTransfer,
 		);
 		expect(creditMemberOne.statusCode).to.be.equal(200);
 		await waitFor.confirmations([creditMemberTransfer.id]);
 		const memberOne = await accountsEndpoint.makeRequest(
 			{ address: scenarios.some_members_exists.members[0].address },
-			200
+			200,
 		);
 
 		const memberOneBeforeRegistration = memberOne.body.data[0];
@@ -149,7 +149,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		// Send signatures
 		const sendSignatures = await signatureEndpoint.makeRequests(
 			signatureRequests,
-			200
+			200,
 		);
 
 		sendSignatures.forEach(res => {
@@ -162,8 +162,8 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		// Check mem_accounts
 		const membersAccounts = await Promise.all(
 			Object.keys(membersPublicKeysByAddress).map(aMemberAddress =>
-				accountsEndpoint.makeRequest({ address: aMemberAddress }, 200)
-			)
+				accountsEndpoint.makeRequest({ address: aMemberAddress }, 200),
+			),
 		);
 
 		let memberOneAfterRegistration = null;
@@ -173,7 +173,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			const memberAddress = aMembersData.address;
 			const memberPublicKey = aMembersData.publicKey;
 			expect(membersPublicKeysByAddress[memberAddress]).to.be.eql(
-				memberPublicKey
+				memberPublicKey,
 			);
 			aMembersData.address === memberOneBeforeRegistration.address
 				? (memberOneAfterRegistration = aMembersData)
@@ -181,7 +181,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		});
 		// Balance from existing member one shouldn't have changed, i.e. the account was not overwritten!
 		expect(memberOneAfterRegistration.balance).to.be.equal(
-			memberOneBeforeRegistration.balance
+			memberOneBeforeRegistration.balance,
 		);
 	});
 
@@ -191,7 +191,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		const resgisterMultisignature =
 			scenarios.all_members_exists.multiSigTransaction;
 		const response = await apiHelpers.sendTransactionPromise(
-			resgisterMultisignature
+			resgisterMultisignature,
 		);
 		expect(response.statusCode).to.be.equal(200);
 		// Generate signatures
@@ -201,10 +201,10 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				return {
 					signature: apiHelpers.createSignatureObject(
 						resgisterMultisignature,
-						member
+						member,
 					),
 				};
-			}
+			},
 		);
 
 		// Credit all members
@@ -223,15 +223,15 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 		await Promise.all(
 			creditTransactions.map(aCredit =>
-				apiHelpers.sendTransactionPromise(aCredit, 200)
-			)
+				apiHelpers.sendTransactionPromise(aCredit, 200),
+			),
 		);
 		await waitFor.confirmations(creditTransactionsIds);
 
 		// Send signatures
 		const sendSignatures = await signatureEndpoint.makeRequests(
 			signatureRequests,
-			200
+			200,
 		);
 
 		sendSignatures.forEach(res => {
@@ -244,8 +244,8 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		// Check mem_accounts
 		const membersAccounts = await Promise.all(
 			Object.keys(membersPublicKeysByAddress).map(aMemberAddress =>
-				accountsEndpoint.makeRequest({ address: aMemberAddress }, 200)
-			)
+				accountsEndpoint.makeRequest({ address: aMemberAddress }, 200),
+			),
 		);
 
 		// mem_accounts records should contain accounts and correct balance
@@ -254,7 +254,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			const memberAddress = aMembersData.address;
 			const memberPublicKey = aMembersData.publicKey;
 			expect(membersPublicKeysByAddress[memberAddress]).to.be.eql(
-				memberPublicKey
+				memberPublicKey,
 			);
 			expect(aMembersData.balance).to.be.equal(amount);
 		});

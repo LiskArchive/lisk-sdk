@@ -51,7 +51,7 @@ describe('InMemoryChannel Channel', () => {
 			params.moduleAlias,
 			params.events,
 			params.actions,
-			params.options
+			params.options,
 		);
 	});
 
@@ -83,7 +83,7 @@ describe('InMemoryChannel Channel', () => {
 				params.moduleAlias,
 				params.events,
 				params.actions,
-				params.options
+				params.options,
 			);
 
 			// Assert
@@ -91,7 +91,7 @@ describe('InMemoryChannel Channel', () => {
 				params.moduleAlias,
 				params.events,
 				params.actions,
-				params.options
+				params.options,
 			);
 		});
 	});
@@ -115,7 +115,7 @@ describe('InMemoryChannel Channel', () => {
 				inMemoryChannel.moduleAlias,
 				inMemoryChannel.eventsList.map(event => event.name),
 				inMemoryChannel.actions,
-				{ type: 'inMemory', channel: inMemoryChannel }
+				{ type: 'inMemory', channel: inMemoryChannel },
 			);
 		});
 	});
@@ -137,7 +137,7 @@ describe('InMemoryChannel Channel', () => {
 			// Assert
 			expect(inMemoryChannel.bus.once).toHaveBeenCalledWith(
 				event.key(),
-				expect.any(Function)
+				expect.any(Function),
 			);
 		});
 	});
@@ -160,7 +160,7 @@ describe('InMemoryChannel Channel', () => {
 			// Assert
 			expect(inMemoryChannel.bus.once).toHaveBeenCalledWith(
 				event.key(),
-				expect.any(Function)
+				expect.any(Function),
 			);
 		});
 
@@ -171,7 +171,7 @@ describe('InMemoryChannel Channel', () => {
 		it('should throw TypeError when eventName was not provided', () => {
 			// Assert
 			expect(inMemoryChannel.publish).toThrow(
-				'Event name "undefined" must be a valid name with module name.'
+				'Event name "undefined" must be a valid name with module name.',
 			);
 		});
 
@@ -182,7 +182,7 @@ describe('InMemoryChannel Channel', () => {
 			}).toThrow(
 				`Event "${eventName}" not registered in "${
 					inMemoryChannel.moduleAlias
-				}" module.`
+				}" module.`,
 			);
 		});
 
@@ -198,7 +198,7 @@ describe('InMemoryChannel Channel', () => {
 			// Assert
 			expect(inMemoryChannel.bus.publish).toHaveBeenCalledWith(
 				event.key(),
-				event.serialize()
+				event.serialize(),
 			);
 		});
 

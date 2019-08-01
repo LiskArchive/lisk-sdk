@@ -49,11 +49,11 @@ describe.skip('integration test (delegates) - synchronous tasks', () => {
 					library.rewiredModules.delegates.prototype.onBlockchainReady;
 				library.rewiredModules.delegates.__set__(
 					'__private.forgeInterval',
-					intervalMs
+					intervalMs,
 				);
 				library.rewiredModules.delegates.__set__(
 					'__private.nextForge',
-					synchronousTaskMock.bind(null, attemptToForgeRunningSubject)
+					synchronousTaskMock.bind(null, attemptToForgeRunningSubject),
 				);
 				library.modules.rounds.onBlockchainReady();
 				done();
@@ -63,11 +63,11 @@ describe.skip('integration test (delegates) - synchronous tasks', () => {
 				before(done => {
 					library.rewiredModules.loader.__set__(
 						'__private.syncInterval',
-						intervalMs
+						intervalMs,
 					);
 					library.rewiredModules.loader.__set__(
 						'__private.sync',
-						synchronousTaskMock.bind(null, synchronizeBlockchainRunningSubject)
+						synchronousTaskMock.bind(null, synchronizeBlockchainRunningSubject),
 					);
 					const originalLoaderSyncTimerJob = jobsQueue.jobs.loaderSyncTimer;
 					clearTimeout(originalLoaderSyncTimerJob); // Terminate original job
@@ -98,7 +98,7 @@ describe.skip('integration test (delegates) - synchronous tasks', () => {
 										.false;
 								},
 								done,
-								done
+								done,
 							);
 					});
 
@@ -112,7 +112,7 @@ describe.skip('integration test (delegates) - synchronous tasks', () => {
 									expect(attemptToForgeRunningSubject.getValue()).to.be.false;
 								},
 								done,
-								done
+								done,
 							);
 					});
 				});

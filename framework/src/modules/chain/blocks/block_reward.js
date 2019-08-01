@@ -49,7 +49,7 @@ const calculateMilestone = (height, blockRewardArgs) => {
 	const distance = Math.floor(blockRewardArgs.distance);
 
 	const location = Math.trunc(
-		(height - blockRewardArgs.rewardOffset) / distance
+		(height - blockRewardArgs.rewardOffset) / distance,
 	);
 	const lastMile =
 		blockRewardArgs.milestones[blockRewardArgs.milestones.length - 1];
@@ -74,7 +74,7 @@ const calculateReward = (height, blockRewardArgs) => {
 		return new BigNum(0);
 	}
 	return new BigNum(
-		blockRewardArgs.milestones[calculateMilestone(height, blockRewardArgs)]
+		blockRewardArgs.milestones[calculateMilestone(height, blockRewardArgs)],
 	);
 };
 

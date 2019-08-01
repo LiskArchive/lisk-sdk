@@ -57,7 +57,7 @@ const sortBy = (sort, options) => {
 		if (keys.length === 1) {
 			return sortBy(
 				`${keys[0]}:${sort[keys[0]] === -1 ? 'desc' : 'asc'}`,
-				options
+				options,
 			);
 		}
 		const sortFields = [];
@@ -65,7 +65,7 @@ const sortBy = (sort, options) => {
 		keys.forEach(key => {
 			const sortResult = sortBy(
 				`${key}:${sort[key] === -1 ? 'desc' : 'asc'}`,
-				options
+				options,
 			);
 			sortFields.push(sortResult.sortField);
 			sortMethods.push(sortResult.sortMethod);

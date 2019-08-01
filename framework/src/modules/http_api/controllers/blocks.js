@@ -83,7 +83,7 @@ BlocksController.getBlocks = function(context, next) {
 	// Remove params with undefined/null values
 	parsedParams = _.omitBy(
 		parsedParams,
-		value => value === undefined || value === null
+		value => value === undefined || value === null,
 	);
 
 	return _list(_.clone(parsedParams), (err, data) => {
@@ -194,7 +194,7 @@ function _list(params, cb) {
 	// Remove filters with undefined/null values
 	const filters = _.omitBy(
 		parsedFilters,
-		value => value === undefined || value === null
+		value => value === undefined || value === null,
 	);
 
 	options.limit = params.limit ? Math.abs(params.limit) : 100;
@@ -206,8 +206,8 @@ function _list(params, cb) {
 			cb,
 			new ApiError(
 				'Invalid limit. Maximum is 100',
-				apiCodes.INTERNAL_SERVER_ERROR
-			)
+				apiCodes.INTERNAL_SERVER_ERROR,
+			),
 		);
 	}
 
@@ -218,7 +218,7 @@ function _list(params, cb) {
 	) {
 		return setImmediate(
 			cb,
-			new ApiError('Invalid sort field', apiCodes.INTERNAL_SERVER_ERROR)
+			new ApiError('Invalid sort field', apiCodes.INTERNAL_SERVER_ERROR),
 		);
 	}
 
@@ -226,13 +226,13 @@ function _list(params, cb) {
 		library.storage.entities.Block.get(filters, options)
 			// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
 			.then(async rows =>
-				setImmediate(cb, null, rows.map(parseBlockFromDatabase))
+				setImmediate(cb, null, rows.map(parseBlockFromDatabase)),
 			)
 			.catch(err => {
 				library.logger.error(err.stack);
 				return setImmediate(
 					cb,
-					new ApiError('Blocks#list error', apiCodes.INTERNAL_SERVER_ERROR)
+					new ApiError('Blocks#list error', apiCodes.INTERNAL_SERVER_ERROR),
 				);
 			})
 	);

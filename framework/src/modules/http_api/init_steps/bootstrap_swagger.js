@@ -226,7 +226,7 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 			extended: true,
 			limit: '2mb',
 			parameterLimit: 5000,
-		})
+		}),
 	);
 
 	// Allow method override for any request
@@ -244,7 +244,7 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 	 * RFC -> https://tools.ietf.org/html/rfc7034
 	 */
 	app.use(
-		middleware.attachResponseHeader.bind(null, 'X-Frame-Options', 'DENY')
+		middleware.attachResponseHeader.bind(null, 'X-Frame-Options', 'DENY'),
 	);
 
 	/**
@@ -258,8 +258,8 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 		middleware.attachResponseHeader.bind(
 			null,
 			'Content-Security-Policy',
-			"frame-ancestors 'none'"
-		)
+			"frame-ancestors 'none'",
+		),
 	);
 
 	// Log if there is any error
@@ -289,7 +289,7 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 			// Ignore unused definition warning
 			errors.validationWarnings = _.filter(
 				errors.validationWarnings,
-				error => error.code !== 'UNUSED_DEFINITION'
+				error => error.code !== 'UNUSED_DEFINITION',
 			);
 
 			// Some error occurred in configuring the swagger
@@ -366,5 +366,5 @@ module.exports = (scope, expressApp) =>
 		expressApp,
 		scope.config,
 		scope.components.logger,
-		scope
+		scope,
 	);

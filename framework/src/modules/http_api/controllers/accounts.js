@@ -64,7 +64,7 @@ function accountFormatter(totalSupply, account) {
 		// Computed fields
 		formattedAccount.delegate.approval = calculateApproval(
 			formattedAccount.delegate.vote,
-			totalSupply
+			totalSupply,
 		);
 	}
 
@@ -116,8 +116,8 @@ AccountsController.getAccounts = async function(context, next) {
 					? await channel.invoke('chain:calculateSupply', {
 							height: lastBlock.height,
 					  })
-					: 0
-			)
+					: 0,
+			),
 		);
 
 		return next(null, {
@@ -175,8 +175,8 @@ AccountsController.getMultisignatureGroups = async function(context, next) {
 		return next(
 			swaggerHelper.generateParamsErrorObject(
 				['address'],
-				['Invalid address specified']
-			)
+				['Invalid address specified'],
+			),
 		);
 	}
 
@@ -221,7 +221,7 @@ AccountsController.getMultisignatureGroups = async function(context, next) {
  */
 AccountsController.getMultisignatureMemberships = async function(
 	context,
-	next
+	next,
 ) {
 	const address = context.request.swagger.params.address.value;
 
@@ -229,8 +229,8 @@ AccountsController.getMultisignatureMemberships = async function(
 		return next(
 			swaggerHelper.generateParamsErrorObject(
 				['address'],
-				['Invalid address specified']
-			)
+				['Invalid address specified'],
+			),
 		);
 	}
 
@@ -239,7 +239,7 @@ AccountsController.getMultisignatureMemberships = async function(
 	try {
 		account = await storage.entities.Account.getOne(
 			{ address },
-			{ extended: true }
+			{ extended: true },
 		);
 	} catch (error) {
 		if (error.code === 0) {
@@ -252,7 +252,7 @@ AccountsController.getMultisignatureMemberships = async function(
 	try {
 		let groups = await storage.entities.Account.get(
 			{ membersPublicKeys_in: [account.publicKey] },
-			{ extended: true }
+			{ extended: true },
 		);
 
 		groups = await Promise.map(groups, multiSigAccountFormatter);

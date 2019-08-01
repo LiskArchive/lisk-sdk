@@ -172,7 +172,7 @@ class Account extends BaseEntity {
 				format: 'publicKey',
 				filter: ft.BINARY,
 			},
-			stringToByte
+			stringToByte,
 		);
 		this.addField(
 			'secondPublicKey',
@@ -181,20 +181,20 @@ class Account extends BaseEntity {
 				format: 'publicKey',
 				filter: ft.BINARY,
 			},
-			stringToByte
+			stringToByte,
 		);
 		this.addField('username', 'string', { filter: ft.TEXT });
 		this.addField(
 			'isDelegate',
 			'boolean',
 			{ filter: ft.BOOLEAN },
-			booleanToInt
+			booleanToInt,
 		);
 		this.addField(
 			'secondSignature',
 			'boolean',
 			{ filter: ft.BOOLEAN },
-			booleanToInt
+			booleanToInt,
 		);
 		this.addField('balance', 'string', { filter: ft.NUMBER });
 		this.addField('multiMin', 'number', {
@@ -212,7 +212,7 @@ class Account extends BaseEntity {
 				filter: ft.BOOLEAN,
 				fieldName: 'nameexist',
 			},
-			booleanToInt
+			booleanToInt,
 		);
 		this.addField('fees', 'string', { filter: ft.NUMBER });
 		this.addField('rewards', 'string', { filter: ft.NUMBER });
@@ -361,7 +361,7 @@ class Account extends BaseEntity {
 		const parsedOptions = _.defaults(
 			{},
 			_.pick(options, ['limit', 'offset', 'sort', 'extended']),
-			_.pick(this.defaultOptions, ['limit', 'offset', 'sort', 'extended'])
+			_.pick(this.defaultOptions, ['limit', 'offset', 'sort', 'extended']),
 		);
 
 		// To have deterministic pagination add extra sorting
@@ -387,7 +387,7 @@ class Account extends BaseEntity {
 			parsedOptions.extended ? this.SQLs.selectFull : this.SQLs.selectSimple,
 			params,
 			{ expectedResultCount },
-			tx
+			tx,
 		);
 	}
 }

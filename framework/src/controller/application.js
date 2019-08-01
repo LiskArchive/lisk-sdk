@@ -127,7 +127,7 @@ class Application {
 			_.set(
 				appConfig,
 				'app.label',
-				`lisk-${genesisBlock.payloadHash.slice(0, 7)}`
+				`lisk-${genesisBlock.payloadHash.slice(0, 7)}`,
 			);
 		}
 
@@ -135,7 +135,7 @@ class Application {
 			_.set(
 				appConfig,
 				'components.logger.logFileName',
-				`${process.cwd()}/logs/${appConfig.app.label}/lisk.log`
+				`${process.cwd()}/logs/${appConfig.app.label}/lisk.log`,
 			);
 		}
 
@@ -192,20 +192,20 @@ class Application {
 		assert(moduleKlass, 'ModuleSpec is required');
 		assert(
 			typeof options === 'object',
-			'Module options must be provided or set to empty object.'
+			'Module options must be provided or set to empty object.',
 		);
 		assert(alias || moduleKlass.alias, 'Module alias must be provided.');
 		const moduleAlias = alias || moduleKlass.alias;
 		assert(
 			!Object.keys(this.getModules()).includes(moduleAlias),
-			`A module with alias "${moduleAlias}" already registered.`
+			`A module with alias "${moduleAlias}" already registered.`,
 		);
 
 		const modules = this.getModules();
 		modules[moduleAlias] = moduleKlass;
 		this.config.modules[moduleAlias] = Object.assign(
 			this.config.modules[moduleAlias] || {},
-			options
+			options,
 		);
 		__private.modules.set(this, modules);
 
@@ -223,12 +223,12 @@ class Application {
 		const modules = this.getModules();
 		assert(
 			Object.keys(modules).includes(alias),
-			`No module ${alias} is registered`
+			`No module ${alias} is registered`,
 		);
 		this.config.modules[alias] = Object.assign(
 			{},
 			this.config.modules[alias],
-			options
+			options,
 		);
 	}
 
@@ -243,14 +243,14 @@ class Application {
 
 		assert(
 			Number.isInteger(Transaction.TYPE),
-			'Transaction type is required as an integer'
+			'Transaction type is required as an integer',
 		);
 
 		assert(
 			!Object.keys(this.getTransactions()).includes(
-				Transaction.TYPE.toString()
+				Transaction.TYPE.toString(),
 			),
-			`A transaction type "${Transaction.TYPE}" is already registered.`
+			`A transaction type "${Transaction.TYPE}" is already registered.`,
 		);
 
 		validator.validate(transactionInterface, Transaction.prototype);
@@ -277,7 +277,7 @@ class Application {
 		assert(Array.isArray(migrations), 'Migrations list should be an array');
 		assert(
 			!Object.keys(this.getMigrations()).includes(namespace),
-			`Migrations for "${namespace}" was already registered.`
+			`Migrations for "${namespace}" was already registered.`,
 		);
 
 		const currentMigrations = this.getMigrations();
@@ -360,12 +360,12 @@ class Application {
 				tempPath: this.config.app.tempPath,
 			},
 			this.initialState,
-			this.logger
+			this.logger,
 		);
 		return this.controller.load(
 			this.getModules(),
 			this.config.modules,
-			this.getMigrations()
+			this.getMigrations(),
 		);
 	}
 

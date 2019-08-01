@@ -33,7 +33,7 @@ const Fork = stampit({
 		this.blockTimestamp = +(+new Date('2012.08.10') / 1000).toFixed(0);
 		this.blockId = randomstring.generate({ charset: 'numeric', length: 20 });
 		this.blockHeight = parseInt(
-			randomstring.generate({ charset: 'numeric', length: 2 })
+			randomstring.generate({ charset: 'numeric', length: 2 }),
 		);
 		this.previousBlockId = randomstring.generate({
 			charset: 'numeric',

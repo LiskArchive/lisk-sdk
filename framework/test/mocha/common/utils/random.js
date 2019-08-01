@@ -143,7 +143,7 @@ random.password = function() {
 random.multisigDappRegistrationMaxiumData = function(
 	account,
 	members,
-	charset
+	charset,
 ) {
 	charset =
 		charset || 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
