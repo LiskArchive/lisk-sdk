@@ -32,7 +32,7 @@ interface NewPeerInfo {
 
 export interface AddPeerOutcome {
 	readonly success: boolean;
-	readonly evicted: boolean;
+	readonly isEvicted: boolean;
 	readonly evictedPeer?: P2PPeerInfo;
 }
 export class NewPeers {
@@ -156,7 +156,7 @@ export class NewPeers {
 		if (bucket && bucket.get(incomingPeerId)) {
 			return {
 				success: false,
-				evicted: false,
+				isEvicted: false,
 			};
 		}
 
@@ -173,7 +173,7 @@ export class NewPeers {
 
 				return {
 					success: true,
-					evicted: false,
+					isEvicted: false,
 				};
 			} else {
 				const evictedPeer = this._evictPeer(bucketId);
@@ -182,7 +182,7 @@ export class NewPeers {
 
 				return {
 					success: true,
-					evicted: true,
+					isEvicted: true,
 					evictedPeer: evictedPeer.peerInfo,
 				};
 			}
@@ -190,7 +190,7 @@ export class NewPeers {
 
 		return {
 			success: false,
-			evicted: false,
+			isEvicted: false,
 		};
 	}
 
