@@ -101,7 +101,7 @@ describe('delegates', () => {
 				};
 				await delegatesModule.fork(dummyBlock, cause);
 				expect(mockStorage.entities.Account.insertFork).to.be.calledWithExactly(
-					fork
+					fork,
 				);
 			});
 
@@ -117,7 +117,7 @@ describe('delegates', () => {
 				await delegatesModule.fork(dummyBlock, cause);
 				expect(mockChannel.publish).to.be.calledWithExactly(
 					'chain:delegates:fork',
-					fork
+					fork,
 				);
 			});
 		});
@@ -136,7 +136,7 @@ describe('delegates', () => {
 				delegatesModule.delegatesListCache = { ...initialSate };
 				sourceStub = sinonSandbox.stub().resolves(dummyDelegateList);
 				originalExceptions = _.clone(
-					exceptions.ignoreDelegateListCacheForRounds
+					exceptions.ignoreDelegateListCacheForRounds,
 				);
 			});
 
@@ -148,7 +148,7 @@ describe('delegates', () => {
 				// Act
 				const delegateList = await delegatesModule.generateDelegateList(
 					1,
-					sourceStub
+					sourceStub,
 				);
 				expect(delegateList).to.deep.equal(initialSate[1]);
 				expect(sourceStub).to.not.been.called;
@@ -158,7 +158,7 @@ describe('delegates', () => {
 				// Act
 				const delegateList = await delegatesModule.generateDelegateList(
 					2,
-					sourceStub
+					sourceStub,
 				);
 				expect(sourceStub).to.been.called;
 				expect(delegateList).to.deep.equal(dummyDelegateList);
@@ -170,11 +170,11 @@ describe('delegates', () => {
 				// Act
 				const delegateList = await delegatesModule.generateDelegateList(
 					2,
-					sourceStub
+					sourceStub,
 				);
 				expect(delegateList).to.deep.equal(dummyDelegateList);
 				expect(delegatesModule.delegatesListCache['2']).to.deep.equal(
-					shuffledDummyDelegateList
+					shuffledDummyDelegateList,
 				);
 			});
 
@@ -184,7 +184,7 @@ describe('delegates', () => {
 				// Act
 				const delegateList = await delegatesModule.generateDelegateList(
 					666,
-					sourceStub
+					sourceStub,
 				);
 				expect(delegateList).to.deep.equal(dummyDelegateList);
 				expect(delegatesModule.delegatesListCache).to.not.have.property('666');
@@ -203,7 +203,7 @@ describe('delegates', () => {
 				// Assert
 				expect(delegatesModule.delegatesListCache).to.have.property(round);
 				expect(delegatesModule.delegatesListCache[round]).to.deep.equal(
-					delegateListArray
+					delegateListArray,
 				);
 			});
 
@@ -244,10 +244,10 @@ describe('delegates', () => {
 					'3',
 				]);
 				expect(delegatesModule.delegatesListCache['2']).to.deep.equal(
-					initialSate['2']
+					initialSate['2'],
 				);
 				expect(delegatesModule.delegatesListCache[round]).to.deep.equal(
-					delegateListArray
+					delegateListArray,
 				);
 			});
 
@@ -271,10 +271,10 @@ describe('delegates', () => {
 					'11',
 				]);
 				expect(delegatesModule.delegatesListCache['10']).to.deep.equal(
-					initialSate['10']
+					initialSate['10'],
 				);
 				return expect(delegatesModule.delegatesListCache[round]).to.deep.equal(
-					delegateListArray
+					delegateListArray,
 				);
 			});
 		});
@@ -335,7 +335,7 @@ describe('delegates', () => {
 					limit: 101,
 					sort: ['vote:desc', 'publicKey:asc'],
 				},
-				mockTX
+				mockTX,
 			);
 		});
 
@@ -344,7 +344,7 @@ describe('delegates', () => {
 			const publicKeys = await getKeysSortByVote(
 				mockStorage,
 				activeDelegates,
-				mockTX
+				mockTX,
 			);
 			expect(publicKeys).to.eql(['pk1', 'pk2']);
 		});
@@ -370,7 +370,7 @@ describe('delegates', () => {
 			await getDelegatesFromPreviousRound(mockStorage, activeDelegates, mockTX);
 			// Assert
 			expect(
-				mockStorage.entities.Round.getDelegatesSnapshot
+				mockStorage.entities.Round.getDelegatesSnapshot,
 			).to.be.calledWithExactly(101, mockTX);
 		});
 
@@ -379,7 +379,7 @@ describe('delegates', () => {
 			const publicKeys = await getDelegatesFromPreviousRound(
 				mockStorage,
 				activeDelegates,
-				mockTX
+				mockTX,
 			);
 			expect(publicKeys).to.eql(['pk1', 'pk2']);
 		});
@@ -399,7 +399,7 @@ describe('delegates', () => {
 				mockBlock,
 				slots,
 				mockDelegateList,
-				activeDelegates
+				activeDelegates,
 			);
 			// Assert
 			expect(result).to.be.true;
@@ -418,8 +418,8 @@ describe('delegates', () => {
 					mockBlock,
 					slots,
 					mockDelegateList,
-					activeDelegates
-				)
+					activeDelegates,
+				),
 			).to.throw('Failed to verify slot: 2');
 		});
 	});

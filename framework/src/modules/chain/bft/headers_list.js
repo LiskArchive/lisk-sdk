@@ -58,8 +58,7 @@ class HeadersList {
 	}
 
 	add(blockHeader) {
-		const first = this.first;
-		const last = this.last;
+		const { first, last } = this.first;
 
 		if (this.items.length) {
 			assert(
@@ -68,7 +67,7 @@ class HeadersList {
 				`Block header with height ${last.height + 1} or ${first.height -
 					1} can only be added at the moment, you provided ${
 					blockHeader.height
-				} height`
+				} height`,
 			);
 		}
 
@@ -106,7 +105,7 @@ class HeadersList {
 
 		return this.items.splice(
 			this.items.length - removeItemsCount,
-			removeItemsCount
+			removeItemsCount,
 		);
 	}
 

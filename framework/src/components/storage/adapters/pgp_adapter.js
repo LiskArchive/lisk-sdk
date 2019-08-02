@@ -18,7 +18,7 @@ const path = require('path');
 const Promise = require('bluebird');
 const monitor = require('pg-monitor');
 const pgpLib = require('pg-promise');
-const QueryFile = require('pg-promise').QueryFile;
+const { QueryFile } = require('pg-promise');
 const BaseAdapter = require('./base_adapter');
 
 const pgpOptions = {
@@ -137,7 +137,7 @@ class PgpAdapter extends BaseAdapter {
 	executeFile(file, params = {}, options = {}, tx) {
 		return this._getExecutionContext(tx, options.expectedResultCount)(
 			file,
-			params
+			params,
 		);
 	}
 
@@ -154,7 +154,7 @@ class PgpAdapter extends BaseAdapter {
 	execute(sql, params = {}, options = {}, tx) {
 		return this._getExecutionContext(tx, options.expectedResultCount)(
 			sql,
-			params
+			params,
 		);
 	}
 
@@ -195,7 +195,7 @@ class PgpAdapter extends BaseAdapter {
 			if (!this.SQLs[entityLabel][fileKey]) {
 				this.SQLs[entityLabel][fileKey] = this.loadSQLFile(
 					sqlFiles[fileKey],
-					sqlDirectory
+					sqlDirectory,
 				);
 			}
 		});

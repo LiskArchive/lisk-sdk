@@ -101,9 +101,9 @@
 	"dependencies": {
 		"@liskhq/lisk-api-client": "2.0.2",
 		"@liskhq/lisk-constants": "1.2.2",
-		"@liskhq/lisk-cryptography": "2.2.0-alpha.0",
+		"@liskhq/lisk-cryptography": "2.2.0",
 		"@liskhq/lisk-passphrase": "2.0.2",
-		"@liskhq/lisk-transactions": "2.3.0-alpha.0",
+		"@liskhq/lisk-transactions": "2.3.0",
 		"@oclif/command": "1.5.6",
 		"@oclif/config": "1.9.0",
 		"@oclif/errors": "1.2.2",

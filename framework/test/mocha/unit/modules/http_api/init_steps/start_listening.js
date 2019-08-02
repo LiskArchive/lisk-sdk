@@ -93,18 +93,18 @@ describe('init_steps/start_listening', () => {
 		expect(stub.arg1.components.logger.info).to.be.calledWithExactly(
 			`Disconnecting idle socket: ${timeoutStub.remoteAddress}:${
 				timeoutStub.remotePort
-			}`
+			}`,
 		));
 
 	it('should call logger.info with proper data if http server started listening correctly', async () =>
 		expect(stub.arg1.components.logger.info).calledWithExactly(
-			`Lisk started: ${stub.arg1.config.address}:${stub.arg1.config.httpPort}`
+			`Lisk started: ${stub.arg1.config.address}:${stub.arg1.config.httpPort}`,
 		));
 
 	describe('when SSL is enabled', () => {
 		it('should set timeout value from config to https server', async () =>
 			expect(stub.arg2.httpsServer.setTimeout).calledWithExactly(
-				stub.arg1.config.options.limits.serverSetTimeout
+				stub.arg1.config.options.limits.serverSetTimeout,
 			));
 
 		it('should start listening https server with proper data', async () => {
@@ -122,14 +122,14 @@ describe('init_steps/start_listening', () => {
 			expect(stub.arg1.components.logger.info).to.be.calledWithExactly(
 				`Disconnecting idle socket: ${timeoutStub.remoteAddress}:${
 					timeoutStub.remotePort
-				}`
+				}`,
 			));
 
 		it('should call logger.info with proper data if http server started listening correctly', async () =>
 			expect(stub.arg1.components.logger.info).to.be.calledWithExactly(
 				`Lisk https started: ${stub.arg1.config.ssl.options.address}:${
 					stub.arg1.config.ssl.options.port
-				}`
+				}`,
 			));
 	});
 });

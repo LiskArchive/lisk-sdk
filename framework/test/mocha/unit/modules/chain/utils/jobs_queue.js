@@ -72,6 +72,8 @@ describe('helpers/jobsQueue', () => {
 		});
 
 		describe('should register', () => {
+			let clock;
+
 			function dummyFunction(cb) {
 				setTimeout(cb, execTimeInterval);
 			}
@@ -121,8 +123,6 @@ describe('helpers/jobsQueue', () => {
 				// Job returned from 'register' should no longer be equal to one in 'jobsQueue'
 				expect(job).to.not.equal(jobsQueue.jobs[name]);
 			}
-
-			let clock;
 
 			before(done => {
 				clock = sinonSandbox.useFakeTimers();

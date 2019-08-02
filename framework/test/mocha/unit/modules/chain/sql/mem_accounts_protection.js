@@ -78,7 +78,7 @@ describe('mem_accounts protection', () => {
 	before(done => {
 		storage = new storageSandbox.StorageSandbox(
 			__testContext.config.components.storage,
-			'mem_accounts_protection_test'
+			'mem_accounts_protection_test',
 		);
 
 		storage
@@ -119,7 +119,7 @@ describe('mem_accounts protection', () => {
 								.to.have.property('username')
 								.equal(validAccount.username);
 							return done(err);
-						}
+						},
 					);
 				});
 			});
@@ -136,7 +136,7 @@ describe('mem_accounts protection', () => {
 							expect(err).to.be.null;
 							expect(updatedAccount).to.have.property('username').to.be.null;
 							done();
-						}
+						},
 					);
 				});
 			});
@@ -179,7 +179,7 @@ describe('mem_accounts protection', () => {
 								.to.have.property('username')
 								.equal(auxValidUsername);
 							done();
-						}
+						},
 					);
 				});
 			});

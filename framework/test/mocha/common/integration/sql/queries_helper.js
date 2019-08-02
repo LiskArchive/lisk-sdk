@@ -29,7 +29,7 @@ class Queries {
 
 		this.validateAccountsBalancesQuery = new QueryFile(
 			path.join(__dirname, '../sql/rounds/validate_accounts_balances.sql'),
-			{ minify: true }
+			{ minify: true },
 		);
 
 		self = this;
@@ -51,19 +51,19 @@ class Queries {
 	getAccount(address) {
 		return self.storage.adapter.db.query(
 			'SELECT * FROM mem_accounts WHERE address = ${address}',
-			{ address }
+			{ address },
 		);
 	}
 
 	getDelegates() {
 		return self.storage.adapter.db.query(
-			"SELECT m.*, t.id as \"transactionId\" FROM mem_accounts m LEFT JOIN trs t ON t.asset->'delegate'->>'username' = m.username WHERE t.type = 2"
+			"SELECT m.*, t.id as \"transactionId\" FROM mem_accounts m LEFT JOIN trs t ON t.asset->'delegate'->>'username' = m.username WHERE t.type = 2",
 		);
 	}
 
 	getDelegatesOrderedByVote() {
 		return self.storage.adapter.db.query(
-			`SELECT "publicKey", vote FROM mem_accounts ORDER BY vote DESC, "publicKey" ASC LIMIT ${ACTIVE_DELEGATES}`
+			`SELECT "publicKey", vote FROM mem_accounts ORDER BY vote DESC, "publicKey" ASC LIMIT ${ACTIVE_DELEGATES}`,
 		);
 	}
 
@@ -74,14 +74,14 @@ class Queries {
 	getAllBlocks() {
 		return self.storage.entities.Block.get(
 			{},
-			{ extended: true, limit: null }
+			{ extended: true, limit: null },
 		).then(blocks => blocks.map(blocksLogic.storageRead));
 	}
 
 	getBlocks(round) {
 		return self.storage.adapter.db.query(
 			'SELECT * FROM blocks WHERE CEIL(height / 101::float)::int = ${round} ORDER BY height ASC',
-			{ round }
+			{ round },
 		);
 	}
 
@@ -89,7 +89,7 @@ class Queries {
 		return self.storage.adapter.db
 			.query(
 				'SELECT ENCODE("publicKey", \'hex\') AS "publicKey", SUM(fees) AS fees, SUM(reward) AS rewards FROM rounds_rewards WHERE round = ${round} GROUP BY "publicKey"',
-				{ round }
+				{ round },
 			)
 			.then(rows => {
 				const rewards = {};
@@ -106,7 +106,7 @@ class Queries {
 
 	getVoters() {
 		return self.storage.adapter.db.query(
-			'SELECT "dependentId", ARRAY_AGG("accountId") FROM mem_accounts2delegates GROUP BY "dependentId"'
+			'SELECT "dependentId", ARRAY_AGG("accountId") FROM mem_accounts2delegates GROUP BY "dependentId"',
 		);
 	}
 	/* eslint-enable class-methods-use-this */

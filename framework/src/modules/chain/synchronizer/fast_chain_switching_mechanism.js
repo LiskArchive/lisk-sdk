@@ -42,7 +42,7 @@ class FastChainSwitchingMechanism {
 	 * @throws {Error} - In case want to abort the sync pipeline
 	 */
 	async isValidFor(receivedBlock) {
-		const lastBlock = this.blocks.lastBlock;
+		const { lastBlock } = this.blocks;
 
 		// 3. Step: Check whether B justifies fast chain switching mechanism
 		const twoRounds = this.constants.activeDelegates * 2;

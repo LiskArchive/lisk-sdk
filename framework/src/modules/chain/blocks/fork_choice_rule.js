@@ -11,6 +11,16 @@
 const forgingSlot = (slots, block) => slots.getSlotNumber(block.timestamp);
 
 /**
+ * Wrapper for readability. Returns whether a block was received in its designated
+ * forging slot.
+ * @param slots
+ * @param receivedBlock
+ * @return {boolean}
+ */
+const isBlockReceivedWithinForgingSlot = (slots, { timestamp, receivedAt }) =>
+	slots.isWithinTimeslot(slots.getSlotNumber(timestamp), receivedAt);
+
+/**
  * Returns whether the last block applied (tip of the chain) was received withing its
  * designated forging slot.
  *
@@ -23,7 +33,7 @@ const forgingSlot = (slots, block) => slots.getSlotNumber(block.timestamp);
  */
 const isLastAppliedBlockReceivedWithinForgingSlot = (
 	slots,
-	lastAppliedBlock
+	lastAppliedBlock,
 ) => {
 	// If the block doesn't have the property `receivedAt` it meants it was forged
 	// or synced, therefore we assume it was "received in the correct slot"
@@ -33,16 +43,6 @@ const isLastAppliedBlockReceivedWithinForgingSlot = (
 
 	return isBlockReceivedWithinForgingSlot(slots, lastAppliedBlock);
 };
-
-/**
- * Wrapper for readability. Returns whether a block was received in its designated
- * forging slot.
- * @param slots
- * @param receivedBlock
- * @return {boolean}
- */
-const isBlockReceivedWithinForgingSlot = (slots, { timestamp, receivedAt }) =>
-	slots.isWithinTimeslot(slots.getSlotNumber(timestamp), receivedAt);
 
 /**
  * Fork Choice Rules

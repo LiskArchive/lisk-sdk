@@ -32,7 +32,7 @@ describe('Dependency versions', () => {
 		it('should be 10.x', async () => {
 			storageSandbox = new StorageSandbox(
 				__testContext.config.components.storage,
-				'postgresql-version'
+				'postgresql-version',
 			);
 
 			await storageSandbox.bootstrap();

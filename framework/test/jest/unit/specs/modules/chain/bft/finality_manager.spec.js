@@ -57,9 +57,9 @@ const loadCSVSimulationData = filePath => {
 	for (let i = 1; i < data.length - 1; i += 2) {
 		result.push({
 			delegate: data[i][1],
-			maxHeightPreviouslyForged: parseInt(data[i][2]),
-			activeSinceRound: parseInt(data[i][3]),
-			height: parseInt(data[i][4]),
+			maxHeightPreviouslyForged: parseInt(data[i][2], 0),
+			activeSinceRound: parseInt(data[i][3], 0),
+			height: parseInt(data[i][4], 0),
 			preCommits: data[i]
 				.slice(6)
 				.map(Number)
@@ -137,19 +137,19 @@ describe('finality_manager', () => {
 
 			it('should throw error if finalizedHeight is not provided', async () => {
 				expect(() => new FinalityManager()).toThrow(
-					'Must provide finalizedHeight'
+					'Must provide finalizedHeight',
 				);
 			});
 
 			it('should throw error if activeDelegates is not provided', async () => {
 				expect(() => new FinalityManager({ finalizedHeight })).toThrow(
-					'Must provide activeDelegates'
+					'Must provide activeDelegates',
 				);
 			});
 
 			it('should throw error if activeDelegates is not positive', async () => {
 				expect(
-					() => new FinalityManager({ finalizedHeight, activeDelegates: 0 })
+					() => new FinalityManager({ finalizedHeight, activeDelegates: 0 }),
 				).toThrow('Must provide a positive activeDelegates');
 			});
 		});
@@ -164,7 +164,7 @@ describe('finality_manager', () => {
 
 				expect(() => bft.verifyBlockHeaders(header)).toThrow(
 					BFTInvalidAttributeError,
-					'Wrong prevotedConfirmedHeight in blockHeader.'
+					'Wrong prevotedConfirmedHeight in blockHeader.',
 				);
 			});
 
@@ -203,7 +203,7 @@ describe('finality_manager', () => {
 				bft.headers.top.mockReturnValue([lastBlock]);
 
 				expect(() => bft.verifyBlockHeaders(currentBlock)).toThrow(
-					BFTForkChoiceRuleError
+					BFTForkChoiceRuleError,
 				);
 			});
 
@@ -224,7 +224,7 @@ describe('finality_manager', () => {
 				bft.headers.top.mockReturnValue([lastBlock]);
 
 				expect(() => bft.verifyBlockHeaders(currentBlock)).toThrow(
-					BFTForkChoiceRuleError
+					BFTForkChoiceRuleError,
 				);
 			});
 
@@ -242,7 +242,7 @@ describe('finality_manager', () => {
 				bft.headers.top.mockReturnValue([lastBlock]);
 
 				expect(() => bft.verifyBlockHeaders(currentBlock)).toThrow(
-					BFTChainDisjointError
+					BFTChainDisjointError,
 				);
 			});
 
@@ -263,7 +263,7 @@ describe('finality_manager', () => {
 				bft.headers.top.mockReturnValue([lastBlock]);
 
 				expect(() => bft.verifyBlockHeaders(currentBlock)).toThrow(
-					BFTLowerChainBranchError
+					BFTLowerChainBranchError,
 				);
 			});
 
@@ -329,7 +329,7 @@ describe('finality_manager', () => {
 			describe('should have proper preVotes and preCommits', () => {
 				describe('11 delegates switched partially on 3rd round', () => {
 					const data = loadCSVSimulationData(
-						path.join(__dirname, './scenarios/11_delegates.csv')
+						path.join(__dirname, './scenarios/11_delegates.csv'),
 					);
 					const myBft = new FinalityManager({
 						finalizedHeight: 0,
@@ -343,20 +343,20 @@ describe('finality_manager', () => {
 							const blockData = generateHeaderInformation(
 								headerData,
 								myBft.preCommitThreshold,
-								data[index - 1]
+								data[index - 1],
 							);
 
 							myBft.addBlockHeader(blockData.header);
 
 							expect(Object.values(myBft.preCommits)).toEqual(
-								blockData.preCommits
+								blockData.preCommits,
 							);
 							expect(Object.values(myBft.preVotes)).toEqual(blockData.preVotes);
 
 							expect(myBft.finalizedHeight).toEqual(blockData.finalizedHeight);
 
 							expect(myBft.prevotedConfirmedHeight).toEqual(
-								blockData.preVotedConfirmedHeight
+								blockData.preVotedConfirmedHeight,
 							);
 						});
 					});
@@ -366,8 +366,8 @@ describe('finality_manager', () => {
 					const data = loadCSVSimulationData(
 						path.join(
 							__dirname,
-							'./scenarios/5_delegates_switched_completely.csv'
-						)
+							'./scenarios/5_delegates_switched_completely.csv',
+						),
 					);
 					const myBft = new FinalityManager({
 						finalizedHeight: 0,
@@ -381,20 +381,20 @@ describe('finality_manager', () => {
 							const blockData = generateHeaderInformation(
 								headerData,
 								myBft.preCommitThreshold,
-								data[index - 1]
+								data[index - 1],
 							);
 
 							myBft.addBlockHeader(blockData.header);
 
 							expect(Object.values(myBft.preCommits)).toEqual(
-								blockData.preCommits
+								blockData.preCommits,
 							);
 							expect(Object.values(myBft.preVotes)).toEqual(blockData.preVotes);
 
 							expect(myBft.finalizedHeight).toEqual(blockData.finalizedHeight);
 
 							expect(myBft.prevotedConfirmedHeight).toEqual(
-								blockData.preVotedConfirmedHeight
+								blockData.preVotedConfirmedHeight,
 							);
 						});
 					});
@@ -407,7 +407,7 @@ describe('finality_manager', () => {
 				// Let's first compute in proper way
 
 				const data = loadCSVSimulationData(
-					path.join(__dirname, './scenarios/11_delegates.csv')
+					path.join(__dirname, './scenarios/11_delegates.csv'),
 				);
 				let blockData;
 				const myBft = new FinalityManager({
@@ -419,7 +419,7 @@ describe('finality_manager', () => {
 					blockData = generateHeaderInformation(
 						headerData,
 						myBft.preCommitThreshold,
-						data[index - 1]
+						data[index - 1],
 					);
 					myBft.addBlockHeader(blockData.header);
 				});
@@ -429,7 +429,7 @@ describe('finality_manager', () => {
 				expect(Object.values(myBft.preVotes)).toEqual(blockData.preVotes);
 				expect(myBft.finalizedHeight).toEqual(blockData.finalizedHeight);
 				expect(myBft.prevotedConfirmedHeight).toEqual(
-					blockData.preVotedConfirmedHeight
+					blockData.preVotedConfirmedHeight,
 				);
 
 				// Now recompute all information again
@@ -440,7 +440,7 @@ describe('finality_manager', () => {
 				expect(Object.values(myBft.preVotes)).toEqual(blockData.preVotes);
 				expect(myBft.finalizedHeight).toEqual(blockData.finalizedHeight);
 				expect(myBft.prevotedConfirmedHeight).toEqual(
-					blockData.preVotedConfirmedHeight
+					blockData.preVotedConfirmedHeight,
 				);
 			});
 		});

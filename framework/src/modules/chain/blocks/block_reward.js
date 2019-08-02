@@ -49,7 +49,7 @@ const calculateMilestone = (height, blockRewardArgs) => {
 	const distance = Math.floor(blockRewardArgs.distance);
 
 	const location = Math.trunc(
-		(height - blockRewardArgs.rewardOffset) / distance
+		(height - blockRewardArgs.rewardOffset) / distance,
 	);
 	const lastMile =
 		blockRewardArgs.milestones[blockRewardArgs.milestones.length - 1];
@@ -74,7 +74,7 @@ const calculateReward = (height, blockRewardArgs) => {
 		return new BigNum(0);
 	}
 	return new BigNum(
-		blockRewardArgs.milestones[calculateMilestone(height, blockRewardArgs)]
+		blockRewardArgs.milestones[calculateMilestone(height, blockRewardArgs)],
 	);
 };
 
@@ -104,6 +104,7 @@ const calculateSupply = (height, blockRewardArgs) => {
 	// Remove offset from height
 	height -= blockRewardArgs.rewardOffset - 1;
 
+	// eslint-disable-next-line no-plusplus
 	for (let i = 0; i < blockRewardArgs.milestones.length; i++) {
 		if (milestone >= i) {
 			multiplier = blockRewardArgs.milestones[i];
@@ -127,6 +128,7 @@ const calculateSupply = (height, blockRewardArgs) => {
 		}
 	}
 
+	// eslint-disable-next-line no-plusplus
 	for (let i = 0; i < rewards.length; i++) {
 		const reward = rewards[i];
 		supply = supply.plus(new BigNum(reward[0]).times(reward[1]));

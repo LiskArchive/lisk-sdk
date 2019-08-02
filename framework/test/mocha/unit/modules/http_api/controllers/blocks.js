@@ -17,7 +17,7 @@
 const rewire = require('rewire');
 
 const BlocksController = rewire(
-	'../../../../../../src/modules/http_api/controllers/blocks'
+	'../../../../../../src/modules/http_api/controllers/blocks',
 );
 
 describe('blocks/api', () => {
@@ -144,19 +144,19 @@ describe('blocks/api', () => {
 						},
 						async () => {
 							expect(
-								storageStub.entities.Block.get.args[0][0].generatorPublicKey
+								storageStub.entities.Block.get.args[0][0].generatorPublicKey,
 							).to.equal(
-								'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f'
+								'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 							);
 							done();
-						}
+						},
 					);
 				});
 
 				it('should query storage with numberOfTransactions param when filter.numberOfTransactions exists', done => {
 					_list({ numberOfTransactions: 2 }, async () => {
 						expect(
-							storageStub.entities.Block.get.args[0][0].numberOfTransactions
+							storageStub.entities.Block.get.args[0][0].numberOfTransactions,
 						).to.equal(2);
 						done();
 					});
@@ -165,7 +165,7 @@ describe('blocks/api', () => {
 				it('should query storage with previousBlockId param when filter.previousBlock exists', done => {
 					_list({ previousBlock: 12345 }, async () => {
 						expect(
-							storageStub.entities.Block.get.args[0][0].previousBlockId
+							storageStub.entities.Block.get.args[0][0].previousBlockId,
 						).to.equal(12345);
 						done();
 					});
@@ -174,7 +174,7 @@ describe('blocks/api', () => {
 				it('should query storage with height param when filter.height >= 0', done => {
 					_list({ height: 3 }, async () => {
 						expect(storageStub.entities.Block.get.args[0][0].height).to.equal(
-							3
+							3,
 						);
 						done();
 					});
@@ -183,7 +183,7 @@ describe('blocks/api', () => {
 				it('should query storage with totalAmount param when filter.totalAmount >= 0', done => {
 					_list({ totalAmount: 4 }, async () => {
 						expect(
-							storageStub.entities.Block.get.args[0][0].totalAmount
+							storageStub.entities.Block.get.args[0][0].totalAmount,
 						).to.equal(4);
 						done();
 					});
@@ -192,7 +192,7 @@ describe('blocks/api', () => {
 				it('should query storage with totalFee param when filter.totalFee >= 0', done => {
 					_list({ totalFee: 5 }, async () => {
 						expect(storageStub.entities.Block.get.args[0][0].totalFee).to.equal(
-							5
+							5,
 						);
 						done();
 					});
@@ -201,7 +201,7 @@ describe('blocks/api', () => {
 				it('should query storage with reward param when filter.reward >= 0', done => {
 					_list({ reward: 6 }, async () => {
 						expect(storageStub.entities.Block.get.args[0][0].reward).to.equal(
-							6
+							6,
 						);
 						done();
 					});
@@ -213,7 +213,7 @@ describe('blocks/api', () => {
 					it('should query storage with limit param when filter.limit exists and is number', done => {
 						_list({ limit: 1 }, async () => {
 							expect(storageStub.entities.Block.get.args[0][1].limit).to.equal(
-								1
+								1,
 							);
 							done();
 						});
@@ -229,7 +229,7 @@ describe('blocks/api', () => {
 					it('should query storage with limit 100 when filter.limit does not exists', done => {
 						_list({}, async () => {
 							expect(storageStub.entities.Block.get.args[0][1].limit).to.equal(
-								100
+								100,
 							);
 							done();
 						});
@@ -247,7 +247,7 @@ describe('blocks/api', () => {
 					it('should query storage with offset param when filter.offset exists and is number', done => {
 						_list({ offset: 10 }, async () => {
 							expect(storageStub.entities.Block.get.args[0][1].offset).to.equal(
-								10
+								10,
 							);
 							done();
 						});
@@ -264,7 +264,7 @@ describe('blocks/api', () => {
 					it('should query storage with offset 0 when filter.offset does not exist', done => {
 						_list({}, async () => {
 							expect(storageStub.entities.Block.get.args[0][1].offset).to.equal(
-								0
+								0,
 							);
 							done();
 						});
@@ -275,7 +275,7 @@ describe('blocks/api', () => {
 					it('should query storage with sort param when filter.sort exists', done => {
 						_list({ sort: 'numberOfTransactions:desc' }, async () => {
 							expect(storageStub.entities.Block.get.args[0][1].sort).to.equal(
-								'numberOfTransactions:desc'
+								'numberOfTransactions:desc',
 							);
 							done();
 						});
@@ -284,7 +284,7 @@ describe('blocks/api', () => {
 					it('should query storage with sort height:desc when filter.sort does not exist', done => {
 						_list({}, async () => {
 							expect(storageStub.entities.Block.get.args[0][1].sort).to.equal(
-								'height:desc'
+								'height:desc',
 							);
 							done();
 						});

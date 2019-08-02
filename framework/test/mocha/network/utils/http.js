@@ -115,7 +115,7 @@ module.exports = {
 			.get({
 				url: `${endpoints.versions[currentVersion].getTransactions(
 					ip,
-					port
+					port,
 				)}?id=${id}`,
 				headers,
 			})
@@ -132,7 +132,7 @@ module.exports = {
 			.get({
 				url: `${endpoints.versions[currentVersion].getTransactions(
 					ip,
-					port
+					port,
 				)}?blockId=${blockId}`,
 				headers,
 			})
@@ -160,7 +160,7 @@ module.exports = {
 					throw new Error(
 						`Failed to enable forging for delegate with publicKey: ${
 							keys.publicKey
-						}`
+						}`,
 					);
 				}
 				return JSON.parse(res.body).data[0];
@@ -169,7 +169,7 @@ module.exports = {
 				throw new Error(
 					`Failed to enable forging for delegate with publicKey: ${
 						keys.publicKey
-					}${JSON.stringify(err)}`
+					}${JSON.stringify(err)}`,
 				);
 			});
 	},

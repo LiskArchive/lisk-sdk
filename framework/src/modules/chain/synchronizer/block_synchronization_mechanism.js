@@ -42,7 +42,7 @@ class BlockSynchronizationMechanism {
 	async run() {
 		this.active = true;
 		const { connectedPeers: peers } = await this.channel.invoke(
-			'network:getNetworkStatus'
+			'network:getNetworkStatus',
 		);
 		if (!peers.length) {
 			throw new Error('Connected peers list is empty');
@@ -73,7 +73,7 @@ class BlockSynchronizationMechanism {
 			height_eq: this.bft.finalizedHeight,
 		});
 		const finalizedBlockSlot = this.slots.getSlotNumber(
-			finalizedBlock.timestamp
+			finalizedBlock.timestamp,
 		);
 		const currentBlockSlot = this.slots.getSlotNumber();
 		const threeRounds = this.constants.activeDelegates * 3;
@@ -93,18 +93,18 @@ class BlockSynchronizationMechanism {
 		// Largest subset of peers with largest prevotedConfirmedUptoHeight
 		const largestSubsetByPrevotedConfirmedUptoHeight = this._computeLargestSubsetMaxBy(
 			peers,
-			peer => peer.prevotedConfirmedUptoHeight
+			peer => peer.prevotedConfirmedUptoHeight,
 		);
 		// Largest subset of peers with largest height
 		const largestSubsetByHeight = this._computeLargestSubsetMaxBy(
 			largestSubsetByPrevotedConfirmedUptoHeight,
-			peer => peer.height
+			peer => peer.height,
 		);
 		// Group peers by their block Id
 		// Output: {{'lastBlockId':[peers], 'anotherBlockId': [peers]}
 		const peersGroupedByBlockId = groupBy(
 			largestSubsetByHeight,
-			peer => peer.lastBlockId
+			peer => peer.lastBlockId,
 		);
 
 		const blockIds = Object.keys(peersGroupedByBlockId);

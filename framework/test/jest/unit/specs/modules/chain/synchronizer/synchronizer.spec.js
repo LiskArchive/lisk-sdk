@@ -111,7 +111,7 @@ describe('synchronizer', () => {
 				const syncMechanism = { isValidFor: () => {} };
 
 				expect(() => synchronizer.register(syncMechanism)).toThrow(
-					'Sync mechanism must have "isValidFor" async interface'
+					'Sync mechanism must have "isValidFor" async interface',
 				);
 			});
 
@@ -119,7 +119,7 @@ describe('synchronizer', () => {
 				const syncMechanism = { isValidFor: async () => {}, run: () => {} };
 
 				expect(() => synchronizer.register(syncMechanism)).toThrow(
-					'Sync mechanism must have "run" async interface'
+					'Sync mechanism must have "run" async interface',
 				);
 			});
 
@@ -130,7 +130,7 @@ describe('synchronizer', () => {
 				};
 
 				expect(() => synchronizer.register(syncMechanism)).toThrow(
-					'Sync mechanism must have "isActive" interface'
+					'Sync mechanism must have "isActive" interface',
 				);
 			});
 
@@ -195,7 +195,7 @@ describe('synchronizer', () => {
 				jest.spyOn(syncMechanism2, 'isValidFor').mockReturnValue(false);
 
 				expect(await synchronizer._determineSyncMechanism()).toBe(
-					syncMechanism1
+					syncMechanism1,
 				);
 			});
 
@@ -204,7 +204,7 @@ describe('synchronizer', () => {
 				jest.spyOn(syncMechanism2, 'isValidFor').mockReturnValue(true);
 
 				expect(await synchronizer._determineSyncMechanism()).toBe(
-					syncMechanism2
+					syncMechanism2,
 				);
 			});
 		});
@@ -231,7 +231,7 @@ describe('synchronizer', () => {
 				expect(blocksVerify.verifySignature).toHaveBeenCalledTimes(1);
 				expect(blocksVerify.verifySignature).toHaveBeenCalledWith(
 					receivedBlock,
-					verifyResult
+					verifyResult,
 				);
 			});
 
@@ -242,7 +242,7 @@ describe('synchronizer', () => {
 				expect(blocksVerify.verifyVersion).toHaveBeenCalledWith(
 					receivedBlock,
 					syncParameters.exceptions,
-					verifyResult
+					verifyResult,
 				);
 			});
 
@@ -254,7 +254,7 @@ describe('synchronizer', () => {
 					syncParameters.blockReward,
 					receivedBlock,
 					syncParameters.exceptions,
-					verifyResult
+					verifyResult,
 				);
 			});
 
@@ -264,7 +264,7 @@ describe('synchronizer', () => {
 				expect(blocksVerify.verifyId).toHaveBeenCalledTimes(1);
 				expect(blocksVerify.verifyId).toHaveBeenCalledWith(
 					receivedBlock,
-					verifyResult
+					verifyResult,
 				);
 			});
 
@@ -276,7 +276,7 @@ describe('synchronizer', () => {
 					receivedBlock,
 					syncParameters.maxTransactionsPerBlock,
 					syncParameters.maxPayloadLength,
-					verifyResult
+					verifyResult,
 				);
 			});
 
@@ -288,7 +288,7 @@ describe('synchronizer', () => {
 
 				const result = synchronizer._validateBlockBeforeSync(
 					lastBlock,
-					receivedBlock
+					receivedBlock,
 				);
 
 				expect(result).toEqual({
@@ -300,7 +300,7 @@ describe('synchronizer', () => {
 			it('should return verified = true if all steps passes', async () => {
 				const result = synchronizer._validateBlockBeforeSync(
 					lastBlock,
-					receivedBlock
+					receivedBlock,
 				);
 
 				expect(result).toEqual({ verified: true, errors: [] });
@@ -328,7 +328,7 @@ describe('synchronizer', () => {
 				syncMechanism1.isActive = true;
 
 				await expect(synchronizer.run()).rejects.toThrow(
-					'Blocks Sychronizer with Object is already running'
+					'Blocks Sychronizer with Object is already running',
 				);
 			});
 
@@ -344,7 +344,7 @@ describe('synchronizer', () => {
 				expect(synchronizer._validateBlockBeforeSync).toHaveBeenCalledTimes(1);
 				expect(synchronizer._validateBlockBeforeSync).toHaveBeenCalledWith(
 					lastBlock,
-					receivedBlock
+					receivedBlock,
 				);
 			});
 
@@ -356,7 +356,7 @@ describe('synchronizer', () => {
 				});
 
 				await expect(synchronizer.run()).rejects.toThrow(
-					`Block verification for chain synchronization failed with errors: ${validationError}`
+					`Block verification for chain synchronization failed with errors: ${validationError}`,
 				);
 			});
 
@@ -365,7 +365,7 @@ describe('synchronizer', () => {
 
 				expect(synchronizer._determineSyncMechanism).toHaveBeenCalledTimes(1);
 				expect(synchronizer._determineSyncMechanism).toHaveBeenCalledWith(
-					receivedBlock
+					receivedBlock,
 				);
 			});
 
@@ -375,7 +375,7 @@ describe('synchronizer', () => {
 				expect(loggerMock.info).toHaveBeenCalledTimes(1);
 				expect(loggerMock.info).toHaveBeenCalledWith(
 					'Sync mechanism could not be determined for the given block',
-					receivedBlock
+					receivedBlock,
 				);
 			});
 

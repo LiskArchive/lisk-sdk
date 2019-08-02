@@ -109,7 +109,7 @@ describe('GET /api/voters', () => {
 								publicKey: accountFixtures.existingDelegate.publicKey,
 								username: accountFixtures.existingDelegate.delegateName,
 							},
-							200
+							200,
 						)
 						.then(res => {
 							expectValidVotedDelegateResponse(res);
@@ -125,7 +125,7 @@ describe('GET /api/voters', () => {
 						{
 							whatever: accountFixtures.existingDelegate.address,
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'whatever');
@@ -138,7 +138,7 @@ describe('GET /api/voters', () => {
 						{
 							publicKey: '',
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expect(res.body.errors).to.have.length(4);
@@ -158,7 +158,7 @@ describe('GET /api/voters', () => {
 							offset: 'invalid',
 							sort: 'invalid',
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'limit');
@@ -201,7 +201,7 @@ describe('GET /api/voters', () => {
 						publicKey:
 							'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca8',
 					},
-					404
+					404,
 				);
 			});
 		});
@@ -229,7 +229,7 @@ describe('GET /api/voters', () => {
 						secondPublicKey:
 							'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca8',
 					},
-					404
+					404,
 				);
 			});
 		});
@@ -264,7 +264,7 @@ describe('GET /api/voters', () => {
 			it('using valid inexistent address should return empty response and code = 404', async () => {
 				return votersEndpoint.makeRequest(
 					{ address: validNotExistingAddress },
-					404
+					404,
 				);
 			});
 		});
@@ -307,7 +307,7 @@ describe('GET /api/voters', () => {
 							limit: 1,
 							offset: votesCount,
 						},
-						200
+						200,
 					);
 					delegate = result.body.data;
 					hasResult = delegate.voters.length > 0 ? ++votesCount : false;
@@ -354,7 +354,7 @@ describe('GET /api/voters', () => {
 					})
 					.then(() => {
 						return apiHelpers.sendTransactionPromise(
-							registerExtraVoterAsADelegateTransaction
+							registerExtraVoterAsADelegateTransaction,
 						);
 					})
 					.then(() => {
@@ -364,7 +364,7 @@ describe('GET /api/voters', () => {
 					})
 					.then(() => {
 						return apiHelpers.sendTransactionPromise(
-							voteByExtraDelegateVoterTransaction
+							voteByExtraDelegateVoterTransaction,
 						);
 					})
 					.then(() => {
@@ -383,18 +383,18 @@ describe('GET /api/voters', () => {
 									sort: 'publicKey:asc',
 									username: validVotedDelegate.delegateName,
 								},
-								200
+								200,
 							)
 							.then(res => {
 								expectValidVotedDelegateResponse(res);
 								expect(res.body.data.username).to.equal(
-									validVotedDelegate.delegateName
+									validVotedDelegate.delegateName,
 								);
 								expect(
 									_(res.body.data.voters)
 										.sortBy('publicKey')
 										.map('publicKey')
-										.value()
+										.value(),
 								).to.be.eql(_.map(res.body.data.voters, 'publicKey'));
 							});
 					});
@@ -406,19 +406,19 @@ describe('GET /api/voters', () => {
 									sort: 'publicKey:desc',
 									username: validVotedDelegate.delegateName,
 								},
-								200
+								200,
 							)
 							.then(res => {
 								expectValidVotedDelegateResponse(res);
 								expect(res.body.data.username).to.equal(
-									validVotedDelegate.delegateName
+									validVotedDelegate.delegateName,
 								);
 								expect(
 									_(res.body.data.voters)
 										.sortBy('publicKey')
 										.reverse()
 										.map('publicKey')
-										.value()
+										.value(),
 								).to.to.be.eql(_.map(res.body.data.voters, 'publicKey'));
 							});
 					});
@@ -432,17 +432,17 @@ describe('GET /api/voters', () => {
 									sort: 'balance:asc',
 									username: validVotedDelegate.delegateName,
 								},
-								200
+								200,
 							)
 							.then(res => {
 								expectValidVotedDelegateResponse(res);
 								expect(res.body.data.username).to.equal(
-									validVotedDelegate.delegateName
+									validVotedDelegate.delegateName,
 								);
 								expect(
 									_.map(res.body.data.voters, 'balance').sort((a, b) =>
-										new BigNum(a).minus(b).toNumber()
-									)
+										new BigNum(a).minus(b).toNumber(),
+									),
 								).to.to.be.eql(_.map(res.body.data.voters, 'balance'));
 							});
 					});
@@ -454,18 +454,18 @@ describe('GET /api/voters', () => {
 									sort: 'balance:desc',
 									username: validVotedDelegate.delegateName,
 								},
-								200
+								200,
 							)
 							.then(res => {
 								expectValidVotedDelegateResponse(res);
 								expect(res.body.data.username).to.equal(
-									validVotedDelegate.delegateName
+									validVotedDelegate.delegateName,
 								);
 
 								expect(
 									_.map(res.body.data.voters, 'balance')
 										.sort((a, b) => new BigNum(a).minus(b).toNumber())
-										.reverse()
+										.reverse(),
 								).to.to.be.eql(_.map(res.body.data.voters, 'balance'));
 							});
 					});
@@ -479,15 +479,15 @@ describe('GET /api/voters', () => {
 									sort: 'username:asc',
 									username: validVotedDelegate.delegateName,
 								},
-								200
+								200,
 							)
 							.then(res => {
 								expectValidVotedDelegateResponse(res);
 								expect(res.body.data.username).to.equal(
-									validVotedDelegate.delegateName
+									validVotedDelegate.delegateName,
 								);
 								expect(
-									_.map(res.body.data.voters, 'username').sort()
+									_.map(res.body.data.voters, 'username').sort(),
 								).to.to.be.eql(_.map(res.body.data.voters, 'username'));
 							});
 					});
@@ -499,17 +499,17 @@ describe('GET /api/voters', () => {
 									sort: 'username:desc',
 									username: validVotedDelegate.delegateName,
 								},
-								200
+								200,
 							)
 							.then(res => {
 								expectValidVotedDelegateResponse(res);
 								expect(res.body.data.username).to.equal(
-									validVotedDelegate.delegateName
+									validVotedDelegate.delegateName,
 								);
 								expect(
 									_.map(res.body.data.voters, 'username')
 										.sort()
-										.reverse()
+										.reverse(),
 								).to.to.be.eql(_.map(res.body.data.voters, 'username'));
 							});
 					});
@@ -523,7 +523,7 @@ describe('GET /api/voters', () => {
 					return votersEndpoint
 						.makeRequest(
 							{ limit: 2, username: validVotedDelegate.delegateName },
-							200
+							200,
 						)
 						.then(res => {
 							expect(res.body.data.voters).to.have.length(2);
@@ -542,7 +542,7 @@ describe('GET /api/voters', () => {
 								offset: 0,
 								username: validVotedDelegate.delegateName,
 							},
-							200
+							200,
 						)
 						.then(res => {
 							expect(res.body.data.voters).to.have.length(2);
@@ -555,12 +555,12 @@ describe('GET /api/voters', () => {
 									offset: 1,
 									username: validVotedDelegate.delegateName,
 								},
-								200
+								200,
 							);
 						})
 						.then(res => {
 							expect(
-								_.intersection(voters, _.map(res.body.data.voters, 'address'))
+								_.intersection(voters, _.map(res.body.data.voters, 'address')),
 							).to.have.length(1);
 							done();
 						})

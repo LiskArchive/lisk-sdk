@@ -98,14 +98,14 @@ const config = {
 				{
 					indices: _.range(10),
 				},
-				configuration.modules.network.wsPort
+				configuration.modules.network.wsPort,
 			);
 		});
 
 		// Configuring nodes to forge with force or without
 		const delegatesMaxLength = Math.ceil(
 			devConfig.modules.chain.forging.delegates.length /
-				(configurations.length - 1)
+				(configurations.length - 1),
 		);
 		const delegates = _.clone(devConfig.modules.chain.forging.delegates);
 
@@ -113,7 +113,7 @@ const config = {
 			configuration.modules.chain.forging.force = false;
 			configuration.modules.chain.forging.delegates = delegates.slice(
 				index * delegatesMaxLength,
-				(index + 1) * delegatesMaxLength
+				(index + 1) * delegatesMaxLength,
 			);
 		});
 
@@ -131,13 +131,13 @@ const config = {
 				}
 				fs.writeFileSync(
 					`${__dirname}/../configs/config.node-${index}.json`,
-					JSON.stringify(configuration, null, 4)
+					JSON.stringify(configuration, null, 4),
 				);
 			} catch (ex) {
 				throw new Error(
 					`Failed to write PM2 config for node ${index} to file system because of exception: ${
 						ex.message
-					}`
+					}`,
 				);
 			}
 
@@ -164,12 +164,12 @@ const config = {
 		try {
 			fs.writeFileSync(
 				`${__dirname}/../pm2.network.json`,
-				JSON.stringify(combinedPM2Config, null, 4)
+				JSON.stringify(combinedPM2Config, null, 4),
 			);
 		} catch (ex) {
 			return callback(
 				new Error(`Failed to write pm2.network.json to file system
-					because of exception: ${ex.message}`)
+					because of exception: ${ex.message}`),
 			);
 		}
 		return callback(null, combinedPM2Config);
@@ -186,7 +186,7 @@ const config = {
 			case SYNC_MODES.RANDOM:
 				if (typeof syncModeArgs.probability !== 'number') {
 					throw new Error(
-						'Probability parameter not specified to random sync mode'
+						'Probability parameter not specified to random sync mode',
 					);
 				}
 				configurations.forEach(configuration => {

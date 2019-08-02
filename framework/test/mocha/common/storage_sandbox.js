@@ -75,7 +75,7 @@ class StorageSandbox extends Storage {
 			throw new Error(
 				`storage_sandbox is meant to be run in test environment only. NODE_ENV is: ${
 					process.env.NODE_ENV
-				}`
+				}`,
 			);
 		}
 
@@ -189,7 +189,7 @@ class TestStorageSandbox extends Storage {
 			throw new Error(
 				`storage_sandbox is meant to be run in test environment only. NODE_ENV is: ${
 					process.env.NODE_ENV
-				}`
+				}`,
 			);
 		}
 

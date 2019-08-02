@@ -32,21 +32,21 @@ const shouldReturnFalseForEmptyNonStringValues = function() {
 	it('should return false for null values', function() {
 		composedSchema.properties.test = this.schema;
 		return expect(validator.validate({ test: null }, composedSchema)).to.equal(
-			false
+			false,
 		);
 	});
 
 	it('should return false for undefined values', function() {
 		composedSchema.properties.test = this.schema;
 		return expect(
-			validator.validate({ test: undefined }, composedSchema)
+			validator.validate({ test: undefined }, composedSchema),
 		).to.equal(false);
 	});
 
 	it('should return false for NaN values', function() {
 		composedSchema.properties.test = this.schema;
 		return expect(validator.validate({ test: NaN }, composedSchema)).to.equal(
-			false
+			false,
 		);
 	});
 
@@ -109,7 +109,7 @@ describe('schema - custom formats', () => {
 		it('should return false if string is longer than maxLength (either chars or bytes)', function() {
 			const invalidData = [];
 			invalidData.push(
-				`${randomstring.generate(ADDITIONAL_DATA.MAX_LENGTH - 1)}现`
+				`${randomstring.generate(ADDITIONAL_DATA.MAX_LENGTH - 1)}现`,
 			);
 			invalidData.push(randomstring.generate(ADDITIONAL_DATA.MAX_LENGTH + 1));
 
@@ -211,14 +211,14 @@ describe('schema - custom formats', () => {
 		it('should return false for invalid username value', function() {
 			const invalidUsername = 'hello^lisk';
 			return expect(validator.validate(invalidUsername, this.schema)).to.equal(
-				false
+				false,
 			);
 		});
 
 		it('should return true for valid username value', function() {
 			const validUsername = 'hello111_lisk!';
 			return expect(validator.validate(validUsername, this.schema)).to.equal(
-				true
+				true,
 			);
 		});
 
@@ -237,7 +237,7 @@ describe('schema - custom formats', () => {
 		it('should return false for invalid hex value', function() {
 			const invalidHex = 'ec0c50z';
 			return expect(validator.validate(invalidHex, this.schema)).to.equal(
-				false
+				false,
 			);
 		});
 
@@ -262,7 +262,7 @@ describe('schema - custom formats', () => {
 			const invalidPublicKey =
 				'zxcdec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8';
 			return expect(validator.validate(invalidPublicKey, this.schema)).to.equal(
-				false
+				false,
 			);
 		});
 
@@ -270,7 +270,7 @@ describe('schema - custom formats', () => {
 			const invalidLengthPublicKey =
 				'c3595ff6041c3bd28b76b8cf75dce8225173d1241624ee89b50f2a8';
 			return expect(
-				validator.validate(invalidLengthPublicKey, this.schema)
+				validator.validate(invalidLengthPublicKey, this.schema),
 			).to.equal(false);
 		});
 
@@ -278,7 +278,7 @@ describe('schema - custom formats', () => {
 			const invalidLengthPublicKey =
 				'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8123';
 			return expect(
-				validator.validate(invalidLengthPublicKey, this.schema)
+				validator.validate(invalidLengthPublicKey, this.schema),
 			).to.equal(false);
 		});
 
@@ -286,7 +286,7 @@ describe('schema - custom formats', () => {
 			const validPublicKey =
 				'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8';
 			return expect(validator.validate(validPublicKey, this.schema)).to.equal(
-				true
+				true,
 			);
 		});
 
@@ -305,7 +305,7 @@ describe('schema - custom formats', () => {
 		it('should return false for invalid csv value', function() {
 			const invalidCsv = ['foo', 'bar'];
 			return expect(validator.validate(invalidCsv, this.schema)).to.equal(
-				false
+				false,
 			);
 		});
 
@@ -317,7 +317,7 @@ describe('schema - custom formats', () => {
 		it('should return false for too many csv values', function() {
 			const invalidCsv = `1${Array(1100).join(',1')}`;
 			return expect(validator.validate(invalidCsv, this.schema)).to.equal(
-				false
+				false,
 			);
 		});
 
@@ -336,7 +336,7 @@ describe('schema - custom formats', () => {
 			const invalidPublicKey =
 				'zxcdec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8';
 			return expect(validator.validate(invalidPublicKey, this.schema)).to.equal(
-				false
+				false,
 			);
 		});
 
@@ -344,7 +344,7 @@ describe('schema - custom formats', () => {
 			const invalidLengthSignature =
 				'3d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05';
 			return expect(
-				validator.validate(invalidLengthSignature, this.schema)
+				validator.validate(invalidLengthSignature, this.schema),
 			).to.equal(false);
 		});
 
@@ -352,7 +352,7 @@ describe('schema - custom formats', () => {
 			const invalidLengthSignature =
 				'1231d8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05';
 			return expect(
-				validator.validate(invalidLengthSignature, this.schema)
+				validator.validate(invalidLengthSignature, this.schema),
 			).to.equal(false);
 		});
 
@@ -360,7 +360,7 @@ describe('schema - custom formats', () => {
 			const validSignature =
 				'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05';
 			return expect(validator.validate(validSignature, this.schema)).to.equal(
-				true
+				true,
 			);
 		});
 
@@ -387,7 +387,7 @@ describe('schema - custom formats', () => {
 		it('should return true for object values', function() {
 			const validQueryList = { foo: 'bar' };
 			return expect(validator.validate(validQueryList, this.schema)).to.equal(
-				true
+				true,
 			);
 		});
 	});
@@ -411,7 +411,7 @@ describe('schema - custom formats', () => {
 		it('should return true for object values', function() {
 			const validDelegateList = { foo: 'bar' };
 			return expect(
-				validator.validate(validDelegateList, this.schema)
+				validator.validate(validDelegateList, this.schema),
 			).to.equal(true);
 		});
 	});

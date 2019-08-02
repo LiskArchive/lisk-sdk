@@ -14,12 +14,20 @@
 
 'use strict';
 
+const Account = require('./account');
+const Block = require('./block');
+const Round = require('./round');
+const RoundDelegates = require('./round_delegates');
+const Transaction = require('./transaction');
+const ChainMeta = require('./chain_meta');
+const TempBlock = require('./temp_block.js');
+
 module.exports = {
-	Account: require('./account'),
-	Block: require('./block'),
-	RoundDelegates: require('./round_delegates'),
-	Round: require('./round'),
-	Transaction: require('./transaction'),
-	ChainMeta: require('./chain_meta'),
-	TempBlock: require('./temp_block.js'),
+	RoundDelegates,
+	ChainMeta,
+	TempBlock,
+	Account,
+	Block,
+	Round,
+	Transaction,
 };

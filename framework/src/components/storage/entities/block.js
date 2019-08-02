@@ -179,7 +179,7 @@ class Block extends BaseEntity {
 			'blockSignature',
 			'string',
 			{ filter: filterType.TEXT },
-			stringToByte
+			stringToByte,
 		);
 		this.addField(
 			'generatorPublicKey',
@@ -187,13 +187,13 @@ class Block extends BaseEntity {
 			{
 				filter: filterType.TEXT,
 			},
-			stringToByte
+			stringToByte,
 		);
 		this.addField(
 			'payloadHash',
 			'string',
 			{ filter: filterType.TEXT },
-			stringToByte
+			stringToByte,
 		);
 		this.addField('payloadLength', 'number', { filter: filterType.NUMBER });
 		this.addField('numberOfTransactions', 'number', {
@@ -309,7 +309,7 @@ class Block extends BaseEntity {
 				this.SQLs.count,
 				{ parsedFilters },
 				{ expectedResultCount },
-				tx
+				tx,
 			)
 			.then(result => +result.count);
 	}
@@ -334,7 +334,7 @@ class Block extends BaseEntity {
 				this.SQLs.isPersisted,
 				{ parsedFilters },
 				{ expectedResultCount: 1 },
-				tx
+				tx,
 			)
 			.then(result => result.exists);
 	}
@@ -348,7 +348,7 @@ class Block extends BaseEntity {
 		const parsedOptions = _.defaults(
 			{},
 			_.pick(options, ['limit', 'offset', 'sort', 'extended']),
-			_.pick(this.defaultOptions, ['limit', 'offset', 'sort', 'extended'])
+			_.pick(this.defaultOptions, ['limit', 'offset', 'sort', 'extended']),
 		);
 		const parsedSort = this.parseSort(parsedOptions.sort);
 
@@ -363,7 +363,7 @@ class Block extends BaseEntity {
 			this.SQLs.select,
 			params,
 			{ expectedResultCount },
-			tx
+			tx,
 		);
 
 		result = Array.isArray(result) ? result : [result];
@@ -375,11 +375,11 @@ class Block extends BaseEntity {
 			const transactions = await this.transactionEntity.get(
 				trxFilters,
 				trxOptions,
-				tx
+				tx,
 			);
 			result.forEach(block => {
 				block.transactions = transactions.filter(
-					({ blockId }) => blockId === block.id
+					({ blockId }) => blockId === block.id,
 				);
 			});
 		}

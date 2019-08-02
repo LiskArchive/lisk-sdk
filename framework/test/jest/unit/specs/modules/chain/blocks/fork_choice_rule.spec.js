@@ -139,7 +139,7 @@ describe('Fork Choice Rule', () => {
 					slots: blockSlots,
 					lastAppliedBlock,
 					receivedBlock,
-				})
+				}),
 			).toBeTruthy();
 		});
 	});

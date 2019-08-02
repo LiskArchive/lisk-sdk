@@ -18,7 +18,7 @@ describe('integration test (type 4) - double multisignature registrations', () =
 	it.todo('should be ok to add a multisig registration to the pool');
 
 	it.todo(
-		'should be ok adding the same transaction with different timestamp to the pool'
+		'should be ok adding the same transaction with different timestamp to the pool',
 	);
 
 	describe('after forging one block', () => {
@@ -27,7 +27,7 @@ describe('integration test (type 4) - double multisignature registrations', () =
 		it.todo('should not include the last transaction to arrive');
 
 		it.todo(
-			'should fail when adding a multisig registration for the same account to the pool'
+			'should fail when adding a multisig registration for the same account to the pool',
 		);
 	});
 });

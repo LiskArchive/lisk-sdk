@@ -175,7 +175,7 @@ class ChainTransaction extends TransactionEntity {
 			this.SQLs.create,
 			{ values: createSet, attributes: trsCreateFields },
 			{ expectedResultCount: 0 },
-			tx
+			tx,
 		);
 	}
 

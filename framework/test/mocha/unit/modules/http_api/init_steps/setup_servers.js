@@ -22,7 +22,7 @@ const http = require('http');
 const im = require('istanbul-middleware');
 
 const setupServers = rewire(
-	'../../../../../../src/modules/http_api/init_steps/setup_servers'
+	'../../../../../../src/modules/http_api/init_steps/setup_servers',
 );
 
 describe('init_steps/setup_servers', () => {
@@ -103,7 +103,7 @@ describe('init_steps/setup_servers', () => {
 				'httpServer',
 				'httpsServer',
 				'wsServer',
-				'wssServer'
+				'wssServer',
 			));
 	});
 
@@ -144,10 +144,10 @@ describe('init_steps/setup_servers', () => {
 
 		it('should call readFileSync with correct parameters', async () => {
 			expect(fs.readFileSync).to.be.calledWithExactly(
-				stub.config.ssl.options.cert
+				stub.config.ssl.options.cert,
 			);
 			expect(fs.readFileSync).to.be.calledWithExactly(
-				stub.config.ssl.options.key
+				stub.config.ssl.options.key,
 			);
 		});
 	});

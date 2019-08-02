@@ -79,12 +79,12 @@ describe('exceptions for recipient transactions exceeding uint64', () => {
 							return reject(err);
 						}
 						return resolve(block);
-					}
+					},
 				);
 			});
 			await library.modules.blocks.blocksProcess.processBlock(
 				newBlock,
-				library.modules.blocks.lastBlock
+				library.modules.blocks.lastBlock,
 			);
 			library.modules.blocks._lastBlock = newBlock;
 		});
@@ -106,12 +106,12 @@ describe('exceptions for recipient transactions exceeding uint64', () => {
 								return reject(err);
 							}
 							return resolve(block);
-						}
+						},
 					);
 				});
 				await library.modules.blocks.blocksProcess.processBlock(
 					newBlock,
-					library.modules.blocks.lastBlock
+					library.modules.blocks.lastBlock,
 				);
 				library.modules.blocks._lastBlock = newBlock;
 			});
@@ -122,13 +122,13 @@ describe('exceptions for recipient transactions exceeding uint64', () => {
 				before('get recipient account', async () => {
 					recipientMemAccountAfter = await library.components.storage.entities.Account.getOne(
 						{ address: accountWithExceedingUint64Recipient.address },
-						{ extended: true }
+						{ extended: true },
 					);
 				});
 
 				it('should add balance to the recipient account', async () => {
 					return expect(recipientMemAccountAfter.balance).to.equal(
-						transactionWithExceedingUint64Recipient.amount.toString()
+						transactionWithExceedingUint64Recipient.amount.toString(),
 					);
 				});
 			});
@@ -140,13 +140,13 @@ describe('exceptions for recipient transactions exceeding uint64', () => {
 					transactionsFromDatabase = await library.components.storage.entities.Transaction.get(
 						{
 							id_in: [transactionWithExceedingUint64Recipient.id],
-						}
+						},
 					);
 				});
 
 				it('should save transaction in the database', async () => {
 					return expect(
-						transactionsFromDatabase.map(transaction => transaction.id)
+						transactionsFromDatabase.map(transaction => transaction.id),
 					).to.include(transactionWithExceedingUint64Recipient.id);
 				});
 			});
@@ -162,13 +162,13 @@ describe('exceptions for recipient transactions exceeding uint64', () => {
 					before('get recipient account', async () => {
 						recipientMemAccountAfterBlockDelete = await library.components.storage.entities.Account.getOne(
 							{ address: accountWithExceedingUint64Recipient.address },
-							{ extended: true }
+							{ extended: true },
 						);
 					});
 
 					it('should update balance field of sender account', async () => {
 						return expect(recipientMemAccountAfterBlockDelete.balance).to.equal(
-							'0'
+							'0',
 						);
 					});
 				});
@@ -186,7 +186,7 @@ describe('exceptions for recipient transactions exceeding uint64', () => {
 								expect(err).to.not.exist;
 								transactionsFilteredById = res.transactions;
 								done();
-							}
+							},
 						);
 					});
 

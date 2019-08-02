@@ -178,12 +178,12 @@ class BaseEntity {
 
 					return `"${field.fieldName}" = ${field.serializeValue(
 						data[key],
-						'update'
+						'update',
 					)}`;
 				})
 				.filter(Boolean)
 				.join(','),
-			data
+			data,
 		);
 	}
 
@@ -253,7 +253,7 @@ class BaseEntity {
 				filterName,
 				options.fieldName || filterName,
 				options.inputSerializer,
-				options.condition
+				options.condition,
 			),
 		};
 	}
@@ -267,7 +267,7 @@ class BaseEntity {
 	validateFilters(filters = {}, atLeastOneRequired = false) {
 		if (atLeastOneRequired && (!filters || !Object.keys(filters).length)) {
 			throw new NonSupportedFilterTypeError(
-				'One or more filters are required for this operation.'
+				'One or more filters are required for this operation.',
 			);
 		}
 
@@ -277,20 +277,20 @@ class BaseEntity {
 		if (Array.isArray(filters)) {
 			flattenedFilters = filters.reduce(
 				(acc, curr) => ({ ...acc, ...curr }),
-				{}
+				{},
 			);
 		} else {
 			flattenedFilters = filters;
 		}
 
 		invalidFilters = Object.keys(flattenedFilters).filter(
-			item => !this.getFilters().includes(item)
+			item => !this.getFilters().includes(item),
 		);
 
 		if (invalidFilters.length) {
 			throw new NonSupportedFilterTypeError(
 				'One or more filters are not supported.',
-				invalidFilters
+				invalidFilters,
 			);
 		}
 
@@ -306,18 +306,18 @@ class BaseEntity {
 	validateOptions(options = {}, atLeastOneRequired = false) {
 		if (atLeastOneRequired && (!options || !Object.keys(options).length)) {
 			throw new NonSupportedOptionError(
-				'One or more options are required for this operation.'
+				'One or more options are required for this operation.',
 			);
 		}
 
 		const invalidOptions = Object.keys(options).filter(
-			item => !(item in this.defaultOptions)
+			item => !(item in this.defaultOptions),
 		);
 
 		if (invalidOptions.length) {
 			throw new NonSupportedOptionError(
 				'One or more options are not supported.',
-				invalidOptions
+				invalidOptions,
 			);
 		}
 
@@ -348,7 +348,7 @@ class BaseEntity {
 					`${this.adapter.parseQueryComponent(filterString, filterObject)}`,
 				];
 			},
-			[]
+			[],
 		);
 
 		return subQueries.length === 0
@@ -378,7 +378,7 @@ class BaseEntity {
 					return this.fields[key].serializeValue(data[key], 'insert');
 				})
 				.join(','),
-			data
+			data,
 		)})`;
 	}
 

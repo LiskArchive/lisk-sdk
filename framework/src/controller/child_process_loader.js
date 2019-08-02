@@ -28,7 +28,7 @@ const _loadModule = async (config, moduleOptions) => {
 	const channel = new ChildProcessChannel(
 		moduleAlias,
 		module.events,
-		module.actions
+		module.actions,
 	);
 
 	await channel.registerToBus(config.socketsPath);

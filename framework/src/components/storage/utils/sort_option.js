@@ -14,6 +14,11 @@
 
 'use strict';
 
+const parseSortStringToObject = sortString => {
+	const [field, method = 'ASC'] = sortString.split(':');
+	return { field, method: method.toUpperCase() };
+};
+
 const isSortOptionValid = (sortOption, fields) => {
 	if (!sortOption) return true;
 	const sortArray = Array.isArray(sortOption) ? sortOption : [sortOption];
@@ -30,11 +35,6 @@ const parseSortString = sortString => {
 		sortClause = `"${field}" ${method.toUpperCase()}`;
 	}
 	return sortClause;
-};
-
-const parseSortStringToObject = sortString => {
-	const [field, method = 'ASC'] = sortString.split(':');
-	return { field, method: method.toUpperCase() };
 };
 
 module.exports = {

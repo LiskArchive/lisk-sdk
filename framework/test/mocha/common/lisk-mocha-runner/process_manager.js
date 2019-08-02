@@ -28,7 +28,7 @@ const promisifyChildExit = child => {
 		console.info(
 			`Child process '${currentTests[child.pid]}(pid: ${
 				child.pid
-			})' exit with error: `
+			})' exit with error: `,
 		);
 		console.info(err);
 		error = err;

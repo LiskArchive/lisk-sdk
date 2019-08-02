@@ -34,7 +34,7 @@ describe('duplicate_signatures', () => {
 		library = lib;
 
 		addTransactionsAndForgePromise = Promise.promisify(
-			localCommon.addTransactionsAndForge
+			localCommon.addTransactionsAndForge,
 		);
 
 		transactionPool = library.modules.transactionPool;
@@ -55,7 +55,7 @@ describe('duplicate_signatures', () => {
 		// Create 2 random accounts to use as multisignature members
 		accounts.multisignatureMembers.push(
 			randomUtil.account(),
-			randomUtil.account()
+			randomUtil.account(),
 		);
 
 		// Create transfer transaction (fund new account)
@@ -82,14 +82,14 @@ describe('duplicate_signatures', () => {
 		signatures.push(
 			createSignatureObject(
 				transaction,
-				accounts.multisignatureMembers[0].passphrase
-			)
+				accounts.multisignatureMembers[0].passphrase,
+			),
 		);
 		signatures.push(
 			createSignatureObject(
 				transaction,
-				accounts.multisignatureMembers[1].passphrase
-			)
+				accounts.multisignatureMembers[1].passphrase,
+			),
 		);
 
 		return [transactions, signatures, accounts];
@@ -114,14 +114,14 @@ describe('duplicate_signatures', () => {
 		signatures.push(
 			createSignatureObject(
 				transaction,
-				accounts.multisignatureMembers[0].passphrase
-			)
+				accounts.multisignatureMembers[0].passphrase,
+			),
 		);
 		signatures.push(
 			createSignatureObject(
 				transaction,
-				accounts.multisignatureMembers[1].passphrase
-			)
+				accounts.multisignatureMembers[1].passphrase,
+			),
 		);
 
 		return [transactions, signatures];
@@ -142,7 +142,7 @@ describe('duplicate_signatures', () => {
 					return addTransactionsAndForgePromise(
 						library,
 						[transactions.transfer],
-						0
+						0,
 					);
 				});
 
@@ -157,17 +157,17 @@ describe('duplicate_signatures', () => {
 							// Transaction should be present in transaction pool
 							expect(
 								transactionPool.transactionInPool(
-									transactions.multisignature.id
-								)
+									transactions.multisignature.id,
+								),
 							).to.equal(true);
 							// Transaction should exists in multisignature queue
 							expect(
 								transactionPool.getMultisignatureTransaction(
-									transactions.multisignature.id
-								)
+									transactions.multisignature.id,
+								),
 							).to.be.an('object');
 							done();
-						}
+						},
 					);
 				});
 
@@ -195,13 +195,13 @@ describe('duplicate_signatures', () => {
 
 							// Get transaction from pool
 							const transaction = transactionPool.getMultisignatureTransaction(
-								transactions.multisignature.id
+								transactions.multisignature.id,
 							);
 
 							// There should be 2 signatures
 							expect(transaction.signatures).to.have.lengthOf(2);
 							done();
-						}
+						},
 					);
 				});
 
@@ -211,7 +211,7 @@ describe('duplicate_signatures', () => {
 						const lastBlock = library.modules.blocks.lastBlock;
 						// Block should contain multisignature registration transaction
 						expect(lastBlock.transactions[0].id).to.eql(
-							transactions.multisignature.id
+							transactions.multisignature.id,
 						);
 						// There should be 2 signatures
 						expect(lastBlock.transactions[0].signatures).to.have.lengthOf(2);
@@ -242,20 +242,20 @@ describe('duplicate_signatures', () => {
 					return addTransactionsAndForgePromise(
 						library,
 						[transactions.transfer],
-						0
+						0,
 					).then(() => {
 						// Execute multisignature creation on account credited above
 						return addTransactionsAndForgePromise(
 							library,
 							[transactions.multisignature],
-							0
+							0,
 						);
 					});
 				});
 
 				it('should add transaction to transaction pool', done => {
 					[transactions, signatures] = prepareSendFromMultisignatureAccount(
-						accounts
+						accounts,
 					);
 
 					// Add multisignature transaction to transaction pool
@@ -264,13 +264,13 @@ describe('duplicate_signatures', () => {
 						expect(err).to.be.null;
 						// Transaction should be present in transaction pool
 						expect(
-							transactionPool.transactionInPool(transactions.transfer.id)
+							transactionPool.transactionInPool(transactions.transfer.id),
 						).to.equal(true);
 						// Transaction should exists in multisignature queue
 						expect(
 							transactionPool.getMultisignatureTransaction(
-								transactions.transfer.id
-							)
+								transactions.transfer.id,
+							),
 						).to.be.an('object');
 						done();
 					});
@@ -300,13 +300,13 @@ describe('duplicate_signatures', () => {
 
 							// Get transaction from pool
 							const transaction = transactionPool.getMultisignatureTransaction(
-								transactions.transfer.id
+								transactions.transfer.id,
 							);
 
 							// There should be 2 signatures
 							expect(transaction.signatures).to.have.lengthOf(2);
 							done();
-						}
+						},
 					);
 				});
 
@@ -316,7 +316,7 @@ describe('duplicate_signatures', () => {
 						const lastBlock = library.modules.blocks.lastBlock;
 						// Block should contain transaction sent from multisignature account
 						expect(lastBlock.transactions[0].id).to.eql(
-							transactions.transfer.id
+							transactions.transfer.id,
 						);
 						// There should be 2 signatures
 						expect(lastBlock.transactions[0].signatures).to.have.lengthOf(2);
@@ -339,7 +339,7 @@ describe('duplicate_signatures', () => {
 					return addTransactionsAndForgePromise(
 						library,
 						[transactions.transfer],
-						0
+						0,
 					);
 				});
 
@@ -354,17 +354,17 @@ describe('duplicate_signatures', () => {
 							// Transaction should be present in transaction pool
 							expect(
 								transactionPool.transactionInPool(
-									transactions.multisignature.id
-								)
+									transactions.multisignature.id,
+								),
 							).to.equal(true);
 							// Transaction should exists in multisignature queue
 							expect(
 								transactionPool.getMultisignatureTransaction(
-									transactions.multisignature.id
-								)
+									transactions.multisignature.id,
+								),
 							).to.be.an('object');
 							done();
-						}
+						},
 					);
 				});
 
@@ -395,19 +395,19 @@ describe('duplicate_signatures', () => {
 							// There should be an error from processing only for duplicated signature
 							expect(results[0].value).to.be.undefined;
 							expect(results[1].error[0].message).to.eql(
-								'Encountered duplicate signature in transaction'
+								'Encountered duplicate signature in transaction',
 							);
 							expect(results[2].value).to.be.undefined;
 
 							// Get transaction from pool
 							const transaction = transactionPool.getMultisignatureTransaction(
-								transactions.multisignature.id
+								transactions.multisignature.id,
 							);
 
 							// There should be 2 signatures
 							expect(transaction.signatures).to.have.lengthOf(2);
 							done();
-						}
+						},
 					);
 				});
 
@@ -417,7 +417,7 @@ describe('duplicate_signatures', () => {
 						const lastBlock = library.modules.blocks.lastBlock;
 						// Block should contain multisignature registration transaction
 						expect(lastBlock.transactions[0].id).to.eql(
-							transactions.multisignature.id
+							transactions.multisignature.id,
 						);
 						// There should be 2 signatures
 						expect(lastBlock.transactions[0].signatures).to.have.lengthOf(2);
@@ -448,20 +448,20 @@ describe('duplicate_signatures', () => {
 					return addTransactionsAndForgePromise(
 						library,
 						[transactions.transfer],
-						0
+						0,
 					).then(() => {
 						// Execute multisignature creation on account credited above
 						return addTransactionsAndForgePromise(
 							library,
 							[transactions.multisignature],
-							0
+							0,
 						);
 					});
 				});
 
 				it('should add transaction to transaction pool', done => {
 					[transactions, signatures] = prepareSendFromMultisignatureAccount(
-						accounts
+						accounts,
 					);
 
 					// Add multisignature transaction to transaction pool
@@ -470,13 +470,13 @@ describe('duplicate_signatures', () => {
 						expect(err).to.be.null;
 						// Transaction should be present in transaction pool
 						expect(
-							transactionPool.transactionInPool(transactions.transfer.id)
+							transactionPool.transactionInPool(transactions.transfer.id),
 						).to.equal(true);
 						// Transaction should exists in multisignature queue
 						expect(
 							transactionPool.getMultisignatureTransaction(
-								transactions.transfer.id
-							)
+								transactions.transfer.id,
+							),
 						).to.be.an('object');
 						done();
 					});
@@ -517,19 +517,19 @@ describe('duplicate_signatures', () => {
 							expect(results[errorIndex].error[0].message).to.eql(
 								`Signature '${
 									signatures[0].signature
-								}' already present in transaction.`
+								}' already present in transaction.`,
 							);
 							expect(results[2].value).to.be.undefined;
 
 							// Get transaction from pool
 							const transaction = transactionPool.getMultisignatureTransaction(
-								transactions.transfer.id
+								transactions.transfer.id,
 							);
 
 							// There should be 2 signatures
 							expect(transaction.signatures).to.have.lengthOf(2);
 							done(err);
-						}
+						},
 					);
 				});
 
@@ -539,7 +539,7 @@ describe('duplicate_signatures', () => {
 						const lastBlock = library.modules.blocks.lastBlock;
 						// Block should contain transaction sent from multisignature account
 						expect(lastBlock.transactions[0].id).to.eql(
-							transactions.transfer.id
+							transactions.transfer.id,
 						);
 						// There should be 2 signatures
 						expect(lastBlock.transactions[0].signatures).to.have.lengthOf(2);

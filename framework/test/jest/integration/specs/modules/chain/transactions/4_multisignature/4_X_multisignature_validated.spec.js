@@ -21,7 +21,7 @@ describe('integration test (type 4) - checking registered multisignature transac
 		it.todo('should include the transaction');
 
 		it.todo(
-			'should fail when adding a multisig registration for the same account to the pool'
+			'should fail when adding a multisig registration for the same account to the pool',
 		);
 
 		describe('adding to pool other transaction types from the same account', () => {
