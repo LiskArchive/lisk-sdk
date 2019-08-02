@@ -27,7 +27,7 @@ function incrementRelays(packet) {
 	if (!Number.isInteger(packet.relays)) {
 		packet.relays = 0;
 	}
-	packet.relays++;
+	packet.relays += 1;
 }
 
 /**
