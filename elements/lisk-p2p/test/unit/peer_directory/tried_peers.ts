@@ -13,7 +13,7 @@
  *
  */
 import { expect } from 'chai';
-import { TriedPeers } from '../../../src/peer_directory/tried_peers';
+import { TriedPeers } from '../../../src/directory/tried_peers';
 import { initializePeerInfoList } from '../../utils/peers';
 import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 
