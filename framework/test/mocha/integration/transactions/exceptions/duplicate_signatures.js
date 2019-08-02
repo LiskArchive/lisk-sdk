@@ -141,12 +141,12 @@ describe('exceptions for duplicatedSignatures transactions', () => {
 							return reject(err);
 						}
 						return resolve(block);
-					}
+					},
 				);
 			});
 			await library.modules.blocks.blocksProcess.processBlock(
 				newBlock,
-				library.modules.blocks.lastBlock
+				library.modules.blocks.lastBlock,
 			);
 			library.modules.blocks._lastBlock = newBlock;
 		});
@@ -171,12 +171,12 @@ describe('exceptions for duplicatedSignatures transactions', () => {
 								return reject(err);
 							}
 							return resolve(block);
-						}
+						},
 					);
 				});
 				await library.modules.blocks.blocksProcess.processBlock(
 					newBlock,
-					library.modules.blocks.lastBlock
+					library.modules.blocks.lastBlock,
 				);
 				library.modules.blocks._lastBlock = newBlock;
 			});
@@ -190,17 +190,17 @@ describe('exceptions for duplicatedSignatures transactions', () => {
 							address:
 								accountWithTransactionWithSignaturesFromSamePublicKey.address,
 						},
-						{ extended: true }
+						{ extended: true },
 					);
 				});
 
 				it('should make sender account multisignature', async () => {
 					expect(senderMemAccountBefore.multiMin).to.equal(
-						transactionToRegisterMultisignature.asset.multisignature.min
+						transactionToRegisterMultisignature.asset.multisignature.min,
 					);
 
 					expect(senderMemAccountBefore.multiLifetime).to.equal(
-						transactionToRegisterMultisignature.asset.multisignature.lifetime
+						transactionToRegisterMultisignature.asset.multisignature.lifetime,
 					);
 				});
 
@@ -224,12 +224,12 @@ describe('exceptions for duplicatedSignatures transactions', () => {
 										return reject(err);
 									}
 									return resolve(block);
-								}
+								},
 							);
 						});
 						await library.modules.blocks.blocksProcess.processBlock(
 							newBlock,
-							library.modules.blocks.lastBlock
+							library.modules.blocks.lastBlock,
 						);
 						library.modules.blocks._lastBlock = newBlock;
 					});
@@ -243,7 +243,7 @@ describe('exceptions for duplicatedSignatures transactions', () => {
 									address:
 										accountWithTransactionWithSignaturesFromSamePublicKey.address,
 								},
-								{ extended: true }
+								{ extended: true },
 							);
 						});
 
@@ -251,7 +251,7 @@ describe('exceptions for duplicatedSignatures transactions', () => {
 							return expect(senderMemAccountAfter.balance).to.equal(
 								new BigNum(senderMemAccountBefore.balance)
 									.minus(transactionWithSignaturesFromSamePublicKey.fee)
-									.toString()
+									.toString(),
 							);
 						});
 					});
@@ -266,16 +266,16 @@ describe('exceptions for duplicatedSignatures transactions', () => {
 										transactionToRegisterMultisignature.id,
 										transactionWithSignaturesFromSamePublicKey.id,
 									],
-								}
+								},
 							);
 						});
 
 						it('should save both transactions in the database', async () => {
 							return expect(
-								transactionsFromDatabase.map(transaction => transaction.id)
+								transactionsFromDatabase.map(transaction => transaction.id),
 							).to.include(
 								transactionToRegisterMultisignature.id,
-								transactionWithSignaturesFromSamePublicKey.id
+								transactionWithSignaturesFromSamePublicKey.id,
 							);
 						});
 					});
@@ -294,13 +294,13 @@ describe('exceptions for duplicatedSignatures transactions', () => {
 										address:
 											accountWithTransactionWithSignaturesFromSamePublicKey.address,
 									},
-									{ extended: true }
+									{ extended: true },
 								);
 							});
 
 							it('should update balance field of sender account', async () => {
 								return expect(
-									senderMemAccountAfterBlockDelete.balance
+									senderMemAccountAfterBlockDelete.balance,
 								).to.equal(senderMemAccountBefore.balance);
 							});
 						});
@@ -318,7 +318,7 @@ describe('exceptions for duplicatedSignatures transactions', () => {
 										expect(err).to.not.exist;
 										transactionsFilteredById = res.transactions;
 										done();
-									}
+									},
 								);
 							});
 

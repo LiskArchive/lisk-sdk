@@ -17,7 +17,7 @@
 describe('rebuilding', () => {
 	describe('rebuilding to end of round 2 when blockchain contains 303 blocks', () => {
 		it.todo(
-			'Accounts states after rebuilding should match copy taken after round 2'
+			'Accounts states after rebuilding should match copy taken after round 2',
 		);
 	});
 });

@@ -109,14 +109,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.dapp' should have required property 'category'"
+						"'.dapp' should have required property 'category'",
 					);
 					badTransactions.push(transaction);
 				});
@@ -131,14 +131,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.dapp.category' should be integer"
+						"'.dapp.category' should be integer",
 					);
 					badTransactions.push(transaction);
 				});
@@ -153,14 +153,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.dapp.category' should be >= 0"
+						"'.dapp.category' should be >= 0",
 					);
 					badTransactions.push(transaction);
 				});
@@ -175,14 +175,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.dapp.category' should be <= 8"
+						"'.dapp.category' should be <= 8",
 					);
 					badTransactions.push(transaction);
 				});
@@ -226,10 +226,10 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors).to.not.be.empty;
@@ -264,14 +264,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.dapp.description' should NOT be longer than 160 characters"
+						"'.dapp.description' should NOT be longer than 160 characters",
 					);
 					badTransactions.push(transaction);
 				});
@@ -303,14 +303,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'\'.dapp.description\' should match format "noNullByte"'
+						'\'.dapp.description\' should match format "noNullByte"',
 					);
 					badTransactions.push(transaction);
 				});
@@ -327,14 +327,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'\'.dapp.description\' should match format "noNullByte"'
+						'\'.dapp.description\' should match format "noNullByte"',
 					);
 					badTransactions.push(transaction);
 				});
@@ -351,14 +351,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'\'.dapp.description\' should match format "noNullByte"'
+						'\'.dapp.description\' should match format "noNullByte"',
 					);
 					badTransactions.push(transaction);
 				});
@@ -375,14 +375,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'\'.dapp.description\' should match format "noNullByte"'
+						'\'.dapp.description\' should match format "noNullByte"',
 					);
 					badTransactions.push(transaction);
 				});
@@ -414,10 +414,10 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors).to.not.be.empty;
@@ -436,14 +436,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'\'.dapp.icon\' should match format "uri"'
+						'\'.dapp.icon\' should match format "uri"',
 					);
 					badTransactions.push(transaction);
 				});
@@ -460,14 +460,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'Dapp icon must have suffix of one of .png,.jpeg,.jpg'
+						'Dapp icon must have suffix of one of .png,.jpeg,.jpg',
 					);
 					badTransactions.push(transaction);
 				});
@@ -486,14 +486,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'\'.dapp.link\' should match format "uri"'
+						'\'.dapp.link\' should match format "uri"',
 					);
 					badTransactions.push(transaction);
 				});
@@ -508,14 +508,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.dapp.link' should be string"
+						"'.dapp.link' should be string",
 					);
 					badTransactions.push(transaction);
 				});
@@ -532,14 +532,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'Dapp icon must have suffix .zip'
+						'Dapp icon must have suffix .zip',
 					);
 					badTransactions.push(transaction);
 				});
@@ -556,14 +556,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.dapp' should have required property 'name'"
+						"'.dapp' should have required property 'name'",
 					);
 					badTransactions.push(transaction);
 				});
@@ -578,14 +578,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.dapp.name' should be string"
+						"'.dapp.name' should be string",
 					);
 					badTransactions.push(transaction);
 				});
@@ -600,14 +600,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.dapp.name' should NOT be shorter than 1 characters"
+						"'.dapp.name' should NOT be shorter than 1 characters",
 					);
 					badTransactions.push(transaction);
 				});
@@ -625,14 +625,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.dapp.name' should NOT be longer than 32 characters"
+						"'.dapp.name' should NOT be longer than 32 characters",
 					);
 					badTransactions.push(transaction);
 				});
@@ -665,14 +665,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'\'.dapp.name\' should match format "noNullByte"'
+						'\'.dapp.name\' should match format "noNullByte"',
 					);
 					badTransactions.push(transaction);
 				});
@@ -689,14 +689,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'\'.dapp.name\' should match format "noNullByte"'
+						'\'.dapp.name\' should match format "noNullByte"',
 					);
 					badTransactions.push(transaction);
 				});
@@ -713,14 +713,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'\'.dapp.name\' should match format "noNullByte"'
+						'\'.dapp.name\' should match format "noNullByte"',
 					);
 					badTransactions.push(transaction);
 				});
@@ -737,14 +737,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'\'.dapp.name\' should match format "noNullByte"'
+						'\'.dapp.name\' should match format "noNullByte"',
 					);
 					badTransactions.push(transaction);
 				});
@@ -776,10 +776,10 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors).to.not.be.empty;
@@ -814,14 +814,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.dapp.tags' should NOT be longer than 160 characters"
+						"'.dapp.tags' should NOT be longer than 160 characters",
 					);
 					badTransactions.push(transaction);
 				});
@@ -854,14 +854,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'Dapp tags must have unique set'
+						'Dapp tags must have unique set',
 					);
 					badTransactions.push(transaction);
 				});
@@ -893,14 +893,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'\'.dapp.tags\' should match format "noNullByte"'
+						'\'.dapp.tags\' should match format "noNullByte"',
 					);
 					badTransactions.push(transaction);
 				});
@@ -917,14 +917,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'\'.dapp.tags\' should match format "noNullByte"'
+						'\'.dapp.tags\' should match format "noNullByte"',
 					);
 					badTransactions.push(transaction);
 				});
@@ -941,14 +941,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'\'.dapp.tags\' should match format "noNullByte"'
+						'\'.dapp.tags\' should match format "noNullByte"',
 					);
 					badTransactions.push(transaction);
 				});
@@ -965,14 +965,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'\'.dapp.tags\' should match format "noNullByte"'
+						'\'.dapp.tags\' should match format "noNullByte"',
 					);
 					badTransactions.push(transaction);
 				});
@@ -989,14 +989,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.dapp' should have required property 'type'"
+						"'.dapp' should have required property 'type'",
 					);
 					badTransactions.push(transaction);
 				});
@@ -1011,14 +1011,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.dapp.type' should be >= 0"
+						"'.dapp.type' should be >= 0",
 					);
 					badTransactions.push(transaction);
 				});
@@ -1033,14 +1033,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.dapp.type' should be >= 0"
+						"'.dapp.type' should be >= 0",
 					);
 					badTransactions.push(transaction);
 				});
@@ -1056,14 +1056,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.dapp.type' should be <= 1"
+						"'.dapp.type' should be <= 1",
 					);
 					badTransactions.push(transaction);
 				});
@@ -1082,14 +1082,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				apiCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR,
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					'Transaction was rejected with errors'
+					'Transaction was rejected with errors',
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					`Application name already exists: ${randomUtil.guestbookDapp.name}`
+					`Application name already exists: ${randomUtil.guestbookDapp.name}`,
 				);
 				badTransactions.push(transaction);
 			});
@@ -1105,14 +1105,14 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				apiCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR,
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					'Transaction was rejected with errors'
+					'Transaction was rejected with errors',
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					`Application link already exists: ${randomUtil.guestbookDapp.link}`
+					`Application link already exists: ${randomUtil.guestbookDapp.link}`,
 				);
 				badTransactions.push(transaction);
 			});
@@ -1126,16 +1126,16 @@ describe.skip('POST /api/transactions (type 5) register dapp', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				apiCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR,
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					'Transaction was rejected with errors'
+					'Transaction was rejected with errors',
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					`Account does not have enough LSK: ${
 						accountNoFunds.address
-					}, balance: 0`
+					}, balance: 0`,
 				);
 				badTransactions.push(transaction);
 			});

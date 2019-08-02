@@ -49,11 +49,11 @@ class BlocksProcess {
 			: block;
 		const normalizedBlock = blocksLogic.objectNormalize(
 			enhancedBlock,
-			this.exceptions
+			this.exceptions,
 		);
 		const { verified, errors } = this.blocksVerify.verifyBlock(
 			normalizedBlock,
-			lastBlock
+			lastBlock,
 		);
 		if (!verified) {
 			throw errors;
@@ -73,11 +73,11 @@ class BlocksProcess {
 		const enhancedBlock = blocksUtils.addBlockProperties(block);
 		const normalizedBlock = blocksLogic.objectNormalize(
 			enhancedBlock,
-			this.exceptions
+			this.exceptions,
 		);
 		const { verified, errors } = this.blocksVerify.verifyBlock(
 			normalizedBlock,
-			lastBlock
+			lastBlock,
 		);
 		if (!verified) {
 			throw errors;
@@ -99,23 +99,23 @@ class BlocksProcess {
 			.checkAllowedTransactions(context)(transactions)
 			.transactionsResponses.filter(
 				transactionResponse =>
-					transactionResponse.status === TransactionStatus.OK
+					transactionResponse.status === TransactionStatus.OK,
 			)
 			.map(transactionReponse => transactionReponse.id);
 
 		const allowedTransactions = transactions.filter(transaction =>
-			allowedTransactionsIds.includes(transaction.id)
+			allowedTransactionsIds.includes(transaction.id),
 		);
 		const {
 			transactionsResponses: responses,
 		} = await transactionsModule.applyTransactions(this.storage, this.slots)(
-			allowedTransactions
+			allowedTransactions,
 		);
 		const readyTransactions = allowedTransactions.filter(transaction =>
 			responses
 				.filter(response => response.status === TransactionStatus.OK)
 				.map(response => response.id)
-				.includes(transaction.id)
+				.includes(transaction.id),
 		);
 		return blocksLogic.create({
 			blockReward: this.blockReward,
@@ -132,7 +132,7 @@ class BlocksProcess {
 			this.storage,
 			currentBlock.height - 1,
 			this.interfaceAdapters,
-			this.genesisBlock
+			this.genesisBlock,
 		);
 		const { verified } = this.blocksVerify.verifyBlock(currentBlock, lastBlock);
 		if (!verified) {
@@ -151,7 +151,7 @@ class BlocksProcess {
 			targetHeight,
 			isCleaning,
 			onProgress,
-			loadPerIteration
+			loadPerIteration,
 		);
 		return lastBlock;
 	}
@@ -162,7 +162,7 @@ class BlocksProcess {
 		targetHeight,
 		isCleaning,
 		onProgress,
-		loadPerIteration
+		loadPerIteration,
 	) {
 		const limit = loadPerIteration;
 		const blocks = await blocksUtils.loadBlocksWithOffset(
@@ -170,7 +170,7 @@ class BlocksProcess {
 			this.interfaceAdapters,
 			this.genesisBlock,
 			limit,
-			currentHeight
+			currentHeight,
 		);
 		let lastBlock = initialBlock;
 		// eslint-disable-next-line no-restricted-syntax
@@ -197,7 +197,7 @@ class BlocksProcess {
 				targetHeight,
 				isCleaning,
 				onProgress,
-				loadPerIteration
+				loadPerIteration,
 			);
 		}
 		return lastBlock;

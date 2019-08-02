@@ -18,7 +18,7 @@ const find = require('find');
 const setup = require('./setup');
 const Network = require('./network');
 
-const TOTAL_PEERS = Number.parseInt(process.env.TOTAL_PEERS) || 10;
+const TOTAL_PEERS = Number.parseInt(process.env.TOTAL_PEERS, 10) || 10;
 // Full mesh network with 2 connection for bi-directional communication
 const EXPECTED_TOTAL_CONNECTIONS = (TOTAL_PEERS - 1) * TOTAL_PEERS * 2;
 // 2 connections (1 bidirectional) are established for each node in order to
@@ -62,7 +62,7 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 				WSPORTS,
 				TOTAL_PEERS,
 				EXPECTED_TOTAL_CONNECTIONS,
-				NUMBER_OF_MONITORING_CONNECTIONS
+				NUMBER_OF_MONITORING_CONNECTIONS,
 			);
 		});
 	});

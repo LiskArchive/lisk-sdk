@@ -47,9 +47,9 @@ describe('integration test (type 4) - sending transactions on top of unconfirmed
 					[randomTransfer],
 					async () => {
 						done();
-					}
+					},
 				);
-			}
+			},
 		);
 	});
 
@@ -60,7 +60,7 @@ describe('integration test (type 4) - sending transactions on top of unconfirmed
 			(err, res) => {
 				expect(res).to.equal(scenarios.regular.multiSigTransaction.id);
 				done();
-			}
+			},
 		);
 	});
 
@@ -81,7 +81,7 @@ describe('integration test (type 4) - sending transactions on top of unconfirmed
 								expect(res).to.equal(transaction.id);
 								done();
 							});
-						}
+						},
 					);
 				});
 			}

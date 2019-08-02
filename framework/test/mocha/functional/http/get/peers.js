@@ -163,7 +163,7 @@ describe('GET /peers', () => {
 				.makeRequest({ protocolVersion: validHeaders.protocolVersion }, 200)
 				.then(res => {
 					expect(res.body.data[0].protocolVersion).to.be.eql(
-						validHeaders.protocolVersion
+						validHeaders.protocolVersion,
 					);
 				});
 		});
@@ -199,7 +199,7 @@ describe('GET /peers', () => {
 					expect(
 						_.clone(versions)
 							.sort()
-							.reverse()
+							.reverse(),
 					).to.be.eql(versions);
 				});
 		});
@@ -230,7 +230,7 @@ describe('GET /peers', () => {
 					{
 						whatever: validHeaders.broadhash,
 					},
-					400
+					400,
 				)
 				.then(res => {
 					expectSwaggerParamError(res, 'whatever');
@@ -243,7 +243,7 @@ describe('GET /peers', () => {
 					{
 						broadhash: '',
 					},
-					200
+					200,
 				)
 				.then(res => {
 					expect(res.body.data).to.be.empty;
@@ -259,7 +259,7 @@ describe('GET /peers', () => {
 						offset: 'invalid',
 						sort: 'invalid',
 					},
-					400
+					400,
 				)
 				.then(res => {
 					expectSwaggerParamError(res, 'wsPort');
@@ -278,7 +278,7 @@ describe('GET /peers', () => {
 						offset: 'invalid',
 						sort: 'invalid',
 					},
-					400
+					400,
 				)
 				.then(res => {
 					expectSwaggerParamError(res, 'limit');
@@ -303,7 +303,7 @@ describe('GET /peers', () => {
 
 				responseData.forEach(peer => {
 					expect(peer.wsPort).to.not.be.eql(
-						__testContext.config.modules.network.wsPort
+						__testContext.config.modules.network.wsPort,
 					);
 				});
 			});

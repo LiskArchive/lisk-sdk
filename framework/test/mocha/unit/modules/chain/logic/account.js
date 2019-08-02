@@ -61,11 +61,11 @@ describe('account', () => {
 					scope.components.storage,
 					scope.schema,
 					scope.components.logger,
-					scope.modules.rounds
+					scope.modules.rounds,
 				);
 				storage = scope.components.storage;
 				done();
-			}
+			},
 		);
 	});
 
@@ -88,7 +88,7 @@ describe('account', () => {
 
 			accountLogic = new Account(
 				storageStub,
-				modulesLoader.scope.components.logger
+				modulesLoader.scope.components.logger,
 			);
 
 			library = Account.__get__('library');
@@ -118,14 +118,14 @@ describe('account', () => {
 		it('should throw error if parameter is not a hex string', async () =>
 			expect(() => {
 				account.verifyPublicKey(
-					'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2az'
+					'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2az',
 				);
 			}).to.throw('Invalid public key, must be a hex string'));
 
 		it('should be okay if parameter is in correct format', async () =>
 			expect(() => {
 				account.verifyPublicKey(
-					'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a2'
+					'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a2',
 				);
 			}).to.not.throw());
 	});
@@ -134,8 +134,8 @@ describe('account', () => {
 		before(async () =>
 			storage.entities.Account.upsert(
 				{ address: validAccount.address },
-				{ u_username: 'test_set', vote: 1, address: validAccount.address }
-			)
+				{ u_username: 'test_set', vote: 1, address: validAccount.address },
+			),
 		);
 
 		it('should merge diff when values are correct', done => {
@@ -147,7 +147,7 @@ describe('account', () => {
 					expect(res.votedDelegatesPublicKeys).to.deep.equal(['DLG1']);
 					expect(res.membersPublicKeys).to.deep.equal(['MS1']);
 					done();
-				}
+				},
 			);
 		});
 
@@ -187,7 +187,7 @@ describe('account', () => {
 					err => {
 						expect(err).to.equal('Account#merge error');
 						done();
-					}
+					},
 				);
 			});
 
@@ -198,7 +198,7 @@ describe('account', () => {
 					err => {
 						expect(err).to.equal('Account#merge error');
 						done();
-					}
+					},
 				);
 			});
 		});

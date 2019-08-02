@@ -19,7 +19,7 @@ describe('integration test - multi signature edge cases', () => {
 		it.todo('should include all the transactions in the pool');
 
 		it.todo(
-			'should remove the transactions from the queue  if the account balance is not enough'
+			'should remove the transactions from the queue  if the account balance is not enough',
 		);
 
 		it.todo('should not confirm an invalid transaction');

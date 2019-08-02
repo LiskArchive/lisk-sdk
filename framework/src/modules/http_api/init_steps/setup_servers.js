@@ -25,10 +25,10 @@ module.exports = ({ components: { logger }, config }) => {
 	const expressApp = express();
 
 	if (config.coverage) {
-		// eslint-disable-next-line import/no-extraneous-dependencies
+		// eslint-disable-next-line import/no-extraneous-dependencies,global-require
 		const im = require('istanbul-middleware');
 		logger.debug(
-			'Hook loader for coverage - Do not use in production environment!'
+			'Hook loader for coverage - Do not use in production environment!',
 		);
 		/** @TODO hookLoader path must be updated
 		 * to be able to dynamically find the root folder */
@@ -59,7 +59,7 @@ module.exports = ({ components: { logger }, config }) => {
 				ciphers:
 					'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA',
 			},
-			expressApp
+			expressApp,
 		);
 
 		wssServer = socketIO(httpsServer);

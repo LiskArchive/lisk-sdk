@@ -40,8 +40,8 @@ const scanFiles = testType => {
 
 	throw new Error(
 		`Please specify a valid test type! Available Options: ${Object.keys(
-			testTypesMap
-		).join(', ')}`
+			testTypesMap,
+		).join(', ')}`,
 	);
 };
 

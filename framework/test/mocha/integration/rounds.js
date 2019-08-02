@@ -51,7 +51,7 @@ describe('rounds', () => {
 		Queries = new QueriesHelper(lib, lib.components.storage);
 
 		addTransactionsAndForgePromise = Promise.promisify(
-			localCommon.addTransactionsAndForge
+			localCommon.addTransactionsAndForge,
 		);
 	});
 
@@ -105,7 +105,7 @@ describe('rounds', () => {
 				// Update sender
 				accounts[address].balance = new BigNum(accounts[address].balance)
 					.minus(
-						new BigNum(transaction.fee).plus(new BigNum(transaction.amount))
+						new BigNum(transaction.fee).plus(new BigNum(transaction.amount)),
 					)
 					.toString();
 
@@ -113,7 +113,7 @@ describe('rounds', () => {
 				if (!accounts[address].publicKey) {
 					accounts[address].publicKey = Buffer.from(
 						transaction.senderPublicKey,
-						'hex'
+						'hex',
 					);
 				}
 
@@ -144,6 +144,65 @@ describe('rounds', () => {
 			}
 		});
 		return accounts;
+	}
+
+	function getExpectedRoundRewards(blocks) {
+		const rewards = {};
+
+		const feesTotal = _.reduce(
+			blocks,
+			(fees, block) => {
+				return new BigNum(fees).plus(block.totalFee);
+			},
+			0,
+		);
+
+		const rewardsTotal = _.reduce(
+			blocks,
+			(reward, block) => {
+				return new BigNum(reward).plus(block.reward);
+			},
+			0,
+		);
+
+		const feesPerDelegate = new BigNum(feesTotal.toPrecision(15))
+			.dividedBy(ACTIVE_DELEGATES)
+			.floor();
+		const feesRemaining = new BigNum(feesTotal.toPrecision(15)).minus(
+			feesPerDelegate.times(ACTIVE_DELEGATES),
+		);
+
+		__testContext.debug(
+			`	Total fees: ${feesTotal} Fees per delegates: ${feesPerDelegate} Remaining fees: ${feesRemaining} Total rewards: ${rewardsTotal}`,
+		);
+
+		_.each(blocks, (block, index) => {
+			const publicKey = block.generatorPublicKey.toString('hex');
+			if (rewards[publicKey]) {
+				rewards[publicKey].fees = rewards[publicKey].fees.plus(feesPerDelegate);
+				rewards[publicKey].rewards = rewards[publicKey].rewards.plus(
+					block.reward,
+				);
+			} else {
+				rewards[publicKey] = {
+					publicKey,
+					fees: new BigNum(feesPerDelegate),
+					rewards: new BigNum(block.reward),
+				};
+			}
+
+			if (index === blocks.length - 1) {
+				// Apply remaining fees to last delegate
+				rewards[publicKey].fees = rewards[publicKey].fees.plus(feesRemaining);
+			}
+		});
+
+		_.each(rewards, delegate => {
+			delegate.fees = delegate.fees.toString();
+			delegate.rewards = delegate.rewards.toString();
+		});
+
+		return rewards;
 	}
 
 	function applyRoundRewards(_accounts, blocks) {
@@ -258,12 +317,12 @@ describe('rounds', () => {
 
 		// Get all public keys of delegates that forged blocks in current round
 		const blockGeneratorsPublicKeys = blocks.map(b =>
-			b.generatorPublicKey.toString('hex')
+			b.generatorPublicKey.toString('hex'),
 		);
 		// Get public keys of delegates who were expected to forge in current round but they didn't
 		const roundOutsidersList = _.difference(
 			delegatesList,
-			blockGeneratorsPublicKeys
+			blockGeneratorsPublicKeys,
 		);
 
 		// Increase missed blocks counter for every outsider
@@ -275,65 +334,6 @@ describe('rounds', () => {
 		});
 
 		return accounts;
-	}
-
-	function getExpectedRoundRewards(blocks) {
-		const rewards = {};
-
-		const feesTotal = _.reduce(
-			blocks,
-			(fees, block) => {
-				return new BigNum(fees).plus(block.totalFee);
-			},
-			0
-		);
-
-		const rewardsTotal = _.reduce(
-			blocks,
-			(reward, block) => {
-				return new BigNum(reward).plus(block.reward);
-			},
-			0
-		);
-
-		const feesPerDelegate = new BigNum(feesTotal.toPrecision(15))
-			.dividedBy(ACTIVE_DELEGATES)
-			.floor();
-		const feesRemaining = new BigNum(feesTotal.toPrecision(15)).minus(
-			feesPerDelegate.times(ACTIVE_DELEGATES)
-		);
-
-		__testContext.debug(
-			`	Total fees: ${feesTotal} Fees per delegates: ${feesPerDelegate} Remaining fees: ${feesRemaining} Total rewards: ${rewardsTotal}`
-		);
-
-		_.each(blocks, (block, index) => {
-			const publicKey = block.generatorPublicKey.toString('hex');
-			if (rewards[publicKey]) {
-				rewards[publicKey].fees = rewards[publicKey].fees.plus(feesPerDelegate);
-				rewards[publicKey].rewards = rewards[publicKey].rewards.plus(
-					block.reward
-				);
-			} else {
-				rewards[publicKey] = {
-					publicKey,
-					fees: new BigNum(feesPerDelegate),
-					rewards: new BigNum(block.reward),
-				};
-			}
-
-			if (index === blocks.length - 1) {
-				// Apply remaining fees to last delegate
-				rewards[publicKey].fees = rewards[publicKey].fees.plus(feesRemaining);
-			}
-		});
-
-		_.each(rewards, delegate => {
-			delegate.fees = delegate.fees.toString();
-			delegate.rewards = delegate.rewards.toString();
-		});
-
-		return rewards;
 	}
 
 	function tickAndValidate(transactions) {
@@ -354,9 +354,9 @@ describe('rounds', () => {
 						tick.before.delegates = _.cloneDeep(_delegates);
 						tick.before.delegatesList = _.cloneDeep(_delegatesList);
 						tick.before.delegatesOrderedByVote = _.cloneDeep(
-							_delegatesOrderedByVote
+							_delegatesOrderedByVote,
 						);
-					}
+					},
 				).then(() => {
 					return addTransactionsAndForgePromise(library, transactions, 0).then(
 						async () => {
@@ -373,20 +373,20 @@ describe('rounds', () => {
 								getDelegates(),
 								library.modules.rounds.generateDelegateList(
 									slots.calcRound(tick.after.block.height + 1),
-									null
+									null,
 								),
 								Queries.getDelegatesOrderedByVote(),
 								(
 									_accounts,
 									_delegates,
 									_delegatesList,
-									_delegatesOrderedByVote
+									_delegatesOrderedByVote,
 								) => {
 									tick.after.accounts = _.cloneDeep(_accounts);
 									tick.after.delegates = _.cloneDeep(_delegates);
 									tick.after.delegatesList = _.cloneDeep(_delegatesList);
 									tick.after.delegatesOrderedByVote = _.cloneDeep(
-										_delegatesOrderedByVote
+										_delegatesOrderedByVote,
 									);
 
 									if (tick.isLastBlockOfRound) {
@@ -396,14 +396,14 @@ describe('rounds', () => {
 											(_blocks, _voters) => {
 												tick.roundBlocks = _blocks;
 												tick.voters = _voters;
-											}
+											},
 										);
 									}
 
 									return true;
-								}
+								},
 							);
-						}
+						},
 					);
 				});
 			});
@@ -418,13 +418,13 @@ describe('rounds', () => {
 
 			it('height should be greather by 1', async () => {
 				return expect(tick.after.block.height).to.equal(
-					tick.before.block.height + 1
+					tick.before.block.height + 1,
 				);
 			});
 
 			it('should contain all expected transactions', async () => {
 				return expect(transactions.map(t => t.id).sort()).to.be.deep.equal(
-					tick.after.block.transactions.map(t => t.id).sort()
+					tick.after.block.transactions.map(t => t.id).sort(),
 				);
 			});
 
@@ -439,12 +439,12 @@ describe('rounds', () => {
 				it('delegates with highest weight used for generating list should be the same for same round', async () => {
 					if (tick.isLastBlockOfRound) {
 						return expect(tick.before.delegatesOrderedByVote).to.not.deep.equal(
-							tick.after.delegatesOrderedByVote
+							tick.after.delegatesOrderedByVote,
 						);
 					}
 
 					return expect(tick.before.delegatesOrderedByVote).to.deep.equal(
-						tick.after.delegatesOrderedByVote
+						tick.after.delegatesOrderedByVote,
 					);
 				});
 
@@ -453,17 +453,17 @@ describe('rounds', () => {
 						(tick.isLastBlockOfRound &&
 							!_.isEqual(
 								tick.before.delegatesOrderedByVote,
-								tick.after.delegatesOrderedByVote
+								tick.after.delegatesOrderedByVote,
 							)) ||
 						tick.isRoundChanged
 					) {
 						return expect(tick.before.delegatesList).to.not.deep.equal(
-							tick.after.delegatesList
+							tick.after.delegatesList,
 						);
 					}
 
 					return expect(tick.before.delegatesList).to.deep.equal(
-						tick.after.delegatesList
+						tick.after.delegatesList,
 					);
 				});
 
@@ -479,7 +479,7 @@ describe('rounds', () => {
 						expected = applyOutsiders(
 							expected,
 							tick.before.delegatesList,
-							tick.roundBlocks
+							tick.roundBlocks,
 						);
 
 						// FIXME: Remove that nasty hack after https://github.com/LiskHQ/lisk/issues/2423 is closed
@@ -499,7 +499,7 @@ describe('rounds', () => {
 										const absoluteDiff = Math.abs(
 											new BigNum(actualAccount.vote)
 												.minus(new BigNum(expectedAccount.vote))
-												.toNumber()
+												.toNumber(),
 										);
 										// If absolute value is 1 beddows - pass the test, as reason is related to issue #716
 										if (absoluteDiff === 1) {
@@ -508,7 +508,7 @@ describe('rounds', () => {
 													actualAccount.vote
 												}, expected: ${
 													expectedAccount.vote
-												}, diff: ${absoluteDiff} beddows`
+												}, diff: ${absoluteDiff} beddows`,
 											);
 											// Overwrite expected vote with current one, so recalculateRanks can be calculated correctly
 											expected[key].vote = actualAccount.vote;
@@ -518,7 +518,7 @@ describe('rounds', () => {
 										}
 									}
 								},
-								[]
+								[],
 							);
 						}
 
@@ -532,7 +532,7 @@ describe('rounds', () => {
 				it('balances should be valid against blockchain balances', async () => {
 					// Perform validation of accounts balances against blockchain after every block
 					return expect(Queries.validateAccountsBalances()).to.eventually.be.an(
-						'array'
+						'array',
 					).that.is.empty;
 				});
 			});
@@ -555,7 +555,7 @@ describe('rounds', () => {
 				getDelegates(),
 				library.modules.rounds.generateDelegateList(
 					slots.calcRound(lastBlock.height),
-					null
+					null,
 				),
 				(_accounts, _delegates, _delegatesList) => {
 					// Get genesis accounts address - should be senderId from first transaction
@@ -563,7 +563,7 @@ describe('rounds', () => {
 						library.genesisBlock.block.transactions[0].senderId;
 					// Inject and normalize genesis account to delegates (it's not a delegate, but will get rewards split from first round)
 					const genesisPublicKey = _accounts[genesisAddress].publicKey.toString(
-						'hex'
+						'hex',
 					);
 					_delegates[genesisPublicKey] = _accounts[genesisAddress];
 					_delegates[genesisPublicKey].publicKey = genesisPublicKey;
@@ -571,7 +571,7 @@ describe('rounds', () => {
 					round.delegatesList = _delegatesList;
 					round.accounts = _.cloneDeep(_accounts);
 					round.delegates = _.cloneDeep(_delegates);
-				}
+				},
 			);
 		});
 
@@ -634,14 +634,14 @@ describe('rounds', () => {
 					__testContext.debug(
 						`	Processing block ${blocksProcessed} of ${blocksToForge} with ${
 							transactions.length
-						} transactions`
+						} transactions`,
 					);
 					tickAndValidate(transactions);
 					untilCb();
 				},
 				err => {
 					return err || blocksProcessed >= blocksToForge;
-				}
+				},
 			);
 		});
 
@@ -696,7 +696,7 @@ describe('rounds', () => {
 
 						// Because first block of round 1 is genesis block - there will be always 1 outsider in first round
 						expect(_delegates[round.outsiderPublicKey].missedBlocks).to.equal(
-							1
+							1,
 						);
 
 						_.map(_delegates, d => {
@@ -712,7 +712,7 @@ describe('rounds', () => {
 
 						// Compare mem_accounts delegates with calculated
 						expect(delegates).to.deep.equal(expectedRewards);
-					}
+					},
 				);
 			});
 
@@ -732,7 +732,7 @@ describe('rounds', () => {
 			before(async () => {
 				lastBlock = library.modules.blocks.lastBlock;
 				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-					lastBlock
+					lastBlock,
 				);
 				library.modules.blocks._lastBlock = newLastBlock;
 			});
@@ -744,7 +744,7 @@ describe('rounds', () => {
 				_.each(lastBlock.transactions, transaction => {
 					// Transaction should be present in transaction pool
 					expect(transactionPool.transactionInPool(transaction.id)).to.equal(
-						true
+						true,
 					);
 					// Remove transaction from pool
 					transactionPool.onConfirmedTransactions([transaction]);
@@ -754,7 +754,7 @@ describe('rounds', () => {
 
 			it('round rewards should be empty (rewards for round 1 deleted from rounds_rewards table)', async () => {
 				return expect(
-					Queries.getRoundRewards(round.current)
+					Queries.getRoundRewards(round.current),
 				).to.eventually.deep.equal({});
 			});
 
@@ -776,7 +776,7 @@ describe('rounds', () => {
 				return library.modules.rounds
 					.generateDelegateList(
 						slots.calcRound(freshLastBlock.height + 1),
-						null
+						null,
 					)
 					.then(delegatesList => {
 						expect(delegatesList).to.deep.equal(round.delegatesList);
@@ -791,7 +791,7 @@ describe('rounds', () => {
 
 			it('should be able to delete last block of round again', async () => {
 				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-					library.modules.blocks.lastBlock
+					library.modules.blocks.lastBlock,
 				);
 				library.modules.blocks._lastBlock = newLastBlock;
 			});
@@ -833,7 +833,7 @@ describe('rounds', () => {
 				lastBlock = library.modules.blocks.lastBlock;
 				// Delete one block more
 				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-					lastBlock
+					lastBlock,
 				);
 				library.modules.blocks._lastBlock = newLastBlock;
 			});
@@ -850,7 +850,7 @@ describe('rounds', () => {
 				_.each(lastBlock.transactions, transaction => {
 					// Transaction should be present in transaction pool
 					expect(transactionPool.transactionInPool(transaction.id)).to.equal(
-						true
+						true,
 					);
 					// Remove transaction from pool
 					transactionPool.onConfirmedTransactions([transaction]);
@@ -872,7 +872,7 @@ describe('rounds', () => {
 					const freshLastBlock = library.modules.blocks.lastBlock;
 					return Queries.getFullBlock(freshLastBlock.height).then(blocks => {
 						expect(blocks[0].transactions[0].asset.votes[0]).to.equal(
-							`-${lastBlockForger}`
+							`-${lastBlockForger}`,
 						);
 					});
 				});
@@ -893,7 +893,7 @@ describe('rounds', () => {
 					return library.modules.rounds
 						.generateDelegateList(
 							slots.calcRound(freshLastBlock.height + 1),
-							null
+							null,
 						)
 						.then(delegatesList => {
 							expect(delegatesList).to.not.deep.equal(round.delegatesList);
@@ -903,7 +903,7 @@ describe('rounds', () => {
 				it('forger of last block of previous round should have vote = 0', async () => {
 					return getDelegates().then(_delegates => {
 						expect(_delegates[round.outsiderPublicKey].missedBlocks).to.equal(
-							1
+							1,
 						);
 						return expect(_delegates[lastBlockForger].vote).to.equal('0');
 					});
@@ -920,7 +920,7 @@ describe('rounds', () => {
 							return library.modules.rounds
 								.generateDelegateList(
 									slots.calcRound(freshLastBlock.height),
-									null
+									null,
 								)
 								.then(delegatesList => {
 									expect(delegatesList).to.deep.equal(round.delegatesList);
@@ -931,10 +931,10 @@ describe('rounds', () => {
 				it('expected forger of last block of round should have proper votes again', async () => {
 					return getDelegates().then(_delegates => {
 						expect(_delegates[round.outsiderPublicKey].missedBlocks).to.equal(
-							0
+							0,
 						);
 						return expect(_delegates[lastBlockForger].vote).to.equal(
-							'10000000000000000'
+							'10000000000000000',
 						);
 					});
 				});
@@ -1027,12 +1027,12 @@ describe('rounds', () => {
 						getDelegates(),
 						library.modules.rounds.generateDelegateList(
 							slots.calcRound(lastBlock.height + 1),
-							null
+							null,
 						),
 						(_delegates, _delegatesList) => {
 							delegatesList = _delegatesList;
 							delegates = _delegates;
-						}
+						},
 					);
 				});
 
@@ -1068,7 +1068,7 @@ describe('rounds', () => {
 
 				it('delegate who replaced last block forger should have proper votes', async () => {
 					return expect(
-						Number(delegates[tmpAccount.publicKey].vote)
+						Number(delegates[tmpAccount.publicKey].vote),
 					).to.be.above(0);
 				});
 			});
@@ -1095,10 +1095,10 @@ describe('rounds', () => {
 				it('expected forger of last block of round should have proper votes again', async () => {
 					return getDelegates().then(_delegates => {
 						expect(_delegates[round.outsiderPublicKey].missedBlocks).to.equal(
-							0
+							0,
 						);
 						return expect(_delegates[lastBlockForger].vote).to.equal(
-							'10000000000000000'
+							'10000000000000000',
 						);
 					});
 				});
@@ -1148,14 +1148,14 @@ describe('rounds', () => {
 						__testContext.debug(
 							`	Processing block ${blocksProcessed} of ${blocksToForge} with ${
 								transactions.length
-							} transactions`
+							} transactions`,
 						);
 						tickAndValidate(transactions);
 						untilCb();
 					},
 					err => {
 						return err || blocksProcessed >= blocksToForge;
-					}
+					},
 				);
 			});
 
@@ -1203,7 +1203,7 @@ describe('rounds', () => {
 						__testContext.debug(
 							`	Processing block ${blocksProcessed} of ${blocksToForge} with ${
 								transactions.length
-							} transactions`
+							} transactions`,
 						);
 						tickAndValidate(transactions);
 
@@ -1219,7 +1219,7 @@ describe('rounds', () => {
 					},
 					err => {
 						return err || blocksProcessed >= blocksToForge;
-					}
+					},
 				);
 			});
 
@@ -1233,7 +1233,7 @@ describe('rounds', () => {
 							const expectedRewards = getExpectedRoundRewards(_blocks);
 							// Rewards from database table rounds_rewards should match native rewards
 							expect(_rewards).to.deep.equal(expectedRewards);
-						}
+						},
 					);
 				});
 			});
@@ -1261,8 +1261,8 @@ describe('rounds', () => {
 		it('should fail when try to delete one more block (last block of round 1)', async () => {
 			return expect(
 				library.modules.blocks.blocksChain.deleteLastBlock(
-					library.modules.blocks.lastBlock
-				)
+					library.modules.blocks.lastBlock,
+				),
 			).to.eventually.be.rejectedWith('Snapshot for round 1 not available');
 		});
 
@@ -1281,7 +1281,7 @@ describe('rounds', () => {
 
 		it('should be able to delete last block of round', async () => {
 			const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-				library.modules.blocks.lastBlock
+				library.modules.blocks.lastBlock,
 			);
 			library.modules.blocks._lastBlock = newLastBlock;
 		});
@@ -1289,7 +1289,7 @@ describe('rounds', () => {
 		it('should be able to delete last block of round again', async () => {
 			await addTransactionsAndForgePromise(library, [], 0);
 			const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-				library.modules.blocks.lastBlock
+				library.modules.blocks.lastBlock,
 			);
 			library.modules.blocks._lastBlock = newLastBlock;
 		});

@@ -98,7 +98,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 			transaction2,
 			transaction4,
 			transaction4,
-			transaction5
+			transaction5,
 		);
 
 		const promises = [];
@@ -127,7 +127,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 					});
 					transactionsCreditMaxVotesPerTransaction.push(transfer1);
 					promisesCreditsMaxVotesPerTransaction.push(
-						sendTransactionPromise(transfer1)
+						sendTransactionPromise(transfer1),
 					);
 				}
 
@@ -135,13 +135,13 @@ describe('POST /api/transactions (type 3) votes', () => {
 					results => {
 						results.forEach((result, index) => {
 							expect(result.body.data.message).to.equal(
-								'Transaction(s) accepted'
+								'Transaction(s) accepted',
 							);
 							transactionsToWaitFor.push(
-								transactionsCreditMaxVotesPerTransaction[index].id
+								transactionsCreditMaxVotesPerTransaction[index].id,
 							);
 						});
-					}
+					},
 				);
 			})
 			.then(() => {
@@ -157,17 +157,17 @@ describe('POST /api/transactions (type 3) votes', () => {
 					});
 					transactionsCreditMaxVotesPerAccount.push(transfer2);
 					promisesCreditsMaxVotesPerAccount.push(
-						sendTransactionPromise(transfer2)
+						sendTransactionPromise(transfer2),
 					);
 				}
 
 				return Promise.all(promisesCreditsMaxVotesPerAccount).then(results => {
 					results.forEach((result, index) => {
 						expect(result.body.data.message).to.equal(
-							'Transaction(s) accepted'
+							'Transaction(s) accepted',
 						);
 						transactionsToWaitFor.push(
-							transactionsCreditMaxVotesPerAccount[index].id
+							transactionsCreditMaxVotesPerAccount[index].id,
 						);
 					});
 				});
@@ -196,7 +196,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 					});
 					transactionsDelegateMaxForPerTransaction.push(delegateRegistration);
 					promisesDelegatesMaxVotesPerTransaction.push(
-						sendTransactionPromise(delegateRegistration)
+						sendTransactionPromise(delegateRegistration),
 					);
 				}
 
@@ -204,13 +204,13 @@ describe('POST /api/transactions (type 3) votes', () => {
 					results => {
 						results.forEach((result, index) => {
 							expect(result.body.data.message).to.equal(
-								'Transaction(s) accepted'
+								'Transaction(s) accepted',
 							);
 							transactionsToWaitFor.push(
-								transactionsDelegateMaxForPerTransaction[index].id
+								transactionsDelegateMaxForPerTransaction[index].id,
 							);
 						});
-					}
+					},
 				);
 			})
 			.then(() => {
@@ -223,7 +223,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 					});
 					transactionsDelegateMaxVotesPerAccount.push(delegateRegistration);
 					promisesDelegatesMaxVotesPerAccount.push(
-						sendTransactionPromise(delegateRegistration)
+						sendTransactionPromise(delegateRegistration),
 					);
 				}
 
@@ -231,13 +231,13 @@ describe('POST /api/transactions (type 3) votes', () => {
 					results => {
 						results.forEach((result, index) => {
 							expect(result.body.data.message).to.equal(
-								'Transaction(s) accepted'
+								'Transaction(s) accepted',
 							);
 							transactionsToWaitFor.push(
-								transactionsDelegateMaxVotesPerAccount[index].id
+								transactionsDelegateMaxVotesPerAccount[index].id,
 							);
 						});
-					}
+					},
 				);
 			})
 			.then(() => {
@@ -258,23 +258,23 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 			transaction.asset.votes[0] = `+L${accountFixtures.existingDelegate.publicKey.slice(
 				0,
-				-1
+				-1,
 			)}`;
 			transaction = elements.redoSignature(
 				transaction,
-				delegateAccount.passphrase
+				delegateAccount.passphrase,
 			);
 
 			return sendTransactionPromise(
 				transaction,
-				apiCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR,
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					'Transaction was rejected with errors'
+					'Transaction was rejected with errors',
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					'\'.votes[0]\' should match format "signedPublicKey"'
+					'\'.votes[0]\' should match format "signedPublicKey"',
 				);
 				badTransactions.push(transaction);
 			});
@@ -290,19 +290,19 @@ describe('POST /api/transactions (type 3) votes', () => {
 			}`;
 			transaction = elements.redoSignature(
 				transaction,
-				delegateAccount.passphrase
+				delegateAccount.passphrase,
 			);
 
 			return sendTransactionPromise(
 				transaction,
-				apiCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR,
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					'Transaction was rejected with errors'
+					'Transaction was rejected with errors',
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					'\'.votes[0]\' should match format "signedPublicKey"'
+					'\'.votes[0]\' should match format "signedPublicKey"',
 				);
 				badTransactions.push(transaction);
 			});
@@ -316,19 +316,19 @@ describe('POST /api/transactions (type 3) votes', () => {
 			transaction.asset.votes[0] = transaction.asset.votes[0].replace('+', 'x');
 			transaction = elements.redoSignature(
 				transaction,
-				delegateAccount.passphrase
+				delegateAccount.passphrase,
 			);
 
 			return sendTransactionPromise(
 				transaction,
-				apiCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR,
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					'Transaction was rejected with errors'
+					'Transaction was rejected with errors',
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					'\'.votes[0]\' should match format "signedPublicKey"'
+					'\'.votes[0]\' should match format "signedPublicKey"',
 				);
 				badTransactions.push(transaction);
 			});
@@ -342,19 +342,19 @@ describe('POST /api/transactions (type 3) votes', () => {
 			transaction.asset.votes[0] = transaction.asset.votes[0].replace('+', '');
 			transaction = elements.redoSignature(
 				transaction,
-				delegateAccount.passphrase
+				delegateAccount.passphrase,
 			);
 
 			return sendTransactionPromise(
 				transaction,
-				apiCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR,
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					'Transaction was rejected with errors'
+					'Transaction was rejected with errors',
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					'\'.votes[0]\' should match format "signedPublicKey"'
+					'\'.votes[0]\' should match format "signedPublicKey"',
 				);
 				badTransactions.push(transaction);
 			});
@@ -368,19 +368,19 @@ describe('POST /api/transactions (type 3) votes', () => {
 			transaction.asset.votes[0] = null;
 			transaction = elements.redoSignature(
 				transaction,
-				delegateAccount.passphrase
+				delegateAccount.passphrase,
 			);
 
 			return sendTransactionPromise(
 				transaction,
-				apiCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR,
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					'Transaction was rejected with errors'
+					'Transaction was rejected with errors',
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					"'.votes[0]' should be string"
+					"'.votes[0]' should be string",
 				);
 				badTransactions.push(transaction);
 			});
@@ -395,16 +395,16 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				apiCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR,
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					'Transaction was rejected with errors'
+					'Transaction was rejected with errors',
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					`Account does not have enough LSK: ${
 						accountNoFunds.address
-					}, balance: 0`
+					}, balance: 0`,
 				);
 				badTransactions.push(transaction);
 			});
@@ -418,14 +418,14 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				apiCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR,
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					'Transaction was rejected with errors'
+					'Transaction was rejected with errors',
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					`${accountMinimalFunds.publicKey} is not a delegate.`
+					`${accountMinimalFunds.publicKey} is not a delegate.`,
 				);
 				badTransactions.push(transaction);
 			});
@@ -451,14 +451,14 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				apiCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR,
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					'Transaction was rejected with errors'
+					'Transaction was rejected with errors',
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					`${accountFixtures.existingDelegate.publicKey} is not voted.`
+					`${accountFixtures.existingDelegate.publicKey} is not voted.`,
 				);
 				badTransactions.push(transaction);
 			});
@@ -515,14 +515,14 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				apiCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR,
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					'Transaction was rejected with errors'
+					'Transaction was rejected with errors',
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					"'.votes' should NOT have more than 33 items"
+					"'.votes' should NOT have more than 33 items",
 				);
 				badTransactions.push(transaction);
 			});
@@ -568,7 +568,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 					transaction1,
 					transaction2,
 					transaction3,
-					transaction4
+					transaction4,
 				);
 			});
 		});
@@ -587,14 +587,14 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				apiCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR,
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					'Transaction was rejected with errors'
+					'Transaction was rejected with errors',
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					`${accountFixtures.existingDelegate.publicKey} is already voted.`
+					`${accountFixtures.existingDelegate.publicKey} is already voted.`,
 				);
 				badTransactionsEnforcement.push(transaction);
 			});
@@ -632,14 +632,14 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				apiCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR,
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					'Transaction was rejected with errors'
+					'Transaction was rejected with errors',
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					'Vote cannot exceed 101 but has 102.'
+					'Vote cannot exceed 101 but has 102.',
 				);
 				badTransactionsEnforcement.push(transaction);
 			});
@@ -670,14 +670,14 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				apiCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR,
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					'Transaction was rejected with errors'
+					'Transaction was rejected with errors',
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					"'.votes' should NOT have more than 33 items"
+					"'.votes' should NOT have more than 33 items",
 				);
 				badTransactionsEnforcement.push(transaction);
 			});
@@ -723,7 +723,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 					transaction1,
 					transaction2,
 					transaction3,
-					transaction4
+					transaction4,
 				);
 			});
 		});
@@ -732,7 +732,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 	describe('confirm validation', () => {
 		phases.confirmation(
 			goodTransactionsEnforcement,
-			badTransactionsEnforcement
+			badTransactionsEnforcement,
 		);
 	});
 });

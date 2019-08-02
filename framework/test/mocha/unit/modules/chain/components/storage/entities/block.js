@@ -37,7 +37,7 @@ describe('Block', () => {
 	before(async () => {
 		storage = new storageSandbox.StorageSandbox(
 			__testContext.config.components.storage,
-			'lisk_test_storage_custom_block_chain_module'
+			'lisk_test_storage_custom_block_chain_module',
 		);
 		await storage.bootstrap();
 
@@ -161,7 +161,7 @@ describe('Block', () => {
 
 		it('should reject with invalid data provided', async () => {
 			return expect(
-				storage.entities.Block.create(invalidBlock)
+				storage.entities.Block.create(invalidBlock),
 			).to.eventually.be.rejectedWith('invalid input syntax for integer: ""');
 		});
 

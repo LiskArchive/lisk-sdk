@@ -60,16 +60,16 @@ describe('inert transactions', () => {
 					[
 						async () => {
 							beforeBlockSenderMemAccount = await library.components.storage.entities.Account.getOne(
-								{ address: senderAccount.address }
+								{ address: senderAccount.address },
 							);
 						},
 						async () => {
 							beforeBlockRecipientMemAccount = await library.components.storage.entities.Account.getOne(
-								{ address: recipientAccount.address }
+								{ address: recipientAccount.address },
 							);
 						},
 					],
-					done
+					done,
 				);
 			});
 
@@ -80,7 +80,7 @@ describe('inert transactions', () => {
 					localCommon.addTransactionsAndForge(
 						library,
 						[inertTransaction],
-						done
+						done,
 					);
 				});
 
@@ -93,28 +93,28 @@ describe('inert transactions', () => {
 							[
 								async () => {
 									afterBlockSenderMemAccount = await library.components.storage.entities.Account.getOne(
-										{ address: senderAccount.address }
+										{ address: senderAccount.address },
 									);
 								},
 								async () => {
 									afterBlockRecipientMemAccount = await library.components.storage.entities.Account.getOne(
-										{ address: recipientAccount.address }
+										{ address: recipientAccount.address },
 									);
 								},
 							],
-							done
+							done,
 						);
 					});
 
 					it('should not update balance field of sender account', async () => {
 						return expect(beforeBlockSenderMemAccount.balance).to.equal(
-							afterBlockSenderMemAccount.balance
+							afterBlockSenderMemAccount.balance,
 						);
 					});
 
 					it('should not update balance field of recipient account', async () => {
 						return expect(beforeBlockRecipientMemAccount.balance).to.equal(
-							afterBlockRecipientMemAccount.balance
+							afterBlockRecipientMemAccount.balance,
 						);
 					});
 				});
@@ -132,14 +132,14 @@ describe('inert transactions', () => {
 								expect(err).to.not.exist;
 								transactionFromDatabase = res.transactions[0];
 								done();
-							}
+							},
 						);
 					});
 
 					it('should save transaction in the database', async () => {
 						expect(transactionFromDatabase).to.be.an('Object');
 						return expect(transactionFromDatabase.id).to.equal(
-							inertTransaction.id
+							inertTransaction.id,
 						);
 					});
 				});
@@ -158,28 +158,28 @@ describe('inert transactions', () => {
 								[
 									async () => {
 										afterDeleteSenderMemAccount = await library.components.storage.entities.Account.getOne(
-											{ address: senderAccount.address }
+											{ address: senderAccount.address },
 										);
 									},
 									async () => {
 										afterDeleteRecipientMemAccount = await library.components.storage.entities.Account.getOne(
-											{ address: recipientAccount.address }
+											{ address: recipientAccount.address },
 										);
 									},
 								],
-								done
+								done,
 							);
 						});
 
 						it('should not update balance field of sender account', async () => {
 							return expect(afterDeleteSenderMemAccount.balance).to.equal(
-								beforeBlockSenderMemAccount.balance
+								beforeBlockSenderMemAccount.balance,
 							);
 						});
 
 						it('should not update balance field of recipient account', async () => {
 							return expect(afterDeleteRecipientMemAccount.balance).to.equal(
-								beforeBlockRecipientMemAccount.balance
+								beforeBlockRecipientMemAccount.balance,
 							);
 						});
 					});
@@ -197,7 +197,7 @@ describe('inert transactions', () => {
 									expect(err).to.not.exist;
 									transactionsFilteredById = res.transactions;
 									done();
-								}
+								},
 							);
 						});
 
@@ -216,7 +216,7 @@ describe('inert transactions', () => {
 					localCommon.addTransactionsAndForge(
 						library,
 						[inertTransaction],
-						done
+						done,
 					);
 				});
 
@@ -225,19 +225,19 @@ describe('inert transactions', () => {
 
 					before('get recipient account', async () => {
 						afterBlockRecipientMemAccount = await library.components.storage.entities.Account.getOne(
-							{ address: recipientAccount.address }
+							{ address: recipientAccount.address },
 						);
 					});
 
 					it('should not update u_balance field of recipient account', async () => {
 						return expect(beforeBlockRecipientMemAccount.u_balance).to.equal(
-							afterBlockRecipientMemAccount.u_balance
+							afterBlockRecipientMemAccount.u_balance,
 						);
 					});
 
 					it('should not update balance field of recipient account', async () => {
 						return expect(beforeBlockRecipientMemAccount.balance).to.equal(
-							afterBlockRecipientMemAccount.balance
+							afterBlockRecipientMemAccount.balance,
 						);
 					});
 
@@ -247,7 +247,7 @@ describe('inert transactions', () => {
 
 					it('should have isDelegate set to false', async () => {
 						return expect(afterBlockRecipientMemAccount.isDelegate).to.equal(
-							false
+							false,
 						);
 					});
 				});
@@ -265,14 +265,14 @@ describe('inert transactions', () => {
 								expect(err).to.not.exist;
 								transactionFromDatabase = res.transactions[0];
 								done();
-							}
+							},
 						);
 					});
 
 					it('should save transaction in the database', async () => {
 						expect(transactionFromDatabase).to.be.an('Object');
 						return expect(transactionFromDatabase.id).to.equal(
-							inertTransaction.id
+							inertTransaction.id,
 						);
 					});
 				});
@@ -287,19 +287,19 @@ describe('inert transactions', () => {
 					describe('details of the accounts', () => {
 						before('get recipient account', async () => {
 							afterDeleteRecipientMemAccount = await library.components.storage.entities.Account.getOne(
-								{ address: recipientAccount.address }
+								{ address: recipientAccount.address },
 							);
 						});
 
 						it('should not update u_balance field of recipient account', async () => {
 							return expect(afterDeleteRecipientMemAccount.u_balance).to.equal(
-								beforeBlockRecipientMemAccount.u_balance
+								beforeBlockRecipientMemAccount.u_balance,
 							);
 						});
 
 						it('should not update balance field of recipient account', async () => {
 							return expect(afterDeleteRecipientMemAccount.balance).to.equal(
-								beforeBlockRecipientMemAccount.balance
+								beforeBlockRecipientMemAccount.balance,
 							);
 						});
 
@@ -310,7 +310,7 @@ describe('inert transactions', () => {
 
 						it('should have isDelegate set to false', async () => {
 							return expect(afterDeleteRecipientMemAccount.isDelegate).to.equal(
-								false
+								false,
 							);
 						});
 					});
@@ -328,7 +328,7 @@ describe('inert transactions', () => {
 									expect(err).to.not.exist;
 									transactionsFilteredById = res.transactions;
 									done();
-								}
+								},
 							);
 						});
 
@@ -347,7 +347,7 @@ describe('inert transactions', () => {
 					localCommon.addTransactionsAndForge(
 						library,
 						[inertTransaction],
-						done
+						done,
 					);
 				});
 
@@ -356,19 +356,19 @@ describe('inert transactions', () => {
 
 					before('get recipient account', async () => {
 						afterBlockRecipientMemAccount = await library.components.storage.entities.Account.getOne(
-							{ address: recipientAccount.address }
+							{ address: recipientAccount.address },
 						);
 					});
 
 					it('should not update balance field of recipient account', async () => {
 						return expect(beforeBlockRecipientMemAccount.balance).to.equal(
-							afterBlockRecipientMemAccount.balance
+							afterBlockRecipientMemAccount.balance,
 						);
 					});
 
 					it('should not update delegates array for account', async () => {
 						return expect(beforeBlockRecipientMemAccount.delegates).to.eql(
-							afterBlockRecipientMemAccount.delegates
+							afterBlockRecipientMemAccount.delegates,
 						);
 					});
 				});
@@ -386,14 +386,14 @@ describe('inert transactions', () => {
 								expect(err).to.not.exist;
 								transactionFromDatabase = res.transactions[0];
 								done();
-							}
+							},
 						);
 					});
 
 					it('should save transaction in the database', async () => {
 						expect(transactionFromDatabase).to.be.an('Object');
 						return expect(transactionFromDatabase.id).to.equal(
-							inertTransaction.id
+							inertTransaction.id,
 						);
 					});
 				});
@@ -408,25 +408,25 @@ describe('inert transactions', () => {
 
 						before('get recipient account', async () => {
 							afterDeleteRecipientMemAccount = await library.components.storage.entities.Account.getOne(
-								{ address: recipientAccount.address }
+								{ address: recipientAccount.address },
 							);
 						});
 
 						it('should not update u_balance field of recipient account', async () => {
 							return expect(afterDeleteRecipientMemAccount.u_balance).to.equal(
-								beforeBlockRecipientMemAccount.u_balance
+								beforeBlockRecipientMemAccount.u_balance,
 							);
 						});
 
 						it('should not update balance field of recipient account', async () => {
 							return expect(afterDeleteRecipientMemAccount.balance).to.equal(
-								beforeBlockRecipientMemAccount.balance
+								beforeBlockRecipientMemAccount.balance,
 							);
 						});
 
 						it('should not update delegates array for account', async () => {
 							return expect(afterDeleteRecipientMemAccount.delegates).to.eql(
-								beforeBlockRecipientMemAccount.delegates
+								beforeBlockRecipientMemAccount.delegates,
 							);
 						});
 					});
@@ -444,7 +444,7 @@ describe('inert transactions', () => {
 									expect(err).to.not.exist;
 									transactionsFilteredById = res.transactions;
 									done();
-								}
+								},
 							);
 						});
 

@@ -14,6 +14,8 @@
 
 'use strict';
 
+const Peer = require('./peer');
+
 module.exports = {
-	Peer: require('./peer'),
+	Peer,
 };

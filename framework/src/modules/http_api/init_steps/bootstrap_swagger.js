@@ -174,13 +174,13 @@ const middleware = {
 
 				if (
 					Number.isNaN(value) ||
-					parseInt(value).toString() !== String(value) ||
+					parseInt(value, 10).toString() !== String(value) ||
 					Number.isNaN(parseInt(value, radix))
 				) {
 					return value;
 				}
 
-				return parseInt(value);
+				return parseInt(value, 10);
 			},
 		});
 	},
@@ -204,6 +204,7 @@ const middleware = {
  */
 function bootstrapSwagger(app, config, logger, scope, cb) {
 	// Register modules to be used in swagger fittings
+	// eslint-disable-next-line global-require
 	require('../helpers/swagger_module_registry').bind(scope);
 
 	// Register the express middleware(s)
@@ -212,6 +213,7 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 	app.use(middleware.applyAPIAccessRules.bind(null, config));
 
 	// Bind each request/response pair to its own domain
+	// eslint-disable-next-line global-require
 	app.use(require('express-domain-middleware'));
 
 	// Maximum 2mb body size for POST type requests
@@ -226,7 +228,7 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 			extended: true,
 			limit: '2mb',
 			parameterLimit: 5000,
-		})
+		}),
 	);
 
 	// Allow method override for any request
@@ -244,7 +246,7 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 	 * RFC -> https://tools.ietf.org/html/rfc7034
 	 */
 	app.use(
-		middleware.attachResponseHeader.bind(null, 'X-Frame-Options', 'DENY')
+		middleware.attachResponseHeader.bind(null, 'X-Frame-Options', 'DENY'),
 	);
 
 	/**
@@ -258,8 +260,8 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 		middleware.attachResponseHeader.bind(
 			null,
 			'Content-Security-Policy',
-			"frame-ancestors 'none'"
-		)
+			"frame-ancestors 'none'",
+		),
 	);
 
 	// Log if there is any error
@@ -269,7 +271,7 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 	const controllerFolder = '/controllers/';
 	fs.readdirSync(config.root + controllerFolder).forEach(file => {
 		if (path.basename(file) !== 'index.js') {
-			// eslint-disable-next-line import/no-dynamic-require
+			// eslint-disable-next-line import/no-dynamic-require,global-require
 			require(config.root + controllerFolder + file)(scope);
 		}
 	});
@@ -289,7 +291,7 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 			// Ignore unused definition warning
 			errors.validationWarnings = _.filter(
 				errors.validationWarnings,
-				error => error.code !== 'UNUSED_DEFINITION'
+				error => error.code !== 'UNUSED_DEFINITION',
 			);
 
 			// Some error occurred in configuring the swagger
@@ -366,5 +368,5 @@ module.exports = (scope, expressApp) =>
 		expressApp,
 		scope.config,
 		scope.components.logger,
-		scope
+		scope,
 	);

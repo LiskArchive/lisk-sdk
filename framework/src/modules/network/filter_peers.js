@@ -107,11 +107,11 @@ const getByFilter = (peers, filter) => {
 				? otherFilters
 				: {};
 		const applicableFilters = Object.keys(matchFilters).filter(key =>
-			allowedFields.includes(key)
+			allowedFields.includes(key),
 		);
 		if (
 			applicableFilters.every(
-				key => peer[key] !== undefined && peer[key] === matchFilters[key]
+				key => peer[key] !== undefined && peer[key] === matchFilters[key],
 			)
 		) {
 			prev.push(peer);
@@ -184,7 +184,7 @@ const getConsolidatedPeersList = ({
 		.filter(peer => {
 			const found = connectedList.find(
 				findPeer =>
-					findPeer.ip === peer.ipAddress && findPeer.wsPort === peer.wsPort
+					findPeer.ip === peer.ipAddress && findPeer.wsPort === peer.wsPort,
 			);
 			return !found;
 		})
