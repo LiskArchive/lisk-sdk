@@ -17,7 +17,7 @@
 const rewire = require('rewire');
 
 const NodeController = rewire(
-	'../../../../../../src/modules/http_api/controllers/node'
+	'../../../../../../src/modules/http_api/controllers/node',
 );
 
 describe('node/api', () => {
@@ -87,28 +87,28 @@ describe('node/api', () => {
 			it('should assign storage', () => {
 				return expect(privateLibrary).to.have.nested.property(
 					'components.storage',
-					library.components.storage
+					library.components.storage,
 				);
 			});
 
 			it('should assign config', () => {
 				return expect(privateLibrary).to.have.property(
 					'config',
-					library.config
+					library.config,
 				);
 			});
 
 			it('should assign channel', () => {
 				return expect(privateLibrary).to.have.property(
 					'channel',
-					library.channel
+					library.channel,
 				);
 			});
 
 			it('should assign applicationState', () => {
 				return expect(privateLibrary).to.have.property(
 					'applicationState',
-					library.applicationState
+					library.applicationState,
 				);
 			});
 		});

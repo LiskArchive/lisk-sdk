@@ -32,10 +32,10 @@ module.exports = {
 		const { stdout } = await exec(
 			`lsof ${ports
 				.map(p => `-i :${p}`)
-				.join(' ')} -P -n -s TCP:LISTEN | tail -n +2 | wc -l`
+				.join(' ')} -P -n -s TCP:LISTEN | tail -n +2 | wc -l`,
 		);
 
-		return parseInt(stdout.toString().trim());
+		return parseInt(stdout.toString().trim(), 10);
 	},
 	async getEstablishedConnections(ports) {
 		// lsof -i :5000 -i :5001 -P -n -s TCP:ESTABLISHED  -t | wc -l
@@ -43,9 +43,9 @@ module.exports = {
 		const { stdout } = await exec(
 			`lsof ${ports
 				.map(p => `-i :${p}`)
-				.join(' ')} -P -n -s TCP:ESTABLISHED | tail -n +2 | wc -l`
+				.join(' ')} -P -n -s TCP:ESTABLISHED | tail -n +2 | wc -l`,
 		);
 
-		return parseInt(stdout.toString().trim());
+		return parseInt(stdout.toString().trim(), 10);
 	},
 };

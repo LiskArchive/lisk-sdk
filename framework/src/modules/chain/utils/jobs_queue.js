@@ -60,7 +60,7 @@ const jobsQueue = {
 			assert(job.length === 0, 'Job async function should not have arguments');
 		}
 
-		const nextJob = function() {
+		const nextJob = () => {
 			const nextJobStep = () => {
 				jobsQueue.jobs[name] = setTimeout(nextJob, time);
 			};

@@ -53,7 +53,7 @@ const Peer = stampit({
 	},
 	init({ broadhash, nonce, state }) {
 		this.dappid = null;
-		this.height = parseInt(_.sample([50, 70, 90, 110]));
+		this.height = parseInt(_.sample([50, 70, 90, 110]), 10);
 		this.ip = faker.internet.ip();
 		this.os = faker.lorem.slug();
 		this.wsPort = `5${faker.random.number({ max: 999, min: 100 })}`;
@@ -77,7 +77,7 @@ const DBPeer = stampit(Peer, {
 		delete this.dappid;
 		delete this.httpPort;
 		delete this.nonce;
-		this.wsPort = parseInt(this.wsPort);
+		this.wsPort = parseInt(this.wsPort, 10);
 	},
 });
 

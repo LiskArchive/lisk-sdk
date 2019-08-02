@@ -35,7 +35,7 @@ describe('inputSerializers', () => {
 
 		it('should return proper value', async () =>
 			expect(
-				inputSerializers.defaultInput('value', 'mode', 'alias', 'name')
+				inputSerializers.defaultInput('value', 'mode', 'alias', 'name'),
 			).to.be.eql('${alias}'));
 	});
 
@@ -45,7 +45,7 @@ describe('inputSerializers', () => {
 
 		it('should return proper value', async () =>
 			expect(
-				inputSerializers.booleanToInt('value', 'mode', 'alias', 'name')
+				inputSerializers.booleanToInt('value', 'mode', 'alias', 'name'),
 			).to.be.eql('${alias}::int'));
 	});
 
@@ -55,12 +55,12 @@ describe('inputSerializers', () => {
 
 		it('should return decoded value if value present', async () =>
 			expect(
-				inputSerializers.stringToByte('value', 'mode', 'alias', 'name')
+				inputSerializers.stringToByte('value', 'mode', 'alias', 'name'),
 			).to.be.eql("DECODE(${alias}, 'hex')"));
 
 		it('should return NULL if value not present', async () =>
 			expect(
-				inputSerializers.stringToByte(undefined, 'mode', 'alias', 'name')
+				inputSerializers.stringToByte(undefined, 'mode', 'alias', 'name'),
 			).to.be.eql('NULL'));
 	});
 });

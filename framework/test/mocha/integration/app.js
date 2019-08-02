@@ -33,7 +33,7 @@ describe('app', () => {
 					library = lib;
 					Queries = new QueriesHelper(lib, library.components.storage);
 					done(err);
-				}
+				},
 			);
 		});
 	});
@@ -51,7 +51,7 @@ describe('app', () => {
 		describe('consistency', () => {
 			it('should contain transactions', async () => {
 				return expect(
-					library.genesisBlock.block.transactions.length
+					library.genesisBlock.block.transactions.length,
 				).to.be.above(0);
 			});
 		});
@@ -60,7 +60,7 @@ describe('app', () => {
 			describe('database block at height 1', () => {
 				it('ID should match genesis block ID', async () => {
 					return expect(genesisBlock.id).to.equal(
-						library.genesisBlock.block.id
+						library.genesisBlock.block.id,
 					);
 				});
 
@@ -70,15 +70,15 @@ describe('app', () => {
 
 				it('number of transactions should match genesis number of transactions in block', async () => {
 					return expect(genesisBlock.transactions.length).to.equal(
-						library.genesisBlock.block.transactions.length
+						library.genesisBlock.block.transactions.length,
 					);
 				});
 
 				it('all transactions IDs should be present in genesis block', async () => {
 					return expect(
-						genesisBlock.transactions.map(t => t.id).sort()
+						genesisBlock.transactions.map(t => t.id).sort(),
 					).to.be.deep.equal(
-						library.genesisBlock.block.transactions.map(t => t.id).sort()
+						library.genesisBlock.block.transactions.map(t => t.id).sort(),
 					);
 				});
 			});
@@ -130,11 +130,11 @@ describe('app', () => {
 								});
 								expect(found).to.be.an('object');
 								expect(delegate.username).to.equal(
-									found.asset.delegate.username
+									found.asset.delegate.username,
 								);
 								expect(delegate.address).to.equal(found.senderId);
 								expect(delegate.publicKey.toString('hex')).to.equal(
-									found.senderPublicKey
+									found.senderPublicKey,
 								);
 							});
 							done();
@@ -149,10 +149,10 @@ describe('app', () => {
 										return (
 											transaction.type === 3 &&
 											transaction.asset.votes.indexOf(
-												`+${delegate.publicKey.toString('hex')}`
+												`+${delegate.publicKey.toString('hex')}`,
 											) !== -1
 										);
-									}
+									},
 								);
 
 								// Calculate voters balance for current delegate
@@ -173,7 +173,7 @@ describe('app', () => {
 											}
 											return reduceBalance;
 										},
-										'0'
+										'0',
 									);
 									voters_balance = new BigNum(voters_balance)
 										.plus(balance)
@@ -203,7 +203,7 @@ describe('app', () => {
 					// Get unique accounts from genesis block
 					genesisAccounts = _.union(
 						library.genesisBlock.block.transactions.map(a => a.senderId),
-						library.genesisBlock.block.transactions.map(a => a.recipientId)
+						library.genesisBlock.block.transactions.map(a => a.recipientId),
 					).filter(a => a); // We call filter here to remove null values
 
 					// Get accounts from database
@@ -226,7 +226,7 @@ describe('app', () => {
 						_.each(accounts, delegate => {
 							expect(delegate).to.be.an('object');
 							expect(delegate).to.have.all.keys(
-								accountsFixtures.mem_accountsFields
+								accountsFixtures.mem_accountsFields,
 							);
 						});
 						done();
@@ -256,7 +256,7 @@ describe('app', () => {
 
 							it('fields address, balance, publicKey should match genesis block transaction', done => {
 								expect(genesisAccount.address).to.equal(
-									genesisAccountTransaction.senderId
+									genesisAccountTransaction.senderId,
 								);
 
 								// Sum all outgoing transactions from genesis account
@@ -270,12 +270,12 @@ describe('app', () => {
 										}
 										return reduceBalance;
 									},
-									'0'
+									'0',
 								);
 
 								expect(genesisAccount.balance).to.be.equal(balance);
 								expect(genesisAccount.publicKey.toString('hex')).to.equal(
-									genesisAccountTransaction.senderPublicKey
+									genesisAccountTransaction.senderPublicKey,
 								);
 								done();
 							});
@@ -285,7 +285,7 @@ describe('app', () => {
 							it('balances should be valid against blockchain balances', async () => {
 								// Perform validation of accounts balances against blockchain
 								return expect(
-									Queries.validateAccountsBalances()
+									Queries.validateAccountsBalances(),
 								).to.eventually.be.an('array').that.is.empty;
 							});
 						});
@@ -328,7 +328,7 @@ describe('app', () => {
 
 			it('should be equal to one generated with Lisk-Core 0.9.3', async () => {
 				return expect(delegatesList).to.deep.equal(
-					roundsFixtures.delegatesOrderAfterGenesisBlock
+					roundsFixtures.delegatesOrderAfterGenesisBlock,
 				);
 			});
 		});
@@ -347,7 +347,7 @@ describe('app', () => {
 
 				it('length should match delegates length from config file', async () => {
 					return expect(Object.keys(keypairs).length).to.equal(
-						__testContext.config.modules.chain.forging.delegates.length
+						__testContext.config.modules.chain.forging.delegates.length,
 					);
 				});
 

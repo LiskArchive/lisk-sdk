@@ -87,7 +87,7 @@ function Multisig(options) {
 			},
 			passphrase: this.account.passphrase,
 			secondPassphrase: this.account.secondPassphrase,
-		}
+		},
 	);
 
 	this.creditTransaction = transfer({

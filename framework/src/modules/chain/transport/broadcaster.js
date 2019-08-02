@@ -62,11 +62,11 @@ class Broadcaster {
 			jobsQueue.register(
 				'broadcasterReleaseQueue',
 				async () => this.releaseQueue(),
-				this.config.broadcastInterval
+				this.config.broadcastInterval,
 			);
 		} else {
 			this.logger.info(
-				'Broadcasting data disabled by user through config.json'
+				'Broadcasting data disabled by user through config.json',
 			);
 		}
 	}
@@ -128,7 +128,7 @@ class Broadcaster {
 					transactionId = broadcast.options.data.transaction.id;
 				} else if (broadcast.options.data.signature) {
 					// Look for a corresponding "transactionId" of a given signature
-					transactionId = broadcast.options.data.signature.transactionId;
+					({ transactionId } = broadcast.options.data.signature);
 				}
 				if (!transactionId) {
 					return false;
@@ -148,7 +148,7 @@ class Broadcaster {
 					const isPersisted = await this.storage.entities.Transaction.isPersisted(
 						{
 							id: transactionId,
-						}
+						},
 					);
 					return {
 						transactionId,
@@ -161,7 +161,7 @@ class Broadcaster {
 						isPersisted: true,
 					};
 				}
-			})
+			}),
 		))
 			.filter(({ isPersisted }) => isPersisted)
 			.map(({ transactionId }) => transactionId);
@@ -174,7 +174,7 @@ class Broadcaster {
 					transactionId = broadcast.options.data.transaction.id;
 				} else if (broadcast.options.data.signature) {
 					// Look for a corresponding "transactionId" of a given signature
-					transactionId = broadcast.options.data.signature.transactionId;
+					({ transactionId } = broadcast.options.data.signature);
 				}
 				return !persistedTransactionIds.includes(transactionId);
 			}
@@ -242,12 +242,12 @@ class Broadcaster {
 
 			await Promise.all(
 				squashedBroadcasts.map(({ params, options }) =>
-					this.broadcast(params, options)
-				)
+					this.broadcast(params, options),
+				),
 			);
 
 			return this.logger.info(
-				`Broadcasts released: ${squashedBroadcasts.length}`
+				`Broadcasts released: ${squashedBroadcasts.length}`,
 			);
 		} catch (err) {
 			this.logger.error('Failed to release broadcast queue', err);

@@ -46,7 +46,7 @@ class Field {
 				this.name,
 				this.fieldName,
 				this.inputSerializer,
-				this.filterCondition
+				this.filterCondition,
 			);
 		}
 	}
@@ -61,7 +61,7 @@ class Field {
 			value,
 			mode,
 			this.name,
-			this.fieldName
+			this.fieldName,
 		);
 	}
 
@@ -71,7 +71,7 @@ class Field {
 			this.name,
 			this.fieldName,
 			this.inputSerializer,
-			this.filterCondition
+			this.filterCondition,
 		);
 	}
 }

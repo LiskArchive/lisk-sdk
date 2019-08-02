@@ -43,7 +43,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 			it('should fail when trying to delete genesis block', async () => {
 				try {
 					await library.modules.blocks.blocksChain.deleteLastBlock(
-						library.modules.blocks.lastBlock
+						library.modules.blocks.lastBlock,
 					);
 				} catch (err) {
 					expect(err.message).to.equal('Cannot delete genesis block');
@@ -75,7 +75,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 				it('should validate account data from sender after account creation', async () => {
 					const account = await library.components.storage.entities.Account.getOne(
-						{ address: testAccount.address }
+						{ address: testAccount.address },
 					);
 					testAccountData = account;
 					expect(account.publicKey).to.be.null;
@@ -91,13 +91,13 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					localCommon.addTransactionsAndForge(
 						library,
 						[transferTransaction],
-						done
+						done,
 					);
 				});
 
 				it('should validate account data from sender after forging a block', async () => {
 					const account = await library.components.storage.entities.Account.getOne(
-						{ address: testAccount.address }
+						{ address: testAccount.address },
 					);
 					testAccountDataAfterBlock = account;
 					expect(account.publicKey).to.not.be.null;
@@ -105,7 +105,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 				it('should get account data from receipt that is a virgin (not have publicKey assigned)', async () => {
 					const account = await library.components.storage.entities.Account.getOne(
-						{ address: testReceipt.address }
+						{ address: testReceipt.address },
 					);
 					testReceiptData = account;
 					expect(account.publicKey).to.be.null;
@@ -114,25 +114,25 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				it('should delete last block', async () => {
 					const transactions = library.modules.blocks.lastBlock.transactions;
 					const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-						library.modules.blocks.lastBlock
+						library.modules.blocks.lastBlock,
 					);
 					library.modules.blocks._lastBlock = newLastBlock;
 					library.modules.transactionPool.onDeletedTransactions(
-						transactions.reverse()
+						transactions.reverse(),
 					);
 					expect(newLastBlock).to.be.an('object');
 				});
 
 				it('should validate account data from sender after deleting the last block', async () => {
 					const account = await library.components.storage.entities.Account.getOne(
-						{ address: testAccount.address }
+						{ address: testAccount.address },
 					);
 					expect(account.balance).to.equal(testAccountData.balance);
 				});
 
 				it('should get account data from receipt that has a zero balance', async () => {
 					const account = await library.components.storage.entities.Account.getOne(
-						{ address: testReceipt.address }
+						{ address: testReceipt.address },
 					);
 					expect(account.balance).to.equal('0');
 				});
@@ -143,17 +143,17 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 				it('should validate account data from sender after forging a block with transaction pool', async () => {
 					const account = await library.components.storage.entities.Account.getOne(
-						{ address: testAccount.address }
+						{ address: testAccount.address },
 					);
 					expect(account.balance).to.equal(testAccountDataAfterBlock.balance);
 					expect(account.publicKey).to.equal(
-						testAccountDataAfterBlock.publicKey
+						testAccountDataAfterBlock.publicKey,
 					);
 				});
 
 				it('should get account data from receipt that has a balance', async () => {
 					const account = await library.components.storage.entities.Account.getOne(
-						{ address: testReceipt.address }
+						{ address: testReceipt.address },
 					);
 					expect(account.balance).to.equal(testReceiptData.balance);
 				});
@@ -166,7 +166,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 				it('should validate account data from sender', async () => {
 					const account = await library.components.storage.entities.Account.getOne(
-						{ address: testAccount.address }
+						{ address: testAccount.address },
 					);
 					testAccountData = account;
 					expect(account.publicKey).to.be.null;
@@ -182,13 +182,13 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					localCommon.addTransactionsAndForge(
 						library,
 						[signatureTransaction],
-						done
+						done,
 					);
 				});
 
 				it('should validate account data from sender after forging a block', async () => {
 					const account = await library.components.storage.entities.Account.getOne(
-						{ address: testAccount.address }
+						{ address: testAccount.address },
 					);
 					testAccountDataAfterBlock = account;
 					expect(account.publicKey).to.not.be.null;
@@ -199,18 +199,18 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				it('should delete last block', async () => {
 					const transactions = library.modules.blocks.lastBlock.transactions;
 					const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-						library.modules.blocks.lastBlock
+						library.modules.blocks.lastBlock,
 					);
 					library.modules.blocks._lastBlock = newLastBlock;
 					library.modules.transactionPool.onDeletedTransactions(
-						transactions.reverse()
+						transactions.reverse(),
 					);
 					expect(newLastBlock).to.be.an('object');
 				});
 
 				it('should validate account data from sender after deleting the last block', async () => {
 					const account = await library.components.storage.entities.Account.getOne(
-						{ address: testAccount.address }
+						{ address: testAccount.address },
 					);
 					expect(account.balance).to.equal(testAccountData.balance);
 					expect(account.secondPublicKey).to.be.null;
@@ -223,14 +223,14 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 				it('should validate account data from sender after forging a block with transaction pool', async () => {
 					const account = await library.components.storage.entities.Account.getOne(
-						{ address: testAccount.address }
+						{ address: testAccount.address },
 					);
 					expect(account.balance).to.equal(testAccountDataAfterBlock.balance);
 					expect(account.publicKey).to.equal(
-						testAccountDataAfterBlock.publicKey
+						testAccountDataAfterBlock.publicKey,
 					);
 					expect(account.secondPublicKey).to.equal(
-						testAccountDataAfterBlock.secondPublicKey
+						testAccountDataAfterBlock.secondPublicKey,
 					);
 					expect(account.secondSignature).to.equal(true);
 				});
@@ -243,7 +243,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 				it('should validate account data from sender', async () => {
 					const account = await library.components.storage.entities.Account.getOne(
-						{ address: testAccount.address }
+						{ address: testAccount.address },
 					);
 					testAccountData = account;
 					expect(account.publicKey).to.be.null;
@@ -264,13 +264,13 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					localCommon.addTransactionsAndForge(
 						library,
 						[delegateTransaction],
-						done
+						done,
 					);
 				});
 
 				it('should validate account data from sender after forging a block', async () => {
 					const account = await library.components.storage.entities.Account.getOne(
-						{ address: testAccount.address }
+						{ address: testAccount.address },
 					);
 					testAccountDataAfterBlock = account;
 					expect(account.publicKey).to.not.be.null;
@@ -286,18 +286,18 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				it('should delete last block', async () => {
 					const transactions = library.modules.blocks.lastBlock.transactions;
 					const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-						library.modules.blocks.lastBlock
+						library.modules.blocks.lastBlock,
 					);
 					library.modules.blocks._lastBlock = newLastBlock;
 					library.modules.transactionPool.onDeletedTransactions(
-						transactions.reverse()
+						transactions.reverse(),
 					);
 					expect(newLastBlock).to.be.an('object');
 				});
 
 				it('should validate account data from sender after delete the last block', async () => {
 					const account = await library.components.storage.entities.Account.getOne(
-						{ address: testAccount.address }
+						{ address: testAccount.address },
 					);
 					expect(account.balance).to.equal(testAccountData.balance);
 					expect(account.isDelegate).to.equal(false);
@@ -315,15 +315,15 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 				it('should validate account data from sender after forging a block with transaction pool', async () => {
 					const account = await library.components.storage.entities.Account.getOne(
-						{ address: testAccount.address }
+						{ address: testAccount.address },
 					);
 					expect(account.balance).to.equal(testAccountDataAfterBlock.balance);
 					expect(account.publicKey).to.equal(
-						testAccountDataAfterBlock.publicKey
+						testAccountDataAfterBlock.publicKey,
 					);
 					expect(account.isDelegate).to.equal(true);
 					expect(account.username).to.be.equal(
-						testAccountDataAfterBlock.username
+						testAccountDataAfterBlock.username,
 					);
 					expect(account.missedBlocks).to.equal(0);
 					expect(account.producedBlocks).to.equal(0);
@@ -341,7 +341,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				it('should validate account data from sender after account creation', async () => {
 					const account = await library.components.storage.entities.Account.getOne(
 						{ address: testAccount.address },
-						{ extended: true }
+						{ extended: true },
 					);
 					testAccountData = account;
 					expect(account.publicKey).to.be.null;
@@ -359,23 +359,23 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				it('should validate account data from sender after forging a block', async () => {
 					const account = await library.components.storage.entities.Account.getOne(
 						{ address: testAccount.address },
-						{ extended: true }
+						{ extended: true },
 					);
 					testAccountDataAfterBlock = account;
 					expect(account.publicKey).to.not.be.null;
 					expect(account.votedDelegatesPublicKeys[0]).to.equal(
-						accountFixtures.existingDelegate.publicKey
+						accountFixtures.existingDelegate.publicKey,
 					);
 				});
 
 				it('should delete last block', async () => {
 					const transactions = library.modules.blocks.lastBlock.transactions;
 					const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-						library.modules.blocks.lastBlock
+						library.modules.blocks.lastBlock,
 					);
 					library.modules.blocks._lastBlock = newLastBlock;
 					library.modules.transactionPool.onDeletedTransactions(
-						transactions.reverse()
+						transactions.reverse(),
 					);
 					expect(newLastBlock).to.be.an('object');
 				});
@@ -383,7 +383,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				it('should validate account data from sender after deleting the last block', async () => {
 					const account = await library.components.storage.entities.Account.getOne(
 						{ address: testAccount.address },
-						{ extended: true }
+						{ extended: true },
 					);
 					expect(account.balance).to.equal(testAccountData.balance);
 					expect(account.votedDelegatesPublicKeys).to.be.null;
@@ -396,14 +396,14 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				it('should validate account data from sender after forging a block with transaction pool', async () => {
 					const account = await library.components.storage.entities.Account.getOne(
 						{ address: testAccount.address },
-						{ extended: true }
+						{ extended: true },
 					);
 					expect(account.balance).to.equal(testAccountDataAfterBlock.balance);
 					expect(account.publicKey).to.equal(
-						testAccountDataAfterBlock.publicKey
+						testAccountDataAfterBlock.publicKey,
 					);
 					expect(account.votedDelegatesPublicKeys[0]).to.equal(
-						accountFixtures.existingDelegate.publicKey
+						accountFixtures.existingDelegate.publicKey,
 					);
 				});
 			});
@@ -416,7 +416,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				it('should validate account data from sender after account creation', async () => {
 					const account = await library.components.storage.entities.Account.getOne(
 						{ address: testAccount.address },
-						{ extended: true }
+						{ extended: true },
 					);
 					testAccountData = account;
 					expect(account.publicKey).to.be.null;
@@ -434,7 +434,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					});
 					const signature = transactionUtils.multiSignTransaction(
 						multisigTransaction,
-						accountFixtures.existingDelegate.passphrase
+						accountFixtures.existingDelegate.passphrase,
 					);
 					multisigTransaction.signatures = [signature];
 					multisigTransaction.ready = true;
@@ -442,32 +442,32 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					localCommon.addTransactionsAndForge(
 						library,
 						[multisigTransaction],
-						done
+						done,
 					);
 				});
 
 				it('should validate account data from sender after forging a block', async () => {
 					const account = await library.components.storage.entities.Account.getOne(
 						{ address: testAccount.address },
-						{ extended: true }
+						{ extended: true },
 					);
 					testAccountDataAfterBlock = account;
 					expect(account.publicKey).to.not.be.null;
 					expect(account.multiLifetime).to.equal(1);
 					expect(account.multiMin).to.equal(1);
 					expect(account.membersPublicKeys[0]).to.equal(
-						accountFixtures.existingDelegate.publicKey
+						accountFixtures.existingDelegate.publicKey,
 					);
 				});
 
 				it('should delete last block', async () => {
 					const transactions = library.modules.blocks.lastBlock.transactions;
 					const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-						library.modules.blocks.lastBlock
+						library.modules.blocks.lastBlock,
 					);
 					library.modules.blocks._lastBlock = newLastBlock;
 					library.modules.transactionPool.onDeletedTransactions(
-						transactions.reverse()
+						transactions.reverse(),
 					);
 					expect(newLastBlock).to.be.an('object');
 				});
@@ -475,7 +475,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				it('should validate account data from sender', async () => {
 					const account = await library.components.storage.entities.Account.getOne(
 						{ address: testAccount.address },
-						{ extended: true }
+						{ extended: true },
 					);
 					expect(account.balance).to.equal(testAccountData.balance);
 					expect(account.multiLifetime).to.equal(0);
@@ -492,16 +492,16 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				it.skip('[UNCONFIRMED STATE REMOVAL] should validate account data from sender after forging a block with transaction pool', async () => {
 					const account = await library.components.storage.entities.Account.getOne(
 						{ address: testAccount.address },
-						{ extended: true }
+						{ extended: true },
 					);
 					expect(account.balance).to.equal(testAccountDataAfterBlock.balance);
 					expect(account.publicKey).to.equal(
-						testAccountDataAfterBlock.publicKey
+						testAccountDataAfterBlock.publicKey,
 					);
 					expect(account.multiLifetime).to.equal(1);
 					expect(account.multiMin).to.equal(1);
 					expect(account.membersPublicKeys[0]).to.equal(
-						accountFixtures.existingDelegate.publicKey
+						accountFixtures.existingDelegate.publicKey,
 					);
 				});
 			});
@@ -515,7 +515,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				describe.skip('(type 5) register dapp', () => {
 					it('should validate account data from sender after account creation', async () => {
 						const account = await library.components.storage.entities.Account.getOne(
-							{ address: testAccount.address }
+							{ address: testAccount.address },
 						);
 						testAccountData = account;
 						expect(account.publicKey).to.be.null;
@@ -530,13 +530,13 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 						localCommon.addTransactionsAndForge(
 							library,
 							[dappTransaction],
-							done
+							done,
 						);
 					});
 
 					it('should validate account data from sender after forging a block', async () => {
 						const account = await library.components.storage.entities.Account.getOne(
-							{ address: testAccount.address }
+							{ address: testAccount.address },
 						);
 						testAccountDataAfterBlock = account;
 						expect(account.publicKey).to.not.be.null;
@@ -545,18 +545,18 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					it('should delete last block', async () => {
 						const transactions = library.modules.blocks.lastBlock.transactions;
 						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock
+							library.modules.blocks.lastBlock,
 						);
 						library.modules.blocks._lastBlock = newLastBlock;
 						library.modules.transactionPool.onDeletedTransactions(
-							transactions.reverse()
+							transactions.reverse(),
 						);
 						expect(newLastBlock).to.be.an('object');
 					});
 
 					it('should validate account data from sender after deleting the last block', async () => {
 						const account = await library.components.storage.entities.Account.getOne(
-							{ address: testAccount.address }
+							{ address: testAccount.address },
 						);
 						expect(account.balance).to.equal(testAccountData.balance);
 					});
@@ -567,11 +567,11 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 					it('should validate account data from sender after forging a block with transaction pool', async () => {
 						const account = await library.components.storage.entities.Account.getOne(
-							{ address: testAccount.address }
+							{ address: testAccount.address },
 						);
 						expect(account.balance).to.equal(testAccountDataAfterBlock.balance);
 						expect(account.publicKey).to.equal(
-							testAccountDataAfterBlock.publicKey
+							testAccountDataAfterBlock.publicKey,
 						);
 					});
 				});
@@ -580,7 +580,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				describe.skip('(type 6) inTransfer dapp', () => {
 					it('should validate account data from sender after account creation', async () => {
 						const account = await library.components.storage.entities.Account.getOne(
-							{ address: testAccount.address }
+							{ address: testAccount.address },
 						);
 						testAccountData = account;
 						expect(account.publicKey).to.be.null;
@@ -595,13 +595,13 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 						localCommon.addTransactionsAndForge(
 							library,
 							[inTransferTransaction],
-							done
+							done,
 						);
 					});
 
 					it('should validate account data from sender after forging a block', async () => {
 						const account = await library.components.storage.entities.Account.getOne(
-							{ address: testAccount.address }
+							{ address: testAccount.address },
 						);
 						testAccountDataAfterBlock = account;
 						expect(account.publicKey).to.not.be.null;
@@ -610,18 +610,18 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					it('should delete last block', async () => {
 						const transactions = library.modules.blocks.lastBlock.transactions;
 						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock
+							library.modules.blocks.lastBlock,
 						);
 						library.modules.blocks._lastBlock = newLastBlock;
 						library.modules.transactionPool.onDeletedTransactions(
-							transactions.reverse()
+							transactions.reverse(),
 						);
 						expect(newLastBlock).to.be.an('object');
 					});
 
 					it('should validate account data from sender after deleting the last block', async () => {
 						const account = await library.components.storage.entities.Account.getOne(
-							{ address: testAccount.address }
+							{ address: testAccount.address },
 						);
 						expect(account.balance).to.equal(testAccountData.balance);
 					});
@@ -632,11 +632,11 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 					it('should validate account data from sender after forging a block with transaction pool', async () => {
 						const account = await library.components.storage.entities.Account.getOne(
-							{ address: testAccount.address }
+							{ address: testAccount.address },
 						);
 						expect(account.balance).to.equal(testAccountDataAfterBlock.balance);
 						expect(account.publicKey).to.equal(
-							testAccountDataAfterBlock.publicKey
+							testAccountDataAfterBlock.publicKey,
 						);
 					});
 				});
@@ -644,7 +644,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				describe.skip('(type 7) outTransfer dapp', () => {
 					it('should validate account data from sender after account creation', async () => {
 						const account = await library.components.storage.entities.Account.getOne(
-							{ address: testAccount.address }
+							{ address: testAccount.address },
 						);
 						testAccountData = account;
 						expect(account.publicKey).to.be.null;
@@ -664,13 +664,13 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 							err => {
 								expect(err).to.equal('Transaction type 7 is frozen');
 								done();
-							}
+							},
 						);
 					});
 
 					it('should validate account data from sender after forging a block', async () => {
 						const account = await library.components.storage.entities.Account.getOne(
-							{ address: testAccount.address }
+							{ address: testAccount.address },
 						);
 						testAccountDataAfterBlock = account;
 						expect(account.publicKey).to.not.be.null;
@@ -679,18 +679,18 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					it('should delete last block', async () => {
 						const transactions = library.modules.blocks.lastBlock.transactions;
 						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock
+							library.modules.blocks.lastBlock,
 						);
 						library.modules.blocks._lastBlock = newLastBlock;
 						library.modules.transactionPool.onDeletedTransactions(
-							transactions.reverse()
+							transactions.reverse(),
 						);
 						expect(newLastBlock).to.be.an('object');
 					});
 
 					it('should validate account data from sender after deleting the last block', async () => {
 						const account = await library.components.storage.entities.Account.getOne(
-							{ address: testAccount.address }
+							{ address: testAccount.address },
 						);
 						expect(account.balance).to.equal(testAccountData.balance);
 					});
@@ -701,11 +701,11 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 					it('should validate account data from sender after forging a block with transaction pool', async () => {
 						const account = await library.components.storage.entities.Account.getOne(
-							{ address: testAccount.address }
+							{ address: testAccount.address },
 						);
 						expect(account.balance).to.equal(testAccountDataAfterBlock.balance);
 						expect(account.publicKey).to.equal(
-							testAccountDataAfterBlock.publicKey
+							testAccountDataAfterBlock.publicKey,
 						);
 					});
 				});

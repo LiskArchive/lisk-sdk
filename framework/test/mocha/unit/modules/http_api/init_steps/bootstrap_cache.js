@@ -49,7 +49,7 @@ describe('init_steps/bootstrap_cache', () => {
 		cacheDisabled.components.cache.options.enabled = false;
 		await bootstrapCache(cacheDisabled);
 		expect(argument.components.logger.debug).to.be.calledWithExactly(
-			'Cache not enabled'
+			'Cache not enabled',
 		);
 	});
 });

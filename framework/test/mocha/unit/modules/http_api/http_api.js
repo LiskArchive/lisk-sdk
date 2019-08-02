@@ -122,19 +122,19 @@ describe('HttpApi', () => {
 		it('should invoke app:getComponentConfig to get "logger" configuration', async () => {
 			expect(stubs.channel.invoke).to.be.calledWithExactly(
 				'app:getComponentConfig',
-				'logger'
+				'logger',
 			);
 		});
 		it('should invoke app:getComponentConfig to get "storage" configuration', async () => {
 			expect(stubs.channel.invoke).to.be.calledWithExactly(
 				'app:getComponentConfig',
-				'storage'
+				'storage',
 			);
 		});
 		it('should invoke app:getComponentConfig to get "cache" configuration', async () => {
 			expect(stubs.channel.invoke).to.be.calledWithExactly(
 				'app:getComponentConfig',
-				'cache'
+				'cache',
 			);
 		});
 		it('should create logger component with loggerConfig and assign to object instance', async () => {
@@ -148,7 +148,7 @@ describe('HttpApi', () => {
 				await httpApi.bootstrap();
 				expect(stubs.createStorageComponent).to.be.calledWithExactly(
 					storageConfig,
-					stubs.logger
+					stubs.logger,
 				);
 			});
 			it('should create new logger component if main log file is not same as storage log file', async () => {
@@ -164,12 +164,12 @@ describe('HttpApi', () => {
 				expect(stubs.createLoggerComponent).to.be.calledWithExactly(
 					Object.assign({}, loggerConfig, {
 						logFileName: storageConfig.logFileName,
-					})
+					}),
 				);
 
 				expect(stubs.createStorageComponent).to.be.calledWithExactly(
 					storageConfig,
-					dbLogger
+					dbLogger,
 				);
 			});
 		});
@@ -182,7 +182,7 @@ describe('HttpApi', () => {
 		it('should create cache component', async () => {
 			expect(stubs.createCacheComponent).to.be.calledWithExactly(
 				cacheConfig,
-				stubs.logger
+				stubs.logger,
 			);
 		});
 		it('should log "Initiating storage..."', async () => {
@@ -204,7 +204,7 @@ describe('HttpApi', () => {
 		it('should call bootstrapStorage() with proper arguments', async () => {
 			expect(stubs.bootstrapStorage).to.be.calledWithExactly(
 				httpApi.scope,
-				global.constants.ACTIVE_DELEGATES
+				global.constants.ACTIVE_DELEGATES,
 			);
 		});
 		it('should call bootstrapCache() with proper arguments', async () => {
@@ -231,16 +231,16 @@ describe('HttpApi', () => {
 			const channelSubscribeStub = stubs.channel.subscribe;
 			expect(channelSubscribeStub.callCount).to.be.equal(4);
 			expect(channelSubscribeStub.firstCall.args[0]).to.be.eql(
-				'app:state:updated'
+				'app:state:updated',
 			);
 			expect(channelSubscribeStub.secondCall.args[0]).to.be.eql(
-				'chain:blocks:change'
+				'chain:blocks:change',
 			);
 			expect(channelSubscribeStub.thirdCall.args[0]).to.be.eql(
-				'chain:rounds:change'
+				'chain:rounds:change',
 			);
 			expect(channelSubscribeStub.lastCall.args[0]).to.be.eql(
-				'chain:transactions:confirmed:change'
+				'chain:transactions:confirmed:change',
 			);
 		});
 	});

@@ -56,11 +56,11 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		return apiHelpers.sendTransactionsPromise(transactions).then(responses => {
 			responses.map(res => {
 				return expect(res.body.data.message).to.be.equal(
-					'Transaction(s) accepted'
+					'Transaction(s) accepted',
 				);
 			});
 			transactionsToWaitFor = transactionsToWaitFor.concat(
-				_.map(transactions, 'id')
+				_.map(transactions, 'id'),
 			);
 
 			return waitFor.confirmations(transactionsToWaitFor);
@@ -78,10 +78,10 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					return sendTransactionPromise(scenario.multiSigTransaction).then(
 						res => {
 							expect(res.body.data.message).to.be.equal(
-								'Transaction(s) accepted'
+								'Transaction(s) accepted',
 							);
 							pendingMultisignatures.push(scenario.multiSigTransaction);
-						}
+						},
 					);
 				});
 
@@ -93,10 +93,10 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 						member => {
 							const signatureObject = apiHelpers.createSignatureObject(
 								scenario.multiSigTransaction,
-								member
+								member,
 							);
 							return signatureObject.signature;
-						}
+						},
 					);
 
 					scenario.multiSigTransaction.ready = true;
@@ -104,10 +104,10 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					return sendTransactionPromise(scenario.multiSigTransaction).then(
 						res => {
 							expect(res.body.data.message).to.be.equal(
-								'Transaction(s) accepted'
+								'Transaction(s) accepted',
 							);
 							goodTransactions.push(scenario.multiSigTransaction);
-						}
+						},
 					);
 				});
 			});
@@ -119,7 +119,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						apiCodes.BAD_REQUEST
+						apiCodes.BAD_REQUEST,
 					).then(res => {
 						expect(res.body.message).to.equal('Validation errors');
 						badTransactions.push(scenario.multiSigTransaction);
@@ -132,7 +132,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						apiCodes.BAD_REQUEST
+						apiCodes.BAD_REQUEST,
 					).then(res => {
 						expect(res.body.message).to.equal('Validation errors');
 						badTransactions.push(scenario.multiSigTransaction);
@@ -145,7 +145,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						apiCodes.BAD_REQUEST
+						apiCodes.BAD_REQUEST,
 					).then(res => {
 						expect(res.body.message).to.equal('Validation errors');
 						badTransactions.push(scenario.multiSigTransaction);
@@ -158,7 +158,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						apiCodes.BAD_REQUEST
+						apiCodes.BAD_REQUEST,
 					).then(res => {
 						expect(res.body.message).to.equal('Validation errors');
 						badTransactions.push(scenario.multiSigTransaction);
@@ -171,7 +171,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						apiCodes.BAD_REQUEST
+						apiCodes.BAD_REQUEST,
 					).then(res => {
 						expect(res.body.message).to.equal('Validation errors');
 						badTransactions.push(scenario.multiSigTransaction);
@@ -184,14 +184,14 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						apiCodes.PROCESSING_ERROR
+						apiCodes.PROCESSING_ERROR,
 					).then(res => {
 						expect(res.body.message).to.eql(
-							'Transaction was rejected with errors'
+							'Transaction was rejected with errors',
 						);
 						expect(res.body.code).to.eql(apiCodes.PROCESSING_ERROR);
 						expect(res.body.errors[0].message).to.be.equal(
-							'\'.signatures[0]\' should match format "signature"'
+							'\'.signatures[0]\' should match format "signature"',
 						);
 						badTransactions.push(scenario.multiSigTransaction);
 					});
@@ -203,7 +203,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						apiCodes.BAD_REQUEST
+						apiCodes.BAD_REQUEST,
 					).then(res => {
 						expect(res.body.message).to.equal('Validation errors');
 						badTransactions.push(scenario.multiSigTransaction);
@@ -217,11 +217,11 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					return sendTransactionPromise(scenario.multiSigTransaction).then(
 						res => {
 							expect(res.body.data.message).to.be.equal(
-								'Transaction(s) accepted'
+								'Transaction(s) accepted',
 							);
 							badTransactions.push(scenario.multiSigTransaction);
 							pendingMultisignatures.push(scenario.multiSigTransaction);
-						}
+						},
 					);
 				});
 
@@ -230,30 +230,30 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					const signatureObject = apiHelpers.createSignatureObject(
 						scenario.multiSigTransaction,
-						scenario.members[0]
+						scenario.members[0],
 					);
 
 					const signatureFromunknown = apiHelpers.createSignatureObject(
 						scenario.multiSigTransaction,
-						randomUtil.account()
+						randomUtil.account(),
 					);
 
 					scenario.multiSigTransaction.signatures = [];
 					scenario.multiSigTransaction.signatures.push(
 						signatureObject.signature,
-						signatureFromunknown.signature
+						signatureFromunknown.signature,
 					);
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						apiCodes.PROCESSING_ERROR
+						apiCodes.PROCESSING_ERROR,
 					).then(res => {
 						expect(res.body.message).to.be.equal(
-							'Transaction was rejected with errors'
+							'Transaction was rejected with errors',
 						);
 						expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 						expect(res.body.errors[0].message).to.be.equal(
-							`Failed to validate signature ${signatureFromunknown.signature}`
+							`Failed to validate signature ${signatureFromunknown.signature}`,
 						);
 						badTransactions.push(scenario.multiSigTransaction);
 					});
@@ -264,24 +264,24 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					const signatureObject = apiHelpers.createSignatureObject(
 						scenario.multiSigTransaction,
-						scenario.members[0]
+						scenario.members[0],
 					);
 					scenario.multiSigTransaction.signatures = [];
 					scenario.multiSigTransaction.signatures.push(
 						signatureObject.signature,
-						signatureObject.signature
+						signatureObject.signature,
 					);
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						apiCodes.PROCESSING_ERROR
+						apiCodes.PROCESSING_ERROR,
 					).then(res => {
 						expect(res.body.message).to.be.equal(
-							'Transaction was rejected with errors'
+							'Transaction was rejected with errors',
 						);
 						expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 						expect(res.body.errors[0].message).to.eql(
-							"'.signatures' should NOT have duplicate items (items ## 1 and 0 are identical)"
+							"'.signatures' should NOT have duplicate items (items ## 1 and 0 are identical)",
 						);
 						badTransactions.push(scenario.multiSigTransaction);
 					});
@@ -292,31 +292,31 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					const signatureObject0 = apiHelpers.createSignatureObject(
 						scenario.multiSigTransaction,
-						randomUtil.account()
+						randomUtil.account(),
 					);
 
 					const signatureObject1 = apiHelpers.createSignatureObject(
 						scenario.multiSigTransaction,
-						scenario.members[1]
+						scenario.members[1],
 					);
 
 					scenario.multiSigTransaction.signatures = [];
 					scenario.multiSigTransaction.signatures.push(
 						signatureObject0.signature,
 						signatureObject1.signature,
-						signatureObject0.signature
+						signatureObject0.signature,
 					);
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,
-						apiCodes.PROCESSING_ERROR
+						apiCodes.PROCESSING_ERROR,
 					).then(res => {
 						expect(res.body.message).to.be.equal(
-							'Transaction was rejected with errors'
+							'Transaction was rejected with errors',
 						);
 						expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 						expect(res.body.errors[0].message).to.eql(
-							"'.signatures' should NOT have duplicate items (items ## 2 and 0 are identical)"
+							"'.signatures' should NOT have duplicate items (items ## 2 and 0 are identical)",
 						);
 						badTransactions.push(scenario.multiSigTransaction);
 					});
@@ -330,10 +330,10 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 						member => {
 							const signatureObject = apiHelpers.createSignatureObject(
 								scenario.multiSigTransaction,
-								member
+								member,
 							);
 							return signatureObject.signature;
-						}
+						},
 					);
 
 					scenario.multiSigTransaction.ready = false;
@@ -341,10 +341,10 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					return sendTransactionPromise(scenario.multiSigTransaction).then(
 						res => {
 							expect(res.body.data.message).to.be.equal(
-								'Transaction(s) accepted'
+								'Transaction(s) accepted',
 							);
 							goodTransactions.push(scenario.multiSigTransaction);
-						}
+						},
 					);
 				});
 
@@ -356,10 +356,10 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					return sendTransactionPromise(scenario.multiSigTransaction).then(
 						res => {
 							expect(res.body.data.message).to.be.equal(
-								'Transaction(s) accepted'
+								'Transaction(s) accepted',
 							);
 							pendingMultisignatures.push(scenario.multiSigTransaction);
-						}
+						},
 					);
 				});
 
@@ -368,7 +368,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 					const signatureObj = apiHelpers.createSignatureObject(
 						scenario.multiSigTransaction,
-						scenario.members[0]
+						scenario.members[0],
 					);
 
 					scenario.multiSigTransaction.signatures = [signatureObj.signature];
@@ -378,10 +378,10 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					return sendTransactionPromise(scenario.multiSigTransaction).then(
 						res => {
 							expect(res.body.data.message).to.be.equal(
-								'Transaction(s) accepted'
+								'Transaction(s) accepted',
 							);
 							pendingMultisignatures.push(scenario.multiSigTransaction);
-						}
+						},
 					);
 				});
 			});
@@ -398,10 +398,10 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					member => {
 						const signatureObject = apiHelpers.createSignatureObject(
 							scenario.multiSigTransaction,
-							member
+							member,
 						);
 						return signatureObject.signature;
-					}
+					},
 				);
 
 				scenario.multiSigTransaction.ready = true;
@@ -409,12 +409,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				return sendTransactionPromise(scenario.multiSigTransaction).then(
 					res => {
 						expect(res.body.data.message).to.be.equal(
-							'Transaction(s) accepted'
+							'Transaction(s) accepted',
 						);
 
 						transactionsToWaitFor.push(scenario.multiSigTransaction.id);
 						return waitFor.confirmations(transactionsToWaitFor);
-					}
+					},
 				);
 			});
 		});
@@ -424,7 +424,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		phases.confirmation(
 			goodTransactions,
 			badTransactions,
-			pendingMultisignatures
+			pendingMultisignatures,
 		);
 	});
 });

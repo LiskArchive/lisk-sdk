@@ -1,65 +1,12 @@
 {
 	"extends": ["../.eslintrc.json"],
 	"rules": {
-		"camelcase": "off",
-		"comma-dangle": [
-			"error",
-			{
-				"arrays": "always-multiline",
-				"objects": "always-multiline",
-				"imports": "always-multiline",
-				"exports": "always-multiline",
-				"functions": "never"
-			}
-		],
-		"func-names": "off",
-		"implicit-arrow-linebreak": "off",
-		"max-len": "off",
-		"no-new": "off",
-		"no-param-reassign": "off",
-		"no-plusplus": "off",
-		"no-underscore-dangle": "off",
-		"no-unused-expressions": "off",
-		"no-use-before-define": "off",
-		"operator-linebreak": "off",
-		"prefer-destructuring": "off",
-		"radix": "off",
-		"require-jsdoc": [
-			"error",
-			{
-				"require": {
-					"FunctionDeclaration": false,
-					"MethodDefinition": false,
-					"ClassDeclaration": false,
-					"ArrowFunctionExpression": false,
-					"FunctionExpression": false
-				}
-			}
-		],
 		"strict": "off",
-		"import/no-extraneous-dependencies": [
-			"error",
-			{
-				"devDependencies": [
-					"src/modules/chain/tasks/**",
-					"src/modules/chain/scripts/**"
-				]
-			}
-		],
-		"callback-return": "error",
-		"generator-star-spacing": [
-			"error",
-			{
-				"before": false,
-				"after": false
-			}
-		],
-		"global-require": "off",
-		"no-console": ["error", { "allow": ["trace", "error", "info", "warn"] }],
-		"no-restricted-properties": "off",
-		"no-template-curly-in-string": "off",
-		"no-throw-literal": "off",
-		"space-before-function-paren": "off",
-		"wrap-iife": "off"
+		"max-len": "off",
+		"no-underscore-dangle": "off",
+		"camelcase": ["warn"],
+		"space-before-function-paren": ["warn"],
+		"no-param-reassign": ["warn"],
+		"no-throw-literal": ["warn"]
 	}
 }

@@ -73,7 +73,7 @@ describe('integration test (type 1) - second signature transactions from pool an
 				localCommon.addTransactionToUnconfirmedQueue(
 					library,
 					signatureTransaction,
-					done
+					done,
 				);
 			});
 
@@ -90,13 +90,13 @@ describe('integration test (type 1) - second signature transactions from pool an
 						const account = await library.sequence.add(async () => {
 							return localCommon.getAccountFromDb(
 								library,
-								signatureAccount.address
+								signatureAccount.address,
 							);
 						});
 						expect(account).to.exist;
 						expect(account.mem_accounts.secondSignature).to.equal(1);
 						expect(
-							account.mem_accounts.secondPublicKey.toString('hex')
+							account.mem_accounts.secondPublicKey.toString('hex'),
 						).to.equal(signatureTransaction.asset.signature.publicKey);
 					});
 				});
@@ -122,13 +122,13 @@ describe('integration test (type 1) - second signature transactions from pool an
 						const account = await library.sequence.add(async () => {
 							return localCommon.getAccountFromDb(
 								library,
-								signatureAccount.address
+								signatureAccount.address,
 							);
 						});
 						expect(account).to.exist;
 						expect(account.mem_accounts.secondSignature).to.equal(1);
 						expect(
-							account.mem_accounts.secondPublicKey.toString('hex')
+							account.mem_accounts.secondPublicKey.toString('hex'),
 						).to.equal(signatureTransaction2.asset.signature.publicKey);
 					});
 				});
@@ -176,7 +176,7 @@ describe('integration test (type 1) - second signature transactions from pool an
 						const account = await library.sequence.add(async () => {
 							return localCommon.getAccountFromDb(
 								library,
-								signatureAccount.address
+								signatureAccount.address,
 							);
 						});
 						expect(account).to.exist;

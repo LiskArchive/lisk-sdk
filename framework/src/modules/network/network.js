@@ -64,14 +64,14 @@ module.exports = class Network {
 
 		const loggerConfig = await this.channel.invoke(
 			'app:getComponentConfig',
-			'logger'
+			'logger',
 		);
 
 		this.logger = createLoggerComponent(loggerConfig);
 
 		const storageConfig = await this.channel.invoke(
 			'app:getComponentConfig',
-			'storage'
+			'storage',
 		);
 		const dbLogger =
 			storageConfig.logFileName &&
@@ -93,7 +93,7 @@ module.exports = class Network {
 		// Load peers from the database that were tried or connected the last time node was running
 		const previousPeers = await this.storage.entities.Peer.get(
 			{},
-			{ limit: null }
+			{ limit: null },
 		);
 		// TODO: Nonce overwrite should be removed once the Network module has been fully integreated into core and the old peer system has been fully removed.
 		// We need this because the old peer system which runs in parallel will conflict with the new one if they share the same nonce.
@@ -106,7 +106,7 @@ module.exports = class Network {
 		});
 
 		const initialNodeInfo = sanitizeNodeInfo(
-			await this.channel.invoke('app:getApplicationState')
+			await this.channel.invoke('app:getApplicationState'),
 		);
 
 		const seedPeers = await lookupPeersIPs(this.options.seedPeers, true);
@@ -166,7 +166,7 @@ module.exports = class Network {
 					closePacket.peerInfo.ipAddress
 				}:${closePacket.peerInfo.wsPort} was closed with code ${
 					closePacket.code
-				} and reason: ${closePacket.reason}`
+				} and reason: ${closePacket.reason}`,
 			);
 		});
 
@@ -176,7 +176,7 @@ module.exports = class Network {
 					closePacket.peerInfo.wsPort
 				} was closed with code ${closePacket.code} and reason: ${
 					closePacket.reason
-				}`
+				}`,
 			);
 		});
 
@@ -184,7 +184,7 @@ module.exports = class Network {
 			this.logger.info(
 				`Peer connect event: Connected to peer ${peerInfo.ipAddress}:${
 					peerInfo.wsPort
-				}`
+				}`,
 			);
 		});
 
@@ -192,7 +192,7 @@ module.exports = class Network {
 			this.logger.info(
 				`New peer found event: Discovered peer ${peerInfo.ipAddress}:${
 					peerInfo.wsPort
-				}`
+				}`,
 			);
 		});
 
@@ -200,7 +200,7 @@ module.exports = class Network {
 			this.logger.debug(
 				`New inbound peer event: Connected from peer ${peerInfo.ipAddress}:${
 					peerInfo.wsPort
-				} ${JSON.stringify(peerInfo)}`
+				} ${JSON.stringify(peerInfo)}`,
 			);
 		});
 
@@ -224,7 +224,7 @@ module.exports = class Network {
 			this.logger.trace(
 				`Peer update info event: Updated info of peer ${peerInfo.ipAddress}:${
 					peerInfo.wsPort
-				} to ${JSON.stringify(peerInfo)}`
+				} to ${JSON.stringify(peerInfo)}`,
 			);
 		});
 
@@ -236,7 +236,7 @@ module.exports = class Network {
 			this.logger.trace(
 				`Incoming request event: Received inbound request for procedure ${
 					request.procedure
-				}`
+				}`,
 			);
 			// If the request has already been handled internally by the P2P library, we ignore.
 			if (request.wasResponseSent) {
@@ -250,19 +250,19 @@ module.exports = class Network {
 			try {
 				const result = await this.channel.invokePublic(
 					sanitizedProcedure,
-					request.data
+					request.data,
 				);
 				this.logger.trace(
 					`Peer request fulfilled event: Responded to peer request ${
 						request.procedure
-					}`
+					}`,
 				);
 				request.end(result); // Send the response back to the peer.
 			} catch (error) {
 				this.logger.error(
 					`Peer request not fulfilled event: Could not respond to peer request ${
 						request.procedure
-					} because of error: ${error.message || error}`
+					} because of error: ${error.message || error}`,
 				);
 				request.error(error); // Send an error back to the peer.
 			}
@@ -272,7 +272,7 @@ module.exports = class Network {
 			this.logger.trace(
 				`Message received event: Received inbound message for event ${
 					packet.event
-				}`
+				}`,
 			);
 			this.channel.publish('network:event', packet);
 		});
@@ -316,7 +316,7 @@ module.exports = class Network {
 						procedure: action.params.procedure,
 						data: action.params.data,
 					},
-					action.params.peerId
+					action.params.peerId,
 				),
 			emitToPeer: action =>
 				this.p2p.sendToPeer(
@@ -324,7 +324,7 @@ module.exports = class Network {
 						event: action.params.event,
 						data: action.params.data,
 					},
-					action.params.peerId
+					action.params.peerId,
 				),
 			getNetworkStatus: () => this.p2p.getNetworkStatus(),
 			getPeers: action => {

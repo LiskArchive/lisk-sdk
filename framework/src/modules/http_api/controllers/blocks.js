@@ -25,99 +25,6 @@ let library;
 let sortFields;
 
 /**
- * Description of the function.
- *
- * @class
- * @memberof api.controllers
- * @requires lodash
- * @param {Object} scope - App instance
- * @todo Add description of BlocksController
- */
-function BlocksController(scope) {
-	library = {
-		storage: scope.components.storage,
-		logger: scope.components.logger,
-		channel: scope.channel,
-	};
-
-	sortFields = [
-		'id',
-		'timestamp',
-		'height',
-		'previousBlock',
-		'totalAmount',
-		'totalFee',
-		'reward',
-		'numberOfTransactions',
-		'generatorPublicKey',
-	];
-}
-
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
-BlocksController.getBlocks = function(context, next) {
-	const invalidParams = swaggerHelper.invalidParams(context.request);
-
-	if (invalidParams.length) {
-		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
-	}
-
-	const params = context.request.swagger.params;
-
-	let parsedParams = {
-		id: params.blockId.value,
-		height: params.height.value,
-		generatorPublicKey: params.generatorPublicKey.value,
-		fromTimestamp: params.fromTimestamp.value,
-		toTimestamp: params.toTimestamp.value,
-		sort: params.sort.value,
-		limit: params.limit.value,
-		offset: params.offset.value,
-	};
-
-	// Remove params with undefined/null values
-	parsedParams = _.omitBy(
-		parsedParams,
-		value => value === undefined || value === null
-	);
-
-	return _list(_.clone(parsedParams), (err, data) => {
-		if (err) {
-			return next(err);
-		}
-
-		data = _.cloneDeep(data);
-
-		data = _.map(data, block => {
-			block.totalAmount = block.totalAmount.toString();
-			block.totalFee = block.totalFee.toString();
-			block.reward = block.reward.toString();
-			block.totalForged = block.totalForged.toString();
-			block.generatorAddress = block.generatorId;
-			block.previousBlockId = block.previousBlock || '';
-
-			delete block.previousBlock;
-			delete block.generatorId;
-
-			return block;
-		});
-
-		return next(null, {
-			data,
-			meta: {
-				offset: parsedParams.offset,
-				limit: parsedParams.limit,
-			},
-		});
-	});
-};
-
-/**
  * Parse raw block data from database into expected API response type for blocks
  *
  * @param {Object} raw Raw block data from database
@@ -130,20 +37,20 @@ function parseBlockFromDatabase(raw) {
 
 	const block = {
 		id: raw.id,
-		version: parseInt(raw.version),
-		timestamp: parseInt(raw.timestamp),
-		height: parseInt(raw.height),
+		version: parseInt(raw.version, 10),
+		timestamp: parseInt(raw.timestamp, 10),
+		height: parseInt(raw.height, 10),
 		previousBlock: raw.previousBlockId,
-		numberOfTransactions: parseInt(raw.numberOfTransactions),
+		numberOfTransactions: parseInt(raw.numberOfTransactions, 10),
 		totalAmount: new BigNum(raw.totalAmount).toFixed(),
 		totalFee: new BigNum(raw.totalFee).toFixed(),
 		reward: new BigNum(raw.reward).toFixed(),
-		payloadLength: parseInt(raw.payloadLength),
+		payloadLength: parseInt(raw.payloadLength, 10),
 		payloadHash: raw.payloadHash,
 		generatorPublicKey: raw.generatorPublicKey,
 		generatorId: getAddressFromPublicKey(raw.generatorPublicKey),
 		blockSignature: raw.blockSignature,
-		confirmations: parseInt(raw.confirmations),
+		confirmations: parseInt(raw.confirmations, 10),
 		totalForged: new BigNum(raw.totalFee).plus(raw.reward).toFixed(),
 	};
 
@@ -194,7 +101,7 @@ function _list(params, cb) {
 	// Remove filters with undefined/null values
 	const filters = _.omitBy(
 		parsedFilters,
-		value => value === undefined || value === null
+		value => value === undefined || value === null,
 	);
 
 	options.limit = params.limit ? Math.abs(params.limit) : 100;
@@ -206,8 +113,8 @@ function _list(params, cb) {
 			cb,
 			new ApiError(
 				'Invalid limit. Maximum is 100',
-				apiCodes.INTERNAL_SERVER_ERROR
-			)
+				apiCodes.INTERNAL_SERVER_ERROR,
+			),
 		);
 	}
 
@@ -218,7 +125,7 @@ function _list(params, cb) {
 	) {
 		return setImmediate(
 			cb,
-			new ApiError('Invalid sort field', apiCodes.INTERNAL_SERVER_ERROR)
+			new ApiError('Invalid sort field', apiCodes.INTERNAL_SERVER_ERROR),
 		);
 	}
 
@@ -226,16 +133,109 @@ function _list(params, cb) {
 		library.storage.entities.Block.get(filters, options)
 			// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
 			.then(async rows =>
-				setImmediate(cb, null, rows.map(parseBlockFromDatabase))
+				setImmediate(cb, null, rows.map(parseBlockFromDatabase)),
 			)
 			.catch(err => {
 				library.logger.error(err.stack);
 				return setImmediate(
 					cb,
-					new ApiError('Blocks#list error', apiCodes.INTERNAL_SERVER_ERROR)
+					new ApiError('Blocks#list error', apiCodes.INTERNAL_SERVER_ERROR),
 				);
 			})
 	);
 }
+
+/**
+ * Description of the function.
+ *
+ * @class
+ * @memberof api.controllers
+ * @requires lodash
+ * @param {Object} scope - App instance
+ * @todo Add description of BlocksController
+ */
+function BlocksController(scope) {
+	library = {
+		storage: scope.components.storage,
+		logger: scope.components.logger,
+		channel: scope.channel,
+	};
+
+	sortFields = [
+		'id',
+		'timestamp',
+		'height',
+		'previousBlock',
+		'totalAmount',
+		'totalFee',
+		'reward',
+		'numberOfTransactions',
+		'generatorPublicKey',
+	];
+}
+
+/**
+ * Description of the function.
+ *
+ * @param {Object} context
+ * @param {function} next
+ * @todo Add description for the function and the params
+ */
+BlocksController.getBlocks = function(context, next) {
+	const invalidParams = swaggerHelper.invalidParams(context.request);
+
+	if (invalidParams.length) {
+		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
+	}
+
+	const { params } = context.request.swagger;
+
+	let parsedParams = {
+		id: params.blockId.value,
+		height: params.height.value,
+		generatorPublicKey: params.generatorPublicKey.value,
+		fromTimestamp: params.fromTimestamp.value,
+		toTimestamp: params.toTimestamp.value,
+		sort: params.sort.value,
+		limit: params.limit.value,
+		offset: params.offset.value,
+	};
+
+	// Remove params with undefined/null values
+	parsedParams = _.omitBy(
+		parsedParams,
+		value => value === undefined || value === null,
+	);
+
+	return _list(_.clone(parsedParams), (err, data) => {
+		if (err) {
+			return next(err);
+		}
+
+		data = _.cloneDeep(data);
+
+		data = _.map(data, block => {
+			block.totalAmount = block.totalAmount.toString();
+			block.totalFee = block.totalFee.toString();
+			block.reward = block.reward.toString();
+			block.totalForged = block.totalForged.toString();
+			block.generatorAddress = block.generatorId;
+			block.previousBlockId = block.previousBlock || '';
+
+			delete block.previousBlock;
+			delete block.generatorId;
+
+			return block;
+		});
+
+		return next(null, {
+			data,
+			meta: {
+				offset: parsedParams.offset,
+				limit: parsedParams.limit,
+			},
+		});
+	});
+};
 
 module.exports = BlocksController;

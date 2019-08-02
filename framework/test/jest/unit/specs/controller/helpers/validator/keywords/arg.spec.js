@@ -28,7 +28,7 @@ const {
 const formatters = require('../../../../../../../../src/controller/validator/keywords/formatters');
 
 jest.mock(
-	'../../../../../../../../src/controller/validator/keywords/formatters'
+	'../../../../../../../../src/controller/validator/keywords/formatters',
 );
 
 let validator;
@@ -51,7 +51,7 @@ describe('validator keyword "arg"', () => {
 		};
 
 		expect(() => validator.validate(schema, {})).toThrow(
-			'keyword schema is invalid: data should match pattern "^([-]{2}[a-z][a-z0-9-]*)(,[-][a-z]{1,1})?$", data should be object, data should match some schema in anyOf'
+			'keyword schema is invalid: data should match pattern "^([-]{2}[a-z][a-z0-9-]*)(,[-][a-z]{1,1})?$", data should be object, data should match some schema in anyOf',
 		);
 	});
 
@@ -130,7 +130,7 @@ describe('validator keyword "arg"', () => {
 		validator.validate(envSchemaWithFormatter, data);
 
 		expect(formatters.stringToDelegateList).toHaveBeenCalledWith(
-			'changedLongValue'
+			'changedLongValue',
 		);
 		expect(data.prop1).toBe('formattedValue');
 	});
@@ -149,7 +149,7 @@ describe('validator keyword "arg"', () => {
 		};
 
 		expect(() => validator.validate(invalidSchema, {})).toThrow(
-			"keyword schema is invalid: data should be string, data should have required property 'name', data should match some schema in anyOf"
+			"keyword schema is invalid: data should be string, data should have required property 'name', data should match some schema in anyOf",
 		);
 	});
 
@@ -168,7 +168,7 @@ describe('validator keyword "arg"', () => {
 			},
 		};
 		expect(() => validator.validate(invalidSchema, {})).toThrow(
-			'keyword schema is invalid: data should be string, data should NOT have additional properties, data should match some schema in anyOf'
+			'keyword schema is invalid: data should be string, data should NOT have additional properties, data should match some schema in anyOf',
 		);
 	});
 
@@ -185,7 +185,7 @@ describe('validator keyword "arg"', () => {
 		const data = { prop1: 'originalValue' };
 
 		expect(() => validator.validate(invalidSchema, data)).toThrow(
-			'keyword schema is invalid: data should be string, data should be object, data should match some schema in anyOf'
+			'keyword schema is invalid: data should be string, data should be object, data should match some schema in anyOf',
 		);
 	});
 
@@ -202,7 +202,7 @@ describe('validator keyword "arg"', () => {
 		const data = { prop1: 'originalValue' };
 
 		expect(() => validator.validate(invalidSchema, data)).toThrow(
-			'keyword schema is invalid: data should be string, data should be object, data should match some schema in anyOf'
+			'keyword schema is invalid: data should be string, data should be object, data should match some schema in anyOf',
 		);
 	});
 });

@@ -88,7 +88,7 @@ describe('Bus', () => {
 
 			// Act && Assert
 			await expect(
-				bus.registerChannel(moduleAlias, events, [], channelOptions)
+				bus.registerChannel(moduleAlias, events, [], channelOptions),
 			).rejects.toBeInstanceOf(Error);
 		});
 
@@ -113,7 +113,7 @@ describe('Bus', () => {
 			expect(Object.keys(bus.actions)).toHaveLength(2);
 			Object.keys(actions).forEach(actionName => {
 				expect(bus.actions[`${moduleAlias}:${actionName}`]).toBe(
-					actions[actionName]
+					actions[actionName],
 				);
 			});
 		});
@@ -131,7 +131,7 @@ describe('Bus', () => {
 			// Act && Assert
 			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
 			await expect(
-				bus.registerChannel(moduleAlias, [], actions, channelOptions)
+				bus.registerChannel(moduleAlias, [], actions, channelOptions),
 			).rejects.toBeInstanceOf(Error);
 		});
 	});
@@ -158,7 +158,7 @@ describe('Bus', () => {
 			// Assert
 			expect(EventEmitter2.prototype.emit).toHaveBeenCalledWith(
 				eventName,
-				eventData
+				eventData,
 			);
 		});
 	});
@@ -178,7 +178,7 @@ describe('Bus', () => {
 				},
 			};
 			const expectedActions = Object.keys(actions).map(
-				actionName => `${moduleAlias}:${actionName}`
+				actionName => `${moduleAlias}:${actionName}`,
 			);
 
 			await bus.registerChannel(moduleAlias, [], actions, channelOptions);

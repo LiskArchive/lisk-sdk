@@ -40,11 +40,11 @@ describe('PUT /node/status/forging', () => {
 									forging: true,
 								},
 							},
-							200
+							200,
 						)
 						.then(updateForgingEndpointRes => {
 							expect(updateForgingEndpointRes.body.data[0].publicKey).to.be.eql(
-								validDelegate.publicKey
+								validDelegate.publicKey,
 							);
 							expect(updateForgingEndpointRes.body.data[0].forging).to.be.true;
 						});
@@ -107,7 +107,7 @@ describe('PUT /node/status/forging', () => {
 			.makeRequest({ data: params }, 404)
 			.then(res => {
 				expect(res.body.message).to.contain(
-					'Invalid password and public key combination'
+					'Invalid password and public key combination',
 				);
 			});
 	});
@@ -148,7 +148,7 @@ describe('PUT /node/status/forging', () => {
 
 				return forgingStatusEndpoint.makeRequest(
 					{ publicKey: params.publicKey },
-					200
+					200,
 				);
 			})
 			.then(res => {
@@ -173,7 +173,7 @@ describe('PUT /node/status/forging', () => {
 						forging: false,
 					},
 				},
-				200
+				200,
 			)
 			.then(res => {
 				expect(res.body.data[0].publicKey).to.eql(validDelegate.publicKey);
@@ -181,7 +181,7 @@ describe('PUT /node/status/forging', () => {
 
 				return forgingStatusEndpoint.makeRequest(
 					{ publicKey: params.publicKey },
-					200
+					200,
 				);
 			})
 			.then(res => {
@@ -197,7 +197,7 @@ describe('PUT /node/status/forging', () => {
 							forging: true,
 						},
 					},
-					200
+					200,
 				);
 			})
 			.then(res => {
@@ -206,7 +206,7 @@ describe('PUT /node/status/forging', () => {
 
 				return forgingStatusEndpoint.makeRequest(
 					{ publicKey: params.publicKey },
-					200
+					200,
 				);
 			})
 			.then(res => {

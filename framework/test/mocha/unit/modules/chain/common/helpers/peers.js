@@ -29,14 +29,14 @@ module.exports = {
 					randomstring.generate({
 						length: 63,
 						custom: 'abcdefghijklmnopqrstuvwxyz0123456789!$&_.',
-					}) + characterNotPresentInValidBroadhash
+					}) + characterNotPresentInValidBroadhash,
 				);
 				return result;
 			},
 			{
 				matchedBroadhash: validBroadhash,
 				unmatchedBroadhashes: [],
-			}
+			},
 		);
 	},
 };

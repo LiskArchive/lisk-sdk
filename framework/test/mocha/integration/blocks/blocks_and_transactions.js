@@ -48,7 +48,7 @@ describe('blocks processing & transactions pool consistency', () => {
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
 				expect(bat.getTransactionsInLastBlock()).to.deep.equal(
-					bat.getValidSortedTransactions()
+					bat.getValidSortedTransactions(),
 				);
 
 				// 1.0 - (0.1 + 0.1) + 0.3 - (0.6 + 0.1)
@@ -69,7 +69,7 @@ describe('blocks processing & transactions pool consistency', () => {
 				// We expecting the block to fail at processing
 				expect(errors).to.have.lengthOf(1);
 				expect(errors[0].message).to.be.equal(
-					`Account does not have enough LSK for total spending. balance: 100000000, spending: ${bat.getTotalSpending()}`
+					`Account does not have enough LSK for total spending. balance: 100000000, spending: ${bat.getTotalSpending()}`,
 				);
 				expect(errors[0].id).to.be.equal(bat.getAllTransactions()[0].id);
 
@@ -87,7 +87,7 @@ describe('blocks processing & transactions pool consistency', () => {
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
 				expect(bat.getTransactionsInLastBlock()).to.deep.equal(
-					bat.getValidSortedTransactions()
+					bat.getValidSortedTransactions(),
 				);
 				// 1.0 - (0.1 + 0.1) + 0.3 - (0.6 + 0.1)
 				expect(await bat.getAccountBalance()).to.be.eql('0.4');
@@ -113,7 +113,7 @@ describe('blocks processing & transactions pool consistency', () => {
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
 				expect(bat.getTransactionsInLastBlock()).to.deep.equal(
-					bat.getValidSortedTransactions()
+					bat.getValidSortedTransactions(),
 				);
 				// 1.0 - (0.1 + 0.1) + 0.3 - (0.6 + 0.1)
 				expect(await bat.getAccountBalance()).to.be.eql('0.4');
@@ -133,7 +133,7 @@ describe('blocks processing & transactions pool consistency', () => {
 				// We expecting the block to fail at processing
 				expect(errors).to.have.lengthOf(1);
 				expect(errors[0].message).to.be.equal(
-					`Account does not have enough LSK for total spending. balance: 100000000, spending: ${bat.getTotalSpending()}`
+					`Account does not have enough LSK for total spending. balance: 100000000, spending: ${bat.getTotalSpending()}`,
 				);
 				expect(errors[0].id).to.be.equal(bat.getAllTransactions()[1].id);
 
@@ -151,7 +151,7 @@ describe('blocks processing & transactions pool consistency', () => {
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
 				expect(bat.getTransactionsInLastBlock()).to.deep.equal(
-					bat.getValidSortedTransactions()
+					bat.getValidSortedTransactions(),
 				);
 				// 1.0 - (0.1 + 0.1) + 0.3 - (0.6 + 0.1)
 				expect(await bat.getAccountBalance()).to.be.eql('0.4');
@@ -178,7 +178,7 @@ describe('blocks processing & transactions pool consistency', () => {
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
 				expect(bat.getTransactionsInLastBlock()).to.deep.equal(
-					bat.getValidSortedTransactions()
+					bat.getValidSortedTransactions(),
 				);
 				// 1.0 - (0.1 + 0.1) + 0.3 - (0.6 + 0.1)
 				expect(await bat.getAccountBalance()).to.be.eql('0.4');
@@ -198,7 +198,7 @@ describe('blocks processing & transactions pool consistency', () => {
 				// We expecting the block to fail at processing
 				expect(errors).to.have.lengthOf(1);
 				expect(errors[0].message).to.be.equal(
-					`Account does not have enough LSK for total spending. balance: 100000000, spending: ${bat.getTotalSpending()}`
+					`Account does not have enough LSK for total spending. balance: 100000000, spending: ${bat.getTotalSpending()}`,
 				);
 				expect(errors[0].id).to.be.equal(bat.getAllTransactions()[1].id);
 
@@ -216,7 +216,7 @@ describe('blocks processing & transactions pool consistency', () => {
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
 				expect(bat.getTransactionsInLastBlock()).to.deep.equal(
-					bat.getValidSortedTransactions()
+					bat.getValidSortedTransactions(),
 				);
 			});
 		});
@@ -259,7 +259,7 @@ describe('blocks processing & transactions pool consistency', () => {
 				expect(errors).to.have.lengthOf(1);
 				// TODO: We can't use ${bat.getTotalSpending() here, investigate why actual is 110000000 instead of expected 180000000
 				expect(errors[0].message).to.be.equal(
-					'Account does not have enough LSK for total spending. balance: 100000000, spending: 110000000'
+					'Account does not have enough LSK for total spending. balance: 100000000, spending: 110000000',
 				);
 				expect(errors[0].id).to.be.equal(bat.getAllTransactions()[3].id);
 
@@ -277,7 +277,7 @@ describe('blocks processing & transactions pool consistency', () => {
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
 				expect(bat.getTransactionsInLastBlock()).to.deep.equal(
-					bat.getValidSortedTransactions()
+					bat.getValidSortedTransactions(),
 				);
 			});
 		});
@@ -300,7 +300,7 @@ describe('blocks processing & transactions pool consistency', () => {
 						bat.getAllTransactions()[0].id
 					} failed at .balance: Account does not have enough LSK: ${
 						bat.getAllTransactions()[0].senderId
-					}, balance: 1`
+					}, balance: 1`,
 				);
 
 				// There should be no transactions in transaction pool
@@ -320,7 +320,7 @@ describe('blocks processing & transactions pool consistency', () => {
 				expect(errors[0].message).to.be.equal(
 					`Account does not have enough LSK: ${
 						bat.getAllTransactions()[0].senderId
-					}, balance: 1`
+					}, balance: 1`,
 				);
 				expect(errors[0].id).to.be.equal(bat.getAllTransactions()[0].id);
 
@@ -338,7 +338,7 @@ describe('blocks processing & transactions pool consistency', () => {
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
 				expect(bat.getTransactionsInLastBlock()).to.deep.equal(
-					bat.getValidSortedTransactions()
+					bat.getValidSortedTransactions(),
 				);
 			});
 		});
@@ -365,7 +365,7 @@ describe('blocks processing & transactions pool consistency', () => {
 				// Last block should only contain all transactions marked as EXPECT.OK and no transactions marked as EXPECT.FAIL
 				// Transactions with smallest amount are first as we sort them by amount while forging
 				expect(bat.getTransactionsInLastBlock()).to.deep.equal(
-					bat.getValidSortedTransactions()
+					bat.getValidSortedTransactions(),
 				);
 
 				// 1.0 - (0.5 + 0.1)
@@ -380,7 +380,7 @@ describe('blocks processing & transactions pool consistency', () => {
 				await bat.enqueueAllTransactionsAndForge();
 
 				expect(bat.getTransactionsInLastBlock()).to.deep.equal(
-					bat.getValidSortedTransactions()
+					bat.getValidSortedTransactions(),
 				);
 
 				// 0.4 - (0.1 + 0.1) + 1.5

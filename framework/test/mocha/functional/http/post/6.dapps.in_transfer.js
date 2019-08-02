@@ -108,16 +108,16 @@ describe.skip('POST /api/transactions (type 6) inTransfer dapp', () => {
 				transaction = createInTransfer(
 					randomUtil.guestbookDapp.id,
 					Date.now(),
-					accountFixtures.genesis.passphrase
+					accountFixtures.genesis.passphrase,
 				);
 				delete transaction.asset.inTransfer.dappId;
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Invalid transaction body - Failed to validate inTransfer schema: Missing required property: dappId'
+						'Invalid transaction body - Failed to validate inTransfer schema: Missing required property: dappId',
 					);
 					badTransactions.push(transaction);
 				});
@@ -127,16 +127,16 @@ describe.skip('POST /api/transactions (type 6) inTransfer dapp', () => {
 				transaction = createInTransfer(
 					randomUtil.guestbookDapp.id,
 					Date.now(),
-					accountFixtures.genesis.passphrase
+					accountFixtures.genesis.passphrase,
 				);
 				transaction.asset.inTransfer.dappId = 1;
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type integer'
+						'Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type integer',
 					);
 					badTransactions.push(transaction);
 				});
@@ -146,16 +146,16 @@ describe.skip('POST /api/transactions (type 6) inTransfer dapp', () => {
 				transaction = createInTransfer(
 					randomUtil.guestbookDapp.id,
 					Date.now(),
-					accountFixtures.genesis.passphrase
+					accountFixtures.genesis.passphrase,
 				);
 				transaction.asset.inTransfer.dappId = 1.2;
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						"Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type number, Object didn't pass validation for format id: 1.2"
+						"Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type number, Object didn't pass validation for format id: 1.2",
 					);
 					badTransactions.push(transaction);
 				});
@@ -165,16 +165,16 @@ describe.skip('POST /api/transactions (type 6) inTransfer dapp', () => {
 				transaction = createInTransfer(
 					randomUtil.guestbookDapp.id,
 					Date.now(),
-					accountFixtures.genesis.passphrase
+					accountFixtures.genesis.passphrase,
 				);
 				transaction.asset.inTransfer.dappId = [];
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type array'
+						'Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type array',
 					);
 					badTransactions.push(transaction);
 				});
@@ -184,16 +184,16 @@ describe.skip('POST /api/transactions (type 6) inTransfer dapp', () => {
 				transaction = createInTransfer(
 					randomUtil.guestbookDapp.id,
 					Date.now(),
-					accountFixtures.genesis.passphrase
+					accountFixtures.genesis.passphrase,
 				);
 				transaction.asset.inTransfer.dappId = {};
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						"Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type object, Object didn't pass validation for format id: {}"
+						"Invalid transaction body - Failed to validate inTransfer schema: Expected type string but found type object, Object didn't pass validation for format id: {}",
 					);
 					badTransactions.push(transaction);
 				});
@@ -204,10 +204,10 @@ describe.skip('POST /api/transactions (type 6) inTransfer dapp', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Invalid transaction body - Failed to validate inTransfer schema: String is too short (0 chars), minimum 1'
+						'Invalid transaction body - Failed to validate inTransfer schema: String is too short (0 chars), minimum 1',
 					);
 					badTransactions.push(transaction);
 				});
@@ -218,15 +218,15 @@ describe.skip('POST /api/transactions (type 6) inTransfer dapp', () => {
 				transaction = createInTransfer(
 					invalidDappId,
 					1,
-					accountFixtures.genesis.passphrase
+					accountFixtures.genesis.passphrase,
 				);
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						`Invalid transaction body - Failed to validate inTransfer schema: Object didn't pass validation for format id: ${invalidDappId}`
+						`Invalid transaction body - Failed to validate inTransfer schema: Object didn't pass validation for format id: ${invalidDappId}`,
 					);
 					badTransactions.push(transaction);
 				});
@@ -238,15 +238,15 @@ describe.skip('POST /api/transactions (type 6) inTransfer dapp', () => {
 				transaction = createInTransfer(
 					randomUtil.guestbookDapp.id,
 					-1,
-					accountFixtures.genesis.passphrase
+					accountFixtures.genesis.passphrase,
 				);
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.equal(
-						'Invalid transaction body - Failed to validate transaction schema: Value -1 is less than minimum 0'
+						'Invalid transaction body - Failed to validate transaction schema: Value -1 is less than minimum 0',
 					);
 					badTransactions.push(transaction);
 				});
@@ -265,17 +265,17 @@ describe.skip('POST /api/transactions (type 6) inTransfer dapp', () => {
 						transaction = createInTransfer(
 							randomUtil.guestbookDapp.id,
 							amount,
-							account.passphrase
+							account.passphrase,
 						);
 
 						return sendTransactionPromise(
 							transaction,
-							apiCodes.PROCESSING_ERROR
+							apiCodes.PROCESSING_ERROR,
 						);
 					})
 					.then(res => {
 						expect(res.body.message).to.match(
-							/^Account does not have enough LSK: /
+							/^Account does not have enough LSK: /,
 						);
 						badTransactions.push(transaction);
 					});
@@ -289,15 +289,15 @@ describe.skip('POST /api/transactions (type 6) inTransfer dapp', () => {
 			transaction = createInTransfer(
 				unknownDappId,
 				1,
-				accountFixtures.genesis.passphrase
+				accountFixtures.genesis.passphrase,
 			);
 
 			return sendTransactionPromise(
 				transaction,
-				apiCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR,
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					`Application not found: ${unknownDappId}`
+					`Application not found: ${unknownDappId}`,
 				);
 				badTransactions.push(transaction);
 			});
@@ -309,10 +309,10 @@ describe.skip('POST /api/transactions (type 6) inTransfer dapp', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				apiCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR,
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					`Application not found: ${inexistentId}`
+					`Application not found: ${inexistentId}`,
 				);
 				badTransactions.push(transaction);
 			});
@@ -322,15 +322,15 @@ describe.skip('POST /api/transactions (type 6) inTransfer dapp', () => {
 			transaction = createInTransfer(
 				transactionsToWaitFor[0],
 				1,
-				accountFixtures.genesis.passphrase
+				accountFixtures.genesis.passphrase,
 			);
 
 			return sendTransactionPromise(
 				transaction,
-				apiCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR,
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					`Application not found: ${transactionsToWaitFor[0]}`
+					`Application not found: ${transactionsToWaitFor[0]}`,
 				);
 				badTransactions.push(transaction);
 			});
@@ -340,7 +340,7 @@ describe.skip('POST /api/transactions (type 6) inTransfer dapp', () => {
 			transaction = createInTransfer(
 				randomUtil.guestbookDapp.id,
 				10 * NORMALIZER,
-				accountFixtures.genesis.passphrase
+				accountFixtures.genesis.passphrase,
 			);
 
 			return sendTransactionPromise(transaction).then(res => {
@@ -354,15 +354,15 @@ describe.skip('POST /api/transactions (type 6) inTransfer dapp', () => {
 				transaction = createInTransfer(
 					randomUtil.blockDataDapp.id,
 					1,
-					accountMinimalFunds.passphrase
+					accountMinimalFunds.passphrase,
 				);
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.match(
-						/^Account does not have enough LSK: /
+						/^Account does not have enough LSK: /,
 					);
 					badTransactions.push(transaction);
 				});
@@ -372,7 +372,7 @@ describe.skip('POST /api/transactions (type 6) inTransfer dapp', () => {
 				transaction = createInTransfer(
 					randomUtil.guestbookDapp.id,
 					10 * NORMALIZER,
-					account.passphrase
+					account.passphrase,
 				);
 
 				return sendTransactionPromise(transaction).then(res => {
@@ -407,12 +407,12 @@ describe.skip('POST /api/transactions (type 6) inTransfer dapp', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				apiCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR,
 			).then(res => {
 				expect(res.body.message).to.eql('Invalid transaction body');
 				expect(res.body.code).to.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					'Transaction type 6 is currently not allowed.'
+					'Transaction type 6 is currently not allowed.',
 				);
 			});
 		});

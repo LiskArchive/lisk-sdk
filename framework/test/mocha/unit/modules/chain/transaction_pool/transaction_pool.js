@@ -93,7 +93,7 @@ describe('transactionPool', () => {
 	describe('constructor', () => {
 		it('should set the instance variables', async () => {
 			expect(transactionPool.maxTransactionsPerQueue).to.equal(
-				maxTransactionsPerQueue
+				maxTransactionsPerQueue,
 			);
 			expect(transactionPool.bundledInterval).to.equal(broadcastInterval);
 			expect(transactionPool.bundleLimit).to.equal(releaseLimit);
@@ -146,7 +146,7 @@ describe('transactionPool', () => {
 			expect(getTransactionsListStub).to.be.calledWithExactly(
 				'ready',
 				reverse,
-				limit
+				limit,
 			);
 		});
 
@@ -154,7 +154,7 @@ describe('transactionPool', () => {
 			const reverse = true;
 			const limit = 10;
 			expect(
-				transactionPool.getUnconfirmedTransactionList(reverse, limit)
+				transactionPool.getUnconfirmedTransactionList(reverse, limit),
 			).to.eql([]);
 		});
 	});
@@ -175,7 +175,7 @@ describe('transactionPool', () => {
 			expect(getTransactionsListStub).to.be.calledWithExactly(
 				'received',
 				reverse,
-				limit
+				limit,
 			);
 		});
 
@@ -183,7 +183,7 @@ describe('transactionPool', () => {
 			const reverse = true;
 			const limit = 10;
 			expect(transactionPool.getBundledTransactionList(reverse, limit)).to.eql(
-				[]
+				[],
 			);
 		});
 	});
@@ -204,7 +204,7 @@ describe('transactionPool', () => {
 			expect(getTransactionsListStub).to.be.calledWithExactly(
 				'verified',
 				reverse,
-				limit
+				limit,
 			);
 		});
 
@@ -212,7 +212,7 @@ describe('transactionPool', () => {
 			const reverse = true;
 			const limit = 10;
 			expect(transactionPool.getQueuedTransactionList(reverse, limit)).to.eql(
-				[]
+				[],
 			);
 		});
 	});
@@ -233,7 +233,7 @@ describe('transactionPool', () => {
 			expect(getTransactionsListStub).to.be.calledWithExactly(
 				'pending',
 				reverse,
-				limit
+				limit,
 			);
 		});
 
@@ -241,7 +241,7 @@ describe('transactionPool', () => {
 			const reverse = true;
 			const limit = 10;
 			expect(
-				transactionPool.getMultisignatureTransactionList(reverse, limit)
+				transactionPool.getMultisignatureTransactionList(reverse, limit),
 			).to.eql([]);
 		});
 	});
@@ -260,20 +260,20 @@ describe('transactionPool', () => {
 
 		it('should return transactions from the queue passed as parameter', async () => {
 			expect(transactionPool.getTransactionsList(queueName)).to.eql(
-				dummyTransactionsList
+				dummyTransactionsList,
 			);
 		});
 
 		it('should reverse transactions if reverse parameter is set to true', async () => {
 			expect(transactionPool.getTransactionsList(queueName, true)).to.eql(
-				dummyTransactionsList.reverse()
+				dummyTransactionsList.reverse(),
 			);
 		});
 
 		it('should limit the transactions returned based on the limit parameter', async () => {
 			const slicedTransactions = dummyTransactionsList.slice(0, 10);
 			expect(transactionPool.getTransactionsList(queueName, false, 10)).to.eql(
-				slicedTransactions
+				slicedTransactions,
 			);
 		});
 	});
@@ -299,21 +299,21 @@ describe('transactionPool', () => {
 			transactionPool.getMergedTransactionList(false, maxSharedTransactions);
 			expect(getUnconfirmedTransactionListStub).to.be.calledWithExactly(
 				false,
-				maxSharedTransactions
+				maxSharedTransactions,
 			);
 			expect(getMultisignatureTransactionListStub).to.be.calledWithExactly(
 				false,
-				maxSharedTransactions - 1
+				maxSharedTransactions - 1,
 			);
 			expect(getQueuedTransactionListStub).to.be.calledWithExactly(
 				false,
-				maxSharedTransactions - 2
+				maxSharedTransactions - 2,
 			);
 		});
 
 		it('should return transactions from all the queues', async () => {
 			expect(
-				transactionPool.getMergedTransactionList(false, maxSharedTransactions)
+				transactionPool.getMergedTransactionList(false, maxSharedTransactions),
 			).to.eql(dummyTransactions);
 		});
 	});
@@ -335,7 +335,7 @@ describe('transactionPool', () => {
 				.returns({ isFull: false, exists: false, queueName: 'verified' });
 			transactionPool.addVerifiedTransaction(dummyTransactions[0]);
 			expect(addVerifiedTransactionStub).to.be.calledWithExactly(
-				dummyTransactions[0]
+				dummyTransactions[0],
 			);
 		});
 	});
@@ -347,7 +347,7 @@ describe('transactionPool', () => {
 				.returns({ isFull: false, exists: false, queueName: 'pending' });
 			transactionPool.addMultisignatureTransaction(dummyTransactions[0]);
 			expect(addMultisignatureTransactionStub).to.be.calledWithExactly(
-				dummyTransactions[0]
+				dummyTransactions[0],
 			);
 		});
 	});
@@ -386,7 +386,7 @@ describe('transactionPool', () => {
 				} catch (errors) {
 					expect(errors[0]).to.be.an.instanceof(TransactionError);
 					expect(errors[0].message).to.eql(
-						'Unable to process signature, signature not provided'
+						'Unable to process signature, signature not provided',
 					);
 				}
 			});
@@ -397,12 +397,12 @@ describe('transactionPool', () => {
 				transactionPool.getMultisignatureTransaction.returns(undefined);
 				try {
 					await transactionPool.getTransactionAndProcessSignature(
-						signatureObject
+						signatureObject,
 					);
 				} catch (errors) {
 					expect(errors[0]).to.be.an.instanceof(TransactionError);
 					expect(errors[0].message).to.eql(
-						'Unable to process signature, corresponding transaction not found'
+						'Unable to process signature, corresponding transaction not found',
 					);
 				}
 			});
@@ -417,7 +417,7 @@ describe('transactionPool', () => {
 						errors: [
 							new TransactionError('Signature already present in transaction.'),
 						],
-					})
+					}),
 				);
 			});
 
@@ -425,18 +425,18 @@ describe('transactionPool', () => {
 				transactionObject.signatures = ['signature1'];
 				try {
 					await transactionPool.getTransactionAndProcessSignature(
-						signatureObject
+						signatureObject,
 					);
 				} catch (errors) {
 					expect(
-						transactionPool.getMultisignatureTransaction
+						transactionPool.getMultisignatureTransaction,
 					).to.have.been.calledWith(signatureObject.transactionId);
 					expect(transactionPool.getMultisignatureTransaction).to.have.been
 						.calledOnce;
 					expect(transactionsModule.processSignature).to.have.been.calledOnce;
 					expect(errors[0]).to.be.an.instanceof(TransactionError);
 					expect(errors[0].message).to.eql(
-						'Signature already present in transaction.'
+						'Signature already present in transaction.',
 					);
 				}
 			});
@@ -449,19 +449,19 @@ describe('transactionPool', () => {
 						...transactionResponse,
 						status: 2,
 						errors: [],
-					})
+					}),
 				);
 			});
 
 			it('should emit EVENT_MULTISIGNATURE_SIGNATURE', async () => {
 				// Act
 				await transactionPool.getTransactionAndProcessSignature(
-					signatureObject
+					signatureObject,
 				);
 				// Assert
 				expect(transactionPool.emit).to.be.calledWith(
 					EVENT_MULTISIGNATURE_SIGNATURE,
-					signatureObject
+					signatureObject,
 				);
 			});
 		});
@@ -490,7 +490,7 @@ describe('transactionPool', () => {
 				expect(err).to.be.an('array');
 				err.forEach(anErr => {
 					expect(anErr.message).to.equal(
-						`Transaction is already processed: ${transaction.id}`
+						`Transaction is already processed: ${transaction.id}`,
 					);
 				});
 			}
@@ -499,7 +499,7 @@ describe('transactionPool', () => {
 		it('should add transaction to the verified queue when status is OK', async () => {
 			const addVerifiedTransactionStub = sinonSandbox.stub(
 				transactionPool,
-				'addVerifiedTransaction'
+				'addVerifiedTransaction',
 			);
 			await transactionPool.processUnconfirmedTransaction(transaction);
 			expect(addVerifiedTransactionStub).to.be.calledWith(transaction);
@@ -525,7 +525,7 @@ describe('transactionPool', () => {
 			});
 			const addMultisignatureTransactionStub = sinonSandbox.stub(
 				transactionPool,
-				'addMultisignatureTransaction'
+				'addMultisignatureTransaction',
 			);
 			await transactionPool.processUnconfirmedTransaction(transaction);
 			expect(addMultisignatureTransactionStub).to.be.calledWith(transaction);
@@ -556,13 +556,13 @@ describe('transactionPool', () => {
 			transactionPool.subscribeEvents();
 			// Assert
 			expect(transactionPool.pool.on.firstCall).to.be.calledWith(
-				'transactionVerifiedOnce'
+				'transactionVerifiedOnce',
 			);
 			expect(transactionPool.pool.on.secondCall).to.be.calledWith(
-				'transactionsAdded'
+				'transactionsAdded',
 			);
 			expect(transactionPool.pool.on.thirdCall).to.be.calledWith(
-				'transactionsRemoved'
+				'transactionsRemoved',
 			);
 		});
 
@@ -577,7 +577,7 @@ describe('transactionPool', () => {
 			// Assert
 			expect(transactionPool.emit).to.be.calledWith(
 				EVENT_UNCONFIRMED_TRANSACTION,
-				dummyTransactions[0]
+				dummyTransactions[0],
 			);
 		});
 	});

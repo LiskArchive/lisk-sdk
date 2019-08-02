@@ -55,7 +55,7 @@ describe('integration test (type 0) - votes collision', () => {
 			[creditTransaction],
 			async () => {
 				done();
-			}
+			},
 		);
 	});
 
@@ -71,7 +71,7 @@ describe('integration test (type 0) - votes collision', () => {
 				[delegateRegistrationTransaction],
 				async () => {
 					done();
-				}
+				},
 			);
 		});
 
@@ -87,7 +87,7 @@ describe('integration test (type 0) - votes collision', () => {
 					.which.is.an('Array');
 				expect(res.transactions.length).to.equal(1);
 				expect(res.transactions[0].id).to.equal(
-					delegateRegistrationTransaction.id
+					delegateRegistrationTransaction.id,
 				);
 				done();
 			});
@@ -106,7 +106,7 @@ describe('integration test (type 0) - votes collision', () => {
 					[voteTransactionWithCollisionPublicKey],
 					async () => {
 						done();
-					}
+					},
 				);
 			});
 
@@ -139,7 +139,7 @@ describe('integration test (type 0) - votes collision', () => {
 					[voteTransactionWithActualPublicKey],
 					async () => {
 						done();
-					}
+					},
 				);
 			});
 
@@ -155,7 +155,7 @@ describe('integration test (type 0) - votes collision', () => {
 						.which.is.an('Array');
 					expect(res.transactions.length).to.equal(1);
 					expect(res.transactions[0].id).to.equal(
-						voteTransactionWithActualPublicKey.id
+						voteTransactionWithActualPublicKey.id,
 					);
 					done();
 				});

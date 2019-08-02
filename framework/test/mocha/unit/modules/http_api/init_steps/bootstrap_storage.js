@@ -45,7 +45,7 @@ describe('init_steps/bootstrap_storage', () => {
 	});
 	it('should extend account entity limit', async () => {
 		expect(
-			argument.components.storage.entities.Account.extendDefaultOptions
+			argument.components.storage.entities.Account.extendDefaultOptions,
 		).to.be.calledWith({
 			limit: accountLimit,
 		});

@@ -17,31 +17,31 @@
 describe('integration test (transactions) - total spending', () => {
 	describe('when debit the account first', () => {
 		it.todo(
-			'should not include transactions which exceed total spending per account balance'
+			'should not include transactions which exceed total spending per account balance',
 		);
 	});
 
 	describe('when we credit the account first', () => {
 		it.todo(
-			'should not include transactions which exceed total spending per account balance'
+			'should not include transactions which exceed total spending per account balance',
 		);
 	});
 
 	describe('when we try to spend entire balance and transaction fee makes balance to go negative', () => {
 		it.todo(
-			'should not include transactions which exceed total spending per account balance'
+			'should not include transactions which exceed total spending per account balance',
 		);
 	});
 
 	describe('when we credit the account first, overspend last', () => {
 		it.todo(
-			'should not include transactions which exceed total spending per account balance'
+			'should not include transactions which exceed total spending per account balance',
 		);
 	});
 
 	describe('when try to spend entire balance in single transaction and transaction fee makes balance go negative', () => {
 		it.todo(
-			'should not include transactions which exceed total spending per account balance'
+			'should not include transactions which exceed total spending per account balance',
 		);
 	});
 

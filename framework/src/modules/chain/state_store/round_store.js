@@ -61,7 +61,7 @@ class RoundStore {
 
 	finalize() {
 		return Promise.all(
-			this.data.map(roundData => this.round.create(roundData, {}, this.tx))
+			this.data.map(roundData => this.round.create(roundData, {}, this.tx)),
 		);
 	}
 }
