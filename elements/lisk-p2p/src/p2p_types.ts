@@ -91,6 +91,7 @@ export interface P2PNetworkStatus {
 	readonly newPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 	readonly triedPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 	readonly connectedPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
+	readonly connectedUniquePeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 }
 
 // TODO later: Switch to LIP protocol format.
