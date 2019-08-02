@@ -1,5 +1,5 @@
 const localCommon = require('../common');
-const AccountStore = require('../../../../src/modules/chain/logic/state_store/account_store.js');
+const AccountStore = require('../../../../src/modules/chain/state_store/account_store.js');
 
 describe('system test - account store', () => {
 	let library;

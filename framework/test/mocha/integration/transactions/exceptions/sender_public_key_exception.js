@@ -19,8 +19,6 @@ const { transfer } = require('@liskhq/lisk-transactions');
 const localCommon = require('../../common');
 const accountFixtures = require('../../../fixtures/accounts');
 
-const exceptions = global.exceptions;
-
 describe('exceptions for senderPublicKey transactions', () => {
 	let library;
 	let slotOffset = 10;
@@ -73,53 +71,70 @@ describe('exceptions for senderPublicKey transactions', () => {
 		confirmations: 7349561,
 	};
 
-	exceptions.senderPublicKey = ['5252526207733553499'];
-
 	localCommon.beforeBlock('system_exceptions_sender_public_key', lib => {
 		library = lib;
+		library.modules.blocks.blocksProcess.exceptions = {
+			...library.modules.blocks.exceptions,
+			senderPublicKey: ['5252526207733553499'],
+		};
 	});
 
 	describe('send funds to account', () => {
-		before(done => {
+		before(async () => {
 			const transferTransaction = transfer({
 				recipientId: accountWithCollisionPublicKeys.address,
-				amount: (500000000000 * 100).toString(),
+				amount: (6000000000 * 100).toString(),
 				passphrase: senderAccount.passphrase,
 			});
-			localCommon.createValidBlockWithSlotOffset(
-				library,
-				[transferTransaction],
-				--slotOffset,
-				(err, block) => {
-					expect(err).to.not.exist;
-					library.modules.blocks.verify.processBlock(block, true, true, done);
-				}
+			const newBlock = await new Promise((resolve, reject) => {
+				localCommon.createValidBlockWithSlotOffset(
+					library,
+					[transferTransaction],
+					--slotOffset,
+					(err, block) => {
+						if (err) {
+							return reject(err);
+						}
+						return resolve(block);
+					}
+				);
+			});
+			await library.modules.blocks.blocksProcess.processBlock(
+				newBlock,
+				library.modules.blocks.lastBlock
 			);
+			library.modules.blocks._lastBlock = newBlock;
 		});
 
 		describe('when forging block with transaction which initializes the account', () => {
-			before(done => {
-				localCommon.createValidBlockWithSlotOffset(
-					library,
-					[transactionToSecurePublicKeyForAccount],
-					--slotOffset,
-					(err, block) => {
-						expect(err).to.not.exist;
-						library.modules.blocks.verify.processBlock(block, true, true, done);
-					}
+			before(async () => {
+				const newBlock = await new Promise((resolve, reject) => {
+					localCommon.createValidBlockWithSlotOffset(
+						library,
+						[transactionToSecurePublicKeyForAccount],
+						--slotOffset,
+						{ senderPublicKey: ['5252526207733553499'] },
+						(err, block) => {
+							if (err) {
+								return reject(err);
+							}
+							return resolve(block);
+						}
+					);
+				});
+				await library.modules.blocks.blocksProcess.processBlock(
+					newBlock,
+					library.modules.blocks.lastBlock
 				);
+				library.modules.blocks._lastBlock = newBlock;
 			});
 
 			describe('details of the accounts', () => {
 				let senderMemAccountBefore;
 
-				before('get sender account', done => {
-					library.logic.account.get(
-						{ address: accountWithCollisionPublicKeys.address },
-						(err, res) => {
-							senderMemAccountBefore = res;
-							done();
-						}
+				before('get sender account', async () => {
+					senderMemAccountBefore = await library.components.storage.entities.Account.getOne(
+						{ address: accountWithCollisionPublicKeys.address }
 					);
 				});
 
@@ -130,33 +145,42 @@ describe('exceptions for senderPublicKey transactions', () => {
 				});
 
 				describe('when forging block with transaction with collision publicKey', () => {
-					before(done => {
-						localCommon.createValidBlockWithSlotOffset(
-							library,
-							[transactionWithSenderPublicKeyException],
-							--slotOffset,
-							(err, block) => {
-								expect(err).to.not.exist;
-								library.modules.blocks.verify.processBlock(
-									block,
-									true,
-									true,
-									done
-								);
-							}
+					before(async () => {
+						library.modules.blocks.blocksVerify.exceptions = {
+							...library.modules.blocks.exceptions,
+							senderPublicKey: ['5252526207733553499'],
+						};
+						library.modules.blocks.blocksChain.exceptions = {
+							...library.modules.blocks.exceptions,
+							senderPublicKey: ['5252526207733553499'],
+						};
+						const newBlock = await new Promise((resolve, reject) => {
+							localCommon.createValidBlockWithSlotOffset(
+								library,
+								[transactionWithSenderPublicKeyException],
+								--slotOffset,
+								{ senderPublicKey: ['5252526207733553499'] },
+								(err, block) => {
+									if (err) {
+										return reject(err);
+									}
+									return resolve(block);
+								}
+							);
+						});
+						await library.modules.blocks.blocksProcess.processBlock(
+							newBlock,
+							library.modules.blocks.lastBlock
 						);
+						library.modules.blocks._lastBlock = newBlock;
 					});
 
 					describe('details of the accounts', () => {
 						let senderMemAccountAfter;
 
-						before('get sender account', done => {
-							library.logic.account.get(
-								{ address: accountWithCollisionPublicKeys.address },
-								(err, res) => {
-									senderMemAccountAfter = res;
-									done();
-								}
+						before('get sender account', async () => {
+							senderMemAccountAfter = await library.components.storage.entities.Account.getOne(
+								{ address: accountWithCollisionPublicKeys.address }
 							);
 						});
 
@@ -199,13 +223,9 @@ describe('exceptions for senderPublicKey transactions', () => {
 						});
 
 						describe('details of the account', () => {
-							before('get sender account', done => {
-								library.logic.account.get(
-									{ address: accountWithCollisionPublicKeys.address },
-									(err, res) => {
-										afterDeleteSenderMemAccount = res;
-										done();
-									}
+							before('get sender account', async () => {
+								afterDeleteSenderMemAccount = await library.components.storage.entities.Account.getOne(
+									{ address: accountWithCollisionPublicKeys.address }
 								);
 							});
 

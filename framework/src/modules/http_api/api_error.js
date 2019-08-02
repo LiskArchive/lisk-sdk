@@ -24,23 +24,24 @@
  * @see Parent: {@link helpers}
  * @todo Add description for the params
  */
-function ApiError(message, code, errors = []) {
-	this.message = message;
-	this.code = code;
-	this.errors = errors;
+class ApiError extends Error {
+	constructor(message, code, errors = []) {
+		super();
+		this.message = message;
+		this.code = code;
+		this.errors = errors;
+	}
+
+	/**
+	 * Returns an ApiError instance message
+	 *
+	 * @returns {string}
+	 */
+	toJson() {
+		return {
+			message: this.message,
+		};
+	}
 }
-
-ApiError.prototype = new Error();
-
-/**
- * Description of the function.
- *
- * @todo Add @returns tag
- */
-ApiError.prototype.toJson = function() {
-	return {
-		message: this.message,
-	};
-};
 
 module.exports = ApiError;

@@ -17,14 +17,12 @@
 const express = require('express');
 const randomstring = require('randomstring');
 const async = require('async');
-const Sequence = require('../../../src/modules/chain/helpers/sequence');
+const { Sequence } = require('../../../src/modules/chain/utils/sequence');
 const { createLoggerComponent } = require('../../../src/components/logger');
-const { ZSchema } = require('../../../src/controller/validator');
-const ed = require('../../../src/modules/chain/helpers/ed');
-const jobsQueue = require('../../../src/modules/chain/helpers/jobs_queue');
-const InitTransaction = require('../../../src/modules/chain/logic/init_transaction');
-const Account = require('../../../src/modules/chain/logic/account');
+const jobsQueue = require('../../../src/modules/chain/utils/jobs_queue');
+const Account = require('../../../src/modules/chain/rounds/account');
 
+// TODO: Remove this file
 const modulesLoader = new function() {
 	this.storage = null;
 	this.logger = createLoggerComponent(__testContext.config.components.logger);
@@ -43,8 +41,6 @@ const modulesLoader = new function() {
 				sockets: express(),
 			},
 		},
-		schema: new ZSchema(),
-		ed,
 		bus: {
 			argsMessages: [],
 			message(...args) {
@@ -61,11 +57,6 @@ const modulesLoader = new function() {
 		sequence: new Sequence({
 			onWarning(current) {
 				this.logger.warn('Main queue', current);
-			},
-		}),
-		balancesSequence: new Sequence({
-			onWarning(current) {
-				this.logger.warn('Balance queue', current);
 			},
 		}),
 		channel: {
@@ -99,32 +90,21 @@ const modulesLoader = new function() {
 			case 'Account':
 				new Logic(
 					scope.components.storage,
-					scope.schema,
 					scope.components.logger,
-					cb
+					scope.modules.rounds
 				);
-				break;
-			case 'InitTransaction':
-				new Logic(cb);
 				break;
 			case 'Block':
 				async.waterfall(
 					[
 						function(waterCb) {
-							return new Account(
-								scope.components.storage,
-								scope.schema,
-								scope.components.logger,
-								waterCb
-							);
-						},
-						function(account, waterCb) {
-							const initTransaction = new InitTransaction({});
-							return waterCb(null, initTransaction);
+							new Account(scope.components.storage, scope.components.logger);
+
+							return waterCb();
 						},
 					],
-					(err, transaction) => {
-						new Logic(scope.ed, scope.schema, transaction, cb);
+					() => {
+						new Logic(scope.ed, this.transactions, cb);
 					}
 				);
 				break;
@@ -219,33 +199,19 @@ const modulesLoader = new function() {
 	this.initAllModules = function(cb, scope) {
 		this.initModules(
 			[
-				{ accounts: require('../../../src/modules/chain/submodules/accounts') },
-				{ blocks: require('../../../src/modules/chain/submodules/blocks') },
+				{ blocks: require('../../../src/modules/chain/blocks/blocks') },
 				{
-					delegates: require('../../../src/modules/chain/submodules/delegates'),
+					delegates: require('../../../src/modules/chain/rounds/delegates'),
 				},
-				{ loader: require('../../../src/modules/chain/submodules/loader') },
+				{ loader: require('../../../src/modules/chain/loader') },
+				{ rounds: require('../../../src/modules/chain/rounds/rounds') },
 				{
-					multisignatures: require('../../../src/modules/chain/submodules/multisignatures'),
-				},
-				{ peers: require('../../../src/modules/chain/submodules/peers') },
-				{ rounds: require('../../../src/modules/chain/submodules/rounds') },
-				{
-					signatures: require('../../../src/modules/chain/submodules/signatures'),
-				},
-				{
-					transactions: require('../../../src/modules/chain/submodules/transactions'),
-				},
-				{
-					transport: require('../../../src/modules/chain/submodules/transport'),
+					transport: require('../../../src/modules/chain/transport'),
 				},
 			],
 			[
-				{
-					initTransaction: require('../../../src/modules/chain/logic/init_transaction'),
-				},
-				{ account: require('../../../src/modules/chain/logic/account') },
-				{ block: require('../../../src/modules/chain/logic/block') },
+				{ account: require('../../../src/modules/chain/rounds/account') },
+				{ block: require('../../../src/modules/chain/blocks/block') },
 			],
 			scope || {},
 			cb

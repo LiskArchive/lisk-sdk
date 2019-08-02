@@ -19,7 +19,13 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 }
 
 const { createLoggerComponent } = require('../../components/logger');
-const { createCacheComponent } = require('../../components/cache');
+const {
+	createCacheComponent,
+	CACHE_KEYS_BLOCKS,
+	CACHE_KEYS_DELEGATES,
+	CACHE_KEYS_TRANSACTIONS,
+	CACHE_KEYS_TRANSACTION_COUNT,
+} = require('../../components/cache');
 const { createStorageComponent } = require('../../components/storage');
 const {
 	bootstrapStorage,
@@ -41,6 +47,7 @@ module.exports = class HttpApi {
 
 	async bootstrap() {
 		global.constants = this.options.constants;
+		const { TRANSACTION_TYPES } = global.constants;
 
 		// Logger
 		const loggerConfig = await this.channel.invoke(
@@ -96,6 +103,41 @@ module.exports = class HttpApi {
 			Object.assign(this.scope.applicationState, event.data);
 		});
 
+		this.channel.subscribe('chain:blocks:change', async event => {
+			await this.cleanCache(
+				[CACHE_KEYS_BLOCKS, CACHE_KEYS_TRANSACTIONS],
+				`${event.module}:${event.name}`
+			);
+		});
+
+		this.channel.subscribe('chain:rounds:change', async event => {
+			await this.cleanCache(
+				[CACHE_KEYS_DELEGATES],
+				`${event.module}:${event.name}`
+			);
+		});
+
+		this.channel.subscribe(
+			'chain:transactions:confirmed:change',
+			async event => {
+				const transactions = event.data;
+				// Default keys to clear
+				const keysToClear = [CACHE_KEYS_TRANSACTION_COUNT];
+				// If there was a delegate registration clear delegates cache too
+				const delegateTransaction = transactions.find(
+					transaction =>
+						!!transaction && transaction.type === TRANSACTION_TYPES.DELEGATE
+				);
+				if (delegateTransaction) {
+					keysToClear.push(CACHE_KEYS_DELEGATES);
+				}
+				// Only clear cache if the block actually includes transactions
+				if (transactions.length) {
+					await this.cleanCache(keysToClear, `${event.module}:${event.name}`);
+				}
+			}
+		);
+
 		// Bootstrap Cache component
 		await bootstrapCache(this.scope);
 		// Bootstrap Storage component
@@ -139,5 +181,25 @@ module.exports = class HttpApi {
 			this.logger.error(componentCleanupError);
 		}
 		this.logger.info('Cleaned up successfully');
+	}
+
+	async cleanCache(cacheKeysToClear, eventInfo) {
+		if (
+			this.scope.components &&
+			this.scope.components.cache &&
+			this.scope.components.cache.isReady()
+		) {
+			const tasks = cacheKeysToClear.map(key =>
+				this.scope.components.cache.removeByPattern(key)
+			);
+			try {
+				this.logger.info(
+					`Cache - Keys with patterns: '${cacheKeysToClear}' cleared from cache on '${eventInfo}'`
+				);
+				await Promise.all(tasks);
+			} catch (error) {
+				this.logger.error(`Cache - Error clearing keys on new Block: ${error}`);
+			}
+		}
 	}
 };

@@ -16,6 +16,7 @@
 
 const path = require('path');
 const QueryFile = require('pg-promise').QueryFile;
+const blocksLogic = require('../../../../../src/modules/chain/blocks/block');
 
 const { ACTIVE_DELEGATES } = global.constants;
 
@@ -74,7 +75,7 @@ class Queries {
 		return self.storage.entities.Block.get(
 			{},
 			{ extended: true, limit: null }
-		).then(blocks => blocks.map(this.library.logic.block.storageRead));
+		).then(blocks => blocks.map(blocksLogic.storageRead));
 	}
 
 	getBlocks(round) {

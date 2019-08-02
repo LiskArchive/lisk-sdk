@@ -34,7 +34,7 @@ class Cache {
 	constructor(options, logger) {
 		this.options = options;
 		this.logger = logger;
-		this.cacheReady = false;
+		this.ready = false;
 	}
 
 	async bootstrap() {
@@ -82,21 +82,21 @@ class Cache {
 	 */
 	isReady() {
 		// Use client.ready because this constant is updated on client connection
-		return this.client && this.client.ready && this.cacheReady;
+		return this.client && this.client.ready && this.ready;
 	}
 
 	/**
 	 * Enables cache client
 	 */
 	enable() {
-		this.cacheReady = true;
+		this.ready = true;
 	}
 
 	/**
 	 * Disables cache client
 	 */
 	disable() {
-		this.cacheReady = false;
+		this.ready = false;
 	}
 
 	/**

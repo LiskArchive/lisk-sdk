@@ -23,6 +23,7 @@ const {
 	MultisignatureTransaction,
 	transactionInterface,
 } = require('@liskhq/lisk-transactions');
+const { validator: liskValidator } = require('@liskhq/lisk-validator');
 const randomstring = require('randomstring');
 const _ = require('lodash');
 const Controller = require('./controller');
@@ -41,6 +42,7 @@ const NetworkModule = require('../modules/network');
 const __private = {
 	modules: new WeakMap(),
 	transactions: new WeakMap(),
+	migrations: new WeakMap(),
 };
 
 const registerProcessHooks = app => {
@@ -113,7 +115,10 @@ class Application {
 	 * @throws Framework.errors.SchemaValidationError
 	 */
 	constructor(genesisBlock, config = {}) {
-		validator.validate(genesisBlockSchema, genesisBlock);
+		const errors = liskValidator.validate(genesisBlockSchema, genesisBlock);
+		if (errors.length) {
+			throw errors;
+		}
 
 		// Don't change the object parameters provided
 		let appConfig = _.cloneDeep(config);
@@ -157,6 +162,7 @@ class Application {
 
 		__private.modules.set(this, {});
 		__private.transactions.set(this, {});
+		__private.migrations.set(this, {});
 
 		this.registerTransaction(TransferTransaction);
 		this.registerTransaction(SecondSignatureTransaction);
@@ -202,6 +208,9 @@ class Application {
 			options
 		);
 		__private.modules.set(this, modules);
+
+		// Register migrations defined by the module
+		this.registerMigrations(moduleKlass.alias, moduleKlass.migrations);
 	}
 
 	/**
@@ -258,6 +267,25 @@ class Application {
 	}
 
 	/**
+	 * Register migrations with the application
+	 *
+	 * @param {Object} namespace - Migration namespace
+	 * @param {Array} migrations - Migrations list. Format ['/path/to/migration/yyyyMMddHHmmss_name_of_migration.sql']
+	 */
+	registerMigrations(namespace, migrations) {
+		assert(namespace, 'Namespace is required');
+		assert(Array.isArray(migrations), 'Migrations list should be an array');
+		assert(
+			!Object.keys(this.getMigrations()).includes(namespace),
+			`Migrations for "${namespace}" was already registered.`
+		);
+
+		const currentMigrations = this.getMigrations();
+		currentMigrations[namespace] = Object.freeze(migrations);
+		__private.migrations.set(this, currentMigrations);
+	}
+
+	/**
 	 * Get list of all transactions registered with the application
 	 *
 	 * @return {Object}
@@ -296,6 +324,15 @@ class Application {
 	}
 
 	/**
+	 * Get all registered migrations
+	 *
+	 * @return {Array.<Object>}
+	 */
+	getMigrations() {
+		return __private.migrations.get(this);
+	}
+
+	/**
 	 * Run the application
 	 *
 	 * @async
@@ -321,11 +358,15 @@ class Application {
 				components: this.config.components,
 				ipc: this.config.app.ipc,
 				tempPath: this.config.app.tempPath,
-				initialState: this.config.initialState,
 			},
+			this.initialState,
 			this.logger
 		);
-		return this.controller.load(this.getModules(), this.config.modules);
+		return this.controller.load(
+			this.getModules(),
+			this.config.modules,
+			this.getMigrations()
+		);
 	}
 
 	/**
@@ -373,7 +414,7 @@ class Application {
 			this.overrideModuleOptions(alias, appConfigToShareWithModules);
 		});
 
-		this.config.initialState = {
+		this.initialState = {
 			version: this.config.app.version,
 			minVersion: this.config.app.minVersion,
 			protocolVersion: this.config.app.protocolVersion,

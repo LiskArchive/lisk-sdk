@@ -14,21 +14,33 @@
 
 'use strict';
 
-const crypto = require('crypto');
 const expect = require('chai').expect;
 const async = require('async');
 const _ = require('lodash');
 const Promise = require('bluebird');
 const PQ = require('pg-promise').ParameterizedQuery;
+const {
+	getPrivateAndPublicKeyBytesFromPassphrase,
+} = require('@liskhq/lisk-cryptography');
 const accountFixtures = require('../../../fixtures/accounts');
-const slots = require('../../../../../src/modules/chain/helpers/slots');
+const { BlockSlots } = require('../../../../../src/modules/chain/blocks');
+const blocksUtils = require('../../../../../src/modules/chain/blocks/block');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
 const application = require('../../../common/application');
+const {
+	getKeysSortByVote,
+} = require('../../../../../src/modules/chain/rounds/delegates');
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
 
-describe('integration test (blocks) - process onReceiveBlock()', () => {
+describe('integration test (blocks) - process receiveBlockFromNetwork()', () => {
+	const slots = new BlockSlots({
+		epochTime: __testContext.config.constants.EPOCH_TIME,
+		interval: __testContext.config.constants.BLOCK_TIME,
+		blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
+	});
+
 	let library;
 	let storage;
 
@@ -49,7 +61,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 
 	after(application.cleanup);
 
-	afterEach(done => {
+	afterEach(async () =>
 		storage.entities.Block.begin(t => {
 			return t.batch([
 				storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
@@ -57,52 +69,56 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 			]);
 		})
 			.then(() => {
-				library.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
-				done();
+				library.modules.blocks._lastBlock = __testContext.config.genesisBlock;
 			})
 			.catch(err => {
 				__testContext.debug(err.stack);
-				done();
-			});
-	});
+			})
+	);
 
-	function createBlock(transactions, timestamp, keypair, previousBlock) {
-		const block = library.logic.block.create({
+	function createBlock(
+		transactions,
+		timestamp,
+		keypair,
+		previousBlock,
+		blockReward,
+		maxPayloadLength
+	) {
+		const block = blocksUtils.create({
 			keypair,
 			timestamp,
 			previousBlock,
 			transactions,
+			blockReward,
+			maxPayloadLength,
 		});
 
-		block.id = library.logic.block.getId(block);
+		block.id = blocksUtils.getId(block);
 		block.height = previousBlock.height + 1;
 		return block;
 	}
 
 	function forge(forgingSlot, cb) {
-		let last_block = library.modules.blocks.lastBlock.get();
+		let last_block = library.modules.blocks.lastBlock;
 		const slot = forgingSlot || slots.getSlotNumber(last_block.timestamp) + 1;
 		let delegate;
 
 		function getNextForger(offset, seriesCb) {
 			offset = !offset ? 0 : offset;
-			const keys = library.rewiredModules.delegates.__get__(
-				'__private.getKeysSortByVote'
-			);
 			const round = slots.calcRound(last_block.height + 1);
-			library.modules.delegates.generateDelegateList(
-				round,
-				keys,
-				(err, delegateList) => {
+			library.modules.rounds
+				.generateDelegateList(round, getKeysSortByVote)
+				.then(delegateList => {
 					const nextForger = delegateList[(slot + offset) % ACTIVE_DELEGATES];
 					return seriesCb(nextForger);
-				}
-			);
+				});
 		}
 
 		async.waterfall(
 			[
-				library.modules.transactions.fillPool,
+				function(waterFallCb) {
+					library.modules.transactionPool.fillPool().then(() => waterFallCb());
+				},
 				function(waterFallCb) {
 					getNextForger(null, delegatePublicKey => {
 						waterFallCb(null, delegatePublicKey);
@@ -122,23 +138,24 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 						Next delegate public key: ${delegatePublicKey}
 						Next block timestamp: ${slots.getSlotTime(slot)}`
 					);
+					const transactions =
+						library.modules.transactionPool.getUnconfirmedTransactionList(
+							false,
+							25
+						) || [];
 
-					library.modules.blocks.process.generateBlock(
-						keypair,
-						slots.getSlotTime(slot) + 5,
-						err => {
-							if (err) {
-								return waterFallCb(err);
-							}
-							last_block = library.modules.blocks.lastBlock.get();
+					library.modules.blocks
+						.generateBlock(keypair, slots.getSlotTime(slot) + 5, transactions)
+						.then(() => {
+							last_block = library.modules.blocks.lastBlock;
 							__testContext.debug(
 								`New last block height: ${
 									last_block.height
 								} New last block ID: ${last_block.id}`
 							);
-							return waterFallCb(err);
-						}
-					);
+							return waterFallCb();
+						})
+						.catch(err => waterFallCb(err));
 				},
 			],
 			err => {
@@ -152,7 +169,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 		// Setting the initialSlot based on the numberOfBlocksToForge. Because:
 		// a) We don't want to forge blocks with timestamp too far in the past
 		// b) We don't want to forge blocks with timestamp in the future
-		// This allows us to play with onReceiveBlock function and different fork scenarios
+		// This allows us to play with receiveBlockFromNetwork function and different fork scenarios
 		const initialSlot = slots.getSlotNumber() - numberOfBlocksToForge + 1;
 
 		async.mapSeries(
@@ -170,22 +187,23 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 	}
 
 	function getKeypair(passphrase) {
-		return library.ed.makeKeypair(
-			crypto
-				.createHash('sha256')
-				.update(passphrase, 'utf8')
-				.digest()
-		);
+		const {
+			publicKeyBytes: publicKey,
+			privateKeyBytes: privateKey,
+		} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
+
+		return {
+			publicKey,
+			privateKey,
+		};
 	}
 
 	function getValidKeypairForSlot(slot) {
-		const generateDelegateListPromisified = Promise.promisify(
-			library.modules.delegates.generateDelegateList
-		);
-		const lastBlock = library.modules.blocks.lastBlock.get();
+		const lastBlock = library.modules.blocks.lastBlock;
 		const round = slots.calcRound(lastBlock.height);
 
-		return generateDelegateListPromisified(round, null)
+		return library.modules.rounds
+			.generateDelegateList(round, null)
 			.then(list => {
 				const delegatePublicKey = list[slot % ACTIVE_DELEGATES];
 				return getKeypair(
@@ -200,22 +218,18 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 	}
 
 	function getBlocks(cb) {
-		library.sequence.add(
-			sequenceCb => {
-				storage.adapter.db
-					.query(
-						new PQ('SELECT "id" FROM blocks ORDER BY "height" DESC LIMIT 10;')
-					)
-					.then(rows => sequenceCb(null, rows))
-					.catch(err => sequenceCb(err, []));
-			},
-			(err, rows) => {
-				if (err) {
-					__testContext.debug(err.stack);
-				}
-				cb(err, _.map(rows, 'id'));
-			}
-		);
+		library.sequence
+			.add(async () => {
+				const rows = storage.adapter.db.query(
+					new PQ('SELECT "id" FROM blocks ORDER BY "height" DESC LIMIT 10;')
+				);
+				return rows.map(r => r.id);
+			})
+			.then(ids => cb(null, ids))
+			.catch(err => {
+				__testContext.debug(err.stack);
+				cb(err);
+			});
 	}
 
 	function verifyForkStat(blockId, cause) {
@@ -232,21 +246,28 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 			});
 	}
 
-	describe('onReceiveBlock (empty transactions)', () => {
+	describe('receiveBlockFromNetwork (empty transactions)', () => {
 		describe('for valid block', () => {
 			let lastBlock;
 			let block;
 
 			before(() => {
-				lastBlock = library.modules.blocks.lastBlock.get();
+				lastBlock = library.modules.blocks.lastBlock;
 				const slot = slots.getSlotNumber();
 				return getValidKeypairForSlot(slot).then(keypair => {
-					block = createBlock([], slots.getSlotTime(slot), keypair, lastBlock);
+					block = createBlock(
+						[],
+						slots.getSlotTime(slot),
+						keypair,
+						lastBlock,
+						library.modules.blocks.blockReward,
+						library.modules.blocks.constants.maxPayloadLength
+					);
 				});
 			});
 
 			it('should add block to blockchain', done => {
-				library.modules.blocks.process.onReceiveBlock(block);
+				library.modules.blocks.receiveBlockFromNetwork(block);
 				getBlocks((err, blockIds) => {
 					expect(err).to.not.exist;
 					expect(blockIds).to.have.length(2);
@@ -263,7 +284,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 					let block;
 
 					beforeEach(done => {
-						lastBlock = library.modules.blocks.lastBlock.get();
+						lastBlock = library.modules.blocks.lastBlock;
 						const slot = slots.getSlotNumber();
 						const nonDelegateKeypair = getKeypair(
 							accountFixtures.genesis.passphrase
@@ -272,13 +293,15 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 							[],
 							slots.getSlotTime(slot),
 							nonDelegateKeypair,
-							lastBlock
+							lastBlock,
+							library.modules.blocks.blockReward,
+							library.modules.blocks.constants.maxPayloadLength
 						);
 						done();
 					});
 
 					it('should not add block to blockchain', done => {
-						library.modules.blocks.process.onReceiveBlock(block);
+						library.modules.blocks.receiveBlockFromNetwork(block);
 						getBlocks((err, blockIds) => {
 							expect(err).to.not.exist;
 							expect(blockIds).to.have.length(1);
@@ -293,16 +316,23 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 					let block;
 
 					beforeEach(() => {
-						lastBlock = library.modules.blocks.lastBlock.get();
+						lastBlock = library.modules.blocks.lastBlock;
 						// Using last block's slot
 						const slot = slots.getSlotNumber() - 1;
 						return getValidKeypairForSlot(slot - 1).then(keypair => {
-							block = createBlock([], slots.getTime(slot), keypair, lastBlock);
+							block = createBlock(
+								[],
+								slots.getTime(),
+								keypair,
+								lastBlock,
+								library.modules.blocks.blockReward,
+								library.modules.blocks.constants.maxPayloadLength
+							);
 						});
 					});
 
 					it('should not add block to blockchain', done => {
-						library.modules.blocks.process.onReceiveBlock(block);
+						library.modules.blocks.receiveBlockFromNetwork(block);
 						getBlocks((err, blockIds) => {
 							expect(err).to.not.exist;
 							expect(blockIds).to.have.length(1);
@@ -349,9 +379,11 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 							[],
 							slots.getSlotTime(slot) + 7,
 							keypair,
-							dummyBlock
+							dummyBlock,
+							library.modules.blocks.blockReward,
+							library.modules.blocks.constants.maxPayloadLength
 						);
-						library.modules.blocks.process.onReceiveBlock(
+						return library.modules.blocks.receiveBlockFromNetwork(
 							blockWithGreaterTimestamp
 						);
 					});
@@ -388,9 +420,11 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 							[],
 							slots.getSlotTime(slot),
 							keypair,
-							dummyBlock
+							dummyBlock,
+							library.modules.blocks.blockReward,
+							library.modules.blocks.constants.maxPayloadLength
 						);
-						library.modules.blocks.process.onReceiveBlock(
+						library.modules.blocks.receiveBlockFromNetwork(
 							blockWithLowerTimestamp
 						);
 					});
@@ -420,11 +454,11 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 				describe('when received block is from previous round (101 blocks back)', () => {
 					let blockFromPreviousRound;
 
-					beforeEach(() => {
+					beforeEach(async () => {
 						blockFromPreviousRound =
 							forgedBlocks[forgedBlocks.length - ACTIVE_DELEGATES];
 						blockFromPreviousRound.height = mutatedHeight;
-						return library.modules.blocks.process.onReceiveBlock(
+						return library.modules.blocks.receiveBlockFromNetwork(
 							blockFromPreviousRound
 						);
 					});
@@ -450,7 +484,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 						inSlotsWindowBlock =
 							forgedBlocks[forgedBlocks.length - (BLOCK_SLOT_WINDOW - 1)];
 						inSlotsWindowBlock.height = mutatedHeight;
-						return library.modules.blocks.process.onReceiveBlock(
+						return library.modules.blocks.receiveBlockFromNetwork(
 							inSlotsWindowBlock
 						);
 					});
@@ -475,7 +509,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 						outOfSlotWindowBlock =
 							forgedBlocks[forgedBlocks.length - (BLOCK_SLOT_WINDOW + 2)];
 						outOfSlotWindowBlock.height = mutatedHeight;
-						return library.modules.blocks.process.onReceiveBlock(
+						return library.modules.blocks.receiveBlockFromNetwork(
 							outOfSlotWindowBlock
 						);
 					});
@@ -507,9 +541,11 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 								[],
 								slots.getSlotTime(slot),
 								keypair,
-								dummyBlock
+								dummyBlock,
+								library.modules.blocks.blockReward,
+								library.modules.blocks.constants.maxPayloadLength
 							);
-							library.modules.blocks.process.onReceiveBlock(
+							library.modules.blocks.receiveBlockFromNetwork(
 								blockFromFutureSlot
 							);
 						});
@@ -565,9 +601,11 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 							[],
 							timestamp,
 							keypair,
-							secondLastBlock
+							secondLastBlock,
+							library.modules.blocks.blockReward,
+							library.modules.blocks.constants.maxPayloadLength
 						);
-						library.modules.blocks.process.onReceiveBlock(
+						library.modules.blocks.receiveBlockFromNetwork(
 							blockWithGreaterTimestamp
 						);
 						getBlocks((err, blockIds) => {
@@ -597,9 +635,11 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 								[],
 								timestamp,
 								keypair,
-								secondLastBlock
+								secondLastBlock,
+								library.modules.blocks.blockReward,
+								library.modules.blocks.constants.maxPayloadLength
 							);
-							library.modules.blocks.process.onReceiveBlock(
+							library.modules.blocks.receiveBlockFromNetwork(
 								blockWithGreaterTimestamp
 							);
 							getBlocks((err, blockIds) => {
@@ -638,9 +678,11 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 								[],
 								timestamp,
 								keypair,
-								secondLastBlock
+								secondLastBlock,
+								library.modules.blocks.blockReward,
+								library.modules.blocks.constants.maxPayloadLength
 							);
-							library.modules.blocks.process.onReceiveBlock(
+							library.modules.blocks.receiveBlockFromNetwork(
 								blockWithInvalidSlot
 							);
 							getBlocks((err, blockIds) => {
@@ -662,9 +704,11 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 								[],
 								timestamp,
 								keypair,
-								secondLastBlock
+								secondLastBlock,
+								library.modules.blocks.blockReward,
+								library.modules.blocks.constants.maxPayloadLength
 							);
-							library.modules.blocks.process.onReceiveBlock(
+							library.modules.blocks.receiveBlockFromNetwork(
 								blockWithLowerTimestamp
 							);
 							getBlocks((err, blockIds) => {
@@ -701,9 +745,11 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 									[],
 									timestamp,
 									keypair,
-									secondLastBlock
+									secondLastBlock,
+									library.modules.blocks.blockReward,
+									library.modules.blocks.constants.maxPayloadLength
 								);
-								library.modules.blocks.process.onReceiveBlock(
+								library.modules.blocks.receiveBlockFromNetwork(
 									blockWithDifferentKeyAndTimestamp
 								);
 								getBlocks((err, blockIds) => {
@@ -734,31 +780,35 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 								});
 							});
 
-							it('should reject received block when blockslot outside window', done => {
+							it('should reject received block when blockslot outside window', async () => {
 								const blockWithDifferentKeyAndTimestamp = createBlock(
 									[],
 									auxTimestamp,
 									keypair,
-									secondLastBlock
+									secondLastBlock,
+									library.modules.blocks.blockReward,
+									library.modules.blocks.constants.maxPayloadLength
 								);
-								library.modules.blocks.process.onReceiveBlock(
+								await library.modules.blocks.receiveBlockFromNetwork(
 									blockWithDifferentKeyAndTimestamp
 								);
-								getBlocks((err, blockIds) => {
-									expect(err).to.not.exist;
-									expect(blockIds).to.have.length(6);
-									expect(blockIds).to.not.include(
-										blockWithDifferentKeyAndTimestamp.id
-									);
-									expect(blockIds).to.include.members([
-										secondLastBlock.id,
-										lastBlock.id,
-									]);
-									return verifyForkStat(
-										blockWithDifferentKeyAndTimestamp.id,
-										5
-									).then(done);
+								const blockIds = await new Promise((resolve, reject) => {
+									getBlocks((err, res) => {
+										if (err) {
+											return reject(err);
+										}
+										return resolve(res);
+									});
 								});
+								expect(blockIds).to.have.length(6);
+								expect(blockIds).to.not.include(
+									blockWithDifferentKeyAndTimestamp.id
+								);
+								expect(blockIds).to.include.members([
+									secondLastBlock.id,
+									lastBlock.id,
+								]);
+								await verifyForkStat(blockWithDifferentKeyAndTimestamp.id, 5);
 							});
 						});
 					});
@@ -779,11 +829,13 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 								[],
 								slots.getSlotTime(slot + 2),
 								nextSlotKeypair,
-								lastBlock
+								lastBlock,
+								library.modules.blocks.blockReward,
+								library.modules.blocks.constants.maxPayloadLength
 							);
 
 							function sendSkippedSlotBlock() {
-								library.modules.blocks.process.onReceiveBlock(nextSlotBlock);
+								library.modules.blocks.receiveBlockFromNetwork(nextSlotBlock);
 								done();
 							}
 
@@ -806,9 +858,11 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 							[],
 							slots.getSlotTime(slot + 1),
 							keypair,
-							lastBlock
+							lastBlock,
+							library.modules.blocks.blockReward,
+							library.modules.blocks.constants.maxPayloadLength
 						);
-						library.modules.blocks.process.onReceiveBlock(
+						library.modules.blocks.receiveBlockFromNetwork(
 							blockWithUnskippedSlot
 						);
 						getBlocks((err, blockIds) => {
@@ -854,13 +908,15 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 							[],
 							slots.getSlotTime(slot),
 							keypair,
-							secondLastBlock
+							secondLastBlock,
+							library.modules.blocks.blockReward,
+							library.modules.blocks.constants.maxPayloadLength
 						);
 						done();
 					});
 
 					it('should delete last block and save received block (from previous round)', done => {
-						library.modules.blocks.process.onReceiveBlock(
+						library.modules.blocks.receiveBlockFromNetwork(
 							blockFromPreviousRound
 						);
 						getBlocks((err, blockIds) => {
@@ -884,7 +940,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 				let block;
 
 				beforeEach(done => {
-					lastBlock = library.modules.blocks.lastBlock.get();
+					lastBlock = library.modules.blocks.lastBlock;
 					forge(null, (err, forgedBlock) => {
 						block = forgedBlock;
 						done();
@@ -892,7 +948,7 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 				});
 
 				it('should reject received block', done => {
-					library.modules.blocks.process.onReceiveBlock(block);
+					library.modules.blocks.receiveBlockFromNetwork(block);
 					getBlocks((err, blockIds) => {
 						expect(err).to.not.exist;
 						expect(blockIds).to.have.length(2);
@@ -916,13 +972,15 @@ describe('integration test (blocks) - process onReceiveBlock()', () => {
 						[],
 						slots.getSlotTime(10),
 						keypair,
-						dummyLastBlock
+						dummyLastBlock,
+						library.modules.blocks.blockReward,
+						library.modules.blocks.constants.maxPayloadLength
 					);
 					done();
 				});
 
 				it('should reject received block', done => {
-					library.modules.blocks.process.onReceiveBlock(differentChainBlock);
+					library.modules.blocks.receiveBlockFromNetwork(differentChainBlock);
 					getBlocks((err, blockIds) => {
 						expect(err).to.not.exist;
 						expect(blockIds).to.have.length(1);

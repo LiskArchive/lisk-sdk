@@ -34,7 +34,7 @@ const validator = new Ajv({
 	$data: true,
 });
 
-ajvKeywords(validator);
+ajvKeywords(validator, 'typeof');
 
 const parserAndValidator = new Ajv({
 	allErrors: true,
@@ -43,7 +43,7 @@ const parserAndValidator = new Ajv({
 	$data: true,
 });
 
-ajvKeywords(parserAndValidator);
+ajvKeywords(parserAndValidator, 'typeof');
 
 parserAndValidator.addKeyword('env', envKeyword);
 parserAndValidator.addKeyword('arg', argKeyword);

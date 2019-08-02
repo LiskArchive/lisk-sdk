@@ -16,21 +16,23 @@
 
 // Init tests dependencies
 const rewire = require('rewire');
-
+const cryptography = require('@liskhq/lisk-cryptography');
 // Instantiate test subject
-const Rounds = rewire('../../../../../../src/modules/chain/submodules/rounds');
-const Round = rewire('../../../../../../src/modules/chain/logic/round'); // eslint-disable-line no-unused-vars
+const Rounds = rewire('../../../../../../src/modules/chain/rounds/rounds');
+const { BlockSlots } = require('../../../../../../src/modules/chain/blocks');
 const { TestStorageSandbox } = require('../../../../common/storage_sandbox');
-const {
-	CACHE_KEYS_DELEGATES,
-} = require('../../../../../../src/components/cache');
 
 const sinon = sinonSandbox;
 
 describe('rounds', () => {
+	const slots = new BlockSlots({
+		epochTime: __testContext.config.constants.EPOCH_TIME,
+		interval: __testContext.config.constants.BLOCK_TIME,
+		blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
+	});
+
 	let rounds;
 	let scope;
-	let components;
 
 	// Init fake logger
 	const logger = {
@@ -43,7 +45,7 @@ describe('rounds', () => {
 	};
 
 	const storageStubs = {
-		Account: { getOne: sinon.stub() },
+		Account: { getOne: sinon.stub(), get: sinon.stub().returns([]) },
 		Round: {
 			delete: sinon.stub(),
 			summedRound: sinon.stub(),
@@ -79,21 +81,24 @@ describe('rounds', () => {
 			},
 		},
 		modules: {
-			delegates: {
+			rounds: {
 				generateDelegateList: sinon.stub(),
 				clearDelegateListCache: sinon.stub(),
-			},
-			accounts: {
-				generateAddressByPublicKey: sinon.stub(),
 			},
 		},
 	};
 
 	const validScope = {
 		components: { logger, storage },
-		bus: { message: sinon.spy() },
 		channel: {
 			publish: sinonSandbox.stub(),
+		},
+		slots,
+		config: {
+			exceptions: __testContext.config.modules.chain.exceptions,
+			constants: {
+				activeDelegates: __testContext.config.constants.ACTIVE_DELEGATES,
+			},
 		},
 	};
 
@@ -108,23 +113,25 @@ describe('rounds', () => {
 	beforeEach(done => {
 		scope = _.cloneDeep(validScope);
 
-		bindings.modules.delegates.generateDelegateList.yields(null, [
+		bindings.modules.rounds.generateDelegateList.resolves([
 			'delegate1',
 			'delegate2',
 			'delegate3',
 		]);
-		bindings.modules.accounts.generateAddressByPublicKey.returnsArg(0);
 
-		new Rounds((err, __instance) => {
-			rounds = __instance;
-			rounds.onBind(bindings);
-			components = get('components');
-			components.cache = {
-				isReady: sinon.stub(),
-				removeByPattern: sinonSandbox.stub().callsArg(1),
-			};
-			done();
-		}, scope);
+		sinonSandbox.stub(cryptography, 'getAddressFromPublicKey');
+		cryptography.getAddressFromPublicKey
+			.withArgs('delegate1')
+			.returns('delegate1');
+		cryptography.getAddressFromPublicKey
+			.withArgs('delegate2')
+			.returns('delegate2');
+		cryptography.getAddressFromPublicKey
+			.withArgs('delegate3')
+			.returns('delegate3');
+
+		rounds = new Rounds(scope);
+		done();
 	});
 
 	afterEach(done => {
@@ -141,13 +148,7 @@ describe('rounds', () => {
 
 			expect(library.logger).to.eql(validScope.components.logger);
 			expect(library.storage).to.eql(validScope.components.storage);
-			expect(library.bus).to.eql(validScope.bus);
 			expect(library.channel).to.eql(validScope.channel);
-		});
-
-		it('should set self object', async () => {
-			const self = Rounds.__get__('self');
-			return expect(self).to.deep.equal(rounds);
 		});
 	});
 
@@ -173,28 +174,6 @@ describe('rounds', () => {
 		});
 	});
 
-	describe('onBind', () => {
-		it('should set modules', async () => {
-			const variable = 'modules';
-			const backup = get(variable);
-			const roundBindings = {
-				modules: {
-					blocks: 'blocks',
-					accounts: 'accounts',
-					delegates: 'delegates',
-				},
-			};
-			rounds.onBind(roundBindings);
-			expect(get(variable)).to.deep.equal(roundBindings.modules);
-			return set(variable, backup);
-		});
-
-		it('should assign component property', async () => {
-			components = get('components');
-			return expect(components).to.have.property('cache');
-		});
-	});
-
 	describe('onBlockchainReady', () => {
 		it('should set __private.loaded = true', async () => {
 			const variable = '__private.loaded ';
@@ -204,36 +183,6 @@ describe('rounds', () => {
 			rounds.onBlockchainReady();
 			expect(get(variable)).to.equal(true);
 			return set(variable, backup);
-		});
-	});
-
-	describe('onFinishRound', () => {
-		beforeEach(() => {
-			validScope.channel.publish.resetHistory();
-			components.cache.isReady.returns(true);
-			return components.cache.removeByPattern.resetHistory();
-		});
-
-		it('should call components.cache.removeByPattern once if cache is enabled', async () => {
-			const round = 123;
-			const pattern = CACHE_KEYS_DELEGATES;
-			rounds.onFinishRound(round);
-
-			expect(components.cache.removeByPattern.called).to.be.true;
-			return expect(components.cache.removeByPattern.calledWith(pattern)).to.be
-				.true;
-		});
-
-		it('should call library.channel.publish once, with proper params', async () => {
-			const round = 124;
-			rounds.onFinishRound(round);
-
-			expect(validScope.channel.publish).to.be.calledWith(
-				'chain:rounds:change',
-				{
-					number: round,
-				}
-			);
 		});
 	});
 
@@ -255,6 +204,10 @@ describe('rounds', () => {
 
 		beforeEach(async () => {
 			getOutsiders = get('__private.getOutsiders');
+			set(
+				'library.delegates.generateDelegateList',
+				sinon.stub().resolves(['delegate1', 'delegate2', 'delegate3'])
+			);
 		});
 
 		describe('when scope.block.height = 1', () => {
@@ -273,6 +226,7 @@ describe('rounds', () => {
 		describe('when scope.block.height != 1', () => {
 			beforeEach(async () => {
 				scope.block = { height: 2 };
+				scope.round = 1;
 			});
 
 			describe('when generateDelegateList is successful', () => {
@@ -311,7 +265,7 @@ describe('rounds', () => {
 					});
 
 					it('should add 1 outsider scope.roundOutsiders', done => {
-						getOutsiders(scope, async () => {
+						getOutsiders(scope, () => {
 							expect(scope.roundOutsiders).to.be.eql(['delegate1']);
 							done();
 						});
@@ -332,7 +286,7 @@ describe('rounds', () => {
 					});
 
 					it('should add 2 outsiders to scope.roundOutsiders', done => {
-						getOutsiders(scope, async () => {
+						getOutsiders(scope, () => {
 							expect(scope.roundOutsiders).to.be.eql([
 								'delegate1',
 								'delegate2',
@@ -346,12 +300,15 @@ describe('rounds', () => {
 			describe('when generateDelegateList fails', () => {
 				beforeEach(async () => {
 					scope.block.height = 2;
-					bindings.modules.delegates.generateDelegateList.yields('error');
+					const library = get('library');
+					library.delegates = {
+						generateDelegateList: sinon.stub().rejects(new Error('error')),
+					};
 				});
 
 				it('should call a callback with error', done => {
 					getOutsiders(scope, err => {
-						expect(err).to.equal('error');
+						expect(err.message).to.equal('error');
 						done();
 					});
 				});
@@ -560,11 +517,11 @@ describe('rounds', () => {
 		});
 
 		describe('scope.finishRound', () => {
-			let bus;
+			let channelPublish;
 
 			beforeEach(() => {
-				bus = get('library.bus.message');
-				return bus.resetHistory();
+				channelPublish = get('library.channel.publish');
+				return channelPublish.resetHistory();
 			});
 
 			describe('when true', () => {
@@ -578,7 +535,7 @@ describe('rounds', () => {
 					});
 				});
 
-				afterEach(() => bus.resetHistory());
+				afterEach(() => channelPublish.resetHistory());
 
 				it('scope.mergeBlockGenerator should be called once', async () =>
 					expect(mergeBlockGenerator_stub.calledOnce).to.be.true);
@@ -592,11 +549,11 @@ describe('rounds', () => {
 				it('scope.getOutsiders should be called once', async () =>
 					expect(getOutsiders_stub.calledOnce).to.be.true);
 
-				it('library.bus.message should be called once with proper params', async () => {
-					const busMessage = get('library.bus.message');
-					expect(busMessage.calledOnce).to.be.true;
-					return expect(busMessage.calledWith('finishRound', roundScope.round))
-						.to.be.true;
+				it('should call library.channel.publish once, with proper params', async () => {
+					expect(channelPublish.calledOnce).to.be.true;
+					expect(channelPublish).to.be.calledWith('chain:rounds:change', {
+						number: roundScope.round,
+					});
 				});
 			});
 
@@ -610,7 +567,7 @@ describe('rounds', () => {
 					});
 				});
 
-				after(() => bus.resetHistory());
+				after(() => channelPublish.resetHistory());
 
 				it('scope.mergeBlockGenerator should be called once', async () =>
 					expect(mergeBlockGenerator_stub.calledOnce).to.be.true);
@@ -624,9 +581,8 @@ describe('rounds', () => {
 				it('scope.getOutsiders should be not called', async () =>
 					expect(getOutsiders_stub.called).to.be.false);
 
-				it('library.bus.message should be not called', async () => {
-					const busMessage = get('library.bus.message');
-					return expect(busMessage.called).to.be.false;
+				it('library.channel.publish should be not called', async () => {
+					return expect(channelPublish.called).to.be.false;
 				});
 			});
 		});

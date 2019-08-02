@@ -22,14 +22,28 @@ const application = require('../common/application');
 const random = require('../common/utils/random');
 const localCommon = require('./common');
 const { registeredTransactions } = require('../common/registered_transactions');
-const InitTransaction = require('../../../src/modules/chain/logic/init_transaction.js');
+const transactionsModule = require('../../../src/modules/chain/transactions');
+const {
+	TransactionInterfaceAdapter,
+} = require('../../../src/modules/chain/interface_adapters');
+const votes = require('../../../src/modules/chain/transactions/votes');
 
-const initTransaction = new InitTransaction({ registeredTransactions });
+const interfaceAdapters = {
+	transactions: new TransactionInterfaceAdapter(registeredTransactions),
+};
 const genesisBlock = __testContext.config.genesisBlock;
+const exceptions = __testContext.config.modules.chain.exceptions;
 const { NORMALIZER } = global.__testContext.config;
 const transactionStatus = liskTransactions.Status;
+const { BlockSlots } = require('../../../src/modules/chain/blocks');
 
 describe('processTransactions', () => {
+	const slots = new BlockSlots({
+		epochTime: __testContext.config.constants.EPOCH_TIME,
+		interval: __testContext.config.constants.BLOCK_TIME,
+		blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
+	});
+
 	let library;
 	let account;
 	let verifiableTransactions;
@@ -50,8 +64,8 @@ describe('processTransactions', () => {
 			},
 			(err, scope) => {
 				library = scope;
-				library.modules.blocks.lastBlock.set(genesisBlock);
-				done();
+				library.modules.blocks._lastBlock = genesisBlock;
+				done(err);
 			}
 		);
 	});
@@ -114,11 +128,13 @@ describe('processTransactions', () => {
 						passphrase: account.passphrase,
 						votes: [`${accountFixtures.existingDelegate.publicKey}`],
 					}),
-					liskTransactions.createDapp({
-						passphrase: account.passphrase,
-						options: random.application(),
-					}),
-				].map(transaction => initTransaction.fromJson(transaction));
+					// liskTransactions.createDapp({
+					// 	passphrase: account.passphrase,
+					// 	options: random.application(),
+					// }),
+				].map(transaction =>
+					interfaceAdapters.transactions.fromJson(transaction)
+				);
 
 				// If we include second signature transaction, then the rest of the transactions in the set will be required to have second signature.
 				// Therefore removing it from the appliable transactions
@@ -132,7 +148,9 @@ describe('processTransactions', () => {
 						recipientId: accountFixtures.genesis.address,
 						passphrase: random.account().passphrase,
 					}),
-				].map(transaction => initTransaction.fromJson(transaction));
+				].map(transaction =>
+					interfaceAdapters.transactions.fromJson(transaction)
+				);
 
 				keysgroup = new Array(4).fill(0).map(() => random.account().publicKey);
 
@@ -143,15 +161,18 @@ describe('processTransactions', () => {
 						lifetime: 10,
 						minimum: 2,
 					}),
-				].map(transaction => initTransaction.fromJson(transaction));
+				].map(transaction =>
+					interfaceAdapters.transactions.fromJson(transaction)
+				);
 			});
 
 			describe('checkAllowedTransactions', () => {
 				let checkAllowedTransactions;
 
 				beforeEach(async () => {
-					checkAllowedTransactions =
-						library.modules.processTransactions.checkAllowedTransactions;
+					checkAllowedTransactions = transactionsModule.checkAllowedTransactions(
+						library.modules.blocks.lastBlock
+					);
 				});
 
 				it('should return transactionsResponses with status OK for allowed transactions', async () => {
@@ -191,8 +212,11 @@ describe('processTransactions', () => {
 				let verifyTransactions;
 
 				beforeEach(async () => {
-					verifyTransactions =
-						library.modules.processTransactions.verifyTransactions;
+					verifyTransactions = transactionsModule.verifyTransactions(
+						library.components.storage,
+						slots,
+						exceptions
+					);
 				});
 
 				it('should return transactionsResponses with status OK for verified transactions', async () => {
@@ -228,8 +252,10 @@ describe('processTransactions', () => {
 			describe('undoTransactions', () => {
 				let undoTransactions;
 				beforeEach(done => {
-					undoTransactions =
-						library.modules.processTransactions.undoTransactions;
+					undoTransactions = transactionsModule.undoTransactions(
+						library.components.storage,
+						exceptions
+					);
 					localCommon.addTransactionsAndForge(
 						library,
 						appliableTransactions.map(appliableTransaction =>
@@ -263,7 +289,7 @@ describe('processTransactions', () => {
 					const recipient = random.account();
 
 					const { transactionsResponses } = await undoTransactions([
-						initTransaction.fromJson(
+						interfaceAdapters.transactions.fromJson(
 							liskTransactions.transfer({
 								amount: (NORMALIZER * 1000).toString(),
 								recipientId: recipient.address,
@@ -281,8 +307,10 @@ describe('processTransactions', () => {
 			describe('applyTransactions', () => {
 				let applyTransactions;
 				beforeEach(async () => {
-					applyTransactions =
-						library.modules.processTransactions.applyTransactions;
+					applyTransactions = transactionsModule.applyTransactions(
+						library.components.storage,
+						exceptions
+					);
 				});
 
 				it('should return stateStore', async () => {
@@ -318,6 +346,16 @@ describe('processTransactions', () => {
 							transactionStatus.PENDING
 						);
 					});
+				});
+
+				it('should call votes.apply with correct params', async () => {
+					sinonSandbox.spy(votes, 'apply');
+					const { stateStore } = await applyTransactions(appliableTransactions);
+					expect(votes.apply.firstCall.args).to.be.eql([
+						stateStore,
+						appliableTransactions[0],
+						exceptions,
+					]);
 				});
 			});
 		});

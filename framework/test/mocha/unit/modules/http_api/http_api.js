@@ -62,6 +62,7 @@ describe('HttpApi', () => {
 		stubs.bootstrapSwagger = sinonSandbox.stub();
 		stubs.startListening = sinonSandbox.stub();
 		stubs.subscribeToEvents = sinonSandbox.stub();
+		stubs.channel.subscribe = sinonSandbox.stub();
 
 		stubs.channel.invoke
 			.withArgs('app:getComponentConfig', 'logger')
@@ -224,6 +225,23 @@ describe('HttpApi', () => {
 			expect(stubs.subscribeToEvents).to.be.calledWithExactly(httpApi.scope, {
 				wsServer,
 			});
+		});
+
+		it('should call channel.subscribe() with proper arguments', async () => {
+			const channelSubscribeStub = stubs.channel.subscribe;
+			expect(channelSubscribeStub.callCount).to.be.equal(4);
+			expect(channelSubscribeStub.firstCall.args[0]).to.be.eql(
+				'app:state:updated'
+			);
+			expect(channelSubscribeStub.secondCall.args[0]).to.be.eql(
+				'chain:blocks:change'
+			);
+			expect(channelSubscribeStub.thirdCall.args[0]).to.be.eql(
+				'chain:rounds:change'
+			);
+			expect(channelSubscribeStub.lastCall.args[0]).to.be.eql(
+				'chain:transactions:confirmed:change'
+			);
 		});
 	});
 });

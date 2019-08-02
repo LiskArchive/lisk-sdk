@@ -16,6 +16,7 @@
 
 const { config: DefaultConfig } = require('./defaults');
 const Chain = require('./chain');
+const { migrations } = require('./migrations');
 const BaseModule = require('../base_module');
 
 /* eslint-disable class-methods-use-this */
@@ -45,6 +46,10 @@ module.exports = class ChainModule extends BaseModule {
 		};
 	}
 
+	static get migrations() {
+		return migrations;
+	}
+
 	static get defaults() {
 		return DefaultConfig;
 	}
@@ -53,6 +58,7 @@ module.exports = class ChainModule extends BaseModule {
 		return [
 			'bootstrap',
 			'blocks:change',
+			'transactions:confirmed:change',
 			'signature:change',
 			'transactions:change',
 			'rounds:change',
@@ -134,6 +140,6 @@ module.exports = class ChainModule extends BaseModule {
 	}
 
 	async unload() {
-		return this.chain.cleanup(0);
+		return this.chain.cleanup();
 	}
 };

@@ -17,7 +17,6 @@
 const {
 	Account,
 	Block,
-	Migration,
 	Round,
 	Transaction,
 } = require('../components/storage/entities');
@@ -30,7 +29,6 @@ module.exports = async ({ components: { storage, logger } }, accountLimit) => {
 		storage.registerEntity('Block', Block, {
 			replaceExisting: true,
 		});
-		storage.registerEntity('Migration', Migration);
 		storage.registerEntity('Round', Round);
 		storage.registerEntity('Transaction', Transaction, {
 			replaceExisting: true,
@@ -42,7 +40,6 @@ module.exports = async ({ components: { storage, logger } }, accountLimit) => {
 		storage.entities.Account.extendDefaultOptions({
 			limit: accountLimit,
 		});
-		await storage.entities.Migration.applyAll();
 	} catch (err) {
 		logger.error(err);
 		throw err;

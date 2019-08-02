@@ -15,11 +15,9 @@
 'use strict';
 
 const Promise = require('bluebird');
-const blockVersion = require('../../../../../src/modules/chain/logic/block_version');
+const blockVersion = require('../../../../../src/modules/chain/blocks/block_version');
 const QueriesHelper = require('../../../common/integration/sql/queries_helper');
 const localCommon = require('../../common');
-
-const exceptions = global.exceptions;
 
 describe('validateOwnChain', () => {
 	let library;
@@ -39,6 +37,15 @@ describe('validateOwnChain', () => {
 		before(() => {
 			// Set current block version to 0
 			blockVersion.currentBlockVersion = 0;
+			library.modules.blocks.blocksVerify.exceptions = {
+				...library.modules.blocks.exceptions,
+				blockVersions: {
+					0: {
+						start: 1,
+						end: 303,
+					},
+				},
+			};
 
 			// Not consider the genesis block
 			return Promise.mapSeries([...Array(101 * 3 - 1)], async () => {
@@ -47,7 +54,7 @@ describe('validateOwnChain', () => {
 		});
 
 		it('blockchain should be at height 303', async () => {
-			const lastBlock = library.modules.blocks.lastBlock.get();
+			const lastBlock = library.modules.blocks.lastBlock;
 			return expect(lastBlock.height).to.eql(303);
 		});
 
@@ -66,29 +73,37 @@ describe('validateOwnChain', () => {
 		describe('increase block version = 1 and exceptions for height = 50', () => {
 			let validateOwnChainError = null;
 
-			before(done => {
-				const __private = library.rewiredModules.loader.__get__('__private');
-
+			before(async () => {
 				// Set current block version to 1
 				blockVersion.currentBlockVersion = 1;
 
 				// Set proper exceptions for blocks versions
-				exceptions.blockVersions = {
-					0: { start: 0, end: 50 },
+				library.modules.blocks.blocksVerify.exceptions = {
+					...library.modules.blocks.exceptions,
+					blockVersions: {
+						0: {
+							start: 1,
+							end: 50,
+						},
+					},
 				};
 
-				__private.validateOwnChain(error => {
+				try {
+					await library.modules.blocks.blocksVerify.requireBlockRewind(
+						library.modules.blocks.lastBlock
+					);
+					library.modules.blocks._lastBlock = await library.modules.blocks.blocksProcess.recoverInvalidOwnChain(
+						library.modules.blocks.lastBlock,
+						() => {}
+					);
+				} catch (error) {
 					validateOwnChainError = error;
-					done();
-				});
+				}
 			});
 
 			it('should fail with error', async () => {
-				expect(library.components.logger.error).to.be.calledWith(
-					"There are more than 202 invalid blocks. Can't delete those to recover the chain."
-				);
 				return expect(validateOwnChainError.message).to.be.eql(
-					'Your block chain is invalid. Please rebuild using rebuilding mode.'
+					"There are more than 202 invalid blocks. Can't delete those to recover the chain."
 				);
 			});
 		});

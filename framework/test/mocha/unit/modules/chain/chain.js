@@ -17,9 +17,8 @@
 /* eslint-disable mocha/no-pending-tests */
 const rewire = require('rewire');
 
-const Chain = rewire('../../../../../src/modules/chain/chain.js');
-const BlockReward = require('../../../../../src/modules/chain/logic/block_reward');
-const slots = require('../../../../../src/modules/chain/helpers/slots');
+const Chain = rewire('../../../../../src/modules/chain/chain');
+const { Blocks } = require('../../../../../src/modules/chain/blocks');
 const {
 	loggerConfig,
 	cacheConfig,
@@ -34,8 +33,11 @@ describe('Chain', () => {
 	beforeEach(async () => {
 		// Arrange
 
+		sinonSandbox.stub(Blocks.prototype, 'loadBlockChain').resolves();
+
 		/* Arranging Stubs start */
 		stubs.logger = {
+			error: sinonSandbox.stub(),
 			debug: sinonSandbox.stub(),
 			fatal: sinonSandbox.stub(),
 			info: sinonSandbox.stub(),
@@ -48,16 +50,6 @@ describe('Chain', () => {
 		stubs.storage = {
 			cleanup: sinonSandbox.stub(),
 		};
-		stubs.bus = {
-			message: sinonSandbox.stub(),
-		};
-
-		stubs.logic = {
-			block: {
-				bindModules: sinonSandbox.stub(),
-			},
-		};
-
 		stubs.modules = {
 			module1: {
 				cleanup: sinonSandbox.stub().resolves('module1cleanup'),
@@ -76,6 +68,11 @@ describe('Chain', () => {
 		stubs.channel = {
 			invoke: sinonSandbox.stub(),
 			subscribe: sinonSandbox.stub(),
+			once: sinonSandbox.stub(),
+		};
+
+		stubs.jobsQueue = {
+			register: sinonSandbox.stub(),
 		};
 
 		stubs.channel.invoke
@@ -94,11 +91,8 @@ describe('Chain', () => {
 		stubs.createStorageComponent = sinonSandbox.stub().returns(stubs.storage);
 
 		stubs.initSteps = {
-			createBus: sinonSandbox.stub().resolves(stubs.bus),
 			bootstrapStorage: sinonSandbox.stub(),
 			bootstrapCache: sinonSandbox.stub(),
-			initLogicStructure: sinonSandbox.stub().resolves(stubs.logic),
-			initModules: sinonSandbox.stub().resolves(stubs.modules),
 		};
 
 		/* Arranging Stubs end */
@@ -106,15 +100,15 @@ describe('Chain', () => {
 		Chain.__set__('createLoggerComponent', stubs.createLoggerComponent);
 		Chain.__set__('createCacheComponent', stubs.createCacheComponent);
 		Chain.__set__('createStorageComponent', stubs.createStorageComponent);
-		Chain.__set__('createBus', stubs.initSteps.createBus);
 		Chain.__set__('bootstrapStorage', stubs.initSteps.bootstrapStorage);
 		Chain.__set__('bootstrapCache', stubs.initSteps.bootstrapCache);
-		Chain.__set__('initLogicStructure', stubs.initSteps.initLogicStructure);
-		Chain.__set__('initModules', stubs.initSteps.initModules);
+		Chain.__set__('jobQueue', stubs.jobsQueue);
 
 		// Act
 		chain = new Chain(stubs.channel, chainOptions);
 	});
+
+	afterEach(() => sinonSandbox.restore());
 
 	describe('constructor', () => {
 		it('should accept channel as first parameter and assign to object instance', () => {
@@ -128,15 +122,14 @@ describe('Chain', () => {
 		it('should assign logger, scope, blockReward, slots properties as null', () => {
 			expect(chain.logger).to.be.null;
 			expect(chain.scope).to.be.null;
-			expect(chain.blockReward).to.be.null;
 			return expect(chain.slots).to.be.null;
 		});
 	});
 
 	describe('bootstrap', () => {
-		beforeEach(() => {
+		beforeEach(async () => {
 			// Act
-			return chain.bootstrap();
+			await chain.bootstrap();
 		});
 
 		it('should be an async function', () => {
@@ -185,14 +178,6 @@ describe('Chain', () => {
 
 		it('should set global.exceptions as a merger default exceptions and passed options', () => {
 			return expect(global.exceptions).to.be.equal(chainOptions.exceptions);
-		});
-
-		it('should create blockReward object and assign it to chain.blockReward', () => {
-			return expect(chain.blockReward).to.be.instanceOf(BlockReward);
-		});
-
-		it('should assign slots from helpers/slots', () => {
-			return expect(chain.slots).to.be.equal(slots);
 		});
 
 		describe('when options.loading.rebuildUpToRound is truthy', () => {
@@ -249,12 +234,9 @@ describe('Chain', () => {
 
 		it('should initialize scope object with valid structure', async () => {
 			// @todo write a snapshot tests after migrated this test to jest.
-			expect(chain.scope).to.have.property('ed');
 			expect(chain.scope).to.have.property('config');
 			expect(chain.scope).to.have.nested.property('genesisBlock.block');
-			expect(chain.scope).to.have.property('schema');
 			expect(chain.scope).to.have.property('sequence');
-			expect(chain.scope).to.have.property('balancesSequence');
 			expect(chain.scope).to.have.nested.property('components.storage');
 			expect(chain.scope).to.have.nested.property('components.cache');
 			expect(chain.scope).to.have.nested.property('components.logger');
@@ -274,39 +256,10 @@ describe('Chain', () => {
 				chain.scope
 			);
 		});
-		it('should create bus object and assign to scope.bus', () => {
-			expect(stubs.initSteps.createBus).to.have.been.called;
-			return expect(chain.scope.bus).to.be.equal(stubs.bus);
-		});
-
-		it('should init logic structure object and assign to scope.logic', () => {
-			expect(stubs.initSteps.initLogicStructure).to.have.been.calledWith(
-				chain.scope
-			);
-			return expect(chain.scope.logic).to.be.equal(stubs.logic);
-		});
-
-		it('should init modules object and assign to scope.modules', () => {
-			expect(stubs.initSteps.initModules).to.have.been.calledWith(chain.scope);
-			return expect(chain.scope.modules).to.be.equal(stubs.modules);
-		});
-
-		it('should bind modules with scope.logic.block', () => {
-			return expect(
-				chain.scope.logic.block.bindModules
-			).to.have.been.calledWith(stubs.modules);
-		});
 
 		it('should subscribe to "app:state:updated" event', () => {
 			return expect(chain.channel.subscribe).to.have.been.calledWith(
 				'app:state:updated'
-			);
-		});
-
-		it('should send bind message on the bus', () => {
-			return expect(chain.scope.bus.message).to.have.been.calledWith(
-				'bind',
-				chain.scope
 			);
 		});
 
@@ -318,10 +271,8 @@ describe('Chain', () => {
 
 		describe('if any error thrown', () => {
 			let processEmitStub;
-			const error = new Error('err');
 			beforeEach(async () => {
 				// Arrange
-				stubs.logic.block.bindModules.throws(error);
 				chain = new Chain(stubs.channel, {
 					...chainOptions,
 					genesisBlock: null,
@@ -374,12 +325,206 @@ describe('Chain', () => {
 		});
 
 		it('should call cleanup on all modules', async () => {
+			// replace with stub
+			chain.scope.modules = stubs.modules;
 			// Act
 			await chain.cleanup();
 
 			// Assert
 			expect(stubs.modules.module1.cleanup).to.have.been.called;
 			return expect(stubs.modules.module2.cleanup).to.have.been.called;
+		});
+	});
+
+	describe('#_syncTask', () => {
+		beforeEach(async () => {
+			await chain.bootstrap();
+			sinonSandbox.stub(chain.loader, 'sync').resolves();
+			sinonSandbox.stub(chain.loader, 'syncing').returns(false);
+			sinonSandbox.stub(chain.blocks, 'isStale').returns(false);
+			sinonSandbox.stub(chain.scope.sequence, 'add').callsFake(async fn => {
+				await fn();
+			});
+		});
+
+		it('should info log every time this task is triggered', async () => {
+			// Arrange
+			chain.loader.syncing.returns(true); // To avoid triggering extra logic irrelevant for this scenario
+
+			// Act
+			await chain._syncTask();
+
+			// Assert
+			expect(stubs.logger.info).to.be.calledWith(
+				{
+					syncing: chain.loader.syncing(),
+					lastReceipt: chain.blocks.lastReceipt,
+				},
+				'Sync time triggered'
+			);
+		});
+
+		it('should use the Sequence if blocks.isStale and the node is not syncing', async () => {
+			// Arrange
+			chain.loader.syncing.returns(false);
+			chain.blocks.isStale.returns(true);
+
+			// Act
+			await chain._syncTask();
+
+			// Assert
+			expect(chain.scope.sequence.add).to.be.called;
+		});
+
+		describe('in sequence', () => {
+			beforeEach(async () => {
+				chain.loader.syncing.returns(false);
+				chain.blocks.isStale.returns(true);
+			});
+
+			it('should call loader.sync', async () => {
+				await chain._syncTask();
+				expect(chain.loader.sync).to.be.called;
+			});
+
+			it('should catch and log the error if the above fails', async () => {
+				// Arrange
+				const expectedError = new Error('an error');
+				chain.loader.sync.rejects(expectedError);
+
+				// Act
+				await chain._syncTask();
+
+				// Assert
+				expect(stubs.logger.error).to.be.calledWith(
+					expectedError,
+					'Sync timer'
+				);
+			});
+		});
+	});
+
+	describe('#_startLoader', () => {
+		beforeEach(async () => {
+			await chain.bootstrap();
+			sinonSandbox.stub(chain.loader, 'loadTransactionsAndSignatures');
+		});
+
+		it('should return if syncing.active in config is set to false', async () => {
+			// Arrange
+			chain.options.syncing.active = false;
+
+			// Act
+			chain._startLoader();
+
+			// Assert
+			expect(stubs.jobsQueue.register).to.not.be.called;
+		});
+
+		it('should load transactions and signatures', async () => {
+			chain._startLoader();
+			expect(chain.loader.loadTransactionsAndSignatures).to.be.called;
+		});
+
+		it('should register a task in Jobs Queue named "nextSync" with a designated interval', async () => {
+			// Arrange
+			chain.options.syncing.active = true;
+
+			// Act
+			chain._startLoader();
+
+			// Assert
+			expect(stubs.jobsQueue.register).to.be.calledWith(
+				'nextSync',
+				sinonSandbox.match.func,
+				Chain.__get__('syncInterval')
+			);
+		});
+	});
+
+	describe('#_forgingTask', () => {
+		beforeEach(async () => {
+			await chain.bootstrap();
+			sinonSandbox.stub(chain.forger, 'delegatesEnabled').returns(true);
+			sinonSandbox.stub(chain.forger, 'forge');
+			sinonSandbox.stub(chain.loader, 'syncing').returns(false);
+			sinonSandbox.stub(chain.rounds, 'ticking').returns(false);
+			sinonSandbox.stub(chain.scope.sequence, 'add').callsFake(async fn => {
+				await fn();
+			});
+		});
+
+		it('should halt if no delegates are enabled', async () => {
+			// Arrange
+			chain.forger.delegatesEnabled.returns(false);
+
+			// Act
+			await chain._forgingTask();
+
+			// Assert
+			expect(stubs.logger.debug.getCall(2)).to.be.calledWith(
+				'No delegates are enabled'
+			);
+			expect(chain.scope.sequence.add).to.be.called;
+			expect(chain.forger.forge).to.not.be.called;
+		});
+
+		it('should halt if the client is not ready to forge (is syncing)', async () => {
+			// Arrange
+			chain.loader.syncing.returns(true);
+
+			// Act
+			await chain._forgingTask();
+
+			// Assert
+			expect(stubs.logger.debug.getCall(2)).to.be.calledWith(
+				'Client not ready to forge'
+			);
+			expect(chain.scope.sequence.add).to.be.called;
+			expect(chain.forger.forge).to.not.be.called;
+		});
+
+		it('should halt if the client is not ready to forge (rounds is ticking)', async () => {
+			// Arrange
+			chain.rounds.ticking.returns(true);
+
+			// Act
+			await chain._forgingTask();
+
+			// Assert
+			expect(stubs.logger.debug.getCall(2)).to.be.calledWith(
+				'Client not ready to forge'
+			);
+			expect(chain.forger.forge).to.not.be.called;
+		});
+
+		it('should execute forger.forge otherwise', async () => {
+			await chain._forgingTask();
+
+			expect(chain.scope.sequence.add).to.be.called;
+			expect(chain.forger.forge).to.be.called;
+		});
+	});
+
+	describe('#_startForging', () => {
+		beforeEach(async () => {
+			await chain.bootstrap();
+			sinonSandbox.stub(chain.forger, 'loadDelegates');
+		});
+
+		it('should load the delegates', async () => {
+			await chain._startForging();
+			expect(chain.forger.loadDelegates).to.be.called;
+		});
+
+		it('should register a task in Jobs Queue named "nextForge" with a designated interval', async () => {
+			await chain._startForging();
+
+			expect(stubs.jobsQueue.register).to.be.calledWith(
+				'nextForge',
+				sinonSandbox.match.func,
+				Chain.__get__('forgeInterval')
+			);
 		});
 	});
 });

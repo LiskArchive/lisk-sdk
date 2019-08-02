@@ -24,6 +24,8 @@ const Bus = require('./bus');
 const { DuplicateAppInstanceError } = require('../errors');
 const { validateModuleSpec } = require('./validator');
 const ApplicationState = require('./application_state');
+const { createStorageComponent } = require('../components/storage');
+const { MigrationEntity } = require('./migrations');
 
 const isPidRunning = async pid =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -48,9 +50,10 @@ class Controller {
 	 * @param {Object} config - Controller configurations
 	 * @param {component.Logger} logger - Logger component responsible for writing all logs to output
 	 */
-	constructor(appLabel, config, logger) {
+	constructor(appLabel, config, initialState, logger) {
 		this.logger = logger;
 		this.appLabel = appLabel;
+		this.initialState = initialState;
 		this.logger.info('Initializing controller');
 
 		const dirs = systemDirs(this.appLabel, config.tempPath);
@@ -69,6 +72,10 @@ class Controller {
 		this.childrenList = [];
 		this.channel = null; // Channel for controller
 		this.bus = null;
+
+		const storageConfig = config.components.storage;
+		this.storage = createStorageComponent(storageConfig, logger);
+		this.storage.registerEntity('Migration', MigrationEntity);
 	}
 
 	/**
@@ -78,12 +85,13 @@ class Controller {
 	 * @param modules
 	 * @async
 	 */
-	async load(modules, moduleOptions) {
+	async load(modules, moduleOptions, migrations = {}) {
 		this.logger.info('Loading controller');
 		await this._setupDirectories();
 		await this._validatePidFile();
 		await this._initState();
 		await this._setupBus();
+		await this._loadMigrations(migrations);
 		await this._loadModules(modules, moduleOptions);
 
 		this.logger.info('Bus listening to events', this.bus.getEvents());
@@ -134,7 +142,7 @@ class Controller {
 	 */
 	async _initState() {
 		this.applicationState = new ApplicationState({
-			initialState: this.config.initialState,
+			initialState: this.initialState,
 			logger: this.logger,
 		});
 	}
@@ -184,6 +192,12 @@ class Controller {
 				this.logger.trace(`MONITOR: ${event.module}:${event.name}`, event.data);
 			});
 		}
+	}
+
+	async _loadMigrations(migrationsObj) {
+		await this.storage.bootstrap();
+		await this.storage.entities.Migration.defineSchema();
+		return this.storage.entities.Migration.applyAll(migrationsObj);
 	}
 
 	async _loadModules(modules, moduleOptions) {

@@ -40,12 +40,14 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 	describe('deleteLastBlock', () => {
 		describe('errors', () => {
-			it('should fail when trying to delete genesis block', done => {
-				library.modules.blocks.chain.deleteLastBlock((err, res) => {
-					expect(err).to.equal('Cannot delete genesis block');
-					expect(res).to.not.exist;
-					done();
-				});
+			it('should fail when trying to delete genesis block', async () => {
+				try {
+					await library.modules.blocks.blocksChain.deleteLastBlock(
+						library.modules.blocks.lastBlock
+					);
+				} catch (err) {
+					expect(err.message).to.equal('Cannot delete genesis block');
+				}
 			});
 		});
 
@@ -55,7 +57,6 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 			let testAccountDataAfterBlock;
 			let testReceipt;
 			let testReceiptData;
-			let fieldsToCompare;
 
 			function createAccountWithFunds(done) {
 				testAccount = randomUtil.account();
@@ -70,19 +71,14 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 			describe('(type 0) transfer funds', () => {
 				before('create account with funds', done => {
 					createAccountWithFunds(done);
-					fieldsToCompare = ['balance', 'publicKey'];
 				});
 
-				it('should validate account data from sender after account creation', done => {
-					library.logic.account.get(
-						{ address: testAccount.address },
-						fieldsToCompare,
-						(err, res) => {
-							testAccountData = res;
-							expect(res.publicKey).to.be.null;
-							done();
-						}
+				it('should validate account data from sender after account creation', async () => {
+					const account = await library.components.storage.entities.Account.getOne(
+						{ address: testAccount.address }
 					);
+					testAccountData = account;
+					expect(account.publicKey).to.be.null;
 				});
 
 				it('should create a transaction and forge a block', done => {
@@ -99,115 +95,83 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					);
 				});
 
-				it('should validate account data from sender after forging a block', done => {
-					library.logic.account.get(
-						{ address: testAccount.address },
-						fieldsToCompare,
-						(err, res) => {
-							testAccountDataAfterBlock = res;
-							expect(res.publicKey).to.not.be.null;
-							done();
-						}
+				it('should validate account data from sender after forging a block', async () => {
+					const account = await library.components.storage.entities.Account.getOne(
+						{ address: testAccount.address }
 					);
+					testAccountDataAfterBlock = account;
+					expect(account.publicKey).to.not.be.null;
 				});
 
-				it('should get account data from receipt that is a virgin (not have publicKey assigned)', done => {
-					library.logic.account.get(
-						{ address: testReceipt.address },
-						fieldsToCompare,
-						(err, res) => {
-							testReceiptData = res;
-							expect(res.publicKey).to.be.null;
-							done();
-						}
+				it('should get account data from receipt that is a virgin (not have publicKey assigned)', async () => {
+					const account = await library.components.storage.entities.Account.getOne(
+						{ address: testReceipt.address }
 					);
+					testReceiptData = account;
+					expect(account.publicKey).to.be.null;
 				});
 
-				it('should delete last block', done => {
-					library.modules.blocks.chain.deleteLastBlock((err, res) => {
-						expect(err).to.not.exist;
-						expect(res).to.be.an('object');
-						done();
-					});
+				it('should delete last block', async () => {
+					const transactions = library.modules.blocks.lastBlock.transactions;
+					const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+						library.modules.blocks.lastBlock
+					);
+					library.modules.blocks._lastBlock = newLastBlock;
+					library.modules.transactionPool.onDeletedTransactions(
+						transactions.reverse()
+					);
+					expect(newLastBlock).to.be.an('object');
 				});
 
-				it('should validate account data from sender after deleting the last block', done => {
-					library.logic.account.get(
-						{ address: testAccount.address },
-						fieldsToCompare,
-						(err, res) => {
-							expect(res.balance).to.equal(testAccountData.balance);
-							// CHECKME: publicKey should be null
-							done();
-						}
+				it('should validate account data from sender after deleting the last block', async () => {
+					const account = await library.components.storage.entities.Account.getOne(
+						{ address: testAccount.address }
 					);
+					expect(account.balance).to.equal(testAccountData.balance);
 				});
 
-				it('should get account data from receipt that has a zero balance', done => {
-					library.logic.account.get(
-						{ address: testReceipt.address },
-						fieldsToCompare,
-						(err, res) => {
-							expect(res.balance).to.equal('0');
-							// FIXME: Maybe this address should not be inserted into mem_accounts
-							done();
-						}
+				it('should get account data from receipt that has a zero balance', async () => {
+					const account = await library.components.storage.entities.Account.getOne(
+						{ address: testReceipt.address }
 					);
+					expect(account.balance).to.equal('0');
 				});
 
 				it('should forge a block with transaction pool', done => {
 					localCommon.addTransactionsAndForge(library, [], done);
 				});
 
-				it('should validate account data from sender after forging a block with transaction pool', done => {
-					library.logic.account.get(
-						{ address: testAccount.address },
-						fieldsToCompare,
-						(err, res) => {
-							expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
-							expect(res.publicKey).to.equal(
-								testAccountDataAfterBlock.publicKey
-							);
-							done();
-						}
+				it('should validate account data from sender after forging a block with transaction pool', async () => {
+					const account = await library.components.storage.entities.Account.getOne(
+						{ address: testAccount.address }
+					);
+					expect(account.balance).to.equal(testAccountDataAfterBlock.balance);
+					expect(account.publicKey).to.equal(
+						testAccountDataAfterBlock.publicKey
 					);
 				});
 
-				it('should get account data from receipt that has a balance', done => {
-					library.logic.account.get(
-						{ address: testReceipt.address },
-						fieldsToCompare,
-						(err, res) => {
-							expect(res.balance).to.equal(testReceiptData.balance);
-							done();
-						}
+				it('should get account data from receipt that has a balance', async () => {
+					const account = await library.components.storage.entities.Account.getOne(
+						{ address: testReceipt.address }
 					);
+					expect(account.balance).to.equal(testReceiptData.balance);
 				});
 			});
 
 			describe('(type 1) register second signature', () => {
 				before('create account with funds', done => {
 					createAccountWithFunds(done);
-					fieldsToCompare = [
-						'balance',
-						'publicKey',
-						'secondPublicKey',
-						'secondSignature',
-					];
 				});
 
-				it('should validate account data from sender', done => {
-					library.logic.account.get(
-						{ address: testAccount.address },
-						fieldsToCompare,
-						(err, res) => {
-							testAccountData = res;
-							expect(res.publicKey).to.be.null;
-							expect(res.secondPublicKey).to.be.null;
-							expect(res.secondSignature).to.equal(false);
-							done();
-						}
+				it('should validate account data from sender', async () => {
+					const account = await library.components.storage.entities.Account.getOne(
+						{ address: testAccount.address }
 					);
+					testAccountData = account;
+					expect(account.publicKey).to.be.null;
+					expect(account.secondPublicKey).to.be.null;
+					expect(account.secondSignature).to.equal(false);
 				});
 
 				it('should forge a block', done => {
@@ -222,99 +186,74 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					);
 				});
 
-				it('should validate account data from sender after forging a block', done => {
-					library.logic.account.get(
-						{ address: testAccount.address },
-						fieldsToCompare,
-						(err, res) => {
-							testAccountDataAfterBlock = res;
-							expect(res.publicKey).to.not.be.null;
-							expect(res.secondPublicKey).to.not.be.null;
-							expect(res.secondSignature).to.equal(true);
-							done();
-						}
+				it('should validate account data from sender after forging a block', async () => {
+					const account = await library.components.storage.entities.Account.getOne(
+						{ address: testAccount.address }
 					);
+					testAccountDataAfterBlock = account;
+					expect(account.publicKey).to.not.be.null;
+					expect(account.secondPublicKey).to.not.be.null;
+					expect(account.secondSignature).to.equal(true);
 				});
 
-				it('should delete last block', done => {
-					library.modules.blocks.chain.deleteLastBlock((err, res) => {
-						expect(err).to.not.exist;
-						expect(res).to.be.an('object');
-						done();
-					});
+				it('should delete last block', async () => {
+					const transactions = library.modules.blocks.lastBlock.transactions;
+					const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+						library.modules.blocks.lastBlock
+					);
+					library.modules.blocks._lastBlock = newLastBlock;
+					library.modules.transactionPool.onDeletedTransactions(
+						transactions.reverse()
+					);
+					expect(newLastBlock).to.be.an('object');
 				});
 
-				it('should validate account data from sender after deleting the last block', done => {
-					library.logic.account.get(
-						{ address: testAccount.address },
-						fieldsToCompare,
-						(err, res) => {
-							expect(res.balance).to.equal(testAccountData.balance);
-							expect(res.secondPublicKey).to.be.null;
-							expect(res.secondSignature).to.equal(false);
-							// CHECKME: publicKey should be null
-							done();
-						}
+				it('should validate account data from sender after deleting the last block', async () => {
+					const account = await library.components.storage.entities.Account.getOne(
+						{ address: testAccount.address }
 					);
+					expect(account.balance).to.equal(testAccountData.balance);
+					expect(account.secondPublicKey).to.be.null;
+					expect(account.secondSignature).to.equal(false);
 				});
 
 				it('should forge a block with transaction pool', done => {
 					localCommon.addTransactionsAndForge(library, [], done);
 				});
 
-				it('should validate account data from sender after forging a block with transaction pool', done => {
-					library.logic.account.get(
-						{ address: testAccount.address },
-						fieldsToCompare,
-						(err, res) => {
-							expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
-							expect(res.publicKey).to.equal(
-								testAccountDataAfterBlock.publicKey
-							);
-							expect(res.secondPublicKey).to.equal(
-								testAccountDataAfterBlock.secondPublicKey
-							);
-							expect(res.secondSignature).to.equal(true);
-							done();
-						}
+				it('should validate account data from sender after forging a block with transaction pool', async () => {
+					const account = await library.components.storage.entities.Account.getOne(
+						{ address: testAccount.address }
 					);
+					expect(account.balance).to.equal(testAccountDataAfterBlock.balance);
+					expect(account.publicKey).to.equal(
+						testAccountDataAfterBlock.publicKey
+					);
+					expect(account.secondPublicKey).to.equal(
+						testAccountDataAfterBlock.secondPublicKey
+					);
+					expect(account.secondSignature).to.equal(true);
 				});
 			});
 
 			describe('(type 2) register delegate', () => {
 				before('create account with funds', done => {
 					createAccountWithFunds(done);
-					fieldsToCompare = [
-						'balance',
-						'publicKey',
-						'isDelegate',
-						'username',
-						'missedBlocks',
-						'producedBlocks',
-						'rank',
-						'rewards',
-						'vote',
-					];
-					// CHECKME: When are nameexist and u_nameexist used?
 				});
 
-				it('should validate account data from sender', done => {
-					library.logic.account.get(
-						{ address: testAccount.address },
-						fieldsToCompare,
-						(err, res) => {
-							testAccountData = res;
-							expect(res.publicKey).to.be.null;
-							expect(res.isDelegate).to.equal(false);
-							expect(res.username).to.be.null;
-							expect(res.missedBlocks).to.equal(0);
-							expect(res.producedBlocks).to.equal(0);
-							expect(res.rank).to.be.null;
-							expect(res.rewards).to.equal('0');
-							expect(res.vote).to.equal('0');
-							done();
-						}
+				it('should validate account data from sender', async () => {
+					const account = await library.components.storage.entities.Account.getOne(
+						{ address: testAccount.address }
 					);
+					testAccountData = account;
+					expect(account.publicKey).to.be.null;
+					expect(account.isDelegate).to.equal(false);
+					expect(account.username).to.be.null;
+					expect(account.missedBlocks).to.equal(0);
+					expect(account.producedBlocks).to.equal(0);
+					expect(account.rank).to.be.null;
+					expect(account.rewards).to.equal('0');
+					expect(account.vote).to.equal('0');
 				});
 
 				it('should forge a block', done => {
@@ -329,101 +268,84 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					);
 				});
 
-				it('should validate account data from sender after forging a block', done => {
-					library.logic.account.get(
-						{ address: testAccount.address },
-						fieldsToCompare,
-						(err, res) => {
-							testAccountDataAfterBlock = res;
-							expect(res.publicKey).to.not.be.null;
-							expect(res.isDelegate).to.equal(true);
-							expect(res.username).to.be.equal(testAccount.username);
-							expect(res.missedBlocks).to.equal(0);
-							expect(res.producedBlocks).to.equal(0);
-							expect(res.rank).to.equal(null);
-							expect(res.rewards).to.equal('0');
-							expect(res.vote).to.equal('0');
-							done();
-						}
+				it('should validate account data from sender after forging a block', async () => {
+					const account = await library.components.storage.entities.Account.getOne(
+						{ address: testAccount.address }
 					);
+					testAccountDataAfterBlock = account;
+					expect(account.publicKey).to.not.be.null;
+					expect(account.isDelegate).to.equal(true);
+					expect(account.username).to.be.equal(testAccount.username);
+					expect(account.missedBlocks).to.equal(0);
+					expect(account.producedBlocks).to.equal(0);
+					expect(account.rank).to.equal(null);
+					expect(account.rewards).to.equal('0');
+					expect(account.vote).to.equal('0');
 				});
 
-				it('should delete last block', done => {
-					library.modules.blocks.chain.deleteLastBlock((err, res) => {
-						expect(err).to.not.exist;
-						expect(res).to.be.an('object');
-						done();
-					});
+				it('should delete last block', async () => {
+					const transactions = library.modules.blocks.lastBlock.transactions;
+					const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+						library.modules.blocks.lastBlock
+					);
+					library.modules.blocks._lastBlock = newLastBlock;
+					library.modules.transactionPool.onDeletedTransactions(
+						transactions.reverse()
+					);
+					expect(newLastBlock).to.be.an('object');
 				});
 
-				it('should validate account data from sender after delete the last block', done => {
-					library.logic.account.get(
-						{ address: testAccount.address },
-						fieldsToCompare,
-						(err, res) => {
-							expect(res.balance).to.equal(testAccountData.balance);
-							expect(res.isDelegate).to.equal(false);
-							expect(res.username).to.be.null;
-							expect(res.missedBlocks).to.equal(0);
-							expect(res.producedBlocks).to.equal(0);
-							expect(res.rank).to.be.null;
-							expect(res.rewards).to.equal('0');
-							expect(res.vote).to.equal('0');
-							// CHECKME: publicKey should be null
-							done();
-						}
+				it('should validate account data from sender after delete the last block', async () => {
+					const account = await library.components.storage.entities.Account.getOne(
+						{ address: testAccount.address }
 					);
+					expect(account.balance).to.equal(testAccountData.balance);
+					expect(account.isDelegate).to.equal(false);
+					expect(account.username).to.be.null;
+					expect(account.missedBlocks).to.equal(0);
+					expect(account.producedBlocks).to.equal(0);
+					expect(account.rank).to.be.null;
+					expect(account.rewards).to.equal('0');
+					expect(account.vote).to.equal('0');
 				});
 
 				it('should forge a block with pool transaction', done => {
 					localCommon.addTransactionsAndForge(library, [], done);
 				});
 
-				it('should validate account data from sender after forging a block with transaction pool', done => {
-					library.logic.account.get(
-						{ address: testAccount.address },
-						fieldsToCompare,
-						(err, res) => {
-							expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
-							expect(res.publicKey).to.equal(
-								testAccountDataAfterBlock.publicKey
-							);
-							expect(res.isDelegate).to.equal(true);
-							expect(res.username).to.be.equal(
-								testAccountDataAfterBlock.username
-							);
-							expect(res.missedBlocks).to.equal(0);
-							expect(res.producedBlocks).to.equal(0);
-							expect(res.rank).to.equal(null);
-							expect(res.rewards).to.equal('0');
-							expect(res.vote).to.equal('0');
-							done();
-						}
+				it('should validate account data from sender after forging a block with transaction pool', async () => {
+					const account = await library.components.storage.entities.Account.getOne(
+						{ address: testAccount.address }
 					);
+					expect(account.balance).to.equal(testAccountDataAfterBlock.balance);
+					expect(account.publicKey).to.equal(
+						testAccountDataAfterBlock.publicKey
+					);
+					expect(account.isDelegate).to.equal(true);
+					expect(account.username).to.be.equal(
+						testAccountDataAfterBlock.username
+					);
+					expect(account.missedBlocks).to.equal(0);
+					expect(account.producedBlocks).to.equal(0);
+					expect(account.rank).to.equal(null);
+					expect(account.rewards).to.equal('0');
+					expect(account.vote).to.equal('0');
 				});
 			});
 
 			describe('(type 3) votes', () => {
 				before('create account with funds', done => {
 					createAccountWithFunds(done);
-					fieldsToCompare = [
-						'balance',
-						'publicKey',
-						'votedDelegatesPublicKeys',
-					];
 				});
 
-				it('should validate account data from sender after account creation', done => {
-					library.logic.account.get(
+				it('should validate account data from sender after account creation', async () => {
+					const account = await library.components.storage.entities.Account.getOne(
 						{ address: testAccount.address },
-						fieldsToCompare,
-						(err, res) => {
-							testAccountData = res;
-							expect(res.publicKey).to.be.null;
-							expect(res.votedDelegatesPublicKeys).to.be.null;
-							done();
-						}
+						{ extended: true }
 					);
+					testAccountData = account;
+					expect(account.publicKey).to.be.null;
+					expect(account.votedDelegatesPublicKeys).to.be.null;
 				});
 
 				it('should forge a block', done => {
@@ -434,60 +356,54 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					localCommon.addTransactionsAndForge(library, [voteTransaction], done);
 				});
 
-				it('should validate account data from sender after forging a block', done => {
-					library.logic.account.get(
+				it('should validate account data from sender after forging a block', async () => {
+					const account = await library.components.storage.entities.Account.getOne(
 						{ address: testAccount.address },
-						fieldsToCompare,
-						(err, res) => {
-							testAccountDataAfterBlock = res;
-							expect(res.publicKey).to.not.be.null;
-							expect(res.votedDelegatesPublicKeys[0]).to.equal(
-								accountFixtures.existingDelegate.publicKey
-							);
-							done();
-						}
+						{ extended: true }
+					);
+					testAccountDataAfterBlock = account;
+					expect(account.publicKey).to.not.be.null;
+					expect(account.votedDelegatesPublicKeys[0]).to.equal(
+						accountFixtures.existingDelegate.publicKey
 					);
 				});
 
-				it('should delete last block', done => {
-					library.modules.blocks.chain.deleteLastBlock((err, res) => {
-						expect(err).to.not.exist;
-						expect(res).to.be.an('object');
-						done();
-					});
+				it('should delete last block', async () => {
+					const transactions = library.modules.blocks.lastBlock.transactions;
+					const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+						library.modules.blocks.lastBlock
+					);
+					library.modules.blocks._lastBlock = newLastBlock;
+					library.modules.transactionPool.onDeletedTransactions(
+						transactions.reverse()
+					);
+					expect(newLastBlock).to.be.an('object');
 				});
 
-				it('should validate account data from sender after deleting the last block', done => {
-					library.logic.account.get(
+				it('should validate account data from sender after deleting the last block', async () => {
+					const account = await library.components.storage.entities.Account.getOne(
 						{ address: testAccount.address },
-						fieldsToCompare,
-						(err, res) => {
-							expect(res.balance).to.equal(testAccountData.balance);
-							expect(res.votedDelegatesPublicKeys).to.be.null;
-							// CHECKME: publicKey should be null
-							done();
-						}
+						{ extended: true }
 					);
+					expect(account.balance).to.equal(testAccountData.balance);
+					expect(account.votedDelegatesPublicKeys).to.be.null;
 				});
 
 				it('should forge a block with transaction pool', done => {
 					localCommon.addTransactionsAndForge(library, [], done);
 				});
 
-				it('should validate account data from sender after forging a block with transaction pool', done => {
-					library.logic.account.get(
+				it('should validate account data from sender after forging a block with transaction pool', async () => {
+					const account = await library.components.storage.entities.Account.getOne(
 						{ address: testAccount.address },
-						fieldsToCompare,
-						(err, res) => {
-							expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
-							expect(res.publicKey).to.equal(
-								testAccountDataAfterBlock.publicKey
-							);
-							expect(res.votedDelegatesPublicKeys[0]).to.equal(
-								accountFixtures.existingDelegate.publicKey
-							);
-							done();
-						}
+						{ extended: true }
+					);
+					expect(account.balance).to.equal(testAccountDataAfterBlock.balance);
+					expect(account.publicKey).to.equal(
+						testAccountDataAfterBlock.publicKey
+					);
+					expect(account.votedDelegatesPublicKeys[0]).to.equal(
+						accountFixtures.existingDelegate.publicKey
 					);
 				});
 			});
@@ -495,28 +411,18 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 			describe('(type 4) register multisignature', () => {
 				before('create account with funds', done => {
 					createAccountWithFunds(done);
-					fieldsToCompare = [
-						'balance',
-						'publicKey',
-						'multiLifetime',
-						'multiMin',
-						'membersPublicKeys',
-					];
 				});
 
-				it('should validate account data from sender after account creation', done => {
-					library.logic.account.get(
+				it('should validate account data from sender after account creation', async () => {
+					const account = await library.components.storage.entities.Account.getOne(
 						{ address: testAccount.address },
-						fieldsToCompare,
-						(err, res) => {
-							testAccountData = res;
-							expect(res.publicKey).to.be.null;
-							expect(res.multiLifetime).to.equal(0);
-							expect(res.multiMin).to.equal(0);
-							expect(res.membersPublicKeys).to.be.null;
-							done();
-						}
+						{ extended: true }
 					);
+					testAccountData = account;
+					expect(account.publicKey).to.be.null;
+					expect(account.multiLifetime).to.equal(0);
+					expect(account.multiMin).to.equal(0);
+					expect(account.membersPublicKeys).to.be.null;
 				});
 
 				it('should forge a block', done => {
@@ -540,44 +446,41 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					);
 				});
 
-				it('should validate account data from sender after forging a block', done => {
-					library.logic.account.get(
+				it('should validate account data from sender after forging a block', async () => {
+					const account = await library.components.storage.entities.Account.getOne(
 						{ address: testAccount.address },
-						fieldsToCompare,
-						(err, res) => {
-							testAccountDataAfterBlock = res;
-							expect(res.publicKey).to.not.be.null;
-							expect(res.multiLifetime).to.equal(1);
-							expect(res.multiMin).to.equal(1);
-							expect(res.membersPublicKeys[0]).to.equal(
-								accountFixtures.existingDelegate.publicKey
-							);
-							done();
-						}
+						{ extended: true }
+					);
+					testAccountDataAfterBlock = account;
+					expect(account.publicKey).to.not.be.null;
+					expect(account.multiLifetime).to.equal(1);
+					expect(account.multiMin).to.equal(1);
+					expect(account.membersPublicKeys[0]).to.equal(
+						accountFixtures.existingDelegate.publicKey
 					);
 				});
 
-				it('should delete last block', done => {
-					library.modules.blocks.chain.deleteLastBlock((err, res) => {
-						expect(err).to.not.exist;
-						expect(res).to.be.an('object');
-						done();
-					});
+				it('should delete last block', async () => {
+					const transactions = library.modules.blocks.lastBlock.transactions;
+					const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+						library.modules.blocks.lastBlock
+					);
+					library.modules.blocks._lastBlock = newLastBlock;
+					library.modules.transactionPool.onDeletedTransactions(
+						transactions.reverse()
+					);
+					expect(newLastBlock).to.be.an('object');
 				});
 
-				it('should validate account data from sender', done => {
-					library.logic.account.get(
+				it('should validate account data from sender', async () => {
+					const account = await library.components.storage.entities.Account.getOne(
 						{ address: testAccount.address },
-						fieldsToCompare,
-						(err, res) => {
-							expect(res.balance).to.equal(testAccountData.balance);
-							expect(res.multiLifetime).to.equal(0);
-							expect(res.multiMin).to.equal(0);
-							expect(res.membersPublicKeys).to.be.null;
-							// CHECKME: publicKey should be null
-							done();
-						}
+						{ extended: true }
 					);
+					expect(account.balance).to.equal(testAccountData.balance);
+					expect(account.multiLifetime).to.equal(0);
+					expect(account.multiMin).to.equal(0);
+					expect(account.membersPublicKeys).to.be.null;
 				});
 
 				it('should forge a block with transaction pool', done => {
@@ -586,22 +489,19 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 				// This test will only start working after we remove the fillPool mechanism from the application
 				// eslint-disable-next-line mocha/no-skipped-tests
-				it.skip('[UNCONFIRMED STATE REMOVAL] should validate account data from sender after forging a block with transaction pool', done => {
-					library.logic.account.get(
+				it.skip('[UNCONFIRMED STATE REMOVAL] should validate account data from sender after forging a block with transaction pool', async () => {
+					const account = await library.components.storage.entities.Account.getOne(
 						{ address: testAccount.address },
-						fieldsToCompare,
-						(err, res) => {
-							expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
-							expect(res.publicKey).to.equal(
-								testAccountDataAfterBlock.publicKey
-							);
-							expect(res.multiLifetime).to.equal(1);
-							expect(res.multiMin).to.equal(1);
-							expect(res.membersPublicKeys[0]).to.equal(
-								accountFixtures.existingDelegate.publicKey
-							);
-							done();
-						}
+						{ extended: true }
+					);
+					expect(account.balance).to.equal(testAccountDataAfterBlock.balance);
+					expect(account.publicKey).to.equal(
+						testAccountDataAfterBlock.publicKey
+					);
+					expect(account.multiLifetime).to.equal(1);
+					expect(account.multiMin).to.equal(1);
+					expect(account.membersPublicKeys[0]).to.equal(
+						accountFixtures.existingDelegate.publicKey
 					);
 				});
 			});
@@ -609,20 +509,16 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 			describe('dapps', () => {
 				before('create account with funds', done => {
 					createAccountWithFunds(done);
-					fieldsToCompare = ['balance', 'publicKey'];
 				});
 
-				describe('(type 5) register dapp', () => {
-					it('should validate account data from sender after account creation', done => {
-						library.logic.account.get(
-							{ address: testAccount.address },
-							fieldsToCompare,
-							(err, res) => {
-								testAccountData = res;
-								expect(res.publicKey).to.be.null;
-								done();
-							}
+				/* eslint-disable mocha/no-skipped-tests */
+				describe.skip('(type 5) register dapp', () => {
+					it('should validate account data from sender after account creation', async () => {
+						const account = await library.components.storage.entities.Account.getOne(
+							{ address: testAccount.address }
 						);
+						testAccountData = account;
+						expect(account.publicKey).to.be.null;
 					});
 
 					it('should forge a block', done => {
@@ -638,69 +534,56 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 						);
 					});
 
-					it('should validate account data from sender after forging a block', done => {
-						library.logic.account.get(
-							{ address: testAccount.address },
-							fieldsToCompare,
-							(err, res) => {
-								testAccountDataAfterBlock = res;
-								expect(res.publicKey).to.not.be.null;
-								done();
-							}
+					it('should validate account data from sender after forging a block', async () => {
+						const account = await library.components.storage.entities.Account.getOne(
+							{ address: testAccount.address }
 						);
+						testAccountDataAfterBlock = account;
+						expect(account.publicKey).to.not.be.null;
 					});
 
-					it('should delete last block', done => {
-						library.modules.blocks.chain.deleteLastBlock((err, res) => {
-							expect(err).to.not.exist;
-							expect(res).to.be.an('object');
-							done();
-						});
+					it('should delete last block', async () => {
+						const transactions = library.modules.blocks.lastBlock.transactions;
+						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+							library.modules.blocks.lastBlock
+						);
+						library.modules.blocks._lastBlock = newLastBlock;
+						library.modules.transactionPool.onDeletedTransactions(
+							transactions.reverse()
+						);
+						expect(newLastBlock).to.be.an('object');
 					});
 
-					it('should validate account data from sender after deleting the last block', done => {
-						library.logic.account.get(
-							{ address: testAccount.address },
-							fieldsToCompare,
-							(err, res) => {
-								expect(res.balance).to.equal(testAccountData.balance);
-								// CHECKME: publicKey should be null
-								done();
-							}
+					it('should validate account data from sender after deleting the last block', async () => {
+						const account = await library.components.storage.entities.Account.getOne(
+							{ address: testAccount.address }
 						);
+						expect(account.balance).to.equal(testAccountData.balance);
 					});
 
 					it('should forge a block with transaction pool', done => {
 						localCommon.addTransactionsAndForge(library, [], done);
 					});
 
-					it('should validate account data from sender after forging a block with transaction pool', done => {
-						library.logic.account.get(
-							{ address: testAccount.address },
-							fieldsToCompare,
-							(err, res) => {
-								expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
-								expect(res.publicKey).to.equal(
-									testAccountDataAfterBlock.publicKey
-								);
-								done();
-							}
+					it('should validate account data from sender after forging a block with transaction pool', async () => {
+						const account = await library.components.storage.entities.Account.getOne(
+							{ address: testAccount.address }
+						);
+						expect(account.balance).to.equal(testAccountDataAfterBlock.balance);
+						expect(account.publicKey).to.equal(
+							testAccountDataAfterBlock.publicKey
 						);
 					});
 				});
 
 				/* eslint-disable mocha/no-skipped-tests */
 				describe.skip('(type 6) inTransfer dapp', () => {
-					it('should validate account data from sender after account creation', done => {
-						library.logic.account.get(
-							{ address: testAccount.address },
-							fieldsToCompare,
-							(err, res) => {
-								testAccountData = res;
-								// expect(res.publicKey).to.be.null;
-								done();
-							}
+					it('should validate account data from sender after account creation', async () => {
+						const account = await library.components.storage.entities.Account.getOne(
+							{ address: testAccount.address }
 						);
+						testAccountData = account;
+						expect(account.publicKey).to.be.null;
 					});
 
 					it('should forge a block', done => {
@@ -716,68 +599,55 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 						);
 					});
 
-					it('should validate account data from sender after forging a block', done => {
-						library.logic.account.get(
-							{ address: testAccount.address },
-							fieldsToCompare,
-							(err, res) => {
-								testAccountDataAfterBlock = res;
-								expect(res.publicKey).to.not.be.null;
-								done();
-							}
+					it('should validate account data from sender after forging a block', async () => {
+						const account = await library.components.storage.entities.Account.getOne(
+							{ address: testAccount.address }
 						);
+						testAccountDataAfterBlock = account;
+						expect(account.publicKey).to.not.be.null;
 					});
 
-					it('should delete last block', done => {
-						library.modules.blocks.chain.deleteLastBlock((err, res) => {
-							expect(err).to.not.exist;
-							expect(res).to.be.an('object');
-							done();
-						});
+					it('should delete last block', async () => {
+						const transactions = library.modules.blocks.lastBlock.transactions;
+						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+							library.modules.blocks.lastBlock
+						);
+						library.modules.blocks._lastBlock = newLastBlock;
+						library.modules.transactionPool.onDeletedTransactions(
+							transactions.reverse()
+						);
+						expect(newLastBlock).to.be.an('object');
 					});
 
-					it('should validate account data from sender after deleting the last block', done => {
-						library.logic.account.get(
-							{ address: testAccount.address },
-							fieldsToCompare,
-							(err, res) => {
-								expect(res.balance).to.equal(testAccountData.balance);
-								// CHECKME: publicKey should be null
-								done();
-							}
+					it('should validate account data from sender after deleting the last block', async () => {
+						const account = await library.components.storage.entities.Account.getOne(
+							{ address: testAccount.address }
 						);
+						expect(account.balance).to.equal(testAccountData.balance);
 					});
 
 					it('should forge a block with transaction pool', done => {
 						localCommon.addTransactionsAndForge(library, [], done);
 					});
 
-					it('should validate account data from sender after forging a block with transaction pool', done => {
-						library.logic.account.get(
-							{ address: testAccount.address },
-							fieldsToCompare,
-							(err, res) => {
-								expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
-								expect(res.publicKey).to.equal(
-									testAccountDataAfterBlock.publicKey
-								);
-								done();
-							}
+					it('should validate account data from sender after forging a block with transaction pool', async () => {
+						const account = await library.components.storage.entities.Account.getOne(
+							{ address: testAccount.address }
+						);
+						expect(account.balance).to.equal(testAccountDataAfterBlock.balance);
+						expect(account.publicKey).to.equal(
+							testAccountDataAfterBlock.publicKey
 						);
 					});
 				});
 
 				describe.skip('(type 7) outTransfer dapp', () => {
-					it('should validate account data from sender after account creation', done => {
-						library.logic.account.get(
-							{ address: testAccount.address },
-							fieldsToCompare,
-							(err, res) => {
-								testAccountData = res;
-								// expect(res.publicKey).to.be.null;
-								done();
-							}
+					it('should validate account data from sender after account creation', async () => {
+						const account = await library.components.storage.entities.Account.getOne(
+							{ address: testAccount.address }
 						);
+						testAccountData = account;
+						expect(account.publicKey).to.be.null;
 					});
 
 					it('should forge a block', done => {
@@ -798,53 +668,44 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 						);
 					});
 
-					it('should validate account data from sender after forging a block', done => {
-						library.logic.account.get(
-							{ address: testAccount.address },
-							fieldsToCompare,
-							(err, res) => {
-								testAccountDataAfterBlock = res;
-								expect(res.publicKey).to.not.be.null;
-								done();
-							}
+					it('should validate account data from sender after forging a block', async () => {
+						const account = await library.components.storage.entities.Account.getOne(
+							{ address: testAccount.address }
 						);
+						testAccountDataAfterBlock = account;
+						expect(account.publicKey).to.not.be.null;
 					});
 
-					it('should delete last block', done => {
-						library.modules.blocks.chain.deleteLastBlock((err, res) => {
-							expect(err).to.not.exist;
-							expect(res).to.be.an('object');
-							done();
-						});
+					it('should delete last block', async () => {
+						const transactions = library.modules.blocks.lastBlock.transactions;
+						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
+							library.modules.blocks.lastBlock
+						);
+						library.modules.blocks._lastBlock = newLastBlock;
+						library.modules.transactionPool.onDeletedTransactions(
+							transactions.reverse()
+						);
+						expect(newLastBlock).to.be.an('object');
 					});
 
-					it('should validate account data from sender after deleting the last block', done => {
-						library.logic.account.get(
-							{ address: testAccount.address },
-							fieldsToCompare,
-							(err, res) => {
-								expect(res.balance).to.equal(testAccountData.balance);
-								// CHECKME: publicKey should be null
-								done();
-							}
+					it('should validate account data from sender after deleting the last block', async () => {
+						const account = await library.components.storage.entities.Account.getOne(
+							{ address: testAccount.address }
 						);
+						expect(account.balance).to.equal(testAccountData.balance);
 					});
 
 					it('should forge a block with transaction pool', done => {
 						localCommon.addTransactionsAndForge(library, [], done);
 					});
 
-					it('should validate account data from sender after forging a block with transaction pool', done => {
-						library.logic.account.get(
-							{ address: testAccount.address },
-							fieldsToCompare,
-							(err, res) => {
-								expect(res.balance).to.equal(testAccountDataAfterBlock.balance);
-								expect(res.publicKey).to.equal(
-									testAccountDataAfterBlock.publicKey
-								);
-								done();
-							}
+					it('should validate account data from sender after forging a block with transaction pool', async () => {
+						const account = await library.components.storage.entities.Account.getOne(
+							{ address: testAccount.address }
+						);
+						expect(account.balance).to.equal(testAccountDataAfterBlock.balance);
+						expect(account.publicKey).to.equal(
+							testAccountDataAfterBlock.publicKey
 						);
 					});
 				});

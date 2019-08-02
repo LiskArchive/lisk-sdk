@@ -14,11 +14,34 @@
  */
 import * as BigNum from '@liskhq/bignum';
 
-export const bigNumberToBuffer = (bignumber: string, size: number) =>
-	new BigNum(bignumber).toBuffer({ size, endian: 'big' });
+export const BIG_ENDIAN = 'big';
+export const LITTLE_ENDIAN = 'little';
 
+export const intToBuffer = (
+	value: number | string,
+	byteLength: number,
+	endianness: string = BIG_ENDIAN,
+) => new BigNum(value).toBuffer({ size: byteLength, endian: endianness });
+
+export const bufferToIntAsString = (buffer: Buffer): string =>
+	BigNum.fromBuffer(buffer).toString();
+
+/**
+ * @deprecated Use intToBuffer instead
+ */
+// tslint:disable-next-line no-unnecessary-callback-wrapper
+export const bigNumberToBuffer = (
+	bignumber: string,
+	size: number,
+	endian: string = BIG_ENDIAN,
+) => intToBuffer(bignumber, size, endian);
+
+/**
+ * @deprecated Use bufferToIntAsString instead
+ */
+// tslint:disable-next-line no-unnecessary-callback-wrapper
 export const bufferToBigNumberString = (bigNumberBuffer: Buffer): string =>
-	BigNum.fromBuffer(bigNumberBuffer).toString();
+	bufferToIntAsString(bigNumberBuffer);
 
 export const bufferToHex = (buffer: Buffer): string =>
 	Buffer.from(buffer).toString('hex');

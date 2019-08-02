@@ -17,7 +17,6 @@
 const {
 	transfer,
 	registerSecondPassphrase,
-	createDapp,
 } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
@@ -39,12 +38,11 @@ describe('integration test (type 1) - checking validated second signature regist
 		passphrase: account.passphrase,
 		secondPassphrase: account.secondPassphrase,
 	});
-	const dapp = randomUtil.application();
-	const dappTransaction = createDapp({
-		passphrase: account.passphrase,
-		options: dapp,
+	const randomTransfer = transfer({
+		amount: (1000 * NORMALIZER).toString(),
+		passphrase: accountFixtures.genesis.passphrase,
+		recipientId: '123L',
 	});
-	dapp.id = dappTransaction.id;
 
 	localCommon.beforeBlock('1_X_second_sign_validated', lib => {
 		library = lib;
@@ -57,7 +55,7 @@ describe('integration test (type 1) - checking validated second signature regist
 			async () => {
 				localCommon.addTransactionsAndForge(
 					library,
-					[dappTransaction],
+					[randomTransfer],
 					async () => {
 						done();
 					}
@@ -118,6 +116,7 @@ describe('integration test (type 1) - checking validated second signature regist
 			Object.keys(TRANSACTION_TYPES).forEach((key, index) => {
 				if (
 					key !== 'SIGNATURE' &&
+					key !== 'DAPP' &&
 					key !== 'IN_TRANSFER' &&
 					key !== 'OUT_TRANSFER'
 				) {
@@ -125,7 +124,7 @@ describe('integration test (type 1) - checking validated second signature regist
 						localCommon.loadTransactionType(
 							key,
 							account,
-							dapp,
+							randomTransfer,
 							true,
 							loadedTransaction => {
 								localCommon.addTransaction(library, loadedTransaction, err => {
@@ -156,7 +155,7 @@ describe('integration test (type 1) - checking validated second signature regist
 						localCommon.loadTransactionType(
 							key,
 							account,
-							dapp,
+							randomTransfer,
 							false,
 							loadedTransaction => {
 								localCommon.addTransaction(
@@ -176,7 +175,7 @@ describe('integration test (type 1) - checking validated second signature regist
 						localCommon.loadTransactionType(
 							key,
 							account,
-							dapp,
+							randomTransfer,
 							null,
 							loadedTransaction => {
 								localCommon.addTransaction(

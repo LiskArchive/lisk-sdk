@@ -14,8 +14,7 @@
 
 'use strict';
 
-const { createDapp } = require('@liskhq/lisk-transactions');
-const randomUtil = require('../../../common/utils/random');
+const { transfer } = require('@liskhq/lisk-transactions');
 const Scenarios = require('../../../common/scenarios');
 const localCommon = require('../../common');
 
@@ -28,12 +27,11 @@ describe('integration test (type 4) - sending transactions on top of unconfirmed
 		regular: new Scenarios.Multisig(),
 	};
 
-	scenarios.regular.dapp = randomUtil.application();
-	const dappTransaction = createDapp({
+	const randomTransfer = transfer({
+		amount: '1',
 		passphrase: scenarios.regular.account.passphrase,
-		options: scenarios.regular.dapp,
+		recipientId: '123L',
 	});
-	scenarios.regular.dapp.id = dappTransaction.id;
 
 	localCommon.beforeBlock('4_X_multisig_unconfirmed', lib => {
 		library = lib;
@@ -46,7 +44,7 @@ describe('integration test (type 4) - sending transactions on top of unconfirmed
 			async () => {
 				localCommon.addTransactionsAndForge(
 					library,
-					[dappTransaction],
+					[randomTransfer],
 					async () => {
 						done();
 					}
@@ -68,7 +66,7 @@ describe('integration test (type 4) - sending transactions on top of unconfirmed
 
 	describe('adding to pool other transactions from same account', () => {
 		Object.keys(TRANSACTION_TYPES).forEach((key, index) => {
-			if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
+			if (key === 'DAPP' || key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
 				return true;
 			}
 			if (key !== 'MULTI') {
@@ -76,7 +74,7 @@ describe('integration test (type 4) - sending transactions on top of unconfirmed
 					localCommon.loadTransactionType(
 						key,
 						scenarios.regular.account,
-						scenarios.regular.dapp,
+						randomTransfer,
 						true,
 						transaction => {
 							localCommon.addTransaction(library, transaction, (err, res) => {

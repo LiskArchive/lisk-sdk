@@ -32,8 +32,6 @@ describe('loader', () => {
 
 			it('should assign genesisBlock');
 
-			it('should assign balancesSequence');
-
 			describe('logic', () => {
 				it('should assign logic.transaction');
 

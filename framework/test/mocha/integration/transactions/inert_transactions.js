@@ -9,8 +9,6 @@ const localCommon = require('../common');
 const accountFixtures = require('../../fixtures/accounts');
 const randomUtil = require('../../common/utils/random');
 
-const exceptions = global.exceptions;
-
 describe('inert transactions', () => {
 	let library;
 	const senderAccount = accountFixtures.genesis;
@@ -31,14 +29,16 @@ describe('inert transactions', () => {
 		username: recipientAccount.username,
 	});
 
-	exceptions.inertTransactions = [
-		transferInertTransaction.id,
-		voteInertTransaction.id,
-		delegateInertTransaction.id,
-	];
-
 	localCommon.beforeBlock('inert_transactions', lib => {
 		library = lib;
+		library.modules.blocks.blocksChain.exceptions = {
+			...library.modules.blocks.exceptions,
+			inertTransactions: [
+				transferInertTransaction.id,
+				voteInertTransaction.id,
+				delegateInertTransaction.id,
+			],
+		};
 	});
 
 	describe('send funds to account', () => {
@@ -58,22 +58,14 @@ describe('inert transactions', () => {
 			before('get sender and recipient accounts', done => {
 				async.parallel(
 					[
-						parallelCb => {
-							library.logic.account.get(
-								{ address: senderAccount.address },
-								(err, res) => {
-									beforeBlockSenderMemAccount = res;
-									parallelCb();
-								}
+						async () => {
+							beforeBlockSenderMemAccount = await library.components.storage.entities.Account.getOne(
+								{ address: senderAccount.address }
 							);
 						},
-						parallelCb => {
-							library.logic.account.get(
-								{ address: recipientAccount.address },
-								(err, res) => {
-									beforeBlockRecipientMemAccount = res;
-									parallelCb();
-								}
+						async () => {
+							beforeBlockRecipientMemAccount = await library.components.storage.entities.Account.getOne(
+								{ address: recipientAccount.address }
 							);
 						},
 					],
@@ -99,22 +91,14 @@ describe('inert transactions', () => {
 					before('get sender and recipient accounts', done => {
 						async.parallel(
 							[
-								parallelCb => {
-									library.logic.account.get(
-										{ address: senderAccount.address },
-										(err, res) => {
-											afterBlockSenderMemAccount = res;
-											parallelCb();
-										}
+								async () => {
+									afterBlockSenderMemAccount = await library.components.storage.entities.Account.getOne(
+										{ address: senderAccount.address }
 									);
 								},
-								parallelCb => {
-									library.logic.account.get(
-										{ address: recipientAccount.address },
-										(err, res) => {
-											afterBlockRecipientMemAccount = res;
-											parallelCb();
-										}
+								async () => {
+									afterBlockRecipientMemAccount = await library.components.storage.entities.Account.getOne(
+										{ address: recipientAccount.address }
 									);
 								},
 							],
@@ -172,22 +156,14 @@ describe('inert transactions', () => {
 						before('get sender and recipient accounts', done => {
 							async.parallel(
 								[
-									parallelCb => {
-										library.logic.account.get(
-											{ address: senderAccount.address },
-											(err, res) => {
-												afterDeleteSenderMemAccount = res;
-												parallelCb();
-											}
+									async () => {
+										afterDeleteSenderMemAccount = await library.components.storage.entities.Account.getOne(
+											{ address: senderAccount.address }
 										);
 									},
-									parallelCb => {
-										library.logic.account.get(
-											{ address: recipientAccount.address },
-											(err, res) => {
-												afterDeleteRecipientMemAccount = res;
-												parallelCb();
-											}
+									async () => {
+										afterDeleteRecipientMemAccount = await library.components.storage.entities.Account.getOne(
+											{ address: recipientAccount.address }
 										);
 									},
 								],
@@ -247,13 +223,9 @@ describe('inert transactions', () => {
 				describe('details of the accounts', () => {
 					let afterBlockRecipientMemAccount;
 
-					before('get recipient account', done => {
-						library.logic.account.get(
-							{ address: recipientAccount.address },
-							(err, res) => {
-								afterBlockRecipientMemAccount = res;
-								done();
-							}
+					before('get recipient account', async () => {
+						afterBlockRecipientMemAccount = await library.components.storage.entities.Account.getOne(
+							{ address: recipientAccount.address }
 						);
 					});
 
@@ -313,13 +285,9 @@ describe('inert transactions', () => {
 					});
 
 					describe('details of the accounts', () => {
-						before('get recipient account', done => {
-							library.logic.account.get(
-								{ address: recipientAccount.address },
-								(err, res) => {
-									afterDeleteRecipientMemAccount = res;
-									done();
-								}
+						before('get recipient account', async () => {
+							afterDeleteRecipientMemAccount = await library.components.storage.entities.Account.getOne(
+								{ address: recipientAccount.address }
 							);
 						});
 
@@ -386,13 +354,9 @@ describe('inert transactions', () => {
 				describe('details of the accounts', () => {
 					let afterBlockRecipientMemAccount;
 
-					before('get recipient account', done => {
-						library.logic.account.get(
-							{ address: recipientAccount.address },
-							(err, res) => {
-								afterBlockRecipientMemAccount = res;
-								done();
-							}
+					before('get recipient account', async () => {
+						afterBlockRecipientMemAccount = await library.components.storage.entities.Account.getOne(
+							{ address: recipientAccount.address }
 						);
 					});
 
@@ -442,13 +406,9 @@ describe('inert transactions', () => {
 					describe('details of the accounts', () => {
 						let afterDeleteRecipientMemAccount;
 
-						before('get recipient account', done => {
-							library.logic.account.get(
-								{ address: recipientAccount.address },
-								(err, res) => {
-									afterDeleteRecipientMemAccount = res;
-									done();
-								}
+						before('get recipient account', async () => {
+							afterDeleteRecipientMemAccount = await library.components.storage.entities.Account.getOne(
+								{ address: recipientAccount.address }
 							);
 						});
 

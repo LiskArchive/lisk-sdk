@@ -15,11 +15,9 @@
 'use strict';
 
 const Promise = require('bluebird');
-const blockVersion = require('../../../src/modules/chain/logic/block_version');
+const blockVersion = require('../../../src/modules/chain/blocks/block_version');
 const QueriesHelper = require('../common/integration/sql/queries_helper');
 const localCommon = require('./common');
-
-const exceptions = global.exceptions;
 
 describe('block_version', () => {
 	let library;
@@ -39,6 +37,23 @@ describe('block_version', () => {
 		before(() => {
 			// Set current block version to 0
 			blockVersion.currentBlockVersion = 0;
+			library.modules.blocks.blocksVerify.exceptions = {
+				...library.modules.blocks.exceptions,
+				blockVersions: {
+					0: {
+						start: 1,
+						end: 101,
+					},
+					1: {
+						start: 102,
+						end: 202,
+					},
+					2: {
+						start: 203,
+						end: 303,
+					},
+				},
+			};
 
 			// Forge 1 round of blocks to reach height 101 (genesis block is already there)
 			return Promise.mapSeries([...Array(100)], async () => {
@@ -47,7 +62,7 @@ describe('block_version', () => {
 		});
 
 		it('blockchain should be at height 101', async () => {
-			const lastBlock = library.modules.blocks.lastBlock.get();
+			const lastBlock = library.modules.blocks.lastBlock;
 			return expect(lastBlock.height).to.eql(101);
 		});
 
@@ -75,7 +90,7 @@ describe('block_version', () => {
 		});
 
 		it('blockchain should be at height 202', async () => {
-			const lastBlock = library.modules.blocks.lastBlock.get();
+			const lastBlock = library.modules.blocks.lastBlock;
 			return expect(lastBlock.height).to.eql(202);
 		});
 
@@ -103,7 +118,7 @@ describe('block_version', () => {
 		});
 
 		it('blockchain should be at height 303', async () => {
-			const lastBlock = library.modules.blocks.lastBlock.get();
+			const lastBlock = library.modules.blocks.lastBlock;
 			return expect(lastBlock.height).to.eql(303);
 		});
 
@@ -120,48 +135,44 @@ describe('block_version', () => {
 	});
 
 	describe('when there are no exceptions for blocks versions', () => {
-		it('rebuilding should fail', done => {
-			const __private = library.rewiredModules.loader.__get__('__private');
-
-			library.rewiredModules.loader.__set__(
-				'library.config.loading.rebuildUpToRound',
-				3
-			);
-
-			__private.rebuildFinished = function(err) {
-				expect(err).to.equal('Invalid block version');
-				done();
+		it('rebuilding should fail', async () => {
+			library.modules.blocks.blocksVerify.exceptions = {
+				...library.modules.blocks.exceptions,
+				blockVersions: {},
 			};
-
-			__private.loadBlockChain();
+			try {
+				await library.modules.blocks.loadBlockChain(3);
+			} catch (errors) {
+				expect(errors[0].message).to.equal('Invalid block version');
+			}
 		});
 	});
 
 	describe('when there are proper exceptions for blocks versions', () => {
-		it('rebuilding should succeed', done => {
+		it('rebuilding should succeed', async () => {
 			// Set current block version to 3
 			blockVersion.currentBlockVersion = 3;
 
 			// Set proper exceptions for blocks versions
-			exceptions.blockVersions = {
-				0: { start: 1, end: 101 },
-				1: { start: 102, end: 202 },
-				2: { start: 203, end: 303 },
+			library.modules.blocks.blocksVerify.exceptions = {
+				...library.modules.blocks.exceptions,
+				blockVersions: {
+					0: {
+						start: 1,
+						end: 101,
+					},
+					1: {
+						start: 102,
+						end: 202,
+					},
+					2: {
+						start: 203,
+						end: 303,
+					},
+				},
 			};
 
-			const __private = library.rewiredModules.loader.__get__('__private');
-
-			library.rewiredModules.loader.__set__(
-				'library.config.loading.rebuildUpToRound',
-				3
-			);
-
-			__private.rebuildFinished = function(err) {
-				expect(err).to.not.exist;
-				done();
-			};
-
-			__private.loadBlockChain();
+			await library.modules.blocks.loadBlockChain(3);
 		});
 	});
 });

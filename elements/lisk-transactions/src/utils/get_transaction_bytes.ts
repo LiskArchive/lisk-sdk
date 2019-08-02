@@ -232,10 +232,7 @@ export const getTransactionBytes = (transaction: TransactionJSON): Buffer => {
 	const transactionSenderPublicKey = cryptography.hexToBuffer(senderPublicKey);
 
 	const transactionRecipientID = recipientId
-		? cryptography.bigNumberToBuffer(
-				recipientId.slice(0, -1),
-				BYTESIZES.RECIPIENT_ID,
-		  )
+		? cryptography.intToBuffer(recipientId.slice(0, -1), BYTESIZES.RECIPIENT_ID)
 		: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
 
 	const amountBigNum = new BigNum(amount);

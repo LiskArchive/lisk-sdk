@@ -38,7 +38,7 @@ describe('delegate', () => {
 				storage.adapter.db.none('DELETE FROM forks_stat;'),
 			]);
 		}).then(async () => {
-			library.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
+			library.modules.blocks._lastBlock = __testContext.config.genesisBlock;
 			done();
 		});
 	});
@@ -53,13 +53,7 @@ describe('delegate', () => {
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: delegateAccount.address,
 			});
-			localCommon.addTransactionsAndForge(
-				library,
-				[sendTransaction],
-				async () => {
-					library.logic.account.get({ address: delegateAccount.address }, done);
-				}
-			);
+			localCommon.addTransactionsAndForge(library, [sendTransaction], done);
 		});
 
 		describe('with delegate transaction in unconfirmed state', () => {
@@ -89,25 +83,23 @@ describe('delegate', () => {
 						[delegateTransaction],
 						(err, block) => {
 							expect(err).to.not.exist;
-							library.modules.blocks.process.onReceiveBlock(block);
+							library.modules.blocks.receiveBlockFromNetwork(block);
 							done();
 						}
 					);
 				});
 
 				describe('confirmed state', () => {
-					it('should update confirmed columns related to delegate', done => {
-						library.sequence.add(async seqCb => {
-							localCommon
-								.getAccountFromDb(library, delegateAccount.address)
-								.then(account => {
-									expect(account).to.exist;
-									expect(account.mem_accounts.username).to.equal(username);
-									expect(account.mem_accounts.isDelegate).to.equal(1);
-									seqCb();
-									done();
-								});
+					it('should update confirmed columns related to delegate', async () => {
+						const account = await library.sequence.add(async () => {
+							return localCommon.getAccountFromDb(
+								library,
+								delegateAccount.address
+							);
 						});
+						expect(account).to.exist;
+						expect(account.mem_accounts.username).to.equal(username);
+						expect(account.mem_accounts.isDelegate).to.equal(1);
 					});
 				});
 			});
@@ -127,25 +119,23 @@ describe('delegate', () => {
 						[delegateTransaction2],
 						(err, block) => {
 							expect(err).to.not.exist;
-							library.modules.blocks.process.onReceiveBlock(block);
+							library.modules.blocks.receiveBlockFromNetwork(block);
 							done();
 						}
 					);
 				});
 
 				describe('confirmed state', () => {
-					it('should update confirmed columns related to delegate', done => {
-						library.sequence.add(seqCb => {
-							localCommon
-								.getAccountFromDb(library, delegateAccount.address)
-								.then(account => {
-									expect(account).to.exist;
-									expect(account.mem_accounts.username).to.equal(username2);
-									expect(account.mem_accounts.isDelegate).to.equal(1);
-									seqCb();
-									done();
-								});
+					it('should update confirmed columns related to delegate', async () => {
+						const account = await library.sequence.add(async () => {
+							return localCommon.getAccountFromDb(
+								library,
+								delegateAccount.address
+							);
 						});
+						expect(account).to.exist;
+						expect(account.mem_accounts.username).to.equal(username2);
+						expect(account.mem_accounts.isDelegate).to.equal(1);
 					});
 				});
 			});

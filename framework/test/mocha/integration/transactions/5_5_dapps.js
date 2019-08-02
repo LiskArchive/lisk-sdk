@@ -22,7 +22,8 @@ const localCommon = require('../common');
 
 const { NORMALIZER } = global.__testContext.config;
 
-describe('integration test (type 5) - dapp registrations with repeated values', () => {
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('integration test (type 5) - dapp registrations with repeated values', () => {
 	let library;
 
 	const account = randomUtil.account();

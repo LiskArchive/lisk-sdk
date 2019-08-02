@@ -306,15 +306,15 @@ describe('Base transaction class', () => {
 			);
 		});
 
-		it('should call cryptography bigNumberToBuffer for non-empty recipientId', async () => {
-			const cryptographyBigNumberToBufferStub = sandbox
-				.stub(cryptography, 'bigNumberToBuffer')
+		it('should call cryptography intToBuffer for non-empty recipientId', async () => {
+			const cryptographyintToBufferStub = sandbox
+				.stub(cryptography, 'intToBuffer')
 				.returns(
 					Buffer.from(defaultTransaction.recipientId.slice(0, -1), 'hex'),
 				);
 			(validTestTransaction as any).getBasicBytes();
 
-			expect(cryptographyBigNumberToBufferStub).to.be.calledWithExactly(
+			expect(cryptographyintToBufferStub).to.be.calledWithExactly(
 				defaultTransaction.recipientId.slice(0, -1),
 				BYTESIZES.RECIPIENT_ID,
 			);

@@ -15,7 +15,7 @@
 'use strict';
 
 const {
-	createDapp,
+	transfer,
 	registerMultisignature,
 	utils: transactionUtils,
 } = require('@liskhq/lisk-transactions');
@@ -33,9 +33,10 @@ describe('integration test (type 4) - checking registered multisignature transac
 	};
 
 	scenarios.regular.dapp = randomUtil.application();
-	const dappTransaction = createDapp({
+	const dappTransaction = transfer({
 		passphrase: scenarios.regular.account.passphrase,
-		options: scenarios.regular.dapp,
+		amount: '1',
+		recipientId: '123L',
 	});
 	scenarios.regular.dapp.id = dappTransaction.id;
 
@@ -129,7 +130,7 @@ describe('integration test (type 4) - checking registered multisignature transac
 
 		describe('adding to pool other transaction types from the same account', () => {
 			Object.keys(TRANSACTION_TYPES).forEach((key, index) => {
-				if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
+				if (key === 'DAPP' || key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
 					return true;
 				}
 				if (key !== 'MULTI') {

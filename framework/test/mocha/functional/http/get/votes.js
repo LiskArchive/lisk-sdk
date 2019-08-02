@@ -21,7 +21,7 @@ const {
 	registerDelegate,
 	castVotes,
 } = require('@liskhq/lisk-transactions');
-const Bignum = require('bignumber.js');
+const BigNum = require('@liskhq/bignum');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
@@ -432,7 +432,7 @@ describe('GET /api/votes', () => {
 			it('should increase votes and votesUsed after posting a vote', done => {
 				const account = randomUtil.account();
 				const creditTransaction = transfer({
-					amount: new Bignum(FEES.DELEGATE).plus(FEES.VOTE).toString(),
+					amount: new BigNum(FEES.DELEGATE).plus(FEES.VOTE).toString(),
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: account.address,
 				});

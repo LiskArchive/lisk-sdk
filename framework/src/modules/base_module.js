@@ -31,6 +31,11 @@ module.exports = class BaseModule {
 		throw new ImplementationMissingError();
 	}
 
+	// Array of migrations to be executed before loading the module. Expected format: ['yyyyMMddHHmmss_name_of_migration.sql']
+	static get migrations() {
+		return [];
+	}
+
 	get defaults() {
 		// This interface is not required to be implemented
 		return {};

@@ -16,7 +16,6 @@
 'use strict';
 
 const path = require('path');
-const fs = require('fs-extra');
 const {
 	entities: { BaseEntity },
 	errors: {
@@ -26,9 +25,13 @@ const {
 	},
 } = require('../../../../../../../../src/components/storage');
 const {
-	Migration,
-} = require('../../../../../../../../src/modules/chain/components/storage/entities');
+	MigrationEntity,
+} = require('../../../../../../../../src/controller/migrations');
 const storageSandbox = require('../../../../../../common/storage_sandbox');
+
+const ChainModule = require('../../../../../../../../src/modules/chain');
+const NetworkModule = require('../../../../../../../../src/modules/network');
+const HttpAPIModule = require('../../../../../../../../src/modules/http_api');
 
 describe('Migration', () => {
 	let adapter;
@@ -66,6 +69,11 @@ describe('Migration', () => {
 			'name_ne',
 			'name_in',
 			'name_like',
+			'namespace',
+			'namespace_eql',
+			'namespace_ne',
+			'namespace_in',
+			'namespace_like',
 		];
 
 		invalidFilter = {
@@ -94,11 +102,12 @@ describe('Migration', () => {
 		validMigration = {
 			id: '30200723182900',
 			name: 'create_schema',
+			namespace: 'module_name',
 		};
 
 		adapter = storage.adapter;
 
-		addFieldSpy = sinonSandbox.spy(Migration.prototype, 'addField');
+		addFieldSpy = sinonSandbox.spy(MigrationEntity.prototype, 'addField');
 	});
 
 	afterEach(async () => {
@@ -106,23 +115,25 @@ describe('Migration', () => {
 	});
 
 	it('should be a constructable function', async () => {
-		expect(Migration.prototype.constructor).not.to.be.null;
-		expect(Migration.prototype.constructor.name).to.be.eql('Migration');
+		expect(MigrationEntity.prototype.constructor).not.to.be.null;
+		expect(MigrationEntity.prototype.constructor.name).to.be.eql(
+			'MigrationEntity'
+		);
 	});
 
 	it('should extend BaseEntity', async () => {
-		expect(Migration.prototype instanceof BaseEntity).to.be.true;
+		expect(MigrationEntity.prototype instanceof BaseEntity).to.be.true;
 	});
 
 	describe('constructor()', () => {
 		it('should accept only one mandatory parameter', async () => {
-			expect(Migration.prototype.constructor.length).to.be.eql(1);
+			expect(MigrationEntity.prototype.constructor.length).to.be.eql(1);
 		});
 
 		it('should have called super', async () => {
 			// The reasoning here is that if the parent's contstructor was called
 			// the properties from the parent are present in the extending object
-			const migration = new Migration(adapter);
+			const migration = new MigrationEntity(adapter);
 			expect(typeof migration.parseFilters).to.be.eql('function');
 			expect(typeof migration.addFilter).to.be.eql('function');
 			expect(typeof migration.addField).to.be.eql('function');
@@ -135,19 +146,19 @@ describe('Migration', () => {
 		});
 
 		it('should assign proper sql', async () => {
-			const migration = new Migration(adapter);
+			const migration = new MigrationEntity(adapter);
 			expect(migration.SQLs).to.include.all.keys(validMigrationSQLs);
 		});
 
 		it('should call addField the exact number of times', async () => {
-			const migration = new Migration(adapter);
+			const migration = new MigrationEntity(adapter);
 			expect(addFieldSpy.callCount).to.eql(
 				Object.keys(migration.fields).length
 			);
 		});
 
 		it('should setup correct fields', async () => {
-			const migration = new Migration(adapter);
+			const migration = new MigrationEntity(adapter);
 			expect(migration.fields).to.include.all.keys(validMigrationFields);
 		});
 
@@ -156,7 +167,7 @@ describe('Migration', () => {
 
 	describe('getOne()', () => {
 		it('should call _getResults with the correct expectedResultCount', async () => {
-			const migration = new Migration(adapter);
+			const migration = new MigrationEntity(adapter);
 			const _getResultsStub = sinonSandbox
 				.stub(migration, '_getResults')
 				.returns(validMigration);
@@ -168,7 +179,7 @@ describe('Migration', () => {
 
 	describe('get()', () => {
 		it('should call _getResults with the correct expectedResultCount', async () => {
-			const migration = new Migration(adapter);
+			const migration = new MigrationEntity(adapter);
 			const _getResultsStub = sinonSandbox
 				.stub(migration, '_getResults')
 				.returns(validMigration);
@@ -180,28 +191,28 @@ describe('Migration', () => {
 
 	describe('_getResults()', () => {
 		it('should accept only valid filters', async () => {
-			const migration = new Migration(adapter);
+			const migration = new MigrationEntity(adapter);
 			expect(() => {
 				migration.getOne(validFilter);
 			}).not.to.throw(NonSupportedFilterTypeError);
 		});
 
 		it('should throw error for invalid filters', async () => {
-			const migration = new Migration(adapter);
+			const migration = new MigrationEntity(adapter);
 			expect(() => {
 				migration.getOne(invalidFilter);
 			}).to.throw(NonSupportedFilterTypeError);
 		});
 
 		it('should accept only valid options', async () => {
-			const migration = new Migration(adapter);
+			const migration = new MigrationEntity(adapter);
 			expect(() => {
 				migration.getOne(validFilter, validOptions);
 			}).not.to.throw(NonSupportedOptionError);
 		});
 
 		it('should throw error for invalid options', async () => {
-			const migration = new Migration(adapter);
+			const migration = new MigrationEntity(adapter);
 			expect(() => {
 				migration.getOne(validFilter, invalidOptions);
 			}).to.throw(NonSupportedOptionError);
@@ -209,7 +220,7 @@ describe('Migration', () => {
 
 		it('should accept "tx" as last parameter and pass to adapter.executeFile', async () => {
 			// Arrange
-			const migration = new Migration(adapter);
+			const migration = new MigrationEntity(adapter);
 			const getSpy = sinonSandbox.spy(migration, 'get');
 			// Act & Assert
 			await migration.begin('testTX', async tx => {
@@ -225,7 +236,7 @@ describe('Migration', () => {
 		describe('filters', () => {
 			// To make add/remove filters we add their tests.
 			it('should have only specific filters', async () => {
-				const migration = new Migration(adapter);
+				const migration = new MigrationEntity(adapter);
 				expect(migration.getFilters()).to.eql(validFilters);
 			});
 			// For each filter type
@@ -235,13 +246,17 @@ describe('Migration', () => {
 
 	describe('update()', () => {
 		it('should always throw NonSupportedOperationError', async () => {
-			expect(Migration.prototype.update).to.throw(NonSupportedOperationError);
+			expect(MigrationEntity.prototype.update).to.throw(
+				NonSupportedOperationError
+			);
 		});
 	});
 
 	describe('delete()', () => {
 		it('should always throw NonSupportedOperationError', async () => {
-			expect(Migration.prototype.delete).to.throw(NonSupportedOperationError);
+			expect(MigrationEntity.prototype.delete).to.throw(
+				NonSupportedOperationError
+			);
 		});
 	});
 
@@ -259,21 +274,21 @@ describe('Migration', () => {
 		});
 
 		it('should accept only valid filters', async () => {
-			const migration = new Migration(adapter);
+			const migration = new MigrationEntity(adapter);
 			expect(() => {
 				migration.isPersisted(validFilter);
 			}).not.to.throw(NonSupportedFilterTypeError);
 		});
 
 		it('should throw error for invalid filters', async () => {
-			const migration = new Migration(adapter);
+			const migration = new MigrationEntity(adapter);
 			expect(() => {
 				migration.isPersisted(invalidFilter);
 			}).to.throw(NonSupportedFilterTypeError);
 		});
 
 		it('should call mergeFilters with proper params', async () => {
-			const migration = new Migration(localAdapter);
+			const migration = new MigrationEntity(localAdapter);
 			migration.mergeFilters = sinonSandbox.stub();
 			migration.parseFilters = sinonSandbox.stub();
 			migration.isPersisted(validFilter);
@@ -281,7 +296,7 @@ describe('Migration', () => {
 		});
 
 		it('should call parseFilters with proper params', async () => {
-			const migration = new Migration(localAdapter);
+			const migration = new MigrationEntity(localAdapter);
 			migration.mergeFilters = sinonSandbox.stub().returns(validFilter);
 			migration.parseFilters = sinonSandbox.stub();
 			migration.isPersisted(validFilter);
@@ -289,7 +304,7 @@ describe('Migration', () => {
 		});
 
 		it('should call adapter.executeFile with proper params', async () => {
-			const migration = new Migration(localAdapter);
+			const migration = new MigrationEntity(localAdapter);
 			migration.mergeFilters = sinonSandbox.stub().returns(validFilter);
 			migration.parseFilters = sinonSandbox.stub();
 			migration.getUpdateSet = sinonSandbox.stub();
@@ -328,7 +343,7 @@ describe('Migration', () => {
 
 	describe('mergeFilters()', () => {
 		it('should accept filters as single object', async () => {
-			const migration = new Migration(adapter);
+			const migration = new MigrationEntity(adapter);
 			const mergeFiltersSpy = sinonSandbox.spy(migration, 'mergeFilters');
 			expect(() => {
 				migration.get(validFilter);
@@ -337,7 +352,7 @@ describe('Migration', () => {
 		});
 
 		it('should accept filters as array of objects', async () => {
-			const migration = new Migration(adapter);
+			const migration = new MigrationEntity(adapter);
 			const mergeFiltersSpy = sinonSandbox.spy(migration, 'mergeFilters');
 			expect(() => {
 				migration.get([validFilter, validFilter]);
@@ -351,112 +366,117 @@ describe('Migration', () => {
 	});
 
 	describe('Schema Updates methods', () => {
-		let files;
-		let fileIds;
+		let savedMigrations;
+
+		const modulesMigrations = {};
+		modulesMigrations[ChainModule.alias] = ChainModule.migrations;
+		modulesMigrations[NetworkModule.alias] = NetworkModule.migrations;
+		modulesMigrations[HttpAPIModule.alias] = HttpAPIModule.migrations;
 
 		before(async () => {
-			files = await fs.readdir(
-				path.join(
-					__dirname,
-					'../../../../../../../../src/modules/chain/components/storage/sql/migrations/updates'
-				)
+			savedMigrations = Object.keys(modulesMigrations).reduce(
+				(prev, namespace) => {
+					const curr = modulesMigrations[namespace].map(migrationFile => {
+						const migration = path
+							.basename(migrationFile)
+							.match(/(\d+)_(.+).sql/);
+						return (
+							migration && {
+								id: migration[1],
+								name: migration[2],
+								namespace,
+							}
+						);
+					});
+					return prev.concat(curr);
+				},
+				[]
 			);
-			fileIds = files.map(f => f.match(/(\d+)_(.+).sql/)[1]).sort();
 		});
 
 		afterEach(async () => {
 			sinonSandbox.restore();
 		});
 
-		describe('hasMigrations()', () => {
-			it('should resolve with true if migrations table exists', async () => {
-				expect(await storage.entities.Migration.hasMigrations()).to.be.true;
-			});
-
-			it('should resolve with false if migrations table does not exists', async () => {
-				// Create backup table and drop migrations table
-				await storage.entities.Migration.adapter.execute(
-					'CREATE TABLE temp_migrations AS TABLE migrations; DROP TABLE migrations;'
-				);
-
-				expect(await storage.entities.Migration.hasMigrations()).to.be.false;
-
-				// Restore the migrations table and drop the backup
-				await storage.entities.Migration.adapter.execute(
-					'CREATE TABLE migrations AS TABLE temp_migrations; DROP TABLE temp_migrations;'
-				);
-			});
-		});
-
-		describe('getLastId', () => {
-			it('should use the correct filters for get', async () => {
-				sinonSandbox.spy(storage.entities.Migration, 'get');
-				await storage.entities.Migration.getLastId();
-				expect(storage.entities.Migration.get.firstCall.args[0]).to.be.eql({});
-				expect(storage.entities.Migration.get.firstCall.args[1]).to.be.eql({
-					sort: 'id:DESC',
-					limit: 1,
-				});
-			});
-
-			it('should return id of the last migration file', async () => {
-				const result = await storage.entities.Migration.getLastId();
-				expect(result).to.be.eql(parseInt(fileIds[fileIds.length - 1]));
-			});
-		});
-
 		describe('readPending', () => {
 			it('should resolve with list of pending files if there exists any', async () => {
-				const pending = (await storage.entities.Migration.readPending(
-					fileIds[0]
-				)).map(f => f.id);
-				fileIds.splice(0, 1);
-				expect(pending).to.be.eql(fileIds);
+				const pendingMigrationsMock = savedMigrations.slice(0, 2);
+				const savedMigrationsMock = savedMigrations.slice(2);
+				const pendingMigrations = await storage.entities.Migration.readPending(
+					modulesMigrations,
+					savedMigrationsMock
+				);
+				expect(
+					pendingMigrations.map(m => ({
+						id: m.id,
+						name: m.name,
+						namespace: m.namespace,
+					}))
+				).to.be.eql(pendingMigrationsMock);
 			});
 
 			it('should resolve with empty array if there is no pending migration', async () => {
 				const pending = await storage.entities.Migration.readPending(
-					fileIds[fileIds.length - 1]
+					modulesMigrations,
+					savedMigrations
 				);
 
 				return expect(pending).to.be.empty;
 			});
 
 			it('should resolve with the list in correct format', async () => {
-				const pending = await storage.entities.Migration.readPending(
-					fileIds[0]
+				const savedMigrationsMock = savedMigrations.slice(2);
+				const pendingMigrations = await storage.entities.Migration.readPending(
+					modulesMigrations,
+					savedMigrationsMock
 				);
 
-				expect(pending).to.be.an('array');
-				expect(pending[0]).to.have.all.keys('id', 'name', 'path', 'file');
-				expect(pending[0].file).to.be.instanceOf(
+				expect(pendingMigrations).to.be.an('array');
+				expect(pendingMigrations[0]).to.have.all.keys(
+					'id',
+					'name',
+					'namespace',
+					'path',
+					'file'
+				);
+				expect(pendingMigrations[0].file).to.be.instanceOf(
 					storage.entities.Migration.adapter.pgp.QueryFile
 				);
 			});
 		});
 
+		describe('defineSchema()', () => {
+			it('should call adapter.executeFile with proper params', async () => {
+				sinonSandbox.spy(adapter, 'executeFile');
+				const migration = new MigrationEntity(adapter);
+				await migration.defineSchema();
+
+				expect(adapter.executeFile.firstCall.args[0]).to.be.eql(
+					migration.SQLs.defineSchema
+				);
+			});
+		});
+
 		describe('applyAll()', () => {
-			let updates;
+			let pendingMigrations;
 
 			beforeEach(async () => {
-				updates = await storage.entities.Migration.readPending(fileIds[0]);
+				const savedMigrationsMock = savedMigrations.slice(2);
+				pendingMigrations = await storage.entities.Migration.readPending(
+					modulesMigrations,
+					savedMigrationsMock
+				);
 			});
 
-			it('should call hasMigrations()', async () => {
-				sinonSandbox.spy(storage.entities.Migration, 'hasMigrations');
-				await storage.entities.Migration.applyAll();
-				expect(storage.entities.Migration.hasMigrations).to.be.calledOnce;
-			});
-
-			it('should call getLastId()', async () => {
-				sinonSandbox.spy(storage.entities.Migration, 'getLastId');
-				await storage.entities.Migration.applyAll();
-				expect(storage.entities.Migration.getLastId).to.be.calledOnce;
+			it('should call this.get()', async () => {
+				sinonSandbox.spy(storage.entities.Migration, 'get');
+				await storage.entities.Migration.applyAll(modulesMigrations);
+				expect(storage.entities.Migration.get).to.be.calledOnce;
 			});
 
 			it('should call readPending()', async () => {
 				sinonSandbox.spy(storage.entities.Migration, 'readPending');
-				await storage.entities.Migration.applyAll();
+				await storage.entities.Migration.applyAll(modulesMigrations);
 				expect(storage.entities.Migration.readPending).to.be.calledOnce;
 			});
 
@@ -464,15 +484,15 @@ describe('Migration', () => {
 				sinonSandbox.spy(storage.entities.Migration, 'begin');
 				sinonSandbox
 					.stub(storage.entities.Migration, 'readPending')
-					.resolves(updates);
+					.resolves(pendingMigrations);
 				sinonSandbox
 					.stub(storage.entities.Migration, 'applyPendingMigration')
 					.resolves(null);
 
-				await storage.entities.Migration.applyAll();
+				await storage.entities.Migration.applyAll(modulesMigrations);
 
 				expect(storage.entities.Migration.begin.callCount).to.be.eql(
-					updates.length
+					pendingMigrations.length
 				);
 				expect(
 					storage.entities.Migration.begin
@@ -483,7 +503,7 @@ describe('Migration', () => {
 				const applyPendingMigrationCalls = storage.entities.Migration.applyPendingMigration.getCalls();
 
 				applyPendingMigrationCalls.forEach((aCall, idx) => {
-					expect(aCall.args[0]).to.be.eql(updates[idx]);
+					expect(aCall.args[0]).to.be.eql(pendingMigrations[idx]);
 					expect(aCall.args[1].constructor.name).to.be.eql('Task');
 				});
 			});

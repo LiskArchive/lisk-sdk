@@ -26,7 +26,7 @@ const randomUtil = require('../../../common/utils/random');
 const waitFor = require('../../../common/utils/wait_for');
 const apiHelpers = require('../../../common/helpers/api');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
-const slots = require('../../../../../src/modules/chain/helpers/slots');
+const { BlockSlots } = require('../../../../../src/modules/chain/blocks');
 const Scenarios = require('../../../common/scenarios');
 
 const { TRANSACTION_TYPES, FEES } = global.constants;
@@ -35,6 +35,11 @@ const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('GET /api/transactions', () => {
+	const slots = new BlockSlots({
+		epochTime: __testContext.config.constants.EPOCH_TIME,
+		interval: __testContext.config.constants.BLOCK_TIME,
+		blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
+	});
 	const signatureEndpoint = new SwaggerEndpoint('POST /signatures');
 	const transactionsEndpoint = new SwaggerEndpoint('GET /transactions');
 	const transactionList = [];
