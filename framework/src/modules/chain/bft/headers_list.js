@@ -58,7 +58,7 @@ class HeadersList {
 	}
 
 	add(blockHeader) {
-		const { first, last } = this.first;
+		const { first, last } = this;
 
 		if (this.items.length) {
 			assert(
