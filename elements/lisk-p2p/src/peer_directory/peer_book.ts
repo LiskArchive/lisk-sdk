@@ -57,7 +57,7 @@ export class PeerBook {
 		return [...this.newPeers, ...this.triedPeers];
 	}
 
-	// If the peer is completed deleted then return true
+	// If the peer is completely deleted from both the peer lists then return true
 	public downgradePeer(peerInfo: P2PPeerInfo): boolean {
 		if (this._newPeers.findPeer(peerInfo)) {
 			if (this._newPeers.failedConnectionAction(peerInfo)) {

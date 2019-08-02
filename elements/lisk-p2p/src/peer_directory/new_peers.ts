@@ -81,13 +81,16 @@ export class NewPeers {
 		);
 	}
 
-	public findPeer(peerInfo: P2PPeerInfo): boolean {
-		const bucketId = getBucket({
+	public getBucketId(ipAddress: string): number {
+		return getBucket({
 			secret: this._secret,
 			peerType: PEER_TYPE.NEW_PEER,
-			targetAddress: peerInfo.ipAddress,
+			targetAddress: ipAddress,
 		});
+	}
 
+	public findPeer(peerInfo: P2PPeerInfo): boolean {
+		const bucketId = this.getBucketId(peerInfo.ipAddress);
 		const bucket = this._newPeerMap.get(bucketId);
 		if (bucket && bucket.get(constructPeerIdFromPeerInfo(peerInfo))) {
 			return true;
@@ -97,12 +100,7 @@ export class NewPeers {
 	}
 
 	public updatePeer(peerInfo: P2PPeerInfo): boolean {
-		const bucketId = getBucket({
-			secret: this._secret,
-			peerType: PEER_TYPE.NEW_PEER,
-			targetAddress: peerInfo.ipAddress,
-		});
-
+		const bucketId = this.getBucketId(peerInfo.ipAddress);
 		const bucket = this._newPeerMap.get(bucketId);
 		if (bucket) {
 			const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
@@ -124,12 +122,7 @@ export class NewPeers {
 	}
 
 	public removePeer(peerInfo: P2PPeerInfo): boolean {
-		const bucketId = getBucket({
-			secret: this._secret,
-			peerType: PEER_TYPE.NEW_PEER,
-			targetAddress: peerInfo.ipAddress,
-		});
-
+		const bucketId = this.getBucketId(peerInfo.ipAddress);
 		const bucket = this._newPeerMap.get(bucketId);
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
 		if (bucket && bucket.get(incomingPeerId)) {
@@ -143,12 +136,7 @@ export class NewPeers {
 	}
 
 	public getPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
-		const bucketId = getBucket({
-			secret: this._secret,
-			peerType: PEER_TYPE.NEW_PEER,
-			targetAddress: peerInfo.ipAddress,
-		});
-
+		const bucketId = this.getBucketId(peerInfo.ipAddress);
 		const bucket = this._newPeerMap.get(bucketId);
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
 		if (bucket) {
@@ -161,11 +149,7 @@ export class NewPeers {
 	}
 
 	public addPeer(peerInfo: P2PPeerInfo): AddPeerOutcome {
-		const bucketId = getBucket({
-			secret: this._secret,
-			peerType: PEER_TYPE.NEW_PEER,
-			targetAddress: peerInfo.ipAddress,
-		});
+		const bucketId = this.getBucketId(peerInfo.ipAddress);
 		const bucket = this._newPeerMap.get(bucketId);
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
 

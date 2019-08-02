@@ -90,13 +90,16 @@ export class TriedPeers {
 		);
 	}
 
-	public findPeer(peerInfo: P2PPeerInfo): boolean {
-		const bucketId = getBucket({
+	public getBucketId(ipAddress: string): number {
+		return getBucket({
 			secret: this._secret,
 			peerType: PEER_TYPE.TRIED_PEER,
-			targetAddress: peerInfo.ipAddress,
+			targetAddress: ipAddress,
 		});
+	}
 
+	public findPeer(peerInfo: P2PPeerInfo): boolean {
+		const bucketId = this.getBucketId(peerInfo.ipAddress);
 		const bucket = this._triedPeerMap.get(bucketId);
 		if (bucket && bucket.get(constructPeerIdFromPeerInfo(peerInfo))) {
 			return true;
@@ -106,12 +109,7 @@ export class TriedPeers {
 	}
 
 	public updatePeer(peerInfo: P2PDiscoveredPeerInfo): boolean {
-		const bucketId = getBucket({
-			secret: this._secret,
-			peerType: PEER_TYPE.TRIED_PEER,
-			targetAddress: peerInfo.ipAddress,
-		});
-
+		const bucketId = this.getBucketId(peerInfo.ipAddress);
 		const bucket = this._triedPeerMap.get(bucketId);
 		if (bucket) {
 			const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
@@ -134,12 +132,7 @@ export class TriedPeers {
 	}
 
 	public removePeer(peerInfo: P2PPeerInfo): boolean {
-		const bucketId = getBucket({
-			secret: this._secret,
-			peerType: PEER_TYPE.TRIED_PEER,
-			targetAddress: peerInfo.ipAddress,
-		});
-
+		const bucketId = this.getBucketId(peerInfo.ipAddress);
 		const bucket = this._triedPeerMap.get(bucketId);
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
 		if (bucket && bucket.get(incomingPeerId)) {
@@ -153,12 +146,7 @@ export class TriedPeers {
 	}
 
 	public getPeer(peerInfo: P2PPeerInfo): P2PDiscoveredPeerInfo | undefined {
-		const bucketId = getBucket({
-			secret: this._secret,
-			peerType: PEER_TYPE.TRIED_PEER,
-			targetAddress: peerInfo.ipAddress,
-		});
-
+		const bucketId = this.getBucketId(peerInfo.ipAddress);
 		const bucket = this._triedPeerMap.get(bucketId);
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
 		if (bucket) {
@@ -171,11 +159,7 @@ export class TriedPeers {
 	}
 
 	public addPeer(peerInfo: P2PDiscoveredPeerInfo): AddPeerOutcome {
-		const bucketId = getBucket({
-			secret: this._secret,
-			peerType: PEER_TYPE.TRIED_PEER,
-			targetAddress: peerInfo.ipAddress,
-		});
+		const bucketId = this.getBucketId(peerInfo.ipAddress);
 		const bucket = this._triedPeerMap.get(bucketId);
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
 
@@ -222,12 +206,7 @@ export class TriedPeers {
 
 	// Should return true if the peer is evicted due to failed connection
 	public failedConnectionAction(incomingPeerInfo: P2PPeerInfo): boolean {
-		const bucketId = getBucket({
-			secret: this._secret,
-			peerType: PEER_TYPE.TRIED_PEER,
-			targetAddress: incomingPeerInfo.ipAddress,
-		});
-
+		const bucketId = this.getBucketId(incomingPeerInfo.ipAddress);
 		const bucket = this._triedPeerMap.get(bucketId);
 		const incomingPeerId = constructPeerIdFromPeerInfo(incomingPeerInfo);
 
