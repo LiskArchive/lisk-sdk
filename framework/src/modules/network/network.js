@@ -291,8 +291,10 @@ module.exports = class Network {
 				return getCountByFilter(peerList, action.params);
 			},
 			getConnectedPeersCountByFilter: action => {
-				const { connectedPeers } = this.p2p.getNetworkStatus();
-				const peerList = getConsolidatedPeersList({ connectedPeers });
+				const { connectedUniquePeers } = this.p2p.getNetworkStatus();
+				const peerList = getConsolidatedPeersList({
+					connectedPeers: connectedUniquePeers,
+				});
 
 				return getCountByFilter(peerList, action.params);
 			},

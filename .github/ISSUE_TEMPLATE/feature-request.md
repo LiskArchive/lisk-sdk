@@ -1,6 +1,10 @@
 ---
-title: Feature request
+name: Feature request
 about: Propose an idea for new improvements/features
+title: ''
+labels: ''
+assignees: ''
+
 ---
 
 ### Description

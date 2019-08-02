@@ -1,7 +1,10 @@
 ---
+name: 
+about: Create a report to help us improve
 title: Bug report
 labels: bug
-about: Create a report to help us improve
+assignees: 
+
 ---
 
 ### Expected behavior
