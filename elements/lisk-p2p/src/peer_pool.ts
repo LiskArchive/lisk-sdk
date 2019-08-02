@@ -355,11 +355,17 @@ export class PeerPool extends EventEmitter {
 	}
 
 	public triggerNewConnections(
-		knownPeers: ReadonlyArray<P2PPeerInfo>,
+		newPeers: ReadonlyArray<P2PPeerInfo>,
+		triedPeers: ReadonlyArray<P2PPeerInfo>,
 		fixedPeers: ReadonlyArray<P2PPeerInfo>,
 	): void {
 		// Try to connect to disconnected peers without including the fixed ones which are specially treated thereafter
-		const disconnectedPeers = knownPeers.filter(
+		const disconnectedNewPeers = newPeers.filter(
+			peer =>
+				!this._peerMap.has(constructPeerIdFromPeerInfo(peer)) ||
+				!fixedPeers.includes(peer),
+		);
+		const disconnectedTriedPeers = triedPeers.filter(
 			peer =>
 				!this._peerMap.has(constructPeerIdFromPeerInfo(peer)) ||
 				!fixedPeers.includes(peer),
@@ -376,7 +382,8 @@ export class PeerPool extends EventEmitter {
 			disconnectedFixedPeers.length -
 			outboundCount;
 		const peersToConnect = this._peerSelectForConnection({
-			peers: disconnectedPeers,
+			newPeers: disconnectedNewPeers,
+			triedPeers: disconnectedTriedPeers,
 			peerLimit,
 		});
 
