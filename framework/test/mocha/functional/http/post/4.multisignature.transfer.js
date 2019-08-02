@@ -51,11 +51,11 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 			.then(responses => {
 				responses.map(res => {
 					return expect(res.body.data.message).to.be.equal(
-						'Transaction(s) accepted'
+						'Transaction(s) accepted',
 					);
 				});
 				transactionsToWaitFor = transactionsToWaitFor.concat(
-					_.map(transactions, 'id')
+					_.map(transactions, 'id'),
 				);
 			})
 			.then(() => waitFor.confirmations(transactionsToWaitFor))
@@ -68,10 +68,10 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 					member => {
 						const signatureObject = apiHelpers.createSignatureObject(
 							multiSigAccount.multiSigTransaction,
-							member
+							member,
 						);
 						return signatureObject.signature;
-					}
+					},
 				);
 
 				return apiHelpers
@@ -79,11 +79,11 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 					.then(responses => {
 						responses.map(res => {
 							return expect(res.body.data.message).to.be.equal(
-								'Transaction(s) accepted'
+								'Transaction(s) accepted',
 							);
 						});
 						registerMultisignature = transactionsToWaitFor.concat(
-							_.map([multiSigAccount.multiSigTransaction], 'id')
+							_.map([multiSigAccount.multiSigTransaction], 'id'),
 						);
 					});
 			})
@@ -136,7 +136,7 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 			];
 
 			trs.signatures = membersPassphrases.map(
-				aSigner => createSignatureObject(trs, aSigner).signature
+				aSigner => createSignatureObject(trs, aSigner).signature,
 			);
 
 			return sendTransactionPromise(trs).then(res => {
@@ -192,7 +192,7 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 			];
 
 			trs.signatures = membersPassphrases.map(
-				aSigner => createSignatureObject(trs, aSigner).signature
+				aSigner => createSignatureObject(trs, aSigner).signature,
 			);
 			trs.ready = false;
 

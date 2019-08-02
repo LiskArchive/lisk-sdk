@@ -22,7 +22,7 @@ const startServer = async (server, port, host) =>
 
 const listen = async (
 	{ components: { logger }, config },
-	{ httpServer, httpsServer }
+	{ httpServer, httpsServer },
 ) => {
 	httpServer.headersTimeout = config.options.limits.headersTimeout;
 	// Disconnect idle clients
@@ -30,7 +30,7 @@ const listen = async (
 
 	httpServer.on('timeout', socket => {
 		logger.info(
-			`Disconnecting idle socket: ${socket.remoteAddress}:${socket.remotePort}`
+			`Disconnecting idle socket: ${socket.remoteAddress}:${socket.remotePort}`,
 		);
 		socket.destroy();
 	});
@@ -47,7 +47,7 @@ const listen = async (
 			logger.info(
 				`Disconnecting idle socket: ${socket.remoteAddress}:${
 					socket.remotePort
-				}`
+				}`,
 			);
 			socket.destroy();
 		});
@@ -55,13 +55,13 @@ const listen = async (
 		await startServer(
 			httpsServer,
 			config.ssl.options.port,
-			config.ssl.options.address
+			config.ssl.options.address,
 		);
 
 		logger.info(
 			`Lisk https started: ${config.ssl.options.address}:${
 				config.ssl.options.port
-			}`
+			}`,
 		);
 	}
 };

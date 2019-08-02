@@ -53,14 +53,14 @@ class BaseChannel {
 
 		_eventsList.set(
 			this,
-			eventList.map(eventName => new Event(`${this.moduleAlias}:${eventName}`))
+			eventList.map(eventName => new Event(`${this.moduleAlias}:${eventName}`)),
 		);
 
 		_actionsList.set(
 			this,
 			Object.keys(actions).map(
-				actionName => new Action(`${this.moduleAlias}:${actionName}`)
-			)
+				actionName => new Action(`${this.moduleAlias}:${actionName}`),
+			),
 		);
 
 		_actions.set(this, actions);
@@ -118,7 +118,7 @@ class BaseChannel {
 		const result = eventWithModuleNameReg.test(name);
 		if (throwError && !result) {
 			throw new Error(
-				`[${this.moduleAlias.alias}] Invalid event name ${name}.`
+				`[${this.moduleAlias.alias}] Invalid event name ${name}.`,
 			);
 		}
 		return result;
@@ -128,7 +128,7 @@ class BaseChannel {
 		const result = eventWithModuleNameReg.test(name);
 		if (throwError && !result) {
 			throw new Error(
-				`[${this.moduleAlias.alias}] Invalid action name ${name}.`
+				`[${this.moduleAlias.alias}] Invalid action name ${name}.`,
 			);
 		}
 		return result;

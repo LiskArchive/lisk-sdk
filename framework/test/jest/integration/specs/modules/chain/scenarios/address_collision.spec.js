@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -30,7 +30,7 @@ describe('address collision with type 0', () => {
 		it.todo('should not include the last transaction to arrive');
 
 		it.todo(
-			'should cement the public key from the first passphrase and not the second one'
+			'should cement the public key from the first passphrase and not the second one',
 		);
 	});
 });

@@ -10,7 +10,7 @@ describe('init_steps/create_bus', () => {
 			it('should set topic from first argument.');
 			it('should iterate over all modules and call "on<Topic>"');
 			it(
-				'should iterate over all submodules of each module and call "on<Topic>"'
+				'should iterate over all submodules of each module and call "on<Topic>"',
 			);
 		});
 

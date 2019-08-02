@@ -52,14 +52,14 @@ class Peers {
 
 		const activeCount = Math.min(
 			await this.channel.invoke('network:getConnectedPeersCountByFilter', {}),
-			MAX_PEERS
+			MAX_PEERS,
 		);
 
 		const matchedCount = Math.min(
 			await this.channel.invoke('network:getConnectedPeersCountByFilter', {
 				broadhash,
 			}),
-			MAX_PEERS
+			MAX_PEERS,
 		);
 
 		const consensus = +((matchedCount / activeCount) * 100).toPrecision(2);

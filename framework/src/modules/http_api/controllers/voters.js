@@ -19,7 +19,7 @@ const apiCodes = require('../api_codes');
 const swaggerHelper = require('../helpers/swagger');
 
 const { MAX_VOTES_PER_ACCOUNT } = global.constants;
-const generateParamsErrorObject = swaggerHelper.generateParamsErrorObject;
+const { generateParamsErrorObject } = swaggerHelper;
 
 // Private Fields
 let storage;
@@ -37,7 +37,7 @@ let storage;
  * @todo Add description of VotersController
  */
 function VotersController(scope) {
-	storage = scope.components.storage;
+	({ storage } = scope.components);
 }
 
 /**
@@ -54,7 +54,7 @@ VotersController.getVoters = async function(context, next) {
 		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
 	}
 
-	const params = context.request.swagger.params;
+	const { params } = context.request.swagger;
 
 	let filters = {
 		address: params.address.value,
@@ -94,7 +94,7 @@ VotersController.getVoters = async function(context, next) {
 				'publicKey is required if address, secondPublicKey and username not provided.',
 				'secondPublicKey is required if address, publicKey and username not provided.',
 				'username is required if publicKey, secondPublicKey and address not provided.',
-			]
+			],
 		);
 
 		return next(error);
@@ -124,11 +124,11 @@ VotersController.getVoters = async function(context, next) {
 
 		const voters = await storage.entities.Account.get(
 			{ votedDelegatesPublicKeys_in: [delegate.publicKey] },
-			options
+			options,
 		);
 
 		data.voters = _.map(voters, voter =>
-			_.pick(voter, ['address', 'publicKey', 'balance'])
+			_.pick(voter, ['address', 'publicKey', 'balance']),
 		);
 
 		const votersCount = await storage.entities.Account.count({
@@ -161,7 +161,7 @@ VotersController.getVoters = async function(context, next) {
  * @todo Add description for the function and the params
  */
 VotersController.getVotes = async function(context, next) {
-	const params = context.request.swagger.params;
+	const { params } = context.request.swagger;
 
 	let filters = {
 		address: params.address.value,
@@ -201,7 +201,7 @@ VotersController.getVotes = async function(context, next) {
 				'publicKey is required if address, secondPublicKey and username not provided.',
 				'secondPublicKey is required if address, publicKey and username not provided.',
 				'username is required if publicKey, secondPublicKey and address not provided.',
-			]
+			],
 		);
 
 		return next(error);
@@ -225,7 +225,7 @@ VotersController.getVotes = async function(context, next) {
 		]);
 		const votes = await storage.entities.Account.get(
 			{ publicKey_in: delegate.votedDelegatesPublicKeys },
-			options
+			options,
 		);
 
 		data.votesUsed = await storage.entities.Account.count({
@@ -233,7 +233,7 @@ VotersController.getVotes = async function(context, next) {
 		});
 		data.votesAvailable = MAX_VOTES_PER_ACCOUNT - data.votesUsed;
 		data.votes = votes.map(vote =>
-			_.pick(vote, ['address', 'publicKey', 'balance', 'username'])
+			_.pick(vote, ['address', 'publicKey', 'balance', 'username']),
 		);
 
 		data.votes.concat(data).forEach(entity => {

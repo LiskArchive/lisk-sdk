@@ -46,7 +46,7 @@ describe('integration test (type 4) - checking registered multisignature transac
 	scenarios.regular.members.map(member => {
 		const signature = transactionUtils.multiSignTransaction(
 			scenarios.regular.multiSigTransaction,
-			member.passphrase
+			member.passphrase,
 		);
 		return scenarios.regular.multiSigTransaction.signatures.push(signature);
 	});
@@ -65,9 +65,9 @@ describe('integration test (type 4) - checking registered multisignature transac
 					[dappTransaction],
 					async () => {
 						done();
-					}
+					},
 				);
-			}
+			},
 		);
 	});
 
@@ -78,7 +78,7 @@ describe('integration test (type 4) - checking registered multisignature transac
 			(err, res) => {
 				expect(res).to.equal(scenarios.regular.multiSigTransaction.id);
 				done();
-			}
+			},
 		);
 	});
 
@@ -100,7 +100,7 @@ describe('integration test (type 4) - checking registered multisignature transac
 					.which.is.an('Array');
 				expect(res.transactions.length).to.equal(1);
 				expect(res.transactions[0].id).to.equal(
-					scenarios.regular.multiSigTransaction.id
+					scenarios.regular.multiSigTransaction.id,
 				);
 				done();
 			});
@@ -145,7 +145,7 @@ describe('integration test (type 4) - checking registered multisignature transac
 									expect(res).to.equal(transaction.id);
 									done();
 								});
-							}
+							},
 						);
 					});
 				}

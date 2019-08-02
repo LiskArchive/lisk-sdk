@@ -26,10 +26,10 @@ module.exports = {
 					`dropdb ${configuration.components.storage.database}; createdb ${
 						configuration.components.storage.database
 					}`,
-					eachCb
+					eachCb,
 				);
 			},
-			cb
+			cb,
 		);
 	},
 
@@ -38,7 +38,7 @@ module.exports = {
 			'npx pm2 start test/mocha/network/pm2.network.json',
 			err => {
 				return cb(err);
-			}
+			},
 		);
 	},
 
@@ -52,7 +52,7 @@ module.exports = {
 		child_process.exec('npx pm2 kill', err => {
 			if (err) {
 				console.warn(
-					'Failed to killed PM2 process. Please execute command "pm2 kill" manually'
+					'Failed to killed PM2 process. Please execute command "pm2 kill" manually',
 				);
 			} else {
 				console.info('PM2 process killed gracefully');

@@ -36,7 +36,7 @@ const getDelegateKeypairForCurrentSlot = async (
 	keypairs,
 	currentSlot,
 	round,
-	numOfActiveDelegates
+	numOfActiveDelegates,
 ) => {
 	const activeDelegates = await rounds.generateDelegateList(round);
 
@@ -129,7 +129,7 @@ class Forger {
 	async updateForgingStatus(publicKey, password, forging) {
 		const encryptedList = this.config.forging.delegates;
 		const encryptedItem = encryptedList.find(
-			item => item.publicKey === publicKey
+			item => item.publicKey === publicKey,
 		);
 
 		let keypair;
@@ -139,7 +139,7 @@ class Forger {
 			try {
 				passphrase = decryptPassphraseWithPassword(
 					parseEncryptedPassphrase(encryptedItem.encryptedPassphrase),
-					password
+					password,
 				);
 			} catch (e) {
 				throw new Error('Invalid password and public key combination');
@@ -209,7 +209,7 @@ class Forger {
 		this.logger.info(
 			`Loading ${
 				encryptedList.length
-			} delegates using encrypted passphrases from config`
+			} delegates using encrypted passphrases from config`,
 		);
 
 		// eslint-disable-next-line no-restricted-syntax
@@ -218,7 +218,7 @@ class Forger {
 			try {
 				passphrase = decryptPassphraseWithPassword(
 					parseEncryptedPassphrase(encryptedItem.encryptedPassphrase),
-					this.config.forging.defaultPassword
+					this.config.forging.defaultPassword,
 				);
 			} catch (error) {
 				const decryptionError = `Invalid encryptedPassphrase for publicKey: ${
@@ -255,11 +255,11 @@ class Forger {
 			// eslint-disable-next-line no-await-in-loop
 			const [account] = await this.storage.entities.Account.get(
 				filters,
-				options
+				options,
 			);
 			if (!account) {
 				throw `Account with public key: ${keypair.publicKey.toString(
-					'hex'
+					'hex',
 				)} not found`;
 			}
 			if (account.isDelegate) {
@@ -268,8 +268,8 @@ class Forger {
 			} else {
 				this.logger.warn(
 					`Account with public key: ${keypair.publicKey.toString(
-						'hex'
-					)} is not a delegate`
+						'hex',
+					)} is not a delegate`,
 				);
 			}
 		}
@@ -296,15 +296,17 @@ class Forger {
 	// eslint-disable-next-line class-methods-use-this
 	async forge() {
 		const currentSlot = this.slots.getSlotNumber();
-		const lastBlock = this.blocksModule.lastBlock;
 
-		if (currentSlot === this.slots.getSlotNumber(lastBlock.timestamp)) {
+		if (
+			currentSlot ===
+			this.slots.getSlotNumber(this.blocksModule.lastBlock.timestamp)
+		) {
 			this.logger.debug('Block already forged for the current slot');
 			return;
 		}
 
 		// We calculate round using height + 1, because we want the delegate keypair for next block to be forged
-		const round = this.slots.calcRound(lastBlock.height + 1);
+		const round = this.slots.calcRound(this.blocksModule.lastBlock.height + 1);
 
 		let delegateKeypair;
 		try {
@@ -313,12 +315,12 @@ class Forger {
 				this.keypairs,
 				currentSlot,
 				round,
-				this.constants.activeDelegates
+				this.constants.activeDelegates,
 			);
 		} catch (getDelegateKeypairForCurrentSlotError) {
 			this.logger.error(
 				'Skipping delegate slot',
-				getDelegateKeypairForCurrentSlotError
+				getDelegateKeypairForCurrentSlotError,
 			);
 			throw getDelegateKeypairForCurrentSlotError;
 		}
@@ -330,46 +332,46 @@ class Forger {
 			return;
 		}
 		const isPoorConsensus = await this.peersModule.isPoorConsensus(
-			this.blocksModule.broadhash
+			this.blocksModule.broadhash,
 		);
 		if (isPoorConsensus) {
 			const consensus = await this.peersModule.getLastConsensus(
-				this.blocksModule.broadhash
+				this.blocksModule.broadhash,
 			);
 			const consensusErr = `Inadequate broadhash consensus before forging a block: ${consensus} %`;
 			this.logger.error(
 				'Failed to generate block within delegate slot',
-				consensusErr
+				consensusErr,
 			);
 			return;
 		}
 
 		const consensus = await this.peersModule.getLastConsensus(
-			this.blocksModule.broadhash
+			this.blocksModule.broadhash,
 		);
 		this.logger.info(
-			`Broadhash consensus before forging a block: ${consensus} %`
+			`Broadhash consensus before forging a block: ${consensus} %`,
 		);
 
 		const transactions =
 			this.transactionPoolModule.getUnconfirmedTransactionList(
 				false,
-				this.constants.maxTransactionsPerBlock
+				this.constants.maxTransactionsPerBlock,
 			) || [];
 
 		const forgedBlock = await this.blocksModule.generateBlock(
 			delegateKeypair,
 			this.slots.getSlotTime(currentSlot),
-			transactions
+			transactions,
 		);
 		this.logger.info(
 			`Forged new block id: ${forgedBlock.id} height: ${
 				forgedBlock.height
 			} round: ${this.slots.calcRound(
-				forgedBlock.height
+				forgedBlock.height,
 			)} slot: ${this.slots.getSlotNumber(forgedBlock.timestamp)} reward: ${
 				forgedBlock.reward
-			}`
+			}`,
 		);
 	}
 

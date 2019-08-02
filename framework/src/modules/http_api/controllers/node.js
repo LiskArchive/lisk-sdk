@@ -26,6 +26,133 @@ const { EPOCH_TIME, FEES } = global.constants;
 let library;
 
 /**
+ * Get the forging status of a delegate.
+ *
+ * @param {string} publicKey - Public key of delegate
+ * @returns {Promise<object>}
+ * @private
+ */
+async function _getForgingStatus(publicKey) {
+	const fullList = await library.channel.invoke(
+		'chain:getForgingStatusForAllDelegates',
+	);
+
+	if (publicKey && !_.find(fullList, { publicKey })) {
+		return [];
+	}
+
+	const result = _.find(fullList, { publicKey });
+	if (result) {
+		return [result];
+	}
+
+	return fullList;
+}
+
+/**
+ * Get the network height
+ *
+ * @returns Number
+ * @private
+ */
+async function _getNetworkHeight() {
+	const peers = await library.channel.invoke('network:getConnectedPeers', {
+		limit: 100,
+	});
+	if (!peers || !peers.length) {
+		return 0;
+	}
+	const networkHeightCount = peers.reduce((previous, { height }) => {
+		const heightCount = previous[height] || 0;
+		previous[height] = heightCount + 1;
+		return previous;
+	}, {});
+	const heightCountPairs = Object.entries(networkHeightCount);
+	const [defaultHeight, defaultCount] = heightCountPairs[0];
+	const { height: networkHeight } = heightCountPairs.reduce(
+		(prev, [height, count]) => {
+			if (count > prev.count) {
+				return {
+					height,
+					count,
+				};
+			}
+			return prev;
+		},
+		{
+			height: defaultHeight,
+			count: defaultCount,
+		},
+	);
+
+	return parseInt(networkHeight, 10);
+}
+
+/**
+ * Get count of confirmedTransaction from cache
+ *
+ * @returns Number
+ * @private
+ */
+async function _getConfirmedTransactionCount() {
+	// if cache is ready, then get cache and return
+	if (library.components.cache.ready) {
+		try {
+			const { confirmed } = await library.components.cache.getJsonForKey(
+				CACHE_KEYS_TRANSACTION_COUNT,
+			);
+			if (confirmed === undefined || confirmed === null) {
+				throw new Error(
+					'Transaction count wasn cached but confirmed did not exist',
+				);
+			}
+			return confirmed;
+		} catch (error) {
+			library.components.logger.warn("Transaction count wasn't cached", error);
+		}
+	}
+	const confirmed = await library.components.storage.entities.Transaction.count();
+	// only update cache if ready
+	if (library.components.cache.ready) {
+		try {
+			await library.components.cache.setJsonForKey(
+				CACHE_KEYS_TRANSACTION_COUNT,
+				{
+					confirmed,
+				},
+			);
+		} catch (error) {
+			// Ignore error and just put warn
+			library.components.logger.warn("Transaction count wasn't cached", error);
+		}
+	}
+	return confirmed;
+}
+
+/**
+ * Parse transaction instance to raw data
+ *
+ * @returns Object
+ * @private
+ */
+function _normalizeTransactionOutput(transaction) {
+	return {
+		id: transaction.id,
+		type: transaction.type,
+		amount: transaction.amount.toString(),
+		fee: transaction.fee.toString(),
+		timestamp: transaction.timestamp,
+		senderPublicKey: transaction.senderPublicKey,
+		senderId: transaction.senderId || '',
+		signature: transaction.signature,
+		signatures: transaction.signatures,
+		recipientPublicKey: transaction.recipientPublicKey || '',
+		recipientId: transaction.recipientId || '',
+		asset: transaction.asset,
+	};
+}
+
+/**
  * Description of the function.
  *
  * @class
@@ -137,7 +264,7 @@ NodeController.getStatus = async (context, next) => {
 			confirmed +
 			Object.values(unconfirmedTransactions).reduce(
 				(prev, current) => prev + current,
-				0
+				0,
 			);
 
 		const data = {
@@ -201,9 +328,9 @@ NodeController.updateForgingStatus = async (context, next) => {
 		return next(new Error('Access Denied'));
 	}
 
-	const publicKey = context.request.swagger.params.data.value.publicKey;
-	const password = context.request.swagger.params.data.value.password;
-	const forging = context.request.swagger.params.data.value.forging;
+	const { publicKey } = context.request.swagger.params.data.value;
+	const { password } = context.request.swagger.params.data.value;
+	const { forging } = context.request.swagger.params.data.value;
 
 	try {
 		const data = await library.channel.invoke('chain:updateForgingStatus', {
@@ -232,7 +359,7 @@ NodeController.getPooledTransactions = async function(context, next) {
 		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
 	}
 
-	const params = context.request.swagger.params;
+	const { params } = context.request.swagger;
 
 	const state = context.request.swagger.params.state.value;
 
@@ -264,139 +391,12 @@ NodeController.getPooledTransactions = async function(context, next) {
 			meta: {
 				offset: filters.offset,
 				limit: filters.limit,
-				count: parseInt(data.count),
+				count: parseInt(data.count, 10),
 			},
 		});
 	} catch (err) {
 		return next(err);
 	}
 };
-
-/**
- * Get the forging status of a delegate.
- *
- * @param {string} publicKey - Public key of delegate
- * @returns {Promise<object>}
- * @private
- */
-async function _getForgingStatus(publicKey) {
-	const fullList = await library.channel.invoke(
-		'chain:getForgingStatusForAllDelegates'
-	);
-
-	if (publicKey && !_.find(fullList, { publicKey })) {
-		return [];
-	}
-
-	const result = _.find(fullList, { publicKey });
-	if (result) {
-		return [result];
-	}
-
-	return fullList;
-}
-
-/**
- * Get the network height
- *
- * @returns Number
- * @private
- */
-async function _getNetworkHeight() {
-	const peers = await library.channel.invoke('network:getConnectedPeers', {
-		limit: 100,
-	});
-	if (!peers || !peers.length) {
-		return 0;
-	}
-	const networkHeightCount = peers.reduce((previous, { height }) => {
-		const heightCount = previous[height] || 0;
-		previous[height] = heightCount + 1;
-		return previous;
-	}, {});
-	const heightCountPairs = Object.entries(networkHeightCount);
-	const [defaultHeight, defaultCount] = heightCountPairs[0];
-	const { height: networkHeight } = heightCountPairs.reduce(
-		(prev, [height, count]) => {
-			if (count > prev.count) {
-				return {
-					height,
-					count,
-				};
-			}
-			return prev;
-		},
-		{
-			height: defaultHeight,
-			count: defaultCount,
-		}
-	);
-
-	return parseInt(networkHeight);
-}
-
-/**
- * Get count of confirmedTransaction from cache
- *
- * @returns Number
- * @private
- */
-async function _getConfirmedTransactionCount() {
-	// if cache is ready, then get cache and return
-	if (library.components.cache.ready) {
-		try {
-			const { confirmed } = await library.components.cache.getJsonForKey(
-				CACHE_KEYS_TRANSACTION_COUNT
-			);
-			if (confirmed === undefined || confirmed === null) {
-				throw new Error(
-					'Transaction count wasn cached but confirmed did not exist'
-				);
-			}
-			return confirmed;
-		} catch (error) {
-			library.components.logger.warn("Transaction count wasn't cached", error);
-		}
-	}
-	const confirmed = await library.components.storage.entities.Transaction.count();
-	// only update cache if ready
-	if (library.components.cache.ready) {
-		try {
-			await library.components.cache.setJsonForKey(
-				CACHE_KEYS_TRANSACTION_COUNT,
-				{
-					confirmed,
-				}
-			);
-		} catch (error) {
-			// Ignore error and just put warn
-			library.components.logger.warn("Transaction count wasn't cached", error);
-		}
-	}
-	return confirmed;
-}
-
-/**
- * Parse transaction instance to raw data
- *
- * @returns Object
- * @private
- */
-function _normalizeTransactionOutput(transaction) {
-	return {
-		id: transaction.id,
-		type: transaction.type,
-		amount: transaction.amount.toString(),
-		fee: transaction.fee.toString(),
-		timestamp: transaction.timestamp,
-		senderPublicKey: transaction.senderPublicKey,
-		senderId: transaction.senderId || '',
-		signature: transaction.signature,
-		signatures: transaction.signatures,
-		recipientPublicKey: transaction.recipientPublicKey || '',
-		recipientId: transaction.recipientId || '',
-		asset: transaction.asset,
-	};
-}
 
 module.exports = NodeController;

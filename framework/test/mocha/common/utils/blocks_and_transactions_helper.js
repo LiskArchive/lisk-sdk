@@ -31,7 +31,7 @@ const {
 } = require('../../../../src/modules/chain/interface_adapters');
 
 const transactionInterfaceAdapter = new TransactionInterfaceAdapter(
-	registeredTransactions
+	registeredTransactions,
 );
 const {
 	NORMALIZER,
@@ -46,18 +46,8 @@ const forge = util.promisify(localCommon.forge);
 const isTransactionInPool = localCommon.transactionInPool;
 
 const addTransactionsAndForge = util.promisify(
-	localCommon.addTransactionsAndForge
+	localCommon.addTransactionsAndForge,
 );
-
-const TYPE = {
-	RECEIVED: createCreditTransaction, // CREDIT
-	SPEND: createDebitTransaction, // DEBIT
-};
-
-const EXPECT = {
-	OK: true,
-	FAIL: false,
-};
 
 function createDebitTransaction(account, amount) {
 	return transfer({
@@ -74,6 +64,16 @@ function createCreditTransaction(account, amount) {
 		passphrase: accountFixtures.genesis.passphrase,
 	});
 }
+
+const TYPE = {
+	RECEIVED: createCreditTransaction, // CREDIT
+	SPEND: createDebitTransaction, // DEBIT
+};
+
+const EXPECT = {
+	OK: true,
+	FAIL: false,
+};
 
 const formatTransaction = t => ({
 	id: t.id,
@@ -94,7 +94,7 @@ class BlocksTransactionsHelper {
 			const lastBlock = this._library.modules.blocks.lastBlock;
 			await this._library.modules.blocks.blocksProcess.processBlock(
 				block,
-				lastBlock
+				lastBlock,
 			);
 			this._library.modules.blocks._lastBlock = block;
 		};
@@ -170,7 +170,7 @@ class BlocksTransactionsHelper {
 
 	async enqueueTransactions() {
 		return Promise.mapSeries(this._transactions, t =>
-			addTransaction(this._library, t.data)
+			addTransaction(this._library, t.data),
 		);
 	}
 
@@ -209,13 +209,13 @@ class BlocksTransactionsHelper {
 
 		const lastBlock = this._library.modules.blocks.lastBlock;
 		const lastBlockSlot = this._library.slots.getSlotNumber(
-			lastBlock.timestamp
+			lastBlock.timestamp,
 		);
 		const keypair = keypairs[delegate];
 		const timestamp = this._library.slots.getSlotTime(lastBlockSlot + 1);
 
 		const transactions = this._transactions.map(t =>
-			transactionInterfaceAdapter.fromJson(t.data)
+			transactionInterfaceAdapter.fromJson(t.data),
 		);
 
 		this._block = blocksLogic.create({
@@ -251,7 +251,7 @@ class BlocksTransactionsHelper {
 		const account = await this._library.components.storage.entities.Account.getOne(
 			{
 				address: this._account.address,
-			}
+			},
 		);
 
 		return new BigNum(account.balance).div(NORMALIZER).toString();

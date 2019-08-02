@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -18,7 +18,7 @@ describe('double second signature registrations', () => {
 	it.todo('should be sccepted to adding to pool second signature registration');
 
 	it.todo(
-		'should be accepted for adding to pool same second signature registration with different timestamp'
+		'should be accepted for adding to pool same second signature registration with different timestamp',
 	);
 
 	describe('when after forging one block', () => {
@@ -27,7 +27,7 @@ describe('double second signature registrations', () => {
 		it.todo('should not include the last transaction to arrived');
 
 		it.todo(
-			'should fail to add to the pool second signature registration for same account'
+			'should fail to add to the pool second signature registration for same account',
 		);
 	});
 });

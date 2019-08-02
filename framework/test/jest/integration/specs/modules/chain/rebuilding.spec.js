@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -17,7 +17,7 @@
 describe('rebuilding', () => {
 	describe('rebuilding to end of round 2 when blockchain contains 303 blocks', () => {
 		it.todo(
-			'Accounts states after rebuilding should match copy taken after round 2'
+			'Accounts states after rebuilding should match copy taken after round 2',
 		);
 	});
 });

@@ -49,7 +49,7 @@ describe('filters', () => {
 
 					it('should return appropriate filters for BOOLEAN type', async () =>
 						expect(
-							filterGenerator(filterTypes.BOOLEAN, 'alias', 'name', ser)
+							filterGenerator(filterTypes.BOOLEAN, 'alias', 'name', ser),
 						).to.be.eql({
 							alias: `"name" = ${serializer} serialized value`,
 							alias_eql: `"name" = ${serializer} serialized value`,
@@ -58,7 +58,7 @@ describe('filters', () => {
 
 					it('should return appropriate filters for TEXT type', async () =>
 						expect(
-							filterGenerator(filterTypes.TEXT, 'alias', 'name', ser)
+							filterGenerator(filterTypes.TEXT, 'alias', 'name', ser),
 						).to.be.eql({
 							alias: `"name" = ${serializer} serialized value`,
 							alias_eql: `"name" = ${serializer} serialized value`,
@@ -69,7 +69,7 @@ describe('filters', () => {
 
 					it('should return appropriate filters for NUMBER type', async () =>
 						expect(
-							filterGenerator(filterTypes.NUMBER, 'alias', 'name', ser)
+							filterGenerator(filterTypes.NUMBER, 'alias', 'name', ser),
 						).to.be.eql({
 							alias: `"name" = ${serializer} serialized value`,
 							alias_eql: `"name" = ${serializer} serialized value`,
@@ -91,8 +91,8 @@ describe('filters', () => {
 							'alias',
 							'name',
 							customSerializer,
-							'${alias} - custom condition'
-						)
+							'${alias} - custom condition',
+						),
 					).to.be.eql({ alias: '${alias} - custom condition' }));
 
 				it('should use serializer if condition not provided', async () =>
@@ -101,19 +101,19 @@ describe('filters', () => {
 							filterTypes.CUSTOM,
 							'alias',
 							'name',
-							customSerializer
-						)
+							customSerializer,
+						),
 					).to.be.eql({ alias: '"name" = custom serialized value' }));
 
 				it('should use defaultInput serializer if serializer and condition not provided', async () =>
 					expect(
-						filterGenerator(filterTypes.CUSTOM, 'alias', 'name')
+						filterGenerator(filterTypes.CUSTOM, 'alias', 'name'),
 					).to.be.eql({ alias: '"name" = defaultInput serialized value' }));
 			});
 
 			it('throw error if invalid filter type provided', async () =>
 				expect(() => filterGenerator('invalidType', 'alias', 'name')).to.throw(
-					'"invalidType" not supported filter type. Supported types are: TEXT,BINARY,NUMBER,BOOLEAN,CUSTOM.'
+					'"invalidType" not supported filter type. Supported types are: TEXT,BINARY,NUMBER,BOOLEAN,CUSTOM.',
 				));
 		});
 	});

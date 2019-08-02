@@ -124,7 +124,7 @@ class ChildProcessChannel extends BaseChannel {
 
 		if (event.module !== this.moduleAlias) {
 			throw new Error(
-				`Event "${eventName}" not registered in "${this.moduleAlias}" module.`
+				`Event "${eventName}" not registered in "${this.moduleAlias}" module.`,
 			);
 		}
 
@@ -181,7 +181,7 @@ class ChildProcessChannel extends BaseChannel {
 		if (action.module === this.moduleAlias) {
 			if (!this.actions[action.name].isPublic) {
 				throw new Error(
-					`Action ${action.name} is not allowed because it's not public.`
+					`Action ${action.name} is not allowed because it's not public.`,
 				);
 			}
 
@@ -198,7 +198,7 @@ class ChildProcessChannel extends BaseChannel {
 					}
 
 					return resolve(data);
-				}
+				},
 			);
 		});
 	}
@@ -238,7 +238,7 @@ class ChildProcessChannel extends BaseChannel {
 					this.pubSocket.sock.once('connect', () => {
 						resolve();
 					});
-				})
+				}),
 			);
 		}
 
@@ -248,7 +248,7 @@ class ChildProcessChannel extends BaseChannel {
 					this.subSocket.sock.once('connect', () => {
 						resolve();
 					});
-				})
+				}),
 			);
 		}
 
@@ -258,7 +258,7 @@ class ChildProcessChannel extends BaseChannel {
 					this.rpcSocket.once('bind', () => {
 						resolve();
 					});
-				})
+				}),
 			);
 		}
 
@@ -277,10 +277,10 @@ class ChildProcessChannel extends BaseChannel {
 									reject(err);
 								}
 								resolve(result);
-							}
+							},
 						);
 					});
-				})
+				}),
 			);
 		}
 
@@ -302,7 +302,7 @@ class ChildProcessChannel extends BaseChannel {
 					this.pubSocket.sock.once('error', err => {
 						reject(err);
 					});
-				})
+				}),
 			);
 		}
 
@@ -312,7 +312,7 @@ class ChildProcessChannel extends BaseChannel {
 					this.subSocket.sock.once('error', err => {
 						reject(err);
 					});
-				})
+				}),
 			);
 		}
 
@@ -322,7 +322,7 @@ class ChildProcessChannel extends BaseChannel {
 					this.rpcSocket.once('error', err => {
 						reject(err);
 					});
-				})
+				}),
 			);
 		}
 

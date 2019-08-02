@@ -34,6 +34,81 @@ const blockVersion = require('./block_version');
 // TODO: remove type constraints
 const TRANSACTION_TYPES_MULTI = 4;
 
+const blockSchema = {
+	type: 'object',
+	properties: {
+		id: {
+			type: 'string',
+			format: 'id',
+			minLength: 1,
+			maxLength: 20,
+		},
+		height: {
+			type: 'integer',
+		},
+		blockSignature: {
+			type: 'string',
+			format: 'signature',
+		},
+		generatorPublicKey: {
+			type: 'string',
+			format: 'publicKey',
+		},
+		numberOfTransactions: {
+			type: 'integer',
+		},
+		payloadHash: {
+			type: 'string',
+			format: 'hex',
+		},
+		payloadLength: {
+			type: 'integer',
+		},
+		previousBlock: {
+			type: 'string',
+			format: 'id',
+			minLength: 1,
+			maxLength: 20,
+		},
+		timestamp: {
+			type: 'integer',
+		},
+		totalAmount: {
+			type: 'object',
+			format: 'amount',
+		},
+		totalFee: {
+			type: 'object',
+			format: 'amount',
+		},
+		reward: {
+			type: 'object',
+			format: 'amount',
+		},
+		transactions: {
+			type: 'array',
+			uniqueItems: true,
+		},
+		version: {
+			type: 'integer',
+			minimum: 0,
+		},
+	},
+	required: [
+		'blockSignature',
+		'generatorPublicKey',
+		'numberOfTransactions',
+		'payloadHash',
+		'payloadLength',
+		'timestamp',
+		'totalAmount',
+		'totalFee',
+		'reward',
+		'transactions',
+		'version',
+	],
+};
+
 /**
  * Block headers buffer size and endianness
  *
@@ -54,26 +129,6 @@ const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
 
 /**
- * Creates a block signature.
- *
- * @param {block} block
- * @param {Object} keypair
- * @returns {signature} Block signature
- * @todo Add description for the params
- */
-const sign = (block, keypair) =>
-	signDataWithPrivateKey(hash(getBytes(block)), keypair.privateKey);
-
-/**
- * Creates hash based on block bytes.
- *
- * @param {block} block
- * @returns {Buffer} SHA256 hash
- * @todo Add description for the params
- */
-const getHash = block => hash(getBytes(block));
-
-/**
  * Description of the function.
  *
  * @param {block} block
@@ -85,13 +140,13 @@ const getBytes = block => {
 	const blockVersionBuffer = intToBuffer(
 		block.version,
 		SIZE_INT32,
-		LITTLE_ENDIAN
+		LITTLE_ENDIAN,
 	);
 
 	const timestampBuffer = intToBuffer(
 		block.timestamp,
 		SIZE_INT32,
-		LITTLE_ENDIAN
+		LITTLE_ENDIAN,
 	);
 
 	const previousBlockBuffer = block.previousBlock
@@ -101,31 +156,31 @@ const getBytes = block => {
 	const numTransactionsBuffer = intToBuffer(
 		block.numberOfTransactions,
 		SIZE_INT32,
-		LITTLE_ENDIAN
+		LITTLE_ENDIAN,
 	);
 
 	const totalAmountBuffer = intToBuffer(
 		block.totalAmount.toString(),
 		SIZE_INT64,
-		LITTLE_ENDIAN
+		LITTLE_ENDIAN,
 	);
 
 	const totalFeeBuffer = intToBuffer(
 		block.totalFee.toString(),
 		SIZE_INT64,
-		LITTLE_ENDIAN
+		LITTLE_ENDIAN,
 	);
 
 	const rewardBuffer = intToBuffer(
 		block.reward.toString(),
 		SIZE_INT64,
-		LITTLE_ENDIAN
+		LITTLE_ENDIAN,
 	);
 
 	const payloadLengthBuffer = intToBuffer(
 		block.payloadLength,
 		SIZE_INT32,
-		LITTLE_ENDIAN
+		LITTLE_ENDIAN,
 	);
 
 	const payloadHashBuffer = hexToBuffer(block.payloadHash);
@@ -152,6 +207,26 @@ const getBytes = block => {
 };
 
 /**
+ * Creates a block signature.
+ *
+ * @param {block} block
+ * @param {Object} keypair
+ * @returns {signature} Block signature
+ * @todo Add description for the params
+ */
+const sign = (block, keypair) =>
+	signDataWithPrivateKey(hash(getBytes(block)), keypair.privateKey);
+
+/**
+ * Creates hash based on block bytes.
+ *
+ * @param {block} block
+ * @returns {Buffer} SHA256 hash
+ * @todo Add description for the params
+ */
+const getHash = block => hash(getBytes(block));
+
+/**
  * Description of the function.
  *
  * @param {block} block
@@ -172,10 +247,10 @@ const objectNormalize = (block, exceptions = {}) => {
 	}
 
 	const { transactionsResponses } = validateTransactions(exceptions)(
-		block.transactions
+		block.transactions,
 	);
 	const invalidTransactionResponse = transactionsResponses.find(
-		transactionResponse => transactionResponse.status !== TransactionStatus.OK
+		transactionResponse => transactionResponse.status !== TransactionStatus.OK,
 	);
 	if (invalidTransactionResponse) {
 		throw invalidTransactionResponse.errors;
@@ -254,6 +329,7 @@ const create = ({
 	const blockTransactions = [];
 	const transactionsBytesArray = [];
 
+	// eslint-disable-next-line no-plusplus
 	for (let i = 0; i < sortedTransactions.length; i++) {
 		const transaction = sortedTransactions[i];
 		const transactionBytes = transaction.getBytes(transaction);
@@ -305,6 +381,7 @@ const verifySignature = block => {
 	const data = getBytes(block);
 	const dataWithoutSignature = Buffer.alloc(data.length - signatureLength);
 
+	// eslint-disable-next-line no-plusplus
 	for (let i = 0; i < dataWithoutSignature.length; i++) {
 		dataWithoutSignature[i] = data[i];
 	}
@@ -312,7 +389,7 @@ const verifySignature = block => {
 	return verifyData(
 		hashedBlock,
 		block.blockSignature,
-		block.generatorPublicKey
+		block.generatorPublicKey,
 	);
 };
 
@@ -326,6 +403,7 @@ const verifySignature = block => {
 const getId = block => {
 	const hashedBlock = hash(getBytes(block));
 	const temp = Buffer.alloc(8);
+	// eslint-disable-next-line no-plusplus
 	for (let i = 0; i < 8; i++) {
 		temp[i] = hashedBlock[7 - i];
 	}
@@ -348,20 +426,20 @@ const dbRead = raw => {
 	}
 	const block = {
 		id: raw.b_id,
-		version: parseInt(raw.b_version),
-		timestamp: parseInt(raw.b_timestamp),
-		height: parseInt(raw.b_height),
+		version: parseInt(raw.b_version, 10),
+		timestamp: parseInt(raw.b_timestamp, 10),
+		height: parseInt(raw.b_height, 10),
 		previousBlock: raw.b_previousBlock,
-		numberOfTransactions: parseInt(raw.b_numberOfTransactions),
+		numberOfTransactions: parseInt(raw.b_numberOfTransactions, 10),
 		totalAmount: new BigNum(raw.b_totalAmount),
 		totalFee: new BigNum(raw.b_totalFee),
 		reward: new BigNum(raw.b_reward),
-		payloadLength: parseInt(raw.b_payloadLength),
+		payloadLength: parseInt(raw.b_payloadLength, 10),
 		payloadHash: raw.b_payloadHash,
 		generatorPublicKey: raw.b_generatorPublicKey,
 		generatorId: getAddressFromPublicKey(raw.b_generatorPublicKey),
 		blockSignature: raw.b_blockSignature,
-		confirmations: parseInt(raw.b_confirmations),
+		confirmations: parseInt(raw.b_confirmations, 10),
 	};
 	block.totalForged = block.totalFee.plus(block.reward).toString();
 	return block;
@@ -380,20 +458,20 @@ const storageRead = raw => {
 
 	const block = {
 		id: raw.id,
-		version: parseInt(raw.version),
-		timestamp: parseInt(raw.timestamp),
-		height: parseInt(raw.height),
+		version: parseInt(raw.version, 10),
+		timestamp: parseInt(raw.timestamp, 10),
+		height: parseInt(raw.height, 10),
 		previousBlock: raw.previousBlockId,
-		numberOfTransactions: parseInt(raw.numberOfTransactions),
+		numberOfTransactions: parseInt(raw.numberOfTransactions, 10),
 		totalAmount: new BigNum(raw.totalAmount),
 		totalFee: new BigNum(raw.totalFee),
 		reward: new BigNum(raw.reward),
-		payloadLength: parseInt(raw.payloadLength),
+		payloadLength: parseInt(raw.payloadLength, 10),
 		payloadHash: raw.payloadHash,
 		generatorPublicKey: raw.generatorPublicKey,
 		generatorId: getAddressFromPublicKey(raw.generatorPublicKey),
 		blockSignature: raw.blockSignature,
-		confirmations: parseInt(raw.confirmations),
+		confirmations: parseInt(raw.confirmations, 10),
 	};
 
 	if (raw.transactions) {
@@ -405,81 +483,6 @@ const storageRead = raw => {
 	block.totalForged = block.totalFee.plus(block.reward).toString();
 
 	return block;
-};
-
-const blockSchema = {
-	type: 'object',
-	properties: {
-		id: {
-			type: 'string',
-			format: 'id',
-			minLength: 1,
-			maxLength: 20,
-		},
-		height: {
-			type: 'integer',
-		},
-		blockSignature: {
-			type: 'string',
-			format: 'signature',
-		},
-		generatorPublicKey: {
-			type: 'string',
-			format: 'publicKey',
-		},
-		numberOfTransactions: {
-			type: 'integer',
-		},
-		payloadHash: {
-			type: 'string',
-			format: 'hex',
-		},
-		payloadLength: {
-			type: 'integer',
-		},
-		previousBlock: {
-			type: 'string',
-			format: 'id',
-			minLength: 1,
-			maxLength: 20,
-		},
-		timestamp: {
-			type: 'integer',
-		},
-		totalAmount: {
-			type: 'object',
-			format: 'amount',
-		},
-		totalFee: {
-			type: 'object',
-			format: 'amount',
-		},
-		reward: {
-			type: 'object',
-			format: 'amount',
-		},
-		transactions: {
-			type: 'array',
-			uniqueItems: true,
-		},
-		version: {
-			type: 'integer',
-			minimum: 0,
-		},
-	},
-	required: [
-		'blockSignature',
-		'generatorPublicKey',
-		'numberOfTransactions',
-		'payloadHash',
-		'payloadLength',
-		'timestamp',
-		'totalAmount',
-		'totalFee',
-		'reward',
-		'transactions',
-		'version',
-	],
 };
 
 module.exports = {

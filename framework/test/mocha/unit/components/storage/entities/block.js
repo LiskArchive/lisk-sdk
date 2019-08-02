@@ -45,7 +45,7 @@ describe('Block', () => {
 	before(async () => {
 		storage = new storageSandbox.StorageSandbox(
 			__testContext.config.components.storage,
-			'lisk_test_blocks'
+			'lisk_test_blocks',
 		);
 		await storage.bootstrap();
 
@@ -334,7 +334,7 @@ describe('Block', () => {
 			// Act
 			const result = await storage.entities.Block.getOne(
 				{ id: validBlock.id },
-				{ extended: true }
+				{ extended: true },
 			);
 			const trxIdsResult = result.transactions.map(({ id }) => id);
 
@@ -412,28 +412,28 @@ describe('Block', () => {
 		it('should accept only valid filters', async () => {
 			const block = new Block(adapter);
 			return expect(
-				block.get(validFilter)
+				block.get(validFilter),
 			).to.eventually.be.fulfilled.and.deep.equal([]);
 		});
 
 		it('should throw error for invalid filters', async () => {
 			const block = new Block(adapter);
 			return expect(block.get(invalidFilter)).to.eventually.be.rejectedWith(
-				NonSupportedFilterTypeError
+				NonSupportedFilterTypeError,
 			);
 		});
 
 		it('should accept only valid options', async () => {
 			const block = new Block(adapter);
 			return expect(
-				block.get({}, validOptions)
+				block.get({}, validOptions),
 			).to.eventually.be.fulfilled.and.deep.equal([]);
 		});
 
 		it('should throw error for invalid options', async () => {
 			const block = new Block(adapter);
 			return expect(
-				block.get({}, invalidOptions)
+				block.get({}, invalidOptions),
 			).to.eventually.be.rejectedWith(NonSupportedOptionError);
 		});
 
@@ -445,7 +445,7 @@ describe('Block', () => {
 			await block.begin('testTX', async tx => {
 				await block.get({}, {}, tx);
 				expect(
-					Object.getPrototypeOf(_getResultsSpy.firstCall.args[2])
+					Object.getPrototypeOf(_getResultsSpy.firstCall.args[2]),
 				).to.be.eql(Object.getPrototypeOf(tx));
 			});
 		});
@@ -480,7 +480,7 @@ describe('Block', () => {
 			await storageSandbox.clearDatabaseTable(
 				storage,
 				storage.logger,
-				'blocks'
+				'blocks',
 			);
 		});
 
@@ -528,8 +528,8 @@ describe('Block', () => {
 						parsedFilters: 'parsedFilters response',
 					},
 					{ expectedResultCount: 1 },
-					undefined
-				)
+					undefined,
+				),
 			).to.be.true;
 		});
 

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -18,11 +18,11 @@ describe('integration test (blocks) - receiveBlockFromNetwork()', () => {
 		describe('when a block causes a fork 3', () => {
 			describe('validate block slot', () => {
 				it.todo(
-					'should not add block to chain when generator is not a delegate'
+					'should not add block to chain when generator is not a delegate',
 				);
 
 				it.todo(
-					'should not add block to chain when block generator has incorrect slot'
+					'should not add block to chain when block generator has incorrect slot',
 				);
 			});
 		});
@@ -92,7 +92,7 @@ describe('integration test (blocks) - receiveBlockFromNetwork()', () => {
 
 						describe('when timestamp is outside slot window', () => {
 							it.todo(
-								'should reject received block when blockslot outside window'
+								'should reject received block when blockslot outside window',
 							);
 							it.todo('should generate valid fork stats');
 						});
@@ -100,7 +100,7 @@ describe('integration test (blocks) - receiveBlockFromNetwork()', () => {
 
 					describe('when last block skipped a slot', () => {
 						it.todo(
-							'should delete skipped block and save received block (with lower slot)'
+							'should delete skipped block and save received block (with lower slot)',
 						);
 						it.todo('should generate valid fork stats');
 					});
@@ -108,7 +108,7 @@ describe('integration test (blocks) - receiveBlockFromNetwork()', () => {
 					describe('with 100 blocks forged', () => {
 						describe('after new round', () => {
 							it.todo(
-								'should delete last block and save received block (from previous round)'
+								'should delete last block and save received block (from previous round)',
 							);
 							it.todo('should generate valid fork stats');
 						});

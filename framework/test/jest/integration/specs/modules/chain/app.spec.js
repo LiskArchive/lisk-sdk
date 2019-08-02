@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -31,11 +31,11 @@ describe('app', () => {
 				it.todo('should contain transactions');
 
 				it.todo(
-					'should match the number of transactions present in the genesis block'
+					'should match the number of transactions present in the genesis block',
 				);
 
 				it.todo(
-					'should contain all the transactions IDs present in the genesis block'
+					'should contain all the transactions IDs present in the genesis block',
 				);
 			});
 
@@ -43,7 +43,7 @@ describe('app', () => {
 				it.todo('should be populated');
 
 				it.todo(
-					'should match the number of delegates created in genesis block'
+					'should match the number of delegates created in genesis block',
 				);
 
 				describe('delegates rows', () => {
@@ -51,11 +51,11 @@ describe('app', () => {
 
 					describe('values', () => {
 						it.todo(
-							'fields transactionId, username, address, publicKey should match genesis block transactions'
+							'fields transactionId, username, address, publicKey should match genesis block transactions',
 						);
 
 						it.todo(
-							'fields vote, blocks_forged_count, blocks_missed_count, isDelegate should be valid'
+							'fields vote, blocks_forged_count, blocks_missed_count, isDelegate should be valid',
 						);
 					});
 				});
@@ -76,7 +76,7 @@ describe('app', () => {
 							it.todo('should have negative balance');
 
 							it.todo(
-								'fields address, balance, publicKey should match genesis block transaction'
+								'fields address, balance, publicKey should match genesis block transaction',
 							);
 						});
 

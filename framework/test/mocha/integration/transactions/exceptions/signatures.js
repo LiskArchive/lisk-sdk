@@ -73,12 +73,12 @@ describe('exceptions for senderPublicKey transactions', () => {
 							return reject(err);
 						}
 						return resolve(block);
-					}
+					},
 				);
 			});
 			await library.modules.blocks.blocksProcess.processBlock(
 				newBlock,
-				library.modules.blocks.lastBlock
+				library.modules.blocks.lastBlock,
 			);
 			library.modules.blocks._lastBlock = newBlock;
 		});
@@ -88,7 +88,7 @@ describe('exceptions for senderPublicKey transactions', () => {
 
 			before('get sender account', async () => {
 				senderMemAccountBefore = await library.components.storage.entities.Account.getOne(
-					{ address: accountWithInvalidSignatureTransaction.address }
+					{ address: accountWithInvalidSignatureTransaction.address },
 				);
 			});
 
@@ -105,12 +105,12 @@ describe('exceptions for senderPublicKey transactions', () => {
 									return reject(err);
 								}
 								return resolve(block);
-							}
+							},
 						);
 					});
 					await library.modules.blocks.blocksProcess.processBlock(
 						newBlock,
-						library.modules.blocks.lastBlock
+						library.modules.blocks.lastBlock,
 					);
 					library.modules.blocks._lastBlock = newBlock;
 				});
@@ -120,7 +120,7 @@ describe('exceptions for senderPublicKey transactions', () => {
 
 					before('get sender account', async () => {
 						senderMemAccountAfter = await library.components.storage.entities.Account.getOne(
-							{ address: accountWithInvalidSignatureTransaction.address }
+							{ address: accountWithInvalidSignatureTransaction.address },
 						);
 					});
 
@@ -129,7 +129,7 @@ describe('exceptions for senderPublicKey transactions', () => {
 							new BigNum(senderMemAccountBefore.balance)
 								.minus(transactionWithInvalidSignature.fee)
 								.minus(transactionWithInvalidSignature.amount)
-								.toString()
+								.toString(),
 						);
 					});
 				});
@@ -141,13 +141,13 @@ describe('exceptions for senderPublicKey transactions', () => {
 						transactionsFromDatabase = await library.components.storage.entities.Transaction.get(
 							{
 								id_in: [transactionWithInvalidSignature.id],
-							}
+							},
 						);
 					});
 
 					it('should save transaction in the database', async () => {
 						return expect(
-							transactionsFromDatabase.map(transaction => transaction.id)
+							transactionsFromDatabase.map(transaction => transaction.id),
 						).to.include(transactionWithInvalidSignature.id);
 					});
 				});
@@ -162,13 +162,13 @@ describe('exceptions for senderPublicKey transactions', () => {
 					describe('details of the account', () => {
 						before('get sender and recipient accounts', async () => {
 							senderMemAccountAfterBlockDelete = await library.components.storage.entities.Account.getOne(
-								{ address: accountWithInvalidSignatureTransaction.address }
+								{ address: accountWithInvalidSignatureTransaction.address },
 							);
 						});
 
 						it('should update balance field of sender account', async () => {
 							return expect(senderMemAccountAfterBlockDelete.balance).to.equal(
-								senderMemAccountBefore.balance
+								senderMemAccountBefore.balance,
 							);
 						});
 					});
@@ -186,7 +186,7 @@ describe('exceptions for senderPublicKey transactions', () => {
 									expect(err).to.not.exist;
 									transactionsFilteredById = res.transactions;
 									done();
-								}
+								},
 							);
 						});
 

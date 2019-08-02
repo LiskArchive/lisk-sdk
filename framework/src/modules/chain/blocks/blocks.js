@@ -159,13 +159,13 @@ class Blocks extends EventEmitter {
 		try {
 			const rows = await this.storage.entities.Block.get(
 				{},
-				{ limit: this.constants.blockSlotWindow, sort: 'height:desc' }
+				{ limit: this.constants.blockSlotWindow, sort: 'height:desc' },
 			);
 			this._lastNBlockIds = rows.map(row => row.id);
 		} catch (error) {
 			this.logger.error(
 				error,
-				`Unable to load last ${this.constants.blockSlotWindow} block ids`
+				`Unable to load last ${this.constants.blockSlotWindow} block ids`,
 			);
 		}
 	}
@@ -238,7 +238,7 @@ class Blocks extends EventEmitter {
 						reject(error);
 					}
 				});
-			}
+			},
 		);
 		if (blocksCount === 1) {
 			this._lastBlock = await this._reload(blocksCount);
@@ -271,7 +271,7 @@ class Blocks extends EventEmitter {
 			this._lastBlock = await blocksUtils.loadLastBlock(
 				this.storage,
 				this.interfaceAdapters,
-				this.genesisBlock
+				this.genesisBlock,
 			);
 		} catch (error) {
 			this.logger.error(error, 'Failed to fetch last block');
@@ -281,7 +281,7 @@ class Blocks extends EventEmitter {
 			return;
 		}
 		const recoverRequired = await this.blocksVerify.requireBlockRewind(
-			this._lastBlock
+			this._lastBlock,
 		);
 
 		if (recoverRequired) {
@@ -294,7 +294,7 @@ class Blocks extends EventEmitter {
 						block: cloneDeep(lastBlock),
 						newLastBlock: cloneDeep(newLastBlock),
 					});
-				}
+				},
 			);
 		}
 		this._isActive = false;
@@ -322,7 +322,7 @@ class Blocks extends EventEmitter {
 					const newBlock = await this.blocksProcess.processBlock(
 						block,
 						this._lastBlock,
-						validBlock => this.broadcast(validBlock)
+						validBlock => this.broadcast(validBlock),
 					);
 					await this._updateBroadhash();
 					this._lastBlock = newBlock;
@@ -348,14 +348,14 @@ class Blocks extends EventEmitter {
 					} = await this.blocksVerify.normalizeAndVerify(
 						block,
 						this._lastBlock,
-						this._lastNBlockIds
+						this._lastNBlockIds,
 					);
 					if (!verified) {
 						throw errors;
 					}
 					const originalLastBlock = cloneDeep(this._lastBlock);
 					this._lastBlock = await this.blocksChain.deleteLastBlock(
-						this._lastBlock
+						this._lastBlock,
 					);
 					this.emit(EVENT_DELETE_BLOCK, {
 						block: originalLastBlock,
@@ -364,7 +364,7 @@ class Blocks extends EventEmitter {
 					// emit event
 					const secondLastBlock = cloneDeep(this._lastBlock);
 					this._lastBlock = await this.blocksChain.deleteLastBlock(
-						this._lastBlock
+						this._lastBlock,
 					);
 					this.emit(EVENT_DELETE_BLOCK, {
 						block: secondLastBlock,
@@ -382,7 +382,7 @@ class Blocks extends EventEmitter {
 				if (this.blocksVerify.isDoubleForge(block, this._lastBlock)) {
 					this.logger.warn(
 						'Delegate forging on multiple nodes',
-						block.generatorPublicKey
+						block.generatorPublicKey,
 					);
 				}
 				if (this.blocksVerify.shouldDiscardForkFive(block, this._lastBlock)) {
@@ -398,14 +398,14 @@ class Blocks extends EventEmitter {
 					} = await this.blocksVerify.normalizeAndVerify(
 						block,
 						this._lastBlock,
-						this._lastNBlockIds
+						this._lastNBlockIds,
 					);
 					if (!verified) {
 						throw errors;
 					}
 					const deletingBlock = cloneDeep(this._lastBlock);
 					this._lastBlock = await this.blocksChain.deleteLastBlock(
-						this._lastBlock
+						this._lastBlock,
 					);
 					this.emit(EVENT_DELETE_BLOCK, {
 						block: deletingBlock,
@@ -415,7 +415,7 @@ class Blocks extends EventEmitter {
 					this._lastBlock = await this.blocksProcess.processBlock(
 						block,
 						this._lastBlock,
-						validBlock => this.broadcast(validBlock)
+						validBlock => this.broadcast(validBlock),
 					);
 					await this._updateBroadhash();
 					this.emit(EVENT_NEW_BLOCK, { block: cloneDeep(this._lastBlock) });
@@ -437,7 +437,7 @@ class Blocks extends EventEmitter {
 						generatorPublicKey: block.generatorPublicKey,
 						slot: this.slots.getSlotNumber(block.timestamp),
 					},
-					'Discarded block that does not match with current chain'
+					'Discarded block that does not match with current chain',
 				);
 			}
 			// Discard received block
@@ -454,7 +454,7 @@ class Blocks extends EventEmitter {
 			const normalizedBlocks = blocksUtils.readDbRows(
 				blocks,
 				this.interfaceAdapters,
-				this.genesisBlock
+				this.genesisBlock,
 			);
 			// eslint-disable-next-line no-restricted-syntax
 			for (const block of normalizedBlocks) {
@@ -465,7 +465,7 @@ class Blocks extends EventEmitter {
 				// eslint-disable-next-line no-await-in-loop
 				this._lastBlock = await this.blocksProcess.processBlock(
 					block,
-					this._lastBlock
+					this._lastBlock,
 				);
 				// emit event
 				this._updateLastNBlocks(block);
@@ -488,12 +488,12 @@ class Blocks extends EventEmitter {
 				this._lastBlock,
 				keypair,
 				timestamp,
-				transactions
+				transactions,
 			);
 			this._lastBlock = await this.blocksProcess.processBlock(
 				block,
 				this._lastBlock,
-				validBlock => this.broadcast(validBlock)
+				validBlock => this.broadcast(validBlock),
 			);
 		} catch (error) {
 			this._isActive = false;
@@ -510,28 +510,28 @@ class Blocks extends EventEmitter {
 	async _rebuildMode(rebuildUpToRound, blocksCount) {
 		this.logger.info(
 			{ rebuildUpToRound, blocksCount },
-			'Rebuild process started'
+			'Rebuild process started',
 		);
 		if (blocksCount < this.constants.activeDelegates) {
 			throw new Error(
-				'Unable to rebuild, blockchain should contain at least one round of blocks'
+				'Unable to rebuild, blockchain should contain at least one round of blocks',
 			);
 		}
 		if (
-			Number.isNaN(parseInt(rebuildUpToRound)) ||
-			parseInt(rebuildUpToRound) < 0
+			Number.isNaN(parseInt(rebuildUpToRound, 10)) ||
+			parseInt(rebuildUpToRound, 10) < 0
 		) {
 			throw new Error(
-				'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero'
+				'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero',
 			);
 		}
 		const totalRounds = Math.floor(
-			blocksCount / this.constants.activeDelegates
+			blocksCount / this.constants.activeDelegates,
 		);
 		const targetRound =
-			parseInt(rebuildUpToRound) === 0
+			parseInt(rebuildUpToRound, 10) === 0
 				? totalRounds
-				: Math.min(totalRounds, parseInt(rebuildUpToRound));
+				: Math.min(totalRounds, parseInt(rebuildUpToRound, 10));
 		const targetHeight = targetRound * this.constants.activeDelegates;
 		this._lastBlock = await this._reload(targetHeight);
 		// Remove remaining
@@ -555,7 +555,7 @@ class Blocks extends EventEmitter {
 		const { broadhash, height } = await blocksUtils.calculateNewBroadhash(
 			this.storage,
 			this._broadhash,
-			this._lastBlock.height
+			this._lastBlock.height,
 		);
 		this._broadhash = broadhash;
 		this.emit(EVENT_NEW_BROADHASH, { broadhash, height });
@@ -575,9 +575,9 @@ class Blocks extends EventEmitter {
 				this._lastBlock = block;
 				this.logger.info(
 					{ blockId: block.id, height: block.height },
-					'Rebuilding block'
+					'Rebuilding block',
 				);
-			}
+			},
 		);
 	}
 }

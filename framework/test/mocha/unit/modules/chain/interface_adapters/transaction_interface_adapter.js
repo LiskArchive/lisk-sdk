@@ -64,7 +64,7 @@ describe('transactions', () => {
 		describe('fromJson', () => {
 			it('should throw an error if transaction type is not registered', async () => {
 				expect(() => transactions.fromJson({ type: 9 })).to.throw(
-					'Transaction type not found.'
+					'Transaction type not found.',
 				);
 			});
 
@@ -84,7 +84,7 @@ describe('transactions', () => {
 				};
 
 				expect(transactions.fromJson(transfer)).to.be.instanceof(
-					TransferTransaction
+					TransferTransaction,
 				);
 			});
 
@@ -109,7 +109,7 @@ describe('transactions', () => {
 				};
 
 				expect(transactions.fromJson(secondSignature)).to.be.instanceof(
-					SecondSignatureTransaction
+					SecondSignatureTransaction,
 				);
 			});
 
@@ -135,7 +135,7 @@ describe('transactions', () => {
 				};
 
 				expect(transactions.fromJson(delegate)).to.be.instanceof(
-					DelegateTransaction
+					DelegateTransaction,
 				);
 			});
 
@@ -193,7 +193,7 @@ describe('transactions', () => {
 				};
 
 				expect(transactions.fromJson(multisignature)).to.be.instanceof(
-					MultisignatureTransaction
+					MultisignatureTransaction,
 				);
 			});
 		});

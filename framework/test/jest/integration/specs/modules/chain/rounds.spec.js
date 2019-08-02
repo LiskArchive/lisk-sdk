@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -22,7 +22,7 @@ describe('rounds', () => {
 			describe('Account(s) state(s)', () => {
 				it.todo('should be updated');
 				it.todo(
-					'should have the same delegates with highest weight used for generating the delegate list for the same round'
+					'should have the same delegates with highest weight used for generating the delegate list for the same round',
 				);
 				it.todo('should have the same delegate list for the same round');
 				it.todo('should match expected states for accounts table states');
@@ -38,7 +38,7 @@ describe('rounds', () => {
 			describe('Account(s) state(s)', () => {
 				it.todo('should be updated');
 				it.todo(
-					'delegates with highest weight used for generating list should be the same for same round'
+					'delegates with highest weight used for generating list should be the same for same round',
 				);
 				it.todo('should have the same delegates list for the same round');
 				it.todo('should match expected states for accounts table states');
@@ -54,7 +54,7 @@ describe('rounds', () => {
 			describe('Account(s) state(s)', () => {
 				it.todo('should be updated');
 				it.todo(
-					'delegates with highest weight used for generating list should be the same for same round'
+					'delegates with highest weight used for generating list should be the same for same round',
 				);
 				it.todo('should have the same delegate list for the same round');
 				it.todo('should match accounts table states with expected states');
@@ -70,7 +70,7 @@ describe('rounds', () => {
 			describe('Account(s) state(s)', () => {
 				it.todo('should be updated');
 				it.todo(
-					'delegates with highest weight used for generating list should be the same for same round'
+					'delegates with highest weight used for generating list should be the same for same round',
 				);
 				it.todo('should have the same delegates list for the same round');
 				it.todo('should have accounts table states match expected states');
@@ -80,33 +80,33 @@ describe('rounds', () => {
 
 		describe('when round 1 is finished', () => {
 			it.todo(
-				'should have the last block height equal to the active delegates count'
+				'should have the last block height equal to the active delegates count',
 			);
 
 			it.todo(
-				'should calculate rewards for round 1 correctly - all should be the same (calculated, rounds_rewards, mem_accounts)'
+				'should calculate rewards for round 1 correctly - all should be the same (calculated, rounds_rewards, mem_accounts)',
 			);
 
 			it.todo(
-				'should generate a different delegate list than one generated at the beginning of round 1'
+				'should generate a different delegate list than one generated at the beginning of round 1',
 			);
 		});
 
 		describe('when last block of round 1 is deleted and block contains 1 TRANSFER transaction', () => {
 			it.todo(
-				'should add back transactions from deleted block to the transaction pool'
+				'should add back transactions from deleted block to the transaction pool',
 			);
 
 			it.todo(
-				'should have empty round rewards (rewards for round 1 deleted from rounds_rewards table)'
+				'should have empty round rewards (rewards for round 1 deleted from rounds_rewards table)',
 			);
 
 			it.todo(
-				'should have equal mem_accounts table to the one generated before last block of round deletion'
+				'should have equal mem_accounts table to the one generated before last block of round deletion',
 			);
 
 			it.todo(
-				'should have equal delegates list to the one generated at the beginning of round 1'
+				'should have equal delegates list to the one generated at the beginning of round 1',
 			);
 		});
 
@@ -114,25 +114,25 @@ describe('rounds', () => {
 			it.todo('should be able to delete last block of round again');
 
 			it.todo(
-				'should have equal mem_accounts table to the one generated before last block of round deletion'
+				'should have equal mem_accounts table to the one generated before last block of round deletion',
 			);
 
 			it.todo(
-				'should have equal delegates list to the one generated at the beginning of round 1'
+				'should have equal delegates list to the one generated at the beginning of round 1',
 			);
 		});
 
 		describe('round rollback when forger of last block of round is unvoted', () => {
 			it.todo(
-				'should have last block height = 99 after deleting one more block'
+				'should have last block height = 99 after deleting one more block',
 			);
 
 			it.todo(
-				'should add back transactions from deleted block to transaction pool'
+				'should add back transactions from deleted block to transaction pool',
 			);
 
 			it.todo(
-				'should have expected forger of last block of the round to have proper votes'
+				'should have expected forger of last block of the round to have proper votes',
 			);
 
 			describe('new block', () => {
@@ -142,10 +142,10 @@ describe('rounds', () => {
 				it.todo('should contain all expected transactions');
 				describe('Account(s) state(s) (mem_accounts table)', () => {
 					it.todo(
-						'if block contains at least one transaction states before and after block should be different'
+						'if block contains at least one transaction states before and after block should be different',
 					);
 					it.todo(
-						'delegates with highest weight used for generating list should be the same for same round'
+						'delegates with highest weight used for generating list should be the same for same round',
 					);
 					it.todo('should have the same delegates list for the same round');
 					it.todo('should match accounts table states to the expected states');
@@ -155,11 +155,11 @@ describe('rounds', () => {
 
 			describe('after forging 1 block', () => {
 				it.todo(
-					'should unvote expected forger of last block of round (block data)'
+					'should unvote expected forger of last block of round (block data)',
 				);
 
 				it.todo(
-					'should still have proper votes for the expected forget of the last block of the round'
+					'should still have proper votes for the expected forget of the last block of the round',
 				);
 			});
 
@@ -170,10 +170,10 @@ describe('rounds', () => {
 				it.todo('should contain all expected transactions');
 				describe('Account(s) state(s) (mem_accounts table)', () => {
 					it.todo(
-						'if block contains at least one transaction states before and after block should be different'
+						'if block contains at least one transaction states before and after block should be different',
 					);
 					it.todo(
-						'should have the delegates with the highest weight  used for generating the list to be the same for the same round'
+						'should have the delegates with the highest weight  used for generating the list to be the same for the same round',
 					);
 					it.todo('should have the same delegates list for the same round');
 					it.todo('should match accounts table states with expected states');
@@ -183,21 +183,21 @@ describe('rounds', () => {
 
 			describe('after round finish', () => {
 				it.todo(
-					'should have different delegates list than the one generated at the beginning of round 1'
+					'should have different delegates list than the one generated at the beginning of round 1',
 				);
 
 				it.todo(
-					'should have vote = 0 for the forget of the last block of the previous round'
+					'should have vote = 0 for the forget of the last block of the previous round',
 				);
 			});
 
 			describe('after last block of round is deleted', () => {
 				it.todo(
-					'should have a delegates list equal to the one generated at the beginning of round 1'
+					'should have a delegates list equal to the one generated at the beginning of round 1',
 				);
 
 				it.todo(
-					'should have expected forger of the last block of the round to have proper votes again'
+					'should have expected forger of the last block of the round to have proper votes again',
 				);
 			});
 		});
@@ -210,10 +210,10 @@ describe('rounds', () => {
 				it.todo('should contain all expected transactions');
 				describe('mem_accounts table', () => {
 					it.todo(
-						'if block contains at least one transaction states before and after block should be different'
+						'if block contains at least one transaction states before and after block should be different',
 					);
 					it.todo(
-						'should have delegates with highest weight used for generating list to be the same for the same round'
+						'should have delegates with highest weight used for generating list to be the same for the same round',
 					);
 					it.todo('should have delegates list to be the same for same round');
 					it.todo('should have accounts table states to match expected states');
@@ -228,13 +228,13 @@ describe('rounds', () => {
 				it.todo('should contain all expected transactions');
 				describe('mem_accounts table', () => {
 					it.todo(
-						'if block contains at least one transaction states before and after block should be different'
+						'if block contains at least one transaction states before and after block should be different',
 					);
 					it.todo(
-						'should have delegates with highest weight used for generating the list to be the same for the same round'
+						'should have delegates with highest weight used for generating the list to be the same for the same round',
 					);
 					it.todo(
-						'should have the same delegates list to be the same for the same round'
+						'should have the same delegates list to be the same for the same round',
 					);
 					it.todo('should match accounts table states with expected states');
 					it.todo('should have valid balances against blockchain balances');
@@ -248,10 +248,10 @@ describe('rounds', () => {
 				it.todo('should contain all expected transactions');
 				describe('mem_accounts table', () => {
 					it.todo(
-						'if block contains at least one transaction states before and after block should be different'
+						'if block contains at least one transaction states before and after block should be different',
 					);
 					it.todo(
-						'should have delegates with highest weight used for generating the list to be the same for the same round'
+						'should have delegates with highest weight used for generating the list to be the same for the same round',
 					);
 					it.todo('should have the the delegates list for the same round');
 					it.todo('should match accounts table states to the expected states');
@@ -263,41 +263,41 @@ describe('rounds', () => {
 				it.todo('should have last block height = 101');
 
 				it.todo(
-					'should unvote the expected forger of the last block of the round and vote the new delegate, after finishing the round (block data)'
+					'should unvote the expected forger of the last block of the round and vote the new delegate, after finishing the round (block data)',
 				);
 
 				it.todo(
-					'should compute a different delegates list than the one generated at the beginning of round 1'
+					'should compute a different delegates list than the one generated at the beginning of round 1',
 				);
 
 				it.todo('should not include in the list the unvoted delegate');
 
 				it.todo(
-					'should include the delegate who replaced the unvoiced one in the list'
+					'should include the delegate who replaced the unvoiced one in the list',
 				);
 
 				it.todo(
-					'should compute vote = 0 for the forget of the last block of the previous round'
+					'should compute vote = 0 for the forget of the last block of the previous round',
 				);
 
 				it.todo(
-					'should compute proper votes for the delegate who replaced last block forger'
+					'should compute proper votes for the delegate who replaced last block forger',
 				);
 			});
 
 			describe('after last block of round is deleted', () => {
 				it.todo(
-					'should have the same delegates list to the one generated at the beginning of round 1'
+					'should have the same delegates list to the one generated at the beginning of round 1',
 				);
 
 				it.todo('should have last block with height = 100');
 
 				it.todo(
-					'should have proper votes again for the expected forger of the last block of the round'
+					'should have proper votes again for the expected forger of the last block of the round',
 				);
 
 				it.todo(
-					'should have a delegate who replaced last block forger with vote, producedBlocks and missedBlocks = 0'
+					'should have a delegate who replaced last block forger with vote, producedBlocks and missedBlocks = 0',
 				);
 			});
 		});
@@ -313,10 +313,10 @@ describe('rounds', () => {
 					it.todo('should contain all expected transactions');
 					describe('Account(s) state(s) (mem_accounts table)', () => {
 						it.todo(
-							'if block contains at least one transaction states before and after block should be different'
+							'if block contains at least one transaction states before and after block should be different',
 						);
 						it.todo(
-							'should have the same delegates with highest weight used for generating the list for the same round'
+							'should have the same delegates with highest weight used for generating the list for the same round',
 						);
 						it.todo('should have the same delegates list for the same round');
 						it.todo('should match accounts table states with expected states');
@@ -329,7 +329,7 @@ describe('rounds', () => {
 				it.todo('should have last block height = 149');
 
 				it.todo(
-					'should have the block just before rewards started to have reward = 0'
+					'should have the block just before rewards started to have reward = 0',
 				);
 			});
 
@@ -341,10 +341,10 @@ describe('rounds', () => {
 					it.todo('should contain all expected transactions');
 					describe('Account(s) state(s) (mem_accounts table)', () => {
 						it.todo(
-							'if block contains at least one transaction states before and after block should be different'
+							'if block contains at least one transaction states before and after block should be different',
 						);
 						it.todo(
-							'should have the same delegates with highest weight use for generating the list for the same round'
+							'should have the same delegates with highest weight use for generating the list for the same round',
 						);
 						it.todo('should have the same delegates list for the same round');
 						it.todo('should match accounts table states with expected states');
@@ -355,7 +355,7 @@ describe('rounds', () => {
 
 			describe('after finish round', () => {
 				it.todo(
-					'should calculate rewards for round 2 correctly - all should be the same (native, rounds_rewards)'
+					'should calculate rewards for round 2 correctly - all should be the same (native, rounds_rewards)',
 				);
 			});
 		});
@@ -365,7 +365,7 @@ describe('rounds', () => {
 		it.todo('last block height should be at height 101');
 
 		it.todo(
-			'should fail when try to delete one more block (last block of round 1)'
+			'should fail when try to delete one more block (last block of round 1)',
 		);
 
 		it.todo('last block height should be still at height 101');

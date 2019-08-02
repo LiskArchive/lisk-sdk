@@ -33,7 +33,7 @@ const modules = require('../helpers/swagger_module_registry');
 module.exports = function create(fittingDef) {
 	const cache = modules.getCache();
 	const logger = modules.getLogger();
-	const mode = fittingDef.mode;
+	const { mode } = fittingDef;
 	const cacheSpecKey = fittingDef.swagger_cache_key;
 
 	debug('create', mode);
@@ -54,7 +54,7 @@ module.exports = function create(fittingDef) {
 		// If not a swagger operation don't serve from pipeline
 		if (!context.request.swagger.operation) {
 			return new Error(
-				'Invalid swagger operation, unable to process cache for response'
+				'Invalid swagger operation, unable to process cache for response',
 			);
 		}
 
@@ -62,8 +62,8 @@ module.exports = function create(fittingDef) {
 		if (!!context.request.swagger.operation[cacheSpecKey] === false) {
 			debug(
 				`Cache not enabled for endpoint: ${context.request.swagger.operation.pathToDefinition.join(
-					'.'
-				)}`
+					'.',
+				)}`,
 			);
 			return next(null, context.input);
 		}
@@ -84,7 +84,7 @@ module.exports = function create(fittingDef) {
 					if (cachedValue) {
 						logger.debug(
 							'Cache - Sending cached response for url:',
-							context.request.url
+							context.request.url,
 						);
 						return context.response.json(cachedValue);
 					}
@@ -101,7 +101,7 @@ module.exports = function create(fittingDef) {
 			if (context.statusCode === 200 || context.response.statusCode === 200) {
 				logger.debug(
 					'Cache - Setting response cache for url:',
-					context.request.url
+					context.request.url,
 				);
 				return cache
 					.setJsonForKey(cacheKey, context.input)

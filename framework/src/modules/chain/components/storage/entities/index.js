@@ -14,9 +14,14 @@
 
 'use strict';
 
+const Account = require('./account');
+const Block = require('./block');
+const Round = require('./round');
+const Transaction = require('./transaction');
+
 module.exports = {
-	Account: require('./account'),
-	Block: require('./block'),
-	Round: require('./round'),
-	Transaction: require('./transaction'),
+	Account,
+	Block,
+	Round,
+	Transaction,
 };

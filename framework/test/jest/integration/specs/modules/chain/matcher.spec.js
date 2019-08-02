@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -17,7 +17,7 @@
 describe('matcher', () => {
 	describe('when receiving transactions from a peer', () => {
 		it.todo(
-			'should not include a disallowed transaction in the transaction pool'
+			'should not include a disallowed transaction in the transaction pool',
 		);
 
 		it.todo('should include an allowed transaction in the transaction pool');
@@ -25,18 +25,18 @@ describe('matcher', () => {
 
 	describe('when receiving a block from another peer', () => {
 		it.todo(
-			'should reject the block if it contains disallowed transactions for the given block context'
+			'should reject the block if it contains disallowed transactions for the given block context',
 		);
 
 		it.todo(
-			'should accept the block if it contains allowed transactions for the given block context'
+			'should accept the block if it contains allowed transactions for the given block context',
 		);
 	});
 
 	describe('when forging a new block', () => {
 		describe('when transaction pool is full and current context (last block height) at forging time, no longer matches the transaction matcher', () => {
 			it.todo(
-				'should not include the transaction in a new block if it is not allowed anymore'
+				'should not include the transaction in a new block if it is not allowed anymore',
 			);
 		});
 

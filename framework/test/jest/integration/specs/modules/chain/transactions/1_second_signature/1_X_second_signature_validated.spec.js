@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -21,7 +21,7 @@ describe('checking validated second signature registrations against other transa
 		it.todo('should include the transaction');
 
 		it.todo(
-			'should fail adding to the pool a second signature registration for the same account'
+			'should fail adding to the pool a second signature registration for the same account',
 		);
 	});
 
@@ -29,7 +29,7 @@ describe('checking validated second signature registrations against other transa
 		it.todo('should fail without second signature');
 
 		it.todo(
-			'should fail registering second signature without matching passphrase'
+			'should fail registering second signature without matching passphrase',
 		);
 
 		it.todo('should be ok with correct second signature');

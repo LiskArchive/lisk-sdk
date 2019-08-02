@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -20,7 +20,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 			it.todo('adding to pool delegate registration should be ok');
 
 			it.todo(
-				'adding to pool delegate registration from same account with different id should be ok'
+				'adding to pool delegate registration from same account with different id should be ok',
 			);
 
 			describe('after forging one block', () => {
@@ -29,7 +29,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 				it.todo('last delegate registration to arrive should not be included');
 
 				it.todo(
-					'adding to pool delegate registration from same account should fail'
+					'adding to pool delegate registration from same account should fail',
 				);
 			});
 		});

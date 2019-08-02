@@ -51,7 +51,7 @@ const http = {
 		__testContext.debug(['> Path:'.grey, verb, options.path].join(' '));
 		if (verb === 'POST' || verb === 'PUT') {
 			__testContext.debug(
-				['> Data:'.grey, JSON.stringify(options.params)].join(' ')
+				['> Data:'.grey, JSON.stringify(options.params)].join(' '),
 			);
 		}
 
@@ -59,11 +59,11 @@ const http = {
 			return request.end((err, res) => {
 				__testContext.debug(
 					'> Status:'.grey,
-					JSON.stringify(res ? res.statusCode : '')
+					JSON.stringify(res ? res.statusCode : ''),
 				);
 				__testContext.debug(
 					'> Response:'.grey,
-					JSON.stringify(res ? res.body : err)
+					JSON.stringify(res ? res.body : err),
 				);
 				return done(err, res);
 			});
@@ -128,7 +128,7 @@ function httpResponseCallbackHelper(cb, err, res) {
 function getNotFoundEndpoint(cb) {
 	http.get(
 		'/api/not_found_endpoint',
-		httpResponseCallbackHelper.bind(null, cb)
+		httpResponseCallbackHelper.bind(null, cb),
 	);
 }
 
@@ -136,7 +136,7 @@ function getTransactionById(transactionId, cb) {
 	// Get transactionById uses the same /api/transactions endpoint, this is just a helper function
 	http.get(
 		`/api/transactions?id=${transactionId}`,
-		httpResponseCallbackHelper.bind(null, cb)
+		httpResponseCallbackHelper.bind(null, cb),
 	);
 }
 
@@ -150,42 +150,42 @@ function getTransactions(params, cb) {
 function getUnconfirmedTransaction(transaction, cb) {
 	http.get(
 		`/api/node/transactions/ready?id=${transaction}`,
-		httpResponseCallbackHelper.bind(null, cb)
+		httpResponseCallbackHelper.bind(null, cb),
 	);
 }
 
 function getUnconfirmedTransactions(cb) {
 	http.get(
 		'/api/node/transactions/ready',
-		httpResponseCallbackHelper.bind(null, cb)
+		httpResponseCallbackHelper.bind(null, cb),
 	);
 }
 
 function getQueuedTransaction(transaction, cb) {
 	http.get(
 		`/api/node/transactions/verified?id=${transaction}`,
-		httpResponseCallbackHelper.bind(null, cb)
+		httpResponseCallbackHelper.bind(null, cb),
 	);
 }
 
 function getQueuedTransactions(cb) {
 	http.get(
 		'/api/node/transactions/verified',
-		httpResponseCallbackHelper.bind(null, cb)
+		httpResponseCallbackHelper.bind(null, cb),
 	);
 }
 
 function getMultisignaturesTransaction(transaction, cb) {
 	http.get(
 		`/api/node/transactions/pending?id=${transaction}`,
-		httpResponseCallbackHelper.bind(null, cb)
+		httpResponseCallbackHelper.bind(null, cb),
 	);
 }
 
 function getMultisignaturesTransactions(cb) {
 	http.get(
 		'/api/node/transactions/pending',
-		httpResponseCallbackHelper.bind(null, cb)
+		httpResponseCallbackHelper.bind(null, cb),
 	);
 }
 
@@ -203,7 +203,7 @@ function sendTransactionPromise(transaction, expectedStatusCode) {
 
 	return postTransactionsEndpoint.makeRequest(
 		{ transaction },
-		expectedStatusCode
+		expectedStatusCode,
 	);
 }
 
@@ -211,7 +211,7 @@ function sendTransactionsPromise(transactions, expectedStatusCode) {
 	expectedStatusCode = expectedStatusCode || 200;
 
 	return Promise.map(transactions, transaction =>
-		sendTransactionPromise(transaction, expectedStatusCode)
+		sendTransactionPromise(transaction, expectedStatusCode),
 	);
 }
 
@@ -219,7 +219,7 @@ function sendSignature(signature, cb) {
 	http.post(
 		'/api/signatures',
 		signature,
-		httpResponseCallbackHelper.bind(null, cb)
+		httpResponseCallbackHelper.bind(null, cb),
 	);
 }
 
@@ -300,7 +300,7 @@ function getForgers(params, cb) {
 function getAccounts(params, cb) {
 	http.get(
 		`/api/accounts?${params}`,
-		httpCallbackHelperWithStatus.bind(null, cb)
+		httpCallbackHelperWithStatus.bind(null, cb),
 	);
 }
 
@@ -335,7 +335,7 @@ function createSignatureObject(transaction, signer) {
 		publicKey: signer.publicKey,
 		signature: transactionUtils.multiSignTransaction(
 			transaction,
-			signer.passphrase
+			signer.passphrase,
 		),
 	};
 }
@@ -345,19 +345,19 @@ const getTransactionsPromise = Promise.promisify(getTransactions);
 const getQueuedTransactionPromise = Promise.promisify(getQueuedTransaction);
 const getQueuedTransactionsPromise = Promise.promisify(getQueuedTransactions);
 const getUnconfirmedTransactionPromise = Promise.promisify(
-	getUnconfirmedTransaction
+	getUnconfirmedTransaction,
 );
 const getUnconfirmedTransactionsPromise = Promise.promisify(
-	getUnconfirmedTransactions
+	getUnconfirmedTransactions,
 );
 const getMultisignaturesTransactionPromise = Promise.promisify(
-	getMultisignaturesTransaction
+	getMultisignaturesTransaction,
 );
 const getMultisignaturesTransactionsPromise = Promise.promisify(
-	getMultisignaturesTransactions
+	getMultisignaturesTransactions,
 );
 const getPendingMultisignaturesPromise = Promise.promisify(
-	getPendingMultisignatures
+	getPendingMultisignatures,
 );
 const creditAccountPromise = Promise.promisify(creditAccount);
 const sendSignaturePromise = Promise.promisify(sendSignature);

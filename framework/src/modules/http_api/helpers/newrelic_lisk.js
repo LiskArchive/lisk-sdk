@@ -35,7 +35,7 @@ newrelicLisk.newrelic.instrumentWebframework({
 const controllerFolder = '/controllers/';
 const controllerMethodExtractor = (shim, controller) =>
 	Object.getOwnPropertyNames(controller).filter(name =>
-		shim.isFunction(controller[name])
+		shim.isFunction(controller[name]),
 	);
 
 fs.readdirSync(newrelicLisk.config.rootPath + controllerFolder).forEach(
@@ -53,8 +53,8 @@ fs.readdirSync(newrelicLisk.config.rootPath + controllerFolder).forEach(
 			newrelicLisk.instrumentCallbackMethods(
 				controllerPath,
 				identifier,
-				controllerMethodExtractor
+				controllerMethodExtractor,
 			);
 		}
-	}
+	},
 );

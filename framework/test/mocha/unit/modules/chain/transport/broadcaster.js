@@ -17,7 +17,7 @@
 const rewire = require('rewire');
 
 const Broadcaster = rewire(
-	'../../../../../../src/modules/chain/transport/broadcaster'
+	'../../../../../../src/modules/chain/transport/broadcaster',
 );
 
 describe('Broadcaster', () => {
@@ -75,7 +75,7 @@ describe('Broadcaster', () => {
 			transactionPoolStub,
 			loggerStub,
 			channelStub,
-			storageStub
+			storageStub,
 		);
 	});
 
@@ -111,7 +111,7 @@ describe('Broadcaster', () => {
 			expect(jobsQueue.register.args[0][0]).to.equal('broadcasterReleaseQueue');
 			// expect(jobsQueue.register.args[0][1]).to.equal(async () => broadcaster.releaseQueue());
 			expect(jobsQueue.register.args[0][2]).to.equal(
-				broadcasts.broadcastInterval
+				broadcasts.broadcastInterval,
 			);
 		});
 	});
@@ -203,7 +203,7 @@ describe('Broadcaster', () => {
 			it('should call transaction pool with [signature.transactionId]', async () => {
 				await broadcaster.filterQueue();
 				expect(transactionPoolStub.transactionInPool).calledWithExactly(
-					validSignature.transactionId
+					validSignature.transactionId,
 				);
 			});
 		});
@@ -225,14 +225,14 @@ describe('Broadcaster', () => {
 							data: { transaction: validTransaction },
 							immediate: false,
 						},
-					}
+					},
 				);
 			});
 
 			it('should call transaction pool with [transaction.id]', async () => {
 				await broadcaster.filterQueue();
 				expect(transactionPoolStub.transactionInPool).calledWithExactly(
-					validTransaction.id
+					validTransaction.id,
 				);
 			});
 
@@ -266,7 +266,7 @@ describe('Broadcaster', () => {
 				describe('when [validTransaction] is not confirmed', () => {
 					beforeEach(async () => {
 						broadcaster.storage.entities.Transaction.isPersisted.resolves(
-							false
+							false,
 						);
 					});
 					it('should leave [broadcast] in broadcaster.queue', async () => {
@@ -319,8 +319,8 @@ describe('Broadcaster', () => {
 								data: { transaction: { id: 1 } },
 								immediate: false,
 							},
-						}
-					)
+						},
+					),
 				);
 				auxBroadcasts.push(
 					Object.assign(
@@ -332,8 +332,8 @@ describe('Broadcaster', () => {
 								data: { transaction: { id: 2 } },
 								immediate: false,
 							},
-						}
-					)
+						},
+					),
 				);
 				auxBroadcasts.push(
 					Object.assign(
@@ -345,8 +345,8 @@ describe('Broadcaster', () => {
 								data: { transaction: { id: 3 } },
 								immediate: false,
 							},
-						}
-					)
+						},
+					),
 				);
 				broadcaster.enqueue(params, {
 					api: 'postSignatures',
@@ -368,8 +368,8 @@ describe('Broadcaster', () => {
 								data: { signature: { transactionId: 1 } },
 								immediate: false,
 							},
-						}
-					)
+						},
+					),
 				);
 				auxBroadcasts.push(
 					Object.assign(
@@ -381,8 +381,8 @@ describe('Broadcaster', () => {
 								data: { signature: { transactionId: 2 } },
 								immediate: false,
 							},
-						}
-					)
+						},
+					),
 				);
 			});
 
@@ -449,7 +449,7 @@ describe('Broadcaster', () => {
 			await broadcaster.releaseQueue();
 			expect(loggerStub.trace.called).to.be.true;
 			expect(loggerStub.trace.args[0][0]).to.be.eql(
-				'Releasing enqueued broadcasts'
+				'Releasing enqueued broadcasts',
 			);
 			expect(loggerStub.trace.args[1][0]).to.be.eql('Queue empty');
 		});
@@ -461,7 +461,7 @@ describe('Broadcaster', () => {
 			broadcaster.filterQueue = filterQueueStub;
 			broadcaster.enqueue(params, options);
 			return expect(broadcaster.releaseQueue()).to.eventually.be.rejectedWith(
-				'failed to broadcast'
+				'failed to broadcast',
 			);
 		});
 	});

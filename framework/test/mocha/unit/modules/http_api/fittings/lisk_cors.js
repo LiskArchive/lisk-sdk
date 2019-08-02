@@ -68,10 +68,10 @@ describe('lisk_cors', () => {
 		expect(next).to.have.not.been.called;
 		expect(context.response.statusCode).to.be.equal(204);
 		expect(
-			context.response.getHeader('Access-Control-Allow-Origin')
+			context.response.getHeader('Access-Control-Allow-Origin'),
 		).to.be.equal('*');
 		expect(
-			context.response.getHeader('Access-Control-Allow-Methods')
+			context.response.getHeader('Access-Control-Allow-Methods'),
 		).to.be.equal('GET,POST,PUT');
 		done();
 	});
@@ -88,10 +88,10 @@ describe('lisk_cors', () => {
 		expect(next).to.have.not.been.called;
 		expect(context.response.statusCode).to.be.equal(204);
 		expect(
-			context.response.getHeader('Access-Control-Allow-Origin')
+			context.response.getHeader('Access-Control-Allow-Origin'),
 		).to.be.equal('test.com');
 		expect(
-			context.response.getHeader('Access-Control-Allow-Methods')
+			context.response.getHeader('Access-Control-Allow-Methods'),
 		).to.be.equal('GET,POST,PUT');
 
 		__testContext.config.modules.http_api.options.cors.origin = originalOrigin;
@@ -110,10 +110,10 @@ describe('lisk_cors', () => {
 		expect(next).to.have.not.been.called;
 		expect(context.response.statusCode).to.be.equal(204);
 		expect(
-			context.response.getHeader('Access-Control-Allow-Origin')
+			context.response.getHeader('Access-Control-Allow-Origin'),
 		).to.be.equal('my-custom-origin.com');
 		expect(
-			context.response.getHeader('Access-Control-Allow-Methods')
+			context.response.getHeader('Access-Control-Allow-Methods'),
 		).to.be.equal('GET,POST,PUT');
 
 		__testContext.config.modules.http_api.options.cors.origin = originalOrigin;
@@ -132,10 +132,10 @@ describe('lisk_cors', () => {
 		expect(next).to.be.calledOnce;
 		expect(context.response.statusCode).to.be.equal(200);
 		expect(
-			context.response.getHeader('Access-Control-Allow-Origin')
+			context.response.getHeader('Access-Control-Allow-Origin'),
 		).to.be.equal(undefined);
 		expect(
-			context.response.getHeader('Access-Control-Allow-Methods')
+			context.response.getHeader('Access-Control-Allow-Methods'),
 		).to.be.equal(undefined);
 
 		__testContext.config.modules.http_api.options.cors.origin = originalOrigin;
@@ -157,10 +157,10 @@ describe('lisk_cors', () => {
 		expect(next).to.have.not.been.called;
 		expect(context.response.statusCode).to.be.equal(204);
 		expect(
-			context.response.getHeader('Access-Control-Allow-Origin')
+			context.response.getHeader('Access-Control-Allow-Origin'),
 		).to.be.equal('*');
 		expect(
-			context.response.getHeader('Access-Control-Allow-Methods')
+			context.response.getHeader('Access-Control-Allow-Methods'),
 		).to.be.equal('GET,POST');
 		__testContext.config.modules.http_api.options.cors.methods = originalMethods;
 		done();

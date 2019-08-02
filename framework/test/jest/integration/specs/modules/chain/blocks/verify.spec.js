@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -62,15 +62,15 @@ describe('blocks/verify', () => {
 
 	describe('verifyPayload', () => {
 		it.todo(
-			'should fail when payload length greater than MAX_PAYLOAD_LENGTH constant value'
+			'should fail when payload length greater than MAX_PAYLOAD_LENGTH constant value',
 		);
 
 		it.todo(
-			'should fail when transactions length != numberOfTransactions property'
+			'should fail when transactions length != numberOfTransactions property',
 		);
 
 		it.todo(
-			'should fail when transactions length > maxTransactionsPerBlock constant value'
+			'should fail when transactions length > maxTransactionsPerBlock constant value',
 		);
 
 		it.todo('should fail when a transaction is of an unknown type');
@@ -80,11 +80,11 @@ describe('blocks/verify', () => {
 		it.todo('should fail when payload hash is invalid');
 
 		it.todo(
-			'should fail when summed transaction amounts do not match totalAmount property'
+			'should fail when summed transaction amounts do not match totalAmount property',
 		);
 
 		it.todo(
-			'should fail when summed transaction fees do not match totalFee property'
+			'should fail when summed transaction fees do not match totalFee property',
 		);
 	});
 
@@ -126,7 +126,7 @@ describe('blocks/verify', () => {
 
 			describe('when onNewBlock function is called BLOCK_SLOT_WINDOW * 2 times', () => {
 				it.todo(
-					'should maintain last BLOCK_SLOT_WINDOW blockIds in lastNBlockIds queue'
+					'should maintain last BLOCK_SLOT_WINDOW blockIds in lastNBlockIds queue',
 				);
 			});
 		});
@@ -136,7 +136,7 @@ describe('blocks/verify', () => {
 		describe('when __private.lastNBlockIds', () => {
 			describe('contains block id', () => {
 				it.todo(
-					'should return result with error = Block already exists in chain'
+					'should return result with error = Block already exists in chain',
 				);
 			});
 
@@ -184,7 +184,7 @@ describe('blocks/verify', () => {
 
 			describe('block with processed transaction', () => {
 				it.todo(
-					'should generate block 1 with valid generator slot and processed transaction'
+					'should generate block 1 with valid generator slot and processed transaction',
 				);
 
 				it.todo('should fail when transaction is invalid');

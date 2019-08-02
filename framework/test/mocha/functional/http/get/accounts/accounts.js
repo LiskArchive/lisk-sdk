@@ -39,7 +39,7 @@ describe('GET /accounts', () => {
 			it('should return asset field for account', async () => {
 				const res = await accountsEndpoint.makeRequest(
 					{ address: accountFixtures.genesis.address },
-					200
+					200,
 				);
 				expect(res.body.data[0].asset).to.be.eql({});
 			});
@@ -49,7 +49,7 @@ describe('GET /accounts', () => {
 			it('using known address should be ok', async () => {
 				return accountsEndpoint.makeRequest(
 					{ address: accountFixtures.genesis.address },
-					200
+					200,
 				);
 			});
 
@@ -57,7 +57,7 @@ describe('GET /accounts', () => {
 				return accountsEndpoint
 					.makeRequest(
 						{ address: accountFixtures.genesis.address, publicKey: '' },
-						200
+						200,
 					)
 					.then(res => {
 						expect(res.body.data).to.have.length(0);
@@ -68,7 +68,7 @@ describe('GET /accounts', () => {
 				return accountsEndpoint
 					.makeRequest(
 						{ address: accountFixtures.genesis.address.toLowerCase() },
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'address');
@@ -102,7 +102,7 @@ describe('GET /accounts', () => {
 			it('using known publicKey should be ok', async () => {
 				return accountsEndpoint.makeRequest(
 					{ publicKey: accountFixtures.genesis.publicKey },
-					200
+					200,
 				);
 			});
 
@@ -110,7 +110,7 @@ describe('GET /accounts', () => {
 				return accountsEndpoint
 					.makeRequest(
 						{ publicKey: accountFixtures.genesis.publicKey, address: '' },
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'address');
@@ -164,15 +164,15 @@ describe('GET /accounts', () => {
 							publicKey: accountFixtures.genesis.publicKey,
 							address: accountFixtures.genesis.address,
 						},
-						200
+						200,
 					)
 					.then(res => {
 						expect(res.body.data).to.have.length(1);
 						expect(res.body.data[0].address).to.be.eql(
-							accountFixtures.genesis.address
+							accountFixtures.genesis.address,
 						);
 						expect(res.body.data[0].publicKey).to.be.eql(
-							accountFixtures.genesis.publicKey
+							accountFixtures.genesis.publicKey,
 						);
 					});
 			});
@@ -184,7 +184,7 @@ describe('GET /accounts', () => {
 							publicKey: account.publicKey,
 							address: accountFixtures.genesis.address,
 						},
-						200
+						200,
 					)
 					.then(res => {
 						expect(res.body.data).to.have.length(0);
@@ -224,11 +224,11 @@ describe('GET /accounts', () => {
 				return accountsEndpoint
 					.makeRequest(
 						{ secondPublicKey: secondPublicKeyAccount.secondPublicKey },
-						200
+						200,
 					)
 					.then(res => {
 						expect(res.body.data[0].secondPublicKey).to.be.eql(
-							secondPublicKeyAccount.secondPublicKey
+							secondPublicKeyAccount.secondPublicKey,
 						);
 					});
 			});
@@ -269,18 +269,18 @@ describe('GET /accounts', () => {
 				return accountsEndpoint
 					.makeRequest(
 						{ username: accountFixtures.existingDelegate.delegateName },
-						200
+						200,
 					)
 					.then(res => {
 						expect(res.body.data).to.have.length(1);
 						expect(res.body.data[0].address).to.be.eql(
-							accountFixtures.existingDelegate.address
+							accountFixtures.existingDelegate.address,
 						);
 						expect(res.body.data[0].publicKey).to.be.eql(
-							accountFixtures.existingDelegate.publicKey
+							accountFixtures.existingDelegate.publicKey,
 						);
 						expect(res.body.data[0].delegate.username).to.to.eql(
-							accountFixtures.existingDelegate.delegateName
+							accountFixtures.existingDelegate.delegateName,
 						);
 					});
 			});
@@ -326,7 +326,7 @@ describe('GET /accounts', () => {
 							}
 
 							return a.address.localeCompare(b.address);
-						})
+						}),
 					).to.be.eql(res.body.data);
 				});
 			});
@@ -348,7 +348,7 @@ describe('GET /accounts', () => {
 								}
 
 								return a.address.localeCompare(b.address);
-							})
+							}),
 						).to.be.eql(res.body.data);
 					});
 			});
@@ -370,7 +370,7 @@ describe('GET /accounts', () => {
 								}
 
 								return a.address.localeCompare(b.address);
-							})
+							}),
 						).to.be.eql(res.body.data);
 					});
 			});
@@ -394,7 +394,7 @@ describe('GET /accounts', () => {
 					})
 					.then(res2 => {
 						expect(res2.body.data).to.include.deep.members(
-							res1.body.data.slice(-5)
+							res1.body.data.slice(-5),
 						);
 					});
 			});
@@ -413,7 +413,7 @@ describe('GET /accounts', () => {
 						expect(
 							_.clone(balances)
 								.sort()
-								.reverse()
+								.reverse(),
 						).to.be.eql(balances);
 					});
 			});
@@ -424,13 +424,13 @@ describe('GET /accounts', () => {
 				.makeRequest({ address: accountFixtures.existingDelegate.address }, 200)
 				.then(res => {
 					expect(res.body.data[0].address).to.be.eql(
-						accountFixtures.existingDelegate.address
+						accountFixtures.existingDelegate.address,
 					);
 					expect(res.body.data[0].publicKey).to.be.eql(
-						accountFixtures.existingDelegate.publicKey
+						accountFixtures.existingDelegate.publicKey,
 					);
 					expect(res.body.data[0].delegate.username).to.be.eql(
-						accountFixtures.existingDelegate.delegateName
+						accountFixtures.existingDelegate.delegateName,
 					);
 				});
 		});
@@ -440,7 +440,7 @@ describe('GET /accounts', () => {
 				constantsEndPoint.makeRequest(),
 				accountsEndpoint.makeRequest(
 					{ address: accountFixtures.existingDelegate.address },
-					200
+					200,
 				),
 			];
 
@@ -457,7 +457,7 @@ describe('GET /accounts', () => {
 
 			const calculatedApproval = apiHelpers.calculateApproval(
 				delegate.vote,
-				constansts.supply
+				constansts.supply,
 			);
 
 			expect(delegate.approval).to.be.eql(calculatedApproval);
@@ -468,10 +468,10 @@ describe('GET /accounts', () => {
 				.makeRequest({ address: accountFixtures.genesis.address }, 200)
 				.then(res => {
 					expect(res.body.data[0].address).to.be.eql(
-						accountFixtures.genesis.address
+						accountFixtures.genesis.address,
 					);
 					expect(res.body.data[0].publicKey).to.be.eql(
-						accountFixtures.genesis.publicKey
+						accountFixtures.genesis.publicKey,
 					);
 					expect(res.body.data[0]).to.not.have.property('delegate');
 				});

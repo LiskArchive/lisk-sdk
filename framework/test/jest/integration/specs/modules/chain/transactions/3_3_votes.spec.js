@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -19,7 +19,7 @@ describe('integration test (type 3) - voting with duplicate submissions', () => 
 		it.todo('should be ok adding an upvoting transaction to the pool');
 
 		it.todo(
-			'should be ok adding to the pool an upvoting transaction for the same delegate from eh same account but with different id'
+			'should be ok adding to the pool an upvoting transaction for the same delegate from eh same account but with different id',
 		);
 
 		describe('after forging one block', () => {
@@ -28,15 +28,15 @@ describe('integration test (type 3) - voting with duplicate submissions', () => 
 			it.todo('should not include the last upvoting transaction to arrive');
 
 			it.todo(
-				'should fail adding to the pool an upvoting transaction for the same delegate from the same account'
+				'should fail adding to the pool an upvoting transaction for the same delegate from the same account',
 			);
 
 			it.todo(
-				'should be ok adding to the pool a downvoting transaction for the same delegate from the same account'
+				'should be ok adding to the pool a downvoting transaction for the same delegate from the same account',
 			);
 
 			it.todo(
-				'should be ok adding to the pool a down voting transaction for the same delegate from the same account but with different id'
+				'should be ok adding to the pool a down voting transaction for the same delegate from the same account but with different id',
 			);
 
 			describe('after forging a second block', () => {
@@ -45,7 +45,7 @@ describe('integration test (type 3) - voting with duplicate submissions', () => 
 				it.todo('should not include the last downvoting transaction to arrive');
 
 				it.todo(
-					'should fail adding to the pool a downvoting transaction for the same delegate from the same account'
+					'should fail adding to the pool a downvoting transaction for the same delegate from the same account',
 				);
 			});
 		});

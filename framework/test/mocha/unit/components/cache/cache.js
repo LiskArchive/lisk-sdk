@@ -28,7 +28,7 @@ describe('components: cache', () => {
 		this.logger = createLoggerComponent(__testContext.config.components.logger);
 		cache = createCacheComponent(
 			__testContext.config.components.cache,
-			this.logger
+			this.logger,
 		);
 		await cache.bootstrap();
 		return expect(cache).to.be.an('object');
@@ -210,7 +210,7 @@ describe('components: cache', () => {
 			const getPromises = keys.map(key => cache.getJsonForKey(key));
 			const getResults = await Promise.all(getPromises);
 			expect(getResults.filter(status => status === null)).to.have.length(
-				keys.length
+				keys.length,
 			);
 		});
 

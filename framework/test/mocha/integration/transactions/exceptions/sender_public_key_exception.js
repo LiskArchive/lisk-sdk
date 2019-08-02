@@ -96,12 +96,12 @@ describe('exceptions for senderPublicKey transactions', () => {
 							return reject(err);
 						}
 						return resolve(block);
-					}
+					},
 				);
 			});
 			await library.modules.blocks.blocksProcess.processBlock(
 				newBlock,
-				library.modules.blocks.lastBlock
+				library.modules.blocks.lastBlock,
 			);
 			library.modules.blocks._lastBlock = newBlock;
 		});
@@ -119,12 +119,12 @@ describe('exceptions for senderPublicKey transactions', () => {
 								return reject(err);
 							}
 							return resolve(block);
-						}
+						},
 					);
 				});
 				await library.modules.blocks.blocksProcess.processBlock(
 					newBlock,
-					library.modules.blocks.lastBlock
+					library.modules.blocks.lastBlock,
 				);
 				library.modules.blocks._lastBlock = newBlock;
 			});
@@ -134,13 +134,13 @@ describe('exceptions for senderPublicKey transactions', () => {
 
 				before('get sender account', async () => {
 					senderMemAccountBefore = await library.components.storage.entities.Account.getOne(
-						{ address: accountWithCollisionPublicKeys.address }
+						{ address: accountWithCollisionPublicKeys.address },
 					);
 				});
 
 				it('should assign publicKey to the sender account', async () => {
 					return expect(senderMemAccountBefore.publicKey).to.equal(
-						accountWithCollisionPublicKeys.originalPublicKey
+						accountWithCollisionPublicKeys.originalPublicKey,
 					);
 				});
 
@@ -165,12 +165,12 @@ describe('exceptions for senderPublicKey transactions', () => {
 										return reject(err);
 									}
 									return resolve(block);
-								}
+								},
 							);
 						});
 						await library.modules.blocks.blocksProcess.processBlock(
 							newBlock,
-							library.modules.blocks.lastBlock
+							library.modules.blocks.lastBlock,
 						);
 						library.modules.blocks._lastBlock = newBlock;
 					});
@@ -180,13 +180,13 @@ describe('exceptions for senderPublicKey transactions', () => {
 
 						before('get sender account', async () => {
 							senderMemAccountAfter = await library.components.storage.entities.Account.getOne(
-								{ address: accountWithCollisionPublicKeys.address }
+								{ address: accountWithCollisionPublicKeys.address },
 							);
 						});
 
 						it('should not update sender account with new public key', async () => {
 							return expect(senderMemAccountAfter.publicKey).to.equal(
-								accountWithCollisionPublicKeys.originalPublicKey
+								accountWithCollisionPublicKeys.originalPublicKey,
 							);
 						});
 					});
@@ -201,16 +201,16 @@ describe('exceptions for senderPublicKey transactions', () => {
 										transactionToSecurePublicKeyForAccount.id,
 										transactionWithSenderPublicKeyException.id,
 									],
-								}
+								},
 							);
 						});
 
 						it('should save both transactions in the database', async () => {
 							return expect(
-								transactionsFromDatabase.map(transaction => transaction.id)
+								transactionsFromDatabase.map(transaction => transaction.id),
 							).to.include(
 								transactionToSecurePublicKeyForAccount.id,
-								transactionWithSenderPublicKeyException.id
+								transactionWithSenderPublicKeyException.id,
 							);
 						});
 					});
@@ -225,13 +225,13 @@ describe('exceptions for senderPublicKey transactions', () => {
 						describe('details of the account', () => {
 							before('get sender account', async () => {
 								afterDeleteSenderMemAccount = await library.components.storage.entities.Account.getOne(
-									{ address: accountWithCollisionPublicKeys.address }
+									{ address: accountWithCollisionPublicKeys.address },
 								);
 							});
 
 							it('should revert balance field of sender account', async () => {
 								return expect(afterDeleteSenderMemAccount.balance).to.equal(
-									senderMemAccountBefore.balance
+									senderMemAccountBefore.balance,
 								);
 							});
 						});
@@ -249,7 +249,7 @@ describe('exceptions for senderPublicKey transactions', () => {
 										expect(err).to.not.exist;
 										transactionsFilteredById = res.transactions;
 										done();
-									}
+									},
 								);
 							});
 

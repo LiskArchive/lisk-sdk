@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -23,23 +23,23 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 		describe('single transaction scenarios: create transaction, forge, delete block, forge again', () => {
 			describe('(type 0) transfer funds', () => {
 				it.todo(
-					'should validate account data from sender after account creation'
+					'should validate account data from sender after account creation',
 				);
 
 				it.todo('should create a transaction and forge a block');
 
 				it.todo(
-					'should validate account data from sender after forging a block'
+					'should validate account data from sender after forging a block',
 				);
 
 				it.todo(
-					'should get account data from receipt that is a virgin (not have publicKey assigned)'
+					'should get account data from receipt that is a virgin (not have publicKey assigned)',
 				);
 
 				it.todo('should delete last block');
 
 				it.todo(
-					'should validate account data from sender after deleting the last block'
+					'should validate account data from sender after deleting the last block',
 				);
 
 				it.todo('should get account data from receipt that has a zero balance');
@@ -47,7 +47,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				it.todo('should forge a block with transaction pool');
 
 				it.todo(
-					'should validate account data from sender after forging a block with transaction pool'
+					'should validate account data from sender after forging a block with transaction pool',
 				);
 
 				it.todo('should get account data from receipt that has a balance');
@@ -59,19 +59,19 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				it.todo('should forge a block');
 
 				it.todo(
-					'should validate account data from sender after forging a block'
+					'should validate account data from sender after forging a block',
 				);
 
 				it.todo('should delete last block');
 
 				it.todo(
-					'should validate account data from sender after deleting the last block'
+					'should validate account data from sender after deleting the last block',
 				);
 
 				it.todo('should forge a block with transaction pool');
 
 				it.todo(
-					'should validate account data from sender after forging a block with transaction pool'
+					'should validate account data from sender after forging a block with transaction pool',
 				);
 			});
 
@@ -81,55 +81,55 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				it.todo('should forge a block');
 
 				it.todo(
-					'should validate account data from sender after forging a block'
+					'should validate account data from sender after forging a block',
 				);
 
 				it.todo('should delete last block');
 
 				it.todo(
-					'should validate account data from sender after delete the last block'
+					'should validate account data from sender after delete the last block',
 				);
 
 				it.todo('should forge a block with pool transaction');
 
 				it.todo(
-					'should validate account data from sender after forging a block with transaction pool'
+					'should validate account data from sender after forging a block with transaction pool',
 				);
 			});
 
 			describe('(type 3) votes', () => {
 				it.todo(
-					'should validate account data from sender after account creation'
+					'should validate account data from sender after account creation',
 				);
 
 				it.todo('should forge a block');
 
 				it.todo(
-					'should validate account data from sender after forging a block'
+					'should validate account data from sender after forging a block',
 				);
 
 				it.todo('should delete last block');
 
 				it.todo(
-					'should validate account data from sender after deleting the last block'
+					'should validate account data from sender after deleting the last block',
 				);
 
 				it.todo('should forge a block with transaction pool');
 
 				it.todo(
-					'should validate account data from sender after forging a block with transaction pool'
+					'should validate account data from sender after forging a block with transaction pool',
 				);
 			});
 
 			describe('(type 4) register multisignature', () => {
 				it.todo(
-					'should validate account data from sender after account creation'
+					'should validate account data from sender after account creation',
 				);
 
 				it.todo('should forge a block');
 
 				it.todo(
-					'should validate account data from sender after forging a block'
+					'should validate account data from sender after forging a block',
 				);
 
 				it.todo('should delete last block');
@@ -141,73 +141,73 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 
 			describe.skip('(type 5) register dapp', () => {
 				it.todo(
-					'should validate account data from sender after account creation'
+					'should validate account data from sender after account creation',
 				);
 
 				it.todo('should forge a block');
 
 				it.todo(
-					'should validate account data from sender after forging a block'
+					'should validate account data from sender after forging a block',
 				);
 
 				it.todo('should delete last block');
 
 				it.todo(
-					'should validate account data from sender after deleting the last block'
+					'should validate account data from sender after deleting the last block',
 				);
 
 				it.todo('should forge a block with transaction pool');
 
 				it.todo(
-					'should validate account data from sender after forging a block with transaction pool'
+					'should validate account data from sender after forging a block with transaction pool',
 				);
 			});
 
 			describe.skip('(type 6) inTransfer dapp', () => {
 				it.todo(
-					'should validate account data from sender after account creation'
+					'should validate account data from sender after account creation',
 				);
 
 				it.todo('should forge a block');
 
 				it.todo(
-					'should validate account data from sender after forging a block'
+					'should validate account data from sender after forging a block',
 				);
 
 				it.todo('should delete last block');
 
 				it.todo(
-					'should validate account data from sender after deleting the last block'
+					'should validate account data from sender after deleting the last block',
 				);
 
 				it.todo('should forge a block with transaction pool');
 
 				it.todo(
-					'should validate account data from sender after forging a block with transaction pool'
+					'should validate account data from sender after forging a block with transaction pool',
 				);
 			});
 
 			describe.skip('(type 7) outTransfer dapp', () => {
 				it.todo(
-					'should validate account data from sender after account creation'
+					'should validate account data from sender after account creation',
 				);
 
 				it.todo('should forge a block');
 
 				it.todo(
-					'should validate account data from sender after forging a block'
+					'should validate account data from sender after forging a block',
 				);
 
 				it.todo('should delete last block');
 
 				it.todo(
-					'should validate account data from sender after deleting the last block'
+					'should validate account data from sender after deleting the last block',
 				);
 
 				it.todo('should forge a block with transaction pool');
 
 				it.todo(
-					'should validate account data from sender after forging a block with transaction pool'
+					'should validate account data from sender after forging a block with transaction pool',
 				);
 			});
 		});

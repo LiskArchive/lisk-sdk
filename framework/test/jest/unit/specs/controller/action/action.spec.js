@@ -30,22 +30,23 @@ describe('Action class', () => {
 		// Act & Assert
 		it('should throw an error when name argument was not provided.', () => {
 			expect(() => new Action()).toThrow(
-				'Action name "undefined" must be a valid name with module name.'
+				'Action name "undefined" must be a valid name with module name.',
 			);
 		});
 		it('should throw an error when invalid name was provided.', () => {
 			// Act & Assert
 			expect(() => new Action(INVALID_ACTION_NAME_ARG)).toThrow(
-				`Action name "${INVALID_ACTION_NAME_ARG}" must be a valid name with module name.`
+				`Action name "${INVALID_ACTION_NAME_ARG}" must be a valid name with module name.`,
 			);
 		});
 
 		it('should throw an error when invalid source was provided.', () => {
 			// Act & Assert
 			expect(
-				() => new Action(VALID_ACTION_NAME_ARG, null, INVALID_ACTION_SOURCE_ARG)
+				() =>
+					new Action(VALID_ACTION_NAME_ARG, null, INVALID_ACTION_SOURCE_ARG),
 			).toThrow(
-				`Source name "${INVALID_ACTION_SOURCE_ARG}" must be a valid module name.`
+				`Source name "${INVALID_ACTION_SOURCE_ARG}" must be a valid module name.`,
 			);
 		});
 
@@ -54,7 +55,7 @@ describe('Action class', () => {
 			const action = new Action(
 				VALID_ACTION_NAME_ARG,
 				PARAMS,
-				VALID_ACTION_SOURCE_ARG
+				VALID_ACTION_SOURCE_ARG,
 			);
 
 			// Assert
@@ -80,7 +81,7 @@ describe('Action class', () => {
 			action = new Action(
 				VALID_ACTION_NAME_ARG,
 				PARAMS,
-				VALID_ACTION_SOURCE_ARG
+				VALID_ACTION_SOURCE_ARG,
 			);
 		});
 

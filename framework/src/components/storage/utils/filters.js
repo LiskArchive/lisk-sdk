@@ -23,7 +23,7 @@ function filterGenerator(
 	alias,
 	fieldName,
 	valueSerializer,
-	condition
+	condition,
 ) {
 	const filters = {};
 	const serializer = valueSerializer || inputSerializers.defaultInput;
@@ -40,20 +40,20 @@ function filterGenerator(
 		case filterTypes.BOOLEAN:
 			filters[alias] = `${parsedFieldName} = ${getValue(alias)}`;
 			filters[`${alias}_eql`] = `${parsedFieldName} = ${getValue(
-				`${alias}_eql`
+				`${alias}_eql`,
 			)}`;
 			filters[`${alias}_ne`] = `${parsedFieldName} <> ${getValue(
-				`${alias}_ne`
+				`${alias}_ne`,
 			)}`;
 			break;
 
 		case filterTypes.TEXT:
 			filters[alias] = `${parsedFieldName} = ${getValue(alias)}`;
 			filters[`${alias}_eql`] = `${parsedFieldName} = ${getValue(
-				`${alias}_eql`
+				`${alias}_eql`,
 			)}`;
 			filters[`${alias}_ne`] = `${parsedFieldName} <> ${getValue(
-				`${alias}_ne`
+				`${alias}_ne`,
 			)}`;
 
 			filters[`${alias}_in`] = `${parsedFieldName} IN ($\{${alias}_in:csv})`;
@@ -63,10 +63,10 @@ function filterGenerator(
 		case filterTypes.BINARY:
 			filters[alias] = `${parsedFieldName} = ${getValue(alias)}`;
 			filters[`${alias}_eql`] = `${parsedFieldName} = ${getValue(
-				`${alias}_eql`
+				`${alias}_eql`,
 			)}`;
 			filters[`${alias}_ne`] = `${parsedFieldName} <> ${getValue(
-				`${alias}_ne`
+				`${alias}_ne`,
 			)}`;
 
 			filters[
@@ -78,23 +78,23 @@ function filterGenerator(
 		case filterTypes.NUMBER:
 			filters[alias] = `${parsedFieldName} = ${getValue(alias)}`;
 			filters[`${alias}_eql`] = `${parsedFieldName} = ${getValue(
-				`${alias}_eql`
+				`${alias}_eql`,
 			)}`;
 			filters[`${alias}_ne`] = `${parsedFieldName} <> ${getValue(
-				`${alias}_ne`
+				`${alias}_ne`,
 			)}`;
 
 			filters[`${alias}_gt`] = `${parsedFieldName} > ${getValue(
-				`${alias}_gt`
+				`${alias}_gt`,
 			)}`;
 			filters[`${alias}_gte`] = `${parsedFieldName} >= ${getValue(
-				`${alias}_gte`
+				`${alias}_gte`,
 			)}`;
 			filters[`${alias}_lt`] = `${parsedFieldName} < ${getValue(
-				`${alias}_lt`
+				`${alias}_lt`,
 			)}`;
 			filters[`${alias}_lte`] = `${parsedFieldName} <= ${getValue(
-				`${alias}_lte`
+				`${alias}_lte`,
 			)}`;
 			filters[`${alias}_in`] = `${parsedFieldName} IN ($\{${alias}_in:csv})`;
 			break;
@@ -108,7 +108,7 @@ function filterGenerator(
 					null,
 					'select',
 					alias,
-					parsedFieldName
+					parsedFieldName,
 				)}`;
 			}
 			break;
@@ -116,8 +116,8 @@ function filterGenerator(
 		default:
 			throw new NonSupportedFilterTypeError(
 				`"${filterType}" not supported filter type. Supported types are: ${Object.keys(
-					filterTypes
-				)}.`
+					filterTypes,
+				)}.`,
 			);
 	}
 
