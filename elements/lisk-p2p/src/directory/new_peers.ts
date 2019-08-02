@@ -41,14 +41,18 @@ export class NewPeers {
 	private readonly _newPeerBucketSize: number;
 	private readonly _secret: number;
 
-	public constructor(newPeerConfig: NewPeerConfig) {
-		this._newPeerBucketSize = newPeerConfig.newPeerBucketSize
-			? newPeerConfig.newPeerBucketSize
+	public constructor({
+		newPeerBucketSize,
+		newPeerListSize,
+		secret,
+	}: NewPeerConfig) {
+		this._newPeerBucketSize = newPeerBucketSize
+			? newPeerBucketSize
 			: DEFAULT_NEW_PEER_BUCKET_SIZE;
-		this._newPeerListSize = newPeerConfig.newPeerListSize
-			? newPeerConfig.newPeerListSize
+		this._newPeerListSize = newPeerListSize
+			? newPeerListSize
 			: DEFAULT_NEW_PEER_LIST_SIZE;
-		this._secret = newPeerConfig.secret;
+		this._secret = secret;
 		// Initialize the Map with all the buckets
 		this._newPeerMap = new Map();
 		[...Array(this._newPeerListSize).keys()]

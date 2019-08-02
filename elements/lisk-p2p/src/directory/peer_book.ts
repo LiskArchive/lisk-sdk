@@ -27,16 +27,14 @@ export class PeerBook {
 	private readonly _bannedPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 	private readonly _newPeers: NewPeers;
 	private readonly _triedPeers: TriedPeers;
-	public constructor(peerBookConfig: PeerBookConfig) {
-		this._newPeers = new NewPeers(
-			peerBookConfig.newPeerConfig
-				? peerBookConfig.newPeerConfig
-				: { secret: peerBookConfig.secret },
-		);
+	public constructor({
+		newPeerConfig,
+		triedPeerConfig,
+		secret,
+	}: PeerBookConfig) {
+		this._newPeers = new NewPeers(newPeerConfig ? newPeerConfig : { secret });
 		this._triedPeers = new TriedPeers(
-			peerBookConfig.triedPeerConfig
-				? peerBookConfig.triedPeerConfig
-				: { secret: peerBookConfig.secret },
+			triedPeerConfig ? triedPeerConfig : { secret },
 		);
 		this._bannedPeers = [];
 	}

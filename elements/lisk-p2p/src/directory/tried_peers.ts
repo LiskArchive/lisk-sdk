@@ -46,17 +46,22 @@ export class TriedPeers {
 	private readonly _maxReconnectTries: number;
 	private readonly _secret: number;
 
-	public constructor(triedPeerConfig: TriedPeerConfig) {
-		this._triedPeerListSize = triedPeerConfig.triedPeerListSize
-			? triedPeerConfig.triedPeerListSize
+	public constructor({
+		triedPeerListSize,
+		maxReconnectTries,
+		secret,
+		triedPeerBucketSize,
+	}: TriedPeerConfig) {
+		this._triedPeerListSize = triedPeerListSize
+			? triedPeerListSize
 			: DEFAULT_TRIED_PEER_LIST_SIZE;
-		this._triedPeerBucketSize = triedPeerConfig.triedPeerBucketSize
-			? triedPeerConfig.triedPeerBucketSize
+		this._triedPeerBucketSize = triedPeerBucketSize
+			? triedPeerBucketSize
 			: DEFAULT_TRIED_PEER_BUCKET_SIZE;
-		this._maxReconnectTries = triedPeerConfig.maxReconnectTries
-			? triedPeerConfig.maxReconnectTries
+		this._maxReconnectTries = maxReconnectTries
+			? maxReconnectTries
 			: DEFAULT_MAX_RECONNECT_TRIES;
-		this._secret = triedPeerConfig.secret;
+		this._secret = secret;
 		// Initialize the Map with all the buckets
 		this._triedPeerMap = new Map();
 		[...Array(this._triedPeerListSize).keys()]
