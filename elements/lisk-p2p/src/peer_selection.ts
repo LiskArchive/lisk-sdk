@@ -134,6 +134,7 @@ export const selectPeersForConnection = (
 		return [];
 	}
 
+	// LIP004 https://github.com/LiskHQ/lips/blob/master/proposals/lip-0004.md#peer-discovery-and-selection
 	const x =
 		input.triedPeers.length / (input.triedPeers.length + input.newPeers.length);
 	const minimumProbability = 0.5;
