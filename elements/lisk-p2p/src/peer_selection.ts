@@ -136,8 +136,8 @@ export const selectPeersForConnection = (
 
 	const x =
 		input.triedPeers.length / (input.triedPeers.length + input.newPeers.length);
-	// tslint:disable-next-line: no-magic-numbers
-	const r = Math.max(x, 0.5);
+	const minimumProbability = 0.5;
+	const r = Math.max(x, minimumProbability);
 
 	const shuffledTriedPeers = shuffle(input.triedPeers);
 	const shuffledNewPeers = shuffle(input.newPeers);
