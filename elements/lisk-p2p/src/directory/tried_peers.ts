@@ -20,7 +20,7 @@ export const DEFAULT_TRIED_PEER_BUCKET_SIZE = 32;
 export const DEFAULT_MAX_RECONNECT_TRIES = 3;
 
 export interface TriedPeerConfig {
-	readonly triedPeerListSize?: number;
+	readonly triedPeerBucketCount?: number;
 	readonly triedPeerBucketSize?: number;
 	readonly maxReconnectTries?: number;
 	readonly secret: number;
@@ -41,19 +41,19 @@ export interface AddPeerOutcome {
 
 export class TriedPeers {
 	private readonly _triedPeerMap: Map<number, Map<string, TriedPeerInfo>>;
-	private readonly _triedPeerListSize: number;
+	private readonly _triedPeerBucketCount: number;
 	private readonly _triedPeerBucketSize: number;
 	private readonly _maxReconnectTries: number;
 	private readonly _secret: number;
 
 	public constructor({
-		triedPeerListSize,
+		triedPeerBucketCount,
 		maxReconnectTries,
 		secret,
 		triedPeerBucketSize,
 	}: TriedPeerConfig) {
-		this._triedPeerListSize = triedPeerListSize
-			? triedPeerListSize
+		this._triedPeerBucketCount = triedPeerBucketCount
+			? triedPeerBucketCount
 			: DEFAULT_TRIED_PEER_LIST_SIZE;
 		this._triedPeerBucketSize = triedPeerBucketSize
 			? triedPeerBucketSize
@@ -64,7 +64,7 @@ export class TriedPeers {
 		this._secret = secret;
 		// Initialize the Map with all the buckets
 		this._triedPeerMap = new Map();
-		[...Array(this._triedPeerListSize).keys()]
+		[...Array(this._triedPeerBucketCount).keys()]
 			.map(x => x + 1)
 			.forEach(bucketId => {
 				this._triedPeerMap.set(bucketId, new Map<string, TriedPeerInfo>());
@@ -75,7 +75,7 @@ export class TriedPeers {
 		return {
 			maxReconnectTries: this._maxReconnectTries,
 			triedPeerBucketSize: this._triedPeerBucketSize,
-			triedPeerListSize: this._triedPeerListSize,
+			triedPeerBucketCount: this._triedPeerBucketCount,
 			secret: this._secret,
 		};
 	}

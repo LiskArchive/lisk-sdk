@@ -21,7 +21,7 @@ describe('triedPeer', () => {
 	const triedPeerConfig = {
 		maxReconnectTries: 3,
 		triedPeerBucketSize: 32,
-		triedPeerListSize: 64,
+		triedPeerBucketCount: 64,
 		secret: 123456,
 	};
 
@@ -197,7 +197,7 @@ describe('triedPeer', () => {
 				const triedPeerConfig = {
 					maxReconnectTries: 1,
 					triedPeerBucketSize: 32,
-					triedPeerListSize: 64,
+					triedPeerBucketCount: 64,
 					secret: 123456,
 				};
 				triedPeersList = new TriedPeers(triedPeerConfig);
@@ -216,7 +216,7 @@ describe('triedPeer', () => {
 				const triedPeerConfig = {
 					maxReconnectTries: 2,
 					triedPeerBucketSize: 32,
-					triedPeerListSize: 64,
+					triedPeerBucketCount: 64,
 					secret: 123456,
 				};
 				triedPeersList = new TriedPeers(triedPeerConfig);

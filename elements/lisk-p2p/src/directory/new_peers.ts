@@ -15,13 +15,13 @@
 import { P2PPeerInfo } from '../p2p_types';
 import { constructPeerIdFromPeerInfo, getBucket, PEER_TYPE } from '../utils';
 
-const DEFAULT_NEW_PEER_LIST_SIZE = 128;
+const DEFAULT_NEW_PEER_BUCKET_COUNT = 128;
 const DEFAULT_NEW_PEER_BUCKET_SIZE = 32;
 const MILLISECONDS_IN_ONE_DAY = 86400000; // Formula hours*minutes*seconds*milliseconds;
-const ELIGIBLE_DAYS_FOREVICTION = 30;
+const ELIGIBLE_DAYS_FOR_EVICTION = 30;
 
 export interface NewPeerConfig {
-	readonly newPeerListSize?: number;
+	readonly newPeerBucketCount?: number;
 	readonly newPeerBucketSize?: number;
 	readonly secret: number;
 }
@@ -37,25 +37,25 @@ export interface AddPeerOutcome {
 }
 export class NewPeers {
 	private readonly _newPeerMap: Map<number, Map<string, NewPeerInfo>>;
-	private readonly _newPeerListSize: number;
+	private readonly _newPeerBucketCount: number;
 	private readonly _newPeerBucketSize: number;
 	private readonly _secret: number;
 
 	public constructor({
 		newPeerBucketSize,
-		newPeerListSize,
+		newPeerBucketCount,
 		secret,
 	}: NewPeerConfig) {
 		this._newPeerBucketSize = newPeerBucketSize
 			? newPeerBucketSize
 			: DEFAULT_NEW_PEER_BUCKET_SIZE;
-		this._newPeerListSize = newPeerListSize
-			? newPeerListSize
-			: DEFAULT_NEW_PEER_LIST_SIZE;
+		this._newPeerBucketCount = newPeerBucketCount
+			? newPeerBucketCount
+			: DEFAULT_NEW_PEER_BUCKET_COUNT;
 		this._secret = secret;
 		// Initialize the Map with all the buckets
 		this._newPeerMap = new Map();
-		[...Array(this._newPeerListSize).keys()]
+		[...Array(this._newPeerBucketCount).keys()]
 			.map(x => x + 1)
 			.forEach(bucketNumber => {
 				this._newPeerMap.set(bucketNumber, new Map<string, NewPeerInfo>());
@@ -65,7 +65,7 @@ export class NewPeers {
 	public get newPeerConfig(): NewPeerConfig {
 		return {
 			newPeerBucketSize: this._newPeerBucketSize,
-			newPeerListSize: this._newPeerListSize,
+			newPeerBucketCount: this._newPeerBucketCount,
 			secret: this._secret,
 		};
 	}
@@ -165,14 +165,14 @@ export class NewPeers {
 		}
 
 		if (bucket) {
-			const newTriedPeerInfo = {
+			const newPeerInfo = {
 				peerInfo,
 				numOfConnectionFailures: 0,
 				dateAdded: new Date(),
 			};
 
 			if (bucket.size < this._newPeerBucketSize) {
-				bucket.set(incomingPeerId, newTriedPeerInfo);
+				bucket.set(incomingPeerId, newPeerInfo);
 				this._newPeerMap.set(bucketId, bucket);
 
 				return {
@@ -181,7 +181,7 @@ export class NewPeers {
 				};
 			} else {
 				const evictedPeer = this._evictPeer(bucketId);
-				bucket.set(incomingPeerId, newTriedPeerInfo);
+				bucket.set(incomingPeerId, newPeerInfo);
 				this._newPeerMap.set(bucketId, bucket);
 
 				return {
@@ -242,7 +242,7 @@ export class NewPeers {
 								MILLISECONDS_IN_ONE_DAY,
 						),
 					);
-					if (diffDays >= ELIGIBLE_DAYS_FOREVICTION) {
+					if (diffDays >= ELIGIBLE_DAYS_FOR_EVICTION) {
 						peerList.delete(peerId);
 						this._newPeerMap.set(bucketId, peerList);
 						evictedPeer = peer;

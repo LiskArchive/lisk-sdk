@@ -19,7 +19,7 @@ import { P2PPeerInfo } from '../../../src/p2p_types';
 
 describe('newPeer', () => {
 	const newPeerConfig = {
-		newPeerListSize: 128,
+		newPeerBucketCount: 128,
 		newPeerBucketSize: 32,
 		secret: 123456,
 	};
