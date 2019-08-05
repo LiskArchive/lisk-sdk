@@ -26,7 +26,7 @@ interface SCServerUpdated extends SCServer {
 
 import { REMOTE_RPC_GET_PEERS_LIST } from './peer';
 
-import { PeerBook } from './directory';
+import { PeerBook } from './peer_directory';
 
 import {
 	FORBIDDEN_CONNECTION,
