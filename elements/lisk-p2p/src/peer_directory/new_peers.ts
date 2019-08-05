@@ -99,16 +99,6 @@ export class NewPeers {
 		});
 	}
 
-	public findPeer(peerInfo: P2PPeerInfo): boolean {
-		const bucketId = this.getBucketId(peerInfo.ipAddress);
-		const bucket = this._newPeerMap.get(bucketId);
-		if (bucket && bucket.get(constructPeerIdFromPeerInfo(peerInfo))) {
-			return true;
-		}
-
-		return false;
-	}
-
 	public updatePeer(peerInfo: P2PPeerInfo): boolean {
 		const bucketId = this.getBucketId(peerInfo.ipAddress);
 		const bucket = this._newPeerMap.get(bucketId);

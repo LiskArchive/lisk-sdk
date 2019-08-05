@@ -49,7 +49,7 @@ describe('newPeer', () => {
 		});
 
 		it('should add the incoming peer when it does not exist already', async () => {
-			expect(newPeersList.findPeer(samplePeers[0])).to.be.true;
+			expect(newPeersList.getPeer(samplePeers[0])).eql(samplePeers[0]);
 		});
 
 		it('should not add the incoming peer if it exists', async () => {
@@ -94,7 +94,7 @@ describe('newPeer', () => {
 
 		it('should remove the peer from the incoming peerInfo', async () => {
 			newPeersList.removePeer(samplePeers[0]);
-			expect(newPeersList.findPeer(samplePeers[0])).to.be.false;
+			expect(newPeersList.getPeer(samplePeers[0])).to.be.undefined;
 		});
 	});
 
@@ -174,8 +174,8 @@ describe('newPeer', () => {
 
 		describe('when the peer exist', () => {
 			it('should find the peer from the incoming peerInfo', async () => {
-				const success = newPeersList.findPeer(samplePeers[0]);
-				expect(success).to.be.true;
+				const peer = newPeersList.getPeer(samplePeers[0]);
+				expect(peer).eql(samplePeers[0]);
 			});
 		});
 

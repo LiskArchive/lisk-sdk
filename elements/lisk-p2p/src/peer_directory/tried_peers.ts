@@ -102,16 +102,6 @@ export class TriedPeers {
 		});
 	}
 
-	public findPeer(peerInfo: P2PPeerInfo): boolean {
-		const bucketId = this.getBucketId(peerInfo.ipAddress);
-		const bucket = this._triedPeerMap.get(bucketId);
-		if (bucket && bucket.get(constructPeerIdFromPeerInfo(peerInfo))) {
-			return true;
-		}
-
-		return false;
-	}
-
 	public updatePeer(peerInfo: P2PDiscoveredPeerInfo): boolean {
 		const bucketId = this.getBucketId(peerInfo.ipAddress);
 		const bucket = this._triedPeerMap.get(bucketId);
