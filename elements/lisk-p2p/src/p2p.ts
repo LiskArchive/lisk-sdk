@@ -24,11 +24,7 @@ interface SCServerUpdated extends SCServer {
 	readonly isReady: boolean;
 }
 
-import {
-	constructPeerId,
-	constructPeerIdFromPeerInfo,
-	REMOTE_RPC_GET_PEERS_LIST,
-} from './peer';
+import { REMOTE_RPC_GET_PEERS_LIST } from './peer';
 
 import { PeerBook } from './directory';
 
@@ -92,6 +88,7 @@ import {
 	EVENT_UPDATED_PEER_INFO,
 	PeerPool,
 } from './peer_pool';
+import { constructPeerIdFromPeerInfo } from './utils';
 import { checkPeerCompatibility, sanitizePeerLists } from './validation';
 
 export {
@@ -608,7 +605,10 @@ export class P2P extends EventEmitter {
 				}
 
 				const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
-				const peerId = constructPeerId(socket.remoteAddress, wsPort);
+				const peerId = constructPeerIdFromPeerInfo({
+					ipAddress: socket.remoteAddress,
+					wsPort,
+				});
 
 				// tslint:disable-next-line no-let
 				let queryOptions;
@@ -792,7 +792,11 @@ export class P2P extends EventEmitter {
 	private _isTrustedPeer(peerId: string): boolean {
 		const isSeed = this._sanitizedPeerLists.seedPeers.find(
 			seedPeer =>
-				peerId === constructPeerId(seedPeer.ipAddress, seedPeer.wsPort),
+				peerId ===
+				constructPeerIdFromPeerInfo({
+					ipAddress: seedPeer.ipAddress,
+					wsPort: seedPeer.wsPort,
+				}),
 		);
 
 		const isWhitelisted = this._sanitizedPeerLists.whitelisted.find(

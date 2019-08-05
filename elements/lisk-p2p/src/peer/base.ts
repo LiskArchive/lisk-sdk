@@ -35,6 +35,7 @@ import { P2PRequest } from '../p2p_request';
 
 import * as socketClusterClient from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
+import { constructPeerIdFromPeerInfo } from '../utils';
 import {
 	validateBasicPeersInfoList,
 	validatePeerInfo,
@@ -113,12 +114,6 @@ export enum ConnectionState {
 	CLOSED = 'closed',
 }
 
-export const constructPeerId = (ipAddress: string, wsPort: number): string =>
-	`${ipAddress}:${wsPort}`;
-
-export const constructPeerIdFromPeerInfo = (peerInfo: P2PPeerInfo): string =>
-	`${peerInfo.ipAddress}:${peerInfo.wsPort}`;
-
 // Format the node info so that it will be valid from the perspective of both new and legacy nodes.
 export const convertNodeInfoToLegacyFormat = (
 	nodeInfo: P2PNodeInfo,
@@ -191,7 +186,10 @@ export class Peer extends EventEmitter {
 		this._peerConfig = peerConfig;
 		this._ipAddress = peerInfo.ipAddress;
 		this._wsPort = peerInfo.wsPort;
-		this._id = constructPeerId(this._ipAddress, this._wsPort);
+		this._id = constructPeerIdFromPeerInfo({
+			ipAddress: this._ipAddress,
+			wsPort: this._wsPort,
+		});
 		this._height = peerInfo.height ? (peerInfo.height as number) : 0;
 		this._reputation = DEFAULT_REPUTATION_SCORE;
 		this._latency = 0;

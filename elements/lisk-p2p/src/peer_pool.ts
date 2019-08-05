@@ -40,7 +40,6 @@ import {
 } from './p2p_types';
 import {
 	ConnectionState,
-	constructPeerIdFromPeerInfo,
 	EVENT_BAN_PEER,
 	EVENT_CLOSE_INBOUND,
 	EVENT_CLOSE_OUTBOUND,
@@ -63,6 +62,7 @@ import {
 	Peer,
 } from './peer';
 import { getUniquePeersbyIp } from './peer_selection';
+import { constructPeerIdFromPeerInfo } from './utils';
 
 export {
 	EVENT_CLOSE_INBOUND,

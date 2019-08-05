@@ -13,8 +13,6 @@
  */
 
 export {
-	constructPeerId,
-	constructPeerIdFromPeerInfo,
 	ConnectionState,
 	EVENT_BAN_PEER,
 	EVENT_DISCOVERED_PEER,
