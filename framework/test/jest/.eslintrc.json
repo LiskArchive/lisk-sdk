@@ -5,6 +5,8 @@
 		"jest/globals": true
 	},
 	"rules": {
+		"callback-return": "error",
+		"no-unused-expressions": "off",
 		"import/no-extraneous-dependencies": ["error", { "devDependencies": true }],
 		"mocha/handle-done-callback": "off",
 		"mocha/max-top-level-suites": "off",

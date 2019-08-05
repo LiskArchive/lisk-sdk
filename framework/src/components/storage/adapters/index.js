@@ -14,7 +14,10 @@
 
 'use strict';
 
+const BaseAdapter = require('./base_adapter');
+const PgpAdapter = require('./pgp_adapter');
+
 module.exports = {
-	BaseAdapter: require('./base_adapter'),
-	PgpAdapter: require('./pgp_adapter'),
+	BaseAdapter,
+	PgpAdapter,
 };

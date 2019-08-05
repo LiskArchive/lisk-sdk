@@ -64,7 +64,7 @@ describe('system test - round store', () => {
 	describe('cache', () => {
 		it('should throw ', async () => {
 			return expect(roundStore.cache()).to.eventually.rejectedWith(
-				'cache cannot be called for round'
+				'cache cannot be called for round',
 			);
 		});
 	});
@@ -78,7 +78,7 @@ describe('system test - round store', () => {
 	describe('createSnapshot', () => {
 		it('should throw ', async () => {
 			expect(roundStore.createSnapshot.bind(roundStore)).to.throw(
-				'createSnapshot cannot be called for round'
+				'createSnapshot cannot be called for round',
 			);
 		});
 	});
@@ -86,7 +86,7 @@ describe('system test - round store', () => {
 	describe('restoreSnapshot', () => {
 		it('should throw ', async () => {
 			expect(roundStore.restoreSnapshot.bind(roundStore)).to.throw(
-				'restoreSnapshot cannot be called for round'
+				'restoreSnapshot cannot be called for round',
 			);
 		});
 	});
@@ -94,7 +94,7 @@ describe('system test - round store', () => {
 	describe('get', () => {
 		it('should throw ', async () => {
 			expect(roundStore.get.bind(roundStore)).to.throw(
-				'get cannot be called for round'
+				'get cannot be called for round',
 			);
 		});
 	});
@@ -102,7 +102,7 @@ describe('system test - round store', () => {
 	describe('getOrDefault', () => {
 		it('should throw ', async () => {
 			expect(roundStore.getOrDefault.bind(roundStore)).to.throw(
-				'getOrDefault cannot be called for round'
+				'getOrDefault cannot be called for round',
 			);
 		});
 	});
@@ -110,7 +110,7 @@ describe('system test - round store', () => {
 	describe('find', () => {
 		it('should throw ', async () => {
 			expect(roundStore.find.bind(roundStore)).to.throw(
-				'find cannot be called for round'
+				'find cannot be called for round',
 			);
 		});
 	});
@@ -118,7 +118,7 @@ describe('system test - round store', () => {
 	describe('set', () => {
 		it('should throw ', async () => {
 			expect(roundStore.set.bind(roundStore)).to.throw(
-				'set cannot be called for round'
+				'set cannot be called for round',
 			);
 		});
 	});
@@ -147,7 +147,7 @@ describe('system test - round store', () => {
 			expect(roundStore.round.create).to.have.been.calledWithExactly(
 				roundInformation,
 				{},
-				voteTransaction
+				voteTransaction,
 			);
 		});
 	});

@@ -377,8 +377,10 @@ pipeline {
 				if (env.BRANCH_NAME == 'master') {
 					step([$class: 'MasterCoverageAction', scmVars: [GIT_URL: env.GIT_URL]])
 				}
+				if (env.CHANGE_ID != null) {
+					step([$class: 'CompareCoverageAction', publishResultAs: 'statusCheck', scmVars: [GIT_URL: env.GIT_URL]])
+				}
 			}
-			step([$class: 'CompareCoverageAction', publishResultAs: 'statusCheck', scmVars: [GIT_URL: env.GIT_URL]])
 		}
 		cleanup {
 			cleanWs()

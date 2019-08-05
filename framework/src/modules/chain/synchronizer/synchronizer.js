@@ -64,17 +64,17 @@ class Synchronizer {
 	register(mechanism) {
 		assert(
 			util.types.isAsyncFunction(mechanism.isValidFor),
-			'Sync mechanism must have "isValidFor" async interface'
+			'Sync mechanism must have "isValidFor" async interface',
 		);
 		assert(
 			util.types.isAsyncFunction(mechanism.run),
-			'Sync mechanism must have "run" async interface'
+			'Sync mechanism must have "run" async interface',
 		);
 
 		// Check the property isActive, it can be own property or a getter
 		assert(
 			mechanism.isActive !== undefined,
-			'Sync mechanism must have "isActive" interface'
+			'Sync mechanism must have "isActive" interface',
 		);
 
 		this.mechanisms.push(mechanism);
@@ -90,18 +90,18 @@ class Synchronizer {
 			throw new Error(
 				`Blocks Sychronizer with ${
 					this.activeMechanism.constructor.name
-				} is already running`
+				} is already running`,
 			);
 		}
 
-		const lastBlock = this.blocks.lastBlock;
+		const { lastBlock } = this.blocks;
 
 		// Moving to a Different Chain
 		// 1. Step: Validate new tip of chain
 		const result = this._validateBlockBeforeSync(lastBlock, receivedBlock);
 		if (!result.verified) {
 			throw Error(
-				`Block verification for chain synchronization failed with errors: ${result.errors.join()}`
+				`Block verification for chain synchronization failed with errors: ${result.errors.join()}`,
 			);
 		}
 
@@ -111,7 +111,7 @@ class Synchronizer {
 		if (!validMechanism) {
 			return this.logger.info(
 				'Sync mechanism could not be determined for the given block',
-				receivedBlock
+				receivedBlock,
 			);
 		}
 
@@ -170,14 +170,14 @@ class Synchronizer {
 			this.blockReward,
 			receivedBlock,
 			this.exceptions,
-			result
+			result,
 		);
 		result = verifyId(receivedBlock, result);
 		result = verifyPayload(
 			receivedBlock,
 			this.constants.maxTransactionsPerBlock,
 			this.constants.maxPayloadLength,
-			result
+			result,
 		);
 
 		result.verified = result.errors.length === 0;

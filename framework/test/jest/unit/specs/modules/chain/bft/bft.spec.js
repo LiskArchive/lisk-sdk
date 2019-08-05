@@ -185,7 +185,7 @@ describe('bft', () => {
 
 				expect(storageMock.entities.ChainMeta.getKey).toHaveBeenCalledTimes(1);
 				expect(storageMock.entities.ChainMeta.getKey).toHaveBeenCalledWith(
-					'BFT.finalizedHeight'
+					'BFT.finalizedHeight',
 				);
 				expect(result).toBeInstanceOf(FinalityManager);
 			});
@@ -244,7 +244,7 @@ describe('bft', () => {
 					{
 						limit: 1,
 						sort: 'height:desc',
-					}
+					},
 				);
 			});
 
@@ -296,7 +296,7 @@ describe('bft', () => {
 					{
 						limit: null,
 						sort: 'height:asc',
-					}
+					},
 				);
 			});
 
@@ -308,7 +308,7 @@ describe('bft', () => {
 
 				await bft.loadBlocks({ fromHeight, tillHeight });
 				expect(bftModule.extractBFTBlockHeaderFromBlock).toHaveBeenCalledTimes(
-					1
+					1,
 				);
 				expect(bftModule.extractBFTBlockHeaderFromBlock).toHaveBeenCalledWith({
 					version: '2',
@@ -325,11 +325,11 @@ describe('bft', () => {
 				await bft.loadBlocks({ fromHeight, tillHeight });
 
 				expect(bftModule.extractBFTBlockHeaderFromBlock).toHaveBeenCalledTimes(
-					blocks.length
+					blocks.length,
 				);
 				blocks.forEach((block, index) => {
 					expect(
-						bftModule.extractBFTBlockHeaderFromBlock
+						bftModule.extractBFTBlockHeaderFromBlock,
 					).toHaveBeenNthCalledWith(index + 1, block);
 				});
 			});
@@ -346,7 +346,7 @@ describe('bft', () => {
 
 				expect(bft.finalityManager.addBlockHeader).toHaveBeenCalledTimes(1);
 				expect(bft.finalityManager.addBlockHeader).toHaveBeenCalledWith(
-					blockHeader
+					blockHeader,
 				);
 			});
 		});

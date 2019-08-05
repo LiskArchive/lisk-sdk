@@ -197,7 +197,7 @@ describe('blocks/utils', () => {
 			blocksUtils.readDbRows(
 				fullBlocksListRows,
 				interfaceAdaptersMock,
-				genesisBlock
+				genesisBlock,
 			);
 
 			fullBlocksListRows.forEach(block => {
@@ -216,7 +216,7 @@ describe('blocks/utils', () => {
 				blocks = blocksUtils.readDbRows(
 					fullBlocksListRows,
 					interfaceAdaptersMock,
-					genesisBlock
+					genesisBlock,
 				);
 				expect(blocks).to.be.an('array');
 			});
@@ -279,14 +279,14 @@ describe('blocks/utils', () => {
 			const blockObject = blocksUtils.readDbRows(
 				genesisBlock_view_full_blocks_list,
 				interfaceAdaptersMock,
-				genesisBlock
+				genesisBlock,
 			);
 
 			expect(blockObject).to.be.an('array');
 			expect(blockObject[0]).to.be.an('object');
 			expect(blockObject[0].id).to.equal('6524861224470851795');
 			return expect(blockObject[0].generationSignature).to.equal(
-				'0000000000000000000000000000000000000000000000000000000000000000'
+				'0000000000000000000000000000000000000000000000000000000000000000',
 			);
 		});
 	});
@@ -299,7 +299,7 @@ describe('blocks/utils', () => {
 				await blocksUtils.loadLastBlock(
 					storageStub,
 					interfaceAdaptersMock,
-					genesisBlock
+					genesisBlock,
 				);
 			} catch (err) {
 				expect(err.message).to.equal('Failed to load last block');
@@ -312,7 +312,7 @@ describe('blocks/utils', () => {
 				const block = await blocksUtils.loadLastBlock(
 					storageStub,
 					interfaceAdaptersMock,
-					genesisBlock
+					genesisBlock,
 				);
 
 				expect(block).to.be.an('object');
@@ -328,12 +328,12 @@ describe('blocks/utils', () => {
 				10,
 				lastBlock,
 				genesisBlock,
-				101
+				101,
 			);
 			expect(storageStub.entities.Block.getFirstBlockIdOfLastRounds).to.have
 				.been.calledOnce;
 			expect(
-				storageStub.entities.Block.getFirstBlockIdOfLastRounds
+				storageStub.entities.Block.getFirstBlockIdOfLastRounds,
 			).to.have.been.calledWith({
 				height: 10,
 				numberOfRounds: 5,
@@ -344,7 +344,7 @@ describe('blocks/utils', () => {
 		it('should return error when storage.entities.Block.getFirstBlockIdOfLastRounds fails', async () => {
 			const message = 'Database went wrong';
 			storageStub.entities.Block.getFirstBlockIdOfLastRounds.rejects(
-				new Error(message)
+				new Error(message),
 			);
 			try {
 				await blocksUtils.getIdSequence(storageStub, 10, {}, genesisBlock, 101);
@@ -361,11 +361,11 @@ describe('blocks/utils', () => {
 					10,
 					lastBlock,
 					genesisBlock,
-					101
+					101,
 				);
 			} catch (err) {
 				expect(err.message).to.equal(
-					'Failed to get id sequence for height: 10'
+					'Failed to get id sequence for height: 10',
 				);
 			}
 		});
@@ -382,12 +382,12 @@ describe('blocks/utils', () => {
 				10,
 				lastBlock,
 				genesisBlock,
-				101
+				101,
 			);
 			expect(sequence).to.be.an('object');
 			expect(sequence.firstHeight).to.equal(1);
 			expect(sequence.ids).to.equal(
-				'9314232245035524467,1,2,3,4,6524861224470851795'
+				'9314232245035524467,1,2,3,4,6524861224470851795',
 			);
 		});
 
@@ -401,7 +401,7 @@ describe('blocks/utils', () => {
 				10,
 				lastBlock,
 				undefined,
-				101
+				101,
 			);
 			expect(sequence).to.be.an('object');
 			expect(sequence.firstHeight).to.equal(1);
@@ -418,7 +418,7 @@ describe('blocks/utils', () => {
 				10,
 				lastBlock,
 				genesisBlock,
-				101
+				101,
 			);
 			expect(sequence).to.be.an('object');
 			expect(sequence.firstHeight).to.equal(1);
@@ -435,7 +435,7 @@ describe('blocks/utils', () => {
 				10,
 				undefined,
 				genesisBlock,
-				101
+				101,
 			);
 			expect(sequence).to.be.an('object');
 			expect(sequence.firstHeight).to.equal(1);
@@ -452,7 +452,7 @@ describe('blocks/utils', () => {
 				10,
 				lastBlock,
 				genesisBlock,
-				101
+				101,
 			);
 			expect(sequence).to.be.an('object');
 			expect(sequence.firstHeight).to.equal(1);
@@ -470,12 +470,12 @@ describe('blocks/utils', () => {
 				10,
 				lastBlock,
 				genesisBlock,
-				101
+				101,
 			);
 			expect(sequence).to.be.an('object');
 			expect(sequence.firstHeight).to.equal(1);
 			expect(sequence.ids).to.equal(
-				'9314232245035524467,2,6524861224470851795'
+				'9314232245035524467,2,6524861224470851795',
 			);
 		});
 	});
@@ -502,7 +502,7 @@ describe('blocks/utils', () => {
 				await blocksUtils.loadBlocksDataWS(storageStub, { id: '1' });
 			} catch (err) {
 				expect(err.message).to.equal(
-					'Invalid filter: Received both id and lastId'
+					'Invalid filter: Received both id and lastId',
 				);
 			}
 		});
@@ -583,7 +583,7 @@ describe('blocks/utils', () => {
 					delete dummyBlockReduced.numberOfTransactions;
 					delete dummyBlockReduced.transactions;
 					dummyBlockReturned = blocksUtils.addBlockProperties(
-						dummyBlockReduced
+						dummyBlockReduced,
 					);
 					return dummyBlockReturned;
 				});
@@ -594,7 +594,7 @@ describe('blocks/utils', () => {
 					const dummyBlockReduced = _.cloneDeep(dummyBlock);
 					delete dummyBlockReduced.numberOfTransactions;
 					dummyBlockReturned = blocksUtils.addBlockProperties(
-						dummyBlockReduced
+						dummyBlockReduced,
 					);
 					return dummyBlockReturned;
 				});
@@ -675,7 +675,7 @@ describe('blocks/utils', () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
 				dummyBlockCompleted.version = 0;
 				dummyBlockReduced = blocksUtils.deleteBlockProperties(
-					dummyBlockCompleted
+					dummyBlockCompleted,
 				);
 				return dummyBlockReduced;
 			});
@@ -695,7 +695,7 @@ describe('blocks/utils', () => {
 			it('should delete numberOfTransactions property', async () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
 				dummyBlockReduced = blocksUtils.deleteBlockProperties(
-					dummyBlockCompleted
+					dummyBlockCompleted,
 				);
 				return dummyBlockReduced;
 			});
@@ -716,7 +716,7 @@ describe('blocks/utils', () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
 				dummyBlockCompleted.totalAmount = new BigNum(0);
 				dummyBlockReduced = blocksUtils.deleteBlockProperties(
-					dummyBlockCompleted
+					dummyBlockCompleted,
 				);
 				return dummyBlockReduced;
 			});
@@ -737,7 +737,7 @@ describe('blocks/utils', () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
 				dummyBlockCompleted.totalFee = new BigNum(0);
 				dummyBlockReduced = blocksUtils.deleteBlockProperties(
-					dummyBlockCompleted
+					dummyBlockCompleted,
 				);
 				return dummyBlockReduced;
 			});
@@ -758,7 +758,7 @@ describe('blocks/utils', () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
 				dummyBlockCompleted.payloadLength = 0;
 				dummyBlockReduced = blocksUtils.deleteBlockProperties(
-					dummyBlockCompleted
+					dummyBlockCompleted,
 				);
 				return dummyBlockReduced;
 			});
@@ -779,7 +779,7 @@ describe('blocks/utils', () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
 				dummyBlockCompleted.reward = new BigNum(0);
 				dummyBlockReduced = blocksUtils.deleteBlockProperties(
-					dummyBlockCompleted
+					dummyBlockCompleted,
 				);
 				return dummyBlockReduced;
 			});
@@ -800,7 +800,7 @@ describe('blocks/utils', () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
 				dummyBlockCompleted.transactions = [];
 				dummyBlockReduced = blocksUtils.deleteBlockProperties(
-					dummyBlockCompleted
+					dummyBlockCompleted,
 				);
 				return dummyBlockReduced;
 			});
@@ -821,7 +821,7 @@ describe('blocks/utils', () => {
 					await blocksUtils.calculateNewBroadhash(
 						storageStub,
 						defaultNethash,
-						defaultHeight
+						defaultHeight,
 					);
 				} catch (error) {
 					expect(error.message).to.equal('error');
@@ -844,7 +844,7 @@ describe('blocks/utils', () => {
 				const { broadhash, height } = await blocksUtils.calculateNewBroadhash(
 					storageStub,
 					defaultNethash,
-					defaultHeight
+					defaultHeight,
 				);
 				expect(broadhash).to.equal(defaultNethash);
 				expect(height).to.equal(defaultHeight);
@@ -871,7 +871,7 @@ describe('blocks/utils', () => {
 				const { broadhash, height } = await blocksUtils.calculateNewBroadhash(
 					storageStub,
 					defaultNethash,
-					defaultHeight
+					defaultHeight,
 				);
 				const seed = blocks.map(row => row.id).join('');
 				const newBroadhash = crypto

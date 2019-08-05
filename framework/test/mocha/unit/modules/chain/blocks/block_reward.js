@@ -45,7 +45,7 @@ describe('BlockReward @slow', () => {
 	describe('calculateMilestone', () => {
 		it('when height is undefined should throw an error', async () =>
 			expect(() => calculateMilestone()).to.throw(
-				(TypeError, 'Invalid block height')
+				(TypeError, 'Invalid block height'),
 			));
 
 		it('when height == 0 should return 0', async () =>
@@ -113,39 +113,39 @@ describe('BlockReward @slow', () => {
 
 		it('when height == (milestoneFour * 2) should return 4', async () =>
 			expect(
-				calculateMilestone(new BigNum(13451520).times(2), blockReward)
+				calculateMilestone(new BigNum(13451520).times(2), blockReward),
 			).to.equal(4));
 
 		it('when height == (milestoneFour * 10) should return 4', async () =>
 			expect(
-				calculateMilestone(new BigNum(13451520).times(10), blockReward)
+				calculateMilestone(new BigNum(13451520).times(10), blockReward),
 			).to.equal(4));
 
 		it('when height == (milestoneFour * 100) should return 4', async () =>
 			expect(
-				calculateMilestone(new BigNum(13451520).times(100), blockReward)
+				calculateMilestone(new BigNum(13451520).times(100), blockReward),
 			).to.equal(4));
 
 		it('when height == (milestoneFour * 1000) should return 4', async () =>
 			expect(
-				calculateMilestone(new BigNum(13451520).times(1000), blockReward)
+				calculateMilestone(new BigNum(13451520).times(1000), blockReward),
 			).to.equal(4));
 
 		it('when height == (milestoneFour * 10000) should return 4', async () =>
 			expect(
-				calculateMilestone(new BigNum(13451520).times(10000), blockReward)
+				calculateMilestone(new BigNum(13451520).times(10000), blockReward),
 			).to.equal(4));
 
 		it('when height == (milestoneFour * 100000) should return 4', async () =>
 			expect(
-				calculateMilestone(new BigNum(13451520).times(100000), blockReward)
+				calculateMilestone(new BigNum(13451520).times(100000), blockReward),
 			).to.equal(4));
 	});
 
 	describe('calculateReward', () => {
 		it('when height is undefined should throw an error', async () =>
 			expect(() => calculateReward(), blockReward).to.throw(
-				(TypeError, 'Invalid block height')
+				(TypeError, 'Invalid block height'),
 			));
 
 		it('when height == 0 should return 0', async () =>
@@ -232,50 +232,50 @@ describe('BlockReward @slow', () => {
 		it('when height == (milestoneFour * 2) should return 100000000', async () =>
 			expect(
 				calculateReward(new BigNum(13451520).times(2), blockReward).equals(
-					'100000000'
-				)
+					'100000000',
+				),
 			).to.be.true);
 
 		it('when height == (milestoneFour * 10) should return 100000000', async () =>
 			expect(
 				calculateReward(new BigNum(13451520).times(10), blockReward).equals(
-					'100000000'
-				)
+					'100000000',
+				),
 			).to.be.true);
 
 		it('when height == (milestoneFour * 100) should return 100000000', async () =>
 			expect(
 				calculateReward(new BigNum(13451520).times(100), blockReward).equals(
-					'100000000'
-				)
+					'100000000',
+				),
 			).to.be.true);
 
 		it('when height == (milestoneFour * 1000) should return 100000000', async () =>
 			expect(
 				calculateReward(new BigNum(13451520).times(1000), blockReward).equals(
-					'100000000'
-				)
+					'100000000',
+				),
 			).to.be.true);
 
 		it('when height == (milestoneFour * 10000) should return 100000000', async () =>
 			expect(
 				calculateReward(new BigNum(13451520).times(10000), blockReward).equals(
-					'100000000'
-				)
+					'100000000',
+				),
 			).to.be.true);
 
 		it('when height == (milestoneFour * 100000) should return 100000000', async () =>
 			expect(
 				calculateReward(new BigNum(13451520).times(100000), blockReward).equals(
-					'100000000'
-				)
+					'100000000',
+				),
 			).to.be.true);
 	});
 
 	describe('calculateSupply', () => {
 		it('when height is undefined should throw an error', async () =>
 			expect(() => calculateSupply()).to.throw(
-				(TypeError, 'Invalid block height')
+				(TypeError, 'Invalid block height'),
 			));
 
 		it('when height == 0 should return 10000000000000000', async () =>
@@ -365,43 +365,43 @@ describe('BlockReward @slow', () => {
 		it('when height == (milestoneFour * 2) should return 15545152100000000', async () =>
 			expect(
 				calculateSupply(new BigNum(13451520).times(2), blockReward).equals(
-					'15545152100000000'
-				)
+					'15545152100000000',
+				),
 			).to.be.true);
 
 		it('when height == (milestoneFour * 10) should return 26306368100000000', async () =>
 			expect(
 				calculateSupply(new BigNum(13451520).times(10), blockReward).equals(
-					'26306368100000000'
-				)
+					'26306368100000000',
+				),
 			).to.be.true);
 
 		it('when height == (milestoneFour * 100) should return 147370048100000000', async () =>
 			expect(
 				calculateSupply(new BigNum(13451520).times(100), blockReward).equals(
-					'147370048100000000'
-				)
+					'147370048100000000',
+				),
 			).to.be.true);
 
 		it('when height == (milestoneFour * 1000) should return 1358006848100000000', async () =>
 			expect(
 				calculateSupply(new BigNum(13451520).times(1000), blockReward).equals(
-					'1358006848100000000'
-				)
+					'1358006848100000000',
+				),
 			).to.be.true);
 
 		it('when height == (milestoneFour * 10000) should return 13464374848100000000', async () =>
 			expect(
 				calculateSupply(new BigNum(13451520).times(10000), blockReward).equals(
-					'13464374848100000000'
-				)
+					'13464374848100000000',
+				),
 			).to.be.true);
 
 		it('when height == (milestoneFour * 100000) should return 134528054848100000000', async () =>
 			expect(
 				calculateSupply(new BigNum(13451520).times(100000), blockReward).equals(
-					'134528054848100000000'
-				)
+					'134528054848100000000',
+				),
 			).to.be.true);
 
 		describe('completely', () => {

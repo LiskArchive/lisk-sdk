@@ -224,10 +224,10 @@ describe('transport', () => {
 					it('should call receiveSignature with signature', async () => {
 						expect(transportModule._receiveSignature.calledTwice).to.be.true;
 						expect(
-							transportModule._receiveSignature.calledWith(SAMPLE_SIGNATURE_1)
+							transportModule._receiveSignature.calledWith(SAMPLE_SIGNATURE_1),
 						).to.be.true;
 						return expect(
-							transportModule._receiveSignature.calledWith(SAMPLE_SIGNATURE_2)
+							transportModule._receiveSignature.calledWith(SAMPLE_SIGNATURE_2),
 						).to.be.true;
 					});
 				});
@@ -237,7 +237,7 @@ describe('transport', () => {
 
 					beforeEach(async () => {
 						receiveSignatureError = new Error(
-							'Error processing signature: Error message'
+							'Error processing signature: Error message',
 						);
 						transportModule._receiveSignature = sinonSandbox
 							.stub()
@@ -256,14 +256,14 @@ describe('transport', () => {
 						expect(
 							transportModule.logger.debug.calledWith(
 								receiveSignatureError,
-								SAMPLE_SIGNATURE_1
-							)
+								SAMPLE_SIGNATURE_1,
+							),
 						).to.be.true;
 						return expect(
 							transportModule.logger.debug.calledWith(
 								receiveSignatureError,
-								SAMPLE_SIGNATURE_2
-							)
+								SAMPLE_SIGNATURE_2,
+							),
 						).to.be.true;
 					});
 				});
@@ -287,31 +287,31 @@ describe('transport', () => {
 						return expect(
 							validator.validate.calledWith(
 								definitions.Signature,
-								SAMPLE_SIGNATURE_1
-							)
+								SAMPLE_SIGNATURE_1,
+							),
 						).to.be.true;
 					});
 
 					it('should call modules.transactionPool.getTransactionAndProcessSignature with signature', async () => {
 						return expect(
 							transportModule.transactionPoolModule
-								.getTransactionAndProcessSignature
+								.getTransactionAndProcessSignature,
 						).to.be.calledWith(SAMPLE_SIGNATURE_1);
 					});
 				});
 
 				describe('when modules.transactionPool.getTransactionAndProcessSignature fails', () => {
 					const processSignatureError = new TransactionError(
-						'Transaction not found'
+						'Transaction not found',
 					);
 
 					it('should reject with error', async () => {
 						transportModule.transactionPoolModule.getTransactionAndProcessSignature.rejects(
-							[processSignatureError]
+							[processSignatureError],
 						);
 
 						return expect(
-							transportModule._receiveSignature(SAMPLE_SIGNATURE_1)
+							transportModule._receiveSignature(SAMPLE_SIGNATURE_1),
 						).to.be.rejectedWith([processSignatureError]);
 					});
 				});
@@ -324,7 +324,7 @@ describe('transport', () => {
 					validator.validate = sinonSandbox.stub().returns([validateErr]);
 
 					return expect(
-						transportModule._receiveSignature(SAMPLE_SIGNATURE_1)
+						transportModule._receiveSignature(SAMPLE_SIGNATURE_1),
 					).to.be.rejectedWith([validateErr]);
 				});
 			});
@@ -365,8 +365,8 @@ describe('transport', () => {
 						it('should call transportModule._receiveTransaction with transaction with transaction argument', async () =>
 							expect(
 								transportModule._receiveTransaction.calledWith(
-									transactionsList[0]
-								)
+									transactionsList[0],
+								),
 							).to.be.true);
 					});
 
@@ -386,8 +386,8 @@ describe('transport', () => {
 							expect(
 								transportModule.logger.debug.calledWith(
 									receiveTransactionError,
-									transactionsList[0]
-								)
+									transactionsList[0],
+								),
 							).to.be.true);
 					});
 				});
@@ -420,7 +420,7 @@ describe('transport', () => {
 				});
 
 				const tranasactionInstance = interfaceAdapters.transactions.fromJson(
-					transaction
+					transaction,
 				);
 
 				sinonSandbox
@@ -435,7 +435,7 @@ describe('transport', () => {
 
 			it('should reject with error if transaction is not allowed', async () => {
 				const errorMessage = new Error(
-					'Transaction type 0 is currently not allowed.'
+					'Transaction type 0 is currently not allowed.',
 				);
 
 				sinonSandbox
@@ -443,7 +443,7 @@ describe('transport', () => {
 					.returns({ ...transaction, matcher: () => false });
 
 				return expect(
-					transportModule._receiveTransaction(transaction)
+					transportModule._receiveTransaction(transaction),
 				).to.be.rejectedWith([errorMessage]);
 			});
 
@@ -456,8 +456,8 @@ describe('transport', () => {
 					expect(
 						transportModule.transactionPoolModule.processUnconfirmedTransaction.calledWith(
 							interfaceAdapters.transactions.fromJson(transaction),
-							true
-						)
+							true,
+						),
 					).to.be.true);
 			});
 
@@ -498,7 +498,7 @@ describe('transport', () => {
 					}`;
 
 					transportModule.transactionPoolModule.processUnconfirmedTransaction.rejects(
-						[new Error(processUnconfirmedTransactionError)]
+						[new Error(processUnconfirmedTransactionError)],
 					);
 
 					try {
@@ -511,7 +511,7 @@ describe('transport', () => {
 				it('should call transportModule.logger.debug with "Transaction ${transaction.id}" and error string', async () => {
 					expect(transportModule.logger.debug).to.be.calledWith(
 						`Transaction ${transaction.id}`,
-						`Error: ${processUnconfirmedTransactionError}`
+						`Error: ${processUnconfirmedTransactionError}`,
 					);
 				});
 
@@ -519,7 +519,7 @@ describe('transport', () => {
 					it('should call transportModule.logger.debug with "Transaction" and transaction as arguments', async () => {
 						expect(transportModule.logger.debug).to.be.calledWith(
 							'Transaction',
-							interfaceAdapters.transactions.fromJson(transaction)
+							interfaceAdapters.transactions.fromJson(transaction),
 						);
 					});
 				});
@@ -543,8 +543,8 @@ describe('transport', () => {
 				it('should call transportModule.logger.debug with "Received transaction " + transaction.id', async () =>
 					expect(
 						transportModule.logger.debug.calledWith(
-							`Received transaction ${transaction.id}`
-						)
+							`Received transaction ${transaction.id}`,
+						),
 					).to.be.true);
 			});
 		});
@@ -575,8 +575,8 @@ describe('transport', () => {
 						expect(transportModule.broadcaster.maxRelays.calledOnce).to.be.true;
 						return expect(
 							transportModule.broadcaster.maxRelays.calledWith(
-								SAMPLE_SIGNATURE_1
-							)
+								SAMPLE_SIGNATURE_1,
+							),
 						).to.be.true;
 					});
 
@@ -589,8 +589,8 @@ describe('transport', () => {
 									{
 										api: 'postSignatures',
 										data: { signature: SAMPLE_SIGNATURE_1 },
-									}
-								)
+									},
+								),
 							).to.be.true;
 						});
 
@@ -598,7 +598,7 @@ describe('transport', () => {
 							expect(transportModule.channel.publish).to.be.calledOnce;
 							expect(transportModule.channel.publish).to.be.calledWith(
 								'chain:signature:change',
-								SAMPLE_SIGNATURE_1
+								SAMPLE_SIGNATURE_1,
 							);
 						});
 					});
@@ -631,7 +631,7 @@ describe('transport', () => {
 					it('should call transportModule.broadcaster.maxRelays with transaction', async () => {
 						expect(transportModule.broadcaster.maxRelays.calledOnce).to.be.true;
 						return expect(
-							transportModule.broadcaster.maxRelays
+							transportModule.broadcaster.maxRelays,
 						).to.be.calledWith(transaction);
 					});
 
@@ -658,8 +658,8 @@ describe('transport', () => {
 									{
 										api: 'postTransactions',
 										data: { transaction: transaction.toJSON() },
-									}
-								)
+									},
+								),
 							).to.be.true;
 						});
 
@@ -667,7 +667,7 @@ describe('transport', () => {
 							expect(transportModule.channel.publish).to.be.calledOnce;
 							expect(transportModule.channel.publish).to.be.calledWith(
 								'chain:transactions:change',
-								transaction.toJSON()
+								transaction.toJSON(),
 							);
 						});
 					});
@@ -704,7 +704,7 @@ describe('transport', () => {
 					it('should call transportModule.broadcaster.maxRelays with block', async () => {
 						expect(transportModule.broadcaster.maxRelays.calledOnce).to.be.true;
 						return expect(
-							transportModule.broadcaster.maxRelays.calledWith(block)
+							transportModule.broadcaster.maxRelays.calledWith(block),
 						).to.be.true;
 					});
 
@@ -720,7 +720,7 @@ describe('transport', () => {
 								data: {
 									block,
 								},
-							}
+							},
 						);
 					});
 
@@ -735,8 +735,8 @@ describe('transport', () => {
 						it('should call transportModule.logger.debug with proper error message', async () =>
 							expect(
 								transportModule.logger.debug.calledWith(
-									'Transport->onBroadcastBlock: Aborted - max block relays exhausted'
-								)
+									'Transport->onBroadcastBlock: Aborted - max block relays exhausted',
+								),
 							).to.be.true);
 					});
 
@@ -751,8 +751,8 @@ describe('transport', () => {
 						it('should call transportModule.logger.debug with proper error message', async () =>
 							expect(
 								transportModule.logger.debug.calledWith(
-									'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress'
-								)
+									'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress',
+								),
 							).to.be.true);
 					});
 				});
@@ -783,7 +783,7 @@ describe('transport', () => {
 
 							await transportModule.blocks(query);
 							return expect(
-								transportModule.blocksModule.loadBlocksDataWS
+								transportModule.blocksModule.loadBlocksDataWS,
 							).to.be.calledWith({
 								limit: 34,
 								lastId: query.lastBlockId,
@@ -799,7 +799,7 @@ describe('transport', () => {
 
 							const loadBlockFailed = new Error('Failed to load blocks...');
 							transportModule.blocksModule.loadBlocksDataWS.rejects(
-								loadBlockFailed
+								loadBlockFailed,
 							);
 
 							const response = await transportModule.blocks(query);
@@ -828,8 +828,8 @@ describe('transport', () => {
 						it('should call transportModule.logger.debug', async () =>
 							expect(
 								transportModule.logger.debug.calledWith(
-									'Receiving blocks disabled by user through config.json'
-								)
+									'Receiving blocks disabled by user through config.json',
+								),
 							).to.be.true);
 
 						it('should not call validator.validate; function should return before', async () =>
@@ -859,7 +859,7 @@ describe('transport', () => {
 										err: blockValidationError.toString(),
 										module: 'transport',
 										block: blockMock,
-									}
+									},
 								);
 							});
 						});
@@ -876,8 +876,8 @@ describe('transport', () => {
 								it('should call modules.blocks.verify.addBlockProperties with query.block', async () =>
 									expect(
 										blocksModule.addBlockProperties.calledWith(
-											postBlockQuery.block
-										)
+											postBlockQuery.block,
+										),
 									).to.be.true);
 							});
 
@@ -887,7 +887,7 @@ describe('transport', () => {
 
 							it('should call block.process.receiveBlockFromNetwork with block', async () => {
 								expect(
-									transportModule.blocksModule.receiveBlockFromNetwork
+									transportModule.blocksModule.receiveBlockFromNetwork,
 								).to.be.calledWithExactly(blockMock);
 							});
 						});
@@ -918,7 +918,7 @@ describe('transport', () => {
 								signature: SAMPLE_SIGNATURE_1,
 							};
 							transportModule.transactionPoolModule.getTransactionAndProcessSignature.rejects(
-								receiveSignatureError
+								receiveSignatureError,
 							);
 							result = await transportModule.postSignature(query);
 							expect(result)
@@ -948,8 +948,8 @@ describe('transport', () => {
 						it('should call transportModule.logger.debug', async () =>
 							expect(
 								transportModule.logger.debug.calledWith(
-									'Receiving signatures disabled by user through config.json'
-								)
+									'Receiving signatures disabled by user through config.json',
+								),
 							).to.be.true);
 
 						it('should not call validator.validate; function should return before', async () =>
@@ -964,7 +964,7 @@ describe('transport', () => {
 
 						it('should call transportModule._receiveSignatures with query.signatures as argument', async () =>
 							expect(
-								transportModule._receiveSignatures.calledWith(query.signatures)
+								transportModule._receiveSignatures.calledWith(query.signatures),
 							).to.be.true);
 					});
 					describe('when validator.validate fails', () => {
@@ -982,8 +982,8 @@ describe('transport', () => {
 							return expect(
 								transportModule.logger.debug.calledWith(
 									'Invalid signatures body',
-									[validateErr]
-								)
+									[validateErr],
+								),
 							).to.be.true;
 						});
 					});
@@ -1001,7 +1001,7 @@ describe('transport', () => {
 					it('should call modules.transactionPool.getMultisignatureTransactionList with true and MAX_SHARED_TRANSACTIONS', async () => {
 						expect(
 							transportModule.transactionPoolModule
-								.getMultisignatureTransactionList
+								.getMultisignatureTransactionList,
 						).calledWith(true, MAX_SHARED_TRANSACTIONS);
 					});
 
@@ -1058,14 +1058,14 @@ describe('transport', () => {
 				describe('getTransactions', () => {
 					beforeEach(async () => {
 						transportModule.transactionPoolModule.getMergedTransactionList.returns(
-							multisignatureTransactionsList
+							multisignatureTransactionsList,
 						);
 						result = await transportModule.getTransactions();
 					});
 
 					it('should call modules.transactionPool.getMergedTransactionList with true and MAX_SHARED_TRANSACTIONS', async () => {
 						expect(
-							transportModule.transactionPoolModule.getMergedTransactionList
+							transportModule.transactionPoolModule.getMergedTransactionList,
 						).calledWith(true, MAX_SHARED_TRANSACTIONS);
 					});
 
@@ -1096,7 +1096,7 @@ describe('transport', () => {
 
 					it('should call transportModule._receiveTransaction with query.transaction as argument', async () =>
 						expect(
-							transportModule._receiveTransaction.calledWith(query.transaction)
+							transportModule._receiveTransaction.calledWith(query.transaction),
 						).to.be.true);
 
 					describe('when transportModule._receiveTransaction succeeds', () => {
@@ -1112,7 +1112,7 @@ describe('transport', () => {
 
 					describe('when transportModule._receiveTransaction fails', () => {
 						const receiveTransactionError = new Error(
-							'Invalid transaction body ...'
+							'Invalid transaction body ...',
 						);
 
 						beforeEach(async () => {
@@ -1135,7 +1135,7 @@ describe('transport', () => {
 
 					describe('when transportModule._receiveTransaction fails with "Transaction pool is full"', () => {
 						const receiveTransactionError = new Error(
-							'Transaction pool is full'
+							'Transaction pool is full',
 						);
 
 						beforeEach(async () => {
@@ -1167,8 +1167,8 @@ describe('transport', () => {
 						it('should call transportModule.logger.debug', async () =>
 							expect(
 								transportModule.logger.debug.calledWith(
-									'Receiving transactions disabled by user through config.json'
-								)
+									'Receiving transactions disabled by user through config.json',
+								),
 							).to.be.true);
 
 						it('should not call validator.validate; function should return before', async () =>
@@ -1188,21 +1188,21 @@ describe('transport', () => {
 						it('should call transportModule._receiveTransactions with query.transaction as argument', async () =>
 							expect(
 								transportModule._receiveTransactions.calledWith(
-									query.transactions
-								)
+									query.transactions,
+								),
 							).to.be.true);
 					});
 
 					describe('when validator.validate fails', () => {
 						it('should resolve with error = null and result = {success: false, message: message}', async () => {
 							const validateErr = new Error(
-								'Transaction query did not match schema'
+								'Transaction query did not match schema',
 							);
 							validateErr.code = 'INVALID_FORMAT';
 							validator.validate = sinonSandbox.stub().returns([validateErr]);
 
 							return expect(
-								transportModule.postTransactions(query)
+								transportModule.postTransactions(query),
 							).to.be.rejectedWith([validateErr]);
 						});
 					});

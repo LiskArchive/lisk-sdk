@@ -35,7 +35,7 @@ const compile = (schema, parentSchema) => {
 					formatter: formatters[schema.formatter] || null,
 			  };
 
-	return function(data, dataPath, object, key) {
+	return (data, dataPath, object, key) => {
 		let argValue;
 		const commandLineArguments = yargs.argv;
 

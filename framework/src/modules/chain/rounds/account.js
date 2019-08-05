@@ -147,7 +147,7 @@ class Account {
 			return self.scope.storage.entities.Account.get(
 				{ address },
 				{ extended: true },
-				tx
+				tx,
 			)
 				.then(accounts => {
 					const account = accounts[0];
@@ -180,8 +180,8 @@ class Account {
 								{ address },
 								_.pick(diff, [updatedField]),
 								{},
-								dbTx
-							)
+								dbTx,
+							),
 						);
 						break;
 
@@ -201,8 +201,8 @@ class Account {
 									{ address },
 									updatedField,
 									value.toString(),
-									dbTx
-								)
+									dbTx,
+								),
 							);
 
 							// If updated value is negative number
@@ -212,8 +212,8 @@ class Account {
 									{ address },
 									updatedField,
 									value.abs().toString(),
-									dbTx
-								)
+									dbTx,
+								),
 							);
 						}
 
@@ -223,8 +223,8 @@ class Account {
 									address,
 									diff.round,
 									value.toString(),
-									dbTx
-								)
+									dbTx,
+								),
 							);
 						}
 
@@ -250,8 +250,8 @@ class Account {
 											updatedField,
 											address,
 											dependentId,
-											dbTx
-										)
+											dbTx,
+										),
 									);
 								} else {
 									promises.push(
@@ -259,8 +259,8 @@ class Account {
 											updatedField,
 											address,
 											dependentId,
-											dbTx
-										)
+											dbTx,
+										),
 									);
 								}
 							});
@@ -284,7 +284,7 @@ class Account {
 				const [account] = await this.scope.storage.entities.Account.get(
 					{ address },
 					{ extended: true },
-					tx
+					tx,
 				);
 				cb(null, account);
 				return null;

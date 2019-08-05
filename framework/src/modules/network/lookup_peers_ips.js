@@ -49,11 +49,11 @@ module.exports = async (peersList, enabled) => {
 				};
 			} catch (err) {
 				console.error(
-					`Failed to resolve peer domain name ${peer.ip} to an IP address`
+					`Failed to resolve peer domain name ${peer.ip} to an IP address`,
 				);
 				return peer;
 			}
-		})
+		}),
 	);
 
 	return peersList;

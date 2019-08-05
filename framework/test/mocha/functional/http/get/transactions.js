@@ -179,9 +179,9 @@ describe('GET /api/transactions', () => {
 						apiHelpers.sendTransactionPromise(transactionType3),
 						apiHelpers.sendTransactionPromise(transactionSecondPassphrase),
 						apiHelpers.sendTransactionPromise(
-							transactionType4.multiSigTransaction
+							transactionType4.multiSigTransaction,
 						),
-					])
+					]),
 				)
 				.then(() => {
 					transactionList.push(transaction3);
@@ -210,7 +210,7 @@ describe('GET /api/transactions', () => {
 							}`,
 							sort: 'amount:asc',
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'senderId');
@@ -224,7 +224,7 @@ describe('GET /api/transactions', () => {
 							blockId: '1',
 							whatever: accountFixtures.genesis.address,
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'whatever');
@@ -237,7 +237,7 @@ describe('GET /api/transactions', () => {
 						{
 							'and:senderId': accountFixtures.genesis.address,
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'and:senderId');
@@ -250,7 +250,7 @@ describe('GET /api/transactions', () => {
 						{
 							publicKey: '',
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'publicKey');
@@ -268,7 +268,7 @@ describe('GET /api/transactions', () => {
 							offset: 'invalid',
 							sort: 'invalid',
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'blockId');
@@ -291,7 +291,7 @@ describe('GET /api/transactions', () => {
 							offset: 'invalid',
 							sort: 'invalid',
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'blockId');
@@ -335,7 +335,7 @@ describe('GET /api/transactions', () => {
 					trs => {
 						// Vote type transaction from genesisBlock
 						return trs.id === '9314232245035524467';
-					}
+					},
 				);
 
 				return transactionsEndpoint
@@ -350,16 +350,16 @@ describe('GET /api/transactions', () => {
 						expect(transaction.type).to.be.equal(TRANSACTION_TYPES.VOTE);
 						expect(transaction.type).to.be.equal(transactionInCheck.type);
 						expect(transaction.amount).to.be.equal(
-							transactionInCheck.amount.toString()
+							transactionInCheck.amount.toString(),
 						);
 						expect(transaction.fee).to.be.equal(
-							transactionInCheck.fee.toString()
+							transactionInCheck.fee.toString(),
 						);
 						expect(transaction.recipientId).to.be.equal(
-							transactionInCheck.recipientId
+							transactionInCheck.recipientId,
 						);
 						expect(transaction.senderId).to.be.equal(
-							transactionInCheck.senderId
+							transactionInCheck.senderId,
 						);
 						expect(transaction.asset).to.be.eql(transactionInCheck.asset);
 					});
@@ -375,7 +375,7 @@ describe('GET /api/transactions', () => {
 			it('using type should be ok', async () => {
 				const res = await transactionsEndpoint.makeRequest(
 					{ type: TRANSACTION_TYPES.SEND },
-					200
+					200,
 				);
 
 				expect(res.body.data).to.not.empty;
@@ -388,31 +388,31 @@ describe('GET /api/transactions', () => {
 				it('using type 0 should return asset field with correct properties', async () => {
 					const res = await transactionsEndpoint.makeRequest(
 						{ type: TRANSACTION_TYPES.SEND },
-						200
+						200,
 					);
 
 					expect(res.body.data).to.not.empty;
 					res.body.data.map(transaction =>
-						expect(Object.keys(transaction.asset).length).to.be.below(2)
+						expect(Object.keys(transaction.asset).length).to.be.below(2),
 					);
 				});
 
 				it('using type 1 should return asset field with correct properties', async () => {
 					const res = await transactionsEndpoint.makeRequest(
 						{ type: TRANSACTION_TYPES.SIGNATURE },
-						200
+						200,
 					);
 
 					expect(res.body.data).to.not.empty;
 					res.body.data.map(transaction =>
-						expect(transaction.asset.signature.publicKey).to.be.a('string')
+						expect(transaction.asset.signature.publicKey).to.be.a('string'),
 					);
 				});
 
 				it('using type 2 should return asset field with correct properties', async () => {
 					const res = await transactionsEndpoint.makeRequest(
 						{ type: TRANSACTION_TYPES.DELEGATE },
-						200
+						200,
 					);
 
 					expect(res.body.data).to.not.empty;
@@ -420,7 +420,7 @@ describe('GET /api/transactions', () => {
 						expect(transaction.asset.delegate).to.have.property('publicKey');
 						expect(transaction.asset.delegate).to.have.property('username');
 						return expect(transaction.asset.delegate).to.have.property(
-							'address'
+							'address',
 						);
 					});
 				});
@@ -428,13 +428,13 @@ describe('GET /api/transactions', () => {
 				it('using type 3 should return asset field with correct properties', async () => {
 					const res = await transactionsEndpoint.makeRequest(
 						{ type: TRANSACTION_TYPES.VOTE },
-						200
+						200,
 					);
 
 					expect(res.body.data).to.not.empty;
 					// Skip Genesis vote transaction - exception as it contains 101 votes
 					const transactionsType3 = res.body.data.filter(
-						transaction => transaction.recipientId !== '16313739661670634666L'
+						transaction => transaction.recipientId !== '16313739661670634666L',
 					);
 					expect(transactionsType3.length).to.be.above(0);
 					transactionsType3.map(transaction => {
@@ -448,7 +448,7 @@ describe('GET /api/transactions', () => {
 						return {
 							signature: apiHelpers.createSignatureObject(
 								transactionType4.multiSigTransaction,
-								member
+								member,
 							),
 						};
 					});
@@ -462,7 +462,7 @@ describe('GET /api/transactions', () => {
 
 					const res = await transactionsEndpoint.makeRequest(
 						{ type: TRANSACTION_TYPES.MULTI },
-						200
+						200,
 					);
 
 					expect(res.body.data).to.not.empty;
@@ -471,10 +471,10 @@ describe('GET /api/transactions', () => {
 						expect(transaction.asset.multisignature.min).to.be.within(1, 15); // Exception: Should be 2 for multisig
 						expect(transaction.asset.multisignature.lifetime).to.be.within(
 							1,
-							72
+							72,
 						);
 						expect(transaction.asset.multisignature.keysgroup).to.be.an(
-							'array'
+							'array',
 						);
 						return expect(transaction.asset.multisignature.keysgroup).to.not
 							.empty;
@@ -484,7 +484,7 @@ describe('GET /api/transactions', () => {
 				it.skip('using type 5 should return asset field with correct properties', async () => {
 					const res = await transactionsEndpoint.makeRequest(
 						{ type: TRANSACTION_TYPES.DAPP },
-						200
+						200,
 					);
 
 					expect(res.body.data).to.not.empty;
@@ -516,7 +516,7 @@ describe('GET /api/transactions', () => {
 
 						res.body.data.map(transaction => {
 							return expect(transaction.senderId).to.be.equal(
-								accountFixtures.genesis.address
+								accountFixtures.genesis.address,
 							);
 						});
 					});
@@ -531,7 +531,7 @@ describe('GET /api/transactions', () => {
 								accountFixtures.existingDelegate.address,
 							],
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'senderId');
@@ -552,14 +552,14 @@ describe('GET /api/transactions', () => {
 				return transactionsEndpoint
 					.makeRequest(
 						{ senderPublicKey: accountFixtures.genesis.publicKey },
-						200
+						200,
 					)
 					.then(res => {
 						expect(res.body.data).to.not.empty;
 
 						res.body.data.map(transaction => {
 							return expect(transaction.senderPublicKey).to.be.equal(
-								accountFixtures.genesis.publicKey
+								accountFixtures.genesis.publicKey,
 							);
 						});
 					});
@@ -574,7 +574,7 @@ describe('GET /api/transactions', () => {
 								accountFixtures.existingDelegate.publicKey,
 							],
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'senderPublicKey');
@@ -599,7 +599,7 @@ describe('GET /api/transactions', () => {
 
 						res.body.data.map(transaction => {
 							return expect(transaction.recipientId).to.be.equal(
-								accountFixtures.genesis.address
+								accountFixtures.genesis.address,
 							);
 						});
 					});
@@ -614,7 +614,7 @@ describe('GET /api/transactions', () => {
 								accountFixtures.existingDelegate.address,
 							],
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'recipientId');
@@ -634,7 +634,7 @@ describe('GET /api/transactions', () => {
 				return transactionsEndpoint
 					.makeRequest(
 						{ senderIdOrRecipientId: '1234567890123456789012L' },
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'senderIdOrRecipientId');
@@ -665,14 +665,14 @@ describe('GET /api/transactions', () => {
 				return transactionsEndpoint
 					.makeRequest(
 						{ recipientPublicKey: accountFixtures.genesis.publicKey },
-						200
+						200,
 					)
 					.then(res => {
 						expect(res.body.data).to.not.empty;
 
 						res.body.data.map(transaction => {
 							return expect(transaction.recipientPublicKey).to.be.equal(
-								accountFixtures.genesis.publicKey
+								accountFixtures.genesis.publicKey,
 							);
 						});
 					});
@@ -687,7 +687,7 @@ describe('GET /api/transactions', () => {
 								accountFixtures.existingDelegate.publicKey,
 							],
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'recipientPublicKey');
@@ -731,7 +731,7 @@ describe('GET /api/transactions', () => {
 					},
 				} = await transactionsEndpoint.makeRequest(
 					{ id: transaction1.id },
-					200
+					200,
 				);
 				const {
 					body: { data: transactions },
@@ -739,7 +739,7 @@ describe('GET /api/transactions', () => {
 
 				const haveSameHeight = transactions.reduce(
 					(acc, curr) => acc && curr.height === tx.height,
-					true
+					true,
 				);
 
 				expect(transactions).to.not.be.empty;
@@ -753,8 +753,8 @@ describe('GET /api/transactions', () => {
 					.makeRequest({ minAmount }, 200)
 					.then(res => {
 						res.body.data.map(transaction => {
-							return expect(parseInt(transaction.amount)).to.be.at.least(
-								minAmount
+							return expect(parseInt(transaction.amount, 10)).to.be.at.least(
+								minAmount,
 							);
 						});
 					});
@@ -767,8 +767,8 @@ describe('GET /api/transactions', () => {
 					.makeRequest({ maxAmount }, 200)
 					.then(res => {
 						res.body.data.map(transaction => {
-							return expect(parseInt(transaction.amount)).to.be.at.most(
-								maxAmount
+							return expect(parseInt(transaction.amount, 10)).to.be.at.most(
+								maxAmount,
 							);
 						});
 					});
@@ -829,7 +829,7 @@ describe('GET /api/transactions', () => {
 						{
 							data: dataFilter,
 						},
-						200
+						200,
 					)
 					.then(res => {
 						expect(res.body.data.length).to.greaterThan(0);
@@ -847,7 +847,7 @@ describe('GET /api/transactions', () => {
 						{
 							data: dataFilter,
 						},
-						200
+						200,
 					)
 					.then(res => {
 						expect(res.body.data.length).to.eql(0);
@@ -862,7 +862,7 @@ describe('GET /api/transactions', () => {
 						{
 							data: dataFilter + fuzzyCommand,
 						},
-						200
+						200,
 					)
 					.then(res => {
 						expect(res.body.data.length).to.greaterThan(1);
@@ -880,13 +880,13 @@ describe('GET /api/transactions', () => {
 						{
 							data: fuzzyCommand + unicodeCharacter + fuzzyCommand,
 						},
-						200
+						200,
 					)
 					.then(res => {
 						expect(res.body.data.length).to.greaterThan(0);
 						_.map(res.body.data, transaction => {
 							return expect(transaction.asset.data).to.include(
-								unicodeCharacter
+								unicodeCharacter,
 							);
 						});
 					});
@@ -936,14 +936,14 @@ describe('GET /api/transactions', () => {
 				return transactionsEndpoint
 					.makeRequest(
 						{ height: 1, offset: 0, limit, sort: 'timestamp:desc' },
-						200
+						200,
 					)
 					.then(res => {
 						lastId = res.body.data[limit - 1].id;
 
 						return transactionsEndpoint.makeRequest(
 							{ height: 1, offset: limit - 1, limit, sort: 'timestamp:desc' },
-							200
+							200,
 						);
 					})
 					.then(res => {
@@ -960,7 +960,7 @@ describe('GET /api/transactions', () => {
 						.makeRequest({ sort: 'amount:asc', minAmount: 100 }, 200)
 						.then(res => {
 							const values = _.map(res.body.data, 'amount').map(value => {
-								return parseInt(value);
+								return parseInt(value, 10);
 							});
 
 							expect(_(_.clone(values)).sortNumbers('asc')).to.be.eql(values);
@@ -972,7 +972,7 @@ describe('GET /api/transactions', () => {
 						.makeRequest({ sort: 'amount:desc' }, 200)
 						.then(res => {
 							const values = _.map(res.body.data, 'amount').map(value => {
-								return parseInt(value);
+								return parseInt(value, 10);
 							});
 
 							expect(_(_.clone(values)).sortNumbers('desc')).to.be.eql(values);
@@ -986,7 +986,7 @@ describe('GET /api/transactions', () => {
 						.makeRequest({ sort: 'fee:asc', minAmount: 100 }, 200)
 						.then(res => {
 							const values = _.map(res.body.data, 'fee').map(value => {
-								return parseInt(value);
+								return parseInt(value, 10);
 							});
 
 							expect(_(_.clone(values)).sortNumbers('asc')).to.be.eql(values);
@@ -998,7 +998,7 @@ describe('GET /api/transactions', () => {
 						.makeRequest({ sort: 'fee:desc' }, 200)
 						.then(res => {
 							const values = _.map(res.body.data, 'fee').map(value => {
-								return parseInt(value);
+								return parseInt(value, 10);
 							});
 
 							expect(_(_.clone(values)).sortNumbers('desc')).to.be.eql(values);
@@ -1014,7 +1014,7 @@ describe('GET /api/transactions', () => {
 							expect(
 								_(res.body.data)
 									.map('type')
-									.sortNumbers('asc')
+									.sortNumbers('asc'),
 							).to.be.eql(_.map(res.body.data, 'type'));
 						});
 				});
@@ -1026,7 +1026,7 @@ describe('GET /api/transactions', () => {
 							expect(
 								_(res.body.data)
 									.map('type')
-									.sortNumbers('desc')
+									.sortNumbers('desc'),
 							).to.be.eql(_.map(res.body.data, 'type'));
 						});
 				});
@@ -1040,7 +1040,7 @@ describe('GET /api/transactions', () => {
 							expect(
 								_(res.body.data)
 									.map('timestamp')
-									.sortNumbers('asc')
+									.sortNumbers('asc'),
 							).to.be.eql(_.map(res.body.data, 'timestamp'));
 						});
 				});
@@ -1052,7 +1052,7 @@ describe('GET /api/transactions', () => {
 							expect(
 								_(res.body.data)
 									.map('timestamp')
-									.sortNumbers('desc')
+									.sortNumbers('desc'),
 							).to.be.eql(_.map(res.body.data, 'timestamp'));
 						});
 				});
@@ -1081,7 +1081,7 @@ describe('GET /api/transactions', () => {
 									].push(index);
 									return memo;
 								},
-								{ notNullIndices: [], nullIndices: [] }
+								{ notNullIndices: [], nullIndices: [] },
 							);
 
 							if (
@@ -1097,7 +1097,7 @@ describe('GET /api/transactions', () => {
 								expect(
 									dividedIndices.notNullIndices[
 										dividedIndices.notNullIndices.length - 1
-									]
+									],
 								).to.be.at.most(dividedIndices.nullIndices[0]);
 							}
 						});
@@ -1122,11 +1122,11 @@ describe('GET /api/transactions', () => {
 							maxAmount,
 							sort: 'amount:asc',
 						},
-						200
+						200,
 					)
 					.then(res => {
 						const values = _.map(res.body.data, 'amount').map(value => {
-							return parseInt(value);
+							return parseInt(value, 10);
 						});
 
 						expect(_(_.clone(values)).sortNumbers('asc')).to.be.eql(values);
@@ -1150,17 +1150,17 @@ describe('GET /api/transactions', () => {
 							offset: 0,
 							sort: 'amount:asc',
 						},
-						200
+						200,
 					)
 					.then(res => {
 						const values = _.map(res.body.data, 'amount').map(value => {
-							return parseInt(value);
+							return parseInt(value, 10);
 						});
 						expect(_(_.clone(values)).sortNumbers('asc')).to.be.eql(values);
 
 						res.body.data.forEach(transaction => {
 							expect(transaction.senderId).to.be.eql(
-								accountFixtures.genesis.address
+								accountFixtures.genesis.address,
 							);
 							expect(transaction.recipientId).to.be.eql(account.address);
 						});
@@ -1189,7 +1189,7 @@ describe('GET /api/transactions', () => {
 							return expect(transaction.asset.delegate).to.have.all.keys(
 								'username',
 								'publicKey',
-								'address'
+								'address',
 							);
 						});
 					});
@@ -1208,7 +1208,7 @@ describe('GET /api/transactions', () => {
 						senderPublicKey: accountSecondPass.senderId,
 						sort: 'timestamp:desc',
 					},
-					200
+					200,
 				);
 				// Assert
 				expect(transactions[0]).to.not.have.property('signSignature');
@@ -1246,7 +1246,7 @@ describe('GET /api/transactions', () => {
 				return sendTransactionPromise(transaction4) // send type 0 transaction
 					.then(result => {
 						expect(result.body.data.message).to.be.equal(
-							'Transaction(s) accepted'
+							'Transaction(s) accepted',
 						);
 						return waitFor.confirmations([transaction4.id]); // wait for confirmation
 					})
@@ -1255,7 +1255,7 @@ describe('GET /api/transactions', () => {
 					})
 					.then(res => {
 						expect(res.body.data.message).to.be.equal(
-							'Transaction(s) accepted'
+							'Transaction(s) accepted',
 						);
 						return waitFor.confirmations([transactionType5.id]); // wait for confirmation
 					})
@@ -1264,7 +1264,7 @@ describe('GET /api/transactions', () => {
 					})
 					.then(res => {
 						expect(res.body.data.message).to.be.equal(
-							'Transaction(s) accepted'
+							'Transaction(s) accepted',
 						);
 						return waitFor.confirmations([transactionType6.id]); // wait for confirmation
 					})
@@ -1273,7 +1273,7 @@ describe('GET /api/transactions', () => {
 					})
 					.then(res => {
 						expect(res.body.data.message).to.be.equal(
-							'Transaction(s) accepted'
+							'Transaction(s) accepted',
 						);
 						return waitFor.confirmations([transactionType7.id]); // wait for confirmation
 					});
@@ -1298,7 +1298,7 @@ describe('GET /api/transactions', () => {
 							expect(transaction.asset).to.have.key('outTransfer');
 							return expect(transaction.asset.outTransfer).to.have.all.keys(
 								'dappId',
-								'transactionId'
+								'transactionId',
 							);
 						});
 					});

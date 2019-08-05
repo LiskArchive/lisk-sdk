@@ -73,7 +73,7 @@ class Storage {
 
 		if (existed && !options.replaceExisting) {
 			throw new EntityRegistrationError(
-				`Entity ${identifier} already registered`
+				`Entity ${identifier} already registered`,
 			);
 		}
 

@@ -30,7 +30,7 @@ describe('GET /api/node', () => {
 		// eslint-disable-next-line
 		describe('/verified', () => {
 			const VerifiedEndpoint = new SwaggerEndpoint(
-				'GET /node/transactions/{state}'
+				'GET /node/transactions/{state}',
 			).addParameters({ state: 'verified' });
 
 			const account = randomUtil.account();
@@ -48,7 +48,7 @@ describe('GET /api/node', () => {
 							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: account.address,
 							data,
-						})
+						}),
 					);
 				}
 
@@ -57,7 +57,7 @@ describe('GET /api/node', () => {
 				}).then(responses => {
 					responses.map(res => {
 						return expect(res.body.data.message).to.be.equal(
-							'Transaction(s) accepted'
+							'Transaction(s) accepted',
 						);
 					});
 				});
@@ -69,7 +69,7 @@ describe('GET /api/node', () => {
 						{
 							whatever: accountFixtures.genesis.address,
 						},
-						400
+						400,
 					).then(res => {
 						expectSwaggerParamError(res, 'whatever');
 					});
@@ -80,7 +80,7 @@ describe('GET /api/node', () => {
 						{
 							recipientPublicKey: '',
 						},
-						400
+						400,
 					).then(res => {
 						expectSwaggerParamError(res, 'recipientPublicKey');
 					});
@@ -95,7 +95,7 @@ describe('GET /api/node', () => {
 							offset: 'invalid',
 							sort: 'invalid',
 						},
-						400
+						400,
 					).then(res => {
 						expectSwaggerParamError(res, 'senderId');
 						expectSwaggerParamError(res, 'recipientId');
@@ -114,7 +114,7 @@ describe('GET /api/node', () => {
 							offset: 'invalid',
 							sort: 'invalid',
 						},
-						400
+						400,
 					).then(res => {
 						expectSwaggerParamError(res, 'senderId');
 						expectSwaggerParamError(res, 'limit');
@@ -135,7 +135,7 @@ describe('GET /api/node', () => {
 					return VerifiedEndpoint.makeRequest({ id: '79fjdfd' }, 400).then(
 						res => {
 							expectSwaggerParamError(res, 'id');
-						}
+						},
 					);
 				});
 
@@ -145,7 +145,7 @@ describe('GET /api/node', () => {
 
 					return VerifiedEndpoint.makeRequest(
 						{ id: transactionInCheck.id },
-						200
+						200,
 					).then(res => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data).to.has.length(1);
@@ -156,7 +156,7 @@ describe('GET /api/node', () => {
 				it('using valid but unknown id should be ok', async () => {
 					return VerifiedEndpoint.makeRequest(
 						{ id: '1111111111111111' },
-						200
+						200,
 					).then(res => {
 						expect(res.body.data).to.be.empty;
 					});
@@ -175,13 +175,13 @@ describe('GET /api/node', () => {
 
 					return VerifiedEndpoint.makeRequest(
 						{ type: transactionInCheck.type },
-						200
+						200,
 					).then(res => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(1);
 						res.body.data.map(transaction => {
 							return expect(transaction.type).to.be.equal(
-								transactionInCheck.type
+								transactionInCheck.type,
 							);
 						});
 					});
@@ -192,7 +192,7 @@ describe('GET /api/node', () => {
 				it('using invalid senderId should fail', async () => {
 					return VerifiedEndpoint.makeRequest(
 						{ senderId: '79fjdfd' },
-						400
+						400,
 					).then(res => {
 						expectSwaggerParamError(res, 'senderId');
 					});
@@ -201,13 +201,13 @@ describe('GET /api/node', () => {
 				it('using valid senderId should be ok', async () => {
 					return VerifiedEndpoint.makeRequest(
 						{ senderId: accountFixtures.genesis.address },
-						200
+						200,
 					).then(res => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(1);
 						res.body.data.map(transaction => {
 							return expect(transaction.senderId).to.be.equal(
-								accountFixtures.genesis.address
+								accountFixtures.genesis.address,
 							);
 						});
 					});
@@ -216,7 +216,7 @@ describe('GET /api/node', () => {
 				it('using valid but unknown senderId should be ok', async () => {
 					return VerifiedEndpoint.makeRequest(
 						{ senderId: '1631373961111634666L' },
-						200
+						200,
 					).then(res => {
 						expect(res.body.data).to.be.empty;
 					});
@@ -227,7 +227,7 @@ describe('GET /api/node', () => {
 				it('using invalid senderPublicKey should fail', async () => {
 					return VerifiedEndpoint.makeRequest(
 						{ senderPublicKey: '79fjdfd' },
-						400
+						400,
 					).then(res => {
 						expectSwaggerParamError(res, 'senderPublicKey');
 					});
@@ -236,13 +236,13 @@ describe('GET /api/node', () => {
 				it('using valid senderPublicKey should be ok', async () => {
 					return VerifiedEndpoint.makeRequest(
 						{ senderPublicKey: accountFixtures.genesis.publicKey },
-						200
+						200,
 					).then(res => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(1);
 						res.body.data.map(transaction => {
 							return expect(transaction.senderPublicKey).to.be.equal(
-								accountFixtures.genesis.publicKey
+								accountFixtures.genesis.publicKey,
 							);
 						});
 					});
@@ -254,7 +254,7 @@ describe('GET /api/node', () => {
 							senderPublicKey:
 								'c094ebee7ec0c50ebeeaaaa8655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 						},
-						200
+						200,
 					).then(res => {
 						expect(res.body.data).to.be.empty;
 					});
@@ -265,7 +265,7 @@ describe('GET /api/node', () => {
 				it('using invalid recipientId should fail', async () => {
 					return VerifiedEndpoint.makeRequest(
 						{ recipientId: '79fjdfd' },
-						400
+						400,
 					).then(res => {
 						expectSwaggerParamError(res, 'recipientId');
 					});
@@ -274,13 +274,13 @@ describe('GET /api/node', () => {
 				it('using valid recipientId should be ok', async () => {
 					return VerifiedEndpoint.makeRequest(
 						{ recipientId: account.address },
-						200
+						200,
 					).then(res => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(1);
 						res.body.data.map(transaction => {
 							return expect(transaction.recipientId).to.be.equal(
-								account.address
+								account.address,
 							);
 						});
 					});
@@ -289,7 +289,7 @@ describe('GET /api/node', () => {
 				it('using valid but unknown recipientId should be ok', async () => {
 					return VerifiedEndpoint.makeRequest(
 						{ recipientId: '1631373961111634666L' },
-						200
+						200,
 					).then(res => {
 						expect(res.body.data).to.be.empty;
 					});
@@ -300,7 +300,7 @@ describe('GET /api/node', () => {
 				it('using invalid recipientPublicKey should fail', async () => {
 					return VerifiedEndpoint.makeRequest(
 						{ recipientPublicKey: '79fjdfd' },
-						400
+						400,
 					).then(res => {
 						expectSwaggerParamError(res, 'recipientPublicKey');
 					});
@@ -309,13 +309,13 @@ describe('GET /api/node', () => {
 				it('using valid recipientPublicKey should be ok', async () => {
 					return VerifiedEndpoint.makeRequest(
 						{ recipientPublicKey: account.publicKey },
-						200
+						200,
 					).then(res => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(1);
 						res.body.data.map(transaction => {
 							return expect(transaction.recipientId).to.be.equal(
-								account.address
+								account.address,
 							);
 						});
 					});
@@ -327,7 +327,7 @@ describe('GET /api/node', () => {
 							recipientPublicKey:
 								'c094ebee7ec0c50ebeeaaaa8655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 						},
-						200
+						200,
 					).then(res => {
 						expect(res.body.data).to.be.empty;
 					});
@@ -360,7 +360,7 @@ describe('GET /api/node', () => {
 					return VerifiedEndpoint.makeRequest({ offset: 'one' }, 400).then(
 						res => {
 							expectSwaggerParamError(res, 'offset');
-						}
+						},
 					);
 				});
 
@@ -386,12 +386,12 @@ describe('GET /api/node', () => {
 					it('sorted by amount:asc should be ok', async () => {
 						return VerifiedEndpoint.makeRequest(
 							{ sort: 'amount:asc' },
-							200
+							200,
 						).then(res => {
 							expect(res.body.data).to.not.be.empty;
 
 							const values = _.map(res.body.data, 'amount').map(value => {
-								return parseInt(value);
+								return parseInt(value, 10);
 							});
 
 							expect(_(_.clone(values)).sortNumbers('asc')).to.be.eql(values);
@@ -401,12 +401,12 @@ describe('GET /api/node', () => {
 					it('sorted by amount:desc should be ok', async () => {
 						return VerifiedEndpoint.makeRequest(
 							{ sort: 'amount:desc' },
-							200
+							200,
 						).then(res => {
 							expect(res.body.data).to.not.be.empty;
 
 							const values = _.map(res.body.data, 'amount').map(value => {
-								return parseInt(value);
+								return parseInt(value, 10);
 							});
 
 							expect(_(_.clone(values)).sortNumbers('desc')).to.be.eql(values);
@@ -421,11 +421,11 @@ describe('GET /api/node', () => {
 								expect(res.body.data).to.not.be.empty;
 
 								const values = _.map(res.body.data, 'fee').map(value => {
-									return parseInt(value);
+									return parseInt(value, 10);
 								});
 
 								expect(_(_.clone(values)).sortNumbers('asc')).to.be.eql(values);
-							}
+							},
 						);
 					});
 
@@ -435,13 +435,13 @@ describe('GET /api/node', () => {
 								expect(res.body.data).to.not.be.empty;
 
 								const values = _.map(res.body.data, 'fee').map(value => {
-									return parseInt(value);
+									return parseInt(value, 10);
 								});
 
 								expect(_(_.clone(values)).sortNumbers('desc')).to.be.eql(
-									values
+									values,
 								);
-							}
+							},
 						);
 					});
 				});
@@ -455,23 +455,23 @@ describe('GET /api/node', () => {
 								expect(
 									_(res.body.data)
 										.map('type')
-										.sortNumbers('asc')
+										.sortNumbers('asc'),
 								).to.be.eql(_.map(res.body.data, 'type'));
-							}
+							},
 						);
 					});
 
 					it('sorted by fee:desc should be ok', async () => {
 						return VerifiedEndpoint.makeRequest(
 							{ sort: 'type:desc' },
-							200
+							200,
 						).then(res => {
 							expect(res.body.data).to.not.be.empty;
 
 							expect(
 								_(res.body.data)
 									.map('type')
-									.sortNumbers('desc')
+									.sortNumbers('desc'),
 							).to.be.eql(_.map(res.body.data, 'type'));
 						});
 					});
@@ -481,14 +481,14 @@ describe('GET /api/node', () => {
 					it('sorted by timestamp:asc should be ok', async () => {
 						return VerifiedEndpoint.makeRequest(
 							{ sort: 'timestamp:asc' },
-							200
+							200,
 						).then(res => {
 							expect(res.body.data).to.not.be.empty;
 
 							expect(
 								_(res.body.data)
 									.map('timestamp')
-									.sortNumbers('asc')
+									.sortNumbers('asc'),
 							).to.be.eql(_.map(res.body.data, 'timestamp'));
 						});
 					});
@@ -496,14 +496,14 @@ describe('GET /api/node', () => {
 					it('sorted by timestamp:desc should be ok', async () => {
 						return VerifiedEndpoint.makeRequest(
 							{ sort: 'timestamp:desc' },
-							200
+							200,
 						).then(res => {
 							expect(res.body.data).to.not.be.empty;
 
 							expect(
 								_(res.body.data)
 									.map('timestamp')
-									.sortNumbers('desc')
+									.sortNumbers('desc'),
 							).to.be.eql(_.map(res.body.data, 'timestamp'));
 						});
 					});
@@ -513,7 +513,7 @@ describe('GET /api/node', () => {
 					return VerifiedEndpoint.makeRequest({ sort: 'id:asc' }, 400).then(
 						res => {
 							expectSwaggerParamError(res, 'sort');
-						}
+						},
 					);
 				});
 			});

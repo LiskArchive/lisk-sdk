@@ -119,7 +119,7 @@ describe('blocks/verify', () => {
 		sinonSandbox.stub(transactionsModule, 'checkAllowedTransactions').returns(
 			sinonSandbox.stub().returns({
 				transactionsResponses: [],
-			})
+			}),
 		);
 		sinonSandbox
 			.stub(transactionsModule, 'verifyTransactions')
@@ -193,7 +193,7 @@ describe('blocks/verify', () => {
 			expect(blocksVerify.exceptions).to.eql(exceptionsWithVersion);
 			expect(blocksVerify.constants).to.eql(constants);
 			expect(blocksVerify.genesisBlock).to.eql(
-				__testContext.config.genesisBlock
+				__testContext.config.genesisBlock,
 			);
 			expect(blocksVerify.interfaceAdapters).to.eql(interfaceAdaptersMock);
 		});
@@ -209,13 +209,13 @@ describe('blocks/verify', () => {
 				blocksLogic.verifySignature.throws(new Error('verifySignature-ERR'));
 				const verifySignature = blocksVerifyModule.verifySignature(
 					{ id: 6 },
-					{ errors: [] }
+					{ errors: [] },
 				);
 				expect(verifySignature.errors[0].message).to.equal(
-					'verifySignature-ERR'
+					'verifySignature-ERR',
 				);
 				return expect(verifySignature.errors[1].message).to.equal(
-					'Failed to verify block signature'
+					'Failed to verify block signature',
 				);
 			});
 
@@ -223,10 +223,10 @@ describe('blocks/verify', () => {
 				blocksLogic.verifySignature.returns(false);
 				const verifySignature = blocksVerifyModule.verifySignature(
 					{ id: 6 },
-					{ errors: [] }
+					{ errors: [] },
 				);
 				return expect(verifySignature.errors[0].message).to.equal(
-					'Failed to verify block signature'
+					'Failed to verify block signature',
 				);
 			});
 		});
@@ -236,7 +236,7 @@ describe('blocks/verify', () => {
 				blocksLogic.verifySignature.returns(true);
 				const verifySignature = blocksVerifyModule.verifySignature(
 					{ id: 6 },
-					{ errors: [] }
+					{ errors: [] },
 				);
 				return expect(verifySignature.errors.length).to.equal(0);
 			});
@@ -249,10 +249,10 @@ describe('blocks/verify', () => {
 				it('should return error', async () => {
 					const verifyPreviousBlock = blocksVerifyModule.verifyPreviousBlock(
 						{ id: 6, height: 3 },
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyPreviousBlock.errors[0].message).to.equal(
-						'Invalid previous block'
+						'Invalid previous block',
 					);
 				});
 			});
@@ -263,7 +263,7 @@ describe('blocks/verify', () => {
 				it('should return no error', async () => {
 					const verifyPreviousBlock = blocksVerifyModule.verifyPreviousBlock(
 						{ id: 6, height: 1 },
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyPreviousBlock.errors.length).to.equal(0);
 				});
@@ -273,7 +273,7 @@ describe('blocks/verify', () => {
 				it('should return no error', async () => {
 					const verifyPreviousBlock = blocksVerifyModule.verifyPreviousBlock(
 						{ id: 6, previousBlock: 5, height: 3 },
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyPreviousBlock.errors.length).to.equal(0);
 				});
@@ -283,7 +283,7 @@ describe('blocks/verify', () => {
 				it('should return no error', async () => {
 					const verifyPreviousBlock = blocksVerifyModule.verifyPreviousBlock(
 						{ id: 6, previousBlock: 5, height: 1 },
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyPreviousBlock.errors.length).to.equal(0);
 				});
@@ -296,10 +296,10 @@ describe('blocks/verify', () => {
 			const verifyAgainstLastNBlockIds = blocksVerifyModule.verifyAgainstLastNBlockIds(
 				{ id: 3 },
 				[1, 2, 3, 4],
-				{ errors: [] }
+				{ errors: [] },
 			);
 			return expect(verifyAgainstLastNBlockIds.errors[0].message).to.equal(
-				'Block already exists in chain'
+				'Block already exists in chain',
 			);
 		});
 
@@ -307,7 +307,7 @@ describe('blocks/verify', () => {
 			const verifyAgainstLastNBlockIds = blocksVerifyModule.verifyAgainstLastNBlockIds(
 				{ id: 5 },
 				[1, 2, 3, 4],
-				{ errors: [] }
+				{ errors: [] },
 			);
 			return expect(verifyAgainstLastNBlockIds.errors.length).to.equal(0);
 		});
@@ -320,7 +320,7 @@ describe('blocks/verify', () => {
 					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 2, height: 1 },
 						{},
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyVersion.errors.length).to.equal(0);
 				});
@@ -329,10 +329,10 @@ describe('blocks/verify', () => {
 					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 0, height: 1 },
 						{},
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyVersion.errors[0].message).to.equal(
-						'Invalid block version'
+						'Invalid block version',
 					);
 				});
 
@@ -340,10 +340,10 @@ describe('blocks/verify', () => {
 					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 1, height: 1 },
 						{},
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyVersion.errors[0].message).to.equal(
-						'Invalid block version'
+						'Invalid block version',
 					);
 				});
 			});
@@ -353,7 +353,7 @@ describe('blocks/verify', () => {
 					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 2 },
 						{},
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyVersion.errors.length).to.equal(0);
 				});
@@ -362,10 +362,10 @@ describe('blocks/verify', () => {
 					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 1 },
 						{},
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyVersion.errors[0].message).to.equal(
-						'Invalid block version'
+						'Invalid block version',
 					);
 				});
 
@@ -373,10 +373,10 @@ describe('blocks/verify', () => {
 					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 3 },
 						{},
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyVersion.errors[0].message).to.equal(
-						'Invalid block version'
+						'Invalid block version',
 					);
 				});
 			});
@@ -402,7 +402,7 @@ describe('blocks/verify', () => {
 					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 0, height: 1 },
 						blocksVersionException,
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyVersion.errors.length).to.equal(0);
 				});
@@ -411,7 +411,7 @@ describe('blocks/verify', () => {
 					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 0, height: 1 },
 						blocksVersionExceptionExtended,
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyVersion.errors.length).to.equal(0);
 				});
@@ -420,10 +420,10 @@ describe('blocks/verify', () => {
 					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 1, height: 1 },
 						blocksVersionExceptionExtended,
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyVersion.errors[0].message).to.equal(
-						'Invalid block version'
+						'Invalid block version',
 					);
 				});
 
@@ -431,10 +431,10 @@ describe('blocks/verify', () => {
 					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 2, height: 1 },
 						blocksVersionExceptionExtended,
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyVersion.errors[0].message).to.equal(
-						'Invalid block version'
+						'Invalid block version',
 					);
 				});
 
@@ -442,10 +442,10 @@ describe('blocks/verify', () => {
 					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 1, height: 1 },
 						blocksVersionException,
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyVersion.errors[0].message).to.equal(
-						'Invalid block version'
+						'Invalid block version',
 					);
 				});
 
@@ -453,10 +453,10 @@ describe('blocks/verify', () => {
 					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 2, height: 1 },
 						blocksVersionException,
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyVersion.errors[0].message).to.equal(
-						'Invalid block version'
+						'Invalid block version',
 					);
 				});
 			});
@@ -466,7 +466,7 @@ describe('blocks/verify', () => {
 					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 2 },
 						blocksVersionException,
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyVersion.errors.length).to.equal(0);
 				});
@@ -475,10 +475,10 @@ describe('blocks/verify', () => {
 					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 1 },
 						blocksVersionException,
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyVersion.errors[0].message).to.equal(
-						'Invalid block version'
+						'Invalid block version',
 					);
 				});
 
@@ -486,10 +486,10 @@ describe('blocks/verify', () => {
 					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 3 },
 						blocksVersionException,
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyVersion.errors[0].message).to.equal(
-						'Invalid block version'
+						'Invalid block version',
 					);
 				});
 
@@ -497,7 +497,7 @@ describe('blocks/verify', () => {
 					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 2 },
 						blocksVersionExceptionExtended,
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyVersion.errors.length).to.equal(0);
 				});
@@ -506,10 +506,10 @@ describe('blocks/verify', () => {
 					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 1 },
 						blocksVersionExceptionExtended,
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyVersion.errors[0].message).to.equal(
-						'Invalid block version'
+						'Invalid block version',
 					);
 				});
 
@@ -517,10 +517,10 @@ describe('blocks/verify', () => {
 					const verifyVersion = blocksVerifyModule.verifyVersion(
 						{ version: 3 },
 						blocksVersionExceptionExtended,
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyVersion.errors[0].message).to.equal(
-						'Invalid block version'
+						'Invalid block version',
 					);
 				});
 			});
@@ -551,10 +551,10 @@ describe('blocks/verify', () => {
 						blockRewardStub,
 						{ height: 5, reward: 1, id: 5 },
 						blockRewardsExceptions,
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyReward.errors[0].message).to.equal(
-						'Invalid block reward: 1 expected: 5'
+						'Invalid block reward: 1 expected: 5',
 					);
 				});
 			});
@@ -565,7 +565,7 @@ describe('blocks/verify', () => {
 						blockRewardStub,
 						{ height: 5, reward: 1, id: 3 },
 						blockRewardsExceptions,
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyReward.errors.length).to.equal(0);
 				});
@@ -577,7 +577,7 @@ describe('blocks/verify', () => {
 						blockRewardStub,
 						{ height: 5, reward: 5, id: 3 },
 						blockRewardsExceptions,
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyReward.errors.length).to.equal(0);
 				});
@@ -589,7 +589,7 @@ describe('blocks/verify', () => {
 						blockRewardStub,
 						{ height: 5, reward: 5, id: 5 },
 						blockRewardsExceptions,
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyReward.errors.length).to.equal(0);
 				});
@@ -601,7 +601,7 @@ describe('blocks/verify', () => {
 						blockRewardStub,
 						{ height: 1, reward: 1, id: 5 },
 						blockRewardsExceptions,
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyReward.errors.length).to.equal(0);
 				});
@@ -613,7 +613,7 @@ describe('blocks/verify', () => {
 						blockRewardStub,
 						{ height: 1, reward: 1, id: 3 },
 						blockRewardsExceptions,
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyReward.errors.length).to.equal(0);
 				});
@@ -625,7 +625,7 @@ describe('blocks/verify', () => {
 						blockRewardStub,
 						{ height: 1, reward: 5, id: 5 },
 						blockRewardsExceptions,
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyReward.errors.length).to.equal(0);
 				});
@@ -637,7 +637,7 @@ describe('blocks/verify', () => {
 						blockRewardStub,
 						{ height: 1, reward: 5, id: 3 },
 						blockRewardsExceptions,
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyReward.errors.length).to.equal(0);
 				});
@@ -654,7 +654,7 @@ describe('blocks/verify', () => {
 			it('should return error', async () => {
 				const verifyId = blocksVerifyModule.verifyId(undefined, { errors: [] });
 				return expect(verifyId.errors[0].message).to.equal(
-					"Cannot set property 'id' of undefined"
+					"Cannot set property 'id' of undefined",
 				);
 			});
 		});
@@ -687,10 +687,10 @@ describe('blocks/verify', () => {
 
 		const payloadHash = crypto.createHash('sha256');
 		const transactionOne = interfaceAdapters.transactions.fromJson(
-			new Transaction({ type: 0 })
+			new Transaction({ type: 0 }),
 		);
 		const transactionTwo = interfaceAdapters.transactions.fromJson(
-			new Transaction({ type: 0 })
+			new Transaction({ type: 0 }),
 		);
 		const transactions = [transactionOne, transactionTwo];
 		let totalAmount = new BigNum(0);
@@ -725,10 +725,10 @@ describe('blocks/verify', () => {
 						constants.maxPayloadLength,
 						{
 							errors: [],
-						}
+						},
 					);
 					return expect(verifyPayload.errors[0].message).to.equal(
-						'Payload length is too long'
+						'Payload length is too long',
 					);
 				});
 			});
@@ -743,10 +743,10 @@ describe('blocks/verify', () => {
 						constants.maxPayloadLength,
 						{
 							errors: [],
-						}
+						},
 					);
 					return expect(verifyPayload.errors[0].message).to.equal(
-						'Included transactions do not match block transactions count'
+						'Included transactions do not match block transactions count',
 					);
 				});
 			});
@@ -756,7 +756,7 @@ describe('blocks/verify', () => {
 					const dummyBlockERR = _.cloneDeep(dummyBlock);
 					dummyBlockERR.numberOfTransactions = 32;
 					dummyBlockERR.transactions = dummyBlockERR.transactions.concat(
-						new Array(30)
+						new Array(30),
 					);
 					verifyPayload = blocksVerifyModule.verifyPayload(
 						dummyBlockERR,
@@ -764,10 +764,10 @@ describe('blocks/verify', () => {
 						constants.maxPayloadLength,
 						{
 							errors: [],
-						}
+						},
 					);
 					return expect(verifyPayload.errors[0].message).to.equal(
-						'Number of transactions exceeds maximum per block'
+						'Number of transactions exceeds maximum per block',
 					);
 				});
 			});
@@ -783,10 +783,10 @@ describe('blocks/verify', () => {
 						constants.maxPayloadLength,
 						{
 							errors: [],
-						}
+						},
 					);
 					return expect(verifyPayload.errors[0].message).to.equal(
-						`Encountered duplicate transaction: ${transactionOne.id}`
+						`Encountered duplicate transaction: ${transactionOne.id}`,
 					);
 				});
 			});
@@ -801,10 +801,10 @@ describe('blocks/verify', () => {
 						constants.maxPayloadLength,
 						{
 							errors: [],
-						}
+						},
 					);
 					return expect(verifyPayload.errors[0].message).to.equal(
-						'Invalid payload hash'
+						'Invalid payload hash',
 					);
 				});
 			});
@@ -819,10 +819,10 @@ describe('blocks/verify', () => {
 						constants.maxPayloadLength,
 						{
 							errors: [],
-						}
+						},
 					);
 					return expect(verifyPayload.errors[0].message).to.equal(
-						'Invalid total amount'
+						'Invalid total amount',
 					);
 				});
 			});
@@ -837,10 +837,10 @@ describe('blocks/verify', () => {
 						constants.maxPayloadLength,
 						{
 							errors: [],
-						}
+						},
 					);
 					return expect(verifyPayload.errors[0].message).to.equal(
-						'Invalid total fee'
+						'Invalid total fee',
 					);
 				});
 			});
@@ -852,7 +852,7 @@ describe('blocks/verify', () => {
 					dummyBlock,
 					constants.maxTransactionsPerBlock,
 					constants.maxPayloadLength,
-					{ errors: [] }
+					{ errors: [] },
 				);
 				return expect(verifyPayload.errors.length).to.equal(0);
 			});
@@ -875,13 +875,13 @@ describe('blocks/verify', () => {
 						lastBlock,
 						{
 							errors: [],
-						}
+						},
 					);
 					expect(roundsModuleStub.fork.calledOnce).to.be.true;
 					expect(roundsModuleStub.fork.args[0][0]).to.deep.equal(block);
 					expect(roundsModuleStub.fork.args[0][1]).to.equal(1);
 					return expect(verifyForkOne.errors[0].message).to.equal(
-						'Invalid previous block: 4 expected: 5'
+						'Invalid previous block: 4 expected: 5',
 					);
 				});
 			});
@@ -890,7 +890,7 @@ describe('blocks/verify', () => {
 		describe('when verifyForkOne succeeds', () => {
 			describe('when block.previousBlock = undefined', () => {
 				afterEach(
-					async () => expect(roundsModuleStub.fork.calledOnce).to.be.false
+					async () => expect(roundsModuleStub.fork.calledOnce).to.be.false,
 				);
 
 				it('should return no error', async () => {
@@ -902,7 +902,7 @@ describe('blocks/verify', () => {
 						lastBlock,
 						{
 							errors: [],
-						}
+						},
 					);
 					return expect(verifyForkOne.errors.length).to.equal(0);
 				});
@@ -910,7 +910,7 @@ describe('blocks/verify', () => {
 
 			describe('when block.previousBlock = lastBlock.id', () => {
 				afterEach(
-					async () => expect(roundsModuleStub.fork.calledOnce).to.be.false
+					async () => expect(roundsModuleStub.fork.calledOnce).to.be.false,
 				);
 
 				it('should return no error', async () => {
@@ -922,7 +922,7 @@ describe('blocks/verify', () => {
 						lastBlock,
 						{
 							errors: [],
-						}
+						},
 					);
 					return expect(verifyForkOne.errors.length).to.equal(0);
 				});
@@ -950,10 +950,10 @@ describe('blocks/verify', () => {
 						lastBlock,
 						{
 							errors: [],
-						}
+						},
 					);
 					return expect(verifyBlockSlot.errors[0].message).to.equal(
-						'Invalid block timestamp'
+						'Invalid block timestamp',
 					);
 				});
 			});
@@ -968,10 +968,10 @@ describe('blocks/verify', () => {
 						lastBlock,
 						{
 							errors: [],
-						}
+						},
 					);
 					return expect(verifyBlockSlot.errors[0].message).to.equal(
-						'Invalid block timestamp'
+						'Invalid block timestamp',
 					);
 				});
 			});
@@ -987,7 +987,7 @@ describe('blocks/verify', () => {
 					lastBlock,
 					{
 						errors: [],
-					}
+					},
 				);
 				return expect(verifyBlockSlot.errors.length).to.equal(0);
 			});
@@ -1010,10 +1010,10 @@ describe('blocks/verify', () => {
 						slotMock,
 						constants.blockSlotWindow,
 						{ timestamp: 10 },
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyBlockSlotWindow.errors[0].message).to.equal(
-						'Block slot is too old'
+						'Block slot is too old',
 					);
 				});
 			});
@@ -1024,10 +1024,10 @@ describe('blocks/verify', () => {
 						slotMock,
 						constants.blockSlotWindow,
 						{ timestamp: 110 },
-						{ errors: [] }
+						{ errors: [] },
 					);
 					return expect(verifyBlockSlotWindow.errors[0].message).to.equal(
-						'Block slot is in the future'
+						'Block slot is in the future',
 					);
 				});
 			});
@@ -1039,7 +1039,7 @@ describe('blocks/verify', () => {
 					slotMock,
 					constants.blockSlotWindow,
 					{ timestamp: 99 },
-					{ errors: [] }
+					{ errors: [] },
 				);
 				return expect(verifyBlockSlotWindow.errors.length).to.equal(0);
 			});
@@ -1086,7 +1086,7 @@ describe('blocks/verify', () => {
 		it('should call private functions with correct parameters', async () => {
 			const verifyReceipt = blocksVerify.verifyBlock(
 				validBlock,
-				validLastBlock
+				validLastBlock,
 			);
 			return expect(verifyReceipt).to.deep.equal({
 				verified: true,
@@ -1101,7 +1101,7 @@ describe('blocks/verify', () => {
 		describe('when storage.entities.Block.isPersisted fails', () => {
 			beforeEach(async () => {
 				storageStub.entities.Block.isPersisted.rejects(
-					new Error('blockExists-ERR')
+					new Error('blockExists-ERR'),
 				);
 			});
 
@@ -1148,7 +1148,7 @@ describe('blocks/verify', () => {
 		describe('when rounds.validateBlockSlot fails', () => {
 			beforeEach(async () => {
 				roundsModuleStub.validateBlockSlot.rejects(
-					new Error('validateBlockSlot-ERR')
+					new Error('validateBlockSlot-ERR'),
 				);
 			});
 
@@ -1208,7 +1208,7 @@ describe('blocks/verify', () => {
 						id: transaction.id,
 						status: transactionStatus.OK,
 						errors: [],
-					})
+					}),
 				);
 
 				invalidTransactionsResponse = dummyBlock.transactions.map(
@@ -1216,7 +1216,7 @@ describe('blocks/verify', () => {
 						id: transaction.id,
 						status: transactionStatus.FAIL,
 						errors: [new Error('Invalid transaction error')],
-					})
+					}),
 				);
 			});
 
@@ -1226,7 +1226,7 @@ describe('blocks/verify', () => {
 				transactionsModule.verifyTransactions.returns(
 					sinonSandbox
 						.stub()
-						.resolves({ transactionsResponses: validTransactionsResponse })
+						.resolves({ transactionsResponses: validTransactionsResponse }),
 				);
 				await blocksVerify.checkTransactions(dummyBlock);
 				expect(transactionsModule.verifyTransactions).to.be.calledOnce;
@@ -1236,7 +1236,7 @@ describe('blocks/verify', () => {
 				transactionsModule.verifyTransactions.returns(
 					sinonSandbox
 						.stub()
-						.resolves({ transactionsResponses: invalidTransactionsResponse })
+						.resolves({ transactionsResponses: invalidTransactionsResponse }),
 				);
 				try {
 					await blocksVerify.checkTransactions(dummyBlock);
@@ -1264,7 +1264,7 @@ describe('blocks/verify', () => {
 								errors: [new Error('anError')],
 							},
 						],
-					})
+					}),
 				);
 
 				expect(blocksVerify.checkTransactions(dummyBlock, false)).to.eventually

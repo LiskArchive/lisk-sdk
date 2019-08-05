@@ -25,16 +25,16 @@ const StateStore = require('../state_store');
 
 const validateTransactions = exceptions => transactions => {
 	const transactionsResponses = transactions.map(transaction =>
-		transaction.validate()
+		transaction.validate(),
 	);
 
 	const invalidTransactionResponses = transactionsResponses.filter(
-		transactionResponse => transactionResponse.status !== TransactionStatus.OK
+		transactionResponse => transactionResponse.status !== TransactionStatus.OK,
 	);
 	exceptionsHandlers.updateTransactionResponseForExceptionTransactions(
 		invalidTransactionResponses,
 		transactions,
-		exceptions
+		exceptions,
 	);
 
 	return {
@@ -91,7 +91,7 @@ const verifyTotalSpending = (transactions, stateStore) => {
 						new TransactionError(
 							`Account does not have enough LSK for total spending. balance: ${senderBalance.toString()}, spending: ${senderTotalSpending.toString()}`,
 							transaction.id,
-							'.amount'
+							'.amount',
 						),
 					],
 				});
@@ -106,7 +106,7 @@ const verifyTotalSpending = (transactions, stateStore) => {
 
 const applyGenesisTransactions = storage => async (
 	transactions,
-	tx = undefined
+	tx = undefined,
 ) => {
 	// Get data required for verifying transactions
 	const stateStore = new StateStore(storage, {
@@ -145,14 +145,14 @@ const applyTransactions = (storage, exceptions) => async (transactions, tx) => {
 	// Verify total spending of per account accumulative
 	const transactionsResponseWithSpendingErrors = verifyTotalSpending(
 		transactions,
-		stateStore
+		stateStore,
 	);
 
 	const transactionsWithoutSpendingErrors = transactions.filter(
 		transaction =>
 			!transactionsResponseWithSpendingErrors
 				.map(({ id }) => id)
-				.includes(transaction.id)
+				.includes(transaction.id),
 	);
 
 	const transactionsResponses = transactionsWithoutSpendingErrors.map(
@@ -164,7 +164,7 @@ const applyTransactions = (storage, exceptions) => async (transactions, tx) => {
 				exceptionsHandlers.updateTransactionResponseForExceptionTransactions(
 					[transactionResponse],
 					transactionsWithoutSpendingErrors,
-					exceptions
+					exceptions,
 				);
 			}
 			if (transactionResponse.status === TransactionStatus.OK) {
@@ -177,7 +177,7 @@ const applyTransactions = (storage, exceptions) => async (transactions, tx) => {
 			}
 
 			return transactionResponse;
-		}
+		},
 	);
 
 	return {
@@ -201,13 +201,13 @@ const checkPersistedTransactions = storage => async transactions => {
 	});
 
 	const persistedTransactionIds = confirmedTransactions.map(
-		transaction => transaction.id
+		transaction => transaction.id,
 	);
 	const persistedTransactions = transactions.filter(transaction =>
-		persistedTransactionIds.includes(transaction.id)
+		persistedTransactionIds.includes(transaction.id),
 	);
 	const nonPersistedTransactions = transactions.filter(
-		transaction => !persistedTransactionIds.includes(transaction.id)
+		transaction => !persistedTransactionIds.includes(transaction.id),
 	);
 	const transactionsResponses = [
 		...nonPersistedTransactions.map(transaction => ({
@@ -222,7 +222,7 @@ const checkPersistedTransactions = storage => async transactions => {
 				new TransactionError(
 					`Transaction is already confirmed: ${transaction.id}`,
 					transaction.id,
-					'.id'
+					'.id',
 				),
 			],
 		})),
@@ -246,7 +246,7 @@ const checkAllowedTransactions = contexter => transactions => ({
 				: [
 						new TransactionError(
 							`Transaction type ${transaction.type} is currently not allowed.`,
-							transaction.id
+							transaction.id,
 						),
 				  ],
 		};
@@ -255,7 +255,7 @@ const checkAllowedTransactions = contexter => transactions => ({
 
 const undoTransactions = (storage, exceptions) => async (
 	transactions,
-	tx = undefined
+	tx = undefined,
 ) => {
 	// Get data required for verifying transactions
 	const stateStore = new StateStore(storage, {
@@ -272,13 +272,13 @@ const undoTransactions = (storage, exceptions) => async (
 	});
 
 	const nonUndoableTransactionsResponse = transactionsResponses.filter(
-		transactionResponse => transactionResponse.status !== TransactionStatus.OK
+		transactionResponse => transactionResponse.status !== TransactionStatus.OK,
 	);
 
 	exceptionsHandlers.updateTransactionResponseForExceptionTransactions(
 		nonUndoableTransactionsResponse,
 		transactions,
-		exceptions
+		exceptions,
 	);
 
 	return {
@@ -290,7 +290,7 @@ const undoTransactions = (storage, exceptions) => async (
 const verifyTransactions = (
 	storage,
 	slots,
-	exceptions
+	exceptions,
 ) => async transactions => {
 	// Get data required for verifying transactions
 	const stateStore = new StateStore(storage, {
@@ -308,8 +308,8 @@ const verifyTransactions = (
 				new TransactionError(
 					'Invalid transaction timestamp. Timestamp is in the future',
 					transaction.id,
-					'.timestamp'
-				)
+					'.timestamp',
+				),
 			);
 		}
 		stateStore.restoreSnapshot();
@@ -317,13 +317,13 @@ const verifyTransactions = (
 	});
 
 	const unverifiableTransactionsResponse = transactionsResponses.filter(
-		transactionResponse => transactionResponse.status !== TransactionStatus.OK
+		transactionResponse => transactionResponse.status !== TransactionStatus.OK,
 	);
 
 	exceptionsHandlers.updateTransactionResponseForExceptionTransactions(
 		unverifiableTransactionsResponse,
 		transactions,
-		exceptions
+		exceptions,
 	);
 
 	return {

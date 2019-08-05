@@ -66,7 +66,7 @@ describe('block', () => {
 		'robust weapon course unknown head trial pencil latin acid';
 
 	const validKeypairBytes = getPrivateAndPublicKeyBytesFromPassphrase(
-		validPassphrase
+		validPassphrase,
 	);
 
 	const validKeypair = {
@@ -291,7 +291,7 @@ describe('block', () => {
 		data = _.cloneDeep(validDataForBlock);
 		transactions = _.values(transactionsByTypes);
 		transactions = transactions.map(transaction =>
-			interfaceAdapters.transactions.fromJson(transaction)
+			interfaceAdapters.transactions.fromJson(transaction),
 		);
 	});
 
@@ -305,7 +305,7 @@ describe('block', () => {
 
 			expect(generatedBlock).to.not.have.property('maxHeightPreviouslyForged');
 			return expect(generatedBlock).to.not.have.property(
-				'prevotedConfirmedUptoHeight'
+				'prevotedConfirmedUptoHeight',
 			);
 		});
 
@@ -341,8 +341,8 @@ describe('block', () => {
 					// Create 6 multisignature transactions
 					multipleMultisigTx = Array(...Array(5)).map(() =>
 						interfaceAdapters.transactions.fromJson(
-							transactionsByTypes[TRANSACTION_TYPES_MULTI]
-						)
+							transactionsByTypes[TRANSACTION_TYPES_MULTI],
+						),
 					);
 
 					generatedBlock = block.create({
@@ -355,7 +355,7 @@ describe('block', () => {
 
 				it('should sort transactions in the correct order', async () => {
 					expect(
-						expectedOrderOfTransactions(generatedBlock.transactions)
+						expectedOrderOfTransactions(generatedBlock.transactions),
 					).to.equal(true);
 					return expect(transactionsOrder).to.eql(correctOrderOfTransactions);
 				});
@@ -369,8 +369,8 @@ describe('block', () => {
 				beforeEach(async () => {
 					multipleMultisigTx = Array(...Array(5)).map(() =>
 						interfaceAdapters.transactions.fromJson(
-							transactionsByTypes[TRANSACTION_TYPES_MULTI]
-						)
+							transactionsByTypes[TRANSACTION_TYPES_MULTI],
+						),
 					);
 					// Add multisig transactions after the 3rd transaction in array
 					transactions.splice(...[3, 0].concat(multipleMultisigTx));
@@ -384,7 +384,7 @@ describe('block', () => {
 
 				it('should sort transactions in the correct order', async () => {
 					expect(
-						expectedOrderOfTransactions(generatedBlock.transactions)
+						expectedOrderOfTransactions(generatedBlock.transactions),
 					).to.equal(true);
 					return expect(transactionsOrder).to.eql(correctOrderOfTransactions);
 				});
@@ -398,8 +398,8 @@ describe('block', () => {
 				beforeEach(async () => {
 					multipleMultisigTx = Array(...Array(5)).map(() =>
 						interfaceAdapters.transactions.fromJson(
-							transactionsByTypes[TRANSACTION_TYPES_MULTI]
-						)
+							transactionsByTypes[TRANSACTION_TYPES_MULTI],
+						),
 					);
 					generatedBlock = block.create({
 						...data,
@@ -411,7 +411,7 @@ describe('block', () => {
 
 				it('should sort transactions in the correct order', async () => {
 					expect(
-						expectedOrderOfTransactions(generatedBlock.transactions)
+						expectedOrderOfTransactions(generatedBlock.transactions),
 					).to.equal(true);
 					return expect(transactionsOrder).to.eql(correctOrderOfTransactions);
 				});
@@ -426,8 +426,8 @@ describe('block', () => {
 					// Create 6 multisignature transactions
 					multipleMultisigTx = Array(...Array(5)).map(() =>
 						interfaceAdapters.transactions.fromJson(
-							transactionsByTypes[TRANSACTION_TYPES_MULTI]
-						)
+							transactionsByTypes[TRANSACTION_TYPES_MULTI],
+						),
 					);
 					generatedBlock = block.create({
 						...data,
@@ -439,7 +439,7 @@ describe('block', () => {
 
 				it('should sort transactions in the correct order', async () => {
 					expect(
-						expectedOrderOfTransactions(generatedBlock.transactions)
+						expectedOrderOfTransactions(generatedBlock.transactions),
 					).to.equal(true);
 					return expect(transactionsOrder).to.eql(correctOrderOfTransactions);
 				});
@@ -672,7 +672,7 @@ describe('block', () => {
 				'generatorId',
 				'blockSignature',
 				'confirmations',
-				'totalForged'
+				'totalForged',
 			);
 		});
 	});

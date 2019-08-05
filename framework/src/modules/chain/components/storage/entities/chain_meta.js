@@ -122,7 +122,7 @@ class ChainMeta extends BaseEntity {
 			this.SQLs.upsert,
 			{ key, value },
 			{ expectedResultCount },
-			tx
+			tx,
 		);
 	}
 
@@ -144,7 +144,7 @@ class ChainMeta extends BaseEntity {
 				this.SQLs.delete,
 				{ parsedFilters },
 				{ expectedResultCount: 0 },
-				tx
+				tx,
 			)
 			.then(result => result);
 	}
@@ -158,7 +158,7 @@ class ChainMeta extends BaseEntity {
 		const parsedOptions = defaults(
 			{},
 			pick(options, ['limit', 'offset', 'sort']),
-			pick(this.defaultOptions, ['limit', 'offset', 'sort'])
+			pick(this.defaultOptions, ['limit', 'offset', 'sort']),
 		);
 		const parsedSort = this.parseSort(parsedOptions.sort);
 
@@ -173,7 +173,7 @@ class ChainMeta extends BaseEntity {
 			this.SQLs.get,
 			params,
 			{ expectedResultCount },
-			tx
+			tx,
 		);
 	}
 }

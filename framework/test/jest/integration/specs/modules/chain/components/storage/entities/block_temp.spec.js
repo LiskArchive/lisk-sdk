@@ -30,7 +30,7 @@ const { config } = require('../../shared');
 describe('TempBlock', () => {
 	const storage = new StorageSandbox(
 		config.components.storage,
-		'lisk_test_chain_module_storage_temp_block'
+		'lisk_test_chain_module_storage_temp_block',
 	);
 	const validSQLs = ['create', 'delete', 'get'];
 	const validFields = ['id', 'height', 'fullBlock'];
@@ -117,7 +117,7 @@ describe('TempBlock', () => {
 	beforeAll(async () => {
 		await storage.bootstrap();
 
-		adapter = storage.adapter;
+		({ adapter } = storage);
 		TempBlockEntity = storage.entities.TempBlock;
 	});
 
@@ -168,10 +168,11 @@ describe('TempBlock', () => {
 
 		it('should call addField the exact number of times', async () => {
 			jest.spyOn(TempBlock.prototype, 'addField');
+			// eslint-disable-next-line no-new
 			new TempBlock(adapter);
 
 			expect(TempBlock.prototype.addField).toHaveBeenCalledTimes(
-				Object.keys(TempBlockEntity.fields).length
+				Object.keys(TempBlockEntity.fields).length,
 			);
 		});
 
@@ -205,7 +206,7 @@ describe('TempBlock', () => {
 	describe('getOne', () => {
 		it('should reject with error if provided without filters', async () => {
 			await expect(TempBlockEntity.getOne()).rejects.toThrow(
-				'Multiple rows were not expected.'
+				'Multiple rows were not expected.',
 			);
 		});
 
@@ -215,7 +216,7 @@ describe('TempBlock', () => {
 
 		it('should reject with error if provided filter does not match', async () => {
 			await expect(TempBlockEntity.getOne({ height: 10 })).rejects.toThrow(
-				'No data returned from the query.'
+				'No data returned from the query.',
 			);
 		});
 	});

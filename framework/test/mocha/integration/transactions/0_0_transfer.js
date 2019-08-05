@@ -49,7 +49,7 @@ describe('integration test (type 0) - double transfers', () => {
 					[transaction],
 					async () => {
 						done();
-					}
+					},
 				);
 			});
 
@@ -122,7 +122,7 @@ describe('integration test (type 0) - double transfers', () => {
 								transaction2.id
 							} failed at .balance: Account does not have enough LSK: ${
 								account.address
-							}, balance: 99.9`
+							}, balance: 99.9`,
 						);
 						done();
 					});

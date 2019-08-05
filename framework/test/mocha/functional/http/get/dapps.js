@@ -97,7 +97,7 @@ describe.skip('GET /dapps', () => {
 						{
 							whatever: accountFixtures.genesis.address,
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'whatever');
@@ -110,7 +110,7 @@ describe.skip('GET /dapps', () => {
 						{
 							sort: '',
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'sort');
@@ -125,7 +125,7 @@ describe.skip('GET /dapps', () => {
 							limit: 'invalid',
 							offset: 'invalid',
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'transactionId');
@@ -142,7 +142,7 @@ describe.skip('GET /dapps', () => {
 							offset: 'invalid',
 							name: dapp1.name,
 						},
-						400
+						400,
 					)
 					.then(res => {
 						expectSwaggerParamError(res, 'limit');
@@ -312,7 +312,7 @@ describe.skip('GET /dapps', () => {
 					.then(responses => {
 						expect(responses).to.have.length(2);
 						expect(responses[0].body.data[0].name).to.not.equal(
-							responses[1].body.data[0].name
+							responses[1].body.data[0].name,
 						);
 					});
 			});
@@ -390,7 +390,7 @@ describe.skip('GET /dapps', () => {
 				return dappsEndpoint
 					.makeRequest({ unknown: '' }, 400)
 					.then(res =>
-						expect(res.body.errors[0].code).to.equal('UNKNOWN_PARAM')
+						expect(res.body.errors[0].code).to.equal('UNKNOWN_PARAM'),
 					);
 			});
 
@@ -398,7 +398,7 @@ describe.skip('GET /dapps', () => {
 				return dappsEndpoint
 					.makeRequest({ unknown: 'unknown' }, 400)
 					.then(res =>
-						expect(res.body.errors[0].code).to.equal('UNKNOWN_PARAM')
+						expect(res.body.errors[0].code).to.equal('UNKNOWN_PARAM'),
 					);
 			});
 		});

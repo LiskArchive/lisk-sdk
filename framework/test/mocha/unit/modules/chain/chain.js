@@ -156,7 +156,7 @@ describe('Chain', () => {
 					await chain.actions.getHighestCommonBlockId(actionQuery);
 				} catch (error) {
 					expect(error.message).to.equal(
-						'should NOT have duplicate items (items ## 1 and 0 are identical): undefined'
+						'should NOT have duplicate items (items ## 1 and 0 are identical): undefined',
 					);
 					expect(chain.logger.debug).to.be.calledWith(
 						'getHighestCommonBlockId request validation failed',
@@ -164,7 +164,7 @@ describe('Chain', () => {
 							err:
 								'should NOT have duplicate items (items ## 1 and 0 are identical): undefined',
 							req: actionQuery.params,
-						}
+						},
 					);
 				}
 			});
@@ -202,7 +202,7 @@ describe('Chain', () => {
 
 		it('should be an async function', () => {
 			return expect(chain.bootstrap.constructor.name).to.be.equal(
-				'AsyncFunction'
+				'AsyncFunction',
 			);
 		});
 
@@ -285,10 +285,10 @@ describe('Chain', () => {
 			// Assert
 			expect(chain.logger.fatal).to.be.calledOnce;
 			expect(chain.logger.fatal).to.have.been.calledWith(
-				'Chain initialization'
+				'Chain initialization',
 			);
 			expect(chain.logger.fatal.firstCall.args[1].message).to.be.eql(
-				'Failed to assign nethash from genesis block'
+				'Failed to assign nethash from genesis block',
 			);
 		});
 
@@ -308,10 +308,10 @@ describe('Chain', () => {
 
 			expect(chain.logger.fatal).to.be.calledOnce;
 			expect(chain.logger.fatal).to.have.been.calledWith(
-				'Chain initialization'
+				'Chain initialization',
 			);
 			expect(chain.logger.fatal.firstCall.args[1].message).to.be.eql(
-				'modules.chain.forging.waitThreshold=5 is greater or equal to app.genesisConfig.BLOCK_TIME=4. It impacts the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold'
+				'modules.chain.forging.waitThreshold=5 is greater or equal to app.genesisConfig.BLOCK_TIME=4. It impacts the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold',
 			);
 		});
 
@@ -331,10 +331,10 @@ describe('Chain', () => {
 
 			expect(chain.logger.fatal).to.be.calledOnce;
 			expect(chain.logger.fatal).to.have.been.calledWith(
-				'Chain initialization'
+				'Chain initialization',
 			);
 			expect(chain.logger.fatal.firstCall.args[1].message).to.be.eql(
-				'modules.chain.forging.waitThreshold=5 is greater or equal to app.genesisConfig.BLOCK_TIME=5. It impacts the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold'
+				'modules.chain.forging.waitThreshold=5 is greater or equal to app.genesisConfig.BLOCK_TIME=5. It impacts the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold',
 			);
 		});
 
@@ -365,13 +365,13 @@ describe('Chain', () => {
 		it('should bootstrap storage', () => {
 			return expect(stubs.initSteps.bootstrapStorage).to.have.been.calledWith(
 				chain.scope,
-				chainOptions.constants.ACTIVE_DELEGATES
+				chainOptions.constants.ACTIVE_DELEGATES,
 			);
 		});
 
 		it('should bootstrap cache', () => {
 			return expect(stubs.initSteps.bootstrapCache).to.have.been.calledWith(
-				chain.scope
+				chain.scope,
 			);
 		});
 
@@ -385,7 +385,7 @@ describe('Chain', () => {
 		it('should invoke blocks.loadBlockChain', async () => {
 			expect(chain.blocks.loadBlockChain).to.have.been.calledOnce;
 			expect(chain.blocks.loadBlockChain).to.have.been.calledWith(
-				chain.options.loading.rebuildUpToRound
+				chain.options.loading.rebuildUpToRound,
 			);
 		});
 
@@ -395,13 +395,13 @@ describe('Chain', () => {
 
 		it('should subscribe to "app:state:updated" event', () => {
 			return expect(chain.channel.subscribe).to.have.been.calledWith(
-				'app:state:updated'
+				'app:state:updated',
 			);
 		});
 
 		it('should subscribe to "network:subscribe" event', () => {
 			return expect(chain.channel.subscribe).to.have.been.calledWith(
-				'network:event'
+				'network:event',
 			);
 		});
 
@@ -429,7 +429,7 @@ describe('Chain', () => {
 
 			it('should log "Chain initialization"', async () => {
 				expect(chain.logger.fatal).to.have.been.calledWith(
-					'Chain initialization'
+					'Chain initialization',
 				);
 			});
 			it('should emit an event "cleanup" on the process', () => {
@@ -446,7 +446,7 @@ describe('Chain', () => {
 		it('should be an async function', () => {
 			// Assert
 			return expect(chain.cleanup.constructor.name).to.be.equal(
-				'AsyncFunction'
+				'AsyncFunction',
 			);
 		});
 
@@ -496,7 +496,7 @@ describe('Chain', () => {
 					syncing: chain.loader.syncing(),
 					lastReceipt: chain.blocks.lastReceipt,
 				},
-				'Sync time triggered'
+				'Sync time triggered',
 			);
 		});
 
@@ -534,7 +534,7 @@ describe('Chain', () => {
 				// Assert
 				expect(stubs.logger.error).to.be.calledWith(
 					expectedError,
-					'Sync timer'
+					'Sync timer',
 				);
 			});
 		});
@@ -573,7 +573,7 @@ describe('Chain', () => {
 			expect(stubs.jobsQueue.register).to.be.calledWith(
 				'nextSync',
 				sinonSandbox.match.func,
-				Chain.__get__('syncInterval')
+				Chain.__get__('syncInterval'),
 			);
 		});
 	});
@@ -599,7 +599,7 @@ describe('Chain', () => {
 
 			// Assert
 			expect(stubs.logger.debug.getCall(2)).to.be.calledWith(
-				'No delegates are enabled'
+				'No delegates are enabled',
 			);
 			expect(chain.scope.sequence.add).to.be.called;
 			expect(chain.forger.forge).to.not.be.called;
@@ -614,7 +614,7 @@ describe('Chain', () => {
 
 			// Assert
 			expect(stubs.logger.debug.getCall(2)).to.be.calledWith(
-				'Client not ready to forge'
+				'Client not ready to forge',
 			);
 			expect(chain.scope.sequence.add).to.be.called;
 			expect(chain.forger.forge).to.not.be.called;
@@ -629,7 +629,7 @@ describe('Chain', () => {
 
 			// Assert
 			expect(stubs.logger.debug.getCall(2)).to.be.calledWith(
-				'Client not ready to forge'
+				'Client not ready to forge',
 			);
 			expect(chain.forger.forge).to.not.be.called;
 		});
@@ -659,7 +659,7 @@ describe('Chain', () => {
 			expect(stubs.jobsQueue.register).to.be.calledWith(
 				'nextForge',
 				sinonSandbox.match.func,
-				Chain.__get__('forgeInterval')
+				Chain.__get__('forgeInterval'),
 			);
 		});
 	});

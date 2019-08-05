@@ -83,13 +83,13 @@ describe('integration test (type 0) - address collision', () => {
 			[creditTransaction],
 			async () => {
 				done();
-			}
+			},
 		);
 	});
 
 	it('both passphrases should have the same address', done => {
 		expect(getAddressFromPublicKey(publicKeys[0])).to.equal(
-			getAddressFromPublicKey(publicKeys[1])
+			getAddressFromPublicKey(publicKeys[1]),
 		);
 		done();
 	});
@@ -164,7 +164,7 @@ describe('integration test (type 0) - address collision', () => {
 									expect(err).to.be.null;
 									expect(res).to.equal(firstTransactionWithData.id);
 									seriesCb();
-								}
+								},
 							);
 						},
 						function(seriesCb) {
@@ -179,16 +179,16 @@ describe('integration test (type 0) - address collision', () => {
 											secondTransactionWithData.id
 										} failed at .senderPublicKey: Invalid sender publicKey, actual: ${
 											publicKeys[1]
-										}, expected: ${publicKeys[0]}`
+										}, expected: ${publicKeys[0]}`,
 									);
 									seriesCb();
-								}
+								},
 							);
 						},
 					],
 					err => {
 						done(err);
-					}
+					},
 				);
 			});
 		});

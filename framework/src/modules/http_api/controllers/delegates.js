@@ -26,128 +26,29 @@ let logger;
 let channel;
 const { EPOCH_TIME, ACTIVE_DELEGATES } = global.constants;
 
-/**
- * Description of the function.
- *
- * @class
- * @memberof api.controllers
- * @requires lodash
- * @param {Object} scope - App instance
- * @todo Add description of DelegatesController
- */
-function DelegatesController(scope) {
-	storage = scope.components.storage;
-	logger = scope.components.logger;
-	channel = scope.channel;
+function delegateFormatter(totalSupply, delegate) {
+	const result = _.pick(delegate, [
+		'username',
+		'vote',
+		'rewards',
+		'producedBlocks',
+		'missedBlocks',
+		'productivity',
+		'rank',
+	]);
+
+	result.account = {
+		address: delegate.address,
+		publicKey: delegate.publicKey,
+		secondPublicKey: delegate.secondPublicKey || '',
+	};
+
+	result.approval = calculateApproval(result.vote, totalSupply);
+
+	result.rank = parseInt(result.rank, 10);
+
+	return result;
 }
-
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
-DelegatesController.getDelegates = async function(context, next) {
-	const invalidParams = swaggerHelper.invalidParams(context.request);
-
-	if (invalidParams.length) {
-		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
-	}
-
-	const params = context.request.swagger.params;
-
-	let filters = {
-		address: params.address.value,
-		publicKey: params.publicKey.value,
-		secondPublicKey: params.secondPublicKey.value,
-		username: params.username.value,
-	};
-
-	if (params.search.value) {
-		filters.username_like = `%${params.search.value}%`;
-	}
-
-	let options = {
-		limit: params.limit.value,
-		offset: params.offset.value,
-		sort: params.sort.value,
-		extended: true,
-	};
-
-	// Remove filters with null values
-	filters = _.pickBy(filters, v => !(v === undefined || v === null));
-	options = _.pickBy(options, v => !(v === undefined || v === null));
-
-	try {
-		const data = await _getDelegates(filters, options);
-		return next(null, {
-			data,
-			meta: {
-				offset: options.offset,
-				limit: options.limit,
-			},
-		});
-	} catch (error) {
-		return next(error);
-	}
-};
-
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
-DelegatesController.getForgers = async function(context, next) {
-	const params = context.request.swagger.params;
-
-	const filters = {
-		limit: params.limit.value,
-		offset: params.offset.value,
-	};
-
-	try {
-		const forgers = await _getForgers(filters);
-		return next(null, forgers);
-	} catch (error) {
-		return next(new ApiError(error, apiCodes.INTERNAL_SERVER_ERROR));
-	}
-};
-
-DelegatesController.getForgingStatistics = async function(context, next) {
-	const params = context.request.swagger.params;
-
-	const filters = {
-		address: params.address.value,
-		start: params.fromTimestamp.value,
-		end: params.toTimestamp.value,
-	};
-
-	let reward;
-	try {
-		reward = await _getForgingStatistics(filters);
-	} catch (err) {
-		if (err === 'Account not found' || err === 'Account is not a delegate') {
-			return next(
-				swaggerHelper.generateParamsErrorObject([params.address], [err])
-			);
-		}
-		return next(err);
-	}
-
-	const data = _.pick(reward, ['fees', 'rewards', 'forged', 'count']);
-
-	return next(null, {
-		data,
-		meta: {
-			fromTimestamp: filters.start || new Date(EPOCH_TIME).getTime(),
-			toTimestamp: filters.end || Date.now(),
-		},
-		links: {},
-	});
-};
 
 /**
  * Gets a list of delegates based on query parameters
@@ -161,7 +62,7 @@ DelegatesController.getForgingStatistics = async function(context, next) {
 async function _getDelegates(filters, options) {
 	const delegates = await storage.entities.Account.get(
 		{ isDelegate: true, ...filters },
-		options
+		options,
 	);
 
 	const { lastBlock } = await channel.invoke('chain:getNodeStatus');
@@ -204,6 +105,7 @@ async function _getForgers(filters) {
 	for (
 		let i = filters.offset + 1;
 		i <= ACTIVE_DELEGATES && i <= filters.limit + filters.offset;
+		// eslint-disable-next-line no-plusplus
 		i++
 	) {
 		if (activeDelegates[(currentSlot + i) % ACTIVE_DELEGATES]) {
@@ -213,7 +115,7 @@ async function _getForgers(filters) {
 
 	const forgers = (await storage.entities.Account.get(
 		{ isDelegate: true, publicKey_in: forgerKeys },
-		{ limit: null }
+		{ limit: null },
 	))
 		.map(({ username, address, publicKey }) => ({
 			username,
@@ -234,6 +136,70 @@ async function _getForgers(filters) {
 		},
 		links: {},
 	};
+}
+
+/**
+ *
+ * @param {string} filter.address - Address of the delegate
+ * @param {string} filter.start - Start time to aggregate
+ * @param {string} filter.end - End time to aggregate
+ * @returns {Promise<{fees: (string), count: (string), rewards: (string)}>}
+ * @private
+ */
+async function _aggregateBlocksReward(filter) {
+	const params = {};
+
+	let account;
+
+	try {
+		account = await storage.entities.Account.getOne({
+			address: filter.address,
+		});
+	} catch (err) {
+		if (err.code === 0) {
+			throw 'Account not found';
+		}
+	}
+
+	params.generatorPublicKey = account.publicKey;
+	params.delegates = ACTIVE_DELEGATES;
+
+	if (filter.start !== undefined) {
+		params.fromTimestamp = Math.floor(
+			(filter.start - new Date(EPOCH_TIME).getTime()) / 1000,
+		);
+		params.fromTimestamp = params.fromTimestamp.toFixed();
+	}
+
+	if (filter.end !== undefined) {
+		params.toTimestamp = Math.floor(
+			(filter.end - new Date(EPOCH_TIME).getTime()) / 1000,
+		);
+		params.toTimestamp = params.toTimestamp.toFixed();
+	}
+
+	let delegateBlocksRewards;
+
+	try {
+		delegateBlocksRewards = await channel.invoke(
+			'chain:getDelegateBlocksRewards',
+			{ filters: params },
+		);
+	} catch (err) {
+		logger.error(err.stack);
+		throw 'Blocks#aggregateBlocksReward error';
+	}
+
+	let data = delegateBlocksRewards[0];
+	if (data.delegate === null) {
+		throw 'Account is not a delegate';
+	}
+	data = {
+		fees: data.fees || '0',
+		rewards: data.rewards || '0',
+		count: data.count || '0',
+	};
+	return data;
 }
 
 /**
@@ -289,91 +255,127 @@ async function _getForgingStatistics(filters) {
 }
 
 /**
+ * Description of the function.
  *
- * @param {string} filter.address - Address of the delegate
- * @param {string} filter.start - Start time to aggregate
- * @param {string} filter.end - End time to aggregate
- * @returns {Promise<{fees: (string), count: (string), rewards: (string)}>}
- * @private
+ * @class
+ * @memberof api.controllers
+ * @requires lodash
+ * @param {Object} scope - App instance
+ * @todo Add description of DelegatesController
  */
-async function _aggregateBlocksReward(filter) {
-	const params = {};
+function DelegatesController(scope) {
+	({
+		components: { storage, logger },
+		channel,
+	} = scope);
+}
 
-	let account;
+/**
+ * Description of the function.
+ *
+ * @param {Object} context
+ * @param {function} next
+ * @todo Add description for the function and the params
+ */
+DelegatesController.getDelegates = async function(context, next) {
+	const invalidParams = swaggerHelper.invalidParams(context.request);
+
+	if (invalidParams.length) {
+		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
+	}
+
+	const { params } = context.request.swagger;
+
+	let filters = {
+		address: params.address.value,
+		publicKey: params.publicKey.value,
+		secondPublicKey: params.secondPublicKey.value,
+		username: params.username.value,
+	};
+
+	if (params.search.value) {
+		filters.username_like = `%${params.search.value}%`;
+	}
+
+	let options = {
+		limit: params.limit.value,
+		offset: params.offset.value,
+		sort: params.sort.value,
+		extended: true,
+	};
+
+	// Remove filters with null values
+	filters = _.pickBy(filters, v => !(v === undefined || v === null));
+	options = _.pickBy(options, v => !(v === undefined || v === null));
 
 	try {
-		account = await storage.entities.Account.getOne({
-			address: filter.address,
+		const data = await _getDelegates(filters, options);
+		return next(null, {
+			data,
+			meta: {
+				offset: options.offset,
+				limit: options.limit,
+			},
 		});
-	} catch (err) {
-		if (err.code === 0) {
-			throw 'Account not found';
-		}
+	} catch (error) {
+		return next(error);
 	}
+};
 
-	params.generatorPublicKey = account.publicKey;
-	params.delegates = ACTIVE_DELEGATES;
+/**
+ * Description of the function.
+ *
+ * @param {Object} context
+ * @param {function} next
+ * @todo Add description for the function and the params
+ */
+DelegatesController.getForgers = async function(context, next) {
+	const { params } = context.request.swagger;
 
-	if (filter.start !== undefined) {
-		params.fromTimestamp = Math.floor(
-			(filter.start - new Date(EPOCH_TIME).getTime()) / 1000
-		);
-		params.fromTimestamp = params.fromTimestamp.toFixed();
-	}
-
-	if (filter.end !== undefined) {
-		params.toTimestamp = Math.floor(
-			(filter.end - new Date(EPOCH_TIME).getTime()) / 1000
-		);
-		params.toTimestamp = params.toTimestamp.toFixed();
-	}
-
-	let delegateBlocksRewards;
+	const filters = {
+		limit: params.limit.value,
+		offset: params.offset.value,
+	};
 
 	try {
-		delegateBlocksRewards = await channel.invoke(
-			'chain:getDelegateBlocksRewards',
-			{ filters: params }
-		);
+		const forgers = await _getForgers(filters);
+		return next(null, forgers);
+	} catch (error) {
+		return next(new ApiError(error, apiCodes.INTERNAL_SERVER_ERROR));
+	}
+};
+
+DelegatesController.getForgingStatistics = async function(context, next) {
+	const { params } = context.request.swagger;
+
+	const filters = {
+		address: params.address.value,
+		start: params.fromTimestamp.value,
+		end: params.toTimestamp.value,
+	};
+
+	let reward;
+	try {
+		reward = await _getForgingStatistics(filters);
 	} catch (err) {
-		logger.error(err.stack);
-		throw 'Blocks#aggregateBlocksReward error';
+		if (err === 'Account not found' || err === 'Account is not a delegate') {
+			return next(
+				swaggerHelper.generateParamsErrorObject([params.address], [err]),
+			);
+		}
+		return next(err);
 	}
 
-	let data = delegateBlocksRewards[0];
-	if (data.delegate === null) {
-		throw 'Account is not a delegate';
-	}
-	data = {
-		fees: data.fees || '0',
-		rewards: data.rewards || '0',
-		count: data.count || '0',
-	};
-	return data;
-}
+	const data = _.pick(reward, ['fees', 'rewards', 'forged', 'count']);
 
-function delegateFormatter(totalSupply, delegate) {
-	const result = _.pick(delegate, [
-		'username',
-		'vote',
-		'rewards',
-		'producedBlocks',
-		'missedBlocks',
-		'productivity',
-		'rank',
-	]);
-
-	result.account = {
-		address: delegate.address,
-		publicKey: delegate.publicKey,
-		secondPublicKey: delegate.secondPublicKey || '',
-	};
-
-	result.approval = calculateApproval(result.vote, totalSupply);
-
-	result.rank = parseInt(result.rank);
-
-	return result;
-}
+	return next(null, {
+		data,
+		meta: {
+			fromTimestamp: filters.start || new Date(EPOCH_TIME).getTime(),
+			toTimestamp: filters.end || Date.now(),
+		},
+		links: {},
+	});
+};
 
 module.exports = DelegatesController;

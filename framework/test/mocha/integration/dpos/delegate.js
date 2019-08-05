@@ -33,7 +33,7 @@ describe('delegates', () => {
 			// Act
 			deletedRoundNumbers.forEach(async round => {
 				const delegateListForRoundOne = await library.components.storage.entities.RoundDelegates.getRoundDelegates(
-					round
+					round,
 				);
 				// Assert
 				expect(delegateListForRoundOne).to.be.empty;
@@ -46,7 +46,7 @@ describe('delegates', () => {
 			// Act
 			deletedRoundNumbers.forEach(async round => {
 				const delegateListForRoundOne = await library.components.storage.entities.RoundDelegates.getRoundDelegates(
-					round
+					round,
 				);
 				// Assert
 				expect(delegateListForRoundOne).to.have.lengthOf(101);

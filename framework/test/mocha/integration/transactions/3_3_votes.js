@@ -52,7 +52,7 @@ describe('integration test (type 3) - voting with duplicate submissions', () => 
 					[transaction],
 					async () => {
 						done();
-					}
+					},
 				);
 			});
 
@@ -122,7 +122,7 @@ describe('integration test (type 3) - voting with duplicate submissions', () => 
 						expect(err).to.equal(
 							`Transaction: ${transaction2.id} failed at .asset.votes: ${
 								accountFixtures.existingDelegate.publicKey
-							} is already voted.`
+							} is already voted.`,
 						);
 						done();
 					});
@@ -175,7 +175,7 @@ describe('integration test (type 3) - voting with duplicate submissions', () => 
 								expect(res.transactions.length).to.equal(1);
 								expect(res.transactions[0].id).to.equal(transaction3.id);
 								done();
-							}
+							},
 						);
 					});
 
@@ -193,7 +193,7 @@ describe('integration test (type 3) - voting with duplicate submissions', () => 
 									.which.is.an('Array');
 								expect(res.transactions.length).to.equal(0);
 								done();
-							}
+							},
 						);
 					});
 
@@ -207,7 +207,7 @@ describe('integration test (type 3) - voting with duplicate submissions', () => 
 							expect(err).to.equal(
 								`Transaction: ${transaction5.id} failed at .asset.votes: ${
 									accountFixtures.existingDelegate.publicKey
-								} is not voted.`
+								} is not voted.`,
 							);
 							done();
 						});
