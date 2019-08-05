@@ -64,11 +64,9 @@ export class TriedPeers {
 		this._secret = secret;
 		// Initialize the Map with all the buckets
 		this._triedPeerMap = new Map();
-		[...Array(this._triedPeerBucketCount).keys()]
-			.map(x => x + 1)
-			.forEach(bucketId => {
-				this._triedPeerMap.set(bucketId, new Map<string, TriedPeerInfo>());
-			});
+		[...new Array(this._triedPeerBucketCount).keys()].forEach(bucketId => {
+			this._triedPeerMap.set(bucketId, new Map<string, TriedPeerInfo>());
+		});
 	}
 
 	public get triedPeerConfig(): TriedPeerConfig {

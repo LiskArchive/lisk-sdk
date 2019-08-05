@@ -62,11 +62,9 @@ export class NewPeers {
 		this._secret = secret;
 		// Initialize the Map with all the buckets
 		this._newPeerMap = new Map();
-		[...Array(this._newPeerBucketCount).keys()]
-			.map(x => x + 1)
-			.forEach(bucketNumber => {
-				this._newPeerMap.set(bucketNumber, new Map<string, NewPeerInfo>());
-			});
+		[...new Array(this._newPeerBucketCount).keys()].forEach(bucketNumber => {
+			this._newPeerMap.set(bucketNumber, new Map<string, NewPeerInfo>());
+		});
 	}
 
 	public get newPeerConfig(): NewPeerConfig {
