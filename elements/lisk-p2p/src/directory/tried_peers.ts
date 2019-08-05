@@ -85,14 +85,13 @@ export class TriedPeers {
 	}
 
 	public getTriedPeersList(): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		const peers = [...this._triedPeerMap.values()].map(triedPeerMap =>
-			[...triedPeerMap.values()].map(triedPeerInfo => triedPeerInfo.peerInfo),
-		);
+		const peersListMap: P2PDiscoveredPeerInfo[] = [];
 
-		return peers.reduce(
-			(flattenedPeerList, peerList) => [...peerList, ...flattenedPeerList],
-			[],
-		);
+		[...this._triedPeerMap.values()].forEach(peerMap => {
+			peerMap.forEach(peer => peersListMap.push(peer.peerInfo));
+		});
+
+		return peersListMap;
 	}
 
 	public getBucketId(ipAddress: string): number {

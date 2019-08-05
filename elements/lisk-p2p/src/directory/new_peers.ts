@@ -75,14 +75,13 @@ export class NewPeers {
 	}
 
 	public getNewPeersList(): ReadonlyArray<P2PPeerInfo> {
-		const peers = [...this._newPeerMap.values()].map(newPeerMap =>
-			[...newPeerMap.values()].map(newPeerInfo => newPeerInfo.peerInfo),
-		);
+		const peersListMap: P2PPeerInfo[] = [];
 
-		return peers.reduce(
-			(flattenedPeerList, peerList) => [...peerList, ...flattenedPeerList],
-			[],
-		);
+		[...this._newPeerMap.values()].forEach(peerMap => {
+			peerMap.forEach(peer => peersListMap.push(peer.peerInfo));
+		});
+
+		return peersListMap;
 	}
 
 	public getBucketId(ipAddress: string): number {
