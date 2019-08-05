@@ -77,11 +77,7 @@ export class NewPeers {
 		};
 	}
 
-	public get newPeerMap(): Map<number, Map<string, NewPeerInfo>> {
-		return this._newPeerMap;
-	}
-
-	public getNewPeersList(): ReadonlyArray<P2PPeerInfo> {
+	public newPeersList(): ReadonlyArray<P2PPeerInfo> {
 		const peersListMap: P2PPeerInfo[] = [];
 
 		[...this._newPeerMap.values()].forEach(peerMap => {

@@ -33,7 +33,7 @@ describe('newPeer', () => {
 
 		it('should set properties correctly and create a map of 64 size with 32 buckets each', async () => {
 			expect(newPeersList.newPeerConfig).to.be.eql(newPeerConfig);
-			expect(newPeersList.newPeerMap.size).to.be.equal(128);
+			expect(newPeersList.newPeerConfig.newPeerBucketCount).to.be.equal(128);
 
 			expect(newPeersList.newPeerConfig.newPeerBucketSize).to.be.equal(32);
 		});
@@ -69,7 +69,7 @@ describe('newPeer', () => {
 			newPeersList.addPeer(samplePeers[0]);
 			newPeersList.addPeer(samplePeers[1]);
 			newPeersList.addPeer(samplePeers[2]);
-			newPeersArray = newPeersList.getNewPeersList();
+			newPeersArray = newPeersList.newPeersList();
 		});
 
 		it('should return new peers list', async () => {

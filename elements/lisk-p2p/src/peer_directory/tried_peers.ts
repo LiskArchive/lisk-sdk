@@ -80,11 +80,7 @@ export class TriedPeers {
 		};
 	}
 
-	public get triedPeerMap(): Map<number, Map<string, TriedPeerInfo>> {
-		return this._triedPeerMap;
-	}
-
-	public getTriedPeersList(): ReadonlyArray<P2PDiscoveredPeerInfo> {
+	public triedPeersList(): ReadonlyArray<P2PDiscoveredPeerInfo> {
 		const peersListMap: P2PDiscoveredPeerInfo[] = [];
 
 		[...this._triedPeerMap.values()].forEach(peerMap => {
