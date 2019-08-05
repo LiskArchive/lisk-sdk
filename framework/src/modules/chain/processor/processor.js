@@ -78,7 +78,7 @@ class Processor {
 
 	async apply(block) {
 		const blockProcessor = this._getProcessor(block);
-		return this._apply(block, blockProcessor);
+		return this._processValidated(block, blockProcessor, { skipSave: true });
 	}
 
 	_validate(block, processor) {
@@ -110,7 +110,7 @@ class Processor {
 		await this.storage.begin(async tx => {
 			await stateStore.finalize(tx);
 			if (!skipSave) {
-				await this.storage.entities.Blocks.create(block);
+				await this.blocks.create(block, tx);
 			}
 		});
 	}
@@ -148,7 +148,7 @@ class Processor {
 		});
 		await this.storage.begin(async tx => {
 			await stateStore.finalize(tx);
-			await this.storage.entities.Blocks.delete(block);
+			await this.blocks.deleteBlock(block, tx);
 		});
 	}
 
