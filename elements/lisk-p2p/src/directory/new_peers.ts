@@ -15,12 +15,14 @@
 import { P2PPeerInfo } from '../p2p_types';
 import { constructPeerIdFromPeerInfo, getBucket, PEER_TYPE } from '../utils';
 
-const DEFAULT_NEW_PEER_BUCKET_COUNT = 128;
-const DEFAULT_NEW_PEER_BUCKET_SIZE = 32;
+export const DEFAULT_NEW_PEER_BUCKET_COUNT = 128;
+export const DEFAULT_NEW_PEER_BUCKET_SIZE = 32;
+export const DEFAULT_ELIGIBLE_DAYS_FOR_EVICTION = 30;
+
 const MILLISECONDS_IN_ONE_DAY = 86400000; // Formula hours*minutes*seconds*milliseconds;
-const ELIGIBLE_DAYS_FOR_EVICTION = 30;
 
 export interface NewPeerConfig {
+	readonly eligibleDaysForEviction?: number;
 	readonly newPeerBucketCount?: number;
 	readonly newPeerBucketSize?: number;
 	readonly secret: number;
@@ -39,9 +41,11 @@ export class NewPeers {
 	private readonly _newPeerMap: Map<number, Map<string, NewPeerInfo>>;
 	private readonly _newPeerBucketCount: number;
 	private readonly _newPeerBucketSize: number;
+	private readonly _eligibleDaysForEviction: number;
 	private readonly _secret: number;
 
 	public constructor({
+		eligibleDaysForEviction,
 		newPeerBucketSize,
 		newPeerBucketCount,
 		secret,
@@ -52,6 +56,9 @@ export class NewPeers {
 		this._newPeerBucketCount = newPeerBucketCount
 			? newPeerBucketCount
 			: DEFAULT_NEW_PEER_BUCKET_COUNT;
+		this._eligibleDaysForEviction = eligibleDaysForEviction
+			? eligibleDaysForEviction
+			: DEFAULT_ELIGIBLE_DAYS_FOR_EVICTION;
 		this._secret = secret;
 		// Initialize the Map with all the buckets
 		this._newPeerMap = new Map();
@@ -241,7 +248,7 @@ export class NewPeers {
 								MILLISECONDS_IN_ONE_DAY,
 						),
 					);
-					if (diffDays >= ELIGIBLE_DAYS_FOR_EVICTION) {
+					if (diffDays >= this._eligibleDaysForEviction) {
 						peerList.delete(peerId);
 						this._newPeerMap.set(bucketId, peerList);
 						evictedPeer = peer;
