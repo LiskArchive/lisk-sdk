@@ -99,24 +99,25 @@ export class TriedPeers {
 	public updatePeer(peerInfo: P2PDiscoveredPeerInfo): boolean {
 		const bucketId = this.getBucketId(peerInfo.ipAddress);
 		const bucket = this._triedPeerMap.get(bucketId);
-		if (bucket) {
-			const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
-			const foundPeer = bucket.get(incomingPeerId);
-			if (foundPeer) {
-				const updatedTriedPeerInfo: TriedPeerInfo = {
-					peerInfo: { ...foundPeer.peerInfo, ...peerInfo },
-					dateAdded: foundPeer.dateAdded,
-					numOfConnectionFailures: foundPeer.numOfConnectionFailures,
-				};
 
-				bucket.set(incomingPeerId, updatedTriedPeerInfo);
-				this._triedPeerMap.set(bucketId, bucket);
-
-				return true;
-			}
+		if (!bucket) {
+			return false;
 		}
+		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
+		const foundPeer = bucket.get(incomingPeerId);
 
-		return false;
+		if (!foundPeer) {
+			return false;
+		}
+		const updatedTriedPeerInfo: TriedPeerInfo = {
+			peerInfo: { ...foundPeer.peerInfo, ...peerInfo },
+			dateAdded: foundPeer.dateAdded,
+			numOfConnectionFailures: foundPeer.numOfConnectionFailures,
+		};
+		bucket.set(incomingPeerId, updatedTriedPeerInfo);
+		this._triedPeerMap.set(bucketId, bucket);
+
+		return true;
 	}
 
 	public removePeer(peerInfo: P2PPeerInfo): boolean {
@@ -137,13 +138,13 @@ export class TriedPeers {
 		const bucketId = this.getBucketId(peerInfo.ipAddress);
 		const bucket = this._triedPeerMap.get(bucketId);
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
-		if (bucket) {
-			const triedPeer = bucket.get(incomingPeerId);
 
-			return triedPeer ? triedPeer.peerInfo : undefined;
+		if (!bucket) {
+			return undefined;
 		}
+		const triedPeer = bucket.get(incomingPeerId);
 
-		return undefined;
+		return triedPeer ? triedPeer.peerInfo : undefined;
 	}
 
 	// Addition of peer can also result in peer eviction if the bucket of the incoming peer is already full based on evection strategy.
@@ -152,44 +153,41 @@ export class TriedPeers {
 		const bucket = this._triedPeerMap.get(bucketId);
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
 
+		if (!bucket) {
+			return {
+				success: false,
+				evicted: false,
+			};
+		}
 		if (bucket && bucket.get(incomingPeerId)) {
 			return {
 				success: false,
 				evicted: false,
 			};
 		}
+		const newTriedPeerInfo = {
+			peerInfo,
+			numOfConnectionFailures: 0,
+			dateAdded: new Date(),
+		};
 
-		if (bucket) {
-			const newTriedPeerInfo = {
-				peerInfo,
-				numOfConnectionFailures: 0,
-				dateAdded: new Date(),
+		if (bucket.size < this._triedPeerBucketSize) {
+			bucket.set(incomingPeerId, newTriedPeerInfo);
+			this._triedPeerMap.set(bucketId, bucket);
+
+			return {
+				success: true,
+				evicted: false,
 			};
-
-			if (bucket.size < this._triedPeerBucketSize) {
-				bucket.set(incomingPeerId, newTriedPeerInfo);
-				this._triedPeerMap.set(bucketId, bucket);
-
-				return {
-					success: true,
-					evicted: false,
-				};
-			} else {
-				const evictedPeer = this._evictPeer(bucketId);
-				bucket.set(incomingPeerId, newTriedPeerInfo);
-				this._triedPeerMap.set(bucketId, bucket);
-
-				return {
-					success: true,
-					evicted: true,
-					evictedPeer: evictedPeer.peerInfo,
-				};
-			}
 		}
+		const evictedPeer = this._evictPeer(bucketId);
+		bucket.set(incomingPeerId, newTriedPeerInfo);
+		this._triedPeerMap.set(bucketId, bucket);
 
 		return {
-			success: false,
-			evicted: false,
+			success: true,
+			evicted: true,
+			evictedPeer: evictedPeer.peerInfo,
 		};
 	}
 
@@ -199,30 +197,30 @@ export class TriedPeers {
 		const bucket = this._triedPeerMap.get(bucketId);
 		const incomingPeerId = constructPeerIdFromPeerInfo(incomingPeerInfo);
 
-		if (bucket) {
-			const foundPeer = bucket.get(incomingPeerId);
-
-			if (foundPeer) {
-				const { peerInfo, numOfConnectionFailures, dateAdded } = foundPeer;
-				if (numOfConnectionFailures + 1 >= this._maxReconnectTries) {
-					bucket.delete(incomingPeerId);
-					this._triedPeerMap.set(bucketId, bucket);
-
-					return true;
-				}
-
-				const newTriedPeerInfo = {
-					peerInfo,
-					numOfConnectionFailures: numOfConnectionFailures + 1,
-					dateAdded,
-				};
-
-				bucket.set(incomingPeerId, newTriedPeerInfo);
-				this._triedPeerMap.set(bucketId, bucket);
-
-				return false;
-			}
+		if (!bucket) {
+			return false;
 		}
+		const foundPeer = bucket.get(incomingPeerId);
+
+		if (!foundPeer) {
+			return false;
+		}
+		const { peerInfo, numOfConnectionFailures, dateAdded } = foundPeer;
+
+		if (numOfConnectionFailures + 1 >= this._maxReconnectTries) {
+			bucket.delete(incomingPeerId);
+			this._triedPeerMap.set(bucketId, bucket);
+
+			return true;
+		}
+		const newTriedPeerInfo = {
+			peerInfo,
+			numOfConnectionFailures: numOfConnectionFailures + 1,
+			dateAdded,
+		};
+
+		bucket.set(incomingPeerId, newTriedPeerInfo);
+		this._triedPeerMap.set(bucketId, bucket);
 
 		return false;
 	}

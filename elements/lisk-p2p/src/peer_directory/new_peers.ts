@@ -96,23 +96,24 @@ export class NewPeers {
 	public updatePeer(peerInfo: P2PPeerInfo): boolean {
 		const bucketId = this.getBucketId(peerInfo.ipAddress);
 		const bucket = this._newPeerMap.get(bucketId);
-		if (bucket) {
-			const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
-			const foundPeer = bucket.get(incomingPeerId);
-			if (foundPeer) {
-				const updatedNewPeerInfo: NewPeerInfo = {
-					peerInfo: { ...foundPeer.peerInfo, ...peerInfo },
-					dateAdded: foundPeer.dateAdded,
-				};
 
-				bucket.set(incomingPeerId, updatedNewPeerInfo);
-				this._newPeerMap.set(bucketId, bucket);
-
-				return true;
-			}
+		if (!bucket) {
+			return false;
 		}
+		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
+		const foundPeer = bucket.get(incomingPeerId);
+		if (!foundPeer) {
+			return false;
+		}
+		const updatedNewPeerInfo: NewPeerInfo = {
+			peerInfo: { ...foundPeer.peerInfo, ...peerInfo },
+			dateAdded: foundPeer.dateAdded,
+		};
 
-		return false;
+		bucket.set(incomingPeerId, updatedNewPeerInfo);
+		this._newPeerMap.set(bucketId, bucket);
+
+		return true;
 	}
 
 	public removePeer(peerInfo: P2PPeerInfo): boolean {
@@ -133,13 +134,13 @@ export class NewPeers {
 		const bucketId = this.getBucketId(peerInfo.ipAddress);
 		const bucket = this._newPeerMap.get(bucketId);
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
-		if (bucket) {
-			const newPeer = bucket.get(incomingPeerId);
 
-			return newPeer ? newPeer.peerInfo : undefined;
+		if (!bucket) {
+			return undefined;
 		}
+		const newPeer = bucket.get(incomingPeerId);
 
-		return undefined;
+		return newPeer ? newPeer.peerInfo : undefined;
 	}
 
 	// Addition of peer can also result in peer eviction if the bucket of the incoming peer is already full based on evection strategy.
@@ -148,6 +149,13 @@ export class NewPeers {
 		const bucket = this._newPeerMap.get(bucketId);
 		const incomingPeerId = constructPeerIdFromPeerInfo(peerInfo);
 
+		if (!bucket) {
+			return {
+				success: false,
+				isEvicted: false,
+			};
+		}
+
 		if (bucket && bucket.get(incomingPeerId)) {
 			return {
 				success: false,
@@ -155,37 +163,30 @@ export class NewPeers {
 			};
 		}
 
-		if (bucket) {
-			const newPeerInfo = {
-				peerInfo,
-				numOfConnectionFailures: 0,
-				dateAdded: new Date(),
+		const newPeerInfo = {
+			peerInfo,
+			numOfConnectionFailures: 0,
+			dateAdded: new Date(),
+		};
+
+		if (bucket.size < this._newPeerBucketSize) {
+			bucket.set(incomingPeerId, newPeerInfo);
+			this._newPeerMap.set(bucketId, bucket);
+
+			return {
+				success: true,
+				isEvicted: false,
 			};
-
-			if (bucket.size < this._newPeerBucketSize) {
-				bucket.set(incomingPeerId, newPeerInfo);
-				this._newPeerMap.set(bucketId, bucket);
-
-				return {
-					success: true,
-					isEvicted: false,
-				};
-			} else {
-				const evictedPeer = this._evictPeer(bucketId);
-				bucket.set(incomingPeerId, newPeerInfo);
-				this._newPeerMap.set(bucketId, bucket);
-
-				return {
-					success: true,
-					isEvicted: true,
-					evictedPeer: evictedPeer.peerInfo,
-				};
-			}
 		}
 
+		const evictedPeer = this._evictPeer(bucketId);
+		bucket.set(incomingPeerId, newPeerInfo);
+		this._newPeerMap.set(bucketId, bucket);
+
 		return {
-			success: false,
-			isEvicted: false,
+			success: true,
+			isEvicted: true,
+			evictedPeer: evictedPeer.peerInfo,
 		};
 	}
 
@@ -227,18 +228,22 @@ export class NewPeers {
 		[...this._newPeerMap.values()].forEach(peersMap => {
 			[...peersMap.keys()].forEach(peerId => {
 				const peer = peersMap.get(peerId);
-				if (peer) {
-					const diffDays = Math.round(
-						Math.abs(
-							(peer.dateAdded.getTime() - new Date().getTime()) /
-								MILLISECONDS_IN_ONE_DAY,
-						),
-					);
-					if (diffDays >= this._eligibleDaysForEviction) {
-						peerList.delete(peerId);
-						this._newPeerMap.set(bucketId, peerList);
-						evictedPeer = peer;
-					}
+
+				if (!peer) {
+					return;
+				}
+
+				const diffDays = Math.round(
+					Math.abs(
+						(peer.dateAdded.getTime() - new Date().getTime()) /
+							MILLISECONDS_IN_ONE_DAY,
+					),
+				);
+
+				if (diffDays >= this._eligibleDaysForEviction) {
+					peerList.delete(peerId);
+					this._newPeerMap.set(bucketId, peerList);
+					evictedPeer = peer;
 				}
 			});
 		});
