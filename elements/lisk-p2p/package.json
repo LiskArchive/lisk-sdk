@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-p2p",
-	"version": "0.2.0",
+	"version": "0.3.0-alpha.0",
 	"description": "Unstructured P2P library for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -61,8 +61,8 @@
 		"@types/expect": "1.20.3",
 		"@types/jquery": "3.3.29",
 		"@types/jsonwebtoken": "8.3.0",
-		"@types/lodash.shuffle": "4.2.6",
 		"@types/lodash.clonedeep": "4.5.0",
+		"@types/lodash.shuffle": "4.2.6",
 		"@types/mocha": "5.2.5",
 		"@types/node": "10.12.21",
 		"@types/semver": "5.5.0",
