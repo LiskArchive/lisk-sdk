@@ -760,7 +760,6 @@ export class P2P extends EventEmitter {
 			? this._config.maximumPeerDiscoveryResponseSize
 			: DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_SIZE;
 
-		// TODO: Get this from peerbook
 		const knownPeers = this._peerBook.getAllPeers();
 		/* tslint:disable no-magic-numbers*/
 		const min = Math.ceil(
