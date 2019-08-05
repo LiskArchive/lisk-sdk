@@ -158,6 +158,7 @@ export class NewPeers {
 		return undefined;
 	}
 
+	// Addition of peer can also result in peer eviction if the bucket of the incoming peer is already full based on evection strategy.
 	public addPeer(peerInfo: P2PPeerInfo): AddPeerOutcome {
 		const bucketId = this.getBucketId(peerInfo.ipAddress);
 		const bucket = this._newPeerMap.get(bucketId);
@@ -204,6 +205,7 @@ export class NewPeers {
 		};
 	}
 
+	// This action is called when a peer is disconnected
 	public failedConnectionAction(incomingPeerInfo: P2PPeerInfo): boolean {
 		const success = this.removePeer(incomingPeerInfo);
 
@@ -230,7 +232,7 @@ export class NewPeers {
 		// Second eviction strategy
 		return this._evictionRandom(bucketId);
 	}
-
+	// Evict a peer when a bucket is full based on the time of residence in a peerlist
 	private _evictionBasedOnTimeInBucket(
 		bucketId: number,
 		peerList: Map<string, NewPeerInfo>,
@@ -259,7 +261,7 @@ export class NewPeers {
 
 		return evictedPeer;
 	}
-
+	// If there are no peers which are old enough to be evicted based on number of days then pick a peer randomly and evict.
 	private _evictionRandom(bucketId: number): NewPeerInfo {
 		const peerList = this._newPeerMap.get(bucketId);
 		if (!peerList) {

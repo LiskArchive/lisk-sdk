@@ -162,6 +162,7 @@ export class TriedPeers {
 		return undefined;
 	}
 
+	// Addition of peer can also result in peer eviction if the bucket of the incoming peer is already full based on evection strategy.
 	public addPeer(peerInfo: P2PDiscoveredPeerInfo): AddPeerOutcome {
 		const bucketId = this.getBucketId(peerInfo.ipAddress);
 		const bucket = this._triedPeerMap.get(bucketId);
@@ -242,6 +243,7 @@ export class TriedPeers {
 		return false;
 	}
 
+	// If the bucket is full when we add a new peer then choose a peer randomly from the bucket and evict.
 	private _evictPeer(bucketId: number): TriedPeerInfo {
 		const peerList = this._triedPeerMap.get(bucketId);
 		if (!peerList) {

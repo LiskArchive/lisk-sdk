@@ -54,8 +54,10 @@ export class PeerBook {
 	public getAllPeers(): ReadonlyArray<P2PPeerInfo> {
 		return [...this.newPeers, ...this.triedPeers];
 	}
-
-	// If the peer is completely deleted from both the peer lists then return true
+	/**
+	 * Description: When a peer is downgraded for some reasons then new/triedPeers will trigger their failedConnectionAction,
+	 * if the peer is deleted from newPeer that means the peer is completely deleted from the peer lists and need to inform the calling entity by returning true.
+	 */
 	public downgradePeer(peerInfo: P2PPeerInfo): boolean {
 		if (this._newPeers.findPeer(peerInfo)) {
 			if (this._newPeers.failedConnectionAction(peerInfo)) {
@@ -72,7 +74,7 @@ export class PeerBook {
 
 		return false;
 	}
-
+	// Move a peer from newPeer to triedPeer on events like on successful connection.
 	public upgradePeer(peerInfo: P2PPeerInfo): boolean {
 		if (this._triedPeers.findPeer(peerInfo)) {
 			return true;
@@ -87,7 +89,7 @@ export class PeerBook {
 
 		return false;
 	}
-	// It will return evicted peer in some cases we can use success or evicted flags for logging purposes
+	// It will return evicted peer in the case a peer is removed from a peer list based on eviction strategy.
 	public addPeer(peerInfo: P2PPeerInfo): P2PPeerInfo | undefined {
 		if (
 			this._triedPeers.findPeer(peerInfo) ||
