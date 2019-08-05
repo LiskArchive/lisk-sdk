@@ -40,8 +40,6 @@ describe('Broadcaster', () => {
 			active: true,
 			broadcastInterval: 10000,
 			releaseLimit: 10,
-			parallelLimit: 10,
-			relayLimit: 10,
 		};
 
 		loggerStub = {
@@ -147,14 +145,6 @@ describe('Broadcaster', () => {
 			expect(broadcaster.enqueue(auxParams, auxOptions)).to.eql(1);
 			return expect(broadcaster.enqueue(auxParams, auxOptions)).to.eql(2);
 		});
-	});
-
-	describe('maxRelays', () => {
-		it('should return true if exhausted', async () =>
-			expect(broadcaster.maxRelays({ relays: 11 })).to.be.true);
-
-		it('should return false if max relay is less than relay limit', async () =>
-			expect(broadcaster.maxRelays({ relays: 9 })).to.be.false);
 	});
 
 	describe('filterQueue', () => {

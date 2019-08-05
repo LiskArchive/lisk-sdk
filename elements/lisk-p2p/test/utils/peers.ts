@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
 import { Peer } from '../../src/peer';
 import { P2PDiscoveredPeerInfo } from '../../src/p2p_types';
 
@@ -68,5 +69,10 @@ export const initializePeerInfoList = (): ReadonlyArray<
 
 export const initializePeerList = (): ReadonlyArray<Peer> =>
 	initializePeerInfoList().map(
-		(peerInfo: P2PDiscoveredPeerInfo) => new Peer(peerInfo),
+		(peerInfo: P2PDiscoveredPeerInfo) =>
+			new Peer(peerInfo, {
+				rateCalculationInterval: 1000,
+				wsMaxMessageRate: 1000,
+				wsMaxMessageRatePenalty: 10,
+			}),
 	);

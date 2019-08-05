@@ -13,11 +13,12 @@
  *
  */
 import { expect } from 'chai';
+import { SCServerSocket } from 'socketcluster-server';
 
-import { Peer } from '../../src/peer';
-import { P2PDiscoveredPeerInfo } from '../../src/p2p_types';
+import { InboundPeer } from '../../../src/peer';
+import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 
-describe('peer', () => {
+describe('inbound_peer', () => {
 	const defaultPeerInfo: P2PDiscoveredPeerInfo = {
 		ipAddress: '12.12.12.12',
 		wsPort: 5001,
@@ -27,7 +28,15 @@ describe('peer', () => {
 		protocolVersion: '1.1',
 	};
 
-	const defaultPeer = new Peer(defaultPeerInfo);
+	const socket = <SCServerSocket>({
+		on: sandbox.stub(),
+	} as any);
+
+	const defaultPeer = new InboundPeer(defaultPeerInfo, socket, {
+		rateCalculationInterval: 1000,
+		wsMaxMessageRate: 1000,
+		wsMaxMessageRatePenalty: 10,
+	});
 
 	describe('#constructor', () => {
 		it('should be an object', () => {
@@ -37,7 +46,7 @@ describe('peer', () => {
 		it('should be an instance of P2P blockchain', () => {
 			return expect(defaultPeer)
 				.to.be.an('object')
-				.and.be.instanceof(Peer);
+				.and.be.instanceof(InboundPeer);
 		});
 	});
 
@@ -60,8 +69,8 @@ describe('peer', () => {
 				.and.be.eql(5001);
 		});
 
-		it('should get inboundSocket property', () => {
-			return expect(defaultPeer.inboundSocket).to.be.undefined;
+		it('should get socket property', () => {
+			return expect(defaultPeer['_socket']).to.equal(socket);
 		});
 	});
 });

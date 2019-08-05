@@ -16,6 +16,7 @@
 import shuffle = require('lodash.shuffle');
 import {
 	P2PDiscoveredPeerInfo,
+	P2PPeerInfo,
 	P2PPeerSelectionForConnectionInput,
 	P2PPeerSelectionForRequestInput,
 	P2PPeerSelectionForSendInput,
@@ -117,4 +118,44 @@ export const selectPeersForSend = (
 
 export const selectPeersForConnection = (
 	input: P2PPeerSelectionForConnectionInput,
-) => input.peers;
+): ReadonlyArray<P2PPeerInfo> => {
+	if (input.peerLimit && input.peerLimit < 0) {
+		return [];
+	}
+
+	if (
+		input.peerLimit === undefined ||
+		input.peerLimit >= input.triedPeers.length + input.newPeers.length
+	) {
+		return [...input.newPeers, ...input.triedPeers];
+	}
+
+	if (input.triedPeers.length === 0 && input.newPeers.length === 0) {
+		return [];
+	}
+
+	// LIP004 https://github.com/LiskHQ/lips/blob/master/proposals/lip-0004.md#peer-discovery-and-selection
+	const x =
+		input.triedPeers.length / (input.triedPeers.length + input.newPeers.length);
+	const minimumProbability = 0.5;
+	const r = Math.max(x, minimumProbability);
+
+	const shuffledTriedPeers = shuffle(input.triedPeers);
+	const shuffledNewPeers = shuffle(input.newPeers);
+
+	return [...Array(input.peerLimit)].map(() => {
+		if (shuffledTriedPeers.length !== 0) {
+			if (Math.random() < r) {
+				// With probability r
+				return shuffledTriedPeers.pop() as P2PPeerInfo;
+			}
+		}
+
+		if (shuffledNewPeers.length !== 0) {
+			// With probability 1-r
+			return shuffledNewPeers.pop() as P2PPeerInfo;
+		}
+
+		return shuffledTriedPeers.pop() as P2PPeerInfo;
+	});
+};

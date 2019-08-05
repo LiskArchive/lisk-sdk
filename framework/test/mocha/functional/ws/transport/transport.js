@@ -237,7 +237,7 @@ describe('WS transport', () => {
 						JSON.stringify(err.response),
 						JSON.stringify(res),
 					);
-					expect(err.response.message).to.equal(
+					expect(err.message).to.equal(
 						"should have required property 'ids': undefined",
 					);
 					expect(res).to.be.undefined;
@@ -257,7 +257,7 @@ describe('WS transport', () => {
 						JSON.stringify(err.response),
 						JSON.stringify(res),
 					);
-					expect(err.response.message).to.equal('Invalid block id sequence');
+					expect(err.message).to.equal('Invalid block id sequence');
 				}
 			});
 
@@ -274,7 +274,7 @@ describe('WS transport', () => {
 						JSON.stringify(err.response),
 						JSON.stringify(res),
 					);
-					expect(err.response.message).to.equal('Invalid block id sequence');
+					expect(err.message).to.equal('Invalid block id sequence');
 				}
 			});
 
@@ -291,7 +291,7 @@ describe('WS transport', () => {
 						JSON.stringify(err.response),
 						JSON.stringify(res),
 					);
-					expect(err.response.message).to.equal('Invalid block id sequence');
+					expect(err.message).to.equal('Invalid block id sequence');
 				}
 			});
 
@@ -308,7 +308,7 @@ describe('WS transport', () => {
 						JSON.stringify(err.response),
 						JSON.stringify(res),
 					);
-					expect(err.response.message).to.equal('Invalid block id sequence');
+					expect(err.message).to.equal('Invalid block id sequence');
 				}
 			});
 
