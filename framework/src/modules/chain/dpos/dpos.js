@@ -1,11 +1,29 @@
 const { Delegates, EVENT_ROUND_FINISHED } = require('./delegates');
+const { Account } = require('./account');
 
 module.exports = class Dpos {
-	constructor({ storage, logger, slots }) {
+	constructor({
+		storage,
+		slots,
+		activeDelegates,
+		logger,
+		schema,
+		exceptions = {},
+	}) {
 		this.finalizedBlockRound = 0;
-		this.delegate = new Delegates({ storage, logger });
 		this.slots = slots;
-		this.delegate.on(EVENT_ROUND_FINISHED, () => {
+		this.delegates = new Delegates({ storage, logger, exceptions });
+		this.account = new Account({
+			storage,
+			slots,
+			activeDelegates,
+			schema,
+			logger,
+			delegates: this.delegates,
+			exceptions,
+		});
+
+		this.delegates.on(EVENT_ROUND_FINISHED, () => {
 			this.onRoundFinish();
 		});
 	}
@@ -23,6 +41,14 @@ module.exports = class Dpos {
 		const delegateListOffsetForRound = 2;
 		const disposableDelegateList =
 			this.finalizedBlockRound - delegateListOffsetForRound;
-		await this.delegate.deleteDelegateListUntilRound(disposableDelegateList);
+		await this.delegates.deleteDelegateListUntilRound(disposableDelegateList);
+	}
+
+	async apply(block, tx) {
+		return this.account.apply(block, tx);
+	}
+
+	async undo(block, tx) {
+		return this.account.undo(block, tx);
 	}
 };

@@ -20,6 +20,7 @@ const {
 	TransactionError,
 } = require('@liskhq/lisk-transactions');
 const votes = require('./votes');
+const votesNew = require('./votes_new');
 const exceptionsHandlers = require('./exceptions_handlers');
 const StateStore = require('../state_store');
 
@@ -58,6 +59,7 @@ const verifyTotalSpending = (transactions, stateStore) => {
 
 	// Group the transactions per senderId to calculate total spending
 	const senderTransactions = transactions.reduce((rv, x) => {
+		// eslint-disable-next-line no-param-reassign
 		(rv[x.senderId] = rv[x.senderId] || []).push(x);
 		return rv;
 	}, {});
@@ -115,11 +117,13 @@ const applyGenesisTransactions = storage => async (
 	});
 
 	await Promise.all(transactions.map(t => t.prepare(stateStore)));
+	await Promise.all(transactions.map(t => votesNew.prepare(t, stateStore)));
 
 	const transactionsResponses = transactions.map(transaction => {
 		const transactionResponse = transaction.apply(stateStore);
 
 		votes.apply(stateStore, transaction);
+		votesNew.apply(stateStore, transaction);
 		stateStore.transaction.add(transaction);
 
 		// We are overriding the status of transaction because it's from genesis block
@@ -141,6 +145,7 @@ const applyTransactions = (storage, exceptions) => async (transactions, tx) => {
 	});
 
 	await Promise.all(transactions.map(t => t.prepare(stateStore)));
+	await Promise.all(transactions.map(t => votesNew.prepare(t, stateStore)));
 
 	// Verify total spending of per account accumulative
 	const transactionsResponseWithSpendingErrors = verifyTotalSpending(
@@ -169,6 +174,7 @@ const applyTransactions = (storage, exceptions) => async (transactions, tx) => {
 			}
 			if (transactionResponse.status === TransactionStatus.OK) {
 				votes.apply(stateStore, transaction, exceptions);
+				votesNew.apply(stateStore, transaction, exceptions);
 				stateStore.transaction.add(transaction);
 			}
 
@@ -197,6 +203,7 @@ const checkPersistedTransactions = storage => async transactions => {
 	}
 
 	const confirmedTransactions = await storage.entities.Transaction.get({
+		// eslint-disable-next-line camelcase
 		id_in: transactions.map(transaction => transaction.id),
 	});
 
@@ -264,10 +271,12 @@ const undoTransactions = (storage, exceptions) => async (
 	});
 
 	await Promise.all(transactions.map(t => t.prepare(stateStore)));
+	await Promise.all(transactions.map(t => votesNew.prepare(t, stateStore)));
 
 	const transactionsResponses = transactions.map(transaction => {
 		const transactionResponse = transaction.undo(stateStore);
 		votes.undo(stateStore, transaction, this.exceptions);
+		votesNew.undo(stateStore, transaction, this.exceptions);
 		return transactionResponse;
 	});
 
