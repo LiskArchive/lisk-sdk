@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { EventEmitter } from 'events';
 import * as http from 'http';
 // tslint:disable-next-line no-require-imports
@@ -131,11 +131,16 @@ const BASE_10_RADIX = 10;
 export const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
 export const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
 export const DEFAULT_OUTBOUND_SHUFFLE_INTERVAL = 300000;
+export const DEFAULT_PEER_PROTECTION_FOR_NETGROUP = 0.034;
 export const DEFAULT_PEER_PROTECTION_FOR_LATENCY = 0.068;
 export const DEFAULT_PEER_PROTECTION_FOR_USEFULNESS = 0.068;
 export const DEFAULT_PEER_PROTECTION_FOR_LONGEVITY = 0.5;
 export const DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD = 100;
 export const DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_SIZE = 1000;
+const SECRET_BYTE_LENGTH = 4;
+export const DEFAULT_RANDOM_SECRET = getRandomBytes(
+	SECRET_BYTE_LENGTH,
+).readUInt32BE(0);
 
 const selectRandomPeerSample = (
 	peerList: ReadonlyArray<P2PPeerInfo>,
@@ -152,7 +157,6 @@ export class P2P extends EventEmitter {
 	private readonly _bannedPeers: Set<string>;
 	private readonly _populatorInterval: number;
 	private _populatorIntervalId: NodeJS.Timer | undefined;
-
 	private _nodeInfo: P2PNodeInfo;
 	private readonly _peerPool: PeerPool;
 	private readonly _scServer: SCServerUpdated;
@@ -420,6 +424,10 @@ export class P2P extends EventEmitter {
 			outboundShuffleInterval: config.outboundShuffleInterval
 				? config.outboundShuffleInterval
 				: DEFAULT_OUTBOUND_SHUFFLE_INTERVAL,
+			netgroupProtectionRatio:
+				typeof config.netgroupProtectionRatio === 'number'
+					? config.netgroupProtectionRatio
+					: DEFAULT_PEER_PROTECTION_FOR_NETGROUP,
 			latencyProtectionRatio:
 				typeof config.latencyProtectionRatio === 'number'
 					? config.latencyProtectionRatio
@@ -444,6 +452,7 @@ export class P2P extends EventEmitter {
 				typeof config.rateCalculationInterval === 'number'
 					? config.rateCalculationInterval
 					: DEFAULT_RATE_CALCULATION_INTERVAL,
+			secret: config.secret ? config.secret : DEFAULT_RANDOM_SECRET,
 		});
 
 		this._bindHandlersToPeerPool(this._peerPool);

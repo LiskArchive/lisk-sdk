@@ -14,6 +14,7 @@
 
 'use strict';
 
+const { getRandomBytes } = require('@liskhq/lisk-cryptography');
 const {
 	P2P,
 	EVENT_NEW_INBOUND_PEER,
@@ -57,6 +58,7 @@ module.exports = class Network {
 		this.channel = null;
 		this.logger = null;
 		this.storage = null;
+		this.secret = null;
 	}
 
 	async bootstrap(channel) {
@@ -95,6 +97,9 @@ module.exports = class Network {
 			{},
 			{ limit: null },
 		);
+
+		this.secret = getRandomBytes(4).readUInt32BE(0);
+
 		// TODO: Nonce overwrite should be removed once the Network module has been fully integreated into core and the old peer system has been fully removed.
 		// We need this because the old peer system which runs in parallel will conflict with the new one if they share the same nonce.
 		const moduleNonce = randomstring.generate(16);
@@ -125,6 +130,7 @@ module.exports = class Network {
 					ipAddress: peer.ip,
 			  }))
 			: [];
+
 		const p2pConfig = {
 			nodeInfo: initialNodeInfo,
 			hostAddress: this.options.address,
@@ -136,11 +142,11 @@ module.exports = class Network {
 				wsPort: peer.wsPort,
 			})),
 			previousPeers: previousPeers.map(peer => {
-				const { ip, ...peerWithoutIp } = peer;
+				const { ip, ...strippedPeer } = peer;
 
 				return {
 					ipAddress: ip,
-					...peerWithoutIp,
+					...strippedPeer,
 				};
 			}),
 			discoveryInterval: this.options.discoveryInterval,
@@ -149,6 +155,7 @@ module.exports = class Network {
 			peerBanTime: this.options.peerBanTime,
 			populatorInterval: this.options.populatorInterval,
 			sendPeerLimit: this.options.emitPeerLimit,
+			secret: this.secret,
 		};
 
 		this.p2p = new P2P(p2pConfig);
