@@ -58,6 +58,8 @@ const loadCSVSimulationData = filePath => {
 		const preCommits = {};
 		const preVotes = {};
 
+		// In CSV votes and commits are mentioned as array
+		// In BFT we manage as object so need to convert array to object
 		data[i]
 			.slice(7)
 			.map(Number)
@@ -108,18 +110,18 @@ const generateHeaderInformation = ({
 		prevotedConfirmedUptoHeight: blockData.maxHeightPreVoted,
 	});
 
+	// Get key with highest value for pre-commits
 	const highestHeightPreCommitted = Object.keys(blockData.preCommits)
 		.reverse()
 		.find(key => blockData.preCommits[key] >= threshold);
-
 	const finalizedHeight = highestHeightPreCommitted
 		? parseInt(highestHeightPreCommitted)
 		: 0;
 
+	// Get key with highest value for pre-commits
 	const highestHeightPreVoted = Object.keys(blockData.preVotes)
 		.reverse()
 		.find(key => blockData.preVotes[key] >= threshold);
-
 	const preVotedConfirmedHeight = highestHeightPreVoted
 		? parseInt(highestHeightPreVoted)
 		: 0;
@@ -487,18 +489,18 @@ describe('finality_manager', () => {
 								blockData.preVotedConfirmedHeight
 							);
 
-							// TODO: Try to came up with correct test expectation
 							// While re-compute we don't have full list of block headers
 							// due to max limit on the block headers we can store (5 rounds).
 							// Due to this we don't have pre-votes and pre-commits fo every
 							// height we had before re-compute.
 							// Although this does not impact the computation of finalizedHeight
 							// or preVotedConfirmedHeight
-
-							// expect(Object.values(myBft.preCommits)).toEqual(
-							// 	blockData.preCommits
-							// );
-							// expect(Object.values(myBft.preVotes)).toEqual(blockData.preVotes);
+							expect(blockData.preCommits).toEqual(
+								expect.objectContaining(myBft.preCommits)
+							);
+							expect(blockData.preVotes).toEqual(
+								expect.objectContaining(myBft.preVotes)
+							);
 						});
 					});
 				});
