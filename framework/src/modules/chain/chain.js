@@ -48,9 +48,6 @@ const { Transport } = require('./transport');
 const syncInterval = 10000;
 const forgeInterval = 1000;
 
-// Begin reading from stdin
-process.stdin.resume();
-
 if (typeof gc !== 'undefined') {
 	setInterval(() => {
 		gc(); // eslint-disable-line no-undef

@@ -19,11 +19,15 @@ const {
 	StorageSandbox,
 	storageConfig,
 	getBlock,
+	getAccount,
+	getDelegateList,
 } = require('../../../utils');
+const delegateListForTheFirstRound = require('../../../../../fixtures/config/devnet/round_delegates_for_first_round.json');
 const genesisBlock = require('../../../../../fixtures/config/devnet/genesis_block');
 
 describe('genesis block', () => {
 	const dbName = 'genesis_block';
+	const TRANSACTION_TYPES_DELEGATE_REGISTRATION = 2;
 	let storage;
 	let chainModule;
 
@@ -33,7 +37,7 @@ describe('genesis block', () => {
 	});
 
 	afterAll(async () => {
-		await chainModule.unload();
+		await chainModule.cleanup();
 		await storage.cleanup();
 	});
 
@@ -41,6 +45,10 @@ describe('genesis block', () => {
 		describe('when chain module is bootstrapped', () => {
 			beforeAll(async () => {
 				chainModule = await createDefaultLoadedChainModule(dbName);
+			});
+
+			afterAll(async () => {
+				await chainModule.unload();
 			});
 
 			it('should save genesis block to the database', async () => {
@@ -59,11 +67,60 @@ describe('genesis block', () => {
 				expect(allExist).toEqual(true);
 			});
 
-			it.todo(
-				'should save create an account for the registered genesis delegates'
-			);
-			it.todo('should have correct vote weight for genesis delegates');
-			it.todo('should have correct delegate list');
+			it('should save accounts for the registered genesis delegates', async () => {
+				// Get accounts of delegate registeration
+				const delegateRegistrationTransactions = genesisBlock.transactions.filter(
+					transaction =>
+						transaction.type === TRANSACTION_TYPES_DELEGATE_REGISTRATION
+				);
+				const delegateAccountsAddressesInGenesisBlock = delegateRegistrationTransactions.map(
+					transaction => transaction.senderId
+				);
+				// Get delegate accounts in genesis block from the database
+				const accountsFromDb = await Promise.all(
+					delegateAccountsAddressesInGenesisBlock.map(address =>
+						getAccount(storage, address)
+					)
+				);
+				const allAccountsAreDelegate = delegateAccountsAddressesInGenesisBlock.every(
+					address => accountsFromDb.find(account => address === account.address)
+				);
+
+				expect(allAccountsAreDelegate).toEqual(true);
+			});
+
+			it('should have correct vote weight for genesis delegates', async () => {
+				const voteWeightOfDevnetDelegates = '10000000000000000';
+				// Get accounts of delegate registeration
+				const delegateRegistrationTransactions = genesisBlock.transactions.filter(
+					transaction =>
+						transaction.type === TRANSACTION_TYPES_DELEGATE_REGISTRATION
+				);
+				const delegateAccountsAddressesInGenesisBlock = delegateRegistrationTransactions.map(
+					transaction => transaction.senderId
+				);
+				// Get delegate accounts in genesis block from the database
+				const accountsFromDb = await Promise.all(
+					delegateAccountsAddressesInGenesisBlock.map(address =>
+						getAccount(storage, address)
+					)
+				);
+				const allAccountsHaveCorrectVoteWeight = delegateAccountsAddressesInGenesisBlock.every(
+					address =>
+						accountsFromDb.find(
+							account =>
+								address === account.address &&
+								account.vote === voteWeightOfDevnetDelegates
+						)
+				);
+
+				expect(allAccountsHaveCorrectVoteWeight).toEqual(true);
+			});
+
+			it('should have correct delegate list', async () => {
+				const delegateListFromChain = await getDelegateList(chainModule, 1);
+				expect(delegateListFromChain).toEqual(delegateListForTheFirstRound);
+			});
 		});
 	});
 
@@ -73,19 +130,70 @@ describe('genesis block', () => {
 				chainModule = await createDefaultLoadedChainModule(dbName);
 			});
 
-			it('should have genesis block in the database', async () => {
+			it('should have genesis transactions in database', async () => {
 				const block = await getBlock(storage, genesisBlock.id);
-				expect(block.id).toEqual(genesisBlock.id);
-				expect(block.height).toEqual(1);
+				const ids = genesisBlock.transactions.map(t => t.id);
+				const allExist = ids.every(id =>
+					block.transactions.map(tx => tx.id).includes(id)
+				);
+
+				expect(allExist).toEqual(true);
 			});
 
-			it.todo('should save correct amount of transactions');
+			it('should save accounts for the registered genesis delegates', async () => {
+				// Get accounts of delegate registeration
+				const delegateRegistrationTransactions = genesisBlock.transactions.filter(
+					transaction =>
+						transaction.type === TRANSACTION_TYPES_DELEGATE_REGISTRATION
+				);
+				const delegateAccountsAddressesInGenesisBlock = delegateRegistrationTransactions.map(
+					transaction => transaction.senderId
+				);
+				// Get delegate accounts in genesis block from the database
+				const accountsFromDb = await Promise.all(
+					delegateAccountsAddressesInGenesisBlock.map(address =>
+						getAccount(storage, address)
+					)
+				);
+				const allAccountsAreDelegate = delegateAccountsAddressesInGenesisBlock.every(
+					address => accountsFromDb.find(account => address === account.address)
+				);
 
-			it.todo(
-				'should save create an account for the registered genesis delegates'
-			);
-			it.todo('should have correct vote weight for genesis delegates');
-			it.todo('should have correct delegate list');
+				expect(allAccountsAreDelegate).toEqual(true);
+			});
+
+			it('should have correct vote weight for genesis delegates', async () => {
+				const voteWeightOfDevnetDelegates = '10000000000000000';
+				// Get accounts of delegate registeration
+				const delegateRegistrationTransactions = genesisBlock.transactions.filter(
+					transaction =>
+						transaction.type === TRANSACTION_TYPES_DELEGATE_REGISTRATION
+				);
+				const delegateAccountsAddressesInGenesisBlock = delegateRegistrationTransactions.map(
+					transaction => transaction.senderId
+				);
+				// Get delegate accounts in genesis block from the database
+				const accountsFromDb = await Promise.all(
+					delegateAccountsAddressesInGenesisBlock.map(address =>
+						getAccount(storage, address)
+					)
+				);
+				const allAccountsHaveCorrectVoteWeight = delegateAccountsAddressesInGenesisBlock.every(
+					address =>
+						accountsFromDb.find(
+							account =>
+								address === account.address &&
+								account.vote === voteWeightOfDevnetDelegates
+						)
+				);
+
+				expect(allAccountsHaveCorrectVoteWeight).toEqual(true);
+			});
+
+			it('should have correct delegate list', async () => {
+				const delegateListFromChain = await getDelegateList(chainModule, 1);
+				expect(delegateListFromChain).toEqual(delegateListForTheFirstRound);
+			});
 		});
 	});
 });
