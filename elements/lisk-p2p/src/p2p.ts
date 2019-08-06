@@ -359,8 +359,22 @@ export class P2P extends EventEmitter {
 			);
 
 			if (!this._peerBook.getPeer(detailedPeerInfo) && !isBlacklisted) {
-				this._peerBook.addPeer(detailedPeerInfo);
-				this._peerBook.upgradePeer(detailedPeerInfo);
+				const foundPeer = this._peerBook.getPeer(detailedPeerInfo);
+
+				if (foundPeer) {
+					const updatedPeerInfo = {
+						...detailedPeerInfo,
+						ipAddress: foundPeer.ipAddress,
+						wsPort: foundPeer.wsPort,
+					};
+					const isUpdated = this._peerBook.updatePeer(updatedPeerInfo);
+					if (isUpdated) {
+						// If found and updated successfully then upgrade the peer
+						this._peerBook.upgradePeer(updatedPeerInfo);
+					}
+				} else {
+					this._peerBook.addPeer(detailedPeerInfo);
+				}
 				// Re-emit the message to allow it to bubble up the class hierarchy.
 				this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
 			}
