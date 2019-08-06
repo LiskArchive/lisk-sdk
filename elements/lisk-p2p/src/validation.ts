@@ -35,7 +35,7 @@ import {
 	ProtocolPeerInfo,
 	ProtocolRPCRequestPacket,
 } from './p2p_types';
-import { constructPeerIdFromPeerInfo } from './peer';
+import { constructPeerIdFromPeerInfo } from './utils';
 
 const IPV4_NUMBER = 4;
 const IPV6_NUMBER = 6;

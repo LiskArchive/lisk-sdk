@@ -19,7 +19,7 @@ import { InboundPeer } from '../../../src/peer';
 import { P2PDiscoveredPeerInfo } from '../../../src/p2p_types';
 
 describe('inbound_peer', () => {
-	const DEFAULT_SECRET = 123;
+	const DEFAULT_RANDOM_SECRET = 123;
 	const defaultPeerInfo: P2PDiscoveredPeerInfo = {
 		ipAddress: '12.12.12.12',
 		wsPort: 5001,
@@ -37,7 +37,7 @@ describe('inbound_peer', () => {
 		rateCalculationInterval: 1000,
 		wsMaxMessageRate: 1000,
 		wsMaxMessageRatePenalty: 10,
-		secret: DEFAULT_SECRET,
+		secret: DEFAULT_RANDOM_SECRET,
 	});
 
 	describe('#constructor', () => {
