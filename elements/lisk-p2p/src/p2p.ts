@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { randomBytes } from 'crypto';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { EventEmitter } from 'events';
 import * as http from 'http';
 // tslint:disable-next-line no-require-imports
@@ -137,8 +137,10 @@ export const DEFAULT_PEER_PROTECTION_FOR_USEFULNESS = 0.068;
 export const DEFAULT_PEER_PROTECTION_FOR_LONGEVITY = 0.5;
 export const DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD = 100;
 export const DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_SIZE = 1000;
-export const SECRET_LENGTH = 4;
-export const DEFAULT_SECRET = randomBytes(SECRET_LENGTH).readUInt32BE(0);
+const SECRET_BYTE_LENGTH = 4;
+export const DEFAULT_RANDOM_SECRET = getRandomBytes(
+	SECRET_BYTE_LENGTH,
+).readUInt32BE(0);
 
 const selectRandomPeerSample = (
 	peerList: ReadonlyArray<P2PPeerInfo>,
@@ -450,7 +452,7 @@ export class P2P extends EventEmitter {
 				typeof config.rateCalculationInterval === 'number'
 					? config.rateCalculationInterval
 					: DEFAULT_RATE_CALCULATION_INTERVAL,
-			secret: config.secret ? config.secret : DEFAULT_SECRET,
+			secret: config.secret ? config.secret : DEFAULT_RANDOM_SECRET,
 		});
 
 		this._bindHandlersToPeerPool(this._peerPool);

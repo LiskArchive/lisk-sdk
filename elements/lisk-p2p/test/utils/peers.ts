@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { DEFAULT_SECRET } from '../../src/p2p';
+import { DEFAULT_RANDOM_SECRET } from '../../src/p2p';
 import { Peer } from '../../src/peer';
 import { P2PDiscoveredPeerInfo } from '../../src/p2p_types';
 
@@ -74,6 +74,6 @@ export const initializePeerList = (): ReadonlyArray<Peer> =>
 				rateCalculationInterval: 1000,
 				wsMaxMessageRate: 1000,
 				wsMaxMessageRatePenalty: 10,
-				secret: DEFAULT_SECRET,
+				secret: DEFAULT_RANDOM_SECRET,
 			}),
 	);

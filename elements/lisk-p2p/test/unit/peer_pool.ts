@@ -33,7 +33,7 @@ import {
 	DEFAULT_PEER_PROTECTION_FOR_LATENCY,
 	DEFAULT_PEER_PROTECTION_FOR_USEFULNESS,
 	DEFAULT_PEER_PROTECTION_FOR_LONGEVITY,
-	DEFAULT_SECRET,
+	DEFAULT_RANDOM_SECRET,
 } from '../../src/p2p';
 
 describe('peerPool', () => {
@@ -54,7 +54,7 @@ describe('peerPool', () => {
 		latencyProtectionRatio: DEFAULT_PEER_PROTECTION_FOR_LATENCY,
 		productivityProtectionRatio: DEFAULT_PEER_PROTECTION_FOR_USEFULNESS,
 		longevityProtectionRatio: DEFAULT_PEER_PROTECTION_FOR_LONGEVITY,
-		secret: DEFAULT_SECRET,
+		secret: DEFAULT_RANDOM_SECRET,
 	});
 
 	describe('#constructor', () => {
