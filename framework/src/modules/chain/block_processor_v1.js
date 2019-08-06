@@ -14,20 +14,13 @@
 
 'use strict';
 
-const { Pipeline } = require('./pipeline');
+const { BlockProcessorV0 } = require('./block_processor_v0');
 
-class BlockProcessor {
-	constructor() {
-		this.create = new Pipeline();
-		this.fork = new Pipeline();
-		this.validate = new Pipeline();
-		this.validateNew = new Pipeline();
-		this.verify = new Pipeline();
-		this.apply = new Pipeline();
-		this.undo = new Pipeline();
-	}
-}
+// Block version 0 and 1 is essentially the same
+class BlockProcessorV1 extends BlockProcessorV0 {}
+
+BlockProcessorV1.VERSION = 1;
 
 module.exports = {
-	BlockProcessor,
+	BlockProcessorV1,
 };
