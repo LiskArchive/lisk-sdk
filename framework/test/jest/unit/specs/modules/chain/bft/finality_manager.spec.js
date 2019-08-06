@@ -55,19 +55,35 @@ const loadCSVSimulationData = filePath => {
 	const result = [];
 
 	for (let i = 1; i < data.length - 1; i += 2) {
+		const preCommits = {};
+		const preVotes = {};
+
+		data[i]
+			.slice(7)
+			.map(Number)
+			.forEach((val, index) => {
+				if (val !== 0) {
+					preCommits[index + 1] = val;
+				}
+			});
+
+		data[i + 1]
+			.slice(7)
+			.map(Number)
+			.forEach((val, index) => {
+				if (val !== 0) {
+					preVotes[index + 1] = val;
+				}
+			});
+
 		result.push({
 			delegate: data[i][1],
 			maxHeightPreviouslyForged: parseInt(data[i][2]),
+			maxHeightPreVoted: parseInt(data[i][3]),
 			activeSinceRound: parseInt(data[i][4]),
 			height: parseInt(data[i][5]),
-			preCommits: data[i]
-				.slice(7)
-				.map(Number)
-				.filter(a => a !== 0),
-			preVotes: data[i + 1]
-				.slice(7)
-				.map(Number)
-				.filter(a => a !== 0),
+			preCommits,
+			preVotes,
 		});
 	}
 
@@ -78,32 +94,50 @@ const delegatesMap = {};
 const generateHeaderInformation = ({
 	blockData,
 	threshold,
-	lastBlockData,
 	activeDelegates,
 }) => {
 	const delegatePublicKey =
 		delegatesMap[blockData.delegate] || accountFixture().publicKey;
 	delegatesMap[blockData.delegate] = delegatePublicKey;
 
-	const beforeBlockPreVotedConfirmedHeight = lastBlockData
-		? lastBlockData.preVotes.lastIndexOf(threshold) + 1
-		: 0;
-
 	const header = blockHeaderFixture({
 		height: blockData.height,
 		maxHeightPreviouslyForged: blockData.maxHeightPreviouslyForged,
 		delegatePublicKey: delegatesMap[blockData.delegate],
 		activeSinceRound: blockData.activeSinceRound,
-		prevotedConfirmedUptoHeight: beforeBlockPreVotedConfirmedHeight,
+		prevotedConfirmedUptoHeight: blockData.maxHeightPreVoted,
 	});
 
-	const finalizedHeight = blockData.preCommits.lastIndexOf(threshold) + 1;
+	const highestHeightPreCommitted = Object.keys(blockData.preCommits)
+		.reverse()
+		.find(key => blockData.preCommits[key] >= threshold);
 
-	const preVotedConfirmedHeight = blockData.preVotes.lastIndexOf(threshold) + 1;
+	const finalizedHeight = highestHeightPreCommitted
+		? parseInt(highestHeightPreCommitted)
+		: 0;
+
+	const highestHeightPreVoted = Object.keys(blockData.preVotes)
+		.reverse()
+		.find(key => blockData.preVotes[key] >= threshold);
+
+	const preVotedConfirmedHeight = highestHeightPreVoted
+		? parseInt(highestHeightPreVoted)
+		: 0;
 
 	// Since BFT only keep track of 5 rounds
-	const preVotes = blockData.preVotes.slice(-1 * activeDelegates * 5);
-	const preCommits = blockData.preCommits.slice(-1 * activeDelegates * 5);
+	const preVotes = Object.assign({}, blockData.preVotes);
+	const preCommits = Object.assign({}, blockData.preCommits);
+	Object.keys(preVotes)
+		.slice(0, -1 * activeDelegates * 5)
+		.forEach(key => {
+			delete preVotes[key];
+		});
+
+	Object.keys(preCommits)
+		.slice(0, -1 * activeDelegates * 5)
+		.forEach(key => {
+			delete preCommits[key];
+		});
 
 	return {
 		header,
@@ -141,6 +175,27 @@ describe('finality_manager', () => {
 					)
 				),
 				activeDelegates: 5,
+			},
+			{
+				title: '4 delegates simple',
+				data: loadCSVSimulationData(
+					path.join(__dirname, './scenarios/4_delegates_simple.csv')
+				),
+				activeDelegates: 4,
+			},
+			{
+				title: '4 delegates missed slots',
+				data: loadCSVSimulationData(
+					path.join(__dirname, './scenarios/4_delegates_missed_slots.csv')
+				),
+				activeDelegates: 4,
+			},
+			{
+				title: '7 delegates partial switch',
+				data: loadCSVSimulationData(
+					path.join(__dirname, './scenarios/7_delegates_partial_switch.csv')
+				),
+				activeDelegates: 7,
 			},
 		];
 
@@ -363,25 +418,21 @@ describe('finality_manager', () => {
 							activeDelegates: scenario.activeDelegates,
 						});
 
-						scenario.data.forEach((headerData, index) => {
+						scenario.data.forEach(headerData => {
 							it(`have accurate information when ${
 								headerData.delegate
 							} forge block at height = ${headerData.height}`, async () => {
 								const blockData = generateHeaderInformation({
 									blockData: headerData,
-									lastBlockData: scenario.data[index - 1],
 									threshold: myBft.preCommitThreshold,
 									activeDelegates: scenario.activeDelegates,
 								});
 
 								myBft.addBlockHeader(blockData.header);
 
-								expect(Object.values(myBft.preCommits)).toEqual(
-									blockData.preCommits
-								);
-								expect(Object.values(myBft.preVotes)).toEqual(
-									blockData.preVotes
-								);
+								expect(myBft.preCommits).toEqual(blockData.preCommits);
+
+								expect(myBft.preVotes).toEqual(blockData.preVotes);
 
 								expect(myBft.finalizedHeight).toEqual(
 									blockData.finalizedHeight
@@ -410,21 +461,18 @@ describe('finality_manager', () => {
 							let blockData;
 
 							// Let's first compute in proper way
-							scenario.data.forEach((headerData, index) => {
+							scenario.data.forEach(headerData => {
 								blockData = generateHeaderInformation({
 									blockData: headerData,
 									threshold: myBft.preCommitThreshold,
-									lastBlockData: scenario.data[index - 1],
 									activeDelegates: scenario.activeDelegates,
 								});
 								myBft.addBlockHeader(blockData.header);
 							});
 
 							// Values should match with expectations
-							expect(Object.values(myBft.preCommits)).toEqual(
-								blockData.preCommits
-							);
-							expect(Object.values(myBft.preVotes)).toEqual(blockData.preVotes);
+							expect(myBft.preCommits).toEqual(blockData.preCommits);
+							expect(myBft.preVotes).toEqual(blockData.preVotes);
 							expect(myBft.finalizedHeight).toEqual(blockData.finalizedHeight);
 							expect(myBft.prevotedConfirmedHeight).toEqual(
 								blockData.preVotedConfirmedHeight
