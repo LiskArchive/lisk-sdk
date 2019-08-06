@@ -68,7 +68,7 @@ describe('Transaction', () => {
 	before(async () => {
 		storage = new storageSandbox.StorageSandbox(
 			__testContext.config.components.storage,
-			'lisk_test_transactions'
+			'lisk_test_transactions',
 		);
 		await storage.bootstrap();
 
@@ -256,7 +256,7 @@ describe('Transaction', () => {
 		it('should call addField the exact number of times', async () => {
 			const transaction = new Transaction(adapter);
 			expect(addFieldSpy.callCount).to.eql(
-				Object.keys(transaction.fields).length
+				Object.keys(transaction.fields).length,
 			);
 		});
 
@@ -301,7 +301,7 @@ describe('Transaction', () => {
 		it('should accept only valid options', async () => {
 			const transaction = new Transaction(adapter);
 			return expect(
-				transaction.get({}, validOptions)
+				transaction.get({}, validOptions),
 			).to.eventually.fulfilled.and.deep.equal([]);
 		});
 
@@ -332,7 +332,7 @@ describe('Transaction', () => {
 			transaction.get({}, { extended: true });
 			// Assert
 			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(
-				SQLs.selectExtended
+				SQLs.selectExtended,
 			);
 		});
 
@@ -353,7 +353,7 @@ describe('Transaction', () => {
 			await transaction.begin('testTX', async tx => {
 				await transaction.get(validFilter, {}, tx);
 				expect(Object.getPrototypeOf(_getSpy.firstCall.args[2])).to.be.eql(
-					Object.getPrototypeOf(tx)
+					Object.getPrototypeOf(tx),
 				);
 			});
 		});
@@ -439,7 +439,7 @@ describe('Transaction', () => {
 					limit: 10,
 					offset: 0,
 					extended: true,
-				}
+				},
 			);
 
 			expect(result).to.not.empty;
@@ -468,7 +468,7 @@ describe('Transaction', () => {
 				{
 					limit: 2,
 					offset: 0,
-				}
+				},
 			);
 
 			const result2 = await storage.entities.Transaction.get(
@@ -478,7 +478,7 @@ describe('Transaction', () => {
 				{
 					limit: 2,
 					offset: 1,
-				}
+				},
 			);
 			expect(result1).to.not.empty;
 			expect(result2).to.not.empty;
@@ -495,7 +495,7 @@ describe('Transaction', () => {
 				transactions.push(
 					new transactionsFixtures.Transaction({
 						blockId: block.id,
-					})
+					}),
 				);
 			}
 			await storage.entities.Transaction.create(transactions);
@@ -508,7 +508,7 @@ describe('Transaction', () => {
 					sort: 'id:desc',
 					limit: 20,
 					offset: 0,
-				}
+				},
 			);
 
 			expect(result).to.be.eql(_.orderBy(result, 'id', 'desc'));
@@ -596,7 +596,7 @@ describe('Transaction', () => {
 				},
 				{
 					extended: false,
-				}
+				},
 			);
 			expect(results).to.have.all.keys(validSimpleObjectFields);
 		});
@@ -618,7 +618,7 @@ describe('Transaction', () => {
 			return expect(
 				transaction.getOne({
 					blockId: transactions[0].blockId,
-				})
+				}),
 			).to.eventually.be.rejectedWith('Multiple rows were not expected.');
 		});
 
@@ -650,7 +650,7 @@ describe('Transaction', () => {
 	describe('updateOne()', () => {
 		it('should always throw NonSupportedOperationError', async () => {
 			expect(Transaction.prototype.updateOne).to.throw(
-				NonSupportedOperationError
+				NonSupportedOperationError,
 			);
 		});
 	});
@@ -783,7 +783,7 @@ describe('Transaction', () => {
 					new transactionsFixtures.Transaction({
 						blockId: block.id,
 						type: transactionType,
-					})
+					}),
 				);
 			});
 			await storage.entities.Transaction.create(transactions);
@@ -791,49 +791,49 @@ describe('Transaction', () => {
 				await storage.entities.Transaction.isPersisted({
 					id: transactions[0].id,
 					type: 0,
-				})
+				}),
 			).to.be.true;
 			expect(
 				await storage.entities.Transaction.isPersisted({
 					id: transactions[1].id,
 					type: 1,
-				})
+				}),
 			).to.be.true;
 			expect(
 				await storage.entities.Transaction.isPersisted({
 					id: transactions[2].id,
 					type: 2,
-				})
+				}),
 			).to.be.true;
 			expect(
 				await storage.entities.Transaction.isPersisted({
 					id: transactions[3].id,
 					type: 3,
-				})
+				}),
 			).to.be.true;
 			expect(
 				await storage.entities.Transaction.isPersisted({
 					id: transactions[4].id,
 					type: 4,
-				})
+				}),
 			).to.be.true;
 			expect(
 				await storage.entities.Transaction.isPersisted({
 					id: transactions[5].id,
 					type: 5,
-				})
+				}),
 			).to.be.true;
 			expect(
 				await storage.entities.Transaction.isPersisted({
 					id: transactions[6].id,
 					type: 6,
-				})
+				}),
 			).to.be.true;
 			expect(
 				await storage.entities.Transaction.isPersisted({
 					id: transactions[7].id,
 					type: 7,
-				})
+				}),
 			).to.be.true;
 		});
 	});

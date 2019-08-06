@@ -105,6 +105,13 @@ export class RequestFailError extends Error {
 	}
 }
 
+export class SendFailError extends Error {
+	public constructor(message: string) {
+		super(message);
+		this.name = 'SendFailError';
+	}
+}
+
 export class InvalidRPCRequestError extends Error {
 	public constructor(message: string) {
 		super(message);

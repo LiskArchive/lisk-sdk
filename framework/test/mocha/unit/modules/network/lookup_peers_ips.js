@@ -20,7 +20,7 @@ const {
 } = require('../../../data/app_config.json');
 
 const ipv4Regex = new RegExp(
-	/^(?:(?:^|\.)(?:2(?:5[0-5]|[0-4]\d)|1?\d?\d)){4}$/
+	/^(?:(?:^|\.)(?:2(?:5[0-5]|[0-4]\d)|1?\d?\d)){4}$/,
 );
 
 describe('init_steps/lookup_peers_ips', () => {
@@ -43,7 +43,7 @@ describe('init_steps/lookup_peers_ips', () => {
 
 			expect(spyConsoleError).to.be.calledOnce;
 			return expect(spyConsoleError).to.be.calledWith(
-				'Failed to resolve peer domain name https://lisk.io/ to an IP address'
+				'Failed to resolve peer domain name https://lisk.io/ to an IP address',
 			);
 		});
 

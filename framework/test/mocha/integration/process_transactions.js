@@ -26,6 +26,7 @@ const transactionsModule = require('../../../src/modules/chain/transactions');
 const {
 	TransactionInterfaceAdapter,
 } = require('../../../src/modules/chain/interface_adapters');
+const votes = require('../../../src/modules/chain/transactions/votes');
 
 const interfaceAdapters = {
 	transactions: new TransactionInterfaceAdapter(registeredTransactions),
@@ -65,7 +66,7 @@ describe('processTransactions', () => {
 				library = scope;
 				library.modules.blocks._lastBlock = genesisBlock;
 				done(err);
-			}
+			},
 		);
 	});
 
@@ -132,13 +133,13 @@ describe('processTransactions', () => {
 					// 	options: random.application(),
 					// }),
 				].map(transaction =>
-					interfaceAdapters.transactions.fromJson(transaction)
+					interfaceAdapters.transactions.fromJson(transaction),
 				);
 
 				// If we include second signature transaction, then the rest of the transactions in the set will be required to have second signature.
 				// Therefore removing it from the appliable transactions
 				appliableTransactions = verifiableTransactions.filter(
-					transaction => transaction.type !== 1
+					transaction => transaction.type !== 1,
 				);
 
 				nonVerifiableTransactions = [
@@ -148,7 +149,7 @@ describe('processTransactions', () => {
 						passphrase: random.account().passphrase,
 					}),
 				].map(transaction =>
-					interfaceAdapters.transactions.fromJson(transaction)
+					interfaceAdapters.transactions.fromJson(transaction),
 				);
 
 				keysgroup = new Array(4).fill(0).map(() => random.account().publicKey);
@@ -161,7 +162,7 @@ describe('processTransactions', () => {
 						minimum: 2,
 					}),
 				].map(transaction =>
-					interfaceAdapters.transactions.fromJson(transaction)
+					interfaceAdapters.transactions.fromJson(transaction),
 				);
 			});
 
@@ -170,13 +171,13 @@ describe('processTransactions', () => {
 
 				beforeEach(async () => {
 					checkAllowedTransactions = transactionsModule.checkAllowedTransactions(
-						library.modules.blocks.lastBlock
+						library.modules.blocks.lastBlock,
 					);
 				});
 
 				it('should return transactionsResponses with status OK for allowed transactions', async () => {
 					const { transactionsResponses } = await checkAllowedTransactions(
-						allowAbleTransactions
+						allowAbleTransactions,
 					);
 
 					transactionsResponses.forEach(transactionsResponse => {
@@ -186,7 +187,7 @@ describe('processTransactions', () => {
 
 				it("should return transactionsResponses with status OK for transactions that don't implement matcher", async () => {
 					const { transactionsResponses } = await checkAllowedTransactions(
-						transactionsWithNoMatcherImpl
+						transactionsWithNoMatcherImpl,
 					);
 
 					transactionsResponses.forEach(transactionsResponse => {
@@ -196,12 +197,12 @@ describe('processTransactions', () => {
 
 				it('should return transactionsResponses with status FAIL for not allowed transactions', async () => {
 					const { transactionsResponses } = await checkAllowedTransactions(
-						nonAllowableTransactions
+						nonAllowableTransactions,
 					);
 
 					transactionsResponses.forEach(transactionsResponse => {
 						expect(transactionsResponse.status).to.equal(
-							transactionStatus.FAIL
+							transactionStatus.FAIL,
 						);
 					});
 				});
@@ -214,13 +215,13 @@ describe('processTransactions', () => {
 					verifyTransactions = transactionsModule.verifyTransactions(
 						library.components.storage,
 						slots,
-						exceptions
+						exceptions,
 					);
 				});
 
 				it('should return transactionsResponses with status OK for verified transactions', async () => {
 					const { transactionsResponses } = await verifyTransactions(
-						verifiableTransactions
+						verifiableTransactions,
 					);
 					transactionsResponses.forEach(transactionResponse => {
 						expect(transactionResponse.status).to.equal(transactionStatus.OK);
@@ -229,7 +230,7 @@ describe('processTransactions', () => {
 
 				it('should return transactionsResponses with status FAIL for unverifiable transaction', async () => {
 					const { transactionsResponses } = await verifyTransactions(
-						nonVerifiableTransactions
+						nonVerifiableTransactions,
 					);
 					transactionsResponses.forEach(transactionResponse => {
 						expect(transactionResponse.status).to.equal(transactionStatus.FAIL);
@@ -238,11 +239,11 @@ describe('processTransactions', () => {
 
 				it('should return transactionsResponses with status PENDING for transactions waiting multi-signatures', async () => {
 					const { transactionsResponses } = await verifyTransactions(
-						pendingTransactions
+						pendingTransactions,
 					);
 					transactionsResponses.forEach(transactionResponse => {
 						expect(transactionResponse.status).to.equal(
-							transactionStatus.PENDING
+							transactionStatus.PENDING,
 						);
 					});
 				});
@@ -253,15 +254,15 @@ describe('processTransactions', () => {
 				beforeEach(done => {
 					undoTransactions = transactionsModule.undoTransactions(
 						library.components.storage,
-						exceptions
+						exceptions,
 					);
 					localCommon.addTransactionsAndForge(
 						library,
 						appliableTransactions.map(appliableTransaction =>
-							appliableTransaction.toJSON()
+							appliableTransaction.toJSON(),
 						),
 						0,
-						done
+						done,
 					);
 				});
 
@@ -272,7 +273,7 @@ describe('processTransactions', () => {
 
 				it('should return transactionsResponses with status OK for verified transactions', async () => {
 					const { transactionsResponses } = await undoTransactions(
-						appliableTransactions
+						appliableTransactions,
 					);
 
 					transactionsResponses.forEach(transactionResponse => {
@@ -293,7 +294,7 @@ describe('processTransactions', () => {
 								amount: (NORMALIZER * 1000).toString(),
 								recipientId: recipient.address,
 								passphrase: sender.passphrase,
-							})
+							}),
 						),
 					]);
 
@@ -308,7 +309,7 @@ describe('processTransactions', () => {
 				beforeEach(async () => {
 					applyTransactions = transactionsModule.applyTransactions(
 						library.components.storage,
-						exceptions
+						exceptions,
 					);
 				});
 
@@ -320,7 +321,7 @@ describe('processTransactions', () => {
 
 				it('should return transactionsResponses with status OK for verified transactions', async () => {
 					const { transactionsResponses } = await applyTransactions(
-						appliableTransactions
+						appliableTransactions,
 					);
 					transactionsResponses.forEach(transactionResponse => {
 						expect(transactionResponse.status).to.equal(transactionStatus.OK);
@@ -329,7 +330,7 @@ describe('processTransactions', () => {
 
 				it('should return transactionsResponses with status FAIL for unverifiable transaction', async () => {
 					const { transactionsResponses } = await applyTransactions(
-						nonVerifiableTransactions
+						nonVerifiableTransactions,
 					);
 					transactionsResponses.forEach(transactionResponse => {
 						expect(transactionResponse.status).to.equal(transactionStatus.FAIL);
@@ -338,13 +339,23 @@ describe('processTransactions', () => {
 
 				it('should return transactionsResponses with status PENDING for transactions waiting multi-signatures', async () => {
 					const { transactionsResponses } = await applyTransactions(
-						pendingTransactions
+						pendingTransactions,
 					);
 					transactionsResponses.forEach(transactionResponse => {
 						expect(transactionResponse.status).to.equal(
-							transactionStatus.PENDING
+							transactionStatus.PENDING,
 						);
 					});
+				});
+
+				it('should call votes.apply with correct params', async () => {
+					sinonSandbox.spy(votes, 'apply');
+					const { stateStore } = await applyTransactions(appliableTransactions);
+					expect(votes.apply.firstCall.args).to.be.eql([
+						stateStore,
+						appliableTransactions[0],
+						exceptions,
+					]);
 				});
 			});
 		});

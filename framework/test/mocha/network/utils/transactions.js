@@ -26,7 +26,7 @@ module.exports = {
 						port: configuration.modules.http_api.httpPort,
 					});
 				});
-			})
+			}),
 		).then(results => {
 			results.forEach(transaction => {
 				expect(transaction)

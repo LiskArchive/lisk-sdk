@@ -25,6 +25,6 @@ before(done => {
 		reason => {
 			console.info(`Blockchain ready status: ${reason}`);
 			done();
-		}
+		},
 	);
 });

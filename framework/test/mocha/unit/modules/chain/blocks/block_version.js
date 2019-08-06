@@ -35,7 +35,7 @@ describe('block_version', () => {
 				const version = 1;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(true);
 			});
 
@@ -44,7 +44,7 @@ describe('block_version', () => {
 				const version = 1;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(true);
 			});
 
@@ -53,7 +53,7 @@ describe('block_version', () => {
 				const version = 1;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(true);
 			});
 
@@ -62,7 +62,7 @@ describe('block_version', () => {
 				const version = 0;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(false);
 			});
 
@@ -71,7 +71,7 @@ describe('block_version', () => {
 				const version = 0;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(false);
 			});
 
@@ -80,7 +80,7 @@ describe('block_version', () => {
 				const version = 0;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(false);
 			});
 
@@ -89,7 +89,7 @@ describe('block_version', () => {
 				const version = 3;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(false);
 			});
 
@@ -98,7 +98,7 @@ describe('block_version', () => {
 				const version = 3;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(false);
 			});
 
@@ -107,7 +107,7 @@ describe('block_version', () => {
 				const version = 3;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(false);
 			});
 		});
@@ -128,7 +128,7 @@ describe('block_version', () => {
 				const version = 0;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(false);
 			});
 
@@ -137,7 +137,7 @@ describe('block_version', () => {
 				const version = 0;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(true);
 			});
 
@@ -146,7 +146,7 @@ describe('block_version', () => {
 				const version = 0;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(true);
 			});
 
@@ -155,7 +155,7 @@ describe('block_version', () => {
 				const version = 1;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(false);
 			});
 
@@ -164,7 +164,7 @@ describe('block_version', () => {
 				const version = 1;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(true);
 			});
 
@@ -173,7 +173,7 @@ describe('block_version', () => {
 				const version = 1;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(true);
 			});
 
@@ -182,7 +182,7 @@ describe('block_version', () => {
 				const version = 2;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(false);
 			});
 
@@ -191,7 +191,7 @@ describe('block_version', () => {
 				const version = 2;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(false);
 			});
 
@@ -200,7 +200,7 @@ describe('block_version', () => {
 				const version = 2;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(false);
 			});
 		});
@@ -219,7 +219,7 @@ describe('block_version', () => {
 				const version = 0;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(false);
 			});
 
@@ -228,7 +228,7 @@ describe('block_version', () => {
 				const version = 0;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(true);
 			});
 
@@ -237,7 +237,7 @@ describe('block_version', () => {
 				const version = 0;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(true);
 			});
 
@@ -246,7 +246,7 @@ describe('block_version', () => {
 				const version = 1;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(false);
 			});
 
@@ -255,7 +255,7 @@ describe('block_version', () => {
 				const version = 1;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(true);
 			});
 
@@ -264,7 +264,7 @@ describe('block_version', () => {
 				const version = 1;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(true);
 			});
 
@@ -273,7 +273,7 @@ describe('block_version', () => {
 				const version = 2;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(false);
 			});
 
@@ -282,7 +282,7 @@ describe('block_version', () => {
 				const version = 2;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(false);
 			});
 
@@ -291,7 +291,7 @@ describe('block_version', () => {
 				const version = 2;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(false);
 			});
 
@@ -300,7 +300,7 @@ describe('block_version', () => {
 				const version = 2;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(true);
 			});
 
@@ -309,7 +309,7 @@ describe('block_version', () => {
 				const version = 2;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(true);
 			});
 
@@ -318,7 +318,7 @@ describe('block_version', () => {
 				const version = 3;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(false);
 			});
 
@@ -327,7 +327,7 @@ describe('block_version', () => {
 				const version = 3;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(false);
 			});
 
@@ -336,7 +336,7 @@ describe('block_version', () => {
 				const version = 3;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(false);
 			});
 
@@ -345,7 +345,7 @@ describe('block_version', () => {
 				const version = 3;
 
 				return expect(
-					blockVersion.isValid(version, height, exceptions)
+					blockVersion.isValid(version, height, exceptions),
 				).to.equal(false);
 			});
 		});

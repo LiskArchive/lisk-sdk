@@ -47,12 +47,12 @@ describe('POST /api/transactions (general)', () => {
 		return transactionsEndpoint
 			.makeRequest(
 				{ transactions: [randomUtil.transaction(), randomUtil.transaction()] },
-				400
+				400,
 			)
 			.then(res => {
 				expect(res.body.message).to.eql('Validation errors');
 				expect(res.body.errors[0].code).to.be.equal(
-					'INVALID_REQUEST_PARAMETER'
+					'INVALID_REQUEST_PARAMETER',
 				);
 			});
 	});
@@ -68,14 +68,14 @@ describe('POST /api/transactions (general)', () => {
 		it('should fail when trying to send a transaction that is already confirmed', async () => {
 			return sendTransactionPromise(
 				transaction,
-				apiCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR,
 			).then(res => {
 				expect(res.body.message).to.be.eql(
-					'Transaction was rejected with errors'
+					'Transaction was rejected with errors',
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					`Transaction is already confirmed: ${transaction.id}`
+					`Transaction is already confirmed: ${transaction.id}`,
 				);
 			});
 		});

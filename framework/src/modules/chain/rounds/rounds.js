@@ -166,7 +166,7 @@ class Rounds {
 				}
 
 				return done();
-			}
+			},
 		);
 	}
 
@@ -275,7 +275,7 @@ class Rounds {
 				// Stop round ticking
 				__private.ticking = false;
 				return done(err);
-			}
+			},
 		);
 	}
 
@@ -293,7 +293,7 @@ class Rounds {
 		return library.storage.entities.Account.getOne(
 			{ address },
 			{ extended: true },
-			tx
+			tx,
 		).then(account => {
 			if (!account.votedDelegatesPublicKeys) return true;
 
@@ -303,7 +303,7 @@ class Rounds {
 					amount,
 					round,
 					delegatePublicKey,
-				})
+				}),
 			);
 
 			return library.storage.entities.Round.create(roundData, {}, tx);
@@ -326,7 +326,7 @@ class Rounds {
 		round,
 		delegatePublicKey,
 		mode,
-		tx
+		tx,
 	) {
 		const balanceFactor = mode === '-' ? -1 : 1;
 		return library.storage.entities.Account.getOne({ address }, {}, tx).then(
@@ -342,7 +342,7 @@ class Rounds {
 					amount: balance,
 				};
 				return library.storage.entities.Round.create(roundData, {}, tx);
-			}
+			},
 		);
 	}
 
@@ -417,7 +417,7 @@ __private.getOutsiders = function(scope, cb, tx) {
 				(delegate, eachCb) => {
 					if (scope.roundDelegates.indexOf(delegate) === -1) {
 						scope.roundOutsiders.push(
-							cryptography.getAddressFromPublicKey(delegate)
+							cryptography.getAddressFromPublicKey(delegate),
 						);
 					}
 					return setImmediate(eachCb);
@@ -425,8 +425,8 @@ __private.getOutsiders = function(scope, cb, tx) {
 				eachSeriesErr => {
 					library.logger.trace('Got outsiders', scope.roundOutsiders);
 					return setImmediate(cb, eachSeriesErr);
-				}
-			)
+				},
+			),
 		)
 		.catch(err => {
 			setImmediate(cb, err);
@@ -460,7 +460,7 @@ __private.sumRound = function(scope, cb, tx) {
 	return library.storage.entities.Round.summedRound(
 		scope.round,
 		library.constants.activeDelegates,
-		tx
+		tx,
 	)
 		.then(rows => {
 			const rewards = [];

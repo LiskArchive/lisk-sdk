@@ -29,7 +29,7 @@ class TransactionStore {
 		const result = await this.transaction.get(
 			filter,
 			{ extended: true },
-			this.tx
+			this.tx,
 		);
 		this.data = _.uniqBy([...this.data, ...result], this.primaryKey);
 		return result;
@@ -51,11 +51,11 @@ class TransactionStore {
 
 	get(primaryValue) {
 		const element = this.data.find(
-			item => item[this.primaryKey] === primaryValue
+			item => item[this.primaryKey] === primaryValue,
 		);
 		if (!element) {
 			throw new Error(
-				`${this.name} with ${this.primaryKey} = ${primaryValue} does not exist`
+				`${this.name} with ${this.primaryKey} = ${primaryValue} does not exist`,
 			);
 		}
 		return element;

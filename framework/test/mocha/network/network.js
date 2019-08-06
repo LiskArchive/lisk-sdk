@@ -29,7 +29,7 @@ const getPeersStatus = peers => {
 				port: peer.httpPort,
 				ip: peer.ip,
 			});
-		})
+		}),
 	);
 };
 
@@ -67,13 +67,13 @@ class Network {
 						return reject(
 							new Error(
 								`Failed to establish monitoring connections due to error: ${err.message ||
-									err}`
-							)
+									err}`,
+							),
 						);
 					}
 					this.sockets = socketsResult;
 					return resolve(socketsResult);
-				}
+				},
 			);
 		});
 	}
@@ -137,7 +137,7 @@ class Network {
 				return new Promise((resolve, reject) => {
 					this.logger.info(
 						`Waiting ${WAIT_BEFORE_CONNECT_MS /
-							1000} seconds for nodes to establish connections`
+							1000} seconds for nodes to establish connections`,
 					);
 					setTimeout(err => {
 						if (err) {
@@ -157,8 +157,8 @@ class Network {
 					return reject(
 						new Error(
 							`Failed to generate PM2 configs due to error: ${err.message ||
-								err}`
-						)
+								err}`,
+						),
 					);
 				}
 				return resolve(pm2Configs);
@@ -173,8 +173,9 @@ class Network {
 				if (err) {
 					return reject(
 						new Error(
-							`Failed to recreate databases due to error: ${err.message || err}`
-						)
+							`Failed to recreate databases due to error: ${err.message ||
+								err}`,
+						),
 					);
 				}
 				return resolve();
@@ -189,8 +190,8 @@ class Network {
 				if (err) {
 					return reject(
 						new Error(
-							`Failed to clear all logs due to error: ${err.message || err}`
-						)
+							`Failed to clear all logs due to error: ${err.message || err}`,
+						),
 					);
 				}
 				return resolve();
@@ -205,8 +206,8 @@ class Network {
 				if (err) {
 					return reject(
 						new Error(
-							`Failed to launch nest nodes due to error: ${err.message || err}`
-						)
+							`Failed to launch nest nodes due to error: ${err.message || err}`,
+						),
 					);
 				}
 				return resolve();
@@ -238,7 +239,7 @@ class Network {
 		const pm2Config = this.pm2ConfigMap[nodeName];
 		if (!pm2Config) {
 			return Promise.reject(
-				new Error(`Could not find pm2Config for ${nodeName}`)
+				new Error(`Could not find pm2Config for ${nodeName}`),
 			);
 		}
 		const { configuration } = pm2Config;
@@ -256,19 +257,19 @@ class Network {
 						return reject(
 							new Error(
 								`Failed to wait for node ${nodeName} to be ready due to error: ${err.message ||
-									err}`
-							)
+									err}`,
+							),
 						);
 					}
 					return resolve();
-				}
+				},
 			);
 		});
 	}
 
 	waitForNodesToBeReady(nodeNames, logRetries) {
 		this.logger.info(
-			`Waiting for nodes ${nodeNames.join(', ')} to load the blockchain`
+			`Waiting for nodes ${nodeNames.join(', ')} to load the blockchain`,
 		);
 
 		const nodeReadyPromises = nodeNames.map(nodeName => {
@@ -290,7 +291,7 @@ class Network {
 		const pm2Config = this.pm2ConfigMap[nodeName];
 		if (!pm2Config) {
 			return Promise.reject(
-				new Error(`Could not find pm2Config for ${nodeName}`)
+				new Error(`Could not find pm2Config for ${nodeName}`),
 			);
 		}
 		const { configuration } = pm2Config;
@@ -306,12 +307,12 @@ class Network {
 						return reject(
 							new Error(
 								`Failed to wait for blocks on node ${nodeName} due to error: ${err.message ||
-									err}`
-							)
+									err}`,
+							),
 						);
 					}
 					return resolve();
-				}
+				},
 			);
 		});
 	}
@@ -362,7 +363,7 @@ class Network {
 				// Catch and rethrow promise error as higher level error.
 				throw new Error(
 					`Failed to enable forging for delegates due to error: ${err.message ||
-						err}`
+						err}`,
 				);
 			});
 	}
@@ -378,7 +379,7 @@ class Network {
 				})
 				.filter(result => {
 					return result !== null;
-				})
+				}),
 		).then(result => {
 			return result;
 		});
@@ -414,12 +415,12 @@ class Network {
 						return reject(
 							new Error(
 								`Failed to clear logs for node ${nodeName}: ${err.message ||
-									err}`
-							)
+									err}`,
+							),
 						);
 					}
 					return resolve();
-				}
+				},
 			);
 		});
 	}
@@ -430,7 +431,7 @@ class Network {
 			childProcess.exec(`npx pm2 stop ${nodeName}`, err => {
 				if (err) {
 					return reject(
-						new Error(`Failed to stop node ${nodeName}: ${err.message || err}`)
+						new Error(`Failed to stop node ${nodeName}: ${err.message || err}`),
 					);
 				}
 				return resolve();
@@ -443,7 +444,9 @@ class Network {
 			childProcess.exec(`npx pm2 start ${nodeName}`, err => {
 				if (err) {
 					return reject(
-						new Error(`Failed to start node ${nodeName}: ${err.message || err}`)
+						new Error(
+							`Failed to start node ${nodeName}: ${err.message || err}`,
+						),
 					);
 				}
 				return resolve();
@@ -453,7 +456,7 @@ class Network {
 			startPromise = startPromise.then(() => {
 				return this.waitForNodeToBeReady(nodeName).catch(() => {
 					throw new Error(
-						`Failed to start node ${nodeName} because it did not sync before timeout`
+						`Failed to start node ${nodeName} because it did not sync before timeout`,
 					);
 				});
 			});
@@ -484,12 +487,12 @@ class Network {
 					if (err) {
 						return reject(
 							new Error(
-								`Failed to start node ${nodeName}: ${err.message || err}`
-							)
+								`Failed to start node ${nodeName}: ${err.message || err}`,
+							),
 						);
 					}
 					return resolve();
-				}
+				},
 			);
 		});
 
@@ -498,7 +501,7 @@ class Network {
 				await this.waitForNodeToBeReady(nodeName);
 			} catch (err) {
 				throw new Error(
-					`Failed to start node ${nodeName} because it did not sync before timeout`
+					`Failed to start node ${nodeName} because it did not sync before timeout`,
 				);
 			}
 		}
@@ -531,7 +534,7 @@ class Network {
 	async wait(number) {
 		this.logger.info(
 			`Waiting ${number /
-				(60 * 1000)} minute to check how many blocks are forged`
+				(60 * 1000)} minute to check how many blocks are forged`,
 		);
 		return new Promise(resolve => {
 			setTimeout(() => {

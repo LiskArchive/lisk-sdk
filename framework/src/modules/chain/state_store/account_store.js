@@ -68,11 +68,11 @@ class AccountStore {
 
 	get(primaryValue) {
 		const element = this.data.find(
-			item => item[this.primaryKey] === primaryValue
+			item => item[this.primaryKey] === primaryValue,
 		);
 		if (!element) {
 			throw new Error(
-				`${this.name} with ${this.primaryKey} = ${primaryValue} does not exist`
+				`${this.name} with ${this.primaryKey} = ${primaryValue} does not exist`,
 			);
 		}
 		return _.cloneDeep(element);
@@ -80,7 +80,7 @@ class AccountStore {
 
 	getOrDefault(primaryValue) {
 		const element = this.data.find(
-			item => item[this.primaryKey] === primaryValue
+			item => item[this.primaryKey] === primaryValue,
 		);
 		if (element) {
 			return element;
@@ -102,12 +102,12 @@ class AccountStore {
 
 	set(primaryValue, updatedElement) {
 		const elementIndex = this.data.findIndex(
-			item => item[this.primaryKey] === primaryValue
+			item => item[this.primaryKey] === primaryValue,
 		);
 
 		if (elementIndex === -1) {
 			throw new Error(
-				`${this.name} with ${this.primaryKey} = ${primaryValue} does not exist`
+				`${this.name} with ${this.primaryKey} = ${primaryValue} does not exist`,
 			);
 		}
 
@@ -119,7 +119,7 @@ class AccountStore {
 
 				return existingUpdatedKeys;
 			},
-			[]
+			[],
 		);
 
 		this.data[elementIndex] = updatedElement;
@@ -131,14 +131,14 @@ class AccountStore {
 	finalize() {
 		if (!this.mutate) {
 			throw new Error(
-				'Cannot finalize when store is initialized with mutate = false'
+				'Cannot finalize when store is initialized with mutate = false',
 			);
 		}
 		const affectedAccounts = Object.entries(this.updatedKeys).map(
 			([index, updatedKeys]) => ({
 				updatedItem: this.data[index],
 				updatedKeys,
-			})
+			}),
 		);
 
 		const updateToAccounts = affectedAccounts.map(
@@ -146,7 +146,7 @@ class AccountStore {
 				const filter = { [this.primaryKey]: updatedItem[this.primaryKey] };
 				const updatedData = _.pick(updatedItem, updatedKeys);
 				return this.account.upsert(filter, updatedData, null, this.tx);
-			}
+			},
 		);
 
 		return Promise.all(updateToAccounts);

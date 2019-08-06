@@ -27,14 +27,14 @@ describe('Event Class', () => {
 	describe('#constructor', () => {
 		it('should throw error when no name argument was provided.', () => {
 			expect(() => new Event()).toThrow(
-				'Event name "undefined" must be a valid name with module name.'
+				'Event name "undefined" must be a valid name with module name.',
 			);
 		});
 
 		it('should throw error when invalid name argument was provided.', () => {
 			// Act & Assert
 			expect(() => new Event(INVALID_EVENT_NAME_ARG)).toThrow(
-				`Event name "${INVALID_EVENT_NAME_ARG}" must be a valid name with module name.`
+				`Event name "${INVALID_EVENT_NAME_ARG}" must be a valid name with module name.`,
 			);
 		});
 

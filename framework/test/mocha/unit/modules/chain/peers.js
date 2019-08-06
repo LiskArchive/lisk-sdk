@@ -40,7 +40,7 @@ describe('peers', () => {
 		describe('when forgingForce is true', () => {
 			beforeEach(async () => {
 				isPoorConsensusResult = await peersModule.isPoorConsensus(
-					prefixedPeer.broadhash
+					prefixedPeer.broadhash,
 				);
 			});
 
@@ -63,7 +63,7 @@ describe('peers', () => {
 				beforeEach(async () => {
 					peersModule.calculateConsensus = sinonSandbox.stub().returns(50);
 					isPoorConsensusResult = await peersModule.isPoorConsensus(
-						prefixedPeer.broadhash
+						prefixedPeer.broadhash,
 					);
 				});
 
@@ -75,7 +75,7 @@ describe('peers', () => {
 				beforeEach(async () => {
 					peersModule.calculateConsensus = sinonSandbox.stub().returns(51);
 					isPoorConsensusResult = await peersModule.isPoorConsensus(
-						prefixedPeer.broadhash
+						prefixedPeer.broadhash,
 					);
 				});
 
@@ -94,7 +94,7 @@ describe('peers', () => {
 				.stub(peersModule, 'calculateConsensus')
 				.returns(50);
 			lastConsensus = await peersModule.getLastConsensus(
-				prefixedPeer.broadhash
+				prefixedPeer.broadhash,
 			);
 		});
 
@@ -112,7 +112,7 @@ describe('peers', () => {
 
 		beforeEach(async () => {
 			calculateConsensusResult = await peersModule.calculateConsensus(
-				prefixedPeer.broadhash
+				prefixedPeer.broadhash,
 			);
 		});
 
@@ -147,16 +147,16 @@ describe('peers', () => {
 				expect(
 					channelMock.invoke.calledWithExactly(
 						'network:getConnectedPeersCountByFilter',
-						{}
-					)
+						{},
+					),
 				).to.be.true);
 
 			it('should call channel invoke with action network:getConnectedPeersCountByFilter and filter broadhash', async () =>
 				expect(
 					channelMock.invoke.calledWithExactly(
 						'network:getConnectedPeersCountByFilter',
-						{ broadhash: prefixedPeer.broadhash }
-					)
+						{ broadhash: prefixedPeer.broadhash },
+					),
 				).to.be.true);
 
 			it('should return consensus as a number', async () =>

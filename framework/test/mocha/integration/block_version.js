@@ -29,7 +29,7 @@ describe('block_version', () => {
 		Queries = new QueriesHelper(lib, lib.components.storage);
 
 		addTransactionsAndForgePromise = Promise.promisify(
-			localCommon.addTransactionsAndForge
+			localCommon.addTransactionsAndForge,
 		);
 	});
 

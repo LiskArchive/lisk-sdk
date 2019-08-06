@@ -12,13 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
 import { expect } from 'chai';
 import { initializePeerInfoList } from '../utils/peers';
 import {
 	selectPeersForConnection,
 	selectPeersForRequest,
+	getUniquePeersbyIp,
 } from '../../src/peer_selection';
-import { P2PNodeInfo } from '../../src/p2p_types';
+import { P2PNodeInfo, P2PDiscoveredPeerInfo } from '../../src/p2p_types';
 
 describe('peer selector', () => {
 	describe('#selectPeersForRequest', () => {
@@ -118,12 +120,222 @@ describe('peer selector', () => {
 		const peerList = initializePeerInfoList();
 		const numberOfPeers = peerList.length;
 
-		describe('get all the peers for selection', () => {
-			it('should return all the peers given as argument for connection', () => {
-				return expect(selectPeersForConnection({ peers: peerList }))
-					.be.an('array')
-					.and.is.eql(peerList)
+		describe('when there are no peers', () => {
+			it('should return empty array', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: [],
+					newPeers: [],
+				});
+				expect(selectedPeers).to.be.an('array').empty;
+			});
+		});
+
+		describe('when peerLimit is undefined', () => {
+			it('should return all peers given as argument for connection', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: peerList,
+					newPeers: [],
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
 					.of.length(numberOfPeers);
+				return expect(peerList).to.deep.eq(selectedPeers);
+			});
+		});
+
+		describe('when peerLimit is zero', () => {
+			it('should not return any peer', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: peerList,
+					newPeers: [],
+					peerLimit: 0,
+				});
+				expect(selectedPeers).to.be.an('array').empty;
+			});
+		});
+
+		describe('when peerLimit is one', () => {
+			it('should return a single peer', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: peerList,
+					newPeers: [],
+					peerLimit: 1,
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
+					.of.length(1);
+			});
+		});
+
+		describe('when peerLimit is more than one', () => {
+			it('should return more than one', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: peerList,
+					newPeers: [],
+					peerLimit: 3,
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
+					.of.length(3);
+			});
+		});
+
+		describe('when peerLimit is larger than the number of existing peers', () => {
+			it('should return all peers given as argument for connection', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: peerList,
+					newPeers: [],
+					peerLimit: peerList.length + 1,
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
+					.of.length(peerList.length);
+				expect(peerList).to.include.members(selectedPeers);
+			});
+		});
+
+		describe('when there are only newPeers', () => {
+			it('should not return undefined peers', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: [],
+					newPeers: peerList,
+					peerLimit: 3,
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
+					.of.length(3);
+				expect(peerList).to.include.members(selectedPeers);
+			});
+		});
+
+		describe('when there are only triedPeers', () => {
+			it('should return no duplicates', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: peerList,
+					newPeers: [],
+					peerLimit: 4,
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
+					.of.length(4);
+				expect(peerList).to.contain.members(selectedPeers);
+				for (const peer of selectedPeers) {
+					const foundPeers = selectedPeers.filter(x => x === peer);
+					expect(foundPeers).to.have.length(1);
+				}
+			});
+		});
+
+		describe('when there are same number of peers as the limit', () => {
+			it('should return all peers', () => {
+				const selectedPeers = selectPeersForConnection({
+					triedPeers: [peerList[0]],
+					newPeers: [peerList[1], peerList[2], peerList[3], peerList[4]],
+					peerLimit: peerList.length,
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
+					.of.length(peerList.length);
+				expect(peerList).to.include.members(selectedPeers);
+			});
+		});
+
+		describe('when there are more new peers than tried', () => {
+			it('should return both kind of peers', () => {
+				const triedPeers = [peerList[0], peerList[1]];
+				const newPeers = [peerList[2], peerList[3], peerList[4]];
+				const selectedPeers = selectPeersForConnection({
+					triedPeers,
+					newPeers,
+					peerLimit: 4,
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
+					.of.length(4);
+				expect(peerList).to.contain.members(selectedPeers);
+			});
+		});
+
+		describe('when there are same number of new and tried peers', () => {
+			it('should not return undefined peers', () => {
+				const triedPeers = [peerList[0], peerList[1]];
+				const newPeers = [peerList[2], peerList[3]];
+				const selectedPeers = selectPeersForConnection({
+					triedPeers,
+					newPeers,
+					peerLimit: 3,
+				});
+				expect(selectedPeers)
+					.to.be.an('array')
+					.of.length(3);
+				expect(peerList).to.include.members(selectedPeers);
+			});
+		});
+	});
+
+	describe('#getUniquePeersbyIp', () => {
+		const samplePeers = initializePeerInfoList();
+
+		describe('when two peers have same peer infos', () => {
+			let uniquePeerListByIp: ReadonlyArray<P2PDiscoveredPeerInfo>;
+
+			beforeEach(async () => {
+				const duplicatesList = [...samplePeers, samplePeers[0], samplePeers[1]];
+				uniquePeerListByIp = getUniquePeersbyIp(duplicatesList);
+			});
+
+			it('should remove the duplicate peers with the same ips', async () => {
+				expect(uniquePeerListByIp).eql(samplePeers);
+			});
+		});
+
+		describe('when two peers have same IP and different wsPort and height', () => {
+			let uniquePeerListByIp: ReadonlyArray<P2PDiscoveredPeerInfo>;
+
+			beforeEach(async () => {
+				const peer1 = {
+					...samplePeers[0],
+					height: 1212,
+					wsPort: samplePeers[0].wsPort + 1,
+				};
+
+				const peer2 = {
+					...samplePeers[1],
+					height: 1200,
+					wsPort: samplePeers[1].wsPort + 1,
+				};
+
+				const duplicatesList = [...samplePeers, peer1, peer2];
+				uniquePeerListByIp = getUniquePeersbyIp(duplicatesList);
+			});
+
+			it('should remove the duplicate ip and choose the one with higher height', async () => {
+				expect(uniquePeerListByIp).eql(samplePeers);
+			});
+		});
+
+		describe('when two peers have same IP and different wsPort but same height', () => {
+			let uniquePeerListByIp: ReadonlyArray<P2PDiscoveredPeerInfo>;
+
+			beforeEach(async () => {
+				const peer1 = {
+					...samplePeers[0],
+					height: samplePeers[0].height,
+					wsPort: samplePeers[0].wsPort + 1,
+				};
+
+				const peer2 = {
+					...samplePeers[1],
+					height: samplePeers[1].height,
+					wsPort: samplePeers[1].wsPort + 1,
+				};
+
+				const duplicatesList = [...samplePeers, peer1, peer2];
+				uniquePeerListByIp = getUniquePeersbyIp(duplicatesList);
+			});
+
+			it('should remove the duplicate ip and choose one of the peer with same ip in sequence', async () => {
+				expect(uniquePeerListByIp).eql(samplePeers);
 			});
 		});
 	});
