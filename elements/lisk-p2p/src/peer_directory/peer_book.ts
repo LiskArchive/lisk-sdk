@@ -24,7 +24,6 @@ export interface PeerBookConfig {
 }
 
 export class PeerBook {
-	private readonly _bannedPeers: ReadonlyArray<P2PDiscoveredPeerInfo>;
 	private readonly _newPeers: NewPeers;
 	private readonly _triedPeers: TriedPeers;
 	public constructor({
@@ -36,7 +35,6 @@ export class PeerBook {
 		this._triedPeers = new TriedPeers(
 			triedPeerConfig ? triedPeerConfig : { secret },
 		);
-		this._bannedPeers = [];
 	}
 
 	public get newPeers(): ReadonlyArray<P2PPeerInfo> {
@@ -45,10 +43,6 @@ export class PeerBook {
 
 	public get triedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
 		return this._triedPeers.triedPeersList();
-	}
-
-	public get bannedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
-		return this._bannedPeers;
 	}
 
 	public getAllPeers(): ReadonlyArray<P2PPeerInfo> {
