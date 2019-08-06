@@ -111,11 +111,6 @@ export const getNetgroup = (address: string, secret: number): number => {
 		throw Error('IP address is unsupported.');
 	}
 
-	// Seperate buckets for local and private addresses
-	if (network !== NETWORK.NET_IPV4) {
-		return hash(Buffer.concat([secretBytes, networkBytes])).readUInt32BE(0);
-	}
-
 	const netgroupBytes = Buffer.concat([
 		secretBytes,
 		networkBytes,

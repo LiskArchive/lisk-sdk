@@ -222,9 +222,9 @@ describe('utils', () => {
 
 		it('should return an even distribution of peers in each bucket given random ip addresses in different groups for tried peers', async () => {
 			const expectedPeerCountPerBucketLowerBound =
-				(MAX_PEER_ADDRESSES / MAX_TRIED_BUCKETS) * 0.5;
+				(MAX_PEER_ADDRESSES / MAX_TRIED_BUCKETS) * 0.4;
 			const expectedPeerCountPerBucketUpperBound =
-				(MAX_PEER_ADDRESSES / MAX_TRIED_BUCKETS) * 1.5;
+				(MAX_PEER_ADDRESSES / MAX_TRIED_BUCKETS) * 1.7;
 			const collectedBuckets = new Array(MAX_PEER_ADDRESSES)
 				.fill(0)
 				.reduce((collectedBuckets: any) => {
@@ -257,9 +257,9 @@ describe('utils', () => {
 		// The bounds are more tolerant here due to our temporary solution to not include source IP changing the outcome of distribution
 		it('should return an even distribution of peers in each bucket given random ip addresses in different groups for new peers', async () => {
 			const expectedPeerCountPerBucketLowerBound =
-				(MAX_PEER_ADDRESSES / MAX_NEW_BUCKETS) * 0.25;
+				(MAX_PEER_ADDRESSES / MAX_NEW_BUCKETS) * 0.2;
 			const expectedPeerCountPerBucketUpperBound =
-				(MAX_PEER_ADDRESSES / MAX_NEW_BUCKETS) * 2.5;
+				(MAX_PEER_ADDRESSES / MAX_NEW_BUCKETS) * 2.7;
 			const collectedBuckets = new Array(MAX_PEER_ADDRESSES)
 				.fill(0)
 				.reduce((collectedBuckets: any) => {

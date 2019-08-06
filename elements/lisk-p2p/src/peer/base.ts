@@ -19,7 +19,7 @@ import {
 	FORBIDDEN_CONNECTION_REASON,
 } from '../disconnect_status_codes';
 import { RPCResponseError } from '../errors';
-
+import { P2PRequest } from '../p2p_request';
 import {
 	P2PDiscoveredPeerInfo,
 	P2PMessagePacket,
@@ -30,12 +30,10 @@ import {
 	ProtocolMessagePacket,
 	ProtocolNodeInfo,
 } from '../p2p_types';
-
-import { P2PRequest } from '../p2p_request';
+import { constructPeerIdFromPeerInfo, getNetgroup } from '../utils';
 
 import * as socketClusterClient from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
-import { constructPeerIdFromPeerInfo } from '../utils';
 import {
 	validateBasicPeersInfoList,
 	validatePeerInfo,
@@ -135,6 +133,7 @@ export interface PeerConfig {
 	readonly wsMaxMessageRate: number;
 	readonly wsMaxMessageRatePenalty: number;
 	readonly wsMaxPayload?: number;
+	readonly secret: number;
 }
 
 export class Peer extends EventEmitter {
@@ -143,6 +142,7 @@ export class Peer extends EventEmitter {
 	protected readonly _wsPort: number;
 	private readonly _height: number;
 	protected _reputation: number;
+	protected _netgroup: number;
 	protected _latency: number;
 	protected _connectTime: number;
 	protected _productivity: {
@@ -192,6 +192,7 @@ export class Peer extends EventEmitter {
 		});
 		this._height = peerInfo.height ? (peerInfo.height as number) : 0;
 		this._reputation = DEFAULT_REPUTATION_SCORE;
+		this._netgroup = getNetgroup(this._ipAddress, peerConfig.secret);
 		this._latency = 0;
 		this._connectTime = Date.now();
 		this._rpcCounter = new Map();
@@ -354,6 +355,10 @@ export class Peer extends EventEmitter {
 
 	public get reputation(): number {
 		return this._reputation;
+	}
+
+	public get netgroup(): number {
+		return this._netgroup;
 	}
 
 	public get latency(): number {
