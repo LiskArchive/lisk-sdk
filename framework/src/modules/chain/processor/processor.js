@@ -30,14 +30,21 @@ class Processor {
 		this.processors = {};
 	}
 
-	register(processor) {
+	// register a block processor with particular version
+	register(processor, { matcher }) {
 		this.processors[processor.VERSION] = processor;
 	}
 
+	// process is for standard processing of block, especially when received from network
 	async process(block) {
 		const blockProcessor = this._getBlockProcessor(block);
-		this._validate(block, blockProcessor);
 		const { lastBlock } = this.blocks;
+		blockProcessor.validateNew.exec({
+			block,
+			lastBlock,
+			channel: this.channel,
+		});
+		this._validate(block, blockProcessor);
 		const forkStatus = blockProcessor.fork.exec({
 			block,
 			lastBlock,
@@ -66,16 +73,19 @@ class Processor {
 		await this._processValidated(block, blockProcessor);
 	}
 
+	// validate checks the block statically
 	validate(block) {
 		const blockProcessor = this._getBlockProcessor(block);
 		this._validate(block, blockProcessor);
 	}
 
+	// processValidated processes a block assuming that statically it's valid
 	async processValidated(block) {
 		const blockProcessor = this._getProcessor(block);
 		return this._processValidated(block, blockProcessor);
 	}
 
+	// apply processes a block assuming that statically it's valid without saving a block
 	async apply(block) {
 		const blockProcessor = this._getProcessor(block);
 		return this._processValidated(block, blockProcessor, { skipSave: true });

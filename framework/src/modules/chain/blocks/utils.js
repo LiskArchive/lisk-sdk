@@ -365,9 +365,6 @@ const loadMemTables = async (storage, tx) => {
 	};
 };
 
-// TODO: remove type constraints
-const TRANSACTION_TYPES_MULTI = 4;
-
 /**
  * Sorts transactions for later including in the block.
  *
@@ -375,38 +372,6 @@ const TRANSACTION_TYPES_MULTI = 4;
  * @returns {Array} transactions Sorted collection of transactions
  * @static
  */
-const sortTransactions = transactions =>
-	transactions.sort((a, b) => {
-		// Place MULTI transaction after all other transaction types
-		if (
-			a.type === TRANSACTION_TYPES_MULTI &&
-			b.type !== TRANSACTION_TYPES_MULTI
-		) {
-			return 1;
-		}
-		// Place all other transaction types before MULTI transaction
-		if (
-			a.type !== TRANSACTION_TYPES_MULTI &&
-			b.type === TRANSACTION_TYPES_MULTI
-		) {
-			return -1;
-		}
-		// Place depending on type (lower first)
-		if (a.type < b.type) {
-			return -1;
-		}
-		if (a.type > b.type) {
-			return 1;
-		}
-		// Place depending on amount (lower first)
-		if (a.amount.lt(b.amount)) {
-			return -1;
-		}
-		if (a.amount.gt(b.amount)) {
-			return 1;
-		}
-		return 0;
-	});
 
 module.exports = {
 	parseStorageObjToLegacyObj,
@@ -417,5 +382,4 @@ module.exports = {
 	setHeight,
 	addBlockProperties,
 	deleteBlockProperties,
-	sortTransactions,
 };
