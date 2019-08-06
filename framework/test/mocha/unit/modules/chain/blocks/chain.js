@@ -61,7 +61,7 @@ describe('blocks/chain', () => {
 			'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
 		previousBlockId: undefined,
 		transactions: transactionsForBlock.map(transaction =>
-			interfaceAdapters.transactions.fromJson(transaction)
+			interfaceAdapters.transactions.fromJson(transaction),
 		),
 	};
 
@@ -101,7 +101,7 @@ describe('blocks/chain', () => {
 		height: 1,
 		version: 1,
 		transactions: transactionsForGenesisBlock.map(transaction =>
-			interfaceAdapters.transactions.fromJson(transaction)
+			interfaceAdapters.transactions.fromJson(transaction),
 		),
 	};
 
@@ -159,7 +159,7 @@ describe('blocks/chain', () => {
 			expect(blocksChain.slots).to.eql(slots);
 			expect(blocksChain.exceptions).to.eql(exceptions);
 			expect(blocksChain.genesisBlock).to.eql(
-				__testContext.config.genesisBlock
+				__testContext.config.genesisBlock,
 			);
 		});
 	});
@@ -168,8 +168,8 @@ describe('blocks/chain', () => {
 		describe('when storage.entities.Block.isPersisted fails', () => {
 			beforeEach(async () =>
 				storageStub.entities.Block.isPersisted.rejects(
-					new Error('getGenesisBlockId-ERR')
-				)
+					new Error('getGenesisBlockId-ERR'),
+				),
 			);
 
 			it('should throw an error', async () => {
@@ -260,7 +260,7 @@ describe('blocks/chain', () => {
 						await blocksChainModule.saveBlock(
 							storageStub,
 							blockWithTransactions,
-							txStub
+							txStub,
 						);
 					} catch (err) {
 						expect(err.message).to.equal('txbatch-ERR');
@@ -277,7 +277,7 @@ describe('blocks/chain', () => {
 					await blocksChainModule.saveBlock(
 						storageStub,
 						blockWithTransactions,
-						txStub
+						txStub,
 					);
 
 					expect(storageStub.entities.Block.begin).not.to.be.called;
@@ -311,7 +311,7 @@ describe('blocks/chain', () => {
 					try {
 						await blocksChainModule.saveBlock(
 							storageStub,
-							blockWithTransactions
+							blockWithTransactions,
 						);
 					} catch (err) {
 						expect(err.message).to.equal('txbatch-ERR');
@@ -338,7 +338,7 @@ describe('blocks/chain', () => {
 	describe('deleteBlock', () => {
 		describe('when storageStub.entities.Block.delete fails', () => {
 			beforeEach(() =>
-				storageStub.entities.Block.delete.rejects(new Error('deleteBlock-ERR'))
+				storageStub.entities.Block.delete.rejects(new Error('deleteBlock-ERR')),
 			);
 
 			it('should call a callback with error', async () => {
@@ -364,7 +364,7 @@ describe('blocks/chain', () => {
 		describe('when storageStub.entities.Block.getOne fails', () => {
 			beforeEach(async () => {
 				storageStub.entities.Block.getOne.rejects(
-					new Error('deleteFromBlockId-ERR')
+					new Error('deleteFromBlockId-ERR'),
 				);
 			});
 
@@ -381,7 +381,7 @@ describe('blocks/chain', () => {
 			beforeEach(() => {
 				storageStub.entities.Block.getOne.resolves({ height: 1 });
 				return storageStub.entities.Block.delete.rejects(
-					new Error('deleteFromBlockId-ERR')
+					new Error('deleteFromBlockId-ERR'),
 				);
 			});
 
@@ -428,14 +428,14 @@ describe('blocks/chain', () => {
 										setRoundForData: sinonSandbox.stub(),
 									},
 								},
-							})
+							}),
 						);
 				});
 
 				it('modules.rouds.tick should call a callback', async () => {
 					await blocksChain.applyGenesisBlock(blockWithTransactions);
 					expect(roundsModuleStub.tick.args[0][0]).to.deep.equal(
-						blockWithTransactions
+						blockWithTransactions,
 					);
 				});
 			});
@@ -487,7 +487,7 @@ describe('blocks/chain', () => {
 							storageStub,
 							roundsModuleStub,
 							blockWithTransactions,
-							true
+							true,
 						);
 					} catch (err) {
 						expect(err.message).to.equal('saveBlock-ERR');
@@ -498,7 +498,7 @@ describe('blocks/chain', () => {
 			describe('when saveBlock succeeds', () => {
 				describe('when rounds.tick fails', () => {
 					beforeEach(() =>
-						roundsModuleStub.tick.callsArgWith(1, new Error('tick-ERR'), null)
+						roundsModuleStub.tick.callsArgWith(1, new Error('tick-ERR'), null),
 					);
 
 					it('should call a callback with error', async () => {
@@ -507,7 +507,7 @@ describe('blocks/chain', () => {
 								storageStub,
 								roundsModuleStub,
 								blockWithTransactions,
-								true
+								true,
 							);
 						} catch (err) {
 							expect(err.message).to.equal('tick-ERR');
@@ -523,7 +523,7 @@ describe('blocks/chain', () => {
 							storageStub,
 							roundsModuleStub,
 							blockWithTransactions,
-							true
+							true,
 						);
 						expect(res).to.be.undefined;
 					});
@@ -539,7 +539,7 @@ describe('blocks/chain', () => {
 					storageStub,
 					roundsModuleStub,
 					blockWithTransactions,
-					false
+					false,
 				);
 				expect(storageStub.entities.Block.begin).not.to.be.called;
 				expect(storageStub.entities.Block.create).not.to.be.called;
@@ -567,7 +567,7 @@ describe('blocks/chain', () => {
 		describe('when storageStub.entities.Block.begin fails', () => {
 			beforeEach(async () => {
 				storageStub.entities.Block.begin.rejects(
-					new Error('Chain:applyBlock-ERR')
+					new Error('Chain:applyBlock-ERR'),
 				);
 			});
 
@@ -597,7 +597,7 @@ describe('blocks/chain', () => {
 					sinonSandbox.stub().returns({
 						transactionsResponses: [],
 						stateStore: stateStoreStub,
-					})
+					}),
 				);
 				storageStub.entities.Block.begin.callsArgWith(1, txStub);
 			});
@@ -652,7 +652,7 @@ describe('blocks/chain', () => {
 				roundsModuleStub.backwardTick.callsArgWith(
 					2,
 					new Error('backwardTick-ERR'),
-					null
+					null,
 				);
 			});
 
@@ -662,7 +662,7 @@ describe('blocks/chain', () => {
 						roundsModuleStub,
 						blockWithEmptyTransactions,
 						blockWithTransactions,
-						tx
+						tx,
 					);
 				} catch (err) {
 					expect(err.message).to.equal('backwardTick-ERR');
@@ -680,7 +680,7 @@ describe('blocks/chain', () => {
 					roundsModuleStub,
 					blockWithEmptyTransactions,
 					blockWithTransactions,
-					tx
+					tx,
 				);
 			});
 		});
@@ -706,7 +706,7 @@ describe('blocks/chain', () => {
 					sinonSandbox.stub().returns({
 						transactionsResponses: [],
 						stateStore: stateStoreStub,
-					})
+					}),
 				);
 				roundsModuleStub.backwardTick.callsArgWith(2, null);
 				storageStub.entities.Block.begin.callsArgWith(1, txStub);
@@ -721,7 +721,7 @@ describe('blocks/chain', () => {
 					roundsModuleStub,
 					slots,
 					blockWithTransactions,
-					exceptions
+					exceptions,
 				);
 			});
 		});
@@ -731,7 +731,7 @@ describe('blocks/chain', () => {
 		it('should throw with "Cannot delete genesis block"', async () => {
 			try {
 				await blocksChain.deleteLastBlockAndStoreInTemp(
-					genesisBlockWithTransactions
+					genesisBlockWithTransactions,
 				);
 			} catch (err) {
 				expect(err.message).to.equal('Cannot delete genesis block');
@@ -741,7 +741,7 @@ describe('blocks/chain', () => {
 		it('should not create entry in the temp_block table in case of error', async () => {
 			try {
 				await blocksChain.deleteLastBlockAndStoreInTemp(
-					genesisBlockWithTransactions
+					genesisBlockWithTransactions,
 				);
 			} catch (err) {
 				expect(storageStub.entities.TempBlock.create).to.not.be.called;
@@ -756,7 +756,7 @@ describe('blocks/chain', () => {
 			it('should throw with proper error message', async () => {
 				try {
 					await blocksChain.deleteLastBlockAndStoreInTemp(
-						blockWithTransactions
+						blockWithTransactions,
 					);
 				} catch (error) {
 					expect(error.message).to.eql('db-tx_ERR');
@@ -796,7 +796,7 @@ describe('blocks/chain', () => {
 				it('should call a callback with proper error message', async () => {
 					try {
 						await blocksChain.deleteLastBlockAndStoreInTemp(
-							blockWithTransactions
+							blockWithTransactions,
 						);
 					} catch (error) {
 						expect(error.message).to.eql('db-get_ERR');
@@ -844,7 +844,7 @@ describe('blocks/chain', () => {
 					sinonSandbox.stub().returns({
 						transactionsResponses: [],
 						stateStore: stateStoreStub,
-					})
+					}),
 				);
 				roundsModuleStub.backwardTick.callsArgWith(2, null);
 				// storageStub.entities.Block.begin.callsArgWith(1, txStub);

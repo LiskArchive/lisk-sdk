@@ -34,7 +34,7 @@ const getAllMeta = async adapter =>
 describe('ChainMeta', () => {
 	const storage = new StorageSandbox(
 		config.components.storage,
-		'lisk_test_chain_module_storage_chain_meta'
+		'lisk_test_chain_module_storage_chain_meta',
 	);
 	const validSQLs = ['upsert', 'get', 'delete'];
 	const validFields = ['key', 'value'];
@@ -46,7 +46,7 @@ describe('ChainMeta', () => {
 	beforeAll(async () => {
 		await storage.bootstrap();
 
-		adapter = storage.adapter;
+		({ adapter } = storage);
 		ChainMetaEntity = storage.entities.ChainMeta;
 	});
 
@@ -92,10 +92,11 @@ describe('ChainMeta', () => {
 
 		it('should call addField the exact number of times', async () => {
 			jest.spyOn(ChainMeta.prototype, 'addField');
+			// eslint-disable-next-line no-new
 			new ChainMeta(adapter);
 
 			expect(ChainMeta.prototype.addField).toHaveBeenCalledTimes(
-				Object.keys(ChainMetaEntity.fields).length
+				Object.keys(ChainMetaEntity.fields).length,
 			);
 		});
 
@@ -142,7 +143,7 @@ describe('ChainMeta', () => {
 
 		it('should reject with error if provided without filters', async () => {
 			await expect(ChainMetaEntity.getOne()).rejects.toThrow(
-				'Multiple rows were not expected.'
+				'Multiple rows were not expected.',
 			);
 		});
 
@@ -152,7 +153,7 @@ describe('ChainMeta', () => {
 
 		it('should reject with error if provided filter does not match', async () => {
 			await expect(
-				ChainMetaEntity.getOne({ key: 'custom-key' })
+				ChainMetaEntity.getOne({ key: 'custom-key' }),
 			).rejects.toThrow('No data returned from the query.');
 		});
 	});
@@ -168,7 +169,7 @@ describe('ChainMeta', () => {
 
 		it('should resolve with error when invoked without key', async () => {
 			expect(ChainMetaEntity.getKey()).rejects.toThrow(
-				'Must provide the key to get'
+				'Must provide the key to get',
 			);
 		});
 
@@ -184,13 +185,13 @@ describe('ChainMeta', () => {
 	describe('setKey', () => {
 		it('should resolve with error when invoked without key', async () => {
 			expect(ChainMetaEntity.setKey()).rejects.toThrow(
-				'Must provide the key to set'
+				'Must provide the key to set',
 			);
 		});
 
 		it('should resolve with error when invoked without value', async () => {
 			expect(ChainMetaEntity.setKey('myKey')).rejects.toThrow(
-				'Must provide the value to set'
+				'Must provide the value to set',
 			);
 		});
 
@@ -239,7 +240,7 @@ describe('ChainMeta', () => {
 			const nonExistingKey = 'nonExistingKey';
 
 			await expect(
-				ChainMetaEntity.delete({ key: nonExistingKey })
+				ChainMetaEntity.delete({ key: nonExistingKey }),
 			).resolves.toBeNull();
 		});
 	});

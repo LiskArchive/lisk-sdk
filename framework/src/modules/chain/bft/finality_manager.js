@@ -134,7 +134,7 @@ class FinalityManager {
 		}
 
 		// Get delegate public key
-		const delegatePublicKey = header.delegatePublicKey;
+		const { delegatePublicKey } = header;
 
 		// Load or initialize delegate state in reference to current BlockHeaderManager block headers
 		const delegateState = this.state[delegatePublicKey] || {
@@ -151,12 +151,13 @@ class FinalityManager {
 		// delegate can't pre-commit a block before the above mentioned conditions
 		const minPreCommit = Math.max(
 			delegateMinHeightActive,
-			delegateState.maxPreCommitHeight + 1
+			delegateState.maxPreCommitHeight + 1,
 		);
 
 		// Delegate can't pre-commit the blocks on tip of the chain
 		const maxPreCommitHeight = header.height - 1;
 
+		// eslint-disable-next-line no-plusplus
 		for (let j = minPreCommit; j <= maxPreCommitHeight; j++) {
 			// Add pre-commit if threshold is reached
 			if (this.preVotes[j] >= this.preVoteThreshold) {
@@ -176,10 +177,11 @@ class FinalityManager {
 			delegateMinHeightActive,
 			header.maxHeightPreviouslyForged + 1,
 			delegateState.maxPreVoteHeight + 1,
-			header.height - this.processingThreshold
+			header.height - this.processingThreshold,
 		);
 		// Pre-vote upto current block height
 		const maxPreVoteHeight = header.height;
+		// eslint-disable-next-line no-plusplus
 		for (let j = minPreVoteHeight; j <= maxPreVoteHeight; j++) {
 			this.preVotes[j] = (this.preVotes[j] || 0) + 1;
 		}
@@ -207,7 +209,7 @@ class FinalityManager {
 			.find(key => this.preVotes[key] >= this.preVoteThreshold);
 
 		this.prevotedConfirmedHeight = highestHeightPreVoted
-			? parseInt(highestHeightPreVoted)
+			? parseInt(highestHeightPreVoted, 10)
 			: this.prevotedConfirmedHeight;
 
 		const highestHeightPreCommitted = Object.keys(this.preCommits)
@@ -215,7 +217,7 @@ class FinalityManager {
 			.find(key => this.preCommits[key] >= this.preCommitThreshold);
 
 		this.finalizedHeight = highestHeightPreCommitted
-			? parseInt(highestHeightPreCommitted)
+			? parseInt(highestHeightPreCommitted, 10)
 			: this.finalizedHeight;
 
 		return true;
@@ -253,7 +255,7 @@ class FinalityManager {
 			blockHeader.prevotedConfirmedUptoHeight !== this.prevotedConfirmedHeight
 		) {
 			throw new BFTInvalidAttributeError(
-				'Wrong prevotedConfirmedHeight in blockHeader.'
+				'Wrong prevotedConfirmedHeight in blockHeader.',
 			);
 		}
 
@@ -262,7 +264,7 @@ class FinalityManager {
 			.top(this.processingThreshold)
 			.reverse()
 			.find(
-				header => header.delegatePublicKey === blockHeader.delegatePublicKey
+				header => header.delegatePublicKey === blockHeader.delegatePublicKey,
 			);
 
 		if (!delegateLastBlock) {

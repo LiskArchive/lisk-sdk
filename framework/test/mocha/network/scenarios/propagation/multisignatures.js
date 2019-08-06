@@ -40,7 +40,7 @@ module.exports = function(configurations, network) {
 		const numbers = _.range(numberOfTransactions);
 		// Adding two extra blocks as a safety timeframe
 		const blocksToWait = Math.ceil(
-			numberOfTransactions / MAX_TRANSACTIONS_PER_BLOCK
+			numberOfTransactions / MAX_TRANSACTIONS_PER_BLOCK,
 		);
 
 		const postSignatures = signature => {
@@ -50,7 +50,7 @@ module.exports = function(configurations, network) {
 			return Promise.all(
 				network.sockets.map(socket => {
 					return socket.emit('postSignatures', signaturesToPost);
-				})
+				}),
 			);
 		};
 
@@ -69,7 +69,7 @@ module.exports = function(configurations, network) {
 						accounts.push(tmpAccount);
 						transactions.push(transaction);
 						return sendTransactionPromise(transaction);
-					})
+					}),
 				).then(() => {
 					return network.waitForBlocksOnAllNodes(blocksToWait);
 				});
@@ -103,7 +103,7 @@ module.exports = function(configurations, network) {
 						return sendTransactionPromise(transaction).then(res => {
 							expect(res.statusCode).to.equal(200);
 						});
-					})
+					}),
 				).then(() => {
 					return network.waitForBlocksOnAllNodes(blocksToWait);
 				});
@@ -128,7 +128,7 @@ module.exports = function(configurations, network) {
 						return postSignatures(signatures[member][0]).then(() => {
 							return postSignatures(signatures[member][1]);
 						});
-					})
+					}),
 				).then(() => {
 					return network.waitForBlocksOnAllNodes(blocksToWait);
 				});

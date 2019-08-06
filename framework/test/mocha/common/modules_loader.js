@@ -91,7 +91,7 @@ const modulesLoader = new function() {
 				new Logic(
 					scope.components.storage,
 					scope.components.logger,
-					scope.modules.rounds
+					scope.modules.rounds,
 				);
 				break;
 			case 'Block':
@@ -105,7 +105,7 @@ const modulesLoader = new function() {
 					],
 					() => {
 						new Logic(scope.ed, this.transactions, cb);
-					}
+					},
 				);
 				break;
 			default:
@@ -150,10 +150,10 @@ const modulesLoader = new function() {
 								(err, initializedLogic) => {
 									memo[name] = initializedLogic;
 									return mapCb(err, memo);
-								}
+								},
 							);
 						},
-						waterCb
+						waterCb,
 					);
 				}.bind(this),
 				function(logic, waterCb) {
@@ -170,7 +170,7 @@ const modulesLoader = new function() {
 								return mapCb(err, memo);
 							});
 						},
-						waterCb
+						waterCb,
 					);
 				}.bind(this),
 
@@ -186,7 +186,7 @@ const modulesLoader = new function() {
 					waterCb(null, modules1);
 				},
 			],
-			cb
+			cb,
 		);
 	};
 
@@ -214,7 +214,7 @@ const modulesLoader = new function() {
 				{ block: require('../../../src/modules/chain/blocks/block') },
 			],
 			scope || {},
-			cb
+			cb,
 		);
 	};
 }();

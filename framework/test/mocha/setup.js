@@ -130,7 +130,7 @@ _.mixin(
 		appearsInLast(arr, valueCheck) {
 			// Get list of indexes of desired value
 			const indices = _.compact(
-				arr.filter(data => data === valueCheck).map((_data, index) => index)
+				arr.filter(data => data === valueCheck).map((_data, index) => index),
 			);
 
 			// If last occurrence appears at the end of array
@@ -156,7 +156,7 @@ _.mixin(
 			return arr.sort((a, b) => (a - b) * sortFactor);
 		},
 	},
-	{ chain: false }
+	{ chain: false },
 );
 
 // Cloning the constants object to remove immutability

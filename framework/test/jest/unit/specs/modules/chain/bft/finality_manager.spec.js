@@ -80,10 +80,10 @@ const loadCSVSimulationData = filePath => {
 
 		result.push({
 			delegate: data[i][1],
-			maxHeightPreviouslyForged: parseInt(data[i][2]),
-			maxHeightPreVoted: parseInt(data[i][3]),
-			activeSinceRound: parseInt(data[i][4]),
-			height: parseInt(data[i][5]),
+			maxHeightPreviouslyForged: parseInt(data[i][2], 10),
+			maxHeightPreVoted: parseInt(data[i][3], 10),
+			activeSinceRound: parseInt(data[i][4], 10),
+			height: parseInt(data[i][5], 10),
 			preCommits,
 			preVotes,
 		});
@@ -115,7 +115,7 @@ const generateHeaderInformation = ({
 		.reverse()
 		.find(key => blockData.preCommits[key] >= threshold);
 	const finalizedHeight = highestHeightPreCommitted
-		? parseInt(highestHeightPreCommitted)
+		? parseInt(highestHeightPreCommitted, 10)
 		: 0;
 
 	// Get key with highest value for pre-commits
@@ -123,7 +123,7 @@ const generateHeaderInformation = ({
 		.reverse()
 		.find(key => blockData.preVotes[key] >= threshold);
 	const preVotedConfirmedHeight = highestHeightPreVoted
-		? parseInt(highestHeightPreVoted)
+		? parseInt(highestHeightPreVoted, 10)
 		: 0;
 
 	// Since BFT only keep track of 5 rounds
@@ -164,7 +164,10 @@ describe('finality_manager', () => {
 			{
 				title: '11 delegates partially switching',
 				data: loadCSVSimulationData(
-					path.join(__dirname, './scenarios/11_delegates_partial_switching.csv')
+					path.join(
+						__dirname,
+						'./scenarios/11_delegates_partial_switching.csv',
+					),
 				),
 				activeDelegates: 11,
 			},
@@ -173,29 +176,29 @@ describe('finality_manager', () => {
 				data: loadCSVSimulationData(
 					path.join(
 						__dirname,
-						'./scenarios/5_delegates_switched_completely.csv'
-					)
+						'./scenarios/5_delegates_switched_completely.csv',
+					),
 				),
 				activeDelegates: 5,
 			},
 			{
 				title: '4 delegates simple',
 				data: loadCSVSimulationData(
-					path.join(__dirname, './scenarios/4_delegates_simple.csv')
+					path.join(__dirname, './scenarios/4_delegates_simple.csv'),
 				),
 				activeDelegates: 4,
 			},
 			{
 				title: '4 delegates missed slots',
 				data: loadCSVSimulationData(
-					path.join(__dirname, './scenarios/4_delegates_missed_slots.csv')
+					path.join(__dirname, './scenarios/4_delegates_missed_slots.csv'),
 				),
 				activeDelegates: 4,
 			},
 			{
 				title: '7 delegates partial switch',
 				data: loadCSVSimulationData(
-					path.join(__dirname, './scenarios/7_delegates_partial_switch.csv')
+					path.join(__dirname, './scenarios/7_delegates_partial_switch.csv'),
 				),
 				activeDelegates: 7,
 			},
@@ -223,19 +226,19 @@ describe('finality_manager', () => {
 
 			it('should throw error if finalizedHeight is not provided', async () => {
 				expect(() => new FinalityManager()).toThrow(
-					'Must provide finalizedHeight'
+					'Must provide finalizedHeight',
 				);
 			});
 
 			it('should throw error if activeDelegates is not provided', async () => {
 				expect(() => new FinalityManager({ finalizedHeight })).toThrow(
-					'Must provide activeDelegates'
+					'Must provide activeDelegates',
 				);
 			});
 
 			it('should throw error if activeDelegates is not positive', async () => {
 				expect(
-					() => new FinalityManager({ finalizedHeight, activeDelegates: 0 })
+					() => new FinalityManager({ finalizedHeight, activeDelegates: 0 }),
 				).toThrow('Must provide a positive activeDelegates');
 			});
 		});
@@ -250,7 +253,7 @@ describe('finality_manager', () => {
 
 				expect(() => bft.verifyBlockHeaders(header)).toThrow(
 					BFTInvalidAttributeError,
-					'Wrong prevotedConfirmedHeight in blockHeader.'
+					'Wrong prevotedConfirmedHeight in blockHeader.',
 				);
 			});
 
@@ -289,7 +292,7 @@ describe('finality_manager', () => {
 				bft.headers.top.mockReturnValue([lastBlock]);
 
 				expect(() => bft.verifyBlockHeaders(currentBlock)).toThrow(
-					BFTForkChoiceRuleError
+					BFTForkChoiceRuleError,
 				);
 			});
 
@@ -310,7 +313,7 @@ describe('finality_manager', () => {
 				bft.headers.top.mockReturnValue([lastBlock]);
 
 				expect(() => bft.verifyBlockHeaders(currentBlock)).toThrow(
-					BFTForkChoiceRuleError
+					BFTForkChoiceRuleError,
 				);
 			});
 
@@ -328,7 +331,7 @@ describe('finality_manager', () => {
 				bft.headers.top.mockReturnValue([lastBlock]);
 
 				expect(() => bft.verifyBlockHeaders(currentBlock)).toThrow(
-					BFTChainDisjointError
+					BFTChainDisjointError,
 				);
 			});
 
@@ -349,7 +352,7 @@ describe('finality_manager', () => {
 				bft.headers.top.mockReturnValue([lastBlock]);
 
 				expect(() => bft.verifyBlockHeaders(currentBlock)).toThrow(
-					BFTLowerChainBranchError
+					BFTLowerChainBranchError,
 				);
 			});
 
@@ -437,11 +440,11 @@ describe('finality_manager', () => {
 								expect(myBft.preVotes).toEqual(blockData.preVotes);
 
 								expect(myBft.finalizedHeight).toEqual(
-									blockData.finalizedHeight
+									blockData.finalizedHeight,
 								);
 
 								expect(myBft.prevotedConfirmedHeight).toEqual(
-									blockData.preVotedConfirmedHeight
+									blockData.preVotedConfirmedHeight,
 								);
 							});
 						});
@@ -477,7 +480,7 @@ describe('finality_manager', () => {
 							expect(myBft.preVotes).toEqual(blockData.preVotes);
 							expect(myBft.finalizedHeight).toEqual(blockData.finalizedHeight);
 							expect(myBft.prevotedConfirmedHeight).toEqual(
-								blockData.preVotedConfirmedHeight
+								blockData.preVotedConfirmedHeight,
 							);
 
 							// Now recompute all information again
@@ -486,7 +489,7 @@ describe('finality_manager', () => {
 							// Values should match with expectations
 							expect(myBft.finalizedHeight).toEqual(blockData.finalizedHeight);
 							expect(myBft.prevotedConfirmedHeight).toEqual(
-								blockData.preVotedConfirmedHeight
+								blockData.preVotedConfirmedHeight,
 							);
 
 							// While re-compute we don't have full list of block headers
@@ -496,10 +499,10 @@ describe('finality_manager', () => {
 							// Although this does not impact the computation of finalizedHeight
 							// or preVotedConfirmedHeight
 							expect(blockData.preCommits).toEqual(
-								expect.objectContaining(myBft.preCommits)
+								expect.objectContaining(myBft.preCommits),
 							);
 							expect(blockData.preVotes).toEqual(
-								expect.objectContaining(myBft.preVotes)
+								expect.objectContaining(myBft.preVotes),
 							);
 						});
 					});

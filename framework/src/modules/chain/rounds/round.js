@@ -101,7 +101,7 @@ class Round {
 					}
 					return resolve(account);
 				},
-				self.t
+				self.t,
 			);
 		});
 	}
@@ -125,7 +125,7 @@ class Round {
 				filters,
 				field,
 				value,
-				this.t
+				this.t,
 			);
 		}
 
@@ -133,7 +133,7 @@ class Round {
 			filters,
 			field,
 			value,
-			this.t
+			this.t,
 		);
 	}
 
@@ -147,7 +147,7 @@ class Round {
 		return this.scope.library.storage.entities.Round.getTotalVotedAmount(
 			{ round: this.scope.round },
 			{},
-			this.t
+			this.t,
 		);
 	}
 
@@ -172,8 +172,8 @@ class Round {
 					// 		new Bignum(vote.amount).integerValue(Bignum.ROUND_FLOOR)
 					// TODO: https://github.com/LiskHQ/lisk/issues/2423
 					Math.floor(vote.amount),
-					this.t
-				)
+					this.t,
+				),
 			);
 
 			if (queries.length > 0) {
@@ -196,7 +196,7 @@ class Round {
 				round: this.scope.round,
 			},
 			{},
-			this.t
+			this.t,
 		);
 	}
 
@@ -211,7 +211,7 @@ class Round {
 	restoreRoundSnapshot() {
 		this.scope.library.logger.debug('Restoring mem_round snapshot...');
 		return this.scope.library.storage.entities.Round.restoreRoundSnapshot(
-			this.t
+			this.t,
 		);
 	}
 
@@ -226,7 +226,7 @@ class Round {
 	restoreVotesSnapshot() {
 		this.scope.library.logger.debug('Restoring mem_accounts.vote snapshot...');
 		return this.scope.library.storage.entities.Round.restoreVotesSnapshot(
-			this.t
+			this.t,
 		);
 	}
 
@@ -238,18 +238,18 @@ class Round {
 	checkSnapshotAvailability() {
 		return this.scope.library.storage.entities.Round.checkSnapshotAvailability(
 			this.scope.round,
-			this.t
+			this.t,
 		).then(isAvailable => {
 			if (!isAvailable) {
 				// Snapshot for current round is not available, check if round snapshot table is empty,
 				// because we need to allow to restore snapshot in that case (no transactions during entire round)
 				return this.scope.library.storage.entities.Round.countRoundSnapshot(
-					this.t
+					this.t,
 				).then(count => {
 					// Throw an error when round snapshot table is not empty
 					if (count) {
 						throw new Error(
-							`Snapshot for round ${this.scope.round} not available`
+							`Snapshot for round ${this.scope.round} not available`,
 						);
 					}
 				});
@@ -266,7 +266,7 @@ class Round {
 	updateDelegatesRanks() {
 		this.scope.library.logger.debug('Updating ranks of all delegates...');
 		return this.scope.library.storage.entities.Account.syncDelegatesRanks(
-			this.t
+			this.t,
 		);
 	}
 
@@ -278,11 +278,11 @@ class Round {
 	 */
 	deleteRoundRewards() {
 		this.scope.library.logger.debug(
-			`Deleting rewards for round ${this.scope.round}`
+			`Deleting rewards for round ${this.scope.round}`,
 		);
 		return this.scope.library.storage.entities.Round.deleteRoundRewards(
 			this.scope.round,
-			this.t
+			this.t,
 		);
 	}
 
@@ -304,7 +304,7 @@ class Round {
 				roundRewards[subIndex] = new BigNum(reward.toPrecision(15))
 					.times(
 						this.scope.exceptions.rounds[this.scope.round.toString()]
-							.rewards_factor
+							.rewards_factor,
 					)
 					.floor();
 			});
@@ -312,10 +312,10 @@ class Round {
 			// Apply fees factor and bonus
 			roundFees = new BigNum(roundFees.toPrecision(15))
 				.times(
-					this.scope.exceptions.rounds[this.scope.round.toString()].fees_factor
+					this.scope.exceptions.rounds[this.scope.round.toString()].fees_factor,
 				)
 				.plus(
-					this.scope.exceptions.rounds[this.scope.round.toString()].fees_bonus
+					this.scope.exceptions.rounds[this.scope.round.toString()].fees_bonus,
 				)
 				.floor();
 		}
@@ -324,7 +324,7 @@ class Round {
 			.dividedBy(this.scope.constants.activeDelegates)
 			.floor();
 		const feesRemaining = new BigNum(roundFees.toPrecision(15)).minus(
-			fees.times(this.scope.constants.activeDelegates)
+			fees.times(this.scope.constants.activeDelegates),
 		);
 		const rewards =
 			new BigNum(roundRewards[index].toPrecision(15)).floor() || 0;
@@ -361,6 +361,7 @@ class Round {
 		}
 
 		// Apply round changes to each delegate
+		// eslint-disable-next-line no-plusplus
 		for (let i = 0; i < self.scope.roundDelegates.length; i++) {
 			delegate = self.scope.roundDelegates[i];
 			changes = this.rewardsAtRound(i);
@@ -390,7 +391,7 @@ class Round {
 						}
 						return resolve(account);
 					},
-					self.t
+					self.t,
 				);
 			});
 
@@ -446,14 +447,14 @@ class Round {
 						}
 						return resolve(account);
 					},
-					self.t
+					self.t,
 				);
 			});
 
 			// Aggregate round rewards data (remaining fees) - when going forward
 			if (!self.scope.backwards) {
 				roundRewards[roundRewards.length - 1].fees = new BigNum(
-					roundRewards[roundRewards.length - 1].fees
+					roundRewards[roundRewards.length - 1].fees,
 				)
 					.plus(feesRemaining)
 					.toString();
@@ -473,8 +474,8 @@ class Round {
 						round: item.round,
 						publicKey: item.publicKey,
 					},
-					self.t
-				)
+					self.t,
+				),
 			);
 		});
 

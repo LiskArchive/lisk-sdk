@@ -71,10 +71,10 @@ function createBlock(
 	timestamp,
 	keypair,
 	previousBlock,
-	exceptions
+	exceptions,
 ) {
 	transactions = transactions.map(transaction =>
-		library.modules.interfaceAdapters.transactions.fromJson(transaction)
+		library.modules.interfaceAdapters.transactions.fromJson(transaction),
 	);
 	// TODO Remove hardcoded values and use from BFT class
 	const block = blocksLogic.create({
@@ -99,7 +99,7 @@ function createValidBlockWithSlotOffset(
 	transactions,
 	slotOffset,
 	exceptions,
-	cb
+	cb,
 ) {
 	const lastBlock = library.modules.blocks.lastBlock;
 	const slot = slots.getSlotNumber() - slotOffset;
@@ -112,7 +112,7 @@ function createValidBlockWithSlotOffset(
 			slots.getSlotTime(slot),
 			keypairs[delegateKey],
 			lastBlock,
-			typeof exceptions === 'object' ? exceptions : undefined
+			typeof exceptions === 'object' ? exceptions : undefined,
 		);
 		cb(err, block);
 	});
@@ -128,7 +128,7 @@ function createValidBlock(library, transactions, cb) {
 			transactions,
 			slots.getSlotTime(slot),
 			keypairs[delegateKey],
-			lastBlock
+			lastBlock,
 		);
 		cb(err, block);
 	});
@@ -138,7 +138,7 @@ function getBlocks(library, cb) {
 	library.sequence
 		.add(async () => {
 			const rows = await library.components.storage.adapter.db.query(
-				'SELECT "id" FROM blocks ORDER BY "height" DESC LIMIT 10;'
+				'SELECT "id" FROM blocks ORDER BY "height" DESC LIMIT 10;',
 			);
 			return rows.map(r => r.id);
 		})
@@ -155,6 +155,13 @@ function getNextForger(library, offset, cb) {
 	const lastBlock = library.modules.blocks.lastBlock;
 	const slot = slots.getSlotNumber(lastBlock.timestamp);
 	getDelegateForSlot(library, slot + offset, cb);
+}
+
+function fillPool(library, cb) {
+	library.modules.transactionPool
+		.fillPool()
+		.then(() => cb())
+		.catch(err => cb(err));
 }
 
 function forge(library, cb) {
@@ -178,13 +185,13 @@ function forge(library, cb) {
 					} Last block timestamp: ${
 						last_block.timestamp
 					} Next slot: ${slot} Next delegate PK: ${delegate} Next block timestamp: ${slots.getSlotTime(
-						slot
-					)}`
+						slot,
+					)}`,
 				);
 				const transactions =
 					library.modules.transactionPool.getUnconfirmedTransactionList(
 						false,
-						25
+						25,
 					) || [];
 				library.modules.blocks
 					.generateBlock(keypair, slots.getSlotTime(slot), transactions)
@@ -194,7 +201,7 @@ function forge(library, cb) {
 						__testContext.debug(
 							`		New last block height: ${last_block.height} New last block ID: ${
 								last_block.id
-							}`
+							}`,
 						);
 						seriesCb();
 					})
@@ -205,7 +212,7 @@ function forge(library, cb) {
 		],
 		err => {
 			cb(err);
-		}
+		},
 	);
 }
 
@@ -219,19 +226,12 @@ function deleteLastBlock(library, cb) {
 		.catch(err => cb(err));
 }
 
-function fillPool(library, cb) {
-	library.modules.transactionPool
-		.fillPool()
-		.then(() => cb())
-		.catch(err => cb(err));
-}
-
 function addTransaction(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
 	__testContext.debug(`	Add transaction ID: ${transaction.id}`);
 	transaction = library.modules.interfaceAdapters.transactions.fromJson(
-		transaction
+		transaction,
 	);
 	const amountNormalized = transaction.amount.dividedBy(NORMALIZER).toFixed();
 	const feeNormalized = transaction.fee.dividedBy(NORMALIZER).toFixed();
@@ -240,7 +240,7 @@ function addTransaction(library, transaction, cb) {
 			transaction.id
 		}, Amount: ${amountNormalized}, Fee: ${feeNormalized}, Sender: ${
 			transaction.senderId
-		}, Recipient: ${transaction.recipientId}`
+		}, Recipient: ${transaction.recipientId}`,
 	);
 	library.modules.transactionPool
 		.processUnconfirmedTransaction(transaction)
@@ -252,7 +252,7 @@ function addTransactionToUnconfirmedQueue(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
 	transaction = library.modules.interfaceAdapters.transactions.fromJson(
-		transaction
+		transaction,
 	);
 	library.modules.transactionPool
 		.processUnconfirmedTransaction(transaction)
@@ -275,7 +275,7 @@ function addTransactionsAndForge(library, transactions, forgeDelay, cb) {
 					(transaction, eachSeriesCb) => {
 						addTransaction(library, transaction, eachSeriesCb);
 					},
-					waterCb
+					waterCb,
 				);
 			},
 			function(waterCb) {
@@ -290,17 +290,17 @@ function addTransactionsAndForge(library, transactions, forgeDelay, cb) {
 		],
 		err => {
 			cb(err);
-		}
+		},
 	);
 }
 
 function getAccountFromDb(library, address) {
 	return Promise.all([
 		library.components.storage.adapter.execute(
-			`SELECT * FROM mem_accounts where address = '${address}'`
+			`SELECT * FROM mem_accounts where address = '${address}'`,
 		),
 		library.components.storage.adapter.execute(
-			`SELECT * FROM mem_accounts2multisignatures where "accountId" = '${address}'`
+			`SELECT * FROM mem_accounts2multisignatures where "accountId" = '${address}'`,
 		),
 	]).then(res => {
 		return {
@@ -329,7 +329,7 @@ function getUnconfirmedTransactionFromModule(library, filter, cb) {
 	try {
 		const res = library.modules.transactionPool.getPooledTransactions(
 			'ready',
-			filter
+			filter,
 		);
 		return setImmediate(cb, null, res);
 	} catch (err) {
@@ -341,7 +341,7 @@ function getMultisignatureTransactions(library, filter, cb) {
 	try {
 		const res = library.modules.transactionPool.getPooledTransactions(
 			'pending',
-			filter
+			filter,
 		);
 		return setImmediate(cb, null, res);
 	} catch (err) {
@@ -362,9 +362,9 @@ function beforeBlock(type, cb) {
 					}
 					cb(library);
 					return done();
-				}
+				},
 			);
-		}
+		},
 	);
 
 	// eslint-disable-next-line mocha/no-top-level-hooks

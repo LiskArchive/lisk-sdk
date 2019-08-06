@@ -71,7 +71,7 @@ class BFT extends EventEmitter {
 		const loadFromHeight = Math.max(
 			finalizedHeight,
 			lastBlockHeight - this.constants.activeDelegates * 2,
-			this.constants.startingHeight
+			this.constants.startingHeight,
 		);
 
 		await this.loadBlocks({
@@ -89,8 +89,10 @@ class BFT extends EventEmitter {
 	async _initFinalityManager() {
 		// Check what finalized height was stored last time
 		const finalizedHeightStored =
-			parseInt(await this.ChainMetaEntity.getKey(META_KEYS.FINALIZED_HEIGHT)) ||
-			0;
+			parseInt(
+				await this.ChainMetaEntity.getKey(META_KEYS.FINALIZED_HEIGHT),
+				10,
+			) || 0;
 
 		// Check BFT migration height
 		// https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#backwards-compatibility
@@ -116,7 +118,7 @@ class BFT extends EventEmitter {
 	async _getLastBlockHeight() {
 		const lastBlock = await this.BlockEntity.get(
 			{},
-			{ limit: 1, sort: 'height:desc' }
+			{ limit: 1, sort: 'height:desc' },
 		);
 		return lastBlock.length ? lastBlock[0].height : 0;
 	}
@@ -131,14 +133,15 @@ class BFT extends EventEmitter {
 	async loadBlocks({ fromHeight, tillHeight }) {
 		const rows = await this.BlockEntity.get(
 			{ height_gte: fromHeight, height_lte: tillHeight },
-			{ limit: null, sort: 'height:asc' }
+			{ limit: null, sort: 'height:asc' },
 		);
 
 		rows.forEach(row => {
 			if (row.version !== '2') return;
 
 			this.finalityManager.addBlockHeader(
-				exportedInterface.extractBFTBlockHeaderFromBlock(row)
+				// eslint-disable-next-line no-use-before-define
+				exportedInterface.extractBFTBlockHeaderFromBlock(row),
 			);
 		});
 	}

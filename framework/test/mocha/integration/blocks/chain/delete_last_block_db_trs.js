@@ -76,7 +76,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 				it('should fail with proper error', async () => {
 					try {
 						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock
+							library.modules.blocks.lastBlock,
 						);
 						library.modules.blocks._lastBlock = newLastBlock;
 					} catch (error) {
@@ -101,7 +101,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 				it('should fail with proper error message', async () => {
 					try {
 						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock
+							library.modules.blocks.lastBlock,
 						);
 						library.modules.blocks._lastBlock = newLastBlock;
 					} catch (error) {
@@ -112,7 +112,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 				it('modules.rounds.backwardTick stub should be called once', async () => {
 					try {
 						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock
+							library.modules.blocks.lastBlock,
 						);
 						library.modules.blocks._lastBlock = newLastBlock;
 					} catch (error) {
@@ -125,7 +125,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 				it('should not change balance in mem_accounts table', async () => {
 					try {
 						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock
+							library.modules.blocks.lastBlock,
 						);
 						library.modules.blocks._lastBlock = newLastBlock;
 					} catch (error) {
@@ -133,10 +133,10 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 					}
 					const account = await localCommon.getAccountFromDb(
 						library,
-						fundTrsForAccount1.recipientId
+						fundTrsForAccount1.recipientId,
 					);
 					expect(account.mem_accounts.balance).to.equal(
-						transferAmount.toString()
+						transferAmount.toString(),
 					);
 				});
 			});
@@ -146,7 +146,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 					sinonSandbox
 						.stub(
 							library.modules.blocks.blocksChain.storage.entities.Block,
-							'delete'
+							'delete',
 						)
 						.rejects(new Error('err'));
 				});
@@ -158,7 +158,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 				it('should fail with proper error message', async () => {
 					try {
 						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock
+							library.modules.blocks.lastBlock,
 						);
 						library.modules.blocks._lastBlock = newLastBlock;
 					} catch (error) {
@@ -169,21 +169,21 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 				it('modules.blocks.chain.deleteBlock should be called once', async () => {
 					try {
 						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock
+							library.modules.blocks.lastBlock,
 						);
 						library.modules.blocks._lastBlock = newLastBlock;
 					} catch (error) {
 						expect(error.message).to.eql('err');
 					}
 					expect(
-						library.modules.blocks.blocksChain.storage.entities.Block.delete
+						library.modules.blocks.blocksChain.storage.entities.Block.delete,
 					).to.be.calledOnce;
 				});
 
 				it('should not change balance in mem_accounts table', async () => {
 					try {
 						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock
+							library.modules.blocks.lastBlock,
 						);
 						library.modules.blocks._lastBlock = newLastBlock;
 					} catch (error) {
@@ -191,17 +191,17 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 					}
 					const account = await localCommon.getAccountFromDb(
 						library,
-						fundTrsForAccount1.recipientId
+						fundTrsForAccount1.recipientId,
 					);
 					expect(account.mem_accounts.balance).to.equal(
-						transferAmount.toString()
+						transferAmount.toString(),
 					);
 				});
 
 				it('should not perform backwardTick', async () => {
 					try {
 						const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-							library.modules.blocks.lastBlock
+							library.modules.blocks.lastBlock,
 						);
 						library.modules.blocks._lastBlock = newLastBlock;
 					} catch (error) {
@@ -209,7 +209,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 					}
 					const account = await localCommon.getAccountFromDb(
 						library,
-						getAddressFromPublicKey(block.generatorPublicKey)
+						getAddressFromPublicKey(block.generatorPublicKey),
 					);
 					expect(account.mem_accounts.producedBlocks).to.equal(1);
 				});
@@ -219,14 +219,14 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 		describe('when deleteLastBlock succeeds', () => {
 			it('should not return an error', async () => {
 				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-					library.modules.blocks.lastBlock
+					library.modules.blocks.lastBlock,
 				);
 				library.modules.blocks._lastBlock = newLastBlock;
 			});
 
 			it('should delete block', async () => {
 				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-					library.modules.blocks.lastBlock
+					library.modules.blocks.lastBlock,
 				);
 				library.modules.blocks._lastBlock = newLastBlock;
 				const ids = await new Promise((resolve, reject) => {
@@ -242,7 +242,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 
 			it('should delete all transactions of block', async () => {
 				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-					library.modules.blocks.lastBlock
+					library.modules.blocks.lastBlock,
 				);
 				library.modules.blocks._lastBlock = newLastBlock;
 				const transactions = await new Promise((resolve, reject) => {
@@ -254,7 +254,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 								return reject(getTransactionFromModuleErr);
 							}
 							return resolve(res.transactions);
-						}
+						},
 					);
 				});
 				expect(transactions).to.have.length(0);
@@ -262,24 +262,24 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 
 			it('should revert balance for accounts in block', async () => {
 				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-					library.modules.blocks.lastBlock
+					library.modules.blocks.lastBlock,
 				);
 				library.modules.blocks._lastBlock = newLastBlock;
 				const account = await localCommon.getAccountFromDb(
 					library,
-					fundTrsForAccount1.recipientId
+					fundTrsForAccount1.recipientId,
 				);
 				expect(account.mem_accounts.balance).to.equal('0');
 			});
 
 			it('should perform backwardTick', async () => {
 				const newLastBlock = await library.modules.blocks.blocksChain.deleteLastBlock(
-					library.modules.blocks.lastBlock
+					library.modules.blocks.lastBlock,
 				);
 				library.modules.blocks._lastBlock = newLastBlock;
 				const account = await localCommon.getAccountFromDb(
 					library,
-					getAddressFromPublicKey(block.generatorPublicKey)
+					getAddressFromPublicKey(block.generatorPublicKey),
 				);
 				expect(account.mem_accounts.producedBlocks).to.equal(0);
 			});

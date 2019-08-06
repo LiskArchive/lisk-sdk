@@ -66,7 +66,7 @@ describe.skip('integration test (type 5) - dapp registrations with repeated valu
 				[dappTransaction],
 				async () => {
 					done();
-				}
+				},
 			);
 		});
 	});
@@ -176,7 +176,7 @@ describe.skip('integration test (type 5) - dapp registrations with repeated valu
 				},
 				async () => {
 					done();
-				}
+				},
 			);
 		});
 
@@ -199,7 +199,7 @@ describe.skip('integration test (type 5) - dapp registrations with repeated valu
 				},
 				async () => {
 					done();
-				}
+				},
 			);
 		});
 
@@ -231,7 +231,7 @@ describe.skip('integration test (type 5) - dapp registrations with repeated valu
 				expect(err).to.equal(
 					`Transaction: ${transaction4.id} failed at ${
 						dappDuplicateNameFail.name
-					}: Application name already exists: ${dappDuplicateNameFail.name}`
+					}: Application name already exists: ${dappDuplicateNameFail.name}`,
 				);
 				done();
 			});
@@ -246,7 +246,7 @@ describe.skip('integration test (type 5) - dapp registrations with repeated valu
 				expect(err).to.equal(
 					`Transaction: ${transaction6.id} failed at ${
 						dappDuplicateLinkFail.link
-					}: Application link already exists: ${dappDuplicateLinkFail.link}`
+					}: Application link already exists: ${dappDuplicateLinkFail.link}`,
 				);
 				done();
 			});

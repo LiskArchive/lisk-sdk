@@ -22,7 +22,9 @@ const shuffleDelegateListForRound = (round, list) => {
 	const delegateList = [...list];
 	let currentSeed = hash(seedSource, 'utf8');
 
+	// eslint-disable-next-line no-plusplus
 	for (let i = 0, delCount = delegateList.length; i < delCount; i++) {
+		// eslint-disable-next-line no-plusplus
 		for (let x = 0; x < 4 && i < delCount; i++, x++) {
 			const newIndex = currentSeed[x] % delCount;
 			const b = delegateList[newIndex];
@@ -65,7 +67,7 @@ class Delegates extends EventEmitter {
 		}
 
 		let delegatePublicKeys = await this.storage.entities.RoundDelegates.getRoundDelegates(
-			round
+			round,
 		);
 
 		if (!delegatePublicKeys.length) {

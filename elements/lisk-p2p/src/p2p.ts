@@ -208,6 +208,9 @@ export class P2P extends EventEmitter {
 
 		this._handlePeerConnectAbort = (peerInfo: P2PPeerInfo) => {
 			const peerId = constructPeerIdFromPeerInfo(peerInfo);
+			if (this._newPeers.has(peerId)) {
+				this._newPeers.delete(peerId);
+			}
 			if (this._triedPeers.has(peerId)) {
 				this._triedPeers.delete(peerId);
 			}
@@ -372,6 +375,7 @@ export class P2P extends EventEmitter {
 			newPeers: [...this._newPeers.values()],
 			triedPeers: [...this._triedPeers.values()],
 			connectedPeers: this._peerPool.getAllConnectedPeerInfos(),
+			connectedUniquePeers: this._peerPool.getUniqueConnectedPeers(),
 		};
 	}
 
@@ -642,7 +646,6 @@ export class P2P extends EventEmitter {
 		count: number,
 	): ReadonlyArray<P2PDiscoveredPeerInfo> {
 		const discoveredPeerList: ReadonlyArray<P2PDiscoveredPeerInfo> = [
-			...this._newPeers.values(),
 			...this._triedPeers.values(),
 		]; // Peers whose values has been updated atleast once.
 

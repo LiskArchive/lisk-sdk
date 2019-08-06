@@ -79,12 +79,12 @@ describe('exceptions for multisignature transactions', () => {
 							return reject(err);
 						}
 						return resolve(block);
-					}
+					},
 				);
 			});
 			const newLastBlock = await library.modules.blocks.blocksProcess.processBlock(
 				newBlock,
-				library.modules.blocks.lastBlock
+				library.modules.blocks.lastBlock,
 			);
 			library.modules.blocks._lastBlock = newLastBlock;
 		});
@@ -95,7 +95,7 @@ describe('exceptions for multisignature transactions', () => {
 			before('get sender account', async () => {
 				senderMemAccountBefore = await library.components.storage.entities.Account.getOne(
 					{ address: accountWithExceptionMultisig.address },
-					{ extended: true }
+					{ extended: true },
 				);
 			});
 
@@ -116,12 +116,12 @@ describe('exceptions for multisignature transactions', () => {
 									return reject(err);
 								}
 								return resolve(block);
-							}
+							},
 						);
 					});
 					const newLastBlock = await library.modules.blocks.blocksProcess.processBlock(
 						newBlock,
-						library.modules.blocks.lastBlock
+						library.modules.blocks.lastBlock,
 					);
 					library.modules.blocks._lastBlock = newLastBlock;
 				});
@@ -132,7 +132,7 @@ describe('exceptions for multisignature transactions', () => {
 					before('get sender account', async () => {
 						senderMemAccountAfter = await library.components.storage.entities.Account.getOne(
 							{ address: accountWithExceptionMultisig.address },
-							{ extended: true }
+							{ extended: true },
 						);
 					});
 
@@ -147,7 +147,7 @@ describe('exceptions for multisignature transactions', () => {
 						return expect(senderMemAccountAfter.balance).to.equal(
 							new BigNum(senderMemAccountBefore.balance)
 								.minus(exceptionMultisingatureTransaction.fee)
-								.toString()
+								.toString(),
 						);
 					});
 				});
@@ -159,13 +159,13 @@ describe('exceptions for multisignature transactions', () => {
 						transactionsFromDatabase = await library.components.storage.entities.Transaction.get(
 							{
 								id_in: [exceptionMultisingatureTransaction.id],
-							}
+							},
 						);
 					});
 
 					it('should save both transactions in the database', async () => {
 						return expect(
-							transactionsFromDatabase.map(transaction => transaction.id)
+							transactionsFromDatabase.map(transaction => transaction.id),
 						).to.include(exceptionMultisingatureTransaction.id);
 					});
 				});
@@ -181,13 +181,13 @@ describe('exceptions for multisignature transactions', () => {
 						before('get sender', async () => {
 							senderMemAccountAfterBlockDelete = await library.components.storage.entities.Account.getOne(
 								{ address: accountWithExceptionMultisig.address },
-								{ extended: true }
+								{ extended: true },
 							);
 						});
 
 						it('should update balance field of sender account', async () => {
 							return expect(senderMemAccountAfterBlockDelete.balance).to.equal(
-								senderMemAccountBefore.balance
+								senderMemAccountBefore.balance,
 							);
 						});
 					});
@@ -205,7 +205,7 @@ describe('exceptions for multisignature transactions', () => {
 									expect(err).to.not.exist;
 									transactionsFilteredById = res.transactions;
 									done();
-								}
+								},
 							);
 						});
 

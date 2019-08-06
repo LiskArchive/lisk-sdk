@@ -48,7 +48,7 @@ describe('integration test (blocks) - process', () => {
 				blocks = scopeInit.modules.blocks;
 				storage = scopeInit.components.storage;
 				done(err);
-			}
+			},
 		);
 	});
 
@@ -72,7 +72,7 @@ describe('integration test (blocks) - process', () => {
 							clearDatabaseTable(
 								storage,
 								modulesLoader.scope.components.logger,
-								table
+								table,
 							)
 								.then(res => {
 									everyCb(null, res);
@@ -86,7 +86,7 @@ describe('integration test (blocks) - process', () => {
 								return setImmediate(err);
 							}
 							return setImmediate(seriesCb);
-						}
+						},
 					);
 				},
 				loadTables: seriesCb => {
@@ -97,11 +97,11 @@ describe('integration test (blocks) - process', () => {
 								table.fields,
 								{
 									table: table.name,
-								}
+								},
 							);
 							const insert = storage.adapter.db.$config.pgp.helpers.insert(
 								table.data,
-								cs
+								cs,
 							);
 							storage.adapter
 								.execute(insert)
@@ -117,7 +117,7 @@ describe('integration test (blocks) - process', () => {
 								return setImmediate(seriesCb, err);
 							}
 							return setImmediate(seriesCb);
-						}
+						},
 					);
 				},
 			},
@@ -126,7 +126,7 @@ describe('integration test (blocks) - process', () => {
 					return done(err);
 				}
 				return done();
-			}
+			},
 		);
 	});
 
@@ -137,7 +137,7 @@ describe('integration test (blocks) - process', () => {
 				interfaceAdapters,
 				__testContext.config.genesisBlock,
 				1,
-				2
+				2,
 			);
 
 			const block = loadedBlocks[0];
@@ -150,7 +150,7 @@ describe('integration test (blocks) - process', () => {
 				interfaceAdapters,
 				__testContext.config.genesisBlock,
 				1,
-				3
+				3,
 			);
 			const block = loadedBlocks[0];
 			expect(block.height).to.equal(3);
@@ -160,27 +160,27 @@ describe('integration test (blocks) - process', () => {
 	describe('loadBlocksOffset() - block/transaction errors', () => {
 		// eslint-disable-next-line
 		it(
-			'TODO: BLOCKS REFACTOR - should load block 4 from db and return blockSignature error'
+			'TODO: BLOCKS REFACTOR - should load block 4 from db and return blockSignature error',
 		);
 		// eslint-disable-next-line
 		it(
-			'TODO: BLOCKS REFACTOR - should load block 5 from db and return payloadHash error'
+			'TODO: BLOCKS REFACTOR - should load block 5 from db and return payloadHash error',
 		);
 		// eslint-disable-next-line
 		it(
-			'TODO: BLOCKS REFACTOR - should load block 6 from db and return block timestamp error'
+			'TODO: BLOCKS REFACTOR - should load block 6 from db and return block timestamp error',
 		);
 		// eslint-disable-next-line
 		it(
-			'TODO: BLOCKS REFACTOR - should load block 7 from db and return unknown transaction type error'
+			'TODO: BLOCKS REFACTOR - should load block 7 from db and return unknown transaction type error',
 		);
 		// eslint-disable-next-line
 		it(
-			'TODO: BLOCKS REFACTOR - should load block 8 from db and return block version error'
+			'TODO: BLOCKS REFACTOR - should load block 8 from db and return block version error',
 		);
 		// eslint-disable-next-line
 		it(
-			'TODO: BLOCKS REFACTOR - should load block 9 from db and return previousBlock error (fork:1)'
+			'TODO: BLOCKS REFACTOR - should load block 9 from db and return previousBlock error (fork:1)',
 		);
 
 		// eslint-disable-next-line
@@ -190,7 +190,7 @@ describe('integration test (blocks) - process', () => {
 			blocksProcess.loadBlocksOffset(1, 10, (err, loadedBlock) => {
 				if (err) {
 					expect(err).equal(
-						'Failed to validate vote schema: Array items are not unique (indexes 0 and 4)'
+						'Failed to validate vote schema: Array items are not unique (indexes 0 and 4)',
 					);
 					return done();
 				}

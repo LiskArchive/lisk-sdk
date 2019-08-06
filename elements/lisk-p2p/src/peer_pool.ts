@@ -57,6 +57,7 @@ import {
 	PeerConfig,
 } from './peer';
 import { discoverPeers } from './peer_discovery';
+import { getUniquePeersbyIp } from './peer_selection';
 
 export {
 	EVENT_CLOSE_OUTBOUND,
@@ -198,7 +199,7 @@ export class PeerPool extends EventEmitter {
 			(peer: Peer) => peer.peerInfo,
 		);
 		const selectedPeers = this._peerSelectForRequest({
-			peers: listOfPeerInfo,
+			peers: getUniquePeersbyIp(listOfPeerInfo),
 			nodeInfo: this._nodeInfo,
 			peerLimit: 1,
 			requestPacket: packet,
@@ -328,6 +329,7 @@ export class PeerPool extends EventEmitter {
 		const peerConfig = {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
+			maxPeerListSize: MAX_PEER_LIST_BATCH_SIZE,
 		};
 		const peer = new Peer(peerInfo, peerConfig, { inbound: inboundSocket });
 
@@ -352,6 +354,7 @@ export class PeerPool extends EventEmitter {
 		const peerConfig = {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
+			maxPeerListSize: MAX_PEER_LIST_BATCH_SIZE,
 		};
 		const peer = new Peer(detailedPeerInfo, peerConfig, {
 			inbound: inboundSocket,
@@ -411,6 +414,7 @@ export class PeerPool extends EventEmitter {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
 			wsMaxPayload: this._peerPoolConfig.wsMaxPayload,
+			maxPeerListSize: MAX_PEER_LIST_BATCH_SIZE,
 		};
 		const peer = new Peer(peerInfo, peerConfig, { outbound: socket });
 
@@ -441,6 +445,10 @@ export class PeerPool extends EventEmitter {
 				peer.state.outbound === ConnectionState.CONNECTED ||
 				peer.state.inbound === ConnectionState.CONNECTED,
 		);
+	}
+
+	public getUniqueConnectedPeers(): ReadonlyArray<P2PDiscoveredPeerInfo> {
+		return getUniquePeersbyIp(this.getAllConnectedPeerInfos());
 	}
 
 	public getAllPeerInfos(): ReadonlyArray<P2PDiscoveredPeerInfo> {

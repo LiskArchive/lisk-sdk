@@ -32,7 +32,7 @@ describe('sort', () => {
 			it('should return valid sort object if provided with sort:desc');
 			// eslint-disable-next-line
 			it(
-				'should return valid sort object with default sort type provided with sort:unknown'
+				'should return valid sort object with default sort type provided with sort:unknown',
 			);
 		});
 
@@ -45,11 +45,11 @@ describe('sort', () => {
 			it('should return error when keys are not present in options.sortFields');
 			// eslint-disable-next-line
 			it(
-				'should return object with string values if single key object is given'
+				'should return object with string values if single key object is given',
 			);
 			// eslint-disable-next-line
 			it(
-				'should return object with array values if multiple keys object is given'
+				'should return object with array values if multiple keys object is given',
 			);
 		});
 	});

@@ -22,7 +22,7 @@ class TransactionInterfaceAdapter {
 		Object.keys(registeredTransactions).forEach(transactionType => {
 			this.transactionClassMap.set(
 				Number(transactionType),
-				registeredTransactions[transactionType]
+				registeredTransactions[transactionType],
 			);
 		});
 	}
@@ -31,7 +31,7 @@ class TransactionInterfaceAdapter {
 		const transactions = block.transactions || [];
 
 		const response = transactions.map(transaction =>
-			this.fromJson(transaction)
+			this.fromJson(transaction),
 		);
 
 		return response;

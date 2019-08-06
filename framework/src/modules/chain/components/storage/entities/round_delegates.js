@@ -91,7 +91,7 @@ class RoundDelegates extends BaseEntity {
 		assert(round && Number.isInteger(round), 'Round must be a number');
 		assert(
 			Array.isArray(delegatePublicKeys),
-			'delegatePublicKeys must be an array of strings'
+			'delegatePublicKeys must be an array of strings',
 		);
 
 		const attributes = Object.keys(this.fields);
@@ -108,7 +108,7 @@ class RoundDelegates extends BaseEntity {
 			this.SQLs.create,
 			{ createSet, fields },
 			{ expectedResultCount: 0 },
-			tx
+			tx,
 		);
 	}
 
@@ -130,7 +130,7 @@ class RoundDelegates extends BaseEntity {
 				this.SQLs.delete,
 				{ parsedFilters },
 				{ expectedResultCount: 0 },
-				tx
+				tx,
 			)
 			.then(result => result);
 	}

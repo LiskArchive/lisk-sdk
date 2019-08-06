@@ -83,7 +83,7 @@ describe('transactions', () => {
 		it('should return a proper response format', async () => {
 			// Act
 			const response = transactionHandlers.checkAllowedTransactions(dummyState)(
-				[trs1]
+				[trs1],
 			);
 
 			// Assert
@@ -105,27 +105,27 @@ describe('transactions', () => {
 
 			// Act
 			const response = transactionHandlers.checkAllowedTransactions(dummyState)(
-				[disallowedTransaction]
+				[disallowedTransaction],
 			);
 
 			// Assert
 			expect(response.transactionsResponses.length).to.equal(1);
 			expect(response.transactionsResponses[0]).to.have.property(
 				'id',
-				disallowedTransaction.id
+				disallowedTransaction.id,
 			);
 			expect(response.transactionsResponses[0]).to.have.property(
 				'status',
-				TransactionStatus.FAIL
+				TransactionStatus.FAIL,
 			);
 			expect(response.transactionsResponses[0].errors.length).to.equal(1);
 			expect(response.transactionsResponses[0].errors[0]).to.be.instanceOf(
-				Error
+				Error,
 			);
 			expect(response.transactionsResponses[0].errors[0].message).to.equal(
 				`Transaction type ${
 					disallowedTransaction.type
-				} is currently not allowed.`
+				} is currently not allowed.`,
 			);
 		});
 
@@ -135,18 +135,18 @@ describe('transactions', () => {
 
 			// Act
 			const response = transactionHandlers.checkAllowedTransactions(dummyState)(
-				[transactionWithoutMatcherImpl]
+				[transactionWithoutMatcherImpl],
 			);
 
 			// Assert
 			expect(response.transactionsResponses.length).to.equal(1);
 			expect(response.transactionsResponses[0]).to.have.property(
 				'id',
-				transactionWithoutMatcherImpl.id
+				transactionWithoutMatcherImpl.id,
 			);
 			expect(response.transactionsResponses[0]).to.have.property(
 				'status',
-				TransactionStatus.OK
+				TransactionStatus.OK,
 			);
 			expect(response.transactionsResponses[0].errors.length).to.equal(0);
 		});
@@ -160,18 +160,18 @@ describe('transactions', () => {
 
 			// Act
 			const response = transactionHandlers.checkAllowedTransactions(dummyState)(
-				[allowedTransaction]
+				[allowedTransaction],
 			);
 
 			// Assert
 			expect(response.transactionsResponses.length).to.equal(1);
 			expect(response.transactionsResponses[0]).to.have.property(
 				'id',
-				allowedTransaction.id
+				allowedTransaction.id,
 			);
 			expect(response.transactionsResponses[0]).to.have.property(
 				'status',
-				TransactionStatus.OK
+				TransactionStatus.OK,
 			);
 			expect(response.transactionsResponses[0].errors.length).to.equal(0);
 		});
@@ -188,7 +188,7 @@ describe('transactions', () => {
 
 			// Act
 			const response = transactionHandlers.checkAllowedTransactions(dummyState)(
-				testTransactions
+				testTransactions,
 			);
 
 			// Assert
@@ -196,29 +196,31 @@ describe('transactions', () => {
 			// Allowed transaction formatted response check
 			expect(response.transactionsResponses[0]).to.have.property(
 				'id',
-				testTransactions[0].id
+				testTransactions[0].id,
 			);
 			expect(response.transactionsResponses[0]).to.have.property(
 				'status',
-				TransactionStatus.OK
+				TransactionStatus.OK,
 			);
 			expect(response.transactionsResponses[0].errors.length).to.equal(0);
 
 			// Allowed transaction formatted response check
 			expect(response.transactionsResponses[1]).to.have.property(
 				'id',
-				testTransactions[1].id
+				testTransactions[1].id,
 			);
 			expect(response.transactionsResponses[1]).to.have.property(
 				'status',
-				TransactionStatus.FAIL
+				TransactionStatus.FAIL,
 			);
 			expect(response.transactionsResponses[1].errors.length).to.equal(1);
 			expect(response.transactionsResponses[1].errors[0]).to.be.instanceOf(
-				Error
+				Error,
 			);
 			expect(response.transactionsResponses[1].errors[0].message).to.equal(
-				`Transaction type ${testTransactions[1].type} is currently not allowed.`
+				`Transaction type ${
+					testTransactions[1].type
+				} is currently not allowed.`,
 			);
 		});
 	});
@@ -242,15 +244,15 @@ describe('transactions', () => {
 		it('should update responses for exceptions for invalid responses', async () => {
 			sinonSandbox.stub(
 				exceptionHandlers,
-				'updateTransactionResponseForExceptionTransactions'
+				'updateTransactionResponseForExceptionTransactions',
 			);
 			transactionHandlers.validateTransactions()([trs1, trs2]);
 
 			expect(
-				exceptionHandlers.updateTransactionResponseForExceptionTransactions
+				exceptionHandlers.updateTransactionResponseForExceptionTransactions,
 			).to.be.calledOnce;
 			expect(
-				exceptionHandlers.updateTransactionResponseForExceptionTransactions
+				exceptionHandlers.updateTransactionResponseForExceptionTransactions,
 			).to.be.calledWithExactly([invalidResponse], [trs1, trs2], undefined);
 		});
 
@@ -266,7 +268,7 @@ describe('transactions', () => {
 	describe('#checkPersistedTransactions', () => {
 		it('should resolve in empty response if called with empty array', async () => {
 			const result = await transactionHandlers.checkPersistedTransactions(
-				storageMock
+				storageMock,
 			)([]);
 
 			expect(result).to.be.eql({ transactionsResponses: [] });
@@ -291,11 +293,11 @@ describe('transactions', () => {
 			storageMock.entities.Transaction.get.resolves([trs1]);
 
 			const result = await transactionHandlers.checkPersistedTransactions(
-				storageMock
+				storageMock,
 			)([trs1, trs2]);
 
 			const transactionResponse = result.transactionsResponses.find(
-				({ id }) => id === trs2.id
+				({ id }) => id === trs2.id,
 			);
 
 			expect(transactionResponse.status).to.be.eql(TransactionStatus.OK);
@@ -307,17 +309,17 @@ describe('transactions', () => {
 			storageMock.entities.Transaction.get.resolves([trs1]);
 
 			const result = await transactionHandlers.checkPersistedTransactions(
-				storageMock
+				storageMock,
 			)([trs1, trs2]);
 
 			const transactionResponse = result.transactionsResponses.find(
-				({ id }) => id === trs1.id
+				({ id }) => id === trs1.id,
 			);
 
 			expect(transactionResponse.status).to.be.eql(TransactionStatus.FAIL);
 			expect(transactionResponse.errors).have.lengthOf(1);
 			expect(transactionResponse.errors[0].message).to.be.eql(
-				`Transaction is already confirmed: ${trs1.id}`
+				`Transaction is already confirmed: ${trs1.id}`,
 			);
 		});
 	});
@@ -369,7 +371,7 @@ describe('transactions', () => {
 
 		it('should add transaction to state store', async () => {
 			const { stateStore } = await transactionHandlers.applyGenesisTransactions(
-				storageMock
+				storageMock,
 			)([trs1, trs2]);
 
 			expect(stateStore.transaction.data.length).to.equal(2);
@@ -384,17 +386,17 @@ describe('transactions', () => {
 			});
 
 			const result = await transactionHandlers.applyGenesisTransactions(
-				storageMock
+				storageMock,
 			)([trs1]);
 
 			expect(result.transactionsResponses[0].status).to.be.eql(
-				TransactionStatus.OK
+				TransactionStatus.OK,
 			);
 		});
 
 		it('should return transaction responses and state store', async () => {
 			const result = await transactionHandlers.applyGenesisTransactions(
-				storageMock
+				storageMock,
 			)([trs1, trs2]);
 
 			// expect(result.stateStore).to.be.eql(stateStoreMock);
@@ -439,14 +441,14 @@ describe('transactions', () => {
 
 			sinonSandbox.stub(
 				exceptionHandlers,
-				'updateTransactionResponseForExceptionTransactions'
+				'updateTransactionResponseForExceptionTransactions',
 			);
 		});
 
 		it('should initialize the state store', async () => {
 			await transactionHandlers.applyTransactions(storageMock)(
 				[trs1, trs2],
-				tx
+				tx,
 			);
 
 			// expect(StateStoreStub).to.be.calledOnce;
@@ -469,7 +471,7 @@ describe('transactions', () => {
 			expect(transactionHandlers.verifyTotalSpending).to.be.calledOnce;
 			expect(transactionHandlers.verifyTotalSpending).to.be.calledWithExactly(
 				[trs1, trs2],
-				stateStoreMock
+				stateStoreMock,
 			);
 		});
 
@@ -515,7 +517,7 @@ describe('transactions', () => {
 				expect(updateTransactionResponseForExceptionTransactionsStub).to.be
 					.calledOnce;
 				expect(
-					updateTransactionResponseForExceptionTransactionsStub
+					updateTransactionResponseForExceptionTransactionsStub,
 				).to.be.calledWithExactly([trs1Response], [trs1]);
 			});
 
@@ -535,7 +537,7 @@ describe('transactions', () => {
 				expect(voteHandlers.apply).to.be.calledOnce;
 				expect(voteHandlers.apply).to.be.calledWithExactly(
 					stateStoreMock,
-					trs1
+					trs1,
 				);
 			});
 
@@ -602,7 +604,7 @@ describe('transactions', () => {
 			sinonSandbox.stub(voteHandlers, 'undo');
 			sinonSandbox.stub(
 				exceptionHandlers,
-				'updateTransactionResponseForExceptionTransactions'
+				'updateTransactionResponseForExceptionTransactions',
 			);
 		});
 
@@ -643,7 +645,7 @@ describe('transactions', () => {
 			await transactionHandlers.undoTransactions(storageMock)([trs1, trs2]);
 
 			expect(
-				exceptionHandlers.updateTransactionResponseForExceptionTransactions
+				exceptionHandlers.updateTransactionResponseForExceptionTransactions,
 			).to.be.calledOnce;
 			// expect(
 			// 	exceptionHandlers.updateTransactionResponseForExceptionTransactions
@@ -690,7 +692,7 @@ describe('transactions', () => {
 
 			sinonSandbox.stub(
 				exceptionHandlers,
-				'updateTransactionResponseForExceptionTransactions'
+				'updateTransactionResponseForExceptionTransactions',
 			);
 		});
 
@@ -743,15 +745,15 @@ describe('transactions', () => {
 
 			const result = await transactionHandlers.verifyTransactions(
 				storageMock,
-				slotsMock
+				slotsMock,
 			)([trs1]);
 
 			expect(result.transactionsResponses).to.lengthOf(1);
 			expect(result.transactionsResponses[0].status).to.be.eql(
-				TransactionStatus.FAIL
+				TransactionStatus.FAIL,
 			);
 			expect(result.transactionsResponses[0].errors[0].message).to.be.eql(
-				'Invalid transaction timestamp. Timestamp is in the future'
+				'Invalid transaction timestamp. Timestamp is in the future',
 			);
 		});
 
@@ -774,17 +776,17 @@ describe('transactions', () => {
 			]);
 
 			expect(
-				exceptionHandlers.updateTransactionResponseForExceptionTransactions
+				exceptionHandlers.updateTransactionResponseForExceptionTransactions,
 			).to.be.calledOnce;
 			expect(
-				exceptionHandlers.updateTransactionResponseForExceptionTransactions
+				exceptionHandlers.updateTransactionResponseForExceptionTransactions,
 			).to.be.calledWithExactly([trs1Response], [trs1, trs2], undefined);
 		});
 
 		it('should return transaction responses', async () => {
 			const result = await transactionHandlers.verifyTransactions(
 				storageMock,
-				slotsMock
+				slotsMock,
 			)([trs1, trs2]);
 
 			expect(result.transactionsResponses).to.be.eql([
@@ -841,7 +843,7 @@ describe('transactions', () => {
 
 			const result = transactionHandlers.verifyTotalSpending(
 				[trs1, trs2],
-				stateStoreMock
+				stateStoreMock,
 			);
 
 			expect(result).to.be.eql([]);
@@ -877,7 +879,7 @@ describe('transactions', () => {
 
 			const result = transactionHandlers.verifyTotalSpending(
 				transactions,
-				stateStoreMock
+				stateStoreMock,
 			);
 
 			expect(result).to.be.lengthOf(2);
@@ -885,13 +887,13 @@ describe('transactions', () => {
 			expect(result[0].id).to.be.eql(inValidTransaction1.id);
 			expect(result[0].status).to.be.eql(TransactionStatus.FAIL);
 			expect(result[0].errors[0].message).to.be.eql(
-				`Account does not have enough LSK for total spending. balance: ${accountBalance}, spending: 10`
+				`Account does not have enough LSK for total spending. balance: ${accountBalance}, spending: 10`,
 			);
 
 			expect(result[1].id).to.be.eql(inValidTransaction2.id);
 			expect(result[1].status).to.be.eql(TransactionStatus.FAIL);
 			expect(result[1].errors[0].message).to.be.eql(
-				`Account does not have enough LSK for total spending. balance: ${accountBalance}, spending: 7`
+				`Account does not have enough LSK for total spending. balance: ${accountBalance}, spending: 7`,
 			);
 		});
 
@@ -917,7 +919,7 @@ describe('transactions', () => {
 			];
 			const result = transactionHandlers.verifyTotalSpending(
 				transactions,
-				stateStoreMock
+				stateStoreMock,
 			);
 
 			expect(result).to.be.eql([]);
@@ -945,7 +947,7 @@ describe('transactions', () => {
 			];
 			const result = transactionHandlers.verifyTotalSpending(
 				transactions,
-				stateStoreMock
+				stateStoreMock,
 			);
 
 			expect(result).to.be.eql([]);

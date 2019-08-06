@@ -37,11 +37,12 @@ const isValid = (version, height, exceptions = {}) => {
 			const heightsRange = blockVersionExceptions[exception];
 			// Check if provided height is between the range boundaries
 			return height >= heightsRange.start && height <= heightsRange.end;
-		}
+		},
 	);
 
 	if (exceptionVersion === undefined) {
 		// If there is no exception for provided height - check against current block version
+		// eslint-disable-next-line no-use-before-define
 		return version === blockVersionInterface.currentBlockVersion;
 	}
 
@@ -51,6 +52,7 @@ const isValid = (version, height, exceptions = {}) => {
 
 const getBlockVersion = (height, exceptions = {}) => {
 	if (height === undefined || !exceptions.blockVersions) {
+		// eslint-disable-next-line no-use-before-define
 		return blockVersionInterface.currentBlockVersion;
 	}
 
@@ -62,11 +64,12 @@ const getBlockVersion = (height, exceptions = {}) => {
 			return height >= heightsRange.start && height <= heightsRange.end
 				? exception
 				: false;
-		}
+		},
 	);
 
 	if (exceptionVersion === undefined) {
 		// If there is no exception for provided height return currentBlockVersion
+		// eslint-disable-next-line no-use-before-define
 		return blockVersionInterface.currentBlockVersion;
 	}
 

@@ -74,11 +74,11 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		return apiHelpers.sendTransactionsPromise(transactions).then(responses => {
 			responses.map(res => {
 				return expect(res.body.data.message).to.be.equal(
-					'Transaction(s) accepted'
+					'Transaction(s) accepted',
 				);
 			});
 			transactionsToWaitFor = transactionsToWaitFor.concat(
-				_.map(transactions, 'id')
+				_.map(transactions, 'id'),
 			);
 
 			return waitFor.confirmations(transactionsToWaitFor);
@@ -99,19 +99,19 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				transaction.asset.multisignature.keysgroup = [];
 				transaction = elements.redoSignature(
 					transaction,
-					scenarios.regular.account.passphrase
+					scenarios.regular.account.passphrase,
 				);
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.eql(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.multisignature.keysgroup' should NOT have fewer than 1 items"
+						"'.multisignature.keysgroup' should NOT have fewer than 1 items",
 					);
 					badTransactions.push(transaction);
 				});
@@ -134,19 +134,19 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				transaction.asset.multisignature.keysgroup.push(null);
 				transaction = elements.redoSignature(
 					transaction,
-					scenarios.regular.account.passphrase
+					scenarios.regular.account.passphrase,
 				);
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.eql(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.multisignature.keysgroup[3]' should be string"
+						"'.multisignature.keysgroup[3]' should be string",
 					);
 					badTransactions.push(transaction);
 				});
@@ -167,14 +167,14 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.eql(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[1].message).to.be.equal(
-						'Invalid multisignature keysgroup. Can not contain sender'
+						'Invalid multisignature keysgroup. Can not contain sender',
 					);
 					badTransactions.push(transaction);
 				});
@@ -199,19 +199,19 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 				transaction = elements.redoSignature(
 					transaction,
-					scenarios.regular.account.passphrase
+					scenarios.regular.account.passphrase,
 				);
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.eql(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.multisignature.keysgroup' should NOT have duplicate items (items ## 1 and 0 are identical)"
+						"'.multisignature.keysgroup' should NOT have duplicate items (items ## 1 and 0 are identical)",
 					);
 					badTransactions.push(transaction);
 				});
@@ -236,19 +236,19 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 				transaction = elements.redoSignature(
 					transaction,
-					scenarios.regular.account.passphrase
+					scenarios.regular.account.passphrase,
 				);
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.eql(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'\'.multisignature.keysgroup[1]\' should match format "additionPublicKey"'
+						'\'.multisignature.keysgroup[1]\' should match format "additionPublicKey"',
 					);
 					badTransactions.push(transaction);
 				});
@@ -270,23 +270,23 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				transaction.asset.multisignature.keysgroup[0] = transaction.asset.multisignature.keysgroup[0].replace(
 					'+',
-					''
+					'',
 				);
 				transaction = elements.redoSignature(
 					transaction,
-					scenarios.regular.account.passphrase
+					scenarios.regular.account.passphrase,
 				);
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.eql(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'\'.multisignature.keysgroup[0]\' should match format "additionPublicKey"'
+						'\'.multisignature.keysgroup[0]\' should match format "additionPublicKey"',
 					);
 					badTransactions.push(transaction);
 				});
@@ -308,19 +308,19 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				transaction.asset.multisignature.keysgroup = ['+', '+'];
 				transaction = elements.redoSignature(
 					transaction,
-					scenarios.regular.account.passphrase
+					scenarios.regular.account.passphrase,
 				);
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.eql(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'\'.multisignature.keysgroup[0]\' should match format "additionPublicKey"'
+						'\'.multisignature.keysgroup[0]\' should match format "additionPublicKey"',
 					);
 					badTransactions.push(transaction);
 				});
@@ -346,19 +346,19 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 				transaction = elements.redoSignature(
 					transaction,
-					scenarios.regular.account.passphrase
+					scenarios.regular.account.passphrase,
 				);
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.eql(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'\'.multisignature.keysgroup[0]\' should match format "additionPublicKey"'
+						'\'.multisignature.keysgroup[0]\' should match format "additionPublicKey"',
 					);
 					badTransactions.push(transaction);
 				});
@@ -384,19 +384,19 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 				transaction = elements.redoSignature(
 					transaction,
-					scenarios.regular.account.passphrase
+					scenarios.regular.account.passphrase,
 				);
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.eql(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'\'.multisignature.keysgroup[0]\' should match format "additionPublicKey"'
+						'\'.multisignature.keysgroup[0]\' should match format "additionPublicKey"',
 					);
 					badTransactions.push(transaction);
 				});
@@ -414,14 +414,14 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.eql(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.multisignature.keysgroup' should NOT have more than 15 items"
+						"'.multisignature.keysgroup' should NOT have more than 15 items",
 					);
 					badTransactions.push(transaction);
 				});
@@ -440,14 +440,14 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.eql(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						'Invalid multisignature min. Must be less than or equal to keysgroup size'
+						'Invalid multisignature min. Must be less than or equal to keysgroup size',
 					);
 					badTransactions.push(transaction);
 				});
@@ -466,14 +466,14 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.eql(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.multisignature.min' should be <= 15"
+						"'.multisignature.min' should be <= 15",
 					);
 					badTransactions.push(transaction);
 				});
@@ -492,14 +492,14 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.eql(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.multisignature.min' should be >= 1"
+						"'.multisignature.min' should be >= 1",
 					);
 					badTransactions.push(transaction);
 				});
@@ -520,14 +520,14 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.eql(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.multisignature.lifetime' should be <= 72"
+						"'.multisignature.lifetime' should be <= 72",
 					);
 					badTransactions.push(transaction);
 				});
@@ -546,14 +546,14 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				return sendTransactionPromise(
 					transaction,
-					apiCodes.PROCESSING_ERROR
+					apiCodes.PROCESSING_ERROR,
 				).then(res => {
 					expect(res.body.message).to.be.eql(
-						'Transaction was rejected with errors'
+						'Transaction was rejected with errors',
 					);
 					expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 					expect(res.body.errors[0].message).to.be.equal(
-						"'.multisignature.lifetime' should be >= 1"
+						"'.multisignature.lifetime' should be >= 1",
 					);
 					badTransactions.push(transaction);
 				});
@@ -567,16 +567,16 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 			return sendTransactionPromise(
 				scenario.multiSigTransaction,
-				apiCodes.PROCESSING_ERROR
+				apiCodes.PROCESSING_ERROR,
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					'Transaction was rejected with errors'
+					'Transaction was rejected with errors',
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
 					`Account does not have enough LSK: ${
 						scenarios.no_funds.account.address
-					}, balance: 0`
+					}, balance: 0`,
 				);
 				badTransactions.push(scenario.multiSigTransaction);
 			});
@@ -600,7 +600,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					return {
 						signature: apiHelpers.createSignatureObject(
 							scenario.multiSigTransaction,
-							member
+							member,
 						),
 					};
 				});
@@ -611,7 +611,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 						results.forEach(makeRequestsRes => {
 							expect(makeRequestsRes.body.meta.status).to.be.true;
 							expect(makeRequestsRes.body.data.message).to.be.equal(
-								'Signature Accepted'
+								'Signature Accepted',
 							);
 						});
 
@@ -648,7 +648,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 						return {
 							signature: apiHelpers.createSignatureObject(
 								multiSigSecondPassphraseTransaction,
-								member
+								member,
 							),
 						};
 					});
@@ -659,7 +659,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 							results.forEach(makeRequestsRes => {
 								expect(makeRequestsRes.body.meta.status).to.be.true;
 								expect(makeRequestsRes.body.data.message).to.be.equal(
-									'Signature Accepted'
+									'Signature Accepted',
 								);
 							});
 
@@ -688,7 +688,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					return {
 						signature: apiHelpers.createSignatureObject(
 							scenario.multiSigTransaction,
-							member
+							member,
 						),
 					};
 				});
@@ -699,7 +699,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 						results.forEach(eachRes => {
 							expect(eachRes.body.meta.status).to.be.true;
 							expect(eachRes.body.data.message).to.be.equal(
-								'Signature Accepted'
+								'Signature Accepted',
 							);
 						});
 
@@ -718,7 +718,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					return {
 						signature: apiHelpers.createSignatureObject(
 							scenario.multiSigTransaction,
-							member
+							member,
 						),
 					};
 				});
@@ -729,7 +729,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 						results.forEach(eachRes => {
 							expect(eachRes.body.meta.status).to.be.true;
 							expect(eachRes.body.data.message).to.be.equal(
-								'Signature Accepted'
+								'Signature Accepted',
 							);
 						});
 
@@ -743,7 +743,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				const scenario = scenarios.unsigned;
 				const signature = apiHelpers.createSignatureObject(
 					scenario.multiSigTransaction,
-					scenario.members[0]
+					scenario.members[0],
 				);
 
 				return signatureEndpoint
@@ -754,14 +754,14 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 						return signatureEndpoint.makeRequest(
 							{ signature },
-							apiCodes.PROCESSING_ERROR
+							apiCodes.PROCESSING_ERROR,
 						);
 					})
 					.then(res => {
 						expect(res.body.message).to.be.equal('Error processing signature');
 						expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 						expect(res.body.errors[0].message).to.be.equal(
-							'Encountered duplicate signature in transaction'
+							'Encountered duplicate signature in transaction',
 						);
 					});
 			});
@@ -770,7 +770,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				const account = randomUtil.account();
 				const signature = apiHelpers.createSignatureObject(
 					scenarios.unsigned.multiSigTransaction,
-					account
+					account,
 				);
 
 				return signatureEndpoint
@@ -779,7 +779,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 						expect(res.body.message).to.be.equal('Error processing signature');
 						expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 						expect(res.body.errors[0].message).to.be.equal(
-							`Public Key '${signature.publicKey}' is not a member.`
+							`Public Key '${signature.publicKey}' is not a member.`,
 						);
 					});
 			});
@@ -790,7 +790,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		phases.confirmation(
 			goodTransactions,
 			badTransactions,
-			pendingMultisignatures
+			pendingMultisignatures,
 		);
 	});
 });

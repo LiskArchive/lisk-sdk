@@ -27,7 +27,7 @@ describe('system test - account store', () => {
 			library.components.storage.entities.Account,
 			{
 				mutate: true,
-			}
+			},
 		);
 	});
 
@@ -36,14 +36,14 @@ describe('system test - account store', () => {
 			const results = await accountStore.cache(accountQuery);
 			expect(results).to.have.length(2);
 			expect(results.map(account => account.address)).to.eql(
-				persistedAddresses
+				persistedAddresses,
 			);
 		});
 
 		it('should set the cache property for account store', async () => {
 			await accountStore.cache(accountQuery);
 			expect(accountStore.data.map(account => account.address)).to.eql(
-				persistedAddresses
+				persistedAddresses,
 			);
 		});
 	});
@@ -62,8 +62,8 @@ describe('system test - account store', () => {
 			expect(
 				accountStore.get.bind(
 					accountStore,
-					persistedAddresses[1].replace('0', '1')
-				)
+					persistedAddresses[1].replace('0', '1'),
+				),
 			).to.throw();
 		});
 	});
@@ -80,7 +80,7 @@ describe('system test - account store', () => {
 
 		it('should return default account if it does not exist', async () => {
 			const account = accountStore.getOrDefault(
-				persistedAddresses[1].replace('0', '1')
+				persistedAddresses[1].replace('0', '1'),
 			);
 			expect(account).to.exist;
 		});
@@ -99,7 +99,7 @@ describe('system test - account store', () => {
 
 			accountStore.set(accountQuery[0].address, updatedAccount);
 			expect(accountStore.get(accountQuery[0].address)).to.deep.equal(
-				updatedAccount
+				updatedAccount,
 			);
 		});
 
@@ -134,7 +134,7 @@ describe('system test - account store', () => {
 			await accountStore.finalize();
 
 			const newAccountStore = new AccountStore(
-				library.components.storage.entities.Account
+				library.components.storage.entities.Account,
 			);
 
 			await newAccountStore.cache(accountQuery);
@@ -147,11 +147,11 @@ describe('system test - account store', () => {
 		it('should throw an error if mutate option is set to false', async () => {
 			const accountStoreWithoutMutation = new AccountStore(
 				library.components.storage.entities.Account,
-				{ mutate: false }
+				{ mutate: false },
 			);
 
 			expect(
-				accountStore.finalize.bind(accountStoreWithoutMutation)
+				accountStore.finalize.bind(accountStoreWithoutMutation),
 			).to.throw();
 		});
 	});

@@ -120,7 +120,7 @@ class MigrationEntity extends BaseEntity {
 		const parsedOptions = defaults(
 			{},
 			pick(options, ['limit', 'offset', 'sort']),
-			pick(this.defaultOptions, ['limit', 'offset', 'sort'])
+			pick(this.defaultOptions, ['limit', 'offset', 'sort']),
 		);
 		const parsedSort = this.parseSort(parsedOptions.sort);
 
@@ -135,7 +135,7 @@ class MigrationEntity extends BaseEntity {
 			this.SQLs.select,
 			params,
 			{ expectedResultCount },
-			tx
+			tx,
 		);
 	}
 
@@ -159,7 +159,7 @@ class MigrationEntity extends BaseEntity {
 			this.SQLs.create,
 			{ createSet, attributes },
 			{ expectedResultCount: 0 },
-			tx
+			tx,
 		);
 	}
 
@@ -215,7 +215,7 @@ class MigrationEntity extends BaseEntity {
 				this.SQLs.isPersisted,
 				{ parsedFilters },
 				{ expectedResultCount: 1 },
-				tx
+				tx,
 			)
 			.then(result => result.exists);
 	}
@@ -251,8 +251,8 @@ class MigrationEntity extends BaseEntity {
 						!savedMigrations.find(
 							saved =>
 								saved.id === migration.id &&
-								saved.namespace === migration.namespace
-						)
+								saved.namespace === migration.namespace,
+						),
 				)
 				.sort((a, b) => a.id - b.id) // Sort by migration ID, ascending
 				.map(migration => {
@@ -272,7 +272,7 @@ class MigrationEntity extends BaseEntity {
 				namespace: pendingMigration.namespace,
 			},
 			{},
-			tx
+			tx,
 		);
 	}
 
@@ -287,7 +287,7 @@ class MigrationEntity extends BaseEntity {
 
 		const pendingMigrations = await this.readPending(
 			migrationsObj,
-			savedMigrations
+			savedMigrations,
 		);
 
 		if (pendingMigrations.length > 0) {

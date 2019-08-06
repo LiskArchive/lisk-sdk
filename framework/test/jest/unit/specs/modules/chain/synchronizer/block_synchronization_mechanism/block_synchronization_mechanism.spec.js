@@ -113,7 +113,7 @@ describe('block_synchronization_mechanism', () => {
 				expect(slotsMock.getSlotNumber).toHaveBeenCalledTimes(2);
 				expect(slotsMock.getSlotNumber).toHaveBeenNthCalledWith(
 					1,
-					finalizedBlock.timestamp
+					finalizedBlock.timestamp,
 				);
 				expect(slotsMock.getSlotNumber).toHaveBeenNthCalledWith(2);
 			});
@@ -203,7 +203,7 @@ describe('block_synchronization_mechanism', () => {
 					expect(selectedPeer.prevotedConfirmedUptoHeight).toEqual(2);
 					expect(selectedPeer.height).toEqual(69);
 					expect([peersList[3].ip, peersList[4].ip, peersList[5].ip]).toContain(
-						selectedPeer.ip
+						selectedPeer.ip,
 					);
 				});
 
@@ -223,7 +223,7 @@ describe('block_synchronization_mechanism', () => {
 					];
 
 					expect(() => syncMechanism._computeBestPeer(peers)).toThrow(
-						'Violation of fork choice rule'
+						'Violation of fork choice rule',
 					);
 				});
 			});
@@ -243,7 +243,7 @@ describe('block_synchronization_mechanism', () => {
 				];
 
 				expect(
-					syncMechanism._computeLargestSubsetMaxBy(input, item => item.height)
+					syncMechanism._computeLargestSubsetMaxBy(input, item => item.height),
 				).toEqual([input[1], input[2]]);
 			});
 		});

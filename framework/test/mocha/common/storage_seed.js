@@ -69,7 +69,7 @@ class StorageSeed {
 		});
 
 		return Promise.mapSeries(blocks, aBlock =>
-			storage.entities.Block.create(aBlock)
+			storage.entities.Block.create(aBlock),
 		).then(() => blocks);
 	}
 
@@ -81,12 +81,12 @@ class StorageSeed {
 				new fixtures.transactions.Transaction({
 					blockId: blocks[0].id,
 					type: 5,
-				})
+				}),
 			);
 		}
 
 		return storage.adapter.db.tx('db:seed:dapps', tx =>
-			storage.entities.Transaction.create(trs, {}, tx).then(() => trs)
+			storage.entities.Transaction.create(trs, {}, tx).then(() => trs),
 		);
 	}
 
@@ -100,12 +100,12 @@ class StorageSeed {
 					type: 7,
 					dapp,
 					inTransfer,
-				})
+				}),
 			);
 		}
 
 		return storage.adapter.db.tx('db:seed:outtransfer', tx =>
-			storage.entities.Transaction.create(trs, {}, tx).then(() => trs)
+			storage.entities.Transaction.create(trs, {}, tx).then(() => trs),
 		);
 	}
 
@@ -118,18 +118,18 @@ class StorageSeed {
 					blockId: blocks[0].id,
 					type: 6,
 					dapp,
-				})
+				}),
 			);
 		}
 
 		return storage.adapter.db.tx('db:seed:intransfer', tx =>
-			storage.entities.Transaction.create(trs, {}, tx).then(() => trs)
+			storage.entities.Transaction.create(trs, {}, tx).then(() => trs),
 		);
 	}
 
 	static seed(storage) {
 		return this.seedAccounts(storage).then(seedAccounts =>
-			this.seedBlocks(storage, seedAccounts)
+			this.seedBlocks(storage, seedAccounts),
 		);
 	}
 
@@ -154,7 +154,7 @@ class StorageSeed {
 
 				tables.forEach(table => {
 					promises.push(
-						t.query('TRUNCATE TABLE ${table:name} CASCADE', { table })
+						t.query('TRUNCATE TABLE ${table:name} CASCADE', { table }),
 					);
 				});
 

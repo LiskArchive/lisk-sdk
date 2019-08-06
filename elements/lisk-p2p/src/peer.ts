@@ -117,6 +117,7 @@ export interface PeerConfig {
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
 	readonly wsMaxPayload?: number;
+	readonly maxPeerListSize?: number;
 }
 export interface PeerSockets {
 	readonly outbound?: SCClientSocket;
@@ -424,7 +425,9 @@ export class Peer extends EventEmitter {
 				procedure: REMOTE_RPC_GET_ALL_PEERS_LIST,
 			});
 
-			return validatePeerInfoList(response.data);
+			const fullPeerList = validatePeerInfoList(response.data);
+
+			return fullPeerList.slice(0, this._peerConfig.maxPeerListSize);
 		} catch (error) {
 			throw new RPCResponseError(
 				'Failed to fetch peer list of peer',

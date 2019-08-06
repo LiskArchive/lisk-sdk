@@ -32,7 +32,7 @@ let storage;
  * @todo Add description of DappsController
  */
 function DappsController(scope) {
-	storage = scope.components.storage;
+	({ storage } = scope.components);
 }
 
 /**
@@ -49,7 +49,7 @@ DappsController.getDapps = async function(context, next) {
 		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
 	}
 
-	const params = context.request.swagger.params;
+	const { params } = context.request.swagger;
 
 	let options = {
 		sort: params.sort.value,

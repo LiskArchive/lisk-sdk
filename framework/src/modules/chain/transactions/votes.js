@@ -22,8 +22,9 @@ const TRANSACTION_TYPES_VOTE = 3;
 const TRANSACTION_TYPES_IN_TRANSFER = 6;
 const TRANSACTION_TYPES_OUT_TRANSFER = 7;
 
-const reverseVotes = function(diff) {
+const reverseVotes = diff => {
 	const copyDiff = diff.slice();
+	// eslint-disable-next-line no-plusplus
 	for (let i = 0; i < copyDiff.length; i++) {
 		const math = copyDiff[i][0] === '-' ? '+' : '-';
 		copyDiff[i] = math + copyDiff[i].slice(1);
@@ -34,7 +35,7 @@ const reverseVotes = function(diff) {
 const updateRoundInformationWithDelegatesForTransaction = (
 	stateStore,
 	transaction,
-	forwardTick
+	forwardTick,
 ) => {
 	if (transaction.type !== TRANSACTION_TYPES_VOTE) {
 		return;
@@ -70,7 +71,7 @@ const updateSenderRoundInformationWithAmountForTransaction = (
 	stateStore,
 	transaction,
 	forwardTick,
-	exceptions
+	exceptions,
 ) => {
 	const amount = transaction.fee.plus(transaction.amount);
 	const amountToUpdate = forwardTick
@@ -96,10 +97,10 @@ const updateSenderRoundInformationWithAmountForTransaction = (
 			!exceptions.roundVotes.includes(transaction.id)
 		) {
 			const dependentPublicKeysWithoutUpvotes = dependentPublicKeysToAdd.filter(
-				vote => !upvotes.find(v => v === vote)
+				vote => !upvotes.find(v => v === vote),
 			);
 			dependentPublicKeysToAdd = dependentPublicKeysWithoutUpvotes.concat(
-				downvotes
+				downvotes,
 			);
 		}
 	}
@@ -118,12 +119,12 @@ const updateSenderRoundInformationWithAmountForTransaction = (
 const updateRecipientRoundInformationWithAmountForTransaction = (
 	stateStore,
 	transaction,
-	forwardTick
+	forwardTick,
 ) => {
 	let address;
 	if (transaction.type === TRANSACTION_TYPES_IN_TRANSFER) {
 		const dappTransaction = stateStore.transaction.get(
-			transaction.asset.inTransfer.dappId
+			transaction.asset.inTransfer.dappId,
 		);
 		address = dappTransaction.senderId;
 	}
@@ -140,7 +141,7 @@ const updateRecipientRoundInformationWithAmountForTransaction = (
 	}
 
 	const account = stateStore.account.get(address);
-	const amount = transaction.amount;
+	const { amount } = transaction;
 	const amountToUpdate = forwardTick
 		? amount.toString()
 		: amount.mul(-1).toString();
@@ -161,18 +162,18 @@ const apply = (stateStore, transaction, exceptions = {}) => {
 	updateRecipientRoundInformationWithAmountForTransaction(
 		stateStore,
 		transaction,
-		isForwardTick
+		isForwardTick,
 	);
 	updateSenderRoundInformationWithAmountForTransaction(
 		stateStore,
 		transaction,
 		isForwardTick,
-		exceptions
+		exceptions,
 	);
 	updateRoundInformationWithDelegatesForTransaction(
 		stateStore,
 		transaction,
-		isForwardTick
+		isForwardTick,
 	);
 };
 
@@ -181,18 +182,18 @@ const undo = (stateStore, transaction, exceptions = {}) => {
 	updateRecipientRoundInformationWithAmountForTransaction(
 		stateStore,
 		transaction,
-		isForwardTick
+		isForwardTick,
 	);
 	updateSenderRoundInformationWithAmountForTransaction(
 		stateStore,
 		transaction,
 		isForwardTick,
-		exceptions
+		exceptions,
 	);
 	updateRoundInformationWithDelegatesForTransaction(
 		stateStore,
 		transaction,
-		isForwardTick
+		isForwardTick,
 	);
 };
 

@@ -135,7 +135,7 @@ describe('blocks', () => {
 
 		it('should initialize parameters', async () => {
 			expect(blocksInstance._broadhash).to.eql(
-				__testContext.config.genesisBlock.payloadHash
+				__testContext.config.genesisBlock.payloadHash,
 			);
 			expect(blocksInstance._lastNBlockIds).to.eql([]);
 			expect(blocksInstance._lastBlock).to.eql({});
@@ -214,7 +214,7 @@ describe('blocks', () => {
 				{
 					id_in: ids,
 				},
-				{ sort: 'height:desc', limit: 1 }
+				{ sort: 'height:desc', limit: 1 },
 			);
 		});
 
@@ -229,7 +229,7 @@ describe('blocks', () => {
 					expect(e.message).to.equal('Failed to access storage layer');
 					expect(loggerStub.error).to.be.calledWith(
 						getError,
-						'Failed to access storage layer'
+						'Failed to access storage layer',
 					);
 				}
 			});
@@ -262,10 +262,10 @@ describe('blocks', () => {
 				`Received new block from network with id: ${block.id} height: ${
 					block.height
 				} round: ${blocksInstance.slots.calcRound(
-					block.height
+					block.height,
 				)} slot: ${blocksInstance.slots.getSlotNumber(
-					block.timestamp
-				)} reward: ${block.reward} version: ${block.version}`
+					block.timestamp,
+				)} reward: ${block.reward} version: ${block.version}`,
 			);
 		});
 
@@ -286,7 +286,7 @@ describe('blocks', () => {
 			await blocksInstance.receiveBlockFromNetwork(blockv2);
 
 			expect(blocksInstance._receiveBlockImplementations['2']).to.be.calledWith(
-				blockv2
+				blockv2,
 			);
 			expect(blocksInstance._receiveBlockImplementations['1']).to.not.be.called;
 		});
@@ -509,9 +509,9 @@ describe('blocks', () => {
 			blocksInstance._isActive = true;
 
 			expect(
-				blocksInstance._receiveBlockFromNetworkV2(block)
+				blocksInstance._receiveBlockFromNetworkV2(block),
 			).to.eventually.be.rejectedWith(
-				'Block process cannot be executed in parallel'
+				'Block process cannot be executed in parallel',
 			);
 			expect(blocksInstance._forkChoiceTask).to.not.be.called;
 		});
@@ -520,7 +520,7 @@ describe('blocks', () => {
 	describe('_forkChoiceTask', () => {
 		it('should be an async function', async () => {
 			expect(blocksInstance._forkChoiceTask.constructor.name).to.equal(
-				'AsyncFunction'
+				'AsyncFunction',
 			);
 		});
 
@@ -569,17 +569,17 @@ describe('blocks', () => {
 		it('should call _handleSameBlockReceived if _isIdenticalBlock evaluates to true', async () => {
 			const handleSameBlockReceived = sinonSandbox.stub(
 				blocksInstance,
-				'_handleSameBlockReceived'
+				'_handleSameBlockReceived',
 			);
 			stubs.isIdenticalBlock.returns(true);
 
 			await blocksInstance._forkChoiceTask(
 				defaults.newBlock,
-				newBlockReceivedAt
+				newBlockReceivedAt,
 			);
 			expect(stubs.isIdenticalBlock).to.be.calledWith(
 				defaults.lastBlock,
-				defaults.newBlock
+				defaults.newBlock,
 			);
 			expect(handleSameBlockReceived).to.be.calledWith(defaults.newBlock);
 		});
@@ -587,17 +587,17 @@ describe('blocks', () => {
 		it('should call _handleValidBlock if _isValidBlock evaluates to true', async () => {
 			const handleValidBlock = sinonSandbox.stub(
 				blocksInstance,
-				'_handleValidBlock'
+				'_handleValidBlock',
 			);
 			stubs.isValidBlock.returns(true);
 
 			await blocksInstance._forkChoiceTask(
 				defaults.newBlock,
-				newBlockReceivedAt
+				newBlockReceivedAt,
 			);
 			expect(stubs.isValidBlock).to.be.calledWith(
 				defaults.lastBlock,
-				defaults.newBlock
+				defaults.newBlock,
 			);
 			expect(handleValidBlock).to.be.calledWith(defaults.newBlock);
 		});
@@ -606,21 +606,21 @@ describe('blocks', () => {
 			it('should call _handleDoubleForging if _isDoubleForging evaluates to true', async () => {
 				const handleDoubleForging = sinonSandbox.stub(
 					blocksInstance,
-					'_handleDoubleForging'
+					'_handleDoubleForging',
 				);
 				stubs.isDoubleForging.returns(true);
 
 				await blocksInstance._forkChoiceTask(
 					defaults.newBlock,
-					newBlockReceivedAt
+					newBlockReceivedAt,
 				);
 				expect(stubs.isDoubleForging).to.be.calledWith(
 					defaults.lastBlock,
-					defaults.newBlock
+					defaults.newBlock,
 				);
 				expect(handleDoubleForging).to.be.calledWith(
 					defaults.newBlock,
-					defaults.lastBlock
+					defaults.lastBlock,
 				);
 			});
 
@@ -628,7 +628,7 @@ describe('blocks', () => {
 				const aTime = blocksInstance.slots.getTime();
 				const handleDoubleForgingTieBreak = sinonSandbox.stub(
 					blocksInstance,
-					'_handleDoubleForgingTieBreak'
+					'_handleDoubleForgingTieBreak',
 				);
 				stubs.isTieBreak.returns(true);
 
@@ -640,7 +640,7 @@ describe('blocks', () => {
 
 				await blocksInstance._forkChoiceTask(
 					defaults.newBlock,
-					newBlockReceivedAt
+					newBlockReceivedAt,
 				);
 				expect(stubs.isTieBreak).to.be.calledWith({
 					slots: blocksInstance.slots,
@@ -649,7 +649,7 @@ describe('blocks', () => {
 				});
 				expect(handleDoubleForgingTieBreak).to.be.calledWith(
 					defaults.newBlock,
-					defaults.lastBlock
+					defaults.lastBlock,
 				);
 			});
 		});
@@ -658,17 +658,17 @@ describe('blocks', () => {
 			it('should call _handleMovingToDifferentChain if _isDifferentChain evaluates to true', async () => {
 				const handleMovingToDifferentChain = sinonSandbox.stub(
 					blocksInstance,
-					'_handleMovingToDifferentChain'
+					'_handleMovingToDifferentChain',
 				);
 				stubs.isDifferentChain.returns(true);
 
 				await blocksInstance._forkChoiceTask(
 					defaults.newBlock,
-					newBlockReceivedAt
+					newBlockReceivedAt,
 				);
 				expect(stubs.isDifferentChain).to.be.calledWith(
 					defaults.lastBlock,
-					defaults.newBlock
+					defaults.newBlock,
 				);
 				expect(handleMovingToDifferentChain).to.be.called;
 			});
@@ -677,12 +677,12 @@ describe('blocks', () => {
 		it('should call _handleDiscardedBlock if no conditions are met', async () => {
 			const handleDiscardedBlock = sinonSandbox.stub(
 				blocksInstance,
-				'_handleDiscardedBlock'
+				'_handleDiscardedBlock',
 			);
 
 			await blocksInstance._forkChoiceTask(
 				defaults.newBlock,
-				newBlockReceivedAt
+				newBlockReceivedAt,
 			);
 
 			expect(handleDiscardedBlock).to.be.calledWith(defaults.newBlock);
@@ -708,7 +708,7 @@ describe('blocks', () => {
 
 			const _processBlock = sinonSandbox.stub(
 				blocksInstance,
-				'_processReceivedBlock'
+				'_processReceivedBlock',
 			);
 
 			await blocksInstance._handleValidBlock(block);
@@ -733,7 +733,7 @@ describe('blocks', () => {
 			blocksInstance._handleDoubleForging(newBlock, lastBlock);
 			expect(loggerStub.debug).to.be.calledWith(
 				'Delegate forging on multiple nodes',
-				newBlock.generatorPublicKey
+				newBlock.generatorPublicKey,
 			);
 		});
 
@@ -742,7 +742,7 @@ describe('blocks', () => {
 			expect(loggerStub.debug).to.be.calledWith(
 				`Last block ${lastBlock.id} stands, new block ${
 					newBlock.id
-				} is discarded`
+				} is discarded`,
 			);
 		});
 	});
@@ -804,7 +804,7 @@ describe('blocks', () => {
 				await blocksInstance._handleDoubleForgingTieBreak(newBlock, lastBlock);
 			} catch (e) {
 				expect(e.message).to.equal(
-					'Fork Choice Case 4 recovery failed because block 2 verification and normalization failed'
+					'Fork Choice Case 4 recovery failed because block 2 verification and normalization failed',
 				);
 			}
 
@@ -812,7 +812,7 @@ describe('blocks', () => {
 				normalizeAndVerifyReturn.errors,
 				`Fork Choice Case 4 recovery failed because block ${
 					newBlock.id
-				} verification and normalization failed`
+				} verification and normalization failed`,
 			);
 		});
 
@@ -822,7 +822,7 @@ describe('blocks', () => {
 			expect(loggerStub.debug).to.be.calledWith(
 				`Deleting last block with id: ${
 					lastBlock.id
-				} due to Fork Choice Rule Case 4`
+				} due to Fork Choice Rule Case 4`,
 			);
 		});
 
@@ -843,7 +843,7 @@ describe('blocks', () => {
 			expect(loggerStub.error).to.be.calledWith(
 				`Failed to apply newly received block with id: ${
 					newBlock.id
-				}, restoring previous block ${previousLastBlock.id}`
+				}, restoring previous block ${previousLastBlock.id}`,
 			);
 		});
 
@@ -856,7 +856,7 @@ describe('blocks', () => {
 			expect(stubs.deleteLastBlockAndGet).to.be.called;
 			expect(stubs.processReceivedBlock.getCall(0)).to.be.calledWith(newBlock);
 			expect(stubs.processReceivedBlock.getCall(1)).to.be.calledWith(
-				previousLastBlock
+				previousLastBlock,
 			);
 		});
 	});
@@ -880,10 +880,10 @@ describe('blocks', () => {
 				`Discarded block that does not match with current chain: ${
 					block.id
 				} height: ${block.height} round: ${slots.calcRound(
-					block.height
+					block.height,
 				)} slot: ${slots.getSlotNumber(block.timestamp)} generator: ${
 					block.generatorPublicKey
-				}`
+				}`,
 			);
 		});
 	});
@@ -901,12 +901,12 @@ describe('blocks', () => {
 		beforeEach(async () => {
 			stubs.updateLastReceipt = sinonSandbox.stub(
 				blocksInstance,
-				'_updateLastReceipt'
+				'_updateLastReceipt',
 			);
 
 			stubs.updateBroadhash = sinonSandbox.stub(
 				blocksInstance,
-				'_updateBroadhash'
+				'_updateBroadhash',
 			);
 
 			stubs.processBlock = sinonSandbox
@@ -929,7 +929,7 @@ describe('blocks', () => {
 			const expectedErrorMessage = `Successfully applied new received block id: ${
 				block.id
 			} height: ${block.height} round: ${blocksInstance.slots.calcRound(
-				block.height
+				block.height,
 			)} slot: ${blocksInstance.slots.getSlotNumber(block.timestamp)} reward: ${
 				block.reward
 			} version: ${block.version}`;
@@ -955,7 +955,7 @@ describe('blocks', () => {
 			const expectedErrorMessage = `Failed to apply new received block id: ${
 				block.id
 			} height: ${block.height} round: ${blocksInstance.slots.calcRound(
-				block.height
+				block.height,
 			)} slot: ${blocksInstance.slots.getSlotNumber(block.timestamp)} reward: ${
 				block.reward
 			} version: ${block.version}`;
@@ -986,7 +986,7 @@ describe('blocks', () => {
 			} catch (err) {
 				expect(err).to.exist;
 				expect(err.message).to.eql(
-					'Unable to rebuild, blockchain should contain at least one round of blocks'
+					'Unable to rebuild, blockchain should contain at least one round of blocks',
 				);
 			}
 		});
@@ -995,12 +995,12 @@ describe('blocks', () => {
 			try {
 				await blocksInstance._rebuildMode(
 					'type string = invalid',
-					ACTIVE_DELEGATES
+					ACTIVE_DELEGATES,
 				);
 			} catch (err) {
 				expect(err).to.exist;
 				expect(err.message).to.eql(
-					'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero'
+					'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero',
 				);
 			}
 		});
@@ -1011,7 +1011,7 @@ describe('blocks', () => {
 			} catch (err) {
 				expect(err).to.exist;
 				expect(err.message).to.eql(
-					'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero'
+					'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero',
 				);
 			}
 		});
@@ -1026,7 +1026,7 @@ describe('blocks', () => {
 			} catch (err) {
 				expect(err).to.exist;
 				expect(err.message).to.eql(
-					'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero'
+					'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero',
 				);
 			}
 		});
@@ -1037,14 +1037,14 @@ describe('blocks', () => {
 			} catch (err) {
 				expect(err).to.exist;
 				expect(err.message).to.eql(
-					'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero'
+					'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero',
 				);
 			}
 		});
 
 		it('should emit an event with proper error when resetMemTables fails', async () => {
 			storageStub.entities.Account.resetMemTables.rejects(
-				new Error('Account#resetMemTables error')
+				new Error('Account#resetMemTables error'),
 			);
 			try {
 				await blocksInstance._rebuildMode(2, ACTIVE_DELEGATES);
@@ -1055,7 +1055,7 @@ describe('blocks', () => {
 
 		it('should emit an event with proper error when loadBlocksOffset fails', async () => {
 			blocksUtils.loadBlocksWithOffset.rejects(
-				new Error('loadBlocksOffsetStub#ERR')
+				new Error('loadBlocksOffsetStub#ERR'),
 			);
 			try {
 				await blocksInstance._rebuildMode(2, ACTIVE_DELEGATES);

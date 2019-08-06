@@ -21,7 +21,7 @@ class BFTError extends FrameworkError {}
 class BFTChainDisjointError extends BFTError {
 	constructor() {
 		super(
-			'Violation of disjointness condition. If delegate forged a block of higher height earlier and later the block with lower height'
+			'Violation of disjointness condition. If delegate forged a block of higher height earlier and later the block with lower height',
 		);
 	}
 }
@@ -29,7 +29,7 @@ class BFTChainDisjointError extends BFTError {
 class BFTLowerChainBranchError extends BFTError {
 	constructor() {
 		super(
-			'Violation of the condition that delegate must choose the branch with largest prevotedConfirmedUptoHeight'
+			'Violation of the condition that delegate must choose the branch with largest prevotedConfirmedUptoHeight',
 		);
 	}
 }

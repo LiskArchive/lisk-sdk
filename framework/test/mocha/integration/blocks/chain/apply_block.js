@@ -99,7 +99,7 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 			err => {
 				expect(err).to.not.exist;
 				done();
-			}
+			},
 		);
 	});
 
@@ -124,7 +124,7 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 				(err, b) => {
 					block = b;
 					done(err);
-				}
+				},
 			);
 		});
 
@@ -140,7 +140,7 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 							username: randomUsername,
 							address: blockAccount1.address,
 							publicKey: blockTransaction1.senderPublicKey,
-						}
+						},
 					);
 					try {
 						await library.modules.blocks.blocksChain.applyBlock(block, true);
@@ -161,7 +161,7 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 								})
 								.catch(err => eachCb(err));
 						},
-						done
+						done,
 					);
 				});
 
@@ -175,7 +175,7 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 									// the transaction will fail, so we will have the username, isDelegate we initially set
 									if (account === blockAccount1) {
 										expect(accountRow.mem_accounts.username).to.equal(
-											randomUsername
+											randomUsername,
 										);
 										expect(accountRow.mem_accounts.isDelegate).to.equal(1);
 									}
@@ -187,7 +187,7 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 									eachCb();
 								});
 						},
-						done
+						done,
 					);
 				});
 			});
@@ -205,13 +205,13 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 								.getAccountFromDb(library, account.address)
 								.then(accountRow => {
 									expect(accountRow.mem_accounts.username).to.equal(
-										account.username
+										account.username,
 									);
 									expect(accountRow.mem_accounts.isDelegate).to.equal(1);
 									eachCb();
 								});
 						},
-						done
+						done,
 					);
 				});
 			});
@@ -259,7 +259,7 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 							id: '1465651642158264048',
 						},
 					].map(transaction =>
-						interfaceAdapters.transactions.fromJson(transaction)
+						interfaceAdapters.transactions.fromJson(transaction),
 					),
 					version: 0,
 					id: '884740302254229983',
@@ -269,7 +269,7 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 					try {
 						await blocksChainModule.saveBlock(
 							library.components.storage,
-							auxBlock
+							auxBlock,
 						);
 					} catch (error) {
 						expect(error.message).to.equal('integer out of range');
@@ -302,11 +302,11 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 					try {
 						await blocksChainModule.saveBlock(
 							library.components.storage,
-							auxBlock
+							auxBlock,
 						);
 					} catch (error) {
 						expect(error.message).to.equal(
-							'insert or update on table "blocks" violates foreign key constraint "blocks_previousBlock_fkey"'
+							'insert or update on table "blocks" violates foreign key constraint "blocks_previousBlock_fkey"',
 						);
 					}
 				});
@@ -339,7 +339,7 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 								})
 								.catch(err => eachCb(err));
 						},
-						done
+						done,
 					);
 				});
 
@@ -367,10 +367,10 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 										.which.is.an('Array')
 										.to.have.length(0);
 									eachCb();
-								}
+								},
 							);
 						},
-						done
+						done,
 					);
 				});
 			});
@@ -404,10 +404,10 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 										.which.is.an('Array');
 									expect(res.transactions[0].id).to.equal(transaction.id);
 									eachCb();
-								}
+								},
 							);
 						},
-						done
+						done,
 					);
 				});
 			});

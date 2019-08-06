@@ -81,7 +81,7 @@ class Transport {
 			this.transactionPoolModule,
 			this.logger,
 			this.channel,
-			this.storage
+			this.storage,
 		);
 	}
 
@@ -103,7 +103,7 @@ class Transport {
 					data: {
 						signature,
 					},
-				}
+				},
 			);
 			this.channel.publish('chain:signature:change', signature);
 		}
@@ -128,7 +128,7 @@ class Transport {
 					data: {
 						transaction: transactionJSON,
 					},
-				}
+				},
 			);
 			this.channel.publish('chain:transactions:change', transactionJSON);
 		}
@@ -150,13 +150,13 @@ class Transport {
 		// Check if we are free to broadcast
 		if (this.broadcaster.maxRelays(block)) {
 			this.logger.debug(
-				'Transport->onBroadcastBlock: Aborted - max block relays exhausted'
+				'Transport->onBroadcastBlock: Aborted - max block relays exhausted',
 			);
 			return null;
 		}
 		if (this.loaderModule.syncing()) {
 			this.logger.debug(
-				'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress'
+				'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress',
 			);
 			return null;
 		}
@@ -176,7 +176,7 @@ class Transport {
 		if (block.transactions) {
 			// Convert transactions to JSON
 			block.transactions = block.transactions.map(transactionInstance =>
-				transactionInstance.toJSON()
+				transactionInstance.toJSON(),
 			);
 		}
 
@@ -187,7 +187,7 @@ class Transport {
 			{
 				broadhash,
 			},
-			{ api: 'postBlock', data: { block } }
+			{ api: 'postBlock', data: { block } },
 		);
 	}
 
@@ -241,7 +241,7 @@ class Transport {
 							{
 								block,
 								error: e,
-							}
+							},
 						);
 					}
 				}
@@ -267,7 +267,7 @@ class Transport {
 	async postBlock(query) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
-				'Receiving blocks disabled by user through config.json'
+				'Receiving blocks disabled by user through config.json',
 			);
 		}
 		query = query || {};
@@ -281,7 +281,7 @@ class Transport {
 					errors,
 					module: 'transport',
 					query,
-				}
+				},
 			);
 			throw new Error(errors);
 		}
@@ -309,7 +309,7 @@ class Transport {
 		if (this.loaderModule.syncing()) {
 			return this.logger.debug(
 				"Client is syncing. Can't receive block at the moment.",
-				block.id
+				block.id,
 			);
 		}
 		if (success) {
@@ -339,7 +339,7 @@ class Transport {
 
 		try {
 			await this.transactionPoolModule.getTransactionAndProcessSignature(
-				query.signature
+				query.signature,
 			);
 			return { success: true };
 		} catch (err) {
@@ -361,7 +361,7 @@ class Transport {
 	async postSignatures(query) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
-				'Receiving signatures disabled by user through config.json'
+				'Receiving signatures disabled by user through config.json',
 			);
 		}
 
@@ -385,12 +385,12 @@ class Transport {
 	async getSignatures() {
 		const transactions = this.transactionPoolModule.getMultisignatureTransactionList(
 			true,
-			this.constants.maxSharedTransactions
+			this.constants.maxSharedTransactions,
 		);
 
 		const signatures = transactions
 			.filter(
-				transaction => transaction.signatures && transaction.signatures.length
+				transaction => transaction.signatures && transaction.signatures.length,
 			)
 			.map(transaction => ({
 				transaction: transaction.id,
@@ -413,7 +413,7 @@ class Transport {
 	async getTransactions() {
 		const transactions = this.transactionPoolModule.getMergedTransactionList(
 			true,
-			this.constants.maxSharedTransactions
+			this.constants.maxSharedTransactions,
 		);
 
 		return {
@@ -455,7 +455,7 @@ class Transport {
 	async postTransactions(query) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
-				'Receiving transactions disabled by user through config.json'
+				'Receiving transactions disabled by user through config.json',
 			);
 		}
 
@@ -506,7 +506,7 @@ class Transport {
 		}
 
 		return this.transactionPoolModule.getTransactionAndProcessSignature(
-			signature
+			signature,
 		);
 	}
 
@@ -546,14 +546,14 @@ class Transport {
 		let transaction;
 		try {
 			transaction = this.interfaceAdapters.transactions.fromJson(
-				transactionJSON
+				transactionJSON,
 			);
 
 			const composedTransactionsCheck = transactionsModule.composeTransactionSteps(
 				transactionsModule.checkAllowedTransactions(
-					this.blocksModule.lastBlock
+					this.blocksModule.lastBlock,
 				),
-				transactionsModule.validateTransactions(this.exceptions)
+				transactionsModule.validateTransactions(this.exceptions),
 			);
 
 			const { transactionsResponses } = await composedTransactionsCheck([
@@ -580,7 +580,7 @@ class Transport {
 		try {
 			await this.transactionPoolModule.processUnconfirmedTransaction(
 				transaction,
-				true
+				true,
 			);
 			return transaction.id;
 		} catch (err) {

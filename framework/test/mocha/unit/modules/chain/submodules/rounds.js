@@ -70,7 +70,7 @@ describe('rounds', () => {
 
 	const storage = new TestStorageSandbox(
 		__testContext.config.components.storage,
-		storageStubs
+		storageStubs,
 	);
 
 	const bindings = {
@@ -206,7 +206,7 @@ describe('rounds', () => {
 			getOutsiders = get('__private.getOutsiders');
 			set(
 				'library.delegates.generateDelegateList',
-				sinon.stub().resolves(['delegate1', 'delegate2', 'delegate3'])
+				sinon.stub().resolves(['delegate1', 'delegate2', 'delegate3']),
 			);
 		});
 
@@ -643,7 +643,7 @@ describe('rounds', () => {
 
 					beforeEach(done => {
 						clearRoundSnapshot_stub = storageStubs.Round.clearRoundSnapshot.rejects(
-							'clearRoundSnapshot'
+							'clearRoundSnapshot',
 						);
 
 						block = { height: 100 };
@@ -676,7 +676,7 @@ describe('rounds', () => {
 
 					beforeEach(done => {
 						performRoundSnapshot_stub = storageStubs.Round.performRoundSnapshot.rejects(
-							'performRoundSnapshot'
+							'performRoundSnapshot',
 						);
 
 						block = { height: 100 };
@@ -709,7 +709,7 @@ describe('rounds', () => {
 
 					beforeEach(done => {
 						clearVotesSnapshot_stub = storageStubs.Round.clearVotesSnapshot.rejects(
-							'clearVotesSnapshot'
+							'clearVotesSnapshot',
 						);
 
 						block = { height: 100 };
@@ -742,7 +742,7 @@ describe('rounds', () => {
 
 					beforeEach(done => {
 						performVotesSnapshot_stub = storageStubs.Round.performVotesSnapshot.rejects(
-							'performVotesSnapshot'
+							'performVotesSnapshot',
 						);
 
 						block = { height: 100 };
@@ -821,7 +821,7 @@ describe('rounds', () => {
 			set('__private.getOutsiders', getOutsiders_stub);
 			set(
 				'__private.updateRoundInformationForTransactions',
-				updateRoundInformationForTransactionsStub
+				updateRoundInformationForTransactionsStub,
 			);
 		});
 
@@ -847,7 +847,7 @@ describe('rounds', () => {
 									expect(roundScope.finishRound).to.be.true;
 									done();
 								},
-								null
+								null,
 							);
 						});
 					});
@@ -864,7 +864,7 @@ describe('rounds', () => {
 									expect(roundScope.finishRound).to.be.true;
 									done();
 								},
-								null
+								null,
 							);
 						});
 					});
@@ -966,7 +966,7 @@ describe('rounds', () => {
 			await rounds.createRoundInformationWithAmount(
 				params.address,
 				params.round,
-				params.amount
+				params.amount,
 			);
 		});
 
@@ -974,7 +974,7 @@ describe('rounds', () => {
 			expect(getOneStub).to.be.calledWith(
 				{ address: params.address },
 				{ extended: true },
-				sinon.match.any
+				sinon.match.any,
 			);
 		});
 
@@ -995,7 +995,7 @@ describe('rounds', () => {
 					},
 				],
 				{},
-				sinon.match.any
+				sinon.match.any,
 			);
 		});
 	});
@@ -1032,7 +1032,7 @@ describe('rounds', () => {
 					params.address,
 					params.round,
 					params.delegatePublicKey,
-					params.mode
+					params.mode,
 				);
 			});
 
@@ -1040,7 +1040,7 @@ describe('rounds', () => {
 				expect(getOneStub).to.be.calledWith(
 					{ address: params.address },
 					{},
-					sinon.match.any
+					sinon.match.any,
 				);
 			});
 
@@ -1053,7 +1053,7 @@ describe('rounds', () => {
 						delegatePublicKey: params.delegatePublicKey,
 					},
 					{},
-					sinon.match.any
+					sinon.match.any,
 				);
 			});
 		});
@@ -1066,7 +1066,7 @@ describe('rounds', () => {
 					params.address,
 					params.round,
 					params.delegatePublicKey,
-					params.mode
+					params.mode,
 				);
 			});
 
@@ -1074,7 +1074,7 @@ describe('rounds', () => {
 				expect(getOneStub).to.be.calledWith(
 					{ address: params.address },
 					{},
-					sinon.match.any
+					sinon.match.any,
 				);
 			});
 
@@ -1087,7 +1087,7 @@ describe('rounds', () => {
 						delegatePublicKey: params.delegatePublicKey,
 					},
 					{},
-					sinon.match.any
+					sinon.match.any,
 				);
 			});
 		});

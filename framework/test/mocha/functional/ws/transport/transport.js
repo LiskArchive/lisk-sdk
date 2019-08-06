@@ -237,7 +237,7 @@ describe('WS transport', () => {
 					__testContext.debug(
 						'> Error / Response:'.grey,
 						JSON.stringify(err.response),
-						JSON.stringify(res)
+						JSON.stringify(res),
 					);
 					expect(err.response.message).to.equal('should be object: undefined');
 					expect(res).to.be.undefined;
@@ -255,10 +255,10 @@ describe('WS transport', () => {
 					__testContext.debug(
 						'> Error / Response:'.grey,
 						JSON.stringify(err.response),
-						JSON.stringify(res)
+						JSON.stringify(res),
 					);
 					expect(err.response.message).to.equal(
-						'should NOT have duplicate items (items ## 2 and 1 are identical): undefined'
+						'should NOT have duplicate items (items ## 2 and 1 are identical): undefined',
 					);
 				}
 			});
@@ -274,10 +274,10 @@ describe('WS transport', () => {
 					__testContext.debug(
 						'> Error / Response:'.grey,
 						JSON.stringify(err.response),
-						JSON.stringify(res)
+						JSON.stringify(res),
 					);
 					expect(err.response.message).to.equal(
-						'should NOT have fewer than 1 items: undefined'
+						'should NOT have fewer than 1 items: undefined',
 					);
 				}
 			});
@@ -293,10 +293,10 @@ describe('WS transport', () => {
 					__testContext.debug(
 						'> Error / Response:'.grey,
 						JSON.stringify(err.response),
-						JSON.stringify(res)
+						JSON.stringify(res),
 					);
 					expect(err.response.message).to.equal(
-						'should match format "id": undefined'
+						'should match format "id": undefined',
 					);
 				}
 			});
@@ -312,7 +312,7 @@ describe('WS transport', () => {
 					__testContext.debug(
 						'> Error / Response:'.grey,
 						JSON.stringify(err.response),
-						JSON.stringify(res)
+						JSON.stringify(res),
 					);
 					expect(err.response.message).to.equal('should be array: undefined');
 				}

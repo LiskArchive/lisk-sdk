@@ -102,7 +102,7 @@ class TempBlock extends BaseEntity {
 			this.SQLs.create,
 			{ createSet, fields },
 			{ expectedResultCount: 0 },
-			tx
+			tx,
 		);
 	}
 
@@ -152,7 +152,7 @@ class TempBlock extends BaseEntity {
 		const parsedOptions = defaults(
 			{},
 			pick(options, ['limit', 'offset', 'sort']),
-			pick(this.defaultOptions, ['limit', 'offset', 'sort'])
+			pick(this.defaultOptions, ['limit', 'offset', 'sort']),
 		);
 		const parsedSort = this.parseSort(parsedOptions.sort);
 
@@ -167,7 +167,7 @@ class TempBlock extends BaseEntity {
 			this.SQLs.get,
 			params,
 			{ expectedResultCount },
-			tx
+			tx,
 		);
 	}
 
@@ -189,7 +189,7 @@ class TempBlock extends BaseEntity {
 				this.SQLs.delete,
 				{ parsedFilters },
 				{ expectedResultCount: 0 },
-				tx
+				tx,
 			)
 			.then(result => result);
 	}

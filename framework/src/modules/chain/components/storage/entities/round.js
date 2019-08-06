@@ -153,7 +153,7 @@ class Round extends BaseEntity {
 		const parsedOptions = defaults(
 			{},
 			pick(options, ['limit', 'offset', 'sort']),
-			pick(this.defaultOptions, ['limit', 'offset', 'sort'])
+			pick(this.defaultOptions, ['limit', 'offset', 'sort']),
 		);
 		const parsedSort = this.parseSort(parsedOptions.sort);
 
@@ -168,7 +168,7 @@ class Round extends BaseEntity {
 			this.SQLs.select,
 			params,
 			{ expectedResultCount },
-			tx
+			tx,
 		);
 	}
 
@@ -185,7 +185,7 @@ class Round extends BaseEntity {
 		assert(data, 'Must provide data to create account');
 		assert(
 			typeof data === 'object' || Array.isArray(data),
-			'Data must be an object or array of objects'
+			'Data must be an object or array of objects',
 		);
 
 		let values;
@@ -198,7 +198,7 @@ class Round extends BaseEntity {
 
 		values = values.map(v => defaults(v, defaultCreateValues));
 		const attributes = Object.keys(this.fields).filter(
-			fieldname => fieldname !== 'id'
+			fieldname => fieldname !== 'id',
 		);
 		const createSet = this.getValuesSet(values, attributes);
 		const fields = attributes
@@ -209,7 +209,7 @@ class Round extends BaseEntity {
 			this.SQLs.create,
 			{ createSet, fields },
 			{ expectedResultCount: 0 },
-			tx
+			tx,
 		);
 	}
 
@@ -239,7 +239,7 @@ class Round extends BaseEntity {
 			this.SQLs.update,
 			params,
 			{ expectedResultCount: 0 },
-			tx
+			tx,
 		);
 	}
 
@@ -269,7 +269,7 @@ class Round extends BaseEntity {
 			this.SQLs.updateOne,
 			params,
 			{ expectedResultCount: 0 },
-			tx
+			tx,
 		);
 	}
 
@@ -292,7 +292,7 @@ class Round extends BaseEntity {
 				this.SQLs.isPersisted,
 				{ parsedFilters },
 				{ expectedResultCount: 1 },
-				tx
+				tx,
 			)
 			.then(result => result.exists);
 	}
@@ -315,7 +315,7 @@ class Round extends BaseEntity {
 				this.SQLs.delete,
 				{ parsedFilters },
 				{ expectedResultCount: 0 },
-				tx
+				tx,
 			)
 			.then(result => result);
 	}
@@ -356,7 +356,7 @@ class Round extends BaseEntity {
 			this.SQLs.getTotalVotedAmount,
 			params,
 			{},
-			tx
+			tx,
 		);
 	}
 
@@ -373,7 +373,7 @@ class Round extends BaseEntity {
 			this.SQLs.summedRound,
 			{ round, activeDelegates },
 			{},
-			tx
+			tx,
 		);
 	}
 
@@ -399,7 +399,7 @@ class Round extends BaseEntity {
 				publicKey,
 			},
 			{ expectedResultCount: 0 },
-			tx
+			tx,
 		);
 	}
 
@@ -415,7 +415,7 @@ class Round extends BaseEntity {
 			this.SQLs.deleteRoundRewards,
 			{ round },
 			{ expectedResultCount: 0 },
-			tx
+			tx,
 		);
 	}
 
@@ -430,7 +430,7 @@ class Round extends BaseEntity {
 			this.SQLs.clearRoundSnapshot,
 			{},
 			{ expectedResultCount: 0 },
-			tx
+			tx,
 		);
 	}
 
@@ -445,7 +445,7 @@ class Round extends BaseEntity {
 			this.SQLs.performRoundSnapshot,
 			{},
 			{ expectedResultCount: 0 },
-			tx
+			tx,
 		);
 	}
 
@@ -474,7 +474,7 @@ class Round extends BaseEntity {
 				this.SQLs.countRoundSnapshot,
 				{},
 				{ expectedResultCount: 1 },
-				tx
+				tx,
 			)
 			.then(result => +result.count);
 	}
@@ -491,7 +491,7 @@ class Round extends BaseEntity {
 			this.SQLs.getDelegatesSnapshot,
 			{ limit },
 			{},
-			tx
+			tx,
 		);
 	}
 
@@ -506,7 +506,7 @@ class Round extends BaseEntity {
 			this.SQLs.clearVotesSnapshot,
 			{},
 			{ expectedResultCount: 0 },
-			tx
+			tx,
 		);
 	}
 
@@ -521,7 +521,7 @@ class Round extends BaseEntity {
 			this.SQLs.performVotesSnapshot,
 			{},
 			{ expectedResultCount: 0 },
-			tx
+			tx,
 		);
 	}
 
@@ -537,7 +537,7 @@ class Round extends BaseEntity {
 			this.SQLs.restoreRoundSnapshot,
 			{},
 			{ expectedResultCount: 0 },
-			tx
+			tx,
 		);
 	}
 
@@ -552,7 +552,7 @@ class Round extends BaseEntity {
 			this.SQLs.restoreVotesSnapshot,
 			{},
 			{ expectedResultCount: 0 },
-			tx
+			tx,
 		);
 	}
 }

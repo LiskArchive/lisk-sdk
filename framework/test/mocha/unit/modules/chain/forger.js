@@ -91,11 +91,11 @@ describe('forge', () => {
 					await forgeModule.updateForgingStatus(
 						testDelegate.publicKey,
 						'Invalid password',
-						true
+						true,
 					);
 				} catch (err) {
 					expect(err.message).to.equal(
-						'Invalid password and public key combination'
+						'Invalid password and public key combination',
 					);
 				}
 			});
@@ -108,11 +108,11 @@ describe('forge', () => {
 					await forgeModule.updateForgingStatus(
 						invalidPublicKey,
 						defaultPassword,
-						true
+						true,
 					);
 				} catch (err) {
 					expect(err.message).to.equal(
-						'Delegate with publicKey: 9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a not found'
+						'Delegate with publicKey: 9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a not found',
 					);
 				}
 			});
@@ -122,11 +122,11 @@ describe('forge', () => {
 					await forgeModule.updateForgingStatus(
 						accountFixtures.genesis.publicKey,
 						accountFixtures.genesis.password,
-						true
+						true,
 					);
 				} catch (err) {
 					expect(err.message).to.equal(
-						'Delegate with publicKey: c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f not found'
+						'Delegate with publicKey: c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f not found',
 					);
 				}
 			});
@@ -141,14 +141,14 @@ describe('forge', () => {
 				]);
 				forgeModule.keypairs[testDelegate.publicKey] = Buffer.from(
 					'privateKey',
-					'utf8'
+					'utf8',
 				);
 
 				// Act
 				const data = await forgeModule.updateForgingStatus(
 					testDelegate.publicKey,
 					testDelegate.password,
-					false
+					false,
 				);
 
 				// Assert
@@ -160,7 +160,7 @@ describe('forge', () => {
 				const data = await forgeModule.updateForgingStatus(
 					testDelegate.publicKey,
 					testDelegate.password,
-					true
+					true,
 				);
 
 				expect(forgeModule.keypairs[testDelegate.publicKey]).not.to.be
@@ -239,7 +239,7 @@ describe('forge', () => {
 				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
 					`Invalid encryptedPassphrase for publicKey: ${
 						accountDetails.publicKey
-					}. Unsupported state or unable to authenticate data`
+					}. Unsupported state or unable to authenticate data`,
 				);
 			});
 
@@ -257,7 +257,7 @@ describe('forge', () => {
 				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
 					`Invalid encryptedPassphrase for publicKey: ${
 						accountDetails.publicKey
-					}. Unsupported state or unable to authenticate data`
+					}. Unsupported state or unable to authenticate data`,
 				);
 			});
 
@@ -276,7 +276,7 @@ describe('forge', () => {
 				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
 					`Invalid encryptedPassphrase for publicKey: ${
 						accountDetails.publicKey
-					}. Encrypted passphrase to parse must have only one value per key.`
+					}. Encrypted passphrase to parse must have only one value per key.`,
 				);
 			});
 
@@ -315,7 +315,7 @@ describe('forge', () => {
 				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
 					`Invalid encryptedPassphrase for publicKey: ${
 						accountDetails.publicKey
-					}. Unsupported state or unable to authenticate data`
+					}. Unsupported state or unable to authenticate data`,
 				);
 			});
 
@@ -354,7 +354,7 @@ describe('forge', () => {
 				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
 					`Invalid encryptedPassphrase for publicKey: ${
 						accountDetails.publicKey
-					}. Encrypted passphrase to parse must have only one value per key.`
+					}. Encrypted passphrase to parse must have only one value per key.`,
 				);
 			});
 
@@ -393,7 +393,7 @@ describe('forge', () => {
 				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
 					`Invalid encryptedPassphrase for publicKey: ${
 						accountDetails.publicKey
-					}. Unsupported state or unable to authenticate data`
+					}. Unsupported state or unable to authenticate data`,
 				);
 			});
 
@@ -432,7 +432,7 @@ describe('forge', () => {
 				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
 					`Invalid encryptedPassphrase for publicKey: ${
 						accountDetails.publicKey
-					}. Encrypted passphrase to parse must have only one value per key.`
+					}. Encrypted passphrase to parse must have only one value per key.`,
 				);
 			});
 
@@ -471,7 +471,7 @@ describe('forge', () => {
 				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
 					`Invalid encryptedPassphrase for publicKey: ${
 						accountDetails.publicKey
-					}. Unsupported state or unable to authenticate data`
+					}. Unsupported state or unable to authenticate data`,
 				);
 			});
 
@@ -510,7 +510,7 @@ describe('forge', () => {
 				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
 					`Invalid encryptedPassphrase for publicKey: ${
 						accountDetails.publicKey
-					}. Encrypted passphrase to parse must have only one value per key.`
+					}. Encrypted passphrase to parse must have only one value per key.`,
 				);
 			});
 
@@ -549,7 +549,7 @@ describe('forge', () => {
 				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
 					`Invalid encryptedPassphrase for publicKey: ${
 						accountDetails.publicKey
-					}. Unsupported state or unable to authenticate data`
+					}. Unsupported state or unable to authenticate data`,
 				);
 			});
 
@@ -587,7 +587,7 @@ describe('forge', () => {
 				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
 					`Invalid encryptedPassphrase for publicKey: ${
 						accountDetails.publicKey
-					}. Tag must be 16 bytes.`
+					}. Tag must be 16 bytes.`,
 				);
 			});
 
@@ -624,7 +624,7 @@ describe('forge', () => {
 				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
 					`Invalid encryptedPassphrase for publicKey: ${
 						accountDetails.publicKey
-					}. Public keys do not match`
+					}. Public keys do not match`,
 				);
 			});
 
@@ -670,7 +670,7 @@ describe('forge', () => {
 						'Account with public key:',
 						accountDetails.publicKey.toString('hex'),
 						'not found',
-					].join(' ')
+					].join(' '),
 				);
 			});
 
@@ -724,7 +724,7 @@ describe('forge', () => {
 
 				await forgeModule.loadDelegates();
 				return expect(Object.keys(forgeModule.keypairs).length).to.equal(
-					delegates.length
+					delegates.length,
 				);
 			});
 
@@ -752,7 +752,7 @@ describe('forge', () => {
 
 				await forgeModule.loadDelegates();
 				return expect(Object.keys(forgeModule.keypairs).length).to.equal(
-					delegates.length
+					delegates.length,
 				);
 			});
 
@@ -761,7 +761,7 @@ describe('forge', () => {
 					delegate => ({
 						encryptedPassphrase: delegate.encryptedPassphrase,
 						publicKey: delegate.publicKey,
-					})
+					}),
 				);
 
 				await forgeModule.loadDelegates();
@@ -796,7 +796,7 @@ describe('forge', () => {
 				forgeModule.blocksModule.generateBlock.resolves(forgedBlock);
 				forgeModule.keypairs[testDelegate.publicKey] = Buffer.from(
 					'privateKey',
-					'utf8'
+					'utf8',
 				);
 
 				// TODO: Check why its not reset through sandbox.reset in after each of previous tests
@@ -814,7 +814,7 @@ describe('forge', () => {
 				expect(data).to.be.undefined;
 				expect(mockLogger.debug).to.be.calledOnce;
 				expect(mockLogger.debug).to.be.calledWith(
-					'Block already forged for the current slot'
+					'Block already forged for the current slot',
 				);
 			});
 
@@ -832,7 +832,7 @@ describe('forge', () => {
 					expect(mockLogger.error).to.be.calledOnce;
 					expect(mockLogger.error).to.be.calledWithExactly(
 						'Skipping delegate slot',
-						rejectionError
+						rejectionError,
 					);
 				}
 			});
@@ -863,7 +863,7 @@ describe('forge', () => {
 				expect(mockLogger.error).to.be.calledOnce;
 				expect(mockLogger.error).to.be.calledWithExactly(
 					'Failed to generate block within delegate slot',
-					`Inadequate broadhash consensus before forging a block: ${lastConsensus} %`
+					`Inadequate broadhash consensus before forging a block: ${lastConsensus} %`,
 				);
 			});
 
@@ -977,21 +977,21 @@ describe('forge', () => {
 
 		beforeEach(async () => {
 			const genesis1KeypairBuffer = getPrivateAndPublicKeyBytesFromPassphrase(
-				genesis1.passphrase
+				genesis1.passphrase,
 			);
 			genesis1Keypair = {
 				publicKey: genesis1KeypairBuffer.publicKeyBytes,
 				privateKey: genesis1KeypairBuffer.privateKeyBytes,
 			};
 			const genesis2KeypairBuffer = getPrivateAndPublicKeyBytesFromPassphrase(
-				genesis2.passphrase
+				genesis2.passphrase,
 			);
 			genesis2Keypair = {
 				publicKey: genesis2KeypairBuffer.publicKeyBytes,
 				privateKey: genesis2KeypairBuffer.privateKeyBytes,
 			};
 			const genesis3KeypairBuffer = getPrivateAndPublicKeyBytesFromPassphrase(
-				genesis3.passphrase
+				genesis3.passphrase,
 			);
 			genesis3Keypair = {
 				publicKey: genesis3KeypairBuffer.publicKeyBytes,
@@ -1021,7 +1021,7 @@ describe('forge', () => {
 				forgeModule.keypairs,
 				currentSlot,
 				round,
-				numOfActiveDelegates
+				numOfActiveDelegates,
 			);
 			expect(publicKey).to.deep.equal(genesis1Keypair.publicKey);
 			expect(privateKey).to.deep.equal(genesis1Keypair.privateKey);
@@ -1033,7 +1033,7 @@ describe('forge', () => {
 			const round = 2;
 
 			delegatesModuleStub.generateDelegateList.resolves(
-				delegatesRoundsList[round]
+				delegatesRoundsList[round],
 			);
 
 			const { publicKey, privateKey } = await getDelegateKeypairForCurrentSlot(
@@ -1041,7 +1041,7 @@ describe('forge', () => {
 				forgeModule.keypairs,
 				currentSlot,
 				round,
-				numOfActiveDelegates
+				numOfActiveDelegates,
 			);
 			expect(publicKey).to.deep.equal(genesis2Keypair.publicKey);
 			expect(privateKey).to.deep.equal(genesis2Keypair.privateKey);
@@ -1053,7 +1053,7 @@ describe('forge', () => {
 			const round = 3;
 
 			delegatesModuleStub.generateDelegateList.resolves(
-				delegatesRoundsList[round]
+				delegatesRoundsList[round],
 			);
 
 			const { publicKey, privateKey } = await getDelegateKeypairForCurrentSlot(
@@ -1061,7 +1061,7 @@ describe('forge', () => {
 				forgeModule.keypairs,
 				currentSlot,
 				round,
-				numOfActiveDelegates
+				numOfActiveDelegates,
 			);
 			expect(publicKey).to.deep.equal(genesis3Keypair.publicKey);
 			expect(privateKey).to.deep.equal(genesis3Keypair.privateKey);
@@ -1074,7 +1074,7 @@ describe('forge', () => {
 			const round = 4;
 
 			delegatesModuleStub.generateDelegateList.resolves(
-				delegatesRoundsList[round]
+				delegatesRoundsList[round],
 			);
 
 			const keyPair = await getDelegateKeypairForCurrentSlot(
@@ -1082,7 +1082,7 @@ describe('forge', () => {
 				forgeModule.keypairs,
 				currentSlot,
 				round,
-				numOfActiveDelegates
+				numOfActiveDelegates,
 			);
 			expect(keyPair).to.be.null;
 		});
@@ -1101,7 +1101,7 @@ describe('forge', () => {
 					forgeModule.keypairs,
 					currentSlot,
 					round,
-					numOfActiveDelegates
+					numOfActiveDelegates,
 				);
 			} catch (error) {
 				expect(error).to.equal(expectedError);
