@@ -198,20 +198,20 @@ class FinalityManager {
 			return false;
 		}
 
-		const higherPairVoted = Object.entries(this.preVotes)
+		const highestHeightPreVoted = Object.keys(this.preVotes)
 			.reverse()
-			.find(pair => pair[1] >= this.preVoteThreshold);
+			.find(key => this.preVotes[key] >= this.preVoteThreshold);
 
-		this.prevotedConfirmedHeight = higherPairVoted
-			? parseInt(higherPairVoted[0])
+		this.prevotedConfirmedHeight = highestHeightPreVoted
+			? parseInt(highestHeightPreVoted)
 			: this.prevotedConfirmedHeight;
 
-		const higherPairCommitted = Object.entries(this.preCommits)
+		const highestHeightPreCommitted = Object.keys(this.preCommits)
 			.reverse()
-			.find(pair => pair[1] >= this.preCommitThreshold);
+			.find(key => this.preCommits[key] >= this.preCommitThreshold);
 
-		this.finalizedHeight = higherPairCommitted
-			? parseInt(higherPairCommitted[0])
+		this.finalizedHeight = highestHeightPreCommitted
+			? parseInt(highestHeightPreCommitted)
 			: this.finalizedHeight;
 
 		return true;
