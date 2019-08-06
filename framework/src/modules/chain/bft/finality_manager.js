@@ -59,6 +59,7 @@ class FinalityManager {
 		this.headers = new HeadersList({ size: this.maxHeaders });
 
 		// Height up to which blocks are finalized
+		this._initialFinalizedHeight = finalizedHeight;
 		this.finalizedHeight = finalizedHeight;
 
 		// Height up to which blocks have pre-voted
@@ -101,6 +102,9 @@ class FinalityManager {
 
 		// Update the pre-voted confirmed and finalized height
 		this.updatePreVotedAndFinalizedHeight();
+
+		// Cleanup pre-votes and pre-commits
+		this._cleanup();
 
 		debug('after adding block header', {
 			finalizedHeight: this.finalizedHeight,
@@ -222,7 +226,7 @@ class FinalityManager {
 	 */
 	recompute() {
 		this.state = {};
-		this.finalizedHeight = 0;
+		this.finalizedHeight = this._initialFinalizedHeight;
 		this.prevotedConfirmedHeight = 0;
 		this.preVotes = {};
 		this.preCommits = {};
@@ -231,6 +235,8 @@ class FinalityManager {
 			this.updatePreVotesPreCommits(header);
 			this.updatePreVotedAndFinalizedHeight();
 		});
+
+		this._cleanup();
 	}
 
 	/**
@@ -286,6 +292,26 @@ class FinalityManager {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Cleanup pre-votes and pre-commits objects
+	 * to only keep the track of maximum 5 rounds (headers list size)
+	 *
+	 * @private
+	 */
+	_cleanup() {
+		Object.keys(this.preVotes)
+			.slice(0, -1 * this.maxHeaders)
+			.forEach(key => {
+				delete this.preVotes[key];
+			});
+
+		Object.keys(this.preCommits)
+			.slice(0, -1 * this.maxHeaders)
+			.forEach(key => {
+				delete this.preCommits[key];
+			});
 	}
 
 	get minHeight() {
