@@ -62,11 +62,11 @@ export class TriedPeers {
 			? maxReconnectTries
 			: DEFAULT_MAX_RECONNECT_TRIES;
 		this._secret = secret;
-		// Initialize the Map with all the buckets
 		this._triedPeerMap = new Map();
-		[...new Array(this._triedPeerBucketCount).keys()].forEach(bucketId => {
+		// Initialize the Map with all the buckets
+		for (const bucketId of [...new Array(this._triedPeerBucketCount).keys()]) {
 			this._triedPeerMap.set(bucketId, new Map<string, TriedPeerInfo>());
-		});
+		}
 	}
 
 	public get triedPeerConfig(): TriedPeerConfig {
@@ -81,9 +81,11 @@ export class TriedPeers {
 	public triedPeersList(): ReadonlyArray<P2PDiscoveredPeerInfo> {
 		const peersListMap: P2PDiscoveredPeerInfo[] = [];
 
-		[...this._triedPeerMap.values()].forEach(peerMap => {
-			peerMap.forEach(peer => peersListMap.push(peer.peerInfo));
-		});
+		for (const peerMap of [...this._triedPeerMap.values()]) {
+			for (const peer of [...peerMap.values()]) {
+				peersListMap.push(peer.peerInfo);
+			}
+		}
 
 		return peersListMap;
 	}

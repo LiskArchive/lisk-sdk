@@ -60,11 +60,11 @@ export class NewPeers {
 			? eligibleDaysForEviction
 			: DEFAULT_ELIGIBLE_DAYS_FOR_EVICTION;
 		this._secret = secret;
-		// Initialize the Map with all the buckets
 		this._newPeerMap = new Map();
-		[...new Array(this._newPeerBucketCount).keys()].forEach(bucketNumber => {
-			this._newPeerMap.set(bucketNumber, new Map<string, NewPeerInfo>());
-		});
+		// Initialize the Map with all the buckets
+		for (const bucketId of [...new Array(this._newPeerBucketCount).keys()]) {
+			this._newPeerMap.set(bucketId, new Map<string, NewPeerInfo>());
+		}
 	}
 
 	public get newPeerConfig(): NewPeerConfig {
@@ -78,9 +78,11 @@ export class NewPeers {
 	public newPeersList(): ReadonlyArray<P2PPeerInfo> {
 		const peersListMap: P2PPeerInfo[] = [];
 
-		[...this._newPeerMap.values()].forEach(peerMap => {
-			peerMap.forEach(peer => peersListMap.push(peer.peerInfo));
-		});
+		for (const peerMap of [...this._newPeerMap.values()]) {
+			for (const peer of [...peerMap.values()]) {
+				peersListMap.push(peer.peerInfo);
+			}
+		}
 
 		return peersListMap;
 	}
