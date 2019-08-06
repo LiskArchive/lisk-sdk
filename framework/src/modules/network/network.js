@@ -14,6 +14,7 @@
 
 'use strict';
 
+const { getRandomBytes } = require('@liskhq/lisk-cryptography');
 const {
 	P2P,
 	EVENT_NEW_INBOUND_PEER,
@@ -32,7 +33,6 @@ const {
 	EVENT_BAN_PEER,
 	EVENT_UNBAN_PEER,
 } = require('@liskhq/lisk-p2p');
-const { randomBytes } = require('crypto');
 const randomstring = require('randomstring');
 const lookupPeersIPs = require('./lookup_peers_ips');
 const { createLoggerComponent } = require('../../components/logger');
@@ -98,7 +98,7 @@ module.exports = class Network {
 			{ limit: null },
 		);
 
-		this.secret = randomBytes(4).readUInt32BE(0);
+		this.secret = getRandomBytes(4).readUInt32BE(0);
 
 		// TODO: Nonce overwrite should be removed once the Network module has been fully integreated into core and the old peer system has been fully removed.
 		// We need this because the old peer system which runs in parallel will conflict with the new one if they share the same nonce.
