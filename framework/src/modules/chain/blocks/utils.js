@@ -379,8 +379,8 @@ const loadBlockByHeight = async (
 	height,
 	interfaceAdapters,
 	genesisBlock,
-	tx,
 	blocksLogic,
+	tx,
 ) => {
 	const row = await storage.entities.Block.getOne(
 		{ height },
