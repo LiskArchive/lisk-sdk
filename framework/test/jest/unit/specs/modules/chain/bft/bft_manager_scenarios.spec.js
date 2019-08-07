@@ -30,7 +30,7 @@ describe('FinalityManager', () => {
 				});
 
 				scenario.steps.forEach(step => {
-					it(`have accurate information when ${
+					it(`should have accurate information when ${
 						step.input.delegateName
 					} forge block at height = ${step.input.height}`, async () => {
 						myBft.addBlockHeader(step.input.blockHeader);
