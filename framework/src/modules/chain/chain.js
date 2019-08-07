@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -15,11 +15,12 @@
 'use strict';
 
 if (process.env.NEW_RELIC_LICENSE_KEY) {
+	// eslint-disable-next-line global-require
 	require('./utils/newrelic_lisk');
 }
 
 const { convertErrorsToString } = require('./utils/error_handlers');
-const Sequence = require('./utils/sequence');
+const { Sequence } = require('./utils/sequence');
 const { createStorageComponent } = require('../../components/storage');
 const { createCacheComponent } = require('../../components/cache');
 const { createLoggerComponent } = require('../../components/logger');
@@ -27,7 +28,11 @@ const { bootstrapStorage, bootstrapCache } = require('./init_steps');
 const jobQueue = require('./utils/jobs_queue');
 const { Peers } = require('./peers');
 const { TransactionInterfaceAdapter } = require('./interface_adapters');
-const { TransactionPool } = require('./transaction_pool');
+const {
+	TransactionPool,
+	EVENT_MULTISIGNATURE_SIGNATURE,
+	EVENT_UNCONFIRMED_TRANSACTION,
+} = require('./transaction_pool');
 const { Rounds } = require('./rounds');
 const {
 	BlockSlots,
@@ -43,15 +48,6 @@ const { Transport } = require('./transport');
 
 const syncInterval = 10000;
 const forgeInterval = 1000;
-
-// Begin reading from stdin
-process.stdin.resume();
-
-if (typeof gc !== 'undefined') {
-	setInterval(() => {
-		gc(); // eslint-disable-line no-undef
-	}, 60000);
-}
 
 /**
  * Chain Module
@@ -71,20 +67,20 @@ module.exports = class Chain {
 	async bootstrap() {
 		const loggerConfig = await this.channel.invoke(
 			'app:getComponentConfig',
-			'logger'
+			'logger',
 		);
 		const storageConfig = await this.channel.invoke(
 			'app:getComponentConfig',
-			'storage'
+			'storage',
 		);
 
 		const cacheConfig = await this.channel.invoke(
 			'app:getComponentConfig',
-			'cache'
+			'cache',
 		);
 
 		this.applicationState = await this.channel.invoke(
-			'app:getApplicationState'
+			'app:getApplicationState',
 		);
 
 		this.logger = createLoggerComponent(loggerConfig);
@@ -96,7 +92,7 @@ module.exports = class Chain {
 						Object.assign({
 							...loggerConfig,
 							logFileName: storageConfig.logFileName,
-						})
+						}),
 				  );
 
 		global.constants = this.options.constants;
@@ -133,11 +129,6 @@ module.exports = class Chain {
 				sequence: new Sequence({
 					onWarning(current) {
 						self.logger.warn('Main queue', current);
-					},
-				}),
-				balancesSequence: new Sequence({
-					onWarning(current) {
-						self.logger.warn('Balance queue', current);
 					},
 				}),
 				components: {
@@ -211,13 +202,13 @@ module.exports = class Chain {
 			generateDelegateList: async action =>
 				this.rounds.generateDelegateList(
 					action.params.round,
-					action.params.source
+					action.params.source,
 				),
 			updateForgingStatus: async action =>
 				this.forger.updateForgingStatus(
 					action.params.publicKey,
 					action.params.password,
-					action.params.forging
+					action.params.forging,
 				),
 			getTransactions: async () => this.transport.getTransactions(),
 			getSignatures: async () => this.transport.getSignatures(),
@@ -232,7 +223,7 @@ module.exports = class Chain {
 			getDelegateBlocksRewards: async action =>
 				this.scope.components.storage.entities.Account.delegateBlocksRewards(
 					action.params.filters,
-					action.params.tx
+					action.params.tx,
 				),
 			getSlotNumber: async action =>
 				action.params
@@ -277,7 +268,7 @@ module.exports = class Chain {
 					return modules[key].cleanup();
 				}
 				return true;
-			})
+			}),
 		).catch(moduleCleanupError => {
 			this.logger.error(convertErrorsToString(moduleCleanupError));
 		});
@@ -289,7 +280,7 @@ module.exports = class Chain {
 		this.scope.modules = {};
 		this.interfaceAdapters = {
 			transactions: new TransactionInterfaceAdapter(
-				this.options.registeredTransactions
+				this.options.registeredTransactions,
 			),
 		};
 		this.scope.modules.interfaceAdapters = this.interfaceAdapters;
@@ -365,7 +356,6 @@ module.exports = class Chain {
 			storage: this.storage,
 			cache: this.cache,
 			genesisBlock: this.options.genesisBlock,
-			balancesSequence: this.scope.balancesSequence,
 			transactionPoolModule: this.transactionPool,
 			blocksModule: this.blocks,
 			peersModule: this.peers,
@@ -396,7 +386,6 @@ module.exports = class Chain {
 			logger: this.logger,
 			storage: this.storage,
 			applicationState: this.applicationState,
-			balancesSequence: this.scope.balancesSequence,
 			exceptions: this.options.exceptions,
 			transactionPoolModule: this.transactionPool,
 			blocksModule: this.blocks,
@@ -412,41 +401,31 @@ module.exports = class Chain {
 		this.scope.modules.transport = this.transport;
 	}
 
+	async _syncTask() {
+		this.logger.info(
+			{
+				syncing: this.loader.syncing(),
+				lastReceipt: this.blocks.lastReceipt,
+			},
+			'Sync time triggered',
+		);
+		if (!this.loader.syncing() && this.blocks.isStale()) {
+			await this.scope.sequence.add(async () => {
+				try {
+					await this.loader.sync();
+				} catch (error) {
+					this.logger.error(error, 'Sync timer');
+				}
+			});
+		}
+	}
+
 	_startLoader() {
 		this.loader.loadTransactionsAndSignatures();
 		if (!this.options.syncing.active) {
 			return;
 		}
-		jobQueue.register(
-			'nextSync',
-			cb => {
-				this.logger.info(
-					{
-						syncing: this.loader.syncing(),
-						lastReceipt: this.blocks.lastReceipt,
-					},
-					'Sync time triggered'
-				);
-				if (!this.loader.syncing() && this.blocks.isStale()) {
-					this.scope.sequence.add(
-						sequenceCB => {
-							this.loader
-								.sync()
-								.then(() => sequenceCB())
-								.catch(err => sequenceCB(err));
-						},
-						syncError => {
-							if (syncError) {
-								this.logger.error('Sync timer', syncError);
-								return cb(syncError);
-							}
-							return cb();
-						}
-					);
-				}
-			},
-			syncInterval
-		);
+		jobQueue.register('nextSync', async () => this._syncTask(), syncInterval);
 	}
 
 	_calculateConsensus() {
@@ -454,12 +433,31 @@ module.exports = class Chain {
 			'calculateConsensus',
 			async () => {
 				const consensus = await this.peers.calculateConsensus(
-					this.blocks.broadhash
+					this.blocks.broadhash,
 				);
 				return this.logger.debug(`Broadhash consensus: ${consensus} %`);
 			},
-			this.peers.broadhashConsensusCalculationInterval
+			this.peers.broadhashConsensusCalculationInterval,
 		);
+	}
+
+	async _forgingTask() {
+		return this.scope.sequence.add(async () => {
+			try {
+				await this.forger.beforeForge();
+				if (!this.forger.delegatesEnabled()) {
+					this.logger.debug('No delegates are enabled');
+					return;
+				}
+				if (this.loader.syncing() || this.rounds.ticking()) {
+					this.logger.debug('Client not ready to forge');
+					return;
+				}
+				await this.forger.forge();
+			} catch (error) {
+				this.logger.error(error);
+			}
+		});
 	}
 
 	async _startForging() {
@@ -470,24 +468,8 @@ module.exports = class Chain {
 		}
 		jobQueue.register(
 			'nextForge',
-			async () => {
-				await this.forger.beforeForge();
-				if (!this.forger.delegatesEnabled()) {
-					this.logger.debug('No delegates are enabled');
-					return;
-				}
-				if (this.loader.syncing() || this.rounds.ticking()) {
-					this.logger.debug('Client not ready to forge');
-					return;
-				}
-				try {
-					await this.forger.forge();
-				} catch (error) {
-					this.logger.error(error);
-					throw error;
-				}
-			},
-			forgeInterval
+			async () => this._forgingTask(),
+			forgeInterval,
 		);
 	}
 
@@ -502,7 +484,7 @@ module.exports = class Chain {
 				this.transactionPool.onDeletedTransactions(transactions);
 				this.channel.publish(
 					'chain:transactions:confirmed:change',
-					block.transactions
+					block.transactions,
 				);
 			}
 			this.channel.publish('chain:blocks:change', block);
@@ -513,14 +495,30 @@ module.exports = class Chain {
 				this.transactionPool.onConfirmedTransactions(block.transactions);
 				this.channel.publish(
 					'chain:transactions:confirmed:change',
-					block.transactions
+					block.transactions,
 				);
 			}
 			this.channel.publish('chain:blocks:change', block);
 		});
 
+		this.transactionPool.on(EVENT_UNCONFIRMED_TRANSACTION, transaction => {
+			this.logger.trace(
+				{ transactionId: transaction.id },
+				'Received EVENT_UNCONFIRMED_TRANSACTION',
+			);
+			this.transport.onUnconfirmedTransaction(transaction, true);
+		});
+
 		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {
 			this.channel.invoke('app:updateApplicationState', { broadhash, height });
+		});
+
+		this.transactionPool.on(EVENT_MULTISIGNATURE_SIGNATURE, signature => {
+			this.logger.trace(
+				{ signature },
+				'Received EVENT_MULTISIGNATURE_SIGNATURE',
+			);
+			this.transport.onSignature(signature, true);
 		});
 	}
 
@@ -529,5 +527,7 @@ module.exports = class Chain {
 		this.blocks.removeAllListeners(EVENT_DELETE_BLOCK);
 		this.blocks.removeAllListeners(EVENT_NEW_BLOCK);
 		this.blocks.removeAllListeners(EVENT_NEW_BROADHASH);
+		this.blocks.removeAllListeners(EVENT_UNCONFIRMED_TRANSACTION);
+		this.blocks.removeAllListeners(EVENT_MULTISIGNATURE_SIGNATURE);
 	}
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -29,7 +29,7 @@ describe('block_version', () => {
 		Queries = new QueriesHelper(lib, lib.components.storage);
 
 		addTransactionsAndForgePromise = Promise.promisify(
-			localCommon.addTransactionsAndForge
+			localCommon.addTransactionsAndForge,
 		);
 	});
 

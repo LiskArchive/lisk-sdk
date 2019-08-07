@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -62,7 +62,7 @@ describe('integration test - get unconfirmed transactions', () => {
 			],
 			err => {
 				done(err);
-			}
+			},
 		);
 	});
 
@@ -84,7 +84,7 @@ describe('integration test - get unconfirmed transactions', () => {
 				expect(res.transactions[1].id).to.equal(transaction2.id);
 				expect(res.count).to.equal(2);
 				done();
-			}
+			},
 		);
 	});
 
@@ -106,7 +106,7 @@ describe('integration test - get unconfirmed transactions', () => {
 					expect(res.transactions.length).to.equal(0);
 					expect(res.count).to.equal(2);
 					done();
-				}
+				},
 			);
 		});
 
@@ -128,7 +128,7 @@ describe('integration test - get unconfirmed transactions', () => {
 					expect(res.transactions[0].id).to.equal(transaction1.id);
 					expect(res.count).to.equal(2);
 					done();
-				}
+				},
 			);
 		});
 	});

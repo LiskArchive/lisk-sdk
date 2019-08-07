@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -35,8 +35,8 @@ let channel;
  * @todo Add description of AccountsController
  */
 function AccountsController(scope) {
-	storage = scope.components.storage;
-	channel = scope.channel;
+	({ storage } = scope.components);
+	({ channel } = scope);
 }
 
 function accountFormatter(totalSupply, account) {
@@ -45,6 +45,7 @@ function accountFormatter(totalSupply, account) {
 		'publicKey',
 		'balance',
 		'secondPublicKey',
+		'asset',
 	]);
 
 	if (account.isDelegate) {
@@ -58,12 +59,15 @@ function accountFormatter(totalSupply, account) {
 			'productivity',
 		]);
 
-		formattedAccount.delegate.rank = parseInt(formattedAccount.delegate.rank);
+		formattedAccount.delegate.rank = parseInt(
+			formattedAccount.delegate.rank,
+			10,
+		);
 
 		// Computed fields
 		formattedAccount.delegate.approval = calculateApproval(
 			formattedAccount.delegate.vote,
-			totalSupply
+			totalSupply,
 		);
 	}
 
@@ -87,7 +91,7 @@ AccountsController.getAccounts = async function(context, next) {
 		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
 	}
 
-	const params = context.request.swagger.params;
+	const { params } = context.request.swagger;
 
 	let filters = {
 		address_eql: params.address.value,
@@ -100,7 +104,7 @@ AccountsController.getAccounts = async function(context, next) {
 		limit: params.limit.value,
 		offset: params.offset.value,
 		sort: params.sort.value,
-		extended: false,
+		extended: true,
 	};
 
 	// Remove filters with null values
@@ -115,8 +119,8 @@ AccountsController.getAccounts = async function(context, next) {
 					? await channel.invoke('chain:calculateSupply', {
 							height: lastBlock.height,
 					  })
-					: 0
-			)
+					: 0,
+			),
 		);
 
 		return next(null, {
@@ -174,8 +178,8 @@ AccountsController.getMultisignatureGroups = async function(context, next) {
 		return next(
 			swaggerHelper.generateParamsErrorObject(
 				['address'],
-				['Invalid address specified']
-			)
+				['Invalid address specified'],
+			),
 		);
 	}
 
@@ -220,7 +224,7 @@ AccountsController.getMultisignatureGroups = async function(context, next) {
  */
 AccountsController.getMultisignatureMemberships = async function(
 	context,
-	next
+	next,
 ) {
 	const address = context.request.swagger.params.address.value;
 
@@ -228,8 +232,8 @@ AccountsController.getMultisignatureMemberships = async function(
 		return next(
 			swaggerHelper.generateParamsErrorObject(
 				['address'],
-				['Invalid address specified']
-			)
+				['Invalid address specified'],
+			),
 		);
 	}
 
@@ -238,7 +242,7 @@ AccountsController.getMultisignatureMemberships = async function(
 	try {
 		account = await storage.entities.Account.getOne(
 			{ address },
-			{ extended: true }
+			{ extended: true },
 		);
 	} catch (error) {
 		if (error.code === 0) {
@@ -251,7 +255,7 @@ AccountsController.getMultisignatureMemberships = async function(
 	try {
 		let groups = await storage.entities.Account.get(
 			{ membersPublicKeys_in: [account.publicKey] },
-			{ extended: true }
+			{ extended: true },
 		);
 
 		groups = await Promise.map(groups, multiSigAccountFormatter);

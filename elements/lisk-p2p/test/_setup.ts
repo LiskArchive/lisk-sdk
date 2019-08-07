@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import 'chai/register-expect';
@@ -23,5 +24,5 @@ process.env.NODE_ENV = 'test';
 [sinonChai, chaiAsPromised].forEach(plugin => chai.use(plugin));
 
 global.sandbox = sinon.createSandbox({
-	useFakeTimers: process.env.USE_REAL_TIMERS !== 'true',
+	useFakeTimers: true,
 });

@@ -1,5 +1,5 @@
 const localCommon = require('../common');
-const TransactionStore = require('../../../../src/modules/chain/logic/state_store/transaction_store.js');
+const TransactionStore = require('../../../../src/modules/chain/state_store/transaction_store.js');
 
 describe('system test - transaction store', () => {
 	let library;
@@ -22,7 +22,7 @@ describe('system test - transaction store', () => {
 	beforeEach(async () => {
 		transactionStore = new TransactionStore(
 			library.components.storage.entities.Transaction,
-			{}
+			{},
 		);
 	});
 
@@ -36,7 +36,7 @@ describe('system test - transaction store', () => {
 		it('should set the cache property for transaction store', async () => {
 			await transactionStore.cache(transactionQuery);
 			expect(transactionStore.data.map(transaction => transaction.id)).to.eql(
-				persistedIds
+				persistedIds,
 			);
 		});
 	});
@@ -53,7 +53,7 @@ describe('system test - transaction store', () => {
 
 		it('should throw if the transaction does not exist', async () => {
 			expect(
-				transactionStore.get.bind(persistedIds[0].replace('0', '1'))
+				transactionStore.get.bind(persistedIds[0].replace('0', '1')),
 			).to.throw();
 		});
 	});

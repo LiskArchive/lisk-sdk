@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -235,10 +235,10 @@ describe('WS transport', () => {
 					__testContext.debug(
 						'> Error / Response:'.grey,
 						JSON.stringify(err.response),
-						JSON.stringify(res)
+						JSON.stringify(res),
 					);
-					expect(err.response.message).to.equal(
-						"should have required property 'ids': undefined"
+					expect(err.message).to.equal(
+						"should have required property 'ids': undefined",
 					);
 					expect(res).to.be.undefined;
 				}
@@ -255,9 +255,9 @@ describe('WS transport', () => {
 					__testContext.debug(
 						'> Error / Response:'.grey,
 						JSON.stringify(err.response),
-						JSON.stringify(res)
+						JSON.stringify(res),
 					);
-					expect(err.response.message).to.equal('Invalid block id sequence');
+					expect(err.message).to.equal('Invalid block id sequence');
 				}
 			});
 
@@ -272,9 +272,9 @@ describe('WS transport', () => {
 					__testContext.debug(
 						'> Error / Response:'.grey,
 						JSON.stringify(err.response),
-						JSON.stringify(res)
+						JSON.stringify(res),
 					);
-					expect(err.response.message).to.equal('Invalid block id sequence');
+					expect(err.message).to.equal('Invalid block id sequence');
 				}
 			});
 
@@ -289,9 +289,9 @@ describe('WS transport', () => {
 					__testContext.debug(
 						'> Error / Response:'.grey,
 						JSON.stringify(err.response),
-						JSON.stringify(res)
+						JSON.stringify(res),
 					);
-					expect(err.response.message).to.equal('Invalid block id sequence');
+					expect(err.message).to.equal('Invalid block id sequence');
 				}
 			});
 
@@ -306,9 +306,9 @@ describe('WS transport', () => {
 					__testContext.debug(
 						'> Error / Response:'.grey,
 						JSON.stringify(err.response),
-						JSON.stringify(res)
+						JSON.stringify(res),
 					);
-					expect(err.response.message).to.equal('Invalid block id sequence');
+					expect(err.message).to.equal('Invalid block id sequence');
 				}
 			});
 

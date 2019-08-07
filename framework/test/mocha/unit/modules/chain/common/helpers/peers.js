@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -29,14 +29,14 @@ module.exports = {
 					randomstring.generate({
 						length: 63,
 						custom: 'abcdefghijklmnopqrstuvwxyz0123456789!$&_.',
-					}) + characterNotPresentInValidBroadhash
+					}) + characterNotPresentInValidBroadhash,
 				);
 				return result;
 			},
 			{
 				matchedBroadhash: validBroadhash,
 				unmatchedBroadhashes: [],
-			}
+			},
 		);
 	},
 };

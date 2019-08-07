@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -18,7 +18,6 @@ const prefixedPeer = require('../../../fixtures/peers').randomNormalizedPeer;
 const { Peers } = require('../../../../../src/modules/chain/peers');
 
 describe('peers', () => {
-	const PEER_STATE_CONNECTED = 2;
 	const channelMock = {
 		invoke: sinonSandbox.stub(),
 		once: sinonSandbox.stub(),
@@ -41,7 +40,7 @@ describe('peers', () => {
 		describe('when forgingForce is true', () => {
 			beforeEach(async () => {
 				isPoorConsensusResult = await peersModule.isPoorConsensus(
-					prefixedPeer.broadhash
+					prefixedPeer.broadhash,
 				);
 			});
 
@@ -64,7 +63,7 @@ describe('peers', () => {
 				beforeEach(async () => {
 					peersModule.calculateConsensus = sinonSandbox.stub().returns(50);
 					isPoorConsensusResult = await peersModule.isPoorConsensus(
-						prefixedPeer.broadhash
+						prefixedPeer.broadhash,
 					);
 				});
 
@@ -76,7 +75,7 @@ describe('peers', () => {
 				beforeEach(async () => {
 					peersModule.calculateConsensus = sinonSandbox.stub().returns(51);
 					isPoorConsensusResult = await peersModule.isPoorConsensus(
-						prefixedPeer.broadhash
+						prefixedPeer.broadhash,
 					);
 				});
 
@@ -95,7 +94,7 @@ describe('peers', () => {
 				.stub(peersModule, 'calculateConsensus')
 				.returns(50);
 			lastConsensus = await peersModule.getLastConsensus(
-				prefixedPeer.broadhash
+				prefixedPeer.broadhash,
 			);
 		});
 
@@ -113,7 +112,7 @@ describe('peers', () => {
 
 		beforeEach(async () => {
 			calculateConsensusResult = await peersModule.calculateConsensus(
-				prefixedPeer.broadhash
+				prefixedPeer.broadhash,
 			);
 		});
 
@@ -128,35 +127,36 @@ describe('peers', () => {
 		describe('when all CONNECTED peers match our broadhash', () => {
 			before(async () => {
 				channelMock.invoke
-					.withArgs('network:getPeersCountByFilter', {
-						state: PEER_STATE_CONNECTED,
-					})
+					.withArgs('app:getApplicationState')
+					.returns({ broadhash: prefixedPeer.broadhash });
+
+				channelMock.invoke
+					.withArgs('network:getConnectedPeersCountByFilter')
 					.returns(2);
 				channelMock.invoke
-					.withArgs('network:getPeersCountByFilter', {
+					.withArgs('network:getConnectedPeersCountByFilter', {
 						broadhash: prefixedPeer.broadhash,
-						state: PEER_STATE_CONNECTED,
 					})
 					.returns(2);
 			});
 
-			it('should call channel invoke twice', async () =>
-				expect(channelMock.invoke.calledTwice).to.be.true);
+			it('should call channel invoke thrice', async () =>
+				expect(channelMock.invoke.calledThrice).to.be.true);
 
-			it('should call channel invoke with action network:getPeersCountByFilter and filter state', async () =>
+			it('should call channel invoke with action network:getConnectedPeersCountByFilter', async () =>
 				expect(
 					channelMock.invoke.calledWithExactly(
-						'network:getPeersCountByFilter',
-						{ state: PEER_STATE_CONNECTED }
-					)
+						'network:getConnectedPeersCountByFilter',
+						{},
+					),
 				).to.be.true);
 
-			it('should call channel invoke with action network:getPeersCountByFilter and filter broadhash', async () =>
+			it('should call channel invoke with action network:getConnectedPeersCountByFilter and filter broadhash', async () =>
 				expect(
 					channelMock.invoke.calledWithExactly(
-						'network:getPeersCountByFilter',
-						{ broadhash: prefixedPeer.broadhash, state: PEER_STATE_CONNECTED }
-					)
+						'network:getConnectedPeersCountByFilter',
+						{ broadhash: prefixedPeer.broadhash },
+					),
 				).to.be.true);
 
 			it('should return consensus as a number', async () =>
@@ -169,14 +169,11 @@ describe('peers', () => {
 		describe('when half of connected peers match our broadhash', () => {
 			before(async () => {
 				channelMock.invoke
-					.withArgs('network:getPeersCountByFilter', {
-						state: PEER_STATE_CONNECTED,
-					})
+					.withArgs('network:getConnectedPeersCountByFilter')
 					.returns(2);
 				channelMock.invoke
-					.withArgs('network:getPeersCountByFilter', {
+					.withArgs('network:getConnectedPeersCountByFilter', {
 						broadhash: prefixedPeer.broadhash,
-						state: PEER_STATE_CONNECTED,
 					})
 					.returns(1);
 			});

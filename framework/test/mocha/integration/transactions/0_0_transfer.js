@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -49,7 +49,7 @@ describe('integration test (type 0) - double transfers', () => {
 					[transaction],
 					async () => {
 						done();
-					}
+					},
 				);
 			});
 
@@ -80,8 +80,10 @@ describe('integration test (type 0) - double transfers', () => {
 
 			describe('after forging one block', () => {
 				before(done => {
-					localCommon.forge(library, async () => {
-						done();
+					localCommon.fillPool(library, () => {
+						localCommon.forge(library, async () => {
+							done();
+						});
 					});
 				});
 
@@ -120,7 +122,7 @@ describe('integration test (type 0) - double transfers', () => {
 								transaction2.id
 							} failed at .balance: Account does not have enough LSK: ${
 								account.address
-							}, balance: 99.9`
+							}, balance: 99.9`,
 						);
 						done();
 					});

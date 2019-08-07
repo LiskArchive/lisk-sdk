@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -15,7 +15,6 @@
 'use strict';
 
 const async = require('async');
-const { promisify } = require('util');
 const { transfer } = require('@liskhq/lisk-transactions');
 const {
 	getAddressFromPublicKey,
@@ -84,13 +83,13 @@ describe('integration test (type 0) - address collision', () => {
 			[creditTransaction],
 			async () => {
 				done();
-			}
+			},
 		);
 	});
 
 	it('both passphrases should have the same address', done => {
 		expect(getAddressFromPublicKey(publicKeys[0])).to.equal(
-			getAddressFromPublicKey(publicKeys[1])
+			getAddressFromPublicKey(publicKeys[1]),
 		);
 		done();
 	});
@@ -113,9 +112,14 @@ describe('integration test (type 0) - address collision', () => {
 		});
 
 		describe('after forging one block', () => {
-			before(async () => {
-				const forge = promisify(localCommon.forge);
-				return forge(library);
+			before(done => {
+				localCommon.fillPool(library, () => {
+					localCommon.forge(library, (err, res) => {
+						expect(err).to.be.undefined;
+						expect(res).to.be.undefined;
+						done();
+					});
+				});
 			});
 
 			it('first transaction to arrive should be included', done => {
@@ -160,7 +164,7 @@ describe('integration test (type 0) - address collision', () => {
 									expect(err).to.be.null;
 									expect(res).to.equal(firstTransactionWithData.id);
 									seriesCb();
-								}
+								},
 							);
 						},
 						function(seriesCb) {
@@ -175,16 +179,16 @@ describe('integration test (type 0) - address collision', () => {
 											secondTransactionWithData.id
 										} failed at .senderPublicKey: Invalid sender publicKey, actual: ${
 											publicKeys[1]
-										}, expected: ${publicKeys[0]}`
+										}, expected: ${publicKeys[0]}`,
 									);
 									seriesCb();
-								}
+								},
 							);
 						},
 					],
 					err => {
 						done(err);
-					}
+					},
 				);
 			});
 		});

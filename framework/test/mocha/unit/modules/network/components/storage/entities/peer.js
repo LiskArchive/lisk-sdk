@@ -1,6 +1,6 @@
 /* eslint-disable mocha/no-pending-tests */
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -43,7 +43,7 @@ describe('Peer', () => {
 	before(async () => {
 		storage = new storageSandbox.StorageSandbox(
 			__testContext.config.components.storage,
-			'lisk_test_storage_custom_peer_network_module'
+			'lisk_test_storage_custom_peer_network_module',
 		);
 		await storage.bootstrap();
 
@@ -299,7 +299,7 @@ describe('Peer', () => {
 			};
 
 			const localFields = validPeerFields.filter(
-				fieldName => fieldName !== 'id'
+				fieldName => fieldName !== 'id',
 			);
 			const peer = new Peer(localAdapter);
 			peer.mergeFilters = sinonSandbox.stub().returns(validFilter);
@@ -318,8 +318,13 @@ describe('Peer', () => {
 
 		it('should skip if any invalid attribute is provided');
 
-		it('should reject with invalid data provided', async () =>
-			expect(storage.entities.Peer.create(invalidPeer)).to.be.rejected);
+		it('should reject with invalid data provided', async () => {
+			return expect(
+				storage.entities.Peer.create(invalidPeer),
+			).to.eventually.be.rejectedWith(
+				'invalid input syntax for type inet: "a.b.c.d"',
+			);
+		});
 
 		it('should create multiple objects successfully', async () => {
 			// Arrange
@@ -402,8 +407,8 @@ describe('Peer', () => {
 						updateSet: undefined,
 					},
 					{ expectedResultCount: 0 },
-					null
-				)
+					null,
+				),
 			).to.be.true;
 		});
 
@@ -425,9 +430,11 @@ describe('Peer', () => {
 
 		it('should skip if any invalid attribute is provided');
 
-		it('should not throw error if no matching record found', async () =>
-			expect(storage.entities.Peer.update({ ip: '1.1.1.1' }, { ip: '2.2.2.2' }))
-				.not.to.be.rejected);
+		it('should not throw error if no matching record found', async () => {
+			return expect(
+				storage.entities.Peer.update({ ip: '1.1.1.1' }, { ip: '2.2.2.2' }),
+			).to.eventually.be.fulfilled.and.equal(null);
+		});
 	});
 
 	describe('updateOne()', () => {
@@ -502,8 +509,8 @@ describe('Peer', () => {
 						updateSet: undefined,
 					},
 					{ expectedResultCount: 0 },
-					null
-				)
+					null,
+				),
 			).to.be.true;
 		});
 
@@ -519,7 +526,7 @@ describe('Peer', () => {
 
 			await storage.entities.Peer.updateOne(
 				{ id: peerToUpdateId },
-				{ ip: updatedIp }
+				{ ip: updatedIp },
 			);
 			const res = await storage.entities.Peer.getOne({ ip: updatedIp });
 			expect(res.ip).to.be.eql(updatedIp);
@@ -527,10 +534,11 @@ describe('Peer', () => {
 
 		it('should skip if any invalid attribute is provided');
 
-		it('should not throw error if no matching record found', async () =>
-			expect(
-				storage.entities.Peer.updateOne({ ip: '1.1.1.1' }, { ip: '2.2.2.2' })
-			).not.to.be.rejected);
+		it('should not throw error if no matching record found', async () => {
+			return expect(
+				storage.entities.Peer.updateOne({ ip: '1.1.1.1' }, { ip: '2.2.2.2' }),
+			).to.eventually.be.fulfilled.and.equal(null);
+		});
 	});
 
 	describe('isPersisted()', () => {
@@ -593,8 +601,8 @@ describe('Peer', () => {
 						parsedFilters: undefined,
 					},
 					{ expectedResultCount: 1 },
-					null
-				)
+					null,
+				),
 			).to.be.true;
 		});
 
@@ -633,7 +641,7 @@ describe('Peer', () => {
 		});
 
 		it(
-			'should merge provided filter with default filters by preserving default filters values'
+			'should merge provided filter with default filters by preserving default filters values',
 		);
 	});
 

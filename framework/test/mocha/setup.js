@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -14,7 +14,6 @@
 
 'use strict';
 
-require('colors');
 const mocha = require('mocha');
 const coMocha = require('co-mocha');
 const chai = require('chai');
@@ -131,7 +130,7 @@ _.mixin(
 		appearsInLast(arr, valueCheck) {
 			// Get list of indexes of desired value
 			const indices = _.compact(
-				arr.filter(data => data === valueCheck).map((_data, index) => index)
+				arr.filter(data => data === valueCheck).map((_data, index) => index),
 			);
 
 			// If last occurrence appears at the end of array
@@ -157,7 +156,7 @@ _.mixin(
 			return arr.sort((a, b) => (a - b) * sortFactor);
 		},
 	},
-	{ chain: false }
+	{ chain: false },
 );
 
 // Cloning the constants object to remove immutability

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -22,7 +22,7 @@ const waitFor = require('./utils/wait_for');
 function confirmation(
 	goodTransactions,
 	badTransactions,
-	pendingMultisignatures
+	pendingMultisignatures,
 ) {
 	describe('after transactions get confirmed', () => {
 		before(() => waitFor.confirmations(_.map(goodTransactions, 'id')));
@@ -41,7 +41,7 @@ function confirmation(
 					.getUnconfirmedTransactionPromise(transaction.id)
 					.then(res => {
 						expect(res.body.data).to.be.empty;
-					})
+					}),
 			));
 
 		it('good transactions should be confirmed', async () =>

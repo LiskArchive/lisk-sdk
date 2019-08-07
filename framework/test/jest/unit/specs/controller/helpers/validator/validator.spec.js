@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -31,6 +31,7 @@ const {
 const { SchemaValidationError } = require('../../../../../../../src/errors');
 
 jest.mock('ajv');
+jest.mock('ajv-keywords');
 
 describe('validator.js', () => {
 	describe('Ajv instance', () => {
@@ -50,7 +51,7 @@ describe('validator.js', () => {
 			Object.keys(ZSchema.formatsCache).forEach(zSchemaType => {
 				expect(validator.addFormat).toHaveBeenCalledWith(
 					zSchemaType,
-					ZSchema.formatsCache[zSchemaType]
+					ZSchema.formatsCache[zSchemaType],
 				);
 			});
 		});
@@ -73,7 +74,7 @@ describe('validator.js', () => {
 			Object.keys(formats).forEach(formatType => {
 				expect(parserAndValidator.addFormat).toHaveBeenCalledWith(
 					formatType,
-					formats[formatType]
+					formats[formatType],
 				);
 			});
 		});
@@ -107,12 +108,12 @@ describe('validator.js', () => {
 			// Assert
 			expect(validator.addSchema).toHaveBeenCalledWith(
 				schema.dummy1,
-				schema.dummy1.id
+				schema.dummy1.id,
 			);
 
 			expect(validator.addSchema).toHaveBeenCalledWith(
 				schema.dummy2,
-				schema.dummy2.id
+				schema.dummy2.id,
 			);
 		});
 	});

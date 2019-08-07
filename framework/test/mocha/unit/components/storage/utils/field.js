@@ -1,6 +1,6 @@
 /* eslint-disable mocha/no-pending-tests */
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -66,7 +66,7 @@ describe('Field', () => {
 				field.name,
 				field.fieldName,
 				field.inputSerializer,
-				'condition'
+				'condition',
 			);
 			return expect(field.filters).to.be.eql({ key: { filter: '' } });
 		});
@@ -92,7 +92,7 @@ describe('Field', () => {
 			});
 
 			expect(field.serializeValue(123, 'my-mode')).to.be.eql(
-				'serialized value'
+				'serialized value',
 			);
 
 			expect(inputSerializers.defaultInput).to.be.calledOnce;
@@ -101,7 +101,7 @@ describe('Field', () => {
 				123,
 				'my-mode',
 				field.name,
-				field.fieldName
+				field.fieldName,
 			);
 		});
 	});

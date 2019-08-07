@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -37,7 +37,7 @@ const isValid = (version, height, exceptions = {}) => {
 			const heightsRange = blockVersionExceptions[exception];
 			// Check if provided height is between the range boundaries
 			return height >= heightsRange.start && height <= heightsRange.end;
-		}
+		},
 	);
 
 	if (exceptionVersion === undefined) {

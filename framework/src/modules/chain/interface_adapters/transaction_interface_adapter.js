@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -22,7 +22,7 @@ class TransactionInterfaceAdapter {
 		Object.keys(registeredTransactions).forEach(transactionType => {
 			this.transactionClassMap.set(
 				Number(transactionType),
-				registeredTransactions[transactionType]
+				registeredTransactions[transactionType],
 			);
 		});
 	}
@@ -31,7 +31,7 @@ class TransactionInterfaceAdapter {
 		const transactions = block.transactions || [];
 
 		const response = transactions.map(transaction =>
-			this.fromJson(transaction)
+			this.fromJson(transaction),
 		);
 
 		return response;

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -36,7 +36,7 @@ class Event {
 	constructor(name, data = null) {
 		assert(
 			eventWithModuleNameReg.test(name),
-			`Event name "${name}" must be a valid name with module name.`
+			`Event name "${name}" must be a valid name with module name.`,
 		);
 		this.data = data;
 		[, this.module, this.name] = eventWithModuleNameReg.exec(name);
@@ -91,7 +91,7 @@ class Event {
 
 		return new Event(
 			`${parsedEvent.module}:${parsedEvent.name}`,
-			parsedEvent.data
+			parsedEvent.data,
 		);
 	}
 }

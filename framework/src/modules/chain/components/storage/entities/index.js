@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -14,9 +14,14 @@
 
 'use strict';
 
+const Account = require('./account');
+const Block = require('./block');
+const Round = require('./round');
+const Transaction = require('./transaction');
+
 module.exports = {
-	Account: require('./account'),
-	Block: require('./block'),
-	Round: require('./round'),
-	Transaction: require('./transaction'),
+	Account,
+	Block,
+	Round,
+	Transaction,
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -21,7 +21,7 @@ const validator = require('../../controller/validator');
 function createLoggerComponent(options = {}) {
 	const optionsWithDefaults = validator.parseEnvArgAndValidate(
 		defaultConfig,
-		options
+		options,
 	);
 
 	return createLogger(optionsWithDefaults);

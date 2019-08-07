@@ -54,7 +54,7 @@ describe('round', () => {
 
 	const storage = new TestStorageSandbox(
 		__testContext.config.components.storage,
-		storageStubs
+		storageStubs,
 	);
 
 	const account = {
@@ -128,7 +128,7 @@ describe('round', () => {
 				expect(round.scope.library.logger).to.be.eql(scope.library.logger);
 				expect(round.scope.library.storage).to.be.eql(scope.library.storage);
 				expect(round.scope.block.generatorPublicKey).to.be.eql(
-					scope.block.generatorPublicKey
+					scope.block.generatorPublicKey,
 				);
 				expect(round.scope.block.id).to.be.eql(scope.block.id);
 				expect(round.scope.block.height).to.be.eql(scope.block.height);
@@ -149,7 +149,7 @@ describe('round', () => {
 						round = new Round(scope, task);
 					} catch (err) {
 						expect(err.message).to.equal(
-							`Missing required scope property: ${property}`
+							`Missing required scope property: ${property}`,
 						);
 					}
 					done();
@@ -164,7 +164,7 @@ describe('round', () => {
 						round = new Round(scope, task);
 					} catch (err) {
 						expect(err.message).to.equal(
-							`Missing required scope property: ${property}`
+							`Missing required scope property: ${property}`,
 						);
 					}
 					done();
@@ -186,7 +186,7 @@ describe('round', () => {
 							round = new Round(scope, task);
 						} catch (err) {
 							expect(err.message).to.equal(
-								`Missing required scope property: ${property}`
+								`Missing required scope property: ${property}`,
 							);
 						}
 						done();
@@ -201,7 +201,7 @@ describe('round', () => {
 							round = new Round(scope, task);
 						} catch (err) {
 							expect(err.message).to.equal(
-								`Missing required scope property: ${property}`
+								`Missing required scope property: ${property}`,
 							);
 						}
 						done();
@@ -216,7 +216,7 @@ describe('round', () => {
 							round = new Round(scope, task);
 						} catch (err) {
 							expect(err.message).to.equal(
-								`Missing required scope property: ${property}`
+								`Missing required scope property: ${property}`,
 							);
 						}
 						done();
@@ -231,7 +231,7 @@ describe('round', () => {
 							round = new Round(scope, task);
 						} catch (err) {
 							expect(err.message).to.equal(
-								`Missing required scope property: ${property}`
+								`Missing required scope property: ${property}`,
 							);
 						}
 						done();
@@ -266,7 +266,7 @@ describe('round', () => {
 			it('should call account.merge with proper params', async () =>
 				expect(round.scope.library.account.merge).to.be.calledWith(
 					address,
-					args
+					args,
 				));
 		});
 
@@ -290,7 +290,7 @@ describe('round', () => {
 			it('should call account.merge with proper params', async () =>
 				expect(round.scope.library.account.merge).to.be.calledWith(
 					address,
-					args
+					args,
 				));
 		});
 	});
@@ -321,7 +321,7 @@ describe('round', () => {
 						{ address_in: scope.roundOutsiders },
 						'missedBlocks',
 						'1',
-						sinonSandbox.match.any
+						sinonSandbox.match.any,
 					)
 					.resolves('success');
 				res = round.updateMissedBlocks();
@@ -338,7 +338,7 @@ describe('round', () => {
 						{ address_in: scope.roundOutsiders },
 						'missedBlocks',
 						'1',
-						sinonSandbox.match.any
+						sinonSandbox.match.any,
 					);
 				}));
 		});
@@ -395,7 +395,7 @@ describe('round', () => {
 						{ address: delegate.address },
 						'vote',
 						delegate.amount,
-						sinonSandbox.match.any
+						sinonSandbox.match.any,
 					)
 					.resolves('QUERY');
 
@@ -423,7 +423,7 @@ describe('round', () => {
 					{ address: delegate.address },
 					'vote',
 					delegate.amount,
-					sinonSandbox.match.any
+					sinonSandbox.match.any,
 				));
 
 			it('getVotes result should contain 2 queries', async () =>
@@ -624,7 +624,7 @@ describe('round', () => {
 			res = round.checkSnapshotAvailability();
 
 			return expect(res).to.eventually.be.rejectedWith(
-				'Snapshot for round 2 not available'
+				'Snapshot for round 2 not available',
 			);
 		});
 	});
@@ -757,7 +757,7 @@ describe('round', () => {
 
 		beforeEach(async () => {
 			insertRoundRewards_stub = storageStubs.Round.createRoundRewards.resolves(
-				'insertRoundRewards'
+				'insertRoundRewards',
 			);
 			scope.library.account.merge.yields(null, 'merge');
 		});
@@ -799,15 +799,15 @@ describe('round', () => {
 								.plus(
 									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.floor(BigNum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR),
 								)
-								.toFixed()
+								.toFixed(),
 						);
 						const feesPerDelegate = Number(
 							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.floor(BigNum.ROUND_FLOOR)
-								.toFixed()
+								.toFixed(),
 						);
 						const args = {
 							publicKey: scope.roundDelegates[index],
@@ -824,7 +824,7 @@ describe('round', () => {
 
 					it('should not call merge another time (for apply remaining fees)', async () =>
 						expect(round.scope.library.account.merge.callCount).to.equal(
-							called
+							called,
 						));
 
 					it('should call insertRoundRewards with proper args', async () =>
@@ -836,7 +836,7 @@ describe('round', () => {
 								round: scope.round,
 								publicKey: forwardResults[0].publicKey,
 							},
-							sinonSandbox.match.any
+							sinonSandbox.match.any,
 						));
 				});
 
@@ -861,15 +861,15 @@ describe('round', () => {
 								.plus(
 									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.floor(BigNum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR),
 								)
-								.toFixed()
+								.toFixed(),
 						);
 						const feesPerDelegate = Number(
 							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.floor(BigNum.ROUND_FLOOR)
-								.toFixed()
+								.toFixed(),
 						);
 						const args = {
 							publicKey: scope.roundDelegates[index],
@@ -886,7 +886,7 @@ describe('round', () => {
 
 					it('should not call merge another time (for apply remaining fees)', async () =>
 						expect(round.scope.library.account.merge.callCount).to.equal(
-							called
+							called,
 						));
 
 					it('should not call insertRoundRewards', async () =>
@@ -949,15 +949,15 @@ describe('round', () => {
 								.plus(
 									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.floor(BigNum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR),
 								)
-								.toFixed()
+								.toFixed(),
 						);
 						const feesPerDelegate = Number(
 							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.floor(BigNum.ROUND_FLOOR)
-								.toFixed()
+								.toFixed(),
 						);
 						const args = {
 							publicKey: scope.roundDelegates[index],
@@ -980,7 +980,7 @@ describe('round', () => {
 						const remainingFees = Number(
 							new BigNum(scope.roundFees.toPrecision(15))
 								.minus(feesPerDelegate.times(ACTIVE_DELEGATES))
-								.toFixed()
+								.toFixed(),
 						);
 
 						const args = {
@@ -997,7 +997,7 @@ describe('round', () => {
 
 					it('should not call merge another time (completed)', async () =>
 						expect(round.scope.library.account.merge.callCount).to.equal(
-							called
+							called,
 						));
 
 					it('should call insertRoundRewards with proper args', async () =>
@@ -1011,7 +1011,7 @@ describe('round', () => {
 								round: scope.round,
 								publicKey: forwardResults[0].publicKey,
 							},
-							sinonSandbox.match.any
+							sinonSandbox.match.any,
 						));
 				});
 
@@ -1036,15 +1036,15 @@ describe('round', () => {
 								.plus(
 									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.floor(BigNum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR),
 								)
-								.toFixed()
+								.toFixed(),
 						);
 						const feesPerDelegate = Number(
 							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.floor(BigNum.ROUND_FLOOR)
-								.toFixed()
+								.toFixed(),
 						);
 						const args = {
 							publicKey: scope.roundDelegates[index],
@@ -1067,7 +1067,7 @@ describe('round', () => {
 						const remainingFees = Number(
 							new BigNum(scope.roundFees.toPrecision(15))
 								.minus(feesPerDelegate.times(ACTIVE_DELEGATES))
-								.toFixed()
+								.toFixed(),
 						);
 
 						const args = {
@@ -1084,7 +1084,7 @@ describe('round', () => {
 
 					it('should not call merge another time (completed)', async () =>
 						expect(round.scope.library.account.merge.callCount).to.equal(
-							called
+							called,
 						));
 
 					it('should not call insertRoundRewards', async () =>
@@ -1161,15 +1161,15 @@ describe('round', () => {
 								.plus(
 									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.floor(BigNum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR),
 								)
-								.toFixed()
+								.toFixed(),
 						);
 						const feesPerDelegate = Number(
 							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.floor(BigNum.ROUND_FLOOR)
-								.toFixed()
+								.toFixed(),
 						);
 						const args = {
 							publicKey: scope.roundDelegates[index],
@@ -1191,15 +1191,15 @@ describe('round', () => {
 								.plus(
 									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.floor(BigNum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR),
 								)
-								.toFixed()
+								.toFixed(),
 						);
 						const feesPerDelegate = Number(
 							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.floor(BigNum.ROUND_FLOOR)
-								.toFixed()
+								.toFixed(),
 						);
 						const args = {
 							publicKey: scope.roundDelegates[index],
@@ -1221,15 +1221,15 @@ describe('round', () => {
 								.plus(
 									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.floor(BigNum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR),
 								)
-								.toFixed()
+								.toFixed(),
 						);
 						const feesPerDelegate = Number(
 							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.floor(BigNum.ROUND_FLOOR)
-								.toFixed()
+								.toFixed(),
 						);
 						const args = {
 							publicKey: scope.roundDelegates[index],
@@ -1246,7 +1246,7 @@ describe('round', () => {
 
 					it('should not call merge another time (for applying remaining fees)', async () =>
 						expect(round.scope.library.account.merge.callCount).to.equal(
-							called
+							called,
 						));
 
 					it('should call insertRoundRewards with proper args', async () => {
@@ -1258,7 +1258,7 @@ describe('round', () => {
 								round: scope.round,
 								publicKey: forwardResults[0].publicKey,
 							},
-							sinonSandbox.match.any
+							sinonSandbox.match.any,
 						);
 						expect(insertRoundRewards_stub).to.have.been.calledWith(
 							{
@@ -1268,7 +1268,7 @@ describe('round', () => {
 								round: scope.round,
 								publicKey: forwardResults[1].publicKey,
 							},
-							sinonSandbox.match.any
+							sinonSandbox.match.any,
 						);
 						return expect(insertRoundRewards_stub).to.have.been.calledWith(
 							{
@@ -1278,7 +1278,7 @@ describe('round', () => {
 								round: scope.round,
 								publicKey: forwardResults[2].publicKey,
 							},
-							sinonSandbox.match.any
+							sinonSandbox.match.any,
 						);
 					});
 				});
@@ -1304,15 +1304,15 @@ describe('round', () => {
 								.plus(
 									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.floor(BigNum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR),
 								)
-								.toFixed()
+								.toFixed(),
 						);
 						const feesPerDelegate = Number(
 							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.floor(BigNum.ROUND_FLOOR)
-								.toFixed()
+								.toFixed(),
 						);
 						const args = {
 							publicKey: scope.roundDelegates[index],
@@ -1334,15 +1334,15 @@ describe('round', () => {
 								.plus(
 									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.floor(BigNum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR),
 								)
-								.toFixed()
+								.toFixed(),
 						);
 						const feesPerDelegate = Number(
 							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.floor(BigNum.ROUND_FLOOR)
-								.toFixed()
+								.toFixed(),
 						);
 						const args = {
 							publicKey: scope.roundDelegates[index],
@@ -1364,15 +1364,15 @@ describe('round', () => {
 								.plus(
 									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.floor(BigNum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR),
 								)
-								.toFixed()
+								.toFixed(),
 						);
 						const feesPerDelegate = Number(
 							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.floor(BigNum.ROUND_FLOOR)
-								.toFixed()
+								.toFixed(),
 						);
 						const args = {
 							publicKey: scope.roundDelegates[index],
@@ -1389,7 +1389,7 @@ describe('round', () => {
 
 					it('should not call merge another time (for applying remaining fees)', async () =>
 						expect(round.scope.library.account.merge.callCount).to.equal(
-							called
+							called,
 						));
 
 					it('should not call insertRoundRewards', async () =>
@@ -1465,15 +1465,15 @@ describe('round', () => {
 								.plus(
 									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.floor(BigNum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR),
 								)
-								.toFixed()
+								.toFixed(),
 						);
 						const feesPerDelegate = Number(
 							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.floor(BigNum.ROUND_FLOOR)
-								.toFixed()
+								.toFixed(),
 						);
 						const args = {
 							publicKey: scope.roundDelegates[index],
@@ -1495,15 +1495,15 @@ describe('round', () => {
 								.plus(
 									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.floor(BigNum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR),
 								)
-								.toFixed()
+								.toFixed(),
 						);
 						const feesPerDelegate = Number(
 							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.floor(BigNum.ROUND_FLOOR)
-								.toFixed()
+								.toFixed(),
 						);
 						const args = {
 							publicKey: scope.roundDelegates[index],
@@ -1525,15 +1525,15 @@ describe('round', () => {
 								.plus(
 									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.floor(BigNum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR),
 								)
-								.toFixed()
+								.toFixed(),
 						);
 						const feesPerDelegate = Number(
 							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.floor(BigNum.ROUND_FLOOR)
-								.toFixed()
+								.toFixed(),
 						);
 						const args = {
 							publicKey: scope.roundDelegates[index],
@@ -1556,7 +1556,7 @@ describe('round', () => {
 						const remainingFees = Number(
 							new BigNum(scope.roundFees.toPrecision(15))
 								.minus(feesPerDelegate.times(ACTIVE_DELEGATES))
-								.toFixed()
+								.toFixed(),
 						);
 
 						const args = {
@@ -1573,7 +1573,7 @@ describe('round', () => {
 
 					it('should not call merge another time (completed)', async () =>
 						expect(round.scope.library.account.merge.callCount).to.equal(
-							called
+							called,
 						));
 
 					it('should call insertRoundRewards with proper args', async () => {
@@ -1585,7 +1585,7 @@ describe('round', () => {
 								round: scope.round,
 								publicKey: forwardResults[0].publicKey,
 							},
-							sinonSandbox.match.any
+							sinonSandbox.match.any,
 						);
 						expect(insertRoundRewards_stub).to.have.been.calledWith(
 							{
@@ -1595,7 +1595,7 @@ describe('round', () => {
 								round: scope.round,
 								publicKey: forwardResults[1].publicKey,
 							},
-							sinonSandbox.match.any
+							sinonSandbox.match.any,
 						);
 						expect(insertRoundRewards_stub).to.have.been.calledWith(
 							{
@@ -1607,7 +1607,7 @@ describe('round', () => {
 								round: scope.round,
 								publicKey: forwardResults[2].publicKey,
 							},
-							sinonSandbox.match.any
+							sinonSandbox.match.any,
 						);
 					});
 				});
@@ -1633,15 +1633,15 @@ describe('round', () => {
 								.plus(
 									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.floor(BigNum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR),
 								)
-								.toFixed()
+								.toFixed(),
 						);
 						const feesPerDelegate = Number(
 							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.floor(BigNum.ROUND_FLOOR)
-								.toFixed()
+								.toFixed(),
 						);
 						const args = {
 							publicKey: scope.roundDelegates[index],
@@ -1663,15 +1663,15 @@ describe('round', () => {
 								.plus(
 									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.floor(BigNum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR),
 								)
-								.toFixed()
+								.toFixed(),
 						);
 						const feesPerDelegate = Number(
 							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.floor(BigNum.ROUND_FLOOR)
-								.toFixed()
+								.toFixed(),
 						);
 						const args = {
 							publicKey: scope.roundDelegates[index],
@@ -1693,15 +1693,15 @@ describe('round', () => {
 								.plus(
 									new BigNum(scope.roundFees.toPrecision(15))
 										.dividedBy(ACTIVE_DELEGATES)
-										.floor(BigNum.ROUND_FLOOR)
+										.floor(BigNum.ROUND_FLOOR),
 								)
-								.toFixed()
+								.toFixed(),
 						);
 						const feesPerDelegate = Number(
 							new BigNum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.floor(BigNum.ROUND_FLOOR)
-								.toFixed()
+								.toFixed(),
 						);
 						const args = {
 							publicKey: scope.roundDelegates[index],
@@ -1724,7 +1724,7 @@ describe('round', () => {
 						const remainingFees = Number(
 							new BigNum(scope.roundFees.toPrecision(15))
 								.minus(feesPerDelegate.times(ACTIVE_DELEGATES))
-								.toFixed()
+								.toFixed(),
 						);
 
 						const args = {
@@ -1741,7 +1741,7 @@ describe('round', () => {
 
 					it('should not call merge another time (completed)', async () =>
 						expect(round.scope.library.account.merge.callCount).to.equal(
-							called
+							called,
 						));
 
 					it('should not call insertRoundRewards', async () =>
@@ -1801,16 +1801,16 @@ describe('round', () => {
 				address: '16010222169256538112L',
 			};
 			increaseFieldBy_stub = storageStubs.Account.increaseFieldBy.resolves(
-				'increaseFieldBy'
+				'increaseFieldBy',
 			);
 			decreaseFieldBy_stub = storageStubs.Account.decreaseFieldBy.resolves(
-				'decreaseFieldBy'
+				'decreaseFieldBy',
 			);
 			getVotes_stub = storageStubs.Round.getTotalVotedAmount.resolves([
 				delegate,
 			]);
 			syncDelegatesRanks_stub = storageStubs.Account.syncDelegatesRanks.resolves(
-				'syncDelegatesRanks'
+				'syncDelegatesRanks',
 			);
 			flush_stub = storageStubs.Round.delete;
 			scope.library.account.merge.yields(null, 'merge');
@@ -1891,7 +1891,7 @@ describe('round', () => {
 			syncDelegatesRanks_stub = storageStubs.Account.syncDelegatesRanks.resolves();
 			flush_stub = storageStubs.Round.delete;
 			checkSnapshotAvailability_stub = storageStubs.Round.checkSnapshotAvailability.resolves(
-				1
+				1,
 			);
 			restoreRoundSnapshot_stub = storageStubs.Round.restoreRoundSnapshot.resolves();
 			restoreVotesSnapshot_stub = storageStubs.Round.restoreVotesSnapshot.resolves();

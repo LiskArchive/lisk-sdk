@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -14,6 +14,7 @@
 
 'use strict';
 
+const path = require('path');
 const { config: defaultConfig } = require('./defaults');
 const validator = require('../../controller/validator');
 const Storage = require('./storage');
@@ -23,8 +24,9 @@ const utils = require('./utils');
 const errors = require('./errors');
 
 if (process.env.NEW_RELIC_LICENSE_KEY) {
+	// eslint-disable-next-line global-require
 	const newrelic = require('newrelic');
-	const path = require('path');
+	// eslint-disable-next-line global-require
 	const newrelicLisk = require('lisk-newrelic')(newrelic, {
 		exitOnFailure: true,
 		rootPath: path.dirname(__filename),

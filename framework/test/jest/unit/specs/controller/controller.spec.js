@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -32,14 +32,21 @@ describe('Controller Class', () => {
 	};
 	const config = {
 		components: '#CONFIG',
-		initialState: '#CONFIG',
+		tempPath: '/tmp/lisk',
 	};
-	const rootDir = process.cwd();
+	const initialState = {
+		version: '1.0.0-beta.3',
+		wsPort: '3001',
+		httpPort: '3000',
+		minVersion: '1.0.0-beta.0',
+		protocolVersion: '1.0',
+		nethash: 'test broadhash',
+		nonce: 'test nonce',
+	};
 	const systemDirs = {
-		root: rootDir,
-		temp: `${rootDir}/tmp/${appLabel}/`,
-		sockets: `${rootDir}/tmp/${appLabel}/sockets`,
-		pids: `${rootDir}/tmp/${appLabel}/pids`,
+		temp: `${config.tempPath}/${appLabel}/`,
+		sockets: `${config.tempPath}/${appLabel}/sockets`,
+		pids: `${config.tempPath}/${appLabel}/pids`,
 	};
 	const configController = {
 		...config,
@@ -56,7 +63,7 @@ describe('Controller Class', () => {
 
 	beforeEach(() => {
 		// Act
-		controller = new Controller(appLabel, config, logger);
+		controller = new Controller(appLabel, config, initialState, logger);
 	});
 
 	afterEach(async () => {
@@ -99,7 +106,7 @@ describe('Controller Class', () => {
 			// Order of the functions matters in load method
 			expect(spies._setupDirectories).toHaveBeenCalled();
 			expect(spies._validatePidFile).toHaveBeenCalledAfter(
-				spies._setupDirectories
+				spies._setupDirectories,
 			);
 			expect(spies._initState).toHaveBeenCalledAfter(spies._validatePidFile);
 			expect(spies._setupBus).toHaveBeenCalledAfter(spies._initState);
@@ -110,7 +117,7 @@ describe('Controller Class', () => {
 
 		// #region TODO channel.publish('app:ready')
 		it.todo(
-			'should publish "app:ready" event.'
+			'should publish "app:ready" event.',
 			/**
 			, async () => {
 				// Arrange
@@ -161,11 +168,11 @@ describe('Controller Class', () => {
 
 	describe('#_validatePidFile', () => {
 		it.todo(
-			'should call `fs.writeFile` function with pidPath, process.pid arguments.'
+			'should call `fs.writeFile` function with pidPath, process.pid arguments.',
 		);
 
 		it.todo(
-			'should throw `DuplicateAppInstanceError` if an application is already running with the given label.'
+			'should throw `DuplicateAppInstanceError` if an application is already running with the given label.',
 		);
 	});
 
@@ -184,7 +191,7 @@ describe('Controller Class', () => {
 					maxListeners: 1000,
 				},
 				logger,
-				configController
+				configController,
 			);
 			expect(controller.bus).toBeInstanceOf(Bus);
 		});
@@ -253,7 +260,7 @@ describe('Controller Class', () => {
 					index + 1,
 					alias,
 					modules[alias],
-					moduleOptions[alias]
+					moduleOptions[alias],
 				);
 			});
 		});
@@ -264,11 +271,11 @@ describe('Controller Class', () => {
 
 		describe('when creating channel', () => {
 			it.todo(
-				'should add created channel to `controller.modulesChannel` object'
+				'should add created channel to `controller.modulesChannel` object',
 			);
 
 			it.todo(
-				'should call `channel.registerToBus` method to register channel to the Bus.'
+				'should call `channel.registerToBus` method to register channel to the Bus.',
 			);
 		});
 
@@ -309,10 +316,10 @@ describe('Controller Class', () => {
 			// Assert
 			expect(stubs.dummyModuleUnload1).toHaveBeenCalled();
 			expect(stubs.dummyModuleUnload2).toHaveBeenCalledAfter(
-				stubs.dummyModuleUnload1
+				stubs.dummyModuleUnload1,
 			);
 			expect(stubs.dummyModuleUnload3).toHaveBeenCalledAfter(
-				stubs.dummyModuleUnload2
+				stubs.dummyModuleUnload2,
 			);
 		});
 

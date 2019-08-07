@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -72,6 +72,8 @@ describe('helpers/jobsQueue', () => {
 		});
 
 		describe('should register', () => {
+			let clock;
+
 			function dummyFunction(cb) {
 				setTimeout(cb, execTimeInterval);
 			}
@@ -121,8 +123,6 @@ describe('helpers/jobsQueue', () => {
 				// Job returned from 'register' should no longer be equal to one in 'jobsQueue'
 				expect(job).to.not.equal(jobsQueue.jobs[name]);
 			}
-
-			let clock;
 
 			before(done => {
 				clock = sinonSandbox.useFakeTimers();

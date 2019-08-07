@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -15,13 +15,13 @@
 'use strict';
 
 const { utils: transactionUtils } = require('@liskhq/lisk-transactions');
-const BigNumber = require('bignumber.js');
+const BigNum = require('@liskhq/bignum');
 
 const redoSignature = (transaction, passphrase) => {
 	const { signature: discarded, ...transactionWithoutSignature } = transaction;
 	const signature = transactionUtils.signTransaction(
 		transactionWithoutSignature,
-		passphrase
+		passphrase,
 	);
 	const newTransaction = {
 		...transactionWithoutSignature,
@@ -45,7 +45,7 @@ const createInvalidRegisterMultisignatureTransaction = ({
 		transaction: {
 			type: 4,
 			amount: '0',
-			fee: new BigNumber(baseFee).times(keysgroup.length + 1).toString(),
+			fee: new BigNum(baseFee).times(keysgroup.length + 1).toString(),
 			asset: {
 				multisignature: {
 					keysgroup: keysgroup.map(key => `+${key}`),

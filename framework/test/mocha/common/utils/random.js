@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -143,7 +143,7 @@ random.password = function() {
 random.multisigDappRegistrationMaxiumData = function(
 	account,
 	members,
-	charset
+	charset,
 ) {
 	charset =
 		charset || 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';

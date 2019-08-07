@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -44,12 +44,12 @@ describe('integration test (type 4) - double multisignature registrations', () =
 	scenarios.regular.members.map(member => {
 		const signatureToBeNotconfirmed = transactionUtils.multiSignTransaction(
 			transactionToBeNotConfirmed,
-			member.passphrase
+			member.passphrase,
 		);
 		transactionToBeNotConfirmed.signatures.push(signatureToBeNotconfirmed);
 		const signature = transactionUtils.multiSignTransaction(
 			scenarios.regular.multiSigTransaction,
-			member.passphrase
+			member.passphrase,
 		);
 		return scenarios.regular.multiSigTransaction.signatures.push(signature);
 	});
@@ -64,7 +64,7 @@ describe('integration test (type 4) - double multisignature registrations', () =
 			[scenarios.regular.creditTransaction],
 			async () => {
 				done();
-			}
+			},
 		);
 	});
 
@@ -75,7 +75,7 @@ describe('integration test (type 4) - double multisignature registrations', () =
 			(err, res) => {
 				expect(res).to.equal(scenarios.regular.multiSigTransaction.id);
 				done();
-			}
+			},
 		);
 	});
 
@@ -86,14 +86,16 @@ describe('integration test (type 4) - double multisignature registrations', () =
 			(err, res) => {
 				expect(res).to.equal(transactionToBeNotConfirmed.id);
 				done();
-			}
+			},
 		);
 	});
 
 	describe('after forging one block', () => {
 		before(done => {
-			localCommon.forge(library, async () => {
-				done();
+			localCommon.fillPool(library, () => {
+				localCommon.forge(library, async () => {
+					done();
+				});
 			});
 		});
 
@@ -108,7 +110,7 @@ describe('integration test (type 4) - double multisignature registrations', () =
 					.which.is.an('Array');
 				expect(res.transactions.length).to.equal(1);
 				expect(res.transactions[0].id).to.equal(
-					scenarios.regular.multiSigTransaction.id
+					scenarios.regular.multiSigTransaction.id,
 				);
 				done();
 			});

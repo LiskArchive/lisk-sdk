@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -102,6 +102,13 @@ export class RequestFailError extends Error {
 					this.peerVersion
 			  }`
 			: message;
+	}
+}
+
+export class SendFailError extends Error {
+	public constructor(message: string) {
+		super(message);
+		this.name = 'SendFailError';
 	}
 }
 

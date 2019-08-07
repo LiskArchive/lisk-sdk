@@ -1,6 +1,6 @@
 /* eslint-disable mocha/no-pending-tests */
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -37,7 +37,7 @@ describe('PgpAdapter', () => {
 	it('should be a constructable function', async () => {
 		expect(PgpAdapter.prototype).to.be.not.null;
 		return expect(PgpAdapter.prototype.constructor.name).to.be.eql(
-			'PgpAdapter'
+			'PgpAdapter',
 		);
 	});
 
@@ -189,7 +189,7 @@ describe('PgpAdapter', () => {
 				const SQLs = adapter.loadSQLFiles(
 					entityLabel,
 					sqlFiles,
-					customEntitiesPath
+					customEntitiesPath,
 				);
 				expect(SQLs).to.include.all.keys(Object.keys(sqlFiles));
 			});

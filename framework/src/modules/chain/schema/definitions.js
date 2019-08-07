@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -165,12 +165,6 @@ module.exports = {
 		type: 'object',
 		required: ['block'],
 		properties: {
-			nonce: {
-				type: 'string',
-				example: 'sYHEDBKcScaAAAYg',
-				minLength: 16,
-				maxLength: 16,
-			},
 			block: {
 				type: 'object',
 				required: ['id', 'height', 'timestamp', 'generatorPublicKey'],

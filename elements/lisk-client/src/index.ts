@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -16,14 +16,17 @@ import { APIClient as APIClientModule } from '@liskhq/lisk-api-client';
 import * as constantsModule from '@liskhq/lisk-constants';
 import * as cryptographyModule from '@liskhq/lisk-cryptography';
 import * as passphraseModule from '@liskhq/lisk-passphrase';
-import * as transactionModule from '@liskhq/lisk-transactions';
+import * as transactionsModule from '@liskhq/lisk-transactions';
 
 // tslint:disable-next-line variable-name
 export const APIClient = APIClientModule;
 export const constants = constantsModule;
 export const cryptography = cryptographyModule;
 export const passphrase = passphraseModule;
-export const transaction = transactionModule;
+export const transactions = transactionsModule;
+// Also export as `transacation` for backward compatibility.
+// See https://github.com/LiskHQ/lisk-sdk/issues/3925#issuecomment-508664703
+export const transaction = transactionsModule;
 
 // tslint:disable-next-line no-default-export
 export default {
@@ -31,5 +34,8 @@ export default {
 	constants,
 	cryptography,
 	passphrase,
-	transaction,
+	transactions,
+	// Also export as `transacation` for backward compatibility.
+	// See https://github.com/LiskHQ/lisk-sdk/issues/3925#issuecomment-508664703
+	transaction: transactions,
 };

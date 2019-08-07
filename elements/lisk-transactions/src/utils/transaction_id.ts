@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -22,7 +22,7 @@ export const getId = (transactionBytes: Buffer): string => {
 	const bufferFromFirstEntriesReversed = cryptography.getFirstEightBytesReversed(
 		transactionHash,
 	);
-	const transactionId = cryptography.bufferToBigNumberString(
+	const transactionId = cryptography.bufferToIntAsString(
 		bufferFromFirstEntriesReversed,
 	);
 
@@ -47,7 +47,7 @@ export const getTransactionId = (transaction: TransactionJSON): string => {
 	const bufferFromFirstEntriesReversed = cryptography.getFirstEightBytesReversed(
 		transactionHash,
 	);
-	const firstEntriesToNumber = cryptography.bufferToBigNumberString(
+	const firstEntriesToNumber = cryptography.bufferToIntAsString(
 		bufferFromFirstEntriesReversed,
 	);
 

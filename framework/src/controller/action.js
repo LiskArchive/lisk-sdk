@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -37,7 +37,7 @@ class Action {
 	constructor(name, params = null, source = null) {
 		assert(
 			actionWithModuleNameReg.test(name),
-			`Action name "${name}" must be a valid name with module name.`
+			`Action name "${name}" must be a valid name with module name.`,
 		);
 		[this.module, this.name] = name.split(':');
 		this.params = params;
@@ -45,7 +45,7 @@ class Action {
 		if (source) {
 			assert(
 				moduleNameReg.test(source),
-				`Source name "${source}" must be a valid module name.`
+				`Source name "${source}" must be a valid module name.`,
 			);
 			this.source = source;
 		}
@@ -76,7 +76,7 @@ class Action {
 		return new Action(
 			`${parsedAction.module}:${parsedAction.name}`,
 			parsedAction.params,
-			parsedAction.source
+			parsedAction.source,
 		);
 	}
 

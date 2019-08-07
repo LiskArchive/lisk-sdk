@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -33,13 +33,8 @@ const defaultConfig = {
 					minimum: 1,
 					maximum: 25,
 				},
-				relayLimit: {
-					type: 'integer',
-					minimum: 1,
-					maximum: 100,
-				},
 			},
-			required: ['broadcastInterval', 'releaseLimit', 'relayLimit'],
+			required: ['broadcastInterval', 'releaseLimit'],
 		},
 		transactions: {
 			type: 'object',
@@ -248,7 +243,6 @@ const defaultConfig = {
 			active: true,
 			broadcastInterval: 5000,
 			releaseLimit: 25,
-			relayLimit: 3,
 		},
 		transactions: {
 			maxTransactionsPerQueue: 1000,

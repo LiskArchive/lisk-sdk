@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -31,7 +31,7 @@ let channel;
  * @todo Add description of SignaturesController
  */
 function SignaturesController(scope) {
-	channel = scope.channel;
+	({ channel } = scope);
 }
 
 /**
@@ -59,25 +59,25 @@ SignaturesController.postSignature = async function(context, next) {
 			error = new ApiError(
 				'Error processing signature',
 				apiCodes.PROCESSING_ERROR,
-				data.errors
+				data.errors,
 			);
 		} else if (data.code === apiCodes.BAD_REQUEST) {
 			error = new ApiError(
 				'Invalid signature body',
 				apiCodes.BAD_REQUEST,
-				data.errors
+				data.errors,
 			);
 		} else {
 			error = new ApiError(
 				'Internal server error',
 				apiCodes.INTERNAL_SERVER_ERROR,
-				[]
+				[],
 			);
 		}
 	} catch (err) {
 		error = new ApiError(
 			'Internal server error',
-			apiCodes.INTERNAL_SERVER_ERROR
+			apiCodes.INTERNAL_SERVER_ERROR,
 		);
 	}
 

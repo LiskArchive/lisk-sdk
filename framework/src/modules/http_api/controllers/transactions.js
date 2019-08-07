@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -38,8 +38,10 @@ let channel;
  * @todo Add description of TransactionsController
  */
 function TransactionsController(scope) {
-	storage = scope.components.storage;
-	channel = scope.channel;
+	({
+		components: { storage },
+		channel,
+	} = scope);
 }
 
 function transactionFormatter(transaction) {
@@ -71,7 +73,7 @@ TransactionsController.getTransactions = async function(context, next) {
 		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
 	}
 
-	const params = context.request.swagger.params;
+	const { params } = context.request.swagger;
 
 	let filters = {
 		id: params.id.value,
@@ -152,7 +154,7 @@ TransactionsController.postTransaction = async function(context, next) {
 		error = new ApiError(
 			'Internal server error',
 			apiCodes.INTERNAL_SERVER_ERROR,
-			[err]
+			[err],
 		);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -29,7 +29,7 @@ describe('validateOwnChain', () => {
 		Queries = new QueriesHelper(lib, lib.components.storage);
 
 		addTransactionsAndForgePromise = Promise.promisify(
-			localCommon.addTransactionsAndForge
+			localCommon.addTransactionsAndForge,
 		);
 	});
 
@@ -88,7 +88,7 @@ describe('validateOwnChain', () => {
 
 				try {
 					await library.modules.blocks.blocksVerify.requireBlockRewind(
-						library.modules.blocks.lastBlock
+						library.modules.blocks.lastBlock,
 					);
 				} catch (error) {
 					validateOwnChainError = error;

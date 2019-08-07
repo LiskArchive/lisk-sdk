@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -59,7 +59,7 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 			(err, res) => {
 				expect(res).to.equal(transactionSecondSignature.id);
 				done();
-			}
+			},
 		);
 	});
 
@@ -80,10 +80,10 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 										transactionSecondSignature.id
 									} failed at .id: Transaction is already processed: ${
 										transactionSecondSignature.id
-									}`
+									}`,
 								);
 								done();
-							}
+							},
 						);
 					});
 
@@ -116,12 +116,12 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 										} failed at .signatures: Missing signatures `,
 									];
 									expect(err).to.equal(
-										expectedErrors.join(',')
+										expectedErrors.join(','),
 										// `Transaction: ${loadedTransaction.id} failed at .signSignature: Sender does not have a secondPublicKey`
 									);
 									done();
 								});
-							}
+							},
 						);
 					});
 				} else {
@@ -136,11 +136,11 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 									expect(err).to.equal(
 										`Transaction: ${
 											loadedTransaction.id
-										} failed at .signSignature: Sender does not have a secondPublicKey`
+										} failed at .signSignature: Sender does not have a secondPublicKey`,
 									);
 									done();
 								});
-							}
+							},
 						);
 					});
 				}
@@ -168,9 +168,9 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 									(err, res) => {
 										expect(res).to.equal(loadedTransaction.id);
 										done();
-									}
+									},
 								);
-							}
+							},
 						);
 					});
 				}

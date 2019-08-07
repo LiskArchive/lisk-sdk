@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -32,7 +32,7 @@ let storage;
  * @todo Add description of DappsController
  */
 function DappsController(scope) {
-	storage = scope.components.storage;
+	({ storage } = scope.components);
 }
 
 /**
@@ -49,7 +49,7 @@ DappsController.getDapps = async function(context, next) {
 		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
 	}
 
-	const params = context.request.swagger.params;
+	const { params } = context.request.swagger;
 
 	let options = {
 		sort: params.sort.value,

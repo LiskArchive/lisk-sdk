@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -37,7 +37,6 @@ class SchemaValidationError extends FrameworkError {
 	 */
 	constructor(errors) {
 		super('Schema validation error');
-		this.message = JSON.stringify(errors, null, 2);
 		this.errors = errors;
 		this.message = JSON.stringify(errors, null, 2);
 	}

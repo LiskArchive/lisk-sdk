@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -64,12 +64,12 @@ module.exports = {
 				// the peers will be connected back after
 				// restart, ref: scenarios/network/peer_disconnect
 				__testContext.debug(
-					`Connection aborted with code: ${errorCode} and reason ${reason}`
+					`Connection aborted with code: ${errorCode} and reason ${reason}`,
 				);
 			});
 			socket.on('close', (errorCode, reason) => {
 				__testContext.debug(
-					`Connection closed with code: ${errorCode} and reason ${reason}`
+					`Connection closed with code: ${errorCode} and reason ${reason}`,
 				);
 			});
 		});

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -107,11 +107,11 @@ const getByFilter = (peers, filter) => {
 				? otherFilters
 				: {};
 		const applicableFilters = Object.keys(matchFilters).filter(key =>
-			allowedFields.includes(key)
+			allowedFields.includes(key),
 		);
 		if (
 			applicableFilters.every(
-				key => peer[key] !== undefined && peer[key] === matchFilters[key]
+				key => peer[key] !== undefined && peer[key] === matchFilters[key],
 			)
 		) {
 			prev.push(peer);
@@ -168,8 +168,11 @@ const getCountByFilter = (peers, filter) => {
  * @returns {int} count
  * @todo Add description for the params
  */
-const getConsolidatedPeersList = networkStatus => {
-	const { connectedPeers, newPeers, triedPeers } = networkStatus;
+const getConsolidatedPeersList = ({
+	connectedPeers,
+	newPeers = [],
+	triedPeers = [],
+}) => {
 	// Assign state 2 to the connected peers
 	const connectedList = connectedPeers.map(peer => {
 		const { ipAddress, options, minVersion, nethash, ...peerWithoutIp } = peer;
@@ -181,7 +184,7 @@ const getConsolidatedPeersList = networkStatus => {
 		.filter(peer => {
 			const found = connectedList.find(
 				findPeer =>
-					findPeer.ip === peer.ipAddress && findPeer.wsPort === peer.wsPort
+					findPeer.ip === peer.ipAddress && findPeer.wsPort === peer.wsPort,
 			);
 			return !found;
 		})

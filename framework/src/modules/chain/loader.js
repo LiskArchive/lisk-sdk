@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -15,7 +15,6 @@
 'use strict';
 
 const async = require('async');
-const { promisify } = require('util');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
 const { validateTransactions } = require('./transactions');
@@ -44,7 +43,6 @@ class Loader {
 		cache,
 		// Unique requirements
 		genesisBlock,
-		balancesSequence,
 		// Modules
 		transactionPoolModule,
 		blocksModule,
@@ -66,7 +64,6 @@ class Loader {
 		// TODO: Remove cache
 		this.cache = cache;
 		this.genesisBlock = genesisBlock;
-		this.balancesSequence = balancesSequence;
 
 		this.constants = {
 			loadPerIteration,
@@ -102,7 +99,7 @@ class Loader {
 						this.logger.error('Unconfirmed transactions loader', err);
 					}
 					resolve();
-				}
+				},
 			);
 		});
 		await new Promise(resolve => {
@@ -114,7 +111,7 @@ class Loader {
 						this.logger.error('Signatures loader', err);
 					}
 					resolve();
-				}
+				},
 			);
 		});
 	}
@@ -143,21 +140,21 @@ class Loader {
 		this.isActive = true;
 
 		const consensusBefore = await this.peersModule.calculateConsensus(
-			this.blocksModule.broadhash
+			this.blocksModule.broadhash,
 		);
 
 		this.logger.debug(
-			`Establishing broadhash consensus before sync: ${consensusBefore} %`
+			`Establishing broadhash consensus before sync: ${consensusBefore} %`,
 		);
 
 		await this._loadBlocksFromNetwork();
 
 		const consensusAfter = await this.peersModule.calculateConsensus(
-			this.blocksModule.broadhash
+			this.blocksModule.broadhash,
 		);
 
 		this.logger.debug(
-			`Establishing broadhash consensus after sync: ${consensusAfter} %`
+			`Establishing broadhash consensus after sync: ${consensusAfter} %`,
 		);
 		this.isActive = false;
 		this.blocksToSync = 0;
@@ -191,25 +188,23 @@ class Loader {
 		}
 
 		const { signatures } = result;
-		const sequenceAdd = promisify(this.sequence.add.bind(this.sequence));
 
-		await sequenceAdd(async addSequenceCb => {
-			const signatureCount = signatures.length;
-			for (let i = 0; i < signatureCount; i++) {
-				const signaturePacket = signatures[i];
-				const subSignatureCount = signaturePacket.signatures.length;
-				for (let j = 0; j < subSignatureCount; j++) {
-					const signature = signaturePacket.signatures[j];
+		const signatureCount = signatures.length;
+		// eslint-disable-next-line no-plusplus
+		for (let i = 0; i < signatureCount; i++) {
+			const signaturePacket = signatures[i];
+			const subSignatureCount = signaturePacket.signatures.length;
+			// eslint-disable-next-line no-plusplus
+			for (let j = 0; j < subSignatureCount; j++) {
+				const signature = signaturePacket.signatures[j];
 
-					// eslint-disable-next-line no-await-in-loop
-					await this.transactionPoolModule.getTransactionAndProcessSignature({
-						signature,
-						transactionId: signature.transactionId,
-					});
-				}
+				// eslint-disable-next-line no-await-in-loop
+				await this.transactionPoolModule.getTransactionAndProcessSignature({
+					signature,
+					transactionId: signature.transactionId,
+				});
 			}
-			addSequenceCb();
-		});
+		}
 	}
 
 	/**
@@ -220,7 +215,6 @@ class Loader {
 	 * @private
 	 * @returns {setImmediateCallback} cb, err
 	 * @todo Add description for the params
-	 * @todo Missing error propagation when calling balancesSequence.add
 	 */
 	async _getTransactionsFromNetwork() {
 		this.logger.info('Loading transactions from the network');
@@ -232,21 +226,21 @@ class Loader {
 
 		const validatorErrors = validator.validate(
 			definitions.WSSignaturesResponse,
-			result
+			result,
 		);
 		if (validatorErrors.length) {
 			throw validatorErrors;
 		}
 
 		const transactions = result.transactions.map(tx =>
-			this.interfaceAdapters.transactions.fromJson(tx)
+			this.interfaceAdapters.transactions.fromJson(tx),
 		);
 
 		try {
 			const { transactionsResponses } = validateTransactions()(transactions);
 			const invalidTransactionResponse = transactionsResponses.find(
 				transactionResponse =>
-					transactionResponse.status !== TransactionStatus.OK
+					transactionResponse.status !== TransactionStatus.OK,
 			);
 			if (invalidTransactionResponse) {
 				throw invalidTransactionResponse.errors;
@@ -263,25 +257,17 @@ class Loader {
 		}
 
 		const transactionCount = transactions.length;
+		// eslint-disable-next-line no-plusplus
 		for (let i = 0; i < transactionCount; i++) {
 			const transaction = transactions[i];
 
-			const balancesSequenceAdd = promisify(
-				this.balancesSequence.add.bind(this.balancesSequence)
-			);
 			try {
 				/* eslint-disable-next-line */
-				await balancesSequenceAdd(async addSequenceCb => {
-					transaction.bundled = true;
-					try {
-						await this.transactionPoolModule.processUnconfirmedTransaction(
-							transaction
-						);
-						setImmediate(addSequenceCb);
-					} catch (err) {
-						setImmediate(addSequenceCb, err);
-					}
-				});
+				transaction.bundled = true;
+				// eslint-disable-next-line no-await-in-loop
+				await this.transactionPoolModule.processUnconfirmedTransaction(
+					transaction,
+				);
 			} catch (error) {
 				this.logger.error(error);
 				throw error;
@@ -297,22 +283,15 @@ class Loader {
 	 * @todo Add description for the params
 	 */
 	async _getBlocksFromNetwork() {
-		const lastBlock = this.blocksModule.lastBlock;
+		const { lastBlock } = this.blocksModule;
 		// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 		// TODO: Rename procedure to include target module name. E.g. chain:blocks
-		let data;
-		try {
-			const response = await this.channel.invoke('network:request', {
-				procedure: 'blocks',
-				data: {
-					lastBlockId: lastBlock.id,
-				},
-			});
-			data = response.data;
-		} catch (p2pError) {
-			this.logger.error('Failed to load block from network', p2pError);
-			return [];
-		}
+		const { data } = await this.channel.invoke('network:request', {
+			procedure: 'blocks',
+			data: {
+				lastBlockId: lastBlock.id,
+			},
+		});
 
 		if (!data) {
 			throw new Error('Received an invalid blocks response from the network');
@@ -322,7 +301,7 @@ class Loader {
 		// TODO: Remove the misspelled data.sucess === false condition once enough nodes have migrated to v2.
 		if (data.success === false || data.sucess === false) {
 			throw new Error(
-				`Peer did not have a matching lastBlockId. ${data.message}`
+				`Peer did not have a matching lastBlockId. ${data.message}`,
 			);
 		}
 		return data.blocks;
@@ -354,34 +333,40 @@ class Loader {
 	 * @todo Add description for the params
 	 */
 	async _getValidatedBlocksFromNetwork(blocks) {
-		const lastBlock = this.blocksModule.lastBlock;
+		const { lastBlock } = this.blocksModule;
 		try {
 			const lastValidBlock = await this.blocksModule.loadBlocksFromNetwork(
-				blocks
+				blocks,
 			);
 			this.blocksToSync = lastValidBlock.height;
 
 			return lastValidBlock.id === lastBlock.id;
 		} catch (loadBlocksFromNetworkErr) {
+			this.logger.debug(
+				loadBlocksFromNetworkErr instanceof Error
+					? loadBlocksFromNetworkErr
+					: new Error(loadBlocksFromNetworkErr),
+				'Chain recovery failed after failing to load blocks from the network',
+			);
 			if (this.peersModule.isPoorConsensus(this.blocksModule.broadhash)) {
 				this.logger.debug('Perform chain recovery due to poor consensus');
 				try {
 					await this.blocksModule.recoverChain();
 				} catch (recoveryError) {
 					throw new Error(
-						`Failed chain recovery after failing to load blocks while network consensus was low. ${recoveryError}`
+						`Chain recovery failed after failing to load blocks while network consensus was low. ${recoveryError}`,
 					);
 				}
 				throw new Error(
-					'Failed chain recovery after failing to load blocks while network consensus was low.'
+					`Chain recovery failed chain recovery after failing to load blocks ${loadBlocksFromNetworkErr}`,
 				);
 			}
 			this.logger.error(
 				'Failed to process block from network',
-				loadBlocksFromNetworkErr
+				loadBlocksFromNetworkErr,
 			);
 			throw new Error(
-				`Failed to load blocks from the network. ${loadBlocksFromNetworkErr}`
+				`Failed to load blocks from the network. ${loadBlocksFromNetworkErr}`,
 			);
 		}
 	}
@@ -404,7 +389,7 @@ class Loader {
 				const blocksFromNetwork = await this._getBlocksFromNetwork();
 				// eslint-disable-next-line no-await-in-loop
 				const blocksAfterValidate = await this._validateBlocks(
-					blocksFromNetwork
+					blocksFromNetwork,
 				);
 				// eslint-disable-next-line no-await-in-loop
 				loaded = await this._getValidatedBlocksFromNetwork(blocksAfterValidate);

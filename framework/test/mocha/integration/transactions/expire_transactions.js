@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -28,10 +28,10 @@ const QueriesHelper = require('../../common/integration/sql/queries_helper');
 const localCommon = require('../common');
 
 const addTransactionsAndForgePromise = Promise.promisify(
-	localCommon.addTransactionsAndForge
+	localCommon.addTransactionsAndForge,
 );
 const addTransactionToUnconfirmedQueuePromise = Promise.promisify(
-	localCommon.addTransactionToUnconfirmedQueue
+	localCommon.addTransactionToUnconfirmedQueue,
 );
 
 describe('expire transactions', () => {
@@ -81,7 +81,7 @@ describe('expire transactions', () => {
 					.to.have.property('transactions')
 					.which.is.an('Array');
 				cb(res);
-			}
+			},
 		);
 	};
 
@@ -95,7 +95,7 @@ describe('expire transactions', () => {
 					.to.have.property('transactions')
 					.which.is.an('Array');
 				cb(res);
-			}
+			},
 		);
 	};
 
@@ -139,7 +139,7 @@ describe('expire transactions', () => {
 						expect(res.count).to.equal(1);
 						done();
 					});
-				}
+				},
 			);
 		});
 

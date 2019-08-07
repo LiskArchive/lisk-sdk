@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -237,11 +237,6 @@ export class TransactionPool extends EventEmitter {
 	public addPendingTransaction(transaction: Transaction): AddTransactionResult {
 		const pendingQueue: QueueNames = 'pending';
 
-		this.emit(EVENT_VERIFIED_TRANSACTION_ONCE, {
-			action: ACTION_ADD_PENDING_TRANSACTIONS,
-			payload: [transaction],
-		});
-
 		return this.addTransactionToQueue(pendingQueue, transaction);
 	}
 
@@ -249,11 +244,6 @@ export class TransactionPool extends EventEmitter {
 		transaction: Transaction,
 	): AddTransactionResult {
 		const verifiedQueue: QueueNames = 'verified';
-
-		this.emit(EVENT_VERIFIED_TRANSACTION_ONCE, {
-			action: ACTION_ADD_VERIFIED_TRANSACTIONS,
-			payload: [transaction],
-		});
 
 		return this.addTransactionToQueue(verifiedQueue, transaction);
 	}
@@ -472,6 +462,17 @@ export class TransactionPool extends EventEmitter {
 			payload: [transaction],
 		});
 
+		// If transaction is added to one of the queues which semantically mean that transactions are verified, then fire the event.
+		if (queueName === 'verified' || queueName === 'pending') {
+			this.emit(EVENT_VERIFIED_TRANSACTION_ONCE, {
+				action:
+					queueName === 'verified'
+						? ACTION_ADD_VERIFIED_TRANSACTIONS
+						: ACTION_ADD_PENDING_TRANSACTIONS,
+				payload: [transaction],
+			});
+		}
+
 		return {
 			isFull: false,
 			alreadyExists: false,
@@ -559,6 +560,7 @@ export class TransactionPool extends EventEmitter {
 			queueCheckers.checkTransactionForId(failedTransactions),
 		);
 
+		// Move all passed transactions to the ready queue
 		// Keep transactions in the ready queue which still exist
 		this._queues.ready.enqueueMany(
 			this._queues.ready.removeFor(

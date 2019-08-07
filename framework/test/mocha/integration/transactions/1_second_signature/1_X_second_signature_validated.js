@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -58,9 +58,9 @@ describe('integration test (type 1) - checking validated second signature regist
 					[randomTransfer],
 					async () => {
 						done();
-					}
+					},
 				);
-			}
+			},
 		);
 	});
 
@@ -132,7 +132,7 @@ describe('integration test (type 1) - checking validated second signature regist
 										expect(err).to.equal(
 											`Transaction: ${
 												loadedTransaction.id
-											} failed at .signSignature: Missing signSignature`
+											} failed at .signSignature: Missing signSignature`,
 										);
 									} else {
 										const expectedErrors = [
@@ -147,7 +147,7 @@ describe('integration test (type 1) - checking validated second signature regist
 									}
 									done();
 								});
-							}
+							},
 						);
 					});
 
@@ -165,9 +165,9 @@ describe('integration test (type 1) - checking validated second signature regist
 										console.info(res);
 										// expect(err).to.equal('Failed to verify second signature');
 										done();
-									}
+									},
 								);
-							}
+							},
 						);
 					});
 
@@ -184,9 +184,9 @@ describe('integration test (type 1) - checking validated second signature regist
 									(err, res) => {
 										expect(res).to.equal(loadedTransaction.id);
 										done();
-									}
+									},
 								);
-							}
+							},
 						);
 					});
 				}

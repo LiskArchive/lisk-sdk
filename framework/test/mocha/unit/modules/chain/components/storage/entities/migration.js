@@ -1,6 +1,6 @@
 /* eslint-disable mocha/no-pending-tests */
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -15,6 +15,7 @@
 
 'use strict';
 
+const path = require('path');
 const {
 	entities: { BaseEntity },
 	errors: {
@@ -49,7 +50,7 @@ describe('Migration', () => {
 	before(async () => {
 		storage = new storageSandbox.StorageSandbox(
 			__testContext.config.components.storage,
-			'lisk_test_storage_custom_migration_chain_module'
+			'lisk_test_storage_custom_migration_chain_module',
 		);
 		await storage.bootstrap();
 
@@ -116,7 +117,7 @@ describe('Migration', () => {
 	it('should be a constructable function', async () => {
 		expect(MigrationEntity.prototype.constructor).not.to.be.null;
 		expect(MigrationEntity.prototype.constructor.name).to.be.eql(
-			'MigrationEntity'
+			'MigrationEntity',
 		);
 	});
 
@@ -152,7 +153,7 @@ describe('Migration', () => {
 		it('should call addField the exact number of times', async () => {
 			const migration = new MigrationEntity(adapter);
 			expect(addFieldSpy.callCount).to.eql(
-				Object.keys(migration.fields).length
+				Object.keys(migration.fields).length,
 			);
 		});
 
@@ -225,7 +226,7 @@ describe('Migration', () => {
 			await migration.begin('testTX', async tx => {
 				await migration.get({ id: '20160723182900' }, {}, tx);
 				expect(Object.getPrototypeOf(getSpy.firstCall.args[2])).to.be.eql(
-					Object.getPrototypeOf(tx)
+					Object.getPrototypeOf(tx),
 				);
 			});
 		});
@@ -246,7 +247,7 @@ describe('Migration', () => {
 	describe('update()', () => {
 		it('should always throw NonSupportedOperationError', async () => {
 			expect(MigrationEntity.prototype.update).to.throw(
-				NonSupportedOperationError
+				NonSupportedOperationError,
 			);
 		});
 	});
@@ -254,7 +255,7 @@ describe('Migration', () => {
 	describe('delete()', () => {
 		it('should always throw NonSupportedOperationError', async () => {
 			expect(MigrationEntity.prototype.delete).to.throw(
-				NonSupportedOperationError
+				NonSupportedOperationError,
 			);
 		});
 	});
@@ -315,8 +316,8 @@ describe('Migration', () => {
 						parsedFilters: undefined,
 					},
 					{ expectedResultCount: 1 },
-					null
-				)
+					null,
+				),
 			).to.be.true;
 		});
 
@@ -326,7 +327,7 @@ describe('Migration', () => {
 			const res = await storage.entities.Migration.isPersisted(validFilter);
 			expect(res).to.be.true;
 			await storage.entities.Migration.adapter.execute(
-				`DELETE FROM migrations WHERE id = '${localMigration.id}'`
+				`DELETE FROM migrations WHERE id = '${localMigration.id}'`,
 			);
 		});
 
@@ -335,7 +336,7 @@ describe('Migration', () => {
 			const res = await storage.entities.Migration.isPersisted(noResultsFilter);
 			expect(res).to.be.false;
 			await storage.entities.Migration.adapter.execute(
-				`DELETE FROM migrations WHERE id = '${validMigration.id}'`
+				`DELETE FROM migrations WHERE id = '${validMigration.id}'`,
 			);
 		});
 	});
@@ -360,7 +361,7 @@ describe('Migration', () => {
 		});
 
 		it(
-			'should merge provided filter with default filters by preserving default filters values'
+			'should merge provided filter with default filters by preserving default filters values',
 		);
 	});
 
@@ -376,7 +377,9 @@ describe('Migration', () => {
 			savedMigrations = Object.keys(modulesMigrations).reduce(
 				(prev, namespace) => {
 					const curr = modulesMigrations[namespace].map(migrationFile => {
-						const migration = migrationFile.match(/(\d+)_(.+).sql/);
+						const migration = path
+							.basename(migrationFile)
+							.match(/(\d+)_(.+).sql/);
 						return (
 							migration && {
 								id: migration[1],
@@ -387,7 +390,7 @@ describe('Migration', () => {
 					});
 					return prev.concat(curr);
 				},
-				[]
+				[],
 			);
 		});
 
@@ -401,21 +404,21 @@ describe('Migration', () => {
 				const savedMigrationsMock = savedMigrations.slice(2);
 				const pendingMigrations = await storage.entities.Migration.readPending(
 					modulesMigrations,
-					savedMigrationsMock
+					savedMigrationsMock,
 				);
 				expect(
 					pendingMigrations.map(m => ({
 						id: m.id,
 						name: m.name,
 						namespace: m.namespace,
-					}))
+					})),
 				).to.be.eql(pendingMigrationsMock);
 			});
 
 			it('should resolve with empty array if there is no pending migration', async () => {
 				const pending = await storage.entities.Migration.readPending(
 					modulesMigrations,
-					savedMigrations
+					savedMigrations,
 				);
 
 				return expect(pending).to.be.empty;
@@ -425,7 +428,7 @@ describe('Migration', () => {
 				const savedMigrationsMock = savedMigrations.slice(2);
 				const pendingMigrations = await storage.entities.Migration.readPending(
 					modulesMigrations,
-					savedMigrationsMock
+					savedMigrationsMock,
 				);
 
 				expect(pendingMigrations).to.be.an('array');
@@ -434,10 +437,10 @@ describe('Migration', () => {
 					'name',
 					'namespace',
 					'path',
-					'file'
+					'file',
 				);
 				expect(pendingMigrations[0].file).to.be.instanceOf(
-					storage.entities.Migration.adapter.pgp.QueryFile
+					storage.entities.Migration.adapter.pgp.QueryFile,
 				);
 			});
 		});
@@ -449,7 +452,7 @@ describe('Migration', () => {
 				await migration.defineSchema();
 
 				expect(adapter.executeFile.firstCall.args[0]).to.be.eql(
-					migration.SQLs.defineSchema
+					migration.SQLs.defineSchema,
 				);
 			});
 		});
@@ -461,7 +464,7 @@ describe('Migration', () => {
 				const savedMigrationsMock = savedMigrations.slice(2);
 				pendingMigrations = await storage.entities.Migration.readPending(
 					modulesMigrations,
-					savedMigrationsMock
+					savedMigrationsMock,
 				);
 			});
 
@@ -489,12 +492,12 @@ describe('Migration', () => {
 				await storage.entities.Migration.applyAll(modulesMigrations);
 
 				expect(storage.entities.Migration.begin.callCount).to.be.eql(
-					pendingMigrations.length
+					pendingMigrations.length,
 				);
 				expect(
 					storage.entities.Migration.begin
 						.getCalls()
-						.filter(aCall => aCall.args[0] !== 'migrations:applyAll').length
+						.filter(aCall => aCall.args[0] !== 'migrations:applyAll').length,
 				).to.be.eql(0);
 
 				const applyPendingMigrationCalls = storage.entities.Migration.applyPendingMigration.getCalls();

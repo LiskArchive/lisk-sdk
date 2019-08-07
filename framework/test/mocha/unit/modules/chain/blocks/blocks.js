@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -14,7 +14,6 @@
 
 'use strict';
 
-const { promisify } = require('util');
 const {
 	registeredTransactions,
 } = require('../../../../common/registered_transactions');
@@ -124,7 +123,7 @@ describe('blocks', () => {
 
 		it('should initialize parameters', async () => {
 			expect(blocksInstance._broadhash).to.eql(
-				__testContext.config.genesisBlock.payloadHash
+				__testContext.config.genesisBlock.payloadHash,
 			);
 			expect(blocksInstance._lastNBlockIds).to.eql([]);
 			expect(blocksInstance._lastBlock).to.eql({});
@@ -218,8 +217,7 @@ describe('blocks', () => {
 						errors: [],
 					});
 				sinonSandbox.stub(blocksInstance.blocksChain, 'deleteLastBlock');
-				sequenceStub.add.callsFake(async cb => {
-					const fn = promisify(cb);
+				sequenceStub.add.callsFake(async fn => {
 					await fn();
 				});
 			});
@@ -233,6 +231,22 @@ describe('blocks', () => {
 					});
 
 					expect(blocksInstance.blocksProcess.processBlock).to.be.calledOnce;
+				});
+
+				it('should emit EVENT_NEW_BLOCK with block', async () => {
+					const emitSpy = sinonSandbox.spy(blocksInstance, 'emit');
+					const fakeBlock = {
+						id: '5',
+						previousBlock: '2',
+						height: 3,
+					};
+					await blocksInstance.receiveBlockFromNetwork(fakeBlock);
+
+					expect(blocksInstance.blocksProcess.processBlock).to.be.calledOnce;
+					expect(emitSpy.secondCall.args).to.be.eql([
+						'EVENT_NEW_BLOCK',
+						{ block: fakeBlock },
+					]);
 				});
 			});
 
@@ -316,6 +330,23 @@ describe('blocks', () => {
 					expect(blocksInstance._isActive).to.be.false;
 					expect(loggerStub.warn).to.be.calledOnce;
 				});
+
+				it('should emit EVENT_NEW_BLOCK with block', async () => {
+					const emitSpy = sinonSandbox.spy(blocksInstance, 'emit');
+					const forkFiveBlock = {
+						id: '5',
+						generatorPublicKey: 'a',
+						previousBlock: '1',
+						height: 2,
+					};
+					await blocksInstance.receiveBlockFromNetwork(forkFiveBlock);
+
+					expect(blocksInstance.blocksProcess.processBlock).to.be.calledOnce;
+					expect(emitSpy.thirdCall.args).to.be.eql([
+						'EVENT_NEW_BLOCK',
+						{ block: forkFiveBlock },
+					]);
+				});
 			});
 
 			describe('when block.id === lastBlock.id', () => {
@@ -358,7 +389,7 @@ describe('blocks', () => {
 			} catch (err) {
 				expect(err).to.exist;
 				expect(err.message).to.eql(
-					'Unable to rebuild, blockchain should contain at least one round of blocks'
+					'Unable to rebuild, blockchain should contain at least one round of blocks',
 				);
 			}
 		});
@@ -367,12 +398,12 @@ describe('blocks', () => {
 			try {
 				await blocksInstance._rebuildMode(
 					'type string = invalid',
-					ACTIVE_DELEGATES
+					ACTIVE_DELEGATES,
 				);
 			} catch (err) {
 				expect(err).to.exist;
 				expect(err.message).to.eql(
-					'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero'
+					'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero',
 				);
 			}
 		});
@@ -383,7 +414,7 @@ describe('blocks', () => {
 			} catch (err) {
 				expect(err).to.exist;
 				expect(err.message).to.eql(
-					'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero'
+					'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero',
 				);
 			}
 		});
@@ -398,7 +429,7 @@ describe('blocks', () => {
 			} catch (err) {
 				expect(err).to.exist;
 				expect(err.message).to.eql(
-					'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero'
+					'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero',
 				);
 			}
 		});
@@ -409,14 +440,14 @@ describe('blocks', () => {
 			} catch (err) {
 				expect(err).to.exist;
 				expect(err.message).to.eql(
-					'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero'
+					'Unable to rebuild, "--rebuild" parameter should be an integer equal to or greater than zero',
 				);
 			}
 		});
 
 		it('should emit an event with proper error when resetMemTables fails', async () => {
 			storageStub.entities.Account.resetMemTables.rejects(
-				new Error('Account#resetMemTables error')
+				new Error('Account#resetMemTables error'),
 			);
 			try {
 				await blocksInstance._rebuildMode(2, ACTIVE_DELEGATES);
@@ -427,7 +458,7 @@ describe('blocks', () => {
 
 		it('should emit an event with proper error when loadBlocksOffset fails', async () => {
 			blocksUtils.loadBlocksWithOffset.rejects(
-				new Error('loadBlocksOffsetStub#ERR')
+				new Error('loadBlocksOffsetStub#ERR'),
 			);
 			try {
 				await blocksInstance._rebuildMode(2, ACTIVE_DELEGATES);

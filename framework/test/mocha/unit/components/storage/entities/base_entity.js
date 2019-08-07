@@ -1,6 +1,6 @@
 /* eslint-disable mocha/no-pending-tests */
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -128,7 +128,7 @@ describe('BaseEntity', () => {
 			expect(baseEntity.adapter.loadSQLFiles).to.be.calledWith(
 				entityLabel,
 				sqlFiles,
-				customEntitiesPath
+				customEntitiesPath,
 			);
 		});
 	});
@@ -139,21 +139,21 @@ describe('BaseEntity', () => {
 		beforeEach(async () => {
 			baseEntity = new BaseEntity(adapter, defaultFilters);
 			defaultFields.forEach(field =>
-				baseEntity.addField(field.name, field.type, field.options)
+				baseEntity.addField(field.name, field.type, field.options),
 			);
 		});
 
 		it('should create parse filters when filter is an object', async () => {
 			const filter = { id: 10, name: '2' };
 			expect(baseEntity.parseFilters(filter)).to.equal(
-				'WHERE ("id" = 10 AND "name" = \'2\')'
+				'WHERE ("id" = 10 AND "name" = \'2\')',
 			);
 		});
 
 		it('should create parse filters when filter is an array', async () => {
 			const filter = [{ id: 10, name: '2' }, { id: 2 }, { name: '4' }];
 			expect(baseEntity.parseFilters(filter)).to.equal(
-				'WHERE ("id" = 10 AND "name" = \'2\') OR ("id" = 2) OR ("name" = \'4\')'
+				'WHERE ("id" = 10 AND "name" = \'2\') OR ("id" = 2) OR ("name" = \'4\')',
 			);
 		});
 

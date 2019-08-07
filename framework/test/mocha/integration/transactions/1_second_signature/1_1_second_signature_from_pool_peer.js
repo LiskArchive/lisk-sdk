@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -73,7 +73,7 @@ describe('integration test (type 1) - second signature transactions from pool an
 				localCommon.addTransactionToUnconfirmedQueue(
 					library,
 					signatureTransaction,
-					done
+					done,
 				);
 			});
 
@@ -86,20 +86,18 @@ describe('integration test (type 1) - second signature transactions from pool an
 				});
 
 				describe('confirmed state', () => {
-					it('should update confirmed columns related to signature', done => {
-						library.sequence.add(seqCb => {
-							localCommon
-								.getAccountFromDb(library, signatureAccount.address)
-								.then(account => {
-									expect(account).to.exist;
-									expect(account.mem_accounts.secondSignature).to.equal(1);
-									expect(
-										account.mem_accounts.secondPublicKey.toString('hex')
-									).to.equal(signatureTransaction.asset.signature.publicKey);
-									seqCb();
-									done();
-								});
+					it('should update confirmed columns related to signature', async () => {
+						const account = await library.sequence.add(async () => {
+							return localCommon.getAccountFromDb(
+								library,
+								signatureAccount.address,
+							);
 						});
+						expect(account).to.exist;
+						expect(account.mem_accounts.secondSignature).to.equal(1);
+						expect(
+							account.mem_accounts.secondPublicKey.toString('hex'),
+						).to.equal(signatureTransaction.asset.signature.publicKey);
 					});
 				});
 			});
@@ -120,20 +118,18 @@ describe('integration test (type 1) - second signature transactions from pool an
 				});
 
 				describe('confirmed state', () => {
-					it('should update confirmed columns related to signature', done => {
-						library.sequence.add(seqCb => {
-							localCommon
-								.getAccountFromDb(library, signatureAccount.address)
-								.then(account => {
-									expect(account).to.exist;
-									expect(account.mem_accounts.secondSignature).to.equal(1);
-									expect(
-										account.mem_accounts.secondPublicKey.toString('hex')
-									).to.equal(signatureTransaction2.asset.signature.publicKey);
-									seqCb();
-									done();
-								});
+					it('should update confirmed columns related to signature', async () => {
+						const account = await library.sequence.add(async () => {
+							return localCommon.getAccountFromDb(
+								library,
+								signatureAccount.address,
+							);
 						});
+						expect(account).to.exist;
+						expect(account.mem_accounts.secondSignature).to.equal(1);
+						expect(
+							account.mem_accounts.secondPublicKey.toString('hex'),
+						).to.equal(signatureTransaction2.asset.signature.publicKey);
 					});
 				});
 			});
@@ -158,7 +154,11 @@ describe('integration test (type 1) - second signature transactions from pool an
 						signatureTransaction3,
 						signatureTransaction4,
 					]);
-					return library.modules.blocks.receiveBlockFromNetwork(block);
+					try {
+						await library.modules.blocks.receiveBlockFromNetwork(block);
+					} catch (err) {
+						// expected error
+					}
 				});
 
 				describe('should reject block', () => {
@@ -172,18 +172,16 @@ describe('integration test (type 1) - second signature transactions from pool an
 				});
 
 				describe('confirmed state', () => {
-					it('should not update confirmed columns related to signature', done => {
-						library.sequence.add(seqCb => {
-							localCommon
-								.getAccountFromDb(library, signatureAccount.address)
-								.then(account => {
-									expect(account).to.exist;
-									expect(account.mem_accounts.secondSignature).to.equal(0);
-									expect(account.mem_accounts.secondPublicKey).to.equal(null);
-									seqCb();
-									done();
-								});
+					it('should not update confirmed columns related to signature', async () => {
+						const account = await library.sequence.add(async () => {
+							return localCommon.getAccountFromDb(
+								library,
+								signatureAccount.address,
+							);
 						});
+						expect(account).to.exist;
+						expect(account.mem_accounts.secondSignature).to.equal(0);
+						expect(account.mem_accounts.secondPublicKey).to.equal(null);
 					});
 				});
 			});

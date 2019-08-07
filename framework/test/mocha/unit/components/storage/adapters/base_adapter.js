@@ -1,6 +1,6 @@
 /* eslint-disable mocha/no-pending-tests */
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -25,7 +25,7 @@ describe('BaseAdapter', () => {
 	it('should be a constructable function', async () => {
 		expect(BaseAdapter.prototype).to.be.not.null;
 		return expect(BaseAdapter.prototype.constructor.name).to.be.eql(
-			'BaseAdapter'
+			'BaseAdapter',
 		);
 	});
 

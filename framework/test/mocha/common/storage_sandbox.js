@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -72,7 +72,7 @@ class StorageSandbox extends Storage {
 			throw new Error(
 				`storage_sandbox is meant to be run in test environment only. NODE_ENV is: ${
 					process.env.NODE_ENV
-				}`
+				}`,
 			);
 		}
 
@@ -169,7 +169,7 @@ class TestStorageSandbox extends Storage {
 			throw new Error(
 				`storage_sandbox is meant to be run in test environment only. NODE_ENV is: ${
 					process.env.NODE_ENV
-				}`
+				}`,
 			);
 		}
 

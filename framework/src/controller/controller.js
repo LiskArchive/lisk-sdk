@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -50,12 +50,13 @@ class Controller {
 	 * @param {Object} config - Controller configurations
 	 * @param {component.Logger} logger - Logger component responsible for writing all logs to output
 	 */
-	constructor(appLabel, config, logger) {
+	constructor(appLabel, config, initialState, logger) {
 		this.logger = logger;
 		this.appLabel = appLabel;
+		this.initialState = initialState;
 		this.logger.info('Initializing controller');
 
-		const dirs = systemDirs(this.appLabel);
+		const dirs = systemDirs(this.appLabel, config.tempPath);
 		this.config = {
 			...config,
 			dirs,
@@ -116,7 +117,7 @@ class Controller {
 		const pidPath = `${this.config.dirs.pids}/controller.pid`;
 		const pidExists = await fs.pathExists(pidPath);
 		if (pidExists) {
-			const pid = parseInt(await fs.readFile(pidPath));
+			const pid = parseInt(await fs.readFile(pidPath), 10);
 			const pidRunning = await isPidRunning(pid);
 
 			this.logger.info(`Old PID: ${pid}`);
@@ -126,7 +127,7 @@ class Controller {
 				this.logger.error(
 					`An instance of application "${
 						this.appLabel
-					}" is already running. You have to change application name to run another instance.`
+					}" is already running. You have to change application name to run another instance.`,
 				);
 				throw new DuplicateAppInstanceError(this.appLabel, pidPath);
 			}
@@ -141,7 +142,7 @@ class Controller {
 	 */
 	async _initState() {
 		this.applicationState = new ApplicationState({
-			initialState: this.config.initialState,
+			initialState: this.initialState,
 			logger: this.logger,
 		});
 	}
@@ -159,7 +160,7 @@ class Controller {
 				maxListeners: 1000,
 			},
 			this.logger,
-			this.config
+			this.config,
 		);
 
 		await this.bus.setup();
@@ -178,7 +179,7 @@ class Controller {
 					handler: action => this.applicationState.update(action.params),
 				},
 			},
-			{ skipInternalEvents: true }
+			{ skipInternalEvents: true },
 		);
 
 		await this.channel.registerToBus(this.bus);
@@ -212,7 +213,7 @@ class Controller {
 					await this._loadChildProcessModule(alias, klass, options);
 				} else {
 					this.logger.warn(
-						`IPC is disabled. ${alias} will be loaded in-memory.`
+						`IPC is disabled. ${alias} will be loaded in-memory.`,
 					);
 					// eslint-disable-next-line no-await-in-loop
 					await this._loadInMemoryModule(alias, klass, options);
@@ -232,13 +233,13 @@ class Controller {
 		validateModuleSpec(module);
 
 		this.logger.info(
-			`Loading module ${name}:${version} with alias "${moduleAlias}"`
+			`Loading module ${name}:${version} with alias "${moduleAlias}"`,
 		);
 
 		const channel = new InMemoryChannel(
 			moduleAlias,
 			module.events,
-			module.actions
+			module.actions,
 		);
 
 		await channel.registerToBus(this.bus);
@@ -253,7 +254,7 @@ class Controller {
 		this.modules[moduleAlias] = module;
 
 		this.logger.info(
-			`Module ready with alias: ${moduleAlias}(${name}:${version})`
+			`Module ready with alias: ${moduleAlias}(${name}:${version})`,
 		);
 	}
 
@@ -265,13 +266,13 @@ class Controller {
 		const { name, version } = module.constructor.info;
 
 		this.logger.info(
-			`Loading module ${name}:${version} with alias "${moduleAlias}" as child process`
+			`Loading module ${name}:${version} with alias "${moduleAlias}" as child process`,
 		);
 
 		const modulePath = path.resolve(
 			__dirname,
 			'../modules',
-			alias.replace(/([A-Z])/g, $1 => `_${$1.toLowerCase()}`)
+			alias.replace(/([A-Z])/g, $1 => `_${$1.toLowerCase()}`),
 		);
 
 		const program = path.resolve(__dirname, 'child_process_loader.js');
@@ -282,13 +283,13 @@ class Controller {
 		const forkedProcessOptions = {};
 		const maxPort = 20000;
 		const minPort = 10000;
-		process.env.NODE_DEBUG
-			? (forkedProcessOptions.execArgv = [
-					`--inspect=${Math.floor(
-						Math.random() * (maxPort - minPort) + minPort
-					)}`,
-			  ])
-			: [];
+		if (process.env.NODE_DEBUG) {
+			forkedProcessOptions.execArgv = [
+				`--inspect=${Math.floor(
+					Math.random() * (maxPort - minPort) + minPort,
+				)}`,
+			];
+		}
 
 		const child = child_process.fork(program, parameters, forkedProcessOptions);
 
@@ -303,7 +304,7 @@ class Controller {
 
 		child.on('exit', (code, signal) => {
 			this.logger.error(
-				`Module ${moduleAlias}(${name}:${version}) exited with code: ${code} and signal: ${signal}`
+				`Module ${moduleAlias}(${name}:${version}) exited with code: ${code} and signal: ${signal}`,
 			);
 			// Exits the main process with a failure code
 			process.exit(1);
@@ -313,7 +314,7 @@ class Controller {
 			new Promise(resolve => {
 				this.channel.once(`${moduleAlias}:loading:finished`, () => {
 					this.logger.info(
-						`Module ready with alias: ${moduleAlias}(${name}:${version})`
+						`Module ready with alias: ${moduleAlias}(${name}:${version})`,
 					);
 					resolve();
 				});

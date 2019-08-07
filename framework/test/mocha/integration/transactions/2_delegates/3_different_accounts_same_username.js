@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -51,7 +51,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 					[transaction],
 					async () => {
 						done();
-					}
+					},
 				);
 			});
 
@@ -89,8 +89,10 @@ describe('integration test (type 2) - double delegate registrations', () => {
 
 				describe('after forging one block', () => {
 					before(done => {
-						localCommon.forge(library, async () => {
-							done();
+						localCommon.fillPool(library, () => {
+							localCommon.forge(library, async () => {
+								done();
+							});
 						});
 					});
 
@@ -109,7 +111,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 								expect(res.transactions.length).to.equal(1);
 								expect(res.transactions[0].id).to.equal(transaction1.id);
 								done();
-							}
+							},
 						);
 					});
 
@@ -127,7 +129,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 									.which.is.an('Array');
 								expect(res.transactions.length).to.equal(0);
 								done();
-							}
+							},
 						);
 					});
 
@@ -136,7 +138,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 							expect(err).to.equal(
 								`Transaction: ${
 									transaction2.id
-								} failed at .asset.delegate.username: Username is not unique.`
+								} failed at .asset.delegate.username: Username is not unique.`,
 							);
 							done();
 						});
@@ -152,7 +154,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 							expect(err).to.equal(
 								`Transaction: ${
 									transaction3.id
-								} failed at .asset.delegate.username: Account is already a delegate`
+								} failed at .asset.delegate.username: Account is already a delegate`,
 							);
 							done();
 						});

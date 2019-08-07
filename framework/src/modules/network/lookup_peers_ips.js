@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -49,11 +49,11 @@ module.exports = async (peersList, enabled) => {
 				};
 			} catch (err) {
 				console.error(
-					`Failed to resolve peer domain name ${peer.ip} to an IP address`
+					`Failed to resolve peer domain name ${peer.ip} to an IP address`,
 				);
 				return peer;
 			}
-		})
+		}),
 	);
 
 	return peersList;

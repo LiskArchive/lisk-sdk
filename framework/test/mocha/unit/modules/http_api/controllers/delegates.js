@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -15,10 +15,10 @@
 'use strict';
 
 const rewire = require('rewire');
-const Bignumber = require('bignumber.js');
+const BigNum = require('@liskhq/bignum');
 
 const DelegatesController = rewire(
-	'../../../../../../src/modules/http_api/controllers/delegates'
+	'../../../../../../src/modules/http_api/controllers/delegates',
 );
 
 describe('delegates/api', () => {
@@ -38,8 +38,8 @@ describe('delegates/api', () => {
 	const expectedForgingStatisticsResult = {
 		...blocksRewardReturnStub,
 		...{
-			forged: new Bignumber(blocksRewardReturnStub.fees)
-				.plus(new Bignumber(blocksRewardReturnStub.rewards))
+			forged: new BigNum(blocksRewardReturnStub.fees)
+				.plus(new BigNum(blocksRewardReturnStub.rewards))
 				.toString(),
 		},
 	};
@@ -90,10 +90,10 @@ describe('delegates/api', () => {
 		};
 
 		__private.getForgingStatistics = DelegatesController.__get__(
-			'_getForgingStatistics'
+			'_getForgingStatistics',
 		);
 		__private.aggregateBlocksReward = DelegatesController.__get__(
-			'_aggregateBlocksReward'
+			'_aggregateBlocksReward',
 		);
 		__private.getDelegates = DelegatesController.__get__('_getDelegates');
 		__private.getForgers = DelegatesController.__get__('_getForgers');
@@ -114,11 +114,11 @@ describe('delegates/api', () => {
 
 		restoreAggregateBlocksReward = DelegatesController.__set__(
 			'_aggregateBlocksReward',
-			aggregateBlocksRewardStub
+			aggregateBlocksRewardStub,
 		);
 		restoreDelegateFormatter = DelegatesController.__set__(
 			'delegateFormatter',
-			delegateFormatterStub
+			delegateFormatterStub,
 		);
 		done();
 	});
@@ -171,14 +171,14 @@ describe('delegates/api', () => {
 		it('should call storage.entities.Account.get() with exact arguments', async () => {
 			expect(storageStub.entities.Account.get).to.be.calledWithExactly(
 				{ isDelegate: true, ...filters },
-				options
+				options,
 			);
 		});
 
 		it('should call channel.invoke with chain:calculateSupply action if lastBlock.height is not 0', async () => {
 			expect(channelStub.invoke).to.be.calledWithExactly(
 				'chain:calculateSupply',
-				{ height: dummyBlock.height }
+				{ height: dummyBlock.height },
 			);
 		});
 
@@ -207,14 +207,14 @@ describe('delegates/api', () => {
 		it('should fail if invalid address is passed', () => {
 			storageStub.entities.Account.getOne.rejects({ code: 0 });
 			return expect(
-				__private.getForgingStatistics({ address: 'InvalidAddress' })
+				__private.getForgingStatistics({ address: 'InvalidAddress' }),
 			).to.eventually.be.rejectedWith('Account not found');
 		});
 
 		it('should fail if no record is found on the database', () => {
 			storageStub.entities.Account.getOne.rejects({ code: 0 });
 			return expect(
-				__private.getForgingStatistics({ address: 'InvalidAddress' })
+				__private.getForgingStatistics({ address: 'InvalidAddress' }),
 			).to.eventually.be.rejectedWith('Account not found');
 		});
 
@@ -224,7 +224,7 @@ describe('delegates/api', () => {
 			});
 
 			return expect(
-				__private.getForgingStatistics({ address: 'NonDelegateAddress' })
+				__private.getForgingStatistics({ address: 'NonDelegateAddress' }),
 			).to.eventually.be.rejectedWith('Account is not a delegate');
 		});
 
@@ -237,8 +237,8 @@ describe('delegates/api', () => {
 				isDelegate: true,
 			});
 
-			expect(
-				__private.getForgingStatistics({ address: 'aValidAddress' })
+			return expect(
+				__private.getForgingStatistics({ address: 'aValidAddress' }),
 			).to.eventually.have.keys('count', 'rewards', 'fees', 'forged');
 		});
 
@@ -293,9 +293,9 @@ describe('delegates/api', () => {
 			expect(data).to.deep.equal({
 				rewards: getAccountResponse.rewards,
 				fees: getAccountResponse.fees,
-				count: new Bignumber(getAccountResponse.producedBlocks).toString(),
-				forged: new Bignumber(getAccountResponse.rewards)
-					.plus(new Bignumber(getAccountResponse.fees))
+				count: new BigNum(getAccountResponse.producedBlocks).toString(),
+				forged: new BigNum(getAccountResponse.rewards)
+					.plus(new BigNum(getAccountResponse.fees))
 					.toString(),
 			});
 			expect(aggregateBlocksRewardStub).to.not.have.been.called;
@@ -306,7 +306,7 @@ describe('delegates/api', () => {
 		it('should return account not found when using invalid address', () => {
 			storageStub.entities.Account.getOne.rejects({ code: 0 });
 			return expect(
-				__private.aggregateBlocksReward({ address: '0L' })
+				__private.aggregateBlocksReward({ address: '0L' }),
 			).to.eventually.be.rejectedWith('Account not found');
 		});
 
@@ -326,7 +326,7 @@ describe('delegates/api', () => {
 		it('should return error when account is not a delegate', () => {
 			channelStub.invoke.resolves([{ delegate: null }]);
 			return expect(
-				__private.aggregateBlocksReward({ address: '1L' })
+				__private.aggregateBlocksReward({ address: '1L' }),
 			).to.eventually.be.rejectedWith('Account is not a delegate');
 		});
 
@@ -363,13 +363,13 @@ describe('delegates/api', () => {
 
 		it('should call channel.invoke with chain:getNodeStatus action', async () => {
 			expect(channelStub.invoke.getCall(0)).to.be.calledWith(
-				'chain:getNodeStatus'
+				'chain:getNodeStatus',
 			);
 		});
 
 		it('should call channel.invoke with chain:generateDelegateList action', async () => {
 			expect(channelStub.invoke.getCall(4)).to.be.calledWith(
-				'chain:generateDelegateList'
+				'chain:generateDelegateList',
 			);
 		});
 

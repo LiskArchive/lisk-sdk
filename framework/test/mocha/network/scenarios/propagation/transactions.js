@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -32,7 +32,7 @@ module.exports = function(configurations, network) {
 								blockId: genesisBlockId,
 								port: configuration.modules.http_api.httpPort,
 							});
-						})
+						}),
 					);
 				})
 				.then(transactionsResults => {
@@ -60,7 +60,7 @@ module.exports = function(configurations, network) {
 
 			return transactionsFromOtherNodes.map(transactionsFromOtherNode => {
 				return expect(transactionsFromOtherNode).to.include.deep.members(
-					transactionsFromNode0
+					transactionsFromNode0,
 				);
 			});
 		});

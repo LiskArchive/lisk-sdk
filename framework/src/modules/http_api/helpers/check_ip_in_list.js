@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -30,6 +30,7 @@ function CheckIpInList(list, addr) {
 	if (!_.isArray(list) || list.length === 0) {
 		return false;
 	}
+	// eslint-disable-next-line no-plusplus
 	for (let i = 0; i < list.length; i++) {
 		entry = list[i];
 		if (ip.isV4Format(entry)) {

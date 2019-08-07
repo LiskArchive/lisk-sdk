@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -16,12 +16,12 @@
 
 const assert = require('assert');
 const {
-	BaseTransaction,
 	TransferTransaction,
 	SecondSignatureTransaction,
 	DelegateTransaction,
 	VoteTransaction,
 	MultisignatureTransaction,
+	transactionInterface,
 } = require('@liskhq/lisk-transactions');
 const { validator: liskValidator } = require('@liskhq/lisk-validator');
 const randomstring = require('randomstring');
@@ -124,14 +124,18 @@ class Application {
 		let appConfig = _.cloneDeep(config);
 
 		if (!_.has(appConfig, 'app.label')) {
-			_.set(appConfig, 'app.label', `lisk-${genesisBlock.payloadHash}`);
+			_.set(
+				appConfig,
+				'app.label',
+				`lisk-${genesisBlock.payloadHash.slice(0, 7)}`,
+			);
 		}
 
 		if (!_.has(appConfig, 'components.logger.logFileName')) {
 			_.set(
 				appConfig,
 				'components.logger.logFileName',
-				`${process.cwd()}/logs/${appConfig.app.label}/lisk.log`
+				`${process.cwd()}/logs/${appConfig.app.label}/lisk.log`,
 			);
 		}
 
@@ -188,20 +192,20 @@ class Application {
 		assert(moduleKlass, 'ModuleSpec is required');
 		assert(
 			typeof options === 'object',
-			'Module options must be provided or set to empty object.'
+			'Module options must be provided or set to empty object.',
 		);
 		assert(alias || moduleKlass.alias, 'Module alias must be provided.');
 		const moduleAlias = alias || moduleKlass.alias;
 		assert(
 			!Object.keys(this.getModules()).includes(moduleAlias),
-			`A module with alias "${moduleAlias}" already registered.`
+			`A module with alias "${moduleAlias}" already registered.`,
 		);
 
 		const modules = this.getModules();
 		modules[moduleAlias] = moduleKlass;
 		this.config.modules[moduleAlias] = Object.assign(
 			this.config.modules[moduleAlias] || {},
-			options
+			options,
 		);
 		__private.modules.set(this, modules);
 
@@ -219,12 +223,12 @@ class Application {
 		const modules = this.getModules();
 		assert(
 			Object.keys(modules).includes(alias),
-			`No module ${alias} is registered`
+			`No module ${alias} is registered`,
 		);
 		this.config.modules[alias] = Object.assign(
 			{},
 			this.config.modules[alias],
-			options
+			options,
 		);
 	}
 
@@ -238,19 +242,18 @@ class Application {
 		assert(Transaction, 'Transaction implementation is required');
 
 		assert(
-			Transaction.prototype instanceof BaseTransaction,
-			'Transaction must extend BaseTransaction.'
-		);
-
-		assert(
 			Number.isInteger(Transaction.TYPE),
-			'Transaction type is required as an integer'
+			'Transaction type is required as an integer',
 		);
 
 		assert(
-			!Object.keys(this.getTransactions()).includes(Transaction.TYPE),
-			`A transaction type "${Transaction.TYPE}" is already registered.`
+			!Object.keys(this.getTransactions()).includes(
+				Transaction.TYPE.toString(),
+			),
+			`A transaction type "${Transaction.TYPE}" is already registered.`,
 		);
+
+		validator.validate(transactionInterface, Transaction.prototype);
 
 		if (matcher) {
 			Object.defineProperty(Transaction.prototype, 'matcher', {
@@ -271,10 +274,10 @@ class Application {
 	 */
 	registerMigrations(namespace, migrations) {
 		assert(namespace, 'Namespace is required');
-		assert(migrations instanceof Array, 'Migrations list should be an array');
+		assert(Array.isArray(migrations), 'Migrations list should be an array');
 		assert(
 			!Object.keys(this.getMigrations()).includes(namespace),
-			`Migrations for "${namespace}" was already registered.`
+			`Migrations for "${namespace}" was already registered.`,
 		);
 
 		const currentMigrations = this.getMigrations();
@@ -354,14 +357,15 @@ class Application {
 			{
 				components: this.config.components,
 				ipc: this.config.app.ipc,
-				initialState: this.config.initialState,
+				tempPath: this.config.app.tempPath,
 			},
-			this.logger
+			this.initialState,
+			this.logger,
 		);
 		return this.controller.load(
 			this.getModules(),
 			this.config.modules,
-			this.getMigrations()
+			this.getMigrations(),
 		);
 	}
 
@@ -410,7 +414,7 @@ class Application {
 			this.overrideModuleOptions(alias, appConfigToShareWithModules);
 		});
 
-		this.config.initialState = {
+		this.initialState = {
 			version: this.config.app.version,
 			minVersion: this.config.app.minVersion,
 			protocolVersion: this.config.app.protocolVersion,

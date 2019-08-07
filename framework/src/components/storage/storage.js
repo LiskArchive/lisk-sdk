@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -73,7 +73,7 @@ class Storage {
 
 		if (existed && !options.replaceExisting) {
 			throw new EntityRegistrationError(
-				`Entity ${identifier} already registered`
+				`Entity ${identifier} already registered`,
 			);
 		}
 

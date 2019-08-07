@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -20,5 +20,6 @@ export * from './encrypt';
 export * from './hash';
 export * from './keys';
 export * from './sign';
+export { getRandomBytes } from './nacl';
 
 export { constants };

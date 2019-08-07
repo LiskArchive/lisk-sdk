@@ -1,6 +1,6 @@
 /* eslint-disable mocha/no-pending-tests */
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -61,7 +61,7 @@ describe('ChainAccount', () => {
 	before(async () => {
 		storage = new storageSandbox.StorageSandbox(
 			__testContext.config.components.storage,
-			'lisk_test_storage_custom_account_chain_module'
+			'lisk_test_storage_custom_account_chain_module',
 		);
 		await storage.bootstrap();
 
@@ -149,7 +149,7 @@ describe('ChainAccount', () => {
 						foo: 'bar',
 						baz: 'qux',
 					},
-					validOptions
+					validOptions,
 				);
 			}).to.throw("Property 'address' doesn't exist");
 		});
@@ -174,10 +174,13 @@ describe('ChainAccount', () => {
 			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(SQLs.create);
 		});
 
+		// @todo review this file and move these tests to integration.
 		it('should create an account object successfully', async () => {
 			const account = new accountFixtures.Account();
 
-			await expect(AccountEntity.create(account)).to.be.fulfilled;
+			await expect(
+				AccountEntity.create(account),
+			).to.eventually.be.fulfilled.and.deep.equal([]);
 
 			const accountResult = await AccountEntity.getOne(
 				{
@@ -185,7 +188,7 @@ describe('ChainAccount', () => {
 				},
 				{
 					extended: true,
-				}
+				},
 			);
 			const mergedObject = Object.assign({}, defaultCreateValues, account);
 
@@ -196,7 +199,9 @@ describe('ChainAccount', () => {
 			const account = new accountFixtures.Account();
 			account.asset = { lisk: 'test-asset' };
 
-			await expect(AccountEntity.create(account)).to.be.fulfilled;
+			await expect(
+				AccountEntity.create(account),
+			).to.eventually.be.fulfilled.and.deep.equal([]);
 
 			const accountResult = await AccountEntity.getOne(
 				{
@@ -204,7 +209,7 @@ describe('ChainAccount', () => {
 				},
 				{
 					extended: true,
-				}
+				},
 			);
 			const mergedObject = Object.assign({}, defaultCreateValues, account);
 
@@ -218,33 +223,39 @@ describe('ChainAccount', () => {
 				new accountFixtures.Account(),
 			];
 
-			expect(AccountEntity.create(accounts)).to.be.fulfilled;
+			await expect(
+				AccountEntity.create(accounts),
+			).to.eventually.be.fulfilled.and.deep.equal([]);
 
-			accounts.forEach(async account => {
-				const accountResult = await AccountEntity.getOne(
-					{
-						address: account.address,
-					},
-					{
-						extended: true,
-					}
-				);
-				const mergedObject = Object.assign({}, defaultCreateValues, account);
+			return Promise.all(
+				accounts.map(async account => {
+					const accountResult = await AccountEntity.getOne(
+						{
+							address: account.address,
+						},
+						{
+							extended: true,
+						},
+					);
+					const mergedObject = Object.assign({}, defaultCreateValues, account);
 
-				expect(mergedObject).to.be.eql(accountResult);
-			});
+					return expect(mergedObject).to.be.eql(accountResult);
+				}),
+			);
 		});
 
 		it('should reject with invalid data provided', async () => {
-			expect(
+			return expect(
 				AccountEntity.create(
 					{
 						missedBlocks: 'FOO-BAR',
 						address: '1234L',
 					},
-					validOptions
-				)
-			).to.be.rejected;
+					validOptions,
+				),
+			).to.eventually.be.rejectedWith(
+				'invalid input syntax for integer: "FOO-BAR"',
+			);
 		});
 
 		it('should populate account object with default values', async () => {
@@ -258,7 +269,7 @@ describe('ChainAccount', () => {
 				},
 				{
 					extended: true,
-				}
+				},
 			);
 			const expectedObject = {
 				address: account.address,
@@ -305,19 +316,19 @@ describe('ChainAccount', () => {
 				foo: 'bar',
 			};
 			// Act & Assert
-			expect(AccountEntity.update(invalidFilter, {})).to.be.rejectedWith(
-				NonSupportedFilterTypeError
-			);
+			return expect(
+				AccountEntity.update(invalidFilter, {}),
+			).to.eventually.be.rejectedWith(NonSupportedFilterTypeError);
 		});
 
 		it('should throw error for in-valid filters', async () => {
 			const account = new accountFixtures.Account();
 
-			expect(
-				AccountEntity.update({ myAddress: '123' }, account)
-			).to.be.rejectedWith(
+			return expect(
+				AccountEntity.update({ myAddress: '123' }, account),
+			).to.eventually.be.rejectedWith(
 				NonSupportedFilterTypeError,
-				'One or more filters are not supported.'
+				'One or more filters are not supported.',
 			);
 		});
 
@@ -326,14 +337,14 @@ describe('ChainAccount', () => {
 
 			await AccountEntity.create(account);
 
-			expect(
+			return expect(
 				AccountEntity.update(
 					{
 						address: account.address,
 					},
-					account
-				)
-			).to.be.fulfilled;
+					account,
+				),
+			).to.eventually.be.fulfilled.and.deep.equal([]);
 		});
 
 		it('should call mergeFilters with proper params', async () => {
@@ -400,7 +411,7 @@ describe('ChainAccount', () => {
 				{
 					address: account.address,
 				},
-				account
+				account,
 			);
 			// Assert
 			expect(adapter.executeFile).to.be.calledOnce;
@@ -421,7 +432,7 @@ describe('ChainAccount', () => {
 				},
 				{
 					balance: '1234',
-				}
+				},
 			);
 			await AccountEntity.update(
 				{
@@ -429,7 +440,7 @@ describe('ChainAccount', () => {
 				},
 				{
 					balance: '5678',
-				}
+				},
 			);
 
 			const result1 = await AccountEntity.getOne({
@@ -451,7 +462,7 @@ describe('ChainAccount', () => {
 				{
 					address: account.address,
 				},
-				account
+				account,
 			);
 			// Assert
 			expect(AccountEntity.getUpdateSet).to.be.calledOnce;
@@ -473,7 +484,7 @@ describe('ChainAccount', () => {
 				{
 					balance: '1234',
 					address: '1234L',
-				}
+				},
 			);
 			// Act
 			const result = await AccountEntity.getOne({
@@ -486,27 +497,27 @@ describe('ChainAccount', () => {
 		});
 
 		it('should resolve promise without any error if no data is passed', async () => {
-			expect(
+			return expect(
 				AccountEntity.update(
 					{
 						address: '123L',
 					},
-					{}
-				)
-			).to.be.fulfilled;
+					{},
+				),
+			).to.eventually.be.fulfilled.and.equal(false);
 		});
 
 		it('should be rejected if any invalid attribute is provided', async () => {
-			expect(
+			return expect(
 				AccountEntity.update(
 					{
 						address: '123L',
 					},
 					{
 						invalid: true,
-					}
-				)
-			).to.be.rejected;
+					},
+				),
+			).to.eventually.be.rejectedWith('syntax error at or near "WHERE"');
 		});
 
 		it('should not throw error if no matching record found', async () => {
@@ -531,7 +542,7 @@ describe('ChainAccount', () => {
 			await AccountEntity.update({ address }, { balance: 100 });
 			// Assert
 			const relelatedRecords = await AccountEntity.adapter.execute(
-				`SELECT * FROM mem_accounts2multisignatures WHERE "accountId"='${address}'`
+				`SELECT * FROM mem_accounts2multisignatures WHERE "accountId"='${address}'`,
 			);
 			expect(relelatedRecords).to.be.eql([]);
 		});
@@ -545,7 +556,7 @@ describe('ChainAccount', () => {
 			await AccountEntity.update({ address }, { balance: 100 });
 			// Assert
 			const relelatedRecords = await AccountEntity.adapter.execute(
-				`SELECT * FROM mem_accounts2delegates WHERE "accountId"='${address}'`
+				`SELECT * FROM mem_accounts2delegates WHERE "accountId"='${address}'`,
 			);
 			expect(relelatedRecords).to.be.eql([]);
 		});
@@ -554,22 +565,24 @@ describe('ChainAccount', () => {
 	describe('upsert', () => {
 		it('should throw error if no filter specified', async () => {
 			const account = new accountFixtures.Account();
-			expect(AccountEntity.upsert({}, account)).to.be.rejectedWith(
+			return expect(
+				AccountEntity.upsert({}, account),
+			).to.eventually.be.rejectedWith(
 				NonSupportedFilterTypeError,
-				'One or more filters are required for this operation.'
+				'One or more filters are required for this operation.',
 			);
 		});
 
 		it('should succeed updating or insert object', async () => {
 			const account = new accountFixtures.Account();
-			expect(
+			return expect(
 				AccountEntity.upsert(
 					{
 						address: account.address,
 					},
-					account
-				)
-			).to.be.fulfilled;
+					account,
+				),
+			).to.eventually.be.fulfilled.and.deep.equal([]);
 		});
 
 		it('should insert account if matching filters not found', async () => {
@@ -623,7 +636,7 @@ describe('ChainAccount', () => {
 				{
 					address: account.address,
 				},
-				account
+				account,
 			);
 
 			expect(eventCtx).to.not.null;
@@ -723,7 +736,7 @@ describe('ChainAccount', () => {
 				{
 					address: account.address,
 				},
-				account
+				account,
 			);
 			// Assert
 			expect(adapter.executeFile).to.be.calledOnce;
@@ -758,17 +771,20 @@ describe('ChainAccount', () => {
 			// Arrange
 			const randomAccount = new accountFixtures.Account();
 			await AccountEntity.create(randomAccount);
+
 			// Act & Assert
-			expect(
+			return expect(
 				AccountEntity.updateOne(
 					{
 						address: randomAccount.address,
 					},
 					{
 						username: 'AN_INVALID_LONG_USERNAME',
-					}
-				)
-			).to.be.rejected;
+					},
+				),
+			).to.eventually.be.rejectedWith(
+				'value too long for type character varying(20)',
+			);
 		});
 
 		it('should not throw error if no matching record found', async () => {
@@ -788,7 +804,7 @@ describe('ChainAccount', () => {
 	describe('delete()', () => {
 		it('should remove an existing account', async () => {
 			const account = await adapter.execute(
-				'SELECT * FROM mem_accounts LIMIT 1'
+				'SELECT * FROM mem_accounts LIMIT 1',
 			);
 
 			await AccountEntity.delete({
@@ -799,7 +815,7 @@ describe('ChainAccount', () => {
 				'SELECT * FROM mem_accounts WHERE "address" = ${address}',
 				{
 					address: account[0].address,
-				}
+				},
 			);
 
 			expect(result).to.be.empty;
@@ -817,7 +833,7 @@ describe('ChainAccount', () => {
 			await AccountEntity.delegateBlocksRewards(params);
 
 			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(
-				SQLs.delegateBlocksRewards
+				SQLs.delegateBlocksRewards,
 			);
 			expect(adapter.executeFile.firstCall.args[1]).to.eql({
 				generatorPublicKey: params.generatorPublicKey,
@@ -827,14 +843,15 @@ describe('ChainAccount', () => {
 			expect(adapter.executeFile).to.be.calledOnce;
 		});
 
-		it('should throw error if invalid public key is passed', async () =>
-			expect(
+		it('should throw error if invalid public key is passed', async () => {
+			return expect(
 				AccountEntity.delegateBlocksRewards({
 					generatorPublicKey: 'xxxxxxxxx',
 					start: (+new Date() / 1000).toFixed(),
 					end: (+new Date() / 1000).toFixed(),
-				})
-			).to.be.rejectedWith('invalid hexadecimal digit: "x"'));
+				}),
+			).to.eventually.be.rejectedWith('invalid hexadecimal digit: "x"');
+		});
 
 		it('should return empty data set if a valid but non existant key is passed', async () => {
 			const account = new accountFixtures.Account();
@@ -849,7 +866,7 @@ describe('ChainAccount', () => {
 				'delegate',
 				'count',
 				'fees',
-				'rewards'
+				'rewards',
 			);
 			expect(rewards[0].count).to.be.eql('0');
 			expect(rewards[0].delegate).to.be.null;
@@ -874,7 +891,7 @@ describe('ChainAccount', () => {
 				'delegate',
 				'count',
 				'fees',
-				'rewards'
+				'rewards',
 			);
 			expect(rewards[0].count).to.be.eql('0');
 			expect(rewards[0].delegate).to.be.null;
@@ -884,7 +901,7 @@ describe('ChainAccount', () => {
 
 		it('should aggregate rewards and response in valid format', async () => {
 			const account = await adapter.db.one(
-				'SELECT encode("publicKey", \'hex\') as "publicKey" FROM mem_accounts LIMIT 1'
+				'SELECT encode("publicKey", \'hex\') as "publicKey" FROM mem_accounts LIMIT 1',
 			);
 			const rewards = await AccountEntity.delegateBlocksRewards({
 				generatorPublicKey: account.publicKey,
@@ -898,7 +915,7 @@ describe('ChainAccount', () => {
 				'delegate',
 				'count',
 				'fees',
-				'rewards'
+				'rewards',
 			);
 		});
 	});
@@ -931,7 +948,7 @@ describe('ChainAccount', () => {
 		});
 
 		it(
-			'should merge provided filter with default filters by preserving default filters values '
+			'should merge provided filter with default filters by preserving default filters values ',
 		);
 	});
 
@@ -950,7 +967,7 @@ describe('ChainAccount', () => {
 		it('should empty the table "mem_accounts"', async () => {
 			await AccountEntity.resetMemTables();
 			const result = await adapter.execute(
-				'SELECT COUNT(*)::int AS count FROM mem_accounts'
+				'SELECT COUNT(*)::int AS count FROM mem_accounts',
 			);
 			expect(result[0].count).to.equal(0);
 		});
@@ -958,7 +975,7 @@ describe('ChainAccount', () => {
 		it('should empty the table "mem_round"', async () => {
 			await AccountEntity.resetMemTables();
 			const result = await adapter.execute(
-				'SELECT COUNT(*)::int AS count FROM mem_round'
+				'SELECT COUNT(*)::int AS count FROM mem_round',
 			);
 			expect(result[0].count).to.equal(0);
 		});
@@ -966,7 +983,7 @@ describe('ChainAccount', () => {
 		it('should empty the table "mem_accounts2delegates"', async () => {
 			await AccountEntity.resetMemTables();
 			const result = await adapter.execute(
-				'SELECT COUNT(*)::int AS count FROM mem_accounts2delegates'
+				'SELECT COUNT(*)::int AS count FROM mem_accounts2delegates',
 			);
 			expect(result[0].count).to.equal(0);
 		});
@@ -974,7 +991,7 @@ describe('ChainAccount', () => {
 		it('should empty the table "mem_accounts2multisignatures"', async () => {
 			await AccountEntity.resetMemTables();
 			const result = await adapter.execute(
-				'SELECT COUNT(*)::int AS count FROM mem_accounts2multisignatures'
+				'SELECT COUNT(*)::int AS count FROM mem_accounts2multisignatures',
 			);
 			expect(result[0].count).to.equal(0);
 		});
@@ -982,7 +999,7 @@ describe('ChainAccount', () => {
 		it('should empty the table "rounds_rewards"', async () => {
 			await AccountEntity.resetMemTables();
 			const result = await adapter.execute(
-				'SELECT COUNT(*)::int AS count FROM rounds_rewards'
+				'SELECT COUNT(*)::int AS count FROM rounds_rewards',
 			);
 			expect(result[0].count).to.equal(0);
 		});
@@ -998,11 +1015,11 @@ describe('ChainAccount', () => {
 					address,
 				},
 				'balance',
-				123
+				123,
 			);
 
 			return expect(adapter.executeFile.firstCall.args[0]).to.eql(
-				SQLs.increaseFieldBy
+				SQLs.increaseFieldBy,
 			);
 		});
 
@@ -1018,7 +1035,7 @@ describe('ChainAccount', () => {
 					address,
 				},
 				'balance',
-				1000
+				1000,
 			);
 
 			const updatedAccount = await AccountEntity.getOne({
@@ -1035,8 +1052,8 @@ describe('ChainAccount', () => {
 						address: '12L',
 					},
 					'unknown',
-					1000
-				)
+					1000,
+				),
 			).to.throw('Field name "unknown" is not valid.');
 		});
 
@@ -1052,7 +1069,7 @@ describe('ChainAccount', () => {
 					address,
 				},
 				'balance',
-				1000
+				1000,
 			);
 
 			const updatedAccount = await AccountEntity.getOne({
@@ -1073,11 +1090,11 @@ describe('ChainAccount', () => {
 					address,
 				},
 				'balance',
-				123
+				123,
 			);
 
 			return expect(adapter.executeFile.firstCall.args[0]).to.eql(
-				SQLs.decreaseFieldBy
+				SQLs.decreaseFieldBy,
 			);
 		});
 
@@ -1093,7 +1110,7 @@ describe('ChainAccount', () => {
 					address,
 				},
 				'balance',
-				1000
+				1000,
 			);
 
 			const updatedAccount = await AccountEntity.getOne({
@@ -1110,8 +1127,8 @@ describe('ChainAccount', () => {
 						address: '12L',
 					},
 					'unknown',
-					1000
-				)
+					1000,
+				),
 			).to.throw('Field name "unknown" is not valid.');
 		});
 
@@ -1127,7 +1144,7 @@ describe('ChainAccount', () => {
 					address,
 				},
 				'balance',
-				'1000'
+				'1000',
 			);
 
 			const updatedAccount = await AccountEntity.getOne({
@@ -1141,7 +1158,7 @@ describe('ChainAccount', () => {
 	describe('createDependentRecord()', () => {
 		it('should throw error if wrong dependency is passed', async () => {
 			expect(() =>
-				AccountEntity.createDependentRecord('unknown', '12L', '12345')
+				AccountEntity.createDependentRecord('unknown', '12L', '12345'),
 			).to.throw('Invalid dependency name "unknown" provided.');
 		});
 
@@ -1153,14 +1170,14 @@ describe('ChainAccount', () => {
 							{},
 							{
 								limit: 2,
-							}
+							},
 						);
 
 						sinonSandbox.spy(adapter, 'executeFile');
 						await AccountEntity.createDependentRecord(
 							dependentTable,
 							accounts[0].address,
-							accounts[1].publicKey
+							accounts[1].publicKey,
 						);
 
 						return expect(adapter.executeFile).to.be.calledWith(
@@ -1172,7 +1189,7 @@ describe('ChainAccount', () => {
 							},
 							{
 								expectedResultCount: 0,
-							}
+							},
 						);
 					});
 
@@ -1181,34 +1198,34 @@ describe('ChainAccount', () => {
 							{},
 							{
 								limit: 2,
-							}
+							},
 						);
 
 						const before = await adapter.execute(
-							`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
+							`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`,
 						);
 
 						await AccountEntity.createDependentRecord(
 							dependentTable,
 							accounts[0].address,
-							accounts[1].publicKey
+							accounts[1].publicKey,
 						);
 						const after = await adapter.execute(
-							`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
+							`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`,
 						);
 
 						expect(before[0].count).to.eql('0');
 						expect(after[0].count).to.eql('1');
 					});
 				});
-			}
+			},
 		);
 	});
 
 	describe('deleteDependentRecord()', () => {
 		it('should throw error if wrong dependency is passed', async () => {
 			expect(() =>
-				AccountEntity.deleteDependentRecord('unknown', '12L', '12345')
+				AccountEntity.deleteDependentRecord('unknown', '12L', '12345'),
 			).to.throw('Invalid dependency name "unknown" provided.');
 		});
 
@@ -1219,7 +1236,7 @@ describe('ChainAccount', () => {
 						{},
 						{
 							limit: 2,
-						}
+						},
 					);
 
 					await adapter.execute(
@@ -1227,26 +1244,26 @@ describe('ChainAccount', () => {
 							dependentFieldsTableMap[dependentTable]
 						} ("accountId", "dependentId") VALUES('${accounts[0].address}', '${
 							accounts[1].publicKey
-						}')`
+						}')`,
 					);
 
 					const before = await adapter.execute(
-						`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
+						`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`,
 					);
 
 					await AccountEntity.deleteDependentRecord(
 						dependentTable,
 						accounts[0].address,
-						accounts[1].publicKey
+						accounts[1].publicKey,
 					);
 					const after = await adapter.execute(
-						`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`
+						`SELECT count(*) from ${dependentFieldsTableMap[dependentTable]}`,
 					);
 
 					expect(before[0].count).to.eql('1');
 					expect(after[0].count).to.eql('0');
 				});
-			}
+			},
 		);
 	});
 
@@ -1259,12 +1276,12 @@ describe('ChainAccount', () => {
 			// Assert
 			expect(adapter.executeFile).to.be.calledOnce;
 			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(
-				SQLs.syncDelegatesRank
+				SQLs.syncDelegatesRank,
 			);
 		});
 
 		it(
-			'should sync rank attribute of all delegates based on their vote value and public key'
+			'should sync rank attribute of all delegates based on their vote value and public key',
 		);
 
 		it('should not throw error if there is no delegate available');
@@ -1283,7 +1300,7 @@ describe('ChainAccount', () => {
 				{
 					expectedResultCount: 0,
 				},
-				sinonSandbox.match.any
+				sinonSandbox.match.any,
 			);
 		});
 
@@ -1301,10 +1318,10 @@ describe('ChainAccount', () => {
 				'blockId',
 				'blockHeight',
 				'previousBlock',
-				'cause'
+				'cause',
 			);
 			expect(
-				Buffer.from(result[0].delegatePublicKey, 'hex').toString()
+				Buffer.from(result[0].delegatePublicKey, 'hex').toString(),
 			).to.be.eql(fork.delegatePublicKey);
 			expect(result[0].blockId).to.be.eql(fork.blockId);
 			expect(result[0].blockHeight).to.be.eql(fork.blockHeight);
@@ -1318,10 +1335,11 @@ describe('ChainAccount', () => {
 			const params = Object.assign({}, fork);
 			delete params[attr];
 
-			it(`should be rejected with error if param "${attr}" is missing`, async () =>
-				expect(AccountEntity.insertFork(params)).to.be.eventually.rejectedWith(
-					`Property '${attr}' doesn't exist.`
-				));
+			it(`should be rejected with error if param "${attr}" is missing`, async () => {
+				return expect(
+					AccountEntity.insertFork(params),
+				).to.be.eventually.rejectedWith(`Property '${attr}' doesn't exist.`);
+			});
 		});
 	});
 
@@ -1341,13 +1359,13 @@ describe('ChainAccount', () => {
 			// Act
 			await AccountEntity.update(
 				{ address: savedAccount.address },
-				savedAccount
+				savedAccount,
 			);
 			// Assert
 			const mulitsigDependentRecords = await AccountEntity.adapter.execute(
 				`SELECT * FROM mem_accounts2multisignatures WHERE "accountId"='${
 					savedAccount.address
-				}'`
+				}'`,
 			);
 			expect(expectedRelatedRecords).to.be.eql(mulitsigDependentRecords);
 		});
@@ -1366,12 +1384,12 @@ describe('ChainAccount', () => {
 			];
 			await AccountEntity.update(
 				{ address: savedAccount.address },
-				savedAccount
+				savedAccount,
 			);
 			const mulitsigDependentRecords = await AccountEntity.adapter.execute(
 				`SELECT * FROM mem_accounts2multisignatures WHERE "accountId"='${
 					savedAccount.address
-				}'`
+				}'`,
 			);
 			expect(expectedRelatedRecords).to.be.eql(mulitsigDependentRecords);
 
@@ -1384,12 +1402,12 @@ describe('ChainAccount', () => {
 			// Act
 			await AccountEntity.update(
 				{ address: savedAccount.address },
-				savedAccount
+				savedAccount,
 			);
 			const newMulitsigDependentRecords = await AccountEntity.adapter.execute(
 				`SELECT * FROM mem_accounts2multisignatures WHERE "accountId"='${
 					savedAccount.address
-				}'`
+				}'`,
 			);
 			// Assert
 			expect(newExpectedRelatedRecords).to.be.eql(newMulitsigDependentRecords);
@@ -1410,16 +1428,16 @@ describe('ChainAccount', () => {
 			// Act
 			await AccountEntity.update(
 				{ address: savedAccount.address },
-				savedAccount
+				savedAccount,
 			);
 			// Assert
 			const votedDelegatesPublicKeysDependentRecords = await AccountEntity.adapter.execute(
 				`SELECT * FROM mem_accounts2delegates WHERE "accountId"='${
 					savedAccount.address
-				}'`
+				}'`,
 			);
 			expect(expectedRelatedRecords).to.be.eql(
-				votedDelegatesPublicKeysDependentRecords
+				votedDelegatesPublicKeysDependentRecords,
 			);
 		});
 
@@ -1438,16 +1456,16 @@ describe('ChainAccount', () => {
 			// Act
 			await AccountEntity.update(
 				{ address: savedAccount.address },
-				savedAccount
+				savedAccount,
 			);
 			// Assert
 			const votedDelegatesPublicKeysDependentRecords = await AccountEntity.adapter.execute(
 				`SELECT * FROM mem_accounts2delegates WHERE "accountId"='${
 					savedAccount.address
-				}'`
+				}'`,
 			);
 			expect(expectedRelatedRecords).to.be.eql(
-				votedDelegatesPublicKeysDependentRecords
+				votedDelegatesPublicKeysDependentRecords,
 			);
 
 			savedAccount.votedDelegatesPublicKeys = ['42L', '43L', '63L'];
@@ -1459,16 +1477,16 @@ describe('ChainAccount', () => {
 			// Act
 			await AccountEntity.update(
 				{ address: savedAccount.address },
-				savedAccount
+				savedAccount,
 			);
 			// Assert
 			const newVotedDelegatesPublicKeysDependentRecords = await AccountEntity.adapter.execute(
 				`SELECT * FROM mem_accounts2delegates WHERE "accountId"='${
 					savedAccount.address
-				}'`
+				}'`,
 			);
 			expect(newExpectedRelatedRecords).to.be.eql(
-				newVotedDelegatesPublicKeysDependentRecords
+				newVotedDelegatesPublicKeysDependentRecords,
 			);
 		});
 
@@ -1482,7 +1500,7 @@ describe('ChainAccount', () => {
 			savedAccount.votedDelegatesPublicKeys = [];
 			// Act & Assert
 			expect(() =>
-				AccountEntity.update({ address: savedAccount.address }, savedAccount)
+				AccountEntity.update({ address: savedAccount.address }, savedAccount),
 			).not.to.throw();
 		});
 
@@ -1501,16 +1519,16 @@ describe('ChainAccount', () => {
 			// Act
 			await AccountEntity.update(
 				{ address: savedAccount.address },
-				savedAccount
+				savedAccount,
 			);
 			// Assert
 			const votedDelegatesPublicKeysDependentRecords = await AccountEntity.adapter.execute(
 				`SELECT * FROM mem_accounts2delegates WHERE "accountId"='${
 					savedAccount.address
-				}'`
+				}'`,
 			);
 			expect(expectedRelatedRecords).to.be.eql(
-				votedDelegatesPublicKeysDependentRecords
+				votedDelegatesPublicKeysDependentRecords,
 			);
 
 			savedAccount.votedDelegatesPublicKeys = [];
@@ -1518,16 +1536,16 @@ describe('ChainAccount', () => {
 			// Act
 			await AccountEntity.update(
 				{ address: savedAccount.address },
-				savedAccount
+				savedAccount,
 			);
 			// Assert
 			const newVotedDelegatesPublicKeysDependentRecords = await AccountEntity.adapter.execute(
 				`SELECT * FROM mem_accounts2delegates WHERE "accountId"='${
 					savedAccount.address
-				}'`
+				}'`,
 			);
 			expect(newExpectedRelatedRecords).to.be.eql(
-				newVotedDelegatesPublicKeysDependentRecords
+				newVotedDelegatesPublicKeysDependentRecords,
 			);
 		});
 	});

@@ -14,7 +14,7 @@ Object {
       "type": "string",
     },
     "height": Object {
-      "min": 1,
+      "minimum": 1,
       "type": "integer",
     },
     "id": Object {
@@ -24,7 +24,7 @@ Object {
       "type": "string",
     },
     "numberOfTransactions": Object {
-      "min": 0,
+      "minimum": 0,
       "type": "integer",
     },
     "payloadHash": Object {
@@ -32,7 +32,7 @@ Object {
       "type": "string",
     },
     "payloadLength": Object {
-      "min": 0,
+      "minimum": 0,
       "type": "integer",
     },
     "previousBlock": Object {
@@ -49,7 +49,7 @@ Object {
       "type": "string",
     },
     "timestamp": Object {
-      "min": 0,
+      "minimum": 0,
       "type": "integer",
     },
     "totalAmount": Object {

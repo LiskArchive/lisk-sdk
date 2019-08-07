@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -38,7 +38,7 @@ describe('cached endpoints', () => {
 
 		cache = createCacheComponent(
 			__testContext.config.components.cache,
-			this.logger
+			this.logger,
 		);
 		await cache.bootstrap();
 		cache.enable();
@@ -67,7 +67,7 @@ describe('cached endpoints', () => {
 					[0, 10, 100].map(async delay => {
 						await Promise.delay(delay);
 						return cache.getJsonForKey(res.req.path);
-					})
+					}),
 				).then(responses => {
 					expect(responses).to.deep.include(res.body);
 				});
@@ -110,7 +110,7 @@ describe('cached endpoints', () => {
 							return Promise.delay(delay).then(() => {
 								return cache.getJsonForKey(res.req.path);
 							});
-						})
+						}),
 					);
 				})
 				.then(responses => {
@@ -146,7 +146,7 @@ describe('cached endpoints', () => {
 							return Promise.delay(delay).then(() => {
 								return cache.getJsonForKey(res.req.path);
 							});
-						})
+						}),
 					);
 				})
 				.then(responses => {
@@ -174,7 +174,7 @@ describe('cached endpoints', () => {
 						return Promise.delay(delay).then(() => {
 							return cache.getJsonForKey(res.req.path);
 						});
-					})
+					}),
 				).then(responses => {
 					expect(responses).to.deep.include(res.body);
 				});
@@ -212,7 +212,7 @@ describe('cached endpoints', () => {
 							return Promise.delay(delay).then(() => {
 								return cache.getJsonForKey(urlPath);
 							});
-						})
+						}),
 					).then(responses => {
 						expect(responses).to.deep.include(res.body);
 						return onNewRoundPromise(null).then(() => {

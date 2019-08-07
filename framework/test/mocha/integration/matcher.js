@@ -56,6 +56,10 @@ class CustomTransationClass extends BaseTransaction {
 		return 7;
 	}
 
+	static get FEE() {
+		return TransferTransaction.FEE;
+	}
+
 	assetToJSON() {
 		return this.asset;
 	}
@@ -122,7 +126,7 @@ function createRawBlock(library, rawTransactions, callback) {
 	const slot = slots.getSlotNumber();
 	const keypairs = library.modules.forger.getForgersKeyPairs();
 	const transactions = rawTransactions.map(rawTransaction =>
-		library.modules.interfaceAdapters.transactions.fromJson(rawTransaction)
+		library.modules.interfaceAdapters.transactions.fromJson(rawTransaction),
 	);
 
 	return getDelegateForSlot(library, slot, (err, delegateKey) => {
@@ -141,7 +145,7 @@ function createRawBlock(library, rawTransactions, callback) {
 		block.id = blocksLogic.getId(block);
 		block.height = lastBlock.height + 1;
 		block.transactions = block.transactions.map(transaction =>
-			transaction.toJSON()
+			transaction.toJSON(),
 		);
 		return callback(null, block);
 	});
@@ -155,7 +159,7 @@ function setMatcherAndRegisterTx(scope, transactionClass, matcher) {
 
 	scope.modules.interfaceAdapters.transactions.transactionClassMap.set(
 		CUSTOM_TRANSACTION_TYPE,
-		CustomTransationClass
+		CustomTransationClass,
 	);
 }
 
@@ -210,7 +214,7 @@ describe('matcher', () => {
 		// Delete the custom transaction type from the registered transactions list
 		// So it can be registered again with the same type and maybe a different implementation in a different test.
 		scope.modules.interfaceAdapters.transactions.transactionClassMap.delete(
-			CUSTOM_TRANSACTION_TYPE
+			CUSTOM_TRANSACTION_TYPE,
 		);
 
 		// Reset transaction pool so it starts fresh back again with no transactions.
@@ -221,7 +225,7 @@ describe('matcher', () => {
 			await scope.components.storage.entities.Block.begin(t => {
 				return t.batch([
 					scope.components.storage.adapter.db.none(
-						'DELETE FROM blocks WHERE "height" > 1;'
+						'DELETE FROM blocks WHERE "height" > 1;',
 					),
 					scope.components.storage.adapter.db.none('DELETE FROM forks_stat;'),
 				]);
@@ -250,11 +254,11 @@ describe('matcher', () => {
 			} catch (err) {
 				// Assert
 				expect(
-					scope.modules.transactionPool.transactionInPool(rawTransaction.id)
+					scope.modules.transactionPool.transactionInPool(rawTransaction.id),
 				).to.be.false;
 				expect(err[0]).to.be.instanceOf(Error);
 				expect(err[0].message).to.equal(
-					`Transaction type ${CUSTOM_TRANSACTION_TYPE} is currently not allowed.`
+					`Transaction type ${CUSTOM_TRANSACTION_TYPE} is currently not allowed.`,
 				);
 			}
 		});
@@ -268,60 +272,48 @@ describe('matcher', () => {
 
 			// Assert
 			expect(
-				scope.modules.transactionPool.transactionInPool(jsonTransaction.id)
+				scope.modules.transactionPool.transactionInPool(jsonTransaction.id),
 			).to.be.true;
 		});
 	});
 
 	describe('when receiving a block from another peer', () => {
-		it('should reject the block if it contains disallowed transactions for the given block context', done => {
+		it('should reject the block if it contains disallowed transactions for the given block context', async () => {
 			// Arrange
 			setMatcherAndRegisterTx(scope, CustomTransationClass, () => false);
 			const jsonTransaction = createRawCustomTransaction(commonTransactionData);
-			createRawBlock(scope, [jsonTransaction], (err, rawBlock) => {
-				if (err) {
-					return done(err);
-				}
-
-				// Act: Simulate receiving a block from a peer
-				scope.modules.blocks.receiveBlockFromNetwork(rawBlock);
-				return scope.sequence.__tick(tickErr => {
-					if (tickErr) {
-						return done(tickErr);
+			const rawBlock = await new Promise((resolve, reject) => {
+				createRawBlock(scope, [jsonTransaction], (err, block) => {
+					if (err) {
+						return reject(err);
 					}
-					// Assert: received block should be accepted and set as the last block
-					expect(scope.modules.blocks.lastBlock.height).to.equal(1);
-
-					return done();
+					return resolve(block);
 				});
 			});
+			try {
+				await scope.modules.blocks.receiveBlockFromNetwork(rawBlock);
+			} catch (err) {
+				// Expected err
+			}
+			expect(scope.modules.blocks.lastBlock.height).to.equal(1);
 		});
 
-		it('should accept the block if it contains allowed transactions for the given block context', done => {
+		it('should accept the block if it contains allowed transactions for the given block context', async () => {
 			// Arrange
 			setMatcherAndRegisterTx(scope, CustomTransationClass, () => true);
 			const jsonTransaction = createRawCustomTransaction(commonTransactionData);
 
 			// TODO: Actually create
-
-			createBlock(scope, [jsonTransaction], (err, block) => {
-				if (err) {
-					return done(err);
-				}
-
-				// Act: Simulate receiving a block from a peer
-				scope.modules.blocks.receiveBlockFromNetwork(block);
-				return scope.sequence.__tick(tickErr => {
-					if (tickErr) {
-						return done(tickErr);
+			const newBlock = await new Promise((resolve, reject) => {
+				createBlock(scope, [jsonTransaction], (err, block) => {
+					if (err) {
+						return reject(err);
 					}
-
-					// Assert: received block should be accepted and set as the last block
-					expect(scope.modules.blocks.lastBlock.height).to.equal(2);
-
-					return done();
+					return resolve(block);
 				});
 			});
+			await scope.modules.blocks.receiveBlockFromNetwork(newBlock);
+			expect(scope.modules.blocks.lastBlock.height).to.equal(2);
 		});
 	});
 
@@ -333,11 +325,11 @@ describe('matcher', () => {
 				setMatcherAndRegisterTx(
 					scope,
 					CustomTransationClass,
-					({ blockHeight }) => blockHeight < 2
+					({ blockHeight }) => blockHeight < 2,
 				);
 
 				const jsonTransaction = createRawCustomTransaction(
-					commonTransactionData
+					commonTransactionData,
 				);
 
 				// Populate transaction pool with more transactions so we can delay applying the custom transaction
@@ -369,8 +361,8 @@ describe('matcher', () => {
 				const lastBlock = scope.modules.blocks.lastBlock;
 				expect(
 					lastBlock.transactions.some(
-						transation => transation.id === jsonTransaction.id
-					)
+						transation => transation.id === jsonTransaction.id,
+					),
 				).to.be.false;
 				expect(lastBlock.transactions.length).to.equal(0);
 			});
@@ -390,8 +382,8 @@ describe('matcher', () => {
 			const lastBlock = scope.modules.blocks.lastBlock;
 			expect(
 				lastBlock.transactions.some(
-					transation => transation.id === jsonTransaction.id
-				)
+					transation => transation.id === jsonTransaction.id,
+				),
 			).to.be.true;
 		});
 	});

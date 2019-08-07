@@ -1,6 +1,6 @@
 /*
  * LiskHQ/lisk-commander
- * Copyright © 2017–2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -26,7 +26,7 @@ describe('copyright command', () => {
 			.command(['copyright'])
 			.it('should show copyright', ctx => {
 				return expect(ctx.stdout).to.contain(
-					'Lisk Commander  Copyright (C) 2017–2018  Lisk Foundation',
+					'Lisk Commander  Copyright (C) 2019 Lisk Foundation',
 				);
 			});
 	});

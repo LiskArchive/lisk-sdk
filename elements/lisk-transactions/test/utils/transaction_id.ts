@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -55,13 +55,13 @@ describe('#getId', () => {
 		expect(cryptographygetFirstEightBytesReversedStub).to.be.calledOnce;
 	});
 
-	it('should call cryptography bufferToBigNumberString', async () => {
-		const cryptographyBufferToBigNumberStringStub = sandbox
-			.stub(cryptography, 'bufferToBigNumberString')
+	it('should call cryptography bufferToIntAsString', async () => {
+		const cryptographybufferToIntAsStringStub = sandbox
+			.stub(cryptography, 'bufferToIntAsString')
 			.returns('15822870279184933850');
 
 		getId(Buffer.from(defaultTransactionBytes, 'hex'));
-		expect(cryptographyBufferToBigNumberStringStub).to.be.calledOnce;
+		expect(cryptographybufferToIntAsStringStub).to.be.calledOnce;
 	});
 });
 

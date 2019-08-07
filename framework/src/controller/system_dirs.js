@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -14,13 +14,10 @@
 
 'use strict';
 
-const rootDir = process.cwd();
-
-const systemDirs = appLabel => ({
-	root: rootDir,
-	temp: `${rootDir}/tmp/${appLabel}/`,
-	sockets: `${rootDir}/tmp/${appLabel}/sockets`,
-	pids: `${rootDir}/tmp/${appLabel}/pids`,
+const systemDirs = (appLabel, tempPath) => ({
+	temp: `${tempPath}/${appLabel}/`,
+	sockets: `${tempPath}/${appLabel}/sockets`,
+	pids: `${tempPath}/${appLabel}/pids`,
 });
 
 module.exports = systemDirs;

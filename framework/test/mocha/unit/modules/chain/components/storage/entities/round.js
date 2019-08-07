@@ -1,6 +1,6 @@
 /* eslint-disable mocha/no-pending-tests */
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -15,7 +15,7 @@
 
 'use strict';
 
-const BigNumber = require('bignumber.js');
+const BigNum = require('@liskhq/bignum');
 const {
 	entities: { BaseEntity },
 	errors: { NonSupportedFilterTypeError, NonSupportedOptionError },
@@ -37,7 +37,7 @@ const checkTableExists = (adapter, tableName) =>
 						FROM pg_tables
 						WHERE schemaname = 'public'
 						AND tablename = '${tableName}'
-					);`
+					);`,
 		)
 		.then(result => result[0].exists);
 
@@ -106,7 +106,7 @@ describe('Round', () => {
 	before(async () => {
 		storage = new StorageSandbox(
 			__testContext.config.components.storage,
-			'lisk_test_storage_custom_round_chain_module'
+			'lisk_test_storage_custom_round_chain_module',
 		);
 		await storage.bootstrap();
 
@@ -160,7 +160,7 @@ describe('Round', () => {
 			new Round(adapter);
 
 			expect(addFieldSpy.callCount).to.eql(
-				Object.keys(RoundEntity.fields).length
+				Object.keys(RoundEntity.fields).length,
 			);
 		});
 
@@ -188,8 +188,8 @@ describe('Round', () => {
 			expect(
 				await storage.entities.Round.getOne(
 					{ round: randRound.round },
-					{ sort: 'round:desc' }
-				)
+					{ sort: 'round:desc' },
+				),
 			).to.be.eql(randRound);
 		});
 	});
@@ -215,8 +215,8 @@ describe('Round', () => {
 			expect(
 				await storage.entities.Round.get(
 					{ round_in: filters },
-					{ sort: 'round:asc' }
-				)
+					{ sort: 'round:asc' },
+				),
 			).to.be.eql(randRounds);
 		});
 	});
@@ -327,8 +327,8 @@ describe('Round', () => {
 						parsedFilters: undefined,
 					},
 					{ expectedResultCount: 1 },
-					null
-				)
+					null,
+				),
 			).to.be.true;
 		});
 
@@ -355,7 +355,7 @@ describe('Round', () => {
 			const randRound = new roundsFixtures.Round();
 			await RoundEntity.create(randRound);
 			expect(
-				await storage.entities.Round.getOne({ round: randRound.round })
+				await storage.entities.Round.getOne({ round: randRound.round }),
 			).to.be.eql(randRound);
 		});
 
@@ -368,7 +368,7 @@ describe('Round', () => {
 			await RoundEntity.create(randRounds);
 			const result = await RoundEntity.get(
 				{ round_in: filters },
-				{ sort: 'round:asc' }
+				{ sort: 'round:asc' },
 			);
 			expect(result).to.be.eql(randRounds);
 		});
@@ -428,7 +428,7 @@ describe('Round', () => {
 			await RoundEntity.delete({ round: randRoundA.round });
 			const resp = await RoundEntity.getOne(
 				{ round: randRoundB.round },
-				{ sort: 'round' }
+				{ sort: 'round' },
 			);
 			expect(resp).to.eql(randRoundB);
 		});
@@ -440,7 +440,7 @@ describe('Round', () => {
 			await RoundEntity.delete();
 			const found = await RoundEntity.get(
 				{ round_in: [randRoundA.round, randRoundB.round] },
-				{ sort: 'round' }
+				{ sort: 'round' },
 			);
 			expect(found.length).to.eql(0);
 		});
@@ -477,7 +477,7 @@ describe('Round', () => {
 			await RoundEntity.getTotalVotedAmount({ round: 1 });
 
 			expect(adapter.executeFile.firstCall.args[0]).to.eql(
-				SQLs.getTotalVotedAmount
+				SQLs.getTotalVotedAmount,
 			);
 			return expect(adapter.executeFile).to.be.calledOnce;
 		});
@@ -509,16 +509,21 @@ describe('Round', () => {
 			expect(result[0]).to.be.have.all.keys('delegate', 'amount');
 			return expect(result[0]).to.be.eql({
 				delegate: account.publicKey,
-				amount: new BigNumber(round1.amount).plus(round2.amount).toString(),
+				amount: new BigNum(round1.amount).plus(round2.amount).toString(),
 			});
 		});
 
 		it('should resolve without any error if no filter is provided', async () => {
-			expect(RoundEntity.getTotalVotedAmount({})).to.be.fulfilled;
+			return expect(
+				RoundEntity.getTotalVotedAmount({}),
+			).to.eventually.be.fulfilled.and.deep.equal([]);
 		});
 
-		it('should resolve without any error if unnown round number is provided', async () =>
-			expect(RoundEntity.getTotalVotedAmount({ round: 1234 })).to.be.fulfilled);
+		it('should resolve without any error if unnown round number is provided', async () => {
+			return expect(
+				RoundEntity.getTotalVotedAmount({ round: 1234 }),
+			).to.eventually.be.fulfilled.and.deep.equal([]);
+		});
 	});
 
 	describe('summedRound()', () => {
@@ -549,13 +554,13 @@ describe('Round', () => {
 			expect(result[0].rewards).to.be.an('array');
 			expect(result[0].delegates).to.be.an('array');
 			expect(result[0].fees).to.be.eql(
-				new BigNumber(computedBlocks[0].totalFee)
+				new BigNum(computedBlocks[0].totalFee)
 					.plus(computedBlocks[1].totalFee)
-					.toString()
+					.toString(),
 			);
 			expect(result[0].rewards).to.be.eql(computedBlocks.map(b => b.reward));
 			expect(result[0].delegates).to.be.eql(
-				computedBlocks.map(b => b.generatorPublicKey)
+				computedBlocks.map(b => b.generatorPublicKey),
 			);
 		});
 	});
@@ -573,7 +578,7 @@ describe('Round', () => {
 			await RoundEntity.createRoundRewards(params);
 
 			expect(adapter.executeFile.firstCall.args[0]).to.eql(
-				SQLs.createRoundRewards
+				SQLs.createRoundRewards,
 			);
 			expect(adapter.executeFile.firstCall.args[1]).to.eql(params);
 			expect(adapter.executeFile).to.be.calledOnce;
@@ -581,7 +586,7 @@ describe('Round', () => {
 
 		it('should insert one record to "round_rewards" table', async () => {
 			const params = {
-				timestamp: parseInt((+new Date() / 1000).toFixed()),
+				timestamp: parseInt((+new Date() / 1000).toFixed(), 10),
 				fees: '123',
 				reward: '123',
 				round: 1,
@@ -604,7 +609,7 @@ describe('Round', () => {
 			await RoundEntity.deleteRoundRewards('1');
 
 			expect(adapter.executeFile.firstCall.args[0]).to.eql(
-				SQLs.deleteRoundRewards
+				SQLs.deleteRoundRewards,
 			);
 			expect(adapter.executeFile.firstCall.args[1]).to.eql({ round: '1' });
 			expect(adapter.executeFile).to.be.calledOnce;
@@ -613,21 +618,21 @@ describe('Round', () => {
 		it('should delete all round rewards for a particular round', async () => {
 			// Seed some round reward data
 			await RoundEntity.createRoundRewards({
-				timestamp: parseInt((+new Date() / 1000).toFixed()),
+				timestamp: parseInt((+new Date() / 1000).toFixed(), 10),
 				fees: '123',
 				reward: '123',
 				round: 1, // Round 1
 				publicKey: '11111111',
 			});
 			await RoundEntity.createRoundRewards({
-				timestamp: parseInt((+new Date() / 1000).toFixed()),
+				timestamp: parseInt((+new Date() / 1000).toFixed(), 10),
 				fees: '123',
 				reward: '123',
 				round: 1, // Round 1
 				publicKey: '11111111',
 			});
 			await RoundEntity.createRoundRewards({
-				timestamp: parseInt((+new Date() / 1000).toFixed()),
+				timestamp: parseInt((+new Date() / 1000).toFixed(), 10),
 				fees: '123',
 				reward: '123',
 				round: 2, // Round 2
@@ -654,14 +659,14 @@ describe('Round', () => {
 				SQLs.clearRoundSnapshot,
 				{},
 				{ expectedResultCount: 0 },
-				sinonSandbox.match.any
+				sinonSandbox.match.any,
 			);
 		});
 
 		it('should drop the round snapshot table if it exists', async () => {
 			// Make sure the table exists
 			await adapter.execute(
-				'CREATE TABLE mem_round_snapshot AS TABLE mem_round'
+				'CREATE TABLE mem_round_snapshot AS TABLE mem_round',
 			);
 
 			// Check if table "mem_round_snapshot" exists
@@ -688,7 +693,7 @@ describe('Round', () => {
 				SQLs.performRoundSnapshot,
 				{},
 				{ expectedResultCount: 0 },
-				sinonSandbox.match.any
+				sinonSandbox.match.any,
 			);
 		});
 
@@ -719,15 +724,17 @@ describe('Round', () => {
 		it('should be rejected with error if snapshot table already exists', async () => {
 			await RoundEntity.performRoundSnapshot();
 
-			expect(RoundEntity.performRoundSnapshot()).to.be.rejectedWith(
-				'relation "mem_round_snapshot" already exists'
+			return expect(
+				RoundEntity.performRoundSnapshot(),
+			).to.eventually.be.rejectedWith(
+				'relation "mem_round_snapshot" already exists',
 			);
 		});
 	});
 
 	describe('checkSnapshotAvailability()', () => {
 		beforeEach('checkSnapshotAvailability', () =>
-			RoundEntity.clearRoundSnapshot()
+			RoundEntity.clearRoundSnapshot(),
 		);
 
 		it('should use the correct SQL file with one parameter', async () => {
@@ -740,7 +747,7 @@ describe('Round', () => {
 			expect(adapter.executeFile).to.be.calledOnce;
 			expect(adapter.executeFile).to.be.calledWith(
 				SQLs.checkSnapshotAvailability,
-				{ round: '1' }
+				{ round: '1' },
 			);
 		});
 
@@ -776,7 +783,7 @@ describe('Round', () => {
 			await RoundEntity.performRoundSnapshot();
 
 			const result = await RoundEntity.checkSnapshotAvailability(
-				round1.round + 1
+				round1.round + 1,
 			);
 
 			expect(result).to.be.eql(null);
@@ -791,10 +798,13 @@ describe('Round', () => {
 			expect(result).to.be.eql(null);
 		});
 
-		it('should reject with error if called without performing the snapshot', async () =>
-			expect(RoundEntity.checkSnapshotAvailability(1)).to.be.rejectedWith(
-				'relation "mem_round_snapshot" does not exist'
-			));
+		it('should reject with error if called without performing the snapshot', async () => {
+			return expect(
+				RoundEntity.checkSnapshotAvailability(1),
+			).to.eventually.be.rejectedWith(
+				'relation "mem_round_snapshot" does not exist',
+			);
+		});
 	});
 
 	describe('countRoundSnapshot()', () => {
@@ -813,7 +823,7 @@ describe('Round', () => {
 				{},
 				{
 					expectedResultCount: 1,
-				}
+				},
 			);
 		});
 
@@ -846,19 +856,25 @@ describe('Round', () => {
 			expect(count).to.be.eql(0);
 		});
 
-		it('should reject with error if called without performing the snapshot', async () =>
-			expect(RoundEntity.countRoundSnapshot()).to.be.rejectedWith(
-				'relation "mem_round_snapshot" does not exist'
-			));
+		it('should reject with error if called without performing the snapshot', async () => {
+			return expect(
+				RoundEntity.countRoundSnapshot(),
+			).to.eventually.be.rejectedWith(
+				'relation "mem_round_snapshot" does not exist',
+			);
+		});
 	});
 
 	describe('getDelegatesSnapshot()', () => {
 		beforeEach('performVotesSnapshot', () => RoundEntity.clearVotesSnapshot());
 
-		it('should reject with error if the called without performing the snapshot', async () =>
-			expect(RoundEntity.getDelegatesSnapshot(10)).to.be.rejectedWith(
-				'relation "mem_votes_snapshot" does not exist'
-			));
+		it('should reject with error if the called without performing the snapshot', async () => {
+			return expect(
+				RoundEntity.getDelegatesSnapshot(10),
+			).to.eventually.be.rejectedWith(
+				'relation "mem_votes_snapshot" does not exist',
+			);
+		});
 
 		it('should use the correct SQL file with one parameter', async () => {
 			// Perform the snapshot first
@@ -871,7 +887,7 @@ describe('Round', () => {
 			expect(adapter.executeFile).to.be.calledWith(
 				SQLs.getDelegatesSnapshot,
 				{ limit: 10 },
-				{}
+				{},
 			);
 		});
 
@@ -913,8 +929,8 @@ describe('Round', () => {
 
 			expect(result.map(({ publicKey }) => publicKey)).to.be.eql(
 				_.orderBy(accounts, ['vote', 'publicKey'], ['desc', 'asc']).map(
-					r => r.publicKey
-				)
+					r => r.publicKey,
+				),
 			);
 		});
 
@@ -950,14 +966,14 @@ describe('Round', () => {
 			expect(adapter.executeFile).to.be.calledWith(
 				SQLs.clearVotesSnapshot,
 				{},
-				{ expectedResultCount: 0 }
+				{ expectedResultCount: 0 },
 			);
 		});
 
 		it('should drop the votes snapshot table if it exists', async () => {
 			// Make sure the table exists
 			await adapter.execute(
-				'CREATE TABLE mem_votes_snapshot AS TABLE mem_accounts'
+				'CREATE TABLE mem_votes_snapshot AS TABLE mem_accounts',
 			);
 
 			// Check if table "mem_round_snapshot" exists
@@ -983,7 +999,7 @@ describe('Round', () => {
 			expect(adapter.executeFile).to.be.calledWith(
 				SQLs.performVotesSnapshot,
 				{},
-				{ expectedResultCount: 0 }
+				{ expectedResultCount: 0 },
 			);
 		});
 
@@ -1006,11 +1022,11 @@ describe('Round', () => {
 			await RoundEntity.performVotesSnapshot();
 
 			const count = await adapter.execute(
-				'SELECT count(*)::int FROM mem_accounts'
+				'SELECT count(*)::int FROM mem_accounts',
 			);
 			// Load records from the snapshot table
 			const result = await adapter.execute(
-				'SELECT *, encode("publicKey", \'hex\') as "publicKey" FROM mem_votes_snapshot'
+				'SELECT *, encode("publicKey", \'hex\') as "publicKey" FROM mem_votes_snapshot',
 			);
 
 			expect(result).to.be.not.empty;
@@ -1026,15 +1042,17 @@ describe('Round', () => {
 					vote: d.vote,
 					producedBlocks: d.producedBlocks,
 					missedBlocks: d.missedBlocks,
-				}))
+				})),
 			);
 		});
 
 		it('should be rejected with error if snapshot table already exists', async () => {
 			await RoundEntity.performVotesSnapshot();
 
-			return expect(RoundEntity.performVotesSnapshot()).to.be.rejectedWith(
-				'relation "mem_votes_snapshot" already exists'
+			return expect(
+				RoundEntity.performVotesSnapshot(),
+			).to.eventually.be.rejectedWith(
+				'relation "mem_votes_snapshot" already exists',
 			);
 		});
 	});
@@ -1042,10 +1060,13 @@ describe('Round', () => {
 	describe('restoreRoundSnapshot()', () => {
 		beforeEach('restoreRoundSnapshot', () => RoundEntity.clearRoundSnapshot());
 
-		it('should reject with error if the called without performing the snapshot', async () =>
-			expect(RoundEntity.restoreRoundSnapshot()).to.be.rejectedWith(
-				'relation "mem_round_snapshot" does not exist'
-			));
+		it('should reject with error if the called without performing the snapshot', async () => {
+			return expect(
+				RoundEntity.restoreRoundSnapshot(),
+			).to.eventually.be.rejectedWith(
+				'relation "mem_round_snapshot" does not exist',
+			);
+		});
 
 		it('should use the correct SQL file with no parameters', async () => {
 			// Perform the snapshot first
@@ -1058,7 +1079,7 @@ describe('Round', () => {
 			expect(adapter.executeFile).to.be.calledWith(
 				SQLs.restoreRoundSnapshot,
 				{},
-				{ expectedResultCount: 0 }
+				{ expectedResultCount: 0 },
 			);
 		});
 
@@ -1098,10 +1119,13 @@ describe('Round', () => {
 	describe('restoreVotesSnapshot()', () => {
 		beforeEach('restoreVotesSnapshot', () => RoundEntity.clearVotesSnapshot());
 
-		it('should reject with error if the called without performing the snapshot', async () =>
-			expect(RoundEntity.restoreVotesSnapshot()).to.be.rejectedWith(
-				'relation "mem_votes_snapshot" does not exist'
-			));
+		it('should reject with error if the called without performing the snapshot', async () => {
+			return expect(
+				RoundEntity.restoreVotesSnapshot(),
+			).to.eventually.be.rejectedWith(
+				'relation "mem_votes_snapshot" does not exist',
+			);
+		});
 
 		it('should use the correct SQL file with no parameters', async () => {
 			// Perform the snapshot first
@@ -1114,7 +1138,7 @@ describe('Round', () => {
 			expect(adapter.executeFile).to.be.calledWith(
 				SQLs.restoreVotesSnapshot,
 				{},
-				{ expectedResultCount: 0 }
+				{ expectedResultCount: 0 },
 			);
 		});
 
@@ -1139,24 +1163,24 @@ describe('Round', () => {
 			// Update mem_accounts and set vote to dummy value
 			await adapter.execute(
 				'UPDATE mem_accounts SET vote = $1 WHERE address IN ($2:csv)',
-				[0, addresses]
+				[0, addresses],
 			);
 
 			const before = await adapter.execute(
 				'SELECT address, vote FROM mem_accounts WHERE address IN ($1:csv)',
-				[addresses]
+				[addresses],
 			);
 			// Restore the snapshot
 			await RoundEntity.restoreVotesSnapshot();
 			const after = await adapter.execute(
 				'SELECT address, vote FROM mem_accounts WHERE address IN ($1:csv)',
-				[addresses]
+				[addresses],
 			);
 
 			expect(before.map(a => a.vote)).to.be.eql(['0', '0', '0']);
 			return accounts.forEach(account => {
 				expect(_.find(after, { address: account.address }).vote).to.be.eql(
-					account.vote
+					account.vote,
 				);
 			});
 		});

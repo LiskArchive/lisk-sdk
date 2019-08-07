@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -17,7 +17,7 @@
 import reverse = require('buffer-reverse');
 import * as ed2curve from 'ed2curve';
 import * as querystring from 'querystring';
-import { bufferToBigNumberString } from './buffer';
+import { bufferToIntAsString } from './buffer';
 import { EncryptedPassphraseObject } from './encrypt';
 import { hash } from './hash';
 
@@ -44,7 +44,7 @@ export const toAddress = (buffer: Buffer): string => {
 		);
 	}
 
-	return `${bufferToBigNumberString(buffer)}L`;
+	return `${bufferToIntAsString(buffer)}L`;
 };
 
 export const getAddressFromPublicKey = (publicKey: string): string => {

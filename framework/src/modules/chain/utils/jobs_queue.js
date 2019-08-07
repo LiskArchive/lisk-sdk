@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -60,7 +60,7 @@ const jobsQueue = {
 			assert(job.length === 0, 'Job async function should not have arguments');
 		}
 
-		const nextJob = function() {
+		const nextJob = () => {
 			const nextJobStep = () => {
 				jobsQueue.jobs[name] = setTimeout(nextJob, time);
 			};

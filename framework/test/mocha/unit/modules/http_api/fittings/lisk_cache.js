@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -26,11 +26,11 @@ describe('lisk_compression', () => {
 	it('should accept "swagger_cache_key" as config param');
 
 	it(
-		'should cache responses for endpoints for which "swagger_cache_key" is set true'
+		'should cache responses for endpoints for which "swagger_cache_key" is set true',
 	);
 
 	it(
-		'should not cache responses for endpoints for which "swagger_cache_key" is set false or not provided'
+		'should not cache responses for endpoints for which "swagger_cache_key" is set false or not provided',
 	);
 });
 

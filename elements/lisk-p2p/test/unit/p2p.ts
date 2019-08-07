@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,16 +12,22 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
 import { expect } from 'chai';
 import { P2P } from '../../src';
 
 describe('p2p', () => {
 	describe('#constructor', () => {
 		const lisk = new P2P({
-			blacklistedPeers: [],
-			connectTimeout: 5000,
 			seedPeers: [],
+			blacklistedPeers: [],
+			fixedPeers: [],
+			whitelistedPeers: [],
+			previousPeers: [],
+			connectTimeout: 5000,
 			wsEngine: 'ws',
+			maxOutboundConnections: 20,
+			maxInboundConnections: 100,
 			nodeInfo: {
 				wsPort: 5000,
 				nethash:

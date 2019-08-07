@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -31,8 +31,6 @@ describe('loader', () => {
 			it('should assign bus');
 
 			it('should assign genesisBlock');
-
-			it('should assign balancesSequence');
 
 			describe('logic', () => {
 				it('should assign logic.transaction');
@@ -88,7 +86,7 @@ describe('loader', () => {
 				it('should call library.logger.error');
 
 				it(
-					'should call library.logger.error with "Unconfirmed transactions loader"'
+					'should call library.logger.error with "Unconfirmed transactions loader"',
 				);
 
 				it('should call library.logger.error with error');
@@ -122,7 +120,7 @@ describe('loader', () => {
 		it('should call library.logger.trace after __private.loaded');
 
 		it(
-			'should call library.logger.trace with "Transactions and signatures pulled"'
+			'should call library.logger.trace with "Transactions and signatures pulled"',
 		);
 	});
 

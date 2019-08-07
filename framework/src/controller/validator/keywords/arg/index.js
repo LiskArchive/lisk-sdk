@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -35,7 +35,7 @@ const compile = (schema, parentSchema) => {
 					formatter: formatters[schema.formatter] || null,
 			  };
 
-	return function(data, dataPath, object, key) {
+	return (data, dataPath, object, key) => {
 		let argValue;
 		const commandLineArguments = yargs.argv;
 

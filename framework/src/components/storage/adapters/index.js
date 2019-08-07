@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -14,7 +14,10 @@
 
 'use strict';
 
+const BaseAdapter = require('./base_adapter');
+const PgpAdapter = require('./pgp_adapter');
+
 module.exports = {
-	BaseAdapter: require('./base_adapter'),
-	PgpAdapter: require('./pgp_adapter'),
+	BaseAdapter,
+	PgpAdapter,
 };

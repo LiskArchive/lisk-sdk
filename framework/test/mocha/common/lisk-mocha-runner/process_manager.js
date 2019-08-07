@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -28,7 +28,7 @@ const promisifyChildExit = child => {
 		console.info(
 			`Child process '${currentTests[child.pid]}(pid: ${
 				child.pid
-			})' exit with error: `
+			})' exit with error: `,
 		);
 		console.info(err);
 		error = err;

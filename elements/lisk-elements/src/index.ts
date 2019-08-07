@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -16,6 +16,15 @@ import { APIClient } from '@liskhq/lisk-api-client';
 import * as constants from '@liskhq/lisk-constants';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as passphrase from '@liskhq/lisk-passphrase';
-import * as transaction from '@liskhq/lisk-transactions';
+import * as transactions from '@liskhq/lisk-transactions';
 
-export { APIClient, constants, cryptography, passphrase, transaction };
+export {
+	APIClient,
+	constants,
+	cryptography,
+	passphrase,
+	transactions,
+	// Also export as `transacation` for backward compatibility.
+	// See https://github.com/LiskHQ/lisk-sdk/issues/3925#issuecomment-508664703
+	transactions as transaction,
+};

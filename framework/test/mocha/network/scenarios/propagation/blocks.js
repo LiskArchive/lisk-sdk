@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -30,7 +30,7 @@ module.exports = function(configurations, network) {
 							return utils.http.getBlocks({
 								port: configuration.modules.http_api.httpPort,
 							});
-						})
+						}),
 					);
 				})
 				.then(blocksResults => {
