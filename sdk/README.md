@@ -96,7 +96,7 @@ For a complete list of configuration options see the [lisk-docs repo](https://gi
 
 ### Register a custom transaction
 
-You can [define your own transaction types](https://github.com/LiskHQ/lisk-docs/blob/development/start/custom-transactions.md) with Lisk-SDK. This is where the custom logic for your blockchain application lives.
+You can [define your own transaction types](https://github.com/LiskHQ/lisk-docs/blob/master/lisk-sdk/customize.md) with Lisk-SDK. This is where the custom logic for your blockchain application lives.
 
 Add your custom transaction type to your blockchain application by registering it to the application instance:
 
@@ -118,7 +118,7 @@ app
 	});
 ```
 
-For information on creating your own custom transaction, see the [lisk-docs repo](https://github.com/LiskHQ/lisk-docs/blob/development/start/custom-transactions.md) or [follow the tutorials](https://github.com/LiskHQ/lisk-docs/blob/development/start/tutorials/hello-world.md).
+For information on creating your own custom transaction, see the [lisk-docs repo](https://github.com/LiskHQ/lisk-docs/blob/master/lisk-sdk/customize.md) or [follow the tutorials](https://github.com/LiskHQ/lisk-docs/blob/development/start/tutorials/hello-world.md).
 
 ## Architecture Overview
 
