@@ -74,7 +74,7 @@ const createMultiSignatureTransaction = (
 	passphrase,
 	min,
 	lifetime,
-	keysgroup
+	keysgroup,
 ) => {
 	const signedPublicKeys = keysgroup.map(v => `+${v}`);
 	const transaction = new MultisignatureTransaction({

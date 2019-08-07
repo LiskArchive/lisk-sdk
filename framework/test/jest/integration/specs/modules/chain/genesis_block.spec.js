@@ -61,7 +61,7 @@ describe('genesis block', () => {
 				const block = await getBlock(storage, genesisBlock.id);
 				const ids = genesisBlock.transactions.map(t => t.id);
 				const allExist = ids.every(id =>
-					block.transactions.map(tx => tx.id).includes(id)
+					block.transactions.map(tx => tx.id).includes(id),
 				);
 
 				expect(allExist).toEqual(true);
@@ -71,19 +71,20 @@ describe('genesis block', () => {
 				// Get accounts of delegate registeration
 				const delegateRegistrationTransactions = genesisBlock.transactions.filter(
 					transaction =>
-						transaction.type === TRANSACTION_TYPES_DELEGATE_REGISTRATION
+						transaction.type === TRANSACTION_TYPES_DELEGATE_REGISTRATION,
 				);
 				const delegateAccountsAddressesInGenesisBlock = delegateRegistrationTransactions.map(
-					transaction => transaction.senderId
+					transaction => transaction.senderId,
 				);
 				// Get delegate accounts in genesis block from the database
 				const accountsFromDb = await Promise.all(
 					delegateAccountsAddressesInGenesisBlock.map(address =>
-						getAccount(storage, address)
-					)
+						getAccount(storage, address),
+					),
 				);
 				const allAccountsAreDelegate = delegateAccountsAddressesInGenesisBlock.every(
-					address => accountsFromDb.find(account => address === account.address)
+					address =>
+						accountsFromDb.find(account => address === account.address),
 				);
 
 				expect(allAccountsAreDelegate).toEqual(true);
@@ -94,24 +95,24 @@ describe('genesis block', () => {
 				// Get accounts of delegate registeration
 				const delegateRegistrationTransactions = genesisBlock.transactions.filter(
 					transaction =>
-						transaction.type === TRANSACTION_TYPES_DELEGATE_REGISTRATION
+						transaction.type === TRANSACTION_TYPES_DELEGATE_REGISTRATION,
 				);
 				const delegateAccountsAddressesInGenesisBlock = delegateRegistrationTransactions.map(
-					transaction => transaction.senderId
+					transaction => transaction.senderId,
 				);
 				// Get delegate accounts in genesis block from the database
 				const accountsFromDb = await Promise.all(
 					delegateAccountsAddressesInGenesisBlock.map(address =>
-						getAccount(storage, address)
-					)
+						getAccount(storage, address),
+					),
 				);
 				const allAccountsHaveCorrectVoteWeight = delegateAccountsAddressesInGenesisBlock.every(
 					address =>
 						accountsFromDb.find(
 							account =>
 								address === account.address &&
-								account.vote === voteWeightOfDevnetDelegates
-						)
+								account.vote === voteWeightOfDevnetDelegates,
+						),
 				);
 
 				expect(allAccountsHaveCorrectVoteWeight).toEqual(true);
@@ -134,7 +135,7 @@ describe('genesis block', () => {
 				const block = await getBlock(storage, genesisBlock.id);
 				const ids = genesisBlock.transactions.map(t => t.id);
 				const allExist = ids.every(id =>
-					block.transactions.map(tx => tx.id).includes(id)
+					block.transactions.map(tx => tx.id).includes(id),
 				);
 
 				expect(allExist).toEqual(true);
@@ -144,19 +145,20 @@ describe('genesis block', () => {
 				// Get accounts of delegate registeration
 				const delegateRegistrationTransactions = genesisBlock.transactions.filter(
 					transaction =>
-						transaction.type === TRANSACTION_TYPES_DELEGATE_REGISTRATION
+						transaction.type === TRANSACTION_TYPES_DELEGATE_REGISTRATION,
 				);
 				const delegateAccountsAddressesInGenesisBlock = delegateRegistrationTransactions.map(
-					transaction => transaction.senderId
+					transaction => transaction.senderId,
 				);
 				// Get delegate accounts in genesis block from the database
 				const accountsFromDb = await Promise.all(
 					delegateAccountsAddressesInGenesisBlock.map(address =>
-						getAccount(storage, address)
-					)
+						getAccount(storage, address),
+					),
 				);
 				const allAccountsAreDelegate = delegateAccountsAddressesInGenesisBlock.every(
-					address => accountsFromDb.find(account => address === account.address)
+					address =>
+						accountsFromDb.find(account => address === account.address),
 				);
 
 				expect(allAccountsAreDelegate).toEqual(true);
@@ -167,24 +169,24 @@ describe('genesis block', () => {
 				// Get accounts of delegate registeration
 				const delegateRegistrationTransactions = genesisBlock.transactions.filter(
 					transaction =>
-						transaction.type === TRANSACTION_TYPES_DELEGATE_REGISTRATION
+						transaction.type === TRANSACTION_TYPES_DELEGATE_REGISTRATION,
 				);
 				const delegateAccountsAddressesInGenesisBlock = delegateRegistrationTransactions.map(
-					transaction => transaction.senderId
+					transaction => transaction.senderId,
 				);
 				// Get delegate accounts in genesis block from the database
 				const accountsFromDb = await Promise.all(
 					delegateAccountsAddressesInGenesisBlock.map(address =>
-						getAccount(storage, address)
-					)
+						getAccount(storage, address),
+					),
 				);
 				const allAccountsHaveCorrectVoteWeight = delegateAccountsAddressesInGenesisBlock.every(
 					address =>
 						accountsFromDb.find(
 							account =>
 								address === account.address &&
-								account.vote === voteWeightOfDevnetDelegates
-						)
+								account.vote === voteWeightOfDevnetDelegates,
+						),
 				);
 
 				expect(allAccountsHaveCorrectVoteWeight).toEqual(true);

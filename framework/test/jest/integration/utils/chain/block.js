@@ -22,7 +22,7 @@ const createBlock = (
 	lastBlock,
 	transactions,
 	keypair,
-	timestamp
+	timestamp,
 ) =>
 	blocksLogic.create({
 		blockReward: chainModule.blocks.blockReward,
