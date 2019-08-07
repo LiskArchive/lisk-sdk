@@ -1,0 +1,5 @@
+--timeout 1200s
+--exit
+--colors
+--require test/mocha/setup.js
+--recursive
