@@ -196,6 +196,14 @@ class Blocks extends EventEmitter {
 		}
 	}
 
+	validate({ block }) {}
+
+	verify({}) {}
+
+	apply({}) {}
+
+	undo({}) {}
+
 	broadcast(block) {
 		// emit event
 		const cloned = cloneDeep(block);
