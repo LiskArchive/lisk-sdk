@@ -14,18 +14,19 @@
 
 'use strict';
 
-const storageConfig = (database, user, password) => ({
+const storageConfig = overidenConfigProperties => ({
 	host: 'localhost',
 	port: 5432,
-	database,
-	user: user || 'lisk',
-	password: password || 'password',
+	database: 'lisk_dev',
+	user: 'lisk',
+	password: 'password',
 	min: 10,
 	max: process.env.LISK_TEST_DB_MAX_CONNECTIONS || 2,
 	poolIdleTimeout: 30000,
 	reapIntervalMillis: 1000,
 	logEvents: ['error'],
 	logFileName: 'logs/lisk_db.log',
+	...overidenConfigProperties,
 });
 
 module.exports = {

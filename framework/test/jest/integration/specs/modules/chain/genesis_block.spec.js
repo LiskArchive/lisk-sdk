@@ -32,7 +32,7 @@ describe('genesis block', () => {
 	let chainModule;
 
 	beforeAll(async () => {
-		storage = new StorageSandbox(storageConfig(dbName));
+		storage = new StorageSandbox(storageConfig({ database: dbName }));
 		await storage.bootstrap();
 	});
 

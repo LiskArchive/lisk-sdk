@@ -39,7 +39,7 @@ const createMockChannel = databaseName => {
 		invoke: jest.fn((action, arg) => {
 			if (action === 'app:getComponentConfig') {
 				if (arg === 'storage') {
-					return storageConfig(databaseName);
+					return storageConfig({ database: databaseName });
 				}
 				if (arg === 'cache') {
 					return cacheConfig();
