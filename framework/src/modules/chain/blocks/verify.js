@@ -516,6 +516,7 @@ class BlocksVerify {
 			currentHeight - 1,
 			this.interfaceAdapters,
 			this.genesisBlock,
+			blocksLogic,
 		);
 		const currentBlockResult = this.verifyBlock(currentBlock, secondLastBlock);
 		if (currentBlockResult.verified) {
@@ -526,12 +527,14 @@ class BlocksVerify {
 			validateTillHeight,
 			this.interfaceAdapters,
 			this.genesisBlock,
+			blocksLogic,
 		);
 		const startBlockLastBlock = await blocksUtils.loadBlockByHeight(
 			this.storage,
 			startBlock.height - 1,
 			this.interfaceAdapters,
 			this.genesisBlock,
+			blocksLogic,
 		);
 		const startBlockResult = this.verifyBlock(startBlock, startBlockLastBlock);
 		if (!startBlockResult.verified) {

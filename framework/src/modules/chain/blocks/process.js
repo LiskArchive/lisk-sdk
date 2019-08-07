@@ -135,6 +135,7 @@ class BlocksProcess {
 			currentBlock.height - 1,
 			this.interfaceAdapters,
 			this.genesisBlock,
+			blocksLogic,
 		);
 		const { verified } = this.blocksVerify.verifyBlock(currentBlock, lastBlock);
 		if (!verified) {
@@ -173,6 +174,7 @@ class BlocksProcess {
 			this.genesisBlock,
 			limit,
 			currentHeight,
+			blocksLogic,
 		);
 		let lastBlock = initialBlock;
 		// eslint-disable-next-line no-restricted-syntax

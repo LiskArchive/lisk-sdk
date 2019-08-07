@@ -591,6 +591,7 @@ describe('blocks/process', () => {
 				isCleaning,
 				onProgress,
 				10,
+				blocksLogic,
 			);
 			expect(blocksUtils.loadBlocksWithOffset).to.be.calledWith(
 				storageStub,
@@ -598,6 +599,7 @@ describe('blocks/process', () => {
 				blocksProcess.genesisBlock,
 				10,
 				0,
+				blocksLogic,
 			);
 		});
 
@@ -636,6 +638,7 @@ describe('blocks/process', () => {
 				isCleaning,
 				onProgress,
 				10,
+				blocksLogic,
 			);
 			expect(blocksChainStub.applyGenesisBlock).to.be.calledOnce;
 		});
@@ -654,6 +657,7 @@ describe('blocks/process', () => {
 				isCleaning,
 				onProgress,
 				10,
+				blocksLogic,
 			);
 			expect(blocksUtils.loadBlocksWithOffset).to.be.calledTwice;
 		});

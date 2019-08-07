@@ -17,6 +17,7 @@
 const async = require('async');
 const blockVersion = require('../../../../../src/modules/chain/blocks/block_version');
 const blocksUtils = require('../../../../../src/modules/chain/blocks/utils');
+const blocksLogic = require('../../../../../src/modules/chain/blocks/block');
 const application = require('../../../common/application');
 const modulesLoader = require('../../../common/modules_loader');
 const clearDatabaseTable = require('../../../common/storage_sandbox')
@@ -138,6 +139,7 @@ describe('integration test (blocks) - process', () => {
 				__testContext.config.genesisBlock,
 				1,
 				2,
+				blocksLogic,
 			);
 
 			const block = loadedBlocks[0];
@@ -151,6 +153,7 @@ describe('integration test (blocks) - process', () => {
 				__testContext.config.genesisBlock,
 				1,
 				3,
+				blocksLogic,
 			);
 			const block = loadedBlocks[0];
 			expect(block.height).to.equal(3);

@@ -198,6 +198,7 @@ describe('blocks/utils', () => {
 				fullBlocksListRows,
 				interfaceAdaptersMock,
 				genesisBlock,
+				blocksLogic,
 			);
 
 			fullBlocksListRows.forEach(block => {
@@ -217,6 +218,7 @@ describe('blocks/utils', () => {
 					fullBlocksListRows,
 					interfaceAdaptersMock,
 					genesisBlock,
+					blocksLogic,
 				);
 				expect(blocks).to.be.an('array');
 			});
@@ -280,6 +282,7 @@ describe('blocks/utils', () => {
 				genesisBlock_view_full_blocks_list,
 				interfaceAdaptersMock,
 				genesisBlock,
+				blocksLogic,
 			);
 
 			expect(blockObject).to.be.an('array');
@@ -300,6 +303,7 @@ describe('blocks/utils', () => {
 					storageStub,
 					interfaceAdaptersMock,
 					genesisBlock,
+					blocksLogic,
 				);
 			} catch (err) {
 				expect(err.message).to.equal('Failed to load last block');
@@ -313,6 +317,7 @@ describe('blocks/utils', () => {
 					storageStub,
 					interfaceAdaptersMock,
 					genesisBlock,
+					blocksLogic,
 				);
 
 				expect(block).to.be.an('object');

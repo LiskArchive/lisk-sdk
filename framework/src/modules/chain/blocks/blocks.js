@@ -19,6 +19,7 @@ const { cloneDeep } = require('lodash');
 const blocksUtils = require('./utils');
 const { BlocksProcess } = require('./process');
 const { BlocksVerify } = require('./verify');
+const blocksLogic = require('./block');
 const blockVersion = require('./block_version');
 const { BlocksChain } = require('./chain');
 const {
@@ -293,6 +294,7 @@ class Blocks extends EventEmitter {
 				this.storage,
 				this.interfaceAdapters,
 				this.genesisBlock,
+				blocksLogic,
 			);
 		} catch (error) {
 			this.logger.error(error, 'Failed to fetch last block');
@@ -580,6 +582,7 @@ class Blocks extends EventEmitter {
 				blocks,
 				this.interfaceAdapters,
 				this.genesisBlock,
+				blocksLogic,
 			);
 			// eslint-disable-next-line no-restricted-syntax
 			for (const block of normalizedBlocks) {

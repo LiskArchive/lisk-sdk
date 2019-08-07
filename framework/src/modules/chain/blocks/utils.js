@@ -17,7 +17,6 @@
 const _ = require('lodash');
 const { hash } = require('@liskhq/lisk-cryptography');
 const BigNum = require('@liskhq/bignum');
-const blocksLogic = require('./block');
 
 /**
  * Generates a list of full blocks structured as full_blocks_list DB view
@@ -186,7 +185,12 @@ const loadBlocksDataWS = async (storage, filter, tx) => {
  * @param {Array} rows - Data from extended block entity
  * @returns {Array} blocks - List of normalized blocks with transactions
  */
-const readStorageRows = (rows, interfaceAdapters, genesisBlock) => {
+const readStorageRows = (
+	rows,
+	interfaceAdapters,
+	genesisBlock,
+	blocksLogic,
+) => {
 	const blocks = rows.map(block => {
 		// Normalize block
 		// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
@@ -216,7 +220,7 @@ const readStorageRows = (rows, interfaceAdapters, genesisBlock) => {
  * @returns {Array} blocks - List of normalized blocks with transactions
  */
 
-const readDbRows = (rows, interfaceAdapters, genesisBlock) => {
+const readDbRows = (rows, interfaceAdapters, genesisBlock, blocksLogic) => {
 	let blocks = {};
 	const order = [];
 
@@ -273,7 +277,12 @@ const readDbRows = (rows, interfaceAdapters, genesisBlock) => {
  * @returns {Object} cb.err - Error message if error occurred
  * @returns {Object} cb.block - Full normalized last block
  */
-const loadLastBlock = async (storage, interfaceAdapters, genesisBlock) => {
+const loadLastBlock = async (
+	storage,
+	interfaceAdapters,
+	genesisBlock,
+	blocksLogic,
+) => {
 	// Get full last block from database
 	// FIXME: Review SQL order by clause
 	const rows = await storage.entities.Block.get(
@@ -284,7 +293,7 @@ const loadLastBlock = async (storage, interfaceAdapters, genesisBlock) => {
 		throw new Error('Failed to load last block');
 	}
 	// Normalize block
-	return readStorageRows(rows, interfaceAdapters, genesisBlock)[0];
+	return readStorageRows(rows, interfaceAdapters, genesisBlock, blocksLogic)[0];
 
 	// Update last block
 	// TODO: Update from callee
@@ -371,13 +380,19 @@ const loadBlockByHeight = async (
 	interfaceAdapters,
 	genesisBlock,
 	tx,
+	blocksLogic,
 ) => {
 	const row = await storage.entities.Block.getOne(
 		{ height },
 		{ extended: true },
 		tx,
 	);
-	return readStorageRows([row], interfaceAdapters, genesisBlock)[0];
+	return readStorageRows(
+		[row],
+		interfaceAdapters,
+		genesisBlock,
+		blocksLogic,
+	)[0];
 };
 
 /**
@@ -396,6 +411,7 @@ const loadBlocksWithOffset = async (
 	genesisBlock,
 	blocksAmount,
 	fromHeight = 0,
+	blocksLogic,
 ) => {
 	// Calculate toHeight
 	const toHeight = fromHeight + blocksAmount;
@@ -413,7 +429,7 @@ const loadBlocksWithOffset = async (
 
 	// Loads extended blocks from storage
 	const rows = await storage.entities.Block.get(filters, options);
-	return readStorageRows(rows, interfaceAdapters, genesisBlock);
+	return readStorageRows(rows, interfaceAdapters, genesisBlock, blocksLogic);
 };
 
 /**
