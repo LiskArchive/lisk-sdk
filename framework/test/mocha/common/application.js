@@ -21,7 +21,7 @@ const _ = require('lodash');
 const { registeredTransactions } = require('./registered_transactions');
 const jobsQueue = require('../../../src/modules/chain/utils/jobs_queue');
 const { Sequence } = require('../../../src/modules/chain/utils/sequence');
-const { BlockSlots } = require('../../../src/modules/chain/dpos');
+const { Slots } = require('../../../src/modules/chain/dpos');
 const { createCacheComponent } = require('../../../src/components/cache');
 const { StorageSandbox } = require('./storage_sandbox');
 
@@ -47,7 +47,7 @@ const initStepsForTest = {
 
 		scope.rewiredModules.interfaceAdapters = {};
 		scope.rewiredModules.interfaceAdapters.transactions = RewiredTransactionInterfaceAdapter;
-		scope.slots = new BlockSlots({
+		scope.slots = new Slots({
 			epochTime: __testContext.config.constants.EPOCH_TIME,
 			interval: __testContext.config.constants.BLOCK_TIME,
 			blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,

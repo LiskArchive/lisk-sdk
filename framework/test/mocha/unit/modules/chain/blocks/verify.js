@@ -30,7 +30,7 @@ const interfaceAdapters = {
 	transactions: new TransactionInterfaceAdapter(registeredTransactions),
 };
 const blocksVerifyModule = require('../../../../../../src/modules/chain/blocks/verify');
-const { BlockSlots } = require('../../../../../../src/modules/chain/dpos');
+const { Slots } = require('../../../../../../src/modules/chain/dpos');
 const {
 	calculateMilestone,
 	calculateReward,
@@ -129,7 +129,7 @@ describe('blocks/verify', () => {
 			},
 		};
 
-		slots = new BlockSlots({
+		slots = new Slots({
 			epochTime: __testContext.config.constants.EPOCH_TIME,
 			interval: __testContext.config.constants.BLOCK_TIME,
 			blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,

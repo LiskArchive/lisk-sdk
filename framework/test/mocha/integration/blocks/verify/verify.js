@@ -34,7 +34,7 @@ const {
 const accountFixtures = require('../../../fixtures/accounts');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
-const { BlockSlots } = require('../../../../../src/modules/chain/dpos');
+const { Slots } = require('../../../../../src/modules/chain/dpos');
 const blocksLogic = require('../../../../../src/modules/chain/blocks/block');
 const blockVersion = require('../../../../../src/modules/chain/blocks/block_version');
 const blocksUtils = require('../../../../../src/modules/chain/blocks/utils');
@@ -46,7 +46,7 @@ const interfaceAdapters = {
 	transactions: new TransactionInterfaceAdapter(registeredTransactions),
 };
 
-const slots = new BlockSlots({
+const slots = new Slots({
 	epochTime: __testContext.config.constants.EPOCH_TIME,
 	interval: __testContext.config.constants.BLOCK_TIME,
 	blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,

@@ -27,7 +27,7 @@ const transactionsModule = require('../../../../../../src/modules/chain/transact
 const {
 	BlocksProcess,
 } = require('../../../../../../src/modules/chain/blocks/process');
-const { BlockSlots } = require('../../../../../../src/modules/chain/dpos');
+const { Slots } = require('../../../../../../src/modules/chain/dpos');
 const {
 	calculateMilestone,
 	calculateReward,
@@ -114,7 +114,7 @@ describe('blocks/process', () => {
 			.stub(transactionsModule, 'checkAllowedTransactions')
 			.returns(checkAllowedTransactionsStub);
 
-		slots = new BlockSlots({
+		slots = new Slots({
 			epochTime: __testContext.config.constants.EPOCH_TIME,
 			interval: __testContext.config.constants.BLOCK_TIME,
 			blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,

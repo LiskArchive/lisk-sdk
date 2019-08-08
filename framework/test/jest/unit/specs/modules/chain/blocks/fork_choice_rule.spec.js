@@ -6,17 +6,17 @@ const {
 	isTieBreak,
 	isValidBlock,
 } = require('../../../../../../../src/modules/chain/blocks/fork_choice_rule');
-const { BlockSlots } = require('../../../../../../../src/modules/chain/dpos');
+const { Slots } = require('../../../../../../../src/modules/chain/dpos');
 
 const EPOCH_TIME = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString();
 const BLOCK_TIME = 10;
 const ACTIVE_DELEGATES = 101;
 
 describe('Fork Choice Rule', () => {
-	let blockSlots;
+	let slots;
 
 	beforeEach(() => {
-		blockSlots = new BlockSlots({
+		slots = new Slots({
 			epochTime: EPOCH_TIME,
 			interval: BLOCK_TIME,
 			blocksPerRound: ACTIVE_DELEGATES,
@@ -134,7 +134,7 @@ describe('Fork Choice Rule', () => {
 
 			expect(
 				isTieBreak({
-					slots: blockSlots,
+					slots,
 					lastAppliedBlock,
 					receivedBlock,
 				}),

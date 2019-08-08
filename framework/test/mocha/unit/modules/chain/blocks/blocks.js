@@ -32,7 +32,7 @@ const {
 const {
 	BlocksChain,
 } = require('../../../../../../src/modules/chain/blocks/chain');
-const { BlockSlots } = require('../../../../../../src/modules/chain/dpos');
+const { Slots } = require('../../../../../../src/modules/chain/dpos');
 const blocksUtils = require('../../../../../../src/modules/chain/blocks/utils');
 
 describe('blocks', () => {
@@ -69,7 +69,7 @@ describe('blocks', () => {
 				},
 			},
 		};
-		slots = new BlockSlots({
+		slots = new Slots({
 			epochTime: __testContext.config.constants.EPOCH_TIME,
 			interval: __testContext.config.constants.BLOCK_TIME,
 			blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,

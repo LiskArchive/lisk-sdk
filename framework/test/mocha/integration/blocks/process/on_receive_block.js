@@ -23,7 +23,7 @@ const {
 	getPrivateAndPublicKeyBytesFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
 const accountFixtures = require('../../../fixtures/accounts');
-const { BlockSlots } = require('../../../../../src/modules/chain/dpos');
+const { Slots } = require('../../../../../src/modules/chain/dpos');
 const blocksUtils = require('../../../../../src/modules/chain/blocks/block');
 const blockVersion = require('../../../../../src/modules/chain/blocks/block_version');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
@@ -36,7 +36,7 @@ const {
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
 
 describe('integration test (blocks) - process receiveBlockFromNetwork()', () => {
-	const slots = new BlockSlots({
+	const slots = new Slots({
 		epochTime: __testContext.config.constants.EPOCH_TIME,
 		interval: __testContext.config.constants.BLOCK_TIME,
 		blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,

@@ -35,7 +35,7 @@ const {
 	EVENT_MULTISIGNATURE_SIGNATURE,
 	EVENT_UNCONFIRMED_TRANSACTION,
 } = require('./transaction_pool');
-const { BlockSlots, Dpos } = require('./dpos');
+const { Slots, Dpos } = require('./dpos');
 const { EVENT_BFT_BLOCK_FINALIZED, BFT } = require('./bft');
 const { Rounds } = require('./rounds');
 const {
@@ -330,7 +330,7 @@ module.exports = class Chain {
 			),
 		};
 		this.scope.modules.interfaceAdapters = this.interfaceAdapters;
-		this.slots = new BlockSlots({
+		this.slots = new Slots({
 			epochTime: this.options.constants.EPOCH_TIME,
 			interval: this.options.constants.BLOCK_TIME,
 			blocksPerRound: this.options.constants.ACTIVE_DELEGATES,

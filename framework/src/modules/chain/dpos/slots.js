@@ -14,7 +14,7 @@
 
 'use strict';
 
-class BlockSlots {
+class Slots {
 	constructor({ epochTime, interval, blocksPerRound }) {
 		this.epochTime = epochTime;
 		this.interval = interval;
@@ -148,5 +148,5 @@ class BlockSlots {
 }
 
 module.exports = {
-	BlockSlots,
+	Slots,
 };

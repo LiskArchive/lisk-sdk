@@ -14,13 +14,13 @@
 
 'use strict';
 
-const { BlockSlots } = require('../../../../../../src/modules/chain/dpos');
+const { Slots } = require('../../../../../../src/modules/chain/dpos');
 
-describe('BlockSlots', () => {
+describe('Slots', () => {
 	let slots;
 
 	beforeEach(async () => {
-		slots = new BlockSlots({
+		slots = new Slots({
 			epochTime: __testContext.config.constants.EPOCH_TIME,
 			interval: __testContext.config.constants.BLOCK_TIME,
 			blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,

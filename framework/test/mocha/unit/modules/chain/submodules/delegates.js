@@ -20,10 +20,10 @@ const {
 	getKeysSortByVote,
 	getDelegatesFromPreviousRound,
 } = require('../../../../../../src/modules/chain/rounds/delegates');
-const { BlockSlots } = require('../../../../../../src/modules/chain/dpos');
+const { Slots } = require('../../../../../../src/modules/chain/dpos');
 
 describe('delegates', () => {
-	const slots = new BlockSlots({
+	const slots = new Slots({
 		epochTime: __testContext.config.constants.EPOCH_TIME,
 		interval: __testContext.config.constants.BLOCK_TIME,
 		blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,

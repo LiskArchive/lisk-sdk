@@ -14,10 +14,10 @@
 
 'use strict';
 
-const { BlockSlots } = require('./block_slots');
+const { Slots } = require('./slots');
 const Dpos = require('./dpos');
 
 module.exports = {
-	BlockSlots,
+	Slots,
 	Dpos,
 };
