@@ -241,6 +241,49 @@ class Blocks extends EventEmitter {
 		}
 	}
 
+	forkChoice({ block, lastBlock }) {
+		// Cases are numbered following LIP-0014 Fork choice rule.
+		// See: https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#applying-blocks-according-to-fork-choice-rule
+		// Case 2 and 1 have flipped execution order for better readability. Behavior is still the same
+
+		if (forkChoiceRule.isValidBlock(lastBlock, block)) {
+			// Case 2: correct block received
+			return forkChoiceRule.FORK_STATUS_PROCESS;
+		}
+
+		if (forkChoiceRule.isIdenticalBlock(lastBlock, block)) {
+			// Case 1: same block received twice
+			return forkChoiceRule.FORK_STATUS_DISCARD;
+		}
+
+		if (forkChoiceRule.isDoubleForging(lastBlock, block)) {
+			// Delegates are the same
+			// Case 3: double forging different blocks in the same slot.
+			// Last Block stands.
+			return forkChoiceRule.FORK_STATUS_DISCARD;
+		}
+
+		if (
+			forkChoiceRule.isTieBreak({
+				slots: this.slots,
+				lastAppliedBlock: lastBlock,
+				receivedBlock: block,
+			})
+		) {
+			// Two competing blocks by different delegates at the same height.
+			// Case 4: Tie break
+			return forkChoiceRule.FORK_STATUS_REVERT;
+		}
+
+		if (forkChoiceRule.isDifferentChain(lastBlock, block)) {
+			// Case 5: received block has priority. Move to a different chain.
+			return forkChoiceRule.FORK_STATUS_SYNC;
+		}
+
+		// Discard newly received block
+		return forkChoiceRule.FORK_STATUS_DISCARD;
+	}
+
 	async verify({ block }) {
 		await verifyBlockNotExists(this.storage, block);
 		const {

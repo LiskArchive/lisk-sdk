@@ -19,6 +19,7 @@ const { Pipeline } = require('./pipeline');
 class BlockProcessor {
 	constructor() {
 		this.create = new Pipeline();
+		this.getBytes = new Pipeline();
 		this.fork = new Pipeline();
 		this.validate = new Pipeline();
 		this.validateNew = new Pipeline();
