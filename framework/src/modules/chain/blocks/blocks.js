@@ -17,12 +17,22 @@
 const EventEmitter = require('events');
 const { cloneDeep } = require('lodash');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
-const { validateTransactions } = require('../transactions');
+const {
+	validateTransactions,
+	checkPersistedTransactions,
+} = require('../transactions');
 const blocksUtils = require('./utils');
 const { BlocksProcess } = require('./process');
-const { BlocksVerify } = require('./verify');
+const { BlocksVerify, verifyBlockNotExists } = require('./verify');
 const blockVersion = require('./block_version');
-const { BlocksChain } = require('./chain');
+const {
+	BlocksChain,
+	applyConfirmedStep,
+	undoConfirmedStep,
+	saveBlockStep,
+	deleteBlock,
+	parseBlockToJson,
+} = require('./chain');
 const {
 	calculateSupply,
 	calculateReward,
@@ -226,11 +236,57 @@ class Blocks extends EventEmitter {
 		}
 	}
 
-	verify({}) {}
+	async verify({ block }) {
+		await verifyBlockNotExists(this.storage, block);
+		const {
+			transactionsResponses: persistedResponse,
+		} = await checkPersistedTransactions(this.storage)(block.transactions);
+		const invalidPersistedResponse = persistedResponse.find(
+			transactionResponse =>
+				transactionResponse.status !== TransactionStatus.OK,
+		);
+		if (invalidPersistedResponse) {
+			throw invalidPersistedResponse.errors;
+		}
+		await this.blocksVerify.checkTransactions(block);
+	}
 
-	apply({}) {}
+	async apply({ block, tx }) {
+		await applyConfirmedStep(
+			this.storage,
+			this.slots,
+			block,
+			this.exceptions,
+			tx,
+		);
+	}
 
-	undo({}) {}
+	async undo({ block, tx }) {
+		await undoConfirmedStep(
+			this.storage,
+			this.slots,
+			block,
+			this.exceptions,
+			tx,
+		);
+	}
+
+	async save({ block, tx }) {
+		await saveBlockStep(this.storage, this.roundsModule, block, true, tx);
+	}
+
+	async remove({ block, lastBlock, tx }, saveToTemp) {
+		await deleteBlock(this.storage, block.id, tx);
+		if (saveToTemp) {
+			const parsedDeletedBlock = parseBlockToJson(lastBlock);
+			const blockTempEntry = {
+				id: parsedDeletedBlock.id,
+				height: parsedDeletedBlock.height,
+				fullBlock: parsedDeletedBlock,
+			};
+			await this.storage.entities.TempBlock.create(blockTempEntry, {}, tx);
+		}
+	}
 
 	broadcast(block) {
 		// emit event

@@ -22,6 +22,15 @@ const blocksLogic = require('./block');
 const blocksUtils = require('./utils');
 const transactionsModule = require('../transactions');
 
+const verifyBlockNotExists = async (storage, block) => {
+	const isPersisted = await storage.entities.Block.isPersisted({
+		id: block.id,
+	});
+	if (isPersisted) {
+		throw new Error(`Block ${block.id} already exists`);
+	}
+};
+
 /**
  * Verify block signature.
  *
@@ -632,4 +641,5 @@ module.exports = {
 	verifyVersion,
 	verifyReward,
 	verifyReceipt,
+	verifyBlockNotExists,
 };
