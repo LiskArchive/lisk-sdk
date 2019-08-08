@@ -16,6 +16,8 @@
 
 const EventEmitter = require('events');
 const { cloneDeep } = require('lodash');
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const { validateTransactions } = require('../transactions');
 const blocksUtils = require('./utils');
 const blocksLogic = require('./block');
 const { BlocksProcess } = require('./process');
@@ -28,6 +30,14 @@ const {
 	calculateMilestone,
 } = require('./block_reward');
 const forkChoiceRule = require('./fork_choice_rule');
+const {
+	validateSignature,
+	validatePreviousBlock,
+	validateAgainstLastNBlockIds,
+	validateReward,
+	validatePayload,
+	validateBlockSlot,
+} = require('./validate');
 
 const EVENT_NEW_BLOCK = 'EVENT_NEW_BLOCK';
 const EVENT_DELETE_BLOCK = 'EVENT_DELETE_BLOCK';
@@ -196,7 +206,30 @@ class Blocks extends EventEmitter {
 		}
 	}
 
-	validate({ block }) {}
+	validate({ block, lastBlock, blockBytes }) {
+		validateSignature(block, blockBytes);
+		validatePreviousBlock(block);
+		validateAgainstLastNBlockIds(block, this._lastNBlockIds);
+		validateReward(block, this.blockReward, this.exceptions);
+		validatePayload(
+			block,
+			this.constants.maxTransactionsPerBlock,
+			this.constants.maxPayloadLength,
+		);
+		validateBlockSlot(block, lastBlock, this.slots);
+
+		// validate transactions
+		const { transactionsResponses } = validateTransactions(this.exceptions)(
+			block.transactions,
+		);
+		const invalidTransactionResponse = transactionsResponses.find(
+			transactionResponse =>
+				transactionResponse.status !== TransactionStatus.OK,
+		);
+		if (invalidTransactionResponse) {
+			throw invalidTransactionResponse.errors;
+		}
+	}
 
 	verify({}) {}
 
