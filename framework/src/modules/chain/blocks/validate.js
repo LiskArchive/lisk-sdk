@@ -15,7 +15,34 @@
 'use strict';
 
 const BigNum = require('@liskhq/bignum');
-const { hash } = require('@liskhq/lisk-cryptography');
+const { hash, verifyData } = require('@liskhq/lisk-cryptography');
+
+/**
+ Validate block signature.
+ *
+ * @private
+ * @func validateSignature
+ * @param {Object} block - Target block
+ * @param {Buffer} blockBytes - bytes of block
+ */
+const validateSignature = (block, blockBytes) => {
+	const signatureLength = 64;
+	const dataWithoutSignature = blockBytes.slice(
+		0,
+		blockBytes.length - signatureLength,
+	);
+	const hashedBlock = hash(dataWithoutSignature);
+
+	const verified = verifyData(
+		hashedBlock,
+		block.blockSignature,
+		block.generatorPublicKey,
+	);
+
+	if (!verified) {
+		throw new Error('Invalid block signature');
+	}
+};
 
 /**
  * Validate previous block.
@@ -121,9 +148,32 @@ const validatePayload = (block, maxTransactionsPerBlock, maxPayloadLength) => {
 	}
 };
 
+/**
+ * Validate block slot according to timestamp.
+ *
+ * @private
+ * @func validateBlockSlot
+ * @param {Object} block - Target block
+ * @param {Object} lastBlock - Last block
+ */
+// TODO: Move to DPOS validation
+const validateBlockSlot = (block, lastBlock, slots) => {
+	const blockSlotNumber = slots.getSlotNumber(block.timestamp);
+	const lastBlockSlotNumber = slots.getSlotNumber(lastBlock.timestamp);
+
+	if (
+		blockSlotNumber > slots.getSlotNumber() ||
+		blockSlotNumber <= lastBlockSlotNumber
+	) {
+		throw new Error('Invalid block timestamp');
+	}
+};
+
 module.exports = {
+	validateSignature,
 	validatePreviousBlock,
 	validateAgainstLastNBlockIds,
 	validateReward,
 	validatePayload,
+	validateBlockSlot,
 };
