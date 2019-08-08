@@ -135,7 +135,7 @@ describe('GET /blocks', () => {
 
 			it('using valid fromTimestamp should return transactions', async () => {
 				// Last hour lisk time
-				const queryTime = slots.getTime() - 60 * 60;
+				const queryTime = slots.getEpochTime() - 60 * 60;
 
 				return blocksEndpoint
 					.makeRequest(
@@ -168,7 +168,7 @@ describe('GET /blocks', () => {
 
 			it('using valid toTimestamp should return transactions', async () => {
 				// Current lisk time
-				const queryTime = slots.getTime();
+				const queryTime = slots.getEpochTime();
 
 				return blocksEndpoint
 					.makeRequest(

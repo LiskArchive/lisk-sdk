@@ -258,7 +258,7 @@ module.exports = class Chain {
 				loaded: true,
 				syncing: this.loader.syncing(),
 				unconfirmedTransactions: this.transactionPool.getCount(),
-				secondsSinceEpoch: this.slots.getTime(),
+				secondsSinceEpoch: this.slots.getEpochTime(),
 				lastBlock: this.blocks.lastBlock,
 			}),
 			blocks: async action => this.transport.blocks(action.params || {}),

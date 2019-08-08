@@ -40,24 +40,13 @@ class BlockSlots {
 	/**
 	 * Description of the function.
 	 *
-	 * @param {number} time
-	 * @returns {number} Lisk epoch time
-	 * @todo Add description for the function and the params
-	 */
-	getTime(time) {
-		return this.getEpochTime(time);
-	}
-
-	/**
-	 * Description of the function.
-	 *
 	 * @param {number} [epochTime]
 	 * @returns {number} Constant time from Lisk epoch + input time
 	 * @todo Add description for the function and the params
 	 */
 	getRealTime(epochTime) {
 		if (epochTime === undefined) {
-			epochTime = this.getTime();
+			epochTime = this.getEpochTime();
 		}
 
 		return (
@@ -75,7 +64,7 @@ class BlockSlots {
 	 */
 	getSlotNumber(epochTime) {
 		if (epochTime === undefined) {
-			epochTime = this.getTime();
+			epochTime = this.getEpochTime();
 		}
 
 		return Math.floor(epochTime / this.interval);

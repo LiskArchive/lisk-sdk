@@ -532,17 +532,17 @@ describe('blocks', () => {
 				id: '1',
 				height: 1,
 				version: 2,
-				timestamp: blocksInstance.slots.getTime(Date.now()),
+				timestamp: blocksInstance.slots.getEpochTime(Date.now()),
 			};
 
 			defaults.newBlock = {
 				id: '2',
 				height: 2,
 				version: 2,
-				timestamp: blocksInstance.slots.getTime(Date.now()),
+				timestamp: blocksInstance.slots.getEpochTime(Date.now()),
 			};
 
-			newBlockForgingTime = blocksInstance.slots.getTime();
+			newBlockForgingTime = blocksInstance.slots.getEpochTime();
 			newBlockReceivedAt = newBlockForgingTime;
 
 			stubs.isValidBlock = sinonSandbox
@@ -623,7 +623,7 @@ describe('blocks', () => {
 			});
 
 			it('should call _handleDoubleForgingTieBreak if _isTieBreak evaluates to true', async () => {
-				const aTime = blocksInstance.slots.getTime();
+				const aTime = blocksInstance.slots.getEpochTime();
 				const handleDoubleForgingTieBreak = sinonSandbox.stub(
 					blocksInstance,
 					'_handleDoubleForgingTieBreak',
