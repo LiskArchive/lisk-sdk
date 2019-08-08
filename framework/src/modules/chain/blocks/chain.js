@@ -493,4 +493,5 @@ module.exports = {
 	applyConfirmedStep,
 	undoConfirmedStep,
 	popLastBlock,
+	parseBlockToJson,
 };
