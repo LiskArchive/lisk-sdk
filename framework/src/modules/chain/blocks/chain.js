@@ -285,6 +285,7 @@ const backwardTickStep = async (
  * @returns {Object} cb.err - Error
  * @returns {Object} cb.obj - New last block
  */
+// TODO: remove this as this should be done in processor
 const popLastBlock = async (
 	storage,
 	interfaceAdapters,

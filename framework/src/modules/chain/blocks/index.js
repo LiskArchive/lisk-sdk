@@ -29,6 +29,12 @@ const {
 	EVENT_NEW_BROADHASH,
 	EVENT_PRIORITY_CHAIN_DETECTED,
 } = require('./blocks');
+const {
+	FORK_STATUS_PROCESS,
+	FORK_STATUS_DISCARD,
+	FORK_STATUS_REVERT,
+	FORK_STATUS_SYNC,
+} = require('./fork_choice_rule');
 
 module.exports = {
 	Blocks,
@@ -40,6 +46,10 @@ module.exports = {
 	EVENT_BROADCAST_BLOCK,
 	EVENT_NEW_BROADHASH,
 	EVENT_PRIORITY_CHAIN_DETECTED,
+	FORK_STATUS_PROCESS,
+	FORK_STATUS_DISCARD,
+	FORK_STATUS_REVERT,
+	FORK_STATUS_SYNC,
 	objectNormalize,
 	addBlockProperties,
 };

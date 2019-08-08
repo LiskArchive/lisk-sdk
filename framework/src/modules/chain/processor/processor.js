@@ -15,11 +15,11 @@
 'use strict';
 
 const { StateStore } = require('../state_store');
-
-const FORK_STATUS_DISCARD = 1;
-const FORK_STATUS_REVERT = 2;
-const FORK_STATUS_SYNC = 3;
-const FORK_STATUS_REVERT_2_AND_QUIT = 4;
+const {
+	FORK_STATUS_DISCARD,
+	FORK_STATUS_REVERT,
+	FORK_STATUS_SYNC,
+} = require('../blocks');
 
 class Processor {
 	constructor({ channel, storage, logger, blocks }) {
@@ -63,13 +63,6 @@ class Processor {
 			await this._revert(lastBlock, blockProcessor);
 		}
 
-		if (forkStatus === FORK_STATUS_REVERT_2_AND_QUIT) {
-			await this._revert(lastBlock, blockProcessor);
-			const { lastBlock: secondLastBlock } = this.blocks;
-			await this._revert(secondLastBlock, blockProcessor);
-			return;
-		}
-
 		await this._processValidated(block, blockProcessor);
 	}
 
@@ -93,19 +86,23 @@ class Processor {
 
 	_validate(block, processor) {
 		const { lastBlock } = this.blocks;
+		const blockBytes = processor.getBytes.exec({ block });
 		processor.validate.exec({
 			block,
 			lastBlock,
+			blockBytes,
 			channel: this.channel,
 		});
 	}
 
 	async _processValidated(block, processor, { skipSave } = {}) {
+		const blockBytes = processor.getBytes.exec({ block });
 		const stateStore = new StateStore(this.storage);
 		const { lastBlock } = this.blocks;
 		stateStore.createSnapshot();
 		await processor.verify.exec({
 			block,
+			blockBytes,
 			lastBlock,
 			stateStore,
 			channel: this.channel,
@@ -113,6 +110,7 @@ class Processor {
 		stateStore.restoreSnapshot();
 		await processor.apply.exec({
 			block,
+			blockBytes,
 			lastBlock,
 			stateStore,
 			channel: this.channel,
@@ -126,11 +124,13 @@ class Processor {
 	}
 
 	async _apply(block, processor) {
+		const blockBytes = processor.getBytes.exec({ block });
 		const stateStore = new StateStore(this.storage);
 		const { lastBlock } = this.blocks;
 		stateStore.createSnapshot();
 		await processor.verify.exec({
 			block,
+			blockBytes,
 			lastBlock,
 			stateStore,
 			channel: this.channel,
@@ -138,6 +138,7 @@ class Processor {
 		stateStore.restoreSnapshot();
 		await processor.apply.exec({
 			block,
+			blockBytes,
 			lastBlock,
 			stateStore,
 			channel: this.channel,

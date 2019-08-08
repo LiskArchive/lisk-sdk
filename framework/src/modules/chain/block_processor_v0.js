@@ -22,7 +22,6 @@ const {
 	intToBuffer,
 	LITTLE_ENDIAN,
 	signDataWithPrivateKey,
-	verifyData,
 } = require('@liskhq/lisk-cryptography');
 const { validator } = require('@liskhq/lisk-validator');
 const { BlockProcessor } = require('./processor');
@@ -31,7 +30,6 @@ const { sortTransactions } = require('./transactions');
 
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
-const SIGNATURE_LENGTH = 64;
 
 const getBytes = block => {
 	const blockVersionBuffer = intToBuffer(
@@ -110,18 +108,6 @@ const validateSchema = ({ block }) => {
 	}
 };
 
-const validateSignature = ({ block }) => {
-	const data = getBytes(block);
-	const dataWithoutSignature = data.slice(0, data.length - SIGNATURE_LENGTH);
-	const hashedBlock = hash(dataWithoutSignature);
-
-	return verifyData(
-		hashedBlock,
-		block.blockSignature,
-		block.generatorPublicKey,
-	);
-};
-
 class BlockProcessorV0 extends BlockProcessor {
 	constructor({ blocksModule, dposModule, logger, constants, exceptions }) {
 		super();
@@ -130,12 +116,13 @@ class BlockProcessorV0 extends BlockProcessor {
 		this.logger = logger;
 		this.constants = constants;
 		this.exceptions = exceptions;
+
+		this.getBytes.pipe([({ block }) => getBytes(block)]);
+
 		this.validate.pipe([
 			this._validateVersion.bind(this),
 			validateSchema,
-			validateSignature,
 			this.blocksModule.validate.bind(this), // validate common block header
-			this.blocksModule.validateTransactions.bind(this), // validate transactions
 		]);
 
 		this.fork.pipe([
