@@ -35,7 +35,7 @@ const genesisBlock = __testContext.config.genesisBlock;
 const exceptions = __testContext.config.modules.chain.exceptions;
 const { NORMALIZER } = global.__testContext.config;
 const transactionStatus = liskTransactions.Status;
-const { BlockSlots } = require('../../../src/modules/chain/blocks');
+const { BlockSlots } = require('../../../src/modules/chain/dpos');
 
 describe('processTransactions', () => {
 	const slots = new BlockSlots({

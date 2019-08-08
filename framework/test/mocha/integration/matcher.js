@@ -18,7 +18,7 @@ const {
 const commonApplication = require('../common/application');
 const accountFixtures = require('../fixtures/accounts');
 const randomUtil = require('../common/utils/random');
-const { BlockSlots } = require('../../../src/modules/chain/blocks');
+const { BlockSlots } = require('../../../src/modules/chain/dpos');
 const blocksLogic = require('../../../src/modules/chain/blocks/block');
 
 const slots = new BlockSlots({

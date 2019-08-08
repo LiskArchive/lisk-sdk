@@ -35,11 +35,10 @@ const {
 	EVENT_MULTISIGNATURE_SIGNATURE,
 	EVENT_UNCONFIRMED_TRANSACTION,
 } = require('./transaction_pool');
-const { Dpos } = require('./dpos');
+const { BlockSlots, Dpos } = require('./dpos');
 const { EVENT_BFT_BLOCK_FINALIZED, BFT } = require('./bft');
 const { Rounds } = require('./rounds');
 const {
-	BlockSlots,
 	Blocks,
 	EVENT_NEW_BLOCK,
 	EVENT_DELETE_BLOCK,

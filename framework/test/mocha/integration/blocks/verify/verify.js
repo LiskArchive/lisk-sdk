@@ -34,7 +34,7 @@ const {
 const accountFixtures = require('../../../fixtures/accounts');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
-const { BlockSlots } = require('../../../../../src/modules/chain/blocks');
+const { BlockSlots } = require('../../../../../src/modules/chain/dpos');
 const blocksLogic = require('../../../../../src/modules/chain/blocks/block');
 const blockVersion = require('../../../../../src/modules/chain/blocks/block_version');
 const blocksUtils = require('../../../../../src/modules/chain/blocks/utils');

@@ -18,7 +18,7 @@ const popsicle = require('popsicle');
 const async = require('async');
 const Promise = require('bluebird');
 const apiHelpers = require('../helpers/api');
-const { BlockSlots } = require('../../../../src/modules/chain/blocks');
+const { BlockSlots } = require('../../../../src/modules/chain/dpos');
 
 const { ACTIVE_DELEGATES } = global.constants;
 

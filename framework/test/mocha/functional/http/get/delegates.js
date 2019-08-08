@@ -28,7 +28,7 @@ const randomUtil = require('../../../common/utils/random');
 const waitFor = require('../../../common/utils/wait_for');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const apiHelpers = require('../../../common/helpers/api');
-const { BlockSlots } = require('../../../../../src/modules/chain/blocks');
+const { BlockSlots } = require('../../../../../src/modules/chain/dpos');
 
 Promise.promisify(waitFor.newRound);
 const { FEES } = global.constants;

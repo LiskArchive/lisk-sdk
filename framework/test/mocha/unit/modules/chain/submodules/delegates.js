@@ -20,7 +20,7 @@ const {
 	getKeysSortByVote,
 	getDelegatesFromPreviousRound,
 } = require('../../../../../../src/modules/chain/rounds/delegates');
-const { BlockSlots } = require('../../../../../../src/modules/chain/blocks');
+const { BlockSlots } = require('../../../../../../src/modules/chain/dpos');
 
 describe('delegates', () => {
 	const slots = new BlockSlots({

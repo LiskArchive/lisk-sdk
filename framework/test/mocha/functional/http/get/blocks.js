@@ -20,7 +20,7 @@ const accountFixtures = require('../../../fixtures/accounts');
 const waitFor = require('../../../common/utils/wait_for');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const apiHelpers = require('../../../common/helpers/api');
-const { BlockSlots } = require('../../../../../src/modules/chain/blocks');
+const { BlockSlots } = require('../../../../../src/modules/chain/dpos');
 
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 

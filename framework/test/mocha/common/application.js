@@ -21,7 +21,7 @@ const _ = require('lodash');
 const { registeredTransactions } = require('./registered_transactions');
 const jobsQueue = require('../../../src/modules/chain/utils/jobs_queue');
 const { Sequence } = require('../../../src/modules/chain/utils/sequence');
-const { BlockSlots } = require('../../../src/modules/chain/blocks/block_slots');
+const { BlockSlots } = require('../../../src/modules/chain/dpos');
 const { createCacheComponent } = require('../../../src/components/cache');
 const { StorageSandbox } = require('./storage_sandbox');
 

@@ -27,9 +27,7 @@ const transactionsModule = require('../../../../../../src/modules/chain/transact
 const {
 	BlocksProcess,
 } = require('../../../../../../src/modules/chain/blocks/process');
-const {
-	BlockSlots,
-} = require('../../../../../../src/modules/chain/blocks/block_slots');
+const { BlockSlots } = require('../../../../../../src/modules/chain/dpos');
 const {
 	calculateMilestone,
 	calculateReward,

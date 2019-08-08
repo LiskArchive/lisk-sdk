@@ -30,9 +30,7 @@ const interfaceAdapters = {
 	transactions: new TransactionInterfaceAdapter(registeredTransactions),
 };
 const blocksVerifyModule = require('../../../../../../src/modules/chain/blocks/verify');
-const {
-	BlockSlots,
-} = require('../../../../../../src/modules/chain/blocks/block_slots');
+const { BlockSlots } = require('../../../../../../src/modules/chain/dpos');
 const {
 	calculateMilestone,
 	calculateReward,

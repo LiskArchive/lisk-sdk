@@ -32,9 +32,7 @@ const {
 const {
 	BlocksChain,
 } = require('../../../../../../src/modules/chain/blocks/chain');
-const {
-	BlockSlots,
-} = require('../../../../../../src/modules/chain/blocks/block_slots');
+const { BlockSlots } = require('../../../../../../src/modules/chain/dpos');
 const blocksUtils = require('../../../../../../src/modules/chain/blocks/utils');
 
 describe('blocks', () => {

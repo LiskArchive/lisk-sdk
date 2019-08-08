@@ -14,9 +14,7 @@
 
 'use strict';
 
-const {
-	BlockSlots,
-} = require('../../../../../../src/modules/chain/blocks/block_slots');
+const { BlockSlots } = require('../../../../../../src/modules/chain/dpos');
 
 describe('BlockSlots', () => {
 	let slots;

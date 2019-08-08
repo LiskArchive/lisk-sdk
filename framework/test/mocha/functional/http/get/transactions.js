@@ -26,7 +26,7 @@ const randomUtil = require('../../../common/utils/random');
 const waitFor = require('../../../common/utils/wait_for');
 const apiHelpers = require('../../../common/helpers/api');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
-const { BlockSlots } = require('../../../../../src/modules/chain/blocks');
+const { BlockSlots } = require('../../../../../src/modules/chain/dpos');
 const Scenarios = require('../../../common/scenarios');
 
 const { TRANSACTION_TYPES, FEES } = global.constants;

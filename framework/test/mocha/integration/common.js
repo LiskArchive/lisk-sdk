@@ -24,7 +24,7 @@ const {
 	castVotes,
 	createDapp,
 } = require('@liskhq/lisk-transactions');
-const { BlockSlots } = require('../../../src/modules/chain/blocks');
+const { BlockSlots } = require('../../../src/modules/chain/dpos');
 const application = require('../common/application');
 const randomUtil = require('../common/utils/random');
 const accountFixtures = require('../fixtures/accounts');

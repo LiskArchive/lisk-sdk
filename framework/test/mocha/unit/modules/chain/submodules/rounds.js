@@ -19,7 +19,7 @@ const rewire = require('rewire');
 const cryptography = require('@liskhq/lisk-cryptography');
 // Instantiate test subject
 const Rounds = rewire('../../../../../../src/modules/chain/rounds/rounds');
-const { BlockSlots } = require('../../../../../../src/modules/chain/blocks');
+const { BlockSlots } = require('../../../../../../src/modules/chain/dpos');
 const { TestStorageSandbox } = require('../../../../common/storage_sandbox');
 
 const sinon = sinonSandbox;

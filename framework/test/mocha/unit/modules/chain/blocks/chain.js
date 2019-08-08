@@ -23,9 +23,7 @@ const {
 const { Transaction } = require('../../../../fixtures/transactions');
 const blocksChainModule = require('../../../../../../src/modules/chain/blocks/chain');
 const transactionsModule = require('../../../../../../src/modules/chain/transactions');
-const {
-	BlockSlots,
-} = require('../../../../../../src/modules/chain/blocks/block_slots');
+const { BlockSlots } = require('../../../../../../src/modules/chain/dpos');
 
 const interfaceAdapters = {
 	transactions: new TransactionInterfaceAdapter(registeredTransactions),
