@@ -143,14 +143,19 @@ class FinalityManager {
 		};
 
 		// Get first block of the round when delegate was active
-		const delegateMinHeightActive =
+		const heightSinceDelegateActive =
 			(header.activeSinceRound - 1) * this.activeDelegates + 1;
+
+		const validMinHeightToVoteAndCommit = this._getValidMinHeightToCommit(
+			header,
+		);
 
 		// If delegate is new then first block of the round will be considered
 		// if it forged before then we probably have the last commit height
 		// delegate can't pre-commit a block before the above mentioned conditions
-		const minPreCommit = Math.max(
-			delegateMinHeightActive,
+		const minPreCommitHeight = Math.max(
+			heightSinceDelegateActive,
+			validMinHeightToVoteAndCommit,
 			delegateState.maxPreCommitHeight + 1,
 		);
 
@@ -158,7 +163,7 @@ class FinalityManager {
 		const maxPreCommitHeight = header.height - 1;
 
 		// eslint-disable-next-line no-plusplus
-		for (let j = minPreCommit; j <= maxPreCommitHeight; j++) {
+		for (let j = minPreCommitHeight; j <= maxPreCommitHeight; j++) {
 			// Add pre-commit if threshold is reached
 			if (this.preVotes[j] >= this.preVoteThreshold) {
 				// Increase the pre-commit for particular height
@@ -174,7 +179,7 @@ class FinalityManager {
 		// Or one step ahead where it left the last pre-vote
 		// Or maximum 3 rounds backward
 		const minPreVoteHeight = Math.max(
-			delegateMinHeightActive,
+			heightSinceDelegateActive,
 			header.maxHeightPreviouslyForged + 1,
 			delegateState.maxPreVoteHeight + 1,
 			header.height - this.processingThreshold,
@@ -221,6 +226,49 @@ class FinalityManager {
 			: this.finalizedHeight;
 
 		return true;
+	}
+
+	/**
+	 * Return the valid height to start the pre-commit
+	 * this method will help to identify the gaps in the blocks
+	 * if delegate forged a block on different chain
+	 *
+	 * @param header
+	 * @return {number}
+	 * @private
+	 */
+	_getValidMinHeightToCommit(header) {
+		const searchTillHeight = Math.max(
+			this.minHeight,
+			header.height - this.processingThreshold,
+		);
+
+		let needleHeight = Math.max(
+			header.maxHeightPreviouslyForged,
+			header.height - this.processingThreshold,
+		);
+
+		let currentBlockHeader = { ...header };
+
+		while (needleHeight >= searchTillHeight) {
+			// We need to ensure that the delegate forging header did not forge on any other chain, i.e.,
+			// maxHeightPreviouslyForged always refers to a height with a block forged by the same delegate.
+			if (needleHeight === currentBlockHeader.maxHeightPreviouslyForged) {
+				const previousBlockHeader = this.headers.get(needleHeight);
+				if (
+					previousBlockHeader.delegatePublicKey !== header.delegatePublicKey ||
+					previousBlockHeader.maxHeightPreviouslyForged >= needleHeight
+				) {
+					return needleHeight;
+				}
+
+				needleHeight = previousBlockHeader.maxHeightPreviouslyForged;
+				currentBlockHeader = previousBlockHeader;
+			} else {
+				needleHeight -= 1;
+			}
+		}
+		return needleHeight;
 	}
 
 	/**
