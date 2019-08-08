@@ -283,8 +283,9 @@ class FinalityManager {
 
 		this.headers.items.forEach(header => {
 			this.updatePreVotesPreCommits(header);
-			this.updatePreVotedAndFinalizedHeight();
 		});
+
+		this.updatePreVotedAndFinalizedHeight();
 
 		this._cleanup();
 	}
