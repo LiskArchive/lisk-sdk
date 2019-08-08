@@ -109,10 +109,9 @@ const validateSchema = ({ block }) => {
 };
 
 class BlockProcessorV0 extends BlockProcessor {
-	constructor({ blocksModule, dposModule, logger, constants, exceptions }) {
+	constructor({ blocksModule, logger, constants, exceptions }) {
 		super();
 		this.blocksModule = blocksModule;
-		this.dposModule = dposModule;
 		this.logger = logger;
 		this.constants = constants;
 		this.exceptions = exceptions;
@@ -129,27 +128,13 @@ class BlockProcessorV0 extends BlockProcessor {
 			this.blocksModule.forkChoice.bind(this), // validate common block header
 		]);
 
-		this.validateNew
-			.pipe([this.dposModule.validateBlockSlotWindow.bind(this)])
-			.catchError(({ peerId }) => {
-				this.channel.invoke('network:addPenalty', { peerId, score: 10 });
-			});
+		this.validateNew.pipe([this.blocksModule.validateNew.bind(this)]);
 
-		this.verify.pipe([
-			this.dposModule.verify.bind(this),
-			this.blocksModule.checkExists.bind(this),
-			this.blocksModule.checkTransactions.bind(this),
-		]);
+		this.verify.pipe([this.blocksModule.verify.bind(this)]);
 
-		this.apply.pipe([
-			this.blocksModule.apply.bind(this),
-			this.dposModule.apply.bind(this),
-		]);
+		this.apply.pipe([this.blocksModule.apply.bind(this)]);
 
-		this.undo.pipe([
-			this.blocksModule.undo.bind(this),
-			this.dposModule.undo.bind(this),
-		]);
+		this.undo.pipe([this.blocksModule.undo.bind(this)]);
 
 		this.create.pipe([this._create.bind(this)]);
 	}

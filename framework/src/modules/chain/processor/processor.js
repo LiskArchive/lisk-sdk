@@ -123,31 +123,6 @@ class Processor {
 		});
 	}
 
-	async _apply(block, processor) {
-		const blockBytes = processor.getBytes.exec({ block });
-		const stateStore = new StateStore(this.storage);
-		const { lastBlock } = this.blocks;
-		stateStore.createSnapshot();
-		await processor.verify.exec({
-			block,
-			blockBytes,
-			lastBlock,
-			stateStore,
-			channel: this.channel,
-		});
-		stateStore.restoreSnapshot();
-		await processor.apply.exec({
-			block,
-			blockBytes,
-			lastBlock,
-			stateStore,
-			channel: this.channel,
-		});
-		await this.storage.begin(async tx => {
-			await stateStore.finalize(tx);
-		});
-	}
-
 	async _revert(block, processor) {
 		const stateStore = new StateStore(this.storage);
 		const { lastBlock } = this.blocks;
