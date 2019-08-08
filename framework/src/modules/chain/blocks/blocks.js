@@ -46,6 +46,7 @@ const {
 	validateReward,
 	validatePayload,
 	validateBlockSlot,
+	validateBlockSlotWindow,
 } = require('./validate');
 
 const EVENT_NEW_BLOCK = 'EVENT_NEW_BLOCK';
@@ -234,6 +235,10 @@ class Blocks extends EventEmitter {
 		if (invalidTransactionResponse) {
 			throw invalidTransactionResponse.errors;
 		}
+	}
+
+	validateNew({ block }) {
+		validateBlockSlotWindow(block, this.slots, this.blockSlotWindow);
 	}
 
 	forkChoice({ block, lastBlock }) {

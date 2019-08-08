@@ -169,6 +169,30 @@ const validateBlockSlot = (block, lastBlock, slots) => {
 	}
 };
 
+/**
+ * Verify block slot window according to application time.
+ *
+ * @private
+ * @func validateBlockSlotWindow
+ * @param {Object} block - Target block
+ * @param {Object} slots - slots module
+ * @param {Object} blockSlotWindow - expected block slot window
+ */
+const validateBlockSlotWindow = (block, slots, blockSlotWindow) => {
+	const currentApplicationSlot = slots.getSlotNumber();
+	const blockSlot = slots.getSlotNumber(block.timestamp);
+
+	// Reject block if it's slot is older than BLOCK_SLOT_WINDOW
+	if (currentApplicationSlot - blockSlot > blockSlotWindow) {
+		throw new Error('Block slot is too old');
+	}
+
+	// Reject block if it's slot is in the future
+	if (currentApplicationSlot < blockSlot) {
+		throw new Error('Block slot is in the future');
+	}
+};
+
 module.exports = {
 	validateSignature,
 	validatePreviousBlock,
@@ -176,4 +200,5 @@ module.exports = {
 	validateReward,
 	validatePayload,
 	validateBlockSlot,
+	validateBlockSlotWindow,
 };
