@@ -26,7 +26,7 @@ const {
 	BFTInvalidAttributeError,
 } = require('./errors');
 
-const EVENT_NEW_FINALIZED_HEIGHT = 'EVENT_NEW_FINALIZED_HEIGHT';
+const EVENT_BFT_FINALIZED_HEIGHT_CHANGED = 'EVENT_BFT_FINALIZED_HEIGHT_CHANGED';
 /**
  * @typedef {Object} BlockHeader
  * @property {string} blockId
@@ -107,7 +107,7 @@ class FinalityManager extends EventEmitter {
 		this.updatePreVotedAndFinalizedHeight();
 
 		if (currentFinalizedHeight !== this.finalizedHeight) {
-			this.emit(EVENT_NEW_FINALIZED_HEIGHT, blockHeader);
+			this.emit(EVENT_BFT_FINALIZED_HEIGHT_CHANGED, blockHeader);
 		}
 
 		debug('after adding block header', {
@@ -308,6 +308,6 @@ class FinalityManager extends EventEmitter {
 }
 
 module.exports = {
-	EVENT_NEW_FINALIZED_HEIGHT,
+	EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
 	FinalityManager,
 };

@@ -16,7 +16,7 @@
 
 const EventEmitter = require('events');
 const {
-	EVENT_NEW_FINALIZED_HEIGHT,
+	EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
 	FinalityManager,
 } = require('./finality_manager');
 
@@ -70,9 +70,12 @@ class BFT extends EventEmitter {
 		this.finalityManager = await this._initFinalityManager();
 
 		this.finalityManager.on(
-			EVENT_NEW_FINALIZED_HEIGHT,
+			EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
 			finalizedHeightBlockHeader => {
-				this.emit(EVENT_NEW_FINALIZED_HEIGHT, finalizedHeightBlockHeader);
+				this.emit(
+					EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
+					finalizedHeightBlockHeader,
+				);
 			},
 		);
 		const { finalizedHeight } = this.finalityManager;
