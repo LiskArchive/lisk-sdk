@@ -1,0 +1,28 @@
+{
+	"name": "lisk-protocol-specs",
+	"version": "1.0.0",
+	"description": "Lisk protocol specs generator",
+	"main": "index.js",
+	"scripts": {
+		"generate-all-specs": "node index.js",
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"@liskhq/bignum": "^1.3.1",
+		"@liskhq/lisk-cryptography": "2.2.0",
+		"@liskhq/lisk-transactions": "2.3.0",
+		"@liskhq/lisk-validator": "^0.2.0",
+		"lodash": "4.17.15"
+	},
+	"devDependencies": {
+		"eslint": "5.12.0",
+		"eslint-config-airbnb-base": "13.1.0",
+		"eslint-config-lisk-base": "1.1.0",
+		"eslint-plugin-chai-expect": "2.0.1",
+		"eslint-plugin-import": "2.14.0",
+		"eslint-plugin-jest": "22.3.0",
+		"eslint-plugin-mocha": "5.3.0"
+	}
+}
