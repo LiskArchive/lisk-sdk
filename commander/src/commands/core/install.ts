@@ -18,7 +18,7 @@ import * as fsExtra from 'fs-extra';
 import Listr from 'listr';
 import * as os from 'os';
 import BaseCommand from '../../base';
-import { NETWORK, SNAPSHOT_URL } from '../../utils/constants';
+import { NETWORK, RELEASE_URL, SNAPSHOT_URL } from '../../utils/constants';
 import {
 	createDirectory,
 	generateEnvConfig,
@@ -26,6 +26,7 @@ import {
 	getVersionToInstall,
 	isSupportedOS,
 	liskInstall,
+	liskLatestUrl,
 	liskSnapshotUrl,
 	validateNetwork,
 	validateNotARootUser,
@@ -65,6 +66,7 @@ interface Options {
 	readonly liskTarSHA256Url: string;
 	readonly liskTarUrl: string;
 	readonly version: string;
+	readonly latestUrl: string;
 }
 
 const validatePrerequisite = (installPath: string): void => {
@@ -103,14 +105,16 @@ const installOptions = async (
 ): Promise<Options> => {
 	const installPath = liskInstall(installationPath);
 	const installDir = `${installPath}/${name}/`;
+	const latestUrl = releaseUrl || liskLatestUrl(RELEASE_URL, network);
+
 	const installVersion: string = await getVersionToInstall(
 		network,
 		liskVersion,
-		releaseUrl,
+		latestUrl,
 	);
 
 	const { version, liskTarUrl, liskTarSHA256Url } = await getReleaseInfo(
-		releaseUrl,
+		latestUrl,
 		network,
 		installVersion,
 	);
@@ -120,6 +124,7 @@ const installOptions = async (
 		version,
 		liskTarUrl,
 		liskTarSHA256Url,
+		latestUrl,
 	};
 };
 
@@ -225,12 +230,12 @@ export default class InstallCommand extends BaseCommand {
 						{
 							title: 'Validate root user, flags, prerequisites',
 							task: async ctx => {
-								const { installDir, releaseUrl } = ctx.options;
+								const { installDir, latestUrl } = ctx.options;
 								validateNotARootUser();
 								validateFlags(flags as Flags);
 								validatePrerequisite(installDir);
 								if (liskVersion) {
-									await validateVersion(releaseUrl, liskVersion);
+									await validateVersion(latestUrl, liskVersion);
 									ctx.options.version = liskVersion;
 								}
 							},

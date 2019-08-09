@@ -18,12 +18,14 @@ import * as fsExtra from 'fs-extra';
 import Listr from 'listr';
 import semver from 'semver';
 import BaseCommand from '../../base';
+import { RELEASE_URL } from '../../utils/constants';
 import { isCacheRunning, startCache, stopCache } from '../../utils/core/cache';
 import {
 	backupLisk,
 	generateEnvConfig,
 	getDownloadedFileInfo,
 	getVersionToInstall,
+	liskLatestUrl,
 	upgradeLisk,
 	validateVersion,
 } from '../../utils/core/commons';
@@ -125,7 +127,9 @@ export default class UpgradeCommand extends BaseCommand {
 							`Upgrade version:${upgradeVersion} should be greater than current version: ${currentVersion}`,
 						);
 					}
-					await validateVersion(releaseUrl, upgradeVersion);
+					const latestUrl = releaseUrl || liskLatestUrl(RELEASE_URL, network);
+
+					await validateVersion(latestUrl, upgradeVersion);
 				},
 			},
 			{
