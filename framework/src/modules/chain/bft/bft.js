@@ -72,7 +72,7 @@ class BFT extends EventEmitter {
 		this.finalityManager.on(
 			EVENT_NEW_FINALIZED_HEIGHT,
 			finalizedHeightBlockHeader => {
-				// Should event be passed through?
+				this.emit(EVENT_NEW_FINALIZED_HEIGHT, finalizedHeightBlockHeader);
 			},
 		);
 		const { finalizedHeight } = this.finalityManager;
