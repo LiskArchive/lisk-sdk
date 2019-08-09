@@ -101,14 +101,8 @@ class FinalityManager extends EventEmitter {
 		// Update the pre-votes and pre-commits
 		this.updatePreVotesPreCommits(blockHeader);
 
-		// Store current finalizedHeight
-		const currentFinalizedHeight = this.finalizedHeight;
 		// Update the pre-voted confirmed and finalized height
 		this.updatePreVotedAndFinalizedHeight();
-
-		if (currentFinalizedHeight !== this.finalizedHeight) {
-			this.emit(EVENT_BFT_FINALIZED_HEIGHT_CHANGED, blockHeader);
-		}
 
 		debug('after adding block header', {
 			finalizedHeight: this.finalizedHeight,
@@ -220,9 +214,16 @@ class FinalityManager extends EventEmitter {
 			.reverse()
 			.find(pair => pair[1] >= this.preCommitThreshold);
 
-		this.finalizedHeight = higherPairCommitted
-			? parseInt(higherPairCommitted[0], 10)
-			: this.finalizedHeight;
+		// Store current finalizedHeight
+		const previouslyFinalizedHeight = this.finalizedHeight;
+
+		if (higherPairCommitted) {
+			this.finalizedHeight = parseInt(higherPairCommitted[0], 10);
+		}
+
+		if (previouslyFinalizedHeight !== this.finalizedHeight) {
+			this.emit(EVENT_BFT_FINALIZED_HEIGHT_CHANGED, this.finalizedHeight);
+		}
 
 		return true;
 	}
