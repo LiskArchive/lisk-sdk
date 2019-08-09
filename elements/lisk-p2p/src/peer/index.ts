@@ -28,6 +28,7 @@ export {
 	Peer,
 	PeerConfig,
 	REMOTE_RPC_GET_PEERS_LIST,
+	REMOTE_RPC_GET_MINIMAL_PEERS_LIST,
 } from './base';
 
 export * from './inbound';

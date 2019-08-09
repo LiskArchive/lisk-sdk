@@ -35,6 +35,7 @@ import { constructPeerIdFromPeerInfo, getNetgroup } from '../utils';
 import * as socketClusterClient from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
 import {
+	isLowerVersionPeer,
 	validateBasicPeersInfoList,
 	validatePeerInfo,
 	validateProtocolMessage,
@@ -90,7 +91,8 @@ export const REMOTE_EVENT_MESSAGE = 'remote-message';
 
 export const REMOTE_RPC_UPDATE_PEER_INFO = 'updateMyself';
 export const REMOTE_RPC_GET_NODE_INFO = 'status';
-export const REMOTE_RPC_GET_PEERS_LIST = 'getPeers';
+export const REMOTE_RPC_GET_MINIMAL_PEERS_LIST = 'getPeers';
+export const REMOTE_RPC_GET_PEERS_LIST = 'list';
 
 export const DEFAULT_CONNECT_TIMEOUT = 2000;
 export const DEFAULT_ACK_TIMEOUT = 2000;
@@ -510,7 +512,9 @@ export class Peer extends EventEmitter {
 	public async fetchPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
 		try {
 			const response: P2PResponsePacket = await this.request({
-				procedure: REMOTE_RPC_GET_PEERS_LIST,
+				procedure: isLowerVersionPeer(this._peerInfo as P2PDiscoveredPeerInfo)
+					? REMOTE_RPC_GET_PEERS_LIST
+					: REMOTE_RPC_GET_MINIMAL_PEERS_LIST,
 			});
 
 			return validateBasicPeersInfoList(response.data);

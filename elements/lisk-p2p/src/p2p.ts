@@ -24,7 +24,10 @@ interface SCServerUpdated extends SCServer {
 	readonly isReady: boolean;
 }
 
-import { REMOTE_RPC_GET_PEERS_LIST } from './peer';
+import {
+	REMOTE_RPC_GET_MINIMAL_PEERS_LIST,
+	REMOTE_RPC_GET_PEERS_LIST,
+} from './peer';
 
 import { PeerBook } from './peer_directory';
 
@@ -44,7 +47,6 @@ import {
 import { PeerInboundHandshakeError } from './errors';
 
 import {
-	P2PBasicPeerInfoList,
 	P2PCheckPeerCompatibility,
 	P2PClosePacket,
 	P2PConfig,
@@ -89,7 +91,11 @@ import {
 	PeerPool,
 } from './peer_pool';
 import { constructPeerIdFromPeerInfo } from './utils';
-import { checkPeerCompatibility, sanitizePeerLists } from './validation';
+import {
+	checkPeerCompatibility,
+	outgoingPeerInfoSanitization,
+	sanitizePeerLists,
+} from './validation';
 
 export {
 	EVENT_CLOSE_INBOUND,
@@ -224,7 +230,10 @@ export class P2P extends EventEmitter {
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest) => {
-			if (request.procedure === REMOTE_RPC_GET_PEERS_LIST) {
+			if (
+				request.procedure === REMOTE_RPC_GET_PEERS_LIST ||
+				request.procedure === REMOTE_RPC_GET_MINIMAL_PEERS_LIST
+			) {
 				this._handleGetPeersRequest(request);
 			}
 			// Re-emit the request for external use.
@@ -795,17 +804,23 @@ export class P2P extends EventEmitter {
 			Math.min(minimumPeerDiscoveryThreshold, knownPeers.length),
 		);
 
-		const basicPeers = this._pickRandomPeers(randomPeerCount).map(
-			(peerInfo: P2PPeerInfo): P2PPeerInfo =>
-				// Discovery process only require minmal peers data
-				({
-					ipAddress: peerInfo.ipAddress,
-					wsPort: peerInfo.wsPort,
-				}),
-		);
-		const peerInfoList: P2PBasicPeerInfoList = {
+		const selectedPeers =
+			request.procedure === REMOTE_RPC_GET_MINIMAL_PEERS_LIST
+				? this._pickRandomPeers(randomPeerCount).map(
+						(peerInfo: P2PPeerInfo): P2PPeerInfo =>
+							// Discovery process only require minmal peers data
+							({
+								ipAddress: peerInfo.ipAddress,
+								wsPort: peerInfo.wsPort,
+							}),
+				  )
+				: this._pickRandomPeers(randomPeerCount).map(
+						outgoingPeerInfoSanitization, // Sanitize the peerInfos before responding to a peer that understand old peerInfo.
+				  );
+
+		const peerInfoList = {
 			success: true,
-			peers: basicPeers,
+			peers: selectedPeers,
 		};
 		request.end(peerInfoList);
 	}
