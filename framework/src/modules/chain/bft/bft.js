@@ -165,6 +165,7 @@ const exportedInterface = {
 	extractBFTBlockHeaderFromBlock,
 	BFT,
 	EVENT_BFT_BLOCK_FINALIZED,
+	EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
 };
 
 module.exports = exportedInterface;
