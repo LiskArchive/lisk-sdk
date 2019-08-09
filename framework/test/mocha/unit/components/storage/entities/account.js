@@ -221,6 +221,7 @@ describe('Account', () => {
 			'vote_in',
 			'votedDelegatesPublicKeys_in',
 			'membersPublicKeys_in',
+			'asset_contains',
 		];
 
 		validOptions = {
@@ -628,6 +629,61 @@ describe('Account', () => {
 		});
 
 		describe('filters', () => {
+			describe.only('asset_contains', () => {
+				let aliceAccount = null;
+				let bobAccount = null;
+
+				beforeEach(async () => {
+					aliceAccount = new accountFixtures.Account({
+						asset: {
+							name: 'Alice',
+							company: 'Acme Corp',
+						},
+					});
+					bobAccount = new accountFixtures.Account({
+						asset: {
+							name: 'Bob',
+							company: 'Acme Corp',
+							tags: ['blockchain', 'crypto'],
+						},
+					});
+
+					await AccountEntity.create([aliceAccount, bobAccount]);
+				});
+
+				it('should return single result when asset value contains unique property at the top level', async () => {
+					const filters = { asset_contains: { name: 'Alice' } };
+					const accounts = await AccountEntity.get(filters);
+
+					expect(accounts.length).to.be.eql(1);
+					expect(accounts[0].address).to.be.eql(aliceAccount.address);
+				});
+
+				it('should return result when asset value contains given array element', async () => {
+					const filters = { asset_contains: { tags: ['crypto'] } };
+					const accounts = await AccountEntity.get(filters);
+
+					expect(accounts.length).to.be.eql(1);
+					expect(accounts[0].address).to.be.eql(bobAccount.address);
+				});
+
+				it('should return all results when asset value contains multiple entries with a given object at the top level', async () => {
+					const filters = { asset_contains: { company: 'Acme Corp' } };
+					const accounts = await AccountEntity.get(filters);
+
+					expect(accounts.length).to.be.eql(2);
+					expect(accounts[0].address).to.be.eql(aliceAccount.address);
+					expect(accounts[1].address).to.be.eql(bobAccount.address);
+				});
+
+				it('should return empty result when asset value does not contain the given object at the top level', async () => {
+					const filters = { asset_contains: { name: 'Eve' } };
+					const accounts = await AccountEntity.get(filters);
+
+					expect(accounts).to.be.empty;
+				});
+			});
+
 			// To make add/remove filters we add their tests.
 			it('should have only specific filters', async () => {
 				expect(AccountEntity.getFilters()).to.eql(validFilters);
