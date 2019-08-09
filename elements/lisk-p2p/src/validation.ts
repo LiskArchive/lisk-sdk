@@ -56,6 +56,28 @@ export const validatePeerAddress = (ip: string, wsPort: number): boolean => {
 	return true;
 };
 
+export const incomingPeerInfoSanitization = (
+	peerInfo: P2PPeerInfo,
+): P2PPeerInfo => {
+	const { ip, ...restOfPeerInfo } = peerInfo;
+
+	return {
+		ipAddress: ip,
+		...restOfPeerInfo,
+	};
+};
+
+export const outgoingPeerInfoSanitization = (
+	peerInfo: P2PPeerInfo,
+): ProtocolPeerInfo => {
+	const { ipAddress, ...restOfPeerInfo } = peerInfo;
+
+	return {
+		ip: ipAddress,
+		...restOfPeerInfo,
+	};
+};
+
 export const validatePeerInfo = (rawPeerInfo: unknown): P2PPeerInfo => {
 	if (!rawPeerInfo) {
 		throw new InvalidPeerError(`Invalid peer object`);
@@ -112,7 +134,7 @@ export const validateBasicPeerInfo = (rawPeerInfo: unknown): P2PPeerInfo => {
 		throw new InvalidPeerError(`Invalid peer ip or port`);
 	}
 
-	return peerInfo;
+	return incomingPeerInfoSanitization(peerInfo);
 };
 
 export const validateBasicPeersInfoList = (
