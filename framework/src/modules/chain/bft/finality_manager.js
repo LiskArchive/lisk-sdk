@@ -238,16 +238,23 @@ class FinalityManager {
 	 * @private
 	 */
 	_getValidMinHeightToCommit(header) {
+		// We search backward from top block to bottom block in the chain
+
+		// We should search down to the height we have in our headers list
+		// and within the processing threshold which is three rounds
 		const searchTillHeight = Math.max(
 			this.minHeight,
 			header.height - this.processingThreshold,
 		);
 
+		// Start looking from the point where delegate forged the block last time
+		// and within the processing threshold which is three rounds
 		let needleHeight = Math.max(
 			header.maxHeightPreviouslyForged,
 			header.height - this.processingThreshold,
 		);
 
+		// Hold reference for the current header
 		let currentBlockHeader = { ...header };
 
 		while (needleHeight >= searchTillHeight) {
@@ -255,6 +262,10 @@ class FinalityManager {
 			// maxHeightPreviouslyForged always refers to a height with a block forged by the same delegate.
 			if (needleHeight === currentBlockHeader.maxHeightPreviouslyForged) {
 				const previousBlockHeader = this.headers.get(needleHeight);
+
+				// Was the previous block suggested by current block header
+				// was actually forged by same delegate? If not then just return from here
+				// delegate can't commit blocks down from that height
 				if (
 					previousBlockHeader.delegatePublicKey !== header.delegatePublicKey ||
 					previousBlockHeader.maxHeightPreviouslyForged >= needleHeight
@@ -262,6 +273,7 @@ class FinalityManager {
 					return needleHeight;
 				}
 
+				// Move the needle to previous block and consider it current for next iteration
 				needleHeight = previousBlockHeader.maxHeightPreviouslyForged;
 				currentBlockHeader = previousBlockHeader;
 			} else {
