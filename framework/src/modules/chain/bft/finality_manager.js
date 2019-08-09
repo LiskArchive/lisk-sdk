@@ -107,7 +107,7 @@ class FinalityManager extends EventEmitter {
 		this.updatePreVotedAndFinalizedHeight();
 
 		if (currentFinalizedHeight !== this.finalizedHeight) {
-			this.emit('NEW_FINALIZED_HEIGHT', blockHeader);
+			this.emit(EVENT_NEW_FINALIZED_HEIGHT, blockHeader);
 		}
 
 		debug('after adding block header', {
