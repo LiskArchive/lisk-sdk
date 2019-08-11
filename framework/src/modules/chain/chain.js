@@ -54,6 +54,10 @@ const {
 	BlockSynchronizationMechanism,
 	FastChainSwitchingMechanism,
 } = require('./synchronizer');
+const { Processor } = require('./processor');
+const { BlockProcessorV0 } = require('./block_processor_v0.js');
+const { BlockProcessorV1 } = require('./block_processor_v1.js');
+const { BlockProcessorV2 } = require('./block_processor_v2.js');
 
 const syncInterval = 10000;
 const forgeInterval = 1000;
@@ -165,6 +169,22 @@ module.exports = class Chain {
 			await bootstrapCache(this.scope);
 
 			await this._initModules();
+
+			// Prepare dependency
+			const processorDependency = {
+				blocksModule: this.blocks,
+				logger: this.logger,
+				constants: this.options.constants,
+				exceptions: this.options.exceptions,
+			};
+
+			this.processor.register(new BlockProcessorV0(processorDependency), {
+				matcher: ({ height }) => height > 1 && height < 100,
+			});
+			this.processor.register(new BlockProcessorV1(processorDependency), {
+				matcher: ({ height }) => height > 1 && height < 100,
+			});
+			this.processor.register(new BlockProcessorV2(processorDependency));
 
 			this.channel.subscribe('app:state:updated', event => {
 				Object.assign(this.scope.applicationState, event.data);
@@ -488,6 +508,12 @@ module.exports = class Chain {
 			nonce: this.options.nonce,
 			broadcasts: this.options.broadcasts,
 			maxSharedTransactions: this.options.constants.MAX_SHARED_TRANSACTIONS,
+		});
+		this.processor = new Processor({
+			channel: this.channel,
+			logger: this.logger,
+			storage: this.storage,
+			blocksModule: this.blocks,
 		});
 		// TODO: should not add to scope
 		this.scope.modules.loader = this.loader;

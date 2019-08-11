@@ -28,11 +28,18 @@ class Processor {
 		this.logger = logger;
 		this.blocks = blocks;
 		this.processors = {};
+		this.matchers = {};
 	}
 
 	// register a block processor with particular version
-	register(processor, { matcher }) {
+	register(processor, { matcher } = {}) {
 		this.processors[processor.VERSION] = processor;
+		this.matchers[processor.VERSION] = matcher || (() => true);
+	}
+
+	// eslint-disable-next-line no-unused-vars,class-methods-use-this
+	async init(genesisBlock) {
+		// do init check for block state
 	}
 
 	// process is for standard processing of block, especially when received from network
@@ -143,7 +150,16 @@ class Processor {
 		if (!this.processors[version]) {
 			throw new Error('Block processing version is not registered');
 		}
-		return this.processors[version];
+		// Sort in desc order
+		const matcherVersions = Object.keys(this.matchers).sort((a, b) => b - a);
+		// eslint-disable-next-line no-restricted-syntax
+		for (const matcherVersion of matcherVersions) {
+			const matcher = this.matchers[matcherVersion];
+			if (matcher(block)) {
+				return this.processors[matcherVersion];
+			}
+		}
+		throw new Error('No matching block processor found');
 	}
 }
 

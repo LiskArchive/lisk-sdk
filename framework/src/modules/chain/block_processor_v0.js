@@ -139,7 +139,13 @@ class BlockProcessorV0 extends BlockProcessor {
 		this.create.pipe([this._create.bind(this)]);
 	}
 
-	create({ transactions, previousBlock, keypair, timestamp }) {
+	_validateVersion({ block }) {
+		if (block.version !== this.constructor.VERSION) {
+			throw new Error('Invalid version');
+		}
+	}
+
+	_create({ transactions, previousBlock, keypair, timestamp }) {
 		const sortedTransactions = sortTransactions(transactions);
 		const nextHeight = previousBlock ? previousBlock.height + 1 : 1;
 		const reward = this.blockModule.blockReward.calculateReward(nextHeight);

@@ -335,11 +335,42 @@ class Loader {
 	 */
 	async _getValidatedBlocksFromNetwork(blocks) {
 		const { lastBlock } = this.blocksModule;
-		const lastValidBlock = await this.blocksModule.loadBlocksFromNetwork(
-			blocks,
-		);
-		this.blocksToSync = lastValidBlock.height;
-		return lastValidBlock.id === lastBlock.id;
+		try {
+			// TODO: use processor here
+			const lastValidBlock = await this.blocksModule.loadBlocksFromNetwork(
+				blocks,
+			);
+			this.blocksToSync = lastValidBlock.height;
+
+			return lastValidBlock.id === lastBlock.id;
+		} catch (loadBlocksFromNetworkErr) {
+			this.logger.debug(
+				loadBlocksFromNetworkErr instanceof Error
+					? loadBlocksFromNetworkErr
+					: new Error(loadBlocksFromNetworkErr),
+				'Chain recovery failed after failing to load blocks from the network',
+			);
+			if (this.peersModule.isPoorConsensus(this.blocksModule.broadhash)) {
+				this.logger.debug('Perform chain recovery due to poor consensus');
+				try {
+					await this.blocksModule.deleteLastBlockAndGet();
+				} catch (recoveryError) {
+					throw new Error(
+						`Chain recovery failed after failing to load blocks while network consensus was low. ${recoveryError}`,
+					);
+				}
+				throw new Error(
+					`Chain recovery failed chain recovery after failing to load blocks ${loadBlocksFromNetworkErr}`,
+				);
+			}
+			this.logger.error(
+				'Failed to process block from network',
+				loadBlocksFromNetworkErr,
+			);
+			throw new Error(
+				`Failed to load blocks from the network. ${loadBlocksFromNetworkErr}`,
+			);
+		}
 	}
 
 	/**
