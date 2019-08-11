@@ -245,7 +245,13 @@ class BlockProcessorV2 extends BlockProcessor {
 		this.create.pipe([this._create.bind(this)]);
 	}
 
-	create({
+	_validateVersion({ block }) {
+		if (block.version !== this.constructor.VERSION) {
+			throw new Error('Invalid version');
+		}
+	}
+
+	_create({
 		blockReward,
 		transactions,
 		previousBlock,

@@ -335,6 +335,7 @@ class Loader {
 	async _getValidatedBlocksFromNetwork(blocks) {
 		const { lastBlock } = this.blocksModule;
 		try {
+			// TODO: use processor here
 			const lastValidBlock = await this.blocksModule.loadBlocksFromNetwork(
 				blocks,
 			);

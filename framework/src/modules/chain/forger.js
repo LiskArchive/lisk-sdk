@@ -381,6 +381,7 @@ class Forger {
 				this.constants.maxTransactionsPerBlock,
 			) || [];
 
+		// TODO: use processor here
 		const forgedBlock = await this.blocksModule.generateBlock(
 			delegateKeypair,
 			this.slots.getSlotTime(currentSlot),
