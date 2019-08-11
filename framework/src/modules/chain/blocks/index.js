@@ -35,9 +35,11 @@ const {
 	FORK_STATUS_REVERT,
 	FORK_STATUS_SYNC,
 } = require('./fork_choice_rule');
+const { baseBlockSchema } = require('./schema');
 
 module.exports = {
 	Blocks,
+	baseBlockSchema,
 	calculateMilestone,
 	calculateReward,
 	calculateSupply,

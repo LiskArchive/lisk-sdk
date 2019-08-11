@@ -23,7 +23,7 @@ class Pipeline {
 		this.finallyStage = undefined;
 	}
 
-	pipe(...fns) {
+	pipe(fns) {
 		this.stages.push(...fns);
 		return this;
 	}
@@ -53,12 +53,36 @@ class Pipeline {
 		try {
 			// eslint-disable-next-line no-restricted-syntax
 			for (const stage of this.stages) {
+				// eslint-disable-next-line no-await-in-loop
+				lastResult = await stage(data, lastResult);
+			}
+		} catch (error) {
+			if (this.catchStage) {
+				return this.catchStage(data, error);
+			}
+			throw error;
+		} finally {
+			if (this.finallyStage) {
+				this.finallyStages(data, lastResult);
+			}
+		}
+
+		return lastResult;
+	}
+
+	execSync(data) {
+		if (this.stages.length === 0) {
+			return undefined;
+		}
+
+		let lastResult;
+		try {
+			// eslint-disable-next-line no-restricted-syntax
+			for (const stage of this.stages) {
 				if (util.types.isAsyncFunction(stage)) {
-					// eslint-disable-next-line no-await-in-loop
-					lastResult = await stage(data, lastResult);
-				} else {
-					lastResult = stage(data, lastResult);
+					throw new Error('execSync cannot run async function');
 				}
+				lastResult = stage(data, lastResult);
 			}
 		} catch (error) {
 			if (this.catchStage) {

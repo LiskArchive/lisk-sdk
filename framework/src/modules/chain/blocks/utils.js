@@ -509,6 +509,26 @@ const deleteBlockProperties = block => {
 };
 
 /**
+ * Calculates block id based on block.
+ *
+ * @param {block} blockBytes
+ * @returns {string} Block id
+ * @todo Add description for the params
+ */
+const getId = blockBytes => {
+	const hashedBlock = hash(blockBytes);
+	const temp = Buffer.alloc(8);
+	// eslint-disable-next-line no-plusplus
+	for (let i = 0; i < 8; i++) {
+		temp[i] = hashedBlock[7 - i];
+	}
+
+	// eslint-disable-next-line new-cap
+	const id = new BigNum.fromBuffer(temp).toString();
+	return id;
+};
+
+/**
  * Set height according to the given last block.
  *
  * @private
@@ -556,6 +576,7 @@ const loadMemTables = async (storage, tx) => {
  */
 
 module.exports = {
+	getId,
 	parseStorageObjToLegacyObj,
 	getIdSequence,
 	readStorageRows,

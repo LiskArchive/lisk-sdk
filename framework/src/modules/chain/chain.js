@@ -178,12 +178,25 @@ module.exports = class Chain {
 				exceptions: this.options.exceptions,
 			};
 
-			this.processor.register(new BlockProcessorV0(processorDependency), {
-				matcher: ({ height }) => height > 1 && height < 100,
-			});
-			this.processor.register(new BlockProcessorV1(processorDependency), {
-				matcher: ({ height }) => height > 1 && height < 100,
-			});
+			// TODO: Move this to core
+			if (this.options.exceptions.blockVersion) {
+				if (this.options.exceptions.blockVersion[0]) {
+					const period = this.options.exceptions.blockVersion[0];
+					this.processor.register(new BlockProcessorV0(processorDependency), {
+						matcher: ({ height }) =>
+							height >= period.start && height <= period.end,
+					});
+				}
+
+				if (this.options.exceptions.blockVersion[1]) {
+					const period = this.options.exceptions.blockVersion[1];
+					this.processor.register(new BlockProcessorV1(processorDependency), {
+						matcher: ({ height }) =>
+							height >= period.start && height <= period.end,
+					});
+				}
+			}
+
 			this.processor.register(new BlockProcessorV2(processorDependency));
 
 			this.channel.subscribe('app:state:updated', event => {
@@ -460,6 +473,12 @@ module.exports = class Chain {
 			minBroadhashConsensus: this.options.constants.MIN_BROADHASH_CONSENSUS,
 		});
 		this.scope.modules.peers = this.peers;
+		this.processor = new Processor({
+			channel: this.channel,
+			logger: this.logger,
+			storage: this.storage,
+			blocksModule: this.blocks,
+		});
 		this.loader = new Loader({
 			channel: this.channel,
 			logger: this.logger,
@@ -469,6 +488,7 @@ module.exports = class Chain {
 			transactionPoolModule: this.transactionPool,
 			blocksModule: this.blocks,
 			peersModule: this.peers,
+			processorModule: this.processor,
 			interfaceAdapters: this.interfaceAdapters,
 			loadPerIteration: this.options.loading.loadPerIteration,
 			rebuildUpToRound: this.options.loading.rebuildUpToRound,
@@ -482,6 +502,7 @@ module.exports = class Chain {
 			slots: this.slots,
 			roundsModule: this.rounds,
 			transactionPoolModule: this.transactionPool,
+			processorModule: this.processor,
 			blocksModule: this.blocks,
 			peersModule: this.peers,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
@@ -499,18 +520,13 @@ module.exports = class Chain {
 			applicationState: this.applicationState,
 			exceptions: this.options.exceptions,
 			transactionPoolModule: this.transactionPool,
+			processorModule: this.processor,
 			blocksModule: this.blocks,
 			loaderModule: this.loader,
 			interfaceAdapters: this.interfaceAdapters,
 			nonce: this.options.nonce,
 			broadcasts: this.options.broadcasts,
 			maxSharedTransactions: this.options.constants.MAX_SHARED_TRANSACTIONS,
-		});
-		this.processor = new Processor({
-			channel: this.channel,
-			logger: this.logger,
-			storage: this.storage,
-			blocksModule: this.blocks,
 		});
 		// TODO: should not add to scope
 		this.scope.modules.loader = this.loader;

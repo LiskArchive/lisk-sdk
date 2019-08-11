@@ -14,7 +14,6 @@
 
 'use strict';
 
-const { StateStore } = require('../state_store');
 const {
 	FORK_STATUS_DISCARD,
 	FORK_STATUS_REVERT,
@@ -22,19 +21,19 @@ const {
 } = require('../blocks');
 
 class Processor {
-	constructor({ channel, storage, logger, blocks }) {
+	constructor({ channel, storage, logger, blocksModule }) {
 		this.channel = channel;
 		this.storage = storage;
 		this.logger = logger;
-		this.blocks = blocks;
+		this.blocksModule = blocksModule;
 		this.processors = {};
 		this.matchers = {};
 	}
 
 	// register a block processor with particular version
 	register(processor, { matcher } = {}) {
-		this.processors[processor.VERSION] = processor;
-		this.matchers[processor.VERSION] = matcher || (() => true);
+		this.processors[processor.version] = processor;
+		this.matchers[processor.version] = matcher || (() => true);
 	}
 
 	// eslint-disable-next-line no-unused-vars,class-methods-use-this
@@ -45,7 +44,7 @@ class Processor {
 	// process is for standard processing of block, especially when received from network
 	async process(block) {
 		const blockProcessor = this._getBlockProcessor(block);
-		const { lastBlock } = this.blocks;
+		const { lastBlock } = this.blocksModule;
 		blockProcessor.validateNew.exec({
 			block,
 			lastBlock,
@@ -73,6 +72,12 @@ class Processor {
 		await this._processValidated(block, blockProcessor);
 	}
 
+	create(values) {
+		const heghestVersion = Math.max.apply(null, Object.keys(this.processors));
+		const processor = this.processors[heghestVersion];
+		return processor.create.execSync(values);
+	}
+
 	// validate checks the block statically
 	validate(block) {
 		const blockProcessor = this._getBlockProcessor(block);
@@ -92,8 +97,8 @@ class Processor {
 	}
 
 	_validate(block, processor) {
-		const { lastBlock } = this.blocks;
-		const blockBytes = processor.getBytes.exec({ block });
+		const { lastBlock } = this.blocksModule;
+		const blockBytes = processor.getBytes.execSync({ block });
 		processor.validate.exec({
 			block,
 			lastBlock,
@@ -104,44 +109,38 @@ class Processor {
 
 	async _processValidated(block, processor, { skipSave } = {}) {
 		const blockBytes = processor.getBytes.exec({ block });
-		const stateStore = new StateStore(this.storage);
-		const { lastBlock } = this.blocks;
-		stateStore.createSnapshot();
-		await processor.verify.exec({
-			block,
-			blockBytes,
-			lastBlock,
-			stateStore,
-			channel: this.channel,
-		});
-		stateStore.restoreSnapshot();
-		await processor.apply.exec({
-			block,
-			blockBytes,
-			lastBlock,
-			stateStore,
-			channel: this.channel,
-		});
-		await this.storage.begin(async tx => {
-			await stateStore.finalize(tx);
+		const { lastBlock } = this.blocksModule;
+		await this.storage.entities.Block.begin('Chain:processBlock', async tx => {
+			await processor.verify.exec({
+				block,
+				blockBytes,
+				lastBlock,
+				tx,
+				channel: this.channel,
+			});
+			await processor.apply.exec({
+				block,
+				blockBytes,
+				lastBlock,
+				tx,
+				channel: this.channel,
+			});
 			if (!skipSave) {
-				await this.blocks.create(block, tx);
+				await this.blocksModule.save({ block, tx });
 			}
 		});
 	}
 
 	async _revert(block, processor) {
-		const stateStore = new StateStore(this.storage);
-		const { lastBlock } = this.blocks;
-		await processor.undo.exec({
-			block,
-			lastBlock,
-			stateStore,
-			channel: this.channel,
-		});
-		await this.storage.begin(async tx => {
-			await stateStore.finalize(tx);
-			await this.blocks.deleteBlock(block, tx);
+		await this.storage.entities.Block.begin('Chain:revertBlock', async tx => {
+			const { lastBlock } = this.blocksModule;
+			await processor.undo.exec({
+				block,
+				lastBlock,
+				tx,
+				channel: this.channel,
+			});
+			await this.blocksModule.remove({ block, tx });
 		});
 	}
 
@@ -150,8 +149,8 @@ class Processor {
 		if (!this.processors[version]) {
 			throw new Error('Block processing version is not registered');
 		}
-		// Sort in desc order
-		const matcherVersions = Object.keys(this.matchers).sort((a, b) => b - a);
+		// Sort in asc order
+		const matcherVersions = Object.keys(this.matchers).sort((a, b) => a - b);
 		// eslint-disable-next-line no-restricted-syntax
 		for (const matcherVersion of matcherVersions) {
 			const matcher = this.matchers[matcherVersion];

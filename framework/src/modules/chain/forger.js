@@ -71,6 +71,7 @@ class Forger {
 		// Unique requirements
 		slots,
 		// Modules
+		processorModule,
 		roundsModule,
 		transactionPoolModule,
 		blocksModule,
@@ -101,6 +102,7 @@ class Forger {
 			maxTransactionsPerBlock,
 		};
 
+		this.processorModule = processorModule;
 		this.roundsModule = roundsModule;
 		this.peersModule = peersModule;
 		this.transactionPoolModule = transactionPoolModule;
@@ -381,12 +383,16 @@ class Forger {
 				this.constants.maxTransactionsPerBlock,
 			) || [];
 
-		// TODO: use processor here
-		const forgedBlock = await this.blocksModule.generateBlock(
-			delegateKeypair,
-			this.slots.getSlotTime(currentSlot),
+		const forgedBlock = this.processorModule.create({
+			keypair: delegateKeypair,
+			timestamp: this.slots.getSlotTime(currentSlot),
 			transactions,
-		);
+			previousBlock: this.blocksModule.lastBlock,
+			// FIXME: Add correct value from BFT
+			maxHeightPreviouslyForged: 0,
+			prevotedConfirmedUptoHeight: 0,
+		});
+		await this.processorModule.process(forgedBlock);
 		this.logger.info(
 			`Forged new block id: ${forgedBlock.id} height: ${
 				forgedBlock.height

@@ -24,6 +24,7 @@ const {
 	intToBuffer,
 	LITTLE_ENDIAN,
 } = require('@liskhq/lisk-cryptography');
+const { baseBlockSchema } = require('./blocks');
 const { BlockProcessor } = require('./processor');
 const { sortTransactions } = require('./transactions');
 
@@ -31,83 +32,21 @@ const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
 
 const blockSchema = {
-	type: 'object',
+	...baseBlockSchema,
 	properties: {
-		id: {
-			type: 'string',
-			format: 'id',
-			minLength: 1,
-			maxLength: 20,
-		},
-		height: {
-			type: 'integer',
-		},
+		...baseBlockSchema.properties,
 		maxHeightPreviouslyForged: {
 			type: 'integer',
 		},
 		prevotedConfirmedUptoHeight: {
 			type: 'integer',
 		},
-		blockSignature: {
-			type: 'string',
-			format: 'signature',
-		},
-		generatorPublicKey: {
-			type: 'string',
-			format: 'publicKey',
-		},
-		numberOfTransactions: {
-			type: 'integer',
-		},
-		payloadHash: {
-			type: 'string',
-			format: 'hex',
-		},
-		payloadLength: {
-			type: 'integer',
-		},
-		previousBlock: {
-			type: 'string',
-			format: 'id',
-			minLength: 1,
-			maxLength: 20,
-		},
-		timestamp: {
-			type: 'integer',
-		},
-		totalAmount: {
-			type: 'object',
-			format: 'amount',
-		},
-		totalFee: {
-			type: 'object',
-			format: 'amount',
-		},
-		reward: {
-			type: 'object',
-			format: 'amount',
-		},
-		transactions: {
-			type: 'array',
-			uniqueItems: true,
-		},
-		version: {
-			type: 'integer',
-			minimum: 0,
-		},
 	},
 	required: [
-		'blockSignature',
-		'generatorPublicKey',
-		'numberOfTransactions',
-		'payloadHash',
-		'payloadLength',
-		'timestamp',
-		'totalAmount',
-		'totalFee',
-		'reward',
-		'transactions',
-		'version',
+		...baseBlockSchema.required,
+		'maxHeightPreviouslyForged',
+		'prevotedConfirmedUptoHeight',
+		'height',
 	],
 };
 
@@ -224,35 +163,32 @@ class BlockProcessorV2 extends BlockProcessor {
 		this.getBytes.pipe([({ block }) => getBytes(block)]);
 
 		this.validate.pipe([
-			this._validateVersion.bind(this),
+			data => this._validateVersion(data),
 			validateSchema,
-			// validate BFT related data
-			this.blocksModule.validate.bind(this), // validate common block header
+			data => this.blocksModule.validate(data), // validate common block header
 		]);
 
 		this.fork.pipe([
 			this.blocksModule.forkChoice.bind(this), // validate common block header
 		]);
 
-		this.validateNew.pipe([this.blocksModule.validateNew.bind(this)]);
+		this.validateNew.pipe([data => this.blocksModule.validateNew(data)]);
 
-		this.verify.pipe([this.blocksModule.verify.bind(this)]);
+		this.verify.pipe([data => this.blocksModule.verify(data)]);
 
-		this.apply.pipe([this.blocksModule.apply.bind(this)]);
+		this.apply.pipe([data => this.blocksModule.apply(data)]);
 
-		this.undo.pipe([this.blocksModule.undo.bind(this)]);
+		this.undo.pipe([data => this.blocksModule.undo(data)]);
 
-		this.create.pipe([this._create.bind(this)]);
+		this.create.pipe([data => this._create(data)]);
 	}
 
-	_validateVersion({ block }) {
-		if (block.version !== this.constructor.VERSION) {
-			throw new Error('Invalid version');
-		}
+	// eslint-disable-next-line class-methods-use-this
+	get version() {
+		return 2;
 	}
 
 	_create({
-		blockReward,
 		transactions,
 		previousBlock,
 		keypair,
@@ -265,7 +201,7 @@ class BlockProcessorV2 extends BlockProcessor {
 
 		const nextHeight = previousBlock ? previousBlock.height + 1 : 1;
 
-		const reward = blockReward.calculateReward(nextHeight);
+		const reward = this.blocksModule.blockReward.calculateReward(nextHeight);
 		let totalFee = new BigNum(0);
 		let totalAmount = new BigNum(0);
 		let size = 0;
@@ -295,7 +231,7 @@ class BlockProcessorV2 extends BlockProcessor {
 		const payloadHash = hash(transactionsBuffer).toString('hex');
 
 		const block = {
-			version: BlockProcessorV2.VERSION,
+			version: this.version,
 			totalAmount,
 			totalFee,
 			reward,
