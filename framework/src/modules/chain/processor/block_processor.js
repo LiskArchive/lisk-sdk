@@ -27,6 +27,17 @@ class BlockProcessor {
 		this.apply = new Pipeline();
 		this.undo = new Pipeline();
 	}
+
+	// eslint-disable-next-line class-methods-use-this
+	get version() {
+		throw new Error('Version must be implemented');
+	}
+
+	_validateVersion({ block }) {
+		if (block.version !== this.version) {
+			throw new Error('Invalid version');
+		}
+	}
 }
 
 module.exports = {

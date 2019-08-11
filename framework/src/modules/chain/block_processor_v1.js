@@ -17,9 +17,12 @@
 const { BlockProcessorV0 } = require('./block_processor_v0');
 
 // Block version 0 and 1 is essentially the same
-class BlockProcessorV1 extends BlockProcessorV0 {}
-
-BlockProcessorV1.VERSION = 1;
+class BlockProcessorV1 extends BlockProcessorV0 {
+	// eslint-disable-next-line class-methods-use-this
+	get version() {
+		return 1;
+	}
+}
 
 module.exports = {
 	BlockProcessorV1,

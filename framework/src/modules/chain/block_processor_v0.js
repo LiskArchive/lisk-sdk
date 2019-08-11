@@ -119,36 +119,35 @@ class BlockProcessorV0 extends BlockProcessor {
 		this.getBytes.pipe([({ block }) => getBytes(block)]);
 
 		this.validate.pipe([
-			this._validateVersion.bind(this),
+			data => this._validateVersion(data),
 			validateSchema,
-			this.blocksModule.validate.bind(this), // validate common block header
+			data => this.blocksModule.validate(data), // validate common block header
 		]);
 
 		this.fork.pipe([
-			this.blocksModule.forkChoice.bind(this), // validate common block header
+			data => this.blocksModule.forkChoice(data), // validate common block header
 		]);
 
-		this.validateNew.pipe([this.blocksModule.validateNew.bind(this)]);
+		this.validateNew.pipe([data => this.blocksModule.validateNew(data)]);
 
-		this.verify.pipe([this.blocksModule.verify.bind(this)]);
+		this.verify.pipe([data => this.blocksModule.verify(data)]);
 
-		this.apply.pipe([this.blocksModule.apply.bind(this)]);
+		this.apply.pipe([data => this.blocksModule.apply(data)]);
 
-		this.undo.pipe([this.blocksModule.undo.bind(this)]);
+		this.undo.pipe([data => this.blocksModule.undo(data)]);
 
-		this.create.pipe([this._create.bind(this)]);
+		this.create.pipe([data => this._create(data)]);
 	}
 
-	_validateVersion({ block }) {
-		if (block.version !== this.constructor.VERSION) {
-			throw new Error('Invalid version');
-		}
+	// eslint-disable-next-line class-methods-use-this
+	get version() {
+		return 0;
 	}
 
 	_create({ transactions, previousBlock, keypair, timestamp }) {
 		const sortedTransactions = sortTransactions(transactions);
 		const nextHeight = previousBlock ? previousBlock.height + 1 : 1;
-		const reward = this.blockModule.blockReward.calculateReward(nextHeight);
+		const reward = this.blocksModule.blockReward.calculateReward(nextHeight);
 		let totalFee = new BigNum(0);
 		let totalAmount = new BigNum(0);
 		let size = 0;
@@ -177,9 +176,10 @@ class BlockProcessorV0 extends BlockProcessor {
 		const payloadHash = hash(transactionsBuffer).toString('hex');
 
 		const block = {
-			version: BlockProcessorV0.VERSION,
+			version: this.version,
 			totalAmount,
 			totalFee,
+			height: nextHeight,
 			reward,
 			payloadHash,
 			timestamp,
@@ -192,8 +192,6 @@ class BlockProcessorV0 extends BlockProcessor {
 
 		return {
 			...block,
-			totalAmount: totalAmount.toString(),
-			totalFee: totalAmount.toString(),
 			blockSignature: signDataWithPrivateKey(
 				hash(getBytes(block)),
 				keypair.privateKey,
@@ -201,8 +199,6 @@ class BlockProcessorV0 extends BlockProcessor {
 		};
 	}
 }
-
-BlockProcessorV0.VERSION = 0;
 
 module.exports = {
 	BlockProcessorV0,

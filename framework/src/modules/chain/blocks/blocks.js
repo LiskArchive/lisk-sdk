@@ -228,6 +228,8 @@ class Blocks extends EventEmitter {
 			this.constants.maxPayloadLength,
 		);
 		validateBlockSlot(block, lastBlock, this.slots);
+		// Update id
+		block.id = blocksUtils.getId(blockBytes);
 
 		// validate transactions
 		const { transactionsResponses } = validateTransactions(this.exceptions)(
@@ -326,10 +328,13 @@ class Blocks extends EventEmitter {
 
 	async save({ block, tx }) {
 		await saveBlockStep(this.storage, this.roundsModule, block, true, tx);
+		this._lastBlock = block;
 	}
 
 	async remove({ block, lastBlock, tx }, saveToTemp) {
 		await deleteBlock(this.storage, block.id, tx);
+		// Get latest last block
+		this._lastBlock = lastBlock;
 		if (saveToTemp) {
 			const parsedDeletedBlock = parseBlockToJson(lastBlock);
 			const blockTempEntry = {

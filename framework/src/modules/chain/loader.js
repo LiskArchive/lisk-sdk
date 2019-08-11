@@ -44,6 +44,7 @@ class Loader {
 		// Unique requirements
 		genesisBlock,
 		// Modules
+		processorModule,
 		transactionPoolModule,
 		blocksModule,
 		peersModule,
@@ -71,6 +72,7 @@ class Loader {
 			syncingActive,
 		};
 
+		this.processorModule = processorModule;
 		this.transactionPoolModule = transactionPoolModule;
 		this.blocksModule = blocksModule;
 		this.peersModule = peersModule;
@@ -335,11 +337,14 @@ class Loader {
 	 */
 	async _getValidatedBlocksFromNetwork(blocks) {
 		const { lastBlock } = this.blocksModule;
+		let lastValidBlock = lastBlock;
 		try {
-			// TODO: use processor here
-			const lastValidBlock = await this.blocksModule.loadBlocksFromNetwork(
-				blocks,
-			);
+			// eslint-disable-next-line no-restricted-syntax
+			for (const block of blocks) {
+				this.processorModule.validate(block);
+				// eslint-disable-next-line no-await-in-loop
+				lastValidBlock = await this.processorModule.processValidated(block);
+			}
 			this.blocksToSync = lastValidBlock.height;
 
 			return lastValidBlock.id === lastBlock.id;

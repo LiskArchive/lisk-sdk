@@ -56,6 +56,7 @@ class Transport {
 		// Modules
 		transactionPoolModule,
 		blocksModule,
+		processorModule,
 		loaderModule,
 		interfaceAdapters,
 		// Constants
@@ -79,6 +80,7 @@ class Transport {
 
 		this.transactionPoolModule = transactionPoolModule;
 		this.blocksModule = blocksModule;
+		this.processorModule = processorModule;
 		this.loaderModule = loaderModule;
 		this.interfaceAdapters = interfaceAdapters;
 
