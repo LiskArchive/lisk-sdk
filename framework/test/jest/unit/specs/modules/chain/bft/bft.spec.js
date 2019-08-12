@@ -105,7 +105,7 @@ describe('bft', () => {
 
 				jest
 					.spyOn(bft, '_initFinalityManager')
-					.mockImplementation(() => jest.fn());
+					.mockImplementation(() => ({ on: jest.fn() }));
 
 				jest
 					.spyOn(bft, '_getLastBlockHeight')
@@ -131,7 +131,10 @@ describe('bft', () => {
 				const finalizedHeight = 500;
 				const lastBlockHeight = 600;
 
-				bft._initFinalityManager.mockReturnValue({ finalizedHeight });
+				bft._initFinalityManager.mockReturnValue({
+					finalizedHeight,
+					on: jest.fn(),
+				});
 				bft._getLastBlockHeight.mockReturnValue(lastBlockHeight);
 
 				await bft.init();
@@ -148,7 +151,10 @@ describe('bft', () => {
 				const finalizedHeight = 200;
 				const lastBlockHeight = 600;
 
-				bft._initFinalityManager.mockReturnValue({ finalizedHeight });
+				bft._initFinalityManager.mockReturnValue({
+					finalizedHeight,
+					on: jest.fn(),
+				});
 				bft._getLastBlockHeight.mockReturnValue(lastBlockHeight);
 
 				await bft.init();
@@ -165,7 +171,10 @@ describe('bft', () => {
 				const finalizedHeight = 200;
 				const lastBlockHeight = 600;
 
-				bft._initFinalityManager.mockReturnValue({ finalizedHeight });
+				bft._initFinalityManager.mockReturnValue({
+					finalizedHeight,
+					on: jest.fn(),
+				});
 				bft._getLastBlockHeight.mockReturnValue(lastBlockHeight);
 
 				await bft.init();
