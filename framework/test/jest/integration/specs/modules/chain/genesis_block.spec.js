@@ -14,15 +14,8 @@
 
 'use strict';
 
-const {
-	createDefaultLoadedChainModule,
-	StorageSandbox,
-	storageConfig,
-	getBlock,
-	getAccount,
-	getDelegateList,
-} = require('../../../utils');
-const delegateListForTheFirstRound = require('../../../../../fixtures/config/devnet/round_delegates_for_first_round.json');
+const { chainUtils, storageUtils, configUtils } = require('../../../utils');
+const delegateListForTheFirstRound = require('../../../../../fixtures/config/devnet/delegates_for_first_round.json');
 const genesisBlock = require('../../../../../fixtures/config/devnet/genesis_block');
 
 describe('genesis block', () => {
@@ -32,7 +25,9 @@ describe('genesis block', () => {
 	let chainModule;
 
 	beforeAll(async () => {
-		storage = new StorageSandbox(storageConfig({ database: dbName }));
+		storage = new storageUtils.StorageSandbox(
+			configUtils.storageConfig({ database: dbName }),
+		);
 		await storage.bootstrap();
 	});
 
@@ -44,7 +39,7 @@ describe('genesis block', () => {
 	describe('given the application has not been initialized', () => {
 		describe('when chain module is bootstrapped', () => {
 			beforeAll(async () => {
-				chainModule = await createDefaultLoadedChainModule(dbName);
+				chainModule = await chainUtils.createDefaultLoadedChainModule(dbName);
 			});
 
 			afterAll(async () => {
@@ -52,13 +47,13 @@ describe('genesis block', () => {
 			});
 
 			it('should save genesis block to the database', async () => {
-				const block = await getBlock(storage, genesisBlock.id);
+				const block = await chainUtils.getBlock(storage, genesisBlock.id);
 				expect(block.id).toEqual(genesisBlock.id);
 				expect(block.height).toEqual(1);
 			});
 
 			it('should have genesis transactions in database', async () => {
-				const block = await getBlock(storage, genesisBlock.id);
+				const block = await chainUtils.getBlock(storage, genesisBlock.id);
 				const ids = genesisBlock.transactions.map(t => t.id);
 				const allExist = ids.every(id =>
 					block.transactions.map(tx => tx.id).includes(id),
@@ -79,7 +74,7 @@ describe('genesis block', () => {
 				// Get delegate accounts in genesis block from the database
 				const accountsFromDb = await Promise.all(
 					delegateAccountsAddressesInGenesisBlock.map(address =>
-						getAccount(storage, address),
+						chainUtils.getAccount(storage, address),
 					),
 				);
 				const allAccountsAreDelegate = delegateAccountsAddressesInGenesisBlock.every(
@@ -104,7 +99,7 @@ describe('genesis block', () => {
 				// Get delegate accounts in genesis block from the database
 				const accountsFromDb = await Promise.all(
 					delegateAccountsAddressesInGenesisBlock.map(address =>
-						getAccount(storage, address),
+						chainUtils.getAccount(storage, address),
 					),
 				);
 				const allAccountsHaveCorrectVoteWeight = delegateAccountsAddressesInGenesisBlock.every(
@@ -120,7 +115,10 @@ describe('genesis block', () => {
 			});
 
 			it('should have correct delegate list', async () => {
-				const delegateListFromChain = await getDelegateList(chainModule, 1);
+				const delegateListFromChain = await chainUtils.getDelegateList(
+					chainModule,
+					1,
+				);
 				expect(delegateListFromChain).toEqual(delegateListForTheFirstRound);
 			});
 		});
@@ -129,11 +127,11 @@ describe('genesis block', () => {
 	describe('given the application has been initialized previously', () => {
 		describe('when chain module is bootstrapped', () => {
 			beforeAll(async () => {
-				chainModule = await createDefaultLoadedChainModule(dbName);
+				chainModule = await chainUtils.createDefaultLoadedChainModule(dbName);
 			});
 
 			it('should have genesis transactions in database', async () => {
-				const block = await getBlock(storage, genesisBlock.id);
+				const block = await chainUtils.getBlock(storage, genesisBlock.id);
 				const ids = genesisBlock.transactions.map(t => t.id);
 				const allExist = ids.every(id =>
 					block.transactions.map(tx => tx.id).includes(id),
@@ -154,7 +152,7 @@ describe('genesis block', () => {
 				// Get delegate accounts in genesis block from the database
 				const accountsFromDb = await Promise.all(
 					delegateAccountsAddressesInGenesisBlock.map(address =>
-						getAccount(storage, address),
+						chainUtils.getAccount(storage, address),
 					),
 				);
 				const allAccountsAreDelegate = delegateAccountsAddressesInGenesisBlock.every(
@@ -179,7 +177,7 @@ describe('genesis block', () => {
 				// Get delegate accounts in genesis block from the database
 				const accountsFromDb = await Promise.all(
 					delegateAccountsAddressesInGenesisBlock.map(address =>
-						getAccount(storage, address),
+						chainUtils.getAccount(storage, address),
 					),
 				);
 				const allAccountsHaveCorrectVoteWeight = delegateAccountsAddressesInGenesisBlock.every(
@@ -195,7 +193,10 @@ describe('genesis block', () => {
 			});
 
 			it('should have correct delegate list', async () => {
-				const delegateListFromChain = await getDelegateList(chainModule, 1);
+				const delegateListFromChain = await chainUtils.getDelegateList(
+					chainModule,
+					1,
+				);
 				expect(delegateListFromChain).toEqual(delegateListForTheFirstRound);
 			});
 		});

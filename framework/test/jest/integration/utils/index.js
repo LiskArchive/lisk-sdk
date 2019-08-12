@@ -21,7 +21,7 @@ const chainUtils = require('./chain');
 
 module.exports = {
 	defaultTransactions,
-	...storageUtils,
-	...chainUtils,
-	...configUtils,
+	storageUtils,
+	chainUtils,
+	configUtils,
 };
