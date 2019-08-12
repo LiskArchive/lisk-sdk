@@ -27,7 +27,7 @@ const genesisBlock = require('../../../../../fixtures/config/devnet/genesis_bloc
 
 describe('genesis block', () => {
 	const dbName = 'genesis_block';
-	const TRANSACTION_TYPES_DELEGATE_REGISTRATION = 2;
+	const TRANSACTION_TYPE_DELEGATE_REGISTRATION = 2;
 	let storage;
 	let chainModule;
 
@@ -71,7 +71,7 @@ describe('genesis block', () => {
 				// Get accounts of delegate registeration
 				const delegateRegistrationTransactions = genesisBlock.transactions.filter(
 					transaction =>
-						transaction.type === TRANSACTION_TYPES_DELEGATE_REGISTRATION,
+						transaction.type === TRANSACTION_TYPE_DELEGATE_REGISTRATION,
 				);
 				const delegateAccountsAddressesInGenesisBlock = delegateRegistrationTransactions.map(
 					transaction => transaction.senderId,
@@ -91,11 +91,12 @@ describe('genesis block', () => {
 			});
 
 			it('should have correct vote weight for genesis delegates', async () => {
+				// All delegates has vote weight of total supply
 				const voteWeightOfDevnetDelegates = '10000000000000000';
 				// Get accounts of delegate registeration
 				const delegateRegistrationTransactions = genesisBlock.transactions.filter(
 					transaction =>
-						transaction.type === TRANSACTION_TYPES_DELEGATE_REGISTRATION,
+						transaction.type === TRANSACTION_TYPE_DELEGATE_REGISTRATION,
 				);
 				const delegateAccountsAddressesInGenesisBlock = delegateRegistrationTransactions.map(
 					transaction => transaction.senderId,
@@ -145,7 +146,7 @@ describe('genesis block', () => {
 				// Get accounts of delegate registeration
 				const delegateRegistrationTransactions = genesisBlock.transactions.filter(
 					transaction =>
-						transaction.type === TRANSACTION_TYPES_DELEGATE_REGISTRATION,
+						transaction.type === TRANSACTION_TYPE_DELEGATE_REGISTRATION,
 				);
 				const delegateAccountsAddressesInGenesisBlock = delegateRegistrationTransactions.map(
 					transaction => transaction.senderId,
@@ -165,11 +166,12 @@ describe('genesis block', () => {
 			});
 
 			it('should have correct vote weight for genesis delegates', async () => {
+				// All delegates has vote weight of total supply
 				const voteWeightOfDevnetDelegates = '10000000000000000';
 				// Get accounts of delegate registeration
 				const delegateRegistrationTransactions = genesisBlock.transactions.filter(
 					transaction =>
-						transaction.type === TRANSACTION_TYPES_DELEGATE_REGISTRATION,
+						transaction.type === TRANSACTION_TYPE_DELEGATE_REGISTRATION,
 				);
 				const delegateAccountsAddressesInGenesisBlock = delegateRegistrationTransactions.map(
 					transaction => transaction.senderId,

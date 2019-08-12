@@ -14,7 +14,7 @@
 
 'use strict';
 
-const genesisConfig = () => ({
+const genesisConfig = (overriddenConfigProperties = {}) => ({
 	EPOCH_TIME: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 	BLOCK_TIME: 10,
 	MAX_TRANSACTIONS_PER_BLOCK: 25,
@@ -60,6 +60,7 @@ const genesisConfig = () => ({
 	},
 	UNCONFIRMED_TRANSACTION_TIMEOUT: 10800, // 1080 blocks
 	EXPIRY_INTERVAL: 30000,
+	...overriddenConfigProperties,
 });
 
 module.exports = {

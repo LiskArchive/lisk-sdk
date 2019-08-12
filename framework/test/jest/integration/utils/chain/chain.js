@@ -15,8 +15,9 @@
 
 'use strict';
 
-const { genesisConfig, storageConfig, cacheConfig } = require('../configs');
+const { genesisConfig } = require('../configs');
 const { defaultTransactions } = require('../default_transactions');
+const { createMockChannel } = require('../channel');
 const ChainModule = require('../../../../../src/modules/chain');
 const genesisBlock = require('../../../../fixtures/config/devnet/genesis_block');
 
@@ -32,28 +33,6 @@ const createDefaultChainModule = () => {
 	return chainModule;
 };
 
-const createMockChannel = databaseName => {
-	const channel = {
-		publish: jest.fn(),
-		once: jest.fn(),
-		invoke: jest.fn((action, arg) => {
-			if (action === 'app:getComponentConfig') {
-				if (arg === 'storage') {
-					return storageConfig({ database: databaseName });
-				}
-				if (arg === 'cache') {
-					return cacheConfig();
-				}
-			}
-			return {};
-		}),
-		subscribe: jest.fn((event, listener) => {
-			listener({ data: {} });
-		}),
-	};
-	return channel;
-};
-
 const createDefaultLoadedChainModule = async databaseName => {
 	const chainModule = createDefaultChainModule();
 	await chainModule.load(createMockChannel(databaseName));
@@ -61,7 +40,6 @@ const createDefaultLoadedChainModule = async databaseName => {
 };
 
 module.exports = {
-	createMockChannel,
 	createDefaultChainModule,
 	createDefaultLoadedChainModule,
 };

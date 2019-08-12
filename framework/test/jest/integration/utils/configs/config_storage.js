@@ -14,7 +14,7 @@
 
 'use strict';
 
-const storageConfig = overidenConfigProperties => ({
+const storageConfig = (overriddenConfigProperties = {}) => ({
 	host: 'localhost',
 	port: 5432,
 	database: 'lisk_dev',
@@ -26,7 +26,7 @@ const storageConfig = overidenConfigProperties => ({
 	reapIntervalMillis: 1000,
 	logEvents: ['error'],
 	logFileName: 'logs/lisk_db.log',
-	...overidenConfigProperties,
+	...overriddenConfigProperties,
 });
 
 module.exports = {

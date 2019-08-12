@@ -14,12 +14,13 @@
 
 'use strict';
 
-const cacheConfig = () => ({
+const cacheConfig = (overriddenConfigProperties = {}) => ({
 	enabled: false,
 	host: '127.0.0.1',
 	port: 6380,
 	db: 0,
 	password: null,
+	...overriddenConfigProperties,
 });
 
 module.exports = {
