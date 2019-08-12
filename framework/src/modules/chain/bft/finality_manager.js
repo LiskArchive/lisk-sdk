@@ -59,6 +59,7 @@ class FinalityManager {
 		this.headers = new HeadersList({ size: this.maxHeaders });
 
 		// Height up to which blocks are finalized
+		this._initialFinalizedHeight = finalizedHeight;
 		this.finalizedHeight = finalizedHeight;
 
 		// Height up to which blocks have pre-voted
@@ -102,6 +103,9 @@ class FinalityManager {
 		// Update the pre-voted confirmed and finalized height
 		this.updatePreVotedAndFinalizedHeight();
 
+		// Cleanup pre-votes and pre-commits
+		this._cleanup();
+
 		debug('after adding block header', {
 			finalizedHeight: this.finalizedHeight,
 			prevotedConfirmedHeight: this.prevotedConfirmedHeight,
@@ -139,14 +143,19 @@ class FinalityManager {
 		};
 
 		// Get first block of the round when delegate was active
-		const delegateMinHeightActive =
+		const heightSinceDelegateActive =
 			(header.activeSinceRound - 1) * this.activeDelegates + 1;
+
+		const validMinHeightToVoteAndCommit = this._getValidMinHeightToCommit(
+			header,
+		);
 
 		// If delegate is new then first block of the round will be considered
 		// if it forged before then we probably have the last commit height
 		// delegate can't pre-commit a block before the above mentioned conditions
-		const minPreCommit = Math.max(
-			delegateMinHeightActive,
+		const minPreCommitHeight = Math.max(
+			heightSinceDelegateActive,
+			validMinHeightToVoteAndCommit,
 			delegateState.maxPreCommitHeight + 1,
 		);
 
@@ -154,7 +163,7 @@ class FinalityManager {
 		const maxPreCommitHeight = header.height - 1;
 
 		// eslint-disable-next-line no-plusplus
-		for (let j = minPreCommit; j <= maxPreCommitHeight; j++) {
+		for (let j = minPreCommitHeight; j <= maxPreCommitHeight; j++) {
 			// Add pre-commit if threshold is reached
 			if (this.preVotes[j] >= this.preVoteThreshold) {
 				// Increase the pre-commit for particular height
@@ -170,7 +179,7 @@ class FinalityManager {
 		// Or one step ahead where it left the last pre-vote
 		// Or maximum 3 rounds backward
 		const minPreVoteHeight = Math.max(
-			delegateMinHeightActive,
+			heightSinceDelegateActive,
 			header.maxHeightPreviouslyForged + 1,
 			delegateState.maxPreVoteHeight + 1,
 			header.height - this.processingThreshold,
@@ -200,23 +209,78 @@ class FinalityManager {
 			return false;
 		}
 
-		const higherPairVoted = Object.entries(this.preVotes)
+		const highestHeightPreVoted = Object.keys(this.preVotes)
 			.reverse()
-			.find(pair => pair[1] >= this.preVoteThreshold);
+			.find(key => this.preVotes[key] >= this.preVoteThreshold);
 
-		this.prevotedConfirmedHeight = higherPairVoted
-			? parseInt(higherPairVoted[0], 10)
+		this.prevotedConfirmedHeight = highestHeightPreVoted
+			? parseInt(highestHeightPreVoted, 10)
 			: this.prevotedConfirmedHeight;
 
-		const higherPairCommitted = Object.entries(this.preCommits)
+		const highestHeightPreCommitted = Object.keys(this.preCommits)
 			.reverse()
-			.find(pair => pair[1] >= this.preCommitThreshold);
+			.find(key => this.preCommits[key] >= this.preCommitThreshold);
 
-		this.finalizedHeight = higherPairCommitted
-			? parseInt(higherPairCommitted[0], 10)
+		this.finalizedHeight = highestHeightPreCommitted
+			? parseInt(highestHeightPreCommitted, 10)
 			: this.finalizedHeight;
 
 		return true;
+	}
+
+	/**
+	 * Return the valid height to start the pre-commit
+	 * this method will help to identify the gaps in the blocks
+	 * if delegate forged a block on different chain
+	 *
+	 * @param header
+	 * @return {number}
+	 * @private
+	 */
+	_getValidMinHeightToCommit(header) {
+		// We search backward from top block to bottom block in the chain
+
+		// We should search down to the height we have in our headers list
+		// and within the processing threshold which is three rounds
+		const searchTillHeight = Math.max(
+			this.minHeight,
+			header.height - this.processingThreshold,
+		);
+
+		// Start looking from the point where delegate forged the block last time
+		// and within the processing threshold which is three rounds
+		let needleHeight = Math.max(
+			header.maxHeightPreviouslyForged,
+			header.height - this.processingThreshold,
+		);
+
+		// Hold reference for the current header
+		let currentBlockHeader = { ...header };
+
+		while (needleHeight >= searchTillHeight) {
+			// We need to ensure that the delegate forging header did not forge on any other chain, i.e.,
+			// maxHeightPreviouslyForged always refers to a height with a block forged by the same delegate.
+			if (needleHeight === currentBlockHeader.maxHeightPreviouslyForged) {
+				const previousBlockHeader = this.headers.get(needleHeight);
+
+				// Was the previous block suggested by current block header
+				// was actually forged by same delegate? If not then just return from here
+				// delegate can't commit blocks down from that height
+				if (
+					previousBlockHeader.delegatePublicKey !== header.delegatePublicKey ||
+					previousBlockHeader.maxHeightPreviouslyForged >= needleHeight
+				) {
+					return needleHeight;
+				}
+
+				// Move the needle to previous block and consider it current for next iteration
+				needleHeight = previousBlockHeader.maxHeightPreviouslyForged;
+				currentBlockHeader = previousBlockHeader;
+			} else {
+				needleHeight -= 1;
+			}
+		}
+		return needleHeight;
 	}
 
 	/**
@@ -224,15 +288,18 @@ class FinalityManager {
 	 */
 	recompute() {
 		this.state = {};
-		this.finalizedHeight = 0;
+		this.finalizedHeight = this._initialFinalizedHeight;
 		this.prevotedConfirmedHeight = 0;
 		this.preVotes = {};
 		this.preCommits = {};
 
 		this.headers.items.forEach(header => {
 			this.updatePreVotesPreCommits(header);
-			this.updatePreVotedAndFinalizedHeight();
 		});
+
+		this.updatePreVotedAndFinalizedHeight();
+
+		this._cleanup();
 	}
 
 	/**
@@ -288,6 +355,26 @@ class FinalityManager {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Cleanup pre-votes and pre-commits objects
+	 * to only keep the track of maximum 5 rounds (headers list size)
+	 *
+	 * @private
+	 */
+	_cleanup() {
+		Object.keys(this.preVotes)
+			.slice(0, -1 * this.maxHeaders)
+			.forEach(key => {
+				delete this.preVotes[key];
+			});
+
+		Object.keys(this.preCommits)
+			.slice(0, -1 * this.maxHeaders)
+			.forEach(key => {
+				delete this.preCommits[key];
+			});
 	}
 
 	get minHeight() {
