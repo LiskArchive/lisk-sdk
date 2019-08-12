@@ -322,8 +322,7 @@ class Transport {
 			);
 		}
 		if (success) {
-			// TODO: use processor here
-			return this.blocksModule.receiveBlockFromNetwork(block);
+			return this.processorModule.process(block);
 		}
 		return null;
 	}

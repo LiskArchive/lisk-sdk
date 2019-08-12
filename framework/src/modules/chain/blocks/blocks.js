@@ -31,7 +31,6 @@ const {
 	applyConfirmedStep,
 	undoConfirmedStep,
 	saveBlockStep,
-	deleteBlock,
 	parseBlockToJson,
 } = require('./chain');
 const {
@@ -331,12 +330,10 @@ class Blocks extends EventEmitter {
 		this._lastBlock = block;
 	}
 
-	async remove({ block, lastBlock, tx }, saveToTemp) {
-		await deleteBlock(this.storage, block.id, tx);
-		// Get latest last block
-		this._lastBlock = lastBlock;
+	async remove({ block, tx }, saveToTemp) {
+		this._lastBlock = await this.blocksChain.deleteLastBlock(block);
 		if (saveToTemp) {
-			const parsedDeletedBlock = parseBlockToJson(lastBlock);
+			const parsedDeletedBlock = parseBlockToJson(block);
 			const blockTempEntry = {
 				id: parsedDeletedBlock.id,
 				height: parsedDeletedBlock.height,
