@@ -29,6 +29,7 @@ SELECT
 	"fees",
 	"rewards",
 	"vote",
+	"vote_new",
 	case
 	when
 		"producedBlocks" + "missedBlocks" = 0 then 0

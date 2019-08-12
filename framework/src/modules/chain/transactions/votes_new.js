@@ -35,14 +35,20 @@ const updateDelegateVote = (
 ) => {
 	const delegateAddress = getAddressFromPublicKey(delegatePublicKey);
 	const delegateAccount = stateStore.account.get(delegateAddress);
+	const voteBigNum = new BigNum(delegateAccount.vote_new || '0');
+	const vote_new = voteBigNum[method](amount).toString();
 	const updatedDelegateAccount = {
 		...delegateAccount,
-		vote_new: delegateAccount.balance[method](amount).toString(),
+		vote_new,
 	};
 	stateStore.account.set(delegateAddress, updatedDelegateAccount);
 };
 
 const getRecipientAddress = (stateStore, transaction) => {
+	/**
+	 *  If transaction type is IN_TRANSFER then,
+	 * `recipientId` is the owner of dappRegistration transaction
+	 */
 	if (transaction.type === TRANSACTION_TYPES_IN_TRANSFER) {
 		const dappTransaction = stateStore.transaction.get(
 			transaction.asset.inTransfer.dappId,
@@ -98,7 +104,7 @@ const updateRecipientDelegateVotes = (
 	const { amount } = transaction;
 	const account = stateStore.account.get(address);
 	const method = undo ? 'sub' : 'add';
-	const { votedDelegatesPublicKeys = [] } = account;
+	const votedDelegatesPublicKeys = account.votedDelegatesPublicKeys || [];
 
 	return votedDelegatesPublicKeys
 		.map(delegatePublicKey => ({
@@ -116,8 +122,9 @@ const updateSenderDelegateVotes = (
 	undo = false,
 ) => {
 	const amount = transaction.fee.plus(transaction.amount);
-	const senderAccount = stateStore.account.get(transaction.senderId);
-	let { votedDelegatesPublicKeys = [] } = senderAccount;
+	const method = undo ? 'add' : 'sub';
+	const senderAccount = stateStore.account.getOrDefault(transaction.senderId);
+	let votedDelegatesPublicKeys = senderAccount.votedDelegatesPublicKeys || [];
 
 	/**
 	 * In testnet, one vote transaction was not processed correctly.
@@ -151,7 +158,7 @@ const updateSenderDelegateVotes = (
 		.map(delegatePublicKey => ({
 			delegatePublicKey,
 			amount,
-			method: undo ? 'add' : 'sub',
+			method,
 		}))
 		.forEach(data => updateDelegateVote(stateStore, data));
 };
@@ -197,50 +204,32 @@ const undo = (stateStore, transaction, exceptions = {}) => {
 	updateDelegateVotes(stateStore, transaction, true);
 };
 
-const prepare = async (transaction, stateStore) => {
-	// Get Delegate Public Keys whom sender voted for
+const prepare = async (stateStore, transaction) => {
+	// Get delegate public keys whom sender voted for
 	const senderDelegatePks =
-		stateStore.account.get(transaction.senderId).votedDelegatesPublicKeys || [];
+		stateStore.account.getOrDefault(transaction.senderId)
+			.votedDelegatesPublicKeys || [];
 
-	// Get recipientId from transaction
-	let { recipientId } = transaction;
+	const recipientId = getRecipientAddress(stateStore, transaction);
 
-	/**
-	 *  If transaction type is IN_TRANSFER then,
-	 * `recipientId` is the owner of dappRegistration transaction
-	 */
-	if (transaction.type === TRANSACTION_TYPES_IN_TRANSFER) {
-		const dappTransaction = stateStore.transaction.get(
-			transaction.asset.inTransfer.dappId,
-		);
-		recipientId = dappTransaction.senderId;
-	}
+	// Get delegate public keys whom recipient voted for
+	const recipientDelegatePks = recipientId
+		? stateStore.account.getOrDefault(recipientId).votedDelegatesPublicKeys ||
+		  []
+		: [];
 
-	// Delegate Public Keys whom recipient voted for
-	const recipientDelegatePks =
-		stateStore.account.get(recipientId).votedDelegatesPublicKeys || [];
-
-	// Get unique public keys from merged list!
-	const delegatePksToBeCached = [
+	// Get unique public keys from merged list
+	const uniqPksToBeCached = [
 		...new Set([...senderDelegatePks, ...recipientDelegatePks]),
 	];
 
-	const delegateAddresses = delegatePksToBeCached
+	const addressesToBeCached = uniqPksToBeCached
 		// format items for filtering in cache function
-		.map(delegatePublicKey => ({
-			address: getAddressFromPublicKey(delegatePublicKey),
-		}))
+		.map(delegatePk => ({
+			address: getAddressFromPublicKey(delegatePk),
+		}));
 
-		// Ignore already cached addresses.
-		.filter(delegateAddress => {
-			try {
-				return !!stateStore.account.get(delegateAddress);
-			} catch (err) {
-				return false;
-			}
-		});
-
-	return stateStore.account.cache(delegateAddresses);
+	return stateStore.account.cache(addressesToBeCached);
 };
 
 module.exports = {

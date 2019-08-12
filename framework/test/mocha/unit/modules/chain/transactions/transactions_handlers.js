@@ -17,6 +17,7 @@
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const transactionHandlers = require('../../../../../../src/modules/chain/transactions/transactions_handlers');
 const voteHandlers = require('../../../../../../src/modules/chain/transactions/votes');
+const vote_newHandlers = require('../../../../../../src/modules/chain/transactions/votes_new');
 const exceptionHandlers = require('../../../../../../src/modules/chain/transactions/exceptions_handlers');
 const StateStore = require('../../../../../../src/modules/chain/state_store');
 const {
@@ -63,6 +64,9 @@ describe('transactions', () => {
 			entities: {
 				Transaction: {
 					get: sinonSandbox.stub(),
+				},
+				Account: {
+					get: sinonSandbox.stub().returns([]),
 				},
 			},
 		};
@@ -338,6 +342,8 @@ describe('transactions', () => {
 			trs1.apply.returns(trs1Response);
 			trs2.apply.returns(trs2Response);
 			sinonSandbox.stub(voteHandlers, 'apply');
+			sinonSandbox.stub(vote_newHandlers, 'prepare');
+			sinonSandbox.stub(vote_newHandlers, 'apply');
 		});
 
 		it('should prepare all transactions', async () => {
@@ -367,6 +373,7 @@ describe('transactions', () => {
 			]);
 
 			expect(voteHandlers.apply).to.be.calledTwice;
+			expect(vote_newHandlers.apply).to.be.calledTwice;
 		});
 
 		it('should add transaction to state store', async () => {
@@ -435,6 +442,8 @@ describe('transactions', () => {
 			trs2.apply.returns(trs2Response);
 
 			sinonSandbox.stub(voteHandlers, 'apply');
+			sinonSandbox.stub(vote_newHandlers, 'prepare');
+			sinonSandbox.stub(vote_newHandlers, 'apply');
 			sinonSandbox
 				.stub(transactionHandlers, 'verifyTotalSpending')
 				.returns([trs1Response, trs2Response]);
@@ -535,6 +544,7 @@ describe('transactions', () => {
 				await transactionHandlers.applyTransactions(storageMock)([trs1, trs2]);
 
 				expect(voteHandlers.apply).to.be.calledOnce;
+				expect(vote_newHandlers.apply).to.be.calledOnce;
 				expect(voteHandlers.apply).to.be.calledWithExactly(
 					stateStoreMock,
 					trs1,
@@ -548,6 +558,7 @@ describe('transactions', () => {
 				await transactionHandlers.applyTransactions(storageMock)([trs1, trs2]);
 
 				expect(voteHandlers.apply).to.not.be.called;
+				expect(vote_newHandlers.apply).to.not.be.called;
 			});
 
 			it('should add to state store if transaction response is OK', async () => {
@@ -602,6 +613,7 @@ describe('transactions', () => {
 			trs2.undo.returns(trs2Response);
 
 			sinonSandbox.stub(voteHandlers, 'undo');
+			sinonSandbox.stub(vote_newHandlers, 'undo');
 			sinonSandbox.stub(
 				exceptionHandlers,
 				'updateTransactionResponseForExceptionTransactions',
@@ -636,6 +648,7 @@ describe('transactions', () => {
 			await transactionHandlers.undoTransactions(storageMock)([trs1, trs2]);
 
 			expect(voteHandlers.undo).to.be.calledTwice;
+			expect(vote_newHandlers.undo).to.be.calledTwice;
 		});
 
 		it('should update exceptions for responses which are not OK', async () => {

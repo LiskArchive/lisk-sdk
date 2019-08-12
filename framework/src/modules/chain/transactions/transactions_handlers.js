@@ -117,7 +117,7 @@ const applyGenesisTransactions = storage => async (
 	});
 
 	await Promise.all(transactions.map(t => t.prepare(stateStore)));
-	await Promise.all(transactions.map(t => votesNew.prepare(t, stateStore)));
+	await Promise.all(transactions.map(t => votesNew.prepare(stateStore, t)));
 
 	const transactionsResponses = transactions.map(transaction => {
 		const transactionResponse = transaction.apply(stateStore);
@@ -145,7 +145,7 @@ const applyTransactions = (storage, exceptions) => async (transactions, tx) => {
 	});
 
 	await Promise.all(transactions.map(t => t.prepare(stateStore)));
-	await Promise.all(transactions.map(t => votesNew.prepare(t, stateStore)));
+	await Promise.all(transactions.map(t => votesNew.prepare(stateStore, t)));
 
 	// Verify total spending of per account accumulative
 	const transactionsResponseWithSpendingErrors = verifyTotalSpending(
@@ -172,6 +172,7 @@ const applyTransactions = (storage, exceptions) => async (transactions, tx) => {
 					exceptions,
 				);
 			}
+
 			if (transactionResponse.status === TransactionStatus.OK) {
 				votes.apply(stateStore, transaction, exceptions);
 				votesNew.apply(stateStore, transaction, exceptions);
@@ -271,7 +272,7 @@ const undoTransactions = (storage, exceptions) => async (
 	});
 
 	await Promise.all(transactions.map(t => t.prepare(stateStore)));
-	await Promise.all(transactions.map(t => votesNew.prepare(t, stateStore)));
+	await Promise.all(transactions.map(t => votesNew.prepare(stateStore, t)));
 
 	const transactionsResponses = transactions.map(transaction => {
 		const transactionResponse = transaction.undo(stateStore);

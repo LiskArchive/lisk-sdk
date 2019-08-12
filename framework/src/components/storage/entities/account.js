@@ -220,6 +220,7 @@ class Account extends BaseEntity {
 		this.addField('missedBlocks', 'string', { filter: ft.NUMBER });
 		this.addField('rank', 'string', { filter: ft.NUMBER });
 		this.addField('vote', 'string', { filter: ft.NUMBER });
+		this.addField('vote_new', 'string', { filter: ft.NUMBER });
 		this.addField('asset', 'string');
 
 		this.addFilter('votedDelegatesPublicKeys_in', ft.CUSTOM, {
