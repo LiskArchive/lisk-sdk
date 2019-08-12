@@ -56,6 +56,28 @@ export const validatePeerAddress = (ip: string, wsPort: number): boolean => {
 	return true;
 };
 
+export const incomingPeerInfoSanitization = (
+	peerInfo: ProtocolPeerInfo,
+): P2PPeerInfo => {
+	const { ip, ...restOfPeerInfo } = peerInfo;
+
+	return {
+		ipAddress: ip,
+		...restOfPeerInfo,
+	};
+};
+
+export const outgoingPeerInfoSanitization = (
+	peerInfo: P2PPeerInfo,
+): ProtocolPeerInfo => {
+	const { ipAddress, ...restOfPeerInfo } = peerInfo;
+
+	return {
+		ip: ipAddress,
+		...restOfPeerInfo,
+	};
+};
+
 export const validatePeerInfo = (rawPeerInfo: unknown): P2PPeerInfo => {
 	if (!rawPeerInfo) {
 		throw new InvalidPeerError(`Invalid peer object`);
@@ -98,24 +120,7 @@ export const validatePeerInfo = (rawPeerInfo: unknown): P2PPeerInfo => {
 	return peerInfoUpdated;
 };
 
-export const validateBasicPeerInfo = (rawPeerInfo: unknown): P2PPeerInfo => {
-	if (!rawPeerInfo) {
-		throw new InvalidPeerError(`Invalid peer object`);
-	}
-
-	const peerInfo = rawPeerInfo as P2PPeerInfo;
-	if (
-		!peerInfo.ipAddress ||
-		!peerInfo.wsPort ||
-		!validatePeerAddress(peerInfo.ipAddress, peerInfo.wsPort)
-	) {
-		throw new InvalidPeerError(`Invalid peer ip or port`);
-	}
-
-	return peerInfo;
-};
-
-export const validateBasicPeersInfoList = (
+export const validatePeersInfoList = (
 	rawBasicPeerInfoList: unknown,
 ): ReadonlyArray<P2PPeerInfo> => {
 	if (!rawBasicPeerInfoList) {
@@ -124,7 +129,7 @@ export const validateBasicPeersInfoList = (
 	const { peers } = rawBasicPeerInfoList as RPCPeerListResponse;
 
 	if (Array.isArray(peers)) {
-		const peerList = peers.map<P2PPeerInfo>(validateBasicPeerInfo);
+		const peerList = peers.map<P2PPeerInfo>(validatePeerInfo);
 
 		return peerList;
 	} else {
