@@ -4,8 +4,10 @@
 	"description": "Lisk protocol specs generator",
 	"main": "index.js",
 	"scripts": {
-		"generate-all-specs": "node index.js",
-		"test": "echo \"Error: no test specified\" && exit 1"
+		"lint": "eslint .",
+		"lint:fix": "eslint --fix .",
+		"format": "prettier --write '**/*'",
+		"generate-all-specs": "node index.js"
 	},
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -23,6 +25,7 @@
 		"eslint-plugin-chai-expect": "2.0.1",
 		"eslint-plugin-import": "2.14.0",
 		"eslint-plugin-jest": "22.3.0",
-		"eslint-plugin-mocha": "5.3.0"
+		"eslint-plugin-mocha": "5.3.0",
+		"prettier": "1.16.4"
 	}
 }
