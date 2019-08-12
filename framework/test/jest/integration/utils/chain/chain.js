@@ -21,7 +21,7 @@ const { createMockChannel } = require('../channel');
 const ChainModule = require('../../../../../src/modules/chain');
 const genesisBlock = require('../../../../fixtures/config/devnet/genesis_block');
 
-const createDefaultChainModule = () => {
+const createChainModule = () => {
 	const options = {
 		...ChainModule.defaults.default,
 		constants: genesisConfig(),
@@ -33,13 +33,13 @@ const createDefaultChainModule = () => {
 	return chainModule;
 };
 
-const createDefaultLoadedChainModule = async databaseName => {
-	const chainModule = createDefaultChainModule();
+const createAndLoadChainModule = async databaseName => {
+	const chainModule = createChainModule();
 	await chainModule.load(createMockChannel(databaseName));
 	return chainModule.chain;
 };
 
 module.exports = {
-	createDefaultChainModule,
-	createDefaultLoadedChainModule,
+	createChainModule,
+	createAndLoadChainModule,
 };

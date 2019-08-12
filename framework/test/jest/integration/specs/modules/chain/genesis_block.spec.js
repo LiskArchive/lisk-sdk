@@ -39,7 +39,7 @@ describe('genesis block', () => {
 	describe('given the application has not been initialized', () => {
 		describe('when chain module is bootstrapped', () => {
 			beforeAll(async () => {
-				chainModule = await chainUtils.createDefaultLoadedChainModule(dbName);
+				chainModule = await chainUtils.createAndLoadChainModule(dbName);
 			});
 
 			afterAll(async () => {
@@ -127,7 +127,7 @@ describe('genesis block', () => {
 	describe('given the application has been initialized previously', () => {
 		describe('when chain module is bootstrapped', () => {
 			beforeAll(async () => {
-				chainModule = await chainUtils.createDefaultLoadedChainModule(dbName);
+				chainModule = await chainUtils.createAndLoadChainModule(dbName);
 			});
 
 			it('should have genesis transactions in database', async () => {
