@@ -227,7 +227,7 @@ class FinalityManager extends EventEmitter {
 		const previouslyFinalizedHeight = this.finalizedHeight;
 
 		if (highestHeightPreCommitted) {
-			this.finalizedHeight = parseInt(highestHeightPreCommitted[0], 10);
+			this.finalizedHeight = parseInt(highestHeightPreCommitted, 10);
 		}
 
 		if (previouslyFinalizedHeight !== this.finalizedHeight) {
