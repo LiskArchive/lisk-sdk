@@ -14,12 +14,18 @@
 
 'use strict';
 
-const { defaults } = require('../../../../../src/components/storage');
-
 const storageConfig = (overriddenConfigProperties = {}) => ({
-	...defaults,
+	host: 'localhost',
+	port: 5432,
+	database: 'lisk_dev',
+	user: 'lisk',
+	password: 'password',
 	min: 10,
 	max: process.env.LISK_TEST_DB_MAX_CONNECTIONS || 2,
+	poolIdleTimeout: 30000,
+	reapIntervalMillis: 1000,
+	logEvents: ['error'],
+	logFileName: 'logs/lisk_db.log',
 	...overriddenConfigProperties,
 });
 
