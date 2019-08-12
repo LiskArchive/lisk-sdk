@@ -32,9 +32,7 @@ const {
 const {
 	BlocksChain,
 } = require('../../../../../../src/modules/chain/blocks/chain');
-const {
-	BlockSlots,
-} = require('../../../../../../src/modules/chain/blocks/block_slots');
+const { Slots } = require('../../../../../../src/modules/chain/dpos');
 const blocksUtils = require('../../../../../../src/modules/chain/blocks/utils');
 
 describe('blocks', () => {
@@ -71,7 +69,7 @@ describe('blocks', () => {
 				},
 			},
 		};
-		slots = new BlockSlots({
+		slots = new Slots({
 			epochTime: __testContext.config.constants.EPOCH_TIME,
 			interval: __testContext.config.constants.BLOCK_TIME,
 			blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
@@ -534,17 +532,17 @@ describe('blocks', () => {
 				id: '1',
 				height: 1,
 				version: 2,
-				timestamp: blocksInstance.slots.getTime(Date.now()),
+				timestamp: blocksInstance.slots.getEpochTime(Date.now()),
 			};
 
 			defaults.newBlock = {
 				id: '2',
 				height: 2,
 				version: 2,
-				timestamp: blocksInstance.slots.getTime(Date.now()),
+				timestamp: blocksInstance.slots.getEpochTime(Date.now()),
 			};
 
-			newBlockForgingTime = blocksInstance.slots.getTime();
+			newBlockForgingTime = blocksInstance.slots.getEpochTime();
 			newBlockReceivedAt = newBlockForgingTime;
 
 			stubs.isValidBlock = sinonSandbox
@@ -625,7 +623,7 @@ describe('blocks', () => {
 			});
 
 			it('should call _handleDoubleForgingTieBreak if _isTieBreak evaluates to true', async () => {
-				const aTime = blocksInstance.slots.getTime();
+				const aTime = blocksInstance.slots.getEpochTime();
 				const handleDoubleForgingTieBreak = sinonSandbox.stub(
 					blocksInstance,
 					'_handleDoubleForgingTieBreak',

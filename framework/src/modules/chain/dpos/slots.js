@@ -14,7 +14,7 @@
 
 'use strict';
 
-class BlockSlots {
+class Slots {
 	constructor({ epochTime, interval, blocksPerRound }) {
 		this.epochTime = epochTime;
 		this.interval = interval;
@@ -31,21 +31,9 @@ class BlockSlots {
 	 * @todo Add description for the module
 	 */
 	getEpochTime(time) {
-		if (time === undefined) {
-			time = Date.now();
-		}
-		return Math.floor((time - new Date(this.epochTime).getTime()) / 1000);
-	}
+		const parsedTime = time === undefined ? Date.now() : time;
 
-	/**
-	 * Description of the function.
-	 *
-	 * @param {number} time
-	 * @returns {number} Lisk epoch time
-	 * @todo Add description for the function and the params
-	 */
-	getTime(time) {
-		return this.getEpochTime(time);
+		return Math.floor((parsedTime - new Date(this.epochTime).getTime()) / 1000);
 	}
 
 	/**
@@ -56,13 +44,12 @@ class BlockSlots {
 	 * @todo Add description for the function and the params
 	 */
 	getRealTime(epochTime) {
-		if (epochTime === undefined) {
-			epochTime = this.getTime();
-		}
+		const parsedEpochTime =
+			epochTime === undefined ? this.getEpochTime() : epochTime;
 
 		return (
 			Math.floor(new Date(this.epochTime).getTime() / 1000) * 1000 +
-			epochTime * 1000
+			parsedEpochTime * 1000
 		);
 	}
 
@@ -74,11 +61,10 @@ class BlockSlots {
 	 * @todo Add description for the function and the params
 	 */
 	getSlotNumber(epochTime) {
-		if (epochTime === undefined) {
-			epochTime = this.getTime();
-		}
+		const parsedEpochTime =
+			epochTime === undefined ? this.getEpochTime() : epochTime;
 
-		return Math.floor(epochTime / this.interval);
+		return Math.floor(parsedEpochTime / this.interval);
 	}
 
 	/**
@@ -159,5 +145,5 @@ class BlockSlots {
 }
 
 module.exports = {
-	BlockSlots,
+	Slots,
 };
