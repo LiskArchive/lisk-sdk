@@ -12,11 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	gte as isVersionGTE,
-	lt as isVersionLessThan,
-	valid as isValidVersion,
-} from 'semver';
+import { gte as isVersionGTE, valid as isValidVersion } from 'semver';
 import { isIP, isNumeric, isPort } from 'validator';
 import {
 	InvalidPeerError,
@@ -43,7 +39,6 @@ import { constructPeerIdFromPeerInfo } from './utils';
 
 const IPV4_NUMBER = 4;
 const IPV6_NUMBER = 6;
-export const IPADDRESS_FIELD_SUPPORT_VERSION = '2.3.0';
 
 interface RPCPeerListResponse {
 	readonly peers: ReadonlyArray<object>;
@@ -125,26 +120,7 @@ export const validatePeerInfo = (rawPeerInfo: unknown): P2PPeerInfo => {
 	return peerInfoUpdated;
 };
 
-export const validateBasicPeerInfo = (rawPeerInfo: unknown): P2PPeerInfo => {
-	if (!rawPeerInfo) {
-		throw new InvalidPeerError(`Invalid peer object`);
-	}
-
-	const peerInfo = incomingPeerInfoSanitization(
-		rawPeerInfo as ProtocolPeerInfo,
-	);
-	if (
-		!peerInfo.ipAddress ||
-		!peerInfo.wsPort ||
-		!validatePeerAddress(peerInfo.ipAddress, peerInfo.wsPort)
-	) {
-		throw new InvalidPeerError(`Invalid peer ip or port`);
-	}
-
-	return peerInfo;
-};
-
-export const validateBasicPeersInfoList = (
+export const validatePeersInfoList = (
 	rawBasicPeerInfoList: unknown,
 ): ReadonlyArray<P2PPeerInfo> => {
 	if (!rawBasicPeerInfoList) {
@@ -153,7 +129,7 @@ export const validateBasicPeersInfoList = (
 	const { peers } = rawBasicPeerInfoList as RPCPeerListResponse;
 
 	if (Array.isArray(peers)) {
-		const peerList = peers.map<P2PPeerInfo>(validateBasicPeerInfo);
+		const peerList = peers.map<P2PPeerInfo>(validatePeerInfo);
 
 		return peerList;
 	} else {
@@ -223,12 +199,6 @@ export const checkProtocolVersionCompatibility = (
 
 	return systemHardForks === peerHardForks && peerHardForks >= 1;
 };
-
-// Backwards compatibility for older peers which filed ip instead of ipAddress
-export const isLowerVersionPeer = (peerInfo: P2PDiscoveredPeerInfo): boolean =>
-	peerInfo.version
-		? isVersionLessThan(peerInfo.version, IPADDRESS_FIELD_SUPPORT_VERSION)
-		: true;
 
 export const checkPeerCompatibility = (
 	peerInfo: P2PDiscoveredPeerInfo,
