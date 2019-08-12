@@ -125,7 +125,7 @@ describe('genesis block', () => {
 		});
 	});
 
-	describe('given the application has been initialized already', () => {
+	describe('given the application has been initialized previously', () => {
 		describe('when chain module is bootstrapped', () => {
 			beforeAll(async () => {
 				chainModule = await createDefaultLoadedChainModule(dbName);
