@@ -1,7 +1,6 @@
-const randomInt = require('random-int');
 const { when } = require('jest-when');
 const { Dpos, Slots } = require('../../../../../../../src/modules/chain/dpos');
-const { constants } = require('../../../../utils');
+const { constants, randomInt } = require('../../../../utils');
 const {
 	delegateAccounts,
 	delegatePublicKeys,
