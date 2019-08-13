@@ -102,7 +102,7 @@ class Account {
 	async _updateVotes(updatedDelegates, undo, tx) {
 		return updatedDelegates.map(async ({ account, amount }) => {
 			const filters = { publicKey_in: account.votedDelegatesPublicKeys };
-			const field = 'vote_new';
+			const field = 'voteWeightReceived';
 			const value = amount.toString();
 
 			const method = undo ? 'decreaseFieldBy' : 'increaseFieldBy';

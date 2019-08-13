@@ -132,7 +132,7 @@ describe('dpos.apply()', () => {
 			).not.toHaveBeenCalledWith(expect.any(Object), 'missedBlocks');
 			expect(
 				stubs.storage.entities.Account.increaseFieldBy,
-			).not.toHaveBeenCalledWith(expect.any(Object), 'vote_new');
+			).not.toHaveBeenCalledWith(expect.any(Object), 'voteWeightReceived');
 			expect(stubs.storage.entities.Account.update).not.toHaveBeenCalled();
 		});
 	});
@@ -323,7 +323,7 @@ describe('dpos.apply()', () => {
 					{
 						publicKey_in: account.votedDelegatesPublicKeys,
 					},
-					'vote_new',
+					'voteWeightReceived',
 					amount.toString(),
 					stubs.tx,
 				);
