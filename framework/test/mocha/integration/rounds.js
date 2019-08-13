@@ -229,7 +229,7 @@ describe('rounds', () => {
 		return accounts;
 	}
 
-	function recalculateVoteWeights(_accounts, voters) {
+	function recalculateVote(_accounts, voters) {
 		const accounts = _.cloneDeep(_accounts);
 
 		// Reset vote for all accounts
@@ -253,6 +253,35 @@ describe('rounds', () => {
 					.toString();
 			});
 			found.vote = votes;
+		});
+
+		return accounts;
+	}
+
+	function recalculateVoteWeightReceived(_accounts, voters) {
+		const accounts = _.cloneDeep(_accounts);
+
+		// Reset voteWeightReceived for all accounts
+		_.each(accounts, account => {
+			account.voteWeightReceived = '0';
+		});
+
+		// Recalculate voteWeightReceived
+		_.each(voters, delegate => {
+			let votes = '0';
+			const found = _.find(accounts, {
+				publicKey: hexToBuffer(delegate.dependentId),
+			});
+
+			_.each(delegate.array_agg, voter => {
+				const foundAccount = _.find(accounts, {
+					address: voter,
+				});
+				votes = new BigNum(votes)
+					.plus(new BigNum(foundAccount.balance))
+					.toString();
+			});
+			found.voteWeightReceived = votes;
 		});
 
 		return accounts;
@@ -395,12 +424,15 @@ describe('rounds', () => {
 											Queries.getVoters(),
 											(_blocks, _voters) => {
 												tick.roundBlocks = _blocks;
-												tick.voters = _voters;
+												tick.roundVoters = _voters;
+												tick.currentVoters = _voters;
 											},
 										);
 									}
 
-									return true;
+									return Queries.getVoters().then(_voters => {
+										tick.currentVoters = _voters;
+									});
 								},
 							);
 						},
@@ -471,11 +503,15 @@ describe('rounds', () => {
 					let expected;
 
 					expected = expectedMemState(transactions, tick.before.accounts);
+					expected = recalculateVoteWeightReceived(
+						expected,
+						tick.currentVoters,
+					);
 
 					// Last block of round - apply round expectactions
 					if (tick.isLastBlockOfRound) {
 						expected = applyRoundRewards(expected, tick.roundBlocks);
-						expected = recalculateVoteWeights(expected, tick.voters);
+						expected = recalculateVote(expected, tick.roundVoters);
 						expected = applyOutsiders(
 							expected,
 							tick.before.delegatesList,
