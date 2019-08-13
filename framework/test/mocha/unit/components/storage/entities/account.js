@@ -222,6 +222,7 @@ describe('Account', () => {
 			'votedDelegatesPublicKeys_in',
 			'membersPublicKeys_in',
 			'asset_contains',
+			'asset_exists',
 		];
 
 		validOptions = {
@@ -629,7 +630,7 @@ describe('Account', () => {
 		});
 
 		describe('filters', () => {
-			describe.only('asset_contains', () => {
+			describe('asset_contains', () => {
 				let aliceAccount = null;
 				let bobAccount = null;
 
@@ -681,6 +682,43 @@ describe('Account', () => {
 					const accounts = await AccountEntity.get(filters);
 
 					expect(accounts).to.be.empty;
+				});
+			});
+
+			describe('asset_exits', () => {
+				let aliceAccount = null;
+				let bobAccount = null;
+
+				beforeEach(async () => {
+					aliceAccount = new accountFixtures.Account({
+						asset: {
+							name: 'Alice',
+							height: '1.79',
+						},
+					});
+					bobAccount = new accountFixtures.Account({
+						asset: {
+							name: 'Bob',
+							weight: '74',
+						},
+					});
+
+					await AccountEntity.create([aliceAccount, bobAccount]);
+				});
+
+				it('should return single result when asset key exits at the top level', async () => {
+					const filters = { asset_exists: 'height' };
+					const accounts = await AccountEntity.get(filters);
+
+					expect(accounts.length).to.be.eql(1);
+					expect(accounts[0].address).to.be.eql(aliceAccount.address);
+				});
+
+				it('should return all results when key is present in all documents', async () => {
+					const filters = { asset_exists: 'name' };
+					const accounts = await AccountEntity.get(filters);
+
+					expect(accounts.length).to.be.eql(2);
 				});
 			});
 

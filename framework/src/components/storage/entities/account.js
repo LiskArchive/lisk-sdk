@@ -237,7 +237,13 @@ class Account extends BaseEntity {
 		this.addFilter('asset_contains', ft.CUSTOM, {
 			condition:
 				// eslint-disable-next-line no-template-curly-in-string
-				'asset @> \'${asset_contains:value}\'::jsonb',
+				"asset @> '${asset_contains:value}'::jsonb",
+		});
+
+		this.addFilter('asset_exists', ft.CUSTOM, {
+			condition:
+				// eslint-disable-next-line no-template-curly-in-string
+				"asset ? '${asset_exists:value}'",
 		});
 
 		const defaultSort = { sort: 'balance:asc' };
