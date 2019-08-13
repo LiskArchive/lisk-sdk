@@ -506,7 +506,7 @@ describe('blocks/process', () => {
 
 		it('should call deleteLastBlock', async () => {
 			sinonSandbox
-				.stub(blocksUtils, 'loadBlockByHeight')
+				.stub(blocksLogic, 'loadBlockByHeight')
 				.resolves(beforeLastDummyBlock);
 			await blocksProcess.recoverInvalidOwnChain(lastDummyBlock, onDelete);
 			expect(blocksChainStub.deleteLastBlock).to.be.calledWith(lastDummyBlock);
@@ -514,7 +514,7 @@ describe('blocks/process', () => {
 
 		it('should call onDelete', async () => {
 			sinonSandbox
-				.stub(blocksUtils, 'loadBlockByHeight')
+				.stub(blocksLogic, 'loadBlockByHeight')
 				.resolves(beforeLastDummyBlock);
 			await blocksProcess.recoverInvalidOwnChain(lastDummyBlock, onDelete);
 			expect(onDelete.firstCall.args).to.be.eql([
@@ -525,7 +525,7 @@ describe('blocks/process', () => {
 
 		it('should call verifyBlock with the new last block', async () => {
 			sinonSandbox
-				.stub(blocksUtils, 'loadBlockByHeight')
+				.stub(blocksLogic, 'loadBlockByHeight')
 				.resolves(beforeLastDummyBlock);
 			await blocksProcess.recoverInvalidOwnChain(lastDummyBlock, onDelete);
 			expect(blocksVerifyStub.verifyBlock).to.be.calledWith(
@@ -577,7 +577,7 @@ describe('blocks/process', () => {
 			];
 			sinonSandbox.stub(blocksProcess, 'applyBlock').callsFake(block => block);
 			sinonSandbox
-				.stub(blocksUtils, 'loadBlocksWithOffset')
+				.stub(blocksLogic, 'loadBlocksWithOffset')
 				.resolves(loadedBlocks);
 		});
 
@@ -590,7 +590,7 @@ describe('blocks/process', () => {
 				onProgress,
 				10,
 			);
-			expect(blocksUtils.loadBlocksWithOffset).to.be.calledWith(
+			expect(blocksLogic.loadBlocksWithOffset).to.be.calledWith(
 				storageStub,
 				interfaceAdapters,
 				blocksProcess.genesisBlock,
@@ -639,10 +639,10 @@ describe('blocks/process', () => {
 		});
 
 		it('should call loadBlocksWithOffset second time with the next currentHeight', async () => {
-			blocksUtils.loadBlocksWithOffset
+			blocksLogic.loadBlocksWithOffset
 				.onCall(0)
 				.resolves([...loadedBlocks].slice(0, 3));
-			blocksUtils.loadBlocksWithOffset
+			blocksLogic.loadBlocksWithOffset
 				.onCall(1)
 				.resolves([...loadedBlocks].slice(3, 5));
 			await blocksProcess._rebuild(
@@ -653,7 +653,7 @@ describe('blocks/process', () => {
 				onProgress,
 				10,
 			);
-			expect(blocksUtils.loadBlocksWithOffset).to.be.calledTwice;
+			expect(blocksLogic.loadBlocksWithOffset).to.be.calledTwice;
 		});
 	});
 });
