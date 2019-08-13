@@ -30,9 +30,7 @@ const BigNum = require('@liskhq/bignum');
 const { validator } = require('@liskhq/lisk-validator');
 const { validateTransactions } = require('../transactions');
 const blockVersion = require('./block_version');
-
-// TODO: remove type constraints
-const TRANSACTION_TYPES_MULTI = 4;
+const blocksUtils = require('./utils');
 
 const blockSchema = {
 	type: 'object',
@@ -276,38 +274,7 @@ const create = ({
 	maxPayloadLength,
 	exceptions,
 }) => {
-	// TODO: move to transactions module logic
-	const sortedTransactions = transactions.sort((a, b) => {
-		// Place MULTI transaction after all other transaction types
-		if (
-			a.type === TRANSACTION_TYPES_MULTI &&
-			b.type !== TRANSACTION_TYPES_MULTI
-		) {
-			return 1;
-		}
-		// Place all other transaction types before MULTI transaction
-		if (
-			a.type !== TRANSACTION_TYPES_MULTI &&
-			b.type === TRANSACTION_TYPES_MULTI
-		) {
-			return -1;
-		}
-		// Place depending on type (lower first)
-		if (a.type < b.type) {
-			return -1;
-		}
-		if (a.type > b.type) {
-			return 1;
-		}
-		// Place depending on amount (lower first)
-		if (a.amount.lt(b.amount)) {
-			return -1;
-		}
-		if (a.amount.gt(b.amount)) {
-			return 1;
-		}
-		return 0;
-	});
+	const sortedTransactions = blocksUtils.sortTransactions(transactions);
 
 	const nextHeight = previousBlock ? previousBlock.height + 1 : 1;
 

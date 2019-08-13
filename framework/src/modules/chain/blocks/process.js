@@ -130,7 +130,7 @@ class BlocksProcess {
 	}
 
 	async recoverInvalidOwnChain(currentBlock, onDelete) {
-		const lastBlock = await blocksUtils.loadBlockByHeight(
+		const lastBlock = await blocksLogic.loadBlockByHeight(
 			this.storage,
 			currentBlock.height - 1,
 			this.interfaceAdapters,
@@ -167,7 +167,7 @@ class BlocksProcess {
 		loadPerIteration,
 	) {
 		const limit = loadPerIteration;
-		const blocks = await blocksUtils.loadBlocksWithOffset(
+		const blocks = await blocksLogic.loadBlocksWithOffset(
 			this.storage,
 			this.interfaceAdapters,
 			this.genesisBlock,

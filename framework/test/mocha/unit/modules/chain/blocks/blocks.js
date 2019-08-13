@@ -33,7 +33,7 @@ const {
 	BlocksChain,
 } = require('../../../../../../src/modules/chain/blocks/chain');
 const { Slots } = require('../../../../../../src/modules/chain/dpos');
-const blocksUtils = require('../../../../../../src/modules/chain/blocks/utils');
+const blocksLogic = require('../../../../../../src/modules/chain/blocks/block');
 
 describe('blocks', () => {
 	const interfaceAdapters = {
@@ -974,7 +974,7 @@ describe('blocks', () => {
 		const ACTIVE_DELEGATES = 101;
 
 		beforeEach(async () => {
-			sinonSandbox.stub(blocksUtils, 'loadBlocksWithOffset');
+			sinonSandbox.stub(blocksLogic, 'loadBlocksWithOffset');
 			sinonSandbox.stub(blocksInstance.blocksProcess, 'reload');
 		});
 
@@ -1052,7 +1052,7 @@ describe('blocks', () => {
 		});
 
 		it('should emit an event with proper error when loadBlocksOffset fails', async () => {
-			blocksUtils.loadBlocksWithOffset.rejects(
+			blocksLogic.loadBlocksWithOffset.rejects(
 				new Error('loadBlocksOffsetStub#ERR'),
 			);
 			try {
