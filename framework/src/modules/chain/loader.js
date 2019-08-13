@@ -335,10 +335,11 @@ class Loader {
 	 * @returns {Promise} void
 	 * @todo Add description for the params
 	 */
-	async _getValidatedBlocksFromNetwork(blocks) {
+	async _getValidatedBlocksFromNetwork(blockRows) {
 		const { lastBlock } = this.blocksModule;
 		let lastValidBlock = lastBlock;
 		try {
+			const blocks = this.blocksModule.readBlocksFromNetwork(blockRows);
 			// eslint-disable-next-line no-restricted-syntax
 			for (const block of blocks) {
 				this.processorModule.validate(block);

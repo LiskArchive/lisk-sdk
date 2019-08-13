@@ -41,6 +41,11 @@ const parseStorageObjToLegacyObj = block => {
 			b_id: _.get(block, 'id', null),
 			b_version: isNaN(+block.version) ? null : +block.version,
 			b_timestamp: isNaN(+block.timestamp) ? null : +block.timestamp,
+
+			b_maxHeightPreviouslyForged:
+				parseInt(block.maxHeightPreviouslyForged, 10) || 0,
+			b_prevotedConfirmedUptoHeight:
+				parseInt(block.prevotedConfirmedUptoHeight, 10) || 0,
 			b_height: isNaN(+block.height) ? null : +block.height,
 			b_previousBlock: _.get(block, 'previousBlockId', null),
 			b_numberOfTransactions: isNaN(+block.numberOfTransactions)
