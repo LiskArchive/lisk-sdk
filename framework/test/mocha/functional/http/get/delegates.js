@@ -28,14 +28,14 @@ const randomUtil = require('../../../common/utils/random');
 const waitFor = require('../../../common/utils/wait_for');
 const SwaggerEndpoint = require('../../../common/swagger_spec');
 const apiHelpers = require('../../../common/helpers/api');
-const { BlockSlots } = require('../../../../../src/modules/chain/blocks');
+const { Slots } = require('../../../../../src/modules/chain/dpos');
 
 Promise.promisify(waitFor.newRound);
 const { FEES } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /delegates', () => {
-	const slots = new BlockSlots({
+	const slots = new Slots({
 		epochTime: __testContext.config.constants.EPOCH_TIME,
 		interval: __testContext.config.constants.BLOCK_TIME,
 		blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
@@ -714,8 +714,8 @@ describe('GET /delegates', () => {
 			});
 
 			it('using unknown address with start and/or end filters should return empty result', async () => {
-				const fromQueryTime = slots.getTime() - 60 * 60;
-				const toQueryTime = slots.getTime();
+				const fromQueryTime = slots.getEpochTime() - 60 * 60;
+				const toQueryTime = slots.getEpochTime();
 
 				return forgedEndpoint
 					.makeRequest(
@@ -766,7 +766,7 @@ describe('GET /delegates', () => {
 
 					it('using valid fromTimestamp should return transactions', async () => {
 						// Last hour lisk time
-						const queryTime = slots.getTime() - 60 * 60;
+						const queryTime = slots.getEpochTime() - 60 * 60;
 
 						return forgedEndpoint
 							.makeRequest(
@@ -800,7 +800,7 @@ describe('GET /delegates', () => {
 
 					it('using valid toTimestamp should return transactions', async () => {
 						// Current lisk time
-						const queryTime = slots.getTime();
+						const queryTime = slots.getEpochTime();
 
 						return forgedEndpoint
 							.makeRequest(

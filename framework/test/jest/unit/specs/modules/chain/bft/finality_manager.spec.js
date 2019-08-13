@@ -14,8 +14,6 @@
 
 'use strict';
 
-const path = require('path');
-const fs = require('fs');
 const {
 	BFTChainDisjointError,
 	BFTLowerChainBranchError,
@@ -44,65 +42,6 @@ const generateValidHeaders = count => {
 			maxHeightPreviouslyForged: index,
 		});
 	});
-};
-
-const loadCSVSimulationData = filePath => {
-	const fileContents = fs.readFileSync(filePath);
-	const data = fileContents
-		.toString()
-		.split('\n')
-		.map(line => line.toString().split(','));
-	const result = [];
-
-	for (let i = 1; i < data.length - 1; i += 2) {
-		result.push({
-			delegate: data[i][1],
-			maxHeightPreviouslyForged: parseInt(data[i][2], 0),
-			activeSinceRound: parseInt(data[i][3], 0),
-			height: parseInt(data[i][4], 0),
-			preCommits: data[i]
-				.slice(6)
-				.map(Number)
-				.filter(a => a !== 0),
-			preVotes: data[i + 1]
-				.slice(6)
-				.map(Number)
-				.filter(a => a !== 0),
-		});
-	}
-
-	return result;
-};
-
-const delegatesMap = {};
-const generateHeaderInformation = (data, threshold, lastBlockData) => {
-	const delegatePublicKey =
-		delegatesMap[data.delegate] || accountFixture().publicKey;
-	delegatesMap[data.delegate] = delegatePublicKey;
-
-	const beforeBlockPreVotedConfirmedHeight = lastBlockData
-		? lastBlockData.preVotes.lastIndexOf(threshold) + 1
-		: 0;
-
-	const header = blockHeaderFixture({
-		height: data.height,
-		maxHeightPreviouslyForged: data.maxHeightPreviouslyForged,
-		delegatePublicKey: delegatesMap[data.delegate],
-		activeSinceRound: data.activeSinceRound,
-		prevotedConfirmedUptoHeight: beforeBlockPreVotedConfirmedHeight,
-	});
-
-	const finalizedHeight = data.preCommits.lastIndexOf(threshold) + 1;
-
-	const preVotedConfirmedHeight = data.preVotes.lastIndexOf(threshold) + 1;
-
-	return {
-		header,
-		finalizedHeight,
-		preVotedConfirmedHeight,
-		preVotes: data.preVotes,
-		preCommits: data.preCommits,
-	};
 };
 
 describe('finality_manager', () => {
@@ -325,124 +264,8 @@ describe('finality_manager', () => {
 				expect(bft.updatePreVotesPreCommits).toHaveBeenCalledTimes(1);
 				expect(bft.updatePreVotesPreCommits).toHaveBeenCalledWith(header1);
 			});
-
-			describe('should have proper preVotes and preCommits', () => {
-				describe('11 delegates switched partially on 3rd round', () => {
-					const data = loadCSVSimulationData(
-						path.join(__dirname, './scenarios/11_delegates.csv'),
-					);
-					const myBft = new FinalityManager({
-						finalizedHeight: 0,
-						activeDelegates: 11,
-					});
-
-					data.forEach((headerData, index) => {
-						it(`have accurate information when ${
-							headerData.d
-						} forge block at height = ${headerData.height}`, async () => {
-							const blockData = generateHeaderInformation(
-								headerData,
-								myBft.preCommitThreshold,
-								data[index - 1],
-							);
-
-							myBft.addBlockHeader(blockData.header);
-
-							expect(Object.values(myBft.preCommits)).toEqual(
-								blockData.preCommits,
-							);
-							expect(Object.values(myBft.preVotes)).toEqual(blockData.preVotes);
-
-							expect(myBft.finalizedHeight).toEqual(blockData.finalizedHeight);
-
-							expect(myBft.prevotedConfirmedHeight).toEqual(
-								blockData.preVotedConfirmedHeight,
-							);
-						});
-					});
-				});
-
-				describe('5 delegates switched completely on 3rd round', () => {
-					const data = loadCSVSimulationData(
-						path.join(
-							__dirname,
-							'./scenarios/5_delegates_switched_completely.csv',
-						),
-					);
-					const myBft = new FinalityManager({
-						finalizedHeight: 0,
-						activeDelegates: 5,
-					});
-
-					data.forEach((headerData, index) => {
-						it(`have accurate information when ${
-							headerData.d
-						} forge block at height = ${headerData.height}`, async () => {
-							const blockData = generateHeaderInformation(
-								headerData,
-								myBft.preCommitThreshold,
-								data[index - 1],
-							);
-
-							myBft.addBlockHeader(blockData.header);
-
-							expect(Object.values(myBft.preCommits)).toEqual(
-								blockData.preCommits,
-							);
-							expect(Object.values(myBft.preVotes)).toEqual(blockData.preVotes);
-
-							expect(myBft.finalizedHeight).toEqual(blockData.finalizedHeight);
-
-							expect(myBft.prevotedConfirmedHeight).toEqual(
-								blockData.preVotedConfirmedHeight,
-							);
-						});
-					});
-				});
-			});
 		});
 
-		describe('recompute', () => {
-			it('should have accurate information after recompute', async () => {
-				// Let's first compute in proper way
-
-				const data = loadCSVSimulationData(
-					path.join(__dirname, './scenarios/11_delegates.csv'),
-				);
-				let blockData;
-				const myBft = new FinalityManager({
-					finalizedHeight: 0,
-					activeDelegates: 11,
-				});
-
-				data.forEach((headerData, index) => {
-					blockData = generateHeaderInformation(
-						headerData,
-						myBft.preCommitThreshold,
-						data[index - 1],
-					);
-					myBft.addBlockHeader(blockData.header);
-				});
-
-				// Values should match with expectations
-				expect(Object.values(myBft.preCommits)).toEqual(blockData.preCommits);
-				expect(Object.values(myBft.preVotes)).toEqual(blockData.preVotes);
-				expect(myBft.finalizedHeight).toEqual(blockData.finalizedHeight);
-				expect(myBft.prevotedConfirmedHeight).toEqual(
-					blockData.preVotedConfirmedHeight,
-				);
-
-				// Now recompute all information again
-				myBft.recompute();
-
-				// Values should match with expectations
-				expect(Object.values(myBft.preCommits)).toEqual(blockData.preCommits);
-				expect(Object.values(myBft.preVotes)).toEqual(blockData.preVotes);
-				expect(myBft.finalizedHeight).toEqual(blockData.finalizedHeight);
-				expect(myBft.prevotedConfirmedHeight).toEqual(
-					blockData.preVotedConfirmedHeight,
-				);
-			});
-		});
+		describe('recompute', () => {});
 	});
 });

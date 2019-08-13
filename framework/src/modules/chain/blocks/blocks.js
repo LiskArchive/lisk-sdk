@@ -465,7 +465,7 @@ class Blocks extends EventEmitter {
 
 	async _receiveBlockFromNetworkV2(block) {
 		// Current time since Lisk Epoch
-		block.receivedAt = this.slots.getTime();
+		block.receivedAt = this.slots.getEpochTime();
 
 		// Execute in sequence
 		return this.sequence.add(async () => {

@@ -35,11 +35,10 @@ const {
 	EVENT_MULTISIGNATURE_SIGNATURE,
 	EVENT_UNCONFIRMED_TRANSACTION,
 } = require('./transaction_pool');
-const { Dpos } = require('./dpos');
+const { Slots, Dpos } = require('./dpos');
 const { EVENT_BFT_BLOCK_FINALIZED, BFT } = require('./bft');
 const { Rounds } = require('./rounds');
 const {
-	BlockSlots,
 	Blocks,
 	EVENT_NEW_BLOCK,
 	EVENT_DELETE_BLOCK,
@@ -259,7 +258,7 @@ module.exports = class Chain {
 				loaded: true,
 				syncing: this.loader.syncing(),
 				unconfirmedTransactions: this.transactionPool.getCount(),
-				secondsSinceEpoch: this.slots.getTime(),
+				secondsSinceEpoch: this.slots.getEpochTime(),
 				lastBlock: this.blocks.lastBlock,
 			}),
 			blocks: async action => this.transport.blocks(action.params || {}),
@@ -331,7 +330,7 @@ module.exports = class Chain {
 			),
 		};
 		this.scope.modules.interfaceAdapters = this.interfaceAdapters;
-		this.slots = new BlockSlots({
+		this.slots = new Slots({
 			epochTime: this.options.constants.EPOCH_TIME,
 			interval: this.options.constants.BLOCK_TIME,
 			blocksPerRound: this.options.constants.ACTIVE_DELEGATES,
