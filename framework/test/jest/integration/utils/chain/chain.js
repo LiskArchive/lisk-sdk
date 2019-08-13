@@ -15,7 +15,7 @@
 
 'use strict';
 
-const { genesisConfig } = require('../configs');
+const { constantsConfig } = require('../configs');
 const { defaultTransactions } = require('../default_transactions');
 const { createMockChannel } = require('../channel');
 const ChainModule = require('../../../../../src/modules/chain');
@@ -24,7 +24,7 @@ const genesisBlock = require('../../../../fixtures/config/devnet/genesis_block')
 const createChainModule = () => {
 	const options = {
 		...ChainModule.defaults.default,
-		constants: genesisConfig(),
+		constants: constantsConfig(),
 		genesisBlock,
 		registeredTransactions: defaultTransactions(),
 	};

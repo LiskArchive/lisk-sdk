@@ -16,10 +16,10 @@
 
 const { storageConfig } = require('./config_storage');
 const { cacheConfig } = require('./config_cache');
-const { genesisConfig } = require('./config_genesis');
+const { constantsConfig } = require('./config_constants');
 
 module.exports = {
 	storageConfig,
 	cacheConfig,
-	genesisConfig,
+	constantsConfig,
 };
