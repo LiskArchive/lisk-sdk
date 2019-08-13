@@ -17,6 +17,7 @@
 const EventEmitter = require('events');
 const { cloneDeep } = require('lodash');
 const blocksUtils = require('./utils');
+const Block = require('./block');
 const { BlocksProcess } = require('./process');
 const { BlocksVerify } = require('./verify');
 const blockVersion = require('./block_version');
@@ -289,7 +290,7 @@ class Blocks extends EventEmitter {
 			return;
 		}
 		try {
-			this._lastBlock = await blocksUtils.loadLastBlock(
+			this._lastBlock = await Block.loadLastBlock(
 				this.storage,
 				this.interfaceAdapters,
 				this.genesisBlock,
@@ -576,7 +577,7 @@ class Blocks extends EventEmitter {
 		this._isActive = true;
 
 		try {
-			const normalizedBlocks = blocksUtils.readDbRows(
+			const normalizedBlocks = Block.readDbRows(
 				blocks,
 				this.interfaceAdapters,
 				this.genesisBlock,
