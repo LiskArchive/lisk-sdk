@@ -14,7 +14,6 @@
 
 'use strict';
 
-const { BlockSlots } = require('./block_slots');
 const { addBlockProperties } = require('./utils');
 const { objectNormalize } = require('./block');
 const {
@@ -32,7 +31,6 @@ const {
 } = require('./blocks');
 
 module.exports = {
-	BlockSlots,
 	Blocks,
 	calculateMilestone,
 	calculateReward,

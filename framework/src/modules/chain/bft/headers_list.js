@@ -120,6 +120,10 @@ class HeadersList {
 		this._items = [];
 		return items;
 	}
+
+	get(height) {
+		return this._items[height - this.first.height];
+	}
 }
 
 module.exports = { HeadersList };

@@ -26,7 +26,7 @@ const BigNum = require('@liskhq/bignum');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const Promise = require('bluebird');
 const { hexToBuffer } = require('@liskhq/lisk-cryptography');
-const { BlockSlots } = require('../../../src/modules/chain/blocks');
+const { Slots } = require('../../../src/modules/chain/dpos');
 const accountsFixtures = require('../fixtures/accounts');
 const randomUtil = require('../common/utils/random');
 const QueriesHelper = require('../common/integration/sql/queries_helper');
@@ -35,7 +35,7 @@ const localCommon = require('./common');
 const { ACTIVE_DELEGATES } = global.constants;
 
 describe('rounds', () => {
-	const slots = new BlockSlots({
+	const slots = new Slots({
 		epochTime: __testContext.config.constants.EPOCH_TIME,
 		interval: __testContext.config.constants.BLOCK_TIME,
 		blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
