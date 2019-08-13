@@ -90,18 +90,10 @@ const createMultiSignatureTransaction = (
 	return transaction.toJSON();
 };
 
-const getTransaction = async (storage, id) =>
-	storage.entities.Transaction.getOne({ id }, { extended: true });
-
-const getTransactions = async (storage, filter) =>
-	storage.entities.Transaction.get(filter, { extended: true });
-
 module.exports = {
 	createTransferTransaction,
 	createSecondSignatureTransaction,
 	createDelegateTransaction,
 	createVoteTransaction,
 	createMultiSignatureTransaction,
-	getTransaction,
-	getTransactions,
 };

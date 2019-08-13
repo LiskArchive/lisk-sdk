@@ -114,7 +114,23 @@ class StorageSandbox extends Storage {
 	}
 }
 
+const getAccount = async (storage, address) =>
+	storage.entities.Account.getOne({ address }, { extended: true });
+
+const getBlock = async (storage, blockId) =>
+	storage.entities.Block.getOne({ id: blockId }, { extended: true });
+
+const getTransaction = async (storage, id) =>
+	storage.entities.Transaction.getOne({ id }, { extended: true });
+
+const getTransactions = async (storage, filter) =>
+	storage.entities.Transaction.get(filter, { extended: true });
+
 module.exports = {
 	clearDatabaseTable,
 	StorageSandbox,
+	getAccount,
+	getBlock,
+	getTransaction,
+	getTransactions,
 };

@@ -47,13 +47,13 @@ describe('genesis block', () => {
 			});
 
 			it('should save genesis block to the database', async () => {
-				const block = await chainUtils.getBlock(storage, genesisBlock.id);
+				const block = await storageUtils.getBlock(storage, genesisBlock.id);
 				expect(block.id).toEqual(genesisBlock.id);
 				expect(block.height).toEqual(1);
 			});
 
 			it('should have genesis transactions in database', async () => {
-				const block = await chainUtils.getBlock(storage, genesisBlock.id);
+				const block = await storageUtils.getBlock(storage, genesisBlock.id);
 				const ids = genesisBlock.transactions.map(t => t.id);
 				const allExist = ids.every(id =>
 					block.transactions.map(tx => tx.id).includes(id),
@@ -74,7 +74,7 @@ describe('genesis block', () => {
 				// Get delegate accounts in genesis block from the database
 				const accountsFromDb = await Promise.all(
 					delegateAccountsAddressesInGenesisBlock.map(address =>
-						chainUtils.getAccount(storage, address),
+						storageUtils.getAccount(storage, address),
 					),
 				);
 				const allAccountsAreDelegate = delegateAccountsAddressesInGenesisBlock.every(
@@ -99,7 +99,7 @@ describe('genesis block', () => {
 				// Get delegate accounts in genesis block from the database
 				const accountsFromDb = await Promise.all(
 					delegateAccountsAddressesInGenesisBlock.map(address =>
-						chainUtils.getAccount(storage, address),
+						storageUtils.getAccount(storage, address),
 					),
 				);
 				const allAccountsHaveCorrectVoteWeight = delegateAccountsAddressesInGenesisBlock.every(
@@ -131,7 +131,7 @@ describe('genesis block', () => {
 			});
 
 			it('should have genesis transactions in database', async () => {
-				const block = await chainUtils.getBlock(storage, genesisBlock.id);
+				const block = await storageUtils.getBlock(storage, genesisBlock.id);
 				const ids = genesisBlock.transactions.map(t => t.id);
 				const allExist = ids.every(id =>
 					block.transactions.map(tx => tx.id).includes(id),
@@ -152,7 +152,7 @@ describe('genesis block', () => {
 				// Get delegate accounts in genesis block from the database
 				const accountsFromDb = await Promise.all(
 					delegateAccountsAddressesInGenesisBlock.map(address =>
-						chainUtils.getAccount(storage, address),
+						storageUtils.getAccount(storage, address),
 					),
 				);
 				const allAccountsAreDelegate = delegateAccountsAddressesInGenesisBlock.every(
@@ -177,7 +177,7 @@ describe('genesis block', () => {
 				// Get delegate accounts in genesis block from the database
 				const accountsFromDb = await Promise.all(
 					delegateAccountsAddressesInGenesisBlock.map(address =>
-						chainUtils.getAccount(storage, address),
+						storageUtils.getAccount(storage, address),
 					),
 				);
 				const allAccountsHaveCorrectVoteWeight = delegateAccountsAddressesInGenesisBlock.every(
