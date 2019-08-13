@@ -159,7 +159,7 @@ class Application {
 		global.constants = this.constants;
 
 		this.logger = createLoggerComponent(
-			'controller',
+			'lisk-app',
 			this.config.components.logger,
 		);
 
