@@ -86,13 +86,13 @@ class Processor {
 
 	// processValidated processes a block assuming that statically it's valid
 	async processValidated(block) {
-		const blockProcessor = this._getProcessor(block);
+		const blockProcessor = this._getBlockProcessor(block);
 		return this._processValidated(block, blockProcessor);
 	}
 
 	// apply processes a block assuming that statically it's valid without saving a block
 	async apply(block) {
-		const blockProcessor = this._getProcessor(block);
+		const blockProcessor = this._getBlockProcessor(block);
 		return this._processValidated(block, blockProcessor, { skipSave: true });
 	}
 
@@ -110,7 +110,7 @@ class Processor {
 	async _processValidated(block, processor, { skipSave } = {}) {
 		const blockBytes = processor.getBytes.exec({ block });
 		const { lastBlock } = this.blocksModule;
-		await this.storage.entities.Block.begin('Chain:processBlock', async tx => {
+		return this.storage.entities.Block.begin('Chain:processBlock', async tx => {
 			await processor.verify.exec({
 				block,
 				blockBytes,
@@ -128,6 +128,7 @@ class Processor {
 			if (!skipSave) {
 				await this.blocksModule.save({ block, tx });
 			}
+			return block;
 		});
 	}
 
