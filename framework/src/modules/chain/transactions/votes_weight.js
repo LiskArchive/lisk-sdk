@@ -213,10 +213,10 @@ const prepare = async (stateStore, transaction) => {
 	const recipientId = getRecipientAddress(stateStore, transaction);
 
 	// Get delegate public keys whom recipient voted for
-	const recipientDelegatePks = recipientId
-		? stateStore.account.getOrDefault(recipientId).votedDelegatesPublicKeys ||
-		  []
-		: [];
+	const recipientDelegatePks =
+		(recipientId &&
+			stateStore.account.getOrDefault(recipientId).votedDelegatesPublicKeys) ||
+		[];
 
 	// Get unique public keys from merged list
 	const uniqPksToBeCached = [

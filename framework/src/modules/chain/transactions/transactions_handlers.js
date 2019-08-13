@@ -59,7 +59,6 @@ const verifyTotalSpending = (transactions, stateStore) => {
 
 	// Group the transactions per senderId to calculate total spending
 	const senderTransactions = transactions.reduce((rv, x) => {
-		// eslint-disable-next-line no-param-reassign
 		(rv[x.senderId] = rv[x.senderId] || []).push(x);
 		return rv;
 	}, {});
@@ -204,7 +203,6 @@ const checkPersistedTransactions = storage => async transactions => {
 	}
 
 	const confirmedTransactions = await storage.entities.Transaction.get({
-		// eslint-disable-next-line camelcase
 		id_in: transactions.map(transaction => transaction.id),
 	});
 

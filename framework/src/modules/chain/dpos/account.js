@@ -1,23 +1,41 @@
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
 const BigNum = require('@liskhq/bignum');
 
-const _mergeRewardsAndDelegates = (delegatePks, rewards) =>
-	delegatePks.reduce((arr, delegatePk, index) => {
-		let delegate = arr.find(d => d.publicKey === delegatePk);
+const _mergeRewardsAndDelegates = (delegatePublicKeys, rewards) =>
+	delegatePublicKeys.reduce((accumulator, currentPublicKey, index) => {
+		let delegate = accumulator.find(
+			({ publicKey }) => publicKey === currentPublicKey,
+		);
 
 		if (!delegate) {
 			delegate = {
-				publicKey: delegatePk,
+				publicKey: currentPublicKey,
 				reward: new BigNum(0),
-				blockCount: 0,
+				blocksForged: 0,
 			};
-			arr.push(delegate);
+			accumulator.push(delegate);
 		}
 
 		delegate.reward = delegate.reward.plus(rewards[index]);
-		delegate.blockCount += 1;
-		delegate.isGettingRemainingFees = index === delegatePks.length - 1;
+		delegate.blocksForged += 1;
+		delegate.isGettingRemainingFees = index === delegatePublicKeys.length - 1;
 
-		return arr;
+		return accumulator;
 	}, []);
 
 class Account {
@@ -59,11 +77,11 @@ class Account {
 		if (this._isLastBlockOfTheRound(block)) {
 			const roundSummary = await this._summarizeRound(block, tx);
 
-			const nonForgedDelegatePks = await this._getNonForgedDelegatePublicKeys(
+			const missedBlocksDelegatePublicKeys = await this._getMissedBlocksDelegatePublicKeys(
 				roundSummary,
 			);
 
-			await this._updateMissedBlocks(nonForgedDelegatePks, undo, tx);
+			await this._updateMissedBlocks(missedBlocksDelegatePublicKeys, undo, tx);
 
 			const updatedDelegates = await this._distributeRewardsAndFees(
 				roundSummary,
@@ -85,12 +103,12 @@ class Account {
 		return this.storage.entities.Account[method](filters, field, value, tx);
 	}
 
-	async _updateMissedBlocks(nonForgedDelegatePks, undo, tx) {
-		if (!nonForgedDelegatePks.length) {
+	async _updateMissedBlocks(missedBlocksDelegatePublicKeys, undo, tx) {
+		if (!missedBlocksDelegatePublicKeys.length) {
 			return false;
 		}
 
-		const filters = { publicKey_in: nonForgedDelegatePks };
+		const filters = { publicKey_in: missedBlocksDelegatePublicKeys };
 		const field = 'missedBlocks';
 		const value = '1';
 
@@ -173,7 +191,7 @@ class Account {
 			);
 
 			// Array of unique delegates with their rewards aggregated
-			const forgedDelegates = _mergeRewardsAndDelegates(
+			const roundForgerDelegateList = _mergeRewardsAndDelegates(
 				row.delegates,
 				row.rewards,
 			);
@@ -181,7 +199,7 @@ class Account {
 			return {
 				round,
 				totalFee: new BigNum(row.fees),
-				forgedDelegates,
+				roundForgerDelegateList,
 			};
 		} catch (err) {
 			this.logger.error('Failed to sum round', round);
@@ -190,14 +208,16 @@ class Account {
 		}
 	}
 
-	async _getNonForgedDelegatePublicKeys({ round, forgedDelegates }) {
-		const roundDelegatesPks = await this.delegates.generateActiveDelegateList(
+	async _getMissedBlocksDelegatePublicKeys({ round, roundForgerDelegateList }) {
+		const expectedForgingPublicKeys = await this.delegates.generateActiveDelegateList(
 			round,
 		);
 
-		return roundDelegatesPks.filter(
-			roundDelegatePk =>
-				!forgedDelegates.find(fd => fd.publicKey === roundDelegatePk),
+		return expectedForgingPublicKeys.filter(
+			expectedPublicKey =>
+				!roundForgerDelegateList.find(
+					({ publicKey }) => publicKey === expectedPublicKey,
+				),
 		);
 	}
 
@@ -224,7 +244,7 @@ class Account {
 		const reward = delegateReward;
 
 		const feePerDelegate = totalFee.div(this.activeDelegates).floor();
-		let fee = feePerDelegate.times(forgedDelegate.blockCount);
+		let fee = feePerDelegate.times(forgedDelegate.blocksForged);
 
 		if (forgedDelegate.isGettingRemainingFees) {
 			const feesRemaining = totalFee.minus(
@@ -240,9 +260,9 @@ class Account {
 	}
 
 	_getDelegatesWithTheirEarnings(roundSummary) {
-		const { round, totalFee, forgedDelegates } = roundSummary;
+		const { round, totalFee, roundForgerDelegateList } = roundSummary;
 		return (
-			forgedDelegates
+			roundForgerDelegateList
 				// calculate delegate earnings
 				.map(forgedDelegate => {
 					const earnings = this._calculateRewardAndFeeForDelegate({
