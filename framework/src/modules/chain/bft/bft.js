@@ -15,7 +15,10 @@
 'use strict';
 
 const EventEmitter = require('events');
-const { FinalityManager } = require('./finality_manager');
+const {
+	EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
+	FinalityManager,
+} = require('./finality_manager');
 
 const META_KEYS = {
 	FINALIZED_HEIGHT: 'BFT.finalizedHeight',
@@ -65,6 +68,13 @@ class BFT extends EventEmitter {
 	 */
 	async init() {
 		this.finalityManager = await this._initFinalityManager();
+
+		this.finalityManager.on(
+			EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
+			finalizedHeight => {
+				this.emit(EVENT_BFT_FINALIZED_HEIGHT_CHANGED, finalizedHeight);
+			},
+		);
 		const { finalizedHeight } = this.finalityManager;
 		const lastBlockHeight = await this._getLastBlockHeight();
 
@@ -155,6 +165,7 @@ const exportedInterface = {
 	extractBFTBlockHeaderFromBlock,
 	BFT,
 	EVENT_BFT_BLOCK_FINALIZED,
+	EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
 };
 
 module.exports = exportedInterface;
