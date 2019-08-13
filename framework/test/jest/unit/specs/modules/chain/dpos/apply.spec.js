@@ -1,7 +1,6 @@
 const randomInt = require('random-int');
 const { when } = require('jest-when');
-const { Dpos } = require('../../../../../../../src/modules/chain/dpos');
-const { BlockSlots } = require('../../../../../../../src/modules/chain/blocks');
+const { Dpos, Slots } = require('../../../../../../../src/modules/chain/dpos');
 const { constants } = require('../../../../utils');
 const {
 	delegateAccounts,
@@ -42,7 +41,7 @@ describe('dpos.apply()', () => {
 
 		stubs.tx = jest.fn();
 
-		slots = new BlockSlots({
+		slots = new Slots({
 			epochTime: constants.EPOCH_TIME,
 			interval: constants.BLOCK_TIME,
 			blocksPerRound: constants.ACTIVE_DELEGATES,
