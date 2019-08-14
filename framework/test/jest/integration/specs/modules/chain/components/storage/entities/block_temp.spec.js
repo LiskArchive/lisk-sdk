@@ -243,8 +243,8 @@ describe('TempBlock', () => {
 		});
 	});
 
-	describe('count', () => {
-		it('should count all rows in table', async () => {
+	describe('isEmpty', () => {
+		it('should check if table is empty', async () => {
 			const isEmpty = await TempBlockEntity.isEmpty();
 
 			expect(isEmpty).toEqual(false); // Row 1 and Row 2
