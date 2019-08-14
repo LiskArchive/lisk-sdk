@@ -23,6 +23,10 @@ import {
 import { P2PDiscoveredPeerInfo } from '../p2p_types';
 
 import { SCServerSocket } from 'socketcluster-server';
+const socketErrorStatusCodes = {
+	...(SCServerSocket as any).errorStatuses,
+	1000: 'Intentionally disconnected',
+};
 
 export const EVENT_CLOSE_INBOUND = 'closeInbound';
 export const EVENT_INBOUND_SOCKET_ERROR = 'inboundSocketError';
@@ -40,7 +44,7 @@ export class InboundPeer extends Peer {
 	protected readonly _handleInboundSocketError: (error: Error) => void;
 	protected readonly _handleInboundSocketClose: (
 		code: number,
-		reason: string,
+		reason: string | undefined,
 	) => void;
 	private readonly _sendPing: () => void;
 	private _pingTimeoutId: NodeJS.Timer;
@@ -54,7 +58,8 @@ export class InboundPeer extends Peer {
 		this._handleInboundSocketError = (error: Error) => {
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
-		this._handleInboundSocketClose = (code, reason) => {
+		this._handleInboundSocketClose = (code, reasonString) => {
+			const reason = reasonString ? reasonString : socketErrorStatusCodes[code];
 			if (this._pingTimeoutId) {
 				clearTimeout(this._pingTimeoutId);
 			}
