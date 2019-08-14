@@ -225,7 +225,7 @@ class Loader {
 		});
 
 		const validatorErrors = validator.validate(
-			definitions.WSSignaturesResponse,
+			definitions.WSTransactionsResponse,
 			result,
 		);
 		if (validatorErrors.length) {
