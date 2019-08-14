@@ -118,6 +118,9 @@ describe('Loader', () => {
 					error = err;
 				}
 				expect(error.length).toBe(1);
+				expect(error[0].message).toBe(
+					"should have required property 'transactions'",
+				);
 			});
 		});
 	});
