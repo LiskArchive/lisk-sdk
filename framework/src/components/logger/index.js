@@ -18,13 +18,13 @@ const { createLogger } = require('./logger');
 const { config: defaultConfig } = require('./defaults');
 const validator = require('../../controller/validator');
 
-function createLoggerComponent(loggerName, options = {}) {
+function createLoggerComponent(name, options = {}) {
 	const optionsWithDefaults = validator.parseEnvArgAndValidate(
 		defaultConfig,
 		options,
 	);
 
-	return createLogger({ ...optionsWithDefaults, loggerName });
+	return createLogger({ ...optionsWithDefaults, name });
 }
 
 module.exports = {

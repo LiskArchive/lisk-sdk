@@ -138,7 +138,10 @@ describe('HttpApi', () => {
 			);
 		});
 		it('should create logger component with loggerConfig and assign to object instance', async () => {
-			expect(stubs.createLoggerComponent).to.be.calledWithExactly(loggerConfig);
+			expect(stubs.createLoggerComponent).to.be.calledWithExactly(
+				'http_api',
+				loggerConfig,
+			);
 			expect(httpApi.logger).to.be.equal(stubs.logger);
 		});
 
@@ -160,12 +163,6 @@ describe('HttpApi', () => {
 
 				stubs.createLoggerComponent.returns(dbLogger);
 				await httpApi.bootstrap();
-
-				expect(stubs.createLoggerComponent).to.be.calledWithExactly(
-					Object.assign({}, loggerConfig, {
-						logFileName: storageConfig.logFileName,
-					}),
-				);
 
 				expect(stubs.createStorageComponent).to.be.calledWithExactly(
 					storageConfig,
