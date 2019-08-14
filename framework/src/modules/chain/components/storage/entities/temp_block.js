@@ -219,8 +219,8 @@ class TempBlock extends BaseEntity {
 	 */
 	isEmpty(tx = null) {
 		return this.adapter
-			.executeFile(this.SQLs.isEmpty, {}, { expectedResultCount: 1 }, tx)
-			.then(result => result.bool);
+			.executeFile(this.SQLs.isEmpty, {}, {}, tx)
+			.then(result => (result[0] ? result[0].bool : true));
 	}
 }
 
