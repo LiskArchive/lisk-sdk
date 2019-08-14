@@ -50,7 +50,7 @@ class Processor {
 			lastBlock,
 			channel: this.channel,
 		});
-		this._validate(block, blockProcessor);
+		await this._validate(block, blockProcessor);
 		const forkStatus = blockProcessor.fork.exec({
 			block,
 			lastBlock,
@@ -79,27 +79,32 @@ class Processor {
 	}
 
 	// validate checks the block statically
-	validate(block) {
+	async validate(block) {
 		const blockProcessor = this._getBlockProcessor(block);
-		this._validate(block, blockProcessor);
+		await this._validate(block, blockProcessor);
 	}
 
 	// processValidated processes a block assuming that statically it's valid
 	async processValidated(block) {
 		const blockProcessor = this._getBlockProcessor(block);
-		return this._processValidated(block, blockProcessor);
+		return this._processValidated(block, blockProcessor, {
+			skipBroadcast: true,
+		});
 	}
 
 	// apply processes a block assuming that statically it's valid without saving a block
 	async apply(block) {
 		const blockProcessor = this._getBlockProcessor(block);
-		return this._processValidated(block, blockProcessor, { skipSave: true });
+		return this._processValidated(block, blockProcessor, {
+			skipSave: true,
+			skipBroadcast: true,
+		});
 	}
 
-	_validate(block, processor) {
+	async _validate(block, processor) {
 		const { lastBlock } = this.blocksModule;
 		const blockBytes = processor.getBytes.execSync({ block });
-		processor.validate.exec({
+		await processor.validate.exec({
 			block,
 			lastBlock,
 			blockBytes,
@@ -107,7 +112,7 @@ class Processor {
 		});
 	}
 
-	async _processValidated(block, processor, { skipSave } = {}) {
+	async _processValidated(block, processor, { skipSave, skipBroadcast } = {}) {
 		const blockBytes = processor.getBytes.exec({ block });
 		const { lastBlock } = this.blocksModule;
 		return this.storage.entities.Block.begin('Chain:processBlock', async tx => {
@@ -118,6 +123,9 @@ class Processor {
 				tx,
 				channel: this.channel,
 			});
+			if (!skipBroadcast) {
+				this.blocksModule.broadcast(block);
+			}
 			await processor.apply.exec({
 				block,
 				blockBytes,

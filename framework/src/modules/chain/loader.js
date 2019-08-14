@@ -341,7 +341,8 @@ class Loader {
 			const blocks = this.blocksModule.readBlocksFromNetwork(blockRows);
 			// eslint-disable-next-line no-restricted-syntax
 			for (const block of blocks) {
-				this.processorModule.validate(block);
+				// eslint-disable-next-line no-await-in-loop
+				await this.processorModule.validate(block);
 				// eslint-disable-next-line no-await-in-loop
 				lastValidBlock = await this.processorModule.processValidated(block);
 			}
