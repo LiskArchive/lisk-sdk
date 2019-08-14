@@ -158,9 +158,9 @@ export class OutboundPeer extends Peer {
 
 		outboundSocket.on(
 			'close',
-			(code: number, reasonString: string | undefined) => {
-				const reason = reasonString
-					? reasonString
+			(code: number, reasonMessage: string | undefined) => {
+				const reason = reasonMessage
+					? reasonMessage
 					: socketErrorStatusCodes[code];
 				this.emit(EVENT_CLOSE_OUTBOUND, {
 					peerInfo: this._peerInfo,

@@ -58,8 +58,10 @@ export class InboundPeer extends Peer {
 		this._handleInboundSocketError = (error: Error) => {
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
-		this._handleInboundSocketClose = (code, reasonString) => {
-			const reason = reasonString ? reasonString : socketErrorStatusCodes[code];
+		this._handleInboundSocketClose = (code, reasonMessage) => {
+			const reason = reasonMessage
+				? reasonMessage
+				: socketErrorStatusCodes[code];
 			if (this._pingTimeoutId) {
 				clearTimeout(this._pingTimeoutId);
 			}
