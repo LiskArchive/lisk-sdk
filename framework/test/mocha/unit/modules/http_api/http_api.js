@@ -164,6 +164,11 @@ describe('HttpApi', () => {
 				stubs.createLoggerComponent.returns(dbLogger);
 				await httpApi.bootstrap();
 
+				expect(stubs.createLoggerComponent).to.be.calledWithExactly(
+					'http_api',
+					loggerConfig,
+				);
+
 				expect(stubs.createStorageComponent).to.be.calledWithExactly(
 					storageConfig,
 					dbLogger,
