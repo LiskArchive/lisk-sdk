@@ -14,11 +14,8 @@
 
 'use strict';
 
-const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const blocksUtils = require('./utils');
 const blocksLogic = require('./block');
-const blockVersion = require('./block_version');
-const transactionsModule = require('../transactions');
 
 class BlocksProcess {
 	constructor({
@@ -87,47 +84,6 @@ class BlocksProcess {
 		await this.blocksVerify.checkTransactions(normalizedBlock);
 		await this.blocksChain.applyBlock(normalizedBlock, false);
 		return normalizedBlock;
-	}
-
-	async generateBlock(lastBlock, keypair, timestamp, transactions) {
-		const context = {
-			blockTimestamp: timestamp,
-		};
-
-		const allowedTransactionsIds = transactionsModule
-			.checkAllowedTransactions(context)(transactions)
-			.transactionsResponses.filter(
-				transactionResponse =>
-					transactionResponse.status === TransactionStatus.OK,
-			)
-			.map(transactionReponse => transactionReponse.id);
-
-		const allowedTransactions = transactions.filter(transaction =>
-			allowedTransactionsIds.includes(transaction.id),
-		);
-		const {
-			transactionsResponses: responses,
-		} = await transactionsModule.applyTransactions(this.storage, this.slots)(
-			allowedTransactions,
-		);
-		const readyTransactions = allowedTransactions.filter(transaction =>
-			responses
-				.filter(response => response.status === TransactionStatus.OK)
-				.map(response => response.id)
-				.includes(transaction.id),
-		);
-		return blocksLogic.create({
-			blockReward: this.blockReward,
-			previousBlock: lastBlock,
-			transactions: readyTransactions,
-			maxPayloadLength: this.constants.maxPayloadLength,
-			keypair,
-			timestamp,
-			prevotedConfirmedUptoHeight: 1,
-			maxHeightPreviouslyForged: 1,
-			height: lastBlock.height + 1,
-			version: blockVersion.getBlockVersion(lastBlock.height + 1),
-		});
 	}
 
 	async recoverInvalidOwnChain(currentBlock, onDelete) {
