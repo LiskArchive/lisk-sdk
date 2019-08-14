@@ -734,6 +734,12 @@ describe('Account', () => {
 					const accounts = await AccountEntity.get(filters);
 					expect(accounts.length).to.be.eql(0);
 				});
+
+				it('should return empty result when key is empty string', async () => {
+					const filters = { asset_exists: '' };
+					const accounts = await AccountEntity.get(filters);
+					expect(accounts.length).to.be.eql(0);
+				});
 			});
 
 			// To make add/remove filters we add their tests.
