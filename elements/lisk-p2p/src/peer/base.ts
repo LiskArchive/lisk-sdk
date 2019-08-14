@@ -35,8 +35,8 @@ import { constructPeerIdFromPeerInfo, getNetgroup } from '../utils';
 import * as socketClusterClient from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
 import {
-	validateBasicPeersInfoList,
 	validatePeerInfo,
+	validatePeersInfoList,
 	validateProtocolMessage,
 	validateRPCRequest,
 } from '../validation';
@@ -90,7 +90,7 @@ export const REMOTE_EVENT_MESSAGE = 'remote-message';
 
 export const REMOTE_RPC_UPDATE_PEER_INFO = 'updateMyself';
 export const REMOTE_RPC_GET_NODE_INFO = 'status';
-export const REMOTE_RPC_GET_PEERS_LIST = 'getPeers';
+export const REMOTE_RPC_GET_PEERS_LIST = 'list';
 
 export const DEFAULT_CONNECT_TIMEOUT = 2000;
 export const DEFAULT_ACK_TIMEOUT = 2000;
@@ -513,7 +513,7 @@ export class Peer extends EventEmitter {
 				procedure: REMOTE_RPC_GET_PEERS_LIST,
 			});
 
-			return validateBasicPeersInfoList(response.data);
+			return validatePeersInfoList(response.data);
 		} catch (error) {
 			this.emit(EVENT_FAILED_TO_FETCH_PEERS, error);
 
