@@ -4,12 +4,6 @@ This directory contains all the generators for JSON tests, consumed by Lisk Core
 
 ## How to run generators
 
-Prerequisites:
-
-- Python 3 installed
-- PIP 3
-- GNU Make
-
 ### Running all test generators
 
 This runs all of the generators.
