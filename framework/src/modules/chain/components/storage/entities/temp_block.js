@@ -220,7 +220,7 @@ class TempBlock extends BaseEntity {
 	isEmpty(tx = null) {
 		return this.adapter
 			.executeFile(this.SQLs.isEmpty, {}, {}, tx)
-			.then(result => (result[0] ? result[0].bool : true));
+			.then(([result]) => (result ? result.bool : true));
 	}
 }
 
