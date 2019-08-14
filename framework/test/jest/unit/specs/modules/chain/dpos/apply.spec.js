@@ -149,6 +149,16 @@ describe('dpos.apply()', () => {
 				generatorPublicKey: delegateWhoForgedLast.publicKey,
 			};
 
+			when(stubs.storage.entities.Account.get)
+				.calledWith(
+					{
+						publicKey_in: delegatesWhoForged.map(({ publicKey }) => publicKey),
+					},
+					{},
+					stubs.tx,
+				)
+				.mockResolvedValue(delegatesWhoForged);
+
 			delegateAccounts.forEach(account => {
 				when(stubs.storage.entities.Account.get)
 					.calledWith({
@@ -339,6 +349,16 @@ describe('dpos.apply()', () => {
 						delegates: delegateAccounts.map(a => a.publicKey),
 					},
 				]);
+
+				when(stubs.storage.entities.Account.get)
+					.calledWith(
+						{
+							publicKey_in: delegateAccounts.map(({ publicKey }) => publicKey),
+						},
+						{},
+						stubs.tx,
+					)
+					.mockResolvedValue(delegateAccounts);
 
 				// Act
 				await dpos.apply(lastBlockOfTheRound, stubs.tx);
