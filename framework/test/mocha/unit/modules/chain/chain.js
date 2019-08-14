@@ -171,15 +171,11 @@ describe('Chain', () => {
 				// Assert
 				expect(stubs.createLoggerComponent.getCall(0).args).to.eql([
 					'chain',
-					{
-						...loggerConfig,
-					},
+					loggerConfig,
 				]);
 				expect(stubs.createLoggerComponent.getCall(1).args).to.eql([
 					'chain',
-					{
-						...loggerConfig,
-					},
+					loggerConfig,
 				]);
 				return expect(
 					stubs.createLoggerComponent.getCall(2).args[0].logFileName,
