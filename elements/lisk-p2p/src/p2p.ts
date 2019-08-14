@@ -44,7 +44,6 @@ import {
 import { PeerInboundHandshakeError } from './errors';
 
 import {
-	P2PBasicPeerInfoList,
 	P2PCheckPeerCompatibility,
 	P2PClosePacket,
 	P2PConfig,
@@ -89,7 +88,11 @@ import {
 	PeerPool,
 } from './peer_pool';
 import { constructPeerIdFromPeerInfo } from './utils';
-import { checkPeerCompatibility, sanitizePeerLists } from './validation';
+import {
+	checkPeerCompatibility,
+	outgoingPeerInfoSanitization,
+	sanitizePeerLists,
+} from './validation';
 
 export {
 	EVENT_CLOSE_INBOUND,
@@ -795,17 +798,13 @@ export class P2P extends EventEmitter {
 			Math.min(minimumPeerDiscoveryThreshold, knownPeers.length),
 		);
 
-		const basicPeers = this._pickRandomPeers(randomPeerCount).map(
-			(peerInfo: P2PPeerInfo): P2PPeerInfo =>
-				// Discovery process only require minmal peers data
-				({
-					ipAddress: peerInfo.ipAddress,
-					wsPort: peerInfo.wsPort,
-				}),
+		const selectedPeers = this._pickRandomPeers(randomPeerCount).map(
+			outgoingPeerInfoSanitization, // Sanitize the peerInfos before responding to a peer that understand old peerInfo.
 		);
-		const peerInfoList: P2PBasicPeerInfoList = {
+
+		const peerInfoList = {
 			success: true,
-			peers: basicPeers,
+			peers: selectedPeers,
 		};
 		request.end(peerInfoList);
 	}
