@@ -331,7 +331,7 @@ class Blocks extends EventEmitter {
 	}
 
 	async remove({ block, tx }, saveToTemp) {
-		this._lastBlock = await this.blocksChain.deleteLastBlock(block);
+		const storageRowOfBlock = await this.blocksChain.deleteLastBlock(block, tx);
 		if (saveToTemp) {
 			const parsedDeletedBlock = parseBlockToJson(block);
 			const blockTempEntry = {
@@ -341,6 +341,11 @@ class Blocks extends EventEmitter {
 			};
 			await this.storage.entities.TempBlock.create(blockTempEntry, {}, tx);
 		}
+		this._lastBlock = blocksUtils.readStorageRows(
+			[storageRowOfBlock],
+			this.interfaceAdapters,
+			this.genesisBlock,
+		);
 	}
 
 	broadcast(block) {
