@@ -639,6 +639,7 @@ describe('Account', () => {
 						asset: {
 							name: 'Alice',
 							company: 'Acme Corp',
+							tags: ['blockchain', 'decentralized'],
 						},
 					});
 					bobAccount = new accountFixtures.Account({
@@ -685,6 +686,40 @@ describe('Account', () => {
 					const accounts = await AccountEntity.get(filters);
 
 					expect(accounts).to.be.empty;
+				});
+
+				it('should return result when filter includes multiple array elements', async () => {
+					const filters = {
+						asset_contains: { tags: ['blockchain', 'decentralized'] },
+					};
+					const accounts = await AccountEntity.get(filters, { extended: true });
+
+					expect(accounts.length).to.be.eql(1);
+					expect(accounts[0].address).to.be.eql(aliceAccount.address);
+				});
+
+				it('should return all accounts when query term is empty but tag exists', async () => {
+					const filters = { asset_contains: { tags: [] } };
+					const accounts = await AccountEntity.get(filters, { extended: true });
+					const sortedAccounts = accounts.sort((accountA, accountB) =>
+						accountA.asset.name < accountB.asset.name ? -1 : 1,
+					);
+
+					expect(accounts.length).to.be.eql(2);
+					expect(sortedAccounts[0].address).to.be.eql(aliceAccount.address);
+					expect(sortedAccounts[1].address).to.be.eql(bobAccount.address);
+				});
+
+				it('should return no accounts when query term is empty', async () => {
+					const filters = { asset_contains: { name: '' } };
+					const accounts = await AccountEntity.get(filters, { extended: true });
+					expect(accounts.length).to.be.eql(0);
+				});
+
+				it('should return no accounts when query key is invalid', async () => {
+					const filters = { asset_contains: { this_does_not_exist: '' } };
+					const accounts = await AccountEntity.get(filters, { extended: true });
+					expect(accounts.length).to.be.eql(0);
 				});
 			});
 
