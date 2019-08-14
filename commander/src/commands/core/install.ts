@@ -110,7 +110,7 @@ const installOptions = async (
 	const installVersion: string = await getVersionToInstall(
 		network,
 		liskVersion,
-		latestUrl,
+		releaseUrl,
 	);
 
 	const { version, liskTarUrl, liskTarSHA256Url } = await getReleaseInfo(
