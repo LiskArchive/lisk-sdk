@@ -41,9 +41,9 @@ export default class StatusCommand extends BaseCommand {
 			const instance = await describeApplication(name);
 
 			if (!instance) {
-				this.log(
-					`Lisk Core instance: ${name} doesn't exists, Please install using lisk core:install`,
-				);
+				this.print({
+					message: `Lisk Core instance: ${name} doesn't exists, Please install using lisk core:install`,
+				});
 
 				return;
 			}
@@ -52,9 +52,10 @@ export default class StatusCommand extends BaseCommand {
 			const instances = await listApplication();
 
 			if (!instances.length) {
-				this.log(
-					'Lisk Core instances not available, use lisk core:install --help',
-				);
+				this.print({
+					message:
+						'Lisk Core instances not available, use lisk core:install --help',
+				});
 			} else {
 				const toDisplay = [
 					'name',
