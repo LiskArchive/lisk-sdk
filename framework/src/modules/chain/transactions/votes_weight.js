@@ -35,11 +35,11 @@ const updateDelegateVote = (
 ) => {
 	const delegateAddress = getAddressFromPublicKey(delegatePublicKey);
 	const delegateAccount = stateStore.account.get(delegateAddress);
-	const voteBigNum = new BigNum(delegateAccount.voteWeightReceived || '0');
-	const voteWeightReceived = voteBigNum[method](amount).toString();
+	const voteBigNum = new BigNum(delegateAccount.voteWeight || '0');
+	const voteWeight = voteBigNum[method](amount).toString();
 	const updatedDelegateAccount = {
 		...delegateAccount,
-		voteWeightReceived,
+		voteWeight,
 	};
 	stateStore.account.set(delegateAddress, updatedDelegateAccount);
 };

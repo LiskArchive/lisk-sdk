@@ -30,7 +30,7 @@ SELECT
 	"fees",
 	"rewards",
 	"vote",
-	"voteWeightReceived",
+	"voteWeight",
 	case
     when
     	"producedBlocks" + "missedBlocks" = 0 then 0

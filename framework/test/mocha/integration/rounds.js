@@ -258,15 +258,15 @@ describe('rounds', () => {
 		return accounts;
 	}
 
-	function recalculateVoteWeightReceived(_accounts, voters) {
+	function recalculateVoteWeight(_accounts, voters) {
 		const accounts = _.cloneDeep(_accounts);
 
-		// Reset voteWeightReceived for all accounts
+		// Reset voteWeight for all accounts
 		_.each(accounts, account => {
-			account.voteWeightReceived = '0';
+			account.voteWeight = '0';
 		});
 
-		// Recalculate voteWeightReceived
+		// Recalculate voteWeight
 		_.each(voters, delegate => {
 			let votes = '0';
 			const found = _.find(accounts, {
@@ -281,7 +281,7 @@ describe('rounds', () => {
 					.plus(new BigNum(foundAccount.balance))
 					.toString();
 			});
-			found.voteWeightReceived = votes;
+			found.voteWeight = votes;
 		});
 
 		return accounts;
@@ -503,10 +503,7 @@ describe('rounds', () => {
 					let expected;
 
 					expected = expectedMemState(transactions, tick.before.accounts);
-					expected = recalculateVoteWeightReceived(
-						expected,
-						tick.currentVoters,
-					);
+					expected = recalculateVoteWeight(expected, tick.currentVoters);
 
 					// Last block of round - apply round expectactions
 					if (tick.isLastBlockOfRound) {

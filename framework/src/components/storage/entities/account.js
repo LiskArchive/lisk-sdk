@@ -46,7 +46,7 @@ const sqlFiles = {
  * @property {string} fees
  * @property {string} rewards
  * @property {string} vote
- * @property {string} voteWeightReceived
+ * @property {string} voteWeight
  * @property {number} productivity
  */
 
@@ -160,14 +160,14 @@ const sqlFiles = {
  * @property {string} [vote_lt]
  * @property {string} [vote_lte]
  * @property {string} [vote_in]
- * @property {string} [voteWeightReceived]
- * @property {string} [voteWeightReceived_eql]
- * @property {string} [voteWeightReceived_ne]
- * @property {string} [voteWeightReceived_gt]
- * @property {string} [voteWeightReceived_gte]
- * @property {string} [voteWeightReceived_lt]
- * @property {string} [voteWeightReceived_lte]
- * @property {string} [voteWeightReceived_in]
+ * @property {string} [voteWeight]
+ * @property {string} [voteWeight_eql]
+ * @property {string} [voteWeight_ne]
+ * @property {string} [voteWeight_gt]
+ * @property {string} [voteWeight_gte]
+ * @property {string} [voteWeight_lt]
+ * @property {string} [voteWeight_lte]
+ * @property {string} [voteWeight_in]
  */
 
 class Account extends BaseEntity {
@@ -235,7 +235,7 @@ class Account extends BaseEntity {
 		this.addField('missedBlocks', 'string', { filter: ft.NUMBER });
 		this.addField('rank', 'string', { filter: ft.NUMBER });
 		this.addField('vote', 'string', { filter: ft.NUMBER });
-		this.addField('voteWeightReceived', 'string', { filter: ft.NUMBER });
+		this.addField('voteWeight', 'string', { filter: ft.NUMBER });
 		this.addField('asset', 'string');
 
 		this.addFilter('votedDelegatesPublicKeys_in', ft.CUSTOM, {

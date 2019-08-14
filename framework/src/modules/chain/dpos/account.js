@@ -171,7 +171,7 @@ class Account {
 				const filters = {
 					publicKey_in: delegateAccount.votedDelegatesPublicKeys,
 				};
-				const field = 'voteWeightReceived';
+				const field = 'voteWeight';
 				const value = amount.toString();
 
 				const method = undo ? 'decreaseFieldBy' : 'increaseFieldBy';

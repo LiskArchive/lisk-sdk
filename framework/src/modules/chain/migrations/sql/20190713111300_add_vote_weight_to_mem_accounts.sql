@@ -14,10 +14,10 @@
 
 
  /*
-  DESCRIPTION: Add voteWeightReceived attribute to mem_accounts table
+  DESCRIPTION: Add voteWeight attribute to mem_accounts table
   PARAMETERS: None
 */
 
-ALTER TABLE "mem_accounts" ADD COLUMN IF NOT EXISTS "voteWeightReceived" BIGINT DEFAULT 0;
+ALTER TABLE "mem_accounts" ADD COLUMN IF NOT EXISTS "voteWeight" BIGINT DEFAULT 0;
 
-UPDATE "mem_accounts" SET "voteWeightReceived" = "vote";
+UPDATE "mem_accounts" SET "voteWeight" = "vote";
