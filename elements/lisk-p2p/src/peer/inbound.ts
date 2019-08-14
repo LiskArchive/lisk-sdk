@@ -61,7 +61,7 @@ export class InboundPeer extends Peer {
 		this._handleInboundSocketClose = (code, reasonMessage) => {
 			const reason = reasonMessage
 				? reasonMessage
-				: socketErrorStatusCodes[code];
+				: socketErrorStatusCodes[code] || 'Unknown reason';
 			if (this._pingTimeoutId) {
 				clearTimeout(this._pingTimeoutId);
 			}

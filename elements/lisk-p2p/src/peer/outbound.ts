@@ -161,7 +161,7 @@ export class OutboundPeer extends Peer {
 			(code: number, reasonMessage: string | undefined) => {
 				const reason = reasonMessage
 					? reasonMessage
-					: socketErrorStatusCodes[code];
+					: socketErrorStatusCodes[code] || 'Unknown reason';
 				this.emit(EVENT_CLOSE_OUTBOUND, {
 					peerInfo: this._peerInfo,
 					code,
