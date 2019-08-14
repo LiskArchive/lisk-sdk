@@ -727,6 +727,15 @@ class Blocks extends EventEmitter {
 		return this._handleDiscardedBlock(block);
 	}
 
+	readBlocksFromNetwork(blocks) {
+		const normalizedBlocks = blocksUtils.readDbRows(
+			blocks,
+			this.interfaceAdapters,
+			this.genesisBlock,
+		);
+		return normalizedBlocks;
+	}
+
 	// Process a block from syncing
 	async loadBlocksFromNetwork(blocks) {
 		this._shouldNotBeActive();
