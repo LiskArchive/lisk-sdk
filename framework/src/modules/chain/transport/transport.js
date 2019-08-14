@@ -315,7 +315,15 @@ class Transport {
 			);
 		}
 		if (success) {
-			return this.processorModule.process(block);
+			try {
+				await this.processorModule.process(block);
+			} catch (e) {
+				this.logger.debug('Block processing failed', {
+					err: e.toString(),
+					module: 'transport',
+					block: query.block,
+				});
+			}
 		}
 		return null;
 	}
