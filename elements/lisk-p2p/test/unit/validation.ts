@@ -19,12 +19,15 @@ import {
 	validatePeerInfo,
 	validateRPCRequest,
 	validateProtocolMessage,
+	incomingPeerInfoSanitization,
+	outgoingPeerInfoSanitization,
 } from '../../src/validation';
 import { ProtocolPeerInfo } from '../../src/p2p_types';
 import {
 	ProtocolRPCRequestPacket,
 	ProtocolMessagePacket,
 } from '../../src/p2p_types';
+import { initializePeerInfoList } from 'utils/peers';
 
 describe('response handlers', () => {
 	describe('#validatePeerInfo', () => {
@@ -259,6 +262,36 @@ describe('response handlers', () => {
 			expect(returnedValidatedMessage)
 				.to.be.an('object')
 				.has.property('data').to.be.string;
+		});
+	});
+
+	describe('#incomingPeerInfoSanitization', () => {
+		it('should return the peerInfo with ip and convert it to ipAddress', async () => {
+			const samplePeers = initializePeerInfoList();
+			const { ipAddress, ...restOfPeerInfo } = samplePeers[0];
+			const protocolPeerInfo = {
+				ip: ipAddress,
+				...restOfPeerInfo,
+			};
+
+			expect(incomingPeerInfoSanitization(protocolPeerInfo)).eql(
+				samplePeers[0],
+			);
+		});
+	});
+
+	describe('#outgoingPeerInfoSanitization', () => {
+		it('should return the peerInfo with ip and convert it to ipAddress', async () => {
+			const samplePeers = initializePeerInfoList();
+			const { ipAddress, ...restOfPeerInfo } = samplePeers[0];
+			const protocolPeerInfo = {
+				ip: ipAddress,
+				...restOfPeerInfo,
+			};
+
+			expect(outgoingPeerInfoSanitization(samplePeers[0])).eql(
+				protocolPeerInfo,
+			);
 		});
 	});
 });
