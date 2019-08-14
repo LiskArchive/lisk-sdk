@@ -670,11 +670,14 @@ describe('Account', () => {
 
 				it('should return all results when asset value contains multiple entries with a given object at the top level', async () => {
 					const filters = { asset_contains: { company: 'Acme Corp' } };
-					const accounts = await AccountEntity.get(filters);
+					const accounts = await AccountEntity.get(filters, { extended: true });
+					const sortedAccounts = accounts.sort((accountA, accountB) =>
+						accountA.asset.name < accountB.asset.name ? -1 : 1,
+					);
 
 					expect(accounts.length).to.be.eql(2);
-					expect(accounts[0].address).to.be.eql(aliceAccount.address);
-					expect(accounts[1].address).to.be.eql(bobAccount.address);
+					expect(sortedAccounts[0].address).to.be.eql(aliceAccount.address);
+					expect(sortedAccounts[1].address).to.be.eql(bobAccount.address);
 				});
 
 				it('should return empty result when asset value does not contain the given object at the top level', async () => {
@@ -716,9 +719,20 @@ describe('Account', () => {
 
 				it('should return all results when key is present in all documents', async () => {
 					const filters = { asset_exists: 'name' };
-					const accounts = await AccountEntity.get(filters);
+					const accounts = await AccountEntity.get(filters, { extended: true });
+					const sortedAccounts = accounts.sort((accountA, accountB) =>
+						accountA.asset.name < accountB.asset.name ? -1 : 1,
+					);
 
 					expect(accounts.length).to.be.eql(2);
+					expect(sortedAccounts[0].address).to.be.eql(aliceAccount.address);
+					expect(sortedAccounts[1].address).to.be.eql(bobAccount.address);
+				});
+
+				it('should return empty result when key is not present in any of the documents', async () => {
+					const filters = { asset_exists: 'this_does_not_exists' };
+					const accounts = await AccountEntity.get(filters);
+					expect(accounts.length).to.be.eql(0);
 				});
 			});
 
