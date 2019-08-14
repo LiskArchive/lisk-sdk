@@ -234,4 +234,20 @@ describe('TempBlock', () => {
 			await expect(TempBlockEntity.delete({ height })).resolves.toBeNull();
 		});
 	});
+
+	describe('truncate', () => {
+		it('should truncate all rows from table', async () => {
+			await TempBlockEntity.truncate();
+
+			expect(await TempBlockEntity.get()).toEqual([]);
+		});
+	});
+
+	describe('count', () => {
+		it('should count all rows in table', async () => {
+			const isEmpty = await TempBlockEntity.isEmpty();
+
+			expect(isEmpty).toEqual(false); // Row 1 and Row 2
+		});
+	});
 });

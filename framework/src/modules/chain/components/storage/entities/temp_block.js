@@ -28,6 +28,8 @@ const sqlFiles = {
 	create: 'temp_block/create.sql',
 	delete: 'temp_block/delete.sql',
 	get: 'temp_block/get.sql',
+	truncate: 'temp_block/truncate.sql',
+	isEmpty: 'temp_block/isEmpty.sql',
 };
 
 /**
@@ -192,6 +194,33 @@ class TempBlock extends BaseEntity {
 				tx,
 			)
 			.then(result => result);
+	}
+
+	/**
+	 * Delete all rows in table
+	 *
+	 * @param {Object} [tx]
+	 * @returns {Promise.<boolean, Error>}
+	 */
+	truncate(tx = null) {
+		return this.adapter.executeFile(
+			this.SQLs.truncate,
+			{},
+			{ expectedResultCount: 0 },
+			tx,
+		);
+	}
+
+	/**
+	 * Check if table is empty (true)
+	 *
+	 * @param {Object} [tx]
+	 * @returns {Promise.<boolean, Error>}
+	 */
+	isEmpty(tx = null) {
+		return this.adapter
+			.executeFile(this.SQLs.isEmpty, {}, { expectedResultCount: 1 }, tx)
+			.then(result => result.bool);
 	}
 }
 
