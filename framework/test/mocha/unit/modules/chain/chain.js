@@ -140,10 +140,7 @@ describe('Chain', () => {
 
 		it('should create logger component with loggerConfig coming from app:getComponentConfig', () => {
 			// Assert
-			expect(stubs.createLoggerComponent).to.have.been.calledWith(
-				'chain',
-				loggerConfig,
-			);
+			expect(stubs.createLoggerComponent).to.have.been.calledWith(loggerConfig);
 
 			return expect(chain.logger).to.be.equal(stubs.logger);
 		});
@@ -170,11 +167,9 @@ describe('Chain', () => {
 
 				// Assert
 				expect(stubs.createLoggerComponent.getCall(0).args).to.eql([
-					'chain',
 					loggerConfig,
 				]);
 				expect(stubs.createLoggerComponent.getCall(1).args).to.eql([
-					'chain',
 					loggerConfig,
 				]);
 				return expect(

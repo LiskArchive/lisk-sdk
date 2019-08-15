@@ -36,10 +36,10 @@ const createDirIfNotExist = filePath => {
  * @param {string} config.consoleLogLevel
  */
 const createLogger = ({
-	name = 'lisk-framework',
 	fileLogLevel,
 	consoleLogLevel,
 	logFileName,
+	module,
 }) => {
 	const consoleSrc = consoleLogLevel === 'debug' || consoleLogLevel === 'trace';
 	const consoleStream =
@@ -65,10 +65,11 @@ const createLogger = ({
 			: [];
 	const streams = [...consoleStream, ...fileStream];
 	return bunyan.createLogger({
-		name,
+		name: 'lisk-framework',
 		streams,
 		src: consoleSrc || fileSrc,
 		serializers: { err: bunyan.stdSerializers.err },
+		module,
 	});
 };
 

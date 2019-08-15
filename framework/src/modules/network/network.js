@@ -69,7 +69,8 @@ module.exports = class Network {
 			'logger',
 		);
 
-		this.logger = createLoggerComponent('network', loggerConfig);
+		loggerConfig.module = 'http_api';
+		this.logger = createLoggerComponent(loggerConfig);
 
 		const storageConfig = await this.channel.invoke(
 			'app:getComponentConfig',
@@ -79,9 +80,10 @@ module.exports = class Network {
 			storageConfig.logFileName &&
 			storageConfig.logFileName === loggerConfig.logFileName
 				? this.logger
-				: createLoggerComponent('network:database', {
+				: createLoggerComponent({
 						...loggerConfig,
 						logFileName: storageConfig.logFileName,
+						module: `${loggerConfig.module}:database`,
 				  });
 
 		this.storage = createStorageComponent(storageConfig, dbLogger);

@@ -83,17 +83,16 @@ module.exports = class Chain {
 			'app:getApplicationState',
 		);
 
-		this.logger = createLoggerComponent('chain', loggerConfig);
+		this.logger = createLoggerComponent(loggerConfig);
 		const dbLogger =
 			storageConfig.logFileName &&
 			storageConfig.logFileName === loggerConfig.logFileName
 				? this.logger
-				: createLoggerComponent(
-						Object.assign('chain:database', {
-							...loggerConfig,
-							logFileName: storageConfig.logFileName,
-						}),
-				  );
+				: createLoggerComponent({
+						...loggerConfig,
+						logFileName: storageConfig.logFileName,
+						module: `${loggerConfig.module}:database`,
+				  });
 
 		global.constants = this.options.constants;
 		global.exceptions = this.options.exceptions;
