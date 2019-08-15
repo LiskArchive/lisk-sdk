@@ -83,6 +83,7 @@ module.exports = class Chain {
 			'app:getApplicationState',
 		);
 
+		loggerConfig.module = 'chain';
 		this.logger = createLoggerComponent(loggerConfig);
 		const dbLogger =
 			storageConfig.logFileName &&
