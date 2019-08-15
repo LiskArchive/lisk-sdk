@@ -158,7 +158,7 @@ class Application {
 		// TODO: This should be removed after https://github.com/LiskHQ/lisk/pull/2980
 		global.constants = this.constants;
 
-		this.config.components.logger.module = 'lisk-app';
+		this.config.components.logger.module = 'lisk-controller';
 		this.logger = createLoggerComponent(this.config.components.logger);
 
 		__private.modules.set(this, {});
