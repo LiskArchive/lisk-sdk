@@ -20,6 +20,7 @@ const {
 	TransactionError,
 } = require('@liskhq/lisk-transactions');
 const votes = require('./votes');
+const votesWeight = require('./votes_weight');
 const exceptionsHandlers = require('./exceptions_handlers');
 const StateStore = require('../state_store');
 
@@ -115,11 +116,13 @@ const applyGenesisTransactions = storage => async (
 	});
 
 	await Promise.all(transactions.map(t => t.prepare(stateStore)));
+	await Promise.all(transactions.map(t => votesWeight.prepare(stateStore, t)));
 
 	const transactionsResponses = transactions.map(transaction => {
 		const transactionResponse = transaction.apply(stateStore);
 
 		votes.apply(stateStore, transaction);
+		votesWeight.apply(stateStore, transaction);
 		stateStore.transaction.add(transaction);
 
 		// We are overriding the status of transaction because it's from genesis block
@@ -141,6 +144,7 @@ const applyTransactions = (storage, exceptions) => async (transactions, tx) => {
 	});
 
 	await Promise.all(transactions.map(t => t.prepare(stateStore)));
+	await Promise.all(transactions.map(t => votesWeight.prepare(stateStore, t)));
 
 	// Verify total spending of per account accumulative
 	const transactionsResponseWithSpendingErrors = verifyTotalSpending(
@@ -167,8 +171,10 @@ const applyTransactions = (storage, exceptions) => async (transactions, tx) => {
 					exceptions,
 				);
 			}
+
 			if (transactionResponse.status === TransactionStatus.OK) {
 				votes.apply(stateStore, transaction, exceptions);
+				votesWeight.apply(stateStore, transaction, exceptions);
 				stateStore.transaction.add(transaction);
 			}
 
@@ -264,10 +270,12 @@ const undoTransactions = (storage, exceptions) => async (
 	});
 
 	await Promise.all(transactions.map(t => t.prepare(stateStore)));
+	await Promise.all(transactions.map(t => votesWeight.prepare(stateStore, t)));
 
 	const transactionsResponses = transactions.map(transaction => {
 		const transactionResponse = transaction.undo(stateStore);
 		votes.undo(stateStore, transaction, this.exceptions);
+		votesWeight.undo(stateStore, transaction, this.exceptions);
 		return transactionResponse;
 	});
 

@@ -72,6 +72,7 @@ describe('Account', () => {
 			'missedBlocks',
 			'rank',
 			'vote',
+			'voteWeight',
 		];
 
 		validExtendedObjectFields = [
@@ -91,6 +92,7 @@ describe('Account', () => {
 			'fees',
 			'rewards',
 			'vote',
+			'voteWeight',
 			'productivity',
 			'votedDelegatesPublicKeys',
 			'membersPublicKeys',
@@ -114,6 +116,7 @@ describe('Account', () => {
 			'fees',
 			'rewards',
 			'vote',
+			'voteWeight',
 			'productivity',
 		];
 
@@ -219,6 +222,14 @@ describe('Account', () => {
 			'vote_lt',
 			'vote_lte',
 			'vote_in',
+			'voteWeight',
+			'voteWeight_eql',
+			'voteWeight_ne',
+			'voteWeight_gt',
+			'voteWeight_gte',
+			'voteWeight_lt',
+			'voteWeight_lte',
+			'voteWeight_in',
 			'votedDelegatesPublicKeys_in',
 			'membersPublicKeys_in',
 		];
