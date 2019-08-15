@@ -41,20 +41,20 @@ const _mergeRewardsAndDelegates = (delegatePublicKeys, rewards) =>
 			return acc;
 		}, []);
 
-class Account {
+class DelegatesInfo {
 	constructor({
 		storage,
 		slots,
 		activeDelegates,
 		logger,
-		delegates,
+		delegatesList,
 		exceptions,
 	}) {
 		this.storage = storage;
 		this.slots = slots;
 		this.activeDelegates = activeDelegates;
 		this.logger = logger;
-		this.delegates = delegates;
+		this.delegatesList = delegatesList;
 		this.exceptions = exceptions;
 	}
 
@@ -233,7 +233,7 @@ class Account {
 	}
 
 	async _getMissedBlocksDelegatePublicKeys({ round, uniqForgersInfo }) {
-		const expectedForgingPublicKeys = await this.delegates.generateActiveDelegateList(
+		const expectedForgingPublicKeys = await this.delegatesList.generateActiveDelegateList(
 			round,
 		);
 
@@ -303,4 +303,4 @@ class Account {
 	}
 }
 
-module.exports = { Account };
+module.exports = { DelegatesInfo };

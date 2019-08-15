@@ -39,7 +39,7 @@ const shuffleDelegateListForRound = (round, list) => {
 	return delegateList;
 };
 
-class Delegates extends EventEmitter {
+class DelegatesList extends EventEmitter {
 	constructor({ storage, activeDelegates, exceptions }) {
 		super();
 		this.delegateListCache = {};
@@ -98,7 +98,7 @@ class Delegates extends EventEmitter {
 }
 
 module.exports = {
-	Delegates,
+	DelegatesList,
 	EVENT_ROUND_FINISHED,
 	shuffleDelegateListForRound,
 };
