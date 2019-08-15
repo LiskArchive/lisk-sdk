@@ -28,6 +28,7 @@ const blockVersion = require('./block_version');
 const {
 	BlocksChain,
 	applyConfirmedStep,
+	deleteLastBlock,
 	undoConfirmedStep,
 	saveBlockStep,
 	parseBlockToJson,
@@ -326,7 +327,7 @@ class Blocks extends EventEmitter {
 	}
 
 	async remove({ block, tx }, saveToTemp) {
-		const storageRowOfBlock = await this.blocksChain.deleteLastBlock(block, tx);
+		const storageRowOfBlock = await deleteLastBlock(this.storage, block, tx);
 		if (saveToTemp) {
 			const parsedDeletedBlock = parseBlockToJson(block);
 			const blockTempEntry = {
@@ -475,7 +476,7 @@ class Blocks extends EventEmitter {
 	}
 
 	async deleteLastBlockAndGet() {
-		this._lastBlock = await this.blocksChain.deleteLastBlock(this._lastBlock);
+		this._lastBlock = await this.remove(this.storage, this._lastBlock);
 		return this._lastBlock;
 	}
 
@@ -963,7 +964,7 @@ class Blocks extends EventEmitter {
 		const previousLastBlock = cloneDeep(this._lastBlock);
 
 		// Deletes last block and updates this._lastBlock to the previous one
-		await this.deleteLastBlockAndGet();
+		await this.remove({ block: previousLastBlock }, true);
 
 		try {
 			await this._processReceivedBlock(block);

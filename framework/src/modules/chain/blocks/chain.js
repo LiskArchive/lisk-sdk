@@ -93,18 +93,30 @@ const saveBlock = async (storage, block, tx) => {
 };
 
 /**
- * Deletes block from blocks table.
+ * Deletes last block.
  *
- * Delete block with ID from blocks table
- * WARNING: DB_WRITE
- * @param {number} blockId - ID of block to delete
- * @param {function} cb - Callback function
- * @param {Object} tx - Database transaction
+ * @param  {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
- * @returns {Object} cb.err - String if SQL error occurred, null if success
+ * @returns {Object} cb.err - Error if occurred
+ * @returns {Object} cb.obj - New last block
  */
-const deleteBlock = async (storage, blockId, tx) =>
-	storage.entities.Block.delete({ id: blockId }, {}, tx);
+const deleteLastBlock = async (storage, lastBlock, tx) => {
+	if (lastBlock.height === 1) {
+		throw new Error('Cannot delete genesis block');
+	}
+	const [storageBlock] = await this.storage.entities.Block.get(
+		{ id: lastBlock.previousBlock },
+		{ extended: true },
+		tx,
+	);
+
+	if (!storageBlock) {
+		throw new Error('PreviousBlock is null');
+	}
+
+	await storage.entities.Block.delete({ id: lastBlock.id }, {}, tx);
+	return storageBlock;
+};
 
 /**
  * Deletes all blocks with height >= supplied block ID.
@@ -352,35 +364,6 @@ class BlocksChain {
 		});
 		return block;
 	}
-
-	/**
-	 * Deletes last block.
-	 * - Apply the block to database if both verifications are ok
-	 * - Update headers: broadhash and height
-	 * - Put transactions from deleted block back into transaction pool
-	 *
-	 * @param  {function} cb - Callback function
-	 * @returns {function} cb - Callback function from params (through setImmediate)
-	 * @returns {Object} cb.err - Error if occurred
-	 * @returns {Object} cb.obj - New last block
-	 */
-	async deleteLastBlock(lastBlock, tx) {
-		if (lastBlock.height === 1) {
-			throw new Error('Cannot delete genesis block');
-		}
-		const [storageBlock] = await this.storage.entities.Block.get(
-			{ id: lastBlock.previousBlock },
-			{ extended: true },
-			tx,
-		);
-
-		if (!storageBlock) {
-			throw new Error('PreviousBlock is null');
-		}
-
-		await deleteBlock(this.storage, lastBlock.id, tx);
-		return storageBlock;
-	}
 }
 
 module.exports = {
@@ -389,7 +372,7 @@ module.exports = {
 	applyGenesisBlockTransactions,
 	backwardTickStep,
 	saveBlockBatch,
-	deleteBlock,
+	deleteLastBlock,
 	deleteFromBlockId,
 	saveBlockStep,
 	applyConfirmedStep,

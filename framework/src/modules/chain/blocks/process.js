@@ -15,7 +15,6 @@
 'use strict';
 
 const blocksUtils = require('./utils');
-const blocksLogic = require('./block');
 
 class BlocksProcess {
 	constructor({
@@ -38,51 +37,6 @@ class BlocksProcess {
 		this.blockReward = blockReward;
 		this.constants = constants;
 		this.genesisBlock = genesisBlock;
-	}
-
-	async processBlock(block, lastBlock, broadcast) {
-		const enhancedBlock = !broadcast
-			? blocksUtils.addBlockProperties(block)
-			: block;
-		const normalizedBlock = blocksLogic.objectNormalize(
-			enhancedBlock,
-			this.exceptions,
-		);
-		const { verified, errors } = this.blocksVerify.verifyBlock(
-			normalizedBlock,
-			lastBlock,
-		);
-		if (!verified) {
-			throw errors;
-		}
-		if (typeof broadcast === 'function') {
-			broadcast(normalizedBlock);
-		}
-		await this.blocksVerify.checkExists(normalizedBlock);
-		await this.blocksVerify.validateBlockSlot(normalizedBlock);
-		await this.blocksVerify.checkTransactions(normalizedBlock);
-		await this.blocksChain.applyBlock(normalizedBlock, true);
-
-		return normalizedBlock;
-	}
-
-	async applyBlock(block, lastBlock) {
-		const enhancedBlock = blocksUtils.addBlockProperties(block);
-		const normalizedBlock = blocksLogic.objectNormalize(
-			enhancedBlock,
-			this.exceptions,
-		);
-		const { verified, errors } = this.blocksVerify.verifyBlock(
-			normalizedBlock,
-			lastBlock,
-		);
-		if (!verified) {
-			throw errors;
-		}
-		await this.blocksVerify.validateBlockSlot(normalizedBlock);
-		await this.blocksVerify.checkTransactions(normalizedBlock);
-		await this.blocksChain.applyBlock(normalizedBlock, false);
-		return normalizedBlock;
 	}
 
 	async recoverInvalidOwnChain(currentBlock, onDelete) {
