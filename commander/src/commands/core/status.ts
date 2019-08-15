@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import { describeApplication, listApplication } from '../../utils/core/pm2';
 
@@ -21,6 +22,15 @@ interface Args {
 }
 
 export default class StatusCommand extends BaseCommand {
+	static flags = {
+		json: flagParser.boolean({
+			hidden: true,
+		}),
+		pretty: flagParser.boolean({
+			hidden: true,
+		}),
+	};
+
 	static args = [
 		{
 			name: 'name',
