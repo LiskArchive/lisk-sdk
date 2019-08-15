@@ -66,7 +66,7 @@ export default class MyModule extends BaseModule {
             author: '',
             version: '',
             name: '',
-			module: '',
+            module: '',
         };
     },
 
