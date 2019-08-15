@@ -38,16 +38,25 @@ const delegatesWhoForgedThrice = delegateAccounts.slice(0, 1);
 // 2nd-4th forges 2 times
 const delegatesWhoForgedTwice = delegateAccounts.slice(1, 4);
 
+// 5th forges 1 time and misses 1 time
+const delegatesWhoForgedOnceMissedOnce = delegateAccounts.slice(4, 5);
+
 // last 5 in the list
-const delegatesWhoMissed = delegateAccounts.slice(-missedDelegateCount);
+const delegatesWhoForgedNone = delegateAccounts.slice(-missedDelegateCount);
+
+const delegatesWhoMissed = [
+	...delegatesWhoForgedNone,
+	...delegatesWhoForgedOnceMissedOnce,
+];
 
 // rest of the delegates forged once
 const delegatesWhoForgedOnce = delegateAccounts.filter(
 	d =>
 		![
-			...delegatesWhoMissed.map(a => a.publicKey),
+			...delegatesWhoForgedNone.map(a => a.publicKey),
 			...delegatesWhoForgedTwice.map(a => a.publicKey),
 			...delegatesWhoForgedThrice.map(a => a.publicKey),
+			...delegatesWhoForgedOnceMissedOnce.map(a => a.publicKey),
 		].includes(d.publicKey),
 );
 
@@ -57,6 +66,7 @@ const delegatesWhoForged = [
 	...delegatesWhoForgedOnce,
 	...delegatesWhoForgedTwice,
 	...delegatesWhoForgedThrice,
+	...delegatesWhoForgedOnceMissedOnce,
 	...delegatesWhoForgedThrice,
 ];
 
@@ -83,9 +93,11 @@ module.exports = {
 	delegatePublicKeys,
 	delegatesWhoForged,
 	uniqueDelegatesWhoForged,
+	delegatesWhoForgedNone,
+	delegatesWhoMissed,
 	delegatesWhoForgedOnce,
 	delegatesWhoForgedTwice,
 	delegatesWhoForgedThrice,
-	delegatesWhoMissed,
+	delegatesWhoForgedOnceMissedOnce,
 	delegateWhoForgedLast,
 };

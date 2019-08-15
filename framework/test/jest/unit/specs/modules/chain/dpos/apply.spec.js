@@ -22,8 +22,9 @@ const {
 	delegateAccounts,
 	delegatePublicKeys,
 	delegatesWhoForged,
+	delegatesWhoForgedNone,
 	uniqueDelegatesWhoForged,
-	delegatesWhoMissed,
+	delegatesWhoForgedOnceMissedOnce,
 	delegateWhoForgedLast,
 } = require('./round_delegates');
 
@@ -215,7 +216,7 @@ describe('dpos.apply()', () => {
 			]);
 		});
 
-		it('should increase "missedBlocks" field by "1" for the delegates who missed forging slot', async () => {
+		it('should increase "missedBlocks" field by "1" for the delegates who didnt forge in the round', async () => {
 			// Act
 			await dpos.apply(lastBlockOfTheRound, stubs.tx);
 
@@ -224,7 +225,7 @@ describe('dpos.apply()', () => {
 				stubs.storage.entities.Account.increaseFieldBy,
 			).toHaveBeenCalledWith(
 				{
-					publicKey_in: delegatesWhoMissed.map(a => a.publicKey),
+					publicKey_in: delegatesWhoForgedNone.map(a => a.publicKey),
 				},
 				'missedBlocks',
 				'1',
@@ -251,10 +252,29 @@ describe('dpos.apply()', () => {
 			});
 
 			// Assert Group 2/2
-			delegatesWhoMissed.forEach(account => {
+			delegatesWhoForgedNone.forEach(account => {
 				expect(stubs.storage.entities.Account.update).not.toHaveBeenCalledWith({
 					publicKey_eq: account.publicKey,
 				});
+			});
+		});
+
+		it('should distrubute reward and fee for delegate who forged once but missed once', async () => {
+			// Act
+			await dpos.apply(lastBlockOfTheRound, stubs.tx);
+
+			// Assert
+			expect.assertions(delegatesWhoForgedOnceMissedOnce.length);
+
+			// Assert
+			delegatesWhoForgedOnceMissedOnce.forEach(account => {
+				expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
+					{
+						publicKey_eq: account.publicKey,
+					},
+					expect.any(Object),
+					stubs.tx,
+				);
 			});
 		});
 
