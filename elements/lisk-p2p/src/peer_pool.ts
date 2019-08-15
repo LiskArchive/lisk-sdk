@@ -109,6 +109,7 @@ interface PeerPoolConfig {
 export const MAX_PEER_LIST_BATCH_SIZE = 100;
 export const MAX_PEER_DISCOVERY_PROBE_SAMPLE_SIZE = 100;
 export const EVENT_REMOVE_PEER = 'removePeer';
+export const INTENTIONAL_DISCONNECT_STATUS_CODE = 1000;
 
 export enum PROTECTION_CATEGORY {
 	NET_GROUP = 'netgroup',
@@ -538,7 +539,10 @@ export class PeerPool extends EventEmitter {
 	public removePeer(peerId: string): boolean {
 		const peer = this._peerMap.get(peerId);
 		if (peer) {
-			peer.disconnect();
+			peer.disconnect(
+				INTENTIONAL_DISCONNECT_STATUS_CODE,
+				`Intentionally disconnected from peer ${peerId}`,
+			);
 			this._unbindHandlersFromPeer(peer);
 		}
 
