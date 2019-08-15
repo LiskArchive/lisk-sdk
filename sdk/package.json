@@ -1,6 +1,6 @@
 {
 	"name": "lisk-sdk",
-	"version": "2.3.0-alpha.0",
+	"version": "2.3.0-alpha.1",
 	"description": "Official SDK for the Lisk blockchain application platform",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",

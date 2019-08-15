@@ -1,0 +1,8 @@
+{
+	"extends": ["../.eslintrc.json"],
+	"rules": {
+		"strict": "off",
+		"max-len": "off",
+		"no-underscore-dangle": "off"
+	}
+}
