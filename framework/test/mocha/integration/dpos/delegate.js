@@ -24,7 +24,7 @@ describe('delegates', () => {
 				});
 			});
 			// Act
-			await library.modules.dpos.delegates.deleteDelegateListUntilRound(5);
+			await library.modules.dpos.delegatesList.deleteDelegateListUntilRound(5);
 		});
 
 		it('should remove delegatesList until the round 5', async () => {
