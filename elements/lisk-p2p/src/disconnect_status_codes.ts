@@ -38,3 +38,5 @@ export const INCOMPATIBLE_PEER_UNKNOWN_REASON =
 // First case to follow HTTP status codes
 export const FORBIDDEN_CONNECTION = 4403;
 export const FORBIDDEN_CONNECTION_REASON = 'Peer is not allowed to connect';
+
+export const EVICTED_PEER_CODE = 4418;
