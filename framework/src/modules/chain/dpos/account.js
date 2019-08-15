@@ -226,10 +226,9 @@ class Account {
 				totalFee: new BigNum(summedRound.fees),
 				uniqForgersInfo,
 			};
-		} catch (err) {
-			this.logger.error('Failed to sum round', round);
-			this.logger.error(err);
-			throw err;
+		} catch (error) {
+			this.logger.error({ error, round }, 'Failed to sum round');
+			throw error;
 		}
 	}
 
