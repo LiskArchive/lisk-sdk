@@ -1,3 +1,20 @@
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
+const BigNum = require('@liskhq/bignum');
 const { when } = require('jest-when');
 const { Dpos, Slots } = require('../../../../../../../src/modules/chain/dpos');
 const { constants, randomInt } = require('../../../../utils');
@@ -83,23 +100,27 @@ describe('dpos.apply()', () => {
 		});
 	});
 
-	it('should increase "producedBlocks" field by "1" for the generator delegate', async () => {
-		// Arrange
-		const block = {
-			height: 2,
-			generatorPublicKey: 'generatorPublicKey#RANDOM',
-		};
+	describe('Given block height is greater than "1" (NOT the genesis block)', () => {
+		it('should increase "producedBlocks" field by "1" for the generator delegate', async () => {
+			// Arrange
+			const block = {
+				height: 2,
+				generatorPublicKey: 'generatorPublicKey#RANDOM',
+			};
 
-		// Act
-		await dpos.apply(block, stubs.tx);
+			// Act
+			await dpos.apply(block, stubs.tx);
 
-		// Assert
-		expect(stubs.storage.entities.Account.increaseFieldBy).toHaveBeenCalledWith(
-			{ publicKey_eq: block.generatorPublicKey },
-			'producedBlocks',
-			'1',
-			stubs.tx,
-		);
+			// Assert
+			expect(
+				stubs.storage.entities.Account.increaseFieldBy,
+			).toHaveBeenCalledWith(
+				{ publicKey_eq: block.generatorPublicKey },
+				'producedBlocks',
+				'1',
+				stubs.tx,
+			);
+		});
 	});
 
 	describe('Given block is NOT the last block of the round', () => {
@@ -177,8 +198,8 @@ describe('dpos.apply()', () => {
 				const blockCount = delegatesWhoForged.filter(
 					d => d.publicKey === account.publicKey,
 				).length;
-				const reward = rewardPerDelegate * blockCount;
-				const fee = feePerDelegate * blockCount;
+				const reward = new BigNum(rewardPerDelegate * blockCount);
+				const fee = new BigNum(feePerDelegate * blockCount);
 				return {
 					reward,
 					fee,
@@ -245,7 +266,7 @@ describe('dpos.apply()', () => {
 			expect.assertions(uniqueDelegatesWhoForged.length);
 			uniqueDelegatesWhoForged.forEach(account => {
 				const { fee, reward } = getTotalEarningsOfDelegate(account);
-				const amount = reward + fee;
+				const amount = fee.plus(reward);
 				const data = {
 					...account,
 					balance: account.balance.plus(amount),
@@ -324,7 +345,7 @@ describe('dpos.apply()', () => {
 			expect.assertions(uniqueDelegatesWhoForged.length);
 			uniqueDelegatesWhoForged.forEach(account => {
 				const { fee, reward } = getTotalEarningsOfDelegate(account);
-				const amount = fee + reward;
+				const amount = fee.plus(reward);
 
 				expect(
 					stubs.storage.entities.Account.increaseFieldBy,
@@ -370,7 +391,7 @@ describe('dpos.apply()', () => {
 		});
 
 		describe('When summarizing round fails', () => {
-			it('should throw the error message coming from summedRound method', async () => {
+			it('should throw the error message coming from summedRound method and not perform any update', async () => {
 				// Arrange
 				const err = new Error('dummyError');
 				stubs.storage.entities.Round.summedRound.mockRejectedValue(err);
@@ -379,6 +400,17 @@ describe('dpos.apply()', () => {
 				await expect(dpos.apply(lastBlockOfTheRound, stubs.tx)).rejects.toBe(
 					err,
 				);
+
+				expect(stubs.storage.entities.Account.update).not.toHaveBeenCalled();
+				expect(
+					stubs.storage.entities.Account.increaseFieldBy,
+				).not.toHaveBeenCalledWith(expect.any, 'producedBlocks');
+				expect(
+					stubs.storage.entities.Account.increaseFieldBy,
+				).not.toHaveBeenCalledWith(expect.any(Object), 'missedBlocks');
+				expect(
+					stubs.storage.entities.Account.increaseFieldBy,
+				).not.toHaveBeenCalledWith(expect.any(Object), 'voteWeight');
 			});
 		});
 
