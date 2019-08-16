@@ -17,6 +17,7 @@
 const { getRandomBytes } = require('@liskhq/lisk-cryptography');
 const {
 	P2P,
+	EVENT_NETWORK_READY,
 	EVENT_NEW_INBOUND_PEER,
 	EVENT_CLOSE_INBOUND,
 	EVENT_CLOSE_OUTBOUND,
@@ -166,6 +167,10 @@ module.exports = class Network {
 		});
 
 		// ---- START: Bind event handlers ----
+		this.p2p.on(EVENT_NETWORK_READY, () => {
+			this.logger.debug('Network has connected to peers');
+			this.channel.publish('network:bootstrap');
+		});
 
 		this.p2p.on(EVENT_CLOSE_OUTBOUND, closePacket => {
 			this.logger.debug(
