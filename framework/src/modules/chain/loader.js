@@ -370,7 +370,10 @@ class Loader {
 				failedAttemptsToLoad += 1;
 				// eslint-disable-next-line no-await-in-loop
 				await this._handleCommonBlockError(err);
-				this.logger.warn({ error: err });
+				this.logger.warn(
+					{ error: err },
+					'Failed to load blocks from the network.',
+				);
 			}
 		}
 	}
@@ -391,7 +394,6 @@ class Loader {
 				);
 			}
 		}
-		this.logger.warn({ error }, 'Failed to load blocks from the network.');
 	}
 }
 
