@@ -58,10 +58,11 @@ class BlocksProcess {
 		if (!verified) {
 			throw errors;
 		}
+		await this.blocksVerify.checkExists(normalizedBlock);
+
 		if (typeof broadcast === 'function') {
 			broadcast(normalizedBlock);
 		}
-		await this.blocksVerify.checkExists(normalizedBlock);
 		await this.blocksVerify.validateBlockSlot(normalizedBlock);
 		await this.blocksVerify.checkTransactions(normalizedBlock);
 		await this.blocksChain.applyBlock(normalizedBlock, true);

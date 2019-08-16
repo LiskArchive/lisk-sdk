@@ -81,7 +81,7 @@ const defaultConfig = {
 		user: 'lisk',
 		password: 'password',
 		min: 10,
-		max: 95,
+		max: 25,
 		poolIdleTimeout: 30000,
 		reapIntervalMillis: 1000,
 		logEvents: ['error'],

@@ -565,42 +565,43 @@ describe('transport', () => {
 				describe('when broadcast is defined', () => {
 					beforeEach(async () => {
 						transportModule.broadcaster = {
-							maxRelays: sinonSandbox.stub().returns(false),
 							enqueue: sinonSandbox.stub(),
 						};
 						transportModule.onSignature(SAMPLE_SIGNATURE_1, true);
 					});
 
-					it('should call transportModule.broadcaster.maxRelays with signature', async () => {
-						expect(transportModule.broadcaster.maxRelays.calledOnce).to.be.true;
+					it('should call transportModule.broadcaster.enqueue with signature', () => {
+						expect(transportModule.broadcaster.enqueue.calledOnce).to.be.true;
 						return expect(
-							transportModule.broadcaster.maxRelays.calledWith(
-								SAMPLE_SIGNATURE_1,
+							transportModule.broadcaster.enqueue.calledWith(
+								{},
+								{
+									api: 'postSignatures',
+									data: { signature: SAMPLE_SIGNATURE_1 },
+								},
 							),
 						).to.be.true;
 					});
 
-					describe('when result of transportModule.broadcaster.maxRelays is false', () => {
-						it('should call transportModule.broadcaster.enqueue with {} and {api: "postSignatures", data: {signature: signature}} as arguments', async () => {
-							expect(transportModule.broadcaster.enqueue.calledOnce).to.be.true;
-							return expect(
-								transportModule.broadcaster.enqueue.calledWith(
-									{},
-									{
-										api: 'postSignatures',
-										data: { signature: SAMPLE_SIGNATURE_1 },
-									},
-								),
-							).to.be.true;
-						});
+					it('should call transportModule.broadcaster.enqueue with {} and {api: "postSignatures", data: {signature: signature}} as arguments', async () => {
+						expect(transportModule.broadcaster.enqueue.calledOnce).to.be.true;
+						return expect(
+							transportModule.broadcaster.enqueue.calledWith(
+								{},
+								{
+									api: 'postSignatures',
+									data: { signature: SAMPLE_SIGNATURE_1 },
+								},
+							),
+						).to.be.true;
+					});
 
-						it('should call transportModule.channel.publish with "chain:signature:change" and signature', async () => {
-							expect(transportModule.channel.publish).to.be.calledOnce;
-							expect(transportModule.channel.publish).to.be.calledWith(
-								'chain:signature:change',
-								SAMPLE_SIGNATURE_1,
-							);
-						});
+					it('should call transportModule.channel.publish with "chain:signature:change" and signature', async () => {
+						expect(transportModule.channel.publish).to.be.calledOnce;
+						expect(transportModule.channel.publish).to.be.calledWith(
+							'chain:signature:change',
+							SAMPLE_SIGNATURE_1,
+						);
 					});
 				});
 			});
@@ -621,55 +622,52 @@ describe('transport', () => {
 							'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
 					});
 					transportModule.broadcaster = {
-						maxRelays: sinonSandbox.stub().returns(true),
 						enqueue: sinonSandbox.stub(),
+					};
+					transportModule.channel = {
+						invoke: sinonSandbox.stub(),
+						publish: sinonSandbox.stub(),
 					};
 					transportModule.onUnconfirmedTransaction(transaction, true);
 				});
 
 				describe('when broadcast is defined', () => {
-					it('should call transportModule.broadcaster.maxRelays with transaction', async () => {
-						expect(transportModule.broadcaster.maxRelays.calledOnce).to.be.true;
-						return expect(
-							transportModule.broadcaster.maxRelays,
-						).to.be.calledWith(transaction);
+					beforeEach(async () => {
+						transportModule.broadcaster = {
+							enqueue: sinonSandbox.stub(),
+						};
+						transportModule.channel = {
+							invoke: sinonSandbox.stub(),
+							publish: sinonSandbox.stub(),
+						};
+						transportModule.channel.invoke
+							.withArgs('lisk:getApplicationState')
+							.returns({
+								broadhash:
+									'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
+							});
+						transportModule.onUnconfirmedTransaction(transaction, true);
 					});
 
-					describe('when result of transportModule.broadcaster.maxRelays is false', () => {
-						beforeEach(async () => {
-							transportModule.broadcaster = {
-								maxRelays: sinonSandbox.stub().returns(false),
-								enqueue: sinonSandbox.stub(),
-							};
-							transportModule.channel.invoke
-								.withArgs('lisk:getApplicationState')
-								.returns({
-									broadhash:
-										'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
-								});
-							transportModule.onUnconfirmedTransaction(transaction, true);
-						});
+					it('should call transportModule.broadcaster.enqueue with {} and {api: "postTransactions", data: {transaction}}', async () => {
+						expect(transportModule.broadcaster.enqueue.calledOnce).to.be.true;
+						return expect(
+							transportModule.broadcaster.enqueue.calledWith(
+								{},
+								{
+									api: 'postTransactions',
+									data: { transaction: transaction.toJSON() },
+								},
+							),
+						).to.be.true;
+					});
 
-						it('should call transportModule.broadcaster.enqueue with {} and {api: "postTransactions", data: {transaction}}', async () => {
-							expect(transportModule.broadcaster.enqueue.calledOnce).to.be.true;
-							return expect(
-								transportModule.broadcaster.enqueue.calledWith(
-									{},
-									{
-										api: 'postTransactions',
-										data: { transaction: transaction.toJSON() },
-									},
-								),
-							).to.be.true;
-						});
-
-						it('should call transportModule.channel.publish with "chain:transactions:change" and transaction as arguments', async () => {
-							expect(transportModule.channel.publish).to.be.calledOnce;
-							expect(transportModule.channel.publish).to.be.calledWith(
-								'chain:transactions:change',
-								transaction.toJSON(),
-							);
-						});
+					it('should call transportModule.channel.publish with "chain:transactions:change" and transaction as arguments', async () => {
+						expect(transportModule.channel.publish).to.be.calledOnce;
+						expect(transportModule.channel.publish).to.be.calledWith(
+							'chain:transactions:change',
+							transaction.toJSON(),
+						);
 					});
 				});
 			});
@@ -690,7 +688,6 @@ describe('transport', () => {
 							totalForged: '65000000',
 						};
 						transportModule.broadcaster = {
-							maxRelays: sinonSandbox.stub().returns(false),
 							enqueue: sinonSandbox.stub(),
 							broadcast: sinonSandbox.stub(),
 						};
@@ -701,16 +698,11 @@ describe('transport', () => {
 						return transportModule.onBroadcastBlock(block, true);
 					});
 
-					it('should call transportModule.broadcaster.maxRelays with block', async () => {
-						expect(transportModule.broadcaster.maxRelays.calledOnce).to.be.true;
-						return expect(
-							transportModule.broadcaster.maxRelays.calledWith(block),
-						).to.be.true;
-					});
-
-					it('should call transportModule.broadcaster.broadcast', async () => {
+					it('should call transportModule.broadcaster.broadcast', () => {
 						expect(transportModule.broadcaster.broadcast.calledOnce).to.be.true;
-						expect(transportModule.broadcaster.broadcast).to.be.calledWith(
+						return expect(
+							transportModule.broadcaster.broadcast,
+						).to.be.calledWith(
 							{
 								broadhash:
 									'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
@@ -724,22 +716,6 @@ describe('transport', () => {
 						);
 					});
 
-					describe('when transportModule.broadcaster.maxRelays returns true', () => {
-						beforeEach(async () => {
-							transportModule.broadcaster.maxRelays = sinonSandbox
-								.stub()
-								.returns(true);
-							transportModule.onBroadcastBlock(block, true);
-						});
-
-						it('should call transportModule.logger.debug with proper error message', async () =>
-							expect(
-								transportModule.logger.debug.calledWith(
-									'Transport->onBroadcastBlock: Aborted - max block relays exhausted',
-								),
-							).to.be.true);
-					});
-
 					describe('when modules.loader.syncing = true', () => {
 						beforeEach(async () => {
 							transportModule.loaderModule.syncing = sinonSandbox
@@ -748,12 +724,13 @@ describe('transport', () => {
 							transportModule.onBroadcastBlock(block, true);
 						});
 
-						it('should call transportModule.logger.debug with proper error message', async () =>
-							expect(
+						it('should call transportModule.logger.debug with proper error message', () => {
+							return expect(
 								transportModule.logger.debug.calledWith(
 									'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress',
 								),
-							).to.be.true);
+							).to.be.true;
+						});
 					});
 				});
 			});

@@ -49,15 +49,39 @@ const defaultConfig = {
 			env: { variable: 'LISK_PEERS', formatter: 'stringToIpPortSet' },
 			arg: { name: '--peers,-x', formatter: 'stringToIpPortSet' }, // TODO: Need to confirm parsing logic, old logic was using network WSPort to be default port for peers, we don't have it at the time of compilation
 		},
-		discoveryInterval: {
-			type: 'integer',
-		},
 		blacklistedPeers: {
 			type: 'array',
 			items: {
 				type: 'string',
 				format: 'ip',
 			},
+		},
+		// Warning! The connectivity of the node might be negatively impacted if using this option.
+		fixedPeers: {
+			type: 'array',
+			items: {
+				type: 'string',
+				format: 'ip',
+			},
+			maximum: 4,
+		},
+		// Warning! Beware of declaring only trustworthy peers in this array as these could attack a
+		// node with a denial-of-service attack because the banning mechanism is deactivated.
+		whitelistedPeers: {
+			type: 'array',
+			items: {
+				type: 'string',
+				format: 'ip',
+			},
+		},
+		discoveryInterval: {
+			type: 'integer',
+		},
+		peerBanTime: {
+			type: 'integer',
+		},
+		populatorInterval: {
+			type: 'integer',
 		},
 		wsEngine: {
 			type: 'string',
@@ -66,6 +90,12 @@ const defaultConfig = {
 			type: 'integer',
 		},
 		ackTimeout: {
+			type: 'integer',
+		},
+		maxOutboundConnections: {
+			type: 'integer',
+		},
+		maxInboundConnections: {
 			type: 'integer',
 		},
 		emitPeerLimit: {
@@ -79,11 +109,17 @@ const defaultConfig = {
 		wsPort: 5000,
 		address: '0.0.0.0',
 		discoveryInterval: 30000,
+		peerBanTime: 86400,
+		populatorInterval: 10000,
 		seedPeers: [],
 		blacklistedPeers: [],
+		fixedPeers: [],
+		whitelistedPeers: [],
 		ackTimeout: 20000,
 		connectTimeout: 5000,
 		wsEngine: 'ws',
+		maxOutboundConnections: 20,
+		maxInboundConnections: 100,
 		emitPeerLimit: 25,
 	},
 };
