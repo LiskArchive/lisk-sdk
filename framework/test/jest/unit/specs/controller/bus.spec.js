@@ -201,7 +201,7 @@ describe('Bus', () => {
 			await expect(bus.invokePublic(actionData)).rejects.toBeInstanceOf(Error);
 
 			try {
-				await bus.invoke(actionData);
+				await bus.invokePublic(actionData);
 			} catch (err) {
 				expect(err.message).toEqual(
 					`Action '${actionData.module}:${
@@ -224,7 +224,7 @@ describe('Bus', () => {
 			await expect(bus.invokePublic(actionData)).rejects.toBeInstanceOf(Error);
 
 			try {
-				await bus.invoke(actionData);
+				await bus.invokePublic(actionData);
 			} catch (err) {
 				expect(err.message).toEqual(
 					`Action '${actionData.module}:${
