@@ -96,11 +96,9 @@ export default class UpgradeCommand extends BaseCommand {
 		const instance = await describeApplication(name);
 
 		if (!instance) {
-			this.log(
+			throw new Error(
 				`Lisk Core instance: ${name} doesn't exists.\nTo upgrade first install using lisk core:install and then run lisk core:upgrade`,
 			);
-
-			return;
 		}
 
 		const {
