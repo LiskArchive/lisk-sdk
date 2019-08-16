@@ -81,10 +81,7 @@ export const outgoingPeerInfoSanitization = (
 	};
 };
 
-export const validatePeerInfo = (
-	rawPeerInfo: unknown,
-	maxByteSize: number,
-): P2PPeerInfo => {
+export const validatePeerInfoSchema = (rawPeerInfo: unknown): P2PPeerInfo => {
 	if (!rawPeerInfo) {
 		throw new InvalidPeerError(`Invalid peer object`);
 	}
@@ -123,14 +120,21 @@ export const validatePeerInfo = (
 
 	const { ip, ...peerInfoUpdated } = peerInfo;
 
-	const byteSize = getByteSize(peerInfoUpdated);
+	return peerInfoUpdated;
+};
+
+export const validatePeerInfo = (
+	rawPeerInfo: unknown,
+	maxByteSize: number,
+): P2PPeerInfo => {
+	const byteSize = getByteSize(rawPeerInfo);
 	if (byteSize > maxByteSize) {
 		throw new InvalidRPCResponseError(
 			`PeerInfo was larger than the maximum allowed ${maxByteSize} bytes`,
 		);
 	}
 
-	return peerInfoUpdated;
+	return validatePeerInfoSchema(rawPeerInfo);
 };
 
 export const validatePeersInfoList = (
@@ -147,11 +151,14 @@ export const validatePeersInfoList = (
 		if (peers.length > maxPeerInfoListLength) {
 			throw new InvalidRPCResponseError('PeerInfo list was too long');
 		}
-		const peerList = peers.map<P2PPeerInfo>(peerInfo =>
-			validatePeerInfo(peerInfo, maxPeerInfoByteSize),
+		const cleanPeerList = peers.filter(
+			peerInfo => getByteSize(peerInfo) < maxPeerInfoByteSize,
+		);
+		const sanitizedPeerList = cleanPeerList.map<P2PPeerInfo>(
+			validatePeerInfoSchema,
 		);
 
-		return peerList;
+		return sanitizedPeerList;
 	} else {
 		throw new InvalidRPCResponseError('Invalid response type');
 	}
