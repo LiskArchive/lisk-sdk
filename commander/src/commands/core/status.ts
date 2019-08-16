@@ -41,11 +41,9 @@ export default class StatusCommand extends BaseCommand {
 			const instance = await describeApplication(name);
 
 			if (!instance) {
-				this.log(
+				throw new Error(
 					`Lisk Core instance: ${name} doesn't exists, Please install using lisk core:install`,
 				);
-
-				return;
 			}
 			this.print(instance);
 		} else {
