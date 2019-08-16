@@ -251,7 +251,58 @@ describe('dpos.undo()', () => {
 
 		it('should distribute more rewards and fees (with correct balance) to delegates based on number of blocks they forged', async () => {});
 
-		it('should give the remainingFee ONLY to the last delegate of the round who forged', async () => {});
+		it('should remove remainingFee ONLY from the last delegate of the round who forged', async () => {
+			// Arrange
+			const remainingFee = randomInt(5, 10);
+			stubs.storage.entities.Round.summedRound.mockResolvedValue([
+				{
+					fees: totalFee + remainingFee,
+					rewards: delegatesWhoForged.map(() => rewardPerDelegate),
+					delegates: delegatesWhoForged.map(a => a.publicKey),
+				},
+			]);
+
+			// Act
+			await dpos.undo(lastBlockOfTheRound, stubs.tx);
+
+			// Assert
+			expect.assertions(uniqueDelegatesWhoForged);
+			expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
+				{
+					publicKey_eq: delegateWhoForgedLast.publicKey,
+				},
+				expect.objectContaining({
+					/**
+					 * Delegate who forged last also forged 3 times,
+					 * Thus will get fee 3 times too.
+					 */
+					fees: delegateWhoForgedLast.fees.minus(
+						feePerDelegate * 3 + remainingFee,
+					),
+				}),
+				stubs.tx,
+			);
+
+			uniqueDelegatesWhoForged
+				.filter(d => d.publicKey !== delegateWhoForgedLast.publicKey)
+				.forEach(account => {
+					const blockCount = delegatesWhoForged.filter(
+						d => d.publicKey === account.publicKey,
+					).length;
+					expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
+						{
+							publicKey_eq: account.publicKey,
+						},
+						expect.objectContaining({
+							/**
+							 * Rest of the delegates don't get the remaining fee
+							 */
+							fees: account.fees.minus(feePerDelegate * blockCount),
+						}),
+						stubs.tx,
+					);
+				});
+		});
 
 		it('should update vote weight of accounts that delegates who forged voted for', async () => {});
 
