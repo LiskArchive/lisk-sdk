@@ -338,6 +338,7 @@ class Loader {
 		const { lastBlock } = this.blocksModule;
 		let lastValidBlock = lastBlock;
 		try {
+			// TODO: this should be removed and the block should be received from the network using *normal* block property names
 			const blocks = this.blocksModule.readBlocksFromNetwork(blockRows);
 			// eslint-disable-next-line no-restricted-syntax
 			for (const block of blocks) {
@@ -359,7 +360,7 @@ class Loader {
 			if (this.peersModule.isPoorConsensus(this.blocksModule.broadhash)) {
 				this.logger.debug('Perform chain recovery due to poor consensus');
 				try {
-					await this.blocksModule.deleteLastBlockAndGet();
+					await this.processorModule.deleteLastBlock();
 				} catch (recoveryError) {
 					throw new Error(
 						`Chain recovery failed after failing to load blocks while network consensus was low. ${recoveryError}`,

@@ -24,7 +24,6 @@ const {
 const blocksUtils = require('./utils');
 const { BlocksProcess } = require('./process');
 const { BlocksVerify, verifyBlockNotExists } = require('./verify');
-const blockVersion = require('./block_version');
 const {
 	BlocksChain,
 	applyConfirmedStep,
@@ -244,6 +243,8 @@ class Blocks extends EventEmitter {
 	}
 
 	forkChoice({ block, lastBlock }) {
+		// Current time since Lisk Epoch
+		block.receivedAt = this.slots.getEpochTime();
 		// Cases are numbered following LIP-0014 Fork choice rule.
 		// See: https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#applying-blocks-according-to-fork-choice-rule
 		// Case 2 and 1 have flipped execution order for better readability. Behavior is still the same
@@ -475,163 +476,13 @@ class Blocks extends EventEmitter {
 		this.logger.info('Blockchain ready');
 	}
 
-	async deleteLastBlockAndGet() {
-		this._lastBlock = await this.remove(this.storage, this._lastBlock);
+	async deleteLastBlockAndGet(tx) {
+		this._lastBlock = await this.remove({ block: this._lastBlock, tx });
 		return this._lastBlock;
 	}
 
 	async loadBlocksDataWS(filter, tx) {
 		return blocksUtils.loadBlocksDataWS(this.storage, filter, tx);
-	}
-
-	// Process a block from the P2P
-	async receiveBlockFromNetwork(block) {
-		this.logger.debug(
-			`Received new block from network with id: ${block.id} height: ${
-				block.height
-			} round: ${this.slots.calcRound(
-				block.height,
-			)} slot: ${this.slots.getSlotNumber(block.timestamp)} reward: ${
-				block.reward
-			} version: ${block.version}`,
-		);
-
-		return this._receiveBlockImplementations[
-			blockVersion.getBlockVersion(block.height, this.exceptions)
-		](block);
-	}
-
-	async _receiveBlockFromNetworkV1(block) {
-		return this.sequence.add(async () => {
-			this._shouldNotBeActive();
-			this._isActive = true;
-			// set active to true
-			if (this.blocksVerify.isSaneBlock(block, this._lastBlock)) {
-				try {
-					await this._processReceivedBlock(block);
-				} catch (error) {
-					this.logger.error(error);
-				}
-				return;
-			}
-			if (this.blocksVerify.isForkOne(block, this._lastBlock)) {
-				this.roundsModule.fork(block, 1);
-				if (this.blocksVerify.shouldDiscardForkOne(block, this._lastBlock)) {
-					this.logger.info('Last block stands');
-					this._isActive = false;
-					return;
-				}
-				try {
-					const {
-						verified,
-						errors,
-					} = await this.blocksVerify.normalizeAndVerify(
-						block,
-						this._lastBlock,
-						this._lastNBlockIds,
-					);
-					if (!verified) {
-						throw errors;
-					}
-					const originalLastBlock = cloneDeep(this._lastBlock);
-					this._lastBlock = await this.blocksChain.deleteLastBlock(
-						this._lastBlock,
-					);
-					this.emit(EVENT_DELETE_BLOCK, {
-						block: originalLastBlock,
-						newLastBlock: cloneDeep(this._lastBlock),
-					});
-					// emit event
-					const secondLastBlock = cloneDeep(this._lastBlock);
-					this._lastBlock = await this.blocksChain.deleteLastBlock(
-						this._lastBlock,
-					);
-					this.emit(EVENT_DELETE_BLOCK, {
-						block: secondLastBlock,
-						newLastBlock: cloneDeep(this._lastBlock),
-					});
-					this._isActive = false;
-				} catch (error) {
-					this._isActive = false;
-					this.logger.error(error);
-				}
-				return;
-			}
-			if (this.blocksVerify.isForkFive(block, this._lastBlock)) {
-				this.roundsModule.fork(block, 5);
-				if (this.blocksVerify.isDoubleForge(block, this._lastBlock)) {
-					this.logger.warn(
-						'Delegate forging on multiple nodes',
-						block.generatorPublicKey,
-					);
-				}
-				if (this.blocksVerify.shouldDiscardForkFive(block, this._lastBlock)) {
-					this.logger.info('Last block stands');
-					this._isActive = false;
-					return;
-				}
-				try {
-					const {
-						verified,
-						errors,
-					} = await this.blocksVerify.normalizeAndVerify(
-						block,
-						this._lastBlock,
-						this._lastNBlockIds,
-					);
-					if (!verified) {
-						throw errors;
-					}
-					const deletingBlock = cloneDeep(this._lastBlock);
-					this._lastBlock = await this.blocksChain.deleteLastBlock(
-						this._lastBlock,
-					);
-					this.emit(EVENT_DELETE_BLOCK, {
-						block: deletingBlock,
-						newLastBlock: cloneDeep(this._lastBlock),
-					});
-					await this._processReceivedBlock(block);
-				} catch (error) {
-					this.logger.error(error);
-				}
-				this._isActive = false;
-				return;
-			}
-			if (block.id === this._lastBlock.id) {
-				this.logger.debug({ blockId: block.id }, 'Block already processed');
-			} else {
-				this.logger.warn(
-					{
-						blockId: block.id,
-						height: block.height,
-						round: this.slots.calcRound(block.height),
-						generatorPublicKey: block.generatorPublicKey,
-						slot: this.slots.getSlotNumber(block.timestamp),
-					},
-					'Discarded block that does not match with current chain',
-				);
-			}
-			// Discard received block
-			this._isActive = false;
-		});
-	}
-
-	async _receiveBlockFromNetworkV2(block) {
-		// Current time since Lisk Epoch
-		block.receivedAt = this.slots.getEpochTime();
-
-		// Execute in sequence
-		return this.sequence.add(async () => {
-			this._shouldNotBeActive();
-			this._isActive = true;
-			try {
-				await this._forkChoiceTask(block);
-			} catch (e) {
-				this.logger.error(e);
-			} finally {
-				this._isActive = false;
-			}
-		});
 	}
 
 	// PRE: Block has been validated and verified before

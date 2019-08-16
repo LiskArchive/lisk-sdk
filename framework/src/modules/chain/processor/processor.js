@@ -153,6 +153,12 @@ class Processor {
 		});
 	}
 
+	async deleteLastBlock() {
+		const { lastBlock } = this.blocksModule;
+		const blockProcessor = this._getBlockProcessor(lastBlock);
+		await this._revert(lastBlock, blockProcessor);
+	}
+
 	_getBlockProcessor(block) {
 		const { version } = block;
 		if (!this.processors[version]) {
