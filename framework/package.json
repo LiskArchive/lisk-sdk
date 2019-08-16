@@ -20,8 +20,8 @@
 		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
 	},
 	"engines": {
-		"node": "10.15.3",
-		"npm": "6.4.1"
+		"node": ">=10.4 <=10",
+		"npm": ">=6"
 	},
 	"main": "src/index.js",
 	"scripts": {
@@ -84,7 +84,7 @@
 		"randomstring": "1.1.5",
 		"redis": "2.8.0",
 		"socket.io": "2.2.0",
-		"sodium-native": "2.2.4",
+		"sodium-native": "2.4.6",
 		"swagger-node-runner": "0.7.3",
 		"sway": "2.0.5",
 		"yargs": "13.2.2",
