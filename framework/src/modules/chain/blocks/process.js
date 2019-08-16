@@ -54,66 +54,6 @@ class BlocksProcess {
 		}
 		return currentBlock;
 	}
-
-	async reload(targetHeight, isCleaning, onProgress, loadPerIteration = 1000) {
-		await this.storage.entities.Account.resetMemTables();
-		const lastBlock = await this._rebuild(
-			1,
-			undefined,
-			targetHeight,
-			isCleaning,
-			onProgress,
-			loadPerIteration,
-		);
-		return lastBlock;
-	}
-
-	async _rebuild(
-		currentHeight,
-		initialBlock,
-		targetHeight,
-		isCleaning,
-		onProgress,
-		loadPerIteration,
-	) {
-		const limit = loadPerIteration;
-		const blocks = await blocksLogic.loadBlocksWithOffset(
-			this.storage,
-			this.interfaceAdapters,
-			this.genesisBlock,
-			limit,
-			currentHeight,
-		);
-		let lastBlock = initialBlock;
-		// eslint-disable-next-line no-restricted-syntax
-		for (const block of blocks) {
-			if (isCleaning() || block.height > targetHeight) {
-				return lastBlock;
-			}
-			if (block.id === this.genesisBlock.id) {
-				// eslint-disable-next-line no-await-in-loop
-				lastBlock = await this.blocksChain.applyGenesisBlock(block);
-				onProgress(lastBlock);
-				// eslint-disable-next-line no-continue
-				continue;
-			}
-			// eslint-disable-next-line no-await-in-loop
-			lastBlock = await this.applyBlock(block, lastBlock);
-			onProgress(lastBlock);
-		}
-		const nextCurrentHeight = lastBlock.height + 1;
-		if (nextCurrentHeight < targetHeight) {
-			return this._rebuild(
-				nextCurrentHeight,
-				lastBlock,
-				targetHeight,
-				isCleaning,
-				onProgress,
-				loadPerIteration,
-			);
-		}
-		return lastBlock;
-	}
 }
 
 module.exports = {
