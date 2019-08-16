@@ -169,7 +169,7 @@ class Bus extends EventEmitter2 {
 		const action = Action.deserialize(actionData);
 
 		if (!this.actions[action.key()]) {
-			throw new Error(`Action ${action.key()} is not registered to bus.`);
+			throw new Error(`Action '${action.key()}' is not registered to bus.`);
 		}
 
 		if (action.module === CONTROLLER_IDENTIFIER) {
@@ -204,10 +204,15 @@ class Bus extends EventEmitter2 {
 	async invokePublic(actionData) {
 		const action = Action.deserialize(actionData);
 
+		// Check if action exists
+		if (!this.actions[action.key()]) {
+			throw new Error(`Action '${action.key()}' is not registered to bus.`);
+		}
+
 		// Check if action is public
 		if (!this.actions[action.key()].isPublic) {
 			throw new Error(
-				`Action ${action.key()} is not allowed because it's not public.`,
+				`Action '${action.key()}' is not allowed because it's not public.`,
 			);
 		}
 
