@@ -45,6 +45,9 @@ interface RPCPeerListResponse {
 	readonly success?: boolean; // Could be used in future
 }
 
+export const getByteSize = (object: any): number =>
+	Buffer.byteLength(JSON.stringify(object));
+
 export const validatePeerAddress = (ip: string, wsPort: number): boolean => {
 	if (
 		(!isIP(ip, IPV4_NUMBER) && !isIP(ip, IPV6_NUMBER)) ||
@@ -78,7 +81,7 @@ export const outgoingPeerInfoSanitization = (
 	};
 };
 
-export const validatePeerInfo = (rawPeerInfo: unknown): P2PPeerInfo => {
+export const validatePeerInfoSchema = (rawPeerInfo: unknown): P2PPeerInfo => {
 	if (!rawPeerInfo) {
 		throw new InvalidPeerError(`Invalid peer object`);
 	}
@@ -120,8 +123,24 @@ export const validatePeerInfo = (rawPeerInfo: unknown): P2PPeerInfo => {
 	return peerInfoUpdated;
 };
 
+export const validatePeerInfo = (
+	rawPeerInfo: unknown,
+	maxByteSize: number,
+): P2PPeerInfo => {
+	const byteSize = getByteSize(rawPeerInfo);
+	if (byteSize > maxByteSize) {
+		throw new InvalidRPCResponseError(
+			`PeerInfo was larger than the maximum allowed ${maxByteSize} bytes`,
+		);
+	}
+
+	return validatePeerInfoSchema(rawPeerInfo);
+};
+
 export const validatePeersInfoList = (
 	rawBasicPeerInfoList: unknown,
+	maxPeerInfoListLength: number,
+	maxPeerInfoByteSize: number,
 ): ReadonlyArray<P2PPeerInfo> => {
 	if (!rawBasicPeerInfoList) {
 		throw new InvalidRPCResponseError('Invalid response type');
@@ -129,9 +148,17 @@ export const validatePeersInfoList = (
 	const { peers } = rawBasicPeerInfoList as RPCPeerListResponse;
 
 	if (Array.isArray(peers)) {
-		const peerList = peers.map<P2PPeerInfo>(validatePeerInfo);
+		if (peers.length > maxPeerInfoListLength) {
+			throw new InvalidRPCResponseError('PeerInfo list was too long');
+		}
+		const cleanPeerList = peers.filter(
+			peerInfo => getByteSize(peerInfo) < maxPeerInfoByteSize,
+		);
+		const sanitizedPeerList = cleanPeerList.map<P2PPeerInfo>(
+			validatePeerInfoSchema,
+		);
 
-		return peerList;
+		return sanitizedPeerList;
 	} else {
 		throw new InvalidRPCResponseError('Invalid response type');
 	}

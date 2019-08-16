@@ -571,7 +571,11 @@ Object {
       "fixedPeers": Array [],
       "maxInboundConnections": 100,
       "maxOutboundConnections": 20,
+      "maxPeerDiscoveryResponseLength": 1000,
+      "maxPeerInfoSize": 20480,
+      "outboundShuffleInterval": 300000,
       "peerBanTime": 86400,
+      "peerDiscoveryResponseLength": 1000,
       "populatorInterval": 10000,
       "seedPeers": Array [
         Object {
@@ -581,6 +585,7 @@ Object {
       ],
       "whitelistedPeers": Array [],
       "wsEngine": "ws",
+      "wsMaxPayload": 3048576,
       "wsPort": 5000,
     },
   },

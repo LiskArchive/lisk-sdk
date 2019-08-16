@@ -156,6 +156,11 @@ module.exports = class Network {
 			peerBanTime: this.options.peerBanTime,
 			populatorInterval: this.options.populatorInterval,
 			sendPeerLimit: this.options.emitPeerLimit,
+			peerDiscoveryResponseLength: this.options.peerDiscoveryResponseLength,
+			maxPeerDiscoveryResponseLength: this.options
+				.maxPeerDiscoveryResponseLength,
+			maxPeerInfoSize: this.options.maxPeerInfoSize,
+			wsMaxPayload: this.options.wsMaxPayload,
 			secret: this.secret,
 		};
 

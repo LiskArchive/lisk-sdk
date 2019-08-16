@@ -90,6 +90,7 @@ interface PeerPoolConfig {
 	readonly ackTimeout?: number;
 	readonly connectTimeout?: number;
 	readonly wsMaxPayload?: number;
+	readonly maxPeerInfoSize: number;
 	readonly peerSelectionForSend: P2PPeerSelectionForSendFunction;
 	readonly peerSelectionForRequest: P2PPeerSelectionForRequestFunction;
 	readonly peerSelectionForConnection: P2PPeerSelectionForConnectionFunction;
@@ -97,6 +98,7 @@ interface PeerPoolConfig {
 	readonly peerBanTime: number;
 	readonly maxOutboundConnections: number;
 	readonly maxInboundConnections: number;
+	readonly maxPeerDiscoveryResponseLength: number;
 	readonly outboundShuffleInterval: number;
 	readonly netgroupProtectionRatio: number;
 	readonly latencyProtectionRatio: number;
@@ -427,6 +429,9 @@ export class PeerPool extends EventEmitter {
 			ackTimeout: this._peerPoolConfig.ackTimeout,
 			wsMaxMessageRate: this._peerPoolConfig.wsMaxMessageRate,
 			wsMaxMessageRatePenalty: this._peerPoolConfig.wsMaxMessageRatePenalty,
+			maxPeerDiscoveryResponseLength: this._peerPoolConfig
+				.maxPeerDiscoveryResponseLength,
+			maxPeerInfoSize: this._peerPoolConfig.maxPeerInfoSize,
 			rateCalculationInterval: this._peerPoolConfig.rateCalculationInterval,
 			secret: this._peerPoolConfig.secret,
 		};
@@ -458,8 +463,11 @@ export class PeerPool extends EventEmitter {
 			banTime: this._peerPoolConfig.peerBanTime,
 			wsMaxMessageRate: this._peerPoolConfig.wsMaxMessageRate,
 			wsMaxMessageRatePenalty: this._peerPoolConfig.wsMaxMessageRatePenalty,
+			maxPeerDiscoveryResponseLength: this._peerPoolConfig
+				.maxPeerDiscoveryResponseLength,
 			rateCalculationInterval: this._peerPoolConfig.rateCalculationInterval,
 			wsMaxPayload: this._peerPoolConfig.wsMaxPayload,
+			maxPeerInfoSize: this._peerPoolConfig.maxPeerInfoSize,
 			secret: this._peerPoolConfig.secret,
 		};
 		const peer = new OutboundPeer(peerInfo, peerConfig);
