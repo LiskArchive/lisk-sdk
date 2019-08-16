@@ -69,6 +69,7 @@ module.exports = class Chain {
 			'app:getComponentConfig',
 			'logger',
 		);
+
 		const storageConfig = await this.channel.invoke(
 			'app:getComponentConfig',
 			'storage',
