@@ -261,6 +261,9 @@ export class P2P extends EventEmitter {
 
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CONNECT_OUTBOUND, peerInfo);
+			if (this._isNetworkReady()) {
+				this.emit(EVENT_NETWORK_READY);
+			}
 		};
 
 		this._handleOutboundPeerConnectAbort = (peerInfo: P2PPeerInfo) => {
@@ -385,9 +388,6 @@ export class P2P extends EventEmitter {
 				}
 				// Re-emit the message to allow it to bubble up the class hierarchy.
 				this.emit(EVENT_DISCOVERED_PEER, detailedPeerInfo);
-				if (this._isNetworkReady()) {
-					this.emit(EVENT_NETWORK_READY);
-				}
 			}
 		};
 

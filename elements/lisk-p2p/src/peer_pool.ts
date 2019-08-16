@@ -182,7 +182,6 @@ export class PeerPool extends EventEmitter {
 	private readonly _maxOutboundConnections: number;
 	private readonly _maxInboundConnections: number;
 	private readonly _peerSelectForSend: P2PPeerSelectionForSendFunction;
-	private readonly _peerSelectForRequest: P2PPeerSelectionForRequestFunction;
 	private readonly _peerSelectForConnection: P2PPeerSelectionForConnectionFunction;
 	private readonly _sendPeerLimit: number;
 	private readonly _outboundShuffleIntervalId: NodeJS.Timer | undefined;
@@ -192,7 +191,6 @@ export class PeerPool extends EventEmitter {
 		this._peerMap = new Map();
 		this._peerPoolConfig = peerPoolConfig;
 		this._peerSelectForSend = peerPoolConfig.peerSelectionForSend;
-		this._peerSelectForRequest = peerPoolConfig.peerSelectionForRequest;
 		this._peerSelectForConnection = peerPoolConfig.peerSelectionForConnection;
 		this._maxOutboundConnections = peerPoolConfig.maxOutboundConnections;
 		this._maxInboundConnections = peerPoolConfig.maxInboundConnections;
@@ -312,19 +310,12 @@ export class PeerPool extends EventEmitter {
 		const listOfPeerInfo = [...this._peerMap.values()]
 			.filter(p => p.state === ConnectionState.OPEN)
 			.map((peer: Peer) => peer.peerInfo as P2PDiscoveredPeerInfo);
-		const selectedPeers = this._peerSelectForRequest({
-			peers: getUniquePeersbyIp(listOfPeerInfo),
-			nodeInfo: this._nodeInfo,
-			peerLimit: 1,
-			requestPacket: packet,
-		});
 
-		if (selectedPeers.length <= 0) {
-			throw new RequestFailError(
-				'Request failed due to no peers found in peer selection',
-			);
+		if (listOfPeerInfo.length <= 0) {
+			throw new RequestFailError('Request failed due to no connected peers');
 		}
-		const selectedPeerId = constructPeerIdFromPeerInfo(selectedPeers[0]);
+		const selectedPeer = shuffle(listOfPeerInfo)[0];
+		const selectedPeerId = constructPeerIdFromPeerInfo(selectedPeer);
 
 		return this.requestFromPeer(packet, selectedPeerId);
 	}
