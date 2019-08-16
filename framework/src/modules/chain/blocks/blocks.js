@@ -54,6 +54,9 @@ const EVENT_DELETE_BLOCK = 'EVENT_DELETE_BLOCK';
 const EVENT_BROADCAST_BLOCK = 'EVENT_BROADCAST_BLOCK';
 const EVENT_NEW_BROADHASH = 'EVENT_NEW_BROADHASH';
 const EVENT_PRIORITY_CHAIN_DETECTED = 'EVENT_PRIORITY_CHAIN_DETECTED';
+const BLOCKCHAIN_STATUS_REBUILD = 'BLOCKCHAIN_STATUS_REBUILD';
+const BLOCKCHAIN_STATUS_RECOVERY = 'BLOCKCHAIN_STATUS_RECOVERY';
+const BLOCKCHAIN_STATUS_READY = 'BLOCKCHAIN_STATUS_READY';
 
 class Blocks extends EventEmitter {
 	constructor({
@@ -161,6 +164,7 @@ class Blocks extends EventEmitter {
 			constants: this.constants,
 		});
 
+		this.blocksUtils = blocksUtils;
 		this._receiveBlockImplementations = {
 			0: block => this._receiveBlockFromNetworkV1(block),
 			1: block => this._receiveBlockFromNetworkV1(block),
@@ -209,10 +213,14 @@ class Blocks extends EventEmitter {
 			);
 			this._lastNBlockIds = rows.map(row => row.id);
 		} catch (error) {
+			const errorMessageToThrow = `Unable to load last ${
+				this.constants.blockSlotWindow
+			} block ids, error: ${error}`;
 			this.logger.error(
 				error,
 				`Unable to load last ${this.constants.blockSlotWindow} block ids`,
 			);
+			throw errorMessageToThrow;
 		}
 	}
 
@@ -403,49 +411,39 @@ class Blocks extends EventEmitter {
 	 *
 	 * @todo Add @returns tag
 	 */
-	async loadBlockChain(rebuildUpToRound) {
+	async checkBlockChainStatus(rebuildUpToRound) {
 		this._shouldNotBeActive();
 		this._isActive = true;
+
+		// TODO: remove from here
 		await this.blocksChain.saveGenesisBlock();
 		// check mem tables
-		const { blocksCount, genesisBlock, memRounds } = await new Promise(
-			(resolve, reject) => {
-				this.storage.entities.Block.begin('loader:checkMemTables', async tx => {
-					try {
-						const result = await blocksUtils.loadMemTables(this.storage, tx);
-						resolve(result);
-					} catch (error) {
-						reject(error);
-					}
-				});
-			},
+		const {
+			blocksCount,
+			genesisBlock,
+			memRounds,
+		} = await this.storage.entities.Block.begin(
+			'loader:checkMemTables',
+			async tx => blocksUtils.loadMemTables(this.storage, tx),
 		);
 		if (blocksCount === 1) {
-			this._lastBlock = await this._reload(blocksCount);
-			this._isActive = false;
-			return;
+			return BLOCKCHAIN_STATUS_REBUILD;
 		}
-		// check genesisBlock
+
+		// check genesisBlock -- What is this function doing since it's not using the returned value
+		// TODO: check what needs to be done here
 		this.blocksVerify.matchGenesisBlock(genesisBlock);
+		// TODO: Only for rebuild should be moved to a separate function
 		// rebuild accounts if it's rebuild
 		if (rebuildUpToRound !== null && rebuildUpToRound !== undefined) {
-			try {
-				await this._rebuildMode(rebuildUpToRound, blocksCount);
-				this._isActive = false;
-			} catch (errors) {
-				this._isActive = false;
-				throw errors;
-			}
-			return;
+			return BLOCKCHAIN_STATUS_REBUILD;
 		}
 		// check reload condition, true then reload
 		try {
 			await this.blocksVerify.reloadRequired(blocksCount, memRounds);
 		} catch (error) {
 			this.logger.error(error, 'Reload of blockchain is required');
-			this._lastBlock = await this._reload(blocksCount);
-			this._isActive = false;
-			return;
+			return BLOCKCHAIN_STATUS_REBUILD;
 		}
 		try {
 			this._lastBlock = await blocksLogic.loadLastBlock(
@@ -455,10 +453,8 @@ class Blocks extends EventEmitter {
 			);
 		} catch (error) {
 			this.logger.error(error, 'Failed to fetch last block');
-			// This is last attempt
-			this._lastBlock = await this._reload(blocksCount);
-			this._isActive = false;
-			return;
+			// RELOAD REQUIIRED
+			return BLOCKCHAIN_STATUS_REBUILD;
 		}
 		const recoverRequired = await this.blocksVerify.requireBlockRewind(
 			this._lastBlock,
@@ -466,19 +462,10 @@ class Blocks extends EventEmitter {
 
 		if (recoverRequired) {
 			this.logger.error('Invalid own blockchain');
-			this._lastBlock = await this.blocksProcess.recoverInvalidOwnChain(
-				this._lastBlock,
-				(lastBlock, newLastBlock) => {
-					this.logger.info({ lastBlock, newLastBlock }, 'Deleted block');
-					this.emit(EVENT_DELETE_BLOCK, {
-						block: cloneDeep(lastBlock),
-						newLastBlock: cloneDeep(newLastBlock),
-					});
-				},
-			);
+			return BLOCKCHAIN_STATUS_RECOVERY;
 		}
-		this._isActive = false;
-		this.logger.info('Blockchain ready');
+
+		return BLOCKCHAIN_STATUS_READY;
 	}
 
 	async deleteLastBlockAndGet(tx) {
@@ -872,4 +859,7 @@ module.exports = {
 	EVENT_BROADCAST_BLOCK,
 	EVENT_NEW_BROADHASH,
 	EVENT_PRIORITY_CHAIN_DETECTED,
+	BLOCKCHAIN_STATUS_REBUILD,
+	BLOCKCHAIN_STATUS_RECOVERY,
+	BLOCKCHAIN_STATUS_READY,
 };
