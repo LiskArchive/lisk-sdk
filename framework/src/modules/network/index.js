@@ -49,7 +49,7 @@ module.exports = class NetworkModule extends BaseModule {
 	}
 
 	get events() {
-		return ['bootstrap', 'event'];
+		return ['bootstrap', 'event', 'ready'];
 	}
 
 	get actions() {
@@ -82,6 +82,7 @@ module.exports = class NetworkModule extends BaseModule {
 	async load(channel) {
 		this.network = new Network(this.options);
 		await this.network.bootstrap(channel);
+		channel.publish('network:bootstrap');
 	}
 
 	async unload() {

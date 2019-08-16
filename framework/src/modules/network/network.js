@@ -174,7 +174,7 @@ module.exports = class Network {
 		// ---- START: Bind event handlers ----
 		this.p2p.on(EVENT_NETWORK_READY, () => {
 			this.logger.debug('Node connected to the network');
-			this.channel.publish('network:bootstrap');
+			this.channel.publish('network:ready');
 		});
 
 		this.p2p.on(EVENT_CLOSE_OUTBOUND, closePacket => {
