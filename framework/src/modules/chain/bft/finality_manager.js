@@ -118,6 +118,25 @@ class FinalityManager extends EventEmitter {
 	}
 
 	/**
+	 * Remove block headers above given height (exclusive)
+	 * If no param provided will remove last block header
+	 *
+	 *
+	 * @param {int} aboveHeight -  Height from above remove headers
+	 */
+	removeBlockHeaders({ aboveHeight }) {
+		debug('removeBlockHeaders invoked');
+
+		const removeAboveHeight = aboveHeight || this.maxHeight - 1;
+
+		// Remove block header from the list
+		this.headers.remove({ aboveHeight: removeAboveHeight });
+
+		// Recompute finality data
+		this.recompute();
+	}
+
+	/**
 	 * Update pre-votes and pre-commits in reference to particular block header
 	 *
 	 * @param {BlockHeader} lastBlockHeader

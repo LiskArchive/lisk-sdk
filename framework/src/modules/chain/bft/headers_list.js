@@ -87,6 +87,14 @@ class HeadersList {
 		return this;
 	}
 
+	/**
+	 * Remove the headers above height (exclusive)
+	 * If not param provided then it remove the last block header
+	 *
+	 * @param {int} aboveHeight - Height from above remove headers
+	 *
+	 * @return {void}
+	 */
 	remove({ aboveHeight } = {}) {
 		// If list is empty just return
 		if (this.length === 0) {
