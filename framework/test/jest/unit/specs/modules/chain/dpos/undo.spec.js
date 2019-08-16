@@ -249,11 +249,11 @@ describe('dpos.undo()', () => {
 			});
 		});
 
-		it.skip('should distribute more rewards and fees (with correct balance) to delegates based on number of blocks they forged', async () => {});
+		it('should distribute more rewards and fees (with correct balance) to delegates based on number of blocks they forged', async () => {});
 
-		it.skip('should give the remainingFee ONLY to the last delegate of the round who forged', async () => {});
+		it('should give the remainingFee ONLY to the last delegate of the round who forged', async () => {});
 
-		it.skip('should update vote weight of delegate accounts that delegates who forged voted for', async () => {});
+		it('should update vote weight of accounts that delegates who forged voted for', async () => {});
 
 		describe('When all delegates successfully forges a block', () => {
 			it('should NOT update "missedBlocks" for anyone', async () => {
@@ -360,7 +360,36 @@ describe('dpos.undo()', () => {
 				});
 			});
 
-			it.skip('should should multiple "totalFee" with "fee_factor" and add "fee_bonus"', async () => {});
+			it('should multiple "totalFee" with "fee_factor" and add "fee_bonus" and substract it from the account', async () => {
+				// Act
+				await dpos.undo(lastBlockOfTheRound, stubs.tx);
+
+				uniqueDelegatesWhoForged.forEach(account => {
+					const blockCount = delegatesWhoForged.filter(
+						d => d.publicKey === account.publicKey,
+					).length;
+
+					const exceptionTotalFee =
+						totalFee * exceptionFactors.fees_factor +
+						exceptionFactors.fees_bonus;
+
+					const earnedFee =
+						(exceptionTotalFee / constants.ACTIVE_DELEGATES) * blockCount;
+
+					const partialData = {
+						fees: account.fees.minus(earnedFee),
+					};
+
+					// Assert
+					expect(stubs.storage.entities.Account.update).toHaveBeenCalledWith(
+						{
+							publicKey_eq: account.publicKey,
+						},
+						expect.objectContaining(partialData),
+						stubs.tx,
+					);
+				});
+			});
 		});
 	});
 });
