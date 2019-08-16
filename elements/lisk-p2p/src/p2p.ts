@@ -127,7 +127,7 @@ export const DEFAULT_SEND_PEER_LIMIT = 25;
 export const DEFAULT_WS_MAX_MESSAGE_RATE = 100;
 export const DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY = 10;
 export const DEFAULT_RATE_CALCULATION_INTERVAL = 1000;
-export const DEFAULT_WS_MAX_PAYLOAD = 1048576; // Payload in bytes
+export const DEFAULT_WS_MAX_PAYLOAD = 3048576; // Size in bytes
 
 const BASE_10_RADIX = 10;
 export const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
@@ -138,7 +138,9 @@ export const DEFAULT_PEER_PROTECTION_FOR_LATENCY = 0.068;
 export const DEFAULT_PEER_PROTECTION_FOR_USEFULNESS = 0.068;
 export const DEFAULT_PEER_PROTECTION_FOR_LONGEVITY = 0.5;
 export const DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD = 100;
-export const DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_SIZE = 1000;
+export const DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH = 1000;
+export const DEFAULT_MAX_PEER_INFO_SIZE = 20480; // Size in bytes
+
 const SECRET_BYTE_LENGTH = 4;
 export const DEFAULT_RANDOM_SECRET = getRandomBytes(
 	SECRET_BYTE_LENGTH,
@@ -428,6 +430,13 @@ export class P2P extends EventEmitter {
 				config.maxInboundConnections === undefined
 					? DEFAULT_MAX_INBOUND_CONNECTIONS
 					: config.maxInboundConnections,
+			maxPeerDiscoveryResponseLength:
+				config.maxPeerDiscoveryResponseLength === undefined
+					? DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH
+					: config.maxPeerDiscoveryResponseLength,
+			maxPeerInfoSize: config.maxPeerInfoSize
+				? config.maxPeerInfoSize
+				: DEFAULT_MAX_PEER_INFO_SIZE,
 			outboundShuffleInterval: config.outboundShuffleInterval
 				? config.outboundShuffleInterval
 				: DEFAULT_OUTBOUND_SHUFFLE_INTERVAL,
@@ -779,18 +788,17 @@ export class P2P extends EventEmitter {
 			.minimumPeerDiscoveryThreshold
 			? this._config.minimumPeerDiscoveryThreshold
 			: DEFAULT_MIN_PEER_DISCOVERY_THRESHOLD;
-		const maximumPeerDiscoveryResponseSize = this._config
-			.maximumPeerDiscoveryResponseSize
-			? this._config.maximumPeerDiscoveryResponseSize
-			: DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_SIZE;
+		const peerDiscoveryResponseLength = this._config.peerDiscoveryResponseLength
+			? this._config.peerDiscoveryResponseLength
+			: DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH;
 
 		const knownPeers = this._peerBook.getAllPeers();
 		/* tslint:disable no-magic-numbers*/
 		const min = Math.ceil(
-			Math.min(maximumPeerDiscoveryResponseSize, knownPeers.length * 0.25),
+			Math.min(peerDiscoveryResponseLength, knownPeers.length * 0.25),
 		);
 		const max = Math.floor(
-			Math.min(maximumPeerDiscoveryResponseSize, knownPeers.length * 0.5),
+			Math.min(peerDiscoveryResponseLength, knownPeers.length * 0.5),
 		);
 		const random = Math.floor(Math.random() * (max - min + 1) + min);
 		const randomPeerCount = Math.max(

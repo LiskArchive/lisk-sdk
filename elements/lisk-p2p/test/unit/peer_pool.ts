@@ -54,6 +54,8 @@ describe('peerPool', () => {
 		latencyProtectionRatio: DEFAULT_PEER_PROTECTION_FOR_LATENCY,
 		productivityProtectionRatio: DEFAULT_PEER_PROTECTION_FOR_USEFULNESS,
 		longevityProtectionRatio: DEFAULT_PEER_PROTECTION_FOR_LONGEVITY,
+		maxPeerInfoSize: 10000,
+		maxPeerDiscoveryResponseLength: 1000,
 		secret: DEFAULT_RANDOM_SECRET,
 	});
 
