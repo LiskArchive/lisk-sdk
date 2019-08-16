@@ -23,14 +23,6 @@ import {
 } from './p2p_types';
 
 /* tslint:disable: readonly-keyword*/
-interface Histogram {
-	[key: number]: number;
-}
-interface HistogramValues {
-	height: number;
-	histogram: Histogram;
-	max: number;
-}
 
 export const getUniquePeersbyIp = (
 	peerList: ReadonlyArray<P2PDiscoveredPeerInfo>,
@@ -55,60 +47,18 @@ export const getUniquePeersbyIp = (
 export const selectPeersForRequest = (
 	input: P2PPeerSelectionForRequestInput,
 ): ReadonlyArray<P2PDiscoveredPeerInfo> => {
-	const { peers, nodeInfo } = input;
+	const { peers } = input;
 	const peerLimit = input.peerLimit;
-	const nodeHeight = nodeInfo ? nodeInfo.height : 0;
-	const filteredPeers = peers.filter(
-		// Remove unreachable peers or heights below last block height
-		(peer: P2PDiscoveredPeerInfo) => peer.height >= nodeHeight,
-	);
 
-	if (filteredPeers.length === 0) {
+	if (peers.length === 0) {
 		return [];
 	}
 
-	// Order peers by descending height
-	const sortedPeers = filteredPeers.sort((a, b) => b.height - a.height);
-
-	const aggregation = 2;
-
-	const calculatedHistogramValues = sortedPeers.reduce(
-		(histogramValues: HistogramValues, peer: P2PDiscoveredPeerInfo) => {
-			const val = Math.floor(peer.height / aggregation) * aggregation;
-			histogramValues.histogram[val] =
-				(histogramValues.histogram[val] ? histogramValues.histogram[val] : 0) +
-				1;
-			if (histogramValues.histogram[val] > histogramValues.max) {
-				histogramValues.max = histogramValues.histogram[val];
-				histogramValues.height = val;
-			}
-
-			return histogramValues;
-		},
-		{ height: 0, histogram: {}, max: -1 },
-	);
-
-	// Perform histogram cut of peers too far from histogram maximum
-	const processedPeers = sortedPeers.filter(
-		peer =>
-			peer &&
-			Math.abs(calculatedHistogramValues.height - peer.height) <
-				aggregation + 1,
-	);
-
 	if (peerLimit === undefined) {
-		return processedPeers;
+		return shuffle(peers);
 	}
 
-	if (peerLimit === 1) {
-		const goodPeer: ReadonlyArray<P2PDiscoveredPeerInfo> = [
-			processedPeers[Math.floor(Math.random() * processedPeers.length)],
-		];
-
-		return goodPeer;
-	}
-
-	return shuffle(processedPeers).slice(0, peerLimit);
+	return shuffle(peers).slice(0, peerLimit);
 };
 
 export const selectPeersForSend = (
